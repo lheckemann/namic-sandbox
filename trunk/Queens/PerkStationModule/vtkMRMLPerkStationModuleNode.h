@@ -315,6 +315,11 @@ public:
   vtkGetMacro( TableAtOverlay, double );
   vtkSetMacro( TableAtOverlay, double );
   
+  vtkGetMacro( CurrentSliceOffset, double );
+  void SetCurrentSliceOffset( double offset );
+  
+  double GetCurrentTablePosition();
+  
   
 private:
   PatientPosition m_PatientPosition;
@@ -448,6 +453,7 @@ protected:
   
   double TableAtScanner;
   double TableAtOverlay;
+  double CurrentSliceOffset;    // Unit: mm.
   
 
 protected:

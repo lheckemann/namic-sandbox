@@ -38,10 +38,11 @@
 vtkPerkStationSecondaryMonitor* vtkPerkStationSecondaryMonitor::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkPerkStationSecondaryMonitor");
-  if(ret)
+  vtkObject* ret = vtkObjectFactory::CreateInstance(
+    "vtkPerkStationSecondaryMonitor" );
+  if( ret )
     {
-      return (vtkPerkStationSecondaryMonitor*)ret;
+      return ( vtkPerkStationSecondaryMonitor* )ret;
     }
   // If the factory was unable to create the object, then create it here.
   return new vtkPerkStationSecondaryMonitor;
@@ -63,8 +64,8 @@ vtkPerkStationSecondaryMonitor
   this->DisplayInitialized = false;  
   this->VirtualScreenCoord[ 0 ] = 0;
   this->VirtualScreenCoord[ 1 ] = 0;
-  this->ScreenSize[ 0 ] = 800;
-  this->ScreenSize[ 1 ] = 600;
+  this->ScreenSize[ 0 ] = 1024;
+  this->ScreenSize[ 1 ] = 768;
   this->ScreenSize[ 2 ] = 1;
   this->CurrentRotation = 0.0;
   this->CurrentTranslation[ 0 ] = 0.0;
@@ -80,8 +81,8 @@ vtkPerkStationSecondaryMonitor
   this->MonitorPhysicalSizeMM[ 0 ] = 304.8;
   this->MonitorPhysicalSizeMM[ 1 ] = 228.6;
 
-  this->MonitorPixelResolution[ 0 ] = 800;
-  this->MonitorPixelResolution[ 1 ] = 600;
+  this->MonitorPixelResolution[ 0 ] = 1024;
+  this->MonitorPixelResolution[ 1 ] = 768;
 
   this->MeasureNeedleLengthInWorldCoordinates = 0;
   
@@ -168,6 +169,13 @@ vtkPerkStationSecondaryMonitor
   this->CalibrationControlsActor =
    vtkSmartPointer< vtkTextActorFlippable >::New();
 
+  
+  this->TablePositionActor = vtkSmartPointer< vtkTextActorFlippable >::New();
+    this->TablePositionActor->GetTextProperty()->SetFontSize( 28 );
+    this->TablePositionActor->GetTextProperty()->BoldOn();
+    this->TablePositionActor->GetTextProperty()->SetColor( 1.0, 1.0, 0.0 );
+    this->TablePositionActor->SetTextScaleModeToNone();
+  
   
   this->UpdateCornerPositions();
   
@@ -409,7 +417,11 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->Scale[ 0 ] = s0;
   this->Scale[ 1 ] = s1;
   
+  
+    // Other visual guides.
+  
   this->Renderer->AddActor( this->MeasureDigitsActor );
+  this->Renderer->AddActor( this->TablePositionActor );
 }
 
 
@@ -717,9 +729,13 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
   if ( ! this->DisplayInitialized ) return;
   
   
-     // Switch visibility of needle guide.
-     // Show needle guide only in planning plane +/- 0.5 mm.
-   
+    // Switch visibility of needle guide.
+    // Show needle guide only in planning plane +/- 0.5 mm.
+  
+    // Recompute the position of the needle guide, and depth guides.
+  this->OverlayNeedleGuide();
+  this->SetDepthPerceptionLines();
+  
   double entry[ 3 ];
   double target[ 3 ];
   this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( entry );
@@ -733,20 +749,50 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
    }
   
   if (
-      ( this->SliceOffsetRAS <= maxOffset )
-      && ( this->SliceOffsetRAS >= minOffset )
-      && ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 )
-    )
-   {
-   this->ShowNeedleGuide( true );
-   this->ShowDepthPerceptionLines( true );
-   this->MeasureDigitsActor->SetVisibility( 1 );
-   }
+     ( this->SliceOffsetRAS <= maxOffset )
+     && ( this->SliceOffsetRAS >= minOffset )
+     && ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 )
+     )
+    {
+    
+    this->ShowNeedleGuide( true );
+    this->ShowDepthPerceptionLines( true );
+    this->MeasureDigitsActor->SetVisibility( 1 );
+
+    if ( this->HorizontalFlip ) this->MeasureDigitsActor->FlipAroundY( true );
+      else this->MeasureDigitsActor->FlipAroundY( false );
+    }
   else
+    {
+    this->ShowNeedleGuide( false );
+    this->ShowDepthPerceptionLines( false );
+    this->MeasureDigitsActor->SetVisibility( 0 );
+    }
+ 
+   
+   // Switch visibility of table position guide.
+   // Always show it when in workphase is Insertion.
+ 
+ if ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 ) // Insertion.
    {
-   this->ShowNeedleGuide( false );
-   this->ShowDepthPerceptionLines( false );
-   this->MeasureDigitsActor->SetVisibility( 0 );
+   this->TablePositionActor->SetDisplayPosition(
+     this->ScreenSize[ 0 ] / 2.0 - 150,
+     this->ScreenSize[ 1 ] - 50 );
+   std::stringstream ss;
+   ss.setf( std::ios::fixed );
+   ss << "Table position: "
+      << std::setprecision( 1 )
+      << this->GetGUI()->GetMRMLNode()->GetCurrentTablePosition()
+      << " mm";
+   this->TablePositionActor->SetInput( ss.str().c_str() );
+   this->TablePositionActor->SetVisibility( 1 );
+   
+   if ( this->HorizontalFlip ) this->TablePositionActor->FlipAroundY( true );
+     else this->MeasureDigitsActor->FlipAroundY( false );
+   }
+ else
+   {
+   this->TablePositionActor->SetVisibility( 0 );
    }
  
  
@@ -806,17 +852,23 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     // Position the actors.
 
   this->LeftSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ],
-                                          this->UpperLeftCorner[ 1 ] );
-  if ( ! Lleft && Lup )
-   this->LeftSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ],
-                                            this->UpperRightCorner[ 1 ] );
-
-  this->RightSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ],
                                            this->UpperLeftCorner[ 1 ] );
-  if ( ! Rleft && Rup )
-   this->RightSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ],
+  if ( ! Lleft && Lup )
+    this->LeftSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ],
                                              this->UpperRightCorner[ 1 ] );
-
+  if ( Lleft && ! Lup )
+    this->LeftSideActor->SetDisplayPosition( this->LowerLeftCorner[ 0 ],
+                                             this->LowerLeftCorner[ 1 ] );
+  
+  this->RightSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ],
+                                            this->UpperLeftCorner[ 1 ] );
+  if ( ! Rleft && Rup )
+    this->RightSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ],
+                                              this->UpperRightCorner[ 1 ] );
+  if ( Rleft && ! Rup )
+    this->RightSideActor->SetDisplayPosition( this->LowerLeftCorner[ 0 ],
+                                              this->LowerLeftCorner[ 1 ] );
+  
   
     // Extract slice from the image volume.
   
@@ -1248,7 +1300,8 @@ vtkPerkStationSecondaryMonitor
   
   // add to renderer of the Axial slice viewer
   this->Renderer->AddActor( this->NeedleGuideActor );  
-  this->RenderWindow->Render(); 
+  
+  // this->RenderWindow->Render(); 
 }
 
 

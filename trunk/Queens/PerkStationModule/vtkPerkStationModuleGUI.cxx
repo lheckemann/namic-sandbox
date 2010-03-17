@@ -536,6 +536,7 @@ vtkPerkStationModuleGUI
    this->SliceOffset = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )
      ->GetLogic()->GetSliceOffset();
    this->SecondaryMonitor->UpdateImageDataOnSliceOffset( this->SliceOffset );
+   this->MRMLNode->SetCurrentSliceOffset( this->SliceOffset );
    }
    
   

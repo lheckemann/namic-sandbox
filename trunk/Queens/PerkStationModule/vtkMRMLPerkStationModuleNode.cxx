@@ -170,7 +170,12 @@ vtkMRMLPerkStationModuleNode
   
     // Patient position.
   this->m_PatientPosition = PPNA;
+  
+  this->TableAtScanner = 0.0;
+  this->TableAtOverlay = 0.0;
+  this->CurrentSliceOffset = 0.0;
 }
+
 
 //----------------------------------------------------------------------------
 vtkMRMLPerkStationModuleNode::~vtkMRMLPerkStationModuleNode()
@@ -975,3 +980,23 @@ vtkMRMLPerkStationModuleNode
   
   return this->m_PatientPosition;
 }
+
+
+/**
+ * @param offset New slice offset in RAS coordinates.
+ */
+void
+vtkMRMLPerkStationModuleNode
+::SetCurrentSliceOffset( double offset )
+{
+  this->CurrentSliceOffset = offset;
+}
+
+
+double
+vtkMRMLPerkStationModuleNode
+::GetCurrentTablePosition()
+{
+  return this->TableAtOverlay + this->CurrentSliceOffset;
+}
+
