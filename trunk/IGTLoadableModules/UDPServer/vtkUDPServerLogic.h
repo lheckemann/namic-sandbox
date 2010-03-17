@@ -12,12 +12,6 @@
 
 ==========================================================================*/
 
-// .NAME vtkUDPServerLogic - slicer logic class for Locator module 
-// .SECTION Description
-// This class manages the logic associated with tracking device for
-// IGT. 
-
-
 #ifndef __vtkUDPServerLogic_h
 #define __vtkUDPServerLogic_h
 
@@ -112,6 +106,3 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
 };
 
 #endif
-
-
-  
