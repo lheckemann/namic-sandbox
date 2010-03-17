@@ -45,6 +45,9 @@
 #include "vtkKWRadioButton.h"
 #include "vtkKWCheckButton.h"
 
+#include "vtkPolyDataWriter.h"
+#include "vtkPolyData.h"
+
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkBetaProbeNavGUI );
 vtkCxxRevisionMacro ( vtkBetaProbeNavGUI, "$Revision: 1.0 $");
@@ -70,7 +73,6 @@ vtkBetaProbeNavGUI::vtkBetaProbeNavGUI ( )
   this->CountNode = NULL;
   this->ImageNode = NULL;
   this->ModelNode = NULL;
-  this->SphereTypeButtonSet = NULL;
   this->ModelTypeButtonSet = NULL;
   this->ImageTypeButtonSet = NULL;
   this->DataTypeButtonSet = NULL;
@@ -146,12 +148,6 @@ vtkBetaProbeNavGUI::~vtkBetaProbeNavGUI ( )
     {
     this->ModelNode->SetParent(NULL);
     this->ModelNode->Delete();
-    }
-     
-  if (this->SphereTypeButtonSet)
-    {
-    this->SphereTypeButtonSet->SetParent(NULL);
-    this->SphereTypeButtonSet->Delete();
     }
      
   if (this->ModelTypeButtonSet)
@@ -421,52 +417,31 @@ void vtkBetaProbeNavGUI::ProcessGUIEvents(vtkObject *caller,
       std::cerr << "One of the nodes was not defined" << std::endl;
       return;
       }
-    
-    //Check to see if Spheres is selected
-    if (!SphereTypeButtonSet->GetWidget(0)->GetSelectedState())
+      
+    //Check to see the Model Representation Option
+    if (!ModelTypeButtonSet->GetWidget(0)->GetSelectedState())
       {
-      //TODO: disable the spheres option while calculating
-      if (this->mnode == NULL)
+      //Check if a model is selected
+      if (!this->ModelNode->GetSelected())
         {
-        //Create a model node and add to scene
-        mnode = vtkMRMLModelNode::New();       
-        mnode->Modified();
-        this->GetMRMLScene()->AddNode(mnode);
-        this->GetMRMLScene()->Modified();
+        std::cerr << "The model node was not defined" << std::endl;
+        return;
         }
-      else
-        {
-        //Model is already created but we need to reset the display node
-        vtkMRMLDisplayNode* dnode = mnode->GetDisplayNode();
-        if (dnode)
-          this->GetMRMLScene()->RemoveNode(dnode);
+        
+        //Build Locators for efficient point search performed in Logic class
+        vtkMRMLModelNode* mnode = vtkMRMLModelNode::SafeDownCast(this->ModelNode->GetSelected());
+        mnode = this->GetLogic()->BuildLocators(mnode);
+        
+        //Activate the display node and provide options
+        vtkMRMLModelDisplayNode* dn = vtkMRMLModelDisplayNode::SafeDownCast(mnode->GetDisplayNode());
+        dn->SetActiveScalarName("Counts");
+        dn->SetScalarVisibility(1);
+        //TODO: put in color map node here
+        dn->Modified();
         mnode->Modified();
         this->GetMRMLScene()->Modified();
-        //Reset all the point and scalar arrays
-        this->GetLogic()->ClearArrays();
         }
       }
-      
-      //Check to see the Model Representation Option
-      if (!ModelTypeButtonSet->GetWidget(0)->GetSelectedState())
-        {
-        //Check if a model is selected
-        if (this->ModelNode)
-          {
-          //Build Locators for efficient point search performed in Logic class
-          vtkMRMLModelNode* mnode = vtkMRMLModelNode::SafeDownCast(this->ModelNode->GetSelected());
-          mnode = this->GetLogic()->BuildLocators(mnode);
-          
-          //Activate the display node and provide options
-          vtkMRMLModelDisplayNode* dn = vtkMRMLModelDisplayNode::SafeDownCast(mnode->GetDisplayNode());
-          dn->SetActiveScalarName("Counts");
-          dn->SetScalarVisibility(1);
-          //TODO: put in color map node here
-          dn->Modified();
-          mnode->Modified();
-          this->GetMRMLScene()->Modified();
-          }
-        }
 
       //Check to see Image Representation Selection
       if (!ImageTypeButtonSet->GetWidget(0)->GetSelectedState())
@@ -539,20 +514,25 @@ void vtkBetaProbeNavGUI::ProcessGUIEvents(vtkObject *caller,
     std::cerr << "Stop button is pressed." << std::endl;
     //TODO: Disable the selection checkboxes of spheres
     //TODO: Save data to file
+    //Check to see the Model Representation Option
+    if (!ModelTypeButtonSet->GetWidget(0)->GetSelectedState())
+      {
+      //Check if a model is selected
+      if (this->ModelNode)
+        {
+        //Extract the polydata from the displaynode
+        vtkMRMLModelDisplayNode* dn = vtkMRMLModelDisplayNode::SafeDownCast(mnode->GetDisplayNode());
+        vtkPolyData* polydata = dn->GetPolyData();
+        //Write polydata to file
+        vtkPolyDataWriter* writer = vtkPolyDataWriter::New();
+        writer->SetInput(polydata);
+        writer->SetFileName("PhantomWriter.vtk");
+        writer->Write();
+        }
+      }
 
     //Stop Timer to stop data point collection and representation
     this->TimerFlag = 0;
-      
-    //Represent the spheres if post view was selected
-    if (SphereTypeButtonSet->GetWidget(2)->GetSelectedState())
-      {
-      if (mnode)
-        {
-        mnode = this->GetLogic()->RepresentData(mnode);
-        mnode->Modified();
-        this->GetMRMLScene()->Modified();
-        }
-      }
     }
     
   else if (this->TransformNode == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
@@ -657,18 +637,6 @@ void vtkBetaProbeNavGUI::ProcessTimerEvents()
     if ((this->TransformNode->GetSelected()) && (this->CountNode->GetSelected()))
       {
       this->GetLogic()->CollectData(this->TransformNode->GetSelected(), this->CountNode->GetSelected());
-      }
-    
-    //Check to see if there is Sphere Representation
-    //RT Spheres
-    if (this->SphereTypeButtonSet->GetWidget(1)->GetSelectedState())
-      {
-      mnode = this->GetLogic()->RepresentDataRT(mnode);
-      }
-    //Post representation Spheres
-    if (this->SphereTypeButtonSet->GetWidget(2)->GetSelectedState())
-      {
-      mnode = this->GetLogic()->RepresentData(mnode);
       }
     
     //Check to see if there is Model Representation
@@ -964,38 +932,6 @@ void vtkBetaProbeNavGUI::BuildGUIForImportDataFrame()
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  repFrame->GetWidgetName() );
 
-  // Sphere Representation Selection
-  vtkKWFrame *sphereFrame = vtkKWFrame::New();
-  sphereFrame->SetParent(repFrame->GetFrame());
-  sphereFrame->Create();
-  app->Script ( "pack %s -fill both -expand true",  
-                sphereFrame->GetWidgetName());
-
-  vtkKWLabel *sphereLabel = vtkKWLabel::New();
-  sphereLabel->SetParent(sphereFrame);
-  sphereLabel->Create();
-  sphereLabel->SetWidth(15);
-  sphereLabel->SetText("Spheres: ");
-
-  this->SphereTypeButtonSet = vtkKWRadioButtonSet::New();
-  this->SphereTypeButtonSet->SetParent(sphereFrame);
-  this->SphereTypeButtonSet->Create();
-  this->SphereTypeButtonSet->PackHorizontallyOn();
-  this->SphereTypeButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(3);
-  this->SphereTypeButtonSet->UniformColumnsOn();
-  this->SphereTypeButtonSet->UniformRowsOn();
-
-  this->SphereTypeButtonSet->AddWidget(0);
-  this->SphereTypeButtonSet->GetWidget(0)->SetText("None");
-  this->SphereTypeButtonSet->GetWidget(0)->SelectedStateOn();
-  this->SphereTypeButtonSet->AddWidget(1);
-  this->SphereTypeButtonSet->GetWidget(1)->SetText("RT");
-  this->SphereTypeButtonSet->AddWidget(2);
-  this->SphereTypeButtonSet->GetWidget(2)->SetText("Post");
-  
-  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
-              sphereLabel->GetWidgetName() , this->SphereTypeButtonSet->GetWidgetName());
-
   //Model Representation Selection
   vtkKWFrame *modelFrame = vtkKWFrame::New();
   modelFrame->SetParent(repFrame->GetFrame());
@@ -1092,8 +1028,6 @@ void vtkBetaProbeNavGUI::BuildGUIForImportDataFrame()
   
    //Clean up
   repFrame->Delete();
-  sphereFrame->Delete();
-  sphereLabel->Delete();
   modelLabel->Delete();
   modelFrame->Delete();
   imageLabel->Delete();
