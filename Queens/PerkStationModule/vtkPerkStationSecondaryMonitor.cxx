@@ -141,15 +141,20 @@ vtkPerkStationSecondaryMonitor
 
   this->DepthPerceptionLines = vtkSmartPointer< vtkActorCollection >::New(); 
   this->TextActorsCollection = vtkActor2DCollection::New();
-
+  
+  
+  this->MeasureDigitsActor = vtkSmartPointer< vtkTextActorFlippable >::New();
+    this->MeasureDigitsActor->GetTextProperty()->SetFontSize( 22 );
+    this->MeasureDigitsActor->SetTextScaleModeToNone();
+    this->MeasureDigitsActor->GetTextProperty()->BoldOn();
+    this->MeasureDigitsActor->GetTextProperty()->SetColor( 1.0, 1.0, 0.0 );
+  
   this->LeftSideActor = vtkSmartPointer< vtkTextActorFlippable >::New();
     this->LeftSideActor->SetInput( "L" );
     this->LeftSideActor->GetTextProperty()->SetColor( 1, 0.5, 0 );
     this->LeftSideActor->SetTextScaleModeToNone();
     this->LeftSideActor->GetTextProperty()->SetFontSize( 30 );
     this->LeftSideActor->GetTextProperty()->BoldOn();
-    if ( this->HorizontalFlip ) this->LeftSideActor->FlipAroundY( true );
-    if ( this->VerticalFlip ) this->LeftSideActor->FlipAroundX( true );
     
   this->RightSideActor = vtkSmartPointer< vtkTextActorFlippable >::New();
     this->RightSideActor->SetInput( "R" );
@@ -157,8 +162,6 @@ vtkPerkStationSecondaryMonitor
     this->RightSideActor->SetTextScaleModeToNone();
     this->RightSideActor->GetTextProperty()->SetFontSize( 30 );
     this->RightSideActor->GetTextProperty()->BoldOn();
-    if ( this->HorizontalFlip ) this->RightSideActor->FlipAroundY( true );
-    if ( this->VerticalFlip ) this->RightSideActor->FlipAroundX( true );
     
   
    // Calibration controls.
@@ -405,6 +408,8 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
     // These values will be placed in the reslice transform matrix.
   this->Scale[ 0 ] = s0;
   this->Scale[ 1 ] = s1;
+  
+  this->Renderer->AddActor( this->MeasureDigitsActor );
 }
 
 
@@ -735,11 +740,13 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
    {
    this->ShowNeedleGuide( true );
    this->ShowDepthPerceptionLines( true );
+   this->MeasureDigitsActor->SetVisibility( 1 );
    }
   else
    {
    this->ShowNeedleGuide( false );
    this->ShowDepthPerceptionLines( false );
+   this->MeasureDigitsActor->SetVisibility( 0 );
    }
  
  
@@ -1249,52 +1256,52 @@ vtkPerkStationSecondaryMonitor
 void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-
+  
   if ( ! mrmlNode ) return;
-
+  
   if ( this->DepthLinesInitialized ) return;
-
+  
   this->DepthPerceptionLines->RemoveAllItems();
   this->TextActorsCollection->RemoveAllItems();
 
     // Get insertion depth
   double insertionDepth = mrmlNode->GetActualPlanInsertionDepth();
-
+  
   if ( insertionDepth > 0 )
     {
     // first calculate how many, in increments of 10 mm, less than equal to 5 lines, that less than max number of lines
     this->NumOfDepthPerceptionLines = insertionDepth / 10;
-      
+    
     double lengthIncrement = 10.0; // in mm
     
     
     vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
     vtkMatrix4x4::Invert( this->XYToRAS()->GetMatrix(), rasToXY );
-
+    
     double pointXY[ 2 ];
     double worldCoordinate[ 4 ];
     double wcStartPoint[ 4 ];
     double wcEndPoint[ 4 ];
-
+    
     // entry point
     double rasEntry[ 3 ];
     mrmlNode->GetPlanEntryPoint( rasEntry );
     // target point
     double rasTarget[ 3 ];
     mrmlNode->GetPlanTargetPoint( rasTarget );
-
+    
     double rasTemp[ 3 ];
     double inPt[ 4 ];
     double outPt[ 4 ];  
-        
-
+    
+    
     double denom = rasTarget[ 0 ] - rasEntry[ 0 ];
     double numer = rasTarget[ 1 ] - rasEntry[ 1 ];
-
+    
     double insertionAngle = atan( double( rasTarget[1] - rasEntry[1] ) /
                                   double( rasTarget[0] - rasEntry[0] ) );
-      
-
+    
+    
     // create the end point coordinates of each depth perception line,
     // starting from entry point, moving towards target point
     for ( unsigned int i = 0; i < this->NumOfDepthPerceptionLines; i++ )
@@ -1479,15 +1486,14 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
 
     if ( denom >= 0 )
       {
-      xyMeasuringLineDock[ 0 ] = this->MonitorPixelResolution[ 0 ] - 100;   
+      xyMeasuringLineDock[ 0 ] = this->ScreenSize[ 0 ] - 100;   
       }
     else
       {    
       xyMeasuringLineDock[ 0 ] = 100;
       } 
 
-    xyMeasuringLineDock[ 1 ] = this->MonitorPixelResolution[ 1 ] / 2;
-    
+    xyMeasuringLineDock[ 1 ] = this->ScreenSize[ 1 ] / 2;
     
       // Set up the needle measure.
     
@@ -1495,7 +1501,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
         vtkSmartPointer< vtkCylinderSource >::New();    
       needleMeasure->SetHeight( this->MeasureNeedleLengthInWorldCoordinates ); 
       needleMeasure->SetRadius( 0.005 );  
-      needleMeasure->SetResolution( 20 );
+      needleMeasure->SetResolution( 10 );
 
     vtkSmartPointer< vtkPolyDataMapper > measureMapper =
         vtkSmartPointer< vtkPolyDataMapper >::New();  
@@ -1505,7 +1511,6 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
         vtkSmartPointer< vtkActor >::New();
       measureLineActor->SetMapper( measureMapper );  
     
-    
       // convert to world coordinate
     this->Renderer->SetDisplayPoint( xyMeasuringLineDock[ 0 ],
       xyMeasuringLineDock[ 1 ], 0 );
@@ -1514,10 +1519,25 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
 
     measureLineActor->SetPosition( worldCoordinate[ 0 ],
       worldCoordinate[ 1 ], worldCoordinate[ 2 ] );
- 
+    
      // add to actor collection
     this->DepthPerceptionLines->AddItem( measureLineActor );
     this->Renderer->AddActor( measureLineActor );
+    
+    
+      // Measure with numbers.
+    
+    this->MeasureDigitsActor->SetPosition( xyMeasuringLineDock[ 0 ] + 10,
+                                           xyMeasuringLineDock[ 1 ] + 80 );
+    double length = std::sqrt(   ( rasTarget[ 0 ] - rasEntry[ 0 ] )
+                               * ( rasTarget[ 0 ] - rasEntry[ 0 ] )
+                               + ( rasTarget[ 1 ] - rasEntry[ 1 ] )
+                               * ( rasTarget[ 1 ] - rasEntry[ 1 ] ) );
+    std::stringstream ss;
+    ss.setf( std::ios::fixed );
+    ss << std::setprecision( 1 ) << length << " mm";
+    this->MeasureDigitsActor->SetInput( ss.str().c_str() );
+    
     
     int actorCount = this->Renderer->VisibleActorCount();
     this->DepthLinesInitialized = true;
@@ -1527,8 +1547,9 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
       this->RenderWindow->Render();
       }
   }
-
 }
+
+
 //------------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::RemoveDepthPerceptionLines()
 {
