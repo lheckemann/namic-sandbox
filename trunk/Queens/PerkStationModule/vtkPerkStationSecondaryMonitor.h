@@ -12,6 +12,7 @@
 
 #include "vtkPerkStationModule.h"
 #include "vtkMRMLPerkStationModuleNode.h"
+#include "vtkTextActorFlippable.h"
 
   // for getting display device information
 #include "Windows.h"
@@ -34,7 +35,6 @@ class vtkTransform;
 class vtkTransformFilter;
 class vtkKWFrame;
 class vtkTextActor;
-class vtkTextActorFlippable;
 class vtkKWRenderWidget;
 
 
@@ -195,14 +195,17 @@ protected:
   vtkSmartPointer< vtkActor2D >                 ImageActor;
   
     // Real time needle display.
-  vtkSmartPointer< vtkActor > NeedleGuideActor;
-  vtkSmartPointer< vtkActor > NeedleTipActor;
-  vtkSmartPointer< vtkActor > RealTimeNeedleLineActor;
+  vtkSmartPointer< vtkActor >     NeedleGuideActor;
+  vtkSmartPointer< vtkActor >     NeedleTipActor;
+  vtkSmartPointer< vtkActor >     RealTimeNeedleLineActor;
   vtkSmartPointer< vtkTextActor > NeedleTipZLocationText;
   
     // Collection of depth perception lines with labels.
-  vtkSmartPointer< vtkActorCollection > DepthPerceptionLines;  
-  vtkSmartPointer< vtkActor2DCollection > TextActorsCollection;
+  vtkSmartPointer< vtkActorCollection >    DepthPerceptionLines;  
+  vtkSmartPointer< vtkActor2DCollection >  TextActorsCollection;
+  
+    // Needle measure.
+  vtkSmartPointer< vtkTextActorFlippable > MeasureDigitsActor;
   
     // Left/Right side letters.
   vtkSmartPointer< vtkTextActorFlippable > LeftSideActor;
