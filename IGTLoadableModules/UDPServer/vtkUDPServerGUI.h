@@ -161,6 +161,4 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
 
 };
 
-
-
 #endif
