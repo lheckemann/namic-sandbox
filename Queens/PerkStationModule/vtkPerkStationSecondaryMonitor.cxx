@@ -771,7 +771,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
  
    
    // Switch visibility of table position guide.
-   // Always show it when in workphase is Insertion.
+   // Always show it when workphase is Insertion.
  
  if ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 ) // Insertion.
    {
@@ -786,9 +786,14 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
       << " mm";
    this->TablePositionActor->SetInput( ss.str().c_str() );
    this->TablePositionActor->SetVisibility( 1 );
-   
-   if ( this->HorizontalFlip ) this->TablePositionActor->FlipAroundY( true );
-     else this->MeasureDigitsActor->FlipAroundY( false );
+   if ( this->HorizontalFlip )
+     {
+     this->TablePositionActor->FlipAroundY( true );
+     }
+   else
+     {
+     this->TablePositionActor->FlipAroundY( false );
+     }
    }
  else
    {
@@ -1312,7 +1317,13 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
   
   if ( ! mrmlNode ) return;
   
-  if ( this->DepthLinesInitialized ) return;
+  if ( this->DepthLinesInitialized )
+    {
+    this->RemoveDepthPerceptionLines();
+    }
+  
+  this->DepthLinesInitialized = false;
+  // if ( this->DepthLinesInitialized ) return;
   
   this->DepthPerceptionLines->RemoveAllItems();
   this->TextActorsCollection->RemoveAllItems();
@@ -1437,7 +1448,8 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
         textActor->SetInput( text );
         textActor->GetTextProperty()->SetColor( 0, 1, 0 );
         textActor->SetTextScaleModeToNone();
-        textActor->GetTextProperty()->SetFontSize( 30 );
+        textActor->GetTextProperty()->SetFontSize( 28 );
+        textActor->GetTextProperty()->BoldOn();
         if ( this->HorizontalFlip ) textActor->FlipAroundY( true );
         if ( this->VerticalFlip ) textActor->FlipAroundX( true );
           
@@ -1445,7 +1457,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
       if ( denom >= 0 )
         {
           // Already in display coordinate system.
-        textActor->SetDisplayPosition( pointXY[ 0 ] + 120, pointXY[ 1 ] + 2 );
+        textActor->SetDisplayPosition( pointXY[ 0 ] + 30, pointXY[ 1 ] + 2 );
         }
       else
         {

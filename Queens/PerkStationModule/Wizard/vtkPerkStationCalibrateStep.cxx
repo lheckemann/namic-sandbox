@@ -317,11 +317,13 @@ vtkPerkStationCalibrateStep
 
   this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                 this->TableFrame->GetWidgetName() );
+  /*
   this->Script( "pack %s -side left -anchor nw -padx 6 -pady 2", 
                 this->TableScannerLabel->GetWidgetName() );
   this->Script( "pack %s -side left -anchor nw -padx 1 -pady 2",
                 this->TableScannerEntry->GetWidgetName() );
-  this->Script( "pack %s -side left -anchor nw -padx 1 -pady 2", 
+  */
+  this->Script( "pack %s -side left -anchor nw -padx 6 -pady 2", 
                 this->TableOverlayLabel->GetWidgetName() );
   this->Script( "pack %s -side left -anchor nw -padx 1 -pady 2",
                 this->TableOverlayEntry->GetWidgetName() );
