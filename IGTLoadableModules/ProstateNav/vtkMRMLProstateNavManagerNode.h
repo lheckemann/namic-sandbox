@@ -52,7 +52,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
 
   struct NeedleDescriptorStruct
     {
-    std::string NeedleName; // use as UID for targets
+    std::string NeedleName;
     // NeedleLength: maximum possible insertion depth, in mm
     float NeedleLength;
     // Overshoot: where is the target compared to the needle tip, in mm
@@ -60,6 +60,9 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
     // if negative, then target is in front of the needle tip (seed placement)
     float NeedleOvershoot; 
     std::string Description;
+    // LastTargetId stores the last index that was used for adding a target for this needle.
+    // It is useful for generating unique target names.
+    int LastTargetId;
     };
 
   // Events
@@ -178,6 +181,12 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   // Set/Get the current needle index (if <0 then there is no active needle)
   vtkGetMacro(CurrentNeedleIndex,int);
   vtkSetMacro(CurrentNeedleIndex,int);
+
+  //BTX
+  bool SetNeedle(unsigned int needleIndex, NeedleDescriptorStruct needleDesc);
+  // returns false if needle info was not found
+  bool GetNeedle(unsigned int needleIndex, NeedleDescriptorStruct &needleDesc);
+  //ETX
 
   //BTX
   // Description:

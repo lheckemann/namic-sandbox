@@ -735,6 +735,11 @@ void vtkProstateNavLogic::UpdateTargetListFromMRML()
     return;
   }
 
+  // True if we modified fiducials at all (typically the label has to be changed)
+  bool fidNodeModified=false;
+  // If we modified fiducials, then do it in one step, with Start/EndModify. For that we need to remember the previous state.
+  int fidNodeModifyOld=0;
+
   for (int i=0; i<manager->GetTotalNumberOfTargets(); i++)
   {
     vtkProstateNavTargetDescriptor *t=manager->GetTargetDescriptorAtIndex(i);
@@ -751,13 +756,36 @@ void vtkProstateNavLogic::UpdateTargetListFromMRML()
     int targetIndex=GetTargetIndexFromFiducialID(fidNode->GetNthFiducialID(i));
     if (targetIndex<0)
     {
+
+      if (!fidNodeModified)
+      {
+        fidNodeModified=true;
+        fidNodeModifyOld=fidNode->StartModify();
+      }
+
       // New fiducial, create associated target
       vtkSmartPointer<vtkProstateNavTargetDescriptor> targetDesc=vtkSmartPointer<vtkProstateNavTargetDescriptor>::New();      
       
       targetDesc->SetFiducialID(fidNode->GetNthFiducialID(i));
 
       int needleIndex=manager->GetCurrentNeedleIndex();
-      targetDesc->SetNeedleType(manager->GetNeedleType(needleIndex), manager->GetNeedleLength(needleIndex), manager->GetNeedleOvershoot(needleIndex));
+      vtkMRMLProstateNavManagerNode::NeedleDescriptorStruct needleDesc;
+      if (!manager->GetNeedle(needleIndex, needleDesc))
+      {
+        vtkErrorMacro("Failed to get info for needle "<<needleIndex);
+      }
+      targetDesc->SetNeedleType(needleDesc.Description, needleDesc.NeedleLength, needleDesc.NeedleOvershoot);
+
+      needleDesc.LastTargetId++;
+      if (!manager->SetNeedle(needleIndex, needleDesc))
+      {
+        vtkErrorMacro("Failed to set info for needle "<<needleIndex);
+      }
+
+      std::ostrstream strvalue;
+      strvalue << needleDesc.NeedleName << needleDesc.LastTargetId << std::ends;        
+      fidNode->SetNthFiducialLabelText(i,strvalue.str());
+      strvalue.rdbuf()->freeze(0);     
 
       std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeID());
       targetDesc->SetTargetingFoRStr(FoR);
@@ -797,6 +825,13 @@ void vtkProstateNavLogic::UpdateTargetListFromMRML()
     {
       vtkErrorMacro("Invalid Fiducial ID");
     }
+  }
+
+  if (fidNodeModified)
+  {
+    fidNode->EndModify(fidNodeModifyOld);
+    // StartModify/EndModify discarded vtkMRMLFiducialListNode::FiducialModifiedEvent-s, so we have to resubmit them now
+    fidNode->InvokeEvent(vtkMRMLFiducialListNode::FiducialModifiedEvent, NULL);
   }
 }
 

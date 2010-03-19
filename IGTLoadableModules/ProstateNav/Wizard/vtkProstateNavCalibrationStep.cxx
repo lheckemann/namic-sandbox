@@ -209,8 +209,6 @@ void vtkProstateNavCalibrationStep::ShowUserInterface()
     this->CalibrateButton->Create ( );
     this->CalibrateButton->SetText ("Perform Calibration");
     this->CalibrateButton->SetBalloonHelpString("Send Calibration Data to the Robot");
-    this->CalibrateButton->AddObserver(vtkKWPushButton::InvokedEvent,
-                                       (vtkCommand *)this->GUICallbackCommand);
     }
 
   this->Script("pack %s -side top -anchor w -padx 2 -pady 2", 
@@ -233,10 +231,7 @@ void vtkProstateNavCalibrationStep::ShowUserInterface()
     this->ShowZFrameCheckButton->SetParent(this->ZFrameSettingFrame);
     this->ShowZFrameCheckButton->Create();
     this->ShowZFrameCheckButton->SelectedStateOff();
-    this->ShowZFrameCheckButton->SetText("Show ZFrame");
-    this->ShowZFrameCheckButton
-      ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-    
+    this->ShowZFrameCheckButton->SetText("Show ZFrame");   
     }
 
   this->Script("pack %s -side top -anchor w -padx 2 -pady 2", 
@@ -249,13 +244,19 @@ void vtkProstateNavCalibrationStep::ShowUserInterface()
     this->ShowWorkspaceCheckButton->Create();
     this->ShowWorkspaceCheckButton->SelectedStateOff();
     this->ShowWorkspaceCheckButton->SetText("Show Range of Motion");
-    this->ShowWorkspaceCheckButton
-      ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   this->Script("pack %s -side top -anchor w -padx 2 -pady 2", 
                this->ShowWorkspaceCheckButton->GetWidgetName());
 
+  this->AddGUIObservers();
+}
+
+//----------------------------------------------------------------------------
+void vtkProstateNavCalibrationStep::HideUserInterface()
+{
+  Superclass::HideUserInterface();
+  RemoveGUIObservers();
 }
 
 
@@ -402,4 +403,40 @@ void vtkProstateNavCalibrationStep::PerformZFrameCalibration(vtkMRMLScalarVolume
 
 }
 
+
+//-----------------------------------------------------------------------------
+void vtkProstateNavCalibrationStep::AddGUIObservers()
+{
+  this->RemoveGUIObservers();
+
+  if (this->CalibrateButton)
+    {
+    this->CalibrateButton->AddObserver(vtkKWPushButton::InvokedEvent,(vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->ShowZFrameCheckButton)
+    {
+    this->ShowZFrameCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->ShowWorkspaceCheckButton)
+    {
+    this->ShowWorkspaceCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+}
+
+//-----------------------------------------------------------------------------
+void vtkProstateNavCalibrationStep::RemoveGUIObservers()
+{
+  if (this->CalibrateButton)
+    {
+    this->CalibrateButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->ShowZFrameCheckButton)
+    {
+    this->ShowZFrameCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->ShowWorkspaceCheckButton)
+    {
+    this->ShowWorkspaceCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+}
 

@@ -641,22 +641,25 @@ void vtkMRMLProstateNavManagerNode::Init()
   // initialize at least one needle  
   NeedleDescriptorStruct needle;
 
-  needle.Description = "Generic needle";
+  needle.Description = "Generic";
   needle.NeedleLength = 200;
   needle.NeedleOvershoot = 0;
-  needle.NeedleName = "Generic";
+  needle.NeedleName = "T";
+  needle.LastTargetId = 0;
   this->NeedlesVector.push_back(needle);
 
-  needle.Description = "Biopsy needle";
+  needle.Description = "Biopsy";
   needle.NeedleLength = 200;
   needle.NeedleOvershoot = 13;
-  needle.NeedleName = "Biopsy";
+  needle.NeedleName = "B";
+  needle.LastTargetId = 0;
   this->NeedlesVector.push_back(needle);
 
-  needle.Description = "Seed placement needle";
+  needle.Description = "Seed";
   needle.NeedleLength = 200;
   needle.NeedleOvershoot = -1.5;
-  needle.NeedleName = "Seed placement";
+  needle.NeedleName = "S";
+  needle.LastTargetId = 0;
   this->NeedlesVector.push_back(needle);
 
   this->CurrentNeedleIndex=0;
@@ -665,11 +668,11 @@ void vtkMRMLProstateNavManagerNode::Init()
   vtkSmartPointer<vtkMRMLFiducialListNode> targetFidList = vtkSmartPointer<vtkMRMLFiducialListNode>::New();
   targetFidList->SetLocked(true);
   targetFidList->SetName("Target");
-  targetFidList->SetDescription("Created by TR Prostate Biopsy Module");
-  targetFidList->SetColor(0.5,0.7,0.3);
+  targetFidList->SetDescription("ProstateNav target point list");
+  targetFidList->SetColor(1.0,1.0,0);
   targetFidList->SetSelectedColor(1.0, 0.0, 0.0);
   targetFidList->SetGlyphType(vtkMRMLFiducialListNode::Sphere3D);
-  targetFidList->SetOpacity(0.6);
+  targetFidList->SetOpacity(0.7);
   targetFidList->SetAllFiducialsVisibility(true);
   targetFidList->SetSymbolScale(5);
   targetFidList->SetTextScale(5);    
@@ -686,4 +689,25 @@ bool vtkMRMLProstateNavManagerNode::FindTargetingParams(vtkProstateNavTargetDesc
     return false;
     }
   return this->RobotNode->FindTargetingParams(targetDesc);
+}
+
+
+bool vtkMRMLProstateNavManagerNode::SetNeedle(unsigned int needleIndex, NeedleDescriptorStruct needleDesc)
+{
+  if (needleIndex >= this->NeedlesVector.size())
+    {
+    return false;
+    }
+  this->NeedlesVector[needleIndex]=needleDesc;
+  return true;
+}
+
+bool vtkMRMLProstateNavManagerNode::GetNeedle(unsigned int needleIndex, NeedleDescriptorStruct &needleDesc)
+{
+  if (needleIndex >= this->NeedlesVector.size())
+    {
+    return false;
+    }
+  needleDesc=this->NeedlesVector[needleIndex];
+  return true;
 }

@@ -340,8 +340,8 @@ void vtkProstateNavTargetingStep::ShowTargetListFrame()
   if(!this->DeleteButton->IsCreated())
     {
     this->DeleteButton->SetParent(this->TargetListFrame);
-    this->DeleteButton->SetText("Delete");
-    this->DeleteButton->SetBalloonHelpString("Delete selected target");
+    this->DeleteButton->SetText("Delete selected target");
+    this->DeleteButton->SetBalloonHelpString("Delete selected target point from the target list");
     this->DeleteButton->Create();
     }    
   this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
@@ -1072,7 +1072,7 @@ void vtkProstateNavTargetingStep::UpdateGUI()
     for (int i = 0; i < mrmlNode->GetNumberOfNeedles(); i++)
       {
       std::ostrstream needleTitle;
-      needleTitle << mrmlNode->GetNeedleType(i) << " ("
+      needleTitle << mrmlNode->GetNeedleDescription(i) << " ("
         <<mrmlNode->GetNeedleOvershoot(i)<<"mm overshoot, "
         <<mrmlNode->GetNeedleLength(i)<<"mm length"
         << ")" << std::ends;      
