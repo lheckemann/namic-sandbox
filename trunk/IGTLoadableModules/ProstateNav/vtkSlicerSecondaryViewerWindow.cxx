@@ -172,7 +172,14 @@ void vtkSlicerSecondaryViewerWindow::CreateWidget()
   // Create view node
   vtkSmartPointer<vtkMRMLViewNode> viewNode = vtkSmartPointer<vtkMRMLViewNode>::New();
   viewNode->SetName(gui->GetMRMLScene()->GetUniqueNameByString("ProstateNavSecondaryWindow"));  
+  
+  // Don't show the viewer widget in the main viewer (it is important because having multiple widgets for the same view node
+  // causes hang in camera clipping range computation). We will create the viewer widget for showing it in our secondary viewer window.
+  viewNode->SetVisibility(false);
+
+  // Don't show the view node for the user
   viewNode->SetHideFromEditors(true);
+
   gui->GetMRMLScene()->AddNode(viewNode);  
 
   // Create the 3D Viewer
