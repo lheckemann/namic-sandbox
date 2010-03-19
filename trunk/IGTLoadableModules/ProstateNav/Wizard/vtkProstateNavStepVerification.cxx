@@ -203,7 +203,12 @@ void vtkProstateNavStepVerification::ShowUserInterface()
   this->ShowVolumeSelectionFrame();
   this->ShowTargetListFrame();
   this->ShowVerificationControlFrame();
-  
+
+  if (GetLogic()!=NULL)
+  {
+    GetLogic()->SetMouseInteractionMode(vtkMRMLInteractionNode::ViewTransform);
+  }
+
   vtkMRMLFiducialListNode* verifNode=vtkMRMLFiducialListNode::New();
   verifNode->SetName("Verification");
   SetVerificationPointListNode(verifNode);
@@ -293,6 +298,7 @@ void vtkProstateNavStepVerification::ShowTargetListFrame()
     this->TargetList->Create();
     this->TargetList->SetHeight(1);
     this->TargetList->GetWidget()->SetSelectionTypeToRow();
+    this->TargetList->GetWidget()->SetSelectionBackgroundColor(1,0,0);
     this->TargetList->GetWidget()->MovableRowsOff();
     this->TargetList->GetWidget()->MovableColumnsOff();
 
@@ -779,20 +785,28 @@ void vtkProstateNavStepVerification::StartVerification()
     vtkErrorMacro("VerificationPointListNode is invalid");
     return;
   }      
+  if (this->GetProstateNavManager()->GetCurrentTargetIndex()<0)
+  {
+    // no selected target
+    return;
+  }        
 
   this->TargetIndexUnderVerification=-1; // updates may be called while modifying MRML nodes, make sure that no verification is attempted
 
+  // Clear previous verif points
   int oldModify=this->VerificationPointListNode->StartModify();
-  // Set fiducial placement mode
-  GetLogic()->SetCurrentFiducialList(this->VerificationPointListNode);
-  GetLogic()->SetMouseInteractionMode(vtkMRMLInteractionNode::Place); 
-  // Lock GUI
   this->VerificationPointListNode->SetLocked(false);
   this->VerificationPointListNode->RemoveAllFiducials();
+  this->VerificationPointListNode->EndModify(oldModify); // triggers stop verification
+
+  // Lock GUI
   this->TargetList->SetEnabled(false);
   this->VerifyButton->SetEnabled(false);
   this->ClearButton->SetEnabled(false);
-  this->VerificationPointListNode->EndModify(oldModify);
+
+  // Set fiducial placement mode
+  GetLogic()->SetCurrentFiducialList(this->VerificationPointListNode);
+  GetLogic()->SetMouseInteractionMode(vtkMRMLInteractionNode::Place); 
 
   this->TargetIndexUnderVerification=this->GetProstateNavManager()->GetCurrentTargetIndex();
 }

@@ -36,6 +36,11 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual void ShowUserInterface();
+  virtual void HideUserInterface();
+
+  virtual void AddGUIObservers();
+  virtual void RemoveGUIObservers();
+
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
 
   void ShowZFrameModel(bool show);
