@@ -83,7 +83,7 @@ enum
   COL_COUNT // all valid columns should be inserted above this line
 };
 static const char* COL_LABELS[COL_COUNT] = { "Name", "R", "A", "S", "Needle", "OrW", "OrX", "OrY", "OrZ" };
-static const int COL_WIDTHS[COL_COUNT] = { 8, 6, 6, 6, 8, 6, 6, 6, 6 };
+static const int COL_WIDTHS[COL_COUNT] = { 8, 6, 6, 6, 10, 6, 6, 6, 6 };
 
 
 //----------------------------------------------------------------------------
@@ -129,6 +129,8 @@ vtkProstateNavTargetingStep::vtkProstateNavTargetingStep()
   this->ProcessingCallback = false;
 
   this->TargetPlanListNode=NULL;
+
+  this->ShowTargetOrientation = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -290,7 +292,7 @@ void vtkProstateNavTargetingStep::ShowTargetListFrame()
     this->TargetListFrame->SetParent(parent);
     this->TargetListFrame->Create();
     }
-  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
+  this->Script("pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
                this->TargetListFrame->GetWidgetName());
 
   if (!this->TargetList)
@@ -306,10 +308,13 @@ void vtkProstateNavTargetingStep::ShowTargetListFrame()
 
     for (int col = 0; col < COL_COUNT; col ++)
       {
-      this->TargetList->GetWidget()->AddColumn(COL_LABELS[col]);
-      this->TargetList->GetWidget()->SetColumnWidth(col, COL_WIDTHS[col]);
-      this->TargetList->GetWidget()->SetColumnAlignmentToLeft(col);
-      this->TargetList->GetWidget()->ColumnEditableOff(col);
+      if (this->ShowTargetOrientation || (col!=COL_OR_W && col!=COL_OR_X && col!=COL_OR_Y && col!=COL_OR_Z))
+        {
+          this->TargetList->GetWidget()->AddColumn(COL_LABELS[col]);
+          this->TargetList->GetWidget()->SetColumnWidth(col, COL_WIDTHS[col]);
+          this->TargetList->GetWidget()->SetColumnAlignmentToLeft(col);
+          this->TargetList->GetWidget()->ColumnEditableOff(col);
+        }
       }
 
     // Set editing options
@@ -322,14 +327,16 @@ void vtkProstateNavTargetingStep::ShowTargetListFrame()
       this->TargetList->GetWidget()->ColumnEditableOn(col);
       this->TargetList->GetWidget()->SetColumnEditWindowToSpinBox(col);
       }
-    for (int col = COL_OR_W; col <= COL_OR_Z; col ++)
+    if (this->ShowTargetOrientation)
       {
-      this->TargetList->GetWidget()->ColumnEditableOn(col);
-      this->TargetList->GetWidget()->SetColumnEditWindowToSpinBox(col);
+      for (int col = COL_OR_W; col <= COL_OR_Z; col ++)
+        {
+        this->TargetList->GetWidget()->ColumnEditableOn(col);
+        this->TargetList->GetWidget()->SetColumnEditWindowToSpinBox(col);
+        }
       }
-
     }
-  this->Script( "pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
                 this->TargetList->GetWidgetName());
 
 
@@ -364,7 +371,7 @@ void vtkProstateNavTargetingStep::ShowTargetControlFrame()
     this->TargetControlFrame->SetParent(parent);
     this->TargetControlFrame->Create();
     }
-  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
+  this->Script("pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
                this->TargetControlFrame->GetWidgetName());
 
     if (!this->NeedlePositionMatrix)
@@ -385,7 +392,7 @@ void vtkProstateNavTargetingStep::ShowTargetControlFrame()
     matrix->SetElementChangedCommandTriggerToAnyChange();
     }
 
-  if (!this->NeedleOrientationMatrix)
+  if (!this->NeedleOrientationMatrix && this->ShowTargetOrientation)
     {
     this->NeedleOrientationMatrix = vtkKWMatrixWidgetWithLabel::New();
     this->NeedleOrientationMatrix->SetParent(this->TargetControlFrame);
@@ -403,9 +410,18 @@ void vtkProstateNavTargetingStep::ShowTargetControlFrame()
     matrix->SetElementChangedCommandTriggerToAnyChange();
     }
 
-  this->Script("pack %s %s -side top -anchor nw -expand n -padx 2 -pady 2",
+  if (this->ShowTargetOrientation)
+    {
+    this->Script("pack %s %s -side top -anchor nw -expand n -padx 2 -pady 2",
                this->NeedlePositionMatrix->GetWidgetName(),
                this->NeedleOrientationMatrix->GetWidgetName());
+    }
+  else 
+    {
+    this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
+               this->NeedlePositionMatrix->GetWidgetName());
+    }
+
 
   if(!this->Message)
     {
@@ -471,21 +487,24 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
   if (this->MoveButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    if (this->Logic && this->NeedlePositionMatrix && this->NeedleOrientationMatrix)
+    if (this->Logic && this->NeedlePositionMatrix)
       {
-      float position[3];   // position parameters
-      float orientation[4]; // orientation parameters
+      float position[3]={0,0,0};   // position parameters
+      float orientation[4]={1,0,0,0}; // orientation parameters
 
       vtkKWMatrixWidget* matrix = this->NeedlePositionMatrix->GetWidget();
       position[0] = (float) matrix->GetElementValueAsDouble(0, 0);
       position[1] = (float) matrix->GetElementValueAsDouble(0, 1);
       position[2] = (float) matrix->GetElementValueAsDouble(0, 2);
 
-      matrix = this->NeedleOrientationMatrix->GetWidget();
-      orientation[0] = (float) matrix->GetElementValueAsDouble(0, 0);
-      orientation[1] = (float) matrix->GetElementValueAsDouble(0, 1);
-      orientation[2] = (float) matrix->GetElementValueAsDouble(0, 2);
-      orientation[3] = (float) matrix->GetElementValueAsDouble(0, 3);
+      if (this->ShowTargetOrientation && this->NeedleOrientationMatrix)
+      {
+        matrix = this->NeedleOrientationMatrix->GetWidget();
+        orientation[0] = (float) matrix->GetElementValueAsDouble(0, 0);
+        orientation[1] = (float) matrix->GetElementValueAsDouble(0, 1);
+        orientation[2] = (float) matrix->GetElementValueAsDouble(0, 2);
+        orientation[3] = (float) matrix->GetElementValueAsDouble(0, 3);
+      }
 
       vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(this->GetProstateNavManager()->GetRobotNode()->GetTargetTransformNodeID());
       vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
@@ -633,6 +652,7 @@ void vtkProstateNavTargetingStep::ProcessMRMLEvents(vtkObject *caller,
     {
     case vtkCommand::ModifiedEvent:
     case vtkMRMLScene::NodeAddedEvent: // Node Added Event : when a fiducial is added to the list
+    case vtkMRMLScene::NodeRemovedEvent: // Node Removed Event : when a fiducial is reomved from the list
     case vtkMRMLFiducialListNode::FiducialModifiedEvent:
     case vtkMRMLFiducialListNode::DisplayModifiedEvent:
       UpdateTargetListGUI();
@@ -668,6 +688,7 @@ void vtkProstateNavTargetingStep::AddMRMLObservers()
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkCommand::ModifiedEvent);
     events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+    events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);    
     events->InsertNextValue(vtkMRMLFiducialListNode::DisplayModifiedEvent);
     events->InsertNextValue(vtkMRMLFiducialListNode::FiducialModifiedEvent);
 
@@ -742,7 +763,7 @@ void vtkProstateNavTargetingStep::OnMultiColumnListUpdate(int row, int col, char
           }
         }            
       }
-    else if (col >= COL_OR_W  && col <= COL_OR_Z)
+    else if (this->ShowTargetOrientation && col >= COL_OR_W  && col <= COL_OR_Z)
       {
       float * wxyz = fidList->GetNthFiducialOrientation(row);
       float newCoordinate = atof(str);
@@ -818,12 +839,15 @@ void vtkProstateNavTargetingStep::OnMultiColumnListSelectionChanged()
     matrix->SetElementValueAsDouble(0, 1, xyz[1]);
     matrix->SetElementValueAsDouble(0, 2, xyz[2]);
 
-    matrix = this->NeedleOrientationMatrix->GetWidget();
-    double* wxyz=targetDesc->GetRASOrientation();
-    matrix->SetElementValueAsDouble(0, 0, wxyz[0]);
-    matrix->SetElementValueAsDouble(0, 1, wxyz[1]);
-    matrix->SetElementValueAsDouble(0, 2, wxyz[2]);
-    matrix->SetElementValueAsDouble(0, 3, wxyz[3]);
+    if (this->ShowTargetOrientation && this->NeedleOrientationMatrix)
+      {
+      matrix = this->NeedleOrientationMatrix->GetWidget();
+      double* wxyz=targetDesc->GetRASOrientation();
+      matrix->SetElementValueAsDouble(0, 0, wxyz[0]);
+      matrix->SetElementValueAsDouble(0, 1, wxyz[1]);
+      matrix->SetElementValueAsDouble(0, 2, wxyz[2]);
+      matrix->SetElementValueAsDouble(0, 3, wxyz[3]);
+      }
           
     this->GetProstateNavManager()->SetCurrentTargetIndex(targetIndex);
     }
@@ -878,6 +902,10 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
   double *xyz;
   double *wxyz;
 
+  // Precision of the target position and orientation display
+  const int POSITION_PRECISION_DIGITS=1;
+  const double POSITION_PRECISION_TOLERANCE=0.1/2.0;
+
   for (int row = 0; row < numPoints; row++)
     {      
     int targetIndex=row;
@@ -909,19 +937,27 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
       {
       for (int i = 0; i < 3; i ++) // for position (x, y, z)
         {
-        if (deleteFlag || columnList->GetCellTextAsDouble(row,COL_X+i) != xyz[i])
+        if (deleteFlag || fabs(columnList->GetCellTextAsDouble(row,COL_X+i)-xyz[i])>POSITION_PRECISION_TOLERANCE)
           {
-          columnList->SetCellTextAsDouble(row,COL_X+i,xyz[i]);
+          std::ostrstream os;    
+          os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(POSITION_PRECISION_DIGITS);
+          os << xyz[i] << std::ends;
+          columnList->SetCellText(row,COL_X+i,os.str());
+          os.rdbuf()->freeze();
           }
         }
       }
-    if (wxyz != NULL)
+    if (this->ShowTargetOrientation && wxyz != NULL)
       {
       for (int i = 0; i < 4; i ++) // for orientation (w, x, y, z)
         {
-        if (deleteFlag || columnList->GetCellTextAsDouble(row, COL_OR_W+i) != wxyz[i])
+        if (deleteFlag || fabs(columnList->GetCellTextAsDouble(row, COL_OR_W+i)-wxyz[i])>POSITION_PRECISION_TOLERANCE)
           {
-          columnList->SetCellTextAsDouble(row,COL_OR_W+i,wxyz[i]);
+          std::ostrstream os;    
+          os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(POSITION_PRECISION_DIGITS);
+          os << wxyz[i] << std::ends;
+          columnList->SetCellText(row,COL_OR_W+i,os.str());
+          os.rdbuf()->freeze();
           }
         }
       }
@@ -1072,7 +1108,7 @@ void vtkProstateNavTargetingStep::UpdateGUI()
     for (int i = 0; i < mrmlNode->GetNumberOfNeedles(); i++)
       {
       std::ostrstream needleTitle;
-      needleTitle << mrmlNode->GetNeedleDescription(i) << " ("
+      needleTitle << mrmlNode->GetNeedleDescription(i) << " <" << mrmlNode->GetNeedleType(i) <<"> ("
         <<mrmlNode->GetNeedleOvershoot(i)<<"mm overshoot, "
         <<mrmlNode->GetNeedleLength(i)<<"mm length"
         << ")" << std::ends;      
@@ -1122,4 +1158,15 @@ void vtkProstateNavTargetingStep::EnableAddTargetsOnClickButton(bool enable)
     vtkMRMLInteractionNode::Place : 
     vtkMRMLInteractionNode::ViewTransform
     );
+}
+
+//----------------------------------------------------------------------------
+void vtkProstateNavTargetingStep::SetShowTargetOrientation(int show)
+{
+  if (this->TargetList)
+  {
+    vtkErrorMacro("ShowTargetOrientation cannot be changed after the GUI has been built");
+    return;
+  }
+  this->ShowTargetOrientation = show;  
 }

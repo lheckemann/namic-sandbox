@@ -1348,9 +1348,17 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
       calibrationStep->SetTitleBackgroundColor(193.0/255.0, 115.0/255.0, 80.0/255.0);
       newStep=calibrationStep;
     }
+    else if (!stepName.compare("PointTargetingWithoutOrientation"))
+    {
+      vtkProstateNavTargetingStep* targetingStep = vtkProstateNavTargetingStep::New();
+      targetingStep->SetShowTargetOrientation(false);
+      targetingStep->SetTitleBackgroundColor(138.0/255.0, 165.0/255.0, 111.0/255.0);
+      newStep=targetingStep;
+    }
     else if (!stepName.compare("PointTargeting"))
     {
       vtkProstateNavTargetingStep* targetingStep = vtkProstateNavTargetingStep::New();
+      targetingStep->SetShowTargetOrientation(true);
       targetingStep->SetTitleBackgroundColor(138.0/255.0, 165.0/255.0, 111.0/255.0);
       newStep=targetingStep;
     }

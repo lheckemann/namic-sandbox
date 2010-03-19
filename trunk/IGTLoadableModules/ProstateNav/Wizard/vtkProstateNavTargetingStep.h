@@ -57,6 +57,8 @@ public:
   void OnMultiColumnListSelectionChanged();
   void UpdateTargetListGUI();
 
+  void SetShowTargetOrientation(int show);
+
 protected:
   vtkProstateNavTargetingStep();
   ~vtkProstateNavTargetingStep();
@@ -120,9 +122,11 @@ protected:
 
   vtkKWText *Message;
 
+  int ShowTargetOrientation;
+
 private:
   vtkProstateNavTargetingStep(const vtkProstateNavTargetingStep&);
-  void operator=(const vtkProstateNavTargetingStep&);
+  void operator=(const vtkProstateNavTargetingStep&);  
 };
 
 #endif

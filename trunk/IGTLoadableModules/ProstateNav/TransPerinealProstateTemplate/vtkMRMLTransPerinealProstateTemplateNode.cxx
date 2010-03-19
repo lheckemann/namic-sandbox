@@ -1388,6 +1388,8 @@ int vtkMRMLTransPerinealProstateTemplateNode::GetNeedleTransform(int i, int j, d
     {
     return 0;
     }
+  
+  return 0; // not implemented
 }
  
 
