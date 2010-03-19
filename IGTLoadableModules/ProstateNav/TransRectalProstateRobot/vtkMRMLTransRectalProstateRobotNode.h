@@ -65,7 +65,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
     {return "TransRectalProstateRobot";};
 
   virtual const char* GetWorkflowStepsString()
-    {return "FiducialCalibration PointTargeting PointVerification"; };
+    {return "FiducialCalibration PointTargetingWithoutOrientation PointVerification"; };
 
   // method to propagate events generated in mrml
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
