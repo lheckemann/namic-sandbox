@@ -606,7 +606,7 @@ ComputeVelocityField()
   EpsilonI22.set_identity();
   EpsilonI22 *= ( this->m_Epsilon ); //  FIXME * this->m_Epsilon ) * this->m_ShortestEdgeLength;
 
-  double metricSum = 0.0;
+  double sumOfSquaredDifferences = 0.0;
 
   const double sigmaX2 = ( this->m_SigmaX * this->m_SigmaX ); // * this->m_ShortestEdgeLength;
 
@@ -683,7 +683,7 @@ ComputeVelocityField()
 
     Vn.SetVnlVector( intensitySlope * ( Fv - Mv ) );
 
-    metricSum += ( Fv - Mv )*( Fv - Mv ) / sigmaN2;
+    sumOfSquaredDifferences += ( Fv - Mv )*( Fv - Mv ) / sigmaN2;
 
     velocityItr.Value() = Vn; // FIXME  * ( this->m_SphereRadius );  needed ?
 
@@ -695,7 +695,9 @@ ComputeVelocityField()
     ++pointItr;
     }
 
-  this->m_MetricValue = vcl_sqrt( metricSum );
+  const double averageOfSquaredDifferences = sumOfSquaredDifferences / numberOfNodes; 
+
+  this->m_MetricValue = vcl_sqrt( averageOfSquaredDifferences  );
   std::cout <<  "Metric: " <<  this->m_MetricValue << "  ";
 }
 
