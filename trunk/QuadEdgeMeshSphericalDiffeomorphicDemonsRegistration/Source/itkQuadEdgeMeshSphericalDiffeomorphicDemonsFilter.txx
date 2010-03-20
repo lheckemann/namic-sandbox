@@ -693,7 +693,7 @@ ComputeVelocityField()
     ++pointItr;
     }
 
-  std::cout <<  "Metric: " <<  metricSum << std::endl;
+  std::cout <<  "Metric: " <<  metricSum << "  ";
 }
 
 
