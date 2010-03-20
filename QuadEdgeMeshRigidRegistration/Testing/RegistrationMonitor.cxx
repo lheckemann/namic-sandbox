@@ -84,6 +84,10 @@ RegistrationMonitor::RegistrationMonitor()
   this->NumberOfIterationsPerUpdate = 1;
 
   this->Verbose = true;
+
+  this->CameraZoomFactor = 1.5;
+  this->CameraAzimuthAngle = 0.0;
+  this->CameraElevationAngle = 0.0;
 }
 
 
@@ -138,6 +142,8 @@ void RegistrationMonitor::StartVisualization()
   this->FixedActor->SetMapper( this->FixedMapper );
   this->FixedMapper->SetInput( this->FixedSurface );
   this->FixedMapper->ScalarVisibilityOn();
+//  this->FixedMapper->UseLookupTableScalarRangeOn();
+//  this->FixedMapper->SetScalarRange(0.0,10.0);
 
   this->FixedProperty->SetAmbient(0.1);
   this->FixedProperty->SetDiffuse(0.1);
@@ -153,6 +159,8 @@ void RegistrationMonitor::StartVisualization()
   this->MovingActor->SetMapper( this->MovingMapper );
   this->MovingMapper->SetInput( this->MovingSurface );
   this->MovingMapper->ScalarVisibilityOn();
+//  this->MovingMapper->UseLookupTableScalarRangeOn();
+//  this->MovingMapper->SetScalarRange(0.0,10.0);
 
   this->MovingProperty->SetAmbient(0.1);
   this->MovingProperty->SetDiffuse(0.1);
@@ -178,10 +186,14 @@ void RegistrationMonitor::StartVisualization()
   vtkCamera * fixedCamera = this->FixedRenderer->GetActiveCamera();
   vtkCamera * movingCamera = this->MovingRenderer->GetActiveCamera();
 
-  const double zoomFactor = 1.5;
+  fixedCamera->Zoom( this->CameraZoomFactor );
+  movingCamera->Zoom( this->CameraZoomFactor );
 
-  fixedCamera->Zoom( zoomFactor );
-  movingCamera->Zoom( zoomFactor );
+  fixedCamera->Elevation( this->CameraElevationAngle );
+  movingCamera->Elevation( this->CameraElevationAngle );
+
+  fixedCamera->Azimuth( this->CameraAzimuthAngle );
+  movingCamera->Azimuth( this->CameraAzimuthAngle );
 
   this->RenderWindow->Render();
   this->RenderWindowInteractor->Initialize();
