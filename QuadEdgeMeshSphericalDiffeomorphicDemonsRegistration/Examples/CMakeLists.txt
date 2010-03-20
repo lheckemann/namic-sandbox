@@ -312,8 +312,8 @@ ADD_TEST(DemonsExample2
   ${TEMP}/MeshDemonsFilter1_ResampledMovingMesh_IC2.vtk
   ${TEMP}/MeshDemonsFilter1_DeformedFixedMesh_IC2.vtk
   100.0  # Sphere radius
-  1.0    # Epsilon
-  1.0    # SigmaX
+  0.010  # Epsilon
+  10.0   # SigmaX  proportional to sqrt(shortest edge). In this mesh short edge is 39.018
   1.0    # Lambda
    2     # Smoothing Iterations
   30     # maximum number of iterations
@@ -333,8 +333,21 @@ ADD_TEST(DemonsExample3
   50     # maximum number of iterations
   )
 
-
 ADD_TEST(DemonsExample4
+  ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
+  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC4.vtk
+  ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC4.vtk
+  ${TEMP}/MeshDemonsFilter1_ResampledMovingMesh_IC4.vtk
+  ${TEMP}/MeshDemonsFilter1_DeformedFixedMesh_IC4.vtk
+  100.0  # Sphere radius
+  0.004  # Epsilon equal to 1/(SigmaX^2)
+  16.0   # SigmaX  proportional to sqrt(shortest edge). In this mesh short edge is 9.81344
+  1.0    # Lambda
+   3     # Smoothing Iterations
+  50     # maximum number of iterations
+  )
+
+ADD_TEST(DemonsExample5
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
   ${TEST_DATA_ROOT}/Input/SimpleSurface1Small.vtk
   ${TEST_DATA_ROOT}/Input/RigidRegistrationSimpleSurface2to1Small.vtk
@@ -348,7 +361,7 @@ ADD_TEST(DemonsExample4
   30     # maximum number of iterations
   )
 
-ADD_TEST(DemonsExample5
+ADD_TEST(DemonsExample6
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
   ${TEST_DATA_ROOT}/Input/SimpleSurface1.vtk
   ${TEST_DATA_ROOT}/Input/RigidRegistrationSimpleSurface2to1.vtk
@@ -362,7 +375,7 @@ ADD_TEST(DemonsExample5
   30     # maximum number of iterations
   )
 
-ADD_TEST(DemonsExample6
+ADD_TEST(DemonsExample7
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter2
   ${TEST_DATA_ROOT}/Input/SimpleSurface1Small.vtk
   ${TEST_DATA_ROOT}/Input/RigidRegistrationSimpleSurface2to1Small.vtk
