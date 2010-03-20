@@ -61,6 +61,10 @@ public:
 
   void SetBaseAnnotationText( const char * text );
 
+  void SetCameraAzimuthAngle( double );
+  void SetCameraElevationAngle( double );
+  void SetCameraZoomFactor( double );
+
 protected:
 
   virtual void RefreshRendering();
@@ -128,6 +132,10 @@ private:
   std::string                     ScreenShotsBaseFileName;
 
   std::string                     BaseAnnotationText;
+
+  double                          CameraElevationAngle;
+  double                          CameraAzimuthAngle;
+  double                          CameraZoomFactor;
 };
 
 #endif
