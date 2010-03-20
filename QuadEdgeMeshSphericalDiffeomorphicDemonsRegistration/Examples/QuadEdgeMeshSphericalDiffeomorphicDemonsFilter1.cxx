@@ -23,6 +23,14 @@
 #include "itkQuadEdgeMeshVTKPolyDataReader.h"
 #include "itkQuadEdgeMesh.h"
 
+#include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationConfigure.h"
+
+#ifdef USE_VTK
+#include "DeformableRegistrationMonitor.h"
+#include "vtkSmartPointer.h"
+#include "vtkPolyDataReader.h"
+#endif
+
 int main( int argc, char *argv[] )
 {
   if( argc < 11 )
@@ -94,6 +102,39 @@ int main( int argc, char *argv[] )
 
   demonsFilter->SetLambda( lambda );
   demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
+
+#ifdef USE_VTK
+  typedef DemonsFilterType::DestinationPointSetType    DestinationPointSetType;
+
+  typedef DeformableRegistrationMonitor< 
+    DestinationPointSetType > RegistrationMonitorType;
+
+  RegistrationMonitorType  visualMonitor;
+  visualMonitor.SetNumberOfIterationsPerUpdate( 1 );
+
+  visualMonitor.SetBaseAnnotationText("Demons Registration ");
+
+  visualMonitor.SetVerbose( false );
+  visualMonitor.SetScreenShotsBaseFileName( "demonsExample3" );
+
+  vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader = 
+    vtkSmartPointer< vtkPolyDataReader >::New();
+
+  vtkSmartPointer< vtkPolyDataReader > vtkMovingMeshReader = 
+    vtkSmartPointer< vtkPolyDataReader >::New();
+
+  vtkFixedMeshReader->SetFileName( fixedReader->GetFileName() );
+  vtkMovingMeshReader->SetFileName( movingReader->GetFileName() );
+
+  vtkFixedMeshReader->Update();
+  vtkMovingMeshReader->Update();
+
+  visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+
+  visualMonitor.Observe( demonsFilter.GetPointer() );
+  visualMonitor.ObserveData( demonsFilter->GetFinalDestinationPoints() );
+#endif
 
 
   try

@@ -15,9 +15,11 @@ INCLUDE_DIRECTORIES(
 
 
 ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
- QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx) 
+ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx
+ ${QuadEdgeMeshRigidRegistration}/Testing/RegistrationMonitor.cxx)
 TARGET_LINK_LIBRARIES(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
- ITKQuadEdgeMesh ITKNumerics ITKIO) 
+ ITKQuadEdgeMesh ITKNumerics ITKIO
+ vtkRendering vtkFiltering vtkIO vtkHybrid)
 
 ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter2
  QuadEdgeMeshSphericalDiffeomorphicDemonsFilter2.cxx) 
