@@ -326,11 +326,11 @@ ADD_TEST(DemonsExample3
   ${TEMP}/MeshDemonsFilter1_ResampledMovingMesh_IC3.vtk
   ${TEMP}/MeshDemonsFilter1_DeformedFixedMesh_IC3.vtk
   100.0  # Sphere radius
-  1.0    # Epsilon
-  1.0    # SigmaX
+  0.002  # Epsilon equal to 1/(SigmaX^2)
+  22.5   # SigmaX  proportional to sqrt(shortest edge). In this mesh short edge is 19.6034
   1.0    # Lambda
-   2     # Smoothing Iterations
-  30     # maximum number of iterations
+   3     # Smoothing Iterations
+  50     # maximum number of iterations
   )
 
 
