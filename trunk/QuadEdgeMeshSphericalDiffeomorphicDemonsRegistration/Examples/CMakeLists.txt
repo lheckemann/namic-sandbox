@@ -246,11 +246,11 @@ ADD_TEST(DemonsRegister_${MESHID1}_${MESHID2}_IC${SUBDIVISIONS}
   ${RESAMPLEDMOVINGMESH}
   ${DEFORMEDFIXEDMESH}
   100.0  # Sphere radius
-  1.0    # Epsilon
-  1.0    # SigmaX
+  0.010  # Epsilon equal to 1/(SigmaX^2)
+  10.00  # SigmaX  proportional to sqrt(shortest edge). In this mesh short edge is 9.81344
   1.0    # Lambda
-  10     # Smoothing Iterations
-  30     # maximum number of iterations
+   3     # Smoothing Iterations
+  15     # maximum number of iterations
   )
 
 ENDMACRO( DEMONS_REGISTER )
