@@ -435,6 +435,5 @@ int main( int argc, char * argv [] )
   writer->Update(); 
   std::cout << "Deformed Fixed Mesh  Saved" << std::endl;
 
-  return 1;
-
-  }
+  return EXIT_SUCCESS;
+}
