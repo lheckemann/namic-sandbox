@@ -188,7 +188,7 @@ public:
    * on the process that you used for generating your deformation field. 
    */
   itkSetMacro( MaximumNumberOfSmoothingIterations, unsigned int );
-  itkGetMacro( MaximumNumberOfSmoothingIterations, unsigned int );
+  itkGetConstMacro( MaximumNumberOfSmoothingIterations, unsigned int );
 
   /** Factor that controls the degree of Smoothing. Large values of Lambda
    * result is stronger smoothing.  The Lambda factor is used to compute the
@@ -208,7 +208,7 @@ public:
    *
    */
   itkSetMacro( Lambda, double );
-  itkGetMacro( Lambda, double );
+  itkGetConstMacro( Lambda, double );
 
   /** Returns a new mesh that is identical to the input Fixed Mesh except for
    * the fact that its points have been moved to the location of the destination
@@ -217,6 +217,12 @@ public:
    * only valid after you have successfully called the Update() method. */ 
   const FixedMeshType * GetDeformedFixedMesh() const;
 
+
+  /** Square root of sum of squared differences of intensities between nodes in
+   * the mesh. This value is not used directly in the algorithm. We simply
+   * compute it as a way of providing feedback on the progress of the
+   * registration. */
+  itkGetConstMacro( MetricValue, double );
 
   /**  Create the Output of the proper type for that output number */
   DataObject::Pointer MakeOutput(unsigned int idx);
@@ -386,6 +392,12 @@ private:
   TangentVectorPointer              m_TangentVectorFieldSwap;
 
   TimeProbesCollectorBase           m_Chronometer;
+
+  /** Square root of sum of squared differences of intensities between nodes in
+   * the mesh. This value is not used directly in the algorithm. We simply
+   * compute it as a way of providing feedback on the progress of the
+   * registration. */
+  double        m_MetricValue;
 };
 
 }
