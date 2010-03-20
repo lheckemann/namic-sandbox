@@ -111,6 +111,24 @@ void RegistrationMonitor::SetMovingSurface(vtkPolyData* surface)
 }
 
 
+void RegistrationMonitor::SetCameraZoomFactor(double value)
+{
+  this->CameraZoomFactor = value;
+}
+
+
+void RegistrationMonitor::SetCameraAzimuthAngle(double value)
+{
+  this->CameraAzimuthAngle = value;
+}
+
+
+void RegistrationMonitor::SetCameraElevationAngle(double value)
+{
+  this->CameraElevationAngle = value;
+}
+
+
 /** Callback for the StartEvent */
 void RegistrationMonitor::StartVisualization()
 {
