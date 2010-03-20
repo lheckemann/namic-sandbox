@@ -71,6 +71,8 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
   this->m_ShortestEdgeLength = 1.0;
   this->m_ScalingAndSquaringNumberOfIterations = 2;
+
+  this->m_MetricValue = 0.0;
 }
 
 
@@ -693,8 +695,8 @@ ComputeVelocityField()
     ++pointItr;
     }
 
-  metricSum = vcl_sqrt( metricSum );
-  std::cout <<  "Metric: " <<  metricSum << "  ";
+  this->m_MetricValue = vcl_sqrt( metricSum );
+  std::cout <<  "Metric: " <<  this->m_MetricValue << "  ";
 }
 
 
