@@ -162,6 +162,11 @@ vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
     {
     vtkSetMRMLNodeMacro( this->MRMLNode, NULL );
     }
+  
+  if ( this->WizardWidget )
+    {
+    this->WizardWidget->Delete();
+    }
 }
 
 
@@ -667,35 +672,12 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       }
 
     
-
-    /*
-    // read the config file
-    bool fileFound = this->GetLogic()->ReadConfigFile();
-    if (fileFound)
-      {
-      this->WizardWidget->SetErrorText("Config file found!");
-      this->WizardWidget->Update();
-      }
-    else
-      {
-      this->WizardWidget->SetErrorText("Config file not found!");
-      this->WizardWidget->Update();
-      }
-    
-    */
     }
 
   // save node parameters for Undo
-  this->GetLogic()->GetMRMLScene()->SaveStateForUndo(n);
+  this->GetLogic()->GetMRMLScene()->SaveStateForUndo( n );
    
-
-  /*n->SetConductance(this->ConductanceScale->GetValue());
   
-  n->SetTimeStep(this->TimeStepScale->GetValue());
-  
-  n->SetNumberOfIterations((int)floor(this->NumberOfIterationsScale->GetValue()));
-
-  n->SetUseImageSpacing(this->UseImageSpacing->GetState());*/
   
   if (this->VolumeSelector->GetSelected() != NULL)
     {    
@@ -729,9 +711,8 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
         // this implies that a planning volume already existed but now there is new image/volume chosen as planning volume in calibrate step
         planningVolumePreExists = true;
         }
-
       
-
+      
       // calibrate/planning volume set
       n->SetPlanningVolumeRef(this->VolumeSelector->GetSelected()->GetID());
       n->SetPlanningVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(n->GetPlanningVolumeRef())));
@@ -922,6 +903,14 @@ void vtkPerkStationModuleGUI::ProcessMRMLEvents ( vtkObject *caller,
     }
 }
 
+
+
+vtkKWWizardWidget*
+vtkPerkStationModuleGUI
+::GetWizardWidget()
+{
+  return this->WizardWidget;
+}
 
 
 
@@ -1277,62 +1266,45 @@ void vtkPerkStationModuleGUI::BuildGUI()
               page->GetWidgetName());
 
     // individual page/collapsible frame with their own widgets inside:
-  this->WizardWidget->SetParent(this->WizardFrame->GetFrame());
+  this->WizardWidget->SetParent( this->WizardFrame->GetFrame() );
   this->WizardWidget->Create();  
   this->WizardWidget->GetSubTitleLabel()->SetHeight(1);
-  this->WizardWidget->SetClientAreaMinimumHeight(320);
-  //this->WizardWidget->SetButtonsPositionToTop();
+  this->WizardWidget->SetClientAreaMinimumHeight( 320 );
   this->WizardWidget->HelpButtonVisibilityOn();
-  this->GetApplication()->Script("pack %s -side top -anchor nw -fill both -expand y",
-              this->WizardWidget->GetWidgetName());
+  this->GetApplication()->Script(
+    "pack %s -side top -anchor nw -fill both -expand y",
+    this->WizardWidget->GetWidgetName() );
   
 
-  vtkNotUsed(vtkKWWizardWidget *wizard_widget = this->WizardWidget;);
-  vtkKWWizardWorkflow *wizard_workflow = this->WizardWidget->GetWizardWorkflow();
+  // vtkNotUsed(vtkKWWizardWidget *wizard_widget = this->WizardWidget;);
   
-  // -----------------------------------------------------------------
-  // Calibration step
-
-  if (!this->CalibrateStep)
-    {
-    this->CalibrateStep = vtkPerkStationCalibrateStep::New();
-    this->CalibrateStep->SetGUI(this);
-    }
-
-  wizard_workflow->AddStep(this->CalibrateStep);
+  vtkKWWizardWorkflow *wizard_workflow =
+    this->WizardWidget->GetWizardWorkflow();
+  
+  this->CalibrateStep = vtkPerkStationCalibrateStep::New();
+  this->CalibrateStep->SetGUI( this );
+  
+  wizard_workflow->AddStep( this->CalibrateStep );
   
 
+  this->PlanStep = vtkPerkStationPlanStep::New();
+  this->PlanStep->SetGUI( this );
   
-  // -----------------------------------------------------------------
-  // Plan step
-
-  if (!this->PlanStep)
-    {
-    this->PlanStep = vtkPerkStationPlanStep::New();
-    this->PlanStep->SetGUI(this);
-    }
-  wizard_workflow->AddNextStep(this->PlanStep);
-
-  // -----------------------------------------------------------------
-  // Insert step
-
-  if (!this->InsertStep)
-    {
-    this->InsertStep = vtkPerkStationInsertStep::New();
-    this->InsertStep->SetGUI(this);
-    }
+  wizard_workflow->AddNextStep( this->PlanStep );
+  
+  
+  this->InsertStep = vtkPerkStationInsertStep::New();
+  this->InsertStep->SetGUI(this);
+  
   wizard_workflow->AddNextStep(this->InsertStep);
-
-  // -----------------------------------------------------------------
-  // Validate step
-
-  if (!this->ValidateStep)
-    {
-    this->ValidateStep = vtkPerkStationValidateStep::New();
-    this->ValidateStep->SetGUI(this);
-    }
+  
+  
+  this->ValidateStep = vtkPerkStationValidateStep::New();
+  this->ValidateStep->SetGUI(this);
+  
   wizard_workflow->AddNextStep(this->ValidateStep);
-
+  
+  
   wizard_workflow->SetFinishStep(this->ValidateStep);
   
   
@@ -1475,7 +1447,7 @@ void vtkPerkStationModuleGUI::SetUpPerkStationMode()
 //---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::SetUpPerkStationWizardWorkflow()
 {  
-  vtkNotUsed( vtkKWWizardWidget *wizard_widget = this->WizardWidget; );
+  // vtkNotUsed( vtkKWWizardWidget *wizard_widget = this->WizardWidget; );
   vtkKWWizardWorkflow *wizard_workflow = this->WizardWidget->GetWizardWorkflow();
   
     // create transition/program validate button such that it doesn't go further

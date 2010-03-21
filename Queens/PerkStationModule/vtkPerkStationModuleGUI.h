@@ -67,9 +67,7 @@ public:
     return this->SecondaryMonitor.GetPointer();
   }
   
-  vtkKWWizardWidget* GetWizardWidget() {
-    return this->WizardWidget.GetPointer();
-  }
+  vtkKWWizardWidget* GetWizardWidget();
   
   
   // Description:
@@ -207,7 +205,7 @@ private:
 
     // Description:
     // The wizard widget and steps
-  vtkSmartPointer< vtkKWWizardWidget > WizardWidget;
+  vtkKWWizardWidget* WizardWidget;
   vtkSmartPointer< vtkPerkStationCalibrateStep > CalibrateStep;
   vtkSmartPointer< vtkPerkStationPlanStep > PlanStep;
   vtkSmartPointer< vtkPerkStationInsertStep > InsertStep;
