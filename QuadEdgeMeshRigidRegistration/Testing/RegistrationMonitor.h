@@ -65,6 +65,8 @@ public:
   void SetCameraElevationAngle( double );
   void SetCameraZoomFactor( double );
 
+  void SetScalarRange( double minimun, double maximum );
+
 protected:
 
   virtual void RefreshRendering();
@@ -136,6 +138,9 @@ private:
   double                          CameraElevationAngle;
   double                          CameraAzimuthAngle;
   double                          CameraZoomFactor;
+
+  double                          RangeMinimum;
+  double                          RangeMaximum;
 };
 
 #endif
