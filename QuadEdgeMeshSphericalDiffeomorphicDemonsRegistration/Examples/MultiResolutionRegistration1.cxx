@@ -43,8 +43,6 @@
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationConfigure.h"
 
 #ifdef USE_VTK
-#include "AffineRegistrationMonitor.h"
-#include "DeformableRegistrationMonitor.h"
 #include "DeformableAndAffineRegistrationMonitor.h"
 #include "vtkSmartPointer.h"
 #include "vtkPolyDataReader.h"
@@ -243,6 +241,8 @@ int main( int argc, char * argv [] )
 
   visualMonitor.SetVerbose( false );
   visualMonitor.SetScreenShotsBaseFileName( argv[16] );
+
+  visualMonitor.SetScalarRange( -0.1, 0.1 );
 
   vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader = 
     vtkSmartPointer< vtkPolyDataReader >::New();
