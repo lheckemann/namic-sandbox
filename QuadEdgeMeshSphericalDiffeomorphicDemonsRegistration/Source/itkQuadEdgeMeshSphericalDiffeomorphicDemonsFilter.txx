@@ -587,19 +587,19 @@ ComputeVelocityField()
   VnlMatrix33Type Gn;
   VnlMatrix33Type Gn2;
   VnlMatrix33Type mn2;
-  VnlMatrix32Type Qn;
-  VnlMatrix23Type QnT;
+  VnlMatrix32Type En;
+  VnlMatrix23Type EnT;
   VnlMatrix22Type EpsilonI22;
-  VnlMatrix33Type Gn2Bn2;
-  VnlMatrix33Type Gn2Bn2m2;
-  VnlMatrix22Type QnTGn2Bn2m2Qn;
-  VnlMatrix22Type QnTGn2Bn2m2QnGI22;
-  VnlMatrix22Type QnTGn2Bn2m2QnGI22I;
-  VnlMatrix33Type BnT;
-  VnlMatrix33Type Gn2Bn;
+  VnlMatrix33Type Gn2Sn2;
+  VnlMatrix33Type Gn2Sn2m2;
+  VnlMatrix22Type EnTGn2Sn2m2En;
+  VnlMatrix22Type EnTGn2Sn2m2EnGI22;
+  VnlMatrix22Type EnTGn2Sn2m2EnGI22I;
+  VnlMatrix33Type SnT;
+  VnlMatrix33Type Gn2Sn;
 
   VnlVector3Type mn;
-  VnlVector2Type QnTmn;
+  VnlVector2Type EnTmn;
   VnlVector3Type intensitySlope;
   VelocityVectorType Vn;
 
@@ -649,10 +649,10 @@ ComputeVelocityField()
 
     for( unsigned int i = 0; i < 3; i++ )
       {
-      Qn(i,0) = v0[i];
-      Qn(i,1) = v1[i];
-      QnT(0,i) = v0[i];
-      QnT(1,i) = v1[i];
+      En(i,0) = v0[i];
+      En(i,1) = v1[i];
+      EnT(0,i) = v0[i];
+      EnT(1,i) = v1[i];
       mn[i] = derivative[i];
       }
 
@@ -661,13 +661,13 @@ ComputeVelocityField()
       for( unsigned int c = 0; c < 3; c++ )
         {
         mn2(r,c) = mn[r] * mn[c];
-        BnT(r,c) = destinationJacobian(c,r);  // FIXME : Check for potential transposition here...
+        SnT(r,c) = destinationJacobian(r,c);  // FIXME : Check for potential transposition here...
         }
       }
 
-    Gn2Bn = Gn2 * BnT;
+    Gn2Sn = Gn2 * SnT;
 
-    Gn2Bn2 = Gn2Bn.transpose() * Gn2Bn;
+    Gn2Sn2 = Gn2Sn.transpose() * Gn2Sn;
 
     //
     // The general form of this addition would involve two weights,
@@ -675,17 +675,17 @@ ComputeVelocityField()
     //
     const double sigmaN2 = sigmaItr.Value() * sigmaItr.Value();
 
-    Gn2Bn2m2 = mn2 / sigmaN2 + Gn2Bn2 / sigmaX2;
+    Gn2Sn2m2 = mn2 / sigmaN2 + Gn2Sn2 / sigmaX2;
 
-    QnTGn2Bn2m2Qn = QnT * Gn2Bn2m2 * Qn;
+    EnTGn2Sn2m2En = EnT * Gn2Sn2m2 * En;
 
-    QnTGn2Bn2m2QnGI22 = QnTGn2Bn2m2Qn + EpsilonI22;
+    EnTGn2Sn2m2EnGI22 = EnTGn2Sn2m2En + EpsilonI22;
 
-    QnTGn2Bn2m2QnGI22I = vnl_matrix_inverse< double >( QnTGn2Bn2m2QnGI22 );
+    EnTGn2Sn2m2EnGI22I = vnl_matrix_inverse< double >( EnTGn2Sn2m2EnGI22 );
 
-    QnTmn = QnT * mn;
+    EnTmn = EnT * mn;
 
-    intensitySlope = Qn * QnTGn2Bn2m2QnGI22I * QnTmn;
+    intensitySlope = En * EnTGn2Sn2m2EnGI22I * EnTmn;
 
     Vn.SetVnlVector( intensitySlope * ( Fv - Mv ) );
 
