@@ -196,60 +196,47 @@ void vtkPerkStationValidateStep::ShowUserInterface()
     }
 
 
-  switch (this->GetGUI()->GetMode())      
+
+  // in clinical mode
+  this->SetName("4/4. Validate");
+  this->GetGUI()->GetWizardWidget()->Update();
+
+   // additional reset button
+
+  // frame for reset button
+  if (!this->ResetFrame)
     {
-
-    case vtkPerkStationModuleGUI::Training:
-
-      this->SetName("4/5. Validate");
-      this->GetGUI()->GetWizardWidget()->Update();  
-      break;
-
-    case vtkPerkStationModuleGUI::Clinical:
-       
-      // in clinical mode
-      this->SetName("4/4. Validate");
-      this->GetGUI()->GetWizardWidget()->Update();
-
-       // additional reset button
-
-      // frame for reset button
-      if (!this->ResetFrame)
-        {
-        this->ResetFrame = vtkKWFrame::New();
-        }
-      if (!this->ResetFrame->IsCreated())
-        {
-        this->ResetFrame->SetParent(parent);
-        this->ResetFrame->Create();     
-        }
-      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                        this->ResetFrame->GetWidgetName());
-      
-      if (!this->ResetValidationButton)
-        {
-        this->ResetValidationButton = vtkKWPushButton::New();
-        }
-      if(!this->ResetValidationButton->IsCreated())
-        {
-        this->ResetValidationButton->SetParent(this->ResetFrame);
-        this->ResetValidationButton->SetText("Reset validation");
-        this->ResetValidationButton->SetBorderWidth(2);
-        this->ResetValidationButton->SetReliefToRaised();      
-        this->ResetValidationButton->SetHighlightThickness(2);
-        this->ResetValidationButton->SetBackgroundColor(0.85,0.85,0.85);
-        this->ResetValidationButton->SetActiveBackgroundColor(1,1,1);      
-        this->ResetValidationButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
-        this->ResetValidationButton->Create();
-        }
-      
-      this->Script("pack %s -side top -padx 2 -pady 4", 
-                        this->ResetValidationButton->GetWidgetName());
-      
-      
-
-      break;
+    this->ResetFrame = vtkKWFrame::New();
     }
+  if (!this->ResetFrame->IsCreated())
+    {
+    this->ResetFrame->SetParent(parent);
+    this->ResetFrame->Create();     
+    }
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    this->ResetFrame->GetWidgetName());
+  
+  if (!this->ResetValidationButton)
+    {
+    this->ResetValidationButton = vtkKWPushButton::New();
+    }
+  if(!this->ResetValidationButton->IsCreated())
+    {
+    this->ResetValidationButton->SetParent(this->ResetFrame);
+    this->ResetValidationButton->SetText("Reset validation");
+    this->ResetValidationButton->SetBorderWidth(2);
+    this->ResetValidationButton->SetReliefToRaised();      
+    this->ResetValidationButton->SetHighlightThickness(2);
+    this->ResetValidationButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->ResetValidationButton->SetActiveBackgroundColor(1,1,1);      
+    this->ResetValidationButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
+    this->ResetValidationButton->Create();
+    }
+  
+  this->Script("pack %s -side top -padx 2 -pady 4", 
+                    this->ResetValidationButton->GetWidgetName());
+  
+     
   
   this->SetDescription("Mark actual entry point and target hit");  
 
@@ -746,35 +733,35 @@ void vtkPerkStationValidateStep::RemoveGUIObservers()
 //----------------------------------------------------------------------------
 void vtkPerkStationValidateStep::InstallCallbacks()
 {
-    // Configure the OK button to start
-  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Clinical)
+  // Configure the OK button to start
+  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+
+  if (wizard_widget->GetOKButton())
     {
-    vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-
-    if (wizard_widget->GetOKButton())
-      {
-      wizard_widget->GetOKButton()->SetText("Start over");
-      wizard_widget->GetOKButton()->SetCommand(
-      this, "StartOverNewExperiment");
-      wizard_widget->GetOKButton()->SetBalloonHelpString(
-      "Do another experiment");
-      }
-
+    wizard_widget->GetOKButton()->SetText("Start over");
+    wizard_widget->GetOKButton()->SetCommand(
+    this, "StartOverNewExperiment");
+    wizard_widget->GetOKButton()->SetBalloonHelpString(
+    "Do another experiment");
     }
-
+  
   this->AddGUIObservers();
-
- 
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationValidateStep::StartOverNewExperiment()
 {
  this->GetGUI()->ResetAndStartNewExperiment();
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationValidateStep::PopulateControls()
 {
 }
+
+
 //-----------------------------------------------------------------------------
 void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData)
 {
@@ -825,7 +812,7 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
     double ras[3] = {outPt[0], outPt[1], outPt[2]};
 
     // depending on click number, it is either Entry point or target point
-    if (this->ClickNumber ==1)
+    if ( this->ClickNumber == 1 )
       {
       // entry point specification by user
       this->EntryPoint->GetWidget(0)->SetValueAsDouble(ras[0]);
@@ -834,8 +821,6 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
 
       // record value in mrml node
       this->GetGUI()->GetMRMLNode()->SetValidateEntryPoint(ras);
-      this->GetGUI()->GetMRMLNode()->CalculateEntryPointError();
-      
       }
     else if (this->ClickNumber == 2)
       {
@@ -845,7 +830,7 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
       
       // record value in the MRML node
       this->GetGUI()->GetMRMLNode()->SetValidateTargetPoint(ras);      
-      this->GetGUI()->GetMRMLNode()->CalculateTargetPointError();
+      // this->GetGUI()->GetMRMLNode()->CalculateTargetPointError();
       
       this->ClickNumber = 0;
 
@@ -856,7 +841,7 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
       this->GetGUI()->GetMRMLNode()->GetValidateEntryPoint(rasEntry);
       this->GetGUI()->GetMRMLNode()->GetValidateTargetPoint(rasTarget);
       double insDepth = sqrt( (rasTarget[0] - rasEntry[0])*(rasTarget[0] - rasEntry[0]) + (rasTarget[1] - rasEntry[1])*(rasTarget[1] - rasEntry[1]) + (rasTarget[2] - rasEntry[2])*(rasTarget[2] - rasEntry[2]) );
-      this->GetGUI()->GetMRMLNode()->SetValidateInsertionDepth(insDepth);   
+      // this->GetGUI()->GetMRMLNode()->SetValidateInsertionDepth(insDepth);   
       this->InsertionDepth->GetWidget()->SetValueAsDouble(insDepth);
       
       this->LogTimer->StopTimer();
@@ -884,12 +869,18 @@ void vtkPerkStationValidateStep::PresentValidationErrors()
   // display entry point error, target point error, insertion angle error, insertion depth error
   // display time performance
 
-  // display entry point error, target point error, insertion angle error, insertion depth error
-  this->EntryPointError->GetWidget()->SetValueAsDouble(mrmlNode->GetEntryPointError());
-  this->TargetPointError->GetWidget()->SetValueAsDouble(mrmlNode->GetTargetPointError());
+    // display entry point error, target point error, insertion angle error,
+    // insertion depth error
+  
+  this->EntryPointError->GetWidget()->SetValueAsDouble(
+    mrmlNode->GetEntryPointError() );
+  this->TargetPointError->GetWidget()->SetValueAsDouble(
+    mrmlNode->GetTargetPointError() );
+  
+  // todo: fix this
   // insertion depth error
-  double depthError = mrmlNode->GetActualPlanInsertionDepth() - this->InsertionDepth->GetWidget()->GetValueAsDouble();
-  this->InsertionDepthError->GetWidget()->SetValueAsDouble(depthError);
+  // double depthError = mrmlNode->GetActualPlanInsertionDepth() - this->InsertionDepth->GetWidget()->GetValueAsDouble();
+  // this->InsertionDepthError->GetWidget()->SetValueAsDouble(depthError);
 
   // time performance
   char timeStr[20];
@@ -1007,9 +998,7 @@ void vtkPerkStationValidateStep::Reset()
   double ras[3] = {0.0,0.0,0.0};
   mrmlNode->SetValidateEntryPoint(ras);
   mrmlNode->SetValidateTargetPoint(ras);
-  mrmlNode->CalculateEntryPointError();
-  mrmlNode->CalculateTargetPointError();
-
+  
   // remove the overlaid needle axis
   this->RemoveValidationNeedleAxis();
 
@@ -1087,16 +1076,7 @@ void vtkPerkStationValidateStep::LoadValidation(istream &file)
 
       // at this point, we have line separated into, attributeName, and attributeValue
       // now we need to do string matching on attributeName, and further parse attributeValue as it may have more than one value
-      if (!strcmp(attName, " ValidateInsertionDepth"))
-        {
-        std::stringstream ss;
-        ss << attValue;
-        double val;
-        ss >> val;
-        mrmlNode->SetValidateInsertionDepth(val);       
-        paramSetCount++;
-        }
-      else if (!strcmp(attName, " ValidateEntryPoint"))
+      if (!strcmp(attName, " ValidateEntryPoint"))
         {
         // read data into a temporary vector
         std::stringstream ss;
@@ -1190,13 +1170,7 @@ void vtkPerkStationValidateStep::SaveValidation(ostream& of)
   for(int i = 0; i < 3; i++)
       of << targetPoint[i] << " ";
   of << "\" \n";
-
-  // insertion depth
-  of << " ValidateInsertionDepth=\"";
-  double depth = mrmlNode->GetValidateInsertionDepth();  
-  of << depth << " ";
-  of << "\" \n";
-
+  
   // entry point error
   of << " EntryPointError=\"";
   double entryError = mrmlNode->GetEntryPointError();  

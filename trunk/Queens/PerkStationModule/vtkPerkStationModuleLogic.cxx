@@ -251,7 +251,7 @@ void
 vtkPerkStationModuleLogic::
 AdjustSliceView()
 {
-  PatientPosition patientPosition =
+  PatientPositionEnum patientPosition =
     this->PerkStationModuleNode->GetPatientPosition();
     
   vtkSlicerSliceLogic *slice =

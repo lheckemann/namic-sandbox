@@ -14,6 +14,7 @@
 #include "itkGDCMImageIO.h"
 #include "itkSpatialOrientationAdapter.h"
 
+#include "vtkMath.h"
 #include "vtkObjectFactory.h"
 #include "vtkStringArray.h"
 
@@ -38,6 +39,7 @@ vtkMRMLPerkStationModuleNode* vtkMRMLPerkStationModuleNode::New()
   return new vtkMRMLPerkStationModuleNode;
 }
 
+
 //----------------------------------------------------------------------------
 vtkMRMLNode* vtkMRMLPerkStationModuleNode::CreateNodeInstance()
 {
@@ -58,153 +60,104 @@ vtkMRMLNode* vtkMRMLPerkStationModuleNode::CreateNodeInstance()
 vtkMRMLPerkStationModuleNode
 ::vtkMRMLPerkStationModuleNode()
 {
-  this->PlanningVolumeRef = NULL;
-  this->ValidationVolumeRef = NULL;
-  this->PlanningVolumeNode = NULL;
-  this->ValidationVolumeNode = NULL;
-  this->VolumeInUse = NULL;
-
   this->HideFromEditors = true;
-
-  // member variables
-  this->VerticalFlip = false;
-  this->HorizontalFlip = false;
   
   
   
-  this->ClinicalModeRotation = 0.0;
-  this->ClinicalModeTranslation[0] = 0.0;
-  this->ClinicalModeTranslation[1] = 0.0;
-
-  this->UserScaling[0] = 1.0;
-  this->UserScaling[1] = 1.0;
-  this->UserScaling[2] = 1.0;
-
-  this->ActualScaling[0] = 1.0;
-  this->ActualScaling[1] = 1.0;
-  this->ActualScaling[2] = 1.0;
-
-  this->UserTranslation[0] = 0;
-  this->UserTranslation[1] = 0;
-  this->UserTranslation[2] = 0;
-
-  this->ActualTranslation[0] = 0;
-  this->ActualTranslation[1] = 0;
-  this->ActualTranslation[2] = 0;
-
-  this->UserRotation = 0;
-  this->ActualRotation = 0;
-  this->CenterOfRotation[0] = 0.0;
-  this->CenterOfRotation[1] = 0.0;
-  this->CenterOfRotation[2] = 0.0;
-
-  this->PlanEntryPoint[0] = 0.0;
-  this->PlanEntryPoint[1] = 0.0;
-  this->PlanEntryPoint[2] = 0.0;
-
-  this->PlanTargetPoint[0] = 0.0;
-  this->PlanTargetPoint[1] = 0.0;
-  this->PlanTargetPoint[2] = 0.0;
-
-  this->UserPlanInsertionAngle = 0;
-  this->ActualPlanInsertionAngle = 0;
-
-  this->TiltAngle = 0;
-  this->OriginalSliceToRAS = vtkMatrix4x4::New();
-  this->TiltSliceToRAS = vtkMatrix4x4::New();
-
-  this->UserPlanInsertionDepth = 0;
-  this->ActualPlanInsertionDepth = 0;
-  this->TrackerToPhantomMatrix = vtkMatrix4x4::New();
-  this->PhantomToImageRASMatrix = vtkMatrix4x4::New();
-  this->ToolTipOffset[0] = 0.0;
-  this->ToolTipOffset[1] = 0.0;
-  this->ToolTipOffset[2] = 0.0;
-
-  this->ReferenceBodyToolPort = 0;
-  this->NeedleToolPort = 1;
-
-  this->ValidateEntryPoint[0] = 0.0;
-  this->ValidateEntryPoint[1] = 0.0;
-  this->ValidateEntryPoint[2] = 0.0;
-
-  this->ValidateTargetPoint[0] = 0.0;
-  this->ValidateTargetPoint[1] = 0.0;
-  this->ValidateTargetPoint[2] = 0.0;
-
-  this->ValidateInsertionDepth = 0.0;
-
-
-  this->CalibrateTranslationError[0] = 0;
-  this->CalibrateTranslationError[1] = 0;
-
-  this->CalibrateScaleError[0] = 0.0;
-  this->CalibrateScaleError[1] = 0.0;
-
-  this->CalibrateRotationError = 0;
-
-  this->PlanInsertionAngleError = 0;
-  this->PlanInsertionDepthError = 0;
-
-  this->EntryPointError = 0;
-  this->TargetPointError = 0;
-
-  this->TimeSpentOnCalibrateStep = 0;
-  this->TimeSpentOnPlanStep = 0;
-  this->TimeSpentOnInsertStep = 0;
-  this->TimeSpentOnValidateStep = 0;
-
-
-  this->InitializeTransform();
-  this->InitializeFiducialListNode();
+  // Calibration parameters ---------------------------------------------------
   
-  this->StepList = vtkStringArray::New();
-    this->StepList->InsertNextValue( "Calibration" );
-    this->StepList->InsertNextValue( "Planning" );
-    this->StepList->InsertNextValue( "Insertion" );
-    this->StepList->InsertNextValue( "Validation" );
-    this->StepList->InsertNextValue( "Evaluation" );
-  this->CurrentStep = 0;
-  this->PreviousStep = 0;
+  this->SecondMonitorRotation = 0.0;
+  this->SecondMonitorRotationCenter[ 0 ] = 0.0;
+  this->SecondMonitorRotationCenter[ 1 ] = 0.0;
+  this->SecondMonitorTranslation[ 0 ] = 0.0;
+  this->SecondMonitorTranslation[ 0 ] = 0.0;
   
-  
-    // Patient position.
-  this->m_PatientPosition = PPNA;
+  this->SecondMonitorVerticalFlip = false;
+  this->SecondMonitorHorizontalFlip = false;
   
   this->TableAtScanner = 0.0;
   this->TableAtOverlay = 0.0;
   this->CurrentSliceOffset = 0.0;
+  
+  this->InitializeTransform();
+  
+  this->PatientPosition = PPNA;
+  
+  
+    // Plan parameters --------------------------------------------------------
+  
+  this->PlanEntryPoint[0] = 0.0;
+  this->PlanEntryPoint[1] = 0.0;
+  this->PlanEntryPoint[2] = 0.0;
+  
+  this->PlanTargetPoint[0] = 0.0;
+  this->PlanTargetPoint[1] = 0.0;
+  this->PlanTargetPoint[2] = 0.0;
+  
+  this->TiltAngle = 0;
+  
+  this->SliceToRAS = vtkSmartPointer< vtkMatrix4x4 >::New();
+  
+  
+    // Insertion parameters ---------------------------------------------------
+  
+  this->TrackerToPhantomMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  this->PhantomToImageRASMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  
+  this->ToolTipOffset[ 0 ] = 0.0;
+  this->ToolTipOffset[ 1 ] = 0.0;
+  this->ToolTipOffset[ 2 ] = 0.0;
+  
+  this->ReferenceBodyToolPort = 0;
+  this->NeedleToolPort = 1;
+  
+  
+    // Validation parameters --------------------------------------------------
+  
+  this->ValidateEntryPoint[ 0 ] = 0.0;
+  this->ValidateEntryPoint[ 1 ] = 0.0;
+  this->ValidateEntryPoint[ 2 ] = 0.0;
+  
+  this->ValidateTargetPoint[ 0 ] = 0.0;
+  this->ValidateTargetPoint[ 1 ] = 0.0;
+  this->ValidateTargetPoint[ 2 ] = 0.0;
+  
+  
+    // Common parameters ------------------------------------------------------
+  
+  this->PlanningVolumeRef = NULL;
+  this->ValidationVolumeRef = NULL;
+  this->VolumeInUse = NULL;
+  
+  PlanningVolumeNode = vtkSmartPointer< vtkMRMLScalarVolumeNode >::New();
+  ValidationVolumeNode = vtkSmartPointer< vtkMRMLScalarVolumeNode >::New();
+  
+  this->TimeSpentOnCalibrateStep = 0;
+  this->TimeSpentOnPlanStep = 0;
+  this->TimeSpentOnInsertStep = 0;
+  this->TimeSpentOnValidateStep = 0;
+  
+  
+  this->InitializeFiducialListNode();
+  
+  
+  this->StepList = vtkSmartPointer< vtkStringArray >::New();
+    this->StepList->InsertNextValue( "Calibration" );
+    this->StepList->InsertNextValue( "Planning" );
+    this->StepList->InsertNextValue( "Insertion" );
+    this->StepList->InsertNextValue( "Validation" );
+  
+  this->CurrentStep = 0;
+  this->PreviousStep = 0;
 }
 
 
 //----------------------------------------------------------------------------
 vtkMRMLPerkStationModuleNode::~vtkMRMLPerkStationModuleNode()
 {
-   this->OriginalSliceToRAS->Delete();
-   this->TiltSliceToRAS->Delete();
-   this->TrackerToPhantomMatrix->Delete();
-   this->PhantomToImageRASMatrix->Delete();
-
-   this->SetPlanningVolumeRef(NULL);
-   this->SetValidationVolumeRef(NULL);
-   this->SetPlanningVolumeNode(NULL);
-   this->SetValidationVolumeNode(NULL);
-   this->SetVolumeInUse(NULL);
-   if(this->CalibrationMRMLTransformNode)
-     {
-     this->CalibrationMRMLTransformNode->Delete();
-     this->CalibrationMRMLTransformNode = NULL;
-     }
-   if(this->PlanMRMLFiducialListNode)
-     {
-     this->PlanMRMLFiducialListNode->Delete();
-     this->PlanMRMLFiducialListNode = NULL;
-     }
-//   vtkSetMRMLNodeMacro (this->CalibrationMRMLTransformNode, NULL);
-//   vtkSetMRMLNodeMacro (this->PlanMRMLFiducialListNode, NULL);  
-  
-  this->StepList->Delete();
+   
 }
+
 
 //----------------------------------------------------------------------------
 void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
@@ -228,44 +181,26 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
   // Calibration step parameters
   
   // flip parameters
-  of << indent << " VerticalFlip=\"" << this->VerticalFlip   
+  of << indent << " SecondMonitorVerticalFlip=\"" 
+     << this->SecondMonitorVerticalFlip   
      << "\" \n";
   
-  of << indent << " HorizontalFlip=\"" << this->HorizontalFlip   
+  of << indent << " SecondMonitorHorizontalFlip=\""
+     << this->SecondMonitorHorizontalFlip
      << "\" \n";
   
-  // scale parameters
-  of << indent << " UserScaling=\"";
-  for(int i = 0; i < 2; i++)
-      of << this->UserScaling[i] << " ";
+  
+  of << indent << " SecondMonitorTranslation=\"";
+  for( int i = 0; i < 3; i++ )
+      of << this->SecondMonitorTranslation[ i ] << " ";
   of << "\" \n";
   
-  of << indent << " ActualScaling=\"";
-  for(int i = 0; i < 2; i++)
-      of << this->ActualScaling[i] << " ";
-  of << "\" \n";
+  of << indent << " SecondMonitorRotation=\"" << this->SecondMonitorRotation
+     << "\" \n";
   
-  // translation parameters
-  of << indent << " UserTranslation=\"";
+  of << indent << " SecondMonitorRotationCenter=\"";
   for(int i = 0; i < 3; i++)
-      of << this->UserTranslation[i] << " ";
-  of << "\" \n";
-  
-  of << indent << " ActualTranslation=\"";
-  for(int i = 0; i < 3; i++)
-      of << this->ActualTranslation[i] << " ";
-  of << "\" \n";
-  
-  // rotation parameters
-  of << indent << " UserRotation=\"" << this->UserRotation
-     << "\" \n";
-  
-  of << indent << " ActualRotation=\"" << this->ActualRotation
-     << "\" \n";
-  
-  of << indent << " CenterOfRotation=\"";
-  for(int i = 0; i < 3; i++)
-      of << this->CenterOfRotation[i] << " ";
+      of << this->SecondMonitorRotationCenter[ i ] << " ";
   of << "\" \n";
   
   
@@ -274,26 +209,13 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
   
   of << indent << " PlanEntryPoint=\"";
   for(int i = 0; i < 3; i++)
-      of << this->PlanEntryPoint[i] << " ";
+      of << this->PlanEntryPoint[ i ] << " ";
   of << "\" \n";
   
   of << indent << " PlanTargetPoint=\"";
   for(int i = 0; i < 3; i++)
-      of << this->PlanTargetPoint[i] << " ";
+      of << this->PlanTargetPoint[ i ] << " ";
   of << "\" \n";
-  
-  of << indent << " UserPlanInsertionAngle=\"" << this->UserPlanInsertionAngle
-     << "\" \n";
-  
-  of << indent << " ActualPlanInsertionAngle=\"" << this->ActualPlanInsertionAngle
-     << "\" \n";
-  
-  of << indent << " UserPlanInsertionDepth=\"" << this->UserPlanInsertionDepth
-     << "\" \n";
-  
-  of << indent << " ActualPlanInsertionDepth=\"" << this->ActualPlanInsertionDepth
-     << "\" \n";
-  
   
   
   // Validate step parameters
@@ -307,34 +229,6 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
   for(int i = 0; i < 3; i++)
       of << this->ValidateTargetPoint[i] << " ";
   of << "\" \n";
-
-
-  // Evaluate step parameters
-
-  of << indent << " CalibrateScaleError=\"";
-  for(int i = 0; i < 2; i++)
-      of << this->CalibrateScaleError[i] << " ";
-  of << "\" \n";
-
-  of << indent << " CalibrateTranslationError=\"";
-  for(int i = 0; i < 2; i++)
-      of << this->CalibrateTranslationError[i] << " ";
-  of << "\" \n";
-
-  of << indent << " CalibrateRotationError=\"" << this->CalibrateRotationError
-     << "\" \n";
-
-  of << indent << " PlanInsertionAngleError=\"" << this->PlanInsertionAngleError
-     << "\" \n";
-
-  of << indent << " PlanInsertionDepthError=\"" << this->PlanInsertionDepthError
-     << "\" \n";
-
-  of << indent << " EntryPointError=\"" << this->EntryPointError
-     << "\" \n";
-
-  of << indent << " TargetPointError=\"" << this->TargetPointError
-     << "\" \n";
   
   
     // Table calibration.
@@ -342,6 +236,7 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
   of << indent << " TableAtScanner=\"" << this->TableAtScanner << "\" \n";
   of << indent << " TableAtOverlay=\"" << this->TableAtOverlay << "\" \n";
 }
+
 
 //----------------------------------------------------------------------------
 void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
@@ -367,62 +262,23 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       this->SetValidationVolumeRef(attValue);
       this->Scene->AddReferencedNodeID(this->ValidationVolumeRef, this);
       }
-    else if (!strcmp(attName, "VerticalFlip"))
+    else if (!strcmp(attName, "SecondMonitorVerticalFlip"))
       {
       std::stringstream ss;
       ss << attValue;
       bool val;
       ss >> val;
-      this->SetVerticalFlip(val);
+      this->SetSecondMonitorVerticalFlip( val );
       }
-    else if (!strcmp(attName, "HorizontalFlip"))
+    else if (!strcmp(attName, "SecondMonitorHorizontalFlip"))
       {
       std::stringstream ss;
       ss << attValue;
       bool val;
       ss >> val;
-      this->SetHorizontalFlip(val);
+      this->SetSecondMonitorHorizontalFlip( val );
       }
-    else if (!strcmp(attName, "UserScaling"))
-      {
-       // read data into a temporary vector
-      std::stringstream ss;
-      ss << attValue;
-      double d;
-      std::vector<double> tmpVec;
-      while (ss >> d)
-        {
-        tmpVec.push_back(d);
-        }
-      if (tmpVec.size()!=2)
-        {
-        // error in file?
-        }
-
-      for (unsigned int i = 0; i < tmpVec.size(); i++)
-           this->UserScaling[i] = tmpVec[i];
-      }
-    else if (!strcmp(attName, "ActualScaling"))
-      {
-       // read data into a temporary vector
-      std::stringstream ss;
-      ss << attValue;
-      double d;
-      std::vector<double> tmpVec;
-      while (ss >> d)
-        {
-        tmpVec.push_back(d);
-        }
-
-      if (tmpVec.size()!=2)
-        {
-        // error in file?
-        }
-
-      for (unsigned int i = 0; i < tmpVec.size(); i++)
-           this->ActualScaling[i] = tmpVec[i];
-      }
-    else if (!strcmp(attName, "UserTranslation"))
+    else if (!strcmp(attName, "SecondMonitorTranslation"))
       {
        // read data into a temporary vector
       std::stringstream ss;
@@ -440,48 +296,17 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
         }
 
       for (unsigned int i = 0; i < tmpVec.size(); i++)
-           this->UserTranslation[i] = tmpVec[i];
+           this->SecondMonitorTranslation[ i ] = tmpVec[ i ];
       }
-    else if (!strcmp(attName, "ActualTranslation"))
-      {
-       // read data into a temporary vector
-      std::stringstream ss;
-      ss << attValue;
-      double d;
-      std::vector<double> tmpVec;
-      while (ss >> d)
-        {
-        tmpVec.push_back(d);
-        }
-      
-      if (tmpVec.size()!=3)
-        {
-        // error in file?
-        }
-
-      for (unsigned int i = 0; i < tmpVec.size(); i++)
-           this->ActualScaling[i] = tmpVec[i];
-      }
-
-
-
-    else if (!strcmp(attName, "UserRotation"))
+    else if ( ! strcmp( attName, "SecondMonitorRotation" ) )
       {
       std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
-      this->SetUserRotation(val);
+      this->SetSecondMonitorRotation( val );
       }
-    else if (!strcmp(attName, "ActualRotation"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->SetActualRotation(val);
-      }
-    else if (!strcmp(attName, "CenterOfRotation"))
+    else if ( ! strcmp( attName, "SecondMonitorRotationCenter" ) )
       {
        // read data into a temporary vector
       std::stringstream ss;
@@ -499,7 +324,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
         }
 
       for (unsigned int i = 0; i < tmpVec.size(); i++)
-           this->CenterOfRotation[i] = tmpVec[i];
+           this->SecondMonitorRotationCenter[ i ] = tmpVec[ i ];
       }
     else if (!strcmp(attName, "PlanEntryPoint"))
       {
@@ -518,10 +343,10 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
         // error in file?
         }
 
-      for (unsigned int i = 0; i < tmpVec.size(); i++)
-           this->PlanEntryPoint[i] = tmpVec[i];
+      for ( unsigned int i = 0; i < tmpVec.size(); i++ )
+           this->PlanEntryPoint[ i ] = tmpVec[ i ];
       }
-    else if (!strcmp(attName, "PlanTargetPoint"))
+    else if ( ! strcmp( attName, "PlanTargetPoint" ) )
       {
        // read data into a temporary vector
       std::stringstream ss;
@@ -533,45 +358,13 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
         tmpVec.push_back(d);
         }
  
-      if (tmpVec.size()!=3)
+      if ( tmpVec.size() != 3 )
         {
         // error in file?
         }
 
-      for (unsigned int i = 0; i < tmpVec.size(); i++)
-           this->PlanTargetPoint[i] = tmpVec[i];
-      }
-    else if (!strcmp(attName, "UserPlanInsertionAngle"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->SetUserPlanInsertionAngle(val);
-      }
-    else if (!strcmp(attName, "ActualPlanInsertionAngle"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->SetActualPlanInsertionAngle(val);
-      }
-    else if (!strcmp(attName, "UserPlanInsertionDepth"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->SetUserPlanInsertionDepth(val);
-      }
-    else if (!strcmp(attName, "ActualPlanInsertionDepth"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->SetActualPlanInsertionDepth(val);
+      for ( unsigned int i = 0; i < tmpVec.size(); i++ )
+        this->PlanTargetPoint[ i ] = tmpVec[ i ];
       }
     else if (!strcmp(attName, "ValidateEntryPoint"))
       {
@@ -579,7 +372,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       std::stringstream ss;
       ss << attValue;
       double d;
-      std::vector<double> tmpVec;
+      std::vector< double > tmpVec;
       while (ss >> d)
         {
         tmpVec.push_back(d);
@@ -590,10 +383,10 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
         // error in file?
         }
 
-      for (unsigned int i = 0; i < tmpVec.size(); i++)
-           this->ValidateEntryPoint[i] = tmpVec[i];
+      for ( unsigned int i = 0; i < tmpVec.size(); i++ )
+        this->ValidateEntryPoint[ i ] = tmpVec[ i ];
       }
-    else if (!strcmp(attName, "ValidateTargetPoint"))
+    else if ( ! strcmp(attName, "ValidateTargetPoint"))
       {
        // read data into a temporary vector
       std::stringstream ss;
@@ -613,89 +406,9 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       for (unsigned int i = 0; i < tmpVec.size(); i++)
            this->ValidateTargetPoint[i] = tmpVec[i];
       }
-    else if (!strcmp(attName, "CalibrateScaleError"))
-      {
-       // read data into a temporary vector
-      std::stringstream ss;
-      ss << attValue;
-      double d;
-      std::vector<double> tmpVec;
-      while (ss >> d)
-        {
-        tmpVec.push_back(d);
-        }
-      if (tmpVec.size()!=2)
-        {
-        // error in file?
-        }
-
-      for (unsigned int i = 0; i < tmpVec.size(); i++)
-           this->CalibrateScaleError[i] = tmpVec[i];
-      }
-    else if (!strcmp(attName, "CalibrateTranslationError"))
-      {
-       // read data into a temporary vector
-      std::stringstream ss;
-      ss << attValue;
-      double d;
-      std::vector<double> tmpVec;
-      while (ss >> d)
-        {
-        tmpVec.push_back(d);
-        }
-      if (tmpVec.size()!=2)
-        {
-        // error in file?
-        }
-
-      for (unsigned int i = 0; i < tmpVec.size(); i++)
-           this->CalibrateTranslationError[i] = tmpVec[i];
-      }
-
-    else if (!strcmp(attName, "CalibrateRotationError"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->CalibrateRotationError = val;
-      }
-    else if (!strcmp(attName, "PlanInsertionAngleError"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->PlanInsertionAngleError = val;
-      }
-    else if (!strcmp(attName, "PlanInsertionDepthError"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->PlanInsertionDepthError = val;
-      }
-    else if (!strcmp(attName, "EntryPointError"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->EntryPointError = val;
-      }
-    else if (!strcmp(attName, "TargetPointError"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->TargetPointError = val;
-      } 
-     
-    }
-  
+    } // while ( *atts != NULL )
 }
+
 
 //----------------------------------------------------------------------------
 // Copy the node's attributes to this object.
@@ -728,95 +441,69 @@ void vtkMRMLPerkStationModuleNode::Copy(vtkMRMLNode *anode)
   this->PreviousStep = node->PreviousStep;
 }
 
+
 //----------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLPerkStationModuleNode::PrintSelf( ostream& os, vtkIndent indent )
 {
   
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "PlanningVolumeRef:   " << 
-   (this->PlanningVolumeRef ? this->PlanningVolumeRef : "(none)") << "\n";
+  os << indent << "PlanningVolumeRef: " << 
+   ( this->PlanningVolumeRef ? this->PlanningVolumeRef : "(none)" ) << "\n";
  
 }
 
+
 //----------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::UpdateReferenceID(const char *oldID, const char *newID)
+void vtkMRMLPerkStationModuleNode::UpdateReferenceID( const char *oldID,
+                                                      const char *newID )
 {
   /*if (!strcmp(oldID, this->InputVolumeRef))
     {
     this->SetInputVolumeRef(newID);
     }*/
 }
-//------------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::CalculateCalibrateScaleError()
-{
-  this->CalibrateScaleError[0] = 100*(this->ActualScaling[0]-this->UserScaling[0])/this->ActualScaling[0];
-  this->CalibrateScaleError[1] = 100*(this->ActualScaling[1]-this->UserScaling[1])/this->ActualScaling[1];
-}
-//------------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::CalculateCalibrateTranslationError()
-{
-  this->CalibrateTranslationError[0] = this->ActualTranslation[0] - this->UserTranslation[0];
-  this->CalibrateTranslationError[1] = this->ActualTranslation[1] - this->UserTranslation[1];
-}
-//------------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::CalculateCalibrateRotationError()
-{
-  this->CalibrateRotationError = this->ActualRotation - this->UserRotation;
-}
-//------------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::CalculatePlanInsertionAngleError()
-{
-  this->PlanInsertionAngleError = this->ActualPlanInsertionAngle - this->UserPlanInsertionAngle;
-}
-//-------------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::CalculatePlanInsertionDepthError()
-{ 
-  this->PlanInsertionDepthError = this->ActualPlanInsertionDepth - this->UserPlanInsertionDepth;
-}
-//-------------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::CalculateEntryPointError()
-{
-  this->EntryPointError = sqrt( (this->PlanEntryPoint[0]-this->ValidateEntryPoint[0])*(this->PlanEntryPoint[0]-this->ValidateEntryPoint[0]) + (this->PlanEntryPoint[1]-this->ValidateEntryPoint[1])*(this->PlanEntryPoint[1]-this->ValidateEntryPoint[1]));
-}
-//-------------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::CalculateTargetPointError()
-{
-  this->TargetPointError = sqrt( (this->PlanTargetPoint[0]-this->ValidateTargetPoint[0])*(this->PlanTargetPoint[0]-this->ValidateTargetPoint[0]) + (this->PlanTargetPoint[1]-this->ValidateTargetPoint[1])*(this->PlanTargetPoint[1]-this->ValidateTargetPoint[1]));
-}
 
-//-------------------------------------------------------------------------------
+
+/**
+ * Create and initialize CalibrationMRMLTransformNode as an identity transform.
+ */
 void vtkMRMLPerkStationModuleNode::InitializeTransform()
 {
-    this->CalibrationMRMLTransformNode = vtkMRMLLinearTransformNode::New();
-    this->CalibrationMRMLTransformNode->SetName("PerkStationCalibrationTransform");
-    this->CalibrationMRMLTransformNode->SetDescription("Created by PERK Station Module");
+    this->CalibrationMRMLTransformNode =
+      vtkSmartPointer< vtkMRMLLinearTransformNode >::New();
+    this->CalibrationMRMLTransformNode->
+      SetName( "PerkStationCalibrationTransform" );
+    this->CalibrationMRMLTransformNode->
+      SetDescription( "Created by PERK Station Module" );
 
-    vtkMatrix4x4 *matrix = vtkMatrix4x4::New();
+    vtkSmartPointer< vtkMatrix4x4 > matrix =
+      vtkSmartPointer< vtkMatrix4x4 >::New();
     matrix->Identity();
-    this->CalibrationMRMLTransformNode->ApplyTransform(matrix);
-    matrix->Delete();      
+    this->CalibrationMRMLTransformNode->ApplyTransform( matrix );
 }
-//-------------------------------------------------------------------------------
+
+
+//-----------------------------------------------------------------------------
 void vtkMRMLPerkStationModuleNode::InitializeFiducialListNode()
 {
-    // create node
-    this->PlanMRMLFiducialListNode = vtkMRMLFiducialListNode::New();
-    if (this->PlanMRMLFiducialListNode == NULL)
-        {
-        // error macro      
-        }   
-    //this->PlanMRMLFiducialListNode->SetLocked(true);
-    this->PlanMRMLFiducialListNode->SetName("PerkStationFiducialList");
-    this->PlanMRMLFiducialListNode->SetDescription("Created by PERK Station Module; marks entry point and target point");
-    this->PlanMRMLFiducialListNode->SetColor(0.5,1,0.5);
-    this->PlanMRMLFiducialListNode->SetGlyphType(vtkMRMLFiducialListNode::Diamond3D);
-    this->PlanMRMLFiducialListNode->SetOpacity(0.7);
-    this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility(true);
-    this->PlanMRMLFiducialListNode->SetSymbolScale(10);
-    this->PlanMRMLFiducialListNode->SetTextScale(10);
+    this->PlanMRMLFiducialListNode =
+      vtkSmartPointer< vtkMRMLFiducialListNode >::New();
+    
+    this->PlanMRMLFiducialListNode->SetName( "PerkStationFiducialList" );
+    this->PlanMRMLFiducialListNode->SetDescription(
+      "Created by PERK Station Module; marks entry point and target point" );
+    this->PlanMRMLFiducialListNode->SetColor( 0.5, 1, 0.5 );
+    this->PlanMRMLFiducialListNode->SetGlyphType(
+      vtkMRMLFiducialListNode::Diamond3D );
+    this->PlanMRMLFiducialListNode->SetOpacity( 0.7 );
+    this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility( true );
+    this->PlanMRMLFiducialListNode->SetSymbolScale( 10 );
+    this->PlanMRMLFiducialListNode->SetTextScale( 10 );
 }
-//-------------------------------------------------------------------------------
+
+
+//-----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode *vtkMRMLPerkStationModuleNode::GetActiveVolumeNode()
 {
   if (strcmpi(this->VolumeInUse, "Planning") == 0)
@@ -834,20 +521,25 @@ vtkMRMLScalarVolumeNode *vtkMRMLPerkStationModuleNode::GetActiveVolumeNode()
 }
 
 
-//-------------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::SetPlanningVolumeNode(vtkMRMLScalarVolumeNode *planVolNode)
+//-----------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::SetPlanningVolumeNode(
+  vtkMRMLScalarVolumeNode *planVolNode )
 {
   vtkSetMRMLNodeMacro( this->PlanningVolumeNode, planVolNode );
 }
 
-//-------------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::SetValidationVolumeNode(vtkMRMLScalarVolumeNode *validationVolNode)
+
+//-----------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::SetValidationVolumeNode(
+  vtkMRMLScalarVolumeNode *validationVolNode )
 {
   vtkSetMRMLNodeMacro(this->ValidationVolumeNode, validationVolNode);
 }
 
-//------------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::AddVolumeInformationToList(vtkMRMLScalarVolumeNode *volNode, const char *diskLocation, char *type)
+
+//-----------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::AddVolumeInformationToList(
+  vtkMRMLScalarVolumeNode *volNode, const char *diskLocation, char *type)
 {
   VolumeInformationStruct volStruct;
   volStruct.DiskLocation=diskLocation;
@@ -856,13 +548,6 @@ void vtkMRMLPerkStationModuleNode::AddVolumeInformationToList(vtkMRMLScalarVolum
   volStruct.Active = false;
   this->VolumesList.push_back(volStruct);
 }
-/*
-
-
-void vtkMRMLPerkStationModuleNode::SetTransformNodeMatrix(vtkMatrix4x4 *matrix)
-{
-  this->CalibrationMRMLTransformNode->ApplyTransform(matrix);
-}*/
 
 
 /**
@@ -938,7 +623,7 @@ vtkMRMLPerkStationModuleNode
 /**
  * @returns Patient Position as read from the input DICOM information.
  */
-PatientPosition
+PatientPositionEnum
 vtkMRMLPerkStationModuleNode
 ::GetPatientPosition()
 {  
@@ -969,28 +654,18 @@ vtkMRMLPerkStationModuleNode
     }
   std::string tagValueTrimmed = ss.str();
   
-  if ( tagValueTrimmed == "HFP" ) this->m_PatientPosition = HFP;
-  else if ( tagValueTrimmed == "HFS" ) this->m_PatientPosition = HFS;
-  else if ( tagValueTrimmed == "HFDR" ) this->m_PatientPosition = HFDR;
-  else if ( tagValueTrimmed == "HFDL" ) this->m_PatientPosition = HFDL;
-  else if ( tagValueTrimmed == "FFDR" ) this->m_PatientPosition = FFDR;
-  else if ( tagValueTrimmed == "FFDL" ) this->m_PatientPosition = FFDL;
-  else if ( tagValueTrimmed == "FFP" ) this->m_PatientPosition = FFP;
-  else if ( tagValueTrimmed == "FFS" ) this->m_PatientPosition = FFS;
+  if ( tagValueTrimmed == "HFP" ) this->PatientPosition = HFP;
+  else if ( tagValueTrimmed == "HFS" ) this->PatientPosition = HFS;
+  else if ( tagValueTrimmed == "HFDR" ) this->PatientPosition = HFDR;
+  else if ( tagValueTrimmed == "HFDL" ) this->PatientPosition = HFDL;
+  else if ( tagValueTrimmed == "FFDR" ) this->PatientPosition = FFDR;
+  else if ( tagValueTrimmed == "FFDL" ) this->PatientPosition = FFDL;
+  else if ( tagValueTrimmed == "FFP" ) this->PatientPosition = FFP;
+  else if ( tagValueTrimmed == "FFS" ) this->PatientPosition = FFS;
   
-  return this->m_PatientPosition;
+  return this->PatientPosition;
 }
 
-
-/**
- * @param offset New slice offset in RAS coordinates.
- */
-void
-vtkMRMLPerkStationModuleNode
-::SetCurrentSliceOffset( double offset )
-{
-  this->CurrentSliceOffset = offset;
-}
 
 
 double
@@ -998,5 +673,78 @@ vtkMRMLPerkStationModuleNode
 ::GetCurrentTablePosition()
 {
   return this->TableAtOverlay + this->CurrentSliceOffset;
+}
+
+
+/**
+ * @returns Euclidean distance between plan and validation entry points.
+ */
+double
+vtkMRMLPerkStationModuleNode
+::GetEntryPointError()
+{
+  double sum = 0.0;
+  
+  for ( int i = 0; i < 3; ++ i )
+    {
+    sum += (   ( this->ValidateEntryPoint[ i ] - this->PlanEntryPoint[ i ] )
+             * ( this->ValidateEntryPoint[ i ] - this->PlanEntryPoint[ i ] ) );
+    }
+  
+  return std::sqrt( sum );
+}
+
+
+/**
+ * @returns Euclidean distance between plan and validation target points.
+ */
+double
+vtkMRMLPerkStationModuleNode
+::GetTargetPointError()
+{
+  double sum = 0.0;
+  
+  for ( int i = 0; i < 3; ++ i )
+    {
+    sum += (   ( this->ValidateTargetPoint[ i ] - this->PlanTargetPoint[ i ] )
+             * ( this->ValidateTargetPoint[ i ] - this->PlanTargetPoint[ i ] ) );
+    }
+  
+  return std::sqrt( sum );
+}
+
+
+/**
+ * @returns Insertion angle in degrees, between anteroposterior line and plan.
+ */
+double
+vtkMRMLPerkStationModuleNode
+::GetActualPlanInsertionAngle()
+{
+  double insAngle =
+    double( 180 / vtkMath::Pi() ) *
+    atan( double( ( this->PlanEntryPoint[ 1 ] - this->PlanTargetPoint[ 1 ] ) /
+                  ( this->PlanEntryPoint[ 0 ] - this->PlanTargetPoint[ 0 ] ) )
+        );
+  return insAngle;
+}
+
+
+/**
+ * @returns Euclidean distance between plan target and entry points.
+ */
+double
+vtkMRMLPerkStationModuleNode
+::GetActualPlanInsertionDepth()
+{
+  double insDepth =
+    sqrt( ( this->PlanTargetPoint[ 0 ] - this->PlanEntryPoint[ 0 ] ) *
+          ( this->PlanTargetPoint[ 0 ] - this->PlanEntryPoint[ 0 ] ) + 
+          ( this->PlanTargetPoint[ 1 ] - this->PlanEntryPoint[ 1 ] ) *
+          ( this->PlanTargetPoint[ 1 ] - this->PlanEntryPoint[ 1 ] ) +
+          ( this->PlanTargetPoint[ 2 ] - this->PlanEntryPoint[ 2 ] ) *
+          ( this->PlanTargetPoint[ 2 ] - this->PlanEntryPoint[ 2 ] ) );
+  
+  return insDepth;
 }
 
