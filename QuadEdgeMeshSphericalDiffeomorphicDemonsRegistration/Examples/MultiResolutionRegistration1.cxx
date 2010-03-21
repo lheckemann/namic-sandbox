@@ -221,7 +221,7 @@ int main( int argc, char * argv [] )
   optimizer->SetMaximumStepLength( 0.05 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.9 );
-  optimizer->SetNumberOfIterations( 64 );
+  optimizer->SetNumberOfIterations( 32 );
 
 
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
@@ -354,12 +354,14 @@ int main( int argc, char * argv [] )
   demonsFilter->SetSphereCenter( center );
   demonsFilter->SetSphereRadius( radius );
 
+  double sigmaXFactor = 2.5;
+
   // proportional to intervertex spacing of IC4 (at radius 100.0).
-  double sigmaX = vcl_sqrt( radius / 10.0 );
+  double sigmaX = vcl_sqrt( radius / 10.0 ) * sigmaXFactor;
   double epsilon = 1.0 / (sigmaX * sigmaX );
 
   const double lambda = 1.0;
-  const unsigned int maximumNumberOfSmoothingIterations = 10;
+  const unsigned int maximumNumberOfSmoothingIterations = 2;
 
   std::cout << "SigmaX = " << sigmaX << " Epsilon = " << epsilon << std::endl;
   demonsFilter->SetEpsilon( epsilon );
@@ -542,6 +544,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   visualMonitor.Observe( optimizer.GetPointer() );
   visualMonitor.ObserveData( transform.GetPointer() );
 #endif
+
 
   // 
   //  Running Second Resolution Level Rigid Registration.
