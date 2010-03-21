@@ -84,6 +84,71 @@
 #include "itkImageFileWriter.h"
 #include "itkZeroCrossingImageFilter.h"
 
+#include "itkCommand.h"
+
+  typedef   float           InternalPixelType;
+  const     unsigned int    Dimension = 3;
+  typedef itk::Image< InternalPixelType, Dimension >  InternalImageType;
+  // Software Guide : EndCodeSnippet
+
+  typedef unsigned char                            OutputPixelType;
+  typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
+  typedef itk::BinaryThresholdImageFilter< 
+                        InternalImageType, 
+                        OutputImageType    >       ThresholdingFilterType;
+
+  typedef  itk::ImageFileReader< InternalImageType > ReaderType;
+  typedef  itk::ImageFileWriter<  OutputImageType  > WriterType;
+
+template<class TFilter>
+class CommandIterationUpdate : public itk::Command
+{
+public:
+  typedef CommandIterationUpdate   Self;
+  typedef itk::Command             Superclass;
+  typedef itk::SmartPointer<Self>  Pointer;
+  itkNewMacro( Self );
+protected:
+  CommandIterationUpdate() {};
+public:
+
+  void Execute(itk::Object *caller, const itk::EventObject & event)
+    { 
+    Execute( (const itk::Object *) caller, event); 
+    }
+
+  void Execute(const itk::Object * object, const itk::EventObject & event)
+    {
+    const TFilter * filter =
+      dynamic_cast< const TFilter * >( object );
+    if( typeid( event ) != typeid( itk::IterationEvent ) )
+      { return; }
+    
+    std::cerr << filter->GetElapsedIterations() << ": ";
+    std::cerr << filter->GetRMSChange() << " " << std::endl;
+    if(filter->GetElapsedIterations() % 50 == 0){
+      /*
+      typename ThresholdingFilterType::Pointer thresholder = ThresholdingFilterType::New();
+                        
+      thresholder->SetUpperThreshold( 10.0 );
+      thresholder->SetLowerThreshold( 0.0 );
+
+      thresholder->SetOutsideValue(  0  );
+      thresholder->SetInsideValue(  255 );
+      typename InternalImageType::Pointer tmp = filter->GetOutput();
+      thresholder->SetInput(tmp);
+
+      typename WriterType::Pointer w = WriterType::New();
+      w->SetFileName("out.nrrd");
+      w->SetInput(thresholder->GetOutput());
+      w->Update();
+      */
+    }
+//    std::cout << filter->GetCurrentParameters() << std::endl;
+    }
+  
+};
+
 int main( int argc, char *argv[] )
 {
   if( argc < 9 )
@@ -107,16 +172,6 @@ int main( int argc, char *argv[] )
   //  Software Guide : EndLatex 
 
   // Software Guide : BeginCodeSnippet
-  typedef   float           InternalPixelType;
-  const     unsigned int    Dimension = 3;
-  typedef itk::Image< InternalPixelType, Dimension >  InternalImageType;
-  // Software Guide : EndCodeSnippet
-
-  typedef unsigned char                            OutputPixelType;
-  typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
-  typedef itk::BinaryThresholdImageFilter< 
-                        InternalImageType, 
-                        OutputImageType    >       ThresholdingFilterType;
 
   ThresholdingFilterType::Pointer thresholder = ThresholdingFilterType::New();
                         
@@ -125,9 +180,6 @@ int main( int argc, char *argv[] )
 
   thresholder->SetOutsideValue(  0  );
   thresholder->SetInsideValue(  255 );
-
-  typedef  itk::ImageFileReader< InternalImageType > ReaderType;
-  typedef  itk::ImageFileWriter<  OutputImageType  > WriterType;
 
   ReaderType::Pointer reader1 = ReaderType::New();
   ReaderType::Pointer reader2 = ReaderType::New();
@@ -224,6 +276,11 @@ int main( int argc, char *argv[] )
   diffusion->SetInput( reader1->GetOutput() );
   laplacianSegmentation->SetInput( reader2->GetOutput() );
   laplacianSegmentation->SetFeatureImage( diffusion->GetOutput() );
+
+  typedef CommandIterationUpdate<LaplacianSegmentationLevelSetImageFilterType> CommandType;
+  CommandType::Pointer observer = CommandType::New();
+  laplacianSegmentation->AddObserver(itk::IterationEvent(), observer);
+
   thresholder->SetInput( laplacianSegmentation->GetOutput() );
   writer->SetInput( thresholder->GetOutput() );
   // Software Guide : EndCodeSnippet

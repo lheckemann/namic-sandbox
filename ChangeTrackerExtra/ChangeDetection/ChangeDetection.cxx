@@ -194,6 +194,7 @@ int main( int argc, char ** argv )
   CalculateRegionHistograms(diffImage, shrinkMask, histPosShrink, cumHistPosShrink, histNegShrink, cumHistNegShrink);
   std::cout << "Growth region" << std::endl;
   CalculateRegionHistograms(diffImage, growthMask, histPosGrowth, cumHistPosGrowth, histNegGrowth, cumHistNegGrowth);
+  SaveImage(diffImage, "diff.nrrd");
 
   std::cout << "Stable region bounds: -" << histNegStable.size()-1 << " to " << histPosStable.size()-1 << std::endl;
   std::cout << "Changing region bounds: -" << histNegDiff.size()-1 << " to " << histPosDiff.size()-1 << std::endl;
@@ -215,11 +216,13 @@ int main( int argc, char ** argv )
   BinaryThresholdType::Pointer shrinkThresh = BinaryThresholdType::New();
 
   float cutoffThresh = histNegStable.size()>histPosStable.size() ? histNegStable.size()-1 : histPosStable.size()-1;
-  /*
+  
   if(argc>4){
     cutoffThresh = atoi(argv[4]);
     std::cout << "Percentage at cutoff: " << cumHistPosDiff[cutoffThresh] << std::endl;
-  } else {
+  } 
+  /*
+  else {
     std::cout << "Cutoff at 95\%" << std::endl;
     for(int i=0;i<cumHistPosDiff.size();i++){
       if(cumHistPosDiff[i]>=.95){
@@ -292,8 +295,8 @@ int main( int argc, char ** argv )
 
   ImageType::SpacingType spacing = diffImage->GetSpacing();
   float pixelVol = spacing[0]*spacing[1]*spacing[2];
-  std::cout << "cdNoSeg: growthVol = " << pixelVol*cdNoSegGrowthCnt << ", shrinkVol = " << pixelVol*cdNoSegShrinkCnt << std::endl;
-  std::cout << "cdSeg: growthVol = " << pixelVol*cdSegGrowthCnt << ", shrinkVol = " << pixelVol*cdSegShrinkCnt << std::endl;
+  std::cout << "cdNoSeg: growthVol = " << pixelVol*cdNoSegGrowthCnt << ", shrinkVol = " << pixelVol*cdNoSegShrinkCnt << "mm^3" << std::endl;
+  std::cout << "cdSeg: growthVol = " << pixelVol*cdSegGrowthCnt << ", shrinkVol = " << pixelVol*cdSegShrinkCnt << "mm^3" << std::endl;
   std::cout << "cdNoSeg: growthCnt = " << cdNoSegGrowthCnt << ", shrinkCnt = " << cdNoSegShrinkCnt << std::endl;
   std::cout << "cdSeg: growthCnt = " << cdSegGrowthCnt << ", shrinkCnt = " << cdSegShrinkCnt << std::endl;
 
