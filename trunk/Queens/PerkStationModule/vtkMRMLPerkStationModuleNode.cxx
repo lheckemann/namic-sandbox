@@ -129,8 +129,8 @@ vtkMRMLPerkStationModuleNode
   this->ValidationVolumeRef = NULL;
   this->VolumeInUse = NULL;
   
-  PlanningVolumeNode = vtkSmartPointer< vtkMRMLScalarVolumeNode >::New();
-  ValidationVolumeNode = vtkSmartPointer< vtkMRMLScalarVolumeNode >::New();
+  PlanningVolumeNode = NULL;
+  ValidationVolumeNode = NULL;
   
   this->TimeSpentOnCalibrateStep = 0;
   this->TimeSpentOnPlanStep = 0;
