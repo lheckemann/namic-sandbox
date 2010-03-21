@@ -333,8 +333,6 @@ int main( int argc, char * argv [] )
 
   DemonsFilterType::Pointer demonsFilter = DemonsFilterType::New();
 
-  demonsFilter->SelfRegulatedModeOn();
-
   typedef itk::ReplaceDestinationPointsQuadEdgeMeshFilter< 
     FixedMeshType, DestinationPointSetType > ReplacePointsFilterType;
 
@@ -356,22 +354,27 @@ int main( int argc, char * argv [] )
   demonsFilter->SetSphereCenter( center );
   demonsFilter->SetSphereRadius( radius );
 
-  double sigmaXFactor = 2.5;
+  const double sigmaXFactor = 2.5;
 
   // proportional to intervertex spacing of IC4 (at radius 100.0).
   double sigmaX = vcl_sqrt( radius / 10.0 ) * sigmaXFactor;
   double epsilon = 1.0 / (sigmaX * sigmaX );
 
   const double lambda = 1.0;
-  unsigned int maximumNumberOfSmoothingIterations = 2;
 
   std::cout << "SigmaX = " << sigmaX << " Epsilon = " << epsilon << std::endl;
+
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
-  demonsFilter->SetMaximumNumberOfIterations( 30 );
+
+  // Internally refine values of SigmaX and Epsilon.
+  demonsFilter->SelfRegulatedModeOn(); 
 
   demonsFilter->SetLambda( lambda );
-  demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
+
+  demonsFilter->SetMaximumNumberOfIterations( 15 );
+  demonsFilter->SetMaximumNumberOfSmoothingIterations( 2 );
+
 
   //
   // Initialize the deformable registration stage with 
@@ -595,19 +598,8 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetFixedMesh( fixedMesh2 );
   demonsFilter->SetMovingMesh( movingMeshReader2->GetOutput() );
 
-  demonsFilter->SetMaximumNumberOfIterations( 30 );
-
-  // proportional to intervertex spacing of IC5, that is 1/2 of IC4
-  sigmaXFactor = 0.7;
-  sigmaX /= vcl_sqrt( radius / 20.0 ) * sigmaXFactor;
-  epsilon = 1.0 / (sigmaX * sigmaX );
-
-  std::cout << "SigmaX = " << sigmaX << " Epsilon = " << epsilon << std::endl;
-  demonsFilter->SetEpsilon( epsilon );
-  demonsFilter->SetSigmaX( sigmaX );
-
-  maximumNumberOfSmoothingIterations = 5;
-  demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
+  demonsFilter->SetMaximumNumberOfIterations( 15 );
+  demonsFilter->SetMaximumNumberOfSmoothingIterations( 5 );
 
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
@@ -813,15 +805,8 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetFixedMesh( fixedMesh3 );
   demonsFilter->SetMovingMesh( movingMeshReader3->GetOutput() );
 
-  demonsFilter->SetMaximumNumberOfIterations( 30 );
-
-  // proportional to intervertex spacing of IC6, that is 1/4 of IC5
-  sigmaX /= vcl_sqrt( 2.0 );
-  epsilon = 1.0 / (sigmaX * sigmaX );
-
-  std::cout << "SigmaX = " << sigmaX << " Epsilon = " << epsilon << std::endl;
-  demonsFilter->SetEpsilon( epsilon );
-  demonsFilter->SetSigmaX( sigmaX );
+  demonsFilter->SetMaximumNumberOfIterations( 15 );
+  demonsFilter->SetMaximumNumberOfSmoothingIterations( 7 );
 
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
@@ -1030,15 +1015,8 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetFixedMesh( fixedMesh4 );
   demonsFilter->SetMovingMesh( movingMeshReader4->GetOutput() );
 
-  demonsFilter->SetMaximumNumberOfIterations( 30 );
-
-  // proportional to intervertex spacing of IC7, that is 1/4 of IC6
-  sigmaX /= vcl_sqrt( 2.0 );
-  epsilon = 1.0 / (sigmaX * sigmaX );
-
-  std::cout << "SigmaX = " << sigmaX << " Epsilon = " << epsilon << std::endl;
-  demonsFilter->SetEpsilon( epsilon );
-  demonsFilter->SetSigmaX( sigmaX );
+  demonsFilter->SetMaximumNumberOfIterations( 15 );
+  demonsFilter->SetMaximumNumberOfSmoothingIterations( 10 );
 
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
