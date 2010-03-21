@@ -218,7 +218,7 @@ int main( int argc, char * argv [] )
 
   optimizer->MinimizeOn();
   optimizer->SetGradientMagnitudeTolerance( 1e-6 );
-  optimizer->SetMaximumStepLength( 0.05 );
+  optimizer->SetMaximumStepLength( 1e-2 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.9 );
   optimizer->SetNumberOfIterations( 32 );
@@ -557,7 +557,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   std::cout << "Running Second Resolution Level Rigid Registration." << std::endl;
 
-  optimizer->SetMaximumStepLength( 0.02 );
+  optimizer->SetMaximumStepLength( 1e-2 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.8 );
   optimizer->SetNumberOfIterations( 32 );
@@ -764,7 +764,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   std::cout << "Running Third Resolution Level Rigid Registration." << std::endl;
 
-  optimizer->SetMaximumStepLength( 0.01 );
+  optimizer->SetMaximumStepLength( 1e-2 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.6 );
   optimizer->SetNumberOfIterations( 16 );
@@ -974,7 +974,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   std::cout << "Running Fourth Resolution Level Rigid Registration." << std::endl;
 
-  optimizer->SetMaximumStepLength( 0.005 );
+  optimizer->SetMaximumStepLength( 1e-2 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.5 );
   optimizer->SetNumberOfIterations( 8 );
