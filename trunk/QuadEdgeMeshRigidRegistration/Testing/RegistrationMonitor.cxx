@@ -88,6 +88,9 @@ RegistrationMonitor::RegistrationMonitor()
   this->CameraZoomFactor = 1.5;
   this->CameraAzimuthAngle = 0.0;
   this->CameraElevationAngle = 0.0;
+
+  this->RangeMinimum = -10.0;
+  this->RangeMaximum =  10.0;
 }
 
 
@@ -128,6 +131,12 @@ void RegistrationMonitor::SetCameraElevationAngle(double value)
   this->CameraElevationAngle = value;
 }
 
+void RegistrationMonitor::SetScalarRange( double minimun, double maximum )
+{
+  this->RangeMinimum = minimun;
+  this->RangeMaximum = maximum;
+}
+
 
 /** Callback for the StartEvent */
 void RegistrationMonitor::StartVisualization()
@@ -160,15 +169,15 @@ void RegistrationMonitor::StartVisualization()
   this->FixedActor->SetMapper( this->FixedMapper );
   this->FixedMapper->SetInput( this->FixedSurface );
   this->FixedMapper->ScalarVisibilityOn();
-//  this->FixedMapper->UseLookupTableScalarRangeOn();
-//  this->FixedMapper->SetScalarRange(0.0,10.0);
+  this->FixedMapper->UseLookupTableScalarRangeOff();
+  this->FixedMapper->SetScalarRange( this->RangeMinimum, this->RangeMaximum );
 
   this->FixedProperty->SetAmbient(0.1);
   this->FixedProperty->SetDiffuse(0.1);
   this->FixedProperty->SetSpecular(0.1);
   // this->FixedProperty->SetColor(1.0, 1.0, 1.0);
   this->FixedProperty->SetLineWidth(2.0);
-  //this->FixedProperty->SetRepresentationToPoints();
+  this->FixedProperty->SetRepresentationToSurface();
 
   this->FixedActor->SetProperty( this->FixedProperty );
 
@@ -177,15 +186,15 @@ void RegistrationMonitor::StartVisualization()
   this->MovingActor->SetMapper( this->MovingMapper );
   this->MovingMapper->SetInput( this->MovingSurface );
   this->MovingMapper->ScalarVisibilityOn();
-//  this->MovingMapper->UseLookupTableScalarRangeOn();
-//  this->MovingMapper->SetScalarRange(0.0,10.0);
+  this->MovingMapper->UseLookupTableScalarRangeOff();
+  this->MovingMapper->SetScalarRange( this->RangeMinimum, this->RangeMaximum );
 
   this->MovingProperty->SetAmbient(0.1);
   this->MovingProperty->SetDiffuse(0.1);
   this->MovingProperty->SetSpecular(0.1);
   // this->MovingProperty->SetColor(1.0,1.0,1.0);
   this->MovingProperty->SetLineWidth(2.0);
-  //this->MovingProperty->SetRepresentationToPoints();
+  this->MovingProperty->SetRepresentationToSurface();
 
   this->MovingActor->SetProperty( this->MovingProperty );
 
