@@ -361,12 +361,12 @@ int main( int argc, char * argv [] )
   double epsilon = 1.0 / (sigmaX * sigmaX );
 
   const double lambda = 1.0;
-  const unsigned int maximumNumberOfSmoothingIterations = 2;
+  unsigned int maximumNumberOfSmoothingIterations = 2;
 
   std::cout << "SigmaX = " << sigmaX << " Epsilon = " << epsilon << std::endl;
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
-  demonsFilter->SetMaximumNumberOfIterations( 50 );
+  demonsFilter->SetMaximumNumberOfIterations( 30 );
 
   demonsFilter->SetLambda( lambda );
   demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
@@ -593,15 +593,19 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetFixedMesh( fixedMesh2 );
   demonsFilter->SetMovingMesh( movingMeshReader2->GetOutput() );
 
-  demonsFilter->SetMaximumNumberOfIterations( 60 );
+  demonsFilter->SetMaximumNumberOfIterations( 30 );
 
-  // proportional to intervertex spacing of IC5, that is 1/4 of IC4
-  sigmaX /= vcl_sqrt( 2.0 );
+  // proportional to intervertex spacing of IC5, that is 1/2 of IC4
+  sigmaXFactor = 0.7;
+  sigmaX /= vcl_sqrt( radius / 20.0 ) * sigmaXFactor;
   epsilon = 1.0 / (sigmaX * sigmaX );
 
   std::cout << "SigmaX = " << sigmaX << " Epsilon = " << epsilon << std::endl;
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
+
+  maximumNumberOfSmoothingIterations = 5;
+  demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
 
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
@@ -807,7 +811,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetFixedMesh( fixedMesh3 );
   demonsFilter->SetMovingMesh( movingMeshReader3->GetOutput() );
 
-  demonsFilter->SetMaximumNumberOfIterations( 80 );
+  demonsFilter->SetMaximumNumberOfIterations( 30 );
 
   // proportional to intervertex spacing of IC6, that is 1/4 of IC5
   sigmaX /= vcl_sqrt( 2.0 );
@@ -1024,7 +1028,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetFixedMesh( fixedMesh4 );
   demonsFilter->SetMovingMesh( movingMeshReader4->GetOutput() );
 
-  demonsFilter->SetMaximumNumberOfIterations( 100 );
+  demonsFilter->SetMaximumNumberOfIterations( 30 );
 
   // proportional to intervertex spacing of IC7, that is 1/4 of IC6
   sigmaX /= vcl_sqrt( 2.0 );
