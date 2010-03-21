@@ -604,11 +604,11 @@ ComputeVelocityField()
   JacobianType destinationJacobian;
 
   EpsilonI22.set_identity();
-  EpsilonI22 *= ( this->m_Epsilon ); //  FIXME * this->m_Epsilon ) * this->m_ShortestEdgeLength;
+  EpsilonI22 *= ( this->m_Epsilon );
 
   double sumOfSquaredDifferences = 0.0;
 
-  const double sigmaX2 = ( this->m_SigmaX * this->m_SigmaX ); // * this->m_ShortestEdgeLength;
+  const double sigmaX2 = ( this->m_SigmaX * this->m_SigmaX );
 
   for( PointIdentifier pointId = 0; pointId < numberOfNodes; pointId++ )
     {
@@ -685,7 +685,7 @@ ComputeVelocityField()
 
     sumOfSquaredDifferences += ( Fv - Mv )*( Fv - Mv ) / sigmaN2;
 
-    velocityItr.Value() = Vn; // FIXME  * ( this->m_SphereRadius );  needed ?
+    velocityItr.Value() = Vn;
 
     ++velocityItr;
     ++sigmaItr;
@@ -697,7 +697,7 @@ ComputeVelocityField()
 
   const double averageOfSquaredDifferences = sumOfSquaredDifferences / numberOfNodes; 
 
-  this->m_MetricValue = vcl_sqrt( averageOfSquaredDifferences  );
+  this->m_MetricValue = averageOfSquaredDifferences;
   std::cout <<  "Metric: " <<  this->m_MetricValue << "  ";
 }
 
