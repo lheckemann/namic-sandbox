@@ -333,6 +333,8 @@ int main( int argc, char * argv [] )
 
   DemonsFilterType::Pointer demonsFilter = DemonsFilterType::New();
 
+  demonsFilter->SelfRegulatedModeOn();
+
   typedef itk::ReplaceDestinationPointsQuadEdgeMeshFilter< 
     FixedMeshType, DestinationPointSetType > ReplacePointsFilterType;
 

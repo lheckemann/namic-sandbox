@@ -73,6 +73,8 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_ScalingAndSquaringNumberOfIterations = 2;
 
   this->m_MetricValue = 0.0;
+
+  this->m_SelfRegulatedMode = true;
 }
 
 
@@ -504,6 +506,10 @@ RunIterations()
     this->ComposeDestinationPointsOutputPointSet();
     this->m_Chronometer.Stop("ComposeDestinationPointsOutputPointSet");
 
+    this->m_Chronometer.Start("ComputeSelfRegulatedSigmaXandEpsilon");
+    this->ComputeSelfRegulatedSigmaXandEpsilon();
+    this->m_Chronometer.Stop("ComputeSelfRegulatedSigmaXandEpsilon");
+
     // Report progress via Events
     progress.CompletedPixel();
     this->InvokeEvent( IterationEvent() );
@@ -876,6 +882,21 @@ ComputeDeformationByScalingAndSquaring()
       }
 
     this->SwapOldAndNewDisplacementFieldContainers();
+    }
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComputeSelfRegulatedSigmaXandEpsilon()
+{
+  if( this->m_SelfRegulatedMode )
+    {
+    const double largestVelocityMagnitude = this->ComputeLargestVelocityMagnitude();
+    const double ratio = largestVelocityMagnitude / ( 2.0 * this->m_ShortestEdgeLength );
+    this->m_SigmaX /= vcl_sqrt( ratio );
+    this->m_Epsilon =  1.0 / ( this->m_SigmaX * this->m_SigmaX );
     }
 }
 

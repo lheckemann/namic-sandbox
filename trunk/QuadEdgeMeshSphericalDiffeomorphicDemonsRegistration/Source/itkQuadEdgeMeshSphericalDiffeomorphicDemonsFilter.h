@@ -176,6 +176,14 @@ public:
   itkSetMacro( SigmaX, double );
   itkGetConstMacro( SigmaX, double );
 
+  /** Variable that defines whether the filter will self-adjust the values of
+   * SigmaX and Epsilon in order to get closer to the ratio of
+   * largestVelocityMagnitude being similar to the value of the shortest edge
+   * length. */
+  itkSetMacro( SelfRegulatedMode, bool );
+  itkGetConstMacro( SelfRegulatedMode, bool );
+  itkBooleanMacro( SelfRegulatedMode );
+
   /** Set/Get the container of sigma values to be associated with each node of
    * the fixed mesh. This sigma value represents the expected variability of
    * scalar values at this node of the mesh. */
@@ -264,6 +272,7 @@ private:
   double ComputeLargestVelocityMagnitude() const;
   void ComputeDeformationByScalingAndSquaring();
   void ComposeDeformationUpdateWithPreviousDeformation();
+  void ComputeSelfRegulatedSigmaXandEpsilon();
   void SwapOldAndNewDestinationPointContainers();
   void SwapOldAndNewDisplacementFieldContainers();
   void SwapOldAndNewTangetFieldContainers();
@@ -398,6 +407,12 @@ private:
    * compute it as a way of providing feedback on the progress of the
    * registration. */
   double        m_MetricValue;
+
+  /** Variable that defines whether the filter will self-adjust the values of
+   * SigmaX and Epsilon in order to get closer to the ratio of
+   * largestVelocityMagnitude being similar to the value of the shortest edge
+   * length. */
+  bool          m_SelfRegulatedMode;
 };
 
 }
