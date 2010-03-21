@@ -30,5 +30,5 @@ target_link_libraries(DeformableModel1 ITKIO ITKStatistics)
 add_executable(LocalThresholding LocalThresholding.cxx)
 target_link_libraries(LocalThresholding ITKIO ITKStatistics ITKQuadEdgeMesh vtkIO vtkGraphics)
 
-add_executable(SurfaceVolumeCalculator SurfaceVolumeCalculator.cxx)
-target_link_libraries(SurfaceVolumeCalculator vtkIO vtkGraphics)
+add_executable(SphereGenerator SphereGenerator.cxx)
+target_link_libraries(SphereGenerator ITKIO)
