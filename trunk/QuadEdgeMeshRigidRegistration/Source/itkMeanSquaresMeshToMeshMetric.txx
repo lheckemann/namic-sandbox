@@ -60,7 +60,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
   PointDataIterator pointDataItr = fixedMesh->GetPointData()->Begin();
   PointDataIterator pointDataEnd = fixedMesh->GetPointData()->End();
 
-  MeasureType measure = NumericTraits< MeasureType >::Zero;
+  MeasureType sumOfSquaresDifferences = NumericTraits< MeasureType >::Zero;
 
   this->m_NumberOfPixelsCounted = 0;
 
@@ -96,7 +96,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
       const RealDataType movingValue  = this->m_Interpolator->Evaluate( pointToEvaluate );
       const RealDataType fixedValue   = pointDataItr.Value();
       const RealDataType diff = movingValue - fixedValue; 
-      measure += diff * diff; 
+      sumOfSquaresDifferences += diff * diff; 
       this->m_NumberOfPixelsCounted++;
       }
 
@@ -108,13 +108,10 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     {
     itkExceptionMacro(<<"All the points mapped to outside of the moving image");
     }
-  else
-    {
-    measure /= this->m_NumberOfPixelsCounted;
-    }
 
+  const double averageOfSquaredDifferences = sumOfSquaresDifferences / this->m_NumberOfPixelsCounted;
 
-  return measure;
+  return averageOfSquaredDifferences;
 
 }
 
@@ -248,7 +245,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
   PointDataIterator pointDataItr = fixedMesh->GetPointData()->Begin();
   PointDataIterator pointDataEnd = fixedMesh->GetPointData()->End();
 
-  MeasureType measure = NumericTraits< MeasureType >::Zero;
+  MeasureType sumOfSquaresDifferences = NumericTraits< MeasureType >::Zero;
 
   this->m_NumberOfPixelsCounted = 0;
 
@@ -296,7 +293,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
       const RealDataType diff = movingValue - fixedValue; 
   
-      measure += diff * diff;
+      sumOfSquaresDifferences += diff * diff;
 
       DerivativeDataType gradient;
  
@@ -321,16 +318,15 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     {
     itkExceptionMacro(<<"All the points mapped to outside of the moving image");
     }
-  else
-    {
-    for(unsigned int i=0; i<ParametersDimension; i++)
-      {
-      derivative[i] /= this->m_NumberOfPixelsCounted;
-      }
-    measure /= this->m_NumberOfPixelsCounted;
-    }
 
-  value = measure;
+
+  for(unsigned int i=0; i<ParametersDimension; i++)
+    {
+    derivative[i] /= this->m_NumberOfPixelsCounted;
+    }
+  const double averageOfSquaredDifferences = sumOfSquaresDifferences / this->m_NumberOfPixelsCounted;
+
+  value = averageOfSquaredDifferences;
 
 }
 
