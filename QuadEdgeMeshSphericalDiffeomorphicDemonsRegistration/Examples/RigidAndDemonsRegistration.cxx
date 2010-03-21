@@ -236,6 +236,8 @@ int main( int argc, char * argv [] )
   visualMonitor.SetVerbose( false );
   visualMonitor.SetScreenShotsBaseFileName( "rigidAndDemonsRegistration" );
 
+  visualMonitor.SetScalarRange( -0.1, 0.1 );
+
   vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader = 
     vtkSmartPointer< vtkPolyDataReader >::New();
 
@@ -368,11 +370,15 @@ int main( int argc, char * argv [] )
   const double epsilon = 1.0 / ( sigmaX * sigmaX );
 
   const double lambda = 1.0;
-  const unsigned int maximumNumberOfSmoothingIterations = 3;
+  const unsigned int maximumNumberOfSmoothingIterations = 5;
   const unsigned int maximumNumberOfIterations = atoi( argv[5] );
 
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
+
+  // Internally refine values of SigmaX and Epsilon.
+  demonsFilter->SelfRegulatedModeOn(); 
+
   demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
 
   demonsFilter->SetLambda( lambda );
