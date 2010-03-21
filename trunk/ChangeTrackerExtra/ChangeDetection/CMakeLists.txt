@@ -3,6 +3,9 @@ project(ChangeTrackerExtra_ChangeDetection)
 find_package(ITK REQUIRED)
 include(${ITK_USE_FILE})
 
+find_package(VTK REQUIRED)
+include(${VTK_USE_FILE})
+
 add_executable(ChangeDetection ChangeDetection.cxx)
 target_link_libraries(ChangeDetection ITKIO ITKStatistics)
 
@@ -25,4 +28,7 @@ add_executable(DeformableModel1 DeformableModel1.cxx)
 target_link_libraries(DeformableModel1 ITKIO ITKStatistics)
 
 add_executable(LocalThresholding LocalThresholding.cxx)
-target_link_libraries(LocalThresholding ITKIO ITKStatistics ITKQuadEdgeMesh)
+target_link_libraries(LocalThresholding ITKIO ITKStatistics ITKQuadEdgeMesh vtkIO vtkGraphics)
+
+add_executable(SurfaceVolumeCalculator SurfaceVolumeCalculator.cxx)
+target_link_libraries(SurfaceVolumeCalculator vtkIO vtkGraphics)
