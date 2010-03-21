@@ -98,6 +98,10 @@ int main( int argc, char *argv[] )
 
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
+
+  // Internally refine values of SigmaX and Epsilon.
+  demonsFilter->SelfRegulatedModeOn(); 
+
   demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
 
   demonsFilter->SetLambda( lambda );
