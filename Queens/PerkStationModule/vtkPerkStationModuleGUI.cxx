@@ -58,7 +58,6 @@
 #include "vtkPerkStationPlanStep.h"
 #include "vtkPerkStationInsertStep.h"
 #include "vtkPerkStationValidateStep.h"
-#include "vtkPerkStationEvaluateStep.h"
 
 #include "vtkPerkStationSecondaryMonitor.h"
 
@@ -69,10 +68,11 @@
 vtkPerkStationModuleGUI* vtkPerkStationModuleGUI::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkPerkStationModuleGUI");
-  if(ret)
+  vtkObject* ret = vtkObjectFactory::CreateInstance(
+    "vtkPerkStationModuleGUI" );
+  if( ret )
     {
-      return (vtkPerkStationModuleGUI*)ret;
+      return ( vtkPerkStationModuleGUI* )ret;
     }
   // If the factory was unable to create the object, then create it here.
   return new vtkPerkStationModuleGUI;
@@ -80,21 +80,26 @@ vtkPerkStationModuleGUI* vtkPerkStationModuleGUI::New()
 
 
 /**
- * Protected constructor. Use factory instead.
+ * Protected constructor.
  */
-vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
+vtkPerkStationModuleGUI
+::vtkPerkStationModuleGUI()
 {
   // gui elements
-  this->VolumeSelector = vtkSlicerNodeSelectorWidget::New();
-  this->PSNodeSelector = vtkSlicerNodeSelectorWidget::New();
+  this->VolumeSelector = vtkSmartPointer< vtkSlicerNodeSelectorWidget >::New();
+  this->PSNodeSelector = vtkSmartPointer< vtkSlicerNodeSelectorWidget >::New();
 
-  this->LoadPlanningVolumeButton = NULL;
-  this->LoadValidationVolumeButton = NULL;
+  this->LoadPlanningVolumeButton =
+    vtkSmartPointer< vtkKWLoadSaveButton >::New();
+  this->LoadValidationVolumeButton = 
+    vtkSmartPointer< vtkKWLoadSaveButton >::New();
 
-  this->LoadExperimentFileButton = NULL;
-  this->SaveExperimentFileButton = NULL;
+  this->LoadExperimentFileButton =
+    vtkSmartPointer< vtkKWLoadSaveButton >::New();
+  this->SaveExperimentFileButton = 
+    vtkSmartPointer< vtkKWLoadSaveButton >::New();
 
-  //logic and mrml nodes
+  
   this->Logic = NULL;
   this->MRMLNode = NULL;
   
@@ -103,26 +108,28 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
   
   
   // secondary monitor
-  this->SecondaryMonitor = vtkPerkStationSecondaryMonitor::New();
-  this->SecondaryMonitor->SetGUI( this );
-  this->SecondaryMonitor->Initialize();
+  this->SecondaryMonitor =
+      vtkSmartPointer< vtkPerkStationSecondaryMonitor >::New();
+    this->SecondaryMonitor->SetGUI( this );
+    this->SecondaryMonitor->Initialize();
+    
+  //  return this->SecondaryMonitor.GetPointer()
+    
+    
+    
   
   
   // wizard workflow
-  this->WizardFrame = NULL;  
-  this->CalibrateStep = NULL;
-  this->PlanStep = NULL;
-  this->InsertStep = NULL;
-  this->ValidateStep = NULL;
-  this->EvaluateStep = NULL;
+  this->WizardFrame = vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();  
+  this->CalibrateStep = vtkSmartPointer< vtkPerkStationCalibrateStep >::New();
+  this->PlanStep = vtkSmartPointer< vtkPerkStationPlanStep >::New();
+  this->InsertStep = vtkSmartPointer< vtkPerkStationInsertStep >::New();
+  this->ValidateStep = vtkSmartPointer< vtkPerkStationValidateStep >::New();
   
-  // state descriptors
-  this->ModeListMenu = NULL;
-  // this->Mode = vtkPerkStationModuleGUI::Training;
-  this->Mode = vtkPerkStationModuleGUI::Clinical;
   this->State = vtkPerkStationModuleGUI::Calibrate;  
-  this->DisplayVolumeLevelValue = NULL;
-  this->DisplayVolumeWindowValue = NULL;
+  this->DisplayVolumeLevelValue = vtkSmartPointer< vtkKWScaleWithEntry >::New();
+  this->DisplayVolumeWindowValue =
+    vtkSmartPointer< vtkKWScaleWithEntry >::New();
 
   this->Built = false;
   this->SliceOffset = 0;
@@ -130,142 +137,36 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
   this->ObserverCount = 0;
   
     // Workphase handling.
-  this->WorkphaseButtonFrame = vtkKWFrame::New();
-  this->WorkphaseButtonSet = NULL;
+  this->WorkphaseButtonFrame = vtkSmartPointer< vtkKWFrame >::New();
+  this->WorkphaseButtonSet = vtkSmartPointer< vtkKWPushButtonSet >::New();
 
 }
+
 
 //----------------------------------------------------------------------------
 vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
 {
   this->RemoveGUIObservers();
-
   
-  vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic();
-  if (sliceLogic)
+  vtkSlicerSliceLogic *sliceLogic =
+    this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic();
+  if ( sliceLogic )
     {  
-    sliceLogic->GetSliceNode()->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->ModeListMenu)
-    {
-    this->ModeListMenu->Delete();
-    this->ModeListMenu = NULL;
-    }
-  if (this->LoadPlanningVolumeButton)
-    {
-    this->LoadPlanningVolumeButton->Delete();
-    this->LoadPlanningVolumeButton = NULL;
-    }
-  if (this->LoadValidationVolumeButton)
-    {
-    this->LoadValidationVolumeButton->Delete();
-    this->LoadValidationVolumeButton = NULL;
-    }
-  if (this->LoadExperimentFileButton)
-    {
-    this->LoadExperimentFileButton->Delete();
-    this->LoadExperimentFileButton = NULL;
-    }
-  if (this->SaveExperimentFileButton)
-    {
-    this->SaveExperimentFileButton->Delete();
-    this->SaveExperimentFileButton = NULL;
+    sliceLogic->GetSliceNode()->RemoveObservers(
+      vtkCommand::ModifiedEvent, ( vtkCommand *)( this->GUICallbackCommand ) );
     }
   
-  if ( this->VolumeSelector ) 
-    {
-    this->VolumeSelector->Delete();
-    this->VolumeSelector = NULL;
-    }
-  if ( this->PSNodeSelector ) 
-    {
-    this->PSNodeSelector->Delete();
-    this->PSNodeSelector = NULL;
-    }
+  this->SetLogic( NULL );
 
-  if (this->WizardFrame)
-    {    
-    this->WizardFrame->Delete();
-    this->WizardFrame = NULL;
-    }
-
-  if (this->WizardWidget)
+  if ( this->MRMLNode )
     {
-    this->WizardWidget->Delete();
-    this->WizardWidget = NULL;
+    vtkSetMRMLNodeMacro( this->MRMLNode, NULL );
     }
-
-  if (this->CalibrateStep)
-    {
-    this->CalibrateStep->Delete();
-    this->CalibrateStep = NULL;
-    }
-
-  if (this->PlanStep)
-    {
-    this->PlanStep->Delete();
-    this->PlanStep = NULL;
-    }
-
-  if (this->InsertStep)
-    {
-    this->InsertStep->Delete();
-    this->InsertStep = NULL;
-    }
-
-  if (this->ValidateStep)
-    {
-    this->ValidateStep->Delete();
-    this->ValidateStep = NULL;
-    }
-
-  if (this->EvaluateStep)
-    {
-    this->EvaluateStep->Delete();
-    this->EvaluateStep = NULL;
-    }
-  if (this->DisplayVolumeLevelValue)
-    {
-    this->DisplayVolumeLevelValue->Delete();
-    this->DisplayVolumeLevelValue = NULL;
-    }
-  if (this->DisplayVolumeWindowValue)
-    {
-    this->DisplayVolumeWindowValue->Delete();
-    this->DisplayVolumeWindowValue = NULL;
-    }
-
-  this->SetLogic (NULL);
-
-  if (this->MRMLNode)
-    {
-    vtkSetMRMLNodeMacro(this->MRMLNode, NULL);
-    }
- 
-  this->SecondaryMonitor->Delete();
-  this->SecondaryMonitor = NULL;
-  
-  
-    // Workphase handling.
-  
-  if (this->WorkphaseButtonFrame)
-    {
-    this->WorkphaseButtonFrame->SetParent(NULL);
-    this->WorkphaseButtonFrame->Delete(); 
-    this->WorkphaseButtonFrame = NULL;
-    }
-
-  if (this->WorkphaseButtonSet)
-    {
-    this->WorkphaseButtonSet->SetParent(NULL);
-    this->WorkphaseButtonSet->Delete();
-    }
-  
-  
 }
 
+
 //----------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPerkStationModuleGUI::PrintSelf( ostream& os, vtkIndent indent )
 {
   
 }
@@ -438,11 +339,6 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
     vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
     ( vtkCommand* )this->GUICallbackCommand );    
   
-  // If TRAINING / CLINICAL mode switch is needed, enable this commented part.
-  /*
-  this->ModeListMenu->GetWidget()->GetMenu()->RemoveObservers(
-    vtkKWMenu::MenuItemInvokedEvent, ( vtkCommand* )this->GUICallbackCommand );
-  */
   
   this->DisplayVolumeLevelValue->RemoveObservers(
     vtkKWScale::ScaleValueChangedEvent,
@@ -548,34 +444,28 @@ vtkPerkStationModuleGUI
     {
     // TO DO  -- What?
     if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
-         == this->CalibrateStep )
+         == this->CalibrateStep.GetPointer() )
       {
       this->State = vtkPerkStationModuleGUI::Calibrate;
       this->MRMLNode->SwitchStep( 0 );
       }
     else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
-              == this->PlanStep )
+              == this->PlanStep.GetPointer() )
       {
       this->State = vtkPerkStationModuleGUI::Plan;
       this->MRMLNode->SwitchStep( 1 );
       }
     else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
-              == this->InsertStep )
+              == this->InsertStep.GetPointer() )
       {
       this->State = vtkPerkStationModuleGUI::Insert;
       this->MRMLNode->SwitchStep( 2 );
       }
     else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
-              == this->ValidateStep )
+              == this->ValidateStep.GetPointer() )
       {
       this->State = vtkPerkStationModuleGUI::Validate;
       this->MRMLNode->SwitchStep( 3 );
-      }
-    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
-              == this->EvaluateStep )
-      {
-      this->State = vtkPerkStationModuleGUI::Evaluate;
-      this->MRMLNode->SwitchStep( 4 );
       }
     
     this->UpdateWorkphaseButtons();
@@ -727,34 +617,12 @@ vtkPerkStationModuleGUI
        && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
        && this->PSNodeSelector->GetSelected() != NULL ) 
     { 
-    vtkMRMLPerkStationModuleNode* n = vtkMRMLPerkStationModuleNode::SafeDownCast(this->PSNodeSelector->GetSelected());
-    this->Logic->SetAndObservePerkStationModuleNode(n);
-    vtkSetAndObserveMRMLNodeMacro( this->MRMLNode, n);
+    vtkMRMLPerkStationModuleNode* n =
+      vtkMRMLPerkStationModuleNode::SafeDownCast(
+        this->PSNodeSelector->GetSelected() );
+    this->Logic->SetAndObservePerkStationModuleNode( n );
+    vtkSetAndObserveMRMLNodeMacro( this->MRMLNode, n );
     this->UpdateGUI();
-    }
-  
-    
-  if ( this->ModeListMenu->GetWidget()->GetMenu()
-         == vtkKWMenu::SafeDownCast( caller )
-       && event == vtkKWMenu::MenuItemInvokedEvent )
-    {
-    const char *val = this->ModeListMenu->GetWidget()->GetValue();
-    if ( ! strcmp(val, "CLINICAL") && this->Mode ==
-           vtkPerkStationModuleGUI::Training )
-      {
-      this->Mode = vtkPerkStationModuleGUI::Clinical;
-      this->SetUpPerkStationMode();
-      // disable the option of changing the Mode now on
-      this->ModeListMenu->GetWidget()->SetEnabled( 0 );
-      }
-    else if ( ! strcmp(val, "TRAINING") && this->Mode ==
-                vtkPerkStationModuleGUI::Clinical )
-      {
-      this->Mode = vtkPerkStationModuleGUI::Training;
-      this->SetUpPerkStationMode();
-        // disable the option of changing the Mode now on
-      this->ModeListMenu->GetWidget()->SetEnabled( 0 );
-      }
     }
 }
 
@@ -833,7 +701,8 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
     {    
     
     // see in what state wizard gui is, act accordingly
-    if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->CalibrateStep)
+    if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() ==
+         this->CalibrateStep.GetPointer() )
       {
 
       bool planningVolumePreExists = false;
@@ -898,7 +767,8 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
         }
 
       }
-    else if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->ValidateStep)
+    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() ==
+              this->ValidateStep.GetPointer() )
       {
       // what if the volume selected is actually planning
       // in that case just return
@@ -1120,32 +990,6 @@ void vtkPerkStationModuleGUI::BuildGUI()
   
   
   // add individual collapsible pages/frames
-
-
-  // Mode collapsible frame with combo box label.
-  vtkSlicerModuleCollapsibleFrame *modeFrame = vtkSlicerModuleCollapsibleFrame::New ( );
-    modeFrame->SetParent( page );
-    modeFrame->Create();
-    modeFrame->SetLabelText("Mode frame");
-    modeFrame->ExpandFrame();
-  
-  
-  // Add combo box in the frame.
-  this->ModeListMenu = vtkKWMenuButtonWithLabel::New();
-    this->ModeListMenu->SetParent( modeFrame->GetFrame() );
-    this->ModeListMenu->Create();
-    this->ModeListMenu->SetLabelText( "Mode" );
-    this->ModeListMenu->SetBalloonHelpString(
-      "This indicates whether the PERK Station module is being used in "
-      "CLINICAL or TRAINING mode" );
-    this->ModeListMenu->GetWidget()->GetMenu()->AddRadioButton( "TRAINING" );
-    this->ModeListMenu->GetWidget()->GetMenu()->AddRadioButton( "CLINICAL" );
-    // this->ModeListMenu->GetWidget()->SetValue( "TRAINING" );
-    this->ModeListMenu->GetWidget()->SetValue( "CLINICAL" );
-  
-  
-  modeFrame->Delete();
-  
   
     // collapsible? frame for volume node selection, and parameters selection?
   
@@ -1189,15 +1033,11 @@ void vtkPerkStationModuleGUI::BuildGUI()
     // Captions for radiobuttons.
   const char *buffer[] =
     {
-    "Calibrate", "Plan", "Insert", "Validate", "Evaluate"
+    "Calibrate", "Plan", "Insert", "Validate"
     };
   
     // Individual radiobuttons.
-  int numSteps = 5;
-  if ( this->Mode == this->Clinical )
-    {
-    numSteps = 4;
-    }
+  int numSteps = 4;
   for (int id = 0; id < numSteps; id ++ )
     {
     vtkKWPushButton *pb = this->WorkphaseButtonSet->AddWidget( id );
@@ -1493,30 +1333,9 @@ void vtkPerkStationModuleGUI::BuildGUI()
     }
   wizard_workflow->AddNextStep(this->ValidateStep);
 
-
-  // -----------------------------------------------------------------
-  // Evaluate step
-
-  if (!this->EvaluateStep)
-    {
-    this->EvaluateStep = vtkPerkStationEvaluateStep::New();
-    this->EvaluateStep->SetGUI(this);
-    }
-  wizard_workflow->AddNextStep(this->EvaluateStep);
-
-
-  switch (this->Mode)
-    {
-    case vtkPerkStationModuleGUI::Training:
-        wizard_workflow->SetFinishStep(this->EvaluateStep);
-        break;
-
-    case vtkPerkStationModuleGUI::Clinical:     
-        wizard_workflow->SetFinishStep(this->ValidateStep);
-        break;
-
-    }
-
+  wizard_workflow->SetFinishStep(this->ValidateStep);
+  
+  
   // -----------------------------------------------------------------
   // Initial step and transitions
   
@@ -1537,11 +1356,6 @@ void vtkPerkStationModuleGUI::BuildGUI()
 //---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::TearDownGUI() 
 {
-  if (this->ModeListMenu)
-    {
-    this->ModeListMenu->SetParent(NULL);
-    }
-  
   if (this->LoadPlanningVolumeButton)
     {
     this->LoadPlanningVolumeButton->SetParent(NULL);
@@ -1609,10 +1423,6 @@ void vtkPerkStationModuleGUI::TearDownGUI()
     this->ValidateStep->SetGUI(NULL);
     }
 
-  if (this->EvaluateStep)
-    {
-    this->EvaluateStep->SetGUI(NULL);
-    }
   if (this->VolumeSelector)
     {
     if(this->VolumeSelector->IsCreated())
@@ -1660,32 +1470,21 @@ void vtkPerkStationModuleGUI::SetUpPerkStationMode()
  
 
 }
+
+
 //---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::SetUpPerkStationWizardWorkflow()
 {  
-  
-
-  vtkNotUsed(vtkKWWizardWidget *wizard_widget = this->WizardWidget;);
+  vtkNotUsed( vtkKWWizardWidget *wizard_widget = this->WizardWidget; );
   vtkKWWizardWorkflow *wizard_workflow = this->WizardWidget->GetWizardWorkflow();
   
-
+    // create transition/program validate button such that it doesn't go further
+  wizard_workflow->SetFinishStep( this->ValidateStep );
   
-  switch (this->Mode)
-    {
-    case vtkPerkStationModuleGUI::Training:
-        wizard_workflow->SetFinishStep(this->EvaluateStep);
-        break;
-
-    case vtkPerkStationModuleGUI::Clinical:
-        // create transition/program validate button such that it doesn't go further
-        wizard_workflow->SetFinishStep(this->ValidateStep);
-        break;
-
-    }
-  
-  this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
-  
+  this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();  
 }
+
+
 //---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::RenderSecondaryMonitor()
 {
@@ -1783,7 +1582,6 @@ void vtkPerkStationModuleGUI::ResetAndStartNewExperiment()
   this->PlanStep->Reset();
   this->InsertStep->Reset();
   this->ValidateStep->Reset();
-  this->EvaluateStep->Reset();
 
   // 2)Go back to the first step in GUI in workflow widget
   while (this->WizardWidget->GetWizardWorkflow()->GetCurrentState()!= this->WizardWidget->GetWizardWorkflow()->GetInitialState())

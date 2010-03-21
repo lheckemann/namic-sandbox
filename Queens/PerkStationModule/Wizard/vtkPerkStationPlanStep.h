@@ -32,15 +32,8 @@ public:
   // Description:
   // Process GUI events
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
-
-  // Description:
-  // Callback on value entered in the Insertion angle entry
-  virtual void InsertionAngleEntryCallback();
-
-  // Description:
-  // Callback on value entered in the Insertion depth entry
-  virtual void InsertionDepthEntryCallback();
-
+  
+  
   // Description:
   // Reimplement the superclass's method.
   //virtual void Validate();

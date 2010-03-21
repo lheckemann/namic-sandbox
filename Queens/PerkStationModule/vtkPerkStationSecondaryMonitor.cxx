@@ -461,9 +461,11 @@ vtkPerkStationSecondaryMonitor
 ::UpdateCalibration()
 {
   this->VerticalFlip =
-    this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->GetVerticalFlip();
+    this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
+      GetSecondMonitorVerticalFlip();
   this->HorizontalFlip =
-    this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->GetHorizontalFlip();
+    this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
+      GetSecondMonitorHorizontalFlip();
   
   
 }
@@ -645,33 +647,30 @@ void vtkPerkStationSecondaryMonitor::LoadCalibration()
       
   double imgSpacing[3];
   this->VolumeNode->GetSpacing(imgSpacing);
-      
-    // set the actual scaling (image/mon) in mrml node
-  mrmlNode->SetActualScaling( double( imgSpacing[0] / monSpacing[0] ),
-                              double( imgSpacing[1] / monSpacing[1] ) );
-  double scale[2];
-  mrmlNode->GetActualScaling( scale );
+  
   
     // actually scale the image
-  this->Scale[ 0 ] = scale[ 0 ];
-  this->Scale[ 1 ] = scale[ 1 ];
+  this->Scale[ 0 ] = imgSpacing[0] / monSpacing[0];
+  this->Scale[ 1 ] = imgSpacing[1] / monSpacing[1];
   
   
   // 2) Flips
-  this->VerticalFlip = this->GetGUI()->GetMRMLNode()->GetVerticalFlip();
-  this->HorizontalFlip = this->GetGUI()->GetMRMLNode()->GetHorizontalFlip();
+  this->VerticalFlip = this->GetGUI()->GetMRMLNode()->
+    GetSecondMonitorVerticalFlip();
+  this->HorizontalFlip = this->GetGUI()->GetMRMLNode()->
+    GetSecondMonitorHorizontalFlip();
 
   
   // 3) Translation
   double trans[2];
-  mrmlNode->GetClinicalModeTranslation(trans);
+  mrmlNode->GetSecondMonitorTranslation(trans);
   this->Translation[ 0 ] = trans[0];
   this->Translation[ 1 ] = trans[1];
 
   // 4) Rotation
   // note that center of rotation will be automatically read inside the rotate function from the mrml node
   double rot = 0;
-  this->Rotation = mrmlNode->GetClinicalModeRotation();  
+  this->Rotation = mrmlNode->GetSecondMonitorRotation();  
   
   this->CalibrationFromFileLoaded = true;
 }

@@ -185,23 +185,10 @@ void vtkPerkStationInsertStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
 
-  switch (this->GetGUI()->GetMode())     
-    {
-
-    case vtkPerkStationModuleGUI::Training:
-
-      this->SetName("3/5. Insert");
-      this->GetGUI()->GetWizardWidget()->Update();
-      break;
-
-    case vtkPerkStationModuleGUI::Clinical:
-       
-      // in clinical mode
-      this->SetName("3/4. Insert");
-      this->GetGUI()->GetWizardWidget()->Update();
-      break;
-    }
-
+  // in clinical mode
+  this->SetName("3/4. Insert");
+  this->GetGUI()->GetWizardWidget()->Update();
+     
   
   this->SetDescription("Do the needle insertion");
 

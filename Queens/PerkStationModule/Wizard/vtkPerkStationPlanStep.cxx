@@ -190,64 +190,49 @@ void vtkPerkStationPlanStep::ShowUserInterface()
     }
   
 
-  switch (this->GetGUI()->GetMode())      
+  // in clinical mode
+  this->SetName("2/4. Plan");
+  this->GetGUI()->GetWizardWidget()->Update();
+
+  // additional reset button
+
+  // frame for reset button
+
+  if (!this->ResetFrame)
     {
+    this->ResetFrame = vtkKWFrame::New();
+    }
+  if (!this->ResetFrame->IsCreated())
+    {
+    this->ResetFrame->SetParent(parent);
+    this->ResetFrame->Create();     
+    }
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    this->ResetFrame->GetWidgetName());     
+  
+  
 
-    case vtkPerkStationModuleGUI::Training:
-
-      this->SetName("2/5. Plan");
-      this->GetGUI()->GetWizardWidget()->Update();
-
-       
-      break;
-
-    case vtkPerkStationModuleGUI::Clinical:
-       
-      // in clinical mode
-      this->SetName("2/4. Plan");
-      this->GetGUI()->GetWizardWidget()->Update();
-
-      // additional reset button
-
-      // frame for reset button
-
-      if (!this->ResetFrame)
-        {
-        this->ResetFrame = vtkKWFrame::New();
-        }
-      if (!this->ResetFrame->IsCreated())
-        {
-        this->ResetFrame->SetParent(parent);
-        this->ResetFrame->Create();     
-        }
-      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                        this->ResetFrame->GetWidgetName());     
-      
-      
-
-      if (!this->ResetPlanButton)
-        {
-        this->ResetPlanButton = vtkKWPushButton::New();
-        }
-      if(!this->ResetPlanButton->IsCreated())
-        {
-        this->ResetPlanButton->SetParent(this->ResetFrame);
-        this->ResetPlanButton->SetText("Reset plan");
-        this->ResetPlanButton->SetBorderWidth(2);
-        this->ResetPlanButton->SetReliefToRaised();      
-        this->ResetPlanButton->SetHighlightThickness(2);
-        this->ResetPlanButton->SetBackgroundColor(0.85,0.85,0.85);
-        this->ResetPlanButton->SetActiveBackgroundColor(1,1,1);      
-        this->ResetPlanButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
-        this->ResetPlanButton->Create();
-        }
-      
-      this->Script("pack %s -side top -padx 2 -pady 4", 
-                        this->ResetPlanButton->GetWidgetName());
-      
-      break;
+  if (!this->ResetPlanButton)
+    {
+    this->ResetPlanButton = vtkKWPushButton::New();
+    }
+  if(!this->ResetPlanButton->IsCreated())
+    {
+    this->ResetPlanButton->SetParent(this->ResetFrame);
+    this->ResetPlanButton->SetText("Reset plan");
+    this->ResetPlanButton->SetBorderWidth(2);
+    this->ResetPlanButton->SetReliefToRaised();      
+    this->ResetPlanButton->SetHighlightThickness(2);
+    this->ResetPlanButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->ResetPlanButton->SetActiveBackgroundColor(1,1,1);      
+    this->ResetPlanButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
+    this->ResetPlanButton->Create();
     }
   
+  this->Script("pack %s -side top -padx 2 -pady 4", 
+                    this->ResetPlanButton->GetWidgetName());
+ 
+ 
   this->SetDescription("Plan the needle insertion");
 
   /*vtkPerkStationtMRMLManager *mrmlManager = this->GetGUI()->GetMRMLManager();
@@ -573,10 +558,7 @@ void vtkPerkStationPlanStep::PopulateControlsOnLoadPlanning()
 {
     if (!this->GetGUI()->GetMRMLNode())
       return;
-
-    if (!this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Clinical)
-      return;
-
+    
     double rasEntry[3];
     this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasEntry);
 
@@ -760,59 +742,6 @@ bool vtkPerkStationPlanStep::DoubleEqual(double val1, double val2)
   return result;
 }
 
-//----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::InsertionDepthEntryCallback()
-{
-    if (!this->GetGUI()->GetMRMLNode())
-        return;
-
-    // TO DO: check if its a valid input i.e. non-negative  
-    double mrmlVal = this->GetGUI()->GetMRMLNode()->GetUserPlanInsertionDepth();
-    
-    if (strcmpi(this->InsertionDepth->GetWidget()->GetValue(), "")!=0)
-      {
-      // counter the case when the user enters the same value in entry, which is equal to the initial value set in MRML node
-      // in this case above code, won't detect change, but actually user has entered a change
-      // for insertion depth, initial value is 0
-      if(     ( (mrmlVal == 0) && (this->InsertionDepth->GetWidget()->GetValueAsDouble() == 0))
-        || (!this->DoubleEqual(mrmlVal,this->InsertionDepth->GetWidget()->GetValueAsDouble()))
-        )
-        {
-        // set the value in the mrml node
-        this->GetGUI()->GetMRMLNode()->SetUserPlanInsertionDepth(this->InsertionDepth->GetWidget()->GetValueAsDouble()); 
-        this->GetGUI()->GetMRMLNode()->CalculatePlanInsertionDepthError();  
-        }
-      }
-    
-}
-
-
-//----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::InsertionAngleEntryCallback()
-{
-    // TO DO: check if its a valid input i.e. 0-360 
-    if (!this->GetGUI()->GetMRMLNode())
-        return;
-
-    // TO DO: check if its a valid input i.e. non-negative  
-    double mrmlVal = this->GetGUI()->GetMRMLNode()->GetUserPlanInsertionAngle();
-    
-    if (strcmpi(this->InsertionAngle->GetWidget()->GetValue(), "")!=0)
-      {
-      // counter the case when the user enters the same value in entry, which is equal to the initial value set in MRML node
-      // in this case above code, won't detect change, but actually user has entered a change
-      // for insertion angle, initial value is 0
-      if(     ( (mrmlVal == 0) && (this->InsertionAngle->GetWidget()->GetValueAsDouble() == 0))
-        || (!this->DoubleEqual(mrmlVal,this->InsertionAngle->GetWidget()->GetValueAsDouble()))
-        )
-        {
-        // set the value in the mrml node
-        this->GetGUI()->GetMRMLNode()->SetUserPlanInsertionAngle(this->InsertionAngle->GetWidget()->GetValueAsDouble());  
-        this->GetGUI()->GetMRMLNode()->CalculatePlanInsertionAngleError();
-        }
-      }
-    
-}
 
 //------------------------------------------------------------------------------
 void vtkPerkStationPlanStep::OverlayNeedleGuide()
@@ -948,166 +877,146 @@ void vtkPerkStationPlanStep::CalculatePlanInsertionAngleAndDepth()
   double rasTarget[3];
   this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasEntry);
   this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint(rasTarget);
-  double insDepth = sqrt( (rasTarget[0] - rasEntry[0])*(rasTarget[0] - rasEntry[0]) + (rasTarget[1] - rasEntry[1])*(rasTarget[1] - rasEntry[1]) + (rasTarget[2] - rasEntry[2])*(rasTarget[2] - rasEntry[2]) );
-  this->GetGUI()->GetMRMLNode()->SetActualPlanInsertionDepth(insDepth);
   
   
-  //insertion angle is the angle with x-axis of the line which has entry and target as its end points;
-  double insAngle = double(180/vtkMath::Pi()) * atan(double((rasEntry[1] - rasTarget[1])/(rasEntry[0] - rasTarget[0])));
-  this->GetGUI()->GetMRMLNode()->SetActualPlanInsertionAngle(insAngle);
   
-  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Clinical)
+
+  // there is also a possibility of the entry and target being on different
+  // slices in this case, one also needs to calculate the tilt angle to
+  // extract the para-axial oblique slice which contains 
+  // both entry and target; in this case the newer version of the Perk station
+  // hardware will be used, which allows whole system to be tilted at that
+  // tilt angle so that the oblique 2D slice is correctly registered to
+  // phantom/patient
+  // we still need to compute the in-plane insertion angle as before
+  
+  
+  // first we compute the tilt angle, if needed
+  if (!vtkPerkStationModuleLogic::DoubleEqual(rasEntry[2], rasTarget[2]))
     {
-    // there is also a possibility of the entry and target being on different slices
-    // in this case, one also needs to calculate the tilt angle to extract the para-axial oblique slice which contains 
-    // both entry and target; in this case the newer version of the Perk station hardware 
-    // will be used, which allows whole system to be tilted at that tilt angle
-    // so that the oblique 2D slice is correctly registered to phantom/patient
-    // we still need to compute the in-plane insertion angle as before
+    double pointYZEntry[2], pointYZTarget[2];
+    pointYZEntry[0] = rasEntry[2];
+    pointYZEntry[1] = rasEntry[1];
     
-    // entry point
-    double rasEntry[3];
-    this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasEntry);
-    double rasTarget[3];
-    this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint(rasTarget);
+    pointYZTarget[0] = rasTarget[2];
+    pointYZTarget[1] = rasTarget[1];
+
+    double denom, numer;
+    denom = pointYZEntry[0] - pointYZTarget[0];
+    numer = pointYZEntry[1] - pointYZTarget[1];
+    double tiltAngle =   double(180/vtkMath::Pi()) * atan(double(numer/denom));
+
     
-        
-    // first we compute the tilt angle, if needed
-    if (!vtkPerkStationModuleLogic::DoubleEqual(rasEntry[2], rasTarget[2]))
+
+    if( denom == 0)
       {
-      double pointYZEntry[2], pointYZTarget[2];
-      pointYZEntry[0] = rasEntry[2];
-      pointYZEntry[1] = rasEntry[1];
-      
-      pointYZTarget[0] = rasTarget[2];
-      pointYZTarget[1] = rasTarget[1];
-
-      double denom, numer;
-      denom = pointYZEntry[0] - pointYZTarget[0];
-      numer = pointYZEntry[1] - pointYZTarget[1];
-      double tiltAngle =   double(180/vtkMath::Pi()) * atan(double(numer/denom));
-
-      
-
-      if( denom == 0)
-        {
-        tiltAngle = 0.0;
-        }
-      else if (numer == 0)
-        {
-        tiltAngle = 90.0;
-        }
-      else if (denom > 0 && numer > 0)
-        {
-        // first quadrant
-        // report angle w.r.t vertical
-        tiltAngle = 90.0 - tiltAngle;
-        }
-      else if (denom < 0 && numer > 0)
-        {
-        // second quadrant
-        // report angle w.r.t vertical
-        tiltAngle = -(90 + tiltAngle);
-        }
-      else if (denom < 0 && numer < 0)
-        {
-        // third quadrant
-        // report angle w.r.t vertical
-        tiltAngle = tiltAngle - 90;
-        }
-      else if (denom > 0 && numer < 0)
-        {
-        // fourth quadrant
-        // report angle w.r.t vertical
-        tiltAngle = 90 + tiltAngle;
-        }
-
-      // set the tilt angle in the mrml node
-      this->GetGUI()->GetMRMLNode()->SetTiltAngle(tiltAngle);
-
-      // repack the slicer viewers for 3D view as well
-
-
-
-      // populate the corresponding wizard gui control
-      this->SystemTiltAngle->GetWidget()->SetValueAsDouble(tiltAngle);
-      // also currently only SLICER's viewer is working fine
-      // the secondary window display is not working good as of now
-      // having multiple issues
-      // so mention in the message label that this feature is being implemented
-      // and only for indicative purposes here
-      // once chosen a oblique/tilt insertion, one must not scroll through the slices
-      // also that the slice view in secondary monitor is not accurate
-      this->TiltMsg->SetText("This feature is currently under implementation,\n and strictly for indicative purposes only!! \nPlease note that the reformated slice display\n is correct in laptop/SLICER's windows; \nhowever, the display on perk station secondary monitor/overlay monitor\n is not correct!!! \nAlso, once at this stage, you should not \nbrowse through the slices any more!\nPress reset button do another plan");
-
-
-
-      // get the oblique slice extracted from volume
-      // display the oblique slice on laptop
-      // set the slice to ras matrix correctly
-      // get the rotation matrix formed for performing
-      // rotation around x-axis
-      vtkTransform *transform = vtkTransform::New();          
-      transform->RotateX(tiltAngle);
-      
-      
-      
-      
-      double rasDimensions[3], rasCenter[3], sliceCenter[3];
-      vtkSlicerSliceLogic *sliceLogic = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic();
-      sliceLogic->GetVolumeRASBox (this->GetGUI()->GetMRMLNode()->GetActiveVolumeNode(), rasDimensions, rasCenter); 
-      sliceLogic->GetVolumeSliceDimensions(this->GetGUI()->GetMRMLNode()->GetActiveVolumeNode(), rasDimensions, sliceCenter);
-      
-
-      vtkMRMLSliceNode *sliceNode = sliceLogic->GetSliceNode();
-      
-      vtkMatrix4x4 *sliceToRAS = sliceNode->GetSliceToRAS();      
-      
-      vtkMatrix4x4 *xyToSlice = sliceNode->GetXYToSlice();    
-      vtkMatrix4x4 *xyToRAS = sliceNode->GetXYToRAS();
-      vtkMatrix4x4 *rotMatrix = transform->GetMatrix();
-
-      this->GetGUI()->GetMRMLNode()->SetOriginalSliceToRAS(sliceToRAS);
-      vtkSlicerSliceLayerLogic *sliceLayer = sliceLogic->GetBackgroundLayer();
-      
-      vtkMatrix4x4 *xyToIJK = sliceLayer->GetXYToIJKTransform()->GetMatrix();
-      vtkMatrix4x4::Multiply4x4(transform->GetMatrix(), sliceToRAS, sliceToRAS);
-      sliceNode->GetSliceToRAS()->DeepCopy(sliceToRAS);
-      sliceNode->UpdateMatrices();
-      
-      rasCenter[2] = xyToRAS->GetElement(2,3);
-      
-      
-      sliceNode->JumpSliceByOffsetting(rasTarget[0], rasTarget[1], rasTarget[2]);
-      
-      this->GetGUI()->GetMRMLNode()->SetTiltSliceToRAS(sliceNode->GetSliceToRAS());
-
-
-      // repack the slicer viewer's layout to show 3D as well     
-      vtkSlicerApplicationGUI *p = vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI ( ));
-      p->RepackMainViewer ( vtkMRMLLayoutNode::SlicerLayoutFourUpView, "Red");       
-    
-      // also turn the slice visibility in 3D on
-      sliceNode->SetSliceVisible(true);
-
-      // select the orientation in 3D view
-      p->GetViewControlGUI()->MainViewLookFrom("I");
-      
-
+      tiltAngle = 0.0;
       }
-    else
+    else if (numer == 0)
       {
-      // both entry and target on the same slice
-      this->SystemTiltAngle->GetWidget()->SetValueAsDouble(0);
+      tiltAngle = 90.0;
+      }
+    else if (denom > 0 && numer > 0)
+      {
+      // first quadrant
+      // report angle w.r.t vertical
+      tiltAngle = 90.0 - tiltAngle;
+      }
+    else if (denom < 0 && numer > 0)
+      {
+      // second quadrant
+      // report angle w.r.t vertical
+      tiltAngle = -(90 + tiltAngle);
+      }
+    else if (denom < 0 && numer < 0)
+      {
+      // third quadrant
+      // report angle w.r.t vertical
+      tiltAngle = tiltAngle - 90;
+      }
+    else if (denom > 0 && numer < 0)
+      {
+      // fourth quadrant
+      // report angle w.r.t vertical
+      tiltAngle = 90 + tiltAngle;
       }
 
+    // set the tilt angle in the mrml node
+    this->GetGUI()->GetMRMLNode()->SetTiltAngle(tiltAngle);
+
+    // repack the slicer viewers for 3D view as well
+
+
+
+    // populate the corresponding wizard gui control
+    this->SystemTiltAngle->GetWidget()->SetValueAsDouble(tiltAngle);
+    // also currently only SLICER's viewer is working fine
+    // the secondary window display is not working good as of now
+    // having multiple issues
+    // so mention in the message label that this feature is being implemented
+    // and only for indicative purposes here
+    // once chosen a oblique/tilt insertion, one must not scroll through the slices
+    // also that the slice view in secondary monitor is not accurate
+    this->TiltMsg->SetText("This feature is currently under implementation,\n and strictly for indicative purposes only!! \nPlease note that the reformated slice display\n is correct in laptop/SLICER's windows; \nhowever, the display on perk station secondary monitor/overlay monitor\n is not correct!!! \nAlso, once at this stage, you should not \nbrowse through the slices any more!\nPress reset button do another plan");
+
+
+
+    // get the oblique slice extracted from volume
+    // display the oblique slice on laptop
+    // set the slice to ras matrix correctly
+    // get the rotation matrix formed for performing
+    // rotation around x-axis
+    vtkTransform *transform = vtkTransform::New();          
+    transform->RotateX(tiltAngle);
+    
+    
+    
+    
+    double rasDimensions[3], rasCenter[3], sliceCenter[3];
+    vtkSlicerSliceLogic *sliceLogic = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic();
+    sliceLogic->GetVolumeRASBox (this->GetGUI()->GetMRMLNode()->GetActiveVolumeNode(), rasDimensions, rasCenter); 
+    sliceLogic->GetVolumeSliceDimensions(this->GetGUI()->GetMRMLNode()->GetActiveVolumeNode(), rasDimensions, sliceCenter);
+    
+
+    vtkMRMLSliceNode *sliceNode = sliceLogic->GetSliceNode();
+    
+    vtkMatrix4x4 *sliceToRAS = sliceNode->GetSliceToRAS();      
+    
+    vtkMatrix4x4 *xyToSlice = sliceNode->GetXYToSlice();    
+    vtkMatrix4x4 *xyToRAS = sliceNode->GetXYToRAS();
+    vtkMatrix4x4 *rotMatrix = transform->GetMatrix();
+
+    this->GetGUI()->GetMRMLNode()->SetSliceToRAS( sliceToRAS );
+    vtkSlicerSliceLayerLogic *sliceLayer = sliceLogic->GetBackgroundLayer();
+    
+    vtkMatrix4x4 *xyToIJK = sliceLayer->GetXYToIJKTransform()->GetMatrix();
+    vtkMatrix4x4::Multiply4x4(transform->GetMatrix(), sliceToRAS, sliceToRAS);
+    sliceNode->GetSliceToRAS()->DeepCopy(sliceToRAS);
+    sliceNode->UpdateMatrices();
+    
+    rasCenter[2] = xyToRAS->GetElement(2,3);
+    
+    
+    sliceNode->JumpSliceByOffsetting(rasTarget[0], rasTarget[1], rasTarget[2]);
+    
+
+    // repack the slicer viewer's layout to show 3D as well     
+    vtkSlicerApplicationGUI *p = vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI ( ));
+    p->RepackMainViewer ( vtkMRMLLayoutNode::SlicerLayoutFourUpView, "Red");       
+  
+    // also turn the slice visibility in 3D on
+    sliceNode->SetSliceVisible(true);
+
+    // select the orientation in 3D view
+    p->GetViewControlGUI()->MainViewLookFrom("I");
+    
 
     // now we compute the in-plane insertion angle
     
       // Angle in the RAS system.
     
-    double denom = rasEntry[ 0 ]-rasTarget[ 0 ];
-    double numer = rasEntry[ 1 ]-rasTarget[ 1 ];
+    denom = rasEntry[ 0 ]-rasTarget[ 0 ];
+    numer = rasEntry[ 1 ]-rasTarget[ 1 ];
     double insAngle = double( 180.0 / vtkMath::Pi() ) *
                       atan( double( numer / denom ) );
     
@@ -1141,9 +1050,11 @@ void vtkPerkStationPlanStep::CalculatePlanInsertionAngleAndDepth()
       // fourth quadrant, report angle w.r.t vertical
       insAngle = 90 + insAngle;
       }
-    this->GetGUI()->GetMRMLNode()->SetActualPlanInsertionAngle( insAngle );
-    this->InsertionDepth->GetWidget()->SetValueAsDouble( insDepth );
-    this->InsertionAngle->GetWidget()->SetValueAsDouble( insAngle );
+    
+    this->InsertionDepth->GetWidget()->SetValueAsDouble(
+      this->GetGUI()->GetMRMLNode()->GetActualPlanInsertionDepth() );
+    this->InsertionAngle->GetWidget()->SetValueAsDouble(
+      this->GetGUI()->GetMRMLNode()->GetActualPlanInsertionAngle() );
     }
 }
 
@@ -1170,14 +1081,7 @@ void vtkPerkStationPlanStep::Reset()
   double ras[3] = {0.0,0.0,0.0};
   mrmlNode->SetPlanEntryPoint(ras);
   mrmlNode->SetPlanTargetPoint(ras);
-  mrmlNode->SetUserPlanInsertionAngle(0.0);
-  mrmlNode->SetActualPlanInsertionAngle(0.0);
-  mrmlNode->SetUserPlanInsertionDepth(0.0);
-  mrmlNode->SetActualPlanInsertionDepth(0.0);
-  mrmlNode->CalculatePlanInsertionAngleError();
-  mrmlNode->CalculatePlanInsertionDepthError();
   
-
  
   double tiltAngle = mrmlNode->GetTiltAngle();
 
@@ -1187,7 +1091,7 @@ void vtkPerkStationPlanStep::Reset()
     // then reset the slice to ras matrix to the original
     vtkSlicerSliceLogic *sliceLogic = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic();
     vtkMRMLSliceNode *sliceNode = sliceLogic->GetSliceNode();
-    sliceNode->GetSliceToRAS()->DeepCopy(mrmlNode->GetOriginalSliceToRAS());
+    sliceNode->GetSliceToRAS()->DeepCopy( mrmlNode->GetSliceToRAS() );
     sliceNode->UpdateMatrices();
     // this should reset the display in slicer viewer's
 
@@ -1307,25 +1211,7 @@ void vtkPerkStationPlanStep::LoadPlanning(istream &file)
 
       // at this point, we have line separated into, attributeName, and attributeValue
       // now we need to do string matching on attributeName, and further parse attributeValue as it may have more than one value
-      if (!strcmp(attName, " PlanInsertionAngle"))
-        {
-        std::stringstream ss;
-        ss << attValue;
-        double val;
-        ss >> val;
-        mrmlNode->SetActualPlanInsertionAngle(val);
-        paramSetCount++;
-        }     
-      else if (!strcmp(attName, " PlanInsertionDepth"))
-        {
-        std::stringstream ss;
-        ss << attValue;
-        double val;
-        ss >> val;
-        mrmlNode->SetActualPlanInsertionDepth(val);     
-        paramSetCount++;
-        }     
-      else if (!strcmp(attName, " PlanEntryPoint"))
+      if (!strcmp(attName, " PlanEntryPoint"))
         {
         // read data into a temporary vector
         std::stringstream ss;
@@ -1481,19 +1367,7 @@ void vtkPerkStationPlanStep::ProcessGUIEvents(vtkObject *caller,
     {
     this->Reset();
     }
-
-  // insertion depth
-  if (this->InsertionDepth && this->InsertionDepth->GetWidget()== vtkKWEntry::SafeDownCast(caller) && (event == vtkKWEntry::EntryValueChangedEvent))
-    {
-    this->InsertionDepthEntryCallback();    
-    }
-
-    // insertion angle
-  if (this->InsertionAngle && this->InsertionAngle->GetWidget()== vtkKWEntry::SafeDownCast(caller) && (event == vtkKWEntry::EntryValueChangedEvent))
-    {
-    this->InsertionAngleEntryCallback();    
-    }
-
+  
   this->ProcessingCallback = false;
 }
 

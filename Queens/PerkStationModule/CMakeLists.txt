@@ -94,8 +94,6 @@ SET(PerkStationModule_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationInsertStep.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationValidateStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationValidateStep.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationEvaluateStep.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationEvaluateStep.h
 )
 
 if(BUILD_USING_NDIOAPI)

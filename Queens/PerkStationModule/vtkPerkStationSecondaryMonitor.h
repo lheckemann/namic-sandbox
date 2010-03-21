@@ -286,7 +286,7 @@ private:
   double RotationCenter[ 2 ];
   double Translation[ 2 ];
   double Scale[ 2 ];
-  PatientPosition Position;
+  PatientPositionEnum Position;
   
     // Calibration transforms.
   vtkSmartPointer< vtkTransform > SecMonFlipTransform;

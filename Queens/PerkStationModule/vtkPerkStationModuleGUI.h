@@ -1,18 +1,8 @@
-/*=auto=========================================================================
 
-  Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
-
-  See Doc/copyright/copyright.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
-
-  Program:   3D Slicer
-  Module:    $RCSfile: vtkPerkStationModuleGUI.h,v $
-  Date:      $Date: 2006/03/19 17:12:29 $
-  Version:   $Revision: 1.3 $
-
-=========================================================================auto=*/
 #ifndef __vtkPerkStationModuleGUI_h
 #define __vtkPerkStationModuleGUI_h
+
+#include "vtkSmartPointer.h"
 
 #include "vtkSlicerBaseGUIWin32Header.h"
 #include "vtkSlicerModuleGUI.h"
@@ -21,7 +11,8 @@
 #include "vtkPerkStationModuleLogic.h"
 #include "vtkMRMLPerkStationModuleNode.h"
 
-class vtkKWWizardWidget;
+#include "vtkKWWizardWidget.h"
+
 class vtkKWFrame;
 class vtkKWPushButton;
 class vtkSlicerNodeSelectorWidget;
@@ -36,57 +27,54 @@ class vtkPerkStationCalibrateStep;
 class vtkPerkStationPlanStep;
 class vtkPerkStationInsertStep;
 class vtkPerkStationValidateStep;
-class vtkPerkStationEvaluateStep;
 
-class vtkPerkStationSecondaryMonitor;
+#include "vtkPerkStationSecondaryMonitor.h"
+
 
 /**
  * GUI class. One of the three main classes of a standard Slicer3
  * interactive module.
  */
-class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerModuleGUI
+class
+VTK_PERKSTATIONMODULE_EXPORT
+vtkPerkStationModuleGUI 
+: public vtkSlicerModuleGUI
 {
-  public:
+public:
   static vtkPerkStationModuleGUI *New();
-  vtkTypeMacro(vtkPerkStationModuleGUI,vtkSlicerModuleGUI);
-  void PrintSelf(ostream& os, vtkIndent indent);
-
-  // Description: Get/Set module logic
-  vtkGetObjectMacro (Logic, vtkPerkStationModuleLogic);
-  vtkSetObjectMacro (Logic, vtkPerkStationModuleLogic);
-
+  vtkTypeMacro( vtkPerkStationModuleGUI, vtkSlicerModuleGUI );
+  void PrintSelf( ostream& os, vtkIndent indent );
+  
+  
+  vtkGetObjectMacro( Logic, vtkPerkStationModuleLogic );
+  vtkSetObjectMacro( Logic, vtkPerkStationModuleLogic );
+  
   // Description:
   // Set the logic pointer from parent class pointer.
   // Overloads implementation in vtkSlicerModulesGUI
   // to allow loadable modules.
   virtual void SetModuleLogic ( vtkSlicerLogic *logic )
   {
-    this->SetLogic(reinterpret_cast<vtkPerkStationModuleLogic*> (logic)); 
+    this->SetLogic( reinterpret_cast< vtkPerkStationModuleLogic* >( logic ) ); 
   }
-
+  
+  
   // Description: Get/Set MRML node
-  vtkGetObjectMacro (MRMLNode, vtkMRMLPerkStationModuleNode);
-  vtkSetObjectMacro (MRMLNode, vtkMRMLPerkStationModuleNode);
-
-  // Description: Get Secondary monitor
-  vtkGetObjectMacro (SecondaryMonitor, vtkPerkStationSecondaryMonitor);
-
-  // Description: 
-  // Get wizard widget
-  vtkGetObjectMacro(WizardWidget, vtkKWWizardWidget);
-
-  // Description:
-  // Get modelist menu
-  vtkGetObjectMacro(ModeListMenu, vtkKWMenuButtonWithLabel);
-
-  // Description
-  // Get/set mode of Perk station (clinical or training)
-  vtkGetMacro(Mode,int);
-  vtkSetMacro(Mode,int);
-
+  vtkGetObjectMacro( MRMLNode, vtkMRMLPerkStationModuleNode );
+  vtkSetObjectMacro( MRMLNode, vtkMRMLPerkStationModuleNode );
+  
+  vtkPerkStationSecondaryMonitor* GetSecondaryMonitor() {
+    return this->SecondaryMonitor.GetPointer();
+  }
+  
+  vtkKWWizardWidget* GetWizardWidget() {
+    return this->WizardWidget.GetPointer();
+  }
+  
+  
   // Description:
   // Create widgets
-  virtual void BuildGUI ( );
+  virtual void BuildGUI();
 
   // Description:
   // Delete Widgets
@@ -118,63 +106,48 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerMod
   // Reset and Start afresh
   virtual void ResetAndStartNewExperiment();
 
-  // Description
-  // Callback on the load calibration button
-  void LoadPlanningVolumeButtonCallback(const char *fileName);
-  // Description
-  // Callback on the load calibration button
-  void LoadValidationVolumeButtonCallback(const char *fileName);
-  // Description
-  // Callback on the load experiment button
-  void LoadExperimentButtonCallback(const char *fileName);
-
-  // Description
-  // Callback on the save calibration button
-  void SaveExperimentButtonCallback(const char *fileName);
-
-  // Description
-  // Save experiment
+  void LoadPlanningVolumeButtonCallback( const char* fileName );
+  void LoadValidationVolumeButtonCallback( const char* fileName );
+  void LoadExperimentButtonCallback( const char* fileName );
+  void SaveExperimentButtonCallback( const char* fileName );
+  
   virtual void SaveExperiment(ostream& of);
-
-  // Description
-  // Load experiment
+  
   virtual void LoadExperiment(istream &file);
-
-  // Description
-  // Save information about open volumes
+  
   void SaveVolumeInformation(ostream& of);
-
+  
   void EnableLoadValidationVolumeButton(bool enable);
+  
+  
+  //BTX
+  // Description:
+  // Mode identifier
+  enum ModeId
+    {
+      Clinical = 1,
+      Training = 2,
+    };
+  //ETX
 
   //BTX
-    // Description:
-    // Mode identifier
-    enum ModeId
-      {
-        Clinical = 1,
-        Training = 2,
-      };
-    //ETX
-
-    //BTX
-    // Description:
-    // State identifier
-    enum StateId
-      {
-        Calibrate = 0,
-        Plan,
-        Insert,
-        Validate,
-        Evaluate
-      };
-    //ETX
+  // Description:
+  // State identifier
+  enum StateId
+    {
+      Calibrate = 0,
+      Plan,
+      Insert,
+      Validate
+    };
+  //ETX
   
 
 protected:
   vtkPerkStationModuleGUI();
   virtual ~vtkPerkStationModuleGUI();
-  vtkPerkStationModuleGUI(const vtkPerkStationModuleGUI&);
-  void operator=(const vtkPerkStationModuleGUI&);
+  vtkPerkStationModuleGUI( const vtkPerkStationModuleGUI& );
+  void operator=( const vtkPerkStationModuleGUI& );
 
   
   // Pprocess events generated by MRML
@@ -201,36 +174,29 @@ protected:
   
   void SetUpPerkStationWizardWorkflow();
   
-  vtkSlicerModuleCollapsibleFrame *WizardFrame;
-  
-    // standard: for volume selection and for parameters
-  vtkSlicerNodeSelectorWidget* VolumeSelector; 
-  vtkSlicerNodeSelectorWidget* PSNodeSelector;
-  
-  // logic and mrml nodes
-  vtkPerkStationModuleLogic *Logic;
-  vtkMRMLPerkStationModuleNode *MRMLNode;
+  vtkSmartPointer< vtkSlicerModuleCollapsibleFrame > WizardFrame;
   
   
-  vtkPerkStationSecondaryMonitor *SecondaryMonitor; // secondary monitor
-  
-  vtkKWMenuButtonWithLabel *ModeListMenu; // mode selector menu
-  
-  
-    // 1)  button: open file dialog box
-  vtkKWLoadSaveButton *LoadPlanningVolumeButton;
-    // 2) button: save calib file dialog box
-  vtkKWLoadSaveButton *LoadValidationVolumeButton;
+  vtkSmartPointer< vtkSlicerNodeSelectorWidget > VolumeSelector; 
+  vtkSmartPointer< vtkSlicerNodeSelectorWidget > PSNodeSelector;
   
   
-    // 1)  button: open file dialog box
-  vtkKWLoadSaveButton *LoadExperimentFileButton;
-    // 2) button: save calib file dialog box
-  vtkKWLoadSaveButton *SaveExperimentFileButton;
+  vtkPerkStationModuleLogic* Logic;
+  vtkMRMLPerkStationModuleNode* MRMLNode;
+  
+  
+  vtkSmartPointer< vtkPerkStationSecondaryMonitor > SecondaryMonitor;
+  
+  
+  vtkSmartPointer< vtkKWLoadSaveButton > LoadPlanningVolumeButton;
+  vtkSmartPointer< vtkKWLoadSaveButton > LoadValidationVolumeButton;
+  
+  vtkSmartPointer< vtkKWLoadSaveButton > LoadExperimentFileButton;
+  vtkSmartPointer< vtkKWLoadSaveButton > SaveExperimentFileButton;
   
     // two scales for window and level
-  vtkKWScaleWithEntry *DisplayVolumeWindowValue;
-  vtkKWScaleWithEntry *DisplayVolumeLevelValue;
+  vtkSmartPointer< vtkKWScaleWithEntry > DisplayVolumeWindowValue;
+  vtkSmartPointer< vtkKWScaleWithEntry > DisplayVolumeLevelValue;
   
     // Description:
     // Describes whether the GUI has been built or not
@@ -241,12 +207,11 @@ private:
 
     // Description:
     // The wizard widget and steps
-  vtkKWWizardWidget *WizardWidget;
-  vtkPerkStationCalibrateStep *CalibrateStep;
-  vtkPerkStationPlanStep *PlanStep;
-  vtkPerkStationInsertStep *InsertStep;
-  vtkPerkStationValidateStep *ValidateStep;
-  vtkPerkStationEvaluateStep *EvaluateStep;
+  vtkSmartPointer< vtkKWWizardWidget > WizardWidget;
+  vtkSmartPointer< vtkPerkStationCalibrateStep > CalibrateStep;
+  vtkSmartPointer< vtkPerkStationPlanStep > PlanStep;
+  vtkSmartPointer< vtkPerkStationInsertStep > InsertStep;
+  vtkSmartPointer< vtkPerkStationValidateStep > ValidateStep;
   
     // gui state variables
   int Mode; // clinical mode or training mode
@@ -259,8 +224,8 @@ private:
 
 private:
   
-  vtkKWFrame *WorkphaseButtonFrame;
-  vtkKWPushButtonSet *WorkphaseButtonSet;
+  vtkSmartPointer< vtkKWFrame > WorkphaseButtonFrame;
+  vtkSmartPointer< vtkKWPushButtonSet > WorkphaseButtonSet;
   
   int ChangeWorkphase( int phase );
   void UpdateWorkphaseButtons();
