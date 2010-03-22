@@ -74,7 +74,7 @@ int main( int argc, char ** argv )
   if( argc < 5 )
     {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << " inputImage inputICCSeg inputTumorSeg outputImagePrefix growthMagnitude [0=sin model|1=1/exp model]" << std::endl;
+    std::cerr << argv[0] << " inputImage inputICCSeg inputTumorSeg outputImagePrefix growthMagnitude [0=sin model|1=1/exp model|2=const model]" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -84,8 +84,8 @@ int main( int argc, char ** argv )
   DFWriterType::Pointer outputWriter = DFWriterType::New();
   WriterType::Pointer outputMagnWriter = WriterType::New();
   
-  std::string dfFileName = std::string(argv[4])+".mha";
-  std::string dfMagnFileName = std::string(argv[4])+"_magn.mha";
+  std::string dfFileName = std::string(argv[4])+".mhd";
+  std::string dfMagnFileName = std::string(argv[4])+"_magn.mhd";
 
   inputReader->SetFileName( argv[1] );
   iccReader->SetFileName( argv[2] );
@@ -171,8 +171,10 @@ int main( int argc, char ** argv )
   GradientImageType::Pointer gradImage = grad->GetOutput();
 
   float sinScaleConst = 3.14/(2*distCentr2Bdry);
-  if(modelType){  // inverse exp model
+  if(modelType==1){  // inverse exp model
     std::cout << "Using exp growth simulation model" << std::endl;
+  } else if(modelType==2){
+    std::cout << "Using const growth simulation model" << std::endl;
   } else {
     std::cout << "Using sin growth simulation model" << std::endl;
     std::cout << "Parameters: Magnitude = " << growthMagnitude << 
@@ -189,12 +191,18 @@ int main( int argc, char ** argv )
     float distFromCenter = dtFromCenter->GetOutput()->GetPixel(curIdx);
     GradientImageType::PixelType curDispl = it.Get(); // gradient vector at the current pixel
 
-    if(modelType){  // inverse exp model
+    switch (modelType) {
+    case 1:
       if(curDispl.GetNorm())
         curDispl *= growthMagnitude/exp(.1*distCentr2Bdry)/curDispl.GetNorm();
       else
         curDispl *= 0;
-    } else {        // sin model
+      break;
+    case 2:
+      curDispl *= growthMagnitude/curDispl.GetNorm();
+      break;
+    case 0:
+      // sin model
       // use half-period of 3D sin wave centered at the tumor centroid, and 
       // scaled in such a way that the maximum displacement magnitude is at the 
       // distance from the centroid to the tumor boundary
@@ -202,7 +210,11 @@ int main( int argc, char ** argv )
         curDispl *= growthMagnitude*sin(distFromCenter*sinScaleConst)/curDispl.GetNorm();
       else
         curDispl *= 0;
+      break;
+    default:
+      assert(0);
     }
+
     if(!iccit.Get())
         curDispl *= 0.;
     it.Set(curDispl);
