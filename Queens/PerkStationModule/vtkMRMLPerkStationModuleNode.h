@@ -70,14 +70,17 @@ public:
   virtual vtkMRMLNode* CreateNodeInstance();
   
   virtual void ReadXMLAttributes( const char** atts);
-  
   virtual void WriteXML( ostream& of, int indent );
   
-  // Copy the node's attributes to this object
+    // Copy the node's attributes to this object
   virtual void Copy( vtkMRMLNode *node );
 
-  // Get unique node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() { return "PS"; };
+    // Get unique node XML tag name (like Volume, Model)
+  virtual const char* GetNodeTagName() {
+    return "PS";
+  };
+  
+  virtual void SaveClibration( std::ostream out );
   
   
   // Calibration parameters ---------------------------------------------------
@@ -107,8 +110,7 @@ public:
   vtkSetMacro( CurrentSliceOffset, double );
   
   vtkSmartPointer< vtkMRMLLinearTransformNode >
-  GetCalibrationMRMLTransformNode()
-  {
+  GetCalibrationMRMLTransformNode() {
     return this->CalibrationMRMLTransformNode;
   }
   
@@ -124,13 +126,11 @@ public:
   vtkGetMacro( TiltAngle, double );
   vtkSetMacro( TiltAngle, double );
   
-  void SetSliceToRAS( vtkMatrix4x4* matrix )
-  {
+  void SetSliceToRAS( vtkMatrix4x4* matrix ) {
     this->SliceToRAS->DeepCopy( matrix );
   };
   
-  vtkMatrix4x4* GetSliceToRAS()
-  {
+  vtkMatrix4x4* GetSliceToRAS() {
     return this->SliceToRAS.GetPointer();
   };
   
@@ -143,23 +143,19 @@ public:
   vtkGetMacro( NeedleToolPort, int );
   vtkSetMacro( NeedleToolPort, int );
   
-  void SetTrackerToPhantomMatrix( vtkMatrix4x4 *matrix )
-  {
+  void SetTrackerToPhantomMatrix( vtkMatrix4x4 *matrix ) {
     this->TrackerToPhantomMatrix->DeepCopy( matrix );
   };
   
-  vtkMatrix4x4* GetTrackerToPhantomMatrix()
-  {
+  vtkMatrix4x4* GetTrackerToPhantomMatrix() {
     return this->TrackerToPhantomMatrix;
   };
   
-  void SetPhantomToImageRASMatrix( vtkMatrix4x4* matrix )
-  {
+  void SetPhantomToImageRASMatrix( vtkMatrix4x4* matrix ) {
     this->PhantomToImageRASMatrix->DeepCopy( matrix );
   };
   
-  vtkMatrix4x4* GetPhantomToImageRASMatrix()
-  {
+  vtkMatrix4x4* GetPhantomToImageRASMatrix() {
     return this->PhantomToImageRASMatrix;
   };
   
@@ -173,13 +169,11 @@ public:
   // to do pivoting calibration just before each experiment in order to ensure
   // the accuracy. So this variable is used to modify the offset in such case.
   
-  void SetToolTipOffset( double *tool_tip_offset )
-  {
+  void SetToolTipOffset( double *tool_tip_offset ) {
     memcpy( this->ToolTipOffset, tool_tip_offset, sizeof( double ) * 3 );
   };
   
-  double *GetToolTipOffset()
-  {
+  double *GetToolTipOffset() {
     return this->ToolTipOffset;
   };
   

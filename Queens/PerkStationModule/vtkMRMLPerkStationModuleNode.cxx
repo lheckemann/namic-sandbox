@@ -442,6 +442,17 @@ void vtkMRMLPerkStationModuleNode::Copy(vtkMRMLNode *anode)
 }
 
 
+void
+vtkMRMLPerkStationModuleNode
+::SaveClibration( std::ostream out )
+{
+  out << " VerticalFlip=\"" << this->SecondMonitorVerticalFlip << "\" \n";
+  out << " HorizontalFlip=\"" << this->SecondMonitorHorizontalFlip << "\" \n";
+  
+  
+}
+
+
 //----------------------------------------------------------------------------
 void vtkMRMLPerkStationModuleNode::PrintSelf( ostream& os, vtkIndent indent )
 {
