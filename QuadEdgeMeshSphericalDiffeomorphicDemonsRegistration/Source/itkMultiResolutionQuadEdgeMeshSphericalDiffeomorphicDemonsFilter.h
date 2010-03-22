@@ -83,9 +83,13 @@ public:
   itkGetObjectMacro( RigidOptimizer, RigidOptimizerType );
 
   typedef QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< 
-    MeshType, MeshType, MeshType >  DemonsFilterType;
+    MeshType, MeshType, MeshType >  DemonsRegistrationFilterType;
 
-  typedef typename DemonsFilterType::DestinationPointSetType    DestinationPointSetType;
+  typedef typename DemonsRegistrationFilterType::DestinationPointSetType    DestinationPointSetType;
+
+  itkGetObjectMacro( DemonsRegistrationFilter, DemonsRegistrationFilterType );
+
+  const DestinationPointSetType * GetCurrentDestinationPoints() const;
 
   typedef typename MeshType::PointsContainer          PointsContainer;
   typedef typename PointsContainer::Pointer           PointsContainerPointer;
@@ -132,6 +136,8 @@ private:
 
   typename MeshType::Pointer   m_CurrentLevelFixedMesh;
   typename MeshType::Pointer   m_CurrentLevelMovingMesh;
+
+  typename DemonsRegistrationFilterType::Pointer   m_DemonsRegistrationFilter;
 };
 
 }
