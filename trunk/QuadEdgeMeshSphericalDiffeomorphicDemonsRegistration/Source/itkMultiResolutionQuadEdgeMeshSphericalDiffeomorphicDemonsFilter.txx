@@ -132,6 +132,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_CurrentLevelMovingMesh = movingMesh;
 
   this->ComputeRigidRegistration();
+  this->RigidlyTransformPointsOfFixedMesh();
+  this->ComputeDemonsRegistration();
 }
 
 
@@ -205,6 +207,33 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   ParametersType finalParameters = registration->GetLastTransformParameters();
 
   this->m_RigidTransform->SetParameters( finalParameters );
+}
+
+
+template< class TMesh >
+void
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::RigidlyTransformPointsOfFixedMesh()
+{
+  PointsContainer * fixedPoints = this->m_CurrentLevelFixedMesh->GetPoints();
+
+  PointsContainerIterator fixedPointItr = fixedPoints->Begin();
+  PointsContainerIterator fixedPointEnd = fixedPoints->End();
+
+  while( fixedPointItr != fixedPointEnd )
+    {
+    fixedPointItr.Value() = this->m_RigidTransform->TransformPoint( fixedPointItr.Value() );
+    ++fixedPointItr;
+    }
+}
+
+
+template< class TMesh >
+void
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::ComputeDemonsRegistration()
+{
+  
 }
 
 
