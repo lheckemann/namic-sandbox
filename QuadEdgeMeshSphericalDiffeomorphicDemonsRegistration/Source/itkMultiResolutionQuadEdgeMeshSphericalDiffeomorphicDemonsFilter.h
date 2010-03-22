@@ -87,6 +87,10 @@ public:
 
   typedef typename DemonsFilterType::DestinationPointSetType    DestinationPointSetType;
 
+  typedef typename MeshType::PointsContainer          PointsContainer;
+  typedef typename PointsContainer::Pointer           PointsContainerPointer;
+  typedef typename MeshType::PointsContainerIterator  PointsContainerIterator;
+
 
 protected:
   MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -101,6 +105,12 @@ private:
 
   /** Perform rigid registration between two meshes at the current resolution level. */
   void ComputeRigidRegistration();
+
+  /** Map the points of the fixed mesh using the rigid transform. */
+  void RigidlyTransformPointsOfFixedMesh();
+
+  /** Perform demons registration between two meshes at the current resolution level. */
+  void ComputeDemonsRegistration();
 
   /** Center of spherical mesh. We assume that both the Fixed and
    * Moving meshes have spherical geometry and that they share the same
