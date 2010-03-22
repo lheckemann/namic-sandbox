@@ -123,6 +123,86 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::ComputeRigidRegistration()
 {
+  typedef itk::MeshToMeshRegistrationMethod< MeshType, MeshType >    RegistrationType;
+
+  typedef itk::MeanSquaresMeshToMeshMetric< MeshType, MeshType >   MetricType;
+
+  typename RegistrationType::Pointer   registration  = RegistrationType::New();
+
+  typename MetricType::Pointer  metric = MetricType::New();
+
+  registration->SetMetric( metric ); 
+
+  const TMesh * fixedMesh = 
+    static_cast<MeshType *>(this->ProcessObject::GetInput( 0 ));
+
+  const TMesh * movingMesh = 
+    static_cast<MeshType *>(this->ProcessObject::GetInput( 1 ));
+
+  registration->SetFixedMesh( fixedMesh );
+  registration->SetMovingMesh( movingMesh );
+
+  typedef itk::VersorTransform< typename MetricType::TransformComputationType >  TransformType;
+
+  typename TransformType::Pointer transform = TransformType::New();
+
+  registration->SetTransform( transform );
+
+  typedef itk::LinearInterpolateMeshFunction< MeshType > InterpolatorType;
+
+  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+
+  registration->SetInterpolator( interpolator );
+
+  const unsigned int numberOfTransformParameters = transform->GetNumberOfParameters();
+
+  typedef typename TransformType::ParametersType         ParametersType;
+  ParametersType parameters( numberOfTransformParameters );
+
+  transform->SetIdentity();
+  
+  parameters = transform->GetParameters();
+
+  registration->SetInitialTransformParameters( parameters );
+
+  typedef itk::VersorTransformOptimizer     OptimizerType;
+
+  OptimizerType::Pointer      optimizer     = OptimizerType::New();
+
+  registration->SetOptimizer( optimizer );
+
+  typedef OptimizerType::ScalesType             ScalesType;
+
+  ScalesType    parametersScale( numberOfTransformParameters );
+  parametersScale[0] = 1.0;
+  parametersScale[1] = 1.0;
+  parametersScale[2] = 1.0;
+
+  optimizer->SetScales( parametersScale );
+
+  optimizer->MinimizeOn();
+  optimizer->SetGradientMagnitudeTolerance( 1e-6 );
+  optimizer->SetMaximumStepLength( 1e-2 );
+  optimizer->SetMinimumStepLength( 1e-9 );
+  optimizer->SetRelaxationFactor( 0.9 );
+  optimizer->SetNumberOfIterations( 32 );
+
+  try
+    {
+    registration->StartRegistration();
+    }
+  catch( itk::ExceptionObject & e )
+    {
+    std::cerr << "Registration failed" << std::endl;
+    std::cout << "Reason " << e << std::endl;
+    throw e;
+    }
+
+  OptimizerType::ParametersType finalParameters = 
+                    registration->GetLastTransformParameters();
+
+  std::cout << "final parameters = " << finalParameters << std::endl;
+  std::cout << "final value      = " << optimizer->GetValue() << std::endl;
 }
 
 
