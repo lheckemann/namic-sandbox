@@ -19,6 +19,8 @@
 #pragma warning ( disable : 4786 )
 #endif
 
+#include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationConfigure.h"
+
 #include "itkCommand.h"
 #include "itkVTKPolyDataReader.h"
 
@@ -87,6 +89,40 @@ int main( int argc, char * argv [] )
   multiResDemonsFilter->SetFixedMesh( fixedMeshReader1->GetOutput() );
   multiResDemonsFilter->SetMovingMesh( movingMeshReader1->GetOutput() );
 
+  typedef MultiResolutionDemonsFilterType::DestinationPointSetType DestinationPointSetType;
+
+#ifdef USE_VTK
+  typedef DeformableAndAffineRegistrationMonitor< 
+    DestinationPointSetType > RegistrationMonitorType;
+
+  RegistrationMonitorType  visualMonitor;
+  visualMonitor.SetNumberOfIterationsPerUpdate( 1 );
+
+  visualMonitor.SetBaseAnnotationText("Rigid Registration Level 1");
+
+  visualMonitor.Observe( multiResDemonsFilter->GetRigidOptimizer() );
+  visualMonitor.ObserveData( multiResDemonsFilter->GetRigidTransform() );
+
+  visualMonitor.SetVerbose( false );
+  visualMonitor.SetScreenShotsBaseFileName( argv[16] );
+
+  visualMonitor.SetScalarRange( -0.1, 0.1 );
+
+  vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader = 
+    vtkSmartPointer< vtkPolyDataReader >::New();
+
+  vtkSmartPointer< vtkPolyDataReader > vtkMovingMeshReader = 
+    vtkSmartPointer< vtkPolyDataReader >::New();
+
+  vtkFixedMeshReader->SetFileName( fixedMeshReader1->GetFileName() );
+  vtkMovingMeshReader->SetFileName( movingMeshReader1->GetFileName() );
+
+  vtkFixedMeshReader->Update();
+  vtkMovingMeshReader->Update();
+
+  visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+#endif
 
   try
     {
