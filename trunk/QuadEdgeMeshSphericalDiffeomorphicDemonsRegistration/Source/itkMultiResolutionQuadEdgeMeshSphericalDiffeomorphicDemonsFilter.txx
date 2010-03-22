@@ -60,6 +60,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_CurrentLevelFixedMesh = MeshType::New();
   this->m_CurrentLevelMovingMesh = MeshType::New();
+
+  this->m_DemonsRegistrationFilter = DemonsRegistrationFilterType::New();
 }
 
 
@@ -222,7 +224,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   while( fixedPointItr != fixedPointEnd )
     {
-    fixedPointItr.Value() = this->m_RigidTransform->TransformPoint( fixedPointItr.Value() );
+    fixedPointItr.Value().SetPoint(
+      this->m_RigidTransform->TransformPoint( fixedPointItr.Value() ) );
     ++fixedPointItr;
     }
 }
@@ -233,7 +236,40 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::ComputeDemonsRegistration()
 {
-  
+  this->m_DemonsRegistrationFilter->SetFixedMesh( this->m_CurrentLevelFixedMesh );
+  this->m_DemonsRegistrationFilter->SetMovingMesh( this->m_CurrentLevelMovingMesh );
+
+  this->m_DemonsRegistrationFilter->SetSphereCenter( this->m_SphereCenter );
+  this->m_DemonsRegistrationFilter->SetSphereRadius( this->m_SphereRadius );
+
+  this->m_DemonsRegistrationFilter->SetEpsilon( 100.0 );
+  this->m_DemonsRegistrationFilter->SetSigmaX( 0.01 );
+
+  this->m_DemonsRegistrationFilter->SelfRegulatedModeOn(); 
+
+  this->m_DemonsRegistrationFilter->SetLambda( 1.0 );
+
+  this->m_DemonsRegistrationFilter->SetMaximumNumberOfIterations( 15 );
+  this->m_DemonsRegistrationFilter->SetMaximumNumberOfSmoothingIterations( 2 );
+std::cout << "STARTING DEMONS" << std::endl;
+  try
+    {
+    this->m_DemonsRegistrationFilter->Update();
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
+    throw exp;
+    }
+}
+
+
+template< class TMesh >
+const typename MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >::DestinationPointSetType *
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::GetCurrentDestinationPoints() const
+{
+  return this->m_DemonsRegistrationFilter->GetFinalDestinationPoints();
 }
 
 
