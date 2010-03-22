@@ -204,8 +204,9 @@ public:
   vtkGetStringMacro( VolumeInUse );
   vtkSetStringMacro( VolumeInUse );
   
-  vtkMRMLScalarVolumeNode* GetPlanningVolumeNode()
-    { return this->PlanningVolumeNode; };
+  vtkMRMLScalarVolumeNode* GetPlanningVolumeNode() {
+    return this->PlanningVolumeNode;
+  };
   void SetPlanningVolumeNode( vtkMRMLScalarVolumeNode *planVolNode );
   
     // validation volume node
