@@ -905,37 +905,19 @@ int vtkProstateNavLogic::SetMouseInteractionMode(int mode)
     return 0;
   }
 
-  // Update GUI (activate either point modify, add, or rotate toolbar button) 
-  // (setting logic state could update the GUI as well, but apparently it does not,
-  // so we have to update the GUI manually)
-  switch (mode)
-  {
-  case vtkMRMLInteractionNode::Place:
-    if (tGUI->GetMousePlaceButton())
-    {
-      tGUI->GetMousePlaceButton()->SelectedStateOn();
-    }
-    break;
-  case vtkMRMLInteractionNode::ViewTransform:
-    if (tGUI->GetMouseTransformViewButton())
-    {
-      tGUI->GetMouseTransformViewButton()->SelectedStateOn();
-    }
-    break;
-  case vtkMRMLInteractionNode::PickManipulate:
-    if (tGUI->GetMousePickButton())
-    {
-      tGUI->GetMousePickButton()->SelectedStateOn();
-    }
-    break;
-  default:
-    vtkErrorMacro("Unknown mode: "<<mode);
-    return 0;
-  }        
-
   // Set logic state
   interactionNode->SetCurrentInteractionMode(mode); 
 
+  // Set pick/place state to persistent (stay in the staet after picking/placing a fiducial)
+  if (mode==vtkMRMLInteractionNode::Place)
+  {
+    interactionNode->SetPlaceModePersistence(1);
+  }
+  else if (mode==vtkMRMLInteractionNode::PickManipulate)
+  {
+    interactionNode->SetPickModePersistence(1);
+  }
+  
   return 1;
 }
 
