@@ -58,6 +58,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_RigidOptimizer = RigidOptimizerType::New();
 
+  this->m_CurrentLevelFixedMesh = MeshType::New();
+  this->m_CurrentLevelMovingMesh = MeshType::New();
 }
 
 
@@ -119,6 +121,12 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 {
   TMesh * fixedMesh  = static_cast<MeshType *>(this->ProcessObject::GetInput( 0 ));
   TMesh * movingMesh = static_cast<MeshType *>(this->ProcessObject::GetInput( 1 ));
+
+  this->m_CurrentLevelFixedMesh = MeshType::New();
+  this->m_CurrentLevelMovingMesh = MeshType::New();
+
+  this->CopyMeshToMesh( fixedMesh,  this->m_CurrentLevelFixedMesh  );
+  this->CopyMeshToMesh( movingMesh, this->m_CurrentLevelMovingMesh );
 
   this->m_CurrentLevelFixedMesh = fixedMesh;
   this->m_CurrentLevelMovingMesh = movingMesh;
