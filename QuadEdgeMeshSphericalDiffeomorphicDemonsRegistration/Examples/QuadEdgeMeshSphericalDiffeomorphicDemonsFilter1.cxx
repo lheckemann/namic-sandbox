@@ -121,6 +121,8 @@ int main( int argc, char *argv[] )
   visualMonitor.SetVerbose( false );
   visualMonitor.SetScreenShotsBaseFileName( "demonsExample3" );
 
+  visualMonitor.SetScalarRange( -0.1, 0.1 );
+
   visualMonitor.SetCameraZoomFactor( 1.5 );
   visualMonitor.SetCameraAzimuthAngle( 90.0 );
   visualMonitor.SetCameraElevationAngle( 0.0 );
