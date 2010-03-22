@@ -20,6 +20,9 @@
 
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 
+#include "itkVersorTransformOptimizer.h"
+#include "itkVersorTransform.h"
+
 namespace itk
 {
 template< class TMesh >
@@ -71,6 +74,20 @@ public:
   /**  Create the Output of the proper type for that output number */
   DataObject::Pointer MakeOutput(unsigned int idx);
 
+  typedef VersorTransform< double >  TransformType;
+
+  itkGetConstObjectMacro( RigidTransform, TransformType );
+
+  typedef VersorTransformOptimizer     RigidOptimizerType;
+
+  itkGetObjectMacro( RigidOptimizer, RigidOptimizerType );
+
+  typedef QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< 
+    MeshType, MeshType, MeshType >  DemonsFilterType;
+
+  typedef typename DemonsFilterType::DestinationPointSetType    DestinationPointSetType;
+
+
 protected:
   MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
   ~MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -98,6 +115,10 @@ private:
   unsigned int    m_CurrentResolutionLevel;
 
   unsigned int    m_NumberOfResolutionLevels;
+
+  typename TransformType::Pointer  m_RigidTransform;
+
+  typename RigidOptimizerType::Pointer  m_RigidOptimizer;
 };
 
 }
