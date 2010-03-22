@@ -24,8 +24,6 @@
 #include "itkMeanSquaresMeshToMeshMetric.h"
 #include "itkMeshToMeshRegistrationMethod.h"
 #include "itkLinearInterpolateMeshFunction.h"
-#include "itkVersorTransformOptimizer.h"
-#include "itkVersorTransform.h"
 
 #include "itkResampleQuadEdgeMeshFilter.h"
 #include "itkQuadEdgeMeshTraits.h"
@@ -55,6 +53,11 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_SphereCenter.Fill( 0.0 );
   this->m_SphereRadius = 1.0;
+
+  this->m_RigidTransform = TransformType::New();
+
+  this->m_RigidOptimizer = RigidOptimizerType::New();
+
 }
 
 
@@ -142,11 +145,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   registration->SetFixedMesh( fixedMesh );
   registration->SetMovingMesh( movingMesh );
 
-  typedef itk::VersorTransform< typename MetricType::TransformComputationType >  TransformType;
-
-  typename TransformType::Pointer transform = TransformType::New();
-
-  registration->SetTransform( transform );
+  registration->SetTransform( this->m_RigidTransform );
 
   typedef itk::LinearInterpolateMeshFunction< MeshType > InterpolatorType;
 
@@ -154,38 +153,34 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   registration->SetInterpolator( interpolator );
 
-  const unsigned int numberOfTransformParameters = transform->GetNumberOfParameters();
+  const unsigned int numberOfTransformParameters = this->m_RigidTransform->GetNumberOfParameters();
 
   typedef typename TransformType::ParametersType         ParametersType;
   ParametersType parameters( numberOfTransformParameters );
 
-  transform->SetIdentity();
+  this->m_RigidTransform->SetIdentity();
   
-  parameters = transform->GetParameters();
+  parameters = this->m_RigidTransform->GetParameters();
 
   registration->SetInitialTransformParameters( parameters );
 
-  typedef itk::VersorTransformOptimizer     OptimizerType;
+  registration->SetOptimizer( this->m_RigidOptimizer );
 
-  OptimizerType::Pointer      optimizer     = OptimizerType::New();
-
-  registration->SetOptimizer( optimizer );
-
-  typedef OptimizerType::ScalesType             ScalesType;
+  typedef RigidOptimizerType::ScalesType             ScalesType;
 
   ScalesType    parametersScale( numberOfTransformParameters );
   parametersScale[0] = 1.0;
   parametersScale[1] = 1.0;
   parametersScale[2] = 1.0;
 
-  optimizer->SetScales( parametersScale );
+  this->m_RigidOptimizer->SetScales( parametersScale );
 
-  optimizer->MinimizeOn();
-  optimizer->SetGradientMagnitudeTolerance( 1e-6 );
-  optimizer->SetMaximumStepLength( 1e-2 );
-  optimizer->SetMinimumStepLength( 1e-9 );
-  optimizer->SetRelaxationFactor( 0.9 );
-  optimizer->SetNumberOfIterations( 32 );
+  this->m_RigidOptimizer->MinimizeOn();
+  this->m_RigidOptimizer->SetGradientMagnitudeTolerance( 1e-6 );
+  this->m_RigidOptimizer->SetMaximumStepLength( 1e-2 );
+  this->m_RigidOptimizer->SetMinimumStepLength( 1e-9 );
+  this->m_RigidOptimizer->SetRelaxationFactor( 0.9 );
+  this->m_RigidOptimizer->SetNumberOfIterations( 32 );
 
   try
     {
@@ -198,11 +193,12 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     throw e;
     }
 
-  OptimizerType::ParametersType finalParameters = 
-                    registration->GetLastTransformParameters();
+  ParametersType finalParameters = registration->GetLastTransformParameters();
 
   std::cout << "final parameters = " << finalParameters << std::endl;
-  std::cout << "final value      = " << optimizer->GetValue() << std::endl;
+  std::cout << "final value      = " << this->m_RigidOptimizer->GetValue() << std::endl;
+
+  this->m_RigidTransform->SetParameters( finalParameters );
 }
 
 
