@@ -39,6 +39,11 @@ ADD_EXECUTABLE(ResampleMeshUsingRegularSphere ResampleMeshUsingRegularSphere.cxx
 TARGET_LINK_LIBRARIES(ResampleMeshUsingRegularSphere
  ITKQuadEdgeMesh ITKNumerics ITKIO) 
 
+ADD_EXECUTABLE(SmoothingMeshWithScalars SmoothingMeshWithScalars.cxx)
+TARGET_LINK_LIBRARIES(SmoothingMeshWithScalars
+ ITKQuadEdgeMesh ITKNumerics ITKIO) 
+
+
 IF(USE_VTK)
   ADD_EXECUTABLE(RigidMeshRegistration
     ${QuadEdgeMeshRigidRegistration}/Examples/MeanSquaresMeshToMeshMetricRegistrationWithMonitor1.cxx
