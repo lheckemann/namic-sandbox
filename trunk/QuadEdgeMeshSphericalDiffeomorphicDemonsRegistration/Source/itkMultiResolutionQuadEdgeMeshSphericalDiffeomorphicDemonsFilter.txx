@@ -117,6 +117,12 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::GenerateData()
 {
+  TMesh * fixedMesh  = static_cast<MeshType *>(this->ProcessObject::GetInput( 0 ));
+  TMesh * movingMesh = static_cast<MeshType *>(this->ProcessObject::GetInput( 1 ));
+
+  this->m_CurrentLevelFixedMesh = fixedMesh;
+  this->m_CurrentLevelMovingMesh = movingMesh;
+
   this->ComputeRigidRegistration();
 }
 
@@ -136,14 +142,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   registration->SetMetric( metric ); 
 
-  const TMesh * fixedMesh = 
-    static_cast<MeshType *>(this->ProcessObject::GetInput( 0 ));
-
-  const TMesh * movingMesh = 
-    static_cast<MeshType *>(this->ProcessObject::GetInput( 1 ));
-
-  registration->SetFixedMesh( fixedMesh );
-  registration->SetMovingMesh( movingMesh );
+  registration->SetFixedMesh( this->m_CurrentLevelFixedMesh );
+  registration->SetMovingMesh( this->m_CurrentLevelMovingMesh );
 
   registration->SetTransform( this->m_RigidTransform );
 
@@ -153,7 +153,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   registration->SetInterpolator( interpolator );
 
-  const unsigned int numberOfTransformParameters = this->m_RigidTransform->GetNumberOfParameters();
+  const unsigned int numberOfTransformParameters =
+    this->m_RigidTransform->GetNumberOfParameters();
 
   typedef typename TransformType::ParametersType         ParametersType;
   ParametersType parameters( numberOfTransformParameters );
@@ -189,14 +190,11 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   catch( itk::ExceptionObject & e )
     {
     std::cerr << "Registration failed" << std::endl;
-    std::cout << "Reason " << e << std::endl;
+    std::cerr << "Reason " << e << std::endl;
     throw e;
     }
 
   ParametersType finalParameters = registration->GetLastTransformParameters();
-
-  std::cout << "final parameters = " << finalParameters << std::endl;
-  std::cout << "final value      = " << this->m_RigidOptimizer->GetValue() << std::endl;
 
   this->m_RigidTransform->SetParameters( finalParameters );
 }

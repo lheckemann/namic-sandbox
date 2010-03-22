@@ -119,6 +119,9 @@ private:
   typename TransformType::Pointer  m_RigidTransform;
 
   typename RigidOptimizerType::Pointer  m_RigidOptimizer;
+
+  typename MeshType::Pointer   m_CurrentLevelFixedMesh;
+  typename MeshType::Pointer   m_CurrentLevelMovingMesh;
 };
 
 }
