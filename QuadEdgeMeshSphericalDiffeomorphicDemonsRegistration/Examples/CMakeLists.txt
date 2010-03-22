@@ -264,8 +264,8 @@ SET(MOVINGMESH4  ${TEMP}/sub${MESHID2}c_IC7.vtk)
 SET(FIXEDMESHFINAL  ${TEMP}/sub${MESHID1}c.vtk)
 SET(MOVINGMESHFINAL ${TEMP}/sub${MESHID2}c.vtk)
 
-ADD_TEST(MultiResRegistration1_${MESHID1}_${MESHID2}
-  ${CXX_TEST_PATH}/MultiResolutionRegistration1
+ADD_TEST(MultiResRegistration2_${MESHID1}_${MESHID2}
+  ${CXX_TEST_PATH}/MultiResolutionRegistration2
   ${FIXEDMESH1}
   ${MOVINGMESH1}
   ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC4.vtk
