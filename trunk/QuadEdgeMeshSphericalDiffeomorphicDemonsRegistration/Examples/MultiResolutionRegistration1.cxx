@@ -608,6 +608,13 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   visualMonitor.ObserveData( demonsFilter->GetFinalDestinationPoints() );
 #endif
 
+  epsilon = demonsFilter->GetEpsilon();
+  sigmaX = demonsFilter->GetSigmaX();
+  epsilon *= 4.0;
+  sigmaX  /= 2.0;
+  demonsFilter->SetEpsilon( epsilon ); 
+  demonsFilter->SetSigmaX( sigmaX ); 
+
   // 
   //  Running Second Resolution Level Demons Registration.
   //
@@ -814,6 +821,13 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   visualMonitor.Observe( demonsFilter.GetPointer() );
   visualMonitor.ObserveData( demonsFilter->GetFinalDestinationPoints() );
 #endif
+
+  epsilon = demonsFilter->GetEpsilon();
+  sigmaX = demonsFilter->GetSigmaX();
+  epsilon *= 4.0;
+  sigmaX  /= 2.0;
+  demonsFilter->SetEpsilon( epsilon ); 
+  demonsFilter->SetSigmaX( sigmaX ); 
 
   // 
   //  Running Third Resolution Level Demons Registration.
@@ -1024,6 +1038,13 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   visualMonitor.Observe( demonsFilter.GetPointer() );
   visualMonitor.ObserveData( demonsFilter->GetFinalDestinationPoints() );
 #endif
+
+  epsilon = demonsFilter->GetEpsilon();
+  sigmaX = demonsFilter->GetSigmaX();
+  epsilon *= 4.0;
+  sigmaX  /= 2.0;
+  demonsFilter->SetEpsilon( epsilon ); 
+  demonsFilter->SetSigmaX( sigmaX ); 
 
   // 
   //  Running Fourth Resolution Level Demons Registration.
