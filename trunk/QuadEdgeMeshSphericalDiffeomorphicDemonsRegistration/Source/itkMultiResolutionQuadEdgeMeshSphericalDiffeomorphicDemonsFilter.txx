@@ -158,6 +158,8 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::GenerateData()
 {
+  this->InitializeRigidRegistrationParameters();
+  this->InitializeDemonsRegistrationParameters();
   this->PrepareCoarsestResolutionMeshes();
 
   while( this->m_CurrentResolutionLevel < this->m_NumberOfResolutionLevels )
@@ -171,6 +173,52 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     this->m_CurrentResolutionLevel++;
     }
 
+}
+
+
+template< class TMesh >
+void
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::InitializeRigidRegistrationParameters()
+{
+  typedef RigidOptimizerType::ScalesType             ScalesType;
+
+  const unsigned int numberOfTransformParameters =
+    this->m_RigidTransform->GetNumberOfParameters();
+
+  ScalesType    parametersScale( numberOfTransformParameters );
+  parametersScale[0] = 1.0;
+  parametersScale[1] = 1.0;
+  parametersScale[2] = 1.0;
+
+  this->m_RigidOptimizer->SetScales( parametersScale );
+
+  this->m_RigidOptimizer->MinimizeOn();
+  this->m_RigidOptimizer->SetGradientMagnitudeTolerance( 1e-6 );
+  this->m_RigidOptimizer->SetMaximumStepLength( 1e-2 );
+  this->m_RigidOptimizer->SetMinimumStepLength( 1e-9 );
+  this->m_RigidOptimizer->SetRelaxationFactor( 0.9 );
+  this->m_RigidOptimizer->SetNumberOfIterations( 32 );
+}
+
+
+template< class TMesh >
+void
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::InitializeDemonsRegistrationParameters()
+{
+  this->m_DemonsRegistrationFilter->SetSphereCenter( this->m_SphereCenter );
+  this->m_DemonsRegistrationFilter->SetSphereRadius( this->m_SphereRadius );
+
+  this->m_DemonsRegistrationFilter->SetEpsilon( 0.016 );
+  this->m_DemonsRegistrationFilter->SetSigmaX( 8.0 );
+
+  this->m_DemonsRegistrationFilter->SelfRegulatedModeOn(); 
+
+  this->m_DemonsRegistrationFilter->SetLambda( 1.0 );
+
+  this->m_DemonsRegistrationFilter->SetMaximumNumberOfIterations( 15 );
+  this->m_DemonsRegistrationFilter->SetMaximumNumberOfSmoothingIterations( 2 );
 }
 
 
@@ -246,9 +294,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   registration->SetMetric( metric ); 
 
-  std::cout << "Current fixed Mesh points = " << this->m_CurrentLevelFixedMesh->GetNumberOfPoints() << std::endl;
-  std::cout << "Current moving Mesh points = " << this->m_CurrentLevelMovingMesh->GetNumberOfPoints() << std::endl;
-
   registration->SetFixedMesh( this->m_CurrentLevelFixedMesh );
   registration->SetMovingMesh( this->m_CurrentLevelMovingMesh );
 
@@ -273,22 +318,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   registration->SetInitialTransformParameters( parameters );
 
   registration->SetOptimizer( this->m_RigidOptimizer );
-
-  typedef RigidOptimizerType::ScalesType             ScalesType;
-
-  ScalesType    parametersScale( numberOfTransformParameters );
-  parametersScale[0] = 1.0;
-  parametersScale[1] = 1.0;
-  parametersScale[2] = 1.0;
-
-  this->m_RigidOptimizer->SetScales( parametersScale );
-
-  this->m_RigidOptimizer->MinimizeOn();
-  this->m_RigidOptimizer->SetGradientMagnitudeTolerance( 1e-6 );
-  this->m_RigidOptimizer->SetMaximumStepLength( 1e-2 );
-  this->m_RigidOptimizer->SetMinimumStepLength( 1e-9 );
-  this->m_RigidOptimizer->SetRelaxationFactor( 0.9 );
-  this->m_RigidOptimizer->SetNumberOfIterations( 32 );
 
   try
     {
@@ -339,19 +368,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_DemonsRegistrationFilter->SetFixedMesh( this->m_CurrentLevelFixedMesh );
   this->m_DemonsRegistrationFilter->SetMovingMesh( this->m_CurrentLevelMovingMesh );
 
-  this->m_DemonsRegistrationFilter->SetSphereCenter( this->m_SphereCenter );
-  this->m_DemonsRegistrationFilter->SetSphereRadius( this->m_SphereRadius );
+  std::cout << "STARTING DEMONS" << std::endl;
 
-  this->m_DemonsRegistrationFilter->SetEpsilon( 0.016 );
-  this->m_DemonsRegistrationFilter->SetSigmaX( 8.0 );
-
-  this->m_DemonsRegistrationFilter->SelfRegulatedModeOn(); 
-
-  this->m_DemonsRegistrationFilter->SetLambda( 1.0 );
-
-  this->m_DemonsRegistrationFilter->SetMaximumNumberOfIterations( 15 );
-  this->m_DemonsRegistrationFilter->SetMaximumNumberOfSmoothingIterations( 2 );
-std::cout << "STARTING DEMONS" << std::endl;
   try
     {
     this->m_DemonsRegistrationFilter->Update();
