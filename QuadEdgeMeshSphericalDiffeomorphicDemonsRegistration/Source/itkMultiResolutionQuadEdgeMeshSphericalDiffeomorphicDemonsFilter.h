@@ -129,6 +129,9 @@ private:
   /** Perform demons registration between two meshes at the current resolution level. */
   void ComputeDemonsRegistration();
 
+  /** Configure the meshs to be used for the coarsest resolution */
+  void PrepareCoarsestResolutionMeshes();
+
   /** Center of spherical mesh. We assume that both the Fixed and
    * Moving meshes have spherical geometry and that they share the same
    * center and radius. */
