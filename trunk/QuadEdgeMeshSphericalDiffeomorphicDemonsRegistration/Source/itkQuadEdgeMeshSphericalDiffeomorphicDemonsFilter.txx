@@ -326,6 +326,9 @@ AllocateInternalArrays()
 
   this->m_TangentVectorFieldSwap = TangentVectorContainer::New();
   this->m_TangentVectorFieldSwap->Reserve( numberOfNodes );
+
+  this->m_ShortestEdgeLengthPerPoint = ShortestLengthContainerType::New();
+  this->m_ShortestEdgeLengthPerPoint->Reserve( numberOfNodes );
 }
 
 
@@ -791,6 +794,8 @@ ComputeShortestEdgeLength()
   FixedPointsConstIterator pointItr = points->Begin();
   FixedPointsConstIterator pointEnd = points->End();
 
+  ShortestLengthContainerIterator shortestEdgeItr = this->m_ShortestEdgeLengthPerPoint->Begin();
+
   while( pointItr != pointEnd )
     {
     EdgeType * edge1 = this->m_FixedMeshAtInitialDestinationPoints->FindEdge( pointItr.Index() );
@@ -799,6 +804,8 @@ ComputeShortestEdgeLength()
     EdgeType * temp2 = edge1;
 
     const PointType & point = pointItr.Value();
+
+    double localShortestLength = NumericTraits< double >::max();
 
     do
       {
@@ -811,15 +818,26 @@ ComputeShortestEdgeLength()
 
       const double distance = point.EuclideanDistanceTo( neighborPoint );
 
-      if( distance < shortestLength )
+      if( distance < localShortestLength )
         {
-        shortestLength = distance;
+        localShortestLength = distance;
         }
 
       }
     while( temp2 != edge1 );
 
+
+    shortestEdgeItr.Value() = localShortestLength;
+
+
+    if( localShortestLength < shortestLength )
+      {
+      shortestLength = localShortestLength;
+      }
+
+
     ++pointItr;
+    ++shortestEdgeItr;
     }
 
   this->m_ShortestEdgeLength = shortestLength;
@@ -929,9 +947,13 @@ ComputeSelfRegulatedSigmaXandEpsilon()
     //
     // Largest velocity vector Vn  magnitude  / 2^(N-2) < 1/2 Vertex distance
     //
-    const double largestVelocityMagnitude = this->ComputeLargestVelocityMagnitude();
-    this->m_LargestVelocityToEdgeLengthRatio =
-      largestVelocityMagnitude / ( 2.0 * this->m_ShortestEdgeLength );
+    //  const double largestVelocityMagnitude = this->ComputeLargestVelocityMagnitude();
+    //
+
+    this->ComputeLargestVelocityMagnitudeToShortestEdgeLengthRatio();
+
+    //    this->m_LargestVelocityToEdgeLengthRatio =
+    //      largestVelocityMagnitude / ( 2.0 * this->m_ShortestEdgeLength );
 
     this->m_SigmaX /= vcl_sqrt( this->m_LargestVelocityToEdgeLengthRatio );
     this->m_Epsilon =  1.0 / ( this->m_SigmaX * this->m_SigmaX );
@@ -1369,6 +1391,38 @@ PrintOutDeformationVectors( std::ostream & os )
     ++srcPointItr;
     }
   os << std::endl;
+}
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
+::ComputeLargestVelocityMagnitudeToShortestEdgeLengthRatio()
+{
+  double largestRatio = NumericTraits< double >::Zero;
+
+  VelocityVectorConstIterator velocityItr = this->m_VelocityField->Begin();
+  VelocityVectorConstIterator velocityEnd = this->m_VelocityField->End();
+
+  ShortestLengthContainerIterator shortestEdgeItr = this->m_ShortestEdgeLengthPerPoint->Begin();
+
+  while( velocityItr != velocityEnd )
+    {
+    const double velocityMagnitude = velocityItr.Value().GetNorm();
+  
+    const double ratio = velocityMagnitude / ( 2.0 * shortestEdgeItr.Value() );
+
+    if( ratio > largestRatio )
+      {
+      largestRatio = ratio;
+      }
+
+    ++velocityItr;
+    ++shortestEdgeItr;
+    }
+
+  std::cout << "largestRatio = " << largestRatio << std::endl;
+
+  this->m_LargestVelocityToEdgeLengthRatio = largestRatio;
 }
 
 

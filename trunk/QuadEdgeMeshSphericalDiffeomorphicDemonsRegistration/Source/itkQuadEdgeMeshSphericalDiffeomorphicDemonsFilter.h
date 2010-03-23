@@ -105,6 +105,11 @@ public:
   typedef typename TangentVectorContainer::ConstPointer           TangentVectorConstPointer;
   typedef typename TangentVectorContainer::ConstIterator          TangentVectorConstIterator;
 
+  typedef VectorContainer< PointIdentifier, double >              ShortestLengthContainerType;
+  typedef typename ShortestLengthContainerType::Pointer           ShortestLengthContainerPointer;
+  typedef typename ShortestLengthContainerType::Iterator          ShortestLengthContainerIterator;
+  typedef typename ShortestLengthContainerType::ConstIterator     ShortestLengthContainerConstIterator;
+
   /** Set/Get the Fixed mesh. */
   void SetFixedMesh( const FixedMeshType * fixedMesh );
   itkGetConstObjectMacro( FixedMesh, FixedMeshType ); 
@@ -272,6 +277,7 @@ private:
   void ComputeScalingAndSquaringNumberOfIterations();
   void ComputeShortestEdgeLength();
   double ComputeLargestVelocityMagnitude() const;
+  void ComputeLargestVelocityMagnitudeToShortestEdgeLengthRatio();
   void ComputeDeformationByScalingAndSquaring();
   void ComposeDeformationUpdateWithPreviousDeformation();
   void ComputeSelfRegulatedSigmaXandEpsilon();
@@ -420,6 +426,9 @@ private:
   /** largest ratio of velocity versus shortest edge length of the
    * corresponding node. */ 
   double        m_LargestVelocityToEdgeLengthRatio;
+
+  /** Container of lengths corresponding to the shortest edge of every node. */
+  ShortestLengthContainerPointer    m_ShortestEdgeLengthPerPoint;
 };
 
 }
