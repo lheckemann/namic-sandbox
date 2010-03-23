@@ -63,7 +63,7 @@ int main( int argc, char * argv [] )
 
   MultiResolutionDemonsFilterType::Pointer multiResDemonsFilter = MultiResolutionDemonsFilterType::New();
 
-  multiResDemonsFilter->SetNumberOfResolutionLevels( 1 );
+  multiResDemonsFilter->SetNumberOfResolutionLevels( 2 );
 
   typedef itk::VTKPolyDataReader< MeshType >     ReaderType;
 
@@ -258,7 +258,7 @@ int main( int argc, char * argv [] )
   WarpMeshFilterType::Pointer warpFilter = WarpMeshFilterType::New();
 
   warpFilter->SetInput( fixedMeshReader4->GetOutput() );
-  warpFilter->SetReferenceMesh( fixedMeshReader4->GetOutput() );
+  warpFilter->SetReferenceMesh( fixedMeshReader2->GetOutput() ); // FIXME: Change when doing more resolution levels
 
   warpFilter->SetDestinationPoints( multiResDemonsFilter->GetFinalDestinationPoints() );
 
