@@ -242,8 +242,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_DemonsRegistrationFilter->SetSphereCenter( this->m_SphereCenter );
   this->m_DemonsRegistrationFilter->SetSphereRadius( this->m_SphereRadius );
 
-  this->m_DemonsRegistrationFilter->SetEpsilon( 100.0 );
-  this->m_DemonsRegistrationFilter->SetSigmaX( 0.01 );
+  this->m_DemonsRegistrationFilter->SetEpsilon( 0.05 );
+  this->m_DemonsRegistrationFilter->SetSigmaX( 5.0 );
 
   this->m_DemonsRegistrationFilter->SelfRegulatedModeOn(); 
 
