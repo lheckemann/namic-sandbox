@@ -174,6 +174,8 @@ WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
   OutputPointIterator outputPointEnd = outputPoints->End();
 
   typedef typename InterpolatorType::PointType     PointType;
+  typedef typename PointType::VectorType           VectorType;
+  
   PointType  evaluatedPoint;
   PointType  inputPoint;
 
@@ -181,6 +183,15 @@ WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
     {
     inputPoint.CastFrom( outputPointItr.Value() );
     this->m_Interpolator->Evaluate( destinationPointsContainer, inputPoint, evaluatedPoint );
+
+    //
+    //  Project point to sphere surface
+    //
+    VectorType vectorToCenter( evaluatedPoint - this->m_SphereCenter );
+
+    const double radialDistance = vectorToCenter.GetNorm();
+    vectorToCenter *= this->m_SphereRadius / radialDistance;
+    evaluatedPoint = this->m_SphereCenter + vectorToCenter;
 
     //
     // SetPoint() must be used here instead of a simple assignment in order to
