@@ -18,6 +18,7 @@
 #define __itkLaplaceBeltramiFilter_h
 
 #include "itkQuadEdgeMeshToQuadEdgeMeshFilter.h"
+#include "itkArray2D.h"
 
 // vnl headers
 #include <vnl/vnl_matrix.h>
@@ -77,6 +78,14 @@ public:
   itkSetMacro( EigenValueCount, unsigned int );
   itkGetMacro( EigenValueCount, unsigned int );
 
+  itkSetMacro( HarmonicScaleValue, double );
+  itkGetMacro( HarmonicScaleValue, double );
+
+  typedef  enum { VonNeumanCondition, DirichletCondition } BoundaryConditionEnumType;
+
+  itkSetMacro( BoundaryConditionType, BoundaryConditionEnumType );
+  itkGetMacro( BoundaryConditionType, BoundaryConditionEnumType );
+
   typedef typename OutputMeshType::PointsContainer             OutputPointsContainer;
   typedef typename OutputMeshType::CellsContainer              OutputCellsContainer;
   typedef typename InputMeshType::PointsContainerPointer       PointsContainerPointer;
@@ -99,7 +108,8 @@ public:
   typedef typename OutputPointDataContainer::ConstPointer      OutputPointDataContainerConstPointer; 
 
   typedef vnl_sparse_matrix< double >  LBMatrixType;
-  typedef vnl_matrix< double >         HarmonicSetType;
+  typedef Array2D< double >            HarmonicSetType;
+
 
   /** Get the Laplace Beltrami operator */
   void GetLBOperator( LBMatrixType& ) const;
@@ -130,6 +140,12 @@ private:
 
   /** Number of most significant eigenvalues to include */
   unsigned int m_EigenValueCount;
+
+  /** Scale eigenvalue point data in harmonic mesh to +- this value */
+  double m_HarmonicScaleValue;
+
+  /** Type of condition for vertex values on the boundary of open surfaces */
+  BoundaryConditionEnumType m_BoundaryConditionType;
 
   /** The LB operator */
   LBMatrixType m_LBOperator;
