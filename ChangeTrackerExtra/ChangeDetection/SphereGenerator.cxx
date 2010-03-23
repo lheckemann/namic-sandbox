@@ -5,20 +5,32 @@
 #include "itkLabelMap.h"
 #include "itkOrientedImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkBinaryThresholdImageFilter.h"
+
+#include <fstream>
+#include <string>
 
 #define PI      3.1415
 
-#define RADIUS  10
-#define BG       0
+//#define RADIUS  10
+#define BG1     50
+#define BG2     20
 #define FG     100
-#define SX       1
-#define SY       1
-#define SZ       1
+#define SX       .9375
+#define SY       .9375
+#define SZ       1.4
 
 int main(int argc, char * argv[])
 {
   typedef char  PixelType;
   typedef itk::OrientedImage< PixelType,3> ImageType; 
+
+  if(argc<3){
+    std::cerr << "Usage: " << argv[0] << " radius output_prefix" << std::endl;
+    return -1;
+  }
+
+  float RADIUS = atof(argv[1]);
 
   // Declare the type of the index,size and region to initialize images
   typedef itk::Index<3>                     IndexType;
@@ -31,6 +43,7 @@ int main(int argc, char * argv[])
 //  typedef itk::LabelMap< ShapeLabelObjectType >     LabelMapType;
 //  typedef itk::LabelImageToShapeLabelMapFilter< ImageType, LabelMapType> I2LType;
   typedef itk::ImageFileWriter<ImageType>           WriterType;
+  typedef itk::BinaryThresholdImageFilter<ImageType,ImageType> ThreshType;
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
 //  typedef LabelMapType::LabelObjectContainerType LabelObjectContainerType;
@@ -52,8 +65,9 @@ int main(int argc, char * argv[])
 
   ImageType::Pointer image = ImageType::New();
   image->SetRegions(region);
+  image->SetSpacing(spacing);
   image->Allocate();
-  image->FillBuffer(BG);
+  image->FillBuffer(0);
 
   IteratorType it(image,region);
   it.GoToBegin();
@@ -66,6 +80,8 @@ int main(int argc, char * argv[])
   centralIndex[2] = size[2]/2;
 
   float dVol = 0, voxelVol = spacing[0]*spacing[1]*spacing[2];
+  float tVol = (4./3.)*PI*RADIUS*RADIUS*RADIUS;
+  float tSurf = 4.*PI*RADIUS*RADIUS;
 
   image->TransformIndexToPhysicalPoint(centralIndex, center);
   while(!it.IsAtEnd()){
@@ -74,19 +90,48 @@ int main(int argc, char * argv[])
     if(radial.GetNorm()<RADIUS){
       it.Set(FG);
       dVol += voxelVol;
+    } else {
+      if(((unsigned)it.GetIndex()[0])<size[0]/2)
+        it.Set(BG1);
+      else
+        it.Set(BG2);
     }
     ++it;
   }
 
-  std::cout << "True volume: " << 4./3.*PI*RADIUS*RADIUS*RADIUS << std::endl;
+  std::cout << "Surf area: " << tSurf << std::endl;
+  std::cout << "True volume: " << tVol << std::endl;
   std::cout << "Digitized volume: " << dVol << std::endl;
+  std::cout << "Error: " << tVol-dVol << " (" << (tVol-dVol)/tVol*100. << "%)" << std::endl;
 
-  if(argc>1){
-    WriterType::Pointer w = WriterType::New();
-    w->SetFileName(argv[1]);
-    w->SetInput(image);
-    w->Update();
-  }
+  std::string gfName = std::string(argv[2])+".nrrd";
+  std::string bfName = std::string(argv[2])+"_label.nrrd";
+  std::string lfName = std::string(argv[2])+".info";
+
+  std::ofstream info(lfName.c_str());
+  info << "Surf area: " << tSurf << std::endl;
+  info << "True volume: " << tVol << std::endl;
+  info << "Digitized volume: " << dVol << std::endl;
+  info << "Error: " << tVol-dVol << " (" << (tVol-dVol)/tVol*100. << "%)" << std::endl;
+
+  WriterType::Pointer w = WriterType::New();
+  w->SetFileName(gfName.c_str());
+  w->SetInput(image);
+  w->SetUseCompression(1);
+  w->Update();
+
+  ThreshType::Pointer thresh = ThreshType::New();
+  thresh->SetInput(image);
+  thresh->SetUpperThreshold(FG);
+  thresh->SetLowerThreshold(FG);
+  thresh->SetInsideValue(255);
+  thresh->SetOutsideValue(0);
+
+  WriterType::Pointer ws = WriterType::New();
+  ws->SetFileName(bfName.c_str());
+  ws->SetInput(thresh->GetOutput());
+  ws->SetUseCompression(1);
+  ws->Update();
 
   return 0;
 }
