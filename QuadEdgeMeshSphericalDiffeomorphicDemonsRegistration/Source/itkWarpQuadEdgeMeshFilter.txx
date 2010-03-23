@@ -25,8 +25,8 @@ namespace itk
 {
 
 
-template< class TInputMesh, class TVectorMesh, class TOutputMesh >
-WarpQuadEdgeMeshFilter< TInputMesh, TVectorMesh, TOutputMesh >
+template< class TInputMesh, class TReferenceMesh, class TDestinationPoints >
+WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
 ::WarpQuadEdgeMeshFilter()
 {
   this->SetNumberOfRequiredInputs( 2 );
@@ -40,111 +40,146 @@ WarpQuadEdgeMeshFilter< TInputMesh, TVectorMesh, TOutputMesh >
 }
 
 
-template< class TInputMesh, class TVectorMesh, class TOutputMesh >
-WarpQuadEdgeMeshFilter< TInputMesh, TVectorMesh, TOutputMesh >
+template< class TInputMesh, class TReferenceMesh, class TDestinationPoints >
+WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
 ::~WarpQuadEdgeMeshFilter()
 {
 }
 
 
-template< class TInputMesh, class TVectorMesh, class TOutputMesh >
+template< class TInputMesh, class TReferenceMesh, class TDestinationPoints >
 void
-WarpQuadEdgeMeshFilter< TInputMesh, TVectorMesh, TOutputMesh >
+WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
 ::SetInputMesh( const InputMeshType * mesh )
 {
   itkDebugMacro("setting input mesh to " << mesh);
-  if( mesh != static_cast<const InputMeshType *>(this->ProcessObject::GetInput( 1 )) )
+  if( mesh != static_cast<const InputMeshType *>(this->ProcessObject::GetInput( 0 )) )
     {
-    this->ProcessObject::SetNthInput(1, const_cast< InputMeshType *>( mesh ) );
+    this->ProcessObject::SetNthInput(0, const_cast< InputMeshType *>( mesh ) );
     this->Modified();
     }
 }
 
 
-template< class TInputMesh, class TVectorMesh, class TOutputMesh >
+template< class TInputMesh, class TReferenceMesh, class TDestinationPoints >
 const typename 
-WarpQuadEdgeMeshFilter< TInputMesh, TVectorMesh, TOutputMesh >::InputMeshType *
-WarpQuadEdgeMeshFilter< TInputMesh, TVectorMesh, TOutputMesh >
+WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >::InputMeshType *
+WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
 ::GetInputMesh() const
 {
   Self * surrogate = const_cast< Self * >( this );
-  const InputMeshType * deformationMesh = 
-    static_cast<const InputMeshType *>( surrogate->ProcessObject::GetInput(1) );
-  return deformationMesh;
+  const InputMeshType * inputMesh = 
+    static_cast<const InputMeshType *>( surrogate->ProcessObject::GetInput(0) );
+  return inputMesh;
 }
 
 
-template< class TInputMesh, class TVectorMesh, class TOutputMesh >
+template< class TInputMesh, class TReferenceMesh, class TDestinationPoints >
 void
-WarpQuadEdgeMeshFilter< TInputMesh, TVectorMesh, TOutputMesh >
-::SetDeformationMesh( const VectorMeshType * mesh )
+WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
+::SetReferenceMesh( const ReferenceMeshType * mesh )
 {
   itkDebugMacro("setting input deformation mesh to " << mesh);
-  if( mesh != static_cast<const VectorMeshType *>(this->ProcessObject::GetInput( 2 )) )
+  if( mesh != static_cast<const ReferenceMeshType *>(this->ProcessObject::GetInput( 1 )) )
     {
-    this->ProcessObject::SetNthInput(2, const_cast< VectorMeshType *>( mesh ) );
+    this->ProcessObject::SetNthInput(1, const_cast< ReferenceMeshType *>( mesh ) );
     this->Modified();
     }
 }
 
 
-template< class TInputMesh, class TVectorMesh, class TOutputMesh >
+template< class TInputMesh, class TReferenceMesh, class TDestinationPoints >
 const typename 
-WarpQuadEdgeMeshFilter< TInputMesh, TVectorMesh, TOutputMesh >
-::GetDeformationMesh() const
+WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >::ReferenceMeshType *
+WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
+::GetReferenceMesh() const
 {
   Self * surrogate = const_cast< Self * >( this );
-  const VectorMeshType * deformationMesh = 
-    static_cast<const VectorMeshType *>( surrogate->ProcessObject::GetInput(2) );
+  const ReferenceMeshType * deformationMesh = 
+    static_cast<const ReferenceMeshType *>( surrogate->ProcessObject::GetInput(1) );
   return deformationMesh;
 }
 
 
-template< class TInputMesh, class TVectorMesh, class TOutputMesh >
+template< class TInputMesh, class TReferenceMesh, class TDestinationPoints >
 void
-WarpQuadEdgeMeshFilter< TInputMesh, TVectorMesh, TOutputMesh >
+WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
+::SetDestinationPoints( const DestinationPointsType * points )
+{
+  itkDebugMacro("setting input destination points to " << points);
+  if( points != static_cast<const DestinationPointsType *>(this->ProcessObject::GetInput( 2 )) )
+    {
+    this->ProcessObject::SetNthInput(2, const_cast< DestinationPointsType *>( points ) );
+    this->Modified();
+    }
+}
+
+
+template< class TInputMesh, class TReferenceMesh, class TDestinationPoints >
+const typename 
+WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >::DestinationPointsType *
+WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
+::GetDestinationPoints() const
+{
+  Self * surrogate = const_cast< Self * >( this );
+  const DestinationPointsType * destinationPoints = 
+    static_cast<const DestinationPointsType *>( surrogate->ProcessObject::GetInput(2) );
+  return destinationPoints;
+}
+
+
+template< class TInputMesh, class TReferenceMesh, class TDestinationPoints >
+void
+WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
 ::GenerateData()
 {
   this->CopyInputMeshToOutputMesh();
 
-  typedef typename OutputMeshType::PointsContainer   OutputPointsContainer;
 
-  const VectorMeshType * deformationMesh = this->GetDeformationMesh();
+  const ReferenceMeshType * referenceMesh = this->GetReferenceMesh();
 
-  if( !deformationMesh )
-    {
-    itkExceptionMacro("deformation mesh is missing");
-    }
+  OutputMeshType * outputMesh = this->GetOutput();
 
+  const DestinationPointsType * destinationPoints = this->GetDestinationPoints();
 
-  OutputMeshType outputMesh = this->GetOutput();
+  const DestinationPointsContainerType * destinationPointsContainer = destinationPoints->GetPoints();
 
-  typedef typename OutputMeshType::PointsContainer   OutputPointsContainerPointer;
+  typedef typename OutputMeshType::PointsContainer  OutputPointsContainer;
 
-  OutputPointsContainerPointer outputPoints = outputMesh->GetPoints();
+  OutputPointsContainer * outputPoints = outputMesh->GetPoints();
 
   const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
 
   ProgressReporter progress(this, 0, numberOfPoints);
 
-  this->m_Interpolator->SetInputMesh( deformationMesh );
+  this->m_Interpolator->SetSphereCenter( this->m_SphereCenter );
+
+  this->m_Interpolator->SetInputMesh( referenceMesh );
   this->m_Interpolator->Initialize();
 
-  typedef typename OutputPointsContainerPointer::ConstIterator   OutputPointIterator;
+  typedef typename OutputPointsContainer::Iterator   OutputPointIterator;
 
   OutputPointIterator outputPointItr = outputPoints->Begin();
   OutputPointIterator outputPointEnd = outputPoints->End();
 
+  typedef typename InterpolatorType::PointType     PointType;
+  PointType  evaluatedPoint;
+  PointType  inputPoint;
+
   while( outputPointItr != outputPointEnd )
     {
-    this->m_Interpolator->Evaluate( inputPoints, outputPointItr.Value(), evaluatedPoint );
+    inputPoint.CastFrom( outputPointItr.Value() );
+    this->m_Interpolator->Evaluate( destinationPointsContainer, inputPoint, evaluatedPoint );
 
-    outputPointItr.Value().CastFrom( evaluatedPoint );
+    //
+    // SetPoint() must be used here instead of a simple assignment in order to
+    // maintain the topology of the QuadEdgeMesh.
+    //
+    outputPointItr.Value().SetPoint( evaluatedPoint );
 
     progress.CompletedPixel();
 
     ++outputPointItr;
-    ++referenceItr;
     }
 }
 
