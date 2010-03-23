@@ -259,6 +259,7 @@ private:
   void ComputeMappedMovingValueAtEveryNode();
   void ComputeGradientsOfMappedMovingValueAtEveryNode();
   void ComputeVelocityField();
+  void ComputeSelfRegulatedVelocityField();
   void SmoothDeformationField();
   void ConvertDeformationFieldToTangentVectorField();
   void SmoothTangentVectorField();
@@ -413,6 +414,10 @@ private:
    * largestVelocityMagnitude being similar to the value of the shortest edge
    * length. */
   bool          m_SelfRegulatedMode;
+
+  /** largest ratio of velocity versus shortest edge length of the
+   * corresponding node. */ 
+  double        m_LargestVelocityToEdgeLengthRatio;
 };
 
 }
