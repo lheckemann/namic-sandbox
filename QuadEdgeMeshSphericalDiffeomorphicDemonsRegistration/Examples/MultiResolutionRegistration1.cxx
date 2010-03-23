@@ -144,7 +144,7 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
-  FixedMeshType::ConstPointer  meshFixed  = fixedMeshReader1->GetOutput();
+  FixedMeshType::ConstPointer  fixedMesh1  = fixedMeshReader1->GetOutput();
   MovingMeshType::ConstPointer meshMoving = movingMeshReader1->GetOutput();
 
   typedef itk::MeshToMeshRegistrationMethod< 
@@ -162,7 +162,7 @@ int main( int argc, char * argv [] )
   registration->SetMetric( metric ); 
 
 
-  registration->SetFixedMesh( meshFixed );
+  registration->SetFixedMesh( fixedMesh1 );
   registration->SetMovingMesh( meshMoving );
 
 
@@ -415,12 +415,12 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
-  DestinationPointSetType::Pointer finalDestinationPoints = demonsFilter->GetFinalDestinationPoints();
+  DestinationPointSetType::Pointer finalDestinationPoints1 = demonsFilter->GetFinalDestinationPoints();
   
-  finalDestinationPoints->DisconnectPipeline();
+  finalDestinationPoints1->DisconnectPipeline();
 
   deformationFilter->SetInputMesh( fixedMeshReader1->GetOutput() );
-  deformationFilter->SetDestinationPoints( finalDestinationPoints );
+  deformationFilter->SetDestinationPoints( finalDestinationPoints1 );
 std::cout << "BEFORE Computing deformation field " << std::endl;
   deformationFilter->Update();
 std::cout << "AFTER Computing deformation field " << std::endl;
@@ -459,6 +459,9 @@ std::cout << "Moving mesh second level = " << argv[5] << std::endl;
     }
 
 
+  FixedMeshType::Pointer fixedMesh2 = fixedMeshReader2->GetOutput();
+  fixedMesh2->DisconnectPipeline();
+
   //
   // Supersample the list of destination points using the mesh at the next resolution level.
   //
@@ -470,9 +473,9 @@ std::cout << "Moving mesh second level = " << argv[5] << std::endl;
 
   upsampleDestinationPoints->SetSphereCenter( center );
   upsampleDestinationPoints->SetSphereRadius( radius );
-  upsampleDestinationPoints->SetInput( finalDestinationPoints );
-  upsampleDestinationPoints->SetFixedMesh( fixedMeshReader1->GetOutput() );
-  upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader2->GetOutput() );
+  upsampleDestinationPoints->SetInput( finalDestinationPoints1 );
+  upsampleDestinationPoints->SetFixedMesh( fixedMesh1 );
+  upsampleDestinationPoints->SetReferenceMesh( fixedMesh2 );
   upsampleDestinationPoints->SetTransform( itk::IdentityTransform<double>::New() );
 
   try
@@ -490,9 +493,6 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   // Here build a Mesh using the upsampled destination points and
   // the scalar values of the fixed IC5 mesh.
 
-  FixedMeshType::Pointer fixedMesh2 = fixedMeshReader2->GetOutput();
-  fixedMesh2->DisconnectPipeline();
-
 
   PointSetType::ConstPointer upsampledPointSet = upsampleDestinationPoints->GetOutput();
 
@@ -504,14 +504,16 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   FixedMeshType::PointsContainer::Pointer fixedPoints2 = fixedMesh2->GetPoints();
 
   FixedMeshType::PointsContainerIterator fixedPoint2Itr = fixedPoints2->Begin();
-
+std::cout << "UPSAMPLED POINTS BEGIN" << std::endl;
   while( upsampledPointsItr != upsampledPointsEnd )
     {
     // Point in the QuadEdgeMesh must also keep their pointer to Edge
     fixedPoint2Itr.Value().SetPoint( upsampledPointsItr.Value() );
+std::cout << upsampledPointsItr.Value() << std::endl;
     ++fixedPoint2Itr;
     ++upsampledPointsItr;
     }
+std::cout << "UPSAMPLED POINTS END" << std::endl;
 
 
   // 
@@ -532,6 +534,10 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   writer->SetInput( fixedMesh2 );
   writer->SetFileName("DeformedMesh2BeforeRigidRegistration.vtk");
   writer->Update(); 
+
+// #if NOT_VERIFYING_INTERMEDIATE_LEVELS
+
+//// FIXME INCORRECT TRANSITION TO NEXT RESOLUTION BEGINS
 
 #ifdef USE_VTK
   // 
@@ -593,9 +599,15 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     return EXIT_FAILURE;
     }
 
-  demonsFilter->SetInitialDestinationPoints( deformationFieldFromTransform->GetOutput() );
+//
+// FIXME   demonsFilter->SetInitialDestinationPoints( deformationFieldFromTransform->GetOutput() );
+//
+  replacePointsFilter->SetInput( fixedMesh2 );
+  replacePointsFilter->SetDestinationPoints( deformationFieldFromTransform->GetOutput() );
 
-  demonsFilter->SetFixedMesh( fixedMesh2 );
+  replacePointsFilter->Update();
+
+  demonsFilter->SetFixedMesh( replacePointsFilter->GetOutput() );
   demonsFilter->SetMovingMesh( movingMeshReader2->GetOutput() );
 
   demonsFilter->SetMaximumNumberOfIterations( 15 );
@@ -610,8 +622,8 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   epsilon = demonsFilter->GetEpsilon();
   sigmaX = demonsFilter->GetSigmaX();
-  epsilon *= 4.0;
-  sigmaX  /= 2.0;
+  epsilon *= 125.0;
+  sigmaX  /= 25.0;
   demonsFilter->SetEpsilon( epsilon ); 
   demonsFilter->SetSigmaX( sigmaX ); 
 
@@ -643,11 +655,11 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     return EXIT_FAILURE;
     }
 
-  finalDestinationPoints = demonsFilter->GetFinalDestinationPoints();
-  finalDestinationPoints->DisconnectPipeline();
+  DestinationPointSetType::Pointer finalDestinationPoints2 = demonsFilter->GetFinalDestinationPoints();
+  finalDestinationPoints2->DisconnectPipeline();
 
   deformationFilter->SetInputMesh( fixedMeshReader2->GetOutput() );
-  deformationFilter->SetDestinationPoints( finalDestinationPoints );
+  deformationFilter->SetDestinationPoints( finalDestinationPoints2 );
 std::cout << "BEFORE Computing deformation field " << std::endl;
   deformationFilter->Update();
 std::cout << "AFTER Computing deformation field " << std::endl;
@@ -688,8 +700,9 @@ std::cout << "Moving mesh third level = " << argv[8] << std::endl;
   //
   // Supersample the list of destination points using the mesh at the next resolution level.
   //
-  upsampleDestinationPoints->SetInput( finalDestinationPoints );
-  upsampleDestinationPoints->SetFixedMesh( fixedMesh2 );
+  fixedMeshReader2->Update(); // go back to the original..
+  upsampleDestinationPoints->SetInput( finalDestinationPoints2 );
+  upsampleDestinationPoints->SetFixedMesh( fixedMeshReader2->GetOutput() ); // go back to the original.
   upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader3->GetOutput() );
   upsampleDestinationPoints->SetTransform( itk::IdentityTransform<double>::New() );
 
@@ -747,6 +760,10 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   writer->SetInput( fixedMesh3 );
   writer->SetFileName("DeformedMesh3BeforeRigidRegistration.vtk");
   writer->Update(); 
+
+//// FIXME INCORRECT TRANSITION TO NEXT RESOLUTION ENDS
+
+#if NOT_VERIFYING_INTERMEDIATE_LEVELS
 
 #ifdef USE_VTK
   // 
@@ -807,9 +824,14 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     return EXIT_FAILURE;
     }
 
-  demonsFilter->SetInitialDestinationPoints( deformationFieldFromTransform->GetOutput() );
+// FIXME   demonsFilter->SetInitialDestinationPoints( deformationFieldFromTransform->GetOutput() );
 
-  demonsFilter->SetFixedMesh( fixedMesh3 );
+  replacePointsFilter->SetInput( fixedMesh3 );
+  replacePointsFilter->SetDestinationPoints( deformationFieldFromTransform->GetOutput() );
+
+  replacePointsFilter->Update();
+
+  demonsFilter->SetFixedMesh( replacePointsFilter->GetOutput() );
   demonsFilter->SetMovingMesh( movingMeshReader3->GetOutput() );
 
   demonsFilter->SetMaximumNumberOfIterations( 15 );
@@ -857,11 +879,11 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     return EXIT_FAILURE;
     }
 
-  finalDestinationPoints = demonsFilter->GetFinalDestinationPoints();
-  finalDestinationPoints->DisconnectPipeline();
+  DestinationPointSetType::Pointer finalDestinationPoints3 = demonsFilter->GetFinalDestinationPoints();
+  finalDestinationPoints3->DisconnectPipeline();
 
   deformationFilter->SetInputMesh( fixedMeshReader3->GetOutput() );
-  deformationFilter->SetDestinationPoints( finalDestinationPoints );
+  deformationFilter->SetDestinationPoints( finalDestinationPoints3 );
 std::cout << "BEFORE Computing deformation field " << std::endl;
   deformationFilter->Update();
 std::cout << "AFTER Computing deformation field " << std::endl;
@@ -903,7 +925,7 @@ std::cout << "Moving mesh fourth level = " << argv[11] << std::endl;
   //
   // Supersample the list of destination points using the mesh at the next resolution level.
   //
-  upsampleDestinationPoints->SetInput( finalDestinationPoints );
+  upsampleDestinationPoints->SetInput( finalDestinationPoints3 );
   upsampleDestinationPoints->SetFixedMesh( fixedMesh3 );
   upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader4->GetOutput() );
   upsampleDestinationPoints->SetTransform( itk::IdentityTransform<double>::New() );
@@ -964,6 +986,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   writer->SetFileName("DeformedMesh4BeforeRigidRegistration.vtk");
   writer->Update(); 
 
+// #if NOT_VERIFYING_INTERMEDIATE_LEVELS
 
 #ifdef USE_VTK
   // 
@@ -1024,9 +1047,15 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     return EXIT_FAILURE;
     }
 
-  demonsFilter->SetInitialDestinationPoints( deformationFieldFromTransform->GetOutput() );
+//
+// FIXME   demonsFilter->SetInitialDestinationPoints( deformationFieldFromTransform->GetOutput() );
+//
+  replacePointsFilter->SetInput( fixedMesh4 );
+  replacePointsFilter->SetDestinationPoints( deformationFieldFromTransform->GetOutput() );
 
-  demonsFilter->SetFixedMesh( fixedMesh4 );
+  replacePointsFilter->Update();
+
+  demonsFilter->SetFixedMesh( replacePointsFilter->GetOutput() );
   demonsFilter->SetMovingMesh( movingMeshReader4->GetOutput() );
 
   demonsFilter->SetMaximumNumberOfIterations( 15 );
@@ -1074,11 +1103,11 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     return EXIT_FAILURE;
     }
 
-  finalDestinationPoints = demonsFilter->GetFinalDestinationPoints();
-  finalDestinationPoints->DisconnectPipeline();
+  DestinationPointSetType::Pointer finalDestinationPoints4 = demonsFilter->GetFinalDestinationPoints();
+  finalDestinationPoints4->DisconnectPipeline();
   
   deformationFilter->SetInputMesh( fixedMeshReader4->GetOutput() );
-  deformationFilter->SetDestinationPoints( finalDestinationPoints );
+  deformationFilter->SetDestinationPoints( finalDestinationPoints4 );
 std::cout << "BEFORE Computing deformation field " << std::endl;
   deformationFilter->Update();
 std::cout << "AFTER Computing deformation field " << std::endl;
@@ -1094,6 +1123,7 @@ std::cout << "AFTER Computing deformation field " << std::endl;
   std::cout << "Deformation DeformedMesh4.vtk  Saved" << std::endl;
 
 
+#endif // NOT_VERIFYING_INTERMEDIATE_LEVELS
 
   //
   //  Starting process for the Fifth resolution level (FINAL).
@@ -1121,8 +1151,15 @@ std::cout << "Moving mesh fifth level = " << argv[14] << std::endl;
   //
   // Supersample the list of destination points using the mesh at the next resolution level.
   //
-  upsampleDestinationPoints->SetInput( finalDestinationPoints );
+#if NOT_VERIFYING_INTERMEDIATE_LEVELS
+  upsampleDestinationPoints->SetInput( finalDestinationPoints4 );
   upsampleDestinationPoints->SetFixedMesh( fixedMesh4 );
+#else
+  std::cout << "finalDestinationPoints size = " << finalDestinationPoints2->GetNumberOfPoints() << std::endl;
+  std::cout << "fixedMesh              size = " << fixedMesh2->GetNumberOfPoints() << std::endl;
+  upsampleDestinationPoints->SetInput( finalDestinationPoints2 );
+  upsampleDestinationPoints->SetFixedMesh( fixedMesh2 );
+#endif
   upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader5->GetOutput() );
   upsampleDestinationPoints->SetTransform( itk::IdentityTransform<double>::New() );
 
