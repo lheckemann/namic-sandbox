@@ -234,11 +234,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   TMesh * fixedMesh  = static_cast<MeshType *>(this->ProcessObject::GetInput( 0 ));
   TMesh * movingMesh = static_cast<MeshType *>(this->ProcessObject::GetInput( 1 ));
 
-  this->m_CurrentLevelFixedMesh = MeshType::New();
-  this->m_CurrentLevelMovingMesh = MeshType::New();
-
-  this->CopyMeshToMesh( fixedMesh,  this->m_CurrentLevelFixedMesh  );
-  this->CopyMeshToMesh( movingMesh, this->m_CurrentLevelMovingMesh );
+  this->m_CurrentLevelFixedMesh = fixedMesh;
+  this->m_CurrentLevelMovingMesh = movingMesh;
 }
 
 
@@ -255,23 +252,19 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   const unsigned int fixedInput  = ( this->m_CurrentResolutionLevel + 1 ) * 2;
   const unsigned int movingInput = ( this->m_CurrentResolutionLevel + 1 ) * 2 + 1;
 
-std::cout << "fixedInput = " << fixedInput << std::endl;
-std::cout << "movingInput = " << movingInput << std::endl;
-
   // 
   //   Prepare meshes for next resolution level
   // 
   TMesh * fixedMesh  = static_cast<MeshType *>(this->ProcessObject::GetInput( fixedInput ));
   TMesh * movingMesh = static_cast<MeshType *>(this->ProcessObject::GetInput( movingInput ));
 
-  this->m_NextLevelFixedMesh = MeshType::New();
-  this->m_NextLevelMovingMesh = MeshType::New();
-
+std::cout << "fixedInput = " << fixedInput << std::endl;
+std::cout << "movingInput = " << movingInput << std::endl;
 std::cout << "fixedInput  # points = " << fixedMesh->GetNumberOfPoints()  << std::endl;
 std::cout << "movingInput # points = " << movingMesh->GetNumberOfPoints() << std::endl;
 
-  this->CopyMeshToMesh( fixedMesh,  this->m_NextLevelFixedMesh  );
-  this->CopyMeshToMesh( movingMesh, this->m_NextLevelMovingMesh );
+  this->m_NextLevelFixedMesh = fixedMesh;
+  this->m_NextLevelMovingMesh = movingMesh;
 }
 
 
