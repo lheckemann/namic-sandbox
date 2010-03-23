@@ -19,6 +19,10 @@ void showUsage()
   printf("USAGE: itkLaplaceBeltramiFilterTest2 [OPTIONS] <vtk_mesh_file> <first_harmonic_surface>\n");
   printf("\t\t-h --help : print this message\n");
   printf("\t\t-e --eigenvalueCount : number of principal eigenvalues to calculate\n");
+  printf("\t\t-s --scaleFactor : scale factor for Point Data in vtk mesh output\n");
+  printf("\t\t-b --boundaryCondition : conditions placed on boundary points:\n");
+  printf("\t\t\t1 (default) = von Neuman (gradient of the Laplacian operator tangent to the boundary)\n");
+  printf("\t\t\t2           = Dirichlet (zero Laplacian operator on the boundary)\n");
   exit(1);
 }
 
@@ -26,21 +30,41 @@ void showUsage()
 int main(int argc, char *argv[])
 {
     unsigned int eCount = 0;
+    double scale = 0.0;
 
+    typedef float              PixelType;
+    typedef double             PointDataType;
+    typedef double             DDataType;
+    typedef double             CoordRep;
+    typedef double             InterpRep;
+    const   unsigned int       Dimension = 3;
+
+    // Declare the type of the input and output mesh
+    typedef itk::QuadEdgeMeshTraits<PixelType, Dimension, PointDataType,
+        DDataType, CoordRep, InterpRep> MeshTraits;
+    typedef itk::QuadEdgeMesh<float,Dimension,MeshTraits> InMeshType;
+    typedef itk::QuadEdgeMesh<double,Dimension,MeshTraits> OutMeshType;
+
+    typedef itk::LaplaceBeltramiFilter< InMeshType, OutMeshType >
+                                    LbFilterType;
+    LbFilterType::BoundaryConditionEnumType boundaryCond =
+                                LbFilterType::DirichletCondition;
     int c = 0;
     while(c != EOF)
     {
         static struct option long_options[] =
         {
-            {"help",            no_argument, NULL, 'h'},
-            {"eigenvalueCount", no_argument, NULL, 'e'},
-            {                0,           0,    0,   0},
+            {"help",              no_argument,       NULL, 'h'},
+            {"eigenvalueCount",   required_argument, NULL, 'e'},
+            {"scaleFactor",       required_argument, NULL, 's'},
+            {"boundaryCondition", required_argument, NULL, 'b'},
+            {                  0,                 0,    0,   0},
         };
 
         int option_index = 0;
 
         switch((c = 
-            getopt_long(argc, argv, "he:",
+            getopt_long(argc, argv, "he:s:b:",
                         long_options, &option_index)))
         {
             case 'h':
@@ -48,6 +72,23 @@ int main(int argc, char *argv[])
                 break;
             case 'e':
                 eCount = atoi(optarg);
+                break;
+            case 's':
+                scale = atoi(optarg);
+                break;
+            case 'b':
+                switch (atoi(optarg))
+                  {
+                  case 1:
+                    boundaryCond = LbFilterType::VonNeumanCondition;
+                    break;
+                  case 2:
+                    boundaryCond = LbFilterType::DirichletCondition;
+                    break;
+                  default:
+                    showUsage();
+                    break;
+                  }
                 break;
             default:
                 if (c > 0)
@@ -68,19 +109,6 @@ int main(int argc, char *argv[])
     // Here we recover the file names from the command line arguments
     const char* inFile = argv[optind];
     const char* firstHarmonicOutFile = argv[optind + 1];
-
-    typedef float              PixelType;
-    typedef double             PointDataType;
-    typedef double             DDataType;
-    typedef double             CoordRep;
-    typedef double             InterpRep;
-    const   unsigned int       Dimension = 3;
-
-    // Declare the type of the input and output mesh
-    typedef itk::QuadEdgeMeshTraits<PixelType, Dimension, PointDataType,
-        DDataType, CoordRep, InterpRep> MeshTraits;
-    typedef itk::QuadEdgeMesh<float,Dimension,MeshTraits> InMeshType;
-    typedef itk::QuadEdgeMesh<double,Dimension,MeshTraits> OutMeshType;
 
     //  We can now instantiate the types of the reader.
     typedef itk::QuadEdgeMeshVTKPolyDataReader< InMeshType >  ReaderType;
@@ -110,12 +138,12 @@ int main(int argc, char *argv[])
     std::cout << "Cell Count:  " << 
         mesh->GetNumberOfCells() << std::endl;
 
-    typedef itk::LaplaceBeltramiFilter< InMeshType, OutMeshType >
-                                    LbFilterType;
     LbFilterType::Pointer lbFilter = LbFilterType::New();
 
     lbFilter->SetInput(mesh);
     lbFilter->SetEigenValueCount(eCount);
+    lbFilter->SetHarmonicScaleValue(scale);
+    lbFilter->SetBoundaryConditionType(boundaryCond);
     lbFilter->Update();
 
     OutMeshType::Pointer outMesh = lbFilter->GetOutput();
