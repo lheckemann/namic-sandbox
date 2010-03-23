@@ -1,6 +1,7 @@
 
 #include "vtkPerkStationCalibrateStep.h"
 
+#include <fstream>
 #include <sstream>
 #include <vector>
 
@@ -645,7 +646,7 @@ void vtkPerkStationCalibrateStep::HorizontalFlipCallback( bool value )
     {
     this->GetGUI()->GetMRMLNode()->
       SetSecondMonitorHorizontalFlip( ( bool ) value );
-    this->GetGUI()->GetSecondaryMonitor()->SetHorizontalFlip( value );
+    this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
     }
 }
 
@@ -660,7 +661,7 @@ void vtkPerkStationCalibrateStep::VerticalFlipCallback( bool value )
     {
     this->GetGUI()->GetMRMLNode()->
       SetSecondMonitorVerticalFlip( ( bool )value );
-    this->GetGUI()->GetSecondaryMonitor()->SetVerticalFlip( value );
+    this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
     }
 }
 
@@ -699,11 +700,6 @@ void vtkPerkStationCalibrateStep::UpdateAutoScaleCallback()
     
   double imgSpacing[ 3 ];
   inVolume->GetSpacing( imgSpacing );
-  
-  
-  // reset current & rescale to new scaling
-  // reset flip/scale/rotate/translate on secondary display
-  this->GetGUI()->GetSecondaryMonitor()->ResetCalibration();
 }
 
 
@@ -714,13 +710,13 @@ vtkPerkStationCalibrateStep
                          unsigned long event,
                          void *callData )
 {
-  if( ! this->GetGUI()->GetMRMLNode() )
-      return;
-  
-  if( ! this->GetGUI()->GetMRMLNode()->GetPlanningVolumeNode()
-      || strcmp( this->GetGUI()->GetMRMLNode()->GetVolumeInUse(),
-                 "Planning" ) != 0 )
-      return;
+  if (    ! this->GetGUI()->GetMRMLNode()
+       || ! this->GetGUI()->GetMRMLNode()->GetPlanningVolumeNode()
+       || strcmp( this->GetGUI()->GetMRMLNode()->GetVolumeInUse(),
+                  "Planning" ) != 0 )
+    {
+    return;
+    }
   
   
   // has to be when it is in 
@@ -739,14 +735,17 @@ vtkPerkStationCalibrateStep
     }
   
   this->ProcessingCallback = true;
-
+  
+  
   vtkSlicerInteractorStyle *style =
     vtkSlicerInteractorStyle::SafeDownCast( caller );
+  /*
   vtkSlicerInteractorStyle *istyle0 =
     vtkSlicerInteractorStyle::SafeDownCast(
       this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
       GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->
       GetInteractorStyle() );
+  */
   
   
     // Image calibration on second monitor with focus on Red Slice.
@@ -756,14 +755,14 @@ vtkPerkStationCalibrateStep
   double stepSize = 0.8;
   
   double translation[ 2 ];
-  double rotation;
-  this->GetGUI()->GetSecondaryMonitor()->GetTranslation(
+  double rotation = this->GetGUI()->GetMRMLNode()->GetSecondMonitorRotation();
+  this->GetGUI()->GetMRMLNode()->GetSecondMonitorTranslation(
     translation[ 0 ], translation[ 1 ] );
-  this->GetGUI()->GetSecondaryMonitor()->GetRotation( rotation );
   
   if ( event == vtkCommand::KeyPressEvent )
     {
     char  *key = style->GetKeySym();
+    if ( ! strcmp( key, "Up" ) ) translation[ 1 ] += stepSize;
     if ( ! strcmp( key, "a" ) ) translation[ 1 ] += stepSize;
     if ( ! strcmp( key, "z" ) ) translation[ 1 ] -= stepSize;
     if ( ! strcmp( key, "q" ) ) translation[ 0 ] -= stepSize;
@@ -772,9 +771,9 @@ vtkPerkStationCalibrateStep
     if ( ! strcmp( key, "h" ) ) rotation -= ( stepSize / 3.0 );
     }
   
-  this->GetGUI()->GetSecondaryMonitor()->SetTranslation(
+  this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation(
         translation[ 0 ], translation[ 1 ] );
-  this->GetGUI()->GetSecondaryMonitor()->SetRotation( rotation );
+  this->GetGUI()->GetMRMLNode()->SetSecondMonitorRotation( rotation );
   
   this->ProcessingCallback = false;
 }
@@ -785,9 +784,13 @@ void vtkPerkStationCalibrateStep::LoadCalibrationButtonCallback()
 {
   std::string fileNameWithPath = this->CalibFileName;
   ifstream file( fileNameWithPath.c_str() );
+  if ( file.is_open() )
+    {
+    this->LoadCalibration( file );
+    file.close();
+    }
   
-  this->LoadCalibration( file );
-  file.close();
+  this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
 }
 
 
@@ -796,15 +799,16 @@ void vtkPerkStationCalibrateStep::SaveCalibrationButtonCallback()
 {
   std::string fileNameWithPath = this->CalibFileName;//+"/"+this->CalibFileName;
   ofstream file( fileNameWithPath.c_str() );
-
-  this->SaveCalibration( file );
-  
-  file.close();
+  if ( file.is_open() )
+    {
+    this->SaveCalibration( file );
+    file.close();
+    }
 }
 
 
 //-----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::LoadCalibration( istream &file )
+void vtkPerkStationCalibrateStep::LoadCalibration( istream& file )
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   if ( ! mrmlNode )
@@ -812,102 +816,17 @@ void vtkPerkStationCalibrateStep::LoadCalibration( istream &file )
     return;
     }  
 
-  char currentLine[ 256 ];  
-  char* attName = "";
-  char* attValue = "";
-  char* pdest;
-  int nCharCount = 0;
-  unsigned int indexEndOfAttribute = 0;
-  unsigned int indexStartOfValue = 0;
-  unsigned int indexEndOfValue = 0;
-
-  int paramSetCount = 0;
-  while( ! file.eof() )
-    {
-    // first get each line,
-    // then parse each line on basis of attName, and attValue
-    // this can be done as delimiters '='[]' is used to separate out name from
-    // value
-    file.getline( &currentLine[ 0 ], 256, '\n' );   
-    nCharCount = strlen( currentLine );
-    indexEndOfAttribute = strcspn( currentLine, "=" );
-    if( indexEndOfAttribute > 0 )
-      {
-      attName = new char[ indexEndOfAttribute + 1 ];
-      strncpy( attName, currentLine, indexEndOfAttribute );
-      attName[ indexEndOfAttribute ] = '\0';
-      pdest = strchr( currentLine, '"' );
-      indexStartOfValue = (int)( pdest - currentLine + 1 );
-      pdest = strrchr( currentLine, '"' );
-      indexEndOfValue = (int)( pdest - currentLine + 1 );
-      attValue = new char[ indexEndOfValue - indexStartOfValue + 1 ];
-      strncpy( attValue, &currentLine[ indexStartOfValue ],
-               indexEndOfValue - indexStartOfValue - 1 );
-      attValue[ indexEndOfValue - indexStartOfValue - 1 ] = '\0';
-
-      // at this point, we have line separated into, attributeName, and
-      // attributeValue
-      // now we need to do string matching on attributeName, and further parse
-      // attributeValue as it may have more than one value
-      if ( ! strcmp( attName, " VerticalFlip" ) )
-          {
-          mrmlNode->SetSecondMonitorVerticalFlip( CharToBool( attValue ) );
-          paramSetCount++;
-          }
-      else if ( ! strcmp( attName, " HorizontalFlip" ) )
-          {
-          mrmlNode->SetSecondMonitorHorizontalFlip(CharToBool( attValue ) );
-          paramSetCount++;
-          }
-      else if ( ! strcmp( attName, " Rotation" ) )
-          {
-          mrmlNode->SetSecondMonitorRotation( CharToDouble( attValue ) );       
-          paramSetCount++;
-          }
-      else if ( ! strcmp( attName, " PhysicalSizeMMs" ) )
-          {
-          std::vector< double > mm = CharToDoubleVector( attValue );
-          if ( mm.size() == 2 )
-            {
-            this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize( mm[ 0 ],
-                                                                    mm[ 1 ] );
-            }
-          ++ paramSetCount;
-          }
-      else if ( ! strcmp( attName, " PixelResolution" ) )
-        {
-        std::vector< double  > pix = CharToDoubleVector( attValue );
-        if ( pix.size() == 2 )
-          {
-          this->GetGUI()->GetSecondaryMonitor()->SetPixelResolution( pix[ 0 ],
-                                                                     pix[ 1 ] );
-          ++ paramSetCount;
-          }
-        }
-      else if ( ! strcmp( attName, " Translation" ) )
-        {
-        std::vector<double> tmpVec = CharToDoubleVector( attValue );
-        if ( tmpVec.size() == 2 )
-          {
-          double trans[ 2 ];
-          for ( unsigned int i = 0; i < tmpVec.size(); i++ )
-            trans[ i ] = tmpVec[ i ];
-          mrmlNode->SetSecondMonitorTranslation( trans );
-          paramSetCount++;
-          }
-        }
-      }// end if testing for it is a valid attName
-
-    } // end while going through the file
+  bool success = mrmlNode->LoadCalibration( file );
   
-  if ( paramSetCount == 7 )
+  if ( success )
     {
     this->GetGUI()->GetSecondaryMonitor()->LoadCalibration();
     this->PopulateControlsOnLoadCalibration();
     }
   else
     {
-    int error = -1;
+    PERKLOG_ERROR( "Could not read calibration from file." );
+    return;
     }
 }
 
@@ -917,52 +836,13 @@ void vtkPerkStationCalibrateStep::SaveCalibration( ostream& of )
 {
   // reset parameters at MRML node
    vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if (!mrmlNode)
+  if ( ! mrmlNode)
     {
     // TO DO: what to do on failure
     return;
     }  
   
-  // flip parameters
-  of << " VerticalFlip=\"" << mrmlNode->GetSecondMonitorVerticalFlip()
-     << "\" \n";
-      
-  of << " HorizontalFlip=\"" << mrmlNode->GetSecondMonitorHorizontalFlip()
-     << "\" \n";
-
-  double monPhySize[ 2 ];
-  this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize(
-    monPhySize[ 0 ], monPhySize[ 1 ] );
-  of << " PhysicalSizeMMs=\"";
-  for( int i = 0; i < 2; i++ )
-    of << monPhySize[ i ] << " ";
-  of << "\" \n";
-  
-  double monPixResolution[ 2 ];
-  this->GetGUI()->GetSecondaryMonitor()->GetPixelResolution(
-    monPixResolution[ 0 ], monPixResolution[ 1 ] );
-  of << " PixelResolution=\"";
-  for( int i = 0; i < 2; i++ )
-    of << monPixResolution[ i ] << " ";
-  of << "\" \n";
-
-  of << " CenterOfRotation=\"";
-  for( int i = 0; i < 3; i++ )
-    of << mrmlNode->GetSecondMonitorRotationCenter()[ i ] << " ";
-  of << "\" \n";
-
-  of << " Rotation=\"";
-  double rotation;
-  this->GetGUI()->GetSecondaryMonitor()->GetRotation( rotation );
-  of << rotation << " ";
-  of << "\" \n";
-
-  of << " Translation=\"";
-  double tX, tY;
-  this->GetGUI()->GetSecondaryMonitor()->GetTranslation( tX, tY );
-  // mrmlNode->SetClinicalModeTranslation( this->Translation );
-  of << tX << " " << tY << " ";
-  of << "\" \n";
+  mrmlNode->SaveClibration( of );
 }
 
 
@@ -975,9 +855,6 @@ void vtkPerkStationCalibrateStep::SuggestFileName()
 //-----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::Reset()
 {
-  // reset flip/scale/rotate/translate on secondary display
-  this->GetGUI()->GetSecondaryMonitor()->ResetCalibration();
-
   // reset parameters at MRML node
    vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   if ( ! mrmlNode )
@@ -1000,31 +877,10 @@ void vtkPerkStationCalibrateStep::Reset()
     return;
     }
   
-  this->GetGUI()->GetSecondaryMonitor()->SetTranslation( 0.0, 0.0 );
-  this->GetGUI()->GetSecondaryMonitor()->SetRotation( 0.0 );
+  this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation( 0.0, 0.0 );
+  this->GetGUI()->GetMRMLNode()->SetSecondMonitorRotation( 0.0 );
   this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
   
-  
-  /*  
-  // flip
-  mrmlNode->SetHorizontalFlip(false);
-  mrmlNode->SetVerticalFlip(false);
-  // scale
-  mrmlNode->SetUserScaling(1.0,1.0);
-  mrmlNode->SetActualScaling(1.0,1.0);
-  mrmlNode->CalculateCalibrateScaleError();
-  // translate
-  mrmlNode->SetClinicalModeTranslation(0.0,0.0);
-  mrmlNode->SetUserTranslation(0.0,0.0,0.0);
-  mrmlNode->SetActualTranslation(0.0,0.0,0.0);
-  mrmlNode->CalculateCalibrateTranslationError();
-  // rotate
-  mrmlNode->SetClinicalModeRotation(0.0);
-  mrmlNode->SetCenterOfRotation(0.0,0.0,0.0);
-  mrmlNode->SetUserRotation(0.0);
-  mrmlNode->SetActualRotation(0.0);
-  mrmlNode->CalculateCalibrateRotationError();
-  */
   
     // reset member variables to defaults
   this->ClickNumber = 0;
@@ -1420,7 +1276,4 @@ vtkPerkStationCalibrateStep
     }
   
   this->PopulateControls();
-  
-    // Update calibration data from new MRMLPerkStationModuleNode data.
-  this->GetGUI()->GetSecondaryMonitor()->UpdateCalibration();
 }

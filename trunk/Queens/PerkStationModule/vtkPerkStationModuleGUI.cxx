@@ -222,6 +222,8 @@ void vtkPerkStationModuleGUI::Enter()
       sliceLogic->GetSliceNode()->AddObserver(vtkCommand::ModifiedEvent, (vtkCommand *)this->GUICallbackCommand);
       }
     
+    this->SecondaryMonitor->SetPSNode( n );
+    
       // This is the place where module node is created,
       // and should be initialized.
     
@@ -421,6 +423,8 @@ vtkPerkStationModuleGUI
   if ( strcmp( eventName, "KeyPressEvent" ) == 0 )
     {
     this->CalibrateStep->ProcessKeyboardEvents( caller, event, callData );
+    this->SecondaryMonitor->UpdateImageDisplay();
+    return;
     }
   
   
@@ -478,6 +482,7 @@ vtkPerkStationModuleGUI
   
   
     // Load planning volume.
+  
   if ( this->LoadPlanningVolumeButton
        && this->LoadPlanningVolumeButton->GetLoadSaveDialog()
        == vtkKWLoadSaveDialog::SafeDownCast( caller )
@@ -495,7 +500,7 @@ vtkPerkStationModuleGUI
       
         // call the callback function
       this->LoadPlanningVolumeButtonCallback( fileName ); 
-      this->LoadPlanningVolumeButton->SetText( "Plan volume loaded" );
+      // this->LoadPlanningVolumeButton->SetText( "Plan volume loaded" );
       } 
     }
   
@@ -519,28 +524,24 @@ vtkPerkStationModuleGUI
     }
   
   
-    // Load calibration.
+    // Load experiment.
   
   if ( this->LoadExperimentFileButton
        && this->LoadExperimentFileButton->GetLoadSaveDialog()
        == vtkKWLoadSaveDialog::SafeDownCast( caller )
        && ( event == vtkKWTopLevel::WithdrawEvent ) )
     {
-    // load calib dialog button
+      // load calib dialog button
     const char *fileName = this->LoadExperimentFileButton->
       GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
       {
-      //this->CalibFilePath = std::string(this->LoadCalibrationFileButton->GetLoadSaveDialog()->GetLastPath());
-      // indicates ok has been pressed with a file name
-      //this->CalibFileName = std::string(fileName);
-
-      // call the callback function
-      this->LoadExperimentButtonCallback(fileName);
+        // call the callback function
+      this->LoadExperimentButtonCallback( fileName );
       }
     
     // reset the file browse button text
-    this->LoadExperimentFileButton->SetText ("Load experiment");
+    this->LoadExperimentFileButton->SetText( "Load experiment" );
     }  
   
   
@@ -904,6 +905,13 @@ void vtkPerkStationModuleGUI::ProcessMRMLEvents ( vtkObject *caller,
 }
 
 
+vtkPerkStationSecondaryMonitor*
+vtkPerkStationModuleGUI
+::GetSecondaryMonitor()
+{
+  return this->SecondaryMonitor.GetPointer();
+}
+  
 
 vtkKWWizardWidget*
 vtkPerkStationModuleGUI
@@ -1432,15 +1440,10 @@ void vtkPerkStationModuleGUI::TearDownGUI()
 //---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::SetUpPerkStationMode()
 {
-  // reset flip/scale/rotate/translate on secondary display
-  this->SecondaryMonitor->ResetCalibration();
-
   // note this can only be done during or before calibrate step
   // the following tasks need to be done
   // Wizard workflow wizard needs to be re-done i.e. steps/transitions as well
-  this->SetUpPerkStationWizardWorkflow(); 
- 
-
+  this->SetUpPerkStationWizardWorkflow();
 }
 
 
@@ -1584,7 +1587,9 @@ void vtkPerkStationModuleGUI::SaveExperiment(ostream& of)
 
 
 //----------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::LoadExperiment(istream &file)
+void
+vtkPerkStationModuleGUI
+::LoadExperiment(istream &file)
 {
   // reset before you load
   // 1) Reset individual work phase steps to bring to fresh state, who are
@@ -1595,10 +1600,10 @@ void vtkPerkStationModuleGUI::LoadExperiment(istream &file)
   this->ValidateStep->Reset();
 
   // load individual steps
-  this->CalibrateStep->LoadCalibration(file);
-  this->PlanStep->LoadPlanning(file);
-  this->InsertStep->LoadInsertion(file);
-  this->ValidateStep->LoadValidation(file);
+  this->CalibrateStep->LoadCalibration( file );
+  this->PlanStep->LoadPlanning( file );
+  this->InsertStep->LoadInsertion( file );
+  this->ValidateStep->LoadValidation( file );
 
 }
 
@@ -1618,7 +1623,7 @@ void vtkPerkStationModuleGUI::SaveExperimentButtonCallback(const char *fileName)
 void vtkPerkStationModuleGUI::LoadExperimentButtonCallback(const char *fileName)
 {
     ifstream file(fileName);    
-    this->LoadExperiment(file);
+    this->LoadExperiment( file );
     file.close();
 }
 
@@ -1817,7 +1822,7 @@ vtkPerkStationModuleGUI
     // loaded another dicom series as a new planning volume
     // then later in the code, this implies that the experiment has to be
     // started over
-  if (this->MRMLNode->GetPlanningVolumeNode())
+  if ( this->MRMLNode->GetPlanningVolumeNode() )
     {
     planningVolumePreExists = true;
     }

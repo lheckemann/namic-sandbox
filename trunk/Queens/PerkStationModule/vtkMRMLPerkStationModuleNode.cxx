@@ -2,8 +2,10 @@
 #include "vtkMRMLPerkStationModuleNode.h"
 
 #include <algorithm>
-#include <string>
+#include <fstream>
 #include <iostream>
+#include <map>
+#include <string>
 #include <sstream>
 
 #include "itkImageFileReader.h"
@@ -26,7 +28,87 @@
 #include "vtkSlicerLogic.h"
 
 
-//------------------------------------------------------------------------------
+
+// Internal file IO helper functions. -----------------------------------------
+
+void
+WriteBool( std::ostream& out, bool var, std::string name )
+{
+  out << " " << name << "=\"" << var << "\"" << std::endl;
+}
+
+
+void
+WriteDouble( std::ostream& out, double var, std::string name )
+{
+  out << " " << name << "=\"" << var << "\"" << std::endl;
+}
+
+
+void
+WriteDoubleVector( std::ostream& out, double* var, std::string name, int n )
+{
+  out << " " << name << "=\"";
+  for ( int i = 0; i < n; ++ i )
+    {
+    out << var[ i ] << " ";
+    }
+  out << "\"" << std::endl;
+}
+
+
+std::map< std::string, std::string >
+ReadAttributes( std::istream& in )
+{
+  std::map< std::string, std::string > map;
+  map.clear();
+  
+  std::string line;
+  while ( std::getline( in, line ) )
+    {
+    std::string::size_type eqPos;
+    eqPos = line.find( "=" );
+    if ( eqPos == std::string::npos ) continue; // No "=" in line.
+    
+    std::string name = line.substr( 1, eqPos - 1 );
+    std::string value = line.substr( eqPos + 2, line.size() - eqPos - 3 );
+    
+    map.insert( std::make_pair( name, value ) );
+    }
+    
+  return map;
+}
+
+
+void
+StringToBool( std::string str, bool& var )
+{
+  std::stringstream ss( str );
+  ss >> var;
+}
+
+
+void
+StringToDouble( std::string str, double& var )
+{
+  std::stringstream ss( str );
+  ss >> var;
+}
+
+
+void
+StringToDoubleVector( std::string str, double* var, int n )
+{
+  std::stringstream ss( str );
+  for ( int i = 0; i < n; ++ i )
+    ss >> var[ i ];
+}
+
+// ----------------------------------------------------------------------------
+
+
+
+//-----------------------------------------------------------------------------
 vtkMRMLPerkStationModuleNode* vtkMRMLPerkStationModuleNode::New()
 {
   // First try to create the object from the vtkObjectFactory
@@ -70,7 +152,7 @@ vtkMRMLPerkStationModuleNode
   this->SecondMonitorRotationCenter[ 0 ] = 0.0;
   this->SecondMonitorRotationCenter[ 1 ] = 0.0;
   this->SecondMonitorTranslation[ 0 ] = 0.0;
-  this->SecondMonitorTranslation[ 0 ] = 0.0;
+  this->SecondMonitorTranslation[ 1 ] = 0.0;
   
   this->SecondMonitorVerticalFlip = false;
   this->SecondMonitorHorizontalFlip = false;
@@ -442,14 +524,84 @@ void vtkMRMLPerkStationModuleNode::Copy(vtkMRMLNode *anode)
 }
 
 
+/**
+ * Saves calibration data to a stream, as pairs of name="value".
+ * @param out The output stream for saving.
+ */
 void
 vtkMRMLPerkStationModuleNode
-::SaveClibration( std::ostream out )
+::SaveClibration( std::ostream& out )
 {
-  out << " VerticalFlip=\"" << this->SecondMonitorVerticalFlip << "\" \n";
-  out << " HorizontalFlip=\"" << this->SecondMonitorHorizontalFlip << "\" \n";
+  WriteDouble( out, this->SecondMonitorRotation, "SecondMonitorRotation" );
+  WriteDoubleVector( out, this->SecondMonitorRotationCenter,
+                     "SecondMonitorRotationCenter", 2 );
+  WriteDoubleVector( out, this->SecondMonitorTranslation,
+                     "SecondMonitorTranslation", 2 );
+  WriteBool( out, this->SecondMonitorHorizontalFlip,
+             "SecondMonitorHorizontalFlip" );
+  WriteBool( out, this->SecondMonitorVerticalFlip,
+             "SecondMonitorVerticalFlip" );
+  WriteDouble( out, this->TableAtScanner, "TableAtScanner" );
+  WriteDouble( out, this->TableAtOverlay, "TableAtOverlay" );
+  WriteDouble( out, this->CurrentSliceOffset, "CurrentSliceOffset" );
+}
+
+
+/**
+ * Reads calibration data.
+ * @param in Stream to read calibration data from.
+ * @returns true on success, false on error.
+ */
+bool
+vtkMRMLPerkStationModuleNode
+::LoadCalibration( std::istream& in )
+{
+  std::map< std::string, std::string > map = ReadAttributes( in );
+  std::map< std::string, std::string >::iterator iter;
   
+  bool nameNotFound = false;
   
+  iter = map.find( "SecondMonitorRotation" );
+  if ( iter != map.end() )
+    StringToDouble( iter->second, this->SecondMonitorRotation );
+  else nameNotFound = true;
+  
+  iter = map.find( "SecondMonitorRotationCenter" );
+  if ( iter != map.end() )
+    StringToDoubleVector( iter->second, this->SecondMonitorRotationCenter, 2 );
+  else nameNotFound = true;
+  
+  iter = map.find( "SecondMonitorTranslation" );
+  if ( iter != map.end() )
+    StringToDoubleVector( iter->second, this->SecondMonitorTranslation, 2 );
+  else nameNotFound = true;
+  
+  iter = map.find( "SecondMonitorHorizontalFlip" );
+  if ( iter != map.end() )
+    StringToBool( iter->second, this->SecondMonitorHorizontalFlip );
+  else nameNotFound = true;
+  
+  iter = map.find( "SecondMonitorVerticalFlip" );
+  if ( iter != map.end() )
+    StringToBool( iter->second, this->SecondMonitorVerticalFlip );
+  else nameNotFound = true;
+  
+  iter = map.find( "TableAtScanner" );
+  if ( iter != map.end() )
+    StringToDouble( iter->second, this->TableAtScanner );
+  else nameNotFound = true;
+  
+  iter = map.find( "TableAtOverlay" );
+  if ( iter != map.end() )
+    StringToDouble( iter->second, this->TableAtOverlay );
+  else nameNotFound = true;
+  
+  iter = map.find( "CurrentSliceOffset" );
+  if ( iter != map.end() )
+    StringToDouble( iter->second, this->CurrentSliceOffset );
+  else nameNotFound = true;
+  
+  return ! nameNotFound;
 }
 
 
@@ -532,6 +684,14 @@ vtkMRMLScalarVolumeNode *vtkMRMLPerkStationModuleNode::GetActiveVolumeNode()
 }
 
 
+vtkMRMLScalarVolumeNode*
+vtkMRMLPerkStationModuleNode
+::GetPlanningVolumeNode()
+{
+  return this->PlanningVolumeNode;
+}
+
+  
 //-----------------------------------------------------------------------------
 void vtkMRMLPerkStationModuleNode::SetPlanningVolumeNode(
   vtkMRMLScalarVolumeNode *planVolNode )

@@ -56,6 +56,7 @@ vtkPerkStationSecondaryMonitor
 ::vtkPerkStationSecondaryMonitor()
 {
   this->GUI = NULL;
+  this->PSNode = NULL;
   
   this->NumberOfMonitors = 0;
   
@@ -95,9 +96,6 @@ vtkPerkStationSecondaryMonitor
   this->SystemStateResliceMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   this->SystemStateXYToIJK = vtkSmartPointer< vtkMatrix4x4 >::New();
   
-  
-  
-  this->ResetCalibration(); // Give initial values to calibration parameters.
   
  
     // set up render window, renderer, actor, mapper
@@ -242,17 +240,6 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
     }
 
 }
-//----------------------------------------------------------------------------
-void vtkPerkStationSecondaryMonitor::ResetCalibration()
-{
-  this->Rotation = 0.0;
-  
-  this->RotationCenter[ 0 ] = 0.0;
-  this->RotationCenter[ 1 ] = 0.0;
-  
-  this->Translation[ 0 ] = 0.0;
-  this->Translation[ 1 ] = 0.0;
-}
 
 
 //----------------------------------------------------------------------------
@@ -304,7 +291,7 @@ void vtkPerkStationSecondaryMonitor::RemoveOverlayRealTimeNeedleTip()
 void vtkPerkStationSecondaryMonitor::SetupImageData()
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if ( ! mrmlNode )
+  if ( ! mrmlNode || ! this->PSNode )
     {
     // TODO: what to do on failure
     return;
@@ -317,8 +304,6 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
     return;
     }
 
-  this->Position = mrmlNode->GetPatientPosition();
-  
   this->ImageData = this->VolumeNode->GetImageData();
   
   int imageExtent[ 6 ];
@@ -373,11 +358,11 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->CalibrationControlsActor->GetTextProperty()->BoldOn();
   this->CalibrationControlsActor->SetDisplayPosition(
     this->ScreenSize[ 0 ] / 2 - 370, this->ScreenSize[ 1 ] - 50 );
-  if ( this->HorizontalFlip )
+  if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
     {
     this->CalibrationControlsActor->FlipAroundY( true );
     }
-  if ( this->VerticalFlip )
+  if ( this->PSNode->GetSecondMonitorVerticalFlip() )
     {
     this->CalibrationControlsActor->FlipAroundX( true );
     }
@@ -422,75 +407,6 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   
   this->Renderer->AddActor( this->MeasureDigitsActor );
   this->Renderer->AddActor( this->TablePositionActor );
-}
-
-
-
-/**
- * @param x Horizontal displacement of the virtual image.
- * @param y Vertical displacement of the virtual image.
- */
-void
-vtkPerkStationSecondaryMonitor
-::GetTranslation( double& x, double& y )
-{
-  x = this->Translation[ 0 ];
-  y = this->Translation[ 1 ];
-}
-
-
-/**
- * @param x Set as horizontal displacement of the virtual image.
- * @param y Set as vertical displacement of the virtual image.
- */
-void
-vtkPerkStationSecondaryMonitor
-::SetTranslation( double x, double y )
-{
-  this->Translation[ 0 ] = x;
-  this->Translation[ 1 ] = y;
-  this->UpdateImageDisplay();
-}
-
-
-/**
- * Updates calibration data from MRMLPerkStationModuleNode.
- */
-void
-vtkPerkStationSecondaryMonitor
-::UpdateCalibration()
-{
-  this->VerticalFlip =
-    this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
-      GetSecondMonitorVerticalFlip();
-  this->HorizontalFlip =
-    this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
-      GetSecondMonitorHorizontalFlip();
-  
-  
-}
-
-
-/**
- * @param angle Will be set in degrees.
- */
-void
-vtkPerkStationSecondaryMonitor
-::GetRotation( double& angle )
-{
-  angle = this->Rotation;
-}
-
-
-/**
- * @param angle Set as rotation in degrees of the virtual image.
- */
-void
-vtkPerkStationSecondaryMonitor
-::SetRotation( double angle )
-{
-  this->Rotation = angle;
-  this->UpdateImageDisplay();
 }
 
 
@@ -580,15 +496,17 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   
   double hFlipFactor = 1.0;
   double vFlipFactor = 1.0;
-  if ( this->HorizontalFlip ) hFlipFactor = - 1.0;
-  if ( this->VerticalFlip ) vFlipFactor = - 1.0;
+  if ( this->PSNode->GetSecondMonitorHorizontalFlip() ) hFlipFactor = - 1.0;
+  if ( this->PSNode->GetSecondMonitorVerticalFlip() ) vFlipFactor = - 1.0;
   
   
     // We are in pre-multiply mode, so write transforms in reverse order.
   
-  ret->Translate( this->Translation[ 0 ], this->Translation[ 1 ], 0.0 );
+  double translation[ 2 ];
+  this->PSNode->GetSecondMonitorTranslation( translation );
+  ret->Translate( translation[ 0 ], translation[ 1 ], 0.0 );
   
-  ret->RotateZ( this->Rotation );
+  ret->RotateZ( this->PSNode->GetSecondMonitorRotation() );
   
   double s0 = this->MonitorPhysicalSizeMM[ 0 ] / this->ScreenSize[ 0 ];
   double s1 = this->MonitorPhysicalSizeMM[ 1 ] / this->ScreenSize[ 1 ];
@@ -637,10 +555,6 @@ void vtkPerkStationSecondaryMonitor::LoadCalibration()
     }
 
 
-  // It is to be done in following order:
-  // first reset the current calibration
-  this->ResetCalibration();
-
   // 1) First perform the scaling, based on image pixel size and monitor pixel size
   double monSpacing[2];
   this->GetMonitorSpacing(monSpacing[0], monSpacing[1]);
@@ -653,24 +567,6 @@ void vtkPerkStationSecondaryMonitor::LoadCalibration()
   this->Scale[ 0 ] = imgSpacing[0] / monSpacing[0];
   this->Scale[ 1 ] = imgSpacing[1] / monSpacing[1];
   
-  
-  // 2) Flips
-  this->VerticalFlip = this->GetGUI()->GetMRMLNode()->
-    GetSecondMonitorVerticalFlip();
-  this->HorizontalFlip = this->GetGUI()->GetMRMLNode()->
-    GetSecondMonitorHorizontalFlip();
-
-  
-  // 3) Translation
-  double trans[2];
-  mrmlNode->GetSecondMonitorTranslation(trans);
-  this->Translation[ 0 ] = trans[0];
-  this->Translation[ 1 ] = trans[1];
-
-  // 4) Rotation
-  // note that center of rotation will be automatically read inside the rotate function from the mrml node
-  double rot = 0;
-  this->Rotation = mrmlNode->GetSecondMonitorRotation();  
   
   this->CalibrationFromFileLoaded = true;
 }
@@ -758,8 +654,10 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     this->ShowDepthPerceptionLines( true );
     this->MeasureDigitsActor->SetVisibility( 1 );
 
-    if ( this->HorizontalFlip ) this->MeasureDigitsActor->FlipAroundY( true );
-      else this->MeasureDigitsActor->FlipAroundY( false );
+    if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
+      this->MeasureDigitsActor->FlipAroundY( true );
+    else
+      this->MeasureDigitsActor->FlipAroundY( false );
     }
   else
     {
@@ -785,7 +683,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
       << " mm";
    this->TablePositionActor->SetInput( ss.str().c_str() );
    this->TablePositionActor->SetVisibility( 1 );
-   if ( this->HorizontalFlip )
+   if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
      {
      this->TablePositionActor->FlipAroundY( true );
      }
@@ -823,7 +721,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
  
     // Take hardware into account.
 
-  if ( this->HorizontalFlip )
+  if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
     {
     Lleft = ! Lleft;
     Rleft = ! Rleft;
@@ -838,7 +736,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     this->CalibrationControlsActor->FlipAroundY( false );
     }
 
-  if ( this->VerticalFlip )
+  if ( this->PSNode->GetSecondMonitorVerticalFlip() )
     {
     Lup = ! Lup;
     Rup = ! Lup;
@@ -964,6 +862,30 @@ MyInfoEnumProc( HMONITOR hMonitor, HDC hdc, LPRECT prc, LPARAM dwData )
     
     }
   return 1;
+}
+
+
+vtkPerkStationModuleGUI*
+vtkPerkStationSecondaryMonitor
+::GetGUI()
+{
+    return this->GUI;
+}
+
+
+void
+vtkPerkStationSecondaryMonitor
+::SetGUI( vtkPerkStationModuleGUI* gui )
+{
+  this->GUI = gui;
+};
+
+
+void
+vtkPerkStationSecondaryMonitor
+::SetPSNode( vtkMRMLPerkStationModuleNode* node )
+{
+  this->PSNode = node;
 }
 
 
@@ -1165,14 +1087,14 @@ void vtkPerkStationSecondaryMonitor::OverlayRealTimeNeedleTip(double tipRAS[3], 
   this->NeedleTipZLocationText->SetTextScaleModeToNone();
   this->NeedleTipZLocationText->GetTextProperty()->SetFontSize(25);
   this->NeedleTipZLocationText->SetDisplayPosition(this->MonitorPixelResolution[0]-250, 100);
-  if ( this->HorizontalFlip )
+  if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
     { 
     this->NeedleTipZLocationText->GetTextProperty()->SetJustificationToCentered();
     this->NeedleTipZLocationText->SetOrientation(180);
     //char *revText = vtkPerkStationModuleLogic::strrev(text, strlen(text));
     //this->NeedleTipZLocationText->SetInput(revText);
     }
-  else if ( this->VerticalFlip )
+  else if ( this->PSNode->GetSecondMonitorVerticalFlip() )
     {
     this->NeedleTipZLocationText->GetTextProperty()->SetVerticalJustificationToTop();
     this->NeedleTipZLocationText->SetOrientation(180);
@@ -1449,8 +1371,10 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
         textActor->SetTextScaleModeToNone();
         textActor->GetTextProperty()->SetFontSize( 28 );
         textActor->GetTextProperty()->BoldOn();
-        if ( this->HorizontalFlip ) textActor->FlipAroundY( true );
-        if ( this->VerticalFlip ) textActor->FlipAroundX( true );
+        if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
+          textActor->FlipAroundY( true );
+        if ( this->PSNode->GetSecondMonitorVerticalFlip() )
+          textActor->FlipAroundX( true );
           
       
       if ( denom >= 0 )
@@ -1465,7 +1389,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
       
       
       // flip vertically the text actor
-      if ( this->VerticalFlip )
+      if ( this->PSNode->GetSecondMonitorVerticalFlip() )
         {
         textActor->GetTextProperty()->SetVerticalJustificationToTop();
         }
@@ -1684,37 +1608,6 @@ vtkPerkStationSecondaryMonitor
   this->UpperLeftCorner[ 1 ] = this->ScreenSize[ 1 ] - 50;
 }
 
-
-  // New image geometry handling.
-
-void
-vtkPerkStationSecondaryMonitor
-::SetHorizontalFlip( bool flip )
-{
-  this->HorizontalFlip = flip;
-  this->UpdateImageDisplay();
-}
-
-
-void
-vtkPerkStationSecondaryMonitor
-::SetVerticalFlip( bool flip )
-{
-  this->VerticalFlip = flip;
-  this->UpdateImageDisplay();
-}
-
-
-
-void
-vtkPerkStationSecondaryMonitor
-::SetRotationCenter( double center[ 3 ] )
-{
-  for ( int i = 0; i < 3; ++ i )
-    {
-    this->RotationCenter[ i ] = center[ i ];
-    }
-}
 
 
 /**

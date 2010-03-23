@@ -10,8 +10,9 @@
 #include "vtkSmartPointer.h"
 #include "vtkWin32OpenGLRenderWindow.h"
 
-#include "vtkPerkStationModule.h"
 #include "vtkMRMLPerkStationModuleNode.h"
+#include "vtkPerkStationModule.h"
+#include "vtkPerkStationModuleGUI.h"
 #include "vtkTextActorFlippable.h"
 
   // for getting display device information
@@ -29,7 +30,6 @@ class vtkImageReslice;
 class vtkLineSource;
 class vtkMatrix4x4;
 class vtkMRMLScalarVolumeNode;
-class vtkPerkStationModuleGUI;
 class vtkSlicerSliceViewer;
 class vtkTransform;
 class vtkTransformFilter;
@@ -56,13 +56,19 @@ vtkPerkStationSecondaryMonitor : public vtkObject
 {
 public:
   static vtkPerkStationSecondaryMonitor *New();  
-
-  // Description: 
+  
+  vtkTypeMacro( vtkPerkStationSecondaryMonitor, vtkObject );
+  
+  
   // Get/Set GUI
-  vtkPerkStationModuleGUI* GetGUI(){return this->GUI;};
-  vtkTypeMacro(vtkPerkStationSecondaryMonitor,vtkObject);
-  virtual void SetGUI(vtkPerkStationModuleGUI *gui){ this->GUI = gui;};
-
+  
+  vtkPerkStationModuleGUI* GetGUI();
+  
+  virtual void SetGUI( vtkPerkStationModuleGUI* gui );
+  
+  virtual void SetPSNode( vtkMRMLPerkStationModuleNode* node );
+  
+  
   // About the secondary monitor itself:
   
   // Description:
@@ -139,9 +145,6 @@ public:
   void RemoveOverlayRealTimeNeedleTip();
 
   
-  void ResetCalibration();
-
-  
   void RemoveOverlayNeedleGuide();
   
   void SetDepthPerceptionLines();  
@@ -165,7 +168,8 @@ protected:
   vtkPerkStationSecondaryMonitor();
   ~vtkPerkStationSecondaryMonitor();  
   
-  vtkPerkStationModuleGUI *GUI;
+  vtkPerkStationModuleGUI* GUI;
+  vtkMRMLPerkStationModuleNode* PSNode;
   
   
   // Visual components --------------------------------------------------------
@@ -252,22 +256,6 @@ private:
   
     // Image geometry.
 
-public:
-  
-  void SetHorizontalFlip( bool flip );
-  void SetVerticalFlip( bool flip );
-  
-  void SetRotationCenter( double center[ 2 ] );
-  
-  void GetRotation( double& angle );
-  void SetRotation( double angle );
-  
-  void GetTranslation( double& x, double& y );
-  void SetTranslation( double x, double y );
-  
-  void UpdateCalibration();
-  
-  
 private:
   
   vtkSmartPointer< vtkTransform > XYToRAS();
@@ -279,14 +267,9 @@ private:
   vtkSmartPointer< vtkTransform > ResliceTransform;
   vtkSmartPointer< vtkImageReslice > ResliceFilter;
   
-    // Calibration parameters. Used in the post reslice transform.
-  bool HorizontalFlip;
-  bool VerticalFlip;
-  double Rotation;
-  double RotationCenter[ 2 ];
-  double Translation[ 2 ];
+    // Calibration parameters.
+    // Most calibration parameters are read from PSNode.
   double Scale[ 2 ];
-  PatientPositionEnum Position;
   
     // Calibration transforms.
   vtkSmartPointer< vtkTransform > SecMonFlipTransform;

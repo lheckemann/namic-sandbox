@@ -80,7 +80,8 @@ public:
     return "PS";
   };
   
-  virtual void SaveClibration( std::ostream out );
+  virtual void SaveClibration( std::ostream& out );
+  virtual bool LoadCalibration( std::istream& in );
   
   
   // Calibration parameters ---------------------------------------------------
@@ -198,9 +199,8 @@ public:
   vtkGetStringMacro( VolumeInUse );
   vtkSetStringMacro( VolumeInUse );
   
-  vtkMRMLScalarVolumeNode* GetPlanningVolumeNode() {
-    return this->PlanningVolumeNode;
-  };
+  vtkMRMLScalarVolumeNode* GetPlanningVolumeNode();
+  
   void SetPlanningVolumeNode( vtkMRMLScalarVolumeNode *planVolNode );
   
     // validation volume node
@@ -272,8 +272,8 @@ protected:
   double SecondMonitorRotationCenter[ 2 ];
   double SecondMonitorTranslation[ 2 ];
   
-  bool SecondMonitorVerticalFlip;
   bool SecondMonitorHorizontalFlip;
+  bool SecondMonitorVerticalFlip;
   
   double TableAtScanner;
   double TableAtOverlay;
