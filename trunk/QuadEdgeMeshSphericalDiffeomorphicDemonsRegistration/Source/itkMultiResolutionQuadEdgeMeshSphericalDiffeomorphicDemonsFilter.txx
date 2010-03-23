@@ -175,9 +175,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->CopyMeshToMesh( fixedMesh,  this->m_CurrentLevelFixedMesh  );
   this->CopyMeshToMesh( movingMesh, this->m_CurrentLevelMovingMesh );
-
-  this->m_CurrentLevelFixedMesh = fixedMesh;
-  this->m_CurrentLevelMovingMesh = movingMesh;
 }
 
 
