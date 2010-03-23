@@ -27,7 +27,7 @@
 #include "itkMultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 
 #ifdef USE_VTK
-#include "DeformableAndAffineRegistrationMonitor.h"
+#include "MultiResolutionDeformableAndAffineRegistrationMonitor.h"
 #include "vtkSmartPointer.h"
 #include "vtkPolyDataReader.h"
 #endif
@@ -170,8 +170,9 @@ int main( int argc, char * argv [] )
 
   typedef MultiResolutionDemonsFilterType::DestinationPointSetType DestinationPointSetType;
 
+
 #ifdef USE_VTK
-  typedef DeformableAndAffineRegistrationMonitor< 
+  typedef MultiResolutionDeformableAndAffineRegistrationMonitor< 
     DestinationPointSetType > RegistrationMonitorType;
 
   RegistrationMonitorType  visualMonitor;
@@ -184,25 +185,63 @@ int main( int argc, char * argv [] )
 
   visualMonitor.SetScalarRange( -0.1, 0.1 );
 
-  vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader = 
-    vtkSmartPointer< vtkPolyDataReader >::New();
+  visualMonitor.SetNumberOfResolutionLevels( 4 );
 
-  vtkSmartPointer< vtkPolyDataReader > vtkMovingMeshReader = 
-    vtkSmartPointer< vtkPolyDataReader >::New();
+  vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader1 = vtkSmartPointer< vtkPolyDataReader >::New();
+  vtkSmartPointer< vtkPolyDataReader > vtkMovingMeshReader1 = vtkSmartPointer< vtkPolyDataReader >::New();
 
-  vtkFixedMeshReader->SetFileName( fixedMeshReader1->GetFileName() );
-  vtkMovingMeshReader->SetFileName( movingMeshReader1->GetFileName() );
+  vtkFixedMeshReader1->SetFileName( fixedMeshReader1->GetFileName() );
+  vtkMovingMeshReader1->SetFileName( movingMeshReader1->GetFileName() );
 
-  vtkFixedMeshReader->Update();
-  vtkMovingMeshReader->Update();
+  vtkFixedMeshReader1->Update();
+  vtkMovingMeshReader1->Update();
 
-  visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
-  visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+  visualMonitor.SetFixedSurface( 0, vtkFixedMeshReader1->GetOutput() );
+  visualMonitor.SetMovingSurface( 0, vtkMovingMeshReader1->GetOutput() );
+
+
+  vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader2 = vtkSmartPointer< vtkPolyDataReader >::New();
+  vtkSmartPointer< vtkPolyDataReader > vtkMovingMeshReader2 = vtkSmartPointer< vtkPolyDataReader >::New();
+
+  vtkFixedMeshReader2->SetFileName( fixedMeshReader2->GetFileName() );
+  vtkMovingMeshReader2->SetFileName( movingMeshReader2->GetFileName() );
+
+  vtkFixedMeshReader2->Update();
+  vtkMovingMeshReader2->Update();
+
+  visualMonitor.SetFixedSurface( 1, vtkFixedMeshReader2->GetOutput() );
+  visualMonitor.SetMovingSurface( 1, vtkMovingMeshReader2->GetOutput() );
+
+
+  vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader3 = vtkSmartPointer< vtkPolyDataReader >::New();
+  vtkSmartPointer< vtkPolyDataReader > vtkMovingMeshReader3 = vtkSmartPointer< vtkPolyDataReader >::New();
+
+  vtkFixedMeshReader3->SetFileName( fixedMeshReader3->GetFileName() );
+  vtkMovingMeshReader3->SetFileName( movingMeshReader3->GetFileName() );
+
+  vtkFixedMeshReader3->Update();
+  vtkMovingMeshReader3->Update();
+
+  visualMonitor.SetFixedSurface( 2, vtkFixedMeshReader3->GetOutput() );
+  visualMonitor.SetMovingSurface( 2, vtkMovingMeshReader3->GetOutput() );
+
+
+  vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader4 = vtkSmartPointer< vtkPolyDataReader >::New();
+  vtkSmartPointer< vtkPolyDataReader > vtkMovingMeshReader4 = vtkSmartPointer< vtkPolyDataReader >::New();
+
+  vtkFixedMeshReader4->SetFileName( fixedMeshReader4->GetFileName() );
+  vtkMovingMeshReader4->SetFileName( movingMeshReader4->GetFileName() );
+
+  vtkFixedMeshReader4->Update();
+  vtkMovingMeshReader4->Update();
+
+  visualMonitor.SetFixedSurface( 3, vtkFixedMeshReader4->GetOutput() );
+  visualMonitor.SetMovingSurface( 3, vtkMovingMeshReader4->GetOutput() );
+
 
   multiResDemonsFilter->SetRegistrationMonitor( &visualMonitor );
-
-
 #endif
+
 
   try
     {
