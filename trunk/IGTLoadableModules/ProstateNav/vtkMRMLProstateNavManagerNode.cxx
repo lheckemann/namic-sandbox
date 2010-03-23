@@ -650,14 +650,14 @@ void vtkMRMLProstateNavManagerNode::Init()
 
   needle.Description = "Biopsy";
   needle.NeedleLength = 200;
-  needle.NeedleOvershoot = 13;
+  needle.NeedleOvershoot = -13; // needle has to be inserted 13 mm short of the target
   needle.NeedleName = "B";
   needle.LastTargetId = 0;
   this->NeedlesVector.push_back(needle);
 
   needle.Description = "Seed";
   needle.NeedleLength = 200;
-  needle.NeedleOvershoot = -1.5;
+  needle.NeedleOvershoot = 1.5; // needle should overshoot the target by 1.5 mm
   needle.NeedleName = "S";
   needle.LastTargetId = 0;
   this->NeedlesVector.push_back(needle);
