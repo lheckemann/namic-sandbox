@@ -17,6 +17,7 @@ else
 fi
 ITK_BUILD_NAME=$(uname).$(uname -m).${ABI}
 
+echo $ABI
 ## Valid types are Experimental, Continous, Nightly
 if [ $# -lt 2 ]; then
   BUILDTYPE=Experimental
@@ -31,23 +32,23 @@ CC=gcc
 CXX=g++
 fi
 ## Removed -Wshadow from build to prevent qt warnings form hiding current errors
-FLAGS_FROM_QT_BUILD="-arch x86_64 -Xarch_x86_64 -mmacosx-version-min=10.5 -Wall -W "
+#FLAGS_FROM_QT_BUILD="-arch x86_64 -Xarch_x86_64 -mmacosx-version-min=10.5 -Wall -W "
 case ${ABI} in
   "PROFILE")
-    CFLAGS="-Wall -Wstrict-prototypes -fprofile-arcs -ftest-coverage -pg  -UNDEBUG ${FLAGS_FROM_QT_BUILD}"
-    CXXFLAGS="-Wall  -fprofile-arcs -ftest-coverage -pg -UNDEBUG ${FLAGS_FROM_QT_BUILD}"
+    CFLAGS="-m64 -Wall -Wstrict-prototypes -fprofile-arcs -ftest-coverage -pg  -UNDEBUG ${FLAGS_FROM_QT_BUILD}"
+    CXXFLAGS="-m64 -Wall  -fprofile-arcs -ftest-coverage -pg -UNDEBUG ${FLAGS_FROM_QT_BUILD}"
     ;;
   "OPTDEBUG")
-    CFLAGS="-Wstrict-prototypes -g -O1 ${FLAGS_FROM_QT_BUILD}"
-    CXXFLAGS=" -g -O1 ${FLAGS_FROM_QT_BUILD}"
+    CFLAGS="-m64 -Wstrict-prototypes -g -O1 ${FLAGS_FROM_QT_BUILD}"
+    CXXFLAGS="-m64 -g -O1 ${FLAGS_FROM_QT_BUILD}"
     ;;
   "DEBUG")
-    CFLAGS=" -g ${FLAGS_FROM_QT_BUILD}"
-    CXXFLAGS=" -g ${FLAGS_FROM_QT_BUILD}"
+    CFLAGS="-m64 -g ${FLAGS_FROM_QT_BUILD}"
+    CXXFLAGS="-m64 -g ${FLAGS_FROM_QT_BUILD}"
     ;;
   "FAST")
-    CFLAGS="-DNDEBUG -O3 -msse -mmmx -msse2 -msse3  ${FLAGS_FROM_QT_BUILD}"
-    CXXFLAGS="-DNDEBUG -O3 -msse -mmmx -msse2 -msse3  ${FLAGS_FROM_QT_BUILD}"
+    CFLAGS="-m64 -DNDEBUG -O3 -msse -mmmx -msse2 -msse3  ${FLAGS_FROM_QT_BUILD}"
+    CXXFLAGS="-m64 -DNDEBUG -O3 -msse -mmmx -msse2 -msse3  ${FLAGS_FROM_QT_BUILD}"
     ;;
   *)
     echo "INVALID ABI GIVEN"
@@ -93,6 +94,8 @@ if [ 1 == 1 ];then  ## Temporary bypass of building ITK
   fi
   mkdir -p ${ITK_BUILD}
   pushd ${ITK_BUILD}
+  echo $PWD
+  echo ${ITK_SOURCE}
   ##NOTE:  Using cmake and all comand line options.  Normally ccmake would be used.
   CC=${CC} CXX=${CXX} CFLAGS=${CFLAGS} CXXFLAGS=${CXXFLAGS} cmake ${ITK_SOURCE} \
     -DBUILD_EXAMPLES:BOOL=OFF \

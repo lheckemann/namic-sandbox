@@ -282,7 +282,7 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
       // pass exception to caller
       throw err;
     }
-    
+   std::cout<<"Level: "<<m_CurrentLevel<<std::endl; 
     try
     {
       // do the optimization

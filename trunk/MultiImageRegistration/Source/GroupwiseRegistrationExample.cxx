@@ -38,6 +38,7 @@ fashion.
 // Transform headers
 #include "itkAffineTransform.h"
 #include "itkBSplineDeformableTransform.h"
+#include "itkBSplineDeformableTransformInitializer.h"
 
 // Interpolator headers    
 #include "itkLinearInterpolateImageFunction.h"
@@ -630,6 +631,7 @@ int main(int argc, char *argv[])
 
   typedef itk::MultiResolutionMultiImageRegistrationMethod< ImageType >    RegistrationType;
 
+
   typedef itk::RecursiveMultiResolutionPyramidImageFilter<
     ImageType,
     ImageType  >                           ImagePyramidType;
@@ -668,7 +670,7 @@ int main(int argc, char *argv[])
 
   registration->SetNumberOfLevels( multiLevelAffine );
   registration->SetNumberOfImages(N);
-  registration->ReleaseDataFlagOn();
+//HACK  registration->ReleaseDataFlagOn();
 
   //Set the optimizerType
   OptimizerType::Pointer               optimizer;
@@ -803,7 +805,7 @@ int main(int argc, char *argv[])
       registration->SetInterpolatorArray(i, interpolatorArray[i] );
 
       imageReader = ImageReaderType::New();
-      imageReader->ReleaseDataFlagOn();
+//HACK      imageReader->ReleaseDataFlagOn();
       imageReader->SetFileName( inputFileNames[i].c_str() );
 
       //Initialize mask filters
@@ -824,7 +826,7 @@ int main(int argc, char *argv[])
         connectedThreshold->SetLower(threshold1);
         connectedThreshold->SetUpper(threshold2);
 
-        connectedThreshold->ReleaseDataFlagOn();
+//HACK        connectedThreshold->ReleaseDataFlagOn();
         connectedThreshold->Update();
 
         ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
@@ -851,7 +853,7 @@ int main(int argc, char *argv[])
         radius.Fill(1);
         neighborhoodConnected->SetRadius(radius);
 
-        neighborhoodConnected->ReleaseDataFlagOn();
+//HACK        neighborhoodConnected->ReleaseDataFlagOn();
         neighborhoodConnected->Update();
 
         ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
@@ -862,7 +864,7 @@ int main(int argc, char *argv[])
       }
 
       NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
-      normalizeFilter->ReleaseDataFlagOn();
+//HACK      normalizeFilter->ReleaseDataFlagOn();
 
       normalizeFilter->SetInput( imageReader->GetOutput() );
 
@@ -952,20 +954,31 @@ int main(int argc, char *argv[])
 
   // Initialize the affine transforms to identity transform
   // And use the results of the translation transform
+
+    typedef AffineTransformType::InputPointType CenterPointType;
+    typedef CenterPointType::ValueType CoordRepType;
+    typedef  itk::ContinuousIndex <CoordRepType, Dimension>  ContinuousIndexType;
+    typedef ContinuousIndexType::ValueType ContinuousIndexValueType;  
+
   for(int i=0; i<N; i++)
   {
     affineTransformArray[i]->SetIdentity();
-    AffineTransformType::InputPointType center;
+    CenterPointType center;
     // Get spacing, origin and size of the images
-    ImageType::SpacingType spacing = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetSpacing();
-    itk::Point<double, Dimension> origin = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetOrigin();
+    //ImageType::SpacingType spacing = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetSpacing();
+    //itk::Point<double, Dimension> origin = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetOrigin();
     ImageType::SizeType size = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetLargestPossibleRegion().GetSize();
-
+    ImageType::IndexType startIndex = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetLargestPossibleRegion().GetIndex();
+    
+    ContinuousIndexType centerIndex;
+    
     // Place the center of rotation to the center of the image
     for(unsigned int j=0; j< Dimension; j++)
     {
-      center[j] = origin[j] + spacing[j]*size[j] / 2.0;
+      centerIndex[j] = static_cast<ContinuousIndexValueType>(startIndex[j] ) +
+                       static_cast<ContinuousIndexValueType>(size[j]-1)/2.0;
     }
+    imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->TransformContinuousIndexToPhysicalPoint(centerIndex, center);
     affineTransformArray[i]->SetCenter(center);
 
     registration->SetInitialTransformParameters( i, affineTransformArray[i]->GetParameters() );
@@ -1032,7 +1045,6 @@ int main(int argc, char *argv[])
   ImageType::RegionType fixedImageRegion =
     imagePyramidArray[0]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetBufferedRegion();
   registration->SetFixedImageRegion( fixedImageRegion );
-
 
   // Get the number of pixels (voxels) in the images
   const unsigned int numberOfPixels = fixedImageRegion.GetNumberOfPixels();
@@ -1115,11 +1127,18 @@ int main(int argc, char *argv[])
     Dimension,
     SplineOrder >     BSplineTransformType;
 
+  typedef itk::BSplineDeformableTransformInitializer<BSplineTransformType, ImageType> BSplineInitializerType;
+
   // Allocate bspline tranform array for low grid size
   typedef vector<BSplineTransformType::Pointer> BSplineTransformArrayType;
   BSplineTransformArrayType      bsplineTransformArrayLow(N);
+  typedef vector<BSplineInitializerType::Pointer> BSplineInitializerArrayType;
+  BSplineInitializerArrayType         bsplineInitializerArrayLow(N);
+  BSplineTransformArrayType      bsplineTransformArrayHigh(N);
+  BSplineInitializerArrayType         bsplineInitializerArrayHigh(N);
 
-  BSplineTransformArrayType bsplineTransformArrayHigh(N);
+  //typedef vector<ImageType::Pointer> ImageArrayType;
+  //ImageArrayType   ImageArray(N);
 
   // Allocate the vector holding Bspline transform parameters for low resolution
   typedef BSplineTransformType::ParametersType     BSplineParametersType;
@@ -1131,9 +1150,10 @@ int main(int argc, char *argv[])
   {
 
     // typdefs for region, spacing and origin of the Bspline coefficient images
-    typedef BSplineTransformType::RegionType RegionType;
-    typedef BSplineTransformType::SpacingType SpacingType;
-    typedef BSplineTransformType::OriginType OriginType;
+   // typedef BSplineTransformType::RegionType RegionType;
+   // typedef BSplineTransformType::SpacingType SpacingType;
+   // typedef BSplineTransformType::OriginType OriginType;
+   // typedef BSplineTransformType::DirectionType DirectionType;
 
 
     // Get the latest transform parameters of affine transfom
@@ -1200,7 +1220,8 @@ int main(int argc, char *argv[])
       {
 
         bsplineTransformArrayLow[i] = BSplineTransformType::New();
-
+        bsplineInitializerArrayLow[i] = BSplineInitializerType::New();
+      /*  
         RegionType bsplineRegion;
         RegionType::SizeType   gridSizeOnImage;
         RegionType::SizeType   gridBorderSize;
@@ -1215,10 +1236,12 @@ int main(int argc, char *argv[])
         // Get the spacing, origin and imagesize form the image readers
         SpacingType spacing = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetSpacing();
         OriginType origin   = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetOrigin();
+        DirectionType direction = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetDirection();
         ImageType::RegionType fixedRegion = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetBufferedRegion();
 
         ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
-
+       */
+       /*  
         // Calculate the spacing for the Bspline grid
         for(unsigned int r=0; r<Dimension; r++)
         {
@@ -1228,13 +1251,29 @@ int main(int argc, char *argv[])
               static_cast<double>(gridSizeOnImage[r] ) );
           origin[r]  -=  spacing[r];
         }
-
+        */
+        /*
         // Set the spacing origin and bsplineRegion
         bsplineTransformArrayLow[i]->SetGridSpacing( spacing );
         bsplineTransformArrayLow[i]->SetGridOrigin( origin );
         bsplineTransformArrayLow[i]->SetGridRegion( bsplineRegion );
-
-
+        //std::cout<<"bsplineRegion: "<<bsplineRegion<<std::endl;
+        bsplineTransformArrayLow[i]->SetGridDirection(direction);
+        */
+        
+         //ImageArray[i] = ImageType::New();
+        //ImageArray[i] = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1);
+        //imagePyramidArray[i]->Print(std::cout,6);
+        //imagePyramidArray[i]->GetOutput(0)->Update();
+        //std::cout<<"Update.."<<std::endl;
+        //imagePyramidArray[i]->GetOutput(0)->Print(std::cout,6);
+        //ImageArray[i]->DisconnectPipeline();
+        //std::cout<<"Initialize...."<<std::endl;
+        //imagePyramidArray[i]->SetInput( imageReader->GetOutput() );
+        bsplineInitializerArrayLow[i]->SetTransform(bsplineTransformArrayLow[i]);
+        bsplineInitializerArrayLow[i]->SetImage(imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1));
+        bsplineInitializerArrayLow[i]->SetNumberOfGridNodesInsideTheImage(bsplineInitialGridSize);
+        bsplineInitializerArrayLow[i]->InitializeTransform();
         unsigned int numberOfParametersLow =
           bsplineTransformArrayLow[i]->GetNumberOfParameters();
 
@@ -1250,8 +1289,7 @@ int main(int argc, char *argv[])
         registration->SetInitialTransformParameters( i, bsplineTransformArrayLow[i]->GetParameters() );
         registration->SetTransformArray(i, bsplineTransformArrayLow[i] );
         metric->SetBSplineTransformArray(i, bsplineTransformArrayLow[i] );
-
-
+        //ImageArray[i]->ResetPipeline();
       }
     }
     catch( itk::ExceptionObject & err )
@@ -1324,7 +1362,6 @@ int main(int argc, char *argv[])
       std::cerr << err << std::endl;
       return -1;
     }
-
     // Write the output images after bspline transform
 
 
@@ -1332,6 +1369,7 @@ int main(int argc, char *argv[])
     {
       transformArray[i] = bsplineTransformArrayLow[i];
     }
+    
     std::ostringstream localbsplineFolderName;
     localbsplineFolderName << "Bspline_Grid_" << bsplineInitialGridSize;
     command->SetFileNames( fileNames, inputFileNames,
@@ -1431,9 +1469,9 @@ int main(int argc, char *argv[])
         // Set the parameters of the high resolution Bspline Transform
         for( int i=0; i<N; i++)
         {
-
           bsplineTransformArrayHigh[i] = BSplineTransformType::New();
-
+          bsplineInitializerArrayHigh[i] = BSplineInitializerType::New();
+          /*
           RegionType bsplineRegion;
           RegionType::SizeType   gridHighSizeOnImage;
           RegionType::SizeType   gridBorderSize;
@@ -1448,11 +1486,14 @@ int main(int argc, char *argv[])
           SpacingType spacingHigh;
           OriginType  originHigh;
           ImageType::RegionType fixedRegion;
+          DirectionType  directionHigh;
 
           spacingHigh =
             imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetSpacing();
           originHigh  =
             imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetOrigin();
+          directionHigh =
+            imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetDirection();
           fixedRegion =
             imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetBufferedRegion();
 
@@ -1469,6 +1510,13 @@ int main(int argc, char *argv[])
           bsplineTransformArrayHigh[i]->SetGridSpacing( spacingHigh );
           bsplineTransformArrayHigh[i]->SetGridOrigin( originHigh );
           bsplineTransformArrayHigh[i]->SetGridRegion( bsplineRegion );
+          bsplineTransformArrayHigh[i]->SetGridDirection( directionHigh );
+          */
+          //imagePyramidArray[i]->SetInput( imageReader->GetOutput() );
+          bsplineInitializerArrayHigh[i]->SetImage(imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1));
+          bsplineInitializerArrayHigh[i]->SetTransform(bsplineTransformArrayHigh[i]);
+          bsplineInitializerArrayHigh[i]->SetNumberOfGridNodesInsideTheImage(bsplineInitialGridSize);
+          bsplineInitializerArrayHigh[i]->InitializeTransform();
 
           bsplineParametersArrayHigh[i].SetSize( bsplineTransformArrayHigh[i]->GetNumberOfParameters() );
           bsplineParametersArrayHigh[i].Fill( 0.0 );
@@ -1498,6 +1546,7 @@ int main(int argc, char *argv[])
             upsampler->SetSize( bsplineTransformArrayHigh[i]->GetGridRegion().GetSize() );
             upsampler->SetOutputSpacing( bsplineTransformArrayHigh[i]->GetGridSpacing() );
             upsampler->SetOutputOrigin( bsplineTransformArrayHigh[i]->GetGridOrigin() );
+            upsampler->SetOutputDirection(bsplineTransformArrayHigh[i]->GetGridDirection() );
 
             typedef itk::BSplineDecompositionImageFilter<ParametersImageType,ParametersImageType>
               DecompositionType;
@@ -1528,10 +1577,16 @@ int main(int argc, char *argv[])
 
           // Set parameters of the fine grid Bspline transform
           // to coarse grid Bspline transform for the next level
+          bsplineInitializerArrayLow[i]->SetImage(imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1));
+          bsplineInitializerArrayLow[i]->SetTransform(bsplineTransformArrayLow[i]);
+          bsplineInitializerArrayLow[i]->SetNumberOfGridNodesInsideTheImage(bsplineInitialGridSize);
+          bsplineInitializerArrayLow[i]->InitializeTransform();
+          /*
           bsplineTransformArrayLow[i]->SetGridSpacing( spacingHigh );
           bsplineTransformArrayLow[i]->SetGridOrigin( originHigh );
           bsplineTransformArrayLow[i]->SetGridRegion( bsplineRegion );
-
+          bsplineTransformArrayLow[i]->SetGridDirection( directionHigh);
+          */
 
           // Set initial parameters of the registration
           registration->SetInitialTransformParameters( i, bsplineTransformArrayHigh[i]->GetParameters() );

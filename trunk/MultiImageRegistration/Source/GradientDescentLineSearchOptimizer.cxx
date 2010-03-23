@@ -56,7 +56,6 @@ GradientDescentLineSearchOptimizer
 ::LineOptimize(ParametersType * p, ParametersType xi, double * val)
 {
   this->SetLine(*p, xi);
-
   double ax = 0.0;
   double fa = (*val);
   double xx = this->GetStepLength();
@@ -64,8 +63,8 @@ GradientDescentLineSearchOptimizer
   double bx;
   double fb;
 
-  ParametersType pp = (*p);
-
+   ParametersType pp = (*p);  //??????
+  
   this->LineBracket(&ax, &xx, &bx, &fa, &fx, &fb);
   this->SetCurrentLinePoint(xx, fx);
 
@@ -100,6 +99,7 @@ GradientDescentLineSearchOptimizer
 
   GradientDescentLineSearchOptimizer::ParametersType p( SpaceDimension );
   p = this->GetInitialPosition();
+  //std::cout<<"InitialPosition:"<<p<<std::endl;
   this->SetCurrentPosition(p);
 
   double fp;
@@ -115,14 +115,13 @@ GradientDescentLineSearchOptimizer
     double fret;
     fret = fp;
     this->LineOptimize(&p, xi, &fret);
-
     this->GetValueAndDerivative(p, &fp, &xi);
-
     this->SetCurrentPosition(p);
     this->InvokeEvent( IterationEvent() );
     }
 
   this->SetCurrentPosition(p);
+  //std::cout<<"CurrentPosition: "<<this->GetCurrentPosition()<<std::endl;
   this->InvokeEvent( EndEvent() );
 }
 

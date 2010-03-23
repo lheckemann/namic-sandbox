@@ -551,7 +551,7 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
   } 
   value /= (double) ( this->m_NumberOfSpatialSamples * this->m_NumberOfImages );
   derivative /= (double) (this->m_NumberOfSpatialSamples * this->m_NumberOfImages );
-  
+
   // BSpline regularization
   if(this->m_UserBsplineDefined && m_BSplineRegularizationFlag)
   {
@@ -675,7 +675,7 @@ UnivariateEntropyMultiImageMetric < TFixedImage >
       }
       
       weight = weight / (m_ImageStandardDeviation * m_ImageStandardDeviation);
-
+      
       // Get the derivative for this sample
       UpdateSingleImageParameters( m_DerivativesArray[threadId][l], 
                                    this->m_Sample[x], 
@@ -745,10 +745,8 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
 
     for (int k = 0; k < numberOfWeights; k++)
     {
-
         for (unsigned int j = 0; j < ImageDimension; j++)
         {
-
           inputDerivative[j*m_NumberOfParametersPerdimension + bsplineIndexes[k]] += 
                                                bsplineWeights[k] * gradient[j] * weight;
         }
