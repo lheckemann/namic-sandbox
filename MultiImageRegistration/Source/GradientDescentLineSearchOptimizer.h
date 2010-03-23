@@ -19,7 +19,7 @@
 
 #include <itkVector.h>
 #include <itkMatrix.h>
-#include <itkPowellOptimizer.h>
+#include "itkPowellOptimizer.h"
 
 namespace itk
 {

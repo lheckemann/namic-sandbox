@@ -56,6 +56,7 @@ public:
     std::cout << "message: Image Resolution: " <<
         registration->GetImagePyramidArray(0)->
         GetOutput(registration->GetCurrentLevel())->GetLargestPossibleRegion().GetSize() << std::endl;
+    //registration->GetImagePyramidArray(0)->GetOutput(registration->GetCurrentLevel())->Print(std::cout,6);
     std::cout << "message: Number of Images: " << metric->GetNumberOfImages() << std::endl;
     std::cout << "message: Number of total parameters: " << registration->GetTransformParametersLength() << std::endl;
     std::cout << "message: Optimizertype: " << optimizer->GetNameOfClass() << std::endl;
