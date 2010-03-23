@@ -179,6 +179,9 @@ private:
   typename MeshType::Pointer   m_CurrentLevelFixedMesh;
   typename MeshType::Pointer   m_CurrentLevelMovingMesh;
 
+  typename MeshType::Pointer        m_CurrentLevelRigidlyMappedFixedMesh;
+
+
   typename MeshType::Pointer   m_NextLevelFixedMesh;
   typename MeshType::Pointer   m_NextLevelMovingMesh;
 
