@@ -150,6 +150,17 @@ WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
 
   const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
 
+  const unsigned int referenceNumberOfPoints = referenceMesh->GetNumberOfPoints();
+
+  const unsigned int destinationNumberOfPoints = destinationPoints->GetNumberOfPoints();
+
+  if( destinationNumberOfPoints != referenceNumberOfPoints )
+    {
+    itkExceptionMacro("Reference Mesh and Destination Points have " 
+      << "different number of points " << referenceNumberOfPoints 
+      << " vs " << destinationNumberOfPoints );
+    }
+
   ProgressReporter progress(this, 0, numberOfPoints);
 
   this->m_Interpolator->SetSphereCenter( this->m_SphereCenter );
