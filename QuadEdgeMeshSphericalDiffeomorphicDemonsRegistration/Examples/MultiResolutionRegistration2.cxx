@@ -89,6 +89,16 @@ int main( int argc, char * argv [] )
   multiResDemonsFilter->SetFixedMesh( fixedMeshReader1->GetOutput() );
   multiResDemonsFilter->SetMovingMesh( movingMeshReader1->GetOutput() );
 
+
+  MultiResolutionDemonsFilterType::PointType center;
+  center.Fill( 0.0 );
+
+  const double radius = 100.0;
+
+  multiResDemonsFilter->SetSphereCenter( center );
+  multiResDemonsFilter->SetSphereRadius( radius );
+
+
   typedef MultiResolutionDemonsFilterType::DestinationPointSetType DestinationPointSetType;
 
 #ifdef USE_VTK
@@ -122,6 +132,9 @@ int main( int argc, char * argv [] )
 
   visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
   visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+
+  //  visualMonitor.Observe( multiResDemonsFilter->GetDemonsRegistrationFilter() );
+  //  visualMonitor.ObserveData( multiResDemonsFilter->GetCurrentDestinationPoints() );
 #endif
 
   try
