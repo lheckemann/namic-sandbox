@@ -42,11 +42,8 @@ int main( int argc, char * argv [] )
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << std::endl;
     std::cerr << "inputFixedMeshRes1 inputMovingMeshRes1 ";
-    std::cerr << "outputResampledMeshRes1 ";
     std::cerr << "inputFixedMeshRes2 inputMovingMeshRes2 ";
-    std::cerr << "outputResampledMeshRes2 ";
     std::cerr << "inputFixedMeshRes3 inputMovingMeshRes3 ";
-    std::cerr << "outputResampledMeshRes3 ";
     std::cerr << "inputFixedMeshRes4 inputMovingMeshRes4 ";
     std::cerr << "outputResampledMeshRes4 ";
     std::cerr << "inputFixedMeshRes5 inputMovingMeshRes5 ";
@@ -66,7 +63,7 @@ int main( int argc, char * argv [] )
 
   MultiResolutionDemonsFilterType::Pointer multiResDemonsFilter = MultiResolutionDemonsFilterType::New();
 
-  multiResDemonsFilter->SetNumberOfResolutionLevels( 4 );
+  multiResDemonsFilter->SetNumberOfResolutionLevels( 1 );
 
   typedef itk::VTKPolyDataReader< MeshType >     ReaderType;
 
@@ -182,7 +179,7 @@ int main( int argc, char * argv [] )
   visualMonitor.SetBaseAnnotationText("Rigid Registration Level 1");
 
   visualMonitor.SetVerbose( false );
-  visualMonitor.SetScreenShotsBaseFileName( argv[12] );
+  visualMonitor.SetScreenShotsBaseFileName( argv[13] );
 
   visualMonitor.SetScalarRange( -0.1, 0.1 );
 
@@ -255,11 +252,43 @@ int main( int argc, char * argv [] )
     }
 
 
+  typedef itk::WarpQuadEdgeMeshFilter< 
+    MeshType, MeshType, DestinationPointSetType >  WarpMeshFilterType;
+
+  WarpMeshFilterType::Pointer warpFilter = WarpMeshFilterType::New();
+
+  warpFilter->SetInput( fixedMeshReader4->GetOutput() );
+  warpFilter->SetReferenceMesh( fixedMeshReader4->GetOutput() );
+
+  warpFilter->SetDestinationPoints( multiResDemonsFilter->GetFinalDestinationPoints() );
+
+  warpFilter->SetSphereRadius( radius );
+  warpFilter->SetSphereCenter( center );
+
+
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MeshType >   WriterType;
+  WriterType::Pointer writer = WriterType::New();
+
+  writer->SetFileName( argv[9] );
+  writer->SetInput( warpFilter->GetOutput() );
+
+  try
+    {
+    warpFilter->Update();
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
   ReaderType::Pointer fixedMeshReader5 = ReaderType::New();
-  fixedMeshReader5->SetFileName( argv[9] );
+  fixedMeshReader5->SetFileName( argv[10] );
 
   ReaderType::Pointer movingMeshReader5 = ReaderType::New();
-  movingMeshReader5->SetFileName( argv[10] );
+  movingMeshReader5->SetFileName( argv[11] );
 
   try
     {
@@ -272,29 +301,13 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
-  typedef itk::WarpQuadEdgeMeshFilter< 
-    MeshType, MeshType, DestinationPointSetType >  WarpMeshFilterType;
-
-  WarpMeshFilterType::Pointer warpFilter = WarpMeshFilterType::New();
 
   warpFilter->SetInput( fixedMeshReader5->GetOutput() );
-  warpFilter->SetReferenceMesh( fixedMeshReader4->GetOutput() );
-
-  warpFilter->SetDestinationPoints( multiResDemonsFilter->GetFinalDestinationPoints() );
-
-  warpFilter->SetSphereRadius( radius );
-  warpFilter->SetSphereCenter( center );
-
-  warpFilter->Update();
-
-  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MeshType >   WriterType;
-  WriterType::Pointer writer = WriterType::New();
-
-  writer->SetFileName( argv[11] );
-  writer->SetInput( warpFilter->GetOutput() );
+  writer->SetFileName( argv[12] );
 
   try
     {
+    warpFilter->Update();
     writer->Update();
     }
   catch( itk::ExceptionObject & excp )

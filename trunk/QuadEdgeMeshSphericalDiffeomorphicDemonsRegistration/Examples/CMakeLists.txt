@@ -274,6 +274,7 @@ ADD_TEST(MultiResRegistration2_${MESHID1}_${MESHID2}
   ${MOVINGMESH3}
   ${FIXEDMESH4}
   ${MOVINGMESH4}
+  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC7.vtk
   ${FIXEDMESHFINAL}
   ${MOVINGMESHFINAL}
   ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_Final.vtk
