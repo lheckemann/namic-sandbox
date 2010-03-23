@@ -128,7 +128,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   itkDebugMacro("setting Fixed Mesh to " << fixedMesh );
 
   const unsigned int inputNumber = 2 * level;
-
+std::cout << "inputNumber = " << inputNumber << " Fixed image with # points = " << fixedMesh->GetNumberOfPoints() << std::endl;
   // Process object is not const-correct so the const_cast is required here
   this->ProcessObject::SetNthInput( inputNumber, const_cast< MeshType *>( fixedMesh ) );
 
@@ -144,7 +144,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   itkDebugMacro("setting Moving Mesh to " << movingMesh );
 
   const unsigned int inputNumber = 2 * level + 1;
-
+std::cout << "inputNumber = " << inputNumber << " Moving image with # points = " << movingMesh->GetNumberOfPoints() << std::endl;
   // Process object is not const-correct so the const_cast is required here
   this->ProcessObject::SetNthInput(inputNumber, const_cast< MeshType *>( movingMesh ) );
 
@@ -162,6 +162,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   while( this->m_CurrentResolutionLevel < this->m_NumberOfResolutionLevels )
     {
+    std::cout << "RESOLUTION LEVEL = " << this->m_CurrentResolutionLevel << std::endl;
     this->ComputeRigidRegistration();
     this->RigidlyTransformPointsOfFixedMesh();
     this->ComputeDemonsRegistration();
@@ -199,6 +200,9 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   const unsigned int fixedInput  = ( this->m_CurrentResolutionLevel + 1 ) * 2;
   const unsigned int movingInput = ( this->m_CurrentResolutionLevel + 1 ) * 2 + 1;
 
+std::cout << "fixedInput = " << fixedInput << std::endl;
+std::cout << "movingInput = " << movingInput << std::endl;
+
   // 
   //   Prepare meshes for next resolution level
   // 
@@ -207,6 +211,9 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_NextLevelFixedMesh = MeshType::New();
   this->m_NextLevelMovingMesh = MeshType::New();
+
+std::cout << "fixedInput  # points = " << fixedMesh->GetNumberOfPoints()  << std::endl;
+std::cout << "movingInput # points = " << movingMesh->GetNumberOfPoints() << std::endl;
 
   this->CopyMeshToMesh( fixedMesh,  this->m_NextLevelFixedMesh  );
   this->CopyMeshToMesh( movingMesh, this->m_NextLevelMovingMesh );
@@ -232,6 +239,9 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   typename MetricType::Pointer  metric = MetricType::New();
 
   registration->SetMetric( metric ); 
+
+  std::cout << "Current fixed Mesh points = " << this->m_CurrentLevelFixedMesh->GetNumberOfPoints() << std::endl;
+  std::cout << "Current moving Mesh points = " << this->m_CurrentLevelMovingMesh->GetNumberOfPoints() << std::endl;
 
   registration->SetFixedMesh( this->m_CurrentLevelFixedMesh );
   registration->SetMovingMesh( this->m_CurrentLevelMovingMesh );
@@ -367,6 +377,9 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     this->m_DemonsRegistrationFilter->GetFinalDestinationPoints();
 
   currentDestinationPoints->DisconnectPipeline();
+
+  // Create the new destination points for the following iteration
+  this->m_DemonsRegistrationFilter->MakeOutput(2);
 
   warpFilter->SetDestinationPoints( currentDestinationPoints );
 
