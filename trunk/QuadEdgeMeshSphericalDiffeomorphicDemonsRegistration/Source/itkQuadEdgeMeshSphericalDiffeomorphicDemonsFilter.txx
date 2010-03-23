@@ -75,6 +75,8 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_MetricValue = 0.0;
 
   this->m_SelfRegulatedMode = true;
+
+  this->m_FixedMeshAtInitialDestinationPoints = FixedMeshType::New();
 }
 
 
@@ -200,6 +202,10 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
 ::CopyInitialDestinationPoints()
 {
+  this->m_FixedMeshAtInitialDestinationPoints = FixedMeshType::New();
+
+  this->CopyMeshToMesh( this->m_FixedMesh, this->m_FixedMeshAtInitialDestinationPoints  );
+
   const DestinationPointSetType * destinationPointSet = this->GetInitialDestinationPoints();
   const DestinationPointContainerType * destinationPoints = destinationPointSet->GetPoints();
 
@@ -214,6 +220,9 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
     {
     itkExceptionMacro("Number of destination points does not match fixed mesh number of points");
     }
+
+  FixedPointsContainer * fixedPoints = this->m_FixedMeshAtInitialDestinationPoints->GetPoints();
+  FixedPointsIterator fixedPointItr = fixedPoints->Begin();
 
   this->m_DestinationPoints = DestinationPointContainerType::New();
   this->m_DestinationPoints->Reserve( destinationPoints->Size() );
@@ -231,8 +240,12 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
     this->ProjectPointToSphereSurface( point );
 
     dstPointItr.Value() = point;
+
+    fixedPointItr.Value().SetPoint( point );
+
     ++srcPointItr;
     ++dstPointItr;
+    ++fixedPointItr;
     }
 }
 
@@ -246,10 +259,10 @@ GenerateData()
   // Prepare data
   this->CopyInputMeshToOutputMesh();
   this->AllocateInternalArrays();
+  this->ComputeInitialArrayOfDestinationPoints();
   this->InitializeFixedNodesSigmas();
   this->ComputeBasisSystemAtEveryNode();
   this->ComputeShortestEdgeLength();
-  this->ComputeInitialArrayOfDestinationPoints();
   this->ComposeDestinationPointsOutputPointSet();
   this->InitializeInterpolators();
   this->InitializeGradientCalculators();
@@ -321,7 +334,8 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 InitializeFixedNodesSigmas()
 {
-  const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
+  const PointIdentifier numberOfNodes = 
+    this->m_FixedMeshAtInitialDestinationPoints->GetNumberOfPoints();
 
   if( this->m_FixedNodesSigmas.IsNull() || this->m_FixedNodesSigmas->Size() != numberOfNodes )
     {
@@ -344,16 +358,16 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ComputeBasisSystemAtEveryNode()
 {
-  const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
+  const PointIdentifier numberOfNodes = this->m_FixedMeshAtInitialDestinationPoints->GetNumberOfPoints();
 
   typedef typename TFixedMesh::PointsContainer    PointsContainer;
-  const PointsContainer * points = this->m_FixedMesh->GetPoints();
+  const PointsContainer * points = this->m_FixedMeshAtInitialDestinationPoints->GetPoints();
 
   typedef typename TFixedMesh::QEPrimal           EdgeType;
 
   for( PointIdentifier pointId1 = 0; pointId1 < numberOfNodes; pointId1++ )
     {
-    const EdgeType * edge = this->m_FixedMesh->FindEdge( pointId1 );
+    const EdgeType * edge = this->m_FixedMeshAtInitialDestinationPoints->FindEdge( pointId1 );
 
     if( !edge )
       {
@@ -408,6 +422,10 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 CopySourcePoinstAsDestinationPoints()
 {
+  this->m_FixedMeshAtInitialDestinationPoints = FixedMeshType::New();
+
+  this->CopyMeshToMesh( this->m_FixedMesh, this->m_FixedMeshAtInitialDestinationPoints  );
+
   const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
 
   FixedPointsConstIterator srcPointItr = points->Begin();
@@ -432,7 +450,7 @@ InitializeInterpolators()
   this->m_ScalarInterpolator->SetInputMesh( this->m_MovingMesh );
   this->m_ScalarInterpolator->Initialize();
 
-  this->m_DeformationInterpolator->SetInputMesh( this->m_FixedMesh );
+  this->m_DeformationInterpolator->SetInputMesh( this->m_FixedMeshAtInitialDestinationPoints );
   this->m_DeformationInterpolator->Initialize();
   this->m_DeformationInterpolator->SetSphereCenter( this->m_SphereCenter );
 }
@@ -443,10 +461,10 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 InitializeGradientCalculators()
 {
-  this->m_TriangleListBasisSystemCalculator->SetInputMesh( this->m_FixedMesh );
+  this->m_TriangleListBasisSystemCalculator->SetInputMesh( this->m_FixedMeshAtInitialDestinationPoints );
   this->m_TriangleListBasisSystemCalculator->Calculate();
 
-  this->m_NodeScalarGradientCalculator->SetInputMesh( this->m_FixedMesh );
+  this->m_NodeScalarGradientCalculator->SetInputMesh( this->m_FixedMeshAtInitialDestinationPoints );
   this->m_NodeScalarGradientCalculator->SetDataContainer( this->m_ResampledMovingValuesContainer );
 
   this->m_NodeScalarGradientCalculator->SetBasisSystemList(
@@ -455,7 +473,7 @@ InitializeGradientCalculators()
   this->m_NodeScalarGradientCalculator->SetSphereCenter( this->m_SphereCenter );
   this->m_NodeScalarGradientCalculator->SetSphereRadius( this->m_SphereRadius );
 
-  this->m_NodeVectorJacobianCalculator->SetInputMesh( this->m_FixedMesh );
+  this->m_NodeVectorJacobianCalculator->SetInputMesh( this->m_FixedMeshAtInitialDestinationPoints );
   this->m_NodeVectorJacobianCalculator->SetBasisSystemList(
     this->m_TriangleListBasisSystemCalculator->GetBasisSystemList() );
 
@@ -579,13 +597,13 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ComputeVelocityField()
 {
-  const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
+  const PointIdentifier numberOfNodes = this->m_FixedMeshAtInitialDestinationPoints->GetNumberOfPoints();
 
-  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+  const FixedPointsContainer * points = this->m_FixedMeshAtInitialDestinationPoints->GetPoints();
 
   FixedPointsConstIterator pointItr = points->Begin();
 
-  const FixedPointDataContainer * pointData = this->m_FixedMesh->GetPointData();
+  const FixedPointDataContainer * pointData = this->m_FixedMeshAtInitialDestinationPoints->GetPointData();
 
   FixedPointDataConstIterator fixedPointDataItr = pointData->Begin();
 
@@ -768,14 +786,14 @@ ComputeShortestEdgeLength()
 
   typedef typename FixedMeshType::QEPrimal    EdgeType;
 
-  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+  const FixedPointsContainer * points = this->m_FixedMeshAtInitialDestinationPoints->GetPoints();
 
   FixedPointsConstIterator pointItr = points->Begin();
   FixedPointsConstIterator pointEnd = points->End();
 
   while( pointItr != pointEnd )
     {
-    EdgeType * edge1 = this->m_FixedMesh->FindEdge( pointItr.Index() );
+    EdgeType * edge1 = this->m_FixedMeshAtInitialDestinationPoints->FindEdge( pointItr.Index() );
 
     EdgeType * temp1 = NULL;
     EdgeType * temp2 = edge1;
@@ -856,7 +874,7 @@ ComputeDeformationByScalingAndSquaring()
 
   VelocityVectorConstIterator velocityItr = this->m_VelocityField->Begin();
 
-  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+  const FixedPointsContainer * points = this->m_FixedMeshAtInitialDestinationPoints->GetPoints();
 
   FixedPointsConstIterator pointItr = points->Begin();
 
@@ -1040,7 +1058,7 @@ ConvertDeformationFieldToTangentVectorField()
   DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
   DestinationPointIterator dstPointEnd = this->m_DestinationPoints->End();
 
-  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+  const FixedPointsContainer * points = this->m_FixedMeshAtInitialDestinationPoints->GetPoints();
 
   FixedPointsConstIterator pointItr = points->Begin();
 
@@ -1074,7 +1092,7 @@ SmoothTangentVectorField()
 {
   const double weightFactor = vcl_exp( - 1.0 / ( 2.0 * this->m_Lambda ) );
 
-  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+  const FixedPointsContainer * points = this->m_FixedMeshAtInitialDestinationPoints->GetPoints();
 
   TangentVectorType smoothedVector;
   TangentVectorType transportedTangentVector;
@@ -1096,7 +1114,8 @@ SmoothTangentVectorField()
       {
       const TangentVectorType & centralTangentVector = tangentItr.Value();
 
-      const EdgeType * edgeToFirstNeighborPoint = this->m_FixedMesh->FindEdge( tangentItr.Index() );
+      const EdgeType * edgeToFirstNeighborPoint = 
+        this->m_FixedMeshAtInitialDestinationPoints->FindEdge( tangentItr.Index() );
       const EdgeType * edgeToNeighborPoint = edgeToFirstNeighborPoint;
 
       AccumulatePixelType tangentVectorSum;
@@ -1184,7 +1203,7 @@ ConvertTangentVectorFieldToDeformationField()
 
   DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
 
-  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+  const FixedPointsContainer * points = this->m_FixedMeshAtInitialDestinationPoints->GetPoints();
 
   FixedPointsConstIterator pointItr = points->Begin();
 
