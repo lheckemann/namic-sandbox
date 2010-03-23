@@ -65,6 +65,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_DemonsRegistrationFilter = DemonsRegistrationFilterType::New();
 
   this->m_CurrentResolutionLevel = 0;
+  this->m_NumberOfResolutionLevels = 4;
 }
 
 
@@ -158,13 +159,17 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::GenerateData()
 {
   this->PrepareCoarsestResolutionMeshes();
-  this->ComputeRigidRegistration();
-  this->RigidlyTransformPointsOfFixedMesh();
-  this->ComputeDemonsRegistration();
-  this->PrepareNextResolutionLevelMeshes();
-  this->DeformNextResolutionLevelFixedMesh();
 
-  this->m_CurrentResolutionLevel++;
+  while( this->m_CurrentResolutionLevel < this->m_NumberOfResolutionLevels )
+    {
+    this->ComputeRigidRegistration();
+    this->RigidlyTransformPointsOfFixedMesh();
+    this->ComputeDemonsRegistration();
+    this->PrepareNextResolutionLevelMeshes();
+    this->DeformNextResolutionLevelFixedMesh();
+    this->m_CurrentResolutionLevel++;
+    }
+
 }
 
 
