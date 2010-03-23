@@ -482,9 +482,9 @@ RunIterations()
     this->ComputeGradientsOfMappedMovingValueAtEveryNode();
     this->m_Chronometer.Stop("ComputeGradientsOfMappedMovingValueAtEveryNode");
 
-    this->m_Chronometer.Start("ComputeVelocityField");
-    this->ComputeVelocityField();
-    this->m_Chronometer.Stop("ComputeVelocityField");
+    this->m_Chronometer.Start("ComputeSelfRegulatedVelocityField");
+    this->ComputeSelfRegulatedVelocityField();
+    this->m_Chronometer.Stop("ComputeSelfRegulatedVelocityField");
 
     this->m_Chronometer.Start("ComputeScalingAndSquaringNumberOfIterations");
     this->ComputeScalingAndSquaringNumberOfIterations();
@@ -548,6 +548,28 @@ ComputeMappedMovingValueAtEveryNode()
 
     ++pointItr;
     ++resampledArrayItr;
+    }
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComputeSelfRegulatedVelocityField()
+{
+  if( this->m_SelfRegulatedMode )
+    {
+    do
+      {
+      this->m_Chronometer.Start("ComputeVelocityField");
+      this->ComputeVelocityField();
+      this->m_Chronometer.Stop("ComputeVelocityField");
+      this->ComputeSelfRegulatedSigmaXandEpsilon();
+      } while ( this->m_LargestVelocityToEdgeLengthRatio > 1.5 );
+    }
+  else
+    {
+    this->ComputeVelocityField();
     }
 }
 
@@ -713,24 +735,17 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ComputeScalingAndSquaringNumberOfIterations()
 {
-  //
-  // Largest velocity vector Vn  magnitude  / 2^(N-2) < 1/2 Vertex distance
-  //
-  const double largestVelocityMagnitude = this->ComputeLargestVelocityMagnitude();
-
-std::cout << "largestVelocityMagnitude = " << largestVelocityMagnitude;
-
-  const double ratio = largestVelocityMagnitude / ( this->m_ShortestEdgeLength / 2.0 );
-
   const unsigned int minimumNumberOfIterations = 1;
 
-  if( ratio < 1.0 )
+  if( this->m_LargestVelocityToEdgeLengthRatio < 1.0 )
     {
     this->m_ScalingAndSquaringNumberOfIterations = minimumNumberOfIterations;
     }
   else
     {
-    unsigned int iterations = static_cast< unsigned int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
+    unsigned int iterations = 
+      static_cast< unsigned int >( 
+        vcl_log( this->m_LargestVelocityToEdgeLengthRatio ) / vcl_log( 2.0 ) ) + 2;
 
     if( iterations < minimumNumberOfIterations )
       {
@@ -893,9 +908,14 @@ ComputeSelfRegulatedSigmaXandEpsilon()
 {
   if( this->m_SelfRegulatedMode )
     {
+    //
+    // Largest velocity vector Vn  magnitude  / 2^(N-2) < 1/2 Vertex distance
+    //
     const double largestVelocityMagnitude = this->ComputeLargestVelocityMagnitude();
-    const double ratio = largestVelocityMagnitude / ( 2.0 * this->m_ShortestEdgeLength );
-    this->m_SigmaX /= vcl_sqrt( ratio );
+    this->m_LargestVelocityToEdgeLengthRatio =
+      largestVelocityMagnitude / ( 2.0 * this->m_ShortestEdgeLength );
+
+    this->m_SigmaX /= vcl_sqrt( this->m_LargestVelocityToEdgeLengthRatio );
     this->m_Epsilon =  1.0 / ( this->m_SigmaX * this->m_SigmaX );
     }
 }
