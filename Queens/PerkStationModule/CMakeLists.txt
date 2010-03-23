@@ -78,11 +78,11 @@ install(FILES
 # Sources
 
 SET(PerkStationModule_SRCS
-  vtkPerkStationModuleLogic.cxx    vtkPerkStationModuleLogic.h
-  vtkPerkStationModuleGUI.cxx      vtkPerkStationModuleGUI.h
-  vtkMRMLPerkStationModuleNode.cxx  vtkMRMLPerkStationModuleNode.h
+  vtkPerkStationModuleLogic.cxx      vtkPerkStationModuleLogic.h
+  vtkPerkStationModuleGUI.cxx        vtkPerkStationModuleGUI.h
+  vtkMRMLPerkStationModuleNode.cxx   vtkMRMLPerkStationModuleNode.h
   vtkPerkStationSecondaryMonitor.cxx vtkPerkStationSecondaryMonitor.h
-  vtkTextActorFlippable.cxx         vtkTextActorFlippable.h
+  vtkTextActorFlippable.cxx          vtkTextActorFlippable.h
    # wizard
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationStep.h

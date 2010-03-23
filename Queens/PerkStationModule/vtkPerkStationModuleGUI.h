@@ -8,27 +8,27 @@
 #include "vtkSlicerModuleGUI.h"
 
 #include "vtkMRMLScene.h"
-#include "vtkPerkStationModuleLogic.h"
 #include "vtkMRMLPerkStationModuleNode.h"
+#include "vtkPerkStationModuleLogic.h"
+class vtkPerkStationSecondaryMonitor;
 
 #include "vtkKWWizardWidget.h"
 
 class vtkKWFrame;
 class vtkKWPushButton;
-class vtkSlicerNodeSelectorWidget;
 class vtkKWComboBoxWithLabel;
 class vtkKWPushButtonSet;
 class vtkKWMenuButtonWithLabel;
 class vtkKWLoadSaveButton;
 class vtkKWScale;
 class vtkKWScaleWithEntry;
+class vtkSlicerNodeSelectorWidget;
 
 class vtkPerkStationCalibrateStep;
 class vtkPerkStationPlanStep;
 class vtkPerkStationInsertStep;
 class vtkPerkStationValidateStep;
 
-#include "vtkPerkStationSecondaryMonitor.h"
 
 
 /**
@@ -63,9 +63,8 @@ public:
   vtkGetObjectMacro( MRMLNode, vtkMRMLPerkStationModuleNode );
   vtkSetObjectMacro( MRMLNode, vtkMRMLPerkStationModuleNode );
   
-  vtkPerkStationSecondaryMonitor* GetSecondaryMonitor() {
-    return this->SecondaryMonitor.GetPointer();
-  }
+  
+  vtkPerkStationSecondaryMonitor* GetSecondaryMonitor();
   
   vtkKWWizardWidget* GetWizardWidget();
   
