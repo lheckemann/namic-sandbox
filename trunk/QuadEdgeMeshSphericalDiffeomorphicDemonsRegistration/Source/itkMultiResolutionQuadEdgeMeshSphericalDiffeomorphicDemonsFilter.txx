@@ -437,9 +437,11 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     throw excp;
     }
 
-  this->m_CurrentLevelFixedMesh = warpFilter->GetOutput();
+  this->m_CurrentLevelDemonsMappedFixedMesh = warpFilter->GetOutput();
 
-  this->m_CurrentLevelFixedMesh->DisconnectPipeline();
+  this->m_CurrentLevelDemonsMappedFixedMesh->DisconnectPipeline();
+
+  this->m_CurrentLevelFixedMesh = this->m_CurrentLevelDemonsMappedFixedMesh;
 
   this->m_CurrentLevelMovingMesh = this->m_NextLevelMovingMesh;
 }
