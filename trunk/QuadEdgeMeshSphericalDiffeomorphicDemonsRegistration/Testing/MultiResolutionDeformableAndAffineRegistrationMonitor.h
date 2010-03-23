@@ -27,7 +27,8 @@
  *  surfaces and use them for the visualization of the proper resolution level. 
  */
 template <class TPointSet>
-class MultiResolutionDeformableAndAffineRegistrationMonitor : public DeformableAndAffineRegistrationMonitor<TPointSet>
+class MultiResolutionDeformableAndAffineRegistrationMonitor : 
+  public DeformableAndAffineRegistrationMonitor<TPointSet>
 {
 public:
   
@@ -36,6 +37,11 @@ public:
 
   MultiResolutionDeformableAndAffineRegistrationMonitor();
   virtual ~MultiResolutionDeformableAndAffineRegistrationMonitor();
+
+  void SetNumberOfResolutionLevels( unsigned int number );
+  void SetFixedSurface(unsigned int level, vtkPolyData * surface );
+  void SetMovingSurface(unsigned int level, vtkPolyData * surface );
+  void SetResolutionLevel(unsigned int level);
 
 private:
   typedef std::vector< vtkPolyData * >     PolyDataArray;
