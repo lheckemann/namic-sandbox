@@ -52,11 +52,18 @@ public:
   typedef  TMesh                                  MeshType;
   typedef typename  MeshType::PointType           PointType;
 
-  /** Set/Get the Fixed mesh. */
+  /** Set the Fixed mesh. */
   void SetFixedMesh( const MeshType * fixedMesh );
 
-  /** Set/Get the Moving mesh. */
+  /** Set the Moving mesh. */
   void SetMovingMesh( const MeshType * movingMesh );
+
+  /** Set the Fixed mesh for a given resolution level. */
+  void SetFixedMesh( unsigned int level, const MeshType * fixedMesh );
+
+  /** Set the Moving mesh for a given resolution level. */
+  void SetMovingMesh( unsigned int level, const MeshType * movingMesh );
+
 
   /** Set Sphere Center.  The implementation of this filter assumes that the
    * Mesh surface has a spherical geometry (not only spherical topology). With

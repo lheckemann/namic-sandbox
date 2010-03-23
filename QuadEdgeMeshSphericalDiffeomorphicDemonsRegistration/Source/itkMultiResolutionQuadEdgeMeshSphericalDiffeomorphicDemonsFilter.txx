@@ -43,10 +43,10 @@ template< class TMesh >
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter()
 {
-  this->SetNumberOfInputs( 2 );
+  this->SetNumberOfInputs( 8 ); // four resolution levels, two meshes on each
   this->SetNumberOfOutputs( 1 );
 
-  this->SetNumberOfRequiredInputs( 2 );
+  this->SetNumberOfRequiredInputs( 8 ); // four resolution levels, two meshes on each
   this->SetNumberOfRequiredOutputs( 1 );
 
   this->SetNthOutput( 0, TMesh::New() );
@@ -114,6 +114,39 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->Modified();
 }
+
+
+template< class TMesh >
+void
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::SetFixedMesh( unsigned int level, const MeshType * fixedMesh )
+{
+  itkDebugMacro("setting Fixed Mesh to " << fixedMesh );
+
+  const unsigned int inputNumber = 2 * level;
+
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput( inputNumber, const_cast< MeshType *>( fixedMesh ) );
+
+  this->Modified();
+}
+
+
+template< class TMesh >
+void
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::SetMovingMesh( unsigned int level, const MeshType * movingMesh )
+{
+  itkDebugMacro("setting Moving Mesh to " << movingMesh );
+
+  const unsigned int inputNumber = 2 * level + 1;
+
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(inputNumber, const_cast< MeshType *>( movingMesh ) );
+
+  this->Modified();
+}
+
 
 
 template< class TMesh >
