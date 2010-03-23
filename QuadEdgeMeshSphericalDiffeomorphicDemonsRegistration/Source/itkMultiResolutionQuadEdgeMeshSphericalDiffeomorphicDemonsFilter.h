@@ -176,15 +176,14 @@ private:
 
   typename RigidOptimizerType::Pointer  m_RigidOptimizer;
 
-  typename MeshType::Pointer   m_CurrentLevelFixedMesh;
-  typename MeshType::Pointer   m_CurrentLevelMovingMesh;
+  typename MeshType::ConstPointer   m_CurrentLevelFixedMesh;
+  typename MeshType::ConstPointer   m_CurrentLevelMovingMesh;
 
-  typename MeshType::Pointer   m_CurrentLevelRigidlyMappedFixedMesh;
-  typename MeshType::Pointer   m_CurrentLevelDemonsMappedFixedMesh;
+  typename MeshType::Pointer        m_CurrentLevelRigidlyMappedFixedMesh;
+  typename MeshType::Pointer        m_CurrentLevelDemonsMappedFixedMesh;
 
-
-  typename MeshType::Pointer   m_NextLevelFixedMesh;
-  typename MeshType::Pointer   m_NextLevelMovingMesh;
+  typename MeshType::ConstPointer   m_NextLevelFixedMesh;
+  typename MeshType::ConstPointer   m_NextLevelMovingMesh;
 
   typename DemonsRegistrationFilterType::Pointer   m_DemonsRegistrationFilter;
 
