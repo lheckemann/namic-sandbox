@@ -51,6 +51,7 @@ public:
   /** Input types. */
   typedef TFixedMesh                                        FixedMeshType;
   typedef TMovingMesh                                       MovingMeshType;
+  typedef typename  FixedMeshType::Pointer                  FixedMeshPointer;
   typedef typename  FixedMeshType::ConstPointer             FixedMeshConstPointer;
   typedef typename  FixedMeshType::PointType                PointType;
   typedef typename  FixedMeshType::PixelType                FixedPixelType;
@@ -292,6 +293,7 @@ private:
 
   MovingMeshConstPointer                m_MovingMesh;
   FixedMeshConstPointer                 m_FixedMesh;
+  FixedMeshPointer                      m_FixedMeshAtInitialDestinationPoints;
 
   /** This is the Array of "Qn" matrices 
    *  presented in equation 3.14 in the paper. */
