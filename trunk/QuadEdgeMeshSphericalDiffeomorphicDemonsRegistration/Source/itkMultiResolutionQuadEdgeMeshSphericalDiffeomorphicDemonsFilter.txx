@@ -231,8 +231,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 {
   this->m_CurrentResolutionLevel = 0;
 
-  TMesh * fixedMesh  = static_cast<MeshType *>(this->ProcessObject::GetInput( 0 ));
-  TMesh * movingMesh = static_cast<MeshType *>(this->ProcessObject::GetInput( 1 ));
+  const TMesh * fixedMesh  = dynamic_cast<MeshType *>(this->ProcessObject::GetInput( 0 ));
+  const TMesh * movingMesh = dynamic_cast<MeshType *>(this->ProcessObject::GetInput( 1 ));
 
   this->m_CurrentLevelFixedMesh = fixedMesh;
   this->m_CurrentLevelMovingMesh = movingMesh;
@@ -255,8 +255,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   // 
   //   Prepare meshes for next resolution level
   // 
-  TMesh * fixedMesh  = static_cast<MeshType *>(this->ProcessObject::GetInput( fixedInput ));
-  TMesh * movingMesh = static_cast<MeshType *>(this->ProcessObject::GetInput( movingInput ));
+  const TMesh * fixedMesh  = dynamic_cast<MeshType *>(this->ProcessObject::GetInput( fixedInput ));
+  const TMesh * movingMesh = dynamic_cast<MeshType *>(this->ProcessObject::GetInput( movingInput ));
 
 std::cout << "fixedInput = " << fixedInput << std::endl;
 std::cout << "movingInput = " << movingInput << std::endl;
@@ -273,6 +273,8 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::ComputeRigidRegistration()
 {
+  this->m_RigidTransform->SetIdentity();
+  
 #ifdef USE_VTK
   this->m_RegistrationMonitor->SetResolutionLevel( this->m_CurrentResolutionLevel );
   this->m_RegistrationMonitor->Observe( this->GetRigidOptimizer() );
@@ -306,8 +308,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   typedef typename TransformType::ParametersType         ParametersType;
   ParametersType parameters( numberOfTransformParameters );
 
-  this->m_RigidTransform->SetIdentity();
-  
   parameters = this->m_RigidTransform->GetParameters();
 
   registration->SetInitialTransformParameters( parameters );

@@ -187,7 +187,7 @@ private:
 
   typename DemonsRegistrationFilterType::Pointer   m_DemonsRegistrationFilter;
 
-  typename DestinationPointSetType::Pointer    m_FinalDestinationPoints;
+  typename DestinationPointSetType::ConstPointer    m_FinalDestinationPoints;
 
 #ifdef USE_VTK
   RegistrationMonitorType  *   m_RegistrationMonitor;
