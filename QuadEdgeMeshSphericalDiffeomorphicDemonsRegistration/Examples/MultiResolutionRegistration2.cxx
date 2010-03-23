@@ -110,9 +110,6 @@ int main( int argc, char * argv [] )
 
   visualMonitor.SetBaseAnnotationText("Rigid Registration Level 1");
 
-  visualMonitor.Observe( multiResDemonsFilter->GetRigidOptimizer() );
-  visualMonitor.ObserveData( multiResDemonsFilter->GetRigidTransform() );
-
   visualMonitor.SetVerbose( false );
   visualMonitor.SetScreenShotsBaseFileName( argv[16] );
 
@@ -133,8 +130,9 @@ int main( int argc, char * argv [] )
   visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
   visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
 
-  //  visualMonitor.Observe( multiResDemonsFilter->GetDemonsRegistrationFilter() );
-  //  visualMonitor.ObserveData( multiResDemonsFilter->GetCurrentDestinationPoints() );
+  multiResDemonsFilter->SetRegistrationMonitor( &visualMonitor );
+
+
 #endif
 
   try

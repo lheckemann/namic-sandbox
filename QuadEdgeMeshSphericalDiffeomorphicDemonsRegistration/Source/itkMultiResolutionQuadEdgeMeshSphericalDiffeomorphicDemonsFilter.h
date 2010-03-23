@@ -23,6 +23,11 @@
 #include "itkVersorTransformOptimizer.h"
 #include "itkVersorTransform.h"
 
+#ifdef USE_VTK
+#include "DeformableAndAffineRegistrationMonitor.h"
+#endif
+
+
 namespace itk
 {
 template< class TMesh >
@@ -95,6 +100,14 @@ public:
   typedef typename PointsContainer::Pointer           PointsContainerPointer;
   typedef typename MeshType::PointsContainerIterator  PointsContainerIterator;
 
+#ifdef USE_VTK
+  typedef DeformableAndAffineRegistrationMonitor< DestinationPointSetType >  RegistrationMonitorType;
+
+  void SetRegistrationMonitor( RegistrationMonitorType * monitor )
+    {
+    this->m_RegistrationMonitor = monitor;
+    }
+#endif
 
 protected:
   MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -138,6 +151,10 @@ private:
   typename MeshType::Pointer   m_CurrentLevelMovingMesh;
 
   typename DemonsRegistrationFilterType::Pointer   m_DemonsRegistrationFilter;
+
+#ifdef USE_VTK
+  RegistrationMonitorType  *   m_RegistrationMonitor;
+#endif
 };
 
 }

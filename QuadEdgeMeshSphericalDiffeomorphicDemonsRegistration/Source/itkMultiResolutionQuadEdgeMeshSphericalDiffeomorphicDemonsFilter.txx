@@ -144,6 +144,11 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::ComputeRigidRegistration()
 {
+#ifdef USE_VTK
+  this->m_RegistrationMonitor->Observe( this->GetRigidOptimizer() );
+  this->m_RegistrationMonitor->ObserveData( this->GetRigidTransform() );
+#endif
+
   typedef itk::MeshToMeshRegistrationMethod< MeshType, MeshType >    RegistrationType;
 
   typedef itk::MeanSquaresMeshToMeshMetric< MeshType, MeshType >   MetricType;
@@ -236,6 +241,11 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::ComputeDemonsRegistration()
 {
+#ifdef USE_VTK
+  this->m_RegistrationMonitor->Observe( this->GetDemonsRegistrationFilter() );
+  this->m_RegistrationMonitor->ObserveData( this->GetCurrentDestinationPoints() );
+#endif
+
   this->m_DemonsRegistrationFilter->SetFixedMesh( this->m_CurrentLevelFixedMesh );
   this->m_DemonsRegistrationFilter->SetMovingMesh( this->m_CurrentLevelMovingMesh );
 
