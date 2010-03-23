@@ -62,6 +62,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_CurrentLevelFixedMesh = MeshType::New();
   this->m_CurrentLevelMovingMesh = MeshType::New();
 
+  this->m_CurrentLevelRigidlyMappedFixedMesh = MeshType::New();
+
   this->m_DemonsRegistrationFilter = DemonsRegistrationFilterType::New();
 
   this->m_CurrentResolutionLevel = 0;
@@ -341,7 +343,11 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::RigidlyTransformPointsOfFixedMesh()
 {
-  PointsContainer * fixedPoints = this->m_CurrentLevelFixedMesh->GetPoints();
+  this->m_CurrentLevelRigidlyMappedFixedMesh = MeshType::New();
+
+  this->CopyMeshToMesh( this->m_CurrentLevelFixedMesh, this->m_CurrentLevelRigidlyMappedFixedMesh  );
+
+  PointsContainer * fixedPoints = this->m_CurrentLevelRigidlyMappedFixedMesh->GetPoints();
 
   PointsContainerIterator fixedPointItr = fixedPoints->Begin();
   PointsContainerIterator fixedPointEnd = fixedPoints->End();
@@ -352,6 +358,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
       this->m_RigidTransform->TransformPoint( fixedPointItr.Value() ) );
     ++fixedPointItr;
     }
+
+  this->m_CurrentLevelRigidlyMappedFixedMesh->Modified();
 }
 
 
@@ -365,7 +373,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_RegistrationMonitor->ObserveData( this->GetCurrentDestinationPoints() );
 #endif
 
-  this->m_DemonsRegistrationFilter->SetFixedMesh( this->m_CurrentLevelFixedMesh );
+  this->m_DemonsRegistrationFilter->SetFixedMesh( this->m_CurrentLevelRigidlyMappedFixedMesh );
   this->m_DemonsRegistrationFilter->SetMovingMesh( this->m_CurrentLevelMovingMesh );
 
   std::cout << "STARTING DEMONS" << std::endl;
