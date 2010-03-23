@@ -47,6 +47,7 @@ public:
 
   void ObserveData( const PointSetType * destinationPointSet );
   void ObserveData( const TransformType * transform );
+  void ObserveData( const TransformType * transform, const PointSetType * destinationPointSet );
 
 protected:
 
@@ -57,11 +58,16 @@ private:
   typedef enum 
     {
     AFFINE,
-    DEFORMABLE
+    DEFORMABLE,
+    AFFINEANDDEFORMABLE
     }  RegistrationModeType;
 
   void AffineUpdateDataBeforeRendering();
   void DeformableUpdateDataBeforeRendering();
+  void AffineAndDeformableUpdateDataBeforeRendering();
+
+  void CopyPointLocationsToFixedSurface();
+  void CopyFixedSurfaceMatrix();
 
   typename PointSetType::ConstPointer   ObservedPointSet;
 

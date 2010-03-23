@@ -59,6 +59,17 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
 }
 
 
+/** Set the objects to be observed: optimizer and transform */
+template <class TPointSet>
+void DeformableAndAffineRegistrationMonitor<TPointSet>
+::ObserveData( const TransformType * transform, const PointSetType * destinationPointSet )
+{
+  this->ObservedTransform = transform;
+  this->ObservedPointSet = destinationPointSet;
+  this->RegistrationMode = AFFINEANDDEFORMABLE;
+}
+
+
 /** Update the Visualization */
 template <class TPointSet>
 void DeformableAndAffineRegistrationMonitor<TPointSet>
@@ -76,6 +87,11 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
       this->DeformableUpdateDataBeforeRendering();
       break;
       }
+    case AFFINEANDDEFORMABLE:
+      {
+      this->AffineAndDeformableUpdateDataBeforeRendering();
+      break;
+      }
     }
 }
 
@@ -84,6 +100,29 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
 template <class TPointSet>
 void DeformableAndAffineRegistrationMonitor<TPointSet>
 ::DeformableUpdateDataBeforeRendering()
+{
+  this->CopyPointLocationsToFixedSurface();
+
+  // Reset the Actor transform given that the surface has been resampled.
+  this->Matrix->Identity();
+  this->SetFixedActorMatrix( this->Matrix );
+}
+
+
+/** Update the Visualization */
+template <class TPointSet>
+void DeformableAndAffineRegistrationMonitor<TPointSet>
+::AffineAndDeformableUpdateDataBeforeRendering()
+{
+  this->CopyPointLocationsToFixedSurface();
+  this->CopyFixedSurfaceMatrix();
+}
+
+
+/** Update the Visualization */
+template <class TPointSet>
+void DeformableAndAffineRegistrationMonitor<TPointSet>
+::CopyPointLocationsToFixedSurface()
 {
   typedef typename PointSetType::PointsContainer    PointsContainer;
   typedef typename PointsContainer::ConstIterator   PointsIterator;
@@ -136,10 +175,6 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
     ++pointId;
     }
 
-  // Reset the Actor transform given that the surface has been resampled.
-  this->Matrix->Identity();
-  this->SetFixedActorMatrix( this->Matrix );
-
   this->MarkFixedSurfaceAsModified();
 }
 
@@ -148,6 +183,15 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
 template <class TPointSet>
 void DeformableAndAffineRegistrationMonitor<TPointSet>
 ::AffineUpdateDataBeforeRendering()
+{
+  this->CopyFixedSurfaceMatrix();
+}
+
+
+/** Update the Visualization */
+template <class TPointSet>
+void DeformableAndAffineRegistrationMonitor<TPointSet>
+::CopyFixedSurfaceMatrix()
 {
   TransformType::MatrixType matrix = 
     this->ObservedTransform->GetMatrix();
