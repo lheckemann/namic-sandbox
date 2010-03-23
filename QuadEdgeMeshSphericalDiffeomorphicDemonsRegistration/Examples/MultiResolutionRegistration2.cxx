@@ -36,7 +36,7 @@
 int main( int argc, char * argv [] )
 {
 
-  if( argc < 17 )
+  if( argc < 13 )
     {
     std::cerr << "Missing arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
@@ -180,7 +180,7 @@ int main( int argc, char * argv [] )
   visualMonitor.SetBaseAnnotationText("Rigid Registration Level 1");
 
   visualMonitor.SetVerbose( false );
-  visualMonitor.SetScreenShotsBaseFileName( argv[16] );
+  visualMonitor.SetScreenShotsBaseFileName( argv[12] );
 
   visualMonitor.SetScalarRange( -0.1, 0.1 );
 

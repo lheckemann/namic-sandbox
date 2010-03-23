@@ -268,16 +268,12 @@ ADD_TEST(MultiResRegistration2_${MESHID1}_${MESHID2}
   ${CXX_TEST_PATH}/MultiResolutionRegistration2
   ${FIXEDMESH1}
   ${MOVINGMESH1}
-  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC4.vtk
   ${FIXEDMESH2}
   ${MOVINGMESH2}
-  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC5.vtk
   ${FIXEDMESH3}
   ${MOVINGMESH3}
-  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC6.vtk
   ${FIXEDMESH4}
   ${MOVINGMESH4}
-  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC7.vtk
   ${FIXEDMESHFINAL}
   ${MOVINGMESHFINAL}
   ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_Final.vtk
