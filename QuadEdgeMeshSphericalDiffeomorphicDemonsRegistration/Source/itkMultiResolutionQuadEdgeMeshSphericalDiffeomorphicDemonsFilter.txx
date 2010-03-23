@@ -430,8 +430,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   // Create the new destination points for the following iteration
   this->m_DemonsRegistrationFilter->MakeOutput(2);
 
-    // DELETE THIS LINE: currentDestinationPoints = this->m_CurrentLevelRigidlyMappedFixedMesh; // FIXME this is a temporary short-circuit.
-
   warpFilter->SetDestinationPoints( currentDestinationPoints );
 
   warpFilter->SetSphereRadius( this->m_SphereRadius );
@@ -450,33 +448,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_CurrentLevelDemonsMappedFixedMesh = warpFilter->GetOutput();
 
   this->m_CurrentLevelDemonsMappedFixedMesh->DisconnectPipeline();
-
-std::cout << "destination  point 0 = " << currentDestinationPoints->GetPoints()->ElementAt(0) << std::endl;
-std::cout << "currentlevel point 0 = " << this->m_CurrentLevelFixedMesh->GetPoints()->ElementAt(0) << std::endl;
-std::cout << "nextlevel    point 0 = " << this->m_NextLevelFixedMesh->GetPoints()->ElementAt(0) << std::endl;
-std::cout << "mapped       point 0 = " << this->m_CurrentLevelDemonsMappedFixedMesh->GetPoints()->ElementAt(0) << std::endl;
-
-// DEBUG
-  double largestDistance = 0.0;
-  PointsContainerIterator destinationItr = currentDestinationPoints->GetPoints()->Begin();
-  PointsContainerIterator destinationEnd = currentDestinationPoints->GetPoints()->End();
-  PointsContainerIterator mappedItr = this->m_CurrentLevelDemonsMappedFixedMesh->GetPoints()->Begin();
-  while( destinationItr != destinationEnd )
-    {
-    const double distance = destinationItr.Value().EuclideanDistanceTo( mappedItr.Value() );
-    if( distance > 1.0 )
-      {
-      std::cerr << "Error in " << destinationItr.Value() << " mapped to " << mappedItr.Value() << std::endl;
-      }
-    if( distance > largestDistance )
-      {
-      largestDistance = distance;
-      }
-    ++mappedItr;
-    ++destinationItr;
-    }
-std::cout << "LARGEST DISTANCE = " << largestDistance << std::endl;
-// DEBUG
 
   this->m_CurrentLevelFixedMesh = this->m_CurrentLevelDemonsMappedFixedMesh;
 
