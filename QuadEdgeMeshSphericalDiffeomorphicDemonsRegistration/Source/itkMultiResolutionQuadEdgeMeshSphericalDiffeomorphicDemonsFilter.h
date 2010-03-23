@@ -144,6 +144,10 @@ private:
   /** Configure the meshs to be used for the coarsest resolution */
   void PrepareCoarsestResolutionMeshes();
 
+  /** Setup initial parameters of internal classes */
+  void InitializeRigidRegistrationParameters();
+  void InitializeDemonsRegistrationParameters();
+
   /** Deforme the next resolution level fixed mesh by using the destination
    * points from the current resolution level demons registration. */
   void DeformNextResolutionLevelFixedMesh();
