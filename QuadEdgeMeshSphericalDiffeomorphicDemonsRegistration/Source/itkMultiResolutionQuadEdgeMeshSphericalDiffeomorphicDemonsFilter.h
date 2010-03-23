@@ -24,7 +24,7 @@
 #include "itkVersorTransform.h"
 
 #ifdef USE_VTK
-#include "DeformableAndAffineRegistrationMonitor.h"
+#include "MultiResolutionDeformableAndAffineRegistrationMonitor.h"
 #endif
 
 
@@ -108,7 +108,7 @@ public:
   typedef typename MeshType::PointsContainerIterator  PointsContainerIterator;
 
 #ifdef USE_VTK
-  typedef DeformableAndAffineRegistrationMonitor< DestinationPointSetType >  RegistrationMonitorType;
+  typedef MultiResolutionDeformableAndAffineRegistrationMonitor< DestinationPointSetType >  RegistrationMonitorType;
 
   void SetRegistrationMonitor( RegistrationMonitorType * monitor )
     {
