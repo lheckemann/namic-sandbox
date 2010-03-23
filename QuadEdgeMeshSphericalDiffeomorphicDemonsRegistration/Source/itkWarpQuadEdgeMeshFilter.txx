@@ -29,7 +29,7 @@ template< class TInputMesh, class TReferenceMesh, class TDestinationPoints >
 WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
 ::WarpQuadEdgeMeshFilter()
 {
-  this->SetNumberOfRequiredInputs( 2 );
+  this->SetNumberOfRequiredInputs( 3 );
   this->SetNumberOfRequiredOutputs( 1 );
   this->SetNumberOfOutputs( 1 );
 
