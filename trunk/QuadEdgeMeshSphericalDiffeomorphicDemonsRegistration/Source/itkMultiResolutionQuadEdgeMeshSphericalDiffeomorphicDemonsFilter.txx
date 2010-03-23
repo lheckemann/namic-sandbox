@@ -63,6 +63,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_CurrentLevelMovingMesh = MeshType::New();
 
   this->m_DemonsRegistrationFilter = DemonsRegistrationFilterType::New();
+
+  this->m_CurrentResolutionLevel = 0;
 }
 
 
@@ -159,7 +161,10 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->ComputeRigidRegistration();
   this->RigidlyTransformPointsOfFixedMesh();
   this->ComputeDemonsRegistration();
+  this->PrepareNextResolutionLevelMeshes();
   this->DeformNextResolutionLevelFixedMesh();
+
+  this->m_CurrentResolutionLevel++;
 }
 
 
@@ -168,6 +173,8 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::PrepareCoarsestResolutionMeshes()
 {
+  this->m_CurrentResolutionLevel = 0;
+
   TMesh * fixedMesh  = static_cast<MeshType *>(this->ProcessObject::GetInput( 0 ));
   TMesh * movingMesh = static_cast<MeshType *>(this->ProcessObject::GetInput( 1 ));
 
@@ -176,6 +183,28 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->CopyMeshToMesh( fixedMesh,  this->m_CurrentLevelFixedMesh  );
   this->CopyMeshToMesh( movingMesh, this->m_CurrentLevelMovingMesh );
+}
+
+
+template< class TMesh >
+void
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::PrepareNextResolutionLevelMeshes()
+{
+  const unsigned int fixedInput  = ( this->m_CurrentResolutionLevel + 1 ) * 2;
+  const unsigned int movingInput = ( this->m_CurrentResolutionLevel + 1 ) * 2 + 1;
+
+  // 
+  //   Prepare meshes for next resolution level
+  // 
+  TMesh * fixedMesh  = static_cast<MeshType *>(this->ProcessObject::GetInput( fixedInput ));
+  TMesh * movingMesh = static_cast<MeshType *>(this->ProcessObject::GetInput( movingInput ));
+
+  this->m_NextLevelFixedMesh = MeshType::New();
+  this->m_NextLevelMovingMesh = MeshType::New();
+
+  this->CopyMeshToMesh( fixedMesh,  this->m_NextLevelFixedMesh  );
+  this->CopyMeshToMesh( movingMesh, this->m_NextLevelMovingMesh );
 }
 
 
@@ -319,55 +348,6 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::DeformNextResolutionLevelFixedMesh()
 {
-  typedef ResampleDestinationPointsQuadEdgeMeshFilter< 
-    DestinationPointSetType, MeshType, 
-    MeshType, DestinationPointSetType > UpsampleDestinationPointsFilterType;
-
-  typename UpsampleDestinationPointsFilterType::Pointer upsampleDestinationPoints = 
-    UpsampleDestinationPointsFilterType::New();
-
-  upsampleDestinationPoints->SetSphereCenter( this->m_SphereCenter );
-  upsampleDestinationPoints->SetSphereRadius( this->m_SphereRadius );
-
-  typename DestinationPointSetType::Pointer destinationPoints = 
-    this->m_DemonsRegistrationFilter->GetFinalDestinationPoints();
-
-  destinationPoints->DisconnectPipeline();
-
-  upsampleDestinationPoints->SetInput( destinationPoints );
-
-  TMesh * fixedMesh1 = static_cast<MeshType *>(this->ProcessObject::GetInput( 0 ));
-  TMesh * fixedMesh2 = static_cast<MeshType *>(this->ProcessObject::GetInput( 2 ));
-
-  upsampleDestinationPoints->SetFixedMesh( fixedMesh1 );
-  upsampleDestinationPoints->SetReferenceMesh( fixedMesh2 );
-
-  upsampleDestinationPoints->SetTransform( IdentityTransform<double>::New() );
-
-  try
-    {
-    upsampleDestinationPoints->Update();
-    }
-  catch( ExceptionObject & excp )
-    {
-    std::cerr << excp << std::endl;
-    throw excp;
-    }
-
-
-  // 
-  //   Prepare meshes for next resolution level
-  // 
-  TMesh * fixedMesh  = static_cast<MeshType *>(this->ProcessObject::GetInput( 2 ));
-  TMesh * movingMesh = static_cast<MeshType *>(this->ProcessObject::GetInput( 3 ));
-
-  this->m_NextLevelFixedMesh = MeshType::New();
-  this->m_NextLevelMovingMesh = MeshType::New();
-
-  this->CopyMeshToMesh( fixedMesh,  this->m_NextLevelFixedMesh  );
-  this->CopyMeshToMesh( movingMesh, this->m_NextLevelMovingMesh );
-
-
   //
   //   Deform fixed new mesh using current fixed mesh and destination points
   //
@@ -378,8 +358,12 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   warpFilter->SetInput( this->m_NextLevelFixedMesh );
   warpFilter->SetReferenceMesh( this->m_CurrentLevelFixedMesh );
 
-  warpFilter->SetDestinationPoints( 
-    this->m_DemonsRegistrationFilter->GetFinalDestinationPoints() );
+  typename DestinationPointSetType::Pointer currentDestinationPoints =
+    this->m_DemonsRegistrationFilter->GetFinalDestinationPoints();
+
+  currentDestinationPoints->DisconnectPipeline();
+
+  warpFilter->SetDestinationPoints( currentDestinationPoints );
 
   warpFilter->SetSphereRadius( this->m_SphereRadius );
   warpFilter->SetSphereCenter( this->m_SphereCenter );
