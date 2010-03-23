@@ -139,6 +139,10 @@ private:
   /** Configure the meshs to be used for the coarsest resolution */
   void PrepareCoarsestResolutionMeshes();
 
+  /** Deforme the next resolution level fixed mesh by using the destination
+   * points from the current resolution level demons registration. */
+  void DeformNextResolutionLevelFixedMesh();
+
   /** Center of spherical mesh. We assume that both the Fixed and
    * Moving meshes have spherical geometry and that they share the same
    * center and radius. */
