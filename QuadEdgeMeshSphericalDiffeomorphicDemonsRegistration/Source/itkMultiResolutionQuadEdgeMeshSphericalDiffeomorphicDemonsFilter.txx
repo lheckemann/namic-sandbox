@@ -158,6 +158,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->ComputeRigidRegistration();
   this->RigidlyTransformPointsOfFixedMesh();
   this->ComputeDemonsRegistration();
+  this->DeformNextResolutionLevelFixedMesh();
 }
 
 
@@ -190,9 +191,9 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_RegistrationMonitor->ObserveData( this->GetRigidTransform() );
 #endif
 
-  typedef itk::MeshToMeshRegistrationMethod< MeshType, MeshType >    RegistrationType;
+  typedef MeshToMeshRegistrationMethod< MeshType, MeshType >    RegistrationType;
 
-  typedef itk::MeanSquaresMeshToMeshMetric< MeshType, MeshType >   MetricType;
+  typedef MeanSquaresMeshToMeshMetric< MeshType, MeshType >   MetricType;
 
   typename RegistrationType::Pointer   registration  = RegistrationType::New();
 
@@ -205,7 +206,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   registration->SetTransform( this->m_RigidTransform );
 
-  typedef itk::LinearInterpolateMeshFunction< MeshType > InterpolatorType;
+  typedef LinearInterpolateMeshFunction< MeshType > InterpolatorType;
 
   typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
@@ -245,7 +246,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     {
     registration->StartRegistration();
     }
-  catch( itk::ExceptionObject & e )
+  catch( ExceptionObject & e )
     {
     std::cerr << "Registration failed" << std::endl;
     std::cerr << "Reason " << e << std::endl;
@@ -307,11 +308,54 @@ std::cout << "STARTING DEMONS" << std::endl;
     {
     this->m_DemonsRegistrationFilter->Update();
     }
-  catch( itk::ExceptionObject & exp )
+  catch( ExceptionObject & exp )
     {
     std::cerr << exp << std::endl;
     throw exp;
     }
+}
+
+
+template< class TMesh >
+void
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::DeformNextResolutionLevelFixedMesh()
+{
+  typedef ResampleDestinationPointsQuadEdgeMeshFilter< 
+    DestinationPointSetType, MeshType, 
+    MeshType, DestinationPointSetType > UpsampleDestinationPointsFilterType;
+
+  typename UpsampleDestinationPointsFilterType::Pointer upsampleDestinationPoints = 
+    UpsampleDestinationPointsFilterType::New();
+
+  upsampleDestinationPoints->SetSphereCenter( this->m_SphereCenter );
+  upsampleDestinationPoints->SetSphereRadius( this->m_SphereRadius );
+
+  typename DestinationPointSetType::Pointer destinationPoints = 
+    this->m_DemonsRegistrationFilter->GetFinalDestinationPoints();
+
+  destinationPoints->DisconnectPipeline();
+
+  upsampleDestinationPoints->SetInput( destinationPoints );
+
+  TMesh * fixedMesh1 = static_cast<MeshType *>(this->ProcessObject::GetInput( 0 ));
+  TMesh * fixedMesh2 = static_cast<MeshType *>(this->ProcessObject::GetInput( 2 ));
+
+  upsampleDestinationPoints->SetFixedMesh( fixedMesh1 );
+  upsampleDestinationPoints->SetReferenceMesh( fixedMesh2 );
+
+  upsampleDestinationPoints->SetTransform( IdentityTransform<double>::New() );
+
+  try
+    {
+    upsampleDestinationPoints->Update();
+    }
+  catch( ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    throw excp;
+    }
+
 }
 
 
