@@ -121,6 +121,18 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::GenerateData()
 {
+  this->PrepareCoarsestResolutionMeshes();
+  this->ComputeRigidRegistration();
+  this->RigidlyTransformPointsOfFixedMesh();
+  this->ComputeDemonsRegistration();
+}
+
+
+template< class TMesh >
+void
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::PrepareCoarsestResolutionMeshes()
+{
   TMesh * fixedMesh  = static_cast<MeshType *>(this->ProcessObject::GetInput( 0 ));
   TMesh * movingMesh = static_cast<MeshType *>(this->ProcessObject::GetInput( 1 ));
 
@@ -132,10 +144,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_CurrentLevelFixedMesh = fixedMesh;
   this->m_CurrentLevelMovingMesh = movingMesh;
-
-  this->ComputeRigidRegistration();
-  this->RigidlyTransformPointsOfFixedMesh();
-  this->ComputeDemonsRegistration();
 }
 
 
