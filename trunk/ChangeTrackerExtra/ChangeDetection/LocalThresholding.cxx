@@ -65,8 +65,8 @@
 #define SWIDTH 6 // (SWIDTH+CWIDTH)*2+1 is the total number of points sampled o
 #define CENTERPT (CWIDTH+SWIDTH)
 #define LINESPACING .25
-#define SAVE_LINE_PROFILES 1
-#define DECIMATION_CONST .1
+#define SAVE_LINE_PROFILES 0
+#define DECIMATION_CONST 1
 #define NCCTHRESHOLD .1
 
   // Define the dimension of the images
@@ -139,8 +139,10 @@
 void ShiftVector(std::vector<PixelType>&, int);
 vtkPolyData* ITKMesh2PolyData(MeshType::Pointer);
 void PrintSurfaceStatistics(vtkPolyData*);
-vtkFloatArray* SmoothVectors(MeshType::Pointer,vtkFloatArray*);
+vtkFloatArray* SmoothVMF(MeshType::Pointer,vtkFloatArray*);
+vtkFloatArray* SmoothVDF(MeshType::Pointer,vtkFloatArray*);
 float SurfaceVolume(vtkPolyData*);
+void WriteMesh(MeshType::Pointer, const char*);
 
 int main(int argc, char **argv){
 
@@ -284,7 +286,8 @@ int main(int argc, char **argv){
   std::cout << "Decimated surface points: " << dMesh->GetPoints()->Size() << std::endl;
   std::cout << "Decimated surface cells: " << dMesh->GetCells()->Size() << std::endl;
 
- 
+  WriteMesh(dMesh, "decimated_mesh.vtk");
+
   /*
    * Uncomment this code to reproduce the problem generating normals
    */
@@ -395,12 +398,17 @@ int main(int argc, char **argv){
       imagePt[0] = point[0]+normal[0]*step*sampling;
       imagePt[1] = point[1]+normal[1]*step*sampling;
       imagePt[2] = point[2]+normal[2]*step*sampling;
-      mask->TransformPhysicalPointToContinuousIndex(imagePt,imageContIdx);
-      mask->TransformPhysicalPointToIndex(imagePt,imageIdx);
 
       ImageType::PixelType v1, v2;
-      v1 = interp1->EvaluateAtContinuousIndex(imageContIdx);
-      v2 = interp2->EvaluateAtContinuousIndex(imageContIdx);
+      if(!mask->TransformPhysicalPointToIndex(imagePt,imageIdx)){
+        std::cerr << "Point maps outside image!" << std::endl;
+        abort();
+      } else {
+        mask->TransformPhysicalPointToContinuousIndex(imagePt,imageContIdx);
+        v1 = interp1->EvaluateAtContinuousIndex(imageContIdx);
+        v2 = interp2->EvaluateAtContinuousIndex(imageContIdx);
+      }
+
       profile1.push_back(v1);
       profile2.push_back(v2);
       dprofile1.push_back(v1);      
@@ -514,13 +522,15 @@ int main(int argc, char **argv){
   std::nth_element(dnccRanked.begin(), dnccThreshIt, dnccRanked.end());
   std::cout << "dNCC threshold value: " << *dnccThreshIt << std::endl;
 
-//  std::cout << "Smoothing displacements...";
-//  vtkFloatArray* dnccShiftArraySmooth = SmoothVectors(mesh, dnccShiftArray);
-//  std::cout << "done" << std::endl;
+  std::cout << "Smoothing displacements...";
+  vtkFloatArray* dnccShiftArraySmooth = SmoothVMF(mesh, dnccShiftArray);
+  std::cout << "done" << std::endl;
 
   for(unsigned i=0;i<mesh->GetPoints()->Size();i++)
-    if(dnccArray->GetTuple1(i) < (*dnccThreshIt))
+    if(dnccArray->GetTuple1(i) < (*dnccThreshIt)){
       dnccShiftArray->InsertTuple3(i, 0, 0, 0);
+//      dnccShiftArraySmooth->InsertTuple3(i, 0, 0, 0);
+    }
 
   // convert itk mesh to vtk polydata, save into file together with the
   // surface displacements
@@ -534,8 +544,8 @@ int main(int argc, char **argv){
   nccShiftArray->Delete();
   vtksurf->GetPointData()->AddArray(dnccShiftArray);
   dnccShiftArray->Delete();
-//  vtksurf->GetPointData()->AddArray(dnccShiftArraySmooth);
-//  dnccShiftArraySmooth->Delete();
+  vtksurf->GetPointData()->AddArray(dnccShiftArraySmooth);
+  dnccShiftArraySmooth->Delete();
   vtksurf->GetPointData()->AddArray(dnccArray);
   dnccArray->Delete();
   vtksurf->GetPointData()->AddArray(nccArray);
@@ -551,7 +561,7 @@ int main(int argc, char **argv){
   pdw->Update();
 
   vtkWarpVector *warper = vtkWarpVector::New();
-  vtksurf->GetPointData()->SetActiveVectors("dNCCShift");
+  vtksurf->GetPointData()->SetActiveVectors("dNCCShiftsmooth");
   warper->SetInput(vtksurf);
   warper->Update();
 
@@ -567,10 +577,10 @@ int main(int argc, char **argv){
   PrintSurfaceStatistics(vtksurf);
   std::cout << "Volume change: " << vol2-vol1 << std::endl;
 
-//  MeshWriterType::Pointer writer = MeshWriterType::New();
-//  writer->SetInput( mesh );
-//  writer->SetFileName( outputMeshName );
-//  writer->Update();
+  vtkPolyDataWriter *pdw1 = vtkPolyDataWriter::New();
+  pdw1->SetFileName("warped_mesh.vtk");
+  pdw1->SetInput(vtksurf);
+  pdw1->Update();
 
   return 0;
 
@@ -699,8 +709,11 @@ float SurfaceVolume(vtkPolyData* surf){
 /* Take the QE mesh and the array with vectors defined for each point. Iterate
  * over the neighborhood of each surface vertex, and smooth the vectors based
  * in some smoothing filter
+ *
+ * Vector Median Filter
+ *
  */
-vtkFloatArray* SmoothVectors(MeshType::Pointer mesh,vtkFloatArray* vec){
+vtkFloatArray* SmoothVMF(MeshType::Pointer mesh,vtkFloatArray* vec){
   PointsIterator pIt = mesh->GetPoints()->Begin(), pItEnd = mesh->GetPoints()->End();
   CellsIterator cIt = mesh->GetCells()->Begin(), cItEnd = mesh->GetCells()->End();
 
@@ -718,38 +731,51 @@ vtkFloatArray* SmoothVectors(MeshType::Pointer mesh,vtkFloatArray* vec){
     unsigned orig = tmp->GetOrigin();
 
     std::vector<MeshType::PointIdentifier> neighbors;
+    neighbors.push_back(orig);
     do {
       neighbors.push_back(tmp->GetDestination());      
       tmp = tmp->GetOnext();
     } while(tmp!=edge);
 
     // calculate distances from each point to each neighbor
-    unsigned nnei = neighbors.size(), i, j;
     float cumDist, minDist = 10000;
     unsigned mini = 10000;
+    unsigned nnei = neighbors.size(), i, j;
     for(i=0;i<nnei;i++){
+      MeshType::CellPixelType n1, n2;
+      vnl_vector<MeshType::CellPixelType::ComponentType> v1, v2;
+      v1.set_size(3);
+      v2.set_size(3);
+      double *v1val = vec->GetTuple3(neighbors[i]);
+      v1[0] = v1val[0];
+      v1[1] = v1val[1];
+      v1[2] = v1val[2];
+
       cumDist = 0;
       for(j=0;j<nnei;j++){
         if(i==j)
           continue;
-        MeshType::CellPixelType n1, n2;
-        mesh->GetPointData(neighbors[i], &n1);
-        mesh->GetPointData(neighbors[j], &n2);
-        cumDist += (n1-n2).GetNorm();
-//        if(pIt->Index()==142)
-//          std::cout << neighbors[i] << " to " << neighbors[j] << ": " << (n1-n2).GetNorm() << std::endl;
+        double *v2val = vec->GetTuple3(neighbors[j]);
+        v2[0] = v2val[0];
+        v2[1] = v2val[1];
+        v2[2] = v2val[2];
+        cumDist += (v1-v2).two_norm();
+//        if(pIt->Index()==778 || pIt->Index()==873)
+//          std::cout << pIt->Index() << ": " << neighbors[i] << " to " << neighbors[j] << ": " << angle(v1,v2) << std::endl;
       }
-//      if(pIt->Index()==142)
-//        std::cout << "i=" << i << ", cumDist=" << cumDist << std::endl;
+//      if(pIt->Index()==778 || pIt->Index()==873)
+//        std::cout << "i=" << i << ", cumAngle=" << cumAngle << std::endl;
       if(cumDist<minDist){
           minDist = cumDist;
           mini = i;
        }
     }
 
-    double *bestMedian = vec->GetTuple3(neighbors[mini]);
-    newVecArray->InsertTuple3(pIt->Index(), bestMedian[0], bestMedian[1], bestMedian[2]);
-      
+//    if(pIt->Index()==778 || pIt->Index()==873)
+//      std::cout << pIt->Index() << ": new value: " << neighbors[mini] << std::endl;
+    double *median = vec->GetTuple3(neighbors[mini]);    
+    newVecArray->InsertTuple3(pIt->Index(), median[0], median[1], median[2]);
+
     ++pIt;
 //    std::cout << std::endl;
   }
@@ -757,6 +783,86 @@ vtkFloatArray* SmoothVectors(MeshType::Pointer mesh,vtkFloatArray* vec){
   return newVecArray;
 }
 
+// Vector Directional Filter
+vtkFloatArray* SmoothVDF(MeshType::Pointer mesh,vtkFloatArray* vec){
+  PointsIterator pIt = mesh->GetPoints()->Begin(), pItEnd = mesh->GetPoints()->End();
+  CellsIterator cIt = mesh->GetCells()->Begin(), cItEnd = mesh->GetCells()->End();
+
+  vtkFloatArray *newVecArray = vtkFloatArray::New();
+  newVecArray->SetNumberOfComponents(3);
+  newVecArray->SetNumberOfTuples(mesh->GetPoints()->Size());
+  newVecArray->SetName((std::string(vec->GetName())+"smooth").c_str());
+
+  while(pIt!=pItEnd){
+    MeshType::QEType* edge = mesh->FindEdge(pIt->Index());
+    MeshType::QEType* tmp = edge;
+    MeshType::CellIdentifier cellId(0);
+    MeshType::PointIdentifier pointId(0);
+    MeshType::CellPixelType cellVal;
+    unsigned orig = tmp->GetOrigin();
+
+    std::vector<MeshType::PointIdentifier> neighbors;
+    neighbors.push_back(orig);
+    do {
+      neighbors.push_back(tmp->GetDestination());      
+      tmp = tmp->GetOnext();
+    } while(tmp!=edge);
+
+    // calculate angles from each point to each neighbor
+    float cumAngle, minAngle = 10000;
+    unsigned mini = 10000;
+    unsigned nnei = neighbors.size(), i, j;
+    for(i=0;i<nnei;i++){
+      MeshType::CellPixelType n1, n2;
+      vnl_vector<MeshType::CellPixelType::ComponentType> v1, v2;
+      v1.set_size(3);
+      v2.set_size(3);
+      double *v1val = vec->GetTuple3(neighbors[i]);
+      v1[0] = v1val[0];
+      v1[1] = v1val[1];
+      v1[2] = v1val[2];
+      v1.normalize();
+
+      cumAngle = 0;
+      for(j=0;j<nnei;j++){
+        if(i==j)
+          continue;
+        double *v2val = vec->GetTuple3(neighbors[j]);
+        v2[0] = v2val[0];
+        v2[1] = v2val[1];
+        v2[2] = v2val[2];
+        v2.normalize();
+        cumAngle += angle(v1,v2);
+//        if(pIt->Index()==778 || pIt->Index()==873)
+//          std::cout << pIt->Index() << ": " << neighbors[i] << " to " << neighbors[j] << ": " << angle(v1,v2) << std::endl;
+      }
+//      if(pIt->Index()==778 || pIt->Index()==873)
+//        std::cout << "i=" << i << ", cumAngle=" << cumAngle << std::endl;
+      if(cumAngle<minAngle){
+          minAngle = cumAngle;
+          mini = i;
+       }
+    }
+
+//    if(pIt->Index()==778 || pIt->Index()==873)
+//      std::cout << pIt->Index() << ": new value: " << neighbors[mini] << std::endl;
+    double *median = vec->GetTuple3(neighbors[mini]);    
+    newVecArray->InsertTuple3(pIt->Index(), median[0], median[1], median[2]);
+
+    ++pIt;
+//    std::cout << std::endl;
+  }
+
+  return newVecArray;
+}
+
+void WriteMesh(MeshType::Pointer mesh, const char* fname){
+  vtkPolyData *vtksurf = ITKMesh2PolyData(mesh);
+  vtkPolyDataWriter *pdw = vtkPolyDataWriter::New();
+  pdw->SetFileName(fname);
+  pdw->SetInput(vtksurf);
+  pdw->Update();
+}
 
 
 /* Local threshold estimation based on the neighborhood */

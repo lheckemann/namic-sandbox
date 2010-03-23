@@ -32,3 +32,6 @@ target_link_libraries(LocalThresholding ITKIO ITKStatistics ITKQuadEdgeMesh vtkI
 
 add_executable(SphereGenerator SphereGenerator.cxx)
 target_link_libraries(SphereGenerator ITKIO)
+
+add_executable(AddBlur AddBlur.cxx)
+target_link_libraries(AddBlur ITKIO)
