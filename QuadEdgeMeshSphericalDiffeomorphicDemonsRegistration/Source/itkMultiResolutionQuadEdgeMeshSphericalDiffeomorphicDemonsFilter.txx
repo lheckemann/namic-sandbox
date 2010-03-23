@@ -171,7 +171,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     this->m_CurrentResolutionLevel++;
     }
 
-  this->ReleaseResources();
 }
 
 
@@ -198,6 +197,11 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::PrepareNextResolutionLevelMeshes()
 {
+  if( this->m_CurrentResolutionLevel + 1 == this->m_NumberOfResolutionLevels )
+    {
+    return;
+    }
+
   const unsigned int fixedInput  = ( this->m_CurrentResolutionLevel + 1 ) * 2;
   const unsigned int movingInput = ( this->m_CurrentResolutionLevel + 1 ) * 2 + 1;
 
@@ -365,6 +369,20 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::DeformNextResolutionLevelFixedMesh()
 {
+  typename DestinationPointSetType::Pointer currentDestinationPoints =
+    this->m_DemonsRegistrationFilter->GetFinalDestinationPoints();
+
+  currentDestinationPoints->DisconnectPipeline();
+
+  this->m_FinalDestinationPoints = currentDestinationPoints;
+
+
+  if( this->m_CurrentResolutionLevel + 1 == this->m_NumberOfResolutionLevels )
+    {
+    return;
+    }
+
+
   //
   //   Deform fixed new mesh using current fixed mesh and destination points
   //
@@ -374,11 +392,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   warpFilter->SetInput( this->m_NextLevelFixedMesh );
   warpFilter->SetReferenceMesh( this->m_CurrentLevelFixedMesh );
-
-  typename DestinationPointSetType::Pointer currentDestinationPoints =
-    this->m_DemonsRegistrationFilter->GetFinalDestinationPoints();
-
-  currentDestinationPoints->DisconnectPipeline();
 
   // Create the new destination points for the following iteration
   this->m_DemonsRegistrationFilter->MakeOutput(2);
@@ -403,16 +416,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_CurrentLevelFixedMesh->DisconnectPipeline();
 
   this->m_CurrentLevelMovingMesh = this->m_NextLevelMovingMesh;
-}
-
-
-template< class TMesh >
-void
-MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
-::ReleaseResources()
-{
-  this->m_FinalDestinationPoints = this->m_DemonsRegistrationFilter->GetFinalDestinationPoints();
-  this->m_FinalDestinationPoints->DisconnectPipeline();
 }
 
 

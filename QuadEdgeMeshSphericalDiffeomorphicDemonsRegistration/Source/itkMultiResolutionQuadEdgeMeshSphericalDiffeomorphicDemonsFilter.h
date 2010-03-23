@@ -151,9 +151,6 @@ private:
   /** Prepare the input meshes for the next resolution level. */
   void PrepareNextResolutionLevelMeshes();
 
-  /** Release elements from the pipeline. */
-  void ReleaseResources();
-
   /** Get the destination points from the demons filter. */
   const DestinationPointSetType * GetCurrentDestinationPoints() const;
 
