@@ -173,6 +173,8 @@ ResampleDestinationPointsQuadEdgeMeshFilter< TInputMesh, TFixedMesh, TReferenceM
 
   ProgressReporter progress(this, 0, numberOfPoints);
 
+  this->m_Interpolator->SetSphereCenter( this->m_SphereCenter );
+
   this->m_Interpolator->SetInputMesh( fixedMesh );
   this->m_Interpolator->Initialize();
 
