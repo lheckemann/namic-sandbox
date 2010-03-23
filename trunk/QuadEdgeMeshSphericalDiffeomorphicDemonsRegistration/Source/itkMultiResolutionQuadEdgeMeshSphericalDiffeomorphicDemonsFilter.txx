@@ -171,6 +171,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     this->m_CurrentResolutionLevel++;
     }
 
+  this->ReleaseResources();
 }
 
 
@@ -402,6 +403,16 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_CurrentLevelFixedMesh->DisconnectPipeline();
 
   this->m_CurrentLevelMovingMesh = this->m_NextLevelMovingMesh;
+}
+
+
+template< class TMesh >
+void
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::ReleaseResources()
+{
+  this->m_FinalDestinationPoints = this->m_DemonsRegistrationFilter->GetFinalDestinationPoints();
+  this->m_FinalDestinationPoints->DisconnectPipeline();
 }
 
 

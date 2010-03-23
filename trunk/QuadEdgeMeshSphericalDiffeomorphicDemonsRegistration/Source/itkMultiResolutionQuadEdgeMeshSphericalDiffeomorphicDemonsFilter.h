@@ -83,6 +83,11 @@ public:
   itkSetMacro( SphereRadius, double );
   itkGetConstMacro( SphereRadius, double );
 
+  /** Set the number of resolution levels for the combination of rigid and
+   * demons registration */
+  itkSetMacro( NumberOfResolutionLevels, unsigned int );
+  itkGetMacro( NumberOfResolutionLevels, unsigned int );
+
   /**  Create the Output of the proper type for that output number */
   DataObject::Pointer MakeOutput(unsigned int idx);
 
@@ -101,7 +106,7 @@ public:
 
   itkGetObjectMacro( DemonsRegistrationFilter, DemonsRegistrationFilterType );
 
-  const DestinationPointSetType * GetCurrentDestinationPoints() const;
+  itkGetConstObjectMacro( FinalDestinationPoints, DestinationPointSetType );
 
   typedef typename MeshType::PointsContainer          PointsContainer;
   typedef typename PointsContainer::Pointer           PointsContainerPointer;
@@ -146,6 +151,12 @@ private:
   /** Prepare the input meshes for the next resolution level. */
   void PrepareNextResolutionLevelMeshes();
 
+  /** Release elements from the pipeline. */
+  void ReleaseResources();
+
+  /** Get the destination points from the demons filter. */
+  const DestinationPointSetType * GetCurrentDestinationPoints() const;
+
   /** Center of spherical mesh. We assume that both the Fixed and
    * Moving meshes have spherical geometry and that they share the same
    * center and radius. */
@@ -171,6 +182,8 @@ private:
   typename MeshType::Pointer   m_NextLevelMovingMesh;
 
   typename DemonsRegistrationFilterType::Pointer   m_DemonsRegistrationFilter;
+
+  typename DestinationPointSetType::Pointer    m_FinalDestinationPoints;
 
 #ifdef USE_VTK
   RegistrationMonitorType  *   m_RegistrationMonitor;
