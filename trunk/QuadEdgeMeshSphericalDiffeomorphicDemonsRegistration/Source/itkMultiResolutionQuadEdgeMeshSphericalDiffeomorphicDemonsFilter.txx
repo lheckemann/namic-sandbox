@@ -282,7 +282,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 #ifdef USE_VTK
   this->m_RegistrationMonitor->SetResolutionLevel( this->m_CurrentResolutionLevel );
   this->m_RegistrationMonitor->Observe( this->GetRigidOptimizer() );
-  this->m_RegistrationMonitor->ObserveData( this->GetRigidTransform(), this->m_FinalDestinationPoints );
+  this->m_RegistrationMonitor->ObserveData( this->GetRigidTransform(), this->m_CurrentLevelFixedMesh );
 #endif
 
   typedef MeshToMeshRegistrationMethod< MeshType, MeshType >    RegistrationType;
