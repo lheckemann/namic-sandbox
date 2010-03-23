@@ -143,6 +143,9 @@ private:
    * points from the current resolution level demons registration. */
   void DeformNextResolutionLevelFixedMesh();
 
+  /** Prepare the input meshes for the next resolution level. */
+  void PrepareNextResolutionLevelMeshes();
+
   /** Center of spherical mesh. We assume that both the Fixed and
    * Moving meshes have spherical geometry and that they share the same
    * center and radius. */
