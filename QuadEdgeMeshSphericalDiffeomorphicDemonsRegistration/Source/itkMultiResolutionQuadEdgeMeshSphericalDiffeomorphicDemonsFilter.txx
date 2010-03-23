@@ -132,7 +132,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   itkDebugMacro("setting Fixed Mesh to " << fixedMesh );
 
   const unsigned int inputNumber = 2 * level;
-std::cout << "inputNumber = " << inputNumber << " Fixed image with # points = " << fixedMesh->GetNumberOfPoints() << std::endl;
+
   // Process object is not const-correct so the const_cast is required here
   this->ProcessObject::SetNthInput( inputNumber, const_cast< MeshType *>( fixedMesh ) );
 
@@ -148,13 +148,12 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   itkDebugMacro("setting Moving Mesh to " << movingMesh );
 
   const unsigned int inputNumber = 2 * level + 1;
-std::cout << "inputNumber = " << inputNumber << " Moving image with # points = " << movingMesh->GetNumberOfPoints() << std::endl;
+
   // Process object is not const-correct so the const_cast is required here
   this->ProcessObject::SetNthInput(inputNumber, const_cast< MeshType *>( movingMesh ) );
 
   this->Modified();
 }
-
 
 
 template< class TMesh >
@@ -261,11 +260,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   // 
   const TMesh * fixedMesh  = dynamic_cast<MeshType *>(this->ProcessObject::GetInput( fixedInput ));
   const TMesh * movingMesh = dynamic_cast<MeshType *>(this->ProcessObject::GetInput( movingInput ));
-
-std::cout << "fixedInput = " << fixedInput << std::endl;
-std::cout << "movingInput = " << movingInput << std::endl;
-std::cout << "fixedInput  # points = " << fixedMesh->GetNumberOfPoints()  << std::endl;
-std::cout << "movingInput # points = " << movingMesh->GetNumberOfPoints() << std::endl;
 
   this->m_NextLevelFixedMesh = fixedMesh;
   this->m_NextLevelMovingMesh = movingMesh;
@@ -383,8 +377,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_DemonsRegistrationFilter->SetFixedMesh( this->m_CurrentLevelRigidlyMappedFixedMesh );
   this->m_DemonsRegistrationFilter->SetMovingMesh( this->m_CurrentLevelMovingMesh );
-
-  std::cout << "STARTING DEMONS" << std::endl;
 
   try
     {
