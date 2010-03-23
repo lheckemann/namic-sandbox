@@ -155,6 +155,9 @@ private:
   /** Prepare the input meshes for the next resolution level. */
   void PrepareNextResolutionLevelMeshes();
 
+  /** Set the rigid transform to Identity. */
+  void SetRigidTransformToIdentity();
+
   /** Get the destination points from the demons filter. */
   const DestinationPointSetType * GetCurrentDestinationPoints() const;
 

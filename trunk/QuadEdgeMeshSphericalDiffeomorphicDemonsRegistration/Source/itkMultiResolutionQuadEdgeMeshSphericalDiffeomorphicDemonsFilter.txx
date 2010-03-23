@@ -64,6 +64,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_CurrentLevelRigidlyMappedFixedMesh = MeshType::New();
 
+  this->m_FinalDestinationPoints = DestinationPointSetType::New();
+
   this->m_DemonsRegistrationFilter = DemonsRegistrationFilterType::New();
 
   this->m_CurrentResolutionLevel = 0;
@@ -221,6 +223,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_DemonsRegistrationFilter->SetMaximumNumberOfIterations( 15 );
   this->m_DemonsRegistrationFilter->SetMaximumNumberOfSmoothingIterations( 2 );
+
+  this->m_FinalDestinationPoints = DestinationPointSetType::New();
 }
 
 
@@ -273,12 +277,12 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::ComputeRigidRegistration()
 {
-  this->m_RigidTransform->SetIdentity();
+  this->SetRigidTransformToIdentity();
   
 #ifdef USE_VTK
   this->m_RegistrationMonitor->SetResolutionLevel( this->m_CurrentResolutionLevel );
   this->m_RegistrationMonitor->Observe( this->GetRigidOptimizer() );
-  this->m_RegistrationMonitor->ObserveData( this->GetRigidTransform() );
+  this->m_RegistrationMonitor->ObserveData( this->GetRigidTransform(), this->m_FinalDestinationPoints );
 #endif
 
   typedef MeshToMeshRegistrationMethod< MeshType, MeshType >    RegistrationType;
@@ -355,15 +359,26 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_CurrentLevelRigidlyMappedFixedMesh->Modified();
 }
 
+template< class TMesh >
+void
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::SetRigidTransformToIdentity()
+{
+  this->m_RigidTransform->SetIdentity();
+}
 
 template< class TMesh >
 void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::ComputeDemonsRegistration()
 {
+
+  // This is needed for the proper visual monitoring of the Demons registration
+  this->SetRigidTransformToIdentity();
+
 #ifdef USE_VTK
   this->m_RegistrationMonitor->Observe( this->GetDemonsRegistrationFilter() );
-  this->m_RegistrationMonitor->ObserveData( this->GetCurrentDestinationPoints() );
+  this->m_RegistrationMonitor->ObserveData( this->GetRigidTransform(), this->GetCurrentDestinationPoints() );
 #endif
 
   this->m_DemonsRegistrationFilter->SetFixedMesh( this->m_CurrentLevelRigidlyMappedFixedMesh );
@@ -415,6 +430,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   // Create the new destination points for the following iteration
   this->m_DemonsRegistrationFilter->MakeOutput(2);
 
+    // DELETE THIS LINE: currentDestinationPoints = this->m_CurrentLevelRigidlyMappedFixedMesh; // FIXME this is a temporary short-circuit.
+
   warpFilter->SetDestinationPoints( currentDestinationPoints );
 
   warpFilter->SetSphereRadius( this->m_SphereRadius );
@@ -433,6 +450,33 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_CurrentLevelDemonsMappedFixedMesh = warpFilter->GetOutput();
 
   this->m_CurrentLevelDemonsMappedFixedMesh->DisconnectPipeline();
+
+std::cout << "destination  point 0 = " << currentDestinationPoints->GetPoints()->ElementAt(0) << std::endl;
+std::cout << "currentlevel point 0 = " << this->m_CurrentLevelFixedMesh->GetPoints()->ElementAt(0) << std::endl;
+std::cout << "nextlevel    point 0 = " << this->m_NextLevelFixedMesh->GetPoints()->ElementAt(0) << std::endl;
+std::cout << "mapped       point 0 = " << this->m_CurrentLevelDemonsMappedFixedMesh->GetPoints()->ElementAt(0) << std::endl;
+
+// DEBUG
+  double largestDistance = 0.0;
+  PointsContainerIterator destinationItr = currentDestinationPoints->GetPoints()->Begin();
+  PointsContainerIterator destinationEnd = currentDestinationPoints->GetPoints()->End();
+  PointsContainerIterator mappedItr = this->m_CurrentLevelDemonsMappedFixedMesh->GetPoints()->Begin();
+  while( destinationItr != destinationEnd )
+    {
+    const double distance = destinationItr.Value().EuclideanDistanceTo( mappedItr.Value() );
+    if( distance > 1.0 )
+      {
+      std::cerr << "Error in " << destinationItr.Value() << " mapped to " << mappedItr.Value() << std::endl;
+      }
+    if( distance > largestDistance )
+      {
+      largestDistance = distance;
+      }
+    ++mappedItr;
+    ++destinationItr;
+    }
+std::cout << "LARGEST DISTANCE = " << largestDistance << std::endl;
+// DEBUG
 
   this->m_CurrentLevelFixedMesh = this->m_CurrentLevelDemonsMappedFixedMesh;
 
