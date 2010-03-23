@@ -61,6 +61,12 @@ int main( int argc, char * argv [] )
 
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   MeshType;
 
+  typedef itk::MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< 
+    MeshType >  MultiResolutionDemonsFilterType;
+
+  MultiResolutionDemonsFilterType::Pointer multiResDemonsFilter = MultiResolutionDemonsFilterType::New();
+
+
   typedef itk::VTKPolyDataReader< MeshType >     ReaderType;
 
   ReaderType::Pointer fixedMeshReader1 = ReaderType::New();
@@ -81,13 +87,76 @@ int main( int argc, char * argv [] )
     }
 
 
-  typedef itk::MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< 
-    MeshType >  MultiResolutionDemonsFilterType;
+  multiResDemonsFilter->SetFixedMesh( 0, fixedMeshReader1->GetOutput() );
+  multiResDemonsFilter->SetMovingMesh( 0, movingMeshReader1->GetOutput() );
 
-  MultiResolutionDemonsFilterType::Pointer multiResDemonsFilter = MultiResolutionDemonsFilterType::New();
 
-  multiResDemonsFilter->SetFixedMesh( fixedMeshReader1->GetOutput() );
-  multiResDemonsFilter->SetMovingMesh( movingMeshReader1->GetOutput() );
+  ReaderType::Pointer fixedMeshReader2 = ReaderType::New();
+  fixedMeshReader2->SetFileName( argv[3] );
+
+  ReaderType::Pointer movingMeshReader2 = ReaderType::New();
+  movingMeshReader2->SetFileName( argv[4] );
+
+  try
+    {
+    fixedMeshReader2->Update();
+    movingMeshReader2->Update();
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  multiResDemonsFilter->SetFixedMesh( 1, fixedMeshReader2->GetOutput() );
+  multiResDemonsFilter->SetMovingMesh( 1, movingMeshReader2->GetOutput() );
+
+
+  ReaderType::Pointer fixedMeshReader3 = ReaderType::New();
+  fixedMeshReader3->SetFileName( argv[5] );
+
+  ReaderType::Pointer movingMeshReader3 = ReaderType::New();
+  movingMeshReader3->SetFileName( argv[6] );
+
+  try
+    {
+    fixedMeshReader3->Update();
+    movingMeshReader3->Update();
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  multiResDemonsFilter->SetFixedMesh( 2, fixedMeshReader3->GetOutput() );
+  multiResDemonsFilter->SetMovingMesh( 2, movingMeshReader3->GetOutput() );
+
+
+
+  ReaderType::Pointer fixedMeshReader4 = ReaderType::New();
+  fixedMeshReader4->SetFileName( argv[7] );
+
+  ReaderType::Pointer movingMeshReader4 = ReaderType::New();
+  movingMeshReader4->SetFileName( argv[8] );
+
+  try
+    {
+    fixedMeshReader4->Update();
+    movingMeshReader4->Update();
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  multiResDemonsFilter->SetFixedMesh( 3, fixedMeshReader4->GetOutput() );
+  multiResDemonsFilter->SetMovingMesh( 3, movingMeshReader4->GetOutput() );
+
 
 
   MultiResolutionDemonsFilterType::PointType center;
