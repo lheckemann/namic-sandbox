@@ -285,6 +285,8 @@ int main( int argc, char * argv [] )
   warpFilter->SetSphereRadius( radius );
   warpFilter->SetSphereCenter( center );
 
+  warpFilter->Update();
+
   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MeshType >   WriterType;
   WriterType::Pointer writer = WriterType::New();
 
