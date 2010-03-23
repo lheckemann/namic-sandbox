@@ -68,7 +68,7 @@ void
 MultiResolutionDeformableAndAffineRegistrationMonitor<TPointSet>
 ::SetResolutionLevel(unsigned int level)
 {
-  this->SetFixedSurface(  this->m_FixedSurfaces[level]  );
-  this->SetMovingSurface( this->m_MovingSurfaces[level] );
+  this->Superclass::SetFixedSurface(  this->m_FixedSurfaces[level]  );
+  this->Superclass::SetMovingSurface( this->m_MovingSurfaces[level] );
 }
 
