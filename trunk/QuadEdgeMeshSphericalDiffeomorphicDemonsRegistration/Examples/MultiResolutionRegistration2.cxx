@@ -70,6 +70,17 @@ int main( int argc, char * argv [] )
 
   multiResDemonsFilter->SetNumberOfResolutionLevels( finestResolution );
 
+  typedef MultiResolutionDemonsFilterType::SmoothingIterationsArrayType SmoothingIterationsArrayType;
+
+  SmoothingIterationsArrayType smoothingIterations(maximumNumberOfResolutions);
+
+  smoothingIterations[0] =  5;
+  smoothingIterations[1] =  7;
+  smoothingIterations[2] = 10;
+  smoothingIterations[3] = 15;
+
+  multiResDemonsFilter->SetSmoothingIterations( smoothingIterations );
+
   typedef itk::VTKPolyDataReader< MeshType >     ReaderType;
 
   ReaderType::Pointer fixedMeshReader[maximumNumberOfResolutions];
