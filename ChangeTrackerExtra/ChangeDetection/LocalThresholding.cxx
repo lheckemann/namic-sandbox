@@ -58,6 +58,9 @@
 #include "vtkMassProperties.h"
 #include "vtkWarpVector.h"
 
+#include "itkTriangleMeshToBinaryImageFilter.h"
+#include "itkImageDuplicator.h"
+
 #include <algorithm>
 #include <assert.h>
 
@@ -66,7 +69,7 @@
 #define CENTERPT (CWIDTH+SWIDTH)
 #define LINESPACING .25
 #define SAVE_LINE_PROFILES 0
-#define DECIMATION_CONST 1
+#define DECIMATION_CONST .1
 #define NCCTHRESHOLD .1
 
   // Define the dimension of the images
@@ -136,6 +139,9 @@
 
   typedef itk::TriangleCell<MeshType::CellType> TriangleType;
 
+  typedef itk::TriangleMeshToBinaryImageFilter<MeshType,ImageType> Mesh2ImageType;
+  typedef itk::ImageDuplicator<ImageType> DupType;
+
 void ShiftVector(std::vector<PixelType>&, int);
 vtkPolyData* ITKMesh2PolyData(MeshType::Pointer);
 void PrintSurfaceStatistics(vtkPolyData*);
@@ -143,6 +149,9 @@ vtkFloatArray* SmoothVMF(MeshType::Pointer,vtkFloatArray*);
 vtkFloatArray* SmoothVDF(MeshType::Pointer,vtkFloatArray*);
 float SurfaceVolume(vtkPolyData*);
 void WriteMesh(MeshType::Pointer, const char*);
+MeshType::Pointer WarpITKMesh(MeshType::Pointer, vtkFloatArray*);
+void WriteImage(ImageType::Pointer, const char*);
+ImageType::Pointer MarkChanges(ImageType::Pointer, ImageType::Pointer);
 
 int main(int argc, char **argv){
 
@@ -354,6 +363,7 @@ int main(int argc, char **argv){
   ddirArray->SetName("dDirection");
 
   std::vector<float> dnccRanked;
+  float meanShift = 0;
 
   while(pIt!=pItEnd){    
     OutputMeshType::PixelType normal = pdIt->Value();
@@ -373,7 +383,7 @@ int main(int argc, char **argv){
 
 #if SAVE_LINE_PROFILES  
     char fname[10];
-    sprintf(&fname[0], "point%i", (int)pIt->Index());    
+    sprintf(&fname[0], "point%i", (int)pIt->Index()>1000?1000:(int)pIt->Index());    
     std::ofstream pfs1((std::string(fname)+"_p1.dat").c_str());
     std::ofstream pfs2((std::string(fname)+"_p2.dat").c_str());
     std::ofstream sfs((std::string(fname)+"_s.dat").c_str());
@@ -400,14 +410,18 @@ int main(int argc, char **argv){
       imagePt[2] = point[2]+normal[2]*step*sampling;
 
       ImageType::PixelType v1, v2;
-      if(!mask->TransformPhysicalPointToIndex(imagePt,imageIdx)){
-        std::cerr << "Point maps outside image!" << std::endl;
-        abort();
-      } else {
+      if(mask->TransformPhysicalPointToIndex(imagePt,imageIdx)){
+        if(step>0)
+          mask->SetPixel(imageIdx, 30);
+        else
+          mask->SetPixel(imageIdx, -30);
+      } else 
+        std::cerr << "!";
+//      } else {
         mask->TransformPhysicalPointToContinuousIndex(imagePt,imageContIdx);
         v1 = interp1->EvaluateAtContinuousIndex(imageContIdx);
         v2 = interp2->EvaluateAtContinuousIndex(imageContIdx);
-      }
+//      }
 
       profile1.push_back(v1);
       profile2.push_back(v2);
@@ -481,24 +495,28 @@ int main(int argc, char **argv){
     }
 
 #if SAVE_LINE_PROFILES
-    for(i=0;i<(SWIDTH+CWIDTH)*2+1;i++){
-      pfs1 << i << " " << dprofile1[i] << std::endl;
-      pfs2 << i << " " << dprofile2[i] << std::endl;
-      dfs1 << i << " " << profile1[i] << std::endl;
-      dfs2 << i << " " << profile2[i] << std::endl;
-    }
+    if(pIt->Index()<1000)
+      for(i=0;i<(SWIDTH+CWIDTH)*2+1;i++){
+        pfs1 << i << " " << profile1[i] << std::endl;
+        pfs2 << i << " " << profile2[i] << std::endl;
+        dfs1 << i << " " << dprofile1[i] << std::endl;
+        dfs2 << i << " " << dprofile2[i] << std::endl;
+      }
 #endif // SAVE_LINE_PROFILES
 
     ShiftVector(profile1, -bestFit);
     ShiftVector(dprofile1, -dbestFit);
 
-    dnccRanked.push_back(dnccMax);
+    meanShift += dbestFit;
+
+    dnccRanked.push_back(dbestFit*(float)LINESPACING);
 
 #if SAVE_LINE_PROFILES
-    for(i=0;i<(SWIDTH+CWIDTH)*2+1;i++){
-      sfs << i << " " << profile1[i] << std::endl;
-      dsfs << i << " " << dprofile1[i] << std::endl;
-    }
+    if(pIt->Index()<1000)
+      for(i=0;i<(SWIDTH+CWIDTH)*2+1;i++){
+        sfs << i << " " << profile1[i] << std::endl;
+        dsfs << i << " " << dprofile1[i] << std::endl;
+      }
 #endif // SAVE_LINE_PROFILES
 
     nccShiftArray->InsertTuple3(pIt->Index(), normal[0]*bestFit*sampling, 
@@ -518,19 +536,21 @@ int main(int argc, char **argv){
   }
   std::cout << std::endl;
 
-  std::vector<float>::iterator dnccThreshIt = dnccRanked.begin()+NCCTHRESHOLD*dnccRanked.size();
+  std::cout << "Mean shift: " << meanShift/(float)totalPoints*LINESPACING << std::endl;
+
+  std::vector<float>::iterator dnccThreshIt = dnccRanked.begin()+dnccRanked.size()/2;
   std::nth_element(dnccRanked.begin(), dnccThreshIt, dnccRanked.end());
-  std::cout << "dNCC threshold value: " << *dnccThreshIt << std::endl;
+  std::cout << "Median shift: " << *dnccThreshIt << std::endl;
 
   std::cout << "Smoothing displacements...";
   vtkFloatArray* dnccShiftArraySmooth = SmoothVMF(mesh, dnccShiftArray);
   std::cout << "done" << std::endl;
 
-  for(unsigned i=0;i<mesh->GetPoints()->Size();i++)
-    if(dnccArray->GetTuple1(i) < (*dnccThreshIt)){
-      dnccShiftArray->InsertTuple3(i, 0, 0, 0);
+//  for(unsigned i=0;i<mesh->GetPoints()->Size();i++)
+//    if(dnccArray->GetTuple1(i) < (*dnccThreshIt)){
+//      dnccShiftArray->InsertTuple3(i, 0, 0, 0);
 //      dnccShiftArraySmooth->InsertTuple3(i, 0, 0, 0);
-    }
+//    }
 
   // convert itk mesh to vtk polydata, save into file together with the
   // surface displacements
@@ -545,7 +565,7 @@ int main(int argc, char **argv){
   vtksurf->GetPointData()->AddArray(dnccShiftArray);
   dnccShiftArray->Delete();
   vtksurf->GetPointData()->AddArray(dnccShiftArraySmooth);
-  dnccShiftArraySmooth->Delete();
+//  dnccShiftArraySmooth->Delete();
   vtksurf->GetPointData()->AddArray(dnccArray);
   dnccArray->Delete();
   vtksurf->GetPointData()->AddArray(nccArray);
@@ -562,6 +582,7 @@ int main(int argc, char **argv){
 
   vtkWarpVector *warper = vtkWarpVector::New();
   vtksurf->GetPointData()->SetActiveVectors("dNCCShiftsmooth");
+//  vtksurf->GetPointData()->SetActiveVectors("dNCCShift");
   warper->SetInput(vtksurf);
   warper->Update();
 
@@ -581,6 +602,34 @@ int main(int argc, char **argv){
   pdw1->SetFileName("warped_mesh.vtk");
   pdw1->SetInput(vtksurf);
   pdw1->Update();
+
+  WriterType::Pointer imageWriter1 = WriterType::New();
+  imageWriter1->SetFileName("mask_with_lines.nrrd");
+  imageWriter1->SetInput(mask);
+  imageWriter1->Update();
+
+  Mesh2ImageType::Pointer m2i1 = Mesh2ImageType::New();
+  Mesh2ImageType::Pointer m2i2 = Mesh2ImageType::New();
+  ImageType::Pointer tp0image, tp1image;
+
+  m2i1->SetInput(mesh);
+  m2i1->SetInfoImage(mask);
+  m2i1->SetInsideValue(255);
+  m2i1->Update();
+  tp0image = m2i1->GetOutput();
+  WriteImage(tp0image, "initial_mask.nrrd");
+
+  WarpITKMesh(mesh, dnccShiftArraySmooth);
+  
+  m2i2->SetInput(mesh);
+  m2i2->SetInfoImage(mask);
+  m2i2->SetInsideValue(255);
+  m2i2->Update();
+  tp1image = m2i2->GetOutput();
+  WriteImage(tp1image, "warped_mask.nrrd");
+
+  ImageType::Pointer changes = MarkChanges(tp0image, tp1image);
+  WriteImage(changes, "changes_mask.nrrd");
 
   return 0;
 
@@ -622,6 +671,7 @@ int main(int argc, char **argv){
 }
 
 void ShiftVector(std::vector<PixelType>& v, int s){
+//  static int cnt = 0;
   int vs = v.size(), i;
 //  std::cout << "Shift value: " << s << std::endl;
 //  std::cout << "Initial array: ";
@@ -650,6 +700,8 @@ void ShiftVector(std::vector<PixelType>& v, int s){
 //  for(i=0;i<vs;i++)
 //    std::cout << v[i] << " ";
 //  std::cout << std::endl;
+//  if(cnt++>10)
+//    abort();
 }
 
 vtkPolyData* ITKMesh2PolyData(MeshType::Pointer mesh){
@@ -939,4 +991,50 @@ void WriteMesh(MeshType::Pointer mesh, const char* fname){
     dstd2 = dstd2/float(i);
 */
 
+MeshType::Pointer WarpITKMesh(MeshType::Pointer mesh, vtkFloatArray* v){
+  PointsIterator pIt = mesh->GetPoints()->Begin(), pItEnd = mesh->GetPoints()->End();
+  while(pIt!=pItEnd){
+    MeshType::PointType point = pIt->Value();
+    double *dv;
+    dv = v->GetTuple3(pIt->Index());
+    point[0] += dv[0];
+    point[1] += dv[1];
+    point[2] += dv[2];
+    mesh->SetPoint(pIt->Index(), point);
+    mesh->GetPoint(pIt->Index(), &point);
+    ++pIt;
+  }
+  return mesh;
+}
 
+void WriteImage(ImageType::Pointer image, const char* fname){
+  WriterType::Pointer imageWriter1 = WriterType::New();
+  imageWriter1->SetFileName(fname);
+  imageWriter1->SetInput(image);
+  imageWriter1->SetUseCompression(1);
+  imageWriter1->Update();
+}
+
+ImageType::Pointer MarkChanges(ImageType::Pointer tp0, ImageType::Pointer tp1){
+  DupType::Pointer dup = DupType::New();
+  dup->SetInputImage(tp0);
+  dup->Update();
+
+  ImageType::Pointer output = dup->GetOutput();
+
+  IteratorType it0(tp0, tp0->GetBufferedRegion());
+  IteratorType it1(tp1, tp1->GetBufferedRegion());
+  IteratorType it(output, output->GetBufferedRegion());
+  it0.GoToBegin(); it1.GoToBegin(); it.GoToBegin();
+  for(;!it0.IsAtEnd();++it0,++it1,++it){
+    if(it0.Get()==0 && it1.Get()!=0)
+      // shrinkage
+      it.Set(12);
+    else if(it0.Get()!=0 && it1.Get()==0)
+      // growth
+      it.Set(14);    
+    else
+      it.Set(0);
+  }
+  return output;
+}
