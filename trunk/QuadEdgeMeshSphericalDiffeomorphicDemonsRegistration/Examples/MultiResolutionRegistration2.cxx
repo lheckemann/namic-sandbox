@@ -66,20 +66,31 @@ int main( int argc, char * argv [] )
   typedef MultiResolutionDemonsFilterType::DestinationPointSetType DestinationPointSetType;
 
   const unsigned int maximumNumberOfResolutions = 4;
-  const unsigned int finestResolution = 1;
+  const unsigned int finestResolution = 4;
 
   multiResDemonsFilter->SetNumberOfResolutionLevels( finestResolution );
 
-  typedef MultiResolutionDemonsFilterType::SmoothingIterationsArrayType SmoothingIterationsArrayType;
+  typedef MultiResolutionDemonsFilterType::IntegerArrayType IntegerArrayType;
 
-  SmoothingIterationsArrayType smoothingIterations(maximumNumberOfResolutions);
+  IntegerArrayType smoothingIterations(maximumNumberOfResolutions);
 
   smoothingIterations[0] =  5;
   smoothingIterations[1] =  7;
   smoothingIterations[2] = 10;
-  smoothingIterations[3] = 15;
+  smoothingIterations[3] = 10;
 
   multiResDemonsFilter->SetSmoothingIterations( smoothingIterations );
+
+
+  IntegerArrayType rigidIterations(maximumNumberOfResolutions);
+
+  rigidIterations[0] = 32;
+  rigidIterations[1] = 16;
+  rigidIterations[2] =  8;
+  rigidIterations[3] =  4;
+
+  multiResDemonsFilter->SetRigidRegistrationIterations( rigidIterations );
+
 
   typedef itk::VTKPolyDataReader< MeshType >     ReaderType;
 

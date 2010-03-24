@@ -112,11 +112,15 @@ public:
   typedef typename PointsContainer::Pointer           PointsContainerPointer;
   typedef typename MeshType::PointsContainerIterator  PointsContainerIterator;
 
-  typedef Array< unsigned int >                       SmoothingIterationsArrayType;
+  typedef Array< unsigned int >                       IntegerArrayType;
 
   /** Schedule of smoothing iterations to be used at every resolution level. */
-  itkSetMacro( SmoothingIterations, SmoothingIterationsArrayType );
-  itkGetConstReferenceMacro( SmoothingIterations, SmoothingIterationsArrayType );
+  itkSetMacro( SmoothingIterations, IntegerArrayType );
+  itkGetConstReferenceMacro( SmoothingIterations, IntegerArrayType );
+
+  /** Schedule of rigid registration iterations to be used at every resolution level. */
+  itkSetMacro( RigidRegistrationIterations, IntegerArrayType );
+  itkGetConstReferenceMacro( RigidRegistrationIterations, IntegerArrayType );
 
 #ifdef USE_VTK
   typedef MultiResolutionDeformableAndAffineRegistrationMonitor< DestinationPointSetType >  RegistrationMonitorType;
@@ -198,7 +202,8 @@ private:
 
   typename DestinationPointSetType::ConstPointer    m_FinalDestinationPoints;
 
-  SmoothingIterationsArrayType      m_SmoothingIterations;
+  IntegerArrayType             m_SmoothingIterations;
+  IntegerArrayType             m_RigidRegistrationIterations;
 
 #ifdef USE_VTK
   RegistrationMonitorType  *   m_RegistrationMonitor;
