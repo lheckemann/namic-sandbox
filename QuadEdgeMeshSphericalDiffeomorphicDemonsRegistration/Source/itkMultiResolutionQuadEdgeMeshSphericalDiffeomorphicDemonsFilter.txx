@@ -220,8 +220,12 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_DemonsRegistrationFilter->SetLambda( 1.0 );
 
+  if( this->m_SmoothingIterations.size() < this->m_NumberOfResolutionLevels )
+    {
+    itkExceptionMacro("Smoothing iterations array size is smaller than number of iteration levels");
+    }
+
   this->m_DemonsRegistrationFilter->SetMaximumNumberOfIterations( 15 );
-  this->m_DemonsRegistrationFilter->SetMaximumNumberOfSmoothingIterations( 2 );
 
   this->m_FinalDestinationPoints = DestinationPointSetType::New();
 }
@@ -369,6 +373,9 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   // This is needed for the proper visual monitoring of the Demons registration
   this->SetRigidTransformToIdentity();
+
+  this->m_DemonsRegistrationFilter->SetMaximumNumberOfSmoothingIterations( 
+    this->m_SmoothingIterations[this->m_CurrentResolutionLevel] );
 
 #ifdef USE_VTK
   this->m_RegistrationMonitor->Observe( this->GetDemonsRegistrationFilter() );
