@@ -85,9 +85,9 @@ int main( int argc, char * argv [] )
   IntegerArrayType rigidIterations(maximumNumberOfResolutions);
 
   rigidIterations[0] = 32;
-  rigidIterations[1] = 16;
-  rigidIterations[2] =  8;
-  rigidIterations[3] =  4;
+  rigidIterations[1] = 32;
+  rigidIterations[2] = 32;
+  rigidIterations[3] = 16;
 
   multiResDemonsFilter->SetRigidRegistrationIterations( rigidIterations );
 
