@@ -2,6 +2,8 @@
 #ifndef __vtkMRMLPerkStationModuleNode_h
 #define __vtkMRMLPerkStationModuleNode_h
 
+#include <string>
+#include <vector>
 
 #include "vtkMRML.h"
 #include "vtkMRMLNode.h"
@@ -24,6 +26,14 @@ class vtkMRMLScalarVolumeNode;
 
 
 // PerkStation specific enums -------------------------------------------------
+
+enum
+{
+  WORKPHASE_CALIBRATION = 0,
+  WORKPHASE_PLANNING = 1,
+  WORKPHASE_INSERTION = 2,
+  WORKPHASE_VALIDATION = 3
+};
 
 enum VolumeType
 {

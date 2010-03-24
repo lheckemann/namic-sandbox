@@ -1672,7 +1672,8 @@ char *vtkPerkStationModuleGUI::CreateFileName()
   return dirName;
 }
 
-//---------------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetMRMLNode();
@@ -1680,7 +1681,7 @@ void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
     {
     // TO DO: what to do on failure
     return;
-    }  
+    }
 
   vtkMRMLScalarVolumeNode *planVol = mrmlNode->GetPlanningVolumeNode();
   if (planVol == NULL)
@@ -1733,7 +1734,7 @@ void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
       of << origin[i] << " ";
   of << "\" \n";
   
-
+  
   // spacing
   of << " PlanVolumeSpacing=\"" ;
   double spacing[3];
@@ -1741,19 +1742,19 @@ void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
   for(int i = 0; i < 3; i++)
       of << spacing[i] << " ";
   of << "\" \n";
-
-
+  
+  
   vtkMRMLScalarVolumeNode *validateVol = mrmlNode->GetValidationVolumeNode();
   if (validateVol == NULL)
     {
     return;
     }
   const itk::MetaDataDictionary &validateVolDictionary = validateVol->GetMetaDataDictionary();
-
   
-
+  
+  
   // following information needs to be written to the file
-
+  
   // 1) Volume location file path
   // 2) Series number from dictionary
   // 3) Series description from dictionary
@@ -1801,7 +1802,7 @@ void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
 }
 
 
-//--------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void
 vtkPerkStationModuleGUI
 ::LoadPlanningVolumeButtonCallback( const char *fileName )
@@ -1833,7 +1834,6 @@ vtkPerkStationModuleGUI
     this->GetApplication() );
   vtkMRMLScalarVolumeNode *volumeNode = this->GetLogic()->
     AddVolumeToScene( app, fileString.c_str(), VOL_CALIBRATE_PLAN );
-  
   
   
   if ( ! volumeNode )  // Not successful image read.
@@ -1909,77 +1909,91 @@ vtkPerkStationModuleGUI
 }
 
   
-//--------------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::LoadValidationVolumeButtonCallback(const char *fileName)
+// ----------------------------------------------------------------------------
+void
+vtkPerkStationModuleGUI
+::LoadValidationVolumeButtonCallback( const char *fileName )
 {
-  std::string fileString(fileName);
-  for (unsigned int i = 0; i < fileString.length(); i++)
+  std::string fileString( fileName );
+  for ( unsigned int i = 0; i < fileString.length(); i ++ )
     {
-    if (fileString[i] == '\\')
+    if (fileString[ i ] == '\\')
       {
-      fileString[i] = '/';
+      fileString[ i ] = '/';
       }
     }
   
   bool validationVolumePreExists = false;
 
-  // in case the planning volume already exists, it is just that the user has loaded another dicom series
-  // as a new planning volume
-  // then later in the code, this implies that the experiment has to be started over
-  if (this->MRMLNode->GetValidationVolumeNode())
+    // in case the planning volume already exists, it is just that the user has
+    // loaded another dicom series as a new planning volume then later in the 
+    // code, this implies that the experiment has to be started over
+  if ( this->MRMLNode->GetValidationVolumeNode() )
     {
     validationVolumePreExists = true;
     }
 
-  this->MRMLNode->SetVolumeInUse("Validation");
+  this->MRMLNode->SetVolumeInUse( "Validation" );
 
-  vtkSlicerApplication *app = static_cast<vtkSlicerApplication *>(this->GetApplication());
-  vtkMRMLScalarVolumeNode *volumeNode = this->GetLogic()->AddVolumeToScene(app,fileString.c_str(), VOL_VALIDATION);
+  vtkSlicerApplication* app =
+    static_cast< vtkSlicerApplication* >( this->GetApplication() );
+  vtkMRMLScalarVolumeNode* volumeNode =
+    this->GetLogic()->AddVolumeToScene( app, fileString.c_str(),
+                                        VOL_VALIDATION );
         
-  if (volumeNode)
+  if ( volumeNode )
     {
-    // as of now, don't want to disturb display on the secondary monitor
-    // i.e. don't want the secondary monitor to display or overlay the validation image
-    // if such a request come from clinician, it will be handled then
+      // as of now, don't want to disturb display on the secondary monitor
+      // i.e. don't want the secondary monitor to display or overlay the
+      // validation image if such a request come from clinician, it will be
+      // handled then
 
-    // set the window/level controls values from the scalar volume display node
-    this->DisplayVolumeLevelValue->SetValue(volumeNode->GetScalarVolumeDisplayNode()->GetLevel());
-    this->DisplayVolumeWindowValue->SetValue(volumeNode->GetScalarVolumeDisplayNode()->GetWindow());
-
-
-    this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID( volumeNode->GetID() );
+      // set the window/level controls values from the scalar volume node
+    this->DisplayVolumeLevelValue->SetValue(
+      volumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
+    this->DisplayVolumeWindowValue->SetValue(
+      volumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
+    
+    this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID(
+      volumeNode->GetID() );
     this->GetApplicationLogic()->PropagateVolumeSelection();
-
+    
+    this->GetLogic()->AdjustSliceView();  // Position as the planning volume.
+    
     this->VolumeSelector->SetSelected(volumeNode);
     const char *strName = this->VolumeSelector->GetSelected()->GetName();
-    std::string strPlan = std::string(strName) + "-Validation";
-    this->VolumeSelector->GetSelected()->SetName(strPlan.c_str());
-    this->VolumeSelector->GetSelected()->SetDescription("Validation image/volume; created by PerkStation module");
+    std::string strPlan = std::string( strName ) + "-Validation";
+    this->VolumeSelector->GetSelected()->SetName( strPlan.c_str() );
+    this->VolumeSelector->GetSelected()->SetDescription(
+      "Validation image/volume; created by PerkStation module" );
     this->VolumeSelector->GetSelected()->Modified();
-
+    
     this->VolumeSelector->UpdateMenu();
     }
   else 
     {
+    std::string msg = std::string( "Unable to read volume file " )
+      + std::string( fileName );
     vtkKWMessageDialog *dialog = vtkKWMessageDialog::New();
-    //dialog->SetParent ( this-> );
-    dialog->SetStyleToMessage();
-    std::string msg = std::string("Unable to read volume file ") + std::string(fileName);
-    dialog->SetText(msg.c_str());
-    dialog->Create ( );
-    dialog->Invoke();
-    dialog->Delete();
-    // default to planning
-    this->MRMLNode->SetVolumeInUse("Planning");
+      dialog->SetStyleToMessage();
+      dialog->SetText(msg.c_str());
+      dialog->Create ( );
+      dialog->Invoke();
+      dialog->Delete();
+    
+      // default to planning
+    this->MRMLNode->SetVolumeInUse( "Planning" );
     }
 }
 
 
-//---------------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::EnableLoadValidationVolumeButton(bool enable)
+// ----------------------------------------------------------------------------
+void vtkPerkStationModuleGUI::EnableLoadValidationVolumeButton( bool enable )
 {
-  if (this->LoadValidationVolumeButton)
-      this->LoadValidationVolumeButton->SetEnabled(enable);
+  if ( this->LoadValidationVolumeButton )
+    {
+    this->LoadValidationVolumeButton->SetEnabled( enable );
+    }
 }
 
 

@@ -583,21 +583,26 @@ void vtkPerkStationPlanStep::PopulateControlsOnLoadPlanning()
     this->InsertionDepth->GetWidget()->SetValueAsDouble(insDepth);
 
 }
-//----------------------------------------------------------------------------
+
+
+// ----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::ProcessImageClickEvents(
-  vtkObject *caller, unsigned long event, void *callData)
+  vtkObject *caller, unsigned long event, void *callData )
 {
   
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
 
-  // first identify if the step is pertinent, i.e. current step of wizard
-  // workflow is actually calibration step
+    // first identify if the step is pertinent, i.e. current step of wizard
+    // workflow is actually calibration step
+  
   if ( ! wizard_widget
        || wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this )
     {
     return;
     }
-
+  
+    // Make sure the Planning volume is in use.
+  
   if ( ! this->GetGUI()->GetMRMLNode()
        || ! this->GetGUI()->GetMRMLNode()->GetPlanningVolumeNode()
        || strcmp( this->GetGUI()->GetMRMLNode()->GetVolumeInUse(),
@@ -608,7 +613,8 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(
     }
 
 
-  // see if the entry and target have already been acquired
+    // see if the entry and target have already been acquired
+  
   if( this->EntryTargetAcquired )
     {
     return;
@@ -625,10 +631,6 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(
       GetInteractorStyle() );
   
   
-  vtkRenderWindowInteractor *rwi;
-  vtkMatrix4x4 *matrix;
-
-
     // planning has to happen on slicer laptop, cannot be done from secondary
     // monitor, so don't listen to clicks in secondary monitor
   
@@ -639,34 +641,36 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(
     }
   
   
-  ++ this->ClickNumber;
-  
-  
     // mouse click happened in the axial slice view
   
   vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(
     this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
+  
+  vtkRenderWindowInteractor *rwi;
   rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->
-    GetRenderWindowInteractor();    
+        GetRenderWindowInteractor();    
+  
+  vtkMatrix4x4 *matrix;
   matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
-
+  
   
   int point[ 2 ];
   rwi->GetLastEventPosition( point );
-  double inPt[ 4 ] = { point[0], point[1], 0, 1 };
+  double inPt[ 4 ] = { point[ 0 ], point[ 1 ], 0.0, 1.0 };
   double outPt[ 4 ];    
   matrix->MultiplyPoint( inPt, outPt ); 
   double ras[ 3 ] = { outPt[ 0 ], outPt[ 1 ], outPt[ 2 ] };
-
+  
   
     // depending on click number, it is either Entry point or target point
+  
+  ++ this->ClickNumber;
   
   int entryClick = 1;
   int targetClick = 2;
   
-  this->TargetFirstCheck->GlobalWarningDisplayOn();
+  // this->TargetFirstCheck->GlobalWarningDisplayOn();
   
-  // if ( this->SelectTargetFirst )
   if ( this->TargetFirstCheck->GetWidget()->GetSelectedState() != 0 )
     {
     targetClick = 1;
