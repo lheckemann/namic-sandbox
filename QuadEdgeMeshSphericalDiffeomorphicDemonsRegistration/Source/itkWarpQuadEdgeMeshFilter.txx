@@ -37,6 +37,9 @@ WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDestinationPoints >
 
   this->m_Interpolator = InterpolatorType::New();
   this->m_Interpolator->SetUseNearestNeighborInterpolationAsBackup(true);
+
+  this->m_SphereRadius = 1.0;
+  this->m_SphereCenter.Fill(0.0);
 }
 
 
