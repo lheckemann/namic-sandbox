@@ -222,6 +222,8 @@ vtkMRMLPerkStationModuleNode
   
   this->InitializeFiducialListNode();
   
+    
+    // Synchronize it with enum WORKPHASE...
   
   this->StepList = vtkSmartPointer< vtkStringArray >::New();
     this->StepList->InsertNextValue( "Calibration" );
@@ -229,8 +231,8 @@ vtkMRMLPerkStationModuleNode
     this->StepList->InsertNextValue( "Insertion" );
     this->StepList->InsertNextValue( "Validation" );
   
-  this->CurrentStep = 0;
-  this->PreviousStep = 0;
+  this->CurrentStep = WORKPHASE_CALIBRATION;
+  this->PreviousStep = WORKPHASE_CALIBRATION;
 }
 
 
@@ -768,6 +770,15 @@ vtkMRMLPerkStationModuleNode
   
   this->PreviousStep = this->CurrentStep;
   this->CurrentStep = newStep;
+  
+  if ( this->CurrentStep == WORKPHASE_PLANNING )
+    {
+    this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility( 1 );
+    }
+  else
+    {
+    this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility( 0 );
+    }
   
   return 1;
 }
