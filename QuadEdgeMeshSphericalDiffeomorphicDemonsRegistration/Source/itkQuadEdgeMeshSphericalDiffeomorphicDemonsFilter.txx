@@ -747,7 +747,7 @@ ComputeVelocityField()
   const double averageOfSquaredDifferences = sumOfSquaredDifferences / numberOfNodes; 
 
   this->m_MetricValue = averageOfSquaredDifferences;
-  std::cout <<  "Metric: " <<  this->m_MetricValue << "  ";
+  std::cout <<  "Metric: " <<  this->m_MetricValue << std::endl;
 }
 
 
@@ -776,7 +776,6 @@ ComputeScalingAndSquaringNumberOfIterations()
     this->m_ScalingAndSquaringNumberOfIterations = iterations;
     }
 
-std::cout << " scaling & squaring # iterations = " << this->m_ScalingAndSquaringNumberOfIterations << std::endl;
 }
 
 
@@ -841,8 +840,6 @@ ComputeShortestEdgeLength()
     }
 
   this->m_ShortestEdgeLength = shortestLength;
-
-std::cout << "this->m_ShortestEdgeLength = " << this->m_ShortestEdgeLength << std::endl;
 
   if( this->m_ShortestEdgeLength < vnl_math::eps )
     {
@@ -1419,8 +1416,6 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
     ++velocityItr;
     ++shortestEdgeItr;
     }
-
-  std::cout << "largestRatio = " << largestRatio << std::endl;
 
   this->m_LargestVelocityToEdgeLengthRatio = largestRatio;
 }
