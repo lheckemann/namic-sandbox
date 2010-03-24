@@ -14,6 +14,23 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
+//
+//
+//                  WARNING: 
+//
+//       THIS FILE HAS BEEN DEPRECATED
+//
+//  MOST OF THE CODE HAS BEEN REIMPLEMENTED IN 
+//  THE NEW MULTI-RESOLUTION CLASS IN THE SOURCE
+//  DIRECTORY. PLEASE USE NOW THE FILE:
+//
+//     MultiResolutionRegistration2.cxx
+//
+//
+//
+//
+//
+//
 
 #ifdef _MSC_VER
 #pragma warning ( disable : 4786 )
