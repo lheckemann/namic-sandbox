@@ -762,7 +762,6 @@ vtkPerkStationCalibrateStep
   if ( event == vtkCommand::KeyPressEvent )
     {
     char  *key = style->GetKeySym();
-    if ( ! strcmp( key, "Up" ) ) translation[ 1 ] += stepSize;
     if ( ! strcmp( key, "a" ) ) translation[ 1 ] += stepSize;
     if ( ! strcmp( key, "z" ) ) translation[ 1 ] -= stepSize;
     if ( ! strcmp( key, "q" ) ) translation[ 0 ] -= stepSize;

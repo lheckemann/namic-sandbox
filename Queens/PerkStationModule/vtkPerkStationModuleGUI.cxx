@@ -500,7 +500,7 @@ vtkPerkStationModuleGUI
       
         // call the callback function
       this->LoadPlanningVolumeButtonCallback( fileName ); 
-      // this->LoadPlanningVolumeButton->SetText( "Plan volume loaded" );
+      this->LoadPlanningVolumeButton->SetText( "Load planning volume" );
       } 
     }
   
