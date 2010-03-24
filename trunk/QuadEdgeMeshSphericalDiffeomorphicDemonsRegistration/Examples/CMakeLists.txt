@@ -14,12 +14,19 @@ INCLUDE_DIRECTORIES(
   )
 
 
-ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
- QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx
- ${QuadEdgeMeshRigidRegistration}/Testing/RegistrationMonitor.cxx)
-TARGET_LINK_LIBRARIES(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
- ITKQuadEdgeMesh ITKNumerics ITKIO
- vtkRendering vtkFiltering vtkIO vtkHybrid)
+IF(USE_VTK)
+  ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
+   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx
+   ${QuadEdgeMeshRigidRegistration}/Testing/RegistrationMonitor.cxx)
+  TARGET_LINK_LIBRARIES(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
+   ITKQuadEdgeMesh ITKNumerics ITKIO
+   vtkRendering vtkFiltering vtkIO vtkHybrid)
+ELSE(USE_VTK)
+  ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
+   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx)
+  TARGET_LINK_LIBRARIES(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
+   ITKQuadEdgeMesh ITKNumerics ITKIO)
+ENDIF(USE_VTK)
 
 ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter2
  QuadEdgeMeshSphericalDiffeomorphicDemonsFilter2.cxx) 
