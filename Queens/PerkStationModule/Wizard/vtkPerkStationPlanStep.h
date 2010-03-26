@@ -9,9 +9,18 @@ class vtkKWFrame;
 class vtkKWEntryWithLabel;
 class vtkKWEntrySet;
 class vtkKWPushButton;
-class vtkActor;
 
-class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationPlanStep : public vtkPerkStationStep
+#include "vtkActor.h"
+#include "vtkSmartPointer.h"
+
+
+/**
+ * GUI wizard panel for the planning workphase.
+ */
+class
+VTK_PERKSTATIONMODULE_EXPORT
+vtkPerkStationPlanStep 
+: public vtkPerkStationStep
 {
 public:
   static vtkPerkStationPlanStep *New();
@@ -27,7 +36,12 @@ public:
   void ProcessImageClickEvents( vtkObject *caller,
                                 unsigned long event,
                                 void *callData );
-
+  
+  void ProcessMouseMoveEvent( vtkObject *caller,
+                              unsigned long event,
+                              void *callData );
+  
+  
     // Description:
     // Process GUI events
   virtual void ProcessGUIEvents( vtkObject *caller,
@@ -36,15 +50,11 @@ public:
   
   
   virtual void OverlayNeedleGuide();
-
+  
   virtual void Reset();
   
   void RemoveOverlayNeedleGuide();
-
-  void LoadPlanning( istream &file );
-
-  void SavePlanning( ostream& of );
-
+  
   void PopulateControlsOnLoadPlanning();
 
 protected:
@@ -94,7 +104,9 @@ protected:
   vtkKWEntryWithLabel *SystemTiltAngle;
   vtkKWLabel *TiltMsg;  
 
-
+  
+  vtkSmartPointer< vtkActor > PlanningLineActor;
+  
   double WCEntryPoint[3];
   double WCTargetPoint[3];
 
@@ -105,8 +117,8 @@ private:
   bool ProcessingCallback;
   bool SelectTargetFirst;
 
-  vtkPerkStationPlanStep(const vtkPerkStationPlanStep&);
-  void operator=(const vtkPerkStationPlanStep&);
+  vtkPerkStationPlanStep( const vtkPerkStationPlanStep& );
+  void operator=( const vtkPerkStationPlanStep& );
 };
 
 #endif

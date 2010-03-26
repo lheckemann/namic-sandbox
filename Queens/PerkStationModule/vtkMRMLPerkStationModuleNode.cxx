@@ -992,13 +992,22 @@ vtkMRMLPerkStationModuleNode
 ::GetActualPlanInsertionDepth()
 {
   double insDepth =
-    sqrt( ( this->PlanTargetPoint[ 0 ] - this->PlanEntryPoint[ 0 ] ) *
-          ( this->PlanTargetPoint[ 0 ] - this->PlanEntryPoint[ 0 ] ) + 
-          ( this->PlanTargetPoint[ 1 ] - this->PlanEntryPoint[ 1 ] ) *
-          ( this->PlanTargetPoint[ 1 ] - this->PlanEntryPoint[ 1 ] ) +
-          ( this->PlanTargetPoint[ 2 ] - this->PlanEntryPoint[ 2 ] ) *
-          ( this->PlanTargetPoint[ 2 ] - this->PlanEntryPoint[ 2 ] ) );
-  
+    sqrt( vtkMath::Distance2BetweenPoints( this->PlanTargetPoint,
+                                           this->PlanEntryPoint ) );
+  return insDepth;
+}
+
+
+/**
+ * @returns Euclidean distance between validation target and entry points.
+ */
+double
+vtkMRMLPerkStationModuleNode
+::GetValidationDepth()
+{
+  double insDepth =
+    sqrt( vtkMath::Distance2BetweenPoints( this->ValidateTargetPoint,
+                                           this->ValidateEntryPoint ) );
   return insDepth;
 }
 

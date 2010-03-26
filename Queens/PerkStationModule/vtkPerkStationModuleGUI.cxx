@@ -241,20 +241,24 @@ void vtkPerkStationModuleGUI::Enter()
 void vtkPerkStationModuleGUI::AddGUIObservers() 
 {
   this->RemoveGUIObservers();
-
+  
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-
+  
+  vtkInteractorStyle* iStyle = vtkInteractorStyle::SafeDownCast(
+    appGUI->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()
+    ->GetRenderWindowInteractor()->GetInteractorStyle() );
+  
+  
     // add listener to main slicer's red slice view
-  appGUI->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()
-    ->GetRenderWindowInteractor()->GetInteractorStyle()
-    ->AddObserver( vtkCommand::LeftButtonPressEvent,
-    ( vtkCommand* )this->GUICallbackCommand );
+  iStyle->AddObserver( vtkCommand::LeftButtonPressEvent,
+                       ( vtkCommand* )this->GUICallbackCommand );
   
     // calibrate planning image
-  appGUI->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()
-    ->GetRenderWindowInteractor()->GetInteractorStyle()
-    ->AddObserver( vtkCommand::KeyPressEvent,
-    ( vtkCommand* )this->GUICallbackCommand );
+  iStyle->AddObserver( vtkCommand::KeyPressEvent,
+                       ( vtkCommand* )this->GUICallbackCommand );
+  
+  iStyle->AddObserver( vtkCommand::MouseMoveEvent,
+                       ( vtkCommand* )this->GUICallbackCommand );
   
   
     // load volumes buttons
@@ -327,9 +331,6 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
 //---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
 {
-  //this->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
-  //this->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver(vtkCommand::CharEvent, (vtkCommand *)this->GUICallbackCommand);
-  
   this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()
       ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()
       ->RemoveObserver( (vtkCommand*)( this->GUICallbackCommand ) );
@@ -351,24 +352,30 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
     vtkKWScale::ScaleValueChangedEvent,
     ( vtkCommand* )this->GUICallbackCommand );
 
-  this->DisplayVolumeWindowValue->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->DisplayVolumeWindowValue->RemoveObservers(
+    vtkKWScale::ScaleValueChangedEvent,
+    (vtkCommand*)( this->GUICallbackCommand ) );
 
   if (this->LoadPlanningVolumeButton)
     {
-    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->RemoveObservers(
+      vtkKWTopLevel::WithdrawEvent, (vtkCommand*)( this->GUICallbackCommand ) );
     }
   if (this->LoadValidationVolumeButton)
     {
-    this->LoadValidationVolumeButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->LoadValidationVolumeButton->GetLoadSaveDialog()->RemoveObservers(
+      vtkKWTopLevel::WithdrawEvent, (vtkCommand*)( this->GUICallbackCommand ) );
     }
 
   if (this->LoadExperimentFileButton)
     {
-    this->LoadExperimentFileButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->LoadExperimentFileButton->GetLoadSaveDialog()->RemoveObservers(
+      vtkKWTopLevel::WithdrawEvent, (vtkCommand*)( this->GUICallbackCommand ) );
     }
   if (this->SaveExperimentFileButton)
     {
-    this->SaveExperimentFileButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->SaveExperimentFileButton->GetLoadSaveDialog()->RemoveObservers(
+      vtkKWTopLevel::WithdrawEvent, (vtkCommand*)( this->GUICallbackCommand ) );
     }
 
   this->ObserverCount--;
@@ -425,6 +432,17 @@ vtkPerkStationModuleGUI
     this->CalibrateStep->ProcessKeyboardEvents( caller, event, callData );
     this->SecondaryMonitor->UpdateImageDisplay();
     return;
+    }
+  
+    // Mouse move in the planning phase.
+  
+  if (    this->MRMLNode
+       && strcmp( eventName, "MouseMoveEvent" ) == 0
+       && this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
+          == this->PlanStep.GetPointer()
+       && strcmp( this->MRMLNode->GetVolumeInUse(), "Planning" ) == 0 )
+    {
+    this->PlanStep->ProcessMouseMoveEvent( caller, event, callData );
     }
   
   
@@ -948,10 +966,10 @@ void vtkPerkStationModuleGUI::BuildGUI()
   
   std::stringstream helpss;
   helpss << "**PERK Station Module** " << std::endl
-       //  << "**Revision " << PerkStationModule_REVISION << "**" << std::endl
+         << "**Revision " << PerkStationModule_REVISION << "**" << std::endl
          << "Use this module to perform image overlay guided percutaneous "
          << "interventions.";
-  const char* help = helpss.str().c_str();
+  // const char* help = helpss.str().c_str();
   
   
   // ----------------------------------------------------------------
@@ -962,7 +980,7 @@ void vtkPerkStationModuleGUI::BuildGUI()
   PerkStationHelpFrame->SetParent ( page );
   PerkStationHelpFrame->Create ( );
   PerkStationHelpFrame->CollapseFrame ( );
-  PerkStationHelpFrame->SetLabelText ("Help");
+  PerkStationHelpFrame->SetLabelText ( "Help" );
   app->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
       PerkStationHelpFrame->GetWidgetName(), page->GetWidgetName());
 
@@ -1626,46 +1644,37 @@ void vtkPerkStationModuleGUI::LoadExperimentButtonCallback(const char *fileName)
 
 
 //-----------------------------------------------------------------------------
-char *vtkPerkStationModuleGUI::CreateFileName()
+char*
+vtkPerkStationModuleGUI
+::CreateFileName()
 {
-    // create a folder for current date, if not already created
-    // get the system calendar time
-    std::time_t tt = std::time(0);
-    // convert it into tm struct
-    std::tm ttm = *std::localtime(&tt);
-    // extract the values for day, month, year
-    char dirName[9] = "";
-    sprintf(dirName, "%4d%2d%2d", ttm.tm_year, ttm.tm_mon+1, ttm.tm_mday);
-    if (access(dirName,0) ==0)
-        {
-        struct stat status;
-        stat( dirName, &status );
-        if ( status.st_mode & S_IFDIR )
-        {
-        // directory exists
-        }
-        else
-        {
-        //create directory
-        }
-        }
-    else
-        {
-        //create directory
-            ::CreateDirectory(dirName,NULL);
-        }
-
-    // after directory has been created
-    // create the file name
-    // extract time in hrs, mins, secs  
-
-
-    // generate the unique file name
-    // to take into account
-    // 1) student/trainee name
-    // 2) current time of experiment
-    // 3) trial number
-    //
+  // create a folder for current date, if not already created
+  // get the system calendar time
+  std::time_t tt = std::time(0);
+  // convert it into tm struct
+  std::tm ttm = *std::localtime(&tt);
+  // extract the values for day, month, year
+  char dirName[9] = "";
+  sprintf(dirName, "%4d%2d%2d", ttm.tm_year, ttm.tm_mon+1, ttm.tm_mday);
+  if (access(dirName,0) ==0)
+      {
+      struct stat status;
+      stat( dirName, &status );
+      if ( status.st_mode & S_IFDIR )
+      {
+      // directory exists
+      }
+      else
+      {
+      //create directory
+      }
+      }
+  else
+      {
+      //create directory
+          ::CreateDirectory(dirName,NULL);
+      }
+  
   return dirName;
 }
 

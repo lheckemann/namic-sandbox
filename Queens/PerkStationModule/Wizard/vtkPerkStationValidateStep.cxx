@@ -13,9 +13,11 @@
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
 
+#include "vtkLineSource.h"
 #include "vtkProperty.h"
 #include "vtkRenderer.h"
-#include "vtkLineSource.h"
+#include "vtkSmartPointer.h"
+
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPerkStationValidateStep);
@@ -759,99 +761,109 @@ void vtkPerkStationValidateStep::StartOverNewExperiment()
 //----------------------------------------------------------------------------
 void vtkPerkStationValidateStep::PopulateControls()
 {
+  double ras[ 3 ];
+  this->GetGUI()->GetMRMLNode()->GetValidateEntryPoint( ras );
+      
+  this->EntryPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
+  this->EntryPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
+  this->EntryPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
+  
+  this->GetGUI()->GetMRMLNode()->GetValidateTargetPoint( ras );
+  
+  this->TargetPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
+  this->TargetPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
+  this->TargetPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );    
 }
 
 
 //-----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData)
+void vtkPerkStationValidateStep::ProcessImageClickEvents(
+  vtkObject *caller, unsigned long event, void *callData )
 {
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-
-  // first identify if the step is pertinent, i.e. current step of wizard workflow is actually calibration step
-  if (!wizard_widget ||
-      wizard_widget->GetWizardWorkflow()->GetCurrentStep() != 
-      this)
+  
+  if (    ! wizard_widget
+       || wizard_widget->GetWizardWorkflow()->GetCurrentStep() !=  this
+       || ! this->GetGUI()->GetMRMLNode()
+       || ! this->GetGUI()->GetMRMLNode()->GetValidationVolumeNode()
+       || strcmp( this->GetGUI()->GetMRMLNode()->GetVolumeInUse(),
+                  "Validation" ) != 0 )
     {
     return;
     }
-
-  if (!this->GetGUI()->GetMRMLNode() || !this->GetGUI()->GetMRMLNode()->GetValidationVolumeNode() || strcmp(this->GetGUI()->GetMRMLNode()->GetVolumeInUse(), "Validation")!=0)
-    {
-    // TO DO: what to do on failure
-    return;
-    }
-
-  if(this->EntryTargetAcquired)
+  
+  if( this->EntryTargetAcquired )
     {
     return;
     }
-
-  vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
-  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  
+  vtkSlicerInteractorStyle *s =
+    vtkSlicerInteractorStyle::SafeDownCast( caller );
+  
+  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
+    GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->
+    GetInteractorStyle() );
   
   vtkRenderWindowInteractor *rwi;
   vtkMatrix4x4 *matrix;
-  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
+  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->
+                                GetMainSliceGUI( "Red" )->GetSliceViewer()->
+                                GetRenderWidget()->GetOverlayRenderer();
 
-  if ( ( s == istyle0) && ( event == vtkCommand::LeftButtonPressEvent ) )
+  if (    ( s == istyle0 )
+       && ( event == vtkCommand::LeftButtonPressEvent ) )
     {
-    ++this->ClickNumber;
+    ++ this->ClickNumber;
     
-    // mouse click happened in the axial slice view      
-    vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
-    rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();    
+      // mouse click happened in the axial slice view      
+    vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(
+         this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
+    rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->
+          GetRenderWindowInteractor();    
     matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
     
     // capture the point
-    int point[2];
-    rwi->GetLastEventPosition(point);
-    double inPt[4] = {point[0], point[1], 0, 1};
-    double outPt[4];
+    int point[ 2 ];
+    rwi->GetLastEventPosition( point );
+    double inPt[ 4 ] = { point[ 0 ], point[ 1 ], 0, 1 };
+    double outPt[ 4 ];
     
-    matrix->MultiplyPoint(inPt, outPt); 
-    double ras[3] = {outPt[0], outPt[1], outPt[2]};
+    matrix->MultiplyPoint( inPt, outPt ); 
+    double ras[ 3 ] = { outPt[ 0 ], outPt[ 1 ], outPt[ 2 ] };
 
-    // depending on click number, it is either Entry point or target point
+      // depending on click number, it is either Entry point or target point
+    
     if ( this->ClickNumber == 1 )
       {
-      // entry point specification by user
-      this->EntryPoint->GetWidget(0)->SetValueAsDouble(ras[0]);
-      this->EntryPoint->GetWidget(1)->SetValueAsDouble(ras[1]);
-      this->EntryPoint->GetWidget(2)->SetValueAsDouble(ras[2]);
-
-      // record value in mrml node
-      this->GetGUI()->GetMRMLNode()->SetValidateEntryPoint(ras);
+      this->GetGUI()->GetMRMLNode()->SetValidateEntryPoint( ras );
       }
-    else if (this->ClickNumber == 2)
+    else if ( this->ClickNumber == 2 )
       {
-      this->TargetPoint->GetWidget(0)->SetValueAsDouble(ras[0]);
-      this->TargetPoint->GetWidget(1)->SetValueAsDouble(ras[1]);
-      this->TargetPoint->GetWidget(2)->SetValueAsDouble(ras[2]);
-      
-      // record value in the MRML node
-      this->GetGUI()->GetMRMLNode()->SetValidateTargetPoint(ras);      
-      // this->GetGUI()->GetMRMLNode()->CalculateTargetPointError();
+      this->GetGUI()->GetMRMLNode()->SetValidateTargetPoint( ras );      
       
       this->ClickNumber = 0;
 
       this->OverlayValidationNeedleAxis();
 
-      double rasEntry[3];
-      double rasTarget[3];
-      this->GetGUI()->GetMRMLNode()->GetValidateEntryPoint(rasEntry);
-      this->GetGUI()->GetMRMLNode()->GetValidateTargetPoint(rasTarget);
-      double insDepth = sqrt( (rasTarget[0] - rasEntry[0])*(rasTarget[0] - rasEntry[0]) + (rasTarget[1] - rasEntry[1])*(rasTarget[1] - rasEntry[1]) + (rasTarget[2] - rasEntry[2])*(rasTarget[2] - rasEntry[2]) );
-      // this->GetGUI()->GetMRMLNode()->SetValidateInsertionDepth(insDepth);   
-      this->InsertionDepth->GetWidget()->SetValueAsDouble(insDepth);
+      double rasEntry[ 3 ];
+      double rasTarget[ 3 ];
+      this->GetGUI()->GetMRMLNode()->GetValidateEntryPoint( rasEntry );
+      this->GetGUI()->GetMRMLNode()->GetValidateTargetPoint( rasTarget );
+      
+      this->InsertionDepth->GetWidget()->SetValueAsDouble(
+        this->GetGUI()->GetMRMLNode()->GetValidationDepth() );
       
       this->LogTimer->StopTimer();
-      this->GetGUI()->GetMRMLNode()->SetTimeSpentOnValidateStep(this->LogTimer->GetElapsedTime());
+      this->GetGUI()->GetMRMLNode()->SetTimeSpentOnValidateStep(
+        this->LogTimer->GetElapsedTime() );
 
       this->PresentValidationErrors();
 
       this->EntryTargetAcquired = true;
       }
-
+    
+    this->PopulateControls();
 
     }
 
@@ -905,83 +917,95 @@ void vtkPerkStationValidateStep::PresentValidationErrors()
 //------------------------------------------------------------------------------
 void vtkPerkStationValidateStep::OverlayValidationNeedleAxis()
 {
-  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
-
-  // get the world coordinates
-  int point[2];
-  double worldCoordinate[4];
-  vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
+  vtkSlicerSliceGUI* sliceGUI = vtkSlicerApplicationGUI::SafeDownCast( 
+                                  this->GetGUI()->GetApplicationGUI() )->
+                                  GetMainSliceGUI( "Red" );
+  
+  vtkRenderer* renderer = sliceGUI->GetSliceViewer()->
+                          GetRenderWidget()->GetOverlayRenderer();
+  
+  
+    // get the world coordinates
+  
+  int point[ 2 ];
+  double worldCoordinate[ 4 ];
   vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
   vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
-  vtkMatrix4x4::Invert(xyToRAS, rasToXY);
+  vtkMatrix4x4::Invert( xyToRAS, rasToXY );
+  
+  
+  double rasEntry[ 3 ];
+  this->GetGUI()->GetMRMLNode()->GetValidateEntryPoint( rasEntry );
+  double inPt[ 4 ] = { rasEntry[ 0 ], rasEntry[ 1 ], rasEntry[ 2 ], 1 };
+  double outPt[ 4 ];  
+  rasToXY->MultiplyPoint( inPt, outPt );
+  point[ 0 ] = outPt[ 0 ];
+  point[ 1 ] = outPt[ 1 ];
 
-  // entry point
-  double rasEntry[3];
-  this->GetGUI()->GetMRMLNode()->GetValidateEntryPoint(rasEntry);
-  double inPt[4] = {rasEntry[0], rasEntry[1], rasEntry[2], 1};
-  double outPt[4];  
-  rasToXY->MultiplyPoint(inPt, outPt);
-  point[0] = outPt[0];
-  point[1] = outPt[1];
-
-  renderer->SetDisplayPoint(point[0],point[1], 0);
+  renderer->SetDisplayPoint( point[ 0 ], point[ 1 ], 0 );
   renderer->DisplayToWorld();
-  renderer->GetWorldPoint(worldCoordinate);
-  double wcEntry[3];
-  wcEntry[0] = worldCoordinate[0];
-  wcEntry[1] = worldCoordinate[1];
-  wcEntry[2] = worldCoordinate[2];
+  renderer->GetWorldPoint( worldCoordinate );
+  double wcEntry[ 3 ] = { worldCoordinate[ 0 ], worldCoordinate[ 1 ],
+                          worldCoordinate[ 2 ] };
 
-  double rasTarget[3];
-  this->GetGUI()->GetMRMLNode()->GetValidateTargetPoint(rasTarget);
-  inPt[0] = rasTarget[0];
-  inPt[1] = rasTarget[1];
-  inPt[2] = rasTarget[2];
-  rasToXY->MultiplyPoint(inPt, outPt);
-  point[0] = outPt[0];
-  point[1] = outPt[1];
-  renderer->SetDisplayPoint(point[0],point[1], 0);
+  double rasTarget[ 3 ];
+  this->GetGUI()->GetMRMLNode()->GetValidateTargetPoint( rasTarget );
+  inPt[ 0 ] = rasTarget[ 0 ];
+  inPt[ 1 ] = rasTarget[ 1 ];
+  inPt[ 2 ] = rasTarget[ 2 ];
+  rasToXY->MultiplyPoint( inPt, outPt );
+  point[ 0 ] = outPt[ 0 ];
+  point[ 1 ] = outPt[ 1 ];
+  renderer->SetDisplayPoint( point[ 0 ], point[ 1 ], 0 );
   renderer->DisplayToWorld();
-  renderer->GetWorldPoint(worldCoordinate);
-  double wcTarget[3];
-  wcTarget[0] = worldCoordinate[0];
-  wcTarget[1] = worldCoordinate[1];
-  wcTarget[2] = worldCoordinate[2];
+  renderer->GetWorldPoint( worldCoordinate );
+  double wcTarget[ 3 ] = { worldCoordinate[ 0 ], worldCoordinate[ 1 ],
+                           worldCoordinate[ 2 ] };
 
-  // add a dotted line using two end points
+    // add a dotted line using two end points
     // set up the line
-    vtkLineSource *line = vtkLineSource::New();
-    line->SetPoint1(wcEntry);
-    line->SetPoint2(wcTarget);
-    line->SetResolution(100);
+  vtkSmartPointer< vtkLineSource > line =
+      vtkSmartPointer< vtkLineSource >::New();
+    line->SetPoint1( wcEntry );
+    line->SetPoint2( wcTarget );
+    line->SetResolution( 100 );
 
-    // set up the mapper,
-    vtkPolyDataMapper *lineMapper = vtkPolyDataMapper::New();
+    // set up the mapper
+  vtkSmartPointer< vtkPolyDataMapper > lineMapper =
+      vtkSmartPointer< vtkPolyDataMapper >::New();
     lineMapper->SetInputConnection( line->GetOutputPort() );
-        
-    // actor
-    this->ValidationNeedleActor->SetMapper(lineMapper);
-    this->ValidationNeedleActor->GetProperty()->SetLineStipplePattern(0xffff);
-    this->ValidationNeedleActor->GetProperty()->SetColor(255,0,255);
+  
+  this->ValidationNeedleActor->SetMapper( lineMapper );
+  this->ValidationNeedleActor->GetProperty()->SetLineStipplePattern( 0xffff );
+  this->ValidationNeedleActor->GetProperty()->SetColor( 255, 0, 255 );
 
 
     // add to actor collection
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->AddActor(this->ValidationNeedleActor);
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->RequestRender(); 
-
+  sliceGUI->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->
+            AddActor( this->ValidationNeedleActor );
+  
+  sliceGUI->GetSliceViewer()->RequestRender(); 
 }
+
 
 //------------------------------------------------------------------------------
 void vtkPerkStationValidateStep::RemoveValidationNeedleAxis()
 {
   // should remove the overlay needle guide
-  vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->GetActors();
-  if (collection->IsItemPresent(this->ValidationNeedleActor))
+  vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->
+    GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
+    GetOverlayRenderer()->GetActors();
+  
+  if ( collection->IsItemPresent( this->ValidationNeedleActor ) )
     {
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->RemoveActor(this->ValidationNeedleActor);
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->RequestRender();     
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
+          GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->
+          RemoveActor( this->ValidationNeedleActor );
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
+          GetSliceViewer()->RequestRender();
     }
 }
+
 
 //------------------------------------------------------------------------------
 void vtkPerkStationValidateStep::Reset()

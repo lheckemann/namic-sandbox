@@ -267,6 +267,8 @@ public:
   double GetActualPlanInsertionAngle();
   double GetActualPlanInsertionDepth();
   
+  double GetValidationDepth();
+  
 protected:
   
   vtkMRMLPerkStationModuleNode();
