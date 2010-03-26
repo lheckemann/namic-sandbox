@@ -59,6 +59,16 @@ HouseholderTransformation(unsigned int n, const double * z, double * x ) const
     {
     *xp++ -= scalarProduct * (*zp++);
     }
+}
 
- 
+
+/**
+ * computes x = x + A'*y without altering y,
+ * where A is a test matrix of the form  A = Y*D*Z,
+ * and the matrices D, Y, Z are represented by
+ * the allocatable vectors d, hy, hz in this module. */
+void lsqr::
+Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const
+{
+
 }
