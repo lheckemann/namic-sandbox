@@ -36,6 +36,7 @@
 #include "itkQuadEdgeMeshGenerateDeformationFieldFilter.h"
 #include "itkIdentityTransform.h"
 #include "itkReplaceDestinationPointsQuadEdgeMeshFilter.h"
+#include "itkAssignScalarValuesQuadEdgeMeshFilter.h"
 
 #ifdef USE_VTK
 #include "DeformableAndAffineRegistrationMonitor.h"
@@ -178,7 +179,7 @@ int main( int argc, char * argv [] )
   axis [1] = 0.0;
   axis [2] = 1.0;
 
-  angle = 0.0;  // In Radians
+  angle = -3.0;  // In Radians
 
   transform ->SetRotation ( axis , angle );
 
@@ -338,7 +339,8 @@ int main( int argc, char * argv [] )
 
   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MovingMeshType >  WriterType;
   WriterType::Pointer writer = WriterType::New();
-  writer->SetInput( meshFixed);
+  //writer->SetInput( meshFixed);
+  writer->SetInput( resampler->GetOutput());
   writer->SetFileName(argv[6]);
   writer->Update(); 
   std::cout << "resampled mesh after rigid registration Saved" << std::endl;
@@ -408,8 +410,21 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
+ //assign resampled moving values to fixedMesh
+  //inputMesh: fixedMeshReader->GetOutput()
+  //sourceMesh: demonsFilter->GetOutput()
+  typedef itk::AssignScalarValuesQuadEdgeMeshFilter<FixedMeshType, RegisteredMeshType, FixedMeshType > AssignFilterType;
+
+  AssignFilterType::Pointer assignFilter = AssignFilterType::New();
+
+  assignFilter->SetInputMesh(fixedMeshReader->GetOutput());
+  assignFilter->SetSourceMesh(demonsFilter->GetOutput());
+
+  assignFilter->Update();
+
   writer->SetFileName( argv[7] );
-  writer->SetInput( demonsFilter->GetOutput() );
+  //writer->SetInput( demonsFilter->GetOutput() );
+  writer->SetInput( assignFilter->GetOutput() );
 
   try
     {
