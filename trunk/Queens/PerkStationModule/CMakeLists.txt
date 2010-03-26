@@ -24,9 +24,12 @@ endif(NOT Slicer3_SOURCE_DIR)
 find_package(Subversion)
 if (Subversion_FOUND)
   Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PerkStationModule)
-  MESSAGE("Current PerkStationModule revision is ${PerkStationModule_WC_REVISION}")
   set(PerkStationModule_REVISION "${PerkStationModule_WC_REVISION}")
+else (Subversion_FOUND)
+  set(PerkStationModule_REVISION "NOT DEFINED")
 endif (Subversion_FOUND)
+MESSAGE( "Current source dir is: " ${CMAKE_CURRENT_SOURCE_DIR} )
+MESSAGE("Current PerkStationModule revision is ${PerkStationModule_REVISION}")
 
 
 # --------------------------------------------------------------------------

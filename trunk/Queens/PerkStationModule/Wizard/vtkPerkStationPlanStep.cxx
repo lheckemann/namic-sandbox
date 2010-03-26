@@ -16,12 +16,13 @@
 #include "vtkKWWizardWorkflow.h"
 
 #include "vtkCylinderSource.h"
+#include "vtkIdentityTransform.h"
+#include "vtkLineSource.h"
+#include "vtkMath.h"
+#include "vtkMatrixToHomogeneousTransform.h"
 #include "vtkProperty.h"
 #include "vtkRenderer.h"
-#include "vtkIdentityTransform.h"
-#include "vtkMatrixToHomogeneousTransform.h"
 #include "vtkTransformPolyDataFilter.h"
-#include "vtkMath.h"
 
 // debug
 #include "vtkSlicerApplication.h"
@@ -55,7 +56,12 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
   this->TiltInformationFrame = NULL;
   this->TiltMsg = NULL;
   this->SystemTiltAngle = NULL;
-
+  
+  this->PlanningLineActor = vtkSmartPointer< vtkActor >::New();
+    this->PlanningLineActor->SetVisibility( 0 );
+    this->PlanningLineActor->GetProperty()->SetColor( 1.0, 0.0, 1.0 );
+  
+  
   this->WCEntryPoint[0] = 0.0;
   this->WCEntryPoint[1] = 0.0;
   this->WCEntryPoint[2] = 0.0;
@@ -483,67 +489,77 @@ void vtkPerkStationPlanStep::ShowUserInterface()
     "Please note that the order of the clicks on image is important." );
 }
 
+
 //----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::PrintSelf(ostream& os, vtkIndent indent)
+void
+vtkPerkStationPlanStep
+::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->Superclass::PrintSelf(os,indent);
 }
 
+
 //----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::AddGUIObservers()
+void
+vtkPerkStationPlanStep
+::AddGUIObservers()
 {
   this->RemoveGUIObservers();
 
   if (this->ResetPlanButton)
     {
-    this->ResetPlanButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+    this->ResetPlanButton->AddObserver( vtkKWPushButton::InvokedEvent,
+      (vtkCommand *)this->WizardGUICallbackCommand );
     }
   if(this->InsertionDepth)
     {
     this->InsertionDepth->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionDepth->GetWidget()->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    this->InsertionDepth->GetWidget()->AddObserver(
+      vtkKWEntry::EntryValueChangedEvent,
+      (vtkCommand *)this->WizardGUICallbackCommand );
     }
   if(this->InsertionAngle)
     {
     this->InsertionAngle->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionAngle->GetWidget()->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    this->InsertionAngle->GetWidget()->AddObserver(
+      vtkKWEntry::EntryValueChangedEvent,
+      (vtkCommand *)this->WizardGUICallbackCommand );
     }
+  
+  
+  vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI() )->
+    GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
+    GetOverlayRenderer()->AddActor( this->PlanningLineActor ); 
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::RemoveGUIObservers()
 {
   if (this->ResetPlanButton)
     {
-    this->ResetPlanButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+    this->ResetPlanButton->RemoveObservers( vtkKWPushButton::InvokedEvent,
+      (vtkCommand *)this->WizardGUICallbackCommand );
     }
   if(this->InsertionDepth)
     {
-    this->InsertionDepth->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    this->InsertionDepth->RemoveObservers( vtkKWEntry::EntryValueChangedEvent,
+      (vtkCommand *)this->WizardGUICallbackCommand );
     }
 
   if(this->InsertionAngle)
     {
-    this->InsertionAngle->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    this->InsertionAngle->RemoveObservers( vtkKWEntry::EntryValueChangedEvent,
+      (vtkCommand *)this->WizardGUICallbackCommand );
     }
 
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::InstallCallbacks()
 {
-  /*
-  // callback on insertion depth
-  this->InsertionDepth->GetWidget()->SetRestrictValueToDouble();
-  this->InsertionDepth->GetWidget()->SetCommand(this, "InsertionDepthEntryCallback");
-  this->AddCallbackCommandObserver(this->InsertionDepth->GetWidget(), vtkKWEntry::EntryValueChangedEvent);
-
-  // callback on insertion angle
-  this->InsertionAngle->GetWidget()->SetRestrictValueToDouble();
-  this->InsertionAngle->GetWidget()->SetCommand(this, "InsertionAngleEntryCallback");
-  this->AddCallbackCommandObserver(this->InsertionAngle->GetWidget(), vtkKWEntry::EntryValueChangedEvent);
-*/
-
   this->AddGUIObservers();
-
 }
 
 
@@ -586,28 +602,19 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(
 {
   
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-
-    // first identify if the step is pertinent, i.e. current step of wizard
-    // workflow is actually calibration step
   
-  if ( ! wizard_widget
-       || wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this )
-    {
-    return;
-    }
   
-    // Make sure the Planning volume is in use.
-  
-  if ( ! this->GetGUI()->GetMRMLNode()
+  if (    ! wizard_widget
+       || wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this
+       || ! this->GetGUI()->GetMRMLNode()
        || ! this->GetGUI()->GetMRMLNode()->GetPlanningVolumeNode()
        || strcmp( this->GetGUI()->GetMRMLNode()->GetVolumeInUse(),
                   "Planning" )!= 0 )
     {
-    // TO DO: what to do on failure
     return;
     }
-
-
+  
+  
     // see if the entry and target have already been acquired
   
   if( this->EntryTargetAcquired )
@@ -725,13 +732,105 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(
     this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();  
     
     this->ClickNumber = 0;
-
+    
     this->EntryTargetAcquired = true;
+    }
+  
+  if ( this->ClickNumber != 1 )
+    {
+    this->PlanningLineActor->SetVisibility( 0 );
     }
 }
 
+
+void
+vtkPerkStationPlanStep
+::ProcessMouseMoveEvent( vtkObject *caller,
+                         unsigned long event,
+                         void *callData )
+{
+  if ( this->ClickNumber != 1 )
+    {
+    this->PlanningLineActor->SetVisibility( 0 );
+    return;
+    }
+  
+  this->PlanningLineActor->SetVisibility( 1 );
+  
+  
+  vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(
+    this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
+  
+  vtkRenderWindowInteractor *rwi;
+  rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->
+        GetRenderWindowInteractor();    
+  
+  vtkMatrix4x4 *matrix;
+  matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+  
+  int point[ 2 ];
+  rwi->GetLastEventPosition( point );
+  double inPt[ 4 ] = { point[ 0 ], point[ 1 ], 0.0, 1.0 };
+  double outPt[ 4 ];    
+  matrix->MultiplyPoint( inPt, outPt ); 
+  double ras[ 3 ] = { outPt[ 0 ], outPt[ 1 ], outPt[ 2 ] };
+  
+  
+    // get the world coordinates
+  vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+  vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+  vtkMatrix4x4::Invert(xyToRAS, rasToXY);
+  
+    // start point
+  double rasEntry[ 3 ];
+  if ( this->TargetFirstCheck->GetWidget()->GetSelectedState() != 0 )
+    {
+    this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( rasEntry );
+    }
+  else
+    {
+    this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( rasEntry );
+    }
+  // inPt[ 4 ] = { rasEntry[ 0 ], rasEntry[ 1 ], rasEntry[ 2 ], 1 };
+  for ( int i = 0; i < 3; ++ i ) inPt[ i ] = rasEntry[ i ];
+  inPt[ 3 ] = 1.0;
+  rasToXY->MultiplyPoint( inPt, outPt );
+  
+  double entryPointXY[ 2 ] = { outPt[ 0 ], outPt[ 1 ] };
+  
+  vtkRenderer *renderer = sliceGUI->GetSliceViewer()->GetRenderWidget()->
+    GetOverlayRenderer();
+  
+  double wc[ 4 ];
+  renderer->SetDisplayPoint( point[ 0 ], point[ 1 ], 0 );
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint( wc );
+  double endPointWC[ 3 ] = { wc[ 0 ], wc[ 1 ], wc[ 2 ] };
+  
+  renderer->SetDisplayPoint( entryPointXY[ 0 ], entryPointXY[ 1 ], 0.0 );
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint( wc );
+  double startPointWC[ 3 ] = { wc[ 0 ], wc[ 1 ], wc[ 2 ] };
+  
+  vtkSmartPointer< vtkLineSource > lineSource =
+      vtkSmartPointer< vtkLineSource >::New();
+    lineSource->SetPoint1( startPointWC );
+    lineSource->SetPoint2( endPointWC );
+  
+  vtkSmartPointer< vtkPolyDataMapper > lineMapper =
+      vtkSmartPointer< vtkPolyDataMapper >::New();
+    lineMapper->SetInputConnection( lineSource->GetOutputPort() );
+  
+  this->PlanningLineActor->SetMapper( lineMapper );
+  
+  sliceGUI->GetSliceViewer()->RequestRender(); 
+}
+
+
 //----------------------------------------------------------------------------
-bool vtkPerkStationPlanStep::DoubleEqual(double val1, double val2)
+bool
+vtkPerkStationPlanStep
+::DoubleEqual( double val1, double val2 )
 {
   bool result = false;
     
@@ -746,7 +845,7 @@ bool vtkPerkStationPlanStep::DoubleEqual(double val1, double val2)
 void vtkPerkStationPlanStep::OverlayNeedleGuide()
 {
   vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->
-    GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->
+    GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
     GetOverlayRenderer();
 
     // get the world coordinates
@@ -758,7 +857,7 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
   vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
   vtkMatrix4x4::Invert(xyToRAS, rasToXY);
-
+  
     // entry point
   double rasEntry[3];
   this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasEntry);
@@ -767,14 +866,14 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   rasToXY->MultiplyPoint(inPt, outPt);
   point[0] = outPt[0];
   point[1] = outPt[1];
-
+  
   renderer->SetDisplayPoint(point[0],point[1], 0);
   renderer->DisplayToWorld();
   renderer->GetWorldPoint(worldCoordinate);
   this->WCEntryPoint[0] = worldCoordinate[0];
   this->WCEntryPoint[1] = worldCoordinate[1];
   this->WCEntryPoint[2] = worldCoordinate[2];
-
+  
   double rasTarget[3];
   this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint(rasTarget);
   inPt[0] = rasTarget[0];
@@ -789,16 +888,18 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   this->WCTargetPoint[0] = worldCoordinate[0];
   this->WCTargetPoint[1] = worldCoordinate[1];
   this->WCTargetPoint[2] = worldCoordinate[2];
-
-
+  
+  
     // steps
     // get the cylinder source, create the cylinder, whose height is equal to
     // calculated insertion depth apply transform on the cylinder to world 
     // coordinates, using the information of entry and target point
     // i.e. using the insertion angle
     // add it to slice viewer's renderer
-
-  vtkCylinderSource *needleGuide = vtkCylinderSource::New();
+  
+  vtkSmartPointer< vtkCylinderSource > needleGuide =
+    vtkSmartPointer< vtkCylinderSource >::New();
+  
   // TO DO: how to relate this to actual depth???
   double halfNeedleLength =
     sqrt( ( this->WCTargetPoint[ 0 ] - this->WCEntryPoint[ 0 ] ) *
@@ -808,15 +909,17 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   needleGuide->SetHeight( 2 * halfNeedleLength );
   needleGuide->SetRadius( 0.009 );
   needleGuide->SetResolution( 10 );
-
+  
     // because cylinder is positioned at the window center
   double needleCenter[ 3 ];
   needleCenter[0] = this->WCEntryPoint[0];// - windowSize[0]/2;
   needleCenter[1] = this->WCEntryPoint[1];// - windowSize[1]/2;
   
   // TO DO: transfrom needle mapper using vtkTransformPolyData
-  vtkMatrix4x4 *transformMatrix = vtkMatrix4x4::New();
-  transformMatrix->Identity();
+  
+  // vtkMatrix4x4 *transformMatrix = vtkMatrix4x4::New();
+  // transformMatrix->Identity();
+  
     // insertion angle is the angle with x-axis of the line which has entry
     // and target as its end points;
   double angle = double( 180 / vtkMath::Pi() ) *
@@ -824,54 +927,61 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
                                ( rasEntry[ 0 ] - rasTarget[ 0 ] ) ) );
   double insAngleRad = vtkMath::Pi() / 2.0
                        - double( vtkMath::Pi() / 180.0 ) * angle;
+  /*
   transformMatrix->SetElement( 0, 0, cos( insAngleRad ) );
   transformMatrix->SetElement( 0, 1, -sin( insAngleRad ) );
   transformMatrix->SetElement( 0, 2, 0);
   transformMatrix->SetElement( 0, 3, 0);
   transformMatrix->SetElement( 0, 3, needleCenter[0]);
-
+  
   transformMatrix->SetElement(1,0, sin(insAngleRad));
   transformMatrix->SetElement(1,1, cos(insAngleRad));
   transformMatrix->SetElement(1,2, 0);
   transformMatrix->SetElement(1,3, 0);
   transformMatrix->SetElement(1,3, needleCenter[1]);
-
+  
   transformMatrix->SetElement(2,0, 0);
   transformMatrix->SetElement(2,1, 0);
   transformMatrix->SetElement(2,2, 1);
   transformMatrix->SetElement(2,3, 0);
-
+  
   transformMatrix->SetElement(3,0, 0);
   transformMatrix->SetElement(3,1, 0);
   transformMatrix->SetElement(3,2, 0);
   transformMatrix->SetElement(3,3, 1);
-
-  vtkMatrixToHomogeneousTransform *transform =
-    vtkMatrixToHomogeneousTransform::New();
-  transform->SetInput(transformMatrix);
+  */
+  
+  // vtkSmartPointer< vtkMatrixToHomogeneousTransform > transform =
+  //  vtkSmartPointer< vtkMatrixToHomogeneousTransform >::New();
+  // transform->SetInput(transformMatrix);
+  
+  vtkSmartPointer< vtkTransform > transform =
+      vtkSmartPointer< vtkTransform >::New();
+    transform->Translate( needleCenter[ 0 ], needleCenter[ 1 ], 0.0 );
+    transform->RotateZ( 90.0 - angle );
+  
   vtkTransformPolyDataFilter *filter = vtkTransformPolyDataFilter::New();
-  filter->SetInputConnection(needleGuide->GetOutputPort()); 
-  filter->SetTransform(transform);
-
+    filter->SetInputConnection( needleGuide->GetOutputPort() );
+    filter->SetTransform( transform );
+  
   // map
   vtkPolyDataMapper *needleMapper = vtkPolyDataMapper::New();
-  needleMapper->SetInputConnection( filter->GetOutputPort() );
+    needleMapper->SetInputConnection( filter->GetOutputPort() );
   
   // after transfrom, set up actor
   this->NeedleActor = vtkActor::New(); 
   this->NeedleActor->SetMapper( needleMapper );  
   this->NeedleActor->GetProperty()->SetOpacity( 0.3 );
   
- 
   // add to renderer of the Axial slice viewer
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
     GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->
       AddActor( this->NeedleActor );
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
     GetSliceViewer()->RequestRender(); 
- 
-  
 }
+
+
 //------------------------------------------------------------------------------
 void vtkPerkStationPlanStep::CalculatePlanInsertionAngleAndDepth()
 {
@@ -1159,213 +1269,63 @@ void vtkPerkStationPlanStep::ResetControls()
     this->TiltMsg->SetText("");
     }
 }
-//------------------------------------------------------------------------------
+
+
+// ----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::RemoveOverlayNeedleGuide()
 {
-  // should remove the overlay needle guide
-  vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->GetActors();
-  if (collection->IsItemPresent(this->NeedleActor))
+    // should remove the overlay needle guide
+  vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->
+      GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
+      GetOverlayRenderer()->GetActors();
+  
+  if ( collection->IsItemPresent( this->NeedleActor ) )
     {
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->RemoveActor(this->NeedleActor);
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->RequestRender();     
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
+          GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->
+          RemoveActor( this->NeedleActor );
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
+          GetSliceViewer()->RequestRender();
     }
 }
 
-//-----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::LoadPlanning(istream &file)
+
+// ----------------------------------------------------------------------------
+void vtkPerkStationPlanStep::WizardGUICallback( vtkObject* caller,
+                                                unsigned   long event,
+                                                void*      clientData,
+                                                void*      callData )
 {
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if (!mrmlNode)
-    {
-    // TO DO: what to do on failure
-    return;
-    }  
-
-  char currentLine[256];  
-  char* attName = "";
-  char* attValue = "";
-  char* pdest;
-  int nCharCount = 0;
-  unsigned int indexEndOfAttribute = 0;
-  unsigned int indexStartOfValue = 0;
-  unsigned int indexEndOfValue = 0;
-
-  int paramSetCount = 0;
-  while(!file.eof())
-    {
-    // first get each line,
-    // then parse each line on basis of attName, and attValue
-    // this can be done as delimiters '='[]' is used to separate out name from value
-    file.getline(&currentLine[0], 256, '\n');   
-    nCharCount = strlen(currentLine);
-    indexEndOfAttribute = strcspn(currentLine,"=");
-    if(indexEndOfAttribute >0)
-      {
-      attName = new char[indexEndOfAttribute+1];
-      strncpy(attName, currentLine,indexEndOfAttribute);
-      attName[indexEndOfAttribute] = '\0';
-      pdest = strchr(currentLine, '"');   
-      indexStartOfValue = (int)(pdest - currentLine + 1);
-      pdest = strrchr(currentLine, '"');
-      indexEndOfValue = (int)(pdest - currentLine + 1);
-      attValue = new char[indexEndOfValue-indexStartOfValue+1];
-      strncpy(attValue, &currentLine[indexStartOfValue], indexEndOfValue-indexStartOfValue-1);
-      attValue[indexEndOfValue-indexStartOfValue-1] = '\0';
-
-      // at this point, we have line separated into, attributeName, and attributeValue
-      // now we need to do string matching on attributeName, and further parse attributeValue as it may have more than one value
-      if (!strcmp(attName, " PlanEntryPoint"))
-        {
-        // read data into a temporary vector
-        std::stringstream ss;
-        ss << attValue;
-        double d;
-        std::vector<double> tmpVec;
-        while (ss >> d)
-          {
-          tmpVec.push_back(d);
-          }
-        if (tmpVec.size()==3)
-          {
-          double point[3];
-          for (unsigned int i = 0; i < tmpVec.size(); i++)
-            point[i] = tmpVec[i];
-          mrmlNode->SetPlanEntryPoint(point[0], point[1], point[2]);
-          paramSetCount++;
-          }
-        else
-          {
-          // error in file?
-          }     
-        }
-      else if (!strcmp(attName, " PlanTargetPoint"))
-        {
-        // read data into a temporary vector
-        std::stringstream ss;
-        ss << attValue;
-        double d;
-        std::vector<double> tmpVec;
-        while (ss >> d)
-          {
-          tmpVec.push_back(d);
-          }
-        if (tmpVec.size()==3)
-          {
-          double point[3];
-          for (unsigned int i = 0; i < tmpVec.size(); i++)
-            point[i] = tmpVec[i];
-          mrmlNode->SetPlanTargetPoint(point[0], point[1], point[2]);
-          paramSetCount++;
-          }
-        else
-          {
-          // error in file?
-          }     
-        }
-      
-      }// end if testing for it is a valid attName
-
-    } // end while going through the file
-  
-  if (paramSetCount == 4)
-    {
-    // all params correctly read from file
-    
-    // reflect the values of params in GUI controls
-    this->PopulateControlsOnLoadPlanning();
-    // set any state variables required to be set
-
-    // overlay needle guide in slicer gui & secondary monitor
-    this->OverlayNeedleGuide();
-    this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();  
-    
-    this->ClickNumber = 0;
-
-    this->EntryTargetAcquired = true;
-    }
-  else
-    {
-    // error reading file, not all values set
-    int error = -1;
-    }
+    vtkPerkStationPlanStep *self =
+      reinterpret_cast< vtkPerkStationPlanStep* >( clientData );
+    if ( self ) self->ProcessGUIEvents( caller, event, callData );
 }
 
-//-----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::SavePlanning(ostream& of)
-{
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if (!mrmlNode)
-    {
-    // TO DO: what to do on failure
-    return;
-    }  
-
-  
-  // entry point
-  of << " PlanEntryPoint=\"" ;
-  double entryPoint[3];
-  mrmlNode->GetPlanEntryPoint(entryPoint);
-  for(int i = 0; i < 3; i++)
-      of << entryPoint[i] << " ";
-  of << "\" \n";
-     
-  // target point
-  of << " PlanTargetPoint=\""; 
-  double targetPoint[3];
-  mrmlNode->GetPlanTargetPoint(targetPoint);
-  for(int i = 0; i < 3; i++)
-      of << targetPoint[i] << " ";
-  of << "\" \n";
-
-  // insertion depth
-  of << " PlanInsertionDepth=\"";
-  double depth = mrmlNode->GetActualPlanInsertionDepth();  
-  of << depth << " ";
-  of << "\" \n";
-
-  
-  // insertion angle
-  of << " PlanInsertionAngle=\"";
-  double angle = mrmlNode->GetActualPlanInsertionAngle();  
-  of << angle << " ";
-  of << "\" \n";
-
-  
-
-  
-
-}
 
 //----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData )
-{
-    vtkPerkStationPlanStep *self = reinterpret_cast<vtkPerkStationPlanStep *>(clientData);
-    if (self) { self->ProcessGUIEvents(caller, event, callData); }
-}
-
-//----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::ProcessGUIEvents(vtkObject *caller,
-                                            unsigned long event, void *callData)
+void vtkPerkStationPlanStep::ProcessGUIEvents( vtkObject* caller,
+                                           unsigned long event, void* callData )
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
 
-  if(!mrmlNode)
-      return;
-
-  if(!mrmlNode->GetPlanningVolumeNode() || strcmp(mrmlNode->GetVolumeInUse(), "Planning")!=0)
-      return;
-
-  
-  if (this->ProcessingCallback)
+  if(    ! mrmlNode
+      || ! mrmlNode->GetPlanningVolumeNode()
+      || strcmp( mrmlNode->GetVolumeInUse(), "Planning" ) != 0 )
     {
     return;
     }
 
+  
+    // Avoid parallel instances.
+  
+  if ( this->ProcessingCallback ) return;
   this->ProcessingCallback = true;
+
   
-  // reset plan button
-  if ( this->ResetPlanButton
-       && this->ResetPlanButton == vtkKWPushButton::SafeDownCast(caller)
+    // reset plan button
+  
+  if (    this->ResetPlanButton
+       && this->ResetPlanButton == vtkKWPushButton::SafeDownCast( caller )
        && ( event == vtkKWPushButton::InvokedEvent ) )
     {
     this->Reset();
@@ -1373,6 +1333,7 @@ void vtkPerkStationPlanStep::ProcessGUIEvents(vtkObject *caller,
   
   this->ProcessingCallback = false;
 }
+
 
 //----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::Validate()
@@ -1389,10 +1350,10 @@ void vtkPerkStationPlanStep::Validate()
     return;
     }
 
-  // stop the log timer
+    // stop the log timer
   this->LogTimer->StopTimer();
 
-  // log the time in mrml node
-  mrmlNode->SetTimeSpentOnPlanStep(this->LogTimer->GetElapsedTime());
-
+    // log the time in mrml node
+  mrmlNode->SetTimeSpentOnPlanStep( this->LogTimer->GetElapsedTime() );
 }
+
