@@ -109,7 +109,7 @@ std::string replaceExtension(const std::string oldname, const std::string extens
   return oldname.substr(0, oldname.rfind(".nii.gz")) + "." + extension;
 }
 
-int getCommandLine(std::string initFName, vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder , std::string& optimizerType,
+int getCommandLine(std::string initFName, vector<std::string>& fileNames, vector<std::string>& initialTransformFileNames, std::string& inputFolder, std::string& outputFolder , std::string& optimizerType,
     int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh,
     double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
     int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
@@ -457,6 +457,12 @@ int getCommandLine(std::string initFName, vector<std::string>& fileNames, std::s
       initFile >> dummy;
       fileNames.push_back(dummy); // get file name
     }
+   
+    else if (dummy == "-it")
+    {
+      initFile >> dummy;
+      initialTransformFileNames.push_back(dummy); // get initial Transform file name
+    }
 
   }
 
@@ -472,6 +478,7 @@ int main(int argc, char *argv[])
   PARSE_ARGS;
 
   vector<std::string> fileNames;
+  vector<std::string> initialTransformFileNames;
   std::string inputFolder("");
   std::string outputFolder("");
 
@@ -545,7 +552,7 @@ int main(int argc, char *argv[])
 
   unsigned int fixedTemplateIndex = 0;
 
-  if(getCommandLine(inputFilesName, fileNames, inputFolder, outputFolder, optimizerType,
+  if(getCommandLine(inputFilesName, fileNames, initialTransformFileNames, inputFolder, outputFolder, optimizerType,
         multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh,
         optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate,
         optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations,
@@ -570,7 +577,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  if(getCommandLine(parametersFileName,fileNames, inputFolder, outputFolder, optimizerType,
+  if(getCommandLine(parametersFileName,fileNames, initialTransformFileNames,inputFolder, outputFolder, optimizerType,
         multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh,
         optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate,
         optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations,
@@ -594,6 +601,7 @@ int main(int argc, char *argv[])
     std::cout << "Error reading parameter file " << std::endl;
     return EXIT_FAILURE;
   }
+
 
   // Image typedef
   const unsigned int Dimension = 3;
@@ -738,6 +746,9 @@ int main(int argc, char *argv[])
   typedef NormalizeFilterType::Pointer                        NormalizeFilterTypePointer;
   typedef vector<NormalizeFilterTypePointer>                  NormalizedFilterArrayType;
 
+  typedef itk::TransformFileReader    TransformFileReader;
+  typedef TransformFileReader::TransformListType   TransformListType;
+   
   // Begin the registration with the affine transform
   // Connect the compenents together
   //
@@ -863,7 +874,7 @@ int main(int argc, char *argv[])
 
         std::cout << "message: Computing mask " << std::endl;
       }
-      else if ( maskType == "ROIAUTO" && ( mask == 'all'))
+      else if ( maskType == "ROIAUTO" && ( mask == "all"))
       {
         typedef itk::LargestForegroundFilledMaskImageFilter<ImageType, ImageMaskType> LFFMaskFilterType;
         LFFMaskFilterType::Pointer LFF = LFFMaskFilterType::New();
@@ -994,10 +1005,30 @@ int main(int argc, char *argv[])
     }
     imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->TransformContinuousIndexToPhysicalPoint(centerIndex, center);
     affineTransformArray[i]->SetCenter(center);
-
+    if(initialTransformFileNames.size() > 0)
+    {
+       if( !initialTransformFileNames[i].empty() )
+       {
+           std::string transformFileName = inputFolder + initialTransformFileNames[i];
+           TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
+           transformFileReader->SetFileName(transformFileName.c_str());
+           transformFileReader->Update();
+           TransformListType*   transformList = transformFileReader->GetTransformList();
+           TransformListType::const_iterator tit = transformList->begin();  
+           if( !strcmp((*tit)->GetNameOfClass(),"AffineTransform") )
+           {
+              affineTransformArray[i]->SetFixedParameters(transformList->front()->GetFixedParameters());
+              affineTransformArray[i]->SetParameters(transformList->front()->GetParameters());
+              std::cout<<"Reading Initial Transform files:"<<transformFileName<<std::endl;
+           }
+           else
+           {
+              std::cout << "Initial transform file:" << transformFileName<<" wasn't an affine transform." << std::endl;
+           }
+       }
+    }
     registration->SetInitialTransformParameters( i, affineTransformArray[i]->GetParameters() );
   }
-
   // Set the scales of the optimizer
   // We set a large scale for the parameters corresponding to translation
   typedef OptimizerType::ScalesType       OptimizerScalesType;
@@ -1192,8 +1223,6 @@ int main(int argc, char *argv[])
     if( startLevel != 0)
     {
       // Read the transform files
-      typedef itk::TransformFileReader    TransformFileReader;
-      typedef TransformFileReader::TransformListType   TransformListType;
 
       // Create reader factories
       for(int i=0; i<N; i++)
