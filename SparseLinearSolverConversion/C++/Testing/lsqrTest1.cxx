@@ -16,14 +16,28 @@
 
 #include "lsqr.h"
 
+#include <iostream>
+
+#include <stdlib.h>
+
 int lsqrTest1( int , char * [] )
 {
 
   lsqr solver;
 
-  const unsigned int n = 3;
+  const unsigned int n = 2;
   double x[n];
   double z[n];
 
+  x[0] = 3.0;
+  x[1] = 5.0;
+
+  z[0] = 0.0;
+  z[1] = 1.0;
+
   solver.HouseholderTransformation(n,z,x);
+
+  std::cout << x[0] << " " << x[1] << std::endl;
+
+  return EXIT_SUCCESS;
 }
