@@ -16,6 +16,43 @@
 
 #include "lsqr.h"
 
+
+#define CopyVector(n,x,y) \
+  { \
+  const double * xp = x; \
+  const double * xend = xp + n; \
+  double * yp = y; \
+  while( xp != xend ) \
+    { \
+    *yp++ = *xp++; \
+    } \
+  }
+
+#define AccumulateVector(n,x,y) \
+  { \
+  const double * xp = x; \
+  const double * xend = xp + n; \
+  double * yp = y; \
+  while( xp != xend ) \
+    { \
+    *yp++ += *xp++; \
+    } \
+  }
+
+#define ElementWiseProductVector(n1,n2,x,y,z) \
+  { \
+  const double * xp = x + n1; \
+  const double * xend = x + n2; \
+  double * yp = y; \
+  double * zp = z; \
+  while( xp != xend ) \
+    { \
+    *zp++ = *xp++ * *yp++; \
+    } \
+  }
+
+
+
 lsqr::lsqr()
 {
 }
@@ -70,5 +107,10 @@ HouseholderTransformation(unsigned int n, const double * z, double * x ) const
 void lsqr::
 Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const
 {
-
+  CopyVector( n, y, this->wm );
+  this->HouseholderTransformation(m,this->hy,this->wm);
+  const unsigned int minmn = ( m > n ) ? n : m;
+  ElementWiseProductVector( 1, minmn, this->d, this->wm, this->wn );
+  this->HouseholderTransformation(n,this->hz,this->wn);
+  AccumulateVector( n, this->wn, x );
 }

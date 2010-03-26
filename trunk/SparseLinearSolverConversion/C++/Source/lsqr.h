@@ -32,9 +32,17 @@ public:
    * computes x = x + A'*y without altering y,
    * where A is a test matrix of the form  A = Y*D*Z,
    * and the matrices D, Y, Z are represented by
-   * the allocatable vectors d, hy, hz in this module. */
+   * the allocatable vectors d, hy, hz in this module.
+   * The size of the vector x is n.
+   * The size of the vector y is m. */
   void Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const;
   
+private:
+  double    *  hy;
+  double    *  hz;
+  double    *  d;
+  double    *  wm;  // work vector
+  double    *  wn;  // work vector
 };
 
 #endif 
