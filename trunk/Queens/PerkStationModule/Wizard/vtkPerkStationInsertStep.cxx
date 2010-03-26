@@ -838,18 +838,6 @@ void vtkPerkStationInsertStep::Reset()
   this->ResetControls();
 }
 
-//-----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::LoadInsertion(istream &file)
-{
- 
-}
-
-//-----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::SaveInsertion(ostream& of)
-{
- 
-}
-
 
 //----------------------------------------------------------------------------
 void vtkPerkStationInsertStep::AddGUIObservers()

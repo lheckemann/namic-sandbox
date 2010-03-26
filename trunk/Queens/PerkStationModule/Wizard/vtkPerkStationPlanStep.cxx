@@ -435,54 +435,52 @@ void vtkPerkStationPlanStep::ShowUserInterface()
     this->TiltInformationFrame->Create();
     }
 
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->TiltInformationFrame->GetWidgetName());
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                this->TiltInformationFrame->GetWidgetName() );
 
 
   // insertion depth  
-  if (!this->SystemTiltAngle)
+  if ( ! this->SystemTiltAngle )
     {
     this->SystemTiltAngle =  vtkKWEntryWithLabel::New(); 
     }
   if (!this->SystemTiltAngle->IsCreated())
     {
-    this->SystemTiltAngle->SetParent(this->TiltInformationFrame);
+    this->SystemTiltAngle->SetParent( this->TiltInformationFrame );
     this->SystemTiltAngle->Create();
     this->SystemTiltAngle->GetWidget()->SetRestrictValueToDouble();
-    this->SystemTiltAngle->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
-    this->SystemTiltAngle->SetLabelText("System tilt angle (in degrees):   ");
+    this->SystemTiltAngle->GetLabel()->SetBackgroundColor( 0.7, 0.7, 0.7 );
+    this->SystemTiltAngle->SetLabelText( "System tilt angle (in degrees):   " );
     }
 
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->SystemTiltAngle->GetWidgetName());
+  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", 
+                this->SystemTiltAngle->GetWidgetName() );
 
   
   // msg label
-  if(!this->TiltMsg)
+  if( ! this->TiltMsg )
     {
     this->TiltMsg = vtkKWLabel::New();
     }
-  if(!this->TiltMsg->IsCreated())
+  if( ! this->TiltMsg->IsCreated() )
     {
-    this->TiltMsg->SetParent(this->TiltInformationFrame);
+    this->TiltMsg->SetParent( this->TiltInformationFrame );
     this->TiltMsg->Create();
-    this->TiltMsg->SetImageToPredefinedIcon(vtkKWIcon::IconInfoMini);
+    this->TiltMsg->SetImageToPredefinedIcon( vtkKWIcon::IconInfoMini );
     this->TiltMsg->SetCompoundModeToLeft();
     this->TiltMsg->SetPadX(2);
     this->TiltMsg->SetText("");
     }
-   this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                        this->TiltMsg->GetWidgetName()); 
-
+   this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                 this->TiltMsg->GetWidgetName() ); 
+  
   // TO DO: install callbacks
   this->InstallCallbacks();
-
-  // TO DO: populate controls wherever needed
-  this->PopulateControls();
-
-
+  
+  this->PopulateControlsOnLoadPlanning();
+  
   wizard_widget->SetErrorText(
-    "Please note that the order of the clicks on image is important.");
+    "Please note that the order of the clicks on image is important." );
 }
 
 //----------------------------------------------------------------------------
@@ -547,41 +545,38 @@ void vtkPerkStationPlanStep::InstallCallbacks()
   this->AddGUIObservers();
 
 }
-//----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::PopulateControls()
-{
-    
 
-}
+
 //---------------------------------------------------------------------------
 void vtkPerkStationPlanStep::PopulateControlsOnLoadPlanning()
 {
-    if (!this->GetGUI()->GetMRMLNode())
-      return;
+    if ( ! this->GetGUI()->GetMRMLNode() ) return;
     
-    double rasEntry[3];
-    this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasEntry);
-
+    double rasEntry[ 3 ];
+    this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( rasEntry );
+    
     // entry point
-    this->EntryPoint->GetWidget(0)->SetValueAsDouble(rasEntry[0]);
-    this->EntryPoint->GetWidget(1)->SetValueAsDouble(rasEntry[1]);
-    this->EntryPoint->GetWidget(2)->SetValueAsDouble(rasEntry[2]);
-
-    double rasTarget[3];
-    this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint(rasTarget);
-
+    this->EntryPoint->GetWidget( 0 )->SetValueAsDouble( rasEntry[ 0 ] );
+    this->EntryPoint->GetWidget( 1 )->SetValueAsDouble( rasEntry[ 1 ] );
+    this->EntryPoint->GetWidget( 2 )->SetValueAsDouble( rasEntry[ 2 ] );
+    
+    double rasTarget[ 3 ];
+    this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( rasTarget );
+    
     // target point
-    this->TargetPoint->GetWidget(0)->SetValueAsDouble(rasTarget[0]);
-    this->TargetPoint->GetWidget(1)->SetValueAsDouble(rasTarget[1]);
-    this->TargetPoint->GetWidget(2)->SetValueAsDouble(rasTarget[2]);
-
+    this->TargetPoint->GetWidget( 0 )->SetValueAsDouble( rasTarget[ 0 ] );
+    this->TargetPoint->GetWidget( 1 )->SetValueAsDouble( rasTarget[ 1 ] );
+    this->TargetPoint->GetWidget( 2 )->SetValueAsDouble( rasTarget[ 2 ] );
+    
     // insertion angle  
-    double insAngle = this->GetGUI()->GetMRMLNode()->GetActualPlanInsertionAngle();
-    this->InsertionAngle->GetWidget()->SetValueAsDouble(insAngle);
+    double insAngle = this->GetGUI()->GetMRMLNode()->
+                      GetActualPlanInsertionAngle();
+    this->InsertionAngle->GetWidget()->SetValueAsDouble( insAngle );
+    
     // insertion depth
-    double insDepth = this->GetGUI()->GetMRMLNode()->GetActualPlanInsertionDepth();
-    this->InsertionDepth->GetWidget()->SetValueAsDouble(insDepth);
-
+    double insDepth = this->GetGUI()->GetMRMLNode()->
+                      GetActualPlanInsertionDepth();
+    this->InsertionDepth->GetWidget()->SetValueAsDouble( insDepth );
 }
 
 
@@ -796,41 +791,44 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   this->WCTargetPoint[2] = worldCoordinate[2];
 
 
-  // steps
-  // get the cylinder source, create the cylinder, whose height is equal to calculated insertion depth
-  // apply transform on the cylinder to world coordinates, using the information of entry and target point
-  // i.e. using the insertion angle
-  // add it to slice viewer's renderer
+    // steps
+    // get the cylinder source, create the cylinder, whose height is equal to
+    // calculated insertion depth apply transform on the cylinder to world 
+    // coordinates, using the information of entry and target point
+    // i.e. using the insertion angle
+    // add it to slice viewer's renderer
 
   vtkCylinderSource *needleGuide = vtkCylinderSource::New();
   // TO DO: how to relate this to actual depth???
-  double halfNeedleLength = sqrt( (this->WCTargetPoint[0]-this->WCEntryPoint[0])*(this->WCTargetPoint[0]-this->WCEntryPoint[0]) + (this->WCTargetPoint[1]-this->WCEntryPoint[1])*(this->WCTargetPoint[1]-this->WCEntryPoint[1]));
-  needleGuide->SetHeight(2*halfNeedleLength);
-  //needleGuide->SetHeight(0.75 );
+  double halfNeedleLength =
+    sqrt( ( this->WCTargetPoint[ 0 ] - this->WCEntryPoint[ 0 ] ) *
+          ( this->WCTargetPoint[ 0 ] - this->WCEntryPoint[ 0 ] ) +
+          ( this->WCTargetPoint[ 1 ] - this->WCEntryPoint[ 1 ] ) *
+          ( this->WCTargetPoint[ 1 ] - this->WCEntryPoint[ 1 ] ) );
+  needleGuide->SetHeight( 2 * halfNeedleLength );
   needleGuide->SetRadius( 0.009 );
-  //needleGuide->SetCenter((this->XYTargetPoint[0]+this->XYPlanPoint[0])/2, (this->XYTargetPoint[1]+this->XYPlanPoint[1])/2, 0);
   needleGuide->SetResolution( 10 );
 
-  //int *windowSize = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindow()->GetSize();
-  // because cylinder is positioned at the window center
-  double needleCenter[3];  
-  //needleCenter[0] = (this->WCTargetPoint[0]+this->WCEntryPoint[0])/2;// - windowSize[0]/2;
-  //needleCenter[1] = (this->WCTargetPoint[1]+this->WCEntryPoint[1])/2;// - windowSize[1]/2;
+    // because cylinder is positioned at the window center
+  double needleCenter[ 3 ];
   needleCenter[0] = this->WCEntryPoint[0];// - windowSize[0]/2;
   needleCenter[1] = this->WCEntryPoint[1];// - windowSize[1]/2;
-  //needleGuide->SetCenter(needleCenter[0], needleCenter[1], needleCenter[2]);
   
   // TO DO: transfrom needle mapper using vtkTransformPolyData
   vtkMatrix4x4 *transformMatrix = vtkMatrix4x4::New();
   transformMatrix->Identity();
-  //insertion angle is the angle with x-axis of the line which has entry and target as its end points;
-  double angle = double(180/vtkMath::Pi()) * atan(double((rasEntry[1] - rasTarget[1])/(rasEntry[0] - rasTarget[0])));
-  double insAngleRad = vtkMath::Pi()/2 - double(vtkMath::Pi()/180)*angle;
-  transformMatrix->SetElement(0,0, cos(insAngleRad));
-  transformMatrix->SetElement(0,1, -sin(insAngleRad));
-  transformMatrix->SetElement(0,2, 0);
-  transformMatrix->SetElement(0,3, 0);
-  transformMatrix->SetElement(0,3, needleCenter[0]);
+    // insertion angle is the angle with x-axis of the line which has entry
+    // and target as its end points;
+  double angle = double( 180 / vtkMath::Pi() ) *
+                 atan( double( ( rasEntry[ 1 ] - rasTarget[ 1 ] ) /
+                               ( rasEntry[ 0 ] - rasTarget[ 0 ] ) ) );
+  double insAngleRad = vtkMath::Pi() / 2.0
+                       - double( vtkMath::Pi() / 180.0 ) * angle;
+  transformMatrix->SetElement( 0, 0, cos( insAngleRad ) );
+  transformMatrix->SetElement( 0, 1, -sin( insAngleRad ) );
+  transformMatrix->SetElement( 0, 2, 0);
+  transformMatrix->SetElement( 0, 3, 0);
+  transformMatrix->SetElement( 0, 3, needleCenter[0]);
 
   transformMatrix->SetElement(1,0, sin(insAngleRad));
   transformMatrix->SetElement(1,1, cos(insAngleRad));
@@ -848,7 +846,8 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   transformMatrix->SetElement(3,2, 0);
   transformMatrix->SetElement(3,3, 1);
 
-  vtkMatrixToHomogeneousTransform *transform = vtkMatrixToHomogeneousTransform::New();
+  vtkMatrixToHomogeneousTransform *transform =
+    vtkMatrixToHomogeneousTransform::New();
   transform->SetInput(transformMatrix);
   vtkTransformPolyDataFilter *filter = vtkTransformPolyDataFilter::New();
   filter->SetInputConnection(needleGuide->GetOutputPort()); 
@@ -857,19 +856,19 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   // map
   vtkPolyDataMapper *needleMapper = vtkPolyDataMapper::New();
   needleMapper->SetInputConnection( filter->GetOutputPort() );
-  //needleMapper->SetInputConnection(needleGuide->GetOutputPort());
-
+  
   // after transfrom, set up actor
   this->NeedleActor = vtkActor::New(); 
-  this->NeedleActor->SetMapper(needleMapper );  
-  this->NeedleActor->GetProperty()->SetOpacity(0.3);
-  //needleActor->SetPosition(needleCenter[0], needleCenter[1],0);  
-  //needleActor->RotateZ(90-angle);
+  this->NeedleActor->SetMapper( needleMapper );  
+  this->NeedleActor->GetProperty()->SetOpacity( 0.3 );
   
  
   // add to renderer of the Axial slice viewer
-  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->AddActor(this->NeedleActor);
-  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->RequestRender(); 
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
+    GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->
+      AddActor( this->NeedleActor );
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
+    GetSliceViewer()->RequestRender(); 
  
   
 }

@@ -253,7 +253,7 @@ AdjustSliceView()
 {
   PatientPositionEnum patientPosition =
     this->PerkStationModuleNode->GetPatientPosition();
-    
+  
   vtkSlicerSliceLogic *slice =
         this->GetApplicationLogic()->GetSliceLogic( "Red" );
   

@@ -18,37 +18,32 @@ public:
   vtkTypeRevisionMacro(vtkPerkStationPlanStep,vtkPerkStationStep);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  // Description:
-  // Reimplement the superclass's method (see vtkKWWizardStep).
+    // Description:
+    // Reimplement the superclass's method (see vtkKWWizardStep).
   virtual void ShowUserInterface();
 
-  // Description:
-  // Callbacks.
-  // TO DO:
-  /*virtual void IntensityImagesTargetSelectionChangedCallback();
-  virtual void AlignTargetImagesCallback(int state);*/
-  void ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData);
+    // Description:
+    // Callbacks.
+  void ProcessImageClickEvents( vtkObject *caller,
+                                unsigned long event,
+                                void *callData );
 
-  // Description:
-  // Process GUI events
-  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
+    // Description:
+    // Process GUI events
+  virtual void ProcessGUIEvents( vtkObject *caller,
+                                 unsigned long event,
+                                 void *callData );
   
   
-  // Description:
-  // Reimplement the superclass's method.
-  //virtual void Validate();
-
   virtual void OverlayNeedleGuide();
 
-  // Description:
-  // reset
   virtual void Reset();
   
   void RemoveOverlayNeedleGuide();
 
-  void LoadPlanning(istream &file);
+  void LoadPlanning( istream &file );
 
-  void SavePlanning(ostream& of);
+  void SavePlanning( ostream& of );
 
   void PopulateControlsOnLoadPlanning();
 
@@ -58,23 +53,23 @@ protected:
 
   void AddGUIObservers();
   void RemoveGUIObservers();
+  
   // Description:
   // GUI callback  
-  static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
+  static void WizardGUICallback( vtkObject *caller,
+                                 unsigned long event,
+                                 void *clientData,
+                                 void *callData );
 
-  // virtual void PopulateIntensityImagesTargetVolumeSelector();
-  virtual void PopulateControls();
   virtual void InstallCallbacks();
 
   virtual void Validate();
 
   void ResetControls();
-  bool DoubleEqual(double val1, double val2);
+  bool DoubleEqual( double val1, double val2 );
   virtual void CalculatePlanInsertionAngleAndDepth();
 
 
-  // in clinical mode
-  
   // reset push button
   vtkKWPushButton *ResetPlanButton;
   vtkKWFrame *ResetFrame;

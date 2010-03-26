@@ -93,6 +93,9 @@ public:
   virtual void SaveClibration( std::ostream& out );
   virtual bool LoadCalibration( std::istream& in );
   
+  virtual void SaveExperiment( std::ostream& out );
+  virtual bool LoadExperiment( std::istream& in );
+  
   
   // Calibration parameters ---------------------------------------------------
   
