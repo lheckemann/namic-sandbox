@@ -7,6 +7,13 @@ PROJECT(LSQR)
 
 INCLUDE(CTest)
 
+
+CONFIGURE_FILE(
+  ${PROJECT_SOURCE_DIR}/Utilities/Scripts/computeCodeCoverageLocally.sh.in
+  ${PROJECT_BINARY_DIR}/computeCodeCoverageLocally.sh
+  )
+
+
 INCLUDE_DIRECTORIES(Source)
 
 ADD_SUBDIRECTORY(Source)
