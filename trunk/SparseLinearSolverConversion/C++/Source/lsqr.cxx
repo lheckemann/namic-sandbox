@@ -39,9 +39,19 @@
     } \
   }
 
+#define AssignValueToVectorElements(n1,n2,v,x) \
+  { \
+  double * xp   = x + n1; \
+  double * xend = x + n2; \
+  while( xp != xend ) \
+    { \
+    *xp++ = v; \
+    } \
+  }
+
 #define ElementWiseProductVector(n1,n2,x,y,z) \
   { \
-  const double * xp = x + n1; \
+  const double * xp   = x + n1; \
   const double * xend = x + n2; \
   double * yp = y; \
   double * zp = z; \
@@ -110,7 +120,8 @@ Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const
   CopyVector( n, y, this->wm );
   this->HouseholderTransformation(m,this->hy,this->wm);
   const unsigned int minmn = ( m > n ) ? n : m;
-  ElementWiseProductVector( 1, minmn, this->d, this->wm, this->wn );
+  ElementWiseProductVector( 0, minmn, this->d, this->wm, this->wn );
+  AssignValueToVectorElements(m,n,0.0,this->wn);
   this->HouseholderTransformation(n,this->hz,this->wn);
   AccumulateVector( n, this->wn, x );
 }
