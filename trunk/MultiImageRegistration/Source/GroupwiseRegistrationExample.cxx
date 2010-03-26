@@ -90,6 +90,7 @@ fashion.
 #include "itkImageMaskSpatialObject.h"
 #include "itkConnectedThresholdImageFilter.h"
 #include "itkNeighborhoodConnectedImageFilter.h"
+#include "itkLargestForegroundFilledMaskImageFilter.h"
 
 #include "CommandIterationUpdate.h"
 #include "RegistrationInterfaceCommand.h"
@@ -862,6 +863,19 @@ int main(int argc, char *argv[])
 
         std::cout << "message: Computing mask " << std::endl;
       }
+      else if ( maskType == "ROIAUTO" && ( mask == 'all'))
+      {
+        typedef itk::LargestForegroundFilledMaskImageFilter<ImageType, ImageMaskType> LFFMaskFilterType;
+        LFFMaskFilterType::Pointer LFF = LFFMaskFilterType::New();
+        LFF->SetInput(imageReader->GetOutput());
+        LFF->SetOtsuPercentileThreshold(0.01);
+        LFF->SetClosingSize(7);
+        LFF->Update();
+      
+        ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
+        maskImage->SetImage(LFF->GetOutput());
+        registration->SetImageMaskArray(i, maskImage); 
+      }      
 
       NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
 //HACK      normalizeFilter->ReleaseDataFlagOn();

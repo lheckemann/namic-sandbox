@@ -39,7 +39,7 @@ ELSE("${ITK_VERSION}" LESS 3.16)
     ELSE(GenerateCLP_DIR)
       MESSAGE(FATAL_ERROR "Can't build without GenerateCLP. Please set GenerateCLP_DIR")
     ENDIF(GenerateCLP_DIR)
-
+  INCLUDE_DIRECTORIES(LargestForegroundFilledMaskImageFilter)
   SUBDIRS( Source )
   SUBDIRS( Testing )
 

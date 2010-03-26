@@ -17,7 +17,6 @@ else
 fi
 ITK_BUILD_NAME=$(uname).$(uname -m).${ABI}
 
-echo $ABI
 ## Valid types are Experimental, Continous, Nightly
 if [ $# -lt 2 ]; then
   BUILDTYPE=Experimental
@@ -76,11 +75,9 @@ mkdir -p ${ABI_DIR}
 
 if [ 1 == 1 ];then  ## Temporary bypass of building ITK
   LOCAL_PATH=$(dirname $0)
-  echo "${LOCAL_PATH}"
   if [ "${LOCAL_PATH}" == "." ]; then
     LOCAL_PATH=$(pwd)
   fi
-  echo "${LOCAL_PATH}"
   #################################################################################
   #Get and build InsightToolkit-CVS
   ITK_SOURCE=${COMPILE_DIR}/Insight
@@ -94,8 +91,6 @@ if [ 1 == 1 ];then  ## Temporary bypass of building ITK
   fi
   mkdir -p ${ITK_BUILD}
   pushd ${ITK_BUILD}
-  echo $PWD
-  echo ${ITK_SOURCE}
   ##NOTE:  Using cmake and all comand line options.  Normally ccmake would be used.
   CC=${CC} CXX=${CXX} CFLAGS=${CFLAGS} CXXFLAGS=${CXXFLAGS} cmake ${ITK_SOURCE} \
     -DBUILD_EXAMPLES:BOOL=OFF \

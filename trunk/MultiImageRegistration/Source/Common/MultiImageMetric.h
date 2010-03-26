@@ -191,12 +191,7 @@ public:
   itkSetClampMacro( NumberOfThreads, unsigned int, 1, ITK_MAX_THREADS );
   itkGetConstReferenceMacro( NumberOfThreads, unsigned int );
 
-  /** Get/Set the maskProcessingMode. */
-  bool GetMaskProcessingMode()
-  {return m_MaskProcessingMode;}
-  void SetMaskProcessingMode(bool mode)
-  {m_MaskProcessingMode = mode;}   
-protected:
+  protected:
   MultiImageMetric();
   virtual ~MultiImageMetric();
   
@@ -264,7 +259,6 @@ protected:
   };
   mutable std::vector<SpatialSample>      m_Sample;
   // 
-  bool m_MaskProcessingMode;
 };
 
 } // end namespace itk

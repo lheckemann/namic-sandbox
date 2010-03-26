@@ -45,7 +45,6 @@ MultiImageMetric<TImage>
 
   m_Threader = MultiThreader::New();
   m_NumberOfThreads = m_Threader->GetNumberOfThreads();
-  m_MaskProcessingMode = false;
 }
 
 
