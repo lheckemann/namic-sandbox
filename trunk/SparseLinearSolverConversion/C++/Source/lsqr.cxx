@@ -57,7 +57,7 @@ HouseholderTransformation(unsigned int n, const double * z, double * x ) const
   zend = zp + n;
   while( zp != zend )
     {
-    *xp -= scalarProduct * (*zp++);
+    *xp++ -= scalarProduct * (*zp++);
     }
 
  
