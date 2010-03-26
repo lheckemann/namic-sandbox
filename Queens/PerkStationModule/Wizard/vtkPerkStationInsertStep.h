@@ -36,12 +36,7 @@ public:
   // Callbacks.
   // TO DO:
   void Reset();
-
-  // Description:
-  // Load/save information from the file
-  void LoadInsertion(istream &file);
-  void SaveInsertion(ostream& of);
-
+  
   // Description:
   // Tracker timer event callback to receive data from tracker and update on the GUI
   void TrackerTimerEvent();

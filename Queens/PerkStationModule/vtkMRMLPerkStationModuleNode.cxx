@@ -64,6 +64,8 @@ ReadAttributes( std::istream& in )
   map.clear();
   
   std::string line;
+  in.clear();   // Make sure that the whole file will be read.
+  in.seekg( 0 );
   while ( std::getline( in, line ) )
     {
     std::string::size_type eqPos;
@@ -607,8 +609,78 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
+void
+vtkMRMLPerkStationModuleNode
+::SaveExperiment( std::ostream& out )
+{
+  this->SaveClibration( out );
+  
+    // Plan.
+  
+  WriteDoubleVector( out, this->PlanEntryPoint, "PlanEntryPoint", 3 );
+  WriteDoubleVector( out, this->PlanTargetPoint, "PlanTargetPoint", 3 );
+  WriteDouble( out, this->TiltAngle, "TiltAngle" );
+  
+    // Validation.
+  
+  WriteDoubleVector( out, this->ValidateEntryPoint, "ValidateEntryPoint", 3 );
+  WriteDoubleVector( out, this->ValidateTargetPoint, "ValidateTargetPoint", 3 );
+}
+
+
+bool
+vtkMRMLPerkStationModuleNode
+::LoadExperiment( std::istream& in )
+{
+  this->LoadCalibration( in );
+  
+  
+  std::map< std::string, std::string > map = ReadAttributes( in );
+  std::map< std::string, std::string >::iterator iter;
+  
+  bool nameNotFound = false;
+  
+  
+    // Plan.
+  
+  iter = map.find( "PlanEntryPoint" );
+  if ( iter != map.end() )
+    StringToDoubleVector( iter->second, this->PlanEntryPoint, 3 );
+  else nameNotFound = true;
+  
+  iter = map.find( "PlanTargetPoint" );
+  if ( iter != map.end() )
+    StringToDoubleVector( iter->second, this->PlanTargetPoint, 3 );
+  else nameNotFound = true;
+  
+  iter = map.find( "TiltAngle" );
+  if ( iter != map.end() )
+    StringToDouble( iter->second, this->TiltAngle );
+  else nameNotFound = true;
+  
+  
+    // Validation.
+  
+  iter = map.find( "ValidateEntryPoint" );
+  if ( iter != map.end() )
+    StringToDoubleVector( iter->second, this->ValidateEntryPoint, 3 );
+  else nameNotFound = true;
+  
+  iter = map.find( "ValidateTargetPoint" );
+  if ( iter != map.end() )
+    StringToDoubleVector( iter->second, this->ValidateTargetPoint, 3 );
+  else nameNotFound = true;
+  
+  
+  return ! nameNotFound;
+}
+
+
 //----------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::PrintSelf( ostream& os, vtkIndent indent )
+void
+vtkMRMLPerkStationModuleNode
+::PrintSelf( ostream& os, vtkIndent indent )
 {
   
   vtkMRMLNode::PrintSelf(os,indent);

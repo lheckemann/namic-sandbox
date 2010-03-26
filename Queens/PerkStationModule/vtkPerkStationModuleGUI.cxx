@@ -553,18 +553,20 @@ vtkPerkStationModuleGUI
             && ( event == vtkKWTopLevel::WithdrawEvent ) )
     {
       // save calib dialog button
-    const char *fileName = this->SaveExperimentFileButton->GetLoadSaveDialog()->GetFileName();
+    const char *fileName = this->SaveExperimentFileButton->GetLoadSaveDialog()->
+                           GetFileName();
     if ( fileName ) 
       {
       std::string fullFileName = std::string(fileName) + ".xml";
         // get the file name and file path
-      this->SaveExperimentFileButton->GetLoadSaveDialog()->SaveLastPathToRegistry("OpenPath");
+      this->SaveExperimentFileButton->GetLoadSaveDialog()->
+            SaveLastPathToRegistry( "OpenPath" );
         // call the callback function
-      this->SaveExperimentButtonCallback(fullFileName.c_str());
+      this->SaveExperimentButtonCallback( fullFileName.c_str() );
       }
     
       // reset the file browse button text
-    this->SaveExperimentFileButton->SetText ("Save experiment");
+    this->SaveExperimentFileButton->SetText( "Save experiment" );
     }  
   
   
@@ -631,6 +633,7 @@ vtkPerkStationModuleGUI
     this->UpdateGUI();
     }
 }
+
 
 /**
  * Updates parameters values in MRML node based on GUI widgets.
@@ -1546,7 +1549,9 @@ void vtkPerkStationModuleGUI::RenderSecondaryMonitor()
 
 
 //---------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::ResetAndStartNewExperiment()
+void
+vtkPerkStationModuleGUI
+::ResetAndStartNewExperiment()
 {
   // objectives:
   // 1) Reset individual work phase steps to bring to fresh state, who are in turn, responsible for reseting MRML node parameters
@@ -1568,28 +1573,23 @@ void vtkPerkStationModuleGUI::ResetAndStartNewExperiment()
 
 
 //----------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::SaveExperiment(ostream& of)
+void
+vtkPerkStationModuleGUI
+::SaveExperiment( ostream& of )
 {
-  if (!this->GetMRMLNode())
-      return;
+  if ( ! this->GetMRMLNode() ) return;
 
   // save information about image volumes used
-  this->SaveVolumeInformation(of);
-  // save information about calibration
-  this->CalibrateStep->SaveCalibration(of);
-  // save information about planning
-  this->PlanStep->SavePlanning(of);
-  // save information about insertion
-  this->InsertStep->SaveInsertion(of);
-  // save information about validation 
-  this->ValidateStep->SaveValidation(of);
+  this->SaveVolumeInformation( of );
+  
+  this->MRMLNode->SaveExperiment( of );
 }
 
 
 //----------------------------------------------------------------------------
 void
 vtkPerkStationModuleGUI
-::LoadExperiment(istream &file)
+::LoadExperiment( istream &file )
 {
   // reset before you load
   // 1) Reset individual work phase steps to bring to fresh state, who are
@@ -1599,21 +1599,18 @@ vtkPerkStationModuleGUI
   this->InsertStep->Reset();
   this->ValidateStep->Reset();
 
-  // load individual steps
-  this->CalibrateStep->LoadCalibration( file );
-  this->PlanStep->LoadPlanning( file );
-  this->InsertStep->LoadInsertion( file );
-  this->ValidateStep->LoadValidation( file );
-
+  this->MRMLNode->LoadExperiment( file );
 }
 
 
 //---------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::SaveExperimentButtonCallback(const char *fileName)
+void
+vtkPerkStationModuleGUI
+::SaveExperimentButtonCallback( const char* fileName )
 {
-    ofstream file(fileName);
+    ofstream file( fileName );
 
-    this->SaveExperiment(file);
+    this->SaveExperiment( file );
     
     file.close();
 }
@@ -1674,7 +1671,7 @@ char *vtkPerkStationModuleGUI::CreateFileName()
 
 
 //-----------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
+void vtkPerkStationModuleGUI::SaveVolumeInformation( ostream& of )
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetMRMLNode();
   if (!mrmlNode)
@@ -1688,7 +1685,8 @@ void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
     {
     return;
     }
-  const itk::MetaDataDictionary &planVolDictionary = planVol->GetMetaDataDictionary();
+  const itk::MetaDataDictionary &planVolDictionary = 
+    planVol->GetMetaDataDictionary();
 
   std::string tagValue;
 
