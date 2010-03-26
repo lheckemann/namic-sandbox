@@ -13,6 +13,11 @@ CONFIGURE_FILE(
   ${PROJECT_BINARY_DIR}/computeCodeCoverageLocally.sh
   )
 
+CONFIGURE_FILE(
+  ${PROJECT_SOURCE_DIR}/Utilities/Scripts/runValgrind.sh.in
+  ${PROJECT_BINARY_DIR}/runValgrind.sh
+  )
+
 
 INCLUDE_DIRECTORIES(Source)
 
