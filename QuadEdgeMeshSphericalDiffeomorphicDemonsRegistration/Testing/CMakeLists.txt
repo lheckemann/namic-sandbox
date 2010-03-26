@@ -73,6 +73,9 @@ TARGET_LINK_LIBRARIES(itkNodeVectorJacobianCalculatorTest1 ITKQuadEdgeMesh ITKIO
 ADD_EXECUTABLE(itkNodeVectorJacobianCalculatorTest2 itkNodeVectorJacobianCalculatorTest2.cxx )
 TARGET_LINK_LIBRARIES(itkNodeVectorJacobianCalculatorTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkAssignScalarValuesQuadEdgeMeshFilterTest1 itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx )
+TARGET_LINK_LIBRARIES(itkAssignScalarValuesQuadEdgeMeshFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkTriangleBasisSystemTest1 
   ${QuadEdgeMeshRigidRegistration}/Testing/itkTriangleBasisSystemTest1.cxx )
 TARGET_LINK_LIBRARIES(itkTriangleBasisSystemTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
@@ -255,22 +258,22 @@ ADD_TEST(DemonsFilterTest5
   100.0    # SigmaX
   1.0      # Lambda
   2        # Smoothing Iterations
-  200      # maximum number of iterations
+  20      # maximum number of iterations
   )
 
-ADD_TEST(ResampleDestinationFilterTest1
-  ${CXX_TEST_PATH}/itkResampleDestinationPointsQuadEdgeMeshFilterTest1
-  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
-  ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk
-  ${TEMP}/movingMeshWithScalarsIC1registeredToFixedMeshWithScalarsIC1InResamplingTest.vtk
-  ${TEMP}/meshWithScalarsIC4.vtk
-  ${TEMP}/movingMeshWithScalarsIC1registeredToFixedMeshWithScalarsIC1ResampledToIC4.vtk
-  1.0    # Epsilon
-  1.0    # SigmaX
-  1.0    # Lambda
-  1      # Smoothing Iterations
-  10      # maximum number of iterations
-  )
+#ADD_TEST(ResampleDestinationFilterTest1
+#  ${CXX_TEST_PATH}/itkResampleDestinationPointsQuadEdgeMeshFilterTest1
+#  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
+#  ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk
+#  ${TEMP}/movingMeshWithScalarsIC1registeredToFixedMeshWithScalarsIC1InResamplingTest.vtk
+#  ${TEMP}/meshWithScalarsIC4.vtk
+#  ${TEMP}/movingMeshWithScalarsIC1registeredToFixedMeshWithScalarsIC1ResampledToIC4.vtk
+#  1.0    # Epsilon
+#  1.0    # SigmaX
+#  1.0    # Lambda
+#  1      # Smoothing Iterations
+#  5      # maximum number of iterations
+#  )
 
 ADD_TEST(ComputeDeformationFieldMeshTest1
   ${CXX_TEST_PATH}/itkQuadEdgeMeshGenerateDeformationFieldFilterTest1
@@ -316,12 +319,17 @@ ADD_TEST(TriangleBasisSystemCalculatorTest1
   ${CXX_TEST_PATH}/itkTriangleBasisSystemCalculatorTest1
  )
 
-ADD_TEST(PointLocator2Test1
-  ${CXX_TEST_PATH}/itkPointLocator2Test1
-  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest2.vtk
+#ADD_TEST(PointLocator2Test1
+#  ${CXX_TEST_PATH}/itkPointLocator2Test1
+#  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest2.vtk
+#  )
+ 
+ADD_TEST(AssignScalarValuesFilterTest1
+  ${CXX_TEST_PATH}/itkAssignScalarValuesQuadEdgeMeshFilterTest1
+  ${TEMP}/fixedMesh01.vtk 
+  ${TEMP}/movingMesh01.vtk 
+  ${TEMP}/newMesh01.vtk 
   )
-
-
 
 IF( FREESURFER_DIR )
 
@@ -363,7 +371,8 @@ ADD_TEST(itkLinearInterpolateMeshFunctionTest1
   ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
   ${FREESURFER_DIR}/subjects/bert/surf/lh.curv.pial
   )
-
+ 
+  
 ENDIF( FREESURFER_DIR )
 
 ADD_TEST(itkSimpleSurface1
