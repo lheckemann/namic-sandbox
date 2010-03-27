@@ -20,7 +20,7 @@
 #endif
 
 #include "itkQuadEdgeMesh.h"
-#include "itkRegularSphereMeshSource.h"
+#include "itkIcosahedralRegularSphereMeshSource.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 
 
@@ -40,7 +40,7 @@ int main( int argc, char * argv [] )
 
   typedef itk::QuadEdgeMesh< float, 3 >   MeshType;
 
-  typedef itk::RegularSphereMeshSource< MeshType >  SphereMeshSourceType;
+  typedef itk::IcosahedralRegularSphereMeshSource< MeshType >  SphereMeshSourceType;
 
   SphereMeshSourceType::Pointer sphereMeshSource = SphereMeshSourceType::New();
 
