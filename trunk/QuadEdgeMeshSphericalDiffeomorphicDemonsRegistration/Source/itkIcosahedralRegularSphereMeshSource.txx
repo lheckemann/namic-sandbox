@@ -56,8 +56,10 @@ IcosahedralRegularSphereMeshSource<TOutputMesh>
   //
   //  Coordinates and connections taken from vtkPlatonicSolidSource.
   // 
-  static double c = 0.5;
-  static double d = 0.30901699;
+  const double c = 1.0;
+  const double d = 0.61803398;
+
+  const double norm = vcl_sqrt( c * c + d * d );
 
   static double IcosaPoints[] = {
      0.0,d,-c, 0.0,d,c,  0.0,-d,c, -d,c,0.0, 
@@ -83,9 +85,9 @@ IcosahedralRegularSphereMeshSource<TOutputMesh>
 
   for(unsigned int i = 0; i < numberOfVertex; i++)
     {
-    p1[0] = IcosaPoints[jj++] * m_Scale[0] + m_Center[0];
-    p1[1] = IcosaPoints[jj++] * m_Scale[1] + m_Center[1];
-    p1[2] = IcosaPoints[jj++] * m_Scale[2] + m_Center[2];
+    p1[0] = IcosaPoints[jj++] * m_Scale[0] / norm + m_Center[0];
+    p1[1] = IcosaPoints[jj++] * m_Scale[1] / norm + m_Center[1];
+    p1[2] = IcosaPoints[jj++] * m_Scale[2] / norm + m_Center[2];
     outputMesh->SetPoint(idx++, p1);
     }
 
