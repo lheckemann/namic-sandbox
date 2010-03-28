@@ -27,7 +27,7 @@
 #include "itkMultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 
 #ifdef USE_VTK
-#include "MultiResolutionDeformableAndAffineRegistrationMonitor.h"
+#include "MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking.h"
 #include "vtkSmartPointer.h"
 #include "vtkPolyDataReader.h"
 #endif
@@ -118,7 +118,7 @@ int main( int argc, char * argv [] )
     }
 
 #ifdef USE_VTK
-  typedef MultiResolutionDeformableAndAffineRegistrationMonitor< 
+  typedef MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking< 
     MultiResolutionDemonsFilterType, DestinationPointSetType > RegistrationMonitorType;
 
   RegistrationMonitorType  visualMonitor;
