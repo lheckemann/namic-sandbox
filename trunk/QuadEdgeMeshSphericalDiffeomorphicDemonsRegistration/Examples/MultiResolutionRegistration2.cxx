@@ -84,12 +84,22 @@ int main( int argc, char * argv [] )
   multiResDemonsFilter->SetSmoothingIterations( smoothingIterations );
 
 
+  IntegerArrayType demonsIterations(maximumNumberOfResolutions);
+
+  demonsIterations[0] = 15;
+  demonsIterations[1] = 15;
+  demonsIterations[2] = 15;
+  demonsIterations[3] = 15;
+
+  multiResDemonsFilter->SetDemonsIterations( demonsIterations );
+
+
   IntegerArrayType rigidIterations(maximumNumberOfResolutions);
 
   rigidIterations[0] = 32;
-  rigidIterations[1] =  0;
-  rigidIterations[2] =  0;
-  rigidIterations[3] =  0;
+  rigidIterations[1] = 32;
+  rigidIterations[2] = 16;
+  rigidIterations[3] =  8;
 
   multiResDemonsFilter->SetRigidRegistrationIterations( rigidIterations );
 

@@ -229,7 +229,10 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     itkExceptionMacro("Smoothing iterations array size is smaller than number of iteration levels");
     }
 
-  this->m_DemonsRegistrationFilter->SetMaximumNumberOfIterations( 15 );
+  if( this->m_DemonsIterations.size() < this->m_NumberOfResolutionLevels )
+    {
+    itkExceptionMacro("Demons iterations array size is smaller than number of iteration levels");
+    }
 
   this->m_FinalDestinationPoints = DestinationPointSetType::New();
 }
@@ -395,6 +398,9 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_DemonsRegistrationFilter->SetMaximumNumberOfSmoothingIterations( 
     this->m_SmoothingIterations[this->m_CurrentResolutionLevel] );
+
+  this->m_DemonsRegistrationFilter->SetMaximumNumberOfIterations(
+    this->m_DemonsIterations[this->m_CurrentResolutionLevel] );
 
 #ifdef USE_VTK
   this->m_RegistrationMonitor->Observe( this->GetDemonsRegistrationFilter() );
