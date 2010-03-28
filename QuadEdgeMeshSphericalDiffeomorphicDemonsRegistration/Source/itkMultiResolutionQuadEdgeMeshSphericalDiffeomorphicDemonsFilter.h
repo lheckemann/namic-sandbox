@@ -124,9 +124,14 @@ public:
   itkSetMacro( RigidRegistrationIterations, IntegerArrayType );
   itkGetConstReferenceMacro( RigidRegistrationIterations, IntegerArrayType );
 
+  /** Return the fixed mesh that is being used in the current resolution level.
+   * This fixed mesh may have incorporated deformations resulting from previous
+   * resolutions levels. */
+  itkGetConstObjectMacro( CurrentLevelFixedMesh, MeshType );
 
-  /** Return the fixed mesh that is being used in the current resolution level. */
-  const MeshType * GetCurrentLevelFixedMesh() const;
+  /** Return the fixed mesh that is being used in the current resolution level.
+   * This mesh is the truly original mesh and has not been deformed at all. */
+  itkGetConstObjectMacro( CurrentLevelInitialFixedMesh, MeshType );
 
 #ifdef USE_VTK
   typedef MultiResolutionDeformableAndAffineRegistrationMonitor< 
@@ -203,6 +208,8 @@ private:
   typename TransformType::Pointer  m_RigidTransform;
 
   typename RigidOptimizerType::Pointer  m_RigidOptimizer;
+
+  typename MeshType::ConstPointer   m_CurrentLevelInitialFixedMesh;
 
   typename MeshType::ConstPointer   m_CurrentLevelFixedMesh;
   typename MeshType::ConstPointer   m_CurrentLevelMovingMesh;
