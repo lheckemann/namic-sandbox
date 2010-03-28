@@ -246,7 +246,7 @@ int main( int argc, char * argv [] )
 
 #ifdef USE_VTK
   typedef DeformableAndAffineRegistrationMonitor< 
-    DestinationPointSetType > RegistrationMonitorType;
+    DemonsFilterType, DestinationPointSetType > RegistrationMonitorType;
 
   RegistrationMonitorType  visualMonitor;
   visualMonitor.SetNumberOfIterationsPerUpdate( 1 );

@@ -36,7 +36,7 @@
 int main( int argc, char * argv [] )
 {
 
-  if( argc < 13 )
+  if( argc < 15 )
     {
     std::cerr << "Missing arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
@@ -49,6 +49,8 @@ int main( int argc, char * argv [] )
     std::cerr << "inputFixedMeshRes5 inputMovingMeshRes5 ";
     std::cerr << "outputResampledMeshRes5 ";
     std::cerr << "screenshotsTag ";
+    std::cerr << "targetMesh ";
+    std::cerr << "numberOfLevelsToUse ";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
@@ -66,7 +68,7 @@ int main( int argc, char * argv [] )
   typedef MultiResolutionDemonsFilterType::DestinationPointSetType DestinationPointSetType;
 
   const unsigned int maximumNumberOfResolutions = 4;
-  const unsigned int finestResolution = 4;
+  const unsigned int finestResolution = atoi( argv[15] );
 
   multiResDemonsFilter->SetNumberOfResolutionLevels( finestResolution );
 
@@ -85,9 +87,9 @@ int main( int argc, char * argv [] )
   IntegerArrayType rigidIterations(maximumNumberOfResolutions);
 
   rigidIterations[0] = 32;
-  rigidIterations[1] = 32;
-  rigidIterations[2] = 32;
-  rigidIterations[3] = 16;
+  rigidIterations[1] =  0;
+  rigidIterations[2] =  0;
+  rigidIterations[3] =  0;
 
   multiResDemonsFilter->SetRigidRegistrationIterations( rigidIterations );
 
@@ -117,7 +119,7 @@ int main( int argc, char * argv [] )
 
 #ifdef USE_VTK
   typedef MultiResolutionDeformableAndAffineRegistrationMonitor< 
-    DestinationPointSetType > RegistrationMonitorType;
+    MultiResolutionDemonsFilterType, DestinationPointSetType > RegistrationMonitorType;
 
   RegistrationMonitorType  visualMonitor;
 
@@ -127,7 +129,7 @@ int main( int argc, char * argv [] )
 
   visualMonitor.SetBaseAnnotationText("Rigid Registration Level 1");
 
-  visualMonitor.SetVerbose( false );
+  visualMonitor.SetVerbose( true );
   visualMonitor.SetScreenShotsBaseFileName( argv[13] );
 
   visualMonitor.SetScalarRange( -0.1, 0.1 );
@@ -163,6 +165,34 @@ int main( int argc, char * argv [] )
   multiResDemonsFilter->SetSphereCenter( center );
   multiResDemonsFilter->SetSphereRadius( radius );
 
+
+  // DEBUG
+  ReaderType::Pointer fixedMeshReader5 = ReaderType::New();
+  fixedMeshReader5->SetFileName( argv[10] );
+
+  ReaderType::Pointer movingMeshReader5 = ReaderType::New();
+  movingMeshReader5->SetFileName( argv[11] );
+
+  ReaderType::Pointer fixedMeshReader6 = ReaderType::New();
+  fixedMeshReader6->SetFileName( argv[14] );
+
+
+  try
+    {
+    fixedMeshReader5->Update();
+    movingMeshReader5->Update();
+    fixedMeshReader6->Update();
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  multiResDemonsFilter->SetFixedMeshSource( fixedMeshReader5->GetOutput() );
+  multiResDemonsFilter->SetFixedMeshTarget( fixedMeshReader6->GetOutput() );
+  multiResDemonsFilter->SetEvaluateDistanceToTarget(true); // FIXME
+  // DEBUG
 
   try
     {
@@ -203,24 +233,6 @@ int main( int argc, char * argv [] )
   catch( itk::ExceptionObject & excp )
     {
     std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
-
-
-  ReaderType::Pointer fixedMeshReader5 = ReaderType::New();
-  fixedMeshReader5->SetFileName( argv[10] );
-
-  ReaderType::Pointer movingMeshReader5 = ReaderType::New();
-  movingMeshReader5->SetFileName( argv[11] );
-
-  try
-    {
-    fixedMeshReader5->Update();
-    movingMeshReader5->Update();
-    }
-  catch( itk::ExceptionObject & exp )
-    {
-    std::cerr << exp << std::endl;
     return EXIT_FAILURE;
     }
 
