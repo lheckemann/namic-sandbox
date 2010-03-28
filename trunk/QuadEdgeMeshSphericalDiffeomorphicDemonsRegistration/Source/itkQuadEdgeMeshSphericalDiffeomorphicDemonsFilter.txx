@@ -22,8 +22,6 @@
 #include "itkLinearInterpolateMeshFunction.h"
 #include "itkProgressReporter.h"
 
-#include "itkWarpQuadEdgeMeshFilter.h"
-
 namespace itk
 {
 
@@ -79,9 +77,6 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_SelfRegulatedMode = true;
 
   this->m_FixedMeshAtInitialDestinationPoints = FixedMeshType::New();
-
-  // DEBUG
-  this->m_EvaluateDistanceToTarget = false;
 }
 
 
@@ -531,8 +526,6 @@ RunIterations()
     this->m_Chronometer.Start("ComposeDestinationPointsOutputPointSet");
     this->ComposeDestinationPointsOutputPointSet();
     this->m_Chronometer.Stop("ComposeDestinationPointsOutputPointSet");
-
-    this->EvaluateDistanceToTarget();
 
     this->m_Chronometer.Start("ComputeSelfRegulatedSigmaXandEpsilon");
     this->ComputeSelfRegulatedSigmaXandEpsilon();
@@ -1370,82 +1363,6 @@ ComposeDestinationPointsOutputPointSet()
     }
 
   destinationPointSet->SetPoints( this->m_DestinationPoints );
-}
-
-
-template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-void
-QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
-EvaluateDistanceToTarget()
-{
-  if( !this->m_EvaluateDistanceToTarget )
-    {
-    return;
-    }
-
-  //
-  //   Deform source fixed new mesh using current fixed mesh and destination points
-  //
-  typedef WarpQuadEdgeMeshFilter< FixedMeshType, FixedMeshType, DestinationPointSetType > WarpFilterType;
-
-  typename WarpFilterType::Pointer warpFilter = WarpFilterType::New();
-
-  warpFilter->SetInput( this->m_FixedMeshSource );
-  warpFilter->SetReferenceMesh( this->m_FixedMeshReference );
-
-  DestinationPointSetType * destinationPointSet =
-    dynamic_cast< DestinationPointSetType * >(this->ProcessObject::GetOutput(2));
-
-  warpFilter->SetDestinationPoints( destinationPointSet );
-
-  warpFilter->SetSphereRadius( this->m_SphereRadius );
-  warpFilter->SetSphereCenter( this->m_SphereCenter );
-
-  try
-    {
-    warpFilter->Update();
-    }
-  catch( ExceptionObject & excp )
-    {
-    std::cerr << excp << std::endl;
-    throw excp;
-    }
-
-  const FixedMeshType * mappedFixedSource = warpFilter->GetOutput();
-
-  FixedPointsConstIterator  sourcePointItr   = this->m_FixedMeshSource->GetPoints()->Begin();
-  FixedPointsConstIterator  sourcePointEnd   = this->m_FixedMeshSource->GetPoints()->End();
-
-  FixedPointsConstIterator  mappedPointItr   = mappedFixedSource->GetPoints()->Begin();
-
-  FixedPointsConstIterator  targetPointItr   = this->m_FixedMeshTarget->GetPoints()->Begin();
-
-  double sumOfDistances1 = 0.0;
-  double sumOfDistances2 = 0.0;
-
-  const unsigned long numberOfPoints = mappedFixedSource->GetNumberOfPoints();
-
-  while( sourcePointItr != sourcePointEnd )
-    {
-    const double distanceSquared1 = 
-      sourcePointItr.Value().SquaredEuclideanDistanceTo( mappedPointItr.Value() );
-
-    sumOfDistances1 += distanceSquared1;
-
-    const double distanceSquared2 = 
-      mappedPointItr.Value().SquaredEuclideanDistanceTo( targetPointItr.Value() );
-
-    sumOfDistances2 += distanceSquared2;
-
-    ++sourcePointItr;
-    ++mappedPointItr;
-    ++targetPointItr;
-    }
-  
-  const double distancesRMS1 = vcl_sqrt( sumOfDistances1 / numberOfPoints );
-  const double distancesRMS2 = vcl_sqrt( sumOfDistances2 / numberOfPoints );
-
-  std::cout << " RMS to source " << distancesRMS1 << "  RMS to target " << distancesRMS2 << std::endl;
 }
 
 

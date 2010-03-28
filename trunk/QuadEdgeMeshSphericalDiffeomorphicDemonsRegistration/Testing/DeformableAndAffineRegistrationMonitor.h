@@ -54,8 +54,6 @@ protected:
   virtual void UpdateDataBeforeRendering();
   virtual void PrintOutUpdateMessage();
 
-private:
-
   typedef enum 
     {
     AFFINE,
@@ -63,6 +61,9 @@ private:
     AFFINEANDDEFORMABLE
     }  RegistrationModeType;
 
+  RegistrationModeType GetRegistrationMode() const;
+
+private:
   void AffineUpdateDataBeforeRendering();
   void DeformableUpdateDataBeforeRendering();
   void AffineAndDeformableUpdateDataBeforeRendering();

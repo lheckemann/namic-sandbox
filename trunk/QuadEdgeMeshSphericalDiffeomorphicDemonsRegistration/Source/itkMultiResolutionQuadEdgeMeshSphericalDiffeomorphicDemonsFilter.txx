@@ -377,10 +377,6 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::ComputeDemonsRegistration()
 {
-//DEBUG
-  this->m_DemonsRegistrationFilter->SetFixedMeshReference( this->m_CurrentLevelFixedMesh );
-//DEBUG
-
   // This is needed for the proper visual monitoring of the Demons registration
   this->SetRigidTransformToIdentity();
 
@@ -470,6 +466,15 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::GetCurrentDestinationPoints() const
 {
   return this->m_DemonsRegistrationFilter->GetFinalDestinationPoints();
+}
+
+
+template< class TMesh >
+const typename MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >::MeshType *
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::GetCurrentLevelFixedMesh() const
+{
+  return this->m_CurrentLevelFixedMesh;
 }
 
 
