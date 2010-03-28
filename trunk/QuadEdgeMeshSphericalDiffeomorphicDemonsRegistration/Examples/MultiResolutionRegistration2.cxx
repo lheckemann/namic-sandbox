@@ -117,6 +117,30 @@ int main( int argc, char * argv [] )
     multiResDemonsFilter->SetMovingMesh( i, movingMeshReader[i]->GetOutput() );
     }
 
+
+  ReaderType::Pointer fixedMeshReader5 = ReaderType::New();
+  fixedMeshReader5->SetFileName( argv[10] );
+
+  ReaderType::Pointer movingMeshReader5 = ReaderType::New();
+  movingMeshReader5->SetFileName( argv[11] );
+
+  ReaderType::Pointer fixedMeshReader6 = ReaderType::New();
+  fixedMeshReader6->SetFileName( argv[14] );
+
+
+  try
+    {
+    fixedMeshReader5->Update();
+    movingMeshReader5->Update();
+    fixedMeshReader6->Update();
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
 #ifdef USE_VTK
   typedef MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking< 
     MultiResolutionDemonsFilterType, DestinationPointSetType > RegistrationMonitorType;
@@ -154,6 +178,11 @@ int main( int argc, char * argv [] )
     visualMonitor.SetFixedSurface( i, vtkFixedMeshReader[i]->GetOutput() );
     visualMonitor.SetMovingSurface( i, vtkMovingMeshReader[i]->GetOutput() );
     }
+
+  visualMonitor.SetFixedMeshSource( fixedMeshReader5->GetOutput() );
+  visualMonitor.SetFixedMeshTarget( fixedMeshReader6->GetOutput() );
+  visualMonitor.SetEvaluateDistanceToTarget(true);
+
 #endif
 
 
@@ -165,34 +194,6 @@ int main( int argc, char * argv [] )
   multiResDemonsFilter->SetSphereCenter( center );
   multiResDemonsFilter->SetSphereRadius( radius );
 
-
-  // DEBUG
-  ReaderType::Pointer fixedMeshReader5 = ReaderType::New();
-  fixedMeshReader5->SetFileName( argv[10] );
-
-  ReaderType::Pointer movingMeshReader5 = ReaderType::New();
-  movingMeshReader5->SetFileName( argv[11] );
-
-  ReaderType::Pointer fixedMeshReader6 = ReaderType::New();
-  fixedMeshReader6->SetFileName( argv[14] );
-
-
-  try
-    {
-    fixedMeshReader5->Update();
-    movingMeshReader5->Update();
-    fixedMeshReader6->Update();
-    }
-  catch( itk::ExceptionObject & exp )
-    {
-    std::cerr << exp << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  multiResDemonsFilter->SetFixedMeshSource( fixedMeshReader5->GetOutput() );
-  multiResDemonsFilter->SetFixedMeshTarget( fixedMeshReader6->GetOutput() );
-  multiResDemonsFilter->SetEvaluateDistanceToTarget(true); // FIXME
-  // DEBUG
 
   try
     {

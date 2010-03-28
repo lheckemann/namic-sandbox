@@ -134,11 +134,6 @@ public:
     }
 #endif
 
-  void SetFixedMeshSource( const MeshType * mesh ) { this->m_FixedMeshSource = mesh; }
-  void SetFixedMeshTarget( const MeshType * mesh ) { this->m_FixedMeshTarget = mesh; }
-  itkSetMacro( EvaluateDistanceToTarget, bool );
-  itkGetMacro( EvaluateDistanceToTarget, bool );
-  itkBooleanMacro( EvaluateDistanceToTarget );
 
 protected:
   MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -218,10 +213,6 @@ private:
   RegistrationMonitorType  *   m_RegistrationMonitor;
 #endif
 
-  // DEBUG
-  typename MeshType::ConstPointer     m_FixedMeshSource;
-  typename MeshType::ConstPointer     m_FixedMeshTarget;
-  bool                                m_EvaluateDistanceToTarget;
 };
 
 }
