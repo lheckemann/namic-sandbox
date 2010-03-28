@@ -470,6 +470,9 @@ vtkPerkStationModuleGUI
        && event == vtkKWWizardWorkflow::CurrentStateChangedEvent )
     {
     // TO DO  -- What?
+    
+    
+    
     if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
          == this->CalibrateStep.GetPointer() )
       {
@@ -495,6 +498,10 @@ vtkPerkStationModuleGUI
       this->MRMLNode->SwitchStep( 3 );
       }
     
+    this->WizardWidget->GetWizardWorkflow()->GetStepFromState(
+      this->WizardWidget->GetWizardWorkflow()->GetPreviousState() )->
+      HideUserInterface();
+      
     this->UpdateWorkphaseButtons();
     }  
   
