@@ -202,7 +202,8 @@ void RegistrationMonitor::StartVisualization()
   // Connecting the Fixed and Moving surfaces to the 
   // visualization pipeline
   this->FixedRenderer->AddActor( this->FixedActor );
-  this->MovingRenderer->AddActor( this->MovingActor );
+//  this->MovingRenderer->AddActor( this->MovingActor );
+  this->FixedRenderer->AddActor( this->MovingActor );
 
   this->FixedRenderer->AddViewProp( this->TextActor );
 
@@ -307,7 +308,7 @@ void RegistrationMonitor::Update()
 {
   if( this->Verbose )
     {
-    std::cout << "Iteration " << this->CurrentIterationNumber << std::endl;
+    this->PrintOutUpdateMessage();
     }
   
   if( this->CurrentIterationNumber % 
@@ -325,6 +326,13 @@ void RegistrationMonitor::Update()
 
   this->RefreshRendering();
 }
+
+
+/** Update the Visualization */
+void RegistrationMonitor::PrintOutUpdateMessage()
+{
+  std::cout << "Iteration " << this->CurrentIterationNumber << std::endl;
+} 
 
 
 void 

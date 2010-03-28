@@ -81,6 +81,7 @@ protected:
   virtual void MarkFixedSurfaceAsModified();
   virtual void MarkMovingSurfaceAsModified();
 
+  virtual void PrintOutUpdateMessage();
   
 private:
   
