@@ -111,7 +111,7 @@ int main( int argc, char *argv[] )
   typedef DemonsFilterType::DestinationPointSetType    DestinationPointSetType;
 
   typedef DeformableRegistrationMonitor< 
-    DestinationPointSetType > RegistrationMonitorType;
+    DemonsFilterType, DestinationPointSetType > RegistrationMonitorType;
 
   RegistrationMonitorType  visualMonitor;
   visualMonitor.SetNumberOfIterationsPerUpdate( 1 );
