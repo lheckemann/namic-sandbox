@@ -138,7 +138,7 @@ public:
     }
 #endif
 
-
+  
 protected:
   MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
   ~MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter();

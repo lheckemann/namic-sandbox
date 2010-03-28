@@ -147,7 +147,6 @@ int main( int argc, char * argv [] )
 
   RegistrationMonitorType  visualMonitor;
 
-  multiResDemonsFilter->SetRegistrationMonitor( &visualMonitor );
   visualMonitor.SetMultiResolutionDemonsFilter( multiResDemonsFilter );
 
   visualMonitor.SetNumberOfIterationsPerUpdate( 1 );

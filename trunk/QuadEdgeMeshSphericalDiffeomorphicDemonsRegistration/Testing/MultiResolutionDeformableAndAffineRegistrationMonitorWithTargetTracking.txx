@@ -46,6 +46,7 @@ MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiRe
 ::SetMultiResolutionDemonsFilter( TMultiResolutionDeformationFilter * filter )
 {
   this->m_MultiResolutionDemonsRegistrationFilter = filter;
+  this->m_MultiResolutionDemonsRegistrationFilter->SetRegistrationMonitor( this );
 }
 
 
