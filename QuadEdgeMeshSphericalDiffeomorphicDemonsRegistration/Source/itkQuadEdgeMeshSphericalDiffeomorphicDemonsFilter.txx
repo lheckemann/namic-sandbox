@@ -218,7 +218,8 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
   if( destinationPoints->Size() != this->m_FixedMesh->GetNumberOfPoints() )
     {
-    itkExceptionMacro("Number of destination points does not match fixed mesh number of points");
+    itkExceptionMacro("Number of destination points " << destinationPoints->Size() <<
+      " does not match fixed mesh number of points " << this->m_FixedMesh->GetNumberOfPoints() );
     }
 
   FixedPointsContainer * fixedPoints = this->m_FixedMeshAtInitialDestinationPoints->GetPoints();
