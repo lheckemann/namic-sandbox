@@ -102,3 +102,12 @@ void DeformableRegistrationMonitor<TPointSet>
 
   this->MarkFixedSurfaceAsModified();
 }
+
+
+/** Print out iteration information */
+template <class TPointSet>
+void DeformableRegistrationMonitor<TPointSet>
+::PrintOutUpdateMessage()
+{
+  // itk::Object * observedObject = this->GetObservedObject();
+}
