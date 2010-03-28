@@ -25,7 +25,6 @@
 #include "itkMeshToMeshRegistrationMethod.h"
 #include "itkLinearInterpolateMeshFunction.h"
 
-#include "itkResampleQuadEdgeMeshFilter.h"
 #include "itkQuadEdgeMeshTraits.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 #include "itkQuadEdgeMeshVectorDataVTKPolyDataWriter.h"
@@ -61,6 +60,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_CurrentLevelFixedMesh = MeshType::New();
   this->m_CurrentLevelMovingMesh = MeshType::New();
+  this->m_CurrentLevelInitialFixedMesh = MeshType::New();
 
   this->m_CurrentLevelRigidlyMappedFixedMesh = MeshType::New();
 
@@ -247,6 +247,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_CurrentLevelFixedMesh = fixedMesh;
   this->m_CurrentLevelMovingMesh = movingMesh;
+  this->m_CurrentLevelInitialFixedMesh = fixedMesh;
 }
 
 
@@ -425,6 +426,9 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   currentDestinationPoints->DisconnectPipeline();
 
+  // Create the new destination points for the following iteration
+  this->m_DemonsRegistrationFilter->MakeOutput(2);
+
   this->m_FinalDestinationPoints = currentDestinationPoints;
 
 
@@ -432,7 +436,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     {
     return;
     }
-
 
   //
   //   Deform fixed new mesh using current fixed mesh and destination points
@@ -443,9 +446,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   warpFilter->SetInput( this->m_NextLevelFixedMesh );
   warpFilter->SetReferenceMesh( this->m_CurrentLevelFixedMesh );
-
-  // Create the new destination points for the following iteration
-  this->m_DemonsRegistrationFilter->MakeOutput(2);
 
   warpFilter->SetDestinationPoints( currentDestinationPoints );
 
@@ -466,6 +466,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_CurrentLevelDemonsMappedFixedMesh->DisconnectPipeline();
 
+  this->m_CurrentLevelInitialFixedMesh = this->m_NextLevelFixedMesh;
+
   this->m_CurrentLevelFixedMesh = this->m_CurrentLevelDemonsMappedFixedMesh;
 
   this->m_CurrentLevelMovingMesh = this->m_NextLevelMovingMesh;
@@ -478,15 +480,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::GetCurrentDestinationPoints() const
 {
   return this->m_DemonsRegistrationFilter->GetFinalDestinationPoints();
-}
-
-
-template< class TMesh >
-const typename MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >::MeshType *
-MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
-::GetCurrentLevelFixedMesh() const
-{
-  return this->m_CurrentLevelFixedMesh;
 }
 
 
