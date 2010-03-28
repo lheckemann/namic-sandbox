@@ -251,6 +251,16 @@ DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 
 /** Update the Visualization */
 template <class TDeformationFilter, class TPointSet>
+typename DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>::RegistrationModeType
+DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
+::GetRegistrationMode() const
+{
+  return this->RegistrationMode;
+}
+
+
+/** Update the Visualization */
+template <class TDeformationFilter, class TPointSet>
 void
 DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::CopyFixedSurfaceMatrix()

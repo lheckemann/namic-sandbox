@@ -49,11 +49,21 @@ public:
   void SetEvaluateDistanceToTarget( bool );
   bool GetEvaluateDistanceToTarget() const;
 
+  void EvaluateDistanceToTarget() const;
+
+  void PrintOutUpdateMessage();
+
+  void SetMultiResolutionDemonsFilter( TMultiResolutionDeformationFilter * filter );
+
 private:
 
   typename MeshType::ConstPointer     m_FixedMeshSource;
   typename MeshType::ConstPointer     m_FixedMeshTarget;
   bool                                m_EvaluateDistanceToTarget;
+
+  typedef typename TMultiResolutionDeformationFilter::DeformationFilterType  DeformationFilterType;
+
+  typename TMultiResolutionDeformationFilter::Pointer   m_MultiResolutionDemonsRegistrationFilter;
 };
 
 #include "MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking.txx"

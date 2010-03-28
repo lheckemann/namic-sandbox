@@ -124,6 +124,10 @@ public:
   itkSetMacro( RigidRegistrationIterations, IntegerArrayType );
   itkGetConstReferenceMacro( RigidRegistrationIterations, IntegerArrayType );
 
+
+  /** Return the fixed mesh that is being used in the current resolution level. */
+  const MeshType * GetCurrentLevelFixedMesh() const;
+
 #ifdef USE_VTK
   typedef MultiResolutionDeformableAndAffineRegistrationMonitor< 
     Self, DestinationPointSetType >  RegistrationMonitorType;
@@ -174,6 +178,7 @@ private:
 
   /** Get the destination points from the demons filter. */
   const DestinationPointSetType * GetCurrentDestinationPoints() const;
+
 
   /** Center of spherical mesh. We assume that both the Fixed and
    * Moving meshes have spherical geometry and that they share the same

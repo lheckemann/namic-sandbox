@@ -18,44 +18,159 @@
 #include "MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking.h"
 
 #include "itkMacro.h"
+#include "itkWarpQuadEdgeMeshFilter.h"
+
 #include "vtkPoints.h"
 
 /** Constructor */
-template <class TDeformationFilter,class TPointSet>
-MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TDeformationFilter,TPointSet>
+template <class TMultiResolutionDeformationFilter,class TPointSet>
+MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiResolutionDeformationFilter,TPointSet>
 ::MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking()
 {
   this->m_EvaluateDistanceToTarget = false;
 
-// DEBUG
-//  this->m_DemonsRegistrationFilter->SetFixedMeshSource( this->m_FixedMeshSource );
-//  this->m_DemonsRegistrationFilter->SetFixedMeshTarget( this->m_FixedMeshTarget );
-//  this->m_DemonsRegistrationFilter->SetEvaluateDistanceToTarget( this->m_EvaluateDistanceToTarget );
-
+  this->m_MultiResolutionDemonsRegistrationFilter = NULL;
 }
 
 /** Destructor */
-template <class TDeformationFilter,class TPointSet>
-MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TDeformationFilter,TPointSet>
+template <class TMultiResolutionDeformationFilter,class TPointSet>
+MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiResolutionDeformationFilter,TPointSet>
 ::~MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking()
 {
 }
 
 
-template <class TDeformationFilter,class TPointSet>
+template <class TMultiResolutionDeformationFilter,class TPointSet>
 void
-MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TDeformationFilter,TPointSet>
+MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiResolutionDeformationFilter,TPointSet>
+::SetMultiResolutionDemonsFilter( TMultiResolutionDeformationFilter * filter )
+{
+  this->m_MultiResolutionDemonsRegistrationFilter = filter;
+}
+
+
+template <class TMultiResolutionDeformationFilter,class TPointSet>
+void
+MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiResolutionDeformationFilter,TPointSet>
 ::SetEvaluateDistanceToTarget( bool value )
 {
   this->m_EvaluateDistanceToTarget = value;
 }
 
 
-template <class TDeformationFilter,class TPointSet>
+template <class TMultiResolutionDeformationFilter,class TPointSet>
 bool
-MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TDeformationFilter,TPointSet>
+MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiResolutionDeformationFilter,TPointSet>
 ::GetEvaluateDistanceToTarget() const
 {
   return this->m_EvaluateDistanceToTarget;
 }
 
+
+template <class TMultiResolutionDeformationFilter,class TPointSet>
+void
+MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiResolutionDeformationFilter,TPointSet>
+::EvaluateDistanceToTarget() const
+{
+  if( !this->m_EvaluateDistanceToTarget )
+    {
+    return;
+    }
+
+  typedef typename DeformationFilterType::FixedMeshType             FixedMeshType;
+  typedef typename DeformationFilterType::MovingMeshType            MovingMeshType;
+  typedef typename DeformationFilterType::DestinationPointSetType   DestinationPointSetType;
+
+  //
+  //   Deform source fixed new mesh using current fixed mesh and destination points
+  //
+  typedef itk::WarpQuadEdgeMeshFilter< FixedMeshType, FixedMeshType, DestinationPointSetType > WarpFilterType;
+
+  typename WarpFilterType::Pointer warpFilter = WarpFilterType::New();
+
+  warpFilter->SetInput( this->m_FixedMeshSource );
+
+  const FixedMeshType * referenceMesh = this->m_MultiResolutionDemonsRegistrationFilter->GetCurrentLevelFixedMesh();
+  const DestinationPointSetType * destinationPointSet = this->m_MultiResolutionDemonsRegistrationFilter->GetFinalDestinationPoints();
+
+  warpFilter->SetReferenceMesh( referenceMesh );
+  warpFilter->SetDestinationPoints( destinationPointSet );
+
+  warpFilter->SetSphereRadius( this->m_MultiResolutionDemonsRegistrationFilter->GetSphereRadius() );
+  warpFilter->SetSphereCenter( this->m_MultiResolutionDemonsRegistrationFilter->GetSphereCenter() );
+
+  try
+    {
+    warpFilter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    throw excp;
+    }
+
+  const FixedMeshType * mappedFixedSource = warpFilter->GetOutput();
+
+  typedef typename DeformationFilterType::FixedPointsConstIterator   FixedPointsConstIterator;
+
+  FixedPointsConstIterator  sourcePointItr   = this->m_FixedMeshSource->GetPoints()->Begin();
+  FixedPointsConstIterator  sourcePointEnd   = this->m_FixedMeshSource->GetPoints()->End();
+
+  FixedPointsConstIterator  mappedPointItr   = mappedFixedSource->GetPoints()->Begin();
+
+  FixedPointsConstIterator  targetPointItr   = this->m_FixedMeshTarget->GetPoints()->Begin();
+
+  double sumOfDistances1 = 0.0;
+  double sumOfDistances2 = 0.0;
+
+  const unsigned long numberOfPoints = mappedFixedSource->GetNumberOfPoints();
+
+  while( sourcePointItr != sourcePointEnd )
+    {
+    const double distanceSquared1 = 
+      sourcePointItr.Value().SquaredEuclideanDistanceTo( mappedPointItr.Value() );
+
+    sumOfDistances1 += distanceSquared1;
+
+    const double distanceSquared2 = 
+      mappedPointItr.Value().SquaredEuclideanDistanceTo( targetPointItr.Value() );
+
+    sumOfDistances2 += distanceSquared2;
+
+    ++sourcePointItr;
+    ++mappedPointItr;
+    ++targetPointItr;
+    }
+  
+  const double distancesRMS1 = vcl_sqrt( sumOfDistances1 / numberOfPoints );
+  const double distancesRMS2 = vcl_sqrt( sumOfDistances2 / numberOfPoints );
+
+  std::cout << " RMS to source " << distancesRMS1 << "  RMS to target " << distancesRMS2 << std::endl;
+}
+
+
+template <class TMultiResolutionDeformationFilter,class TPointSet>
+void
+MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiResolutionDeformationFilter,TPointSet>
+::PrintOutUpdateMessage()
+{
+  this->Superclass::PrintOutUpdateMessage();
+
+  switch( this->GetRegistrationMode() )
+    {
+    case Superclass::AFFINE:
+      {
+      break;
+      }
+    case Superclass::DEFORMABLE:
+      {
+      break;
+      }
+    case Superclass::AFFINEANDDEFORMABLE:
+      {
+      std::cout << "PrintOutUpdateMessage() AFFINEANDDEFORMABLE " << std::endl;
+      // this->EvaluateDistanceToTarget();
+      break;
+      }
+    }
+}
