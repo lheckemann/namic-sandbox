@@ -389,6 +389,15 @@ void RegistrationMonitor
 }
 
 
+/** Get the object being observed */
+itk::Object *
+RegistrationMonitor
+::GetObservedObject()
+{
+  return this->ObservedObject.GetPointer();
+}
+
+
 void 
 RegistrationMonitor
 ::MarkFixedSurfaceAsModified()

@@ -83,6 +83,8 @@ protected:
 
   virtual void PrintOutUpdateMessage();
   
+  itk::Object * GetObservedObject();
+
 private:
   
   // These methods will only be called by the Observer
