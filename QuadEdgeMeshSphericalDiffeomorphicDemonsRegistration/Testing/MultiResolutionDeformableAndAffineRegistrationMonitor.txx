@@ -21,23 +21,23 @@
 #include "vtkPoints.h"
 
 /** Constructor */
-template <class TPointSet>
-MultiResolutionDeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter,class TPointSet>
+MultiResolutionDeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::MultiResolutionDeformableAndAffineRegistrationMonitor()
 {
 }
 
 /** Destructor */
-template <class TPointSet>
-MultiResolutionDeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter,class TPointSet>
+MultiResolutionDeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::~MultiResolutionDeformableAndAffineRegistrationMonitor()
 {
 }
 
 /** Set Number of Resolution Levels */
-template <class TPointSet>
+template <class TDeformationFilter,class TPointSet>
 void
-MultiResolutionDeformableAndAffineRegistrationMonitor<TPointSet>
+MultiResolutionDeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::SetNumberOfResolutionLevels( unsigned int number )
 {
   this->m_FixedSurfaces.resize( number );
@@ -45,27 +45,27 @@ MultiResolutionDeformableAndAffineRegistrationMonitor<TPointSet>
 }
 
 /** Set Surface At a Given Resolution. */
-template <class TPointSet>
+template <class TDeformationFilter,class TPointSet>
 void
-MultiResolutionDeformableAndAffineRegistrationMonitor<TPointSet>
+MultiResolutionDeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::SetFixedSurface(unsigned int level, vtkPolyData * surface )
 {
   this->m_FixedSurfaces[level] = surface;
 }
 
 /** Set Surface At a Given Resolution. */
-template <class TPointSet>
+template <class TDeformationFilter,class TPointSet>
 void
-MultiResolutionDeformableAndAffineRegistrationMonitor<TPointSet>
+MultiResolutionDeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::SetMovingSurface(unsigned int level, vtkPolyData * surface )
 {
   this->m_MovingSurfaces[level] = surface;
 }
 
 /** Set Surface At a Given Resolution. */
-template <class TPointSet>
+template <class TDeformationFilter,class TPointSet>
 void
-MultiResolutionDeformableAndAffineRegistrationMonitor<TPointSet>
+MultiResolutionDeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::SetResolutionLevel(unsigned int level)
 {
   this->Superclass::SetFixedSurface(  this->m_FixedSurfaces[level]  );

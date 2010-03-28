@@ -21,8 +21,8 @@
 #include "vtkPoints.h"
 
 /** Constructor */
-template <class TPointSet>
-DeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::DeformableAndAffineRegistrationMonitor()
 {
   // Variable for the conversion of the ITK transform into VTK Matrix
@@ -32,16 +32,17 @@ DeformableAndAffineRegistrationMonitor<TPointSet>
 }
 
 /** Destructor */
-template <class TPointSet>
-DeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::~DeformableAndAffineRegistrationMonitor()
 {
 }
 
 
 /** Set the objects to be observed: optimizer and transform */
-template <class TPointSet>
-void DeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+void
+DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::ObserveData( const PointSetType * destinationPointSet )
 {
   this->ObservedPointSet = destinationPointSet;
@@ -50,8 +51,9 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
 
 
 /** Set the objects to be observed: optimizer and transform */
-template <class TPointSet>
-void DeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+void 
+DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::ObserveData( const TransformType * transform )
 {
   this->ObservedTransform = transform;
@@ -60,8 +62,9 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
 
 
 /** Set the objects to be observed: optimizer and transform */
-template <class TPointSet>
-void DeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+void 
+DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::ObserveData( const TransformType * transform, const PointSetType * destinationPointSet )
 {
   this->ObservedTransform = transform;
@@ -71,8 +74,9 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
 
 
 /** Update the Visualization */
-template <class TPointSet>
-void DeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+void
+DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::UpdateDataBeforeRendering()
 {
   switch( this->RegistrationMode )
@@ -97,8 +101,9 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
 
 
 /** Update the Visualization */
-template <class TPointSet>
-void DeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+void
+DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::DeformableUpdateDataBeforeRendering()
 {
   this->CopyPointLocationsToFixedSurface();
@@ -110,8 +115,9 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
 
 
 /** Update the Visualization */
-template <class TPointSet>
-void DeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+void
+DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::AffineAndDeformableUpdateDataBeforeRendering()
 {
   this->CopyPointLocationsToFixedSurface();
@@ -120,8 +126,9 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
 
 
 /** Update the Visualization */
-template <class TPointSet>
-void DeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+void 
+DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::PrintOutUpdateMessage()
 {
   itk::Object * observedObject = this->GetObservedObject();
@@ -140,6 +147,13 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
       }
     case DEFORMABLE:
       {
+      TDeformationFilter * deformationFilter = 
+        dynamic_cast< TDeformationFilter * >( observedObject );
+
+      if( deformationFilter != NULL )
+        {
+        std::cout << " Metric = " << deformationFilter->GetMetricValue() << std::endl;
+        }
       break;
       }
     case AFFINEANDDEFORMABLE:
@@ -157,8 +171,9 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
 
 
 /** Update the Visualization */
-template <class TPointSet>
-void DeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+void
+DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::CopyPointLocationsToFixedSurface()
 {
   typedef typename PointSetType::PointsContainer    PointsContainer;
@@ -217,8 +232,9 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
 
 
 /** Update the Visualization */
-template <class TPointSet>
-void DeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+void
+DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::AffineUpdateDataBeforeRendering()
 {
   this->CopyFixedSurfaceMatrix();
@@ -226,8 +242,9 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
 
 
 /** Update the Visualization */
-template <class TPointSet>
-void DeformableAndAffineRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+void
+DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
 ::CopyFixedSurfaceMatrix()
 {
   TransformType::MatrixType matrix = 
