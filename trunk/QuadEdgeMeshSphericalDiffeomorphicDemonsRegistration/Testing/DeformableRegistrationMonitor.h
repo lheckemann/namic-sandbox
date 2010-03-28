@@ -42,6 +42,7 @@ public:
 protected:
 
   virtual void UpdateDataBeforeRendering();
+  virtual void PrintOutUpdateMessage();
 
 private:
 
