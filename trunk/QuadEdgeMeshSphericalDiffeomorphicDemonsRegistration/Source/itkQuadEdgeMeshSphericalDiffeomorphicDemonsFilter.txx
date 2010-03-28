@@ -754,7 +754,6 @@ ComputeVelocityField()
   const double averageOfSquaredDifferences = sumOfSquaredDifferences / numberOfNodes; 
 
   this->m_MetricValue = averageOfSquaredDifferences;
-  std::cout <<  "Metric: " <<  this->m_MetricValue << "  "; // std::endl;
 }
 
 
