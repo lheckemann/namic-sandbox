@@ -71,6 +71,23 @@ MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiRe
 template <class TMultiResolutionDeformationFilter,class TPointSet>
 void
 MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiResolutionDeformationFilter,TPointSet>
+::PrintOutUpdateMessage()
+{
+  std::cout << "MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking::PrintOutUpdateMessage() " << std::endl;
+
+  this->Superclass::PrintOutUpdateMessage();
+
+  if( this->m_MultiResolutionDemonsRegistrationFilter->GetRegistrationMode() == 
+      TMultiResolutionDeformationFilter::DEFORMABLE )
+    {
+    this->EvaluateDistanceToTarget();
+    }
+}
+
+
+template <class TMultiResolutionDeformationFilter,class TPointSet>
+void
+MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiResolutionDeformationFilter,TPointSet>
 ::EvaluateDistanceToTarget() const
 {
   if( !this->m_EvaluateDistanceToTarget )
@@ -91,8 +108,16 @@ MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiRe
 
   warpFilter->SetInput( this->m_FixedMeshSource );
 
-  const FixedMeshType * referenceMesh = this->m_MultiResolutionDemonsRegistrationFilter->GetCurrentLevelFixedMesh();
-  const DestinationPointSetType * destinationPointSet = this->m_MultiResolutionDemonsRegistrationFilter->GetFinalDestinationPoints();
+  const FixedMeshType * referenceMesh = 
+    this->m_MultiResolutionDemonsRegistrationFilter->GetCurrentLevelFixedMesh();
+
+  const DestinationPointSetType * destinationPointSet = 
+    this->m_MultiResolutionDemonsRegistrationFilter->GetFinalDestinationPoints();
+
+  if( referenceMesh->GetNumberOfPoints() != destinationPointSet->GetNumberOfPoints() )
+    {
+    return;
+    }
 
   warpFilter->SetReferenceMesh( referenceMesh );
   warpFilter->SetDestinationPoints( destinationPointSet );
@@ -147,34 +172,4 @@ MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiRe
   const double distancesRMS2 = vcl_sqrt( sumOfDistances2 / numberOfPoints );
 
   std::cout << " RMS to source " << distancesRMS1 << "  RMS to target " << distancesRMS2 << std::endl;
-}
-
-
-template <class TMultiResolutionDeformationFilter,class TPointSet>
-void
-MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiResolutionDeformationFilter,TPointSet>
-::PrintOutUpdateMessage()
-{
-  this->Superclass::PrintOutUpdateMessage();
-
-  switch( this->GetRegistrationMode() )
-    {
-    case Superclass::AFFINE:
-      {
-      break;
-      }
-    case Superclass::DEFORMABLE:
-      {
-      break;
-      }
-    case Superclass::AFFINEANDDEFORMABLE:
-      {
-      if( this->m_MultiResolutionDemonsRegistrationFilter->GetRegistrationMode() == 
-          TMultiResolutionDeformationFilter::DEFORMABLE )
-        {
-        this->EvaluateDistanceToTarget();
-        }
-      break;
-      }
-    }
 }
