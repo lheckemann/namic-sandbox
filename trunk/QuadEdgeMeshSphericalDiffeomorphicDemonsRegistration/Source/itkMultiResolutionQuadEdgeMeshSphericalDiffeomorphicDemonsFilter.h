@@ -102,6 +102,8 @@ public:
   typedef QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< 
     MeshType, MeshType, MeshType >  DemonsRegistrationFilterType;
 
+  typedef DemonsRegistrationFilterType    DeformationFilterType;
+
   typedef typename DemonsRegistrationFilterType::DestinationPointSetType    DestinationPointSetType;
 
   itkGetObjectMacro( DemonsRegistrationFilter, DemonsRegistrationFilterType );
@@ -123,13 +125,20 @@ public:
   itkGetConstReferenceMacro( RigidRegistrationIterations, IntegerArrayType );
 
 #ifdef USE_VTK
-  typedef MultiResolutionDeformableAndAffineRegistrationMonitor< DestinationPointSetType >  RegistrationMonitorType;
+  typedef MultiResolutionDeformableAndAffineRegistrationMonitor< 
+    Self, DestinationPointSetType >  RegistrationMonitorType;
 
   void SetRegistrationMonitor( RegistrationMonitorType * monitor )
     {
     this->m_RegistrationMonitor = monitor;
     }
 #endif
+
+  void SetFixedMeshSource( const MeshType * mesh ) { this->m_FixedMeshSource = mesh; }
+  void SetFixedMeshTarget( const MeshType * mesh ) { this->m_FixedMeshTarget = mesh; }
+  itkSetMacro( EvaluateDistanceToTarget, bool );
+  itkGetMacro( EvaluateDistanceToTarget, bool );
+  itkBooleanMacro( EvaluateDistanceToTarget );
 
 protected:
   MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -208,6 +217,11 @@ private:
 #ifdef USE_VTK
   RegistrationMonitorType  *   m_RegistrationMonitor;
 #endif
+
+  // DEBUG
+  typename MeshType::ConstPointer     m_FixedMeshSource;
+  typename MeshType::ConstPointer     m_FixedMeshTarget;
+  bool                                m_EvaluateDistanceToTarget;
 };
 
 }

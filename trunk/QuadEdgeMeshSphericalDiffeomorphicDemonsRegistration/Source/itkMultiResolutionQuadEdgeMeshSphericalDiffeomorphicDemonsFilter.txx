@@ -70,6 +70,9 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_CurrentResolutionLevel = 0;
   this->m_NumberOfResolutionLevels = 4;
+
+  // DEBUG
+  this->m_EvaluateDistanceToTarget = false;
 }
 
 
@@ -232,6 +235,11 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_DemonsRegistrationFilter->SetMaximumNumberOfIterations( 15 );
 
   this->m_FinalDestinationPoints = DestinationPointSetType::New();
+
+// DEBUG
+  this->m_DemonsRegistrationFilter->SetFixedMeshSource( this->m_FixedMeshSource );
+  this->m_DemonsRegistrationFilter->SetFixedMeshTarget( this->m_FixedMeshTarget );
+  this->m_DemonsRegistrationFilter->SetEvaluateDistanceToTarget( this->m_EvaluateDistanceToTarget );
 }
 
 
@@ -377,6 +385,9 @@ void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::ComputeDemonsRegistration()
 {
+//DEBUG
+  this->m_DemonsRegistrationFilter->SetFixedMeshReference( this->m_CurrentLevelFixedMesh );
+//DEBUG
 
   // This is needed for the proper visual monitoring of the Demons registration
   this->SetRigidTransformToIdentity();

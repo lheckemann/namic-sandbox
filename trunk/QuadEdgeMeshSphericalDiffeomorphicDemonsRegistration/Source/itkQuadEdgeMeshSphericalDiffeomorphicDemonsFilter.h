@@ -241,6 +241,13 @@ public:
   /**  Create the Output of the proper type for that output number */
   DataObject::Pointer MakeOutput(unsigned int idx);
 
+  void SetFixedMeshSource( const FixedMeshType * mesh ) { this->m_FixedMeshSource = mesh; }
+  void SetFixedMeshTarget( const FixedMeshType * mesh ) { this->m_FixedMeshTarget = mesh; }
+  void SetFixedMeshReference( const FixedMeshType * mesh ) { this->m_FixedMeshReference = mesh; }
+  itkSetMacro( EvaluateDistanceToTarget, bool );
+  itkGetMacro( EvaluateDistanceToTarget, bool );
+  itkBooleanMacro( EvaluateDistanceToTarget );
+
 protected:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
   ~QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -273,6 +280,8 @@ private:
   void AssignResampledMovingValuesToOutputMesh();
   void ComposeFixedMeshOutputDisplacedToMovingMesh();
   void ComposeDestinationPointsOutputPointSet();
+  void EvaluateDistanceToTarget();
+  void EvaluateDistanceToTargetWhenRigid();
   void CopyDestinationPointsToDeformedFixedMesh();
   void ComputeScalingAndSquaringNumberOfIterations();
   void ComputeShortestEdgeLength();
@@ -429,6 +438,12 @@ private:
 
   /** Container of lengths corresponding to the shortest edge of every node. */
   ShortestLengthContainerPointer    m_ShortestEdgeLengthPerPoint;
+
+  // DEBUG
+  bool                                  m_EvaluateDistanceToTarget;
+  FixedMeshConstPointer                 m_FixedMeshReference;
+  FixedMeshConstPointer                 m_FixedMeshSource;
+  FixedMeshConstPointer                 m_FixedMeshTarget;
 };
 
 }
