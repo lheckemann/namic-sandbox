@@ -122,6 +122,43 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
 /** Update the Visualization */
 template <class TPointSet>
 void DeformableAndAffineRegistrationMonitor<TPointSet>
+::PrintOutUpdateMessage()
+{
+  itk::Object * observedObject = this->GetObservedObject();
+
+  switch( this->RegistrationMode )
+    {
+    case AFFINE:
+      {
+      itk::VersorTransformOptimizer * optimizer = 
+        dynamic_cast< itk::VersorTransformOptimizer * >( observedObject );
+      if( optimizer != NULL )
+        {
+        std::cout << " Metric = " << optimizer->GetValue() << std::endl;
+        }
+      break;
+      }
+    case DEFORMABLE:
+      {
+      break;
+      }
+    case AFFINEANDDEFORMABLE:
+      {
+      itk::VersorTransformOptimizer * optimizer = 
+        dynamic_cast< itk::VersorTransformOptimizer * >( observedObject );
+      if( optimizer != NULL )
+        {
+        std::cout << " Metric = " << optimizer->GetValue() << std::endl;
+        }
+      break;
+      }
+    }
+}
+
+
+/** Update the Visualization */
+template <class TPointSet>
+void DeformableAndAffineRegistrationMonitor<TPointSet>
 ::CopyPointLocationsToFixedSurface()
 {
   typedef typename PointSetType::PointsContainer    PointsContainer;
