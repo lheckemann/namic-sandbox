@@ -120,6 +120,10 @@ public:
   itkSetMacro( SmoothingIterations, IntegerArrayType );
   itkGetConstReferenceMacro( SmoothingIterations, IntegerArrayType );
 
+  /** Schedule of demons iterations to be used at every resolution level. */
+  itkSetMacro( DemonsIterations, IntegerArrayType );
+  itkGetConstReferenceMacro( DemonsIterations, IntegerArrayType );
+
   /** Schedule of rigid registration iterations to be used at every resolution level. */
   itkSetMacro( RigidRegistrationIterations, IntegerArrayType );
   itkGetConstReferenceMacro( RigidRegistrationIterations, IntegerArrayType );
@@ -225,6 +229,7 @@ private:
   typename DestinationPointSetType::ConstPointer    m_FinalDestinationPoints;
 
   IntegerArrayType             m_SmoothingIterations;
+  IntegerArrayType             m_DemonsIterations;
   IntegerArrayType             m_RigidRegistrationIterations;
 
   RegistrationModeType         m_RegistrationMode;
