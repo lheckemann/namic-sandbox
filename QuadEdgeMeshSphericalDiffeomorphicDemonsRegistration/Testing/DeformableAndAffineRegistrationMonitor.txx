@@ -164,6 +164,14 @@ DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
         {
         std::cout << " Metric = " << optimizer->GetValue() << std::endl;
         }
+
+      TDeformationFilter * deformationFilter = 
+        dynamic_cast< TDeformationFilter * >( observedObject );
+
+      if( deformationFilter != NULL )
+        {
+        std::cout << " Metric = " << deformationFilter->GetMetricValue() << std::endl;
+        }
       break;
       }
     }
