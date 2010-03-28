@@ -19,7 +19,6 @@
 #define __MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking_h
 
 #include "MultiResolutionDeformableAndAffineRegistrationMonitor.h"
-#include <vector>
 
 /** \class MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking 
  *  This class provides a VTK visualization pipeline configured for monitoring
@@ -31,13 +30,13 @@
 template <class TMultiResolutionDeformationFilter, class TPointSet>
 class MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking : 
   public MultiResolutionDeformableAndAffineRegistrationMonitor<
-    typename TMultiResolutionDeformationFilter::DeformationFilterType, TPointSet>
+    TMultiResolutionDeformationFilter, TPointSet>
 {
 public:
   
   typedef MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking  Self;
   typedef MultiResolutionDeformableAndAffineRegistrationMonitor<
-    typename TMultiResolutionDeformationFilter::DeformationFilterType, TPointSet> Superclass;
+    TMultiResolutionDeformationFilter, TPointSet> Superclass;
 
   MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking();
   virtual ~MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking();
