@@ -107,7 +107,7 @@ MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiRe
   warpFilter->SetInput( this->m_FixedMeshSource );
 
   const FixedMeshType * referenceMesh = 
-    this->m_MultiResolutionDemonsRegistrationFilter->GetCurrentLevelFixedMesh();
+    this->m_MultiResolutionDemonsRegistrationFilter->GetCurrentLevelInitialFixedMesh();
 
   const DestinationPointSetType * destinationPointSet = 
     this->m_MultiResolutionDemonsRegistrationFilter->GetCurrentDestinationPoints();
