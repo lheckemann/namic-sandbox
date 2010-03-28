@@ -41,8 +41,19 @@ public:
   MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking();
   virtual ~MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking();
 
+  typedef typename TMultiResolutionDeformationFilter::MeshType      MeshType;
+
+  void SetFixedMeshSource( const MeshType * mesh ) { this->m_FixedMeshSource = mesh; }
+  void SetFixedMeshTarget( const MeshType * mesh ) { this->m_FixedMeshTarget = mesh; }
+
+  void SetEvaluateDistanceToTarget( bool );
+  bool GetEvaluateDistanceToTarget() const;
+
 private:
 
+  typename MeshType::ConstPointer     m_FixedMeshSource;
+  typename MeshType::ConstPointer     m_FixedMeshTarget;
+  bool                                m_EvaluateDistanceToTarget;
 };
 
 #include "MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking.txx"

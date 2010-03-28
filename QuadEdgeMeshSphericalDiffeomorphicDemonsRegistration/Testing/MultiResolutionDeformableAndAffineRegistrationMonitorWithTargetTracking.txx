@@ -25,6 +25,13 @@ template <class TDeformationFilter,class TPointSet>
 MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TDeformationFilter,TPointSet>
 ::MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking()
 {
+  this->m_EvaluateDistanceToTarget = false;
+
+// DEBUG
+//  this->m_DemonsRegistrationFilter->SetFixedMeshSource( this->m_FixedMeshSource );
+//  this->m_DemonsRegistrationFilter->SetFixedMeshTarget( this->m_FixedMeshTarget );
+//  this->m_DemonsRegistrationFilter->SetEvaluateDistanceToTarget( this->m_EvaluateDistanceToTarget );
+
 }
 
 /** Destructor */
@@ -34,4 +41,21 @@ MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TDeforma
 {
 }
 
+
+template <class TDeformationFilter,class TPointSet>
+void
+MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TDeformationFilter,TPointSet>
+::SetEvaluateDistanceToTarget( bool value )
+{
+  this->m_EvaluateDistanceToTarget = value;
+}
+
+
+template <class TDeformationFilter,class TPointSet>
+bool
+MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TDeformationFilter,TPointSet>
+::GetEvaluateDistanceToTarget() const
+{
+  return this->m_EvaluateDistanceToTarget;
+}
 
