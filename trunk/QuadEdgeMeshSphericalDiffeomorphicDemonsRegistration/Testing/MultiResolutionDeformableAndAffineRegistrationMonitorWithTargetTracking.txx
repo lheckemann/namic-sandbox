@@ -73,8 +73,6 @@ void
 MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiResolutionDeformationFilter,TPointSet>
 ::PrintOutUpdateMessage()
 {
-  std::cout << "MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking::PrintOutUpdateMessage() " << std::endl;
-
   this->Superclass::PrintOutUpdateMessage();
 
   if( this->m_MultiResolutionDemonsRegistrationFilter->GetRegistrationMode() == 
@@ -112,7 +110,7 @@ MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiRe
     this->m_MultiResolutionDemonsRegistrationFilter->GetCurrentLevelFixedMesh();
 
   const DestinationPointSetType * destinationPointSet = 
-    this->m_MultiResolutionDemonsRegistrationFilter->GetFinalDestinationPoints();
+    this->m_MultiResolutionDemonsRegistrationFilter->GetCurrentDestinationPoints();
 
   if( referenceMesh->GetNumberOfPoints() != destinationPointSet->GetNumberOfPoints() )
     {

@@ -146,6 +146,9 @@ public:
   
   RegistrationModeType GetRegistrationMode() const;
 
+  /** Get the destination points from the demons filter. */
+  const DestinationPointSetType * GetCurrentDestinationPoints() const;
+
 protected:
   MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
   ~MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -182,10 +185,6 @@ private:
 
   /** Set the rigid transform to Identity. */
   void SetRigidTransformToIdentity();
-
-  /** Get the destination points from the demons filter. */
-  const DestinationPointSetType * GetCurrentDestinationPoints() const;
-
 
   /** Center of spherical mesh. We assume that both the Fixed and
    * Moving meshes have spherical geometry and that they share the same
