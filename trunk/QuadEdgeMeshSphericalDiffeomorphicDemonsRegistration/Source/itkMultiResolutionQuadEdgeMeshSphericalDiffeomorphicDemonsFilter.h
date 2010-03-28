@@ -138,7 +138,14 @@ public:
     }
 #endif
 
+  typedef enum
+    {
+    RIGID,
+    DEFORMABLE
+    }  RegistrationModeType;
   
+  RegistrationModeType GetRegistrationMode() const;
+
 protected:
   MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
   ~MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -213,6 +220,8 @@ private:
 
   IntegerArrayType             m_SmoothingIterations;
   IntegerArrayType             m_RigidRegistrationIterations;
+
+  RegistrationModeType         m_RegistrationMode;
 
 #ifdef USE_VTK
   RegistrationMonitorType  *   m_RegistrationMonitor;

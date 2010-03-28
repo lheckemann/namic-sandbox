@@ -169,8 +169,11 @@ MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiRe
       }
     case Superclass::AFFINEANDDEFORMABLE:
       {
-      std::cout << "PrintOutUpdateMessage() AFFINEANDDEFORMABLE " << std::endl;
-      // this->EvaluateDistanceToTarget();
+      if( this->m_MultiResolutionDemonsRegistrationFilter->GetRegistrationMode() == 
+          TMultiResolutionDeformationFilter::DEFORMABLE )
+        {
+        this->EvaluateDistanceToTarget();
+        }
       break;
       }
     }
