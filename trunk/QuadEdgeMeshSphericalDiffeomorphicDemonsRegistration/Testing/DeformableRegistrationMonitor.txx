@@ -21,23 +21,24 @@
 #include "vtkPoints.h"
 
 /** Constructor */
-template <class TPointSet>
-DeformableRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+DeformableRegistrationMonitor<TDeformationFilter,TPointSet>
 ::DeformableRegistrationMonitor()
 {
 }
 
 /** Destructor */
-template <class TPointSet>
-DeformableRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+DeformableRegistrationMonitor<TDeformationFilter,TPointSet>
 ::~DeformableRegistrationMonitor()
 {
 }
 
 
 /** Set the objects to be observed: optimizer and transform */
-template <class TPointSet>
-void DeformableRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+void
+DeformableRegistrationMonitor<TDeformationFilter,TPointSet>
 ::ObserveData( const PointSetType * destinationPointSet )
 {
   this->ObservedPointSet = destinationPointSet;
@@ -45,8 +46,9 @@ void DeformableRegistrationMonitor<TPointSet>
 
 
 /** Update the Visualization */
-template <class TPointSet>
-void DeformableRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+void
+DeformableRegistrationMonitor<TDeformationFilter,TPointSet>
 ::UpdateDataBeforeRendering()
 {
   typedef typename PointSetType::PointsContainer    PointsContainer;
@@ -105,9 +107,18 @@ void DeformableRegistrationMonitor<TPointSet>
 
 
 /** Print out iteration information */
-template <class TPointSet>
-void DeformableRegistrationMonitor<TPointSet>
+template <class TDeformationFilter, class TPointSet>
+void
+DeformableRegistrationMonitor<TDeformationFilter,TPointSet>
 ::PrintOutUpdateMessage()
 {
-  // itk::Object * observedObject = this->GetObservedObject();
+  itk::Object * observedObject = this->GetObservedObject();
+
+  TDeformationFilter * deformationFilter = 
+    dynamic_cast< TDeformationFilter * >( observedObject );
+
+  if( deformationFilter != NULL )
+    {
+    std::cout << " Metric = " << deformationFilter->GetMetricValue() << std::endl;
+    }
 }

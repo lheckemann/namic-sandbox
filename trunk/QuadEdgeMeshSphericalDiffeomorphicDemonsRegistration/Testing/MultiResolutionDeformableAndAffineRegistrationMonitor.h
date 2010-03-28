@@ -26,14 +26,16 @@
  *  the progress of a deformable registration process. It take multiple resolution
  *  surfaces and use them for the visualization of the proper resolution level. 
  */
-template <class TPointSet>
+template <class TMultiResolutionDeformationFilter, class TPointSet>
 class MultiResolutionDeformableAndAffineRegistrationMonitor : 
-  public DeformableAndAffineRegistrationMonitor<TPointSet>
+  public DeformableAndAffineRegistrationMonitor<
+    typename TMultiResolutionDeformationFilter::DeformationFilterType, TPointSet>
 {
 public:
   
   typedef MultiResolutionDeformableAndAffineRegistrationMonitor  Self;
-  typedef DeformableAndAffineRegistrationMonitor<TPointSet>      Superclass;
+  typedef DeformableAndAffineRegistrationMonitor<
+    typename TMultiResolutionDeformationFilter::DeformationFilterType, TPointSet> Superclass;
 
   MultiResolutionDeformableAndAffineRegistrationMonitor();
   virtual ~MultiResolutionDeformableAndAffineRegistrationMonitor();

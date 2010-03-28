@@ -24,7 +24,7 @@
  *  This class provides a VTK visualization pipeline configured for monitoring
  *  the progress of a deformable registration process. 
  */
-template <class TPointSet>
+template <class TDeformationFilter, class TPointSet>
 class DeformableRegistrationMonitor : public RegistrationMonitor
 {
 public:
