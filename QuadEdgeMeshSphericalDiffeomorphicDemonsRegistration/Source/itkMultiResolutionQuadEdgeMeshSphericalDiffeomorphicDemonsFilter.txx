@@ -281,6 +281,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 {
   this->SetRigidTransformToIdentity();
   
+  this->m_RegistrationMode = RIGID;
+
   this->m_RigidOptimizer->SetNumberOfIterations( 
     this->m_RigidRegistrationIterations[ this->m_CurrentResolutionLevel ] );
 
@@ -373,12 +375,22 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 }
 
 template< class TMesh >
+typename MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >::RegistrationModeType
+MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
+::GetRegistrationMode() const
+{
+  return this->m_RegistrationMode;
+}
+
+template< class TMesh >
 void
 MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 ::ComputeDemonsRegistration()
 {
   // This is needed for the proper visual monitoring of the Demons registration
   this->SetRigidTransformToIdentity();
+
+  this->m_RegistrationMode = DEFORMABLE;
 
   this->m_DemonsRegistrationFilter->SetMaximumNumberOfSmoothingIterations( 
     this->m_SmoothingIterations[this->m_CurrentResolutionLevel] );
