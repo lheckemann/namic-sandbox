@@ -41,7 +41,7 @@ public:
    * returns sqrt( a**2 + b**2 )
    * with precautions to avoid overflow.
    */
-  double SquaredNorm( double a, double b ) const;
+  double D2Norm( double a, double b ) const;
 
 private:
   double    *  hy;

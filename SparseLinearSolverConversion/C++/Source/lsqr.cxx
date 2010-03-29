@@ -80,7 +80,7 @@ lsqr::~lsqr()
  *  with precautions to avoid overflow.
  */
 double
-lsqr::SquaredNorm( double a, double b ) const
+lsqr::D2Norm( double a, double b ) const
 {
   const double scale = Abs(a) + Abs(b);
   const double zero = 0.0;
