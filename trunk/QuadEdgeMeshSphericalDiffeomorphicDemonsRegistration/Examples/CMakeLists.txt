@@ -320,23 +320,22 @@ SET(FIXEDMESHFINAL  ${TEMP}/sub${MESHID1}c.vtk)
 SET(MOVINGMESHFINAL ${TEMP}/sub${MESHID2}c.vtk)
 
 ADD_TEST(MultiResRegistrationOneField_${MESHID1}_${MESHID2}
-  ${CXX_TEST_PATH}/MultiResolutionRegistration1
+  ${CXX_TEST_PATH}/MultiResolutionRegistration2
   ${FIXEDMESH1}
   ${MOVINGMESH1}
-  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC4.vtk
   ${FIXEDMESH2}
   ${MOVINGMESH2}
-  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC5.vtk
   ${FIXEDMESH3}
   ${MOVINGMESH3}
-  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC6.vtk
   ${FIXEDMESH4}
   ${MOVINGMESH4}
-  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC7.vtk
+  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC7_c.vtk
   ${FIXEDMESHFINAL}
   ${MOVINGMESHFINAL}
-  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_Final.vtk
+  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_Final_c.vtk
   registrationLog_${MESHID2}_${MESHID1}_
+  ${TEMP}/lh_MatlabSphericalDemons_sub${MESHID2}Tosub${MESHID1}.vtk
+  4 # number of resolution levels to use
   )
 
 ENDFUNCTION( MULTIRES_REGISTER_ONE_FIELD )
