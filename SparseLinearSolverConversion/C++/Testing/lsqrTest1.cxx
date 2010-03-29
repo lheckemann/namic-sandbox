@@ -57,6 +57,11 @@ int lsqrTest1( int , char * [] )
 
   std::cout << "Stopped because " << solver.GetStoppingReason() << std::endl;
   std::cout << "Used " << solver.GetNumberOfIterationsPerformed() << " Iterations" << std::endl;
+  std::cout << "Frobenius norm estimation of Abar = " << solver.GetFrobeniusNormEstimateOfAbar() << std::endl;
+  std::cout << "Condition number estimation of Abar = " << solver.GetConditionNumberEstimateOfAbar() << std::endl;
+  std::cout << "Estimate of final value of norm(rbar) = " << solver.GetFinalEstimateOfNormRbar() << std::endl;
+  std::cout << "Estimate of final value of norm of residuals = " << solver.GetFinalEstimateOfNormOfResiduals() << std::endl;
+  std::cout << "Estimate of norm of final solution = " << solver.GetFinalEstimateOfNormOfX() << std::endl;
 
   return EXIT_SUCCESS;
 }

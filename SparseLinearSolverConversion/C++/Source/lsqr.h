@@ -150,6 +150,51 @@ public:
   unsigned int GetNumberOfIterationsPerformed() const;
 
 
+  /** 
+   *   An estimate of the Frobenius norm of Abar.
+   *   This is the square-root of the sum of squares
+   *   of the elements of Abar.
+   *   If damp is small and the columns of A
+   *   have all been scaled to have length 1.0,
+   *   Anorm should increase to roughly sqrt(n).
+   *   A radically different value for Anorm may
+   *   indicate an error in Aprod1 or Aprod2.
+   */
+  double GetFrobeniusNormEstimateOfAbar() const;
+
+
+  /** 
+   *   An estimate of cond(Abar), the condition
+   *   number of Abar.  A very high value of Acond
+   *   may again indicate an error in Aprod1 or Aprod2.
+   */
+  double GetConditionNumberEstimateOfAbar() const;
+
+
+  /** An estimate of the final value of norm(rbar),
+   *  the function being minimized (see notation
+   *  above).  This will be small if A*x = b has
+   *  a solution.
+   */
+  double GetFinalEstimateOfNormRbar() const;
+
+
+  /** An estimate of the final value of
+   *  norm( Abar(transpose)*rbar ), the norm of
+   *  the residual for the normal equations.
+   *  This should be small in all cases.  (Arnorm
+   *  will often be smaller than the true value
+   *  computed from the output vector x.)
+   */
+  double GetFinalEstimateOfNormOfResiduals() const;
+
+
+  /**
+   * An estimate of norm(x) for the final solution x.
+   */
+  double GetFinalEstimateOfNormOfX() const;
+
+
   /**
    *    Execute the solver
    * 

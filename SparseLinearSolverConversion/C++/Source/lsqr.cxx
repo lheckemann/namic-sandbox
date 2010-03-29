@@ -72,9 +72,14 @@ lsqr::lsqr()
   this->btol = 1e-6;
   this->conlim = 1.0 / ( 10 * sqrt( eps ) );
   this->itnlim = 10;
-  this->itn = 0;
   this->nout = NULL;
   this->istop = 0;
+  this->itn = 0;
+  this->Anorm = 0.0;
+  this->Acond = 0.0;
+  this->rnorm = 0.0;
+  this->Arnorm = 0.0;
+  this->xnorm = 0.0;
 }
 
 
@@ -94,6 +99,41 @@ unsigned int
 lsqr::GetNumberOfIterationsPerformed() const
 {
   return this->itn;
+}
+
+
+double
+lsqr::GetFrobeniusNormEstimateOfAbar() const
+{
+  return this->Anorm;
+}
+
+
+double
+lsqr::GetConditionNumberEstimateOfAbar() const
+{
+  return this->Acond;
+}
+
+
+double
+lsqr::GetFinalEstimateOfNormRbar() const
+{
+  return this->rnorm;
+}
+
+
+double 
+lsqr::GetFinalEstimateOfNormOfResiduals() const
+{
+  return this->Arnorm;
+}
+
+
+double 
+lsqr::GetFinalEstimateOfNormOfX() const
+{
+  return this->xnorm;
 }
 
 
