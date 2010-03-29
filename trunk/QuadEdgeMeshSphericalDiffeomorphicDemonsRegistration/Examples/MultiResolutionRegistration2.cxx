@@ -76,8 +76,8 @@ int main( int argc, char * argv [] )
 
   IntegerArrayType smoothingIterations(maximumNumberOfResolutions);
 
-  smoothingIterations[0] =  5;
-  smoothingIterations[1] =  7;
+  smoothingIterations[0] = 10;
+  smoothingIterations[1] = 10;
   smoothingIterations[2] = 10;
   smoothingIterations[3] = 10;
 
@@ -98,8 +98,8 @@ int main( int argc, char * argv [] )
 
   rigidIterations[0] = 32;
   rigidIterations[1] = 32;
-  rigidIterations[2] = 16;
-  rigidIterations[3] =  8;
+  rigidIterations[2] = 32;
+  rigidIterations[3] = 32;
 
   multiResDemonsFilter->SetRigidRegistrationIterations( rigidIterations );
 
