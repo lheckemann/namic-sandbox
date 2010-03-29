@@ -286,6 +286,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->SetRigidTransformToIdentity();
   
   this->m_RegistrationMode = RIGID;
+  std::cout << "RIGID" << std::endl;
 
   this->m_RigidOptimizer->SetNumberOfIterations( 
     this->m_RigidRegistrationIterations[ this->m_CurrentResolutionLevel ] );
@@ -395,6 +396,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->SetRigidTransformToIdentity();
 
   this->m_RegistrationMode = DEFORMABLE;
+  std::cout << "DEMONS" << std::endl;
 
   this->m_DemonsRegistrationFilter->SetMaximumNumberOfSmoothingIterations( 
     this->m_SmoothingIterations[this->m_CurrentResolutionLevel] );
