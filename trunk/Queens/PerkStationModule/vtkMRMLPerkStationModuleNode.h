@@ -120,6 +120,9 @@ public:
   vtkGetMacro( TableAtOverlay, double );
   vtkSetMacro( TableAtOverlay, double );
   
+  vtkGetMacro( PatientAtScanner, double );
+  vtkSetMacro( PatientAtScanner, double );
+  
   vtkGetMacro( CurrentSliceOffset, double );
   vtkSetMacro( CurrentSliceOffset, double );
   
@@ -256,10 +259,10 @@ public:
   
   PatientPositionEnum GetPatientPosition();
   
-  double GetCurrentTablePosition();
-  
   
   // Computations -------------------------------------------------------------
+  
+  double GetCurrentTablePosition();
   
   double GetEntryPointError();
   double GetTargetPointError();
@@ -268,6 +271,7 @@ public:
   double GetActualPlanInsertionDepth();
   
   double GetValidationDepth();
+  
   
 protected:
   
@@ -292,6 +296,7 @@ protected:
   
   double TableAtScanner;
   double TableAtOverlay;
+  double PatientAtScanner;
   double CurrentSliceOffset;    // In RAS.
   
    // Slicer's volume transform node.
