@@ -117,6 +117,14 @@ protected:
   vtkSmartPointer< vtkKWPushButton >     TableUpdateButton;
   
   
+    // Patient calibration.
+  
+  vtkSmartPointer< vtkKWFrameWithLabel > PatientFrame;
+  vtkSmartPointer< vtkKWLabel >          PatientLabel;
+  vtkSmartPointer< vtkKWEntry >          PatientEntry;
+  vtkSmartPointer< vtkKWPushButton >     PatientUpdateButton;
+  
+  
     // Hardware selection.
   
   vtkSmartPointer< vtkKWFrameWithLabel >      HardwareFrame;

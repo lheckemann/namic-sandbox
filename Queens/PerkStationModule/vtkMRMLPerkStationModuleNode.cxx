@@ -921,12 +921,50 @@ vtkMRMLPerkStationModuleNode
 }
 
 
-
+/**
+ * @returns The required table position for the current insertion slice.
+ */
 double
 vtkMRMLPerkStationModuleNode
 ::GetCurrentTablePosition()
 {
-  return this->TableAtOverlay + this->CurrentSliceOffset;
+    // Direction positive if table position decreases towards the overlay.
+  
+  double tableDirection = 1.0;
+  if ( this->TableAtScanner < this->TableAtOverlay )
+    {
+    tableDirection = - 1.0;
+    }
+  
+  
+    // Offset direction positive if the patient lies head-first,
+    // because that is positive in RAS system.
+  
+  double offsetDirection = 1.0;
+  if (    this->PatientPosition == FFDR
+       || this->PatientPosition == FFDL
+       || this->PatientPosition == FFP
+       || this->PatientPosition == FFS )
+    {
+    offsetDirection = - 1.0;
+    }
+  
+    
+    // We know that:
+    // TableAtScanner - TableAtOverlay = PatientAtScanner - PatientAtOverlay
+    // Because both sides give the Overlay to Scanner vector.
+  
+  double patientAtOverlay = this->PatientAtScanner + this->TableAtOverlay
+                            - this->TableAtScanner;
+  
+  
+    // CurrentSliceOffset is in RAS.
+  
+  double directedOffset =  ( this->CurrentSliceOffset * offsetDirection
+                             * tableDirection );
+  
+  
+  return patientAtOverlay + directedOffset;
 }
 
 
