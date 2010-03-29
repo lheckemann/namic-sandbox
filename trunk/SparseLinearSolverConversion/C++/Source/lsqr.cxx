@@ -15,7 +15,9 @@
 =========================================================================*/
 
 #include "lsqr.h"
+#include <math.h>
 
+#define Abs(x) ((x) >= 0 ? (x) : -(x))
 
 #define CopyVector(n,x,y) \
   { \
@@ -70,6 +72,28 @@ lsqr::lsqr()
 
 lsqr::~lsqr()
 {
+}
+
+
+/**
+ *  returns sqrt( a**2 + b**2 )
+ *  with precautions to avoid overflow.
+ */
+double
+lsqr::SquaredNorm( double a, double b ) const
+{
+  const double scale = Abs(a) + Abs(b);
+  const double zero = 0.0;
+
+  if( scale == zero )
+    {
+    return zero;
+    }
+  
+  const double sa = a / scale;
+  const double sb = b / scale;
+
+  return scale * sqrt( sa * sa + sb * sb );
 }
 
 

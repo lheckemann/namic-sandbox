@@ -37,6 +37,12 @@ public:
    * The size of the vector y is m. */
   void Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const;
   
+  /**
+   * returns sqrt( a**2 + b**2 )
+   * with precautions to avoid overflow.
+   */
+  double SquaredNorm( double a, double b ) const;
+
 private:
   double    *  hy;
   double    *  hz;
