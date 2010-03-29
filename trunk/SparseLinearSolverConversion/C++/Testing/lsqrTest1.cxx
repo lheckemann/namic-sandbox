@@ -55,5 +55,8 @@ int lsqrTest1( int , char * [] )
 
   solver.SetStandardErrorEstimatesFlag( true );
 
+  std::cout << "Stopped because " << solver.GetStoppingReason() << std::endl;
+  std::cout << "Used " << solver.GetNumberOfIterationsPerformed() << " Iterations" << std::endl;
+
   return EXIT_SUCCESS;
 }

@@ -117,15 +117,48 @@ public:
    */
   void SetOutputStream( std::ostream & os );
 
+  /** 
+   *   Returns an integer giving the reason for termination:
+   * 
+   *     0       x = 0  is the exact solution.
+   *             No iterations were performed.
+   * 
+   *     1       The equations A*x = b are probably compatible.
+   *             Norm(A*x - b) is sufficiently small, given the
+   *             values of atol and btol.
+   * 
+   *     2       damp is zero.  The system A*x = b is probably
+   *             not compatible.  A least-squares solution has
+   *             been obtained that is sufficiently accurate,
+   *             given the value of atol.
+   * 
+   *     3       damp is nonzero.  A damped least-squares
+   *             solution has been obtained that is sufficiently
+   *             accurate, given the value of atol.
+   * 
+   *     4       An estimate of cond(Abar) has exceeded conlim.
+   *             The system A*x = b appears to be ill-conditioned,
+   *             or there could be an error in Aprod1 or Aprod2.
+   * 
+   *     5       The iteration limit itnlim was reached.
+   *
+   */
+  unsigned int GetStoppingReason() const;
+
+
+  /** Returns the actual number of iterations performed. */
+  unsigned int GetNumberOfIterationsPerformed() const;
+
+
   /**
    *    Execute the solver
    * 
    *    solves Ax = b or min ||Ax - b|| with or without damping,
    *
    */
-  void Solve( unsigned int m, unsigned n, double * b, double damp, bool wantse,
+  void Solve( unsigned int m, unsigned n, double * b, double damp,
          double * x, double * se,
-         unsigned int istop, unsigned int itn
+         unsigned int istop
          );
 
 private:
@@ -148,6 +181,9 @@ private:
   double eps;
 
   unsigned int itnlim;
+  unsigned int itn;
+
+  unsigned int istop;
 
   std::ostream * nout;
 
