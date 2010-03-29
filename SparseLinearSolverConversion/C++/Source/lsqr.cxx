@@ -67,11 +67,66 @@
 
 lsqr::lsqr()
 {
+  this->eps = 1e-16;
+  this->atol = 1e-6;
+  this->btol = 1e-6;
+  this->conlim = 1.0 / ( 10 * sqrt( eps ) );
+  this->itnlim = 10;
+  this->nout = NULL;
 }
 
 
 lsqr::~lsqr()
 {
+}
+
+
+void
+lsqr::SetStandardErrorEstimatesFlag(bool flag)
+{
+  this->wantse = flag;
+}
+
+
+void
+lsqr::SetEpsilon( double value )
+{
+  this->eps = value;
+}
+
+
+void
+lsqr::SetToleranceA( double value )
+{
+  this->atol = value;
+}
+
+
+void
+lsqr::SetToleranceB( double value )
+{
+  this->btol = value;
+}
+
+
+void
+lsqr::SetMaximumNumberOfIterations( unsigned int value )
+{
+  this->itnlim = value;
+}
+
+
+void
+lsqr::SetUpperLimitOnConditional( double value )
+{
+  this->conlim = value;
+}
+
+
+void
+lsqr::SetOutputStream( std::ostream & os )
+{
+  this->nout = &os;
 }
 
 

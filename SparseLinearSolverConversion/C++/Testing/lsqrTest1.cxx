@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include <stdlib.h>
+#include <math.h>
 
 int lsqrTest1( int , char * [] )
 {
@@ -38,6 +39,21 @@ int lsqrTest1( int , char * [] )
   solver.HouseholderTransformation(n,z,x);
 
   std::cout << x[0] << " " << x[1] << std::endl;
+
+  solver.SetOutputStream( std::cout );
+
+  const double eps = 1e-15;
+
+  solver.SetEpsilon( eps );
+
+  solver.SetMaximumNumberOfIterations( 100 );
+
+  solver.SetToleranceA( 1e-16 );
+  solver.SetToleranceB( 1e-16 );
+
+  solver.SetUpperLimitOnConditional( 1.0 / ( 10 * sqrt( eps ) ) );
+
+  solver.SetStandardErrorEstimatesFlag( true );
 
   return EXIT_SUCCESS;
 }
