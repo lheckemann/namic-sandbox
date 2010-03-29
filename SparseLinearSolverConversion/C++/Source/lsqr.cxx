@@ -72,12 +72,28 @@ lsqr::lsqr()
   this->btol = 1e-6;
   this->conlim = 1.0 / ( 10 * sqrt( eps ) );
   this->itnlim = 10;
+  this->itn = 0;
   this->nout = NULL;
+  this->istop = 0;
 }
 
 
 lsqr::~lsqr()
 {
+}
+
+
+unsigned int
+lsqr::GetStoppingReason() const
+{
+  return this->istop;
+}
+
+
+unsigned int
+lsqr::GetNumberOfIterationsPerformed() const
+{
+  return this->itn;
 }
 
 
