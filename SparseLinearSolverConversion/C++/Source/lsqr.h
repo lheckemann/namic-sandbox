@@ -19,6 +19,60 @@
 #include <iostream>
 
 
+/** \class lsqr
+ *
+ *  \brief implement a solver for a set of linear equations.
+ *
+ *   LSQR  finds a solution x to the following problems:
+ *  
+ *   1. Unsymmetric equations:    Solve  A*x = b
+ *  
+ *   2. Linear least squares:     Solve  A*x = b
+ *                                in the least-squares sense
+ *  
+ *   3. Damped least squares:     Solve  (   A    )*x = ( b )
+ *                                       ( damp*I )     ( 0 )
+ *                                in the least-squares sense
+ *  
+ *   where A is a matrix with m rows and n columns, b is an m-vector,
+ *   and damp is a scalar.  (All quantities are real.)
+ *   The matrix A is treated as a linear operator.  It is accessed
+ *   by means of subroutine calls with the following purpose:
+ *  
+ *   call Aprod1(m,n,x,y)  must compute y = y + A*x  without altering x.
+ *   call Aprod2(m,n,x,y)  must compute x = x + A'*y without altering y.
+ *  
+ *   LSQR uses an iterative method to approximate the solution.
+ *   The number of iterations required to reach a certain accuracy
+ *   depends strongly on the scaling of the problem.  Poor scaling of
+ *   the rows or columns of A should therefore be avoided where
+ *   possible.
+ *  
+ *   For example, in problem 1 the solution is unaltered by
+ *   row-scaling.  If a row of A is very small or large compared to
+ *   the other rows of A, the corresponding row of ( A  b ) should be
+ *   scaled up or down.
+ *  
+ *   In problems 1 and 2, the solution x is easily recovered
+ *   following column-scaling.  Unless better information is known,
+ *   the nonzero columns of A should be scaled so that they all have
+ *   the same Euclidean norm (e.g., 1.0).
+ *  
+ *   In problem 3, there is no freedom to re-scale if damp is
+ *   nonzero.  However, the value of damp should be assigned only
+ *   after attention has been paid to the scaling of A.
+ *  
+ *   The parameter damp is intended to help regularize
+ *   ill-conditioned systems, by preventing the true solution from
+ *   being very large.  Another aid to regularization is provided by
+ *   the parameter Acond, which may be used to terminate iterations
+ *   before the computed solution becomes very large.
+ *
+ *   This class is a direct C++ translation from the Fortran90 version
+ *   of the solver that is available at
+ *
+ *  
+ */
 class lsqr 
 {
 public:
@@ -102,6 +156,22 @@ public:
    *   We expect eps to be about 1e-16 always.
    */
   void SetEpsilon( double );
+
+  /**
+   *   The damping parameter for problem 3 above.
+   *   (damp should be 0.0 for problems 1 and 2.)
+   *   If the system A*x = b is incompatible, values
+   *   of damp in the range 0 to sqrt(eps)*norm(A)
+   *   will probably have a negligible effect.
+   *   Larger values of damp will tend to decrease
+   *   the norm of x and reduce the number of 
+   *   iterations required by LSQR.
+   * 
+   *   The work per iteration and the storage needed
+   *   by LSQR are the same for all values of damp.
+   *
+   */
+  void SetDamp( double );
 
   /**  An upper limit on the number of iterations.
    *   Suggested value:
@@ -201,10 +271,7 @@ public:
    *    solves Ax = b or min ||Ax - b|| with or without damping,
    *
    */
-  void Solve( unsigned int m, unsigned n, double * b, double damp,
-         double * x, double * se,
-         unsigned int istop
-         );
+  void Solve( unsigned int m, unsigned n, double * b, double * x );
 
 private:
   double    *  hy;
@@ -224,6 +291,7 @@ private:
   double conlim;
 
   double eps;
+  double damp;
 
   unsigned int itnlim;
   unsigned int itn;
@@ -233,6 +301,7 @@ private:
   std::ostream * nout;
 
   bool   wantse;
+  double * se;
 };
 
 #endif 

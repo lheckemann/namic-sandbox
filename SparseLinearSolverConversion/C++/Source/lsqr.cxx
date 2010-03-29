@@ -152,6 +152,13 @@ lsqr::SetEpsilon( double value )
 
 
 void
+lsqr::SetDamp( double value )
+{
+  this->damp = value;
+}
+
+
+void
 lsqr::SetToleranceA( double value )
 {
   this->atol = value;
@@ -260,3 +267,14 @@ Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const
   this->HouseholderTransformation(n,this->hz,this->wn);
   AccumulateVector( n, this->wn, x );
 }
+
+
+void lsqr::
+Solve( unsigned int m, unsigned n, double * b, double * x )
+{
+
+
+
+
+}
+
