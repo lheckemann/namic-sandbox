@@ -241,6 +241,11 @@ public:
   /**  Create the Output of the proper type for that output number */
   DataObject::Pointer MakeOutput(unsigned int idx);
 
+  /** Print out in the argument ostream the results of the chronometer
+   * measurements. This is intended to be used for profiling the deformation
+   * filter. */
+  void ChronometerReport( std::ofstream & os ) const;
+
 protected:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
   ~QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();

@@ -280,8 +280,15 @@ GenerateData()
   this->AssignResampledMovingValuesToOutputMesh();
   this->ComposeFixedMeshOutputDisplacedToMovingMesh();
   this->m_Chronometer.Stop("DataPostProcessing");
+}
 
-  this->m_Chronometer.Report( std::cout );
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ChronometerReport( std::ofstream & os ) const
+{
+  this->m_Chronometer.Report( os );
 }
 
 
