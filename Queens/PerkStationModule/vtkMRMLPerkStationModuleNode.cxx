@@ -936,7 +936,6 @@ vtkMRMLPerkStationModuleNode
     tableDirection = - 1.0;
     }
   
-  
     // Offset direction positive if the patient lies head-first,
     // because that is positive in RAS system.
   
@@ -949,7 +948,6 @@ vtkMRMLPerkStationModuleNode
     offsetDirection = - 1.0;
     }
   
-    
     // We know that:
     // TableAtScanner - TableAtOverlay = PatientAtScanner - PatientAtOverlay
     // Because both sides give the Overlay to Scanner vector.
@@ -957,12 +955,10 @@ vtkMRMLPerkStationModuleNode
   double patientAtOverlay = this->PatientAtScanner + this->TableAtOverlay
                             - this->TableAtScanner;
   
-  
     // CurrentSliceOffset is in RAS.
   
   double directedOffset =  ( this->CurrentSliceOffset * offsetDirection
                              * tableDirection );
-  
   
   return patientAtOverlay + directedOffset;
 }
