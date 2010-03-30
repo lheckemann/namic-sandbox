@@ -120,10 +120,6 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
   this->TableOverlayEntry = vtkSmartPointer< vtkKWEntry >::New();
   this->TableUpdateButton = vtkSmartPointer< vtkKWPushButton >::New();
   
-  
-    // Patient calibration.
-  
-  this->PatientFrame = vtkSmartPointer< vtkKWFrameWithLabel >::New();
   this->PatientLabel = vtkSmartPointer< vtkKWLabel >::New();
   this->PatientEntry = vtkSmartPointer< vtkKWEntry >::New();
   this->PatientUpdateButton = vtkSmartPointer< vtkKWPushButton >::New();
@@ -341,7 +337,7 @@ vtkPerkStationCalibrateStep
     
     this->TableScannerLabel->SetParent( this->TableFrame->GetFrame() );
     this->TableScannerLabel->Create();
-    this->TableScannerLabel->SetText( "Scanner laser:");
+    this->TableScannerLabel->SetText( "Scanner laser (mm):");
     
     this->TableScannerEntry->SetParent( this->TableFrame->GetFrame() );
     this->TableScannerEntry->Create();
@@ -349,7 +345,7 @@ vtkPerkStationCalibrateStep
     
     this->TableOverlayLabel->SetParent( this->TableFrame->GetFrame() );
     this->TableOverlayLabel->Create();
-    this->TableOverlayLabel->SetText( "Overlay laser:");
+    this->TableOverlayLabel->SetText( "Overlay laser (mm):");
     
     this->TableOverlayEntry->SetParent( this->TableFrame->GetFrame() );
     this->TableOverlayEntry->Create();
@@ -360,13 +356,9 @@ vtkPerkStationCalibrateStep
     this->TableUpdateButton->SetText( "Update" );
     this->TableUpdateButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
     
-    this->PatientFrame->SetParent( parent );
-    this->PatientFrame->Create();
-    this->PatientFrame->SetLabelText( "Patient calibration" );
-    
     this->PatientLabel->SetParent( this->TableFrame->GetFrame() );
     this->PatientLabel->Create();
-    this->PatientLabel->SetText( "Patient at scanner laser:" );
+    this->PatientLabel->SetText( "Patient at scanner laser (mm):" );
     
     this->PatientEntry->SetParent( this->TableFrame->GetFrame() );
     this->PatientEntry->Create();
@@ -376,26 +368,29 @@ vtkPerkStationCalibrateStep
   this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                 this->TableFrame->GetWidgetName() );
   
-  this->Script( "grid %s -column 0 -row 0 -sticky ew -padx 2 -pady 2", 
+  this->Script( "grid %s -column 0 -row 0 -sticky w -padx 6 -pady 2", 
                 this->TableScannerLabel->GetWidgetName() );
-  this->Script( "grid %s -column 1 -row 0 -sticky ew -padx 2 -pady 2",
+  this->Script( "grid %s -column 1 -row 0 -sticky w -padx 1 -pady 2",
                 this->TableScannerEntry->GetWidgetName() );
   
-  this->Script( "grid %s -column 0 -row 1 -sticky ew -padx 2 -pady 2", 
+  this->Script( "grid %s -column 0 -row 1 -sticky w -padx 6 -pady 2", 
                 this->TableOverlayLabel->GetWidgetName() );
-  this->Script( "grid %s -column 1 -row 1 -sticky ew -padx 2 -pady 2",
+  this->Script( "grid %s -column 1 -row 1 -sticky w -padx 1 -pady 2",
                 this->TableOverlayEntry->GetWidgetName() );
-  /*
-  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->PatientFrame->GetWidgetName() );
-  */
-  this->Script( "grid %s -column 0 -row 2 -sticky ew -padx 2 -pady 2", 
+  
+  this->Script( "grid %s -column 0 -row 2 -sticky w -padx 6 -pady 2", 
                 this->PatientLabel->GetWidgetName() );
-  this->Script( "grid %s -column 1 -row 2 -sticky ew -padx 2 -pady 2",
+  this->Script( "grid %s -column 1 -row 2 -sticky w -padx 1 -pady 2",
                 this->PatientEntry->GetWidgetName() );
   
-  this->Script( "grid %s -column 3 -row 2 -sticky ew -padx 2 -pady 2",
+  this->Script( "grid %s -column 3 -row 2 -sticky e -padx 6 -pady 2",
                 this->TableUpdateButton->GetWidgetName() );
+  this->Script( "grid columnconfigure %s 0 -weight 1",
+                this->TableFrame->GetFrame()->GetWidgetName() );
+  this->Script( "grid columnconfigure %s 1 -weight 3",
+                this->TableFrame->GetFrame()->GetWidgetName() );
+  this->Script( "grid columnconfigure %s 2 -weight 1",
+                this->TableFrame->GetFrame()->GetWidgetName() );
   
   
   
