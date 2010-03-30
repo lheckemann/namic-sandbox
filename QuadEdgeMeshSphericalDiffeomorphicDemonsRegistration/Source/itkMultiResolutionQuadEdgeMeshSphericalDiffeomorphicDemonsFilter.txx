@@ -33,7 +33,7 @@
 #include "itkQuadEdgeMeshGenerateDeformationFieldFilter.h"
 #include "itkIdentityTransform.h"
 #include "itkReplaceDestinationPointsQuadEdgeMeshFilter.h"
-#include "itkWarpQuadEdgeMeshFilter.h"
+#include "itkDeformQuadEdgeMeshFilter.h"
 
 
 namespace itk
@@ -448,21 +448,21 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   //
   //   Deform fixed new mesh using current fixed mesh and destination points
   //
-  typedef WarpQuadEdgeMeshFilter< MeshType, MeshType, DestinationPointSetType > WarpFilterType;
+  typedef DeformQuadEdgeMeshFilter< MeshType, MeshType, DestinationPointSetType > DeformFilterType;
 
-  typename WarpFilterType::Pointer warpFilter = WarpFilterType::New();
+  typename DeformFilterType::Pointer deformFilter = DeformFilterType::New();
 
-  warpFilter->SetInput( this->m_NextLevelFixedMesh );
-  warpFilter->SetReferenceMesh( this->m_CurrentLevelFixedMesh );
+  deformFilter->SetInput( this->m_NextLevelFixedMesh );
+  deformFilter->SetReferenceMesh( this->m_CurrentLevelFixedMesh );
 
-  warpFilter->SetDestinationPoints( currentDestinationPoints );
+  deformFilter->SetDestinationPoints( currentDestinationPoints );
 
-  warpFilter->SetSphereRadius( this->m_SphereRadius );
-  warpFilter->SetSphereCenter( this->m_SphereCenter );
+  deformFilter->SetSphereRadius( this->m_SphereRadius );
+  deformFilter->SetSphereCenter( this->m_SphereCenter );
 
   try
     {
-    warpFilter->Update();
+    deformFilter->Update();
     }
   catch( ExceptionObject & excp )
     {
@@ -470,7 +470,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     throw excp;
     }
 
-  this->m_CurrentLevelDemonsMappedFixedMesh = warpFilter->GetOutput();
+  this->m_CurrentLevelDemonsMappedFixedMesh = deformFilter->GetOutput();
 
   this->m_CurrentLevelDemonsMappedFixedMesh->DisconnectPipeline();
 

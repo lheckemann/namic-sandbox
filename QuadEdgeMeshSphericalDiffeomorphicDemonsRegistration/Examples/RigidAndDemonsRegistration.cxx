@@ -32,7 +32,7 @@
 #include "itkQuadEdgeMeshVectorDataVTKPolyDataWriter.h"
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 #include "itkDeformationFieldFromTransformMeshFilter.h"
-#include "itkResampleDestinationPointsQuadEdgeMeshFilter.h"
+
 #include "itkQuadEdgeMeshGenerateDeformationFieldFilter.h"
 #include "itkIdentityTransform.h"
 #include "itkReplaceDestinationPointsQuadEdgeMeshFilter.h"
