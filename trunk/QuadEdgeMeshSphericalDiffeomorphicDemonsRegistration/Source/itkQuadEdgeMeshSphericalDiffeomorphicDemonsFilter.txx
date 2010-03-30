@@ -511,6 +511,7 @@ RunIterations()
     this->ComputeGradientsOfMappedMovingValueAtEveryNode();
     this->m_Chronometer.Stop("ComputeGradientsOfMappedMovingValueAtEveryNode");
 
+    std::cout<<"Iteration: "<<i<<std::endl;
     this->m_Chronometer.Start("ComputeSelfRegulatedVelocityField");
     this->ComputeSelfRegulatedVelocityField();
     this->m_Chronometer.Stop("ComputeSelfRegulatedVelocityField");

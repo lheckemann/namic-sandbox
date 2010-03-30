@@ -24,6 +24,7 @@
 #include "itkCommand.h"
 #include "itkVTKPolyDataReader.h"
 
+#include "itkDeformQuadEdgeMeshFilter.h"
 #include "itkMultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 
 #ifdef USE_VTK
@@ -216,29 +217,29 @@ int main( int argc, char * argv [] )
     }
 
 
-  typedef itk::WarpQuadEdgeMeshFilter< 
-    MeshType, MeshType, DestinationPointSetType >  WarpMeshFilterType;
+  typedef itk::DeformQuadEdgeMeshFilter< 
+    MeshType, MeshType, DestinationPointSetType >  DeformMeshFilterType;
 
-  WarpMeshFilterType::Pointer warpFilter = WarpMeshFilterType::New();
+  DeformMeshFilterType::Pointer deformFilter = DeformMeshFilterType::New();
 
-  warpFilter->SetInput( fixedMeshReader[finestResolution-1]->GetOutput() );
-  warpFilter->SetReferenceMesh( fixedMeshReader[finestResolution-1]->GetOutput() );
+  deformFilter->SetInput( fixedMeshReader[finestResolution-1]->GetOutput() );
+  deformFilter->SetReferenceMesh( fixedMeshReader[finestResolution-1]->GetOutput() );
 
-  warpFilter->SetDestinationPoints( multiResDemonsFilter->GetFinalDestinationPoints() );
+  deformFilter->SetDestinationPoints( multiResDemonsFilter->GetFinalDestinationPoints() );
 
-  warpFilter->SetSphereRadius( radius );
-  warpFilter->SetSphereCenter( center );
+  deformFilter->SetSphereRadius( radius );
+  deformFilter->SetSphereCenter( center );
 
 
   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MeshType >   WriterType;
   WriterType::Pointer writer = WriterType::New();
 
   writer->SetFileName( argv[9] );
-  writer->SetInput( warpFilter->GetOutput() );
+  writer->SetInput( deformFilter->GetOutput() );
 
   try
     {
-    warpFilter->Update();
+    deformFilter->Update();
     writer->Update();
     }
   catch( itk::ExceptionObject & excp )
@@ -248,12 +249,12 @@ int main( int argc, char * argv [] )
     }
 
 
-  warpFilter->SetInput( fixedMeshReader5->GetOutput() );
+  deformFilter->SetInput( fixedMeshReader5->GetOutput() );
   writer->SetFileName( argv[12] );
 
   try
     {
-    warpFilter->Update();
+    deformFilter->Update();
     writer->Update();
     }
   catch( itk::ExceptionObject & excp )
