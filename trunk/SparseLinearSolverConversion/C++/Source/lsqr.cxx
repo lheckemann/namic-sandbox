@@ -272,9 +272,46 @@ Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const
 void lsqr::
 Solve( unsigned int m, unsigned n, double * b, double * x )
 {
+  const double zero = 0.0;
+  const double one = 1.0;
 
+  if( this->nout )
+    {
+    (*this->nout) << "Enter LSQR " << std::endl;
+    (*this->nout) << m << ", " << n << std::endl;
+    (*this->nout) << this->damp << ", " << this->wantse << std::endl; 
+    (*this->nout) << this->atol << ", " << this->conlim << std::endl; 
+    (*this->nout) << this->btol << ", " << this->itnlim << std::endl; 
+  
+    }
 
+  const bool damped = ( this->damp > zero );
 
+  this->itn = 0;
+  this->istop = 0;
+  
+  unsigned int nstop = 0;
+  unsigned int maxdx = 0;
 
+  double ctol = zero;
+  if( this->conlim > zero )
+    {
+    ctol = one / this->conlim;
+    }
+
+  this->Anorm = zero;
+  this->Acond = zero;
+
+  double dnorm = zero;
+  double dxmax = zero;
+  double res2 = zero;
+  double psi = zero;
+
+  this->xnorm = zero;
+
+  double xnorm1 = zero;
+  double cs2 = -one;
+  double sn2 = zero;
+  double z = zero;
 }
 
