@@ -51,6 +51,16 @@
     } \
   }
 
+#define AssignScalarValueToVectorElements(n1,n2,v,x) \
+  { \
+  double * xp   = x + n1; \
+  double * xend = x + n2; \
+  while( xp != xend ) \
+    { \
+    *xp++ = v; \
+    } \
+  }
+
 #define ElementWiseProductVector(n1,n2,x,y,z) \
   { \
   const double * xp   = x + n1; \
@@ -313,5 +323,27 @@ Solve( unsigned int m, unsigned n, double * b, double * x )
   double cs2 = -one;
   double sn2 = zero;
   double z = zero;
+
+  double * u = new double[m];
+  double * v = new double[n];
+  double * w = new double[n];
+
+  CopyVector( m, b, u );
+  AssignScalarValueToVectorElements( 0, n, zero, v );
+  AssignScalarValueToVectorElements( 0, n, zero, x );
+
+  if( this->wantse )
+    {
+    AssignScalarValueToVectorElements( 0, n, zero, se );
+    }
+
+  double alpha = zero;
+
+  //  double beta =  dnrm2( m, y, 1 );
+
+  // Release locally allocated arrays.
+  delete [] u;
+  delete [] v;
+  delete [] w;
 }
 
