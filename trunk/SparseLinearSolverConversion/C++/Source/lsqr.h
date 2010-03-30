@@ -100,6 +100,11 @@ public:
    */
   double D2Norm( double a, double b ) const;
 
+  /**
+   * returns sqrt( x' * x )
+   * with precautions to avoid overflow.
+   */
+  double Dnrm2( unsigned int n, const double *x ) const;
   
   /**  A logical variable to say if the array se(*)
    *   of standard error estimates should be computed.
