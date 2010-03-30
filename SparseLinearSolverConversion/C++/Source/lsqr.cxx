@@ -279,6 +279,44 @@ Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const
 }
 
 
+double
+lsqr::Dnrm2( unsigned int n, const double *x ) const
+{
+#ifdef WORKINPROGRESS
+  integer i__1, i__2;
+  doublereal ret_val, d__1;
+
+  integer ix;
+  doublereal ssq, norm, scale, absxi;
+
+  --x;
+
+      scale = 0.;
+      ssq = 1.;
+
+      i__1 = (*n - 1) * *incx + 1;
+      i__2 = *incx;
+      for (ix = 1; i__2 < 0 ? ix >= i__1 : ix <= i__1; ix += i__2) {
+          if (x[ix] != 0.) {
+              absxi = (d__1 = x[ix], abs(d__1));
+              if (scale < absxi) {
+                  d__1 = scale / absxi;
+                  ssq = ssq * (d__1 * d__1) + 1.;
+                  scale = absxi;
+              } else {
+                  d__1 = absxi / scale;
+                  ssq += d__1 * d__1;
+              }
+          }
+      }
+      norm = scale * sqrt(ssq);
+  ret_val = norm;
+  return ret_val;
+#endif
+  return 0.0;
+}
+
+
 void lsqr::
 Solve( unsigned int m, unsigned n, double * b, double * x )
 {
@@ -339,7 +377,7 @@ Solve( unsigned int m, unsigned n, double * b, double * x )
 
   double alpha = zero;
 
-  //  double beta =  dnrm2( m, y, 1 );
+  double beta =  this->Dnrm2( m, u );
 
   // Release locally allocated arrays.
   delete [] u;
