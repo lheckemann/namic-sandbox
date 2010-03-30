@@ -17,6 +17,7 @@
 
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkPerkStationModuleLogic.h"
+#include "vtkMRMLPerkStationModuleNode.h"
 
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLFiducialListNode.h"
@@ -28,6 +29,8 @@
 #include "vtkSlicerModuleCollapsibleFrame.h"
 
 #include "vtkCommand.h"
+#include "vtkCornerAnnotation.h"
+#include "vtkProperty2D.h"
 #include "vtkRenderer.h"
 #include "vtkImageActor.h"
 #include "vtkWin32OpenGLRenderWindow.h"
@@ -139,7 +142,7 @@ vtkPerkStationModuleGUI
     // Workphase handling.
   this->WorkphaseButtonFrame = vtkSmartPointer< vtkKWFrame >::New();
   this->WorkphaseButtonSet = vtkSmartPointer< vtkKWPushButtonSet >::New();
-
+  
 }
 
 
@@ -656,6 +659,40 @@ vtkPerkStationModuleGUI
     this->Logic->SetAndObservePerkStationModuleNode( n );
     vtkSetAndObserveMRMLNodeMacro( this->MRMLNode, n );
     this->UpdateGUI();
+    }
+  
+  
+    // Corner annotation.
+  
+  if (    this->MRMLNode
+       && this->MRMLNode->GetPatientPosition() != PPNA )
+    {
+    PatientPositionEnum pposition = this->MRMLNode->GetPatientPosition();
+    std::string pptext = "PP: Unknown";
+    switch ( pposition )
+      {
+      case HFP:  pptext = "PP: HFP"; break;
+      case HFS:  pptext = "PP: HFS"; break;
+      case HFDR: pptext = "PP: HFDR"; break;
+      case HFDL: pptext = "PP: HFDL"; break;
+      case FFDR: pptext = "PP: FFDR"; break;
+      case FFDL: pptext = "PP: FFDL"; break;
+      case FFP:  pptext = "PP: FFP"; break;
+      case FFS:  pptext = "PP: FFS"; break;
+      }
+    
+    vtkSlicerSliceGUI* sliceGUI =
+      this->GetApplicationGUI()->GetMainSliceGUI( "Red" );
+    
+    vtkCornerAnnotation* anno = sliceGUI->GetSliceViewer()->GetRenderWidget()->
+                                GetCornerAnnotation();
+     
+    std::string str( anno->GetText( 2 ) );
+    std::stringstream ss;
+    ss << str;
+    ss << std::endl;
+    ss << pptext;
+    anno->SetText( 2, ss.str().c_str() );
     }
 }
 
@@ -1842,7 +1879,7 @@ vtkPerkStationModuleGUI
     planningVolumePreExists = true;
     }
 
-  this->MRMLNode->SetVolumeInUse("Planning");
+  this->MRMLNode->SetVolumeInUse( "Planning" );
 
   vtkSlicerApplication *app = static_cast<vtkSlicerApplication *>( 
     this->GetApplication() );
@@ -1873,7 +1910,7 @@ vtkPerkStationModuleGUI
     // set up the image on secondary monitor    
   this->SecondaryMonitor->SetupImageData();
   
-  if (!planningVolumePreExists)
+  if ( ! planningVolumePreExists)
     {
       // bring the wizard GUI back to Calibrate step
       // the volume selection has changed/added, so make sure that the wizard
@@ -1917,9 +1954,10 @@ vtkPerkStationModuleGUI
     "Planning image/volume; created by PerkStation module" );
   this->VolumeSelector->GetSelected()->Modified();
   this->VolumeSelector->UpdateMenu();
-
+  
     // enable the load validation volume button
   this->EnableLoadValidationVolumeButton( true );
+  
 }
 
   

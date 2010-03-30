@@ -198,7 +198,7 @@ protected:
     // Description:
     // Describes whether the GUI has been built or not
   bool Built;
-
+  
 
 private:
 

@@ -162,6 +162,7 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
   this->ProcessingCallback = false;
   this->ClickNumber = 0;
   this->SecondMonitor = MONITOR_SIEMENS;
+  
 }
 
 
