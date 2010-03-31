@@ -54,12 +54,14 @@ enum PatientPositionEnum
   FFP,  // Feet First-Prone
   FFS   // Feet First-Supine
   };
-  
-enum OverlayMonitor
+
+struct OverlayHardware
 {
-  MONITOR_SIEMENS = 0,
-  MONITOR_VIEWSONIC = 1,
-  MONITOR_ACER = 2
+  std::string Name;
+  double SizeX;
+  double SizeY;
+  bool FlipHorizontal;
+  bool FlipVertical;
 };
 
 // ----------------------------------------------------------------------------
@@ -130,6 +132,8 @@ public:
   GetCalibrationMRMLTransformNode() {
     return this->CalibrationMRMLTransformNode;
   }
+  
+  std::vector< OverlayHardware > GetHardwareList();
   
   
   // Plan parameters ----------------------------------------------------------
@@ -364,6 +368,7 @@ protected:
   std::vector< VolumeInformationStruct > VolumesList;
   //ETX
   
+  std::vector< OverlayHardware > HardwareList;
 };
 
 #endif

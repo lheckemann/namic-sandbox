@@ -29,8 +29,9 @@ vtkPerkStationCalibrateStep
 {
 public:
   
-  static vtkPerkStationCalibrateStep *New();
+  static vtkPerkStationCalibrateStep* New();
   vtkTypeRevisionMacro( vtkPerkStationCalibrateStep, vtkPerkStationStep );
+  
   void PrintSelf( ostream& os, vtkIndent indent );
 
     // Reimplement the superclass's method (see vtkKWWizardStep).
@@ -66,10 +67,11 @@ public:
   
     // Hardware selection.
   
-  OverlayMonitor GetOverlayMonitor();
-  void HardwareSelected( OverlayMonitor );
+  void HardwareSelected( int index );
   
-
+  void UpdateGUI();
+  
+  
 protected:
   
   vtkPerkStationCalibrateStep();
@@ -156,13 +158,13 @@ protected:
   bool ProcessingCallback;
   int ObserverCount;
   unsigned int ClickNumber;
-  OverlayMonitor SecondMonitor;
+  int SecondMonitor;
   
   //BTX
   std::string CalibFileName;
   std::string CalibFilePath;
   //ETX
-
+  
   
 private:
   

@@ -204,7 +204,7 @@ private:
 
     // Description:
     // The wizard widget and steps
-  vtkKWWizardWidget* WizardWidget;
+  vtkSmartPointer< vtkKWWizardWidget > WizardWidget;
   vtkSmartPointer< vtkPerkStationCalibrateStep > CalibrateStep;
   vtkSmartPointer< vtkPerkStationPlanStep > PlanStep;
   vtkSmartPointer< vtkPerkStationInsertStep > InsertStep;

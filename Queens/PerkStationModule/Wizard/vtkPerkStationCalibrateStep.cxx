@@ -157,7 +157,7 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
   this->ObserverCount = 0;
   this->ProcessingCallback = false;
   this->ClickNumber = 0;
-  this->SecondMonitor = MONITOR_SIEMENS;
+  this->SecondMonitor = 0;
   
 }
 
@@ -236,7 +236,7 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
   this->ShowHardwareCalibration();
   this->ShowLoadResetControls();
   
-  this->PopulateControls();
+  this->UpdateGUI();
     
   this->InstallCallbacks();
   
@@ -405,16 +405,6 @@ vtkPerkStationCalibrateStep
     this->HardwareMenu->SetParent( this->HardwareFrame->GetFrame() );
     this->HardwareMenu->Create();
     this->HardwareMenu->GetWidget()->SetWidth( 22 ); // What is the unit?
-    
-      // Make sure this is the same order as in enum OverlayMonitor.
-    this->HardwareMenu->GetWidget()->GetMenu()->
-      AddRadioButton( "Siemens MR compatible" );
-    this->HardwareMenu->GetWidget()->GetMenu()->
-      AddRadioButton( "PerkStation ViewSonic" );
-    this->HardwareMenu->GetWidget()->GetMenu()->
-      AddRadioButton( "Acer X203w" );
-    
-    this->HardwareMenu->GetWidget()->SetValue( "Siemens MR compatible" );
     }
   
   this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
@@ -549,8 +539,7 @@ vtkPerkStationCalibrateStep
   // and other parameters which will be get/set
   
   
-  if (    ( ! this->GetGUI()->GetLogic() )
-       || ( ! this->GetGUI()->GetLogic()->GetPerkStationModuleNode() )
+  if (    ( ! this->GetGUI()->GetMRMLNode() )
        || ( ! this->GetGUI()->GetSecondaryMonitor() ) )
     {
     return;
@@ -560,11 +549,9 @@ vtkPerkStationCalibrateStep
     // Update UI fields.
   
   this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState(
-    this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
-      GetSecondMonitorHorizontalFlip() );
+          this->GetGUI()->GetMRMLNode()->GetSecondMonitorHorizontalFlip() );
   this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(
-    this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
-      GetSecondMonitorVerticalFlip() );
+          this->GetGUI()->GetMRMLNode()->GetSecondMonitorVerticalFlip() );
   
   double monPhySize[ 2 ];
   this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize(
@@ -889,8 +876,7 @@ void vtkPerkStationCalibrateStep::Reset()
   
   this->TableOverlayEntry->SetValueAsDouble( 0.0 );
   this->TableScannerEntry->SetValueAsDouble( 0.0 );
-  this->HardwareMenu->GetWidget()->SetValue( "Siemens MR compatible" );
-  this->HardwareSelected( MONITOR_SIEMENS );
+  this->HardwareSelected( 0 );
   
   
   vtkMRMLScalarVolumeNode *inVolume = mrmlNode->GetPlanningVolumeNode();
@@ -904,10 +890,8 @@ void vtkPerkStationCalibrateStep::Reset()
   this->GetGUI()->GetMRMLNode()->SetSecondMonitorRotation( 0.0 );
   this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
   
-  
     // reset member variables to defaults
   this->ClickNumber = 0;
-  this->PopulateControls();
 }
 
 
@@ -1117,9 +1101,8 @@ vtkPerkStationCalibrateStep
          == vtkKWMenu::SafeDownCast( caller )
        && event == vtkKWMenu::MenuItemInvokedEvent )
     {
-      // Make sure the HardwareMenu is set up according to OverlayMonitor.
-    this->HardwareSelected( ( OverlayMonitor )(
-      this->HardwareMenu->GetWidget()->GetMenu()->GetIndexOfSelectedItem() ) );
+    this->HardwareSelected( 
+       this->HardwareMenu->GetWidget()->GetMenu()->GetIndexOfSelectedItem() );
     
     this->HardwareMenu->SetWidth( 200 );
     }
@@ -1257,50 +1240,57 @@ void vtkPerkStationCalibrateStep::Validate()
 }
 
 
-OverlayMonitor
-vtkPerkStationCalibrateStep
-::GetOverlayMonitor()
-{
-  return this->SecondMonitor;
-}
-
-
 /**
  * Currently, hardware parameters are hardcoded into this function.
  * TODO: Read hardware parameters from an xml file.
  */
 void
 vtkPerkStationCalibrateStep
-::HardwareSelected( OverlayMonitor monitor )
+::HardwareSelected( int index )
 {
-  this->SecondMonitor = monitor;
+  this->SecondMonitor = index;
   
-  switch ( monitor )
-    {
-    case MONITOR_SIEMENS :
-      this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize( 360, 290 );
-      this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
-            SetSecondMonitorHorizontalFlip( true );
-      this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
-            SetSecondMonitorVerticalFlip( false );
-      break;
-    
-    case MONITOR_VIEWSONIC :
-      this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize( 305, 228 );
-      this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
-            SetSecondMonitorHorizontalFlip( true );
-      this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
-            SetSecondMonitorVerticalFlip( false );
-      break;
-    
-    case MONITOR_ACER :
-      this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize( 433.4, 270.9 );
-      this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
-        SetSecondMonitorHorizontalFlip( false );
-      this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
-        SetSecondMonitorVerticalFlip( false );
-      break;
-    }
+  this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize(
+          this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].SizeX,
+          this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].SizeY );
+  
+  this->GetGUI()->GetMRMLNode()->SetSecondMonitorHorizontalFlip(
+    this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].FlipHorizontal );
+  
+  this->GetGUI()->GetMRMLNode()->SetSecondMonitorVerticalFlip(
+    this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].FlipVertical );
   
   this->PopulateControls();
 }
+
+
+/**
+ * Updates data displayed on the GUI, reading the actual MRML node.
+ */
+void
+vtkPerkStationCalibrateStep
+::UpdateGUI()
+{
+  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
+  
+  if ( node == NULL )
+    {
+    return;
+    }
+  
+  this->HardwareMenu->GetWidget()->GetMenu()->DeleteAllItems();
+  
+  std::vector< OverlayHardware > list = node->GetHardwareList();
+  
+  for ( unsigned int i = 0; i < list.size(); ++ i )
+    {
+    this->HardwareMenu->GetWidget()->GetMenu()->
+            AddRadioButton( list[ i ].Name.c_str() );
+    }
+  
+  this->HardwareMenu->GetWidget()->SetValue( list[ 0 ].Name.c_str() );
+  this->HardwareSelected( 0 );
+  
+  this->PopulateControls();
+}
+
