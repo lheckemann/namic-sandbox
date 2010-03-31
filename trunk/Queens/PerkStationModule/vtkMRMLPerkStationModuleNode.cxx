@@ -161,6 +161,7 @@ vtkMRMLPerkStationModuleNode
   
   this->TableAtScanner = 0.0;
   this->TableAtOverlay = 0.0;
+  this->PatientAtScanner = 0.0;
   this->CurrentSliceOffset = 0.0;
   
   this->InitializeTransform();
@@ -235,6 +236,45 @@ vtkMRMLPerkStationModuleNode
   
   this->CurrentStep = WORKPHASE_CALIBRATION;
   this->PreviousStep = WORKPHASE_CALIBRATION;
+  
+  
+    // Hardware list.
+    // TODO: fill this list from a config file.
+  
+  this->HardwareList.clear();
+  
+  OverlayHardware siemens;
+    siemens.FlipHorizontal = true;
+    siemens.FlipVertical = false;
+    siemens.Name = "Siemens MR compatible";
+    siemens.SizeX = 360.0;
+    siemens.SizeY = 290.0;
+  this->HardwareList.push_back( siemens );
+  
+  OverlayHardware viewsonic;
+    viewsonic.FlipHorizontal = true;
+    viewsonic.FlipVertical = false;
+    viewsonic.Name = "PerkStation ViewSonic";
+    viewsonic.SizeX = 305.0;
+    viewsonic.SizeY = 228.0;
+  this->HardwareList.push_back( viewsonic );
+  
+  OverlayHardware acer;
+    acer.FlipHorizontal = false;
+    acer.FlipVertical = false;
+    acer.Name = "Acer desktop";
+    acer.SizeX = 433.0;
+    acer.SizeY = 270.9;
+  this->HardwareList.push_back( acer );
+  
+  OverlayHardware dell;
+    dell.FlipHorizontal = false;
+    dell.FlipVertical = false;
+    dell.Name = "Dell desktop";
+    dell.SizeX = 531.0;
+    dell.SizeY = 299.0;
+  this->HardwareList.push_back( dell );
+  
 }
 
 
@@ -674,6 +714,14 @@ vtkMRMLPerkStationModuleNode
   
   
   return ! nameNotFound;
+}
+
+
+std::vector< OverlayHardware >
+vtkMRMLPerkStationModuleNode
+::GetHardwareList()
+{
+  return this->HardwareList;
 }
 
 

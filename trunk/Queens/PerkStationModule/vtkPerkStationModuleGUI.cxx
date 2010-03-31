@@ -7,37 +7,21 @@
 #include <sys/types.h>  // For stat().
 #include <sys/stat.h>   // For stat().
 
-
-
 #include "itkMetaDataDictionary.h"
 #include "itkMetaDataObject.h"
 #include "itkGDCMImageIO.h"
 
-#include "vtkObjectFactory.h"
-
-#include "vtkPerkStationModuleGUI.h"
-#include "vtkPerkStationModuleLogic.h"
-#include "vtkMRMLPerkStationModuleNode.h"
-
-#include "vtkMRMLLinearTransformNode.h"
-#include "vtkMRMLFiducialListNode.h"
-
-#include "vtkSlicerApplicationLogic.h"
-#include "vtkSlicerApplication.h"
-#include "vtkMRMLLayoutNode.h"
-#include "vtkSlicerNodeSelectorWidget.h"
-#include "vtkSlicerModuleCollapsibleFrame.h"
-
 #include "vtkCommand.h"
 #include "vtkCornerAnnotation.h"
-#include "vtkProperty2D.h"
-#include "vtkRenderer.h"
-#include "vtkImageActor.h"
-#include "vtkWin32OpenGLRenderWindow.h"
 #include "vtkDICOMImageReader.h"
+#include "vtkImageActor.h"
 #include "vtkImageChangeInformation.h"
 #include "vtkImageReslice.h"
 #include "vtkMatrixToHomogeneousTransform.h"
+#include "vtkObjectFactory.h"
+#include "vtkProperty2D.h"
+#include "vtkRenderer.h"
+#include "vtkWin32OpenGLRenderWindow.h"
 
 #include "vtkKWApplication.h"
 #include "vtkKWComboBox.h"
@@ -57,12 +41,23 @@
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
 
-#include "vtkPerkStationCalibrateStep.h"
-#include "vtkPerkStationPlanStep.h"
-#include "vtkPerkStationInsertStep.h"
-#include "vtkPerkStationValidateStep.h"
+#include "vtkMRMLFiducialListNode.h"
+#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLLayoutNode.h"
 
+#include "vtkSlicerApplicationLogic.h"
+#include "vtkSlicerApplication.h"
+#include "vtkSlicerNodeSelectorWidget.h"
+#include "vtkSlicerModuleCollapsibleFrame.h"
+
+#include "vtkMRMLPerkStationModuleNode.h"
+#include "vtkPerkStationCalibrateStep.h"
+#include "vtkPerkStationInsertStep.h"
+#include "vtkPerkStationModuleGUI.h"
+#include "vtkPerkStationModuleLogic.h"
+#include "vtkPerkStationPlanStep.h"
 #include "vtkPerkStationSecondaryMonitor.h"
+#include "vtkPerkStationValidateStep.h"
 
 
 /**
@@ -107,7 +102,7 @@ vtkPerkStationModuleGUI
   this->MRMLNode = NULL;
   
   
-  this->WizardWidget = vtkKWWizardWidget::New();
+  this->WizardWidget = vtkSmartPointer< vtkKWWizardWidget >::New();
   
   
   // secondary monitor
@@ -165,11 +160,6 @@ vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
     {
     vtkSetMRMLNodeMacro( this->MRMLNode, NULL );
     }
-  
-  if ( this->WizardWidget )
-    {
-    this->WizardWidget->Delete();
-    }
 }
 
 
@@ -192,29 +182,36 @@ void vtkPerkStationModuleGUI::Enter()
   
   vtkMRMLPerkStationModuleNode* n = this->GetMRMLNode();
   
-  if (n == NULL)
+  if ( n == NULL )
     {
     // no parameter node selected yet, create new
-    this->PSNodeSelector->SetSelectedNew("vtkMRMLPerkStationModuleNode");
-    this->PSNodeSelector->ProcessNewNodeCommand("vtkMRMLPerkStationModuleNode", "PS");
-    n = vtkMRMLPerkStationModuleNode::SafeDownCast(this->PSNodeSelector->GetSelected());
+    this->PSNodeSelector->SetSelectedNew( "vtkMRMLPerkStationModuleNode" );
+    this->PSNodeSelector->ProcessNewNodeCommand(
+      "vtkMRMLPerkStationModuleNode", "PS" );
+    n = vtkMRMLPerkStationModuleNode::SafeDownCast(
+          this->PSNodeSelector->GetSelected() );
 
     // set an observe new node in Logic
-    this->Logic->SetAndObservePerkStationModuleNode(n);
-    vtkSetAndObserveMRMLNodeMacro(this->MRMLNode, n);
+    this->Logic->SetAndObservePerkStationModuleNode( n );
+    vtkSetAndObserveMRMLNodeMacro( this->MRMLNode, n );
 
     // add the transform of mrml node to the MRML scene
     this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
-    this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetCalibrationMRMLTransformNode());
+    this->GetLogic()->GetMRMLScene()->AddNode(
+            this->MRMLNode->GetCalibrationMRMLTransformNode() );
     vtkMRMLLinearTransformNode *node = NULL;
     vtkIntArray* nodeEvents = vtkIntArray::New();
-    nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-    vtkSetAndObserveMRMLNodeMacro(node, this->MRMLNode->GetCalibrationMRMLTransformNode());
-    vtkSetAndObserveMRMLNodeEventsMacro(node,this->MRMLNode->GetCalibrationMRMLTransformNode(),nodeEvents);
+    nodeEvents->InsertNextValue(
+      vtkMRMLTransformableNode::TransformModifiedEvent );
+    vtkSetAndObserveMRMLNodeMacro(
+      node, this->MRMLNode->GetCalibrationMRMLTransformNode() );
+    vtkSetAndObserveMRMLNodeEventsMacro(
+      node, this->MRMLNode->GetCalibrationMRMLTransformNode(), nodeEvents );
     nodeEvents->Delete();
     // add MRMLFiducialListNode to the scene
     this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
-    this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetPlanMRMLFiducialListNode());
+    this->GetLogic()->GetMRMLScene()->AddNode(
+            this->MRMLNode->GetPlanMRMLFiducialListNode() );
     
     // add listener to the slice logic, so that any time user makes change to slice viewer in laptop, the display needs to be updated on secondary monitor
     // e.g. user may move to a certain slice in a series of slices
@@ -227,10 +224,11 @@ void vtkPerkStationModuleGUI::Enter()
     
     this->SecondaryMonitor->SetPSNode( n );
     
+    
       // This is the place where module node is created,
       // and should be initialized.
     
-    this->CalibrateStep->HardwareSelected( MONITOR_SIEMENS );
+    // this->CalibrateStep->HardwareSelected( 0 );
     
     }
 
@@ -246,6 +244,11 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
   this->RemoveGUIObservers();
   
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+  
+  this->PSNodeSelector->AddObserver(
+    vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
+    (vtkCommand*)( this->GUICallbackCommand ) );
+  
   
   vtkInteractorStyle* iStyle = vtkInteractorStyle::SafeDownCast(
     appGUI->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()
@@ -298,10 +301,6 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
     static_cast< vtkCommand* >( this->GUICallbackCommand ) );  
 
   this->VolumeSelector->AddObserver(
-    vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
-    ( vtkCommand* )this->GUICallbackCommand );
-
-  this->PSNodeSelector->AddObserver(
     vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
     ( vtkCommand* )this->GUICallbackCommand );
   
@@ -401,7 +400,24 @@ vtkPerkStationModuleGUI
   const char* eventName = vtkCommand::GetStringFromEventId( event );
   
   
-    // ---------------------------------------------------------------
+    // Module node is changed.
+  
+  if ( vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
+       == this->PSNodeSelector
+       && (    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
+            || event == vtkSlicerNodeSelectorWidget::NewNodeEvent ) )
+    {
+    vtkMRMLPerkStationModuleNode* node =
+      vtkMRMLPerkStationModuleNode::SafeDownCast(
+                                         this->PSNodeSelector->GetSelected() );
+    
+    this->SetMRMLNode( node );
+    this->UpdateGUI();
+    
+    return;
+    }
+  
+  
     // Workphase pushbutton set.
   
   if ( event == vtkKWPushButton::InvokedEvent
@@ -931,21 +947,27 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
 void vtkPerkStationModuleGUI::UpdateGUI ()
 {
   vtkMRMLPerkStationModuleNode* n = this->GetMRMLNode();
-  if (n != NULL)
+  if ( n == NULL )
     {
-    // set GUI widgest from parameter node
-    /*this->ConductanceScale->SetValue(n->GetConductance());
-    
-    this->TimeStepScale->SetValue(n->GetTimeStep());
-    
-    this->NumberOfIterationsScale->SetValue(n->GetNumberOfIterations());
-
-    this->UseImageSpacing->SetSelectedState(n->GetUseImageSpacing());*/
-    
-    // update in the mrml scene with latest transform that we have
-    // TODO:
-    //this->GetLogic()->GetMRMLScene()->UpdateNode();
+    return;
     }
+  
+  this->CalibrateStep->UpdateGUI();
+  
+  
+  // set GUI widgest from parameter node
+  /*this->ConductanceScale->SetValue(n->GetConductance());
+  
+  this->TimeStepScale->SetValue(n->GetTimeStep());
+  
+  this->NumberOfIterationsScale->SetValue(n->GetNumberOfIterations());
+
+  this->UseImageSpacing->SetSelectedState(n->GetUseImageSpacing());*/
+  
+  // update in the mrml scene with latest transform that we have
+  // TODO:
+  //this->GetLogic()->GetMRMLScene()->UpdateNode();
+    
 }
 
 //---------------------------------------------------------------------------
@@ -996,12 +1018,10 @@ void vtkPerkStationModuleGUI::BuildGUI()
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
 
   //register MRML PS node
-  vtkMRMLPerkStationModuleNode* PSNode = vtkMRMLPerkStationModuleNode::New();
-  this->Logic->GetMRMLScene()->RegisterNodeClass(PSNode);
-  PSNode->Delete();
+  this->Logic->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLPerkStationModuleNode >::New() );
   
   this->UIPanel->AddPage ( "PerkStationModule", "PerkStationModule", NULL );
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "PerkStationModule" );
+  vtkKWWidget *page = this->UIPanel->GetPageWidget( "PerkStationModule" );
   
   // ---
   // MODULE GUI FRAME 
@@ -1133,7 +1153,7 @@ void vtkPerkStationModuleGUI::BuildGUI()
   this->PSNodeSelector->SetShowHidden(1);
   this->PSNodeSelector->SetParent( volSelFrame );
   this->PSNodeSelector->Create();
-  this->PSNodeSelector->SetMRMLScene(this->Logic->GetMRMLScene());
+  this->PSNodeSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
   this->PSNodeSelector->UpdateMenu();
 
   this->PSNodeSelector->SetBorderWidth(2);
@@ -1354,31 +1374,31 @@ void vtkPerkStationModuleGUI::BuildGUI()
   vtkKWWizardWorkflow *wizard_workflow =
     this->WizardWidget->GetWizardWorkflow();
   
-  this->CalibrateStep = vtkPerkStationCalibrateStep::New();
+  this->CalibrateStep = vtkSmartPointer< vtkPerkStationCalibrateStep >::New();
   this->CalibrateStep->SetGUI( this );
   
   wizard_workflow->AddStep( this->CalibrateStep );
   
 
-  this->PlanStep = vtkPerkStationPlanStep::New();
+  this->PlanStep = vtkSmartPointer< vtkPerkStationPlanStep >::New();
   this->PlanStep->SetGUI( this );
   
   wizard_workflow->AddNextStep( this->PlanStep );
   
   
-  this->InsertStep = vtkPerkStationInsertStep::New();
+  this->InsertStep = vtkSmartPointer< vtkPerkStationInsertStep >::New();
   this->InsertStep->SetGUI(this);
   
   wizard_workflow->AddNextStep(this->InsertStep);
   
   
-  this->ValidateStep = vtkPerkStationValidateStep::New();
+  this->ValidateStep = vtkSmartPointer< vtkPerkStationValidateStep >::New();
   this->ValidateStep->SetGUI(this);
   
-  wizard_workflow->AddNextStep(this->ValidateStep);
+  wizard_workflow->AddNextStep( this->ValidateStep );
   
   
-  wizard_workflow->SetFinishStep(this->ValidateStep);
+  wizard_workflow->SetFinishStep( this->ValidateStep );
   
   
   // -----------------------------------------------------------------
