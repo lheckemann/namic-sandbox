@@ -18,30 +18,34 @@
 #define __itkWarpQuadEdgeMeshFilter_h
 
 #include "itkQuadEdgeMeshToQuadEdgeMeshFilter.h"
-#include "itkLinearInterpolateDeformationFieldMeshFunction.h"
+
+#include "itkInterpolateMeshFunction.h"
+#include "itkLinearInterpolateMeshFunction.h"
 
 namespace itk
 {
 
 /**
  * \class WarpQuadEdgeMeshFilter
- * \brief This filter deforms the mesh of its first input by applying the
- * deformation field implicity defined by the second and third inputs.
- *
- * This filter takes two meshes and a point set as inputs. The points of the
- * first input mesh are deformed following the deformation vectors that are
- * implied by the second mesh and the point set of destination points.  Both
- * meshes are expected to be representing a Spherical geometry with a zero
- * genus topology. Each point of the input mesh is projected onto the reference
- * mesh, and the corresponding destination points are interpolated for it.
+ * \brief This filter warps the mesh of its first input by applying the
+ * deformation field and scalar values from the reference mesh.
  * 
- * The user must set explicitly the values of the sphere radius and center.
- * Both meshes are expected to have the same radius and center.
+ * This filter will take three inputs.
+ * Input 0: input fixed mesh.
+ * Input 1: reference moving mesh.
+ * Input 2: deformation field.
+ * The deformation field and the input fixed mesh
+ * need to have one to one correspondence.
+ *
+ * The output mesh will be the copy of the input fixed mesh. 
+ * Scalar values of the Points of the output mesh will be got 
+ * by interpolating the deformed points on reference mesh after 
+ * applying the displacement vector from deformation field.
  *
  * \ingroup MeshFilters
  *
  */
-template< class TInputMesh, class TReferenceMesh, class TDestinationPoints >
+template< class TInputMesh, class TReferenceMesh, class TDeformationField >
 class WarpQuadEdgeMeshFilter :
   public QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TInputMesh >
 {
@@ -57,18 +61,28 @@ public:
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro( Self );
 
-  typedef TInputMesh                                      InputMeshType;
-  typedef TReferenceMesh                                  ReferenceMeshType;
-  typedef TInputMesh                                      OutputMeshType;
-  typedef TDestinationPoints                              DestinationPointsType;
-  typedef typename DestinationPointsType::PointsContainer DestinationPointsContainerType;
+  typedef TInputMesh                                                         InputMeshType;
 
-  typedef typename InputMeshType::PointType               InputPointType;
+  typedef TReferenceMesh                                                     ReferenceMeshType;
+
+  typedef TInputMesh                                                         OutputMeshType;
+  typedef typename OutputMeshType::PointType                                 OutputPointType;
+  typedef typename OutputMeshType::PointsContainer                           OutputPointsContainer;
+  typedef typename OutputMeshType::PointsContainerPointer                    OutputPointsContainerPointer;
+  typedef typename OutputMeshType::PointDataContainer                        OutputPointDataContainer;
+  typedef typename OutputMeshType::PointDataContainerPointer                 OutputPointDataContainerPointer;
+
+  typedef TDeformationField                                                  DeformationFieldType;
+  typedef typename DeformationFieldType::ConstPointer                        DeformationFieldPointer;
+  typedef typename DeformationFieldType::PixelType                           DisplacementType;
+
+  typedef typename DeformationFieldType::PointDataContainer                  DisplacementVectorContainer;
+  typedef typename DeformationFieldType::PointDataContainerPointer           DisplacementVectorContainerPointer;
 
   /** Interpolator typedef. */
-  typedef LinearInterpolateDeformationFieldMeshFunction< 
-    ReferenceMeshType, DestinationPointsContainerType >    InterpolatorType;
-  typedef typename InterpolatorType::Pointer               InterpolatorPointerType;
+  typedef InterpolateMeshFunction< InputMeshType >                           InterpolatorType;
+  typedef typename InterpolatorType::Pointer                                 InterpolatorPointerType;
+  typedef LinearInterpolateMeshFunction< InputMeshType >                     DefaultInterpolatorType;
 
 
   /** Set/Get the mesh that will be deformed. */
@@ -80,8 +94,8 @@ public:
   const ReferenceMeshType * GetReferenceMesh( void ) const;
 
   /** Set/Get the mesh that carried the deformation field as pixel data. */
-  void SetDestinationPoints ( const DestinationPointsType * points );
-  const DestinationPointsType * GetDestinationPoints( void ) const;
+  void SetDeformationField ( const DeformationFieldType * field );
+  const DeformationFieldType * GetDeformationField( void ) const;
 
 
   /** Set the interpolator function.  The default is a linear interpolator. */
@@ -89,23 +103,6 @@ public:
 
   /** Get a pointer to the interpolator function. */
   itkGetConstObjectMacro( Interpolator, InterpolatorType );
-
-  /** Set Sphere Center.  The implementation of this class assumes that the
-   * Mesh surface has a spherical geometry (not only spherical topology). With
-   * this method you can specify the coordinates of the center of the sphere
-   * represented by the Mesh. This will be used to project destination points
-   * on the sphere after they have been interpolated.
-   */
-  itkSetMacro( SphereCenter, InputPointType );
-  itkGetConstMacro( SphereCenter, InputPointType );
-
-  /** Set Sphere Radius.  The implementation of this class assumes that the
-   * Mesh surface has a spherical geometry (not only spherical topology). With
-   * this method you can specify the radius of the sphere. This will be used to
-   * project destination points on the sphere after they have been interpolated.
-   */
-  itkSetMacro( SphereRadius, double );
-  itkGetConstMacro( SphereRadius, double );
 
 protected:
   WarpQuadEdgeMeshFilter();
@@ -120,8 +117,6 @@ private:
 
   InterpolatorPointerType  m_Interpolator;
 
-  InputPointType            m_SphereCenter;
-  double                    m_SphereRadius;
 };
 
 }

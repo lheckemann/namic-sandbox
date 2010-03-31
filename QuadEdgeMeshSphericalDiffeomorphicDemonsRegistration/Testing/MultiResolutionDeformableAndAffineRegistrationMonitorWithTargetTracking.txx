@@ -18,7 +18,7 @@
 #include "MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking.h"
 
 #include "itkMacro.h"
-#include "itkWarpQuadEdgeMeshFilter.h"
+#include "itkDeformQuadEdgeMeshFilter.h"
 
 #include "vtkPoints.h"
 
@@ -100,11 +100,11 @@ MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiRe
   //
   //   Deform source fixed new mesh using current fixed mesh and destination points
   //
-  typedef itk::WarpQuadEdgeMeshFilter< FixedMeshType, FixedMeshType, DestinationPointSetType > WarpFilterType;
+  typedef itk::DeformQuadEdgeMeshFilter< FixedMeshType, FixedMeshType, DestinationPointSetType > DeformFilterType;
 
-  typename WarpFilterType::Pointer warpFilter = WarpFilterType::New();
+  typename DeformFilterType::Pointer deformFilter = DeformFilterType::New();
 
-  warpFilter->SetInput( this->m_FixedMeshSource );
+  deformFilter->SetInput( this->m_FixedMeshSource );
 
   const FixedMeshType * referenceMesh = 
     this->m_MultiResolutionDemonsRegistrationFilter->GetCurrentLevelInitialFixedMesh();
@@ -117,15 +117,15 @@ MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiRe
     return;
     }
 
-  warpFilter->SetReferenceMesh( referenceMesh );
-  warpFilter->SetDestinationPoints( destinationPointSet );
+  deformFilter->SetReferenceMesh( referenceMesh );
+  deformFilter->SetDestinationPoints( destinationPointSet );
 
-  warpFilter->SetSphereRadius( this->m_MultiResolutionDemonsRegistrationFilter->GetSphereRadius() );
-  warpFilter->SetSphereCenter( this->m_MultiResolutionDemonsRegistrationFilter->GetSphereCenter() );
+  deformFilter->SetSphereRadius( this->m_MultiResolutionDemonsRegistrationFilter->GetSphereRadius() );
+  deformFilter->SetSphereCenter( this->m_MultiResolutionDemonsRegistrationFilter->GetSphereCenter() );
 
   try
     {
-    warpFilter->Update();
+    deformFilter->Update();
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -133,7 +133,7 @@ MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking<TMultiRe
     throw excp;
     }
 
-  const FixedMeshType * mappedFixedSource = warpFilter->GetOutput();
+  const FixedMeshType * mappedFixedSource = deformFilter->GetOutput();
 
   typedef typename DeformationFilterType::FixedPointsConstIterator   FixedPointsConstIterator;
 

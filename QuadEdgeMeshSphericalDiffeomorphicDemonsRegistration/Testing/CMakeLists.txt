@@ -108,6 +108,8 @@ ADD_EXECUTABLE(itkPointLocator2Test1
   ${QuadEdgeMeshRigidRegistration}/Testing/itkPointLocator2Test1.cxx )
 TARGET_LINK_LIBRARIES(itkPointLocator2Test1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkWarpQuadEdgeMeshFilterTest itkWarpQuadEdgeMeshFilterTest.cxx )
+TARGET_LINK_LIBRARIES(itkWarpQuadEdgeMeshFilterTest ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 IF(USE_VTK)
 
@@ -330,7 +332,15 @@ ADD_TEST(AssignScalarValuesFilterTest1
   ${TEMP}/movingMesh01.vtk 
   ${TEMP}/newMesh01.vtk 
   )
-
+  
+ADD_TEST(WarpQuadEdgeMeshFilterTest
+  ${CXX_TEST_PATH}/itkWarpQuadEdgeMeshFilterTest
+  ${TEMP}/GeoSphere7n_IC5.vtk 
+  ${TEMP}/GeoSphere3n_IC5.vtk 
+  ${TEMP}/deformationField.vtk 
+  ${TEMP}/warpedGeoSphere3n_IC5.vtk 
+  )
+  
 IF( FREESURFER_DIR )
 
 ADD_TEST(itkFreeSurferBinarySurfaceReaderTest1
