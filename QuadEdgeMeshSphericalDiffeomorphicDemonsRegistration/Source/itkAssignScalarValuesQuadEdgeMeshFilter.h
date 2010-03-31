@@ -41,9 +41,9 @@ class AssignScalarValuesQuadEdgeMeshFilter :
 public:
   typedef AssignScalarValuesQuadEdgeMeshFilter    Self;
   typedef QuadEdgeMeshToQuadEdgeMeshFilter< 
-    TInputMesh, TOutputMesh >                           Superclass;
-  typedef SmartPointer< Self >                          Pointer;
-  typedef SmartPointer< const Self >                    ConstPointer;
+    TInputMesh, TOutputMesh >                     Superclass;
+  typedef SmartPointer< Self >                    Pointer;
+  typedef SmartPointer< const Self >              ConstPointer;
 
   /** Run-time type information (and related methods).   */
   itkTypeMacro( AssignScalarValuesQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
@@ -51,13 +51,13 @@ public:
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro( Self );
 
-  typedef TSourceMesh                                        SourceMeshType;
-  typedef typename  SourceMeshType::Pointer                  SourceMeshPointer;
-  typedef typename  SourceMeshType::PointDataContainer       SourcePointDataContainer;
+  typedef TSourceMesh                                       SourceMeshType;
+  typedef typename  SourceMeshType::Pointer                 SourceMeshPointer;
+  typedef typename  SourceMeshType::PointDataContainer      SourcePointDataContainer;
 
-  typedef typename  Superclass::InputMeshType                InputMeshType;
+  typedef typename  Superclass::InputMeshType               InputMeshType;
 
-  typedef typename  Superclass::OutputMeshType               OutputMeshType;
+  typedef typename  Superclass::OutputMeshType              OutputMeshType;
   typedef typename  OutputMeshType::Pointer                 OutputMeshPointer;
   typedef typename  Superclass::OutputPointDataContainer    OutputPointDataContainer;
   typedef typename  OutputPointDataContainer::Pointer       OutputPointDataContainerPointer;

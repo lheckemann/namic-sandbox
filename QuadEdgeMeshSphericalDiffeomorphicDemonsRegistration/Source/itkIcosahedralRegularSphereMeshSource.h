@@ -43,10 +43,10 @@ class ITK_EXPORT IcosahedralRegularSphereMeshSource : public MeshSource<TOutputM
 {
 public:
   /** Standard "Self" typedef. */
-  typedef IcosahedralRegularSphereMeshSource         Self;
-  typedef itk::MeshSource<TOutputMesh>    Superclass;
-  typedef itk::SmartPointer<Self>         Pointer;
-  typedef itk::SmartPointer<const Self>   ConstPointer;
+  typedef IcosahedralRegularSphereMeshSource    Self;
+  typedef itk::MeshSource<TOutputMesh>          Superclass;
+  typedef itk::SmartPointer<Self>               Pointer;
+  typedef itk::SmartPointer<const Self>         ConstPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);  
