@@ -121,6 +121,7 @@ protected:
   
     // Patient calibration.
   
+  vtkSmartPointer< vtkKWFrameWithLabel > PatientFrame;
   vtkSmartPointer< vtkKWLabel >          PatientLabel;
   vtkSmartPointer< vtkKWEntry >          PatientEntry;
   vtkSmartPointer< vtkKWPushButton >     PatientUpdateButton;
