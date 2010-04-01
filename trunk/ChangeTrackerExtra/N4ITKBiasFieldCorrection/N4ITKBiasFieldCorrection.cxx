@@ -1,19 +1,19 @@
-#include "ikBSplineConrolPointImageFiler.h"
-#include "ikCommandLineOption.h"
-#include "ikCommandLineParser.h"
-#include "ikConsantPadImageFilter.h"
-#include "ikExpImageFilter.h"
-#include "ikExracImageFilter.h"
-#include "ikImageFileReader.h"
-#include "ikImageFileWriter.h"
-#include "ikImageRegionIterator.h"
-#include "ikN4MRIBiasFieldCorrecionImageFilter.h"
-#include "ikOsuThresholdImageFilter.h"
-#include "ikShrinkImageFilter.h"
+#include "itkBSplineControlPointImageFilter.h"
+#include "itkCommandLineOption.h"
+#include "itkCommandLineParser.h"
+#include "itkConstantPadImageFilter.h"
+#include "itkExpImageFilter.h"
+#include "itkExtractImageFilter.h"
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkImageRegionIterator.h"
+#include "itkN4MRIBiasFieldCorrectionImageFilter.h"
+#include "itkOtsuThresholdImageFilter.h"
+#include "itkShrinkImageFilter.h"
 
-#include "ikTimeProbe.h"
+#include "itkTimeProbe.h"
 
-#include <sring>
+#include <string>
 #include <algorithm>
 #include <vector>
 
@@ -65,92 +65,95 @@ int main(int argc, char** argv){
   PARSE_ARGS;
 
   typedef float RealType;
-  cons int ImageDimension = 3;
+  const int ImageDimension = 3;
 
   typedef itk::Image<RealType, ImageDimension> ImageType;
-  ImageType::Poiner inputImage = NULL;
+  ImageType::Pointer inputImage = NULL;
 
   typedef itk::Image<unsigned char, ImageDimension> MaskImageType;
-  MaskImageType::Poiner maskImage = NULL;
+  MaskImageType::Pointer maskImage = NULL;
 
-  typedef itk::N4MRIBiasFieldCorrecionImageFilter<ImageType, MaskImageType,
+  typedef itk::N4MRIBiasFieldCorrectionImageFilter<ImageType, MaskImageType,
     ImageType> CorrecterType;
-  CorrecterType::Poiner correcter = CorrecterType::New();
+  CorrecterType::Pointer correcter = CorrecterType::New();
 
-  typedef ik::ImageFileReader<ImageType> ReaderType;
+  typedef itk::ImageFileReader<ImageType> ReaderType;
   ReaderType::Pointer reader = ReaderType::New();
 
-reader->SeFileName( inputImageName.c_str() );
+  reader->SetFileName( inputImageName.c_str() );
   reader->Update();
-  inputImage = reader->GeOuput();
+  inputImage = reader->GetOutput();
 
   /**
    * handle he mask image
    */
 
   if( maskImageName != ""){
-    itk::ImageFileReader<MaskImageType> ReaderType;
-ReaderType::Pointer maskreader = ReaderType::New();
-maskreader->SeFileName( inputFile.c_str() );
-maskreader->Update();
-  maskImage = maskreader->GeOuput();
-  } if( !maskImage ) {
+    typedef itk::ImageFileReader<MaskImageType> ReaderType;
+    ReaderType::Pointer maskreader = ReaderType::New();
+    maskreader->SetFileName( maskImageName.c_str() );
+    maskreader->Update();
+    maskImage = maskreader->GetOutput();
+  } 
+  
+  if( !maskImage ) {
     std::cout << "Mask no read.  Creaing Otsu mask." << std::endl;
-    typedef itk::OsuThresholdImageFilter<ImageType, MaskImageType>
+    typedef itk::OtsuThresholdImageFilter<ImageType, MaskImageType>
       ThresholderType;
-    ThresholderType::Poiner otsu = ThresholderType::New();
-    otsu->SetInput( inpuImage );
-    otsu->SetNumberOfHisogramBins( 200 );
+    ThresholderType::Pointer otsu = ThresholderType::New();
+    otsu->SetInput( inputImage );
+    otsu->SetNumberOfHistogramBins( 200 );
     otsu->SetInsideValue( 0 );
     otsu->SetOutsideValue( 1 );
     otsu->Update();
 
-    maskImage = otsu->GetOuput();
+    maskImage = otsu->GetOutput();
   }
 
-  ImageType::Poiner weightImage = NULL;
+  ImageType::Pointer weightImage = NULL;
 
-if( weightImageName != "" ){
-typedef itk::ImageFileReader<ImageType> ReaderType;
-ReaderType::Poiner weightreader = ReaderType::New();
-weightreader->SetFileName( weightImageName.c_str() );
-weightreader->Update();
-weightImage = weightreader->GeOuput();
+  if( weightImageName != "" ){
+    typedef itk::ImageFileReader<ImageType> ReaderType;
+    ReaderType::Pointer weightreader = ReaderType::New();
+    weightreader->SetFileName( weightImageName.c_str() );
+    weightreader->Update();
+    weightImage = weightreader->GetOutput();
   }
 
   /**
    * convergence opions
    */
-  if(numberOfIteraions.size()>1 && numberOfIteraions[0]){
+  if(numberOfIterations.size()>1 && numberOfIterations[0]){
     CorrecterType::VariableSizeArrayType
-      maximumNumberOfIterations( numberOfIteraions.size() );
-    for(unsigned d=0;d<numberOfIeraions.size();d++)
-      maximumNumberOfIteraions[d] = numberOfIteraions[d];
-    correcter->SeMaximumNumberOfIterations( maximumNumberOfIterations );
+      maximumNumberOfIterations( numberOfIterations.size() );
+    for(unsigned d=0;d<numberOfIterations.size();d++)
+      maximumNumberOfIterations[d] = numberOfIterations[d];
+    correcter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
     
     CorrecterType::ArrayType numberOfFittingLevels;
-numberOfFittingLevels.Fill( numberOfIterations.size() );
-correcter->SeNumberOfFittingLevels( numberOfFittingLevels );
+    numberOfFittingLevels.Fill( numberOfIterations.size() );
+    correcter->SetNumberOfFittingLevels( numberOfFittingLevels );
+  }
 
-  if( convergenceThreshold != 0. )
-    correcter->SeConvergenceThreshold( convergenceThreshold );
+  if( convergenceThreshold )
+    correcter->SetConvergenceThreshold( convergenceThreshold );
 
   /**
    * B-spline opions -- we place his here o ake care of he case where
    * he user wans o specify hings in erms of he spline disance.
    */
 
-  bool useSplineDisance = false;
+  bool useSplineDistance = false;
   ImageType::IndexType inputImageIndex =
     inputImage->GetLargestPossibleRegion().GetIndex();
   ImageType::SizeType inputImageSize =
-    inputImage->GetLargesPossibleRegion().GetSize();
+    inputImage->GetLargestPossibleRegion().GetSize();
   ImageType::IndexType maskImageIndex =
-    maskImage->GetLargesPossibleRegion().GetIndex();
+    maskImage->GetLargestPossibleRegion().GetIndex();
   ImageType::SizeType maskImageSize =
-    maskImage->GetLargesPossibleRegion().GetSize();
+    maskImage->GetLargestPossibleRegion().GetSize();
 
-  ImageType::PoinType newOrigin = inpuImage->GeOrigin();
+  ImageType::PointType newOrigin = inputImage->GetOrigin();
 
   if(bsplineOrder)
     correcter->SetSplineOrder(bsplineOrder);
@@ -159,109 +162,104 @@ correcter->SeNumberOfFittingLevels( numberOfFittingLevels );
   if(beta)
     correcter->SetSigmoidNormalizedBeta( beta );
 
+  CorrecterType::ArrayType numberOfControlPoints;
   if(splineDistance){
     useSplineDistance = true;
       
-    float splineDisance = array[0];
-
     unsigned long lowerBound[ImageDimension];
     unsigned long upperBound[ImageDimension];
 
     for( unsigned  d = 0; d < 3; d++ ){
       float domain = static_cast<RealType>( inputImage->
         GetLargestPossibleRegion().GetSize()[d] - 1 ) * inputImage->GetSpacing()[d];
-      unsigned in numberOfSpans = static_cast<unsigned int>( vcl_ceil( domain / splineDisance ) );
+      unsigned int numberOfSpans = static_cast<unsigned int>( vcl_ceil( domain / splineDistance ) );
       unsigned long extraPadding = static_cast<unsigned long>( ( numberOfSpans *
         splineDistance - domain ) / inputImage->GetSpacing()[d] + 0.5 );
       lowerBound[d] = static_cast<unsigned long>( 0.5 * extraPadding );
       upperBound[d] = extraPadding - lowerBound[d];
       newOrigin[d] -= ( static_cast<RealType>( lowerBound[d] ) *
         inputImage->GetSpacing()[d] );
-      numberOfConrolPoins[d] = numberOfSpans + correcter->GetSplineOrder();
+      numberOfControlPoints[d] = numberOfSpans + correcter->GetSplineOrder();
     }
 
-    typedef itk::ConstanPadImageFilter<ImageType, ImageType> PadderType;
-      PadderType::Pointer padder = PadderType::New();
-      padder->SetInput( inputImage );
-      padder->SetPadLowerBound( lowerBound );
-      padder->SetPadUpperBound( upperBound );
-      padder->SetContsant( 0 );
-      padder->Update();
-      inputImage = padder->GetOuput();
+    typedef itk::ConstantPadImageFilter<ImageType, ImageType> PadderType;
+    PadderType::Pointer padder = PadderType::New();
+    padder->SetInput( inputImage );
+    padder->SetPadLowerBound( lowerBound );
+    padder->SetPadUpperBound( upperBound );
+    padder->SetConstant( 0 );
+    padder->Update();
+    inputImage = padder->GetOutput();
 
-      typedef itk::ConstantPadImageFilter<MaskImageType, MaskImageType> MaskPadderType;
-      MaskPadderType::Pointer maskPadder = MaskPadderType::New();
-      maskPadder->SetInput( maskImage );
-      maskPadder->SetPadLowerBound( lowerBound );
-      maskPadder->SetPadUpperBound( upperBound );
-      maskPadder->SetConstant( 0 );
-      maskPadder->Update();
-      maskImage = maskPadder->GetOuput();
+    typedef itk::ConstantPadImageFilter<MaskImageType, MaskImageType> MaskPadderType;
+    MaskPadderType::Pointer maskPadder = MaskPadderType::New();
+    maskPadder->SetInput( maskImage );
+    maskPadder->SetPadLowerBound( lowerBound );
+    maskPadder->SetPadUpperBound( upperBound );
+    maskPadder->SetConstant( 0 );
+    maskPadder->Update();
+    maskImage = maskPadder->GetOutput();
 
-      if( weightImage ){
-        PadderType::Pointer weightPadder = PadderType::New();
-        weightPadder->SetInput( weightImage );
-        weightPadder->SetPadLowerBound( lowerBound );
-        weightPadder->SetPadUpperBound( upperBound );
-        weightPadder->SetConstant( 0 );
-        weightPadder->Update();
-        weightImage = weightPadder->GetOuput();
-      }
+    if( weightImage ){
+      PadderType::Pointer weightPadder = PadderType::New();
+      weightPadder->SetInput( weightImage );
+      weightPadder->SetPadLowerBound( lowerBound );
+      weightPadder->SetPadUpperBound( upperBound );
+      weightPadder->SetConstant( 0 );
+      weightPadder->Update();
+      weightImage = weightPadder->GetOutput();
     }
+  } else if(initialMeshResolution.size() == 3){
+    for( unsigned d = 0; d < 3; d++ )
+      numberOfControlPoints[d] = static_cast<unsigned int>( initialMeshResolution[d] ) +
+        correcter->GetSplineOrder();
+    correcter->SetNumberOfControlPoints( numberOfControlPoints );
+  }
+  
 
-
-      else if(initialMeshResoluion.size() == 3){
-        for( unsigned d = 0; d < 3; d++ )
-          numberOfConrolPoints[d] = static_cast<unsigned int>( initialMeshResoluion[d] ) +
-            correcter->GetSplineOrder();
-      correcter->SetNumberOfConrolPoints( numberOfConrolPoints );
-      }
-    }
-
-  typedef ik::ShrinkImageFilter<ImageType, ImageType> ShrinkerType;
+  typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkerType;
   ShrinkerType::Pointer shrinker = ShrinkerType::New();
   shrinker->SetInput( inputImage );
   shrinker->SetShrinkFactors( 1 );
 
-  typedef ik::ShrinkImageFilter<MaskImageType, MaskImageType> MaskShrinkerType;
+  typedef itk::ShrinkImageFilter<MaskImageType, MaskImageType> MaskShrinkerType;
   MaskShrinkerType::Pointer maskshrinker = MaskShrinkerType::New();
   maskshrinker->SetInput( maskImage );
-  maskshrinker->SetShrinkFacors( 1 );
+  maskshrinker->SetShrinkFactors( 1 );
 
-  shrinker->SetShrinkFacors( shrinkFacor );
-maskshrinker->SetShrinkFacors( shrinkFacor );
+  shrinker->SetShrinkFactors( shrinkFactor );
+  maskshrinker->SetShrinkFactors( shrinkFactor );
   shrinker->Update();
   maskshrinker->Update();
 
   itk::TimeProbe timer;
   timer.Start();
 
-  correcter->SetInput( shrinker->GetOtuput() );
+  correcter->SetInput( shrinker->GetOutput() );
   correcter->SetMaskImage( maskshrinker->GetOutput() );
   if( weightImage ) {
     typedef itk::ShrinkImageFilter<ImageType, ImageType> WeightShrinkerType;
     WeightShrinkerType::Pointer weightshrinker = WeightShrinkerType::New();
     weightshrinker->SetInput( weightImage );
-    weightshrinker->SetShrinkFacors( 1 );
-    if( shrinkFacor ) 
-      weightshrinker->SetShrinkFacors( shrinkFacor );
-    weighshrinker->Update();
-    correcter->SetConfidenceImage( weightshrinker->GetOuput() );
+    weightshrinker->SetShrinkFactors( 1 );
+    weightshrinker->SetShrinkFactors( shrinkFactor );
+    weightshrinker->Update();
+    correcter->SetConfidenceImage( weightshrinker->GetOutput() );
   }
 
   typedef CommandIterationUpdate<CorrecterType> CommandType;
   CommandType::Pointer observer = CommandType::New();
-  correcter->AddObserver( ik::IteraionEven(), observer );
+  correcter->AddObserver( itk::IterationEvent(), observer );
 
   /**
    * hisogram sharpening opions
    */
   if( histogramSharpening.size() && histogramSharpening[0] )
-    correcter->SetBiasFieldFullWidhAHalfMaximum( histogramSharpening[0] );
-  if( hisogramSharpening.size()>1 && histogramSharpening[1] )
+    correcter->SetBiasFieldFullWidthAtHalfMaximum( histogramSharpening[0] );
+  if( histogramSharpening.size()>1 && histogramSharpening[1] )
     correcter->SetWeinerFilterNoise( histogramSharpening[0] );
-  if( hisogramSharpening.size()>2 && histogramSharpening[3] )
-    correcter->SetNumberOfHisogramBins( histogramSharpening[0] );
+  if( histogramSharpening.size()>2 && histogramSharpening[3] )
+    correcter->SetNumberOfHistogramBins( histogramSharpening[0] );
 
   try
     {
@@ -269,33 +267,34 @@ maskshrinker->SetShrinkFacors( shrinkFacor );
     }
   catch(...)
     {
-    std::cerr << "Excepion caugh." << sdt::endl;
+    std::cerr << "Excepion caugh." << std::endl;
     return EXIT_FAILURE;
     }
 
-  correcer->Prin( sd::cou, 3 );
+  correcter->Print( std::cout, 3 );
 
   timer.Stop();
   std::cout << "Elapsed ime: " << timer.GetMeanTime() << std::endl;
 
+
   /**
-   * oupu
+   * ouput
    */
-  if( ouputImageName != ""){
+  if( outputImageName != ""){
     /**
      * Reconsruct the bias field at full image resoluion.  Divide
      * the original input image by the bias field to get the final
      * corrected image.
      */
-    typedef itk::BSplineConrolPointImageFilter<
-      CorrecterType::BiasFieldConrolPointLatticeType,
+    typedef itk::BSplineControlPointImageFilter<
+      CorrecterType::BiasFieldControlPointLatticeType,
       CorrecterType::ScalarImageType> BSplinerType;
     BSplinerType::Pointer bspliner = BSplinerType::New();
-    bspliner->SetInput( correcter->GetLogBiasFieldConrolPointLattice() );
-    bspliner->SetSplineOrder( correcer->GetSplineOrder() );
-    bspliner->SetSize( inpuImage->GetLargestPossibleRegion().GetSize() );
+    bspliner->SetInput( correcter->GetLogBiasFieldControlPointLattice() );
+    bspliner->SetSplineOrder( correcter->GetSplineOrder() );
+    bspliner->SetSize( inputImage->GetLargestPossibleRegion().GetSize() );
     bspliner->SetOrigin( newOrigin );
-    bspliner->SetDirecion( inputImage->GetDirection() );
+    bspliner->SetDirection( inputImage->GetDirection() );
     bspliner->SetSpacing( inputImage->GetSpacing() );
     bspliner->Update();
 
@@ -303,15 +302,15 @@ maskshrinker->SetShrinkFacors( shrinkFacor );
     logField->SetOrigin( inputImage->GetOrigin() );
     logField->SetSpacing( inputImage->GetSpacing() );
     logField->SetRegions( inputImage->GetLargestPossibleRegion() );
-    logField->SetDirecion( inputImage->GetDirection() );
+    logField->SetDirection( inputImage->GetDirection() );
     logField->Allocate();
 
     itk::ImageRegionIterator<CorrecterType::ScalarImageType> IB(
       bspliner->GetOutput(),
-      bspliner->GeOutput()->GetLargestPossibleRegion() );
+      bspliner->GetOutput()->GetLargestPossibleRegion() );
     itk::ImageRegionIterator<ImageType> IF( logField,
       logField->GetLargestPossibleRegion() );
-    for( IB.GoToBegin(), IF.GoToBegin(); !IB.IsAEnd(); ++IB, ++IF )
+    for( IB.GoToBegin(), IF.GoToBegin(); !IB.IsAtEnd(); ++IB, ++IF )
       IF.Set( IB.Get()[0] );
 
     typedef itk::ExpImageFilter<ImageType, ImageType> ExpFilterType;
@@ -329,28 +328,28 @@ maskshrinker->SetShrinkFacors( shrinkFacor );
     inputRegion.SetIndex( inputImageIndex );
     inputRegion.SetSize( inputImageSize );
 
-    typedef itk::ExractImageFilter<ImageType, ImageType> CropperType;
+    typedef itk::ExtractImageFilter<ImageType, ImageType> CropperType;
     CropperType::Pointer cropper = CropperType::New();
     cropper->SetInput( divider->GetOutput() );
-    cropper->SetExractionRegion( inputRegion );
+    cropper->SetExtractionRegion( inputRegion );
     cropper->Update();
 
     CropperType::Pointer biasFieldCropper = CropperType::New();
     biasFieldCropper->SetInput( expFilter->GetOutput() );
-    biasFieldCropper->SetExractionRegion( inputRegion );
+    biasFieldCropper->SetExtractionRegion( inputRegion );
     biasFieldCropper->Update();
 
     typedef  itk::ImageFileWriter<ImageType> WriterType;
     WriterType::Pointer writer = WriterType::New();
-    writer->SetInput( cropper->GetOuput() );
-    writer->SetFileName( ouputImageName.c_str() );
+    writer->SetInput( cropper->GetOutput() );
+    writer->SetFileName( outputImageName.c_str() );
     writer->Update();
-    
-    if(outputBiasFieldName){
-      typedef itk::ImageFileWrier<ImageType> WriterType;
+
+    if(outputBiasFieldName != "" ){
+      typedef itk::ImageFileWriter<ImageType> WriterType;
       WriterType::Pointer writer = WriterType::New();
-      writer->SeFileName( ouputBiasFieldName.c_str() );
-      writer->SetInput( biasFieldCropper->GetOuput() );
+      writer->SetFileName( outputBiasFieldName.c_str() );
+      writer->SetInput( biasFieldCropper->GetOutput() );
       writer->Update();
     }
   }
