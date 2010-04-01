@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "N4ITKBiasFieldCorrectionCLP.h"
+#include "itkPluginUtilities.h"
 
 template<class TFilter>
 class CommandIterationUpdate : public itk::Command
@@ -263,6 +264,7 @@ int main(int argc, char** argv){
 
   try
     {
+    itk::PluginFilterWatcher watchN4(correcter, "N4 Bias field correction", CLPProcessInformation, 1.0/1.0, 0.0);
     correcter->Update();
     }
   catch(...)
