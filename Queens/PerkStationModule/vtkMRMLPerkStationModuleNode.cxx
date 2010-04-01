@@ -46,6 +46,13 @@ WriteDouble( std::ostream& out, double var, std::string name )
 
 
 void
+WriteInt( std::ostream& out, int var, std::string name )
+{
+  out << " " << name << "=\"" << var << "\"" << std::endl;
+}
+
+
+void
 WriteDoubleVector( std::ostream& out, double* var, std::string name, int n )
 {
   out << " " << name << "=\"";
@@ -84,6 +91,14 @@ ReadAttributes( std::istream& in )
 
 void
 StringToBool( std::string str, bool& var )
+{
+  std::stringstream ss( str );
+  ss >> var;
+}
+
+
+void
+StringToInt( std::string str, int& var )
 {
   std::stringstream ss( str );
   ss >> var;
@@ -589,6 +604,7 @@ vtkMRMLPerkStationModuleNode
   WriteDouble( out, this->TableAtOverlay, "TableAtOverlay" );
   WriteDouble( out, this->PatientAtScanner, "PatientAtScanner" );
   WriteDouble( out, this->CurrentSliceOffset, "CurrentSliceOffset" );
+  WriteInt( out, this->HardwareIndex, "HardwareIndex" );
 }
 
 
@@ -649,6 +665,11 @@ vtkMRMLPerkStationModuleNode
   iter = map.find( "CurrentSliceOffset" );
   if ( iter != map.end() )
     StringToDouble( iter->second, this->CurrentSliceOffset );
+  else nameNotFound = true;
+  
+  iter = map.find( "HardwareIndex" );
+  if ( iter != map.end() )
+    StringToInt( iter->second, this->HardwareIndex );
   else nameNotFound = true;
   
   return ! nameNotFound;

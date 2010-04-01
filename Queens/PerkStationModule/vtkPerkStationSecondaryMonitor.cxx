@@ -2,6 +2,7 @@
 #include "vtkPerkStationSecondaryMonitor.h"
 
 #include <sstream>
+#include <vector>
 
 #include "vtkActorCollection.h"
 #include "vtkActor2DCollection.h"
@@ -523,49 +524,34 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::LoadCalibration()
 {
-  // note that this is under the assumption that
-  // 1) this happens in Clinical mode only
-  // 2) xml file has been read
-  // 3) Vertical/horizontal flip has to be read in from mrml node, which was set while reading from the file
-  // 4) translation, rotation has to be used from the variables CurrentRotation, CurrentTranslation
-  // 5) Center of rotation is to be read from mrml node
-  // 6) The monitor's physical size, and pixel resolution is also set to this class member variables while reading from the file, this defines
-  // the monitor pixel size, and hence the scaling that is required
-  // It is to be done in following order:
-  // first reset the current calibration
-  // 1) First perform the scaling, based on image pixel size and monitor pixel size
-  // 2) Vertical/Horizonal flip
-  // 3) Translation
-  // 4) Rotation
-
-  
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if (!mrmlNode)
+  if ( ! mrmlNode )
     {
-    // TO DO: what to do on failure
     return;
     }
-
- 
-  if (!this->VolumeNode)
+  
+  OverlayHardware hardware =
+    mrmlNode->GetHardwareList()[ mrmlNode->GetHardwareIndex() ];
+  
+  this->SetPhysicalSize( hardware.SizeX, hardware.SizeY );
+  
+  
+  if ( ! this->VolumeNode )
     {
-    // TO DO: what to do on failure
-    // volume node not initialized
     return;
     }
-
-
-  // 1) First perform the scaling, based on image pixel size and monitor pixel size
-  double monSpacing[2];
-  this->GetMonitorSpacing(monSpacing[0], monSpacing[1]);
+  
+  
+  double monSpacing[ 2 ];
+  this->GetMonitorSpacing( monSpacing[ 0 ], monSpacing[ 1 ] );
       
-  double imgSpacing[3];
-  this->VolumeNode->GetSpacing(imgSpacing);
+  double imgSpacing[ 3 ];
+  this->VolumeNode->GetSpacing( imgSpacing );
   
   
     // actually scale the image
-  this->Scale[ 0 ] = imgSpacing[0] / monSpacing[0];
-  this->Scale[ 1 ] = imgSpacing[1] / monSpacing[1];
+  this->Scale[ 0 ] = imgSpacing[ 0 ] / monSpacing[ 0 ];
+  this->Scale[ 1 ] = imgSpacing[ 1 ] / monSpacing[ 1 ];
   
   
   this->CalibrationFromFileLoaded = true;

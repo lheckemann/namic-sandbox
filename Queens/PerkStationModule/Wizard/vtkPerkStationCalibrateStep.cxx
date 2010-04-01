@@ -569,31 +569,37 @@ void
 vtkPerkStationCalibrateStep
 ::PopulateControls()
 {
-  // get all the input information that is needed to populate the controls
-
-  // that information is in mrml node, which has input volume reference,
-  // and other parameters which will be get/set
-  
-  
   if (    ( ! this->GetGUI()->GetMRMLNode() )
        || ( ! this->GetGUI()->GetSecondaryMonitor() ) )
     {
+    PERKLOG_ERROR( "PerkStation MRML Node or SecondaryMonitor not created." );
     return;
     }
   
   
+  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
+  OverlayHardware hardware =
+    node->GetHardwareList()[ node->GetHardwareIndex() ];
+  
     // Update UI fields.
   
-  this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState(
-          this->GetGUI()->GetMRMLNode()->GetSecondMonitorHorizontalFlip() );
-  this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(
-          this->GetGUI()->GetMRMLNode()->GetSecondMonitorVerticalFlip() );
+  this->TableScannerEntry->SetValueAsDouble( node->GetTableAtScanner() );
+  this->TableOverlayEntry->SetValueAsDouble( node->GetTableAtOverlay() );
+  this->PatientEntry->SetValueAsDouble( node->GetPatientAtScanner() );
   
-  double monPhySize[ 2 ];
-  this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize(
-    monPhySize[ 0 ], monPhySize[ 1 ] );
-  this->MonPhySize->GetWidget( 0 )->SetValueAsDouble( monPhySize[ 0 ] );
-  this->MonPhySize->GetWidget( 1 )->SetValueAsDouble( monPhySize[ 1 ] );
+  this->HardwareMenu->GetWidget()->SetValue( hardware.Name.c_str() );
+  
+  this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState(
+          node->GetSecondMonitorHorizontalFlip() );
+  this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(
+          node->GetSecondMonitorVerticalFlip() );
+  
+  // double monPhySize[ 2 ];
+  // this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize(
+  //   monPhySize[ 0 ], monPhySize[ 1 ] );
+  
+  this->MonPhySize->GetWidget( 0 )->SetValueAsDouble( hardware.SizeX );
+  this->MonPhySize->GetWidget( 1 )->SetValueAsDouble( hardware.SizeY );
   
   double monPixRes[ 2 ];
   this->GetGUI()->GetSecondaryMonitor()->GetPixelResolution(
@@ -601,97 +607,46 @@ vtkPerkStationCalibrateStep
   this->MonPixRes->GetWidget( 0 )->SetValueAsDouble( monPixRes[ 0 ] );
   this->MonPixRes->GetWidget( 1 )->SetValueAsDouble( monPixRes[ 1 ] );
   
+  this->GetGUI()->GetWizardWidget()->SetErrorText( "" );
+  this->GetGUI()->GetWizardWidget()->Update();
   
-    // Input specific settings.
-    // TODO: Remove it from here.
   
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  
-  vtkMRMLScalarVolumeNode *inVolume = mrmlNode->GetPlanningVolumeNode();
-  if (!inVolume)
-    {
-    // TO DO: what to do on failure
-    return;
-    }
- 
-  
-  double monSpacing[ 2 ];
-  this->GetGUI()->GetSecondaryMonitor()->GetMonitorSpacing(
-    monSpacing[ 0 ], monSpacing[ 1 ] );
-  
-  double imgSpacing[ 3 ];
-  inVolume->GetSpacing( imgSpacing );
-
-  
-  // start the log timer??
-  this->LogTimer->StartTimer();
-
   // Q: do we want to reset timer on reset of calibration?
+  this->LogTimer->StartTimer();
 }
 
+
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::PopulateControlsOnLoadCalibration()
+void
+vtkPerkStationCalibrateStep
+::PopulateControlsOnLoadCalibration()
 {
-  // get all the input information that is needed to populate the controls
-
-  // that information is in mrml node, which has input volume reference,
-  // and other parameters which will be get/set
-
-  // first get the input volume/slice
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   if ( ! mrmlNode )
     {
     PERKLOG_ERROR( "PerkStation MRML Node not created." );
     return;
     }
-
-  vtkMRMLScalarVolumeNode *inVolume = mrmlNode->GetPlanningVolumeNode();
-  if ( ! inVolume )
-    {
-    PERKLOG_ERROR( "Planning volume not loaded." );
-    return;
-    }
- 
- 
-  // populate flip frame components
-  this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(
-    mrmlNode->GetSecondMonitorVerticalFlip() );
-  this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState(
-    mrmlNode->GetSecondMonitorHorizontalFlip() );
-
-  // scale components
-  double monPhySize[ 2 ];
-  this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize( monPhySize[ 0 ],
-                                                          monPhySize[ 1 ] );
-  this->MonPhySize->GetWidget( 0 )->SetValueAsDouble( monPhySize[ 0 ] );
-  this->MonPhySize->GetWidget( 1 )->SetValueAsDouble( monPhySize[ 1 ] );
-
-  double monPixRes[ 2 ];
-  this->GetGUI()->GetSecondaryMonitor()->GetPixelResolution( monPixRes[ 0 ],
-                                                             monPixRes[ 1 ] );
-  this->MonPixRes->GetWidget( 0 )->SetValueAsDouble( monPixRes[ 0 ] );
-  this->MonPixRes->GetWidget( 1 )->SetValueAsDouble( monPixRes[ 1 ] );
-
-  // actual scaling already calculated and set inside LoadCalibrationFromFile function of SecondaryMonitor
-
-  this->GetGUI()->GetWizardWidget()->SetErrorText( "" );
-  this->GetGUI()->GetWizardWidget()->Update();
+  
+  this->PopulateControls();
 }
 
 
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::HorizontalFlipCallback( bool value )
+void
+vtkPerkStationCalibrateStep
+::HorizontalFlipCallback( bool value )
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
 
   if ( mrmlNode && this->GetGUI()->GetSecondaryMonitor() )
     {
     this->GetGUI()->GetMRMLNode()->
-      SetSecondMonitorHorizontalFlip( ( bool ) value );
+                              SetSecondMonitorHorizontalFlip( ( bool ) value );
+    
     this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
     }
 }
-
 
 
 //----------------------------------------------------------------------------
@@ -702,7 +657,8 @@ void vtkPerkStationCalibrateStep::VerticalFlipCallback( bool value )
   if ( mrmlNode && this->GetGUI()->GetSecondaryMonitor() )
     {
     this->GetGUI()->GetMRMLNode()->
-      SetSecondMonitorVerticalFlip( ( bool )value );
+                                 SetSecondMonitorVerticalFlip( ( bool )value );
+    
     this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
     }
 }
@@ -960,6 +916,20 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
       ( vtkCommand* )( this->WizardGUICallbackCommand ) );
     }
   
+  if ( this->PatientEntry )
+    {
+    this->PatientEntry->AddObserver(
+      vtkKWEntry::EntryValueChangedEvent,
+      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
+    }
+  
+  if ( this->PatientUpdateButton )
+    {
+    this->PatientUpdateButton->AddObserver(
+      vtkKWPushButton::InvokedEvent,
+      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
+    }
+  
   
     // Hardware selection.
   
@@ -1103,26 +1073,49 @@ vtkPerkStationCalibrateStep
   if ( this->ProcessingCallback ) return;
   this->ProcessingCallback = true;
   
+  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
   
-    // Table calibration.
+  
+    // Table entries changed.
   
   if (    this->TableOverlayEntry == vtkKWEntry::SafeDownCast( caller )
        || this->TableScannerEntry == vtkKWEntry::SafeDownCast( caller ) )
     {
-    // TODO: This coloring to remind press update would be a good idea.
-    // this->TableUpdateButton->SetBackgroundColor( 1.0, 0.9, 0.9 );
+    if (    this->TableOverlayEntry->GetValueAsDouble()
+         != node->GetTableAtOverlay()
+         || this->TableScannerEntry->GetValueAsDouble()
+         != node->GetTableAtScanner() )
+      {
+      this->TableUpdateButton->SetBackgroundColor( 1.0, 0.8, 0.8 );
+      }
     }
+  
+    // Table update button pressed.
   
   if ( this->TableUpdateButton == vtkKWPushButton::SafeDownCast( caller ) )
     {
-    this->GetGUI()->GetMRMLNode()->SetTableAtOverlay(
-                        this->TableOverlayEntry->GetValueAsDouble() );
-    this->GetGUI()->GetMRMLNode()->SetTableAtScanner(
-                        this->TableScannerEntry->GetValueAsDouble() );
-    this->GetGUI()->GetMRMLNode()->SetPatientAtScanner(
-                        this->PatientEntry->GetValueAsDouble() );
-    
-    // this->TableUpdateButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
+    node->SetTableAtOverlay( this->TableOverlayEntry->GetValueAsDouble() );
+    node->SetTableAtScanner( this->TableScannerEntry->GetValueAsDouble() );
+    this->TableUpdateButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
+    }
+  
+    // Patient entry changed.
+  
+  if ( this->PatientEntry == vtkKWEntry::SafeDownCast( caller ) )
+    {
+    if (    this->PatientEntry->GetValueAsDouble()
+         != node->GetPatientAtScanner() )
+      {
+      this->PatientUpdateButton->SetBackgroundColor( 1.0, 0.8, 0.8 );
+      }
+    }
+  
+    // Patient update button pressed.
+  
+  if ( this->PatientUpdateButton == vtkKWPushButton::SafeDownCast( caller ) )
+    {
+    node->SetPatientAtScanner( this->PatientEntry->GetValueAsDouble() );
+    this->PatientUpdateButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
     }
   
   
@@ -1281,15 +1274,19 @@ vtkPerkStationCalibrateStep
 {
   this->SecondMonitor = index;
   
-  this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize(
-          this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].SizeX,
-          this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].SizeY );
+  this->GetGUI()->GetMRMLNode()->SetHardwareIndex( index );
   
   this->GetGUI()->GetMRMLNode()->SetSecondMonitorHorizontalFlip(
     this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].FlipHorizontal );
   
   this->GetGUI()->GetMRMLNode()->SetSecondMonitorVerticalFlip(
     this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].FlipVertical );
+  
+  
+  this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize(
+          this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].SizeX,
+          this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].SizeY );
+  
   
   this->PopulateControls();
 }
