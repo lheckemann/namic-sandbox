@@ -587,6 +587,7 @@ vtkMRMLPerkStationModuleNode
              "SecondMonitorVerticalFlip" );
   WriteDouble( out, this->TableAtScanner, "TableAtScanner" );
   WriteDouble( out, this->TableAtOverlay, "TableAtOverlay" );
+  WriteDouble( out, this->PatientAtScanner, "PatientAtScanner" );
   WriteDouble( out, this->CurrentSliceOffset, "CurrentSliceOffset" );
 }
 
@@ -638,6 +639,11 @@ vtkMRMLPerkStationModuleNode
   iter = map.find( "TableAtOverlay" );
   if ( iter != map.end() )
     StringToDouble( iter->second, this->TableAtOverlay );
+  else nameNotFound = true;
+  
+  iter = map.find( "PatientAtScanner" );
+  if ( iter != map.end() )
+    StringToDouble( iter->second, this->PatientAtScanner );
   else nameNotFound = true;
   
   iter = map.find( "CurrentSliceOffset" );
@@ -976,7 +982,7 @@ double
 vtkMRMLPerkStationModuleNode
 ::GetCurrentTablePosition()
 {
-    // Direction positive if table position decreases towards the overlay.
+    // Direction positive if table position decrease towards the overlay.
   
   double tableDirection = 1.0;
   if ( this->TableAtScanner < this->TableAtOverlay )

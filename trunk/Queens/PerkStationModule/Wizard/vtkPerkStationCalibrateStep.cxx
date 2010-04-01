@@ -570,11 +570,6 @@ vtkPerkStationCalibrateStep
     // TODO: Remove it from here.
   
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if ( ! mrmlNode )
-    {
-    // TO DO: what to do on failure
-    return;
-    }
   
   vtkMRMLScalarVolumeNode *inVolume = mrmlNode->GetPlanningVolumeNode();
   if (!inVolume)
@@ -610,14 +605,14 @@ void vtkPerkStationCalibrateStep::PopulateControlsOnLoadCalibration()
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   if ( ! mrmlNode )
     {
-    // TO DO: what to do on failure
+    PERKLOG_ERROR( "PerkStation MRML Node not created." );
     return;
     }
 
   vtkMRMLScalarVolumeNode *inVolume = mrmlNode->GetPlanningVolumeNode();
   if ( ! inVolume )
     {
-    // TO DO: what to do on failure
+    PERKLOG_ERROR( "Planning volume not loaded." );
     return;
     }
  
