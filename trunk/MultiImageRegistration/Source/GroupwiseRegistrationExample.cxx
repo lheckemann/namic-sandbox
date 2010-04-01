@@ -95,6 +95,10 @@ fashion.
 #include "CommandIterationUpdate.h"
 #include "RegistrationInterfaceCommand.h"
 
+#include "itkHistogramMatchingImageFilter.h"
+
+#include "itkImageFileWriter.h"
+
 #include "GroupwiseRegistrationExampleCLP.h"
 
 
@@ -748,7 +752,10 @@ int main(int argc, char *argv[])
 
   typedef itk::TransformFileReader    TransformFileReader;
   typedef TransformFileReader::TransformListType   TransformListType;
-   
+  
+ 
+  typedef itk::LargestForegroundFilledMaskImageFilter<ImageType, ImageMaskType> LFFMaskFilterType;
+  typedef itk::HistogramMatchingImageFilter<ImageType, ImageType> HistogramMatchingFilterType;
   // Begin the registration with the affine transform
   // Connect the compenents together
   //
@@ -800,7 +807,8 @@ int main(int argc, char *argv[])
   }
   metric->SetNumberOfImages(N);
 
-
+  
+  ImageType::Pointer referenceImage = ImageType::New();
   try
   {
 
@@ -819,6 +827,29 @@ int main(int argc, char *argv[])
       imageReader = ImageReaderType::New();
 //HACK      imageReader->ReleaseDataFlagOn();
       imageReader->SetFileName( inputFileNames[i].c_str() );
+
+      if(i == 0)
+      {
+         imageReader->Update();
+         referenceImage = imageReader->GetOutput();
+      }
+
+      // Histogram Matching other input images with first input 
+      
+        HistogramMatchingFilterType::Pointer histogramfilter = HistogramMatchingFilterType::New();
+        histogramfilter->SetInput( imageReader->GetOutput()  );
+        histogramfilter->SetReferenceImage(referenceImage );
+
+        histogramfilter->SetNumberOfHistogramLevels( 256 );
+        histogramfilter->SetNumberOfMatchPoints( 7 );
+        histogramfilter->ThresholdAtMeanIntensityOn();
+        histogramfilter->Update();
+        std::cout << "message: Histogram matching.. " << std::endl;
+        typedef itk::ImageFileWriter<ImageType> WriterFilterType;
+        WriterFilterType::Pointer writer = WriterFilterType::New();
+        writer->SetFileName(fileNames[i]);
+        writer->SetInput(histogramfilter->GetOutput());
+        writer->Update();   
 
       //Initialize mask filters
       ConnectedThresholdImageFilterType::Pointer connectedThreshold;
@@ -876,16 +907,16 @@ int main(int argc, char *argv[])
       }
       else if ( maskType == "ROIAUTO" && ( mask == "all"))
       {
-        typedef itk::LargestForegroundFilledMaskImageFilter<ImageType, ImageMaskType> LFFMaskFilterType;
         LFFMaskFilterType::Pointer LFF = LFFMaskFilterType::New();
-        LFF->SetInput(imageReader->GetOutput());
+        LFF->SetInput(histogramfilter->GetOutput());
         LFF->SetOtsuPercentileThreshold(0.01);
         LFF->SetClosingSize(7);
         LFF->Update();
       
         ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
         maskImage->SetImage(LFF->GetOutput());
-        registration->SetImageMaskArray(i, maskImage); 
+        registration->SetImageMaskArray(i, maskImage);
+        std::cout << "message: Computing mask " << std::endl; 
       }      
 
       NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
@@ -902,7 +933,8 @@ int main(int argc, char *argv[])
       }
       else
       {
-        imagePyramidArray[i]->SetInput( imageReader->GetOutput() );  
+        //imagePyramidArray[i]->SetInput( imageReader->GetOutput() );  
+        imagePyramidArray[i]->SetInput( histogramfilter->GetOutput() );  
       }
 
       std::cout << "message: Reading Image: " << inputFileNames[i].c_str() << std::endl;

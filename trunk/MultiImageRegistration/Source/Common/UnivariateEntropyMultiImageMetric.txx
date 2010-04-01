@@ -237,18 +237,19 @@ ThreadedSampleFixedImageDomain( int threadID ) const
     for(unsigned int j = 0; j < this->m_NumberOfImages && allPointsInside; j++)
     {
       mappedPointsArray[j] = this->m_TransformArray[j]->TransformPoint (this->m_Sample[i].FixedImagePoint);
-    /*
+    
       //check whether sampled point is in one of the masks
       if ( this->m_ImageMaskArray[j] && !this->m_ImageMaskArray[j]
            ->IsInside (mappedPointsArray[j])  )
       {
         pointInsideMask = true;
       }
-    */
+    
       allPointsInside = allPointsInside && this->m_InterpolatorArray[j]
           ->IsInsideBuffer (mappedPointsArray[j]);
     }
-
+/*
+    //Intersection of all input images
     for(unsigned int j = 0; j < this->m_NumberOfImages ; j++)
     {
       if (this->m_ImageMaskArray[j])
@@ -262,7 +263,7 @@ ThreadedSampleFixedImageDomain( int threadID ) const
          }
       }
     }
-
+*/
     // If not all points are inside continue to the next random sample
     if(allPointsInside == false || (m_UseMask && pointInsideMask == false) )
     {
