@@ -42,6 +42,7 @@
       <name>outputImageName</name>
       <label>Output Volume</label>
       <channel>output</channel>
+      <index>0</index>
       <description>Result of processing</description>
     </image>
 
@@ -50,6 +51,7 @@
       <label>Output bias field image</label>
       <channel>output</channel>
       <description>Recovered bias field</description>
+      <index>1</index>
     </image>
 
     <integer-vector>

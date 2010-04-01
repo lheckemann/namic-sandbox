@@ -210,6 +210,7 @@ int main(int argc, char** argv){
       weightPadder->Update();
       weightImage = weightPadder->GetOutput();
     }
+    correcter->SetNumberOfControlPoints( numberOfControlPoints );
   } else if(initialMeshResolution.size() == 3){
     for( unsigned d = 0; d < 3; d++ )
       numberOfControlPoints[d] = static_cast<unsigned int>( initialMeshResolution[d] ) +
