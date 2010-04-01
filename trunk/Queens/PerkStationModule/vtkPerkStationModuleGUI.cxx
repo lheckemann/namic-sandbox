@@ -1007,7 +1007,6 @@ vtkPerkStationModuleGUI
 }
 
 
-
 //---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::BuildGUI() 
 {
@@ -1015,7 +1014,8 @@ void vtkPerkStationModuleGUI::BuildGUI()
   
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   
-    //register MRML PS node
+    // Register MRML PS node, not create it.
+  
   this->Logic->GetMRMLScene()->RegisterNodeClass(
     vtkSmartPointer< vtkMRMLPerkStationModuleNode >::New() );
   
@@ -1027,10 +1027,6 @@ void vtkPerkStationModuleGUI::BuildGUI()
   this->BuildGUIForHelpFrame();
   this->BuildGUIForExperimentFrame();
   this->BuildGUIForWorkphases();
-  
-  
-  
-  
   
   this->Built = true;
 }

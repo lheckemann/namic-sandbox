@@ -120,6 +120,7 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
   this->TableOverlayEntry = vtkSmartPointer< vtkKWEntry >::New();
   this->TableUpdateButton = vtkSmartPointer< vtkKWPushButton >::New();
   
+  this->PatientFrame = vtkSmartPointer< vtkKWFrameWithLabel >::New();
   this->PatientLabel = vtkSmartPointer< vtkKWLabel >::New();
   this->PatientEntry = vtkSmartPointer< vtkKWEntry >::New();
   this->PatientUpdateButton = vtkSmartPointer< vtkKWPushButton >::New();
@@ -337,33 +338,53 @@ vtkPerkStationCalibrateStep
     
     this->TableScannerLabel->SetParent( this->TableFrame->GetFrame() );
     this->TableScannerLabel->Create();
-    this->TableScannerLabel->SetText( "Scanner laser (mm):");
+    this->TableScannerLabel->SetText( "Calibration at scanner laser (mm):" );
     
     this->TableScannerEntry->SetParent( this->TableFrame->GetFrame() );
     this->TableScannerEntry->Create();
     this->TableScannerEntry->SetWidth( 6 );
+    this->TableScannerEntry->SetBalloonHelpString(
+      "Value displayed on the scanner, when calibration object is under "
+      "the scanner laser." );
     
     this->TableOverlayLabel->SetParent( this->TableFrame->GetFrame() );
     this->TableOverlayLabel->Create();
-    this->TableOverlayLabel->SetText( "Overlay laser (mm):");
+    this->TableOverlayLabel->SetText( "Calibration at overlay laser (mm):" );
     
     this->TableOverlayEntry->SetParent( this->TableFrame->GetFrame() );
     this->TableOverlayEntry->Create();
     this->TableOverlayEntry->SetWidth( 6 );
+    this->TableOverlayEntry->SetBalloonHelpString(
+      "Value displayed on the scanner, when calibration object is under "
+      "the overlay laser." );
     
     this->TableUpdateButton->SetParent( this->TableFrame->GetFrame() );
     this->TableUpdateButton->Create();
     this->TableUpdateButton->SetText( "Update" );
     this->TableUpdateButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
     
-    this->PatientLabel->SetParent( this->TableFrame->GetFrame() );
+    
+    this->PatientFrame->SetParent( parent );
+    this->PatientFrame->SetLabelText( "Patient calibration" );
+    this->PatientFrame->Create();
+    
+    this->PatientLabel->SetParent( this->PatientFrame->GetFrame() );
     this->PatientLabel->Create();
     this->PatientLabel->SetText( "Patient at scanner laser (mm):" );
     
-    this->PatientEntry->SetParent( this->TableFrame->GetFrame() );
+    this->PatientEntry->SetParent( this->PatientFrame->GetFrame() );
     this->PatientEntry->Create();
     this->PatientEntry->SetWidth( 6 );
+    this->PatientEntry->SetBalloonHelpString(
+      "Value displayed on the scanner, when patient point set as zero "
+      "image position, is under the scanner laser." );
+    
+    this->PatientUpdateButton->SetParent( this->PatientFrame->GetFrame() );
+    this->PatientUpdateButton->Create();
+    this->PatientUpdateButton->SetText( "Update" );
+    this->PatientUpdateButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
     }
+  
   
   this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                 this->TableFrame->GetWidgetName() );
@@ -378,19 +399,34 @@ vtkPerkStationCalibrateStep
   this->Script( "grid %s -column 1 -row 1 -sticky w -padx 1 -pady 2",
                 this->TableOverlayEntry->GetWidgetName() );
   
-  this->Script( "grid %s -column 0 -row 2 -sticky w -padx 6 -pady 2", 
-                this->PatientLabel->GetWidgetName() );
-  this->Script( "grid %s -column 1 -row 2 -sticky w -padx 1 -pady 2",
-                this->PatientEntry->GetWidgetName() );
-  
-  this->Script( "grid %s -column 3 -row 2 -sticky e -padx 6 -pady 2",
+  this->Script( "grid %s -column 2 -row 1 -sticky e -padx 6 -pady 2",
                 this->TableUpdateButton->GetWidgetName() );
+  
   this->Script( "grid columnconfigure %s 0 -weight 1",
                 this->TableFrame->GetFrame()->GetWidgetName() );
   this->Script( "grid columnconfigure %s 1 -weight 3",
                 this->TableFrame->GetFrame()->GetWidgetName() );
   this->Script( "grid columnconfigure %s 2 -weight 1",
                 this->TableFrame->GetFrame()->GetWidgetName() );
+  
+  
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                this->PatientFrame->GetWidgetName() );
+  
+  this->Script( "grid %s -column 0 -row 0 -sticky w -padx 6 -pady 2", 
+                this->PatientLabel->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 0 -sticky w -padx 1 -pady 2",
+                this->PatientEntry->GetWidgetName() );
+  
+  this->Script( "grid %s -column 2 -row 0 -sticky e -padx 6 -pady 2",
+                this->PatientUpdateButton->GetWidgetName() );
+  
+  this->Script( "grid columnconfigure %s 0 -weight 1",
+                this->PatientFrame->GetFrame()->GetWidgetName() );
+  this->Script( "grid columnconfigure %s 1 -weight 3",
+                this->PatientFrame->GetFrame()->GetWidgetName() );
+  this->Script( "grid columnconfigure %s 2 -weight 1",
+                this->PatientFrame->GetFrame()->GetWidgetName() );
   
   
   
