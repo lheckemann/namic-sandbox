@@ -1,8 +1,8 @@
 
 scm       svn
-svnpath http://svn.na-mic.org/NAMICSandBox/trunk/ChangeTrackerExtra/N3MRILightCLI
-name     N3MRILightCLI 
-cmakeproject      N3MRILightCLI
+svnpath http://svn.na-mic.org/NAMICSandBox/trunk/ChangeTrackerExtra/N4ITKBiasFieldCorrection
+name     N4ITKBiasFieldCorrection
+cmakeproject      N4ITKBiaseFieldCorrection
 svnusername slicerbot
 svnpassword slicer
 
