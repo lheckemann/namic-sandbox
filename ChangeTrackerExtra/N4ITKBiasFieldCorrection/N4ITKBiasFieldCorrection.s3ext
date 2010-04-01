@@ -2,7 +2,7 @@
 scm       svn
 svnpath http://svn.na-mic.org/NAMICSandBox/trunk/ChangeTrackerExtra/N4ITKBiasFieldCorrection
 name     N4ITKBiasFieldCorrection
-cmakeproject      N4ITKBiaseFieldCorrection
+cmakeproject      N4ITKBiasFieldCorrection
 svnusername slicerbot
 svnpassword slicer
 
