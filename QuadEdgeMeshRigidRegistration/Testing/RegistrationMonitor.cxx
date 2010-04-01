@@ -84,6 +84,7 @@ RegistrationMonitor::RegistrationMonitor()
   this->NumberOfIterationsPerUpdate = 1;
 
   this->Verbose = true;
+  this->OverlapMeshes = false;
 
   this->CameraZoomFactor = 1.5;
   this->CameraAzimuthAngle = 0.0;
@@ -202,8 +203,15 @@ void RegistrationMonitor::StartVisualization()
   // Connecting the Fixed and Moving surfaces to the 
   // visualization pipeline
   this->FixedRenderer->AddActor( this->FixedActor );
-//  this->MovingRenderer->AddActor( this->MovingActor );
-  this->FixedRenderer->AddActor( this->MovingActor );
+
+  if( this->OverlapMeshes )
+    {
+    this->FixedRenderer->AddActor( this->MovingActor );
+    }
+  else
+    {
+    this->MovingRenderer->AddActor( this->MovingActor );
+    }
 
   this->FixedRenderer->AddViewProp( this->TextActor );
 
@@ -243,6 +251,14 @@ void RegistrationMonitor
 ::SetVerbose( bool verbose )
 {
   this->Verbose = verbose;
+}
+
+
+/** Define whether to print out messages or not. */
+void RegistrationMonitor
+::SetOverlapMeshes( bool overlap )
+{
+  this->OverlapMeshes = overlap;
 }
 
 

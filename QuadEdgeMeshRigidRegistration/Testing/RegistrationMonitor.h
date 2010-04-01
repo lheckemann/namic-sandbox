@@ -56,6 +56,7 @@ public:
   void Observe( itk::Object * processObject );
 
   void SetVerbose( bool );
+  void SetOverlapMeshes( bool );
 
   void SetScreenShotsBaseFileName( const char * screenShotFileName );
 
@@ -131,6 +132,8 @@ private:
   unsigned int                    NumberOfIterationsPerUpdate;
  
   bool                            Verbose;
+
+  bool                            OverlapMeshes;
 
   itk::Object::Pointer            ObservedObject;
 
