@@ -1,13 +1,18 @@
 cmake_minimum_required(VERSION 2.4)
 
-PROJECT( N3MRIBiasFieldCorrectionImageFilter )
+PROJECT( N4ITKBiasFieldCorrection )
 
-#The following lines are required to use Dart
-ENABLE_TESTING()
-INCLUDE(Dart)
-
+#------------------Setup slicer builds.
+IF(BUILD_AGAINST_SLICER3)
+  FIND_PACKAGE(Slicer3 REQUIRED)
+  IF (Slicer3_FOUND)
+    INCLUDE(${Slicer3_USE_FILE})
+  ELSE (Slicer3_FOUND)
+    MESSAGE(FATAL_ERROR "Cannot build without a Slicer3 build tree or a Slicer3 installation. Please set Slicer3_DIR.")
+  ENDIF (Slicer3_FOUND)
+  slicer3_set_default_install_prefix_for_external_projects()
+ELSE(BUILD_AGAINST_SLICER)
 # Set up ITK
-IF(USE_ITK)
   FIND_PACKAGE(ITK)
   IF(ITK_FOUND)
     INCLUDE(${ITK_USE_FILE})
@@ -15,76 +20,21 @@ IF(USE_ITK)
     MESSAGE(FATAL_ERROR
       "Cannot build without ITK.  Please set ITK_DIR.")
   ENDIF(ITK_FOUND)
-ENDIF(USE_ITK)
+ENDIF(BUILD_AGAINST_SLICER3)
 
-INCLUDE (${CMAKE_ROOT}/Modules/FindITK.cmake) 
-IF (USE_ITK_FILE) 
-  INCLUDE(${USE_ITK_FILE}) 
-ENDIF(USE_ITK_FILE) 
+FIND_PACKAGE(GenerateCLP NO_MODULE REQUIRED)
+IF(GenerateCLP_DIR)
+  INCLUDE(${GenerateCLP_USE_FILE})
+ELSE(GenerateCLP_DIR)
+  MESSAGE(FATAL_ERROR "Can't build without GenerateCLP. Please set GenerateCLP_DIR")
+ENDIF(GenerateCLP_DIR)
 
-#SET(IJ_INCLUDE_DIRS
-#)
+GENERATECLP(N4ITKBiasFieldCorrection N4ITKBiasFieldCorrection.xml)
+ADD_EXECUTABLE(N4ITKBiasFieldCorrection N4ITKBiasFieldCorrection.cxx)
+slicer3_set_plugins_output_path(N4ITKBiasFieldCorrection)
+TARGET_LINK_LIBRARIES(N4ITKBiasFieldCorrection ITKIO ITKStatistics ITKNumerics)
 
-#INCLUDE_DIRECTORIES(${IJ_INCLUDE_DIRS})
-
-LINK_DIRECTORIES(${ITK_LIBRARY_PATH})
-
-IF(BUILD_TESTING)
-# non-templated class -- this should be stored in a library and linked in...
-ADD_EXECUTABLE(itkN3MRIBiasFieldCorrectionImageFilterTest itkN3MRIBiasFieldCorrectionImageFilterTest.cxx)
-TARGET_LINK_LIBRARIES(itkN3MRIBiasFieldCorrectionImageFilterTest ITKIO ITKStatistics ITKNumerics)
-
-SET(CurrentExe "ImageCompare")
-ADD_EXECUTABLE(${CurrentExe} ImageCompare.cxx) 
-TARGET_LINK_LIBRARIES(${CurrentExe}  ITKIO ITKNumerics ITKStatistics)
-
-SET(SOURCES "${CMAKE_SOURCE_DIR}/itkCommandLineParser" "${CMAKE_SOURCE_DIR}/itkCommandLineOption" )
-SET(CurrentExe "N4" )
-ADD_EXECUTABLE( ${CurrentExe} N4.cxx ${SOURCES} )
-TARGET_LINK_LIBRARIES(${CurrentExe}  ITKIO ITKNumerics ITKStatistics)
-
-ENDIF(BUILD_TESTING)
-
-###
-#  Perform testing
-###
-
-ADD_TEST( TEST_Brain2D itkN3MRIBiasFieldCorrectionImageFilterTest 2
-        ${CMAKE_SOURCE_DIR}/Input/t81slice.nii.gz 
-        ${CMAKE_BINARY_DIR}/t81corrected.nii.gz 
-        2
-        ${CMAKE_SOURCE_DIR}/Input/t81mask.nii.gz 
-        50 4 
-        ${CMAKE_BINARY_DIR}/t81biasfield.nii.gz )
-#ADD_TEST( COMPARE_Brain2D ImageCompare
-#        ${CMAKE_BINARY_DIR}/t81corrected.nii.gz 
-#        ${CMAKE_SOURCE_DIR}/Output/t81corrected.nii.gz )
-#ADD_TEST( COMPARE_Field2D ImageCompare
-#        ${CMAKE_BINARY_DIR}/t81biasfield.nii.gz 
-#        ${CMAKE_SOURCE_DIR}/Output/t81biasfield.nii.gz )
-
-ADD_TEST( TEST_Lungs3D itkN3MRIBiasFieldCorrectionImageFilterTest 3
-        ${CMAKE_SOURCE_DIR}/Input/he3volume.nii.gz 
-        ${CMAKE_BINARY_DIR}/he3corrected.nii.gz 
-        4  
-        ${CMAKE_SOURCE_DIR}/Input/he3mask.nii.gz 
-        50 4 
-        ${CMAKE_BINARY_DIR}/he3biasfield.nii.gz )
-#ADD_TEST( COMPARE_Lungs3D ImageCompare
-#        ${CMAKE_BINARY_DIR}/he3corrected.nii.gz 
-#        ${CMAKE_SOURCE_DIR}/Output/he3corrected.nii.gz )
-#ADD_TEST( COMPARE_Field3D ImageCompare
-#        ${CMAKE_BINARY_DIR}/he3biasfield.nii.gz 
-#        ${CMAKE_SOURCE_DIR}/Output/he3biasfield.nii.gz )
-
-ADD_TEST( TEST_Brain2D_N4 N4 2
-        -i ${CMAKE_SOURCE_DIR}/Input/t81slice.nii.gz 
-        -o [${CMAKE_BINARY_DIR}/t81corrected_n4.nii.gz,${CMAKE_BINARY_DIR}/t81biasfield_n4.nii.gz]
-        -x ${CMAKE_SOURCE_DIR}/Input/t81mask.nii.gz
-        -s 2
-        -c [50x50x50,0.001]
-        -b [100,3] 
-        -t [0.15,0.01,200]
-         )
-
+IF(BUILD_AGAINST_SLICER)
+  slicer3_install_plugins(N$ITKBiasFieldCorrection)
+ENDIF(BUILD_AGAINST_SLICER)
 
