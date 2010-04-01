@@ -40,11 +40,11 @@
 
     <image>
       <name>outputImageName</name>
-      <longflag>outputimage</longflag>
       <label>Output Volume</label>
       <channel>output</channel>
       <description>Result of processing</description>
     </image>
+
     <image>
       <name>outputBiasFieldName</name>
       <label>Output bias field image</label>
