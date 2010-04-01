@@ -1,4 +1,5 @@
-
+include(ExternalProject)
+cmake_minimum_required(VERSION 2.8)
 PROJECT(MultiImageRegistration)
 
 FIND_PACKAGE(ITK REQUIRED)
@@ -54,7 +55,27 @@ FINDORBUILD_COMMON_BRAINSCOMMONLIB()
 
     slicer3_set_default_install_prefix_for_external_projects()
   ENDIF( BUILD_AGAINST_SLICER3 )
+ 
+  IF( NOT BUILD_AGAINST_SLICER3 )
+    ##  In many cases sub-projects depending on SlicerExectuion Model
+    ##  that can be built stand alone are combined in larger packages
+    ##  This logic will include SlicerExectionModel only if it
+    ##  has not already been built.
+     ADD_SUBDIRECTORY(SlicerExecutionModel)
+  ENDIF( NOT BUILD_AGAINST_SLICER3 )
+    FIND_PACKAGE(GenerateCLP NO_MODULE REQUIRED)
+    IF(GenerateCLP_DIR)
+      INCLUDE(${GenerateCLP_USE_FILE})
+    ELSE(GenerateCLP_DIR)
+      MESSAGE(FATAL_ERROR "Can't build without GenerateCLP. Please set
+                    GenerateCLP_DIR")
+    ENDIF(GenerateCLP_DIR)
+#  INCLUDE_DIRECTORIES(LargestForegroundFilledMaskImageFilter)
+ 
+include_directories(${COMMON_BRAINSCOMMONLIB_SOURCE_DIR})
+link_directories(${COMMON_BRAINSCOMMONLIB_BINARY_DIR})
 
+ 
   SUBDIRS( Source )
   SUBDIRS( Testing )
 
