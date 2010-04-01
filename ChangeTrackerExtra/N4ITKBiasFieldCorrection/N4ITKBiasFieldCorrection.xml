@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Filtering</category>
+  <title>N4ITK MRI Bias correction</title>
+  <index>3</index>
+  <description>Performs MRI bias correction using N3 algorithm.</description>
+  <version>9</version>
+  <documentation-url></documentation-url>
+  <license></license>
+  <contributor>Nick Tustison (algorithm), Andriy Fedorov (Slicer wrapping)</contributor>
+<acknowledgements>
+</acknowledgements>
+
+ <parameters advanced="true">
+    <label>Processing parameters</label>
+    <description>Parameters of N3 algorithm.</description>
+
+
+
+
+    <integer>
+      <name>nFittingLevels</name>
+      <longflag>nfittinglevels</longflag>
+      <description></description>
+      <label>Number of fitting levels</label>
+      <default>4</default>
+    </integer>
+
+    <integer>
+      <name>nIterations</name>
+      <longflag>niterations</longflag>
+      <description></description>
+      <label>Maximum number of iterations</label>
+      <default>50</default>
+    </integer>
+
+    <integer>
+      <name>nHistogramBins</name>
+      <longflag>nhistogrambins</longflag>
+      <description></description>
+      <label>Number of histogram bins</label>
+      <default>200</default>
+    </integer>
+
+    <double>
+      <name>weinerFilterNoise</name>
+      <longflag>weinerfilternoise</longflag>
+      <description></description>
+      <label>Weiner filter noise</label>
+      <default>0.1</default>
+    </double>
+
+    <double>
+      <name>biasFieldFullWidthAtHalfMaximum</name>
+      <longflag>biasfieldfullwidthathalfmaximum</longflag>
+      <description></description>
+      <label>Bias field full width at half maximum</label>
+      <default>0.15</default>
+    </double>
+
+    <double>
+      <name>convergenceThreshold</name>
+      <longflag>convergencethreshold</longflag>
+      <description></description>
+      <label>Convergence threshold</label>
+      <default>0.001</default>
+    </double>
+
+    <integer>
+      <name>splineOrder</name>
+      <longflag>splineorder</longflag>
+      <description></description>
+      <label>Spline order</label>
+      <default>3</default>
+    </integer>
+
+    <integer-vector>
+      <name>nControlPoints</name>
+      <longflag>ncontrolpoints</longflag>
+      <description></description>
+      <label>Number of control points</label>
+      <default>4,4,4</default>
+    </integer-vector>
+
+  </parameters>
+
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <image>
+      <longflag>input-image</longflag>
+      <name>inputImageName</name>
+      <label>Input Image</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Input image with MRI field inhomegeneity</description>
+    </image>
+    
+    <image>
+      <longflag>mask-image</longflag>
+      <name>maskImageName</name>
+      <label>Mask Image</label>
+      <channel>input</channel>
+      <index>1</index>
+      <description>Mask of the structure of interest in the input image</description>
+    </image>
+
+    <image>
+      <longflag>weight-image</longflag>
+      <name>weightImageName</name>
+      <label>Weight Image</label>
+      <channel>input</channel>
+      <index>1</index>
+      <description>Weight Image</description>
+    </image>
+
+    <image>
+      <name>outputImageName</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>2</index>
+      <description>Result of processing</description>
+    </image>
+    <image>
+      <name>outputBiasFieldName</name>
+      <label>Output bias field image</label>
+      <channel>output</channel>
+      <index>3</index>
+      <description>Recovered bias field</description>
+    </image>
+
+    <integer-vector>
+      <name>numberOfIterations</name>
+      <longflag>iterations</longflag>
+      <description></description>
+      <label>Number of iterations</label>
+      <default>0</default>
+    </integer-vector>
+
+    <float>
+      <name>convergenceThreshold</name>
+      <longflag>convergence-threshold</longflag>
+      <description></description>
+      <label>Convergence threshold</label>
+      <default>0</default>
+    </float>
+
+    <boolean>
+      <name>bsplineOption</name>
+      <longflag>bspline-option</longflag>
+      <description>Configure BSpline fitting</description>
+      <label>Use BSpline fitting options</label>
+      <default>0</default>
+    </boolean>
+
+    <float>
+      <name>bsplineOrder</name>
+      <longflag>bspline-order</longflag>
+      <description>Order of BSpline fitting</description>
+      <label>BSpline order</label>
+      <default>0</default>
+    </float>
+
+    <float>
+      <name>alpha</name>
+      <longflag>bspline-alpha</longflag>
+      <description>Sigmoid normalized alpha</description>
+      <label>BSpline alpha</label>
+      <default>0</default>
+    </float>
+   
+    <float>
+      <name>beta</name>
+      <longflag>bspline-beta</longflag>
+      <description>Sigmoid normalized beta</description>
+      <label>BSpline beta</label>
+      <default>0</default>
+    </float>
+
+    <float-vector>
+      <name>initialMeshResolution</name>
+      <longflag>mesh-resolution</longflag>
+      <description>Initial resolution of the BSpline mesh</decription>
+      <label>Initial mesh resolution</label>
+      <default>0</default>
+    </float-vector>
+
+    <float>
+      <name>splineDistance</name>
+      <longflag>spline-distance</longflag>
+      <description>Spline distance</description>
+      <label>Spline distance</label>
+      <default>0</default>
+    </float>
+
+    <int>
+      <name>shrinkFactor</name>
+      <longflag>shrink-factor</longflag>
+      <description></description>
+      <label>Shrink factor</label>
+      <default>4</default>
+    </int>
+ 
+    <float-vector>
+      <name>histogramSharpening</name>
+      <longflag>histogram-sharpening</longflag>
+      <description>Histogram sharpening options: comma-separated FWHM, wienerNoise, numberOfHistogramBins </decription>
+      <label>Histogram sharpening</label>
+      <default>0</default>
+    </float-vector>
+
+  </parameters>
+
+</executable>
