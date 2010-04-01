@@ -133,7 +133,8 @@ public:
     return this->CalibrationMRMLTransformNode;
   }
   
-  std::vector< OverlayHardware > GetHardwareList();
+  vtkGetMacro( HardwareIndex, int );
+  vtkSetMacro( HardwareIndex, int );
   
   
   // Plan parameters ----------------------------------------------------------
@@ -241,6 +242,8 @@ public:
   vtkGetMacro( TimeSpentOnValidateStep, double );
   
   
+    // Non loadable parameters.
+  
   vtkMRMLFiducialListNode* GetPlanMRMLFiducialListNode() {
     return this->PlanMRMLFiducialListNode.GetPointer();
   }
@@ -260,8 +263,9 @@ public:
   int SwitchStep( int newStep );
   const char* GetStepName( int i );
   
-  
   PatientPositionEnum GetPatientPosition();
+  
+  std::vector< OverlayHardware > GetHardwareList();
   
   
   // Computations -------------------------------------------------------------
@@ -305,6 +309,8 @@ protected:
   
    // Slicer's volume transform node.
   vtkSmartPointer< vtkMRMLLinearTransformNode > CalibrationMRMLTransformNode;
+  
+  int HardwareIndex;
   
   PatientPositionEnum PatientPosition;
   
@@ -354,6 +360,7 @@ protected:
   vtkSmartPointer< vtkStringArray > StepList;
   int CurrentStep;
   int PreviousStep;
+  
   
   
   //keep track of all the volumes that were opened, maintain a list

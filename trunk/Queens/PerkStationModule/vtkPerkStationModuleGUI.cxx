@@ -1899,7 +1899,7 @@ void
 vtkPerkStationModuleGUI
 ::LoadPlanningVolumeButtonCallback( const char *fileName )
 {
-  std::string fileString(fileName);
+  std::string fileString( fileName );
   for (unsigned int i = 0; i < fileString.length(); i++)
     {
     if (fileString[i] == '\\')
@@ -1907,7 +1907,7 @@ vtkPerkStationModuleGUI
       fileString[i] = '/';
       }
     }  
-
+  
   bool planningVolumePreExists = false;
   
   
@@ -1919,9 +1919,9 @@ vtkPerkStationModuleGUI
     {
     planningVolumePreExists = true;
     }
-
+  
   this->MRMLNode->SetVolumeInUse( "Planning" );
-
+  
   vtkSlicerApplication *app = static_cast<vtkSlicerApplication *>( 
     this->GetApplication() );
   vtkMRMLScalarVolumeNode *volumeNode = this->GetLogic()->
@@ -1930,8 +1930,8 @@ vtkPerkStationModuleGUI
   
   if ( ! volumeNode )  // Not successful image read.
     {
-    std::string msg = std::string( "Unable to read volume file " )
-                      + std::string(fileName);
+    std::string msg =   std::string( "Unable to read volume file " )
+                      + std::string( fileName );
     
     vtkKWMessageDialog *dialog = vtkKWMessageDialog::New();
       dialog->SetStyleToMessage();
@@ -1948,10 +1948,8 @@ vtkPerkStationModuleGUI
   vtkSetAndObserveMRMLNodeMacro( node,
     volumeNode->GetScalarVolumeDisplayNode() );
 
-    // set up the image on secondary monitor    
-  this->SecondaryMonitor->SetupImageData();
   
-  if ( ! planningVolumePreExists)
+  if ( ! planningVolumePreExists )
     {
       // bring the wizard GUI back to Calibrate step
       // the volume selection has changed/added, so make sure that the wizard
@@ -1985,6 +1983,9 @@ vtkPerkStationModuleGUI
     // Set the Slice view to the correct position.
   this->Logic->AdjustSliceView();
   
+  this->SecondaryMonitor->SetupImageData();
+  this->SecondaryMonitor->UpdateImageDisplay();
+  
   
     // Make the planning volume the selected volume.
   this->VolumeSelector->SetSelected( volumeNode );
@@ -1996,9 +1997,8 @@ vtkPerkStationModuleGUI
   this->VolumeSelector->GetSelected()->Modified();
   this->VolumeSelector->UpdateMenu();
   
-    // enable the load validation volume button
-  this->EnableLoadValidationVolumeButton( true );
   
+  this->EnableLoadValidationVolumeButton( true );
 }
 
   
