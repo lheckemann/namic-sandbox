@@ -31,10 +31,7 @@ ENDIF(GenerateCLP_DIR)
 
 GENERATECLP(N4ITKBiasFieldCorrection N4ITKBiasFieldCorrection.xml)
 ADD_EXECUTABLE(N4ITKBiasFieldCorrection N4ITKBiasFieldCorrection.cxx)
-slicer3_set_plugins_output_path(N4ITKBiasFieldCorrection)
 TARGET_LINK_LIBRARIES(N4ITKBiasFieldCorrection ITKIO ITKStatistics ITKNumerics)
-
-IF(BUILD_AGAINST_SLICER)
-  slicer3_install_plugins(N4ITKBiasFieldCorrection)
-ENDIF(BUILD_AGAINST_SLICER)
+slicer3_set_plugins_output_path(N4ITKBiasFieldCorrection)
+slicer3_install_plugins(N4ITKBiasFieldCorrection)
 
