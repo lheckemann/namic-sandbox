@@ -29,6 +29,8 @@
 #include "itkLogImageFilter.h"
 #include "itkSubtractImageFilter.h"
 
+#include "itkProgressReporter.h"
+
 #include "vnl/algo/vnl_fft_1d.h"
 #include "vnl/vnl_complex_traits.h"
 #include "vxl/vcl/vcl_complex.h"
@@ -68,12 +70,19 @@ N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
    * Calculate the log of the input image.
    */
 
-  typename RealImageType::Pointer logUncorrectedImage = RealImageType::New();
+  typename RealImageType::Pointer logUncorrectedImage = RealImageType::New();  
 
   typedef ExpImageFilter<RealImageType, RealImageType> ExpImageFilterType;
   typedef LogImageFilter<InputImageType, RealImageType> LogFilterType;
 
   typename LogFilterType::Pointer logFilter = LogFilterType::New();
+
+  unsigned totalIterations = 0;
+  for(unsigned i=0;i<this->m_MaximumNumberOfIterations.GetSize();i++)
+    totalIterations += m_MaximumNumberOfIterations[i];
+  
+  ProgressReporter progress(this, 0, totalIterations);
+
   logFilter->SetInput( this->GetInput() );
   logFilter->Update();
   logUncorrectedImage = logFilter->GetOutput();
@@ -167,6 +176,7 @@ N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
       logUncorrectedImage = subtracter2->GetOutput();
 
       reporter.CompletedStep();
+      progress.CompletedPixel();
       }
 
     typedef BSplineControlPointImageFilter<BiasFieldControlPointLatticeType,
