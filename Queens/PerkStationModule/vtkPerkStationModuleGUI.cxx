@@ -83,7 +83,8 @@ vtkPerkStationModuleGUI* vtkPerkStationModuleGUI::New()
 vtkPerkStationModuleGUI
 ::vtkPerkStationModuleGUI()
 {
-  // gui elements
+    // gui elements
+  
   this->VolumeSelector = vtkSmartPointer< vtkSlicerNodeSelectorWidget >::New();
   this->PSNodeSelector = vtkSmartPointer< vtkSlicerNodeSelectorWidget >::New();
 
@@ -105,19 +106,16 @@ vtkPerkStationModuleGUI
   this->WizardWidget = vtkSmartPointer< vtkKWWizardWidget >::New();
   
   
-  // secondary monitor
+    // secondary monitor
+  
   this->SecondaryMonitor =
-      vtkSmartPointer< vtkPerkStationSecondaryMonitor >::New();
+                       vtkSmartPointer< vtkPerkStationSecondaryMonitor >::New();
     this->SecondaryMonitor->SetGUI( this );
     this->SecondaryMonitor->Initialize();
     
-  //  return this->SecondaryMonitor.GetPointer()
-    
-    
-    
   
+    // wizard workflow
   
-  // wizard workflow
   this->WizardFrame = vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();  
   this->CalibrateStep = vtkSmartPointer< vtkPerkStationCalibrateStep >::New();
   this->PlanStep = vtkSmartPointer< vtkPerkStationPlanStep >::New();
@@ -127,17 +125,18 @@ vtkPerkStationModuleGUI
   this->State = vtkPerkStationModuleGUI::Calibrate;  
   this->DisplayVolumeLevelValue = vtkSmartPointer< vtkKWScaleWithEntry >::New();
   this->DisplayVolumeWindowValue =
-    vtkSmartPointer< vtkKWScaleWithEntry >::New();
+                                vtkSmartPointer< vtkKWScaleWithEntry >::New();
 
   this->Built = false;
   this->SliceOffset = 0;
 
   this->ObserverCount = 0;
   
+  
     // Workphase handling.
+  
   this->WorkphaseButtonFrame = vtkSmartPointer< vtkKWFrame >::New();
   this->WorkphaseButtonSet = vtkSmartPointer< vtkKWPushButtonSet >::New();
-  
 }
 
 
@@ -1012,93 +1011,337 @@ vtkPerkStationModuleGUI
 //---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::BuildGUI() 
 {
-  if ( this->Built)
-      return;
+  if ( this->Built) return;
   
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-
-  //register MRML PS node
-  this->Logic->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLPerkStationModuleNode >::New() );
+  
+    //register MRML PS node
+  this->Logic->GetMRMLScene()->RegisterNodeClass(
+    vtkSmartPointer< vtkMRMLPerkStationModuleNode >::New() );
   
   this->UIPanel->AddPage ( "PerkStationModule", "PerkStationModule", NULL );
-  vtkKWWidget *page = this->UIPanel->GetPageWidget( "PerkStationModule" );
   
-  // ---
-  // MODULE GUI FRAME 
-  // ---
-  // Define your help text and build the help frame here.
+  
+  // add individual collapsible pages/frames
+  
+  this->BuildGUIForHelpFrame();
+  this->BuildGUIForExperimentFrame();
+  this->BuildGUIForWorkphases();
+  
+  
+  
+  
+  
+  this->Built = true;
+}
+
+
+/**
+ * Creates widgets for the frame, and places them by TCL scripts.
+ */
+void
+vtkPerkStationModuleGUI
+::BuildGUIForHelpFrame()
+{
+  vtkSlicerApplication* app = (vtkSlicerApplication*)( this->GetApplication() );
+  vtkKWWidget* page = this->UIPanel->GetPageWidget( "PerkStationModule" );
   
   std::stringstream helpss;
   helpss << "**PERK Station Module** " << std::endl
          << "**Revision " << PerkStationModule_REVISION << "**" << std::endl
          << "Use this module to perform image overlay guided percutaneous "
          << "interventions.";
-  // const char* help = helpss.str().c_str();
   
+  vtkSmartPointer< vtkSlicerModuleCollapsibleFrame > PerkStationHelpFrame =
+      vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();
+    PerkStationHelpFrame->SetParent ( page );
+    PerkStationHelpFrame->Create ( );
+    PerkStationHelpFrame->CollapseFrame ( );
+    PerkStationHelpFrame->SetLabelText ( "Help" );
   
-  // ----------------------------------------------------------------
-  // HELP FRAME         
-  // ----------------------------------------------------------------
-  vtkSlicerModuleCollapsibleFrame *PerkStationHelpFrame =
-    vtkSlicerModuleCollapsibleFrame::New ( );
-  PerkStationHelpFrame->SetParent ( page );
-  PerkStationHelpFrame->Create ( );
-  PerkStationHelpFrame->CollapseFrame ( );
-  PerkStationHelpFrame->SetLabelText ( "Help" );
   app->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-      PerkStationHelpFrame->GetWidgetName(), page->GetWidgetName());
-
-  // configure the parent classes help text widget
-  this->HelpText->SetParent ( PerkStationHelpFrame->GetFrame() );
-  this->HelpText->Create ( );
-  this->HelpText->SetHorizontalScrollbarVisibility ( 0 );
-  this->HelpText->SetVerticalScrollbarVisibility ( 1 );
-  this->HelpText->GetWidget()->SetText ( helpss.str().c_str() );
-  this->HelpText->GetWidget()->SetReliefToFlat ( );
-  this->HelpText->GetWidget()->SetWrapToWord ( );
-  this->HelpText->GetWidget()->ReadOnlyOn ( );
-  this->HelpText->GetWidget()->QuickFormattingOn ( );
-  this->HelpText->GetWidget()->SetBalloonHelpString ( "" );
-  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 4",
-      this->HelpText->GetWidgetName ( ) );
-
-  PerkStationHelpFrame->Delete();
-
+                PerkStationHelpFrame->GetWidgetName(), page->GetWidgetName() );
+  
+  this->HelpText->SetParent( PerkStationHelpFrame->GetFrame() );
+  this->HelpText->Create();
+  this->HelpText->SetHorizontalScrollbarVisibility( 0 );
+  this->HelpText->SetVerticalScrollbarVisibility( 1 );
+  this->HelpText->GetWidget()->SetText( helpss.str().c_str() );
+  this->HelpText->GetWidget()->SetReliefToFlat();
+  this->HelpText->GetWidget()->SetWrapToWord();
+  this->HelpText->GetWidget()->ReadOnlyOn();
+  this->HelpText->GetWidget()->QuickFormattingOn();
+  this->HelpText->GetWidget()->SetBalloonHelpString( "" );
+  
+  app->Script( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 4",
+               this->HelpText->GetWidgetName() );
+  
   
   const char *about = "This work was supported by NA-MIC, NAC, BIRN, NCIGT,"
                       "and the Slicer Community."
                       "See <a>http://www.slicer.org</a> for details. ";
+}
+
+
+/**
+ * Creates widgets for the Experiment frame, and places them by TCL scripts.
+ */
+void
+vtkPerkStationModuleGUI
+::BuildGUIForExperimentFrame()
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication*)( this->GetApplication() );
+  vtkKWWidget* page = this->UIPanel->GetPageWidget( "PerkStationModule" );
   
   
+  vtkSmartPointer< vtkKWFrameWithLabel > loadSaveExptFrame =
+      vtkSmartPointer< vtkKWFrameWithLabel >::New();
+    loadSaveExptFrame->SetParent( page );
+    loadSaveExptFrame->Create();
+    loadSaveExptFrame->SetLabelText( "Experiment" );
   
-  // add individual collapsible pages/frames
+  app->Script( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+               loadSaveExptFrame->GetWidgetName(), page->GetWidgetName() );
   
-    // collapsible? frame for volume node selection, and parameters selection?
   
-  vtkKWFrameWithLabel *loadSaveExptFrame = vtkKWFrameWithLabel::New ( );
-  loadSaveExptFrame->SetParent( page );
-  loadSaveExptFrame->Create();
-  loadSaveExptFrame->SetLabelText("Experiment frame");
-  //loadSaveExptFrame->ExpandFrame(); 
+    // Volume selection frame
   
-  app->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-              loadSaveExptFrame->GetWidgetName(), page->GetWidgetName());
+  vtkSmartPointer< vtkKWFrame > volSelFrame =
+      vtkSmartPointer< vtkKWFrame >::New();
+    volSelFrame->SetParent( loadSaveExptFrame->GetFrame() );
+    volSelFrame->Create();     
   
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                volSelFrame->GetWidgetName() );
+  
+    // MRML node
+  
+  this->PSNodeSelector->SetNodeClass( "vtkMRMLPerkStationModuleNode", NULL,
+                                      NULL, "PS Parameters" );
+  this->PSNodeSelector->SetParent( volSelFrame );
+  this->PSNodeSelector->Create();
+  this->PSNodeSelector->SetNewNodeEnabled( 1 );
+  this->PSNodeSelector->NoneEnabledOn();
+  this->PSNodeSelector->SetShowHidden( 1 );
+  this->PSNodeSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
+  this->PSNodeSelector->UpdateMenu();
+
+  this->PSNodeSelector->SetBorderWidth( 2 );
+  this->PSNodeSelector->SetLabelText( "PERK Parameters");
+  this->PSNodeSelector->SetBalloonHelpString(
+    "select a PS node from the current mrml scene." );
+  
+  app->Script( "pack %s -side left -anchor w -padx 2 -pady 4", 
+               this->PSNodeSelector->GetWidgetName() );
+  
+    //input volume selector
+  
+  this->VolumeSelector->SetNodeClass( "vtkMRMLScalarVolumeNode", NULL,
+                                      NULL, NULL );
+  this->VolumeSelector->SetParent( volSelFrame );
+  this->VolumeSelector->Create();
+  this->VolumeSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
+  this->VolumeSelector->UpdateMenu();
+  this->VolumeSelector->SetBorderWidth(2);
+  this->VolumeSelector->SetLabelText( "Active Volume: ");
+  this->VolumeSelector->SetBalloonHelpString(
+    "select an input volume from the current mrml scene." );
+  
+  app->Script( "pack %s -side top -anchor e -padx 2 -pady 4", 
+               this->VolumeSelector->GetWidgetName() );
+  
+    // Load volumes frame.
+  
+  vtkSmartPointer< vtkKWFrame > loadVolFrame =
+      vtkSmartPointer< vtkKWFrame >::New();
+    loadVolFrame->SetParent( loadSaveExptFrame->GetFrame() );
+    loadVolFrame->Create();     
+  
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                loadVolFrame->GetWidgetName() );
+  
+    // Load planning volume dialog button.
+  
+  if ( ! this->LoadPlanningVolumeButton->IsCreated() )
+    {
+    this->LoadPlanningVolumeButton->SetParent( loadVolFrame );
+    this->LoadPlanningVolumeButton->Create();
+    this->LoadPlanningVolumeButton->SetBorderWidth( 2 );
+    this->LoadPlanningVolumeButton->SetReliefToRaised();       
+    this->LoadPlanningVolumeButton->SetHighlightThickness( 2 );
+    this->LoadPlanningVolumeButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
+    this->LoadPlanningVolumeButton->SetActiveBackgroundColor( 1, 1, 1 );
+    this->LoadPlanningVolumeButton->SetText( "Load planning volume" );
+    this->LoadPlanningVolumeButton->SetImageToPredefinedIcon(
+      vtkKWIcon::IconPresetLoad );
+    this->LoadPlanningVolumeButton->SetBalloonHelpString(
+      "Click to load a planning image or a volume" );
+    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->
+      RetrieveLastPathFromRegistry( "OpenPath" );
+    this->LoadPlanningVolumeButton->TrimPathFromFileNameOn();
+    this->LoadPlanningVolumeButton->SetMaximumFileNameLength( 256 );
+    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->SaveDialogOff();
+    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->SetFileTypes(
+      "{ {DICOM Files} {*} }" );      
+    }
+  
+  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
+                this->LoadPlanningVolumeButton->GetWidgetName() );
+
+    // Load validation volume dialog button.
+  
+  if ( ! this->LoadValidationVolumeButton->IsCreated() )
+    {
+    this->LoadValidationVolumeButton->SetParent(loadVolFrame);
+    this->LoadValidationVolumeButton->Create();
+    this->LoadValidationVolumeButton->SetBorderWidth(2);
+    this->LoadValidationVolumeButton->SetReliefToRaised();       
+    this->LoadValidationVolumeButton->SetHighlightThickness(2);
+    this->LoadValidationVolumeButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->LoadValidationVolumeButton->SetActiveBackgroundColor(1,1,1);
+    this->LoadValidationVolumeButton->SetText("Load validation volume");
+    this->LoadValidationVolumeButton->SetImageToPredefinedIcon(
+      vtkKWIcon::IconPresetLoad );
+    this->LoadValidationVolumeButton->SetBalloonHelpString(
+      "Click to load a validation image or a volume" );
+    this->LoadValidationVolumeButton->GetLoadSaveDialog()->
+      RetrieveLastPathFromRegistry( "OpenPath" );
+    this->LoadPlanningVolumeButton->TrimPathFromFileNameOn();
+    this->LoadValidationVolumeButton->SetMaximumFileNameLength( 256 );
+    this->LoadValidationVolumeButton->GetLoadSaveDialog()->SaveDialogOff();
+    this->LoadValidationVolumeButton->GetLoadSaveDialog()->SetFileTypes(
+      "{ {DICOM Files} {*} }" );
+    this->LoadValidationVolumeButton->SetEnabled( 0 );
+    }
+  
+  this->Script( "pack %s -side top -anchor ne -padx 2 -pady 2", 
+                this->LoadValidationVolumeButton->GetWidgetName() );
+  
+    // Window level frame.
+  
+  vtkSmartPointer< vtkKWFrameWithLabel > windowLevelFrame =
+      vtkSmartPointer< vtkKWFrameWithLabel >::New();
+    windowLevelFrame->SetParent( loadSaveExptFrame->GetFrame() );
+    windowLevelFrame->SetLabelText( "Window/Level" );
+    windowLevelFrame->Create();
+  
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                windowLevelFrame->GetWidgetName() );
+  
+  
+  if ( ! this->DisplayVolumeWindowValue->IsCreated() )
+    {
+    this->DisplayVolumeWindowValue->SetParent( windowLevelFrame->GetFrame() );
+    this->DisplayVolumeWindowValue->Create();
+    this->DisplayVolumeWindowValue->SetRange(0.0, 8192.0);
+    this->DisplayVolumeWindowValue->SetResolution(10.0);
+    this->DisplayVolumeWindowValue->SetLength(150);
+    this->DisplayVolumeWindowValue->SetLabelText("Window"); 
+    this->DisplayVolumeWindowValue->SetLabelPositionToTop();
+    this->DisplayVolumeWindowValue->SetEntryPositionToTop();
+    }
+  
+  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
+                this->DisplayVolumeWindowValue->GetWidgetName() );
+  
+  if ( ! this->DisplayVolumeLevelValue->IsCreated() )
+    {
+    this->DisplayVolumeLevelValue->SetParent( windowLevelFrame->GetFrame() );
+    this->DisplayVolumeLevelValue->Create();
+    this->DisplayVolumeLevelValue->SetRange(0.0, 2048.0);
+    this->DisplayVolumeLevelValue->SetResolution(10.0);
+    this->DisplayVolumeLevelValue->SetLength(150);
+    this->DisplayVolumeLevelValue->SetLabelText("Level");   
+    this->DisplayVolumeLevelValue->SetLabelPositionToTop();
+    this->DisplayVolumeLevelValue->SetEntryPositionToTop();
+    }
+  
+  this->Script("pack %s -side top -anchor ne -padx 2 -pady 2", 
+                        this->DisplayVolumeLevelValue->GetWidgetName());
+  
+  
+    // Load save frame.
+  
+  vtkSmartPointer< vtkKWFrame > loadSaveFrame =
+      vtkSmartPointer< vtkKWFrame >::New();
+    loadSaveFrame->SetParent( loadSaveExptFrame->GetFrame() );
+    loadSaveFrame->Create();
+  
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                loadSaveFrame->GetWidgetName() );
+
+    // create the load file dialog button
+  
+  if ( ! this->LoadExperimentFileButton->IsCreated() )
+    {
+    this->LoadExperimentFileButton->SetParent( loadSaveFrame );
+    this->LoadExperimentFileButton->Create();
+    this->LoadExperimentFileButton->SetBorderWidth(2);
+    this->LoadExperimentFileButton->SetReliefToRaised();       
+    this->LoadExperimentFileButton->SetHighlightThickness(2);
+    this->LoadExperimentFileButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->LoadExperimentFileButton->SetActiveBackgroundColor(1,1,1);
+    this->LoadExperimentFileButton->SetText("Load experiment");
+    this->LoadExperimentFileButton->SetImageToPredefinedIcon(
+      vtkKWIcon::IconPresetLoad );
+    this->LoadExperimentFileButton->SetBalloonHelpString(
+      "Click to load a previous experiment file" );
+    this->LoadExperimentFileButton->GetLoadSaveDialog()->
+      RetrieveLastPathFromRegistry( "OpenPath" );
+    this->LoadExperimentFileButton->TrimPathFromFileNameOff();
+    this->LoadExperimentFileButton->SetMaximumFileNameLength(256);
+    this->LoadExperimentFileButton->GetLoadSaveDialog()->SaveDialogOff();
+    this->LoadExperimentFileButton->GetLoadSaveDialog()->SetFileTypes(
+      "{{XML File} {.xml}} {{All Files} {*.*}}" );
+    }
+    
+  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
+                this->LoadExperimentFileButton->GetWidgetName() );
+
+      // create the load file dialog button
+    
+  if ( ! this->SaveExperimentFileButton->IsCreated() )
+    {
+    this->SaveExperimentFileButton->SetParent(loadSaveFrame);
+    this->SaveExperimentFileButton->Create();
+    this->SaveExperimentFileButton->SetText( "Save experiment" );
+    this->SaveExperimentFileButton->SetBorderWidth(2);
+    this->SaveExperimentFileButton->SetReliefToRaised();       
+    this->SaveExperimentFileButton->SetHighlightThickness(2);
+    this->SaveExperimentFileButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->SaveExperimentFileButton->SetActiveBackgroundColor(1,1,1);               
+    this->SaveExperimentFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconFloppy);
+    this->SaveExperimentFileButton->SetBalloonHelpString(
+      "Click to save experiment in a file" );
+    this->SaveExperimentFileButton->GetLoadSaveDialog()->SaveDialogOn();
+    this->SaveExperimentFileButton->TrimPathFromFileNameOff();
+    this->SaveExperimentFileButton->SetMaximumFileNameLength( 256 );
+    this->SaveExperimentFileButton->GetLoadSaveDialog()->SetFileTypes(
+      "{{XML File} {.xml}} {{All Files} {*.*}}" ); 
+    this->SaveExperimentFileButton->GetLoadSaveDialog()->
+      RetrieveLastPathFromRegistry( "OpenPath" );
+    }
+  this->Script( "pack %s -side top -anchor ne -padx 2 -pady 2", 
+                this->SaveExperimentFileButton->GetWidgetName() );
+}
+
+
+void
+vtkPerkStationModuleGUI
+::BuildGUIForWorkphases()
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication*)( this->GetApplication() );
+  vtkKWWidget* page = this->UIPanel->GetPageWidget( "PerkStationModule" );
   
     // Work phase collapsible frame with push buttons.
   
   this->WorkphaseButtonFrame->SetParent( page );
   this->WorkphaseButtonFrame->Create();
-  // this->WorkphaseButtonFrame->SetLabelText( "Work phase frame" );
-  // this->WorkphaseButtonFrame->ExpandFrame();
   
-  // app->Script ( "pack %s -side top -fill x -expand y -padx 1 -pady 1",
   app->Script("pack %s -side top -fill x -expand y -anchor w -padx 4 -pady 2",
                 this->WorkphaseButtonFrame->GetWidgetName());
- 
- 
-    // ----------------------------------------------------------------
-    // Add workphase button set.
+  
+    // Workphase button set.
   
   this->WorkphaseButtonSet = vtkKWPushButtonSet::New();
     this->WorkphaseButtonSet->SetParent( this->WorkphaseButtonFrame );
@@ -1113,6 +1356,7 @@ void vtkPerkStationModuleGUI::BuildGUI()
                   this->WorkphaseButtonSet->GetWidgetName() );    
 
     // Captions for radiobuttons.
+  
   const char *buffer[] =
     {
     "Calibrate", "Plan", "Insert", "Validate"
@@ -1132,244 +1376,32 @@ void vtkPerkStationModuleGUI::BuildGUI()
     }
   
     // Initial state.
+  
   this->WorkphaseButtonSet->GetWidget( 0 )->SetReliefToSunken();
-
-    // ---------------------------------------------------------------
-    // Create the volume selection frame
   
-  vtkKWFrame *volSelFrame = vtkKWFrame::New();
-  volSelFrame->SetParent(loadSaveExptFrame->GetFrame());
-  volSelFrame->Create();     
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    volSelFrame->GetWidgetName());
+    // Wizard collapsible frame with individual steps inside
   
-    
-    // ---------------------------------------------------------------
-    // MRML node
-  
-  this->PSNodeSelector->SetNodeClass("vtkMRMLPerkStationModuleNode", NULL, NULL, "PS Parameters");
-  this->PSNodeSelector->SetNewNodeEnabled(1);
-  this->PSNodeSelector->NoneEnabledOn();
-  this->PSNodeSelector->SetShowHidden(1);
-  this->PSNodeSelector->SetParent( volSelFrame );
-  this->PSNodeSelector->Create();
-  this->PSNodeSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
-  this->PSNodeSelector->UpdateMenu();
+  this->WizardFrame = vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();
+    this->WizardFrame->SetParent( page );
+    this->WizardFrame->Create();
+    this->WizardFrame->SetLabelText( "Wizard" );
+    this->WizardFrame->ExpandFrame();
 
-  this->PSNodeSelector->SetBorderWidth(2);
-  this->PSNodeSelector->SetLabelText( "PERK Parameters");
-  this->PSNodeSelector->SetBalloonHelpString("select a PS node from the current mrml scene.");
-  app->Script("pack %s -side left -anchor w -padx 2 -pady 4", 
-                this->PSNodeSelector->GetWidgetName());
-
-  //input volume selector
-  this->VolumeSelector->SetNodeClass("vtkMRMLScalarVolumeNode", NULL, NULL, NULL);
-  this->VolumeSelector->SetParent( volSelFrame );
-  this->VolumeSelector->Create();
-  this->VolumeSelector->SetMRMLScene(this->Logic->GetMRMLScene());
-  this->VolumeSelector->UpdateMenu();
-
-  this->VolumeSelector->SetBorderWidth(2);
-  this->VolumeSelector->SetLabelText( "Active Volume: ");
-  this->VolumeSelector->SetBalloonHelpString("select an input volume from the current mrml scene.");
-  app->Script("pack %s -side top -anchor e -padx 2 -pady 4", 
-                this->VolumeSelector->GetWidgetName());
-
-  // load volume buttons
-  vtkKWFrame *loadVolFrame = vtkKWFrame::New();
-  loadVolFrame->SetParent(loadSaveExptFrame->GetFrame());
-  loadVolFrame->Create();     
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    loadVolFrame->GetWidgetName());
-
-  // create the load file dialog button
-  if (!this->LoadPlanningVolumeButton)
-    {
-    this->LoadPlanningVolumeButton = vtkKWLoadSaveButton::New();
-    }
-  if (!this->LoadPlanningVolumeButton->IsCreated())
-    {
-    this->LoadPlanningVolumeButton->SetParent(loadVolFrame);
-    this->LoadPlanningVolumeButton->Create();
-    this->LoadPlanningVolumeButton->SetBorderWidth(2);
-    this->LoadPlanningVolumeButton->SetReliefToRaised();       
-    this->LoadPlanningVolumeButton->SetHighlightThickness(2);
-    this->LoadPlanningVolumeButton->SetBackgroundColor(0.85,0.85,0.85);
-    this->LoadPlanningVolumeButton->SetActiveBackgroundColor(1,1,1);
-    this->LoadPlanningVolumeButton->SetText("Load planning volume");
-    this->LoadPlanningVolumeButton->SetImageToPredefinedIcon(vtkKWIcon::IconPresetLoad);
-    this->LoadPlanningVolumeButton->SetBalloonHelpString("Click to load a planning image or a volume");
-    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
-    this->LoadPlanningVolumeButton->TrimPathFromFileNameOn();
-    this->LoadPlanningVolumeButton->SetMaximumFileNameLength(256);
-    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode
-    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->SetFileTypes("{ {DICOM Files} {*} }");      
-    }
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                        this->LoadPlanningVolumeButton->GetWidgetName());
-
-   // create the load file dialog button
-  if (!this->LoadValidationVolumeButton)
-    {
-    this->LoadValidationVolumeButton = vtkKWLoadSaveButton::New();
-    }
-  if (!this->LoadValidationVolumeButton->IsCreated())
-    {
-    this->LoadValidationVolumeButton->SetParent(loadVolFrame);
-    this->LoadValidationVolumeButton->Create();
-    this->LoadValidationVolumeButton->SetBorderWidth(2);
-    this->LoadValidationVolumeButton->SetReliefToRaised();       
-    this->LoadValidationVolumeButton->SetHighlightThickness(2);
-    this->LoadValidationVolumeButton->SetBackgroundColor(0.85,0.85,0.85);
-    this->LoadValidationVolumeButton->SetActiveBackgroundColor(1,1,1);
-    this->LoadValidationVolumeButton->SetText("Load validation volume");
-    this->LoadValidationVolumeButton->SetImageToPredefinedIcon(vtkKWIcon::IconPresetLoad);
-    this->LoadValidationVolumeButton->SetBalloonHelpString("Click to load a validation image or a volume");
-    this->LoadValidationVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
-    this->LoadPlanningVolumeButton->TrimPathFromFileNameOn();
-    this->LoadValidationVolumeButton->SetMaximumFileNameLength(256);
-    this->LoadValidationVolumeButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode
-    this->LoadValidationVolumeButton->GetLoadSaveDialog()->SetFileTypes("{ {DICOM Files} {*} }");
-    this->LoadValidationVolumeButton->SetEnabled(0);
-    }
-  this->Script("pack %s -side top -anchor ne -padx 2 -pady 2", 
-                        this->LoadValidationVolumeButton->GetWidgetName());
-
-  vtkKWFrameWithLabel *windowLevelFrame = vtkKWFrameWithLabel::New();
-  windowLevelFrame->SetParent(loadSaveExptFrame->GetFrame());
-  windowLevelFrame->SetLabelText("Window/Level");
-  windowLevelFrame->Create();
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    windowLevelFrame->GetWidgetName());
-
-
-  if (!this->DisplayVolumeWindowValue)
-    {
-    this->DisplayVolumeWindowValue = vtkKWScaleWithEntry::New();
-    }
-  if (!this->DisplayVolumeWindowValue->IsCreated())
-    {
-    this->DisplayVolumeWindowValue->SetParent(windowLevelFrame->GetFrame());
-    this->DisplayVolumeWindowValue->Create();
-    this->DisplayVolumeWindowValue->SetRange(0.0, 8192.0);
-    this->DisplayVolumeWindowValue->SetResolution(10.0);
-    this->DisplayVolumeWindowValue->SetLength(150);
-    this->DisplayVolumeWindowValue->SetLabelText("Window"); 
-    this->DisplayVolumeWindowValue->SetLabelPositionToTop();
-    this->DisplayVolumeWindowValue->SetEntryPositionToTop();
-    }
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                        this->DisplayVolumeWindowValue->GetWidgetName());
-
-  if (!this->DisplayVolumeLevelValue)
-    {
-    this->DisplayVolumeLevelValue = vtkKWScaleWithEntry::New();
-    }
-  if (!this->DisplayVolumeLevelValue->IsCreated())
-    {
-    this->DisplayVolumeLevelValue->SetParent(windowLevelFrame->GetFrame());
-    this->DisplayVolumeLevelValue->Create();
-    this->DisplayVolumeLevelValue->SetRange(0.0, 2048.0);
-    this->DisplayVolumeLevelValue->SetResolution(10.0);
-    this->DisplayVolumeLevelValue->SetLength(150);
-    this->DisplayVolumeLevelValue->SetLabelText("Level");   
-    this->DisplayVolumeLevelValue->SetLabelPositionToTop();
-    this->DisplayVolumeLevelValue->SetEntryPositionToTop();
-    
-    }
-  this->Script("pack %s -side top -anchor ne -padx 2 -pady 2", 
-                        this->DisplayVolumeLevelValue->GetWidgetName());
-
-
-
-  // Create the frame
-  vtkKWFrame *loadSaveFrame = vtkKWFrame::New();
-  loadSaveFrame->SetParent(loadSaveExptFrame->GetFrame());
-  loadSaveFrame->Create();     
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    loadSaveFrame->GetWidgetName());
-
-    // create the load file dialog button
-    if (!this->LoadExperimentFileButton)
-    {
-    this->LoadExperimentFileButton = vtkKWLoadSaveButton::New();
-    }
-    if (!this->LoadExperimentFileButton->IsCreated())
-    {
-    this->LoadExperimentFileButton->SetParent(loadSaveFrame);
-    this->LoadExperimentFileButton->Create();
-    this->LoadExperimentFileButton->SetBorderWidth(2);
-    this->LoadExperimentFileButton->SetReliefToRaised();       
-    this->LoadExperimentFileButton->SetHighlightThickness(2);
-    this->LoadExperimentFileButton->SetBackgroundColor(0.85,0.85,0.85);
-    this->LoadExperimentFileButton->SetActiveBackgroundColor(1,1,1);
-    this->LoadExperimentFileButton->SetText("Load experiment");
-    this->LoadExperimentFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconPresetLoad);
-    this->LoadExperimentFileButton->SetBalloonHelpString("Click to load a previous experiment file");
-    this->LoadExperimentFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
-    this->LoadExperimentFileButton->TrimPathFromFileNameOff();
-    this->LoadExperimentFileButton->SetMaximumFileNameLength(256);
-    this->LoadExperimentFileButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode
-    this->LoadExperimentFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
-    }
-    this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                        this->LoadExperimentFileButton->GetWidgetName());
-
-    // create the load file dialog button
-    if (!this->SaveExperimentFileButton)
-    {
-    this->SaveExperimentFileButton = vtkKWLoadSaveButton::New();
-    }
-    if (!this->SaveExperimentFileButton->IsCreated())
-    {
-    this->SaveExperimentFileButton->SetParent(loadSaveFrame);
-    this->SaveExperimentFileButton->Create();
-    this->SaveExperimentFileButton->SetText("Save experiment");
-    this->SaveExperimentFileButton->SetBorderWidth(2);
-    this->SaveExperimentFileButton->SetReliefToRaised();       
-    this->SaveExperimentFileButton->SetHighlightThickness(2);
-    this->SaveExperimentFileButton->SetBackgroundColor(0.85,0.85,0.85);
-    this->SaveExperimentFileButton->SetActiveBackgroundColor(1,1,1);               
-    this->SaveExperimentFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconFloppy);
-    this->SaveExperimentFileButton->SetBalloonHelpString("Click to save experiment in a file");
-    this->SaveExperimentFileButton->GetLoadSaveDialog()->SaveDialogOn(); // save mode
-    this->SaveExperimentFileButton->TrimPathFromFileNameOff();
-    this->SaveExperimentFileButton->SetMaximumFileNameLength(256);
-    this->SaveExperimentFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
-    this->SaveExperimentFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
-    }
-    this->Script("pack %s -side top -anchor ne -padx 2 -pady 2", 
-                        this->SaveExperimentFileButton->GetWidgetName());
-
-
-  windowLevelFrame->Delete();
-  volSelFrame->Delete();
-  loadSaveFrame->Delete();
-  loadSaveExptFrame->Delete();
-  loadVolFrame->Delete();
-  // Wizard collapsible frame with individual steps inside
-  this->WizardFrame = vtkSlicerModuleCollapsibleFrame::New();
-  this->WizardFrame->SetParent( page );
-  this->WizardFrame->Create();
-  this->WizardFrame->SetLabelText("Wizard");
-  this->WizardFrame->ExpandFrame();
-
-  app->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-              this->WizardFrame->GetWidgetName(), 
-              page->GetWidgetName());
+  app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               this->WizardFrame->GetWidgetName(), 
+               page->GetWidgetName() );
 
     // individual page/collapsible frame with their own widgets inside:
+  
   this->WizardWidget->SetParent( this->WizardFrame->GetFrame() );
   this->WizardWidget->Create();  
-  this->WizardWidget->GetSubTitleLabel()->SetHeight(1);
+  this->WizardWidget->GetSubTitleLabel()->SetHeight( 1 );
   this->WizardWidget->SetClientAreaMinimumHeight( 320 );
   this->WizardWidget->HelpButtonVisibilityOn();
   this->GetApplication()->Script(
     "pack %s -side top -anchor nw -fill both -expand y",
     this->WizardWidget->GetWidgetName() );
   
-
-  // vtkNotUsed(vtkKWWizardWidget *wizard_widget = this->WizardWidget;);
   
   vtkKWWizardWorkflow *wizard_workflow =
     this->WizardWidget->GetWizardWorkflow();
@@ -1400,33 +1432,26 @@ void vtkPerkStationModuleGUI::BuildGUI()
   
   wizard_workflow->SetFinishStep( this->ValidateStep );
   
-  
-  // -----------------------------------------------------------------
-  // Initial step and transitions
-  
   // TODO: How to set up the transitions correctly?
   
-  // wizard_workflow->CreateGoToTransitionsToFinishStep();
   wizard_workflow->SetInitialStep( this->CalibrateStep );    
+  
   this->SetUpPerkStationWizardWorkflow();
-  
-  // this->CalibrateStep->HardwareSelected( MONITOR_SIEMENS );
-  
-  this->Built = true;
-  
-  
 }
 
 
 //---------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::TearDownGUI() 
+void
+vtkPerkStationModuleGUI
+::TearDownGUI() 
 {
-  if (this->LoadPlanningVolumeButton)
+  if ( this->LoadPlanningVolumeButton )
     {
-    this->LoadPlanningVolumeButton->SetParent(NULL);
-    if(this->LoadPlanningVolumeButton->IsCreated())
+    this->LoadPlanningVolumeButton->SetParent( NULL );
+    if( this->LoadPlanningVolumeButton->IsCreated() )
       {      
-      // vtkKWLoadSaveButton set itself as a parent of its member function LoadSaveDialog automatically when it is created by LoadSaveDialog->SetParent(this),       
+      // vtkKWLoadSaveButton set itself as a parent of its member function
+      // LoadSaveDialog automatically when it is created by LoadSaveDialog->SetParent(this),       
       // but it does not do LoadSaveDialog->SetParent(NULL) in its destructor, so we do it here.
       this->LoadPlanningVolumeButton->GetLoadSaveDialog()->SetParent(NULL);
       }
