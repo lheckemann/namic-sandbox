@@ -191,16 +191,9 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   //
   //  Extract Comment, and ignore it.
   //
-  byte = this->m_InputGeometryFile.get();
+  std::string comment;
 
-  this->m_Comment = "";
-
-  while( byte != '\n' )
-    {
-    this->m_Comment += byte;
-    byte = this->m_InputGeometryFile.get();
-    }
-
+  getline( this->m_InputGeometryFile, comment );
 
   //
   // Try to get the second '\n', but if the '\n' is not there, we put the byte
