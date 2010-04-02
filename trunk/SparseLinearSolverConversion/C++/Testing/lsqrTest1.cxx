@@ -40,6 +40,53 @@ int lsqrTest1( int , char * [] )
 
   std::cout << x[0] << " " << x[1] << std::endl;
 
+  { // Test 1 Dnrm2()
+  unsigned int n = 5;
+  double x[n];
+  x[0] = 1.0;
+  x[1] = 1.0;
+  x[2] = 1.0;
+  x[3] = 1.0;
+  x[4] = 1.0;
+
+  const double norm =solver.Dnrm2( n, x );
+  const double expectedNorm = sqrt(5.0);
+  if( norm != expectedNorm )
+    {
+    std::cerr << "Error in Dnrm2() test 1 " << std::endl;
+    std::cerr << "Expected = " << expectedNorm << std::endl;
+    std::cerr << "Received = " << norm << std::endl;
+    return EXIT_FAILURE;
+    } 
+  std::cout << "Dnrm2 test1 passed " << std::endl;
+  }
+
+  { // Test 2 Dnrm2()
+  unsigned int n = 5;
+
+  const double dominantValue = 1e+300;
+
+  double x[n];
+  x[0] = 1e+30;
+  x[1] = 1e+200;
+  x[2] = dominantValue;
+  x[3] = 1e+2;
+  x[4] = 1e+1;
+
+  const double norm =solver.Dnrm2( n, x );
+  const double expectedNorm = dominantValue;
+
+  if( norm != expectedNorm )
+    {
+    std::cerr << "Error in Dnrm2() test 2 " << std::endl;
+    std::cerr << "Expected = " << expectedNorm << std::endl;
+    std::cerr << "Received = " << norm << std::endl;
+    return EXIT_FAILURE;
+    } 
+  std::cout << "Dnrm2 test2 passed " << std::endl;
+  }
+
+
   solver.SetOutputStream( std::cout );
 
   const double eps = 1e-15;
