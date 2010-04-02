@@ -106,16 +106,14 @@ public:
    */
   double Dnrm2( unsigned int n, const double *x ) const;
   
-  /**  A logical variable to say if the array se(*)
-   *   of standard error estimates should be computed.
-   *   If m > n  or  damp > 0,  the system is
-   *   overdetermined and the standard errors may be
-   *   useful.  (See the first LSQR reference.)
-   *   Otherwise (m <= n  and  damp = 0) they do not
-   *   mean much.  Some time and storage can be saved
-   *   by setting wantse = .false. and using any
-   *   convenient array for se(*), which won't be
-   *   touched.
+  /**  A logical variable to say if the array se(*) of standard error estimates
+   * should be computed.  If m > n  or  damp > 0,  the system is overdetermined
+   * and the standard errors may be useful.  (See the first LSQR reference.)
+   * Otherwise (m <= n  and  damp = 0) they do not mean much.  Some time and
+   * storage can be saved by setting wantse = .false. and using any convenient
+   * array for se(*), which won't be touched.  If you call this method with the
+   * flag ON, then you MUST provide a working memory array to store the standard
+   * error estimates, via the method SetStandardErrorEstimates() 
    */
   void SetStandardErrorEstimatesFlag( bool );
 
@@ -191,6 +189,12 @@ public:
    * the execution of the Solve function.
    */
   void SetOutputStream( std::ostream & os );
+
+  /** Provide the array where the standard error estimates will be stored. 
+   *  You MUST provide this working memory array if you turn on the computation
+   *  of standard error estimates with teh method SetStandardErrorEstimatesFlag().
+   */
+  void SetStandardErrorEstimates( double * array );
 
   /** 
    *   Returns an integer giving the reason for termination:
