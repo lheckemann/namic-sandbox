@@ -94,7 +94,7 @@ public:
 
 protected:
   FreeSurferBinarySurfaceReader();
-  ~FreeSurferBinarySurfaceReader() {}
+  ~FreeSurferBinarySurfaceReader();
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /** Reads the file */
@@ -130,13 +130,13 @@ private:
   void ReadNumberOfCellsFromDataFile();
   void ReadNumberOfValuesPerPointFromDataFile();
 
-  void ReadInteger32( std::ifstream & inputStream, ITK_UINT32 & valueToRead, bool verbose=false );
-  void ReadFloat( std::ifstream & inputStream, float & valueToRead );
+  void ReadInteger32( std::ifstream * inputStream, ITK_UINT32 & valueToRead, bool verbose=false );
+  void ReadFloat( std::ifstream * inputStream, float & valueToRead );
   void ReadPoint( PointType & point );
   void ReadCell( TriangleCellType & triangleCell );
 
-  std::ifstream  m_InputGeometryFile;
-  std::ifstream  m_InputDataFile;
+  std::ifstream  * m_InputGeometryFile;
+  std::ifstream  * m_InputDataFile;
 
   ITK_UINT32     m_FileType;
   ITK_UINT32     m_DataFileType;
