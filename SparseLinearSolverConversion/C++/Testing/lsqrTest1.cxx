@@ -41,15 +41,15 @@ int lsqrTest1( int , char * [] )
   std::cout << x[0] << " " << x[1] << std::endl;
 
   { // Test 1 Dnrm2()
-  unsigned int n = 5;
-  double x[n];
-  x[0] = 1.0;
-  x[1] = 1.0;
-  x[2] = 1.0;
-  x[3] = 1.0;
-  x[4] = 1.0;
+  unsigned int n1 = 5;
+  double x1[n1];
+  x1[0] = 1.0;
+  x1[1] = 1.0;
+  x1[2] = 1.0;
+  x1[3] = 1.0;
+  x1[4] = 1.0;
 
-  const double norm =solver.Dnrm2( n, x );
+  const double norm =solver.Dnrm2( n1, x1 );
   const double expectedNorm = sqrt(5.0);
   if( norm != expectedNorm )
     {
@@ -62,18 +62,18 @@ int lsqrTest1( int , char * [] )
   }
 
   { // Test 2 Dnrm2()
-  unsigned int n = 5;
+  unsigned int n2 = 5;
 
   const double dominantValue = 1e+300;
 
-  double x[n];
-  x[0] = 1e+30;
-  x[1] = 1e+200;
-  x[2] = dominantValue;
-  x[3] = 1e+2;
-  x[4] = 1e+1;
+  double x2[n2];
+  x2[0] = 1e+30;
+  x2[1] = 1e+200;
+  x2[2] = dominantValue;
+  x2[3] = 1e+2;
+  x2[4] = 1e+1;
 
-  const double norm =solver.Dnrm2( n, x );
+  const double norm =solver.Dnrm2( n2, x2 );
   const double expectedNorm = dominantValue;
 
   if( norm != expectedNorm )
