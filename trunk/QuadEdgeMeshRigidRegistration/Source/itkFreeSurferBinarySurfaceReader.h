@@ -130,7 +130,7 @@ private:
   void ReadNumberOfCellsFromDataFile();
   void ReadNumberOfValuesPerPointFromDataFile();
 
-  void ReadInteger32( std::ifstream & inputStream, ITK_UINT32 & valueToRead );
+  void ReadInteger32( std::ifstream & inputStream, ITK_UINT32 & valueToRead, bool verbose=false );
   void ReadFloat( std::ifstream & inputStream, float & valueToRead );
   void ReadPoint( PointType & point );
   void ReadCell( TriangleCellType & triangleCell );
