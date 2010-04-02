@@ -50,6 +50,15 @@ template<class TOutputMesh>
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::~FreeSurferBinarySurfaceReader()
 {
+  this->ReleaseResources();
+}
+
+
+template<class TOutputMesh>
+void
+FreeSurferBinarySurfaceReader<TOutputMesh>
+::ReleaseResources()
+{
   if( this->m_InputGeometryFile )
     {
     delete this->m_InputGeometryFile;
@@ -67,17 +76,11 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::GenerateData()
 {
-std::cout << "A1" << std::endl;
   this->OpenGeometryFile();
-std::cout << "A2" << std::endl;
   this->ReadGeometryHeader();
-std::cout << "A3" << std::endl;
   this->PrepareOutputMesh();
-std::cout << "A4" << std::endl;
   this->ReadSurface();
-std::cout << "A5" << std::endl;
   this->CloseGeometryFile();
-std::cout << "A6" << std::endl;
 
   if( this->DataFileIsAvailable() )
     {
@@ -115,11 +118,13 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 {
   if( this->m_FileName.empty() )
     {
+    this->ReleaseResources();
     itkExceptionMacro("No input FileName");
     }
 
   if( ! itksys::SystemTools::FileExists( m_FileName.c_str() ) )
     {
+    this->ReleaseResources();
     itkExceptionMacro("File " << this->m_FileName << " does not exist");
     }
 
@@ -131,6 +136,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 
   if( this->m_InputGeometryFile->fail() )
     {
+    this->ReleaseResources();
     itkExceptionMacro("Unable to open geometry file inputFilename= " << this->m_FileName );
     }
 }
@@ -161,6 +167,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 
   if( this->m_InputDataFile->fail() )
     {
+    this->ReleaseResources();
     itkExceptionMacro("Unable to open data file inputFilename= " << this->m_DataFileName );
     }
 }
@@ -226,13 +233,6 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   //
   //  Extract Comment, and ignore it.
   //
-//   std::string comment;
-//   getline( this->m_InputGeometryFile, comment );
-//   std::cout << "Comment size = " << comment.size() << std::endl;
-
-  //
-  //  Extract Comment, and ignore it.
-  //
   byte = this->m_InputGeometryFile->get();
 
   this->m_Comment = "";
@@ -244,7 +244,6 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
     this->m_Comment += byte;
     byte = this->m_InputGeometryFile->get();
     count++;
-std::cout << count << " = " << int(byte) << " : " << byte << " : " << std::endl;
     }
 
   //
@@ -254,7 +253,6 @@ std::cout << count << " = " << int(byte) << " : " << byte << " : " << std::endl;
   byte = this->m_InputGeometryFile->get();
   if( byte != 0x0a )
     {
-std::cout << "PUT IT BACK " << std::endl;
     this->m_InputGeometryFile->unget();
     }
 }
@@ -265,8 +263,7 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::ReadNumberOfPointsFromGeometryFile()
 {
-  this->ReadInteger32( this->m_InputGeometryFile, this->m_NumberOfPoints, true );
-std::cout << "ReadNumberOfPointsFromGeometryFile = " << this->m_NumberOfPoints << std::endl;
+  this->ReadInteger32( this->m_InputGeometryFile, this->m_NumberOfPoints );
 }
 
 
@@ -326,11 +323,11 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 ::ReadNumberOfPointsFromDataFile()
 {
   ITK_UINT32 numberOfPointsInDataFile;
-  this->ReadInteger32( this->m_InputDataFile, numberOfPointsInDataFile, true );
+  this->ReadInteger32( this->m_InputDataFile, numberOfPointsInDataFile );
 
-std::cout << "ReadNumberOfPointsFromDataFile = " << this->m_NumberOfPoints << std::endl;
   if( numberOfPointsInDataFile != this->m_NumberOfPoints )
     {
+    this->ReleaseResources();
     itkExceptionMacro("Data file has " << numberOfPointsInDataFile 
       << " points while Geometry file has " << this->m_NumberOfPoints );
     }
@@ -347,6 +344,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 
   if( numberOfCellsInDataFile != this->m_NumberOfCells )
     {
+    this->ReleaseResources();
     itkExceptionMacro("Data file has " << numberOfCellsInDataFile 
       << " points while Geometry file has " << this->m_NumberOfCells );
     }
@@ -368,16 +366,11 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::PrepareOutputMesh()
 {
-std::cout << "C1" << std::endl;
   typename OutputMeshType::Pointer outputMesh = this->GetOutput();
-std::cout << "C2" << std::endl;
 
   outputMesh->SetCellsAllocationMethod(
       OutputMeshType::CellsAllocatedDynamicallyCellByCell );
-std::cout << "C3" << std::endl;
-std::cout << "number of points = " << this->m_NumberOfPoints << std::endl;
   outputMesh->GetPoints()->Reserve( this->m_NumberOfPoints );
-std::cout << "C4" << std::endl;
 }
 
 
@@ -474,15 +467,12 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 template<class TOutputMesh>
 void
 FreeSurferBinarySurfaceReader<TOutputMesh>
-::ReadInteger32( std::ifstream * inputStream, ITK_UINT32 & valueToRead, bool verbose )
+::ReadInteger32( std::ifstream * inputStream, ITK_UINT32 & valueToRead )
 {
-if( verbose ) std::cout << "Size of = " << sizeof(valueToRead) << std::endl;
   if( inputStream )
     {
     inputStream->read( (char *)(&valueToRead), sizeof(valueToRead) );
-if( verbose ) std::cout << "valueToRead before swap = " << valueToRead << std::endl;
     itk::ByteSwapper<ITK_UINT32>::SwapFromSystemToBigEndian( &valueToRead );
-if( verbose ) std::cout << "valueToRead after  swap = " << valueToRead << std::endl;
     }
 }
 
