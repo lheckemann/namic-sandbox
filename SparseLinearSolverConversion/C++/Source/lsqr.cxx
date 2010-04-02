@@ -90,6 +90,8 @@ lsqr::lsqr()
   this->rnorm = 0.0;
   this->Arnorm = 0.0;
   this->xnorm = 0.0;
+  this->wantse = false;
+  this->se = NULL;
 }
 
 
@@ -193,6 +195,13 @@ void
 lsqr::SetUpperLimitOnConditional( double value )
 {
   this->conlim = value;
+}
+
+
+void
+lsqr::SetStandardErrorEstimates( double * array )
+{
+  this->se = array;
 }
 
 
