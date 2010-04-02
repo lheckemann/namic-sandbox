@@ -218,7 +218,7 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::ReadNumberOfPointsFromGeometryFile()
 {
-  this->ReadInteger32( this->m_InputGeometryFile, this->m_NumberOfPoints );
+  this->ReadInteger32( this->m_InputGeometryFile, this->m_NumberOfPoints, true );
 std::cout << "ReadNumberOfPointsFromGeometryFile = " << this->m_NumberOfPoints << std::endl;
 }
 
@@ -276,7 +276,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 ::ReadNumberOfPointsFromDataFile()
 {
   ITK_UINT32 numberOfPointsInDataFile;
-  this->ReadInteger32( this->m_InputDataFile, numberOfPointsInDataFile );
+  this->ReadInteger32( this->m_InputDataFile, numberOfPointsInDataFile, true );
 
 std::cout << "ReadNumberOfPointsFromDataFile = " << this->m_NumberOfPoints << std::endl;
   if( numberOfPointsInDataFile != this->m_NumberOfPoints )
@@ -424,13 +424,13 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 template<class TOutputMesh>
 void
 FreeSurferBinarySurfaceReader<TOutputMesh>
-::ReadInteger32( std::ifstream & inputStream, ITK_UINT32 & valueToRead )
+::ReadInteger32( std::ifstream & inputStream, ITK_UINT32 & valueToRead, bool verbose )
 {
-std::cout << "Size of = " << sizeof(valueToRead) << std::endl;
+if( verbose ) std::cout << "Size of = " << sizeof(valueToRead) << std::endl;
   inputStream.read( (char *)(&valueToRead), sizeof(valueToRead) );
-std::cout << "valueToRead before swap = " << valueToRead << std::endl;
+if( verbose ) std::cout << "valueToRead before swap = " << valueToRead << std::endl;
   itk::ByteSwapper<ITK_UINT32>::SwapFromSystemToBigEndian( &valueToRead );
-std::cout << "valueToRead after  swap = " << valueToRead << std::endl;
+if( verbose ) std::cout << "valueToRead after  swap = " << valueToRead << std::endl;
 }
 
 
