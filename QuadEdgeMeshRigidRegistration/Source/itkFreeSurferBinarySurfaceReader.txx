@@ -38,6 +38,27 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   typename TOutputMesh::Pointer output = TOutputMesh::New();
   this->ProcessObject::SetNumberOfRequiredOutputs(1);
   this->ProcessObject::SetNthOutput(0, output.GetPointer());
+
+  this->m_InputGeometryFile = NULL;
+  this->m_InputDataFile = NULL;
+}
+
+// 
+// Destructor
+// 
+template<class TOutputMesh>
+FreeSurferBinarySurfaceReader<TOutputMesh>
+::~FreeSurferBinarySurfaceReader()
+{
+  if( this->m_InputGeometryFile )
+    {
+    delete this->m_InputGeometryFile;
+    }
+
+  if( this->m_InputDataFile )
+    {
+    delete this->m_InputDataFile;
+    }
 }
 
 
@@ -105,11 +126,12 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   //
   // Open file 
   //
-  this->m_InputGeometryFile.open( this->m_FileName.c_str() );
+  this->m_InputGeometryFile = new std::ifstream;
+  this->m_InputGeometryFile->open( this->m_FileName.c_str() );
 
-  if( !this->m_InputGeometryFile.is_open() )
+  if( this->m_InputGeometryFile->fail() )
     {
-    itkExceptionMacro("Unable to open file inputFilename= " << this->m_FileName );
+    itkExceptionMacro("Unable to open geometry file inputFilename= " << this->m_FileName );
     }
 }
 
@@ -119,7 +141,10 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::CloseGeometryFile()
 {
-  this->m_InputGeometryFile.close();
+  if( this->m_InputGeometryFile )
+    {
+    this->m_InputGeometryFile->close();
+    }
 }
 
 
@@ -131,11 +156,12 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   //
   // Open file 
   //
-  this->m_InputDataFile.open( this->m_DataFileName.c_str() );
+  this->m_InputDataFile = new std::ifstream;
+  this->m_InputDataFile->open( this->m_DataFileName.c_str() );
 
-  if( !this->m_InputDataFile.is_open() )
+  if( this->m_InputDataFile->fail() )
     {
-    itkExceptionMacro("Unable to open file inputFilename= " << this->m_DataFileName );
+    itkExceptionMacro("Unable to open data file inputFilename= " << this->m_DataFileName );
     }
 }
 
@@ -145,7 +171,7 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::CloseDataFile()
 {
-  this->m_InputDataFile.close();
+  this->m_InputDataFile->close();
 }
 
 
@@ -169,21 +195,24 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   const unsigned int fileTypeIdLength = 3;
   char fileTypeId[fileTypeIdLength];
 
-  this->m_InputGeometryFile.read( fileTypeId, fileTypeIdLength );
+  if( this->m_InputGeometryFile )
+    {
+    this->m_InputGeometryFile->read( fileTypeId, fileTypeIdLength );
 
-  this->m_FileType = 0;
-  this->m_FileType <<= 8;
+    this->m_FileType = 0;
+    this->m_FileType <<= 8;
 
-  this->m_FileType |= fileTypeId[0];
-  this->m_FileType <<= 8;
+    this->m_FileType |= fileTypeId[0];
+    this->m_FileType <<= 8;
 
-  this->m_FileType |= fileTypeId[1];
-  this->m_FileType <<= 8;
+    this->m_FileType |= fileTypeId[1];
+    this->m_FileType <<= 8;
 
-  this->m_FileType |= fileTypeId[2];
-  this->m_FileType <<= 8;
+    this->m_FileType |= fileTypeId[2];
+    this->m_FileType <<= 8;
 
-  itk::ByteSwapper<ITK_UINT32>::SwapFromSystemToBigEndian( &(this->m_FileType) );
+    itk::ByteSwapper<ITK_UINT32>::SwapFromSystemToBigEndian( &(this->m_FileType) );
+    }
 }
 
 
@@ -197,18 +226,36 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   //
   //  Extract Comment, and ignore it.
   //
-  std::string comment;
+//   std::string comment;
+//   getline( this->m_InputGeometryFile, comment );
+//   std::cout << "Comment size = " << comment.size() << std::endl;
 
-  getline( this->m_InputGeometryFile, comment );
+  //
+  //  Extract Comment, and ignore it.
+  //
+  byte = this->m_InputGeometryFile->get();
+
+  this->m_Comment = "";
+
+  unsigned int count = 0;
+
+  while( byte != 0x0a && count < 45 )
+    {
+    this->m_Comment += byte;
+    byte = this->m_InputGeometryFile->get();
+    count++;
+std::cout << count << " = " << int(byte) << " : " << byte << " : " << std::endl;
+    }
 
   //
   // Try to get the second '\n', but if the '\n' is not there, we put the byte
   // back.
   //
-  byte = this->m_InputGeometryFile.get();
-  if( byte != '\n' )
+  byte = this->m_InputGeometryFile->get();
+  if( byte != 0x0a )
     {
-    this->m_InputGeometryFile.unget();
+std::cout << "PUT IT BACK " << std::endl;
+    this->m_InputGeometryFile->unget();
     }
 }
 
@@ -252,21 +299,24 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   const unsigned int fileTypeIdLength = 3;
   char fileTypeId[fileTypeIdLength];
 
-  this->m_InputDataFile.read( fileTypeId, fileTypeIdLength );
+  if( this->m_InputDataFile )
+    {
+    this->m_InputDataFile->read( fileTypeId, fileTypeIdLength );
 
-  this->m_DataFileType = 0;
-  this->m_DataFileType <<= 8;
+    this->m_DataFileType = 0;
+    this->m_DataFileType <<= 8;
 
-  this->m_DataFileType |= fileTypeId[0];
-  this->m_DataFileType <<= 8;
+    this->m_DataFileType |= fileTypeId[0];
+    this->m_DataFileType <<= 8;
 
-  this->m_DataFileType |= fileTypeId[1];
-  this->m_DataFileType <<= 8;
+    this->m_DataFileType |= fileTypeId[1];
+    this->m_DataFileType <<= 8;
 
-  this->m_DataFileType |= fileTypeId[2];
-  this->m_DataFileType <<= 8;
+    this->m_DataFileType |= fileTypeId[2];
+    this->m_DataFileType <<= 8;
 
-  itk::ByteSwapper<ITK_UINT32>::SwapFromSystemToBigEndian( &(this->m_DataFileType) );
+    itk::ByteSwapper<ITK_UINT32>::SwapFromSystemToBigEndian( &(this->m_DataFileType) );
+    }
 }
 
 
@@ -393,7 +443,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 
   while( pointDataIterator != endPoint ) 
     {
-    this->m_InputDataFile.read( (char *)(&pixelValue), sizeof( pixelValue ) );
+    this->m_InputDataFile->read( (char *)(&pixelValue), sizeof( pixelValue ) );
     itk::ByteSwapper<float>::SwapFromSystemToBigEndian( &pixelValue );
     pointDataIterator.Value() = static_cast<PixelType>( pixelValue );
     ++pointDataIterator;
@@ -424,24 +474,30 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 template<class TOutputMesh>
 void
 FreeSurferBinarySurfaceReader<TOutputMesh>
-::ReadInteger32( std::ifstream & inputStream, ITK_UINT32 & valueToRead, bool verbose )
+::ReadInteger32( std::ifstream * inputStream, ITK_UINT32 & valueToRead, bool verbose )
 {
 if( verbose ) std::cout << "Size of = " << sizeof(valueToRead) << std::endl;
-  inputStream.read( (char *)(&valueToRead), sizeof(valueToRead) );
+  if( inputStream )
+    {
+    inputStream->read( (char *)(&valueToRead), sizeof(valueToRead) );
 if( verbose ) std::cout << "valueToRead before swap = " << valueToRead << std::endl;
-  itk::ByteSwapper<ITK_UINT32>::SwapFromSystemToBigEndian( &valueToRead );
+    itk::ByteSwapper<ITK_UINT32>::SwapFromSystemToBigEndian( &valueToRead );
 if( verbose ) std::cout << "valueToRead after  swap = " << valueToRead << std::endl;
+    }
 }
 
 
 template<class TOutputMesh>
 void
 FreeSurferBinarySurfaceReader<TOutputMesh>
-::ReadFloat( std::ifstream & inputStream, float & valueToRead  )
+::ReadFloat( std::ifstream * inputStream, float & valueToRead  )
 {
-  inputStream.read( (char *)(&valueToRead), sizeof(valueToRead) );
-
-  itk::ByteSwapper<float>::SwapFromSystemToBigEndian( &valueToRead );
+  if( inputStream )
+    {
+    inputStream->read( (char *)(&valueToRead), sizeof(valueToRead) );
+  
+    itk::ByteSwapper<float>::SwapFromSystemToBigEndian( &valueToRead );
+    }
 }
 
 
