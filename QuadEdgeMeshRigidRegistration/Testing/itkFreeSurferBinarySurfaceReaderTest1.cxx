@@ -50,11 +50,13 @@ int main(int argc, char* argv[] )
 
   surfaceReader->SetFileName(argv[1]);
 
+  std::cout << "Trying to read with a filename" << std::endl;
   TRY_EXPECT_NO_EXCEPTION( surfaceReader->Update() );
 
   surfaceReader->SetDataFileName("NonExistantFile");
 
   // Missing data file only produces a warning, not an exception.
+  std::cout << "Trying to read with a filename and wrong data filename " << std::endl;
   TRY_EXPECT_NO_EXCEPTION( surfaceReader->Update() );
 
   surfaceReader->SetDataFileName(argv[2]);
