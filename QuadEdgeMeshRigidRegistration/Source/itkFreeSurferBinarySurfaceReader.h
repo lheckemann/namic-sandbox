@@ -130,10 +130,12 @@ private:
   void ReadNumberOfCellsFromDataFile();
   void ReadNumberOfValuesPerPointFromDataFile();
 
-  void ReadInteger32( std::ifstream * inputStream, ITK_UINT32 & valueToRead, bool verbose=false );
+  void ReadInteger32( std::ifstream * inputStream, ITK_UINT32 & valueToRead );
   void ReadFloat( std::ifstream * inputStream, float & valueToRead );
   void ReadPoint( PointType & point );
   void ReadCell( TriangleCellType & triangleCell );
+
+  void ReleaseResources();
 
   std::ifstream  * m_InputGeometryFile;
   std::ifstream  * m_InputDataFile;
