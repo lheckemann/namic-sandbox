@@ -31,6 +31,7 @@ IF(QuadEdgeMeshRigidRegistration_USE_VTK)
   INCLUDE(${VTK_USE_FILE})
 ENDIF(QuadEdgeMeshRigidRegistration_USE_VTK)
 
+OPTION(BUILD_REPORTS "Generate articles for the Insight Journal" OFF)
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin CACHE INTERNAL "Where to put the executables") 
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin CACHE INTERNAL "Where to put the libraries") 
@@ -61,4 +62,7 @@ ENDIF(WIN32)
 ADD_SUBDIRECTORY( Source )
 ADD_SUBDIRECTORY( Testing )
 ADD_SUBDIRECTORY( Examples )
-ADD_SUBDIRECTORY( Documents )
+
+IF( BUILD_REPORTS )
+  ADD_SUBDIRECTORY( Documents )
+ENDIF( BUILD_REPORTS )
