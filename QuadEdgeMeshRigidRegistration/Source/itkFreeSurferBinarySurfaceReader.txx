@@ -46,11 +46,17 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::GenerateData()
 {
+std::cout << "A1" << std::endl;
   this->OpenGeometryFile();
+std::cout << "A2" << std::endl;
   this->ReadGeometryHeader();
+std::cout << "A3" << std::endl;
   this->PrepareOutputMesh();
+std::cout << "A4" << std::endl;
   this->ReadSurface();
+std::cout << "A5" << std::endl;
   this->CloseGeometryFile();
+std::cout << "A6" << std::endl;
 
   if( this->DataFileIsAvailable() )
     {
@@ -213,6 +219,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 ::ReadNumberOfPointsFromGeometryFile()
 {
   this->ReadInteger32( this->m_InputGeometryFile, this->m_NumberOfPoints );
+std::cout << "ReadNumberOfPointsFromGeometryFile = " << this->m_NumberOfPoints << std::endl;
 }
 
 
@@ -271,6 +278,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   ITK_UINT32 numberOfPointsInDataFile;
   this->ReadInteger32( this->m_InputDataFile, numberOfPointsInDataFile );
 
+std::cout << "ReadNumberOfPointsFromDataFile = " << this->m_NumberOfPoints << std::endl;
   if( numberOfPointsInDataFile != this->m_NumberOfPoints )
     {
     itkExceptionMacro("Data file has " << numberOfPointsInDataFile 
@@ -310,12 +318,16 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::PrepareOutputMesh()
 {
+std::cout << "C1" << std::endl;
   typename OutputMeshType::Pointer outputMesh = this->GetOutput();
+std::cout << "C2" << std::endl;
 
   outputMesh->SetCellsAllocationMethod(
       OutputMeshType::CellsAllocatedDynamicallyCellByCell );
-
+std::cout << "C3" << std::endl;
+std::cout << "number of points = " << this->m_NumberOfPoints << std::endl;
   outputMesh->GetPoints()->Reserve( this->m_NumberOfPoints );
+std::cout << "C4" << std::endl;
 }
 
 
