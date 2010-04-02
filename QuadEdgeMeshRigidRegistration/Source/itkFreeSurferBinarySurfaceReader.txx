@@ -426,9 +426,11 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::ReadInteger32( std::ifstream & inputStream, ITK_UINT32 & valueToRead )
 {
+std::cout << "Size of = " << sizeof(valueToRead) << std::endl;
   inputStream.read( (char *)(&valueToRead), sizeof(valueToRead) );
-
+std::cout << "valueToRead before swap = " << valueToRead << std::endl;
   itk::ByteSwapper<ITK_UINT32>::SwapFromSystemToBigEndian( &valueToRead );
+std::cout << "valueToRead after  swap = " << valueToRead << std::endl;
 }
 
 
