@@ -179,6 +179,27 @@ int lsqrTest1( int , char * [] )
 
   solver.SetStandardErrorEstimatesFlag( true );
 
+  { // basic test for Solve() 
+  const unsigned int mm = 2;
+  const unsigned int nn = 2;
+  double bb[nn];
+  double xx[mm];
+  solver.SetStandardErrorEstimatesFlag( false );
+  solver.Solve( mm, nn, bb, xx );
+  }
+
+  { // basic test for Solve() 
+  const unsigned int mm = 2;
+  const unsigned int nn = 2;
+  double bb[nn];
+  double xx[mm];
+  solver.SetStandardErrorEstimatesFlag( true );
+  double se[nn];
+  solver.SetStandardErrorEstimates( se );
+  solver.Solve( mm, nn, bb, xx );
+  }
+
+
   std::cout << "Stopped because " << solver.GetStoppingReason() << std::endl;
   std::cout << "Used " << solver.GetNumberOfIterationsPerformed() << " Iterations" << std::endl;
   std::cout << "Frobenius norm estimation of Abar = " << solver.GetFrobeniusNormEstimateOfAbar() << std::endl;
