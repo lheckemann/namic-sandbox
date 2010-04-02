@@ -282,38 +282,36 @@ Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const
 double
 lsqr::Dnrm2( unsigned int n, const double *x ) const
 {
-#ifdef WORKINPROGRESS
-  integer i__1, i__2;
-  doublereal ret_val, d__1;
+  double magnitudeOfLargestElement = 0.0;
 
-  integer ix;
-  doublereal ssq, norm, scale, absxi;
+  double sumOfSquaresScaled = 1.0;
 
-  --x;
+  for ( unsigned int i = 0; i < n; i++ )
+    {
+    if ( x[i] != 0.0 ) 
+      {
+      double dx = x[i];
+      const double absxi = Abs(dx);
 
-      scale = 0.;
-      ssq = 1.;
-
-      i__1 = (*n - 1) * *incx + 1;
-      i__2 = *incx;
-      for (ix = 1; i__2 < 0 ? ix >= i__1 : ix <= i__1; ix += i__2) {
-          if (x[ix] != 0.) {
-              absxi = (d__1 = x[ix], abs(d__1));
-              if (scale < absxi) {
-                  d__1 = scale / absxi;
-                  ssq = ssq * (d__1 * d__1) + 1.;
-                  scale = absxi;
-              } else {
-                  d__1 = absxi / scale;
-                  ssq += d__1 * d__1;
-              }
-          }
+      if ( magnitudeOfLargestElement < absxi ) 
+        {
+        // rescale the sum to the range of the new element
+        dx = magnitudeOfLargestElement / absxi;
+        sumOfSquaresScaled = sumOfSquaresScaled * (dx * dx) + 1.0;
+        magnitudeOfLargestElement = absxi;
+        }
+      else
+        {
+        // rescale the new element to the range of the sum
+        dx = absxi / magnitudeOfLargestElement;
+        sumOfSquaresScaled += dx * dx;
+        }
       }
-      norm = scale * sqrt(ssq);
-  ret_val = norm;
-  return ret_val;
-#endif
-  return 0.0;
+    }
+
+  const double norm = magnitudeOfLargestElement * sqrt( sumOfSquaresScaled );
+
+  return norm;
 }
 
 
