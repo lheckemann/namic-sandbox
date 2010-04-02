@@ -141,6 +141,25 @@ int lsqrTest1( int , char * [] )
   }
 
 
+  { // Testing D2Norm
+  const double zero = 0.0;
+  const double a = zero;
+  const double b = zero;
+  const double d2norm = solver.D2Norm( a, b );
+
+  const double difference = fabs( d2norm - zero );
+
+  if( difference > tolerance )
+    {
+    std::cerr << "Error in D2Norm() test 3 " << std::endl;
+    std::cerr << "Expected = " << zero << std::endl;
+    std::cerr << "Received = " << d2norm << std::endl;
+    return EXIT_FAILURE;
+    } 
+  std::cout << "D2Norm test 3 passed " << std::endl;
+  }
+
+
   solver.SetOutputStream( std::cout );
 
   const double eps = 1e-15;
