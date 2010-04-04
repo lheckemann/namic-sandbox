@@ -421,13 +421,49 @@ Solve( unsigned int m, unsigned n, double * b, double * x )
 
   this->Arnorm = alpha * beta;
 
-  if ( this->Arnorm == zero )
-    {
-    goto G800;
-    }
+  double rhobar = alpha;
+  double phibar = beta;
+  double bnorm = beta;
 
-// Come here if Arnorm = 0, or if normal exit.
-G800:
+  this->rnorm = beta;
+
+  double test1 = 0.0;
+  double test2 = 0.0;
+
+
+  if ( this->Arnorm != zero )
+    {
+
+    if ( this->nout )
+      {
+      if ( damped )
+        {
+        (*this->nout) << " Itn       x(1)           Function"\
+        "     Compatible   LS     Norm Abar Cond Abar alfa_opt" << std::endl;
+        }
+      else
+        {
+        (*this->nout) << " Itn       x(1)           Function"\
+        "     Compatible   LS        Norm A    Cond A" << std::endl;
+        }
+
+      test1 = one;
+      test2 = alpha / beta;
+
+      this->nout->width(6);
+      (*this->nout) << itn;
+      this->nout->precision(9);
+      this->nout->precision(17);
+      (*this->nout) << x[0];
+      this->nout->precision(2);
+      this->nout->precision(10);
+      (*this->nout) << rnorm;
+      this->nout->precision(1);
+      this->nout->precision(9);
+      (*this->nout) << test1;
+      (*this->nout) << test2;
+      }
+    }
 
 
   // Release locally allocated arrays.
