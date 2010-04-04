@@ -7,6 +7,10 @@ PROJECT(LSQR)
 
 INCLUDE(CTest)
 
+CONFIGURE_FILE(
+  ${PROJECT_SOURCE_DIR}/CTestCustom.cmake.in
+  ${PROJECT_BINARY_DIR}/CTestCustom.cmake
+  )
 
 CONFIGURE_FILE(
   ${PROJECT_SOURCE_DIR}/Utilities/Scripts/computeCodeCoverageLocally.sh.in
