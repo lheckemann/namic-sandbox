@@ -179,6 +179,33 @@ int lsqrTest1( int , char * [] )
 
   solver.SetStandardErrorEstimatesFlag( true );
 
+
+  { // basic test for Scale() 
+  const double factor = 8.0;
+  const unsigned int mm = 5;
+  double xx[mm];
+  for ( unsigned int i = 0; i < mm; i++ )
+    {
+    xx[i] = i * 5.0;
+    }
+
+  solver.Scale( mm, factor, xx );
+
+  for ( unsigned int i = 0; i < mm; i++ )
+    {
+    const double expectedValue = ( i*5.0*factor );
+    const double ratioOfDifference = 
+      fabs( xx[i] - expectedValue ) / expectedValue;
+
+    if ( ratioOfDifference > tolerance )
+      {
+      std::cerr << "Error in method Scale() " << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+  }
+
+
   { // basic test for Solve() 
   const unsigned int mm = 2;
   const unsigned int nn = 2;
