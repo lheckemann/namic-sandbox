@@ -36,6 +36,10 @@ int lsqrTest2( int , char * [] )
   double bb[nn];
   double xx[mm];
 
+  bb[0] = 1.0;
+  bb[1] = 7.0;
+  bb[2] = 3.0;
+
   solver.SetStandardErrorEstimatesFlag( true );
   double se[nn];
 
