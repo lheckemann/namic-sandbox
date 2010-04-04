@@ -86,12 +86,23 @@ public:
   void HouseholderTransformation(unsigned int n, const double * z, double * x ) const;
 
   /**
+   * computes y = y + A*x without altering x,
+   * where A is a test matrix of the form  A = Y*D*Z,
+   * and the matrices D, Y, Z are represented by
+   * the allocatable vectors d, hy, hz in this module.
+   * The size of the vector x is n.
+   * The size of the vector y is m.
+   */
+  void Aprod1(unsigned int m, unsigned int n, const double * x, double * y ) const;
+
+  /**
    * computes x = x + A'*y without altering y,
    * where A is a test matrix of the form  A = Y*D*Z,
    * and the matrices D, Y, Z are represented by
    * the allocatable vectors d, hy, hz in this module.
    * The size of the vector x is n.
-   * The size of the vector y is m. */
+   * The size of the vector y is m.
+   */
   void Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const;
   
   /**
