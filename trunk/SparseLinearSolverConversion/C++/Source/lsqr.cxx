@@ -414,6 +414,10 @@ Solve( unsigned int m, unsigned n, double * b, double * x )
   double * v = new double[n];
   double * w = new double[n];
 
+  //-------------------------------------------------------------------
+  //  Set up the first vectors u and v for the bidiagonalization.
+  //  These satisfy  beta*u = b,  alpha*v = A(transpose)*u.
+  //-------------------------------------------------------------------
   CopyVector( m, b, u );
   AssignScalarValueToVectorElements( 0, n, zero, v );
   AssignScalarValueToVectorElements( 0, n, zero, x );
@@ -430,7 +434,7 @@ Solve( unsigned int m, unsigned n, double * b, double * x )
   if( beta > zero )
     {
     this->Scale( m, ( one / beta ), u );
-    this->Aprod2( m, n, v, u );
+    this->Aprod2( m, n, v, u );   //     v = A'*u
     alpha = this->Dnrm2( n, v );
     }
 
@@ -486,19 +490,121 @@ Solve( unsigned int m, unsigned n, double * b, double * x )
       }
     }
 
+  double temp;
+  double test3;
+  double rtol;
 
-  //
+
   //  Main itertation loop
   //
   do {
 
     this->itn++; 
 
+    //----------------------------------------------------------------
+    //  Perform the next step of the bidiagonalization to obtain the
+    //  next beta, u, alpha, v.  These satisfy
+    //      beta*u = A*v  - alpha*u,
+    //     alpha*v = A'*u -  beta*v.
+    //----------------------------------------------------------------
     this->Scale( m, (-alpha), u );
 
     this->Aprod1( m, n, v, u );   //   u = A * v
 
     beta = this->Dnrm2( m, u );
+
+    //
+    //  Accumulate Anorm = ||Bk|| = norm([alpha beta damp]).
+    //
+    temp   = this->D2Norm( alpha, beta );
+    temp   = this->D2Norm( temp , damp );
+    Anorm  = this->D2Norm( Anorm, temp );
+
+    if ( beta > zero )
+      {
+      this->Scale( m, (one/beta), u );
+      this->Scale( n, (- beta), v );
+      this->Aprod2( m, n, v, u );    // v = A'*u
+
+      alpha  = this->Dnrm2( n, v );
+
+      if ( alpha > zero )
+        {
+        this->Scale( n, (one/alpha), v );
+        }
+     }
+
+    //----------------------------------------------------------------
+    //  Use a plane rotation to eliminate the damping parameter.
+    //  This alters the diagonal (rhobar) of the lower-bidiagonal matrix.
+    //----------------------------------------------------------------
+    double rhbar1 = rhobar;
+    if ( damped )
+      {
+      rhbar1 = this->D2Norm( rhobar, damp );
+      const double cs1    = rhobar / rhbar1;
+      const double sn1    = this->damp  /rhbar1;
+      psi    = sn1 * phibar;
+      phibar = cs1 * phibar;
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //----------------------------------------------------------------
+    // See if it is time to print something.
+    //----------------------------------------------------------------
+    bool prnt = false;
+    if (nout > 0)
+      {
+      if (n     <=        40) prnt = true;
+      if (itn   <=        10) prnt = true;
+      if (itn   >= itnlim-10) prnt = true;
+      if ( (itn % 10)  ==  0) prnt = true;
+      if (test3 <=  2.0*ctol) prnt = true;
+      if (test2 <= 10.0*atol) prnt = true;
+      if (test1 <= 10.0*rtol) prnt = true;
+      if (istop !=         0) prnt = true;
+
+      if (prnt) // Print a line for this iteration.
+        {
+        // write(nout,1500) itn,x(1),rnorm,test1,test2,Anorm,Acond,alfopt
+        }
+      }
+
+
+    //----------------------------------------------------------------
+    // Stop if appropriate.
+    // The convergence criteria are required to be met on  nconv
+    // consecutive iterations, where  nconv  is set below.
+    // Suggested value:  nconv = 1, 2  or  3.
+    //----------------------------------------------------------------
+    if (istop == 0)
+      {
+      nstop = 0;
+      }
+    else
+      {
+      const unsigned int nconv = 1;
+      nstop = nstop + 1;
+
+      if ( ( nstop < nconv ) && ( itn < itnlim ) )
+        {
+        istop = 0;
+        }
+      }
 
     } while ( istop != 0); 
 
