@@ -183,6 +183,8 @@ int lsqrTest1( int , char * [] )
   const unsigned int mm = 2;
   const unsigned int nn = 2;
   double bb[nn];
+  bb[0] = 1.0;
+  bb[1] = 7.0;
   double xx[mm];
   solver.SetStandardErrorEstimatesFlag( false );
   solver.Solve( mm, nn, bb, xx );
@@ -192,6 +194,8 @@ int lsqrTest1( int , char * [] )
   const unsigned int mm = 2;
   const unsigned int nn = 2;
   double bb[nn];
+  bb[0] = 3.0;
+  bb[1] = 5.0;
   double xx[mm];
   solver.SetStandardErrorEstimatesFlag( true );
   double se[nn];
