@@ -106,6 +106,11 @@ public:
    */
   double Dnrm2( unsigned int n, const double *x ) const;
   
+  /**
+   * Scale a vector by multiplying with a constant
+   */
+  void Scale( unsigned int n, double factor, double *x ) const;
+ 
   /**  A logical variable to say if the array se(*) of standard error estimates
    * should be computed.  If m > n  or  damp > 0,  the system is overdetermined
    * and the standard errors may be useful.  (See the first LSQR reference.)
@@ -279,6 +284,8 @@ public:
    * 
    *    solves Ax = b or min ||Ax - b|| with or without damping,
    *
+   *    m is the size of the input  vector b
+   *    n is the size of the output vector x
    */
   void Solve( unsigned int m, unsigned n, double * b, double * x );
 

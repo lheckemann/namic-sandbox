@@ -278,6 +278,7 @@ HouseholderTransformation(unsigned int n, const double * z, double * x ) const
 void lsqr::
 Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const
 {
+#ifdef VERSION_FOR_TESTING
   CopyVector( n, y, this->wm );
   this->HouseholderTransformation(m,this->hy,this->wm);
   const unsigned int minmn = ( m > n ) ? n : m;
@@ -285,9 +286,23 @@ Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const
   AssignValueToVectorElements(m,n,0.0,this->wn);
   this->HouseholderTransformation(n,this->hz,this->wn);
   AccumulateVector( n, this->wn, x );
+#endif
 }
 
 
+/** Simplified for this use from the BLAS version. */
+void
+lsqr::Scale( unsigned int n, double factor, double *x ) const
+{
+  double * xend = x + n;
+  while( x != xend )
+    {
+    *x++ *= factor;
+    }
+}
+
+
+/** Simplified for this use from the BLAS version. */
 double
 lsqr::Dnrm2( unsigned int n, const double *x ) const
 {
@@ -324,6 +339,11 @@ lsqr::Dnrm2( unsigned int n, const double *x ) const
 }
 
 
+/** 
+ *
+ *  The array b must have size m
+ *
+ */
 void lsqr::
 Solve( unsigned int m, unsigned n, double * b, double * x )
 {
@@ -385,6 +405,30 @@ Solve( unsigned int m, unsigned n, double * b, double * x )
   double alpha = zero;
 
   double beta =  this->Dnrm2( m, u );
+
+  if( beta > zero )
+    {
+    this->Scale( m, ( one / beta ), u );
+    this->Aprod2( m, n, v, u );
+    alpha = this->Dnrm2( n, v );
+    }
+
+  if( alpha > zero )
+    {
+    this->Scale( n, ( one / alpha ), v );
+    CopyVector( n, v, w );
+    }
+
+  this->Arnorm = alpha * beta;
+
+  if ( this->Arnorm == zero )
+    {
+    goto G800;
+    }
+
+// Come here if Arnorm = 0, or if normal exit.
+G800:
+
 
   // Release locally allocated arrays.
   delete [] u;
