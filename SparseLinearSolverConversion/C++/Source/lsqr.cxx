@@ -494,6 +494,7 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
       this->nout->precision(9);
       (*this->nout) << test1;
       (*this->nout) << test2;
+      (*this->nout) << std::endl;
       }
     }
 
@@ -711,6 +712,7 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
         (*this->nout) << this->Anorm;
         (*this->nout) << this->Acond;
         (*this->nout) << alfopt;
+        (*this->nout) << std::endl;
         }
       }
 
