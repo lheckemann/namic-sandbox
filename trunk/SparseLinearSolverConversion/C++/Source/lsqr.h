@@ -87,9 +87,7 @@ public:
 
   /**
    * computes y = y + A*x without altering x,
-   * where A is a test matrix of the form  A = Y*D*Z,
-   * and the matrices D, Y, Z are represented by
-   * the allocatable vectors d, hy, hz in this module.
+   * where A is a matrix of dimensions A[m][n].
    * The size of the vector x is n.
    * The size of the vector y is m.
    */
@@ -97,9 +95,7 @@ public:
 
   /**
    * computes x = x + A'*y without altering y,
-   * where A is a test matrix of the form  A = Y*D*Z,
-   * and the matrices D, Y, Z are represented by
-   * the allocatable vectors d, hy, hz in this module.
+   * where A is a matrix of dimensions A[m][n].
    * The size of the vector x is n.
    * The size of the vector y is m.
    */
@@ -212,6 +208,10 @@ public:
    */
   void SetStandardErrorEstimates( double * array );
 
+
+  /** Set the matrix A of the equation to be solved A*x = b. */
+  void SetMatrix( double ** A );
+
   /** 
    *   Returns an integer giving the reason for termination:
    * 
@@ -298,12 +298,9 @@ public:
    *    m is the size of the input  vector b
    *    n is the size of the output vector x
    */
-  void Solve( unsigned int m, unsigned n, double * b, double * x );
+  void Solve( unsigned int m, unsigned int n, double * b, double * x );
 
 private:
-  double    *  hy;
-  double    *  hz;
-  double    *  d;
   double    *  wm;  // work vector
   double    *  wn;  // work vector
 
@@ -329,6 +326,8 @@ private:
 
   bool   wantse;
   double * se;
+
+  double ** A;
 };
 
 #endif 

@@ -206,6 +206,13 @@ lsqr::SetStandardErrorEstimates( double * array )
 
 
 void
+lsqr::SetMatrix( double ** inputA )
+{
+  this->A = inputA;
+}
+
+
+void
 lsqr::SetOutputStream( std::ostream & os )
 {
   this->nout = &os;
@@ -271,42 +278,43 @@ HouseholderTransformation(unsigned int n, const double * z, double * x ) const
 
 
 /**
- * computes x = x + A'*y without altering y,
- * where A is a test matrix of the form  A = Y*D*Z,
- * and the matrices D, Y, Z are represented by
- * the allocatable vectors d, hy, hz in this module. */
+ * computes y = y + A*x without altering x.
+ */
 void lsqr::
 Aprod1(unsigned int m, unsigned int n, const double * x, double * y ) const
 {
-#ifdef VERSION_FOR_TESTING
-  CopyVector( n, y, this->wm );
-  this->HouseholderTransformation(m,this->hy,this->wm);
-  const unsigned int minmn = ( m > n ) ? n : m;
-  ElementWiseProductVector( 0, minmn, this->d, this->wm, this->wn );
-  AssignValueToVectorElements(m,n,0.0,this->wn);
-  this->HouseholderTransformation(n,this->hz,this->wn);
-  AccumulateVector( n, this->wn, x );
-#endif
+  for ( unsigned int row = 0; row < m; row++ )
+    {
+    const double * rowA = this->A[row];
+    double sum = 0.0;
+
+    for ( unsigned int col = 0; col < n; col++ )
+      {
+      sum += rowA[col] * x[col];
+      }
+
+    y[row] +=  sum;
+    }
 }
 
 
 /**
- * computes x = x + A'*y without altering y,
- * where A is a test matrix of the form  A = Y*D*Z,
- * and the matrices D, Y, Z are represented by
- * the allocatable vectors d, hy, hz in this module. */
+ * computes x = x + A'*y without altering y.
+ */
 void lsqr::
 Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const
 {
-#ifdef VERSION_FOR_TESTING
-  CopyVector( n, y, this->wm );
-  this->HouseholderTransformation(m,this->hy,this->wm);
-  const unsigned int minmn = ( m > n ) ? n : m;
-  ElementWiseProductVector( 0, minmn, this->d, this->wm, this->wn );
-  AssignValueToVectorElements(m,n,0.0,this->wn);
-  this->HouseholderTransformation(n,this->hz,this->wn);
-  AccumulateVector( n, this->wn, x );
-#endif
+  for ( unsigned int col = 0; col < n; col++ )
+    {
+    double sum = 0.0;
+
+    for ( unsigned int row = 0; row < m; row++ )
+      {
+      sum += this->A[row][col] * y[row];
+      }
+
+    x[col] +=  sum;
+    }
 }
 
 
@@ -366,19 +374,24 @@ lsqr::Dnrm2( unsigned int n, const double *x ) const
  *
  */
 void lsqr::
-Solve( unsigned int m, unsigned n, double * b, double * x )
+Solve( unsigned int m, unsigned int n, double * b, double * x )
 {
   const double zero = 0.0;
   const double one = 1.0;
 
   if( this->nout )
     {
-    (*this->nout) << "Enter LSQR " << std::endl;
-    (*this->nout) << m << ", " << n << std::endl;
-    (*this->nout) << this->damp << ", " << this->wantse << std::endl; 
-    (*this->nout) << this->atol << ", " << this->conlim << std::endl; 
-    (*this->nout) << this->btol << ", " << this->itnlim << std::endl; 
-  
+//    (*this->nout) << "Enter LSQR " << std::endl;
+//    (*this->nout) << m << ", " << n << std::endl;
+//    (*this->nout) << this->damp << ", " << this->wantse << std::endl; 
+//    (*this->nout) << this->atol << ", " << this->conlim << std::endl; 
+//    (*this->nout) << this->btol << ", " << this->itnlim << std::endl; 
+
+    std::cout << "Enter LSQR " << std::endl;
+    std::cout << m << ", " << n << std::endl;
+    std::cout << this->damp << ", " << this->wantse << std::endl; 
+    std::cout << this->atol << ", " << this->conlim << std::endl; 
+    std::cout << this->btol << ", " << this->itnlim << std::endl; 
     }
 
   const bool damped = ( this->damp > zero );
