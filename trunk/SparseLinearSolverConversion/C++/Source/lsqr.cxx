@@ -518,7 +518,7 @@ Solve( unsigned int m, unsigned n, double * b, double * x )
     //
     temp   = this->D2Norm( alpha, beta );
     temp   = this->D2Norm( temp , damp );
-    Anorm  = this->D2Norm( Anorm, temp );
+    this->Anorm  = this->D2Norm( this->Anorm, temp );
 
     if ( beta > zero )
       {
@@ -548,19 +548,128 @@ Solve( unsigned int m, unsigned n, double * b, double * x )
       phibar = cs1 * phibar;
       }
 
+    //----------------------------------------------------------------
+    // Use a plane rotation to eliminate the subdiagonal element (beta)
+    // of the lower-bidiagonal matrix, giving an upper-bidiagonal matrix.
+    //----------------------------------------------------------------
+    double rho    =   this->D2Norm( rhbar1, beta );
+    double cs     =   rhbar1/rho;
+    double sn     =   beta  /rho;
+    double theta  =   sn * alpha;
+    rhobar = - cs * alpha;
+    double phi    =   cs * phibar;
+    phibar =   sn * phibar;
+    double tau    =   sn * phi;
 
 
+    //----------------------------------------------------------------
+    //  Update  x, w  and (perhaps) the standard error estimates.
+    //---------------------------------------------------------------
+    double t1     =     phi / rho;
+    double t2     = - theta / rho;
+    double t3     =     one / rho;
+    double dknorm =    zero;
+
+    if ( wantse ) 
+      {
+      for ( unsigned int i = 0; i < n; i++ )
+        {
+        double t      = w[i];
+        x[i]   = t1 * t +  x[i];
+        w[i]   = t2 * t +  v[i];
+        t      = ( t3 * t ) * ( t3 * t );
+        se[i]  = t + se[i];
+        dknorm = t + dknorm;
+        }
+      }
+    else
+      {
+      for ( unsigned int i = 0; i < n; i++ )
+        {
+        double t = w[i];
+        x[i]   = t1 * t + x[i];
+        w[i]   = t2 * t + v[i];
+        dknorm = ( t3 * t )*( t3 * t ) + dknorm;
+        }
+      }
 
 
+    //----------------------------------------------------------------
+    //  Monitor the norm of d_k, the update to x.
+    //  dknorm = norm( d_k )
+    //  dnorm  = norm( D_k ),       where   D_k = (d_1, d_2, ..., d_k )
+    //  dxk    = norm( phi_k d_k ), where new x = x_k + phi_k d_k.
+    //----------------------------------------------------------------
+    dknorm = sqrt( dknorm );
+    dnorm  = this->D2Norm( dnorm, dknorm );
+    double dxk  = fabs( phi* dknorm );
+    if (dxmax < dxk)
+      {
+      dxmax  = dxk;
+      maxdx  = itn;
+      }
 
 
+    //----------------------------------------------------------------
+    //  Use a plane rotation on the right to eliminate the
+    //  super-diagonal element (theta) of the upper-bidiagonal matrix.
+    //  Then use the result to estimate  norm(x).
+    //----------------------------------------------------------------
+    const double delta  =   sn2 * rho;
+    const double gambar = - cs2 * rho;
+    const double rhs    =   phi - delta * z;
+    const double zbar   =   rhs   /gambar;
+    this->xnorm  =   this->D2Norm( xnorm1, zbar );
+    const double gamma  =   this->D2Norm( gambar, theta );
+    cs2    =   gambar / gamma;
+    sn2    =   theta  / gamma;
+    z      =   rhs    / gamma;
+    xnorm1 =   this->D2Norm( xnorm1, z );
+
+    //----------------------------------------------------------------
+    //  Test for convergence.
+    //  First, estimate the norm and condition of the matrix  Abar,
+    //  and the norms of  rbar  and  Abar(transpose)*rbar.
+    //----------------------------------------------------------------
+    this->Acond  = this->Anorm * dnorm;
+    res2   = this->D2Norm( res2, psi );
+    this->rnorm  = this->D2Norm( res2, phibar );
+    this->rnorm  += 1e-30;       //  Prevent rnorm == 0.0
+    this->Arnorm = alpha * fabs( tau );
 
 
+    // Now use these norms to estimate certain other quantities,
+    // some of which will be small near a solution.
+
+    const double alfopt = sqrt( this->rnorm / ( dnorm * this->xnorm ) );
+    test1  = this->rnorm / bnorm;
+    test2  = zero;
+    test2  = Arnorm / ( this->Anorm * this->rnorm );
+    test3  = one   / this->Acond;
+    t1     = test1 / ( one + this->Anorm* xnorm / bnorm );
+    rtol   = btol  +   atol* this->Anorm* xnorm / bnorm;
 
 
+    // The following tests guard against extremely small values of
+    // atol, btol  or  ctol.  (The user may have set any or all of
+    // the parameters  atol, btol, conlim  to zero.)
+    // The effect is equivalent to the normal tests using
+    // atol = eps,  btol = eps,  conlim = 1/eps.
+
+    t3 = one + test3;
+    t2 = one + test2;
+    t1 = one + t1;
+    if ( itn >= itnlim ) istop = 5;
+    if ( t3  <= one    ) istop = 4;
+    if ( t2  <= one    ) istop = 2;
+    if ( t1  <= one    ) istop = 1;
 
 
+    //  Allow for tolerances set by the user.
 
+    if ( test3 <= ctol ) istop = 4;
+    if ( test2 <= atol ) istop = 2;
+    if ( test1 <= rtol ) istop = 1;
 
 
     //----------------------------------------------------------------
@@ -578,9 +687,23 @@ Solve( unsigned int m, unsigned n, double * b, double * x )
       if (test1 <= 10.0*rtol) prnt = true;
       if (istop !=         0) prnt = true;
 
-      if (prnt) // Print a line for this iteration.
+      if ( prnt ) // Print a line for this iteration.
         {
-        // write(nout,1500) itn,x(1),rnorm,test1,test2,Anorm,Acond,alfopt
+        this->nout->width(6);
+        (*this->nout) << itn;
+        this->nout->precision(9);
+        this->nout->precision(17);
+        (*this->nout) << x[0];
+        this->nout->precision(2);
+        this->nout->precision(10);
+        (*this->nout) << rnorm;
+        this->nout->precision(1);
+        this->nout->precision(9);
+        (*this->nout) << test1;
+        (*this->nout) << test2;
+        (*this->nout) << this->Anorm;
+        (*this->nout) << this->Acond;
+        (*this->nout) << alfopt;
         }
       }
 
