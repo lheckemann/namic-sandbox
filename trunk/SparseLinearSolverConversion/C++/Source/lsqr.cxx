@@ -381,17 +381,11 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
 
   if( this->nout )
     {
-//    (*this->nout) << "Enter LSQR " << std::endl;
-//    (*this->nout) << m << ", " << n << std::endl;
-//    (*this->nout) << this->damp << ", " << this->wantse << std::endl; 
-//    (*this->nout) << this->atol << ", " << this->conlim << std::endl; 
-//    (*this->nout) << this->btol << ", " << this->itnlim << std::endl; 
-
-    std::cout << "Enter LSQR " << std::endl;
-    std::cout << m << ", " << n << std::endl;
-    std::cout << this->damp << ", " << this->wantse << std::endl; 
-    std::cout << this->atol << ", " << this->conlim << std::endl; 
-    std::cout << this->btol << ", " << this->itnlim << std::endl; 
+    (*this->nout) << "Enter LSQR " << std::endl;
+    (*this->nout) << m << ", " << n << std::endl;
+    (*this->nout) << this->damp << ", " << this->wantse << std::endl; 
+    (*this->nout) << this->atol << ", " << this->conlim << std::endl; 
+    (*this->nout) << this->btol << ", " << this->itnlim << std::endl; 
     }
 
   const bool damped = ( this->damp > zero );
