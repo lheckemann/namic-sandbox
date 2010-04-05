@@ -216,6 +216,9 @@ int lsqrTest1( int , char * [] )
   solver.SetStandardErrorEstimatesFlag( false );
   typedef double * RowType;
   RowType A[mm];
+  double AA[4];
+  A[0] = &(AA[0]);
+  A[1] = &(AA[2]);
   A[0][0] = 1.0;
   A[0][1] = 0.0;
   A[1][0] = 0.0;
@@ -236,6 +239,9 @@ int lsqrTest1( int , char * [] )
   solver.SetStandardErrorEstimates( se );
   typedef double * RowType;
   RowType A[mm];
+  double AA[4];
+  A[0] = &(AA[0]);
+  A[1] = &(AA[2]);
   A[0][0] = 1.0;
   A[0][1] = 0.0;
   A[1][0] = 0.0;
