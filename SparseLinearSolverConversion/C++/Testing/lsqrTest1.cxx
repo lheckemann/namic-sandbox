@@ -214,6 +214,13 @@ int lsqrTest1( int , char * [] )
   bb[1] = 7.0;
   double xx[mm];
   solver.SetStandardErrorEstimatesFlag( false );
+  typedef double * RowType;
+  RowType A[mm];
+  A[0][0] = 1.0;
+  A[0][1] = 0.0;
+  A[1][0] = 0.0;
+  A[1][1] = 1.0;
+  solver.SetMatrix( A );
   solver.Solve( mm, nn, bb, xx );
   }
 
@@ -227,6 +234,13 @@ int lsqrTest1( int , char * [] )
   solver.SetStandardErrorEstimatesFlag( true );
   double se[nn];
   solver.SetStandardErrorEstimates( se );
+  typedef double * RowType;
+  RowType A[mm];
+  A[0][0] = 1.0;
+  A[0][1] = 0.0;
+  A[1][0] = 0.0;
+  A[1][1] = 1.0;
+  solver.SetMatrix( A );
   solver.Solve( mm, nn, bb, xx );
   }
 
