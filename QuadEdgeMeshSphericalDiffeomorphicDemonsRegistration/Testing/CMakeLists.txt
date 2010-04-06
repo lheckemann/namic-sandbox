@@ -55,6 +55,9 @@ TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 ITK
 ADD_EXECUTABLE(itkResampleDestinationPointsQuadEdgeMeshFilterTest1 itkResampleDestinationPointsQuadEdgeMeshFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkResampleDestinationPointsQuadEdgeMeshFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkNormalizeScalarsQuadEdgeMeshFilterTest1 itkNormalizeScalarsQuadEdgeMeshFilterTest1.cxx )
+TARGET_LINK_LIBRARIES(itkNormalizeScalarsQuadEdgeMeshFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkQuadEdgeMeshGenerateDeformationFieldFilterTest1 itkQuadEdgeMeshGenerateDeformationFieldFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshGenerateDeformationFieldFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
@@ -398,6 +401,13 @@ ADD_TEST(itkSimpleSurface2
   ${TEST_DATA_ROOT}/Input/SimpleSurface2/lh.sulc
   ${TEMP}/itkSimpleSurface2.vtk
   )
+
+ADD_TEST(itkNormalizeMeshTest1
+  ${CXX_TEST_PATH}/itkNormalizeScalarsQuadEdgeMeshFilterTest1
+  ${TEMP}/itkSimpleSurface1.vtk
+  ${TEMP}/itkSimpleSurfaceNormalized1.vtk
+  )
+
 
 IF(USE_VTK)
   IF(GENERATE_PAPER_SCREENSHOTS)
