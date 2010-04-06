@@ -96,6 +96,8 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
 
   const unsigned int length = outputMesh->GetNumberOfPoints();
 
+  std::cout << "Number of Points " << length << std::endl;
+
   typedef typename TMesh::PixelType  PixelType;
 
   typedef std::vector< PixelType >   VectorType;
@@ -119,6 +121,8 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
 
     PixelType median = data[length/2];
 
+    std::cout << "median = " << median << std::endl;
+
     pointItr = pointData->Begin();
     pointEnd = pointData->End();
 
@@ -138,6 +142,10 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
     const PixelRealType mean = sum / length;
     const PixelRealType variance = ( sum2 - mean * mean ) / length;
     const PixelRealType standardDeviation = vcl_sqrt( variance );
+
+    std::cout << "mean = " << mean << std::endl;
+    std::cout << "variance = " << variance << std::endl;
+    std::cout << "standardDeviation = " << standardDeviation << std::endl;
 
     pointItr = pointData->Begin();
     pointEnd = pointData->End();

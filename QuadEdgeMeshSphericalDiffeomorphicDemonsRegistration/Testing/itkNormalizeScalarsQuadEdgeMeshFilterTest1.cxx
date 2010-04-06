@@ -70,10 +70,14 @@ int main( int argc, char *argv[] )
   WriterType::Pointer writer = WriterType::New();
 
   writer->SetFileName( argv[2] );
+
+  normalizeFilter->SetInput( reader->GetOutput() );
   writer->SetInput( normalizeFilter->GetOutput() );
 
   try
     {
+    reader->Update();
+    normalizeFilter->Update();
     writer->Update();
     }
   catch( itk::ExceptionObject & excp )
