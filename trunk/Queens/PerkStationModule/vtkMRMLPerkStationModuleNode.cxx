@@ -818,11 +818,11 @@ void vtkMRMLPerkStationModuleNode::InitializeFiducialListNode()
 //-----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode *vtkMRMLPerkStationModuleNode::GetActiveVolumeNode()
 {
-  if (strcmpi(this->VolumeInUse, "Planning") == 0)
+  if ( strcmpi( this->VolumeInUse, "Planning" ) == 0 )
     {
     return this->PlanningVolumeNode;
     }
-  else if (strcmpi(this->VolumeInUse, "Validation") == 0)
+  else if ( strcmpi( this->VolumeInUse, "Validation" ) == 0 )
     {
     return this->ValidationVolumeNode;
     }
@@ -914,6 +914,12 @@ vtkMRMLPerkStationModuleNode
     {
     return 0;
     }
+  
+  if (    newStep == WORKPHASE_PLANNING
+       && this->PlanningVolumeNode == NULL )
+    {
+    return 0;
+    } 
   
   this->PreviousStep = this->CurrentStep;
   this->CurrentStep = newStep;
