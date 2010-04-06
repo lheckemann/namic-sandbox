@@ -150,12 +150,30 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
     pointItr = pointData->Begin();
     pointEnd = pointData->End();
 
+    unsigned int countAbove = 0;
+    unsigned int countBelow = 0;
+
     while( pointItr != pointEnd )
       {
-      pointItr.Value() /= standardDeviation;
+      PixelRealType value = pointItr.Value();
+
+      value /= standardDeviation;
+
+      if( value > 3.0 )
+        {
+        countAbove++;
+        }
+
+      if( value < -3.0 )
+        {
+        countBelow++;
+        }
+
       ++pointItr;
       }
-    
+ 
+    std::cout << "countAbove = " << countAbove << std::endl;
+    std::cout << "countBelow = " << countBelow << std::endl;
     }
 }
 
