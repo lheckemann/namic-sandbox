@@ -25,8 +25,8 @@ namespace itk
 {
 
 
-template< class TInputMesh, class TReferenceMesh, class TDeformationField >
-NormalizeScalarsQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDeformationField >
+template< class TMesh >
+NormalizeScalarsQuadEdgeMeshFilter< TMesh >
 ::NormalizeScalarsQuadEdgeMeshFilter()
 {
   this->SetNumberOfRequiredInputs( 1 );
@@ -37,16 +37,16 @@ NormalizeScalarsQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDeformationFiel
 }
 
 
-template< class TInputMesh, class TReferenceMesh, class TDeformationField >
-NormalizeScalarsQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDeformationField >
+template< class TMesh >
+NormalizeScalarsQuadEdgeMeshFilter< TMesh >
 ::~NormalizeScalarsQuadEdgeMeshFilter()
 {
 }
 
 
-template< class TInputMesh, class TReferenceMesh, class TDeformationField >
+template< class TMesh >
 void
-NormalizeScalarsQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDeformationField >
+NormalizeScalarsQuadEdgeMeshFilter< TMesh >
 ::SetInputMesh( const InputMeshType * mesh )
 {
   itkDebugMacro("setting input mesh to " << mesh);
@@ -58,22 +58,27 @@ NormalizeScalarsQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDeformationFiel
 }
 
 
-template< class TInputMesh, class TReferenceMesh, class TDeformationField >
+template< class TMesh >
 const typename 
-NormalizeScalarsQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDeformationField >::InputMeshType *
-NormalizeScalarsQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDeformationField >
+NormalizeScalarsQuadEdgeMeshFilter< TMesh >::InputMeshType *
+NormalizeScalarsQuadEdgeMeshFilter< TMesh >
 ::GetInputMesh() const
 {
   Self * surrogate = const_cast< Self * >( this );
   const InputMeshType * inputMesh = 
     static_cast<const InputMeshType *>( surrogate->ProcessObject::GetInput(0) );
+
+  for ( unsigned int i = 0; i < this->m_NumberOfIterations; i++ )
+    {
+    }
+
   return inputMesh;
 }
 
 
-template< class TInputMesh, class TReferenceMesh, class TDeformationField >
+template< class TMesh >
 void
-NormalizeScalarsQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDeformationField >
+NormalizeScalarsQuadEdgeMeshFilter< TMesh >
 ::GenerateData()
 {
 

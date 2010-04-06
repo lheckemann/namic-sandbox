@@ -27,12 +27,11 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 4 )
+  if( argc < 3 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " inputMesh outputNormalizedMesh ";
-    std::cerr << " numberOfIterations" << std::endl;
+    std::cerr << " inputMesh outputNormalizedMesh " << std::endl;
     return EXIT_FAILURE;
     }
   
@@ -47,6 +46,8 @@ int main( int argc, char *argv[] )
 
   std::cout << normalizeFilter->GetNameOfClass() << std::endl;
   normalizeFilter->Print( std::cout );
+
+  normalizeFilter->SetNumberOfIterations( 2 );
 
   typedef itk::QuadEdgeMeshVTKPolyDataReader< MeshType >   ReaderType;
 
