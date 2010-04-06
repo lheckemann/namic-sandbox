@@ -47,7 +47,17 @@ int main( int argc, char *argv[] )
   std::cout << normalizeFilter->GetNameOfClass() << std::endl;
   normalizeFilter->Print( std::cout );
 
-  normalizeFilter->SetNumberOfIterations( 2 );
+  unsigned int numberOfIterations = 7;
+
+  normalizeFilter->SetNumberOfIterations( numberOfIterations );
+
+  TEST_SET_GET_VALUE( numberOfIterations, normalizeFilter->GetNumberOfIterations() );
+
+  numberOfIterations = 2;
+
+  normalizeFilter->SetNumberOfIterations( numberOfIterations );
+
+  TEST_SET_GET_VALUE( numberOfIterations, normalizeFilter->GetNumberOfIterations() );
 
   typedef itk::QuadEdgeMeshVTKPolyDataReader< MeshType >   ReaderType;
 
