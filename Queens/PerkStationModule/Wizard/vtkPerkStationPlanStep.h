@@ -77,8 +77,7 @@ protected:
 
   void ResetControls();
   bool DoubleEqual( double val1, double val2 );
-  virtual void CalculatePlanInsertionAngleAndDepth();
-
+  
 
   // reset push button
   vtkKWPushButton *ResetPlanButton;
