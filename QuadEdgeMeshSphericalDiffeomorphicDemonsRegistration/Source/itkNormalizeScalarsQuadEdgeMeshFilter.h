@@ -29,18 +29,23 @@ namespace itk
  * 
  * The output mesh will have the same geometry.
  *
+ * The normalization is done by first subtracting the median value and the
+ * dividing by the standard deviation of the resulting values. This process is
+ * applied multiple times under the control of a user-provided number of
+ * iteraions. 
+ *
  * \ingroup MeshFilters
  *
  */
-template< class TInputMesh, class TReferenceMesh, class TDeformationField >
+template< class TMesh >
 class NormalizeScalarsQuadEdgeMeshFilter :
-  public QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TInputMesh >
+  public QuadEdgeMeshToQuadEdgeMeshFilter< TMesh, TMesh >
 {
 public:
-  typedef NormalizeScalarsQuadEdgeMeshFilter                            Self;
-  typedef QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TInputMesh >    Superclass;
-  typedef SmartPointer< Self >                                          Pointer;
-  typedef SmartPointer< const Self >                                    ConstPointer;
+  typedef NormalizeScalarsQuadEdgeMeshFilter                   Self;
+  typedef QuadEdgeMeshToQuadEdgeMeshFilter< TMesh, TMesh >     Superclass;
+  typedef SmartPointer< Self >                                 Pointer;
+  typedef SmartPointer< const Self >                           ConstPointer;
 
   /** Run-time type information (and related methods).   */
   itkTypeMacro( NormalizeScalarsQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
@@ -48,14 +53,18 @@ public:
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro( Self );
 
-  typedef TInputMesh                                                         InputMeshType;
-  typedef TInputMesh                                                         OutputMeshType;
-  typedef typename OutputMeshType::PointDataContainer                        OutputPointDataContainer;
-  typedef typename OutputMeshType::PointDataContainerPointer                 OutputPointDataContainerPointer;
+  typedef TMesh                                                InputMeshType;
+  typedef TMesh                                                OutputMeshType;
+  typedef typename OutputMeshType::PointDataContainer          OutputPointDataContainer;
+  typedef typename OutputMeshType::PointDataContainerPointer   OutputPointDataContainerPointer;
 
   /** Set/Get the mesh that will be deformed. */
   void SetInputMesh ( const InputMeshType * mesh );
   const InputMeshType * GetInputMesh( void ) const;
+
+  /** Set/Get number of iterations of normalization. */
+  itkSetMacro( NumberOfIterations, unsigned int );
+  itkGetMacro( NumberOfIterations, unsigned int );
 
 protected:
   NormalizeScalarsQuadEdgeMeshFilter();
@@ -68,6 +77,7 @@ private:
   NormalizeScalarsQuadEdgeMeshFilter( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
+  unsigned int    m_NumberOfIterations;
 };
 
 }
