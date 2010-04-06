@@ -19,7 +19,11 @@
 
 #include "itkNormalizeScalarsQuadEdgeMeshFilter.h"
 #include "itkProgressReporter.h"
-#include "itkNumericTraitsVectorPixel.h"
+#include "itkNumericTraits.h"
+#include "vnl/vnl_math.h"
+
+#include <vector>
+#include <algorithm>
 
 namespace itk
 {
@@ -68,10 +72,6 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
   const InputMeshType * inputMesh = 
     static_cast<const InputMeshType *>( surrogate->ProcessObject::GetInput(0) );
 
-  for ( unsigned int i = 0; i < this->m_NumberOfIterations; i++ )
-    {
-    }
-
   return inputMesh;
 }
 
@@ -90,8 +90,65 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
   //
   // Visit all nodes of the Mesh 
   //
+  OutputPointDataContainer * pointData = outputMesh->GetPointData();
 
+  typedef typename OutputPointDataContainer::Iterator  PointDataIterator;
 
+  const unsigned int length = outputMesh->GetNumberOfPoints();
+
+  typedef typename TMesh::PixelType  PixelType;
+
+  typedef std::vector< PixelType >   VectorType;
+
+  VectorType data;
+
+  data.resize( length );
+
+  for ( unsigned int i = 0; i < this->m_NumberOfIterations; i++ )
+    {
+    PointDataIterator pointItr = pointData->Begin();
+    PointDataIterator pointEnd = pointData->End();
+
+    while( pointItr != pointEnd )
+      {
+      data.push_back( pointItr.Value() );
+      ++pointItr;
+      }
+
+    std::nth_element( data.begin(), data.begin()+length/2, data.end() );
+
+    PixelType median = data[length/2];
+
+    pointItr = pointData->Begin();
+    pointEnd = pointData->End();
+
+    typedef typename NumericTraits< PixelType >::RealType PixelRealType;
+
+    PixelRealType sum  = NumericTraits< PixelRealType >::Zero;
+    PixelRealType sum2 = NumericTraits< PixelRealType >::Zero;
+
+    while( pointItr != pointEnd )
+      {
+      PixelType centeredValue = pointItr.Value() - median;
+      sum += centeredValue;
+      sum2 += centeredValue * centeredValue;
+      ++pointItr;
+      }
+
+    const PixelRealType mean = sum / length;
+    const PixelRealType variance = ( sum2 - mean * mean ) / length;
+    const PixelRealType standardDeviation = vcl_sqrt( variance );
+
+    pointItr = pointData->Begin();
+    pointEnd = pointData->End();
+
+    while( pointItr != pointEnd )
+      {
+      pointItr.Value() /= standardDeviation;
+      ++pointItr;
+      }
+    
+    }
 }
 
 } // end namespace itk
