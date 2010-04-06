@@ -62,11 +62,13 @@
 #include "itkTriangleMeshToBinaryImageFilter.h"
 #include "itkImageDuplicator.h"
 
+#include "itkConstantPadImageFilter.h"
+
 #include <algorithm>
 #include <assert.h>
 
 #define CWIDTH 5 // CWIDTH*2+1 is the number of points used to calculate NCC
-#define SWIDTH 8 // (SWIDTH+CWIDTH)*2+1 is the total number of points sampled o
+#define SWIDTH 6 // (SWIDTH+CWIDTH)*2+1 is the total number of points sampled o
 #define CENTERPT (CWIDTH+SWIDTH)
 #define LINESPACING .25
 #define SAVE_LINE_PROFILES 0
@@ -150,6 +152,7 @@ void PrintSurfaceStatistics(vtkPolyData*);
 vtkFloatArray* SmoothVMF(MeshType::Pointer,vtkFloatArray*);
 vtkFloatArray* SmoothVDF(MeshType::Pointer,vtkFloatArray*);
 float SurfaceVolume(vtkPolyData*);
+float SurfaceArea(vtkPolyData*);
 void WriteMesh(MeshType::Pointer, const char*);
 MeshType::Pointer WarpITKMesh(MeshType::Pointer, vtkFloatArray*);
 void WriteImage(ImageType::Pointer, const char*);
@@ -202,6 +205,22 @@ int main(int argc, char **argv){
   ImageType::Pointer image1 = r1->GetOutput(), image2 = r2->GetOutput();
 
   MeshSourceType::Pointer meshSource = MeshSourceType::New();
+
+  /*
+  typedef itk::ConstantPadImageFilter<ImageType,ImageType> PadType;
+  PadType::Pointer padder = PadType::New();
+  unsigned long lowerBound[3];
+  unsigned long upperBound[3];
+  lowerBound[0] = 10;
+  lowerBound[1] = 10;
+  lowerBound[2] = 10;
+  upperBound[0] = 10;
+  upperBound[1] = 10;
+  upperBound[2] = 10;
+  padder->SetInput(mask);
+  padder->SetPadLowerBound(lowerBound);
+  padder->SetPadUpperBound(upperBound);  
+  */
 
   meshSource->SetInput( mask );
   meshSource->SetObjectValue(1);
@@ -485,11 +504,14 @@ int main(int argc, char **argv){
   }
   std::cout << std::endl;
 
-  std::cout << "Mean shift: " << meanShift/(float)totalPoints*LINESPACING << std::endl;
-
   std::vector<float>::iterator dnccThreshIt = dnccRanked.begin()+dnccRanked.size()/2;
   std::nth_element(dnccRanked.begin(), dnccThreshIt, dnccRanked.end());
-  std::cout << "Median shift: " << *dnccThreshIt << std::endl;
+
+  float meanSurfaceMotion = meanShift/(float)totalPoints*LINESPACING;
+  float medianSurfaceMotion = (*dnccThreshIt);
+
+  std::cout << "Mean shift: " << meanSurfaceMotion << std::endl;
+  std::cout << "Median shift: " << medianSurfaceMotion << std::endl;
 
   std::cout << "Smoothing displacements...";
   vtkFloatArray* dnccShiftArraySmooth = SmoothVMF(mesh, dnccShiftArray);
@@ -531,13 +553,14 @@ int main(int argc, char **argv){
   pdw->Update();
 
   vtkWarpVector *warper = vtkWarpVector::New();
-  vtksurf->GetPointData()->SetActiveVectors("dNCCShiftsmooth");
-//  vtksurf->GetPointData()->SetActiveVectors("dNCCShift");
+//  vtksurf->GetPointData()->SetActiveVectors("dNCCShiftsmooth");
+  vtksurf->GetPointData()->SetActiveVectors("dNCCShift");
   warper->SetInput(vtksurf);
   warper->Update();
 
 
-  float vol1, vol2;
+  float vol1, vol2, area1, area2, mcarea1;
+
   std::cout << " === MC surface statistics: " << std::endl;
   PrintSurfaceStatistics(vtkmcsurf);
   std::cout << " === Decimated surface statistics: " << std::endl;
@@ -552,9 +575,19 @@ int main(int argc, char **argv){
 //  warper1->Update();
 //  vtksurf->SetPoints(warper1->GetOutput()->GetPoints());
 
+
   vol2 = SurfaceVolume(vtksurf);
+  area1 = SurfaceArea(vtksurf);
+  mcarea1 = SurfaceArea(vtkmcsurf);
+
   PrintSurfaceStatistics(vtksurf);
   std::cout << "Volume change: " << vol2-vol1 << std::endl;
+  std::cout << "Mean-based volume change: " << std::endl;
+  std::cout << "   MeanVCD    : " << meanSurfaceMotion*area1 << std::endl;
+  std::cout << "   MeanVCDMC  : " << meanSurfaceMotion*mcarea1 << std::endl;
+  std::cout << "Median-based volume change:"<< std::endl;
+  std::cout << "   MedianVCD  : " << medianSurfaceMotion*area1 << std::endl;
+  std::cout << "   MedianVCDMC: " << medianSurfaceMotion*mcarea1 << std::endl;
 
   vtkPolyDataWriter *pdw1 = vtkPolyDataWriter::New();
   pdw1->SetFileName((tmpDirName+"warped_mesh.vtk").c_str());
@@ -715,6 +748,13 @@ float SurfaceVolume(vtkPolyData* surf){
   mp->SetInput(surf);
   mp->Update();
   return mp->GetVolume();
+}
+
+float SurfaceArea(vtkPolyData* surf){
+  vtkMassProperties *mp = vtkMassProperties::New();  
+  mp->SetInput(surf);
+  mp->Update();
+  return mp->GetSurfaceArea();
 }
 
 /* Take the QE mesh and the array with vectors defined for each point. Iterate
