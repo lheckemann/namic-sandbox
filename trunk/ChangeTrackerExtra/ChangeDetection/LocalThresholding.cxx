@@ -157,6 +157,7 @@ void WriteMesh(MeshType::Pointer, const char*);
 MeshType::Pointer WarpITKMesh(MeshType::Pointer, vtkFloatArray*);
 void WriteImage(ImageType::Pointer, const char*);
 ImageType::Pointer MarkChanges(ImageType::Pointer, ImageType::Pointer);
+void ResetMaskBorder(ImageType::Pointer, double);
 
 int main(int argc, char **argv){
 
@@ -192,6 +193,7 @@ int main(int argc, char **argv){
   thresh->SetLowerThreshold(1);
   thresh->SetUpperThreshold(255);
   thresh->SetInsideValue(1);  
+  thresh->Update();
 
   mask = thresh->GetOutput();
 
@@ -206,6 +208,9 @@ int main(int argc, char **argv){
 
   MeshSourceType::Pointer meshSource = MeshSourceType::New();
 
+  // reset mask values close to the border, so that the line search and
+  // marching cubes don't get confused
+  ResetMaskBorder(mask, (CWIDTH+SWIDTH+1)*LINESPACING);
   /*
   typedef itk::ConstantPadImageFilter<ImageType,ImageType> PadType;
   PadType::Pointer padder = PadType::New();
@@ -1036,4 +1041,28 @@ ImageType::Pointer MarkChanges(ImageType::Pointer tp0, ImageType::Pointer tp1){
       it.Set(0);
   }
   return output;
+}
+
+void ResetMaskBorder(ImageType::Pointer image, double padValue){
+  ImageType::SpacingType spacing = image->GetSpacing();
+  ImageType::SizeType padSize, imageSize;
+
+  padSize[0] = padValue/spacing[0];
+  padSize[1] = padValue/spacing[1];
+  padSize[2] = padValue/spacing[2];
+
+  std::cout << "Pad size: " << padSize << std::endl;
+
+  imageSize = image->GetBufferedRegion().GetSize();
+
+  IteratorType it(image, image->GetBufferedRegion());
+  for(it.GoToBegin();!it.IsAtEnd();++it){
+    ImageType::IndexType idx = it.GetIndex();
+    if(idx[0]<padSize[0] || idx[0]>imageSize[0]-padSize[0] ||
+       idx[1]<padSize[1] || idx[1]>imageSize[1]-padSize[1] ||
+       idx[2]<padSize[2] || idx[2]>imageSize[2]-padSize[2]){
+      it.Set(0);
+    }       
+  }
+  WriteImage(image, "padded_mask.nrrd");
 }
