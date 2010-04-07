@@ -98,8 +98,6 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
 
   const unsigned int length = outputMesh->GetNumberOfPoints();
 
-  std::cout << "Number of Points " << length << std::endl;
-
   typedef typename TMesh::PixelType  PixelType;
 
   typedef std::vector< PixelType >   VectorType;
@@ -119,12 +117,9 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
     ++pointItr;
     }
 
-//    std::nth_element( data.begin(), data.begin()+length/2, data.end() );
-  std::sort( data.begin(), data.end() );
+  std::nth_element( data.begin(), data.begin()+length/2, data.end() );
 
   PixelType median = data[length/2];
-
-  std::cout << "median = " << median << std::endl;
 
   VectorIterator dataItr = data.begin();
   VectorIterator dataEnd = data.end();
@@ -156,15 +151,10 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
     const PixelRealType variance = sum2 / length - mean * mean;
     const PixelRealType standardDeviation = vcl_sqrt( variance );
 
-    std::cout << "mean = " << mean << std::endl;
-    std::cout << "variance = " << variance << std::endl;
-    std::cout << "standardDeviation = " << standardDeviation << std::endl;
-
 
     unsigned int countAbove = 0;
     unsigned int countBelow = 0;
 
-    std::cout << "data.size() = " << data.size() << std::endl;
 
     dataItr = data.begin();
     while( dataItr != dataEnd )
@@ -196,10 +186,8 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
         }
       ++dataItr;
       }
- 
-    std::cout << "countAbove = " << countAbove << std::endl;
-    std::cout << "countBelow = " << countBelow << std::endl;
     }
+
 
   //
   // Putting the data back in the output mesh
