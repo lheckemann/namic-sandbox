@@ -106,72 +106,81 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
 
   VectorType data;
 
-  data.resize( length );
+  typedef typename VectorType::iterator VectorIterator;
+
+  data.reserve( length );
+
+  PointDataIterator pointItr = pointData->Begin();
+  PointDataIterator pointEnd = pointData->End();
+
+  while( pointItr != pointEnd )
+    {
+    data.push_back( pointItr.Value() );
+    ++pointItr;
+    }
 
   for ( unsigned int i = 0; i < this->m_NumberOfIterations; i++ )
     {
-    PointDataIterator pointItr = pointData->Begin();
-    PointDataIterator pointEnd = pointData->End();
-
-    while( pointItr != pointEnd )
-      {
-      data.push_back( pointItr.Value() );
-      ++pointItr;
-      }
-
-    std::nth_element( data.begin(), data.begin()+length/2, data.end() );
+//    std::nth_element( data.begin(), data.begin()+length/2, data.end() );
+    std::sort( data.begin(), data.end() );
 
     PixelType median = data[length/2];
 
     std::cout << "median = " << median << std::endl;
 
-    pointItr = pointData->Begin();
-    pointEnd = pointData->End();
+    VectorIterator dataItr = data.begin();
+    VectorIterator dataEnd = data.end();
 
     typedef typename NumericTraits< PixelType >::RealType PixelRealType;
 
     PixelRealType sum  = NumericTraits< PixelRealType >::Zero;
     PixelRealType sum2 = NumericTraits< PixelRealType >::Zero;
 
-    while( pointItr != pointEnd )
+    while( dataItr != dataEnd )
       {
-      PixelType centeredValue = pointItr.Value() - median;
+      PixelType centeredValue = *dataItr - median;
       sum += centeredValue;
       sum2 += centeredValue * centeredValue;
-      ++pointItr;
+      ++dataItr;
       }
 
     const PixelRealType mean = sum / length;
-    const PixelRealType variance = ( sum2 - mean * mean ) / length;
+    const PixelRealType variance = sum2 / length - mean * mean;
     const PixelRealType standardDeviation = vcl_sqrt( variance );
 
     std::cout << "mean = " << mean << std::endl;
     std::cout << "variance = " << variance << std::endl;
     std::cout << "standardDeviation = " << standardDeviation << std::endl;
 
-    pointItr = pointData->Begin();
-    pointEnd = pointData->End();
+    dataItr = data.begin();
+    dataEnd = data.end();
 
     unsigned int countAbove = 0;
     unsigned int countBelow = 0;
 
-    while( pointItr != pointEnd )
+    std::cout << "data.size() = " << data.size() << std::endl;
+
+    while( dataItr != dataEnd )
       {
-      PixelRealType value = pointItr.Value();
+      PixelRealType value = *dataItr;
 
       value /= standardDeviation;
 
-      if( value > 3.0 )
-        {
-        countAbove++;
-        }
-
       if( value < -3.0 )
         {
+        *dataItr = -3.0 - ( 1.0 - vcl_exp( 3.0 - vnl_math_abs( value ) ) );
+        std::cout << "lt3 " << *dataItr << "  from " << value << std::endl;
         countBelow++;
         }
 
-      ++pointItr;
+      if( value > 3.0 )
+        {
+        *dataItr =  3.0 + ( 1.0 - vcl_exp( 3.0 - vnl_math_abs( value ) ) );
+        std::cout << "gt3 " << *dataItr << "  from " << value << std::endl;
+        countAbove++;
+        }
+
+      ++dataItr;
       }
  
     std::cout << "countAbove = " << countAbove << std::endl;
