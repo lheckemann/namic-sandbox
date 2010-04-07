@@ -117,6 +117,7 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
     ++pointItr;
     }
 
+  // This changes the order of the elements stored in "data"
   std::nth_element( data.begin(), data.begin()+length/2, data.end() );
 
   PixelType median = data[length/2];
@@ -124,10 +125,15 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
   VectorIterator dataItr = data.begin();
   VectorIterator dataEnd = data.end();
 
-  while( dataItr != dataEnd )
+  pointItr = pointData->Begin();
+
+  // Copy the data again, minus the media, since the nth_element call
+  // modifed the content of the "data" array.
+  while( pointItr != pointEnd )
     {
-    *dataItr -= median;
+    *dataItr = pointItr.Value() - median;
     ++dataItr;
+    ++pointItr;
     }
 
 
@@ -186,6 +192,9 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
         }
       ++dataItr;
       }
+
+    std::cout << "countBelow = " << countBelow << std::endl;
+    std::cout << "countAbove = " << countAbove << std::endl;
     }
 
 
@@ -193,7 +202,6 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
   // Putting the data back in the output mesh
   //
   pointItr = pointData->Begin();
-  pointEnd = pointData->End();
 
   VectorIterator valueItr = data.begin();
 
