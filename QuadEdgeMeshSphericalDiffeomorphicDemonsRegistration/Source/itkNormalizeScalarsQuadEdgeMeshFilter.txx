@@ -38,6 +38,8 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
   this->SetNumberOfOutputs( 1 );
 
   this->SetNthOutput( 0, OutputMeshType::New() );
+
+  this->m_NumberOfIterations = 2;
 }
 
 
