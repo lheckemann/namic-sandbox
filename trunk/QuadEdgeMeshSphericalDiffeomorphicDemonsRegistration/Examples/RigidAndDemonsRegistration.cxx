@@ -237,7 +237,7 @@ int main( int argc, char * argv [] )
   visualMonitor.SetVerbose( false );
   visualMonitor.SetScreenShotsBaseFileName( "rigidAndDemonsRegistration" );
 
-  visualMonitor.SetScalarRange( -0.1, 0.1 );
+  visualMonitor.SetScalarRange( -1.0, 1.0 );
 
   vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader = 
     vtkSmartPointer< vtkPolyDataReader >::New();

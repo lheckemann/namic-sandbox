@@ -167,7 +167,7 @@ int main( int argc, char * argv [] )
   visualMonitor.SetVerbose( true );
   visualMonitor.SetScreenShotsBaseFileName( argv[13] );
 
-  visualMonitor.SetScalarRange( -0.1, 0.1 );
+  visualMonitor.SetScalarRange( -1.0, 1.0 );
 
   visualMonitor.SetNumberOfResolutionLevels( maximumNumberOfResolutions );
 
