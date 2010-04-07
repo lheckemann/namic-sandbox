@@ -186,6 +186,21 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
     std::cout << "countAbove = " << countAbove << std::endl;
     std::cout << "countBelow = " << countBelow << std::endl;
     }
+
+  //
+  // Putting the data back in the output mesh
+  //
+  pointItr = pointData->Begin();
+  pointEnd = pointData->End();
+
+  VectorIterator valueItr = data.begin();
+
+  while( pointItr != pointEnd )
+    {
+    pointItr.Value() = *valueItr;
+    ++valueItr;
+    ++pointItr;
+    }
 }
 
 } // end namespace itk
