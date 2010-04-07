@@ -40,9 +40,9 @@ int main( int argc, char *argv[] )
 
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   MeshType;
 
-  typedef itk::NormalizeScalarsQuadEdgeMeshFilter< MeshType >   DemonsFilterType;
+  typedef itk::NormalizeScalarsQuadEdgeMeshFilter< MeshType >   FilterType;
 
-  DemonsFilterType::Pointer normalizeFilter = DemonsFilterType::New();
+  FilterType::Pointer normalizeFilter = FilterType::New();
 
   std::cout << normalizeFilter->GetNameOfClass() << std::endl;
   normalizeFilter->Print( std::cout );
