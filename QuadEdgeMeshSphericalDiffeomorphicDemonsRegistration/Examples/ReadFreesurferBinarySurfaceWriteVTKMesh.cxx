@@ -33,7 +33,7 @@ int main(int argc, char* argv[] )
     {
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0];
-    std::cerr << " inputFilename inputDataFilename outputFilename.vtk";
+    std::cerr << " inputFilename inputDataFilename outputFilename.vtk [normalizeFlag]";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
@@ -74,10 +74,23 @@ int main(int argc, char* argv[] )
 
   WriterType::Pointer writer = WriterType::New();
 
-  normalizeFilter->SetNumberOfIterations( 2 );
+  unsigned int normalizationFlag = 0;
 
-  normalizeFilter->SetInput( surfaceReader->GetOutput()  );
-  writer->SetInput( normalizeFilter->GetOutput()  );
+  if( argc > 4 )
+    {
+    normalizationFlag = atoi( argv[4] );
+    }
+
+  if( normalizationFlag == 1 )
+    {
+    normalizeFilter->SetNumberOfIterations( 2 );
+    normalizeFilter->SetInput( surfaceReader->GetOutput()  );
+    writer->SetInput( normalizeFilter->GetOutput()  );
+    }
+  else
+    {
+    writer->SetInput( surfaceReader->GetOutput()  );
+    }
 
   writer->SetFileName( argv[3] );
 

@@ -138,6 +138,7 @@ ADD_TEST(anonConvert${ID}a
   ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.sphere
   ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.inflated.H
   ${TEMP}/sub${ID}a.vtk
+  1 # Normalize the scalar data using robust method
   )
 
 ADD_TEST(anonConvert${ID}b
@@ -145,6 +146,7 @@ ADD_TEST(anonConvert${ID}b
   ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.sphere
   ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.sulc
   ${TEMP}/sub${ID}b.vtk
+  1 # Normalize the scalar data using robust method
   )
  
 ADD_TEST(anonConvert${ID}c
@@ -152,6 +154,7 @@ ADD_TEST(anonConvert${ID}c
   ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.sphere
   ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.curv
   ${TEMP}/sub${ID}c.vtk
+  1 # Normalize the scalar data using robust method
   )
  
 ENDFUNCTION(CONVERT_ANON_DATA)
@@ -404,6 +407,7 @@ ADD_TEST(ConvertResult_${MESHID1}_${MESHID2}
   ${REFERENCE_MESH}
   ${PATIENT_DATA_ROOT}/sub${MESHID2}/surf/lh.curv
   ${TEMP}/${REFERENCE_MESH_BASE_NAME}.vtk
+  0  # Do not normalize scalar data
   )
 
 
