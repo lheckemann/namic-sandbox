@@ -22,6 +22,7 @@
 
 #include "itkQuadEdgeMesh.h"
 #include "itkFreeSurferBinarySurfaceReader.h"
+#include "itkNormalizeScalarsQuadEdgeMeshFilter.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 
 #include <iostream>
@@ -65,14 +66,24 @@ int main(int argc, char* argv[] )
   std::cout << "numberOfPoints= " << numberOfPoints << std::endl;
   std::cout << "numberOfCells= " << numberOfCells << std::endl;
 
-   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MeshType >  WriterType;
+  typedef itk::NormalizeScalarsQuadEdgeMeshFilter< MeshType >   FilterType;
+
+  FilterType::Pointer normalizeFilter = FilterType::New();
+
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MeshType >  WriterType;
 
   WriterType::Pointer writer = WriterType::New();
-  writer->SetInput( mesh  );
+
+  normalizeFilter->SetNumberOfIterations( 2 );
+
+  normalizeFilter->SetInput( surfaceReader->GetOutput()  );
+  writer->SetInput( normalizeFilter->GetOutput()  );
+
   writer->SetFileName( argv[3] );
 
   try
     {
+    normalizeFilter->Update();
     writer->Update();
     }
   catch( itk::ExceptionObject & excp )
