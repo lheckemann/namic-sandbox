@@ -119,23 +119,31 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
     ++pointItr;
     }
 
+//    std::nth_element( data.begin(), data.begin()+length/2, data.end() );
+  std::sort( data.begin(), data.end() );
+
+  PixelType median = data[length/2];
+
+  std::cout << "median = " << median << std::endl;
+
+  VectorIterator dataItr = data.begin();
+  VectorIterator dataEnd = data.end();
+
+  while( dataItr != dataEnd )
+    {
+    *dataItr -= median;
+    ++dataItr;
+    }
+
+
   for ( unsigned int i = 0; i < this->m_NumberOfIterations; i++ )
     {
-//    std::nth_element( data.begin(), data.begin()+length/2, data.end() );
-    std::sort( data.begin(), data.end() );
-
-    PixelType median = data[length/2];
-
-    std::cout << "median = " << median << std::endl;
-
-    VectorIterator dataItr = data.begin();
-    VectorIterator dataEnd = data.end();
-
     typedef typename NumericTraits< PixelType >::RealType PixelRealType;
 
     PixelRealType sum  = NumericTraits< PixelRealType >::Zero;
     PixelRealType sum2 = NumericTraits< PixelRealType >::Zero;
 
+    dataItr = data.begin();
     while( dataItr != dataEnd )
       {
       PixelType centeredValue = *dataItr - median;
@@ -152,34 +160,40 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
     std::cout << "variance = " << variance << std::endl;
     std::cout << "standardDeviation = " << standardDeviation << std::endl;
 
-    dataItr = data.begin();
-    dataEnd = data.end();
 
     unsigned int countAbove = 0;
     unsigned int countBelow = 0;
 
     std::cout << "data.size() = " << data.size() << std::endl;
 
+    dataItr = data.begin();
     while( dataItr != dataEnd )
       {
-      PixelRealType value = *dataItr;
+      *dataItr /= standardDeviation;
+      ++dataItr;
+      }
 
-      value /= standardDeviation;
 
-      if( value < -3.0 )
+    dataItr = data.begin();
+    while( dataItr != dataEnd )
+      {
+      if( *dataItr < -3.0 )
         {
-        *dataItr = -3.0 - ( 1.0 - vcl_exp( 3.0 - vnl_math_abs( value ) ) );
-        std::cout << "lt3 " << *dataItr << "  from " << value << std::endl;
+        *dataItr = -3.0 - ( 1.0 - vcl_exp( 3.0 - vnl_math_abs( *dataItr ) ) );
         countBelow++;
         }
+      ++dataItr;
+      }
+ 
 
-      if( value > 3.0 )
+    dataItr = data.begin();
+    while( dataItr != dataEnd )
+      {
+      if( *dataItr > 3.0 )
         {
-        *dataItr =  3.0 + ( 1.0 - vcl_exp( 3.0 - vnl_math_abs( value ) ) );
-        std::cout << "gt3 " << *dataItr << "  from " << value << std::endl;
+        *dataItr =  3.0 + ( 1.0 - vcl_exp( 3.0 - vnl_math_abs( *dataItr ) ) );
         countAbove++;
         }
-
       ++dataItr;
       }
  
