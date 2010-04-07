@@ -225,6 +225,8 @@ int main( int argc, char * argv [] )
   visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
   visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
   
+  visualMonitor.SetScalarRange( -1.0, 1.0 );
+
   visualMonitor.SetNumberOfIterationsPerUpdate( 1 );
 
   visualMonitor.Observe( optimizer.GetPointer() );
