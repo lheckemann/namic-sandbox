@@ -259,7 +259,7 @@ int main( int argc, char * argv [] )
   visualMonitor.SetVerbose( false );
   visualMonitor.SetScreenShotsBaseFileName( argv[16] );
 
-  visualMonitor.SetScalarRange( -0.1, 0.1 );
+  visualMonitor.SetScalarRange( -1.0, 1.0 );
 
   vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader = 
     vtkSmartPointer< vtkPolyDataReader >::New();
