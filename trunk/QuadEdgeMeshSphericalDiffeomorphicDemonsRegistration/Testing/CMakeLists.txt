@@ -26,9 +26,6 @@ INCLUDE_DIRECTORIES(
 #######################
 #######################
 
-ADD_EXECUTABLE(itkLinearInterpolateDeformationFieldMeshFunctionTest1 
-  itkLinearInterpolateDeformationFieldMeshFunctionTest1.cxx )
-TARGET_LINK_LIBRARIES(itkLinearInterpolateDeformationFieldMeshFunctionTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ADD_EXECUTABLE(itkMeshGeneratorHelperTest1 
   ${QuadEdgeMeshFieldSmoothingFilters}/Testing/itkMeshGeneratorHelperTest1.cxx )
@@ -49,8 +46,11 @@ TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest4 ITKQuadEdgeMesh ITKIO ITKNumer
 ADD_EXECUTABLE(itkMeshGeneratorHelperTest5 itkMeshGeneratorHelperTest5.cxx )
 TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest5 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
-ADD_EXECUTABLE(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1.cxx )
-TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+ADD_EXECUTABLE(itkLinearInterpolateDeformationFieldTest1 itkLinearInterpolateDeformationFieldMeshFunctionTest1.cxx )
+TARGET_LINK_LIBRARIES(itkLinearInterpolateDeformationFieldTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(itkQuadEdgeMeshSphericalDemonsFilterTest1 itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1.cxx )
+TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDemonsFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ADD_EXECUTABLE(itkResampleDestinationPointsQuadEdgeMeshFilterTest1 itkResampleDestinationPointsQuadEdgeMeshFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkResampleDestinationPointsQuadEdgeMeshFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
@@ -201,13 +201,13 @@ ADD_TEST(MeshGeneratorHelperTest9
   )
 
 ADD_TEST(LinearInterpolateDeformationFieldMeshFunctionTest1
-  ${CXX_TEST_PATH}/itkLinearInterpolateDeformationFieldMeshFunctionTest1
+  ${CXX_TEST_PATH}/itkLinearInterpolateDeformationFieldTest1
   ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
   )
 SET_TESTS_PROPERTIES( LinearInterpolateDeformationFieldMeshFunctionTest1 PROPERTIES DEPENDS MeshGeneratorHelperTest2)
 
 ADD_TEST(DemonsFilterTest1
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDemonsFilterTest1
   ${TEMP}/meshWithScalarsIC1.vtk
   ${TEMP}/meshWithScalarsIC1.vtk
   ${TEMP}/meshWithScalarsIC1RegisteredToItself.vtk
@@ -219,7 +219,7 @@ ADD_TEST(DemonsFilterTest1
   )
 
 ADD_TEST(DemonsFilterTest2
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDemonsFilterTest1
   ${TEMP}/meshWithScalarsIC4.vtk
   ${TEMP}/meshWithScalarsIC4.vtk
   ${TEMP}/meshWithScalarsIC4RegisteredToItself.vtk
@@ -231,7 +231,7 @@ ADD_TEST(DemonsFilterTest2
   )
 
 ADD_TEST(DemonsFilterTest3
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDemonsFilterTest1
   ${TEMP}/fixedMesh01.vtk
   ${TEMP}/movingMesh01.vtk
   ${TEMP}/movingMesh01RegisteredToFixedMesh01.vtk
@@ -243,7 +243,7 @@ ADD_TEST(DemonsFilterTest3
   )
 
 ADD_TEST(DemonsFilterTest4
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDemonsFilterTest1
   ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
   ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk
   ${TEMP}/movingMeshWithScalarsIC1registeredToFixedMeshWithScalarsIC1.vtk
@@ -255,7 +255,7 @@ ADD_TEST(DemonsFilterTest4
   )
 
 ADD_TEST(DemonsFilterTest5
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDemonsFilterTest1
   ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk
   ${TEMP}/movingMeshWithScalarsGaussianIC4.vtk
   ${TEMP}/registeredMeshWithScalarsGaussianIC4.vtk
@@ -338,12 +338,14 @@ ADD_TEST(AssignScalarValuesFilterTest1
   
 ADD_TEST(WarpQuadEdgeMeshFilterTest
   ${CXX_TEST_PATH}/itkWarpQuadEdgeMeshFilterTest
-  ${TEMP}/GeoSphere7n_IC5.vtk 
-  ${TEMP}/GeoSphere3n_IC5.vtk 
-  ${TEMP}/deformationField.vtk 
-  ${TEMP}/warpedGeoSphere3n_IC5.vtk 
+  ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk 
+  ${TEMP}/movingMeshWithScalarsGaussianIC4.vtk 
+  ${TEMP}/fixedMeshWithDeformationFieldIC4.vtk 
+  ${TEMP}/warpedFixedMeshWithScalarsGaussianIC4.vtk 
   )
   
+SET_TESTS_PROPERTIES( WarpQuadEdgeMeshFilterTest PROPERTIES DEPENDS ComputeDeformationFieldMeshTest1)
+
 IF( FREESURFER_DIR )
 
 ADD_TEST(itkFreeSurferBinarySurfaceReaderTest1
