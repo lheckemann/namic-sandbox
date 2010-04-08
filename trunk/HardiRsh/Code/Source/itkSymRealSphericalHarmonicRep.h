@@ -236,6 +236,7 @@ public:
 
   static const unsigned int GetJ(int,int);
 
+  void Normalize();
 protected:
 
 private:

@@ -54,9 +54,9 @@ int main( int argc, char *argv[] )
   id->SetScalarTypeToDouble();
   id->AllocateScalars();
   
-  id->GetPointData()->GetScalars()->SetTuple(0,c1);
+  //id->GetPointData()->GetScalars()->SetTuple(0,c1);
   id->GetPointData()->GetScalars()->SetTuple(1,c2);
-  id->GetPointData()->GetScalars()->SetTuple(2,c3);
+  //id->GetPointData()->GetScalars()->SetTuple(2,c3);
 
   vtkMatrix4x4 *gRotMat = vtkMatrix4x4::New();
   gRotMat->Identity();

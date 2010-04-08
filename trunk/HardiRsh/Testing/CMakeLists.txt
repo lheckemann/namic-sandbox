@@ -3,7 +3,7 @@ SET(CXX_TEST_PATH ${EXECUTABLE_OUTPUT_PATH})
 
 # Add path to find itkTestingMacros.h
 INCLUDE_DIRECTORIES(
-  ${SBIA_HARDI_SOURCE_DIR}/Testing
+  ${PROJECT_SOURCE_DIR}/Testing
   )
 
 ADD_EXECUTABLE(itkSymRealSphericalHarmonicRepTest1 itkSymRealSphericalHarmonicRepTest1.cxx ${SpecialFunctions_SOURCES} )
