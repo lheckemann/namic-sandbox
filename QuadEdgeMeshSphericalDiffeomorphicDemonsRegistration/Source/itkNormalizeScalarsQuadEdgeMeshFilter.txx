@@ -136,6 +136,7 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
     ++pointItr;
     }
 
+  ProgressReporter progress(this, 0, length * this->m_NumberOfIterations );
 
   for ( unsigned int i = 0; i < this->m_NumberOfIterations; i++ )
     {
@@ -167,6 +168,7 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
       {
       *dataItr /= standardDeviation;
       ++dataItr;
+      progress.CompletedPixel();
       }
 
 
