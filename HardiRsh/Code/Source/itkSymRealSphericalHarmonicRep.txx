@@ -397,6 +397,24 @@ SymRealSphericalHarmonicRep<T,NDimension>
   return vcl_sqrt( ( (2*l+1) / ( 4*( vnl_math::pi ) ) * f ) );
 }
 
+/**
+ * Normalize the function to unit strength (integral over the sphere = 1)
+ */  
+template<class T,unsigned int NDimension>
+void
+SymRealSphericalHarmonicRep<T,NDimension>
+::Normalize( ) 
+{
+  //only normalize if 0th order is non zero...
+  if ( (*this)[0] != 0 &&
+       (*this)[0] != 1.0 / ( 2 * vcl_sqrt( vnl_math::pi )) )
+  {
+    double nFactor = 1.0 / ( 2 * vcl_sqrt( vnl_math::pi ) * (*this)[0]);
+    for( unsigned int i=0; i< NDimension; i++)
+      (*this)[i] = nFactor * (*this)[i];
+  }
+}
+
 } // end namespace itk
 
 #endif

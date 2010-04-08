@@ -98,6 +98,7 @@ FodCsdReconImageFilter< TGradientImagePixelType, TOutputPixelType, TImageDimensi
     //Compute the hiResRshBasis matrix
     /**
      * uses the formula in [saff:dmp:1997] to generate equidistributed points on the sphere.
+     * Basically a squared spiral
      * 
      * REFERENCE
      * @Article{saff:dmp:1997,
@@ -172,8 +173,10 @@ FodCsdReconImageFilter< TGradientImagePixelType, TOutputPixelType, TImageDimensi
     fullMat.set_size(this->m_HiResRshBasis.rows() + this->m_RshBasis.rows(), NumberOfCoefficients);
     
     for (unsigned int i = 0; i < this->m_RshBasis.rows() ; ++i)
+    {
       fullMat.set_row(i,this->m_RshBasis.get_row(i));
-
+    }
+    
     expandedSignal.set_size(this->m_HiResRshBasis.rows() + this->m_RshBasis.rows());
     expandedSignal.fill(0.0);
     expandedSignal.update(signal,0);
@@ -217,6 +220,7 @@ FodCsdReconImageFilter< TGradientImagePixelType, TOutputPixelType, TImageDimensi
         itkExceptionMacro( << "System is underdetermined\nNot enought constaints to solve system!" );
       }
 
+      //Should try to check the condition number of the matrix!
       vnl_qr<double> solver( fullMat.extract( this->m_RshBasis.rows()+numBad, NumberOfCoefficients, 0, 0) );
       coeffs = solver.solve(expandedSignal.extract( this->m_RshBasis.rows()+numBad, 0) );
 
