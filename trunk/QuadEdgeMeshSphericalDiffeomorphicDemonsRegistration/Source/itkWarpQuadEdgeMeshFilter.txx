@@ -214,6 +214,8 @@ WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDeformationField >
     pointToEvaluate.CastFrom( pointItr.Value() + displacementVectorItr.Value() );
     pointDataItr.Value() = this->m_Interpolator->Evaluate( pointToEvaluate );
     
+    progress.CompletedPixel();
+
     ++pointItr;
     ++pointDataItr;
     ++displacementVectorItr;
