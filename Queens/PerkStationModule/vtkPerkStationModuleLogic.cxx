@@ -193,7 +193,8 @@ bool vtkPerkStationModuleLogic::ReadConfigFile(istream &file)
 
     } // end while going through the file
 
-  // if TrackerToPhantomMatrix and PhantomToImageMatrix were properly loaded, we consider that the config file was loaded successfully.
+  // if TrackerToPhantomMatrix and PhantomToImageMatrix were properly loaded,
+  // we consider that the config file was loaded successfully.
   if (is_tracker_to_phantom_matrix_read && is_phantom_to_imageRAS_matrix_read)
     {
     // if successful, update MRML node and return 'true'
@@ -269,8 +270,6 @@ AdjustSliceView()
   PERKLOG_INFO( ss.str().c_str() );
   
   
-  newMatrix->Identity();
-    
     // Setting of the Slice view position
     // ----------------------------------
     // 
@@ -299,52 +298,79 @@ AdjustSliceView()
     // the rotation matrix element corresponding to the flipping has to change
     // sign.
   
+  newMatrix->Identity();
+  
   switch ( patientPosition )
     {
     case HFP :
-      newMatrix->SetElement( 1, 1, -1 );
+      newMatrix->SetElement( 1.0, 1.0, - 1.0 );
       break;
     
     case HFS :
-      newMatrix->SetElement( 0, 0, -1 );
+      newMatrix->SetElement( 0.0, 0.0, - 1.0 );
       break;
     
     case HFDR :
-      newMatrix->SetElement( 0, 0, - std::cos( 90.0 ) );
-      newMatrix->SetElement( 0, 1, - std::sin( 90.0 ) );
-      newMatrix->SetElement( 1, 0, - std::sin( 90.0 ) );
-      newMatrix->SetElement( 1, 1, std::cos( 90.0 ) );
+      newMatrix->SetElement( 0.0, 0.0, - std::cos(   90.0 ) );
+      newMatrix->SetElement( 0.0, 1.0, - std::sin(   90.0 ) );
+      newMatrix->SetElement( 1.0, 0.0, - std::sin(   90.0 ) );
+      newMatrix->SetElement( 1.0, 1.0,   std::cos(   90.0 ) );
       break;
     
     case HFDL :
-      newMatrix->SetElement( 0, 0, - std::cos( - 90.0 ) );
-      newMatrix->SetElement( 0, 1, - std::sin( - 90.0 ) );
-      newMatrix->SetElement( 1, 0, - std::sin( - 90.0 ) );
-      newMatrix->SetElement( 1, 1, std::cos( - 90.0 ) );
+      newMatrix->SetElement( 0.0, 0.0, - std::cos( - 90.0 ) );
+      newMatrix->SetElement( 0.0, 1.0, - std::sin( - 90.0 ) );
+      newMatrix->SetElement( 1.0, 0.0, - std::sin( - 90.0 ) );
+      newMatrix->SetElement( 1.0, 1.0,   std::cos( - 90.0 ) );
       break;
     
     case FFDR :
-      newMatrix->SetElement( 0, 0, std::cos( 90.0 ) );
-      newMatrix->SetElement( 0, 1, - std::sin( 90.0 ) );
-      newMatrix->SetElement( 1, 0, std::sin( 90.0 ) );
-      newMatrix->SetElement( 1, 1, std::cos( 90.0 ) );
+      newMatrix->SetElement( 0.0, 0.0,   std::cos(   90.0 ) );
+      newMatrix->SetElement( 0.0, 1.0, - std::sin(   90.0 ) );
+      newMatrix->SetElement( 1.0, 0.0,   std::sin(   90.0 ) );
+      newMatrix->SetElement( 1.0, 1.0,   std::cos(   90.0 ) );
       break;
     
     case FFDL :
-      newMatrix->SetElement( 0, 0, std::cos( - 90.0 ) );
-      newMatrix->SetElement( 0, 1, - std::sin( - 90.0 ) );
-      newMatrix->SetElement( 1, 0, std::sin( - 90.0 ) );
-      newMatrix->SetElement( 1, 1, std::cos( - 90.0 ) );
+      newMatrix->SetElement( 0.0, 0.0,   std::cos( - 90.0 ) );
+      newMatrix->SetElement( 0.0, 1.0, - std::sin( - 90.0 ) );
+      newMatrix->SetElement( 1.0, 0.0,   std::sin( - 90.0 ) );
+      newMatrix->SetElement( 1.0, 1.0,   std::cos( - 90.0 ) );
       break;
     
     case FFP :
-      newMatrix->SetElement( 0, 0, -1 );
-      newMatrix->SetElement( 1, 1, -1 );
+      newMatrix->SetElement( 0.0, 0.0, - 1.0 );
+      newMatrix->SetElement( 1.0, 1.0, - 1.0 );
       break;
     
     case FFS :
       break;
     }
+  
+  
+    // Set Z offset to the central slice.
+  
+  int dims[ 3 ];
+  this->GetPerkStationModuleNode()->GetPlanningVolumeNode()->
+                    GetImageData()->GetDimensions( dims );
+  double offsetZijk[ 4 ] = { 0.0, 0.0, double( dims[ 2 ] / 2 ), 1.0 };
+  double offsetZras[ 4 ];
+  
+    // Create the ijkToRAS matrix.
+  
+  vtkSmartPointer< vtkMatrix4x4 > rasToIJK =
+    vtkSmartPointer< vtkMatrix4x4 >::New();
+  this->GetPerkStationModuleNode()->GetPlanningVolumeNode()->
+    GetRASToIJKMatrix( rasToIJK );
+  vtkSmartPointer< vtkMatrix4x4 > ijkToRAS =
+    vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkMatrix4x4::Invert( rasToIJK, ijkToRAS );
+  
+  ijkToRAS->MultiplyPoint( offsetZijk, offsetZras );
+  newMatrix->SetElement( 2, 3, offsetZras[ 2 ] );
+  
+  
+    // Finally, update the slice widget position.
   
   sliceNode->SetSliceToRAS( newMatrix );
 }

@@ -371,10 +371,14 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->Renderer->AddActor( this->CalibrationControlsActor );
   
   
-  // to have consistent display i.e. same display as in SLICER's slice viewer, and own render window in secondary monitor
+  // to have consistent display i.e. same display as in SLICER's slice viewer,
+  //  and own render window in secondary monitor
   // figure out whether a horizontal flip required or a vertical flip or both
-  // Note: this does not counter the flip that will be required due to secondary monitors orientation/mounting
-  // It only makes sure that two displays have same view if they are physically in same orientation
+  // Note: this does not counter the flip that will be required due to secondary
+  // monitors orientation/mounting
+  // It only makes sure that two displays have same view if they are physically 
+  // in same orientation
+  
   vtkMatrix4x4 *directionMatrix = vtkMatrix4x4::New();
   this->VolumeNode->GetIJKToRASDirectionMatrix( directionMatrix );
 
@@ -509,8 +513,13 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   
   ret->RotateZ( this->PSNode->GetSecondMonitorRotation() );
   
-  double s0 = this->MonitorPhysicalSizeMM[ 0 ] / this->ScreenSize[ 0 ];
-  double s1 = this->MonitorPhysicalSizeMM[ 1 ] / this->ScreenSize[ 1 ];
+  double s0 =
+    this->PSNode->GetHardwareList()[ this->PSNode->GetHardwareIndex() ].SizeX
+              / this->ScreenSize[ 0 ];
+  double s1 =
+   this->PSNode->GetHardwareList()[ this->PSNode->GetHardwareIndex() ].SizeY
+              / this->ScreenSize[ 1 ];
+  
   ret->Scale( s0 * hFlipFactor, s1 * vFlipFactor, 1.0 );
   
   ret->Translate( - this->ScreenSize[ 0 ] / 2.0,
@@ -630,10 +639,10 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
    }
   
   if (
-     ( this->SliceOffsetRAS <= maxOffset )
-     && ( this->SliceOffsetRAS >= minOffset )
-     && ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 )
-     )
+       ( this->SliceOffsetRAS <= maxOffset )
+       && ( this->SliceOffsetRAS >= minOffset )
+       && ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 )
+       )
     {
     
     this->ShowNeedleGuide( true );
@@ -831,7 +840,8 @@ BOOL
 CALLBACK
 MyInfoEnumProc( HMONITOR hMonitor, HDC hdc, LPRECT prc, LPARAM dwData ) 
 {
-  vtkPerkStationSecondaryMonitor *self = (vtkPerkStationSecondaryMonitor *)dwData;
+  vtkPerkStationSecondaryMonitor *self =
+    (vtkPerkStationSecondaryMonitor *)dwData;
   if (self)
     {
     MONITORINFO mi;
@@ -951,9 +961,11 @@ void vtkPerkStationSecondaryMonitor::Initialize()
 }
 
 
-
-//-----------------------------------------------------------------------------
-void vtkPerkStationSecondaryMonitor::OverlayRealTimeNeedleTip(double tipRAS[3], vtkMatrix4x4 *toolTransformMatrix)
+// ----------------------------------------------------------------------------
+void
+vtkPerkStationSecondaryMonitor
+::OverlayRealTimeNeedleTip( double tipRAS[ 3 ],
+                            vtkMatrix4x4* toolTransformMatrix )
 {
   vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
   vtkMatrix4x4::Invert( this->XYToRAS()->GetMatrix(), rasToXY );
@@ -1072,17 +1084,20 @@ void vtkPerkStationSecondaryMonitor::OverlayRealTimeNeedleTip(double tipRAS[3], 
   this->NeedleTipZLocationText->SetInput(text);
   this->NeedleTipZLocationText->SetTextScaleModeToNone();
   this->NeedleTipZLocationText->GetTextProperty()->SetFontSize(25);
-  this->NeedleTipZLocationText->SetDisplayPosition(this->MonitorPixelResolution[0]-250, 100);
+  this->NeedleTipZLocationText->SetDisplayPosition(
+    this->MonitorPixelResolution[ 0 ] - 250, 100 );
   if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
     { 
-    this->NeedleTipZLocationText->GetTextProperty()->SetJustificationToCentered();
+    this->NeedleTipZLocationText->GetTextProperty()->
+      SetJustificationToCentered();
     this->NeedleTipZLocationText->SetOrientation(180);
     //char *revText = vtkPerkStationModuleLogic::strrev(text, strlen(text));
     //this->NeedleTipZLocationText->SetInput(revText);
     }
   else if ( this->PSNode->GetSecondMonitorVerticalFlip() )
     {
-    this->NeedleTipZLocationText->GetTextProperty()->SetVerticalJustificationToTop();
+    this->NeedleTipZLocationText->GetTextProperty()->
+      SetVerticalJustificationToTop();
     this->NeedleTipZLocationText->SetOrientation(180);
     }
 
@@ -1240,7 +1255,8 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
   
   if ( insertionDepth > 0 )
     {
-    // first calculate how many, in increments of 10 mm, less than equal to 5 lines, that less than max number of lines
+    // first calculate how many, in increments of 10 mm, less than equal to
+    // 5 lines, that less than max number of lines
     this->NumOfDepthPerceptionLines = insertionDepth / 10;
     
     double lengthIncrement = 10.0; // in mm
@@ -1279,13 +1295,13 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
       {
       if ( denom >= 0 )
         {
-        rasTemp[0] = rasEntry[0] + lengthIncrement*(i+1)*cos(insertionAngle);
-        rasTemp[1] = rasEntry[1] + lengthIncrement*(i+1)*sin(insertionAngle);
+        rasTemp[0] = rasEntry[0] + lengthIncrement*(i+1)*cos( insertionAngle );
+        rasTemp[1] = rasEntry[1] + lengthIncrement*(i+1)*sin( insertionAngle );
         }
       else
         {
-        rasTemp[0] = rasEntry[0] - lengthIncrement*(i+1)*cos(insertionAngle);
-        rasTemp[1] = rasEntry[1] - lengthIncrement*(i+1)*sin(insertionAngle);
+        rasTemp[0] = rasEntry[0] - lengthIncrement*(i+1)*cos( insertionAngle );
+        rasTemp[1] = rasEntry[1] - lengthIncrement*(i+1)*sin( insertionAngle );
         }
       rasTemp[2] = rasEntry[2];
 
