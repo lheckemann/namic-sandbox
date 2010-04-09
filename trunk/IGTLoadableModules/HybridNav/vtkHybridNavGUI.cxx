@@ -653,9 +653,16 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
         vtkMatrix4x4* ctmatInv = vtkMatrix4x4::New();
         ctmatInv->Invert(ctmat,ctmatInv);
         //calculate new transformation matrix
+        vtkMatrix4x4* mat = vtkMatrix4x4::New();
+        mat->Identity();
+        mat->Multiply4x4(ctmatInv,otmat,mat);
+        mat->Print(std::cerr);
+        //get only the translational components
         vtkMatrix4x4* manualCalibrationMatrix = vtkMatrix4x4::New();
         manualCalibrationMatrix->Identity();
-        manualCalibrationMatrix->Multiply4x4(ctmatInv,otmat,manualCalibrationMatrix);
+        manualCalibrationMatrix->SetElement(0,3, mat->GetElement(0,3));
+        manualCalibrationMatrix->SetElement(1,3, mat->GetElement(1,3));
+        manualCalibrationMatrix->SetElement(2,3, mat->GetElement(2,3));
         manualCalibrationMatrix->Print(std::cerr);
         
         //Apply the new transform to the Current Tool
