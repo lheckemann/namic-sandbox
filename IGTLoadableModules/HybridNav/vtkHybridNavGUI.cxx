@@ -640,29 +640,22 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
         m2->Identity();
         tnode->SetCalibrationMatrix(m2);*/
         
-        // Make the translation components of ctnode and otnode the same
+        // Extract the transformation components from the tools
         vtkMatrix4x4* ctmat = vtkMatrix4x4::New();
         vtkMatrix4x4* otmat = vtkMatrix4x4::New();
         ctnode->GetParentTransformNode()->GetMatrixTransformToWorld(ctmat);
         otnode->GetParentTransformNode()->GetMatrixTransformToWorld(otmat);
-        otmat->Multiply4x4(otmat, otnode->GetCalibrationMatrix(), otmat);
+        
+        //Calculate calibration matrix
         ctmat->Print(std::cerr);
         otmat->Print(std::cerr);
-        double deltaX, deltaY, deltaZ;
-        deltaX = otmat->GetElement(0,3) - ctmat->GetElement(0,3);
-        deltaY = otmat->GetElement(1,3) - ctmat->GetElement(1,3);
-        deltaZ = otmat->GetElement(2,3) - ctmat->GetElement(2,3);
-        std::cerr << deltaX << ", " << deltaY << ", " << deltaZ << std::endl;
-        //Convert this delta vector into the ctnode frame
-        ctmat->Transpose(ctmat,ctmat);
-        double delta[4] = {deltaX, deltaY, deltaZ, 1};
-        ctmat->MultiplyPoint(delta, delta);
-        //Create new transform matrix to make tool tips coincide
+        //invert calibration node matrix
+        vtkMatrix4x4* ctmatInv = vtkMatrix4x4::New();
+        ctmatInv->Invert(ctmat,ctmatInv);
+        //calculate new transformation matrix
         vtkMatrix4x4* manualCalibrationMatrix = vtkMatrix4x4::New();
         manualCalibrationMatrix->Identity();
-        manualCalibrationMatrix->SetElement(0,3, delta[0]);
-        manualCalibrationMatrix->SetElement(1,3, delta[1]);
-        manualCalibrationMatrix->SetElement(2,3, delta[2]);
+        manualCalibrationMatrix->Multiply4x4(ctmatInv,otmat,manualCalibrationMatrix);
         manualCalibrationMatrix->Print(std::cerr);
         
         //Apply the new transform to the Current Tool
@@ -673,6 +666,7 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
         //Clean up
         ctmat->Delete();
         otmat->Delete();
+        ctmatInv->Delete();
         manualCalibrationMatrix->Delete();
         }
       }
