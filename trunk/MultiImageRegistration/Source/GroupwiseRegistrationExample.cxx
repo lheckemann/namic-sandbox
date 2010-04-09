@@ -142,7 +142,7 @@ int getCommandLine(std::string initFName, vector<std::string>& fileNames, vector
 
     double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
     unsigned int& StartLevel,
-    std::string& useNormalizeFilter,
+    std::string& useNormalizeFilter, std::string& useHistogramMatching, int& HistogramLevels, int& NumberOfMatchPoints,
     double& gaussianFilterKernelWidth,
     unsigned int& fixedTemplateIndex)
 {
@@ -468,6 +468,23 @@ int getCommandLine(std::string initFName, vector<std::string>& fileNames, vector
       initialTransformFileNames.push_back(dummy); // get initial Transform file name
     }
 
+    else if (dummy == "-useHistogramMatching")
+    {
+      initFile >> dummy;
+      useHistogramMatching = dummy;
+    }
+    
+    else if (dummy == "-HistogramLevels")
+    {
+      initFile >> dummy;
+      HistogramLevels = atoi(dummy.c_str());
+    }
+    
+    else if (dummy == "-NumberOfMatchPoints")
+    {
+      initFile >> dummy;
+      NumberOfMatchPoints = atoi(dummy.c_str());
+    }
   }
 
   initFile.close();
@@ -548,6 +565,10 @@ int main(int argc, char *argv[])
   std::string writeDeformationFields("off");
   std::string writeMean3DImages("off");
 
+  std::string useHistogramMatching("off");
+  int HistogramLevels = 256;
+  int NumberOfMatchPoints = 2;
+
   //SPSA related parameters
   double SPSAalpha = 0.602;
   double SPSAgamma = 0.101;
@@ -574,7 +595,7 @@ int main(int argc, char *argv[])
         writeMean3DImages, metricPrint, printInterval,
         SPSAalpha , SPSAgamma, SPSAcRel, SPSAnumberOfPerturbation,
         startLevel,
-        useNormalizeFilter, gaussianFilterKernelWidth,
+        useNormalizeFilter, useHistogramMatching, HistogramLevels, NumberOfMatchPoints,gaussianFilterKernelWidth,
         fixedTemplateIndex ) )
   {
     std::cout << "Error reading parameter file " << std::endl;
@@ -599,7 +620,7 @@ int main(int argc, char *argv[])
         writeMean3DImages, metricPrint, printInterval,
         SPSAalpha , SPSAgamma, SPSAcRel, SPSAnumberOfPerturbation,
         startLevel,
-        useNormalizeFilter, gaussianFilterKernelWidth,
+        useNormalizeFilter, useHistogramMatching, HistogramLevels, NumberOfMatchPoints, gaussianFilterKernelWidth,
         fixedTemplateIndex))
   {
     std::cout << "Error reading parameter file " << std::endl;
@@ -827,12 +848,17 @@ int main(int argc, char *argv[])
       imageReader = ImageReaderType::New();
 //HACK      imageReader->ReleaseDataFlagOn();
       imageReader->SetFileName( inputFileNames[i].c_str() );
+      ImageType::Pointer InputImage = ImageType::New();
+      InputImage = imageReader->GetOutput();
 
-      if(i == 0)
+       //useHistogramMatching, HistogramLevels, NumberOfMatchPoints,
+      if(useHistogramMatching == "on")
       {
-         imageReader->Update();
-         referenceImage = imageReader->GetOutput();
-      }
+         if(i == 0)
+         {
+            imageReader->Update();
+            referenceImage = imageReader->GetOutput();
+         }
 
       // Histogram Matching other input images with first input 
       
@@ -840,16 +866,18 @@ int main(int argc, char *argv[])
         histogramfilter->SetInput( imageReader->GetOutput()  );
         histogramfilter->SetReferenceImage(referenceImage );
 
-        histogramfilter->SetNumberOfHistogramLevels( 256 );
-        histogramfilter->SetNumberOfMatchPoints( 7 );
+        histogramfilter->SetNumberOfHistogramLevels( HistogramLevels );
+        histogramfilter->SetNumberOfMatchPoints( NumberOfMatchPoints );
         histogramfilter->ThresholdAtMeanIntensityOn();
         histogramfilter->Update();
+        InputImage = histogramfilter->GetOutput();
         std::cout << "message: Histogram matching.. " << std::endl;
-        typedef itk::ImageFileWriter<ImageType> WriterFilterType;
-        WriterFilterType::Pointer writer = WriterFilterType::New();
-        writer->SetFileName(fileNames[i]);
-        writer->SetInput(histogramfilter->GetOutput());
-        writer->Update();   
+      }
+     //    typedef itk::ImageFileWriter<ImageType> WriterFilterType;
+    //    WriterFilterType::Pointer writer = WriterFilterType::New();
+    //    writer->SetFileName(fileNames[i]);
+    //    writer->SetInput(histogramfilter->GetOutput());
+    //    writer->Update();   
 
       //Initialize mask filters
       ConnectedThresholdImageFilterType::Pointer connectedThreshold;
@@ -860,7 +888,7 @@ int main(int argc, char *argv[])
       if(maskType == "connectedThreshold" && ((mask == "single" && i==0 ) || mask == "all"))
       {
         connectedThreshold =ConnectedThresholdImageFilterType::New();
-        connectedThreshold->SetInput( imageReader->GetOutput() );
+        connectedThreshold->SetInput( InputImage );
 
         ConnectedThresholdImageFilterType::IndexType seed;
         seed.Fill(0);
@@ -881,7 +909,7 @@ int main(int argc, char *argv[])
       else if( maskType == "neighborhoodConnected" && ((mask == "single" && i==0 ) || mask == "all"))
       {
         neighborhoodConnected = NeighborhoodConnectedImageFilterType::New();
-        neighborhoodConnected->SetInput( imageReader->GetOutput() );
+        neighborhoodConnected->SetInput( InputImage );
 
         NeighborhoodConnectedImageFilterType::IndexType seed;
 
@@ -908,7 +936,7 @@ int main(int argc, char *argv[])
       else if ( maskType == "ROIAUTO" && ( mask == "all"))
       {
         LFFMaskFilterType::Pointer LFF = LFFMaskFilterType::New();
-        LFF->SetInput(histogramfilter->GetOutput());
+        LFF->SetInput(InputImage);
         LFF->SetOtsuPercentileThreshold(0.01);
         LFF->SetClosingSize(7);
         LFF->Update();
@@ -922,7 +950,7 @@ int main(int argc, char *argv[])
       NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
 //HACK      normalizeFilter->ReleaseDataFlagOn();
 
-      normalizeFilter->SetInput( imageReader->GetOutput() );
+      normalizeFilter->SetInput( InputImage );
 
       //Set up the Image Pyramid
       imagePyramidArray[i] = ImagePyramidType::New();
@@ -934,7 +962,7 @@ int main(int argc, char *argv[])
       else
       {
         //imagePyramidArray[i]->SetInput( imageReader->GetOutput() );  
-        imagePyramidArray[i]->SetInput( histogramfilter->GetOutput() );  
+        imagePyramidArray[i]->SetInput( InputImage );  
       }
 
       std::cout << "message: Reading Image: " << inputFileNames[i].c_str() << std::endl;
@@ -1049,6 +1077,7 @@ int main(int argc, char *argv[])
            TransformListType::const_iterator tit = transformList->begin();  
            if( !strcmp((*tit)->GetNameOfClass(),"AffineTransform") )
            {
+              affineTransformArray[i]->SetCenter((static_cast<AffineTransformType *>(transformList->front().GetPointer()))->TransformPoint(center));
               affineTransformArray[i]->SetFixedParameters(transformList->front()->GetFixedParameters());
               affineTransformArray[i]->SetParameters(transformList->front()->GetParameters());
               std::cout<<"Reading Initial Transform files:"<<transformFileName<<std::endl;
