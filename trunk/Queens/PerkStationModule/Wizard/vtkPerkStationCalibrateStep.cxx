@@ -159,7 +159,6 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
   this->ProcessingCallback = false;
   this->ClickNumber = 0;
   this->SecondMonitor = 0;
-  
 }
 
 
@@ -555,6 +554,9 @@ vtkPerkStationCalibrateStep
   
   this->Script( "pack %s -side top -anchor ne -padx 2 -pady 4", 
                 this->HardwareUpdateButton->GetWidgetName() );
+  
+  
+  this->PopulateControls();
 }
 
 //----------------------------------------------------------------------------
@@ -564,7 +566,10 @@ void vtkPerkStationCalibrateStep::InstallCallbacks()
 }
 
 
-//----------------------------------------------------------------------------
+/**
+ * Update UI fields with data from the MRML node.
+ * Also resets the timer.
+ */
 void
 vtkPerkStationCalibrateStep
 ::PopulateControls()
@@ -578,6 +583,7 @@ vtkPerkStationCalibrateStep
   
   
   vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
+  int ni = node->GetHardwareIndex();
   OverlayHardware hardware =
     node->GetHardwareList()[ node->GetHardwareIndex() ];
   
@@ -852,32 +858,28 @@ void vtkPerkStationCalibrateStep::SuggestFileName()
 //-----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::Reset()
 {
-  // reset parameters at MRML node
-   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   if ( ! mrmlNode )
     {
-    // TO DO: what to do on failure
     return;
     }
   
-  
-  this->TableOverlayEntry->SetValueAsDouble( 0.0 );
-  this->TableScannerEntry->SetValueAsDouble( 0.0 );
-  this->HardwareSelected( 0 );
-  
+  this->GetGUI()->GetMRMLNode()->SetTableAtOverlay( 0.0 );
+  this->GetGUI()->GetMRMLNode()->SetTableAtScanner( 0.0 );
+  this->GetGUI()->GetMRMLNode()->SetPatientAtScanner( 0.0 );
+  this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation( 0.0, 0.0 );
+  this->GetGUI()->GetMRMLNode()->SetSecondMonitorRotation( 0.0 );
+  this->PopulateControls();
   
   vtkMRMLScalarVolumeNode *inVolume = mrmlNode->GetPlanningVolumeNode();
   if ( ! inVolume )
     {
-    // TO DO: what to do on failure
     return;
     }
   
-  this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation( 0.0, 0.0 );
-  this->GetGUI()->GetMRMLNode()->SetSecondMonitorRotation( 0.0 );
   this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
   
-    // reset member variables to defaults
+  
   this->ClickNumber = 0;
 }
 
@@ -1310,14 +1312,37 @@ vtkPerkStationCalibrateStep
   
   std::vector< OverlayHardware > list = node->GetHardwareList();
   
-  for ( unsigned int i = 0; i < list.size(); ++ i )
+    // Update hardware list only if it changed.
+  
+  bool listChanged = false;
+  if ( list.size() != this->HardwareMenu->GetWidget()->GetMenu()->
+                      GetNumberOfItems() )
     {
-    this->HardwareMenu->GetWidget()->GetMenu()->
-            AddRadioButton( list[ i ].Name.c_str() );
+    listChanged = true;
+    }
+  else
+    {
+    for ( unsigned int i = 0; i < list.size(); ++ i )
+      {
+      if ( strcmp( this->HardwareMenu->GetWidget()->GetMenu()->GetItemLabel( i ),
+                   list[ i ].Name.c_str() ) != 0 )
+        {
+        listChanged = true;
+        }
+      }
     }
   
-  this->HardwareMenu->GetWidget()->SetValue( list[ 0 ].Name.c_str() );
-  this->HardwareSelected( 0 );
+  if ( listChanged )
+    {
+    for ( unsigned int i = 0; i < list.size(); ++ i )
+      {
+      this->HardwareMenu->GetWidget()->GetMenu()->
+              AddRadioButton( list[ i ].Name.c_str() );
+      }
+    }
+  
+  // this->HardwareMenu->GetWidget()->SetValue( list[ 0 ].Name.c_str() );
+  // this->HardwareSelected( 0 );
   
   this->PopulateControls();
 }

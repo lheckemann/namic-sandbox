@@ -126,7 +126,9 @@ StringToDoubleVector( std::string str, double* var, int n )
 
 
 //-----------------------------------------------------------------------------
-vtkMRMLPerkStationModuleNode* vtkMRMLPerkStationModuleNode::New()
+vtkMRMLPerkStationModuleNode*
+vtkMRMLPerkStationModuleNode
+::New()
 {
   // First try to create the object from the vtkObjectFactory
   vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLPerkStationModuleNode");
@@ -140,7 +142,9 @@ vtkMRMLPerkStationModuleNode* vtkMRMLPerkStationModuleNode::New()
 
 
 //----------------------------------------------------------------------------
-vtkMRMLNode* vtkMRMLPerkStationModuleNode::CreateNodeInstance()
+vtkMRMLNode*
+vtkMRMLPerkStationModuleNode
+::CreateNodeInstance()
 {
   // First try to create the object from the vtkObjectFactory
   vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLPerkStationModuleNode");
@@ -161,9 +165,47 @@ vtkMRMLPerkStationModuleNode
 {
   this->HideFromEditors = true;
   
+    // Hardware list.
+    // TODO: fill this list from a config file.
+  
+  this->HardwareList.clear();
+  
+  OverlayHardware siemens;
+    siemens.FlipHorizontal = true;
+    siemens.FlipVertical = false;
+    siemens.Name = "Siemens MR compatible";
+    siemens.SizeX = 360.0;
+    siemens.SizeY = 290.0;
+  this->HardwareList.push_back( siemens );
+  
+  OverlayHardware viewsonic;
+    viewsonic.FlipHorizontal = true;
+    viewsonic.FlipVertical = false;
+    viewsonic.Name = "PerkStation ViewSonic";
+    viewsonic.SizeX = 305.0;
+    viewsonic.SizeY = 228.0;
+  this->HardwareList.push_back( viewsonic );
+  
+  OverlayHardware acer;
+    acer.FlipHorizontal = false;
+    acer.FlipVertical = false;
+    acer.Name = "Acer desktop";
+    acer.SizeX = 433.0;
+    acer.SizeY = 270.9;
+  this->HardwareList.push_back( acer );
+  
+  OverlayHardware dell;
+    dell.FlipHorizontal = false;
+    dell.FlipVertical = false;
+    dell.Name = "Dell desktop";
+    dell.SizeX = 531.0;
+    dell.SizeY = 299.0;
+  this->HardwareList.push_back( dell );
   
   
   // Calibration parameters ---------------------------------------------------
+  
+  this->HardwareIndex = 0;
   
   this->SecondMonitorRotation = 0.0;
   this->SecondMonitorRotationCenter[ 0 ] = 0.0;
@@ -171,8 +213,10 @@ vtkMRMLPerkStationModuleNode
   this->SecondMonitorTranslation[ 0 ] = 0.0;
   this->SecondMonitorTranslation[ 1 ] = 0.0;
   
-  this->SecondMonitorVerticalFlip = false;
-  this->SecondMonitorHorizontalFlip = false;
+  this->SecondMonitorVerticalFlip =
+    this->HardwareList[ this->HardwareIndex ].FlipVertical;
+  this->SecondMonitorHorizontalFlip =
+    this->HardwareList[ this->HardwareIndex ].FlipHorizontal;
   
   this->TableAtScanner = 0.0;
   this->TableAtOverlay = 0.0;
@@ -251,45 +295,6 @@ vtkMRMLPerkStationModuleNode
   
   this->CurrentStep = WORKPHASE_CALIBRATION;
   this->PreviousStep = WORKPHASE_CALIBRATION;
-  
-  
-    // Hardware list.
-    // TODO: fill this list from a config file.
-  
-  this->HardwareList.clear();
-  
-  OverlayHardware siemens;
-    siemens.FlipHorizontal = true;
-    siemens.FlipVertical = false;
-    siemens.Name = "Siemens MR compatible";
-    siemens.SizeX = 360.0;
-    siemens.SizeY = 290.0;
-  this->HardwareList.push_back( siemens );
-  
-  OverlayHardware viewsonic;
-    viewsonic.FlipHorizontal = true;
-    viewsonic.FlipVertical = false;
-    viewsonic.Name = "PerkStation ViewSonic";
-    viewsonic.SizeX = 305.0;
-    viewsonic.SizeY = 228.0;
-  this->HardwareList.push_back( viewsonic );
-  
-  OverlayHardware acer;
-    acer.FlipHorizontal = false;
-    acer.FlipVertical = false;
-    acer.Name = "Acer desktop";
-    acer.SizeX = 433.0;
-    acer.SizeY = 270.9;
-  this->HardwareList.push_back( acer );
-  
-  OverlayHardware dell;
-    dell.FlipHorizontal = false;
-    dell.FlipVertical = false;
-    dell.Name = "Dell desktop";
-    dell.SizeX = 531.0;
-    dell.SizeY = 299.0;
-  this->HardwareList.push_back( dell );
-  
 }
 
 
@@ -816,7 +821,9 @@ void vtkMRMLPerkStationModuleNode::InitializeFiducialListNode()
 
 
 //-----------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode *vtkMRMLPerkStationModuleNode::GetActiveVolumeNode()
+vtkMRMLScalarVolumeNode*
+vtkMRMLPerkStationModuleNode
+::GetActiveVolumeNode()
 {
   if ( strcmpi( this->VolumeInUse, "Planning" ) == 0 )
     {
@@ -842,24 +849,29 @@ vtkMRMLPerkStationModuleNode
 
   
 //-----------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::SetPlanningVolumeNode(
-  vtkMRMLScalarVolumeNode *planVolNode )
+void
+vtkMRMLPerkStationModuleNode
+::SetPlanningVolumeNode( vtkMRMLScalarVolumeNode *planVolNode )
 {
   vtkSetMRMLNodeMacro( this->PlanningVolumeNode, planVolNode );
 }
 
 
 //-----------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::SetValidationVolumeNode(
-  vtkMRMLScalarVolumeNode *validationVolNode )
+void
+vtkMRMLPerkStationModuleNode
+::SetValidationVolumeNode( vtkMRMLScalarVolumeNode* validationVolNode )
 {
-  vtkSetMRMLNodeMacro(this->ValidationVolumeNode, validationVolNode);
+  vtkSetMRMLNodeMacro( this->ValidationVolumeNode, validationVolNode );
 }
 
 
 //-----------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::AddVolumeInformationToList(
-  vtkMRMLScalarVolumeNode *volNode, const char *diskLocation, char *type)
+void
+vtkMRMLPerkStationModuleNode
+::AddVolumeInformationToList( vtkMRMLScalarVolumeNode* volNode,
+                              const char* diskLocation,
+                              char* type )
 {
   VolumeInformationStruct volStruct;
   volStruct.DiskLocation=diskLocation;
@@ -915,11 +927,20 @@ vtkMRMLPerkStationModuleNode
     return 0;
     }
   
+    // Don't allow planning without planning volume.
   if (    newStep == WORKPHASE_PLANNING
        && this->PlanningVolumeNode == NULL )
     {
     return 0;
-    } 
+    }
+  
+    // Don't allow validation without validation volume.
+  if (    newStep == WORKPHASE_VALIDATION
+       && this->ValidationVolumeNode == NULL )
+    {
+    return 0;
+    }
+  
   
   this->PreviousStep = this->CurrentStep;
   this->CurrentStep = newStep;
@@ -931,6 +952,21 @@ vtkMRMLPerkStationModuleNode
   else
     {
     this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility( 0 );
+    }
+  
+  
+    // Update active volume.
+  
+  if ( this->CurrentStep == WORKPHASE_VALIDATION )
+    {
+    this->SetVolumeInUse( "Validation" );
+    }
+  else
+    {
+    if ( this->PlanningVolumeNode )
+      {
+      this->SetVolumeInUse( "Planning" );
+      }
     }
   
   return 1;
@@ -1084,18 +1120,26 @@ vtkMRMLPerkStationModuleNode
 
 
 /**
+ * Angle definition:
+ * - : 0   degrees
+ * / : 60  degrees
+ * | : 90  degrees
+ * \ : 120 degrees
+ *
  * @returns Insertion angle in degrees, between anteroposterior line and plan.
  */
 double
 vtkMRMLPerkStationModuleNode
 ::GetActualPlanInsertionAngle()
 {
-  double insAngle =
-    double( 180 / vtkMath::Pi() ) *
-    atan( double( ( this->PlanEntryPoint[ 1 ] - this->PlanTargetPoint[ 1 ] ) /
-                  ( this->PlanEntryPoint[ 0 ] - this->PlanTargetPoint[ 0 ] ) )
-        );
-  return insAngle;
+  double tangent =   ( this->PlanEntryPoint[ 0 ] - this->PlanTargetPoint[ 0 ] )
+                   / ( this->PlanEntryPoint[ 1 ] - this->PlanTargetPoint[ 1 ] );
+  
+  double angle = - ( 180.0 / vtkMath::Pi() ) * atan( tangent );
+  
+  angle = angle + 90.0;
+  
+  return angle;
 }
 
 

@@ -834,61 +834,65 @@ vtkPerkStationPlanStep
 ::DoubleEqual( double val1, double val2 )
 {
   bool result = false;
-    
-  if(fabs(val2-val1) < 0.0001)
-      result = true;
-
+  if ( fabs(val2-val1) < 0.0001 ) result = true;
   return result;
 }
 
 
 //------------------------------------------------------------------------------
-void vtkPerkStationPlanStep::OverlayNeedleGuide()
+void
+vtkPerkStationPlanStep
+::OverlayNeedleGuide()
 {
   vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->
     GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
     GetOverlayRenderer();
 
-    // get the world coordinates
-  int point[ 2 ];
-  double worldCoordinate[ 4 ];
+  
+    // get the world coordinates of Entry and Target points.
+  
   vtkSlicerSliceGUI *sliceGUI =
     vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->
-      GetApplicationGUI())->GetMainSliceGUI( "Red" );
+      GetApplicationGUI() )->GetMainSliceGUI( "Red" );
   vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
   vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
-  vtkMatrix4x4::Invert(xyToRAS, rasToXY);
+  vtkMatrix4x4::Invert( xyToRAS, rasToXY );
+  
+  int entryPointXY[ 2 ];
+  int targetPointXY[ 2 ];
+  double worldCoordinate[ 4 ];
   
     // entry point
-  double rasEntry[3];
-  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasEntry);
-  double inPt[4] = {rasEntry[0], rasEntry[1], rasEntry[2], 1};
-  double outPt[4];  
-  rasToXY->MultiplyPoint(inPt, outPt);
-  point[0] = outPt[0];
-  point[1] = outPt[1];
   
-  renderer->SetDisplayPoint(point[0],point[1], 0);
-  renderer->DisplayToWorld();
-  renderer->GetWorldPoint(worldCoordinate);
-  this->WCEntryPoint[0] = worldCoordinate[0];
-  this->WCEntryPoint[1] = worldCoordinate[1];
-  this->WCEntryPoint[2] = worldCoordinate[2];
+  double rasEntry[ 3 ];
+  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( rasEntry );
+  double inPt[ 4 ] = { rasEntry[ 0 ], rasEntry[ 1 ], rasEntry[ 2 ], 1.0 };
+  double outPt[ 4 ];  
+  rasToXY->MultiplyPoint( inPt, outPt );
+  entryPointXY[ 0 ] = outPt[ 0 ];
+  entryPointXY[ 1 ] = outPt[ 1 ];
   
-  double rasTarget[3];
-  this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint(rasTarget);
-  inPt[0] = rasTarget[0];
-  inPt[1] = rasTarget[1];
-  inPt[2] = rasTarget[2];
-  rasToXY->MultiplyPoint(inPt, outPt);
-  point[0] = outPt[0];
-  point[1] = outPt[1];
-  renderer->SetDisplayPoint(point[0],point[1], 0);
+  renderer->SetDisplayPoint( entryPointXY[ 0 ], entryPointXY[ 1 ], 0 );
   renderer->DisplayToWorld();
-  renderer->GetWorldPoint(worldCoordinate);
-  this->WCTargetPoint[0] = worldCoordinate[0];
-  this->WCTargetPoint[1] = worldCoordinate[1];
-  this->WCTargetPoint[2] = worldCoordinate[2];
+  renderer->GetWorldPoint( worldCoordinate );
+  this->WCEntryPoint[ 0 ] = worldCoordinate[ 0 ];
+  this->WCEntryPoint[ 1 ] = worldCoordinate[ 1 ];
+  this->WCEntryPoint[ 2 ] = worldCoordinate[ 2 ];
+  
+  double rasTarget[ 3 ];
+  this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( rasTarget );
+  inPt[ 0 ] = rasTarget[ 0 ];
+  inPt[ 1 ] = rasTarget[ 1 ];
+  inPt[ 2 ] = rasTarget[ 2 ];
+  rasToXY->MultiplyPoint( inPt, outPt );
+  targetPointXY[ 0 ] = outPt[ 0 ];
+  targetPointXY[ 1 ] = outPt[ 1 ];
+  renderer->SetDisplayPoint( targetPointXY[ 0 ], targetPointXY[ 1 ], 0 );
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint( worldCoordinate );
+  this->WCTargetPoint[ 0 ] = worldCoordinate[ 0 ];
+  this->WCTargetPoint[ 1 ] = worldCoordinate[ 1 ];
+  this->WCTargetPoint[ 2 ] = worldCoordinate[ 2 ];
   
   
     // steps
@@ -902,6 +906,7 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
     vtkSmartPointer< vtkCylinderSource >::New();
   
   // TO DO: how to relate this to actual depth???
+  
   double halfNeedleLength =
     sqrt( ( this->WCTargetPoint[ 0 ] - this->WCEntryPoint[ 0 ] ) *
           ( this->WCTargetPoint[ 0 ] - this->WCEntryPoint[ 0 ] ) +
@@ -913,63 +918,32 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   
     // because cylinder is positioned at the window center
   double needleCenter[ 3 ];
-  needleCenter[0] = this->WCEntryPoint[0];// - windowSize[0]/2;
-  needleCenter[1] = this->WCEntryPoint[1];// - windowSize[1]/2;
+  needleCenter[ 0 ] = this->WCEntryPoint[ 0 ];
+  needleCenter[ 1 ] = this->WCEntryPoint[ 1 ];
   
-  // TO DO: transfrom needle mapper using vtkTransformPolyData
-  
-  // vtkMatrix4x4 *transformMatrix = vtkMatrix4x4::New();
-  // transformMatrix->Identity();
   
     // insertion angle is the angle with x-axis of the line which has entry
     // and target as its end points;
-  double angle = double( 180 / vtkMath::Pi() ) *
-                 atan( double( ( rasEntry[ 1 ] - rasTarget[ 1 ] ) /
-                               ( rasEntry[ 0 ] - rasTarget[ 0 ] ) ) );
-  double insAngleRad = vtkMath::Pi() / 2.0
-                       - double( vtkMath::Pi() / 180.0 ) * angle;
-  /*
-  transformMatrix->SetElement( 0, 0, cos( insAngleRad ) );
-  transformMatrix->SetElement( 0, 1, -sin( insAngleRad ) );
-  transformMatrix->SetElement( 0, 2, 0);
-  transformMatrix->SetElement( 0, 3, 0);
-  transformMatrix->SetElement( 0, 3, needleCenter[0]);
   
-  transformMatrix->SetElement(1,0, sin(insAngleRad));
-  transformMatrix->SetElement(1,1, cos(insAngleRad));
-  transformMatrix->SetElement(1,2, 0);
-  transformMatrix->SetElement(1,3, 0);
-  transformMatrix->SetElement(1,3, needleCenter[1]);
+  double tang =   ( this->WCEntryPoint[ 0 ] - this->WCTargetPoint[ 0 ] )
+                / ( this->WCEntryPoint[ 1 ] - this->WCTargetPoint[ 1 ] );
+  double angle = - ( 180.0 / vtkMath::Pi() ) * atan( tang );
   
-  transformMatrix->SetElement(2,0, 0);
-  transformMatrix->SetElement(2,1, 0);
-  transformMatrix->SetElement(2,2, 1);
-  transformMatrix->SetElement(2,3, 0);
-  
-  transformMatrix->SetElement(3,0, 0);
-  transformMatrix->SetElement(3,1, 0);
-  transformMatrix->SetElement(3,2, 0);
-  transformMatrix->SetElement(3,3, 1);
-  */
-  
-  // vtkSmartPointer< vtkMatrixToHomogeneousTransform > transform =
-  //  vtkSmartPointer< vtkMatrixToHomogeneousTransform >::New();
-  // transform->SetInput(transformMatrix);
   
   vtkSmartPointer< vtkTransform > transform =
       vtkSmartPointer< vtkTransform >::New();
     transform->Translate( needleCenter[ 0 ], needleCenter[ 1 ], 0.0 );
-    transform->RotateZ( 90.0 - angle );
+    transform->RotateZ( angle );
   
-  vtkTransformPolyDataFilter *filter = vtkTransformPolyDataFilter::New();
+  vtkSmartPointer< vtkTransformPolyDataFilter > filter =
+      vtkSmartPointer< vtkTransformPolyDataFilter >::New();
     filter->SetInputConnection( needleGuide->GetOutputPort() );
     filter->SetTransform( transform );
   
-  // map
-  vtkPolyDataMapper *needleMapper = vtkPolyDataMapper::New();
+  vtkSmartPointer< vtkPolyDataMapper > needleMapper =
+      vtkSmartPointer< vtkPolyDataMapper >::New();
     needleMapper->SetInputConnection( filter->GetOutputPort() );
   
-  // after transfrom, set up actor
   this->NeedleActor = vtkActor::New(); 
   this->NeedleActor->SetMapper( needleMapper );  
   this->NeedleActor->GetProperty()->SetOpacity( 0.3 );
@@ -991,9 +965,8 @@ vtkPerkStationPlanStep
   this->GetGUI()->GetSecondaryMonitor()->RemoveOverlayNeedleGuide();
 
   this->GetGUI()->GetSecondaryMonitor()->RemoveDepthPerceptionLines();
-
- 
-
+  
+  
   this->RemoveOverlayNeedleGuide();
 
   // reset parameters of mrml node
@@ -1003,12 +976,12 @@ vtkPerkStationPlanStep
     // TO DO: what to do on failure
     return;
     }
-
+  
   double ras[3] = {0.0,0.0,0.0};
   mrmlNode->SetPlanEntryPoint(ras);
   mrmlNode->SetPlanTargetPoint(ras);
   
- 
+  
   double tiltAngle = mrmlNode->GetTiltAngle();
 
   if (!vtkPerkStationModuleLogic::DoubleEqual(tiltAngle,0))
