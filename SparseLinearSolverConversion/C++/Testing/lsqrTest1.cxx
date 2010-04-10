@@ -212,7 +212,6 @@ int lsqrTest1( int , char * [] )
   double xx[nn];
   xx[0] = 1.0;
   xx[1] = 7.0;
-  solver.SetStandardErrorEstimatesFlag( false );
   typedef double * RowType;
   RowType A[mm];
   double AA[4];
@@ -237,7 +236,6 @@ int lsqrTest1( int , char * [] )
   xx[0] = 1.0;
   xx[1] = 7.0;
   xx[2] = 9.0;
-  solver.SetStandardErrorEstimatesFlag( false );
   typedef double * RowType;
   RowType A[mm];
   double AA[6];
@@ -263,7 +261,6 @@ int lsqrTest1( int , char * [] )
   double xx[nn];
   xx[0] = 1.0;
   xx[1] = 7.0;
-  solver.SetStandardErrorEstimatesFlag( false );
   typedef double * RowType;
   RowType A[mm];
   double AA[6];
@@ -283,6 +280,82 @@ int lsqrTest1( int , char * [] )
   yy[2] = 0.0;
   solver.Aprod1( mm, nn, xx, yy );
   std::cout << "yy = " << yy[0] << " " << yy[1] << " " << yy[2] << std::endl;
+  }
+
+  { // basic test for Aprod2() 
+  const unsigned int mm = 2;
+  const unsigned int nn = 2;
+  double xx[nn];
+  xx[0] = 0.0;
+  xx[1] = 0.0;
+  typedef double * RowType;
+  RowType A[mm];
+  double AA[4];
+  A[0] = &(AA[0]);
+  A[1] = &(AA[2]);
+  A[0][0] = 1.0;
+  A[0][1] = 0.0;
+  A[1][0] = 0.0;
+  A[1][1] = 1.0;
+  solver.SetMatrix( A );
+  double yy[mm];
+  yy[0] = 1.0;
+  yy[1] = 7.0;
+  solver.Aprod2( mm, nn, xx, yy );
+  std::cout << "xx = " << xx[0] << " " << xx[1] << std::endl;
+  }
+
+  { // basic test for Aprod2() 
+  const unsigned int mm = 2;
+  const unsigned int nn = 3;
+  double xx[nn];
+  xx[0] = 0.0;
+  xx[1] = 0.0;
+  xx[2] = 0.0;
+  typedef double * RowType;
+  RowType A[mm];
+  double AA[6];
+  A[0] = &(AA[0]);
+  A[1] = &(AA[3]);
+  A[0][0] = 1.0;
+  A[0][1] = 2.0;
+  A[0][2] = 3.0;
+  A[1][0] = 4.0;
+  A[1][1] = 5.0;
+  A[1][2] = 6.0;
+  solver.SetMatrix( A );
+  double yy[mm];
+  yy[0] = 1.0;
+  yy[1] = 5.0;
+  solver.Aprod2( mm, nn, xx, yy );
+  std::cout << "xx = " << xx[0] << " " << xx[1] << " " << xx[2] << std::endl;
+  }
+
+  { // basic test for Aprod2() 
+  const unsigned int mm = 3;
+  const unsigned int nn = 2;
+  double xx[nn];
+  xx[0] = 0.0;
+  xx[1] = 0.0;
+  typedef double * RowType;
+  RowType A[mm];
+  double AA[6];
+  A[0] = &(AA[0]);
+  A[1] = &(AA[2]);
+  A[2] = &(AA[4]);
+  A[0][0] = 1.0;
+  A[0][1] = 2.0;
+  A[1][0] = 3.0;
+  A[1][1] = 4.0;
+  A[2][0] = 5.0;
+  A[2][1] = 6.0;
+  solver.SetMatrix( A );
+  double yy[mm];
+  yy[0] = 1.0;
+  yy[1] = 7.0;
+  yy[2] = 9.0;
+  solver.Aprod2( mm, nn, xx, yy );
+  std::cout << "xx = " << xx[0] << " " << xx[1] << std::endl;
   }
 
   { // basic test for Solve() 
