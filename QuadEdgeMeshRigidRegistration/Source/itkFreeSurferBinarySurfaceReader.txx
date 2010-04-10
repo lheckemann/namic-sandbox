@@ -132,7 +132,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   // Open file 
   //
   this->m_InputGeometryFile = new std::ifstream;
-  this->m_InputGeometryFile->open( this->m_FileName.c_str() , std::ios::in || std::ios::binary );
+  this->m_InputGeometryFile->open( this->m_FileName.c_str() , std::ios::in | std::ios::binary );
 
   if( this->m_InputGeometryFile->fail() )
     {
@@ -163,7 +163,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   // Open file 
   //
   this->m_InputDataFile = new std::ifstream;
-  this->m_InputDataFile->open( this->m_DataFileName.c_str(), std::ios::in || std::ios::binary );
+  this->m_InputDataFile->open( this->m_DataFileName.c_str(), std::ios::in | std::ios::binary );
 
   if( this->m_InputDataFile->fail() )
     {
