@@ -207,13 +207,6 @@ lsqr::SetStandardErrorEstimates( double * array )
 
 
 void
-lsqr::SetMatrix( double ** inputA )
-{
-  this->A = inputA;
-}
-
-
-void
 lsqr::SetOutputStream( std::ostream & os )
 {
   this->nout = &os;
@@ -276,48 +269,6 @@ HouseholderTransformation(unsigned int n, const double * z, double * x ) const
     *xp++ -= scalarProduct * (*zp++);
     }
 }
-
-
-/**
- * computes y = y + A*x without altering x.
- */
-void lsqr::
-Aprod1(unsigned int m, unsigned int n, const double * x, double * y ) const
-{
-  for ( unsigned int row = 0; row < m; row++ )
-    {
-    const double * rowA = this->A[row];
-    double sum = 0.0;
-
-    for ( unsigned int col = 0; col < n; col++ )
-      {
-      sum += rowA[col] * x[col];
-      }
-
-    y[row] +=  sum;
-    }
-}
-
-
-/**
- * computes x = x + A'*y without altering y.
- */
-void lsqr::
-Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const
-{
-  for ( unsigned int col = 0; col < n; col++ )
-    {
-    double sum = 0.0;
-
-    for ( unsigned int row = 0; row < m; row++ )
-      {
-      sum += this->A[row][col] * y[row];
-      }
-
-    x[col] +=  sum;
-    }
-}
-
 
 
 /** Simplified for this use from the BLAS version. */
