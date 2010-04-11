@@ -30,6 +30,18 @@ int lsqrTest2( int , char * [] )
 
   lsqr solver;
 
+  const double eps = 1e-15;
+
+  solver.SetOutputStream( std::cout );
+  solver.SetEpsilon( eps );
+  solver.SetDamp( 0.0 );
+  solver.SetMaximumNumberOfIterations( 100 );
+  solver.SetToleranceA( 1e-16 );
+  solver.SetToleranceB( 1e-16 );
+  solver.SetUpperLimitOnConditional( 1.0 / ( 10 * sqrt( eps ) ) );
+  solver.SetStandardErrorEstimatesFlag( true );
+
+
   const unsigned int mm = 3;
   const unsigned int nn = 2;
 
@@ -62,8 +74,6 @@ int lsqrTest2( int , char * [] )
 
   solver.Solve( mm, nn, bb, xx );
 
-  std::cout << "Solution = xx = " << xx[0] << " " << xx[1] << std::endl;
-
   std::cout << "Stopped because " << solver.GetStoppingReason() << std::endl;
   std::cout << "Used " << solver.GetNumberOfIterationsPerformed() << " Iterations" << std::endl;
   std::cout << "Frobenius norm estimation of Abar = " << solver.GetFrobeniusNormEstimateOfAbar() << std::endl;
@@ -71,6 +81,7 @@ int lsqrTest2( int , char * [] )
   std::cout << "Estimate of final value of norm(rbar) = " << solver.GetFinalEstimateOfNormRbar() << std::endl;
   std::cout << "Estimate of final value of norm of residuals = " << solver.GetFinalEstimateOfNormOfResiduals() << std::endl;
   std::cout << "Estimate of norm of final solution = " << solver.GetFinalEstimateOfNormOfX() << std::endl;
+  std::cout << "Solution = xx = " << xx[0] << " " << xx[1] << std::endl;
 
   return EXIT_SUCCESS;
 }
