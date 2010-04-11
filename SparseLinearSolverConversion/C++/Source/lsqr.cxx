@@ -92,6 +92,7 @@ lsqr::lsqr()
   this->xnorm = 0.0;
   this->wantse = false;
   this->se = NULL;
+  this->damp = 0.0;
 }
 
 
@@ -470,12 +471,12 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
       {
       if ( damped )
         {
-        (*this->nout) << " Itn       x(1)           Function"\
+        (*this->nout) << " Itn       x(0)           Function"\
         "     Compatible   LS     Norm Abar Cond Abar alfa_opt" << std::endl;
         }
       else
         {
-        (*this->nout) << " Itn       x(1)           Function"\
+        (*this->nout) << " Itn       x(0)           Function"\
         "     Compatible   LS        Norm A    Cond A" << std::endl;
         }
 
@@ -483,17 +484,17 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
       test2 = alpha / beta;
 
       this->nout->width(6);
-      (*this->nout) << itn;
+      (*this->nout) << this->itn;
       this->nout->precision(9);
       this->nout->precision(17);
-      (*this->nout) << x[0];
+      (*this->nout) << x[0] << " ";
       this->nout->precision(2);
       this->nout->precision(10);
-      (*this->nout) << rnorm;
+      (*this->nout) << rnorm << " ";
       this->nout->precision(1);
       this->nout->precision(9);
-      (*this->nout) << test1;
-      (*this->nout) << test2;
+      (*this->nout) << test1 << " ";
+      (*this->nout) << test2 << " ";
       (*this->nout) << std::endl;
       }
     }
@@ -545,13 +546,14 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
     //----------------------------------------------------------------
     //  Use a plane rotation to eliminate the damping parameter.
     //  This alters the diagonal (rhobar) of the lower-bidiagonal matrix.
-    //----------------------------------------------------------------
+    //---------------------------------------------------------------
     double rhbar1 = rhobar;
+
     if ( damped )
       {
       rhbar1 = this->D2Norm( rhobar, damp );
       const double cs1    = rhobar / rhbar1;
-      const double sn1    = this->damp  /rhbar1;
+      const double sn1    = this->damp / rhbar1;
       psi    = sn1 * phibar;
       phibar = cs1 * phibar;
       }
@@ -582,7 +584,7 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
       {
       for ( unsigned int i = 0; i < n; i++ )
         {
-        double t      = w[i];
+        double t = w[i];
         x[i]   = t1 * t +  x[i];
         w[i]   = t2 * t +  v[i];
         t      = ( t3 * t ) * ( t3 * t );
@@ -614,7 +616,7 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
     if (dxmax < dxk)
       {
       dxmax  = dxk;
-      maxdx  = itn;
+      maxdx  = this->itn;
       }
 
 
@@ -642,6 +644,7 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
     this->Acond  = this->Anorm * dnorm;
     res2   = this->D2Norm( res2, psi );
     this->rnorm  = this->D2Norm( res2, phibar );
+
     this->rnorm  += 1e-30;       //  Prevent rnorm == 0.0
     this->Arnorm = alpha * fabs( tau );
 
@@ -667,7 +670,7 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
     t3 = one + test3;
     t2 = one + test2;
     t1 = one + t1;
-    if ( itn >= itnlim ) istop = 5;
+    if ( this->itn >= this->itnlim ) istop = 5;
     if ( t3  <= one    ) istop = 4;
     if ( t2  <= one    ) istop = 2;
     if ( t1  <= one    ) istop = 1;
@@ -687,9 +690,9 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
     if (nout > 0)
       {
       if (n     <=        40) prnt = true;
-      if (itn   <=        10) prnt = true;
-      if (itn   >= itnlim-10) prnt = true;
-      if ( (itn % 10)  ==  0) prnt = true;
+      if (this->itn   <=        10) prnt = true;
+      if (this->itn   >= this->itnlim-10) prnt = true;
+      if ( (this->itn % 10)  ==  0) prnt = true;
       if (test3 <=  2.0*ctol) prnt = true;
       if (test2 <= 10.0*atol) prnt = true;
       if (test1 <= 10.0*rtol) prnt = true;
@@ -698,20 +701,20 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
       if ( prnt ) // Print a line for this iteration.
         {
         this->nout->width(6);
-        (*this->nout) << itn;
+        (*this->nout) << this->itn << " ";
         this->nout->precision(9);
         this->nout->precision(17);
-        (*this->nout) << x[0];
+        (*this->nout) << x[0] << " ";
         this->nout->precision(2);
         this->nout->precision(10);
-        (*this->nout) << rnorm;
+        (*this->nout) << rnorm << " ";
         this->nout->precision(1);
         this->nout->precision(9);
-        (*this->nout) << test1;
-        (*this->nout) << test2;
-        (*this->nout) << this->Anorm;
-        (*this->nout) << this->Acond;
-        (*this->nout) << alfopt;
+        (*this->nout) << test1 << " ";
+        (*this->nout) << test2 << " ";
+        (*this->nout) << this->Anorm << " ";
+        (*this->nout) << this->Acond << " ";
+        (*this->nout) << alfopt << " ";
         (*this->nout) << std::endl;
         }
       }
@@ -732,13 +735,14 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
       const unsigned int nconv = 1;
       nstop = nstop + 1;
 
-      if ( ( nstop < nconv ) && ( itn < itnlim ) )
+      if ( ( nstop < nconv ) && ( this->itn < this->itnlim ) )
         {
         istop = 0;
         }
       }
 
     } while ( istop != 0); 
+
 
   //
   //  Main itertation loop
