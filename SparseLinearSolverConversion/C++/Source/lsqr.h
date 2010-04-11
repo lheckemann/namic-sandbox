@@ -78,7 +78,7 @@ class lsqr
 public:
 
   lsqr();
-  ~lsqr();
+  virtual ~lsqr();
 
   /** Householder Transformation: reflects the vector "x" across the
    * hyperplane whose normal is defined by vector "z". The dimension of
@@ -91,7 +91,7 @@ public:
    * The size of the vector x is n.
    * The size of the vector y is m.
    */
-  void Aprod1(unsigned int m, unsigned int n, const double * x, double * y ) const;
+  virtual void Aprod1(unsigned int m, unsigned int n, const double * x, double * y ) const = 0;
 
   /**
    * computes x = x + A'*y without altering y,
@@ -99,7 +99,7 @@ public:
    * The size of the vector x is n.
    * The size of the vector y is m.
    */
-  void Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const;
+  virtual void Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const = 0;
   
   /**
    * returns sqrt( a**2 + b**2 )
@@ -207,10 +207,6 @@ public:
    *  of standard error estimates with teh method SetStandardErrorEstimatesFlag().
    */
   void SetStandardErrorEstimates( double * array );
-
-
-  /** Set the matrix A of the equation to be solved A*x = b. */
-  void SetMatrix( double ** A );
 
   /** 
    *   Returns an integer giving the reason for termination:
@@ -326,8 +322,6 @@ private:
 
   bool   wantse;
   double * se;
-
-  double ** A;
 };
 
 #endif 
