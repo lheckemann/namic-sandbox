@@ -80,7 +80,7 @@ lsqr::lsqr()
   this->eps = 1e-16;
   this->atol = 1e-6;
   this->btol = 1e-6;
-  this->conlim = 1.0 / ( 10 * sqrt( eps ) );
+  this->conlim = 1.0 / ( 10 * sqrt( this->eps ) );
   this->itnlim = 10;
   this->nout = NULL;
   this->istop = 0;
@@ -504,6 +504,7 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
   double rtol;
 
 
+  //
   //  Main itertation loop
   //
   do {
@@ -655,7 +656,7 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
     const double alfopt = sqrt( this->rnorm / ( dnorm * this->xnorm ) );
     test1  = this->rnorm / bnorm;
     test2  = zero;
-    test2  = Arnorm / ( this->Anorm * this->rnorm );
+    test2  = this->Arnorm / ( this->Anorm * this->rnorm );
     test3  = one   / this->Acond;
     t1     = test1 / ( one + this->Anorm* xnorm / bnorm );
     rtol   = btol  +   atol* this->Anorm* xnorm / bnorm;
@@ -679,7 +680,7 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
     //  Allow for tolerances set by the user.
 
     if ( test3 <= ctol ) istop = 4;
-    if ( test2 <= atol ) istop = 2;
+    if ( test2 <= this->atol ) istop = 2;
     if ( test1 <= rtol ) istop = 1;
 
 
@@ -726,6 +727,7 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
     // consecutive iterations, where  nconv  is set below.
     // Suggested value:  nconv = 1, 2  or  3.
     //----------------------------------------------------------------
+
     if (istop == 0)
       {
       nstop = 0;
@@ -741,7 +743,7 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
         }
       }
 
-    } while ( istop != 0); 
+    } while ( istop == 0); 
 
   //===================================================================
   // End of iteration loop.
@@ -769,11 +771,6 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
       se[i] = t * sqrt( se[i] );
       }
     }
-
-
-  //
-  //  Main itertation loop
-  //
 
   // Release locally allocated arrays.
   delete [] u;
