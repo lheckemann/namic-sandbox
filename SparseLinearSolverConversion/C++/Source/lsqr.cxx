@@ -743,6 +743,33 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
 
     } while ( istop != 0); 
 
+  //===================================================================
+  // End of iteration loop.
+  //===================================================================
+
+
+  if ( this->wantse )         //  Finish off the
+    {                         //  standard error estimates.
+    double t = one;
+
+    if ( m > n )
+      {
+      t = m - n;
+      }
+
+    if ( damped )
+      {
+      t = m;
+      }
+
+    t = this->rnorm / sqrt(t);
+
+    for ( unsigned int i = 0; i < n; i++ )
+      {
+      se[i] = t * sqrt( se[i] );
+      }
+    }
+
 
   //
   //  Main itertation loop
