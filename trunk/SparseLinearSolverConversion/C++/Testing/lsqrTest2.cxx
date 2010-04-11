@@ -33,19 +33,36 @@ int lsqrTest2( int , char * [] )
   const unsigned int mm = 3;
   const unsigned int nn = 2;
 
-  double bb[nn];
-  double xx[mm];
+  double bb[mm];
+  double xx[nn];
 
-  bb[0] = 1.0;
-  bb[1] = 7.0;
-  bb[2] = 3.0;
+  bb[0] = 7.0;
+  bb[1] =-7.0;
+  bb[2] = 2.0;
 
   solver.SetStandardErrorEstimatesFlag( true );
   double se[nn];
 
   solver.SetStandardErrorEstimates( se );
 
+  //  -3  5
+  typedef double * RowType;
+  RowType A[mm];
+  double AA[6];
+  A[0] = &(AA[0]);
+  A[1] = &(AA[2]);
+  A[2] = &(AA[4]);
+  A[0][0] = 1.0;
+  A[0][1] = 2.0;
+  A[1][0] = 4.0;
+  A[1][1] = 1.0;
+  A[2][0] = 1.0;
+  A[2][1] = 1.0;
+  solver.SetMatrix( A );
+
   solver.Solve( mm, nn, bb, xx );
+
+  std::cout << "Solution = xx = " << xx[0] << " " << xx[1] << std::endl;
 
   std::cout << "Stopped because " << solver.GetStoppingReason() << std::endl;
   std::cout << "Used " << solver.GetNumberOfIterationsPerformed() << " Iterations" << std::endl;
