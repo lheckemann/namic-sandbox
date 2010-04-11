@@ -376,6 +376,7 @@ int lsqrTest1( int , char * [] )
   A[1][0] = 0.0;
   A[1][1] = 1.0;
   solver.SetMatrix( A );
+  solver.SetMaximumNumberOfIterations( 10 );
   solver.Solve( mm, nn, bb, xx );
   }
 
@@ -383,8 +384,8 @@ int lsqrTest1( int , char * [] )
   const unsigned int mm = 2;
   const unsigned int nn = 2;
   double bb[nn];
-  bb[0] = 3.0;
-  bb[1] = 5.0;
+  bb[0] = 1.0;
+  bb[1] = 7.0;
   double xx[mm];
   solver.SetStandardErrorEstimatesFlag( true );
   double se[nn];
@@ -399,7 +400,12 @@ int lsqrTest1( int , char * [] )
   A[1][0] = 0.0;
   A[1][1] = 1.0;
   solver.SetMatrix( A );
+  solver.SetMaximumNumberOfIterations( 10 );
   solver.Solve( mm, nn, bb, xx );
+  for( unsigned int i = 0; i < mm; i++ )
+    {
+    std::cout << "se[" << i <<"] = " << se[i] << std::endl;
+    }
   }
 
 
