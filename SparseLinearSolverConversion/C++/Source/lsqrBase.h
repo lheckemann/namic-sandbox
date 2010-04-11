@@ -80,11 +80,6 @@ public:
   lsqrBase();
   virtual ~lsqrBase();
 
-  /** Householder Transformation: reflects the vector "x" across the
-   * hyperplane whose normal is defined by vector "z". The dimension of
-   * the hyperspace is given by "n". */
-  void HouseholderTransformation(unsigned int n, const double * z, double * x ) const;
-
   /**
    * computes y = y + A*x without altering x,
    * where A is a matrix of dimensions A[m][n].

@@ -47,6 +47,11 @@ public:
    */
   void Aprod2(unsigned int m, unsigned int n, double * x, const double * y ) const;
   
+  /** Householder Transformation: reflects the vector "x" across the
+   * hyperplane whose normal is defined by vector "z". The dimension of
+   * the hyperspace is given by "n". */
+  void HouseholderTransformation(unsigned int n, const double * z, double * x ) const;
+
   /** Set the matrix A of the equation to be solved A*x = b. */
   void SetMatrix( double ** A );
 
