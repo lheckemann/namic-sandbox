@@ -14,7 +14,7 @@
 
 =========================================================================*/
 
-#include "lsqr.h"
+#include "lsqrDense.h"
 
 #include <iostream>
 
@@ -25,7 +25,7 @@
 int lsqrTest1( int , char * [] )
 {
 
-  lsqr solver;
+  lsqrDense solver;
 
   const double tolerance = 1e-9;
 
@@ -378,6 +378,7 @@ int lsqrTest1( int , char * [] )
   solver.SetMatrix( A );
   solver.SetMaximumNumberOfIterations( 10 );
   solver.Solve( mm, nn, bb, xx );
+  std::cout << "xx = " << xx[0] << " " << xx[1] << std::endl;
   }
 
   { // basic test for Solve() 
@@ -402,10 +403,35 @@ int lsqrTest1( int , char * [] )
   solver.SetMatrix( A );
   solver.SetMaximumNumberOfIterations( 10 );
   solver.Solve( mm, nn, bb, xx );
-  for( unsigned int i = 0; i < mm; i++ )
-    {
-    std::cout << "se[" << i <<"] = " << se[i] << std::endl;
-    }
+  std::cout << "se = " << se[0] << " " << se[1] << std::endl;
+  std::cout << "xx = " << xx[0] << " " << xx[1] << std::endl;
+  }
+
+
+  { // basic test for Solve() 
+  const unsigned int mm = 2;
+  const unsigned int nn = 2;
+  double bb[nn];
+  bb[0] = -9.0;
+  bb[1] = 15.0;
+  double xx[mm];
+  solver.SetStandardErrorEstimatesFlag( true );
+  double se[nn];
+  solver.SetStandardErrorEstimates( se );
+  typedef double * RowType;
+  RowType A[mm];
+  double AA[4];
+  A[0] = &(AA[0]);
+  A[1] = &(AA[2]);
+  A[0][0] = 1.0;
+  A[0][1] = 0.0;
+  A[1][0] = 0.0;
+  A[1][1] = 1.0;
+  solver.SetMatrix( A );
+  solver.SetMaximumNumberOfIterations( 10 );
+  solver.Solve( mm, nn, bb, xx );
+  std::cout << "se = " << se[0] << " " << se[1] << std::endl;
+  std::cout << "xx = " << xx[0] << " " << xx[1] << std::endl;
   }
 
 

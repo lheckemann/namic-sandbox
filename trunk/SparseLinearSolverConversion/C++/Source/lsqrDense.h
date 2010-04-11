@@ -16,7 +16,7 @@
 #ifndef __lsqrDense_h
 #define __lsqrDense_h
 
-#include "lsqr.h"
+#include "lsqrBase.h"
 
 
 /** \class lsqrDense
@@ -24,7 +24,7 @@
  * Specific implementation of the solver for a type of dense Matrix.
  *  
  */
-class lsqrDense : public lsqr 
+class lsqrDense : public lsqrBase 
 {
 public:
 

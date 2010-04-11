@@ -19,7 +19,7 @@
 #include <iostream>
 
 
-/** \class lsqr
+/** \class lsqrBase
  *
  *  \brief implement a solver for a set of linear equations.
  *
@@ -73,12 +73,12 @@
  *
  *  
  */
-class lsqr 
+class lsqrBase 
 {
 public:
 
-  lsqr();
-  virtual ~lsqr();
+  lsqrBase();
+  virtual ~lsqrBase();
 
   /** Householder Transformation: reflects the vector "x" across the
    * hyperplane whose normal is defined by vector "z". The dimension of

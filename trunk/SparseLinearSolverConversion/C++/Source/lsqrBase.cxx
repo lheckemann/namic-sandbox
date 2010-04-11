@@ -14,7 +14,7 @@
 
 =========================================================================*/
 
-#include "lsqr.h"
+#include "lsqrBase.h"
 #include <math.h>
 
 #define Abs(x) ((x) >= 0 ? (x) : -(x))
@@ -75,7 +75,7 @@
 
 
 
-lsqr::lsqr()
+lsqrBase::lsqrBase()
 {
   this->eps = 1e-16;
   this->atol = 1e-6;
@@ -96,118 +96,118 @@ lsqr::lsqr()
 }
 
 
-lsqr::~lsqr()
+lsqrBase::~lsqrBase()
 {
 }
 
 
 unsigned int
-lsqr::GetStoppingReason() const
+lsqrBase::GetStoppingReason() const
 {
   return this->istop;
 }
 
 
 unsigned int
-lsqr::GetNumberOfIterationsPerformed() const
+lsqrBase::GetNumberOfIterationsPerformed() const
 {
   return this->itn;
 }
 
 
 double
-lsqr::GetFrobeniusNormEstimateOfAbar() const
+lsqrBase::GetFrobeniusNormEstimateOfAbar() const
 {
   return this->Anorm;
 }
 
 
 double
-lsqr::GetConditionNumberEstimateOfAbar() const
+lsqrBase::GetConditionNumberEstimateOfAbar() const
 {
   return this->Acond;
 }
 
 
 double
-lsqr::GetFinalEstimateOfNormRbar() const
+lsqrBase::GetFinalEstimateOfNormRbar() const
 {
   return this->rnorm;
 }
 
 
 double 
-lsqr::GetFinalEstimateOfNormOfResiduals() const
+lsqrBase::GetFinalEstimateOfNormOfResiduals() const
 {
   return this->Arnorm;
 }
 
 
 double 
-lsqr::GetFinalEstimateOfNormOfX() const
+lsqrBase::GetFinalEstimateOfNormOfX() const
 {
   return this->xnorm;
 }
 
 
 void
-lsqr::SetStandardErrorEstimatesFlag(bool flag)
+lsqrBase::SetStandardErrorEstimatesFlag(bool flag)
 {
   this->wantse = flag;
 }
 
 
 void
-lsqr::SetEpsilon( double value )
+lsqrBase::SetEpsilon( double value )
 {
   this->eps = value;
 }
 
 
 void
-lsqr::SetDamp( double value )
+lsqrBase::SetDamp( double value )
 {
   this->damp = value;
 }
 
 
 void
-lsqr::SetToleranceA( double value )
+lsqrBase::SetToleranceA( double value )
 {
   this->atol = value;
 }
 
 
 void
-lsqr::SetToleranceB( double value )
+lsqrBase::SetToleranceB( double value )
 {
   this->btol = value;
 }
 
 
 void
-lsqr::SetMaximumNumberOfIterations( unsigned int value )
+lsqrBase::SetMaximumNumberOfIterations( unsigned int value )
 {
   this->itnlim = value;
 }
 
 
 void
-lsqr::SetUpperLimitOnConditional( double value )
+lsqrBase::SetUpperLimitOnConditional( double value )
 {
   this->conlim = value;
 }
 
 
 void
-lsqr::SetStandardErrorEstimates( double * array )
+lsqrBase::SetStandardErrorEstimates( double * array )
 {
   this->se = array;
 }
 
 
 void
-lsqr::SetOutputStream( std::ostream & os )
+lsqrBase::SetOutputStream( std::ostream & os )
 {
   this->nout = &os;
 }
@@ -218,7 +218,7 @@ lsqr::SetOutputStream( std::ostream & os )
  *  with precautions to avoid overflow.
  */
 double
-lsqr::D2Norm( double a, double b ) const
+lsqrBase::D2Norm( double a, double b ) const
 {
   const double scale = Abs(a) + Abs(b);
   const double zero = 0.0;
@@ -242,7 +242,7 @@ lsqr::D2Norm( double a, double b ) const
   Implemented as x = x - z * ( 2*( z'*x ) )
 
 */
-void lsqr::
+void lsqrBase::
 HouseholderTransformation(unsigned int n, const double * z, double * x ) const
 {
   // First, compute z'*x as a scalar product.
@@ -273,7 +273,7 @@ HouseholderTransformation(unsigned int n, const double * z, double * x ) const
 
 /** Simplified for this use from the BLAS version. */
 void
-lsqr::Scale( unsigned int n, double factor, double *x ) const
+lsqrBase::Scale( unsigned int n, double factor, double *x ) const
 {
   double * xend = x + n;
   while( x != xend )
@@ -285,7 +285,7 @@ lsqr::Scale( unsigned int n, double factor, double *x ) const
 
 /** Simplified for this use from the BLAS version. */
 double
-lsqr::Dnrm2( unsigned int n, const double *x ) const
+lsqrBase::Dnrm2( unsigned int n, const double *x ) const
 {
   double magnitudeOfLargestElement = 0.0;
 
@@ -325,7 +325,7 @@ lsqr::Dnrm2( unsigned int n, const double *x ) const
  *  The array b must have size m
  *
  */
-void lsqr::
+void lsqrBase::
 Solve( unsigned int m, unsigned int n, double * b, double * x )
 {
   const double zero = 0.0;

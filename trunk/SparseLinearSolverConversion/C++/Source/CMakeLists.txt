@@ -1,6 +1,6 @@
 
 ADD_LIBRARY(lsqr
-  lsqr.cxx
+  lsqrBase.cxx
   lsqrDense.cxx
   )
 

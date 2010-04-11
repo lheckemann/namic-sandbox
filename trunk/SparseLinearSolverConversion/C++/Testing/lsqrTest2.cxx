@@ -14,7 +14,7 @@
 
 =========================================================================*/
 
-#include "lsqr.h"
+#include "lsqrDense.h"
 
 #include <iostream>
 
@@ -28,7 +28,7 @@
 int lsqrTest2( int , char * [] )
 {
 
-  lsqr solver;
+  lsqrDense solver;
 
   const double eps = 1e-15;
 
