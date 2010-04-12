@@ -124,7 +124,7 @@ int main( int argc, char * argv [] )
   sigmaX[2] = 1.0;
   sigmaX[3] = 1.0;
 
-  multiResDemonsFilter->SetEpsilonValues( sigmaX );
+  multiResDemonsFilter->SetSigmaXValues( sigmaX );
 
 
   typedef itk::VTKPolyDataReader< MeshType >     ReaderType;
