@@ -72,10 +72,8 @@ vtkPointRegistrationGUI::vtkPointRegistrationGUI ( )
   this->DeletePointPairButton = NULL;
   this->DeleteAllPointPairButton = NULL;    
   this->RegisterButton = NULL;
-  this->ApplyTransformButton = NULL;
   this->ResetButton = NULL;
-  this->SelectRegNodeButton = NULL;
-  this->SelectRegNodeButton = NULL;
+  this->RegistrationStatus = NULL;
   
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -162,31 +160,18 @@ vtkPointRegistrationGUI::~vtkPointRegistrationGUI ( )
     this->RegisterButton->SetParent(NULL);
     this->RegisterButton->Delete();
     }
-    
-  if (this->ApplyTransformButton)
-    {
-    this->ApplyTransformButton->SetParent(NULL);
-    this->ApplyTransformButton->Delete();
-    }
-    
+
   if (this->ResetButton)
     {
     this->ResetButton->SetParent(NULL);
     this->ResetButton->Delete();
     }
-    
-  if (this->SelectRegNode)
+
+  if (this->RegistrationStatus)
     {
-    this->SelectRegNode->SetParent(NULL);
-    this->SelectRegNode->Delete();
+    this->RegistrationStatus->SetParent(NULL);
+    this->RegistrationStatus->Delete();
     }
-    
-  if (this->SelectRegNodeButton)
-    {
-    this->SelectRegNodeButton->SetParent(NULL);
-    this->SelectRegNodeButton->Delete();
-    }
-    
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -194,12 +179,10 @@ vtkPointRegistrationGUI::~vtkPointRegistrationGUI ( )
 
 }
 
-
 //---------------------------------------------------------------------------
 void vtkPointRegistrationGUI::Init()
 {
 }
-
 
 //---------------------------------------------------------------------------
 void vtkPointRegistrationGUI::Enter()
@@ -215,7 +198,6 @@ void vtkPointRegistrationGUI::Enter()
     }
 
 }
-
 
 //---------------------------------------------------------------------------
 void vtkPointRegistrationGUI::Exit ( )
@@ -313,24 +295,6 @@ void vtkPointRegistrationGUI::RemoveGUIObservers ( )
     this->ResetButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-    
-  if (this->ApplyTransformButton)
-    {
-    this->ApplyTransformButton
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  
-  if (this->SelectRegNode)
-    {
-    this->SelectRegNode
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  
-    if (this->SelectRegNodeButton)
-    {
-    this->SelectRegNodeButton
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
   
   this->RemoveLogicObservers();
 
@@ -387,12 +351,7 @@ void vtkPointRegistrationGUI::AddGUIObservers ( )
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->PatTransformNode
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->ApplyTransformButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->SelectRegNode
-    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->SelectRegNodeButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
   this->AddLogicObservers();
 }
 
@@ -406,9 +365,6 @@ void vtkPointRegistrationGUI::RemoveLogicObservers ( )
                                       (vtkCommand *)this->LogicCallbackCommand);
     }
 }
-
-
-
 
 //---------------------------------------------------------------------------
 void vtkPointRegistrationGUI::AddLogicObservers ( )
@@ -612,12 +568,17 @@ void vtkPointRegistrationGUI::ProcessGUIEvents(vtkObject *caller,
         vtkSlicerApplication::GetInstance()->ErrorMessage("Error in registration between patient and image land marks.");
         return;
         }
+
       //Create Registration Node
       vtkMRMLLinearTransformNode* registrationMatrix = vtkMRMLLinearTransformNode::New();
       registrationMatrix->SetAndObserveMatrixTransformToParent(this->regTrans);
+      registrationMatrix->SetName("RegistrationMatrix");
       this->GetMRMLScene()->AddNode(vtkMRMLNode::SafeDownCast(registrationMatrix));
       this->GetMRMLScene()->Modified();
       
+      //update status
+      this->RegistrationStatus->SetText("Registration Matrix calculated successfully");
+
       //clean up
       patCoords->Delete();
       imCoords->Delete();
@@ -628,7 +589,7 @@ void vtkPointRegistrationGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->ResetButton == vtkKWPushButton::SafeDownCast(caller) 
           && event == vtkKWPushButton::InvokedEvent)
     {
-    //Delete all calues from text boxes
+    //Delete all values from text boxes
     this->PatCoordinatesEntry->GetWidget()->SetValue("");
     this->ImagCoordinatesEntry->GetWidget()->SetValue("");
     this->PointPairMultiColumnList->GetWidget()->DeleteAllRows();
@@ -638,67 +599,11 @@ void vtkPointRegistrationGUI::ProcessGUIEvents(vtkObject *caller,
       this->regTrans = vtkMatrix4x4::New();
     else
       this->regTrans->Identity();
-    }  
-   
-  //Apply calculated transform to selected node
-  else if (this->ApplyTransformButton == vtkKWPushButton::SafeDownCast(caller) 
-          && event == vtkKWPushButton::InvokedEvent)
-    {
-    //Check to see if node has a transform selected
-    if (!this->TrackerNode)
-      {
-      vtkSlicerApplication::GetInstance()->ErrorMessage("No tracker node selected");
-      return;
-      }
-        
-    //Check if registration matrix has been defined
-    if (!this->regTrans)
-      {
-      //vtkSlicerApplication::GetInstance()->ErrorMessage("No registration matrix has been calculated");
-      //return;
-      this->regTrans = vtkMatrix4x4::New();
-      }
 
-    //Add observer to tracker in order to apply registration matrix to transform
-    vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNode->GetSelected());
-    if (!tnode)
-      {
-      return;
-      }
-    vtkSetAndObserveMRMLNodeEventsMacro(tnode,tnode,NULL); //eliminate any current observer on the node
-    //Create the node where the new matrix will be stored
-    if (!this->regTransNode)
-      {
-      this->regTransNode = vtkMRMLLinearTransformNode::New();
-      this->GetMRMLScene()->AddNode(vtkMRMLNode::SafeDownCast(regTransNode));
-      this->GetMRMLScene()->Modified();
-      }
-    vtkIntArray* nodeEvents = vtkIntArray::New();
-    nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-    vtkSetAndObserveMRMLNodeEventsMacro(tnode,tnode,nodeEvents);
-    tnode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-    nodeEvents->Delete();
+    //update Status
+    this->RegistrationStatus->SetText("No registration matrix calculated");
     }  
     
-  //Select Registration Matrix Button
-  else if (this->SelectRegNodeButton == vtkKWPushButton::SafeDownCast(caller) 
-          && event == vtkKWPushButton::InvokedEvent)
-    {
-    vtkMRMLLinearTransformNode* rnode = vtkMRMLLinearTransformNode::SafeDownCast(this->SelectRegNode->GetSelected());
-    //Check if rnode has a selection
-    if (!rnode)
-      {
-      std::cerr << "Registration matrix not selected" << std::endl;
-      return;
-      }
-    //Assign matrix from node to regTrans
-    if (!this->regTrans)
-      {
-      this->regTrans = vtkMatrix4x4::New();
-      }
-    this->regTrans = rnode->GetMatrixTransformToParent();
-    this->regTrans->Print(std::cerr);
-    }  
 }
 
 
@@ -736,29 +641,7 @@ void vtkPointRegistrationGUI::ProcessMRMLEvents ( vtkObject *caller,
   if (event == vtkMRMLScene::SceneCloseEvent)
     {
     }
-    
-  // Detect if something has happened in the MRML scene
-  if (event == vtkMRMLTransformableNode::TransformModifiedEvent)
-    {
-    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
-    
-    if ((node == vtkMRMLNode::SafeDownCast(this->TrackerNode->GetSelected())))
-      {
-      //Apply registration matrix to transform
-      vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(node);
-      vtkMatrix4x4* mat = vtkMatrix4x4::New();
-      tnode->GetMatrixTransformToWorld(mat);
-      mat->Multiply4x4(this->regTrans, mat, mat);
-      tnode->SetAndObserveMatrixTransformToParent(mat);
-      mat->Print(std::cerr);
-      if(this->regTransNode)
-        {
-        this->regTransNode->SetAndObserveMatrixTransformToParent(mat);
-        this->regTransNode->Modified();
-        }
-      }
-    }
-    
+
 }
 
 
@@ -774,7 +657,6 @@ void vtkPointRegistrationGUI::ProcessTimerEvents()
     }
 }
 
-
 //---------------------------------------------------------------------------
 void vtkPointRegistrationGUI::BuildGUI ( )
 {
@@ -786,8 +668,6 @@ void vtkPointRegistrationGUI::BuildGUI ( )
 
   BuildGUIForHelpFrame();
   BuildGUIForRegistrationFrame();
-  BuildGUIForRegistrationSelectFrame();
-  BuildGUIForApplyTransformFrame();
 
 }
 
@@ -1038,7 +918,7 @@ void vtkPointRegistrationGUI::BuildGUIForRegistrationFrame ()
   buttonFrame->Delete();
 
   //-----------------------------------------------
-  // Register Button
+  // Register Buttons
   //-----------------------------------------------
   // do registration
   vtkKWFrame *registerFrame = vtkKWFrame::New();
@@ -1067,170 +947,36 @@ void vtkPointRegistrationGUI::BuildGUIForRegistrationFrame ()
               this->RegisterButton->GetWidgetName(),
               this->ResetButton->GetWidgetName());
 
+  // registration status
+  vtkKWFrame *regStatusFrame = vtkKWFrame::New();
+  regStatusFrame->SetParent ( regFrame->GetFrame() );
+  regStatusFrame->Create ( );
+  this->Script( "pack %s -padx 2 -pady 2",
+               regStatusFrame->GetWidgetName());
 
+  vtkKWLabel* statusLabel = vtkKWLabel::New();
+  statusLabel->SetParent(regStatusFrame);
+  statusLabel->Create();
+  statusLabel->SetWidth(15);
+  statusLabel->SetText("Status:");
+
+  this->RegistrationStatus = vtkKWLabel::New();
+  this->RegistrationStatus->SetParent(regStatusFrame);
+  this->RegistrationStatus->Create();
+  this->RegistrationStatus->SetWidth(60);
+  this->RegistrationStatus->SetText("No registration matrix calculated");
+
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+              statusLabel->GetWidgetName(),
+              this->RegistrationStatus->GetWidgetName());
+
+  //clean up
   registerFrame->Delete ();
   listFrame->Delete();
   pairFrame->Delete();
- 
   regFrame->Delete();
-
-}
-//--------------------------------------------------------------------------
-void vtkPointRegistrationGUI::BuildGUIForRegistrationSelectFrame()
-{
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "PointRegistration" );
-
-  // ----------------------------------------------------------------
-  // SELECT REGISTRATION FRAME            
-
-  vtkSlicerModuleCollapsibleFrame *regFrame = vtkSlicerModuleCollapsibleFrame::New ( );
-  regFrame->SetParent ( page );
-  regFrame->Create ( );
-  regFrame->SetLabelText ("Select Registration Matrix");
-  app->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-                regFrame->GetWidgetName(), page->GetWidgetName());
-
-  //---------------------------------------------
-  // PreSelect Registration Transform Node Frame
-  //---------------------------------------------
-  vtkKWFrameWithLabel *selectFrame = vtkKWFrameWithLabel::New();
-  selectFrame->SetParent ( regFrame->GetFrame() );
-  selectFrame->Create ( );
-  selectFrame->SetLabelText ("Select Registration Node");
-  this->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-                selectFrame->GetWidgetName());
-
-  //Registration Node Row
-  vtkKWFrame *selectRegFrame = vtkKWFrame::New();
-  selectRegFrame->SetParent ( selectFrame->GetFrame() );
-  selectRegFrame->Create ( );
-  this->Script( "pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
-                selectRegFrame->GetWidgetName());
-
-  vtkKWLabel *rnodeLabel = vtkKWLabel::New();
-  rnodeLabel->SetParent(selectRegFrame);
-  rnodeLabel->Create();
-  rnodeLabel->SetWidth(15);
-  rnodeLabel->SetText("Registration Node ");
-
-  this->SelectRegNode = vtkSlicerNodeSelectorWidget::New();
-  this->SelectRegNode->SetParent(selectRegFrame);
-  this->SelectRegNode->Create();
-  this->SelectRegNode->SetWidth(20);
-  this->SelectRegNode->SetNewNodeEnabled(0);
-  this->SelectRegNode->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, NULL);
-  this->SelectRegNode->NoneEnabledOn();
-  this->SelectRegNode->SetShowHidden(1);
-  this->SelectRegNode->Create();
-  this->SelectRegNode->SetMRMLScene(this->Logic->GetMRMLScene());
-  this->SelectRegNode->UpdateMenu();
-  this->SelectRegNode->SetBorderWidth(0);
-  this->SelectRegNode->SetBalloonHelpString("Select a registration matrix from the Scene");
-  
-  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
-              rnodeLabel->GetWidgetName() , this->SelectRegNode->GetWidgetName());
-
-  //Select Registration Matrix button
-  vtkKWFrame *selectRegButtonFrame = vtkKWFrame::New();
-  selectRegButtonFrame->SetParent ( selectFrame->GetFrame() );
-  selectRegButtonFrame->Create ( );
-  app->Script( "pack %s -padx 2 -pady 2",
-                selectRegButtonFrame->GetWidgetName());
-
-  this->SelectRegNodeButton = vtkKWPushButton::New();
-  this->SelectRegNodeButton->SetParent(selectRegButtonFrame);
-  this->SelectRegNodeButton->Create();
-  this->SelectRegNodeButton->SetText( "Select Registration Matrix" );
-  this->SelectRegNodeButton->SetWidth ( 25 );
-  this->Script( "pack %s -side left -anchor w -fill x -padx 2 -pady 2",
-                this->SelectRegNodeButton->GetWidgetName());
-  
-  //Clean up
-  rnodeLabel->Delete();
-  selectRegFrame->Delete();
-  selectRegButtonFrame->Delete();
- 
-  regFrame->Delete();
-}
-
-//--------------------------------------------------------------------------
-void vtkPointRegistrationGUI::BuildGUIForApplyTransformFrame ()
-{
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "PointRegistration" );
-
-  // ----------------------------------------------------------------
-  // REGISTRATION FRAME            
-
-  vtkSlicerModuleCollapsibleFrame *regFrame = vtkSlicerModuleCollapsibleFrame::New ( );
-  regFrame->SetParent ( page );
-  regFrame->Create ( );
-  regFrame->SetLabelText ("Apply Registration");
-  app->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-                regFrame->GetWidgetName(), page->GetWidgetName());
-               
-  //---------------------------------------------
-  // Apply Transform Frame
-  //---------------------------------------------
-  vtkKWFrameWithLabel *applyFrame = vtkKWFrameWithLabel::New();
-  applyFrame->SetParent ( regFrame->GetFrame() );
-  applyFrame->Create ( );
-  applyFrame->SetLabelText ("Apply Transform");
-  this->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-                applyFrame->GetWidgetName());
-
-  //Tracker Node Row
-  vtkKWFrame *trackerFrame = vtkKWFrame::New();
-  trackerFrame->SetParent ( applyFrame->GetFrame() );
-  trackerFrame->Create ( );
-  this->Script( "pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
-                trackerFrame->GetWidgetName());
-
-  vtkKWLabel *tnodeLabel = vtkKWLabel::New();
-  tnodeLabel->SetParent(trackerFrame);
-  tnodeLabel->Create();
-  tnodeLabel->SetWidth(15);
-  tnodeLabel->SetText("Tracker Node: ");
-
-  this->TrackerNode = vtkSlicerNodeSelectorWidget::New();
-  this->TrackerNode->SetParent(trackerFrame);
-  this->TrackerNode->Create();
-  this->TrackerNode->SetWidth(20);
-  this->TrackerNode->SetNewNodeEnabled(0);
-  this->TrackerNode->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, NULL);
-  this->TrackerNode->NoneEnabledOn();
-  this->TrackerNode->SetShowHidden(1);
-  this->TrackerNode->Create();
-  this->TrackerNode->SetMRMLScene(this->Logic->GetMRMLScene());
-  this->TrackerNode->UpdateMenu();
-  this->TrackerNode->SetBorderWidth(0);
-  this->TrackerNode->SetBalloonHelpString("Select a transform from the Scene");
-  
-  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
-              tnodeLabel->GetWidgetName() , this->TrackerNode->GetWidgetName());
-
-  //Apply Transform button
-  vtkKWFrame *applyButtonFrame = vtkKWFrame::New();
-  applyButtonFrame->SetParent ( applyFrame->GetFrame() );
-  applyButtonFrame->Create ( );
-  app->Script( "pack %s -padx 2 -pady 2",
-                applyButtonFrame->GetWidgetName());
-
-  this->ApplyTransformButton = vtkKWPushButton::New();
-  this->ApplyTransformButton->SetParent(applyButtonFrame);
-  this->ApplyTransformButton->Create();
-  this->ApplyTransformButton->SetText( "Apply Transform" );
-  this->ApplyTransformButton->SetWidth ( 15 );
-  this->Script( "pack %s -side left -anchor w -fill x -padx 2 -pady 2",
-                this->ApplyTransformButton->GetWidgetName());
-  
-  //Clean up
-  tnodeLabel->Delete();
-  applyFrame->Delete();
-  applyButtonFrame->Delete();
- 
-  regFrame->Delete();
+  regStatusFrame->Delete();
+  statusLabel->Delete();
 
 }
 
