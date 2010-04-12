@@ -107,22 +107,24 @@ int main( int argc, char * argv [] )
 
   typedef MultiResolutionDemonsFilterType::DoubleArrayType  DoubleArrayType;
 
+  const double shortestEdgeLengthAtIC4 = 6.91822;
+
   DoubleArrayType epsilon(maximumNumberOfResolutions);
 
-  epsilon[0] = 1.0;
-  epsilon[1] = 1.0;
-  epsilon[2] = 1.0;
-  epsilon[3] = 1.0;
+  epsilon[0] = 1.0 / ( 8.0 * shortestEdgeLengthAtIC4 );
+  epsilon[1] = epsilon[0] * 2.0;
+  epsilon[2] = epsilon[1] * 2.0;
+  epsilon[3] = epsilon[2] * 2.0;
 
   multiResDemonsFilter->SetEpsilonValues( epsilon );
 
 
   DoubleArrayType sigmaX(maximumNumberOfResolutions);
 
-  sigmaX[0] = 1.0;
-  sigmaX[1] = 1.0;
-  sigmaX[2] = 1.0;
-  sigmaX[3] = 1.0;
+  sigmaX[0] = 1.0 / vcl_sqrt( epsilon[0] );
+  sigmaX[1] = 1.0 / vcl_sqrt( epsilon[1] );
+  sigmaX[2] = 1.0 / vcl_sqrt( epsilon[2] );
+  sigmaX[3] = 1.0 / vcl_sqrt( epsilon[3] );
 
   multiResDemonsFilter->SetSigmaXValues( sigmaX );
 
