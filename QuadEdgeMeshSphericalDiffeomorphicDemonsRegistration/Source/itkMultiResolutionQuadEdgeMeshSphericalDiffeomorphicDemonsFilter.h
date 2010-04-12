@@ -115,6 +115,7 @@ public:
   typedef typename MeshType::PointsContainerIterator  PointsContainerIterator;
 
   typedef Array< unsigned int >                       IntegerArrayType;
+  typedef Array< double >                             DoubleArrayType;
 
   /** Schedule of smoothing iterations to be used at every resolution level. */
   itkSetMacro( SmoothingIterations, IntegerArrayType );
@@ -127,6 +128,22 @@ public:
   /** Schedule of rigid registration iterations to be used at every resolution level. */
   itkSetMacro( RigidRegistrationIterations, IntegerArrayType );
   itkGetConstReferenceMacro( RigidRegistrationIterations, IntegerArrayType );
+
+  /** Schedule of Epsilon values to be used at every resolution level. */
+  itkSetMacro( EpsilonValues, DoubleArrayType );
+  itkGetConstReferenceMacro( EpsilonValues, DoubleArrayType );
+
+  /** Schedule of SigmaX values to be used at every resolution level. */
+  itkSetMacro( SigmaXValues, DoubleArrayType );
+  itkGetConstReferenceMacro( SigmaXValues, DoubleArrayType );
+
+  /** Variable that defines whether the filter will self-adjust the values of
+   * SigmaX and Epsilon in order to get closer to the ratio of
+   * largestVelocityMagnitude being similar to the value of the shortest edge
+   * length. */
+  itkSetMacro( SelfRegulatedMode, bool );
+  itkGetConstMacro( SelfRegulatedMode, bool );
+  itkBooleanMacro( SelfRegulatedMode );
 
   /** Return the fixed mesh that is being used in the current resolution level.
    * This fixed mesh may have incorporated deformations resulting from previous
@@ -232,7 +249,17 @@ private:
   IntegerArrayType             m_DemonsIterations;
   IntegerArrayType             m_RigidRegistrationIterations;
 
+  DoubleArrayType              m_EpsilonValues;
+  DoubleArrayType              m_SigmaXValues;
+
   RegistrationModeType         m_RegistrationMode;
+
+  /** Variable that defines whether the filter will self-adjust the values of
+   * SigmaX and Epsilon in order to get closer to the ratio of
+   * largestVelocityMagnitude being similar to the value of the shortest edge
+   * length. */
+  bool          m_SelfRegulatedMode;
+
 
 #ifdef USE_VTK
   RegistrationMonitorType  *   m_RegistrationMonitor;
