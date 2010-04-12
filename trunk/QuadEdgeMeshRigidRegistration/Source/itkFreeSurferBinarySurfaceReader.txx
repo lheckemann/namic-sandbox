@@ -390,13 +390,12 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 ::ReadPoints()
 {
   typename OutputMeshType::Pointer outputMesh = this->GetOutput();
-std::cout << "m_NumberOfPoints = " << this->m_NumberOfPoints << std::endl;
+
   PointType point;
   for( unsigned int ip=0; ip < this->m_NumberOfPoints; ip++ )
     {
     this->ReadPoint( point );
-std::cout << ip << " : " << point << std::endl;
-    // outputMesh->SetPoint( ip, point );
+    outputMesh->SetPoint( ip, point );
     }
 }
 
