@@ -1077,7 +1077,6 @@ int main(int argc, char *argv[])
            TransformListType::const_iterator tit = transformList->begin();  
            if( !strcmp((*tit)->GetNameOfClass(),"AffineTransform") )
            {
-              affineTransformArray[i]->SetCenter((static_cast<AffineTransformType *>(transformList->front().GetPointer()))->TransformPoint(center));
               affineTransformArray[i]->SetFixedParameters(transformList->front()->GetFixedParameters());
               affineTransformArray[i]->SetParameters(transformList->front()->GetParameters());
               std::cout<<"Reading Initial Transform files:"<<transformFileName<<std::endl;

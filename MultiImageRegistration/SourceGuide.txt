@@ -14,7 +14,7 @@ downloading it according to the instructions in the following Wiki page:
 
 http://wiki.na-mic.org/Wiki/index.php/Engineering:SandBox
 
-The code was compiled with ITK 3.2.0 - which is essential for the optimizer.
+The code should be compiled with ITK 3.16.0(or later version) - which is essential for the optimizer.
 
 #
 #
@@ -22,12 +22,13 @@ The code was compiled with ITK 3.2.0 - which is essential for the optimizer.
 #
 #
 
-Libraries:
-   ITK: The code was compiled with version 3.0
+Methods1: 
+ Libraries:
+     ITK: The code was compiled with version 3.0
         to obtain ITK libraries go to http://www.itk.org/HTML/Download.htm
    
            
-Compilation using cmake:
+ Compilation using cmake:
    The source code can be compiled using cmake. After downloading the code 
    go to the folder where the code resides. The current parser in the code 
    does not support folder names with spaces, so locate the folder in path
@@ -50,7 +51,12 @@ Compilation using cmake:
       ComputeOutputs         - Command line module to visualize registration results in 3D. This module 
                                outputs the transformed images, mean and standard deviation images
                                along with central slices.
-   
+
+
+Method2:
+ Type "bash buildThis.sh ${ABI} ${buildType}" in the command line. 
+   ${ABI} can be DEBUG FAST(default) OPTDEBUG PROFILE
+   ${buildTyep} can be Experimental, Continous, Nightly  
 #
 #
 # How to run testing
