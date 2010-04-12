@@ -588,13 +588,14 @@ ComputeSelfRegulatedVelocityField()
 {
   if( this->m_SelfRegulatedMode )
     {
+    unsigned int iterations = 0;
     do
       {
       this->m_Chronometer.Start("ComputeVelocityField");
       this->ComputeVelocityField();
       this->m_Chronometer.Stop("ComputeVelocityField");
       this->ComputeSelfRegulatedSigmaXandEpsilon();
-      } while ( this->m_LargestVelocityToEdgeLengthRatio > 1.5 );
+      } while ( ( this->m_LargestVelocityToEdgeLengthRatio > 1.5 ) && ( iterations++ < 10 ) );
     }
   else
     {
@@ -765,15 +766,32 @@ ComputeScalingAndSquaringNumberOfIterations()
 {
   const unsigned int minimumNumberOfIterations = 1;
 
-  if( this->m_LargestVelocityToEdgeLengthRatio < 1.0 )
+  if( this->m_SelfRegulatedMode )
     {
-    this->m_ScalingAndSquaringNumberOfIterations = minimumNumberOfIterations;
+    if( this->m_LargestVelocityToEdgeLengthRatio < 1.0 )
+      {
+      this->m_ScalingAndSquaringNumberOfIterations = minimumNumberOfIterations;
+      }
+    else
+      {
+      unsigned int iterations = 
+        static_cast< unsigned int >( 
+          vcl_log( this->m_LargestVelocityToEdgeLengthRatio ) / vcl_log( 2.0 ) ) + 2;
+
+      if( iterations < minimumNumberOfIterations )
+        {
+        iterations = minimumNumberOfIterations;
+        }
+
+      this->m_ScalingAndSquaringNumberOfIterations = iterations;
+      }
     }
   else
     {
-    unsigned int iterations = 
-      static_cast< unsigned int >( 
-        vcl_log( this->m_LargestVelocityToEdgeLengthRatio ) / vcl_log( 2.0 ) ) + 2;
+    const double ratio = this->ComputeLargestVelocityMagnitude() / this->m_ShortestEdgeLength;
+
+    unsigned int iterations =
+      static_cast< unsigned int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
 
     if( iterations < minimumNumberOfIterations )
       {
@@ -782,7 +800,6 @@ ComputeScalingAndSquaringNumberOfIterations()
 
     this->m_ScalingAndSquaringNumberOfIterations = iterations;
     }
-
 }
 
 
@@ -847,6 +864,7 @@ ComputeShortestEdgeLength()
     }
 
   this->m_ShortestEdgeLength = shortestLength;
+std::cout << "m_ShortestEdgeLength = " << this->m_ShortestEdgeLength << std::endl;
 
   if( this->m_ShortestEdgeLength < vnl_math::eps )
     {
