@@ -28,6 +28,7 @@
 class vtkKWPushButton;
 class vtkKWEntryWithLabel;
 class vtkKWEntry;
+class vtkKWLabel;
 class vtkKWMultiColumnListWithScrollbars;
 class vtkSlicerNodeSelectorWidget;
 class vtkMatrix4x4;
@@ -100,8 +101,6 @@ class VTK_PointRegistration_EXPORT vtkPointRegistrationGUI : public vtkSlicerMod
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
   void BuildGUIForRegistrationFrame();
-  void BuildGUIForRegistrationSelectFrame();
-  void BuildGUIForApplyTransformFrame();
 
   //----------------------------------------------------------------
   // Update routines
@@ -134,10 +133,7 @@ class VTK_PointRegistration_EXPORT vtkPointRegistrationGUI : public vtkSlicerMod
   vtkKWPushButton *DeleteAllPointPairButton;    
   vtkKWPushButton *RegisterButton;
   vtkKWPushButton *ResetButton;
-  vtkKWPushButton *ApplyTransformButton;
-  vtkSlicerNodeSelectorWidget* SelectRegNode;
-  vtkKWPushButton* SelectRegNodeButton;
-  
+  vtkKWLabel* RegistrationStatus;
   
   //----------------------------------------------------------------
   // Variables
@@ -154,7 +150,5 @@ class VTK_PointRegistration_EXPORT vtkPointRegistrationGUI : public vtkSlicerMod
   int                        CloseScene;
 
 };
-
-
 
 #endif
