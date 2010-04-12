@@ -958,7 +958,7 @@ ComputeSelfRegulatedSigmaXandEpsilon()
 
     //    this->m_LargestVelocityToEdgeLengthRatio =
     //      largestVelocityMagnitude / ( 2.0 * this->m_ShortestEdgeLength );
-
+// std::cout << "SigmaX = " << this->m_SigmaX << " Epsilon " << this->m_Epsilon << "  largestRatio = " << this->m_LargestVelocityToEdgeLengthRatio << std::endl;
     this->m_SigmaX /= vcl_sqrt( this->m_LargestVelocityToEdgeLengthRatio );
     this->m_Epsilon =  1.0 / ( this->m_SigmaX * this->m_SigmaX );
     }
@@ -1414,7 +1414,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
     const double velocityMagnitude = velocityItr.Value().GetNorm();
   
     const double ratio = velocityMagnitude / ( 2.0 * shortestEdgeItr.Value() );
-
+// std::cout << "ratio = " << ratio << " largestRatio = " << largestRatio << std::endl;
     if( ratio > largestRatio )
       {
       largestRatio = ratio;

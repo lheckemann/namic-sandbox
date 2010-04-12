@@ -70,6 +70,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_CurrentResolutionLevel = 0;
   this->m_NumberOfResolutionLevels = 4;
+
+  this->m_SelfRegulatedMode = false;
 }
 
 
@@ -220,8 +222,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_DemonsRegistrationFilter->SetEpsilon( 0.016 );
   this->m_DemonsRegistrationFilter->SetSigmaX( 8.0 );
 
-  this->m_DemonsRegistrationFilter->SelfRegulatedModeOn(); 
-
   this->m_DemonsRegistrationFilter->SetLambda( 1.0 );
 
   if( this->m_SmoothingIterations.size() < this->m_NumberOfResolutionLevels )
@@ -233,6 +233,23 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     {
     itkExceptionMacro("Demons iterations array size is smaller than number of iteration levels");
     }
+
+  if( this->m_SelfRegulatedMode )
+    {
+    this->m_DemonsRegistrationFilter->SelfRegulatedModeOn(); 
+    }
+  else
+    {
+    if( this->m_EpsilonValues.size() < this->m_NumberOfResolutionLevels )
+      {
+      itkExceptionMacro("Demons Epsilon array size is smaller than number of iteration levels");
+      }
+    if( this->m_SigmaXValues.size() < this->m_NumberOfResolutionLevels )
+      {
+      itkExceptionMacro("Demons SigmaX array size is smaller than number of iteration levels");
+      }
+    }
+  
 
   this->m_FinalDestinationPoints = DestinationPointSetType::New();
 }
@@ -403,6 +420,12 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_DemonsRegistrationFilter->SetMaximumNumberOfIterations(
     this->m_DemonsIterations[this->m_CurrentResolutionLevel] );
+
+  this->m_DemonsRegistrationFilter->SetEpsilon(
+    this->m_EpsilonValues[this->m_CurrentResolutionLevel] );
+
+  this->m_DemonsRegistrationFilter->SetSigmaX(
+    this->m_SigmaXValues[this->m_CurrentResolutionLevel] );
 
 #ifdef USE_VTK
   this->m_RegistrationMonitor->Observe( this->GetDemonsRegistrationFilter() );
