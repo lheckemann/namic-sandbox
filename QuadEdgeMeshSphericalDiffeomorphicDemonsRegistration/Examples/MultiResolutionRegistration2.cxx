@@ -105,6 +105,28 @@ int main( int argc, char * argv [] )
   multiResDemonsFilter->SetRigidRegistrationIterations( rigidIterations );
 
 
+  typedef MultiResolutionDemonsFilterType::DoubleArrayType  DoubleArrayType;
+
+  DoubleArrayType epsilon(maximumNumberOfResolutions);
+
+  epsilon[0] = 1.0;
+  epsilon[1] = 1.0;
+  epsilon[2] = 1.0;
+  epsilon[3] = 1.0;
+
+  multiResDemonsFilter->SetEpsilonValues( epsilon );
+
+
+  DoubleArrayType sigmaX(maximumNumberOfResolutions);
+
+  sigmaX[0] = 1.0;
+  sigmaX[1] = 1.0;
+  sigmaX[2] = 1.0;
+  sigmaX[3] = 1.0;
+
+  multiResDemonsFilter->SetEpsilonValues( sigmaX );
+
+
   typedef itk::VTKPolyDataReader< MeshType >     ReaderType;
 
   ReaderType::Pointer fixedMeshReader[maximumNumberOfResolutions];
