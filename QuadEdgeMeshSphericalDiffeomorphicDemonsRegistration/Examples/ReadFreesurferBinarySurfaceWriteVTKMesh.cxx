@@ -85,6 +85,7 @@ int main(int argc, char* argv[] )
     {
     normalizeFilter->SetNumberOfIterations( 2 );
     normalizeFilter->SetInput( surfaceReader->GetOutput()  );
+    normalizeFilter->Update();
     writer->SetInput( normalizeFilter->GetOutput()  );
     }
   else
@@ -96,7 +97,6 @@ int main(int argc, char* argv[] )
 
   try
     {
-    normalizeFilter->Update();
     writer->Update();
     }
   catch( itk::ExceptionObject & excp )
