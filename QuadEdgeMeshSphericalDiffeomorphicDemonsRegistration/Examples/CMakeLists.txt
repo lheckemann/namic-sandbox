@@ -12,8 +12,12 @@ INCLUDE_DIRECTORIES(
   ${QuadEdgeMeshRigidRegistration}/Source/
   ${QuadEdgeMeshFieldSmoothingFilters}/Source/
   )
-
-
+  
+ADD_EXECUTABLE(QuadEdgeMeshSimilarityCalculator
+ QuadEdgeMeshSimilarityCalculator.cxx) 
+TARGET_LINK_LIBRARIES(QuadEdgeMeshSimilarityCalculator
+ ITKQuadEdgeMesh ITKNumerics ITKIO) 
+ 
 IF(USE_VTK)
   ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
    QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx
