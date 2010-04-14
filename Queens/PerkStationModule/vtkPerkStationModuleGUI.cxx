@@ -1065,6 +1065,12 @@ vtkPerkStationModuleGUI
     return;
     }
   
+  this->WorkingTimes[ 0 ] = n->GetTimeOnCalibrateStep();
+  this->WorkingTimes[ 1 ] = n->GetTimeOnPlanStep();
+  this->WorkingTimes[ 2 ] = n->GetTimeOnInsertStep();
+  this->WorkingTimes[ 3 ] = n->GetTimeOnValidateStep();
+  this->UpdateTimerDisplay();
+  
   this->CalibrateStep->UpdateGUI();
 }
 
@@ -1793,15 +1799,13 @@ void
 vtkPerkStationModuleGUI
 ::LoadExperiment( istream &file )
 {
-  // reset before you load
-  // 1) Reset individual work phase steps to bring to fresh state, who are
-  // in turn, responsible for reseting MRML node parameters
   this->CalibrateStep->Reset();
   this->PlanStep->Reset();
   this->InsertStep->Reset();
   this->ValidateStep->Reset();
 
   this->MRMLNode->LoadExperiment( file );
+  this->UpdateGUI();
 }
 
 
@@ -1867,6 +1871,13 @@ void
 vtkPerkStationModuleGUI
 ::UpdateTimerDisplay()
 {
+    // TODO: This is double booking of times. Should be simplified.
+  this->GetMRMLNode()->SetTimeOnCalibrateStep( this->WorkingTimes[ 0 ] );
+  this->GetMRMLNode()->SetTimeOnPlanStep( this->WorkingTimes[ 1 ] );
+  this->GetMRMLNode()->SetTimeOnInsertStep( this->WorkingTimes[ 2 ] );
+  this->GetMRMLNode()->SetTimeOnValidateStep( this->WorkingTimes[ 3 ] );
+  
+
   std::stringstream ss;
   
   ss.str( "" );

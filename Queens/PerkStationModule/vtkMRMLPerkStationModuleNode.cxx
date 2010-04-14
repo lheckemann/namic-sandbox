@@ -276,10 +276,10 @@ vtkMRMLPerkStationModuleNode
   PlanningVolumeNode = NULL;
   ValidationVolumeNode = NULL;
   
-  this->TimeSpentOnCalibrateStep = 0;
-  this->TimeSpentOnPlanStep = 0;
-  this->TimeSpentOnInsertStep = 0;
-  this->TimeSpentOnValidateStep = 0;
+  this->TimeOnCalibrateStep = 0.0;
+  this->TimeOnPlanStep = 0.0;
+  this->TimeOnInsertStep = 0.0;
+  this->TimeOnValidateStep = 0.0;
   
   
   this->InitializeFiducialListNode();
@@ -698,6 +698,13 @@ vtkMRMLPerkStationModuleNode
   
   WriteDoubleVector( out, this->ValidateEntryPoint, "ValidateEntryPoint", 3 );
   WriteDoubleVector( out, this->ValidateTargetPoint, "ValidateTargetPoint", 3 );
+  
+    // Common.
+  
+  WriteDouble( out, this->TimeOnCalibrateStep, "TimeOnCalibrateStep" );
+  WriteDouble( out, this->TimeOnPlanStep, "TimeOnPlanStep" );
+  WriteDouble( out, this->TimeOnInsertStep, "TimeOnInsertStep" );
+  WriteDouble( out, this->TimeOnValidateStep, "TimeOnValidateStep" );
 }
 
 
@@ -742,6 +749,29 @@ vtkMRMLPerkStationModuleNode
   iter = map.find( "ValidateTargetPoint" );
   if ( iter != map.end() )
     StringToDoubleVector( iter->second, this->ValidateTargetPoint, 3 );
+  else nameNotFound = true;
+  
+  
+    // Common.
+  
+  iter = map.find( "TimeOnCalibrateStep" );
+  if ( iter != map.end() )
+    StringToDouble( iter->second, this->TimeOnCalibrateStep );
+  else nameNotFound = true;
+  
+  iter = map.find( "TimeOnPlanStep" );
+  if ( iter != map.end() )
+    StringToDouble( iter->second, this->TimeOnPlanStep );
+  else nameNotFound = true;
+  
+  iter = map.find( "TimeOnInsertStep" );
+  if ( iter != map.end() )
+    StringToDouble( iter->second, this->TimeOnInsertStep );
+  else nameNotFound = true;
+  
+  iter = map.find( "TimeOnValidateStep" );
+  if ( iter != map.end() )
+    StringToDouble( iter->second, this->TimeOnValidateStep );
   else nameNotFound = true;
   
   
