@@ -274,3 +274,6 @@ slicer3_install_plugins(${TARGETS})
 
 add_executable( SFLSRobustStat3DTestConsole SFLSRobustStat3DTestConsole.cxx)
 target_link_libraries( SFLSRobustStat3DTestConsole ITKCommon ITKBasicFilters ITKIO itkvnl)
+
+enable_testing()
+add_test(RSStest ${EXECUTABLE_OUTPUT_PATH}/SFLSRobustStat3DTestConsole ${CMAKE_CURRENT_SOURCE_DIR}/../testData/grayscale.nrrd ${CMAKE_CURRENT_SOURCE_DIR}/../testData/grayscale-label.nrrd a.nrrd 50 0.1 0.2)
