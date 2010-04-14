@@ -116,9 +116,7 @@ public:
       Clinical = 1,
       Training = 2,
     };
-  //ETX
-
-  //BTX
+  
   // Description:
   // State identifier
   enum StateId
@@ -170,18 +168,14 @@ protected:
   //BTX
   vtkSmartPointer< vtkSlicerModuleCollapsibleFrame > WizardFrame;
   
-  
   vtkSmartPointer< vtkSlicerNodeSelectorWidget > VolumeSelector;
   vtkSmartPointer< vtkSlicerNodeSelectorWidget > ValidationVolumeSelector;
   vtkSmartPointer< vtkSlicerNodeSelectorWidget > PSNodeSelector;
   
-  
   vtkPerkStationModuleLogic* Logic;
   vtkMRMLPerkStationModuleNode* MRMLNode;
   
-  
   vtkSmartPointer< vtkPerkStationSecondaryMonitor > SecondaryMonitor;
-  
   
   vtkSmartPointer< vtkKWLoadSaveButton > LoadExperimentFileButton;
   vtkSmartPointer< vtkKWLoadSaveButton > SaveExperimentFileButton;
@@ -190,14 +184,12 @@ protected:
   vtkSmartPointer< vtkKWScaleWithEntry > DisplayVolumeWindowValue;
   vtkSmartPointer< vtkKWScaleWithEntry > DisplayVolumeLevelValue;
   
-  
   vtkSmartPointer< vtkKWLabel > CalibrateTimeLabel;
   vtkSmartPointer< vtkKWLabel > PlanTimeLabel;
   vtkSmartPointer< vtkKWLabel > InsertTimeLabel;
   vtkSmartPointer< vtkKWLabel > ValidateTimeLabel;
   vtkSmartPointer< vtkKWPushButton > TimerButton;
   vtkSmartPointer< vtkKWPushButton > ResetTimerButton;
-  
   //ETX
   
   
@@ -205,9 +197,9 @@ protected:
     // Describes whether the GUI has been built or not
   bool Built;
   
-
+  
 private:
-
+  
     // Description:
     // The wizard widget and steps
   //BTX

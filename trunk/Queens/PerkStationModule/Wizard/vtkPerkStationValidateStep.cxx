@@ -855,7 +855,7 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(
         this->GetGUI()->GetMRMLNode()->GetValidationDepth() );
       
       this->LogTimer->StopTimer();
-      this->GetGUI()->GetMRMLNode()->SetTimeSpentOnValidateStep(
+      this->GetGUI()->GetMRMLNode()->SetTimeOnValidateStep(
         this->LogTimer->GetElapsedTime() );
 
       this->PresentValidationErrors();
@@ -897,15 +897,15 @@ void vtkPerkStationValidateStep::PresentValidationErrors()
   // time performance
   char timeStr[20];
   long time = 0;
-  time = mrmlNode->GetTimeSpentOnCalibrateStep();
+  time = mrmlNode->GetTimeOnCalibrateStep();
   sprintf(timeStr, "%02d:%02d", time/60, time%60);
   this->CalibrationTime->GetWidget()->SetValue(timeStr);
 
-  time = mrmlNode->GetTimeSpentOnPlanStep();
+  time = mrmlNode->GetTimeOnPlanStep();
   sprintf(timeStr, "%02d:%02d", time/60, time%60);
   this->PlanTime->GetWidget()->SetValue(timeStr);
 
-  time = mrmlNode->GetTimeSpentOnInsertStep();
+  time = mrmlNode->GetTimeOnInsertStep();
   sprintf(timeStr, "%02d:%02d", time/60, time%60);
   this->InsertionTime->GetWidget()->SetValue(timeStr);
 

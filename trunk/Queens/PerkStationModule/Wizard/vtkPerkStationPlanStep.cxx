@@ -1135,11 +1135,5 @@ void vtkPerkStationPlanStep::Validate()
     // TO DO: what to do on failure
     return;
     }
-
-    // stop the log timer
-  this->LogTimer->StopTimer();
-
-    // log the time in mrml node
-  mrmlNode->SetTimeSpentOnPlanStep( this->LogTimer->GetElapsedTime() );
 }
 

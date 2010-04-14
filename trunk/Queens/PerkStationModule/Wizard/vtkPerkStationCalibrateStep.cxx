@@ -1257,13 +1257,6 @@ void vtkPerkStationCalibrateStep::Validate()
     // TO DO: what to do on failure
     return;
     }
-
-  // start the log timer??
-  this->LogTimer->StopTimer();
-
-  // log the time in mrml node
-  mrmlNode->SetTimeSpentOnCalibrateStep(this->LogTimer->GetElapsedTime());
-
 }
 
 

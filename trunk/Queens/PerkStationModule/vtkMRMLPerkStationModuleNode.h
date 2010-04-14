@@ -232,17 +232,17 @@ public:
     { return this->ValidationVolumeNode; };
   void SetValidationVolumeNode( vtkMRMLScalarVolumeNode *validationVolNode );
   
-  vtkSetMacro( TimeSpentOnCalibrateStep, double );
-  vtkGetMacro( TimeSpentOnCalibrateStep, double );
+  vtkSetMacro( TimeOnCalibrateStep, double );
+  vtkGetMacro( TimeOnCalibrateStep, double );
 
-  vtkSetMacro( TimeSpentOnPlanStep, double );
-  vtkGetMacro( TimeSpentOnPlanStep, double );
+  vtkSetMacro( TimeOnPlanStep, double );
+  vtkGetMacro( TimeOnPlanStep, double );
 
-  vtkSetMacro( TimeSpentOnInsertStep, double );
-  vtkGetMacro( TimeSpentOnInsertStep, double );
+  vtkSetMacro( TimeOnInsertStep, double );
+  vtkGetMacro( TimeOnInsertStep, double );
 
-  vtkSetMacro( TimeSpentOnValidateStep, double );
-  vtkGetMacro( TimeSpentOnValidateStep, double );
+  vtkSetMacro( TimeOnValidateStep, double );
+  vtkGetMacro( TimeOnValidateStep, double );
   
   
     // Non loadable parameters.
@@ -359,10 +359,10 @@ protected:
   vtkMRMLScalarVolumeNode* PlanningVolumeNode;
   vtkMRMLScalarVolumeNode* ValidationVolumeNode;
   
-  double TimeSpentOnCalibrateStep;
-  double TimeSpentOnPlanStep;
-  double TimeSpentOnInsertStep;
-  double TimeSpentOnValidateStep;
+  double TimeOnCalibrateStep;
+  double TimeOnPlanStep;
+  double TimeOnInsertStep;
+  double TimeOnValidateStep;
   
   //BTX
   vtkSmartPointer< vtkMRMLFiducialListNode > PlanMRMLFiducialListNode;
