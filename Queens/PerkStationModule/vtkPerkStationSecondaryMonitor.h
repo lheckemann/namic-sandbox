@@ -173,6 +173,7 @@ protected:
   
   
   // Visual components --------------------------------------------------------
+  //BTX
   
     // Display/visualization.
   vtkSmartPointer< vtkWin32OpenGLRenderWindow > RenderWindow;
@@ -201,16 +202,17 @@ protected:
   vtkSmartPointer< vtkTextActorFlippable > LeftSideActor;
   vtkSmartPointer< vtkTextActorFlippable > RightSideActor;
   
+  //ETX
   // --------------------------------------------------------------------------
   
-  
+  //BTX
   vtkSmartPointer< vtkImageMapToWindowLevelColors > MapToWindowLevelColors;
-  
   
     // Transformations (matrices).
   
   vtkSmartPointer< vtkMatrix4x4 > SystemStateXYToIJK;
   vtkSmartPointer< vtkMatrix4x4 > SystemStateResliceMatrix;
+  //ETX
   
   
     // the image data to be displayed
@@ -258,18 +260,17 @@ private:
 
 private:
   
+  //BTX
   vtkSmartPointer< vtkTransform > XYToRAS();
   vtkSmartPointer< vtkTransform > XYToIJK();
+  //ETX
   
   int NumberOfMonitors; // Number of physical monitors of the computer.
   
+  //BTX
     // Extract the displayed image from the planning image volume. 
   vtkSmartPointer< vtkTransform > ResliceTransform;
   vtkSmartPointer< vtkImageReslice > ResliceFilter;
-  
-    // Calibration parameters.
-    // Most calibration parameters are read from PSNode.
-  double Scale[ 2 ];
   
     // Calibration transforms.
   vtkSmartPointer< vtkTransform > SecMonFlipTransform;
@@ -278,6 +279,11 @@ private:
   
     // Coordinate transforms.  
   vtkSmartPointer< vtkTransform > RASToIJK;
+  //ETX
+  
+    // Calibration parameters.
+    // Most calibration parameters are read from PSNode.
+  double Scale[ 2 ];
   
     // Image slice position.
   double SliceOffsetRAS;  // In RAS coordinates.

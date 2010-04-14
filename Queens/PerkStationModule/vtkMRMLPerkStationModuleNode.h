@@ -92,12 +92,13 @@ public:
     return "PS";
   };
   
+  //BTX
   virtual void SaveClibration( std::ostream& out );
   virtual bool LoadCalibration( std::istream& in );
   
   virtual void SaveExperiment( std::ostream& out );
   virtual bool LoadExperiment( std::istream& in );
-  
+  //ETX
   
   // Calibration parameters ---------------------------------------------------
   
@@ -128,10 +129,12 @@ public:
   vtkGetMacro( CurrentSliceOffset, double );
   vtkSetMacro( CurrentSliceOffset, double );
   
+  //BTX
   vtkSmartPointer< vtkMRMLLinearTransformNode >
   GetCalibrationMRMLTransformNode() {
     return this->CalibrationMRMLTransformNode;
   }
+  //ETX
   
   vtkGetMacro( HardwareIndex, int );
   vtkSetMacro( HardwareIndex, int );
@@ -265,7 +268,9 @@ public:
   
   PatientPositionEnum GetPatientPosition();
   
+  //BTX
   std::vector< OverlayHardware > GetHardwareList();
+  //ETX
   
   
   // Computations -------------------------------------------------------------
@@ -307,8 +312,10 @@ protected:
   double PatientAtScanner;
   double CurrentSliceOffset;    // In RAS.
   
+  //BTX
    // Slicer's volume transform node.
   vtkSmartPointer< vtkMRMLLinearTransformNode > CalibrationMRMLTransformNode;
+  //ETX
   
   int HardwareIndex;
   
@@ -322,6 +329,7 @@ protected:
   
   double TiltAngle;
   
+  //BTX
   vtkSmartPointer< vtkMatrix4x4 > SliceToRAS;
   
   
@@ -333,6 +341,7 @@ protected:
   
   int ReferenceBodyToolPort;
   int NeedleToolPort;
+  //ETX
   
   
     // Validation parameters --------------------------------------------------
@@ -355,9 +364,11 @@ protected:
   double TimeSpentOnInsertStep;
   double TimeSpentOnValidateStep;
   
+  //BTX
   vtkSmartPointer< vtkMRMLFiducialListNode > PlanMRMLFiducialListNode;
   
   vtkSmartPointer< vtkStringArray > StepList;
+  //ETX
   int CurrentStep;
   int PreviousStep;
   
@@ -373,9 +384,10 @@ protected:
   } VolumeInformationStruct;
   
   std::vector< VolumeInformationStruct > VolumesList;
-  //ETX
   
   std::vector< OverlayHardware > HardwareList;
+  //ETX
+  
 };
 
 #endif

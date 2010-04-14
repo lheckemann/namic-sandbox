@@ -37,6 +37,7 @@
 #include "vtkKWPushButtonSet.h"
 #include "vtkKWScale.h"
 #include "vtkKWScaleWithEntry.h"
+#include "vtkKWTkUtilities.h"
 #include "vtkKWWidget.h"
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
@@ -78,7 +79,7 @@ vtkPerkStationModuleGUI* vtkPerkStationModuleGUI::New()
 
 
 /**
- * Protected constructor.
+ * Constructor.
  */
 vtkPerkStationModuleGUI
 ::vtkPerkStationModuleGUI()
@@ -95,6 +96,16 @@ vtkPerkStationModuleGUI
   this->SaveExperimentFileButton = 
     vtkSmartPointer< vtkKWLoadSaveButton >::New();
   
+  this->CalibrateTimeLabel = vtkSmartPointer< vtkKWLabel >::New();
+  this->PlanTimeLabel = vtkSmartPointer< vtkKWLabel >::New();
+  this->InsertTimeLabel = vtkSmartPointer< vtkKWLabel >::New();
+  this->ValidateTimeLabel = vtkSmartPointer< vtkKWLabel >::New();
+  this->TimerButton = vtkSmartPointer< vtkKWPushButton >::New();
+  this->ResetTimerButton = vtkSmartPointer< vtkKWPushButton >::New();
+  
+  for ( int i = 0; i < 4; ++ i ) this->WorkingTimes[ i ] = 0.0;
+  this->TimerOn = false;
+  this->LastTime = 0.0;
   
   this->Logic = NULL;
   this->MRMLNode = NULL;
@@ -134,10 +145,12 @@ vtkPerkStationModuleGUI
   
   this->WorkphaseButtonFrame = vtkSmartPointer< vtkKWFrame >::New();
   this->WorkphaseButtonSet = vtkSmartPointer< vtkKWPushButtonSet >::New();
+  
+  this->TimerLog = vtkSmartPointer< vtkTimerLog >::New();
 }
 
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
 {
   this->RemoveGUIObservers();
@@ -226,11 +239,9 @@ void vtkPerkStationModuleGUI::Enter()
     
     this->SecondaryMonitor->SetPSNode( n );
     
-    
       // This is the place where module node is created,
       // and should be initialized.
     }
-
 }
 
 
@@ -259,6 +270,17 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
     vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
     (vtkCommand*)( this->GUICallbackCommand ) );
     
+  
+    // Timer buttons.
+  
+  this->TimerButton->AddObserver(
+    vtkKWPushButton::InvokedEvent,
+    (vtkCommand*)( this->GUICallbackCommand ) );
+  
+  this->ResetTimerButton->AddObserver(
+    vtkKWPushButton::InvokedEvent,
+    (vtkCommand*)( this->GUICallbackCommand ) );
+  
   
     // Red slice keyboard and mouse events.
   
@@ -419,6 +441,31 @@ vtkPerkStationModuleGUI
             || event == vtkSlicerNodeSelectorWidget::NewNodeEvent ) )
     {
     this->ValidationVolumeChanged();
+    }
+  
+  
+    // Timer buttons.
+  
+  if ( vtkKWPushButton::SafeDownCast( caller ) == this->TimerButton )
+    {
+    this->TimerOn = ! this->TimerOn;
+    
+    if ( this->TimerOn )
+      {
+      this->TimerLog->StartTimer();
+      this->LastTime = 0.0;
+      
+      vtkKWTkUtilities::CreateTimerHandler(
+        this->GetApplication(), 1000, this, "TimerHandler" );
+      }
+    }
+  
+  if ( vtkKWPushButton::SafeDownCast( caller ) == this->ResetTimerButton )
+    {
+    int step = this->GetMRMLNode()->GetCurrentStep();
+    this->WorkingTimes[ step ] = 0.0;
+    this->LastTime = this->TimerLog->GetElapsedTime();
+    this->UpdateTimerDisplay();
     }
   
   
@@ -894,9 +941,35 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
         {
         this->ResetAndStartNewExperiment();
         }
-      }    
-    
+      }
     }
+}
+
+
+void
+vtkPerkStationModuleGUI
+::TimerHandler()
+{
+  if ( ! this->TimerOn )
+    {
+    return;
+    }
+  
+  vtkKWTkUtilities::CreateTimerHandler(
+    this->GetApplication(), 1000, this, "TimerHandler" );
+  
+  std::stringstream ss;
+  
+  int step = this->GetMRMLNode()->GetCurrentStep();
+  this->TimerLog->StopTimer();
+  double elapsed = this->TimerLog->GetElapsedTime();
+  
+  if ( step < 0 || step > 3 ) return;
+  
+  this->WorkingTimes[ step ] += ( elapsed - this->LastTime );
+  this->LastTime = elapsed;
+  
+  this->UpdateTimerDisplay();
 }
 
 
@@ -1252,7 +1325,7 @@ vtkPerkStationModuleGUI
   
   this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                 loadSaveFrame->GetWidgetName() );
-
+  
     // create the load file dialog button
   
   if ( ! this->LoadExperimentFileButton->IsCreated() )
@@ -1285,15 +1358,16 @@ vtkPerkStationModuleGUI
     
   if ( ! this->SaveExperimentFileButton->IsCreated() )
     {
-    this->SaveExperimentFileButton->SetParent(loadSaveFrame);
+    this->SaveExperimentFileButton->SetParent( loadSaveFrame );
     this->SaveExperimentFileButton->Create();
     this->SaveExperimentFileButton->SetText( "Save experiment" );
     this->SaveExperimentFileButton->SetBorderWidth(2);
     this->SaveExperimentFileButton->SetReliefToRaised();       
-    this->SaveExperimentFileButton->SetHighlightThickness(2);
-    this->SaveExperimentFileButton->SetBackgroundColor(0.85,0.85,0.85);
-    this->SaveExperimentFileButton->SetActiveBackgroundColor(1,1,1);               
-    this->SaveExperimentFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconFloppy);
+    this->SaveExperimentFileButton->SetHighlightThickness( 2 );
+    this->SaveExperimentFileButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
+    this->SaveExperimentFileButton->SetActiveBackgroundColor( 1, 1, 1 );               
+    this->SaveExperimentFileButton->SetImageToPredefinedIcon(
+      vtkKWIcon::IconFloppy );
     this->SaveExperimentFileButton->SetBalloonHelpString(
       "Click to save experiment in a file" );
     this->SaveExperimentFileButton->GetLoadSaveDialog()->SaveDialogOn();
@@ -1304,8 +1378,80 @@ vtkPerkStationModuleGUI
     this->SaveExperimentFileButton->GetLoadSaveDialog()->
       RetrieveLastPathFromRegistry( "OpenPath" );
     }
+  
   this->Script( "pack %s -side top -anchor ne -padx 2 -pady 2", 
                 this->SaveExperimentFileButton->GetWidgetName() );
+  
+  
+  vtkSmartPointer< vtkKWFrame > timerFrame =
+      vtkSmartPointer< vtkKWFrame > ::New();
+    timerFrame->SetParent( page );
+    timerFrame->Create();
+  
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                timerFrame->GetWidgetName() );
+  
+  if ( ! this->CalibrateTimeLabel->IsCreated() )
+    {
+    this->CalibrateTimeLabel->SetParent( timerFrame );
+    this->CalibrateTimeLabel->Create();
+    this->CalibrateTimeLabel->SetWidth( 8 );
+    this->CalibrateTimeLabel->SetText( "00:00" );
+    
+    this->PlanTimeLabel->SetParent( timerFrame );
+    this->PlanTimeLabel->Create();
+    this->PlanTimeLabel->SetWidth( 8 );
+    this->PlanTimeLabel->SetText( "00:00" );
+    
+    this->InsertTimeLabel->SetParent( timerFrame );
+    this->InsertTimeLabel->Create();
+    this->InsertTimeLabel->SetWidth( 8 );
+    this->InsertTimeLabel->SetText( "00:00" );
+    
+    this->ValidateTimeLabel->SetParent( timerFrame );
+    this->ValidateTimeLabel->Create();
+    this->ValidateTimeLabel->SetWidth( 8 );
+    this->ValidateTimeLabel->SetText( "00:00" );
+    
+    this->TimerButton->SetParent( timerFrame );
+    this->TimerButton->Create();
+    this->TimerButton->SetWidth( 8 );
+    this->TimerButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
+    this->TimerButton->SetText( "Timer" );
+    
+    this->ResetTimerButton->SetParent( timerFrame );
+    this->ResetTimerButton->Create();
+    this->ResetTimerButton->SetWidth( 12 );
+    this->ResetTimerButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
+    this->ResetTimerButton->SetText( "Reset Timer" );
+    }
+  
+  this->Script( "grid %s -column 0 -row 0 -sticky w -padx 2 -pady 2",
+    this->CalibrateTimeLabel->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 0 -sticky w -padx 2 -pady 2",
+    this->PlanTimeLabel->GetWidgetName() );
+  this->Script( "grid %s -column 2 -row 0 -sticky w -padx 2 -pady 2",
+    this->InsertTimeLabel->GetWidgetName() );
+  this->Script( "grid %s -column 3 -row 0 -sticky w -padx 2 -pady 2",
+    this->ValidateTimeLabel->GetWidgetName() );
+  this->Script( "grid %s -column 4 -row 0 -sticky e -padx 2 -pady 2",
+    this->TimerButton->GetWidgetName() );
+  this->Script( "grid %s -column 5 -row 0 -sticky e -padx 2 -pady 2",
+    this->ResetTimerButton->GetWidgetName() );
+  
+  this->Script( "grid columnconfigure %s 0 -weight 1",
+                timerFrame->GetWidgetName() );
+  this->Script( "grid columnconfigure %s 1 -weight 1",
+                timerFrame->GetWidgetName() );
+  this->Script( "grid columnconfigure %s 2 -weight 1",
+                timerFrame->GetWidgetName() );
+  this->Script( "grid columnconfigure %s 3 -weight 1",
+                timerFrame->GetWidgetName() );
+  this->Script( "grid columnconfigure %s 4 -weight 10",
+                timerFrame->GetWidgetName() );
+  this->Script( "grid columnconfigure %s 5 -weight 10",
+                timerFrame->GetWidgetName() );
+  
 }
 
 
@@ -1714,6 +1860,42 @@ vtkPerkStationModuleGUI
       }
   
   return dirName;
+}
+
+
+void
+vtkPerkStationModuleGUI
+::UpdateTimerDisplay()
+{
+  std::stringstream ss;
+  
+  ss.str( "" );
+  ss << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 0 ] ) / 60
+     << ":"
+     << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 0 ] ) % 60;
+  
+  this->CalibrateTimeLabel->SetText( ss.str().c_str() );
+  
+  ss.str( "" );
+  ss << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 1 ] ) / 60
+     << ":"
+     << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 1 ] ) % 60;
+  
+  this->PlanTimeLabel->SetText( ss.str().c_str() );
+  
+  ss.str( "" );
+  ss << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 2 ] ) / 60
+     << ":"
+     << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 2 ] ) % 60;
+  
+  this->InsertTimeLabel->SetText( ss.str().c_str() );
+  
+  ss.str( "" );
+  ss << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 3 ] ) / 60
+     << ":"
+     << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 3 ] ) % 60;
+  
+  this->ValidateTimeLabel->SetText( ss.str().c_str() );
 }
 
 

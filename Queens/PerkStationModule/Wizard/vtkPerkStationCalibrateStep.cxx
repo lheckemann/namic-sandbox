@@ -86,15 +86,16 @@ std::vector< double > CharToDoubleVector( char* cstr )
 
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkPerkStationCalibrateStep);
-vtkCxxRevisionMacro(vtkPerkStationCalibrateStep, "$Revision: 1.0 $");
+vtkStandardNewMacro( vtkPerkStationCalibrateStep );
+vtkCxxRevisionMacro( vtkPerkStationCalibrateStep, "$Revision: 1.0 $" );
 
 
 //----------------------------------------------------------------------------
-vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
+vtkPerkStationCalibrateStep
+::vtkPerkStationCalibrateStep()
 {
-  this->SetName("1/4. Calibrate");
-  this->SetDescription("Do image overlay system calibration");
+  this->SetName( "1/4. Calibrate" );
+  this->SetDescription( "Do image overlay system calibration" );
   
   
   this->WizardGUICallbackCommand->SetCallback(
@@ -183,7 +184,7 @@ bool vtkPerkStationCalibrateStep::DoubleEqual(double val1, double val2)
 
 
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::EnableDisableLoadResetControls(bool enable)
+void vtkPerkStationCalibrateStep::EnableDisableLoadResetControls( bool enable )
 {
   this->LoadCalibrationFileButton->SetEnabled(enable);
   this->ResetCalibrationButton->SetEnabled(enable);

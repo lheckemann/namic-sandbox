@@ -103,8 +103,9 @@ protected:
   vtkKWEntryWithLabel *SystemTiltAngle;
   vtkKWLabel *TiltMsg;  
 
-  
+  //BTX
   vtkSmartPointer< vtkActor > PlanningLineActor;
+  //ETX
   
   double WCEntryPoint[3];
   double WCTargetPoint[3];

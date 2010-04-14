@@ -100,6 +100,7 @@ protected:
   
   
   // Widgets ------------------------------------------------------------------
+  //BTX
   
     // Load, save, reset calibration.
   
@@ -151,6 +152,7 @@ protected:
   
   vtkSmartPointer< vtkKWPushButton > HardwareUpdateButton;
   
+  //ETX
   // --------------------------------------------------------------------------
   
   

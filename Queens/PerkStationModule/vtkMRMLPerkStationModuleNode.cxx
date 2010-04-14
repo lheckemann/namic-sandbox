@@ -293,7 +293,7 @@ vtkMRMLPerkStationModuleNode
     this->StepList->InsertNextValue( "Insertion" );
     this->StepList->InsertNextValue( "Validation" );
   
-  this->CurrentStep = WORKPHASE_CALIBRATION;
+  this->CurrentStep = 0;
   this->PreviousStep = WORKPHASE_CALIBRATION;
 }
 
@@ -1000,7 +1000,6 @@ vtkMRMLPerkStationModuleNode
 {  
   if ( this->PlanningVolumeNode == NULL )
   {
-    vtkErrorMacro( "VolumeNode is undefined" );
     return PPNA;
   }
 
