@@ -1,6 +1,11 @@
 #
 # Test for the Multi-Image Registration
 #
+INCLUDE_DIRECTORIES(${MultiImageRegistration_SOURCE_DIR}/Source
+                 ${MultiImageRegistration_SOURCE_DIR}/Source/Common)
+#link_directories(${MultiImageRegistration_BINARY_DIR}/bin)
+ADD_EXECUTABLE(LibTest lib_test.cxx)
+TARGET_LINK_LIBRARIES(LibTest MultiImageRegistrationLIB)
 
 GENERATECLP(TransformImage.cxx TransformImage.xml)
 ADD_EXECUTABLE(TransformImage TransformImage.cxx )
@@ -40,8 +45,10 @@ TARGET_LINK_LIBRARIES(PriorGen ITKCommon ITKIO)
 
 
 SET_TARGET_PROPERTIES(TransformImage ComputeDice CompareDeformationFields ComputeOutputs
-       CreateImageSetAffine CreateImageSetBspline ComputeJacobianField ComputeDeformationFields PriorGen
+       LibTest CreateImageSetAffine CreateImageSetBspline ComputeJacobianField ComputeDeformationFields PriorGen
                        PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${MultiImageRegistration_BINARY_DIR}/Testing/bin )
+
+
 
 # Define directory for output produced from the tests.
 #
@@ -125,7 +132,9 @@ IF(T1Processing)
   #  Affine test with 2 input images for BrainPart2.tgz
   MULTIIMAGEREGISTRATION(${T1Data} 2 Affine 002)
   #  B-spline test with 2 images for BrainPart2.tgz
-  MULTIIMAGEREGISTRATION(${T1Data} 2 Bspline 005)
+  MULTIIMAGEREGISTRATION(${T1Data} 3 Bspline 005)
+  #  Affine test with 2 input images(with initial transform files)
+  MULTIIMAGEREGISTRATION(${T1Data} 2 Affine 019)
   IF(${TestingMaxData} GREATER 10)
     #  Affine test with 10 input images for BrainPart2.tgz
     MULTIIMAGEREGISTRATION(${T1Data} 10 Affine 008)
@@ -201,3 +210,12 @@ IF(FAImage_DATA_ROOT)
   ENDIF(${TestingMaxData} GREATER 30)
 
 ENDIF(FAImage_DATA_ROOT)
+
+ADD_TEST(ValidateLIB ${MultiImageRegistration_BINARY_DIR}/Testing/bin/LibTest
+   ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData005/Images/0.nii.gz
+   ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData005/Images/1.nii.gz
+   ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData005/Images/2.nii.gz   
+   ${MultiImageRegistration_TEST_OUTPUT_DIR}/average.nii.gz
+)
+SET_TESTS_PROPERTIES(ValidateLIB PROPERTIES DEPENDS CreateRandImages005)
+
