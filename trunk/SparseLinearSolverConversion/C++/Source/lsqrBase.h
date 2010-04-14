@@ -2,8 +2,8 @@
 
   Program:   Insight Segmentation & Registration Toolkit
   Language:  C++
-  Date:      $Date: 2009-06-14 11:52:00 $
-  Version:   $Revision: 1.69 $
+  Date:      $Date: 2010-04-14 19:43:36 $
+  Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -70,7 +70,12 @@
  *
  *   This class is a direct C++ translation from the Fortran90 version
  *   of the solver that is available at
- *
+ *   http://www.stanford.edu/group/SOL/software.html
+ *   distributed under a BSD license.
+ *   
+ *   This class is a replacement for the lsqr code taken from netlib.
+ *   That code had to be removed because it is copyrighted by ACM and
+ *   its license was incompatible with a BSD license.
  *  
  */
 class lsqrBase 
@@ -289,17 +294,22 @@ public:
    *    m is the size of the input  vector b
    *    n is the size of the output vector x
    */
-  void Solve( unsigned int m, unsigned int n, double * b, double * x );
+  void Solve( unsigned int m, unsigned int n, const double * b, double * x );
 
 private:
+
+  void TerminationPrintOut();
+
   double    *  wm;  // work vector
   double    *  wn;  // work vector
 
   double Anorm;
   double Acond;
+  double bnorm;
   double rnorm;
   double Arnorm;
   double xnorm;
+  double dxmax;
 
   double atol;
   double btol;
@@ -307,11 +317,14 @@ private:
 
   double eps;
   double damp;
+  bool   damped;
 
   unsigned int itnlim;
   unsigned int itn;
 
   unsigned int istop;
+
+  unsigned int maxdx;
 
   std::ostream * nout;
 
