@@ -364,8 +364,8 @@ Solve( unsigned int m, unsigned int n, double * b, double * x )
   if( alpha > zero )
     {
     this->Scale( n, ( one / alpha ), v );
-    CopyVector( n, v, w );
     }
+  CopyVector( n, v, w ); // NOT IN THE ORIGINAL: In the original Fortran code w is only initialized to v if alpha > zero.
 
   this->Arnorm = alpha * beta;
 
