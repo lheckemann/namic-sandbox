@@ -113,7 +113,7 @@ std::string replaceExtension(const std::string oldname, const std::string extens
   return oldname.substr(0, oldname.rfind(".nii.gz")) + "." + extension;
 }
 
-int getCommandLine(std::string initFName, vector<std::string>& fileNames, vector<std::string>& initialTransformFileNames, std::string& inputFolder, std::string& outputFolder , std::string& optimizerType,
+int getCommandLine(std::string initFName, vector<std::string>& fileNames, vector<std::string>& initialTransformFileNames, std::string& inputFolder, std::string& inputTransformFolder,std::string& outputFolder , std::string& optimizerType,
     int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh,
     double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
     int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
@@ -163,6 +163,11 @@ int getCommandLine(std::string initFName, vector<std::string>& fileNames, vector
     {
       initFile >> dummy;
       inputFolder = dummy;
+    }
+    else if (dummy == "-ti")
+    {
+      initFile >> dummy;
+      inputTransformFolder = dummy;
     }
     else if (dummy == "-o")
     {
@@ -501,6 +506,7 @@ int main(int argc, char *argv[])
   vector<std::string> fileNames;
   vector<std::string> initialTransformFileNames;
   std::string inputFolder("");
+  std::string inputTransformFolder("");
   std::string outputFolder("");
 
   std::string optimizerType("lineSearch");
@@ -577,7 +583,7 @@ int main(int argc, char *argv[])
 
   unsigned int fixedTemplateIndex = 0;
 
-  if(getCommandLine(inputFilesName, fileNames, initialTransformFileNames, inputFolder, outputFolder, optimizerType,
+  if(getCommandLine(inputFilesName, fileNames, initialTransformFileNames, inputFolder,inputTransformFolder, outputFolder, optimizerType,
         multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh,
         optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate,
         optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations,
@@ -602,7 +608,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  if(getCommandLine(parametersFileName,fileNames, initialTransformFileNames,inputFolder, outputFolder, optimizerType,
+  if(getCommandLine(parametersFileName,fileNames, initialTransformFileNames,inputFolder,inputTransformFolder, outputFolder, optimizerType,
         multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh,
         optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate,
         optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations,
@@ -1069,7 +1075,7 @@ int main(int argc, char *argv[])
     {
        if( !initialTransformFileNames[i].empty() )
        {
-           std::string transformFileName = inputFolder + initialTransformFileNames[i];
+           std::string transformFileName = inputTransformFolder + initialTransformFileNames[i];
            TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
            transformFileReader->SetFileName(transformFileName.c_str());
            transformFileReader->Update();
