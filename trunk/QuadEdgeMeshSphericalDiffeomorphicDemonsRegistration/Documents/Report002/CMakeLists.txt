@@ -29,7 +29,7 @@ SET(REPORT001_SRCS
   )
 
 SET(REPORT_SRCS
-  ../../Examples/MultiResolutionRegistration1.cxx
+  ../../Examples/MultiResolutionRegistration2.cxx
   )
 
 SET(THIS_BINARY_DIR 
@@ -82,24 +82,6 @@ FOREACH(image ${XFIG_FIGURES})
     )
   SET(EPS_DEPS ${EPS_DEPS} ${PROJECT_BINARY_DIR}/${ImageBase}.pdf)
 ENDFOREACH(image)
-
-#
-# Copy all the images from the Binary/Examples directory
-#
-FILE(GLOB JPEG_FIGURES ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration_BINARY_DIR}/Examples/*.jpg )
-FOREACH(SOURCE_FILE ${JPEG_FIGURES})
-  GET_FILENAME_COMPONENT(nameBase ${SOURCE_FILE} NAME)
-  GET_FILENAME_COMPONENT(ImageBase ${nameBase} NAME_WE)
-  SET( DESTINATION_FILE ${THIS_BINARY_DIR}/${ImageBase}.jpg)
-  ADD_CUSTOM_COMMAND(
-    OUTPUT   ${DESTINATION_FILE}
-    DEPENDS  ${DESTINATION_FILE}
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different 
-        ${SOURCE_FILE} 
-        ${DESTINATION_FILE}
-    )
-  SET(COPY_RESULTS ${COPY_RESULTS} ${DESTINATION_FILE})
-ENDFOREACH(SOURCE_FILE)
 
 
 SET(REPORT_ELEMENTS 
