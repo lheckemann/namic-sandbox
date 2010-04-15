@@ -18,6 +18,10 @@ ADD_EXECUTABLE(QuadEdgeMeshSimilarityCalculator
 TARGET_LINK_LIBRARIES(QuadEdgeMeshSimilarityCalculator
  ITKQuadEdgeMesh ITKNumerics ITKIO) 
  
+ADD_EXECUTABLE(ScalarQuadEdgeMeshHistogram ScalarQuadEdgeMeshHistogram.cxx) 
+TARGET_LINK_LIBRARIES(ScalarQuadEdgeMeshHistogram 
+  ITKQuadEdgeMesh ITKNumerics ITKIO ITKStatistics)  
+ 
 IF(USE_VTK)
   ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
    QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx
