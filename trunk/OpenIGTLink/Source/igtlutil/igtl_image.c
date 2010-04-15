@@ -125,7 +125,7 @@ void igtl_export igtl_image_get_matrix(float spacing[3], float origin[3],
 void igtl_export igtl_image_convert_byte_order(igtl_image_header * header)
 {
   int i;
-  igtl_uint32 tmp[12];
+  igtl_uint32* tmp;
 
   if (igtl_is_little_endian()) 
     {
@@ -138,14 +138,13 @@ void igtl_export igtl_image_convert_byte_order(igtl_image_header * header)
       header->subvol_size[i] = BYTE_SWAP_INT16(header->subvol_size[i]);
       header->subvol_offset[i] = BYTE_SWAP_INT16(header->subvol_offset[i]);
       }
-    memcpy((void*)tmp, (void*)(header->matrix), sizeof(igtl_float32)*12);
 
+    tmp = (igtl_uint32*)(header->matrix);
     for (i = 0; i < 12; i ++) 
       {
       tmp[i] = BYTE_SWAP_INT32(tmp[i]);
       }
 
-    memcpy((void*)(header->matrix), (void*)tmp, sizeof(igtl_float32)*12);
   }
 }
 
