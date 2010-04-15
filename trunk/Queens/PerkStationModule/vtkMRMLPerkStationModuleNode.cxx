@@ -855,6 +855,8 @@ vtkMRMLScalarVolumeNode*
 vtkMRMLPerkStationModuleNode
 ::GetActiveVolumeNode()
 {
+  if ( ! this->VolumeInUse ) return NULL;
+  
   if ( strcmpi( this->VolumeInUse, "Planning" ) == 0 )
     {
     return this->PlanningVolumeNode;
