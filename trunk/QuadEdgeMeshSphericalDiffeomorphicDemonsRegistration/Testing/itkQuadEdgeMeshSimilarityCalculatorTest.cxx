@@ -22,16 +22,17 @@
 #include "itkQuadEdgeMeshSimilarityCalculator.h"
 
 #include "itkQuadEdgeMesh.h"
+#include "itkTestingMacros.h"
 
 int main( int argc, char * argv [] )
 {
 
-  if( argc < 4 )
+  if( argc < 5 )
     {
     std::cerr << "Missing arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << std::endl;
-    std::cerr << "inputMesh1 inputMesh2 LabelValue";
+    std::cerr << "inputMesh1 inputMesh2 LabelValue ExpectedDice";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
@@ -74,8 +75,24 @@ int main( int argc, char * argv [] )
   similarityCalculator->Compute();
 
   //print out the values of similarities
-  std::cout<<"the Dice measure of Label"<< argv[3] <<" is: "<<similarityCalculator->GetDice()<<std::endl;
-  std::cout<<"the Jaccard measure of Label"<< argv[3] <<" is: "<<similarityCalculator->GetJaccard()<<std::endl;
+  //std::cout<<"the Dice measure of Label"<< argv[3] <<" is: "<<similarityCalculator->GetDice()<<std::endl;
+  //std::cout<<"the Jaccard measure of Label"<< argv[3] <<" is: "<<similarityCalculator->GetJaccard()<<std::endl;
 
+  double tolerance = 0.05;
+
+  if (atof(argv[4]) != 0.0)
+  {
+    if (abs(atof(argv[4]) - similarityCalculator->GetDice())/atof(argv[4]) > tolerance)
+      {
+      return EXIT_FAILURE;
+      }
+  }
+  else 
+  {
+      if (atof(argv[4]) > 1.0e-3)
+      {
+      return EXIT_FAILURE;
+      }
+  }
   return EXIT_SUCCESS;
 }
