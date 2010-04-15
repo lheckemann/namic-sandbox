@@ -356,7 +356,7 @@ ADD_TEST(QuadEdgeMeshSimilarityCalculatorTest
   ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk 
   0 # Label
   )  
-ADD_TEST(QuadEdgeMeshSimilarityCalculatorTest1
+ADD_TEST(ScalarQuadEdgeMeshToListAdaptorTest1
   ${CXX_TEST_PATH}/itkScalarQuadEdgeMeshToListAdaptorTest1
   ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk 
   10   # NumberOfBins
