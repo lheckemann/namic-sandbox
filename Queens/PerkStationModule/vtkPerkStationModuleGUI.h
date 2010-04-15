@@ -152,6 +152,7 @@ protected:
   
   // Updates GUI widgets based on parameters values in MRML node
   void UpdateGUI();
+  void UpdateWindowLevelDisplay();
 
   void UpdateMRML();
 

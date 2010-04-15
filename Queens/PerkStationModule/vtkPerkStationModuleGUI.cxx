@@ -516,6 +516,42 @@ vtkPerkStationModuleGUI
     }
   
   
+    // Update window/level display.
+  
+  if (    this->MRMLNode
+       && strcmp( eventName, "MouseMoveEvent" ) == 0 )
+    {
+    vtkSlicerSliceGUI* sliceGUI =
+      this->GetApplicationGUI()->GetMainSliceGUI( "Red" );
+    
+    vtkCornerAnnotation* anno = sliceGUI->GetSliceViewer()->GetRenderWidget()->
+                                GetCornerAnnotation();
+     
+    vtkMRMLScalarVolumeNode* volume = this->MRMLNode->GetActiveVolumeNode();
+    
+    if (    volume
+         && volume->GetScalarVolumeDisplayNode() )
+      {
+      double window = volume->GetScalarVolumeDisplayNode()->GetWindow();
+      double level = volume->GetScalarVolumeDisplayNode()->GetLevel();
+      
+      std::string str( anno->GetText( 1 ) );
+      
+      std::string::size_type found = str.find( "W" );
+      if ( found != std::string::npos )
+        {
+        str = str.substr( 0, found - 1 );
+        }
+      
+      std::stringstream ss;
+        ss << str << std::endl;
+        ss << "W: " << std::fixed << setprecision( 1 ) << window << std::endl;
+        ss << "L: " << std::fixed << setprecision( 1 ) << level;
+      anno->SetText( 1, ss.str().c_str() );
+      }
+    }
+  
+  
     // Red slice is selected and slice offset is changed.
     
   if ( this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()
@@ -540,8 +576,6 @@ vtkPerkStationModuleGUI
        && event == vtkKWWizardWorkflow::CurrentStateChangedEvent )
     {
     // TO DO  -- What?
-    
-    
     
     if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
          == this->CalibrateStep.GetPointer() )
@@ -656,36 +690,6 @@ vtkPerkStationModuleGUI
     }
   
   
-  vtkSlicerNodeSelectorWidget *selector
-    = vtkSlicerNodeSelectorWidget::SafeDownCast( caller );
-    
-  
-  if ( selector == this->VolumeSelector
-       && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
-       && this->VolumeSelector->GetSelected() != NULL ) 
-    { 
-    //this->UpdateMRML();
-    // handle here, when user changes the selection of the active volume
-    // the selection has to be propagated in Slicer's viewers and enviroment
-    // the system state has to updated that the volume in use is the one that is selected
-    // the secondary monitor has to be updated
-    // all this to be done here
-    }
-  
-  
-  if ( selector == this->PSNodeSelector
-       && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
-       && this->PSNodeSelector->GetSelected() != NULL ) 
-    { 
-    vtkMRMLPerkStationModuleNode* n =
-      vtkMRMLPerkStationModuleNode::SafeDownCast(
-        this->PSNodeSelector->GetSelected() );
-    this->Logic->SetAndObservePerkStationModuleNode( n );
-    vtkSetAndObserveMRMLNodeMacro( this->MRMLNode, n );
-    this->UpdateGUI();
-    }
-  
-  
     // Corner annotation.
   
   if (    this->MRMLNode
@@ -712,12 +716,30 @@ vtkPerkStationModuleGUI
                                 GetCornerAnnotation();
      
     std::string str( anno->GetText( 2 ) );
+    
+    std::string::size_type found = str.find( "P" );
+    if ( found != std::string::npos )
+      {
+      str = str.substr( 0, found - 1 );
+      }
+    
     std::stringstream ss;
-    ss << str;
-    ss << std::endl;
-    ss << pptext;
+      ss << str;
+      ss << std::endl;
+      ss << pptext;
     anno->SetText( 2, ss.str().c_str() );
     }
+}
+
+
+/**
+ * Reads current window/level values and updates the corner annotation.
+ */
+void
+vtkPerkStationModuleGUI
+::UpdateWindowLevelDisplay()
+{
+  
 }
 
 
@@ -1287,9 +1309,10 @@ vtkPerkStationModuleGUI
     windowLevelFrame->SetLabelText( "Window/Level" );
     windowLevelFrame->Create();
   
+  /*
   this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                 windowLevelFrame->GetWidgetName() );
-  
+  */
   
   if ( ! this->DisplayVolumeWindowValue->IsCreated() )
     {
@@ -1303,9 +1326,6 @@ vtkPerkStationModuleGUI
     this->DisplayVolumeWindowValue->SetEntryPositionToTop();
     }
   
-  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->DisplayVolumeWindowValue->GetWidgetName() );
-  
   if ( ! this->DisplayVolumeLevelValue->IsCreated() )
     {
     this->DisplayVolumeLevelValue->SetParent( windowLevelFrame->GetFrame() );
@@ -1317,10 +1337,13 @@ vtkPerkStationModuleGUI
     this->DisplayVolumeLevelValue->SetLabelPositionToTop();
     this->DisplayVolumeLevelValue->SetEntryPositionToTop();
     }
+  /*
+  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
+                this->DisplayVolumeWindowValue->GetWidgetName() );
   
   this->Script("pack %s -side top -anchor ne -padx 2 -pady 2", 
                         this->DisplayVolumeLevelValue->GetWidgetName());
-  
+  */
   
     // Load save frame.
   
