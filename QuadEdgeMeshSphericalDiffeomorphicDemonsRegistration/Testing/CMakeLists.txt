@@ -355,6 +355,7 @@ ADD_TEST(QuadEdgeMeshSimilarityCalculatorTest
   ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk 
   ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk 
   0 # Label
+  0.946329 # Expected Dice for this test
   )  
 ADD_TEST(ScalarQuadEdgeMeshToListAdaptorTest1
   ${CXX_TEST_PATH}/itkScalarQuadEdgeMeshToListAdaptorTest1
