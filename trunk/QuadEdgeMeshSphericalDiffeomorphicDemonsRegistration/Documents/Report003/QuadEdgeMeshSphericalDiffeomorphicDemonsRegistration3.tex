@@ -1,0 +1,198 @@
+\documentclass{InsightArticle}
+
+\usepackage[dvips]{graphicx}
+\usepackage{color}
+\usepackage{listings}
+
+\definecolor{listcomment}{rgb}{0.0,0.5,0.0}
+\definecolor{listkeyword}{rgb}{0.0,0.0,0.5}
+\definecolor{listnumbers}{gray}{0.65}
+\definecolor{listlightgray}{gray}{0.955}
+\definecolor{listwhite}{gray}{1.0}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  hyperref should be the last package to be loaded.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[dvips,
+bookmarks,
+bookmarksopen,
+backref,
+colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
+]{hyperref}
+
+
+\title{Assign Scalars Mesh Filter}
+
+
+% 
+% NOTE: This is the last number of the "handle" URL that 
+% The Insight Journal assigns to your paper as part of the
+% submission process. Please replace the number "1338" with
+% the actual handle number that you get assigned.
+%
+\newcommand{\IJhandlerIDnumber}{3117}
+
+\lstset{frame = tb,
+       framerule = 0.25pt,
+       float,
+       fontadjust,
+       backgroundcolor={\color{listlightgray}},
+       basicstyle = {\ttfamily\footnotesize},
+       keywordstyle = {\ttfamily\color{listkeyword}\textbf},
+       identifierstyle = {\ttfamily},
+       commentstyle = {\ttfamily\color{listcomment}\textit},
+       stringstyle = {\ttfamily},
+       showstringspaces = false,
+       showtabs = false,
+       numbers = left,
+       numbersep = 6pt,
+       numberstyle={\ttfamily\color{listnumbers}},
+       tabsize = 2,
+       language=[ANSI]C++,
+       floatplacement=!h
+       }
+
+
+
+\release{1.00}
+
+\author{Wen Li$^{1}$, Vincent Magnotta$^{1}$}
+\authoraddress{$^{1}$University of Iowa}
+
+\begin{document}
+
+
+%
+% Add hyperlink to the web location and license of the paper.
+% The argument of this command is the handler identifier given
+% by the Insight Journal to this paper.
+% 
+\IJhandlefooter{\IJhandlerIDnumber}
+
+
+\ifpdf
+\else
+   %
+   % Commands for including Graphics when using latex
+   % 
+   \DeclareGraphicsExtensions{.eps,.jpg,.gif,.tiff,.bmp,.png}
+   \DeclareGraphicsRule{.jpg}{eps}{.jpg.bb}{`convert #1 eps:-}
+   \DeclareGraphicsRule{.gif}{eps}{.gif.bb}{`convert #1 eps:-}
+   \DeclareGraphicsRule{.tiff}{eps}{.tiff.bb}{`convert #1 eps:-}
+   \DeclareGraphicsRule{.bmp}{eps}{.bmp.bb}{`convert #1 eps:-}
+   \DeclareGraphicsRule{.png}{eps}{.png.bb}{`convert #1 eps:-}
+\fi
+
+
+\maketitle
+
+
+\ifhtml
+\chapter*{Front Matter\label{front}}
+\fi
+
+
+\begin{abstract}
+ 
+This documents is about the filter itkAssignScalarValuesQuadEdgeMeshFilter.  It
+takes two meshes, one as an input and the other as a source and assign scalar
+values of the nodes on one mesh to another.  Both of the two meshes should have
+the same number of nodes.
+
+This paper is accompanied with the source code, input data, parameters and
+output data that we used for validating the algorithm described in this paper.
+This adheres to the fundamental principle that scientific publications must
+facilitate \textbf{reproducibility} of the reported results.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+
+\section{How to Build}
+
+This contribution includes
+
+\begin{itemize}
+\item Assign Scalars filter
+\item Tests for the filter
+\item Examples on how to use the filter
+\item All the LaTeX source files of this paper
+\end{itemize}
+
+The source code is in Source directory and named as 
+
+\begin{itemize}
+\item itkAssignScalarValuesQuadEdgeMeshFilter.h
+\item itkAssignScalarValuesQuadEdgeMeshFilter.cxx
+\end{itemize}
+
+
+The testing code is in Testing directory as
+
+\begin{itemize}
+\item itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx
+\end{itemize}
+
+The example about how to use it is in Example directory as
+
+\begin{itemize}
+\item RigidAndDemonsRegistration.cxx
+\end{itemize}
+
+\subsection{Building Executables and Tests}
+
+In order to build the whole, it is enough to configure the directory with
+CMake. As usual, an out-of-source build is the recommended method.
+
+In a Linux environment it should be enough to do the following:
+
+\begin{itemize}
+\item \code{ccmake  SOURCE\_DIRECTORY}
+\item \code{make}
+\item \code{ctest}
+\end{itemize}
+
+Where SOURCE\_DIRECTORY is the directory where you have expanded the source
+code that accompanies this paper.
+
+This will configure the project, build the executables, and run the tests and
+examples. 
+
+
+\subsection{Building this Report}
+
+In order to build this report you can do
+
+\begin{itemize}
+\item \code{ccmake SOURCE\_DIRECTORY}
+\item Turn ON the CMake variable
+\begin{itemize}
+\item \code{BUILD\_REPORTS}
+\end{itemize}
+\item \code{make}
+\end{itemize}
+
+This should produce a PDF file in the binary directory, under the subdirectory
+\code{Documents/Report003}.
+
+\section{How to Use the Filter}
+
+This section illustrates the minimum operations required for running 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Insert the bibliography using BibTeX
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliographystyle{plain}
+\bibliography{InsightJournal}
+
+
+
+\end{document}
