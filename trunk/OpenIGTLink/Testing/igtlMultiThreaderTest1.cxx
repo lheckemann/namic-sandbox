@@ -44,8 +44,13 @@
 #define EXIT_FAILURE 1
 
 // NOTE: (NUM_THREAD + NUM_REPEAT) < 32 on 32-bit environment
-#define NUM_THREAD   5
-#define NUM_REPEAT   4
+#if IGTL_MAX_THREADS > 1
+  #define NUM_THREAD   5
+  #define NUM_REPEAT   4
+#else
+  #define NUM_THREAD   1
+  #define NUM_REPEAT   4
+#endif
 
 
 typedef struct {
