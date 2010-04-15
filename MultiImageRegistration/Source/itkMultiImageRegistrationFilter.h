@@ -236,7 +236,6 @@ public:
   typedef BSplineDeformableTransformInitializer<BSplineTransformType, ImageType> BSplineInitializerType;
 
   typedef RegistrationType::ParametersType ParametersType;
-  typedef OptimizerType::ScalesType       OptimizerScalesType;
   typedef ResampleImageFilter<ImageType,ImageType> ResampleFilterType;
   typedef NaryFunctorImageFilter< ImageType,  ImageType,  MEAN > NaryMEANImageFilter;
   typedef RegistrationInterfaceCommand CommandType;
