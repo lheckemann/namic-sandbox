@@ -472,7 +472,7 @@ ObjectFactoryBase
       i != m_OverrideMap->end(); ++i)
     {
     os << indent << "Class : " <<  (*i).first.c_str() << "\n";
-    os << indent << "Overriden with: " <<  (*i).second.m_OverrideWithName.c_str()
+    os << indent << "Overridden with: " <<  (*i).second.m_OverrideWithName.c_str()
        << std::endl;
     os << indent << "Enable flag: " << (*i).second.m_EnabledFlag
        << std::endl;

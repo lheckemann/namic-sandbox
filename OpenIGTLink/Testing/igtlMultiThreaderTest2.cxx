@@ -44,8 +44,13 @@
 #define EXIT_FAILURE 1
 
 // NOTE: (NUM_THREAD + NUM_REPEAT) < 32 on 32-bit environment
-#define NUM_THREAD   5
-#define NUM_REPEAT   4
+#if IGTL_MAX_THREADS > 1
+  #define NUM_THREAD   5
+  #define NUM_REPEAT   4
+#else
+  #define NUM_THREAD   1
+  #define NUM_REPEAT   4
+#endif
 
 
 typedef struct {
@@ -198,10 +203,12 @@ int main(int argc, char * argv [] )
 
   threader->SetNumberOfThreads(NUM_THREAD);
   threader->SetMultipleMethod(0, (igtl::ThreadFunctionType) &ThreadFunction1, &td);
+#if IGTL_MAX_THREADS > 1
   threader->SetMultipleMethod(1, (igtl::ThreadFunctionType) &ThreadFunction2, &td);
   threader->SetMultipleMethod(2, (igtl::ThreadFunctionType) &ThreadFunction3, &td);
   threader->SetMultipleMethod(3, (igtl::ThreadFunctionType) &ThreadFunction4, &td);
   threader->SetMultipleMethod(4, (igtl::ThreadFunctionType) &ThreadFunction5, &td);
+#endif
   threader->MultipleMethodExecute();
 
   int answer = 0x00000001;
