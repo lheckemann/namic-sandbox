@@ -55,6 +55,9 @@ TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDemonsFilterTest1 ITKQuadEdgeMesh 
 ADD_EXECUTABLE(itkQuadEdgeMeshSimilarityCalculatorTest itkQuadEdgeMeshSimilarityCalculatorTest.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSimilarityCalculatorTest ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkScalarQuadEdgeMeshToListAdaptorTest1 itkScalarQuadEdgeMeshToListAdaptorTest1.cxx )
+TARGET_LINK_LIBRARIES(itkScalarQuadEdgeMeshToListAdaptorTest1 ITKQuadEdgeMesh ITKIO ITKNumerics ITKStatistics)
+
 ADD_EXECUTABLE(itkResampleDestinationPointsQuadEdgeMeshFilterTest1 itkResampleDestinationPointsQuadEdgeMeshFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkResampleDestinationPointsQuadEdgeMeshFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
@@ -353,7 +356,14 @@ ADD_TEST(QuadEdgeMeshSimilarityCalculatorTest
   ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk 
   0 # Label
   )  
-  
+ADD_TEST(QuadEdgeMeshSimilarityCalculatorTest1
+  ${CXX_TEST_PATH}/itkScalarQuadEdgeMeshToListAdaptorTest1
+  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk 
+  10   # NumberOfBins
+  0.0  # Min
+  10.0 # Max
+  )  
+    
 SET_TESTS_PROPERTIES( WarpQuadEdgeMeshFilterTest PROPERTIES DEPENDS ComputeDeformationFieldMeshTest1)
 
 IF( FREESURFER_DIR )
