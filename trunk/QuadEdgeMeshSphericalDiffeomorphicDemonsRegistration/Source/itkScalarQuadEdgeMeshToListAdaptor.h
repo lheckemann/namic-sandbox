@@ -19,7 +19,7 @@
 
 #include "itkQuadEdgeMeshToQuadEdgeMeshFilter.h"
 
-#include "itkVector.h"
+#include "itkFixedArray.h"
 #include "itkListSample.h"
 
 namespace itk
@@ -59,7 +59,7 @@ public:
   typedef typename InputMeshType::PointDataContainerPointer                  InputPointDataContainerPointer;
 
   typedef typename InputMeshType::PixelType                                  MeasurementType;                                                    
-  typedef typename itk::Vector< MeasurementType , 1 >                        MeasurementVectorType ;
+  typedef typename itk::FixedArray< MeasurementType , 1 >                    MeasurementVectorType ;
   typedef typename itk::Statistics::ListSample< MeasurementVectorType >      ListSampleType ;
 
   typedef typename ListSampleType::Pointer                                   ListSamplePointerType;

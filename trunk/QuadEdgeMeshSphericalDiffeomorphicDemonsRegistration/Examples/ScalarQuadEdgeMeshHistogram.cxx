@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMeanSquaresMeshToMeshMetricTest1.cxx,v $
+  Module:    $RCSfile: itkScalarQuadEdgeMeshToListAdaptorTest1.cxx,v $
   Language:  C++
-  Date:      $Date: 2007-09-06 17:44:24 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008-03-10 19:46:31 $
+  Version:   $Revision: 1.37 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -14,18 +14,18 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
 #endif
 
 #include "itkVector.h"
 #include "itkListSample.h"
+#include "itkHistogram.h"
 #include "itkQuadEdgeMesh.h"
 
 #include "itkQuadEdgeMeshVTKPolyDataReader.h"
 #include "itkScalarQuadEdgeMeshToListAdaptor.h"
-#include "itkListSampleToHistogramGenerator.h"
+#include "itkSampleToHistogramFilter.h"
 
 int main( int argc, char * argv [] )
 {
@@ -40,8 +40,6 @@ int main( int argc, char * argv [] )
 
   typedef float      MeshPixelType;
   const unsigned int Dimension = 3;
-
-  const unsigned int MeasurementVectorLength = 1;
 
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   MeshType;
 
@@ -69,46 +67,56 @@ int main( int argc, char * argv [] )
     }
 
 
-  typedef MeshPixelType        HistogramMeasurementType;
+  typedef AdaptorType::MeasurementType  MeasurementType;
+  typedef AdaptorType::MeasurementVectorType  MeasurementVectorType;
+  typedef itk::Statistics::ListSample< MeasurementVectorType > ListSampleType;
 
-  typedef itk::Vector< MeshPixelType , MeasurementVectorLength > MeasurementVectorType ;
-  typedef itk::Statistics::ListSample< MeasurementVectorType > ListSampleType ;
+  typedef itk::Statistics::Histogram< MeasurementType,
+          itk::Statistics::DenseFrequencyContainer2 > HistogramType;
 
-  typedef itk::Statistics::ListSampleToHistogramGenerator< 
-                                                ListSampleType, 
-                                                HistogramMeasurementType, 
-                                                itk::Statistics::DenseFrequencyContainer, 
-                                                MeasurementVectorLength  > GeneratorType; 
+  typedef itk::Statistics::SampleToHistogramFilter< 
+    ListSampleType, HistogramType > HistogramFilterType; 
 
-  GeneratorType::Pointer generator = GeneratorType::New();
+  HistogramFilterType::Pointer histogramFilter = HistogramFilterType::New();
 
-  typedef GeneratorType::HistogramType  HistogramType;
+  typedef HistogramFilterType::HistogramType  HistogramType;
 
-  HistogramType::SizeType size;
-  size.Fill( atoi(argv[2]) );
-
-  generator->SetListSample( adaptor->GetSample() );
-  generator->SetNumberOfBins( size );
-  generator->SetMarginalScale( 10.0 );
-
-  HistogramType::MeasurementVectorType min;
-  HistogramType::MeasurementVectorType max;
+  histogramFilter->SetInput( adaptor->GetSample() );
   
-  min.Fill(  atof(argv[3]) - 0.5 );
-  max.Fill(  atof(argv[4]) + 0.5 );
-  
-  generator->SetHistogramMin( min );
-  generator->SetHistogramMax( max );
+  histogramFilter->SetMarginalScale( 10.0 );
 
-  generator->Update();
+  typedef HistogramFilterType::HistogramSizeType HistogramSizeType;
 
-  HistogramType::ConstPointer histogram = generator->GetOutput();
+  MeasurementVectorType value;
 
-  const unsigned int histogramSize = histogram->Size();
+  unsigned int numberOfScalarComponents = 
+    itk::Statistics::MeasurementVectorTraits::GetLength( value );
 
-  std::cout << "Histogram size " << histogramSize << std::endl;
+  HistogramSizeType histogramSize( numberOfScalarComponents );
+  histogramSize[0] = atoi( argv[2] );
 
-  for( unsigned int bin=0; bin < histogramSize; bin++ )
+  histogramFilter->SetHistogramSize( histogramSize );
+
+  typedef HistogramFilterType::HistogramMeasurementVectorType HistogramMeasurementVectorType;
+
+  HistogramMeasurementVectorType histogramBinMinimum( numberOfScalarComponents );
+  histogramBinMinimum.Fill(  atof(argv[3]) - 0.5 );
+
+  HistogramMeasurementVectorType histogramBinMaximum( numberOfScalarComponents );
+  histogramBinMaximum.Fill(  atof(argv[4]) - 0.5 );
+
+  histogramFilter->SetHistogramBinMinimum( histogramBinMinimum );
+  histogramFilter->SetHistogramBinMaximum( histogramBinMaximum );
+
+  histogramFilter->Update();
+
+  HistogramType::ConstPointer histogram = histogramFilter->GetOutput();
+
+  const unsigned int histogramTotalNumberOfBins = histogram->Size();
+
+  std::cout << "Total Number of Bins " << histogramTotalNumberOfBins << std::endl;
+
+  for( unsigned int bin=0; bin < histogramTotalNumberOfBins; bin++ )
     {
     std::cout << "bin = " << bin << " frequency = ";
     std::cout << histogram->GetFrequency( bin, 0 ) <<std::endl;
