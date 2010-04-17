@@ -167,7 +167,7 @@ class VTK_LEGO_EXPORT vtkLegoGUI : public vtkSlicerModuleGUI
     vtkMRMLModelDisplayNode *LocatorModelDisplayNode;
 
     //BTX
-    s  ::string LocatorModelID;
+    std::string LocatorModelID;
     //ETX
     vtkIGTDataManager *DataManager;
     vtkIGTPat2ImgRegistration *Pat2ImgReg;
