@@ -20,3 +20,9 @@ TARGET_LINK_LIBRARIES(GroupwiseRegistration ITKCommon ITKNumerics ITKIO ITKBasic
 ADD_LIBRARY(MultiImageRegistrationLIB itkMultiImageRegistrationFilter.cxx
 GradientDescentLineSearchOptimizer.cxx)
 TARGET_LINK_LIBRARIES(MultiImageRegistrationLIB ITKAlgorithms ITKIO)
+
+INSTALL(TARGETS MultiImageRegistrationLIB GroupwiseRegistration
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    )
