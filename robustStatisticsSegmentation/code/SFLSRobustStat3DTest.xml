@@ -34,8 +34,8 @@
       <default>1</default>
       <constraints>
         <minimum>0.0</minimum>
-        <maximum>10000</maximum>
-        <step>10</step>
+        <maximum>1000000</maximum>
+        <step>100</step>
       </constraints>
     </double>
   </parameters>
