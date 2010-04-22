@@ -65,5 +65,14 @@
     return EXIT_FAILURE; \
     }
 
+#define TEST_RESULT_WITHIN_RANGE( result, expected, tolerance) \
+  if (abs(expected - result)/expected > tolerance) \
+    { \
+    std::cerr << "Error in expected result" << std::endl; \
+    std::cerr << "Expected " << expected << std::endl; \
+    std::cerr << "but got  " << result << std::endl; \
+    std::cerr << "with tolerance  " << tolerance << std::endl; \
+    return EXIT_FAILURE; \
+    }
 
 #endif
