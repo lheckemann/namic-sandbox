@@ -22,10 +22,12 @@
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationConfigure.h"
 
 #include "itkCommand.h"
-#include "itkVTKPolyDataReader.h"
 
-#include "itkDeformQuadEdgeMeshFilter.h"
+#include "itkVTKPolyDataReader.h"
+#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
+
 #include "itkMultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
+#include "itkDeformQuadEdgeMeshFilter.h"
 
 #ifdef USE_VTK
 #include "MultiResolutionDeformableAndAffineRegistrationMonitorWithTargetTracking.h"
@@ -64,7 +66,8 @@ int main( int argc, char * argv [] )
   typedef itk::MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< 
     MeshType >  MultiResolutionDemonsFilterType;
 
-  MultiResolutionDemonsFilterType::Pointer multiResDemonsFilter = MultiResolutionDemonsFilterType::New();
+  MultiResolutionDemonsFilterType::Pointer multiResDemonsFilter =
+    MultiResolutionDemonsFilterType::New();
 
   typedef MultiResolutionDemonsFilterType::DestinationPointSetType DestinationPointSetType;
 
