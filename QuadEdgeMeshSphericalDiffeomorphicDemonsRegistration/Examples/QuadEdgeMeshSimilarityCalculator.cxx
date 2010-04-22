@@ -76,8 +76,10 @@ int main( int argc, char * argv [] )
   similarityCalculator->Compute();
 
   //print out the values of similarities
-  std::cout<<"the Dice measure of Label"<< argv[3] <<" is: "<<similarityCalculator->GetDice()<<std::endl;
-  std::cout<<"the Jaccard measure of Label"<< argv[3] <<" is: "<<similarityCalculator->GetJaccard()<<std::endl;
+  std::cout<<"the Dice measure of Label"<< argv[3];
+  std::cout<<" is: "<<similarityCalculator->GetDice()<<std::endl;
+  std::cout<<"the Jaccard measure of Label"<< argv[3];
+  std::cout<<" is: "<<similarityCalculator->GetJaccard()<<std::endl;
 
   return EXIT_SUCCESS;
 }

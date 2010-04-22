@@ -82,17 +82,13 @@ int main( int argc, char * argv [] )
 
   if (atof(argv[4]) != 0.0)
   {
-    if (abs(atof(argv[4]) - similarityCalculator->GetDice())/atof(argv[4]) > tolerance)
-      {
-      return EXIT_FAILURE;
-      }
+    TEST_RESULT_WITHIN_RANGE(similarityCalculator->GetDice(),atof(argv[4]), tolerance);
   }
-  else 
+  
+  if (atof(argv[5]) != 0.0)
   {
-      if (atof(argv[4]) > 1.0e-3)
-      {
-      return EXIT_FAILURE;
-      }
+    TEST_RESULT_WITHIN_RANGE(similarityCalculator->GetJaccard(),atof(argv[5]), tolerance);
   }
+
   return EXIT_SUCCESS;
 }

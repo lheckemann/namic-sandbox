@@ -52,9 +52,9 @@ int main( int argc, char * argv [] )
   typedef itk::QuadEdgeMeshTraits< VectorType, Dimension, bool, bool > VectorPointSetTraits;
   typedef itk::QuadEdgeMesh< VectorType, Dimension, VectorPointSetTraits > MeshWithVectorsType;
 
+  typedef itk::QuadEdgeMeshVTKPolyDataReader< MeshWithVectorsType >   DeformationFieldReaderType;
   typedef itk::QuadEdgeMeshVTKPolyDataReader< InputMeshType >         InputReaderType;
   typedef itk::QuadEdgeMeshVTKPolyDataReader< ReferenceMeshType >     ReferenceReaderType;
-  typedef itk::QuadEdgeMeshVTKPolyDataReader< MeshWithVectorsType >   DeformationFieldReaderType;
 
   InputReaderType::Pointer inputMeshReader = InputReaderType::New();
   inputMeshReader->SetFileName( argv[1] );
@@ -64,23 +64,10 @@ int main( int argc, char * argv [] )
 
   DeformationFieldReaderType::Pointer deformationFieldReader = DeformationFieldReaderType::New();
   deformationFieldReader->SetFileName( argv[3] );
-  try
-    {
-    inputMeshReader->Update( );
-    referenceMeshReader->Update( );
-    deformationFieldReader->Update();
-    }
-  catch( itk::ExceptionObject & exp )
-    {
-    std::cerr << exp << std::endl;
-    return EXIT_FAILURE;
-    }
 
   typedef itk::LinearInterpolateMeshFunction< ReferenceMeshType > InterpolatorType;
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
-
-  interpolator->SetUseNearestNeighborInterpolationAsBackup(true);
 
   typedef itk::WarpQuadEdgeMeshFilter<InputMeshType, ReferenceMeshType, MeshWithVectorsType> WarpFilterType;
 

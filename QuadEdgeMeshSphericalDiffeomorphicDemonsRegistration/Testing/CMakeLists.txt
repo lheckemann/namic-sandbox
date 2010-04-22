@@ -36,7 +36,7 @@ ADD_EXECUTABLE(itkMeshGeneratorHelperTest2
 TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ADD_EXECUTABLE(itkMeshGeneratorHelperTest3
-  ${QuadEdgeMeshFieldSmoothingFilters}/Testing/itkMeshGeneratorHelperTest2.cxx )
+  ${QuadEdgeMeshFieldSmoothingFilters}/Testing/itkMeshGeneratorHelperTest3.cxx )
 TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest3 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ADD_EXECUTABLE(itkMeshGeneratorHelperTest4
@@ -46,11 +46,17 @@ TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest4 ITKQuadEdgeMesh ITKIO ITKNumer
 ADD_EXECUTABLE(itkMeshGeneratorHelperTest5 itkMeshGeneratorHelperTest5.cxx )
 TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest5 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkMeshGeneratorHelperTest6 itkMeshGeneratorHelperTest6.cxx )
+TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest6 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkLinearInterpolateDeformationFieldTest1 itkLinearInterpolateDeformationFieldMeshFunctionTest1.cxx )
 TARGET_LINK_LIBRARIES(itkLinearInterpolateDeformationFieldTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ADD_EXECUTABLE(itkQuadEdgeMeshSphericalDemonsFilterTest1 itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDemonsFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(itkQuadEdgeMeshSphericalDemonsFilterTest2 itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest2.cxx )
+TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDemonsFilterTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ADD_EXECUTABLE(itkQuadEdgeMeshSimilarityCalculatorTest itkQuadEdgeMeshSimilarityCalculatorTest.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSimilarityCalculatorTest ITKQuadEdgeMesh ITKIO ITKNumerics)
@@ -126,7 +132,10 @@ IF(USE_VTK)
   TARGET_LINK_LIBRARIES(ScalarMeshRender 
     vtkRendering vtkFiltering vtkIO vtkHybrid
     ) 
-
+    
+  ADD_EXECUTABLE(MeshRender  MeshRender.cxx)
+  TARGET_LINK_LIBRARIES(MeshRender vtkRendering vtkFiltering vtkIO vtkHybrid) 
+    
   ADD_EXECUTABLE(VectorMeshRender  VectorMeshRender.cxx)
   TARGET_LINK_LIBRARIES(VectorMeshRender 
     vtkRendering vtkFiltering vtkIO vtkHybrid
@@ -205,7 +214,14 @@ ADD_TEST(MeshGeneratorHelperTest9
   100.0  # Scale (radius)
   2.0    # Phi multiplier
   )
-
+  
+ADD_TEST(MeshGeneratorHelperTest10
+  ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest6
+  ${TEMP}/meshWithoutScalarsGaussianIC4.vtk
+  4      # resolution
+  100.0  # Scale (radius)
+  )
+  
 ADD_TEST(LinearInterpolateDeformationFieldMeshFunctionTest1
   ${CXX_TEST_PATH}/itkLinearInterpolateDeformationFieldTest1
   ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
@@ -271,6 +287,18 @@ ADD_TEST(DemonsFilterTest5
   2        # Smoothing Iterations
   20      # maximum number of iterations
   )
+  
+ADD_TEST(DemonsFilterTest6
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDemonsFilterTest2
+  ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk
+  ${TEMP}/movingMeshWithScalarsGaussianIC4.vtk
+  ${TEMP}/deformedMeshWithScalarsGaussianIC4.vtk
+  0.01     # Epsilon
+  100.0    # SigmaX
+  1.0      # Lambda
+  2        # Smoothing Iterations
+  20      # maximum number of iterations
+  )
 
 ADD_TEST(ResampleDestinationFilterTest1
   ${CXX_TEST_PATH}/itkResampleDestinationPointsQuadEdgeMeshFilterTest1
@@ -289,10 +317,10 @@ ADD_TEST(ResampleDestinationFilterTest1
 ADD_TEST(ComputeDeformationFieldMeshTest1
   ${CXX_TEST_PATH}/itkQuadEdgeMeshGenerateDeformationFieldFilterTest1
   ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk
-  ${TEMP}/registeredMeshWithScalarsGaussianIC4.vtk
+  ${TEMP}/deformedMeshWithScalarsGaussianIC4.vtk
   ${TEMP}/fixedMeshWithDeformationFieldIC4.vtk
   )
-SET_TESTS_PROPERTIES( ComputeDeformationFieldMeshTest1 PROPERTIES DEPENDS DemonsFilterTest5)
+SET_TESTS_PROPERTIES( ComputeDeformationFieldMeshTest1 PROPERTIES DEPENDS DemonsFilterTest6)
 
 ADD_TEST(VersorOperationsTest1
   ${CXX_TEST_PATH}/itkVersorOperationsTest1
@@ -346,9 +374,10 @@ ADD_TEST(WarpQuadEdgeMeshFilterTest
   ${CXX_TEST_PATH}/itkWarpQuadEdgeMeshFilterTest
   ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk 
   ${TEMP}/movingMeshWithScalarsGaussianIC4.vtk 
-  ${TEMP}/fixedMeshWithDeformationFieldIC4.vtk 
+  ${TEMP}/fixedMeshWithDeformationFieldIC4.vtk
   ${TEMP}/warpedFixedMeshWithScalarsGaussianIC4.vtk 
   )
+SET_TESTS_PROPERTIES( WarpQuadEdgeMeshFilterTest PROPERTIES DEPENDS ComputeDeformationFieldMeshTest1)
   
 ADD_TEST(QuadEdgeMeshSimilarityCalculatorTest
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSimilarityCalculatorTest
@@ -356,6 +385,7 @@ ADD_TEST(QuadEdgeMeshSimilarityCalculatorTest
   ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk 
   0 # Label
   0.946329 # Expected Dice for this test
+  0.898126 # Expected Jaccard for this test
   )  
 ADD_TEST(ScalarQuadEdgeMeshToListAdaptorTest1
   ${CXX_TEST_PATH}/itkScalarQuadEdgeMeshToListAdaptorTest1
@@ -364,8 +394,6 @@ ADD_TEST(ScalarQuadEdgeMeshToListAdaptorTest1
   0.0  # Min
   10.0 # Max
   )  
-    
-SET_TESTS_PROPERTIES( WarpQuadEdgeMeshFilterTest PROPERTIES DEPENDS ComputeDeformationFieldMeshTest1)
 
 IF( FREESURFER_DIR )
 
@@ -434,7 +462,13 @@ ADD_TEST(itkNormalizeMeshTest1
 
 IF(USE_VTK)
   IF(GENERATE_PAPER_SCREENSHOTS)
-
+  
+    ADD_TEST(RenderTest1
+      ${CXX_TEST_PATH}/MeshRender
+      ${TEMP}/meshWithoutScalarsGaussianIC4.vtk
+      ${TEMP}/meshWithoutScalarsGaussianIC4.png
+      )  
+       
     ADD_TEST(ScalarRenderTest1
       ${CXX_TEST_PATH}/ScalarMeshRender
       ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk
@@ -452,15 +486,45 @@ IF(USE_VTK)
       ${TEMP}/registeredMeshWithScalarsGaussianIC4.vtk
       ${TEMP}/registeredMeshWithScalarsGaussianIC4.png
       )
-
-
+      
+    ADD_TEST(ScalarRenderTest4
+      ${CXX_TEST_PATH}/ScalarMeshRender
+      ${TEMP}/meshWithoutScalarsIC4.vtk
+      ${TEMP}/meshWithoutScalarsIC4.png
+      )
+      
+    ADD_TEST(ScalarRenderTest5
+      ${CXX_TEST_PATH}/ScalarMeshRender
+      ${TEMP}/movingMesh01.vtk
+      ${TEMP}/movingMesh01.png
+      )
+      
+    ADD_TEST(ScalarRenderTest6
+      ${CXX_TEST_PATH}/ScalarMeshRender
+      ${TEMP}/newMesh01.vtk
+      ${TEMP}/newMesh01.png
+      )
+      
+    ADD_TEST(ScalarRenderTest7
+      ${CXX_TEST_PATH}/ScalarMeshRender
+      ${TEMP}/warpedFixedMeshWithScalarsGaussianIC4.vtk
+      ${TEMP}/warpedFixedMeshWithScalarsGaussianIC4.png
+      )   
+               
     ADD_TEST(VectorRenderTest1
       ${CXX_TEST_PATH}/VectorMeshRender
-      ${TEMP}/meshWithVectorsIC4g.vtk
+      ${TEMP}/meshWithVectorsIC4.vtk
       1   # vector scale factor
-      ${TEMP}/meshWithVectorsIC4g.png
+      ${TEMP}/meshWithVectorsIC4.png
       )
-
+      
+    ADD_TEST(VectorRenderTest2
+      ${CXX_TEST_PATH}/VectorMeshRender
+      ${TEMP}/fixedMeshWithDeformationFieldIC4.vtk
+      1   # vector scale factor
+      ${TEMP}/fixedMeshWithDeformationFieldIC4.png
+      )
+      
   ENDIF(GENERATE_PAPER_SCREENSHOTS)
 ENDIF(USE_VTK)
 
