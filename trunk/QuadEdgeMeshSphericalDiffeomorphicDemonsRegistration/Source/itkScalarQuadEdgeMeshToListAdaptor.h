@@ -9,8 +9,8 @@
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -29,7 +29,7 @@ namespace itk
  * \class ScalarQuadEdgeMeshToListAdaptor
  * \brief The adaptor takes one input mesh and generate
  *  a ListSample of scalar values
- * 
+ *
  *
  *
  * \ingroup MeshFilters
@@ -58,9 +58,9 @@ public:
   typedef typename InputMeshType::PointDataContainer                         InputPointDataContainer;
   typedef typename InputMeshType::PointDataContainerPointer                  InputPointDataContainerPointer;
 
-  typedef typename InputMeshType::PixelType                                  MeasurementType;                                                    
-  typedef typename itk::FixedArray< MeasurementType , 1 >                    MeasurementVectorType ;
-  typedef typename itk::Statistics::ListSample< MeasurementVectorType >      ListSampleType ;
+  typedef typename InputMeshType::PixelType                                  MeasurementType;
+  typedef typename itk::FixedArray< MeasurementType , 1 >                    MeasurementVectorType;
+  typedef typename itk::Statistics::ListSample< MeasurementVectorType >      ListSampleType;
 
   typedef typename ListSampleType::Pointer                                   ListSamplePointerType;
 
@@ -71,7 +71,7 @@ public:
   /** Get the calculated ListSample. */
   itkGetObjectMacro( Sample, ListSampleType );
 
-  void Compute(); 
+  void Compute();
 
 protected:
   ScalarQuadEdgeMeshToListAdaptor();
