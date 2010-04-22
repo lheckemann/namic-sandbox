@@ -266,13 +266,13 @@ and using the mesh type we proceed to instantiate the type of the
 multi-resolution filter and to create it by calling the \code{New()} operator.
 
 \begin{center}
-\lstinputlisting[linerange={66-69}]{../../Examples/MultiResolutionRegistration2.cxx}
+\lstinputlisting[linerange={66-70}]{../../Examples/MultiResolutionRegistration2.cxx}
 \end{center}
 
 one of the first parameters to define in the filter is the number of resolution levels.
 
 \begin{center}
-\lstinputlisting[linerange={76-76}]{../../Examples/MultiResolutionRegistration2.cxx}
+\lstinputlisting[linerange={77-77}]{../../Examples/MultiResolutionRegistration2.cxx}
 \end{center}
 
 Then, a number of parameters must be define for the registration filter at every 
@@ -285,6 +285,149 @@ resolution level. In particular
 \item Epsilon Demons Parameter
 \item $\sigma_x$ Demons Parameter
 \end{itemize}
+
+For a description of the algorithmic role of each one of these parameters,
+please refer to ~\cite{Yeo2009}.
+
+Each of these parameters should be set for each resolution level. This is done
+by setting arrays of values, where the array size is equal to the number of
+resolution levels. For the case of this example, the number of resolution
+levels is equal to four.
+
+For example the smoothing iterations are set with
+
+\begin{center}
+\lstinputlisting[linerange={79-88}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+In this particular case, we choose to set the same number of smoothing
+iteration for every resolution level, following the recipe from
+~\cite{Yeo2009}, but we could have used a different distribution of values.
+
+A similar process is used for setting the number of Demons iterations
+
+\begin{center}
+\lstinputlisting[linerange={91-98}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+The number of iteration for the rigid registrations
+
+\begin{center}
+\lstinputlisting[linerange={101-108}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+In the particular case of the Epsilon parameters, we compute the value
+following the advice in ~\cite{Yeo2009} based on the length of the shortest
+edge in the mesh. Then the value gets scaled as we move from one resolution
+level to the next.
+
+\begin{center}
+\lstinputlisting[linerange={115-122}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+Also following the advice of ~\cite{Yeo2009} we set the values of $\sigma_x$
+relative to the values of Epsilon.
+
+\begin{center}
+\lstinputlisting[linerange={125-132}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+Now we proceed to connect the input meshes at every resolution level. Note that
+this is done here in a way different from what most image multi-resolution
+methods do. In a typical multi-resolution registration, the highest resolution
+image is progressively smoothed and subsampled in order to generate the image
+to be used for each one of the resolution levels. In the case of this mesh
+processing different scalar fields are used at every resolution level.
+Therefore, the meshes to use at every level have been precomputed by sampling
+high resolution meshes with regular meshes IC4, IC5, IC6 and IC7. Those
+resulting meshes are the ones read at this point in the example, and are
+connected to the multi-resolution filter.
+
+\begin{center}
+\lstinputlisting[linerange={135-146}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+\begin{center}
+\lstinputlisting[linerange={151-156}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+The spherical Demons filter expects the meshes to have a spherical geometry
+(not just a spherical topology). In principle, the filter could verify this
+assumption and even compute the mesh center and radius by estimation. However,
+for expediency, we require the user to provide the value of the mesh radius.
+It is also expected that all the meshes (fixed and moving) at all the
+resolution levels will have the same radius. 
+
+\begin{center}
+\lstinputlisting[linerange={227-233}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+We then invoke \code{Update()} in the multi-resolution filter. This will trigger
+the sequence of registrations at every resolution level.
+
+\begin{center}
+\lstinputlisting[linerange={236-244}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+One of the outputs of the multi-resolution filter is the set of deformed points
+from the Fixed mesh that map to correspondent points in the Moving mesh. We are
+now going to use that output in order to deform a high resolution mesh from the
+Fixed space into the Moving space. The deformation will be applied by the
+filter \code{DeformQuadEdgeMeshFilter}.
+
+\begin{center}
+\lstinputlisting[linerange={247-254}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+We connect to this filter the input mesh to be deformed and the reference mesh
+that provides a topology consistent with the collection of deformed points that
+are produced byt the multi-resolution filter.
+
+\begin{center}
+\lstinputlisting[linerange={252-253}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+We then connect to the deformation filter the collection of deformed points that
+are produced by the multi-resolution filter.
+
+\begin{center}
+\lstinputlisting[linerange={255-255}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+and set also the center and radius parameters of the spherical meshes.
+
+\begin{center}
+\lstinputlisting[linerange={257-258}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+
+In order to save the final deformed mesh we instantiate a mesh writer and
+connect to it the output of the deformation filter.
+
+\begin{center}
+\lstinputlisting[linerange={261-265}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+and finally trigger the execution of the writer, that in turn, will execute the
+deformation filter.
+
+\begin{center}
+\lstinputlisting[linerange={267-276}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+
+\section{How to Apply the Filter to the Data Collection}
+
+\subsection{Getting the Collection of Surfaces}
+
+A set of mesh datasets are available at
+
+\url{http://public.kitware.com/pub/itk/Data/BrainSurfaces/}
+
+This data was kindly provided by 
+
+
+This data will soon be made available at the MIDAS server.
 
 
 
