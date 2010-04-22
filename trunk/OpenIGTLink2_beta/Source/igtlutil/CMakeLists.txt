@@ -19,6 +19,7 @@ SET(igtlutil_HEADS
   igtl_types.h
   igtl_position.h
   igtl_point.h
+  igtl_colortable.h
   )
 
 SET(igtlutil_SOURCES
@@ -29,6 +30,7 @@ SET(igtlutil_SOURCES
   igtl_util.c
   igtl_position.c
   igtl_point.c
+  igtl_colortable.c
   )       
 
 ADD_LIBRARY(igtlutil
