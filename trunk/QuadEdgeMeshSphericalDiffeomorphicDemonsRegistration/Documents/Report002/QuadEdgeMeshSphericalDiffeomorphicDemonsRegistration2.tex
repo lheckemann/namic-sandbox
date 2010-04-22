@@ -24,16 +24,16 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 ]{hyperref}
 
 
-\title{Multi-Resolution Spherical Demons Registration\\ of Spherical Surfaces}
+\title{Multi-Resolution Demons Registration\\ of Spherical Surfaces}
 
 
 % 
 % NOTE: This is the last number of the "handle" URL that 
 % The Insight Journal assigns to your paper as part of the
-% submission process. Please replace the number "1338" with
+% submission process. Please replace the number "XXXX" with
 % the actual handle number that you get assigned.
 %
-\newcommand{\IJhandlerIDnumber}{3117}
+\newcommand{\IJhandlerIDnumber}{XXXX}
 
 \lstset{frame = tb,
        framerule = 0.25pt,
@@ -59,8 +59,10 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \release{1.00}
 
-\author{Luis Ibanez$^{1}$, Wen Li$^{2}$, Vincent Magnotta$^{2}$}
-\authoraddress{$^{1}$Kitware Inc., Clifton Park, NY\\$^{2}$University of Iowa, Iowa City}
+\author{Luis Ibanez$^{1}$, Wen Li$^{2}$, Vincent Magnotta$^{2}$, B. T. Thomas Yeo$^{3}$, Polina Goland$^{3}$}
+\authoraddress{$^{1}$Kitware Inc., Clifton Park, NY\\
+               $^{2}$University of Iowa, Iowa City\\
+               $^{3}$CSAIL MIT, Boston, MA}
 
 \begin{document}
 
@@ -97,7 +99,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \begin{abstract}
 \noindent
-WARNING( September 2009 ): Please note that this ITK implementation of the algorithm is
+WARNING( April 2010 ): Please note that this ITK implementation of the algorithm is
 currently being reviewed and tested in the NAMIC Sandbox\\
 \url{http://svn.na-mic.org/NAMICSandBox/trunk/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration/}.\\
 
@@ -108,12 +110,13 @@ algorithm, please use the MATLAB code available at\\
 
 
 This document describes a contribution to the Insight Toolkit intended to
-support the process of performing deformable registration on two Meshes. The
-method implemented here is restricted to Meshes with a Spherical geometry and
-topology, and with scalar values associated to their nodes. The code described
-here is an implementation of the paper ``\emph{Spherical Demons: Fast
-Diffeomorphic Landmark-Free Surface Registration}'' by Yeo, Sabuncu,
-Vercauteren, Ayache, Fischl and Golland~\cite{Yeo2008,Yeo2009}.
+support the process of performing Multi-Resolution deformable registration on
+two Meshes. The method implemented here is restricted to Meshes with a
+Spherical geometry and topology, and with scalar values associated to their
+nodes. The code described here is an implementation of the paper
+``\emph{Spherical Demons: Fast Diffeomorphic Landmark-Free Surface
+Registration}'' by Yeo, Sabuncu, Vercauteren, Ayache, Fischl and
+Golland~\cite{Yeo2008,Yeo2009}.
 
 This paper is accompanied with the source code, input data, parameters and
 output data that we used for validating the algorithm described in this paper.
@@ -125,28 +128,15 @@ facilitate \textbf{reproducibility} of the reported results.
 
 \section{Introduction}
 
-The method described in this paper is the Mesh equivalent of the Demons
-Deformable registration method implemented for images that is currently
-available in the Insight Toolkit.
+This paper builds upon the registration method described
+in~\cite{MeshDemonsRegistrationIJ2009}, and provide its implementation in a
+multi-resolution framework.
 
-For example
-
-\begin{itemize}
-\item \doxygen{DemonsRegistrationFilter}
-\item \doxygen{FastSymmetricForcesDemonsRegistrationFunction}
-\item \doxygen{DiffeomorphicDemonsRegistrationFilter}
-\end{itemize}
-
-The method implemented here is restricted to the case of two Meshes with
-spherical geometry and topology, with scalar values associated to their nodes.
-The registration operates on the scalar values, not on the geometry of the mesh
-surface.
-
-This contribution is the fourth on a series of papers related to improving
+This contribution is the fifth on a series of papers related to improving
 support for mesh registration in the Insight Toolkit. Previous papers have
-covered the topics of rigid registration on Meshes and iterative smoothing of
-meshes with scalar and vector field
-values~\cite{MeshSmoothingIJ2009,MeshRigidRegistrationIJ2009} 
+covered the topics of demons registration, rigid registration on Meshes and
+iterative smoothing of meshes with scalar and vector field values
+~\cite{MeshSmoothingIJ2009,MeshRigidRegistrationIJ2009,MeshDemonsRegistrationIJ2009} 
 
 \section{How to Build}
 
@@ -157,6 +147,7 @@ This contribution includes
 \item Tests for the filter
 \item Examples on how to use the filter
 \item All the LaTeX source files of this paper
+\item Source code of the Rigid Registration of Spherical Surfaces
 \end{itemize}
 
 \subsection{Building Executables and Tests}
@@ -175,6 +166,14 @@ In a Linux environment it should be enough to do the following:
 Where SOURCE\_DIRECTORY is the directory where you have expanded the source
 code that accompanies this paper.
 
+You will be required to provide the directory where you built or installed ITK,
+and optionally, the directory where you built or installed VTK, into the variables
+
+\begin{itemize}
+\item \code{ITK\_DIR}
+\item \code{VTK\_DIR}
+\end{itemize}
+
 This will configure the project, build the executables, and run the tests and
 examples. 
 
@@ -185,27 +184,38 @@ In order to build this report you can do
 
 \begin{itemize}
 \item \code{ccmake SOURCE\_DIRECTORY}
-\item Turn ON the CMake variable
+\item Turn ON the CMake variables
 \begin{itemize}
 \item \code{BUILD\_REPORTS}
+\item \code{GENERATE\_PAPER\_SCREENSHOTS}
 \end{itemize}
 \item \code{make}
 \end{itemize}
 
 This should produce a PDF file in the binary directory, under the subdirectory
-\code{Documents/Report001}.
+\code{Documents/Report002}.
 
 \section{How to Use the Filter}
 
-This section illustrates the minimum operations required for running these two
-filters. The code shown here is available in the Examples directory of the code
-that accompanies this paper. You can download the entire set of files from the
-Insight Journal web site.
+This paper focuses on describing a multi-resolution registration filter that at
+every resolution level uses the Spherical Demons filter described
+in~\cite{MeshDemonsRegistrationIJ2009}.
 
-It is assumed that you would have already performed Rigid registration between
-the two meshes before you attempt to perform Deformable registration using the
-filter described below.
+This section illustrates the minimum operations required for running the
+multi-resolution filter.  The code shown here is available in the Examples
+directory of the code that accompanies this paper. You can download the entire
+set of files from the Insight Journal web site.
 
+This example performs a registration in four resolutions levels. At every level
+the two spherical meshes are first registered using a rigid transformation.
+Then, from that rigid transformation an equivalent deformation field is
+generated and used as the initial deformation field for the spherical demons
+registration of the meshes at that same resolution level.
+
+When moving from one resolution level to the next, the deformation field
+resulting from the spherical demons registration is supersampled in order to
+match the mesh resolution of the following level and then used to deform
+the fixed mesh at that level.
 
 \subsection{Multi-Resolution Registration Source Code Example}
 
@@ -216,14 +226,67 @@ directory under the filename
 \item MultiResolutionRegistration2
 \end{itemize}
 
-
 In order to use this filter we should start by including headers for the Demons
 registration filter, the reader and writer types and the \doxygen{QuadEdgeMesh}
 itself.
 
 \begin{center}
-\lstinputlisting[linerange={21-24}]{../../Examples/MultiResolutionRegistration2.cxx}
+\lstinputlisting[linerange={26-27}]{../../Examples/MultiResolutionRegistration2.cxx}
 \end{center}
+
+Then we include the header of the multi-resolution filter
+
+\begin{center}
+\lstinputlisting[linerange={29-29}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+and the header of the filter that will deform the final resolution mesh
+
+\begin{center}
+\lstinputlisting[linerange={30-30}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+optionally, the following header can be included in order to make available a
+class that will visually monitor the registration process by generating surface
+renderings of the deformed mesh at every iteration of the process.
+
+\begin{center}
+\lstinputlisting[linerange={33-33}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+
+We then declare the type of the scalar values associated with the mesh, the
+dimension of the mesh and the type of the mesh itself.
+
+\begin{center}
+\lstinputlisting[linerange={61-64}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+and using the mesh type we proceed to instantiate the type of the
+multi-resolution filter and to create it by calling the \code{New()} operator.
+
+\begin{center}
+\lstinputlisting[linerange={66-69}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+one of the first parameters to define in the filter is the number of resolution levels.
+
+\begin{center}
+\lstinputlisting[linerange={76-76}]{../../Examples/MultiResolutionRegistration2.cxx}
+\end{center}
+
+Then, a number of parameters must be define for the registration filter at every 
+resolution level. In particular
+
+\begin{itemize}
+\item Number of Smoothing Iterations
+\item Number of Demons Filter Iterations
+\item Number of Rigid Registration Iterations
+\item Epsilon Demons Parameter
+\item $\sigma_x$ Demons Parameter
+\end{itemize}
+
+
 
 
 \clearpage
