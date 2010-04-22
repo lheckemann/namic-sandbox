@@ -18,11 +18,10 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkQuadEdgeMeshVTKPolyDataReader.h"
-#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
-
-#include "itkQuadEdgeMesh.h"
 #include "itkAssignScalarValuesQuadEdgeMeshFilter.h"
+#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
+#include "itkQuadEdgeMeshVTKPolyDataReader.h"
+#include "itkQuadEdgeMesh.h"
 
 int main( int argc, char * argv [] )
 {
