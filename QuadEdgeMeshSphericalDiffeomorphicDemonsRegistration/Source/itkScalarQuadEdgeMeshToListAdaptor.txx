@@ -9,8 +9,8 @@
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -31,12 +31,12 @@ ScalarQuadEdgeMeshToListAdaptor< TInputMesh >
   this->SetNumberOfRequiredInputs( 1 );
   this->SetNumberOfRequiredOutputs( 0 );
   this->SetNumberOfOutputs( 0 );
-  
+
   typename ListSampleType::Pointer sample = ListSampleType::New();
-    
-  m_Sample = static_cast<ListSampleType*>( sample.GetPointer() ); 
-  
-  m_Sample->SetMeasurementVectorSize( 1 );  
+
+  m_Sample = static_cast<ListSampleType*>( sample.GetPointer() );
+
+  m_Sample->SetMeasurementVectorSize( 1 );
 }
 
 
@@ -62,13 +62,13 @@ ScalarQuadEdgeMeshToListAdaptor< TInputMesh >
 
 
 template< class TInputMesh >
-const typename 
+const typename
 ScalarQuadEdgeMeshToListAdaptor< TInputMesh >::InputMeshType *
 ScalarQuadEdgeMeshToListAdaptor< TInputMesh >
 ::GetMesh() const
 {
   Self * surrogate = const_cast< Self * >( this );
-  const InputMeshType * inputMesh = 
+  const InputMeshType * inputMesh =
     static_cast<const InputMeshType *>( surrogate->ProcessObject::GetInput(0) );
   return inputMesh;
 }
@@ -80,29 +80,29 @@ ScalarQuadEdgeMeshToListAdaptor< TInputMesh >
 ::Compute()
 {
 
-const InputMeshType * inputMesh = this->GetMesh();
+  const InputMeshType * inputMesh = this->GetMesh();
 
-const InputPointDataContainer * pointDataContainer = inputMesh->GetPointData();
+  const InputPointDataContainer * pointDataContainer = inputMesh->GetPointData();
 
-const unsigned int numberOfPoints = inputMesh->GetNumberOfPoints();
-  
-ProgressReporter progress(this, 0, numberOfPoints);
+  const unsigned int numberOfPoints = inputMesh->GetNumberOfPoints();
 
-typedef typename InputPointDataContainer::ConstIterator      PointDataConstIterator;
+  ProgressReporter progress(this, 0, numberOfPoints);
 
-PointDataConstIterator pointDataItr = pointDataContainer->Begin();
-PointDataConstIterator pointDataEnd = pointDataContainer->End();
+  typedef typename InputPointDataContainer::ConstIterator      PointDataConstIterator;
 
-MeasurementVectorType mv ;
+  PointDataConstIterator pointDataItr = pointDataContainer->Begin();
+  PointDataConstIterator pointDataEnd = pointDataContainer->End();
 
-while( pointDataItr != pointDataEnd )
-  {
-  mv[0] = ( MeasurementType ) pointDataItr.Value() ;
-  m_Sample->PushBack(mv) ;
-  
-  ++pointDataItr;
-  } 
-  
+  MeasurementVectorType mv;
+
+  while( pointDataItr != pointDataEnd )
+    {
+    mv[0] = ( MeasurementType ) pointDataItr.Value();
+    m_Sample->PushBack(mv);
+
+    ++pointDataItr;
+    }
+
 }
 
 } // end namespace itk
