@@ -424,13 +424,60 @@ A set of mesh datasets are available at
 
 \url{http://public.kitware.com/pub/itk/Data/BrainSurfaces/}
 
-This data was kindly provided by 
-
+This data is a small subset of subjects originating from Washington University,
+collected by Randy Buckner and colleagues. Only the surfaces and labels are
+provided to preserve the anonymity of the original subjects.
 
 This data will soon be made available at the MIDAS server.
 
+You should download and expand the two .zip files into independent directories.
+Then reconfigure the build of this project with CMake and set the following
+variables to the directory names indicated below
+
+\begin{itemize}
+\item PATIENT\_DATA\_ROOT to AnonBuckner39
+\item PATIENT\_RESULTS\_DATA\_ROOT to Output
+\end{itemize}
+
+This collection contains 39 datasets, that have been arbitrarily separated here
+into a Training and a Testing collection. You can enable the execution of the
+registration on each one of the two groups by setting the following CMake
+variables.
+
+\begin{itemize}
+\item USE\_TRAINING\_SET
+\item USE\_TESTING\_SET
+\end{itemize}
+
+In the tests performed here we used only the Training set since we were 
+focused on exploring the parameter space of the demons filter at multiple
+resolution.
+
+When the training set is enabled, you could produce a list of tests by
+running
+
+\begin{itemize}
+\item \code{ctest -N}
+\end{itemize}
+
+This should list about 221 tests.
+
+The test can be run by any of the following commands
 
 
+\begin{itemize}
+\item \code{ctest -V}
+\item \code{make Experimental}
+\item \code{ctest -D Experimental}
+\end{itemize}
+
+Note that you only need to chose one of these commands. The first one will run
+the tests locally. The second ones will build the project, run the tests and
+submit the results to the ITK Dashboard. The third test will do the same as the
+second command.
+
+This will require at least 4GB of RAM and can take about two hours of
+computation on a 2.8 GHz processor.
 
 \clearpage
 
