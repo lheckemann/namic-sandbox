@@ -5,7 +5,7 @@ INCLUDE_DIRECTORIES(${MultiImageRegistration_SOURCE_DIR}/Source
                  ${MultiImageRegistration_SOURCE_DIR}/Source/Common)
 #link_directories(${MultiImageRegistration_BINARY_DIR}/bin)
 ADD_EXECUTABLE(LibTest lib_test.cxx)
-TARGET_LINK_LIBRARIES(LibTest MultiImageRegistrationLIB)
+TARGET_LINK_LIBRARIES(LibTest MultiImageRegistrationLib)
 
 GENERATECLP(TransformImage.cxx TransformImage.xml)
 ADD_EXECUTABLE(TransformImage TransformImage.cxx )

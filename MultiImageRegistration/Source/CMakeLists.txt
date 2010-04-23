@@ -17,11 +17,11 @@ GENERATECLP( Groupwise_SRCS  GroupwiseRegistrationExample.xml)
 ADD_EXECUTABLE(GroupwiseRegistration ${Groupwise_SRCS})
 TARGET_LINK_LIBRARIES(GroupwiseRegistration ITKCommon ITKNumerics ITKIO ITKBasicFilters ITKStatistics )
 
-ADD_LIBRARY(MultiImageRegistrationLIB itkMultiImageRegistrationFilter.cxx
+ADD_LIBRARY(MultiImageRegistrationLib itkMultiImageRegistrationFilter.cxx
 GradientDescentLineSearchOptimizer.cxx)
-TARGET_LINK_LIBRARIES(MultiImageRegistrationLIB ITKAlgorithms ITKIO)
+TARGET_LINK_LIBRARIES(MultiImageRegistrationLib ITKAlgorithms ITKIO)
 
-INSTALL(TARGETS MultiImageRegistrationLIB GroupwiseRegistration
+INSTALL(TARGETS MultiImageRegistrationLib GroupwiseRegistration
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
