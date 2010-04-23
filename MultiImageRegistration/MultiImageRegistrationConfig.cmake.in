@@ -1,0 +1,5 @@
+# The MultiImageRegistration source tree.
+set(MultiImageRegistration_INCLUDE_DIRS "@MultiImageRegistration_INCLUDE_DIRS_CONFIG@")
+set(MultiImageRegistration_LIBRARY_DIRS "@MultiImageRegistration_LIBRARY_DIRS_CONFIG@")
+set(MultiImageRegistration_USE_FILE     "@MultiImageRegistration_USE_FILE_CONFIG@")
+set(ITK_DIR "@ITK_DIR_CONFIG@")
