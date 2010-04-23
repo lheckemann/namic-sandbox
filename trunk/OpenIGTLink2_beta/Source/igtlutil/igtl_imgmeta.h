@@ -46,8 +46,8 @@ extern "C" {
 /*
  * Image meta data OpenIGTLinik protocol
  *
- * Image meta data is used for a client to obtain a list of images available
- * in a server. A IMAGEMETA message may contain information of multiple messages.
+ * IMAGEMETA is a message type to transfer a list of images available in a server.
+ * A IMGMETA message may contain information of multiple images.
  * The client determins the number of image meta by the size of the body included
  * in the message header (see igtl_imgmeta_getdata_n() macro).
  */
