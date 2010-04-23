@@ -1,0 +1,10 @@
+# MultiImageRegistration could be installed anywhere, so set all paths based on where 
+# this file was found (which should be the lib/MultiImageRegistration directory of the 
+# installation)
+get_filename_component(MultiImageRegistration_CONFIG_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+set(MultiImageRegistration_INCLUDE_DIRS "${MultiImageRegistration_CONFIG_DIR}/../../include/MultiImageRegistration")
+set(MultiImageRegistration_LIBRARY_DIRS "${MultiImageRegistration_CONFIG_DIR}")
+set(MultiImageRegistration_USE_FILE "${MultiImageRegistration_CONFIG_DIR}/UseMultiImageRegistration.cmake")
+set(ITK_DIR "@ITK_DIR@")
+
