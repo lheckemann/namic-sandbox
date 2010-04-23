@@ -9,7 +9,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/UseMultiImageRegistration.cmake.in
   ${MultiImageRegistration_USE_FILE_CONFIG}
   @ONLY IMMEDIATE)
 
-set(MultiImageRegistration_INCLUDE_DIRS_CONFIG ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+set(MultiImageRegistration_INCLUDE_DIRS_CONFIG ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Source ${CMAKE_CURRENT_SOURCE_DIR}/Source/Common )
 set(MultiImageRegistration_LIBRARY_DIRS_CONFIG ${CMAKE_CURRENT_BINARY_DIR})
 set(ITK_DIR_CONFIG ${ITK_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/MultiImageRegistrationConfig.cmake.in
