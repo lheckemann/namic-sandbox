@@ -29,6 +29,16 @@ ENDIF()
 
 INCLUDE(CTest)
 
+#-----------------------------------------------------------------------------
+# Installation and Packaging
+SET(CPACK_PACKAGE_NAME "QuadEdgeMeshFieldSmoothingFilters")
+SET(CPACK_PACKAGE_VENDOR "KITWARE Inc.")
+SET(CPACK_PACKAGE_VERSION_MAJOR "1")
+SET(CPACK_PACKAGE_VERSION_MINOR "2")
+SET(CPACK_PACKAGE_VERSION_PATCH "0")
+INCLUDE(CPack)
+
+
 INCLUDE_DIRECTORIES(
   ${PROJECT_SOURCE_DIR}/Source
   ${PROJECT_SOURCE_DIR}/../QuadEdgeMeshRigidRegistration/Source
