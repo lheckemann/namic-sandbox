@@ -43,6 +43,7 @@ SET(TEMP ${CMAKE_BINARY_DIR}/Testing/Temporary)
 INCLUDE(${PROJECT_SOURCE_DIR}/Utilities/KWStyle/KWStyle.cmake)
 
 INCLUDE(CTest)
+INCLUDE(CPack)
 
 SET(CPACK_PACKAGE_NAME "QuadEdgeMeshRigidRegistration")
 SET(CPACK_PACKAGE_VENDOR "KITWARE Inc.")
