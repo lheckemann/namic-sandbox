@@ -66,7 +66,7 @@ public:
       // Set the number of spatial samples according to the current level
       metric->SetNumberOfSpatialSamples(
                         (unsigned int) (metric->GetNumberOfSpatialSamples() /
-                        pow( pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease,
+                        vcl_pow( vcl_pow(2.0F, Dimension )/m_MultiScaleSamplePercentageIncrease,
                              (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
 
       
@@ -76,10 +76,10 @@ public:
         GradientOptimizerPointer gradientPointer = dynamic_cast< GradientOptimizerPointer >(
             registration->GetOptimizer() );
         gradientPointer->SetNumberOfIterations(
-             (int)(gradientPointer->GetNumberOfIterations()*pow(m_MultiScaleMaximumIterationIncrease,
+             (int)(gradientPointer->GetNumberOfIterations()*vcl_pow(m_MultiScaleMaximumIterationIncrease,
                    (double) (registration->GetNumberOfLevels() - 1.0) ) ));
         gradientPointer->SetLearningRate(
-            gradientPointer->GetLearningRate()*pow(m_MultiScaleStepLengthIncrease,
+            gradientPointer->GetLearningRate()*vcl_pow(m_MultiScaleStepLengthIncrease,
                 (double) (registration->GetNumberOfLevels() - 1.0) )  );
         //print messages
         std::cout << "message: Optimizer # of Iter. to go : " << gradientPointer->GetNumberOfIterations() << std::endl;
@@ -93,9 +93,9 @@ public:
             dynamic_cast< LineSearchOptimizerPointer >(
             registration->GetOptimizer() );
         lineSearchOptimizerPointer->SetMaximumIteration(
-            (int)(lineSearchOptimizerPointer->GetMaximumIteration()*pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
+            (int)(lineSearchOptimizerPointer->GetMaximumIteration()*vcl_pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
         lineSearchOptimizerPointer->SetStepLength(lineSearchOptimizerPointer->GetStepLength()*
-            pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) );
+            vcl_pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) );
         //print messages
         std::cout << "message: Optimizer # of Iter. to go : " <<
             lineSearchOptimizerPointer->GetMaximumIteration() <<std::endl;
@@ -109,12 +109,12 @@ public:
             dynamic_cast< SPSAOptimizerPointerType >(
             registration->GetOptimizer() );
         SPSAOptimizerPointer->SetMaximumNumberOfIterations(
-            (int)(SPSAOptimizerPointer->GetMaximumNumberOfIterations()*pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
+            (int)(SPSAOptimizerPointer->GetMaximumNumberOfIterations()*vcl_pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
         SPSAOptimizerPointer->Seta(SPSAOptimizerPointer->Geta()*
-            pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) );
+            vcl_pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) );
         SPSAOptimizerPointer->SetA( SPSAOptimizerPointer->GetMaximumNumberOfIterations()/10.0 );
         SPSAOptimizerPointer->Setc( SPSAOptimizerPointer->Getc()*
-                                    pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ));
+                                    vcl_pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ));
         //print messages
         std::cout << "message: Optimizer # of Iter. to go : " <<
             SPSAOptimizerPointer->GetMaximumNumberOfIterations() <<std::endl;
@@ -131,7 +131,7 @@ public:
       // Set the number of spatial samples according to the current level
       metric->SetNumberOfSpatialSamples(
             (unsigned int) (metric->GetNumberOfSpatialSamples() *
-                  pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
+                  vcl_pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
 
       // Decrease the learning rate at each increasing multiresolution level
       // Increase the number of steps

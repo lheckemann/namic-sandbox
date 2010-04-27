@@ -123,7 +123,7 @@ public:
       // Set the number of spatial samples according to the current level
       metric->SetNumberOfSpatialSamples(
                         (unsigned int) (metric->GetNumberOfSpatialSamples() /
-                        pow( pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease,
+                        vcl_pow( vcl_pow(2.0F, Dimension )/m_MultiScaleSamplePercentageIncrease,
                              (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
 
       if(!strcmp(optimizer->GetNameOfClass(), "GradientDescentLineSearchOptimizer") )
@@ -132,9 +132,9 @@ public:
             dynamic_cast< LineSearchOptimizerPointer >(
             registration->GetOptimizer() );
         lineSearchOptimizerPointer->SetMaximumIteration(
-            (int)(lineSearchOptimizerPointer->GetMaximumIteration()*pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
+            (int)(lineSearchOptimizerPointer->GetMaximumIteration()*vcl_pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
         lineSearchOptimizerPointer->SetStepLength(lineSearchOptimizerPointer->GetStepLength()*
-            pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) );
+            vcl_pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) );
         //print messages
         std::cout << "message: Optimizer # of Iter. to go : " <<
             lineSearchOptimizerPointer->GetMaximumIteration() <<std::endl;
@@ -147,7 +147,7 @@ public:
       // Set the number of spatial samples according to the current level
       metric->SetNumberOfSpatialSamples(
             (unsigned int) (metric->GetNumberOfSpatialSamples() *
-                  pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
+                  vcl_pow(2.0F, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
 
       // Decrease the learning rate at each increasing multiresolution level
       // Increase the number of steps
