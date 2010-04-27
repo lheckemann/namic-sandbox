@@ -24,7 +24,6 @@
 #include "vcl_vector.h"
 #include "itkImageToImageFilter.h"
 #include "itkConceptChecking.h"
-#include "itkScalarImageToListAdaptor.h"
 
 namespace itk
 {

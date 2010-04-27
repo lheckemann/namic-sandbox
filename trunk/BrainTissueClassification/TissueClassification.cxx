@@ -36,9 +36,6 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkBinaryBallStructuringElement.h"
 
-#include "itkScalarImageToListAdaptor.h"
-#include "itkListSampleToHistogramGenerator.h"
-
 #include "itkFuzzyClassificationImageFilter.h"
 
 #include "TissueClassificationCLP.h"

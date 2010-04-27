@@ -21,6 +21,7 @@
 #define __itkFuzzyClassificationImageFilter_txx
 
 #include "itkFuzzyClassificationImageFilter.h"
+#include "itkScalarImageToHistogramGenerator.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkNumericTraits.h"
@@ -1356,29 +1357,8 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                         int& nBin)
 {
   // vcl_printf ("compute_histogram(): \n");
-
-  typedef itk::Vector< float, 1 > MeasurementVectorType ;
-  typedef itk::Statistics::ListSample < MeasurementVectorType > ListType;
   
-  ListType::Pointer list = ListType::New();
-  list->SetMeasurementVectorSize( 1 );
-  list->Clear();
-
-  itk::ImageRegionIteratorWithIndex<InputImageType> it0( image, image->GetLargestPossibleRegion() );
-  for ( it0.GoToBegin(); !it0.IsAtEnd(); ++it0) 
-  {
-    typename InputImageType::IndexType idx = it0.GetIndex();
-    if ( !this->m_ImageMask )
-    {
-      list->PushBack( static_cast<float>( it0.Get() ) );
-    }
-    else if ( this->m_ImageMask->GetPixel(idx) != 0 )
-    {
-      list->PushBack( static_cast<float>( it0.Get() ) );
-    }
-  }
-  
-  typedef itk::Statistics::ListSampleToHistogramGenerator<ListType, float> GeneratorType;
+  typedef itk::Statistics::ScalarImageToHistogramGenerator<InputImageType> GeneratorType;
   typename GeneratorType::Pointer generator = GeneratorType::New();
   typedef typename GeneratorType::HistogramType  HistogramType;
 
@@ -1387,11 +1367,12 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   if (nBin == 0) {
     typedef itk::ImageRegionIteratorWithIndex< InputImageType > IteratorType;
     IteratorType it (image, image->GetLargestPossibleRegion());
+    it.GoToBegin();
     typename InputImageType::PixelType bMin = it.Get();
     typename InputImageType::PixelType bMax = it.Get();
 
     for ( it.GoToBegin(); !it.IsAtEnd(); ++it) {
-      typename InputImageType::IndexType idx = it0.GetIndex();
+      typename InputImageType::IndexType idx = it.GetIndex();
       if ( this->m_ImageMask )
       {
         if ( this->m_ImageMask->GetPixel(idx) == 0 )
@@ -1411,13 +1392,10 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     nBin = static_cast<int> (bMax-bMin+1);
   }
 
-  typename HistogramType::SizeType histogramSize;
-  histogramSize.Fill (nBin);
-
-  generator->SetListSample (list);
-  generator->SetNumberOfBins (histogramSize);
+  generator->SetInput (image);
+  generator->SetNumberOfBins (static_cast<unsigned int>(nBin));
   generator->SetMarginalScale (10.0);
-  generator->Update();
+  generator->Compute();
 
   typename HistogramType::ConstPointer histogram = generator->GetOutput();
   const unsigned int hs = histogram->Size();
