@@ -1076,10 +1076,10 @@ double
 vtkMRMLPerkStationModuleNode
 ::GetCurrentTablePosition()
 {
-    // Direction positive if table position decrease towards the overlay.
+    // Direction positive if table position increases towards the overlay.
   
   double tableDirection = 1.0;
-  if ( this->TableAtScanner < this->TableAtOverlay )
+  if ( this->TableAtScanner > this->TableAtOverlay )
     {
     tableDirection = - 1.0;
     }
@@ -1105,8 +1105,8 @@ vtkMRMLPerkStationModuleNode
   
     // CurrentSliceOffset is in RAS.
   
-  double directedOffset =  ( this->CurrentSliceOffset * offsetDirection
-                             * tableDirection );
+  double currentSlice = this->CurrentSliceOffset;
+  double directedOffset = currentSlice * offsetDirection * tableDirection;
   
   return patientAtOverlay + directedOffset;
 }

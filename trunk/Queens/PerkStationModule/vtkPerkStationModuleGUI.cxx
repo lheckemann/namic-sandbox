@@ -564,8 +564,8 @@ vtkPerkStationModuleGUI
    {
    this->SliceOffset = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )
      ->GetLogic()->GetSliceOffset();
-   this->SecondaryMonitor->UpdateImageDataOnSliceOffset( this->SliceOffset );
    this->MRMLNode->SetCurrentSliceOffset( this->SliceOffset );
+   this->SecondaryMonitor->UpdateImageDataOnSliceOffset( this->SliceOffset );
    }
    
   
@@ -1051,7 +1051,13 @@ vtkPerkStationModuleGUI
   this->CalibrateStep->UpdateGUI();
   
   this->SecondaryMonitor->SetupImageData();
-  this->SecondaryMonitor->UpdateImageDisplay();
+  // this->SecondaryMonitor->UpdateImageDisplay();
+  
+  
+    // Make the zero (RAS) slice the starting slice.
+  this->MRMLNode->SetCurrentSliceOffset( 0.0 );
+  this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()
+    ->SetSliceOffset( this->MRMLNode->GetCurrentSliceOffset() );
 }
 
 
@@ -2019,13 +2025,13 @@ vtkPerkStationModuleGUI
   
     // Change working volume in validation phase.
   
-  if ( phase == this->Validate )
+  if ( phase == this->Validate && step_from != this->Validate )
     {
     this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID(
       this->GetMRMLNode()->GetValidationVolumeNode()->GetID() );
     this->GetApplicationLogic()->PropagateVolumeSelection();
     }
-  else
+  else if ( step_from == this->Validate )
     {
     this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID(
       this->GetMRMLNode()->GetPlanningVolumeNode()->GetID() );
