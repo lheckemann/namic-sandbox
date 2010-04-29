@@ -17,21 +17,21 @@
 #include <stdio.h>
 #include "igtl_types.h"
 #include "igtl_header.h"
-#include "igtl_imgmeta.h"
+#include "igtl_lbmeta.h"
 #include "igtl_util.h"
 
-/* include test imgmeta data and serialized imgmeta message */
-//#include "igtl_test_data_imgmeta.h"
+/* include test lbmeta data and serialized lbmeta message */
+//#include "igtl_test_data_lbmeta.h"
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
 
-#define TEST_IMGMETA_NUM 3
+#define TEST_LBMETA_NUM 3
 
 #pragma pack(1)
-struct imgmeta_message {
-  igtl_header            header;
-  igtl_imgmeta_element   metalist[TEST_IMGMETA_NUM];
+struct lbmeta_message {
+  igtl_header           header;
+  igtl_lbmeta_element   metalist[TEST_LBMETA_NUM];
 };
 #pragma pack()
 
@@ -39,14 +39,14 @@ struct imgmeta_message {
 int main( int argc, char * argv [] )
 {
 
-  struct imgmeta_message message;
+  struct lbmeta_message message;
   int r;
   int s;
 
   // Test structure size
-  if (sizeof(message) != IGTL_HEADER_SIZE+IGTL_IMGMETA_ELEMENT_SIZE*TEST_IMGMETA_NUM)
+  if (sizeof(message) != IGTL_HEADER_SIZE+IGTL_LBMETA_ELEMENT_SIZE*TEST_LBMETA_NUM)
     {
-    fprintf(stdout, "Invalid size of imgmeta message structure.\n");
+    fprintf(stdout, "Invalid size of lbmeta message structure.\n");
     return EXIT_FAILURE;
     }
 
@@ -56,15 +56,15 @@ int main( int argc, char * argv [] )
   //memcpy((void*)message.image, (void*)test_image, TEST_IMAGE_MESSAGE_SIZE);
   
   /* Swap byte order if necessary */
-  igtl_imgmeta_convert_byte_order(message.metalist, TEST_IMGMETA_NUM);
+  igtl_lbmeta_convert_byte_order(message.metalist, TEST_LBMETA_NUM);
 
   /* Create OpenIGTLink header */
   message.header.version = 1;
-  strncpy( (char*)&(message.header.name), "IMGMETA", 12 );
+  strncpy( (char*)&(message.header.name), "LBMETA", 12 );
   strncpy( (char*)&(message.header.device_name), "DeviceName", 20 );
   message.header.timestamp = 1234567890;
-  message.header.body_size = IGTL_IMGMETA_ELEMENT_SIZE*TEST_IMGMETA_NUM;
-  message.header.crc = igtl_imgmeta_get_crc(message.metalist, TEST_IMGMETA_NUM);
+  message.header.body_size = IGTL_LBMETA_ELEMENT_SIZE*TEST_LBMETA_NUM;
+  message.header.crc = igtl_lbmeta_get_crc(message.metalist, TEST_LBMETA_NUM);
   igtl_header_convert_byte_order( &(message.header) );
 
   /* Dumping data -- for debugging */
@@ -76,8 +76,8 @@ int main( int argc, char * argv [] )
   */
 
   /* Compare the serialized byte array with the gold standard */ 
-  //r = memcmp((const void*)&message, (const void*)test_imgmeta_message,
-  //           (size_t)(IGTL_HEADER_SIZE+IGTL_IMGMETA_HEADER_SIZE));
+  //r = memcmp((const void*)&message, (const void*)test_lbmeta_message,
+  //           (size_t)(IGTL_HEADER_SIZE+IGTL_LBMETA_HEADER_SIZE));
   r = 0;
 
   if (r == 0)
@@ -87,7 +87,7 @@ int main( int argc, char * argv [] )
   else
     {
     /* Print first 256 bytes as HEX values in STDERR for debug */
-    s = IGTL_HEADER_SIZE+IGTL_IMGMETA_ELEMENT_SIZE*TEST_IMGMETA_NUM;
+    s = IGTL_HEADER_SIZE+IGTL_LBMETA_ELEMENT_SIZE*TEST_LBMETA_NUM;
     if (s > 256)
       {
       s = 256;
