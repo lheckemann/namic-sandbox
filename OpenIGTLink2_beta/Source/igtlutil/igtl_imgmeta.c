@@ -20,14 +20,14 @@
 #include "igtl_imgmeta.h"
 #include "igtl_util.h"
 
-void igtl_export igtl_imgmeta_convert_byte_order(igtl_imgmeta_element** metalist, int nitem)
+void igtl_export igtl_imgmeta_convert_byte_order(igtl_imgmeta_element* metalist, int nitem)
 {
   igtl_imgmeta_element* elem;
   int i;
       
   for (i = 0; i < nitem; i ++)
     {
-    elem = metalist[i];
+    elem = &(metalist[i]);
     if (igtl_is_little_endian()) 
       {
       elem->timestamp = BYTE_SWAP_INT64(elem->timestamp);
@@ -39,7 +39,7 @@ void igtl_export igtl_imgmeta_convert_byte_order(igtl_imgmeta_element** metalist
 }
 
 
-igtl_uint64 igtl_export igtl_imgmeta_get_crc(igtl_imgmeta_element** metalist, int nitem)
+igtl_uint64 igtl_export igtl_imgmeta_get_crc(igtl_imgmeta_element* metalist, int nitem)
 {
   igtl_imgmeta_element* elem;
   int i;
@@ -48,7 +48,7 @@ igtl_uint64 igtl_export igtl_imgmeta_get_crc(igtl_imgmeta_element** metalist, in
   crc = crc64(0, 0, 0);
   for (i = 0; i < nitem; i ++)
     {
-    elem = metalist[i];
+    elem = &(metalist[i]);
     crc = crc64((unsigned char*) elem, IGTL_IMGMETA_ELEMENT_SIZE, crc);
     }
 

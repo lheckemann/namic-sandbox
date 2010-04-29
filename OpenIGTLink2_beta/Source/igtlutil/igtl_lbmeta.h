@@ -109,7 +109,7 @@ typedef struct {
  * or vice versa.
  */
 
-void igtl_export igtl_lbmeta_convert_byte_order(igtl_lbmeta_element** metalist, int nitem);
+void igtl_export igtl_lbmeta_convert_byte_order(igtl_lbmeta_element* metalist, int nitem);
 
 
 /*
@@ -119,7 +119,7 @@ void igtl_export igtl_lbmeta_convert_byte_order(igtl_lbmeta_element** metalist, 
  *
  */
 
-igtl_uint64 igtl_export igtl_lbmeta_get_crc(igtl_lbmeta_element** metalist, int nitem);
+igtl_uint64 igtl_export igtl_lbmeta_get_crc(igtl_lbmeta_element* metalist, int nitem);
 
 #ifdef __cplusplus
 }

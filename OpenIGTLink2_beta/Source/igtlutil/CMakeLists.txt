@@ -11,32 +11,32 @@ if(OpenIGTLink_BUILD_GENERATE_PIC)
 endif(OpenIGTLink_BUILD_GENERATE_PIC)
 
 SET(igtlutil_HEADS
+  igtl_colortable.h
   igtl_header.h
   igtl_image.h
   igtl_imgmeta.h
-  igtl_transform.h
-  igtl_util.h
-  igtl_types.h
-  igtl_position.h
-  igtl_point.h
-  igtl_colortable.h
   igtl_lbmeta.h
-  igtl_trajectory.h
+  igtl_point.h
+  igtl_position.h
   igtl_tdata.h
+  igtl_trajectory.h
+  igtl_transform.h
+  igtl_types.h
+  igtl_util.h
   )
 
 SET(igtlutil_SOURCES
+  igtl_colortable.c
   igtl_header.c
   igtl_image.c
   igtl_imgmeta.c
+  igtl_lbmeta.c
+  igtl_point.c
+  igtl_position.c
+  igtl_tdata.c
+  igtl_trajectory.c
   igtl_transform.c
   igtl_util.c
-  igtl_position.c
-  igtl_point.c
-  igtl_colortable.c
-  igtl_lbmeta.c
-  igtl_trajectory.c
-  igtl_tdata.c
   )       
 
 ADD_LIBRARY(igtlutil

@@ -73,7 +73,7 @@ typedef struct {
  * or vice versa.
  */
 
-void igtl_export igtl_trajectory_convert_byte_order(igtl_trajectory_element** trajectorylist, int nelem);
+void igtl_export igtl_trajectory_convert_byte_order(igtl_trajectory_element* trajectorylist, int nelem);
 
 
 /*
@@ -83,7 +83,7 @@ void igtl_export igtl_trajectory_convert_byte_order(igtl_trajectory_element** tr
  *
  */
 
-igtl_uint64 igtl_export igtl_trajectory_get_crc(igtl_trajectory_element** trajectorylist, int nelem);
+igtl_uint64 igtl_export igtl_trajectory_get_crc(igtl_trajectory_element* trajectorylist, int nelem);
 
 #ifdef __cplusplus
 }

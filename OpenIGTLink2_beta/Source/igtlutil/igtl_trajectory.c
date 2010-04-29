@@ -20,7 +20,7 @@
 #include "igtl_trajectory.h"
 #include "igtl_util.h"
 
-void igtl_export igtl_trajectory_convert_byte_order(igtl_trajectory_element** trajectorylist, int nitem)
+void igtl_export igtl_trajectory_convert_byte_order(igtl_trajectory_element* trajectorylist, int nitem)
 {
   igtl_trajectory_element* elem;
   int i;
@@ -29,7 +29,7 @@ void igtl_export igtl_trajectory_convert_byte_order(igtl_trajectory_element** tr
       
   for (i = 0; i < nitem; i ++)
     {
-    elem = trajectorylist[i];
+    elem = &(trajectorylist[i]);
     if (igtl_is_little_endian()) 
       {
       for (j = 0; j < 3; j ++)
@@ -46,7 +46,7 @@ void igtl_export igtl_trajectory_convert_byte_order(igtl_trajectory_element** tr
 }
 
 
-igtl_uint64 igtl_export igtl_trajectory_get_crc(igtl_trajectory_element** trajectorylist, int nitem)
+igtl_uint64 igtl_export igtl_trajectory_get_crc(igtl_trajectory_element* trajectorylist, int nitem)
 {
   igtl_trajectory_element* elem;
   int i;
@@ -55,7 +55,7 @@ igtl_uint64 igtl_export igtl_trajectory_get_crc(igtl_trajectory_element** trajec
   crc = crc64(0, 0, 0);
   for (i = 0; i < nitem; i ++)
     {
-    elem = trajectorylist[i];
+    elem = &(trajectorylist[i]);
     crc = crc64((unsigned char*) elem, IGTL_TRAJECTORY_ELEMENT_SIZE, crc);
     }
 
