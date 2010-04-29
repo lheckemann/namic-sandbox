@@ -21,7 +21,7 @@
 #include "igtl_util.h"
 #include "igtl_types.h"
 
-#define  IGTL_TRAJECTORY_ELEMENT_SIZE           149
+#define  IGTL_TRAJECTORY_ELEMENT_SIZE           150
 
 #define IGTL_TRAJECTORY_TYPE_ENTRY_ONLY          1
 #define IGTL_TRAJECTORY_TYPE_TARGET_ONLY         2
@@ -41,6 +41,7 @@ typedef struct {
   igtl_int8    name[64];          /* Name or description of the trajectory */
   igtl_int8    group_name[32];    /* Can be "Trajectory",  ... */
   igtl_int8    type;              /* Trajectory type (see IGTL_TRAJECTORY_TYPE_* macros) */
+  igtl_int8    reserved;
   igtl_int8    rgba[4];           /* Color in R/G/B/A */
   igtl_float32 entry_pos[3];      /* Coordinate of the entry point */
   igtl_float32 target_pos[3];     /* Coordinate of the target point */

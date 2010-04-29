@@ -21,7 +21,7 @@
 #include "igtl_util.h"
 #include "igtl_types.h"
 
-#define IGTL_LBMETA_ELEMENT_SIZE          259
+#define IGTL_LBMETA_ELEMENT_SIZE          260
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,6 +78,7 @@ typedef struct {
   igtl_uint8     name[64];         /* name / description */
   igtl_uint8     image_name[20];   /* device name to query the IMAGE */
   igtl_uint8     label;            /* label */
+  igtl_uint8     reserved;
   igtl_uint8     rgba[5];          /* Color in RGBA. default: (0, 0, 0, 0) */
   igtl_uint16    size[3];          /* number of pixels in each direction */
   igtl_uint8     owner[20];        /* device name of the owner image. (can be empty) */
