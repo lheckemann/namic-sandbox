@@ -2,6 +2,10 @@ PROJECT(TissueClassification)
 
 cmake_minimum_required(VERSION 2.4)
 
+if(COMMAND cmake_policy)
+  cmake_policy(SET CMP0003 NEW)
+endif(COMMAND cmake_policy)
+
 include_directories( ${SlicerBaseCLI_BINARY_DIR} ${SlicerBaseCLI_SOURCE_DIR} )
 
 link_directories(${ModuleDescriptionParser_BINARY_DIR})
@@ -15,13 +19,20 @@ IF (Slicer3_FOUND)
 
   SET (CLP TissueClassification)
 
+  add_library(${CLP}Lib SHARED ${CLP}.cxx)
+  set_target_properties (${CLP}Lib PROPERTIES COMPILE_FLAGS "-Dmain=ModuleEntryPoint")
+  slicer3_set_plugins_output_path(${CLP}Lib)
+  target_link_libraries (${CLP}Lib ITKCommon ITKNumerics ITKNrrdIO ITKIO ITKStatistics vtkIO vtkCommon vtkFiltering vtkGraphics vtkRendering)
+
   set ( ${CLP}_SOURCE ${CLP}.cxx)
   generateclp(${CLP}_SOURCE ${CLP}.xml)
   add_executable(${CLP} ${${CLP}_SOURCE})
-  target_link_libraries (${CLP} ITKCommon ITKNumerics ITKNrrdIO ITKIO ITKStatistics vtkIO vtkCommon vtkFiltering vtkGraphics vtkRendering)
+  target_link_libraries (${CLP} ${CLP}Lib)
 
   slicer3_set_plugins_output_path(TissueClassification)
   slicer3_install_plugins(TissueClassification)
+
+  add_subdirectory(Testing)
 
 ELSE (Slicer3_FOUND)
 
