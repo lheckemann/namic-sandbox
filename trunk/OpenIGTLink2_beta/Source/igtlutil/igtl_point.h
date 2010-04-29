@@ -66,7 +66,7 @@ typedef struct {
  * or vice versa.
  */
 
-void igtl_export igtl_point_convert_byte_order(igtl_point_element** pointlist, int nelem);
+void igtl_export igtl_point_convert_byte_order(igtl_point_element* pointlist, int nelem);
 
 
 /*
@@ -76,7 +76,7 @@ void igtl_export igtl_point_convert_byte_order(igtl_point_element** pointlist, i
  *
  */
 
-igtl_uint64 igtl_export igtl_point_get_crc(igtl_point_element** pointlist, int nelem);
+igtl_uint64 igtl_export igtl_point_get_crc(igtl_point_element* pointlist, int nelem);
 
 #ifdef __cplusplus
 }

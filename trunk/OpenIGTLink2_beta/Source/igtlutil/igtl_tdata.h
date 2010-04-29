@@ -76,7 +76,7 @@ typedef struct {
  * or vice versa.
  */
 
-void igtl_export igtl_tdata_convert_byte_order(igtl_tdata_element** tdatalist, int nelem);
+void igtl_export igtl_tdata_convert_byte_order(igtl_tdata_element* tdatalist, int nelem);
 void igtl_export igtl_stt_tdata_convert_byte_order(igtl_stt_tdata* stt_tdata);
 void igtl_export igtl_rts_tdata_convert_byte_order(igtl_stt_tdata* stt_tdata);
 
@@ -88,7 +88,7 @@ void igtl_export igtl_rts_tdata_convert_byte_order(igtl_stt_tdata* stt_tdata);
  *
  */
 
-igtl_uint64 igtl_export igtl_tdata_get_crc(igtl_tdata_element** tdatalist, int nelem);
+igtl_uint64 igtl_export igtl_tdata_get_crc(igtl_tdata_element* tdatalist, int nelem);
 igtl_uint64 igtl_export igtl_stt_tdata_get_crc(igtl_stt_tdata* stt_tdata);
 igtl_uint64 igtl_export igtl_rts_tdata_get_crc(igtl_stt_tdata* stt_tdata);
 

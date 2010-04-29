@@ -20,7 +20,7 @@
 #include "igtl_tdata.h"
 #include "igtl_util.h"
 
-void igtl_export igtl_tdata_convert_byte_order(igtl_tdata_element** tdatalist, int nitem)
+void igtl_export igtl_tdata_convert_byte_order(igtl_tdata_element* tdatalist, int nitem)
 {
   igtl_tdata_element* elem;
   int i;
@@ -29,7 +29,7 @@ void igtl_export igtl_tdata_convert_byte_order(igtl_tdata_element** tdatalist, i
       
   for (i = 0; i < nitem; i ++)
     {
-    elem = tdatalist[i];
+    elem = &(tdatalist[i]);
     if (igtl_is_little_endian()) 
       {
       for (j = 0; j < 12; j ++)
@@ -60,7 +60,7 @@ void igtl_export igtl_rts_tdata_convert_byte_order(igtl_stt_tdata* stt_tdata)
 }
 
 
-igtl_uint64 igtl_export igtl_tdata_get_crc(igtl_tdata_element** tdatalist, int nitem)
+igtl_uint64 igtl_export igtl_tdata_get_crc(igtl_tdata_element* tdatalist, int nitem)
 {
   igtl_tdata_element* elem;
   int i;
@@ -69,7 +69,7 @@ igtl_uint64 igtl_export igtl_tdata_get_crc(igtl_tdata_element** tdatalist, int n
   crc = crc64(0, 0, 0);
   for (i = 0; i < nitem; i ++)
     {
-    elem = tdatalist[i];
+    elem = &(tdatalist[i]);
     crc = crc64((unsigned char*) elem, IGTL_TDATA_ELEMENT_SIZE, crc);
     }
 
