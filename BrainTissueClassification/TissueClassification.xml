@@ -3,15 +3,15 @@
   <category>Segmentation</category>
   <title>Fuzzy Tissue Classification</title>
   <description>
-    Tissue classification with bias field correction using fuzzy c-means
+    This module computes voxel by voxel tissue classification of an MR brain image using a fuzzy c-means algortihm. Bias field is modeled as a lower order polynomial. Bias field and tissue classification are estimated iteratively in an EM fashion. Internally, each voxel is assigned tissue membership function values, which range from 0 to 1. At any voxel, the sum of membership function of all classes is either 0 (outside of brain), or 1. The membership functions are converted in tissue labels to generate hard segmentation. 
 </description>
   <version>3.0</version>
-  <documentation-url>http://www.slicer.org</documentation-url>
+  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Modules:FuzzySegmentationModule</documentation-url>
   <license>slicer3</license>
   <contributor>Xiaodong Tao, taox @ research . ge . com</contributor>
 
 <acknowledgements>
-This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
+This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149. Implementation of the Fuzzy Classification was contributed by Dr. Ming-Ching Chang from GE Research.
 </acknowledgements>
 <parameters>
   <label>IO</label>
