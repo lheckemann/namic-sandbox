@@ -22,6 +22,7 @@
 #include "igtl_types.h"
 
 #define IGTL_COLORTABLE_HEADER_SIZE    2
+
 #define IGTL_COLORTABLE_INDEX_UINT8    3
 #define IGTL_COLORTABLE_INDEX_UINT16   5
 #define IGTL_COLORTABLE_MAP_UINT8      3

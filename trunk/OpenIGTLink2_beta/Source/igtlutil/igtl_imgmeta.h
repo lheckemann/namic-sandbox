@@ -22,7 +22,7 @@
 #include "igtl_types.h"
 #include "igtl_image.h"
 
-#define IGTL_IMGMETA_ELEMENT_SIZE          259
+#define IGTL_IMGMETA_ELEMENT_SIZE          260
 
 /* Scalar type */
 /* Use the same numbers as IMAGE */
@@ -61,6 +61,7 @@ typedef struct {
   igtl_uint64    timestamp;        /* scan time                                 */
   igtl_uint16    size[3];          /* entire image volume size                  */ 
   igtl_uint8     scalar_type;      /* scalar type. see scalar_type in IMAGE message */
+  igtl_uint8     reserved;
 } igtl_imgmeta_element;
 
 #pragma pack()
