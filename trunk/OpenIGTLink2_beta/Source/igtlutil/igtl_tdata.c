@@ -42,6 +42,22 @@ void igtl_export igtl_tdata_convert_byte_order(igtl_tdata_element** tdatalist, i
 }
 
 
+void igtl_export igtl_stt_tdata_convert_byte_order(igtl_stt_tdata* stt_tdata)
+{
+  if (igtl_is_little_endian()) 
+    {
+    tmp = (igtl_int32*)&(stt_tdata->resolution);
+    *tmp = BYTE_SWAP_INT32(*tmp);
+    }
+}
+
+
+void igtl_export igtl_rts_tdata_convert_byte_order(igtl_stt_tdata* stt_tdata)
+{
+  // do nothing
+}
+
+
 igtl_uint64 igtl_export igtl_tdata_get_crc(igtl_tdata_element** tdatalist, int nitem)
 {
   igtl_tdata_element* elem;
@@ -57,3 +73,20 @@ igtl_uint64 igtl_export igtl_tdata_get_crc(igtl_tdata_element** tdatalist, int n
 
   return crc;
 }
+
+
+igtl_uint64 igtl_export igtl_stt_tdata_get_crc(igtl_stt_tdata* stt_tdata)
+{
+  crc = crc64(0, 0, 0);
+  crc = crc64((unsigned char*) stt_tdata, IGTL_STT_TDATA_SIZE, crc);
+  return crc;
+}
+
+
+igtl_uint64 igtl_export igtl_rts_tdata_get_crc(igtl_stt_tdata* stt_tdata)
+{
+  crc = crc64(0, 0, 0);
+  crc = crc64((unsigned char*) stt_tdata, IGTL_RTS_TDATA_SIZE, crc);
+  return crc;
+}
+

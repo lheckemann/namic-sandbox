@@ -22,6 +22,8 @@
 #include "igtl_types.h"
 
 #define  IGTL_TDATA_ELEMENT_SIZE           34
+#define  IGTL_STT_TDATA_SIZE               24
+#define  IGTL_RTS_TDATA_SIZE               1
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,8 +42,18 @@ typedef struct {
   igtl_float32 transform[12];  /* same as TRANSFORM */
 } igtl_tdata_element;
 
-#pragma pack()
 
+typedef struct {
+  igtl_int32   resolution;     /* Minimum time between two frames. Use 0 for as fast as possible. */
+                               /* If e.g. 50 ms is specified, the maximum update rate will be 20 Hz. */
+  igtl_int8    coord_name[20]; /* Name of the coordinate system */
+} igtl_stt_tdata;
+
+typedef struct {
+  igtl_int8    status;         /* 0: Success 1: Error */
+} igtl_rts_tdata;
+
+#pragma pack()
 
 /*
  * Macros for tdata data size
@@ -57,7 +69,7 @@ typedef struct {
 #define igtl_tdata_get_data_n(size)  ((size) / IGTL_TDATA_ELEMENT_SIZE)
 
 /*
- * Byte order conversion for an array of tdata data structure
+ * Byte order conversion for an array of TDATA and STT_TDATA data structure
  *
  * This function converts endianness of each element in an array of
  * igtl_igtl_tdata_element from host byte order to network byte order,
@@ -65,16 +77,20 @@ typedef struct {
  */
 
 void igtl_export igtl_tdata_convert_byte_order(igtl_tdata_element** tdatalist, int nelem);
+void igtl_export igtl_stt_tdata_convert_byte_order(igtl_stt_tdata* stt_tdata);
+void igtl_export igtl_rts_tdata_convert_byte_order(igtl_stt_tdata* stt_tdata);
 
 
 /*
  * CRC calculation
  *
- * This function calculates CRC of tdata message
+ * This function calculates CRC of TDATA and STT_TDATA message
  *
  */
 
 igtl_uint64 igtl_export igtl_tdata_get_crc(igtl_tdata_element** tdatalist, int nelem);
+igtl_uint64 igtl_export igtl_stt_tdata_get_crc(igtl_stt_tdata* stt_tdata);
+igtl_uint64 igtl_export igtl_rts_tdata_get_crc(igtl_stt_tdata* stt_tdata);
 
 #ifdef __cplusplus
 }
