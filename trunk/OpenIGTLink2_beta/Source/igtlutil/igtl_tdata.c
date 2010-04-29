@@ -44,6 +44,8 @@ void igtl_export igtl_tdata_convert_byte_order(igtl_tdata_element** tdatalist, i
 
 void igtl_export igtl_stt_tdata_convert_byte_order(igtl_stt_tdata* stt_tdata)
 {
+  igtl_int32* tmp;
+
   if (igtl_is_little_endian()) 
     {
     tmp = (igtl_int32*)&(stt_tdata->resolution);
@@ -77,6 +79,8 @@ igtl_uint64 igtl_export igtl_tdata_get_crc(igtl_tdata_element** tdatalist, int n
 
 igtl_uint64 igtl_export igtl_stt_tdata_get_crc(igtl_stt_tdata* stt_tdata)
 {
+  igtl_uint64  crc;
+
   crc = crc64(0, 0, 0);
   crc = crc64((unsigned char*) stt_tdata, IGTL_STT_TDATA_SIZE, crc);
   return crc;
@@ -85,6 +89,8 @@ igtl_uint64 igtl_export igtl_stt_tdata_get_crc(igtl_stt_tdata* stt_tdata)
 
 igtl_uint64 igtl_export igtl_rts_tdata_get_crc(igtl_stt_tdata* stt_tdata)
 {
+  igtl_uint64  crc;
+
   crc = crc64(0, 0, 0);
   crc = crc64((unsigned char*) stt_tdata, IGTL_RTS_TDATA_SIZE, crc);
   return crc;
