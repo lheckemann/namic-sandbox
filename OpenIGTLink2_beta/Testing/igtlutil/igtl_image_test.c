@@ -40,6 +40,15 @@ int main( int argc, char * argv [] )
 {
 
   struct image_message message;
+
+  // Test structure size
+  if (sizeof(message) != IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+TEST_IMAGE_MESSAGE_SIZE)
+    {
+    fprintf(stdout, "Invalid size of image message structure.\n");
+    return EXIT_FAILURE;
+    }
+
+  // Test binary
   int r;
   igtl_uint64 image_size;
   int s;

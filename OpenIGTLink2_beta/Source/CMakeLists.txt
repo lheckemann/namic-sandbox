@@ -36,6 +36,12 @@ SET(OpenIGTLink_SOURCES
   igtlutil/igtl_status.c
   igtlutil/igtl_util.c
   igtlutil/igtl_position.c
+  igtlutil/igtl_imgmeta.c
+  igtlutil/igtl_point.c
+  igtlutil/igtl_colortable.c
+  igtlutil/igtl_lbmeta.c
+  igtlutil/igtl_trajectory.c
+  igtlutil/igtl_tdata.c
   igtlClientSocket.cxx
   igtlConditionVariable.cxx
   igtlFastMutexLock.cxx
