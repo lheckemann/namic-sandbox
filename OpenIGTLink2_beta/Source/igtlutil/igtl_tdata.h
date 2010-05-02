@@ -21,7 +21,7 @@
 #include "igtl_util.h"
 #include "igtl_types.h"
 
-#define  IGTL_TDATA_ELEMENT_SIZE           34
+#define  IGTL_TDATA_ELEMENT_SIZE           70
 #define  IGTL_STT_TDATA_SIZE               24
 #define  IGTL_RTS_TDATA_SIZE               1
 

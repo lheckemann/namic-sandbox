@@ -21,7 +21,7 @@
 #include "igtl_util.h"
 
 /* include test imgmeta data and serialized imgmeta message */
-//#include "igtl_test_data_imgmeta.h"
+#include "igtl_test_data_imgmeta.h"
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
@@ -43,17 +43,51 @@ int main( int argc, char * argv [] )
   int r;
   int s;
 
-  // Test structure size
+  /* Test structure size */
   if (sizeof(message) != IGTL_HEADER_SIZE+IGTL_IMGMETA_ELEMENT_SIZE*TEST_IMGMETA_NUM)
     {
     fprintf(stdout, "Invalid size of imgmeta message structure.\n");
     return EXIT_FAILURE;
     }
 
-  //igtl_image_set_matrix(spacing, origin, norm_i, norm_j, norm_k, &(message.iheader));
+  /* Image meta data 0 */
+  strncpy((char*)&(message.metalist[0].name), "IMAGE_DSCRIPTION_0", 64);
+  strncpy((char*)&(message.metalist[0].device_name), "IMAGE_0", 20);
+  strncpy((char*)&(message.metalist[0].modality), "CT", 32);
+  strncpy((char*)&(message.metalist[0].patient_name), "PATIENT_0", 64);
+  strncpy((char*)&(message.metalist[0].patient_id),   "PATIENT_ID_0", 64);
+  message.metalist[0].timestamp = 1234567890;
+  message.metalist[0].size[0]   = 512;
+  message.metalist[0].size[1]   = 512;
+  message.metalist[0].size[2]   = 64;
+  message.metalist[0].scalar_type = IGTL_IMAGE_STYPE_TYPE_UINT16;
+  message.metalist[0].reserved = 0;
 
-  /* Copy image data */
-  //memcpy((void*)message.image, (void*)test_image, TEST_IMAGE_MESSAGE_SIZE);
+  /* Image meta data 1 */
+  strncpy((char*)&(message.metalist[1].name), "IMAGE_DSCRIPTION_1", 64);
+  strncpy((char*)&(message.metalist[1].device_name), "IMAGE_1", 20);
+  strncpy((char*)&(message.metalist[1].modality), "MRI", 32);
+  strncpy((char*)&(message.metalist[1].patient_name), "PATIENT_1", 64);
+  strncpy((char*)&(message.metalist[1].patient_id),   "PATIENT_ID_1", 64);
+  message.metalist[1].timestamp = 1234567891;
+  message.metalist[1].size[0]   = 256;
+  message.metalist[1].size[1]   = 128;
+  message.metalist[1].size[2]   = 32;
+  message.metalist[1].scalar_type = IGTL_IMAGE_STYPE_TYPE_UINT16;
+  message.metalist[1].reserved = 0;
+
+  /* Image meta data 2 */
+  strncpy((char*)&(message.metalist[2].name), "IMAGE_DSCRIPTION_2", 64);
+  strncpy((char*)&(message.metalist[2].device_name), "IMAGE_2", 20);
+  strncpy((char*)&(message.metalist[2].modality), "PET", 32);
+  strncpy((char*)&(message.metalist[2].patient_name), "PATIENT_2", 64);
+  strncpy((char*)&(message.metalist[2].patient_id),   "PATIENT_ID_2", 64);
+  message.metalist[2].timestamp = 1234567892;
+  message.metalist[2].size[0]   = 256;
+  message.metalist[2].size[1]   = 256;
+  message.metalist[2].size[2]   = 32;
+  message.metalist[2].scalar_type = IGTL_IMAGE_STYPE_TYPE_UINT16;
+  message.metalist[2].reserved = 0;
   
   /* Swap byte order if necessary */
   igtl_imgmeta_convert_byte_order(message.metalist, TEST_IMGMETA_NUM);
@@ -68,17 +102,14 @@ int main( int argc, char * argv [] )
   igtl_header_convert_byte_order( &(message.header) );
 
   /* Dumping data -- for debugging */
-  /*
   FILE *fp;
-  fp = fopen("image.bin", "w");
-  fwrite(&(message), IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+image_size, 1, fp);
+  fp = fopen("imgmeta.bin", "w");
+  fwrite(&(message), IGTL_HEADER_SIZE+IGTL_IMGMETA_ELEMENT_SIZE*TEST_IMGMETA_NUM, 1, fp);
   fclose(fp);
-  */
 
   /* Compare the serialized byte array with the gold standard */ 
-  //r = memcmp((const void*)&message, (const void*)test_imgmeta_message,
-  //           (size_t)(IGTL_HEADER_SIZE+IGTL_IMGMETA_HEADER_SIZE));
-  r = 0;
+  r = memcmp((const void*)&message, (const void*)test_imgmeta_message,
+             (size_t)(IGTL_HEADER_SIZE+IGTL_IMGMETA_ELEMENT_SIZE*TEST_IMGMETA_NUM));
 
   if (r == 0)
     {

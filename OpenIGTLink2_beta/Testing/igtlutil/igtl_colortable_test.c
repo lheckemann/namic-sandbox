@@ -21,7 +21,7 @@
 #include "igtl_util.h"
 
 /* include test colortable data and serialized colortable message */
-//#include "igtl_test_data_colortable.h"
+#include "igtl_test_data_colortable.h"
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
@@ -44,23 +44,23 @@ int main( int argc, char * argv [] )
   igtl_uint64 table_size;
   int r;
   int s;
+  int i;
 
-  // Test structure size
+  /* Test structure size */
   if (sizeof(message) != IGTL_HEADER_SIZE+IGTL_COLORTABLE_HEADER_SIZE+TEST_COLORTABLE_SIZE)
     {
     fprintf(stdout, "Invalid size of colortable message structure.\n");
     return EXIT_FAILURE;
     }
 
-  // Set COLORTABLE message
+  /* Set COLORTABLE message */
   message.cheader.indexType = IGTL_COLORTABLE_INDEX_UINT8;
   message.cheader.mapType   = IGTL_COLORTABLE_MAP_UINT8;
+  for (i = 0; i < 256; i ++)
+    {
+    message.table[i] = i;
+    }
 
-  //igtl_image_set_matrix(spacing, origin, norm_i, norm_j, norm_k, &(message.iheader));
-
-  /* Copy image data */
-  //memcpy((void*)message.image, (void*)test_image, TEST_IMAGE_MESSAGE_SIZE);
-  
   /* Get image data size -- note that this should be done before byte order swapping. */
   table_size = igtl_colortable_get_table_size(&(message.cheader));
   
@@ -77,17 +77,14 @@ int main( int argc, char * argv [] )
   igtl_header_convert_byte_order( &(message.header) );
 
   /* Dumping data -- for debugging */
-  /*
   FILE *fp;
-  fp = fopen("image.bin", "w");
-  fwrite(&(message), IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+image_size, 1, fp);
+  fp = fopen("colortable.bin", "w");
+  fwrite(&(message), IGTL_HEADER_SIZE+IGTL_COLORTABLE_HEADER_SIZE+TEST_COLORTABLE_SIZE, 1, fp);
   fclose(fp);
-  */
 
   /* Compare the serialized byte array with the gold standard */ 
-  //r = memcmp((const void*)&message, (const void*)test_colortable_message,
-  //           (size_t)(IGTL_HEADER_SIZE+IGTL_COLORTABLE_HEADER_SIZE));
-  r = 0;
+  r = memcmp((const void*)&message, (const void*)test_colortable_message,
+             (size_t)(IGTL_HEADER_SIZE+IGTL_COLORTABLE_HEADER_SIZE));
 
   if (r == 0)
     {
