@@ -52,18 +52,18 @@ void igtl_export igtl_colortable_convert_byte_order(igtl_colortable_header* head
 {
   int i;
   int n;
-  igtl_uint32* tmp;
+  igtl_uint16* tmp;
   
   if (igtl_is_little_endian()) 
     {
     if (header->mapType == IGTL_COLORTABLE_MAP_UINT16)
       {
       n = (header->indexType == IGTL_COLORTABLE_INDEX_UINT16)? 256*256 : 256;
-      }
-    tmp = (igtl_uint32*) table;
-    for (i = 0; i < n; i ++)
-      {
-      tmp[i] = BYTE_SWAP_INT16(tmp[i]);
+      tmp = (igtl_uint16*) table;
+      for (i = 0; i < n; i ++)
+        {
+        tmp[i] = BYTE_SWAP_INT16(tmp[i]);
+        }
       }
     }
 }
