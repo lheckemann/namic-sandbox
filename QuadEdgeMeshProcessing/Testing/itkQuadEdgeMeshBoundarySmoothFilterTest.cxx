@@ -55,7 +55,7 @@ int main( int argc, char** argv )
 
   smoothFilter->SetIterations (atoi(argv[5]));
 
-  smoothFilter->DebugOn();
+  //smoothFilter->DebugOn();
   smoothFilter->Update();
 
   WriterType::Pointer writer = WriterType::New();
