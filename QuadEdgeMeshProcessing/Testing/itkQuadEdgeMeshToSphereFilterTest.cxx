@@ -53,7 +53,7 @@ int main( int argc, char** argv )
 
   WriterType::Pointer writer = WriterType::New();
   writer->SetInput( filter->GetOutput() );
-  writer->SetFileName( "sphere.vtk" );
+  writer->SetFileName( "sphere1.vtk" );
   writer->Update();
 
   return EXIT_SUCCESS;
