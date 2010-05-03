@@ -123,7 +123,7 @@ public:
       // Set the number of spatial samples according to the current level
       metric->SetNumberOfSpatialSamples(
                         (unsigned int) (metric->GetNumberOfSpatialSamples() /
-                        vcl_pow( vcl_pow(2.0F, Dimension )/m_MultiScaleSamplePercentageIncrease,
+                        vcl_pow( vcl_pow(2.0F, (float)Dimension )/m_MultiScaleSamplePercentageIncrease,
                              (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
 
       if(!strcmp(optimizer->GetNameOfClass(), "GradientDescentLineSearchOptimizer") )
@@ -147,7 +147,7 @@ public:
       // Set the number of spatial samples according to the current level
       metric->SetNumberOfSpatialSamples(
             (unsigned int) (metric->GetNumberOfSpatialSamples() *
-                  vcl_pow(2.0F, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
+                  vcl_pow(2.0F, (float)Dimension )/m_MultiScaleSamplePercentageIncrease ) );
 
       // Decrease the learning rate at each increasing multiresolution level
       // Increase the number of steps
