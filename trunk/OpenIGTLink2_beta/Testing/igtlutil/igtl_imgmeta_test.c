@@ -51,7 +51,7 @@ int main( int argc, char * argv [] )
     }
 
   /* Image meta data 0 */
-  strncpy((char*)&(message.metalist[0].name), "IMAGE_DSCRIPTION_0", 64);
+  strncpy((char*)&(message.metalist[0].name), "IMAGE_DESCRIPTION_0", 64);
   strncpy((char*)&(message.metalist[0].device_name), "IMAGE_0", 20);
   strncpy((char*)&(message.metalist[0].modality), "CT", 32);
   strncpy((char*)&(message.metalist[0].patient_name), "PATIENT_0", 64);
@@ -64,7 +64,7 @@ int main( int argc, char * argv [] )
   message.metalist[0].reserved = 0;
 
   /* Image meta data 1 */
-  strncpy((char*)&(message.metalist[1].name), "IMAGE_DSCRIPTION_1", 64);
+  strncpy((char*)&(message.metalist[1].name), "IMAGE_DESCRIPTION_1", 64);
   strncpy((char*)&(message.metalist[1].device_name), "IMAGE_1", 20);
   strncpy((char*)&(message.metalist[1].modality), "MRI", 32);
   strncpy((char*)&(message.metalist[1].patient_name), "PATIENT_1", 64);
@@ -77,7 +77,7 @@ int main( int argc, char * argv [] )
   message.metalist[1].reserved = 0;
 
   /* Image meta data 2 */
-  strncpy((char*)&(message.metalist[2].name), "IMAGE_DSCRIPTION_2", 64);
+  strncpy((char*)&(message.metalist[2].name), "IMAGE_DESCRIPTION_2", 64);
   strncpy((char*)&(message.metalist[2].device_name), "IMAGE_2", 20);
   strncpy((char*)&(message.metalist[2].modality), "PET", 32);
   strncpy((char*)&(message.metalist[2].patient_name), "PATIENT_2", 64);
