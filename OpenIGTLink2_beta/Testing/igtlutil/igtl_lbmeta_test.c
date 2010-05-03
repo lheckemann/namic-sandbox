@@ -21,7 +21,7 @@
 #include "igtl_util.h"
 
 /* include test lbmeta data and serialized lbmeta message */
-//#include "igtl_test_data_lbmeta.h"
+#include "igtl_test_data_lbmeta.h"
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
@@ -50,11 +50,48 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
-  //igtl_image_set_matrix(spacing, origin, norm_i, norm_j, norm_k, &(message.iheader));
+  /* Label meta data 0 */
+  strncpy((char*)&(message.metalist[0].name), "LABEL_DESCRIPTION_0", 64);
+  strncpy((char*)&(message.metalist[0].image_name), "LABEL_0", 20);
+  message.metalist[0].label    = 1;
+  message.metalist[0].reserved = 0;
+  message.metalist[0].rgba[0]  = 255;
+  message.metalist[0].rgba[1]  = 0;
+  message.metalist[0].rgba[2]  = 0;
+  message.metalist[0].rgba[3]  = 255;
+  message.metalist[0].size[0]  = 256;
+  message.metalist[0].size[1]  = 128;
+  message.metalist[0].size[2]  = 32;
+  strncpy((char*)&(message.metalist[0].owner), "IMAGE_0", 20);
 
-  /* Copy image data */
-  //memcpy((void*)message.image, (void*)test_image, TEST_IMAGE_MESSAGE_SIZE);
-  
+  /* Label meta data 1 */
+  strncpy((char*)&(message.metalist[1].name), "LABEL_DESCRIPTION_1", 64);
+  strncpy((char*)&(message.metalist[1].image_name), "LABEL_1", 20);
+  message.metalist[1].label    = 2;
+  message.metalist[1].reserved = 0;
+  message.metalist[1].rgba[0]  = 0;
+  message.metalist[1].rgba[1]  = 255;
+  message.metalist[1].rgba[2]  = 0;
+  message.metalist[1].rgba[3]  = 255;
+  message.metalist[1].size[0]  = 256;
+  message.metalist[1].size[1]  = 128;
+  message.metalist[1].size[2]  = 32;
+  strncpy((char*)&(message.metalist[1].owner), "IMAGE_0", 20);
+
+  /* Label meta data 2 */
+  strncpy((char*)&(message.metalist[2].name), "LABEL_DESCRIPTION_2", 64);
+  strncpy((char*)&(message.metalist[2].image_name), "LABEL_2", 20);
+  message.metalist[2].label    = 3;
+  message.metalist[2].reserved = 0;
+  message.metalist[2].rgba[0]  = 0;
+  message.metalist[2].rgba[1]  = 0;
+  message.metalist[2].rgba[2]  = 255;
+  message.metalist[2].rgba[3]  = 255;
+  message.metalist[2].size[0]  = 256;
+  message.metalist[2].size[1]  = 128;
+  message.metalist[2].size[2]  = 32;
+  strncpy((char*)&(message.metalist[2].owner), "IMAGE_0", 20);
+
   /* Swap byte order if necessary */
   igtl_lbmeta_convert_byte_order(message.metalist, TEST_LBMETA_NUM);
 
@@ -68,17 +105,14 @@ int main( int argc, char * argv [] )
   igtl_header_convert_byte_order( &(message.header) );
 
   /* Dumping data -- for debugging */
-  /*
   FILE *fp;
-  fp = fopen("image.bin", "w");
-  fwrite(&(message), IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+image_size, 1, fp);
+  fp = fopen("lbmeta.bin", "w");
+  fwrite(&(message), IGTL_HEADER_SIZE+IGTL_LBMETA_ELEMENT_SIZE*TEST_LBMETA_NUM, 1, fp);
   fclose(fp);
-  */
 
   /* Compare the serialized byte array with the gold standard */ 
-  //r = memcmp((const void*)&message, (const void*)test_lbmeta_message,
-  //           (size_t)(IGTL_HEADER_SIZE+IGTL_LBMETA_HEADER_SIZE));
-  r = 0;
+  r = memcmp((const void*)&message, (const void*)test_lbmeta_message,
+             (size_t)(IGTL_HEADER_SIZE+IGTL_LBMETA_ELEMENT_SIZE*TEST_LBMETA_NUM));
 
   if (r == 0)
     {
