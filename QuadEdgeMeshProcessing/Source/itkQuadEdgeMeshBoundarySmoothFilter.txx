@@ -174,7 +174,7 @@ QuadEdgeMeshBoundarySmoothFilter< TInputMesh, TOutputMesh >
 {
   typedef typename itk::QuadEdgeMeshBoundaryEdgesMeshFunction < TOutputMesh > BoundaryFunctionType;
   
-  BoundaryFunctionType::Pointer boundaryFunction = BoundaryFunctionType::New();
+  typename BoundaryFunctionType::Pointer boundaryFunction = BoundaryFunctionType::New();
   
   int numChange = 0;
   
