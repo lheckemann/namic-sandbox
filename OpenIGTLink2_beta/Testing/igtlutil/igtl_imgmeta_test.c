@@ -125,7 +125,7 @@ int main( int argc, char * argv [] )
       }
 
     fprintf(stdout, "\n===== First %d bytes of the test message =====\n", s);
-    //igtl_message_dump_hex(stdout, (const void*)&message, s);
+    igtl_message_dump_hex(stdout, (const void*)&message, s);
 
     return EXIT_FAILURE;
     }

@@ -39,7 +39,7 @@ typedef struct {
   igtl_int8    rgba[4];        /* Color in R/G/B/A */
   igtl_float32 position[3];    /* Coordinate of the point */
   igtl_float32 radius;         /* Radius of the point. Can be 0. */
-  igtl_int8    owener_name[20];/* Device name of the ower image */
+  igtl_int8    owner_name[20];/* Device name of the ower image */
 } igtl_point_element;
 
 #pragma pack()
