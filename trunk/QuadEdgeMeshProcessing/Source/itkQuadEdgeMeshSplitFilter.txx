@@ -57,40 +57,43 @@ GenerateData( )
 
   std::list< OutputPointIdList > list_face;
 
-  for ( cluster_it = cluster.begin();
-        cluster_it != cluster.end();
-        ++cluster_it )
+  cluster_it = cluster.begin();
+  
+  while( cluster_it != cluster.end( ) )
     {
     poly = dynamic_cast< InputPolygonType* >(
       cells->GetElement( *cluster_it ) );
     list_face.push_back( AddFacePointsToOutputMesh( output0, poly ) );
+    ++cluster_it;
     }
 
-  typename std::list< OutputPointIdList >::iterator list_face_it;
-  for( list_face_it = list_face.begin();
-        list_face_it != list_face.end();
-       ++list_face_it )
+  typename std::list< OutputPointIdList >::iterator 
+    list_face_it = list_face.begin();
+
+  while( list_face_it != list_face.end() )
     {
     output0->AddFaceWithSecurePointList( *list_face_it );
+    ++list_face_it;
     }
   list_face.clear();
 
   cluster = fast_marching_clustering->Evaluate( 1 );
 
-  for ( cluster_it = cluster.begin();
-        cluster_it != cluster.end();
-        ++cluster_it )
+  cluster_it = cluster.begin();
+  while( cluster_it != cluster.end() )
     {
     poly = dynamic_cast< InputPolygonType* >(
       cells->GetElement( *cluster_it ) );
     list_face.push_back( AddFacePointsToOutputMesh( output1, poly ) );
+    ++cluster_it;
     }
 
-  for( list_face_it = list_face.begin();
-       list_face_it != list_face.end();
-       ++list_face_it )
+  list_face_it = list_face.begin();
+
+  while( list_face_it != list_face.end() )
     {
     output1->AddFaceWithSecurePointList( *list_face_it );
+    ++list_face_it; 
     }
 }
 

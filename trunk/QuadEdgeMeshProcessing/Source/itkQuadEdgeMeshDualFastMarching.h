@@ -74,22 +74,22 @@ namespace itk
 
       struct Item
         {
-          Item( ) : m_Face( 0 ), m_Value( -1. ), m_Cluster( 0 ) {}
-          Item( const CellIdentifier& iFace,
-                const MetricValueType& iValue,
-                const CellIdentifier& iCluster ) :
-              m_Face( iFace ), m_Value( iValue ), m_Cluster( iCluster ) {}
-          ~Item( ) {}
+        Item( ) : m_Face( 0 ), m_Value( -1. ), m_Cluster( 0 ) {}
+        Item( const CellIdentifier& iFace,
+              const MetricValueType& iValue,
+              const CellIdentifier& iCluster ) :
+            m_Face( iFace ), m_Value( iValue ), m_Cluster( iCluster ) {}
+        ~Item( ) {}
 
-          CellIdentifier m_Face;
-          MetricValueType m_Value;
-          CellIdentifier m_Cluster;
+        CellIdentifier m_Face;
+        MetricValueType m_Value;
+        CellIdentifier m_Cluster;
 
-          void operator = ( const Self& other )
+        void operator = ( const Self& other )
           {
-            this->m_Face = other.m_Face;
-            this->m_Value = other.m_Value;
-            this->m_Cluster = other.m_Cluster;
+          this->m_Face = other.m_Face;
+          this->m_Value = other.m_Value;
+          this->m_Cluster = other.m_Cluster;
           }
         };
 
@@ -137,22 +137,22 @@ namespace itk
 
       PointType GetSeedCaracteristicPoint( const size_t& iId ) const
         {
-          CellAutoPointer cell1;
-          m_Mesh->GetCell( GetSeedFace( iId ), cell1 );
-          PointIdIterator it1 = cell1->PointIdsBegin( );
+        CellAutoPointer cell1;
+        m_Mesh->GetCell( GetSeedFace( iId ), cell1 );
+        PointIdIterator it1 = cell1->PointIdsBegin( );
 
-          PointType pt1[3];
+        PointType pt1[3];
 
-          for ( int k = 0; k < 3; it1++, k++ )
-            {
-            pt1[k] = m_Mesh->GetPoint( *it1 );
-            }
+        for ( int k = 0; k < 3; it1++, k++ )
+          {
+          pt1[k] = m_Mesh->GetPoint( *it1 );
+          }
 
-          return TriangleType::ComputeGravityCenter( pt1[0], pt1[1], pt1[2] );
+        return TriangleType::ComputeGravityCenter( pt1[0], pt1[1], pt1[2] );
         }
 
       ClusterVectorType GetCluster( )
-      {
+        {
         assert( m_Mesh.IsNotNull( ) );
         assert( m_SeedFaces.size( ) > 1 );
 
@@ -164,12 +164,12 @@ namespace itk
           }
 
         return m_ClusterVector;
-      }
+        }
 
       ClusterType Evaluate( MeshType* iMesh,
                             const SeedVectorType& iSeeds,
                             const size_t& iId )
-      {
+        {
         assert( iMesh != 0 );
         assert( iSeeds.size( ) > 1 );
         assert( ( iId >= 0 ) && ( iId < iSeeds.size( ) ) );
@@ -184,10 +184,10 @@ namespace itk
           }
 
         return m_ClusterVector[ iId ];
-      }
+        }
 
       ClusterType Evaluate( const size_t& iId )
-      {
+        {
         assert( m_Mesh.IsNotNull( ) );
         assert( m_SeedFaces.size( ) > 1 );
         assert( iId < m_SeedFaces.size( ) );
@@ -200,11 +200,11 @@ namespace itk
           }
 
         return m_ClusterVector[ iId ];
-      }
+        }
 
       ClusterType Evaluate( const SeedVectorType& iSeeds,
                             const size_t& iId )
-      {
+        {
         assert( m_Mesh.IsNotNull( ) );
         assert( iSeeds.size( ) > 1 );
         assert( ( iId >= 0 ) && ( iId < iSeeds.size( ) ) );
@@ -218,7 +218,7 @@ namespace itk
           }
 
         return m_ClusterVector[ iId ];
-      }
+        }
 
       std::vector< CellIdentifierListType > m_ClusterBorderVector;
 
@@ -299,7 +299,7 @@ namespace itk
       void PushFMM( const CellIdentifier& iId_face,
                     const CellIdentifier& iId_cluster,
                     const MetricValueType& iValue )
-      {
+        {
         PolygonType* poly =
           dynamic_cast< PolygonType* >( m_Mesh->GetCells(
                                         )->GetElement( iId_face ) );
@@ -323,6 +323,7 @@ namespace itk
               do
                 {
                 id_face2 = temp->GetRight( );
+
                 if ( id_face2 != MeshType::m_NoFace )
                   {
                   if ( !m_FaceProcessed[ id_face2 ] )
@@ -351,7 +352,7 @@ namespace itk
 //               }
             }
           }
-      }
+        }
 
       void UpdateFMM( )
         {
@@ -371,6 +372,7 @@ namespace itk
           if ( !m_FaceProcessed[ id_face ] )
             {
             QueueMapIterator queue_it = m_QueueMap.find( id_face );
+
             if ( queue_it != m_QueueMap.end( ) )
               {
               while ( !queue_it->second.empty( ) )
@@ -388,7 +390,7 @@ namespace itk
             PushFMM( id_face, id_cluster, value );
             }
           m_PriorityQueue->Pop( );
-          m_NumberOfUnprocessedElements--;
+          --m_NumberOfUnprocessedElements;
           }
         }
 
