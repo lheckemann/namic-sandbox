@@ -41,6 +41,9 @@ int main( int argc, char** argv )
   split->SetInput( mesh );
   split->Update();
   
+  MeshType::Pointer split0 = MeshType::New();
+  split0 = split->GetOutput(0);
+  std::cout<<split0->GetNumberOfEdges()<<std::endl;
   WriterType::Pointer writer = WriterType::New();
   writer->SetInput( split->GetOutput( 0 ) );
   writer->SetFileName( "split0.vtk" );
