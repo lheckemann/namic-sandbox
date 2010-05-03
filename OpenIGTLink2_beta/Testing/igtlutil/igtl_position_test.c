@@ -28,7 +28,7 @@
 /* The decimal is rounded when it is converted to IEEE 754 floating point */
 
 /* Include serialized test data (gold standard) */
-//#include "igtl_test_data_position.h"
+#include "igtl_test_data_position.h"
 
 #pragma pack(1)
 struct position_message {
@@ -56,15 +56,11 @@ int main( int argc, char * argv [] )
   message.position.position[2] = 46.0531f;
 
   message.position.quaternion[0] = 0.0;
-  message.position.quaternion[1] = 0.0;
-  message.position.quaternion[2] = 0.0;
-  message.position.quaternion[3] = 1.0;
+  message.position.quaternion[1] = 0.5773502691f;
+  message.position.quaternion[2] = 0.5773502692f;
+  message.position.quaternion[3] = 0.3333333333f;
 
   igtl_position_convert_byte_order(&(message.position));
-
-  return EXIT_SUCCESS;
-
-#if 0
 
   /* Set header */
   message.header.version = 1;
@@ -76,18 +72,15 @@ int main( int argc, char * argv [] )
   igtl_header_convert_byte_order( &(message.header) );
 
   /* Dumping data -- for testing */
-  /*
   FILE *fp;
   fp = fopen("position.bin", "w");
-  fwrite(&(message.header), IGTL_HEADER_SIZE+IGTL_POSITION_SIZE, 1, fp);
+  fwrite(&(message.header), IGTL_HEADER_SIZE+IGTL_POSITION_MESSAGE_DEFAULT_SIZE, 1, fp);
   fclose(fp);
-  */
 
   /* Compare the serialized byte array with the gold standard */ 
 
-
   r = memcmp((const void*)&message, (const void*)test_position_message,
-                 IGTL_HEADER_SIZE+IGTL_POSITION_SIZE);
+             IGTL_HEADER_SIZE+IGTL_POSITION_MESSAGE_DEFAULT_SIZE);
 
   if (r == 0)
     {
@@ -96,13 +89,11 @@ int main( int argc, char * argv [] )
   else
     {
     /* Print message as HEX values in STDERR for debug */
-    fprintf(stdout, "\n===== First %d bytes of the test message =====\n", IGTL_HEADER_SIZE+IGTL_POSITION_SIZE);
-    igtl_message_dump_hex(stdout, (const void*)&message, IGTL_HEADER_SIZE+IGTL_POSITION_SIZE);
+    fprintf(stdout, "\n===== First %d bytes of the test message =====\n", IGTL_HEADER_SIZE+IGTL_POSITION_MESSAGE_DEFAULT_SIZE);
+    igtl_message_dump_hex(stdout, (const void*)&message, IGTL_HEADER_SIZE+IGTL_POSITION_MESSAGE_DEFAULT_SIZE);
 
     return EXIT_FAILURE;
     }
-
-#endif 
 
 }
 
