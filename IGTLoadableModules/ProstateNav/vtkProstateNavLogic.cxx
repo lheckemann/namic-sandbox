@@ -189,6 +189,15 @@ void vtkProstateNavLogic::SetSliceViewFromVolume(vtkMRMLVolumeNode *volumeNode)
   vtkSmartPointer<vtkMatrix4x4> rotationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
   volumeNode->GetIJKToRASDirectionMatrix(matrix);
+  vtkMRMLTransformNode *transformNode = volumeNode->GetParentTransformNode();
+  if ( transformNode )
+    {
+    vtkSmartPointer<vtkMatrix4x4> rasToRAS = vtkSmartPointer<vtkMatrix4x4>::New();
+    transformNode->GetMatrixTransformToWorld(rasToRAS);
+    vtkMatrix4x4::Multiply4x4 (rasToRAS, matrix, matrix);
+    }
+
+
   //slicerCerr("matrix");
   //slicerCerr("   " << matrix->GetElement(0,0) <<
 //             "   " << matrix->GetElement(0,1) <<
@@ -402,7 +411,6 @@ vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddArchetypeVolume(const char* fil
   displayNode->SetAndObserveColorNodeID(colorLogic->GetDefaultVolumeColorNodeID());
   
   // Add nodes to scene
-  this->GetMRMLScene()->SaveStateForUndo();  
   vtkDebugMacro("LoadArchetypeVolume: adding storage node to the scene");
   storageNode->SetScene(this->GetMRMLScene());
   this->GetMRMLScene()->AddNode(storageNode);
@@ -537,7 +545,7 @@ int vtkProstateNavLogic::CreateCoverageVolume()
   vtkSmartPointer<vtkMRMLScalarVolumeNode> coverageVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();    
   int modifiedSinceRead = baseVolumeNode->GetModifiedSinceRead();
   coverageVolumeNode->CopyWithScene(baseVolumeNode);
-  coverageVolumeNode->SetName("RobotCoverageArea");
+  coverageVolumeNode->SetName(ROBOT_COVERAGE_AREA_NODE_NAME);
 
   // Create image data
   vtkSmartPointer<vtkImageData> coverageLabelMapImage=vtkSmartPointer<vtkImageData>::New();
@@ -561,6 +569,13 @@ int vtkProstateNavLogic::CreateCoverageVolume()
 
     vtkSmartPointer<vtkMatrix4x4> ijkToRas=vtkSmartPointer<vtkMatrix4x4>::New();
     baseVolumeNode->GetIJKToRASMatrix(ijkToRas);
+    vtkMRMLTransformNode *transformNode = baseVolumeNode->GetParentTransformNode();
+    if ( transformNode )
+      {
+      vtkSmartPointer<vtkMatrix4x4> rasToRAS = vtkSmartPointer<vtkMatrix4x4>::New();
+      transformNode->GetMatrixTransformToWorld(rasToRAS);
+      vtkMatrix4x4::Multiply4x4 (rasToRAS, ijkToRas, ijkToRas);
+      }
 
     ijkToRas->MultiplyPoint(ijkCenterPoint, rasCenterPoint);
   }
@@ -620,8 +635,8 @@ int vtkProstateNavLogic::UpdateCoverageVolumeImage()
 
 //  std::string needleType = this->NeedleTypeMenuList->GetWidget()->GetValue();
   
-  double *origin=coverageImage->GetOrigin();
-  double *spacing=coverageImage->GetSpacing();
+  //double *origin=coverageImage->GetOrigin();
+  //double *spacing=coverageImage->GetSpacing();
 
   double rasPoint[4]={0,0,0,1};
   double ijkPoint[4]={0,0,0,1};

@@ -87,16 +87,16 @@ void vtkMRMLRobotDisplayNode::WriteXML(ostream& of, int nIndent)
 void vtkMRMLRobotDisplayNode::ReadXMLAttributes(const char** atts)
 {
   vtkMRMLNode::ReadXMLAttributes(atts);
-
+/*
   const char* attName;
   const char* attValue;
 
   const char* serverHostname = "";
   int port = 0;
   int type = -1;
-  int restrictDeviceName = 0;
+  int restrictDeviceName = 0;j
 
-  /*
+  
   while (*atts != NULL)
     {
     attName = *(atts++);
@@ -161,9 +161,11 @@ void vtkMRMLRobotDisplayNode::Copy(vtkMRMLNode *anode)
 {
 
   Superclass::Copy(anode);
-  vtkMRMLRobotDisplayNode *node = (vtkMRMLRobotDisplayNode *) anode;
 
-  //int type = node->GetType();
+  /*
+  vtkMRMLRobotDisplayNode *node = (vtkMRMLRobotDisplayNode *) anode;
+  int type = node->GetType();
+  */
   
 }
 

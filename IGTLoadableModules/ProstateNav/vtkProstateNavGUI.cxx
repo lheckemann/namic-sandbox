@@ -706,9 +706,6 @@ void vtkProstateNavGUI::ProcessMRMLEvents ( vtkObject *caller,
 //---------------------------------------------------------------------------
 void vtkProstateNavGUI::Enter()
 {
-  // Fill in
-  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-  
   if (this->Entered == 0)
     {
     this->GetLogic()->SetGUI(this);
@@ -804,6 +801,7 @@ void vtkProstateNavGUI::BuildGUI ( )
 //---------------------------------------------------------------------------
 void vtkProstateNavGUI::TearDownGUI ( )
 {
+  // REMOVE OBSERVERS and references to MRML and Logic
   // disconnect circular references so destructor can be called
 
   if (this->SecondaryWindow)
@@ -820,8 +818,11 @@ void vtkProstateNavGUI::TearDownGUI ( )
       vtkProstateNavStep *step=vtkProstateNavStep::SafeDownCast(this->WizardWidget->GetWizardWorkflow()->GetNthStep(i));
       if (step!=NULL)
         {
+        step->TearDownGUI();
         step->SetGUI(NULL);
         step->SetLogic(NULL);
+        step->SetAndObserveMRMLScene(NULL);
+        step->SetProstateNavManager(NULL);
         }
       else
         {
@@ -855,50 +856,27 @@ void vtkProstateNavGUI::BuildGUIForWizardFrame()
 void vtkProstateNavGUI::BuildGUIForHelpFrame ()
 {
 
-    vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  // ----------------------------------------------------------------
+  // HELP FRAME         
+  // ----------------------------------------------------------------
 
-    vtkKWWidget *page = this->UIPanel->GetPageWidget ( "ProstateNav" );
+  // Define your help text here.
+  std::stringstream helpss;
+  helpss << "Module Revision: " << ProstateNav_REVISION << std::endl;
+  helpss << "The **ProstateNav Module** helps you to plan and navigate MRI-guided prostate biopsy ";
+  helpss << "and brachytherapy using transrectal and transperineal needle placement devices. \n";
+  helpss << "See <a>http://www.slicer.org/slicerWiki/index.php/Modules:ProstateNav-Documentation-3.6</a> for details.";
+  
+  std::stringstream aboutss;
+  aboutss << "The module is developed by Junichi Tokuda (Brigham and Women's Hospital), Andras Lasso,";
+  aboutss << "David Gobbi (Queen's University) and Philip Mewes.";
+  aboutss << "This work is supported by NCIGT, NA-MIC and BRP \"Enabling Technologies for MRI-Guided Prostate Intervention\" funded by NIH.";
 
-    // Define your help text here.
-    std::stringstream ss;
-
-    ss << "Module Revision: " << ProstateNav_REVISION << std::endl;
-
-    ss << "The **ProstateNav Module** helps you to do prostate Biopsy and Treatment by:";
-    ss << " getting Realtime Images from MR-Scanner into Slicer3, control Scanner with Slicer 3,";
-    ss << " determin fiducial detection and control the Robot.";
-    ss << " Module and Logic mainly coded by Junichi Tokuda (BWH), Andras Lasso,";
-    ss << " David Gobbi (Queen's University) and Philip Mewes";
-
-    // ----------------------------------------------------------------
-    // HELP FRAME         
-    // ----------------------------------------------------------------
-    vtkSlicerModuleCollapsibleFrame *ProstateNavHelpFrame = vtkSlicerModuleCollapsibleFrame::New ( );
-    ProstateNavHelpFrame->SetParent ( page );
-    ProstateNavHelpFrame->Create ( );
-    ProstateNavHelpFrame->CollapseFrame ( );
-    ProstateNavHelpFrame->SetLabelText ("Help");
-    app->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-        ProstateNavHelpFrame->GetWidgetName(), page->GetWidgetName());
-
-    // configure the parent classes help text widget
-    this->HelpText->SetParent ( ProstateNavHelpFrame->GetFrame() );
-    this->HelpText->Create ( );
-    this->HelpText->SetHorizontalScrollbarVisibility ( 0 );
-    this->HelpText->SetVerticalScrollbarVisibility ( 1 );
-    //this->HelpText->GetWidget()->SetText ( help );
-    this->HelpText->GetWidget()->SetText ( ss.str().c_str() );
-    this->HelpText->GetWidget()->SetReliefToFlat ( );
-    this->HelpText->GetWidget()->SetWrapToWord ( );
-    this->HelpText->GetWidget()->ReadOnlyOn ( );
-    this->HelpText->GetWidget()->QuickFormattingOn ( );
-    this->HelpText->GetWidget()->SetBalloonHelpString ( "" );
-    app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 4",
-        this->HelpText->GetWidgetName ( ) );
-
-    ProstateNavHelpFrame->Delete();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "ProstateNav" );
+  this->BuildHelpAndAboutFrame (page, helpss.str().c_str(), aboutss.str().c_str());
 
 }
+
 
 //---------------------------------------------------------------------------
 void vtkProstateNavGUI::BuildGUIForConfigurationFrame ()
@@ -956,6 +934,7 @@ void vtkProstateNavGUI::BuildGUIForConfigurationFrame ()
               this->DiscreteFactorsListBox->GetWidgetName(),
               designFrame->GetFrame()->GetWidgetName()); 
               */
+  configurationFrame->Delete();
 }
 
 //---------------------------------------------------------------------------
