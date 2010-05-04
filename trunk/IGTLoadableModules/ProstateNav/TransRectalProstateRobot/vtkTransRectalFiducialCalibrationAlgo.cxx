@@ -66,23 +66,29 @@ vtkCxxRevisionMacro(vtkTransRectalFiducialCalibrationAlgo, "$Revision: 1.0 $");
 vtkTransRectalFiducialCalibrationAlgo::vtkTransRectalFiducialCalibrationAlgo()
 {
   CalibMarkerPreProcOutput.resize(CALIB_MARKER_COUNT);
-  for (int i=0; i<CALIB_MARKER_COUNT; i++)
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
     {
     CalibMarkerPreProcOutput[i]=vtkImageData::New();
     }
   this->EnableMarkerCenterpointAdjustment=true;
   this->CalibrationData.CalibrationValid=false;
+  this->CalibMarkerPreProcOutputIJKToRAS=vtkMatrix4x4::New();
 }
 
 vtkTransRectalFiducialCalibrationAlgo::~vtkTransRectalFiducialCalibrationAlgo()
 {
-    for (int i=0; i<CALIB_MARKER_COUNT; i++)
+    for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
     {
     if (CalibMarkerPreProcOutput[i]!=0)
       {
       CalibMarkerPreProcOutput[i]->Delete();
       CalibMarkerPreProcOutput[i]=0;
       }
+    }
+    if (this->CalibMarkerPreProcOutputIJKToRAS!=NULL)
+    {
+      this->CalibMarkerPreProcOutputIJKToRAS->Delete();
+      this->CalibMarkerPreProcOutputIJKToRAS=NULL;
     }
 }
 
@@ -96,7 +102,7 @@ void vtkTransRectalFiducialCalibrationAlgo::PrintSelf(ostream& os, vtkIndent ind
 bool vtkTransRectalFiducialCalibrationAlgo::CalibrateFromImage(const TRProstateBiopsyCalibrationFromImageInput &input, TRProstateBiopsyCalibrationFromImageOutput &output)
 { 
   // segement the axis using initial guesses
-  for (int i=0; i<CALIB_MARKER_COUNT; i++)
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
   {
     output.MarkerFound[i]=false;
   }
@@ -109,7 +115,9 @@ bool vtkTransRectalFiducialCalibrationAlgo::CalibrateFromImage(const TRProstateB
     input.MarkerSegmentationThreshold[2], input.MarkerSegmentationThreshold[3], input.MarkerDimensionsMm, input.MarkerRadiusMm, input.RobotInitialAngle,
     P2, v2, output.MarkerPositions[2], output.MarkerPositions[3], output.MarkerFound[2], output.MarkerFound[3], CalibMarkerPreProcOutput[2], CalibMarkerPreProcOutput[3], &CoordinatesVectorAxis2);
 
-  for (int i=0; i<CALIB_MARKER_COUNT; i++)
+  this->CalibMarkerPreProcOutputIJKToRAS->DeepCopy(input.VolumeIJKToRASMatrix);
+
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
   {
     if (!output.MarkerFound[i])
     {      
@@ -201,7 +209,7 @@ void vtkTransRectalFiducialCalibrationAlgo::SegmentAxis(const double initPos1Ras
     return;
   }
 
-  int vecSize = CoordinatesVectorAxis->size(); // :TODO: remove, for debugging only
+  //int vecSize = CoordinatesVectorAxis->size(); // :TODO: remove, for debugging only
 
   // Use CoordVector to find the line 
   for (int i=0; i<3; i++)
@@ -273,11 +281,11 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
       double voiCenter_IJK[4]={0,0,0,1};
       rasToIJK->MultiplyPoint(voiCenter_RAS, voiCenter_IJK);
       for (int i=0; i<3; i++)
-      {
+        {
         // 2*maxFidDimMm to make sure that the whole fiducial fits into the VOI in any orientation
-        voiExtent_IJK[i*2]=voiCenter_IJK[i]-2*fidDimsMm[i]/spacing[i]; 
-        voiExtent_IJK[i*2+1]=voiCenter_IJK[i]+2*fidDimsMm[i]/spacing[i];
-      }
+        voiExtent_IJK[i*2]= (int)(voiCenter_IJK[i]-2*fidDimsMm[i]/spacing[i]); 
+        voiExtent_IJK[i*2+1]= (int)(voiCenter_IJK[i]+2*fidDimsMm[i]/spacing[i]);
+        }
       // Limit VOI to volume extent
       int volumeExtent_IJK[6]={0,0,0,0,0,0};
       calibVol->GetExtent(volumeExtent_IJK);
@@ -430,7 +438,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
     // Output parameters
     // Gobbi: I _always_ call SetOutputOrigin, SetOutputExtent, and SetOutputSpacing
     imageReslicer->SetOutputSpacing(1,1,1); // 1mm if the spacing of the input is correctly set
-    int dispsize = 2.0*16; /// \todo - make the "16" a variable!
+    int dispsize = 2*16; /// \todo - make the "16" a variable!
     imageReslicer->SetOutputOrigin(-(dispsize/2), -(dispsize/2), 0);
     imageReslicer->SetOutputExtent(0,dispsize,0,dispsize,0,0);
     imageReslicer->SetBackgroundColor( range[0], range[0], range[0], range[0] );
@@ -748,7 +756,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::CalculateCircleCenter(vtkImageData *
         f << std::endl;
     } // debug
 */
-    if (max<nVotedNeeded) 
+    if ((int)max<nVotedNeeded) 
         return false;
 
     return true;
@@ -768,7 +776,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::CalculateCircleCenterMean(vtkImageDa
     
 
     // convert mm to pixel
-    double r = nRadiusMm/fabs(spacing[0]);
+    //double r = nRadiusMm/fabs(spacing[0]);
 
     // Calculate width & height
     int *extent = planeImageData->GetWholeExtent();
@@ -1059,7 +1067,7 @@ void vtkTransRectalFiducialCalibrationAlgo::Linefinder(double P_[3], double v_[3
     }
     */
     double curVal[3];
-    for (int k = 0; k<CoordVector.size(); k++)
+    for (int k = 0; k<(int)CoordVector.size(); k++)
     {
       curVal[0] = CoordVector[k][0];
       curVal[1] = CoordVector[k][1];
@@ -1214,7 +1222,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     /// \todo Pipe from H_afterLps (along to v_needle traj.) ending "Overshoot" mm after the target
     // T[?]+overshoot*v_needle[?]
 
-    double mNorm = vtkMath::Normalize(v_needle);
+    vtkMath::Normalize(v_needle);
 
     // Needle Angle: fix it!
     double needle_angle = acos( 1.0 * vtkMath::Dot(v_needle,v1) );
@@ -1355,13 +1363,20 @@ vtkImageData* vtkTransRectalFiducialCalibrationAlgo::GetCalibMarkerPreProcOutput
 }
 
 //----------------------------------------------------------------------------
+vtkMatrix4x4* vtkTransRectalFiducialCalibrationAlgo::GetCalibMarkerPreProcOutputIJKToRAS()
+{
+  return this->CalibMarkerPreProcOutputIJKToRAS;
+}
+
+//----------------------------------------------------------------------------
 void vtkTransRectalFiducialCalibrationAlgo::GetAxisCenterpoints(vtkPoints *points, int i)
 {
   if (points==NULL)
-  {
+    {
     // TODO: log error
+    vtkErrorMacro("GetAxisCenterpoints: points are null");
     return;
-  }
+    }
 
   std::vector<PointType> *coords;
   if (i==0)
@@ -1372,6 +1387,12 @@ void vtkTransRectalFiducialCalibrationAlgo::GetAxisCenterpoints(vtkPoints *point
   {
     coords=&CoordinatesVectorAxis2;
   }
+  else
+    {
+    // i is out of valid range, return
+    vtkErrorMacro("GetAxisCenterpoints: i " << i << " is out of range 0-1");
+    return;
+    }
   std::vector<PointType>::iterator it = coords->begin();
   int insertPos=points->GetNumberOfPoints();
   while (it != coords->end()) 
@@ -1426,9 +1447,11 @@ void vtkTransRectalFiducialCalibrationAlgo::CropWithCylinder(vtkImageData* outpu
           distFromLine=vtkMath::Norm(w);
         }
         if (distFromLine>radiusMm*MAX_RADIUS_TOLERANCE)
-        {
-          output->SetScalarComponentFromFloat(coord_IJK[0],coord_IJK[1],coord_IJK[2],0,0);
-        }
+          {
+          output->SetScalarComponentFromFloat((int)coord_IJK[0],
+                                              (int)coord_IJK[1],
+                                              (int)coord_IJK[2],0,0.0);
+          }
       }
     }
   }

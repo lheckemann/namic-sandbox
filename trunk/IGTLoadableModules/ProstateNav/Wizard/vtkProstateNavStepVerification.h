@@ -45,6 +45,7 @@ public:
 
   virtual void ShowUserInterface();
   virtual void HideUserInterface();
+  virtual void TearDownGUI();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
 
@@ -101,7 +102,12 @@ protected:
   // VerificationPointListNode is used for displaying two fiducial points that defines a needle trajectory
   vtkMRMLFiducialListNode* VerificationPointListNode;
 
-  int TargetIndexUnderVerification; // if <0 it means that there no target is under verification
+  // If TargetIndexUnderVerification<0 it means that there no target is under verification.
+  int TargetIndexUnderVerification;
+  
+  // If MonitorFiducialNodes is true, then after changing/adding fiducials the verification results are update.
+  // It is normally true, except when we want to reload old verification results.
+  bool MonitorFiducialNodes; 
 
 private:
   vtkProstateNavStepVerification(const vtkProstateNavStepVerification&);

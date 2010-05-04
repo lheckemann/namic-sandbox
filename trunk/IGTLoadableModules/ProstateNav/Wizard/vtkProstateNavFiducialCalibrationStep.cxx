@@ -36,18 +36,6 @@
 #include "vtkImageChangeInformation.h"
 
 
-#include "vtkVolumeTextureMapper3D.h"
-#include "vtkPiecewiseFunction.h"
-#include "vtkFixedPointVolumeRayCastMapper.h"
-#include "vtkVolumeProperty.h"
-#include "vtkColorTransferFunction.h"
-#include "vtkPointData.h"
-#include "vtkAppendPolyData.h"
-#include "vtkActor.h"
-#include "vtkSphereSource.h"
-#include "vtkGlyph3D.h"
-#include "vtkPoints.h"
-
 #include "vtkMRMLTransRectalProstateRobotNode.h"
 
 #include <vtksys/ios/sstream>
@@ -62,9 +50,9 @@ vtkCxxRevisionMacro(vtkProstateNavFiducialCalibrationStep, "$Revision: 1.1 $");
 vtkProstateNavFiducialCalibrationStep::vtkProstateNavFiducialCalibrationStep()
 {
   this->SetTitle("Calibration");
-  this->SetDescription("Select a calibration volume and click on the calibration markers in the image.");
+  this->SetDescription("Load calibration image and click on the markers.");
 
-  this->CalibrationPointListNode=vtkSmartPointer<vtkMRMLFiducialListNode>::New();;
+  this->CalibrationPointListNode=vtkSmartPointer<vtkMRMLFiducialListNode>::New();
   this->CalibrationPointListNode->SetName("CalibrationMarkers");
 
   this->LoadVolumeDialogFrame=vtkSmartPointer<vtkKWFrame>::New();
@@ -80,7 +68,7 @@ vtkProstateNavFiducialCalibrationStep::vtkProstateNavFiducialCalibrationStep()
   this->FiducialWidthSpinBox=vtkSmartPointer<vtkKWSpinBoxWithLabel>::New();
   this->FiducialHeightSpinBox=vtkSmartPointer<vtkKWSpinBoxWithLabel>::New();
   this->FiducialDepthSpinBox=vtkSmartPointer<vtkKWSpinBoxWithLabel>::New();  
-  for (int i = 0; i < CALIB_MARKER_COUNT; i++)
+  for (unsigned int i = 0; i < CALIB_MARKER_COUNT; i++)
     {
     this->FiducialThresholdScale[i]=vtkSmartPointer<vtkKWScaleWithEntry>::New();
     this->JumpToFiducialButton[i]=vtkSmartPointer<vtkKWPushButton>::New();
@@ -91,14 +79,8 @@ vtkProstateNavFiducialCalibrationStep::vtkProstateNavFiducialCalibrationStep()
   this->InitialAngleSpinBox=vtkSmartPointer<vtkKWSpinBoxWithLabel>::New();
   this->SegmentationResultsFrame=vtkSmartPointer<vtkKWFrameWithLabel>::New();
   this->CalibrationResultsBox=vtkSmartPointer<vtkKWTextWithScrollbars>::New();
-  this->Axes1Actor=vtkSmartPointer<vtkActor>::New();
-  this->Axes2Actor=vtkSmartPointer<vtkActor>::New();
-
-  this->AxesCenterPointsActor=vtkSmartPointer<vtkActor>::New();
 
   this->ProcessingCallback = false;
-
-  CalibPointPreProcRendererList.resize(CALIB_MARKER_COUNT);
 
   this->ObservedRobot=NULL;
   
@@ -108,6 +90,7 @@ vtkProstateNavFiducialCalibrationStep::vtkProstateNavFiducialCalibrationStep()
 //----------------------------------------------------------------------------
 vtkProstateNavFiducialCalibrationStep::~vtkProstateNavFiducialCalibrationStep()
 {
+  this->CalibrationPointListNode->SetAndObserveTransformNodeID(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -267,7 +250,7 @@ void vtkProstateNavFiducialCalibrationStep::ShowFiducialSegmentParamsControls()
   //this->Script("pack %s -side top -anchor w -padx 2 -pady 2", this->RadiusSpinBox->GetWidgetName());
   this->Script("grid %s -row 1 -column 0 -columnspan 2 -padx 2 -pady 2", this->RadiusSpinBox->GetWidgetName());
 
-  for (int i = 0; i < CALIB_MARKER_COUNT; i++)
+  for (unsigned int i = 0; i < CALIB_MARKER_COUNT; i++)
     {
       {
         std::ostrstream ospack;
@@ -452,15 +435,11 @@ void vtkProstateNavFiducialCalibrationStep::ShowUserInterface()
   }
 
   vtkMRMLScene* scene=NULL;
-  if (this->GetLogic())
+  if (this->GetLogic()
+    && this->GetLogic()->GetApplicationLogic()
+    && this->GetLogic()->GetApplicationLogic()->GetMRMLScene())
   {
-    if (this->GetLogic()->GetApplicationLogic())
-    {
-      if (this->GetLogic()->GetApplicationLogic()->GetMRMLScene())
-      {
-        scene=this->GetLogic()->GetApplicationLogic()->GetMRMLScene();
-      }
-    }
+    scene=this->GetLogic()->GetApplicationLogic()->GetMRMLScene();
   }
   if (scene!=NULL)
   {
@@ -468,8 +447,13 @@ void vtkProstateNavFiducialCalibrationStep::ShowUserInterface()
     {
       scene->AddNode(this->CalibrationPointListNode);
     }
+    vtkMRMLScalarVolumeNode *calVolNode=vtkMRMLScalarVolumeNode::SafeDownCast(scene->GetNodeByID(manager->GetCalibrationVolumeNodeID()));    
+    if (calVolNode!=NULL)
+    {
+      this->CalibrationPointListNode->SetAndObserveTransformNodeID(calVolNode->GetTransformNodeID());
+    }
   }
-
+   
   // update calibration marker positions from fiducials (needed for testing&debugging)
   vtkMRMLTransRectalProstateRobotNode* robot= GetRobot();
   if(robot==NULL)
@@ -478,14 +462,14 @@ void vtkProstateNavFiducialCalibrationStep::ShowUserInterface()
   }
   else
   {
-    int fidCount=this->CalibrationPointListNode->GetNumberOfFiducials();
-    for (int i=0; i<CALIB_MARKER_COUNT && i<fidCount; i++)
+    unsigned int fidCount=this->CalibrationPointListNode->GetNumberOfFiducials();
+    for (unsigned int i=0; i<CALIB_MARKER_COUNT && i<fidCount; i++)
     {
       float* rasPoint=this->CalibrationPointListNode->GetNthFiducialXYZ(i);
       double rasPointDouble[3]={rasPoint[0], rasPoint[1], rasPoint[2]};
       robot->SetCalibrationMarker(i, rasPointDouble);
     }
-    if (this->CalibrationPointListNode->GetNumberOfFiducials()>=CALIB_MARKER_COUNT)
+    if (this->CalibrationPointListNode->GetNumberOfFiducials()>=(int)CALIB_MARKER_COUNT)
     {
       //Resegment(); no need to resegment, as the node modified event will trigger UpdateCalibration();
     }
@@ -500,13 +484,21 @@ void vtkProstateNavFiducialCalibrationStep::HideUserInterface()
 {
   this->Superclass::HideUserInterface();
 
+  vtkMRMLTransRectalProstateRobotNode* robot= GetRobot();
+  if(robot!=NULL)
+  {
+    robot->SetModelAxesVisible(false);
+  }
+
+  TearDownGUI();
+}
+
+//----------------------------------------------------------------------------------------
+void vtkProstateNavFiducialCalibrationStep::TearDownGUI()
+{
   RemoveMRMLObservers();
   RemoveGUIObservers();
   
-  ClearMarkerVolumesIn3DView();
-  ClearAxesIn3DView();
-
-  // it is useful for testing to access the fiducials (to set a position manually, etc.)
   vtkMRMLScene* scene=NULL;
   if (this->GetLogic())
   {
@@ -521,10 +513,11 @@ void vtkProstateNavFiducialCalibrationStep::HideUserInterface()
   if (scene!=NULL)
   {
     scene->RemoveNode(this->CalibrationPointListNode);
-    this->CalibrationPointListNode->SetScene(NULL);
+    this->CalibrationPointListNode->SetScene(NULL);    
   }  
-
+  this->CalibrationPointListNode->SetAndObserveTransformNodeID(NULL);
 }
+
 
 //----------------------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::PopulateCalibrationResults()
@@ -550,7 +543,7 @@ void vtkProstateNavFiducialCalibrationStep::PopulateCalibrationResults()
     os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(2);
 
     int modifyOld=this->CalibrationPointListNode->StartModify();  
-    for (int i=0; i<CALIB_MARKER_COUNT; i++)
+    for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
     {
       double r, a, s;
       bool valid;
@@ -560,7 +553,7 @@ void vtkProstateNavFiducialCalibrationStep::PopulateCalibrationResults()
         os << std::endl << "  Marker "<<i+1<<": R="<<r<<" A="<<a<<" S="<<s;
       }
 
-      if (this->CalibrationPointListNode->GetNumberOfFiducials()<i+1)
+      if (this->CalibrationPointListNode->GetNumberOfFiducials()<(int)i+1)
       {    
         this->CalibrationPointListNode->AddFiducialWithLabelXYZSelectedVisibility(MARKER_LABEL_NAMES[i],r,a,s,true,true);
       }
@@ -598,7 +591,7 @@ void vtkProstateNavFiducialCalibrationStep::AddGUIObservers()
   this->ResegmentButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->LoadCalibrationVolumeButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->VolumeSelectorWidget->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );  
-  for (int i=0; i<CALIB_MARKER_COUNT; i++)
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
   {
     this->JumpToFiducialButton[i]->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   }
@@ -612,7 +605,7 @@ void vtkProstateNavFiducialCalibrationStep::RemoveGUIObservers()
   this->ResegmentButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->LoadCalibrationVolumeButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->VolumeSelectorWidget->RemoveObservers ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent,  (vtkCommand *)this->GUICallbackCommand );
-  for (int i=0; i<CALIB_MARKER_COUNT; i++)
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
   {
     this->JumpToFiducialButton[i]->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   }
@@ -711,7 +704,7 @@ void vtkProstateNavFiducialCalibrationStep::ProcessGUIEvents(vtkObject *caller,
     this->Resegment();
     }  
 
-  for (int i=0; i<CALIB_MARKER_COUNT; i++)
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
   {
     if (this->JumpToFiducialButton[i] && this->JumpToFiducialButton[i] == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
     {
@@ -727,6 +720,23 @@ void vtkProstateNavFiducialCalibrationStep::ProcessGUIEvents(vtkObject *caller,
     {
       this->GetGUI()->GetLogic()->SelectVolumeInScene(volume, VOL_CALIBRATION);
       this->EditMarkerPositionButton->SetSelectedState(1);
+
+      // Update the fiducials to use the same transform 
+      vtkMRMLScene* scene=NULL;
+      if (this->GetLogic()
+        && this->GetLogic()->GetApplicationLogic()
+        && this->GetLogic()->GetApplicationLogic()->GetMRMLScene())
+      {
+        scene=this->GetLogic()->GetApplicationLogic()->GetMRMLScene();
+      }
+      if (scene!=NULL)
+      {
+        vtkMRMLScalarVolumeNode *calVolNode=vtkMRMLScalarVolumeNode::SafeDownCast(scene->GetNodeByID(mrmlNode->GetCalibrationVolumeNodeID()));    
+        if (calVolNode!=NULL)
+        {
+          this->CalibrationPointListNode->SetAndObserveTransformNodeID(calVolNode->GetTransformNodeID());
+        }
+      }
     }
   }
 }
@@ -743,9 +753,6 @@ void vtkProstateNavFiducialCalibrationStep::Reset()
 
   this->CalibrationPointListNode->RemoveAllFiducials();
 
-  ClearAxesIn3DView();
-  ClearMarkerVolumesIn3DView();
-
   const TRProstateBiopsyCalibrationData calibData=robot->GetCalibrationData();
   TRProstateBiopsyCalibrationData calibdataInvalidated=calibData;
   calibdataInvalidated.CalibrationValid=false;
@@ -753,6 +760,8 @@ void vtkProstateNavFiducialCalibrationStep::Reset()
 
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   wizard_widget->SetErrorText("");
+
+  PopulateCalibrationResults();
 }
 //-----------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::Resegment()
@@ -775,7 +784,7 @@ void vtkProstateNavFiducialCalibrationStep::Resegment()
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   std::ostrstream os;
 
-  if (this->CalibrationPointListNode->GetNumberOfFiducials()<CALIB_MARKER_COUNT)
+  if (this->CalibrationPointListNode->GetNumberOfFiducials()<(int)CALIB_MARKER_COUNT)
   {
     os << "Please define all calibration markers." << std::ends;
     wizard_widget->SetErrorText(os.str());
@@ -791,8 +800,7 @@ void vtkProstateNavFiducialCalibrationStep::Resegment()
 
   // gather information about thresholds
   double thresh[CALIB_MARKER_COUNT];
-  int i=0;
-  for (i=0 ; i<CALIB_MARKER_COUNT; i++)
+  for (unsigned int i=0 ; i<CALIB_MARKER_COUNT; i++)
   {
     thresh[i] = this->FiducialThresholdScale[i]->GetValue();
   }
@@ -812,7 +820,7 @@ void vtkProstateNavFiducialCalibrationStep::Resegment()
   initialAngle = this->InitialAngleSpinBox->GetWidget()->GetValue();
 
   // start the segmentation/registration
-  bool found[CALIB_MARKER_COUNT]={false, false, false, false};
+  //bool found[CALIB_MARKER_COUNT]={false, false, false, false};
   std::string calibResultDetails;
 
   const char* calVolNodeID = mrmlNode->GetCalibrationVolumeNodeID();
@@ -823,19 +831,11 @@ void vtkProstateNavFiducialCalibrationStep::Resegment()
   wizard_widget->SetErrorText(calibResultDetails.c_str());
   wizard_widget->Update();
  
-  i=0;
-  for (std::vector<CalibPointRenderer>::iterator it=CalibPointPreProcRendererList.begin(); it!=CalibPointPreProcRendererList.end(); ++it)
-  {
-      it->Update(GetMainViewerWidget()->GetMainViewer(), calVolNode, robot->GetCalibMarkerPreProcOutput(i));
-      ++i;  
-  }
-
   ShowMarkerVolumesIn3DView(true);
 
   if (calibResult==true)
   {
     // calibration successful  
-    this->UpdateAxesIn3DView();
     this->ShowAxesIn3DView(true);
   }
   else
@@ -852,269 +852,18 @@ void vtkProstateNavFiducialCalibrationStep::Resegment()
 }
 
 //--------------------------------------------------------------------------------
-void vtkProstateNavFiducialCalibrationStep::UpdateAxesIn3DView()
-{
-  ClearAxesIn3DView();
-
-  vtkMRMLTransRectalProstateRobotNode* robot=GetRobot();
-  if (robot==NULL)
-  {
-    return;
-  }
-
-  const TRProstateBiopsyCalibrationData calibData=robot->GetCalibrationData();
-  if (!calibData.CalibrationValid)
-  {
-    return;
-  }
-
-  // form the axis 1 line
-  // set up the line actors
-  vtkSmartPointer<vtkLineSource> axis1Line = vtkSmartPointer<vtkLineSource>::New();  
-  axis1Line->SetResolution(100); 
-  
-  double needle1[3];
-  double needle2[3];
-  for (int i=0; i<3; i++)
-  {
-    needle1[i]=calibData.I2[i]-100*calibData.v2[i];
-    needle2[i]=calibData.I2[i]+200*calibData.v2[i];
-  }
-
-  axis1Line->SetPoint1(needle1);
-  axis1Line->SetPoint2(needle2);
-
-  axis1Line->Update();
-      
-  vtkSmartPointer<vtkPolyDataMapper> axis1Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();  
-  axis1Mapper->SetInputConnection(axis1Line->GetOutputPort());
-  this->Axes1Actor->SetMapper(axis1Mapper);  
-  this->Axes1Actor->SetVisibility(true);
-  GetMainViewerWidget()->GetMainViewer()->AddViewProp(this->Axes1Actor);
-
-  // 2nd axis line
-  /*
-  // start point as marker 4 coordinate
-  double marker4RAS[3];
-  robot->GetCalibrationMarker(3, marker4RAS[0], marker4RAS[1], marker4RAS[2]);
-
-  // end point as overshot marker 3 coordinate
-  double marker3RAS[3];
-  robot->GetCalibrationMarker(2, marker3RAS[0], marker3RAS[1], marker3RAS[2]);
-
-  double axis2Vector[3];
-  axis2Vector[0] = marker3RAS[0] - marker4RAS[0];
-  axis2Vector[1] = marker3RAS[1] - marker4RAS[1];
-  axis2Vector[2] = marker3RAS[2] - marker4RAS[2];
-  vtkMath::Normalize(axis2Vector);
-
-  double overshoot = 100;
-
-  double axis2EndRAS[3];
-  axis2EndRAS[0] = marker3RAS[0] + overshoot*axis2Vector[0];
-  axis2EndRAS[1] = marker3RAS[1] + overshoot*axis2Vector[1];
-  axis2EndRAS[2] = marker3RAS[2] + overshoot*axis2Vector[2];
-  */
-  // form the axis 2 line
-  // set up the line actors
-  vtkSmartPointer<vtkLineSource> axis2Line = vtkSmartPointer<vtkLineSource>::New();  
-  axis2Line->SetResolution(100); 
-
-  double robotaxis1[3];
-  double robotaxis2[3];
-  for (int i=0; i<3; i++)
-  {
-    robotaxis1[i]=calibData.I1[i]-100*calibData.v1[i];
-    robotaxis2[i]=calibData.I1[i]+200*calibData.v1[i];
-  }
-
-  axis2Line->SetPoint1(robotaxis1);
-  axis2Line->SetPoint2(robotaxis2);
-
-  axis2Line->Update();
-      
-  vtkSmartPointer<vtkPolyDataMapper> axis2Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();  
-  axis2Mapper->SetInputConnection(axis2Line->GetOutputPort());
-  this->Axes2Actor->SetMapper(axis2Mapper);  
-  this->Axes2Actor->SetVisibility(true);
-  GetMainViewerWidget()->GetMainViewer()->AddViewProp(this->Axes2Actor);
-
-
-  vtkPoints *points = vtkPoints::New();
-  robot->GetCalibrationAxisCenterpoints(points,0);
-  robot->GetCalibrationAxisCenterpoints(points,1);
-
-  vtkPolyData *pointspoly = vtkPolyData::New();
-  pointspoly->SetPoints(points);
-  
-  vtkSphereSource *glyph = vtkSphereSource::New();
-  vtkGlyph3D *glypher = vtkGlyph3D::New();
-  glypher->SetInput(pointspoly);
-  glypher->SetSourceConnection(glyph->GetOutputPort());
-  glypher->SetScaleFactor(0.25);
-
-  vtkPolyDataMapper *pointsMapper = vtkPolyDataMapper::New();
-  pointsMapper->SetInputConnection(glypher->GetOutputPort());
-  
-  this->AxesCenterPointsActor->SetMapper(pointsMapper);
-  
-  GetMainViewerWidget()->GetMainViewer()->AddViewProp(this->AxesCenterPointsActor);
-
-
-  GetMainViewerWidget()->GetMainViewer()->Render();
-}
-
-//--------------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::ShowAxesIn3DView(bool show)
 {
-  this->Axes1Actor->SetVisibility(show);
-  this->Axes2Actor->SetVisibility(show);
-  GetMainViewerWidget()->GetMainViewer()->Render();
+  vtkMRMLTransRectalProstateRobotNode* robot = GetRobot();    
+  if (robot)
+  {
+    robot->SetModelAxesVisible(show);
+  }
 }
-//--------------------------------------------------------------------------------
-void vtkProstateNavFiducialCalibrationStep::ClearAxesIn3DView()
+
+void vtkProstateNavFiducialCalibrationStep::ShowMarkerVolumesIn3DView(bool /*show*/)
 {
-  GetMainViewerWidget()->GetMainViewer()->RemoveViewProp(this->Axes1Actor);
-  GetMainViewerWidget()->GetMainViewer()->RemoveViewProp(this->Axes2Actor);
-  GetMainViewerWidget()->GetMainViewer()->RemoveViewProp(this->AxesCenterPointsActor);
-}
-//-------------------------------------------------------------------------------
-CalibPointRenderer::CalibPointRenderer()
-{
-  this->Renderer = NULL;
-  this->Render_Image = NULL;
-  this->Render_Mapper = NULL;
-  this->Render_VolumeProperty = NULL;
-  this->Render_Volume = NULL;
-}
-
-CalibPointRenderer::~CalibPointRenderer()
-{
-  Reset();
-}
-
-void CalibPointRenderer::Reset()
-{
-  if (this->Renderer!=NULL && this->Render_Volume!=NULL)
-  {
-    if (this->Render_Volume->GetReferenceCount()>1)
-    {
-      // the object is still in the renderer, remove it now
-      this->Renderer->RemoveViewProp(this->Render_Volume);
-    }
-    this->Renderer=NULL;
-  }
-  if (this->Render_Volume) 
-  {
-    this->Render_Volume->Delete();
-    this->Render_Volume = NULL; 
-  }
-  if (this->Render_Mapper) 
-  {
-    this->Render_Mapper->Delete();
-    this->Render_Mapper = NULL;
-  }
-  if (this->Render_VolumeProperty) 
-  {
-    this->Render_VolumeProperty->Delete();
-    this->Render_VolumeProperty = NULL;
-  }
-  this->Render_Image = NULL;
-}
-
-vtkVolume* CalibPointRenderer::GetVolume() 
-{
-  return this->Render_Volume;
-}
-
-void CalibPointRenderer::Update(vtkKWRenderWidget *renderer, vtkMRMLVolumeNode *volumeNode, vtkImageData *imagedata)
-{ 
-  if (this->Render_Volume==NULL)
-  {
-    this->Render_Volume = vtkVolume::New();
-
-    //this->Render_Mapper = vtkFixedPointVolumeRayCastMapper::New(); // it may be needed if the software is used on an ancient graphics card
-    this->Render_Mapper = vtkVolumeTextureMapper3D::New();
-
-    this->Render_Volume->SetMapper(this->Render_Mapper);
-
-    this->Render_VolumeProperty = vtkVolumeProperty::New();
-    this->Render_VolumeProperty->SetShade(1);
-    this->Render_VolumeProperty->SetAmbient(0.3);
-    this->Render_VolumeProperty->SetDiffuse(0.6);
-    this->Render_VolumeProperty->SetSpecular(0.5);
-    this->Render_VolumeProperty->SetSpecularPower(40.0);
-    this->Render_VolumeProperty->SetInterpolationTypeToLinear();
-    this->Render_VolumeProperty->ShadeOn();
-    
-    this->Render_Volume->SetProperty(this->Render_VolumeProperty);
-  }
-
-  if (renderer!=this->Renderer)
-  {
-    if (this->Renderer!=0)
-    {
-       this->Renderer->RemoveViewProp(this->Render_Volume);
-       this->Renderer=0;
-    }
-    if (renderer!=0)
-    {
-      // assigne to a different renderer
-      int rfbef=this->Render_Volume->GetReferenceCount();
-      renderer->AddViewProp(this->Render_Volume);    
-      int rfaft=this->Render_Volume->GetReferenceCount();
-      this->Renderer=renderer;
-    }
-  }
-
-  if (volumeNode!=0 && imagedata!=0)
-  {
-    double* imgIntensityRange = imagedata->GetPointData()->GetScalars()->GetRange();
-    double imgIntensityUnit = (imgIntensityRange[1]-imgIntensityRange[0])* 0.01; // 1 unit is 1 percent of the intensity range    
-
-    double opacity=0.2;
-    vtkSmartPointer<vtkPiecewiseFunction> scalarOpacityTransferFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();  
-    scalarOpacityTransferFunction->AddPoint(imgIntensityRange[0], 0.0);
-    scalarOpacityTransferFunction->AddPoint(imgIntensityRange[0]+1*imgIntensityUnit, 0.0);
-    scalarOpacityTransferFunction->AddPoint(imgIntensityRange[0]+5*imgIntensityUnit, opacity);
-    scalarOpacityTransferFunction->AddPoint(imgIntensityRange[1], opacity);
-
-    vtkSmartPointer<vtkColorTransferFunction> colorTransferFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
-    colorTransferFunction->AddRGBPoint(imgIntensityRange[0], 0.8, 0.8, 0);
-    colorTransferFunction->AddRGBPoint(imgIntensityRange[1], 0.8, 0.8, 0);
-
-    this->Render_VolumeProperty->SetScalarOpacity(scalarOpacityTransferFunction);
-    this->Render_VolumeProperty->SetColor(colorTransferFunction);
-   
-    vtkSmartPointer<vtkMatrix4x4> orientationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();  
-    volumeNode->GetIJKToRASMatrix(orientationMatrix);
-    this->Render_Volume->PokeMatrix(orientationMatrix);
-
-    this->Render_Image = imagedata;
-    this->Render_Mapper->SetInput(this->Render_Image);
-  }
-}
-
-void vtkProstateNavFiducialCalibrationStep::ShowMarkerVolumesIn3DView(bool show)
-{
-  for (std::vector<CalibPointRenderer>::iterator it=CalibPointPreProcRendererList.begin(); it!=CalibPointPreProcRendererList.end(); ++it)
-  {
-    vtkVolume *vol=it->GetVolume();
-    if (vol!=0)
-    {
-      vol->SetVisibility(show);
-    }
-  }
-  GetMainViewerWidget()->RequestRender();
-}
-
-void vtkProstateNavFiducialCalibrationStep::ClearMarkerVolumesIn3DView()
-{
-  for (std::vector<CalibPointRenderer>::iterator it=CalibPointPreProcRendererList.begin(); it!=CalibPointPreProcRendererList.end(); ++it)
-  {
-    it->Reset();
-  }
-  GetMainViewerWidget()->RequestRender();
+  // :TODO: implement if needed (currently they are always shown)
 }
 
 vtkMRMLTransRectalProstateRobotNode* vtkProstateNavFiducialCalibrationStep::GetRobot()
@@ -1147,6 +896,17 @@ void vtkProstateNavFiducialCalibrationStep::ProcessMRMLEvents(vtkObject *caller,
     }
   }
 
+  if ( vtkMRMLScene::SafeDownCast(caller) == this->MRMLScene 
+    && event == vtkMRMLScene::NodeAddedEvent )
+    {
+    vtkMRMLScalarVolumeNode *volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast((vtkMRMLNode*)(callData));
+    if (volumeNode!=NULL && this->VolumeSelectorWidget!=NULL && volumeNode!=this->VolumeSelectorWidget->GetSelected() )
+      {
+      // a new volume is loaded, set as the current calibration volume
+      this->VolumeSelectorWidget->SetSelected(volumeNode);
+      }
+    }
+
   vtkMRMLTransRectalProstateRobotNode *robot = vtkMRMLTransRectalProstateRobotNode::SafeDownCast(caller);
   if (robot!=NULL && robot == GetRobot() && event == vtkCommand::ModifiedEvent)
     {
@@ -1178,20 +938,27 @@ void vtkProstateNavFiducialCalibrationStep::AddMRMLObservers()
       this->ObservedRobot = NULL;
     }    
   }
+
+  if (this->MRMLScene!=NULL)
+  {
+    this->MRMLScene->AddObserver(vtkMRMLScene::NodeAddedEvent, this->MRMLCallbackCommand);
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::RemoveMRMLObservers()
 {
   this->CalibrationPointListNode->RemoveObserver(this->MRMLCallbackCommand);
-
   if (this->ObservedRobot!=NULL)
   {       
     this->ObservedRobot->RemoveObserver(this->MRMLCallbackCommand);
     this->ObservedRobot->UnRegister(this);
     this->ObservedRobot = NULL;    
   }
-
+  if (this->MRMLScene!=NULL)
+  {
+    this->MRMLScene->RemoveObservers(vtkMRMLScene::NodeAddedEvent, this->MRMLCallbackCommand);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -1208,7 +975,7 @@ void vtkProstateNavFiducialCalibrationStep::EnableMarkerPositionEdit(bool enable
   {
     // Set fiducial placement mode
     GetLogic()->SetCurrentFiducialList(this->CalibrationPointListNode);
-    if (this->CalibrationPointListNode->GetNumberOfFiducials()<CALIB_MARKER_COUNT)
+    if (this->CalibrationPointListNode->GetNumberOfFiducials()<(int)CALIB_MARKER_COUNT)
     {
       GetLogic()->SetMouseInteractionMode(vtkMRMLInteractionNode::Place); 
     }
@@ -1260,7 +1027,7 @@ void vtkProstateNavFiducialCalibrationStep::UpdateCalibration()
   // Update marker positioning mode (as new points are added the mode should be changed from "place new points" to "edit points"
   EnableMarkerPositionEdit(this->EditMarkerPositionButton->GetSelectedState() == 1);
 
-  if (this->CalibrationPointListNode->GetNumberOfFiducials()<CALIB_MARKER_COUNT)
+  if (this->CalibrationPointListNode->GetNumberOfFiducials()<(int)CALIB_MARKER_COUNT)
   {
     // not enough fiducials to compute result
     return;
@@ -1277,7 +1044,7 @@ void vtkProstateNavFiducialCalibrationStep::JumpToFiducial(unsigned int fid1Inde
     return;
   }
 
-  if (fid1Index>=this->CalibrationPointListNode->GetNumberOfFiducials())
+  if ((int)fid1Index>=this->CalibrationPointListNode->GetNumberOfFiducials())
   {
     vtkErrorMacro("Fiducial is not defined yet "<<fid1Index);
     return;

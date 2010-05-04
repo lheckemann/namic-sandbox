@@ -30,7 +30,7 @@ class vtkPoints;
 #include <vector>
 #include "itkPoint.h"
 
-const int CALIB_MARKER_COUNT=4;
+const unsigned int CALIB_MARKER_COUNT=4;
 
 //BTX
 struct TRProstateBiopsyCalibrationFromImageInput
@@ -86,6 +86,7 @@ public:
   bool FindTargetingParams(vtkProstateNavTargetDescriptor *target);
 
   vtkImageData *GetCalibMarkerPreProcOutput(int i);
+  vtkMatrix4x4* GetCalibMarkerPreProcOutputIJKToRAS();
   void GetAxisCenterpoints(vtkPoints *points, int i);
 
   const TRProstateBiopsyCalibrationData& GetCalibrationData() { return this->CalibrationData; }
@@ -130,6 +131,7 @@ protected:
   std::vector<PointType> CoordinatesVectorAxis1;
   std::vector<PointType> CoordinatesVectorAxis2;
   std::vector<vtkImageData*> CalibMarkerPreProcOutput;
+  vtkMatrix4x4* CalibMarkerPreProcOutputIJKToRAS;
   //ETX
 
   TRProstateBiopsyCalibrationData CalibrationData;
