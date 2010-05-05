@@ -122,7 +122,7 @@ QuadEdgeMeshBoundarySmoothFilter< TInputMesh, TOutputMesh >::
 GenerateData( )
 {
   this->CopyInputMeshesToOutputMeshes();
-  int NumberOfCellsInput, NumberOfCellstmp;
+  unsigned long NumberOfCellsInput, NumberOfCellstmp;
   
   NumberOfCellsInput = this->GetInputMesh1()->GetNumberOfCells()
         + this->GetInputMesh2()->GetNumberOfCells();
@@ -133,7 +133,7 @@ GenerateData( )
   
   for (int Iter_i = 0; Iter_i < m_Iterations; Iter_i ++)
   {
-    int num1 = this->DeleteAndAdd(mesh1,mesh2);
+    int num1 = this->AdjustBoundary(mesh1,mesh2);
     
     //itkDebugMacro("Number of changes: "<<num1);
       
@@ -145,7 +145,7 @@ GenerateData( )
     itkExceptionMacro("Number of cells is changed.");
     }
   
-    int num2 = this->DeleteAndAdd(mesh2,mesh1);
+    int num2 = this->AdjustBoundary(mesh2,mesh1);
   
     //itkDebugMacro("Number of changes: "<<-num2);
     
@@ -170,7 +170,7 @@ GenerateData( )
 template< class TInputMesh, class TOutputMesh >
 int 
 QuadEdgeMeshBoundarySmoothFilter< TInputMesh, TOutputMesh >
-::DeleteAndAdd( OutputMeshType * deleteMesh, OutputMeshType * addMesh)
+::AdjustBoundary( OutputMeshType * deleteMesh, OutputMeshType * addMesh)
 {
   typedef typename itk::QuadEdgeMeshBoundaryEdgesMeshFunction < TOutputMesh > BoundaryFunctionType;
   
@@ -192,7 +192,7 @@ QuadEdgeMeshBoundarySmoothFilter< TInputMesh, TOutputMesh >
   
   std::vector<InputCellIdentifier> teethList;
 
-  for(; it != bdryEdge->EndGeomLnext( ); it++ )
+  while( it != bdryEdge->EndGeomLnext() )
     {
     pId0 = it.Value()->GetOrigin();
     pId1 = it.Value()->GetDestination();
@@ -249,6 +249,7 @@ QuadEdgeMeshBoundarySmoothFilter< TInputMesh, TOutputMesh >
 
       numChange += 1;
       }
+    it++;  
     }
   boundaryList->clear();
   

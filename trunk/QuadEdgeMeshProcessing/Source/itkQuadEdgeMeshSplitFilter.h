@@ -48,7 +48,8 @@ namespace itk
     typedef typename InputCellTraits::PointIdInternalIterator
                                                     InputPointsIdInternalIterator;
 //    typedef typename InputQEPrimal::IteratorGeom    InputQEIterator;
-    
+    typedef std::vector< InputCellIdentifier > SeedVectorType;
+
     typedef QuadEdgeMeshPolygonCell< InputCellType >     InputPolygonType;
     typedef typename InputPolygonType::SelfAutoPointer   InputPolygonAutoPointer;
 
@@ -83,13 +84,18 @@ namespace itk
     typedef typename OutputMeshType::PointsContainerIterator
       OutputPointsContainerIterator;
       
-    typedef QuadEdgeMeshPolygonCell< OutputCellType >     OutputPolygonType;
+    typedef typename QuadEdgeMeshPolygonCell< OutputCellType >     OutputPolygonType;
     typedef typename OutputPolygonType::SelfAutoPointer   OutputPolygonAutoPointer;
     
     
   public:
     itkNewMacro( Self );
     itkTypeMacro( QuadEdgeMeshSplitFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
+
+    void SetSeedFaces( const SeedVectorType& iSeeds )
+      {
+      m_SeedFaces = iSeeds;
+      }
     
   protected:
     QuadEdgeMeshSplitFilter();
@@ -100,6 +106,7 @@ namespace itk
     FaceAreaMapType m_FaceAreaMap;
     PolygonSetType m_Faces;
     PolygonSetType m_ProcessedFaces;
+    SeedVectorType m_SeedFaces;
     
     virtual void GenerateData( );
     OutputPointIdList AddFacePointsToOutputMesh( OutputMeshType* iMesh,

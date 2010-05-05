@@ -139,7 +139,7 @@ namespace itk
     
     void CopyInputMeshesToOutputMeshes();
 
-    int DeleteAndAdd( OutputMeshType * deleteMesh, OutputMeshType * addMesh);
+    int AdjustBoundary( OutputMeshType * deleteMesh, OutputMeshType * addMesh);
 
     virtual void GenerateData( );
 

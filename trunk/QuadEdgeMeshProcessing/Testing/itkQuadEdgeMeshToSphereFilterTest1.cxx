@@ -10,10 +10,11 @@
 
 int main( int argc, char** argv )
 {
-  if( argc != 2 )
+  if( argc != 3 )
     {
-    std::cout <<"It requires 1 arguments" <<std::endl;
+    std::cout <<"It requires 2 arguments" <<std::endl;
     std::cout <<"1-Input FileName" <<std::endl;
+    std::cout <<"1-Output FileName" <<std::endl;
     return EXIT_FAILURE;
     }
     // ** TYPEDEF **
@@ -21,6 +22,8 @@ int main( int argc, char** argv )
 
   typedef itk::QuadEdgeMesh< Coord, 3 >                 MeshType;
   typedef MeshType::Pointer                             MeshPointer;
+  typedef MeshType::CellIdentifier                      CellIdentifier;
+
   typedef itk::VTKPolyDataReader< MeshType >            ReaderType;
   typedef itk::VTKPolyDataWriter< MeshType >            WriterType;
 
@@ -39,6 +42,20 @@ int main( int argc, char** argv )
 
   MeshPointer mesh = reader->GetOutput();
 
+  //choose the seeds to be the first and last cell
+  typedef MeshType::CellsContainerConstPointer CellsContainerConstPointer;
+  CellsContainerConstPointer cells = mesh->GetCells();
+
+  typedef MeshType::CellsContainerConstIterator CellsContainerConstIterator;
+  CellsContainerConstIterator c_It = cells->begin();
+
+  std::vector <CellIdentifier> seedList;
+  seedList.push_back(c_It.Index());
+  c_It = cells->end();
+  --c_It;
+
+  seedList.push_back(c_It.Index());
+
   itk::OnesMatrixCoefficients< MeshType >    coeff0;
 
   typedef VNLIterativeSparseSolverTraits< Coord >  SolverTraits;
@@ -49,11 +66,12 @@ int main( int argc, char** argv )
   FilterType::Pointer filter = FilterType::New();
   filter->SetInput( mesh );
   filter->SetCoefficientsMethod( &coeff0 );
+  filter->SetSeedFaces(seedList);
   filter->Update();
 
   WriterType::Pointer writer = WriterType::New();
   writer->SetInput( filter->GetOutput() );
-  writer->SetFileName( "sphere1.vtk" );
+  writer->SetFileName( argv[2] );
   writer->Update();
 
   return EXIT_SUCCESS;
