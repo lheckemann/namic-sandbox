@@ -58,10 +58,19 @@ vtkMRMLRobotNode::vtkMRMLRobotNode()
 
 //----------------------------------------------------------------------------
 vtkMRMLRobotNode::~vtkMRMLRobotNode()
-{
+{ 
   if (this->TargetTransformNodeID) 
   {
     SetAndObserveTargetTransformNodeID(NULL);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRobotNode::RemoveChildNodes()
+{
+  if (this->TargetTransformNodeID!=NULL && this->GetScene()!=NULL)
+  {
+    this->GetScene()->RemoveNode(this->GetTargetTransformNode());
   }
 }
 
@@ -78,31 +87,13 @@ void vtkMRMLRobotNode::WriteXML(ostream& of, int nIndent)
     {
     of << indent << " TargetTransformNodeRef=\"" << this->TargetTransformNodeID << "\"";
     }
-
-  //switch (this->Type)
-  //  {
-  //  case TYPE_SERVER:
-  //    of << " connectorType=\"" << "SERVER" << "\" ";
-  //    break;
-  //  case TYPE_CLIENT:
-  //    of << " connectorType=\"" << "CLIENT" << "\" ";
-  //    of << " serverHostname=\"" << this->ServerHostname << "\" ";
-  //    break;
-  //  default:
-  //    of << " connectorType=\"" << "NOT_DEFINED" << "\" ";
-  //    break;
-  //  }
-  //
-  //of << " serverPort=\"" << this->ServerPort << "\" ";
-  //of << " restrictDeviceName=\"" << this->RestrictDeviceName << "\" ";
-
 }
 
 
 //----------------------------------------------------------------------------
 void vtkMRMLRobotNode::ReadXMLAttributes(const char** atts)
 {
-  vtkMRMLNode::ReadXMLAttributes(atts);
+  Superclass::ReadXMLAttributes(atts);
 
   // Read all MRML node attributes from two arrays of names and values
   const char* attName;
@@ -116,75 +107,9 @@ void vtkMRMLRobotNode::ReadXMLAttributes(const char** atts)
     if (!strcmp(attName, "TargetTransformNodeRef")) 
       {
       this->SetAndObserveTargetTransformNodeID(attValue);
-      //this->Scene->AddReferencedNodeID(this->TransformNodeID, this);
       }
 
     }
- 
-
-/*  const char* attName;
-  const char* attValue;
-
-  const char* serverHostname = "";
-  int port = 0;
-  int type = -1;
-  int restrictDeviceName = 0;
-*/
-  /*
-  while (*atts != NULL)
-    {
-    attName = *(atts++);
-    attValue = *(atts++);
-
-    if (!strcmp(attName, "connectorType"))
-      {
-      if (!strcmp(attValue, "SERVER"))
-        {
-        type = TYPE_SERVER;
-        }
-      else if (!strcmp(attValue, "CLIENT"))
-        {
-        type = TYPE_CLIENT;
-        }
-      else
-        {
-        type = TYPE_NOT_DEFINED;
-        }
-      }
-    if (!strcmp(attName, "serverHostname"))
-      {
-      serverHostname = attValue;
-      }
-    if (!strcmp(attName, "serverPort"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      ss >> port;
-      }
-    if (!strcmp(attName, "restrictDeviceName"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      ss >> restrictDeviceName;;
-      }
-    }
-
-  switch(type)
-    {
-    case TYPE_SERVER:
-      this->SetTypeServer(port);
-      this->SetRestrictDeviceName(restrictDeviceName);
-      break;
-    case TYPE_CLIENT:
-      this->SetTypeClient(serverHostname, port);
-      this->SetRestrictDeviceName(restrictDeviceName);
-      break;
-    default: // not defined
-      // do nothing
-      break;
-    }
-  */
-
 }
 
 
@@ -196,6 +121,7 @@ void vtkMRMLRobotNode::Copy(vtkMRMLNode *anode)
 
   Superclass::Copy(anode);
   vtkMRMLRobotNode *node = (vtkMRMLRobotNode *) anode;
+  SetAndObserveTargetTransformNodeID(NULL); // remove observers
   this->SetTargetTransformNodeID(node->TargetTransformNodeID);
 
   this->EndModify(disabledModify);
@@ -204,7 +130,7 @@ void vtkMRMLRobotNode::Copy(vtkMRMLNode *anode)
 //-----------------------------------------------------------
 void vtkMRMLRobotNode::UpdateReferences()
 {
-   Superclass::UpdateReferences();
+  Superclass::UpdateReferences();
 
   if (this->TargetTransformNodeID != NULL && this->Scene->GetNodeByID(this->TargetTransformNodeID) == NULL)
     {
@@ -226,7 +152,7 @@ void vtkMRMLRobotNode::UpdateReferenceID(const char *oldID, const char *newID)
 void vtkMRMLRobotNode::UpdateScene(vtkMRMLScene *scene)
 {
    Superclass::UpdateScene(scene);
-   this->SetAndObserveTargetTransformNodeID(this->GetTargetTransformNodeID());
+   this->SetAndObserveTargetTransformNodeID(this->TargetTransformNodeID);
 }
 
 //-----------------------------------------------------------
@@ -284,7 +210,6 @@ int vtkMRMLRobotNode::Init(vtkSlicerApplication* app)
 
     vtkSmartPointer<vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
     transform->Identity();
-    //transformNode->SetAndObserveImageData(transform);
     tnode->ApplyTransform(transform);
     tnode->SetScene(this->GetScene());
 

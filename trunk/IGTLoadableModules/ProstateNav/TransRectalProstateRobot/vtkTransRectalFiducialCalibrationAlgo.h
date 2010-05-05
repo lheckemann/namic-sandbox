@@ -45,12 +45,6 @@ struct TRProstateBiopsyCalibrationFromImageInput
   std::string FoR; // frame of reference
 };
 
-struct TRProstateBiopsyCalibrationFromImageOutput
-{
-  bool MarkerFound[CALIB_MARKER_COUNT];
-  double MarkerPositions[CALIB_MARKER_COUNT][3]; // in RAS coordinates
-};
-
 struct TRProstateBiopsyCalibrationData
 {
   bool CalibrationValid;
@@ -80,10 +74,18 @@ public:
 
   // Description
   // ... TODO: to be completed
-  bool CalibrateFromImage(const TRProstateBiopsyCalibrationFromImageInput &input, TRProstateBiopsyCalibrationFromImageOutput &output);  
+  bool CalibrateFromImage(const TRProstateBiopsyCalibrationFromImageInput &input);  
   //ETX
 
-  bool FindTargetingParams(vtkProstateNavTargetDescriptor *target);
+  static bool FindTargetingParams(vtkProstateNavTargetDescriptor *target, const TRProstateBiopsyCalibrationData &calibrationData);
+
+  // Description
+  // Return true if the i-th marker position is successfully detected
+  bool GetMarkerFound(int i);
+
+  // Description
+  // Return the i-th marker position (in RAS coordinates)
+  double* GetMarkerPositions(int i);
 
   vtkImageData *GetCalibMarkerPreProcOutput(int i);
   vtkMatrix4x4* GetCalibMarkerPreProcOutputIJKToRAS();
@@ -100,7 +102,7 @@ public:
 
 protected:
 
-  bool RotatePoint(double H_before[3], double rotation_rad, double alpha_rad, double mainaxis[3], double I[3], /*out*/double H_after[3]);
+  static bool RotatePoint(double H_before[3], double rotation_rad, double alpha_rad, double mainaxis[3], double I[3], /*out*/double H_after[3]);
 
   //BTX
   void SegmentAxis(const double initPos1[3], const double initPos2[3], vtkMatrix4x4 *volumeIJKToRASMatrix, vtkImageData* calibVol,
@@ -132,6 +134,8 @@ protected:
   std::vector<PointType> CoordinatesVectorAxis2;
   std::vector<vtkImageData*> CalibMarkerPreProcOutput;
   vtkMatrix4x4* CalibMarkerPreProcOutputIJKToRAS;
+  bool MarkerFound[CALIB_MARKER_COUNT];
+  double MarkerPositions[CALIB_MARKER_COUNT][3]; // in RAS coordinates
   //ETX
 
   TRProstateBiopsyCalibrationData CalibrationData;

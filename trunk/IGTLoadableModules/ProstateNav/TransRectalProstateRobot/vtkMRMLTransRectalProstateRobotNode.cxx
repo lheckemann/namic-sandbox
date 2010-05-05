@@ -16,6 +16,7 @@ Version:   $Revision: 1.2 $
 
 #include "vtkObjectFactory.h"
 #include "vtkMRMLScalarVolumeNode.h"
+#include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLScene.h"
 #include "itkMetaDataDictionary.h"
 #include "itkMetaDataObject.h"
@@ -36,6 +37,8 @@ Version:   $Revision: 1.2 $
 #include "vtkPointSource.h"
 
 #include "vtkProstateNavTargetDescriptor.h"
+
+static const char MARKER_LABEL_NAMES[CALIB_MARKER_COUNT][9]={ "Marker 1", "Marker 2", "Marker 3", "Marker 4"};
 
 //------------------------------------------------------------------------------
 vtkMRMLTransRectalProstateRobotNode* vtkMRMLTransRectalProstateRobotNode::New()
@@ -66,36 +69,63 @@ vtkMRMLTransRectalProstateRobotNode* vtkMRMLTransRectalProstateRobotNode::Create
 //----------------------------------------------------------------------------
 vtkMRMLTransRectalProstateRobotNode::vtkMRMLTransRectalProstateRobotNode()
 {
-  this->CalibrationAlgo=vtkSmartPointer<vtkTransRectalFiducialCalibrationAlgo>::New();
+  // Calibration inputs
+
   for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
   {
-    this->CalibrationMarkerValid[i]=false;
-    this->ModelMarkers[i]=vtkPolyData::New();
+    this->MarkerSegmentationThreshold[i]=9.0;
   } 
+
+  this->MarkerDimensionsMm[0]=8.0;
+  this->MarkerDimensionsMm[1]=5.0;
+  this->MarkerDimensionsMm[2]=5.0;
+
+  this->MarkerRadiusMm=3.5;
+  this->RobotInitialAngle=0.0;
+
+  this->EnableAutomaticMarkerCenterpointAdjustment=true;  
+
+  // Robot model
+
   this->ModelAxes=vtkPolyData::New();
   this->ModelProbe=vtkPolyData::New();
   this->ModelNeedle=vtkPolyData::New();
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
+  {    
+    this->ModelMarkers[i]=vtkPolyData::New();
+  } 
 
   this->ModelAxesVisible=false;
-  
+    
+  this->RobotModelNodeRef=NULL;
+
+  CalibrationStatusDescription=NULL;
+
+  this->CalibrationPointListNodeID = NULL;
+  this->CalibrationPointListNode = NULL;
+
+  this->CalibrationVolumeNodeID = NULL;
+  this->CalibrationVolumeNode = NULL;
+
+  // Calibration output
   ResetCalibrationData();
-  this->RobotModelNodeID=NULL;
-  this->RobotModelNode=NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLTransRectalProstateRobotNode::~vtkMRMLTransRectalProstateRobotNode()
 {
-  SetAndObserveRobotModelNodeID(NULL);
-
-  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
+  SetRobotModelNodeRef(NULL);
+    
+  if (GetCalibrationPointListNode()!=NULL)
   {
-    if (this->ModelMarkers[i]!=NULL)
-    {
-      this->ModelMarkers[i]->Delete();
-      this->ModelMarkers[i]=NULL;
-    }
+    GetCalibrationPointListNode()->SetAndObserveTransformNodeID(NULL);  
   }
+  SetAndObserveCalibrationPointListNodeID( NULL );
+
+  SetAndObserveCalibrationVolumeNodeID( NULL );
+
+  SetCalibrationStatusDescription(NULL);
+
   if (this->ModelAxes!=NULL)
   {
     this->ModelAxes->Delete();
@@ -111,8 +141,40 @@ vtkMRMLTransRectalProstateRobotNode::~vtkMRMLTransRectalProstateRobotNode()
     this->ModelNeedle->Delete();
     this->ModelNeedle=NULL;
   }
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
+  {
+    if (this->ModelMarkers[i]!=NULL)
+    {
+      this->ModelMarkers[i]->Delete();
+      this->ModelMarkers[i]=NULL;
+    }
+  }
+
 }
 
+void vtkMRMLTransRectalProstateRobotNode::RemoveChildNodes()
+{
+  Superclass::RemoveChildNodes();
+
+  vtkMRMLModelNode *modelNode=GetRobotModelNode();    
+  if (modelNode!=NULL && this->GetScene()!=NULL)
+  {
+    vtkMRMLDisplayNode *dispNode=modelNode->GetDisplayNode();
+    modelNode->SetAndObserveDisplayNodeID(NULL);
+    this->GetScene()->RemoveNode(modelNode);
+    this->GetScene()->RemoveNode(dispNode);
+  }
+  
+  vtkMRMLFiducialListNode *fidNode=GetCalibrationPointListNode();
+  if (fidNode!=NULL)
+  {
+    fidNode->SetAndObserveTransformNodeID(NULL);  
+  }
+  if (fidNode!=NULL && this->GetScene()!=NULL)
+  {
+    this->GetScene()->RemoveNode(fidNode);
+  }
+}
 
 //----------------------------------------------------------------------------
 void vtkMRMLTransRectalProstateRobotNode::WriteXML(ostream& of, int nIndent)
@@ -121,6 +183,55 @@ void vtkMRMLTransRectalProstateRobotNode::WriteXML(ostream& of, int nIndent)
   // Start by having the superclass write its information
   Superclass::WriteXML(of, nIndent);
 
+  vtkIndent indent(nIndent);  
+
+  // Calibration inputs
+
+  if ( this->CalibrationVolumeNodeID )
+  {
+    of << indent << " CalibrationVolumeRef=\"" << this->CalibrationVolumeNodeID << "\"";
+  }
+
+  if (this->CalibrationPointListNodeID != NULL) 
+  {
+    of << indent << " CalibrationPointListNodeRef=\"" << this->CalibrationPointListNodeID << "\"";
+  }
+  
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
+  {
+    of << indent << " MarkerSegmentationThreshold" << i << "=\"" << this->MarkerSegmentationThreshold[i] << "\" ";
+  } 
+
+  of << indent << " MarkerDimensionsMm=\"" 
+      << this->MarkerDimensionsMm[0] << " " 
+      << this->MarkerDimensionsMm[1] << " " 
+      << this->MarkerDimensionsMm[2] << "\" "; 
+
+  of << indent << " MarkerRadiusMm=\"" << this->MarkerRadiusMm << "\" "; 
+  of << indent << " RobotInitialAngle=\"" << this->RobotInitialAngle << "\" "; 
+  
+  of << indent << " EnableAutomaticMarkerCenterpointAdjustment=\"" << (this->EnableAutomaticMarkerCenterpointAdjustment?1:0) << "\" "; 
+
+  // Calibration outputs
+
+  of << indent << " Cal_CalibrationValid=\"" << (this->CalibrationData.CalibrationValid?1:0) << "\" "; 
+  of << indent << " Cal_AxesDistance=\"" << this->CalibrationData.AxesDistance << "\" "; 
+  of << indent << " Cal_RobotRegistrationAngleDegrees=\"" << this->CalibrationData.RobotRegistrationAngleDegrees << "\" "; 
+  of << indent << " Cal_AxesAngleDegrees=\"" << this->CalibrationData.AxesAngleDegrees << "\" "; 
+  of << indent << " Cal_I1=\"" << this->CalibrationData.I1[0] << " " << this->CalibrationData.I1[1] << " " << this->CalibrationData.I1[2] << "\" "; 
+  of << indent << " Cal_I2=\"" << this->CalibrationData.I2[0] << " " << this->CalibrationData.I2[1] << " " << this->CalibrationData.I2[2] << "\" "; 
+  of << indent << " Cal_v1=\"" << this->CalibrationData.v1[0] << " " << this->CalibrationData.v1[1] << " " << this->CalibrationData.v1[2] << "\" "; 
+  of << indent << " Cal_v2=\"" << this->CalibrationData.v2[0] << " " << this->CalibrationData.v2[1] << " " << this->CalibrationData.v2[2] << "\" "; 
+  of << indent << " Cal_FoR=\"" << this->CalibrationData.FoR << "\" "; 
+
+  // Robot model
+  
+  of << indent << " ModelAxesVisible=\"" << (this->ModelAxesVisible?1:0) << "\" "; 
+
+  if ( this->RobotModelNodeRef )
+  {
+    of << indent << " RobotModelNodeRef=\"" << this->RobotModelNodeRef << "\"";
+  }
 }
 
 
@@ -129,24 +240,238 @@ void vtkMRMLTransRectalProstateRobotNode::ReadXMLAttributes(const char** atts)
 {
   Superclass::ReadXMLAttributes(atts);
 
-}
+  const char* attName;
+  const char* attValue;
+  while (*atts != NULL) 
+  {
+    attName = *(atts++);
+    attValue = *(atts++);
 
+    // Calibration inputs
+    if (!strcmp(attName, "CalibrationVolumeRef"))
+    {
+      this->SetAndObserveCalibrationVolumeNodeID(attValue);
+    }
+    if (!strcmp(attName, "CalibrationPointListNodeRef")) 
+    {
+      this->SetAndObserveCalibrationPointListNodeID(attValue);
+    }
+    for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
+    {
+      {
+        std::ostrstream strvalue;
+        strvalue << "MarkerSegmentationThreshold" << i << std::ends;        
+        if (!strcmp(attName, strvalue.str()))
+        {
+          std::stringstream ss;
+          ss << attValue;
+          ss >> this->MarkerSegmentationThreshold[i];
+        }
+        strvalue.rdbuf()->freeze(0);
+      }
+    }
+    if (!strcmp(attName, "MarkerDimensionsMm"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->MarkerDimensionsMm[0];
+      ss >> this->MarkerDimensionsMm[1];
+      ss >> this->MarkerDimensionsMm[2];
+    }
+    else if (!strcmp(attName, "MarkerRadiusMm"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->MarkerRadiusMm;
+    }
+    else if (!strcmp(attName, "RobotInitialAngle"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->RobotInitialAngle;
+    }
+    else if (!strcmp(attName, "EnableAutomaticMarkerCenterpointAdjustment"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->EnableAutomaticMarkerCenterpointAdjustment;
+    }
+
+    // Calibration outputs
+    if (!strcmp(attName, "Cal_CalibrationValid"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->CalibrationData.CalibrationValid;
+    }
+    else if (!strcmp(attName, "Cal_AxesDistance"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->CalibrationData.AxesDistance;
+    }
+    else if (!strcmp(attName, "Cal_AxesAngleDegrees"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->CalibrationData.AxesAngleDegrees;
+    }
+    else if (!strcmp(attName, "Cal_CalibrationValid"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->CalibrationData.CalibrationValid;
+    }
+    else if (!strcmp(attName, "Cal_I1"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->CalibrationData.I1[0];
+      ss >> this->CalibrationData.I1[1];
+      ss >> this->CalibrationData.I1[2];
+    }
+    else if (!strcmp(attName, "Cal_I2"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->CalibrationData.I2[0];
+      ss >> this->CalibrationData.I2[1];
+      ss >> this->CalibrationData.I2[2];
+    }
+    else if (!strcmp(attName, "Cal_v1"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->CalibrationData.v1[0];
+      ss >> this->CalibrationData.v1[1];
+      ss >> this->CalibrationData.v1[2];
+    }
+    else if (!strcmp(attName, "Cal_v2"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->CalibrationData.v2[0];
+      ss >> this->CalibrationData.v2[1];
+      ss >> this->CalibrationData.v2[2];
+    }
+    else if (!strcmp(attName, "Cal_FoR"))
+    {      
+      this->CalibrationData.FoR=attValue;     
+    }
+
+    // Robot model
+    if (!strcmp(attName, "ModelAxesVisible"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->ModelAxesVisible;
+    }
+    else if (!strcmp(attName, "RobotModelNodeRef"))
+    {
+      this->SetRobotModelNodeRef(attValue);
+    }
+
+  }
+}
+//----------------------------------------------------------------------------
+void vtkMRMLTransRectalProstateRobotNode::PrintSelf(ostream& os, vtkIndent indent)
+{
+  Superclass::PrintSelf(os,indent);
+  
+  // Calibration inputs
+
+  os << indent << "CalibrationVolumeNodeID:   " << 
+   (this->CalibrationVolumeNodeID ? this->CalibrationVolumeNodeID : "(none)") << "\n";
+  
+ os << indent << "CalibrationPointListNodeID: " <<
+    (this->CalibrationPointListNodeID? this->CalibrationPointListNodeID: "(none)") << "\n";
+
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
+  {
+    os << indent << " MarkerSegmentationThreshold" << i << ": " << (this->MarkerSegmentationThreshold[i]?1:0) << "\n";
+  } 
+
+  os << indent << " MarkerDimensionsMm:" 
+      << this->MarkerDimensionsMm[0] << " " 
+      << this->MarkerDimensionsMm[1] << " " 
+      << this->MarkerDimensionsMm[2] << "\n"; 
+
+  os << indent << " MarkerRadiusMm: " << this->MarkerRadiusMm << "\n"; 
+  os << indent << " RobotInitialAngle: " << this->RobotInitialAngle << "\n"; 
+  
+  os << indent << " EnableAutomaticMarkerCenterpointAdjustment: " << (this->EnableAutomaticMarkerCenterpointAdjustment?1:0) << "\n"; 
+
+  // Calibration outputs
+
+  os << indent << " Cal_CalibrationValid: " << (this->CalibrationData.CalibrationValid?1:0) << "\n"; 
+  os << indent << " Cal_AxesDistance: " << this->CalibrationData.AxesDistance << "\n"; 
+  os << indent << " Cal_RobotRegistrationAngleDegrees: " << this->CalibrationData.RobotRegistrationAngleDegrees << "\n"; 
+  os << indent << " Cal_AxesAngleDegrees: " << this->CalibrationData.AxesAngleDegrees << "\n"; 
+  os << indent << " Cal_I1: " << this->CalibrationData.I1[0] << " " << this->CalibrationData.I1[1] << " " << this->CalibrationData.I1[2] << "\n"; 
+  os << indent << " Cal_I2: " << this->CalibrationData.I2[0] << " " << this->CalibrationData.I2[1] << " " << this->CalibrationData.I2[2] << "\n"; 
+  os << indent << " Cal_v1: " << this->CalibrationData.v1[0] << " " << this->CalibrationData.v1[1] << " " << this->CalibrationData.v1[2] << "\n"; 
+  os << indent << " Cal_v2: " << this->CalibrationData.v2[0] << " " << this->CalibrationData.v2[1] << " " << this->CalibrationData.v2[2] << "\n"; 
+  os << indent << " Cal_FoR: " << this->CalibrationData.FoR << "\n"; 
+
+  // Robot model
+  
+  os << indent << " ModelAxesVisible: " << (this->ModelAxesVisible?1:0) << "\n"; 
+
+  os << indent << "RobotModelNodeRef:   " << 
+   (this->RobotModelNodeRef ? this->RobotModelNodeRef : "(none)") << "\n";
+
+}
 
 //----------------------------------------------------------------------------
 // Copy the node's attributes to this object.
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLTransRectalProstateRobotNode::Copy(vtkMRMLNode *anode)
 {
-
   Superclass::Copy(anode);
   vtkMRMLTransRectalProstateRobotNode *node = (vtkMRMLTransRectalProstateRobotNode *) anode;
 
-  this->SetRobotModelNodeID(node->RobotModelNodeID);
+  // Calibration input
 
-  //int type = node->GetType();
-  
+  this->SetAndObserveCalibrationVolumeNodeID( NULL );
+  this->SetCalibrationVolumeNodeID( node->CalibrationVolumeNodeID );
+
+  this->SetAndObserveCalibrationPointListNodeID( NULL );
+  this->SetCalibrationPointListNodeID( node->CalibrationPointListNodeID );
+
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
+  {
+    this->MarkerSegmentationThreshold[i]=node->MarkerSegmentationThreshold[i];
+  } 
+
+  this->MarkerDimensionsMm[0]=node->MarkerDimensionsMm[0];
+  this->MarkerDimensionsMm[1]=node->MarkerDimensionsMm[1];
+  this->MarkerDimensionsMm[2]=node->MarkerDimensionsMm[2];
+
+  this->MarkerRadiusMm=node->MarkerRadiusMm;
+  this->RobotInitialAngle=node->RobotInitialAngle;
+
+  this->EnableAutomaticMarkerCenterpointAdjustment=node->EnableAutomaticMarkerCenterpointAdjustment;
+
+  // Calibration output
+
+  this->CalibrationData=node->CalibrationData;
+
+  // Robot model
+
+  this->ModelAxes->DeepCopy(node->ModelAxes);
+  this->ModelProbe->DeepCopy(node->ModelProbe);
+  this->ModelNeedle->DeepCopy(node->ModelProbe);
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
+  {    
+    this->ModelMarkers[i]->DeepCopy(node->ModelMarkers[i]);
+  } 
+
+  this->ModelAxesVisible=node->ModelAxesVisible;
+    
+  this->SetRobotModelNodeRef(node->RobotModelNodeRef);  
 }
 
+//----------------------------------------------------------------------------
 int vtkMRMLTransRectalProstateRobotNode::Init(vtkSlicerApplication* app)
 { 
   this->Superclass::Init(app);
@@ -155,7 +480,7 @@ int vtkMRMLTransRectalProstateRobotNode::Init(vtkSlicerApplication* app)
   // This part should be moved to Robot Display Node.
   if (GetRobotModelNode()==NULL)
   {
-    const char* nodeID = AddRobotModel("TransrectalProstateRobot");
+    const char* nodeID = AddRobotModel("TransrectalProstateRobotModel");
     vtkMRMLModelNode*  modelNode = vtkMRMLModelNode::SafeDownCast(this->Scene->GetNodeByID(nodeID));
     if (modelNode)
       {
@@ -163,9 +488,18 @@ int vtkMRMLTransRectalProstateRobotNode::Init(vtkSlicerApplication* app)
       displayNode->SetVisibility(0);
       modelNode->Modified();
       this->Scene->Modified();
-      //modelNode->SetAndObserveTransformNodeID(GetZFrameTransformNodeID());
-      SetAndObserveRobotModelNodeID(nodeID);
+      //modelNode->SetAndObserveTransformNodeID(GetZFrameTransformNodeID());      
       }
+    this->SetRobotModelNodeRef(nodeID);
+  }
+
+  if (GetCalibrationPointListNode()==NULL && this->Scene!=NULL)
+  {
+    // the fiducial node hasn't been created yet
+    vtkSmartPointer<vtkMRMLFiducialListNode> newCalibPointListNode=vtkSmartPointer<vtkMRMLFiducialListNode>::New();
+    newCalibPointListNode->SetName("CalibrationMarkers");
+    this->Scene->AddNode(newCalibPointListNode); // don't update scene until ref set in robot node
+    SetAndObserveCalibrationPointListNodeID(newCalibPointListNode->GetID());
   }
 
   return 1;
@@ -178,71 +512,77 @@ const char* vtkMRMLTransRectalProstateRobotNode::AddRobotModel(const char* nodeN
   vtkSmartPointer<vtkMRMLModelNode> robotModel = vtkSmartPointer<vtkMRMLModelNode>::New();
   vtkSmartPointer<vtkMRMLModelDisplayNode> robotDisp  = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
 
-  this->Scene->AddNode(robotDisp);
-  this->Scene->AddNode(robotModel);
-
-  robotDisp->SetScene(this->Scene);
   robotModel->SetName(nodeName);
   robotModel->SetScene(this->Scene);
-  robotModel->SetAndObserveDisplayNodeID(robotDisp->GetID());
-  robotModel->SetHideFromEditors(0);
-
+  robotDisp->SetScene(this->Scene);
   double color[3];
   color[0] = 0.5;
   color[1] = 0.5;
   color[2] = 1.0;
   robotDisp->SetColor(color);
   robotDisp->SetOpacity(0.5);
+  this->Scene->AddNode(robotDisp);
 
+  robotModel->SetAndObserveDisplayNodeID(robotDisp->GetID());
+  this->Scene->AddNode(robotModel);
+
+  robotModel->SetHideFromEditors(0);
+ 
   return robotModel->GetID(); // model is added to the scene, so the GetID string remains valid
-
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLTransRectalProstateRobotNode::SetAndObserveRobotModelNodeID(const char *nodeId)
-{
-  vtkSetAndObserveMRMLObjectMacro(this->RobotModelNode, NULL);
-  this->SetRobotModelNodeID(nodeId);
-  vtkMRMLModelNode *tnode = this->GetRobotModelNode();
-  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-  events->InsertNextValue(vtkCommand::ModifiedEvent);
-  vtkSetAndObserveMRMLObjectEventsMacro(this->RobotModelNode, tnode, events);
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLModelNode* vtkMRMLTransRectalProstateRobotNode::GetRobotModelNode()
 {
-  if (this->GetScene() && this->RobotModelNodeID != NULL )
+  if (this->GetScene() && this->RobotModelNodeRef != NULL )
     {    
-    return vtkMRMLModelNode::SafeDownCast(this->GetScene()->GetNodeByID(this->RobotModelNodeID));
+    return vtkMRMLModelNode::SafeDownCast(this->GetScene()->GetNodeByID(this->RobotModelNodeRef));
     }
   return NULL;
 }
 
-
+//----------------------------------------------------------------------------
 void vtkMRMLTransRectalProstateRobotNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
+
+  // Fiducial marker positions changed
+  if (caller == (vtkObject*)this->CalibrationPointListNode)
+  {
+    switch (event)
+    {
+    case vtkCommand::ModifiedEvent:
+    case vtkMRMLScene::NodeAddedEvent: // when a fiducial is added to the list
+    case vtkMRMLFiducialListNode::FiducialModifiedEvent:
+    case vtkMRMLFiducialListNode::DisplayModifiedEvent:
+    case vtkMRMLScene::NodeRemovedEvent:
+      UpdateCalibration();
+      break;
+    }
+  }
+
+  if (caller == (vtkObject*)this->CalibrationVolumeNode)
+  {
+    switch (event)
+    {
+    case vtkCommand::ModifiedEvent:
+      UpdateCalibration();
+      break;
+    }
+  }
+
   return;
 }
-
-
-//----------------------------------------------------------------------------
-void vtkMRMLTransRectalProstateRobotNode::PrintSelf(ostream& os, vtkIndent indent)
-{
-  Superclass::PrintSelf(os,indent);
-}
-
 
 //----------------------------------------------------------------------------
 bool vtkMRMLTransRectalProstateRobotNode::FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc)
 {
   // this is used for coverage area computation (IsOutsideReach means that the target is outside the robot's coverage area)
-  // :TODO: update this for arbitrary target and calib volume transform
-  return this->CalibrationAlgo->FindTargetingParams(targetDesc);
+  // :TODO: update this for arbitrary target and calib volume transform  
+  return vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData);
 }
 
-
+//----------------------------------------------------------------------------
 std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc)
 {
   bool validTargeting=FindTargetingParams(targetDesc);
@@ -274,143 +614,251 @@ std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNa
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLTransRectalProstateRobotNode::SetCalibrationMarker(unsigned int markerNr, double markerRAS[3])
-{
-  if (markerNr<0 || markerNr>=CALIB_MARKER_COUNT)
-    {
-    vtkErrorMacro("SetCalibrationMarker: Invalid calibration marker index "<<markerNr);
-    return;
-    }
-
-  this->CalibrationMarkerPositions[markerNr][0]=markerRAS[0];
-  this->CalibrationMarkerPositions[markerNr][1]=markerRAS[1];
-  this->CalibrationMarkerPositions[markerNr][2]=markerRAS[2];
-  this->CalibrationMarkerValid[markerNr]=true;
-}
-//------------------------------------------------------------------------------
-void vtkMRMLTransRectalProstateRobotNode::GetCalibrationMarker(unsigned int markerNr, double &r, double &a, double &s, bool &valid)
-{
-  if (markerNr<0 || markerNr>=4)
-    {
-    vtkErrorMacro("GetCalibrationMarker: Invalid calibration marker index "<<markerNr);
-    return;
-    }  
-  r=this->CalibrationMarkerPositions[markerNr][0];
-  a=this->CalibrationMarkerPositions[markerNr][1];
-  s=this->CalibrationMarkerPositions[markerNr][2];
-  valid=this->CalibrationMarkerValid[markerNr];
-}
-//------------------------------------------------------------------------------
 void vtkMRMLTransRectalProstateRobotNode::RemoveAllCalibrationMarkers()
 {
-  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
+  vtkMRMLFiducialListNode *calibrationPointListNode = this->GetCalibrationPointListNode();
+  if (calibrationPointListNode==NULL)
   {
-    this->CalibrationMarkerValid[i]=false;
+    return;
+  }
+
+  calibrationPointListNode->RemoveAllFiducials();
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLTransRectalProstateRobotNode::SetCalibrationInputs(const char *calibVolRef,
+  double thresh[CALIB_MARKER_COUNT], double fidDimsMm[3], double radiusMm, 
+  double initialAngle, bool enableAutomaticCenterpointAdjustment)
+{
+
+  // Update the node
+
+  bool modified=false;
+
+  if (calibVolRef!=NULL && this->CalibrationVolumeNodeID!=NULL)
+  {
+    if (strcmp(calibVolRef,this->CalibrationVolumeNodeID)!=NULL)
+    {
+      modified=true;
+      SetAndObserveCalibrationVolumeNodeID(calibVolRef);      
+    }
+  }
+  else
+  {
+    if (calibVolRef!=this->CalibrationVolumeNodeID)
+    {
+      modified=true;
+      SetAndObserveCalibrationVolumeNodeID(calibVolRef);      
+    }
+  }
+
+  for (unsigned int markerInd=0; markerInd<CALIB_MARKER_COUNT; markerInd++)
+  {       
+    if (this->MarkerSegmentationThreshold[markerInd]!=thresh[markerInd])
+    {
+      modified=true;
+      this->MarkerSegmentationThreshold[markerInd]=thresh[markerInd];
+    }
+  }
+  
+  for (int j=0; j<3; j++)
+  {
+    if (this->MarkerDimensionsMm[j]!=fidDimsMm[j])
+    {
+      modified=true;
+      this->MarkerDimensionsMm[j]=fidDimsMm[j];
+    }
+  }
+
+  if (this->MarkerRadiusMm!=radiusMm)
+  {
+    modified=true;
+    this->MarkerRadiusMm=radiusMm;
+  }
+  
+  if (this->RobotInitialAngle!=initialAngle)
+  {
+    modified=true;
+    this->RobotInitialAngle=initialAngle;
+  }
+
+  if (this->EnableAutomaticMarkerCenterpointAdjustment!=enableAutomaticCenterpointAdjustment)
+  {
+    modified=true;
+    this->EnableAutomaticMarkerCenterpointAdjustment=enableAutomaticCenterpointAdjustment;
+  }
+  
+  if (modified)
+  {
+    Modified();
+    UpdateCalibration();    
   }
 }
 
 //------------------------------------------------------------------------------
-bool vtkMRMLTransRectalProstateRobotNode::SegmentRegisterMarkers(vtkMRMLScalarVolumeNode *calibVol, double thresh[4], double fidDimsMm[3], double radiusMm, bool bUseRadius, double initialAngle, std::string &resultDetails, bool enableAutomaticCenterpointAdjustment)
+void vtkMRMLTransRectalProstateRobotNode::UpdateCalibration()
 {
-  TRProstateBiopsyCalibrationFromImageInput in;
 
-  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
+  vtkMRMLFiducialListNode *calibrationPointListNode = this->GetCalibrationPointListNode();
+  if (calibrationPointListNode==NULL)
   {
-    bool valid=false;
-    GetCalibrationMarker(i, in.MarkerInitialPositions[i][0], in.MarkerInitialPositions[i][1], in.MarkerInitialPositions[i][2], valid); 
-    if (!valid)
+    // cannot update the calibration data because the scene has is not been fully loaded yet
+    // so just use the calibration data that was saved with the scene - do not reset!
+    if (this->CalibrationData.CalibrationValid)
     {
-      vtkErrorMacro("SegmentRegisterMarkers marker "<<i+1<<" is undefined");
-      resultDetails="Not all calibration markers are defined";
-      return false;
+      SetCalibrationStatusDescription("Using saved calibration data");
     }
-    in.MarkerSegmentationThreshold[i]=thresh[i];
+    else
+    {
+      ResetCalibrationData();
+    }
+    return;
   }
-  for (int i=0; i<3; i++)
-  {
-    in.MarkerDimensionsMm[i]=fidDimsMm[i];
-  }
-  in.MarkerRadiusMm=radiusMm;
-  in.RobotInitialAngle=initialAngle;
-  
-  if (calibVol==0)
-  {
-    vtkErrorMacro("SegmentRegisterMarkers CalibrationVolume is invalid");
-    resultDetails="Calibration volume is invalid";
-    return false;
-  }
-  vtkSmartPointer<vtkMatrix4x4> ijkToRAS = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  calibVol->GetIJKToRASMatrix(ijkToRAS);
 
-  in.VolumeIJKToRASMatrix=ijkToRAS;
-  in.VolumeImageData=calibVol->GetImageData();
+  // Normalize markers (ensure proper name and count)
+  int fidCount=calibrationPointListNode->GetNumberOfFiducials();
+  for (int i=fidCount-1; i>=int(CALIB_MARKER_COUNT); i--)
+  {
+    // this is an extra marker => delete it
+    calibrationPointListNode->RemoveFiducial(i);
+  }
+  fidCount=calibrationPointListNode->GetNumberOfFiducials();
+  for (int i=0; i<CALIB_MARKER_COUNT && i<fidCount; i++)
+  {
+    if (strcmp(calibrationPointListNode->GetNthFiducialLabelText(i),MARKER_LABEL_NAMES[i])!=0)
+    {
+      calibrationPointListNode->SetNthFiducialLabelText(i,MARKER_LABEL_NAMES[i]);      
+    }
+  }
+
+  TRProstateBiopsyCalibrationFromImageInput in; // struct that stores all inputs required for the calib algo
+
+  vtkMRMLScalarVolumeNode *calVolNode=GetCalibrationVolumeNode();
+  if (calVolNode==0)
+  {    
+    SetCalibrationStatusDescription("Calibration volume is not available");
+    ResetCalibrationData();
+    return;
+  }
+
+  if (calVolNode->GetImageData()==NULL)
+  {
+    // cannot update the calibration data because the scene has is not been fully loaded yet
+    // so just use the calibration data that was saved with the scene - do not reset!
+    if (this->CalibrationData.CalibrationValid)
+    {
+      SetCalibrationStatusDescription("Using saved calibration data");
+    }
+    else
+    {
+      ResetCalibrationData();
+    }
+    return;
+  }
+
+  in.VolumeImageData=calVolNode->GetImageData();
+
+  vtkSmartPointer<vtkMatrix4x4> ijkToRAS = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  calVolNode->GetIJKToRASMatrix(ijkToRAS);
+  in.VolumeIJKToRASMatrix=ijkToRAS;  
 
   // get frame of reference uid
-  const itk::MetaDataDictionary &volDictionary = calibVol->GetMetaDataDictionary();
+  const itk::MetaDataDictionary &volDictionary = calVolNode->GetMetaDataDictionary();
   std::string tagValue; 
   tagValue.clear();
   itk::ExposeMetaData<std::string>( volDictionary, "0020|0052", tagValue );   
   in.FoR=tagValue;
 
-  this->CalibrationAlgo->SetEnableMarkerCenterpointAdjustment(enableAutomaticCenterpointAdjustment);
-
-  TRProstateBiopsyCalibrationFromImageOutput res;
-  bool success=true;
-  if (!this->CalibrationAlgo->CalibrateFromImage(in, res))
+  if (calibrationPointListNode->GetNumberOfFiducials()<(int)CALIB_MARKER_COUNT)
   {
-    // calibration failed
-
+    SetCalibrationStatusDescription("Not all calibration markers are defined");
     ResetCalibrationData();
+    return;
+  }
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
+  {
+    bool valid=false;
+    // :TODO: take into account potential transform between fiducial list and calibration image (transform the points)    
+    float* rasPoint=calibrationPointListNode->GetNthFiducialXYZ(i);
+    if (rasPoint==NULL)
+    {
+      SetCalibrationStatusDescription("Not all calibration markers are defined");
+      ResetCalibrationData();
+      return;
+    }
+    in.MarkerInitialPositions[i][0]=rasPoint[0];
+    in.MarkerInitialPositions[i][1]=rasPoint[1];
+    in.MarkerInitialPositions[i][2]=rasPoint[2];  
+
+    in.MarkerSegmentationThreshold[i]=this->MarkerSegmentationThreshold[i];
+  }
+
+  for (int i=0; i<3; i++)
+  {
+    in.MarkerDimensionsMm[i]=this->MarkerDimensionsMm[i];
+  }
+  in.MarkerRadiusMm=this->MarkerRadiusMm;
+  in.RobotInitialAngle=this->RobotInitialAngle;
+   
+  vtkSmartPointer<vtkTransRectalFiducialCalibrationAlgo> calibrationAlgo=vtkSmartPointer<vtkTransRectalFiducialCalibrationAlgo>::New();
+
+  calibrationAlgo->SetEnableMarkerCenterpointAdjustment(this->EnableAutomaticMarkerCenterpointAdjustment);
+
+  if (!calibrationAlgo->CalibrateFromImage(in))
+  {
+    // calibration failed    
 
     std::ostrstream os;
     // if a marker not found, then make the error report more precise
     for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
     {      
-      if (!res.MarkerFound[i])
+      if (!calibrationAlgo->GetMarkerFound(i))
       {
         os << "Marker "<<i+1<<" cannot be detected. ";
-        success=false;
       }
     } 
     os << "Calibration failed." << std::ends;
-    resultDetails=os.str();
-    os.rdbuf()->freeze();  
-    this->Modified();
+    SetCalibrationStatusDescription(os.str());
+    os.rdbuf()->freeze();
+    
+    ResetCalibrationData();
+    return;
   }
-  else
-  {    
-    // calibration is successful
 
-    /*commented out to keep the original marker guesses
-    // update manually set marker positions with the result of the marker detection
-    for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
-    {      
-      SetCalibrationMarker(i, res.MarkerPositions[i]);
-      in.MarkerSegmentationThreshold[i]=thresh[i];
-    }
-    */
+  // calibration is successful
 
-    const TRProstateBiopsyCalibrationData calibData=this->CalibrationAlgo->GetCalibrationData();
-    SetCalibrationData(calibData);    
+  const TRProstateBiopsyCalibrationData calibData=calibrationAlgo->GetCalibrationData();
+  this->CalibrationData=calibData;
 
-    resultDetails="Calibration is successfully completed.";    
-    success=true;  
-    this->Modified();
-  }  
+  // :TODO: take into account potential transform between robot node and calibration image
 
   UpdateModelAxes();
   UpdateModelProbe();
-  UpdateModelMarkers();
+  vtkMatrix4x4* preProcIjkToRas=calibrationAlgo->GetCalibMarkerPreProcOutputIJKToRAS();
+  for (unsigned int markerId=0; markerId<CALIB_MARKER_COUNT; markerId++)
+  {      
+    UpdateModelMarker(markerId, calibrationAlgo->GetCalibMarkerPreProcOutput(markerId), preProcIjkToRas);
+  }
   UpdateModelNeedle(NULL);
   UpdateModel();
 
-  return success;
+  SetCalibrationStatusDescription("Calibration is successfully completed.");
+
+  this->Modified();
 }
 
 //------------------------------------------------------------------------------
 void vtkMRMLTransRectalProstateRobotNode::ResetCalibrationData()
 {
-  this->CalibrationData.AxesDistance = -1;
+  bool modified=false;
+
+  if (this->CalibrationData.CalibrationValid)
+  {
+    modified=true;
+    this->CalibrationData.CalibrationValid=false;
+  }
+
+  this->CalibrationData.AxesDistance = 0;
   this->CalibrationData.AxesAngleDegrees = 0;
   this->CalibrationData.RobotRegistrationAngleDegrees = 0;
   for (int i=0; i<3; i++)
@@ -420,9 +868,23 @@ void vtkMRMLTransRectalProstateRobotNode::ResetCalibrationData()
     this->CalibrationData.v1[i]=0.0;
     this->CalibrationData.v2[i]=0.0;
   }
-  this->CalibrationData.CalibrationValid=false;
+    
+  UpdateModelAxes();
+  UpdateModelProbe();  
+  for (unsigned int markerId=0; markerId<CALIB_MARKER_COUNT; markerId++)
+  {      
+    UpdateModelMarker(markerId, NULL, NULL);
+  }
+  UpdateModelNeedle(NULL);
+  UpdateModel();
 
-  Modified();
+
+  this->ModelAxes->Reset();
+
+  if (modified)
+  {
+    Modified();
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -484,10 +946,17 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModel()
     hasPoints=true;
   }
 
-  // If there were no points in the polydata at all, then we would get a VTK warning.
-  // Add a dummy point to avoid warning in this case.
+  // If there were no points in the polydata at all, then we would get a VTK warning.  
   if (!hasPoints)
   {
+    // There is an existing calibration, just keep the corresponding model
+    if (this->CalibrationData.CalibrationValid)
+    {
+      SetCalibrationStatusDescription("Using saved calibration data");
+      return;
+    }
+
+    // No calibration, add a dummy point to avoid warning
     vtkSmartPointer<vtkPointSource> point=vtkSmartPointer<vtkPointSource>::New();
     point->SetNumberOfPoints(1);
     appender->AddInputConnection(point->GetOutputPort());
@@ -498,14 +967,19 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModel()
   cleaner->Update();
   
   modelNode->SetAndObservePolyData(cleaner->GetOutput());
+  modelNode->SetModifiedSinceRead(1);
   
+  /*
   displayNode->SetPolyData(modelNode->GetPolyData());
 
   if (displayNode->GetPolyData() != NULL) 
   {
     displayNode->GetPolyData()->Modified();
   }
+  */
+
   displayNode->SetModifiedSinceRead(1); 
+  displayNode->SliceIntersectionVisibilityOn();
   
   displayNode->SetVisibility(1);
 
@@ -564,7 +1038,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTarget
   vtkSmartPointer<vtkAppendPolyData> appender = vtkSmartPointer<vtkAppendPolyData>::New();
 
   vtkSmartPointer<vtkLineSource> NeedleTrajectoryLine=vtkSmartPointer<vtkLineSource>::New();
-  NeedleTrajectoryLine->SetResolution(100); 
+  NeedleTrajectoryLine->SetResolution(20); 
   NeedleTrajectoryLine->SetPoint1(needleEndRAS);
   NeedleTrajectoryLine->SetPoint2(needleStartRAS);
 
@@ -576,31 +1050,60 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTarget
 
   appender->AddInputConnection(NeedleTrajectoryTube->GetOutputPort());  
 
-  // a thinner tube representing the needle overshoot (when the needle is triggered it extends to -overshoot distance from the needle tip)
-  if (overshoot<0)
+  // a thicker tube representing the needle target (the core size, in case of a core biopsy)
+  double targetSize=targetDesc->GetNeedleTargetSize();
+  if (targetSize>0)
   {
-    double needleEndRAS[3];
-    needleEndRAS[0] = targetRAS[0];
-    needleEndRAS[1] = targetRAS[1];
-    needleEndRAS[2] = targetRAS[2];
+    double targetEndRAS[3];
+    targetEndRAS[0] = targetRAS[0] - targetSize/2*needleVector[0];
+    targetEndRAS[1] = targetRAS[1] - targetSize/2*needleVector[1];
+    targetEndRAS[2] = targetRAS[2] - targetSize/2*needleVector[2];
 
-    double needleStartRAS[3];
-    needleStartRAS[0] = targetRAS[0] + overshoot*needleVector[0];
-    needleStartRAS[1] = targetRAS[1] + overshoot*needleVector[1];
-    needleStartRAS[2] = targetRAS[2] + overshoot*needleVector[2];
+    double targetStartRAS[3];
+    targetStartRAS[0] = targetRAS[0] + targetSize/2*needleVector[0];
+    targetStartRAS[1] = targetRAS[1] + targetSize/2*needleVector[1];
+    targetStartRAS[2] = targetRAS[2] + targetSize/2*needleVector[2];
 
-    vtkSmartPointer<vtkLineSource> needleOvershootLine=vtkSmartPointer<vtkLineSource>::New();
-    needleOvershootLine->SetResolution(100); 
-    needleOvershootLine->SetPoint1(needleEndRAS);
-    needleOvershootLine->SetPoint2(needleStartRAS);
+    vtkSmartPointer<vtkLineSource> line=vtkSmartPointer<vtkLineSource>::New();
+    line->SetResolution(20); 
+    line->SetPoint1(targetEndRAS);
+    line->SetPoint2(targetStartRAS);
 
-    vtkSmartPointer<vtkTubeFilter> needleOvershootTube=vtkSmartPointer<vtkTubeFilter>::New();
-    needleOvershootTube->SetInputConnection(needleOvershootLine->GetOutputPort());
-    needleOvershootTube->SetRadius(0.2);
-    needleOvershootTube->SetNumberOfSides(8);
-    needleOvershootTube->CappingOn();
+    vtkSmartPointer<vtkTubeFilter> tube=vtkSmartPointer<vtkTubeFilter>::New();
+    tube->SetInputConnection(line->GetOutputPort());
+    tube->SetRadius(1.5);
+    tube->SetNumberOfSides(8);
+    tube->CappingOn();
 
-    appender->AddInputConnection(needleOvershootTube->GetOutputPort());
+    appender->AddInputConnection(tube->GetOutputPort());
+  }
+
+  // a thinner tube representing the needle extension (when the needle is triggered it extends to -extension distance from the needle tip)
+  double extension=targetDesc->GetNeedleExtension();
+  if (extension<0)
+  {
+    double extensionEndRAS[3];
+    extensionEndRAS[0] = needleEndRAS[0];
+    extensionEndRAS[1] = needleEndRAS[1];
+    extensionEndRAS[2] = needleEndRAS[2];
+
+    double extensionStartRAS[3];
+    extensionStartRAS[0] = needleEndRAS[0] - extension*needleVector[0];
+    extensionStartRAS[1] = needleEndRAS[1] - extension*needleVector[1];
+    extensionStartRAS[2] = needleEndRAS[2] - extension*needleVector[2];
+
+    vtkSmartPointer<vtkLineSource> line=vtkSmartPointer<vtkLineSource>::New();
+    line->SetResolution(20); 
+    line->SetPoint1(extensionEndRAS);
+    line->SetPoint2(extensionStartRAS);
+
+    vtkSmartPointer<vtkTubeFilter> tube=vtkSmartPointer<vtkTubeFilter>::New();
+    tube->SetInputConnection(line->GetOutputPort());
+    tube->SetRadius(0.2);
+    tube->SetNumberOfSides(8);
+    tube->CappingOn();
+
+    appender->AddInputConnection(tube->GetOutputPort());
   }
 
   // Save result
@@ -631,7 +1134,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelProbe()
   vtkSmartPointer<vtkAppendPolyData> appender = vtkSmartPointer<vtkAppendPolyData>::New();
 
   double point1Probe[4]={-100,0,0 ,1}; // probe tip point
-  double point2Probe[4]={400,0,0 ,1}; // probe base point
+  double point2Probe[4]={150,0,0 ,1}; // probe base point
   
   double point1Ras[4]={0,0,0 ,1};
   double point2Ras[4]={0,0,0 ,1};
@@ -719,56 +1222,34 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelAxes()
 
   appender->AddInputConnection(axis2Line->GetOutputPort());
 
-  /*
-  // Detected marker centerpoints
-
-  vtkPoints *points = vtkPoints::New();
-   
-  this->CalibrationAlgo->GetAxisCenterpoints(points, 0);
-  this->CalibrationAlgo->GetAxisCenterpoints(points, 1);
-
-  vtkPolyData *pointspoly = vtkPolyData::New();
-  pointspoly->SetPoints(points);
-  
-  vtkSphereSource *glyph = vtkSphereSource::New();
-  vtkGlyph3D *glypher = vtkGlyph3D::New();
-  glypher->SetInput(pointspoly);
-  glypher->SetSourceConnection(glyph->GetOutputPort());
-  glypher->SetScaleFactor(0.25);
-
-  appender->AddInputConnection(glypher->GetOutputPort());
-  */
-
   appender->Update();
   this->ModelAxes->DeepCopy(appender->GetOutput());
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLTransRectalProstateRobotNode::UpdateModelMarkers()
+void vtkMRMLTransRectalProstateRobotNode::UpdateModelMarker(int markerInd, vtkImageData *imagedata, vtkMatrix4x4* ijkToRAS)
 {
-  // Extract marker surfaces for display
-  for (unsigned int markerId=0; markerId<CALIB_MARKER_COUNT; markerId++)
-  {      
-    vtkImageData *imagedata=this->CalibrationAlgo->GetCalibMarkerPreProcOutput(markerId);
-    vtkSmartPointer<vtkContourFilter> objectSurfaceExtractor=vtkSmartPointer<vtkContourFilter>::New();
-    objectSurfaceExtractor->SetInput(imagedata);
-
-    double* imgIntensityRange = imagedata->GetPointData()->GetScalars()->GetRange();
-    double imgIntensityUnit = (imgIntensityRange[1]-imgIntensityRange[0])* 0.01; // 1 unit is 1 percent of the intensity range    
-    objectSurfaceExtractor->SetValue(0, imgIntensityUnit);
-
-    vtkTransformPolyDataFilter *polyTrans = vtkTransformPolyDataFilter::New();
-    polyTrans->SetInputConnection(objectSurfaceExtractor->GetOutputPort());
-    vtkSmartPointer<vtkTransform> ijkToRASTransform=vtkSmartPointer<vtkTransform>::New();
-
-    vtkMatrix4x4* ijkToRAS=this->CalibrationAlgo->GetCalibMarkerPreProcOutputIJKToRAS();
-
-    ijkToRASTransform->SetMatrix(ijkToRAS);
-    polyTrans->SetTransform(ijkToRASTransform);
-    polyTrans->Update();
-
-    this->ModelMarkers[markerId]->DeepCopy(polyTrans->GetOutput());
+  if (imagedata==NULL || ijkToRAS==NULL)
+  {
+    this->ModelMarkers[markerInd]->Reset();
+    return;
   }
+  vtkSmartPointer<vtkContourFilter> objectSurfaceExtractor=vtkSmartPointer<vtkContourFilter>::New();
+  objectSurfaceExtractor->SetInput(imagedata);
+
+  double* imgIntensityRange = imagedata->GetPointData()->GetScalars()->GetRange();
+  double imgIntensityUnit = (imgIntensityRange[1]-imgIntensityRange[0])* 0.01; // 1 unit is 1 percent of the intensity range    
+  objectSurfaceExtractor->SetValue(0, imgIntensityUnit);
+
+  vtkTransformPolyDataFilter *polyTrans = vtkTransformPolyDataFilter::New();
+  polyTrans->SetInputConnection(objectSurfaceExtractor->GetOutputPort());
+  vtkSmartPointer<vtkTransform> ijkToRASTransform=vtkSmartPointer<vtkTransform>::New();
+
+  ijkToRASTransform->SetMatrix(ijkToRAS);
+  polyTrans->SetTransform(ijkToRASTransform);
+  polyTrans->Update();
+
+  this->ModelMarkers[markerInd]->DeepCopy(polyTrans->GetOutput());  
 }
 
 
@@ -816,17 +1297,6 @@ bool vtkMRMLTransRectalProstateRobotNode::GetRobotBaseTransform(vtkMatrix4x4* tr
 } 
 
 //------------------------------------------------------------------------------
-void vtkMRMLTransRectalProstateRobotNode::SetCalibrationData(const TRProstateBiopsyCalibrationData& calibData) 
-{ 
-  this->CalibrationData=calibData; 
-  UpdateModelAxes();
-  UpdateModelProbe();
-  UpdateModelMarkers();
-  UpdateModelNeedle(NULL);
-  UpdateModel();
-}
-
-//------------------------------------------------------------------------------
 void vtkMRMLTransRectalProstateRobotNode::SetModelAxesVisible(bool visible)
 { 
   if (this->ModelAxesVisible==visible)
@@ -836,4 +1306,119 @@ void vtkMRMLTransRectalProstateRobotNode::SetModelAxesVisible(bool visible)
   }
   this->ModelAxesVisible=visible;
   UpdateModel(); // :TODO: use standard vtkSetMacro and update automatically when the update event is triggered
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLTransRectalProstateRobotNode::UpdateReferenceID(const char *oldID, const char *newID)
+{
+  Superclass::UpdateReferenceID(oldID, newID);
+
+  if (!strcmp(oldID, this->RobotModelNodeRef))
+    {
+    this->SetRobotModelNodeRef(newID);
+    }  
+
+  if (this->CalibrationPointListNodeID && !strcmp(oldID, this->CalibrationPointListNodeID))
+    {
+    this->SetAndObserveCalibrationPointListNodeID(newID);
+    }
+
+  if (this->CalibrationVolumeNodeID && !strcmp(oldID, this->CalibrationVolumeNodeID))
+    {
+    this->SetAndObserveCalibrationVolumeNodeID(newID);
+    }
+
+} 
+
+//----------------------------------------------------------------------------
+void vtkMRMLTransRectalProstateRobotNode::UpdateReferences()
+{
+  Superclass::UpdateReferences();
+  
+  if (this->RobotModelNodeRef != NULL && this->Scene->GetNodeByID(this->RobotModelNodeRef) == NULL)
+    {
+    this->SetRobotModelNodeRef(NULL);
+    }
+
+  if (this->CalibrationPointListNodeID != NULL && this->Scene->GetNodeByID(this->CalibrationPointListNodeID) == NULL)
+    {
+    this->SetAndObserveCalibrationPointListNodeID(NULL);
+    }
+
+  if (this->CalibrationVolumeNodeID != NULL && this->Scene->GetNodeByID(this->CalibrationVolumeNodeID) == NULL)
+    {
+    this->SetAndObserveCalibrationVolumeNodeID(NULL);
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLTransRectalProstateRobotNode::UpdateScene(vtkMRMLScene *scene)
+{
+   Superclass::UpdateScene(scene);
+
+   this->SetAndObserveCalibrationPointListNodeID(this->CalibrationPointListNodeID);
+
+   this->SetAndObserveCalibrationVolumeNodeID(this->CalibrationVolumeNodeID);
+
+   // All the nodes are fully loaded, so update the calibration now
+   UpdateCalibration();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLTransRectalProstateRobotNode::SetAndObserveCalibrationPointListNodeID(const char *calibrationPointListNodeID)
+{
+  vtkSetAndObserveMRMLObjectMacro(this->CalibrationPointListNode, NULL);
+  this->SetCalibrationPointListNodeID(calibrationPointListNodeID);
+  vtkMRMLFiducialListNode *tnode = this->GetCalibrationPointListNode();
+
+  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+  events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+  events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
+  events->InsertNextValue(vtkMRMLFiducialListNode::FiducialModifiedEvent);
+  events->InsertNextValue(vtkMRMLFiducialListNode::DisplayModifiedEvent);
+  vtkSetAndObserveMRMLObjectEventsMacro(this->CalibrationPointListNode, tnode, events);
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLFiducialListNode* vtkMRMLTransRectalProstateRobotNode::GetCalibrationPointListNode()
+{
+  vtkMRMLFiducialListNode* node = NULL;
+  if (this->GetScene() && this->CalibrationPointListNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->GetScene()->GetNodeByID(this->CalibrationPointListNodeID);
+    node = vtkMRMLFiducialListNode::SafeDownCast(snode);
+    }
+  return node;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLTransRectalProstateRobotNode::SetAndObserveCalibrationVolumeNodeID(const char *calibrationVolumeNodeID)
+{
+  vtkSetAndObserveMRMLObjectMacro(this->CalibrationVolumeNode, NULL);
+  this->SetCalibrationVolumeNodeID(calibrationVolumeNodeID);
+  vtkMRMLScalarVolumeNode *tnode = this->GetCalibrationVolumeNode();
+
+  vtkSetAndObserveMRMLObjectMacro(this->CalibrationVolumeNode, tnode);
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkMRMLTransRectalProstateRobotNode::GetCalibrationVolumeNode()
+{
+  vtkMRMLScalarVolumeNode* node = NULL;
+  if (this->GetScene() && this->CalibrationVolumeNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->GetScene()->GetNodeByID(this->CalibrationVolumeNodeID);
+    node = vtkMRMLScalarVolumeNode::SafeDownCast(snode);
+    }
+  return node;
+}
+
+//----------------------------------------------------------------------------
+double vtkMRMLTransRectalProstateRobotNode::GetMarkerSegmentationThreshold(int i)
+{
+  if (i<0 || i>(int)CALIB_MARKER_COUNT)
+  {
+    return 0.0;
+  }
+  return this->MarkerSegmentationThreshold[i];
 }

@@ -115,9 +115,14 @@ vtkProstateNavGUI::vtkProstateNavGUI ( )
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkProstateNavGUI::DataCallback);
   
-  this->ProstateNavManager =  NULL;
-  this->Robot = NULL;
-  this->TargetPlanList = NULL;
+  this->ProstateNavManagerNodeID =  NULL;
+  this->ProstateNavManagerNode =  NULL;
+
+  this->TargetPlanListNodeID = NULL;
+  this->TargetPlanListNode = NULL;
+
+  this->RobotNodeID = NULL;
+  this->RobotNode = NULL;
 
   //----------------------------------------------------------------
   // Configuration Frame
@@ -145,7 +150,6 @@ vtkProstateNavGUI::vtkProstateNavGUI ( )
   this->SecondaryWindow=NULL;
 
   this->Entered = 0;
-
 }
 
 
@@ -153,11 +157,13 @@ vtkProstateNavGUI::vtkProstateNavGUI ( )
 //---------------------------------------------------------------------------
 vtkProstateNavGUI::~vtkProstateNavGUI ( )
 {
+  this->RemoveMRMLObservers();
   this->RemoveGUIObservers();
 
   if (this->DataCallbackCommand)
     {
     this->DataCallbackCommand->Delete();
+    this->DataCallbackCommand=NULL;
     }  
 
   if (this->SecondaryWindow!=NULL)
@@ -174,12 +180,14 @@ vtkProstateNavGUI::~vtkProstateNavGUI ( )
     {
     this->ProstateNavManagerSelectorWidget->SetParent(NULL );
     this->ProstateNavManagerSelectorWidget->Delete ( );
+    this->ProstateNavManagerSelectorWidget=NULL;
     }
 
   if (this->RobotSelectorWidget)
     {
     this->RobotSelectorWidget->SetParent(NULL );
     this->RobotSelectorWidget->Delete ( );
+    this->RobotSelectorWidget=NULL;
     }
 
   //----------------------------------------------------------------
@@ -196,6 +204,7 @@ vtkProstateNavGUI::~vtkProstateNavGUI ( )
     {
     this->StatusButtonSet->SetParent(NULL);
     this->StatusButtonSet->Delete();
+    this->StatusButtonSet=NULL;
     }
 
   if (this->WorkphaseButtonFrame)
@@ -209,6 +218,7 @@ vtkProstateNavGUI::~vtkProstateNavGUI ( )
     {
     this->WorkphaseButtonSet->SetParent(NULL);
     this->WorkphaseButtonSet->Delete();
+    this->WorkphaseButtonSet=NULL;
     }
   this->SetModuleLogic ( NULL );
 
@@ -234,11 +244,11 @@ vtkProstateNavGUI::~vtkProstateNavGUI ( )
     {
     this->DisplayedWorkflowSteps->Delete(); 
     this->DisplayedWorkflowSteps = NULL;
-    }
+    }  
 
-  vtkSetMRMLNodeMacro (this->ProstateNavManager, NULL );
-  vtkSetMRMLNodeMacro (this->Robot, NULL );
-  vtkSetMRMLNodeMacro (this->TargetPlanList, NULL );
+  this->SetAndObserveRobotNodeID( NULL );
+  this->SetAndObserveProstateNavManagerNodeID( NULL );
+  this->SetAndObserveTargetPlanListNodeID( NULL );
 }
 
 
@@ -249,27 +259,27 @@ void vtkProstateNavGUI::PrintSelf ( ostream& os, vtkIndent indent )
     
     os << indent << "ProstateNavGUI: " << this->GetClassName ( ) << "\n";
     os << indent << "ProstateNavManager: ";
-    if (this->GetProstateNavManager())
+    if (this->ProstateNavManagerNodeID)
     {
-      os << this->GetProstateNavManager()->GetID() << "\n";
+      os << this->ProstateNavManagerNodeID << "\n";
     }
     else
     {
        os << "NULL\n";
     }
-    os << indent << "Robot: ";
-    if (this->Robot)
+    os << indent << "RobotNode: ";
+    if (this->RobotNodeID)
     {
-      os << this->Robot->GetID() << "\n";
+      os << this->RobotNodeID << "\n";
     }
     else
     {
        os << "NULL\n";
     }
-    os << indent << "TargetPlanList: ";
-    if (this->TargetPlanList)
+    os << indent << "TargetPlanListNode: ";
+    if (this->TargetPlanListNodeID)
     {
-      os << this->TargetPlanList->GetID() << "\n";
+      os << this->TargetPlanListNodeID << "\n";
     }
     else
     {
@@ -404,43 +414,36 @@ void vtkProstateNavGUI::AddLogicObservers ( )
 
 void vtkProstateNavGUI::AddMRMLObservers(void)
 {
-  if (this->ProstateNavManager!=NULL)
+  // observe the scene for node deleted events
+  if (this->MRMLScene!=NULL)
   {
-    this->ProstateNavManager->AddObserver(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
-    this->ProstateNavManager->AddObserver(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent, this->MRMLCallbackCommand);    
-  }
-  if (this->Robot!=NULL)
-  {
-    this->Robot->AddObserver(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
-    this->Robot->AddObserver(vtkMRMLRobotNode::ChangeStatusEvent, this->MRMLCallbackCommand);
-  }
-  if (this->TargetPlanList!=NULL)
-  {
-    this->TargetPlanList->AddObserver(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
-    this->TargetPlanList->AddObserver(vtkMRMLScene::NodeAddedEvent, this->MRMLCallbackCommand);
-    this->TargetPlanList->AddObserver(vtkMRMLFiducialListNode::DisplayModifiedEvent, this->MRMLCallbackCommand);
-    this->TargetPlanList->AddObserver(vtkMRMLFiducialListNode::FiducialModifiedEvent, this->MRMLCallbackCommand);
+    if (this->MRMLScene->HasObserver(vtkMRMLScene::NodeRemovedEvent, (vtkCommand *)this->MRMLCallbackCommand) < 1)
+    {
+      this->MRMLScene->AddObserver(vtkMRMLScene::NodeRemovedEvent, (vtkCommand *)this->MRMLCallbackCommand);
+    }
+    if (this->MRMLScene->HasObserver(vtkMRMLScene::NodeAboutToBeRemovedEvent, (vtkCommand *)this->MRMLCallbackCommand) < 1)
+    {
+      this->MRMLScene->AddObserver(vtkMRMLScene::NodeAboutToBeRemovedEvent, (vtkCommand *)this->MRMLCallbackCommand);
+    }
+    if (this->MRMLScene->HasObserver(vtkMRMLScene::NodeAddedEvent, (vtkCommand *)this->MRMLCallbackCommand) < 1)
+    {
+      this->MRMLScene->AddObserver(vtkMRMLScene::NodeAddedEvent, (vtkCommand *)this->MRMLCallbackCommand);
+    }
+    if (this->MRMLScene->HasObserver(vtkMRMLScene::SceneCloseEvent, (vtkCommand *)this->MRMLCallbackCommand) < 1)
+    {
+      this->MRMLScene->AddObserver(vtkMRMLScene::SceneCloseEvent, (vtkCommand *)this->MRMLCallbackCommand);
+    }
   }
 }
 
 void vtkProstateNavGUI::RemoveMRMLObservers(void)
 {
-  if (this->ProstateNavManager!=NULL)
+  if (this->MRMLScene!=NULL)
   {
-    this->ProstateNavManager->RemoveObservers(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
-    this->ProstateNavManager->RemoveObservers(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent, this->MRMLCallbackCommand);    
-  }
-  if (this->Robot!=NULL)
-  {
-    this->Robot->RemoveObservers(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
-    this->Robot->RemoveObservers(vtkMRMLRobotNode::ChangeStatusEvent, this->MRMLCallbackCommand);
-  }
-  if (this->TargetPlanList!=NULL)
-  {
-    this->TargetPlanList->RemoveObservers(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
-    this->TargetPlanList->RemoveObservers(vtkMRMLScene::NodeAddedEvent, this->MRMLCallbackCommand);
-    this->TargetPlanList->RemoveObservers(vtkMRMLFiducialListNode::DisplayModifiedEvent, this->MRMLCallbackCommand);
-    this->TargetPlanList->RemoveObservers(vtkMRMLFiducialListNode::FiducialModifiedEvent, this->MRMLCallbackCommand);
+    this->MRMLScene->RemoveObservers(vtkMRMLScene::NodeRemovedEvent, (vtkCommand *)this->MRMLCallbackCommand);
+    this->MRMLScene->RemoveObservers(vtkMRMLScene::NodeAboutToBeRemovedEvent, (vtkCommand *)this->MRMLCallbackCommand);
+    this->MRMLScene->RemoveObservers(vtkMRMLScene::NodeAddedEvent, (vtkCommand *)this->MRMLCallbackCommand);
+    this->MRMLScene->RemoveObservers(vtkMRMLScene::SceneCloseEvent, (vtkCommand *)this->MRMLCallbackCommand);
   }
 }
 
@@ -448,67 +451,6 @@ void vtkProstateNavGUI::RemoveMRMLObservers(void)
 //---------------------------------------------------------------------------
 void vtkProstateNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 {
-
-  /*
-  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-  vtkSlicerInteractorStyle *istyle0 
-    = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Red")->GetSliceViewer()
-                                             ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle *istyle1 
-    = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()
-                                             ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle *istyle2 
-    = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Green")->GetSliceViewer()
-                                             ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-
-  vtkCornerAnnotation *anno = NULL;
-  if (style == istyle0)
-    {
-    anno = appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
-    }
-  else if (style == istyle1)
-    {
-    anno = appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
-    }
-  else if (style == istyle2)
-    {
-    anno = appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
-    }
-  if (anno)
-    {
-    const char *rasText = anno->GetText(1);
-    if ( rasText != NULL )
-      {
-      std::string ras = std::string(rasText);
-        
-      // remove "R:," "A:," and "S:" from the string
-      int loc = ras.find("R:", 0);
-      if ( loc != std::string::npos ) 
-        {
-        ras = ras.replace(loc, 2, "");
-        }
-      loc = ras.find("A:", 0);
-      if ( loc != std::string::npos ) 
-        {
-        ras = ras.replace(loc, 2, "");
-        }
-      loc = ras.find("S:", 0);
-      if ( loc != std::string::npos ) 
-        {
-        ras = ras.replace(loc, 2, "");
-        }
-      
-      // remove "\n" from the string
-      int found = ras.find("\n", 0);
-      while ( found != std::string::npos )
-        {
-        ras = ras.replace(found, 1, " ");
-        found = ras.find("\n", 0);
-        }
-      
-      }
-    }
-  */
 }
 
 
@@ -516,6 +458,7 @@ void vtkProstateNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 void vtkProstateNavGUI::ProcessGUIEvents(vtkObject *caller,
                                          unsigned long event, void *callData)
 {
+  vtkMRMLProstateNavManagerNode *manager=this->GetProstateNavManagerNode();
 
   const char *eventName = vtkCommand::GetStringFromEventId(event);
 
@@ -530,20 +473,23 @@ void vtkProstateNavGUI::ProcessGUIEvents(vtkObject *caller,
   // Check Work Phase Transition Buttons
 
   if ( event == vtkKWPushButton::InvokedEvent && this->WorkphaseButtonSet!=NULL)
-    {
+  {
     int phase;
     for (phase = 0; phase < this->WorkphaseButtonSet->GetNumberOfWidgets(); phase ++)
-      {
+    {
       if (this->WorkphaseButtonSet->GetWidget(phase) == vtkKWPushButton::SafeDownCast(caller))
-        {
-        break;
-        }
-      }
-    if (phase < this->ProstateNavManager->GetNumberOfSteps()) // if pressed one of them
       {
-      ChangeWorkphase(phase, 1);
+        break;
       }
     }
+    if (manager!=NULL)
+    {
+      if (phase < manager->GetNumberOfSteps()) // if pressed one of them
+      {
+        ChangeWorkphase(phase, 1);
+      }
+    }
+  }
 
   //----------------------------------------------------------------
   // Configuration Frame
@@ -552,28 +498,29 @@ void vtkProstateNavGUI::ProcessGUIEvents(vtkObject *caller,
            (event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent || event == vtkSlicerNodeSelectorWidget::NewNodeEvent )) 
     {
     vtkMRMLProstateNavManagerNode *managerNode = vtkMRMLProstateNavManagerNode::SafeDownCast(this->ProstateNavManagerSelectorWidget->GetSelected());
-    if (managerNode != NULL)
+    char *managerID=NULL;
+    if (managerNode!=NULL)
       {
-      managerNode->Init();     
+      managerID=managerNode->GetID();
       }
-    this->SetProstateNavManager(managerNode);
-    this->UpdateGUI();
+    this->SetAndObserveProstateNavManagerNodeID(managerID);    
     return;
     }
 
   else if (this->RobotSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
            (event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent || event == vtkSlicerNodeSelectorWidget::NewNodeEvent )) 
-    {
-
-      vtkMRMLProstateNavManagerNode *manager=this->GetProstateNavManager();
-      if (manager!=NULL)
-        {
-          vtkMRMLRobotNode *refNode = vtkMRMLRobotNode::SafeDownCast(this->RobotSelectorWidget->GetSelected());
-          if (!(refNode!=NULL && manager->GetRobotNodeID()!=NULL && strcmp(refNode->GetID(),manager->GetRobotNodeID())==0))
-          {
-            this->SetRobot(refNode);
-          }
-        }
+    {    
+    char *robotID=NULL;
+    vtkMRMLRobotNode *refNode = vtkMRMLRobotNode::SafeDownCast(this->RobotSelectorWidget->GetSelected());
+    if (refNode!=NULL)
+      {
+      robotID=refNode->GetID();
+      }
+    if (manager!=NULL)
+      {
+      manager->SetAndObserveRobotNodeID(robotID);
+      }        
+    SetAndObserveRobotNodeID(robotID);
 
     return;
     }
@@ -584,22 +531,25 @@ void vtkProstateNavGUI::ProcessGUIEvents(vtkObject *caller,
 
   else if (this->WizardWidget!=NULL && this->WizardWidget->GetWizardWorkflow() == vtkKWWizardWorkflow::SafeDownCast(caller) &&
       event == vtkKWWizardWorkflow::CurrentStateChangedEvent)
-    {
-          
+  {
+
     int phase = 0;
     vtkKWWizardStep* step =  this->WizardWidget->GetWizardWorkflow()->GetCurrentStep();
 
-    int numSteps = this->ProstateNavManager->GetNumberOfSteps();
-    for (int i = 0; i < numSteps; i ++)
+    if (manager)
+    {
+      int numSteps = manager->GetNumberOfSteps();
+      for (int i = 0; i < numSteps; i ++)
       {
         if (step == GetStepPage(i))
         {
-        phase = i;
+          phase = i;
         }
       }
-    
-    ChangeWorkphase(phase);
+
+      ChangeWorkphase(phase);
     }
+  }
 
 
   //----------------------------------------------------------------
@@ -608,12 +558,14 @@ void vtkProstateNavGUI::ProcessGUIEvents(vtkObject *caller,
   // Process Wizard GUI (Active step only)
   else
     {
-    int stepId = this->ProstateNavManager->GetCurrentStep();
-    
-    vtkProstateNavStep *step=GetStepPage(stepId);
-    if (step!=NULL)
+    if (manager)
       {
-      step->ProcessGUIEvents(caller, event, callData);
+      int stepId = manager->GetCurrentStep();
+      vtkProstateNavStep *step=GetStepPage(stepId);
+      if (step!=NULL)
+        {
+        step->ProcessGUIEvents(caller, event, callData);
+        }
       }
     }
 
@@ -627,7 +579,7 @@ void vtkProstateNavGUI::Init()
   // Register all new MRML node classes
   {
     // Make sure that all MRML classes are registered (needed for creating/updating the node from XML)
-    // SmartPointer is used to create an instance of the class, and desstroy immediately after registration is complete
+    // SmartPointer is used to create an instance of the class, and destroy immediately after registration is complete
     this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLBrpRobotCommandNode >::New() );
     this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLProstateNavManagerNode >::New() );
     this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLRobotDisplayNode >::New() );
@@ -670,7 +622,9 @@ void vtkProstateNavGUI::ProcessMRMLEvents ( vtkObject *caller,
     unsigned long event, void *callData )
 {
 
-  if (ProstateNavManager!=NULL && ProstateNavManager == vtkMRMLProstateNavManagerNode::SafeDownCast(caller))
+  // manager node chaged
+  vtkMRMLProstateNavManagerNode *manager=this->GetProstateNavManagerNode();
+  if (manager!=NULL && manager == vtkMRMLProstateNavManagerNode::SafeDownCast(caller))
     {
     switch (event)
       {
@@ -682,14 +636,10 @@ void vtkProstateNavGUI::ProcessMRMLEvents ( vtkObject *caller,
         break;
       }
     }
+  // :TODO: update GUI (and observers) if robotnode or targetplanlistnode within manager node is changed
 
-  vtkMRMLRobotNode *robotNode=NULL;
-  vtkMRMLFiducialListNode* targetPlanList=NULL;
-  if (this->ProstateNavManager!=NULL)
-    {
-    robotNode=this->ProstateNavManager->GetRobotNode();
-    targetPlanList=this->ProstateNavManager->GetTargetPlanListNode();
-    }
+  // robot status changed
+  vtkMRMLRobotNode *robotNode=GetRobotNode();
   if (robotNode!=NULL && robotNode == vtkMRMLRobotNode::SafeDownCast(caller))
     {
     if (event == vtkMRMLRobotNode::ChangeStatusEvent)
@@ -697,9 +647,54 @@ void vtkProstateNavGUI::ProcessMRMLEvents ( vtkObject *caller,
       UpdateStatusButtons();
       }
     }
+
+  // current target changed
+  vtkMRMLFiducialListNode* targetPlanList=NULL;
+  targetPlanList=this->GetTargetPlanListNode();
   if (targetPlanList!=NULL && targetPlanList == vtkMRMLFiducialListNode::SafeDownCast(caller))
     {
     UpdateCurrentTargetDisplay();
+    }
+
+  if ( this->MRMLScene!=NULL && vtkMRMLScene::SafeDownCast(caller) == this->MRMLScene && (event == vtkMRMLScene::NodeAboutToBeRemovedEvent) )
+    {
+      if (GetRobotNode() != NULL && callData == GetRobotNode())
+        {
+        // robot node will be deleted => remove referenced nodes from the scene
+        GetRobotNode()->RemoveChildNodes();
+        }
+    }
+
+  // a node has been deleted
+  if ( this->MRMLScene!=NULL && vtkMRMLScene::SafeDownCast(caller) == this->MRMLScene && (event == vtkMRMLScene::NodeRemovedEvent ) )
+    {
+    if (this->ProstateNavManagerNodeID != NULL && this->MRMLScene->GetNodeByID(this->ProstateNavManagerNodeID) == NULL)
+      {
+      // manager node has been deleted
+      this->SetAndObserveProstateNavManagerNodeID(NULL);
+      }
+    if (this->RobotNodeID != NULL && this->MRMLScene->GetNodeByID(this->RobotNodeID) == NULL)
+      {
+      // robot node has been deleted
+      if (manager!=NULL)
+        {
+        manager->SetAndObserveRobotNodeID(NULL);
+        }
+      this->SetAndObserveRobotNodeID(NULL);
+      }
+    if (this->TargetPlanListNodeID != NULL && this->MRMLScene->GetNodeByID(this->TargetPlanListNodeID) == NULL)
+      {
+      // target plan list node has been deleted
+      this->SetAndObserveTargetPlanListNodeID(NULL);
+      }
+    }
+  
+  // scene is closing
+  if (event == vtkMRMLScene::SceneCloseEvent )
+    {
+    this->SetAndObserveProstateNavManagerNodeID(NULL);
+    this->SetAndObserveRobotNodeID(NULL);
+    this->SetAndObserveTargetPlanListNodeID(NULL);
     }
 }
 
@@ -803,6 +798,9 @@ void vtkProstateNavGUI::TearDownGUI ( )
 {
   // REMOVE OBSERVERS and references to MRML and Logic
   // disconnect circular references so destructor can be called
+
+  this->RemoveMRMLObservers();
+  this->RemoveGUIObservers();
 
   if (this->SecondaryWindow)
   {  
@@ -924,19 +922,9 @@ void vtkProstateNavGUI::BuildGUIForConfigurationFrame ()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
                this->RobotSelectorWidget->GetWidgetName());  
 
-  /*this->RobotSelector = vtkKWListBoxWithScrollbarsWithLabel::New();
-  this->DiscreteFactorsListBox->SetParent( designFrame->GetFrame() );
-  this->DiscreteFactorsListBox->SetLabelText("Discrete Factors (choose up to two):" );
-  this->DiscreteFactorsListBox->Create();
-  this->DiscreteFactorsListBox->GetWidget()->GetWidget()->SetSelectionModeToMultiple();
-  this->DiscreteFactorsListBox->GetWidget()->GetWidget()->ExportSelectionOff();
-  app->Script("pack %s -side top -anchor nw -padx 2 -pady 4 -in %s", 
-              this->DiscreteFactorsListBox->GetWidgetName(),
-              designFrame->GetFrame()->GetWidgetName()); 
-              */
   configurationFrame->Delete();
 }
-
+    
 //---------------------------------------------------------------------------
 void vtkProstateNavGUI::BuildGUIForWorkphaseFrame ()
 {
@@ -976,21 +964,31 @@ void vtkProstateNavGUI::BuildGUIForWorkphaseFrame ()
 //----------------------------------------------------------------------------
 int vtkProstateNavGUI::ChangeWorkphase(int phase, int fChangeWizard)
 {
+  vtkMRMLProstateNavManagerNode *manager=this->GetProstateNavManagerNode();
+  if (manager==NULL)
+  {
+    return 0;
+  }
 
+  if (this->WorkphaseButtonSet==NULL)
+  {
+    // no GUI (e.g., exiting application)
+    return 0;
+  }
 
-  if (!this->ProstateNavManager->SwitchStep(phase)) // Set next phase
+  if (!manager->SwitchStep(phase)) // Set next phase
     {
     cerr << "ChangeWorkphase: Cannot transition!" << endl;
     return 0;
     }
   
-  int numSteps = this->ProstateNavManager->GetNumberOfSteps();
+  int numSteps = manager->GetNumberOfSteps();
   
   for (int i = 0; i < numSteps; i ++)
     {
     vtkKWPushButton *pb = this->WorkphaseButtonSet->GetWidget(i);
     bool transitionable=true; // :TODO: get this information from the workflow widget state machine
-    if (i == this->ProstateNavManager->GetCurrentStep())
+    if (i == manager->GetCurrentStep())
       {
       pb->SetReliefToSunken();
       }
@@ -1031,9 +1029,9 @@ int vtkProstateNavGUI::ChangeWorkphase(int phase, int fChangeWizard)
     int step_to;
     
     //step_to = this->Logic->GetCurrentPhase();
-    step_to = this->ProstateNavManager->GetCurrentStep();
+    step_to = manager->GetCurrentStep();
     //step_from = this->Logic->GetPrevPhase();
-    step_from = this->ProstateNavManager->GetPreviousStep();
+    step_from = manager->GetPreviousStep();
     
     int steps =  step_to - step_from;
     if (steps > 0)
@@ -1067,17 +1065,22 @@ int vtkProstateNavGUI::ChangeWorkphase(int phase, int fChangeWizard)
 
 //----------------------------------------------------------------------------
 void vtkProstateNavGUI::UpdateGUI() // from MRML
-{
-  // Enable robot selection only if a manager is selected
-  this->RobotSelectorWidget->SetEnabled(this->ProstateNavManager!=NULL);
-
+{ 
   // Update the workphase and wizard frame
   UpdateStatusButtons();
   UpdateWorkflowSteps();
 
-  if (this->WizardWidget!=NULL)
+  vtkMRMLProstateNavManagerNode *manager=this->GetProstateNavManagerNode();
+  
+  // Enable robot selection only if a manager is selected
+  if (this->RobotSelectorWidget!=NULL)
   {
-    int stepId = this->ProstateNavManager->GetCurrentStep();    
+    this->RobotSelectorWidget->SetEnabled(manager!=NULL);
+  }
+
+  if (this->WizardWidget!=NULL && manager!=NULL)
+  {
+    int stepId = manager->GetCurrentStep();    
     vtkProstateNavStep *step=GetStepPage(stepId);
     if (step!=NULL)
       {
@@ -1108,31 +1111,43 @@ vtkProstateNavStep* vtkProstateNavGUI::GetStepPage(int i)
 //----------------------------------------------------------------------------
 void vtkProstateNavGUI::UpdateStatusButtons()
 {
+  if (this->StatusButtonFrame==NULL)
+  {
+    return;
+  }
   if (!this->StatusButtonFrame->IsCreated())
   {
     return;
   }
-  if (this->ProstateNavManager==NULL)
-  {
-    return;
-  }
-  vtkMRMLRobotNode* robot=this->ProstateNavManager->GetRobotNode();
-  if (robot==NULL)
-  {
-    return;
-  }
 
+  vtkMRMLProstateNavManagerNode *manager=this->GetProstateNavManagerNode();  
+  vtkMRMLRobotNode* robot=NULL;
+  if (manager!=NULL)
+  {
+    manager->GetRobotNode();
+  }
+  
   // -----------------------------------------
   // there is no way to remove a button from the button set, so need to delete it, if less buttons are needed than we actually have
+  int robotStatusDescriptorCount=0;
+  if (robot!=NULL)
+  {
+    robotStatusDescriptorCount=robot->GetStatusDescriptorCount();
+  }
   if (this->StatusButtonSet)
     {
-    if (this->StatusButtonSet->GetNumberOfWidgets()>robot->GetStatusDescriptorCount())
+    if (this->StatusButtonSet->GetNumberOfWidgets()>robotStatusDescriptorCount)
       {
       this->StatusButtonSet->SetParent(NULL);
       this->StatusButtonSet->Delete(); 
       this->StatusButtonSet = NULL;
       }
     }
+
+  if (robot==NULL)
+  {
+    return;
+  }
 
   if (this->StatusButtonSet==NULL)
     {
@@ -1199,16 +1214,17 @@ void vtkProstateNavGUI::UpdateStatusButtons()
 void vtkProstateNavGUI::UpdateWorkflowSteps()
 {
   bool changed=true;
-  if (this->ProstateNavManager!=NULL)
+  vtkMRMLProstateNavManagerNode *manager=this->GetProstateNavManagerNode();
+  if (manager!=NULL && this->DisplayedWorkflowSteps!=NULL)
   {
-    int newSteps = this->ProstateNavManager->GetNumberOfSteps();
+    int newSteps = manager->GetNumberOfSteps();
     int currentSteps = this->DisplayedWorkflowSteps->GetNumberOfValues();
     if (newSteps==currentSteps)
     {
       changed=false;
       for (int i = 0; i < newSteps; i ++)
       {
-        vtkStdString stepName=this->ProstateNavManager->GetStepName(i);
+        vtkStdString stepName=manager->GetStepName(i);
         if (stepName.compare(this->DisplayedWorkflowSteps->GetValue(i))!=0)
         {
           changed=true;
@@ -1227,11 +1243,22 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
   // wizard GUI is built, because there is no API to remove any steps
   // from the wizard (only to add steps)
 
-  this->DisplayedWorkflowSteps->Reset();
+  if (this->DisplayedWorkflowSteps!=NULL)
+  {
+    this->DisplayedWorkflowSteps->Reset();
+  }
 
   // Delete wizard widget
   if (this->WizardWidget)
   {
+
+    vtkKWWizardWorkflow *wizard_workflow = this->WizardWidget->GetWizardWorkflow();
+    vtkProstateNavStep* step=vtkProstateNavStep::SafeDownCast(wizard_workflow->GetCurrentStep());
+    if (step)
+    {
+      step->HideUserInterface();
+    }
+
     this->WizardWidget->SetParent(NULL);
     this->WizardWidget->Delete(); 
     this->WizardWidget = NULL;
@@ -1249,11 +1276,24 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
     this->WorkphaseButtonSet = NULL;
   }
 
-  if (this->ProstateNavManager==NULL)
+  if (manager==NULL)
   {
     // there is no active manager node, the wizard frame shall be empty
     return;
   }
+
+  int numSteps = manager->GetNumberOfSteps();
+
+  if (numSteps<1)
+  {
+    // no steps, the wizard frame shall be empty
+    if (this->WizardFrame!=NULL && this->WizardFrame->IsCreated())
+    {
+      this->WizardFrame->CollapseFrame();
+    }    
+    return;
+  }
+  this->WizardFrame->ExpandFrame();
 
   // Recreate workphase button set
   this->WorkphaseButtonSet = vtkKWPushButtonSet::New();
@@ -1290,14 +1330,12 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
   vtkKWWizardWorkflow *wizard_workflow = this->WizardWidget->GetWizardWorkflow();
 
   // -----------------------------------------------------------------
-  // Set GUI/Logic to each step and add to workflow
-
-  int numSteps = this->ProstateNavManager->GetNumberOfSteps();
+  // Set GUI/Logic to each step and add to workflow  
 
   for (int i = 0; i < numSteps; i ++)
   {
 
-    vtkStdString stepName=this->ProstateNavManager->GetStepName(i);
+    vtkStdString stepName=manager->GetStepName(i);
 
     this->DisplayedWorkflowSteps->InsertNextValue(stepName);
 
@@ -1308,8 +1346,8 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
       vtkProstateNavStepSetUp* setupStep = vtkProstateNavStepSetUp::New();
       setupStep->SetTitleBackgroundColor(205.0/255.0, 200.0/255.0, 177.0/255.0);
       newStep=setupStep;
-    }
-    if (!stepName.compare("SetUpTemplate"))
+    } 
+    else if (!stepName.compare("SetUpTemplate"))
       {
       vtkProstateNavStepSetUpTemplate* setupStep = vtkProstateNavStepSetUpTemplate::New();
       setupStep->SetTitleBackgroundColor(205.0/255.0, 200.0/255.0, 177.0/255.0);
@@ -1369,7 +1407,7 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
       newStep->SetGUI(this);
       newStep->SetLogic(this->Logic);
       newStep->SetAndObserveMRMLScene(this->GetMRMLScene());
-      newStep->SetProstateNavManager(this->ProstateNavManager);
+      newStep->SetProstateNavManager(manager);
       newStep->SetTotalSteps(numSteps);
       newStep->SetStepNumber(i+1);
       newStep->UpdateName();
@@ -1393,29 +1431,26 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
     }      
   }
   
-  if (numSteps>0)
-    {
-    // -----------------------------------------------------------------
-    // Initial and finish step
-    wizard_workflow->SetFinishStep(GetStepPage(numSteps-1));
-    wizard_workflow->CreateGoToTransitionsToFinishStep();
-    wizard_workflow->SetInitialStep(GetStepPage(0));
+  // -----------------------------------------------------------------
+  // Initial and finish step
+  wizard_workflow->SetFinishStep(GetStepPage(numSteps-1));
+  wizard_workflow->CreateGoToTransitionsToFinishStep();
+  wizard_workflow->SetInitialStep(GetStepPage(0));
 
-    // -----------------------------------------------------------------
-    // Show the user interface
-    vtkProstateNavStep* step=vtkProstateNavStep::SafeDownCast(wizard_workflow->GetCurrentStep());
-    if (step)
-      {
-      step->ShowUserInterface();
-      step->UpdateGUI();
-      }
-    }  
+  // -----------------------------------------------------------------
+  // Show the user interface
+  vtkProstateNavStep* step=vtkProstateNavStep::SafeDownCast(wizard_workflow->GetCurrentStep());
+  if (step)
+    {
+    step->ShowUserInterface();
+    step->UpdateGUI();
+    }
 }
 
 //--------------------------------------------------------------------------------
 void vtkProstateNavGUI::BringTargetToViewIn2DViews(int mode)
 {
-  vtkMRMLProstateNavManagerNode *manager= GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode *manager=GetProstateNavManagerNode();
   if(manager==NULL)
   {
     return;
@@ -1464,11 +1499,12 @@ void vtkProstateNavGUI::BringTargetToViewIn2DViews(int mode)
 
     double transverseVector[4]={1,0,0, 0};
 
-    if (this->Robot!=NULL)
+    vtkMRMLRobotNode* robot=manager->GetRobotNode();
+    if (robot!=NULL)
     {
       // aligned transverse vector with robot base
       vtkSmartPointer<vtkMatrix4x4> transform=vtkSmartPointer<vtkMatrix4x4>::New();
-      if (this->Robot->GetRobotBaseTransform(transform))
+      if (robot->GetRobotBaseTransform(transform))
       {
         double unalignedTransverseVector[4]={transverseVector[0],transverseVector[1],transverseVector[2], 0};
         transform->MultiplyPoint(unalignedTransverseVector, transverseVector);
@@ -1513,13 +1549,13 @@ void vtkProstateNavGUI::BringMarkerToViewIn2DViews(double* P, double* N/*=NULL*/
 //--------------------------------------------------------------------------------
 void vtkProstateNavGUI::UpdateCurrentTargetDisplay()
 {
-  vtkMRMLProstateNavManagerNode *manager= GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode *manager=GetProstateNavManagerNode();
   if(manager==NULL)
   {
     return;
   }
 
-  vtkMRMLFiducialListNode* fidList = GetProstateNavManager()->GetTargetPlanListNode();
+  vtkMRMLFiducialListNode* fidList = manager->GetTargetPlanListNode();
   if(fidList==NULL)
   {
     return;
@@ -1567,7 +1603,7 @@ void vtkProstateNavGUI::UpdateCurrentTargetDisplay()
 
 void vtkProstateNavGUI::UpdateCurrentTargetDisplayInSecondaryWindow()
 {  
-  vtkMRMLProstateNavManagerNode *manager= GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode *manager=GetProstateNavManagerNode();
   if(manager==NULL)
   {
     return;
@@ -1612,87 +1648,211 @@ void vtkProstateNavGUI::UpdateCurrentTargetDisplayInSecondaryWindow()
   this->SecondaryWindow->GetViewerWidget()->GetMainViewer()->Render();
 }
 
-void vtkProstateNavGUI::SetProstateNavManager(vtkMRMLProstateNavManagerNode* node)
+//----------------------------------------------------------------------------
+void vtkProstateNavGUI::SetAndObserveRobotNodeID(const char *nodeID)
 {
-  if (node==this->ProstateNavManager)
+  bool modified=false;
+  if (nodeID!=NULL && this->RobotNodeID!=NULL)
   {
-    return;
+    if (strcmp(nodeID, this->RobotNodeID)!=0)
+    {
+      modified=true;
+    }
   }
-  if (this->ProstateNavManager!=NULL)
+  else if (nodeID!=this->RobotNodeID)
   {
-    this->ProstateNavManager->RemoveObservers(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
-    this->ProstateNavManager->RemoveObservers(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent, this->MRMLCallbackCommand);    
+    modified=true;
   }
-  vtkSetMRMLNodeMacro (this->ProstateNavManager, node );
-  this->ProstateNavManager->AddObserver(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
-  this->ProstateNavManager->AddObserver(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent, this->MRMLCallbackCommand);    
 
-  // if the manager changed, then the robot might have been changed as well
-  vtkMRMLRobotNode* robot=NULL;
-  vtkMRMLFiducialListNode* targetPlanList=NULL;
-  if (this->ProstateNavManager!=NULL)
-  {
-    robot=this->ProstateNavManager->GetRobotNode();
-    targetPlanList=this->ProstateNavManager->GetTargetPlanListNode();
-  }
-  if (robot!=this->Robot)
-  {
-    SetRobot(robot);
-  }
-  if (targetPlanList!=this->TargetPlanList)
-  {
-    SetTargetPlanList(targetPlanList);
-  }
-}
+  vtkSetAndObserveMRMLObjectMacro(this->RobotNode, NULL);
+  this->SetRobotNodeID(nodeID);
+  vtkMRMLRobotNode *tnode = this->GetRobotNode();
 
-void vtkProstateNavGUI::SetRobot(vtkMRMLRobotNode* robot)
-{
-  if (robot==this->Robot)
+  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+  events->InsertNextValue(vtkCommand::ModifiedEvent);
+  events->InsertNextValue(vtkMRMLRobotNode::ChangeStatusEvent);
+  vtkSetAndObserveMRMLObjectEventsMacro(this->RobotNode, tnode, events);
+
+  if (!modified)
   {
     return;
   }
 
-  if (this->Robot!=NULL)
+  if (this->RobotNode!=NULL)
   {
-    this->Robot->RemoveObservers(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
-    this->Robot->RemoveObservers(vtkMRMLRobotNode::ChangeStatusEvent, this->MRMLCallbackCommand);
-  }
-  vtkSetMRMLNodeMacro (this->Robot, robot );
-  this->Robot->AddObserver(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
-  this->Robot->AddObserver(vtkMRMLRobotNode::ChangeStatusEvent, this->MRMLCallbackCommand); 
-
-  // id changed
-  if (this->ProstateNavManager!=NULL)
-  {
-    this->ProstateNavManager->SetAndObserveRobotNodeID(this->Robot->GetID());
+    //this will fire a manager update message, which will trigger a GUI update
+    this->RobotNode->Init(vtkSlicerApplication::SafeDownCast(this->GetApplication())); // :TODO: init is called every time a robot is selected, however it would need to be called when the robot is created
   }
 
-  //this will fire a manager update message, which will trigger a GUI update
-  this->Robot->Init(vtkSlicerApplication::SafeDownCast(this->GetApplication())); // :TODO: init is called every time a robot is selected, however it would need to be called when the robot is created
-  
+  UpdateGUI();
+  /*
   ChangeWorkphase(0,true); //always start with the the first step
+
+  UpdateStatusButtons();
+  */
 }
 
-void vtkProstateNavGUI::SetTargetPlanList(vtkMRMLFiducialListNode* targetPlanList)
+//----------------------------------------------------------------------------
+vtkMRMLRobotNode* vtkProstateNavGUI::GetRobotNode()
 {
-  if (targetPlanList==this->TargetPlanList)
+  vtkMRMLRobotNode* node = NULL;
+  if (this->MRMLScene && this->RobotNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->MRMLScene->GetNodeByID(this->RobotNodeID);
+    node = vtkMRMLRobotNode::SafeDownCast(snode);
+    }
+  return node;
+}
+
+//----------------------------------------------------------------------------
+void vtkProstateNavGUI::SetAndObserveProstateNavManagerNodeID(const char *nodeID)
+{
+  bool modified=false;
+  if (nodeID!=NULL && this->ProstateNavManagerNodeID!=NULL)
+  {
+    if (strcmp(nodeID, this->ProstateNavManagerNodeID)!=0)
+    {
+      modified=true;
+    }
+  }
+  else if (nodeID!=this->ProstateNavManagerNodeID)
+  {
+    modified=true;
+  }
+
+  vtkSetAndObserveMRMLObjectMacro(this->ProstateNavManagerNode, NULL);
+  this->SetProstateNavManagerNodeID(nodeID);
+  vtkMRMLProstateNavManagerNode *tnode = this->GetProstateNavManagerNode();
+
+  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+  events->InsertNextValue(vtkCommand::ModifiedEvent);
+  events->InsertNextValue(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent);
+  vtkSetAndObserveMRMLObjectEventsMacro(this->ProstateNavManagerNode, tnode, events);
+
+  if (!modified)
   {
     return;
   }
 
-  if (this->TargetPlanList!=NULL)
-  {
-    this->TargetPlanList->RemoveObservers(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
-    this->TargetPlanList->RemoveObservers(vtkMRMLScene::NodeAddedEvent, this->MRMLCallbackCommand);
-    this->TargetPlanList->RemoveObservers(vtkMRMLFiducialListNode::DisplayModifiedEvent, this->MRMLCallbackCommand);
-    this->TargetPlanList->RemoveObservers(vtkMRMLFiducialListNode::FiducialModifiedEvent, this->MRMLCallbackCommand);
-  }
-  vtkSetMRMLNodeMacro (this->TargetPlanList, targetPlanList );
-  this->TargetPlanList->AddObserver(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
-  this->TargetPlanList->AddObserver(vtkMRMLScene::NodeAddedEvent, this->MRMLCallbackCommand);
-  this->TargetPlanList->AddObserver(vtkMRMLFiducialListNode::DisplayModifiedEvent, this->MRMLCallbackCommand);
-  this->TargetPlanList->AddObserver(vtkMRMLFiducialListNode::FiducialModifiedEvent, this->MRMLCallbackCommand);
+  // Add default needle list info
+  if (this->ProstateNavManagerNode != NULL)
+    {
+    const char regSectionName[]="ProstateNav";
+    const char regDefaultNeedleListKeyName[]="ProstateNav";      
 
-  // Current targetlanList is never modified from the GUI, so there is no need to notify the manager about this call
+    if (this->GetApplication()->HasRegistryValue (2, regSectionName, regDefaultNeedleListKeyName))
+      {
+      char *defNeedleDesc=NULL;
+      this->GetApplication()->GetRegistryValue(2, regSectionName, regDefaultNeedleListKeyName, defNeedleDesc);
+      this->ProstateNavManagerNode->Init(defNeedleDesc);
+      delete[] defNeedleDesc;
+      defNeedleDesc=NULL;
+      }
+    else
+      {
+      // Biopsy needle: Overshoot = -13; // needle has to be inserted 13 mm short of the target
+      // Seed insertion needle: Overshoot >=0, as the seed is inside the needle
+      const char defNeedleDesc[]=
+        "<NeedleList DefaultNeedle=\"B\"> \
+          <Needle Name=\"T\" Description=\"Generic\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"0\" LastTargetId=\"0\" /> \
+          <Needle Name=\"B\" Description=\"Biopsy\" Length=\"200\" Overshoot=\"-9.5\" Extension=\"-27\" TargetSize=\"16\" LastTargetId=\"0\" /> \
+          <Needle Name=\"S\" Description=\"Seed\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"3\" LastTargetId=\"0\" /> \
+        </NeedleList>";
+      this->GetApplication()->SetRegistryValue(2,"ProstateNav","DefaultNeedleList","%s",defNeedleDesc);
+      this->ProstateNavManagerNode->Init(defNeedleDesc);          
+      }
+
+    }
+
+  if (this->ProstateNavManagerNode!=NULL)
+  {
+    SetAndObserveRobotNodeID(this->ProstateNavManagerNode->GetRobotNodeID());
+    SetAndObserveTargetPlanListNodeID(this->ProstateNavManagerNode->GetTargetPlanListNodeID());
+  }
+  else
+  {
+    SetAndObserveRobotNodeID(NULL);
+    SetAndObserveTargetPlanListNodeID(NULL);
+  }  
+  
+  UpdateGUI();
 }
 
+//----------------------------------------------------------------------------
+vtkMRMLProstateNavManagerNode* vtkProstateNavGUI::GetProstateNavManagerNode()
+{
+  vtkMRMLProstateNavManagerNode* node = NULL;
+  if (this->MRMLScene && this->ProstateNavManagerNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->MRMLScene->GetNodeByID(this->ProstateNavManagerNodeID);
+    node = vtkMRMLProstateNavManagerNode::SafeDownCast(snode);
+    }
+  return node;
+}
+
+//----------------------------------------------------------------------------
+void vtkProstateNavGUI::SetAndObserveTargetPlanListNodeID(const char *nodeID)
+{
+  bool modified=false;
+  if (nodeID!=NULL && this->TargetPlanListNodeID!=NULL)
+  {
+    if (strcmp(nodeID, this->TargetPlanListNodeID)!=0)
+    {
+      modified=true;
+    }
+  }
+  else if (nodeID!=this->TargetPlanListNodeID)
+  {
+    modified=true;
+  }
+
+  vtkSetAndObserveMRMLObjectMacro(this->TargetPlanListNode, NULL);
+  this->SetTargetPlanListNodeID(nodeID);
+  vtkMRMLFiducialListNode *tnode = this->GetTargetPlanListNode();
+
+  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+  events->InsertNextValue(vtkCommand::ModifiedEvent);
+  events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+  events->InsertNextValue(vtkMRMLFiducialListNode::DisplayModifiedEvent);
+  events->InsertNextValue(vtkMRMLFiducialListNode::FiducialModifiedEvent);
+  vtkSetAndObserveMRMLObjectEventsMacro(this->TargetPlanListNode, tnode, events);
+
+  if (!modified)
+  {
+    return;
+  }
+  
+  UpdateCurrentTargetDisplay();
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLFiducialListNode* vtkProstateNavGUI::GetTargetPlanListNode()
+{
+  vtkMRMLFiducialListNode* node = NULL;
+  if (this->MRMLScene && this->TargetPlanListNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->MRMLScene->GetNodeByID(this->TargetPlanListNodeID);
+    node = vtkMRMLFiducialListNode::SafeDownCast(snode);
+    }
+  return node;
+}
+
+//----------------------------------------------------------------------------
+void vtkProstateNavGUI::RequestRenderInViewerWidgets()
+{
+  if (GetApplicationGUI()==NULL)
+  {
+    vtkWarningMacro("Application GUI is null");
+    return;
+  }
+
+  int numberOfWidgets=GetApplicationGUI()->GetNumberOfViewerWidgets();
+  for (int i=0; i<numberOfWidgets; i++)
+  {
+    vtkSlicerViewerWidget* widget=GetApplicationGUI()->GetNthViewerWidget(0); // main viewer is the first viewer
+    if (widget!=NULL)
+    {
+      widget->RequestRender();
+    }
+  }
+}

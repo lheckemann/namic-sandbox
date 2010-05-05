@@ -102,7 +102,6 @@ protected:
   void Resegment();
 
   void ShowAxesIn3DView(bool show);
-  void ShowMarkerVolumesIn3DView(bool show);
 
   void EnableMarkerPositionEdit(bool enable);
 
@@ -114,9 +113,7 @@ protected:
   // GUI callback  
   static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
 
-  vtkMRMLTransRectalProstateRobotNode* GetRobot();
-
-  vtkSlicerViewerWidget* GetMainViewerWidget();
+  vtkMRMLTransRectalProstateRobotNode* GetRobot();  
 
   //BTX
 
@@ -150,16 +147,14 @@ protected:
   vtkSmartPointer<vtkKWFrameWithLabel> SegmentationResultsFrame;
   vtkSmartPointer<vtkKWTextWithScrollbars> CalibrationResultsBox;
 
-  // Description:
-  // CalibrationListNode is used for displaying 4 fiducial points that defines the calibration marker initial positions
-  vtkSmartPointer<vtkMRMLFiducialListNode> CalibrationPointListNode;
+  vtkMRMLFiducialListNode* GetCalibrationPointListNode();
 
   //ETX
 
   bool ProcessingCallback;
 
   vtkMRMLTransRectalProstateRobotNode* ObservedRobot;
-  bool EnableAutomaticCenterpointAdjustment;
+  vtkMRMLFiducialListNode* ObservedCalibrationPointListNode;
 
 private:  
   vtkProstateNavFiducialCalibrationStep(const vtkProstateNavFiducialCalibrationStep&);

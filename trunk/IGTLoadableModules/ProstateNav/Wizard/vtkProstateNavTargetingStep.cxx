@@ -566,7 +566,7 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
 
   /////////
 
-  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManagerNode();
 
   if(!mrmlNode)
       return;
@@ -695,6 +695,21 @@ void vtkProstateNavTargetingStep::ProcessMRMLEvents(vtkObject *caller,
       }
     }
 
+  if (this->MRMLScene!=NULL)
+  {
+    vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast(this->MRMLScene->GetNthNodeByClass(0, "vtkMRMLInteractionNode"));
+    if ( vtkMRMLInteractionNode::SafeDownCast(caller) == interactionNode
+      && interactionNode!=NULL && event == vtkMRMLInteractionNode::InteractionModeChangedEvent )
+    {
+      if (this->AddTargetsOnClickButton->GetSelectedState() == 1
+        && interactionNode->GetCurrentInteractionMode()!=vtkMRMLInteractionNode::Place)
+      {
+        // the add points on click box is checked, but the interaction mode is not "Place" any more
+        // uncheck the checkbox to show the user that click will not add point
+        this->AddTargetsOnClickButton->SetSelectedState(0);
+      }
+    } 
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -726,6 +741,12 @@ void vtkProstateNavTargetingStep::AddMRMLObservers()
   if (this->MRMLScene!=NULL)
   {
     this->MRMLScene->AddObserver(vtkMRMLScene::NodeAddedEvent, this->MRMLCallbackCommand);
+
+    vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast(this->MRMLScene->GetNthNodeByClass(0, "vtkMRMLInteractionNode"));
+    if (interactionNode!=NULL)
+    {
+      interactionNode->AddObserver(vtkMRMLInteractionNode::InteractionModeChangedEvent, this->MRMLCallbackCommand);
+    }
   }
 }
 
@@ -745,6 +766,12 @@ void vtkProstateNavTargetingStep::RemoveMRMLObservers()
   if (this->MRMLScene!=NULL)
   {
     this->MRMLScene->RemoveObservers(vtkMRMLScene::NodeAddedEvent, this->MRMLCallbackCommand);
+
+    vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast(this->MRMLScene->GetNthNodeByClass(0, "vtkMRMLInteractionNode"));
+    if (interactionNode!=NULL)
+    {
+      interactionNode->RemoveObservers(vtkMRMLInteractionNode::InteractionModeChangedEvent, this->MRMLCallbackCommand);
+    }
   }
 }
 
@@ -906,7 +933,7 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
   // create new target points, if necessary
   this->GetLogic()->UpdateTargetListFromMRML();
 
-  vtkMRMLProstateNavManagerNode *manager = this->GetGUI()->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode *manager = this->GetGUI()->GetProstateNavManagerNode();
   if (!manager)
   {
     return;
@@ -1090,7 +1117,7 @@ void vtkProstateNavTargetingStep::RemoveGUIObservers()
 //--------------------------------------------------------------------------------
 void vtkProstateNavTargetingStep::UpdateGUI()
 {
-  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManagerNode();
 
   if (!mrmlNode)
   {

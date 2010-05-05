@@ -284,12 +284,18 @@ void vtkMRMLTransPerinealProstateTemplateNode::Copy(vtkMRMLNode *anode)
   vtkMRMLTransPerinealProstateTemplateNode *node = vtkMRMLTransPerinealProstateTemplateNode::SafeDownCast(anode);
   if (node!=NULL)
   {
+    this->SetAndObserveScannerConnectorNodeID(NULL); // remove observer
     this->SetScannerConnectorNodeID(node->ScannerConnectorNodeID);
-    this->SetZFrameModelNodeID(node->ZFrameModelNodeID);
-    this->SetZFrameTransformNodeID(node->ZFrameTransformNodeID);
+    this->SetAndObserveZFrameModelNodeID(NULL); // remove observer
+    this->SetZFrameModelNodeID(node->ZFrameModelNodeID);    
+    this->SetAndObserveZFrameTransformNodeID(NULL); // remove observer
+    this->SetZFrameTransformNodeID(node->ZFrameTransformNodeID);    
+    this->SetAndObserveTemplateModelNodeID(NULL); // remove observer
     this->SetTemplateModelNodeID(node->TemplateModelNodeID);
     //this->SetTemplateTransformNodeID(node->TemplateTransformNodeID);
-    this->SetActiveNeedleModelNodeID(node->ActiveNeedleModelNodeID);
+    this->SetAndObserveActiveNeedleModelNodeID(NULL); // remove observer
+    this->SetActiveNeedleModelNodeID(node->ActiveNeedleModelNodeID);    
+    this->SetAndObserveActiveNeedleTransformNodeID(NULL); // remove observer
     this->SetActiveNeedleTransformNodeID(node->ActiveNeedleTransformNodeID);
   }
   else

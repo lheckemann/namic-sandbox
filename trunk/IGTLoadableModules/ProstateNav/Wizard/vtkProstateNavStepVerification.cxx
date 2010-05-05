@@ -86,7 +86,7 @@ enum
   COL_IS_ERROR,
   COL_COUNT // all valid columns should be inserted above this line
 };
-static const char* COL_LABELS[COL_COUNT] = { "Name", "X", "Y", "Z", "Needle", "Overall Error", "LR Error", "AP Error", "IS Error" };
+static const char* COL_LABELS[COL_COUNT] = { "Name", "R", "A", "S", "Needle", "Overall Error", "RL Error", "AP Error", "SI Error" };
 static const int COL_WIDTHS[COL_COUNT] =   { 8,      6,   6,   6,   6,        6,               6,          6,          6 };
 
 static const char NEEDLE_TIP_LABEL[]="V-Needle tip";
@@ -537,10 +537,6 @@ void vtkProstateNavStepVerification::AddMRMLObservers()
 //----------------------------------------------------------------------------
 void vtkProstateNavStepVerification::RemoveMRMLObservers()
 {
-  if (VerificationPointListNode!=NULL)
-  {    
-    this->MRMLObserverManager->SetAndObserveObjectEvents(vtkObjectPointer(&VerificationPointListNode), NULL, NULL);
-  }
   vtkMRMLProstateNavManagerNode* manager=this->GetProstateNavManager();
   if (manager!=NULL)
   {
@@ -603,7 +599,7 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
   // create new target points, if necessary
   this->GetLogic()->UpdateTargetListFromMRML();
 
-  vtkMRMLProstateNavManagerNode *manager = this->GetGUI()->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode *manager = this->GetGUI()->GetProstateNavManagerNode();
   if (!manager)
     {
     return;
@@ -766,7 +762,7 @@ void vtkProstateNavStepVerification::RemoveGUIObservers()
 //--------------------------------------------------------------------------------
 void vtkProstateNavStepVerification::UpdateGUI()
 {
-  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManagerNode();
 
   if (!mrmlNode)
   {
@@ -806,10 +802,10 @@ void vtkProstateNavStepVerification::HideUserInterface()
 //----------------------------------------------------------------------------
 void vtkProstateNavStepVerification::TearDownGUI()
 {  
+  SetVerificationPointListNode(NULL);
+
   RemoveGUIObservers();
   RemoveMRMLObservers();
-
-  SetVerificationPointListNode(NULL);
 }
 
 //----------------------------------------------------------------------------

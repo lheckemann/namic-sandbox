@@ -69,11 +69,10 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   //----------------------------------------------------------------
 
   static vtkMRMLRobotNode *New();
-  vtkTypeMacro(vtkMRMLRobotNode,vtkMRMLNode);
-  
-  void PrintSelf(ostream& os, vtkIndent indent);
-
+  vtkTypeMacro(vtkMRMLRobotNode,vtkMRMLNode);  
   virtual vtkMRMLNode* CreateNodeInstance();
+
+  void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
   // Set node attributes
@@ -94,23 +93,25 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
 
 // Description:
   // Update the stored reference to another node in the scene
-  void UpdateReferenceID(const char *oldID, const char *newID);
+  virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
   // Description:
   // Updates this node if it depends on other nodes 
   // when the node is deleted in the scene
-  void UpdateReferences();
+  virtual void UpdateReferences();
+
+  virtual void RemoveChildNodes();
 
   // Description:
   // Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName()
     {return "Robot";};
 
-  virtual const char* GetWorkflowStepsString()
-    {return "PointTargeting PointVerification"; };
-
   // method to propagate events generated in mrml
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
+
+  virtual const char* GetWorkflowStepsString()
+    {return "PointTargeting PointVerification"; };
 
   // Description:
   // Get/Set robot target (vtkMRMLLinearTransformNode)
@@ -142,7 +143,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   // The following method is defined tentatively to pass registration parameter.
   virtual int PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode, int param1, int param2) { return 0; };
 
-
   // Description:
   // Get calibration object (Z frame, fiducials, etc.) model and transform
   virtual const char* GetCalibrationObjectModelId() {return ""; };
@@ -170,7 +170,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   //----------------------------------------------------------------
   
   vtkMRMLRobotNode();
-  ~vtkMRMLRobotNode();
+  virtual ~vtkMRMLRobotNode();
   vtkMRMLRobotNode(const vtkMRMLRobotNode&);
   void operator=(const vtkMRMLRobotNode&);
 
