@@ -7,10 +7,11 @@
 
 int main( int argc, char** argv )
 {
-  if( argc != 2 )
+  if( argc != 4 )
     {
-    std::cout <<"It requires 1 arguments" <<std::endl;
+    std::cout <<"It requires 3 arguments" <<std::endl;
     std::cout <<"1-Input FileName" <<std::endl;
+    std::cout <<"split0 FileName; split1 FileName" <<std::endl;
     return EXIT_FAILURE;
     }
     // ** TYPEDEF **
@@ -18,6 +19,8 @@ int main( int argc, char** argv )
 
   typedef itk::QuadEdgeMesh< Coord, 3 >               MeshType;
   typedef MeshType::Pointer                           MeshPointer;
+  typedef MeshType::CellIdentifier                    CellIdentifier;
+
   typedef itk::VTKPolyDataReader< MeshType >          ReaderType;
   typedef itk::VTKPolyDataWriter< MeshType >          WriterType;
   
@@ -35,22 +38,34 @@ int main( int argc, char** argv )
     }
   
   MeshPointer mesh = reader->GetOutput();
+
+  //set the seeds to be the first and last cell
+  typedef MeshType::CellsContainerConstPointer CellsContainerConstPointer;
+  CellsContainerConstPointer cells = mesh->GetCells();
+
+  typedef MeshType::CellsContainerConstIterator CellsContainerConstIterator;
+  CellsContainerConstIterator c_It = cells->begin();
+
+  std::vector <CellIdentifier> seedList;
+  seedList.push_back(c_It.Index());
+  c_It = cells->end();
+  --c_It;
+
+  seedList.push_back(c_It.Index());
   
   typedef itk::QuadEdgeMeshSplitFilter< MeshType, MeshType > SplitFilterType;
   SplitFilterType::Pointer split = SplitFilterType::New();
   split->SetInput( mesh );
+  split->SetSeedFaces(seedList);
   split->Update();
   
-  MeshType::Pointer split0 = MeshType::New();
-  split0 = split->GetOutput(0);
-  std::cout<<split0->GetNumberOfEdges()<<std::endl;
   WriterType::Pointer writer = WriterType::New();
   writer->SetInput( split->GetOutput( 0 ) );
-  writer->SetFileName( "split0.vtk" );
+  writer->SetFileName( argv[2] );
   writer->Update();
   
   writer->SetInput( split->GetOutput( 1 ) );
-  writer->SetFileName( "split1.vtk" );
+  writer->SetFileName( argv[3] );
   writer->Update();
 
   return EXIT_SUCCESS;

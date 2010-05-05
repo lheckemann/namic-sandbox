@@ -1,12 +1,25 @@
-//this program removes "teeth" boundary
-//after split the cortex surface
+/*=========================================================================
 
-//takes two input splits.vtk
-//re-arrange the boundary faces.
+  Program:   Insight Segmentation & Registration Toolkit
+  Module:    $RCSfile: itkQuadEdgeMeshBoundarySmoothFilterTest.cxx,v $
+  Language:  C++
+  Date:      $Date: 2008-03-10 19:46:31 $
+  Version:   $Revision: 1.37 $
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+
+     This software is distributed WITHOUT ANY WARRANTY; without even 
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+#if defined(_MSC_VER)
+#pragma warning ( disable : 4786 )
+#endif
 
 #include "itkQuadEdgeMesh.h"
-//#include "itkQuadEdgeMeshVTKPolyDataReader.h"
-//#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
+
 #include "itkVTKPolyDataReader.h"
 #include "itkVTKPolyDataWriter.h"
 
@@ -55,7 +68,6 @@ int main( int argc, char** argv )
 
   smoothFilter->SetIterations (atoi(argv[5]));
 
-  //smoothFilter->DebugOn();
   smoothFilter->Update();
 
   WriterType::Pointer writer = WriterType::New();

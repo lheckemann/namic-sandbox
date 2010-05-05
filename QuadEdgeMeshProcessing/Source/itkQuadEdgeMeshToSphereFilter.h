@@ -4,6 +4,7 @@
 
 #include <itkQuadEdgeMeshToQuadEdgeMeshFilter.h>
 #include <itkQuadEdgeMeshSplitFilter.h>
+#include <itkQuadEdgeMeshBoundarySmoothFilter.h>
 #include <itkQuadEdgeMeshBorderTransform.h>
 #include <itkQuadEdgeMeshParamMatrixCoefficients.h>
 #include <itkQuadEdgeMeshParam.h>
@@ -58,6 +59,9 @@ public:
   typedef typename InputMeshType::EdgeCellType    InputEdgeCellType;
   typedef typename InputMeshType::PolygonCellType InputPolygonCellType;
   typedef typename InputMeshType::PointIdList     InputPointIdList;
+  typedef typename InputMeshType::CellIdentifier  InputCellIdentifier;
+
+  typedef std::vector< InputCellIdentifier > SeedVectorType;
 
   /** Output types. */
   typedef TOutputMesh                               OutputMeshType;
@@ -83,6 +87,10 @@ public:
     OutputMeshType >                                SplitFilterType;
   typedef typename SplitFilterType::Pointer         SplitFilterPointer;
 
+  typedef QuadEdgeMeshBoundarySmoothFilter< InputMeshType,
+    OutputMeshType >                                         BoundarySmoothFilterType;
+  typedef typename BoundarySmoothFilterType::Pointer         BoundarySmoothFilterPointer;
+
   typedef QuadEdgeMeshBorderTransform< OutputMeshType, OutputMeshType >
     BorderTransformType;
   typedef typename BorderTransformType::Pointer
@@ -103,6 +111,11 @@ public:
     this->m_CoefficientsMethod = iMethod;
     }
 
+  void SetSeedFaces( const SeedVectorType& iSeeds )
+    {
+    m_SeedFaces = iSeeds;
+    }
+
   itkSetMacro( Radius, OutputCoordRepType );
 
 protected:
@@ -112,6 +125,7 @@ protected:
 
   CoefficientsComputation * m_CoefficientsMethod;
   OutputCoordRepType m_Radius;
+  SeedVectorType m_SeedFaces;
 
   void GenerateData( )
   {
@@ -122,12 +136,20 @@ protected:
     // split the input mesh into two meshes
     SplitFilterPointer split_filter = SplitFilterType::New();
     split_filter->SetInput( this->GetInput() );
+    split_filter->SetSeedFaces(m_SeedFaces);
     split_filter->Update();
 
     std::cout <<"Split DONE!" <<std::endl;
 
+    BoundarySmoothFilterPointer boundary_smooth = BoundarySmoothFilterType::New();
+    boundary_smooth->SetInputMesh1(split_filter->GetOutput(0));
+    boundary_smooth->SetInputMesh2(split_filter->GetOutput(1));
+    boundary_smooth->SetIterations(5);
+    boundary_smooth->Update();
+
     BorderTransformPointer border_transform = BorderTransformType::New();
-    border_transform->SetInput( split_filter->GetOutput( 0 ) );
+    //border_transform->SetInput( split_filter->GetOutput( 0 ) );
+    border_transform->SetInput( boundary_smooth->GetOutputMesh1() );
     border_transform->SetTransformType(
       BorderTransformType::DISK_BORDER_TRANSFORM );
     border_transform->SetRadius( 1. );
@@ -140,7 +162,8 @@ protected:
 
     {
     ParametrizationPointer param0 = ParametrizationType::New();
-    param0->SetInput( split_filter->GetOutput( 0 ) );
+    //param0->SetInput( split_filter->GetOutput( 0 ) );
+    param0->SetInput( boundary_smooth->GetOutputMesh1( ) );
     param0->SetBorderTransform( border_transform );
     param0->SetCoefficientsMethod( m_CoefficientsMethod );
     param0->Update();
@@ -166,7 +189,8 @@ protected:
     
     {
     ParametrizationPointer param1 = ParametrizationType::New();
-    param1->SetInput( split_filter->GetOutput( 1 ) );
+    //param1->SetInput( split_filter->GetOutput( 1 ) );
+    param1->SetInput(boundary_smooth->GetOutputMesh2( ));
     param1->SetBorderTransform( border_transform );
     param1->SetCoefficientsMethod( m_CoefficientsMethod );
     param1->Update();
