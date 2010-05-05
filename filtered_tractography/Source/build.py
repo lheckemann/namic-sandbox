@@ -3,7 +3,7 @@ from scipy.weave import ext_tools as et
 
 def add_model_1tensor_f(mod):
     # example data for type definitions
-    X = np.zeros((5,1), dtype='float32')
+    X = np.zeros((5,1), dtype='float64')
     k,m = X.shape
 
     code = """
@@ -37,7 +37,7 @@ def add_model_1tensor_f(mod):
 
 def add_state2tensor(mod):
     # example data for type definitions
-    X = np.zeros((5,1), dtype='float32')
+    X = np.zeros((5,1), dtype='float64')
     y = np.zeros(3)
 
     code = """
@@ -78,8 +78,8 @@ def add_state2tensor(mod):
 
 def add_model_1tensor_h(mod):
     # typedefs
-    X = np.zeros((5,1), dtype='float32')
-    u = np.zeros((102,3), dtype='float32')
+    X = np.zeros((5,1), dtype='float64')
+    u = np.zeros((102,3), dtype='float64')
     b = 900
 
     n = u.shape[0]
@@ -154,7 +154,7 @@ def add_s2ga(mod):
 
 def add_interp3signal(mod):
     S = np.empty((100,100,100,52), dtype='float32')
-    p = (26,72,72)
+    p = np.empty(3)
 
     code = """
            #line 0 "interp3signal"
@@ -205,7 +205,7 @@ def add_interp3signal(mod):
 
 def add_interp3scalar(mod):
     M = np.empty((100,100,100),dtype='int16')
-    p = (26,72,72)
+    p = np.empty(3)
 
     code = """
            #line 0 "interp3scalar"
