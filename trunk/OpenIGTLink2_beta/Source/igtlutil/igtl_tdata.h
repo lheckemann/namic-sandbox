@@ -25,6 +25,13 @@
 #define  IGTL_STT_TDATA_SIZE               24
 #define  IGTL_RTS_TDATA_SIZE               1
 
+#define  IGTL_TDATA_TYPE_TRACKER           1  /* Tracker */
+#define  IGTL_TDATA_TYPE_6D                2  /* 6D instrument (regular instrument) */
+#define  IGTL_TDATA_TYPE_3D                3  /* 3D instrument (only tip of the instrument defined) */
+#define  IGTL_TDATA_TYPE_5D                3  /* 5D instrument (tip and handle are defined,
+                                                 but not the normal vector) */
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
