@@ -579,7 +579,7 @@ void vtkProstateNavStepTargetingTemplate::ProcessGUIEvents(vtkObject *caller,
 
   /////////
 
-  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManagerNode();
 
   if(!mrmlNode)
       return;
@@ -908,7 +908,7 @@ void vtkProstateNavStepTargetingTemplate::UpdateTargetListGUI()
   // create new target points, if necessary
   this->GetLogic()->UpdateTargetListFromMRML();
 
-  vtkMRMLProstateNavManagerNode *manager = this->GetGUI()->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode *manager = this->GetGUI()->GetProstateNavManagerNode();
   if (!manager)
   {
     return;
@@ -1105,7 +1105,7 @@ void vtkProstateNavStepTargetingTemplate::RemoveGUIObservers()
 //--------------------------------------------------------------------------------
 void vtkProstateNavStepTargetingTemplate::UpdateGUI()
 {
-  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManagerNode();
 
   if (!mrmlNode)
   {

@@ -152,6 +152,8 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
 
   bool IsTargetReachable(int needleIndex, double rasLocation[3]);
 
+  vtkMRMLRobotNode* GetRobotNode();
+
   vtkProstateNavGUI* GUI;
 
   /*

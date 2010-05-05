@@ -69,6 +69,15 @@ public:
     vtkGetMacro(NeedleOvershoot,double);
     vtkSetMacro(NeedleOvershoot,double);
 
+    // Description
+    // Set/get Needle extension
+    vtkGetMacro(NeedleExtension,double);
+    vtkSetMacro(NeedleExtension,double);
+
+    // Description
+    // Set/get Needle extension
+    vtkGetMacro(NeedleTargetSize,double);
+    vtkSetMacro(NeedleTargetSize,double);
 
     // Description
     // Set/get Targeting parameter: is reachable or not 
@@ -88,11 +97,13 @@ public:
     //BTX
     // Description
     // Set/get Targeting parameter: needle type
-    void SetNeedleType(std::string NeedleType, double Depth, double Overshoot) 
+    void SetNeedleType(std::string needleType, double depth, double overshoot, double extension, double targetSize) 
     { 
-        this->NeedleType = NeedleType;
-        this->NeedleLength = Depth;
-        this->NeedleOvershoot = Overshoot;
+        this->NeedleType = needleType;
+        this->NeedleLength = depth;
+        this->NeedleOvershoot = overshoot;
+        this->NeedleExtension = extension;
+        this->NeedleTargetSize = targetSize;
     }
     std::string GetNeedleTypeString() const { return this->NeedleType;};
     //ETX
@@ -196,8 +207,10 @@ private:
     double NeedleAngle;     ///< Calculated value: Needle angle in degree
     double DepthCM;         ///< Calculated value: Insertion deepth in cm
     bool IsOutsideReach;    ///< Calculated value: Can be reaced?
-    double NeedleLength; ///< Depth depending on needle type (biopsy, placement...)
-    double NeedleOvershoot; ///< Overshooting
+    double NeedleLength;
+    double NeedleOvershoot;
+    double NeedleExtension;
+    double NeedleTargetSize;
     double HingePosition[3];
     double RASLocation[3];
     double RASOrientation[4];

@@ -171,7 +171,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
  protected:
 
   vtkMRMLTransPerinealProstateTemplateNode();
-  ~vtkMRMLTransPerinealProstateTemplateNode();
+  virtual ~vtkMRMLTransPerinealProstateTemplateNode();
   vtkMRMLTransPerinealProstateTemplateNode(const vtkMRMLTransPerinealProstateTemplateNode&);
   void operator=(const vtkMRMLTransPerinealProstateTemplateNode&);
 

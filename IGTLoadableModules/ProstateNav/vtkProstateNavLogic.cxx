@@ -108,18 +108,13 @@ int vtkProstateNavLogic::Enter()
 void vtkProstateNavLogic::TimerHandler()
 {
   if (this->TimerOn)
+  {
+    vtkMRMLRobotNode* robot=GetRobotNode();
+    if (robot!=NULL)
     {
-      if (GUI!=NULL)
-      {
-        if (GUI->GetProstateNavManager()!=NULL)
-        {
-          if (GUI->GetProstateNavManager()->GetRobotNode()!=NULL)
-          {
-            this->GUI->GetProstateNavManager()->GetRobotNode()->OnTimer();
-          }
-        }
-      }      
+      robot->OnTimer();
     }
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -152,9 +147,14 @@ int vtkProstateNavLogic::RobotMoveTo(float position[3], float orientation[3])
 }
 
 //---------------------------------------------------------------------------
-int  vtkProstateNavLogic::RobotMoveTo()
+int vtkProstateNavLogic::RobotMoveTo()
 {
-  return this->GUI->GetProstateNavManager()->GetRobotNode()->MoveTo(this->GUI->GetProstateNavManager()->GetRobotNode()->GetTargetTransformNodeID());  
+  vtkMRMLRobotNode* robot=GetRobotNode();
+  if (robot==NULL)
+  {
+    return 0; // failed
+  }
+  return robot->MoveTo(robot->GetTargetTransformNodeID());  
 }
 //---------------------------------------------------------------------------
 int vtkProstateNavLogic::ScanStart()
@@ -310,7 +310,7 @@ vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddVolumeToScene(const char *fileN
     return NULL;
   }
 
-  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
   if (manager==NULL)
   {
     vtkErrorMacro("Error adding volume to the scene, manager is invalid");
@@ -321,8 +321,8 @@ vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddVolumeToScene(const char *fileN
 
   switch (volumeType)
   {
-  case VOL_CALIBRATION:
-    manager->SetCalibrationVolumeNodeID(volumeNode->GetID());
+  case VOL_GENERIC:
+    // don't store a reference in the manager node
     break;
   case VOL_TARGETING:
     manager->SetTargetingVolumeNodeID(volumeNode->GetID());
@@ -349,7 +349,7 @@ int vtkProstateNavLogic::SelectVolumeInScene(vtkMRMLScalarVolumeNode* volumeNode
     return 0;
   }
 
-  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
   if (manager==NULL)
   {
     vtkErrorMacro("Error adding volume to the scene, manager is invalid");
@@ -363,8 +363,8 @@ int vtkProstateNavLogic::SelectVolumeInScene(vtkMRMLScalarVolumeNode* volumeNode
 
   switch (volumeType)
   {
-  case VOL_CALIBRATION:
-    manager->SetCalibrationVolumeNodeID(volumeNode->GetID());
+  case VOL_GENERIC:
+    // don't store a reference in the manager node
     break;
   case VOL_TARGETING:
     manager->SetTargetingVolumeNodeID(volumeNode->GetID());
@@ -376,7 +376,7 @@ int vtkProstateNavLogic::SelectVolumeInScene(vtkMRMLScalarVolumeNode* volumeNode
     vtkErrorMacro("AddVolumeToScene: unknown volume type: " << volumeType);
   }
   
-  volumeNode->Modified();
+  //volumeNode->Modified();
   this->Modified();
 
   return 1;
@@ -464,7 +464,7 @@ std::string vtkProstateNavLogic::GetFoRStrFromVolumeNodeID(const char* volNodeID
 int vtkProstateNavLogic::ShowCoverage(bool show) 
 {
 
-  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
   if (manager==NULL)
   {
     vtkErrorMacro("Error showing coverage, manager is invalid");
@@ -526,7 +526,7 @@ int vtkProstateNavLogic::ShowCoverage(bool show)
 // return 0 if failed
 int vtkProstateNavLogic::CreateCoverageVolume()
 {
-  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
   if (manager==NULL)
   {
     vtkErrorMacro("Error creating coverage volume, manager is invalid");
@@ -614,7 +614,7 @@ int vtkProstateNavLogic::CreateCoverageVolume()
 // return 0 if failed
 int vtkProstateNavLogic::UpdateCoverageVolumeImage()
 {
-  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
   if (manager==NULL)
   {
     vtkErrorMacro("Error updating coverage volume, manager is invalid");
@@ -649,7 +649,10 @@ int vtkProstateNavLogic::UpdateCoverageVolumeImage()
   vtkSmartPointer<vtkProstateNavTargetDescriptor> targetDesc=vtkSmartPointer<vtkProstateNavTargetDescriptor>::New();
   targetDesc->SetNeedleType(manager->GetNeedleType(manager->GetCurrentNeedleIndex()), 
     manager->GetNeedleLength(manager->GetCurrentNeedleIndex()), 
-    manager->GetNeedleOvershoot(manager->GetCurrentNeedleIndex()));
+    manager->GetNeedleOvershoot(manager->GetCurrentNeedleIndex()),
+    manager->GetNeedleExtension(manager->GetCurrentNeedleIndex()),
+    manager->GetNeedleTargetSize(manager->GetCurrentNeedleIndex())
+    );
   double needleLength=manager->GetNeedleLength(manager->GetCurrentNeedleIndex());
 
   std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeID());
@@ -707,7 +710,7 @@ int vtkProstateNavLogic::UpdateCoverageVolumeImage()
 // Remove coverage volume and display node from the scene and from the main MRML node
 void vtkProstateNavLogic::DeleteCoverageVolume() 
 {
-  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
   if (manager==NULL)
   {
     vtkErrorMacro("Error deleting coverage volume, manager is invalid");
@@ -737,7 +740,7 @@ void vtkProstateNavLogic::DeleteCoverageVolume()
 
 void vtkProstateNavLogic::UpdateTargetListFromMRML()
 {
-  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
   if (manager==NULL)
   {
     vtkErrorMacro("Error updating targetlist from mrml, manager is invalid");
@@ -789,7 +792,7 @@ void vtkProstateNavLogic::UpdateTargetListFromMRML()
       {
         vtkErrorMacro("Failed to get info for needle "<<needleIndex);
       }
-      targetDesc->SetNeedleType(needleDesc.Description, needleDesc.NeedleLength, needleDesc.NeedleOvershoot);
+      targetDesc->SetNeedleType(needleDesc.Description, needleDesc.Length, needleDesc.Overshoot, needleDesc.Extension, needleDesc.TargetSize);
 
       needleDesc.LastTargetId++;
       if (!manager->SetNeedle(needleIndex, needleDesc))
@@ -798,7 +801,7 @@ void vtkProstateNavLogic::UpdateTargetListFromMRML()
       }
 
       std::ostrstream strvalue;
-      strvalue << needleDesc.NeedleName << needleDesc.LastTargetId << std::ends;        
+      strvalue << needleDesc.Name << needleDesc.LastTargetId << std::ends;        
       fidNode->SetNthFiducialLabelText(i,strvalue.str());
       strvalue.rdbuf()->freeze(0);     
 
@@ -858,7 +861,7 @@ int vtkProstateNavLogic::GetTargetIndexFromFiducialID(const char* fiducialID)
     vtkWarningMacro("Fiducial ID is invalid");
     return -1;
   }
-  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManager();
+  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
   if (manager==NULL)
   {
     vtkErrorMacro("Manager is invalid");
@@ -969,4 +972,20 @@ int vtkProstateNavLogic::SetCurrentFiducialList(vtkMRMLFiducialListNode* fidNode
   fidGUI->SetFiducialListNodeID(fidNode->GetID());
   
   return 1;
+}
+
+vtkMRMLRobotNode* vtkProstateNavLogic::GetRobotNode()
+{
+  if (this->GUI==NULL)
+  {
+    return NULL;
+  }
+  if (this->GUI->GetProstateNavManagerNode()==NULL)
+  {
+    return NULL;
+  }
+  return this->GUI->GetProstateNavManagerNode()->GetRobotNode();
+  {
+    return NULL;
+  }
 }

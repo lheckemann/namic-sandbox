@@ -37,10 +37,9 @@
 
 
 #include "vtkMRMLTransRectalProstateRobotNode.h"
+#include "vtkTransRectalFiducialCalibrationAlgo.h"
 
 #include <vtksys/ios/sstream>
-
-static const char MARKER_LABEL_NAMES[CALIB_MARKER_COUNT][9]={ "Marker 1", "Marker 2", "Marker 3", "Marker 4"};
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkProstateNavFiducialCalibrationStep);
@@ -50,11 +49,8 @@ vtkCxxRevisionMacro(vtkProstateNavFiducialCalibrationStep, "$Revision: 1.1 $");
 vtkProstateNavFiducialCalibrationStep::vtkProstateNavFiducialCalibrationStep()
 {
   this->SetTitle("Calibration");
-  this->SetDescription("Load calibration image and click on the markers.");
-
-  this->CalibrationPointListNode=vtkSmartPointer<vtkMRMLFiducialListNode>::New();
-  this->CalibrationPointListNode->SetName("CalibrationMarkers");
-
+  this->SetDescription("Load calibration image and click on the markers.");  
+  
   this->LoadVolumeDialogFrame=vtkSmartPointer<vtkKWFrame>::New();
   this->LoadCalibrationVolumeButton=vtkSmartPointer<vtkKWPushButton>::New();
   this->VolumeSelectorWidget=vtkSmartPointer<vtkSlicerNodeSelectorWidget>::New();
@@ -75,7 +71,6 @@ vtkProstateNavFiducialCalibrationStep::vtkProstateNavFiducialCalibrationStep()
     }
   this->AutomaticCenterpointAdjustmentCheckButton=vtkSmartPointer<vtkKWCheckButton>::New();
   this->RadiusSpinBox=vtkSmartPointer<vtkKWSpinBoxWithLabel>::New();
-  this->RadiusCheckButton=vtkSmartPointer<vtkKWCheckButton>::New();
   this->InitialAngleSpinBox=vtkSmartPointer<vtkKWSpinBoxWithLabel>::New();
   this->SegmentationResultsFrame=vtkSmartPointer<vtkKWFrameWithLabel>::New();
   this->CalibrationResultsBox=vtkSmartPointer<vtkKWTextWithScrollbars>::New();
@@ -83,14 +78,14 @@ vtkProstateNavFiducialCalibrationStep::vtkProstateNavFiducialCalibrationStep()
   this->ProcessingCallback = false;
 
   this->ObservedRobot=NULL;
-  
-  this->EnableAutomaticCenterpointAdjustment=true;
+  this->ObservedCalibrationPointListNode=NULL;
+ 
 }
 
 //----------------------------------------------------------------------------
 vtkProstateNavFiducialCalibrationStep::~vtkProstateNavFiducialCalibrationStep()
 {
-  this->CalibrationPointListNode->SetAndObserveTransformNodeID(NULL);
+  
 }
 
 //----------------------------------------------------------------------------
@@ -158,7 +153,7 @@ void vtkProstateNavFiducialCalibrationStep::ShowLoadVolumeControls()
     this->VolumeSelectorWidget->Create();
     this->VolumeSelectorWidget->SetBorderWidth(2);  
     this->VolumeSelectorWidget->SetNodeClass("vtkMRMLVolumeNode", NULL, NULL, NULL);
-    this->VolumeSelectorWidget->SetMRMLScene(this->GetLogic()->GetApplicationLogic()->GetMRMLScene());
+    this->VolumeSelectorWidget->SetMRMLScene(this->MRMLScene);
     this->VolumeSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
     this->VolumeSelectorWidget->GetWidget()->GetWidget()->SetWidth(24);
     this->VolumeSelectorWidget->SetLabelText( "Calibration Volume: ");
@@ -419,62 +414,21 @@ void vtkProstateNavFiducialCalibrationStep::ShowUserInterface()
   this->ShowFiducialSegmentationResultsControls();
   this->ShowExportImportControls();
 
-  this->ShowAxesIn3DView(true);
-  this->ShowMarkerVolumesIn3DView(true);
-
-  vtkMRMLProstateNavManagerNode *manager= this->GetGUI()->GetProstateNavManager();
-  if(manager!=NULL)
-  {
-    const char* calVolNodeID = manager->GetCalibrationVolumeNodeID();
-    vtkMRMLScalarVolumeNode *calVolNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(calVolNodeID));
-    if ( calVolNode )
-    {
-      this->VolumeSelectorWidget->UpdateMenu();
-      this->VolumeSelectorWidget->SetSelected( calVolNode );
-    }
-  }
-
-  vtkMRMLScene* scene=NULL;
-  if (this->GetLogic()
-    && this->GetLogic()->GetApplicationLogic()
-    && this->GetLogic()->GetApplicationLogic()->GetMRMLScene())
-  {
-    scene=this->GetLogic()->GetApplicationLogic()->GetMRMLScene();
-  }
-  if (scene!=NULL)
-  {
-    if (this->CalibrationPointListNode->GetScene()!=scene)
-    {
-      scene->AddNode(this->CalibrationPointListNode);
-    }
-    vtkMRMLScalarVolumeNode *calVolNode=vtkMRMLScalarVolumeNode::SafeDownCast(scene->GetNodeByID(manager->GetCalibrationVolumeNodeID()));    
-    if (calVolNode!=NULL)
-    {
-      this->CalibrationPointListNode->SetAndObserveTransformNodeID(calVolNode->GetTransformNodeID());
-    }
-  }
-   
-  // update calibration marker positions from fiducials (needed for testing&debugging)
-  vtkMRMLTransRectalProstateRobotNode* robot= GetRobot();
-  if(robot==NULL)
-  {
-    vtkErrorMacro("UpdateCalibration: node is invalid");
-  }
-  else
-  {
-    unsigned int fidCount=this->CalibrationPointListNode->GetNumberOfFiducials();
-    for (unsigned int i=0; i<CALIB_MARKER_COUNT && i<fidCount; i++)
-    {
-      float* rasPoint=this->CalibrationPointListNode->GetNthFiducialXYZ(i);
-      double rasPointDouble[3]={rasPoint[0], rasPoint[1], rasPoint[2]};
-      robot->SetCalibrationMarker(i, rasPointDouble);
-    }
-    if (this->CalibrationPointListNode->GetNumberOfFiducials()>=(int)CALIB_MARKER_COUNT)
-    {
-      //Resegment(); no need to resegment, as the node modified event will trigger UpdateCalibration();
-    }
-  }
+  this->ShowAxesIn3DView(true);  
+  
   EnableMarkerPositionEdit(this->EditMarkerPositionButton->GetSelectedState() == 1);
+
+  vtkMRMLTransRectalProstateRobotNode* robot=GetRobot();
+  if(robot!=NULL)
+  {    
+    vtkMRMLFiducialListNode* calibMarkerNode=robot->GetCalibrationPointListNode();
+    if (calibMarkerNode!=NULL)
+    {
+      calibMarkerNode->SetAllFiducialsVisibility(true);
+    }
+  }  
+
+  UpdateGUI();
 
   AddGUIObservers();
   AddMRMLObservers();
@@ -482,40 +436,28 @@ void vtkProstateNavFiducialCalibrationStep::ShowUserInterface()
 //-------------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::HideUserInterface()
 {
-  this->Superclass::HideUserInterface();
-
   vtkMRMLTransRectalProstateRobotNode* robot= GetRobot();
   if(robot!=NULL)
   {
     robot->SetModelAxesVisible(false);
+    // Don't clutter the screen with calibration markers in other steps => hide them
+    vtkMRMLFiducialListNode* calibMarkerNode=robot->GetCalibrationPointListNode();
+    if (calibMarkerNode!=NULL)
+    {
+      calibMarkerNode->SetAllFiducialsVisibility(false);
+    }
   }
 
   TearDownGUI();
+
+  this->Superclass::HideUserInterface();
 }
 
 //----------------------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::TearDownGUI()
 {
   RemoveMRMLObservers();
-  RemoveGUIObservers();
-  
-  vtkMRMLScene* scene=NULL;
-  if (this->GetLogic())
-  {
-    if (this->GetLogic()->GetApplicationLogic())
-    {
-      if (this->GetLogic()->GetApplicationLogic()->GetMRMLScene())
-      {
-        scene=this->GetLogic()->GetApplicationLogic()->GetMRMLScene();
-      }
-    }
-  }
-  if (scene!=NULL)
-  {
-    scene->RemoveNode(this->CalibrationPointListNode);
-    this->CalibrationPointListNode->SetScene(NULL);    
-  }  
-  this->CalibrationPointListNode->SetAndObserveTransformNodeID(NULL);
+  RemoveGUIObservers();   
 }
 
 
@@ -541,35 +483,6 @@ void vtkProstateNavFiducialCalibrationStep::PopulateCalibrationResults()
     os << "  Initial rotation angle: "<<calibData.RobotRegistrationAngleDegrees<<" deg"<<std::endl;  
     os << "Segmentation results:";
     os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(2);
-
-    int modifyOld=this->CalibrationPointListNode->StartModify();  
-    for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
-    {
-      double r, a, s;
-      bool valid;
-      robot->GetCalibrationMarker(i, r, a, s, valid);
-      if (valid)
-      {
-        os << std::endl << "  Marker "<<i+1<<": R="<<r<<" A="<<a<<" S="<<s;
-      }
-
-      if (this->CalibrationPointListNode->GetNumberOfFiducials()<(int)i+1)
-      {    
-        this->CalibrationPointListNode->AddFiducialWithLabelXYZSelectedVisibility(MARKER_LABEL_NAMES[i],r,a,s,true,true);
-      }
-      else
-      {
-        float* fidXYZ=this->CalibrationPointListNode->GetNthFiducialXYZ(i);
-        if (fidXYZ[0]!=r || fidXYZ[1]!=a || fidXYZ[2]!=s)
-        {
-          this->CalibrationPointListNode->SetNthFiducialXYZ(i, r, a, s);
-        }
-      }
-    }
-    //this->CalibrationPointListNode->SetLocked(true);
-    this->CalibrationPointListNode->EndModify(modifyOld); 
-    // StartModify/EndModify discarded vtkMRMLFiducialListNode::FiducialModifiedEvent-s, so we have to resubmit them now
-    this->CalibrationPointListNode->InvokeEvent(vtkMRMLFiducialListNode::FiducialModifiedEvent, NULL);
   }
   else
   {
@@ -587,7 +500,6 @@ void vtkProstateNavFiducialCalibrationStep::AddGUIObservers()
   this->RemoveGUIObservers();
   this->ResetCalibrationButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->EditMarkerPositionButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->AutomaticCenterpointAdjustmentCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->ResegmentButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->LoadCalibrationVolumeButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->VolumeSelectorWidget->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );  
@@ -601,7 +513,6 @@ void vtkProstateNavFiducialCalibrationStep::RemoveGUIObservers()
 {
   this->ResetCalibrationButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);  
   this->EditMarkerPositionButton->RemoveObservers(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->AutomaticCenterpointAdjustmentCheckButton->RemoveObservers(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);  
   this->ResegmentButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->LoadCalibrationVolumeButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->VolumeSelectorWidget->RemoveObservers ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent,  (vtkCommand *)this->GUICallbackCommand );
@@ -643,160 +554,17 @@ void vtkProstateNavFiducialCalibrationStep::WizardGUICallback( vtkObject *caller
 //----------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::UpdateMRML() 
 {
-
-}
-
-//----------------------------------------------------------------------------
-void vtkProstateNavFiducialCalibrationStep::UpdateGUI() 
-{
-  PopulateCalibrationResults();
-  
-  // Update automatic centerpoint adjustment checkbox
-  bool enableAutomaticCenterpointAdjustmentOnGui=(this->AutomaticCenterpointAdjustmentCheckButton->GetSelectedState()==1);
-  if (enableAutomaticCenterpointAdjustmentOnGui!=this->EnableAutomaticCenterpointAdjustment)
-  {
-    this->AutomaticCenterpointAdjustmentCheckButton->SetSelectedState(this->EnableAutomaticCenterpointAdjustment?1:0);
-  }
-} 
-
-//----------------------------------------------------------------------------
-void vtkProstateNavFiducialCalibrationStep::ProcessGUIEvents(vtkObject *caller,
-        unsigned long event, void *callData)
-{
-  //slicerCerr("vtkProstateNavFiducialCalibrationStep::ProcessGUIEvents");
-
-  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManager();
-
-  if(!mrmlNode)
-      return;
-  
-  // load calib volume dialog button
-  if (this->LoadCalibrationVolumeButton && this->LoadCalibrationVolumeButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
-    {
-    this->GetApplication()->Script("::LoadVolume::ShowDialog");
-    }
-
-  // Calibrate
-  if (this->EditMarkerPositionButton && this->EditMarkerPositionButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
-    {
-    EnableMarkerPositionEdit(this->EditMarkerPositionButton->GetSelectedState() == 1);
-    }  
-
-  // Enable/disable automatic marker centerpoint adjustment
-  if (this->AutomaticCenterpointAdjustmentCheckButton && this->AutomaticCenterpointAdjustmentCheckButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
-    {
-      bool newEnable=(this->AutomaticCenterpointAdjustmentCheckButton->GetSelectedState() == 1);
-      if (newEnable!=this->EnableAutomaticCenterpointAdjustment)
-      {
-        this->EnableAutomaticCenterpointAdjustment=newEnable;
-        this->Resegment();
-      }      
-    }
-
-  // reset calib button
-  if (this->ResetCalibrationButton && this->ResetCalibrationButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
-    {
-    this->Reset();
-    }
-  // resegment 
-  if (this->ResegmentButton && this->ResegmentButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
-    {
-    this->Resegment();
-    }  
-
-  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
-  {
-    if (this->JumpToFiducialButton[i] && this->JumpToFiducialButton[i] == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
-    {
-      this->JumpToFiducial(i);
-    }  
-  }
-
-  if (this->VolumeSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
-    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent ) 
-  {
-    vtkMRMLScalarVolumeNode *volume = vtkMRMLScalarVolumeNode::SafeDownCast(this->VolumeSelectorWidget->GetSelected());
-    if (volume != NULL)
-    {
-      this->GetGUI()->GetLogic()->SelectVolumeInScene(volume, VOL_CALIBRATION);
-      this->EditMarkerPositionButton->SetSelectedState(1);
-
-      // Update the fiducials to use the same transform 
-      vtkMRMLScene* scene=NULL;
-      if (this->GetLogic()
-        && this->GetLogic()->GetApplicationLogic()
-        && this->GetLogic()->GetApplicationLogic()->GetMRMLScene())
-      {
-        scene=this->GetLogic()->GetApplicationLogic()->GetMRMLScene();
-      }
-      if (scene!=NULL)
-      {
-        vtkMRMLScalarVolumeNode *calVolNode=vtkMRMLScalarVolumeNode::SafeDownCast(scene->GetNodeByID(mrmlNode->GetCalibrationVolumeNodeID()));    
-        if (calVolNode!=NULL)
-        {
-          this->CalibrationPointListNode->SetAndObserveTransformNodeID(calVolNode->GetTransformNodeID());
-        }
-      }
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
-void vtkProstateNavFiducialCalibrationStep::Reset()
-{
   vtkMRMLTransRectalProstateRobotNode* robot=GetRobot();
-  if (robot==NULL)
+  if(robot==NULL)
+  {
+    vtkErrorMacro("UpdateMRML: node is invalid");
+    return;
+  }
+  vtkMRMLProstateNavManagerNode *managerNode = this->GetGUI()->GetProstateNavManagerNode();
+  if(managerNode==NULL)
   {
     return;
   }
-  robot->RemoveAllCalibrationMarkers();
-
-  this->CalibrationPointListNode->RemoveAllFiducials();
-
-  const TRProstateBiopsyCalibrationData calibData=robot->GetCalibrationData();
-  TRProstateBiopsyCalibrationData calibdataInvalidated=calibData;
-  calibdataInvalidated.CalibrationValid=false;
-  robot->SetCalibrationData(calibdataInvalidated);
-
-  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-  wizard_widget->SetErrorText("");
-
-  PopulateCalibrationResults();
-}
-//-----------------------------------------------------------------------------
-void vtkProstateNavFiducialCalibrationStep::Resegment()
-{
-  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManager();
-
-  if(!mrmlNode)
-  {
-    vtkErrorMacro("Resegment: node is invalid");
-    return;
-  }
-
-  vtkMRMLTransRectalProstateRobotNode* robot=GetRobot();
-  if (robot==NULL)
-  {    
-    vtkErrorMacro("Resegment: robot is invalid");
-    return;
-  }
-
-  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-  std::ostrstream os;
-
-  if (this->CalibrationPointListNode->GetNumberOfFiducials()<(int)CALIB_MARKER_COUNT)
-  {
-    os << "Please define all calibration markers." << std::ends;
-    wizard_widget->SetErrorText(os.str());
-    os.rdbuf()->freeze();
-    wizard_widget->Update();
-    return;
-  }
-
-  os << "Starting segmentation..." << std::ends;
-  wizard_widget->SetErrorText(os.str());
-  os.rdbuf()->freeze();
-  wizard_widget->Update();
 
   // gather information about thresholds
   double thresh[CALIB_MARKER_COUNT];
@@ -811,29 +579,70 @@ void vtkProstateNavFiducialCalibrationStep::Resegment()
   fidDims[2] = this->FiducialDepthSpinBox->GetWidget()->GetValue();
 
   // gather info about initial radius, and initial angle
-  double radius = 0;
-  bool bUseRadius = false;
-  double initialAngle = 0;
+  double radius = this->RadiusSpinBox->GetWidget()->GetValue();
+  double initialAngle = this->InitialAngleSpinBox->GetWidget()->GetValue();
+  bool enableAutomaticMarkerCenterpointAdjustment=(this->AutomaticCenterpointAdjustmentCheckButton->GetSelectedState()==1);
 
-  radius = this->RadiusSpinBox->GetWidget()->GetValue();
-  bUseRadius = this->RadiusCheckButton->GetSelectedState();
-  initialAngle = this->InitialAngleSpinBox->GetWidget()->GetValue();
+  vtkMRMLScalarVolumeNode *volume = vtkMRMLScalarVolumeNode::SafeDownCast(this->VolumeSelectorWidget->GetSelected());
+  const char* calVolNodeID = NULL;  
+  if (volume != NULL)
+  {    
+    calVolNodeID=volume->GetID();
+  }
+  robot->SetCalibrationInputs(calVolNodeID, thresh, fidDims, radius, initialAngle, enableAutomaticMarkerCenterpointAdjustment);  
+}
 
-  // start the segmentation/registration
-  //bool found[CALIB_MARKER_COUNT]={false, false, false, false};
-  std::string calibResultDetails;
+//----------------------------------------------------------------------------
+void vtkProstateNavFiducialCalibrationStep::UpdateGUI() 
+{
+  vtkMRMLTransRectalProstateRobotNode* robot= GetRobot();
+  if(robot==NULL)
+  {
+    // it is normal when loading the scene
+    PopulateCalibrationResults();
+    vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+    wizard_widget->SetErrorText("No robot is available");
+    wizard_widget->Update();
+    return;
+  }
 
-  const char* calVolNodeID = mrmlNode->GetCalibrationVolumeNodeID();
-  vtkMRMLScalarVolumeNode *calVolNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(calVolNodeID));
-
-  bool calibResult=robot->SegmentRegisterMarkers(calVolNode, thresh, fidDims, radius, bUseRadius, initialAngle, calibResultDetails, this->EnableAutomaticCenterpointAdjustment);
+  // Update automatic centerpoint adjustment checkbox
+  bool enableAutomaticCenterpointAdjustmentOnGui=(this->AutomaticCenterpointAdjustmentCheckButton->GetSelectedState()==1);
+  if (enableAutomaticCenterpointAdjustmentOnGui!=robot->GetEnableAutomaticMarkerCenterpointAdjustment())
+  {
+    this->AutomaticCenterpointAdjustmentCheckButton->SetSelectedState(robot->GetEnableAutomaticMarkerCenterpointAdjustment());
+  }
   
-  wizard_widget->SetErrorText(calibResultDetails.c_str());
-  wizard_widget->Update();
- 
-  ShowMarkerVolumesIn3DView(true);
+  if (this->MRMLScene!=NULL)
+  {
+    const char* calVolNodeID = robot->GetCalibrationVolumeNodeID();
+    vtkMRMLScalarVolumeNode *calVolNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->MRMLScene->GetNodeByID(calVolNodeID));    
+    vtkMRMLNode* calVolNodeGui=this->VolumeSelectorWidget->GetSelected();
+    if (calVolNode!=calVolNodeGui)
+    {
+      this->VolumeSelectorWidget->UpdateMenu();
+      this->VolumeSelectorWidget->SetSelected( calVolNode );      
+    }
+  }
 
-  if (calibResult==true)
+  for (unsigned int i=0 ; i<CALIB_MARKER_COUNT; i++)
+  {
+    this->FiducialThresholdScale[i]->SetValue(robot->GetMarkerSegmentationThreshold(i));
+  }
+
+  double *fidDims=robot->GetMarkerDimensionsMm();
+  this->FiducialWidthSpinBox->GetWidget()->SetValue(fidDims[0]);
+  this->FiducialHeightSpinBox->GetWidget()->SetValue(fidDims[1]);
+  this->FiducialDepthSpinBox->GetWidget()->SetValue(fidDims[2]);
+
+  this->RadiusSpinBox->GetWidget()->SetValue(robot->GetMarkerRadiusMm());
+
+  this->InitialAngleSpinBox->GetWidget()->SetValue(robot->GetRobotInitialAngle());
+
+  // Update the mouse mode (add if not enough fids, pick if enough)
+  EnableMarkerPositionEdit(this->EditMarkerPositionButton->GetSelectedState() == 1);
+  
+  if (robot->GetCalibrationData().CalibrationValid)
   {
     // calibration successful  
     this->ShowAxesIn3DView(true);
@@ -844,11 +653,104 @@ void vtkProstateNavFiducialCalibrationStep::Resegment()
     this->ShowAxesIn3DView(false);
   }
 
-  GetMainViewerWidget()->RequestRender();
+  if (GetGUI()!=NULL)
+  {
+    GetGUI()->RequestRenderInViewerWidgets();
+  }  
 
-  //this->CalibrationPointListNode->SetAllFiducialsVisibility(false);
+  PopulateCalibrationResults();
 
-  UpdateGUI(); // TODO: this should be called automatically, as the robot node is changed
+  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+  wizard_widget->SetErrorText(robot->GetCalibrationStatusDescription());
+  wizard_widget->Update();
+} 
+
+//----------------------------------------------------------------------------
+void vtkProstateNavFiducialCalibrationStep::ProcessGUIEvents(vtkObject *caller,
+        unsigned long event, void *callData)
+{
+  //slicerCerr("vtkProstateNavFiducialCalibrationStep::ProcessGUIEvents");
+
+  vtkMRMLProstateNavManagerNode *manager = this->GetGUI()->GetProstateNavManagerNode();
+  if (manager==NULL)
+  {
+    return;
+  }
+  vtkMRMLTransRectalProstateRobotNode* robot= GetRobot();
+  if(robot==NULL)
+  {
+    return;
+  }
+
+  // Load calib volume dialog button
+  if (this->LoadCalibrationVolumeButton && this->LoadCalibrationVolumeButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+    {
+    this->GetApplication()->Script("::LoadVolume::ShowDialog");
+    }
+
+  // Enable/disable marker position edit by click
+  if (this->EditMarkerPositionButton && this->EditMarkerPositionButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+    {
+    EnableMarkerPositionEdit(this->EditMarkerPositionButton->GetSelectedState() == 1);
+    }  
+  // Reset calib button
+  if (this->ResetCalibrationButton && this->ResetCalibrationButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+    {
+    this->Reset();
+    }
+  // Resegment button
+  if (this->ResegmentButton && this->ResegmentButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+    {
+    this->Resegment();
+    }  
+  // Jump to fiducial button
+  for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
+  {
+    if (this->JumpToFiducialButton[i] && this->JumpToFiducialButton[i] == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+    {
+      this->JumpToFiducial(i);
+    }  
+  }
+  // Calibration volume selection
+  if (this->VolumeSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
+    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent ) 
+  {
+    vtkMRMLScalarVolumeNode *volume = vtkMRMLScalarVolumeNode::SafeDownCast(this->VolumeSelectorWidget->GetSelected());
+    if (volume != NULL)
+    {
+      this->GetGUI()->GetLogic()->SelectVolumeInScene(volume, VOL_GENERIC);
+      UpdateMRML();
+
+      this->EditMarkerPositionButton->SetSelectedState(1);      
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkProstateNavFiducialCalibrationStep::Reset()
+{
+  vtkMRMLTransRectalProstateRobotNode* robot=GetRobot();
+  if (robot==NULL)
+  {
+    return;
+  }
+  robot->RemoveAllCalibrationMarkers();
+
+  robot->ResetCalibrationData();
+
+  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+  wizard_widget->SetErrorText("");
+
+  PopulateCalibrationResults();
+}
+//-----------------------------------------------------------------------------
+void vtkProstateNavFiducialCalibrationStep::Resegment()
+{
+  UpdateMRML(); // update the robot node with the values set in the GUI
+  
+  // We have to explicitly call UpdateGUI, because when we are in an MRML callback (i.e., resegment triggered by
+  // fiducial manipulation) then further MRML callbacks (i.e., robot modified) are ignored
+  UpdateGUI(); 
 }
 
 //--------------------------------------------------------------------------------
@@ -861,29 +763,25 @@ void vtkProstateNavFiducialCalibrationStep::ShowAxesIn3DView(bool show)
   }
 }
 
-void vtkProstateNavFiducialCalibrationStep::ShowMarkerVolumesIn3DView(bool /*show*/)
-{
-  // :TODO: implement if needed (currently they are always shown)
-}
-
 vtkMRMLTransRectalProstateRobotNode* vtkProstateNavFiducialCalibrationStep::GetRobot()
 {
   if (this->GetGUI()==NULL)
   {
     return NULL;
   }
-  if (this->GetGUI()->GetProstateNavManager()==NULL)
+  if (this->GetGUI()->GetProstateNavManagerNode()==NULL)
   {
     return NULL;
   }
-  return vtkMRMLTransRectalProstateRobotNode::SafeDownCast(this->GetGUI()->GetProstateNavManager()->GetRobotNode());
+  return vtkMRMLTransRectalProstateRobotNode::SafeDownCast(this->GetGUI()->GetProstateNavManagerNode()->GetRobotNode());
 }
 
 //----------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::ProcessMRMLEvents(vtkObject *caller,
                                          unsigned long event, void *callData)
 {
-  if (caller == (vtkObject*)this->CalibrationPointListNode)
+  // Fiducial marker positions changed
+  if (this->ObservedCalibrationPointListNode!=NULL && caller == (vtkObject*)this->ObservedCalibrationPointListNode)
   {
     switch (event)
     {
@@ -891,13 +789,15 @@ void vtkProstateNavFiducialCalibrationStep::ProcessMRMLEvents(vtkObject *caller,
     case vtkMRMLScene::NodeAddedEvent: // when a fiducial is added to the list
     case vtkMRMLFiducialListNode::FiducialModifiedEvent:
     case vtkMRMLFiducialListNode::DisplayModifiedEvent:
+    case vtkMRMLScene::NodeRemovedEvent:
       UpdateCalibration();
       break;
     }
   }
 
+  // New volume is loaded
   if ( vtkMRMLScene::SafeDownCast(caller) == this->MRMLScene 
-    && event == vtkMRMLScene::NodeAddedEvent )
+    && this->MRMLScene!=NULL && event == vtkMRMLScene::NodeAddedEvent )
     {
     vtkMRMLScalarVolumeNode *volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast((vtkMRMLNode*)(callData));
     if (volumeNode!=NULL && this->VolumeSelectorWidget!=NULL && volumeNode!=this->VolumeSelectorWidget->GetSelected() )
@@ -907,57 +807,111 @@ void vtkProstateNavFiducialCalibrationStep::ProcessMRMLEvents(vtkObject *caller,
       }
     }
 
+  // Robot node changed
   vtkMRMLTransRectalProstateRobotNode *robot = vtkMRMLTransRectalProstateRobotNode::SafeDownCast(caller);
   if (robot!=NULL && robot == GetRobot() && event == vtkCommand::ModifiedEvent)
     {
     UpdateGUI();
     }
 
+  // User changed mouse interaction mode
+  if (this->MRMLScene!=NULL)
+  {
+    vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast(this->MRMLScene->GetNthNodeByClass(0, "vtkMRMLInteractionNode"));
+    if ( vtkMRMLInteractionNode::SafeDownCast(caller) == interactionNode
+      && interactionNode!=NULL && event == vtkMRMLInteractionNode::InteractionModeChangedEvent )
+    {
+      bool moreFiducialsAreNeeded=false;
+      vtkMRMLFiducialListNode *fidNode=GetCalibrationPointListNode();
+      if (fidNode!=NULL)
+      {
+        moreFiducialsAreNeeded=fidNode->GetNumberOfFiducials()<(int)CALIB_MARKER_COUNT;
+      }
+      if (moreFiducialsAreNeeded)
+      {
+        // not enough fiducials, the interaction node should be place
+        if (this->EditMarkerPositionButton->GetSelectedState() == 1
+          && interactionNode->GetCurrentInteractionMode()!=vtkMRMLInteractionNode::Place)
+        {
+          // the add points on click box is checked, but the interaction mode is not "Place" any more
+          // uncheck the checkbox to show the user that click will not add point
+          this->EditMarkerPositionButton->SetSelectedState(0);
+        }
+      }
+      else
+      {
+        // there are enough fiducials, the interaction node should be PickManipulate
+        if (this->EditMarkerPositionButton->GetSelectedState() == 1
+          && interactionNode->GetCurrentInteractionMode()!=vtkMRMLInteractionNode::PickManipulate)
+        {
+          // the add points on click box is checked, but the interaction mode is not "PickManipulate" any more
+          // uncheck the checkbox to show the user that click will not manipulate the point
+          this->EditMarkerPositionButton->SetSelectedState(0);
+        }
+      }
+    } 
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::AddMRMLObservers()
 {
   RemoveMRMLObservers(); // remove old observers first to make sure that there are no duplicate observers
-  this->CalibrationPointListNode->AddObserver(vtkCommand::ModifiedEvent,this->MRMLCallbackCommand);
-  this->CalibrationPointListNode->AddObserver(vtkMRMLScene::NodeAddedEvent,this->MRMLCallbackCommand);
-  this->CalibrationPointListNode->AddObserver(vtkMRMLFiducialListNode::DisplayModifiedEvent,this->MRMLCallbackCommand);
-  this->CalibrationPointListNode->AddObserver(vtkMRMLFiducialListNode::FiducialModifiedEvent,this->MRMLCallbackCommand);
-
-  if (this->GetProstateNavManager())
+  vtkMRMLFiducialListNode *fidNode=GetCalibrationPointListNode();
+  if (fidNode!=NULL)
   {
-    vtkMRMLTransRectalProstateRobotNode* robot = GetRobot();    
-    if (robot)
-    {
-      this->ObservedRobot = robot;
-      this->ObservedRobot->Register(this); // prevent deletion of the object while we are still holding a reference to it
-      this->ObservedRobot->AddObserver(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
-    }
-    else
-    {
-      this->ObservedRobot = NULL;
-    }    
+    this->ObservedCalibrationPointListNode=fidNode;
+    this->ObservedCalibrationPointListNode->Register(this);
+    this->ObservedCalibrationPointListNode->AddObserver(vtkCommand::ModifiedEvent,this->MRMLCallbackCommand);
+    this->ObservedCalibrationPointListNode->AddObserver(vtkMRMLScene::NodeAddedEvent,this->MRMLCallbackCommand);
+    this->ObservedCalibrationPointListNode->AddObserver(vtkMRMLFiducialListNode::DisplayModifiedEvent,this->MRMLCallbackCommand);
+    this->ObservedCalibrationPointListNode->AddObserver(vtkMRMLFiducialListNode::FiducialModifiedEvent,this->MRMLCallbackCommand);
+    this->ObservedCalibrationPointListNode->AddObserver(vtkMRMLScene::NodeRemovedEvent,this->MRMLCallbackCommand);
+  }
+  vtkMRMLTransRectalProstateRobotNode* robot = GetRobot();    
+  if (robot)
+  {
+    this->ObservedRobot = robot;
+    this->ObservedRobot->Register(this); // prevent deletion of the object while we are still holding a reference to it
+    this->ObservedRobot->AddObserver(vtkCommand::ModifiedEvent, this->MRMLCallbackCommand);
   }
 
   if (this->MRMLScene!=NULL)
   {
     this->MRMLScene->AddObserver(vtkMRMLScene::NodeAddedEvent, this->MRMLCallbackCommand);
+
+    vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast(this->MRMLScene->GetNthNodeByClass(0, "vtkMRMLInteractionNode"));
+    if (interactionNode!=NULL)
+    {
+      interactionNode->AddObserver(vtkMRMLInteractionNode::InteractionModeChangedEvent, this->MRMLCallbackCommand);
+    } 
   }
 }
 
 //----------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::RemoveMRMLObservers()
 {
-  this->CalibrationPointListNode->RemoveObserver(this->MRMLCallbackCommand);
   if (this->ObservedRobot!=NULL)
   {       
     this->ObservedRobot->RemoveObserver(this->MRMLCallbackCommand);
     this->ObservedRobot->UnRegister(this);
     this->ObservedRobot = NULL;    
   }
+  if (this->ObservedCalibrationPointListNode)
+  {
+    this->ObservedCalibrationPointListNode->RemoveObserver(this->MRMLCallbackCommand);
+    this->ObservedCalibrationPointListNode->UnRegister(this);
+    this->ObservedCalibrationPointListNode = NULL;    
+  }
   if (this->MRMLScene!=NULL)
   {
     this->MRMLScene->RemoveObservers(vtkMRMLScene::NodeAddedEvent, this->MRMLCallbackCommand);
+
+    vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast(this->MRMLScene->GetNthNodeByClass(0, "vtkMRMLInteractionNode"));
+    if (interactionNode!=NULL)
+    {
+      interactionNode->RemoveObservers(vtkMRMLInteractionNode::InteractionModeChangedEvent, this->MRMLCallbackCommand);
+    }
   }
 }
 
@@ -974,66 +928,54 @@ void vtkProstateNavFiducialCalibrationStep::EnableMarkerPositionEdit(bool enable
   if (enable)
   {
     // Set fiducial placement mode
-    GetLogic()->SetCurrentFiducialList(this->CalibrationPointListNode);
-    if (this->CalibrationPointListNode->GetNumberOfFiducials()<(int)CALIB_MARKER_COUNT)
+
+    vtkMRMLFiducialListNode* fidNode=GetCalibrationPointListNode();
+    if (fidNode!=NULL)
     {
-      GetLogic()->SetMouseInteractionMode(vtkMRMLInteractionNode::Place); 
-    }
-    else
-    {
-      GetLogic()->SetMouseInteractionMode(vtkMRMLInteractionNode::ViewTransform); 
-    }
-    this->CalibrationPointListNode->SetLocked(false);
+      GetLogic()->SetCurrentFiducialList(fidNode);
+      if (fidNode->GetNumberOfFiducials()<(int)CALIB_MARKER_COUNT)
+      {
+        GetLogic()->SetMouseInteractionMode(vtkMRMLInteractionNode::Place); 
+      }
+      else
+      {
+        GetLogic()->SetMouseInteractionMode(vtkMRMLInteractionNode::PickManipulate); 
+      }
+      if  (fidNode->GetLocked())
+      {
+        fidNode->SetLocked(false);
+      }
+    }    
   }
   else
   {
     GetLogic()->SetMouseInteractionMode(vtkMRMLInteractionNode::ViewTransform);
-    this->CalibrationPointListNode->SetLocked(true);
+    vtkMRMLFiducialListNode* fidNode=GetCalibrationPointListNode();
+    if (fidNode!=NULL && !fidNode->GetLocked())
+    {
+      fidNode->SetLocked(true);
+    }
   }
-
 }
 
 
 void vtkProstateNavFiducialCalibrationStep::UpdateCalibration()
 {  
-
-  vtkMRMLTransRectalProstateRobotNode* robot= GetRobot();
+  /*vtkMRMLTransRectalProstateRobotNode* robot= GetRobot();
   if(robot==NULL)
   {
     vtkErrorMacro("UpdateCalibration: node is invalid");
     return;
-  }
-
-  // remove extra markers
-  for (int i=CALIB_MARKER_COUNT; i<this->CalibrationPointListNode->GetNumberOfFiducials(); i++)
-  {
-    // this is an extra marker => delete it
-    this->CalibrationPointListNode->RemoveFiducial(i);
-  }
-
-  // make sure that markers have proper names and their values are set in the robot node
-  int fidCount=this->CalibrationPointListNode->GetNumberOfFiducials();
-  for (int i=0; i<fidCount; i++)
-  {
-    float* rasPoint=this->CalibrationPointListNode->GetNthFiducialXYZ(i);
-    double rasPointDouble[3]={rasPoint[0], rasPoint[1], rasPoint[2]};
-    robot->SetCalibrationMarker(i, rasPointDouble);
-    if (strcmp(this->CalibrationPointListNode->GetNthFiducialLabelText(i),MARKER_LABEL_NAMES[i])!=0)
-    {
-      this->CalibrationPointListNode->SetNthFiducialLabelText(i,MARKER_LABEL_NAMES[i]);      
-    }
-  }
-
+  }*/
   // Update marker positioning mode (as new points are added the mode should be changed from "place new points" to "edit points"
   EnableMarkerPositionEdit(this->EditMarkerPositionButton->GetSelectedState() == 1);
-
+/*
   if (this->CalibrationPointListNode->GetNumberOfFiducials()<(int)CALIB_MARKER_COUNT)
   {
     // not enough fiducials to compute result
     return;
-  }
-
-  this->Resegment();
+  }*/
+ // this->Resegment();
 }
 
 void vtkProstateNavFiducialCalibrationStep::JumpToFiducial(unsigned int fid1Index)
@@ -1043,8 +985,13 @@ void vtkProstateNavFiducialCalibrationStep::JumpToFiducial(unsigned int fid1Inde
     vtkErrorMacro("Invalid fiducial id "<<fid1Index);
     return;
   }
-
-  if ((int)fid1Index>=this->CalibrationPointListNode->GetNumberOfFiducials())
+  vtkMRMLFiducialListNode *fidNode=GetCalibrationPointListNode();
+  if (fidNode==NULL)
+  {
+    vtkErrorMacro("Cannot jumpt to fiducial id "<<fid1Index<<", it is undefined");
+    return;
+  }
+  if ((int)fid1Index>=fidNode->GetNumberOfFiducials())
   {
     vtkErrorMacro("Fiducial is not defined yet "<<fid1Index);
     return;
@@ -1053,7 +1000,7 @@ void vtkProstateNavFiducialCalibrationStep::JumpToFiducial(unsigned int fid1Inde
   vtkMRMLTransRectalProstateRobotNode* robot=GetRobot();
   if(robot==NULL)
   {
-    vtkErrorMacro("UpdateCalibration: node is invalid");
+    vtkErrorMacro("JumpToFiducial: node is invalid");
     return;
   }
 
@@ -1084,16 +1031,16 @@ void vtkProstateNavFiducialCalibrationStep::JumpToFiducial(unsigned int fid1Inde
     }
   }
 
-  float* fid1PosFloat=this->CalibrationPointListNode->GetNthFiducialXYZ(fid1Index);
+  float* fid1PosFloat=fidNode->GetNthFiducialXYZ(fid1Index);
   
   double fid1Pos[4]={fid1PosFloat[0], fid1PosFloat[1], fid1PosFloat[2]};
 
-  if (fid2Index<this->CalibrationPointListNode->GetNumberOfFiducials())
+  if (fid2Index<fidNode->GetNumberOfFiducials())
   {
     double n[4]={1,0,0,0}; // plane normal
     double t[4]={0,1,0,0}; // a transverse plane
 
-    float* fid2PosFloat=this->CalibrationPointListNode->GetNthFiducialXYZ(fid2Index);
+    float* fid2PosFloat=fidNode->GetNthFiducialXYZ(fid2Index);
     double fid2Pos[3]={fid2PosFloat[0], fid2PosFloat[1], fid2PosFloat[2]};
     n[0]=fid2Pos[0]-fid1Pos[0];
     n[1]=fid2Pos[1]-fid1Pos[1];
@@ -1121,25 +1068,26 @@ void vtkProstateNavFiducialCalibrationStep::JumpToFiducial(unsigned int fid1Inde
  
 }
 
-vtkSlicerViewerWidget* vtkProstateNavFiducialCalibrationStep::GetMainViewerWidget()
+vtkMRMLFiducialListNode* vtkProstateNavFiducialCalibrationStep::GetCalibrationPointListNode()
 {
-  if (this->GetGUI()==NULL)
-  {
-    vtkWarningMacro("GUI is null");
+  vtkMRMLTransRectalProstateRobotNode* robot=GetRobot();
+  if(robot==NULL)
+  {  
     return NULL;
   }
-  if (this->GetGUI()->GetApplicationGUI()==NULL)
+  vtkMRMLFiducialListNode *fidNode=robot->GetCalibrationPointListNode();
+  /*
+  if (fidNode==NULL)
   {
-    vtkWarningMacro("Application GUI is null");
-    return NULL;
-  }
+    // the fiducial node hasn't been created yet
+    vtkSmartPointer<vtkMRMLFiducialListNode> newCalibPointListNode=vtkSmartPointer<vtkMRMLFiducialListNode>::New();
+    newCalibPointListNode->SetName("CalibrationMarkers");
+    this->MRMLScene->AddNodeNoNotify(newCalibPointListNode); // don't update scene until ref set in robot node
+    robot->SetAndObserveCalibrationPointListNodeID(newCalibPointListNode->GetID());
+    AddMRMLObservers(); // update calibration point list node observer
+    this->MRMLScene->Modified();
+  }  
+  */
 
-  // return GetMainViewerWidget(); // for earlier Slicer versions (without multiple camera support)
-
-  if (this->GetGUI()->GetApplicationGUI()->GetNumberOfViewerWidgets()<1)
-  {
-    vtkWarningMacro("There is no viewer widget");
-    return NULL;
-  }
-  return this->GetGUI()->GetApplicationGUI()->GetNthViewerWidget(0); // main viewer is the first viewer
+  return robot->GetCalibrationPointListNode();
 }

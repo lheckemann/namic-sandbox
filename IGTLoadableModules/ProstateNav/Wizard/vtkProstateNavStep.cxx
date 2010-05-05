@@ -63,6 +63,7 @@ vtkProstateNavStep::~vtkProstateNavStep()
 
   if (this->MRMLObserverManager)
     {
+    this->MRMLObserverManager->RemoveAllObservers();
     this->MRMLObserverManager->Delete();
     }    
 
@@ -81,6 +82,8 @@ vtkProstateNavStep::~vtkProstateNavStep()
 void vtkProstateNavStep::HideUserInterface()
 {
   this->Superclass::HideUserInterface();
+
+  this->SetAndObserveMRMLScene(NULL);
 
   if (this->GetGUI())
     {

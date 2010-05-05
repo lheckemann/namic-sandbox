@@ -69,6 +69,10 @@ vtkTransRectalFiducialCalibrationAlgo::vtkTransRectalFiducialCalibrationAlgo()
   for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
     {
     CalibMarkerPreProcOutput[i]=vtkImageData::New();
+    MarkerFound[i]=false;
+    MarkerPositions[i][0]=0.0;
+    MarkerPositions[i][1]=0.0;
+    MarkerPositions[i][2]=0.0;
     }
   this->EnableMarkerCenterpointAdjustment=true;
   this->CalibrationData.CalibrationValid=false;
@@ -99,27 +103,27 @@ void vtkTransRectalFiducialCalibrationAlgo::PrintSelf(ostream& os, vtkIndent ind
 }
 
 //--------------------------------------------------------------------------------------
-bool vtkTransRectalFiducialCalibrationAlgo::CalibrateFromImage(const TRProstateBiopsyCalibrationFromImageInput &input, TRProstateBiopsyCalibrationFromImageOutput &output)
+bool vtkTransRectalFiducialCalibrationAlgo::CalibrateFromImage(const TRProstateBiopsyCalibrationFromImageInput &input)
 { 
   // segement the axis using initial guesses
   for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
   {
-    output.MarkerFound[i]=false;
+    this->MarkerFound[i]=false;
   }
   double P1[3], v1[3];
   this->SegmentAxis(input.MarkerInitialPositions[0], input.MarkerInitialPositions[1], input.VolumeIJKToRASMatrix, input.VolumeImageData,
     input.MarkerSegmentationThreshold[0], input.MarkerSegmentationThreshold[1], input.MarkerDimensionsMm, input.MarkerRadiusMm, input.RobotInitialAngle,
-    P1, v1, output.MarkerPositions[0], output.MarkerPositions[1], output.MarkerFound[0], output.MarkerFound[1], CalibMarkerPreProcOutput[0], CalibMarkerPreProcOutput[1], &CoordinatesVectorAxis1);
+    P1, v1, this->MarkerPositions[0], this->MarkerPositions[1], this->MarkerFound[0], this->MarkerFound[1], CalibMarkerPreProcOutput[0], CalibMarkerPreProcOutput[1], &CoordinatesVectorAxis1);
   double P2[3], v2[3];
   this->SegmentAxis(input.MarkerInitialPositions[2], input.MarkerInitialPositions[3], input.VolumeIJKToRASMatrix, input.VolumeImageData,
     input.MarkerSegmentationThreshold[2], input.MarkerSegmentationThreshold[3], input.MarkerDimensionsMm, input.MarkerRadiusMm, input.RobotInitialAngle,
-    P2, v2, output.MarkerPositions[2], output.MarkerPositions[3], output.MarkerFound[2], output.MarkerFound[3], CalibMarkerPreProcOutput[2], CalibMarkerPreProcOutput[3], &CoordinatesVectorAxis2);
+    P2, v2, this->MarkerPositions[2], this->MarkerPositions[3], this->MarkerFound[2], this->MarkerFound[3], CalibMarkerPreProcOutput[2], CalibMarkerPreProcOutput[3], &CoordinatesVectorAxis2);
 
   this->CalibMarkerPreProcOutputIJKToRAS->DeepCopy(input.VolumeIJKToRASMatrix);
 
   for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
   {
-    if (!output.MarkerFound[i])
+    if (!this->MarkerFound[i])
     {      
       // cannot complete calibration, not all markers have been found
       return false;
@@ -1114,15 +1118,15 @@ void vtkTransRectalFiducialCalibrationAlgo::Linefinder(double P_[3], double v_[3
 
 //-------------------------------------------------------------------------------
 /// Calculations to find the targeting parameters (point -> rotation & deepth)
-bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTargetDescriptor *target)
+bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTargetDescriptor *target, const TRProstateBiopsyCalibrationData &calibrationData)
 {
-    if (!this->CalibrationData.CalibrationValid) 
+    if (!calibrationData.CalibrationValid) 
     {
       target->SetTargetingParametersValid(false);
       return false;
     }
 
-    target->SetCalibrationFoRStr(this->CalibrationData.FoR);
+    target->SetCalibrationFoRStr(calibrationData.FoR);
 
     // Axel algorithm, part 1 :
     //  When fiducials segmented
@@ -1139,24 +1143,24 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     targetLps[2] = targetRas[2];
     
     double I1[3];
-    I1[0] = -this->CalibrationData.I1[0];
-    I1[1] = -this->CalibrationData.I1[1];
-    I1[2] = this->CalibrationData.I1[2];
+    I1[0] = -calibrationData.I1[0];
+    I1[1] = -calibrationData.I1[1];
+    I1[2] = calibrationData.I1[2];
 
     double v1[3]; // v1 is inverted and then converted from RAS to LPS 
-    v1[0] = -(-this->CalibrationData.v1[0]);
-    v1[1] = -(-this->CalibrationData.v1[1]);
-    v1[2] = (-this->CalibrationData.v1[2]);
+    v1[0] = -(-calibrationData.v1[0]);
+    v1[1] = -(-calibrationData.v1[1]);
+    v1[2] = (-calibrationData.v1[2]);
 
     double v2[3];
-    v2[0] = -this->CalibrationData.v2[0];
-    v2[1] = -this->CalibrationData.v2[1];
-    v2[2] = this->CalibrationData.v2[2];
+    v2[0] = -calibrationData.v2[0];
+    v2[1] = -calibrationData.v2[1];
+    v2[2] = calibrationData.v2[2];
     
     double H_zero[3];
     
     // Original hinge point before rotation
-    double l=14.5/sin(this->CalibrationData.AxesAngleDegrees * vtkMath::Pi()/180);
+    double l=14.5/sin(calibrationData.AxesAngleDegrees * vtkMath::Pi()/180);
 
     double H_before[3];
     H_before[0] = I1[0] - l*v2[0];
@@ -1165,7 +1169,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
 
     // Axis of Rotation is v1
     // ToZeroRotMatrix=eye(3)+sin(-registration_angle_rad)*skew+skew*skew*(1-cos(-registration_angle_rad));
-    RotatePoint(H_before, this->CalibrationData.RobotRegistrationAngleDegrees*vtkMath::Pi()/180, this->CalibrationData.AxesAngleDegrees * vtkMath::Pi()/180, v1, I1, H_zero);
+    RotatePoint(H_before, calibrationData.RobotRegistrationAngleDegrees*vtkMath::Pi()/180, calibrationData.AxesAngleDegrees * vtkMath::Pi()/180, v1, I1, H_zero);
 
 
     // The rotated (to zero) needle axis
@@ -1205,7 +1209,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
 
     // RotMatrix=eye(3)+sin(-rotation)*skew+skew*skew*(1-cos(-rotation));
     double H_afterLps[3];
-    RotatePoint(H_zero, rotation, this->CalibrationData.AxesAngleDegrees*vtkMath::Pi()/180, v1, I1, H_afterLps);
+    RotatePoint(H_zero, rotation, calibrationData.AxesAngleDegrees*vtkMath::Pi()/180, v1, I1, H_afterLps);
         
     // Needle Trajectory Vector
     double v_needle[3];
@@ -1231,7 +1235,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     // The absolute needle angle to reach the target is %d degrees
         
     /// \todo Temp function! - compensate (no cheating?) // ccs
-    double alpha_degree = this->CalibrationData.AxesAngleDegrees;
+    double alpha_degree = calibrationData.AxesAngleDegrees;
 
     // Cheating ot not? 
     needle_angle_degree = needle_angle_degree - (alpha_degree-37.0); // cheating
@@ -1455,4 +1459,16 @@ void vtkTransRectalFiducialCalibrationAlgo::CropWithCylinder(vtkImageData* outpu
       }
     }
   }
+}
+
+//----------------------------------------------------------------------------
+bool vtkTransRectalFiducialCalibrationAlgo::GetMarkerFound(int i)
+{
+  return this->MarkerFound[i];
+}
+
+//----------------------------------------------------------------------------
+double* vtkTransRectalFiducialCalibrationAlgo::GetMarkerPositions(int i)
+{
+  return this->MarkerPositions[i];
 }

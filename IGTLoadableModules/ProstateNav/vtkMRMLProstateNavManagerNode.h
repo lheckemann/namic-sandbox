@@ -33,7 +33,6 @@ class vtkMRMLRobotNode;
 enum VolumeType
 {
   VOL_GENERIC, // any other than the specific volumes 
-  VOL_CALIBRATION,
   VOL_TARGETING,
   VOL_VERIFICATION,
   VOL_COVERAGE
@@ -52,14 +51,27 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
 
   struct NeedleDescriptorStruct
     {
-    std::string NeedleName;
-    // NeedleLength: maximum possible insertion depth, in mm
-    float NeedleLength;
-    // Overshoot: where is the target compared to the needle tip, in mm
-    // if positive, then target is towards the needle base (biopsy)
-    // if negative, then target is in front of the needle tip (seed placement)
-    float NeedleOvershoot; 
+    // NeedleName: short unique id (used as a prefix for target point names)
+    std::string Name;
+
+    // Description: descriptive name of the needle
     std::string Description;
+    
+    // NeedleLength: maximum possible insertion depth, in mm - just for checking if the target is reachable
+    double Length;
+
+    // Overshoot: where is the target compared to the needle tip, in mm
+    // if positive, then target is towards the needle base (seed placement)
+    // if negative, then target is in front of the needle tip (biopsy)
+    double Overshoot; 
+
+    // NeedleExtension: maximum extension of the needle from the needle tip,
+    // negative if the needle extends towards the needle tip (biopsy) - just for display
+    double Extension; 
+
+    // NeedleTargetSize: length of the biopsy core or seed - just for display
+    double TargetSize; 
+    
     // LastTargetId stores the last index that was used for adding a target for this needle.
     // It is useful for generating unique target names.
     int LastTargetId;
@@ -91,7 +103,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
 
   virtual vtkMRMLNode* CreateNodeInstance();
 
-  void Init();
+  void Init(const char* defaultNeedleListConfig);
 
   // Description:
   // Set node attributes
@@ -153,9 +165,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   // Get previous workflow step.
   int GetPreviousStep();
 
-  vtkSetReferenceStringMacro(CalibrationVolumeNodeID);
-  vtkGetStringMacro(CalibrationVolumeNodeID);
-
   vtkSetReferenceStringMacro(TargetingVolumeNodeID);
   vtkGetStringMacro(TargetingVolumeNodeID);
 
@@ -204,13 +213,22 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
 
   // Description:
   // get/set methods for storing needle information
-  void SetNeedleLength(unsigned int needleIndex, float length);
-  float GetNeedleLength(unsigned int needleIndex);
+  void SetNeedleLength(unsigned int needleIndex, double length);
+  double GetNeedleLength(unsigned int needleIndex);
 
   // Description:
   // get/set methods for storing needle information
-  void SetNeedleOvershoot(unsigned int needleIndex, float overshoot);
-  float GetNeedleOvershoot(unsigned int needleIndex);
+  void SetNeedleOvershoot(unsigned int needleIndex, double overshoot);
+  double GetNeedleOvershoot(unsigned int needleIndex);
+
+  // Description:
+  // get/set methods for storing needle information
+  double GetNeedleExtension(unsigned int needleIndex);
+
+  // Description:
+  // get/set methods for storing needle information
+  double GetNeedleTargetSize(unsigned int needleIndex);
+
 
   //----------------------------------------------------------------
   // Target Management
@@ -226,7 +244,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   std::string GetTargetingFiducialsListName(unsigned int index)
     {
     if (index < this->NeedlesVector.size())
-      return this->NeedlesVector[index].NeedleName;
+      return this->NeedlesVector[index].Name;
     else
       return NULL;
     }; 
@@ -251,6 +269,9 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   void SetAndObserveRobotNodeID(const char *robotNodeID);
 
  protected:
+
+  bool ReadNeedleListFromConfigXml(const char* needleListConfigStr);
+
   //----------------------------------------------------------------
   // Constructor and destroctor
   //----------------------------------------------------------------
@@ -293,7 +314,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   char *RobotNodeID;
   vtkMRMLRobotNode* RobotNode;
 
-  char *CalibrationVolumeNodeID;  
   char *TargetingVolumeNodeID;
   char *VerificationVolumeNodeID;
   char *CoverageVolumeNodeID;  

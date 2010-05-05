@@ -303,10 +303,15 @@ void vtkMRMLTransPerinealProstateRobotNode::Copy(vtkMRMLNode *anode)
   vtkMRMLTransPerinealProstateRobotNode *node = vtkMRMLTransPerinealProstateRobotNode::SafeDownCast(anode);
   if (node!=NULL)
   {
+    this->SetAndObserveRobotCommandNodeID(NULL); // remove observer
     this->SetRobotCommandNodeID(node->RobotCommandNodeID);
+    this->SetAndObserveRobotConnectorNodeID(NULL); // remove observer
     this->SetRobotConnectorNodeID(node->RobotConnectorNodeID);
+    this->SetAndObserveScannerConnectorNodeID(NULL); // remove observer
     this->SetScannerConnectorNodeID(node->ScannerConnectorNodeID);
+    this->SetAndObserveZFrameModelNodeID(NULL); // remove observer
     this->SetZFrameModelNodeID(node->ZFrameModelNodeID);
+    this->SetAndObserveZFrameTransformNodeID(NULL); // remove observer
     this->SetZFrameTransformNodeID(node->ZFrameTransformNodeID);
   }
   else
