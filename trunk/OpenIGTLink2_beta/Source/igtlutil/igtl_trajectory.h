@@ -25,7 +25,7 @@
 
 #define IGTL_TRAJECTORY_TYPE_ENTRY_ONLY          1
 #define IGTL_TRAJECTORY_TYPE_TARGET_ONLY         2
-#define IGTL_TRAJECTORY_TYPE_BOTH                3
+#define IGTL_TRAJECTORY_TYPE_ENTRY_TARGET        3
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,7 +46,7 @@ typedef struct {
   igtl_float32 entry_pos[3];      /* Coordinate of the entry point */
   igtl_float32 target_pos[3];     /* Coordinate of the target point */
   igtl_float32 radius;            /* Radius of the trajectory. Can be 0. */
-  igtl_int8    owener_name[20];   /* Device name of the ower image */
+  igtl_int8    owner_name[20];    /* Device name of the ower image */
 } igtl_trajectory_element;
 
 #pragma pack()
