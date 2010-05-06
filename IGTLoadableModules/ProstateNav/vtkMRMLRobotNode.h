@@ -29,7 +29,7 @@ class vtkMRMLScalarVolumeNode;
 class vtkSlicerApplication;
 class vtkProstateNavTargetDescriptor;
 
-class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
+class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLTransformableNode
 {
 
  public:
@@ -60,7 +60,12 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   };
   //ETX
 
-
+  /// 
+  /// Transformable node methods
+  /// Only linear transforms are supported
+  virtual bool CanApplyNonLinearTransforms();
+  virtual void ApplyTransform(vtkAbstractTransform* transform);
+  virtual void ApplyTransform(vtkMatrix4x4* transformMatrix);
 
  public:
 
@@ -69,7 +74,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   //----------------------------------------------------------------
 
   static vtkMRMLRobotNode *New();
-  vtkTypeMacro(vtkMRMLRobotNode,vtkMRMLNode);  
+  vtkTypeMacro(vtkMRMLRobotNode,vtkMRMLTransformableNode);  
   virtual vtkMRMLNode* CreateNodeInstance();
 
   void PrintSelf(ostream& os, vtkIndent indent);

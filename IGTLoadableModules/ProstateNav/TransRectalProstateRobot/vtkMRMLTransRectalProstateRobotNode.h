@@ -116,6 +116,8 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
  vtkGetMacro(MarkerRadiusMm, double);
  vtkGetMacro(RobotInitialAngle, double);
 
+ virtual void ApplyTransform(vtkMatrix4x4* transformMatrix); 
+
  protected:
   //----------------------------------------------------------------
   // Constructor and destroctor
@@ -143,6 +145,9 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
   void UpdateModelNeedle(vtkProstateNavTargetDescriptor *targetDesc);
 
   void UpdateCalibration();
+
+  virtual void TransformCalibrationData(vtkMatrix4x4 *transformMatrix);
+  virtual void TransformModelMarkers(vtkMatrix4x4* transformMatrix);
 
   ///////////////////////////////
   // persistent data
