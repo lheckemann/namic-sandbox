@@ -29,9 +29,9 @@ int main( int argc, char** argv )
 {
   if( argc != 5 )
     {
-    std::cout <<"It requires 4 arguments" <<std::endl;
-    std::cout <<"1-Input FileName axis" <<std::endl;
-    std::cout <<"split0 FileName; split1 FileName" <<std::endl;
+    std::cout <<"Error: requires 4 arguments" <<std::endl;
+    std::cout <<"Input-Surface split-axis(0|1|2)" <<std::endl;
+    std::cout <<"Hemisphere-1-Surface Hemisphere-2-Surface" <<std::endl;
     return EXIT_FAILURE;
     }
     // ** TYPEDEF **

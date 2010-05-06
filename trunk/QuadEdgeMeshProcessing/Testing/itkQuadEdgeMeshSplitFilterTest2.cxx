@@ -28,9 +28,9 @@ int main( int argc, char** argv )
 {
   if( argc != 4 )
     {
-    std::cout <<"It requires 3 arguments" <<std::endl;
-    std::cout <<"1-Input FileName" <<std::endl;
-    std::cout <<"split0 FileName; split1 FileName" <<std::endl;
+    std::cout <<"Error: requires 3 arguments" <<std::endl;
+    std::cout <<"Input-Surface" <<std::endl;
+    std::cout <<"Hemisphere-1-Surface Hemisphere-2-Surface" <<std::endl;
     return EXIT_FAILURE;
     }
     // ** TYPEDEF **
