@@ -134,33 +134,25 @@ GenerateData( )
   for (int Iter_i = 0; Iter_i < m_Iterations; Iter_i ++)
   {
     int num1 = this->AdjustBoundary(mesh1,mesh2);
-    
-    //itkDebugMacro("Number of changes: "<<num1);
-      
     NumberOfCellstmp = mesh1->GetNumberOfCells()
         + mesh2->GetNumberOfCells();
-        
     if (NumberOfCellstmp != NumberOfCellsInput)
-    {
-    itkExceptionMacro("Number of cells is changed.");
-    }
-  
+      {
+      itkExceptionMacro("Number of cells is changed.");
+      }
+
     int num2 = this->AdjustBoundary(mesh2,mesh1);
-  
-    //itkDebugMacro("Number of changes: "<<-num2);
-    
     NumberOfCellstmp = mesh1->GetNumberOfCells()
-        + mesh2->GetNumberOfCells();
-        
+        + mesh2->GetNumberOfCells();   
     if (NumberOfCellstmp != NumberOfCellsInput)
-    {
-    itkExceptionMacro("Number of cells is changed.");
-    }  
+      {
+      itkExceptionMacro("Number of cells is changed.");
+      }  
     
     if ((num1 == 0) && (num2 == 0))
-    {
+      {
       break;
-    }
+      }
   }
   
   this->SetNthOutput( 0, mesh1 );
@@ -210,7 +202,7 @@ QuadEdgeMeshBoundarySmoothFilter< TInputMesh, TOutputMesh >
       pIt = addMesh->GetPoints()->Begin();
       pIt_end = addMesh->GetPoints()->End();
       int numPoints = 0;
-      for (; pIt != pIt_end; pIt++)
+      while ( pIt != pIt_end )
         {
         if (pIt.Value() == deleteMesh->GetPoint(pId0))
           {
@@ -232,6 +224,7 @@ QuadEdgeMeshBoundarySmoothFilter< TInputMesh, TOutputMesh >
           {
           break;
           }
+        pIt++;
         }
  
       //actual add
@@ -315,16 +308,17 @@ void
 QuadEdgeMeshBoundarySmoothFilter< TInputMesh, TOutputMesh >
 ::CopyInputMeshesToOutputMeshes()
 {
-const InputMeshType * in1 = this->GetInputMesh1();
-OutputMeshType * out1 = this->GetOutputMesh1();
+  const InputMeshType * in1 = this->GetInputMesh1();
+  OutputMeshType * out1 = this->GetOutputMesh1();
 
-this->CopyMeshToMesh(in1,out1);
+  this->CopyMeshToMesh(in1,out1);
 
-const InputMeshType * in2 = this->GetInputMesh2();
-OutputMeshType * out2 = this->GetOutputMesh2();
+  const InputMeshType * in2 = this->GetInputMesh2();
+  OutputMeshType * out2 = this->GetOutputMesh2();
 
-this->CopyMeshToMesh(in2,out2);
+  this->CopyMeshToMesh(in2,out2);
 }
+
 
 }
 

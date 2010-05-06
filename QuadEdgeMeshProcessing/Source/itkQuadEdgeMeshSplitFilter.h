@@ -84,7 +84,7 @@ namespace itk
     typedef typename OutputMeshType::PointsContainerIterator
       OutputPointsContainerIterator;
       
-    typedef typename QuadEdgeMeshPolygonCell< OutputCellType >     OutputPolygonType;
+    typedef QuadEdgeMeshPolygonCell< OutputCellType >     OutputPolygonType;
     typedef typename OutputPolygonType::SelfAutoPointer   OutputPolygonAutoPointer;
     
     

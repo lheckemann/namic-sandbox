@@ -25,9 +25,10 @@ namespace itk
 {
 /**
  * \class QuadEdgeMeshBoundarySmoothFilter
- * \brief this filter takes two split surfaces,
- * smooth the boundaries of them, and gives two outputs
- * which have the smoothed boundaries.
+ * \brief This filter takes as inout two surfaces that represent
+ * a single genus 0 surface. The smoothing will generate a smooth
+ * boundary between the two surfaces. The filter produces two outputs
+ * that are the resulting smoothed surfaces.
  *
  * The filter is supposed to be used after itkQuadEdgeMeshSplitFilter
  * and before mapping the surface to sphere.
@@ -36,15 +37,19 @@ namespace itk
  * split it into two surfaces. There are "teeth" left on boundaries 
  * of splitted surfaces because of the triangulars on the surface.
  *
- * The smoothing method is applied in iterations until there is no
- * change happening in current iteration.
+ * The smoothing method is repeated for the user specified number
+ * of iterations or until there is no triangles to move between
+ * surfaces.
  *
  * Note: the total number of triangles on both inputs have to be
  * the same after each iteration. Missing cell or extra cell to 
  * the whole surface is not allowed.
  *
- * Inputs are sharing the same mesh type. So are the outputs.
+ * The input mesh must share the same mesh type, but the output
+ * may differ.
  * \ingroup MeshFilters
+ *
+ * \sa itkQuadEdgeMeshSplitFilter
  *
  */
   template< class TInputMesh, class TOutputMesh >
@@ -114,23 +119,22 @@ namespace itk
     itkNewMacro( Self );
     itkTypeMacro( QuadEdgeMeshBoundarySmoothFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
     
-    /** Set/Get the split0. */
+    /** Set/Get the first input mesh */
     void SetInputMesh1 ( const InputMeshType * mesh1 );
     const InputMeshType * GetInputMesh1( void ) const;
 
-    /** Set/Get the split1. */
+    /** Set/Get the second input mesh */
     void SetInputMesh2 ( const InputMeshType * mesh2 );
     const InputMeshType * GetInputMesh2( void ) const;
 
-    /** Get the smoothed split0. */
+    /** Get the first smoothed hemisphere */
     OutputMeshType * GetOutputMesh1( void );
 
-    /** Get the smoothed split1. */
+    /** Get the second smoothed hemisphere */
     OutputMeshType * GetOutputMesh2( void );
 
-    /** Set the number of iterations. */
+    /** Set/Get the number of iterations. */
     itkSetMacro( Iterations, int );
-    /** Get the number of iterations. */
     itkGetMacro( Iterations, int );
 
   protected:
