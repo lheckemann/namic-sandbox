@@ -35,6 +35,10 @@ ADD_EXECUTABLE(itkQuadEdgeMeshToSphereFilterTest2
 itkQuadEdgeMeshToSphereFilterTest2.cxx )
 TARGET_LINK_LIBRARIES( itkQuadEdgeMeshToSphereFilterTest2 ITKQuadEdgeMesh ITKIO)
 
+ADD_EXECUTABLE(itkQuadEdgeMeshToSphereFilterTest3
+itkQuadEdgeMeshToSphereFilterTest3.cxx )
+TARGET_LINK_LIBRARIES( itkQuadEdgeMeshToSphereFilterTest3 ITKQuadEdgeMesh ITKIO)
+
 ADD_EXECUTABLE(itkQuadEdgeMeshSphericalParameterizationTest
 itkQuadEdgeMeshSphericalParameterizationTest.cxx )
 TARGET_LINK_LIBRARIES( itkQuadEdgeMeshSphericalParameterizationTest
@@ -92,7 +96,7 @@ ADD_TEST(itkQuadEdgeMeshSplitFilterTest2
 ADD_TEST(itkQuadEdgeMeshSplitFilterTest3
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSplitFilterTest3
   ${TEST_DATA_ROOT}/SimpleSurface1.vtk 
-  0  #seeds direction
+  0  #seeds in x axis
   ${TEMP}/Split3_0.vtk
   ${TEMP}/Split3_1.vtk
  )
@@ -100,7 +104,7 @@ ADD_TEST(itkQuadEdgeMeshSplitFilterTest3
 ADD_TEST(itkQuadEdgeMeshSplitFilterTest4
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSplitFilterTest3
   ${TEST_DATA_ROOT}/SimpleSurface1.vtk 
-  1  #seeds direction
+  1  #seeds in y axis
   ${TEMP}/Split4_0.vtk
   ${TEMP}/Split4_1.vtk
  )
@@ -108,7 +112,7 @@ ADD_TEST(itkQuadEdgeMeshSplitFilterTest4
 ADD_TEST(itkQuadEdgeMeshSplitFilterTest5
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSplitFilterTest3
   ${TEST_DATA_ROOT}/SimpleSurface1.vtk 
-  2  #seeds direction
+  2  #seeds in z axis
   ${TEMP}/Split5_0.vtk
   ${TEMP}/Split5_1.vtk
  )
@@ -135,6 +139,13 @@ ADD_TEST(itkQuadEdgeMeshToSphereFilterTest2
   ${TEMP}/Sphere2.vtk
  )
     
+ADD_TEST(itkQuadEdgeMeshToSphereFilterTest3
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshToSphereFilterTest3
+  ${TEST_DATA_ROOT}/SimpleSurface1.vtk 
+  ${TEMP}/Sphere3.vtk
+  2 #seeds along z axis
+ )
+ 
 # ADD ONE SMALL MESH AS DATA...
 # ADD_TEST(itkQuadEdgeMeshSplitFilterTest
 #   ${CXX_TEST_PATH}/itkQuadEdgeMeshSplitFilterTest ...)
