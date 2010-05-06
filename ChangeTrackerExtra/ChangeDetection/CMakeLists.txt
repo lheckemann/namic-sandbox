@@ -35,3 +35,6 @@ target_link_libraries(SphereGenerator ITKIO)
 
 add_executable(AddBlur AddBlur.cxx)
 target_link_libraries(AddBlur ITKIO)
+
+add_executable(ComputeLabelOverlap ComputeLabelOverlap.cxx)
+target_link_libraries(ComputeLabelOverlap ITKIO)
