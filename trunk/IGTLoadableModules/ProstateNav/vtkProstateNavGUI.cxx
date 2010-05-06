@@ -1282,17 +1282,26 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
     return;
   }
 
+  if (this->WizardFrame==NULL)
+  {
+    // there is no GUI
+    return;
+  }
+  if (!this->WizardFrame->IsCreated())
+  {
+    // there is no GUI
+    return;
+  }
+
   int numSteps = manager->GetNumberOfSteps();
 
   if (numSteps<1)
   {
     // no steps, the wizard frame shall be empty
-    if (this->WizardFrame!=NULL && this->WizardFrame->IsCreated())
-    {
-      this->WizardFrame->CollapseFrame();
-    }    
+    this->WizardFrame->CollapseFrame();
     return;
   }
+
   this->WizardFrame->ExpandFrame();
 
   // Recreate workphase button set
