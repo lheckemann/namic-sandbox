@@ -775,10 +775,32 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateCalibration()
     ResetCalibrationData();
     return;
   }
+
+  // Compute transform matrix from calibrationPointListRas to calVolNodeRas
+  vtkSmartPointer<vtkMatrix4x4> transform_calPointRas2calVolRas=vtkSmartPointer<vtkMatrix4x4>::New();
+  transform_calPointRas2calVolRas->Identity();
+  {
+    vtkMRMLTransformNode* calPointTransformNode = calibrationPointListNode->GetParentTransformNode();
+    vtkMRMLTransformNode* calVolTransformNode = calVolNode->GetParentTransformNode();  
+    if (calPointTransformNode!=NULL)
+    {
+      calPointTransformNode->GetMatrixTransformToNode(calVolTransformNode, transform_calPointRas2calVolRas);
+    }
+    else if (calVolTransformNode!=NULL)
+    {
+      calVolTransformNode->GetMatrixTransformToWorld(transform_calPointRas2calVolRas);
+      transform_calPointRas2calVolRas->Invert();
+    }
+    else
+    {
+      transform_calPointRas2calVolRas->Identity();
+    }
+  }
+
   for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
   {
     bool valid=false;
-    // :TODO: take into account potential transform between fiducial list and calibration image (transform the points)    
+    
     float* rasPoint=calibrationPointListNode->GetNthFiducialXYZ(i);
     if (rasPoint==NULL)
     {
@@ -786,9 +808,16 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateCalibration()
       ResetCalibrationData();
       return;
     }
-    in.MarkerInitialPositions[i][0]=rasPoint[0];
-    in.MarkerInitialPositions[i][1]=rasPoint[1];
-    in.MarkerInitialPositions[i][2]=rasPoint[2];  
+
+    double point_calPointRas[4]={0,0,0,1};
+    double point_calVolRas[4]={0,0,0,1};
+    point_calPointRas[0]=rasPoint[0];
+    point_calPointRas[1]=rasPoint[1];
+    point_calPointRas[2]=rasPoint[2];    
+    transform_calPointRas2calVolRas->MultiplyPoint(point_calPointRas,point_calVolRas);
+    in.MarkerInitialPositions[i][0]=point_calVolRas[0];
+    in.MarkerInitialPositions[i][1]=point_calVolRas[1];
+    in.MarkerInitialPositions[i][2]=point_calVolRas[2];  
 
     in.MarkerSegmentationThreshold[i]=this->MarkerSegmentationThreshold[i];
   }
@@ -827,18 +856,40 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateCalibration()
 
   // calibration is successful
 
-  const TRProstateBiopsyCalibrationData calibData=calibrationAlgo->GetCalibrationData();
+  const TRProstateBiopsyCalibrationData calibData=calibrationAlgo->GetCalibrationData();  
+  
   this->CalibrationData=calibData;
 
-  // :TODO: take into account potential transform between robot node and calibration image
+  // Take into account potential transform between robot node and calibration image
+  vtkSmartPointer<vtkMatrix4x4> transform_calVol2robotRas=vtkSmartPointer<vtkMatrix4x4>::New();
+  transform_calVol2robotRas->Identity();
+  {
+    vtkMRMLTransformNode* robotTransformNode = this->GetParentTransformNode();
+    vtkMRMLTransformNode* calVolTransformNode = calVolNode->GetParentTransformNode();  
+    if (calVolTransformNode!=NULL)
+    {
+      calVolTransformNode->GetMatrixTransformToNode(robotTransformNode, transform_calVol2robotRas);
+    }
+    else if (robotTransformNode!=NULL)
+    {
+      robotTransformNode->GetMatrixTransformToWorld(transform_calVol2robotRas);
+      transform_calVol2robotRas->Invert();
+    }
+    else
+    {
+      transform_calVol2robotRas->Identity();
+    }
+  }
+  TransformCalibrationData(transform_calVol2robotRas);  
 
   UpdateModelAxes();
   UpdateModelProbe();
   vtkMatrix4x4* preProcIjkToRas=calibrationAlgo->GetCalibMarkerPreProcOutputIJKToRAS();
   for (unsigned int markerId=0; markerId<CALIB_MARKER_COUNT; markerId++)
   {      
-    UpdateModelMarker(markerId, calibrationAlgo->GetCalibMarkerPreProcOutput(markerId), preProcIjkToRas);
+    UpdateModelMarker(markerId, calibrationAlgo->GetCalibMarkerPreProcOutput(markerId), preProcIjkToRas);    
   }
+  TransformModelMarkers(transform_calVol2robotRas);
   UpdateModelNeedle(NULL);
   UpdateModel();
 
@@ -1241,7 +1292,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelMarker(int markerInd, vtkIm
   double imgIntensityUnit = (imgIntensityRange[1]-imgIntensityRange[0])* 0.01; // 1 unit is 1 percent of the intensity range    
   objectSurfaceExtractor->SetValue(0, imgIntensityUnit);
 
-  vtkTransformPolyDataFilter *polyTrans = vtkTransformPolyDataFilter::New();
+  vtkSmartPointer<vtkTransformPolyDataFilter> polyTrans = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   polyTrans->SetInputConnection(objectSurfaceExtractor->GetOutputPort());
   vtkSmartPointer<vtkTransform> ijkToRASTransform=vtkSmartPointer<vtkTransform>::New();
 
@@ -1421,4 +1472,72 @@ double vtkMRMLTransRectalProstateRobotNode::GetMarkerSegmentationThreshold(int i
     return 0.0;
   }
   return this->MarkerSegmentationThreshold[i];
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLTransRectalProstateRobotNode::ApplyTransform(vtkMatrix4x4* transformMatrix)
+{ 
+  Superclass::ApplyTransform(transformMatrix); 
+  TransformCalibrationData(transformMatrix);
+  TransformModelMarkers(transformMatrix);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLTransRectalProstateRobotNode::TransformCalibrationData(vtkMatrix4x4* transformMatrix)
+{ 
+  
+// Need to convert coordinates from the volume to the robot coordinate system
+
+  double point_calVolRas[4]={0,0,0,1};
+  double point_robotRas[4]={0,0,0,1};  
+
+  point_calVolRas[0]=this->CalibrationData.I1[0];
+  point_calVolRas[1]=this->CalibrationData.I1[1];
+  point_calVolRas[2]=this->CalibrationData.I1[2];
+  transformMatrix->MultiplyPoint(point_calVolRas,point_robotRas);
+  this->CalibrationData.I1[0]=point_robotRas[0];
+  this->CalibrationData.I1[1]=point_robotRas[1];
+  this->CalibrationData.I1[2]=point_robotRas[2];
+
+  point_calVolRas[0]=this->CalibrationData.I2[0];
+  point_calVolRas[1]=this->CalibrationData.I2[1];
+  point_calVolRas[2]=this->CalibrationData.I2[2];
+  transformMatrix->MultiplyPoint(point_calVolRas,point_robotRas);
+  this->CalibrationData.I2[0]=point_robotRas[0];
+  this->CalibrationData.I2[1]=point_robotRas[1];
+  this->CalibrationData.I2[2]=point_robotRas[2];
+
+  double vec_calVolRas[4]={0,0,0,0};
+  double vec_robotRas[4]={0,0,0,0};  
+
+  vec_calVolRas[0]=this->CalibrationData.v1[0];
+  vec_calVolRas[1]=this->CalibrationData.v1[1];
+  vec_calVolRas[2]=this->CalibrationData.v1[2];
+  transformMatrix->MultiplyPoint(vec_calVolRas,vec_robotRas);
+  this->CalibrationData.v1[0]=vec_robotRas[0];
+  this->CalibrationData.v1[1]=vec_robotRas[1];
+  this->CalibrationData.v1[2]=vec_robotRas[2];
+
+  vec_calVolRas[0]=this->CalibrationData.v2[0];
+  vec_calVolRas[1]=this->CalibrationData.v2[1];
+  vec_calVolRas[2]=this->CalibrationData.v2[2];
+  transformMatrix->MultiplyPoint(vec_calVolRas,vec_robotRas);
+  this->CalibrationData.v2[0]=vec_robotRas[0];
+  this->CalibrationData.v2[1]=vec_robotRas[1];
+  this->CalibrationData.v2[2]=vec_robotRas[2];
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLTransRectalProstateRobotNode::TransformModelMarkers(vtkMatrix4x4* transformMatrix)
+{   
+  vtkSmartPointer<vtkTransformPolyDataFilter> polyTrans = vtkSmartPointer<vtkTransformPolyDataFilter>::New(); 
+  vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();
+  transform->SetMatrix(transformMatrix);
+  polyTrans->SetTransform(transform);
+  for (unsigned int markerInd=0; markerInd<CALIB_MARKER_COUNT; markerInd++)
+  {          
+    polyTrans->SetInput(this->ModelMarkers[markerInd]);    
+    polyTrans->Update();
+    this->ModelMarkers[markerInd]->DeepCopy(polyTrans->GetOutput());
+  }
 }

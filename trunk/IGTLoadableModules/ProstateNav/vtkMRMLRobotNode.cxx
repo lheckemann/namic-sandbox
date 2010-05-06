@@ -19,7 +19,7 @@ Version:   $Revision: 1.2 $
 
 #include "vtkMRMLRobotNode.h"
 #include "vtkMRMLScene.h"
-
+#include "vtkLinearTransform.h"
 #include "vtkSmartPointer.h"
 
 //------------------------------------------------------------------------------
@@ -236,4 +236,29 @@ int vtkMRMLRobotNode::GetStatusDescriptor(unsigned int index, std::string &text,
   text=this->StatusDescriptors[index].text;
   indicator=this->StatusDescriptors[index].indicator;
   return 1;
+}
+//----------------------------------------------------------------------------
+bool vtkMRMLRobotNode::CanApplyNonLinearTransforms() 
+{ 
+  // Only linear transforms are supported
+  return false; 
+}
+//----------------------------------------------------------------------------
+void vtkMRMLRobotNode::ApplyTransform(vtkAbstractTransform* transform) 
+{ 
+  if (!transform->IsA("vtkLinearTransform"))
+    {
+    vtkErrorMacro(<<"Only linear transforms can be applied on vtkMRMLRobotNode nodes.");
+    }
+  vtkLinearTransform *linTransform= vtkLinearTransform::SafeDownCast(transform);
+  if (linTransform!=NULL)
+  {
+    ApplyTransform(linTransform->GetMatrix());
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRobotNode::ApplyTransform(vtkMatrix4x4* transformMatrix)
+{ 
+  Superclass::ApplyTransform(transformMatrix); 
 }

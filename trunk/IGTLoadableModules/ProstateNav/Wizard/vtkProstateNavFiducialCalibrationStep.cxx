@@ -35,9 +35,7 @@
 #include "itkMetaDataObject.h"
 #include "vtkImageChangeInformation.h"
 
-
 #include "vtkMRMLTransRectalProstateRobotNode.h"
-#include "vtkTransRectalFiducialCalibrationAlgo.h"
 
 #include <vtksys/ios/sstream>
 
@@ -1031,41 +1029,54 @@ void vtkProstateNavFiducialCalibrationStep::JumpToFiducial(unsigned int fid1Inde
     }
   }
 
-  float* fid1PosFloat=fidNode->GetNthFiducialXYZ(fid1Index);
-  
-  double fid1Pos[4]={fid1PosFloat[0], fid1PosFloat[1], fid1PosFloat[2]};
+  // Get fiducial parent to world transform
+  vtkSmartPointer<vtkMatrix4x4> transform_calPointRas2worldRas=vtkSmartPointer<vtkMatrix4x4>::New();
+  transform_calPointRas2worldRas->Identity();
+  vtkMRMLTransformNode* calPointTransformNode = fidNode->GetParentTransformNode();
+  if (calPointTransformNode!=NULL)
+  {
+    calPointTransformNode->GetMatrixTransformToWorld(transform_calPointRas2worldRas);
+  }
+
+  float* fid1PosFloat=fidNode->GetNthFiducialXYZ(fid1Index); 
+  double fid1Pos_calPointRas[4]={fid1PosFloat[0], fid1PosFloat[1], fid1PosFloat[2], 1};
+  double fid1Pos/*_worldRas*/[4]={0,0,0,1};    
+  transform_calPointRas2worldRas->MultiplyPoint(fid1Pos_calPointRas,fid1Pos/*_worldRas*/);
 
   if (fid2Index<fidNode->GetNumberOfFiducials())
   {
-    double n[4]={1,0,0,0}; // plane normal
-    double t[4]={0,1,0,0}; // a transverse plane
-
-    float* fid2PosFloat=fidNode->GetNthFiducialXYZ(fid2Index);
-    double fid2Pos[3]={fid2PosFloat[0], fid2PosFloat[1], fid2PosFloat[2]};
-    n[0]=fid2Pos[0]-fid1Pos[0];
-    n[1]=fid2Pos[1]-fid1Pos[1];
-    n[2]=fid2Pos[2]-fid1Pos[2];
-
-    // transverse plane will be an arbitrary plane that is perpendicular to n
-    double point1[4]={1,0,0,1}; // Any vector
-    if (fabs(n[0])>fabs(n[1]))
-    {
-      // to make sure that it is not parallel to the planeNormal_RAS vector
-      point1[0]=0;
-      point1[1]=1;
-      point1[2]=0;
-    }
-    // planeX_RAS is perpendicular to planeNormal_RAS
-    vtkMath::Cross(n, point1, t);
-    vtkMath::Normalize(t);
-
-    this->GetGUI()->BringMarkerToViewIn2DViews(fid1Pos,n,t);
-  }
-  else
-  {
+    // the fiducial pair is not defined yet, normal is unknown, just use current slice orientations
     this->GetGUI()->BringMarkerToViewIn2DViews(fid1Pos);
+    return;
   }
- 
+
+  double n[4]={1,0,0,0}; // plane normal
+  double t[4]={0,1,0,0}; // a transverse plane
+
+  float* fid2PosFloat=fidNode->GetNthFiducialXYZ(fid2Index);
+  double fid2Pos_calPointRas[4]={fid2PosFloat[0], fid2PosFloat[1], fid2PosFloat[2], 1};
+  double fid2Pos/*_worldRas*/[4]={0,0,0,1};    
+  transform_calPointRas2worldRas->MultiplyPoint(fid2Pos_calPointRas,fid2Pos/*_worldRas*/);
+
+  n[0]=fid2Pos[0]-fid1Pos[0];
+  n[1]=fid2Pos[1]-fid1Pos[1];
+  n[2]=fid2Pos[2]-fid1Pos[2];
+
+  // transverse plane will be an arbitrary plane that is perpendicular to n
+  double point1[4]={1,0,0,1}; // Any vector
+  if (fabs(n[0])>fabs(n[1]))
+  {
+    // to make sure that it is not parallel to the planeNormal_RAS vector
+    point1[0]=0;
+    point1[1]=1;
+    point1[2]=0;
+  }
+  // planeX_RAS is perpendicular to planeNormal_RAS
+  vtkMath::Cross(n, point1, t);
+  vtkMath::Normalize(t);
+
+  this->GetGUI()->BringMarkerToViewIn2DViews(fid1Pos,n,t);
+
 }
 
 vtkMRMLFiducialListNode* vtkProstateNavFiducialCalibrationStep::GetCalibrationPointListNode()

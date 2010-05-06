@@ -309,7 +309,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   char *TargetPlanListNodeID;
   vtkMRMLFiducialListNode* TargetPlanListNode;
 
-  //vtkMRMLRobotNode* RobotNode;
   vtkSetReferenceStringMacro(RobotNodeID);
   char *RobotNodeID;
   vtkMRMLRobotNode* RobotNode;
