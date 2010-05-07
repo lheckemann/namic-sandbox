@@ -57,28 +57,26 @@ vtkMRMLNode* vtkMRMLProstateNavManagerNode::CreateNodeInstance()
 //----------------------------------------------------------------------------
 vtkMRMLProstateNavManagerNode::vtkMRMLProstateNavManagerNode()
 {
-  this->CurrentStep = 0;
-  this->PreviousStep = 0;
-
-  this->CurrentTargetIndex=-1;
-
-  TargetingVolumeNodeID=NULL;
-  VerificationVolumeNodeID=NULL;
-  CoverageVolumeNodeID=NULL;  
-
-  this->CurrentNeedleIndex=-1;
-
-  this->TargetDescriptorsVector.clear();
-
-  TargetPlanListNodeID=NULL;
-  TargetPlanListNode=NULL;
-
-  RobotNodeID=NULL;
-  RobotNode=NULL;
-
   this->Initialized=false;
 
   this->StepList=vtkStringArray::New();
+  this->CurrentStep = 0;
+  this->PreviousStep = 0;
+
+  this->CurrentNeedleIndex=-1;
+  this->CurrentTargetIndex=-1;
+
+  this->TargetDescriptorsVector.clear();
+
+  this->TargetingVolumeNodeRef=NULL;
+  this->VerificationVolumeNodeRef=NULL;
+  this->CoverageVolumeNodeRef=NULL;  
+
+  this->TargetPlanListNodeID=NULL;
+  this->TargetPlanListNode=NULL;
+
+  this->RobotNodeID=NULL;
+  this->RobotNode=NULL;
 
   this->HideFromEditorsOff();
 }
@@ -87,9 +85,9 @@ vtkMRMLProstateNavManagerNode::vtkMRMLProstateNavManagerNode()
 vtkMRMLProstateNavManagerNode::~vtkMRMLProstateNavManagerNode()
 {  
   this->StepList->Delete();
-  SetTargetingVolumeNodeID(NULL);
-  SetVerificationVolumeNodeID(NULL);  
-  SetCoverageVolumeNodeID(NULL);  
+  SetTargetingVolumeNodeRef(NULL);
+  SetVerificationVolumeNodeRef(NULL);  
+  SetCoverageVolumeNodeRef(NULL);  
   
   if (this->TargetPlanListNodeID) 
   {
@@ -122,6 +120,38 @@ void vtkMRMLProstateNavManagerNode::WriteXML(ostream& of, int nIndent)
   vtkIndent indent(nIndent);
 
   of << indent << " WorkflowSteps=\"" << GetWorkflowStepsString() << "\"";    
+
+  of << indent << " CurrentWorkflowStep=\"" << this->CurrentStep << "\"";    
+  of << indent << " PreviousWorkflowStep=\"" << this->PreviousStep << "\"";
+
+  of << indent << " CurrentNeedleIndex=\"" << this->CurrentNeedleIndex << "\"";
+  
+  of << indent << " CurrentTargetIndex=\"" << this->CurrentTargetIndex << "\"";
+
+
+  // :TODO: write this->TargetDescriptorsVector
+
+
+  if (this->TargetingVolumeNodeRef != NULL) 
+  {
+    of << indent << " TargetingVolumeNodeRef=\"" << this->TargetingVolumeNodeRef << "\"";
+  }
+  if (this->VerificationVolumeNodeRef != NULL) 
+  {
+    of << indent << " VerificationVolumeNodeRef=\"" << this->VerificationVolumeNodeRef << "\"";
+  }
+  if (this->CoverageVolumeNodeRef != NULL) 
+  {
+    of << indent << " CoverageVolumeNodeRef=\"" << this->CoverageVolumeNodeRef << "\"";
+  }
+  if (this->TargetPlanListNodeID != NULL) 
+  {
+    of << indent << " TargetPlanListNodeRef=\"" << this->TargetPlanListNodeID << "\"";
+  }
+  if (this->RobotNodeID != NULL) 
+  {
+    of << indent << " RobotNodeRef=\"" << this->RobotNodeID << "\"";
+  }
 
 }
 
@@ -312,7 +342,6 @@ int vtkMRMLProstateNavManagerNode::GetPreviousStep()
 vtkStdString vtkMRMLProstateNavManagerNode::GetWorkflowStepsString()
 {
   vtkStdString workflowSteps;
-  // :TODO: generate the string from the StepList
   for (int i=0; i<this->StepList->GetNumberOfValues(); i++)
     {
     workflowSteps += this->StepList->GetValue(i);
@@ -655,21 +684,25 @@ void vtkMRMLProstateNavManagerNode::Init(const char* defaultNeedleListConfig)
 
   ReadNeedleListFromConfigXml(defaultNeedleListConfig);
 
-  // create corresponding targeting fiducials list
-  vtkSmartPointer<vtkMRMLFiducialListNode> targetFidList = vtkSmartPointer<vtkMRMLFiducialListNode>::New();  
-  targetFidList->SetLocked(true);
-  targetFidList->SetName("ProstateNavTargetList");
-  targetFidList->SetDescription("ProstateNav target point list");
-  targetFidList->SetColor(1.0,1.0,0);
-  targetFidList->SetSelectedColor(1.0, 0.0, 0.0);
-  targetFidList->SetGlyphType(vtkMRMLFiducialListNode::Sphere3D);
-  targetFidList->SetOpacity(0.7);
-  targetFidList->SetAllFiducialsVisibility(true);
-  targetFidList->SetSymbolScale(5);
-  targetFidList->SetTextScale(5);    
-  GetScene()->AddNode(targetFidList);
-  SetAndObserveTargetPlanListNodeID(targetFidList->GetID());
-
+  if (GetTargetPlanListNode()==NULL && this->Scene!=NULL)
+  {
+    // the plan list node hasn't been created yet
+    // create targeting fiducials list
+    vtkSmartPointer<vtkMRMLFiducialListNode> targetFidList = vtkSmartPointer<vtkMRMLFiducialListNode>::New();  
+    targetFidList->SetLocked(true);
+    targetFidList->SetName("ProstateNavTargetList");
+    targetFidList->SetDescription("ProstateNav target point list");
+    targetFidList->SetColor(1.0,1.0,0);
+    targetFidList->SetSelectedColor(1.0, 0.0, 0.0);
+    targetFidList->SetGlyphType(vtkMRMLFiducialListNode::Sphere3D);
+    targetFidList->SetOpacity(0.7);
+    targetFidList->SetAllFiducialsVisibility(true);
+    targetFidList->SetSymbolScale(5);
+    targetFidList->SetTextScale(5);    
+    GetScene()->AddNode(targetFidList);
+    SetAndObserveTargetPlanListNodeID(targetFidList->GetID());
+  }
+  
   this->Initialized=true;
 }
 
@@ -678,6 +711,12 @@ bool vtkMRMLProstateNavManagerNode::ReadNeedleListFromConfigXml(const char* need
   vtkXMLDataElement *config=vtkXMLUtilities::ReadElementFromString(needleListConfigStr);
   if (config==NULL)
   {
+    return false;
+  }
+  if (strcmp(config->GetName(), "NeedleList")!=0)
+  {
+    config->Delete();
+    vtkWarningMacro("Cannot read needle configuration (cannot parse: "<<needleListConfigStr<<")");
     return false;
   }
 
@@ -705,9 +744,22 @@ bool vtkMRMLProstateNavManagerNode::ReadNeedleListFromConfigXml(const char* need
     }
   }
 
-  // :TODO: initialize this from the XML
   this->CurrentNeedleIndex=0;
-
+  const char* defNeedleName=config->GetAttribute("DefaultNeedle");
+  if (defNeedleName!=NULL)
+  {
+    int needleCount=GetNumberOfNeedles();
+    for (int i=0; i<needleCount; i++)
+    {
+      if (GetNeedleType(i).compare(defNeedleName)==0)
+      {
+        // this is the default needle
+        this->CurrentNeedleIndex=i;
+        break;
+      }
+    }
+  }
+  
   config->Delete();
   
   return true;

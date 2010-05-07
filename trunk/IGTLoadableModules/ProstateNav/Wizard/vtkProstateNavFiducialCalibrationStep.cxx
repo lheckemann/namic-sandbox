@@ -479,8 +479,6 @@ void vtkProstateNavFiducialCalibrationStep::PopulateCalibrationResults()
     os << "  Axes angle: "<<calibData.AxesAngleDegrees<<" deg"<<std::endl;  
     os << "  Axes distance: "<<calibData.AxesDistance<<" mm"<<std::endl;  
     os << "  Initial rotation angle: "<<calibData.RobotRegistrationAngleDegrees<<" deg"<<std::endl;  
-    os << "Segmentation results:";
-    os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(2);
   }
   else
   {

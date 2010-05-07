@@ -779,7 +779,7 @@ void vtkProstateNavStepVerification::UpdateGUI()
     }
     this->Message->SetText("Select a target, click on 'Verify target' button, then click on two points along the visible needle line.");
   }
-  const char* volNodeID = mrmlNode->GetVerificationVolumeNodeID();
+  const char* volNodeID = mrmlNode->GetVerificationVolumeNodeRef();
   vtkMRMLScalarVolumeNode *volNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(volNodeID));
   if ( volNode )
   {
