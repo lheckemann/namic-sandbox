@@ -165,14 +165,14 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   // Get previous workflow step.
   int GetPreviousStep();
 
-  vtkSetReferenceStringMacro(TargetingVolumeNodeID);
-  vtkGetStringMacro(TargetingVolumeNodeID);
+  vtkSetReferenceStringMacro(TargetingVolumeNodeRef);
+  vtkGetStringMacro(TargetingVolumeNodeRef);
 
-  vtkSetReferenceStringMacro(VerificationVolumeNodeID);
-  vtkGetStringMacro(VerificationVolumeNodeID);
+  vtkSetReferenceStringMacro(VerificationVolumeNodeRef);
+  vtkGetStringMacro(VerificationVolumeNodeRef);
 
-  vtkSetReferenceStringMacro(CoverageVolumeNodeID);
-  vtkGetStringMacro(CoverageVolumeNodeID);
+  vtkSetReferenceStringMacro(CoverageVolumeNodeRef);
+  vtkGetStringMacro(CoverageVolumeNodeRef);
 
   bool FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc);
 
@@ -313,9 +313,9 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   char *RobotNodeID;
   vtkMRMLRobotNode* RobotNode;
 
-  char *TargetingVolumeNodeID;
-  char *VerificationVolumeNodeID;
-  char *CoverageVolumeNodeID;  
+  char *TargetingVolumeNodeRef;
+  char *VerificationVolumeNodeRef;
+  char *CoverageVolumeNodeRef;  
 
   bool Initialized;
 };

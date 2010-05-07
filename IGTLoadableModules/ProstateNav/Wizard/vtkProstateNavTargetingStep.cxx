@@ -1125,7 +1125,7 @@ void vtkProstateNavTargetingStep::UpdateGUI()
   }
 
   
-  const char* volNodeID = mrmlNode->GetTargetingVolumeNodeID();
+  const char* volNodeID = mrmlNode->GetTargetingVolumeNodeRef();
   vtkMRMLScalarVolumeNode *volNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(volNodeID));
   if ( volNode )
   {

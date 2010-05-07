@@ -201,34 +201,43 @@ public:
         
 private:
     //BTX
+
+    // Target definition => add targeting volume ref?
     std::string Name;
-    //ETX
-    double AxisRotation;    ///< Calculated value: Axis rotation in degree
-    double NeedleAngle;     ///< Calculated value: Needle angle in degree
-    double DepthCM;         ///< Calculated value: Insertion deepth in cm
-    bool IsOutsideReach;    ///< Calculated value: Can be reaced?
+    double RASLocation[3];
+    double RASOrientation[4];
+    std::string TargetingFoR_STR;
+    std::string FiducialID; // ID of the fiducial in the FiducialListNode
+
+    // Needle => replace it by a needle id (NeedleType?)
+    std::string NeedleType;
     double NeedleLength;
     double NeedleOvershoot;
     double NeedleExtension;
     double NeedleTargetSize;
-    double HingePosition[3];
-    double RASLocation[3];
-    double RASOrientation[4];
-    //BTX
-    std::string TargetingFoR_STR;
+
+    // Calibration ??? => remove it
     std::string CalibrationFoR_STR; /// string identifier for the calibration volume
-    std::string ValidationVolumeFoR_STR; /// string identifier for the volume used for needle confirmation
-    std::string NeedleType;
-    std::string FiducialID; // ID of the fiducial in the FiducialListNode
-    //ETX
-    bool TargetValidated;  ///< Indicates whether it was validated against needle insertion
+
+    // Targeting parameters => replace it by a targeting string (maybe condensed) + bTargetCompleted
     bool TargetingParametersValid;
+    double AxisRotation;    ///< Calculated value: Axis rotation in degree
+    double NeedleAngle;     ///< Calculated value: Needle angle in degree
+    double DepthCM;         ///< Calculated value: Insertion deepth in cm
+    bool IsOutsideReach;    ///< Calculated value: Can be reached?
+    double HingePosition[3];
+
+    // Validation => replace FoR with verif volume ref?
+    bool TargetValidated;  ///< Indicates whether it was validated against needle insertion
+    std::string ValidationVolumeFoR_STR; /// string identifier for the volume used for needle confirmation        
     double NeedleTipValidationPosition[3];
     double NeedleBaseValidationPosition[3];
     double OverallError; /// < Calculated value, ComputedDistanceFromNeedle
     double APError;/// < Calculated value
     double LRError;/// < Calculated value
     double ISError;/// < Calculated value
+    
+    //ETX
     
     vtkProstateNavTargetDescriptor(void);
     ~vtkProstateNavTargetDescriptor(void);

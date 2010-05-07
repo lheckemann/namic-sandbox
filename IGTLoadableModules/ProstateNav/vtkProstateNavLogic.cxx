@@ -325,10 +325,10 @@ vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddVolumeToScene(const char *fileN
     // don't store a reference in the manager node
     break;
   case VOL_TARGETING:
-    manager->SetTargetingVolumeNodeID(volumeNode->GetID());
+    manager->SetTargetingVolumeNodeRef(volumeNode->GetID());
     break;
   case VOL_VERIFICATION:
-    manager->SetVerificationVolumeNodeID(volumeNode->GetID());
+    manager->SetVerificationVolumeNodeRef(volumeNode->GetID());
     break;
   default:
     vtkErrorMacro("AddVolumeToScene: unknown volume type: " << volumeType);
@@ -367,10 +367,10 @@ int vtkProstateNavLogic::SelectVolumeInScene(vtkMRMLScalarVolumeNode* volumeNode
     // don't store a reference in the manager node
     break;
   case VOL_TARGETING:
-    manager->SetTargetingVolumeNodeID(volumeNode->GetID());
+    manager->SetTargetingVolumeNodeRef(volumeNode->GetID());
     break;
   case VOL_VERIFICATION:
-    manager->SetVerificationVolumeNodeID(volumeNode->GetID());
+    manager->SetVerificationVolumeNodeRef(volumeNode->GetID());
     break;
   default:
     vtkErrorMacro("AddVolumeToScene: unknown volume type: " << volumeType);
@@ -473,7 +473,7 @@ int vtkProstateNavLogic::ShowCoverage(bool show)
   
   // always delete it first, because we recreate if it is needed
   // TODO: if the coverage area is not changed (e.g., calibration is not changed) then don't delete and recreate the volume, just show/hide it once it is created
-  vtkMRMLScalarVolumeNode* coverageVolumeNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCoverageVolumeNodeID()));
+  vtkMRMLScalarVolumeNode* coverageVolumeNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCoverageVolumeNodeRef()));
   if (coverageVolumeNode!=NULL)
   {
     DeleteCoverageVolume();
@@ -497,7 +497,7 @@ int vtkProstateNavLogic::ShowCoverage(bool show)
     return 0;
   }
   
-  coverageVolumeNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCoverageVolumeNodeID()));
+  coverageVolumeNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCoverageVolumeNodeRef()));
   if (coverageVolumeNode==NULL)
   {
     // the volume node should have been created by now
@@ -509,7 +509,7 @@ int vtkProstateNavLogic::ShowCoverage(bool show)
   applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetLabelOpacity(0.6);
 
   // Select coverage volume node id as label
-  const char* coverageVolNodeID=manager->GetCoverageVolumeNodeID();
+  const char* coverageVolNodeID=manager->GetCoverageVolumeNodeRef();
   applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetLabelVolumeID(coverageVolNodeID);
   applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetLabelVolumeID(coverageVolNodeID);
   applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetLabelVolumeID(coverageVolNodeID);
@@ -533,8 +533,8 @@ int vtkProstateNavLogic::CreateCoverageVolume()
     return 0;
   }
 
-  //vtkMRMLVolumeNode* baseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCalibrationVolumeNodeID()));
-  vtkMRMLVolumeNode* baseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetTargetingVolumeNodeID()));
+  //vtkMRMLVolumeNode* baseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCalibrationVolumeNodeRef()));
+  vtkMRMLVolumeNode* baseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetTargetingVolumeNodeRef()));
   if (!baseVolumeNode) 
   {
     // volume node is already created
@@ -602,7 +602,7 @@ int vtkProstateNavLogic::CreateCoverageVolume()
   // add the label volume to the scene
   this->GetMRMLScene()->AddNode(coverageVolumeNode);
 
-  manager->SetCoverageVolumeNodeID(coverageVolumeNode->GetID());   // Add ref to main MRML node
+  manager->SetCoverageVolumeNodeRef(coverageVolumeNode->GetID());   // Add ref to main MRML node
 
   // Restore modifiedSinceRead value since copy cause Modify on image data.
   baseVolumeNode->SetModifiedSinceRead(modifiedSinceRead);
@@ -620,7 +620,7 @@ int vtkProstateNavLogic::UpdateCoverageVolumeImage()
     vtkErrorMacro("Error updating coverage volume, manager is invalid");
     return 0;
   }
-  vtkMRMLVolumeNode* coverageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCoverageVolumeNodeID()));
+  vtkMRMLVolumeNode* coverageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCoverageVolumeNodeRef()));
   if (coverageVolumeNode==NULL)
   {
     vtkWarningMacro("CoverageMapUpdate failed, the map is not initialized");
@@ -655,7 +655,7 @@ int vtkProstateNavLogic::UpdateCoverageVolumeImage()
     );
   double needleLength=manager->GetNeedleLength(manager->GetCurrentNeedleIndex());
 
-  std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeID());
+  std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeRef());
   targetDesc->SetTargetingFoRStr(FoR);
   
 
@@ -716,7 +716,7 @@ void vtkProstateNavLogic::DeleteCoverageVolume()
     vtkErrorMacro("Error deleting coverage volume, manager is invalid");
     return;
   }
-  vtkMRMLVolumeNode* coverageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCoverageVolumeNodeID()));
+  vtkMRMLVolumeNode* coverageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCoverageVolumeNodeRef()));
   if (coverageVolumeNode==NULL)
   {
     vtkWarningMacro("Error deleting coverage volume, coverage volume node is not found");
@@ -724,7 +724,7 @@ void vtkProstateNavLogic::DeleteCoverageVolume()
   }
   
   // delete volume node
-  manager->SetCoverageVolumeNodeID(NULL);
+  manager->SetCoverageVolumeNodeRef(NULL);
 
   // delete image data
   coverageVolumeNode->SetAndObserveImageData(NULL);
@@ -805,7 +805,7 @@ void vtkProstateNavLogic::UpdateTargetListFromMRML()
       fidNode->SetNthFiducialLabelText(i,strvalue.str());
       strvalue.rdbuf()->freeze(0);     
 
-      std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeID());
+      std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeRef());
       targetDesc->SetTargetingFoRStr(FoR);
 
       manager->AddTargetDescriptor(targetDesc);
