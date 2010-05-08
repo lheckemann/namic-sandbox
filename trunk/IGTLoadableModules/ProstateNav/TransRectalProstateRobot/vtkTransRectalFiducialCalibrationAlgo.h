@@ -58,6 +58,26 @@ struct TRProstateBiopsyCalibrationData
   std::string FoR; // frame of reference UID
 };
 
+struct TRProstateBiopsyTargetingParams
+{ 
+  std::string GetReachableString() const
+  { 
+    if (this->IsOutsideReach) 
+      return "No";
+    else
+      return "Yes";
+  }
+  
+  //////////
+  bool TargetingParametersValid;
+  double AxisRotation;    ///< Calculated value: Axis rotation in degree
+  double NeedleAngle;     ///< Calculated value: Needle angle in degree
+  double DepthCM;         ///< Calculated value: Insertion deepth in cm
+  bool IsOutsideReach;    ///< Calculated value: Can be reached or not with the current needle length and valid angle range
+  double HingePosition[3]; /// hinge position (RAS)
+  
+};
+
 //ETX
 
 class VTK_PROSTATENAV_EXPORT vtkTransRectalFiducialCalibrationAlgo :
@@ -77,7 +97,7 @@ public:
   bool CalibrateFromImage(const TRProstateBiopsyCalibrationFromImageInput &input);  
   //ETX
 
-  static bool FindTargetingParams(vtkProstateNavTargetDescriptor *target, const TRProstateBiopsyCalibrationData &calibrationData);
+  static bool FindTargetingParams(vtkProstateNavTargetDescriptor *target, const TRProstateBiopsyCalibrationData &calibrationData, TRProstateBiopsyTargetingParams *targetingParams);
 
   // Description
   // Return true if the i-th marker position is successfully detected

@@ -174,7 +174,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   vtkSetReferenceStringMacro(CoverageVolumeNodeRef);
   vtkGetStringMacro(CoverageVolumeNodeRef);
 
-  bool FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc);
+  bool IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc);
 
   //----------------------------------------------------------------
   // Needle Management

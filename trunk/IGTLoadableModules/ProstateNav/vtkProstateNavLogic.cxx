@@ -682,17 +682,9 @@ int vtkProstateNavLogic::UpdateCoverageVolumeImage()
         {
           targetDesc->SetRASLocation(rasPoint[0], rasPoint[1], rasPoint[2]);
           
-          if(manager->FindTargetingParams(targetDesc))
+          if(manager->IsTargetReachable(targetDesc))
           {
-            if (!targetDesc->GetIsOutsideReach())
-            {
-              // inside reach
-              if (targetDesc->GetDepthCM()<=needleLength)
-              {
-                // needle is long enough
-                value=1;
-              }
-            }
+            value=1;
           }
         }
 
@@ -828,11 +820,6 @@ void vtkProstateNavLogic::UpdateTargetListFromMRML()
 
         // :TODO: update needle,  etc. parameters ?
 
-        // calculate targeting parameters for active needle, store in a target descriptor
-        if(!manager->FindTargetingParams(targetDesc))
-          {
-          vtkErrorMacro("Error finding targeting parameters");
-          }        
       }
       else
       {

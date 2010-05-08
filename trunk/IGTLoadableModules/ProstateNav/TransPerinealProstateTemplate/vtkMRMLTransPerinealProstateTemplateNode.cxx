@@ -1320,7 +1320,7 @@ vtkMRMLLinearTransformNode* vtkMRMLTransPerinealProstateTemplateNode::GetActiveN
 
 
 //----------------------------------------------------------------------------
-bool vtkMRMLTransPerinealProstateTemplateNode::FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc)
+bool vtkMRMLTransPerinealProstateTemplateNode::IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc)
 {
   // this is used for coverage area computation (IsOutsideReach means that the target is outside the robot's coverage area)
 
@@ -1328,12 +1328,11 @@ bool vtkMRMLTransPerinealProstateTemplateNode::FindTargetingParams(vtkProstateNa
   double *ras=targetDesc->GetRASLocation();
   const double center[3]={0,0,0};
   const double radius2=25*25;
-  targetDesc->SetIsOutsideReach(
+  bool reachable=
     (ras[0]-center[0])*(ras[0]-center[0])+
     (ras[1]-center[1])*(ras[1]-center[1])+
-    (ras[2]-center[2])*(ras[2]-center[2])>radius2
-    );
-  return true;
+    (ras[2]-center[2])*(ras[2]-center[2])<=radius2;
+  return reachable;
 }
 
 //----------------------------------------------------------------------------
