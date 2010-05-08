@@ -1118,8 +1118,16 @@ void vtkTransRectalFiducialCalibrationAlgo::Linefinder(double P_[3], double v_[3
 
 //-------------------------------------------------------------------------------
 /// Calculations to find the targeting parameters (point -> rotation & deepth)
-bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTargetDescriptor *target, const TRProstateBiopsyCalibrationData &calibrationData, TRProstateBiopsyTargetingParams *targetingParams)
+bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTargetDescriptor *target, const TRProstateBiopsyCalibrationData &calibrationData, NeedleDescriptorStruct *needle, TRProstateBiopsyTargetingParams *targetingParams)
 {
+  if (target==NULL)
+  {
+    return false;
+  }
+  if (needle==NULL)
+  {
+    return false;
+  }
     if (!calibrationData.CalibrationValid) 
     {
       if (targetingParams!=NULL)
@@ -1264,7 +1272,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     // Insertion depth offset (in mm)
     // overshoot>0: biopsy
     // overshoot<0: seed placement
-    double overshoot = target->GetNeedleOvershoot();
+    double overshoot = needle->Overshoot;
 
     double n_insertion=vtkMath::Norm(insM)+n_slide+overshoot; // insertion depth in mm
     if (targetingParams!=NULL)
@@ -1276,7 +1284,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     bool isOutsideReach=false;
     if ( (needle_angle_degree < 17.5) 
       || (needle_angle_degree > 37.0 + 1.8) /* !!! */ 
-      || (targetingParams->DepthCM*10 > target->GetNeedleLength()) )
+      || (targetingParams->DepthCM*10 > needle->Length) )
     {
       // can't reach the target!
       isOutsideReach=true;      

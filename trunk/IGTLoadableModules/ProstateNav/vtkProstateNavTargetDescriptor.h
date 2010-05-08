@@ -25,6 +25,37 @@
 #include "vtkObject.h"
 #include "vtkProstateNavWin32Header.h"
 
+struct VTK_PROSTATENAV_EXPORT NeedleDescriptorStruct
+   {
+     // ID:  unique id
+     std::string ID;
+
+     // NeedleName: a prefix for target point names
+     std::string TargetNamePrefix;
+
+     // Description: descriptive name of the needle
+     std::string Description;
+
+     // NeedleLength: maximum possible insertion depth, in mm - just for checking if the target is reachable
+     double Length;
+
+     // Overshoot: where is the target compared to the needle tip, in mm
+     // if positive, then target is towards the needle base (seed placement)
+     // if negative, then target is in front of the needle tip (biopsy)
+     double Overshoot; 
+
+     // NeedleExtension: maximum extension of the needle from the needle tip,
+     // negative if the needle extends towards the needle tip (biopsy) - just for display
+     double Extension; 
+
+     // NeedleTargetSize: length of the biopsy core or seed - just for display
+     double TargetSize; 
+
+     // LastTargetId stores the last index that was used for adding a target for this needle.
+     // It is useful for generating unique target names.
+     int LastTargetId;
+   };
+
 class VTK_PROSTATENAV_EXPORT vtkProstateNavTargetDescriptor :
   public vtkObject
 {
@@ -39,40 +70,13 @@ public:
     // Set/get validation info: Validation volume FoR string
     void SetName(std::string str){this->Name = str;}
     std::string GetName() const {return this->Name;};
-    //ETX
 
-    // Description
-    // Set/get Needle overshoot
-    vtkGetMacro(NeedleOvershoot,double);
-    vtkSetMacro(NeedleOvershoot,double);
-
-    // Description
-    // Set/get Needle extension
-    vtkGetMacro(NeedleExtension,double);
-    vtkSetMacro(NeedleExtension,double);
-
-    // Description
-    // Set/get Needle extension
-    vtkGetMacro(NeedleTargetSize,double);
-    vtkSetMacro(NeedleTargetSize,double);
-
-    //BTX
-    // Description
-    // Set/get Targeting parameter: needle type
-    void SetNeedleType(std::string needleType, double depth, double overshoot, double extension, double targetSize) 
+    void SetNeedleID(std::string needleID)
     { 
-        this->NeedleType = needleType;
-        this->NeedleLength = depth;
-        this->NeedleOvershoot = overshoot;
-        this->NeedleExtension = extension;
-        this->NeedleTargetSize = targetSize;
+        this->NeedleID = needleID;
     }
-    std::string GetNeedleTypeString() const { return this->NeedleType;};
+    std::string GetNeedleID() const { return this->NeedleID;};
     //ETX
-    // Description
-    // Set/get Targeting parameter: needle type depth in mm
-    vtkGetMacro(NeedleLength,double);
-    vtkSetMacro(NeedleLength,double);
 
     // Description
     // Set/get : ras location
@@ -160,13 +164,7 @@ private:
     double RASOrientation[4];
     std::string TargetingFoR_STR;
     std::string FiducialID; // ID of the fiducial in the FiducialListNode
-
-    // Needle => replace it by a needle id (NeedleType?)
-    std::string NeedleType;
-    double NeedleLength; // in mm
-    double NeedleOvershoot;
-    double NeedleExtension;
-    double NeedleTargetSize;
+    std::string NeedleID; // ID of the needle type
 
     // Calibration ??? => remove it
     std::string CalibrationFoR_STR; /// string identifier for the calibration volume

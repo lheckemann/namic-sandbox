@@ -623,6 +623,7 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
     {      
     int targetIndex=row;
     vtkProstateNavTargetDescriptor* target = manager->GetTargetDescriptorAtIndex(targetIndex);
+    NeedleDescriptorStruct* needle = manager->GetNeedle(target);
 
     vtkKWMultiColumnList* columnList = this->TargetList->GetWidget();
 
@@ -657,9 +658,9 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
         }
       }
 
-    if (target->GetNeedleTypeString().compare(columnList->GetCellText(row,COL_NEEDLE)) != 0)
+    if (needle->Description.compare(columnList->GetCellText(row,COL_NEEDLE)) != 0)
     {
-      columnList->SetCellText(row,COL_NEEDLE,target->GetNeedleTypeString().c_str());
+      columnList->SetCellText(row,COL_NEEDLE,needle->Description.c_str());
     }
 
     if (target->GetTargetValidated())

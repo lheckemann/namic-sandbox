@@ -48,35 +48,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   //----------------------------------------------------------------
 
   //BTX
-
-  struct NeedleDescriptorStruct
-    {
-    // NeedleName: short unique id (used as a prefix for target point names)
-    std::string Name;
-
-    // Description: descriptive name of the needle
-    std::string Description;
-    
-    // NeedleLength: maximum possible insertion depth, in mm - just for checking if the target is reachable
-    double Length;
-
-    // Overshoot: where is the target compared to the needle tip, in mm
-    // if positive, then target is towards the needle base (seed placement)
-    // if negative, then target is in front of the needle tip (biopsy)
-    double Overshoot; 
-
-    // NeedleExtension: maximum extension of the needle from the needle tip,
-    // negative if the needle extends towards the needle tip (biopsy) - just for display
-    double Extension; 
-
-    // NeedleTargetSize: length of the biopsy core or seed - just for display
-    double TargetSize; 
-    
-    // LastTargetId stores the last index that was used for adding a target for this needle.
-    // It is useful for generating unique target names.
-    int LastTargetId;
-    };
-
+  
   // Events
   enum {
     CurrentTargetChangedEvent = 200900,
@@ -174,7 +146,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   vtkSetReferenceStringMacro(CoverageVolumeNodeRef);
   vtkGetStringMacro(CoverageVolumeNodeRef);
 
-  bool IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc);
+  bool IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle);
 
   //----------------------------------------------------------------
   // Needle Management
@@ -195,40 +167,9 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   bool SetNeedle(unsigned int needleIndex, NeedleDescriptorStruct needleDesc);
   // returns false if needle info was not found
   bool GetNeedle(unsigned int needleIndex, NeedleDescriptorStruct &needleDesc);
+  NeedleDescriptorStruct* GetNeedle(vtkProstateNavTargetDescriptor *targetDesc);
+  
   //ETX
-
-  //BTX
-  // Description:
-  // get/set methods for storing needle information
-  void SetNeedleType(unsigned int needleIndex, std::string type);
-  std::string GetNeedleType(unsigned int needleIndex);
-  //ETX
-
-  //BTX
-  // Description:
-  // get/set methods for storing needle information
-  void SetNeedleDescription(unsigned int needleIndex, std::string desc);
-  std::string GetNeedleDescription(unsigned int needleIndex);
-  //ETX
-
-  // Description:
-  // get/set methods for storing needle information
-  void SetNeedleLength(unsigned int needleIndex, double length);
-  double GetNeedleLength(unsigned int needleIndex);
-
-  // Description:
-  // get/set methods for storing needle information
-  void SetNeedleOvershoot(unsigned int needleIndex, double overshoot);
-  double GetNeedleOvershoot(unsigned int needleIndex);
-
-  // Description:
-  // get/set methods for storing needle information
-  double GetNeedleExtension(unsigned int needleIndex);
-
-  // Description:
-  // get/set methods for storing needle information
-  double GetNeedleTargetSize(unsigned int needleIndex);
-
 
   //----------------------------------------------------------------
   // Target Management
@@ -240,13 +181,13 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
 
   //BTX
   // Description:
-  // Get Targeting Fiducials Lists names(used in the wizard steps)
-  std::string GetTargetingFiducialsListName(unsigned int index)
+  // Get Targeting Fiducials Lists names (used in the wizard steps)
+  std::string GetTargetingFiducialsListDescription(unsigned int index)
     {
     if (index < this->NeedlesVector.size())
-      return this->NeedlesVector[index].Name;
+      return this->NeedlesVector[index].Description;
     else
-      return NULL;
+      return "";
     }; 
   //ETX
   

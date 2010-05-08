@@ -28,6 +28,7 @@ class vtkMRMLModelNode;
 class vtkMRMLScalarVolumeNode;
 class vtkSlicerApplication;
 class vtkProstateNavTargetDescriptor;
+struct NeedleDescriptorStruct;
 
 class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLTransformableNode
 {
@@ -39,6 +40,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLTransformableNode
   //----------------------------------------------------------------
 
   //BTX
+
   // Events
   enum {
     ChangeStatusEvent     = 200907,
@@ -132,17 +134,17 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLTransformableNode
 
   virtual int OnTimer() {return 1; };
 
-  virtual bool IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc) { return false; };
+  virtual bool IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle) { return false; };
   
   // Computes needle orientation in unit vector, pointing towards then needle tip
   // when the robot targets the specified point.
   // needleDirection is a pointer to a double[3] array which is updated with the orientation
   // Returns false if the information cannot be determined.
-  virtual bool GetNeedleDirectionAtTarget(vtkProstateNavTargetDescriptor *targetDesc, double* needleDirection) { return false; };
+  virtual bool GetNeedleDirectionAtTarget(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle, double* needleDirection) { return false; };
 
-  virtual bool ShowRobotAtTarget(vtkProstateNavTargetDescriptor *targetDesc) { return false; };
+  virtual bool ShowRobotAtTarget(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle) { return false; };
   //BTX
-  virtual std::string GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc) { return ""; };
+  virtual std::string GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle) { return ""; };
   //ETX
 
   // Description:

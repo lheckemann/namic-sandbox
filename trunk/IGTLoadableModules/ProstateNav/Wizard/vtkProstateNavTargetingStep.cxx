@@ -966,6 +966,7 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
     {      
     int targetIndex=row;
     vtkProstateNavTargetDescriptor* target = manager->GetTargetDescriptorAtIndex(targetIndex);
+    NeedleDescriptorStruct* needle = manager->GetNeedle(target);
 
     if (deleteFlag)
       {
@@ -1018,9 +1019,9 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
         }
       }
 
-    if (target->GetNeedleTypeString().compare(this->TargetList->GetWidget()->GetCellText(row,COL_NEEDLE)) != 0)
+    if (needle->Description.compare(this->TargetList->GetWidget()->GetCellText(row,COL_NEEDLE)) != 0)
     {
-      this->TargetList->GetWidget()->SetCellText(row,COL_NEEDLE,target->GetNeedleTypeString().c_str());
+      this->TargetList->GetWidget()->SetCellText(row,COL_NEEDLE,needle->Description.c_str());
     }
 
     }  
@@ -1142,10 +1143,11 @@ void vtkProstateNavTargetingStep::UpdateGUI()
       robot=this->GetProstateNavManager()->GetRobotNode();
     }
     vtkProstateNavTargetDescriptor *targetDesc = mrmlNode->GetTargetDescriptorAtIndex(mrmlNode->GetCurrentTargetIndex()); 
+    NeedleDescriptorStruct *needle = mrmlNode->GetNeedle(targetDesc); 
 
-    if (robot!=NULL && targetDesc!=NULL)
+    if (robot!=NULL && targetDesc!=NULL && needle!=NULL)
     {
-      std::string info=robot->GetTargetInfoText(targetDesc);
+      std::string info=robot->GetTargetInfoText(targetDesc, needle);
       this->Message->SetText(info.c_str());
     }
     else
@@ -1163,10 +1165,12 @@ void vtkProstateNavTargetingStep::UpdateGUI()
     this->NeedleTypeMenuList->GetWidget()->GetMenu()->DeleteAllItems();
     for (int i = 0; i < mrmlNode->GetNumberOfNeedles(); i++)
       {
+      NeedleDescriptorStruct needleDesc;
+      mrmlNode->GetNeedle(i, needleDesc);
       std::ostrstream needleTitle;
-      needleTitle << mrmlNode->GetNeedleDescription(i) << " <" << mrmlNode->GetNeedleType(i) <<"> ("
-        <<mrmlNode->GetNeedleOvershoot(i)<<"mm overshoot, "
-        <<mrmlNode->GetNeedleLength(i)<<"mm length"
+      needleTitle << needleDesc.Description << " <" << needleDesc.TargetNamePrefix <<"> ("
+        <<needleDesc.Overshoot<<"mm overshoot, "
+        <<needleDesc.Length<<"mm length"
         << ")" << std::ends;      
       this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddRadioButton(needleTitle.str());
       needleTitle.rdbuf()->freeze();

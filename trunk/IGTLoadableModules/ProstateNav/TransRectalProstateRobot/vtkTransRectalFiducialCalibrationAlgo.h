@@ -24,6 +24,7 @@
 class vtkMatrix4x4;
 class vtkImageData;
 class vtkProstateNavTargetDescriptor;
+struct NeedleDescriptorStruct;
 class vtkMRMLTRProstateBiopsyModuleNode;
 class vtkPoints;
 
@@ -97,7 +98,7 @@ public:
   bool CalibrateFromImage(const TRProstateBiopsyCalibrationFromImageInput &input);  
   //ETX
 
-  static bool FindTargetingParams(vtkProstateNavTargetDescriptor *target, const TRProstateBiopsyCalibrationData &calibrationData, TRProstateBiopsyTargetingParams *targetingParams);
+  static bool FindTargetingParams(vtkProstateNavTargetDescriptor *target, const TRProstateBiopsyCalibrationData &calibrationData, NeedleDescriptorStruct *needle, TRProstateBiopsyTargetingParams *targetingParams);
 
   // Description
   // Return true if the i-th marker position is successfully detected

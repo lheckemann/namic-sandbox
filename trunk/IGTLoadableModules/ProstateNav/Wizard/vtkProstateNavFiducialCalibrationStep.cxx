@@ -434,19 +434,19 @@ void vtkProstateNavFiducialCalibrationStep::ShowUserInterface()
 //-------------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::HideUserInterface()
 {
-  vtkMRMLTransRectalProstateRobotNode* robot= GetRobot();
+  TearDownGUI();
+
+  vtkMRMLTransRectalProstateRobotNode* robot=GetRobot();
   if(robot!=NULL)
-  {
-    robot->SetModelAxesVisible(false);
+  {    
     // Don't clutter the screen with calibration markers in other steps => hide them
     vtkMRMLFiducialListNode* calibMarkerNode=robot->GetCalibrationPointListNode();
     if (calibMarkerNode!=NULL)
     {
       calibMarkerNode->SetAllFiducialsVisibility(false);
     }
+    robot->SetModelAxesVisible(false);
   }
-
-  TearDownGUI();
 
   this->Superclass::HideUserInterface();
 }
