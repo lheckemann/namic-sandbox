@@ -180,6 +180,8 @@ void vtkSlicerSecondaryViewerWindow::CreateWidget()
   // Don't show the view node for the user
   viewNode->SetHideFromEditors(true);
 
+  viewNode->SetRenderMode(vtkMRMLViewNode::Orthographic);
+
   gui->GetMRMLScene()->AddNode(viewNode);  
 
   // Create the 3D Viewer
@@ -190,7 +192,7 @@ void vtkSlicerSecondaryViewerWindow::CreateWidget()
   this->ViewerWidget->SetAndObserveMRMLSceneEvents (gui->GetMRMLScene(), events );
   this->ViewerWidget->SetAndObserveViewNode (viewNode);
   this->ViewerWidget->UpdateFromMRML();
-  this->ViewerWidget->SetApplicationLogic ( gui->GetApplicationLogic() );
+  this->ViewerWidget->SetApplicationLogic ( gui->GetApplicationLogic() );  
 
   // Add the fiducial list widget  
   this->FiducialListWidget=vtkSlicerFiducialListWidget::New();

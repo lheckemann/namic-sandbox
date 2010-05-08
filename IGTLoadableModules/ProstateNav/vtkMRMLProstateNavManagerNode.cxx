@@ -765,13 +765,13 @@ bool vtkMRMLProstateNavManagerNode::ReadNeedleListFromConfigXml(const char* need
   return true;
 }
 
-bool vtkMRMLProstateNavManagerNode::FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc)
+bool vtkMRMLProstateNavManagerNode::IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc)
 {
   if (this->RobotNode==NULL)
     {
     return false;
     }
-  return this->RobotNode->FindTargetingParams(targetDesc);
+  return this->RobotNode->IsTargetReachable(targetDesc);
 }
 
 

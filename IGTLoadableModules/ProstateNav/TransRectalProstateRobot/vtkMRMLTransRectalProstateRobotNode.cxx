@@ -575,34 +575,70 @@ void vtkMRMLTransRectalProstateRobotNode::ProcessMRMLEvents( vtkObject *caller, 
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLTransRectalProstateRobotNode::FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc)
+bool vtkMRMLTransRectalProstateRobotNode::IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc)
 {
   // this is used for coverage area computation (IsOutsideReach means that the target is outside the robot's coverage area)
   // :TODO: update this for arbitrary target and calib volume transform  
-  return vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData);
+  TRProstateBiopsyTargetingParams targetingParams;
+  bool valid=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, &targetingParams);
+  if (!valid || !targetingParams.TargetingParametersValid)
+  {
+    // error computing targeting params
+    return false;
+  }
+  return (!targetingParams.IsOutsideReach);
+}
+
+bool vtkMRMLTransRectalProstateRobotNode::GetNeedleDirectionAtTarget(vtkProstateNavTargetDescriptor *targetDesc, double* needleDirection)
+{
+  // :TODO: update this for arbitrary target and calib volume transform  
+  if (needleDirection==NULL)
+  {
+    // error computing targeting params
+    vtkErrorMacro("GetNeedleDirectionAtTarget needleDirection pointer in invalid");
+    return false;
+  }
+  TRProstateBiopsyTargetingParams targetingParams;
+  bool valid=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, &targetingParams);
+  if (!valid || !targetingParams.TargetingParametersValid)
+  {
+    // error computing targeting params
+    return false;
+  }
+  
+  double targetRAS[3];
+  targetDesc->GetRASLocation(targetRAS);
+
+  needleDirection[0] = targetRAS[0] - targetingParams.HingePosition[0];
+  needleDirection[1] = targetRAS[1] - targetingParams.HingePosition[1];
+  needleDirection[2] = targetRAS[2] - targetingParams.HingePosition[2];
+  vtkMath::Normalize(needleDirection);
+
+  return true;
 }
 
 //----------------------------------------------------------------------------
 std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc)
 {
-  bool validTargeting=FindTargetingParams(targetDesc);
+  TRProstateBiopsyTargetingParams targetingParams;  
+  bool validTargeting=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, &targetingParams);
 
   std::ostrstream os;    
   os << targetDesc->GetName()<<std::endl;
-  if (validTargeting)
+  if (validTargeting && targetingParams.TargetingParametersValid)
   {
     if (targetDesc->GetCalibrationFoRStr().compare(targetDesc->GetTargetingFoRStr())!=0)
     {
       os << "Warning: frame of reference id mismatch"<<std::endl;
     }
-    if (targetDesc->GetIsOutsideReach())
+    if (targetingParams.IsOutsideReach)
     {
       os << "Warning: the target is not reachable"<<std::endl;
     }    
     os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
-    os << "Depth: "<<targetDesc->GetDepthCM()<<" cm"<<std::endl;
-    os << "Device rotation: "<<targetDesc->GetAxisRotation()<<" deg"<<std::endl;
-    os << "Needle angle: "<<targetDesc->GetNeedleAngle()<<" deg"<<std::endl;
+    os << "Depth: "<<targetingParams.DepthCM<<" cm"<<std::endl;
+    os << "Device rotation: "<<targetingParams.AxisRotation<<" deg"<<std::endl;
+    os << "Needle angle: "<<targetingParams.NeedleAngle<<" deg"<<std::endl;
   }
   os << "Needle type: "<<targetDesc->GetNeedleTypeString()<<std::endl;
   os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
@@ -1054,17 +1090,26 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTarget
     return;
   }
 
+  TRProstateBiopsyTargetingParams targetingParams;  
+  bool validTargeting=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, &targetingParams);
+
+  if (!validTargeting || !targetingParams.TargetingParametersValid)
+  {
+    // no valid targeting parameters are available
+    return;
+  }
+
   // get RAS points of start and end point of needle
-  // for the 3D viewer, the RAS coodinates are the world coordinates!!
-  // this makes things simpler
   // render the needle as a thin pipe
 
   // start point is the target RAS
   double targetRAS[3];
   targetDesc->GetRASLocation(targetRAS); 
 
-  double targetHingeRAS[3];
-  targetDesc->GetHingePosition(targetHingeRAS);
+  double targetHingeRAS[3]={
+    targetingParams.HingePosition[0],
+    targetingParams.HingePosition[1],
+    targetingParams.HingePosition[2]};
 
   double needleVector[3];
   needleVector[0] = targetRAS[0] - targetHingeRAS[0];

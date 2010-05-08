@@ -126,7 +126,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkM
 
   virtual int OnTimer();
 
-  virtual bool FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc);
+  virtual bool IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc);
   //BTX
   virtual std::string GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc);
   //ETX

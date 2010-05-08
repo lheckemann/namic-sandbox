@@ -1118,21 +1118,18 @@ void vtkTransRectalFiducialCalibrationAlgo::Linefinder(double P_[3], double v_[3
 
 //-------------------------------------------------------------------------------
 /// Calculations to find the targeting parameters (point -> rotation & deepth)
-bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTargetDescriptor *target, const TRProstateBiopsyCalibrationData &calibrationData)
+bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTargetDescriptor *target, const TRProstateBiopsyCalibrationData &calibrationData, TRProstateBiopsyTargetingParams *targetingParams)
 {
     if (!calibrationData.CalibrationValid) 
     {
-      target->SetTargetingParametersValid(false);
+      if (targetingParams!=NULL)
+      {
+        targetingParams->TargetingParametersValid=false;
+      }
       return false;
     }
 
     target->SetCalibrationFoRStr(calibrationData.FoR);
-
-    // Axel algorithm, part 1 :
-    //  When fiducials segmented
-
-    // Axel algorithm, part 2
-    //  Calculate Targeting Parameters
 
     double targetRas[3]; // Target
     target->GetRASLocation(targetRas); 
@@ -1204,8 +1201,10 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     double rotation = atan2(y,x);
     double rotation_degree = -rotation*180.0/vtkMath::Pi();
 
-    // Text -------------------------------------------------------------
-    target->SetAxisRotation(rotation_degree);
+    if (targetingParams!=NULL)
+    {      
+      targetingParams->AxisRotation=rotation_degree;
+    }      
 
     // RotMatrix=eye(3)+sin(-rotation)*skew+skew*skew*(1-cos(-rotation));
     double H_afterLps[3];
@@ -1217,11 +1216,17 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     v_needle[1] = targetLps[1] - H_afterLps[1];
     v_needle[2] = targetLps[2] - H_afterLps[2];
 
+    // convert to RAS, because internal calculations are done in LPS but all outputs (and inputs) are in RAS reference
     double H_afterRas[3];
     H_afterRas[0] = -H_afterLps[0];
     H_afterRas[1] = -H_afterLps[1];
-    H_afterRas[2] = H_afterLps[2];
-    target->SetHingePosition(H_afterRas); // convert to RAS, because internal calculations are done in LPS but all outputs (and inputs) are in RAS reference
+    H_afterRas[2] = H_afterLps[2];        
+    if (targetingParams!=NULL)
+    {      
+      targetingParams->HingePosition[0]=H_afterRas[0]; 
+      targetingParams->HingePosition[1]=H_afterRas[1]; 
+      targetingParams->HingePosition[2]=H_afterRas[2]; 
+    }
 
     /// \todo Pipe from H_afterLps (along to v_needle traj.) ending "Overshoot" mm after the target
     // T[?]+overshoot*v_needle[?]
@@ -1240,16 +1245,10 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     // Cheating ot not? 
     needle_angle_degree = needle_angle_degree - (alpha_degree-37.0); // cheating
 
-    if ( (needle_angle_degree < 17.5) || (needle_angle_degree > 37.0 + 1.8 /* !!! */ ) ) {
-        // can't reach the target!
-        target->SetIsOutsideReach(true);
-        //target->SetColor(0.3, 0.3, 1.0);
-    } else {
-        target->SetIsOutsideReach(false);
+    if (targetingParams!=NULL)
+    {      
+      targetingParams->NeedleAngle=needle_angle_degree;
     }
-
-    // Text -------------------------------------------------------------
-    target->SetNeedleAngle(needle_angle_degree);
 
     // Insertion depth
     double needle_angle_initial = alpha_degree*vtkMath::Pi()/180;
@@ -1267,12 +1266,32 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     // overshoot<0: seed placement
     double overshoot = target->GetNeedleOvershoot();
 
-    double n_insertion=vtkMath::Norm(insM)+n_slide+overshoot;
+    double n_insertion=vtkMath::Norm(insM)+n_slide+overshoot; // insertion depth in mm
+    if (targetingParams!=NULL)
+    {      
+      targetingParams->DepthCM=n_insertion/10.0;
+      targetingParams->TargetingParametersValid=true;
+    }
 
-    // Text -------------------------------------------------------------
-    target->SetDepthCM(n_insertion/10.0);
+    bool isOutsideReach=false;
+    if ( (needle_angle_degree < 17.5) 
+      || (needle_angle_degree > 37.0 + 1.8) /* !!! */ 
+      || (targetingParams->DepthCM*10 > target->GetNeedleLength()) )
+    {
+      // can't reach the target!
+      isOutsideReach=true;      
+    }
+    if (targetingParams!=NULL)
+    {      
+      targetingParams->IsOutsideReach=isOutsideReach;
+    }    
 
-    target->SetTargetingParametersValid(true);
+    // All computations were successfully computed
+    if (targetingParams!=NULL)
+    {      
+      targetingParams->TargetingParametersValid=true;
+    }
+    
     return true;
 }
 

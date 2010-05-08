@@ -1497,20 +1497,14 @@ void vtkProstateNavGUI::BringTargetToViewIn2DViews(int mode)
     // Slice 2: aligned with the needle line and robot main axis
     // Slice 3: orthogonal to Slice 1 and 2
 
-    double targetHingeRAS[3];
-    targetDesc->GetHingePosition(targetHingeRAS);
-
-    double needleVector[4]={0,0,0, 0};
-    needleVector[0] = targetRAS[0] - targetHingeRAS[0];
-    needleVector[1] = targetRAS[1] - targetHingeRAS[1];
-    needleVector[2] = targetRAS[2] - targetHingeRAS[2];
-    vtkMath::Normalize(needleVector);
-
-    double transverseVector[4]={1,0,0, 0};
 
     vtkMRMLRobotNode* robot=manager->GetRobotNode();
+
     if (robot!=NULL)
-    {
+    {      
+      double needleVector[4]={0,1,0, 0};
+      robot->GetNeedleDirectionAtTarget(targetDesc, needleVector);
+      double transverseVector[4]={1,0,0, 0};    
       // aligned transverse vector with robot base
       vtkSmartPointer<vtkMatrix4x4> transform=vtkSmartPointer<vtkMatrix4x4>::New();
       if (robot->GetRobotBaseTransform(transform))
@@ -1518,11 +1512,13 @@ void vtkProstateNavGUI::BringTargetToViewIn2DViews(int mode)
         double unalignedTransverseVector[4]={transverseVector[0],transverseVector[1],transverseVector[2], 0};
         transform->MultiplyPoint(unalignedTransverseVector, transverseVector);
       }
+      BringMarkerToViewIn2DViews(targetRAS, needleVector, transverseVector);
+    }
+    else
+    {
+      BringMarkerToViewIn2DViews(targetRAS);
     }    
-
-    BringMarkerToViewIn2DViews(targetRAS, needleVector, transverseVector);
-  }
-  
+  }  
 }
 
 //--------------------------------------------------------------------------------
@@ -1696,8 +1692,6 @@ void vtkProstateNavGUI::SetAndObserveRobotNodeID(const char *nodeID)
   UpdateGUI();
   /*
   ChangeWorkphase(0,true); //always start with the the first step
-
-  UpdateStatusButtons();
   */
 }
 

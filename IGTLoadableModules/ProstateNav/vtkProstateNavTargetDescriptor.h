@@ -25,8 +25,6 @@
 #include "vtkObject.h"
 #include "vtkProstateNavWin32Header.h"
 
-
-
 class VTK_PROSTATENAV_EXPORT vtkProstateNavTargetDescriptor :
   public vtkObject
 {
@@ -43,27 +41,6 @@ public:
     std::string GetName() const {return this->Name;};
     //ETX
 
-
-    // Desciption
-    // Save/load from ini file
-    //virtual bool Save(wxFileConfig *ini, const char *iniCategory);
-    //virtual bool Load(wxFileConfig *ini, const char *iniCategory);
-
-    // Description
-    // Set/get Targeting parameter: rotation
-    vtkGetMacro(AxisRotation,double);
-    vtkSetMacro(AxisRotation,double);
-
-    // Description
-    // Set/get Targeting parameter: needle angle
-    vtkGetMacro(NeedleAngle,double);
-    vtkSetMacro(NeedleAngle,double);
-
-    // Description
-    // Set/get Targeting parameter: depth in centimeters
-    vtkGetMacro(DepthCM,double);
-    vtkSetMacro(DepthCM,double);
-
     // Description
     // Set/get Needle overshoot
     vtkGetMacro(NeedleOvershoot,double);
@@ -79,21 +56,6 @@ public:
     vtkGetMacro(NeedleTargetSize,double);
     vtkSetMacro(NeedleTargetSize,double);
 
-    // Description
-    // Set/get Targeting parameter: is reachable or not 
-    vtkGetMacro(IsOutsideReach,bool);
-    vtkSetMacro(IsOutsideReach,bool);
-
-    //BTX
-    std::string GetReachableString() const
-        { 
-            if (this->IsOutsideReach) 
-                return "No";
-            else
-                return "Yes";
-        }
-    //ETX
-
     //BTX
     // Description
     // Set/get Targeting parameter: needle type
@@ -108,14 +70,9 @@ public:
     std::string GetNeedleTypeString() const { return this->NeedleType;};
     //ETX
     // Description
-    // Set/get Targeting parameter: needle type depth
+    // Set/get Targeting parameter: needle type depth in mm
     vtkGetMacro(NeedleLength,double);
     vtkSetMacro(NeedleLength,double);
-
-    // Description
-    // Set/get Targeting parameter: hinge position (in RAS coordinate system)
-    vtkSetVector3Macro(HingePosition,double);
-    vtkGetVectorMacro(HingePosition,double,3);
 
     // Description
     // Set/get : ras location
@@ -136,11 +93,6 @@ public:
     }
     //ETX
     
-    // Description
-    // Set/get targeting info is valid (they are computed using a valid calibration data)
-    vtkGetMacro(TargetingParametersValid,bool);
-    vtkSetMacro(TargetingParametersValid,bool);
-
     // Description
     // Set/get Needle placement is validated
     vtkGetMacro(TargetValidated,bool);
@@ -211,21 +163,16 @@ private:
 
     // Needle => replace it by a needle id (NeedleType?)
     std::string NeedleType;
-    double NeedleLength;
+    double NeedleLength; // in mm
     double NeedleOvershoot;
     double NeedleExtension;
     double NeedleTargetSize;
 
     // Calibration ??? => remove it
     std::string CalibrationFoR_STR; /// string identifier for the calibration volume
-
-    // Targeting parameters => replace it by a targeting string (maybe condensed) + bTargetCompleted
-    bool TargetingParametersValid;
-    double AxisRotation;    ///< Calculated value: Axis rotation in degree
-    double NeedleAngle;     ///< Calculated value: Needle angle in degree
-    double DepthCM;         ///< Calculated value: Insertion deepth in cm
-    bool IsOutsideReach;    ///< Calculated value: Can be reached?
-    double HingePosition[3];
+    
+    // Add bTargetCompleted?
+    // Add sTargetingParameters?
 
     // Validation => replace FoR with verif volume ref?
     bool TargetValidated;  ///< Indicates whether it was validated against needle insertion
