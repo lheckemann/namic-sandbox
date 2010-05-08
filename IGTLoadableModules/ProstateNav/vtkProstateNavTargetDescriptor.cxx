@@ -8,10 +8,8 @@ vtkCxxRevisionMacro(vtkProstateNavTargetDescriptor, "$Revision: 1.0 $");
 vtkProstateNavTargetDescriptor::vtkProstateNavTargetDescriptor()
 {
   this->Name="";  
-  this->NeedleLength=0.0;
-  this->NeedleType = "";
+  this->NeedleID = "";
   this->FiducialID = "";
-  this->NeedleOvershoot=0.0;
   this->TargetValidated = false;
   this->NeedleTipValidationPosition[0]=0;
   this->NeedleTipValidationPosition[1]=0;
@@ -45,10 +43,8 @@ vtkProstateNavTargetDescriptor::~vtkProstateNavTargetDescriptor(void)
 void vtkProstateNavTargetDescriptor::DeepCopy(vtkProstateNavTargetDescriptor& src)
 {
   this->Name=src.Name;
-  this->NeedleLength=src.NeedleLength;
-  this->NeedleType =src.NeedleType;
+  this->NeedleID =src.NeedleID;
   this->FiducialID = src.FiducialID;
-  this->NeedleOvershoot=src.NeedleOvershoot;
   this->TargetValidated =src.TargetValidated;
   this->NeedleTipValidationPosition[0]=src.NeedleTipValidationPosition[0];
   this->NeedleTipValidationPosition[1]=src.NeedleTipValidationPosition[1];

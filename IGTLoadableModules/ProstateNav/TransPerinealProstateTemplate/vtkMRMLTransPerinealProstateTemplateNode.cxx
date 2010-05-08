@@ -1320,7 +1320,7 @@ vtkMRMLLinearTransformNode* vtkMRMLTransPerinealProstateTemplateNode::GetActiveN
 
 
 //----------------------------------------------------------------------------
-bool vtkMRMLTransPerinealProstateTemplateNode::IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc)
+bool vtkMRMLTransPerinealProstateTemplateNode::IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
 {
   // this is used for coverage area computation (IsOutsideReach means that the target is outside the robot's coverage area)
 
@@ -1336,7 +1336,7 @@ bool vtkMRMLTransPerinealProstateTemplateNode::IsTargetReachable(vtkProstateNavT
 }
 
 //----------------------------------------------------------------------------
-std::string vtkMRMLTransPerinealProstateTemplateNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc)
+std::string vtkMRMLTransPerinealProstateTemplateNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
 {
   // :TODO: construct a string that contains useful information for the active target (reachable, etc.)
   return "";

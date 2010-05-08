@@ -120,17 +120,13 @@ void vtkMRMLProstateNavManagerNode::WriteXML(ostream& of, int nIndent)
   vtkIndent indent(nIndent);
 
   of << indent << " WorkflowSteps=\"" << GetWorkflowStepsString() << "\"";    
-
   of << indent << " CurrentWorkflowStep=\"" << this->CurrentStep << "\"";    
   of << indent << " PreviousWorkflowStep=\"" << this->PreviousStep << "\"";
-
   of << indent << " CurrentNeedleIndex=\"" << this->CurrentNeedleIndex << "\"";
-  
   of << indent << " CurrentTargetIndex=\"" << this->CurrentTargetIndex << "\"";
 
-
   // :TODO: write this->TargetDescriptorsVector
-
+  // and NeedlesVector
 
   if (this->TargetingVolumeNodeRef != NULL) 
   {
@@ -181,6 +177,8 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
         }
       }
     }
+  
+  this->Initialized=true;
 }
 
 
@@ -486,7 +484,9 @@ int vtkMRMLProstateNavManagerNode::SetCurrentTargetIndex(int index)
 
   if (GetRobotNode())
   {
-    GetRobotNode()->ShowRobotAtTarget(GetTargetDescriptorAtIndex(this->CurrentTargetIndex));
+    vtkProstateNavTargetDescriptor* targetDesc=GetTargetDescriptorAtIndex(this->CurrentTargetIndex);
+    NeedleDescriptorStruct *needle = GetNeedle(targetDesc); 
+    GetRobotNode()->ShowRobotAtTarget(targetDesc, needle);
   }
 
   this->Modified();
@@ -502,7 +502,7 @@ bool vtkMRMLProstateNavManagerNode::AddTargetToFiducialList(double targetRAS[3],
     vtkErrorMacro("Invalid fiducial list index");
     return false;
     }
-  std::string targetTypeName = this->NeedlesVector[fiducialListIndex].Name;  
+  std::string targetNamePrefix = this->NeedlesVector[fiducialListIndex].TargetNamePrefix;  
 
   vtkMRMLFiducialListNode* fidNode=this->GetTargetPlanListNode();
   if (fidNode==NULL)
@@ -521,7 +521,7 @@ bool vtkMRMLProstateNavManagerNode::AddTargetToFiducialList(double targetRAS[3],
   else
   {
     std::ostrstream os;
-    os << targetTypeName << "_" << targetNr << std::ends;
+    os << targetNamePrefix << "_" << targetNr << std::ends;
     fidNode->SetNthFiducialLabelText(fiducialIndex, os.str());
     fidNode->SetNthFiducialID(fiducialIndex, os.str());
     os.rdbuf()->freeze();
@@ -570,110 +570,6 @@ void vtkMRMLProstateNavManagerNode::SetFiducialColor(int fiducialIndex, bool sel
   fidNode->InvokeEvent(vtkMRMLFiducialListNode::FiducialModifiedEvent, NULL);
 }
 
-//------------------------------------------------------------------------------
-void vtkMRMLProstateNavManagerNode::SetNeedleType(unsigned int needleIndex, std::string type)
-{
-  if (needleIndex < this->NeedlesVector.size())
-    {
-    this->NeedlesVector[needleIndex].Name = type;
-    }
-}
-//----------------------------------------------------------------------------
-std::string vtkMRMLProstateNavManagerNode::GetNeedleType(unsigned int needleIndex)
-{
-  if (needleIndex < this->NeedlesVector.size())
-    {
-    return this->NeedlesVector[needleIndex].Name;
-    }
-  else
-    {
-    return "";
-    }
-}
-//-----------------------------------------------------------------------------  
-void vtkMRMLProstateNavManagerNode::SetNeedleDescription(unsigned int needleIndex, std::string desc)
-{
-  if (needleIndex < this->NeedlesVector.size())
-    {
-    this->NeedlesVector[needleIndex].Description = desc;
-    }
-}
-//-----------------------------------------------------------------------------
-std::string vtkMRMLProstateNavManagerNode::GetNeedleDescription(unsigned int needleIndex)
-{
-  if (needleIndex < this->NeedlesVector.size())
-    {
-    return this->NeedlesVector[needleIndex].Description;
-    }
-  else
-    {
-    return NULL;
-    }
-}
-//------------------------------------------------------------------------------
-void vtkMRMLProstateNavManagerNode::SetNeedleLength(unsigned int needleIndex, double length)
-{
-  if (needleIndex < this->NeedlesVector.size())
-    {
-    this->NeedlesVector[needleIndex].Length = length;
-    }
-}
-//------------------------------------------------------------------------------
-double vtkMRMLProstateNavManagerNode::GetNeedleLength(unsigned int needleIndex)
-{
-  if (needleIndex < this->NeedlesVector.size())
-    {
-    return this->NeedlesVector[needleIndex].Length;
-    }
-  else
-    {
-    return 0;
-    }
-}
-//------------------------------------------------------------------------------
-void vtkMRMLProstateNavManagerNode::SetNeedleOvershoot(unsigned int needleIndex, double overshoot)
-{
-  if (needleIndex < this->NeedlesVector.size())
-    {
-    this->NeedlesVector[needleIndex].Overshoot = overshoot;
-    }
-}
-//------------------------------------------------------------------------------
-double vtkMRMLProstateNavManagerNode::GetNeedleOvershoot(unsigned int needleIndex)
-{
-  if (needleIndex < this->NeedlesVector.size())
-    {
-    return this->NeedlesVector[needleIndex].Overshoot;
-    }
-  else
-    {
-    return 0;
-    }
-}
-//------------------------------------------------------------------------------
-double vtkMRMLProstateNavManagerNode::GetNeedleExtension(unsigned int needleIndex)
-{
-  if (needleIndex < this->NeedlesVector.size())
-    {
-    return this->NeedlesVector[needleIndex].Extension;
-    }
-  else
-    {
-    return 0;
-    }
-}
-//------------------------------------------------------------------------------
-double vtkMRMLProstateNavManagerNode::GetNeedleTargetSize(unsigned int needleIndex)
-{
-  if (needleIndex < this->NeedlesVector.size())
-    {
-    return this->NeedlesVector[needleIndex].TargetSize;
-    }
-  else
-    {
-    return 0;
-    }
-}
 //------------------------------------------------------------------------------
 void vtkMRMLProstateNavManagerNode::Init(const char* defaultNeedleListConfig)
 {
@@ -727,9 +623,13 @@ bool vtkMRMLProstateNavManagerNode::ReadNeedleListFromConfigXml(const char* need
     if (needleElem!=NULL && strcmp(needleElem->GetName(),"Needle")==0)
     {
       NeedleDescriptorStruct needle;
-      if (needleElem->GetAttribute("Name")!=NULL)
+      if (needleElem->GetAttribute("ID")!=NULL)
       {
-        needle.Name=needleElem->GetAttribute("Name");
+        needle.ID=needleElem->GetAttribute("ID");
+      }
+      if (needleElem->GetAttribute("TargetNamePrefix")!=NULL)
+      {
+        needle.TargetNamePrefix=needleElem->GetAttribute("TargetNamePrefix");
       }
       if (needleElem->GetAttribute("Description")!=NULL)
       {
@@ -745,13 +645,13 @@ bool vtkMRMLProstateNavManagerNode::ReadNeedleListFromConfigXml(const char* need
   }
 
   this->CurrentNeedleIndex=0;
-  const char* defNeedleName=config->GetAttribute("DefaultNeedle");
-  if (defNeedleName!=NULL)
+  const char* defNeedleID=config->GetAttribute("DefaultNeedle");
+  if (defNeedleID!=NULL)
   {
     int needleCount=GetNumberOfNeedles();
     for (int i=0; i<needleCount; i++)
     {
-      if (GetNeedleType(i).compare(defNeedleName)==0)
+      if (this->NeedlesVector[i].ID.compare(defNeedleID)==0)
       {
         // this is the default needle
         this->CurrentNeedleIndex=i;
@@ -765,13 +665,13 @@ bool vtkMRMLProstateNavManagerNode::ReadNeedleListFromConfigXml(const char* need
   return true;
 }
 
-bool vtkMRMLProstateNavManagerNode::IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc)
+bool vtkMRMLProstateNavManagerNode::IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
 {
   if (this->RobotNode==NULL)
     {
     return false;
     }
-  return this->RobotNode->IsTargetReachable(targetDesc);
+  return this->RobotNode->IsTargetReachable(targetDesc, needle);
 }
 
 
@@ -793,4 +693,24 @@ bool vtkMRMLProstateNavManagerNode::GetNeedle(unsigned int needleIndex, NeedleDe
     }
   needleDesc=this->NeedlesVector[needleIndex];
   return true;
+}
+
+NeedleDescriptorStruct* vtkMRMLProstateNavManagerNode::GetNeedle(vtkProstateNavTargetDescriptor *targetDesc)
+{
+  if (targetDesc==NULL)
+  {
+    return NULL;
+  }
+  std::string needleID=targetDesc->GetNeedleID();
+  int needleCount=GetNumberOfNeedles();
+  for (int i=0; i<needleCount; i++)
+  {
+    if (this->NeedlesVector[i].ID.compare(needleID)==0)
+    {
+      // found
+      return &(this->NeedlesVector[i]);
+    }
+  }
+  // not found
+  return NULL;
 }

@@ -76,11 +76,11 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
   // method to propagate events generated in mrml
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
 
-  virtual bool IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc);
-  virtual bool GetNeedleDirectionAtTarget(vtkProstateNavTargetDescriptor *targetDesc, double* needleDirection);
-  virtual bool ShowRobotAtTarget(vtkProstateNavTargetDescriptor *targetDesc);
+  virtual bool IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle);
+  virtual bool GetNeedleDirectionAtTarget(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle, double* needleDirection);
+  virtual bool ShowRobotAtTarget(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle);
   //BTX
-  virtual std::string GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc);
+  virtual std::string GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle);
   //ETX
 
   // Description:
@@ -143,7 +143,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
   void UpdateModelAxes();
   void UpdateModelProbe();
   void UpdateModelMarker(int markerInd, vtkImageData *imagedata, vtkMatrix4x4* ijkToRAS);
-  void UpdateModelNeedle(vtkProstateNavTargetDescriptor *targetDesc);
+  void UpdateModelNeedle(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle);
 
   void UpdateCalibration();
 

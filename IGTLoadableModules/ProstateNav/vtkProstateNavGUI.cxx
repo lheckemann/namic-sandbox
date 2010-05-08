@@ -1472,9 +1472,10 @@ void vtkProstateNavGUI::BringTargetToViewIn2DViews(int mode)
   }
   
   vtkProstateNavTargetDescriptor* targetDesc=manager->GetTargetDescriptorAtIndex(currentTargetInd);
-  if (targetDesc==NULL)
+  NeedleDescriptorStruct *needle = manager->GetNeedle(targetDesc); 
+  if (targetDesc==NULL || needle==NULL)
   {
-    vtkErrorMacro("No target descriptor available for the current target");
+    vtkErrorMacro("No target or needle descriptor available for the current target");
     return;
   }  
 
@@ -1503,7 +1504,7 @@ void vtkProstateNavGUI::BringTargetToViewIn2DViews(int mode)
     if (robot!=NULL)
     {      
       double needleVector[4]={0,1,0, 0};
-      robot->GetNeedleDirectionAtTarget(targetDesc, needleVector);
+      robot->GetNeedleDirectionAtTarget(targetDesc, needle, needleVector);
       double transverseVector[4]={1,0,0, 0};    
       // aligned transverse vector with robot base
       vtkSmartPointer<vtkMatrix4x4> transform=vtkSmartPointer<vtkMatrix4x4>::New();
@@ -1637,9 +1638,10 @@ void vtkProstateNavGUI::UpdateCurrentTargetDisplayInSecondaryWindow()
   const int TARGET_CORNER_ID=3;
   vtkMRMLRobotNode* robot=manager->GetRobotNode();
   vtkProstateNavTargetDescriptor *targetDesc = manager->GetTargetDescriptorAtIndex(manager->GetCurrentTargetIndex()); 
-  if (robot!=NULL && targetDesc!=NULL)
+  NeedleDescriptorStruct *needle=manager->GetNeedle(targetDesc);
+  if (robot!=NULL && targetDesc!=NULL && needle!=NULL)
   {
-    std::string info=robot->GetTargetInfoText(targetDesc);
+    std::string info=robot->GetTargetInfoText(targetDesc, needle);
     anno->SetText(TARGET_CORNER_ID,info.c_str());
   }
   else
@@ -1756,10 +1758,11 @@ void vtkProstateNavGUI::SetAndObserveProstateNavManagerNodeID(const char *nodeID
       // Biopsy needle: Overshoot = -13; // needle has to be inserted 13 mm short of the target
       // Seed insertion needle: Overshoot >=0, as the seed is inside the needle
       const char defNeedleDesc[]=
-        "<NeedleList DefaultNeedle=\"B\"> \
-          <Needle Name=\"T\" Description=\"Generic\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"0\" LastTargetId=\"0\" /> \
-          <Needle Name=\"B\" Description=\"Biopsy\" Length=\"200\" Overshoot=\"-9.5\" Extension=\"-27\" TargetSize=\"16\" LastTargetId=\"0\" /> \
-          <Needle Name=\"S\" Description=\"Seed\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"3\" LastTargetId=\"0\" /> \
+        "<NeedleList DefaultNeedle=\"BIOP_NIH_14G_000\"> \
+          <Needle ID=\"GEN_000\" TargetNamePrefix=\"T\" Description=\"Generic\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"0\" LastTargetId=\"0\" /> \
+          <Needle ID=\"BIOP_NIH_14G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy NIH 14G\" Length=\"200\" Overshoot=\"-9.5\" Extension=\"-27\" TargetSize=\"16\" LastTargetId=\"0\" /> \
+          <Needle ID=\"BIOP_JHH_18G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy JHH 18G\" Length=\"200\" Overshoot=\"-10.0\" Extension=\"-23.5\" TargetSize=\"16\" LastTargetId=\"0\" /> \
+          <Needle ID=\"SEED_000\" TargetNamePrefix=\"S\" Description=\"Seed\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"3\" LastTargetId=\"0\" /> \
         </NeedleList>";
       this->GetApplication()->SetRegistryValue(2,"ProstateNav","DefaultNeedleList","%s",defNeedleDesc);
       this->ProstateNavManagerNode->Init(defNeedleDesc);          

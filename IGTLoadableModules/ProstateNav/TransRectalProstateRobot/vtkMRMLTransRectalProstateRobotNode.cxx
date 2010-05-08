@@ -575,12 +575,12 @@ void vtkMRMLTransRectalProstateRobotNode::ProcessMRMLEvents( vtkObject *caller, 
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLTransRectalProstateRobotNode::IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc)
+bool vtkMRMLTransRectalProstateRobotNode::IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
 {
   // this is used for coverage area computation (IsOutsideReach means that the target is outside the robot's coverage area)
   // :TODO: update this for arbitrary target and calib volume transform  
   TRProstateBiopsyTargetingParams targetingParams;
-  bool valid=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, &targetingParams);
+  bool valid=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, needle, &targetingParams);
   if (!valid || !targetingParams.TargetingParametersValid)
   {
     // error computing targeting params
@@ -589,7 +589,7 @@ bool vtkMRMLTransRectalProstateRobotNode::IsTargetReachable(vtkProstateNavTarget
   return (!targetingParams.IsOutsideReach);
 }
 
-bool vtkMRMLTransRectalProstateRobotNode::GetNeedleDirectionAtTarget(vtkProstateNavTargetDescriptor *targetDesc, double* needleDirection)
+bool vtkMRMLTransRectalProstateRobotNode::GetNeedleDirectionAtTarget(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle, double* needleDirection)
 {
   // :TODO: update this for arbitrary target and calib volume transform  
   if (needleDirection==NULL)
@@ -599,7 +599,7 @@ bool vtkMRMLTransRectalProstateRobotNode::GetNeedleDirectionAtTarget(vtkProstate
     return false;
   }
   TRProstateBiopsyTargetingParams targetingParams;
-  bool valid=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, &targetingParams);
+  bool valid=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, needle, &targetingParams);
   if (!valid || !targetingParams.TargetingParametersValid)
   {
     // error computing targeting params
@@ -618,10 +618,10 @@ bool vtkMRMLTransRectalProstateRobotNode::GetNeedleDirectionAtTarget(vtkProstate
 }
 
 //----------------------------------------------------------------------------
-std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc)
+std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
 {
   TRProstateBiopsyTargetingParams targetingParams;  
-  bool validTargeting=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, &targetingParams);
+  bool validTargeting=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, needle, &targetingParams);
 
   std::ostrstream os;    
   os << targetDesc->GetName()<<std::endl;
@@ -640,7 +640,7 @@ std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNa
     os << "Device rotation: "<<targetingParams.AxisRotation<<" deg"<<std::endl;
     os << "Needle angle: "<<targetingParams.NeedleAngle<<" deg"<<std::endl;
   }
-  os << "Needle type: "<<targetDesc->GetNeedleTypeString()<<std::endl;
+  os << "Needle type: "<<needle->Description<<std::endl;
   os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
   os << targetDesc->GetRASLocationString().c_str()<<std::endl;
   os << std::ends;
@@ -926,7 +926,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateCalibration()
     UpdateModelMarker(markerId, calibrationAlgo->GetCalibMarkerPreProcOutput(markerId), preProcIjkToRas);    
   }
   TransformModelMarkers(transform_calVol2robotRas);
-  UpdateModelNeedle(NULL);
+  UpdateModelNeedle(NULL, NULL);
   UpdateModel();
 
   SetCalibrationStatusDescription("Calibration is successfully completed.");
@@ -962,7 +962,7 @@ void vtkMRMLTransRectalProstateRobotNode::ResetCalibrationData()
   {      
     UpdateModelMarker(markerId, NULL, NULL);
   }
-  UpdateModelNeedle(NULL);
+  UpdateModelNeedle(NULL, NULL);
   UpdateModel();
 
 
@@ -1074,15 +1074,15 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModel()
 
 
 //------------------------------------------------------------------------------
-bool vtkMRMLTransRectalProstateRobotNode::ShowRobotAtTarget(vtkProstateNavTargetDescriptor *targetDesc)
+bool vtkMRMLTransRectalProstateRobotNode::ShowRobotAtTarget(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
 {
-  UpdateModelNeedle(targetDesc);
+  UpdateModelNeedle(targetDesc, needle);
   UpdateModel();
   return true;
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTargetDescriptor *targetDesc)
+void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
 {
   if (targetDesc==NULL)
   {
@@ -1091,7 +1091,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTarget
   }
 
   TRProstateBiopsyTargetingParams targetingParams;  
-  bool validTargeting=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, &targetingParams);
+  bool validTargeting=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, needle, &targetingParams);
 
   if (!validTargeting || !targetingParams.TargetingParametersValid)
   {
@@ -1117,8 +1117,8 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTarget
   needleVector[2] = targetRAS[2] - targetHingeRAS[2];
   vtkMath::Normalize(needleVector);
 
-  double overshoot = targetDesc->GetNeedleOvershoot();
-  double needleLength = targetDesc->GetNeedleLength();
+  double overshoot = needle->Overshoot;
+  double needleLength = needle->Length;
 
   double needleEndRAS[3];
   needleEndRAS[0] = targetRAS[0] + overshoot*needleVector[0];
@@ -1147,7 +1147,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTarget
   appender->AddInputConnection(NeedleTrajectoryTube->GetOutputPort());  
 
   // a thicker tube representing the needle target (the core size, in case of a core biopsy)
-  double targetSize=targetDesc->GetNeedleTargetSize();
+  double targetSize=needle->TargetSize;
   if (targetSize>0)
   {
     double targetEndRAS[3];
@@ -1175,7 +1175,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTarget
   }
 
   // a thinner tube representing the needle extension (when the needle is triggered it extends to -extension distance from the needle tip)
-  double extension=targetDesc->GetNeedleExtension();
+  double extension=needle->Extension;
   if (extension<0)
   {
     double extensionEndRAS[3];
