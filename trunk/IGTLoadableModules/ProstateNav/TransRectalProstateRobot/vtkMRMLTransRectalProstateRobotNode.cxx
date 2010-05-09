@@ -250,11 +250,13 @@ void vtkMRMLTransRectalProstateRobotNode::ReadXMLAttributes(const char** atts)
     // Calibration inputs
     if (!strcmp(attName, "CalibrationVolumeRef"))
     {
-      this->SetAndObserveCalibrationVolumeNodeID(attValue);
+      this->SetAndObserveCalibrationVolumeNodeID(NULL);
+      this->SetCalibrationVolumeNodeID(attValue);
     }
     if (!strcmp(attName, "CalibrationPointListNodeRef")) 
     {
-      this->SetAndObserveCalibrationPointListNodeID(attValue);
+      this->SetAndObserveCalibrationPointListNodeID(NULL);
+      this->SetCalibrationPointListNodeID(attValue);
     }
     for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
     {

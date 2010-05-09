@@ -122,7 +122,6 @@ void vtkMRMLProstateNavManagerNode::WriteXML(ostream& of, int nIndent)
   vtkIndent indent(nIndent);
 
   of << indent << " ProstateNavModuleVersion=\"" << PROSTATE_NAV_MODULE_VERSION << "\"";
-  of << indent << " WorkflowSteps=\"" << GetWorkflowStepsString() << "\"";    
   of << indent << " CurrentWorkflowStep=\"" << this->CurrentStep << "\"";    
   of << indent << " PreviousWorkflowStep=\"" << this->PreviousStep << "\"";
 
@@ -219,18 +218,7 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
 
     // ProstateNavModuleVersion - ignore (may be used in the future for backward compatibility)
 
-    if (!strcmp(attName, "WorkflowSteps"))
-    {
-      if (attValue==NULL)
-      {
-        vtkErrorMacro("Empty WorkflowSteps attribute value");
-      }
-      else if (!SetWorkflowStepsFromString(attValue))
-      {
-        vtkErrorMacro("Invalid WorkflowSteps attribute value: "<<attValue);
-      }
-    }
-    else if (!strcmp(attName, "CurrentWorkflowStep"))
+    if (!strcmp(attName, "CurrentWorkflowStep"))
     {
       std::stringstream ss;
       ss << attValue;
@@ -244,6 +232,9 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
       std::stringstream ss;
       ss << attValue;
       ss >> this->PreviousStep;
+      //:TODO: implement switching to CurrentStep when updating the GUI
+      //now just hardcode current step to 0
+      this->PreviousStep=0;
     }
     else if (!strcmp(attName, "CurrentNeedleIndex"))
     {
@@ -271,11 +262,13 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
     }
     else if (!strcmp(attName, "TargetPlanListNodeRef"))
     {
-      this->SetAndObserveTargetPlanListNodeID(attValue);
+      this->SetAndObserveTargetPlanListNodeID(NULL);
+      this->SetTargetPlanListNodeID(attValue);
     }
     else if (!strcmp(attName, "RobotNodeRef"))
     {
-      this->SetAndObserveRobotNodeID(attValue);
+      this->SetAndObserveRobotNodeID(NULL);
+      this->SetRobotNodeID(attValue);
     }
 
     unsigned int sectionInd=0;
@@ -387,7 +380,13 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
       }
       else if (!sectionName.compare("FiducialID"))
       {
-        targetDesc->SetFiducialID(attValue);
+        // :CLUTCH: When loading a FiducialList from file the original FiducialIDs are lost,
+        // so we cannot link the targets to the fiducial based on the FiducialID.
+        // The solution (kind of a hack, until this is cleaned up in Slicer) is to not fill
+        // the FiducialID attribute and let vtkProstateNavLogic::UpdateTargetListFromMRML
+        // do the linking.
+        // targetDesc->SetFiducialID(attValue); - this should be the correct way
+        targetDesc->SetFiducialID("");
       }
       else if (!sectionName.compare("TargetCompleted"))
       {
@@ -776,6 +775,11 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveRobotNodeID(const char *nodeID)
   }
   vtkSetAndObserveMRMLObjectMacro(this->RobotNode, NULL);
 
+  this->SetRobotNodeID(nodeID);
+  vtkMRMLRobotNode *tnode = this->GetRobotNode();
+
+  vtkSetAndObserveMRMLObjectMacro(this->RobotNode, tnode);
+
   // update workflow steps from the new Robot node
   // (the Manager node is the owner of workflow steps, as it may add additional steps or modify the steps that
   // it gets from the robot)
@@ -797,10 +801,6 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveRobotNodeID(const char *nodeID)
     SetWorkflowStepsFromString("");
   }
  
-  this->SetRobotNodeID(nodeID);
-  vtkMRMLRobotNode *tnode = this->GetRobotNode();
-
-  vtkSetAndObserveMRMLObjectMacro(this->RobotNode, tnode);
 }
 
 //----------------------------------------------------------------------------
@@ -844,6 +844,11 @@ int vtkMRMLProstateNavManagerNode::RemoveTargetDescriptorAtIndex(unsigned int in
     {
     return 0;
     }
+  vtkProstateNavTargetDescriptor* targetDesc=GetTargetDescriptorAtIndex(index);
+  if (targetDesc!=NULL)
+  {
+    targetDesc->Delete();
+  }
   this->TargetDescriptorsVector.erase(this->TargetDescriptorsVector.begin()+index);
   return 1;
 }

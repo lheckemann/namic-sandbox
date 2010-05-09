@@ -118,6 +118,10 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   //ETX
 
   // Description:
+  // Link targets to fiducials (when no FiducialIDs are available), based on fiducial position and label
+  void LinkTargetsToFiducials();
+
+  // Description:
   // Helper method for loading a volume via the Volume module.
   vtkMRMLScalarVolumeNode *AddArchetypeVolume(const char* fileName, const char *volumeName);  
 
