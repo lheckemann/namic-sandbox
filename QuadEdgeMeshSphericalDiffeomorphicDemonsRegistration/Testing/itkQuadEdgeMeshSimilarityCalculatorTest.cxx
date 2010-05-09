@@ -80,15 +80,20 @@ int main( int argc, char * argv [] )
 
   double tolerance = 0.05;
 
-  if (atof(argv[4]) != 0.0)
-  {
-    TEST_RESULT_WITHIN_RANGE(similarityCalculator->GetDice(),atof(argv[4]), tolerance);
-  }
+  const double expectedDiceValue = atof( argv[4] );
+
+  if ( expectedDiceValue != 0.0 )
+    {
+    TEST_RESULT_WITHIN_RANGE( similarityCalculator->GetDice(), expectedDiceValue , tolerance);
+    }
   
-  if (atof(argv[5]) != 0.0)
-  {
-    TEST_RESULT_WITHIN_RANGE(similarityCalculator->GetJaccard(),atof(argv[5]), tolerance);
-  }
+
+  const double expectedJaccardValue = atof( argv[5] );
+
+  if ( expectedJaccardValue != 0.0 )
+    {
+    TEST_RESULT_WITHIN_RANGE( similarityCalculator->GetJaccard(), expectedJaccardValue, tolerance);
+    }
 
   return EXIT_SUCCESS;
 }
