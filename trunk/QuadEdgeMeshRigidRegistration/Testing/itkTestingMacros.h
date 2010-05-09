@@ -66,7 +66,7 @@
     }
 
 #define TEST_RESULT_WITHIN_RANGE( result, expected, tolerance) \
-  if (abs(expected - result)/expected > tolerance) \
+  if ( vnl_math_abs( expected - result ) / expected > tolerance) \
     { \
     std::cerr << "Error in expected result" << std::endl; \
     std::cerr << "Expected " << expected << std::endl; \
