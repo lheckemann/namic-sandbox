@@ -1137,8 +1137,6 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
       return false;
     }
 
-    target->SetCalibrationFoRStr(calibrationData.FoR);
-
     double targetRas[3]; // Target
     target->GetRASLocation(targetRas); 
     
@@ -1237,7 +1235,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     }
 
     /// \todo Pipe from H_afterLps (along to v_needle traj.) ending "Overshoot" mm after the target
-    // T[?]+overshoot*v_needle[?]
+    // T[?]-overshoot*v_needle[?]
 
     vtkMath::Normalize(v_needle);
 
@@ -1270,11 +1268,11 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     insM[2] = H_afterLps[2] - targetLps[2];
 
     // Insertion depth offset (in mm)
-    // overshoot>0: biopsy
+    // overshoot>0: biopsy (needle extends when it collects the sample)
     // overshoot<0: seed placement
     double overshoot = needle->Overshoot;
 
-    double n_insertion=vtkMath::Norm(insM)+n_slide+overshoot; // insertion depth in mm
+    double n_insertion=vtkMath::Norm(insM)+n_slide-overshoot; // insertion depth in mm
     if (targetingParams!=NULL)
     {      
       targetingParams->DepthCM=n_insertion/10.0;

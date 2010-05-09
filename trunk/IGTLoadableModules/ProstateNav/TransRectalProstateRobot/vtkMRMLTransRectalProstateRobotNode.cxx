@@ -627,7 +627,7 @@ std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNa
   os << targetDesc->GetName()<<std::endl;
   if (validTargeting && targetingParams.TargetingParametersValid)
   {
-    if (targetDesc->GetCalibrationFoRStr().compare(targetDesc->GetTargetingFoRStr())!=0)
+    if (this->CalibrationData.FoR.compare(targetDesc->GetTargetingVolumeFoR())!=0)
     {
       os << "Warning: frame of reference id mismatch"<<std::endl;
     }
@@ -1121,9 +1121,9 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTarget
   double needleLength = needle->Length;
 
   double needleEndRAS[3];
-  needleEndRAS[0] = targetRAS[0] + overshoot*needleVector[0];
-  needleEndRAS[1] = targetRAS[1] + overshoot*needleVector[1];
-  needleEndRAS[2] = targetRAS[2] + overshoot*needleVector[2];
+  needleEndRAS[0] = targetRAS[0] - overshoot*needleVector[0];
+  needleEndRAS[1] = targetRAS[1] - overshoot*needleVector[1];
+  needleEndRAS[2] = targetRAS[2] - overshoot*needleVector[2];
 
   double needleStartRAS[3];
   needleStartRAS[0] = needleEndRAS[0] - needleLength*needleVector[0];
@@ -1176,7 +1176,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTarget
 
   // a thinner tube representing the needle extension (when the needle is triggered it extends to -extension distance from the needle tip)
   double extension=needle->Extension;
-  if (extension<0)
+  if (extension>0)
   {
     double extensionEndRAS[3];
     extensionEndRAS[0] = needleEndRAS[0];
@@ -1184,9 +1184,9 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTarget
     extensionEndRAS[2] = needleEndRAS[2];
 
     double extensionStartRAS[3];
-    extensionStartRAS[0] = needleEndRAS[0] - extension*needleVector[0];
-    extensionStartRAS[1] = needleEndRAS[1] - extension*needleVector[1];
-    extensionStartRAS[2] = needleEndRAS[2] - extension*needleVector[2];
+    extensionStartRAS[0] = needleEndRAS[0] + extension*needleVector[0];
+    extensionStartRAS[1] = needleEndRAS[1] + extension*needleVector[1];
+    extensionStartRAS[2] = needleEndRAS[2] + extension*needleVector[2];
 
     vtkSmartPointer<vtkLineSource> line=vtkSmartPointer<vtkLineSource>::New();
     line->SetResolution(20); 

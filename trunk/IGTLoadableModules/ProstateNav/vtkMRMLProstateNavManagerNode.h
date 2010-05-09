@@ -213,6 +213,13 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
 
   bool ReadNeedleListFromConfigXml(const char* needleListConfigStr);
 
+  vtkStdString GetWorkflowStepsString();
+  bool SetWorkflowStepsFromString(const vtkStdString& workflowStepsString);
+
+  //BTX
+  bool GetAttNameSection(const std::string& attName, const std::string& groupName, unsigned int &sectionInd, std::string &sectionName);
+  //ETX
+
   //----------------------------------------------------------------
   // Constructor and destroctor
   //----------------------------------------------------------------
@@ -227,9 +234,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   //----------------------------------------------------------------
   // Data
   //----------------------------------------------------------------
-
-  vtkStdString GetWorkflowStepsString();
-  bool SetWorkflowStepsFromString(const vtkStdString& workflowStepsString);
 
   // List of workflow steps (wizard pages)
   vtkStringArray *StepList;

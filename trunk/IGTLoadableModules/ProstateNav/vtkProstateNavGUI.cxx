@@ -860,7 +860,8 @@ void vtkProstateNavGUI::BuildGUIForHelpFrame ()
 
   // Define your help text here.
   std::stringstream helpss;
-  helpss << "Module Revision: " << ProstateNav_REVISION << std::endl;
+  helpss << "Module Version: " << PROSTATE_NAV_MODULE_VERSION << std::endl;
+  helpss << "Source Revision: " << ProstateNav_REVISION << std::endl;
   helpss << "The **ProstateNav Module** helps you to plan and navigate MRI-guided prostate biopsy ";
   helpss << "and brachytherapy using transrectal and transperineal needle placement devices. \n";
   helpss << "See <a>http://www.slicer.org/slicerWiki/index.php/Modules:ProstateNav-Documentation-3.6</a> for details.";
@@ -1253,10 +1254,30 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
   {
 
     vtkKWWizardWorkflow *wizard_workflow = this->WizardWidget->GetWizardWorkflow();
-    vtkProstateNavStep* step=vtkProstateNavStep::SafeDownCast(wizard_workflow->GetCurrentStep());
-    if (step)
+
+    // Hide current step
+    vtkProstateNavStep* currentStep=vtkProstateNavStep::SafeDownCast(wizard_workflow->GetCurrentStep());
+    if (currentStep)
     {
-      step->HideUserInterface();
+      currentStep->HideUserInterface();
+    }
+
+    // Tear down GUI for all steps before destroying
+    for (int i=0; i<this->WizardWidget->GetWizardWorkflow()->GetNumberOfSteps(); i++)
+    {
+      vtkProstateNavStep *step=vtkProstateNavStep::SafeDownCast(this->WizardWidget->GetWizardWorkflow()->GetNthStep(i));
+      if (step!=NULL)
+      {
+        step->TearDownGUI();
+        step->SetGUI(NULL);
+        step->SetLogic(NULL);
+        step->SetAndObserveMRMLScene(NULL);
+        step->SetProstateNavManager(NULL);
+      }
+      else
+      {
+        vtkErrorMacro("Invalid step page: "<<i);
+      }
     }
 
     this->WizardWidget->SetParent(NULL);
@@ -1755,14 +1776,14 @@ void vtkProstateNavGUI::SetAndObserveProstateNavManagerNodeID(const char *nodeID
       }
     else
       {
-      // Biopsy needle: Overshoot = -13; // needle has to be inserted 13 mm short of the target
-      // Seed insertion needle: Overshoot >=0, as the seed is inside the needle
+      // Biopsy needle: Overshoot = 13 (needle has to be inserted 13 mm short of the target)
+      // Seed insertion needle: Overshoot < 0 (as the seed is inside the needle)
       const char defNeedleDesc[]=
         "<NeedleList DefaultNeedle=\"BIOP_NIH_14G_000\"> \
-          <Needle ID=\"GEN_000\" TargetNamePrefix=\"T\" Description=\"Generic\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"0\" LastTargetId=\"0\" /> \
-          <Needle ID=\"BIOP_NIH_14G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy NIH 14G\" Length=\"200\" Overshoot=\"-9.5\" Extension=\"-27\" TargetSize=\"16\" LastTargetId=\"0\" /> \
-          <Needle ID=\"BIOP_JHH_18G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy JHH 18G\" Length=\"200\" Overshoot=\"-10.0\" Extension=\"-23.5\" TargetSize=\"16\" LastTargetId=\"0\" /> \
-          <Needle ID=\"SEED_000\" TargetNamePrefix=\"S\" Description=\"Seed\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"3\" LastTargetId=\"0\" /> \
+          <Needle ID=\"GEN_000\" TargetNamePrefix=\"T\" Description=\"Generic\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"0\" LastTargetIndex=\"0\" /> \
+          <Needle ID=\"BIOP_NIH_14G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy NIH 14G\" Length=\"200\" Overshoot=\"9.5\" Extension=\"27\" TargetSize=\"16\" LastTargetIndex=\"0\" /> \
+          <Needle ID=\"BIOP_JHH_18G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy JHH 18G\" Length=\"200\" Overshoot=\"10.0\" Extension=\"23.5\" TargetSize=\"16\" LastTargetIndex=\"0\" /> \
+          <Needle ID=\"SEED_000\" TargetNamePrefix=\"S\" Description=\"Seed\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"3\" LastTargetIndex=\"0\" /> \
         </NeedleList>";
       this->GetApplication()->SetRegistryValue(2,"ProstateNav","DefaultNeedleList","%s",defNeedleDesc);
       this->ProstateNavManagerNode->Init(defNeedleDesc);          
