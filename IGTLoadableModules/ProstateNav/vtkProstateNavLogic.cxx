@@ -650,7 +650,7 @@ int vtkProstateNavLogic::UpdateCoverageVolumeImage()
   targetDesc->SetNeedleID(targetDesc->GetNeedleID());
   
   std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeRef());
-  targetDesc->SetTargetingFoRStr(FoR);
+  targetDesc->SetTargetingVolumeFoR(FoR);
   
   NeedleDescriptorStruct needle;
   if (!manager->GetNeedle(manager->GetCurrentNeedleIndex(), needle))
@@ -786,19 +786,19 @@ void vtkProstateNavLogic::UpdateTargetListFromMRML()
       }
       targetDesc->SetNeedleID(needleDesc.ID); // just to make the passed target and needle info consistent
 
-      needleDesc.LastTargetId++;
+      needleDesc.LastTargetIndex++;
       if (!manager->SetNeedle(needleIndex, needleDesc))
       {
         vtkErrorMacro("Failed to set info for needle "<<needleIndex);
       }
 
       std::ostrstream strvalue;
-      strvalue << needleDesc.TargetNamePrefix << needleDesc.LastTargetId << std::ends;        
+      strvalue << needleDesc.TargetNamePrefix << needleDesc.LastTargetIndex << std::ends;        
       fidNode->SetNthFiducialLabelText(i,strvalue.str());
       strvalue.rdbuf()->freeze(0);     
 
       std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeRef());
-      targetDesc->SetTargetingFoRStr(FoR);
+      targetDesc->SetTargetingVolumeFoR(FoR);
 
       manager->AddTargetDescriptor(targetDesc);
     }

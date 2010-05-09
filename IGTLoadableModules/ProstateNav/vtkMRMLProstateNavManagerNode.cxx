@@ -85,6 +85,8 @@ vtkMRMLProstateNavManagerNode::vtkMRMLProstateNavManagerNode()
 vtkMRMLProstateNavManagerNode::~vtkMRMLProstateNavManagerNode()
 {  
   this->StepList->Delete();
+  this->StepList=NULL;
+
   SetTargetingVolumeNodeRef(NULL);
   SetVerificationVolumeNodeRef(NULL);  
   SetCoverageVolumeNodeRef(NULL);  
@@ -119,14 +121,61 @@ void vtkMRMLProstateNavManagerNode::WriteXML(ostream& of, int nIndent)
 
   vtkIndent indent(nIndent);
 
+  of << indent << " ProstateNavModuleVersion=\"" << PROSTATE_NAV_MODULE_VERSION << "\"";
   of << indent << " WorkflowSteps=\"" << GetWorkflowStepsString() << "\"";    
   of << indent << " CurrentWorkflowStep=\"" << this->CurrentStep << "\"";    
   of << indent << " PreviousWorkflowStep=\"" << this->PreviousStep << "\"";
-  of << indent << " CurrentNeedleIndex=\"" << this->CurrentNeedleIndex << "\"";
-  of << indent << " CurrentTargetIndex=\"" << this->CurrentTargetIndex << "\"";
 
-  // :TODO: write this->TargetDescriptorsVector
-  // and NeedlesVector
+  of << indent << " CurrentNeedleIndex=\"" << this->CurrentNeedleIndex << "\"";
+  for (unsigned int needleInd=0; needleInd<this->NeedlesVector.size(); needleInd++)
+  {
+    of << " Needle" << needleInd << "_ID=\"" << this->NeedlesVector[needleInd].ID << "\"";
+    of << " Needle" << needleInd << "_TargetNamePrefix=\"" << this->NeedlesVector[needleInd].TargetNamePrefix << "\"";
+    of << " Needle" << needleInd << "_Description=\"" << this->NeedlesVector[needleInd].Description << "\"";
+    of << " Needle" << needleInd << "_Length=\"" << this->NeedlesVector[needleInd].Length << "\"";
+    of << " Needle" << needleInd << "_Overshoot=\"" << this->NeedlesVector[needleInd].Overshoot << "\"";
+    of << " Needle" << needleInd << "_Extension=\"" << this->NeedlesVector[needleInd].Extension << "\"";
+    of << " Needle" << needleInd << "_TargetSize=\"" << this->NeedlesVector[needleInd].TargetSize << "\"";
+    of << " Needle" << needleInd << "_LastTargetIndex=\"" << this->NeedlesVector[needleInd].LastTargetIndex << "\"";
+  }
+
+  of << indent << " CurrentTargetIndex=\"" << this->CurrentTargetIndex << "\"";
+  for (unsigned int targetInd=0; targetInd<this->TargetDescriptorsVector.size(); targetInd++)
+  {
+    of << " Target" << targetInd << "_Name=\"" << this->TargetDescriptorsVector[targetInd]->GetName() << "\"";
+    of << " Target" << targetInd << "_Comment=\"" << this->TargetDescriptorsVector[targetInd]->GetComment() << "\"";
+    of << " Target" << targetInd << "_RASLocation=\""
+      << this->TargetDescriptorsVector[targetInd]->GetRASLocation()[0] << " "
+      << this->TargetDescriptorsVector[targetInd]->GetRASLocation()[1] << " "
+      << this->TargetDescriptorsVector[targetInd]->GetRASLocation()[2] << "\"";
+    of << " Target" << targetInd << "_RASOrientation=\""
+      << this->TargetDescriptorsVector[targetInd]->GetRASOrientation()[0] << " "
+      << this->TargetDescriptorsVector[targetInd]->GetRASOrientation()[1] << " "
+      << this->TargetDescriptorsVector[targetInd]->GetRASOrientation()[2] << " "
+      << this->TargetDescriptorsVector[targetInd]->GetRASOrientation()[3] << "\"";
+    of << " Target" << targetInd << "_TargetingVolumeRef=\"" << this->TargetDescriptorsVector[targetInd]->GetTargetingVolumeRef() << "\"";
+    of << " Target" << targetInd << "_TargetingVolumeFoR=\"" << this->TargetDescriptorsVector[targetInd]->GetTargetingVolumeFoR() << "\"";
+    of << " Target" << targetInd << "_NeedleID=\"" << this->TargetDescriptorsVector[targetInd]->GetNeedleID() << "\"";
+    of << " Target" << targetInd << "_FiducialID=\"" << this->TargetDescriptorsVector[targetInd]->GetFiducialID() << "\"";
+    of << " Target" << targetInd << "_TargetCompleted=\"" << this->TargetDescriptorsVector[targetInd]->GetTargetCompleted() << "\"";
+    of << " Target" << targetInd << "_TargetCompletedInfo=\"" << this->TargetDescriptorsVector[targetInd]->GetTargetCompletedInfo() << "\"";
+    of << " Target" << targetInd << "_TargetValidated=\"" << this->TargetDescriptorsVector[targetInd]->GetTargetValidated() << "\"";
+    of << " Target" << targetInd << "_ValidationVolumeRef=\"" << this->TargetDescriptorsVector[targetInd]->GetValidationVolumeRef() << "\"";
+    of << " Target" << targetInd << "_ValidationVolumeFoR=\"" << this->TargetDescriptorsVector[targetInd]->GetValidationVolumeFoR() << "\"";
+    of << " Target" << targetInd << "_NeedleTipValidationPosition=\""
+      << this->TargetDescriptorsVector[targetInd]->GetNeedleTipValidationPosition()[0] << " "
+      << this->TargetDescriptorsVector[targetInd]->GetNeedleTipValidationPosition()[1] << " "
+      << this->TargetDescriptorsVector[targetInd]->GetNeedleTipValidationPosition()[2] << "\"";
+    of << " Target" << targetInd << "_NeedleBaseValidationPosition=\""
+      << this->TargetDescriptorsVector[targetInd]->GetNeedleBaseValidationPosition()[0] << " "
+      << this->TargetDescriptorsVector[targetInd]->GetNeedleBaseValidationPosition()[1] << " "
+      << this->TargetDescriptorsVector[targetInd]->GetNeedleBaseValidationPosition()[2] << "\"";
+    of << " Target" << targetInd << "_ErrorDistanceFromNeedleLine=\"" << this->TargetDescriptorsVector[targetInd]->GetErrorDistanceFromNeedleLine() << "\"";
+    of << " Target" << targetInd << "_ErrorVector=\""
+      << this->TargetDescriptorsVector[targetInd]->GetErrorVector()[0] << " "
+      << this->TargetDescriptorsVector[targetInd]->GetErrorVector()[1] << " "
+      << this->TargetDescriptorsVector[targetInd]->GetErrorVector()[2] << "\"";
+  }
 
   if (this->TargetingVolumeNodeRef != NULL) 
   {
@@ -157,30 +206,301 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
 {
   vtkMRMLNode::ReadXMLAttributes(atts);
 
+  this->NeedlesVector.clear();
+  this->TargetDescriptorsVector.clear();
+
   const char* attName;
   const char* attValue;
   
   while (*atts != NULL)
-    {
+  {
     attName = *(atts++);
     attValue = *(atts++);
 
+    // ProstateNavModuleVersion - ignore (may be used in the future for backward compatibility)
+
     if (!strcmp(attName, "WorkflowSteps"))
-      {
+    {
       if (attValue==NULL)
-        {
+      {
         vtkErrorMacro("Empty WorkflowSteps attribute value");
-        }
+      }
       else if (!SetWorkflowStepsFromString(attValue))
-        {
+      {
         vtkErrorMacro("Invalid WorkflowSteps attribute value: "<<attValue);
-        }
       }
     }
+    else if (!strcmp(attName, "CurrentWorkflowStep"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->CurrentStep;
+      //:TODO: implement switching to CurrentStep when updating the GUI
+      //now just hardcode current step to 0
+      this->CurrentStep=0;
+    }
+    else if (!strcmp(attName, "PreviousWorkflowStep"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->PreviousStep;
+    }
+    else if (!strcmp(attName, "CurrentNeedleIndex"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->CurrentNeedleIndex;
+    }
+    else if (!strcmp(attName, "CurrentTargetIndex"))
+    {
+      std::stringstream ss;
+      ss << attValue;
+      ss >> this->CurrentTargetIndex;
+    }
+    else if (!strcmp(attName, "TargetingVolumeNodeRef"))
+    {
+      this->SetTargetingVolumeNodeRef(attValue);
+    }
+    else if (!strcmp(attName, "VerificationVolumeNodeRef"))
+    {
+      this->SetVerificationVolumeNodeRef(attValue);
+    }
+    else if (!strcmp(attName, "CoverageVolumeNodeRef"))
+    {
+      this->SetCoverageVolumeNodeRef(attValue);
+    }
+    else if (!strcmp(attName, "TargetPlanListNodeRef"))
+    {
+      this->SetAndObserveTargetPlanListNodeID(attValue);
+    }
+    else if (!strcmp(attName, "RobotNodeRef"))
+    {
+      this->SetAndObserveRobotNodeID(attValue);
+    }
+
+    unsigned int sectionInd=0;
+    std::string sectionName;
+    if (GetAttNameSection(attName,"Needle", sectionInd, sectionName))
+    {
+      if (sectionInd>=this->NeedlesVector.size())
+      {
+        this->NeedlesVector.resize(sectionInd+1);
+      }
+      NeedleDescriptorStruct *needle=&(this->NeedlesVector[sectionInd]);
+
+      if (!sectionName.compare("ID"))
+      {
+        needle->ID=attValue;
+      }
+      else if (!sectionName.compare("TargetNamePrefix"))
+      {
+        needle->TargetNamePrefix=attValue;
+      }
+      else if (!sectionName.compare("Description"))
+      {
+        needle->Description=attValue;
+      }
+      else if (!sectionName.compare("Length"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        ss >> needle->Length;
+      }
+      else if (!sectionName.compare("Overshoot"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        ss >> needle->Overshoot;
+      }
+      else if (!sectionName.compare("Extension"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        ss >> needle->Extension;
+      }
+      else if (!sectionName.compare("TargetSize"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        ss >> needle->TargetSize;
+      }
+      else if (!sectionName.compare("LastTargetIndex"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        ss >> needle->LastTargetIndex;
+      }
+    }
+    if (GetAttNameSection(attName,"Target", sectionInd, sectionName))
+    {
+      if (sectionInd>=this->TargetDescriptorsVector.size())
+      {
+        this->TargetDescriptorsVector.resize(sectionInd+1, NULL);
+      }
+      vtkProstateNavTargetDescriptor *targetDesc=this->TargetDescriptorsVector[sectionInd];
+      if (targetDesc==NULL)
+      {
+        // the descriptor has not been created yet
+        targetDesc=vtkProstateNavTargetDescriptor::New();
+        this->TargetDescriptorsVector[sectionInd]=targetDesc;
+      }      
+      if (!sectionName.compare("Name"))
+      {
+        targetDesc->SetName(attValue);
+      }
+      else if (!sectionName.compare("Comment"))
+      {
+        targetDesc->SetComment(attValue);
+      }      
+      else if (!sectionName.compare("RASLocation"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        double ras[3]={0,0,0};
+        ss >> ras[0];
+        ss >> ras[1];
+        ss >> ras[2];
+        targetDesc->SetRASLocation(ras);
+      }
+      else if (!sectionName.compare("RASOrientation"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        double wxyz[4]={0,0,0};
+        ss >> wxyz[0];
+        ss >> wxyz[1];
+        ss >> wxyz[2];
+        ss >> wxyz[3];
+        targetDesc->SetRASOrientation(wxyz);
+      }
+      else if (!sectionName.compare("TargetingVolumeRef"))
+      {
+        targetDesc->SetTargetingVolumeRef(attValue);
+      }
+      else if (!sectionName.compare("TargetingVolumeFoR"))
+      {
+        targetDesc->SetTargetingVolumeFoR(attValue);
+      }
+      else if (!sectionName.compare("NeedleID"))
+      {
+        targetDesc->SetNeedleID(attValue);
+      }
+      else if (!sectionName.compare("FiducialID"))
+      {
+        targetDesc->SetFiducialID(attValue);
+      }
+      else if (!sectionName.compare("TargetCompleted"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        bool b;
+        ss >> b;
+        targetDesc->SetTargetCompleted(b);
+      }
+      else if (!sectionName.compare("TargetCompletedInfo"))
+      {
+        targetDesc->SetTargetCompletedInfo(attValue);
+      }
+      else if (!sectionName.compare("TargetValidated"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        bool b;
+        ss >> b;
+        targetDesc->SetTargetValidated(b);
+      }
+      else if (!sectionName.compare("TargetCompletedInfo"))
+      {
+        targetDesc->SetTargetCompletedInfo(attValue);
+      }
+      else if (!sectionName.compare("ValidationVolumeRef"))
+      {
+        targetDesc->SetValidationVolumeRef(attValue);
+      }
+      else if (!sectionName.compare("ValidationVolumeFoR"))
+      {
+        targetDesc->SetValidationVolumeFoR(attValue);
+      }
+      else if (!sectionName.compare("NeedleTipValidationPosition"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        double ras[3]={0,0,0};
+        ss >> ras[0];
+        ss >> ras[1];
+        ss >> ras[2];
+        targetDesc->SetNeedleTipValidationPosition(ras);
+      }
+      else if (!sectionName.compare("NeedleBaseValidationPosition"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        double ras[3]={0,0,0};
+        ss >> ras[0];
+        ss >> ras[1];
+        ss >> ras[2];
+        targetDesc->SetNeedleBaseValidationPosition(ras);
+      }
+      else if (!sectionName.compare("ErrorDistanceFromNeedleLine"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        double val;
+        ss >> val;
+        targetDesc->SetErrorDistanceFromNeedleLine(val);
+      }
+      else if (!sectionName.compare("ErrorVector"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        double ras[3]={0,0,0};
+        ss >> ras[0];
+        ss >> ras[1];
+        ss >> ras[2];
+        targetDesc->SetErrorVector(ras);
+      }
+
+    }
+  }
   
   this->Initialized=true;
 }
 
+//----------------------------------------------------------------------------
+// Separate attName = Needle123_Length to a sectionInd=123 and sectionName=Length
+bool vtkMRMLProstateNavManagerNode::GetAttNameSection(const std::string& attName, const std::string& groupName, unsigned int &sectionInd, std::string &sectionName)
+{
+  int groupNameLen=groupName.length();
+  if (attName.compare(0,groupNameLen,groupName)!=0)
+  {
+    // group name doesn't match
+    return false;
+  }
+  // search for the first separator character after the group name
+  std::string::size_type separatorPos=attName.find('_', groupNameLen);
+  if (separatorPos==std::string::npos)
+  {
+    // separator not found
+    return false;
+  }
+  sectionName = attName.substr ( separatorPos+1, attName.length()-separatorPos+1 );
+  if (sectionName.empty())
+  {
+    // failed to read sectionName
+    return false;
+  }
+  std::string indexString = attName.substr ( groupNameLen, separatorPos-groupNameLen );
+  std::stringstream ss;
+  ss << indexString;
+  ss.clear();
+  ss >> sectionInd;
+  if (!ss)
+  {
+    // failed to read sectionIndex
+    return false;
+  }
+  return true;
+}
 
 //----------------------------------------------------------------------------
 // Copy the node's attributes to this object.
@@ -190,12 +510,17 @@ void vtkMRMLProstateNavManagerNode::Copy(vtkMRMLNode *anode)
   Superclass::Copy(anode);
   vtkMRMLProstateNavManagerNode *node = (vtkMRMLProstateNavManagerNode *) anode;
 
-  //int type = node->GetType();
-
   this->CurrentStep = node->CurrentStep;
   this->PreviousStep = node->PreviousStep;
+
+  SetTargetingVolumeNodeRef(node->TargetingVolumeNodeRef);
+  SetVerificationVolumeNodeRef(node->VerificationVolumeNodeRef);  
+  SetCoverageVolumeNodeRef(node->CoverageVolumeNodeRef);  
+  
   this->SetAndObserveTargetPlanListNodeID(NULL); // remove observers
   this->SetTargetPlanListNodeID(node->TargetPlanListNodeID);
+  
+  this->SetAndObserveRobotNodeID(NULL); // remove observers
   this->SetRobotNodeID(node->RobotNodeID);
 
   this->StepList->Reset();
@@ -234,28 +559,66 @@ void vtkMRMLProstateNavManagerNode::Copy(vtkMRMLNode *anode)
 void vtkMRMLProstateNavManagerNode::UpdateReferences()
 {
    Superclass::UpdateReferences();
-/*  if (this->TargetTransformNodeID != NULL && this->Scene->GetNodeByID(this->TargetTransformNodeID) == NULL)
+
+  if (this->TargetingVolumeNodeRef != NULL && this->Scene->GetNodeByID(this->TargetingVolumeNodeRef) == NULL)
     {
-    this->SetAndObserveTargetTransformNodeID(NULL);
+    this->SetTargetingVolumeNodeRef(NULL);
     }
-    */
+  if (this->VerificationVolumeNodeRef != NULL && this->Scene->GetNodeByID(this->VerificationVolumeNodeRef) == NULL)
+    {
+    this->SetVerificationVolumeNodeRef(NULL);
+    }
+  if (this->CoverageVolumeNodeRef != NULL && this->Scene->GetNodeByID(this->CoverageVolumeNodeRef) == NULL)
+    {
+    this->SetCoverageVolumeNodeRef(NULL);
+    }
+
+  if (this->TargetPlanListNodeID != NULL && this->Scene->GetNodeByID(this->TargetPlanListNodeID) == NULL)
+    {
+    this->SetAndObserveTargetPlanListNodeID(NULL);
+    }
+  if (this->RobotNodeID != NULL && this->Scene->GetNodeByID(this->RobotNodeID) == NULL)
+    {
+    this->SetAndObserveRobotNodeID(NULL);
+    }
+
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLProstateNavManagerNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
   Superclass::UpdateReferenceID(oldID, newID);
-  /*if (this->TargetTransformNodeID && !strcmp(oldID, this->TargetTransformNodeID))
+
+  if (this->TargetingVolumeNodeRef && !strcmp(oldID, this->TargetingVolumeNodeRef))
     {
-    this->SetAndObserveTargetTransformNodeID(newID);
-    }*/
+    this->SetTargetingVolumeNodeRef(newID);
+    }
+  if (this->VerificationVolumeNodeRef && !strcmp(oldID, this->VerificationVolumeNodeRef))
+    {
+    this->SetVerificationVolumeNodeRef(newID);
+    }
+  if (this->CoverageVolumeNodeRef && !strcmp(oldID, this->CoverageVolumeNodeRef))
+    {
+    this->SetCoverageVolumeNodeRef(newID);
+    }
+
+  if (this->TargetPlanListNodeID && !strcmp(oldID, this->TargetPlanListNodeID))
+    {
+    this->SetAndObserveTargetPlanListNodeID(newID);
+    }
+  if (this->RobotNodeID && !strcmp(oldID, this->RobotNodeID))
+    {
+    this->SetAndObserveRobotNodeID(newID);
+    }
 }
 
 //-----------------------------------------------------------
 void vtkMRMLProstateNavManagerNode::UpdateScene(vtkMRMLScene *scene)
 {
    Superclass::UpdateScene(scene);
-   /*this->SetAndObserveTargetTransformNodeID(this->GetTargetTransformNodeID());*/
+
+   this->SetAndObserveTargetPlanListNodeID(this->TargetPlanListNodeID);
+   this->SetAndObserveRobotNodeID(this->RobotNodeID);    
 }
 
 
@@ -281,6 +644,7 @@ void vtkMRMLProstateNavManagerNode::ProcessMRMLEvents( vtkObject *caller, unsign
 void vtkMRMLProstateNavManagerNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
+  // :TODO: implement this
 }
 
 
@@ -354,6 +718,11 @@ vtkStdString vtkMRMLProstateNavManagerNode::GetWorkflowStepsString()
 //----------------------------------------------------------------------------
 bool vtkMRMLProstateNavManagerNode::SetWorkflowStepsFromString(const vtkStdString& workflowStepsString)
 { 
+  if (this->StepList==NULL)
+  {
+    // the manager node is being destroyed, don't process any events
+    return false;
+  }
   this->StepList->Reset();
 
   if (workflowStepsString.empty())
@@ -367,7 +736,8 @@ bool vtkMRMLProstateNavManagerNode::SetWorkflowStepsFromString(const vtkStdStrin
     {
     this->StepList->InsertNextValue(stepName);
     }
-   return true;
+  Modified();
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -396,8 +766,13 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveRobotNodeID(const char *nodeID)
 {
   if (nodeID!=NULL && this->RobotNodeID!=NULL && strcmp(nodeID,this->RobotNodeID)==0)
   {
-    // no change
-    return;
+    // no change in ID, check if node pointer is changed
+    vtkMRMLRobotNode* node = vtkMRMLRobotNode::SafeDownCast(this->GetScene()->GetNodeByID(nodeID));
+    if (node==this->RobotNode)
+    {
+      // no change at all
+      return;
+    }
   }
   vtkSetAndObserveMRMLObjectMacro(this->RobotNode, NULL);
 
@@ -639,7 +1014,7 @@ bool vtkMRMLProstateNavManagerNode::ReadNeedleListFromConfigXml(const char* need
       needleElem->GetScalarAttribute("Overshoot", needle.Overshoot);
       needleElem->GetScalarAttribute("Extension", needle.Extension);
       needleElem->GetScalarAttribute("TargetSize", needle.TargetSize);      
-      needleElem->GetScalarAttribute("LastTargetId", needle.LastTargetId);
+      needleElem->GetScalarAttribute("LastTargetIndex", needle.LastTargetIndex);
       this->NeedlesVector.push_back(needle);
     }
   }

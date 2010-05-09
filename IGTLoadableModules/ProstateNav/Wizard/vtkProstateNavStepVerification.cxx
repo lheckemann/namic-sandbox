@@ -430,10 +430,8 @@ void vtkProstateNavStepVerification::ProcessGUIEvents(vtkObject *caller,
     if (targetDesc!=NULL)
     {
       targetDesc->SetTargetValidated(false);
-      targetDesc->SetOverallError(0);
-      targetDesc->SetAPError(0);
-      targetDesc->SetLRError(0);
-      targetDesc->SetISError(0);
+      targetDesc->SetErrorDistanceFromNeedleLine(0);
+      targetDesc->SetErrorVector(0,0,0);
       UpdateTargetListGUI();
     }
     StopVerification();
@@ -665,21 +663,21 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
 
     if (target->GetTargetValidated())
       {
-      if (recreateRows || columnList->GetCellTextAsDouble(row,COL_OVERALL_ERROR) != target->GetOverallError())
+        if (recreateRows || columnList->GetCellTextAsDouble(row,COL_OVERALL_ERROR) != target->GetErrorDistanceFromNeedleLine())
         {
-        columnList->SetCellTextAsDouble(row,COL_OVERALL_ERROR,target->GetOverallError());
+        columnList->SetCellTextAsDouble(row,COL_OVERALL_ERROR,target->GetErrorDistanceFromNeedleLine());
         }
-      if (recreateRows || columnList->GetCellTextAsDouble(row,COL_LR_ERROR) != target->GetLRError())
+        if (recreateRows || columnList->GetCellTextAsDouble(row,COL_LR_ERROR) != target->GetErrorVector()[0])
         {
-        columnList->SetCellTextAsDouble(row,COL_LR_ERROR,target->GetLRError());
+        columnList->SetCellTextAsDouble(row,COL_LR_ERROR,target->GetErrorVector()[0]);
         }
-      if (recreateRows || columnList->GetCellTextAsDouble(row,COL_AP_ERROR) != target->GetAPError())
+      if (recreateRows || columnList->GetCellTextAsDouble(row,COL_AP_ERROR) != target->GetErrorVector()[1])
         {
-        columnList->SetCellTextAsDouble(row,COL_AP_ERROR,target->GetAPError());
+        columnList->SetCellTextAsDouble(row,COL_AP_ERROR,target->GetErrorVector()[1]);
         }
-      if (recreateRows || columnList->GetCellTextAsDouble(row,COL_IS_ERROR) != target->GetISError())
+      if (recreateRows || columnList->GetCellTextAsDouble(row,COL_IS_ERROR) != target->GetErrorVector()[2])
         {
-        columnList->SetCellTextAsDouble(row,COL_IS_ERROR,target->GetISError());
+        columnList->SetCellTextAsDouble(row,COL_IS_ERROR,target->GetErrorVector()[2]);
         }
       }
     else
@@ -782,7 +780,7 @@ void vtkProstateNavStepVerification::UpdateGUI()
   }
   const char* volNodeID = mrmlNode->GetVerificationVolumeNodeRef();
   vtkMRMLScalarVolumeNode *volNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(volNodeID));
-  if ( volNode )
+  if ( volNode && this->VolumeSelectorWidget)
   {
     this->VolumeSelectorWidget->UpdateMenu();
     this->VolumeSelectorWidget->SetSelected( volNode );
@@ -803,10 +801,10 @@ void vtkProstateNavStepVerification::HideUserInterface()
 //----------------------------------------------------------------------------
 void vtkProstateNavStepVerification::TearDownGUI()
 {  
-  SetVerificationPointListNode(NULL);
-
   RemoveGUIObservers();
   RemoveMRMLObservers();
+
+  SetVerificationPointListNode(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -921,10 +919,8 @@ void vtkProstateNavStepVerification::UpdateVerificationResultsForCurrentTarget()
 
   // set the variable values in target descriptor
   targetDesc->SetTargetValidated(true);
-  targetDesc->SetOverallError(overallErr);
-  targetDesc->SetAPError(apErr);
-  targetDesc->SetLRError(lrErr);
-  targetDesc->SetISError(isErr);
+  targetDesc->SetErrorDistanceFromNeedleLine(overallErr);
+  targetDesc->SetErrorVector(apErr, lrErr, isErr);
 
   this->GetProstateNavManager()->Modified();
 }
