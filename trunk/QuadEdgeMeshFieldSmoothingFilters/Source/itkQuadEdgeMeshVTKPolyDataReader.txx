@@ -268,7 +268,7 @@ QuadEdgeMeshVTKPolyDataReader<TOutputMesh>
         }
 
       // Read the scalar data
-      double pointData;
+      typename OutputMeshType::PixelType pointData;
 
       for( int pid=0; pid < numberOfPoints; pid++ )
         {
