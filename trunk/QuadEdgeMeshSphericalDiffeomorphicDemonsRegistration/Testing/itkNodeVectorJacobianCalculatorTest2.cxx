@@ -155,7 +155,7 @@ int main( int, char * [] )
   FixedSphereMeshSourceType::Pointer   fixedSphereMeshSource = FixedSphereMeshSourceType::New();
 
   fixedSphereMeshSource->SetCenter( fixedCenter );
-  fixedSphereMeshSource->SetResolution( 4.0 );
+  fixedSphereMeshSource->SetResolution( 4 );
   fixedSphereMeshSource->SetScale( fixedScale );
   fixedSphereMeshSource->Modified();
 
