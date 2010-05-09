@@ -152,6 +152,7 @@ void vtkProstateNavFiducialCalibrationStep::ShowLoadVolumeControls()
     this->VolumeSelectorWidget->SetBorderWidth(2);  
     this->VolumeSelectorWidget->SetNodeClass("vtkMRMLVolumeNode", NULL, NULL, NULL);
     this->VolumeSelectorWidget->SetMRMLScene(this->MRMLScene);
+    this->VolumeSelectorWidget->SetNoneEnabled(true);
     this->VolumeSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
     this->VolumeSelectorWidget->GetWidget()->GetWidget()->SetWidth(24);
     this->VolumeSelectorWidget->SetLabelText( "Calibration Volume: ");

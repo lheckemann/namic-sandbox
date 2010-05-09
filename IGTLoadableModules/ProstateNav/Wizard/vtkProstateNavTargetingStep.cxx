@@ -226,6 +226,7 @@ void vtkProstateNavTargetingStep::ShowTargetPlanningFrame()
     this->VolumeSelectorWidget->SetBorderWidth(2);  
     this->VolumeSelectorWidget->SetNodeClass("vtkMRMLVolumeNode", NULL, NULL, NULL);
     this->VolumeSelectorWidget->SetMRMLScene(this->GetLogic()->GetApplicationLogic()->GetMRMLScene());
+    this->VolumeSelectorWidget->SetNoneEnabled(true);
     this->VolumeSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
     this->VolumeSelectorWidget->GetWidget()->GetWidget()->SetWidth(24);
     this->VolumeSelectorWidget->SetLabelText( "Targeting Volume: ");

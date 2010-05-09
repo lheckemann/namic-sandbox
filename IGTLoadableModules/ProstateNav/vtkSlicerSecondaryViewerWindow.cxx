@@ -97,16 +97,20 @@ void vtkSlicerSecondaryViewerWindow::UpdateSecondaryMonitorPosition()
     {
       vtkErrorMacro("DetectMonitors: EnumDisplayMonitors failed");
     }
+    this->SecondaryMonitorPosition[0]=rect.left;
+    this->SecondaryMonitorPosition[1]=rect.top;
+    this->SecondaryMonitorSize[0]=rect.right-rect.left;
+    this->SecondaryMonitorSize[1]=rect.bottom-rect.top;
   }
   else
   {
+    this->SecondaryMonitorPosition[0]=rect.left;
+    this->SecondaryMonitorPosition[1]=rect.top;
+    this->SecondaryMonitorSize[0]=500;
+    this->SecondaryMonitorSize[1]=500;
     this->MultipleMonitorsAvailable = false; 
   }
 
-  this->SecondaryMonitorPosition[0]=rect.left;
-  this->SecondaryMonitorPosition[1]=rect.top;
-  this->SecondaryMonitorSize[0]=rect.right-rect.left;
-  this->SecondaryMonitorSize[1]=rect.bottom-rect.top;
 }
 
 #else // _WIN32

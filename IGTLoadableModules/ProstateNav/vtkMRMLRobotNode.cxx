@@ -106,7 +106,8 @@ void vtkMRMLRobotNode::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "TargetTransformNodeRef")) 
       {
-      this->SetAndObserveTargetTransformNodeID(attValue);
+      this->SetAndObserveTargetTransformNodeID(NULL);
+      this->SetTargetTransformNodeID(attValue);
       }
 
     }
@@ -212,6 +213,7 @@ int vtkMRMLRobotNode::Init(vtkSlicerApplication* app)
     transform->Identity();
     tnode->ApplyTransform(transform);
     tnode->SetScene(this->GetScene());
+    tnode->SetModifiedSinceRead(true);
 
     this->GetScene()->AddNode(tnode);
     SetAndObserveTargetTransformNodeID(tnode->GetID());

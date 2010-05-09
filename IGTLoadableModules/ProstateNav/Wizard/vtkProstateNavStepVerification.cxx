@@ -218,6 +218,11 @@ void vtkProstateNavStepVerification::ShowUserInterface()
 
   vtkSmartPointer<vtkMRMLFiducialListNode> verifNode=vtkSmartPointer<vtkMRMLFiducialListNode>::New();
   verifNode->SetName("Verification");
+
+  // This is just a temporary node for showing points in the GUI
+  verifNode->SetSaveWithScene(false);
+  verifNode->SetHideFromEditors(true);
+  
   SetVerificationPointListNode(verifNode);
 
   this->AddGUIObservers();
@@ -271,6 +276,7 @@ void vtkProstateNavStepVerification::ShowVolumeSelectionFrame()
     this->VolumeSelectorWidget->SetBorderWidth(2);  
     this->VolumeSelectorWidget->SetNodeClass("vtkMRMLVolumeNode", NULL, NULL, NULL);
     this->VolumeSelectorWidget->SetMRMLScene(this->GetLogic()->GetApplicationLogic()->GetMRMLScene());
+    this->VolumeSelectorWidget->SetNoneEnabled(true);
     this->VolumeSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
     this->VolumeSelectorWidget->GetWidget()->GetWidget()->SetWidth(24);
     this->VolumeSelectorWidget->SetLabelText( "Verification Volume: ");

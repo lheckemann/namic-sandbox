@@ -750,6 +750,9 @@ void vtkProstateNavLogic::UpdateTargetListFromMRML()
   // If we modified fiducials, then do it in one step, with Start/EndModify. For that we need to remember the previous state.
   int fidNodeModifyOld=0;
 
+  LinkTargetsToFiducials();
+
+  // Remove fiducials in the manager that doesn't have a corresponding FiducialNode
   for (int i=0; i<manager->GetTotalNumberOfTargets(); i++)
   {
     vtkProstateNavTargetDescriptor *t=manager->GetTargetDescriptorAtIndex(i);
@@ -837,6 +840,58 @@ void vtkProstateNavLogic::UpdateTargetListFromMRML()
     fidNode->EndModify(fidNodeModifyOld);
     // StartModify/EndModify discarded vtkMRMLFiducialListNode::FiducialModifiedEvent-s, so we have to resubmit them now
     fidNode->InvokeEvent(vtkMRMLFiducialListNode::FiducialModifiedEvent, NULL);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkProstateNavLogic::LinkTargetsToFiducials()
+{
+  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
+  if (manager==NULL)
+  {
+    vtkErrorMacro("Error in LinkTargetsToFiducials, manager is invalid");
+    return;
+  }
+  vtkMRMLFiducialListNode* fidNode=manager->GetTargetPlanListNode();
+  if (fidNode==NULL)
+  {
+    vtkErrorMacro("Error in LinkTargetsToFiducials, fiducial node is invalid");
+    return;
+  }
+
+  // if all the targets have empty FiducialID reference it means that the targets are not linked
+  // to the fiducials yet
+  for (int i=0; i<manager->GetTotalNumberOfTargets(); i++)
+  {
+    vtkProstateNavTargetDescriptor *t=manager->GetTargetDescriptorAtIndex(i);
+    if (!t->GetFiducialID().empty())
+    {
+      // a non-empty FiducialID is found, it means that there is already existing linking
+      return;
+    }
+  }
+
+  const float rasTolerance=0.1;
+  for (int targetInd=0; targetInd<manager->GetTotalNumberOfTargets(); targetInd++)
+  {
+    vtkProstateNavTargetDescriptor *t=manager->GetTargetDescriptorAtIndex(targetInd);
+    float targetXYZ[3]={0,0,0};
+    targetXYZ[0]=t->GetRASLocation()[0];
+    targetXYZ[1]=t->GetRASLocation()[1];
+    targetXYZ[2]=t->GetRASLocation()[2];
+    for (int fidIndex=0; fidNode->GetNumberOfFiducials(); fidIndex++)
+    {
+      float* fidXYZ=fidNode->GetNthFiducialXYZ(fidIndex);
+      if ( (fabs(targetXYZ[0]-fidXYZ[0])<rasTolerance)
+        && (fabs(targetXYZ[1]-fidXYZ[1])<rasTolerance)
+        && (fabs(targetXYZ[2]-fidXYZ[2])<rasTolerance)
+        && (t->GetName().compare(fidNode->GetNthFiducialLabelText(fidIndex))==0) )
+      {
+        // matching fiducial found
+        t->SetFiducialID(fidNode->GetNthFiducialID(fidIndex));
+        break;
+      }
+    }
   }
 }
 
