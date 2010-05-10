@@ -182,7 +182,9 @@ void vtkHybridNavLogic::AppendToolTipModel(vtkMRMLHybridNavToolNode* mnode)
   vtkTransformPolyDataFilter* tfilter = vtkTransformPolyDataFilter::New();
   vtkTransform* trans = vtkTransform::New();
   trans->Identity();
-  trans->Translate(0.0, 0.0, -1*(mnode->GetCalibrationMatrix()->GetElement(2,3)));
+  vtkMatrix4x4* cm = vtkMatrix4x4::New();
+  mnode->GetCalibrationMatrix(cm);
+  trans->Translate(0.0, 0.0, -1*(cm->GetElement(2,3)));
   //trans->Translate(0.0, 0.0, -20);
   trans->Update();
   tfilter->SetInput(sphere->GetOutput());
@@ -213,17 +215,18 @@ void vtkHybridNavLogic::AppendToolTipModel(vtkMRMLHybridNavToolNode* mnode)
   vtkMatrix4x4* m = vtkMatrix4x4::New();
   mnode->GetParentTransformNode()->GetMatrixTransformToWorld(m);
   m->Print(std::cerr);
-  mnode->GetCalibrationMatrix()->Print(std::cerr);
-  m->Multiply4x4(m, mnode->GetCalibrationMatrix(), m);
+  cm->Print(std::cerr);
+  m->Multiply4x4(m, cm, m);
   m->Print(std::cerr);
   
-  /*//Clean up
-  tfilter->Delete();
-  trans->Delete();
-  sphere->Delete();
-  apd->Delete();
-  pd->Delete();
-  tipDisp->Delete();*/
+  //Clean up
+  cm->Delete();
+  //tfilter->Delete();
+  //trans->Delete();
+  //sphere->Delete();
+  //apd->Delete();
+  //pd->Delete();
+  //tipDisp->Delete();*/
 }
 
 //---------------------------------------------------------------------------
@@ -242,6 +245,67 @@ void vtkHybridNavLogic::SetVisibilityOfToolModel(vtkMRMLHybridNavToolNode* tnode
   std::cerr << "Set Visibility turned On" << std::endl;
 }
 
+//---------------------------------------------------------------------------
+void vtkHybridNavLogic::ManualCalibration(vtkMRMLHybridNavToolNode* PointerTool, vtkMRMLHybridNavToolNode* BetaProbeTool)
+{
+  if ((PointerTool) && (BetaProbeTool))
+    {
+    // Annull the effects of previous calibration matrix on Beta Probe vtkPolyData
+    vtkMatrix4x4* PreviousCalibrationMatrix = vtkMatrix4x4::New();
+    BetaProbeTool->GetCalibrationMatrix(PreviousCalibrationMatrix);
+    PreviousCalibrationMatrix->Invert(PreviousCalibrationMatrix, PreviousCalibrationMatrix);
+    BetaProbeTool->vtkMRMLTransformableNode::ApplyTransform(PreviousCalibrationMatrix);
+
+    //----------------------------------------------
+    //Calculate calibration matrix
+    //----------------------------------------------
+    //Equation to solve results from tip of pointer being equal to tip of beta probe
+    //Ax=b, where A is tracked EM sensor on beta probe and b is translation vector
+    //from EM sensor on pointer. x is translation vector from EM sensor on beta probe to tip
+
+    // Extract the transformation matrices from the tools
+    vtkMatrix4x4* BetaProbeMatrix = vtkMatrix4x4::New();
+    vtkMatrix4x4* PointerMatrix = vtkMatrix4x4::New();
+    BetaProbeTool->GetParentTransformNode()->GetMatrixTransformToWorld(BetaProbeMatrix);
+    PointerTool->GetParentTransformNode()->GetMatrixTransformToWorld(PointerMatrix);
+
+    //Extract b (PointerVector) vector from PointerTool matrix
+    float PointerVector[4];
+    PointerVector[0] = PointerMatrix->GetElement(0,3);
+    PointerVector[1] = PointerMatrix->GetElement(1,3);
+    PointerVector[2] = PointerMatrix->GetElement(2,3);
+    PointerVector[3] = 1;
+
+    //Invert BetaProbeMatrix
+    vtkMatrix4x4* BetaProbeMatrixInv = vtkMatrix4x4::New();
+    BetaProbeMatrixInv->Invert(BetaProbeMatrix,BetaProbeMatrixInv);
+
+    //Calculate x (BetaProbeTipVector) x=inv(A)*b
+    float BetaProbeTipVector[4];
+    BetaProbeMatrixInv->MultiplyPoint(PointerVector, BetaProbeTipVector);
+
+    //Convert translational vector into Transformation matrix which defines the tip of the
+    //BetaProbeNav with respect to the EM sensor on the Beta Probe
+    vtkMatrix4x4* BetaProbeTipMatrix = vtkMatrix4x4::New();
+    BetaProbeTipMatrix->Identity();
+    BetaProbeTipMatrix->SetElement(0,3, BetaProbeTipVector[0]);
+    BetaProbeTipMatrix->SetElement(1,3, BetaProbeTipVector[1]);
+    BetaProbeTipMatrix->SetElement(2,3, BetaProbeTipVector[2]);
+
+    //Apply the new transform to the Current Tool
+    BetaProbeTool->vtkMRMLTransformableNode::ApplyTransform(BetaProbeTipMatrix);
+    BetaProbeTool->SetCalibrationMatrix(BetaProbeTipMatrix);
+    BetaProbeTool->Modified();
+    this->GetMRMLScene()->Modified();
+
+    //Clean up
+    PreviousCalibrationMatrix->Delete();
+    BetaProbeMatrix->Delete();
+    PointerMatrix->Delete();
+    BetaProbeMatrixInv->Delete();
+    BetaProbeTipMatrix->Delete();
+    }
+}
 //-------------------------------------------------------------------------------------------------------------
 /*vtkMRMLModelNode* vtkHybridNavLogic::AddLocatorModel(const char* nodeName, double r, double g, double b)
 {
@@ -286,7 +350,21 @@ void vtkHybridNavLogic::SetVisibilityOfToolModel(vtkMRMLHybridNavToolNode* tnode
   sphere->SetCenter(0, 0, 0);
   sphere->Update();
   
-  vtkAppendPolyData *apd = vtkAppendPolyData::New();
+  vtkAppendP//---------------------------------------------------------------------------
+void vtkHybridNavLogic::SetVisibilityOfToolModel(vtkMRMLHybridNavToolNode* tnode, int v)
+{
+  vtkMRMLDisplayNode* toolDisp;
+
+  if (tnode)
+    {
+    toolDisp = tnode->GetDisplayNode();
+    toolDisp->SetVisibility(v);
+    tnode->Modified();
+    this->GetApplicationLogic()->GetMRMLScene()->Modified();
+    }
+
+  std::cerr << "Set Visibility turned On" << std::endl;
+}olyData *apd = vtkAppendPolyData::New();
   apd->AddInput(sphere->GetOutput());
   apd->AddInput(tfilter->GetOutput());
   apd->Update();
