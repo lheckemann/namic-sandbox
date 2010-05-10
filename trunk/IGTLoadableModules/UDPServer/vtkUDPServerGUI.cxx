@@ -36,6 +36,8 @@
 #include "vtkKWMultiColumnList.h"
 #include "vtkKWPushButton.h"
 #include "vtkCornerAnnotation.h"
+#include "vtkKWRadioButtonSet.h"
+#include "vtkKWRadioButton.h"
 
 #include <vector>
 #include <sstream>
@@ -126,6 +128,12 @@ vtkUDPServerGUI::~vtkUDPServerGUI ( )
     this->ClearListButton->Delete();
     }
 
+  if (this->ProbeTypeButtonSet)
+    {
+    this->ProbeTypeButtonSet->SetParent(NULL);
+    this->ProbeTypeButtonSet->Delete();
+    }
+
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -203,6 +211,12 @@ void vtkUDPServerGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->ProbeTypeButtonSet)
+    {
+    this->ProbeTypeButtonSet
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   this->RemoveLogicObservers();
 
 }
@@ -240,6 +254,8 @@ void vtkUDPServerGUI::AddGUIObservers ( )
      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->AddLogicObservers();
   this->ClearListButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->ProbeTypeButtonSet
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 }
 
@@ -289,6 +305,18 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
       && event == vtkKWPushButton::InvokedEvent)
     {
     std::cerr << "Connect/Disconnect Button has been pressed." << std::endl;
+    //Register type of Probe
+    if(this->ProbeTypeButtonSet->GetWidget(0)->GetSelectedState() == 1)
+      {
+      //Rejection Probe selected
+      this->GetLogic()->ProbeType = 0;
+      }
+    else
+      {
+      //Single probe selected
+      this->GetLogic()->ProbeType = 1;
+      }
+
     this->ServerConnected = !(this->ServerConnected);
     if (this->ServerConnected == 1)
       {
@@ -337,6 +365,7 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
     {
     this->DataTable->GetWidget()->DeleteAllRows();
     }
+
 }
 
 void vtkUDPServerGUI::DataCallback(vtkObject *caller, 
@@ -519,6 +548,36 @@ void vtkUDPServerGUI::BuildGUIForServerFrame()
   updateLabel->Delete();
   updateFrame->Delete();
 
+  //-------------------------------------------
+  // Probe Type Selection
+  vtkKWFrame *probeFrame = vtkKWFrame::New();
+  probeFrame->SetParent(frame->GetFrame());
+  probeFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",
+                probeFrame->GetWidgetName());
+
+  vtkKWLabel *probeLabel = vtkKWLabel::New();
+  probeLabel->SetParent(probeFrame);
+  probeLabel->Create();
+  probeLabel->SetWidth(15);
+  probeLabel->SetText("Probe Type: ");
+
+  this->ProbeTypeButtonSet = vtkKWRadioButtonSet::New();
+  this->ProbeTypeButtonSet->SetParent(probeFrame);
+  this->ProbeTypeButtonSet->Create();
+  this->ProbeTypeButtonSet->PackHorizontallyOn();
+  this->ProbeTypeButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(2);
+  this->ProbeTypeButtonSet->UniformColumnsOn();
+  this->ProbeTypeButtonSet->UniformRowsOn();
+
+  this->ProbeTypeButtonSet->AddWidget(0);
+  this->ProbeTypeButtonSet->GetWidget(0)->SetText("Rejection Probe");
+  this->ProbeTypeButtonSet->GetWidget(0)->SelectedStateOn();
+  this->ProbeTypeButtonSet->AddWidget(1);
+  this->ProbeTypeButtonSet->GetWidget(1)->SetText("Single Probe");
+
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+              probeLabel->GetWidgetName() , this->ProbeTypeButtonSet->GetWidgetName());
   //--------------------------------------------
   // Connect Button
   vtkKWFrame *connectFrame = vtkKWFrame::New();
@@ -636,12 +695,12 @@ int vtkUDPServerGUI::UpdateDataFrame(char* data)
   // Decompose data into members of probeData structure
   //--------------------------------------------------------------------------
   
-  std::cerr << "About to decompose data" << std::endl;
+  //std::cerr << "About to decompose data" << std::endl;
   
   //Create stream object from data pointer
   std::string buffdata (data);
-  std::cerr << "Converted data to string" << std::endl;
-  if (buffdata.length() < 18)  //check length of string
+
+  if (buffdata.length() < 10)  //check length of string
     {
     return 1;
     }
@@ -675,18 +734,33 @@ int vtkUDPServerGUI::UpdateDataFrame(char* data)
   pd.date = *(it);
   // Time variable
   pd.time = *(++it);
-  // Smoothed counts
-  pd.smoothedCount = atoi((*(++it)).c_str());
-  // Beta counts
-  pd.betaCount = atoi((*(++it)).c_str());
-  //Gamma counts
-  pd.gammaCount = atoi((*(++it)).c_str());
 
+  // For Rejection probe type
+  if (this->GetLogic()->ProbeType == 0)
+    {
+    // Smoothed counts
+    pd.smoothedCount = atoi((*(++it)).c_str());
+    // Beta counts
+    pd.betaCount = atoi((*(++it)).c_str());
+    //Gamma counts
+    pd.gammaCount = atoi((*(++it)).c_str());
+    }
+
+  //Single probe type
+  if (this->GetLogic()->ProbeType == 1)
+    {
+    // Smoothed counts
+    pd.smoothedCount = atoi((*(++it)).c_str());
+    // Beta counts
+    pd.betaCount = 0;
+    //Gamma counts
+    pd.gammaCount = 0;
+    }
   //----------------------------------------------------------------------------------------
   // Update Dataframe with data from pd structure
   //----------------------------------------------------------------------------------------
   
-  std::cerr << "About to upload data onto Data Frame" << std::endl;
+  //std::cerr << "About to upload data onto Data Frame" << std::endl;
   this->DataTable->GetWidget()->AddRow();
   int row = (this->DataTable->GetWidget()->GetNumberOfRows())-1;
   this->DataTable->GetWidget()->SelectRow(row);

@@ -63,6 +63,8 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
   char* GetImportedData(){return this->ImportedData;};
   void SetPort(int p) {this->port = p;};
   
+  int ProbeType; //Probe Type 0 for rejection probe and 1 for single probe
+
   //-----------------------------------
   //Thread Control
   

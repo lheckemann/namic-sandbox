@@ -31,6 +31,7 @@
 class vtkKWPushButton;
 class vtkKWEntry;
 class vtkKWMultiColumnListWithScrollbars;
+class vtkKWRadioButtonSet;
 
 class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
 {
@@ -150,6 +151,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   vtkKWMultiColumnListWithScrollbars* DataTable;
   vtkKWEntry*      UpdateEntry;
   vtkKWPushButton* ClearListButton;
+  vtkKWRadioButtonSet* ProbeTypeButtonSet;
 
   //----------------------------------------------------------------
   // Logic Values
