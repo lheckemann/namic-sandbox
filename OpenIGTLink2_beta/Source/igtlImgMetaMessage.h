@@ -87,6 +87,15 @@ protected:
 
 };
 
+
+class IGTLCommon_EXPORT GetImgMetaMessage: public MessageBase
+{
+protected:
+  GetImgMetaMessage() : MessageBase() { this->m_DefaultBodyType  = "GET_IMGMETA"; };
+  ~GetImgMetaMessage();
+};
+
+
 class IGTLCommon_EXPORT ImgMetaMessage: public MessageBase
 {
 public:
