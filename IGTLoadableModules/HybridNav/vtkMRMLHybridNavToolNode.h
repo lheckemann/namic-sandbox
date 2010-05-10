@@ -73,8 +73,8 @@ public:
   const char* GetToolName() { return this->ToolName.c_str(); }
   void SetToolDescription(const char* str) { this->ToolDescription = str; }
   const char* GetToolDescription() { return this->ToolDescription.c_str(); }
-  void SetCalibrationMatrix(vtkMatrix4x4* cm) { this->calMatrix = cm; }
-  vtkMatrix4x4* GetCalibrationMatrix() { return this->calMatrix; }  
+  void SetCalibrationMatrix(vtkMatrix4x4* cm) { this->calMatrix->DeepCopy(cm); }
+  void GetCalibrationMatrix(vtkMatrix4x4* cm) { cm->DeepCopy(this->calMatrix); }
 
 private:
   //BTX
@@ -82,7 +82,7 @@ private:
   std::string ToolDescription;
   //ETX
   int Calibrated;
-  vtkMatrix4x4* calMatrix;        // Tranformation matrix from sensor to tool tip (calibration)
+  vtkMatrix4x4* calMatrix;        // Transformation matrix from sensor to tool tip (calibration)
 
 };
 

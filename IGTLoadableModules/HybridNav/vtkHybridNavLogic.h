@@ -56,6 +56,7 @@ class VTK_HybridNav_EXPORT vtkHybridNavLogic : public vtkSlicerModuleLogic
   void AppendToolTipModel(vtkMRMLHybridNavToolNode* mnode);
   //vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
   void SetVisibilityOfToolModel(vtkMRMLHybridNavToolNode* tnode, int v);
+  void ManualCalibration(vtkMRMLHybridNavToolNode* PointerTool, vtkMRMLHybridNavToolNode* BetaProbeTool);
   //ETX
   
  protected:

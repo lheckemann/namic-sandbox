@@ -60,14 +60,14 @@ vtkMRMLHybridNavToolNode::vtkMRMLHybridNavToolNode()
   this->Calibrated = 0;
   this->ToolName = "";
   this->ToolDescription = "Description";
-  calMatrix = vtkMatrix4x4::New();
-  calMatrix->Identity();
+  this->calMatrix = vtkMatrix4x4::New();
+  this->calMatrix->Identity();
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLHybridNavToolNode::~vtkMRMLHybridNavToolNode()
 {
-  calMatrix->Delete();
+  this->calMatrix->Delete();
 }
 
 //----------------------------------------------------------------------------

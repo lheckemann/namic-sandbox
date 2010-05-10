@@ -591,7 +591,9 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
         {
         // Annull previous appended calibration matrix
         vtkMatrix4x4* m1 = vtkMatrix4x4::New();
-        m1->Invert(tnode->GetCalibrationMatrix(), m1);
+        vtkMatrix4x4* cm1 = vtkMatrix4x4::New();
+        tnode->GetCalibrationMatrix(cm1);
+        m1->Invert(cm1, m1);
         tnode->vtkMRMLTransformableNode::ApplyTransform(m1);
         
         // Delete any previous calibration matrix
@@ -608,6 +610,11 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
         //Initialize pivot calibration object
         pivot->Initialize(this->numPointsEntry->GetValueAsInt(), tnode);
         this->Calibrating = 1;
+
+        //Clean up
+        m1->Delete();
+        cm1->Delete();
+        m2->Delete();
         }
       }
     }
@@ -625,57 +632,12 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
     if ((this->ObjectiveTransformNodeSelectorMenu->GetSelected()) && 
         (this->CurrentTransformNodeSelectorMenu->GetSelected()))
       {
-      vtkMRMLHybridNavToolNode* otnode = vtkMRMLHybridNavToolNode::SafeDownCast(this->ObjectiveTransformNodeSelectorMenu->GetSelected());
-      vtkMRMLHybridNavToolNode* ctnode = vtkMRMLHybridNavToolNode::SafeDownCast(this->CurrentTransformNodeSelectorMenu->GetSelected());
-      if ((otnode) && (ctnode))
-        {
-        /*// Annull previous appended calibration matrix
-        vtkMatrix4x4* m1 = vtkMatrix4x4::New();
-        m1->Invert(tnode->GetCalibrationMatrix(), m1);
-        tnode->vtkMRMLTransformableNode::ApplyTransform(m1);
-        m1->Delete();*/
-        
-        /*// Delete any previous calibration matrix
-        vtkMatrix4x4* m2 = vtkMatrix4x4::New();
-        m2->Identity();
-        tnode->SetCalibrationMatrix(m2);*/
-        
-        // Extract the transformation components from the tools
-        vtkMatrix4x4* ctmat = vtkMatrix4x4::New();
-        vtkMatrix4x4* otmat = vtkMatrix4x4::New();
-        ctnode->GetParentTransformNode()->GetMatrixTransformToWorld(ctmat);
-        otnode->GetParentTransformNode()->GetMatrixTransformToWorld(otmat);
-        
-        //Calculate calibration matrix
-        ctmat->Print(std::cerr);
-        otmat->Print(std::cerr);
-        //invert calibration node matrix
-        vtkMatrix4x4* ctmatInv = vtkMatrix4x4::New();
-        ctmatInv->Invert(ctmat,ctmatInv);
-        //calculate new transformation matrix
-        vtkMatrix4x4* mat = vtkMatrix4x4::New();
-        mat->Identity();
-        mat->Multiply4x4(ctmatInv,otmat,mat);
-        mat->Print(std::cerr);
-        //get only the translational components
-        vtkMatrix4x4* manualCalibrationMatrix = vtkMatrix4x4::New();
-        manualCalibrationMatrix->Identity();
-        manualCalibrationMatrix->SetElement(0,3, mat->GetElement(0,3));
-        manualCalibrationMatrix->SetElement(1,3, mat->GetElement(1,3));
-        manualCalibrationMatrix->SetElement(2,3, mat->GetElement(2,3));
-        manualCalibrationMatrix->Print(std::cerr);
-        
-        //Apply the new transform to the Current Tool
-        ctnode->vtkMRMLTransformableNode::ApplyTransform(manualCalibrationMatrix);
-        ctnode->Modified();
-        this->GetMRMLScene()->Modified();
-
-        //Clean up
-        ctmat->Delete();
-        otmat->Delete();
-        ctmatInv->Delete();
-        manualCalibrationMatrix->Delete();
-        }
+      vtkMRMLHybridNavToolNode* PointerTool =
+         vtkMRMLHybridNavToolNode::SafeDownCast(this->ObjectiveTransformNodeSelectorMenu->GetSelected());
+      vtkMRMLHybridNavToolNode* BetaProbeTool =
+         vtkMRMLHybridNavToolNode::SafeDownCast(this->CurrentTransformNodeSelectorMenu->GetSelected());
+      //Perform the manual calibration
+      this->GetLogic()->ManualCalibration(PointerTool, BetaProbeTool);
       }
     else
       {
@@ -795,15 +757,18 @@ void vtkHybridNavGUI::ProcessMRMLEvents ( vtkObject *caller,
         
         //Assign tool model with calibration matrix
         //pivot->toolNode->SetAndObserveTransformNodeID(pivot->toolNode->GetID());
-        pivot->toolNode->vtkMRMLTransformableNode::ApplyTransform(pivot->toolNode->GetCalibrationMatrix());
+        vtkMatrix4x4* CalibrationMatrix = vtkMatrix4x4::New();
+        pivot->toolNode->GetCalibrationMatrix(CalibrationMatrix);
+        pivot->toolNode->vtkMRMLTransformableNode::ApplyTransform(CalibrationMatrix);
         pivot->toolNode->Modified();
         this->GetMRMLScene()->Modified();
         //Assign new geometry to the tool to reflect tool tip and sensor location
         this->GetLogic()->AppendToolTipModel(pivot->toolNode);
         
         //Print result in GUI text box
-        this->CalibrationResult->SetValueAsDouble(pivot->toolNode->GetCalibrationMatrix()->GetElement(2,3));
+        this->CalibrationResult->SetValueAsDouble(CalibrationMatrix->GetElement(2,3));
         this->CalibrationError->SetValueAsDouble(pivot->RequestCalibrationRMSE());
+        CalibrationMatrix->Delete();
         }
       }
     }
@@ -973,7 +938,7 @@ void vtkHybridNavGUI::BuildGUIForToolFrame()
   this->ToolNodeSelectorMenu = vtkSlicerNodeSelectorWidget::New();
   this->ToolNodeSelectorMenu->SetParent(nodeFrame);
   this->ToolNodeSelectorMenu->Create();
-  this->ToolNodeSelectorMenu->SetWidth(20);
+  this->ToolNodeSelectorMenu->SetWidth(30);
   this->ToolNodeSelectorMenu->SetNewNodeEnabled(0);
   this->ToolNodeSelectorMenu->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, NULL);
   this->ToolNodeSelectorMenu->NoneEnabledOn();
@@ -1231,7 +1196,7 @@ void vtkHybridNavGUI::BuildGUIForManualCalibrationFrame()
   vtkKWLabel* nodeLabel1 = vtkKWLabel::New();
   nodeLabel1->SetParent(nodeFrame1);
   nodeLabel1->Create();
-  nodeLabel1->SetText("Objective Tool: ");
+  nodeLabel1->SetText("Pointer Tool: ");
   nodeLabel1->SetWidth(20);
 
   this->ObjectiveTransformNodeSelectorMenu = vtkSlicerNodeSelectorWidget::New();
@@ -1261,7 +1226,7 @@ void vtkHybridNavGUI::BuildGUIForManualCalibrationFrame()
   vtkKWLabel* nodeLabel2 = vtkKWLabel::New();
   nodeLabel2->SetParent(nodeFrame2);
   nodeLabel2->Create();
-  nodeLabel2->SetText("Calibrate Tool: ");
+  nodeLabel2->SetText("BetaProbe Tool: ");
   nodeLabel2->SetWidth(20);
 
   this->CurrentTransformNodeSelectorMenu = vtkSlicerNodeSelectorWidget::New();
