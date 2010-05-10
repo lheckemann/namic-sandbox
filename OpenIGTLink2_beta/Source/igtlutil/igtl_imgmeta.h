@@ -37,6 +37,13 @@
 #define IGTL_IMGMETA_STYPE_TYPE_FLOAT64   11
 */
 
+#define IGTL_IMGMETA_LEN_NAME         64
+#define IGTL_IMGMETA_LEN_DEVICE_NAME  20
+#define IGTL_IMGMETA_LEN_MODALITY     32
+#define IGTL_IMGMETA_LEN_PATIENT_NAME 64
+#define IGTL_IMGMETA_LEN_PATIENT_ID   64
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -53,13 +60,13 @@ extern "C" {
  */
 
 typedef struct {
-  igtl_uint8     name[64];         /* name / description                        */
-  igtl_uint8     device_name[20];  /* device name to query the IMAGE and COLORT */
-  igtl_uint8     modality[32];     /* modality name                             */
-  igtl_uint8     patient_name[64]; /* patient name                              */ 
-  igtl_uint8     patient_id[64];   /* patient ID (MRN etc.)                     */  
-  igtl_uint64    timestamp;        /* scan time                                 */
-  igtl_uint16    size[3];          /* entire image volume size                  */ 
+  igtl_uint8     name[IGTL_IMGMETA_LEN_NAME];                 /* name / description */
+  igtl_uint8     device_name[IGTL_IMGMETA_LEN_DEVICE_NAME];   /* device name to query the IMAGE and COLORT */
+  igtl_uint8     modality[IGTL_IMGMETA_LEN_MODALITY];         /* modality name */
+  igtl_uint8     patient_name[IGTL_IMGMETA_LEN_PATIENT_NAME]; /* patient name */ 
+  igtl_uint8     patient_id[IGTL_IMGMETA_LEN_PATIENT_ID];     /* patient ID (MRN etc.) */  
+  igtl_uint64    timestamp;        /* scan time */
+  igtl_uint16    size[3];          /* entire image volume size */ 
   igtl_uint8     scalar_type;      /* scalar type. see scalar_type in IMAGE message */
   igtl_uint8     reserved;
 } igtl_imgmeta_element;

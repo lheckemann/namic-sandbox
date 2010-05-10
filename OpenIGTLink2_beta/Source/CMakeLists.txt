@@ -62,6 +62,7 @@ SET(OpenIGTLink_SOURCES
   igtlTimeStamp.cxx
   igtlTransformMessage.cxx
   igtlColorTableMessage.cxx
+  igtlImgMetaMessage.cxx
   )
 
 ADD_LIBRARY(OpenIGTLink
