@@ -1,4 +1,4 @@
-PROJECT(Imager)
+PROJECT(ImageMeta)
 
 cmake_minimum_required(VERSION 2.4)
 if(COMMAND cmake_policy)
@@ -9,9 +9,9 @@ find_package(OpenIGTLink REQUIRED)
 
 include(${OpenIGTLink_USE_FILE})
 
-ADD_EXECUTABLE(ImagerClient   ImageMetaServer.cxx)
-TARGET_LINK_LIBRARIES(ImagerClient OpenIGTLink)
+ADD_EXECUTABLE(ImageMetaServer   ImageMetaServer.cxx)
+TARGET_LINK_LIBRARIES(ImageMetaServer OpenIGTLink)
 
-ADD_EXECUTABLE(ImagerServer   ImageMetaClient.cxx)
-TARGET_LINK_LIBRARIES(ImagerServer OpenIGTLink)
+ADD_EXECUTABLE(ImageMetaClient   ImageMetaClient.cxx)
+TARGET_LINK_LIBRARIES(ImageMetaClient OpenIGTLink)
 

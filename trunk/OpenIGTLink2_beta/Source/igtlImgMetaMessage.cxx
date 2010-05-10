@@ -38,6 +38,11 @@ ImgMetaElement::ImgMetaElement() : Object()
 }
 
 
+ImgMetaElement::~ImgMetaElement()
+{
+}
+
+
 int ImgMetaElement::SetName(const char* name)
 {
   if (strlen(name) <= IGTL_IMGMETA_LEN_NAME)
