@@ -27,7 +27,6 @@
 #include "vtkSlicerModuleLogic.h"
 #include "vtkSlicerApplication.h"
 #include "vtkCallbackCommand.h"
-
 #include "vtkMRMLSliceNode.h"
 
 class vtkPoints;
@@ -38,6 +37,7 @@ class vtkMRMLNode;
 class vtkMRMLModelDisplayNode;
 class vtkMRMLScalarVolumeDisplayNode;
 class vtkMRMLLinearTransformNode;
+class vtkMRMLHybridNavToolNode;
 class vtkImageData;
 class vtkMRMLScalarVolumeNode;
 class vtkPointLocator;
@@ -62,11 +62,10 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic
   vtkTypeRevisionMacro(vtkBetaProbeNavLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
   void CollectData(vtkMRMLNode*, vtkMRMLNode*);
-  vtkMRMLModelNode* RepresentData(vtkMRMLModelNode* mnode);
-  vtkMRMLModelNode* RepresentDataRT(vtkMRMLModelNode* mnode);
-  vtkMRMLScalarVolumeNode* PaintImage(vtkMRMLScalarVolumeNode* inode, vtkMRMLScalarVolumeNode* snode,  vtkMRMLModelNode* mnode, vtkMRMLLinearTransformNode* tnode);
-  vtkMRMLModelNode* PaintModel(vtkMRMLModelNode* mnode, vtkMRMLLinearTransformNode* tnode);
-  vtkMRMLModelNode* PaintModelGaussian(vtkMRMLModelNode* mnode, vtkMRMLLinearTransformNode* tnode);
+  vtkMRMLScalarVolumeNode* PaintImage(vtkMRMLScalarVolumeNode* inode, vtkMRMLScalarVolumeNode* snode,
+                                      vtkMRMLModelNode* mnode, vtkMRMLHybridNavToolNode* tnode);
+  vtkMRMLModelNode* PaintModel(vtkMRMLModelNode* mnode, vtkMRMLHybridNavToolNode* tnode);
+  vtkMRMLModelNode* PaintModelGaussian(vtkMRMLModelNode* mnode, vtkMRMLHybridNavToolNode* tnode);
   double* CalculateIntersectionPoint(double pt[3], vtkMRMLLinearTransformNode* tnode, double* intPoint);
   vtkIdList* CalculateSurroundingPoints(double p1[3], double radius, vtkIdList* result);
   void ClearArrays();
@@ -79,6 +78,12 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic
   vtkMRMLModelNode* BuildLocators(vtkMRMLModelNode* mn);
   void SetActiveDataType (int data) { this->ActiveDataType = data; };
   int GetActiveDataType() { return this->ActiveDataType; };
+
+  //BTX
+  std::string StartTimeStamp;
+  double ProbeHeight;
+  double interPoint[3];
+  //ETX
 
  protected:
   
@@ -105,13 +110,15 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic
    vtkPolyData* CountMap;
    vtkMRMLModelDisplayNode* dispNode;
    vtkImageData* image;
-   //vtkKdTree* kdTree;
    vtkPointLocator* pointLocator;
    vtkCellLocator* cellLocator;
+
    double maxRange;
    double probeDiam;
    int ActiveDataType;
 
+   //Functions for Correction factors
+   double CorrectionFactorHeight(double h);
 };
 
 #endif

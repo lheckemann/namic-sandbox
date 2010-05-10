@@ -34,14 +34,13 @@
 #include "vtkMRMLModelDisplayNode.h"
 #include "vtkMRMLScalarVolumeDisplayNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
+#include "vtkMRMLHybridNavToolNode.h"
 #include "vtkSphereSource.h"
 #include "vtkCellArray.h"
 #include "vtkCellData.h"
 #include "vtkType.h"
-#include "vtkGlyph3D.h"
 #include "vtkImageData.h"
 
-//#include "vtkKdTree.h"
 #include "vtkPointLocator.h"
 #include "vtkCellLocator.h"
 #include "vtkGenericCell.h"
@@ -79,6 +78,9 @@ vtkBetaProbeNavLogic::vtkBetaProbeNavLogic()
   this->image = NULL;
   this->probeDiam = 9.0; //(mm) make sure it is an odd number
   //dispNode = vtkMRMLModelDisplayNode::New();
+  this->interPoint[0] = 0;
+  this->interPoint[1] = 0;
+  this->interPoint[2] = 0;
 }
 
 //---------------------------------------------------------------------------
@@ -140,236 +142,232 @@ void vtkBetaProbeNavLogic::UpdateAll()
 
 }
 
+//----------------------------------------------------------------------------
+vtkMRMLModelNode* vtkBetaProbeNavLogic::BuildLocators(vtkMRMLModelNode* mnode)
+{
+  //Check integrity of model node
+  if (!mnode)
+    {
+    std::cerr << "Model Node not valid" << std::endl;
+    return mnode;
+    }
+
+  //Extract polydata from the model node
+  vtkPolyData* polydata = mnode->GetPolyData();
+
+  //Create Scalar Arrays to add to polydata
+  vtkFloatArray* SmoothCounts = vtkFloatArray::New();
+  SmoothCounts->SetName("SmoothCounts");
+  vtkFloatArray* BetaCounts = vtkFloatArray::New();
+  BetaCounts->SetName("BetaCounts");
+  vtkFloatArray* GammaCounts = vtkFloatArray::New();
+  GammaCounts->SetName("GammaCounts");
+
+  //Create Normalized Scalar Arrays to add to polydata
+  vtkFloatArray* normSmoothCounts = vtkFloatArray::New();
+  normSmoothCounts->SetName("NormSmoothCounts");
+  vtkFloatArray* normBetaCounts = vtkFloatArray::New();
+  normBetaCounts->SetName("NormBetaCounts");
+  vtkFloatArray* normGammaCounts = vtkFloatArray::New();
+  normGammaCounts->SetName("NormGammaCounts");
+
+  /*//Create TimeStamp data to add to polydata
+  vtkStringArray* TimeStampData = vtkStringArray::New();
+  TimeStampData->SetName("TimeStamp");*/
+
+  //Fill in values of these Arrays
+  for (int i = 0; i < polydata->GetPoints()->GetNumberOfPoints(); i++)
+    {
+    SmoothCounts->InsertNextTuple1(0.0);
+    BetaCounts->InsertNextTuple1(0.0);
+    GammaCounts->InsertNextTuple1(0.0);
+    normSmoothCounts->InsertNextTuple1(0.0);
+    normBetaCounts->InsertNextTuple1(0.0);
+    normGammaCounts->InsertNextTuple1(0.0);
+    }
+  /*for (int i = 0; i < polydata->GetPoints()->GetNumberOfPoints(); i++)
+    {
+    TimeStampData->InsertNextValue("00:00:00");
+    }*/
+
+  //Assign arrays to polydata
+  polydata->GetPointData()->AddArray(SmoothCounts);
+  polydata->GetPointData()->AddArray(BetaCounts);
+  polydata->GetPointData()->AddArray(GammaCounts);
+  polydata->GetPointData()->AddArray(normSmoothCounts);
+  polydata->GetPointData()->AddArray(normBetaCounts);
+  polydata->GetPointData()->AddArray(normGammaCounts);
+  //polydata->GetPointData()->AddArray(TimeStampData);
+
+  //Assign active Array
+  switch (this->ActiveDataType)
+    {
+    case 0:
+      polydata->GetPointData()->SetActiveScalars("NormSmoothCounts");
+      break;
+    case 1:
+      polydata->GetPointData()->SetActiveScalars("NormBetaCounts");
+      break;
+    default:
+      polydata->GetPointData()->SetActiveScalars("NormGammaCounts");
+    }
+
+  //Build Point Locator for later point search
+  if (!this->pointLocator)
+    {
+    this->pointLocator = vtkPointLocator::New();
+    }
+  this->pointLocator->SetDataSet(polydata);
+  this->pointLocator->AutomaticOn();
+  this->pointLocator->SetNumberOfPointsPerBucket(2);
+  this->pointLocator->BuildLocator();
+
+  //Build Cell Locator for later point search
+  if (!this->cellLocator)
+    {
+    this->cellLocator = vtkCellLocator::New();
+    }
+  cellLocator->SetDataSet(polydata);
+  cellLocator->AutomaticOn();
+  cellLocator->SetNumberOfCellsPerBucket(10);
+  cellLocator->BuildLocator();
+
+  //Append polydata back to model data
+  mnode->SetAndObservePolyData(polydata);
+  std::cerr << "Point and Cell Locators have been built" << std::endl;
+
+  //Clean up and return
+  SmoothCounts->Delete();
+  BetaCounts->Delete();
+  GammaCounts->Delete();
+  normSmoothCounts->Delete();
+  normBetaCounts->Delete();
+  normGammaCounts->Delete();
+  return mnode;
+}
+
 //---------------------------------------------------------------------------
 void vtkBetaProbeNavLogic::CollectData(vtkMRMLNode* tn, vtkMRMLNode* cn)
 {
   std::cerr << "Collect Data started" << std::endl;
-  //Pick up position data from TransformNode
-  /*if (this->Points == NULL)
-    {
-    //Create objects
-    Points = vtkPoints::New();
-    }*/
 
-  //Extract position from transform
-  double pos[3];
-  vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(tn);
-  if (tnode)
+  //----------------------------
+  //Position Data
+  //----------------------------
+
+  vtkMRMLHybridNavToolNode* ToolNode = vtkMRMLHybridNavToolNode::SafeDownCast(tn);
+  if (!ToolNode)
     {
-    pos[0] = tnode->GetMatrixTransformToParent()->GetElement(0, 3);
-    pos[1] = tnode->GetMatrixTransformToParent()->GetElement(1, 3);
-    pos[2] = tnode->GetMatrixTransformToParent()->GetElement(2, 3);
-    //Add point to Points Array
-    std::cerr << "About to add points to array" << std::endl;
-    this->Points->InsertNextPoint(pos);
-    std::cerr << "Added Points to Array" << std::endl;
+    return;
     }
-  
+    //Define tool tip position vector
+    double pos[3];
+    //Extract tool tip position from ToolNode
+    vtkMatrix4x4* ToolTransform = vtkMatrix4x4::New();
+    ToolNode->GetParentTransformNode()->GetMatrixTransformToWorld(ToolTransform);
+    vtkMatrix4x4* ToolTipTransform = vtkMatrix4x4::New();
+    vtkMatrix4x4* CalibrationMatrix = vtkMatrix4x4::New();
+    ToolNode->GetCalibrationMatrix(CalibrationMatrix);
+    ToolTipTransform->Multiply4x4(ToolTransform, CalibrationMatrix, ToolTipTransform);
+    //Print out values onto screen
+    std::cerr << "ToolTransform:" << std::endl;
+    ToolTransform->Print(std::cerr);
+    std::cerr << "ToolNode:" << std::endl;
+    CalibrationMatrix->Print(std::cerr);
+    std::cerr << "ToolTipTransform" << std::endl;
+    ToolTipTransform->Print(std::cerr);
+    //Extract point from ToolTipTransform matrix
+    pos[0] = ToolTipTransform->GetElement(0, 3);
+    pos[1] = ToolTipTransform->GetElement(1, 3);
+    pos[2] = ToolTipTransform->GetElement(2, 3);
+    //Add point to Points Array
+    std::cerr << "Added point to array: " << pos[0] << ", " << pos[1] << ", " << pos[2] << std::endl;
+    this->Points->InsertNextPoint(pos);
+
+  //-------------------------------------------------------------
+  //Calculate intersection point between probe axis and polydata
+  //-------------------------------------------------------------
+  //Define point arrays
+  double p1[3];
+  double intPoint[3] = {0, 0, 0};
+
+  //Obtain the position p1 of the tip from the Points array
+  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, p1);
+
+  //Calculate probe axis using two points, the first the tip of the probe p1 and the second
+  //point at k units away from the tip in the direction of the probe axis
+  double dir[3];
+  double p2[3];
+
+  //Direction vector of the probe axis
+  dir[0] = ToolTipTransform->GetElement(0,2);
+  dir[1] = ToolTipTransform->GetElement(1,2);
+  dir[2] = ToolTipTransform->GetElement(2,2);
+  double k = 50.0; //units from the probe tip
+  for (int i = 0; i < 3; i++)
+    p2[i] = p1[i] + k*dir[i];
+
+  //Calculate intersection point between probe and polydata and save point in intPoint
+  double t = 0.0;
+  double pcoords[3] = {0, 0, 0};
+  int subId = 0;
+  vtkIdType cellid = -1;
+  vtkGenericCell *cell = vtkGenericCell::New();
+  if (this->cellLocator->IntersectWithLine(p1, p2, 0.001, t, intPoint, pcoords, subId, cellid, cell) != 0)
+    {
+    //Print out intersection point
+    std::cerr << "Intersection Coordinates: " << intPoint[0] << " " << intPoint[1] << " " << intPoint[2] << std::endl;
+    //Calculate height of probe in relation to surface of model
+    this->ProbeHeight = sqrt(pow((p1[0]-intPoint[0]),2)+pow((p1[1]-intPoint[1]),2)+pow((p1[2]-intPoint[2]),2));
+    //Store intersection point to send to GUI
+    this->interPoint[0] = intPoint[0];
+    this->interPoint[1] = intPoint[1];
+    this->interPoint[2] = intPoint[2];
+    }
+  else
+    {
+    //No intersection made
+    std::cerr << "No intersection with the model" << std::endl;
+    this->ProbeHeight = -1;
+    }
+
+  //---------------------------------------
+  // Counts Data
+  //---------------------------------------
+  //Correct values for height
+  double cf; //correction factor
+  cf = CorrectionFactorHeight(this->ProbeHeight);
+  std::cerr << "Correction Factor" << cf << std::endl;
+
   //Extract counts from CountNode and append to Float Arrays
   vtkMRMLUDPServerNode* cnode = vtkMRMLUDPServerNode::SafeDownCast(cn);
-  SmoothScalars->InsertNextTuple1(cnode->GetSmoothedCounts());
-  BetaScalars->InsertNextTuple1(cnode->GetBetaCounts());
-  GammaScalars->InsertNextTuple1(cnode->GetGammaCounts());
-  TimeStamp->InsertNextTupleValue((cnode->GetTime()).c_str());
-  
+  this->SmoothScalars->InsertNextTuple1(cf*(cnode->GetSmoothedCounts()));
+  this->BetaScalars->InsertNextTuple1(cf*(cnode->GetBetaCounts()));
+  this->GammaScalars->InsertNextTuple1(cf*(cnode->GetGammaCounts()));
+  this->TimeStamp->InsertNextTupleValue((cnode->GetTime()).c_str());
+
   //Normalize value of Scalars for Color mapping purposes
   //Smooth Scalars
-  for (vtkIdType i = 0; i < (this->SmoothScalars->GetNumberOfTuples()); i++)
-    {
-    double nSC;
-    nSC = this->SmoothScalars->GetTuple1(i);
-    nSC = (int) (255*nSC/(this->maxRange)); 
-    nSmoothScalars->InsertNextTuple1(nSC);
-    }
+  double normScalar;
+  normScalar = this->SmoothScalars->GetTuple1(this->SmoothScalars->GetNumberOfTuples()-1);
+  normScalar = (int) (255*normScalar/(cf*this->maxRange));
+  this->nSmoothScalars->InsertNextTuple1(normScalar);
+
   //BetaScalars
-  for (vtkIdType i = 0; i < (this->BetaScalars->GetNumberOfTuples()); i++)
-    {
-    double nBC;
-    nBC = this->BetaScalars->GetTuple1(i);
-    nBC = (int) (255*nBC/(this->maxRange)); 
-    nBetaScalars->InsertNextTuple1(nBC);
-    }
+  normScalar = this->BetaScalars->GetTuple1(this->BetaScalars->GetNumberOfTuples()-1);
+  normScalar = (int) (255*normScalar/(cf*this->maxRange));
+  this->nBetaScalars->InsertNextTuple1(normScalar);
+
   //GammaScalars
-  for (vtkIdType i = 0; i < (this->GammaScalars->GetNumberOfTuples()); i++)
-    {
-    double nGC;
-    nGC = this->GammaScalars->GetTuple1(i);
-    nGC = (int) (255*nGC/(this->maxRange)); 
-    nGammaScalars->InsertNextTuple1(nGC);
-    }
-}
+  normScalar = this->GammaScalars->GetTuple1(this->GammaScalars->GetNumberOfTuples()-1);
+  normScalar = (int) (255*normScalar/(cf*this->maxRange));
+  this->nGammaScalars->InsertNextTuple1(normScalar);
 
-//---------------------------------------------------------------------------
-vtkMRMLModelNode* vtkBetaProbeNavLogic::RepresentData(vtkMRMLModelNode* mnode)
-{
-  if (this->CountMap == NULL)
-    {
-    CountMap = vtkPolyData::New();
-    }
-
-  //Append points to PolyData
-  CountMap->SetPoints(this->Points);
-  CountMap->Update();
-
-  //Append scalars to points  
-  CountMap->GetPointData()->AddArray(this->nSmoothScalars);
-  CountMap->GetPointData()->AddArray(this->nBetaScalars);
-  CountMap->GetPointData()->AddArray(this->nGammaScalars);
-  CountMap->GetPointData()->SetActiveScalars("Gamma");
-  CountMap->Update();
-  
-  //--------------------------------
-  //Represent Polydata using glyphs
-  
-  //Create display node and add to scene
-  if ((this->dispNode == NULL) || (mnode->GetDisplayNode() == NULL))
-    {
-    std::cerr << "About to create display node display node" << std::endl;
-    dispNode = vtkMRMLModelDisplayNode::New();
-    GetMRMLScene()->SaveStateForUndo();
-    GetMRMLScene()->AddNode(dispNode);
-    dispNode->SetScene(this->GetMRMLScene());
-  
-    //Associate display node to model node
-    mnode->SetScene(this->GetMRMLScene());
-    mnode->SetAndObserveDisplayNodeID(dispNode->GetID());
-    std::cerr << "Display node assigned" << std::endl;
-    }
-    
-  // Each glyph is represented by a sphere
-  vtkSphereSource *sphere = vtkSphereSource::New();
-  sphere->SetRadius(2.0);
-  sphere->SetCenter(0, 0, 0);
-  sphere->Update();
-  
-  //Create Glyphs
-  vtkGlyph3D* gly = vtkGlyph3D::New();
-  gly->SetSourceConnection(sphere->GetOutputPort());
-  gly->SetInput(CountMap);
-  gly->SetColorModeToColorByScalar();
-  //gly->ScalingOff();
-  gly->SetScaleModeToDataScalingOff();
-  //gly->SetScaleFactor(0.25);
-  //gly->ClampingOn();
-  //gly->SetRange(0,40);
-  gly->Update();
-  
-  std::cerr << "Glyphs created" << std::endl;
-  mnode->SetAndObservePolyData(gly->GetOutput());
-  std::cerr << "dispNode Properties" << std::endl;
-  //Properties of dataDisp node
-  dispNode->SetActiveScalarName("Gamma");
-  dispNode->SetScalarVisibility(1);
-  //dataDisp->SetColorNode
-  std::cerr << "dispNode Properties setting polydata" << std::endl;
-  dispNode->SetPolyData(mnode->GetPolyData());
-  std::cerr << "dispNode Properties setting visibility" << std::endl;
-  dispNode->SetVisibility(1);
-  
-  //Clean up
-  sphere->Delete();
-  gly->Delete();
-  std::cerr << "About to return model" << std::endl;
-  return mnode;
-}
-
-//---------------------------------------------------------------------------
-vtkMRMLModelNode* vtkBetaProbeNavLogic::RepresentDataRT(vtkMRMLModelNode* mnode)
-{
-  if (this->CountMap == NULL)
-    {
-    CountMap = vtkPolyData::New();
-    }
-  
-  //Access last point appended
-  vtkPolyData* newPoly = vtkPolyData::New(); 
-  double pt[3];
-  vtkPoints* pts = vtkPoints::New(); 
-  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, pt);
-  pts->InsertNextPoint(pt);
-  newPoly->SetPoints(pts);
-
-  //Access latest Scalars
-  vtkFloatArray* nSC = vtkFloatArray::New();
-  nSC->SetName("Smoothed");
-  double ns = this->nSmoothScalars->GetTuple1(this->nSmoothScalars->GetNumberOfTuples()-1);
-  nSC->InsertNextTuple1(ns);
-  vtkFloatArray* nBC = vtkFloatArray::New();
-  nSC->SetName("Beta");
-  double nb = this->nBetaScalars->GetTuple1(this->nBetaScalars->GetNumberOfTuples()-1);
-  nBC->InsertNextTuple1(nb);
-  vtkFloatArray* nGC = vtkFloatArray::New();
-  nSC->SetName("Gamma");
-  double ng = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1);
-  nGC->InsertNextTuple1(ng);
-
-  //Add Scalars to latest point
-  newPoly->GetPointData()->AddArray(nSC);
-  newPoly->GetPointData()->AddArray(nBC);
-  newPoly->GetPointData()->AddArray(nGC);
-  newPoly->GetPointData()->SetActiveScalars("Gamma");
-  
-  
-  //--------------------------------
-  //Represent Polydata using glyphs
-  
-  //Create display node and add to scene
-  if ((this->dispNode == NULL) || (mnode->GetDisplayNode() == NULL))
-    {
-    std::cerr << "About to create display node display node" << std::endl;
-    dispNode = vtkMRMLModelDisplayNode::New();
-    GetMRMLScene()->SaveStateForUndo();
-    GetMRMLScene()->AddNode(dispNode);
-    dispNode->SetScene(this->GetMRMLScene());
-  
-    //Associate display node to model node
-    mnode->SetScene(this->GetMRMLScene());
-    mnode->SetAndObserveDisplayNodeID(dispNode->GetID());
-    std::cerr << "Display node assigned" << std::endl;
-    mnode->SetAndObserveDisplayNodeID(dispNode->GetID());
-    }
-    
-  // Each glyph is represented by a sphere
-  vtkSphereSource *sphere = vtkSphereSource::New();
-  sphere->SetRadius(2.0);
-  sphere->SetCenter(0, 0, 0);
-  sphere->Update();
-  
-  //Create Glyphs
-  vtkGlyph3D* gly = vtkGlyph3D::New();
-  gly->SetSourceConnection(sphere->GetOutputPort());
-  gly->SetInput(newPoly);
-  gly->SetColorModeToColorByScalar();
-  gly->SetScaleModeToDataScalingOff();
-  gly->Update();
-  
-  //Append to previous polydata
-  vtkAppendPolyData* apd = vtkAppendPolyData::New();
-  apd->AddInput(CountMap);
-  apd->AddInput(gly->GetOutput());
-  apd->Update();
-  
-  mnode->SetAndObservePolyData(apd->GetOutput());
-  
-  //Properties of dataDisp node
-  dispNode->SetActiveScalarName("Gamma");
-  dispNode->SetScalarVisibility(1);
-  dispNode->SetPolyData(mnode->GetPolyData());
-
-  //Save the current polydata until next time
-  CountMap->DeepCopy(apd->GetOutput());
-
-  //Clean up
-  sphere->Delete();
-  gly->Delete();
-  apd->Delete();
-  pts->Delete();
-  newPoly->Delete();
-  nSC->Delete();
-  nGC->Delete();
-  nBC->Delete();
-  
-  return mnode;
+  //Clean Up
+  cell->Delete();
+  ToolTransform->Delete();
+  ToolTipTransform->Delete();
+  CalibrationMatrix->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -392,10 +390,13 @@ void vtkBetaProbeNavLogic::ClearArrays()
     this->nBetaScalars->Reset();
   if (this->nGammaScalars)
     this->nGammaScalars->Reset();
+  if (this->TimeStamp)
+    this->TimeStamp->Reset();
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLScalarVolumeNode* inode, vtkMRMLScalarVolumeNode* snode, vtkMRMLModelNode* mnode, vtkMRMLLinearTransformNode* tnode)
+vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLScalarVolumeNode* inode,
+               vtkMRMLScalarVolumeNode* snode, vtkMRMLModelNode* mnode, vtkMRMLHybridNavToolNode* tnode)
 {
   if (!(inode && snode && mnode && tnode))
     {
@@ -432,32 +433,43 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLScalarVolumeNod
     }
   
   //Extract IJK to RAS Matrix
-  vtkMatrix4x4* mat = vtkMatrix4x4::New();
-  inode->GetIJKToRASMatrix(mat);
-  mat->Print(std::cerr);
+  vtkMatrix4x4* matrixIJKtoRAS = vtkMatrix4x4::New();
+  inode->GetIJKToRASMatrix(matrixIJKtoRAS);
+  matrixIJKtoRAS->Print(std::cerr);
   
   //Set this matrix to snode
-  snode->SetIJKToRASMatrix(mat);
+  snode->SetIJKToRASMatrix(matrixIJKtoRAS);
   
-  //----------------------------------------------------------------
+  //-------------------------------------------------------------
   //Calculate intersection point between probe axis and polydata
-  //---------------------------------------------------------------
+  //-------------------------------------------------------------
+  //Define point arrays
   double p1[3];
   double intPoint[3] = {0, 0, 0};
-  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, p1); //Point p1 is the probe tip
-  //Calculate probe axis using two points, the first the tip of the probe and the second
-  //point at k units away from the tip
+
+  //Obtain the position p1 of the tip from the Points array
+  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, p1);
+
+  //Calculate probe axis using two points, the first the tip of the probe p1 and the second
+  //point at k units away from the tip in the direction of the probe axis
   double dir[3];
   double p2[3];
-  vtkMatrix4x4* mat1 = vtkMatrix4x4::New();
-  tnode->GetMatrixTransformToWorld(mat1);
-  dir[0] = mat1->GetElement(0,2);
-  dir[1] = mat1->GetElement(1,2);
-  dir[2] = mat1->GetElement(2,2);  //direction of the probe axis
+
+  //Calculate probe axis from tool
+  vtkMatrix4x4* SensorAxisMatrix = vtkMatrix4x4::New();
+  tnode->GetParentTransformNode()->GetMatrixTransformToWorld(SensorAxisMatrix);
+  vtkMatrix4x4* ToolTipMatrix = vtkMatrix4x4::New();
+  tnode->GetCalibrationMatrix(ToolTipMatrix);
+  vtkMatrix4x4* ToolTipAxis = vtkMatrix4x4::New();
+  ToolTipAxis->Multiply4x4(SensorAxisMatrix, ToolTipMatrix, ToolTipAxis);
+  //Direction vector of the probe axis
+  dir[0] = ToolTipAxis->GetElement(0,2);
+  dir[1] = ToolTipAxis->GetElement(1,2);
+  dir[2] = ToolTipAxis->GetElement(2,2);
   double k = 50.0; //units from the probe tip
   for (int i = 0; i < 3; i++)
     p2[i] = p1[i] + k*dir[i];
-  
+
   //Calculate intersection point between probe and polydata and save point in intPoint
   double t = 0.0;
   double pcoords[3] = {0, 0, 0};
@@ -470,66 +482,59 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLScalarVolumeNod
     std::cerr << "No intersection with the model" << std::endl;
     return snode;
     }
+
   //Print out intersection point
   std::cerr << "Intersection Coordinates: " << intPoint[0] << " " << intPoint[1] << " " << intPoint[2] << std::endl;
+
 
   //-------------------------------------------------------------------------
   // Find other polydata points and pixels surrounding the intersection point
   //--------------------------------------------------------------------------
-  /*vtkIdList* result = vtkIdList::New();
+  vtkIdList* result = vtkIdList::New();
   this->pointLocator->FindPointsWithinRadius(this->probeDiam/2, intPoint, result);
-  std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;*/
-  
-  //Find closest point on vtkPolyData to intPoint
-  double dist;
-  vtkIdType id = this->pointLocator->FindClosestPointWithinRadius(2, intPoint, dist);
+  std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;
   
   //Extract polydata from the model node
   vtkPolyData* polydata = mnode->GetPolyData();
   
   //We need Matrix from RAS to IJK, so we invert matrixIJKtoRAS
-  mat->Invert(mat, mat);
+  vtkMatrix4x4* matrixRAStoIJK = vtkMatrix4x4::New();
+  matrixIJKtoRAS->Invert(matrixIJKtoRAS, matrixRAStoIJK);
   
-  //Convert point to ijk
+  //-----------------------------------------------------------------------------------
+  //Convert intersection and surrounding points into ijk pixel and append scalar value
+  //-----------------------------------------------------------------------------------
+  //define point vectors
   double pthom[4];
   double pt[3];
-  polydata->GetPoint(id, pt);
-  for (int j = 0; j < 4; j++)
-    {
-    if (j < 3)
-      pthom[j] = pt[j];
-    else
-      pthom[j] = 1;
-    }
-  mat->MultiplyPoint(pthom, pthom);
-  double sc = polydata->GetPointData()->GetScalars()->GetTuple1(id);
-  short* scalPointer = (short*) image->GetScalarPointer(pthom[0], pthom[1], pthom[2]);
-  *(scalPointer) = (short)sc;
-  //Convert surrounding points into ijk
-  /*for (int i = 0; i < result->GetNumberOfIds(); i++)
+  pthom[3] = 1;
+  vtkIdType id;
+  double ScalarValue;
+
+  //Assign scalar to each point
+  for (int i = 0; i < result->GetNumberOfIds(); i++)
     {
     //Convert each point into homogenous format
-    double pthom[4];
-    double pt[3];
-    unsigned int id = result->GetId(i);
+    id = result->GetId(i);
     polydata->GetPoint(id, pt);
-    for (int j = 0; j < 4; j++)
+    for (int j = 0; j < 3; j++)
       {
-      if (j < 3)
-        pthom[j] = pt[j];
-      else
-        pthom[j] = 1;
+      pthom[j] = pt[j];
       }
     //Convert each point into ijk pixel
-    mat->MultiplyPoint(pthom, pthom);
+    matrixRAStoIJK->MultiplyPoint(pthom, pthom);
     //Print homogenous coordinate
     std::cerr << "Intersection Coordinates ijk: " << pthom[0] << " " << pthom[1] << " " << pthom[2] << std::endl;
     //Add the polydata scalar value to that pixel
-    double sc = polydata->GetPointData()->GetScalars()->GetTuple1(id);
+    ScalarValue = polydata->GetPointData()->GetScalars()->GetTuple1(id);
     short* scalPointer = (short*) image->GetScalarPointer(pthom[0], pthom[1], pthom[2]);
     if (scalPointer)
-      *(scalPointer) = (short)sc;
-    }*/
+      {
+      //Only change scalar value at pixel if new value is higher
+      if (ScalarValue > *(scalPointer))
+        *(scalPointer) = (short)ScalarValue;
+      }
+    }
   //Update image
   image->Update();
   image->Modified();  
@@ -567,67 +572,19 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLScalarVolumeNod
     }*/
   
   //Clean up
-  mat->Delete();
-  mat1->Delete();
+  matrixIJKtoRAS->Delete();
+  matrixRAStoIJK->Delete();
   cell->Delete();
-  
+  result->Delete();
+  SensorAxisMatrix->Delete();
+  ToolTipMatrix->Delete();
+  ToolTipAxis->Delete();
   
   return snode; 
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLModelNode* vtkBetaProbeNavLogic::BuildLocators(vtkMRMLModelNode* mnode)
-{
-  //Check integrity of model node
-  if (!mnode)
-    {
-    std::cerr << "Model Node not valid" << std::endl;
-    return mnode;
-    }
-  
-  //Extract polydata from the model node
-  vtkPolyData* polydata = mnode->GetPolyData();
-  
-  //Create Scalar Array, fill its values and add to polydata
-  vtkFloatArray* scals = vtkFloatArray::New();
-  scals->SetName("Counts");
-  for (int i = 0; i < polydata->GetPoints()->GetNumberOfPoints(); i++)
-    {
-    scals->InsertNextTuple1(0.0);
-    }
-  polydata->GetPointData()->SetScalars(scals);
-
-  //Build Point Locator for later point search
-  if (!this->pointLocator)  
-    {
-    this->pointLocator = vtkPointLocator::New();
-    }
-  this->pointLocator->SetDataSet(polydata);
-  this->pointLocator->AutomaticOn();
-  this->pointLocator->SetNumberOfPointsPerBucket(2);
-  this->pointLocator->BuildLocator();
-  
-  //Build Cell Locator for later point search
-  if (!this->cellLocator)  
-    {
-    this->cellLocator = vtkCellLocator::New();
-    }
-  cellLocator->SetDataSet(polydata);
-  cellLocator->AutomaticOn();
-  cellLocator->SetNumberOfCellsPerBucket(10);
-  cellLocator->BuildLocator();
-  
-  //Append polydata back to model data
-  mnode->SetAndObservePolyData(polydata);
-  std::cerr << "Point and Cell Locators have been built" << std::endl;
-  
-  //Clean up and return
-  scals->Delete();
-  return mnode;
-}
-
-//----------------------------------------------------------------------------
-vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModel(vtkMRMLModelNode* mnode, vtkMRMLLinearTransformNode* tnode)
+vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModel(vtkMRMLModelNode* mnode, vtkMRMLHybridNavToolNode* tnode)
 {
   if (!(mnode && tnode))
     {
@@ -635,34 +592,32 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModel(vtkMRMLModelNode* mnode, vtkM
     return mnode;
     }
  
-  /*//In order to paint the model, we need to find the point on the model that is closest to
-  //the position of the probe in space
-  double pt[3];
-  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, pt);
-  double dist; //distance from probe position to closest point on model
-  vtkIdType id;
-  id = this->kdTree->FindClosestPoint(pt, dist);
-  std::cerr << "Squared Distance: " << dist << "mm" << std::endl; 
-  
-  //Get the coordinates of the closest point
-  double closestPoint[3];
-  kdTree->GetDataSet()->GetPoint(id, closestPoint);
-  std::cerr << "Coordinates: " << closestPoint[0] << " " << closestPoint[1] << " " << closestPoint[2] << std::endl;
-  */
-  
+  //-------------------------------------------------------------
   //Calculate intersection point between probe axis and polydata
+  //-------------------------------------------------------------
+  //Define point arrays
   double p1[3];
   double intPoint[3] = {0, 0, 0};
-  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, p1); //Point p1 is the probe tip
-  //Calculate probe axis using two points, the first the tip of the probe and the second
-  //point at k units away from the tip
+
+  //Obtain the position p1 of the tip from the Points array
+  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, p1);
+
+  //Calculate probe axis using two points, the first the tip of the probe p1 and the second
+  //point at k units away from the tip in the direction of the probe axis
   double dir[3];
   double p2[3];
-  vtkMatrix4x4* mat = vtkMatrix4x4::New();
-  tnode->GetMatrixTransformToWorld(mat);
-  dir[0] = mat->GetElement(0,2);
-  dir[1] = mat->GetElement(1,2);
-  dir[2] = mat->GetElement(2,2);  //direction of the probe axis
+
+  //Calculate probe axis from tool
+  vtkMatrix4x4* SensorAxisMatrix = vtkMatrix4x4::New();
+  tnode->GetParentTransformNode()->GetMatrixTransformToWorld(SensorAxisMatrix);
+  vtkMatrix4x4* ToolTipMatrix = vtkMatrix4x4::New();
+  tnode->GetCalibrationMatrix(ToolTipMatrix);
+  vtkMatrix4x4* ToolTipAxis = vtkMatrix4x4::New();
+  ToolTipAxis->Multiply4x4(SensorAxisMatrix, ToolTipMatrix, ToolTipAxis);
+  //Direction vector of the probe axis
+  dir[0] = ToolTipAxis->GetElement(0,2);
+  dir[1] = ToolTipAxis->GetElement(1,2);
+  dir[2] = ToolTipAxis->GetElement(2,2);
   double k = 50.0; //units from the probe tip
   for (int i = 0; i < 3; i++)
     p2[i] = p1[i] + k*dir[i];
@@ -683,34 +638,54 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModel(vtkMRMLModelNode* mnode, vtkM
   //Print out intersection point
   std::cerr << "Intersection Coordinates: " << intPoint[0] << " " << intPoint[1] << " " << intPoint[2] << std::endl;
 
-  //Find closest point on vtkPolyData to intPoint
-  double dist;
-  vtkIdType id = this->pointLocator->FindClosestPointWithinRadius(2, intPoint, dist);
-    
-  /* // Find other polydata points surrounding the intersection point
+  //Send to GUI
+
+  //---------------------------------------------------------------
+  // Associate a scalar (radiation counts) to intersection points
+  //---------------------------------------------------------------
+
+  // Find other polydata points at ProbeDiam diameter of the intersection point
   vtkIdList* result = vtkIdList::New();
   this->pointLocator->FindPointsWithinRadius(this->probeDiam/2, intPoint, result);
-  std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;*/
- 
-  //-------------------------------------------------
-  // Associate a scalar (radiation counts) to all these points
-  //-------------------------------------------------
+  std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;
+
   //Get radiation value and assume a uniform distribution
-  double scal = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1); 
-  std::cerr << "Scalar: " << scal << std::endl;
+  double Scalars[6];
+  //Extract the scalar values in each array
+  Scalars[0] = this->SmoothScalars->GetTuple1(this->SmoothScalars->GetNumberOfTuples()-1);
+  Scalars[1] = this->BetaScalars->GetTuple1(this->BetaScalars->GetNumberOfTuples()-1);
+  Scalars[2] = this->GammaScalars->GetTuple1(this->GammaScalars->GetNumberOfTuples()-1);
+  Scalars[3] = this->nSmoothScalars->GetTuple1(this->nSmoothScalars->GetNumberOfTuples()-1);
+  Scalars[4] = this->nBetaScalars->GetTuple1(this->nBetaScalars->GetNumberOfTuples()-1);
+  Scalars[5] = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1);
+  /*//Get TimeStamp value
+  std::string tstamp;
+  this->TimeStamp->GetTupleValue(this->TimeStamp->GetNumberOfTuples()-1, tstamp);
+  std::cerr << "Inserted TimeStamp value" << std::endl;*/
+
+  //Extract polydata
   vtkPolyData* polydata = mnode->GetPolyData();
-  
-  //Assign scalar value to single point
-  polydata->GetPointData()->GetScalars()->SetTuple1(id, scal);
  
-  /*//Assign to all calculated points
+  //Assign scalar value to each array over all calculated points (overwrite current value on point)
+  unsigned int id;
   for(unsigned int i = 0; i < result->GetNumberOfIds (); i++)
     {
-    unsigned int id = result->GetId(i);
-    //Average with current scalar value on point
-    //double sc = polydata->GetPointData()->GetScalars()->GetTuple1(id);
-    polydata->GetPointData()->GetScalars()->SetTuple1(id, scal);
-    }*/
+    id = result->GetId(i);
+    //Assign scalar values to all arrays
+    polydata->GetPointData()->GetArray("SmoothCounts")->SetTuple1(id, Scalars[0]);
+    polydata->GetPointData()->GetArray("BetaCounts")->SetTuple1(id, Scalars[1]);
+    polydata->GetPointData()->GetArray("GammaCounts")->SetTuple1(id, Scalars[2]);
+    polydata->GetPointData()->GetArray("NormSmoothCounts")->SetTuple1(id, Scalars[3]);
+    polydata->GetPointData()->GetArray("NormBetaCounts")->SetTuple1(id, Scalars[4]);
+    polydata->GetPointData()->GetArray("NormGammaCounts")->SetTuple1(id, Scalars[5]);
+    /*//Assign Timestamp value
+    vtkCharArray* ts = vtkCharArray::SafeDownCast(polydata->GetPointData()->GetArray("TimeStamp"));
+    if (ts)
+      {
+      std::cerr << "Inserted TimeStamp value into array" << std::endl;
+      ts->SetTupleValue(id, tstamp);
+      }*/
+    }
   
   //Update the model elements
   polydata->Update();
@@ -718,14 +693,16 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModel(vtkMRMLModelNode* mnode, vtkM
   mnode->Modified();
   
   //Clean up and return
-  //result->Delete();
-  mat->Delete();
+  result->Delete();
   cell->Delete();
+  SensorAxisMatrix->Delete();
+  ToolTipMatrix->Delete();
+  ToolTipAxis->Delete();
   return mnode;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModelGaussian(vtkMRMLModelNode* mnode, vtkMRMLLinearTransformNode* tnode)
+vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModelGaussian(vtkMRMLModelNode* mnode, vtkMRMLHybridNavToolNode* tnode)
 {
   if (!(mnode && tnode))
     {
@@ -733,21 +710,32 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModelGaussian(vtkMRMLModelNode* mno
     return mnode;
     }
   
-  //------------------------------------------------------------------
-  //Calculate interesection point between probe axis and polydata
-  //------------------------------------------------------------------
+  //-------------------------------------------------------------
+  //Calculate intersection point between probe axis and polydata
+  //-------------------------------------------------------------
+  //Define point arrays
   double p1[3];
   double intPoint[3] = {0, 0, 0};
-  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, p1); //Point p1 is the probe tip
-  //Calculate probe axis using two points, the first the tip of the probe and the second
-  //point at k units away from the tip
+
+  //Obtain the position p1 of the tip from the Points array
+  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, p1);
+
+  //Calculate probe axis using two points, the first the tip of the probe p1 and the second
+  //point at k units away from the tip in the direction of the probe axis
   double dir[3];
   double p2[3];
-  vtkMatrix4x4* mat = vtkMatrix4x4::New();
-  tnode->GetMatrixTransformToWorld(mat);
-  dir[0] = mat->GetElement(0,2);
-  dir[1] = mat->GetElement(1,2);
-  dir[2] = mat->GetElement(2,2);  //direction of the probe axis
+
+  //Calculate probe axis from tool
+  vtkMatrix4x4* SensorAxisMatrix = vtkMatrix4x4::New();
+  tnode->GetParentTransformNode()->GetMatrixTransformToWorld(SensorAxisMatrix);
+  vtkMatrix4x4* ToolTipMatrix = vtkMatrix4x4::New();
+  tnode->GetCalibrationMatrix(ToolTipMatrix);
+  vtkMatrix4x4* ToolTipAxis = vtkMatrix4x4::New();
+  ToolTipAxis->Multiply4x4(SensorAxisMatrix, ToolTipMatrix, ToolTipAxis);
+  //Direction vector of the probe axis
+  dir[0] = ToolTipAxis->GetElement(0,2);
+  dir[1] = ToolTipAxis->GetElement(1,2);
+  dir[2] = ToolTipAxis->GetElement(2,2);
   double k = 50.0; //units from the probe tip
   for (int i = 0; i < 3; i++)
     p2[i] = p1[i] + k*dir[i];
@@ -764,6 +752,7 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModelGaussian(vtkMRMLModelNode* mno
     std::cerr << "No intersection with the model" << std::endl;
     return mnode;
     }
+
   //Print out intersection point
   std::cerr << "Intersection Coordinates: " << intPoint[0] << " " << intPoint[1] << " " << intPoint[2] << std::endl;
 
@@ -784,32 +773,27 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModelGaussian(vtkMRMLModelNode* mno
       cts = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1);
     }
   std::cerr << "Count values: " << cts << std::endl;
-  //Current scalar saved in the point of the polydata
-  double dist;
-  int pid = this->pointLocator->FindClosestPointWithinRadius(1, intPoint, dist);
-  std::cerr << "pid value: " << pid << std::endl;
-  vtkPolyData* polydata = mnode->GetPolyData();
-  double sc = polydata->GetPointData()->GetScalars()->GetTuple1(pid);
-  std::cerr << "Count values: " << cts << ", " << sc << std::endl;
-  //Compare them
-  if (sc > cts)
-    return mnode;
-  
+
   //-------------------------------------------------
   // Create a Gaussian Splat onto the PolyData
   //-------------------------------------------------
   //The Gaussian splat will affect all points located at two standard deviations from the splat point
-  //Calculate the standard deviation of the Gaussian which depends on the height of the probe from the polydata splat point
-  //Calculate height
+  //Calculate the standard deviation of the Gaussian which depends on distance h of probe from splat point
   double h = sqrt(pow(intPoint[0] - p1[0],2) + pow(intPoint[1] - p1[1],2) + pow(intPoint[2] - p1[2],2));
   //Calculate the standard deviation from the probe model
   double std = 2.897 + 0.4348*h;
-  std::cerr << "Other values: " << h << ", " << std << std::endl;
   
+  //Make the upper limit of the std, the radius of the probe diameter
+  if (std > (this->probeDiam/2))
+    {
+    std = (this->probeDiam/2);
+    }
+
   // Find other polydata points surrounding the intersection point
   vtkIdList* result = vtkIdList::New();
   this->pointLocator->FindPointsWithinRadius(std, intPoint, result);
   std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;
+  vtkPolyData* polydata = mnode->GetPolyData();
   
   //-------------------------------------------------
   // Associate a scalar (radiation counts) to all these points using a Gaussian
@@ -817,6 +801,7 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModelGaussian(vtkMRMLModelNode* mno
   //Gaussian function f(x)= Counts * exp( (x-x0)/2std^2) )
   //where x0 is the intersetion point and std the standard deviation
   //These values depend on the probe characteristics
+  double sc;
   for(unsigned int i = 0; i < result->GetNumberOfIds (); i++)
     {
     unsigned int id = result->GetId(i);
@@ -839,7 +824,10 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModelGaussian(vtkMRMLModelNode* mno
   
   //Clean up
   result->Delete();
-  
+  cell->Delete();
+  SensorAxisMatrix->Delete();
+  ToolTipMatrix->Delete();
+  ToolTipAxis->Delete();
   return mnode;
 }
 
@@ -891,3 +879,15 @@ vtkIdList* vtkBetaProbeNavLogic::CalculateSurroundingPoints(double p1[3], double
   return result;
 }
 
+//-------------------------------------------------------------------------------------------------
+double vtkBetaProbeNavLogic::CorrectionFactorHeight(double h)
+{
+  //Correction factor defined from probe model
+  double cf;
+  /*if (h >= 1)
+    cf = exp(0.1949*(h-1));
+  else
+    cf = 1;*/
+  cf = 1;
+  return cf;
+}

@@ -132,10 +132,15 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavGUI : public vtkSlicerModuleGUI
   vtkKWRadioButtonSet* DataTypeButtonSet;
   vtkKWCheckButton* ImageCheckButton;
   vtkKWEntry* RangeEntry;
+  vtkKWEntry* HeightEntry;
+  vtkKWEntry* REntry;
+  vtkKWEntry* AEntry;
+  vtkKWEntry* SEntry;
   vtkKWEntry* ProbeDiameterEntry;
   vtkKWEntry* UpdateEntry;
   vtkKWRadioButtonSet* DataEntryButtonSet;
   vtkKWPushButton* DataCaptureButton;
+  vtkKWEntry* StartTimeEntry;
 
   //----------------------------------------------------------------
   // Logic Values
