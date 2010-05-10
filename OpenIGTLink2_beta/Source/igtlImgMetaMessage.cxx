@@ -108,13 +108,13 @@ int ImgMetaElement::SetPatientID(const char* patid)
 }
 
 
-void ImgMetaElement::SetTimeStamp(igtl::TimeStamp::Pointer time)
+void ImgMetaElement::SetTimeStamp(igtl::TimeStamp::Pointer& time)
 {
   this->m_TimeStamp = time;
 }
 
 
-void ImgMetaElement::GetTimeStamp(igtl::TimeStamp::Pointer time)
+void ImgMetaElement::GetTimeStamp(igtl::TimeStamp::Pointer& time)
 {
   time = this->m_TimeStamp;
 }

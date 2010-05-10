@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
     }
     
   //------------------------------------------------------------
-  // Close connection (The example code never reachs to this section ...)
+  // Close connection (The example code never reaches to this section ...)
   
   socket->CloseSocket();
 

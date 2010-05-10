@@ -58,8 +58,8 @@ public:
   int           SetPatientID(const char* patid);
   const char*   GetPatientID()                       { return this->m_PatientID.c_str(); }
 
-  void          SetTimeStamp(igtl::TimeStamp::Pointer time);
-  void          GetTimeStamp(igtl::TimeStamp::Pointer time);
+  void          SetTimeStamp(igtl::TimeStamp::Pointer& time);
+  void          GetTimeStamp(igtl::TimeStamp::Pointer& time);
   //void          GetTimeStampUint64();
 
   void          SetSize(igtlUint16 size[3]);
