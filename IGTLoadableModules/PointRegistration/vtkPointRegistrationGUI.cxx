@@ -536,7 +536,7 @@ void vtkPointRegistrationGUI::ProcessGUIEvents(vtkObject *caller,
       }
     else
       {
-      //this->GetLogic()->GetPat2ImgReg()->SetNumberOfPoints(row);
+      std::cerr << "About to extract the coordinates from the list" << std::endl;
       float* coord = new float[3];
       vtkPoints* patCoords = vtkPoints::New();
       vtkPoints* imCoords = vtkPoints::New();
@@ -557,10 +557,11 @@ void vtkPointRegistrationGUI::ProcessGUIEvents(vtkObject *caller,
             }
           }
         }
+      std::cerr << "Extracted coordinates from the list" << std::endl;
       //Calculate registration Matrix
-      if (regTrans == NULL)
+      if (this->regTrans == NULL)
         {
-        regTrans = vtkMatrix4x4::New();
+        this->regTrans = vtkMatrix4x4::New();
         }
       int error = this->GetLogic()->PerformPatientToImageRegistration(patCoords, imCoords, this->regTrans);
       if (error == 1)
@@ -568,13 +569,14 @@ void vtkPointRegistrationGUI::ProcessGUIEvents(vtkObject *caller,
         vtkSlicerApplication::GetInstance()->ErrorMessage("Error in registration between patient and image land marks.");
         return;
         }
-
+      std::cerr << "Registration Matrix calculated" << std::endl;
       //Create Registration Node
       vtkMRMLLinearTransformNode* registrationMatrix = vtkMRMLLinearTransformNode::New();
       registrationMatrix->SetAndObserveMatrixTransformToParent(this->regTrans);
       registrationMatrix->SetName("RegistrationMatrix");
       this->GetMRMLScene()->AddNode(vtkMRMLNode::SafeDownCast(registrationMatrix));
       this->GetMRMLScene()->Modified();
+      std::cerr << "Node added" << std::endl;
       
       //update status
       this->RegistrationStatus->SetText("Registration Matrix calculated successfully");
