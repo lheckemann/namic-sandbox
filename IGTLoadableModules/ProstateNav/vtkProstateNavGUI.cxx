@@ -895,12 +895,12 @@ void vtkProstateNavGUI::BuildGUIForConfigurationFrame ()
   this->ProstateNavManagerSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
   this->ProstateNavManagerSelectorWidget->SetParent(configurationFrame->GetFrame());
   this->ProstateNavManagerSelectorWidget->Create();
-  this->ProstateNavManagerSelectorWidget->SetNodeClass("vtkMRMLProstateNavManagerNode", NULL, NULL, NULL);
+  this->ProstateNavManagerSelectorWidget->SetNodeClass("vtkMRMLProstateNavManagerNode", NULL, NULL, "ProstateNav exam");
   this->ProstateNavManagerSelectorWidget->SetMRMLScene(this->GetMRMLScene());
   this->ProstateNavManagerSelectorWidget->SetBorderWidth(2);
   this->ProstateNavManagerSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
   this->ProstateNavManagerSelectorWidget->GetWidget()->GetWidget()->SetWidth(24);
-  this->ProstateNavManagerSelectorWidget->SetLabelText( "Active configuration: ");
+  this->ProstateNavManagerSelectorWidget->SetLabelText( "Exam: ");
   this->ProstateNavManagerSelectorWidget->NewNodeEnabledOn();
   this->ProstateNavManagerSelectorWidget->SetBalloonHelpString("Select the active ProstateNav configuration from the current scene.");
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
@@ -909,9 +909,9 @@ void vtkProstateNavGUI::BuildGUIForConfigurationFrame ()
   this->RobotSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
   this->RobotSelectorWidget->SetParent(configurationFrame->GetFrame());
   this->RobotSelectorWidget->Create(); 
-  this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransPerinealProstateRobotNode", NULL, NULL, NULL);
-  this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransPerinealProstateTemplateNode", NULL, NULL, NULL);
-  this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransRectalProstateRobotNode", NULL, NULL, NULL);
+  this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransPerinealProstateRobotNode", NULL, NULL, "Trans-perineal robot");
+  this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransPerinealProstateTemplateNode", NULL, NULL, "Trans-perineal template");
+  this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransRectalProstateRobotNode", NULL, NULL, "Trans-rectal robot");
   this->RobotSelectorWidget->SetMRMLScene(this->GetMRMLScene());
   this->RobotSelectorWidget->SetBorderWidth(2);
   this->RobotSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
