@@ -60,7 +60,6 @@ public:
 
   void          SetTimeStamp(igtl::TimeStamp::Pointer& time);
   void          GetTimeStamp(igtl::TimeStamp::Pointer& time);
-  //void          GetTimeStampUint64();
 
   void          SetSize(igtlUint16 size[3]);
   void          SetSize(igtlUint16 sx, igtlUint16 sy, igtlUint16 sz);

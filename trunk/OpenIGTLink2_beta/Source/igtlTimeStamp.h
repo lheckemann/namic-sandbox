@@ -44,9 +44,12 @@ public:
   void   GetTime();
   void   SetTime(double tm);
   void   SetTime(igtlUint32 second, igtlUint32 nanosecond);
+  void   SetTime(igtlUint64 tm);  /* 64-bit fixed-point expression used in OpenIGTLink */
 
   double GetTimeStamp();
   void   GetTimeStamp(igtlUint32* second, igtlUint32* nanosecond);
+  igtlUint64 GetTimeStampUint64();     /* 64-bit fixed-point expression used in OpenIGTLink */
+
 
 protected:
 

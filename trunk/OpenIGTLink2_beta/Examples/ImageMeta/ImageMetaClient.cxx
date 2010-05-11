@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 
   //------------------------------------------------------------
   // loop
-  for (int i = 0; i < 100; i ++)
+  for (int i = 0; i < 10; i ++)
     {
     //------------------------------------------------------------
     // Send request data
@@ -69,7 +69,6 @@ int main(int argc, char* argv[])
     getImageMetaMsg->SetDeviceName("Client");
     getImageMetaMsg->Pack();
     socket->Send(getImageMetaMsg->GetPackPointer(), getImageMetaMsg->GetPackSize());
-    //igtl::Sleep(1000); // wait
     
     //------------------------------------------------------------
     // Wait for a reply
@@ -88,15 +87,19 @@ int main(int argc, char* argv[])
       std::cerr << "Message size information and actual data size don't match." << std::endl; 
       exit(0);
       }
+
+    headerMsg->Unpack();
     if (strcmp(headerMsg->GetDeviceType(), "IMGMETA") == 0)
       {
       ReceiveImageMeta(socket, headerMsg);
       }
     else
       {
-      std::cerr << "Invalid response from the server." << std::endl; 
+      std::cerr << "Invalid response from the server:" << headerMsg->GetDeviceName() << std::endl; 
       exit(0);
       }
+
+    igtl::Sleep(500); // wait
     }
     
   //------------------------------------------------------------
@@ -109,7 +112,7 @@ int main(int argc, char* argv[])
 int ReceiveImageMeta(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
 {
 
-  std::cerr << "Receiving STATUS data type." << std::endl;
+  std::cerr << "Receiving IMGMETA data type." << std::endl;
 
   // Create a message buffer to receive transform data
   igtl::ImageMetaMessage::Pointer imgMeta;
@@ -126,15 +129,29 @@ int ReceiveImageMeta(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::P
   
   if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
     {
-    
+    int nElements = imgMeta->GetNumberOfImageMetaElement();
+    for (int i = 0; i < nElements; i ++)
+      {
+      igtl::ImageMetaElement::Pointer imgMetaElement;
+      imgMeta->GetImageMetaElement(i, imgMetaElement);
+      igtlUint16 size[3];
+      imgMetaElement->GetSize(size);
 
+      igtl::TimeStamp::Pointer ts;
+      imgMetaElement->GetTimeStamp(ts);
+      double time = ts->GetTimeStamp();
 
-    std::cerr << "========== STATUS ==========" << std::endl;
-    //std::cerr << " Code      : " << imgMeta->GetCode() << std::endl;
-    //std::cerr << " SubCode   : " << imgMeta->GetSubCode() << std::endl;
-    //std::cerr << " Error Name: " << imgMeta->GetErrorName() << std::endl;
-    //std::cerr << " Status    : " << imgMeta->GetStatusString() << std::endl;
-    std::cerr << "============================" << std::endl;
+      std::cerr << "========== Element #" << i << " ==========" << std::endl;
+      std::cerr << " Name       : " << imgMetaElement->GetName() << std::endl;
+      std::cerr << " DeviceName : " << imgMetaElement->GetDeviceName() << std::endl;
+      std::cerr << " Modality   : " << imgMetaElement->GetModality() << std::endl;
+      std::cerr << " PatientName: " << imgMetaElement->GetPatientName() << std::endl;
+      std::cerr << " PatientID  : " << imgMetaElement->GetPatientID() << std::endl;
+      std::cerr << " TimeStamp  : " << std::fixed << time << std::endl;
+      std::cerr << " Size       : ( " << size[0] << ", " << size[1] << ", " << size[2] << ")" << std::endl;
+      std::cerr << " ScalarType : " << (int) imgMetaElement->GetScalarType() << std::endl;
+      std::cerr << "================================" << std::endl;
+      }
     }
 
   return 0;
