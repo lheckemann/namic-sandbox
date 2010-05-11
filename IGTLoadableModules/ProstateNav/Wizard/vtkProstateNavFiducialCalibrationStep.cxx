@@ -435,7 +435,7 @@ void vtkProstateNavFiducialCalibrationStep::ShowUserInterface()
 //-------------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::HideUserInterface()
 {
-  TearDownGUI();
+  TearDownGUI(); // HideUserInterface deletes the reference to the scene, so TearDownGUI shall be done before calling HideUserInterface
 
   vtkMRMLTransRectalProstateRobotNode* robot=GetRobot();
   if(robot!=NULL)

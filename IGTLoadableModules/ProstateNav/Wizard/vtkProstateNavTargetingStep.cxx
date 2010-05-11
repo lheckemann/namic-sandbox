@@ -737,16 +737,25 @@ void vtkProstateNavTargetingStep::AddMRMLObservers()
     this->MRMLObserverManager->SetAndObserveObjectEvents(vtkObjectPointer(&(this->TargetPlanListNode)),(plan),(events));
   }
  
-  manager->AddObserver(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent, this->MRMLCallbackCommand);
+  if (manager->HasObserver(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent, (vtkCommand *)this->MRMLCallbackCommand) < 1)
+  {
+    manager->AddObserver(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent, this->MRMLCallbackCommand);
+  }  
 
   if (this->MRMLScene!=NULL)
   {
-    this->MRMLScene->AddObserver(vtkMRMLScene::NodeAddedEvent, this->MRMLCallbackCommand);
+    if (this->MRMLScene->HasObserver(vtkMRMLScene::NodeAddedEvent, (vtkCommand *)this->MRMLCallbackCommand) < 1)
+    {
+      this->MRMLScene->AddObserver(vtkMRMLScene::NodeAddedEvent, this->MRMLCallbackCommand);
+    }    
 
     vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast(this->MRMLScene->GetNthNodeByClass(0, "vtkMRMLInteractionNode"));
     if (interactionNode!=NULL)
     {
-      interactionNode->AddObserver(vtkMRMLInteractionNode::InteractionModeChangedEvent, this->MRMLCallbackCommand);
+      if (interactionNode->HasObserver(vtkMRMLInteractionNode::InteractionModeChangedEvent, (vtkCommand *)this->MRMLCallbackCommand) < 1)
+      {
+        interactionNode->AddObserver(vtkMRMLInteractionNode::InteractionModeChangedEvent, this->MRMLCallbackCommand);
+      }    
     }
   }
 }
@@ -761,8 +770,7 @@ void vtkProstateNavTargetingStep::RemoveMRMLObservers()
   vtkMRMLProstateNavManagerNode* manager=this->GetProstateNavManager();
   if (manager!=NULL)
   {
-    manager->RemoveObservers(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent, this->MRMLCallbackCommand);    
-    manager->RemoveObservers(vtkMRMLScene::NodeAddedEvent, this->MRMLCallbackCommand);    
+    manager->RemoveObservers(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent, this->MRMLCallbackCommand);        
   }
   if (this->MRMLScene!=NULL)
   {
@@ -1201,8 +1209,8 @@ void vtkProstateNavTargetingStep::ShowCoverage(bool show)
 //----------------------------------------------------------------------------
 void vtkProstateNavTargetingStep::HideUserInterface()
 {
+  TearDownGUI(); // HideUserInterface deletes the reference to the scene, so TearDownGUI shall be done before calling HideUserInterface
   Superclass::HideUserInterface();
-  TearDownGUI();
 }
 
 //----------------------------------------------------------------------------------------

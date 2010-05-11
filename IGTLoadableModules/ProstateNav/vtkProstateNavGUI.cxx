@@ -95,7 +95,21 @@
 
 #include <vector>
 
-
+//---------------------------------------------------------------------------
+// This default needle set description is used when no description is found in the registry.
+// In this case the description is written to the registry. Once the description is written
+// to the registry, it can be customized by editing the registry.
+// Notes:
+//  Biopsy needle: Overshoot = 13 (needle has to be inserted 13 mm short of the target)
+//  Seed insertion needle: Overshoot < 0 (as the seed is inside the needle)
+static const char DEFAULT_NEEDLE_DESCRIPTION[]=
+  "<NeedleList DefaultNeedle=\"BIOP_NIH_14G_000\"> \
+  <Needle ID=\"GEN_000\" TargetNamePrefix=\"T\" Description=\"Generic\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"0\" LastTargetIndex=\"0\" /> \
+  <Needle ID=\"BIOP_NIH_14G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy NIH 14G\" Length=\"200\" Overshoot=\"9.5\" Extension=\"27\" TargetSize=\"16\" LastTargetIndex=\"0\" /> \
+  <Needle ID=\"BIOP_JHH_18G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy JHH 18G\" Length=\"200\" Overshoot=\"10.0\" Extension=\"23.5\" TargetSize=\"16\" LastTargetIndex=\"0\" /> \
+  <Needle ID=\"SEED_000\" TargetNamePrefix=\"S\" Description=\"Seed\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"3\" LastTargetIndex=\"0\" /> \
+  </NeedleList>";
+//---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkProstateNavGUI );
@@ -1775,18 +1789,9 @@ void vtkProstateNavGUI::SetAndObserveProstateNavManagerNodeID(const char *nodeID
       defNeedleDesc=NULL;
       }
     else
-      {
-      // Biopsy needle: Overshoot = 13 (needle has to be inserted 13 mm short of the target)
-      // Seed insertion needle: Overshoot < 0 (as the seed is inside the needle)
-      const char defNeedleDesc[]=
-        "<NeedleList DefaultNeedle=\"BIOP_NIH_14G_000\"> \
-          <Needle ID=\"GEN_000\" TargetNamePrefix=\"T\" Description=\"Generic\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"0\" LastTargetIndex=\"0\" /> \
-          <Needle ID=\"BIOP_NIH_14G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy NIH 14G\" Length=\"200\" Overshoot=\"9.5\" Extension=\"27\" TargetSize=\"16\" LastTargetIndex=\"0\" /> \
-          <Needle ID=\"BIOP_JHH_18G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy JHH 18G\" Length=\"200\" Overshoot=\"10.0\" Extension=\"23.5\" TargetSize=\"16\" LastTargetIndex=\"0\" /> \
-          <Needle ID=\"SEED_000\" TargetNamePrefix=\"S\" Description=\"Seed\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"3\" LastTargetIndex=\"0\" /> \
-        </NeedleList>";
-      this->GetApplication()->SetRegistryValue(2,"ProstateNav","DefaultNeedleList","%s",defNeedleDesc);
-      this->ProstateNavManagerNode->Init(defNeedleDesc);          
+      {      
+      this->GetApplication()->SetRegistryValue(2,"ProstateNav","DefaultNeedleList","%s",DEFAULT_NEEDLE_DESCRIPTION);
+      this->ProstateNavManagerNode->Init(DEFAULT_NEEDLE_DESCRIPTION);          
       }
 
     }
