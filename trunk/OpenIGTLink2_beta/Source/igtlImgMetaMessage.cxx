@@ -196,13 +196,31 @@ ImgMetaMessage::~ImgMetaMessage()
 }
 
 
-int ImgMetaMessage::AddImgMetaElement(ImgMetaElement::Pointer elem)
+int ImgMetaMessage::AddImgMetaElement(ImgMetaElement::Pointer& elem)
 {
+  this->m_ImgMetaList.push_back(elem);
+  return this->m_ImgMetaList.size();
 }
 
 
-int ImgMetaMessage::ClearImgMetaElement(ImgMetaElement::Pointer elem)
+int ImgMetaMessage::ClearImgMetaElement(ImgMetaElement::Pointer& elem)
 {
+  this->m_ImgMetaList.clear();
+}
+
+
+int ImgMetaMessage::GetNumberOfImgMetaElement()
+{
+  return this->m_ImgMetaList.size();
+}
+
+
+void ImgMetaMessage::GetImgMetaElement(int index, ImgMetaElement::Pointer& elem)
+{
+  if (index >= 0 && index < this->m_ImgMetaList.size())
+    {
+    elem = this->m_ImgMetaList[index];
+    }
 }
 
 
@@ -280,9 +298,7 @@ int ImgMetaMessage::UnpackBody()
     strncpy(strbuf, (char*)element->patient_id, IGTL_IMGMETA_LEN_PATIENT_ID);
     elemClass->SetPatientID(strbuf);
 
-
     /** Scalar type etc **/
-
     this->m_ImgMetaList.push_back(elemClass);
     }
 

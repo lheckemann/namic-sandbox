@@ -108,8 +108,12 @@ public:
   igtlNewMacro(igtl::ImgMetaMessage);
 
 public:
-  int AddImgMetaElement(ImgMetaElement::Pointer elem);
-  int ClearImgMetaElement(ImgMetaElement::Pointer elem);
+  int  AddImgMetaElement(ImgMetaElement::Pointer& elem);
+  int  ClearImgMetaElement(ImgMetaElement::Pointer& elem);
+
+  int  GetNumberOfImgMetaElement();
+  void GetImgMetaElement(int index, ImgMetaElement::Pointer& elem);
+
 
 protected:
   ImgMetaMessage();
