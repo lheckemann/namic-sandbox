@@ -90,16 +90,29 @@ protected:
 
 class IGTLCommon_EXPORT GetImgMetaMessage: public MessageBase
 {
+public:
+  typedef GetImgMetaMessage              Self;
+  typedef MessageBase                    Superclass;
+  typedef SmartPointer<Self>             Pointer;
+  typedef SmartPointer<const Self>       ConstPointer;
+
+  igtlTypeMacro(igtl::GetImgMetaMessage, igtl::MessageBase);
+  igtlNewMacro(igtl::GetImgMetaMessage);
+
 protected:
   GetImgMetaMessage() : MessageBase() { this->m_DefaultBodyType  = "GET_IMGMETA"; };
-  ~GetImgMetaMessage();
+  ~GetImgMetaMessage() {};
+protected:
+  virtual int  GetBodyPackSize() { return 0; };
+  virtual int  PackBody()        { AllocatePack(); return 1; };
+  virtual int  UnpackBody()      { return 1; };
 };
 
 
 class IGTLCommon_EXPORT ImgMetaMessage: public MessageBase
 {
 public:
-  typedef ImgMetaMessage                  Self;
+  typedef ImgMetaMessage                 Self;
   typedef MessageBase                    Superclass;
   typedef SmartPointer<Self>             Pointer;
   typedef SmartPointer<const Self>       ConstPointer;
