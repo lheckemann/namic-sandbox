@@ -127,6 +127,9 @@ int ReceiveImgMetea(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Po
   
   if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
     {
+    
+
+
     std::cerr << "========== STATUS ==========" << std::endl;
     //std::cerr << " Code      : " << imgMeta->GetCode() << std::endl;
     //std::cerr << " SubCode   : " << imgMeta->GetSubCode() << std::endl;
