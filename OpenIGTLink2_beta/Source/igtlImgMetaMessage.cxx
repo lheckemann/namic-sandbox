@@ -28,6 +28,10 @@
 
 namespace igtl {
 
+
+//----------------------------------------------------------------------
+// igtl::ImgMetaElement class
+
 ImgMetaElement::ImgMetaElement() : Object()
 {
   this->m_TimeStamp  = 0;
@@ -182,6 +186,10 @@ igtlUint8 ImgMetaElement::GetScalarType()
   return this->m_ScalarType;
 }
 
+
+
+//----------------------------------------------------------------------
+// igtl::ImgMetaMessage class
 
 ImgMetaMessage::ImgMetaMessage():
   MessageBase()

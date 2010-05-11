@@ -70,7 +70,6 @@ int main(int argc, char* argv[])
     getImgMetaMsg->Pack();
     socket->Send(getImgMetaMsg->GetPackPointer(), getImgMetaMsg->GetPackSize());
     //igtl::Sleep(1000); // wait
-
     
     //------------------------------------------------------------
     // Wait for a reply
@@ -99,7 +98,7 @@ int main(int argc, char* argv[])
       exit(0);
       }
     }
-
+    
   //------------------------------------------------------------
   // Close connection
   socket->CloseSocket();
