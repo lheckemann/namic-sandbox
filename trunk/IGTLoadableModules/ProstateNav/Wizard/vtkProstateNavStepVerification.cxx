@@ -799,9 +799,8 @@ void vtkProstateNavStepVerification::UpdateGUI()
 //----------------------------------------------------------------------------
 void vtkProstateNavStepVerification::HideUserInterface()
 {
+  TearDownGUI(); // HideUserInterface deletes the reference to the scene, so TearDownGUI shall be done before calling HideUserInterface
   Superclass::HideUserInterface();
-
-  TearDownGUI();  
 }
 
 //----------------------------------------------------------------------------

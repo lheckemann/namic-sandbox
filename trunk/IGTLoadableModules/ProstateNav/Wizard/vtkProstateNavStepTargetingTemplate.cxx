@@ -1251,10 +1251,10 @@ void vtkProstateNavStepTargetingTemplate::ShowTemplate(bool show)
 
 //----------------------------------------------------------------------------
 void vtkProstateNavStepTargetingTemplate::HideUserInterface()
-{
+{  
+  RemoveMRMLObservers(); // HideUserInterface deletes the reference to the scene, so RemoveMRMLObservers shall be done before calling HideUserInterface
+  RemoveGUIObservers();  
   Superclass::HideUserInterface();
-  RemoveMRMLObservers();
-  RemoveGUIObservers();
 }
 
 //----------------------------------------------------------------------------

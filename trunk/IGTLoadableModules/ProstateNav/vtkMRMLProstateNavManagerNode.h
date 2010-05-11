@@ -106,7 +106,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   // Description:
   // Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName()
-    {return "ProstateNavManager";};
+    {return "ProstateNavExam";};
 
 
   // Description:
