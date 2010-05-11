@@ -22,11 +22,11 @@
 
 #include "igtlOSUtil.h"
 #include "igtlImageMessage.h"
-#include "igtlImgMetaMessage.h"
+#include "igtlImageMetaMessage.h"
 #include "igtlClientSocket.h"
 
 
-int ReceiveImgMetea(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+int ReceiveImageMeta(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 
 
 int main(int argc, char* argv[])
@@ -64,11 +64,11 @@ int main(int argc, char* argv[])
     {
     //------------------------------------------------------------
     // Send request data
-    igtl::GetImgMetaMessage::Pointer getImgMetaMsg;
-    getImgMetaMsg = igtl::GetImgMetaMessage::New();
-    getImgMetaMsg->SetDeviceName("Client");
-    getImgMetaMsg->Pack();
-    socket->Send(getImgMetaMsg->GetPackPointer(), getImgMetaMsg->GetPackSize());
+    igtl::GetImageMetaMessage::Pointer getImageMetaMsg;
+    getImageMetaMsg = igtl::GetImageMetaMessage::New();
+    getImageMetaMsg->SetDeviceName("Client");
+    getImageMetaMsg->Pack();
+    socket->Send(getImageMetaMsg->GetPackPointer(), getImageMetaMsg->GetPackSize());
     //igtl::Sleep(1000); // wait
     
     //------------------------------------------------------------
@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
       }
     if (strcmp(headerMsg->GetDeviceType(), "IMGMETA") == 0)
       {
-      ReceiveImgMetea(socket, headerMsg);
+      ReceiveImageMeta(socket, headerMsg);
       }
     else
       {
@@ -106,14 +106,14 @@ int main(int argc, char* argv[])
 }
 
 
-int ReceiveImgMetea(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceiveImageMeta(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
 {
 
   std::cerr << "Receiving STATUS data type." << std::endl;
 
   // Create a message buffer to receive transform data
-  igtl::ImgMetaMessage::Pointer imgMeta;
-  imgMeta = igtl::ImgMetaMessage::New();
+  igtl::ImageMetaMessage::Pointer imgMeta;
+  imgMeta = igtl::ImageMetaMessage::New();
   imgMeta->SetMessageHeader(header);
   imgMeta->AllocatePack();
   

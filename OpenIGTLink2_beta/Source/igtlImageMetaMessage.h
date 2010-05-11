@@ -14,8 +14,8 @@
 
 =========================================================================*/
 
-#ifndef __igtlImgMetaMessage_h
-#define __igtlImgMetaMessage_h
+#ifndef __igtlImageMetaMessage_h
+#define __igtlImageMetaMessage_h
 
 #include <vector>
 #include <string>
@@ -31,16 +31,16 @@
 namespace igtl
 {
 
-class IGTLCommon_EXPORT ImgMetaElement: public Object
+class IGTLCommon_EXPORT ImageMetaElement: public Object
 {
 public:
-  typedef ImgMetaElement                 Self;
+  typedef ImageMetaElement               Self;
   typedef Object                         Superclass;
   typedef SmartPointer<Self>             Pointer;
   typedef SmartPointer<const Self>       ConstPointer;
 
-  igtlTypeMacro(igtl::ImgMetaElement, igtl::Object);
-  igtlNewMacro(igtl::ImgMetaElement);
+  igtlTypeMacro(igtl::ImageMetaElement, igtl::Object);
+  igtlNewMacro(igtl::ImageMetaElement);
 
 public:
   int           SetName(const char* name);
@@ -71,8 +71,8 @@ public:
   igtlUint8     GetScalarType();
 
 protected:
-  ImgMetaElement();
-  ~ImgMetaElement();
+  ImageMetaElement();
+  ~ImageMetaElement();
 
 protected:
 
@@ -88,20 +88,20 @@ protected:
 };
 
 
-class IGTLCommon_EXPORT GetImgMetaMessage: public MessageBase
+class IGTLCommon_EXPORT GetImageMetaMessage: public MessageBase
 {
 public:
-  typedef GetImgMetaMessage              Self;
+  typedef GetImageMetaMessage            Self;
   typedef MessageBase                    Superclass;
   typedef SmartPointer<Self>             Pointer;
   typedef SmartPointer<const Self>       ConstPointer;
 
-  igtlTypeMacro(igtl::GetImgMetaMessage, igtl::MessageBase);
-  igtlNewMacro(igtl::GetImgMetaMessage);
+  igtlTypeMacro(igtl::GetImageMetaMessage, igtl::MessageBase);
+  igtlNewMacro(igtl::GetImageMetaMessage);
 
 protected:
-  GetImgMetaMessage() : MessageBase() { this->m_DefaultBodyType  = "GET_IMGMETA"; };
-  ~GetImgMetaMessage() {};
+  GetImageMetaMessage() : MessageBase() { this->m_DefaultBodyType  = "GET_IMGMETA"; };
+  ~GetImageMetaMessage() {};
 protected:
   virtual int  GetBodyPackSize() { return 0; };
   virtual int  PackBody()        { AllocatePack(); return 1; };
@@ -109,28 +109,28 @@ protected:
 };
 
 
-class IGTLCommon_EXPORT ImgMetaMessage: public MessageBase
+class IGTLCommon_EXPORT ImageMetaMessage: public MessageBase
 {
 public:
-  typedef ImgMetaMessage                 Self;
+  typedef ImageMetaMessage               Self;
   typedef MessageBase                    Superclass;
   typedef SmartPointer<Self>             Pointer;
   typedef SmartPointer<const Self>       ConstPointer;
 
-  igtlTypeMacro(igtl::ImgMetaMessage, igtl::MessageBase);
-  igtlNewMacro(igtl::ImgMetaMessage);
+  igtlTypeMacro(igtl::ImageMetaMessage, igtl::MessageBase);
+  igtlNewMacro(igtl::ImageMetaMessage);
 
 public:
-  int  AddImgMetaElement(ImgMetaElement::Pointer& elem);
-  int  ClearImgMetaElement(ImgMetaElement::Pointer& elem);
+  int  AddImageMetaElement(ImageMetaElement::Pointer& elem);
+  int  ClearImageMetaElement(ImageMetaElement::Pointer& elem);
 
-  int  GetNumberOfImgMetaElement();
-  void GetImgMetaElement(int index, ImgMetaElement::Pointer& elem);
+  int  GetNumberOfImageMetaElement();
+  void GetImageMetaElement(int index, ImageMetaElement::Pointer& elem);
 
 
 protected:
-  ImgMetaMessage();
-  ~ImgMetaMessage();
+  ImageMetaMessage();
+  ~ImageMetaMessage();
   
 protected:
 
@@ -138,14 +138,14 @@ protected:
   virtual int  PackBody();
   virtual int  UnpackBody();
   
-  std::vector<ImgMetaElement::Pointer> m_ImgMetaList;
+  std::vector<ImageMetaElement::Pointer> m_ImageMetaList;
   
 };
 
 
 } // namespace igtl
 
-#endif // _igtlImgMetaMessage_h
+#endif // _igtlImageMetaMessage_h
 
 
 

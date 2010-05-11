@@ -24,10 +24,10 @@
 #include "igtlMessageHeader.h"
 #include "igtlImageMessage.h"
 #include "igtlServerSocket.h"
-#include "igtlImgMetaMessage.h"
+#include "igtlImageMetaMessage.h"
 
 
-int SendImgMeta(igtl::Socket::Pointer& socket);
+int SendImageMeta(igtl::Socket::Pointer& socket);
 
 int main(int argc, char* argv[])
 {
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
         if (strcmp(headerMsg->GetDeviceType(), "GET_IMGMETA") == 0)
           {
           socket->Skip(headerMsg->GetBodySizeToRead(), 0);
-          SendImgMeta(socket);
+          SendImageMeta(socket);
           }
         else
           {
@@ -114,20 +114,20 @@ int main(int argc, char* argv[])
 }
 
 
-int SendImgMeta(igtl::Socket::Pointer& socket)
+int SendImageMeta(igtl::Socket::Pointer& socket)
 {
 
   //------------------------------------------------------------
   // Allocate Status Message Class
 
-  igtl::ImgMetaMessage::Pointer imgMetaMsg;
-  imgMetaMsg = igtl::ImgMetaMessage::New();
+  igtl::ImageMetaMessage::Pointer imgMetaMsg;
+  imgMetaMsg = igtl::ImageMetaMessage::New();
   imgMetaMsg->SetDeviceName("MetaServer");
 
   //---------------------------
   // Create 1st meta data
-  igtl::ImgMetaElement::Pointer imgMeta0;
-  imgMeta0 = igtl::ImgMetaElement::New();
+  igtl::ImageMetaElement::Pointer imgMeta0;
+  imgMeta0 = igtl::ImageMetaElement::New();
   imgMeta0->SetName("IMAGE_DESCRIPTION_0");
   imgMeta0->SetDeviceName("IMAGE_0");
   imgMeta0->SetModality("CT");
@@ -144,8 +144,8 @@ int SendImgMeta(igtl::Socket::Pointer& socket)
 
   //---------------------------
   // Create 2nd meta data
-  igtl::ImgMetaElement::Pointer imgMeta1;
-  imgMeta1 = igtl::ImgMetaElement::New();
+  igtl::ImageMetaElement::Pointer imgMeta1;
+  imgMeta1 = igtl::ImageMetaElement::New();
   imgMeta1->SetName("IMAGE_DESCRIPTION_1");
   imgMeta1->SetDeviceName("IMAGE_1");
   imgMeta1->SetModality("MRI");
@@ -162,8 +162,8 @@ int SendImgMeta(igtl::Socket::Pointer& socket)
 
   //---------------------------
   // Create 3rd meta data
-  igtl::ImgMetaElement::Pointer imgMeta2;
-  imgMeta2 = igtl::ImgMetaElement::New();
+  igtl::ImageMetaElement::Pointer imgMeta2;
+  imgMeta2 = igtl::ImageMetaElement::New();
   imgMeta2->SetName("IMAGE_DESCRIPTION_2");
   imgMeta2->SetDeviceName("IMAGE_2");
   imgMeta2->SetModality("PET");
@@ -178,9 +178,9 @@ int SendImgMeta(igtl::Socket::Pointer& socket)
   imgMeta2->SetSize(256, 256, 32);
   imgMeta2->SetScalarType(igtl::ImageMessage::TYPE_UINT16);
 
-  imgMetaMsg->AddImgMetaElement(imgMeta0);
-  imgMetaMsg->AddImgMetaElement(imgMeta1);
-  imgMetaMsg->AddImgMetaElement(imgMeta2);
+  imgMetaMsg->AddImageMetaElement(imgMeta0);
+  imgMetaMsg->AddImageMetaElement(imgMeta1);
+  imgMetaMsg->AddImageMetaElement(imgMeta2);
 
   imgMetaMsg->Pack();
   socket->Send(imgMetaMsg->GetPackPointer(), imgMetaMsg->GetPackSize());
