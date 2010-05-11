@@ -235,15 +235,14 @@ void ImageMetaMessage::GetImageMetaElement(int index, ImageMetaElement::Pointer&
 int ImageMetaMessage::GetBodyPackSize()
 {
   // The body size sum of the header size and status message size.
-  // Note that the status message ends with '\0'
   return IGTL_IMGMETA_ELEMENT_SIZE * this->m_ImageMetaList.size();
 }
+
 
 int ImageMetaMessage::PackBody()
 {
   // allocate pack
   AllocatePack();
-  //m_ImageMetaHeader = this->m_Body;
   
   igtl_imgmeta_element* element;
 
@@ -257,7 +256,10 @@ int ImageMetaMessage::PackBody()
     strncpy((char*)element->modality,     (*iter)->GetModality(),    IGTL_IMGMETA_LEN_MODALITY);
     strncpy((char*)element->patient_name, (*iter)->GetPatientName(), IGTL_IMGMETA_LEN_PATIENT_NAME);
     strncpy((char*)element->patient_id,   (*iter)->GetPatientID(),   IGTL_IMGMETA_LEN_PATIENT_ID);
-    //timestamp;
+
+    igtl::TimeStamp::Pointer ts;
+    (*iter)->GetTimeStamp(ts);
+    element->timestamp = ts->GetTimeStampUint64();
     igtlUint16 size[3];
     (*iter)->GetSize(size);
     element->size[0] = size[0];
@@ -272,12 +274,16 @@ int ImageMetaMessage::PackBody()
   return 1;
 }
 
+
 int ImageMetaMessage::UnpackBody()
 {
+
   this->m_ImageMetaList.clear();
 
-  igtl_imgmeta_element* element;
+  igtl_imgmeta_element* element = (igtl_imgmeta_element*) this->m_Body;
   int nElement = igtl_imgmeta_get_data_n(this->m_BodySizeToRead);
+
+  igtl_imgmeta_convert_byte_order(element, nElement);
   
   char strbuf[128];
   for (int i = 0; i < nElement; i ++)
@@ -305,9 +311,17 @@ int ImageMetaMessage::UnpackBody()
     strbuf[IGTL_IMGMETA_LEN_PATIENT_ID] = '\n';
     strncpy(strbuf, (char*)element->patient_id, IGTL_IMGMETA_LEN_PATIENT_ID);
     elemClass->SetPatientID(strbuf);
+    
+    TimeStamp::Pointer ts = TimeStamp::New();
+    ts->SetTime(element->timestamp);
+    elemClass->SetTimeStamp(ts);
 
-    /** Scalar type etc **/
+    elemClass->SetSize(element->size);
+    elemClass->SetScalarType(element->scalar_type);
+
     this->m_ImageMetaList.push_back(elemClass);
+
+    element ++;
     }
 
   return 1;
