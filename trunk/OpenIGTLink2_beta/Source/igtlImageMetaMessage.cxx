@@ -14,7 +14,7 @@
 
 =========================================================================*/
 
-#include "igtlImgMetaMessage.h"
+#include "igtlImageMetaMessage.h"
 
 #include "igtl_header.h"
 #include "igtl_imgmeta.h"
@@ -30,9 +30,9 @@ namespace igtl {
 
 
 //----------------------------------------------------------------------
-// igtl::ImgMetaElement class
+// igtl::ImageMetaElement class
 
-ImgMetaElement::ImgMetaElement() : Object()
+ImageMetaElement::ImageMetaElement() : Object()
 {
   this->m_TimeStamp  = 0;
   this->m_Size[0]    = 0;
@@ -42,12 +42,12 @@ ImgMetaElement::ImgMetaElement() : Object()
 }
 
 
-ImgMetaElement::~ImgMetaElement()
+ImageMetaElement::~ImageMetaElement()
 {
 }
 
 
-int ImgMetaElement::SetName(const char* name)
+int ImageMetaElement::SetName(const char* name)
 {
   if (strlen(name) <= IGTL_IMGMETA_LEN_NAME)
     {
@@ -61,7 +61,7 @@ int ImgMetaElement::SetName(const char* name)
 }
 
 
-int ImgMetaElement::SetDeviceName(const char* devname)
+int ImageMetaElement::SetDeviceName(const char* devname)
 {
   if (strlen(devname) <= IGTL_IMGMETA_LEN_DEVICE_NAME)
     {
@@ -75,7 +75,7 @@ int ImgMetaElement::SetDeviceName(const char* devname)
 }
 
 
-int ImgMetaElement::SetModality(const char* modality)
+int ImageMetaElement::SetModality(const char* modality)
 {
   if (strlen(modality) <= IGTL_IMGMETA_LEN_MODALITY)
     {
@@ -89,7 +89,7 @@ int ImgMetaElement::SetModality(const char* modality)
 }
 
 
-int ImgMetaElement::SetPatientName(const char* patname)
+int ImageMetaElement::SetPatientName(const char* patname)
 {
   if (strlen(patname) <= IGTL_IMGMETA_LEN_PATIENT_NAME)
     {
@@ -103,7 +103,7 @@ int ImgMetaElement::SetPatientName(const char* patname)
 }
 
 
-int ImgMetaElement::SetPatientID(const char* patid)
+int ImageMetaElement::SetPatientID(const char* patid)
 {
   if (strlen(patid) <= IGTL_IMGMETA_LEN_PATIENT_ID)
     {
@@ -117,19 +117,19 @@ int ImgMetaElement::SetPatientID(const char* patid)
 }
 
 
-void ImgMetaElement::SetTimeStamp(igtl::TimeStamp::Pointer& time)
+void ImageMetaElement::SetTimeStamp(igtl::TimeStamp::Pointer& time)
 {
   this->m_TimeStamp = time;
 }
 
 
-void ImgMetaElement::GetTimeStamp(igtl::TimeStamp::Pointer& time)
+void ImageMetaElement::GetTimeStamp(igtl::TimeStamp::Pointer& time)
 {
   time = this->m_TimeStamp;
 }
 
 
-void ImgMetaElement::SetSize(igtlUint16 size[3])
+void ImageMetaElement::SetSize(igtlUint16 size[3])
 {
   this->m_Size[0] = size[0];
   this->m_Size[1] = size[1];
@@ -137,7 +137,7 @@ void ImgMetaElement::SetSize(igtlUint16 size[3])
 }
 
 
-void ImgMetaElement::SetSize(igtlUint16 sx, igtlUint16 sy, igtlUint16 sz)
+void ImageMetaElement::SetSize(igtlUint16 sx, igtlUint16 sy, igtlUint16 sz)
 {
   this->m_Size[0] = sx;
   this->m_Size[1] = sy;
@@ -145,7 +145,7 @@ void ImgMetaElement::SetSize(igtlUint16 sx, igtlUint16 sy, igtlUint16 sz)
 }
 
 
-void ImgMetaElement::GetSize(igtlUint16* size)
+void ImageMetaElement::GetSize(igtlUint16* size)
 {
   size[0] = this->m_Size[0];
   size[1] = this->m_Size[1];
@@ -153,7 +153,7 @@ void ImgMetaElement::GetSize(igtlUint16* size)
 }
 
 
-void ImgMetaElement::GetSize(igtlUint16& sx, igtlUint16& sy, igtlUint16& sz)
+void ImageMetaElement::GetSize(igtlUint16& sx, igtlUint16& sy, igtlUint16& sz)
 {
   sx = this->m_Size[0];
   sy = this->m_Size[1];
@@ -161,7 +161,7 @@ void ImgMetaElement::GetSize(igtlUint16& sx, igtlUint16& sy, igtlUint16& sz)
 }
 
 
-void ImgMetaElement::SetScalarType(igtlUint8 type)
+void ImageMetaElement::SetScalarType(igtlUint8 type)
 {
   if (type == IGTL_IMAGE_STYPE_TYPE_INT8    ||
       type == IGTL_IMAGE_STYPE_TYPE_UINT8   ||
@@ -181,7 +181,7 @@ void ImgMetaElement::SetScalarType(igtlUint8 type)
 }
 
 
-igtlUint8 ImgMetaElement::GetScalarType()
+igtlUint8 ImageMetaElement::GetScalarType()
 {
   return this->m_ScalarType;
 }
@@ -189,68 +189,68 @@ igtlUint8 ImgMetaElement::GetScalarType()
 
 
 //----------------------------------------------------------------------
-// igtl::ImgMetaMessage class
+// igtl::ImageMetaMessage class
 
-ImgMetaMessage::ImgMetaMessage():
+ImageMetaMessage::ImageMetaMessage():
   MessageBase()
 {
   this->m_DefaultBodyType = "IMGMETA";
-  this->m_ImgMetaList.clear();
+  this->m_ImageMetaList.clear();
 }
 
 
-ImgMetaMessage::~ImgMetaMessage()
+ImageMetaMessage::~ImageMetaMessage()
 {
 }
 
 
-int ImgMetaMessage::AddImgMetaElement(ImgMetaElement::Pointer& elem)
+int ImageMetaMessage::AddImageMetaElement(ImageMetaElement::Pointer& elem)
 {
-  this->m_ImgMetaList.push_back(elem);
-  return this->m_ImgMetaList.size();
+  this->m_ImageMetaList.push_back(elem);
+  return this->m_ImageMetaList.size();
 }
 
 
-int ImgMetaMessage::ClearImgMetaElement(ImgMetaElement::Pointer& elem)
+int ImageMetaMessage::ClearImageMetaElement(ImageMetaElement::Pointer& elem)
 {
-  this->m_ImgMetaList.clear();
+  this->m_ImageMetaList.clear();
 }
 
 
-int ImgMetaMessage::GetNumberOfImgMetaElement()
+int ImageMetaMessage::GetNumberOfImageMetaElement()
 {
-  return this->m_ImgMetaList.size();
+  return this->m_ImageMetaList.size();
 }
 
 
-void ImgMetaMessage::GetImgMetaElement(int index, ImgMetaElement::Pointer& elem)
+void ImageMetaMessage::GetImageMetaElement(int index, ImageMetaElement::Pointer& elem)
 {
-  if (index >= 0 && index < this->m_ImgMetaList.size())
+  if (index >= 0 && index < this->m_ImageMetaList.size())
     {
-    elem = this->m_ImgMetaList[index];
+    elem = this->m_ImageMetaList[index];
     }
 }
 
 
-int ImgMetaMessage::GetBodyPackSize()
+int ImageMetaMessage::GetBodyPackSize()
 {
   // The body size sum of the header size and status message size.
   // Note that the status message ends with '\0'
-  return IGTL_IMGMETA_ELEMENT_SIZE * this->m_ImgMetaList.size();
+  return IGTL_IMGMETA_ELEMENT_SIZE * this->m_ImageMetaList.size();
 }
 
-int ImgMetaMessage::PackBody()
+int ImageMetaMessage::PackBody()
 {
   // allocate pack
   AllocatePack();
-  //m_ImgMetaHeader = this->m_Body;
+  //m_ImageMetaHeader = this->m_Body;
   
   igtl_imgmeta_element* element;
 
   element = (igtl_imgmeta_element*)this->m_Body;
 
-  std::vector<ImgMetaElement::Pointer>::iterator iter;
-  for (iter = this->m_ImgMetaList.begin(); iter != this->m_ImgMetaList.end(); iter ++)
+  std::vector<ImageMetaElement::Pointer>::iterator iter;
+  for (iter = this->m_ImageMetaList.begin(); iter != this->m_ImageMetaList.end(); iter ++)
     {
     strncpy((char*)element->name,         (*iter)->GetName(),        IGTL_IMGMETA_LEN_NAME);
     strncpy((char*)element->device_name,  (*iter)->GetDeviceName(),  IGTL_IMGMETA_LEN_DEVICE_NAME);
@@ -267,14 +267,14 @@ int ImgMetaMessage::PackBody()
     element ++;
     }
 
-  igtl_imgmeta_convert_byte_order((igtl_imgmeta_element*)this->m_Body, this->m_ImgMetaList.size());
+  igtl_imgmeta_convert_byte_order((igtl_imgmeta_element*)this->m_Body, this->m_ImageMetaList.size());
 
   return 1;
 }
 
-int ImgMetaMessage::UnpackBody()
+int ImageMetaMessage::UnpackBody()
 {
-  this->m_ImgMetaList.clear();
+  this->m_ImageMetaList.clear();
 
   igtl_imgmeta_element* element;
   int nElement = igtl_imgmeta_get_data_n(this->m_BodySizeToRead);
@@ -282,7 +282,7 @@ int ImgMetaMessage::UnpackBody()
   char strbuf[128];
   for (int i = 0; i < nElement; i ++)
     {
-    ImgMetaElement::Pointer elemClass = ImgMetaElement::New();
+    ImageMetaElement::Pointer elemClass = ImageMetaElement::New();
 
     // Add '\n' at the end of each string
     // (neccesary for a case, where a string reaches the maximum length.)
@@ -307,7 +307,7 @@ int ImgMetaMessage::UnpackBody()
     elemClass->SetPatientID(strbuf);
 
     /** Scalar type etc **/
-    this->m_ImgMetaList.push_back(elemClass);
+    this->m_ImageMetaList.push_back(elemClass);
     }
 
   return 1;
