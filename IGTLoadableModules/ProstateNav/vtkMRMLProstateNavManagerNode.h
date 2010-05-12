@@ -133,10 +133,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   // Get current workflow step.
   int GetCurrentStep();
 
-  // Description:
-  // Get previous workflow step.
-  int GetPreviousStep();
-
   vtkSetReferenceStringMacro(TargetingVolumeNodeRef);
   vtkGetStringMacro(TargetingVolumeNodeRef);
 
@@ -239,7 +235,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   vtkStringArray *StepList;
   
   int CurrentStep;
-  int PreviousStep;
 
   //BTX
   std::vector<NeedleDescriptorStruct> NeedlesVector;

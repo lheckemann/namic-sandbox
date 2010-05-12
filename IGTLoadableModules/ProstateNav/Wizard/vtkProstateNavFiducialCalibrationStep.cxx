@@ -427,10 +427,10 @@ void vtkProstateNavFiducialCalibrationStep::ShowUserInterface()
     }
   }  
 
-  UpdateGUI();
-
   AddGUIObservers();
   AddMRMLObservers();
+
+  UpdateGUI();
 }
 //-------------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::HideUserInterface()
@@ -610,7 +610,7 @@ void vtkProstateNavFiducialCalibrationStep::UpdateGUI()
     this->AutomaticCenterpointAdjustmentCheckButton->SetSelectedState(robot->GetEnableAutomaticMarkerCenterpointAdjustment());
   }
   
-  if (this->MRMLScene!=NULL)
+  if (this->MRMLScene!=NULL && this->VolumeSelectorWidget!=NULL && this->VolumeSelectorWidget->IsCreated() )
   {
     const char* calVolNodeID = robot->GetCalibrationVolumeNodeID();
     vtkMRMLScalarVolumeNode *calVolNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->MRMLScene->GetNodeByID(calVolNodeID));    
@@ -787,7 +787,11 @@ void vtkProstateNavFiducialCalibrationStep::ProcessMRMLEvents(vtkObject *caller,
     case vtkMRMLFiducialListNode::FiducialModifiedEvent:
     case vtkMRMLFiducialListNode::DisplayModifiedEvent:
     case vtkMRMLScene::NodeRemovedEvent:
-      UpdateCalibration();
+      // Update GUI if not just the presentation of the fiducials is changed
+      if (event!=vtkMRMLFiducialListNode::DisplayModifiedEvent)
+      {
+        UpdateGUI();
+      }
       break;
     }
   }
@@ -808,6 +812,12 @@ void vtkProstateNavFiducialCalibrationStep::ProcessMRMLEvents(vtkObject *caller,
   vtkMRMLTransRectalProstateRobotNode *robot = vtkMRMLTransRectalProstateRobotNode::SafeDownCast(caller);
   if (robot!=NULL && robot == GetRobot() && event == vtkCommand::ModifiedEvent)
     {
+    // the calibrationpointlistnode may change after ShowGUI, in this case update the observers
+    vtkMRMLFiducialListNode *fidNode=GetCalibrationPointListNode();
+    if (fidNode!=this->ObservedCalibrationPointListNode)
+      {      
+      AddMRMLObservers();
+      }
     UpdateGUI();
     }
 
@@ -953,26 +963,6 @@ void vtkProstateNavFiducialCalibrationStep::EnableMarkerPositionEdit(bool enable
       fidNode->SetLocked(true);
     }
   }
-}
-
-
-void vtkProstateNavFiducialCalibrationStep::UpdateCalibration()
-{  
-  /*vtkMRMLTransRectalProstateRobotNode* robot= GetRobot();
-  if(robot==NULL)
-  {
-    vtkErrorMacro("UpdateCalibration: node is invalid");
-    return;
-  }*/
-  // Update marker positioning mode (as new points are added the mode should be changed from "place new points" to "edit points"
-  EnableMarkerPositionEdit(this->EditMarkerPositionButton->GetSelectedState() == 1);
-/*
-  if (this->CalibrationPointListNode->GetNumberOfFiducials()<(int)CALIB_MARKER_COUNT)
-  {
-    // not enough fiducials to compute result
-    return;
-  }*/
- // this->Resegment();
 }
 
 void vtkProstateNavFiducialCalibrationStep::JumpToFiducial(unsigned int fid1Index)

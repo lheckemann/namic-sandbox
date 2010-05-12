@@ -178,6 +178,8 @@ void vtkProstateNavTargetingStep::ShowUserInterface()
   this->AddGUIObservers();
 
   EnableAddTargetsOnClickButton(this->AddTargetsOnClickButton->GetSelectedState()==1);
+
+  UpdateGUI();
 }
 
 //----------------------------------------------------------------------------
@@ -921,6 +923,15 @@ void vtkProstateNavTargetingStep::OnMultiColumnListSelectionChanged()
 //----------------------------------------------------------------------------
 void vtkProstateNavTargetingStep::UpdateTargetListGUI()
 {
+  if (this->TargetList==NULL)
+  {
+    return; // there is no GUI, nothing to update
+  }
+  if (this->TargetList->GetWidget()==NULL)
+  {
+    return; // there is no GUI, nothing to update
+  }
+
   vtkMRMLFiducialListNode* activeFiducialListNode=NULL;
   if (this->GetProstateNavManager()!=NULL)
   {

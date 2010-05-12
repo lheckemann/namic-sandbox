@@ -61,7 +61,6 @@ vtkMRMLProstateNavManagerNode::vtkMRMLProstateNavManagerNode()
 
   this->StepList=vtkStringArray::New();
   this->CurrentStep = 0;
-  this->PreviousStep = 0;
 
   this->CurrentNeedleIndex=-1;
   this->CurrentTargetIndex=-1;
@@ -123,7 +122,6 @@ void vtkMRMLProstateNavManagerNode::WriteXML(ostream& of, int nIndent)
 
   of << indent << " ProstateNavModuleVersion=\"" << PROSTATE_NAV_MODULE_VERSION << "\"";
   of << indent << " CurrentWorkflowStep=\"" << this->CurrentStep << "\"";    
-  of << indent << " PreviousWorkflowStep=\"" << this->PreviousStep << "\"";
 
   of << indent << " CurrentNeedleIndex=\"" << this->CurrentNeedleIndex << "\"";
   for (unsigned int needleInd=0; needleInd<this->NeedlesVector.size(); needleInd++)
@@ -223,18 +221,6 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
       std::stringstream ss;
       ss << attValue;
       ss >> this->CurrentStep;
-      //:TODO: implement switching to CurrentStep when updating the GUI
-      //now just hardcode current step to 0
-      this->CurrentStep=0;
-    }
-    else if (!strcmp(attName, "PreviousWorkflowStep"))
-    {
-      std::stringstream ss;
-      ss << attValue;
-      ss >> this->PreviousStep;
-      //:TODO: implement switching to CurrentStep when updating the GUI
-      //now just hardcode current step to 0
-      this->PreviousStep=0;
     }
     else if (!strcmp(attName, "CurrentNeedleIndex"))
     {
@@ -510,7 +496,6 @@ void vtkMRMLProstateNavManagerNode::Copy(vtkMRMLNode *anode)
   vtkMRMLProstateNavManagerNode *node = (vtkMRMLProstateNavManagerNode *) anode;
 
   this->CurrentStep = node->CurrentStep;
-  this->PreviousStep = node->PreviousStep;
 
   SetTargetingVolumeNodeRef(node->TargetingVolumeNodeRef);
   SetVerificationVolumeNodeRef(node->VerificationVolumeNodeRef);  
@@ -650,6 +635,10 @@ void vtkMRMLProstateNavManagerNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 int vtkMRMLProstateNavManagerNode::GetNumberOfSteps()
 {
+  if (this->StepList==NULL)
+  {
+    return 0;
+  }
   return this->StepList->GetNumberOfValues();
 }
 
@@ -673,7 +662,6 @@ int vtkMRMLProstateNavManagerNode::SwitchStep(int newStep)
   {
     return 0;
   }
-  this->PreviousStep = this->CurrentStep;
   this->CurrentStep = newStep; 
 
   // Tentatively, this function calls vtkMRMLBrpRobotCommandNode::SwitchStep().
@@ -690,13 +678,6 @@ int vtkMRMLProstateNavManagerNode::SwitchStep(int newStep)
 int vtkMRMLProstateNavManagerNode::GetCurrentStep()
 {
   return this->CurrentStep;
-}
-
-
-//----------------------------------------------------------------------------
-int vtkMRMLProstateNavManagerNode::GetPreviousStep()
-{
-  return this->PreviousStep;
 }
 
 //----------------------------------------------------------------------------
