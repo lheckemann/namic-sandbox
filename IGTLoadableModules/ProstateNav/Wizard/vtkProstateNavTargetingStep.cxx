@@ -1148,7 +1148,7 @@ void vtkProstateNavTargetingStep::UpdateGUI()
   
   const char* volNodeID = mrmlNode->GetTargetingVolumeNodeRef();
   vtkMRMLScalarVolumeNode *volNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(volNodeID));
-  if ( volNode )
+  if ( volNode!=NULL && this->VolumeSelectorWidget!=NULL && this->VolumeSelectorWidget->IsCreated())
   {
     this->VolumeSelectorWidget->UpdateMenu();
     this->VolumeSelectorWidget->SetSelected( volNode );
@@ -1180,7 +1180,7 @@ void vtkProstateNavTargetingStep::UpdateGUI()
 
   UpdateTargetListGUI();
 
-  if (this->NeedleTypeMenuList)
+  if (this->NeedleTypeMenuList!=NULL && this->NeedleTypeMenuList->GetWidget()!=NULL)
     {
     this->NeedleTypeMenuList->GetWidget()->GetMenu()->DeleteAllItems();
     for (int i = 0; i < mrmlNode->GetNumberOfNeedles(); i++)
