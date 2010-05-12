@@ -484,28 +484,6 @@ void vtkProstateNavGUI::ProcessGUIEvents(vtkObject *caller,
     }
 
   //----------------------------------------------------------------
-  // Check Work Phase Transition Buttons
-
-  if ( event == vtkKWPushButton::InvokedEvent && this->WorkphaseButtonSet!=NULL)
-  {
-    int phase;
-    for (phase = 0; phase < this->WorkphaseButtonSet->GetNumberOfWidgets(); phase ++)
-    {
-      if (this->WorkphaseButtonSet->GetWidget(phase) == vtkKWPushButton::SafeDownCast(caller))
-      {
-        break;
-      }
-    }
-    if (manager!=NULL)
-    {
-      if (phase < manager->GetNumberOfSteps()) // if pressed one of them
-      {
-        ChangeWorkphase(phase, 1);
-      }
-    }
-  }
-
-  //----------------------------------------------------------------
   // Configuration Frame
 
   else if (this->ProstateNavManagerSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
@@ -539,6 +517,35 @@ void vtkProstateNavGUI::ProcessGUIEvents(vtkObject *caller,
     return;
     }
 
+  //----------------------------------------------------------------
+  // Check Work Phase Transition Buttons
+
+  vtkKWPushButton* pushButtonCaller=vtkKWPushButton::SafeDownCast(caller);
+  vtkKWPushButtonSet* pushButtonCallerParent=NULL;
+  if (pushButtonCaller!=NULL)
+  {
+    pushButtonCallerParent=vtkKWPushButtonSet::SafeDownCast(pushButtonCaller->GetParent());
+  }
+
+  if ( this->WorkphaseButtonSet!=NULL && pushButtonCallerParent==this->WorkphaseButtonSet &&
+    event == vtkKWPushButton::InvokedEvent && this->WorkphaseButtonSet!=NULL)
+  {
+    int phase;
+    for (phase = 0; phase < this->WorkphaseButtonSet->GetNumberOfWidgets(); phase ++)
+    {
+      if (this->WorkphaseButtonSet->GetWidget(phase) == vtkKWPushButton::SafeDownCast(caller))
+      {
+        break;
+      }
+    }
+    if (manager!=NULL)
+    {
+      if (phase < manager->GetNumberOfSteps()) // if pressed one of them
+      {
+        ChangeWorkphaseInGUI(phase);
+      }
+    }
+  }
 
   //----------------------------------------------------------------
   // Wizard Frame
@@ -548,20 +555,32 @@ void vtkProstateNavGUI::ProcessGUIEvents(vtkObject *caller,
   {
 
     int phase = 0;
-    vtkKWWizardStep* step =  this->WizardWidget->GetWizardWorkflow()->GetCurrentStep();
+    vtkKWWizardStep* currentStep =  this->WizardWidget->GetWizardWorkflow()->GetCurrentStep();
 
     if (manager)
     {
       int numSteps = manager->GetNumberOfSteps();
       for (int i = 0; i < numSteps; i ++)
       {
-        if (step == GetStepPage(i))
+        if (currentStep == GetStepPage(i))
         {
           phase = i;
         }
       }
 
-      ChangeWorkphase(phase);
+      manager->SwitchStep(phase); // Notify manager about state change
+
+      // Update workflow button states and current step GUI
+      UpdateGUI();
+
+/*      vtkProstateNavStep* currentProstateNavStep=vtkProstateNavStep::SafeDownCast(currentStep);
+      if (currentProstateNavStep)
+      {
+        //step->ShowUserInterface(); ShowUserInterface is triggered by state Enter event
+        currentProstateNavStep->UpdateGUI();
+      }
+*/
+      
     }
   }
 
@@ -977,7 +996,7 @@ void vtkProstateNavGUI::BuildGUIForWorkphaseFrame ()
 }
 
 //----------------------------------------------------------------------------
-int vtkProstateNavGUI::ChangeWorkphase(int phase, int fChangeWizard)
+int vtkProstateNavGUI::ChangeWorkphaseInGUI(int phase)
 {
   vtkMRMLProstateNavManagerNode *manager=this->GetProstateNavManagerNode();
   if (manager==NULL)
@@ -991,88 +1010,36 @@ int vtkProstateNavGUI::ChangeWorkphase(int phase, int fChangeWizard)
     return 0;
   }
 
-  if (!manager->SwitchStep(phase)) // Set next phase
-    {
-    cerr << "ChangeWorkphase: Cannot transition!" << endl;
-    return 0;
-    }
-  
+  vtkKWWizardStep* currentStep =  this->WizardWidget->GetWizardWorkflow()->GetCurrentStep();
+  int currentPhase=-1;
   int numSteps = manager->GetNumberOfSteps();
-  
   for (int i = 0; i < numSteps; i ++)
+  {
+    if (currentStep == GetStepPage(i))
     {
-    vtkKWPushButton *pb = this->WorkphaseButtonSet->GetWidget(i);
-    bool transitionable=true; // :TODO: get this information from the workflow widget state machine
-    if (i == manager->GetCurrentStep())
-      {
-      pb->SetReliefToSunken();
-      }
-    else if (transitionable)
-      {
-      double r;
-      double g;
-      double b;
-      GetStepPage(i)->GetTitleBackgroundColor(&r, &g, &b);
-      
-      pb->SetReliefToGroove();
-      pb->SetStateToNormal();
-      pb->SetBackgroundColor(r, g, b);
-      }
-    else
-      {
-      double r;
-      double g;
-      double b;
-      GetStepPage(i)->GetTitleBackgroundColor(&r, &g, &b);
-      r = r * 1.5; r = (r > 1.0) ? 1.0 : r;
-      g = g * 1.5; g = (r > 1.0) ? 1.0 : g;
-      b = b * 1.5; b = (r > 1.0) ? 1.0 : b;
-      
-      pb->SetReliefToGroove();
-      pb->SetStateToDisabled();
-      pb->SetBackgroundColor(r, g, b);
-      }
+      currentPhase = i;
     }
+  }
   
   // Switch Wizard Frame
-  if (fChangeWizard)
+  vtkKWWizardWorkflow *wizard = this->WizardWidget->GetWizardWorkflow();
+  
+  int steps =  phase - currentPhase;
+  if (steps > 0)
     {
-    vtkKWWizardWorkflow *wizard = 
-      this->WizardWidget->GetWizardWorkflow();
-    
-    int step_from;
-    int step_to;
-    
-    //step_to = this->Logic->GetCurrentPhase();
-    step_to = manager->GetCurrentStep();
-    //step_from = this->Logic->GetPrevPhase();
-    step_from = manager->GetPreviousStep();
-    
-    int steps =  step_to - step_from;
-    if (steps > 0)
+    for (int i = 0; i < steps; i ++) 
       {
-      for (int i = 0; i < steps; i ++) 
-        {
-        wizard->AttemptToGoToNextStep();
-        }
+      wizard->AttemptToGoToNextStep();
       }
-    else
-      {
-      steps = -steps;
-      for (int i = 0; i < steps; i ++)
-        {
-        wizard->AttemptToGoToPreviousStep();
-        }
-      }
-
-    vtkProstateNavStep* step=vtkProstateNavStep::SafeDownCast(wizard->GetCurrentStep());
-    if (step)
-      {
-      //step->ShowUserInterface(); ShowUserInterface is triggered by state Enter event
-      step->UpdateGUI();
-      }
-   
     }
+  else
+    {
+    steps = -steps;
+    for (int i = 0; i < steps; i ++)
+      {
+      wizard->AttemptToGoToPreviousStep();
+      }
+    }    
   
   return 1;
 }
@@ -1080,7 +1047,32 @@ int vtkProstateNavGUI::ChangeWorkphase(int phase, int fChangeWizard)
 
 //----------------------------------------------------------------------------
 void vtkProstateNavGUI::UpdateGUI() // from MRML
-{ 
+{
+  // we know that we are updating the GUI and we don't need notifications about that (it's not changed by the user)
+  int oldInGUICallbackFlag=GetInGUICallbackFlag();
+  if (!oldInGUICallbackFlag)
+  {
+    SetInGUICallbackFlag(1);
+  }
+
+  // Update node selector widgets
+  if (this->ProstateNavManagerSelectorWidget!= NULL)
+  {
+    vtkMRMLProstateNavManagerNode *selManagerNode = vtkMRMLProstateNavManagerNode::SafeDownCast(this->ProstateNavManagerSelectorWidget->GetSelected());
+    if (selManagerNode!=this->GetProstateNavManagerNode())
+    {    
+      this->ProstateNavManagerSelectorWidget->SetSelected(this->GetProstateNavManagerNode());
+    }
+  }
+  if (this->RobotSelectorWidget != NULL)
+  {
+    vtkMRMLRobotNode *selRobotNode = vtkMRMLRobotNode::SafeDownCast(this->RobotSelectorWidget->GetSelected());
+    if (selRobotNode!=this->GetRobotNode())
+    {    
+      this->RobotSelectorWidget->SetSelected(this->GetRobotNode());
+    }
+  }
+
   // Update the workphase and wizard frame
   UpdateStatusButtons();
   UpdateWorkflowSteps();
@@ -1103,7 +1095,53 @@ void vtkProstateNavGUI::UpdateGUI() // from MRML
       }
   }
   
+  // Update workflow button status (color, sunken)
+  if (manager!=NULL && this->WorkphaseButtonSet!=NULL)
+  {
+    int numSteps = manager->GetNumberOfSteps();  
+    for (int i = 0; i < numSteps; i ++)
+    {
+      vtkKWPushButton *pb = this->WorkphaseButtonSet->GetWidget(i);
+      bool transitionable=true; // :TODO: get this information from the workflow widget state machine
+      if (i == manager->GetCurrentStep())
+      {
+        pb->SetReliefToSunken();
+      }
+      else if (transitionable)
+      {
+        double r;
+        double g;
+        double b;
+        GetStepPage(i)->GetTitleBackgroundColor(&r, &g, &b);
+
+        pb->SetReliefToGroove();
+        pb->SetStateToNormal();
+        pb->SetBackgroundColor(r, g, b);
+      }
+      else
+      {
+        double r;
+        double g;
+        double b;
+        GetStepPage(i)->GetTitleBackgroundColor(&r, &g, &b);
+        r = r * 1.5; r = (r > 1.0) ? 1.0 : r;
+        g = g * 1.5; g = (r > 1.0) ? 1.0 : g;
+        b = b * 1.5; b = (r > 1.0) ? 1.0 : b;
+
+        pb->SetReliefToGroove();
+        pb->SetStateToDisabled();
+        pb->SetBackgroundColor(r, g, b);
+      }
+    }
+  }
+
   UpdateCurrentTargetDisplay(); // if a new node is added then it is selected by default => keep only the current target as selected
+   
+  // now InGUICallbackFlag==1, if previously it was ==0, then set it back to 0
+  if (!oldInGUICallbackFlag)
+  {
+    SetInGUICallbackFlag(0);
+  }
 }
 
 
@@ -1294,6 +1332,8 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
       }
     }
 
+    this->WizardWidget->GetWizardWorkflow()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+
     this->WizardWidget->SetParent(NULL);
     this->WizardWidget->Delete(); 
     this->WizardWidget = NULL;
@@ -1367,6 +1407,9 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
   this->WizardWidget->HelpButtonVisibilityOn();
   this->Script("pack %s -side top -anchor nw -fill both -expand y",
     this->WizardWidget->GetWidgetName());
+
+  this->WizardWidget->GetWizardWorkflow()->AddObserver(vtkKWWizardWorkflow::CurrentStateChangedEvent,
+      (vtkCommand *)this->GUICallbackCommand);
 
   // -----------------------------------------------------------------
   // Add the steps to the workflow
@@ -1727,9 +1770,12 @@ void vtkProstateNavGUI::SetAndObserveRobotNodeID(const char *nodeID)
   }
 
   UpdateGUI();
-  /*
-  ChangeWorkphase(0,true); //always start with the the first step
-  */
+
+  vtkMRMLProstateNavManagerNode *manager= this->GetProstateNavManagerNode();
+  if (manager!=NULL)
+  {    
+    ChangeWorkphaseInGUI(manager->GetCurrentStep()); //always start with the the first step
+  }
 }
 
 //----------------------------------------------------------------------------

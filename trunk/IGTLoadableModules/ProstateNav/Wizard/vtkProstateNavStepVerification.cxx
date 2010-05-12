@@ -227,6 +227,8 @@ void vtkProstateNavStepVerification::ShowUserInterface()
 
   this->AddGUIObservers();
   this->AddMRMLObservers();
+  
+  UpdateGUI();
 }
 
 //----------------------------------------------------------------------------
@@ -786,7 +788,7 @@ void vtkProstateNavStepVerification::UpdateGUI()
   }
   const char* volNodeID = mrmlNode->GetVerificationVolumeNodeRef();
   vtkMRMLScalarVolumeNode *volNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(volNodeID));
-  if ( volNode && this->VolumeSelectorWidget)
+  if ( volNode && this->VolumeSelectorWidget!=NULL && this->VolumeSelectorWidget->IsCreated())
   {
     this->VolumeSelectorWidget->UpdateMenu();
     this->VolumeSelectorWidget->SetSelected( volNode );

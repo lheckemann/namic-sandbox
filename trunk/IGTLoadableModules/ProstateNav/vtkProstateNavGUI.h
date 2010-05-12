@@ -229,7 +229,7 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   void UpdateStatusButtons();
   void UpdateWorkflowSteps();
   
-  int  ChangeWorkphase(int phase, int fChangeWizard=0);
+  int  ChangeWorkphaseInGUI(int phase);
   const char* AddZFrameModel(const char* nodeName);
 
   // Description:

@@ -105,8 +105,6 @@ protected:
 
   void EnableMarkerPositionEdit(bool enable);
 
-  void UpdateCalibration();
-
   void JumpToFiducial(unsigned int i);
 
   // Description:
