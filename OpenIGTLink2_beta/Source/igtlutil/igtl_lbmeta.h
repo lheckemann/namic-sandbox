@@ -80,8 +80,8 @@ typedef struct {
   igtl_uint8     label;            /* label */
   igtl_uint8     reserved;
   igtl_uint8     rgba[4];          /* Color in RGBA. default: (0, 0, 0, 0) */
-  igtl_uint16    size[3];          /* number of pixels in each direction */
-  igtl_uint8     owner[20];        /* device name of the owner image. (can be empty) */
+  igtl_uint16    size[3];          /* Number of pixels in each direction */
+  igtl_uint8     owner[20];        /* Device name of the owner image. (can be empty) */
 } igtl_lbmeta_element;
 
 #pragma pack()
