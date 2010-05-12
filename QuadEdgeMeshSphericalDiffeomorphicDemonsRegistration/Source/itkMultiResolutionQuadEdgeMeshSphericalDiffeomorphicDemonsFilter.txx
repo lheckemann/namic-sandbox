@@ -240,6 +240,8 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     }
   else
     {
+    this->m_DemonsRegistrationFilter->SelfRegulatedModeOff();
+    
     if( this->m_EpsilonValues.size() < this->m_NumberOfResolutionLevels )
       {
       itkExceptionMacro("Demons Epsilon array size is smaller than number of iteration levels");
