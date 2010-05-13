@@ -43,12 +43,15 @@
 #include "itkBinaryMask3DMeshSource.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkWarpMeshFilter.h"
+#include "itkIterativeInverseDeformationFieldImageFilter.h"
 
-typedef itk::Image< float, 3> ImageType;
-typedef itk::Image< itk::Vector<double,3>,3 > DeformationFieldType;
+typedef itk::OrientedImage< float, 3> ImageType;
+typedef itk::OrientedImage< itk::Vector<double,3>,3 > DeformationFieldType;
 typedef itk::ImageFileReader< ImageType > ReaderType;
 typedef itk::ImageFileReader< DeformationFieldType > DFReaderType;
 typedef itk::BinaryThresholdImageFilter<ImageType,ImageType> ThreshType;
+typedef itk::IterativeInverseDeformationFieldImageFilter<DeformationFieldType,DeformationFieldType>
+  DFInvertorType;
 
 typedef float CoordType;
 typedef itk::Vector<CoordType,3> VectorType;
@@ -83,7 +86,7 @@ float SurfaceVolume(vtkPolyData* surf);
 
 int main(int argc, char** argv){
   if(argc<3){
-    std::cerr << "Usage: " << argv[0] << " deformation_field binary_image" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " deformation_field binary_image [invert_flag]" << std::endl;
     return -1;
   }
 
@@ -109,15 +112,26 @@ int main(int argc, char** argv){
   meshSource->SetObjectValue(255);
   meshSource->Update();
 
-  DFIterType it(defField, defField->GetBufferedRegion());
-  for(it.GoToBegin();!it.IsAtEnd();++it){
-    DeformationFieldType::PixelType p;
-    p = it.Get();
-    p[0] *= -1.;
-    p[1] *= -1.;
-    p[2] *= -1.;
-    it.Set(p);
-  }  
+  if(argc==3){
+    DFInvertorType::Pointer invert = DFInvertorType::New();
+    invert->SetInput(defField);
+    invert->SetNumberOfIterations(100);
+    invert->SetStopValue(0.5);
+    invert->Update();
+    std::cout << "Inverted DF" << std::endl;
+    defField = invert->GetOutput();
+    /*
+    DFIterType it(defField, defField->GetBufferedRegion());
+    for(it.GoToBegin();!it.IsAtEnd();++it){
+      DeformationFieldType::PixelType p;
+      p = it.Get();
+      p[0] *= -1.;
+      p[1] *= -1.;
+      p[2] *= -1.;
+      it.Set(p);
+    } 
+    */
+  }
 
   MeshWarperType::Pointer mwarper = MeshWarperType::New();
   mwarper->SetInput(meshSource->GetOutput());
