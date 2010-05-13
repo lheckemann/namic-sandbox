@@ -1259,7 +1259,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     // Insertion depth
     double needle_angle_initial = alpha_degree*vtkMath::Pi()/180;
 
-    double n_length = 29.16 + 4 + 14.5 / sin(needle_angle_initial);
+    double n_length = 30 + 14.5 / sin(needle_angle_initial);
     double n_slide = n_length-14.5/sin(needle_angle);
 
     double insM[3];
