@@ -124,6 +124,15 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 
 
 template <class TInputImage, class TOutputImage>
+const typename
+FrontPropagationLabelImageFilter<TInputImage, TOutputImage>::SeedArrayMapType &
+FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
+::GetSeedArrayMap1() const
+{
+  return this->m_SeedArrayMap1;
+}
+
+template <class TInputImage, class TOutputImage>
 void 
 FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 ::IterateFrontPropagations()
