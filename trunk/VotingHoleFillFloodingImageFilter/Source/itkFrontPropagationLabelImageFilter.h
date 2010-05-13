@@ -163,7 +163,7 @@ protected:
   typedef std::map<LabelType, SizeValueType >        NumberOfPixelsArrayMapType;
 
 
-  itkGetConstReferenceMacro( SeedArrayMap1, SeedArrayMapType );
+  const SeedArrayMapType & GetSeedArrayMap1() const;
 
 private:
   FrontPropagationLabelImageFilter(const Self&); //purposely not implemented
