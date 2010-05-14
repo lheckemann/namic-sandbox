@@ -61,7 +61,7 @@ int main( int argc, char * argv [] )
   message.pointlist[0].position[1]  = 15.0;
   message.pointlist[0].position[2]  = 20.0;
   message.pointlist[0].radius       = 5.0;
-  strncpy((char*)&(message.pointlist[0].owner_name), "IMAGE_0", 20);
+  strncpy((char*)&(message.pointlist[0].owner), "IMAGE_0", 20);
 
   /* Point data 1 */
   strncpy((char*)&(message.pointlist[1].name), "POINT_DESCRIPTION_1", 64);
@@ -74,7 +74,7 @@ int main( int argc, char * argv [] )
   message.pointlist[1].position[1]  = 30.0;
   message.pointlist[1].position[2]  = 35.0;
   message.pointlist[1].radius       = 3.0;
-  strncpy((char*)&(message.pointlist[1].owner_name), "IMAGE_0", 20);
+  strncpy((char*)&(message.pointlist[1].owner), "IMAGE_0", 20);
 
   /* Point data 2 */
   strncpy((char*)&(message.pointlist[2].name), "POINT_DESCRIPTION_2", 64);
@@ -87,7 +87,7 @@ int main( int argc, char * argv [] )
   message.pointlist[2].position[1]  = 45.0;
   message.pointlist[2].position[2]  = 50.0;
   message.pointlist[2].radius       = 1.0;
-  strncpy((char*)&(message.pointlist[2].owner_name), "IMAGE_0", 20);
+  strncpy((char*)&(message.pointlist[2].owner), "IMAGE_0", 20);
 
   /* Swap byte order if necessary */
   igtl_point_convert_byte_order(message.pointlist, TEST_POINT_NUM);
