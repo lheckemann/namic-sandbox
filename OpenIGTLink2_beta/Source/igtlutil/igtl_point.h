@@ -23,6 +23,10 @@
 
 #define  IGTL_POINT_ELEMENT_SIZE           136
 
+#define IGTL_POINT_LEN_NAME              64
+#define IGTL_POINT_LEN_GROUP_NAME        32
+#define IGTL_POINT_LEN_OWNER             20
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,12 +38,12 @@ extern "C" {
  */
 
 typedef struct {
-  igtl_int8    name[64];       /* Name or description of the point */
-  igtl_int8    group_name[32]; /* Can be "Labeled Point", "Landmark", Fiducial", ... */
-  igtl_int8    rgba[4];        /* Color in R/G/B/A */
-  igtl_float32 position[3];    /* Coordinate of the point */
-  igtl_float32 radius;         /* Radius of the point. Can be 0. */
-  igtl_int8    owner_name[20];/* Device name of the ower image */
+  igtl_int8    name[IGTL_POINT_LEN_NAME]; /* Name or description of the point */
+  igtl_int8    group_name[IGTL_POINT_LEN_GROUP_NAME]; /* Can be "Labeled Point", "Landmark", Fiducial", ... */
+  igtl_uint8   rgba[4]; /* Color in R/G/B/A */
+  igtl_float32 position[3]; /* Coordinate of the point */
+  igtl_float32 radius; /* Radius of the point. Can be 0. */
+  igtl_int8    owner[IGTL_POINT_LEN_OWNER];/* Device name of the ower image */
 } igtl_point_element;
 
 #pragma pack()

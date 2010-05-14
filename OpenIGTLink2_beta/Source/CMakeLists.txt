@@ -64,6 +64,7 @@ SET(OpenIGTLink_SOURCES
   igtlColorTableMessage.cxx
   igtlImageMetaMessage.cxx
   igtlLabelMetaMessage.cxx
+  igtlPointMessage.cxx
   )
 
 ADD_LIBRARY(OpenIGTLink
