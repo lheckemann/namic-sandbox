@@ -223,14 +223,13 @@ int LabelMetaMessage::PackBody()
   AllocatePack();
   
   igtl_lbmeta_element* element;
-
   element = (igtl_lbmeta_element*)this->m_Body;
-
   std::vector<LabelMetaElement::Pointer>::iterator iter;
+
   for (iter = this->m_LabelMetaList.begin(); iter != this->m_LabelMetaList.end(); iter ++)
     {
-    strncpy((char*)element->name,         (*iter)->GetName(),        IGTL_LBMETA_LEN_NAME);
-    strncpy((char*)element->device_name,  (*iter)->GetDeviceName(),  IGTL_LBMETA_LEN_DEVICE_NAME);
+    strncpy((char*)element->name,        (*iter)->GetName(),       IGTL_LBMETA_LEN_NAME);
+    strncpy((char*)element->device_name, (*iter)->GetDeviceName(), IGTL_LBMETA_LEN_DEVICE_NAME);
 
     element->label = (*iter)->GetLabel();
 
