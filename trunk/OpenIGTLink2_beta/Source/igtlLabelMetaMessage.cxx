@@ -18,6 +18,7 @@
 
 #include "igtl_header.h"
 #include "igtl_imgmeta.h"
+#include "igtl_lbmeta.h"
 #include "igtl_image.h"
 
 // Disable warning C4996 (strncpy() may be unsafe) in Windows. 
@@ -34,11 +35,17 @@ namespace igtl {
 
 LabelMetaElement::LabelMetaElement() : Object()
 {
-  this->m_TimeStamp  = 0;
+  this->m_Name       = "";
+  this->m_DeviceName = "";
+  this->m_Label      = 0;
+  this->m_RGBA[0]    = 0;
+  this->m_RGBA[1]    = 0;
+  this->m_RGBA[2]    = 0;
+  this->m_RGBA[3]    = 0;
   this->m_Size[0]    = 0;
   this->m_Size[1]    = 0;
   this->m_Size[2]    = 0;
-  this->m_ScalarType = 0;
+  this->m_Owner      = "";
 }
 
 
@@ -49,7 +56,7 @@ LabelMetaElement::~LabelMetaElement()
 
 int LabelMetaElement::SetName(const char* name)
 {
-  if (strlen(name) <= IGTL_IMGMETA_LEN_NAME)
+  if (strlen(name) <= IGTL_LBMETA_LEN_NAME)
     {
     this->m_Name = name;
     return 1;
@@ -63,7 +70,7 @@ int LabelMetaElement::SetName(const char* name)
 
 int LabelMetaElement::SetDeviceName(const char* devname)
 {
-  if (strlen(devname) <= IGTL_IMGMETA_LEN_DEVICE_NAME)
+  if (strlen(devname) <= IGTL_LBMETA_LEN_DEVICE_NAME)
     {
     this->m_DeviceName = devname;
     return 1;
@@ -75,57 +82,40 @@ int LabelMetaElement::SetDeviceName(const char* devname)
 }
 
 
-int LabelMetaElement::SetModality(const char* modality)
+void LabelMetaElement::SetRGBA(igtlUint8 rgba[4])
 {
-  if (strlen(modality) <= IGTL_IMGMETA_LEN_MODALITY)
-    {
-    this->m_Modality = modality;
-    return 1;
-    }
-  else
-    {
-    return 0;
-    }
+  this->m_RGBA[0] = rgba[0];
+  this->m_RGBA[1] = rgba[1];
+  this->m_RGBA[2] = rgba[2];
+  this->m_RGBA[3] = rgba[3];
 }
 
 
-int LabelMetaElement::SetPatientName(const char* patname)
+void LabelMetaElement::SetRGBA(igtlUint8 r, igtlUint8 g, igtlUint8 b, igtlUint8 a)
 {
-  if (strlen(patname) <= IGTL_IMGMETA_LEN_PATIENT_NAME)
-    {
-    this->m_PatientName = patname;
-    return 1;
-    }
-  else
-    {
-    return 0;
-    }
+  this->m_RGBA[0] = r;
+  this->m_RGBA[1] = g;
+  this->m_RGBA[2] = b;
+  this->m_RGBA[3] = a;
 }
 
 
-int LabelMetaElement::SetPatientID(const char* patid)
+void LabelMetaElement::GetRGBA(igtlUint8* rgba)
 {
-  if (strlen(patid) <= IGTL_IMGMETA_LEN_PATIENT_ID)
-    {
-    this->m_PatientID = patid;
-    return 1;
-    }
-  else
-    {
-    return 0;
-    }
-}
+  rgba[0] = this->m_RGBA[0];
+  rgba[1] = this->m_RGBA[1];
+  rgba[2] = this->m_RGBA[2];
+  rgba[3] = this->m_RGBA[3];
+}  
 
 
-void LabelMetaElement::SetTimeStamp(igtl::TimeStamp::Pointer& time)
+
+void LabelMetaElement::GetRGBA(igtlUint8& r, igtlUint8& g, igtlUint8& b, igtlUint8& a)
 {
-  this->m_TimeStamp = time;
-}
-
-
-void LabelMetaElement::GetTimeStamp(igtl::TimeStamp::Pointer& time)
-{
-  time = this->m_TimeStamp;
+  r = this->m_RGBA[0];
+  g = this->m_RGBA[1];
+  b = this->m_RGBA[2];
+  a = this->m_RGBA[3];
 }
 
 
@@ -161,31 +151,19 @@ void LabelMetaElement::GetSize(igtlUint16& sx, igtlUint16& sy, igtlUint16& sz)
 }
 
 
-void LabelMetaElement::SetScalarType(igtlUint8 type)
+int LabelMetaElement::SetOwner(const char* owner)
 {
-  if (type == IGTL_IMAGE_STYPE_TYPE_INT8    ||
-      type == IGTL_IMAGE_STYPE_TYPE_UINT8   ||
-      type == IGTL_IMAGE_STYPE_TYPE_INT16   ||
-      type == IGTL_IMAGE_STYPE_TYPE_UINT16  ||
-      type == IGTL_IMAGE_STYPE_TYPE_INT32   ||
-      type == IGTL_IMAGE_STYPE_TYPE_UINT32  ||
-      type == IGTL_IMAGE_STYPE_TYPE_FLOAT32 ||
-      type == IGTL_IMAGE_STYPE_TYPE_FLOAT64)
+  if (strlen(owner) <= IGTL_LBMETA_LEN_OWNER)
     {
-    this->m_ScalarType = type;
+    this->m_Owner = owner;
+    return 1;
     }
   else
     {
-    this->m_ScalarType = 0;
+    return 0;
     }
+  
 }
-
-
-igtlUint8 LabelMetaElement::GetScalarType()
-{
-  return this->m_ScalarType;
-}
-
 
 
 //----------------------------------------------------------------------
@@ -194,7 +172,7 @@ igtlUint8 LabelMetaElement::GetScalarType()
 LabelMetaMessage::LabelMetaMessage():
   MessageBase()
 {
-  this->m_DefaultBodyType = "IMGMETA";
+  this->m_DefaultBodyType = "LBMETA";
   this->m_LabelMetaList.clear();
 }
 
@@ -235,7 +213,7 @@ void LabelMetaMessage::GetLabelMetaElement(int index, LabelMetaElement::Pointer&
 int LabelMetaMessage::GetBodyPackSize()
 {
   // The body size sum of the header size and status message size.
-  return IGTL_IMGMETA_ELEMENT_SIZE * this->m_LabelMetaList.size();
+  return IGTL_LBMETA_ELEMENT_SIZE * this->m_LabelMetaList.size();
 }
 
 
@@ -244,32 +222,37 @@ int LabelMetaMessage::PackBody()
   // allocate pack
   AllocatePack();
   
-  igtl_imgmeta_element* element;
+  igtl_lbmeta_element* element;
 
-  element = (igtl_imgmeta_element*)this->m_Body;
+  element = (igtl_lbmeta_element*)this->m_Body;
 
   std::vector<LabelMetaElement::Pointer>::iterator iter;
   for (iter = this->m_LabelMetaList.begin(); iter != this->m_LabelMetaList.end(); iter ++)
     {
-    strncpy((char*)element->name,         (*iter)->GetName(),        IGTL_IMGMETA_LEN_NAME);
-    strncpy((char*)element->device_name,  (*iter)->GetDeviceName(),  IGTL_IMGMETA_LEN_DEVICE_NAME);
-    strncpy((char*)element->modality,     (*iter)->GetModality(),    IGTL_IMGMETA_LEN_MODALITY);
-    strncpy((char*)element->patient_name, (*iter)->GetPatientName(), IGTL_IMGMETA_LEN_PATIENT_NAME);
-    strncpy((char*)element->patient_id,   (*iter)->GetPatientID(),   IGTL_IMGMETA_LEN_PATIENT_ID);
+    strncpy((char*)element->name,         (*iter)->GetName(),        IGTL_LBMETA_LEN_NAME);
+    strncpy((char*)element->device_name,  (*iter)->GetDeviceName(),  IGTL_LBMETA_LEN_DEVICE_NAME);
 
-    igtl::TimeStamp::Pointer ts;
-    (*iter)->GetTimeStamp(ts);
-    element->timestamp = ts->GetTimeStampUint64();
+    element->label = (*iter)->GetLabel();
+
+    igtlUint8 rgba[4];
+    (*iter)->GetRGBA(rgba);
+    element->rgba[0] = rgba[0];
+    element->rgba[1] = rgba[1];
+    element->rgba[2] = rgba[2];
+    element->rgba[3] = rgba[3];
+
     igtlUint16 size[3];
     (*iter)->GetSize(size);
     element->size[0] = size[0];
     element->size[1] = size[1];
     element->size[2] = size[2];
-    element->scalar_type = (*iter)->GetScalarType();
+
+    strncpy((char*)element->owner,  (*iter)->GetOwner(),  IGTL_LBMETA_LEN_OWNER);
+    
     element ++;
     }
 
-  igtl_imgmeta_convert_byte_order((igtl_imgmeta_element*)this->m_Body, this->m_LabelMetaList.size());
+  igtl_lbmeta_convert_byte_order((igtl_lbmeta_element*)this->m_Body, this->m_LabelMetaList.size());
 
   return 1;
 }
@@ -280,10 +263,10 @@ int LabelMetaMessage::UnpackBody()
 
   this->m_LabelMetaList.clear();
 
-  igtl_imgmeta_element* element = (igtl_imgmeta_element*) this->m_Body;
-  int nElement = igtl_imgmeta_get_data_n(this->m_BodySizeToRead);
+  igtl_lbmeta_element* element = (igtl_lbmeta_element*) this->m_Body;
+  int nElement = igtl_lbmeta_get_data_n(this->m_BodySizeToRead);
 
-  igtl_imgmeta_convert_byte_order(element, nElement);
+  igtl_lbmeta_convert_byte_order(element, nElement);
   
   char strbuf[128];
   for (int i = 0; i < nElement; i ++)
@@ -292,32 +275,21 @@ int LabelMetaMessage::UnpackBody()
 
     // Add '\n' at the end of each string
     // (neccesary for a case, where a string reaches the maximum length.)
-    strbuf[IGTL_IMGMETA_LEN_NAME] = '\n';
-    strncpy(strbuf, (char*)element->name, IGTL_IMGMETA_LEN_NAME);
+    strbuf[IGTL_LBMETA_LEN_NAME] = '\n';
+    strncpy(strbuf, (char*)element->name, IGTL_LBMETA_LEN_NAME);
     elemClass->SetName((const char*)strbuf);
     
-    strbuf[IGTL_IMGMETA_LEN_DEVICE_NAME] = '\n';
-    strncpy(strbuf, (char*)element->device_name, IGTL_IMGMETA_LEN_DEVICE_NAME);
+    strbuf[IGTL_LBMETA_LEN_DEVICE_NAME] = '\n';
+    strncpy(strbuf, (char*)element->device_name, IGTL_LBMETA_LEN_DEVICE_NAME);
     elemClass->SetDeviceName(strbuf);
-
-    strbuf[IGTL_IMGMETA_LEN_MODALITY] = '\n';
-    strncpy(strbuf, (char*)element->modality, IGTL_IMGMETA_LEN_MODALITY);
-    elemClass->SetModality(strbuf);
-
-    strbuf[IGTL_IMGMETA_LEN_PATIENT_NAME] = '\n';
-    strncpy(strbuf, (char*)element->patient_name, IGTL_IMGMETA_LEN_PATIENT_NAME);
-    elemClass->SetPatientName(strbuf);
-
-    strbuf[IGTL_IMGMETA_LEN_PATIENT_ID] = '\n';
-    strncpy(strbuf, (char*)element->patient_id, IGTL_IMGMETA_LEN_PATIENT_ID);
-    elemClass->SetPatientID(strbuf);
     
-    TimeStamp::Pointer ts = TimeStamp::New();
-    ts->SetTime(element->timestamp);
-    elemClass->SetTimeStamp(ts);
-
+    elemClass->SetLabel(element->label);
+    elemClass->SetRGBA(element->rgba);
     elemClass->SetSize(element->size);
-    elemClass->SetScalarType(element->scalar_type);
+
+    strbuf[IGTL_LBMETA_LEN_OWNER] = '\n';
+    strncpy(strbuf, (char*)element->device_name, IGTL_LBMETA_LEN_OWNER);
+    elemClass->SetOwner(strbuf);
 
     this->m_LabelMetaList.push_back(elemClass);
 

@@ -49,8 +49,8 @@ public:
   int           SetDeviceName(const char* devname);
   const char*   GetDeviceName()                      { return this->m_DeviceName.c_str(); };
 
-  void          SetLabel(igtlUint8 label);
-  igtlUint8     GetLabel();
+  void          SetLabel(igtlUint8 label)            { this->m_Label = label; };
+  igtlUint8     GetLabel()                           { return this->m_Label; };
 
   void          SetRGBA(igtlUint8 rgba[4]);
   void          SetRGBA(igtlUint8 r, igtlUint8 g, igtlUint8 b, igtlUint8 a);
@@ -93,7 +93,7 @@ public:
   igtlNewMacro(igtl::GetLabelMetaMessage);
 
 protected:
-  GetLabelMetaMessage() : MessageBase() { this->m_DefaultBodyType  = "GET_IMGMETA"; };
+  GetLabelMetaMessage() : MessageBase() { this->m_DefaultBodyType  = "GET_LBMETA"; };
   ~GetLabelMetaMessage() {};
 protected:
   virtual int  GetBodyPackSize() { return 0; };

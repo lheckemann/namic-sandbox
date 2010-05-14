@@ -23,6 +23,10 @@
 
 #define IGTL_LBMETA_ELEMENT_SIZE          116
 
+#define IGTL_LBMETA_LEN_NAME              64
+#define IGTL_LBMETA_LEN_DEVICE_NAME       20
+#define IGTL_LBMETA_LEN_OWNER             20
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -75,13 +79,13 @@ extern "C" {
 #pragma pack(1)     /* For 1-byte boundary in memroy */
 
 typedef struct {
-  igtl_uint8     name[64];         /* name / description */
-  igtl_uint8     image_name[20];   /* device name to query the IMAGE */
-  igtl_uint8     label;            /* label */
+  igtl_uint8     name[IGTL_LBMETA_LEN_NAME];  /* name / description */
+  igtl_uint8     device_name[IGTL_LBMETA_LEN_DEVICE_NAME];   /* device name to query the IMAGE */
+  igtl_uint8     label;                       /* label */
   igtl_uint8     reserved;
-  igtl_uint8     rgba[4];          /* Color in RGBA. default: (0, 0, 0, 0) */
-  igtl_uint16    size[3];          /* Number of pixels in each direction */
-  igtl_uint8     owner[20];        /* Device name of the owner image. (can be empty) */
+  igtl_uint8     rgba[4];                     /* Color in RGBA. default: (0, 0, 0, 0) */
+  igtl_uint16    size[3];                     /* Number of pixels in each direction */
+  igtl_uint8     owner[20];                   /* Device name of the owner image. (can be empty) */
 } igtl_lbmeta_element;
 
 #pragma pack()
