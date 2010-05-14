@@ -52,7 +52,7 @@ int main( int argc, char * argv [] )
 
   /* Label meta data 0 */
   strncpy((char*)&(message.metalist[0].name), "LABEL_DESCRIPTION_0", 64);
-  strncpy((char*)&(message.metalist[0].image_name), "LABEL_0", 20);
+  strncpy((char*)&(message.metalist[0].device_name), "LABEL_0", 20);
   message.metalist[0].label    = 1;
   message.metalist[0].reserved = 0;
   message.metalist[0].rgba[0]  = 255;
@@ -66,7 +66,7 @@ int main( int argc, char * argv [] )
 
   /* Label meta data 1 */
   strncpy((char*)&(message.metalist[1].name), "LABEL_DESCRIPTION_1", 64);
-  strncpy((char*)&(message.metalist[1].image_name), "LABEL_1", 20);
+  strncpy((char*)&(message.metalist[1].device_name), "LABEL_1", 20);
   message.metalist[1].label    = 2;
   message.metalist[1].reserved = 0;
   message.metalist[1].rgba[0]  = 0;
@@ -80,7 +80,7 @@ int main( int argc, char * argv [] )
 
   /* Label meta data 2 */
   strncpy((char*)&(message.metalist[2].name), "LABEL_DESCRIPTION_2", 64);
-  strncpy((char*)&(message.metalist[2].image_name), "LABEL_2", 20);
+  strncpy((char*)&(message.metalist[2].device_name), "LABEL_2", 20);
   message.metalist[2].label    = 3;
   message.metalist[2].reserved = 0;
   message.metalist[2].rgba[0]  = 0;
