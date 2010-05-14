@@ -63,7 +63,7 @@ public:
   igtlFloat32   GetRadius()                          { return this->m_Radius; };
 
   int           SetOwner(const char* owner);
-  const char*   GetOwner()                            { return this->m_Owner.c_str(); };
+  const char*   GetOwner()                           { return this->m_Owner.c_str(); };
 
 protected:
   PointElement();

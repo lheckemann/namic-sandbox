@@ -284,6 +284,7 @@ int PointMessage::UnpackBody()
 
     strbuf[IGTL_POINT_LEN_OWNER] = '\n';
     strncpy(strbuf, (char*)element->owner, IGTL_POINT_LEN_OWNER);
+    elemClass->SetOwner(strbuf);
 
     this->m_PointList.push_back(elemClass);
 
