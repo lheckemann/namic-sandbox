@@ -15,6 +15,7 @@ if(NOT OpenIGTLink_PLATFORM_QNX)
       Receiver
       Thread
       ImageMeta
+      Point
       )
 else(NOT OpenIGTLink_PLATFORM_QNX)
   SUBDIRS(
