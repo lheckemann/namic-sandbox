@@ -55,17 +55,24 @@ int main(int argc, char * argv[])
   it2.GoToBegin();
   itR.GoToBegin();
   for(;!it1.IsAtEnd();++it1,++it2,++itR){    
-    if(it1.Get() && it2.Get())
+    
+    ImageType::IndexType idx1 = it1.GetIndex(), idx2;
+    ImageType::PointType pt;
+    i1->TransformIndexToPhysicalPoint(idx1,pt);
+    i2->TransformPhysicalPointToIndex(pt,idx2);
+
+    if(it1.Get() && i2->GetPixel(idx2))
       itR.Set(0);
-    if(it1.Get() && it2.Get()==0)
+    if(it1.Get() && i2->GetPixel(idx2)==0)
       itR.Set(12);
-    if(it1.Get()==0 && it2.Get())
+    if(it1.Get()==0 && i2->GetPixel(idx2))
       itR.Set(14);
   }
   
   WriterType::Pointer w = WriterType::New();
   w->SetFileName(argv[3]);
   w->SetInput(r);
+  w->SetUseCompression(1);
   w->Update();
 
   return 0;
