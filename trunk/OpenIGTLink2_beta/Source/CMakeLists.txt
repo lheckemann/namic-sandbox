@@ -65,6 +65,7 @@ SET(OpenIGTLink_SOURCES
   igtlImageMetaMessage.cxx
   igtlLabelMetaMessage.cxx
   igtlPointMessage.cxx
+  igtlTrackingDataMessage.cxx
   )
 
 ADD_LIBRARY(OpenIGTLink

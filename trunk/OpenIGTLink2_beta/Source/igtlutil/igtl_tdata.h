@@ -25,10 +25,13 @@
 #define  IGTL_STT_TDATA_SIZE               24
 #define  IGTL_RTS_TDATA_SIZE               1
 
+#define  IGTL_TDATA_LEN_NAME               20  /* Maximum length of tracking instrument name */
+#define  IGTL_STT_TDATA_LEN_COORDNAME      20  /* Maximum length of coordinate system name */
+
 #define  IGTL_TDATA_TYPE_TRACKER           1  /* Tracker */
 #define  IGTL_TDATA_TYPE_6D                2  /* 6D instrument (regular instrument) */
 #define  IGTL_TDATA_TYPE_3D                3  /* 3D instrument (only tip of the instrument defined) */
-#define  IGTL_TDATA_TYPE_5D                3  /* 5D instrument (tip and handle are defined,
+#define  IGTL_TDATA_TYPE_5D                4  /* 5D instrument (tip and handle are defined,
                                                  but not the normal vector) */
 
 
@@ -43,8 +46,8 @@ extern "C" {
  */
 
 typedef struct {
-  igtl_int8    name[20];       /* Name of instrument / tracker */
-  igtl_int8    type;           /* Can be "Labeled Tdata", "Landmark", Fiducial", ... */
+  igtl_int8    name[IGTL_TDATA_LEN_NAME];  /* Name of instrument / tracker */
+  igtl_int8    type;           /* Tracking data type (1-4) */
   igtl_int8    reserved;       /* Reserved byte */
   igtl_float32 transform[12];  /* same as TRANSFORM */
 } igtl_tdata_element;
@@ -53,7 +56,7 @@ typedef struct {
 typedef struct {
   igtl_int32   resolution;     /* Minimum time between two frames. Use 0 for as fast as possible. */
                                /* If e.g. 50 ms is specified, the maximum update rate will be 20 Hz. */
-  igtl_int8    coord_name[20]; /* Name of the coordinate system */
+  igtl_int8    coord_name[IGTL_STT_TDATA_LEN_COORDNAME]; /* Name of the coordinate system */
 } igtl_stt_tdata;
 
 typedef struct {
