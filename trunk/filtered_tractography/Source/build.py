@@ -35,7 +35,7 @@ def add_model_1tensor_f(mod):
 
 
 
-def add_state2tensor(mod):
+def add_state2tensor1(mod):
     # example data for type definitions
     X = np.zeros((5,1), dtype='float64')
     y = np.zeros(3)
@@ -66,7 +66,7 @@ def add_state2tensor(mod):
     l1 = np.empty(1);
     l2 = np.empty(1);
 
-    fn = et.ext_function('c_state2tensor', code, ['X', 'y', 'm', 'l1', 'l2'])
+    fn = et.ext_function('c_state2tensor1', code, ['X', 'y', 'm', 'l1', 'l2'])
 
     code = "#define max(x,y)  ((x) > (y) ? (x) : (y))";
     fn.customize.add_support_code(code)
@@ -439,11 +439,14 @@ matrix_code = """
 
 
 def build():
-    mod = et.ext_module('filtered1t_ext')
+    mod = et.ext_module('filtered_ext')
 
+    # single-tensor routines
     add_model_1tensor_f(mod)
     add_model_1tensor_h(mod)
-    add_state2tensor(mod)
+    add_state2tensor1(mod)
+
+    # two-tensor routines
     add_interp3signal(mod)
     add_interp3scalar(mod)
     add_s2ga(mod)
@@ -451,7 +454,7 @@ def build():
     mod.compile()
 
 try:
-    import filtered1t_ext
+    import fileered_ext
 except ImportError:
     build()
-    import filtered1t_ext
+    import filtered_ext
