@@ -103,7 +103,7 @@ int main( int argc, char * argv [] )
   histogramBinMinimum.Fill(  atof(argv[3]) - 0.5 );
 
   HistogramMeasurementVectorType histogramBinMaximum( numberOfScalarComponents );
-  histogramBinMaximum.Fill(  atof(argv[4]) - 0.5 );
+  histogramBinMaximum.Fill(  atof(argv[4]) + 0.5 );
 
   histogramFilter->SetHistogramBinMinimum( histogramBinMinimum );
   histogramFilter->SetHistogramBinMaximum( histogramBinMaximum );
