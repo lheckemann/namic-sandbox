@@ -94,7 +94,8 @@ int main(int argc, char * argv[])
     if(affineTfm)
       pt = affineTfm->TransformPoint(pt);
 
-    i2->TransformPhysicalPointToIndex(pt,idx2);    
+    if(!i2->TransformPhysicalPointToIndex(pt,idx2))
+      continue;
 
     if(it1.Get() && i2->GetPixel(idx2))
       itR.Set(0);
