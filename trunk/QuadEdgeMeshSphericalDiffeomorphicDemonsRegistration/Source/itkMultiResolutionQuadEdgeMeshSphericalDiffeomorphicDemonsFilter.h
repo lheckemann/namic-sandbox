@@ -129,6 +129,10 @@ public:
   itkSetMacro( RigidRegistrationIterations, IntegerArrayType );
   itkGetConstReferenceMacro( RigidRegistrationIterations, IntegerArrayType );
 
+  /** Schedule of rigid registration initial step length to be used at every resolution level. */
+  itkSetMacro( RigidRegistrationStepLength, DoubleArrayType );
+  itkGetConstReferenceMacro( RigidRegistrationStepLength, DoubleArrayType );
+
   /** Schedule of Epsilon values to be used at every resolution level. */
   itkSetMacro( EpsilonValues, DoubleArrayType );
   itkGetConstReferenceMacro( EpsilonValues, DoubleArrayType );
@@ -251,6 +255,7 @@ private:
 
   DoubleArrayType              m_EpsilonValues;
   DoubleArrayType              m_SigmaXValues;
+  DoubleArrayType              m_RigidRegistrationStepLength;
 
   RegistrationModeType         m_RegistrationMode;
 

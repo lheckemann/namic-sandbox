@@ -200,7 +200,6 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_RigidOptimizer->MinimizeOn();
   this->m_RigidOptimizer->SetGradientMagnitudeTolerance( 1e-6 );
-  this->m_RigidOptimizer->SetMaximumStepLength( 1e-2 );
   this->m_RigidOptimizer->SetMinimumStepLength( 1e-9 );
   this->m_RigidOptimizer->SetRelaxationFactor( 0.9 );
 
@@ -208,6 +207,12 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     {
     itkExceptionMacro("Rigid registration iterations array size is smaller than number of iteration levels");
     }
+
+  if( this->m_RigidRegistrationStepLength.size() < this->m_NumberOfResolutionLevels )
+    {
+    itkExceptionMacro("Rigid registration step length array size is smaller than number of iteration levels");
+    }
+
 }
 
 
@@ -309,6 +314,9 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_RigidOptimizer->SetNumberOfIterations( 
     this->m_RigidRegistrationIterations[ this->m_CurrentResolutionLevel ] );
+
+  this->m_RigidOptimizer->SetMaximumStepLength( 
+    this->m_RigidRegistrationStepLength[ this->m_CurrentResolutionLevel ] );
 
 #ifdef USE_VTK
   this->m_RegistrationMonitor->SetResolutionLevel( this->m_CurrentResolutionLevel );
