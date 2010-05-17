@@ -49,7 +49,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node):
     u = dwi_node.GetDiffusionGradients().ToArray()
     u = np.vstack((u,-u)) # duplicate signal
     b = dwi_node.GetBValues().ToArray().mean()
-    mask  = mask_node.GetImageData().ToArray()
+    mask  = mask_node.GetImageData().ToArray().astype('uint16')
     seeds = seeds_node.GetImageData().ToArray()
 
     # gather transformations
