@@ -33,7 +33,6 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
 
 import numpy as np
 import warnings
-from scipy import weave
 import filtered_ext as flt
 
 def Execute(dwi_node, seeds_node, mask_node, ff_node):
@@ -332,13 +331,13 @@ def model_2tensor(u,b):
 
 
 def model_1tensor_f(X):
-    assert X.shape[0] == 5 and X.shape[1] == 1 and X.dtype == 'float64'
+    assert X.shape[0] == 5 and X.dtype == 'float64'
     m = X.shape[1]
     X = np.copy(X)
     flt.c_model_1tensor_f(X, m)
     return X
 def model_2tensor_f(X):
-    assert X.shape[0] == 10 and X.shape[1] == 1 and X.dtype == 'float64'
+    assert X.shape[0] == 10 and X.dtype == 'float64'
     m = X.shape[1]
     X = np.copy(X)
     flt.c_model_2tensor_f(X, m)
@@ -347,14 +346,15 @@ def model_2tensor_f(X):
 
 
 def model_1tensor_h(X,u,b):
-    assert X.shape[0] == 5 and X.shape[1] == 1 and X.dtype == 'float64' and u.dtype == 'float64'
+    assert X.shape[0] == 5 and X.dtype == 'float64' and u.dtype == 'float64'
     n = u.shape[0]
     m = X.shape[1]
     s = np.empty((n,m)) # preallocate output
+    print b.dtype
     flt.c_model_1tensor_h(s, X, u, b, n, m)
     return s
 def model_2tensor_h(X,u,b):
-    assert X.shape[0] == 10 and X.shape[1] == 1 and X.dtype == 'float64' and u.dtype == 'float64'
+    assert X.shape[0] == 10 and X.dtype == 'float64' and u.dtype == 'float64'
     n = u.shape[0]
     m = X.shape[1]
     s = np.empty((n,m)) # preallocate output
@@ -397,7 +397,7 @@ def s2ga(s):
 
 
 def interp3signal(S, p):
-    assert S.ndim == 3 and S.dtype == 'float32'
+    assert S.ndim == 4 and S.dtype == 'float32'
     nx,ny,nz,n = S.shape
     s = np.zeros((2*n,), dtype='float32')  # preallocate output (doubled)
     flt.c_interp3signal(s, S, p, nx, ny, nz, n)
@@ -405,6 +405,6 @@ def interp3signal(S, p):
 
 
 def interp3scalar(M, p):
-    assert M.ndim == 3 and M.dtype == 'int16'
+    assert M.ndim == 3 and M.dtype == 'uint16'
     nx,ny,nz = M.shape
     return flt.c_interp3scalar(M, p, nx, ny, nz)
