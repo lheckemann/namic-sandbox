@@ -130,7 +130,7 @@ def step(p, S, est, param):
     x,X,P = p[0],p[1],p[2]
     # move
     X,P = est(X,P,interp3signal(S,x))
-    m,(l1,l2) = state2tensor(X)
+    m,(l1,l2) = state2tensor1(X)
     dx = m / param['voxel']
     x = x + param['dt'] * dx[::-1]  # HACK volume dimensions are reversed
     # repack
@@ -188,7 +188,7 @@ def follow(S,u,b,mask,fiber,param):
 
         # unpack
         x,X = fiber[0],fiber[1]
-        _,l = state2tensor(X)
+        _,l = state2tensor1(X)
 
         # terminate if off brain or in CSF
         is_brain = interp3scalar(mask,x) > .1
