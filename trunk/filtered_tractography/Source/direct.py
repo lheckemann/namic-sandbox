@@ -2,7 +2,7 @@
 import cProfile
 import pstats
 
-execfile('/Users/malcolm/Documents/Dropbox/python/direct.py')
+execfile('/Users/malcolm/src/filtered_tractography/Source/direct.py')
 loc = dict({'S' : S,
             'u' : u,
             'b' : b,
@@ -37,7 +37,7 @@ param = dict({'FA_min': .1,  # FA stopping threshold
 execfile('/Users/malcolm/src/filtered_tractography/Source/filtered1t.py')
 ff = init(S, seeds, u, b, param)
 
-execfile('/Users/malcolm/Documents/Dropbox/python/direct.py')
+execfile('/Users/malcolm/src/filtered_tractography/Source/direct.py')
 
 
 s = S[28,72,72,:]
@@ -435,5 +435,14 @@ matrix_code = """
     inline mat_t inv(mat_t M)
     {
         return (1 / det(M)) * ct(M);
+    }
+
+    inline mat_t diffusion(vec_t m, double l1, double l2)
+    {
+        double x = m._[0], y = m._[1], z = m._[2];
+        mat_t R = make_mat(x,  y,            z          ,
+                           y,  y*y/(1+x)-1,  y*z/(1+x)  ,
+                           z,  y*z/(1+x),    z*z/(1+x)-1);
+        return R * diag(l1,l2,l2) * t(R) * 1e-6;
     }
     """
