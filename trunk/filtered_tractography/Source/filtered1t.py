@@ -219,7 +219,7 @@ def init(S, seeds, u, b, param):
     pp = []
     map(lambda p : map(lambda e : pp.append(p+e), list(E.T)), qq)
 
-    #pp = [np.array((27,69,72))] # HACK
+    pp = [np.array((27,69,72))] # HACK
 
     print 'initial seed upper limit: %d' % (2*len(pp))
     # indices -> signals -> tensors
@@ -404,6 +404,8 @@ def interp3signal(S, p):
 
 
 def interp3scalar(M, p):
+    print M.ndim
+    print M.dtype
     assert M.ndim == 3 and M.dtype == 'uint16'
     nx,ny,nz = M.shape
     return flt.c_interp3scalar(M, p, nx, ny, nz)
