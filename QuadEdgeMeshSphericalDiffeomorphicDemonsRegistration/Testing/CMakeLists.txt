@@ -378,19 +378,19 @@ ADD_TEST(AssignScalarValuesFilterTest1
 
 ADD_TEST(RescaleScalarsQuadEdgeMeshFilterTest  
   ${CXX_TEST_PATH}/itkRescaleScalarsQuadEdgeMeshFilterTest
-  ${TEMP}/meshWithScalarsIC1.vtk
-  ${TEMP}/rescaledmeshWithScalarsIC1.vtk
-  2.0 # min
-  4.0 # max
+  ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk
+  ${TEMP}/rescaledmeshWithScalarsGaussianIC4.vtk
+  0.0 # min
+  0.5 # max
   )
 
 ADD_TEST(HistogramMatchingQuadEdgeMeshFilterTest
   ${CXX_TEST_PATH}/itkHistogramMatchingQuadEdgeMeshFilterTest
-  ${TEMP}/meshWithScalarsIC1.vtk
-  ${TEMP}/rescaledmeshWithScalarsIC1.vtk
-  ${TEMP}/histogramMatchedIC1.vtk
-  18 # NumberOfHistogramLevels
-  10 # NumberOfMatchPoints
+  ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk
+  ${TEMP}/rescaledmeshWithScalarsGaussianIC4.vtk
+  ${TEMP}/histogramMatchedGaussianIC4.vtk
+  1024 # NumberOfHistogramLevels
+  7 # NumberOfMatchPoints
   )
 SET_TESTS_PROPERTIES( HistogramMatchingQuadEdgeMeshFilterTest PROPERTIES DEPENDS RescaleScalarsQuadEdgeMeshFilterTest)
   
@@ -534,7 +534,19 @@ IF(USE_VTK)
       ${TEMP}/warpedFixedMeshWithScalarsGaussianIC4.vtk
       ${TEMP}/warpedFixedMeshWithScalarsGaussianIC4.png
       )   
-               
+   
+    ADD_TEST(ScalarRenderTest8
+      ${CXX_TEST_PATH}/ScalarMeshRender
+      ${TEMP}/rescaledmeshWithScalarsGaussianIC4.vtk
+      ${TEMP}/rescaledmeshWithScalarsGaussianIC4.png
+      ) 
+          
+    ADD_TEST(ScalarRenderTest9
+      ${CXX_TEST_PATH}/ScalarMeshRender
+      ${TEMP}/histogramMatchedGaussianIC4.vtk
+      ${TEMP}/histogramMatchedGaussianIC4.png
+      ) 
+                 
     ADD_TEST(VectorRenderTest1
       ${CXX_TEST_PATH}/VectorMeshRender
       ${TEMP}/meshWithVectorsIC4.vtk

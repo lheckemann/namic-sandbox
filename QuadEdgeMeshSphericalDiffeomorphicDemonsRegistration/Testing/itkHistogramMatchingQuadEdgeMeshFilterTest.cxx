@@ -85,7 +85,7 @@ int main( int argc, char * argv [] )
   while (out_Itr != out_End)
   {
       MeshType::PixelType diff = ref_Itr.Value() - out_Itr.Value();
-      if ( vnl_math_abs( diff ) > 1 )
+      if ( vnl_math_abs( diff ) > 0.1 )
       {
       passed = false;
       std::cout << "Test failed at: " << out_Itr.Index() << " ";
