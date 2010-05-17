@@ -478,7 +478,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   typename DeformFilterType::Pointer deformFilter = DeformFilterType::New();
 
   deformFilter->SetInput( this->m_NextLevelFixedMesh );
-  deformFilter->SetReferenceMesh( this->m_CurrentLevelFixedMesh );
+  deformFilter->SetReferenceMesh( this->m_CurrentLevelInitialFixedMesh );
 
   deformFilter->SetDestinationPoints( currentDestinationPoints );
 
