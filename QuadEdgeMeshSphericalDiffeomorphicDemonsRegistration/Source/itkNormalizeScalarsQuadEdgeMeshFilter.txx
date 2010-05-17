@@ -194,9 +194,6 @@ NormalizeScalarsQuadEdgeMeshFilter< TMesh >
         }
       ++dataItr;
       }
-
-    std::cout << "countBelow = " << countBelow << std::endl;
-    std::cout << "countAbove = " << countAbove << std::endl;
     }
 
 
