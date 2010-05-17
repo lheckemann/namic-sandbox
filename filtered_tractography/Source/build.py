@@ -3,8 +3,8 @@ from scipy.weave import ext_tools as et
 
 def add_model_1tensor_f(mod):
     # example data for type definitions
-    X = np.zeros((5,1), dtype='float64')
-    k,m = X.shape
+    X = np.empty((5,1), dtype='float64')
+    m = X.shape[1]
 
     code = """
     for (int i = 0; i < m; ++i) {
@@ -23,22 +23,18 @@ def add_model_1tensor_f(mod):
         X[4] = max(X[4], 100);
 
         // prepare for next
-        X += k;
+        X += 5;
     }
     """
-    fn = et.ext_function('c_model_1tensor_f', code, ['X', 'k', 'm'])
-
-    code = "#define max(x,y)  ((x) > (y) ? (x) : (y))"
-    fn.customize.add_support_code(code)
-
+    fn = et.ext_function('c_model_1tensor_f', code, ['X', 'm'])
     mod.add_function(fn)
 
 
 
 def add_state2tensor1(mod):
     # example data for type definitions
-    X = np.zeros((5,1), dtype='float64')
-    y = np.zeros(3)
+    X = np.empty((5,1), dtype='float64')
+    y = np.empty(3)
 
     code = """
     // unpack
@@ -67,10 +63,69 @@ def add_state2tensor1(mod):
     l2 = np.empty(1);
 
     fn = et.ext_function('c_state2tensor1', code, ['X', 'y', 'm', 'l1', 'l2'])
+    mod.add_function(fn)
 
-    code = "#define max(x,y)  ((x) > (y) ? (x) : (y))";
-    fn.customize.add_support_code(code)
 
+def add_state2tensor2(mod):
+    # example data for type definitions
+    X = np.empty((5,1), dtype='float64')
+    y = np.empty(3)
+
+    code = """
+    #line 0 "state2tensor2"
+    //-- first orientation
+    // unpack
+    double m1_norm = 1e-10;
+    for (int i = 0; i < 3; ++i) {
+      double x = m1[i] = X[i];
+      m1_norm += x * x;
+    }
+    // normalize
+    m1_norm = sqrt(m1_norm);
+    for (int i = 0; i < 3; ++i)
+      m1[i] /= m1_norm;
+
+    // flip orientation?
+    if (m1[0]*y[0] + m1[1]*y[1] + m1[2]*y[2] < 0) {
+        for (int i = 0; i < 3; ++i)
+            m1[i] = -m1[i];
+    }
+
+    // lambda (clamped)
+    *l11 = max(X[3], 100);
+    *l12 = max(X[4], 100);
+
+
+
+    //-- second orientation
+    X += 5;
+    // unpack
+    double m2_norm = 1e-10;
+    for (int i = 0; i < 3; ++i) {
+      double x = m2[i] = X[i];
+      m2_norm += x * x;
+    }
+    // normalize
+    m2_norm = sqrt(m2_norm);
+    for (int i = 0; i < 3; ++i)
+      m2[i] /= m2_norm;
+
+    // flip orientation?
+    if (m2[0]*y[0] + m2[1]*y[1] + m2[2]*y[2] < 0) {
+        for (int i = 0; i < 3; ++i)
+            m2[i] = -m2[i];
+    }
+
+    // lambda (clamped)
+    *l21 = max(X[3], 100);
+    *l22 = max(X[4], 100);
+    """
+    m1 = np.empty((3,1))
+    m2 = np.empty((3,1))
+    l11,l12 = np.empty(1),np.empty(1);
+    l21,l22 = np.empty(1),np.empty(1);
+
+    fn = et.ext_function('c_state2tensor2', code, ['X', 'y', 'm1', 'l11', 'l12', 'm2', 'l21', 'l22'])
     mod.add_function(fn)
 
 
@@ -78,16 +133,16 @@ def add_state2tensor1(mod):
 
 def add_model_1tensor_h(mod):
     # typedefs
-    X = np.zeros((5,1), dtype='float64')
-    u = np.zeros((102,3), dtype='float64')
+    X = np.empty((5,1), dtype='float64')
+    u = np.empty((102,3), dtype='float64')
     b = 900
 
     n = u.shape[0]
-    k,m = X.shape
+    m = X.shape[1]
     s = np.empty((n,m))
 
     code = """
-    for (int i = 0; i < m; i++) {
+    for (int i = 0; i < m; ++i) {
         // unpack and normalize orientations
         vec_t m1 = make_vec(X[0], X[1], X[2]); m1 /= norm(m1);
         double l11 = X[3], l12 = X[4];
@@ -110,30 +165,106 @@ def add_model_1tensor_h(mod):
         }
 
         // prepare for next
-        X += k;
+        X += 5;
     }
     """
 
-    fn = et.ext_function('c_model_1tensor_h', code, ['s', 'X', 'u', 'b', 'n', 'k', 'm'])
+    fn = et.ext_function('c_model_1tensor_h', code, ['s', 'X', 'u', 'b', 'n', 'm'])
+    mod.add_function(fn)
+
+
+def add_model_2tensor_h(mod):
+    # typedefs
+    X = np.empty((10,1), dtype='float64')
+    u = np.empty((102,3), dtype='float64')
+    b = 900
+
+    n = u.shape[0]
+    m = X.shape[1]
+    s = np.empty((n,m))
 
     code = """
-    static mat_t diffusion(vec_t m, double l1, double l2)
-    {
-        double x = m._[0], y = m._[1], z = m._[2];
-        mat_t R = make_mat(x,  y,            z          ,
-                           y,  y*y/(1+x)-1,  y*z/(1+x)  ,
-                           z,  y*z/(1+x),    z*z/(1+x)-1);
-        return R * diag(l1,l2,l2) * t(R) * 1e-6;
+    for (int i = 0; i < m; ++i) {
+        double *o1 = X, *o2 = X + 5;
+        // unpack and normalize orientations
+        vec_t m1 = make_vec(o1[0], o1[1], o1[2]); m1 /= norm(m1);
+        double l11 = o1[3], l12 = o1[4];
+        vec_t m2 = make_vec(o2[0], o2[1], o2[2]); m2 /= norm(m2);
+        double l21 = o2[3], l22 = o2[4];
+
+        // ensure: lambda >= L
+        double L = 100;
+        if (l11 < L)   l11 = L;
+        if (l12 < L)   l12 = L;
+        if (l21 < L)   l21 = L;
+        if (l22 < L)   l22 = L;
+
+        // flip if necessary
+        if (m1._[0] < 0)   m1 = -m1;
+        if (m2._[0] < 0)   m2 = -m2;
+
+        // calculate diffusion matrix
+        mat_t D1 = diffusion(m1, l11, l12);
+        mat_t D2 = diffusion(m2, l21, l22);
+
+        // reconstruct signal
+        for (int i = 0; i < n; ++i, ++s) {
+            vec_t u_ = make_vec(u[3*i], u[3*i+1], u[3*i+2]);
+            *s = (exp(-b*dot(u_,D1*u_)) + exp(-b*dot(u_,D2*u_)))/2;
+        }
+
+        // prepare for next
+        X += 10;
     }
     """
-    fn.customize.add_support_code(matrix_code + code)
+    fn = et.ext_function('c_model_2tensor_h', code, ['s', 'X', 'u', 'b', 'n', 'm'])
+    mod.add_function(fn)
 
+def add_model_2tensor_f(mod):
+    # typedefs
+    X = np.empty((10,1), dtype='float64')
+    u = np.empty((102,3), dtype='float64')
+    b = 900
+
+    n = u.shape[0]
+    m = X.shape[1]
+    s = np.empty((n,m))
+
+    code = """
+    for (int i = 0; i < m; ++i) {
+        double *o1 = X, *o2 = X + 5;
+
+        // unpack and normalize orientations
+        vec_t m1 = make_vec(o1[0], o1[1], o1[2]); m1 = m1 / norm(m1);
+        vec_t m2 = make_vec(o2[0], o2[1], o2[2]); m2 = m2 / norm(m2);
+        double l11 = o1[3], l12 = o1[4];
+        double l21 = o2[3], l22 = o2[4];
+    
+        // ensure: lambda >= L
+        double L = 100;
+        if (l11 < L)   l11 = L;
+        if (l12 < L)   l12 = L;
+        if (l21 < L)   l21 = L;
+        if (l22 < L)   l22 = L;
+
+        // write back
+        vec2mem(m1, o1);  vec2mem(m2, o2);
+        o1[3] = l11; o2[3] = l21;
+        o1[4] = l12; o2[4] = l22;
+
+        // prepare for next
+        X += 10;
+    }
+    """
+
+    fn = et.ext_function('c_model_2tensor_f', code, ['X', 'm'])
     mod.add_function(fn)
 
 
 
+
 def add_s2ga(mod):
-    s = np.empty((102,1), dtype='float32')
+    s = np.empty((102,1), dtype='float64')
     n = s.shape[0]
 
     code = """
@@ -198,7 +329,7 @@ def add_interp3signal(mod):
 
            """
     nx,ny,nz,n = S.shape
-    s = np.zeros((2*n,), dtype='float32')  # preallocate output (doubled)
+    s = np.empty((2*n,), dtype='float32')  # preallocate output (doubled)
     fn = et.ext_function('c_interp3signal', code, ['s','S', 'p', 'nx','ny','nz','n'])
     mod.add_function(fn)
 
@@ -244,6 +375,8 @@ def add_interp3scalar(mod):
 
 # helper routines for matrix/vector manipulation
 matrix_code = """
+    #define max(x,y)  ((x) > (y) ? (x) : (y))
+
     typedef struct { double _[3]; } vec_t;
 
     inline vec_t make_vec(double x, double y, double z)
@@ -434,6 +567,15 @@ matrix_code = """
     {
         return (1 / det(M)) * ct(M);
     }
+
+    inline mat_t diffusion(vec_t m, double l1, double l2)
+    {
+        double x = m._[0], y = m._[1], z = m._[2];
+        mat_t R = make_mat(x,  y,            z          ,
+                           y,  y*y/(1+x)-1,  y*z/(1+x)  ,
+                           z,  y*z/(1+x),    z*z/(1+x)-1);
+        return R * diag(l1,l2,l2) * t(R) * 1e-6;
+    }
     """
 
 
@@ -441,12 +583,19 @@ matrix_code = """
 def build():
     mod = et.ext_module('filtered_ext')
 
-    # single-tensor routines
+    mod.customize.add_support_code(matrix_code)
+
+    # single-tensor
     add_model_1tensor_f(mod)
     add_model_1tensor_h(mod)
     add_state2tensor1(mod)
 
-    # two-tensor routines
+    # two-tensor
+    add_model_2tensor_f(mod)
+    add_model_2tensor_h(mod)
+    add_state2tensor2(mod)
+
+    # utility
     add_interp3signal(mod)
     add_interp3scalar(mod)
     add_s2ga(mod)

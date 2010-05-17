@@ -34,7 +34,7 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
 import numpy as np
 import warnings
 from scipy import weave
-import filtered1t_ext as f1t
+import filtered_ext as flt
 
 def Execute(dwi_node, seeds_node, mask_node, ff_node):
     from Slicer import slicer
@@ -318,27 +318,69 @@ def filter_ukf(f_fn,h_fn,Q,R):
     return filter
 
 
+
 def model_1tensor(u,b):
     f_fn = model_1tensor_f   # identity, but fix up state
     h_fn = lambda X : model_1tensor_h(X,u,b)
     return f_fn,h_fn
+def model_2tensor(u,b):
+    f_fn = model_2tensor_f   # identity, but fix up state
+    h_fn = lambda X : model_2tensor_h(X,u,b)
+    return f_fn,h_fn
+
+
 
 
 def model_1tensor_f(X):
-    k,m = X.shape
+    assert X.shape[0] == 5 and X.shape[1] == 1 and X.dtype == 'float64'
+    m = X.shape[1]
     X = np.copy(X)
-    f1t.c_model_1tensor_f(X, k, m)
+    flt.c_model_1tensor_f(X, m)
+    return X
+def model_2tensor_f(X):
+    assert X.shape[0] == 10 and X.shape[1] == 1 and X.dtype == 'float64'
+    m = X.shape[1]
+    X = np.copy(X)
+    flt.c_model_2tensor_f(X, m)
     return X
 
 
 
-def state2tensor(X, y=np.zeros(3)):
-    assert X.ndim == 1 or X.shape[1] == 1  # only handle single
+def model_1tensor_h(X,u,b):
+    assert X.shape[0] == 5 and X.shape[1] == 1 and X.dtype == 'float64' and u.dtype == 'float64'
+    n = u.shape[0]
+    m = X.shape[1]
+    s = np.empty((n,m)) # preallocate output
+    flt.c_model_1tensor_h(s, X, u, b, n, m)
+    return s
+def model_2tensor_h(X,u,b):
+    assert X.shape[0] == 10 and X.shape[1] == 1 and X.dtype == 'float64' and u.dtype == 'float64'
+    n = u.shape[0]
+    m = X.shape[1]
+    s = np.empty((n,m)) # preallocate output
+    flt.c_model_2tensor_h(s, X, u, b, n, m)
+    return s
+
+
+
+
+def state2tensor1(X, y=np.zeros(3)):
+    assert X.shape[0] == 5 and X.shape[1] == 1 and X.dtype == 'float64'
     m = np.empty((3,1))
     l1 = np.empty(1);
     l2 = np.empty(1);
-    f1t.c_state2tensor(X, y, m, l1, l2)
+    flt.c_state2tensor1(X, y, m,l1,l2)
     return m,(l1,l2)
+def state2tensor2(X, y=np.zeros(3)):
+    assert X.shape[0] == 10 and X.shape[1] == 1 and X.dtype == 'float64'
+    m1,m2 = np.empty((3,1)),np.empty((3,1))
+    l11,l12 = np.empty(1),np.empty(1);
+    l21,l22 = np.empty(1),np.empty(1);
+    flt.c_state2tensor2(X, y, m1,l11,l12, m2,l21,l22)
+    return m1,(l11,l12), m2,(l21,l22)
+
+
+
 
 def l2fa((a,b)):
     return abs(a-b)/np.sqrt(a*a + 2*b*b)
@@ -348,27 +390,21 @@ def dot(a,b):
 
 
 
-def model_1tensor_h(X,u,b):
-    n = u.shape[0]
-    k,m = X.shape
-    s = np.empty((n,m)) # preallocate output
-    f1t.c_model_1tensor_h(s, X, u, b, n, k, m)
-    return s
-
-
-
 def s2ga(s):
+    assert s.dtype == 'float64'
     n = s.shape[0]
-    return f1t.c_s2ga(s,n)
+    return flt.c_s2ga(s,n)
 
 
 def interp3signal(S, p):
+    assert S.ndim == 3 and S.dtype == 'float32'
     nx,ny,nz,n = S.shape
     s = np.zeros((2*n,), dtype='float32')  # preallocate output (doubled)
-    f1t.c_interp3signal(s, S, p, nx, ny, nz, n)
+    flt.c_interp3signal(s, S, p, nx, ny, nz, n)
     return s
 
 
 def interp3scalar(M, p):
+    assert M.ndim == 3 and M.dtype == 'int16'
     nx,ny,nz = M.shape
-    return f1t.c_interp3scalar(M, p, nx, ny, nz)
+    return flt.c_interp3scalar(M, p, nx, ny, nz)
