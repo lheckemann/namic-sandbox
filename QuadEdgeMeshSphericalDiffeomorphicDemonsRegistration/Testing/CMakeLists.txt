@@ -126,6 +126,12 @@ TARGET_LINK_LIBRARIES(itkPointLocator2Test1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 ADD_EXECUTABLE(itkWarpQuadEdgeMeshFilterTest itkWarpQuadEdgeMeshFilterTest.cxx )
 TARGET_LINK_LIBRARIES(itkWarpQuadEdgeMeshFilterTest ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkRescaleScalarsQuadEdgeMeshFilterTest itkRescaleScalarsQuadEdgeMeshFilterTest.cxx)
+TARGET_LINK_LIBRARIES(itkRescaleScalarsQuadEdgeMeshFilterTest ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(itkHistogramMatchingQuadEdgeMeshFilterTest itkHistogramMatchingQuadEdgeMeshFilterTest.cxx)
+TARGET_LINK_LIBRARIES(itkHistogramMatchingQuadEdgeMeshFilterTest ITKQuadEdgeMesh ITKIO ITKNumerics ITKStatistics)
+
 IF(USE_VTK)
 
   ADD_EXECUTABLE(ScalarMeshRender  ScalarMeshRender.cxx)
@@ -369,6 +375,24 @@ ADD_TEST(AssignScalarValuesFilterTest1
   ${TEMP}/movingMesh01.vtk 
   ${TEMP}/newMesh01.vtk 
   )
+
+ADD_TEST(RescaleScalarsQuadEdgeMeshFilterTest  
+  ${CXX_TEST_PATH}/itkRescaleScalarsQuadEdgeMeshFilterTest
+  ${TEMP}/meshWithScalarsIC1.vtk
+  ${TEMP}/rescaledmeshWithScalarsIC1.vtk
+  2.0 # min
+  4.0 # max
+  )
+
+ADD_TEST(HistogramMatchingQuadEdgeMeshFilterTest
+  ${CXX_TEST_PATH}/itkHistogramMatchingQuadEdgeMeshFilterTest
+  ${TEMP}/meshWithScalarsIC1.vtk
+  ${TEMP}/rescaledmeshWithScalarsIC1.vtk
+  ${TEMP}/histogramMatchedIC1.vtk
+  18 # NumberOfHistogramLevels
+  10 # NumberOfMatchPoints
+  )
+SET_TESTS_PROPERTIES( HistogramMatchingQuadEdgeMeshFilterTest PROPERTIES DEPENDS RescaleScalarsQuadEdgeMeshFilterTest)
   
 ADD_TEST(WarpQuadEdgeMeshFilterTest
   ${CXX_TEST_PATH}/itkWarpQuadEdgeMeshFilterTest
