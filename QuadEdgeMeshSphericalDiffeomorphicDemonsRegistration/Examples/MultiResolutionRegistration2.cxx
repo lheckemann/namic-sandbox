@@ -77,6 +77,7 @@ int main( int argc, char * argv [] )
   multiResDemonsFilter->SetNumberOfResolutionLevels( finestResolution );
 
   typedef MultiResolutionDemonsFilterType::IntegerArrayType IntegerArrayType;
+  typedef MultiResolutionDemonsFilterType::DoubleArrayType  DoubleArrayType;
 
   IntegerArrayType smoothingIterations(maximumNumberOfResolutions);
 
@@ -108,7 +109,15 @@ int main( int argc, char * argv [] )
   multiResDemonsFilter->SetRigidRegistrationIterations( rigidIterations );
 
 
-  typedef MultiResolutionDemonsFilterType::DoubleArrayType  DoubleArrayType;
+  DoubleArrayType rigidStepLength(maximumNumberOfResolutions);
+
+  rigidStepLength[0] = 1e-2;
+  rigidStepLength[1] = rigidStepLength[0] / 2.0;
+  rigidStepLength[2] = rigidStepLength[1] / 2.0;
+  rigidStepLength[3] = rigidStepLength[2] / 2.0;
+
+  multiResDemonsFilter->SetRigidRegistrationStepLength( rigidStepLength );
+
 
   const double shortestEdgeLengthAtIC4 = 6.91822;
 
