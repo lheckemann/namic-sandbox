@@ -404,8 +404,6 @@ def interp3signal(S, p):
 
 
 def interp3scalar(M, p):
-    print M.ndim
-    print M.dtype
-    assert M.ndim == 3 and M.dtype == 'uint16'
+    assert M.ndim == 3 and (M.dtype == 'uint16' or M.dtype == 'int16')
     nx,ny,nz = M.shape
     return flt.c_interp3scalar(M, p, nx, ny, nz)
