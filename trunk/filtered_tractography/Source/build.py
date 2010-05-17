@@ -135,7 +135,7 @@ def add_model_1tensor_h(mod):
     # typedefs
     X = np.empty((5,1), dtype='float64')
     u = np.empty((102,3), dtype='float64')
-    b = 900
+    b = 900.0
 
     n = u.shape[0]
     m = X.shape[1]
@@ -177,7 +177,7 @@ def add_model_2tensor_h(mod):
     # typedefs
     X = np.empty((10,1), dtype='float64')
     u = np.empty((102,3), dtype='float64')
-    b = 900
+    b = 900.0
 
     n = u.shape[0]
     m = X.shape[1]
@@ -223,12 +223,7 @@ def add_model_2tensor_h(mod):
 def add_model_2tensor_f(mod):
     # typedefs
     X = np.empty((10,1), dtype='float64')
-    u = np.empty((102,3), dtype='float64')
-    b = 900
-
-    n = u.shape[0]
     m = X.shape[1]
-    s = np.empty((n,m))
 
     code = """
     for (int i = 0; i < m; ++i) {
@@ -335,7 +330,7 @@ def add_interp3signal(mod):
 
 
 def add_interp3scalar(mod):
-    M = np.empty((100,100,100),dtype='int16')
+    M = np.empty((100,100,100),dtype='uint16')
     p = np.empty(3)
 
     code = """
