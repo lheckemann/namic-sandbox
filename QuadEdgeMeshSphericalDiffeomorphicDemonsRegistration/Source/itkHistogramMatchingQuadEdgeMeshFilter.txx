@@ -90,6 +90,22 @@ HistogramMatchingQuadEdgeMeshFilter< TInputMesh, TOutputMesh, THistogramMeasurem
 template< class TInputMesh, class TOutputMesh, class THistogramMeasurement >
 void
 HistogramMatchingQuadEdgeMeshFilter< TInputMesh, TOutputMesh, THistogramMeasurement >
+::SetSourceMesh( const InputMeshType * source )
+{
+  this->SetInput( source );
+}
+
+template< class TInputMesh, class TOutputMesh, class THistogramMeasurement >
+const typename HistogramMatchingQuadEdgeMeshFilter< TInputMesh, TOutputMesh, THistogramMeasurement >::InputMeshType *
+HistogramMatchingQuadEdgeMeshFilter< TInputMesh, TOutputMesh, THistogramMeasurement >
+::GetSourceMesh( void ) const
+{
+  return this->GetInput();
+}
+
+template< class TInputMesh, class TOutputMesh, class THistogramMeasurement >
+void
+HistogramMatchingQuadEdgeMeshFilter< TInputMesh, TOutputMesh, THistogramMeasurement >
 ::BeforeTransform()
 {
   this->CopyInputMeshToOutputMesh();
@@ -108,8 +124,6 @@ HistogramMatchingQuadEdgeMeshFilter< TInputMesh, TOutputMesh, THistogramMeasurem
                             m_ReferenceMinValue,
                             m_ReferenceMaxValue );
                             
-  unsigned int j;    
-                        
   // Fill in the quantile table.
   m_QuantileTable.set_size( 3, m_NumberOfMatchPoints + 2 );
   m_QuantileTable[0][0] = m_SourceMinValue;
@@ -120,7 +134,7 @@ HistogramMatchingQuadEdgeMeshFilter< TInputMesh, TOutputMesh, THistogramMeasurem
  
   double delta = 1.0 / ( double(m_NumberOfMatchPoints) + 1.0 );
 
-  for ( j = 1; j < m_NumberOfMatchPoints + 1; j++ )
+  for ( unsigned int j = 1; j < m_NumberOfMatchPoints + 1; j++ )
     {
     m_QuantileTable[0][j] = m_SourceHistogram->Quantile( 
       0, double(j) * delta );
@@ -131,19 +145,19 @@ HistogramMatchingQuadEdgeMeshFilter< TInputMesh, TOutputMesh, THistogramMeasurem
   // Fill in the gradient array.
   m_Gradients.set_size( m_NumberOfMatchPoints + 1 );
   double denominator;
-  for ( j = 0; j < m_NumberOfMatchPoints + 1; j++ )
+  for ( unsigned int jj = 0; jj < m_NumberOfMatchPoints + 1; jj++ )
     {
-    denominator = m_QuantileTable[0][j+1] - 
-      m_QuantileTable[0][j];
+    denominator = m_QuantileTable[0][jj+1] - 
+      m_QuantileTable[0][jj];
     if ( denominator != 0 )
       {
-      m_Gradients[j] = m_QuantileTable[1][j+1] - 
-        m_QuantileTable[1][j];
-      m_Gradients[j] /= denominator;
+      m_Gradients[jj] = m_QuantileTable[1][jj+1] - 
+        m_QuantileTable[1][jj];
+      m_Gradients[jj] /= denominator;
       }
     else
       {
-      m_Gradients[j] = 0.0;
+      m_Gradients[jj] = 0.0;
       }
     }
 
@@ -178,8 +192,6 @@ void
 HistogramMatchingQuadEdgeMeshFilter< TInputMesh, TOutputMesh, THistogramMeasurement >
 ::Transform()
 {
-  int i;
-  unsigned int j;
   
   // Get the input and output pointers;
   InputMeshConstPointer  input  = this->GetInput();  
@@ -199,17 +211,20 @@ HistogramMatchingQuadEdgeMeshFilter< TInputMesh, TOutputMesh, THistogramMeasurem
 
   double srcValue, mappedValue;
 
-  for ( i = 0; out_Itr != out_End; ++in_Itr, ++out_Itr, i++ )
+  while ( out_Itr != out_End )
     {
 
     srcValue = static_cast<double>( in_Itr.Value() );
 
-    for ( j = 0; j < m_NumberOfMatchPoints + 2; j++ )
+    unsigned int j = 0;
+
+    while ( j < m_NumberOfMatchPoints + 2 )
       {
       if ( srcValue < m_QuantileTable[0][j] )
         {
         break;
         }
+      j++;
       }
 
     if ( j == 0 )
@@ -233,6 +248,8 @@ HistogramMatchingQuadEdgeMeshFilter< TInputMesh, TOutputMesh, THistogramMeasurem
 
     out_Itr.Value() = static_cast<OutputPixelType>( mappedValue );
 
+    ++in_Itr;
+    ++out_Itr;
     }
 }
 
