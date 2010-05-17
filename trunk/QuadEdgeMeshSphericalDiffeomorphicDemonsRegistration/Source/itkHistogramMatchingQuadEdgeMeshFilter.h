@@ -59,11 +59,11 @@ class HistogramMatchingQuadEdgeMeshFilter :
   public QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 {
 public:
-  typedef HistogramMatchingQuadEdgeMeshFilter    Self;
+  typedef HistogramMatchingQuadEdgeMeshFilter     Self;
   typedef QuadEdgeMeshToQuadEdgeMeshFilter< 
-    TInputMesh, TOutputMesh >                           Superclass;
-  typedef SmartPointer< Self >                          Pointer;
-  typedef SmartPointer< const Self >                    ConstPointer;
+    TInputMesh, TOutputMesh >                     Superclass;
+  typedef SmartPointer< Self >                    Pointer;
+  typedef SmartPointer< const Self >              ConstPointer;
 
   /** Run-time type information (and related methods).   */
   itkTypeMacro( HistogramMatchingQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
@@ -85,18 +85,16 @@ public:
 
   /** Histogram related typedefs. */
   #ifdef ITK_USE_REVIEW_STATISTICS
-    typedef Statistics::Histogram<THistogramMeasurement >   HistogramType;
+  typedef Statistics::Histogram<THistogramMeasurement >   HistogramType;
   #else
-    typedef Statistics::Histogram<THistogramMeasurement, 1> HistogramType;
+  typedef Statistics::Histogram<THistogramMeasurement, 1> HistogramType;
   #endif
 
   typedef typename HistogramType::Pointer                 HistogramPointer;
 
   /** Set/Get the source mesh. */
-  void SetSourceMesh ( const InputMeshType * source )
-  { this->SetInput( source ); }
-  const InputMeshType * GetSourceMesh( void ) const
-  { return this->GetInput(); }
+  void SetSourceMesh ( const InputMeshType * source );
+  const InputMeshType * GetSourceMesh( void ) const;
 
   /** Set/Get the reference mesh. */
   void SetReferenceMesh ( const InputMeshType * reference );
