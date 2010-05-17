@@ -350,7 +350,6 @@ def model_1tensor_h(X,u,b):
     n = u.shape[0]
     m = X.shape[1]
     s = np.empty((n,m)) # preallocate output
-    print b.dtype
     flt.c_model_1tensor_h(s, X, u, b, n, m)
     return s
 def model_2tensor_h(X,u,b):
