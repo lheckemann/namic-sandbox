@@ -6,17 +6,12 @@
   <title>
   Label Diameter Estimation
   </title>
-  <description>
-  Estimates the largest diameter of a label, saved as a list of endpoint
-  fiducials in a file.
-  </description>
+  <description>Estimates the largest diameter of a label, saved as a list of endpoint fiducials in a file.</description>
   <version>1.4</version>
-  <documentation-url></documentation-url>
+  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Modules:LabelDiameterEstimation-Documentation-3.6</documentation-url>
   <license></license>
   <contributor>Andriy Fedorov</contributor>
-<acknowledgements>
-This work was supported by funding from Brain Science Foundation.
-</acknowledgements>
+<acknowledgements>This work was supported by funding from Brain Science Foundation.</acknowledgements>
 
   <parameters advanced="true">
     <label>Advanced Parameters</label>
