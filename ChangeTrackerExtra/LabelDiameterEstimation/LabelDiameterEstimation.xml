@@ -3,9 +3,7 @@
   <category>
   Statistics
   </category>
-  <title>
-  Label Diameter Estimation
-  </title>
+  <title>Label Diameter Estimation</title>
   <description>Estimates the largest diameter of a label, saved as a list of endpoint fiducials in a file.</description>
   <version>1.4</version>
   <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Modules:LabelDiameterEstimation-Documentation-3.6</documentation-url>
@@ -20,8 +18,7 @@
     <double>
       <name>orthogonalityTolerance</name>
       <longflag>tolerance</longflag>
-      <description>Allowed deviation of the angle cos() between the first two
-      diameters from 1 (corresponds to orthogonal -- 90 degrees angle).</description>
+      <description>Allowed deviation of the angle cos() between the first two diameters from 1 (corresponds to orthogonal -- 90 degrees angle).</description>
       <label>Orthogonality tolerance</label>
       <default>0.01</default>
     </double>
