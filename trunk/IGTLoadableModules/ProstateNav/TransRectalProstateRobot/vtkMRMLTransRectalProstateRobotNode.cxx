@@ -805,7 +805,9 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateCalibration()
   std::string tagValue; 
   tagValue.clear();
   itk::ExposeMetaData<std::string>( volDictionary, "0020|0052", tagValue );   
-  in.FoR=tagValue;
+
+  // Need to remove extra '0x00' characters. By assigning the value using c_str we achieve just this.
+  in.FoR=tagValue.c_str();
 
   if (calibrationPointListNode->GetNumberOfFiducials()<(int)CALIB_MARKER_COUNT)
   {

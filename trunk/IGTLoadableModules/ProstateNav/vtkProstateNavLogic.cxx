@@ -452,7 +452,14 @@ std::string vtkProstateNavLogic::GetFoRStrFromVolumeNodeID(const char* volNodeID
   std::string tagValue; 
 
   // frame of reference uid
-  tagValue.clear(); itk::ExposeMetaData<std::string>( volDictionary, "0020|0052", tagValue );
+  tagValue.clear();
+  itk::ExposeMetaData<std::string>( volDictionary, "0020|0052", tagValue );
+
+  // Need to remove extra '0x00' characters that may be present at the end of the string
+  if (!tagValue.empty())
+  {
+    tagValue=tagValue.c_str();
+  }  
   
   return tagValue;
 }
