@@ -280,7 +280,8 @@ DeformableAndAffineRegistrationMonitor<TDeformationFilter,TPointSet>
       this->Matrix->SetElement(i,j, inverseMatrix.get(i,j));   
       }
 
-    this->Matrix->SetElement( i, 3, -offset[i]);
+    //this->Matrix->SetElement( i, 3, -offset[i]);
+    this->Matrix->SetElement( i, 3, offset[i]);
     }
 
   this->SetFixedActorMatrix( this->Matrix );
