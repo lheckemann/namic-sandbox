@@ -55,11 +55,12 @@ void AffineRegistrationMonitor::UpdateDataBeforeRendering()
     for(unsigned int j=0; j<3; j++ )
       {
       this->Matrix->SetElement(i,j,
-        matrix.GetVnlMatrix().get(i,j));   
+        matrix.GetVnlMatrix().get(i,j));  
       }
 
     this->Matrix->SetElement( i, 3, offset[i]);
     }
 
-  this->SetMovingActorMatrix( this->Matrix );
+  //this->SetMovingActorMatrix( this->Matrix );
+  this->SetFixedActorMatrix( this->Matrix );
 }
