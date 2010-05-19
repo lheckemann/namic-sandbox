@@ -49,6 +49,8 @@
 #include "vtkPolyDataWriter.h"
 #include "vtkPolyData.h"
 
+#include "vtkMRMLUDPServerNode.h"
+
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkBetaProbeNavGUI );
@@ -98,6 +100,7 @@ vtkBetaProbeNavGUI::vtkBetaProbeNavGUI ( )
   //----------------------------------------------------------------
   // MRML
   //mnode = vtkMRMLModelNode::New();
+  this->BetaProbeCountsWithTimestamp.open("BetaProbeCountsWithTimestamp.txt");
 
 }
 
@@ -246,6 +249,7 @@ vtkBetaProbeNavGUI::~vtkBetaProbeNavGUI ( )
 
   this->SetModuleLogic ( NULL );
 
+  this->BetaProbeCountsWithTimestamp.close(); 
 }
 
 
@@ -651,6 +655,27 @@ void vtkBetaProbeNavGUI::ProcessGUIEvents(vtkObject *caller,
     
     if (this->DataEntryButtonSet->GetWidget(0)->GetSelectedState())
       {
+      // When it's in Manual mode, save info into a file. Here is the format:
+      // for each data point, we will have one line in the file:
+      // beta value, ras coordinates, "current time stamp (hh:mm:ss)
+      //
+      if (this->ManualDataCapture)
+        {
+        vtkMRMLUDPServerNode* cnode = vtkMRMLUDPServerNode::SafeDownCast(this->CountNode->GetSelected());
+        if (cnode)
+          {
+          float sc = cnode->GetSmoothedCounts();
+          float bc = cnode->GetBetaCounts();
+          float gc = cnode->GetGammaCounts();
+          char *ts = (char *)(cnode->GetTime()).c_str();
+ 
+          this->BetaProbeCountsWithTimestamp << sc << "  " << bc << "  " << gc << "  " 
+                                             << this->GetLogic()->interPoint[0] << "  "
+                                             << this->GetLogic()->interPoint[1] << "  "
+                                             << this->GetLogic()->interPoint[2] << "  "
+                                             << ts << endl;
+          }
+        } 
       ProcessTimerEvents();
       }
     }
