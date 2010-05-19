@@ -25,8 +25,8 @@
 #include "igtlMath.h"
 #include "igtlMessageBase.h"
 #include "igtlTypes.h"
-
 #include "igtlImageMessage.h"
+
 
 namespace igtl
 {
@@ -73,7 +73,7 @@ protected:
 
 protected:
 
-  std::string   m_Name;          /* Name / description (< 20 bytes)*/
+  std::string   m_Name;          /* Name / description (< 20 bytes) */
   igtlUint8     m_Type;          /* Tracking data type (TYPE_TRACKER, TYPE_6D, TYPE_3D, TYPE_5D) */
   Matrix4x4     m_Matrix;        /* Transform matrix */
 };
@@ -92,7 +92,7 @@ public:
   igtlNewMacro(igtl::StartTrackingDataMessage);
 
 public:
-  void         SetResolution(igtlInt32 res)  { this->m_Resolution = res; };
+  void         SetResolution(igtlInt32 res)  { this->m_Resolution = res; }; // ms
   igtlInt32    GetResolution()               { return this->m_Resolution; };
 
   int          SetCoordinateName(const char* name);
@@ -126,7 +126,7 @@ public:
   igtlNewMacro(igtl::StopTrackingDataMessage);
 
 protected:
-  StopTrackingDataMessage() : MessageBase() { this->m_DefaultBodyType  = "STT_TDATA"; };
+  StopTrackingDataMessage() : MessageBase() { this->m_DefaultBodyType  = "STP_TDATA"; };
   ~StopTrackingDataMessage() {};
 
 protected:
