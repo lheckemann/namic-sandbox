@@ -19,6 +19,9 @@
 #include "vtkBetaProbeNavWin32Header.h"
 #endif
 
+#include <iostream>
+#include <fstream>
+
 #include "vtkSlicerModuleGUI.h"
 #include "vtkCallbackCommand.h"
 #include "vtkSlicerInteractorStyle.h"
@@ -54,6 +57,7 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavGUI : public vtkSlicerModuleGUI
   // Constructor / Destructor (proctected/private) 
   //----------------------------------------------------------------
 
+  ofstream BetaProbeCountsWithTimestamp; 
   vtkBetaProbeNavGUI ( );
   virtual ~vtkBetaProbeNavGUI ( );
 
