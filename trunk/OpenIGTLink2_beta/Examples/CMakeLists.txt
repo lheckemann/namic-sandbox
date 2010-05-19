@@ -16,6 +16,7 @@ if(NOT OpenIGTLink_PLATFORM_QNX)
       Thread
       ImageMeta
       Point
+      TrackingData
       )
 else(NOT OpenIGTLink_PLATFORM_QNX)
   SUBDIRS(
