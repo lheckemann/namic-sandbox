@@ -43,6 +43,10 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   // Set/Get Methods
   //----------------------------------------------------------------
 
+  // Description: 
+  // Get the categorization of the module.
+  const char *GetCategory() const { return "IGT"; }
+
   vtkGetObjectMacro ( Logic, vtkUDPServerLogic );
   void SetModuleLogic ( vtkSlicerLogic *logic )
   { 
