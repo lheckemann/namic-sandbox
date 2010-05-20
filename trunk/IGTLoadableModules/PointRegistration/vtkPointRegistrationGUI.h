@@ -44,6 +44,10 @@ class VTK_PointRegistration_EXPORT vtkPointRegistrationGUI : public vtkSlicerMod
   // Set/Get Methods
   //----------------------------------------------------------------
 
+  // Description: 
+  // Get the categorization of the module.
+  const char *GetCategory() const { return "IGT"; }
+
   vtkGetObjectMacro ( Logic, vtkPointRegistrationLogic );
   void SetModuleLogic ( vtkSlicerLogic *logic )
   { 
