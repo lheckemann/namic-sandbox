@@ -74,7 +74,7 @@ protected:
   std::string   m_Name;        /* name / description (< 64 bytes)*/
   std::string   m_GroupName;   /* Can be "Labeled Point", "Landmark", Fiducial", ... */
   igtlUint8     m_RGBA[4];     /* Color in R/G/B/A */
-  igtlFloat32   m_Position[3]; /* entire image volume size */ 
+  igtlFloat32   m_Position[3]; /* Position */ 
   igtlFloat32   m_Radius;      /* Radius of the point. Can be 0. */
   std::string   m_Owner;       /* Device name of the ower image */
 };
