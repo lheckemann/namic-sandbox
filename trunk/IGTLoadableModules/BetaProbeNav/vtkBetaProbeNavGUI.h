@@ -46,6 +46,11 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavGUI : public vtkSlicerModuleGUI
   // Set/Get Methods
   //----------------------------------------------------------------
 
+
+  // Description: 
+  // Get the categorization of the module.
+  const char *GetCategory() const { return "IGT"; }
+
   vtkGetObjectMacro ( Logic, vtkBetaProbeNavLogic );
   void SetModuleLogic ( vtkSlicerLogic *logic )
   { 
