@@ -53,6 +53,10 @@ class VTK_HybridNav_EXPORT vtkHybridNavGUI : public vtkSlicerModuleGUI
   // Set/Get Methods
   //----------------------------------------------------------------
 
+  // Description: 
+  // Get the categorization of the module.
+  const char *GetCategory() const { return "IGT"; }
+
   vtkGetObjectMacro ( Logic, vtkHybridNavLogic );
   void SetModuleLogic ( vtkSlicerLogic *logic )
   {
