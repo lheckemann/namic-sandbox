@@ -22,64 +22,36 @@
 #define ITK_LEAN_AND_MEAN
 #endif
 
+#include "itkJPEG2000ImageIOFactory.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-
-#include "itkRegionOfInterestImageFilter.h"
 #include "itkImage.h"
+
 
 int main( int argc, char ** argv )
 {
   // Verify the number of parameters in the command line
-  if( argc < 9 )
+  if( argc < 3 )
     {
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << " inputImageFile  outputImageFile " << std::endl;
-    std::cerr << " startX startY startZ sizeX sizeY sizeZ" << std::endl;
     return EXIT_FAILURE;
     }
+
+  //  Register the factory
+  itk::JPEG2000ImageIOFactory::RegisterOneFactory();
+
 
   //  Image types are defined below.
   typedef unsigned char       InputPixelType;
   typedef unsigned char       OutputPixelType;
-  const   unsigned int        Dimension = 3;
+  const   unsigned int        Dimension = 2;
 
   typedef itk::Image< InputPixelType,  Dimension >    InputImageType;
   typedef itk::Image< OutputPixelType, Dimension >    OutputImageType;
 
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
-
-  //  The RegionOfInterestImageFilter type is instantiated using
-  //  the input and output image types. A filter object is created with the
-  //  New() method and assigned to a \doxygen{SmartPointer}.
-  typedef itk::RegionOfInterestImageFilter< InputImageType,
-                                            OutputImageType > FilterType;
-  FilterType::Pointer filter = FilterType::New();
-
-  //  The RegionOfInterestImageFilter requires a region to be
-  //  defined by the user. The region is specified by an \doxygen{Index}
-  //  indicating the pixel where the region starts and an \doxygen{Size}
-  //  indicating how many pixels the region has along each dimension. In this
-  //  example, the specification of the region is taken from the command line
-  //  arguments (this example assumes that a 2D image is being processed).
-  OutputImageType::IndexType start;
-  start[0] = atoi( argv[3] );
-  start[1] = atoi( argv[4] );
-  start[2] = atoi( argv[5] );
-
-  OutputImageType::SizeType size;
-  size[0] = atoi( argv[6] );
-  size[1] = atoi( argv[7] );
-  size[2] = atoi( argv[8] );
-
-  OutputImageType::RegionType desiredRegion;
-  desiredRegion.SetSize(  size  );
-  desiredRegion.SetIndex( start );
-  //  Then the region is passed to the filter using the
-  //  SetRegionOfInterest() method.
-
-  filter->SetRegionOfInterest( desiredRegion );
 
   ReaderType::Pointer reader = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
@@ -90,8 +62,7 @@ int main( int argc, char ** argv )
   reader->SetFileName( inputFilename  );
   writer->SetFileName( outputFilename );
 
-  filter->SetInput( reader->GetOutput() );
-  writer->SetInput( filter->GetOutput() );
+  writer->SetInput( reader->GetOutput() );
 
   try
     {
