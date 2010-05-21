@@ -41,6 +41,20 @@ IF(WIN32)
   ENDIF(DISABLE_MSVC8_DEPRECATED_WARNINGS)
 ENDIF(WIN32)
 
+
+#
+#  Path to the conformace JPEG2000 images that you can download from
+#  http://www.crc.ricoh.com/~gormish/jpeg2000conformance/
+#
+#  According to instructions from
+#  http://www.jpeg.org/jpeg2000/testlinks.html
+#
+#  If set, the images in this directory will be used for enabling
+#  Acceptance tests. (testing level above unit-testing).
+#
+FIND_PATH(JPEG2000_DATA_ROOT COPYRIGHT)
+
+
 ADD_SUBDIRECTORY( Source )
 ADD_SUBDIRECTORY( Testing )
 ADD_SUBDIRECTORY( Examples )
