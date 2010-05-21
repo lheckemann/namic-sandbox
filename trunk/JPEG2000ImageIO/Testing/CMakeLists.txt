@@ -1,0 +1,10 @@
+ADD_EXECUTABLE(ImageReadRegionOfInterestWrite ImageReadRegionOfInterestWrite.cxx)
+TARGET_LINK_LIBRARIES(ImageReadRegionOfInterestWrite ITKIO)
+
+ADD_EXECUTABLE(itkJPEG2000ImageIOTest01 itkJPEG2000ImageIOTest01.cxx)
+TARGET_LINK_LIBRARIES(itkJPEG2000ImageIOTest01 ITKIO)
+
+
+ADD_TEST(RegionTest01  ImageReadRegionOfInterestWrite  inputImage1.jpg)
+ADD_TEST(JpegTest01  itkJPEG2000ImageIOTest01  inputImage1.jpg)
+
