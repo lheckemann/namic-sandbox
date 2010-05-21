@@ -42,6 +42,15 @@ IF(WIN32)
 ENDIF(WIN32)
 
 
+#-----------------------------------------------------------------------------
+# Setup file for setting custom ctest vars
+CONFIGURE_FILE(
+  ${PROJECT_SOURCE_DIR}/CTestCustom.cmake.in
+  ${PROJECT_BINARY_DIR}/CTestCustom.cmake
+  @ONLY
+  )
+
+
 #
 #  Path to the conformace JPEG2000 images that you can download from
 #  http://www.crc.ricoh.com/~gormish/jpeg2000conformance/
