@@ -27,19 +27,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef __J2K_CONVERT_H
-#define __J2K_CONVERT_H
+#ifndef __convert_h
+#define __convert_h
 
 opj_image_t* bmptoimage(char *filename, opj_cparameters_t *parameters);
 
 int imagetobmp(opj_image_t *image, char *outfile);
 
 /**
-Load a single image component encoded in PGX file format
-@param filename Name of the PGX file to load
-@param parameters *List ?*
-@return Returns a greyscale image if successful, returns NULL otherwise
-*/
+ * Load a single image component encoded in PGX file format
+ * @param filename Name of the PGX file to load
+ * @param parameters *List ?*
+ * @return Returns a greyscale image if successful, returns NULL otherwise
+ */
 opj_image_t* pgxtoimage(char *filename, opj_cparameters_t *parameters);
 
 int imagetopgx(opj_image_t *image, char *outfile);
@@ -49,4 +49,3 @@ opj_image_t* pnmtoimage(char *filename, opj_cparameters_t *parameters);
 int imagetopnm(opj_image_t *image, char *outfile);
 
 #endif /* __J2K_CONVERT_H */
-
