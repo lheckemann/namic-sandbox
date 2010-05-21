@@ -44,22 +44,29 @@ void JPEG2000ImageIO::PrintSelf(std::ostream& os, Indent indent) const
 bool JPEG2000ImageIO::CanReadFile( const char* filename ) 
 { 
   std::cout << "JPEG2000ImageIO::CanReadFile() " << std::endl;
+
   //
-  // If the file exists, and have extension .yaff, then we are good to read it.
+  // If the file exists, and have extension .j2k or jp2, then we are good to read it.
   //
   if( !itksys::SystemTools::FileExists( filename ) )
     {
     std::cout << "File doesn't exist" << std::endl;
     return false;
     }
-std::cout << itksys::SystemTools::GetFilenameLastExtension( filename ) << std::endl;
-  if( itksys::SystemTools::GetFilenameLastExtension( filename ) != ".yaff" )
+
+  std::string extension = itksys::SystemTools::GetFilenameLastExtension( filename );
+
+  if( extension == ".j2k" )
     {
-    std::cout << "Wrong extension" << std::endl;
-    return false;
+    return true;
+    }
+
+   if( extension == ".jp2" )
+    {
+    return true;
     }
  
-  return true;
+  return false;
 }
 
 
