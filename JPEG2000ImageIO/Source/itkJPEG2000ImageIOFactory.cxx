@@ -55,7 +55,7 @@ extern "C"
 #ifdef _WIN32
 __declspec( dllexport ) 
 #endif  
-  itk::ObjectFactoryBase* itkLoad()
+itk::ObjectFactoryBase* itkLoad()
 {
   std::cout << "Calling JPEG2000ImageIO itkLoad()" << std::endl;
   return itk::JPEG2000ImageIOFactory::FactoryNew();
