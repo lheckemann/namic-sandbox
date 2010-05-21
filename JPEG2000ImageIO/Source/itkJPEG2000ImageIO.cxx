@@ -28,8 +28,8 @@ namespace itk
 
 JPEG2000ImageIO::JPEG2000ImageIO()
 {
-  this->SetNumberOfDimensions(3); // JPEG2000 is 3D.
-  this->SetNumberOfComponents(1); // JPEG2000 only has one component.
+  this->SetNumberOfDimensions(2); // JPEG2000 is 2D.
+  this->SetNumberOfComponents(1); // JPEG2000 only has one component. (FIXME)
 } 
 
 JPEG2000ImageIO::~JPEG2000ImageIO()
@@ -85,14 +85,12 @@ void JPEG2000ImageIO::ReadImageInformation()
 
   unsigned int nx;
   unsigned int ny;
-  unsigned int nz;
 
   double dx;
   double dy;
-  double dz;
 
-  this->m_InputStream >> nx >> ny >> nz;
-  this->m_InputStream >> dx >> dy >> dz;
+  this->m_InputStream >> nx >> ny;
+  this->m_InputStream >> dx >> dy;
 
   std::string rawFileName;
   this->m_InputStream >> rawFileName;
@@ -111,11 +109,9 @@ void JPEG2000ImageIO::ReadImageInformation()
  
   this->SetDimensions( 0, nx );
   this->SetDimensions( 1, ny );
-  this->SetDimensions( 2, nz );
 
   this->SetSpacing( 0, dx );
   this->SetSpacing( 1, dy );
-  this->SetSpacing( 2, dz );
 }
 
 
@@ -127,7 +123,6 @@ void JPEG2000ImageIO::Read( void * buffer)
 
   const unsigned int nx = this->GetDimensions( 0 );
   const unsigned int ny = this->GetDimensions( 1 );
-  const unsigned int nz = this->GetDimensions( 2 );
  
   ImageIORegion regionToRead = this->GetIORegion();
 
@@ -136,44 +131,36 @@ void JPEG2000ImageIO::Read( void * buffer)
 
   const unsigned int mx = size[0];
   const unsigned int my = size[1];
-  const unsigned int mz = size[2];
 
-  const unsigned int sx = start[0];
-  const unsigned int sy = start[1];
-  const unsigned int sz = start[2];
+  std::cout << "largest    region size = " << nx << " " << ny << std::endl;
+  std::cout << "streamable region size = " << mx << " " << my << std::endl;
 
-  std::cout << "largest    region size = " << nx << " " << ny << " " << nz << std::endl;
-  std::cout << "streamable region size = " << mx << " " << my << " " << mz << std::endl;
+  //  const unsigned int sx = start[0];
+  //  const unsigned int sy = start[1];
 
-  char * inptr = static_cast< char * >( buffer );
+  //  char * inptr = static_cast< char * >( buffer );
 
-  unsigned int pos = sz * ( nx * ny ) + sy * nx + sx;
-
-  this->m_InputStream.seekg( pos, std::ios_base::beg );
-
-  for( unsigned int iz = 0; iz < mz; iz++ )
-    {
-    for( unsigned int iy = 0; iy < my; iy++ )
-      {
-      this->m_InputStream.read( inptr, mx );
-      inptr += mx;
-      this->m_InputStream.seekg( nx - mx, std::ios_base::cur );
-      }
-    this->m_InputStream.seekg( ( ny - my ) * nx, std::ios_base::cur );
-    }
-  
-  this->m_InputStream.close();
+  // FIXME : Read the real data
  
   std::cout << "JPEG2000ImageIO::Read() End" << std::endl;
 } 
 
 
-bool JPEG2000ImageIO::CanWriteFile( const char * name )
+bool JPEG2000ImageIO::CanWriteFile( const char * filename )
 {
-  //
-  // JPEG2000 is not affraid of writing either !!
-  // 
-  return true;
+  std::string extension = itksys::SystemTools::GetFilenameLastExtension( filename );
+
+  if( extension == ".j2k" )
+    {
+    return true;
+    }
+
+   if( extension == ".jp2" )
+    {
+    return true;
+    }
+ 
+  return false;
 }
 
   
