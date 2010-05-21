@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "openjpeg.h"
+#include "openjpeg/openjpeg.h"
 
 /*
  * Get logarithm of an integer and round downwards.
@@ -113,7 +113,7 @@ opj_image_t* bmptoimage(char *filename, opj_cparameters_t *parameters) {
   unsigned char *table_R, *table_G, *table_B;
   unsigned int j, PAD = 0;
 
-  int x, y, index;
+  int x, y, indexv;
   int gray_scale = 1, not_end_file = 1; 
 
   unsigned int line = 0, col = 0;
@@ -251,18 +251,23 @@ opj_image_t* bmptoimage(char *filename, opj_cparameters_t *parameters) {
       
       RGB = (unsigned char *) malloc((3 * W + PAD) * H * sizeof(unsigned char));
       
-      fread(RGB, sizeof(unsigned char), (3 * W + PAD) * H, IN);
+      int fer = fread(RGB, sizeof(unsigned char), (3 * W + PAD) * H, IN);
+
+      if( fer == 0 )
+        {
+        fprintf(stderr,"Error while reading\n");
+        }
       
-      index = 0;
+      indexv = 0;
 
       for(y = 0; y < (int)H; y++) {
         unsigned char *scanline = RGB + (3 * W + PAD) * (H - 1 - y);
         for(x = 0; x < (int)W; x++) {
           unsigned char *pixel = &scanline[3 * x];
-          image->comps[0].data[index] = pixel[2];  /* R */
-          image->comps[1].data[index] = pixel[1];  /* G */
-          image->comps[2].data[index] = pixel[0];  /* B */
-          index++;
+          image->comps[0].data[indexv] = pixel[2];  /* R */
+          image->comps[1].data[indexv] = pixel[1];  /* G */
+          image->comps[2].data[indexv] = pixel[0];  /* B */
+          indexv++;
         }
       }
 
@@ -321,25 +326,31 @@ opj_image_t* bmptoimage(char *filename, opj_cparameters_t *parameters) {
 
       RGB = (unsigned char *) malloc(W * H * sizeof(unsigned char));
       
-      fread(RGB, sizeof(unsigned char), W * H, IN);
+      int fer1 = fread(RGB, sizeof(unsigned char), W * H, IN);
+
+      if( fer1 == 0 )
+        {
+        fprintf(stderr,"Error while reading\n");
+        }
+ 
       if (gray_scale) {
-        index = 0;
+        indexv = 0;
         for (j = 0; j < W * H; j++) {
           if ((j % W < W - 1 && Info_h.biWidth % 2) || !(Info_h.biWidth % 2)) {
-            image->comps[0].data[index] = table_R[RGB[W * H - ((j) / (W) + 1) * W + (j) % (W)]];
-            index++;
+            image->comps[0].data[indexv] = table_R[RGB[W * H - ((j) / (W) + 1) * W + (j) % (W)]];
+            indexv++;
           }
         }
 
       } else {    
-        index = 0;
+        indexv = 0;
         for (j = 0; j < W * H; j++) {
           if ((j % W < W - 1 && Info_h.biWidth % 2) || !(Info_h.biWidth % 2)) {
             unsigned char pixel_index = RGB[W * H - ((j) / (W) + 1) * W + (j) % (W)];
-            image->comps[0].data[index] = table_R[pixel_index];
-            image->comps[1].data[index] = table_G[pixel_index];
-            image->comps[2].data[index] = table_B[pixel_index];
-            index++;
+            image->comps[0].data[indexv] = table_R[pixel_index];
+            image->comps[1].data[indexv] = table_G[pixel_index];
+            image->comps[2].data[indexv] = table_B[pixel_index];
+            indexv++;
           }
         }
       }
@@ -430,22 +441,22 @@ opj_image_t* bmptoimage(char *filename, opj_cparameters_t *parameters) {
         }
       }
       if (gray_scale) {
-        index = 0;
+        indexv = 0;
         for (line = 0; line < Info_h.biHeight; line++) {
           for (col = 0; col < Info_h.biWidth; col++) {
-            image->comps[0].data[index] = table_R[(int)RGB[(Info_h.biHeight - line - 1) * Info_h.biWidth + col]];
-            index++;
+            image->comps[0].data[indexv] = table_R[(int)RGB[(Info_h.biHeight - line - 1) * Info_h.biWidth + col]];
+            indexv++;
           }
         }
       } else {
-        index = 0;
+        indexv = 0;
         for (line = 0; line < Info_h.biHeight; line++) {
           for (col = 0; col < Info_h.biWidth; col++) {
             unsigned char pixel_index = (int)RGB[(Info_h.biHeight - line - 1) * Info_h.biWidth + col];
-            image->comps[0].data[index] = table_R[pixel_index];
-            image->comps[1].data[index] = table_G[pixel_index];
-            image->comps[2].data[index] = table_B[pixel_index];
-            index++;
+            image->comps[0].data[indexv] = table_R[pixel_index];
+            image->comps[1].data[indexv] = table_G[pixel_index];
+            image->comps[2].data[indexv] = table_B[pixel_index];
+            indexv++;
           }
         }
       }
@@ -628,15 +639,27 @@ PGX IMAGE FORMAT
 unsigned char readuchar(FILE * f)
 {
   unsigned char c1;
-  fread(&c1, 1, 1, f);
+  int fer = fread(&c1, 1, 1, f);
+
+  if( fer )
+    {
+    fprintf(stderr,"Error while reading\n");
+    }
+ 
   return c1;
 }
 
 unsigned short readushort(FILE * f, int bigendian)
 {
   unsigned char c1, c2;
-  fread(&c1, 1, 1, f);
-  fread(&c2, 1, 1, f);
+  int fer1 = fread(&c1, 1, 1, f);
+  int fer2 = fread(&c2, 1, 1, f);
+
+  if( fer1 == 0 || fer2 == 0 )
+    {
+    fprintf(stderr,"Error while reading\n");
+    }
+ 
   if (bigendian)
     return (c1 << 8) + c2;
   else
@@ -646,10 +669,15 @@ unsigned short readushort(FILE * f, int bigendian)
 unsigned int readuint(FILE * f, int bigendian)
 {
   unsigned char c1, c2, c3, c4;
-  fread(&c1, 1, 1, f);
-  fread(&c2, 1, 1, f);
-  fread(&c3, 1, 1, f);
-  fread(&c4, 1, 1, f);
+  int fer1 = fread(&c1, 1, 1, f);
+  int fer2 = fread(&c2, 1, 1, f);
+  int fer3 = fread(&c3, 1, 1, f);
+  int fer4 = fread(&c4, 1, 1, f);
+  if ( fer1 == 0 || fer2 == 0 || fer3 == 0 || fer4 == 0 )
+    {
+    fprintf(stderr,"Error while reading\n");
+    }
+ 
   if (bigendian)
     return (c1 << 24) + (c2 << 16) + (c3 << 8) + c4;
   else
@@ -685,7 +713,14 @@ opj_image_t* pgxtoimage(char *filename, opj_cparameters_t *parameters) {
   }
 
   fseek(f, 0, SEEK_SET);
-  fscanf(f, "PG%[ \t]%c%c%[ \t+-]%d%[ \t]%d%[ \t]%d",temp,&endian1,&endian2,signtmp,&prec,temp,&w,temp,&h);
+
+  int fsc = fscanf(f, "PG%[ \t]%c%c%[ \t+-]%d%[ \t]%d%[ \t]%d",temp,&endian1,&endian2,signtmp,&prec,temp,&w,temp,&h);
+
+  if( fsc == 0 )
+    {
+    fprintf(stderr,"Error while fscanning\n");
+    }
+ 
   
   i=0;
   sign='+';    
@@ -878,7 +913,13 @@ opj_image_t* pnmtoimage(char *filename, opj_cparameters_t *parameters) {
     while(fgetc(f) == '#') while(fgetc(f) != '\n');
     
     fseek(f, -1, SEEK_CUR);
-    fscanf(f, "%d %d\n255", &w, &h);      
+    int fsc = fscanf(f, "%d %d\n255", &w, &h);      
+
+    if( fsc == 0 )
+      {
+      fprintf(stderr,"Error while fscanning\n");
+      }
+
     fgetc(f);  /* <cr><lf> */
     
   /* initialize image components */
@@ -910,19 +951,31 @@ opj_image_t* pnmtoimage(char *filename, opj_cparameters_t *parameters) {
   if ((value == '2') || (value == '3')) {  /* ASCII */
     for (i = 0; i < w * h; i++) {
       for(compno = 0; compno < numcomps; compno++) {
-        unsigned int index = 0;
-        fscanf(f, "%u", &index);
+        unsigned int indexv = 0;
+        int fsc1 = fscanf(f, "%u", &indexv);
+
+        if( fsc1 == 0 )
+          {
+          fprintf(stderr,"Error while reading\n");
+          }
+ 
         /* compno : 0 = GREY, (0, 1, 2) = (R, G, B) */
-        image->comps[compno].data[i] = index;
+        image->comps[compno].data[i] = indexv;
       }
     }
   } else if ((value == '5') || (value == '6')) {  /* BINARY */
     for (i = 0; i < w * h; i++) {
       for(compno = 0; compno < numcomps; compno++) {
-        unsigned char index = 0;
-        fread(&index, 1, 1, f);
+        unsigned char indexv = 0;
+        int fer = fread(&indexv, 1, 1, f);
+  
+        if( fer )
+          {
+          fprintf(stderr,"Error while reading\n");
+          }
+ 
         /* compno : 0 = GREY, (0, 1, 2) = (R, G, B) */
-        image->comps[compno].data[i] = index;
+        image->comps[compno].data[i] = indexv;
       }
     }
   }
