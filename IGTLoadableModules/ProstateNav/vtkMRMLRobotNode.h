@@ -145,6 +145,8 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLTransformableNode
   virtual bool ShowRobotAtTarget(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle) { return false; };
   //BTX
   virtual std::string GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle) { return ""; };
+  virtual std::string GetTargetInfoSectionSeparator() { return "*****"; };
+
   //ETX
 
   // Description:

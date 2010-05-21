@@ -75,6 +75,7 @@
 #include "vtkActor.h"
 #include "vtkProperty.h"
 #include "vtkCornerAnnotation.h"
+#include "vtkTextProperty.h"
 #include "vtkMath.h"
 
 // for Realtime Image
@@ -1713,20 +1714,44 @@ void vtkProstateNavGUI::UpdateCurrentTargetDisplayInSecondaryWindow()
   anno->SetLinearFontScaleFactor(lsf);
   anno->SetNonlinearFontScaleFactor(nlsf);
 
-  const int TARGET_CORNER_ID=3;
+  if (anno->GetTextProperty()!=NULL)
+  {
+    anno->GetTextProperty()->ShadowOn();
+    anno->GetTextProperty()->SetShadowOffset(2,2);
+    anno->GetTextProperty()->BoldOn();
+    anno->GetTextProperty()->SetColor(1.0,1.0,0.0); // yellow
+  }
+  
   vtkMRMLRobotNode* robot=manager->GetRobotNode();
   vtkProstateNavTargetDescriptor *targetDesc = manager->GetTargetDescriptorAtIndex(manager->GetCurrentTargetIndex()); 
   NeedleDescriptorStruct *needle=manager->GetNeedle(targetDesc);
+  std::string mainInfo;
+  std::string additionalInfo;
   if (robot!=NULL && targetDesc!=NULL && needle!=NULL)
   {
     std::string info=robot->GetTargetInfoText(targetDesc, needle);
-    anno->SetText(TARGET_CORNER_ID,info.c_str());
+    std::string::size_type separatorPos=info.find(robot->GetTargetInfoSectionSeparator());    
+    if (separatorPos != std::string::npos )
+    {
+      // separator found, there will be separate main and additional info section
+      mainInfo=info.substr(0, separatorPos);
+      info.erase(0, separatorPos+robot->GetTargetInfoSectionSeparator().size());
+      additionalInfo=info;
+    }
+    else
+    {
+      mainInfo=info;
+    }
   }
   else
   {
     // no target info available for the current robot with the current target    
-    anno->SetText(TARGET_CORNER_ID, "No target");
+    mainInfo="No target";
   }
+  const int TARGET_MAIN_INFO_CORNER_ID=3;
+  const int TARGET_ADDITIONAL_INFO_CORNER_ID=1;
+  anno->SetText(TARGET_MAIN_INFO_CORNER_ID, mainInfo.c_str());
+  anno->SetText(TARGET_ADDITIONAL_INFO_CORNER_ID, additionalInfo.c_str());
 
   this->SecondaryWindow->GetViewerWidget()->GetMainViewer()->CornerAnnotationVisibilityOn();
   // update the annotations
