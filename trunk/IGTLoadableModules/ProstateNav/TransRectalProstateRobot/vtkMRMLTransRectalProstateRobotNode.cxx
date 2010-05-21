@@ -626,7 +626,8 @@ std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNa
   bool validTargeting=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, needle, &targetingParams);
 
   std::ostrstream os;    
-  os << targetDesc->GetName()<<std::endl;
+
+  // Put most important information in the first section
   if (validTargeting && targetingParams.TargetingParametersValid)
   {
     if (this->CalibrationData.FoR.compare(targetDesc->GetTargetingVolumeFoR())!=0)
@@ -638,14 +639,25 @@ std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNa
       os << "Warning: the target is not reachable"<<std::endl;
     }    
     os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
-    os << "Depth: "<<targetingParams.DepthCM<<" cm"<<std::endl;
-    os << "Device rotation: "<<targetingParams.AxisRotation<<" deg"<<std::endl;
-    os << "Needle angle: "<<targetingParams.NeedleAngle<<" deg"<<std::endl;
+    os << "Device rotation (deg): ";
+    // Display a + sign explicitly for positive rotation angles
+    if (targetingParams.AxisRotation>0)
+    {
+      os << "+";
+    }
+    os << targetingParams.AxisRotation<<std::endl;    
+    os << "Needle angle (deg): "<<targetingParams.NeedleAngle<<std::endl;
+    os << "Depth (cm): "<<targetingParams.DepthCM<<std::endl;       
   }
-  os << "Needle type: "<<needle->Description<<std::endl;
+  
+  // Put less important information in the next section
+  os << GetTargetInfoSectionSeparator();
+  os << "Target: " << targetDesc->GetName()<<std::endl;
+  os << "Needle type: " << needle->Description<<std::endl;
   os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
   os << targetDesc->GetRASLocationString().c_str()<<std::endl;
   os << std::ends;
+  
   std::string result=os.str();
   os.rdbuf()->freeze();
   return result;
