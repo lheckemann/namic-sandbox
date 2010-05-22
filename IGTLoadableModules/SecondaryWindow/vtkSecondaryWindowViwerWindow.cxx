@@ -1,6 +1,6 @@
 #include "vtkObjectFactory.h"
 
-#include "vtkSlicerSecondaryViewerWindow.h"
+#include "vtkSecondaryWindowViwerWindow.h"
 
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerTheme.h"
@@ -11,14 +11,15 @@
 
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerSecondaryViewerWindow);
-vtkCxxRevisionMacro(vtkSlicerSecondaryViewerWindow, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkSecondaryWindowViwerWindow);
+vtkCxxRevisionMacro(vtkSecondaryWindowViwerWindow, "$Revision: 1.0 $");
 //----------------------------------------------------------------------------
-vtkSlicerSecondaryViewerWindow::vtkSlicerSecondaryViewerWindow()
+vtkSecondaryWindowViwerWindow::vtkSecondaryWindowViwerWindow()
 {
   this->MainFrame = vtkKWFrame::New();
   //this->ViewerWidget=vtkTRProstateBiopsyViewerWidget::New();
-  this->ViewerWidget = vtkSlicerSecondaryViewerWidget::New();
+  //this->ViewerWidget = vtkSlicerSecondaryViewerWidget::New();
+  this->ViewerWidget = vtkSlicerViewerWidget::New();
   //this->FiducialListWidget=vtkSlicerFiducialListWidget::New();
   //this->ROIViewerWidget=vtkSlicerROIViewerWidget::New();
   //this->RobotViewerWidget=vtkTRProstateBiopsyRobotWidget::New();
@@ -33,7 +34,7 @@ vtkSlicerSecondaryViewerWindow::vtkSlicerSecondaryViewerWindow()
 
 
 //----------------------------------------------------------------------------
-vtkSlicerSecondaryViewerWindow::~vtkSlicerSecondaryViewerWindow()
+vtkSecondaryWindowViwerWindow::~vtkSecondaryWindowViwerWindow()
 {
   //if (this->CurrentTarget)
   //{
@@ -57,7 +58,7 @@ vtkSlicerSecondaryViewerWindow::~vtkSlicerSecondaryViewerWindow()
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerSecondaryViewerWindow::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSecondaryWindowViwerWindow::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
@@ -88,7 +89,7 @@ BOOL CALLBACK StoreNonPrimaryMonitorRectEnumProc(HMONITOR hMonitor, HDC hdc, LPR
 } 
 
 //----------------------------------------------------------------------------
-void vtkSlicerSecondaryViewerWindow::UpdateSecondaryMonitorPoisition()
+void vtkSecondaryWindowViwerWindow::UpdateSecondaryMonitorPoisition()
 {
   // Window rect
   RECT rect;    
@@ -122,7 +123,7 @@ void vtkSlicerSecondaryViewerWindow::UpdateSecondaryMonitorPoisition()
 
 #else // _WIN32
 
-void vtkSlicerSecondaryViewerWindow::UpdateSecondaryMonitorPoisition()
+void vtkSecondaryWindowViwerWindow::UpdateSecondaryMonitorPoisition()
 {
   // TODO: implement monitor detection for linux
   this->MultipleMonitorsAvailable = false; 
@@ -135,7 +136,7 @@ void vtkSlicerSecondaryViewerWindow::UpdateSecondaryMonitorPoisition()
 #endif // _WIN32
 
 //----------------------------------------------------------------------------
-void vtkSlicerSecondaryViewerWindow::CreateWidget()
+void vtkSecondaryWindowViwerWindow::CreateWidget()
 {
   vtkSlicerApplication *app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
   if (app==NULL)
@@ -196,7 +197,7 @@ void vtkSlicerSecondaryViewerWindow::CreateWidget()
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerSecondaryViewerWindow::DisplayOnSecondaryMonitor()
+void vtkSecondaryWindowViwerWindow::DisplayOnSecondaryMonitor()
 {
   //-- display
   this->DeIconify();
@@ -215,7 +216,7 @@ void vtkSlicerSecondaryViewerWindow::DisplayOnSecondaryMonitor()
 }
 
 
-//void vtkSlicerSecondaryViewerWindow::SetCurrentTarget(vtkTRProstateBiopsyTargetDescriptor* target)
+//void vtkSecondaryWindowViwerWindow::SetCurrentTarget(vtkTRProstateBiopsyTargetDescriptor* target)
 //{
 //  if (this->CurrentTarget!=target)
 //  {

@@ -53,12 +53,11 @@ vtkSecondaryWindowGUI::vtkSecondaryWindowGUI ( )
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkSecondaryWindowGUI::DataCallback);
-  
+
   //----------------------------------------------------------------
   // GUI widgets
   this->ShowSecondaryWindowButton = NULL;
   this->HideSecondaryWindowButton = NULL;
-
   this->SecondaryViewerWindow = NULL;
 
   //----------------------------------------------------------------
@@ -349,7 +348,7 @@ void vtkSecondaryWindowGUI::BuildGUI ( )
   BuildGUIForHelpFrame();
   BuildGUIForWindowConfigurationFrame();
 
-  this->SecondaryViewerWindow = vtkSlicerSecondaryViewerWindow::New();
+  this->SecondaryViewerWindow = vtkSecondaryWindowViwerWindow::New();
   this->SecondaryViewerWindow->SetApplication(this->GetApplication());
   this->SecondaryViewerWindow->Create();
 

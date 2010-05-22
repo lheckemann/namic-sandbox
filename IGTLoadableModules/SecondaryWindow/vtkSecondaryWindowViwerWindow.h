@@ -1,5 +1,5 @@
-#ifndef __vtkSlicerSecondaryViewerWindow_h
-#define __vtkSlicerSecondaryViewerWindow_h
+#ifndef __vtkSecondaryWindowViwerWindow_h
+#define __vtkSecondaryWindowViwerWindow_h
 
 
 
@@ -14,17 +14,18 @@
 #include "vtkSmartPointer.h"
 //#include "vtkSlicerFiducialListWidget.h"
 //#include "vtkSlicerROIViewerWidget.h"
-#include "vtkSlicerSecondaryViewerWidget.h"
+//#include "vtkSlicerSecondaryViewerWidget.h"
+#include "vtkSlicerViewerWidget.h"
 
 #include "vtkKWTopLevel.h"
 #include "vtkSmartPointer.h"
 
-class VTK_SecondaryWindow_EXPORT vtkSlicerSecondaryViewerWindow : 
+class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowViwerWindow : 
   public vtkKWTopLevel
 {
 public:
-  static vtkSlicerSecondaryViewerWindow *New();  
-  vtkTypeRevisionMacro(vtkSlicerSecondaryViewerWindow,vtkKWTopLevel);
+  static vtkSecondaryWindowViwerWindow *New();  
+  vtkTypeRevisionMacro(vtkSecondaryWindowViwerWindow,vtkKWTopLevel);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   void DisplayOnSecondaryMonitor();
@@ -36,12 +37,13 @@ protected:
   void UpdateSecondaryMonitorPoisition();
   virtual void CreateWidget();
 
-  vtkSlicerSecondaryViewerWindow();
-  ~vtkSlicerSecondaryViewerWindow();  
+  vtkSecondaryWindowViwerWindow();
+  ~vtkSecondaryWindowViwerWindow();  
 
   vtkKWFrame* MainFrame;
 
-  vtkSlicerSecondaryViewerWidget* ViewerWidget;
+  //vtkSlicerSecondaryViewerWidget* ViewerWidget;
+  vtkSlicerViewerWidget* ViewerWidget;
   //vtkSlicerFiducialListWidget* FiducialListWidget;  
   //vtkSlicerROIViewerWidget* ROIViewerWidget;
   //vtkTRProstateBiopsyRobotWidget* RobotViewerWidget;
@@ -55,8 +57,8 @@ protected:
   //ETX
 
 private:
-  vtkSlicerSecondaryViewerWindow(const vtkSlicerSecondaryViewerWindow&);
-  void operator=(const vtkSlicerSecondaryViewerWindow&);
+  vtkSecondaryWindowViwerWindow(const vtkSecondaryWindowViwerWindow&);
+  void operator=(const vtkSecondaryWindowViwerWindow&);
 };
 
 #endif

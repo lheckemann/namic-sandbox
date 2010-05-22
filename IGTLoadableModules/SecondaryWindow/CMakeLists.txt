@@ -49,8 +49,8 @@ install(FILES
 set(SecondaryWindow_SRCS 
   vtkSecondaryWindowLogic.cxx
   vtkSecondaryWindowGUI.cxx
-  vtkSlicerSecondaryViewerWindow.cxx
-  vtkSlicerSecondaryViewerWidget.cxx
+  vtkSecondaryWindowViwerWindow.cxx
+  #vtkSlicerSecondaryViewerWidget.cxx
 )
 
 
