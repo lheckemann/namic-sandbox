@@ -64,7 +64,6 @@ vtkCxxRevisionMacro ( vtkSlicerSecondaryViewerWidget, "$Revision: 1.0 $");
 //---------------------------------------------------------------------------
 vtkSlicerSecondaryViewerWidget::vtkSlicerSecondaryViewerWidget ( )
 {
-
 }
 
 
@@ -78,10 +77,10 @@ vtkSlicerSecondaryViewerWidget::~vtkSlicerSecondaryViewerWidget ( )
 //---------------------------------------------------------------------------
 void vtkSlicerSecondaryViewerWidget::PrintSelf ( ostream& os, vtkIndent indent )
 {
-    this->Superclass::PrintSelf ( os, indent );
-
-    os << indent << "vtkSlicerSecondaryViewerWidget: " << this->GetClassName ( ) << "\n";
-
+  this->Superclass::PrintSelf ( os, indent );
+  
+  os << indent << "vtkSlicerSecondaryViewerWidget: " << this->GetClassName ( ) << "\n";
+  
 }
 
 //---------------------------------------------------------------------------
@@ -213,7 +212,7 @@ void vtkSlicerSecondaryViewerWidget::ProcessMRMLEvents ( vtkObject *caller,
         }
       if (updateModel) 
         {
-        this->UpdateClipSlicesFormMRML();
+        this->UpdateClipSlicesFromMRML();
         this->UpdateModifiedModel(modelNode);
         this->RequestRender( );
         }
@@ -238,7 +237,7 @@ void vtkSlicerSecondaryViewerWidget::ProcessMRMLEvents ( vtkObject *caller,
     //this->UpdateFromMRML();
     }
   else if (vtkMRMLSliceNode::SafeDownCast(caller) != NULL &&
-           event == vtkCommand::ModifiedEvent && (this->UpdateClipSlicesFormMRML() || this->ClippingOn))
+           event == vtkCommand::ModifiedEvent && (this->UpdateClipSlicesFromMRML() || this->ClippingOn))
     {
     this->UpdateFromMRMLRequested = 1;
     this->RequestRender();
@@ -311,13 +310,13 @@ void vtkSlicerSecondaryViewerWidget::UpdateCameraNode()
 
     if ( this->CameraNode == NULL )
     {
-      // no camera in the scene and local
-      // create an active camera
-      vtkMRMLCameraNode *node = vtkMRMLCameraNode::New();
-      node->SetActive(0);
-      this->MRMLScene->AddNode(node);
-      this->SetAndObserveCameraNode (node);
-      node->Delete();
+    // no camera in the scene and local
+    // create an active camera
+    vtkMRMLCameraNode *node = vtkMRMLCameraNode::New();
+    node->SetActive(0);
+    this->MRMLScene->AddNode(node);
+    this->SetAndObserveCameraNode (node);
+    node->Delete();
     }
 
 
@@ -490,7 +489,7 @@ void vtkSlicerSecondaryViewerWidget::UpdateFromMRML()
   this->UpdateCameraNode();
   this->AddAxisActors();
 
-  this->UpdateClipSlicesFormMRML();
+  this->UpdateClipSlicesFromMRML();
 
   this->RemoveModelProps ( );
   

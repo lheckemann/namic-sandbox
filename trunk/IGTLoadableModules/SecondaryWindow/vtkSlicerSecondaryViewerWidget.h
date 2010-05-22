@@ -99,11 +99,12 @@ protected:
   virtual void CreateWidget();
 
 
-
 private:
   
   vtkSlicerSecondaryViewerWidget(const vtkSlicerSecondaryViewerWidget&); // Not implemented
   void operator=(const vtkSlicerSecondaryViewerWidget&); // Not Implemented
+
+
 };
 
 #endif
