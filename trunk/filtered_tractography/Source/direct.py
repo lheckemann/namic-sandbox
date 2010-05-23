@@ -1,17 +1,16 @@
 """
+
 import cProfile
 import pstats
 
-execfile('/Users/malcolm/src/filtered_tractography/Source/direct.py')
 loc = dict({'S' : S,
             'u' : u,
             'b' : b,
-            'mask' : mask,
-            'fiber' : ff[0],
-            'param' : param,
+            'ff'     : ff,
+            'mask'   : mask,
+            'param'  : param,
             'follow' : follow})
-glo = dict()
-cProfile.runctx('follow(S,u,b,mask,fiber,param)', glo, loc, 'profile')
+cProfile.runctx('follow(S,u,b,mask,ff[0],param)', dict(), loc, 'profile')
 p = pstats.Stats('profile').strip_dirs()
 p.sort_stats('time').print_stats(20)
 
@@ -19,7 +18,7 @@ p.sort_stats('time').print_stats(20)
 import numpy as np
 S = np.load('/Users/malcolm/src/dmri/01045_S.npy')
 u = np.load('/Users/malcolm/src/dmri/01045_u.npy'); u = np.vstack((u,-u))
-b = 900
+b = 900.
 mask = np.load('/Users/malcolm/src/dmri/01045_mask.npy')
 seeds = np.load('/Users/malcolm/src/dmri/01045_seeds_tc.npy')
 param = dict({'FA_min': .1,  # FA stopping threshold

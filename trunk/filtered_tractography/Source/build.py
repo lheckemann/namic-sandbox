@@ -597,8 +597,6 @@ def build():
 
     mod.compile()
 
-try:
-    import fileered_ext
-except ImportError:
-    build()
-    import filtered_ext
+
+build()
+import filtered_ext
