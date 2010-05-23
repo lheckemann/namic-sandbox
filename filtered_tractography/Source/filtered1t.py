@@ -307,7 +307,8 @@ def filter_ukf(f_fn,h_fn,Q,R):
         Pxy = X_ * w_ * Y_.T
 
         ##-- (5) Kalman gain K, estimate state/observation, compute cov.
-        K,_,_,_ = np.linalg.lstsq(Pyy, Pxy.T)
+        #K,_,_,_ = np.linalg.lstsq(Pyy, Pxy.T)
+        K = np.linalg.solve(Pyy, Pxy.T)
         P = P - K.T * Pyy * K
         z = z.reshape(Pyy.shape[0],1)
         x = x_hat + K.T * (z - Y_hat)
