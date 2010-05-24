@@ -209,9 +209,7 @@ void JPEG2000ImageIO::ReadImageInformation()
   this->SetPixelType( SCALAR );
   this->SetComponentType( UCHAR );
 
-  this->m_InputStream.open( this->m_FileName.c_str() );
-
-   opj_dparameters_t parameters;  /* decompression parameters */
+  opj_dparameters_t parameters;  /* decompression parameters */
   opj_event_mgr_t event_mgr;    /* event manager */
   opj_image_t *image = NULL;
   FILE *fsrc = NULL;
@@ -284,11 +282,13 @@ void JPEG2000ImageIO::ReadImageInformation()
 
       /* decode the stream and fill the image structure */
       image = opj_decode(dinfo, cio);
-      if(!image) {
+
+      if(!image)
+        {
         opj_destroy_decompress(dinfo);
         opj_cio_close(cio);
         itkExceptionMacro( "ERROR failed to decode JPEG2000 image");
-      }
+        }
 
       /* close the byte stream */
       opj_cio_close(cio);
@@ -313,6 +313,7 @@ void JPEG2000ImageIO::ReadImageInformation()
 
       /* decode the stream and fill the image structure */
       image = opj_decode(dinfo, cio);
+
       if(!image)
         {
         opj_destroy_decompress(dinfo);
@@ -344,6 +345,7 @@ void JPEG2000ImageIO::ReadImageInformation()
 
       /* decode the stream and fill the image structure */
       image = opj_decode(dinfo, cio);
+
       if(!image)
         {
         opj_destroy_decompress(dinfo);
@@ -438,7 +440,193 @@ void JPEG2000ImageIO::Read( void * buffer)
 {
   std::cout << "JPEG2000ImageIO::Read() Begin" << std::endl;
 
-  this->m_InputStream.open( this->m_RawDataFilename.c_str() );
+  opj_dparameters_t parameters;  /* decompression parameters */
+  opj_event_mgr_t event_mgr;    /* event manager */
+  opj_image_t *image = NULL;
+  FILE *fsrc = NULL;
+  unsigned char *src = NULL;
+  int file_length;
+
+  opj_dinfo_t* dinfo = NULL;  /* handle to a decompressor */
+  opj_cio_t *cio = NULL;
+
+  /* configure the event callbacks (not required) */
+  memset(&event_mgr, 0, sizeof(opj_event_mgr_t));
+  event_mgr.error_handler = openjpeg_error_callback;
+  event_mgr.warning_handler = openjpeg_warning_callback;
+  event_mgr.info_handler = openjpeg_info_callback;
+
+  /* set decoding parameters to default values */
+  opj_set_default_decoder_parameters(&parameters);
+
+  /* read the input file and put it in memory */
+  /* ---------------------------------------- */
+  fsrc = fopen( this->m_FileName.c_str(), "rb");
+  if (!fsrc)
+    {
+    itkExceptionMacro("Failed to open" << this->m_FileName );
+    }
+
+  fseek(fsrc, 0, SEEK_END);
+  file_length = ftell(fsrc);
+  fseek(fsrc, 0, SEEK_SET);
+  src = (unsigned char *) malloc(file_length);
+  size_t fer = fread(src, 1, file_length, fsrc);
+
+  if( fer == 0 )
+    {
+    fprintf(stderr,"error while reading");
+    }
+
+  fclose(fsrc);
+
+  std::string extension = itksys::SystemTools::GetFilenameLastExtension( this->m_FileName );
+
+  if( extension == ".j2k" )
+    {
+    parameters.decod_format = J2K_CFMT;
+    }
+
+   if( extension == ".jp2" )
+    {
+    parameters.decod_format = JP2_CFMT;
+    }
+
+
+  switch(parameters.decod_format)
+    {
+    case J2K_CFMT:
+      {
+      /* JPEG-2000 codestream */
+
+      /* get a decoder handle */
+      dinfo = opj_create_decompress(CODEC_J2K);
+
+      /* catch events using our callbacks and give a local context */
+      opj_set_event_mgr((opj_common_ptr)dinfo, &event_mgr, stderr);
+
+      /* setup the decoder decoding parameters using user parameters */
+      opj_setup_decoder(dinfo, &parameters);
+
+      /* open a byte stream */
+      cio = opj_cio_open((opj_common_ptr)dinfo, src, file_length);
+
+      /* decode the stream and fill the image structure */
+      image = opj_decode(dinfo, cio);
+
+      if(!image)
+        {
+        opj_destroy_decompress(dinfo);
+        opj_cio_close(cio);
+        itkExceptionMacro( "ERROR failed to decode JPEG2000 image");
+        }
+
+      /* close the byte stream */
+      opj_cio_close(cio);
+      }
+      break;
+
+    case JP2_CFMT:
+      {
+      /* JPEG 2000 compressed image data */
+
+      /* get a decoder handle */
+      dinfo = opj_create_decompress(CODEC_JP2);
+
+      /* catch events using our callbacks and give a local context */
+      opj_set_event_mgr((opj_common_ptr)dinfo, &event_mgr, stderr);
+
+      /* setup the decoder decoding parameters using the current image and using user parameters */
+      opj_setup_decoder(dinfo, &parameters);
+
+      /* open a byte stream */
+      cio = opj_cio_open((opj_common_ptr)dinfo, src, file_length);
+
+      /* decode the stream and fill the image structure */
+      image = opj_decode(dinfo, cio);
+
+      if(!image)
+        {
+        opj_destroy_decompress(dinfo);
+        opj_cio_close(cio);
+        itkExceptionMacro("ERROR: failed to decode JPEG2000 image");
+        }
+
+      /* close the byte stream */
+      opj_cio_close(cio);
+
+      }
+      break;
+
+    case JPT_CFMT:
+      {
+      /* JPEG 2000, JPIP */
+
+      /* get a decoder handle */
+      dinfo = opj_create_decompress(CODEC_JPT);
+
+      /* catch events using our callbacks and give a local context */
+      opj_set_event_mgr((opj_common_ptr)dinfo, &event_mgr, stderr);
+
+      /* setup the decoder decoding parameters using user parameters */
+      opj_setup_decoder(dinfo, &parameters);
+
+      /* open a byte stream */
+      cio = opj_cio_open((opj_common_ptr)dinfo, src, file_length);
+
+      /* decode the stream and fill the image structure */
+      image = opj_decode(dinfo, cio);
+
+      if(!image)
+        {
+        opj_destroy_decompress(dinfo);
+        opj_cio_close(cio);
+        itkExceptionMacro("ERROR: failed to decode JPEG2000 image");
+        }
+
+      /* close the byte stream */
+      opj_cio_close(cio);
+      }
+      break;
+
+    default:
+      itkExceptionMacro("Unknown input image format");
+    }
+
+  if( image->numcomps != 1 )
+    {
+    itkWarningMacro("Input file has " << image->numcomps << "components, but we will only read the first one"); 
+    }
+  
+  std::cout << "Number of components  = " << image->numcomps << std::endl;
+
+  opj_image_comp_t * component = image->comps;
+
+  unsigned int numberOfBitsPerPixel = component->bpp;
+
+  std::cout << "Information from component 0" << std::endl;
+  std::cout << " XRsiz: horizontal separation of a sample of ith component with respect to the reference grid " << component->dx << std::endl;
+  std::cout << " YRsiz: vertical separation of a sample of ith component with respect to the reference grid " << component->dy << std::endl;
+  std::cout << " data width " << component->w << std::endl;
+  std::cout << " data height " << component->h << std::endl;
+  std::cout << " x component offset compared to the whole image " << component->x0 << std::endl;
+  std::cout << " y component offset compared to the whole image " << component->y0 << std::endl;
+  std::cout << " precision " << component->prec << std::endl;
+  std::cout << " image depth in bits  " << component->bpp << std::endl;
+  std::cout << " signed (1) / unsigned (0) " << component->sgnd << std::endl;
+  std::cout << " number of decoded resolution " << component->resno_decoded << std::endl;
+  std::cout << " number of division by 2 of the out image compared to the original size of image " << component->factor << std::endl;
+  std::cout << " image component data " << long(component->data) << std::endl;
+  std::cout << "numberOfBitsPerPixel = " << numberOfBitsPerPixel << std::endl;
+
+  switch( numberOfBitsPerPixel )
+    {
+    case 8:
+      {
+      this->SetComponentType( UCHAR );
+      break;
+      }
+    }
 
   const unsigned int nx = this->GetDimensions( 0 );
   const unsigned int ny = this->GetDimensions( 1 );
@@ -454,12 +642,84 @@ void JPEG2000ImageIO::Read( void * buffer)
   std::cout << "largest    region size = " << nx << " " << ny << std::endl;
   std::cout << "streamable region size = " << mx << " " << my << std::endl;
 
-  //  const unsigned int sx = start[0];
-  //  const unsigned int sy = start[1];
 
-  //  char * inptr = static_cast< char * >( buffer );
+  // Copy buffer
+//  for (int compno = 0; compno < image->numcomps; compno++)
+  const unsigned int numberOfComponents = 1; // FIXME
+  for (unsigned int compno = 0; compno < numberOfComponents; compno++)
+    {
+    opj_image_comp_t *comp = &image->comps[compno];
 
-  // FIXME : Read the real data
+    int w = image->comps[compno].w;
+    int wr = int_ceildivpow2(image->comps[compno].w, image->comps[compno].factor);
+
+    //int h = image.comps[compno].h;
+    int hr = int_ceildivpow2(image->comps[compno].h, image->comps[compno].factor);
+
+    if (comp->prec <= 8)
+      {
+      uint8_t *data8 = (uint8_t*)buffer + compno;
+      for (int i = 0; i < wr * hr; i++)
+        {
+        int v = image->comps[compno].data[i / wr * w + i % wr];
+        *data8 = (uint8_t)v;
+        data8 += numberOfComponents;
+        }
+      }
+    else if (comp->prec <= 16)
+      {
+      uint16_t *data16 = (uint16_t*)buffer + compno;
+      for (int i = 0; i < wr * hr; i++)
+        {
+        int v = image->comps[compno].data[i / wr * w + i % wr];
+        *data16 = (uint16_t)v;
+        data16 += numberOfComponents;
+        }
+      }
+    else
+      {
+      uint32_t *data32 = (uint32_t*)buffer + compno;
+      for (int i = 0; i < wr * hr; i++)
+        {
+        int v = image->comps[compno].data[i / wr * w + i % wr];
+        *data32 = (uint32_t)v;
+        data32 += numberOfComponents;
+        }
+      }
+    //free(image.comps[compno].data);
+    }
+
+
+  /* free the memory containing the code-stream */
+  free(src);
+  src = NULL;
+
+  opj_j2k_t* j2k = NULL;
+  opj_jp2_t* jp2 = NULL;
+
+  j2k = (opj_j2k_t*)dinfo->j2k_handle;
+  jp2 = (opj_jp2_t*)dinfo->jp2_handle;
+
+  if( j2k )
+    {
+    open_j2k_dump_cp(stdout, image, j2k->cp );
+    }
+
+  if( jp2 )
+    {
+    open_j2k_dump_cp(stdout, image, jp2->j2k->cp );
+    }
+
+
+  /* free remaining structures */
+  if(dinfo)
+    {
+    opj_destroy_decompress(dinfo);
+    }
+
+  /* free image data structure */
+  opj_image_destroy(image);
+
 
   std::cout << "JPEG2000ImageIO::Read() End" << std::endl;
 }
