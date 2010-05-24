@@ -251,6 +251,19 @@ void JPEG2000ImageIO::ReadImageInformation()
 
   fclose(fsrc);
 
+  std::string extension = itksys::SystemTools::GetFilenameLastExtension( this->m_FileName );
+
+  if( extension == ".j2k" )
+    {
+    parameters.decod_format = J2K_CFMT;
+    }
+
+   if( extension == ".jp2" )
+    {
+    parameters.decod_format = JP2_CFMT;
+    }
+
+
   switch(parameters.decod_format)
     {
     case J2K_CFMT:
@@ -347,6 +360,12 @@ void JPEG2000ImageIO::ReadImageInformation()
       itkExceptionMacro("Unknown input image format");
     }
 
+  this->SetDimensions( 0, image->x1 );
+  this->SetDimensions( 1, image->y1 );
+
+  this->SetSpacing( 0, 1.0 );  // FIXME : Get the real pixel resolution.;
+  this->SetSpacing( 1, 1.0 );  // FIXME : Get the real pixel resolution.
+
   /* free the memory containing the code-stream */
   free(src);
   src = NULL;
@@ -367,23 +386,6 @@ void JPEG2000ImageIO::ReadImageInformation()
     open_j2k_dump_cp(stdout, image, jp2->j2k->cp );
     }
 
-  /* create output image */
-  /* ------------------- */
-
-  switch (parameters.cod_format)
-    {
-    case PXM_DFMT:      /* PNM PGM PPM */
-      imagetopnm(image, parameters.outfile);
-      break;
-
-    case PGX_DFMT:      /* PGX */
-      imagetopgx(image, parameters.outfile);
-      break;
-
-    case BMP_DFMT:      /* BMP */
-      imagetobmp(image, parameters.outfile);
-      break;
-    }
 
   /* free remaining structures */
   if(dinfo)
@@ -394,11 +396,6 @@ void JPEG2000ImageIO::ReadImageInformation()
   /* free image data structure */
   opj_image_destroy(image);
 
-  //  this->SetDimensions( 0, nx );
-  //  this->SetDimensions( 1, ny );
-
-  //  this->SetSpacing( 0, dx );
-  //  this->SetSpacing( 1, dy );
 }
 
 
