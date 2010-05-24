@@ -161,8 +161,8 @@ namespace itk
 
 JPEG2000ImageIO::JPEG2000ImageIO()
 {
-  this->SetNumberOfDimensions(2); // JPEG2000 is 2D.
-  this->SetNumberOfComponents(1); // JPEG2000 only has one component. (FIXME)
+  this->SetNumberOfDimensions(2); // JPEG2000 is 2D. (by now...)
+  this->SetNumberOfComponents(1); // Assume only one component. (FIXME)
 }
 
 JPEG2000ImageIO::~JPEG2000ImageIO()
@@ -365,6 +365,41 @@ void JPEG2000ImageIO::ReadImageInformation()
 
   this->SetSpacing( 0, 1.0 );  // FIXME : Get the real pixel resolution.;
   this->SetSpacing( 1, 1.0 );  // FIXME : Get the real pixel resolution.
+
+  if( image->numcomps != 1 )
+    {
+    itkWarningMacro("Input file has " << image->numcomps << "components, but we will only read the first one"); 
+    }
+  
+  std::cout << "Number of components  = " << image->numcomps << std::endl;
+
+  opj_image_comp_t * component = image->comps;
+
+  unsigned int numberOfBitsPerPixel = component->bpp;
+
+  std::cout << "Information from component 0" << std::endl;
+  std::cout << " XRsiz: horizontal separation of a sample of ith component with respect to the reference grid " << component->dx << std::endl;
+  std::cout << " YRsiz: vertical separation of a sample of ith component with respect to the reference grid " << component->dy << std::endl;
+  std::cout << " data width " << component->w << std::endl;
+  std::cout << " data height " << component->h << std::endl;
+  std::cout << " x component offset compared to the whole image " << component->x0 << std::endl;
+  std::cout << " y component offset compared to the whole image " << component->y0 << std::endl;
+  std::cout << " precision " << component->prec << std::endl;
+  std::cout << " image depth in bits  " << component->bpp << std::endl;
+  std::cout << " signed (1) / unsigned (0) " << component->sgnd << std::endl;
+  std::cout << " number of decoded resolution " << component->resno_decoded << std::endl;
+  std::cout << " number of division by 2 of the out image compared to the original size of image " << component->factor << std::endl;
+  std::cout << " image component data " << long(component->data) << std::endl;
+  std::cout << "numberOfBitsPerPixel = " << numberOfBitsPerPixel << std::endl;
+
+  switch( numberOfBitsPerPixel )
+    {
+    case 8:
+      {
+      this->SetComponentType( UCHAR );
+      break;
+      }
+    }
 
   /* free the memory containing the code-stream */
   free(src);
