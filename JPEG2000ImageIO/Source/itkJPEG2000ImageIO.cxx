@@ -487,7 +487,7 @@ void JPEG2000ImageIO::Read( void * buffer)
     parameters.decod_format = J2K_CFMT;
     }
 
-   if( extension == ".jp2" )
+  if( extension == ".jp2" )
     {
     parameters.decod_format = JP2_CFMT;
     }
