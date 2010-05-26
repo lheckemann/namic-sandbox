@@ -26,13 +26,19 @@
 #include "igtlImageMessage.h"
 #include "igtlClientSocket.h"
 #include "igtlStatusMessage.h"
+
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
 #include "igtlPointMessage.h"
+#endif // OpenIGTLink_PROTOCOL_VERSION >= 2
 
 int ReceiveTransform(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceivePosition(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveImage(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-int ReceivePoint(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
+  int ReceivePoint(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 int main(int argc, char* argv[])
 {
@@ -110,10 +116,12 @@ int main(int argc, char* argv[])
         {
         ReceiveStatus(socket, headerMsg);
         }
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
       else if (strcmp(headerMsg->GetDeviceType(), "POINT") == 0)
         {
         ReceivePoint(socket, headerMsg);
         }
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2
       else
         {
         std::cerr << "Receiving : " << headerMsg->GetDeviceType() << std::endl;
@@ -276,7 +284,7 @@ int ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Poin
 
 }
 
-
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
 int ReceivePoint(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
 {
 
@@ -321,3 +329,5 @@ int ReceivePoint(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Point
     }
 
 }
+
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2

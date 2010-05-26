@@ -12,10 +12,10 @@ INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
 #-----------------------------------------------------------------------------
 # OpenIGTlink version number.
 SET(OpenIGTLink_VERSION_MAJOR "1")
-SET(OpenIGTLink_VERSION_MINOR "0")
+SET(OpenIGTLink_VERSION_MINOR "9")
 SET(OpenIGTLink_VERSION_PATCH "0")
 
-
+SET(OpenIGTLink_PROTOCOL_VERSION "1")
 
 #-----------------------------------------------------------------------------
 # OpenIGTLink build configuration options.

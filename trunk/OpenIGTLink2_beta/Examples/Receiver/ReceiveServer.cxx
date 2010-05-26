@@ -26,14 +26,20 @@
 #include "igtlServerSocket.h"
 #include "igtlStatusMessage.h"
 #include "igtlPositionMessage.h"
+
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
 #include "igtlPointMessage.h"
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 
 int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceivePosition(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
 int ReceivePoint(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 int main(int argc, char* argv[])
 {
@@ -113,10 +119,12 @@ int main(int argc, char* argv[])
           {
           ReceiveStatus(socket, headerMsg);
           }
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
         else if (strcmp(headerMsg->GetDeviceType(), "POINT") == 0)
           {
           ReceivePoint(socket, headerMsg);
           }
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2
         else
           {
           // if the data type is unknown, skip reading.
@@ -286,6 +294,7 @@ int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& h
 }
 
 
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
 int ReceivePoint(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
 {
 
@@ -330,3 +339,4 @@ int ReceivePoint(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& he
     }
 
 }
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2
