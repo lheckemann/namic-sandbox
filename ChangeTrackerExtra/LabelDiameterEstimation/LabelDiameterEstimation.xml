@@ -62,8 +62,7 @@
       <label>File to keep the output fiducials</label>
       <channel>output</channel>
       <index>2</index>
-      <description>File to save the list of fiducials corresponding to the
-      identified diameters</description>
+      <description>File to save the list of fiducials corresponding to the identified diameters</description>
       <default></default>
     </file>
 
