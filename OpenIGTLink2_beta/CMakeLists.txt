@@ -15,7 +15,10 @@ SET(OpenIGTLink_VERSION_MAJOR "1")
 SET(OpenIGTLink_VERSION_MINOR "9")
 SET(OpenIGTLink_VERSION_PATCH "0")
 
-SET(OpenIGTLink_PROTOCOL_VERSION "1")
+IF(NOT OpenIGTLink_PROTOCOL_VERSION)
+  SET(OpenIGTLink_PROTOCOL_VERSION "1")
+ENDIF(NOT OpenIGTLink_PROTOCOL_VERSION)
+
 
 #-----------------------------------------------------------------------------
 # OpenIGTLink build configuration options.
