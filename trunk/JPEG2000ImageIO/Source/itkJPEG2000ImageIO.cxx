@@ -382,8 +382,8 @@ void JPEG2000ImageIO::Read( void * buffer)
     cio);
   image = opj_decode(dinfo, cio);
 
-  bResult = bResult && (image != 00);
-  bResult = bResult && opj_end_decompress(dinfo,cio);
+//   bResult = bResult && (image != 00);
+//   bResult = bResult && opj_end_decompress(dinfo,cio);
 
   if ( !image )
     {
@@ -432,6 +432,11 @@ bool JPEG2000ImageIO::CanWriteFile( const char * filename )
     }
 
   if( extension == ".jp2" )
+    {
+    return true;
+    }
+
+  if( extension == ".jpt" )
     {
     return true;
     }
