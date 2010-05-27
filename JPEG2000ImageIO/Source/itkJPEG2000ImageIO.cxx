@@ -148,9 +148,11 @@ void JPEG2000ImageIO::ReadImageInformation()
 
   fsrc = fopen( this->m_FileName.c_str(), "rb");
 
-  opj_dparameters_t parameters;  /* decompression parameters */
+  /* decompression parameters */
+  opj_dparameters_t parameters;
+  opj_set_default_decoder_parameters(&parameters);
 
-  if ( !fsrc ) 
+  if ( !fsrc )
     {
     itkExceptionMacro("ERROR -> failed to open for reading");
     }
@@ -178,8 +180,12 @@ void JPEG2000ImageIO::ReadImageInformation()
     parameters.decod_format = JP2_CFMT;
     }
 
+  if( extension == ".jpt" )
+    {
+    parameters.decod_format = JPT_CFMT;
+    }
 
-  switch (parameters.decod_format) 
+  switch (parameters.decod_format)
     {
     case J2K_CFMT:
       {
@@ -209,13 +215,14 @@ void JPEG2000ImageIO::ReadImageInformation()
       return;
     }
   /* catch events using our callbacks and give a local context */
-    
+
   /* setup the decoder decoding parameters using user parameters */
+  /* No reading of image information done */
   opj_setup_decoder(dinfo, &parameters);
 
-
+  // Image parameters - first tile
   OPJ_INT32 l_tile_x0,l_tile_y0;
-
+  // Image parameters - tile width, height and number of tiles
   OPJ_UINT32 l_tile_width,l_tile_height,l_nb_tiles_x,l_nb_tiles_y;
 
   /* decode the stream and fill the image structure */
@@ -246,7 +253,7 @@ void JPEG2000ImageIO::ReadImageInformation()
 //  bResult = bResult && (image != 00);
 //  bResult = bResult && opj_end_decompress(dinfo,cio);  // FIXME : should this be here ?
 
-  if ( !image ) 
+  if ( !image )
     {
     opj_destroy_codec(dinfo);
     opj_stream_destroy(cio);
@@ -269,7 +276,7 @@ std::cout << "image->y1 = " << image->y1 << std::endl;
   opj_stream_destroy(cio);
   fclose(fsrc);
 
-  if (dinfo) 
+  if (dinfo)
     {
     opj_destroy_codec(dinfo);
     }
@@ -285,8 +292,9 @@ void JPEG2000ImageIO::Read( void * buffer)
   fsrc = fopen( this->m_FileName.c_str(), "rb");
 
   opj_dparameters_t parameters;  /* decompression parameters */
+  opj_set_default_decoder_parameters(&parameters);
 
-  if ( !fsrc ) 
+  if ( !fsrc )
     {
     itkExceptionMacro("ERROR -> failed to open for reading");
     }
@@ -314,8 +322,12 @@ void JPEG2000ImageIO::Read( void * buffer)
     parameters.decod_format = JP2_CFMT;
     }
 
+  if( extension == ".jpt" )
+    {
+    parameters.decod_format = JPT_CFMT;
+    }
 
-  switch (parameters.decod_format) 
+  switch (parameters.decod_format)
     {
     case J2K_CFMT:
       {
@@ -345,13 +357,12 @@ void JPEG2000ImageIO::Read( void * buffer)
       return;
     }
   /* catch events using our callbacks and give a local context */
-    
+
   /* setup the decoder decoding parameters using user parameters */
   opj_setup_decoder(dinfo, &parameters);
 
 
   OPJ_INT32 l_tile_x0,l_tile_y0;
-
   OPJ_UINT32 l_tile_width,l_tile_height,l_nb_tiles_x,l_nb_tiles_y;
 
   /* decode the stream and fill the image structure */
@@ -374,7 +385,7 @@ void JPEG2000ImageIO::Read( void * buffer)
   bResult = bResult && (image != 00);
   bResult = bResult && opj_end_decompress(dinfo,cio);
 
-  if ( !image ) 
+  if ( !image )
     {
     opj_destroy_codec(dinfo);
     opj_stream_destroy(cio);
@@ -389,7 +400,7 @@ void JPEG2000ImageIO::Read( void * buffer)
 
   // HERE, copy the buffer
   std::cout << " START COPY BUFFER" << std::endl;
-  for ( size_t j = 0; j < numberOfPixels; j++) 
+  for ( size_t j = 0; j < numberOfPixels; j++)
     {
     *charBuffer++ = image->comps[0].data[index];
     index++;
@@ -402,7 +413,7 @@ void JPEG2000ImageIO::Read( void * buffer)
   opj_stream_destroy(cio);
   fclose(fsrc);
 
-  if (dinfo) 
+  if (dinfo)
     {
     opj_destroy_codec(dinfo);
     }
