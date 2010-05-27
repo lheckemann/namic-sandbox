@@ -233,10 +233,18 @@ void JPEG2000ImageIO::ReadImageInformation()
     &l_nb_tiles_x,
     &l_nb_tiles_y,
     cio);
-  image = opj_decode(dinfo, cio);
+
+  image = opj_decode(dinfo, cio); // FIXME : should this be here ?
+
+  std::cout << "l_tile_x0 = " << l_tile_x0 << std::endl;
+  std::cout << "l_tile_y0 = " << l_tile_y0 << std::endl;
+  std::cout << "l_tile_height = " << l_tile_height << std::endl;
+  std::cout << "l_tile_width = " << l_tile_width << std::endl;
+  std::cout << "l_nb_tiles_x = " << l_nb_tiles_x << std::endl;
+  std::cout << "l_nb_tiles_y = " << l_nb_tiles_y << std::endl;
 
   bResult = bResult && (image != 00);
-  bResult = bResult && opj_end_decompress(dinfo,cio);
+  bResult = bResult && opj_end_decompress(dinfo,cio);  // FIXME : should this be here ?
 
   if ( !image ) 
     {
@@ -246,15 +254,16 @@ void JPEG2000ImageIO::ReadImageInformation()
     itkExceptionMacro("ERROR -> j2k_to_image: failed to decode image!");
     }
 
+  // FIXME: bResult is not used.  We should check for it and maybe throw an exception.
+
 std::cout << "image->x1 = " << image->x1 << std::endl;
 std::cout << "image->y1 = " << image->y1 << std::endl;
 
   this->SetDimensions( 0, image->x1 );
   this->SetDimensions( 1, image->y1 );
 
-  this->SetSpacing( 0, 1.0 );  // FIXME : Get the real pixel resolution.;
+  this->SetSpacing( 0, 1.0 );  // FIXME : Get the real pixel resolution.
   this->SetSpacing( 1, 1.0 );  // FIXME : Get the real pixel resolution.
-
 
   /* close the byte stream */
   opj_stream_destroy(cio);
