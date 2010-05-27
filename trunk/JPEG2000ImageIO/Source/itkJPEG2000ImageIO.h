@@ -54,6 +54,7 @@ public:
 
   /*-------- This part of the interfaces deals with reading data. ----- */
 
+
   /** Determine the file type. Returns true if this ImageIO can read the
    * file specified. */
   virtual bool CanReadFile(const char*);
