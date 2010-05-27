@@ -421,7 +421,6 @@ JPEG2000ImageIO
 ::WriteImageInformation(void)
 {
   // add writing here
-
 }
 
 
@@ -433,32 +432,66 @@ JPEG2000ImageIO
 ::Write( const void* buffer)
 {
   opj_codec_t* cinfo = NULL;
-  opj_cparameters_t parameters;
   opj_image_t *image = NULL;
   FILE *f = NULL;
   opj_stream_t *cio = 00;
   bool bSuccess;
 
+  opj_cparameters_t parameters;
   opj_set_default_encoder_parameters(&parameters);
 
   strncpy(parameters.outfile, this->m_FileName.c_str(), sizeof(parameters.outfile)-1);
-  std::cout << parameters.outfile << std::endl;
 
   std::string extension = itksys::SystemTools::GetFilenameLastExtension( this->m_FileName.c_str() );
 
   if( extension == ".j2k" )
     {
-    std::cout << "j2k" << std::endl;
     cinfo = opj_create_compress(CODEC_J2K);
     parameters.cod_format = J2K_CFMT;
     }
 
   if( extension == ".jp2" )
     {
-    std::cout << "jp2" << std::endl;
     cinfo = opj_create_compress(CODEC_JP2);
     parameters.cod_format = JP2_CFMT;
     }
+
+  // TODO: Copy the contents into the image structure
+  int i, w, h , numcomps = 1;
+  OPJ_COLOR_SPACE color_space = CLRSPC_SRGB;
+  opj_image_cmptparm_t cmptparm[3];
+
+  /* initialize image components */
+  memset(&cmptparm[0], 0, 3 * sizeof(opj_image_cmptparm_t));
+  for(i = 0; i < numcomps; i++) {
+    cmptparm[i].prec = 8;
+    cmptparm[i].bpp = 8;
+    cmptparm[i].sgnd = 0;
+    cmptparm[i].dx = 1;
+    cmptparm[i].dy = 1;
+    cmptparm[i].w = 640;
+    cmptparm[i].h =480;
+    }
+
+  image = opj_image_create( 1, &cmptparm[0], color_space);
+
+  /* set image offset and reference grid */
+  image->x0 = 0;
+  image->y0 = 0;
+  image->x1 = 640;
+  image->y1 = 480;
+
+
+  size_t index = 0;
+
+  // HERE, copy the buffer
+  std::cout << " START COPY BUFFER" << std::endl;
+  for ( size_t j = 0; j < 640*480; j++)
+    {
+    image->comps[0].data[index] = 255;
+    index++;
+    }
+  std::cout << " END COPY BUFFER" << std::endl;
 
   opj_setup_encoder(cinfo, &parameters, image);
 
@@ -468,6 +501,7 @@ JPEG2000ImageIO
     fprintf(stderr, "failed to encode image\n");
     return;
   }
+
   /* open a byte stream for writing */
   /* allocate memory for all tiles */
   cio = opj_stream_create_default_file_stream(f,false);
@@ -475,8 +509,6 @@ JPEG2000ImageIO
   {
     return;
   }
-
-  // TODO: Copy the contents into the image structure
 
   /* encode the image */
   /*if (*indexfilename)         // If need to extract codestream information
