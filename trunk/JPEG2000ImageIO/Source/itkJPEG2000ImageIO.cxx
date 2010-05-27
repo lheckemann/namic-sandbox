@@ -234,7 +234,7 @@ void JPEG2000ImageIO::ReadImageInformation()
     &l_nb_tiles_y,
     cio);
 
-  image = opj_decode(dinfo, cio); // FIXME : should this be here ?
+//  image = opj_decode(dinfo, cio); // FIXME : should this be here ?
 
   std::cout << "l_tile_x0 = " << l_tile_x0 << std::endl;
   std::cout << "l_tile_y0 = " << l_tile_y0 << std::endl;
@@ -243,8 +243,8 @@ void JPEG2000ImageIO::ReadImageInformation()
   std::cout << "l_nb_tiles_x = " << l_nb_tiles_x << std::endl;
   std::cout << "l_nb_tiles_y = " << l_nb_tiles_y << std::endl;
 
-  bResult = bResult && (image != 00);
-  bResult = bResult && opj_end_decompress(dinfo,cio);  // FIXME : should this be here ?
+//  bResult = bResult && (image != 00);
+//  bResult = bResult && opj_end_decompress(dinfo,cio);  // FIXME : should this be here ?
 
   if ( !image ) 
     {
@@ -388,11 +388,13 @@ void JPEG2000ImageIO::Read( void * buffer)
   size_t index = 0;
 
   // HERE, copy the buffer
+  std::cout << " START COPY BUFFER" << std::endl;
   for ( size_t j = 0; j < numberOfPixels; j++) 
     {
     *charBuffer++ = image->comps[0].data[index];
     index++;
     }
+  std::cout << " END COPY BUFFER" << std::endl;
 
 
 
