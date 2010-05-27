@@ -23,18 +23,11 @@
 #include "itkJPEG2000ImageIO.h"
 #include "itksys/SystemTools.hxx"
 
+
+
 // for memset
 #include <stdio.h>
 #include <string.h>
-
-#define USE_OPJ_DEPRECATED
-
-extern "C" {
-  #include "openjpeg.h"
-  #include "j2k.h"
-  #include "jp2.h"
-  #include "convert.h"
-}
 
 //-----------------------------------------------------------------------------
  /**
@@ -94,6 +87,9 @@ namespace itk
 
 JPEG2000ImageIO::JPEG2000ImageIO()
 {
+  //   opj_dparameters_t m_DecompressionParameters;
+  opj_set_default_decoder_parameters(&m_DecompressionParameters);
+
   this->SetNumberOfDimensions(2); // JPEG2000 is 2D. (by now...)
   this->SetNumberOfComponents(1); // Assume only one component. (FIXME)
 }
@@ -149,8 +145,6 @@ void JPEG2000ImageIO::ReadImageInformation()
   fsrc = fopen( this->m_FileName.c_str(), "rb");
 
   /* decompression parameters */
-  opj_dparameters_t parameters;
-  opj_set_default_decoder_parameters(&parameters);
 
   if ( !fsrc )
     {
@@ -172,20 +166,20 @@ void JPEG2000ImageIO::ReadImageInformation()
 
   if( extension == ".j2k" )
     {
-    parameters.decod_format = J2K_CFMT;
+    m_DecompressionParameters.decod_format = J2K_CFMT;
     }
 
   if( extension == ".jp2" )
     {
-    parameters.decod_format = JP2_CFMT;
+    m_DecompressionParameters.decod_format = JP2_CFMT;
     }
 
   if( extension == ".jpt" )
     {
-    parameters.decod_format = JPT_CFMT;
+    m_DecompressionParameters.decod_format = JPT_CFMT;
     }
 
-  switch (parameters.decod_format)
+  switch (m_DecompressionParameters.decod_format)
     {
     case J2K_CFMT:
       {
@@ -218,7 +212,7 @@ void JPEG2000ImageIO::ReadImageInformation()
 
   /* setup the decoder decoding parameters using user parameters */
   /* No reading of image information done */
-  opj_setup_decoder(dinfo, &parameters);
+  opj_setup_decoder(dinfo, &m_DecompressionParameters);
 
   // Image parameters - first tile
   OPJ_INT32 l_tile_x0,l_tile_y0;
@@ -291,9 +285,6 @@ void JPEG2000ImageIO::Read( void * buffer)
 
   fsrc = fopen( this->m_FileName.c_str(), "rb");
 
-  opj_dparameters_t parameters;  /* decompression parameters */
-  opj_set_default_decoder_parameters(&parameters);
-
   if ( !fsrc )
     {
     itkExceptionMacro("ERROR -> failed to open for reading");
@@ -309,25 +300,7 @@ void JPEG2000ImageIO::Read( void * buffer)
 
   /* decode the code-stream */
   /* ---------------------- */
-
-  std::string extension = itksys::SystemTools::GetFilenameLastExtension( this->m_FileName );
-
-  if( extension == ".j2k" )
-    {
-    parameters.decod_format = J2K_CFMT;
-    }
-
-  if( extension == ".jp2" )
-    {
-    parameters.decod_format = JP2_CFMT;
-    }
-
-  if( extension == ".jpt" )
-    {
-    parameters.decod_format = JPT_CFMT;
-    }
-
-  switch (parameters.decod_format)
+  switch (m_DecompressionParameters.decod_format)
     {
     case J2K_CFMT:
       {
@@ -359,7 +332,7 @@ void JPEG2000ImageIO::Read( void * buffer)
   /* catch events using our callbacks and give a local context */
 
   /* setup the decoder decoding parameters using user parameters */
-  opj_setup_decoder(dinfo, &parameters);
+  opj_setup_decoder(dinfo, &this->m_DecompressionParameters);
 
 
   OPJ_INT32 l_tile_x0,l_tile_y0;
@@ -407,8 +380,6 @@ void JPEG2000ImageIO::Read( void * buffer)
     }
   std::cout << " END COPY BUFFER" << std::endl;
 
-
-
   /* close the byte stream */
   opj_stream_destroy(cio);
   fclose(fsrc);
@@ -450,6 +421,7 @@ JPEG2000ImageIO
 ::WriteImageInformation(void)
 {
   // add writing here
+
 }
 
 
@@ -460,6 +432,90 @@ void
 JPEG2000ImageIO
 ::Write( const void* buffer)
 {
+  opj_codec_t* cinfo = NULL;
+  opj_cparameters_t parameters;
+  opj_image_t *image = NULL;
+  FILE *f = NULL;
+  opj_stream_t *cio = 00;
+  bool bSuccess;
+
+  opj_set_default_encoder_parameters(&parameters);
+
+  strncpy(parameters.outfile, this->m_FileName.c_str(), sizeof(parameters.outfile)-1);
+  std::cout << parameters.outfile << std::endl;
+
+  std::string extension = itksys::SystemTools::GetFilenameLastExtension( this->m_FileName.c_str() );
+
+  if( extension == ".j2k" )
+    {
+    std::cout << "j2k" << std::endl;
+    cinfo = opj_create_compress(CODEC_J2K);
+    parameters.cod_format = J2K_CFMT;
+    }
+
+  if( extension == ".jp2" )
+    {
+    std::cout << "jp2" << std::endl;
+    cinfo = opj_create_compress(CODEC_JP2);
+    parameters.cod_format = JP2_CFMT;
+    }
+
+  opj_setup_encoder(cinfo, &parameters, image);
+
+  f = fopen(parameters.outfile, "wb");
+  if (! f)
+  {
+    fprintf(stderr, "failed to encode image\n");
+    return;
+  }
+  /* open a byte stream for writing */
+  /* allocate memory for all tiles */
+  cio = opj_stream_create_default_file_stream(f,false);
+  if (! cio)
+  {
+    return;
+  }
+
+  // TODO: Copy the contents into the image structure
+
+  /* encode the image */
+  /*if (*indexfilename)         // If need to extract codestream information
+    bSuccess = opj_encode_with_info(cinfo, cio, image, &cstr_info);
+  else*/
+  bSuccess = opj_start_compress(cinfo,image,cio);
+  bSuccess = bSuccess && opj_encode(cinfo, cio);
+  bSuccess = bSuccess && opj_end_compress(cinfo, cio);
+
+  if (!bSuccess)
+  {
+    opj_stream_destroy(cio);
+    fclose(f);
+    fprintf(stderr, "failed to encode image\n");
+    return;
+  }
+
+  fprintf(stderr,"Generated outfile %s\n",parameters.outfile);
+  /* close and free the byte stream */
+  opj_stream_destroy(cio);
+  fclose(f);
+
+//   /* Write the index to disk */
+//   if (*indexfilename)
+//   {
+//     bSuccess = write_index_file(&cstr_info, indexfilename);
+//     if (bSuccess)
+//     {
+//       fprintf(stderr, "Failed to output index file\n");
+//     }
+//   }
+
+  /* free remaining compression structures */
+  opj_destroy_codec(cinfo);
+//   if (*indexfilename)
+//     opj_destroy_cstr_info(&cstr_info);
+
+  /* free image data */
+  opj_image_destroy(image);
 }
 
 /** Given a requested region, determine what could be the region that we can

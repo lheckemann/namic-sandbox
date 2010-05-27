@@ -9,8 +9,8 @@
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -24,6 +24,16 @@
 #include <fstream>
 #include "itkImageIOBase.h"
 
+#define USE_OPJ_DEPRECATED
+
+extern "C" {
+  #include "openjpeg.h"
+  #include "j2k.h"
+  #include "jp2.h"
+  #include "convert.h"
+}
+
+
 namespace itk
 {
 
@@ -34,7 +44,7 @@ namespace itk
  *  The JPEG2000: Yet Another File Format is a fake fileformat introduced only
  *  for the purpose of testing the streaming capabilites of ITK.
  *
- * \warning DO NOT USE THIS FILEFORMAT FOR ANY SERIOUS PURPOSE. 
+ * \warning DO NOT USE THIS FILEFORMAT FOR ANY SERIOUS PURPOSE.
  *
  *  \ingroup IOFilters
  */
@@ -45,7 +55,7 @@ public:
   typedef JPEG2000ImageIO         Self;
   typedef ImageIOBase             Superclass;
   typedef SmartPointer<Self>      Pointer;
-  
+
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
@@ -61,7 +71,7 @@ public:
 
   /** Set the spacing and dimension information for the set filename. */
   virtual void ReadImageInformation();
-  
+
   /** Reads the data from disk into the memory buffer provided. */
   virtual void Read(void* buffer);
 
@@ -73,7 +83,7 @@ public:
 
   /** Set the spacing and dimension information for the set filename. */
   virtual void WriteImageInformation();
-  
+
   /** Writes the data to disk from the memory buffer provided. Make sure
    * that the IORegions has been set properly. */
   virtual void Write(const void* buffer);
@@ -82,7 +92,7 @@ public:
    * could be the region that we can read from the file. This is called the
    * streamable region, which will be smaller than the LargestPossibleRegion and
    * greater or equal to the RequestedRegion */
-  virtual ImageIORegion 
+  virtual ImageIORegion
   GenerateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requested ) const;
 
 
@@ -90,11 +100,13 @@ protected:
   JPEG2000ImageIO();
   ~JPEG2000ImageIO();
   void PrintSelf(std::ostream& os, Indent indent) const;
-  
+
+  opj_dparameters_t m_DecompressionParameters;  /* decompression parameters */
+
 private:
   JPEG2000ImageIO(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
-  
+
 };
 
 } // end namespace itk
