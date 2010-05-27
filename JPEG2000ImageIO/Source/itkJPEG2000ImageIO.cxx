@@ -373,14 +373,18 @@ void JPEG2000ImageIO::Read( void * buffer)
     itkExceptionMacro("ERROR -> j2k_to_image: failed to decode image!");
     }
 
-std::cout << "image->x1 = " << image->x1 << std::endl;
-std::cout << "image->y1 = " << image->y1 << std::endl;
+  const size_t numberOfPixels = image->x1 * image->y1;
 
-  this->SetDimensions( 0, image->x1 );
-  this->SetDimensions( 1, image->y1 );
+  unsigned char * charBuffer = (unsigned char *)buffer;
+  size_t index = 0;
 
-  this->SetSpacing( 0, 1.0 );  // FIXME : Get the real pixel resolution.;
-  this->SetSpacing( 1, 1.0 );  // FIXME : Get the real pixel resolution.
+  // HERE, copy the buffer
+  for ( size_t j = 0; j < numberOfPixels; j++) 
+    {
+    *charBuffer++ = image->comps[0].data[index];
+    index++;
+    }
+
 
 
   /* close the byte stream */
