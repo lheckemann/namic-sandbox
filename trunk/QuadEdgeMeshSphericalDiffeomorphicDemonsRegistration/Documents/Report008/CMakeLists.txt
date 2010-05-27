@@ -1,4 +1,4 @@
-PROJECT(QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport003)
+PROJECT(QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport008)
 
 FIND_PACKAGE(LATEX)
 
@@ -26,18 +26,18 @@ SET(REPORT001_SRCS
   InsightJournal.sty
   times.sty
   picins.sty
-  ../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx
+  ../../Testing/itkHistogramMatchingQuadEdgeMeshFilterTest.cxx
   )
 
 
 SET(THIS_BINARY_DIR 
-  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport003_BINARY_DIR} )
+  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport008_BINARY_DIR} )
 
 SET(THIS_SOURCE_DIR 
-  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport003_SOURCE_DIR} )
+  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport008_SOURCE_DIR} )
 
 #
-# This adds a custom command for each source file in REPORT003_SRCS
+# This adds a custom command for each source file in REPORT001_SRCS
 # that copies the file from the source directory to the binary
 # directory where the pdf will be generated.
 #
@@ -85,21 +85,39 @@ FOREACH(SOURCE_FILE ${PNG_FIGURES})
   SET(COPY_RESULTS ${COPY_RESULTS} ${DESTINATION_FILE})
 ENDFOREACH(SOURCE_FILE)
 
+#
+# Copy all the images from THIS_SOURCE_DIR
+#
+FILE(GLOB PNG_FIGURES_IN_SOURCE ${THIS_SOURCE_DIR}/*.png )
+FOREACH(SOURCE_FILE ${PNG_FIGURES_IN_SOURCE})
+  GET_FILENAME_COMPONENT(nameBase ${SOURCE_FILE} NAME)
+  GET_FILENAME_COMPONENT(ImageBase ${nameBase} NAME_WE)
+  SET( DESTINATION_FILE ${THIS_BINARY_DIR}/${ImageBase}.png)
+  ADD_CUSTOM_COMMAND(
+    OUTPUT   ${DESTINATION_FILE}
+    DEPENDS  ${DESTINATION_FILE}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+        ${SOURCE_FILE} 
+        ${DESTINATION_FILE}
+    )
+  SET(COPY_RESULTS ${COPY_RESULTS} ${DESTINATION_FILE})
+ENDFOREACH(SOURCE_FILE)
+
 SET(REPORT_ELEMENTS 
   ${EPS_DEPS}
   )
 
 #
-# This adds a custom target that generates QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport003.pdf
+# This adds a custom target that generates QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport008.pdf
 # This target depends on the list of copied files created
 # with the custom command above and the Plots target.
 #
-ADD_CUSTOM_TARGET(Report003IJ ALL 
+ADD_CUSTOM_TARGET(Report008IJ ALL 
    COMMAND ${PDFLATEX_COMPILER} 
-        ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration3.tex 
+        ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration8.tex 
         -output-directory ${THIS_BINARY_DIR}
    COMMAND ${PDFLATEX_COMPILER} 
-        ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration3.tex 
+        ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration8.tex 
         -output-directory ${THIS_BINARY_DIR}
    DEPENDS ${COPY_RESULTS} ${REPORT_ELEMENTS} 
    WORKING_DIRECTORY ${THIS_BINARY_DIR}

@@ -50,7 +50,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 ]{hyperref}
 
 
-\title{Assign Scalars Mesh Filter}
+\title{Histogram Matching Mesh Filter}
 
 
 % 
@@ -123,13 +123,12 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 \chapter*{Front Matter\label{front}}
 \fi
 
-
 \begin{abstract}
  
-This article describes the filter itk::AssignScalarValuesQuadEdgeMeshFilter.  It
-takes two meshes, one as an input and the other as a source to assign scalar
-values of the nodes from the source mesh to the input mesh.  Both of the two 
-meshes should have the same number of nodes.
+This documents describes the filter itk::HistogramMatchingQuadEdgeMeshFilter.  It
+takes an input (source) mesh and a reference mesh, normalizes the scalar values 
+between two meshes by histogram matching, and generates an output mesh 
+which has a similar histogram as the input mesh.
 
 This paper is accompanied with the source code, input data, parameters and
 output data that we used for validating the algorithm described in this paper.
@@ -145,36 +144,40 @@ This work was funded in part by NIH/NINDS award NS050568.
 
 \section{Introduction}
 
+The HistogramMatchingQuadEdgeMeshFilter normalizes the scalar values of a source
+mesh based on the scalar values of a reference mesh. 
+This filter uses a histogram matching technique where the histograms of the 
+two meshes are matched only at a specified number of quantile values.
+This filter was originally designed to normalized scalar values of two
+brain surfaces. 
+
+No mean scalar value is used to remove the background
+as the itkHistogramMatchingImageFilter does. It is 
+assumed that all mesh scalars are of interest and that the
+process of region definition and mesh generation
+have removed irrelevant information.
 
 \section{How to Build}
 
 This contribution includes
 
 \begin{itemize}
-\item Assign Scalars filter
+\item Histogram Matching Mesh Filter
 \item Tests for the filter
-\item Examples on how to use the filter
 \item All the LaTeX source files of this paper
 \end{itemize}
 
 The source code is in Source directory and named as 
 
 \begin{itemize}
-\item itkAssignScalarValuesQuadEdgeMeshFilter.h
-\item itkAssignScalarValuesQuadEdgeMeshFilter.cxx
+\item itkHistogramMatchingQuadEdgeMeshFilter.h
+\item itkHistogramMatchingQuadEdgeMeshFilter.txx
 \end{itemize}
-
 
 The testing code is in Testing directory as
 
 \begin{itemize}
-\item itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx
-\end{itemize}
-
-The example about how to use it is in Example directory as
-
-\begin{itemize}
-\item RigidAndDemonsRegistration.cxx
+\item itkHistogramMatchingQuadEdgeMeshFilterTest.cxx
 \end{itemize}
 
 \subsection{Building Executables and Tests}
@@ -211,7 +214,7 @@ In order to build this report you can do
 \end{itemize}
 
 This should produce a PDF file in the binary directory, under the subdirectory
-\code{Documents/Report003}.
+\code{Documents/Report008}.
 
 \section{How to Use the Filter}
 
@@ -219,90 +222,108 @@ This section illustrates the minimum operations required for running the filter.
 is available in the Testing directory of the code that accompanies this paper. You can download the 
 entire set of files from the Insight Journal web site.
 
-It is assumed that the input mesh and the source mesh have the same number of nodes. The source
-code presented in this section can be found in the \code{Testing} directory under the filename.
+The source code presented in this section can be found in the \code{Testing} directory under the filename.
 
 \begin{itemize}
-\item itkAssignScalarValuesQuadEdgeMeshFilterTest1
+\item itkHistogramMatchingQuadEdgeMeshFilterTest
 \end{itemize}
 
-In order to use this filter we should the header for the Assign Scalars filter, the reader and writer
-types and the \doxygen{QuadEdgeMesh} itself.
+In order to use this filter we should include the header for the Histogram Matching filter, 
+the reader and writer types and the \doxygen{QuadEdgeMesh} itself.
 
 \begin{center}
-\lstinputlisting[linerange={21-24}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={20-24}]{../../Testing/itkRescaleScalarsQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
-The Scalar type associated with the nodes in the mesh, and the mesh dimension
+The scalar type associated with the nodes in the mesh, and the mesh dimension
 are defined in order to declare the Mesh type
 
 \begin{center}
-\lstinputlisting[linerange={39-44}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={41-44}]{../../Testing/itkHistogramMatchingQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
-You need to declare the type of the assigned scalars and instantiate the filter.
+We declare the type of the hisgtogram matching filter and instantiate it.
 
 \begin{center}
-\lstinputlisting[linerange={67-70}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={59-61}]{../../Testing/itkHistogramMatchingQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
-In order to read the input mesh you need to declare a reader types for both the input
-and source meshes. You will want to create one instance for each mesh.
+In order to read the input mesh we declare readers type for input and reference mesh and create instances of them.
 
 \begin{center}
-\lstinputlisting[linerange={46-53}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={46-53}]{../../Testing/itkHistogramMatchingQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
-The output of the readers is passed as input to the assign scalars filter.
+The outputs of the readers are passed as inputs to the histogram matching filter.
+The source mesh can be set via either SetInput() or SetSourceMesh().
+The reference image can be set via SetReferenceMesh().
 
 \begin{center}
-\lstinputlisting[linerange={74-75}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={63-64}]{../../Testing/itkHistogramMatchingQuadEdgeMeshFilterTest.cxx}
+\end{center}
+
+SetNumberOfHistogramLevels() sets the number of bins used when
+creating histograms of the source and reference meshes.
+SetNumberOfMatchPoints() governs the number of quantile values to be matched.
+
+\begin{center}
+\lstinputlisting[linerange={65-66}]{../../Testing/itkHistogramMatchingQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
 The execution of the filter can be triggered by calling the \code{Update()} method.
 
 \begin{center}
-\lstinputlisting[linerange={76-76}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={67-67}]{../../Testing/itkHistogramMatchingQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
-The output of the filter can be passed to a writer. The output mesh should be the input mesh with 
-scalars on the source mesh.
+The output of the filter can be passed to a writer. 
 
 \begin{center}
-\lstinputlisting[linerange={78-82}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={108-112}]{../../Testing/itkHistogramMatchingQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
 The results in the following section were generated with calls similar to
 
 \begin{verbatim}
-AssignScalarValuesQuadEdgeMesh fixedMesh01.vtk movingMesh01.vtk \
-newMesh01.vtk 
+HistogramMatchingQuadEdgeMesh inputMesh.vtk referenceMesh.vtk \
+outputMesh.vtk 1024 7
 \end{verbatim}
 
 \section{Results}
-Figure~\ref{fig:InputMeshes} shows the input mesh and the source mesh.
-Both of them have scalar values on them. By using this filter, the input mesh in the left
-is going to take the scalar values from the source mesh in the right to take place of its
-original scalar values.
+Figure~\ref{fig:InputMesh} shows the input mesh.
+The scalar values of it are in the range of $[0.0, 1.0]$
+and the histogram of it is shown in the right.
 
-Figure~\ref{fig:OutputMeshes} shows the output mesh which is a copy of the input mesh but
-has the scalar values from the source mesh.
+Figure~\ref{fig:ReferenceMesh} shows the reference mesh.
+The scalar values of it are in the range of $[0.5, 1.0]$
+and the histogram of it is shown in the right.
+
+Figure~\ref{fig:OutputMesh} shows the output mesh which is a copy of the input mesh but
+has the scalar values in the range of $[0.5, 1.0]$, as the reference mesh
+and the histogram of it is shown on the right.
 
 \begin{figure}
 \center
-\includegraphics[width=0.45\textwidth]{fixedMesh01.png}
-\includegraphics[width=0.45\textwidth]{movingMesh01.png}
-\itkcaption[Input Meshes]{Input Mesh (left) and Source Mesh (right) passed as
-input to the Assign Values filter.}
-\label{fig:InputMeshes}
+\includegraphics[width=0.45\textwidth]{fixedMeshWithScalarsGaussianIC4.png}
+\includegraphics[width=0.45\textwidth]{inputHistogram.png}
+\itkcaption[Input Mesh]{Input Mesh (left) and its histogram (right).}
+\label{fig:InputMesh}
 \end{figure}
 
 \begin{figure}
 \center
-\includegraphics[width=0.45\textwidth]{newMesh01.png}
-\itkcaption[Output Mesh]{The output of the filter after assign scalar values from
-the source mesh to the input mesh.}
-\label{fig:OutputMeshes}
+\includegraphics[width=0.45\textwidth]{rescaledMeshWithScalarsGaussianIC4.png}
+\includegraphics[width=0.45\textwidth]{refHistogram.png}
+\itkcaption[Reference Mesh]{Reference Mesh (left) and its histogram (right).}
+\label{fig:ReferenceMesh}
+\end{figure}
+
+\begin{figure}
+\center
+\includegraphics[width=0.45\textwidth]{histogramMatchedGaussianIC4.png}
+\includegraphics[width=0.45\textwidth]{outputHistogram.png}
+\itkcaption[Output Mesh]{Output Mesh (left) and its histogram (right).}
+\label{fig:OutputMesh}
 \end{figure}
 
 \clearpage

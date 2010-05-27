@@ -1,4 +1,4 @@
-PROJECT(QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport003)
+PROJECT(QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport004)
 
 FIND_PACKAGE(LATEX)
 
@@ -26,18 +26,18 @@ SET(REPORT001_SRCS
   InsightJournal.sty
   times.sty
   picins.sty
-  ../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx
+  ../../Testing/itkWarpQuadEdgeMeshFilterTest.cxx
   )
 
 
 SET(THIS_BINARY_DIR 
-  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport003_BINARY_DIR} )
+  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport004_BINARY_DIR} )
 
 SET(THIS_SOURCE_DIR 
-  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport003_SOURCE_DIR} )
+  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport004_SOURCE_DIR} )
 
 #
-# This adds a custom command for each source file in REPORT003_SRCS
+# This adds a custom command for each source file in REPORT004_SRCS
 # that copies the file from the source directory to the binary
 # directory where the pdf will be generated.
 #
@@ -90,16 +90,16 @@ SET(REPORT_ELEMENTS
   )
 
 #
-# This adds a custom target that generates QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport003.pdf
+# This adds a custom target that generates QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport004.pdf
 # This target depends on the list of copied files created
 # with the custom command above and the Plots target.
 #
-ADD_CUSTOM_TARGET(Report003IJ ALL 
+ADD_CUSTOM_TARGET(Report004IJ ALL 
    COMMAND ${PDFLATEX_COMPILER} 
-        ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration3.tex 
+        ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration4.tex 
         -output-directory ${THIS_BINARY_DIR}
    COMMAND ${PDFLATEX_COMPILER} 
-        ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration3.tex 
+        ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration4.tex 
         -output-directory ${THIS_BINARY_DIR}
    DEPENDS ${COPY_RESULTS} ${REPORT_ELEMENTS} 
    WORKING_DIRECTORY ${THIS_BINARY_DIR}

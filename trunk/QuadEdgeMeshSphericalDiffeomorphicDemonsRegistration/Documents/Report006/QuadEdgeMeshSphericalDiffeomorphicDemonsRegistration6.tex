@@ -50,7 +50,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 ]{hyperref}
 
 
-\title{Assign Scalars Mesh Filter}
+\title{Mesh To List Adaptor}
 
 
 % 
@@ -85,10 +85,11 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \release{1.00}
 
-\author{Wen Li$^{1,2}$, Vincent A. Magnotta$^{1,2,3}$}
+\author{Wen Li$^{1,2}$, Vincent A. Magnotta$^{1,2,3}$,Luis Ibanez$^{4}$}
 \authoraddress{$^{1}$Department of Radiology, The University of Iowa, Iowa City, IA 52242\\
                           $^{2}$Department of Biomedical Engineering, The University of Iowa, Iowa City, IA 52242\\
-                          $^{3}$Department of Psychiatry, The University of Iowa, Iowa City, IA 52242}
+                          $^{3}$Department of Psychiatry, The University of Iowa, Iowa City, IA 52242\\
+                          $^{4}$Kitware Inc., Clifton Park, NY}
 
 
 \begin{document}
@@ -126,10 +127,11 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \begin{abstract}
  
-This article describes the filter itk::AssignScalarValuesQuadEdgeMeshFilter.  It
-takes two meshes, one as an input and the other as a source to assign scalar
-values of the nodes from the source mesh to the input mesh.  Both of the two 
-meshes should have the same number of nodes.
+This documents is about the filter itk::ScalarQuadEdgeMeshToListAdpator. It takes 
+the input mesh and generates a list of measurement vectors according to 
+the scalars of the mesh. The list can be fed into 
+\code{itk::Statistics::SampleToHistogramFilter} to generate a histogram
+about the scalars on the input mesh.
 
 This paper is accompanied with the source code, input data, parameters and
 output data that we used for validating the algorithm described in this paper.
@@ -144,37 +146,37 @@ This work was funded in part by NIH/NINDS award NS050568.
 \tableofcontents
 
 \section{Introduction}
+itkScalarQuadEdgeMeshToListAdaptor requires a mesh as input. Each point of the mesh
+could have an associated scalar value. This filter can only deal with those meshes with
+scalar pixel values, so the length of measurement vectors is fixed to be 1 and can not
+be changed by users.
 
+The filter takes a mesh as input and goes through its \code{PointDataContainer} and 
+push the scalars associated with the PointData into stack.
+ 
 
 \section{How to Build}
 
 This contribution includes
 
 \begin{itemize}
-\item Assign Scalars filter
+\item Warp Mesh filter
 \item Tests for the filter
-\item Examples on how to use the filter
 \item All the LaTeX source files of this paper
 \end{itemize}
 
 The source code is in Source directory and named as 
 
 \begin{itemize}
-\item itkAssignScalarValuesQuadEdgeMeshFilter.h
-\item itkAssignScalarValuesQuadEdgeMeshFilter.cxx
+\item itkScalarQuadEdgeMeshToListAdaptor.h
+\item itkScalarQuadEdgeMeshToListAdaptor.cxx
 \end{itemize}
 
 
-The testing code is in Testing directory as
+The testing code is in Examples directory as
 
 \begin{itemize}
-\item itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx
-\end{itemize}
-
-The example about how to use it is in Example directory as
-
-\begin{itemize}
-\item RigidAndDemonsRegistration.cxx
+\item ScalarQuadEdgeMeshHistogram.cxx
 \end{itemize}
 
 \subsection{Building Executables and Tests}
@@ -211,7 +213,8 @@ In order to build this report you can do
 \end{itemize}
 
 This should produce a PDF file in the binary directory, under the subdirectory
-\code{Documents/Report003}.
+\code{Documents/Report006}.
+
 
 \section{How to Use the Filter}
 
@@ -219,93 +222,113 @@ This section illustrates the minimum operations required for running the filter.
 is available in the Testing directory of the code that accompanies this paper. You can download the 
 entire set of files from the Insight Journal web site.
 
-It is assumed that the input mesh and the source mesh have the same number of nodes. The source
-code presented in this section can be found in the \code{Testing} directory under the filename.
+The source code presented in this section can be found in the \code{Examples} directory under the filename.
 
 \begin{itemize}
-\item itkAssignScalarValuesQuadEdgeMeshFilterTest1
+\item ScalarQuadEdgeMeshHistogram
 \end{itemize}
 
-In order to use this filter we should the header for the Assign Scalars filter, the reader and writer
-types and the \doxygen{QuadEdgeMesh} itself.
+In order to use this filter you should include the header for the mesh to list adaptor, the reader and 
+the \doxygen{QuadEdgeMesh} itself. And to show how to generate a histogram by 
+using it, the header for \code{itkSampleToHistogramFilter} is included as well.
 
 \begin{center}
-\lstinputlisting[linerange={21-24}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={21-28}]{../../Examples/ScalarQuadEdgeMeshHistogram.cxx}
 \end{center}
 
 The Scalar type associated with the nodes in the mesh, and the mesh dimension
 are defined in order to declare the Mesh type
 
 \begin{center}
-\lstinputlisting[linerange={39-44}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={41-44}]{../../Examples/ScalarQuadEdgeMeshHistogram.cxx}
 \end{center}
 
-You need to declare the type of the assigned scalars and instantiate the filter.
+In order to read the input meshes you declare reader type for the input mesh
+and create the instance of it.
 
 \begin{center}
-\lstinputlisting[linerange={67-70}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={46-48}]{../../Examples/ScalarQuadEdgeMeshHistogram.cxx}
 \end{center}
 
-In order to read the input mesh you need to declare a reader types for both the input
-and source meshes. You will want to create one instance for each mesh.
+
+You declare the type of the mesh to list adaptor and instantiate it.
 
 \begin{center}
-\lstinputlisting[linerange={46-53}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={53-55}]{../../Examples/ScalarQuadEdgeMeshHistogram.cxx}
 \end{center}
 
-The output of the readers is passed as input to the assign scalars filter.
+The output of the reader is passed as input to the adaptor.
 
 \begin{center}
-\lstinputlisting[linerange={74-75}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={57-57}]{../../Examples/ScalarQuadEdgeMeshHistogram.cxx}
 \end{center}
 
-The execution of the filter can be triggered by calling the \code{Update()} method.
+
+The execution of the filter can be triggered by calling the \code{Compute()} method.
+This should be done inside a \code{try/catch} block, since it is possible that error
+conditions may generate exceptions.
 
 \begin{center}
-\lstinputlisting[linerange={76-76}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={59-67}]{../../Examples/ScalarQuadEdgeMeshHistogram.cxx}
 \end{center}
 
-The output of the filter can be passed to a writer. The output mesh should be the input mesh with 
-scalars on the source mesh.
+We declare the type of \code{itk::Statistics::SampleToHistogramFilter} and also the type
+of \code{ListSampleType} and \code{HistogramType} are declared. The instance of
+ \code{itk::Statistics::SampleToHistogramFilter} is created.
 
 \begin{center}
-\lstinputlisting[linerange={78-82}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={70-80}]{../../Examples/ScalarQuadEdgeMeshHistogram.cxx}
+\end{center}
+
+The use of \code{itk::Statistics::SampleToHistogramFilter} can be refered to itk documentations
+for help.
+
+\begin{center}
+\lstinputlisting[linerange={82-111}]{../../Examples/ScalarQuadEdgeMeshHistogram.cxx}
+\end{center}
+
+The result of \code{itk::Statistics::SampleToHistogramFilter} can be printed out on
+the screen.
+
+\begin{center}
+\lstinputlisting[linerange={113-123}]{../../Examples/ScalarQuadEdgeMeshHistogram.cxx}
 \end{center}
 
 The results in the following section were generated with calls similar to
 
 \begin{verbatim}
-AssignScalarValuesQuadEdgeMesh fixedMesh01.vtk movingMesh01.vtk \
-newMesh01.vtk 
+QuadEdgeMeshHistogram inputMesh.vtk \
+NumberOfBins Min Max
 \end{verbatim}
 
+
 \section{Results}
-Figure~\ref{fig:InputMeshes} shows the input mesh and the source mesh.
-Both of them have scalar values on them. By using this filter, the input mesh in the left
-is going to take the scalar values from the source mesh in the right to take place of its
-original scalar values.
+Figure~\ref{fig:InputMesh} shows the input mesh. The radius of it is $100.0$ and it is centered
+to the origin of the coordinate system. The number of points on the mesh is $2,048$. The scalar
+values of the points are between $0.0$ and $1.0$.
 
-Figure~\ref{fig:OutputMeshes} shows the output mesh which is a copy of the input mesh but
-has the scalar values from the source mesh.
-
-\begin{figure}
-\center
-\includegraphics[width=0.45\textwidth]{fixedMesh01.png}
-\includegraphics[width=0.45\textwidth]{movingMesh01.png}
-\itkcaption[Input Meshes]{Input Mesh (left) and Source Mesh (right) passed as
-input to the Assign Values filter.}
-\label{fig:InputMeshes}
-\end{figure}
+Figure~\ref{fig:Histogram} shows the histogram of the input mesh. X axis has the range of 
+scalar values of the input mesh and Y axis shows the frequencies of each value.
 
 \begin{figure}
 \center
-\includegraphics[width=0.45\textwidth]{newMesh01.png}
-\itkcaption[Output Mesh]{The output of the filter after assign scalar values from
-the source mesh to the input mesh.}
-\label{fig:OutputMeshes}
+\includegraphics[width=0.45\textwidth]{fixedMeshWithScalarsGaussianIC4.png}
+\itkcaption[Input Mesh]{Radius = $100.0$; Scalar values are between $0.0$ and $1.0$.}
+\label{fig:InputMesh}
 \end{figure}
+
+
+\begin{figure}
+\center
+\includegraphics[width=0.7\textwidth]{histogram.png}
+\itkcaption[Histogram of Input Mesh]{X axis: the range of scalar values; Y axis: the frequency
+of each value}
+\label{fig:Histogram}
+\end{figure}
+
 
 \clearpage
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %

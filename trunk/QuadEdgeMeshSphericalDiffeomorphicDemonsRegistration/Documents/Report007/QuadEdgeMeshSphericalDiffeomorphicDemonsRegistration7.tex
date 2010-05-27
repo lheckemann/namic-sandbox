@@ -50,7 +50,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 ]{hyperref}
 
 
-\title{Assign Scalars Mesh Filter}
+\title{Rescale Scalars Mesh Filter}
 
 
 % 
@@ -90,7 +90,6 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
                           $^{2}$Department of Biomedical Engineering, The University of Iowa, Iowa City, IA 52242\\
                           $^{3}$Department of Psychiatry, The University of Iowa, Iowa City, IA 52242}
 
-
 \begin{document}
 
 
@@ -126,10 +125,9 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \begin{abstract}
  
-This article describes the filter itk::AssignScalarValuesQuadEdgeMeshFilter.  It
-takes two meshes, one as an input and the other as a source to assign scalar
-values of the nodes from the source mesh to the input mesh.  Both of the two 
-meshes should have the same number of nodes.
+This documents is about the filter itk::RescaleScalarsQuadEdgeMeshFilter.  It
+takes an input mesh and generates an output mesh with user specifying scalar
+values in the range of $[min, max]$.
 
 This paper is accompanied with the source code, input data, parameters and
 output data that we used for validating the algorithm described in this paper.
@@ -144,37 +142,33 @@ This work was funded in part by NIH/NINDS award NS050568.
 \tableofcontents
 
 \section{Introduction}
-
+This filter is to perform linear transformation of input mesh scalars, by using the 
+minimum and maximum values as parameters passed through command line. 
+It searches the original input mesh's minimum and maximum scalar values and 
+changes the output mesh's scalar values into the range of $[min, max]$, 
+where $min$ and $max$ are passed by the user via the command line.
 
 \section{How to Build}
 
 This contribution includes
 
 \begin{itemize}
-\item Assign Scalars filter
+\item Rescale Scalars Filter
 \item Tests for the filter
-\item Examples on how to use the filter
 \item All the LaTeX source files of this paper
 \end{itemize}
 
 The source code is in Source directory and named as 
 
 \begin{itemize}
-\item itkAssignScalarValuesQuadEdgeMeshFilter.h
-\item itkAssignScalarValuesQuadEdgeMeshFilter.cxx
+\item itkRescaleScalarsQuadEdgeMeshFilter.h
+\item itkRescaleScalarsQuadEdgeMeshFilter.txx
 \end{itemize}
-
 
 The testing code is in Testing directory as
 
 \begin{itemize}
-\item itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx
-\end{itemize}
-
-The example about how to use it is in Example directory as
-
-\begin{itemize}
-\item RigidAndDemonsRegistration.cxx
+\item itkRescaleScalarsQuadEdgeMeshFilterTest.cxx
 \end{itemize}
 
 \subsection{Building Executables and Tests}
@@ -211,7 +205,7 @@ In order to build this report you can do
 \end{itemize}
 
 This should produce a PDF file in the binary directory, under the subdirectory
-\code{Documents/Report003}.
+\code{Documents/Report007}.
 
 \section{How to Use the Filter}
 
@@ -219,90 +213,95 @@ This section illustrates the minimum operations required for running the filter.
 is available in the Testing directory of the code that accompanies this paper. You can download the 
 entire set of files from the Insight Journal web site.
 
-It is assumed that the input mesh and the source mesh have the same number of nodes. The source
-code presented in this section can be found in the \code{Testing} directory under the filename.
+The source code presented in this section can be found in the \code{Testing} directory under the filename.
 
 \begin{itemize}
-\item itkAssignScalarValuesQuadEdgeMeshFilterTest1
+\item itkRescaleScalarsQuadEdgeMeshFilterTest
 \end{itemize}
 
-In order to use this filter we should the header for the Assign Scalars filter, the reader and writer
+In order to use this filter you should include the header for the Rescale Scalars filter, the reader and writer
 types and the \doxygen{QuadEdgeMesh} itself.
 
 \begin{center}
-\lstinputlisting[linerange={21-24}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={21-25}]{../../Testing/itkRescaleScalarsQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
 The Scalar type associated with the nodes in the mesh, and the mesh dimension
 are defined in order to declare the Mesh type
 
 \begin{center}
-\lstinputlisting[linerange={39-44}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={41-45}]{../../Testing/itkRescaleScalarsQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
-You need to declare the type of the assigned scalars and instantiate the filter.
+Next, declare the type of the rescale scalars filter and instantiate it.
 
 \begin{center}
-\lstinputlisting[linerange={67-70}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={52-53}]{../../Testing/itkRescaleScalarsQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
-In order to read the input mesh you need to declare a reader types for both the input
-and source meshes. You will want to create one instance for each mesh.
+In order to read the input mesh, you need to declare a reader type and create an instance of it.
 
 \begin{center}
-\lstinputlisting[linerange={46-53}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={47-49}]{../../Testing/itkRescaleScalarsQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
-The output of the readers is passed as input to the assign scalars filter.
+The output of the reader is passed as input to the rescale scalars filter.
 
 \begin{center}
-\lstinputlisting[linerange={74-75}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={54-54}]{../../Testing/itkRescaleScalarsQuadEdgeMeshFilterTest.cxx}
+\end{center}
+
+The minimum and maximum scalar values of the output mesh are set by the user.
+
+\begin{center}
+\lstinputlisting[linerange={55-56}]{../../Testing/itkRescaleScalarsQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
 The execution of the filter can be triggered by calling the \code{Update()} method.
 
 \begin{center}
-\lstinputlisting[linerange={76-76}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={57-57}]{../../Testing/itkRescaleScalarsQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
-The output of the filter can be passed to a writer. The output mesh should be the input mesh with 
-scalars on the source mesh.
+The output of the filter can be passed to a writer. 
 
 \begin{center}
-\lstinputlisting[linerange={78-82}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={65-69}]{../../Testing/itkRescaleScalarsQuadEdgeMeshFilterTest.cxx}
+\end{center}
+
+The minimum and maximum scalar values before and after the rescale scalars filter are printed out
+to screen.
+
+\begin{center}
+\lstinputlisting[linerange={59-63}]{../../Testing/itkRescaleScalarsQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
 The results in the following section were generated with calls similar to
 
 \begin{verbatim}
-AssignScalarValuesQuadEdgeMesh fixedMesh01.vtk movingMesh01.vtk \
-newMesh01.vtk 
+RescaleScalarsQuadEdgeMesh inputMesh.vtk outputMesh.vtk \
+0.0 1.0
 \end{verbatim}
 
 \section{Results}
-Figure~\ref{fig:InputMeshes} shows the input mesh and the source mesh.
-Both of them have scalar values on them. By using this filter, the input mesh in the left
-is going to take the scalar values from the source mesh in the right to take place of its
-original scalar values.
+Figure~\ref{fig:InputMesh} shows the input mesh.
+The scalar values of it are in the range of $[0.0, 1.0]$
 
-Figure~\ref{fig:OutputMeshes} shows the output mesh which is a copy of the input mesh but
-has the scalar values from the source mesh.
+Figure~\ref{fig:OutputMesh} shows the output mesh which is a copy of the input mesh but
+has the scalar values in the range of $[0.5, 1.0]$
 
 \begin{figure}
 \center
-\includegraphics[width=0.45\textwidth]{fixedMesh01.png}
-\includegraphics[width=0.45\textwidth]{movingMesh01.png}
-\itkcaption[Input Meshes]{Input Mesh (left) and Source Mesh (right) passed as
-input to the Assign Values filter.}
-\label{fig:InputMeshes}
+\includegraphics[width=0.45\textwidth]{fixedMeshWithScalarsGaussianIC4.png}
+\itkcaption[Input Mesh]{Input Mesh to the Rescale Values filter.}
+\label{fig:InputMesh}
 \end{figure}
 
 \begin{figure}
 \center
-\includegraphics[width=0.45\textwidth]{newMesh01.png}
-\itkcaption[Output Mesh]{The output of the filter after assign scalar values from
-the source mesh to the input mesh.}
-\label{fig:OutputMeshes}
+\includegraphics[width=0.45\textwidth]{rescaledMeshWithScalarsGaussianIC4.png}
+\itkcaption[Output Mesh]{Output Mesh of the Rescale Values filter.}
+\label{fig:OutputMesh}
 \end{figure}
 
 \clearpage

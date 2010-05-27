@@ -50,7 +50,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 ]{hyperref}
 
 
-\title{Assign Scalars Mesh Filter}
+\title{Mesh Similarity Calculator}
 
 
 % 
@@ -90,7 +90,6 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
                           $^{2}$Department of Biomedical Engineering, The University of Iowa, Iowa City, IA 52242\\
                           $^{3}$Department of Psychiatry, The University of Iowa, Iowa City, IA 52242}
 
-
 \begin{document}
 
 
@@ -126,10 +125,9 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \begin{abstract}
  
-This article describes the filter itk::AssignScalarValuesQuadEdgeMeshFilter.  It
-takes two meshes, one as an input and the other as a source to assign scalar
-values of the nodes from the source mesh to the input mesh.  Both of the two 
-meshes should have the same number of nodes.
+This documents is about the filter itkQuadEdgeMeshSimilarityCalculator. It takes 
+inputs of two meshes and gives the similarity of the labels on them in two types of
+similarity measurements -- Dice Similarity and Jaccard Similarity.
 
 This paper is accompanied with the source code, input data, parameters and
 output data that we used for validating the algorithm described in this paper.
@@ -144,37 +142,65 @@ This work was funded in part by NIH/NINDS award NS050568.
 \tableofcontents
 
 \section{Introduction}
+This filter deals with two meshes which have labels on them. Labels are represented as 
+scalars of points on the meshes and the pixel types are required to be integer. It also 
+requires two input meshes have the same topologies (number of points, number of cells,
+and number of edges). 
 
+Dice similarity, named after Lee Raymond Dice [1] and also known as the Dice coefficient, 
+is a similarity measure related to the Jaccard index.
+
+For sets $X$ and $Y$ of points which have the same label on different meshes, the coefficient
+may be defined as: 
+
+\begin{equation}
+\frac{2\left | X\cap Y \right |}{\left | X \right |+\left | Y \right |}
+\end{equation}
+
+Jaccard similarity, also known as the Jaccard index, is a statistic used for comparing the similarity 
+and diversity of sample sets. The Jaccard similarity measures similarity between sample sets, and 
+is defined as the size of the intersection divided by the size of the union of the sample sets:
+
+\begin{equation}
+\frac{\left | X\bigcap Y \right |}{\left | X\bigcup Y \right |}
+\end{equation}
+
+\section{Method}
+This filter can give the value of both Dice and Jaccard similarities for a particular label on the meshes.
+The measurement for a label on the mesh is calculated by the sum of area which has the particular 
+label. 
+
+Labels on the meshes are given as the scalar values of them, and the area of the label is calculated 
+by the area of triangles which have the particular labeled points. If there is only one point in a triangle
+labeled by the particular value, a third of the triangle's area is added up into the sum of area
+belongs to that label. If there is two points, two third will be added.
+
+So the filter goes through the cells and points on each cell one by one. Both of Dice and Jaccard 
+similairties are calculated at the same time.
+ 
 
 \section{How to Build}
 
 This contribution includes
 
 \begin{itemize}
-\item Assign Scalars filter
+\item Warp Mesh filter
 \item Tests for the filter
-\item Examples on how to use the filter
 \item All the LaTeX source files of this paper
 \end{itemize}
 
 The source code is in Source directory and named as 
 
 \begin{itemize}
-\item itkAssignScalarValuesQuadEdgeMeshFilter.h
-\item itkAssignScalarValuesQuadEdgeMeshFilter.cxx
+\item itkQuadEdgeMeshSimilarityCalculator.h
+\item itkQuadEdgeMeshSimilarityCalculator.txx
 \end{itemize}
 
 
-The testing code is in Testing directory as
+The testing code is in Examples directory as
 
 \begin{itemize}
-\item itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx
-\end{itemize}
-
-The example about how to use it is in Example directory as
-
-\begin{itemize}
-\item RigidAndDemonsRegistration.cxx
+\item QuadEdgeMeshSimilarityCalculator.cxx
 \end{itemize}
 
 \subsection{Building Executables and Tests}
@@ -211,7 +237,8 @@ In order to build this report you can do
 \end{itemize}
 
 This should produce a PDF file in the binary directory, under the subdirectory
-\code{Documents/Report003}.
+\code{Documents/Report005}.
+
 
 \section{How to Use the Filter}
 
@@ -219,93 +246,83 @@ This section illustrates the minimum operations required for running the filter.
 is available in the Testing directory of the code that accompanies this paper. You can download the 
 entire set of files from the Insight Journal web site.
 
-It is assumed that the input mesh and the source mesh have the same number of nodes. The source
-code presented in this section can be found in the \code{Testing} directory under the filename.
+This filter requires two input meshes have exactly the same number of points, number of cells and edges.
+And the meshes should have the same radius too.
+
+The source code presented in this section can be found in the \code{Examples} directory under the filename.
 
 \begin{itemize}
-\item itkAssignScalarValuesQuadEdgeMeshFilterTest1
+\item QuadEdgeMeshSimilarityCalculator
 \end{itemize}
 
-In order to use this filter we should the header for the Assign Scalars filter, the reader and writer
-types and the \doxygen{QuadEdgeMesh} itself.
+In order to use this filter we should include the header for the Mesh Similarity Calculator, the reader and 
+the \doxygen{QuadEdgeMesh} itself.
 
 \begin{center}
-\lstinputlisting[linerange={21-24}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={22-25}]{../../Examples/QuadEdgeMeshSimilarityCalculator.cxx}
 \end{center}
 
 The Scalar type associated with the nodes in the mesh, and the mesh dimension
 are defined in order to declare the Mesh type
 
 \begin{center}
-\lstinputlisting[linerange={39-44}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={41-45}]{../../Examples/QuadEdgeMeshSimilarityCalculator.cxx}
 \end{center}
 
-You need to declare the type of the assigned scalars and instantiate the filter.
+In order to read the input meshes we declare reader types for all of the input meshes
+and create one instance of each one.
 
 \begin{center}
-\lstinputlisting[linerange={67-70}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={50-54}]{../../Examples/QuadEdgeMeshSimilarityCalculator.cxx}
 \end{center}
 
-In order to read the input mesh you need to declare a reader types for both the input
-and source meshes. You will want to create one instance for each mesh.
+Since this filter is not using \code{Update()} to execute, readers should be updated before
+being passed to it and it is always safer to do it in a \code{try/catch} block.
 
 \begin{center}
-\lstinputlisting[linerange={46-53}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={56-65}]{../../Examples/QuadEdgeMeshSimilarityCalculator.cxx}
 \end{center}
 
-The output of the readers is passed as input to the assign scalars filter.
+We declare the type of the mesh similarity calculator and instantiate it.
 
 \begin{center}
-\lstinputlisting[linerange={74-75}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={67-69}]{../../Examples/QuadEdgeMeshSimilarityCalculator.cxx}
 \end{center}
 
-The execution of the filter can be triggered by calling the \code{Update()} method.
+The output of the readers is passed as input to the mesh similarity calculator.
 
 \begin{center}
-\lstinputlisting[linerange={76-76}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={71-72}]{../../Examples/QuadEdgeMeshSimilarityCalculator.cxx}
 \end{center}
 
-The output of the filter can be passed to a writer. The output mesh should be the input mesh with 
-scalars on the source mesh.
+A particular label needs to be set to the filter by using \code{SetLabelValue()}.
 
 \begin{center}
-\lstinputlisting[linerange={78-82}]{../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx}
+\lstinputlisting[linerange={74-74}]{../../Examples/QuadEdgeMeshSimilarityCalculator.cxx}
+\end{center}
+
+The execution of the filter can be triggered by calling the \code{Compute()} method.
+
+\begin{center}
+\lstinputlisting[linerange={76-76}]{../../Examples/QuadEdgeMeshSimilarityCalculator.cxx}
+\end{center}
+
+We can get the value of Dice and Jaccard by calling \code{GetDice()} and 
+\code{GetJaccard()}. We let them be printed on the screen in the \code{Example}.
+
+\begin{center}
+\lstinputlisting[linerange={78-82}]{../../Examples/QuadEdgeMeshSimilarityCalculator.cxx}
 \end{center}
 
 The results in the following section were generated with calls similar to
 
 \begin{verbatim}
-AssignScalarValuesQuadEdgeMesh fixedMesh01.vtk movingMesh01.vtk \
-newMesh01.vtk 
+MeshSimilarityCalculator inputMesh1.vtk inputMesh2.vtk LabelValue 
 \end{verbatim}
 
-\section{Results}
-Figure~\ref{fig:InputMeshes} shows the input mesh and the source mesh.
-Both of them have scalar values on them. By using this filter, the input mesh in the left
-is going to take the scalar values from the source mesh in the right to take place of its
-original scalar values.
-
-Figure~\ref{fig:OutputMeshes} shows the output mesh which is a copy of the input mesh but
-has the scalar values from the source mesh.
-
-\begin{figure}
-\center
-\includegraphics[width=0.45\textwidth]{fixedMesh01.png}
-\includegraphics[width=0.45\textwidth]{movingMesh01.png}
-\itkcaption[Input Meshes]{Input Mesh (left) and Source Mesh (right) passed as
-input to the Assign Values filter.}
-\label{fig:InputMeshes}
-\end{figure}
-
-\begin{figure}
-\center
-\includegraphics[width=0.45\textwidth]{newMesh01.png}
-\itkcaption[Output Mesh]{The output of the filter after assign scalar values from
-the source mesh to the input mesh.}
-\label{fig:OutputMeshes}
-\end{figure}
 
 \clearpage
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
