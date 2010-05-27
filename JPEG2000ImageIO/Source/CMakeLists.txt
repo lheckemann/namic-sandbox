@@ -8,5 +8,9 @@ ADD_LIBRARY(JPEG2000ImageIO
   itkJPEG2000ImageIOFactory.cxx
   )
 
-TARGET_LINK_LIBRARIES(JPEG2000ImageIO ITKIO openjpegconvert)
+TARGET_LINK_LIBRARIES(JPEG2000ImageIO 
+  ITKIO 
+  openjpegconvert
+  ${OpenJPEG_LIBRARIES}
+  )
 
