@@ -420,7 +420,19 @@ void
 JPEG2000ImageIO
 ::WriteImageInformation(void)
 {
-  // add writing here
+  std::cout << "WriteImageInformation()" << std::endl;
+
+  // the IORegion is not requred to be set so we must use GetNumberOfDimensions
+  if ( this->GetNumberOfDimensions() != 2 )
+    {
+    itkExceptionMacro(<<"JPEG 2000 Writer can only write 2-dimensional images");
+    }
+
+  if ( this->GetComponentType() != UCHAR
+    && this->GetComponentType() != UINT)
+    {
+    itkExceptionMacro(<<"JPEG 2000 supports unsigned char/int only");
+    }
 }
 
 
@@ -431,19 +443,81 @@ void
 JPEG2000ImageIO
 ::Write( const void* buffer)
 {
-  opj_codec_t* cinfo = NULL;
-  opj_image_t *image = NULL;
-  FILE *f = NULL;
-  opj_stream_t *cio = 00;
+  std::cout << "Write()" << std::endl;
+
   bool bSuccess;
 
   opj_cparameters_t parameters;
   opj_set_default_encoder_parameters(&parameters);
 
-  strncpy(parameters.outfile, this->m_FileName.c_str(), sizeof(parameters.outfile)-1);
+//--------------------------------------------------------
+  // Copy the contents into the image structure
+  int i, w, h , numcomps = 1;
+  w = this->m_Dimensions[0];
+  h = this->m_Dimensions[1];
 
+  OPJ_COLOR_SPACE color_space = CLRSPC_GRAY;
+  opj_image_cmptparm_t cmptparm[3];
+
+  /* initialize image components */
+  memset(&cmptparm[0], 0, sizeof(opj_image_cmptparm_t));
+  cmptparm[0].prec = 8;
+  cmptparm[0].bpp = 8;
+  cmptparm[0].sgnd = 0;
+  cmptparm[0].dx = 1;
+  cmptparm[0].dy = 1;
+  cmptparm[0].w =  w;
+  cmptparm[0].h = h;
+
+  opj_image_t *image = NULL;
+  image = opj_image_create( numcomps, &cmptparm[0], color_space);
+  if(!image)
+  {
+    itkExceptionMacro(<<"Image buffer not created");
+  }
+
+  image->numcomps = this->GetNumberOfComponents();
+
+  int subsampling_dx = parameters.subsampling_dx;
+  int subsampling_dy = parameters.subsampling_dy;
+  image->x0 = parameters.image_offset_x0;
+  image->y0 = parameters.image_offset_y0;
+  image->x1 = !image->x0 ? (w - 1) * subsampling_dx + 1 : image->x0 + (w - 1) * subsampling_dx + 1;
+  image->y1 = !image->y0 ? (h - 1) * subsampling_dy + 1 : image->y0 + (h - 1) * subsampling_dy + 1;
+
+  // HERE, copy the buffer
+  unsigned char * charBuffer = (unsigned char *)buffer;
+  size_t index = 0;
+  int numberOfPixels = w*h;
+  std::cout << " START COPY BUFFER" << std::endl;
+  for ( size_t j = 0; j < numberOfPixels; j++)
+    {
+    image->comps[0].data[index] = charBuffer[index];
+    index++;
+    }
+  std::cout << " END COPY BUFFER" << std::endl;
+//--------------------------------------------------------------------
+
+  /* Create comment for codestream */
+  if(parameters.cp_comment == NULL) {
+    const char comment[] = "Created by OpenJPEG version ";
+    const size_t clen = strlen(comment);
+    const char *version = opj_version();
+/* UniPG>> */
+#ifdef USE_JPWL
+    parameters.cp_comment = (char*)malloc(clen+strlen(version)+11);
+    sprintf(parameters.cp_comment,"%s%s with JPWL", comment, version);
+#else
+    parameters.cp_comment = (char*)malloc(clen+strlen(version)+1);
+    sprintf(parameters.cp_comment,"%s%s", comment, version);
+#endif
+/* <<UniPG */
+  }
+
+  strncpy(parameters.outfile, this->m_FileName.c_str(), sizeof(parameters.outfile)-1);
   std::string extension = itksys::SystemTools::GetFilenameLastExtension( this->m_FileName.c_str() );
 
+  opj_codec_t* cinfo = NULL;
   if( extension == ".j2k" )
     {
     cinfo = opj_create_compress(CODEC_J2K);
@@ -456,45 +530,14 @@ JPEG2000ImageIO
     parameters.cod_format = JP2_CFMT;
     }
 
-  // TODO: Copy the contents into the image structure
-  int i, w, h , numcomps = 1;
-  OPJ_COLOR_SPACE color_space = CLRSPC_SRGB;
-  opj_image_cmptparm_t cmptparm[3];
-
-  /* initialize image components */
-  memset(&cmptparm[0], 0, 3 * sizeof(opj_image_cmptparm_t));
-  for(i = 0; i < numcomps; i++) {
-    cmptparm[i].prec = 8;
-    cmptparm[i].bpp = 8;
-    cmptparm[i].sgnd = 0;
-    cmptparm[i].dx = 1;
-    cmptparm[i].dy = 1;
-    cmptparm[i].w = 640;
-    cmptparm[i].h =480;
-    }
-
-  image = opj_image_create( 1, &cmptparm[0], color_space);
-
-  /* set image offset and reference grid */
-  image->x0 = 0;
-  image->y0 = 0;
-  image->x1 = 640;
-  image->y1 = 480;
-
-
-  size_t index = 0;
-
-  // HERE, copy the buffer
-  std::cout << " START COPY BUFFER" << std::endl;
-  for ( size_t j = 0; j < 640*480; j++)
-    {
-    image->comps[0].data[index] = 255;
-    index++;
-    }
-  std::cout << " END COPY BUFFER" << std::endl;
+  if ( this->GetNumberOfComponents() == 3 )
+    parameters.tcp_mct = 1;
+  else
+    parameters.tcp_mct = 0;
 
   opj_setup_encoder(cinfo, &parameters, image);
 
+  FILE *f = NULL;
   f = fopen(parameters.outfile, "wb");
   if (! f)
   {
@@ -504,9 +547,11 @@ JPEG2000ImageIO
 
   /* open a byte stream for writing */
   /* allocate memory for all tiles */
+  opj_stream_t *cio = 00;
   cio = opj_stream_create_default_file_stream(f,false);
   if (! cio)
   {
+    fprintf(stderr, "no file stream opened\n");
     return;
   }
 
@@ -514,40 +559,41 @@ JPEG2000ImageIO
   /*if (*indexfilename)         // If need to extract codestream information
     bSuccess = opj_encode_with_info(cinfo, cio, image, &cstr_info);
   else*/
-  bSuccess = opj_start_compress(cinfo,image,cio);
-  bSuccess = bSuccess && opj_encode(cinfo, cio);
-  bSuccess = bSuccess && opj_end_compress(cinfo, cio);
-
-  if (!bSuccess)
-  {
-    opj_stream_destroy(cio);
-    fclose(f);
-    fprintf(stderr, "failed to encode image\n");
-    return;
-  }
-
-  fprintf(stderr,"Generated outfile %s\n",parameters.outfile);
-  /* close and free the byte stream */
-  opj_stream_destroy(cio);
-  fclose(f);
-
-//   /* Write the index to disk */
-//   if (*indexfilename)
+  std::cout << "Before compressing " << cinfo << ' ' << image << ' ' << cio << ' ' << f << std::endl;
+//   bSuccess = opj_start_compress(cinfo,image,cio);
+//   bSuccess = bSuccess && opj_encode(cinfo, cio);
+//   bSuccess = bSuccess && opj_end_compress(cinfo, cio);
+//
+//   if (!bSuccess)
 //   {
-//     bSuccess = write_index_file(&cstr_info, indexfilename);
-//     if (bSuccess)
-//     {
-//       fprintf(stderr, "Failed to output index file\n");
-//     }
+//     opj_stream_destroy(cio);
+//     fclose(f);
+//     fprintf(stderr, "failed to encode image\n");
+//     return;
 //   }
-
-  /* free remaining compression structures */
-  opj_destroy_codec(cinfo);
-//   if (*indexfilename)
-//     opj_destroy_cstr_info(&cstr_info);
-
-  /* free image data */
-  opj_image_destroy(image);
+//
+//   fprintf(stderr,"Generated outfile %s\n",parameters.outfile);
+//   /* close and free the byte stream */
+//   opj_stream_destroy(cio);
+//   fclose(f);
+//
+// //   /* Write the index to disk */
+// //   if (*indexfilename)
+// //   {
+// //     bSuccess = write_index_file(&cstr_info, indexfilename);
+// //     if (bSuccess)
+// //     {
+// //       fprintf(stderr, "Failed to output index file\n");
+// //     }
+// //   }
+//
+//   /* free remaining compression structures */
+//   opj_destroy_codec(cinfo);
+// //   if (*indexfilename)
+// //     opj_destroy_cstr_info(&cstr_info);
+//
+//   /* free image data */
+//   opj_image_destroy(image);
 }
 
 /** Given a requested region, determine what could be the region that we can
