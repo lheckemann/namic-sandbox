@@ -43,11 +43,12 @@ int main( int argc, char ** argv )
 
 
   //  Image types are defined below.
-  typedef itk::RGBPixel< unsigned char > PixelType;
+  typedef unsigned short int  InputPixelType;
+  typedef unsigned short int  OutputPixelType;
   const   unsigned int        Dimension = 2;
 
-  typedef itk::Image< PixelType,  Dimension >    InputImageType;
-  typedef itk::Image< PixelType, Dimension >    OutputImageType;
+  typedef itk::Image< InputPixelType,  Dimension >    InputImageType;
+  typedef itk::Image< OutputPixelType, Dimension >    OutputImageType;
 
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
