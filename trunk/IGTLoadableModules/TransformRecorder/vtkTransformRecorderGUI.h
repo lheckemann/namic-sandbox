@@ -33,6 +33,9 @@
 
 #include "vtkMRMLTransformRecorderNode.h"
 
+class vtkKWLoadSaveButtonWithLabel;
+class vtkKWLabel;
+
 
 class VTK_TransformRecorder_EXPORT vtkTransformRecorderGUI : public vtkSlicerModuleGUI
 {
@@ -92,7 +95,7 @@ class VTK_TransformRecorder_EXPORT vtkTransformRecorderGUI : public vtkSlicerMod
   //----------------------------------------------------------------
   // Event Handlers
   //----------------------------------------------------------------
-
+  
   virtual void ProcessLogicEvents ( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessGUIEvents ( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
@@ -100,15 +103,21 @@ class VTK_TransformRecorder_EXPORT vtkTransformRecorderGUI : public vtkSlicerMod
   void HandleMouseEvent(vtkSlicerInteractorStyle *style);
   static void DataCallback(vtkObject *caller, 
                            unsigned long eid, void *clientData, void *callData);
+
+protected:
   
+  void SelectLogFile();
+  
+
+public:  
   //----------------------------------------------------------------
   // Build Frames
   //----------------------------------------------------------------
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
-  void BuildGUIForTestFrame1();
-  void BuildGUIForTestFrame2();
+  
+  void BuildGUIForIOFrame();
   void BuildGUIForControlsFrame();
 
   //----------------------------------------------------------------
@@ -130,15 +139,11 @@ class VTK_TransformRecorder_EXPORT vtkTransformRecorderGUI : public vtkSlicerMod
   //----------------------------------------------------------------
   // GUI widgets
   //----------------------------------------------------------------
-
-  vtkKWPushButton* TestButton11;
-  vtkKWPushButton* TestButton12;
-  vtkKWPushButton* TestButton21;
-  vtkKWPushButton* TestButton22;
-  
-  
+    
   vtkSlicerNodeSelectorWidget* ModuleNodeSelector;
   vtkSlicerNodeSelectorWidget* TransformSelector;
+  vtkKWLoadSaveButtonWithLabel* FileSelectButton;
+  vtkKWLabel* LogFileLabel;
   
   vtkKWPushButton* StartButton;
   vtkKWPushButton* StopButton;

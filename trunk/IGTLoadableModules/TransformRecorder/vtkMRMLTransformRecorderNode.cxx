@@ -2,9 +2,25 @@
 #include "vtkMRMLTransformRecorderNode.h"
 
 #include <fstream>
+#include <sstream>
 
 #include "vtkIntArray.h"
 #include "vtkSmartPointer.h"
+
+
+// Helper functions.
+// ----------------------------------------------------------------------------
+
+bool
+StringToBool( std::string str )
+{
+  bool var;
+  std::stringstream ss( str );
+  ss >> var;
+  return var;
+}
+
+// ----------------------------------------------------------------------------
 
 
 vtkMRMLTransformRecorderNode*
@@ -45,6 +61,8 @@ vtkMRMLTransformRecorderNode::vtkMRMLTransformRecorderNode()
   this->ObservedTransformNode = NULL;
   
   this->Recording = false;
+  
+  this->LogFileName = "";
 }
 
 
@@ -69,6 +87,9 @@ vtkMRMLTransformRecorderNode
     of << indent << " ObservedTransformNodeRef=\""
        << this->ObservedTransformNodeID << "\"";
     }
+  
+  of << indent << " Recording=\"" << this->Recording << "\"";
+  of << indent << " LogFileName=\"" << this->LogFileName << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -92,7 +113,16 @@ void vtkMRMLTransformRecorderNode::ReadXMLAttributes(const char** atts)
       // observers will be added when all the attributes are read and UpdateScene is called
       this->SetObservedTransformNodeID( attValue );
       }
-
+    
+    if ( ! strcmp( attName, "Recording" ) )
+      {
+      this->SetRecording( StringToBool( std::string( attValue ) ) );
+      }
+    
+    if ( ! strcmp( attName, "LogFileName" ) )
+      {
+      this->SetLogFileName( attValue );
+      }
     }
 }
 
@@ -106,6 +136,8 @@ void vtkMRMLTransformRecorderNode::Copy( vtkMRMLNode *anode )
   // Observers must be removed here, otherwise MRML updates would activate nodes on the undo stack
   this->SetAndObserveObservedTransformNodeID( NULL );
   this->SetObservedTransformNodeID( node->ObservedTransformNodeID );
+  this->SetRecording( node->GetRecording() );
+  this->SetLogFileName( node->GetLogFileName() );
 }
 
 
@@ -155,7 +187,9 @@ void vtkMRMLTransformRecorderNode::PrintSelf( ostream& os, vtkIndent indent )
 
   os << indent << "ObservedTransformNodeID: " <<
     (this->ObservedTransformNodeID? this->ObservedTransformNodeID: "(none)") << "\n";
+  os << indent << "LogFileName: " << this->LogFileName << "\n";
 }
+
 
 //----------------------------------------------------------------------------
 void
@@ -194,10 +228,26 @@ vtkMRMLTransformRecorderNode
     {
     if ( this->Recording )
       {
-      std::ofstream output( "a.txt", std::ios_base::app );
+      std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
       this->ObservedTransformNode->WriteXML( output, 0 );
       output << std::endl;
       output.close();
       }
     }
+}
+
+
+void
+vtkMRMLTransformRecorderNode
+::SetLogFileName( std::string fileName )
+{
+  this->LogFileName = fileName;
+}
+
+
+std::string
+vtkMRMLTransformRecorderNode
+::GetLogFileName()
+{
+  return this->LogFileName;
 }
