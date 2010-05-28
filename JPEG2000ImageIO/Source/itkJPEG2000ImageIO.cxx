@@ -23,8 +23,6 @@
 #include "itkJPEG2000ImageIO.h"
 #include "itksys/SystemTools.hxx"
 
-
-
 // for memset
 #include <stdio.h>
 #include <string.h>
@@ -488,7 +486,7 @@ JPEG2000ImageIO
   // HERE, copy the buffer
   unsigned char * charBuffer = (unsigned char *)buffer;
   size_t index = 0;
-  int numberOfPixels = w*h;
+  int numberOfPixels = int(w) * int(h);
   std::cout << " START COPY BUFFER" << std::endl;
   for ( size_t j = 0; j < numberOfPixels; j++)
     {
@@ -535,6 +533,30 @@ JPEG2000ImageIO
   else
     parameters.tcp_mct = 0;
 
+  /* if no rate entered, lossless by default */
+  if (parameters.tcp_numlayers == 0)
+  {
+    parameters.tcp_rates[0] = 0; /* MOD antonin : losslessbug */
+    parameters.tcp_numlayers++;
+    parameters.cp_disto_alloc = 1;
+  }
+
+  if( (parameters.cp_tx0 > parameters.image_offset_x0) || (parameters.cp_ty0 > parameters.image_offset_y0))
+  {
+    fprintf(stderr,
+      "Error: Tile offset dimension is unnappropriate --> TX0(%d)<=IMG_X0(%d) TYO(%d)<=IMG_Y0(%d) \n",
+      parameters.cp_tx0, parameters.image_offset_x0, parameters.cp_ty0, parameters.image_offset_y0);
+    return;
+  }
+
+  for (i = 0; i < parameters.numpocs; i++) {
+    if (parameters.POC[i].prg == -1) {
+      fprintf(stderr,
+        "Unrecognized progression order in option -P (POC n %d) [LRCP, RLCP, RPCL, PCRL, CPRL] !!\n",
+        i + 1);
+    }
+  }
+
   opj_setup_encoder(cinfo, &parameters, image);
 
   FILE *f = NULL;
@@ -559,41 +581,40 @@ JPEG2000ImageIO
   /*if (*indexfilename)         // If need to extract codestream information
     bSuccess = opj_encode_with_info(cinfo, cio, image, &cstr_info);
   else*/
-  std::cout << "Before compressing " << cinfo << ' ' << image << ' ' << cio << ' ' << f << std::endl;
-//   bSuccess = opj_start_compress(cinfo,image,cio);
-//   bSuccess = bSuccess && opj_encode(cinfo, cio);
-//   bSuccess = bSuccess && opj_end_compress(cinfo, cio);
-//
-//   if (!bSuccess)
+  bSuccess = opj_start_compress(cinfo,image,cio);
+  bSuccess = bSuccess && opj_encode(cinfo, cio);
+  bSuccess = bSuccess && opj_end_compress(cinfo, cio);
+
+  if (!bSuccess)
+  {
+    opj_stream_destroy(cio);
+    fclose(f);
+    fprintf(stderr, "failed to encode image\n");
+    return;
+  }
+
+  fprintf(stderr,"Generated outfile %s\n",parameters.outfile);
+  /* close and free the byte stream */
+  opj_stream_destroy(cio);
+  fclose(f);
+
+//   /* Write the index to disk */
+//   if (*indexfilename)
 //   {
-//     opj_stream_destroy(cio);
-//     fclose(f);
-//     fprintf(stderr, "failed to encode image\n");
-//     return;
+//     bSuccess = write_index_file(&cstr_info, indexfilename);
+//     if (bSuccess)
+//     {
+//       fprintf(stderr, "Failed to output index file\n");
+//     }
 //   }
-//
-//   fprintf(stderr,"Generated outfile %s\n",parameters.outfile);
-//   /* close and free the byte stream */
-//   opj_stream_destroy(cio);
-//   fclose(f);
-//
-// //   /* Write the index to disk */
-// //   if (*indexfilename)
-// //   {
-// //     bSuccess = write_index_file(&cstr_info, indexfilename);
-// //     if (bSuccess)
-// //     {
-// //       fprintf(stderr, "Failed to output index file\n");
-// //     }
-// //   }
-//
-//   /* free remaining compression structures */
-//   opj_destroy_codec(cinfo);
-// //   if (*indexfilename)
-// //     opj_destroy_cstr_info(&cstr_info);
-//
-//   /* free image data */
-//   opj_image_destroy(image);
+
+  /* free remaining compression structures */
+  opj_destroy_codec(cinfo);
+//   if (*indexfilename)
+//     opj_destroy_cstr_info(&cstr_info);
+
+  /* free image data */
+  opj_image_destroy(image);
 }
 
 /** Given a requested region, determine what could be the region that we can
