@@ -1,6 +1,12 @@
 /*
  *  Add a float array to vtk mesh defining the approximate distance to the
  *  interface between labels 4 and 5 in the input label image
+ *
+ *  This tool takes on input a label image, that has CG and PZ segmented, and
+ *  a tetrahedral mesh, which corresponds to this label image (aligned in the
+ *  same physical space). It then produces a new mesh, which has a new data
+ *  field "DistanceToInterface" assigned to each mesh vertex.
+ *
  */
 
 #include "vtkUnstructuredGrid.h"
