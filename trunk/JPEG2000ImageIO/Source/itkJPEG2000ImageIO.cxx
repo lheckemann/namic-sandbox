@@ -89,7 +89,7 @@ JPEG2000ImageIO::JPEG2000ImageIO()
   opj_set_default_decoder_parameters(&m_DecompressionParameters);
 
   this->SetNumberOfDimensions(2); // JPEG2000 is 2D. (by now...)
-  this->SetNumberOfComponents(1); // Assume only one component. (FIXME)
+  this->SetNumberOfComponents(1);
 }
 
 JPEG2000ImageIO::~JPEG2000ImageIO()
@@ -106,7 +106,7 @@ bool JPEG2000ImageIO::CanReadFile( const char* filename )
   std::cout << "JPEG2000ImageIO::CanReadFile() " << std::endl;
 
   //
-  // If the file exists, and have extension .j2k or jp2, then we are good to read it.
+  // If the file exists, and have extension .j2k or jp2 or jpt, then we are good to read it.
   //
   if( !itksys::SystemTools::FileExists( filename ) )
     {
@@ -122,6 +122,11 @@ bool JPEG2000ImageIO::CanReadFile( const char* filename )
     }
 
    if( extension == ".jp2" )
+    {
+    return true;
+    }
+
+  if( extension == ".jpt" )
     {
     return true;
     }
@@ -233,6 +238,8 @@ void JPEG2000ImageIO::ReadImageInformation()
     &l_nb_tiles_y,
     cio);
 
+  this->SetNumberOfComponents( image->numcomps );
+
 //  image = opj_decode(dinfo, cio); // FIXME : should this be here ?
 
   std::cout << "l_tile_x0 = " << l_tile_x0 << std::endl;
@@ -332,7 +339,6 @@ void JPEG2000ImageIO::Read( void * buffer)
   /* setup the decoder decoding parameters using user parameters */
   opj_setup_decoder(dinfo, &this->m_DecompressionParameters);
 
-
   OPJ_INT32 l_tile_x0,l_tile_y0;
   OPJ_UINT32 l_tile_width,l_tile_height,l_nb_tiles_x,l_nb_tiles_y;
 
@@ -373,8 +379,11 @@ void JPEG2000ImageIO::Read( void * buffer)
   std::cout << " START COPY BUFFER" << std::endl;
   for ( size_t j = 0; j < numberOfPixels; j++)
     {
-    *charBuffer++ = image->comps[0].data[index];
-    index++;
+    for ( int k = 0; k < this->GetNumberOfComponents(); k++)
+      {
+      *charBuffer++ = image->comps[k].data[index];
+      index++;
+      }
     }
   std::cout << " END COPY BUFFER" << std::endl;
 
