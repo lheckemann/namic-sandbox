@@ -1,21 +1,11 @@
-/*==========================================================================
 
-  Portions (c) Copyright 2008 Brigham and Women's Hospital (BWH) All Rights Reserved.
+#include "vtkTransformRecorderGUI.h"
 
-  See Doc/copyright/copyright.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
-
-  Program:   3D Slicer
-  Module:    $HeadURL: $
-  Date:      $Date: $
-  Version:   $Revision: $
-
-==========================================================================*/
+#include <string>
 
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
 
-#include "vtkTransformRecorderGUI.h"
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerModuleCollapsibleFrame.h"
 #include "vtkSlicerSliceControllerWidget.h"
@@ -30,6 +20,7 @@
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWFrame.h"
 #include "vtkKWLabel.h"
+#include "vtkKWLoadSaveButtonWithLabel.h"
 #include "vtkKWEvent.h"
 
 #include "vtkKWPushButton.h"
@@ -58,7 +49,9 @@
     { \
     obj->RemoveObservers( evnt, (vtkCommand *)this->GUICallbackCommand ); \
     }
-  
+
+#define ADD_BUTTONINVOKED_OBSERVER( obj ) \
+  obj->AddObserver( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
 
 //---------------------------------------------------------------------------
@@ -79,14 +72,11 @@ vtkTransformRecorderGUI::vtkTransformRecorderGUI ( )
   
   //----------------------------------------------------------------
   // GUI widgets
-  this->TestButton11 = NULL;
-  this->TestButton12 = NULL;
-  this->TestButton21 = NULL;
-  this->TestButton22 = NULL;
-  
   
   this->ModuleNodeSelector = NULL;
   this->TransformSelector = NULL;
+  this->FileSelectButton = NULL;
+  this->LogFileLabel = NULL;
   
   this->StartButton = NULL;
   this->StopButton = NULL;
@@ -121,13 +111,10 @@ vtkTransformRecorderGUI::~vtkTransformRecorderGUI ( )
   //----------------------------------------------------------------
   // Remove GUI widgets
 
-  DESTRUCT( this->TestButton11 );
-  DESTRUCT( this->TestButton12 );
-  DESTRUCT( this->TestButton21 );
-  DESTRUCT( this->TestButton22 );
-  
   DESTRUCT( this->ModuleNodeSelector );
   DESTRUCT( this->TransformSelector );
+  DESTRUCT( this->FileSelectButton );
+  DESTRUCT( this->LogFileLabel );
   
   DESTRUCT( this->StartButton );
   DESTRUCT( this->StopButton );
@@ -201,13 +188,9 @@ void vtkTransformRecorderGUI::RemoveGUIObservers ( )
 {
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
-  REMOVE_OBSERVER( this->TestButton11 );
-  REMOVE_OBSERVER( this->TestButton12 );
-  REMOVE_OBSERVER( this->TestButton21 );
-  REMOVE_OBSERVER( this->TestButton22 );
-  
   REMOVE_OBSERVERS( this->ModuleNodeSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->TransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  REMOVE_OBSERVERS( this->FileSelectButton->GetWidget(), vtkKWLoadSaveDialog::WithdrawEvent );
   
   REMOVE_OBSERVER( this->StartButton );
   REMOVE_OBSERVER( this->StopButton );
@@ -236,19 +219,10 @@ void vtkTransformRecorderGUI::AddGUIObservers ( )
     this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
     }
   events->Delete();
-
+  
+  
   //----------------------------------------------------------------
   // GUI Observers
-
-  this->TestButton11
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton12
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton21
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton22
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  
   
   this->ModuleNodeSelector
     ->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
@@ -258,11 +232,13 @@ void vtkTransformRecorderGUI::AddGUIObservers ( )
     ->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
                    (vtkCommand *)this->GUICallbackCommand );
   
-  this->StartButton->AddObserver(
-    vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand );
   
-  this->StopButton->AddObserver(
-    vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand );
+  this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->AddObserver(
+    vtkKWLoadSaveDialog::WithdrawEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+  
+  
+  ADD_BUTTONINVOKED_OBSERVER( this->StartButton );
+  ADD_BUTTONINVOKED_OBSERVER( this->StopButton );
   
   this->AddLogicObservers();
 }
@@ -273,7 +249,7 @@ void vtkTransformRecorderGUI::RemoveLogicObservers ( )
 {
   if (this->GetLogic())
     {
-    this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent,
+    this->GetLogic()->RemoveObservers( vtkCommand::ModifiedEvent,
                                       (vtkCommand *)this->LogicCallbackCommand);
     }
 }
@@ -314,28 +290,6 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
     }
 
   
-  if (this->TestButton11 == vtkKWPushButton::SafeDownCast(caller) 
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    std::cerr << "TestButton11 is pressed." << std::endl;
-    }
-  else if (this->TestButton12 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    std::cerr << "TestButton12 is pressed." << std::endl;
-    }
-  else if (this->TestButton21 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    std::cerr << "TestButton21 is pressed." << std::endl;
-    }
-  else if (this->TestButton22 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    std::cerr << "TestButton22 is pressed." << std::endl;
-    }
-  
-  
   if ( this->ModuleNodeSelector ==
        vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
        && ( event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
@@ -350,7 +304,6 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
       {
       selectedNodeID = selectedNode->GetID();
       this->SetAndObserveModuleNodeID( selectedNodeID );
-      // this->ModuleNode = selectedNode;
       this->SetModuleNode( selectedNode );
       }
     }
@@ -369,6 +322,15 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
       selectedNodeID = selectedNode->GetID();
       }
     this->ModuleNode->SetAndObserveObservedTransformNodeID( selectedNodeID );
+    }
+  
+  
+  if ( this->FileSelectButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast( caller ) )
+    {
+    if ( this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->GetStatus() == vtkKWDialog::StatusOK )
+      {
+      this->SelectLogFile();
+      }
     }
   
   
@@ -436,8 +398,24 @@ void vtkTransformRecorderGUI::ProcessTimerEvents()
 }
 
 
+void
+vtkTransformRecorderGUI
+::SelectLogFile()
+{
+  const char* fileName = this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->GetFileName();
+  
+  if ( fileName )
+    {
+    this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->SaveLastPathToRegistry( "TransformRecorderLogFile" );
+    this->ModuleNode->SetLogFileName( std::string( fileName ) );
+    }
+}
+
+
 //---------------------------------------------------------------------------
-void vtkTransformRecorderGUI::BuildGUI ( )
+void
+vtkTransformRecorderGUI
+::BuildGUI ( )
 {
 
   // ---
@@ -446,18 +424,40 @@ void vtkTransformRecorderGUI::BuildGUI ( )
   this->UIPanel->AddPage ( "TransformRecorder", "TransformRecorder", NULL );
 
   BuildGUIForHelpFrame();
-  BuildGUIForTestFrame1();
-  BuildGUIForTestFrame2();
   
+  this->BuildGUIForIOFrame();
+  this->BuildGUIForControlsFrame();
+}
+
+
+void vtkTransformRecorderGUI::BuildGUIForHelpFrame ()
+{
+  // Define your help text here.
+  const char *help = 
+    "See "
+    "<a>http://www.slicer.org/slicerWiki/index.php/Modules:TransformRecorder</a> for details.";
+  const char *about =
+    "This work is supported by NCIGT, NA-MIC.";
+
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "TransformRecorder" );
+  this->BuildHelpAndAboutFrame (page, help, about);
+}
+
+
+
+void
+vtkTransformRecorderGUI
+::BuildGUIForIOFrame()
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication*)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget( "TransformRecorder" );
   
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("TransformRecorder");
   
   vtkSmartPointer< vtkSlicerModuleCollapsibleFrame > inputFrame =
       vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();
     inputFrame->SetParent( page );
     inputFrame->Create();
-    inputFrame->SetLabelText( "Input" );
+    inputFrame->SetLabelText( "Input / Output" );
   
   app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                inputFrame->GetWidgetName(), page->GetWidgetName() );
@@ -487,124 +487,39 @@ void vtkTransformRecorderGUI::BuildGUI ( )
   
   app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
                this->TransformSelector->GetWidgetName() );
-               
   
-  this->BuildGUIForControlsFrame();
-}
-
-
-void vtkTransformRecorderGUI::BuildGUIForHelpFrame ()
-{
-  // Define your help text here.
-  const char *help = 
-    "See "
-    "<a>http://www.slicer.org/slicerWiki/index.php/Modules:TransformRecorder</a> for details.";
-  const char *about =
-    "This work is supported by NCIGT, NA-MIC.";
-
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "TransformRecorder" );
-  this->BuildHelpAndAboutFrame (page, help, about);
-}
-
-
-//---------------------------------------------------------------------------
-void vtkTransformRecorderGUI::BuildGUIForTestFrame1()
-{
-
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("TransformRecorder");
   
-  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
-
-  conBrowsFrame->SetParent(page);
-  conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 1");
-  //conBrowsFrame->CollapseFrame();
-  // app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-  //              conBrowsFrame->GetWidgetName(), page->GetWidgetName());
-
-  // -----------------------------------------
-  // Test child frame
-
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Test child frame");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
-
-  // -----------------------------------------
-  // Test push button
-
-  this->TestButton11 = vtkKWPushButton::New ( );
-  this->TestButton11->SetParent ( frame->GetFrame() );
-  this->TestButton11->Create ( );
-  this->TestButton11->SetText ("Test 11");
-  this->TestButton11->SetWidth (12);
-
-  this->TestButton12 = vtkKWPushButton::New ( );
-  this->TestButton12->SetParent ( frame->GetFrame() );
-  this->TestButton12->Create ( );
-  this->TestButton12->SetText ("Tset 12");
-  this->TestButton12->SetWidth (12);
-
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton11->GetWidgetName(),
-               this->TestButton12->GetWidgetName());
-
-  conBrowsFrame->Delete();
-  frame->Delete();
-
-}
-
-
-//---------------------------------------------------------------------------
-void vtkTransformRecorderGUI::BuildGUIForTestFrame2 ()
-{
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("TransformRecorder");
+  vtkSmartPointer< vtkKWFrame > fileSelectFrame
+      = vtkSmartPointer< vtkKWFrame >::New();
+    fileSelectFrame->SetParent( inputFrame->GetFrame() );
+    fileSelectFrame->Create();
   
-  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
-
-  conBrowsFrame->SetParent(page);
-  conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 2");
-  //conBrowsFrame->CollapseFrame();
-  // app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-  //              conBrowsFrame->GetWidgetName(), page->GetWidgetName());
-
-  // -----------------------------------------
-  // Test child frame
-
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Test child frame");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
+  app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
+               fileSelectFrame->GetWidgetName() );
   
-  // -----------------------------------------
-  // Test push button
-
-  this->TestButton21 = vtkKWPushButton::New ( );
-  this->TestButton21->SetParent ( frame->GetFrame() );
-  this->TestButton21->Create ( );
-  this->TestButton21->SetText ("Test 21");
-  this->TestButton21->SetWidth (12);
-
-  this->TestButton22 = vtkKWPushButton::New ( );
-  this->TestButton22->SetParent ( frame->GetFrame() );
-  this->TestButton22->Create ( );
-  this->TestButton22->SetText ("Tset 22");
-  this->TestButton22->SetWidth (12);
-
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton21->GetWidgetName(),
-               this->TestButton22->GetWidgetName());
-
-
-  conBrowsFrame->Delete();
-  frame->Delete();
+  
+  this->FileSelectButton = vtkKWLoadSaveButtonWithLabel::New();
+  this->FileSelectButton->SetParent( fileSelectFrame );
+  this->FileSelectButton->Create();
+  this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOn();
+  this->FileSelectButton->SetLabelText( "Tracking record file: " );
+  this->FileSelectButton->GetWidget()->SetText( "Select log file" );
+  this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->RetrieveLastPathFromRegistry(
+    "TransformRecorderLogFile" );
+  this->FileSelectButton->GetWidget()->TrimPathFromFileNameOff();
+  // this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes( "{{TXT File} {.txt}}" );
+  
+  app->Script( "pack %s -side left -anchor nw -fill x -padx 2 -pady 2",
+               this->FileSelectButton->GetWidgetName() );
+  
+  
+  this->LogFileLabel = vtkKWLabel::New();
+  this->LogFileLabel->SetParent( fileSelectFrame );
+  this->LogFileLabel->Create();
+  this->LogFileLabel->SetText( "No log file specified." );
+  
+  // app->Script( "pack %s -side left -anchor nw -fill x -padx 2 -pady 2", this->LogFileLabel->GetWidgetName() );
+  
 }
 
 
@@ -628,7 +543,7 @@ vtkTransformRecorderGUI
   this->StartButton = vtkKWPushButton::New();
   this->StartButton->SetParent( controlsFrame->GetFrame() );
   this->StartButton->Create();
-  this->StartButton->SetBackgroundColor( 0.6, 1.0, 0.6 );
+  this->StartButton->SetBackgroundColor( 0.5, 1.0, 0.5 );
   this->StartButton->SetWidth( 10 );
   this->StartButton->SetText( "Start" );
   
@@ -638,7 +553,7 @@ vtkTransformRecorderGUI
   this->StopButton = vtkKWPushButton::New();
   this->StopButton->SetParent( controlsFrame->GetFrame() );
   this->StopButton->Create();
-  this->StopButton->SetBackgroundColor( 1.0, 0.6, 0.6 );
+  this->StopButton->SetBackgroundColor( 1.0, 0.5, 0.5 );
   this->StopButton->SetWidth( 10 );
   this->StopButton->SetText( "Stop" );
   
@@ -691,6 +606,7 @@ vtkTransformRecorderGUI
 {
   
 }
+
 
 vtkMRMLTransformRecorderNode*
 vtkTransformRecorderGUI

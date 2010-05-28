@@ -1,8 +1,11 @@
 
+#include <iostream>
+
 #include "vtkMRMLNode.h"
 #include "vtkMRMLTransformNode.h"
 
 #include "vtkTransformRecorderWin32Header.h"
+
 
 class
 VTK_TransformRecorder_EXPORT
@@ -35,6 +38,10 @@ public:
   vtkGetMacro( Recording, bool );
   vtkSetMacro( Recording, bool );
   
+  //BTX
+  void SetLogFileName( std::string fileName );
+  std::string GetLogFileName();
+  //ETX
   
 protected:
 
@@ -52,7 +59,11 @@ protected:
   vtkSetReferenceStringMacro( ObservedTransformNodeID );
   char* ObservedTransformNodeID;
   vtkMRMLTransformNode* ObservedTransformNode;
-
+  
+  //BTX
+  std::string LogFileName;
+  //ETX
+  
   bool Recording;
   
 };
