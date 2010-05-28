@@ -3,8 +3,7 @@
   <category>Filtering</category>
   <title>Image Grid Generator</title>
   <index>3</index>
-  <description>Constructs a binary grid image useful for visualizing the
-  transforms resulting from image registration.</description>
+  <description>Constructs a binary grid image useful for visualizing the transforms resulting from image registration.</description>
   <version>0.3</version>
   <documentation-url></documentation-url>
   <license></license>
