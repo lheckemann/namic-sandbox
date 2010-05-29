@@ -39,12 +39,10 @@ namespace itk
 
 /** \class JPEG2000ImageIO
  *
- *  \brief Read JPEG2000Image file format.
+ * \brief Supports for the JPEG2000 file format based on openjpeg
  *
- *  The JPEG2000: Yet Another File Format is a fake fileformat introduced only
- *  for the purpose of testing the streaming capabilites of ITK.
- *
- * \warning DO NOT USE THIS FILEFORMAT FOR ANY SERIOUS PURPOSE.
+ *  JPEG2000 offers a large collection of interesting features including:
+ *  compression (lossless and lossy), streaming, multi-channel images.
  *
  *  \ingroup IOFilters
  */
