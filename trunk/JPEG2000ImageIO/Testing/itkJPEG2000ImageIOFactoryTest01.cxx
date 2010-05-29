@@ -38,6 +38,9 @@ int main( int argc, char ** argv )
  
   std::cout << "ClassName = " << factory->GetNameOfClass() << std::endl;
 
+  itk::JPEG2000ImageIOFactory::Pointer factory2 = 
+    itk::JPEG2000ImageIOFactory::FactoryNew();
+
   return EXIT_SUCCESS;
 }
 
