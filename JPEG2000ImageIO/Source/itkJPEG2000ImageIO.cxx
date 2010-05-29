@@ -240,7 +240,7 @@ void JPEG2000ImageIO::ReadImageInformation()
 
   this->SetNumberOfComponents( image->numcomps );
 
-//  image = opj_decode(dinfo, cio); // FIXME : should this be here ?
+  //  image = opj_decode(dinfo, cio); // FIXME : should this be here ?
 
   std::cout << "l_tile_x0 = " << l_tile_x0 << std::endl;
   std::cout << "l_tile_y0 = " << l_tile_y0 << std::endl;
@@ -249,8 +249,8 @@ void JPEG2000ImageIO::ReadImageInformation()
   std::cout << "l_nb_tiles_x = " << l_nb_tiles_x << std::endl;
   std::cout << "l_nb_tiles_y = " << l_nb_tiles_y << std::endl;
 
-//  bResult = bResult && (image != 00);
-//  bResult = bResult && opj_end_decompress(dinfo,cio);  // FIXME : should this be here ?
+  //  bResult = bResult && (image != 00);
+  //  bResult = bResult && opj_end_decompress(dinfo,cio);  // FIXME : should this be here ?
 
   if ( !image )
     {
@@ -261,6 +261,7 @@ void JPEG2000ImageIO::ReadImageInformation()
     }
 
   // FIXME: bResult is not used.  We should check for it and maybe throw an exception.
+  std::cout << "bResult = " << bResult << std::endl;
 
 std::cout << "image->x1 = " << image->x1 << std::endl;
 std::cout << "image->y1 = " << image->y1 << std::endl;
@@ -362,6 +363,8 @@ void JPEG2000ImageIO::Read( void * buffer)
 //   bResult = bResult && (image != 00);
 //   bResult = bResult && opj_end_decompress(dinfo,cio);
 
+  std::cout << "bResult = " << bResult << std::endl;
+
   if ( !image )
     {
     opj_destroy_codec(dinfo);
@@ -379,7 +382,7 @@ void JPEG2000ImageIO::Read( void * buffer)
   std::cout << " START COPY BUFFER" << std::endl;
   for ( size_t j = 0; j < numberOfPixels; j++)
     {
-    for ( int k = 0; k < this->GetNumberOfComponents(); k++)
+    for ( unsigned int k = 0; k < this->GetNumberOfComponents(); k++)
       {
       *charBuffer++ = image->comps[k].data[index];
       index++;
@@ -479,9 +482,9 @@ JPEG2000ImageIO
   opj_image_t *image = NULL;
   image = opj_image_create( numcomps, &cmptparm[0], color_space);
   if(!image)
-  {
+    {
     itkExceptionMacro(<<"Image buffer not created");
-  }
+    }
 
   image->numcomps = this->GetNumberOfComponents();
 
@@ -495,7 +498,7 @@ JPEG2000ImageIO
   // HERE, copy the buffer
   unsigned char * charBuffer = (unsigned char *)buffer;
   size_t index = 0;
-  int numberOfPixels = int(w) * int(h);
+  size_t numberOfPixels = size_t(w) * size_t(h);
   std::cout << " START COPY BUFFER" << std::endl;
   for ( size_t j = 0; j < numberOfPixels; j++)
     {
@@ -506,11 +509,13 @@ JPEG2000ImageIO
 //--------------------------------------------------------------------
 
   /* Create comment for codestream */
-  if(parameters.cp_comment == NULL) {
+  if(parameters.cp_comment == NULL)
+    {
     const char comment[] = "Created by OpenJPEG version ";
     const size_t clen = strlen(comment);
     const char *version = opj_version();
-/* UniPG>> */
+
+    /* UniPG>> */
 #ifdef USE_JPWL
     parameters.cp_comment = (char*)malloc(clen+strlen(version)+11);
     sprintf(parameters.cp_comment,"%s%s with JPWL", comment, version);
@@ -518,8 +523,8 @@ JPEG2000ImageIO
     parameters.cp_comment = (char*)malloc(clen+strlen(version)+1);
     sprintf(parameters.cp_comment,"%s%s", comment, version);
 #endif
-/* <<UniPG */
-  }
+    /* <<UniPG */
+    }
 
   strncpy(parameters.outfile, this->m_FileName.c_str(), sizeof(parameters.outfile)-1);
   std::string extension = itksys::SystemTools::GetFilenameLastExtension( this->m_FileName.c_str() );
@@ -538,17 +543,21 @@ JPEG2000ImageIO
     }
 
   if ( this->GetNumberOfComponents() == 3 )
+    {
     parameters.tcp_mct = 1;
+    }
   else
+    {
     parameters.tcp_mct = 0;
+    }
 
   /* if no rate entered, lossless by default */
   if (parameters.tcp_numlayers == 0)
-  {
+    {
     parameters.tcp_rates[0] = 0; /* MOD antonin : losslessbug */
     parameters.tcp_numlayers++;
     parameters.cp_disto_alloc = 1;
-  }
+    }
 
   if( (parameters.cp_tx0 > parameters.image_offset_x0) || (parameters.cp_ty0 > parameters.image_offset_y0))
   {
@@ -558,33 +567,32 @@ JPEG2000ImageIO
     return;
   }
 
-  for (i = 0; i < parameters.numpocs; i++) {
-    if (parameters.POC[i].prg == -1) {
-      fprintf(stderr,
-        "Unrecognized progression order in option -P (POC n %d) [LRCP, RLCP, RPCL, PCRL, CPRL] !!\n",
-        i + 1);
+  for (i = 0; i < parameters.numpocs; i++)
+    {
+    if (parameters.POC[i].prg == -1)
+      {
+      std::cerr << "Unrecognized progression order in option -P (POC n " << i+1;
+      std::cerr << ") [LRCP, RLCP, RPCL, PCRL, CPRL] !!" << std::endl;
+      }
     }
-  }
 
   opj_setup_encoder(cinfo, &parameters, image);
 
   FILE *f = NULL;
   f = fopen(parameters.outfile, "wb");
   if (! f)
-  {
-    fprintf(stderr, "failed to encode image\n");
-    return;
-  }
+    {
+    itkExceptionMacro("failed to encode image");
+    }
 
   /* open a byte stream for writing */
   /* allocate memory for all tiles */
   opj_stream_t *cio = 00;
   cio = opj_stream_create_default_file_stream(f,false);
   if (! cio)
-  {
-    fprintf(stderr, "no file stream opened\n");
-    return;
-  }
+    {
+    itkExceptionMacro("no file stream opened");
+    }
 
   /* encode the image */
   /*if (*indexfilename)         // If need to extract codestream information
@@ -595,32 +603,31 @@ JPEG2000ImageIO
   bSuccess = bSuccess && opj_end_compress(cinfo, cio);
 
   if (!bSuccess)
-  {
+    {
     opj_stream_destroy(cio);
     fclose(f);
-    fprintf(stderr, "failed to encode image\n");
-    return;
-  }
+    itkExceptionMacro("failed to encode image");
+    }
 
   fprintf(stderr,"Generated outfile %s\n",parameters.outfile);
   /* close and free the byte stream */
   opj_stream_destroy(cio);
   fclose(f);
 
-//   /* Write the index to disk */
-//   if (*indexfilename)
-//   {
-//     bSuccess = write_index_file(&cstr_info, indexfilename);
-//     if (bSuccess)
-//     {
-//       fprintf(stderr, "Failed to output index file\n");
-//     }
-//   }
+  //   /* Write the index to disk */
+  //   if (*indexfilename)
+  //   {
+  //     bSuccess = write_index_file(&cstr_info, indexfilename);
+  //     if (bSuccess)
+  //     {
+  //       fprintf(stderr, "Failed to output index file\n");
+  //     }
+  //   }
 
   /* free remaining compression structures */
   opj_destroy_codec(cinfo);
-//   if (*indexfilename)
-//     opj_destroy_cstr_info(&cstr_info);
+  //   if (*indexfilename)
+  //     opj_destroy_cstr_info(&cstr_info);
 
   /* free image data */
   opj_image_destroy(image);
