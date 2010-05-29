@@ -167,7 +167,7 @@ void JPEG2000ImageIO::ReadImageInformation()
       break;
       }
     default:
-      fprintf(stderr, "skipping file..\n");
+      itkExceptionMacro("skipping file..\n");
       opj_stream_destroy(cio);
       return;
     }
@@ -291,7 +291,7 @@ void JPEG2000ImageIO::Read( void * buffer)
       break;
       }
     default:
-      fprintf(stderr, "skipping file..\n");
+      itkExceptionMacro("skipping file..\n");
       opj_stream_destroy(cio);
       return;
     }
@@ -443,7 +443,7 @@ JPEG2000ImageIO
   image = opj_image_create( numcomps, &cmptparm[0], color_space);
   if(!image)
     {
-    itkExceptionMacro(<<"Image buffer not created");
+    itkExceptionMacro("Image buffer not created");
     }
 
   image->numcomps = this->GetNumberOfComponents();
@@ -520,12 +520,12 @@ JPEG2000ImageIO
     }
 
   if( (parameters.cp_tx0 > parameters.image_offset_x0) || (parameters.cp_ty0 > parameters.image_offset_y0))
-  {
-    fprintf(stderr,
-      "Error: Tile offset dimension is unnappropriate --> TX0(%d)<=IMG_X0(%d) TYO(%d)<=IMG_Y0(%d) \n",
-      parameters.cp_tx0, parameters.image_offset_x0, parameters.cp_ty0, parameters.image_offset_y0);
+    {
+    itkExceptionMacro("Error: Tile offset dimension is unnappropriate -->"
+      << "  TX0(" << parameters.cp_tx0 << ") <= IMG_X0( " << parameters.image_offset_x0
+      << ") TYO(" << parameters.cp_ty0 << ") <= IMG_Y0( " << parameters.image_offset_y0 << ") ");
     return;
-  }
+    }
 
   for (i = 0; i < parameters.numpocs; i++)
     {
@@ -569,7 +569,8 @@ JPEG2000ImageIO
     itkExceptionMacro("failed to encode image");
     }
 
-  fprintf(stderr,"Generated outfile %s\n",parameters.outfile);
+  itkExceptionMacro("Generated outfile " << parameters.outfile);
+
   /* close and free the byte stream */
   opj_stream_destroy(cio);
   fclose(f);
@@ -579,9 +580,9 @@ JPEG2000ImageIO
   //   {
   //     bSuccess = write_index_file(&cstr_info, indexfilename);
   //     if (bSuccess)
-  //     {
-  //       fprintf(stderr, "Failed to output index file\n");
-  //     }
+  //       {
+  //       itkExceptionMacro("Failed to output index file");
+  //       }
   //   }
 
   /* free remaining compression structures */
