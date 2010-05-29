@@ -31,6 +31,8 @@ int main( int argc, char ** argv )
 
   std::cout << "ClassName = " << imageIO->GetNameOfClass() << std::endl;
 
+  imageIO->Print( std::cout );
+
   return EXIT_SUCCESS;
 }
 
