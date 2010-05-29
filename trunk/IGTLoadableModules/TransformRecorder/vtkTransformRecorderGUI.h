@@ -91,6 +91,7 @@ class VTK_TransformRecorder_EXPORT vtkTransformRecorderGUI : public vtkSlicerMod
   virtual void RemoveGUIObservers ( );
   void AddLogicObservers ( );
   void RemoveLogicObservers ( );
+  void RemoveMRMLObservers();
 
   //----------------------------------------------------------------
   // Event Handlers
@@ -119,6 +120,8 @@ public:
   
   void BuildGUIForIOFrame();
   void BuildGUIForControlsFrame();
+  void BuildGUIForMonitorFrame();
+  
 
   //----------------------------------------------------------------
   // Update routines
@@ -147,6 +150,9 @@ public:
   
   vtkKWPushButton* StartButton;
   vtkKWPushButton* StopButton;
+  
+  vtkKWLabel* StatusLabel;
+  vtkKWLabel* TranslationLabel;
   
   
   //----------------------------------------------------------------

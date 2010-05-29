@@ -1,8 +1,10 @@
 
 #include "vtkTransformRecorderGUI.h"
 
+#include <sstream>
 #include <string>
 
+#include "vtkMatrix4x4.h"
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
 
@@ -81,6 +83,9 @@ vtkTransformRecorderGUI::vtkTransformRecorderGUI ( )
   this->StartButton = NULL;
   this->StopButton = NULL;
   
+  this->StatusLabel = NULL;
+  this->TranslationLabel = NULL;
+  
   
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -118,6 +123,9 @@ vtkTransformRecorderGUI::~vtkTransformRecorderGUI ( )
   
   DESTRUCT( this->StartButton );
   DESTRUCT( this->StopButton );
+  
+  DESTRUCT( this->StatusLabel );
+  DESTRUCT( this->TranslationLabel );
   
   
   //----------------------------------------------------------------
@@ -162,6 +170,7 @@ void vtkTransformRecorderGUI::Enter()
       this->ModuleNodeSelector->GetSelected() );
     
     vtkSetAndObserveMRMLNodeMacro( this->ModuleNode, node );
+    // this->GetMRMLScene()->AddNode( this->ModuleNode );
     }
 }
 
@@ -196,6 +205,7 @@ void vtkTransformRecorderGUI::RemoveGUIObservers ( )
   REMOVE_OBSERVER( this->StopButton );
   
   this->RemoveLogicObservers();
+  this->RemoveMRMLObservers();
 }
 
 
@@ -310,8 +320,7 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
   
   
   if (    this->ModuleNode
-       && this->TransformSelector ==
-          vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
+       && this->TransformSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
        && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent )
     {
     char* selectedNodeID = NULL;
@@ -322,6 +331,8 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
       selectedNodeID = selectedNode->GetID();
       }
     this->ModuleNode->SetAndObserveObservedTransformNodeID( selectedNodeID );
+    this->ModuleNode->AddObserver( vtkMRMLTransformRecorderNode::TransformChangedEvent,
+                                   (vtkCommand*)this->MRMLCallbackCommand );
     }
   
   
@@ -358,6 +369,14 @@ void vtkTransformRecorderGUI::DataCallback(vtkObject *caller,
 }
 
 
+void
+vtkTransformRecorderGUI
+::RemoveMRMLObservers()
+{
+  REMOVE_OBSERVERS( this->ModuleNode, vtkMRMLTransformRecorderNode::TransformChangedEvent );
+}
+
+
 //---------------------------------------------------------------------------
 void vtkTransformRecorderGUI::ProcessLogicEvents ( vtkObject *caller,
                                              unsigned long event, void *callData )
@@ -378,7 +397,23 @@ void vtkTransformRecorderGUI::ProcessMRMLEvents ( vtkObject *caller,
                                             unsigned long event, void *callData )
 {
   // Fill in
-
+  
+  if ( this->ModuleNode
+       && this->ModuleNode == vtkMRMLTransformRecorderNode::SafeDownCast( caller ) )
+    {
+    vtkMRMLTransformNode* transform = this->ModuleNode->GetObservedTransformNode();
+    vtkMatrix4x4* matrix = vtkMatrix4x4::New();
+    matrix->Identity();
+    
+    transform->GetMatrixTransformToWorld( matrix );
+    
+    std::stringstream ss;
+    ss << matrix->GetElement( 0, 3 ) << " " << matrix->GetElement( 1, 3 );
+    this->TranslationLabel->SetText( ss.str().c_str() );
+    matrix->Delete();
+    }
+  
+  
   if (event == vtkMRMLScene::SceneCloseEvent)
     {
     }
@@ -427,6 +462,7 @@ vtkTransformRecorderGUI
   
   this->BuildGUIForIOFrame();
   this->BuildGUIForControlsFrame();
+  this->BuildGUIForMonitorFrame();
 }
 
 
@@ -528,7 +564,7 @@ vtkTransformRecorderGUI
 ::BuildGUIForControlsFrame()
 {
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("TransformRecorder");
+  vtkKWWidget *page = this->UIPanel->GetPageWidget( "TransformRecorder" );
   
   vtkSmartPointer< vtkSlicerModuleCollapsibleFrame > controlsFrame =
       vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();
@@ -559,6 +595,52 @@ vtkTransformRecorderGUI
   
   this->Script("pack %s -side left -padx 2 -pady 2", 
                this->StopButton->GetWidgetName());
+}
+
+
+void
+vtkTransformRecorderGUI
+::BuildGUIForMonitorFrame()
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget( "TransformRecorder" );
+  
+  vtkSmartPointer< vtkSlicerModuleCollapsibleFrame > monitorFrame =
+      vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();
+    monitorFrame->SetParent( page );
+    monitorFrame->Create();
+    monitorFrame->SetLabelText( "Monitor" );
+  
+  app->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+                monitorFrame->GetWidgetName(), page->GetWidgetName() );
+  
+  vtkSmartPointer< vtkKWLabel > decStatusLabel = vtkSmartPointer< vtkKWLabel >::New();
+    decStatusLabel->SetParent( monitorFrame->GetFrame() );
+    decStatusLabel->Create();
+    decStatusLabel->SetText( "Status: " );
+  
+  this->StatusLabel = vtkKWLabel::New();
+  this->StatusLabel->SetParent( monitorFrame->GetFrame() );
+  this->StatusLabel->Create();
+  this->StatusLabel->SetText( "Waiting." );
+  
+  vtkSmartPointer< vtkKWLabel > decTranslationLabel = vtkSmartPointer< vtkKWLabel >::New();
+    decTranslationLabel->SetParent( monitorFrame->GetFrame() );
+    decTranslationLabel->Create();
+    decTranslationLabel->SetText( "Translation: " );
+  
+  this->TranslationLabel = vtkKWLabel::New();
+  this->TranslationLabel->SetParent( monitorFrame->GetFrame() );
+  this->TranslationLabel->Create();
+  this->TranslationLabel->SetText( " - " );
+  
+  this->Script( "grid %s -column 0 -row 0 -sticky w -padx 2 -pady 2", decStatusLabel->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 0 -sticky w -padx 2 -pady 2", this->StatusLabel->GetWidgetName() );
+  this->Script( "grid %s -column 0 -row 1 -sticky w -padx 2 -pady 2", decTranslationLabel->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 1 -sticky w -padx 2 -pady 2", this->TranslationLabel->GetWidgetName() );
+  
+  this->Script( "grid columnconfigure %s 0 -weight 1", monitorFrame->GetFrame()->GetWidgetName() );
+  this->Script( "grid columnconfigure %s 1 -weight 10", monitorFrame->GetFrame()->GetWidgetName() );
 }
 
 

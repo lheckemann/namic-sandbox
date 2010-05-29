@@ -56,13 +56,17 @@ vtkMRMLTransformRecorderNode
 //----------------------------------------------------------------------------
 vtkMRMLTransformRecorderNode::vtkMRMLTransformRecorderNode()
 {
-  this->SetHideFromEditors(false);
+  this->SetHideFromEditors( false );
   this->ObservedTransformNodeID = NULL;
   this->ObservedTransformNode = NULL;
   
   this->Recording = false;
   
   this->LogFileName = "";
+  
+  this->SetSaveWithScene( true );
+  // this->SetAddToScene( true );
+  this->SetModifiedSinceRead( true );
 }
 
 
@@ -226,13 +230,16 @@ vtkMRMLTransformRecorderNode
 {
   if ( this->ObservedTransformNode == vtkMRMLTransformNode::SafeDownCast( caller ) )
     {
-    if ( this->Recording )
+    if (    this->Recording
+         && this->LogFileName.size() > 1 )
       {
       std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
       this->ObservedTransformNode->WriteXML( output, 0 );
       output << std::endl;
       output.close();
       }
+    
+    this->InvokeEvent( this->TransformChangedEvent, NULL );
     }
 }
 
