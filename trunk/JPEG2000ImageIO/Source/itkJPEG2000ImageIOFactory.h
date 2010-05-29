@@ -24,11 +24,10 @@ namespace itk
 {
 /** \class JPEG2000ImageIOFactory
  * \brief Supports for the JPEG2000 file format based on openjpeg
-
-   JPEG2000 offers a large collection of interesting features
-   including: compression (lossless and lossy), streaming, 
-   multi-channel images.
-
+ *
+ *  JPEG2000 offers a large collection of interesting features including:
+ *  compression (lossless and lossy), streaming, multi-channel images.
+ *
  */
 class ITK_EXPORT JPEG2000ImageIOFactory : public ObjectFactoryBase
 {
