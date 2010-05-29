@@ -26,11 +26,11 @@
 
 #define USE_OPJ_DEPRECATED
 
-extern "C" {
+extern "C" 
+{
   #include "openjpeg.h"
   #include "j2k.h"
   #include "jp2.h"
-  #include "convert.h"
 }
 
 
