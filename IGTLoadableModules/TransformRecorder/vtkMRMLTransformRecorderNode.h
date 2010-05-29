@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "vtkMRMLNode.h"
+// #include "vtkMRMLStorageNode.h"
 #include "vtkMRMLTransformNode.h"
 
 #include "vtkTransformRecorderWin32Header.h"
@@ -14,7 +15,14 @@ vtkMRMLTransformRecorderNode
 {
 
 public:
-
+  
+  //BTX
+  // Events.
+  enum {
+    TransformChangedEvent = 201001
+  };
+  //ETX
+  
   // Standard MRML node methods
 
   static vtkMRMLTransformRecorderNode *New();
