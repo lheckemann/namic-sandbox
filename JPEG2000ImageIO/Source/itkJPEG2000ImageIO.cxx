@@ -27,36 +27,6 @@
 #include <stdio.h>
 #include <string.h>
 
-//-----------------------------------------------------------------------------
- /**
- * \brief   routine for JPEG decompression
- * @param raw raw
- * @param inputdata inputdata
- * @param inputlength inputlength
- * @return 1 on success, 0 on error
- */
-
-/** sample error callback expecting a FILE* client object */
-extern "C"
-{
-  void openjpeg_error_callback(const char *msg, void *)
-    {
-    std::cerr << "Error in JPEG2000ImageIO" << msg << std::endl;
-    }
-
-/** sample warning callback expecting a FILE* client object */
-  void openjpeg_warning_callback(const char *msg, void *)
-   {
-   std::cerr << "Warning in JPEG2000ImageIO" << msg << std::endl;
-   }
-
-/** sample debug callback expecting no client object */
-  void openjpeg_info_callback(const char * msg, void *)
-    {
-    std::cerr << "Info in JPEG2000ImageIO" << msg << std::endl;
-    }
-}
-
 //
 // FIXME: Can we replace this with enums or const ints ?
 //
@@ -68,16 +38,6 @@ extern "C"
 #define PGX_DFMT 1
 #define BMP_DFMT 2
 #define YUV_DFMT 3
-
-
-/*
- * Divide an integer by a power of 2 and round upwards.
- *
- * a divided by 2^b
- */
-inline int int_ceildivpow2(int a, int b) {
-  return (a + (1 << b) - 1) >> b;
-}
 
 
 namespace itk
