@@ -23,15 +23,12 @@
 namespace itk
 {
 /** \class JPEG2000ImageIOFactory
- * \brief JPEG2000 : Yet Another File Format: is a fake file format introduced
-                 with the sole purpose of testing the streaming capabilities
-                 of ITK.
+ * \brief Supports for the JPEG2000 file format based on openjpeg
 
-         
-   \warning    DO NOT USE THIS FILE FORMAT FOR ANY SERIOUS PURPOSE !.
+   JPEG2000 offers a large collection of interesting features
+   including: compression (lossless and lossy), streaming, 
+   multi-channel images.
 
-
-   Consider it only a place holder for very basic testing.
  */
 class ITK_EXPORT JPEG2000ImageIOFactory : public ObjectFactoryBase
 {
