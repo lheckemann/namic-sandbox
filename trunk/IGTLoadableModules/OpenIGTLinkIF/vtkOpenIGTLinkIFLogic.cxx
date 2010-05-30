@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkOpenIGTLinkIFLogic.cxx $
-  Date:      $Date: 2009-07-23 13:37:07 -0400 (Thu, 23 Jul 2009) $
-  Version:   $Revision: 10009 $
+  Date:      $Date: 2010-04-01 11:42:15 -0400 (Thu, 01 Apr 2010) $
+  Version:   $Revision: 12582 $
 
 ==========================================================================*/
 
@@ -36,7 +36,7 @@
 #include "vtkMRMLIGTLConnectorNode.h"
 #include "vtkIGTLCircularBuffer.h"
 
-vtkCxxRevisionMacro(vtkOpenIGTLinkIFLogic, "$Revision: 10009 $");
+vtkCxxRevisionMacro(vtkOpenIGTLinkIFLogic, "$Revision: 12582 $");
 vtkStandardNewMacro(vtkOpenIGTLinkIFLogic);
 
 //---------------------------------------------------------------------------
@@ -61,11 +61,6 @@ vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
   this->SliceOrientation[0] = SLICE_RTIMAGE_PERP;
   this->SliceOrientation[1] = SLICE_RTIMAGE_INPLANE;
   this->SliceOrientation[2] = SLICE_RTIMAGE_INPLANE90;
-
-  this->NeedRealtimeImageUpdate0 = 0;
-  this->NeedRealtimeImageUpdate1 = 0;
-  this->NeedRealtimeImageUpdate2 = 0;
-  this->ImagingControl = 0;
 
   // Timer Handling
 
@@ -221,6 +216,28 @@ void vtkOpenIGTLinkIFLogic::ImportFromCircularBuffers()
     }
 }
 
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFLogic::ImportEvents()
+{
+  //ConnectorMapType::iterator cmiter;
+  std::vector<vtkMRMLNode*> nodes;
+  const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
+  this->GetMRMLScene()->GetNodesByClass(className, nodes);
+
+  std::vector<vtkMRMLNode*>::iterator iter;
+  
+  //for (cmiter = this->ConnectorMap.begin(); cmiter != this->ConnectorMap.end(); cmiter ++)
+  for (iter = nodes.begin(); iter != nodes.end(); iter ++)
+    {
+    vtkMRMLIGTLConnectorNode* connector = vtkMRMLIGTLConnectorNode::SafeDownCast(*iter);
+    if (connector == NULL)
+      {
+      continue;
+      }
+
+    connector->ImportEventsFromEventBuffer();
+    }
+}
 
 //---------------------------------------------------------------------------
 int vtkOpenIGTLinkIFLogic::SetLocatorDriver(const char* nodeID)
@@ -315,8 +332,8 @@ int vtkOpenIGTLinkIFLogic::SetSliceDriver(int index, int v)
       nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
       vtkSetAndObserveMRMLNodeEventsMacro(node,transNode,nodeEvents);
       nodeEvents->Delete();
+      transNode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
       }
-    transNode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
     }
 
   return 1;

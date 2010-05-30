@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkIGTLCircularBuffer.cxx $
-  Date:      $Date: 2009-01-05 13:28:20 -0500 (Mon, 05 Jan 2009) $
-  Version:   $Revision: 8267 $
+  Date:      $Date: 2009-08-12 21:30:38 -0400 (Wed, 12 Aug 2009) $
+  Version:   $Revision: 10236 $
 
 ==========================================================================*/
 
@@ -23,7 +23,7 @@
 #include "igtlMessageBase.h"
 
 vtkStandardNewMacro(vtkIGTLCircularBuffer);
-vtkCxxRevisionMacro(vtkIGTLCircularBuffer, "$Revision: 8267 $");
+vtkCxxRevisionMacro(vtkIGTLCircularBuffer, "$Revision: 10236 $");
 
 
 //---------------------------------------------------------------------------

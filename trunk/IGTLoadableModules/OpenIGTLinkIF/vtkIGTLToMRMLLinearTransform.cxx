@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkIGTLToMRMLLinearTransform.cxx $
-  Date:      $Date: 2009-05-01 16:40:42 -0400 (Fri, 01 May 2009) $
-  Version:   $Revision: 9387 $
+  Date:      $Date: 2009-10-05 17:19:02 -0400 (Mon, 05 Oct 2009) $
+  Version:   $Revision: 10576 $
 
 ==========================================================================*/
 
@@ -21,7 +21,7 @@
 #include "igtlTransformMessage.h"
 
 vtkStandardNewMacro(vtkIGTLToMRMLLinearTransform);
-vtkCxxRevisionMacro(vtkIGTLToMRMLLinearTransform, "$Revision: 9387 $");
+vtkCxxRevisionMacro(vtkIGTLToMRMLLinearTransform, "$Revision: 10576 $");
 
 
 //---------------------------------------------------------------------------
@@ -84,8 +84,9 @@ int vtkIGTLToMRMLLinearTransform::IGTLToMRML(igtl::MessageBase::Pointer buffer, 
   transMsg->Copy(buffer);  // !! TODO: copy makes performance issue.
 
   // Deserialize the transform data
-  // If you want to skip CRC check, call Unpack() without argument.
-  int c = transMsg->Unpack(1);
+  // If CheckCRC==0, CRC check is skipped.
+  int c = transMsg->Unpack(this->CheckCRC);
+
   if (!(c & igtl::MessageHeader::UNPACK_BODY)) // if CRC check fails
     {
     // TODO: error handling
