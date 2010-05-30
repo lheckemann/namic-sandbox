@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkIGTLToMRMLBase.cxx $
-  Date:      $Date: 2009-01-05 13:28:20 -0500 (Mon, 05 Jan 2009) $
-  Version:   $Revision: 8267 $
+  Date:      $Date: 2009-10-05 17:19:02 -0400 (Mon, 05 Oct 2009) $
+  Version:   $Revision: 10576 $
 
 ==========================================================================*/
 
@@ -22,12 +22,13 @@
 #include "igtlMessageBase.h"
 
 vtkStandardNewMacro(vtkIGTLToMRMLBase);
-vtkCxxRevisionMacro(vtkIGTLToMRMLBase, "$Revision: 8267 $");
+vtkCxxRevisionMacro(vtkIGTLToMRMLBase, "$Revision: 10576 $");
 
 
 //---------------------------------------------------------------------------
 vtkIGTLToMRMLBase::vtkIGTLToMRMLBase()
 {
+  this->CheckCRC = 1;
 }
 
 
