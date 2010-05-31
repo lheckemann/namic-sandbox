@@ -98,7 +98,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLImageMetaListNode : public vtkMRMLNode
 
   // Description:
   // Add image meta element
-  void AddImageMetaElement(ImageMetaElement* element);
+  void AddImageMetaElement(ImageMetaElement element);
 
   // Description:
   // Get image meta element. If the element does not eists,

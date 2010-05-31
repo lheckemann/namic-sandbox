@@ -76,6 +76,7 @@
 
 #include "vtkMRMLIGTLQueryNode.h"
 #include "vtkMRMLImageMetaListNode.h"
+#include "vtkMRMLIGTLImageMetaListQueryNode.h"
 
 #include <vector>
 #include <sstream>
@@ -1163,6 +1164,10 @@ void vtkOpenIGTLinkIFGUI::Init()
   scene->RegisterNodeClass(imetaNode);
   imetaNode->Delete();
 
+  vtkMRMLIGTLImageMetaListQueryNode* imetaqNode = vtkMRMLIGTLImageMetaListQueryNode::New();
+  scene->RegisterNodeClass(imetaqNode);
+  imetaqNode->Delete();
+    
 }
 
 
@@ -2220,10 +2225,20 @@ void vtkOpenIGTLinkIFGUI::OpenRemoteDataListWindow(const char* conID)
   std::cerr << "Opening DataListWindow...." << std::endl;
 
   if (this->RemoteDataWindow)
-    {  
-    this->RemoteDataWindow->DisplayOnWindow();
+    {
+    vtkMRMLScene* scene = this->GetMRMLScene();
+    if (scene)
+      {
+      vtkMRMLIGTLConnectorNode* connector =
+        vtkMRMLIGTLConnectorNode::SafeDownCast(scene->GetNodeByID(conID));
+      if (connector)
+        {
+        this->RemoteDataWindow->SetMRMLScene(scene);
+        this->RemoteDataWindow->SetConnector(connector);
+        this->RemoteDataWindow->DisplayOnWindow();
+        }
+      }
     }
-
 }
 
 

@@ -32,12 +32,20 @@
 #include "vtkKWPushButton.h"
 #include "vtkKWTopLevel.h"
 #include "vtkSmartPointer.h"
+#include "vtkMRMLIGTLConnectorNode.h"
 
 class vtkOpenIGTLinkIFGUI;
 
 class VTK_OPENIGTLINKIF_EXPORT vtkIGTLRemoteDataListWindow : public vtkKWTopLevel
 {
 public:
+
+  vtkGetObjectMacro(MRMLScene, vtkMRMLScene);
+  vtkSetObjectMacro(MRMLScene, vtkMRMLScene);
+
+  vtkGetObjectMacro(Connector, vtkMRMLIGTLConnectorNode);
+  vtkSetObjectMacro(Connector, vtkMRMLIGTLConnectorNode);
+
   static vtkIGTLRemoteDataListWindow *New();  
   vtkTypeRevisionMacro(vtkIGTLRemoteDataListWindow,vtkKWTopLevel);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -93,12 +101,14 @@ protected:
   int  WindowSize[2]; // virtual screen size in pixels
   
   vtkOpenIGTLinkIFGUI* ModuleGUI;
+  vtkMRMLScene* MRMLScene;
   
+  vtkMRMLIGTLConnectorNode* Connector;
+
  private:
   vtkIGTLRemoteDataListWindow(const vtkIGTLRemoteDataListWindow&);
   void operator=(const vtkIGTLRemoteDataListWindow&);
 
-  
 
 };
 

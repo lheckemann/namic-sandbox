@@ -19,7 +19,7 @@ Version:   $Revision: 1.2 $
 
 #include "vtkObjectFactory.h"
 
-#include "vtkMRMLImageMetaListNode.h"
+#include "vtkMRMLIGTLImageMetaListQueryNode.h"
 #include "vtkMRMLScene.h"
 
 #include "igtlOSUtil.h"
@@ -27,44 +27,52 @@ Version:   $Revision: 1.2 $
 #include "igtlMessageHeader.h"
 
 //------------------------------------------------------------------------------
-vtkMRMLImageMetaListNode* vtkMRMLImageMetaListNode::New()
+vtkMRMLIGTLImageMetaListQueryNode* vtkMRMLIGTLImageMetaListQueryNode::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLImageMetaListNode"); if(ret)
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLIGTLImageMetaListQueryNode"); if(ret)
     {
-      return (vtkMRMLImageMetaListNode*)ret;
+      return (vtkMRMLIGTLImageMetaListQueryNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLImageMetaListNode;
+  return new vtkMRMLIGTLImageMetaListQueryNode;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLNode* vtkMRMLImageMetaListNode::CreateNodeInstance()
+vtkMRMLNode* vtkMRMLIGTLImageMetaListQueryNode::CreateNodeInstance()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLImageMetaListNode");
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLIGTLImageMetaListQueryNode");
   if(ret)
     {
-      return (vtkMRMLImageMetaListNode*)ret;
+      return (vtkMRMLIGTLImageMetaListQueryNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLImageMetaListNode;
+  return new vtkMRMLIGTLImageMetaListQueryNode;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLImageMetaListNode::vtkMRMLImageMetaListNode()
+vtkMRMLIGTLImageMetaListQueryNode::vtkMRMLIGTLImageMetaListQueryNode()
 {
-  this->ImageMetaList.clear();
+  this->QueryStatus = 0;
+  this->QueryType   = 0;
+
+  this->ConnectorNodeID = "";
+
+  this->TimeStamp = 0.0;
+  this->TimeOut   = 0.0;
+
+  
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLImageMetaListNode::~vtkMRMLImageMetaListNode()
+vtkMRMLIGTLImageMetaListQueryNode::~vtkMRMLIGTLImageMetaListQueryNode()
 {
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLImageMetaListNode::WriteXML(ostream& of, int nIndent)
+void vtkMRMLIGTLImageMetaListQueryNode::WriteXML(ostream& of, int nIndent)
 {
   // Start by having the superclass write its information
   Superclass::WriteXML(of, nIndent);
@@ -76,7 +84,7 @@ void vtkMRMLImageMetaListNode::WriteXML(ostream& of, int nIndent)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLImageMetaListNode::ReadXMLAttributes(const char** atts)
+void vtkMRMLIGTLImageMetaListQueryNode::ReadXMLAttributes(const char** atts)
 {
   vtkMRMLNode::ReadXMLAttributes(atts);
 
@@ -152,13 +160,11 @@ void vtkMRMLImageMetaListNode::ReadXMLAttributes(const char** atts)
 //----------------------------------------------------------------------------
 // Copy the node's attributes to this object.
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
-void vtkMRMLImageMetaListNode::Copy(vtkMRMLNode *anode)
+void vtkMRMLIGTLImageMetaListQueryNode::Copy(vtkMRMLNode *anode)
 {
 
   Superclass::Copy(anode);
-  /*
-  vtkMRMLImageMetaListNode *node = (vtkMRMLImageMetaListNode *) anode;
-  */
+  //vtkMRMLIGTLImageMetaListQueryNode *node = (vtkMRMLIGTLImageMetaListQueryNode *) anode;
 
   /*
   int type = node->GetType();
@@ -186,7 +192,7 @@ void vtkMRMLImageMetaListNode::Copy(vtkMRMLNode *anode)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLImageMetaListNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
+void vtkMRMLIGTLImageMetaListQueryNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
@@ -217,45 +223,9 @@ void vtkMRMLImageMetaListNode::ProcessMRMLEvents( vtkObject *caller, unsigned lo
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLImageMetaListNode::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLIGTLImageMetaListQueryNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
-}
-
-
-//----------------------------------------------------------------------------
-int  vtkMRMLImageMetaListNode::GetNumberOfImageMetaElement()
-{
-  return this->ImageMetaList.size();
-}
-
-
-//----------------------------------------------------------------------------
-void vtkMRMLImageMetaListNode::AddImageMetaElement(ImageMetaElement element)
-{
-  this->ImageMetaList.push_back(element);
-}
-
-
-//----------------------------------------------------------------------------
-void vtkMRMLImageMetaListNode::GetImageMetaElement(int index, ImageMetaElement* element)
-{
-  if (index >= 0 && index < (int) this->ImageMetaList.size())
-    {
-    *element = this->ImageMetaList[index];
-    }
-  else
-    {
-    element->DeviceName = "";
-    }
-
-}
-
-
-//----------------------------------------------------------------------------
-void vtkMRMLImageMetaListNode::ClearImageMetaElement()
-{
-  this->ImageMetaList.clear();
 }
 
 
