@@ -408,7 +408,8 @@ void vtkTransformRecorderGUI::ProcessMRMLEvents ( vtkObject *caller,
     transform->GetMatrixTransformToWorld( matrix );
     
     std::stringstream ss;
-    ss << matrix->GetElement( 0, 3 ) << " " << matrix->GetElement( 1, 3 );
+    ss << matrix->GetElement( 0, 3 ) << " " << matrix->GetElement( 1, 3 )
+       << " " << matrix->GetElement( 2, 3 );
     this->TranslationLabel->SetText( ss.str().c_str() );
     matrix->Delete();
     }
