@@ -61,6 +61,7 @@ set(OpenIGTLinkIF_SRCS
   vtkIGTLToMRMLImage.cxx
   vtkIGTLToMRMLPosition.cxx
   vtkMRMLIGTLConnectorNode.cxx
+  vtkIGTLRemoteDataListWindow.cxx
 )
 
 # --------------------------------------------------------------------------

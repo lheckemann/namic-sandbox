@@ -164,6 +164,9 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
   this->ImageSourceSelectorWidget   = NULL;
   this->ImagingMenu                 = NULL;
 
+  //----------------------------------------------------------------
+  // Remote Data List Window
+  this->RemoteDataWindow  = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -355,6 +358,17 @@ vtkOpenIGTLinkIFGUI::~vtkOpenIGTLinkIFGUI ( )
     this->IOConfigTree->SetParent(NULL);
     this->IOConfigTree->Delete();
     }
+
+  //----------------------------------------------------------------
+  // Remote Data List Window
+  if (this->RemoteDataWindow)
+    {
+    this->RemoteDataWindow->Withdraw();
+    this->RemoteDataWindow->SetApplication(NULL);
+    this->RemoteDataWindow->Delete();
+    this->RemoteDataWindow = NULL;
+    }
+
 }
 
 
@@ -1485,6 +1499,12 @@ void vtkOpenIGTLinkIFGUI::BuildGUI ( )
   BuildGUIForIOConfig();
   BuildGUIForVisualizationControlFrame();
 
+  //----------------------------------------------------------------
+  // Remote Data List Window
+  this->RemoteDataWindow = vtkIGTLRemoteDataListWindow::New();
+  this->RemoteDataWindow->SetApplication(this->GetApplication());
+  this->RemoteDataWindow->Create();
+
   UpdateConnectorPropertyFrame(-1);
   UpdateIOConfigTree();
 }
@@ -2158,7 +2178,12 @@ void vtkOpenIGTLinkIFGUI::AddIOConfigContextMenuItem(int type, const char* conID
   char command[125];
   char label[125];
 
-  if (type == NODE_IO)
+  if (type == NODE_CONNECTOR)
+    {
+    sprintf(command, "OpenRemoteDataListWindow %s", conID);
+    this->IOConfigContextMenu->AddCommand("Open remote data list window...", this, command);
+    }
+  else if (type == NODE_IO)
     {
     this->GetLogic()->GetDeviceNamesFromMrml(this->CurrentNodeListAvailable);
     vtkOpenIGTLinkIFLogic::IGTLMrmlNodeListType::iterator iter;
@@ -2176,6 +2201,20 @@ void vtkOpenIGTLinkIFGUI::AddIOConfigContextMenuItem(int type, const char* conID
     }
 
 }
+
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFGUI::OpenRemoteDataListWindow(const char* conID)
+{
+  std::cerr << "Opening DataListWindow...." << std::endl;
+
+  if (this->RemoteDataWindow)
+    {  
+    this->RemoteDataWindow->DisplayOnWindow();
+    }
+
+}
+
 
 
 //---------------------------------------------------------------------------

@@ -1,0 +1,360 @@
+/*==========================================================================
+
+  Portions (c) Copyright 2008-2009 Brigham and Women's Hospital (BWH) All Rights Reserved.
+
+  See Doc/copyright/copyright.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Program:   3D Slicer
+  Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkOpenIGTLinkIFGUI.h $
+  Date:      $Date: 2010-04-01 11:42:15 -0400 (Thu, 01 Apr 2010) $
+  Version:   $Revision: 12582 $
+
+==========================================================================*/
+
+
+#include "vtkObjectFactory.h"
+
+#include "vtkIGTLRemoteDataListWindow.h"
+
+#include "vtkSlicerApplication.h"
+#include "vtkSlicerTheme.h"
+
+#include "vtkRenderer.h"
+
+#include "vtkCornerAnnotation.h"
+
+
+//----------------------------------------------------------------------------
+vtkStandardNewMacro(vtkIGTLRemoteDataListWindow);
+vtkCxxRevisionMacro(vtkIGTLRemoteDataListWindow, "$Revision: 1.0 $");
+//----------------------------------------------------------------------------
+vtkIGTLRemoteDataListWindow::vtkIGTLRemoteDataListWindow()
+{
+  this->MainFrame = vtkKWFrame::New();
+  this->MultipleMonitorsAvailable = false; 
+  this->WindowPosition[0]=0;
+  this->WindowPosition[1]=0;
+  this->WindowSize[0]=0;
+  this->WindowSize[1]=0;
+
+  this->RemoteDataList = NULL;
+  this->GetButton      = NULL;
+  this->CloseButton    = NULL;
+
+  //this->CurrentTarget=NULL;
+
+  // GUI callback command
+  this->InGUICallbackFlag = 0;
+  this->IsObserverAddedFlag = 0;
+
+  this->GUICallbackCommand = vtkCallbackCommand::New();
+  this->GUICallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
+  this->GUICallbackCommand->SetCallback(&vtkIGTLRemoteDataListWindow::GUICallback);
+
+  this->ModuleGUI = NULL; 
+}
+
+
+//----------------------------------------------------------------------------
+vtkIGTLRemoteDataListWindow::~vtkIGTLRemoteDataListWindow()
+{
+  //if (this->CurrentTarget)
+  //{
+  //  this->CurrentTarget->UnRegister(this);
+  //  this->CurrentTarget=NULL;
+  //}
+
+  if ( this->GUICallbackCommand != NULL )
+    {
+    this->GUICallbackCommand->Delete ( );
+    this->GUICallbackCommand = NULL;
+    }
+
+  if (this->RemoteDataList)
+    {
+    this->RemoteDataList->SetParent(NULL);
+    this->RemoteDataList->Delete();
+    }
+
+  if (this->GetButton)
+    {
+    this->GetButton->SetParent(NULL);
+    this->GetButton->Delete();
+    }
+  if (this->CloseButton)
+    {
+    this->CloseButton->SetParent(NULL);
+    this->CloseButton->Delete();
+    }
+
+  this->MainFrame->Delete();
+  this->SetApplication(NULL);
+
+  this->ModuleGUI = NULL; 
+}
+
+
+//----------------------------------------------------------------------------
+void vtkIGTLRemoteDataListWindow::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os,indent);
+}
+
+
+//----------------------------------------------------------------------------
+void vtkIGTLRemoteDataListWindow::GUICallback( vtkObject *caller,
+                           unsigned long eid, void *clientData, void *callData )
+{
+  
+  vtkIGTLRemoteDataListWindow *self = reinterpret_cast<vtkIGTLRemoteDataListWindow *>(clientData);
+  
+  if (self->GetInGUICallbackFlag())
+    {
+    vtkDebugWithObjectMacro(self, "In vtkProstateNavStep GUICallback");
+    }
+
+  self->SetInGUICallbackFlag(1);
+  self->ProcessGUIEvents(caller, eid, callData);
+  self->SetInGUICallbackFlag(0);
+  
+}
+
+void vtkIGTLRemoteDataListWindow::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
+{
+
+  if (this->GetButton == vtkKWPushButton::SafeDownCast(caller) 
+      && event == vtkKWPushButton::InvokedEvent )
+    {
+    std::cerr << "GetButton is pressed. " << std::endl;
+    if (this->ModuleGUI)
+      {
+      }
+    }
+  if (this->CloseButton == vtkKWPushButton::SafeDownCast(caller) 
+      && event == vtkKWPushButton::InvokedEvent )
+    {
+    std::cerr << "CloseButton is pressed. " << std::endl;
+    
+    }
+
+}
+
+
+void vtkIGTLRemoteDataListWindow::AddGUIObservers()
+{
+  this->RemoveGUIObservers();
+
+  if (this->GetButton)
+    {
+    this->GetButton->AddObserver(vtkKWPushButton::InvokedEvent,(vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CloseButton)
+    {
+    this->CloseButton->AddObserver(vtkKWPushButton::InvokedEvent,(vtkCommand *)this->GUICallbackCommand);
+    }
+
+}
+
+
+void vtkIGTLRemoteDataListWindow::RemoveGUIObservers()
+{
+  if (this->GetButton)
+    {
+    this->GetButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CloseButton)
+    {
+    this->CloseButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+}
+
+
+#ifdef _WIN32
+//----------------------------------------------------------------------------
+BOOL CALLBACK StoreNonPrimaryMonitorRectEnumProc(HMONITOR hMonitor, HDC hdc, LPRECT prc, LPARAM dwData) 
+{
+  MONITORINFO mi;
+  mi.cbSize = sizeof(MONITORINFO);
+  if (GetMonitorInfo(hMonitor, &mi))
+  {
+    if (!(mi.dwFlags & MONITORINFOF_PRIMARY))
+    {
+      RECT *rect = (RECT*)dwData;
+      if (rect==NULL)
+      {
+        return false;
+      }
+      // store the rect of the non-primary monitor only
+      rect->left=mi.rcMonitor.left;
+      rect->right=mi.rcMonitor.right;
+      rect->top=mi.rcMonitor.top;
+      rect->bottom=mi.rcMonitor.bottom;     
+    }
+  }
+  return true;
+} 
+
+
+//----------------------------------------------------------------------------
+void vtkIGTLRemoteDataListWindow::UpdateWindowPoisition()
+{
+  // Window rect
+  RECT rect;    
+
+  // Fill rect by default with primary monitor info
+  rect.left=0;
+  rect.right=GetSystemMetrics(SM_CXFULLSCREEN);
+  rect.top=0;
+  rect.bottom=GetSystemMetrics(SM_CYFULLSCREEN);    
+
+  // if a secondary monitor is available then get its virtual screen coordinates
+  int nMonitors = GetSystemMetrics(SM_CMONITORS);
+  if (nMonitors>1)
+  {
+    this->MultipleMonitorsAvailable = true; 
+    if (!EnumDisplayMonitors(NULL, NULL, StoreNonPrimaryMonitorRectEnumProc, (LPARAM) &rect))
+    {
+      vtkErrorMacro("DetectMonitors: EnumDisplayMonitors failed");
+    }
+  }
+  else
+  {
+    this->MultipleMonitorsAvailable = false; 
+  }
+
+  this->WindowPosition[0]=rect.left;
+  this->WindowPosition[1]=rect.top;
+  this->WindowSize[0]=rect.right-rect.left;
+  this->WindowSize[1]=rect.bottom-rect.top;
+}
+
+#else // _WIN32
+
+void vtkIGTLRemoteDataListWindow::UpdateWindowPoisition()
+{
+  // TODO: implement monitor detection for linux
+  this->MultipleMonitorsAvailable = false; 
+  this->WindowPosition[0]=0;
+  this->WindowPosition[1]=0;
+  this->WindowSize[0]=1024;
+  this->WindowSize[1]=768;
+}
+
+#endif // _WIN32
+
+//----------------------------------------------------------------------------
+void vtkIGTLRemoteDataListWindow::CreateWidget()
+{
+  vtkSlicerApplication *app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
+  if (app==NULL)
+  {
+  vtkErrorMacro("CreateWindow: application is invalid");
+  return;
+  }
+
+  if (this->IsCreated())
+  {
+    return;
+  }
+
+  vtkKWTopLevel::CreateWidget();
+
+  //this->SetMasterWindow (this->GetServerMenuButton() );
+  this->SetApplication ( app );
+  //this->Create();
+  this->SetBorderWidth ( 1 );
+  this->SetReliefToFlat();
+
+  //this->SetParent (this->GetApplicationGUI()->GetMainSlicerWindow());
+
+  this->SetTitle ("OpenIGTLink Remote Data List");
+  //this->SetSize (400, 100);
+  this->Withdraw();
+
+  this->MainFrame->SetParent ( this );
+  this->MainFrame->Create();
+  this->MainFrame->SetBorderWidth ( 1 );
+  this->Script ( "pack %s -side top -anchor nw -fill both -expand 1 -padx 0 -pady 1", this->MainFrame->GetWidgetName() ); 
+
+  this->RemoteDataList = vtkKWMultiColumnListWithScrollbars::New();
+  this->RemoteDataList->SetParent(this->MainFrame);
+  this->RemoteDataList->Create();
+  this->RemoteDataList->SetHeight(1);
+  this->RemoteDataList->GetWidget()->SetSelectionTypeToRow();
+  this->RemoteDataList->GetWidget()->SetSelectionModeToSingle();
+  this->RemoteDataList->GetWidget()->MovableRowsOff();
+  this->RemoteDataList->GetWidget()->MovableColumnsOff();
+
+  const char* labels[] =
+    { "IGTL NAME", "Patient ID", "Patient Name", "Modality", "Date", "Status", "Description"};
+  const int widths[] = 
+    { 12, 20, 20, 20, 10, 10, 30};
+
+  for (int col = 0; col < 8; col ++)
+    {
+    this->RemoteDataList->GetWidget()->AddColumn(labels[col]);
+    this->RemoteDataList->GetWidget()->SetColumnWidth(col, widths[col]);
+    this->RemoteDataList->GetWidget()->SetColumnAlignmentToLeft(col);
+    this->RemoteDataList->GetWidget()->ColumnEditableOff(col);
+    //this->RemoteDataList->GetWidget()->ColumnEditableOn(col);
+    this->RemoteDataList->GetWidget()->SetColumnEditWindowToSpinBox(col);
+    }
+  this->RemoteDataList->GetWidget()->SetColumnEditWindowToCheckButton(0);
+
+  this->Script ("pack %s -side top -fill both -expand true",  this->RemoteDataList->GetWidgetName());
+  
+  // Connector Property -- Connector type (server or client)
+  vtkKWFrame *buttonFrame = vtkKWFrame::New();
+  buttonFrame->SetParent(this->MainFrame);
+  buttonFrame->Create();
+  app->Script ( "pack %s -side top -fill both -expand true",  
+                buttonFrame->GetWidgetName());
+
+  this->GetButton = vtkKWPushButton::New();
+  this->GetButton->SetParent(buttonFrame);
+  this->GetButton->Create();
+  this->GetButton->SetText( "Get" );
+  this->GetButton->SetWidth (6);
+
+  this->CloseButton = vtkKWPushButton::New();
+  this->CloseButton->SetParent(buttonFrame);
+  this->CloseButton->Create();
+  this->CloseButton->SetText( "Close" );
+  this->CloseButton->SetWidth (6);
+
+  app->Script ( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
+                this->GetButton->GetWidgetName(),
+                this->CloseButton->GetWidgetName());
+
+  buttonFrame->Delete();
+}
+
+
+//----------------------------------------------------------------------------
+void vtkIGTLRemoteDataListWindow::DisplayOnWindow()
+{
+  //-- display
+  this->DeIconify();
+  this->Raise();
+
+  this->UpdateWindowPoisition();
+
+  this->SetPosition(this->WindowPosition[0], this->WindowPosition[1]);
+  //this->SetSize(this->WindowSize[0], this->WindowSize[1]);
+
+  /*
+  if (this->MultipleMonitorsAvailable)
+  {
+    this->HideDecorationOn();
+  }
+  */
+
+  if (!this->IsObserverAddedFlag)
+    {
+    this->IsObserverAddedFlag = 1;
+    this->AddGUIObservers();
+    }
+
+}
+
