@@ -74,6 +74,9 @@
 
 #include "vtkMRMLIGTLConnectorNode.h"
 
+#include "vtkMRMLIGTLQueryNode.h"
+#include "vtkMRMLImageMetaListNode.h"
+
 #include <vector>
 #include <sstream>
 
@@ -1151,6 +1154,14 @@ void vtkOpenIGTLinkIFGUI::Init()
   vtkMRMLIGTLConnectorNode* connectorNode = vtkMRMLIGTLConnectorNode::New();
   scene->RegisterNodeClass(connectorNode);
   connectorNode->Delete();
+
+  vtkMRMLIGTLQueryNode* queryNode = vtkMRMLIGTLQueryNode::New();
+  scene->RegisterNodeClass(queryNode);
+  queryNode->Delete();
+
+  vtkMRMLImageMetaListNode* imetaNode = vtkMRMLImageMetaListNode::New();
+  scene->RegisterNodeClass(imetaNode);
+  imetaNode->Delete();
 
 }
 
