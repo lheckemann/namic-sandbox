@@ -29,6 +29,7 @@
 #include "vtkObject.h"
 #include "vtkOpenIGTLinkIFWin32Header.h" 
 
+
 class VTK_OPENIGTLINKIF_EXPORT vtkMRMLImageMetaListNode : public vtkMRMLNode
 {
  public:
@@ -43,6 +44,19 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLImageMetaListNode : public vtkMRMLNode
     NewDeviceEvent        = 118949,
   };
 
+  //ETX
+
+  //BTX
+  typedef struct {
+    std::string   Name;        /* name / description (< 64 bytes)*/
+    std::string   DeviceName;  /* device name to query the IMAGE and COLORT */
+    std::string   Modality;    /* modality name (< 32 bytes) */
+    std::string   PatientName; /* patient name (< 64 bytes) */ 
+    std::string   PatientID;   /* patient ID (MRN etc.) (< 64 bytes) */  
+    double        TimeStamp;   /* scan time */
+    int           Size[3];     /* entire image volume size */ 
+    unsigned char ScalarType;  /* scalar type. see scalar_type in IMAGE message */
+  } ImageMetaElement;
   //ETX
 
  public:
@@ -78,6 +92,23 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLImageMetaListNode : public vtkMRMLNode
   // method to propagate events generated in mrml
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
 
+  // Description:
+  // Get number of image meta element stored in this class instance
+  int  GetNumberOfImageMetaElement();
+
+  // Description:
+  // Add image meta element
+  void AddImageMetaElement(ImageMetaElement* element);
+
+  // Description:
+  // Get image meta element. If the element does not eists,
+  // DeviceName is set to "".
+  void GetImageMetaElement(int index, ImageMetaElement* element);
+
+  // Description:
+  // Clear image meta element list
+  void ClearImageMetaElement();
+
  protected:
   //----------------------------------------------------------------
   // Constructor and destroctor
@@ -98,6 +129,10 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLImageMetaListNode : public vtkMRMLNode
   //----------------------------------------------------------------
   // Data
   //----------------------------------------------------------------
+
+  //BTX
+  std::vector<ImageMetaElement> ImageMetaList;
+  //ETX
 
 };
 

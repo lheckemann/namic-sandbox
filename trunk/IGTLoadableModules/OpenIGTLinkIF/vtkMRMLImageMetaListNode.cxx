@@ -54,6 +54,7 @@ vtkMRMLNode* vtkMRMLImageMetaListNode::CreateNodeInstance()
 //----------------------------------------------------------------------------
 vtkMRMLImageMetaListNode::vtkMRMLImageMetaListNode()
 {
+  this->ImageMetaList.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -82,10 +83,12 @@ void vtkMRMLImageMetaListNode::ReadXMLAttributes(const char** atts)
   const char* attName;
   const char* attValue;
 
+  /*
   const char* serverHostname = "";
   int port = 0;
   int type = -1;
   int restrictDeviceName = 0;
+  */
 
   while (*atts != NULL)
     {
@@ -153,7 +156,9 @@ void vtkMRMLImageMetaListNode::Copy(vtkMRMLNode *anode)
 {
 
   Superclass::Copy(anode);
+  /*
   vtkMRMLImageMetaListNode *node = (vtkMRMLImageMetaListNode *) anode;
+  */
 
   /*
   int type = node->GetType();
@@ -215,6 +220,42 @@ void vtkMRMLImageMetaListNode::ProcessMRMLEvents( vtkObject *caller, unsigned lo
 void vtkMRMLImageMetaListNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
+}
+
+
+//----------------------------------------------------------------------------
+int  vtkMRMLImageMetaListNode::GetNumberOfImageMetaElement()
+{
+  return this->ImageMetaList.size();
+}
+
+
+//----------------------------------------------------------------------------
+void vtkMRMLImageMetaListNode::AddImageMetaElement(ImageMetaElement* element)
+{
+  this->ImageMetaList.push_back(*element);
+}
+
+
+//----------------------------------------------------------------------------
+void vtkMRMLImageMetaListNode::GetImageMetaElement(int index, ImageMetaElement* element)
+{
+  if (index >= 0 && index < (int) this->ImageMetaList.size())
+    {
+    *element = this->ImageMetaList[index];
+    }
+  else
+    {
+    element->DeviceName = "";
+    }
+
+}
+
+
+//----------------------------------------------------------------------------
+void vtkMRMLImageMetaListNode::ClearImageMetaElement()
+{
+  this->ImageMetaList.clear();
 }
 
 
