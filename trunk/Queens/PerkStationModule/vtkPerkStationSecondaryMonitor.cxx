@@ -1519,7 +1519,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
     
     this->MeasureDigitsActor->SetPosition( xyMeasuringLineDock[ 0 ] + 10,
                                            xyMeasuringLineDock[ 1 ] + 80 );
-    double length = std::sqrt(   ( rasTarget[ 0 ] - rasEntry[ 0 ] )
+    double length =      sqrt(   ( rasTarget[ 0 ] - rasEntry[ 0 ] )
                                * ( rasTarget[ 0 ] - rasEntry[ 0 ] )
                                + ( rasTarget[ 1 ] - rasEntry[ 1 ] )
                                * ( rasTarget[ 1 ] - rasEntry[ 1 ] ) );
