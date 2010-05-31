@@ -63,7 +63,6 @@ vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
   this->SliceOrientation[2] = SLICE_RTIMAGE_INPLANE90;
 
   // Timer Handling
-
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkOpenIGTLinkIFLogic::DataCallback);

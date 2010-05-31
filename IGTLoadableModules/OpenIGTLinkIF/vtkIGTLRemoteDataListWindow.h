@@ -30,14 +30,12 @@
 #include "vtkKWMultiColumnList.h"
 #include "vtkKWMultiColumnListWithScrollbars.h"
 #include "vtkKWPushButton.h"
-
 #include "vtkKWTopLevel.h"
 #include "vtkSmartPointer.h"
 
-#include "vtkMRMLViewNode.h"
+class vtkOpenIGTLinkIFGUI;
 
-class VTK_OPENIGTLINKIF_EXPORT vtkIGTLRemoteDataListWindow : 
-  public vtkKWTopLevel
+class VTK_OPENIGTLINKIF_EXPORT vtkIGTLRemoteDataListWindow : public vtkKWTopLevel
 {
 public:
   static vtkIGTLRemoteDataListWindow *New();  
@@ -50,50 +48,53 @@ public:
   vtkGetMacro(InGUICallbackFlag, int);
 
   void DisplayOnWindow();
-  void SetOpenIGTLinkIFGUI(vtkOpenIGTLinkIFGUI* ModuleGUI);
+  void SetOpenIGTLinkIFGUI(vtkOpenIGTLinkIFGUI* moduleGUI)
+  {
+    this->ModuleGUI = moduleGUI;
+  }
 
 protected:
 
   vtkIGTLRemoteDataListWindow();
   ~vtkIGTLRemoteDataListWindow();  
-
+  
   static void GUICallback(vtkObject *caller,
                           unsigned long eid, void *clientData, void *callData );
-
-
+  
+  
   void UpdateWindowPoisition();
   virtual void CreateWidget();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
   virtual void AddGUIObservers();
   virtual void RemoveGUIObservers();
-
-
-protected:
-
+  
+  
+ protected:
+  
   //----------------------------------------------------------------
   // GUI widgets and Callbacks
   //----------------------------------------------------------------
   vtkKWFrame* MainFrame;
   vtkSlicerViewerWidget* ViewerWidget;
-
+  
   vtkKWMultiColumnListWithScrollbars* RemoteDataList;
   vtkKWPushButton* GetButton;
   vtkKWPushButton* CloseButton;
-
+  
   vtkCallbackCommand *GUICallbackCommand;
   int InGUICallbackFlag;
   int IsObserverAddedFlag;
-
+  
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
   bool MultipleMonitorsAvailable; 
   int  WindowPosition[2]; // virtual screen position in pixels
   int  WindowSize[2]; // virtual screen size in pixels
-
+  
   vtkOpenIGTLinkIFGUI* ModuleGUI;
-
-private:
+  
+ private:
   vtkIGTLRemoteDataListWindow(const vtkIGTLRemoteDataListWindow&);
   void operator=(const vtkIGTLRemoteDataListWindow&);
 

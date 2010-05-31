@@ -93,6 +93,9 @@ vtkMRMLIGTLConnectorNode::vtkMRMLIGTLConnectorNode()
 
   this->CheckCRC = 1;
 
+  this->QueryWaitingQueue.clear();
+  this->QueryQueueMutex = vtkMutexLock::New();
+
 }
 
 //----------------------------------------------------------------------------
@@ -265,9 +268,10 @@ void vtkMRMLIGTLConnectorNode::ProcessMRMLEvents( vtkObject *caller, unsigned lo
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
   MRMLNodeListType::iterator iter;
+  vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+
   for (iter = this->OutgoingMRMLNodeList.begin(); iter != this->OutgoingMRMLNodeList.end(); iter ++)
     {
-    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
     if (node == *iter)
       {
       int size;
@@ -285,6 +289,7 @@ void vtkMRMLIGTLConnectorNode::ProcessMRMLEvents( vtkObject *caller, unsigned lo
         }
       }
     }
+
 }
 
 
@@ -1165,4 +1170,25 @@ vtkIGTLToMRMLBase* vtkMRMLIGTLConnectorNode::GetConverterByIGTLDeviceType(const 
 }
 
 
-
+//---------------------------------------------------------------------------
+void vtkMRMLIGTLConnectorNode::PushQuery(vtkMRMLIGTLQueryNode* node)
+{
+  if (node)
+    {
+    vtkIGTLToMRMLBase* converter = this->GetConverterByIGTLDeviceType(node->GetIGTLName());
+    if (converter)
+      {
+      int size;
+      void* igtlMsg;
+      converter->MRMLToIGTL(0, node, &size, &igtlMsg);
+      if (size > 0)
+        {
+        this->SendData(size, (unsigned char*)igtlMsg);
+        this->QueryQueueMutex->Lock();
+        node->SetQueryStatus(vtkMRMLIGTLQueryNode::STATUS_WAITING);
+        this->QueryWaitingQueue.push_back(node);
+        this->QueryQueueMutex->Unlock();
+        }
+      }
+    }
+}
