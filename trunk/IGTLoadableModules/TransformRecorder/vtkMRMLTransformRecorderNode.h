@@ -19,7 +19,9 @@ public:
   //BTX
   // Events.
   enum {
-    TransformChangedEvent = 201001
+    TransformChangedEvent = 201001,
+    RecordingStartEvent   = 200901,
+    RecordingStopEvent    = 200902
   };
   //ETX
   
@@ -43,8 +45,21 @@ public:
   vtkMRMLTransformNode* GetObservedTransformNode();
   void SetAndObserveObservedTransformNodeID( const char *TransformNodeRef );
   
+  //BTX
   vtkGetMacro( Recording, bool );
-  vtkSetMacro( Recording, bool );
+  void SetRecording( bool newState )
+  {
+    this->Recording = newState;
+    if ( this->Recording )
+      {
+      this->InvokeEvent( RecordingStartEvent, NULL );
+      }
+    else
+      {
+      this->InvokeEvent( RecordingStopEvent, NULL );
+      }
+  }
+  //ETX
   
   //BTX
   void SetLogFileName( std::string fileName );
