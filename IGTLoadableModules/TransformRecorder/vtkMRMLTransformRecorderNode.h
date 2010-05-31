@@ -68,6 +68,8 @@ protected:
   char* ObservedTransformNodeID;
   vtkMRMLTransformNode* ObservedTransformNode;
   
+  void WriteLog();
+  
   //BTX
   std::string LogFileName;
   //ETX

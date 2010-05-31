@@ -1,6 +1,7 @@
 
 #include "vtkMRMLTransformRecorderNode.h"
 
+#include <ctime>
 #include <fstream>
 #include <sstream>
 
@@ -233,10 +234,7 @@ vtkMRMLTransformRecorderNode
     if (    this->Recording
          && this->LogFileName.size() > 1 )
       {
-      std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
-      this->ObservedTransformNode->WriteXML( output, 0 );
-      output << std::endl;
-      output.close();
+      this->WriteLog();
       }
     
     this->InvokeEvent( this->TransformChangedEvent, NULL );
@@ -258,3 +256,18 @@ vtkMRMLTransformRecorderNode
 {
   return this->LogFileName;
 }
+
+
+void
+vtkMRMLTransformRecorderNode
+::WriteLog()
+{
+  double seconds = clock() * 1.0 / CLOCKS_PER_SEC;
+  
+  std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
+  output << seconds << " ";
+  this->ObservedTransformNode->WriteXML( output, 0 );
+  output << std::endl;
+  output.close();
+}
+
