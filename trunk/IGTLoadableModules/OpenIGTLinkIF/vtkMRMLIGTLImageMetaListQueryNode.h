@@ -11,8 +11,8 @@
   Version:   $Revision: 1.3 $
 
 =========================================================================auto=*/
-#ifndef __vtkMRMLIGTLQueryNode_h
-#define __vtkMRMLIGTLQueryNode_h
+#ifndef __vtkMRMLIGTLImageMetaListQueryNode_h
+#define __vtkMRMLIGTLImageMetaListQueryNode_h
 
 #include "vtkOpenIGTLinkIFWin32Header.h"
 #include "vtkMRML.h"
@@ -28,8 +28,9 @@
 
 #include "vtkObject.h"
 #include "vtkOpenIGTLinkIFWin32Header.h" 
+#include "vtkMRMLIGTLQueryNode.h"
 
-class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLQueryNode : public vtkMRMLNode
+class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLImageMetaListQueryNode : public vtkMRMLIGTLQueryNode
 {
  public:
 
@@ -75,8 +76,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLQueryNode : public vtkMRMLNode
   // Standard methods for MRML nodes
   //----------------------------------------------------------------
 
-  static vtkMRMLIGTLQueryNode *New();
-  vtkTypeMacro(vtkMRMLIGTLQueryNode,vtkMRMLNode);
+  static vtkMRMLIGTLImageMetaListQueryNode *New();
+  vtkTypeMacro(vtkMRMLIGTLImageMetaListQueryNode,vtkMRMLIGTLQueryNode);
   
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -104,7 +105,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLQueryNode : public vtkMRMLNode
 
   // Description:
   // Get OpenIGTLink device name. If the query node is for IMAGE, "IMAGE" is returned.
-  virtual const char* GetIGTLName() { return NULL; };
+  virtual const char* GetIGTLName() { return "ImageMetaList"; };
 
   // Description:
   // Return error message after receiving requested message.
@@ -115,10 +116,10 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLQueryNode : public vtkMRMLNode
   // Constructor and destroctor
   //----------------------------------------------------------------
   
-  vtkMRMLIGTLQueryNode();
-  ~vtkMRMLIGTLQueryNode();
-  vtkMRMLIGTLQueryNode(const vtkMRMLIGTLQueryNode&);
-  void operator=(const vtkMRMLIGTLQueryNode&);
+  vtkMRMLIGTLImageMetaListQueryNode();
+  ~vtkMRMLIGTLImageMetaListQueryNode();
+  vtkMRMLIGTLImageMetaListQueryNode(const vtkMRMLIGTLImageMetaListQueryNode&);
+  void operator=(const vtkMRMLIGTLImageMetaListQueryNode&);
 
  public:
   //----------------------------------------------------------------

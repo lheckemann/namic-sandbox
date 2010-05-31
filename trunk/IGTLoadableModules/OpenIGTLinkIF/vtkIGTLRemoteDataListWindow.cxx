@@ -24,6 +24,7 @@
 
 #include "vtkCornerAnnotation.h"
 
+#include "vtkMRMLIGTLImageMetaListQueryNode.h"
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkIGTLRemoteDataListWindow);
@@ -53,6 +54,9 @@ vtkIGTLRemoteDataListWindow::vtkIGTLRemoteDataListWindow()
   this->GUICallbackCommand->SetCallback(&vtkIGTLRemoteDataListWindow::GUICallback);
 
   this->ModuleGUI = NULL; 
+  this->MRMLScene = NULL;
+
+  this->Connector = NULL;
 }
 
 
@@ -127,8 +131,12 @@ void vtkIGTLRemoteDataListWindow::ProcessGUIEvents(vtkObject *caller, unsigned l
       && event == vtkKWPushButton::InvokedEvent )
     {
     std::cerr << "GetButton is pressed. " << std::endl;
-    if (this->ModuleGUI)
+    if (this->MRMLScene && this->Connector)
       {
+      vtkMRMLIGTLImageMetaListQueryNode* qnode = vtkMRMLIGTLImageMetaListQueryNode::New();
+      qnode->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_GET);
+      this->MRMLScene->AddNode(qnode);
+      this->Connector->PushQuery((vtkMRMLIGTLQueryNode*)qnode);
       }
     }
   if (this->CloseButton == vtkKWPushButton::SafeDownCast(caller) 

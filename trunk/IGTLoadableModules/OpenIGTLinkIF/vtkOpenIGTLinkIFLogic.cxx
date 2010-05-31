@@ -79,10 +79,12 @@ vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
   this->LinearTransformConverter = vtkIGTLToMRMLLinearTransform::New();
   this->ImageConverter           = vtkIGTLToMRMLImage::New();
   this->PositionConverter        = vtkIGTLToMRMLPosition::New();
+  this->ImageMetaListConverter   = vtkIGTLToMRMLImageMetaList::New();
 
   RegisterMessageConverter(this->LinearTransformConverter);
   RegisterMessageConverter(this->ImageConverter);
   RegisterMessageConverter(this->PositionConverter);
+  RegisterMessageConverter(this->ImageMetaListConverter);
 
 }
 
@@ -105,9 +107,16 @@ vtkOpenIGTLinkIFLogic::~vtkOpenIGTLinkIFLogic()
   if (this->PositionConverter)
     {
     UnregisterMessageConverter(this->PositionConverter);
-
     this->PositionConverter->Delete();
     }
+
+  if (this->ImageMetaListConverter)
+    {
+    UnregisterMessageConverter(this->ImageMetaListConverter);
+    this->ImageMetaListConverter->Delete();
+    }
+
+
 
   if (this->DataCallbackCommand)
     {
