@@ -17,8 +17,8 @@ TARGET_LINK_LIBRARIES(itkJPEG2000ImageIOTest01 JPEG2000ImageIO)
 ADD_EXECUTABLE(itkJPEG2000ImageIOTest02 itkJPEG2000ImageIOTest02.cxx)
 TARGET_LINK_LIBRARIES(itkJPEG2000ImageIOTest02 JPEG2000ImageIO)
 
-# ADD_EXECUTABLE(itkJPEG2000ImageIOTest03 itkJPEG2000ImageIOTest03.cxx)
-# TARGET_LINK_LIBRARIES(itkJPEG2000ImageIOTest03 JPEG2000ImageIO)
+ADD_EXECUTABLE(itkJPEG2000ImageIOTest03 itkJPEG2000ImageIOTest03.cxx)
+TARGET_LINK_LIBRARIES(itkJPEG2000ImageIOTest03 JPEG2000ImageIO)
 
 ADD_TEST(RegionTest01  ${CXX_TEST_PATH}/ImageReadRegionOfInterestWrite ${TEST_DATA_ROOT}/Input/Bretagne1.j2k )
 
@@ -39,8 +39,8 @@ ADD_TEST(JpegTest04  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest01 ${TEST_DATA_ROOT}
 # ADD_TEST(JpegTest06  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest02 ${TEST_DATA_ROOT}/Input/Bretagne2.jpeg ${TEMP}/Bretagne2_05.j2k )
 
 # tests for reading 3 component data with 8bits per component
-# ADD_TEST(JpegTest07  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest03 ${TEST_DATA_ROOT}/Input/Bretagne1.j2k ${TEMP}/Bretagne1_01.png )
-# ADD_TEST(JpegTest08  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest03 ${TEST_DATA_ROOT}/Input/Cevennes2.jp2 ${TEMP}/Cevennes2_01.png )
+ADD_TEST(JpegTest07  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest03 ${TEST_DATA_ROOT}/Input/Bretagne1.j2k ${TEMP}/Bretagne1_01.png )
+ADD_TEST(JpegTest08  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest03 ${TEST_DATA_ROOT}/Input/Cevennes2.jp2 ${TEMP}/Cevennes2_01.png )
 
 # tests for writing 3 component data with 8bits per component
-# ADD_TEST(JpegTest09  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest03 ${TEST_DATA_ROOT}/Input/Bretagne1.tif ${TEMP}/Bretagne1_02.j2k )
+ADD_TEST(JpegTest09  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest03 ${TEST_DATA_ROOT}/Input/Bretagne1.tif ${TEMP}/Bretagne1_02.j2k )
