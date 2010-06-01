@@ -45,21 +45,9 @@ public:
   vtkMRMLTransformNode* GetObservedTransformNode();
   void SetAndObserveObservedTransformNodeID( const char *TransformNodeRef );
   
-  //BTX
   vtkGetMacro( Recording, bool );
-  void SetRecording( bool newState )
-  {
-    this->Recording = newState;
-    if ( this->Recording )
-      {
-      this->InvokeEvent( RecordingStartEvent, NULL );
-      }
-    else
-      {
-      this->InvokeEvent( RecordingStopEvent, NULL );
-      }
-  }
-  //ETX
+  
+  void SetRecording( bool newState );
   
   //BTX
   void SetLogFileName( std::string fileName );

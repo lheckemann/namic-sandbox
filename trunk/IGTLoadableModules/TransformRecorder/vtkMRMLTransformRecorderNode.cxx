@@ -271,3 +271,20 @@ vtkMRMLTransformRecorderNode
   output.close();
 }
 
+
+
+void
+vtkMRMLTransformRecorderNode
+::SetRecording( bool newState )
+{
+  this->Recording = newState;
+  if ( this->Recording )
+    {
+    this->InvokeEvent( this->RecordingStartEvent, NULL );
+    }
+  else
+    {
+    this->InvokeEvent( this->RecordingStopEvent, NULL );
+    }
+}
+
