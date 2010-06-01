@@ -26,7 +26,7 @@ public:
   //ETX
   
   // Standard MRML node methods
-
+  
   static vtkMRMLTransformRecorderNode *New();
   vtkTypeMacro( vtkMRMLTransformRecorderNode, vtkMRMLNode );
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -38,7 +38,7 @@ public:
   virtual void UpdateScene( vtkMRMLScene * );
   virtual void UpdateReferenceID( const char *oldID, const char *newID );
   void UpdateReferences();
-
+  
   // Public interface
 
   vtkGetStringMacro( ObservedTransformNodeID );
@@ -52,6 +52,7 @@ public:
   //BTX
   void SetLogFileName( std::string fileName );
   std::string GetLogFileName();
+  void CustomMessage( std::string message );
   //ETX
   
 protected:

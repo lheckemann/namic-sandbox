@@ -150,6 +150,8 @@ public:
   
   vtkKWPushButton* StartButton;
   vtkKWPushButton* StopButton;
+  vtkKWEntry* CustomEntry;
+  vtkKWPushButton* CustomButton;
   
   vtkKWLabel* StatusLabel;
   vtkKWLabel* TranslationLabel;
