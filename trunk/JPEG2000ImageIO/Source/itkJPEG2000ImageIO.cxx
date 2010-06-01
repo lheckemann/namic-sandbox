@@ -345,8 +345,8 @@ void JPEG2000ImageIO::Read( void * buffer)
     for ( unsigned int k = 0; k < this->GetNumberOfComponents(); k++)
       {
       *charBuffer++ = image->comps[k].data[index];
-      index++;
       }
+      index++;
     }
   std::cout << " END COPY BUFFER" << std::endl;
 
@@ -413,7 +413,7 @@ void
 JPEG2000ImageIO
 ::Write( const void* buffer)
 {
-  std::cout << "Write()" << std::endl;
+  std::cout << "Write() " <<  this->GetNumberOfComponents() << std::endl;
 
   bool bSuccess;
 
@@ -422,25 +422,48 @@ JPEG2000ImageIO
 
 //--------------------------------------------------------
   // Copy the contents into the image structure
-  int i, w, h , numcomps = 1;
+  int i, w, h;
   w = this->m_Dimensions[0];
   h = this->m_Dimensions[1];
 
   OPJ_COLOR_SPACE color_space = CLRSPC_GRAY;
   opj_image_cmptparm_t cmptparm[3];
 
-  /* initialize image components */
-  memset(&cmptparm[0], 0, sizeof(opj_image_cmptparm_t));
-  cmptparm[0].prec = 8;
-  cmptparm[0].bpp = 8;
-  cmptparm[0].sgnd = 0;
-  cmptparm[0].dx = 1;
-  cmptparm[0].dy = 1;
-  cmptparm[0].w =  w;
-  cmptparm[0].h = h;
+  if ( this->GetNumberOfComponents() == 3 )
+    {
+    color_space = CLRSPC_SRGB;
+
+    /* initialize image components */
+    memset(&cmptparm[0], 0, 3*sizeof(opj_image_cmptparm_t));
+    for ( unsigned int i = 0; i < 3; i++ )
+      {
+      cmptparm[i].prec = 8;
+      cmptparm[i].bpp = 8;
+      cmptparm[i].sgnd = 0;
+      cmptparm[i].dx = 1;
+      cmptparm[i].dy = 1;//this->GetSpacing( 1 )
+      cmptparm[i].w =  w;
+      cmptparm[i].h = h;
+      }
+    }
+  else
+    {
+    color_space = CLRSPC_GRAY;
+
+    /* initialize image components */
+    memset(&cmptparm[0], 0, sizeof(opj_image_cmptparm_t));
+    cmptparm[0].prec = 8;
+    cmptparm[0].bpp = 8;
+    cmptparm[0].sgnd = 0;
+    cmptparm[0].dx = 1;
+    cmptparm[0].dy = 1;//this->GetSpacing( 1 )
+    cmptparm[0].w =  w;
+    cmptparm[0].h = h;
+    }
+
 
   opj_image_t *image = NULL;
-  image = opj_image_create( numcomps, &cmptparm[0], color_space);
+  image = opj_image_create( this->GetNumberOfComponents(), &cmptparm[0], color_space);
   if(!image)
     {
     itkExceptionMacro("Image buffer not created");
@@ -462,7 +485,10 @@ JPEG2000ImageIO
   std::cout << " START COPY BUFFER" << std::endl;
   for ( size_t j = 0; j < numberOfPixels; j++)
     {
-    image->comps[0].data[index] = charBuffer[index];
+    for ( unsigned int k = 0; k < this->GetNumberOfComponents(); k++)
+      {
+      image->comps[k].data[index] = *charBuffer++;
+      }
     index++;
     }
   std::cout << " END COPY BUFFER" << std::endl;
@@ -569,7 +595,7 @@ JPEG2000ImageIO
     itkExceptionMacro("failed to encode image");
     }
 
-  itkExceptionMacro("Generated outfile " << parameters.outfile);
+//   itkExceptionMacro("Generated outfile " << parameters.outfile);
 
   /* close and free the byte stream */
   opj_stream_destroy(cio);
