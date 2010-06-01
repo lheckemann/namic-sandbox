@@ -333,6 +333,10 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
     this->ModuleNode->SetAndObserveObservedTransformNodeID( selectedNodeID );
     this->ModuleNode->AddObserver( vtkMRMLTransformRecorderNode::TransformChangedEvent,
                                    (vtkCommand*)this->MRMLCallbackCommand );
+    this->ModuleNode->AddObserver( vtkMRMLTransformRecorderNode::RecordingStartEvent,
+                                   (vtkCommand*)this->MRMLCallbackCommand );
+    this->ModuleNode->AddObserver( vtkMRMLTransformRecorderNode::RecordingStopEvent,
+                                   (vtkCommand*)this->MRMLCallbackCommand );
     }
   
   
@@ -374,6 +378,8 @@ vtkTransformRecorderGUI
 ::RemoveMRMLObservers()
 {
   REMOVE_OBSERVERS( this->ModuleNode, vtkMRMLTransformRecorderNode::TransformChangedEvent );
+  REMOVE_OBSERVERS( this->ModuleNode, vtkMRMLTransformRecorderNode::RecordingStartEvent );
+  REMOVE_OBSERVERS( this->ModuleNode, vtkMRMLTransformRecorderNode::RecordingStopEvent );
 }
 
 
@@ -398,8 +404,9 @@ void vtkTransformRecorderGUI::ProcessMRMLEvents ( vtkObject *caller,
 {
   // Fill in
   
-  if ( this->ModuleNode
-       && this->ModuleNode == vtkMRMLTransformRecorderNode::SafeDownCast( caller ) )
+  if (    this->ModuleNode
+       && this->ModuleNode == vtkMRMLTransformRecorderNode::SafeDownCast( caller )
+       && event == vtkMRMLTransformRecorderNode::TransformChangedEvent )
     {
     vtkMRMLTransformNode* transform = this->ModuleNode->GetObservedTransformNode();
     vtkMatrix4x4* matrix = vtkMatrix4x4::New();
@@ -414,6 +421,19 @@ void vtkTransformRecorderGUI::ProcessMRMLEvents ( vtkObject *caller,
     matrix->Delete();
     }
   
+  if (    this->ModuleNode
+       && this->ModuleNode == vtkMRMLTransformRecorderNode::SafeDownCast( caller )
+       && event == vtkMRMLTransformRecorderNode::RecordingStartEvent )
+    {
+    this->StatusLabel->SetText( "Recording" );
+    }
+  
+  if (    this->ModuleNode
+       && this->ModuleNode == vtkMRMLTransformRecorderNode::SafeDownCast( caller )
+       && event == vtkMRMLTransformRecorderNode::RecordingStopEvent )
+    {
+    this->StatusLabel->SetText( "Waiting" );
+    }
   
   if (event == vtkMRMLScene::SceneCloseEvent)
     {
@@ -641,7 +661,7 @@ vtkTransformRecorderGUI
   this->Script( "grid %s -column 1 -row 1 -sticky w -padx 2 -pady 2", this->TranslationLabel->GetWidgetName() );
   
   this->Script( "grid columnconfigure %s 0 -weight 1", monitorFrame->GetFrame()->GetWidgetName() );
-  this->Script( "grid columnconfigure %s 1 -weight 10", monitorFrame->GetFrame()->GetWidgetName() );
+  this->Script( "grid columnconfigure %s 1 -weight 100", monitorFrame->GetFrame()->GetWidgetName() );
 }
 
 
