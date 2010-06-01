@@ -19,6 +19,7 @@
 
 #include "vtkKWTkUtilities.h"
 #include "vtkKWWidget.h"
+#include "vtkKWEntry.h"
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWFrame.h"
 #include "vtkKWLabel.h"
@@ -82,6 +83,8 @@ vtkTransformRecorderGUI::vtkTransformRecorderGUI ( )
   
   this->StartButton = NULL;
   this->StopButton = NULL;
+  this->CustomEntry = NULL;
+  this->CustomButton = NULL;
   
   this->StatusLabel = NULL;
   this->TranslationLabel = NULL;
@@ -123,6 +126,8 @@ vtkTransformRecorderGUI::~vtkTransformRecorderGUI ( )
   
   DESTRUCT( this->StartButton );
   DESTRUCT( this->StopButton );
+  DESTRUCT( this->CustomEntry );
+  DESTRUCT( this->CustomButton );
   
   DESTRUCT( this->StatusLabel );
   DESTRUCT( this->TranslationLabel );
@@ -249,6 +254,8 @@ void vtkTransformRecorderGUI::AddGUIObservers ( )
   
   ADD_BUTTONINVOKED_OBSERVER( this->StartButton );
   ADD_BUTTONINVOKED_OBSERVER( this->StopButton );
+  ADD_BUTTONINVOKED_OBSERVER( this->CustomButton );
+  
   
   this->AddLogicObservers();
 }
@@ -360,6 +367,11 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
        && event == vtkKWPushButton::InvokedEvent )
     {
     this->ModuleNode->SetRecording( false );
+    }
+  
+  if ( this->CustomButton == vtkKWPushButton::SafeDownCast( caller ) && event == vtkKWPushButton::InvokedEvent )
+    {
+    this->ModuleNode->CustomMessage( std::string( this->CustomEntry->GetValue() ) );
     }
 } 
 
@@ -597,25 +609,51 @@ vtkTransformRecorderGUI
                 controlsFrame->GetWidgetName(), page->GetWidgetName() );
   
   
+  vtkSmartPointer< vtkKWFrame > startFrame = vtkSmartPointer< vtkKWFrame >::New();
+    startFrame->SetParent( controlsFrame->GetFrame() );
+    startFrame->Create();
+  
   this->StartButton = vtkKWPushButton::New();
-  this->StartButton->SetParent( controlsFrame->GetFrame() );
+  this->StartButton->SetParent( startFrame );
   this->StartButton->Create();
   this->StartButton->SetBackgroundColor( 0.5, 1.0, 0.5 );
   this->StartButton->SetWidth( 10 );
   this->StartButton->SetText( "Start" );
   
-  this->Script("pack %s -side left -padx 2 -pady 2", 
-               this->StartButton->GetWidgetName());
-  
   this->StopButton = vtkKWPushButton::New();
-  this->StopButton->SetParent( controlsFrame->GetFrame() );
+  this->StopButton->SetParent( startFrame );
   this->StopButton->Create();
   this->StopButton->SetBackgroundColor( 1.0, 0.5, 0.5 );
   this->StopButton->SetWidth( 10 );
   this->StopButton->SetText( "Stop" );
   
-  this->Script("pack %s -side left -padx 2 -pady 2", 
-               this->StopButton->GetWidgetName());
+  this->Script( "pack %s -side top -anchor w -padx 0 -pady 0", startFrame->GetWidgetName() );
+  this->Script( "pack %s -side left -anchor w -padx 2 -pady 2", this->StopButton->GetWidgetName() );
+  this->Script( "pack %s -side left -anchor w -padx 2 -pady 2", this->StartButton->GetWidgetName() );
+  
+  vtkSmartPointer< vtkKWFrame > customFrame = vtkSmartPointer< vtkKWFrame >::New();
+    customFrame->SetParent( controlsFrame->GetFrame() );
+    customFrame->Create();
+  
+  vtkSmartPointer< vtkKWLabel > customLabel = vtkSmartPointer< vtkKWLabel >::New();
+    customLabel->SetParent( customFrame );
+    customLabel->Create();
+    customLabel->SetText( "Custom message: " );
+  
+  this->CustomEntry = vtkKWEntry::New();
+  this->CustomEntry->SetParent( customFrame );
+  this->CustomEntry->Create();
+  
+  this->CustomButton = vtkKWPushButton::New();
+  this->CustomButton->SetParent( customFrame );
+  this->CustomButton->Create();
+  this->CustomButton->SetBackgroundColor( 0.9, 0.9, 0.9 );
+  this->CustomButton->SetText( "Record" );
+  
+  this->Script( "pack %s -side top -anchor w -padx 0 -pady 0", customFrame->GetWidgetName() );
+  this->Script( "pack %s -side left -anchor w -padx 2 -pady 2", customLabel->GetWidgetName() );
+  this->Script( "pack %s -side left -anchor w -fill x -padx 2 -pady 2", this->CustomEntry->GetWidgetName() );
+  this->Script( "pack %s -side left -anchor w -padx 2 -pady 2", this->CustomButton->GetWidgetName() );
 }
 
 

@@ -231,8 +231,7 @@ vtkMRMLTransformRecorderNode
 {
   if ( this->ObservedTransformNode == vtkMRMLTransformNode::SafeDownCast( caller ) )
     {
-    if (    this->Recording
-         && this->LogFileName.size() > 1 )
+    if ( this->Recording && this->LogFileName.size() > 1 )
       {
       this->WriteLog();
       }
@@ -264,13 +263,35 @@ vtkMRMLTransformRecorderNode
 {
   double seconds = clock() * 1.0 / CLOCKS_PER_SEC;
   
+  vtkMatrix4x4* matrix = vtkMatrix4x4::New();
+    matrix->Identity();
+  this->ObservedTransformNode->GetMatrixTransformToWorld( matrix );
+  
+  std::stringstream ss;
+  ss << seconds << " ";
+  ss << matrix->GetElement( 0, 0 ) << " " << matrix->GetElement( 0, 1 ) << " " << matrix->GetElement( 0, 2 ) << " " << matrix->GetElement( 0, 3 ) << " ";
+  ss << matrix->GetElement( 1, 0 ) << " " << matrix->GetElement( 1, 1 ) << " " << matrix->GetElement( 1, 2 ) << " " << matrix->GetElement( 1, 3 ) << " ";
+  ss << matrix->GetElement( 2, 0 ) << " " << matrix->GetElement( 2, 1 ) << " " << matrix->GetElement( 2, 2 ) << " " << matrix->GetElement( 2, 3 ) << " ";
+  ss << matrix->GetElement( 3, 0 ) << " " << matrix->GetElement( 3, 1 ) << " " << matrix->GetElement( 3, 2 ) << " " << matrix->GetElement( 3, 3 ) << " ";
+  
   std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
-  output << seconds << " ";
-  this->ObservedTransformNode->WriteXML( output, 0 );
+  output << ss.str();
   output << std::endl;
   output.close();
 }
 
+
+void
+vtkMRMLTransformRecorderNode
+::CustomMessage( std::string message )
+{
+  double seconds = clock() * 1.0 / CLOCKS_PER_SEC;
+  
+  std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
+  output << seconds << " " << message;
+  output << std::endl;
+  output.close();
+}
 
 
 void
