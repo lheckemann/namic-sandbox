@@ -1730,18 +1730,7 @@ void vtkProstateNavGUI::UpdateCurrentTargetDisplayInSecondaryWindow()
   if (robot!=NULL && targetDesc!=NULL && needle!=NULL)
   {
     std::string info=robot->GetTargetInfoText(targetDesc, needle);
-    std::string::size_type separatorPos=info.find(robot->GetTargetInfoSectionSeparator());    
-    if (separatorPos != std::string::npos )
-    {
-      // separator found, there will be separate main and additional info section
-      mainInfo=info.substr(0, separatorPos);
-      info.erase(0, separatorPos+robot->GetTargetInfoSectionSeparator().size());
-      additionalInfo=info;
-    }
-    else
-    {
-      mainInfo=info;
-    }
+    robot->SplitTargetInfoText(info, mainInfo, additionalInfo);   
   }
   else
   {

@@ -58,7 +58,12 @@
 #include "vtkKWMultiColumnListWithScrollbars.h"
 #include "vtkKWCheckButton.h"
 
-const char TARGET_INDEX_ATTR[]="TARGET_IND";
+// Precision of the target position and orientation display
+static const int POSITION_PRECISION_DIGITS=1;
+static const double POSITION_PRECISION_TOLERANCE=0.1/2.0;
+
+
+static const char TARGET_INDEX_ATTR[]="TARGET_IND";
 
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj) \
@@ -816,6 +821,18 @@ void vtkProstateNavTargetingStep::OnMultiColumnListUpdate(int row, int col, char
       float * xyz = fidList->GetNthFiducialXYZ(row);
       // now set the new one
       float newCoordinate = atof(str);
+      
+      // Update the GUI with the number that was converted from the entered string
+      // (this way the user gets feedback if the conversion failed, sue to an invalid character accidentally entered, etc.)
+      if (this->TargetList && this->TargetList->GetWidget())
+      {
+        std::ostrstream os;    
+        os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(POSITION_PRECISION_DIGITS);
+        os << newCoordinate << std::ends;
+        this->TargetList->GetWidget()->SetCellText(row,col,os.str());
+        os.rdbuf()->freeze();        
+      }
+
       if ( xyz )
         {
         if (col == COL_X)
@@ -977,10 +994,6 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
         
   double *xyz;
   double *wxyz;
-
-  // Precision of the target position and orientation display
-  const int POSITION_PRECISION_DIGITS=1;
-  const double POSITION_PRECISION_TOLERANCE=0.1/2.0;
 
   for (int row = 0; row < numPoints; row++)
     {      
@@ -1167,8 +1180,13 @@ void vtkProstateNavTargetingStep::UpdateGUI()
 
     if (robot!=NULL && targetDesc!=NULL && needle!=NULL)
     {
+      // Get target info text then split it to remove the separator
       std::string info=robot->GetTargetInfoText(targetDesc, needle);
-      this->Message->SetText(info.c_str());
+      std::string mainInfo;
+      std::string additionalInfo;
+      robot->SplitTargetInfoText(info, mainInfo, additionalInfo);
+      std::string displayedInfo=mainInfo+additionalInfo;
+      this->Message->SetText(displayedInfo.c_str());
     }
     else
     {
