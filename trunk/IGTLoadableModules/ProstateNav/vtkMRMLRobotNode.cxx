@@ -264,3 +264,24 @@ void vtkMRMLRobotNode::ApplyTransform(vtkMatrix4x4* transformMatrix)
 { 
   Superclass::ApplyTransform(transformMatrix); 
 }
+
+//----------------------------------------------------------------------------
+void vtkMRMLRobotNode::SplitTargetInfoText(const std::string targetInfoText, std::string &mainInfo, std::string &additionalInfo)
+{   
+  std::string info=targetInfoText; // copy the input string, as it will be modified
+  mainInfo.clear();
+  additionalInfo.clear();
+
+  std::string::size_type separatorPos=targetInfoText.find(GetTargetInfoSectionSeparator());    
+  if (separatorPos != std::string::npos )
+  {
+    // separator found, there will be separate main and additional info section
+    mainInfo=info.substr(0, separatorPos);
+    info.erase(0, separatorPos+GetTargetInfoSectionSeparator().size());
+    additionalInfo=info;
+  }
+  else
+  {
+    mainInfo=info;
+  }
+}
