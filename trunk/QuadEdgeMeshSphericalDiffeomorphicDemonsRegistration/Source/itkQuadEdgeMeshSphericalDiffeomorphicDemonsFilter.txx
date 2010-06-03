@@ -790,15 +790,22 @@ ComputeScalingAndSquaringNumberOfIterations()
     {
     const double ratio = this->ComputeLargestVelocityMagnitude() / this->m_ShortestEdgeLength;
 
-    unsigned int iterations =
-      static_cast< unsigned int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
-
-    if( iterations < minimumNumberOfIterations )
+    if ( ratio < 1.0 )
       {
-      iterations = minimumNumberOfIterations;
+      this->m_ScalingAndSquaringNumberOfIterations = minimumNumberOfIterations;
       }
+    else
+      {
+      unsigned int iterations =
+        static_cast< unsigned int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
 
-    this->m_ScalingAndSquaringNumberOfIterations = iterations;
+      if( iterations < minimumNumberOfIterations )
+        {
+        iterations = minimumNumberOfIterations;
+        }
+
+      this->m_ScalingAndSquaringNumberOfIterations = iterations;
+      }
     }
 }
 
@@ -870,6 +877,8 @@ ComputeShortestEdgeLength()
     {
     itkExceptionMacro("The shortest edge length is too close to zero = " << shortestLength );
     }
+    
+  m_Epsilon = 0.5 / ( m_SigmaX * m_SigmaX * m_ShortestEdgeLength * m_ShortestEdgeLength );
 }
 
 
