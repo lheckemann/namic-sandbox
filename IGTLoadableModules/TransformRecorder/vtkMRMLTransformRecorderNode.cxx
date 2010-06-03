@@ -286,11 +286,14 @@ vtkMRMLTransformRecorderNode
   this->ObservedTransformNode->GetMatrixTransformToWorld( matrix );
   
   std::stringstream ss;
-  ss << seconds << " ";
+  ss << "<log ";
+  ss << "time=\"" << seconds << "\" type=\"transform\" transform=\"";
   ss << matrix->GetElement( 0, 0 ) << " " << matrix->GetElement( 0, 1 ) << " " << matrix->GetElement( 0, 2 ) << " " << matrix->GetElement( 0, 3 ) << " ";
   ss << matrix->GetElement( 1, 0 ) << " " << matrix->GetElement( 1, 1 ) << " " << matrix->GetElement( 1, 2 ) << " " << matrix->GetElement( 1, 3 ) << " ";
   ss << matrix->GetElement( 2, 0 ) << " " << matrix->GetElement( 2, 1 ) << " " << matrix->GetElement( 2, 2 ) << " " << matrix->GetElement( 2, 3 ) << " ";
   ss << matrix->GetElement( 3, 0 ) << " " << matrix->GetElement( 3, 1 ) << " " << matrix->GetElement( 3, 2 ) << " " << matrix->GetElement( 3, 3 ) << " ";
+  ss << "\"";
+  ss << ">";
   
   const char* cs = ss.str().c_str();
   
@@ -308,7 +311,9 @@ vtkMRMLTransformRecorderNode
   double seconds = clock() * 1.0 / CLOCKS_PER_SEC;
   
   std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
-  output << seconds << " " << message;
+  output << "<log ";
+  output << "time=\"" << seconds << "\" type=\"message\" message=\"" << message;
+  output << "\" >";
   output << std::endl;
   output.close();
 }
