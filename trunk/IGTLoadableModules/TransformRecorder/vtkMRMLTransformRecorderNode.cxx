@@ -74,7 +74,8 @@ vtkMRMLTransformRecorderNode::vtkMRMLTransformRecorderNode()
 //----------------------------------------------------------------------------
 vtkMRMLTransformRecorderNode::~vtkMRMLTransformRecorderNode()
 {
-   this->SetAndObserveObservedTransformNodeID( NULL );
+  this->RemoveMRMLObservers();
+  this->SetAndObserveObservedTransformNodeID( NULL );
 }
 
 
@@ -205,6 +206,7 @@ vtkMRMLTransformRecorderNode
   this->SetObservedTransformNodeID( nodeID );
   vtkMRMLTransformNode *tnode = this->GetObservedTransformNode();
   vtkSetAndObserveMRMLObjectMacro(this->ObservedTransformNode, tnode);
+  tnode->AddObserver( vtkMRMLTransformNode::TransformModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand );
 }
 
 
@@ -229,14 +231,30 @@ void
 vtkMRMLTransformRecorderNode
 ::ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData )
 {
-  if ( this->ObservedTransformNode == vtkMRMLTransformNode::SafeDownCast( caller ) )
+  if (
+       this->ObservedTransformNode == vtkMRMLTransformNode::SafeDownCast( caller )
+       && event == vtkMRMLTransformNode::TransformModifiedEvent
+     )
     {
+    vtkMatrix4x4* mtr = vtkMatrix4x4::New();
+    this->ObservedTransformNode->GetMatrixTransformToWorld( mtr );
+    mtr->Delete();
     if ( this->Recording && this->LogFileName.size() > 1 )
       {
       this->WriteLog();
       }
-    
     this->InvokeEvent( this->TransformChangedEvent, NULL );
+    }
+}
+
+
+void
+vtkMRMLTransformRecorderNode
+::RemoveMRMLObservers()
+{
+  if ( this->ObservedTransformNode )
+    {
+    this->ObservedTransformNode->RemoveObservers( vtkMRMLTransformNode::TransformModifiedEvent );
     }
 }
 
@@ -273,6 +291,8 @@ vtkMRMLTransformRecorderNode
   ss << matrix->GetElement( 1, 0 ) << " " << matrix->GetElement( 1, 1 ) << " " << matrix->GetElement( 1, 2 ) << " " << matrix->GetElement( 1, 3 ) << " ";
   ss << matrix->GetElement( 2, 0 ) << " " << matrix->GetElement( 2, 1 ) << " " << matrix->GetElement( 2, 2 ) << " " << matrix->GetElement( 2, 3 ) << " ";
   ss << matrix->GetElement( 3, 0 ) << " " << matrix->GetElement( 3, 1 ) << " " << matrix->GetElement( 3, 2 ) << " " << matrix->GetElement( 3, 3 ) << " ";
+  
+  const char* cs = ss.str().c_str();
   
   std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
   output << ss.str();

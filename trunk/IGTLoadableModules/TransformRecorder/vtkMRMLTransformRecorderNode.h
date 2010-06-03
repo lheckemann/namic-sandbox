@@ -65,7 +65,8 @@ protected:
   void operator=( const vtkMRMLTransformRecorderNode& );
 
   void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
-
+  void RemoveMRMLObservers();
+  
   // Protected member variables
     
   vtkSetReferenceStringMacro( ObservedTransformNodeID );
