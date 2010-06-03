@@ -86,6 +86,7 @@ vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
   RegisterMessageConverter(this->PositionConverter);
   RegisterMessageConverter(this->ImageMetaListConverter);
 
+  this->LocatorTransformNode = NULL;
 }
 
 
@@ -117,12 +118,15 @@ vtkOpenIGTLinkIFLogic::~vtkOpenIGTLinkIFLogic()
     }
 
 
-
   if (this->DataCallbackCommand)
     {
     this->DataCallbackCommand->Delete();
     }
 
+  if (this->LocatorTransformNode)
+    {
+    vtkSetAndObserveMRMLNodeMacro( this->LocatorTransformNode, NULL );
+    }
 }
 
 
@@ -335,12 +339,12 @@ int vtkOpenIGTLinkIFLogic::SetSliceDriver(int index, int v)
       vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->LocatorDriverNodeID));
     if (transNode)
       {
-      vtkMRMLNode *node = NULL; // TODO: is this OK?
       vtkIntArray* nodeEvents = vtkIntArray::New();
       nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-      vtkSetAndObserveMRMLNodeEventsMacro(node,transNode,nodeEvents);
+      vtkSetAndObserveMRMLNodeEventsMacro( this->LocatorTransformNode, transNode, nodeEvents);
       nodeEvents->Delete();
       transNode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+
       }
     }
 
