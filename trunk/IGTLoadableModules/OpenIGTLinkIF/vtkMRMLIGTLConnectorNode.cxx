@@ -593,7 +593,7 @@ int vtkMRMLIGTLConnectorNode::ReceiveController()
         continue; //  while (!this->ServerStopFlag)
         }
       }
-    
+
     //----------------------------------------------------------------
     // Search Circular Buffer
 
@@ -750,6 +750,8 @@ void vtkMRMLIGTLConnectorNode::ImportDataFromCircularBuffer()
 
     vtkMRMLScene* scene = this->GetScene();
 
+    vtkMRMLNode* updatedNode = NULL;
+
     // look up the incoming MRML node list
     MRMLNodeListType::iterator inIter;
     for (inIter = this->IncomingMRMLNodeList.begin();
@@ -762,11 +764,12 @@ void vtkMRMLIGTLConnectorNode::ImportDataFromCircularBuffer()
         vtkMRMLNode* node = (*inIter);
         converter->IGTLToMRML(buffer, node);
         node->Modified();
-        continue;
+        updatedNode = node;
+        break;
         }
       }
 
-    // if the incoming data is not restricted by name and type, search the scene as well.
+    // If the incoming data is not restricted by name and type, search the scene as well.
     if (!this->RestrictDeviceName)
       {
       const char* classname = scene->GetClassNameByTag(converter->GetMRMLName());
@@ -778,6 +781,7 @@ void vtkMRMLIGTLConnectorNode::ImportDataFromCircularBuffer()
         RegisterIncomingMRMLNode(node);
         converter->IGTLToMRML(buffer, node);
         node->Modified();
+        updatedNode = node;
         }
       else
         {
@@ -787,7 +791,31 @@ void vtkMRMLIGTLConnectorNode::ImportDataFromCircularBuffer()
           RegisterIncomingMRMLNode(node);
           converter->IGTLToMRML(buffer, node);
           node->Modified();
-          continue;
+          updatedNode = node;
+          break;
+          // TODO: QueueNode supposes that there is only unique combination of type and node name,
+          // but it should be able to hold multiple nodes.
+          }
+        }
+      }
+
+    // If the message is a responce to one of the querys in the list
+    // TODO: Should QueryWaitingQueue be a std::map ?
+    if (this->QueryWaitingQueue.size() > 0)
+      {
+      std::list<vtkMRMLIGTLQueryNode*>::iterator iter;
+      for (iter = this->QueryWaitingQueue.begin(); iter != this->QueryWaitingQueue.end(); iter ++)
+        {
+        if (strncmp((*iter)->GetIGTLName(), buffer->GetDeviceType(), 12) == 0 &&
+            strncmp((*iter)->GetName(), buffer->GetDeviceName(), 20) == 0)
+          {
+          //this->QueryQueueMutex->Lock();
+          (*iter)->SetQueryStatus(vtkMRMLIGTLQueryNode::STATUS_SUCCESS);
+          //this->QueryQueueMutex->Unlock();
+          (*iter)->SetResponseDataNodeID(updatedNode->GetID());
+          (*iter)->InvokeEvent(vtkMRMLIGTLQueryNode::ResponseEvent);
+          this->QueryWaitingQueue.remove((*iter));
+          iter = this->QueryWaitingQueue.end();
           }
         }
       }
@@ -1146,7 +1174,7 @@ vtkIGTLToMRMLBase* vtkMRMLIGTLConnectorNode::GetConverterByIGTLDeviceType(const 
     vtkIGTLToMRMLBase* converter = *iter;
     if (converter->GetConverterType() == vtkIGTLToMRMLBase::TYPE_NORMAL)
       {
-      if (strcmp(converter->GetMRMLName(), type) == 0)
+      if (strcmp(converter->GetIGTLName(), type) == 0)
         {
         return converter;
         }

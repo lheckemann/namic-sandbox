@@ -178,7 +178,7 @@ int vtkIGTLToMRMLImageMetaList::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrm
           {
           this->GetImageMetaMessage = igtl::GetImageMetaMessage::New();
           }
-        this->GetImageMetaMessage->SetDeviceName("3DSlicer");
+        this->GetImageMetaMessage->SetDeviceName(mrmlNode->GetName());
         this->GetImageMetaMessage->Pack();
         *size = this->GetImageMetaMessage->GetPackSize();
         *igtlMsg = this->GetImageMetaMessage->GetPackPointer();

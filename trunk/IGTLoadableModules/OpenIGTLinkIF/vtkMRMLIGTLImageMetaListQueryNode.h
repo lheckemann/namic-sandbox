@@ -104,8 +104,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLImageMetaListQueryNode : public vtkMRM
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
 
   // Description:
-  // Get OpenIGTLink device name. If the query node is for IMAGE, "IMAGE" is returned.
-  virtual const char* GetIGTLName() { return "ImageMetaList"; };
+  // Get OpenIGTLink type name. If the query node is for IMAGE, "IMAGE" is returned.
+  virtual const char* GetIGTLName() { return "IMGMETA"; };
 
   // Description:
   // Return error message after receiving requested message.

@@ -40,7 +40,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLQueryNode : public vtkMRMLNode
   //BTX
   // Events
   enum {
-    NewDeviceEvent        = 118949,
+    ResponseEvent        = 128940,
   };
 
   enum {
@@ -109,7 +109,12 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLQueryNode : public vtkMRMLNode
   // Description:
   // Return error message after receiving requested message.
   virtual const char* GetErrorString() { return NULL; };
-  
+
+  // Description:
+  // Query node saves MRML node that holds received data as response to the query.
+  virtual void SetResponseDataNodeID(const char* id) { this->DataNodeID = id; };
+  virtual const char* GetResponseDataNodeID()        { return this->DataNodeID.c_str(); };
+
  protected:
   //----------------------------------------------------------------
   // Constructor and destroctor
@@ -136,6 +141,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLQueryNode : public vtkMRMLNode
 
   //BTX
   std::string ConnectorNodeID;
+  std::string DataNodeID;
   //ETX
 
   // Time when the querry issued. 
