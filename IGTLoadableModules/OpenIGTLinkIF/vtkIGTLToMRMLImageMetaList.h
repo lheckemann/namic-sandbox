@@ -35,6 +35,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLImageMetaList : public vtkIGTLToMRML
 
   virtual const char*  GetIGTLName() { return "IMGMETA"; };
   virtual const char*  GetMRMLName() { return "ImageMetaList"; };
+
   virtual vtkIntArray* GetNodeEvents();
   virtual vtkMRMLNode* CreateNewNode(vtkMRMLScene* scene, const char* name);
 

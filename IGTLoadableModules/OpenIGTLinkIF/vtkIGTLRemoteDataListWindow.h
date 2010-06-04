@@ -33,6 +33,7 @@
 #include "vtkKWTopLevel.h"
 #include "vtkSmartPointer.h"
 #include "vtkMRMLIGTLConnectorNode.h"
+#include "vtkMRMLIGTLImageMetaListQueryNode.h"
 
 class vtkOpenIGTLinkIFGUI;
 
@@ -54,6 +55,30 @@ public:
     this->InGUICallbackFlag = flag;
     }
   vtkGetMacro(InGUICallbackFlag, int);
+  void SetInMRMLCallbackFlag (int flag) {
+    this->InMRMLCallbackFlag = flag;
+  }
+  vtkGetMacro(InMRMLCallbackFlag, int);
+
+  void SetAndObserveMRMLScene ( vtkMRMLScene *mrml )
+    {
+    vtkMRMLScene *oldValue = this->MRMLScene;
+    this->MRMLObserverManager->SetAndObserveObject ( vtkObjectPointer( &this->MRMLScene), (vtkObject*)mrml );
+    if ( oldValue != this->MRMLScene )
+      {
+      this->InvokeEvent (vtkCommand::ModifiedEvent);
+      }
+    }
+
+  void SetAndObserveMRMLSceneEvents ( vtkMRMLScene *mrml, vtkIntArray *events )
+    {
+    vtkObject *oldValue = this->MRMLScene;
+    this->MRMLObserverManager->SetAndObserveObjectEvents ( vtkObjectPointer( &this->MRMLScene), mrml, events );
+    if ( oldValue != this->MRMLScene )
+      {
+      this->InvokeEvent (vtkCommand::ModifiedEvent);
+      }
+    }
 
   void DisplayOnWindow();
   void SetOpenIGTLinkIFGUI(vtkOpenIGTLinkIFGUI* moduleGUI)
@@ -65,7 +90,10 @@ protected:
 
   vtkIGTLRemoteDataListWindow();
   ~vtkIGTLRemoteDataListWindow();  
-  
+
+  static void MRMLCallback(vtkObject *caller,
+                           unsigned long eid, void *clientData, void *callData );
+
   static void GUICallback(vtkObject *caller,
                           unsigned long eid, void *clientData, void *callData );
   
@@ -73,9 +101,11 @@ protected:
   void UpdateWindowPoisition();
   virtual void CreateWidget();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
+  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
   virtual void AddGUIObservers();
   virtual void RemoveGUIObservers();
   
+  void UpdateRemoteDataList();
   
  protected:
   
@@ -88,9 +118,12 @@ protected:
   vtkKWMultiColumnListWithScrollbars* RemoteDataList;
   vtkKWPushButton* GetButton;
   vtkKWPushButton* CloseButton;
-  
+
+  vtkCallbackCommand *MRMLCallbackCommand;  
   vtkCallbackCommand *GUICallbackCommand;
+  vtkObserverManager *MRMLObserverManager;
   int InGUICallbackFlag;
+  int InMRMLCallbackFlag;
   int IsObserverAddedFlag;
   
   //----------------------------------------------------------------
@@ -104,6 +137,7 @@ protected:
   vtkMRMLScene* MRMLScene;
   
   vtkMRMLIGTLConnectorNode* Connector;
+  vtkMRMLIGTLImageMetaListQueryNode* ImageMetaListQueryNode;
 
  private:
   vtkIGTLRemoteDataListWindow(const vtkIGTLRemoteDataListWindow&);

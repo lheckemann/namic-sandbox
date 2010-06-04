@@ -25,6 +25,7 @@
 #include "vtkCornerAnnotation.h"
 
 #include "vtkMRMLIGTLImageMetaListQueryNode.h"
+#include "vtkMRMLImageMetaListNode.h"
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkIGTLRemoteDataListWindow);
@@ -47,16 +48,24 @@ vtkIGTLRemoteDataListWindow::vtkIGTLRemoteDataListWindow()
 
   // GUI callback command
   this->InGUICallbackFlag = 0;
+  this->InMRMLCallbackFlag = 0;
   this->IsObserverAddedFlag = 0;
 
   this->GUICallbackCommand = vtkCallbackCommand::New();
   this->GUICallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
   this->GUICallbackCommand->SetCallback(&vtkIGTLRemoteDataListWindow::GUICallback);
 
+  this->MRMLObserverManager = vtkObserverManager::New();
+  this->MRMLObserverManager->GetCallbackCommand()->SetClientData( reinterpret_cast<void *> (this) );
+  this->MRMLObserverManager->GetCallbackCommand()->SetCallback(vtkIGTLRemoteDataListWindow::MRMLCallback);
+  this->MRMLCallbackCommand = this->MRMLObserverManager->GetCallbackCommand();
+
   this->ModuleGUI = NULL; 
   this->MRMLScene = NULL;
 
   this->Connector = NULL;
+  this->ImageMetaListQueryNode = NULL;
+
 }
 
 
@@ -115,7 +124,6 @@ void vtkIGTLRemoteDataListWindow::GUICallback( vtkObject *caller,
   
   if (self->GetInGUICallbackFlag())
     {
-    vtkDebugWithObjectMacro(self, "In vtkProstateNavStep GUICallback");
     }
 
   self->SetInGUICallbackFlag(1);
@@ -123,6 +131,24 @@ void vtkIGTLRemoteDataListWindow::GUICallback( vtkObject *caller,
   self->SetInGUICallbackFlag(0);
   
 }
+
+//----------------------------------------------------------------------------
+void vtkIGTLRemoteDataListWindow::MRMLCallback(vtkObject *caller, 
+                                    unsigned long eid, void *clientData, void *callData)
+{
+  
+  vtkIGTLRemoteDataListWindow *self = reinterpret_cast<vtkIGTLRemoteDataListWindow *>(clientData);
+  
+  if (self->GetInMRMLCallbackFlag())
+    {
+    return;
+    }
+
+  self->SetInMRMLCallbackFlag(1);
+  self->ProcessMRMLEvents(caller, eid, callData);
+  self->SetInMRMLCallbackFlag(0);
+}
+
 
 void vtkIGTLRemoteDataListWindow::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
 {
@@ -133,19 +159,38 @@ void vtkIGTLRemoteDataListWindow::ProcessGUIEvents(vtkObject *caller, unsigned l
     std::cerr << "GetButton is pressed. " << std::endl;
     if (this->MRMLScene && this->Connector)
       {
-      vtkMRMLIGTLImageMetaListQueryNode* qnode = vtkMRMLIGTLImageMetaListQueryNode::New();
-      qnode->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_GET);
-      this->MRMLScene->AddNode(qnode);
-      this->Connector->PushQuery((vtkMRMLIGTLQueryNode*)qnode);
+      if (this->ImageMetaListQueryNode == NULL)
+        {
+        this->ImageMetaListQueryNode = vtkMRMLIGTLImageMetaListQueryNode::New();
+        this->MRMLScene->AddNode(this->ImageMetaListQueryNode);
+        this->ImageMetaListQueryNode->AddObserver(vtkMRMLIGTLQueryNode::ResponseEvent,this->MRMLCallbackCommand);
+        }
+      this->ImageMetaListQueryNode->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_GET);
+      this->Connector->PushQuery((vtkMRMLIGTLQueryNode*)this->ImageMetaListQueryNode);
       }
     }
   if (this->CloseButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
     {
     std::cerr << "CloseButton is pressed. " << std::endl;
-    
     }
 
+}
+
+
+void vtkIGTLRemoteDataListWindow::ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData)
+{
+  if (caller == (vtkObject*)this->ImageMetaListQueryNode)
+  {
+  switch (event)
+    {
+    case vtkMRMLIGTLQueryNode::ResponseEvent:
+      this->UpdateRemoteDataList();
+      break;
+    default:
+      break;
+    }
+  }
 }
 
 
@@ -367,3 +412,46 @@ void vtkIGTLRemoteDataListWindow::DisplayOnWindow()
 }
 
 
+//----------------------------------------------------------------------------
+void vtkIGTLRemoteDataListWindow::UpdateRemoteDataList()
+{
+
+  if (this->RemoteDataList == NULL || this->ImageMetaListQueryNode ==NULL || this->MRMLScene ==NULL)
+    {
+    return;
+    }
+
+  // Obtain ImageMetaList node
+  vtkMRMLImageMetaListNode* node 
+    = vtkMRMLImageMetaListNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->ImageMetaListQueryNode->GetResponseDataNodeID()));
+  if (node)
+    {
+    int numRows = this->RemoteDataList->GetWidget()->GetNumberOfRows();
+    int numImages = node->GetNumberOfImageMetaElement();
+    if (numRows < numImages)
+      {
+      this->RemoteDataList->GetWidget()->AddRows(numImages-numRows);
+      }
+    else if (numRows > numImages)
+      {
+      int ndel = numRows-numImages;
+      for (int i = 0; i < ndel; i ++)
+        {
+        this->RemoteDataList->GetWidget()->DeleteRow(numImages);
+        }
+      }
+
+    for (int i = 0; i < numImages; i ++)
+      {
+      vtkMRMLImageMetaListNode::ImageMetaElement element;
+      node->GetImageMetaElement(i, &element);
+      this->RemoteDataList->GetWidget()->SetCellText(i, 0, element.DeviceName.c_str());
+      this->RemoteDataList->GetWidget()->SetCellText(i, 1, element.PatientID.c_str());
+      this->RemoteDataList->GetWidget()->SetCellText(i, 2, element.Modality.c_str());
+      this->RemoteDataList->GetWidget()->SetCellText(i, 3, "--"); // Date
+      this->RemoteDataList->GetWidget()->SetCellText(i, 4, "--"); // Status
+      this->RemoteDataList->GetWidget()->SetCellText(i, 5, "--"); // Description
+      }
+    }
+  
+}
