@@ -62,9 +62,9 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
   this->m_SphereCenter.Fill( 0.0 );
   this->m_SphereRadius = 1.0;
-  this->m_Epsilon = 1.0;
-
-  this->m_SigmaX = this->m_Epsilon;
+  
+  this->m_SigmaX = 1.0;
+  this->m_Epsilon = 1.0/(this->m_SigmaX * this->m_SigmaX);
 
   this->m_Lambda = 1.0;
   this->m_MaximumNumberOfSmoothingIterations = 1;
@@ -878,7 +878,8 @@ ComputeShortestEdgeLength()
     itkExceptionMacro("The shortest edge length is too close to zero = " << shortestLength );
     }
     
-  m_Epsilon = 0.5 / ( m_SigmaX * m_SigmaX * m_ShortestEdgeLength * m_ShortestEdgeLength );
+  m_Epsilon = 1.0 / ( 8.0 * m_ShortestEdgeLength * m_ShortestEdgeLength );
+  m_SigmaX = 1.0 / vcl_sqrt(m_Epsilon);
 }
 
 
