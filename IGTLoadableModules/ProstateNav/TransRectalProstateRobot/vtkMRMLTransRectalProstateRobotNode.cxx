@@ -514,7 +514,7 @@ int vtkMRMLTransRectalProstateRobotNode::Init(vtkSlicerApplication* app, const c
   // Workspace model
   if (GetWorkspaceModelNode()==NULL)
   {
-    const char* nodeID = AddModelNode("TransrectalProstateWorkspaceModel", 0.5, 1.0, 0.5);
+    const char* nodeID = AddModelNode("TransrectalProstateWorkspaceModel", 0.2, 0.8, 0.2);
     this->SetWorkspaceModelNodeRef(nodeID);
   }
 
@@ -537,7 +537,8 @@ const char* vtkMRMLTransRectalProstateRobotNode::AddModelNode(const char* nodeNa
   displayNode->SetScene(this->Scene);
   displayNode->SetColor(colorR,colorG,colorB);
   displayNode->SetOpacity(0.5);
-  displayNode->SetVisibility(0);
+  displayNode->VisibilityOff();
+  displayNode->SliceIntersectionVisibilityOff();
   this->Scene->AddNode(displayNode);
 
   vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
@@ -601,21 +602,6 @@ void vtkMRMLTransRectalProstateRobotNode::ProcessMRMLEvents( vtkObject *caller, 
   }
 
   return;
-}
-
-//----------------------------------------------------------------------------
-bool vtkMRMLTransRectalProstateRobotNode::IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
-{
-  // this is used for coverage area computation (IsOutsideReach means that the target is outside the robot's coverage area)
-  // :TODO: update this for arbitrary target and calib volume transform  
-  TRProstateBiopsyTargetingParams targetingParams;
-  bool valid=vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(targetDesc, this->CalibrationData, needle, &targetingParams);
-  if (!valid || !targetingParams.TargetingParametersValid)
-  {
-    // error computing targeting params
-    return false;
-  }
-  return (!targetingParams.IsOutsideReach);
 }
 
 bool vtkMRMLTransRectalProstateRobotNode::GetNeedleDirectionAtTarget(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle, double* needleDirection)
@@ -1036,7 +1022,8 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateWorkspaceModel()
   if (!this->CalibrationData.CalibrationValid)
   {
     // no calibration robot position is unknown
-    displayNode->SetVisibility(0);
+    displayNode->VisibilityOff();
+    displayNode->SliceIntersectionVisibilityOff();  
     return;
   }
 
@@ -1051,6 +1038,10 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateWorkspaceModel()
   polyTrans->SetInputConnection(modelReader->GetOutputPort());
   vtkSmartPointer<vtkTransform> modelTransform=vtkSmartPointer<vtkTransform>::New();
   polyTrans->SetTransform(modelTransform);
+
+  GetRobotBaseTransform(modelTransform->GetMatrix());
+
+  /*
 
   vtkMatrix4x4 *transform=modelTransform->GetMatrix();
 
@@ -1098,6 +1089,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateWorkspaceModel()
   transform->SetElement(0,3, H_before[0]);
   transform->SetElement(1,3, H_before[1]);
   transform->SetElement(2,3, H_before[2]);
+  */
 
   vtkSmartPointer<vtkTriangleFilter> cleaner=vtkSmartPointer<vtkTriangleFilter>::New();
   cleaner->SetInputConnection(polyTrans->GetOutputPort());
@@ -1107,9 +1099,9 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateWorkspaceModel()
   modelNode->SetModifiedSinceRead(1);
 
   displayNode->SetModifiedSinceRead(1); 
-  displayNode->SliceIntersectionVisibilityOn();
-  
-  displayNode->SetVisibility(1);
+
+  displayNode->SliceIntersectionVisibilityOn();  
+  displayNode->VisibilityOn();
 
 }
 
@@ -1205,9 +1197,9 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateRobotModel()
   */
 
   displayNode->SetModifiedSinceRead(1); 
-  displayNode->SliceIntersectionVisibilityOn();
   
-  displayNode->SetVisibility(1);
+  displayNode->SliceIntersectionVisibilityOn();  
+  displayNode->VisibilityOn();
 
 }
 
@@ -1356,52 +1348,28 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateRobotModelProbe()
     // if there is no calibration, we cannot show where is the probe
     return;
   }
+
+  vtkSmartPointer <vtkSTLReader> modelReader=vtkSmartPointer<vtkSTLReader>::New();
+
+  vtksys_stl::string modelFileName=this->ModuleShareDirectory+"/TransRectalProstateRobot/TransRectalProstateRobotSheath.stl";
+  modelReader->SetFileName(modelFileName.c_str());
+  modelReader->Update();
+
+  vtkSmartPointer<vtkTransformPolyDataFilter> polyTrans = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  polyTrans->SetInputConnection(modelReader->GetOutputPort());
+  vtkSmartPointer<vtkTransform> modelTransform=vtkSmartPointer<vtkTransform>::New();
+  polyTrans->SetTransform(modelTransform);
+
   // update robot base position
   vtkSmartPointer<vtkMatrix4x4> baseTransform=vtkSmartPointer<vtkMatrix4x4>::New();
-  if (!GetRobotBaseTransform(baseTransform))
+  if (!GetRobotBaseTransform(modelTransform->GetMatrix()))    
   {
     // no calibration
     return;
   }
 
-  // merge all polydata by this appender
-  vtkSmartPointer<vtkAppendPolyData> appender = vtkSmartPointer<vtkAppendPolyData>::New();
-
-  double point1Probe[4]={-100,0,0 ,1}; // probe tip point
-  double point2Probe[4]={150,0,0 ,1}; // probe base point
-  
-  double point1Ras[4]={0,0,0 ,1};
-  double point2Ras[4]={0,0,0 ,1};
-
-  baseTransform->MultiplyPoint(point1Probe, point1Ras);
-  baseTransform->MultiplyPoint(point2Probe, point2Ras);
-
-  vtkSmartPointer<vtkLineSource> probeLine=vtkSmartPointer<vtkLineSource>::New();
-  probeLine->SetResolution(100);
-  probeLine->SetPoint1(point1Ras);
-  probeLine->SetPoint2(point2Ras);
-
-  vtkSmartPointer<vtkTubeFilter> probeTube=vtkSmartPointer<vtkTubeFilter>::New();
-  probeTube->SetInputConnection(probeLine->GetOutputPort());
-  //probeTube->SetRadius(14.5);
-  probeTube->SetRadius(13.0); // TODO: read this from a model descriptor
-  probeTube->SetNumberOfSides(20);
-  probeTube->CappingOn();
-  
-  appender->AddInputConnection(probeTube->GetOutputPort());  
-
-  /*
-  vtkSmartPointer<vtkTubeFilter> probeCenterlineTube=vtkSmartPointer<vtkTubeFilter>::New();
-  probeCenterlineTube->SetInputConnection(probeLine->GetOutputPort());
-  probeCenterlineTube->SetRadius(0.5);
-  probeCenterlineTube->SetNumberOfSides(8);
-  probeCenterlineTube->CappingOn();
-
-  appender->AddInputConnection(probeCenterlineTube->GetOutputPort());
-  */
-
-  appender->Update();
-  this->ModelProbe->DeepCopy(appender->GetOutput());
+  polyTrans->Update();
+  this->ModelProbe->DeepCopy(polyTrans->GetOutput());
 }
 
 
@@ -1494,39 +1462,55 @@ bool vtkMRMLTransRectalProstateRobotNode::GetRobotBaseTransform(vtkMatrix4x4* tr
   {
     // no claibration robot position is unknown
     return false;
-  }
+  }  
 
-  // TODO: fix this, this is just a dummy implementation, it does not take into account current encoder position
+  double v1_norm[3]={this->CalibrationData.v1[0], this->CalibrationData.v1[1], this->CalibrationData.v1[2]};         
+  vtkMath::Normalize(v1_norm);
+  double v2_norm[3]={this->CalibrationData.v2[0], this->CalibrationData.v2[1], this->CalibrationData.v2[2]};         
+  vtkMath::Normalize(v2_norm);
 
-  double v1norm[3]={this->CalibrationData.v1[0], this->CalibrationData.v1[1], this->CalibrationData.v1[2]};         
-  vtkMath::Normalize(v1norm);
-  double v2norm[3]={this->CalibrationData.v2[0], this->CalibrationData.v2[1], this->CalibrationData.v2[2]};         
-  vtkMath::Normalize(v2norm);
-
-  double x[3]={v1norm[0],v1norm[1],v1norm[2]};
-  double y[3]={0,0,0};
-  vtkMath::Cross(x, v2norm, y);
-  double z[3]={0,0,0};
-  vtkMath::Cross(x, y, z);
+  double v1xv2_norm[3]={0,0,0};
+  vtkMath::Cross(v1_norm, v2_norm, v1xv2_norm);
+  vtkMath::Normalize(v1xv2_norm);
+  double v1_x_v1xv2_norm[3]={0,0,0};
+  vtkMath::Cross(v1_norm, v1xv2_norm, v1_x_v1xv2_norm);
+  vtkMath::Normalize(v1_x_v1xv2_norm);
 
   // orientation
-  transform->SetElement(0,0, x[0]);
-  transform->SetElement(1,0, x[1]);
-  transform->SetElement(2,0, x[2]);
 
-  transform->SetElement(0,1, y[0]);
-  transform->SetElement(1,1, y[1]);
-  transform->SetElement(2,1, y[2]);
+  // x (orange)
+  transform->SetElement(0,0, v1xv2_norm[0]);
+  transform->SetElement(1,0, v1xv2_norm[1]);
+  transform->SetElement(2,0, v1xv2_norm[2]);
 
-  transform->SetElement(0,2, z[0]);
-  transform->SetElement(1,2, z[1]);
-  transform->SetElement(2,2, z[2]);
+  // y (orange)
+  transform->SetElement(0,1, v1_x_v1xv2_norm[0]);
+  transform->SetElement(1,1, v1_x_v1xv2_norm[1]);
+  transform->SetElement(2,1, v1_x_v1xv2_norm[2]);
+  
+  // z (orange)
+  transform->SetElement(0,2, v1_norm[0]);
+  transform->SetElement(1,2, v1_norm[1]);
+  transform->SetElement(2,2, v1_norm[2]);
 
-  // position
+  // Hinge point
+  double l=14.5/sin(CalibrationData.AxesAngleDegrees * vtkMath::Pi()/180);
+  double hingePoint[3];
+  hingePoint[0] = CalibrationData.I1[0] - l*CalibrationData.v2[0];
+  hingePoint[1] = CalibrationData.I1[1] - l*CalibrationData.v2[1];
+  hingePoint[2] = CalibrationData.I1[2] - l*CalibrationData.v2[2];
+
+  // position  
+  transform->SetElement(0,3, hingePoint[0]);
+  transform->SetElement(1,3, hingePoint[1]);
+  transform->SetElement(2,3, hingePoint[2]);
+
+  /*
   transform->SetElement(0,3, this->CalibrationData.I1[0]);
   transform->SetElement(1,3, this->CalibrationData.I1[1]);
   transform->SetElement(2,3, this->CalibrationData.I1[2]);
-  
+  */
+
   return true;
 } 
 

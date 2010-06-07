@@ -1200,21 +1200,6 @@ vtkMRMLLinearTransformNode* vtkMRMLTransPerinealProstateRobotNode::GetZFrameTran
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLTransPerinealProstateRobotNode::IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
-{
-  // this is used for coverage area computation (IsOutsideReach means that the target is outside the robot's coverage area)
-
-  // :TODO: perform real targeting parameter computation  
-  double *ras=targetDesc->GetRASLocation();
-  const double center[3]={0,0,0};
-  const double radius2=25*25;
-  bool reachable=
-    (ras[0]-center[0])*(ras[0]-center[0])+
-    (ras[1]-center[1])*(ras[1]-center[1])+
-    (ras[2]-center[2])*(ras[2]-center[2])<=radius2;
-  return reachable;
-}
-//----------------------------------------------------------------------------
 std::string vtkMRMLTransPerinealProstateRobotNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
 {
   // :TODO: construct a string that contains useful information for the current target (reachable, etc.)

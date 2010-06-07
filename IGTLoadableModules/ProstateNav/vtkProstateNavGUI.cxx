@@ -1584,7 +1584,7 @@ void vtkProstateNavGUI::BringTargetToViewIn2DViews(int mode)
     {      
       double needleVector[4]={0,1,0, 0};
       robot->GetNeedleDirectionAtTarget(targetDesc, needle, needleVector);
-      double transverseVector[4]={1,0,0, 0};    
+      double transverseVector[4]={0,0,1, 0};    
       // aligned transverse vector with robot base
       vtkSmartPointer<vtkMatrix4x4> transform=vtkSmartPointer<vtkMatrix4x4>::New();
       if (robot->GetRobotBaseTransform(transform))
@@ -1698,7 +1698,7 @@ void vtkProstateNavGUI::UpdateCurrentTargetDisplayInSecondaryWindow()
     this->SecondaryWindow->GetViewerWidget()==NULL ||
     this->SecondaryWindow->GetViewerWidget()->GetMainViewer()==NULL)
   {
-    vtkErrorMacro("Secondary window is not available");
+    // Secondary window is not available
     return;
   }
   

@@ -69,8 +69,6 @@ protected:
   void ShowTargetListFrame();
   void ShowTargetControlFrame();
 
-  void ShowCoverage(bool show);
-
   void EnableAddTargetsOnClickButton(bool enable);
 
   unsigned int PopulateListWithTargetDetails(unsigned int targetDescIndex);
@@ -104,7 +102,8 @@ protected:
   vtkKWPushButton* LoadTargetingVolumeButton;
   vtkSlicerNodeSelectorWidget* VolumeSelectorWidget;
   vtkKWFrame *LoadVolumeDialogFrame;
-  vtkKWCheckButton *ShowCoverageButton;  
+  vtkKWCheckButton *ShowWorkspaceButton;  
+  vtkKWCheckButton *ShowRobotButton;  
   vtkKWCheckButton *AddTargetsOnClickButton;
   vtkKWMenuButtonWithLabel *NeedleTypeMenuList;  
   vtkMRMLFiducialListNode *TargetPlanListNode;

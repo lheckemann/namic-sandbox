@@ -126,6 +126,8 @@ protected:
   // be used when Fiducials thresholds, initial angle, radius etc parameters are changed
   vtkSmartPointer<vtkKWPushButton> ResegmentButton;
   vtkSmartPointer<vtkKWCheckButton> EditMarkerPositionButton;
+  vtkSmartPointer<vtkKWCheckButton> ShowWorkspaceButton;  
+  vtkSmartPointer<vtkKWCheckButton> ShowRobotButton;  
   // also associated frames
   vtkSmartPointer<vtkKWFrame> LoadResetFrame;
   vtkSmartPointer<vtkKWFrame> ExportImportFrame;

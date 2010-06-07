@@ -79,13 +79,23 @@ install(FILES
   DESTINATION ${Slicer3_INSTALL_MODULES_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
   )
 
-install(
-  FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot/TransRectalProstateSheath.stl
-    ${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot/TransRectalProstateRobotWorkspace150mm.stl
-    ${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot/TransRectalProstateRobotWorkspace200mm.stl 
-  DESTINATION ${Slicer3_INSTALL_MODULES_SHARE_DIR}/${PROJECT_NAME}/TransRectalProstateRobot
-)
+foreach(file 
+  TransRectalProstateRobot/TransRectalProstateRobotSheath.stl
+  TransRectalProstateRobot/TransRectalProstateRobotWorkspace150mm.stl
+  TransRectalProstateRobot/TransRectalProstateRobotWorkspace200mm.stl
+  )
+  # Copy to the build tree (for Slicer execution in the Slicer3-build directory)
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/${file}
+    ${CMAKE_BINARY_DIR}/${Slicer3_INSTALL_MODULES_SHARE_DIR}/${PROJECT_NAME}/${file}
+    COPYONLY
+    )
+  # Copy to the installation target (for Slicer execution when it is installed)
+  install(
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/${file} 
+    DESTINATION ${Slicer3_INSTALL_MODULES_SHARE_DIR}/${PROJECT_NAME}
+    )
+endforeach(file)  
 
 # --------------------------------------------------------------------------
 # Sources

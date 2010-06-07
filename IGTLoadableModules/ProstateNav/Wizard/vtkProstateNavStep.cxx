@@ -187,3 +187,51 @@ void vtkProstateNavStep::TearDownGUI()
 {
   // Override in child classes  
 }
+
+//----------------------------------------------------------------------------
+void vtkProstateNavStep::ShowWorkspaceModel(bool show)
+{
+  vtkProstateNavLogic *logic=this->GetGUI()->GetLogic();
+  if (!logic)
+  {
+    vtkErrorMacro("Invalid logic object");
+    return;
+  }
+  logic->ShowWorkspaceModel(show);
+}
+
+//----------------------------------------------------------------------------
+bool vtkProstateNavStep::IsWorkspaceModelShown()
+{
+  vtkProstateNavLogic *logic=this->GetGUI()->GetLogic();
+  if (!logic)
+  {
+    vtkErrorMacro("Invalid logic object");
+    return false;
+  }
+  return logic->IsWorkspaceModelShown();
+}
+
+//----------------------------------------------------------------------------
+void vtkProstateNavStep::ShowRobotModel(bool show)
+{
+  vtkProstateNavLogic *logic=this->GetGUI()->GetLogic();
+  if (!logic)
+  {
+    vtkErrorMacro("Invalid logic object");
+    return;
+  }
+  logic->ShowRobotModel(show);
+}
+
+//----------------------------------------------------------------------------
+bool vtkProstateNavStep::IsRobotModelShown()
+{
+  vtkProstateNavLogic *logic=this->GetGUI()->GetLogic();
+  if (!logic)
+  {
+    vtkErrorMacro("Invalid logic object");
+    return false;
+  }
+  return logic->IsRobotModelShown();
+}

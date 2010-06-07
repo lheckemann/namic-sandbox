@@ -35,7 +35,6 @@ enum VolumeType
   VOL_GENERIC, // any other than the specific volumes 
   VOL_TARGETING,
   VOL_VERIFICATION,
-  VOL_COVERAGE
 };
 
 class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
@@ -138,11 +137,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
 
   vtkSetReferenceStringMacro(VerificationVolumeNodeRef);
   vtkGetStringMacro(VerificationVolumeNodeRef);
-
-  vtkSetReferenceStringMacro(CoverageVolumeNodeRef);
-  vtkGetStringMacro(CoverageVolumeNodeRef);
-
-  bool IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle);
 
   //----------------------------------------------------------------
   // Needle Management
@@ -255,7 +249,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
 
   char *TargetingVolumeNodeRef;
   char *VerificationVolumeNodeRef;
-  char *CoverageVolumeNodeRef;  
 
   bool Initialized;
 };
