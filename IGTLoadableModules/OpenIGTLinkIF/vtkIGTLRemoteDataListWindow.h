@@ -33,7 +33,7 @@
 #include "vtkKWTopLevel.h"
 #include "vtkSmartPointer.h"
 #include "vtkMRMLIGTLConnectorNode.h"
-#include "vtkMRMLIGTLImageMetaListQueryNode.h"
+#include "vtkMRMLIGTLQueryNode.h"
 
 class vtkOpenIGTLinkIFGUI;
 
@@ -137,7 +137,7 @@ protected:
   vtkMRMLScene* MRMLScene;
   
   vtkMRMLIGTLConnectorNode* Connector;
-  vtkMRMLIGTLImageMetaListQueryNode* ImageMetaListQueryNode;
+  vtkMRMLIGTLQueryNode* ImageMetaListQueryNode;
 
  private:
   vtkIGTLRemoteDataListWindow(const vtkIGTLRemoteDataListWindow&);

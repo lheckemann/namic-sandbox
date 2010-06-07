@@ -26,6 +26,8 @@ Version:   $Revision: 1.2 $
 #include "igtlMessageBase.h"
 #include "igtlMessageHeader.h"
 
+#include "igtl_header.h"  // to define maximum length of message name
+
 //------------------------------------------------------------------------------
 vtkMRMLIGTLQueryNode* vtkMRMLIGTLQueryNode::New()
 {
@@ -229,4 +231,20 @@ void vtkMRMLIGTLQueryNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 
+//----------------------------------------------------------------------------
+void vtkMRMLIGTLQueryNode::SetIGTLName(const char* name)
+{
+  char buf[IGTL_HEADER_DEVSIZE+1];
+  buf[IGTL_HEADER_DEVSIZE] = '\0';
+  strncpy(buf, name, IGTL_HEADER_DEVSIZE);
+  this->IGTLName = buf;
 
+}
+
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLIGTLQueryNode::GetErrorString()
+{
+  return "";
+
+}

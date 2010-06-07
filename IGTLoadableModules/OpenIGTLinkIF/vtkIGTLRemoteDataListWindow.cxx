@@ -24,7 +24,7 @@
 
 #include "vtkCornerAnnotation.h"
 
-#include "vtkMRMLIGTLImageMetaListQueryNode.h"
+#include "vtkMRMLIGTLQueryNode.h"
 #include "vtkMRMLImageMetaListNode.h"
 
 //----------------------------------------------------------------------------
@@ -161,7 +161,9 @@ void vtkIGTLRemoteDataListWindow::ProcessGUIEvents(vtkObject *caller, unsigned l
       {
       if (this->ImageMetaListQueryNode == NULL)
         {
-        this->ImageMetaListQueryNode = vtkMRMLIGTLImageMetaListQueryNode::New();
+        this->ImageMetaListQueryNode = vtkMRMLIGTLQueryNode::New();
+        this->ImageMetaListQueryNode->SetIGTLName("IMGMETA");
+        //this->ImageMetaListQueryNode->SetIGTLName(igtl::ImageMetaMessage::GetDeviceType());
         this->MRMLScene->AddNode(this->ImageMetaListQueryNode);
         this->ImageMetaListQueryNode->AddObserver(vtkMRMLIGTLQueryNode::ResponseEvent,this->MRMLCallbackCommand);
         }
