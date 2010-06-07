@@ -102,10 +102,12 @@ int main( int argc, char * argv [] )
   igtl_header_convert_byte_order( &(message.header) );
 
   /* Dumping data -- for debugging */
+  /*
   FILE *fp;
   fp = fopen("imgmeta.bin", "w");
   fwrite(&(message), IGTL_HEADER_SIZE+IGTL_IMGMETA_ELEMENT_SIZE*TEST_IMGMETA_NUM, 1, fp);
   fclose(fp);
+  */
 
   /* Compare the serialized byte array with the gold standard */ 
   r = memcmp((const void*)&message, (const void*)test_imgmeta_message,

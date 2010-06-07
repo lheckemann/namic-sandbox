@@ -150,6 +150,7 @@ int ReceiveLabelMeta(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::P
       std::cerr << " Owner      : " << lbMetaElement->GetOwner() << std::endl;
       std::cerr << "================================" << std::endl;
       }
+    return 1;
     }
 
   return 0;

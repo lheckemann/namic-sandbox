@@ -77,10 +77,12 @@ int main( int argc, char * argv [] )
   igtl_header_convert_byte_order( &(message.header) );
 
   /* Dumping data -- for debugging */
+  /*
   FILE *fp;
   fp = fopen("colortable.bin", "w");
   fwrite(&(message), IGTL_HEADER_SIZE+IGTL_COLORTABLE_HEADER_SIZE+TEST_COLORTABLE_SIZE, 1, fp);
   fclose(fp);
+  */
 
   /* Compare the serialized byte array with the gold standard */ 
   r = memcmp((const void*)&message, (const void*)test_colortable_message,
@@ -93,7 +95,7 @@ int main( int argc, char * argv [] )
   else
     {
     /* Print first 256 bytes as HEX values in STDERR for debug */
-    s = IGTL_HEADER_SIZE+IGTL_COLORTABLE_HEADER_SIZE+table_size;
+      s = IGTL_HEADER_SIZE+IGTL_COLORTABLE_HEADER_SIZE+(int)table_size;
     if (s > 256)
       {
       s = 256;

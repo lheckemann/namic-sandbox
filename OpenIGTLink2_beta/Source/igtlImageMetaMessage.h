@@ -121,7 +121,7 @@ public:
 
 public:
   int  AddImageMetaElement(ImageMetaElement::Pointer& elem);
-  int  ClearImageMetaElement(ImageMetaElement::Pointer& elem);
+  void ClearImageMetaElement(ImageMetaElement::Pointer& elem);
 
   int  GetNumberOfImageMetaElement();
   void GetImageMetaElement(int index, ImageMetaElement::Pointer& elem);

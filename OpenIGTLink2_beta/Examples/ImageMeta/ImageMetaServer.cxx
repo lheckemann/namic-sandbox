@@ -193,6 +193,7 @@ int SendImageMeta(igtl::Socket::Pointer& socket)
 
   socket->Send(imgMetaMsg->GetPackPointer(), imgMetaMsg->GetPackSize());
 
+  return 1;
 
 }
 

@@ -156,8 +156,9 @@ int ReceiveTrackingData(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader
       igtl::PrintMatrix(matrix);
       std::cerr << "================================" << std::endl;
       }
+    return 1;
     }
-
+  return 0;
 }
 
 

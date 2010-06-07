@@ -250,7 +250,7 @@ int TrackingDataMessage::AddTrackingDataElement(TrackingDataElement::Pointer& el
 }
 
 
-int TrackingDataMessage::ClearTrackingDataElement(TrackingDataElement::Pointer& elem)
+void TrackingDataMessage::ClearTrackingDataElement(TrackingDataElement::Pointer& elem)
 {
   this->m_TrackingDataList.clear();
 }
@@ -264,7 +264,7 @@ int TrackingDataMessage::GetNumberOfTrackingDataElement()
 
 void TrackingDataMessage::GetTrackingDataElement(int index, TrackingDataElement::Pointer& elem)
 {
-  if (index >= 0 && index < this->m_TrackingDataList.size())
+  if (index >= 0 && index < (int)this->m_TrackingDataList.size())
     {
     elem = this->m_TrackingDataList[index];
     }

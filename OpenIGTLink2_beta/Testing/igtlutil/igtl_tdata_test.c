@@ -115,10 +115,12 @@ int main( int argc, char * argv [] )
   igtl_header_convert_byte_order( &(message.header) );
 
   /* Dumping data -- for debugging */
+  /*
   FILE *fp;
   fp = fopen("tdata.bin", "w");
   fwrite(&(message), IGTL_HEADER_SIZE+IGTL_TDATA_ELEMENT_SIZE*TEST_TDATA_NUM, 1, fp);
   fclose(fp);
+  */
 
 
   /* Compare the serialized byte array with the gold standard */ 
@@ -139,7 +141,7 @@ int main( int argc, char * argv [] )
       }
 
     fprintf(stdout, "\n===== First %d bytes of the test message =====\n", s);
-    //igtl_message_dump_hex(stdout, (const void*)&message, s);
+    /*igtl_message_dump_hex(stdout, (const void*)&message, s);*/
 
     return EXIT_FAILURE;
     }

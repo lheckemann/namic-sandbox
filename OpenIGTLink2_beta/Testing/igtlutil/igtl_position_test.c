@@ -72,10 +72,12 @@ int main( int argc, char * argv [] )
   igtl_header_convert_byte_order( &(message.header) );
 
   /* Dumping data -- for testing */
+  /*
   FILE *fp;
   fp = fopen("position.bin", "w");
   fwrite(&(message.header), IGTL_HEADER_SIZE+IGTL_POSITION_MESSAGE_DEFAULT_SIZE, 1, fp);
   fclose(fp);
+  */
 
   /* Compare the serialized byte array with the gold standard */ 
 

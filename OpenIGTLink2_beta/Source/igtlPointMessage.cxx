@@ -184,7 +184,7 @@ int PointMessage::AddPointElement(PointElement::Pointer& elem)
 }
 
 
-int PointMessage::ClearPointElement(PointElement::Pointer& elem)
+void PointMessage::ClearPointElement(PointElement::Pointer& elem)
 {
   this->m_PointList.clear();
 }
@@ -198,7 +198,7 @@ int PointMessage::GetNumberOfPointElement()
 
 void PointMessage::GetPointElement(int index, PointElement::Pointer& elem)
 {
-  if (index >= 0 && index < this->m_PointList.size())
+  if (index >= 0 && index < (int)this->m_PointList.size())
     {
     elem = this->m_PointList[index];
     }
