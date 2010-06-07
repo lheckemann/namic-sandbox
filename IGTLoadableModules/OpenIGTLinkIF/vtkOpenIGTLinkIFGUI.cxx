@@ -1482,7 +1482,8 @@ void vtkOpenIGTLinkIFGUI::Enter()
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
-    this->TimerInterval = 100;  // 100 ms
+    //this->TimerInterval = 100;  // 100 ms
+    this->TimerInterval = 50;  // 50 ms
     ProcessTimerEvents();
     }
 
