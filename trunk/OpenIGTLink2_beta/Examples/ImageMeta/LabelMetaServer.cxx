@@ -172,7 +172,7 @@ int SendLabelMeta(igtl::Socket::Pointer& socket)
 
   socket->Send(lbMetaMsg->GetPackPointer(), lbMetaMsg->GetPackSize());
 
-
+  return 1;
 }
 
 

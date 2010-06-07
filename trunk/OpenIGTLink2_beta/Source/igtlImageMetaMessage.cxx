@@ -211,7 +211,7 @@ int ImageMetaMessage::AddImageMetaElement(ImageMetaElement::Pointer& elem)
 }
 
 
-int ImageMetaMessage::ClearImageMetaElement(ImageMetaElement::Pointer& elem)
+void ImageMetaMessage::ClearImageMetaElement(ImageMetaElement::Pointer& elem)
 {
   this->m_ImageMetaList.clear();
 }
@@ -225,7 +225,7 @@ int ImageMetaMessage::GetNumberOfImageMetaElement()
 
 void ImageMetaMessage::GetImageMetaElement(int index, ImageMetaElement::Pointer& elem)
 {
-  if (index >= 0 && index < this->m_ImageMetaList.size())
+  if (index >= 0 && index < (int) this->m_ImageMetaList.size())
     {
     elem = this->m_ImageMetaList[index];
     }

@@ -1,3 +1,6 @@
+find_package(OpenIGTLink REQUIRED)
+include(${OpenIGTLink_USE_FILE})
+
 ADD_EXECUTABLE(igtl_image_test igtl_image_test.c)
 ADD_EXECUTABLE(igtl_header_test igtl_header_test.c)
 ADD_EXECUTABLE(igtl_transform_test igtl_transform_test.c)

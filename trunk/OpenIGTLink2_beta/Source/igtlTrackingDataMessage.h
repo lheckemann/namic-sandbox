@@ -150,7 +150,7 @@ public:
 
 public:
   int  AddTrackingDataElement(TrackingDataElement::Pointer& elem);
-  int  ClearTrackingDataElement(TrackingDataElement::Pointer& elem);
+  void ClearTrackingDataElement(TrackingDataElement::Pointer& elem);
 
   int  GetNumberOfTrackingDataElement();
   void GetTrackingDataElement(int index, TrackingDataElement::Pointer& elem);

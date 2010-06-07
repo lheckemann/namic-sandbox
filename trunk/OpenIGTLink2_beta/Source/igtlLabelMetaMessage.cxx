@@ -189,7 +189,7 @@ int LabelMetaMessage::AddLabelMetaElement(LabelMetaElement::Pointer& elem)
 }
 
 
-int LabelMetaMessage::ClearLabelMetaElement(LabelMetaElement::Pointer& elem)
+void LabelMetaMessage::ClearLabelMetaElement(LabelMetaElement::Pointer& elem)
 {
   this->m_LabelMetaList.clear();
 }
@@ -203,7 +203,7 @@ int LabelMetaMessage::GetNumberOfLabelMetaElement()
 
 void LabelMetaMessage::GetLabelMetaElement(int index, LabelMetaElement::Pointer& elem)
 {
-  if (index >= 0 && index < this->m_LabelMetaList.size())
+  if (index >= 0 && index < (int)this->m_LabelMetaList.size())
     {
     elem = this->m_LabelMetaList[index];
     }

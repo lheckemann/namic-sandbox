@@ -152,6 +152,7 @@ int ReceiveImageMeta(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::P
       std::cerr << " ScalarType : " << (int) imgMetaElement->GetScalarType() << std::endl;
       std::cerr << "================================" << std::endl;
       }
+    return 1;
     }
 
   return 0;
