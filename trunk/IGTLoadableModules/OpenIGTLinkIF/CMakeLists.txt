@@ -65,7 +65,7 @@ set(OpenIGTLinkIF_SRCS
   vtkMRMLIGTLQueryNode.cxx
   vtkMRMLImageMetaListNode.cxx
   vtkIGTLToMRMLImageMetaList.cxx
-  vtkMRMLIGTLImageMetaListQueryNode.cxx
+#  vtkMRMLIGTLImageMetaListQueryNode.cxx
 )
 
 # --------------------------------------------------------------------------

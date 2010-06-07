@@ -104,11 +104,12 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLQueryNode : public vtkMRMLNode
 
   // Description:
   // Get OpenIGTLink device name. If the query node is for IMAGE, "IMAGE" is returned.
-  virtual const char* GetIGTLName() { return NULL; };
+  virtual void SetIGTLName(const char* name);
+  virtual const char* GetIGTLName() { return IGTLName.c_str(); };
 
   // Description:
   // Return error message after receiving requested message.
-  virtual const char* GetErrorString() { return NULL; };
+  virtual const char* GetErrorString();
 
   // Description:
   // Query node saves MRML node that holds received data as response to the query.
@@ -136,6 +137,10 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLQueryNode : public vtkMRMLNode
   // Data
   //----------------------------------------------------------------
 
+  //BTX
+  std::string IGTLName;
+  //ETX
+  
   int QueryStatus;
   int QueryType;
 

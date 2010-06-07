@@ -24,7 +24,7 @@
 #include "igtlImageMessage.h"
 
 #include "vtkMRMLImageMetaListNode.h"
-#include "vtkMRMLIGTLImageMetaListQueryNode.h"
+#include "vtkMRMLIGTLQueryNode.h"
 
 vtkStandardNewMacro(vtkIGTLToMRMLImageMetaList);
 vtkCxxRevisionMacro(vtkIGTLToMRMLImageMetaList, "$Revision: 10577 $");
@@ -108,7 +108,9 @@ int vtkIGTLToMRMLImageMetaList::IGTLToMRML(igtl::MessageBase::Pointer buffer, vt
     {
     return 0;
     }
-  
+
+  imetaNode->ClearImageMetaElement();
+
   int nElements = imgMeta->GetNumberOfImageMetaElement();
   for (int i = 0; i < nElements; i ++)
     {
@@ -167,7 +169,7 @@ int vtkIGTLToMRMLImageMetaList::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrm
   // If mrmlNode is query node
   if (strcmp(mrmlNode->GetNodeTagName(), "IGTLQuery") == 0 ) // Query Node
     {
-    vtkMRMLIGTLImageMetaListQueryNode* qnode = vtkMRMLIGTLImageMetaListQueryNode::SafeDownCast(mrmlNode);
+    vtkMRMLIGTLQueryNode* qnode = vtkMRMLIGTLQueryNode::SafeDownCast(mrmlNode);
     if (qnode)
       {
       if (qnode->GetQueryType() == vtkMRMLIGTLQueryNode::TYPE_GET)
