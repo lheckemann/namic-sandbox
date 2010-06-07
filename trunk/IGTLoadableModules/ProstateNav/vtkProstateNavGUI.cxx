@@ -1780,7 +1780,8 @@ void vtkProstateNavGUI::SetAndObserveRobotNodeID(const char *nodeID)
   if (this->RobotNode!=NULL)
   {
     //this will fire a manager update message, which will trigger a GUI update
-    this->RobotNode->Init(vtkSlicerApplication::SafeDownCast(this->GetApplication())); // :TODO: init is called every time a robot is selected, however it would need to be called when the robot is created
+    vtksys_stl::string moduleShareDir=this->GetLogic()->GetModuleShareDirectory();
+    this->RobotNode->Init(vtkSlicerApplication::SafeDownCast(this->GetApplication()), moduleShareDir.c_str()); // :TODO: init is called every time a robot is selected, however it would need to be called when the robot is created
   }
 
   UpdateGUI();

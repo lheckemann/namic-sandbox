@@ -41,7 +41,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
   
   // Description:
   // Initialize the robot
-  virtual int Init(vtkSlicerApplication* app);
+  virtual int Init(vtkSlicerApplication* app, const char* moduleShareDir);
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -103,6 +103,8 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
  virtual const char* GetRobotModelId() {return GetRobotModelNodeRef(); };
  virtual bool GetRobotBaseTransform(vtkMatrix4x4* transform);
 
+ virtual const char* GetWorkspaceObjectModelId() { return GetWorkspaceModelNodeRef(); };
+
  void SetModelAxesVisible(bool visible);
  vtkGetMacro(ModelAxesVisible, bool);
 
@@ -129,26 +131,33 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
   vtkMRMLTransRectalProstateRobotNode(const vtkMRMLTransRectalProstateRobotNode&);
   void operator=(const vtkMRMLTransRectalProstateRobotNode&);  
 
-  const char* AddRobotModel(const char* nodeName); 
+  const char* AddModelNode(const char* nodeName, double colorR=0.7, double colorG=0.7, double colorB=0.7); 
     
   vtkGetStringMacro(RobotModelNodeRef);
   vtkSetReferenceStringMacro(RobotModelNodeRef); 
   vtkMRMLModelNode* GetRobotModelNode();    
 
+  vtkGetStringMacro(WorkspaceModelNodeRef);
+  vtkSetReferenceStringMacro(WorkspaceModelNodeRef); 
+  vtkMRMLModelNode* GetWorkspaceModelNode();    
+
+
  protected:
 
   vtkSetStringMacro(CalibrationStatusDescription);  
 
-  void UpdateModel();
-  void UpdateModelAxes();
-  void UpdateModelProbe();
-  void UpdateModelMarker(int markerInd, vtkImageData *imagedata, vtkMatrix4x4* ijkToRAS);
-  void UpdateModelNeedle(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle);
+  void UpdateRobotModel();
+  void UpdateRobotModelAxes();
+  void UpdateRobotModelProbe();
+  void UpdateRobotModelMarker(int markerInd, vtkImageData *imagedata, vtkMatrix4x4* ijkToRAS);
+  void UpdateRobotModelNeedle(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle);
+
+  void UpdateWorkspaceModel();
 
   void UpdateCalibration();
 
   virtual void TransformCalibrationData(vtkMatrix4x4 *transformMatrix);
-  virtual void TransformModelMarkers(vtkMatrix4x4* transformMatrix);
+  virtual void TransformRobotModelMarkers(vtkMatrix4x4* transformMatrix);
 
   ///////////////////////////////
   // persistent data
@@ -161,6 +170,8 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
 
   bool ModelAxesVisible;
   char *RobotModelNodeRef;
+  
+  char *WorkspaceModelNodeRef;
 
   TRProstateBiopsyCalibrationData CalibrationData;
   char *CalibrationStatusDescription;

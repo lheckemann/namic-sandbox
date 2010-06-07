@@ -60,6 +60,10 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/vtkProstateNavConfigure.h
   )
 
+#
+# Installation
+#
+
 file(GLOB headers 
   "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateRobot/*.h"
@@ -75,6 +79,13 @@ install(FILES
   DESTINATION ${Slicer3_INSTALL_MODULES_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
   )
 
+install(
+  FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot/TransRectalProstateSheath.stl
+    ${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot/TransRectalProstateRobotWorkspace150mm.stl
+    ${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot/TransRectalProstateRobotWorkspace200mm.stl 
+  DESTINATION ${Slicer3_INSTALL_MODULES_SHARE_DIR}/${PROJECT_NAME}/TransRectalProstateRobot
+)
 
 # --------------------------------------------------------------------------
 # Sources

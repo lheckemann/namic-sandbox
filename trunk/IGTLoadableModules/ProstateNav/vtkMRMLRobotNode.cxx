@@ -201,8 +201,16 @@ vtkMRMLTransformNode* vtkMRMLRobotNode::GetTargetTransformNode()
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLRobotNode::Init(vtkSlicerApplication* app)
+int vtkMRMLRobotNode::Init(vtkSlicerApplication* app, const char* moduleShareDir)
 {
+  if (moduleShareDir!=NULL)
+  {
+    this->ModuleShareDirectory=moduleShareDir;
+  }
+  else
+  {
+    this->ModuleShareDirectory.clear();
+  }
   if (GetTargetTransformNode()==NULL)
   {
     // Target node

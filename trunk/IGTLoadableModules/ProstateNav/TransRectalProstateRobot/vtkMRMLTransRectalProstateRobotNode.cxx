@@ -35,6 +35,7 @@ Version:   $Revision: 1.2 $
 #include "vtkGlyph3D.h"
 #include "vtkPoints.h"
 #include "vtkPointSource.h"
+#include "vtkSTLReader.h"
 
 #include "vtkProstateNavTargetDescriptor.h"
 
@@ -99,6 +100,8 @@ vtkMRMLTransRectalProstateRobotNode::vtkMRMLTransRectalProstateRobotNode()
     
   this->RobotModelNodeRef=NULL;
 
+  this->WorkspaceModelNodeRef=NULL;
+
   CalibrationStatusDescription=NULL;
 
   this->CalibrationPointListNodeID = NULL;
@@ -115,6 +118,7 @@ vtkMRMLTransRectalProstateRobotNode::vtkMRMLTransRectalProstateRobotNode()
 vtkMRMLTransRectalProstateRobotNode::~vtkMRMLTransRectalProstateRobotNode()
 {
   SetRobotModelNodeRef(NULL);
+  SetWorkspaceModelNodeRef(NULL);
     
   if (GetCalibrationPointListNode()!=NULL)
   {
@@ -157,6 +161,15 @@ void vtkMRMLTransRectalProstateRobotNode::RemoveChildNodes()
   Superclass::RemoveChildNodes();
 
   vtkMRMLModelNode *modelNode=GetRobotModelNode();    
+  if (modelNode!=NULL && this->GetScene()!=NULL)
+  {
+    vtkMRMLDisplayNode *dispNode=modelNode->GetDisplayNode();
+    modelNode->SetAndObserveDisplayNodeID(NULL);
+    this->GetScene()->RemoveNode(modelNode);
+    this->GetScene()->RemoveNode(dispNode);
+  }
+
+  modelNode=GetWorkspaceModelNode();    
   if (modelNode!=NULL && this->GetScene()!=NULL)
   {
     vtkMRMLDisplayNode *dispNode=modelNode->GetDisplayNode();
@@ -231,6 +244,10 @@ void vtkMRMLTransRectalProstateRobotNode::WriteXML(ostream& of, int nIndent)
   if ( this->RobotModelNodeRef )
   {
     of << indent << " RobotModelNodeRef=\"" << this->RobotModelNodeRef << "\"";
+  }
+  if ( this->WorkspaceModelNodeRef )
+  {
+    of << indent << " WorkspaceModelNodeRef=\"" << this->WorkspaceModelNodeRef << "\"";
   }
 }
 
@@ -372,6 +389,10 @@ void vtkMRMLTransRectalProstateRobotNode::ReadXMLAttributes(const char** atts)
     {
       this->SetRobotModelNodeRef(attValue);
     }
+    else if (!strcmp(attName, "WorkspaceModelNodeRef"))
+    {
+      this->SetWorkspaceModelNodeRef(attValue);
+    }
 
   }
 }
@@ -422,6 +443,9 @@ void vtkMRMLTransRectalProstateRobotNode::PrintSelf(ostream& os, vtkIndent inden
   os << indent << "RobotModelNodeRef:   " << 
    (this->RobotModelNodeRef ? this->RobotModelNodeRef : "(none)") << "\n";
 
+  os << indent << "WorkspaceModelNodeRef:   " << 
+   (this->WorkspaceModelNodeRef ? this->WorkspaceModelNodeRef : "(none)") << "\n";
+
 }
 
 //----------------------------------------------------------------------------
@@ -471,28 +495,27 @@ void vtkMRMLTransRectalProstateRobotNode::Copy(vtkMRMLNode *anode)
   this->ModelAxesVisible=node->ModelAxesVisible;
     
   this->SetRobotModelNodeRef(node->RobotModelNodeRef);  
+
+  this->SetWorkspaceModelNodeRef(node->WorkspaceModelNodeRef);  
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLTransRectalProstateRobotNode::Init(vtkSlicerApplication* app)
+int vtkMRMLTransRectalProstateRobotNode::Init(vtkSlicerApplication* app, const char* moduleShareDir)
 { 
-  this->Superclass::Init(app);
+  this->Superclass::Init(app, moduleShareDir);
 
-  // Robot model
   // This part should be moved to Robot Display Node.
+  // Robot model
   if (GetRobotModelNode()==NULL)
   {
-    const char* nodeID = AddRobotModel("TransrectalProstateRobotModel");
-    vtkMRMLModelNode*  modelNode = vtkMRMLModelNode::SafeDownCast(this->Scene->GetNodeByID(nodeID));
-    if (modelNode)
-      {
-      vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
-      displayNode->SetVisibility(0);
-      modelNode->Modified();
-      this->Scene->Modified();
-      //modelNode->SetAndObserveTransformNodeID(GetZFrameTransformNodeID());      
-      }
+    const char* nodeID = AddModelNode("TransrectalProstateRobotModel", 0.5, 0.5, 1.0);
     this->SetRobotModelNodeRef(nodeID);
+  }
+  // Workspace model
+  if (GetWorkspaceModelNode()==NULL)
+  {
+    const char* nodeID = AddModelNode("TransrectalProstateWorkspaceModel", 0.5, 1.0, 0.5);
+    this->SetWorkspaceModelNodeRef(nodeID);
   }
 
   if (GetCalibrationPointListNode()==NULL && this->Scene!=NULL)
@@ -508,29 +531,23 @@ int vtkMRMLTransRectalProstateRobotNode::Init(vtkSlicerApplication* app)
 }
 
 //----------------------------------------------------------------------------
-const char* vtkMRMLTransRectalProstateRobotNode::AddRobotModel(const char* nodeName)
-{
-  
-  vtkSmartPointer<vtkMRMLModelNode> robotModel = vtkSmartPointer<vtkMRMLModelNode>::New();
-  vtkSmartPointer<vtkMRMLModelDisplayNode> robotDisp  = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+const char* vtkMRMLTransRectalProstateRobotNode::AddModelNode(const char* nodeName, double colorR, double colorG, double colorB)
+{  
+  vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode  = vtkSmartPointer<vtkMRMLModelDisplayNode>::New(); 
+  displayNode->SetScene(this->Scene);
+  displayNode->SetColor(colorR,colorG,colorB);
+  displayNode->SetOpacity(0.5);
+  displayNode->SetVisibility(0);
+  this->Scene->AddNode(displayNode);
 
-  robotModel->SetName(nodeName);
-  robotModel->SetScene(this->Scene);
-  robotDisp->SetScene(this->Scene);
-  double color[3];
-  color[0] = 0.5;
-  color[1] = 0.5;
-  color[2] = 1.0;
-  robotDisp->SetColor(color);
-  robotDisp->SetOpacity(0.5);
-  this->Scene->AddNode(robotDisp);
+  vtkSmartPointer<vtkMRMLModelNode> modelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  modelNode->SetName(nodeName);
+  modelNode->SetScene(this->Scene);
+  modelNode->SetHideFromEditors(0);
+  modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+  this->Scene->AddNode(modelNode);
 
-  robotModel->SetAndObserveDisplayNodeID(robotDisp->GetID());
-  this->Scene->AddNode(robotModel);
-
-  robotModel->SetHideFromEditors(0);
- 
-  return robotModel->GetID(); // model is added to the scene, so the GetID string remains valid
+  return modelNode->GetID(); // model is added to the scene, so the GetID string remains valid
 }
 
 //----------------------------------------------------------------------------
@@ -539,6 +556,16 @@ vtkMRMLModelNode* vtkMRMLTransRectalProstateRobotNode::GetRobotModelNode()
   if (this->GetScene() && this->RobotModelNodeRef != NULL )
     {    
     return vtkMRMLModelNode::SafeDownCast(this->GetScene()->GetNodeByID(this->RobotModelNodeRef));
+    }
+  return NULL;
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLModelNode* vtkMRMLTransRectalProstateRobotNode::GetWorkspaceModelNode()
+{
+  if (this->GetScene() && this->WorkspaceModelNodeRef != NULL )
+    {    
+    return vtkMRMLModelNode::SafeDownCast(this->GetScene()->GetNodeByID(this->WorkspaceModelNodeRef));
     }
   return NULL;
 }
@@ -934,16 +961,18 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateCalibration()
   }
   TransformCalibrationData(transform_calVol2robotRas);  
 
-  UpdateModelAxes();
-  UpdateModelProbe();
+  UpdateRobotModelAxes();
+  UpdateRobotModelProbe();
   vtkMatrix4x4* preProcIjkToRas=calibrationAlgo->GetCalibMarkerPreProcOutputIJKToRAS();
   for (unsigned int markerId=0; markerId<CALIB_MARKER_COUNT; markerId++)
   {      
-    UpdateModelMarker(markerId, calibrationAlgo->GetCalibMarkerPreProcOutput(markerId), preProcIjkToRas);    
+    UpdateRobotModelMarker(markerId, calibrationAlgo->GetCalibMarkerPreProcOutput(markerId), preProcIjkToRas);    
   }
-  TransformModelMarkers(transform_calVol2robotRas);
-  UpdateModelNeedle(NULL, NULL);
-  UpdateModel();
+  TransformRobotModelMarkers(transform_calVol2robotRas);
+  UpdateRobotModelNeedle(NULL, NULL);
+  UpdateRobotModel();
+
+  UpdateWorkspaceModel();
 
   SetCalibrationStatusDescription("Calibration is successfully completed.");
 
@@ -972,14 +1001,14 @@ void vtkMRMLTransRectalProstateRobotNode::ResetCalibrationData()
     this->CalibrationData.v2[i]=0.0;
   }
     
-  UpdateModelAxes();
-  UpdateModelProbe();  
+  UpdateRobotModelAxes();
+  UpdateRobotModelProbe();  
   for (unsigned int markerId=0; markerId<CALIB_MARKER_COUNT; markerId++)
   {      
-    UpdateModelMarker(markerId, NULL, NULL);
+    UpdateRobotModelMarker(markerId, NULL, NULL);
   }
-  UpdateModelNeedle(NULL, NULL);
-  UpdateModel();
+  UpdateRobotModelNeedle(NULL, NULL);
+  UpdateRobotModel();
 
 
   this->ModelAxes->Reset();
@@ -991,7 +1020,101 @@ void vtkMRMLTransRectalProstateRobotNode::ResetCalibrationData()
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLTransRectalProstateRobotNode::UpdateModel()
+void vtkMRMLTransRectalProstateRobotNode::UpdateWorkspaceModel()
+{
+  vtkMRMLModelNode* modelNode=GetWorkspaceModelNode();
+  if (modelNode==NULL)
+  {
+    return;
+  }
+  vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast(modelNode->GetDisplayNode());
+  if (displayNode==NULL)
+  {
+    return;
+  }      
+
+  if (!this->CalibrationData.CalibrationValid)
+  {
+    // no calibration robot position is unknown
+    displayNode->SetVisibility(0);
+    return;
+  }
+
+  vtkSmartPointer <vtkSTLReader> modelReader=vtkSmartPointer<vtkSTLReader>::New();
+
+  vtksys_stl::string modelFileName=this->ModuleShareDirectory+"/TransRectalProstateRobot/TransRectalProstateRobotWorkspace150mm.stl";
+  //vtksys_stl::string modelFileName=this->ModuleShareDirectory+"/TransRectalProstateRobot/TransRectalProstateRobotSheath.stl";
+  modelReader->SetFileName(modelFileName.c_str());
+  modelReader->Update();
+
+  vtkSmartPointer<vtkTransformPolyDataFilter> polyTrans = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  polyTrans->SetInputConnection(modelReader->GetOutputPort());
+  vtkSmartPointer<vtkTransform> modelTransform=vtkSmartPointer<vtkTransform>::New();
+  polyTrans->SetTransform(modelTransform);
+
+  vtkMatrix4x4 *transform=modelTransform->GetMatrix();
+
+  double v1norm[3]={this->CalibrationData.v1[0], this->CalibrationData.v1[1], this->CalibrationData.v1[2]};         
+  vtkMath::Normalize(v1norm);
+  double v2norm[3]={this->CalibrationData.v2[0], this->CalibrationData.v2[1], this->CalibrationData.v2[2]};         
+  vtkMath::Normalize(v2norm);
+
+  double x[3]={v1norm[0],v1norm[1],v1norm[2]};
+  double y[3]={0,0,0};
+  vtkMath::Cross(x, v2norm, y);
+  vtkMath::Normalize(y);
+  double z[3]={0,0,0};
+  vtkMath::Cross(x, y, z);
+  vtkMath::Normalize(z);
+
+  int col=0;
+
+  // orientation
+  col=2; // z (orange)
+  transform->SetElement(0,col, x[0]);
+  transform->SetElement(1,col, x[1]);
+  transform->SetElement(2,col, x[2]);
+
+  col=0; // x (orange)
+  transform->SetElement(0,col, y[0]);
+  transform->SetElement(1,col, y[1]);
+  transform->SetElement(2,col, y[2]);
+
+  col=1; // y (orange)
+  transform->SetElement(0,col, z[0]);
+  transform->SetElement(1,col, z[1]);
+  transform->SetElement(2,col, z[2]);
+
+  // Hinge point
+  double l=14.5/sin(CalibrationData.AxesAngleDegrees * vtkMath::Pi()/180);
+
+  double H_before[3];
+  H_before[0] = CalibrationData.I1[0] - l*CalibrationData.v2[0];
+  H_before[1] = CalibrationData.I1[1] - l*CalibrationData.v2[1];
+  H_before[2] = CalibrationData.I1[2] - l*CalibrationData.v2[2];
+
+  // position
+  
+  transform->SetElement(0,3, H_before[0]);
+  transform->SetElement(1,3, H_before[1]);
+  transform->SetElement(2,3, H_before[2]);
+
+  vtkSmartPointer<vtkTriangleFilter> cleaner=vtkSmartPointer<vtkTriangleFilter>::New();
+  cleaner->SetInputConnection(polyTrans->GetOutputPort());
+  cleaner->Update();
+  
+  modelNode->SetAndObservePolyData(cleaner->GetOutput());
+  modelNode->SetModifiedSinceRead(1);
+
+  displayNode->SetModifiedSinceRead(1); 
+  displayNode->SliceIntersectionVisibilityOn();
+  
+  displayNode->SetVisibility(1);
+
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLTransRectalProstateRobotNode::UpdateRobotModel()
 {
   vtkMRMLModelNode* modelNode=GetRobotModelNode();
   if (modelNode==NULL)
@@ -1088,17 +1211,16 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModel()
 
 }
 
-
 //------------------------------------------------------------------------------
 bool vtkMRMLTransRectalProstateRobotNode::ShowRobotAtTarget(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
 {
-  UpdateModelNeedle(targetDesc, needle);
-  UpdateModel();
+  UpdateRobotModelNeedle(targetDesc, needle);
+  UpdateRobotModel();
   return true;
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
+void vtkMRMLTransRectalProstateRobotNode::UpdateRobotModelNeedle(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
 {
   if (targetDesc==NULL)
   {
@@ -1225,7 +1347,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelNeedle(vtkProstateNavTarget
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLTransRectalProstateRobotNode::UpdateModelProbe()
+void vtkMRMLTransRectalProstateRobotNode::UpdateRobotModelProbe()
 {
   this->ModelProbe->Reset();
 
@@ -1284,7 +1406,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelProbe()
 
 
 //------------------------------------------------------------------------------
-void vtkMRMLTransRectalProstateRobotNode::UpdateModelAxes()
+void vtkMRMLTransRectalProstateRobotNode::UpdateRobotModelAxes()
 {
   this->ModelAxes->Reset();
 
@@ -1339,7 +1461,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateModelAxes()
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLTransRectalProstateRobotNode::UpdateModelMarker(int markerInd, vtkImageData *imagedata, vtkMatrix4x4* ijkToRAS)
+void vtkMRMLTransRectalProstateRobotNode::UpdateRobotModelMarker(int markerInd, vtkImageData *imagedata, vtkMatrix4x4* ijkToRAS)
 {
   if (imagedata==NULL || ijkToRAS==NULL)
   {
@@ -1417,7 +1539,7 @@ void vtkMRMLTransRectalProstateRobotNode::SetModelAxesVisible(bool visible)
     return;
   }
   this->ModelAxesVisible=visible;
-  UpdateModel(); // :TODO: use standard vtkSetMacro and update automatically when the update event is triggered
+  UpdateRobotModel(); // :TODO: use standard vtkSetMacro and update automatically when the update event is triggered
 }
 
 //----------------------------------------------------------------------------
@@ -1428,6 +1550,10 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateReferenceID(const char *oldID, c
   if (!strcmp(oldID, this->RobotModelNodeRef))
     {
     this->SetRobotModelNodeRef(newID);
+    }  
+if (!strcmp(oldID, this->WorkspaceModelNodeRef))
+    {
+    this->SetWorkspaceModelNodeRef(newID);
     }  
 
   if (this->CalibrationPointListNodeID && !strcmp(oldID, this->CalibrationPointListNodeID))
@@ -1450,6 +1576,10 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateReferences()
   if (this->RobotModelNodeRef != NULL && this->Scene->GetNodeByID(this->RobotModelNodeRef) == NULL)
     {
     this->SetRobotModelNodeRef(NULL);
+    }
+  if (this->WorkspaceModelNodeRef != NULL && this->Scene->GetNodeByID(this->WorkspaceModelNodeRef) == NULL)
+    {
+    this->SetWorkspaceModelNodeRef(NULL);
     }
 
   if (this->CalibrationPointListNodeID != NULL && this->Scene->GetNodeByID(this->CalibrationPointListNodeID) == NULL)
@@ -1540,7 +1670,7 @@ void vtkMRMLTransRectalProstateRobotNode::ApplyTransform(vtkMatrix4x4* transform
 { 
   Superclass::ApplyTransform(transformMatrix); 
   TransformCalibrationData(transformMatrix);
-  TransformModelMarkers(transformMatrix);
+  TransformRobotModelMarkers(transformMatrix);
 }
 
 //----------------------------------------------------------------------------
@@ -1589,7 +1719,7 @@ void vtkMRMLTransRectalProstateRobotNode::TransformCalibrationData(vtkMatrix4x4*
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransRectalProstateRobotNode::TransformModelMarkers(vtkMatrix4x4* transformMatrix)
+void vtkMRMLTransRectalProstateRobotNode::TransformRobotModelMarkers(vtkMatrix4x4* transformMatrix)
 {   
   vtkSmartPointer<vtkTransformPolyDataFilter> polyTrans = vtkSmartPointer<vtkTransformPolyDataFilter>::New(); 
   vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();

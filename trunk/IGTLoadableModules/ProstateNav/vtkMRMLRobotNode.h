@@ -126,7 +126,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLTransformableNode
   vtkMRMLTransformNode* GetTargetTransformNode();
   void SetAndObserveTargetTransformNodeID(const char *transformNodeID);
 
-  virtual int Init(vtkSlicerApplication* app);
+  virtual int Init(vtkSlicerApplication* app, const char* moduleShareDir);
 
   virtual int  MoveTo(const char *transformNodeId) { return 0; };
 
@@ -197,6 +197,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLTransformableNode
 
   //BTX
   std::vector<StatusDescriptor> StatusDescriptors;
+  std::string ModuleShareDirectory; // needed for model files, etc.
   //ETX
 
  protected:
