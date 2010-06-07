@@ -92,7 +92,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
 
   // Description:
   // Initialize the robot
-  virtual int Init(vtkSlicerApplication* app);
+  virtual int Init(vtkSlicerApplication* app, const char* moduleShareDir);
 
   vtkGetStringMacro(ScannerConnectorNodeID);
   vtkMRMLIGTLConnectorNode* GetScannerConnectorNode();

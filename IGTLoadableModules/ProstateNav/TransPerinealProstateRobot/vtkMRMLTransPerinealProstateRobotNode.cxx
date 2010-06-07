@@ -447,9 +447,9 @@ void vtkMRMLTransPerinealProstateRobotNode::PrintSelf(ostream& os, vtkIndent ind
 }
 
 
-int vtkMRMLTransPerinealProstateRobotNode::Init(vtkSlicerApplication* app)
+int vtkMRMLTransPerinealProstateRobotNode::Init(vtkSlicerApplication* app, const char* moduleShareDir)
 { 
-  this->Superclass::Init(app);
+  this->Superclass::Init(app, moduleShareDir);
 
   vtkOpenIGTLinkIFGUI* igtlGUI = vtkOpenIGTLinkIFGUI::SafeDownCast(app->GetModuleGUIByName("OpenIGTLink IF"));
   if (igtlGUI)
