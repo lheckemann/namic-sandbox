@@ -51,6 +51,8 @@ vtkProstateNavFiducialCalibrationStep::vtkProstateNavFiducialCalibrationStep()
   
   this->LoadVolumeDialogFrame=vtkSmartPointer<vtkKWFrame>::New();
   this->LoadCalibrationVolumeButton=vtkSmartPointer<vtkKWPushButton>::New();
+  this->ShowWorkspaceButton=vtkKWCheckButton::New();;
+  this->ShowRobotButton=vtkKWCheckButton::New();
   this->VolumeSelectorWidget=vtkSmartPointer<vtkSlicerNodeSelectorWidget>::New();
   this->ResetCalibrationButton=vtkSmartPointer<vtkKWPushButton>::New();
   this->ResegmentButton=vtkSmartPointer<vtkKWPushButton>::New();
@@ -128,8 +130,8 @@ void vtkProstateNavFiducialCalibrationStep::ShowLoadVolumeControls()
     {
     this->LoadVolumeDialogFrame->SetParent(parent);
     this->LoadVolumeDialogFrame->Create();     
-    }
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", this->LoadVolumeDialogFrame->GetWidgetName());
+    }  
+  this->Script("pack %s -side top -anchor nw -padx 0 -pady 2", this->LoadVolumeDialogFrame->GetWidgetName());
   
   if (!this->LoadCalibrationVolumeButton->IsCreated())
     {
@@ -143,7 +145,23 @@ void vtkProstateNavFiducialCalibrationStep::ShowLoadVolumeControls()
     this->LoadCalibrationVolumeButton->SetText( "Load volume");
     this->LoadCalibrationVolumeButton->SetBalloonHelpString("Click to load a volume. Need to additionally select the volume to make it the current calibration volume.");
     }
-  this->Script("pack %s -side top -fill x -anchor nw -padx 2 -pady 2", this->LoadCalibrationVolumeButton->GetWidgetName());
+
+  if (!this->ShowRobotButton->IsCreated()) {
+    this->ShowRobotButton->SetParent(this->LoadVolumeDialogFrame);
+    this->ShowRobotButton->Create();
+    this->ShowRobotButton->SelectedStateOff();
+    this->ShowRobotButton->SetText("Show Robot");
+    this->ShowRobotButton->SetBalloonHelpString("Show the robot");
+  }
+
+  if (!this->ShowWorkspaceButton->IsCreated()) 
+    {
+    this->ShowWorkspaceButton->SetParent(this->LoadVolumeDialogFrame);
+    this->ShowWorkspaceButton->Create();
+    this->ShowWorkspaceButton->SelectedStateOff();
+    this->ShowWorkspaceButton->SetText("Show Workspace");
+    this->ShowWorkspaceButton->SetBalloonHelpString("Show workspace of the robot");
+    }  
 
   if (!this->VolumeSelectorWidget->IsCreated())
     {
@@ -158,8 +176,12 @@ void vtkProstateNavFiducialCalibrationStep::ShowLoadVolumeControls()
     this->VolumeSelectorWidget->SetLabelText( "Calibration Volume: ");
     this->VolumeSelectorWidget->SetBalloonHelpString("Select the calibration volume from the current scene.");    
     }
-  this->Script("pack %s -side top -fill x -anchor nw -padx 2 -pady 2", this->VolumeSelectorWidget->GetWidgetName());
 
+  this->Script("grid %s -row 0 -column 0 -padx 2 -pady 2 -sticky ew", this->LoadCalibrationVolumeButton->GetWidgetName());
+  this->Script("grid %s -row 0 -column 1 -padx 2 -pady 2 -sticky e", this->ShowRobotButton->GetWidgetName());
+  this->Script("grid %s -row 0 -column 2 -padx 2 -pady 2 -sticky e", this->ShowWorkspaceButton->GetWidgetName());
+
+  this->Script("grid %s -row 1 -column 0 -columnspan 3 -padx 2 -pady 2 -sticky ew", this->VolumeSelectorWidget->GetWidgetName());
 }
 
 //----------------------------------------------------------------------------
@@ -500,6 +522,9 @@ void vtkProstateNavFiducialCalibrationStep::AddGUIObservers()
   this->ResegmentButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->LoadCalibrationVolumeButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->VolumeSelectorWidget->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );  
+  this->ShowWorkspaceButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->ShowRobotButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+
   for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
   {
     this->JumpToFiducialButton[i]->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -513,6 +538,8 @@ void vtkProstateNavFiducialCalibrationStep::RemoveGUIObservers()
   this->ResegmentButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->LoadCalibrationVolumeButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->VolumeSelectorWidget->RemoveObservers ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent,  (vtkCommand *)this->GUICallbackCommand );
+  this->ShowWorkspaceButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+  this->ShowRobotButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
   for (unsigned int i=0; i<CALIB_MARKER_COUNT; i++)
   {
     this->JumpToFiducialButton[i]->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -650,6 +677,9 @@ void vtkProstateNavFiducialCalibrationStep::UpdateGUI()
     this->ShowAxesIn3DView(false);
   }
 
+  this->ShowRobotButton->SetSelectedState(IsRobotModelShown());
+  this->ShowWorkspaceButton->SetSelectedState(IsWorkspaceModelShown());  
+
   if (GetGUI()!=NULL)
   {
     GetGUI()->RequestRenderInViewerWidgets();
@@ -683,6 +713,18 @@ void vtkProstateNavFiducialCalibrationStep::ProcessGUIEvents(vtkObject *caller,
   if (this->LoadCalibrationVolumeButton && this->LoadCalibrationVolumeButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
     {
     this->GetApplication()->Script("::LoadVolume::ShowDialog");
+    }
+
+  // show workspace button
+  if (this->ShowWorkspaceButton && this->ShowWorkspaceButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+    {
+      this->ShowWorkspaceModel(this->ShowWorkspaceButton->GetSelectedState() == 1);
+    }
+
+  // show robot button
+  if (this->ShowRobotButton && this->ShowRobotButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+    {
+      this->ShowRobotModel(this->ShowRobotButton->GetSelectedState() == 1);
     }
 
   // Enable/disable marker position edit by click

@@ -69,7 +69,6 @@ vtkMRMLProstateNavManagerNode::vtkMRMLProstateNavManagerNode()
 
   this->TargetingVolumeNodeRef=NULL;
   this->VerificationVolumeNodeRef=NULL;
-  this->CoverageVolumeNodeRef=NULL;  
 
   this->TargetPlanListNodeID=NULL;
   this->TargetPlanListNode=NULL;
@@ -88,7 +87,6 @@ vtkMRMLProstateNavManagerNode::~vtkMRMLProstateNavManagerNode()
 
   SetTargetingVolumeNodeRef(NULL);
   SetVerificationVolumeNodeRef(NULL);  
-  SetCoverageVolumeNodeRef(NULL);  
   
   if (this->TargetPlanListNodeID) 
   {
@@ -182,10 +180,6 @@ void vtkMRMLProstateNavManagerNode::WriteXML(ostream& of, int nIndent)
   {
     of << indent << " VerificationVolumeNodeRef=\"" << this->VerificationVolumeNodeRef << "\"";
   }
-  if (this->CoverageVolumeNodeRef != NULL) 
-  {
-    of << indent << " CoverageVolumeNodeRef=\"" << this->CoverageVolumeNodeRef << "\"";
-  }
   if (this->TargetPlanListNodeID != NULL) 
   {
     of << indent << " TargetPlanListNodeRef=\"" << this->TargetPlanListNodeID << "\"";
@@ -241,10 +235,6 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "VerificationVolumeNodeRef"))
     {
       this->SetVerificationVolumeNodeRef(attValue);
-    }
-    else if (!strcmp(attName, "CoverageVolumeNodeRef"))
-    {
-      this->SetCoverageVolumeNodeRef(attValue);
     }
     else if (!strcmp(attName, "TargetPlanListNodeRef"))
     {
@@ -499,7 +489,6 @@ void vtkMRMLProstateNavManagerNode::Copy(vtkMRMLNode *anode)
 
   SetTargetingVolumeNodeRef(node->TargetingVolumeNodeRef);
   SetVerificationVolumeNodeRef(node->VerificationVolumeNodeRef);  
-  SetCoverageVolumeNodeRef(node->CoverageVolumeNodeRef);  
   
   this->SetAndObserveTargetPlanListNodeID(NULL); // remove observers
   this->SetTargetPlanListNodeID(node->TargetPlanListNodeID);
@@ -552,10 +541,6 @@ void vtkMRMLProstateNavManagerNode::UpdateReferences()
     {
     this->SetVerificationVolumeNodeRef(NULL);
     }
-  if (this->CoverageVolumeNodeRef != NULL && this->Scene->GetNodeByID(this->CoverageVolumeNodeRef) == NULL)
-    {
-    this->SetCoverageVolumeNodeRef(NULL);
-    }
 
   if (this->TargetPlanListNodeID != NULL && this->Scene->GetNodeByID(this->TargetPlanListNodeID) == NULL)
     {
@@ -580,10 +565,6 @@ void vtkMRMLProstateNavManagerNode::UpdateReferenceID(const char *oldID, const c
   if (this->VerificationVolumeNodeRef && !strcmp(oldID, this->VerificationVolumeNodeRef))
     {
     this->SetVerificationVolumeNodeRef(newID);
-    }
-  if (this->CoverageVolumeNodeRef && !strcmp(oldID, this->CoverageVolumeNodeRef))
-    {
-    this->SetCoverageVolumeNodeRef(newID);
     }
 
   if (this->TargetPlanListNodeID && !strcmp(oldID, this->TargetPlanListNodeID))
@@ -1025,16 +1006,6 @@ bool vtkMRMLProstateNavManagerNode::ReadNeedleListFromConfigXml(const char* need
   
   return true;
 }
-
-bool vtkMRMLProstateNavManagerNode::IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
-{
-  if (this->RobotNode==NULL)
-    {
-    return false;
-    }
-  return this->RobotNode->IsTargetReachable(targetDesc, needle);
-}
-
 
 bool vtkMRMLProstateNavManagerNode::SetNeedle(unsigned int needleIndex, NeedleDescriptorStruct needleDesc)
 {

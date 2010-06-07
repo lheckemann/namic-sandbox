@@ -108,13 +108,14 @@ vtkProstateNavStepVerification::vtkProstateNavStepVerification()
   this->VolumeSelectionFrame=NULL;
   this->LoadVerificationVolumeButton=NULL;
   this->VolumeSelectorWidget=NULL;
+  this->ShowWorkspaceButton=NULL;
+  this->ShowRobotButton=NULL;
 
   // TargetList frame
   this->TargetListFrame=NULL;
   this->TargetList=NULL;
   this->VerifyButton=NULL;
   this->ClearButton=NULL;
-
 
   // TargetControl frame
   this->VerificationControlFrame=NULL;
@@ -141,6 +142,8 @@ vtkProstateNavStepVerification::~vtkProstateNavStepVerification()
   // TargetPlanning
   DELETE_IF_NULL_WITH_SETPARENT_NULL(VolumeSelectionFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(LoadVerificationVolumeButton);  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowWorkspaceButton);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowRobotButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(VolumeSelectorWidget);
 
   // TargetList frame
@@ -246,7 +249,7 @@ void vtkProstateNavStepVerification::ShowVolumeSelectionFrame()
     this->VolumeSelectionFrame->Create();
     }
 
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2",
+  this->Script("pack %s -side top -anchor nw -padx 0 -pady 2",
     this->VolumeSelectionFrame->GetWidgetName());
 
   if (!this->LoadVerificationVolumeButton)
@@ -264,12 +267,37 @@ void vtkProstateNavStepVerification::ShowVolumeSelectionFrame()
     this->LoadVerificationVolumeButton->SetActiveBackgroundColor(1,1,1);        
     this->LoadVerificationVolumeButton->SetText( "Load volume");
     this->LoadVerificationVolumeButton->SetBalloonHelpString("Click to load a volume. Need to additionally select the volume to make it the current verification volume.");
-    }  
-  this->Script("pack %s -side top -fill x -anchor nw -padx 2 -pady 2", this->LoadVerificationVolumeButton->GetWidgetName());
+    }
+
+  if (!this->ShowRobotButton)
+    {
+    this->ShowRobotButton = vtkKWCheckButton::New();
+    } 
+  if (!this->ShowRobotButton->IsCreated()) 
+    {
+    this->ShowRobotButton->SetParent(this->VolumeSelectionFrame);
+    this->ShowRobotButton->Create();
+    this->ShowRobotButton->SelectedStateOff();
+    this->ShowRobotButton->SetText("Show Robot");
+    this->ShowRobotButton->SetBalloonHelpString("Show the robot");
+    }
+
+  if (!this->ShowWorkspaceButton)
+    {
+    this->ShowWorkspaceButton = vtkKWCheckButton::New();
+    } 
+  if (!this->ShowWorkspaceButton->IsCreated())
+    {
+    this->ShowWorkspaceButton->SetParent(this->VolumeSelectionFrame);
+    this->ShowWorkspaceButton->Create();
+    this->ShowWorkspaceButton->SelectedStateOff();
+    this->ShowWorkspaceButton->SetText("Show Workspace");
+    this->ShowWorkspaceButton->SetBalloonHelpString("Show workspace of the robot");
+    } 
 
   if (!this->VolumeSelectorWidget)
     {
-     this->VolumeSelectorWidget = vtkSlicerNodeSelectorWidget::New();
+    this->VolumeSelectorWidget = vtkSlicerNodeSelectorWidget::New();
     }
   if (!this->VolumeSelectorWidget->IsCreated())
     {
@@ -284,7 +312,12 @@ void vtkProstateNavStepVerification::ShowVolumeSelectionFrame()
     this->VolumeSelectorWidget->SetLabelText( "Verification Volume: ");
     this->VolumeSelectorWidget->SetBalloonHelpString("Select the targeting volume from the current scene.");
     }
-  this->Script("pack %s -side top -fill x -anchor nw -padx 2 -pady 2", this->VolumeSelectorWidget->GetWidgetName());
+
+  this->Script("grid %s -row 0 -column 0 -padx 2 -pady 2 -sticky ew", this->LoadVerificationVolumeButton->GetWidgetName());
+  this->Script("grid %s -row 0 -column 1 -padx 2 -pady 2 -sticky e", this->ShowRobotButton->GetWidgetName());
+  this->Script("grid %s -row 0 -column 2 -padx 2 -pady 2 -sticky e", this->ShowWorkspaceButton->GetWidgetName());
+
+  this->Script("grid %s -row 1 -column 0 -columnspan 3 -padx 2 -pady 2 -sticky ew", this->VolumeSelectorWidget->GetWidgetName());
 
 }
 
@@ -451,6 +484,18 @@ void vtkProstateNavStepVerification::ProcessGUIEvents(vtkObject *caller,
   if (this->LoadVerificationVolumeButton && this->LoadVerificationVolumeButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
     {
     this->GetApplication()->Script("::LoadVolume::ShowDialog");
+    }
+
+  // show workspace button
+  if (this->ShowWorkspaceButton && this->ShowWorkspaceButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+    {
+      this->ShowWorkspaceModel(this->ShowWorkspaceButton->GetSelectedState() == 1);
+    }
+
+  // show robot button
+  if (this->ShowRobotButton && this->ShowRobotButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+    {
+      this->ShowRobotModel(this->ShowRobotButton->GetSelectedState() == 1);
     }
 
   // -----------------------------------------------------------------
@@ -722,6 +767,14 @@ void vtkProstateNavStepVerification::AddGUIObservers()
     {
     this->LoadVerificationVolumeButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand); 
     }
+  if (this->ShowWorkspaceButton)
+    {
+    this->ShowWorkspaceButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }  
+  if (this->ShowRobotButton)
+    {
+    this->ShowRobotButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }  
   if (this->VolumeSelectorWidget)
     {
     this->VolumeSelectorWidget->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);  
@@ -747,6 +800,14 @@ void vtkProstateNavStepVerification::RemoveGUIObservers()
     {
     this->LoadVerificationVolumeButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand); 
     }
+  if (this->ShowWorkspaceButton)
+    {
+    this->ShowWorkspaceButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }  
+  if (this->ShowRobotButton)
+    {
+    this->ShowRobotButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }  
   if (this->VolumeSelectorWidget)
     {
     this->VolumeSelectorWidget->RemoveObserver ((vtkCommand *)this->GUICallbackCommand);  
@@ -796,6 +857,14 @@ void vtkProstateNavStepVerification::UpdateGUI()
 
   UpdateTargetListGUI();
 
+  if (this->ShowRobotButton &&this->ShowRobotButton->IsCreated()) 
+  {
+    this->ShowRobotButton->SetSelectedState(IsRobotModelShown());
+  }
+  if (this->ShowWorkspaceButton &&this->ShowWorkspaceButton->IsCreated()) 
+  {
+    this->ShowWorkspaceButton->SetSelectedState(IsWorkspaceModelShown());  
+  }  
 }
 
 //----------------------------------------------------------------------------

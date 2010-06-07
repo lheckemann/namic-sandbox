@@ -46,9 +46,6 @@
 
 #include "ProstateNavMath.h"
 
-const int COVERAGE_MAP_SIZE_MM=500;
-const int COVERAGE_MAP_RESOLUTION_MM=5;
-
 vtkCxxRevisionMacro(vtkProstateNavLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkProstateNavLogic);
 
@@ -464,279 +461,6 @@ std::string vtkProstateNavLogic::GetFoRStrFromVolumeNodeID(const char* volNodeID
   return tagValue;
 }
 
-// Recreate, update coverage volume
-// Add the volume and a display node to the scene
-// return 0 if failed
-//----------------------------------------------------------------------------
-int vtkProstateNavLogic::ShowCoverage(bool show) 
-{
-
-  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
-  if (manager==NULL)
-  {
-    vtkErrorMacro("Error showing coverage, manager is invalid");
-    return 0;
-  }
-  
-  // always delete it first, because we recreate if it is needed
-  // TODO: if the coverage area is not changed (e.g., calibration is not changed) then don't delete and recreate the volume, just show/hide it once it is created
-  vtkMRMLScalarVolumeNode* coverageVolumeNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCoverageVolumeNodeRef()));
-  if (coverageVolumeNode!=NULL)
-  {
-    DeleteCoverageVolume();
-  }
-
-  if (!show)
-  {
-    // we don't need to show the volume, so we can quit now
-    return 1;
-  }
-
-  // Save original slice location
-  vtkSlicerApplicationGUI *applicationGUI = this->GUI->GetApplicationGUI();
-  double oldSliceSetting[3];
-  oldSliceSetting[0] = double(applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceOffset());
-  oldSliceSetting[1] = double(applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceOffset());
-  oldSliceSetting[2] = double(applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceOffset());
-
-  if (CreateCoverageVolume()==0)
-  {
-    return 0;
-  }
-  
-  coverageVolumeNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCoverageVolumeNodeRef()));
-  if (coverageVolumeNode==NULL)
-  {
-    // the volume node should have been created by now
-    return 0;
-  }
-
-  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetLabelOpacity(0.6);
-  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetLabelOpacity(0.6);
-  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetLabelOpacity(0.6);
-
-  // Select coverage volume node id as label
-  const char* coverageVolNodeID=manager->GetCoverageVolumeNodeRef();
-  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetLabelVolumeID(coverageVolNodeID);
-  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetLabelVolumeID(coverageVolNodeID);
-  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetLabelVolumeID(coverageVolNodeID);
-
-  // Restore to original slice location
-  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->SetSliceOffset(oldSliceSetting[0]);
-  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->SetSliceOffset(oldSliceSetting[1]);
-  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->SetSliceOffset(oldSliceSetting[2]);
-
-  return 1;
-}
-
-// Create and initialize coverage volume (stored in the main MRML node)
-// return 0 if failed
-int vtkProstateNavLogic::CreateCoverageVolume()
-{
-  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
-  if (manager==NULL)
-  {
-    vtkErrorMacro("Error creating coverage volume, manager is invalid");
-    return 0;
-  }
-
-  //vtkMRMLVolumeNode* baseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCalibrationVolumeNodeRef()));
-  vtkMRMLVolumeNode* baseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetTargetingVolumeNodeRef()));
-  if (!baseVolumeNode) 
-  {
-    // volume node is already created
-    return 0;
-  }
-
-  // Create volume node (as copy of calibration volume)
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> coverageVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();    
-  int modifiedSinceRead = baseVolumeNode->GetModifiedSinceRead();
-  coverageVolumeNode->CopyWithScene(baseVolumeNode);
-  coverageVolumeNode->SetName(ROBOT_COVERAGE_AREA_NODE_NAME);
-
-  // Create image data
-  vtkSmartPointer<vtkImageData> coverageLabelMapImage=vtkSmartPointer<vtkImageData>::New();
-  int dim=COVERAGE_MAP_SIZE_MM/COVERAGE_MAP_RESOLUTION_MM;
-  coverageLabelMapImage->SetDimensions(dim, dim, dim);    
-  coverageLabelMapImage->SetWholeExtent(0,dim-1,0,dim-1,0,dim-1);
-  coverageLabelMapImage->SetScalarType(VTK_SHORT);
-  coverageLabelMapImage->AllocateScalars();
-  coverageVolumeNode->SetAndObserveImageData(coverageLabelMapImage);
-  
-  // Get the calibration volume centerpoint in RAS coordinates
-  double rasCenterPoint[4]={0,0,0,1}; // centerpoint position in RAS coorindates
-  {   
-    int extent[6];
-    baseVolumeNode->GetImageData()->GetWholeExtent(extent);
-
-    double ijkCenterPoint[4]={0,0,0,1}; // centerpoint position in IJK coorindates
-    ijkCenterPoint[0]=(extent[0]+extent[1])/2;
-    ijkCenterPoint[1]=(extent[2]+extent[3])/2;
-    ijkCenterPoint[2]=(extent[4]+extent[5])/2;
-
-    vtkSmartPointer<vtkMatrix4x4> ijkToRas=vtkSmartPointer<vtkMatrix4x4>::New();
-    baseVolumeNode->GetIJKToRASMatrix(ijkToRas);
-    vtkMRMLTransformNode *transformNode = baseVolumeNode->GetParentTransformNode();
-    if ( transformNode )
-      {
-      vtkSmartPointer<vtkMatrix4x4> rasToRAS = vtkSmartPointer<vtkMatrix4x4>::New();
-      transformNode->GetMatrixTransformToWorld(rasToRAS);
-      vtkMatrix4x4::Multiply4x4 (rasToRAS, ijkToRas, ijkToRas);
-      }
-
-    ijkToRas->MultiplyPoint(ijkCenterPoint, rasCenterPoint);
-  }
-   
-  // Set coverage volume size and position
-  coverageVolumeNode->SetOrigin(rasCenterPoint[0]-COVERAGE_MAP_SIZE_MM/2, rasCenterPoint[1]-COVERAGE_MAP_SIZE_MM/2, rasCenterPoint[2]-COVERAGE_MAP_SIZE_MM/2);
-  coverageVolumeNode->SetSpacing(COVERAGE_MAP_RESOLUTION_MM,COVERAGE_MAP_RESOLUTION_MM,COVERAGE_MAP_RESOLUTION_MM);
-  vtkSmartPointer<vtkMatrix4x4> ijkToRasDirectionMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-  ijkToRasDirectionMatrix->Identity();
-  coverageVolumeNode->SetIJKToRASDirectionMatrix(ijkToRasDirectionMatrix);
-  
-  coverageVolumeNode->SetAndObserveStorageNodeID(NULL);
-  coverageVolumeNode->SetModifiedSinceRead(1);
-  coverageVolumeNode->SetLabelMap(1);
-
-  // Create display node
-  vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> coverageDisplayNode  = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
-  coverageDisplayNode->SetAndObserveColorNodeID ("vtkMRMLColorTableNodeLabels"); // set the display node to have a label map lookup table
-  this->GetMRMLScene()->AddNode(coverageDisplayNode);
-  
-  // link the display node with the volume node
-  coverageVolumeNode->SetAndObserveDisplayNodeID( coverageDisplayNode->GetID() );  
-
-  // add the label volume to the scene
-  this->GetMRMLScene()->AddNode(coverageVolumeNode);
-
-  manager->SetCoverageVolumeNodeRef(coverageVolumeNode->GetID());   // Add ref to main MRML node
-
-  // Restore modifiedSinceRead value since copy cause Modify on image data.
-  baseVolumeNode->SetModifiedSinceRead(modifiedSinceRead);
-
-  return UpdateCoverageVolumeImage();
-}
-
-// Update the coverage volume label map image
-// return 0 if failed
-int vtkProstateNavLogic::UpdateCoverageVolumeImage()
-{
-  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
-  if (manager==NULL)
-  {
-    vtkErrorMacro("Error updating coverage volume, manager is invalid");
-    return 0;
-  }
-  vtkMRMLVolumeNode* coverageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCoverageVolumeNodeRef()));
-  if (coverageVolumeNode==NULL)
-  {
-    vtkWarningMacro("CoverageMapUpdate failed, the map is not initialized");
-    return 0;
-  }
-  vtkImageData *coverageImage=coverageVolumeNode->GetImageData();
-  if (coverageImage==NULL)
-  {
-    vtkWarningMacro("CoverageMapUpdate failed, the map is not initialized");
-    return 0;
-  }
-
-//  std::string needleType = this->NeedleTypeMenuList->GetWidget()->GetValue();
-  
-  //double *origin=coverageImage->GetOrigin();
-  //double *spacing=coverageImage->GetSpacing();
-
-  double rasPoint[4]={0,0,0,1};
-  double ijkPoint[4]={0,0,0,1};
-  int extent[6];
-  coverageImage->GetWholeExtent(extent);
-
-  vtkSmartPointer<vtkMatrix4x4> ijkToRas=vtkSmartPointer<vtkMatrix4x4>::New();
-  coverageVolumeNode->GetIJKToRASMatrix(ijkToRas);
-
-  vtkSmartPointer<vtkProstateNavTargetDescriptor> targetDesc=vtkSmartPointer<vtkProstateNavTargetDescriptor>::New();
-  targetDesc->SetNeedleID(targetDesc->GetNeedleID());
-  
-  std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeRef());
-  targetDesc->SetTargetingVolumeFoR(FoR);
-  
-  NeedleDescriptorStruct needle;
-  if (!manager->GetNeedle(manager->GetCurrentNeedleIndex(), needle))
-  {
-    vtkErrorMacro("Cannot compute coverage, no needle is selected");
-    return 0;
-  }
-
-  float value=0;  
-  for (int z=extent[4]; z<=extent[5]; z++)
-  {
-    ijkPoint[2]=z;
-    for (int y=extent[2]; y<=extent[3]; y++)
-    {
-      ijkPoint[1]=y;
-      for (int x=extent[0]; x<=extent[1]; x++)
-      {         
-        ijkPoint[0]=x;           
-        ijkToRas->MultiplyPoint(ijkPoint, rasPoint);
-        
-        value=0;
-
-        // it is not a boundary voxel
-        // (we leave a black boundary around the image to ensure that
-        // contouring of the coverage area results in a closed surface)
-        if (z!=extent[4] && z!=extent[5] && 
-          y!=extent[2] && y!=extent[3] &&
-          x!=extent[0] && x!=extent[1])
-        {
-          targetDesc->SetRASLocation(rasPoint[0], rasPoint[1], rasPoint[2]);
-          
-          if(manager->IsTargetReachable(targetDesc, &needle))
-          {
-            value=1;
-          }
-        }
-
-        coverageImage->SetScalarComponentFromFloat(x, y, z, 0, value);
-      }
-    }
-  }
-
-  coverageImage->Update();
-  coverageVolumeNode->Modified();
-  
-  return 1;
-}
-
-// Remove coverage volume and display node from the scene and from the main MRML node
-void vtkProstateNavLogic::DeleteCoverageVolume() 
-{
-  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
-  if (manager==NULL)
-  {
-    vtkErrorMacro("Error deleting coverage volume, manager is invalid");
-    return;
-  }
-  vtkMRMLVolumeNode* coverageVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCoverageVolumeNodeRef()));
-  if (coverageVolumeNode==NULL)
-  {
-    vtkWarningMacro("Error deleting coverage volume, coverage volume node is not found");
-    return;
-  }
-  
-  // delete volume node
-  manager->SetCoverageVolumeNodeRef(NULL);
-
-  // delete image data
-  coverageVolumeNode->SetAndObserveImageData(NULL);
-
-  // remove node from scene
-  vtkMRMLScene *scene=this->GetMRMLScene();
-  if (scene!=NULL)
-  { 
-    scene->RemoveNode(coverageVolumeNode);
-  }
-  
-}
-
 void vtkProstateNavLogic::UpdateTargetListFromMRML()
 {
   vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManagerNode();
@@ -1037,4 +761,102 @@ vtkMRMLRobotNode* vtkProstateNavLogic::GetRobotNode()
   {
     return NULL;
   }
+}
+
+//----------------------------------------------------------------------------
+int vtkProstateNavLogic::ShowWorkspaceModel(bool show)
+{
+  vtkMRMLRobotNode* robot=GetRobotNode();
+  if (robot==NULL)
+  {
+    vtkWarningMacro("Cannot show workspace model, robot is invalid");
+    return 0; // failed
+  }
+  vtkMRMLModelNode*   modelNode = vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(robot->GetWorkspaceObjectModelId()));
+  if (modelNode==NULL)
+  {
+    vtkWarningMacro("Cannot show workspace model, workspace model node is invalid");
+    return 0; // failed
+  }
+  vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
+  if (displayNode==NULL)
+  {
+    vtkWarningMacro("Cannot show workspace model, displayNode is invalid");
+    return 0; // failed
+  }
+  displayNode->SetVisibility(show);
+  displayNode->SetSliceIntersectionVisibility(show);
+  modelNode->Modified();
+  this->MRMLScene->Modified();
+  return 1;
+} 
+
+//----------------------------------------------------------------------------
+bool vtkProstateNavLogic::IsWorkspaceModelShown()
+{
+  vtkMRMLRobotNode* robot=GetRobotNode();
+  if (robot==NULL)
+  {
+    return false;
+  }
+  vtkMRMLModelNode*   modelNode = vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(robot->GetWorkspaceObjectModelId()));
+  if (modelNode==NULL)
+  {
+    return 0;
+  }
+  vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
+  if (displayNode==NULL)
+  {
+    return 0;
+  }
+  return displayNode->GetVisibility();
+}
+
+//----------------------------------------------------------------------------
+int vtkProstateNavLogic::ShowRobotModel(bool show)
+{
+  vtkMRMLRobotNode* robot=GetRobotNode();
+  if (robot==NULL)
+  {
+    vtkWarningMacro("Cannot show robot model, robot is invalid");
+    return 0; // failed
+  }
+  vtkMRMLModelNode*   modelNode = vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(robot->GetRobotModelId()));
+  if (modelNode==NULL)
+  {
+    vtkWarningMacro("Cannot show robot model, workspace model node is invalid");
+    return 0; // failed
+  }
+  vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
+  if (displayNode==NULL)
+  {
+    vtkWarningMacro("Cannot show robot model, displayNode is invalid");
+    return 0; // failed
+  }
+  displayNode->SetVisibility(show);
+  displayNode->SetSliceIntersectionVisibility(show);
+  modelNode->Modified();
+  this->MRMLScene->Modified();
+  return 1;
+} 
+
+//----------------------------------------------------------------------------
+bool vtkProstateNavLogic::IsRobotModelShown()
+{
+  vtkMRMLRobotNode* robot=GetRobotNode();
+  if (robot==NULL)
+  {
+    return false;
+  }
+  vtkMRMLModelNode*   modelNode = vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(robot->GetRobotModelId()));
+  if (modelNode==NULL)
+  {
+    return 0;
+  }
+  vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
+  if (displayNode==NULL)
+  {
+    return 0;
+  }
+  return displayNode->GetVisibility();
 }

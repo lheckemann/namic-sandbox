@@ -1,3 +1,4 @@
+
 /*==========================================================================
 
   Portions (c) Copyright 2008 Brigham and Women's Hospital (BWH) All Rights Reserved.
@@ -107,9 +108,10 @@ vtkProstateNavTargetingStep::vtkProstateNavTargetingStep()
   // TargetPlanning frame
   this->TargetPlanningFrame=NULL;
   this->LoadTargetingVolumeButton=NULL;
+  this->ShowWorkspaceButton=NULL;
+  this->ShowRobotButton=NULL;
   this->VolumeSelectorWidget=NULL;
-  this->TargetPlanningFrame=NULL;
-  this->ShowCoverageButton=NULL;
+  this->TargetPlanningFrame=NULL;  
   this->AddTargetsOnClickButton=NULL;
   this->NeedleTypeMenuList=NULL; 
 
@@ -150,7 +152,8 @@ vtkProstateNavTargetingStep::~vtkProstateNavTargetingStep()
   DELETE_IF_NULL_WITH_SETPARENT_NULL(LoadTargetingVolumeButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(VolumeSelectorWidget);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetPlanningFrame);
-  DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowCoverageButton);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowWorkspaceButton);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowRobotButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(AddTargetsOnClickButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleTypeMenuList); 
 
@@ -202,7 +205,7 @@ void vtkProstateNavTargetingStep::ShowTargetPlanningFrame()
     this->TargetPlanningFrame->Create();
     }
 
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2",
+  this->Script("pack %s -side top -anchor nw -padx 0 -pady 2",
                this->TargetPlanningFrame->GetWidgetName());
   
   if (!this->LoadTargetingVolumeButton)
@@ -240,17 +243,29 @@ void vtkProstateNavTargetingStep::ShowTargetPlanningFrame()
     this->VolumeSelectorWidget->SetBalloonHelpString("Select the targeting volume from the current scene.");
     }
 
-  if (!this->ShowCoverageButton)
+  if (!this->ShowRobotButton)
   {
-    this->ShowCoverageButton = vtkKWCheckButton::New();
+    this->ShowRobotButton = vtkKWCheckButton::New();
   } 
-  if (!this->ShowCoverageButton->IsCreated()) {
-    this->ShowCoverageButton->SetParent(this->TargetPlanningFrame);
-    this->ShowCoverageButton->Create();
-    this->ShowCoverageButton->SelectedStateOff();
-    this->ShowCoverageButton->SetText("Show coverage");
-    this->ShowCoverageButton->SetBalloonHelpString("Show coverage volume of the robot");
+  if (!this->ShowRobotButton->IsCreated()) {
+    this->ShowRobotButton->SetParent(this->TargetPlanningFrame);
+    this->ShowRobotButton->Create();
+    this->ShowRobotButton->SelectedStateOff();
+    this->ShowRobotButton->SetText("Show Robot");
+    this->ShowRobotButton->SetBalloonHelpString("Show the robot");
   }
+
+  if (!this->ShowWorkspaceButton)
+  {
+    this->ShowWorkspaceButton = vtkKWCheckButton::New();
+  } 
+  if (!this->ShowWorkspaceButton->IsCreated()) {
+    this->ShowWorkspaceButton->SetParent(this->TargetPlanningFrame);
+    this->ShowWorkspaceButton->Create();
+    this->ShowWorkspaceButton->SelectedStateOff();
+    this->ShowWorkspaceButton->SetText("Show Workspace");
+    this->ShowWorkspaceButton->SetBalloonHelpString("Show workspace of the robot");
+  }  
 
   if (!this->AddTargetsOnClickButton)
   {
@@ -277,11 +292,12 @@ void vtkProstateNavTargetingStep::ShowTargetPlanningFrame()
     this->NeedleTypeMenuList->SetBalloonHelpString("Select the needle type");
     }
     
-  this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->LoadTargetingVolumeButton->GetWidgetName());
-  this->Script("grid %s -row 0 -column 2 -padx 2 -pady 2 -sticky w", this->ShowCoverageButton->GetWidgetName());
+  this->Script("grid %s -row 0 -column 0 -padx 2 -pady 2 -sticky ew", this->LoadTargetingVolumeButton->GetWidgetName());
+  this->Script("grid %s -row 0 -column 1 -padx 2 -pady 2 -sticky e", this->ShowRobotButton->GetWidgetName());
+  this->Script("grid %s -row 0 -column 2 -padx 2 -pady 2 -sticky e", this->ShowWorkspaceButton->GetWidgetName());
   this->Script("grid %s -row 1 -column 0 -columnspan 3 -padx 2 -pady 2 -sticky ew", this->VolumeSelectorWidget->GetWidgetName());
-  this->Script("grid %s -row 2 -column 0 -padx 2 -pady 2 -sticky w", this->AddTargetsOnClickButton->GetWidgetName());
-  this->Script("grid %s -row 2 -column 1 -columnspan 2 -padx 2 -pady 2 -sticky e", this->NeedleTypeMenuList->GetWidgetName());
+  this->Script("grid %s -row 2 -column 0 -columnspan 3 -padx 2 -pady 2 -sticky w", this->AddTargetsOnClickButton->GetWidgetName());
+  this->Script("grid %s -row 3 -column 0 -columnspan 3 -padx 2 -pady 2 -sticky ew", this->NeedleTypeMenuList->GetWidgetName());
 
 }
 
@@ -609,10 +625,16 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
     this->GetApplication()->Script("::LoadVolume::ShowDialog");
     }
 
-  // show coverage dialog button
-   if (this->ShowCoverageButton && this->ShowCoverageButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+  // show workspace button
+  if (this->ShowWorkspaceButton && this->ShowWorkspaceButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
     {
-      this->ShowCoverage(this->ShowCoverageButton->GetSelectedState() == 1);
+      this->ShowWorkspaceModel(this->ShowWorkspaceButton->GetSelectedState() == 1);
+    }
+
+  // show robot button
+  if (this->ShowRobotButton && this->ShowRobotButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+    {
+      this->ShowRobotModel(this->ShowRobotButton->GetSelectedState() == 1);
     }
 
  // activate fiducial placement
@@ -673,19 +695,7 @@ void vtkProstateNavTargetingStep::ProcessMRMLEvents(vtkObject *caller,
     {
     vtkMRMLScalarVolumeNode *volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast((vtkMRMLNode*)(callData));
 
-    // Check if the newly added volume is the coverage volume
-    // (that shouldn't be used as a targeting volume)
-    bool coverageVolumeWasAdded=false;
-    vtkMRMLProstateNavManagerNode *managerNode = GetProstateNavManager();
-    if (managerNode!=NULL && volumeNode!=NULL)
-    {
-      if (strcmp(volumeNode->GetName(), ROBOT_COVERAGE_AREA_NODE_NAME)==0 )
-      {
-        coverageVolumeWasAdded=true;
-      }
-    }
-
-    if (!coverageVolumeWasAdded && volumeNode!=NULL && this->VolumeSelectorWidget!=NULL && volumeNode!=this->VolumeSelectorWidget->GetSelected() )
+    if (volumeNode!=NULL && this->VolumeSelectorWidget!=NULL && volumeNode!=this->VolumeSelectorWidget->GetSelected() )
       {
       // a new volume is loaded, set as the current targeting volume
       this->VolumeSelectorWidget->SetSelected(volumeNode);
@@ -1076,9 +1086,13 @@ void vtkProstateNavTargetingStep::AddGUIObservers()
     {
     this->VolumeSelectorWidget->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);  
     }
-  if (this->ShowCoverageButton)
+  if (this->ShowWorkspaceButton)
     {
-      this->ShowCoverageButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+      this->ShowWorkspaceButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }  
+  if (this->ShowRobotButton)
+    {
+      this->ShowRobotButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }  
   if (this->AddTargetsOnClickButton)
     {
@@ -1117,9 +1131,13 @@ void vtkProstateNavTargetingStep::RemoveGUIObservers()
     {
     this->VolumeSelectorWidget->RemoveObserver ((vtkCommand *)this->GUICallbackCommand);  
     }
-  if (this->ShowCoverageButton)
+  if (this->ShowWorkspaceButton)
     {
-    this->ShowCoverageButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    this->ShowWorkspaceButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }  
+  if (this->ShowRobotButton)
+    {
+    this->ShowRobotButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }  
   if (this->AddTargetsOnClickButton)
     {
@@ -1217,22 +1235,15 @@ void vtkProstateNavTargetingStep::UpdateGUI()
     int needleIndex=mrmlNode->GetCurrentNeedleIndex();
     this->NeedleTypeMenuList->GetWidget()->GetMenu()->SelectItem(needleIndex);
     }
-}
 
-// return:
-//  0=error
-//----------------------------------------------------------------------------
-void vtkProstateNavTargetingStep::ShowCoverage(bool show) 
-{
-  // :TODO: show/hide depending on show parameter value
-
-  vtkProstateNavLogic *logic=this->GetGUI()->GetLogic();
-  if (!logic)
+  if (this->ShowRobotButton &&this->ShowRobotButton->IsCreated()) 
   {
-    vtkErrorMacro("Invalid logic object");
-    return;
+    this->ShowRobotButton->SetSelectedState(IsRobotModelShown());
   }
-  logic->ShowCoverage(show);
+  if (this->ShowWorkspaceButton &&this->ShowWorkspaceButton->IsCreated()) 
+  {
+    this->ShowWorkspaceButton->SetSelectedState(IsWorkspaceModelShown());  
+  }
 }
 
 //----------------------------------------------------------------------------

@@ -133,9 +133,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLTransformableNode
   virtual void SwitchStep(const char *stepName) {};
 
   virtual int OnTimer() {return 1; };
-
-  virtual bool IsTargetReachable(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle) { return false; };
-  
+ 
   // Computes needle orientation in unit vector, pointing towards then needle tip
   // when the robot targets the specified point.
   // needleDirection is a pointer to a double[3] array which is updated with the orientation
