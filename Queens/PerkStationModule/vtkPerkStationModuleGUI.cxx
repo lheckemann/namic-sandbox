@@ -553,7 +553,7 @@ vtkPerkStationModuleGUI
   
   
     // Red slice is selected and slice offset is changed.
-    
+  
   if ( this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()
        ->GetSliceNode() == vtkMRMLSliceNode::SafeDownCast( caller )
        && event == vtkCommand::ModifiedEvent

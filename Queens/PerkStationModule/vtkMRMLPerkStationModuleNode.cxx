@@ -242,6 +242,7 @@ vtkMRMLPerkStationModuleNode
   
   this->SliceToRAS = vtkSmartPointer< vtkMatrix4x4 >::New();
   
+  this->PlanList.clear();
   
     // Insertion parameters ---------------------------------------------------
   
@@ -295,13 +296,24 @@ vtkMRMLPerkStationModuleNode
   
   this->CurrentStep = 0;
   this->PreviousStep = WORKPHASE_CALIBRATION;
+  
+  
 }
 
 
 //----------------------------------------------------------------------------
 vtkMRMLPerkStationModuleNode::~vtkMRMLPerkStationModuleNode()
 {
-   
+  for ( std::vector< vtkPerkStationPlan* >::iterator it = this->PlanList.begin();
+        it != this->PlanList.end(); ++ it )
+    {   
+    if ((*it)!=NULL)
+      {
+      (*it)->Delete();
+      (*it)=NULL;
+      }
+    }
+  this->PlanList.clear();
 }
 
 
@@ -363,6 +375,19 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
       of << this->PlanTargetPoint[ i ] << " ";
   of << "\" \n";
   
+    // Plan list.
+  of << indent << " CurrentPlanIndex=\"" << this->CurrentPlanIndex << "\"";
+  for ( unsigned int planInd =0;
+        planInd < this->TargetDescriptorsVector.size();
+        planInd ++ )
+  {
+    of << " Plan" << planInd << "_Name=\"" << this->PlanList[ planInd ]->GetName() << "\"";
+    of << " Entry" << planInd << "_RASLocation=\""
+      << this->PlanList[ planInd ]->GetEntryPointRAS()[ 0 ] << " "
+      << this->PlanList[ planInd ]->GetEntryPointRAS()[ 1 ] << " "
+      << this->PlanList[ planInd ]->GetEntryPointRAS()[ 2 ] << "\"";
+    
+  }
   
   // Validate step parameters
   
@@ -1201,3 +1226,65 @@ vtkMRMLPerkStationModuleNode
   return insDepth;
 }
 
+
+unsigned int
+vtkMRMLPerkStationModuleNode
+::AddPlan( vtkPerkStationPlan* newPlan )
+{
+  unsigned int index = this->PlanList.size();
+  newPlan->Register( this );
+  this->PlanList.push_back( newPlan );
+  return index;
+}
+
+
+/**
+ * @returns 0 on failure, other on success.
+ */
+int
+vtkMRMLPerkStationModuleNode
+::RemovePlanAtIndex( unsigned int index )
+{
+  if ( index >= this->PlanList.size() )
+    {
+    return 0;
+    }
+  vtkPerkStationPlan* plan = GetPlanAtIndex( index );
+  if ( plan != NULL )
+  {
+    plan->Delete();
+  }
+  this->PlanList.erase( this->PlanList.begin() + index );
+  return 1;
+}
+
+
+vtkPerkStationPlan*
+vtkMRMLPerkStationModuleNode
+::GetPlanAtIndex( unsigned int index )
+{
+  if ( index < this->PlanList.size() )
+    {
+    return this->PlanList[ index ];
+    }
+  else
+    {
+    return NULL;
+    }
+}
+
+
+int
+vtkMRMLPerkStationModuleNode
+::SetCurrentPlanIndex( int index )
+{
+  if ( index >= (int)this->PlanList.size() )
+    {
+    return this->CurrentPlanIndex; // invalid index, do not change current
+    }
+  this->CurrentPlanIndex = index;
+  
+  this->Modified();
+  // this->InvokeEvent(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent);
+  return this->CurrentPlanIndex;
+}

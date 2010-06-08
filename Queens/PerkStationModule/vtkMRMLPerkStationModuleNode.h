@@ -15,6 +15,7 @@
 #include "vtkSmartPointer.h"
 
 #include "vtkPerkStationModule.h"
+#include "vtkPerkStationPlan.h"
 
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLLinearTransformNode.h"
@@ -286,6 +287,16 @@ public:
   double GetValidationDepth();
   
   
+  // Plan list management -----------------------------------------------------
+  
+  unsigned int AddPlan( vtkPerkStationPlan* newPlan );
+  int RemovePlanAtIndex( unsigned int index );
+  vtkPerkStationPlan *GetPlanAtIndex( unsigned int index );
+  int GetNumberOfPlans() { return this->PlanList.size(); };
+  vtkGetMacro( CurrentPlanIndex, int );
+  int SetCurrentPlanIndex( int index );
+  
+  
 protected:
   
   vtkMRMLPerkStationModuleNode();
@@ -373,7 +384,6 @@ protected:
   int PreviousStep;
   
   
-  
   //keep track of all the volumes that were opened, maintain a list
   //BTX
   typedef struct {
@@ -388,6 +398,12 @@ protected:
   std::vector< OverlayHardware > HardwareList;
   //ETX
   
+  //BTX
+  
+  std::vector< vtkPerkStationPlan* > PlanList;
+  int CurrentPlanIndex; // If <0, no plan is selected.
+  
+  //ETX
 };
 
 #endif

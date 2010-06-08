@@ -5,6 +5,7 @@
 
 class vtkKWCheckButtonWithLabel;
 class vtkKWLabel;
+class vtkKWMultiColumnListWithScrollbars;
 class vtkKWFrame;
 class vtkKWEntryWithLabel;
 class vtkKWEntrySet;
@@ -29,7 +30,10 @@ public:
 
     // Description:
     // Reimplement the superclass's method (see vtkKWWizardStep).
+  
   virtual void ShowUserInterface();
+  virtual void ShowPlanListFrame();
+  
 
     // Description:
     // Callbacks.
@@ -79,7 +83,8 @@ protected:
   bool DoubleEqual( double val1, double val2 );
   
 
-  // reset push button
+  // GUI widgets --------------------------------------------------------------
+  
   vtkKWPushButton *ResetPlanButton;
   vtkKWFrame *ResetFrame;
   
@@ -93,9 +98,13 @@ protected:
   vtkKWLabel *EntryPointLabel;
   vtkKWEntrySet      *EntryPoint;
   
-  vtkKWFrame *TargetPointFrame;
-  vtkKWLabel *TargetPointLabel;  
-  vtkKWEntrySet      *TargetPoint;
+  vtkKWFrame*    TargetPointFrame;
+  vtkKWLabel*    TargetPointLabel;  
+  vtkKWEntrySet* TargetPoint;
+  
+  vtkKWFrame* PlanListFrame;
+  vtkKWMultiColumnListWithScrollbars* PlanList;
+  vtkKWPushButton* DeleteButton;
   
   vtkKWEntryWithLabel *InsertionAngle;
   vtkKWEntryWithLabel *InsertionDepth;
