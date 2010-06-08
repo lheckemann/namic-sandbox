@@ -240,9 +240,6 @@ void* ThreadFunction(void* ptr)
 int SendTrackingData(igtl::Socket::Pointer& socket, igtl::TrackingDataMessage::Pointer& trackingMsg)
 {
 
-  float position[3];
-  float orientaion[4];
-
   static float phi0   = 0.0;
   static float theta0 = 0.0;
   static float phi1   = 0.0;
