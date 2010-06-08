@@ -40,6 +40,14 @@ int main( int argc, char * argv [] )
 
   igtl_header  header;
 
+  // Test structure size
+  if (sizeof(header) != IGTL_HEADER_SIZE)
+    {
+    fprintf(stdout, "Invalid size of header structure.\n");
+    return EXIT_FAILURE;
+    }
+
+  // Test binary
   header.version = 1;
   strncpy( header.name, "TYPENAME", 12 );
   strncpy( header.device_name, "DeviceName", 20 );

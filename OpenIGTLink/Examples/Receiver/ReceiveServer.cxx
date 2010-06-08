@@ -27,10 +27,19 @@
 #include "igtlStatusMessage.h"
 #include "igtlPositionMessage.h"
 
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
+#include "igtlPointMessage.h"
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2
+
+
 int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceivePosition(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
+int ReceivePoint(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 int main(int argc, char* argv[])
 {
@@ -110,6 +119,12 @@ int main(int argc, char* argv[])
           {
           ReceiveStatus(socket, headerMsg);
           }
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
+        else if (strcmp(headerMsg->GetDeviceType(), "POINT") == 0)
+          {
+          ReceivePoint(socket, headerMsg);
+          }
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2
         else
           {
           // if the data type is unknown, skip reading.
@@ -121,7 +136,7 @@ int main(int argc, char* argv[])
     }
     
   //------------------------------------------------------------
-  // Close connection (The example code never reachs to this section ...)
+  // Close connection (The example code never reaches to this section ...)
   
   socket->CloseSocket();
 
@@ -277,3 +292,51 @@ int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& h
   return 0;
 
 }
+
+
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
+int ReceivePoint(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+
+  std::cerr << "Receiving POINT data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::PointMessage::Pointer pointMsg;
+  pointMsg = igtl::PointMessage::New();
+  pointMsg->SetMessageHeader(header);
+  pointMsg->AllocatePack();
+
+  // Receive transform data from the socket
+  socket->Receive(pointMsg->GetPackBodyPointer(), pointMsg->GetPackBodySize());
+
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = pointMsg->Unpack(1);
+
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    int nElements = pointMsg->GetNumberOfPointElement();
+    for (int i = 0; i < nElements; i ++)
+      {
+      igtl::PointElement::Pointer pointElement;
+      pointMsg->GetPointElement(i, pointElement);
+
+      igtlUint8 rgba[4];
+      pointElement->GetRGBA(rgba);
+
+      igtlFloat32 pos[3];
+      pointElement->GetPosition(pos);
+
+      std::cerr << "========== Element #" << i << " ==========" << std::endl;
+      std::cerr << " Name      : " << pointElement->GetName() << std::endl;
+      std::cerr << " GroupName : " << pointElement->GetGroupName() << std::endl;
+      std::cerr << " RGBA      : ( " << (int)rgba[0] << ", " << (int)rgba[1] << ", " << (int)rgba[2] << ", " << (int)rgba[3] << " )" << std::endl;
+      std::cerr << " Position  : ( " << std::fixed << pos[0] << ", " << pos[1] << ", " << pos[2] << " )" << std::endl;
+      std::cerr << " Radius    : " << std::fixed << pointElement->GetRadius() << std::endl;
+      std::cerr << " Owner     : " << pointElement->GetOwner() << std::endl;
+      std::cerr << "================================" << std::endl;
+      }
+    }
+
+}
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2

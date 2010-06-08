@@ -5,16 +5,30 @@ cmake_minimum_required(VERSION 2.4)
 #
 
 
+SET(EXAMPLE_DIRS
+  Tracker
+  Imager
+  Status
+  Receiver
+  Thread
+  )
+
+if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
+  SET(EXAMPLE_DIRS
+    ImageMeta
+    Point
+    TrackingData
+    ImageDatabaseServer
+    )
+endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
+
+
 ## Imager program isn't supported by QNX
 
 if(NOT OpenIGTLink_PLATFORM_QNX)
   SUBDIRS(
-      Tracker
-      Imager
-      Status
-      Receiver
-      Thread
-      )
+    ${EXAMPLE_DIRS}  
+    )
 else(NOT OpenIGTLink_PLATFORM_QNX)
   SUBDIRS(
       Tracker

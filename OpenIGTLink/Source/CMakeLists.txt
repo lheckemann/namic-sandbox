@@ -1,4 +1,3 @@
-
 # list of libraries
 # Note: this part should be moved to OpenIGTLinkConfigPlatform.cmake
 IF(OpenIGTLink_PLATFORM_WIN32) # for Windows
@@ -57,6 +56,65 @@ SET(OpenIGTLink_SOURCES
   igtlTransformMessage.cxx
   )
 
+SET(OpenIGTLink_INCLUDE_FILES
+  igtlutil/igtl_header.h
+  igtlutil/igtl_image.h
+  igtlutil/igtl_position.h
+  igtlutil/igtl_transform.h
+  igtlutil/igtl_types.h
+  igtlutil/igtl_util.h
+  igtlClientSocket.h
+  igtlConditionVariable.h
+  igtlFastMutexLock.h
+  igtlImageMessage.h
+  igtlLightObject.h
+  igtlMath.h
+  igtlMessageBase.h
+  igtlMultiThreader.h
+  igtlMutexLock.h
+  igtlOSUtil.h
+  igtlObject.h
+  igtlObjectFactoryBase.h
+  igtlPositionMessage.h
+  igtlServerSocket.h
+  igtlSimpleFastMutexLock.h
+  igtlSocket.h
+  igtlStatusMessage.h
+  igtlTimeStamp.h
+  igtlTransformMessage.h
+)
+
+
+if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
+  SET(OpenIGTLink_SOURCES
+    ${OpenIGTLink_SOURCES}
+    igtlutil/igtl_imgmeta.c
+    igtlutil/igtl_point.c
+    igtlutil/igtl_colortable.c
+    igtlutil/igtl_lbmeta.c
+    igtlutil/igtl_trajectory.c
+    igtlutil/igtl_tdata.c
+    igtlColorTableMessage.cxx
+    igtlImageMetaMessage.cxx
+    igtlLabelMetaMessage.cxx
+    igtlPointMessage.cxx
+    igtlTrackingDataMessage.cxx
+    )
+  SET(OpenIGTLink_INCLUDE_FILES
+    ${OpenIGTLink_INCLUDE_FILES}
+    igtlutil/igtl_colortable.h
+    igtlutil/igtl_imgmeta.h
+    igtlutil/igtl_lbmeta.h
+    igtlutil/igtl_point.h
+    igtlutil/igtl_tdata.h
+    igtlutil/igtl_trajectory.h
+    igtlImageMetaMessage.h
+    igtlLabelMetaMessage.h
+    igtlPointMessage.h
+    igtlTrackingDataMessage.h
+    )
+endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
+
 ADD_LIBRARY(OpenIGTLink
   ${OpenIGTLink_SOURCES}
   )
@@ -70,14 +128,18 @@ SET_TARGET_PROPERTIES(OpenIGTLink PROPERTIES
   SOVERSION ${OpenIGTLink_VERSION_MAJOR}
 )
 
-FILE(GLOB __files1 "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
-INSTALL(FILES ${__files1}
-  DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}
-  COMPONENT Development)
+#FILE(GLOB __files1 "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
+#INSTALL(FILES ${__files1}
+#  DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}
+#  COMPONENT Development)
+#
+#FILE(GLOB __files2 "${CMAKE_CURRENT_SOURCE_DIR}/igtlutil/*.h")
+#INSTALL(FILES ${__files2}
+#  DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}/igtlutil
+#  COMPONENT Development)
 
-FILE(GLOB __files2 "${CMAKE_CURRENT_SOURCE_DIR}/igtlutil/*.h")
-INSTALL(FILES ${__files2}
-  DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}/igtlutil
+INSTALL(FILES ${OpenIGTLink_INCLUDE_FILES}
+  DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}
   COMPONENT Development)
 
 INSTALL(TARGETS OpenIGTLink

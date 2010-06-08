@@ -1,4 +1,5 @@
-SET(IGTL_UTIL_PROTOCOL_VERSION "1")
+#SET(IGTL_UTIL_PROTOCOL_VERSION "1")
+#SET(IGTL_UTIL_PROTOCOL_VERSION ${OpenIGTLink_PROTOCOL_VERSION})
 
 if(OpenIGTLink_BUILD_SHARED_LIBS)
   set(igtlutil_BUILD_SHARED_LIBS ${OpenIGTLink_BUILD_SHARED_LIBS})
@@ -13,19 +14,41 @@ endif(OpenIGTLink_BUILD_GENERATE_PIC)
 SET(igtlutil_HEADS
   igtl_header.h
   igtl_image.h
-  igtl_transform.h
-  igtl_util.h
-  igtl_types.h
   igtl_position.h
+  igtl_transform.h
+  igtl_types.h
+  igtl_util.h
   )
 
 SET(igtlutil_SOURCES
   igtl_header.c
   igtl_image.c
+  igtl_position.c
   igtl_transform.c
   igtl_util.c
-#  igtl_position.c
   )       
+
+
+if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
+  SET(igtlutil_HEADS
+    ${igtlutil_HEADS}
+    igtl_colortable.h
+    igtl_imgmeta.h
+    igtl_lbmeta.h
+    igtl_point.h
+    igtl_tdata.h
+    igtl_trajectory.h
+    )
+  SET(igtlutil_SOURCES
+    ${igtlutil_SOURCES}
+    igtl_colortable.c
+    igtl_imgmeta.c
+    igtl_lbmeta.c
+    igtl_point.c
+    igtl_tdata.c
+    igtl_trajectory.c
+    )
+endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
 
 ADD_LIBRARY(igtlutil
   ${igtlutil_SOURCES}
