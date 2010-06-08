@@ -27,7 +27,7 @@
 #include "igtlImageMetaMessage.h"
 
 
-int SendImageMeta(igtl::Socket::Pointer& socket);
+int SendImageMeta(igtl::Socket::Pointer& socket, const char* name);
 
 int main(int argc, char* argv[])
 {
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
           {
           std::cerr << "Received a GET_IMGMETA message." << std::endl;
           //socket->Skip(headerMsg->GetBodySizeToRead(), 0);
-          SendImageMeta(socket);
+          SendImageMeta(socket, headerMsg->GetDeviceName());
           }
         else
           {
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
 }
 
 
-int SendImageMeta(igtl::Socket::Pointer& socket)
+int SendImageMeta(igtl::Socket::Pointer& socket, const char* name)
 {
 
   //------------------------------------------------------------
@@ -126,7 +126,9 @@ int SendImageMeta(igtl::Socket::Pointer& socket)
 
   igtl::ImageMetaMessage::Pointer imgMetaMsg;
   imgMetaMsg = igtl::ImageMetaMessage::New();
-  imgMetaMsg->SetDeviceName("MetaServer");
+  // NOTE: the server should send a message with the same device name
+  // as the received query message.
+  imgMetaMsg->SetDeviceName(name);
 
   //---------------------------
   // Create 1st meta data
