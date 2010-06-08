@@ -378,7 +378,7 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
     // Plan list.
   of << indent << " CurrentPlanIndex=\"" << this->CurrentPlanIndex << "\"";
   for ( unsigned int planInd =0;
-        planInd < this->TargetDescriptorsVector.size();
+        planInd < this->PlanList.size();
         planInd ++ )
   {
     of << " Plan" << planInd << "_Name=\"" << this->PlanList[ planInd ]->GetName() << "\"";
@@ -387,6 +387,7 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
       << this->PlanList[ planInd ]->GetEntryPointRAS()[ 1 ] << " "
       << this->PlanList[ planInd ]->GetEntryPointRAS()[ 2 ] << "\"";
     
+    //todo: finish this
   }
   
   // Validate step parameters
