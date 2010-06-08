@@ -116,7 +116,8 @@ protected:
   vtkSlicerViewerWidget* ViewerWidget;
   
   vtkKWMultiColumnListWithScrollbars* RemoteDataList;
-  vtkKWPushButton* GetButton;
+  vtkKWPushButton* GetListButton;
+  vtkKWPushButton* GetImageButton;
   vtkKWPushButton* CloseButton;
 
   vtkCallbackCommand *MRMLCallbackCommand;  
@@ -138,6 +139,9 @@ protected:
   
   vtkMRMLIGTLConnectorNode* Connector;
   vtkMRMLIGTLQueryNode* ImageMetaListQueryNode;
+  //BTX
+  std::list<vtkMRMLIGTLQueryNode*> ImageQueryNodeList;
+  //ETX
 
  private:
   vtkIGTLRemoteDataListWindow(const vtkIGTLRemoteDataListWindow&);
