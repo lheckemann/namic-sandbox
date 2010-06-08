@@ -46,6 +46,21 @@
     };
 
 
+  // Definition of plan list columns.
+enum
+  {
+  COL_NAME = 0,
+  COL_ER,
+  COL_EA,
+  COL_ES,
+  COL_TR,
+  COL_TA,
+  COL_TS,
+  COL_COUNT
+  };
+static const char* COL_LABELS[ COL_COUNT ] = { "Name", "ER", "EA", "ES", "TR", "TA", "TS" };
+static const int COL_WIDTHS[ COL_COUNT ] = { 8, 6, 6, 6, 6, 6, 6 };
+
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPerkStationPlanStep);
@@ -60,9 +75,6 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
 
   this->WizardGUICallbackCommand->SetCallback(vtkPerkStationPlanStep::WizardGUICallback);
 
-  this->ResetFrame = NULL;
-  this->ResetPlanButton = NULL;
-  
   this->TargetFirstFrame = NULL;
   this->TargetFirstCheck = NULL;
   this->EntryPointFrame = NULL;
@@ -71,10 +83,7 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
   this->TargetPointFrame = NULL;
   this->TargetPointLabel = NULL;
   this->TargetPoint = NULL;
-  this->InsertionAngle = NULL;
-  this->InsertionDepth = NULL;
   this->TiltInformationFrame = NULL;
-  this->TiltMsg = NULL;
   this->SystemTiltAngle = NULL;
   
   this->PlanningLineActor = vtkSmartPointer< vtkActor >::New();
@@ -108,8 +117,6 @@ vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
 {
   this->RemoveGUIObservers();
   
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ResetFrame );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ResetPlanButton );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetFirstFrame );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetFirstCheck );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPointFrame );
@@ -118,10 +125,7 @@ vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPointFrame );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPointLabel );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPoint );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionAngle );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionDepth );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TiltInformationFrame );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TiltMsg );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->SystemTiltAngle );
   
     // PlanList frame
@@ -145,82 +149,13 @@ void vtkPerkStationPlanStep::ShowUserInterface()
   
   
   // clear controls
-  FORGET( this->ResetFrame );
-  FORGET( this->ResetPlanButton );
   FORGET( this->TargetFirstCheck );
   
   this->SetName("2/4. Plan");
   this->GetGUI()->GetWizardWidget()->Update();
 
-  // additional reset button
-
-  // frame for reset button
-
-  if ( ! this->ResetFrame )
-    {
-    this->ResetFrame = vtkKWFrame::New();
-    }
-  if ( ! this->ResetFrame->IsCreated() )
-    {
-    this->ResetFrame->SetParent( parent );
-    this->ResetFrame->Create();     
-    }
-  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    this->ResetFrame->GetWidgetName() );     
   
-  
-
-  if (!this->ResetPlanButton)
-    {
-    this->ResetPlanButton = vtkKWPushButton::New();
-    }
-  if(!this->ResetPlanButton->IsCreated())
-    {
-    this->ResetPlanButton->SetParent( this->ResetFrame );
-    this->ResetPlanButton->SetText("Reset plan");
-    this->ResetPlanButton->SetBorderWidth(2);
-    this->ResetPlanButton->SetReliefToRaised();      
-    this->ResetPlanButton->SetHighlightThickness(2);
-    this->ResetPlanButton->SetBackgroundColor(0.85,0.85,0.85);
-    this->ResetPlanButton->SetActiveBackgroundColor(1,1,1);      
-    this->ResetPlanButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
-    this->ResetPlanButton->Create();
-    }
-  
-  this->Script("pack %s -side top -padx 2 -pady 4", 
-                    this->ResetPlanButton->GetWidgetName());
- 
- 
-  
-  // Create the individual components
-  
-  if ( ! this->TargetFirstFrame )
-    {
-    this->TargetFirstFrame = vtkKWFrame::New();
-    }
-  if ( ! this->TargetFirstFrame->IsCreated() )
-    {
-    this->TargetFirstFrame->SetParent( parent );
-    this->TargetFirstFrame->Create();
-    }
-  
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->TargetFirstFrame->GetWidgetName() );
-  
-  if ( ! this->TargetFirstCheck )
-    {
-    this->TargetFirstCheck = vtkKWCheckButtonWithLabel::New();
-    }
-  if ( ! this->TargetFirstCheck->IsCreated() )
-    {
-    this->TargetFirstCheck->SetParent( this->TargetFirstFrame );
-    this->TargetFirstCheck->SetLabelText( "Select target point first" );
-    this->TargetFirstCheck->Create();
-    this->TargetFirstCheck->GetWidget()->SetSelectedState(
-       ( this->SelectTargetFirst ? 1 : 0 ) );
-    }
-  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 4", 
-                this->TargetFirstCheck->GetWidgetName() );
+  this->ShowTargetFirstFrame();
   
   
   //frame
@@ -335,43 +270,7 @@ void vtkPerkStationPlanStep::ShowUserInterface()
   this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
                 this->TargetPoint->GetWidgetName());
 
-
-  // insertion angle  
-  if (!this->InsertionAngle)
-    {
-    this->InsertionAngle =  vtkKWEntryWithLabel::New(); 
-    }
-  if (!this->InsertionAngle->IsCreated())
-    {
-    this->InsertionAngle->SetParent(parent);
-    this->InsertionAngle->Create();
-    this->InsertionAngle->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionAngle->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
-    this->InsertionAngle->SetLabelText("Insertion angle (in degrees):");
-    }
-
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->InsertionAngle->GetWidgetName());
-
-
-  // insertion depth  
-  if (!this->InsertionDepth)
-    {
-    this->InsertionDepth =  vtkKWEntryWithLabel::New(); 
-    }
-  if (!this->InsertionDepth->IsCreated())
-    {
-    this->InsertionDepth->SetParent(parent);
-    this->InsertionDepth->Create();
-    this->InsertionDepth->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionDepth->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
-    this->InsertionDepth->SetLabelText("Insertion depth (in mm):   ");
-    }
-
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->InsertionDepth->GetWidgetName());
-
-
+  
    //frame
   if (!this->TiltInformationFrame)
     {
@@ -405,24 +304,6 @@ void vtkPerkStationPlanStep::ShowUserInterface()
                 this->SystemTiltAngle->GetWidgetName() );
 
   
-  // msg label
-  if( ! this->TiltMsg )
-    {
-    this->TiltMsg = vtkKWLabel::New();
-    }
-  if( ! this->TiltMsg->IsCreated() )
-    {
-    this->TiltMsg->SetParent( this->TiltInformationFrame );
-    this->TiltMsg->Create();
-    this->TiltMsg->SetImageToPredefinedIcon( vtkKWIcon::IconInfoMini );
-    this->TiltMsg->SetCompoundModeToLeft();
-    this->TiltMsg->SetPadX(2);
-    this->TiltMsg->SetText("");
-    }
-   this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                 this->TiltMsg->GetWidgetName() ); 
-  
-  
   this->ShowPlanListFrame();
   
   
@@ -430,9 +311,42 @@ void vtkPerkStationPlanStep::ShowUserInterface()
   this->InstallCallbacks();
   
   this->PopulateControlsOnLoadPlanning();
+}
+
+
+void
+vtkPerkStationPlanStep
+::ShowTargetFirstFrame()
+{
+  vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
   
-  wizard_widget->SetErrorText(
-    "Please note that the order of the clicks on image is important." );
+  if ( ! this->TargetFirstFrame )
+    {
+    this->TargetFirstFrame = vtkKWFrame::New();
+    }
+  if ( ! this->TargetFirstFrame->IsCreated() )
+    {
+    this->TargetFirstFrame->SetParent( parent );
+    this->TargetFirstFrame->Create();
+    }
+  
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                this->TargetFirstFrame->GetWidgetName() );
+  
+  if ( ! this->TargetFirstCheck )
+    {
+    this->TargetFirstCheck = vtkKWCheckButtonWithLabel::New();
+    }
+  if ( ! this->TargetFirstCheck->IsCreated() )
+    {
+    this->TargetFirstCheck->SetParent( this->TargetFirstFrame );
+    this->TargetFirstCheck->SetLabelText( "Select target point first" );
+    this->TargetFirstCheck->Create();
+    this->TargetFirstCheck->GetWidget()->SetSelectedState(
+       ( this->SelectTargetFirst ? 1 : 0 ) );
+    }
+  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 4", 
+                this->TargetFirstCheck->GetWidgetName() );
 }
 
 
@@ -454,6 +368,7 @@ vtkPerkStationPlanStep
   this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
                 this->PlanListFrame->GetWidgetName() );
   
+  
   if ( ! this->PlanList )
     {
     this->PlanList = vtkKWMultiColumnListWithScrollbars::New();
@@ -465,8 +380,18 @@ vtkPerkStationPlanStep
     this->PlanList->GetWidget()->MovableRowsOff();
     this->PlanList->GetWidget()->MovableColumnsOff();
     
+    for ( int col = 0; col < COL_COUNT; ++ col )
+      {
+      this->PlanList->GetWidget()->AddColumn( COL_LABELS[ col ] );
+      this->PlanList->GetWidget()->SetColumnWidth( col, COL_WIDTHS[ col ] );
+      this->PlanList->GetWidget()->SetColumnAlignmentToLeft( col );
+      this->PlanList->GetWidget()->ColumnEditableOn( col );
+      this->PlanList->GetWidget()->SetColumnEditWindowToSpinBox( col );
+      }
     
+    this->PlanList->GetWidget()->SetColumnEditWindowToCheckButton( 0 );
     }
+  
   this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
                 this->PlanList->GetWidgetName());
   
@@ -501,28 +426,7 @@ vtkPerkStationPlanStep
 ::AddGUIObservers()
 {
   this->RemoveGUIObservers();
-
-  if (this->ResetPlanButton)
-    {
-    this->ResetPlanButton->AddObserver( vtkKWPushButton::InvokedEvent,
-      (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-  if(this->InsertionDepth)
-    {
-    this->InsertionDepth->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionDepth->GetWidget()->AddObserver(
-      vtkKWEntry::EntryValueChangedEvent,
-      (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-  if(this->InsertionAngle)
-    {
-    this->InsertionAngle->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionAngle->GetWidget()->AddObserver(
-      vtkKWEntry::EntryValueChangedEvent,
-      (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-  
-  
+    
   vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI() )->
     GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
     GetOverlayRenderer()->AddActor( this->PlanningLineActor ); 
@@ -532,23 +436,7 @@ vtkPerkStationPlanStep
 //----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::RemoveGUIObservers()
 {
-  if (this->ResetPlanButton)
-    {
-    this->ResetPlanButton->RemoveObservers( vtkKWPushButton::InvokedEvent,
-      (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-  if(this->InsertionDepth)
-    {
-    this->InsertionDepth->RemoveObservers( vtkKWEntry::EntryValueChangedEvent,
-      (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-
-  if(this->InsertionAngle)
-    {
-    this->InsertionAngle->RemoveObservers( vtkKWEntry::EntryValueChangedEvent,
-      (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-
+  
 }
 
 
@@ -579,16 +467,6 @@ void vtkPerkStationPlanStep::PopulateControlsOnLoadPlanning()
     this->TargetPoint->GetWidget( 0 )->SetValueAsDouble( rasTarget[ 0 ] );
     this->TargetPoint->GetWidget( 1 )->SetValueAsDouble( rasTarget[ 1 ] );
     this->TargetPoint->GetWidget( 2 )->SetValueAsDouble( rasTarget[ 2 ] );
-    
-    // insertion angle  
-    double insAngle = this->GetGUI()->GetMRMLNode()->
-                      GetActualPlanInsertionAngle();
-    this->InsertionAngle->GetWidget()->SetValueAsDouble( insAngle );
-    
-    // insertion depth
-    double insDepth = this->GetGUI()->GetMRMLNode()->
-                      GetActualPlanInsertionDepth();
-    this->InsertionDepth->GetWidget()->SetValueAsDouble( insDepth );
 }
 
 
@@ -1034,21 +912,9 @@ void vtkPerkStationPlanStep::ResetControls()
     this->TargetPoint->GetWidget(2)->SetValue("");
     }
 
-  if (this->InsertionAngle)
-    {
-    this->InsertionAngle->GetWidget()->SetValue("");
-    }  
-  if (this->InsertionDepth)
-    {
-    this->InsertionDepth->GetWidget()->SetValue("");
-    }
   if (this->SystemTiltAngle)
     {
     this->SystemTiltAngle->GetWidget()->SetValue("");
-    }
-  if (this->TiltMsg)
-    {
-    this->TiltMsg->SetText("");
     }
 }
 
@@ -1103,15 +969,6 @@ void vtkPerkStationPlanStep::ProcessGUIEvents( vtkObject* caller,
   if ( this->ProcessingCallback ) return;
   this->ProcessingCallback = true;
 
-  
-    // reset plan button
-  
-  if (    this->ResetPlanButton
-       && this->ResetPlanButton == vtkKWPushButton::SafeDownCast( caller )
-       && ( event == vtkKWPushButton::InvokedEvent ) )
-    {
-    this->Reset();
-    }
   
   this->ProcessingCallback = false;
 }

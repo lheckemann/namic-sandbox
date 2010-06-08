@@ -121,6 +121,42 @@ StringToDoubleVector( std::string str, double* var, int n )
     ss >> var[ i ];
 }
 
+
+//----------------------------------------------------------------------------
+// Separate attName = Needle123_Length to a sectionInd=123 and sectionName=Length
+bool GetAttNameSection( const std::string& attName,
+                        const std::string& groupName,
+                        unsigned int &sectionInd,
+                        std::string &sectionName)
+{
+  int groupNameLen = groupName.length();
+  if ( attName.compare( 0, groupNameLen, groupName ) != 0 )
+  {
+    return false; // group name doesn't match
+  }
+    // search for the first separator character after the group name
+  std::string::size_type separatorPos = attName.find( '_', groupNameLen );
+  if ( separatorPos == std::string::npos )
+  {
+    return false;  // separator not found
+  }
+  sectionName = attName.substr ( separatorPos+1, attName.length() - separatorPos + 1 );
+  if ( sectionName.empty() )
+  {
+    return false;  // failed to read sectionName
+  }
+  std::string indexString = attName.substr ( groupNameLen, separatorPos - groupNameLen );
+  std::stringstream ss;
+  ss << indexString;
+  ss.clear();
+  ss >> sectionInd;
+  if ( ! ss )
+  {
+    return false; // failed to read sectionIndex
+  }
+  return true;
+}
+
 // ----------------------------------------------------------------------------
 
 
@@ -325,88 +361,52 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   
   vtkIndent indent( nIndent );
-  
-  
-  of << "\" \n";
-  of << indent << " PlanningVolumeRef=\"" 
-     << (this->PlanningVolumeRef ? this->PlanningVolumeRef: "NULL")
-     << "\" \n";
-  
-  of << indent << " ValidationVolumeRef=\"" 
-     << (this->ValidationVolumeRef ? this->ValidationVolumeRef: "NULL")
-     << "\" \n";
+  of << indent;
   
   // Calibration step parameters
   
   // flip parameters
-  of << indent << " SecondMonitorVerticalFlip=\"" 
-     << this->SecondMonitorVerticalFlip   
-     << "\" \n";
+  of << " SecondMonitorVerticalFlip=\"" << this->SecondMonitorVerticalFlip << "\"";
+  of << " SecondMonitorHorizontalFlip=\"" << this->SecondMonitorHorizontalFlip << "\"";
+  of << " SecondMonitorTranslation=\"";
+  for( int i = 0; i < 3; i++ ) of << this->SecondMonitorTranslation[ i ] << " ";
+  of << "\"";
+  of << " SecondMonitorRotation=\"" << this->SecondMonitorRotation << "\"";
+  of << " SecondMonitorRotationCenter=\"";
+  for(int i = 0; i < 3; i++) of << this->SecondMonitorRotationCenter[ i ] << " ";
+  of << "\"";
   
-  of << indent << " SecondMonitorHorizontalFlip=\""
-     << this->SecondMonitorHorizontalFlip
-     << "\" \n";
-  
-  
-  of << indent << " SecondMonitorTranslation=\"";
-  for( int i = 0; i < 3; i++ )
-      of << this->SecondMonitorTranslation[ i ] << " ";
-  of << "\" \n";
-  
-  of << indent << " SecondMonitorRotation=\"" << this->SecondMonitorRotation
-     << "\" \n";
-  
-  of << indent << " SecondMonitorRotationCenter=\"";
-  for(int i = 0; i < 3; i++)
-      of << this->SecondMonitorRotationCenter[ i ] << " ";
-  of << "\" \n";
-  
-  
-  // PLAN step parameters
-  
-  
-  of << indent << " PlanEntryPoint=\"";
-  for(int i = 0; i < 3; i++)
-      of << this->PlanEntryPoint[ i ] << " ";
-  of << "\" \n";
-  
-  of << indent << " PlanTargetPoint=\"";
-  for(int i = 0; i < 3; i++)
-      of << this->PlanTargetPoint[ i ] << " ";
-  of << "\" \n";
+  of << indent << " TableAtScanner=\"" << this->TableAtScanner << "\" \n";
+  of << indent << " TableAtOverlay=\"" << this->TableAtOverlay << "\" \n";
   
     // Plan list.
+  
   of << indent << " CurrentPlanIndex=\"" << this->CurrentPlanIndex << "\"";
   for ( unsigned int planInd =0;
         planInd < this->PlanList.size();
         planInd ++ )
-  {
+    {
     of << " Plan" << planInd << "_Name=\"" << this->PlanList[ planInd ]->GetName() << "\"";
-    of << " Entry" << planInd << "_RASLocation=\""
+    of << " Plan" << planInd << "_PlanningVolumeRef=\"" << this->PlanList[ planInd ]->GetPlanningVolumeRef() << "\"";
+    of << " Plan" << planInd << "_EntryRASLocation=\""
       << this->PlanList[ planInd ]->GetEntryPointRAS()[ 0 ] << " "
       << this->PlanList[ planInd ]->GetEntryPointRAS()[ 1 ] << " "
       << this->PlanList[ planInd ]->GetEntryPointRAS()[ 2 ] << "\"";
-    
-    //todo: finish this
-  }
-  
-  // Validate step parameters
-  
-  of << indent << " ValidateEntryPoint=\"";
-  for(int i = 0; i < 3; i++)
-      of << this->ValidateEntryPoint[i] << " ";
-  of << "\" \n";
-
-  of << indent << " ValidateTargetPoint=\"";
-  for(int i = 0; i < 3; i++)
-      of << this->ValidateTargetPoint[i] << " ";
-  of << "\" \n";
-  
-  
-    // Table calibration.
-  
-  of << indent << " TableAtScanner=\"" << this->TableAtScanner << "\" \n";
-  of << indent << " TableAtOverlay=\"" << this->TableAtOverlay << "\" \n";
+    of << " Plan" << planInd << "_TargetRASLocation=\""
+      << this->PlanList[ planInd ]->GetTargetPointRAS()[ 0 ] << " "
+      << this->PlanList[ planInd ]->GetTargetPointRAS()[ 1 ] << " "
+      << this->PlanList[ planInd ]->GetTargetPointRAS()[ 2 ] << "\"";
+    of << " Plan" << planInd << "_Validated=\"" << this->PlanList[ planInd ]->GetValidated() << "\"";
+    of << " Plan" << planInd << "_ValidationVolumeRef=\"" << this->PlanList[ planInd ]->GetValidationVolumeRef() << "\"";
+    of << " Plan" << planInd << "_ValidationEntryRASLocation=\""
+      << this->PlanList[ planInd ]->GetValidationEntryPointRAS()[ 0 ] << " "
+      << this->PlanList[ planInd ]->GetValidationEntryPointRAS()[ 1 ] << " "
+      << this->PlanList[ planInd ]->GetValidationEntryPointRAS()[ 2 ] << "\"";
+    of << " Plan" << planInd << "_ValidationTargetRASLocation=\""
+      << this->PlanList[ planInd ]->GetValidationTargetPointRAS()[ 0 ] << " "
+      << this->PlanList[ planInd ]->GetValidationTargetPointRAS()[ 1 ] << " "
+      << this->PlanList[ planInd ]->GetValidationTargetPointRAS()[ 2 ] << "\"";
+    }
 }
 
 
@@ -421,162 +421,75 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
   
   while ( *atts != NULL )
     {
-    attName = *(atts++);
-    attValue = *(atts++);
+    attName = *( atts++ );
+    attValue = *( atts++ );
     
-    if (!strcmp(attName, "PlanningVolumeRef"))
-      {
-      this->SetPlanningVolumeRef(attValue);
-      this->Scene->AddReferencedNodeID(this->PlanningVolumeRef, this);
+    if ( ! strcmp( attName, "SecondMonitorVerticalFlip" ) ) {
+      StringToBool( std::string( attValue ), this->SecondMonitorVerticalFlip );
       }
-    else if (!strcmp(attName, "ValidationVolumeRef"))
-      {
-      this->SetValidationVolumeRef(attValue);
-      this->Scene->AddReferencedNodeID(this->ValidationVolumeRef, this);
+    else if ( ! strcmp( attName, "SecondMonitorHorizontalFlip" ) ) {
+      StringToBool( std::string( attValue ), this->SecondMonitorHorizontalFlip );
       }
-    else if (!strcmp(attName, "SecondMonitorVerticalFlip"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      bool val;
-      ss >> val;
-      this->SetSecondMonitorVerticalFlip( val );
+    else if ( ! strcmp( attName, "SecondMonitorTranslation" ) ) {
+      StringToDoubleVector( std::string( attValue ), this->SecondMonitorTranslation, 2 );
       }
-    else if (!strcmp(attName, "SecondMonitorHorizontalFlip"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      bool val;
-      ss >> val;
-      this->SetSecondMonitorHorizontalFlip( val );
+    else if ( ! strcmp( attName, "SecondMonitorRotation" ) ) {
+      StringToDouble( std::string( attValue ), this->SecondMonitorRotation );
       }
-    else if (!strcmp(attName, "SecondMonitorTranslation"))
-      {
-       // read data into a temporary vector
-      std::stringstream ss;
-      ss << attValue;
-      double d;
-      std::vector<double> tmpVec;
-      while (ss >> d)
-        {
-        tmpVec.push_back(d);
-        }
- 
-      if (tmpVec.size()!=3)
-        {
-        // error in file?
-        }
-
-      for (unsigned int i = 0; i < tmpVec.size(); i++)
-           this->SecondMonitorTranslation[ i ] = tmpVec[ i ];
+    else if ( ! strcmp( attName, "SecondMonitorRotationCenter" ) ) {
+      StringToDoubleVector( std::string( attValue ), this->SecondMonitorRotationCenter, 2 );
       }
-    else if ( ! strcmp( attName, "SecondMonitorRotation" ) )
-      {
-      std::stringstream ss;
-      ss << attValue;
-      double val;
-      ss >> val;
-      this->SetSecondMonitorRotation( val );
+    else if ( ! strcmp( attName, "TableAtScanner" ) ) {
+      StringToDouble( std::string( attValue ), this->TableAtScanner );
       }
-    else if ( ! strcmp( attName, "SecondMonitorRotationCenter" ) )
-      {
-       // read data into a temporary vector
-      std::stringstream ss;
-      ss << attValue;
-      double d;
-      std::vector<double> tmpVec;
-      while (ss >> d)
-        {
-        tmpVec.push_back(d);
-        }
- 
-      if (tmpVec.size()!=3)
-        {
-        // error in file?
-        }
-
-      for (unsigned int i = 0; i < tmpVec.size(); i++)
-           this->SecondMonitorRotationCenter[ i ] = tmpVec[ i ];
+    else if ( ! strcmp( attName, "TableAtOverlay" ) ) {
+      StringToDouble( std::string( attValue ), this->TableAtOverlay );
       }
-    else if (!strcmp(attName, "PlanEntryPoint"))
+    
+    unsigned int sectionInd = 0;
+    std::string sectionName;
+    
+    if ( GetAttNameSection( attName, "Plan", sectionInd, sectionName ) )
       {
-       // read data into a temporary vector
-      std::stringstream ss;
-      ss << attValue;
-      double d;
-      std::vector<double> tmpVec;
-      while (ss >> d)
-        {
-        tmpVec.push_back(d);
+      if ( sectionInd >= this->PlanList.size() ) {
+        this->PlanList.resize( sectionInd + 1 );
         }
- 
-      if (tmpVec.size()!=3)
-        {
-        // error in file?
+      vtkPerkStationPlan* plan = this->PlanList[ sectionInd ];
+      
+      if ( ! sectionName.compare( "Name" ) ) {
+        plan->SetName( std::string( attValue ) );
         }
-
-      for ( unsigned int i = 0; i < tmpVec.size(); i++ )
-           this->PlanEntryPoint[ i ] = tmpVec[ i ];
-      }
-    else if ( ! strcmp( attName, "PlanTargetPoint" ) )
-      {
-       // read data into a temporary vector
-      std::stringstream ss;
-      ss << attValue;
-      double d;
-      std::vector<double> tmpVec;
-      while (ss >> d)
-        {
-        tmpVec.push_back(d);
+      else if ( ! sectionName.compare( "PlanningVolumeRef" ) ) {
+        plan->SetPlanningVolumeRef( std::string( attValue ) );
         }
- 
-      if ( tmpVec.size() != 3 )
-        {
-        // error in file?
+      else if ( ! sectionName.compare( "EntryRASLocation" ) ) {
+        double loc[ 3 ];
+        StringToDoubleVector( attValue, loc, 3 );
+        plan->SetEntryPointRAS( loc );
         }
-
-      for ( unsigned int i = 0; i < tmpVec.size(); i++ )
-        this->PlanTargetPoint[ i ] = tmpVec[ i ];
-      }
-    else if (!strcmp(attName, "ValidateEntryPoint"))
-      {
-       // read data into a temporary vector
-      std::stringstream ss;
-      ss << attValue;
-      double d;
-      std::vector< double > tmpVec;
-      while (ss >> d)
-        {
-        tmpVec.push_back(d);
+      else if ( ! sectionName.compare( "TargetRASLocation" ) ) {
+        double loc[ 3 ];
+        StringToDoubleVector( attValue, loc, 3 );
+        plan->SetTargetPointRAS( loc );
         }
- 
-      if (tmpVec.size()!=3)
-        {
-        // error in file?
+      else if ( ! sectionName.compare( "Validated" ) ) {
+        bool value;
+        StringToBool( attValue, value );
+        plan->SetValidated( value );
         }
-
-      for ( unsigned int i = 0; i < tmpVec.size(); i++ )
-        this->ValidateEntryPoint[ i ] = tmpVec[ i ];
-      }
-    else if ( ! strcmp(attName, "ValidateTargetPoint"))
-      {
-       // read data into a temporary vector
-      std::stringstream ss;
-      ss << attValue;
-      double d;
-      std::vector<double> tmpVec;
-      while (ss >> d)
-        {
-        tmpVec.push_back(d);
+      else if ( ! sectionName.compare( "ValidationVolumeRef" ) ) {
+        plan->SetValidationVolumeRef( std::string( attValue ) );
         }
- 
-      if (tmpVec.size()!=3)
-        {
-        // error in file?
+      else if ( ! sectionName.compare( "ValidationEntryRASLocation" ) ) {
+        double loc[ 3 ];
+        StringToDoubleVector( attValue, loc, 3 );
+        plan->SetValidationEntryPointRAS( loc );
         }
-
-      for (unsigned int i = 0; i < tmpVec.size(); i++)
-           this->ValidateTargetPoint[i] = tmpVec[i];
+      else if ( ! sectionName.compare( "ValidationTargetRASLocation" ) ) {
+        double loc[ 3 ];
+        StringToDoubleVector( attValue, loc, 3 );
+        plan->SetValidationTargetPointRAS( loc );
+        }
       }
     } // while ( *atts != NULL )
 }
@@ -587,7 +500,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLPerkStationModuleNode::Copy(vtkMRMLNode *anode)
 {
-  Superclass::Copy(anode);
+  Superclass::Copy( anode );
   vtkMRMLPerkStationModuleNode *node = (vtkMRMLPerkStationModuleNode *) anode;
 
 /*  this->SetConductance(node->Conductance);

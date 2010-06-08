@@ -32,6 +32,7 @@ public:
     // Reimplement the superclass's method (see vtkKWWizardStep).
   
   virtual void ShowUserInterface();
+  virtual void ShowTargetFirstFrame();
   virtual void ShowPlanListFrame();
   
 
@@ -62,6 +63,7 @@ public:
   void PopulateControlsOnLoadPlanning();
 
 protected:
+  
   vtkPerkStationPlanStep();
   ~vtkPerkStationPlanStep();
 
@@ -85,9 +87,6 @@ protected:
 
   // GUI widgets --------------------------------------------------------------
   
-  vtkKWPushButton *ResetPlanButton;
-  vtkKWFrame *ResetFrame;
-  
   vtkKWFrame* TargetFirstFrame;
   vtkKWCheckButtonWithLabel* TargetFirstCheck;
   
@@ -106,11 +105,9 @@ protected:
   vtkKWMultiColumnListWithScrollbars* PlanList;
   vtkKWPushButton* DeleteButton;
   
-  vtkKWEntryWithLabel *InsertionAngle;
-  vtkKWEntryWithLabel *InsertionDepth;
   vtkKWFrame *TiltInformationFrame;
   vtkKWEntryWithLabel *SystemTiltAngle;
-  vtkKWLabel *TiltMsg;  
+  
 
   //BTX
   vtkSmartPointer< vtkActor > PlanningLineActor;
