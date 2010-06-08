@@ -18,6 +18,7 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     ImageMeta
     Point
     TrackingData
+    ImageDatabaseServer
     )
 endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
 
