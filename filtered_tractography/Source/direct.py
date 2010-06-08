@@ -19,20 +19,8 @@ import numpy as np
 S = np.load('/Users/malcolm/src/dmri/01045_S.npy')
 u = np.load('/Users/malcolm/src/dmri/01045_u.npy'); u = np.vstack((u,-u))
 b = 900.
-mask = np.load('/Users/malcolm/src/dmri/01045_mask.npy')
+mask = np.load('/Users/malcolm/src/dmri/01045_mask.npy').astype('uint16')
 seeds = np.load('/Users/malcolm/src/dmri/01045_seeds_tc.npy')
-param = dict({'FA_min': .1,  # FA stopping threshold
-              'GA_min': .1,  # generalized anisotropy stopping threshold
-              'dt': .3,     # forward Euler step size (path integration)
-              'max_len': 20, # stop if fiber gets this long
-              'min_radius': .87,  # stop if fiber curves this much
-              'seeds': 5, # how many seeds to spawn in each ROI voxel
-              'voxel': np.mat('1.66; 1.66; 1.70'), # voxel size (check your .nhdr file)
-              # Kalman filter parameters
-              'Qm': .0015,  # injected angular noise (probably leave untouched)
-              'Ql': 15,    # injected eigenvalue noise (probably leave untouched)
-              'Rs': .020,  # dependent on latent noise in your data (likely change this)
-              'P0': np.eye(5,5) / 100,}) # initial covariance (likely change this)
 execfile('/Users/malcolm/src/filtered_tractography/Source/filtered1t.py')
 ff = init(S, seeds, u, b, param)
 
@@ -40,7 +28,7 @@ execfile('/Users/malcolm/src/filtered_tractography/Source/direct.py')
 
 
 s = S[28,72,72,:]
-p = (26,72,72)
+p = np.array([26., 72., 72.])
 
 """
 
@@ -48,20 +36,6 @@ import warnings
 import numpy as np
 
 from scipy import weave
-
-import sys
-
-def step(p, S, est, param):
-    # unpack
-    x,X,P = p[0],p[1],p[2]
-    # move
-    X,P = est(X,P,interp3signal(S,x))
-    m,(l1,l2) = state2tensor(X)
-    dx = m / param['voxel']
-    x = x + param['dt'] * dx[::-1]  # HACK volume dimensions are reversed
-    # repack
-    return x,X,P
-
 
 def tensor2fa(T):
     T_ = np.trace(T)/3
