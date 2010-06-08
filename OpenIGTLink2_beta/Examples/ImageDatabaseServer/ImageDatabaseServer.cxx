@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
     }
 
   int    port     = atoi(argv[1]);
-  char*  filedir  = argv[3];
+  char*  filedir  = argv[2];
 
   igtl::ServerSocket::Pointer serverSocket;
   serverSocket = igtl::ServerSocket::New();
