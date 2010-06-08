@@ -39,6 +39,12 @@
     obj = NULL; \
     };
 
+#define FORGET( obj ) \
+  if ( obj ) \
+    { \
+    this->Script( "pack forget %s", obj->GetWidgetName() ); \
+    };
+
 
 
 //----------------------------------------------------------------------------
@@ -134,27 +140,15 @@ void vtkPerkStationPlanStep::ShowUserInterface()
   wizard_widget->GetCancelButton()->SetEnabled(0);
   vtkKWWidget *parent = wizard_widget->GetClientArea();
   int enabled = parent->GetEnabled();
-
+  
+  this->SetDescription( "Plan the needle insertion" );
+  
+  
   // clear controls
-  if (this->ResetFrame)
-    {
-    this->Script("pack forget %s", 
-                    this->ResetFrame->GetWidgetName());
-    }
-
-  if (this->ResetPlanButton)
-    {
-    this->Script("pack forget %s", 
-                    this->ResetPlanButton->GetWidgetName());
-    }
+  FORGET( this->ResetFrame );
+  FORGET( this->ResetPlanButton );
+  FORGET( this->TargetFirstCheck );
   
-  
-  if ( this->TargetFirstCheck )
-    {
-    this->Script( "pack forget %s", this->TargetFirstCheck->GetWidgetName() );
-    }
-  
-
   this->SetName("2/4. Plan");
   this->GetGUI()->GetWizardWidget()->Update();
 
@@ -162,17 +156,17 @@ void vtkPerkStationPlanStep::ShowUserInterface()
 
   // frame for reset button
 
-  if (!this->ResetFrame)
+  if ( ! this->ResetFrame )
     {
     this->ResetFrame = vtkKWFrame::New();
     }
-  if (!this->ResetFrame->IsCreated())
+  if ( ! this->ResetFrame->IsCreated() )
     {
-    this->ResetFrame->SetParent(parent);
+    this->ResetFrame->SetParent( parent );
     this->ResetFrame->Create();     
     }
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    this->ResetFrame->GetWidgetName());     
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    this->ResetFrame->GetWidgetName() );     
   
   
 
@@ -182,7 +176,7 @@ void vtkPerkStationPlanStep::ShowUserInterface()
     }
   if(!this->ResetPlanButton->IsCreated())
     {
-    this->ResetPlanButton->SetParent(this->ResetFrame);
+    this->ResetPlanButton->SetParent( this->ResetFrame );
     this->ResetPlanButton->SetText("Reset plan");
     this->ResetPlanButton->SetBorderWidth(2);
     this->ResetPlanButton->SetReliefToRaised();      
@@ -197,17 +191,7 @@ void vtkPerkStationPlanStep::ShowUserInterface()
                     this->ResetPlanButton->GetWidgetName());
  
  
-  this->SetDescription("Plan the needle insertion");
-
-  /*vtkPerkStationtMRMLManager *mrmlManager = this->GetGUI()->GetMRMLManager();
   
-  if (!mrmlManager || !wizard_widget)
-    {
-    return;
-    }*/
-
- 
-
   // Create the individual components
   
   if ( ! this->TargetFirstFrame )
