@@ -209,8 +209,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->LoadTrackerConfigFrame->SetParent(parent);
     this->LoadTrackerConfigFrame->Create(); 
     }
-   this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                        this->LoadTrackerConfigFrame->GetWidgetName());
+   // this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", this->LoadTrackerConfigFrame->GetWidgetName());
 
 
   if(!this->TrackerConfigFileLoadMsg)
@@ -223,8 +222,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->TrackerConfigFileLoadMsg->Create();
     this->TrackerConfigFileLoadMsg->SetText("Tracker config file not loaded yet");
     }
-   this->Script("pack %s -side left -anchor nw -fill x -padx 0 -pady 2", 
-                        this->TrackerConfigFileLoadMsg->GetWidgetName());
+  // this->Script("pack %s -side left -anchor nw -fill x -padx 0 -pady 2", this->TrackerConfigFileLoadMsg->GetWidgetName());
   
     // create the load file dialog button
    if (!this->LoadTrackerConfigFileButton)
@@ -249,8 +247,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->LoadTrackerConfigFileButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode
     this->LoadTrackerConfigFileButton->GetLoadSaveDialog()->SetFileTypes("{{CFG File} {.cfg}} {{All Files} {*.*}}");      
     }
-    this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                        this->LoadTrackerConfigFileButton->GetWidgetName());
+  // this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", this->LoadTrackerConfigFileButton->GetWidgetName());
 
 
   if(!this->TrackerConnectionFrame)
@@ -263,8 +260,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->TrackerConnectionFrame->Create();
     //this->LoadRegistrationFrame->SetE
     }
-   this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                        this->TrackerConnectionFrame->GetWidgetName());
+  // this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", this->TrackerConnectionFrame->GetWidgetName());
 
 
 
@@ -282,9 +278,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->ConnectTrackerCheckButton->SetLabelText("Connect to tracker:");
     this->ConnectTrackerCheckButton->SetHeight(4);
     }
-
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->ConnectTrackerCheckButton->GetWidgetName());
+  // this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", this->ConnectTrackerCheckButton->GetWidgetName());
 
   // check button to change display status of the red line representing needle in real-time
 
@@ -302,8 +296,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->DisplayRealTimeNeedleTip->GetWidget()->SetSelectedState(true);
     }
  
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->DisplayRealTimeNeedleTip->GetWidgetName());
+  // this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", this->DisplayRealTimeNeedleTip->GetWidgetName());
 
   
   if(!this->TrackerStatusMsg)
@@ -316,8 +309,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->TrackerStatusMsg->Create();
     this->TrackerStatusMsg->SetText("");
     }
-   this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                        this->TrackerStatusMsg->GetWidgetName());
+  // this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", this->TrackerStatusMsg->GetWidgetName());
   
   /*this->Script("grid %s -column 0 -row 0 -sticky nw -padx 2 -pady 2", 
                this->ConnectTrackerCheckButton->GetWidgetName());*/
@@ -333,9 +325,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->NeedleToolFrame->Create();
     this->NeedleToolFrame->SetLabelText("Needle tool info");
     }
-
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-               this->NeedleToolFrame->GetWidgetName());
+  // this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", this->NeedleToolFrame->GetWidgetName());
 
   
   if (!this->NeedleTipPositionFrame)
@@ -347,9 +337,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->NeedleTipPositionFrame->SetParent(this->NeedleToolFrame->GetFrame());
     this->NeedleTipPositionFrame->Create();
     }
-
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-               this->NeedleTipPositionFrame->GetWidgetName());
+  // this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", this->NeedleTipPositionFrame->GetWidgetName());
 
 
   // label
@@ -365,10 +353,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->NeedleTipPositionLabel->SetText("Needle tip position: ");
     this->NeedleTipPositionLabel->SetBackgroundColor(0.7, 0.7, 0.7);
     }
-
-  
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->NeedleTipPositionLabel->GetWidgetName());
+  // this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", this->NeedleTipPositionLabel->GetWidgetName());
   
   // Needle tip position: will get populated/updated in a callback, which receives data from tracker
  
@@ -392,8 +377,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
       //entry->ReadOnlyOn();      
       }
     }
-  this->Script("pack %s -side top  -anchor nw -padx 2 -pady 2", 
-                this->NeedleTipPosition->GetWidgetName());
+  // this->Script("pack %s -side top  -anchor nw -padx 2 -pady 2", this->NeedleTipPosition->GetWidgetName());
   
   // frame for Tool tip offset
   
@@ -406,9 +390,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->ToolTipOffsetFrame->SetParent(this->NeedleToolFrame->GetFrame());
     this->ToolTipOffsetFrame->Create();
     }
-
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-               this->ToolTipOffsetFrame->GetWidgetName());
+  // this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", this->ToolTipOffsetFrame->GetWidgetName());
 
   // label for Tool tip offset
 
@@ -423,9 +405,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->ToolTipOffsetLabel->SetText("Tool tip offset: ");
     this->ToolTipOffsetLabel->SetBackgroundColor(0.7, 0.7, 0.7);
     }
-  
-  this->Script("pack %s -side left -anchor nw -padx 0 -pady 2", 
-                this->ToolTipOffsetLabel->GetWidgetName());
+  // this->Script("pack %s -side left -anchor nw -padx 0 -pady 2", this->ToolTipOffsetLabel->GetWidgetName());
 
   // Tool tip offset: will get populated when the configuration file is loaded
  
@@ -450,8 +430,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
       entry->SetValueAsDouble(0);
       }
     }
-  this->Script("pack %s -side top  -anchor nw -padx 2 -pady 2", 
-                this->ToolTipOffset->GetWidgetName());
+  // this->Script("pack %s -side top  -anchor nw -padx 2 -pady 2", this->ToolTipOffset->GetWidgetName());
 
 
   // logging to file components
@@ -467,8 +446,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->LoggingFrame->Create();
     this->LoggingFrame->SetLabelText("Logging..");
     }
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-               this->LoggingFrame->GetWidgetName());
+  // this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", this->LoggingFrame->GetWidgetName());
 
   // msg label
   if(!this->LogFileLoadMsg)
@@ -481,8 +459,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->LogFileLoadMsg->Create();
     this->LogFileLoadMsg->SetText("No log file chosen to be written to..");
     }
-   this->Script("pack %s -side left -anchor nw -fill x -padx 0 -pady 2", 
-                        this->LogFileLoadMsg->GetWidgetName()); 
+  // this->Script("pack %s -side left -anchor nw -fill x -padx 0 -pady 2", this->LogFileLoadMsg->GetWidgetName()); 
 
   // save file button
   if (!this->LogFileButton)
@@ -507,8 +484,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->LogFileButton->GetLoadSaveDialog()->SaveDialogOn(); // save mode  
     this->LogFileButton->GetLoadSaveDialog()->SetFileTypes("{{dat File} {.dat}} {{All Files} {*.*}}");      
     }
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                        this->LogFileButton->GetWidgetName());
+  // this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", this->LogFileButton->GetWidgetName());
 
   // start/stop logging toggle button
   if (!this->StartStopLoggingToFileCheckButton)
@@ -531,8 +507,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->StartStopLoggingToFileCheckButton->IndicatorVisibilityOff();  
     this->StartStopLoggingToFileCheckButton->SetEnabled(0);
     }
-  this->Script("pack %s -side top -anchor ne -padx 2 -pady 2", 
-                        this->StartStopLoggingToFileCheckButton->GetWidgetName());
+  // this->Script("pack %s -side top -anchor ne -padx 2 -pady 2", this->StartStopLoggingToFileCheckButton->GetWidgetName());
 
 
   // TO DO: install callbacks

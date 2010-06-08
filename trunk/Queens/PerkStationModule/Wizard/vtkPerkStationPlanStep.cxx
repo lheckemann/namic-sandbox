@@ -6,12 +6,14 @@
 #include "vtkMRMLFiducialListNode.h"
 
 #include "vtkKWCheckButtonWithLabel.h"
-#include "vtkKWFrame.h"
-#include "vtkKWLabel.h"
 #include "vtkKWEntry.h"
 #include "vtkKWEntryWithLabel.h"
 #include "vtkKWEntrySet.h"
+#include "vtkKWFrame.h"
 #include "vtkKWFrameWithLabel.h"
+#include "vtkKWLabel.h"
+#include "vtkKWMultiColumnList.h"
+#include "vtkKWMultiColumnListWithScrollbars.h"
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
 
@@ -28,9 +30,21 @@
 #include "vtkSlicerApplication.h"
 
 
+
+#define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
+  if (obj) \
+    { \
+    obj->SetParent(NULL); \
+    obj->Delete(); \
+    obj = NULL; \
+    };
+
+
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPerkStationPlanStep);
 vtkCxxRevisionMacro(vtkPerkStationPlanStep, "$Revision: 1.1 $");
+
 
 //----------------------------------------------------------------------------
 vtkPerkStationPlanStep::vtkPerkStationPlanStep()
@@ -61,6 +75,12 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
     this->PlanningLineActor->SetVisibility( 0 );
     this->PlanningLineActor->GetProperty()->SetColor( 1.0, 0.0, 1.0 );
   
+    // PlanList frame
+  
+  this->PlanListFrame = NULL;
+  this->PlanList = NULL;
+  this->DeleteButton = NULL;
+  
   
   this->WCEntryPoint[0] = 0.0;
   this->WCEntryPoint[1] = 0.0;
@@ -80,90 +100,29 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
 //----------------------------------------------------------------------------
 vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
 {
-  if (this->ResetFrame)
-    {
-    this->ResetFrame->Delete();
-    this->ResetFrame = NULL;
-    }
-  if (this->ResetPlanButton)
-    {
-    this->ResetPlanButton->Delete();
-    this->ResetPlanButton = NULL;
-    }
+  this->RemoveGUIObservers();
   
-  if ( this->TargetFirstFrame )
-    {
-    this->TargetFirstFrame->Delete();
-    this->TargetFirstFrame = NULL;
-    }
-  if ( this->TargetFirstCheck )
-    {
-    this->TargetFirstCheck->Delete();
-    this->TargetFirstCheck = NULL;
-    }
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ResetFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ResetPlanButton );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetFirstFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetFirstCheck );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPointFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPointLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPoint );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPointFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPointLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPoint );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionAngle );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionDepth );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TiltInformationFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TiltMsg );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->SystemTiltAngle );
   
-  if (this->EntryPointFrame)
-    {
-    this->EntryPointFrame->Delete();
-    this->EntryPointFrame = NULL;
-    }
-  if (this->EntryPointLabel)
-    {
-    this->EntryPointLabel->Delete();
-    this->EntryPointLabel = NULL;
-    }
-
-  if (this->EntryPoint)
-    {
-    this->EntryPoint->DeleteAllWidgets();
-    this->EntryPoint = NULL;
-    }
-
-  if (this->TargetPointFrame)
-    {
-    this->TargetPointFrame->Delete();
-    this->TargetPointFrame = NULL;
-    }
-  if (this->TargetPointLabel)
-    {
-    this->TargetPointLabel->Delete();
-    this->TargetPointLabel = NULL;
-    }
-  if (this->TargetPoint)
-    {
-    this->TargetPoint->DeleteAllWidgets();
-    this->TargetPoint = NULL;
-    }
-
-  if (this->InsertionAngle)
-    {
-    this->InsertionAngle->Delete();
-    this->InsertionAngle = NULL;
-    }
-
-  if (this->InsertionDepth)
-    {
-    this->InsertionDepth->Delete();
-    this->InsertionDepth = NULL;
-    }
+    // PlanList frame
   
-  if (this->TiltInformationFrame)
-    {
-    this->TiltInformationFrame->Delete();
-    this->TiltInformationFrame = NULL;
-    }
-  
-  if (this->TiltMsg)
-    {
-    this->TiltMsg->Delete();
-    this->TiltMsg = NULL;
-    }
-
-  if (this->SystemTiltAngle)
-    {
-    this->SystemTiltAngle->Delete();
-    this->SystemTiltAngle = NULL;
-    }
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanListFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanList );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->DeleteButton );
 }
 
 //----------------------------------------------------------------------------
@@ -196,7 +155,6 @@ void vtkPerkStationPlanStep::ShowUserInterface()
     }
   
 
-  // in clinical mode
   this->SetName("2/4. Plan");
   this->GetGUI()->GetWizardWidget()->Update();
 
@@ -480,6 +438,10 @@ void vtkPerkStationPlanStep::ShowUserInterface()
    this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                  this->TiltMsg->GetWidgetName() ); 
   
+  
+  this->ShowPlanListFrame();
+  
+  
   // TO DO: install callbacks
   this->InstallCallbacks();
   
@@ -487,6 +449,56 @@ void vtkPerkStationPlanStep::ShowUserInterface()
   
   wizard_widget->SetErrorText(
     "Please note that the order of the clicks on image is important." );
+}
+
+
+void
+vtkPerkStationPlanStep
+::ShowPlanListFrame()
+{
+  vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
+  
+  if ( ! this->PlanListFrame )
+    {
+    this->PlanListFrame = vtkKWFrame::New();
+    }
+  if ( ! this->PlanListFrame->IsCreated() )
+    {
+    this->PlanListFrame->SetParent( parent );
+    this->PlanListFrame->Create();
+    }
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                this->PlanListFrame->GetWidgetName() );
+  
+  if ( ! this->PlanList )
+    {
+    this->PlanList = vtkKWMultiColumnListWithScrollbars::New();
+    this->PlanList->SetParent( this->PlanListFrame );
+    this->PlanList->Create();
+    this->PlanList->SetHeight( 1 );
+    this->PlanList->GetWidget()->SetSelectionTypeToRow();
+    this->PlanList->GetWidget()->SetSelectionBackgroundColor( 1, 0, 0 );
+    this->PlanList->GetWidget()->MovableRowsOff();
+    this->PlanList->GetWidget()->MovableColumnsOff();
+    
+    
+    }
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                this->PlanList->GetWidgetName());
+  
+  
+  if ( ! this->DeleteButton )
+    {
+    this->DeleteButton = vtkKWPushButton::New();
+    }
+  if ( ! this->DeleteButton->IsCreated() )
+    {
+    this->DeleteButton->SetParent( this->PlanListFrame );
+    this->DeleteButton->Create();
+    this->DeleteButton->SetText( "Delete plan" );
+    }
+  this->Script( "pack %s -side top -anchor ne -padx 2 -pady 4", 
+                this->DeleteButton->GetWidgetName() );
 }
 
 

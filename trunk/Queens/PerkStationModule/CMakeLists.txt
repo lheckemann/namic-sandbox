@@ -84,6 +84,7 @@ SET(PerkStationModule_SRCS
   vtkPerkStationModuleLogic.cxx      vtkPerkStationModuleLogic.h
   vtkPerkStationModuleGUI.cxx        vtkPerkStationModuleGUI.h
   vtkMRMLPerkStationModuleNode.cxx   vtkMRMLPerkStationModuleNode.h
+  vtkPerkStationPlan.cxx             vtkPerkStationPlan.h
   vtkPerkStationSecondaryMonitor.cxx vtkPerkStationSecondaryMonitor.h
   vtkTextActorFlippable.cxx          vtkTextActorFlippable.h
    # wizard
