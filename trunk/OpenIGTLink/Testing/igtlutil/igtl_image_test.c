@@ -15,6 +15,7 @@
 =========================================================================*/
 
 #include <stdio.h>
+
 #include "igtl_types.h"
 #include "igtl_header.h"
 #include "igtl_image.h"
@@ -48,6 +49,13 @@ int main( int argc, char * argv [] )
   igtl_float32 norm_i[]  = {-0.954892f, 0.196632f, -0.222525f};
   igtl_float32 norm_j[]  = {-0.196632f, 0.142857f, 0.970014f};
   igtl_float32 norm_k[]  = {0.222525f, 0.970014f, -0.0977491f};
+
+  /* Test structure size */
+  if (sizeof(message) != IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+TEST_IMAGE_MESSAGE_SIZE)
+    {
+    fprintf(stdout, "Invalid size of image message structure.\n");
+    return EXIT_FAILURE;
+    }
 
   /* Set data */
   message.iheader.version     = 1;

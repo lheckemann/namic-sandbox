@@ -48,6 +48,8 @@
 
 #include <string.h>
 
+#include "igtl_util.h"
+
 namespace igtl
 {
 
@@ -172,6 +174,17 @@ void TimeStamp::SetTime(igtlUint32 second, igtlUint32 nanosecond)
     }
 }
 
+
+void TimeStamp::SetTime(igtlUint64 tm)
+{
+  // Export from 64-bit fixed-point expression used in OpenIGTLink
+  igtlInt32 sec      = static_cast<igtlInt32>((tm >> 32 ) & 0xFFFFFFFF);
+  igtlInt32 fraction = static_cast<igtlInt32>(tm & 0xFFFFFFFF);
+  this->m_Second     = sec;
+  this->m_Nanosecond = igtl_frac_to_nanosec(static_cast<igtlUint32>(fraction));
+}
+
+
 double TimeStamp::GetTimeStamp()
 {
   double tm;
@@ -185,6 +198,19 @@ void TimeStamp::GetTimeStamp(igtlUint32* second, igtlUint32* nanosecond)
 {
   *second     = this->m_Second;
   *nanosecond = this->m_Nanosecond;
+}
+  
+  
+igtlUint64 TimeStamp::GetTimeStampUint64()
+{
+  // Export as 64-bit fixed-point expression used in OpenIGTLink
+  igtlInt32 sec      = this->m_Second;
+  igtlInt32 fraction = igtl_nanosec_to_frac(this->m_Nanosecond);
+
+  igtlUint64 ts  =  sec & 0xFFFFFFFF;
+  ts = (ts << 32) | (fraction & 0xFFFFFFFF);
+
+  return ts;
 }
 
 

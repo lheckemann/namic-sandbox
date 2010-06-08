@@ -42,12 +42,20 @@ struct status_message {
 int main( int argc, char * argv [] )
 {
 
+  struct status_message message;
   /*igtl_uint64 crc;*/
   unsigned int msglen;
-  struct status_message message;
   int r;
   int s;
 
+  // Test structure size
+  if (sizeof(message) != IGTL_HEADER_SIZE+IGTL_STATUS_HEADER_SIZE+sizeof(STR_ERROR_MESSAGE))
+    {
+    fprintf(stdout, "Invalid size of image message structure.\n");
+    return EXIT_FAILURE;
+    }
+
+  // Test binary
   msglen = sizeof(STR_ERROR_MESSAGE);
 
   /* Set dummy status */
