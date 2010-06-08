@@ -262,6 +262,8 @@ int SendImage(igtl::Socket::Pointer& socket, const char* name, const char* filed
     // TODO
 
     }
+
+  return 1;
 }
 
 
