@@ -26,6 +26,27 @@
 namespace igtl
 {
 
+class IGTLCommon_EXPORT GetImageMessage: public MessageBase
+{
+public:
+  typedef GetImageMessage                Self;
+  typedef MessageBase                    Superclass;
+  typedef SmartPointer<Self>             Pointer;
+  typedef SmartPointer<const Self>       ConstPointer;
+
+  igtlTypeMacro(igtl::GetImageMessage, igtl::MessageBase);
+  igtlNewMacro(igtl::GetImageMessage);
+
+protected:
+  GetImageMessage() : MessageBase() { this->m_DefaultBodyType  = "GET_IMAGE"; };
+  ~GetImageMessage() {};
+protected:
+  virtual int  GetBodyPackSize() { return 0; };
+  virtual int  PackBody()        { AllocatePack(); return 1; };
+  virtual int  UnpackBody()      { return 1; };
+};
+
+
 class IGTLCommon_EXPORT ImageMessage: public MessageBase
 {
 public:
