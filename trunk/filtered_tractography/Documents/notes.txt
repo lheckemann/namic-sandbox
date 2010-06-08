@@ -73,3 +73,55 @@ AttributeError: 'matrix' object has no attribute 'GetTclName'
 
 
 [[matrix([[ 2831.1625694]]), 0, 0], [0, matrix([[ 1969.09745378]]), 0], [0, 0, matrix([[ 1969.09745378]])]]
+
+
+
+
+
+---------------------------------
+
+There is a slight offset position discrepancy in the i2r matrix we use in
+MATLAB and the one Slicer reports.
+
+From Slicer....
+
+[[  -1.6667    0.        0.      119.169 ]
+ [   0.       -1.6667    0.      119.169 ]
+ [   0.        0.       -1.7      71.4   ]
+ [   0.        0.        0.        1.    ]]
+[[ 73.]
+ [ 70.]
+ [ 28.]]
+[[ -2.5001]
+ [  2.5   ]
+ [ 23.8   ]]
+
+
+From MATLAB....
+
+M =
+   1.0e+02 *
+  -0.016667000000000                   0                   0
+                   0  -0.016667000000000                   0
+                   0                   0  -0.017000000000000
+   1.200024000000000   1.200024000000000   0.722500000000000
+
+ans =
+  73.0000000
+  70.0000000
+  28.0000000
+tt =
+  -1.6666979
+   3.3334012
+  24.6499977
+
+------------------------
+
+Follow time dominates.  Time to pull in from slicer is trivial.  Time to
+convert list of np.array positions into polydata is trivial.
+
+init time   0.114076852798
+[  0%] (      0 -      18)
+....
+follow time   8.11866211891
+output time   0.166449069977

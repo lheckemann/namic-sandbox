@@ -3,7 +3,7 @@ from scipy.weave import ext_tools as et
 
 def add_model_1tensor_f(mod):
     # example data for type definitions
-    X = np.empty((5,1), dtype='float64')
+    X = np.empty((5,1), dtype='float64', order='F')
     m = X.shape[1]
 
     code = """
@@ -33,7 +33,7 @@ def add_model_1tensor_f(mod):
 
 def add_state2tensor1(mod):
     # example data for type definitions
-    X = np.empty((5,1), dtype='float64')
+    X = np.empty((5,1), dtype='float64', order='F')
     y = np.empty(3)
 
     code = """
@@ -68,7 +68,7 @@ def add_state2tensor1(mod):
 
 def add_state2tensor2(mod):
     # example data for type definitions
-    X = np.empty((5,1), dtype='float64')
+    X = np.empty((5,1), dtype='float64', order='F')
     y = np.empty(3)
 
     code = """
@@ -133,13 +133,13 @@ def add_state2tensor2(mod):
 
 def add_model_1tensor_h(mod):
     # typedefs
-    X = np.empty((5,1), dtype='float64')
-    u = np.empty((102,3), dtype='float64')
+    X = np.empty((5,1), dtype='float64', order='F')
+    u = np.empty((102,3), dtype='float64', order='F')
     b = 900.0
 
     n = u.shape[0]
     m = X.shape[1]
-    s = np.empty((n,m))
+    s = np.empty((n,m), order='F')
 
     code = """
     for (int i = 0; i < m; ++i) {
@@ -175,13 +175,13 @@ def add_model_1tensor_h(mod):
 
 def add_model_2tensor_h(mod):
     # typedefs
-    X = np.empty((10,1), dtype='float64')
-    u = np.empty((102,3), dtype='float64')
+    X = np.empty((10,1), dtype='float64', order='F')
+    u = np.empty((102,3), dtype='float64', order='F')
     b = 900.0
 
     n = u.shape[0]
     m = X.shape[1]
-    s = np.empty((n,m))
+    s = np.empty((n,m), order='F')
 
     code = """
     for (int i = 0; i < m; ++i) {
@@ -222,7 +222,7 @@ def add_model_2tensor_h(mod):
 
 def add_model_2tensor_f(mod):
     # typedefs
-    X = np.empty((10,1), dtype='float64')
+    X = np.empty((10,1), dtype='float64', order='F')
     m = X.shape[1]
 
     code = """
@@ -279,13 +279,15 @@ def add_s2ga(mod):
 
 
 def add_interp3signal(mod):
-    S = np.empty((100,100,100,52), dtype='float32')
+    S = np.empty((100,100,100,52), dtype='float32', order='F')
     p = np.empty(3)
+    v = np.empty(3)
 
     code = """
            #line 0 "interp3signal"
-           double w_sum = 1e-10, sigma = 0.5;
-           float px = p[0], py = p[1], pz = p[2];
+           double w_sum = 1e-16, sigma = 0.5;
+           double px = p[0], py = p[1], pz = p[2];
+           double vx = v[0], vy = v[1], vz = v[2];
 
            for (int i = 0; i < 2*n; ++i)
                s[i] = 0;
@@ -293,19 +295,17 @@ def add_interp3signal(mod):
            for (int zz = -1; zz <= 1; ++zz) {
                int z = round(pz) + zz;
                if (z < 0 || nz <= z) continue;
-               int dz = z - pz, dzz = dz*dz;
+               double dz = (z - pz)*vz, dzz = dz*dz;
 
                for (int yy = -1; yy <= 1; ++yy) {
                    int y = round(py) + yy;
                    if (y < 0 || ny <= y) continue;
-                   int dy = y - py, dyy = dy*dy;
+                   double dy = (y - py)*vy, dyy = dy*dy;
 
                    for (int xx = -1; xx <= 1; ++xx) {
                        int x = round(px) + xx;
                        if (x < 0 || nx <= x) continue;
-                       int dx = x - px, dxx = dx*dx;
-
-                       //dx *= v[0]; dy *= v[1]; dz *= v[2];
+                       double dx = (x - px)*vx, dxx = dx*dx;
                        double w = exp( -(dxx + dyy + dzz)/sigma );
 
                        for (int i = 0; i < n; ++i)
@@ -325,34 +325,36 @@ def add_interp3signal(mod):
            """
     nx,ny,nz,n = S.shape
     s = np.empty((2*n,), dtype='float32')  # preallocate output (doubled)
-    fn = et.ext_function('c_interp3signal', code, ['s','S', 'p', 'nx','ny','nz','n'])
+    fn = et.ext_function('c_interp3signal', code, ['s','S', 'p', 'v', 'nx','ny','nz','n'])
     mod.add_function(fn)
 
 
 def add_interp3scalar(mod):
-    M = np.empty((100,100,100),dtype='uint16')
+    M = np.empty((100,100,100), dtype='uint16', order='F')
     p = np.empty(3)
+    v = np.empty(3)
 
     code = """
            #line 0 "interp3scalar"
-           float s = 0, w_sum = 1e-10, sigma = 0.5;
-           float px = p[0], py = p[1], pz = p[2];
+           double s = 0, w_sum = 1e-16, sigma = 0.5;
+           double px = p[0], py = p[1], pz = p[2];
+           double vx = v[0], vy = v[1], vz = v[2];
 
            for (int zz = -1; zz <= 1; zz++) {
                int z = round(pz) + zz;
                if (z < 0 || nz <= z) continue;
-               float dz = z - pz, dzz = dz*dz;
+               double dz = (z - pz)*vz, dzz = dz*dz;
 
                for (int yy = -1; yy <= 1; yy++) {
                    int y = round(py) + yy;
                    if (y < 0 || ny <= y) continue;
-                   float dy = y - py, dyy = dy*dy;
+                   double dy = (y - py)*vy, dyy = dy*dy;
 
                    for (int xx = -1; xx <= 1; xx++) {
                        int x = round(px) + xx;
                        if (x < 0 || nx <= x) continue;
-                       float dx = x - px, dxx = dx*dx;
-                       //dx *= v[0]; dy *= v[1]; dz *= v[2];
+                       double dx = (x - px)*vx, dxx = dx*dx;
+
                        float w = exp( -(dxx + dyy + dzz)/sigma );
                        float d = M[nz*ny*x + nz*y + z];
                        s     += w * d;
@@ -364,7 +366,7 @@ def add_interp3scalar(mod):
            """
     nx,ny,nz = M.shape
 
-    fn = et.ext_function('c_interp3scalar', code, ['M', 'p', 'nx','ny','nz'])
+    fn = et.ext_function('c_interp3scalar', code, ['M', 'p', 'v', 'nx','ny','nz'])
     mod.add_function(fn)
 
 

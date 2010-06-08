@@ -35,6 +35,26 @@ import numpy as np
 import warnings
 import filtered_ext as flt
 
+param = dict({'FA_min': .15,  # FA stopping threshold
+              'GA_min': .1,  # generalized anisotropy stopping threshold
+              'dt': .3,     # forward Euler step size (path integration)
+              'max_len': 50, # stop if fiber gets this long
+              'min_radius': .87,  # stop if fiber curves this much
+              'seeds': 1, # how many seeds to spawn in each ROI voxel
+              'voxel': np.mat('1.70; 1.66; 1.66'), # voxel size (check your .nhdr file)
+              # Kalman filter parameters
+              'Qm': .0015,  # injected angular noise (probably leave untouched)
+              'Ql': 25,    # injected eigenvalue noise (probably leave untouched)
+              'Rs': .020,  # dependent on latent noise in your data (likely change this)
+              'P0': np.eye(5) / 100,}) # initial covariance (likely change this)
+
+# using this or the above had little effect
+# param['P0'] = np.mat(' 0.0076   -0.0001   -0.0000   -0.0002    0.0002;\
+#                       -0.0001    0.0059    0.0003   -0.0003    0.0003;\
+#                       -0.0000    0.0003    0.0065    0.0001    0.0004;\
+#                       -0.0002   -0.0003    0.0001  690.6269  -75.2103;\
+#                        0.0002    0.0003    0.0004  -75.2103  355.8088')
+
 def Execute(dwi_node, seeds_node, mask_node, ff_node):
     from Slicer import slicer
     for i in range(10) : print ''
@@ -58,18 +78,6 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node):
     i2r = vtk2mat(dwi_node.GetIJKToRASMatrix, slicer)
 
     # tractography...
-    param = dict({'FA_min': .1,  # FA stopping threshold
-                  'GA_min': .1,  # generalized anisotropy stopping threshold
-                  'dt': .3,     # forward Euler step size (path integration)
-                  'max_len': 250, # stop if fiber gets this long
-                  'min_radius': .87,  # stop if fiber curves this much
-                  'seeds': 5, # how many seeds to spawn in each ROI voxel
-                  'voxel': np.mat('1.66; 1.66; 1.70'), # voxel size (check your .nhdr file)
-                  # Kalman filter parameters
-                  'Qm': .0015,  # injected angular noise (probably leave untouched)
-                  'Ql': 25,    # injected eigenvalue noise (probably leave untouched)
-                  'Rs': .020,  # dependent on latent noise in your data (likely change this)
-                  'P0': np.eye(5,5) / 100,}) # initial covariance (likely change this)
     ff = init(S, seeds, u, b, param)
     for i in range(0,len(ff)):
         print '[%3.0f%%] (%7d - %7d)' % (100.0*i/len(ff), i, len(ff))
@@ -125,12 +133,13 @@ def transform(M, v):
     return v_ + M[0:3,-1]
 
 def step(p, S, est, param):
+    v = param['voxel']
     # unpack
     x,X,P = p[0],p[1],p[2]
     # move
-    X,P = est(X,P,interp3signal(S,x))
+    X,P = est(X,P,interp3signal(S,x,v))
     m,(l1,l2) = state2tensor1(X)
-    dx = m / param['voxel']
+    dx = m / v
     x = x + param['dt'] * dx[::-1]  # HACK volume dimensions are reversed
     # repack
     return x,X,P
@@ -181,6 +190,7 @@ def follow(S,u,b,mask,fiber,param):
 
     # main loop
     ct = 0
+    v = param['voxel']
     while True :
         # estimate
         fiber = step(fiber, S, est, param)
@@ -190,7 +200,7 @@ def follow(S,u,b,mask,fiber,param):
         _,l = state2tensor1(X)
 
         # terminate if off brain or in CSF
-        is_brain = interp3scalar(mask,x) > .1
+        is_brain = interp3scalar(mask,x,v) > .1
         is_csf = l2fa(l) < param['FA_min']
         is_curving = curve_radius(ff) < param['min_radius']
 
@@ -219,11 +229,13 @@ def init(S, seeds, u, b, param):
     pp = []
     map(lambda p : map(lambda e : pp.append(p+e), list(E.T)), qq)
 
-    #pp = [np.array((27.0,69.0,72.0))] # HACK
+#     print 'HACK...'
+#     pp = [np.array((27.0,69.0,72.0))] # HACK
 
     print 'initial seed upper limit: %d' % (2*len(pp))
     # indices -> signals -> tensors
-    ss = map(lambda p : interp3signal(S,p), pp)
+    v = param['voxel']
+    ss = map(lambda p : interp3signal(S,p,v), pp)
     dd = map(direct(u,b), ss)
 
     # {position, direction, lambda, covariance}
@@ -307,7 +319,6 @@ def filter_ukf(f_fn,h_fn,Q,R):
         Pxy = X_ * w_ * Y_.T
 
         ##-- (5) Kalman gain K, estimate state/observation, compute cov.
-        #K,_,_,_ = np.linalg.lstsq(Pyy, Pxy.T)
         K = np.linalg.solve(Pyy, Pxy.T)
         P = P - K.T * Pyy * K
         z = z.reshape(Pyy.shape[0],1)
@@ -350,14 +361,14 @@ def model_1tensor_h(X,u,b):
     assert X.shape[0] == 5 and X.dtype == 'float64' and u.dtype == 'float64'
     n = u.shape[0]
     m = X.shape[1]
-    s = np.empty((n,m)) # preallocate output
+    s = np.empty((n,m), order='F') # preallocate output
     flt.c_model_1tensor_h(s, X, u, b, n, m)
     return s
 def model_2tensor_h(X,u,b):
     assert X.shape[0] == 10 and X.dtype == 'float64' and u.dtype == 'float64'
     n = u.shape[0]
     m = X.shape[1]
-    s = np.empty((n,m)) # preallocate output
+    s = np.empty((n,m), order='F') # preallocate output
     flt.c_model_2tensor_h(s, X, u, b, n, m)
     return s
 
@@ -396,15 +407,15 @@ def s2ga(s):
     return flt.c_s2ga(s,n)
 
 
-def interp3signal(S, p):
+def interp3signal(S, p, v=np.ones(3)):
     assert S.ndim == 4 and S.dtype == 'float32'
     nx,ny,nz,n = S.shape
     s = np.zeros((2*n,), dtype='float32')  # preallocate output (doubled)
-    flt.c_interp3signal(s, S, p, nx, ny, nz, n)
+    flt.c_interp3signal(s, S, p, v, nx, ny, nz, n)
     return s
 
 
-def interp3scalar(M, p):
+def interp3scalar(M, p, v=np.ones(3)):
     assert M.ndim == 3 and M.dtype == 'uint16'
     nx,ny,nz = M.shape
-    return flt.c_interp3scalar(M, p, nx, ny, nz)
+    return flt.c_interp3scalar(M, p, v, nx, ny, nz)
