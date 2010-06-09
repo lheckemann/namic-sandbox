@@ -220,7 +220,7 @@ INSTALL(FILES
   ${OpenIGTLink_BINARY_DIR}/OpenIGTLinkBuildSettings.cmake
 #  ${OpenIGTLink_BINARY_DIR}/OpenIGTLinkLibraryDepends.cmake
   ${OpenIGTLink_BINARY_DIR}/UseOpenIGTLink.cmake
-  ${OpenIGTLink_BINARY_DIR}/OpenIGTLinkConfig.cmake
+  ${OpenIGTLink_BINARY_DIR}/Utilities/OpenIGTLinkConfig.cmake
   DESTINATION ${OpenIGTLink_INSTALL_PACKAGE_DIR}
   COMPONENT Development
   )
@@ -233,7 +233,7 @@ INSTALL(FILES
 
 INSTALL(FILES
   ${OpenIGTLink_BINARY_DIR}/igtl_typeconfig.h
-  DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}/igtlutil
+  DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}
   COMPONENT Development
   )
 
