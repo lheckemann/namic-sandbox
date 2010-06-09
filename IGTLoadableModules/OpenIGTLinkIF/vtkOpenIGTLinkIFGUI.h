@@ -24,6 +24,8 @@
 #include "vtkMRMLIGTLConnectorNode.h"
 
 #include "vtkIGTLRemoteDataListWindow.h"
+#include "vtkIGTLTrackingDataControllerWindow.h"
+
 
 #include "vtkIGTDataManager.h"
 #include "vtkIGTPat2ImgRegistration.h"
@@ -156,6 +158,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   void         RemoveLogicObservers ( );
 
   virtual void OpenRemoteDataListWindow(const char* conID);
+  virtual void OpenTrackingDataControllerWindow(const char* conID);
   //virtual void AddNodeCallback(const char* conID, int io, const char* name, const char* type);
   virtual void AddNodeCallback(const char* conID, int io, const char* nodeID);
   virtual void DeleteNodeCallback(const char* conID, int io, const char* nodeID);
@@ -277,6 +280,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // Remote Data List Window
   vtkIGTLRemoteDataListWindow* RemoteDataWindow;
+  vtkIGTLTrackingDataControllerWindow* TrackingDataControllerWindow;
 
   //----------------------------------------------------------------
   // Logic Values
