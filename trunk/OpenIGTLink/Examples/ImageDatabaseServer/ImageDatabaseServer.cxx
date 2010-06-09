@@ -84,12 +84,12 @@ int main(int argc, char* argv[])
         headerMsg->InitPack();
 
         // Receive generic header from the socket
-        int r = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
-        if (r == 0)
+        int rs = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+        if (rs == 0)
           {
           socket->CloseSocket();
           }
-        if (r != headerMsg->GetPackSize())
+        if (rs != headerMsg->GetPackSize())
           {
           continue;
           }
@@ -296,7 +296,8 @@ int GetTestImage(igtl::ImageMessage::Pointer& msg, const char* dir, int i)
     return 0;
     }
   int fsize = msg->GetImageSize();
-  size_t b = fread(msg->GetScalarPointer(), 1, fsize, fp);
+  //size_t b = fread(msg->GetScalarPointer(), 1, fsize, fp);
+  fread(msg->GetScalarPointer(), 1, fsize, fp);
 
   fclose(fp);
 

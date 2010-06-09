@@ -75,14 +75,14 @@ int main(int argc, char* argv[])
     igtl::MessageHeader::Pointer headerMsg;
     headerMsg = igtl::MessageHeader::New();
     headerMsg->InitPack();
-    int r = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
-    if (r == 0)
+    int rs = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+    if (rs == 0)
       {
       std::cerr << "Connection closed." << std::endl;
       socket->CloseSocket();
       exit(0);
       }
-    if (r != headerMsg->GetPackSize())
+    if (rs != headerMsg->GetPackSize())
       {
       std::cerr << "Message size information and actual data size don't match." << std::endl; 
       exit(0);

@@ -64,8 +64,6 @@ class IGTLCommon_EXPORT Socket : public Object
   igtlTypeMacro(igtl::Socket, igtl::Object)
   igtlNewMacro(igtl::Socket);
 
-  void PrintSelf(std::ostream& os);
-
 public:
 
   // ----- Status API ----
@@ -102,6 +100,8 @@ public:
 protected:
   Socket();
   ~Socket();
+
+  void PrintSelf(std::ostream& os) const;
 
   int m_SocketDescriptor;
   igtlGetMacro(SocketDescriptor, int);
