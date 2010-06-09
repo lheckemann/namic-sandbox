@@ -104,11 +104,12 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
   this->WCTargetPoint[1] = 0.0;
   this->WCTargetPoint[2] = 0.0;
 
-  this->EntryTargetAcquired = false;
-  this->ClickNumber = 0;
   this->ProcessingCallback = false;
   this->NeedleActor = NULL;
   
+    // Initail state.
+  
+  this->NumPointsSelected = 0;
   this->SelectTargetFirst = true;
 }
 
@@ -480,10 +481,11 @@ vtkPerkStationPlanStep
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   
   
+    // If current step is not Planning.
+  
   if (    ! wizard_widget
        || wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this
        || ! this->GetGUI()->GetMRMLNode()
-       || ! this->GetGUI()->GetMRMLNode()->GetPlanningVolumeNode()
        || strcmp( this->GetGUI()->GetMRMLNode()->GetVolumeInUse(),
                   "Planning" )!= 0 )
     {
@@ -491,38 +493,28 @@ vtkPerkStationPlanStep
     }
   
   
-    // see if the entry and target have already been acquired
+  vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast( caller );
   
-  if( this->EntryTargetAcquired )
-    {
-    return;
-    }
-  
-  
-  vtkSlicerInteractorStyle *s =
-    vtkSlicerInteractorStyle::SafeDownCast( caller );
+  vtkSlicerSliceGUI* sliceGUI =
+    // vtkSlicerApplicationGUI::SafeDownCast(
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red");
+    // );
   
   vtkSlicerInteractorStyle *istyle0 =
-    vtkSlicerInteractorStyle::SafeDownCast(
-      this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->
-      GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->
-      GetInteractorStyle() );
+    vtkSlicerInteractorStyle::SafeDownCast( sliceGUI->GetSliceViewer()->
+      GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle() );
   
   
-    // planning has to happen on slicer laptop, cannot be done from secondary
-    // monitor, so don't listen to clicks in secondary monitor
+    // Planning has to happen on slicer laptop, not secondary monitor
   
-  if (    ( s != istyle0 )
+  if (    ( style != istyle0 )
        || ( event != vtkCommand::LeftButtonPressEvent ) )
     {
     return;
     }
   
   
-    // mouse click happened in the axial "Red" slice view
-  
-  vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(
-    this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
+    // Get the RAS position of the image click.
   
   vtkRenderWindowInteractor *rwi;
   rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->
@@ -542,7 +534,8 @@ vtkPerkStationPlanStep
   
     // depending on click number, it is either Entry point or target point
   
-  ++ this->ClickNumber;
+  ++ this->NumPointsSelected;
+  // ++ this->ClickNumber;
   
   int entryClick = 1;
   int targetClick = 2;
@@ -556,7 +549,7 @@ vtkPerkStationPlanStep
     }
   
   
-  if ( this->ClickNumber == entryClick )
+  if ( this->NumPointsSelected == entryClick )
     {
       // entry point specification by user
     this->EntryPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
@@ -574,7 +567,7 @@ vtkPerkStationPlanStep
     this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
       SetNthFiducialLabelText( index, "Entry" );
     }
-  else if ( this->ClickNumber == targetClick )
+  else if ( this->NumPointsSelected == targetClick )
     {
     this->TargetPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
     this->TargetPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
@@ -592,26 +585,23 @@ vtkPerkStationPlanStep
     }
   
   
-  if ( this->ClickNumber == 1 )  // On first click.
+  if ( this->NumPointsSelected == 1 )  // On first click.
     {   
     this->LogTimer->StartTimer();  // Start the log timer.
     this->TargetFirstCheck->GetWidget()->SetEnabled( 0 );
     }
   
   
-  if ( this->ClickNumber == 2 ) // Needle guide ready.
+  if ( this->NumPointsSelected == 2 ) // Needle guide ready.
     {
     this->PopulateControlsOnLoadPlanning();
     this->OverlayNeedleGuide();
     this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();  
     
-    this->ClickNumber = 0;
-    
-    this->EntryTargetAcquired = true;
     this->TargetFirstCheck->GetWidget()->SetEnabled( 1 );
     }
   
-  if ( this->ClickNumber != 1 )
+  if ( this->NumPointsSelected != 1 )
     {
     this->PlanningLineActor->SetVisibility( 0 );
     }
@@ -624,7 +614,7 @@ vtkPerkStationPlanStep
                          unsigned long event,
                          void *callData )
 {
-  if ( this->ClickNumber != 1 )
+  if ( this->NumPointsSelected != 1 )
     {
     this->PlanningLineActor->SetVisibility( 0 );
     return;
@@ -889,8 +879,7 @@ vtkPerkStationPlanStep
   this->WCTargetPoint[0] = 0.0;
   this->WCTargetPoint[1] = 0.0;
   this->WCTargetPoint[2] = 0.0;
-  this->EntryTargetAcquired = false;
-  this->ClickNumber = 0;
+  this->NumPointsSelected = 0;
   this->ProcessingCallback = false;
   // reset gui controls
   this->ResetControls();

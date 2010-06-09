@@ -66,16 +66,17 @@ protected:
   
   vtkPerkStationPlanStep();
   ~vtkPerkStationPlanStep();
-
+  
+  vtkPerkStationPlanStep( const vtkPerkStationPlanStep& );
+  void operator=( const vtkPerkStationPlanStep& );
+  
   void AddGUIObservers();
   void RemoveGUIObservers();
   
   // Description:
   // GUI callback  
-  static void WizardGUICallback( vtkObject *caller,
-                                 unsigned long event,
-                                 void *clientData,
-                                 void *callData );
+  static void WizardGUICallback( vtkObject *caller, unsigned long event,
+                                 void *clientData, void *callData );
 
   virtual void InstallCallbacks();
 
@@ -93,9 +94,9 @@ protected:
   // entry point RAS
   // information to be had from the user
   
-  vtkKWFrame *EntryPointFrame;
-  vtkKWLabel *EntryPointLabel;
-  vtkKWEntrySet      *EntryPoint;
+  vtkKWFrame*    EntryPointFrame;
+  vtkKWLabel*    EntryPointLabel;
+  vtkKWEntrySet* EntryPoint;
   
   vtkKWFrame*    TargetPointFrame;
   vtkKWLabel*    TargetPointLabel;  
@@ -116,15 +117,16 @@ protected:
   double WCEntryPoint[3];
   double WCTargetPoint[3];
 
-  bool EntryTargetAcquired;
-  unsigned int ClickNumber;
   vtkActor *NeedleActor;
+
 private:
+    
+    // State description.
+  
+  unsigned int NumPointsSelected;
   bool ProcessingCallback;
   bool SelectTargetFirst;
 
-  vtkPerkStationPlanStep( const vtkPerkStationPlanStep& );
-  void operator=( const vtkPerkStationPlanStep& );
 };
 
 #endif
