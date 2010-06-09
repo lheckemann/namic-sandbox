@@ -136,33 +136,48 @@ int vtkIGTLToMRMLTrackingData::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrml
   // If mrmlNode is query node
   if (strcmp(mrmlNode->GetNodeTagName(), "IGTLQuery") == 0 ) // Query Node
     {
-    /*
     vtkMRMLIGTLQueryNode* qnode = vtkMRMLIGTLQueryNode::SafeDownCast(mrmlNode);
     if (qnode)
       {
       if (qnode->GetQueryType() == vtkMRMLIGTLQueryNode::TYPE_GET)
         {
-
+        /*
         //igtl::TransformMessage::Pointer OutTransformMsg;
         if (this->GetImageMetaMessage.IsNull())
           {
-          this->GetImageMetaMessage = igtl::GetImageMetaMessage::New();
+          this->GetImageMetaMessage = igtl::GetTransformDataMessage::New();
           }
         this->GetImageMetaMessage->SetDeviceName(mrmlNode->GetName());
         this->GetImageMetaMessage->Pack();
         *size = this->GetImageMetaMessage->GetPackSize();
         *igtlMsg = this->GetImageMetaMessage->GetPackPointer();
-        return 1;
+        */
+        *size = 0;
+        return 0;
         }
       else if (qnode->GetQueryType() == vtkMRMLIGTLQueryNode::TYPE_START)
         {
-        *size = 0;
-        return 0;
+        if (this->StartTrackingDataMessage.IsNull())
+          {
+          this->StartTrackingDataMessage = igtl::StartTrackingDataMessage::New();
+          }
+        this->StartTrackingDataMessage->SetDeviceName(mrmlNode->GetName());
+        this->StartTrackingDataMessage->Pack();
+        *size = this->StartTrackingDataMessage->GetPackSize();
+        *igtlMsg = this->StartTrackingDataMessage->GetPackPointer();
+        return 1;
         }
       else if (qnode->GetQueryType() == vtkMRMLIGTLQueryNode::TYPE_STOP)
         {
-        *size = 0;
-        return 0;
+        if (this->StopTrackingDataMessage.IsNull())
+          {
+          this->StopTrackingDataMessage = igtl::StopTrackingDataMessage::New();
+          }
+        this->StopTrackingDataMessage->SetDeviceName(mrmlNode->GetName());
+        this->StopTrackingDataMessage->Pack();
+        *size = this->StopTrackingDataMessage->GetPackSize();
+        *igtlMsg = this->StopTrackingDataMessage->GetPackPointer();
+        return 1;
         }
       return 0;
       }
@@ -170,10 +185,10 @@ int vtkIGTLToMRMLTrackingData::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrml
       {
       return 0;
       }
-    */
     }
 
   // If mrmlNode is data node
+  /*
   if (event == vtkMRMLVolumeNode::ImageDataModifiedEvent)
     {
     return 1;
@@ -182,7 +197,8 @@ int vtkIGTLToMRMLTrackingData::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrml
     {
     return 0;
     }
-
+  */
+  return 0;
 }
 
 

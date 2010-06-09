@@ -229,13 +229,18 @@ void vtkMRMLIGTLTrackingDataBundleNode::UpdateTransformNode(const char* name, vt
 {
   TrackingDataInfoMap::iterator iter = this->TrackingDataList.find(std::string(name));
 
+  vtkMRMLLinearTransformNode* node;
+
   // If the tracking node does not exist in the scene
-  if (iter == this->TrackingDataList.end() && this->GetScene())
+  if (iter == this->TrackingDataList.end())
     {
-    vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::New();
+    node = vtkMRMLLinearTransformNode::New();
     node->SetName(name);
     node->SetDescription("Received by OpenIGTLink");
-    this->GetScene()->AddNode(node);
+    if (this->GetScene())
+      {
+      this->GetScene()->AddNode(node);
+      }
     TrackingDataInfo info;
     info.type = type;
     info.node = node;
@@ -244,8 +249,11 @@ void vtkMRMLIGTLTrackingDataBundleNode::UpdateTransformNode(const char* name, vt
     // TODO: register to MRML observer
 
     }
+  else
+    {
+    node = iter->second.node;
+    }
 
-  vtkMRMLLinearTransformNode* node = iter->second.node;
   node->ApplyTransform(matrix);
 
 }
@@ -256,14 +264,19 @@ void vtkMRMLIGTLTrackingDataBundleNode::UpdateTransformNode(const char* name, ig
 {
   TrackingDataInfoMap::iterator iter = this->TrackingDataList.find(std::string(name));
 
+  vtkMRMLLinearTransformNode* node;
+
   // If the tracking node does not exist in the scene
-  if (iter == this->TrackingDataList.end() && this->GetScene())
+  if (iter == this->TrackingDataList.end())
     {
-    vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::New();
+    node = vtkMRMLLinearTransformNode::New();
     node->SetName(name);
     node->SetDescription("Received by OpenIGTLink");
 
-    this->GetScene()->AddNode(node);
+    if (this->GetScene())
+      {
+      this->GetScene()->AddNode(node);
+      }
     TrackingDataInfo info;
     info.type = type;
     info.node = node;
@@ -272,8 +285,10 @@ void vtkMRMLIGTLTrackingDataBundleNode::UpdateTransformNode(const char* name, ig
     // TODO: register to MRML observer
 
     }
-
-  vtkMRMLLinearTransformNode* node = iter->second.node;
+  else 
+    {
+    node = iter->second.node;
+    }
   
   vtkMatrix4x4* mat = node->GetMatrixTransformToParent();
   double *vtkmat = &mat->Element[0][0];
@@ -282,7 +297,8 @@ void vtkMRMLIGTLTrackingDataBundleNode::UpdateTransformNode(const char* name, ig
     {
     vtkmat[i] = igtlmat[i];
     }
-  node->Modified();
+  mat->Modified();
+  //node->Modified();
 
 }
 

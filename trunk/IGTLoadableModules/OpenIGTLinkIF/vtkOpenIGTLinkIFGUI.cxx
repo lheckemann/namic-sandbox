@@ -77,6 +77,7 @@
 #include "vtkMRMLIGTLQueryNode.h"
 #include "vtkMRMLImageMetaListNode.h"
 #include "vtkMRMLIGTLQueryNode.h"
+#include "vtkMRMLIGTLTrackingDataBundleNode.h"
 
 #include <vector>
 #include <sstream>
@@ -171,6 +172,7 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
   //----------------------------------------------------------------
   // Remote Data List Window
   this->RemoteDataWindow  = NULL;
+  this->TrackingDataControllerWindow  = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -371,6 +373,16 @@ vtkOpenIGTLinkIFGUI::~vtkOpenIGTLinkIFGUI ( )
     this->RemoteDataWindow->SetApplication(NULL);
     this->RemoteDataWindow->Delete();
     this->RemoteDataWindow = NULL;
+    }
+
+  //----------------------------------------------------------------
+  // Tracking Data Controller Window
+  if (this->TrackingDataControllerWindow)
+    {
+    this->TrackingDataControllerWindow->Withdraw();
+    this->TrackingDataControllerWindow->SetApplication(NULL);
+    this->TrackingDataControllerWindow->Delete();
+    this->TrackingDataControllerWindow = NULL;
     }
 
 }
@@ -1163,6 +1175,10 @@ void vtkOpenIGTLinkIFGUI::Init()
   vtkMRMLImageMetaListNode* imetaNode = vtkMRMLImageMetaListNode::New();
   scene->RegisterNodeClass(imetaNode);
   imetaNode->Delete();
+
+  vtkMRMLIGTLTrackingDataBundleNode* tdataNode = vtkMRMLIGTLTrackingDataBundleNode::New();
+  scene->RegisterNodeClass(tdataNode);
+  tdataNode->Delete();
     
 }
 
@@ -1517,6 +1533,12 @@ void vtkOpenIGTLinkIFGUI::BuildGUI ( )
   this->RemoteDataWindow = vtkIGTLRemoteDataListWindow::New();
   this->RemoteDataWindow->SetApplication(this->GetApplication());
   this->RemoteDataWindow->Create();
+
+  //----------------------------------------------------------------
+  // Tracking Data Controller Window
+  this->TrackingDataControllerWindow = vtkIGTLTrackingDataControllerWindow::New(); 
+  this->TrackingDataControllerWindow->SetApplication(this->GetApplication());
+  this->TrackingDataControllerWindow->Create();
 
   UpdateConnectorPropertyFrame(-1);
   UpdateIOConfigTree();
@@ -2195,6 +2217,8 @@ void vtkOpenIGTLinkIFGUI::AddIOConfigContextMenuItem(int type, const char* conID
     {
     sprintf(command, "OpenRemoteDataListWindow %s", conID);
     this->IOConfigContextMenu->AddCommand("Open remote data list window...", this, command);
+    sprintf(command, "OpenTrackingDataControllerWindow %s", conID);
+    this->IOConfigContextMenu->AddCommand("Open tracking control window...", this, command);
     }
   else if (type == NODE_IO)
     {
@@ -2238,6 +2262,28 @@ void vtkOpenIGTLinkIFGUI::OpenRemoteDataListWindow(const char* conID)
     }
 }
 
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFGUI::OpenTrackingDataControllerWindow(const char* conID)
+{
+  std::cerr << "Opening TrackingDataControllerWindow...." << std::endl;
+
+  if (this->TrackingDataControllerWindow)
+    {
+    vtkMRMLScene* scene = this->GetMRMLScene();
+    if (scene)
+      {
+      vtkMRMLIGTLConnectorNode* connector =
+        vtkMRMLIGTLConnectorNode::SafeDownCast(scene->GetNodeByID(conID));
+      if (connector)
+        {
+        this->TrackingDataControllerWindow->SetMRMLScene(scene);
+        this->TrackingDataControllerWindow->SetConnector(connector);
+        this->TrackingDataControllerWindow->DisplayOnWindow();
+        }
+      }
+    }
+}
 
 
 //---------------------------------------------------------------------------

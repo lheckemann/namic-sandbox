@@ -20,7 +20,7 @@
 #include "vtkMRMLNode.h"
 #include "vtkIGTLToMRMLBase.h"
 
-#include "igtlImageMetaMessage.h"
+#include "igtlTrackingDataMessage.h"
 
 class vtkMRMLVolumeNode;
 
@@ -54,8 +54,9 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLTrackingData : public vtkIGTLToMRMLB
  protected:
   //BTX
   //igtl::TransformMessage::Pointer OutTransformMsg;
-  igtl::ImageMetaMessage::Pointer OutImageMetaMsg;
-  igtl::GetImageMetaMessage::Pointer GetImageMetaMessage;
+  igtl::TrackingDataMessage::Pointer      OutTrackingMetaMsg;
+  igtl::StartTrackingDataMessage::Pointer StartTrackingDataMessage;
+  igtl::StopTrackingDataMessage::Pointer  StopTrackingDataMessage;
   //ETX
   
 };
