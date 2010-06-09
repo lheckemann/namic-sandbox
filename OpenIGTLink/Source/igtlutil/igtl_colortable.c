@@ -17,7 +17,7 @@
 #include "igtl_util.h"
 #include "igtl_colortable.h"
 
-igtl_uint64 igtl_colortable_get_table_size(igtl_colortable_header* header)
+igtl_uint64 igtl_export igtl_colortable_get_table_size(igtl_colortable_header* header)
 {
   igtl_int32 n;
   igtl_int32 s;
