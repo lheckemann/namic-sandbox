@@ -80,11 +80,13 @@ vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
   this->ImageConverter           = vtkIGTLToMRMLImage::New();
   this->PositionConverter        = vtkIGTLToMRMLPosition::New();
   this->ImageMetaListConverter   = vtkIGTLToMRMLImageMetaList::New();
+  this->TrackingDataConverter    = vtkIGTLToMRMLTrackingData::New();
 
   RegisterMessageConverter(this->LinearTransformConverter);
   RegisterMessageConverter(this->ImageConverter);
   RegisterMessageConverter(this->PositionConverter);
   RegisterMessageConverter(this->ImageMetaListConverter);
+  RegisterMessageConverter(this->TrackingDataConverter);
 
   this->LocatorTransformNode = NULL;
 }

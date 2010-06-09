@@ -43,6 +43,7 @@
 #include "vtkIGTLToMRMLImage.h"
 #include "vtkIGTLToMRMLPosition.h"
 #include "vtkIGTLToMRMLImageMetaList.h"
+#include "vtkIGTLToMRMLTrackingData.h"
 
 class vtkMRMLIGTLConnectorNode;
 
@@ -196,6 +197,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   vtkIGTLToMRMLImage*           ImageConverter;
   vtkIGTLToMRMLPosition*        PositionConverter;
   vtkIGTLToMRMLImageMetaList*   ImageMetaListConverter;
+  vtkIGTLToMRMLTrackingData*    TrackingDataConverter;
 
   //----------------------------------------------------------------
   // Real-time image
