@@ -125,10 +125,11 @@ int Socket::BindSocket(int socketdescriptor, int port)
   server.sin_addr.s_addr = INADDR_ANY;
   server.sin_port = htons(port);
   // Allow the socket to be bound to an address that is already in use
-  int opt=1;
 #ifdef _WIN32
+  int opt=1;
   setsockopt(socketdescriptor, SOL_SOCKET, SO_REUSEADDR, (char*) &opt, sizeof(int));
 #elif defined(VTK_HAVE_SO_REUSEADDR)
+  int opt=1;
   setsockopt(socketdescriptor, SOL_SOCKET, SO_REUSEADDR, (void *) &opt, sizeof(int));
 #endif
 
@@ -281,16 +282,16 @@ int Socket::GetPort(int sock)
 {
   struct sockaddr_in sockinfo;
   memset(&sockinfo, 0, sizeof(sockinfo));
-#if defined(VTK_HAVE_GETSOCKNAME_WITH_SOCKLEN_T)
+#if defined(OpenIGTLink_HAVE_GETSOCKNAME_WITH_SOCKLEN_T)
   socklen_t sizebuf = sizeof(sockinfo);
 #else
   int sizebuf = sizeof(sockinfo);
 #endif
 //  FIXME: Setup configuration for VTK_HAVE_GETSOCKNAME_WITH_SOCKLEN_T so we can uncomment these lines
-//  if(getsockname(sock, reinterpret_cast<sockaddr*>(&sockinfo), &sizebuf) != 0)
-//    {
-//    return 0;
-//    }
+  if(getsockname(sock, reinterpret_cast<sockaddr*>(&sockinfo), &sizebuf) != 0)
+    {
+    return 0;
+    }
   return ntohs(sockinfo.sin_port);
 }
 
@@ -404,7 +405,7 @@ int Socket::Skip(int length, int skipFully/*=1*/)
 }
 
 //-----------------------------------------------------------------------------
-void Socket::PrintSelf(std::ostream& os)
+void Socket::PrintSelf(std::ostream& os) const
 {
   this->Superclass::PrintSelf(os);
 }

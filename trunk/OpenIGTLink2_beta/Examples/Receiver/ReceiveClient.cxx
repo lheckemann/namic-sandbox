@@ -328,6 +328,7 @@ int ReceivePoint(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Point
       }
     }
 
+  return 1;
 }
 
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2

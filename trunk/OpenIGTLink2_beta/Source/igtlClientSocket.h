@@ -51,8 +51,6 @@ public:
   igtlTypeMacro(igtl::ClientSocket, igtl::Socket)
   igtlNewMacro(igtl::ClientSocket);
 
-  void PrintSelf(std::ostream& os);
-
   // Description:
   // Connects to host. Returns 0 on success, -1 on error.
   int ConnectToServer(const char* hostname, int port); 
@@ -60,6 +58,8 @@ public:
 protected:
   ClientSocket();
   ~ClientSocket();
+
+  void PrintSelf(std::ostream& os) const;
 
 //BTX
   friend class ServerSocket;

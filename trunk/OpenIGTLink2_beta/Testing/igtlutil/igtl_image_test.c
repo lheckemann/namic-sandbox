@@ -114,7 +114,7 @@ int main( int argc, char * argv [] )
   else
     {
     /* Print first 256 bytes as HEX values in STDERR for debug */
-    s = IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+image_size;
+    s = IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+ (int)image_size;
     if (s > 256)
       {
       s = 256;
