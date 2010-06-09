@@ -66,6 +66,8 @@ set(OpenIGTLinkIF_SRCS
   vtkMRMLImageMetaListNode.cxx
   vtkIGTLToMRMLImageMetaList.cxx
 #  vtkMRMLIGTLImageMetaListQueryNode.cxx
+  vtkIGTLToMRMLTrackingData.cxx
+  vtkMRMLIGTLTrackingDataBundleNode.cxx
 )
 
 # --------------------------------------------------------------------------
