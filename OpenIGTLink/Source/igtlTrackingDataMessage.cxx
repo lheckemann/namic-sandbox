@@ -250,7 +250,7 @@ int TrackingDataMessage::AddTrackingDataElement(TrackingDataElement::Pointer& el
 }
 
 
-void TrackingDataMessage::ClearTrackingDataElement(TrackingDataElement::Pointer& elem)
+void TrackingDataMessage::ClearTrackingDataElement()
 {
   this->m_TrackingDataList.clear();
 }
@@ -334,12 +334,12 @@ int TrackingDataMessage::UnpackBody()
 
     Matrix4x4 matrix;
     IdentityMatrix(matrix);
-    for (int i = 0; i < 3; i ++)
+    for (int j = 0; j < 3; j ++)
       {
-      matrix[i][0] = element->transform[i];
-      matrix[i][1] = element->transform[i+3];
-      matrix[i][2] = element->transform[i+6];
-      matrix[i][3] = element->transform[i+9];
+      matrix[j][0] = element->transform[j];
+      matrix[j][1] = element->transform[j+3];
+      matrix[j][2] = element->transform[j+6];
+      matrix[j][3] = element->transform[j+9];
       }
     elemClass->SetMatrix(matrix);
 

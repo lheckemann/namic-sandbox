@@ -184,7 +184,7 @@ int PointMessage::AddPointElement(PointElement::Pointer& elem)
 }
 
 
-void PointMessage::ClearPointElement(PointElement::Pointer& elem)
+void PointMessage::ClearPointElement()
 {
   this->m_PointList.clear();
 }

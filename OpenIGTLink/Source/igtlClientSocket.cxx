@@ -71,7 +71,7 @@ int ClientSocket::ConnectToServer(const char* hostName, int port)
 }
 
 //-----------------------------------------------------------------------------
-void ClientSocket::PrintSelf(std::ostream& os)
+void ClientSocket::PrintSelf(std::ostream& os) const
 {
   this->Superclass::PrintSelf(os);
 }

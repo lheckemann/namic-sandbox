@@ -94,8 +94,8 @@ int main(int argc, char* argv[])
         headerMsg->InitPack();
 
         // Receive generic header from the socket
-        int r = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
-        if (r == 0)
+        int rs = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+        if (rs == 0)
           {
           if (threadID >= 0)
             {
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
           socket->CloseSocket();
           break;
           }
-        if (r != headerMsg->GetPackSize())
+        if (rs != headerMsg->GetPackSize())
           {
           continue;
           }
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
           startTracking->SetMessageHeader(headerMsg);
           startTracking->AllocatePack();
         
-          int r2 = socket->Receive(startTracking->GetPackBodyPointer(), startTracking->GetPackBodySize());
+          //int r2 = socket->Receive(startTracking->GetPackBodyPointer(), startTracking->GetPackBodySize());
           int c = startTracking->Unpack(1);
           if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
             {
@@ -175,8 +175,8 @@ void* ThreadFunction(void* ptr)
   igtl::MultiThreader::ThreadInfo* info = 
     static_cast<igtl::MultiThreader::ThreadInfo*>(ptr);
 
-  int id      = info->ThreadID;
-  int nThread = info->NumberOfThreads;
+  //int id      = info->ThreadID;
+  //int nThread = info->NumberOfThreads;
   ThreadData* td = static_cast<ThreadData*>(info->UserData);
 
   //------------------------------------------------------------

@@ -113,7 +113,7 @@ ClientSocket::Pointer ServerSocket::WaitForConnection(unsigned long msec /*=0*/)
 }
 
 //-----------------------------------------------------------------------------
-void ServerSocket::PrintSelf(std::ostream& os)
+void ServerSocket::PrintSelf(std::ostream& os) const
 {
   this->Superclass::PrintSelf(os);
 }

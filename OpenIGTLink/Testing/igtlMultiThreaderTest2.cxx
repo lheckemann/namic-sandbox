@@ -187,7 +187,7 @@ void* ThreadFunction5(void* ptr)
 }
 
 
-int main(int argc, char * argv [] )
+int main(int , char * [] )
 {
 
   igtl::MutexLock::Pointer glock = igtl::MutexLock::New();
