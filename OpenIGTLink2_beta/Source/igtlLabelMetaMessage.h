@@ -115,7 +115,7 @@ public:
 
 public:
   int  AddLabelMetaElement(LabelMetaElement::Pointer& elem);
-  void ClearLabelMetaElement(LabelMetaElement::Pointer& elem);
+  void ClearLabelMetaElement();
 
   int  GetNumberOfLabelMetaElement();
   void GetLabelMetaElement(int index, LabelMetaElement::Pointer& elem);

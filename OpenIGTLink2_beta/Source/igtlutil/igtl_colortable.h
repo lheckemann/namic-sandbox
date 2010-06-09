@@ -57,7 +57,7 @@ typedef struct {
  *
  */
 
-igtl_uint64 igtl_colortable_get_table_size(igtl_colortable_header* header);
+igtl_uint64 igtl_export igtl_colortable_get_table_size(igtl_colortable_header* header);
 
 
 /*

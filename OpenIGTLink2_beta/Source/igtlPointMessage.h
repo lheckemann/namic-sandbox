@@ -114,7 +114,7 @@ public:
 
 public:
   int  AddPointElement(PointElement::Pointer& elem);
-  void ClearPointElement(PointElement::Pointer& elem);
+  void ClearPointElement();
 
   int  GetNumberOfPointElement();
   void GetPointElement(int index, PointElement::Pointer& elem);

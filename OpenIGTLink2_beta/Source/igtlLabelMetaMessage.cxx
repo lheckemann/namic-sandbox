@@ -189,7 +189,7 @@ int LabelMetaMessage::AddLabelMetaElement(LabelMetaElement::Pointer& elem)
 }
 
 
-void LabelMetaMessage::ClearLabelMetaElement(LabelMetaElement::Pointer& elem)
+void LabelMetaMessage::ClearLabelMetaElement()
 {
   this->m_LabelMetaList.clear();
 }

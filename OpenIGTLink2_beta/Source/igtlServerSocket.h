@@ -52,8 +52,6 @@ public:
   igtlTypeMacro(igtl::ServerSocket, igtl::Socket);
   igtlNewMacro(igtl::ServerSocket);
 
-  void PrintSelf(std::ostream& os);
-
   // Description:
   // Creates a server socket at a given port and binds to it.
   // Returns -1 on error. 0 on success.
@@ -72,6 +70,8 @@ public:
 protected:
   ServerSocket();
   ~ServerSocket();
+
+  void PrintSelf(std::ostream& os) const;
 
 private:
   ServerSocket(const ServerSocket&); // Not implemented.

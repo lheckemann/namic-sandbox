@@ -211,7 +211,7 @@ int ImageMetaMessage::AddImageMetaElement(ImageMetaElement::Pointer& elem)
 }
 
 
-void ImageMetaMessage::ClearImageMetaElement(ImageMetaElement::Pointer& elem)
+void ImageMetaMessage::ClearImageMetaElement()
 {
   this->m_ImageMetaList.clear();
 }
