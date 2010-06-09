@@ -55,7 +55,7 @@ public:
   void RemoveMRMLObservers();
 
   void OnMultiColumnListUpdate(int row, int col, char * str);
-  void OnMultiColumnListSelectionChanged();
+  void OnMultiColumnListSelection();
   void UpdateTargetListGUI();
 
   void SetShowTargetOrientation(int show);

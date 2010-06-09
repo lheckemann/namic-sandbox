@@ -708,7 +708,7 @@ void vtkProstateNavTargetingStep::ProcessMRMLEvents(vtkObject *caller,
     switch (event)
       {
       case vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent:
-        this->GUI->BringTargetToViewIn2DViews(vtkProstateNavGUI::BRING_MARKERS_TO_VIEW_KEEP_CURRENT_ORIENTATION);
+        // UpdateGUI is called anyways, no additional actions are needed
         break;
       }
     }
@@ -898,14 +898,16 @@ void vtkProstateNavTargetingStep::OnMultiColumnListUpdate(int row, int col, char
   if (updated)
   {
     this->GetLogic()->UpdateTargetListFromMRML();
+    // Current target has changed, force refresh (if SetCurrentTargetIndex is called with the current target index, then it is ignored)
+    int currentTarget=this->GetProstateNavManager()->GetCurrentTargetIndex();
+    this->GetProstateNavManager()->SetCurrentTargetIndex(-1);
+    this->GetProstateNavManager()->SetCurrentTargetIndex(currentTarget);
   }
 }
 
-
 //---------------------------------------------------------------------------
-void vtkProstateNavTargetingStep::OnMultiColumnListSelectionChanged()
+void vtkProstateNavTargetingStep::OnMultiColumnListSelection()
 {
-
   vtkMRMLFiducialListNode* fidList = this->GetProstateNavManager()->GetTargetPlanListNode();
 
   if (fidList == NULL)
@@ -926,24 +928,21 @@ void vtkProstateNavTargetingStep::OnMultiColumnListSelectionChanged()
       vtkErrorMacro("Target descriptor not found");
       return;
     }
-    // Copy the values to inputs
-    vtkKWMatrixWidget* matrix = this->NeedlePositionMatrix->GetWidget();
-    double* xyz=targetDesc->GetRASLocation();
-    matrix->SetElementValueAsDouble(0, 0, xyz[0]);
-    matrix->SetElementValueAsDouble(0, 1, xyz[1]);
-    matrix->SetElementValueAsDouble(0, 2, xyz[2]);
+   
+    this->GetProstateNavManager()->SetCurrentTargetIndex(targetIndex);    
 
-    if (this->ShowTargetOrientation && this->NeedleOrientationMatrix)
-      {
-      matrix = this->NeedleOrientationMatrix->GetWidget();
-      double* wxyz=targetDesc->GetRASOrientation();
-      matrix->SetElementValueAsDouble(0, 0, wxyz[0]);
-      matrix->SetElementValueAsDouble(0, 1, wxyz[1]);
-      matrix->SetElementValueAsDouble(0, 2, wxyz[2]);
-      matrix->SetElementValueAsDouble(0, 3, wxyz[3]);
-      }
-          
-    this->GetProstateNavManager()->SetCurrentTargetIndex(targetIndex);
+    /* it would be more rational to set the slice orientation here, but it is too slow
+    // Set slice orientation to match the original acquisitions
+    const char* volNodeID = this->GetProstateNavManager()->GetTargetingVolumeNodeRef();
+    vtkMRMLScalarVolumeNode *volNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(volNodeID));
+    if ( volNode!=NULL)
+    {
+      this->GetGUI()->GetLogic()->SetSliceViewFromVolume(volNode);
+    }
+    */
+
+    this->GUI->BringTargetToViewIn2DViews(vtkProstateNavGUI::BRING_MARKERS_TO_VIEW_KEEP_CURRENT_ORIENTATION);
+    
     }
 }
 
@@ -966,17 +965,17 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
   }
 
   if (activeFiducialListNode == NULL)    //clear out the list box
-    {
+  {
     if (this->TargetList)
-      {
+    {
       if (this->TargetList->GetWidget()->GetNumberOfRows() != 0)
-        {
+      {
         this->TargetList->GetWidget()->DeleteAllRows();
-        }
       }
-    return;
     }
-  
+    return;
+  }
+
   // create new target points, if necessary
   this->GetLogic()->UpdateTargetListFromMRML();
 
@@ -992,82 +991,103 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
   bool deleteFlag = true;
 
   if (numPoints != this->TargetList->GetWidget()->GetNumberOfRows())
-    {
+  {
     // clear out the multi column list box and fill it in with the
     // new list
     this->TargetList->GetWidget()->DeleteAllRows();
-    }
+  }
   else
-    {
+  {
     deleteFlag = false;
-    }
-        
+  }
+
   double *xyz;
   double *wxyz;
 
   for (int row = 0; row < numPoints; row++)
-    {      
+  {      
     int targetIndex=row;
     vtkProstateNavTargetDescriptor* target = manager->GetTargetDescriptorAtIndex(targetIndex);
     NeedleDescriptorStruct* needle = manager->GetNeedle(target);
 
     if (deleteFlag)
-      {
+    {
       // add a row for this point
       this->TargetList->GetWidget()->AddRow();
-      }
+    }
     this->TargetList->GetWidget()->SetRowAttributeAsInt(row, TARGET_INDEX_ATTR, targetIndex);
 
     xyz=target->GetRASLocation();
     wxyz=target->GetRASOrientation();
 
     if (xyz == NULL)
-      {
+    {
       vtkErrorMacro ("UpdateTargetListGUI: ERROR: got null xyz for point " << row << endl);
-      }
+    }
 
     if (target->GetName().compare(this->TargetList->GetWidget()->GetCellText(row,COL_NAME)) != 0)
-        {
-          this->TargetList->GetWidget()->SetCellText(row,COL_NAME,target->GetName().c_str());
-        }               
+    {
+      this->TargetList->GetWidget()->SetCellText(row,COL_NAME,target->GetName().c_str());
+    }               
 
     // selected
     vtkKWMultiColumnList* columnList = this->TargetList->GetWidget();
     if (xyz != NULL)
-      {
+    {
       for (int i = 0; i < 3; i ++) // for position (x, y, z)
-        {
+      {
         if (deleteFlag || fabs(columnList->GetCellTextAsDouble(row,COL_X+i)-xyz[i])>POSITION_PRECISION_TOLERANCE)
-          {
+        {
           std::ostrstream os;    
           os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(POSITION_PRECISION_DIGITS);
           os << xyz[i] << std::ends;
           columnList->SetCellText(row,COL_X+i,os.str());
           os.rdbuf()->freeze();
-          }
         }
       }
+    }
     if (this->ShowTargetOrientation && wxyz != NULL)
-      {
+    {
       for (int i = 0; i < 4; i ++) // for orientation (w, x, y, z)
-        {
+      {
         if (deleteFlag || fabs(columnList->GetCellTextAsDouble(row, COL_OR_W+i)-wxyz[i])>POSITION_PRECISION_TOLERANCE)
-          {
+        {
           std::ostrstream os;    
           os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(POSITION_PRECISION_DIGITS);
           os << wxyz[i] << std::ends;
           columnList->SetCellText(row,COL_OR_W+i,os.str());
           os.rdbuf()->freeze();
-          }
         }
       }
-
-    if (needle->Description.compare(this->TargetList->GetWidget()->GetCellText(row,COL_NEEDLE)) != 0)
-    {
-      this->TargetList->GetWidget()->SetCellText(row,COL_NEEDLE,needle->Description.c_str());
     }
 
-    }  
+    if (needle->mDescription.compare(this->TargetList->GetWidget()->GetCellText(row,COL_NEEDLE)) != 0)
+    {
+      this->TargetList->GetWidget()->SetCellText(row,COL_NEEDLE,needle->mDescription.c_str());
+    }
+
+  }       
+
+  int selectedTargetIndex=-1;
+  int numRows = this->TargetList->GetWidget()->GetNumberOfSelectedRows();
+  if (numRows == 1)
+  {       
+    int rowIndex = this->TargetList->GetWidget()->GetIndexOfFirstSelectedRow();    
+    selectedTargetIndex=this->TargetList->GetWidget()->GetRowAttributeAsInt(rowIndex, TARGET_INDEX_ATTR);
+  }
+  int currentTargetIndex=this->GetProstateNavManager()->GetCurrentTargetIndex();
+  if (currentTargetIndex!=selectedTargetIndex)
+  {
+    for (int rowIndex=0; rowIndex<this->TargetList->GetWidget()->GetNumberOfRows(); rowIndex++)
+    {
+      if (this->TargetList->GetWidget()->GetRowAttributeAsInt(rowIndex, TARGET_INDEX_ATTR)==currentTargetIndex)
+      {
+        // found the row corresponding to the current target
+        this->TargetList->GetWidget()->SelectSingleRow(rowIndex);
+        break;
+      }
+    }
+  } 
 
 }
 
@@ -1116,8 +1136,8 @@ void vtkProstateNavTargetingStep::AddGUIObservers()
     }
   if (this->TargetList)
     {
-    this->TargetList->GetWidget()->SetCellUpdatedCommand(this, "OnMultiColumnListUpdate");
-    this->TargetList->GetWidget()->SetSelectionChangedCommand(this, "OnMultiColumnListSelectionChanged");
+    this->TargetList->GetWidget()->SetCellUpdatedCommand(this, "OnMultiColumnListUpdate");    
+    this->TargetList->GetWidget()->SetSelectionCommand(this, "OnMultiColumnListSelection");    // allows updates when a target is re-selected
     }
 }
 //-----------------------------------------------------------------------------
@@ -1162,7 +1182,7 @@ void vtkProstateNavTargetingStep::RemoveGUIObservers()
   if (this->TargetList)
     {
     this->TargetList->GetWidget()->SetCellUpdatedCommand(this, "");
-    this->TargetList->GetWidget()->SetSelectionChangedCommand(this, "");
+    this->TargetList->GetWidget()->SetSelectionCommand(this, "");
     }
 }
 
@@ -1185,17 +1205,17 @@ void vtkProstateNavTargetingStep::UpdateGUI()
     this->VolumeSelectorWidget->SetSelected( volNode );
   }
 
+  vtkMRMLRobotNode* robot=NULL;
+  if (this->GetProstateNavManager()!=NULL)
+  {
+    robot=this->GetProstateNavManager()->GetRobotNode();
+  }
+  vtkProstateNavTargetDescriptor *targetDesc = mrmlNode->GetTargetDescriptorAtIndex(mrmlNode->GetCurrentTargetIndex()); 
+  NeedleDescriptorStruct *needle = mrmlNode->GetNeedle(targetDesc); 
+
   // Display information about the currently selected target descriptor    
   if (this->Message)
-  {    
-    vtkMRMLRobotNode* robot=NULL;
-    if (this->GetProstateNavManager()!=NULL)
-    {
-      robot=this->GetProstateNavManager()->GetRobotNode();
-    }
-    vtkProstateNavTargetDescriptor *targetDesc = mrmlNode->GetTargetDescriptorAtIndex(mrmlNode->GetCurrentTargetIndex()); 
-    NeedleDescriptorStruct *needle = mrmlNode->GetNeedle(targetDesc); 
-
+  {        
     if (robot!=NULL && targetDesc!=NULL && needle!=NULL)
     {
       // Get target info text then split it to remove the separator
@@ -1214,6 +1234,53 @@ void vtkProstateNavTargetingStep::UpdateGUI()
 
   }
 
+
+  vtkKWMatrixWidget* needlePosMatrix = NULL;
+  if (this->NeedlePositionMatrix!=NULL)
+  {
+    needlePosMatrix=this->NeedlePositionMatrix->GetWidget();
+  }
+  vtkKWMatrixWidget* needleOrientationMatrix = NULL;
+  if (this->ShowTargetOrientation && this->NeedlePositionMatrix!=NULL)
+  {
+    needleOrientationMatrix=this->NeedleOrientationMatrix->GetWidget();
+  }
+  if (targetDesc!=NULL)
+  {
+    // Copy the values to inputs         
+    if (needlePosMatrix!=NULL)
+    {
+      double* xyz=targetDesc->GetRASLocation();
+      needlePosMatrix->SetElementValueAsDouble(0, 0, xyz[0]);
+      needlePosMatrix->SetElementValueAsDouble(0, 1, xyz[1]);
+      needlePosMatrix->SetElementValueAsDouble(0, 2, xyz[2]);
+    }
+    if (this->NeedleOrientationMatrix!=NULL)
+    {
+      double* wxyz=targetDesc->GetRASOrientation();
+      needlePosMatrix->SetElementValueAsDouble(0, 0, wxyz[0]);
+      needlePosMatrix->SetElementValueAsDouble(0, 1, wxyz[1]);
+      needlePosMatrix->SetElementValueAsDouble(0, 2, wxyz[2]);
+      needlePosMatrix->SetElementValueAsDouble(0, 3, wxyz[3]);
+    }
+  }
+  else
+  {
+    if (needlePosMatrix!=NULL)
+    {
+      needlePosMatrix->SetElementValue(0, 0, "");
+      needlePosMatrix->SetElementValue(0, 1, "");
+      needlePosMatrix->SetElementValue(0, 2, "");
+    }
+    if (this->NeedleOrientationMatrix!=NULL)
+    {
+      needlePosMatrix->SetElementValue(0, 0, "");
+      needlePosMatrix->SetElementValue(0, 1, "");
+      needlePosMatrix->SetElementValue(0, 2, "");
+      needlePosMatrix->SetElementValue(0, 3, "");
+    }
+  }
+
   UpdateTargetListGUI();
 
   if (this->NeedleTypeMenuList!=NULL && this->NeedleTypeMenuList->GetWidget()!=NULL)
@@ -1224,9 +1291,9 @@ void vtkProstateNavTargetingStep::UpdateGUI()
       NeedleDescriptorStruct needleDesc;
       mrmlNode->GetNeedle(i, needleDesc);
       std::ostrstream needleTitle;
-      needleTitle << needleDesc.Description << " <" << needleDesc.TargetNamePrefix <<"> ("
-        <<needleDesc.Overshoot<<"mm overshoot, "
-        <<needleDesc.Length<<"mm length"
+      needleTitle << needleDesc.mDescription << " <" << needleDesc.mTargetNamePrefix <<"> ("
+        <<needleDesc.GetOvershoot()<<"mm overshoot, "
+        <<needleDesc.mLength<<"mm length"
         << ")" << std::ends;      
       this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddRadioButton(needleTitle.str());
       needleTitle.rdbuf()->freeze();

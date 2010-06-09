@@ -555,7 +555,6 @@ void vtkProstateNavStepVerification::ProcessMRMLEvents(vtkObject *caller,
     switch (event)
       {
       case vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent:
-        this->GUI->BringTargetToViewIn2DViews(vtkProstateNavGUI::BRING_MARKERS_TO_VIEW_ALIGN_TO_NEEDLE);
         break;
       }
     }
@@ -600,7 +599,7 @@ void vtkProstateNavStepVerification::RemoveMRMLObservers()
 }
 
 //---------------------------------------------------------------------------
-void vtkProstateNavStepVerification::OnMultiColumnListSelectionChanged()
+void vtkProstateNavStepVerification::OnMultiColumnListSelection()
 {
 
   vtkMRMLFiducialListNode* fidList = this->GetProstateNavManager()->GetTargetPlanListNode();
@@ -612,14 +611,13 @@ void vtkProstateNavStepVerification::OnMultiColumnListSelectionChanged()
 
   int numRows = this->TargetList->GetWidget()->GetNumberOfSelectedRows();
   if (numRows == 1)
-    {   
-    
+    {       
     int rowIndex = this->TargetList->GetWidget()->GetIndexOfFirstSelectedRow();    
     int targetIndex=this->TargetList->GetWidget()->GetRowAttributeAsInt(rowIndex, TARGET_INDEX_ATTR);
-    //vtkProstateNavTargetDescriptor* targetDesc=this->GetProstateNavManager()->GetTargetDescriptorAtIndex(targetIndex);    
           
-    this->GetProstateNavManager()->SetCurrentTargetIndex(targetIndex);
-    DisplayVerificationResultsForCurrentTarget();
+    this->GetProstateNavManager()->SetCurrentTargetIndex(targetIndex);    
+
+    this->GUI->BringTargetToViewIn2DViews(vtkProstateNavGUI::BRING_MARKERS_TO_VIEW_ALIGN_TO_NEEDLE);
     }
 }
 
@@ -709,9 +707,9 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
         }
       }
 
-    if (needle->Description.compare(columnList->GetCellText(row,COL_NEEDLE)) != 0)
+    if (needle->mDescription.compare(columnList->GetCellText(row,COL_NEEDLE)) != 0)
     {
-      columnList->SetCellText(row,COL_NEEDLE,needle->Description.c_str());
+      columnList->SetCellText(row,COL_NEEDLE,needle->mDescription.c_str());
     }
 
     if (target->GetTargetValidated())
@@ -754,6 +752,28 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
           }
       }
     }
+
+  int selectedTargetIndex=-1;
+  int numRows = this->TargetList->GetWidget()->GetNumberOfSelectedRows();
+  if (numRows == 1)
+  {       
+    int rowIndex = this->TargetList->GetWidget()->GetIndexOfFirstSelectedRow();    
+    selectedTargetIndex=this->TargetList->GetWidget()->GetRowAttributeAsInt(rowIndex, TARGET_INDEX_ATTR);
+  }
+  int currentTargetIndex=this->GetProstateNavManager()->GetCurrentTargetIndex();
+  if (currentTargetIndex!=selectedTargetIndex)
+  {
+    for (int rowIndex=0; rowIndex<this->TargetList->GetWidget()->GetNumberOfRows(); rowIndex++)
+    {
+      if (this->TargetList->GetWidget()->GetRowAttributeAsInt(rowIndex, TARGET_INDEX_ATTR)==currentTargetIndex)
+      {
+        // found the row corresponding to the current target
+        this->TargetList->GetWidget()->SelectSingleRow(rowIndex);
+        break;
+      }
+    }
+  } 
+
 }
 
 
@@ -790,7 +810,7 @@ void vtkProstateNavStepVerification::AddGUIObservers()
   if (this->TargetList)
     {
     this->TargetList->GetWidget()->SetCellUpdatedCommand(this, "OnMultiColumnListUpdate");
-    this->TargetList->GetWidget()->SetSelectionChangedCommand(this, "OnMultiColumnListSelectionChanged");
+    this->TargetList->GetWidget()->SetSelectionCommand(this, "OnMultiColumnListSelection");
     }
 }
 //-----------------------------------------------------------------------------
@@ -823,7 +843,7 @@ void vtkProstateNavStepVerification::RemoveGUIObservers()
   if (this->TargetList)
     {
     this->TargetList->GetWidget()->SetCellUpdatedCommand(this, "");
-    this->TargetList->GetWidget()->SetSelectionChangedCommand(this, "");
+    this->TargetList->GetWidget()->SetSelectionCommand(this, "");
     }
 }
 
@@ -865,6 +885,8 @@ void vtkProstateNavStepVerification::UpdateGUI()
   {
     this->ShowWorkspaceButton->SetSelectedState(IsWorkspaceModelShown());  
   }  
+
+  DisplayVerificationResultsForCurrentTarget();
 }
 
 //----------------------------------------------------------------------------
@@ -1025,6 +1047,13 @@ void vtkProstateNavStepVerification::DisplayVerificationResultsForCurrentTarget(
   {
     targetValidated=targetDesc->GetTargetValidated();
   }
+
+  if (this->VerificationPointListNode==NULL)
+  {
+    // no node has been created yet
+    return;
+  }
+
   if (!targetValidated)
   {
     // no target is selected

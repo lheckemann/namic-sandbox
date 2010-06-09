@@ -1234,26 +1234,21 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
       targetingParams->HingePosition[2]=H_afterRas[2]; 
     }
 
-    /// \todo Pipe from H_afterLps (along to v_needle traj.) ending "Overshoot" mm after the target
-    // T[?]-overshoot*v_needle[?]
-
     vtkMath::Normalize(v_needle);
 
-    // Needle Angle: fix it!
     double needle_angle = acos( 1.0 * vtkMath::Dot(v_needle,v1) );
 
-    double needle_angle_degree = needle_angle*180.0/vtkMath::Pi();
-    // The absolute needle angle to reach the target is %d degrees
+    // The absolute needle angle to reach the target (in degrees)
+    double displayed_needle_angle_deg = needle_angle*180.0/vtkMath::Pi();    
         
-    /// \todo Temp function! - compensate (no cheating?) // ccs
     double alpha_degree = calibrationData.AxesAngleDegrees;
 
-    // Cheating ot not? 
-    needle_angle_degree = needle_angle_degree - (alpha_degree-37.0); // cheating
+    // Compensate eventual displayed/measured needle angle difference (the scale on the needle angle showed 37.0 deg when the alpha_degree was measured)
+    displayed_needle_angle_deg = displayed_needle_angle_deg - (alpha_degree-37.0);
 
     if (targetingParams!=NULL)
     {      
-      targetingParams->NeedleAngle=needle_angle_degree;
+      targetingParams->NeedleAngle=displayed_needle_angle_deg;
     }
 
     // Insertion depth
@@ -1268,11 +1263,11 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     insM[2] = H_afterLps[2] - targetLps[2];
 
     // Insertion depth offset (in mm)
-    // overshoot>0: biopsy (needle extends when it collects the sample)
-    // overshoot<0: seed placement
-    double overshoot = needle->Overshoot;
+    // targetCenter>0: biopsy (needle extends when it collects the sample)
+    // targetCenter<0: seed placement (target center is inside the needle)
+    double targetCenter = needle->GetTargetCenter();
 
-    double n_insertion=vtkMath::Norm(insM)+n_slide-overshoot; // insertion depth in mm
+    double n_insertion=vtkMath::Norm(insM)+n_slide-targetCenter; // insertion depth in mm
     if (targetingParams!=NULL)
     {      
       targetingParams->DepthCM=n_insertion/10.0;
@@ -1280,9 +1275,9 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     }
 
     bool isOutsideReach=false;
-    if ( (needle_angle_degree < 17.5) 
-      || (needle_angle_degree > 37.0 + 1.8) /* !!! */ 
-      || (targetingParams->DepthCM*10 > needle->Length) )
+    if ( (displayed_needle_angle_deg < 17.5) 
+      || (displayed_needle_angle_deg > 37.0 + 1.8) /* !!! */ 
+      || (targetingParams->DepthCM*10 > needle->mLength) )
     {
       // can't reach the target!
       isOutsideReach=true;      

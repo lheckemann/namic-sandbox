@@ -175,7 +175,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   std::string GetTargetingFiducialsListDescription(unsigned int index)
     {
     if (index < this->NeedlesVector.size())
-      return this->NeedlesVector[index].Description;
+      return this->NeedlesVector[index].mDescription;
     else
       return "";
     }; 
