@@ -116,6 +116,10 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   //ETX
 
   void UpdateTargetListFromMRML();
+
+  // Description:
+  // Set Slicers's 2D view orientations from the image orientation.
+  void SetSliceViewFromVolume(vtkMRMLVolumeNode *volumeNode);
   
  protected:
 
@@ -150,10 +154,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   
  private:
   
-  // Description:
-  // Set Slicers's 2D view orientations from the image orientation.
-  void SetSliceViewFromVolume(vtkMRMLVolumeNode *volumeNode);
-
   int GetTargetIndexFromFiducialID(const char* fiducialID);
 
   int CreateCoverageVolume();

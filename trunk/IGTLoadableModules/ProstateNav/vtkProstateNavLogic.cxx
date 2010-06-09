@@ -518,16 +518,16 @@ void vtkProstateNavLogic::UpdateTargetListFromMRML()
       {
         vtkErrorMacro("Failed to get info for needle "<<needleIndex);
       }
-      targetDesc->SetNeedleID(needleDesc.ID); // just to make the passed target and needle info consistent
+      targetDesc->SetNeedleID(needleDesc.mID); // just to make the passed target and needle info consistent
 
-      needleDesc.LastTargetIndex++;
+      needleDesc.mLastTargetIndex++;
       if (!manager->SetNeedle(needleIndex, needleDesc))
       {
         vtkErrorMacro("Failed to set info for needle "<<needleIndex);
       }
 
       std::ostrstream strvalue;
-      strvalue << needleDesc.TargetNamePrefix << needleDesc.LastTargetIndex << std::ends;        
+      strvalue << needleDesc.mTargetNamePrefix << needleDesc.mLastTargetIndex << std::ends;        
       fidNode->SetNthFiducialLabelText(i,strvalue.str());
       strvalue.rdbuf()->freeze(0);     
 

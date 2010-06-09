@@ -124,14 +124,16 @@ void vtkMRMLProstateNavManagerNode::WriteXML(ostream& of, int nIndent)
   of << indent << " CurrentNeedleIndex=\"" << this->CurrentNeedleIndex << "\"";
   for (unsigned int needleInd=0; needleInd<this->NeedlesVector.size(); needleInd++)
   {
-    of << " Needle" << needleInd << "_ID=\"" << this->NeedlesVector[needleInd].ID << "\"";
-    of << " Needle" << needleInd << "_TargetNamePrefix=\"" << this->NeedlesVector[needleInd].TargetNamePrefix << "\"";
-    of << " Needle" << needleInd << "_Description=\"" << this->NeedlesVector[needleInd].Description << "\"";
-    of << " Needle" << needleInd << "_Length=\"" << this->NeedlesVector[needleInd].Length << "\"";
-    of << " Needle" << needleInd << "_Overshoot=\"" << this->NeedlesVector[needleInd].Overshoot << "\"";
-    of << " Needle" << needleInd << "_Extension=\"" << this->NeedlesVector[needleInd].Extension << "\"";
-    of << " Needle" << needleInd << "_TargetSize=\"" << this->NeedlesVector[needleInd].TargetSize << "\"";
-    of << " Needle" << needleInd << "_LastTargetIndex=\"" << this->NeedlesVector[needleInd].LastTargetIndex << "\"";
+    of << " Needle" << needleInd << "_ID=\"" << this->NeedlesVector[needleInd].mID << "\"";
+    of << " Needle" << needleInd << "_TargetNamePrefix=\"" << this->NeedlesVector[needleInd].mTargetNamePrefix << "\"";
+    of << " Needle" << needleInd << "_Description=\"" << this->NeedlesVector[needleInd].mDescription << "\"";
+    of << " Needle" << needleInd << "_Length=\"" << this->NeedlesVector[needleInd].mLength << "\"";
+    of << " Needle" << needleInd << "_TipLength=\"" << this->NeedlesVector[needleInd].mTipLength << "\"";
+    of << " Needle" << needleInd << "_Throw=\"" << this->NeedlesVector[needleInd].mThrow << "\"";
+    of << " Needle" << needleInd << "_TargetLength=\"" << this->NeedlesVector[needleInd].mTargetLength << "\"";
+    of << " Needle" << needleInd << "_TargetBase=\"" << this->NeedlesVector[needleInd].mTargetBase << "\"";
+    of << " Needle" << needleInd << "_Diameter=\"" << this->NeedlesVector[needleInd].mDiameter << "\"";
+    of << " Needle" << needleInd << "_LastTargetIndex=\"" << this->NeedlesVector[needleInd].mLastTargetIndex << "\"";
   }
 
   of << indent << " CurrentTargetIndex=\"" << this->CurrentTargetIndex << "\"";
@@ -259,45 +261,57 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
 
       if (!sectionName.compare("ID"))
       {
-        needle->ID=attValue;
+        needle->mID=attValue;
       }
       else if (!sectionName.compare("TargetNamePrefix"))
       {
-        needle->TargetNamePrefix=attValue;
+        needle->mTargetNamePrefix=attValue;
       }
       else if (!sectionName.compare("Description"))
       {
-        needle->Description=attValue;
+        needle->mDescription=attValue;
       }
       else if (!sectionName.compare("Length"))
       {
         std::stringstream ss;
         ss << attValue;
-        ss >> needle->Length;
+        ss >> needle->mLength;
       }
-      else if (!sectionName.compare("Overshoot"))
+      else if (!sectionName.compare("TipLength"))
       {
         std::stringstream ss;
         ss << attValue;
-        ss >> needle->Overshoot;
+        ss >> needle->mTipLength;
       }
-      else if (!sectionName.compare("Extension"))
+      else if (!sectionName.compare("Throw"))
       {
         std::stringstream ss;
         ss << attValue;
-        ss >> needle->Extension;
+        ss >> needle->mThrow;
       }
-      else if (!sectionName.compare("TargetSize"))
+      else if (!sectionName.compare("TargetLength"))
       {
         std::stringstream ss;
         ss << attValue;
-        ss >> needle->TargetSize;
+        ss >> needle->mTargetLength;
+      }
+      else if (!sectionName.compare("TargetBase"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        ss >> needle->mTargetBase;
+      }
+      else if (!sectionName.compare("Diameter"))
+      {
+        std::stringstream ss;
+        ss << attValue;
+        ss >> needle->mDiameter;
       }
       else if (!sectionName.compare("LastTargetIndex"))
       {
         std::stringstream ss;
         ss << attValue;
-        ss >> needle->LastTargetIndex;
+        ss >> needle->mLastTargetIndex;
       }
     }
     if (GetAttNameSection(attName,"Target", sectionInd, sectionName))
@@ -822,6 +836,11 @@ int vtkMRMLProstateNavManagerNode::SetCurrentTargetIndex(int index)
     // invalid index, do not change current
     return this->CurrentTargetIndex;
     }
+  if (this->CurrentTargetIndex==index)
+  {
+    // no change
+    return this->CurrentTargetIndex;
+  }
   this->CurrentTargetIndex=index;
 
   if (GetRobotNode())
@@ -844,7 +863,7 @@ bool vtkMRMLProstateNavManagerNode::AddTargetToFiducialList(double targetRAS[3],
     vtkErrorMacro("Invalid fiducial list index");
     return false;
     }
-  std::string targetNamePrefix = this->NeedlesVector[fiducialListIndex].TargetNamePrefix;  
+  std::string targetNamePrefix = this->NeedlesVector[fiducialListIndex].mTargetNamePrefix;  
 
   vtkMRMLFiducialListNode* fidNode=this->GetTargetPlanListNode();
   if (fidNode==NULL)
@@ -967,21 +986,23 @@ bool vtkMRMLProstateNavManagerNode::ReadNeedleListFromConfigXml(const char* need
       NeedleDescriptorStruct needle;
       if (needleElem->GetAttribute("ID")!=NULL)
       {
-        needle.ID=needleElem->GetAttribute("ID");
+        needle.mID=needleElem->GetAttribute("ID");
       }
       if (needleElem->GetAttribute("TargetNamePrefix")!=NULL)
       {
-        needle.TargetNamePrefix=needleElem->GetAttribute("TargetNamePrefix");
+        needle.mTargetNamePrefix=needleElem->GetAttribute("TargetNamePrefix");
       }
       if (needleElem->GetAttribute("Description")!=NULL)
       {
-        needle.Description = needleElem->GetAttribute("Description");
-      }
-      needleElem->GetScalarAttribute("Length", needle.Length);
-      needleElem->GetScalarAttribute("Overshoot", needle.Overshoot);
-      needleElem->GetScalarAttribute("Extension", needle.Extension);
-      needleElem->GetScalarAttribute("TargetSize", needle.TargetSize);      
-      needleElem->GetScalarAttribute("LastTargetIndex", needle.LastTargetIndex);
+        needle.mDescription = needleElem->GetAttribute("Description");
+      } 
+      needleElem->GetScalarAttribute("Length", needle.mLength);
+      needleElem->GetScalarAttribute("TipLength", needle.mTipLength);
+      needleElem->GetScalarAttribute("Throw", needle.mThrow);
+      needleElem->GetScalarAttribute("TargetLength", needle.mTargetLength);      
+      needleElem->GetScalarAttribute("TargetBase", needle.mTargetBase);      
+      needleElem->GetScalarAttribute("Diameter", needle.mDiameter);      
+      needleElem->GetScalarAttribute("LastTargetIndex", needle.mLastTargetIndex);
       this->NeedlesVector.push_back(needle);
     }
   }
@@ -993,7 +1014,7 @@ bool vtkMRMLProstateNavManagerNode::ReadNeedleListFromConfigXml(const char* need
     int needleCount=GetNumberOfNeedles();
     for (int i=0; i<needleCount; i++)
     {
-      if (this->NeedlesVector[i].ID.compare(defNeedleID)==0)
+      if (this->NeedlesVector[i].mID.compare(defNeedleID)==0)
       {
         // this is the default needle
         this->CurrentNeedleIndex=i;
@@ -1037,7 +1058,7 @@ NeedleDescriptorStruct* vtkMRMLProstateNavManagerNode::GetNeedle(vtkProstateNavT
   int needleCount=GetNumberOfNeedles();
   for (int i=0; i<needleCount; i++)
   {
-    if (this->NeedlesVector[i].ID.compare(needleID)==0)
+    if (this->NeedlesVector[i].mID.compare(needleID)==0)
     {
       // found
       return &(this->NeedlesVector[i]);

@@ -51,7 +51,7 @@ public:
 
   virtual void UpdateGUI();
 
-  void OnMultiColumnListSelectionChanged();
+  void OnMultiColumnListSelection();
   void UpdateTargetListGUI();
 
 protected:

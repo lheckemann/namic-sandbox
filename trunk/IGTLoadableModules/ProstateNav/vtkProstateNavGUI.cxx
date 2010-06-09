@@ -100,15 +100,15 @@
 // This default needle set description is used when no description is found in the registry.
 // In this case the description is written to the registry. Once the description is written
 // to the registry, it can be customized by editing the registry.
-// Notes:
-//  Biopsy needle: Overshoot = 13 (needle has to be inserted 13 mm short of the target)
-//  Seed insertion needle: Overshoot < 0 (as the seed is inside the needle)
+//
 static const char DEFAULT_NEEDLE_DESCRIPTION[]=
-  "<NeedleList DefaultNeedle=\"BIOP_NIH_14G_000\"> \
-  <Needle ID=\"GEN_000\" TargetNamePrefix=\"T\" Description=\"Generic\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"0\" LastTargetIndex=\"0\" /> \
-  <Needle ID=\"BIOP_NIH_14G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy NIH 14G\" Length=\"200\" Overshoot=\"9.5\" Extension=\"27\" TargetSize=\"16\" LastTargetIndex=\"0\" /> \
-  <Needle ID=\"BIOP_JHH_18G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy JHH 18G\" Length=\"200\" Overshoot=\"10.0\" Extension=\"23.5\" TargetSize=\"16\" LastTargetIndex=\"0\" /> \
-  <Needle ID=\"SEED_000\" TargetNamePrefix=\"S\" Description=\"Seed\" Length=\"200\" Overshoot=\"0\" Extension=\"0\" TargetSize=\"3\" LastTargetIndex=\"0\" /> \
+  "<NeedleList DefaultNeedle=\"BIOP_TSK_14G_000\"> \
+  <Needle ID=\"GEN_000\" TargetNamePrefix=\"T\" Description=\"Generic\" Length=\"150\" TipLength=\"0\" Throw=\"0\" TargetLength=\"0\" TargetBase=\"0\" LastTargetIndex=\"0\" /> \
+  <Needle ID=\"BIOP_TSK_14G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy TSK 14G (NIH)\" Length=\"150\" TipLength=\"4\" Throw=\"23\" TargetLength=\"16\" TargetBase=\"1.5\" Diameter=\"2.108\" LastTargetIndex=\"0\" /> \
+  <Needle ID=\"SEED_DAUM_14G_000\" TargetNamePrefix=\"S\" Description=\"Seed Daum 14G (NIH)\" Length=\"150\" TipLength=\"0\" Throw=\"0\" TargetLength=\"3\" TargetBase=\"-1.5\" Diameter=\"2.108\" LastTargetIndex=\"0\" /> \
+  <Needle ID=\"BIOP_TSK_18G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy TSK 18G (JHH)\" Length=\"150\" TipLength=\"1.5\" Throw=\"22\" TargetLength=\"16\" TargetBase=\"2\" Diameter=\"1.270\" LastTargetIndex=\"0\" /> \
+  <Needle ID=\"BIOP_TSK_22G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy unknown 22G (JHH)\" Length=\"150\" TipLength=\"0\" Throw=\"0\" TargetLength=\"0\" TargetBase=\"0\" Diameter=\"0.711\" LastTargetIndex=\"0\" /> \
+  <Needle ID=\"BIOP_EZEM_18G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy E-Z-EM 18G (BWH)\" Length=\"150\" TipLength=\"1.5\" Throw=\"24\" TargetLength=\"16\" TargetBase=\"3\" Diameter=\"1.270\" LastTargetIndex=\"0\" /> \
   </NeedleList>";
 //---------------------------------------------------------------------------
 
@@ -741,6 +741,20 @@ void vtkProstateNavGUI::Enter()
     this->GetLogic()->Enter();    
     this->Entered = 1;
     }
+
+  /*
+  // :TODO: Fix this. It would add an extra node even when loading a scene (because module enter is called before the manager node is loaded).
+  // Create a manager node, if none exists in the scene (otherwise the user would always be required to click on the manager node list to start up a new exam)
+  if (this->MRMLScene!=NULL)
+  {
+    vtkMRMLProstateNavManagerNode *anyManagerNode = vtkMRMLProstateNavManagerNode::SafeDownCast(this->MRMLScene->GetNthNodeByClass(0, "vtkMRMLProstateNavManagerNode"));
+    if (anyManagerNode==NULL)
+    {
+      vtkSmartPointer<vtkMRMLProstateNavManagerNode> newManagerNode=vtkSmartPointer<vtkMRMLProstateNavManagerNode>::New();
+      this->MRMLScene->AddNode(newManagerNode);
+    }
+  }
+  */
 
   // The user interface is hidden on Exit, show it now
   if (this->WizardWidget!=NULL)
@@ -1868,6 +1882,23 @@ void vtkProstateNavGUI::SetAndObserveProstateNavManagerNodeID(const char *nodeID
     SetAndObserveTargetPlanListNodeID(NULL);
   }  
   
+  // Update manager node in the workflow steps
+  if (this->WizardWidget!=NULL)
+  {
+    for (int i=0; i<this->WizardWidget->GetWizardWorkflow()->GetNumberOfSteps(); i++)
+    {
+      vtkProstateNavStep *step=vtkProstateNavStep::SafeDownCast(this->WizardWidget->GetWizardWorkflow()->GetNthStep(i));
+      if (step!=NULL)
+        {
+        step->SetProstateNavManager(this->ProstateNavManagerNode);
+        }
+      else
+        {
+        vtkErrorMacro("Invalid step page: "<<i);
+        }
+    }
+  }
+
   UpdateGUI();
 }
 

@@ -666,7 +666,7 @@ std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNa
   // Put less important information in the next section
   os << GetTargetInfoSectionSeparator();
   os << "Target: " << targetDesc->GetName()<<std::endl;
-  os << "Needle type: " << needle->Description<<std::endl;
+  os << "Needle type: " << needle->mDescription<<std::endl;
   os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
   os << targetDesc->GetRASLocationString().c_str()<<std::endl;
   os << std::ends;
@@ -1247,13 +1247,13 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateRobotModelNeedle(vtkProstateNavT
   needleVector[2] = targetRAS[2] - targetHingeRAS[2];
   vtkMath::Normalize(needleVector);
 
-  double overshoot = needle->Overshoot;
-  double needleLength = needle->Length;
+  double targetCenter = needle->GetTargetCenter();
+  double needleLength = needle->mLength;
 
   double needleEndRAS[3];
-  needleEndRAS[0] = targetRAS[0] - overshoot*needleVector[0];
-  needleEndRAS[1] = targetRAS[1] - overshoot*needleVector[1];
-  needleEndRAS[2] = targetRAS[2] - overshoot*needleVector[2];
+  needleEndRAS[0] = targetRAS[0] - targetCenter*needleVector[0];
+  needleEndRAS[1] = targetRAS[1] - targetCenter*needleVector[1];
+  needleEndRAS[2] = targetRAS[2] - targetCenter*needleVector[2];
 
   double needleStartRAS[3];
   needleStartRAS[0] = needleEndRAS[0] - needleLength*needleVector[0];
@@ -1277,18 +1277,18 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateRobotModelNeedle(vtkProstateNavT
   appender->AddInputConnection(NeedleTrajectoryTube->GetOutputPort());  
 
   // a thicker tube representing the needle target (the core size, in case of a core biopsy)
-  double targetSize=needle->TargetSize;
-  if (targetSize>0)
+  double targetLength=needle->mTargetLength;
+  if (targetLength>0)
   {
     double targetEndRAS[3];
-    targetEndRAS[0] = targetRAS[0] - targetSize/2*needleVector[0];
-    targetEndRAS[1] = targetRAS[1] - targetSize/2*needleVector[1];
-    targetEndRAS[2] = targetRAS[2] - targetSize/2*needleVector[2];
+    targetEndRAS[0] = targetRAS[0] - targetLength/2*needleVector[0];
+    targetEndRAS[1] = targetRAS[1] - targetLength/2*needleVector[1];
+    targetEndRAS[2] = targetRAS[2] - targetLength/2*needleVector[2];
 
     double targetStartRAS[3];
-    targetStartRAS[0] = targetRAS[0] + targetSize/2*needleVector[0];
-    targetStartRAS[1] = targetRAS[1] + targetSize/2*needleVector[1];
-    targetStartRAS[2] = targetRAS[2] + targetSize/2*needleVector[2];
+    targetStartRAS[0] = targetRAS[0] + targetLength/2*needleVector[0];
+    targetStartRAS[1] = targetRAS[1] + targetLength/2*needleVector[1];
+    targetStartRAS[2] = targetRAS[2] + targetLength/2*needleVector[2];
 
     vtkSmartPointer<vtkLineSource> line=vtkSmartPointer<vtkLineSource>::New();
     line->SetResolution(20); 
@@ -1305,7 +1305,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateRobotModelNeedle(vtkProstateNavT
   }
 
   // a thinner tube representing the needle extension (when the needle is triggered it extends to -extension distance from the needle tip)
-  double extension=needle->Extension;
+  double extension=needle->GetExtension();
   if (extension>0)
   {
     double extensionEndRAS[3];

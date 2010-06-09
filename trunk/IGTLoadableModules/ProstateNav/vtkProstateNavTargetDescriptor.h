@@ -27,33 +27,89 @@ Version:   $Revision: $
 
 struct VTK_PROSTATENAV_EXPORT NeedleDescriptorStruct
 {
+  NeedleDescriptorStruct() :
+    mLength(0.0),
+    mTipLength(0.0), 
+    mThrow(0.0),
+    mTargetLength(0.0),
+    mTargetBase(0.0),
+    mDiameter(0.0),
+    mLastTargetIndex(0)
+    {};
+
   // ID:  unique id
-  std::string ID;
+  std::string mID;
 
   // NeedleName: a prefix for target point names
-  std::string TargetNamePrefix;
+  std::string mTargetNamePrefix;
 
   // Description: descriptive name of the needle
-  std::string Description;
+  std::string mDescription;
 
-  // NeedleLength: maximum possible insertion depth, in mm - just for checking if the target is reachable
-  double Length;
+  // Length: maximum possible insertion depth, i.e., the position of the marked needle tip from the needle base, in mm (just for checking if the target is reachable)
+  double mLength;
 
-  // Overshoot: where is the target compared to the needle tip, in mm
-  // if positive, then target is in front of the needle tip (biopsy)
-  // if negative, then target is towards the needle base (seed placement)
-  double Overshoot; 
-
-  // NeedleExtension: maximum extension of the needle from the needle tip,
+  // Extension: maximum extension of the needle from the needle tip,
   // positive if the needle extends towards the needle tip (biopsy) - just used for display
-  double Extension; 
+  double GetExtension() { return mTipLength+mThrow; };
 
-  // NeedleTargetSize: length of the biopsy core or seed - just for display
-  double TargetSize; 
+  // Overshoot (o): maximum extension of the needle from the target center - just used for display
+  double GetOvershoot() { return mTipLength+mThrow-mTargetBase-mTargetLength/2; };
+
+  // TargetCenter (m): distance from the marked needle tip and the center of the target.
+  // if positive, then target is in front of the needle tip (biopsy)
+  // if negative, then target center position is inside the needle (seed placement)
+  double GetTargetCenter() { return mTargetBase+mTargetLength/2; };
+
+  // TipLength (i): Distance of actual needle tip from the marked needle tip, in mm.
+  double mTipLength; 
+  
+  // Throw (j): Extension of the actual needle tip during targeting, in mm.
+  double mThrow; 
+
+  // TargetLength (k): Length of the biopsy core or seed (used just for display), in mm.
+  double mTargetLength; 
+
+  // TargetBase (l): Distance of the proximal point of the target from the marked needle tip, in mm.
+  double mTargetBase; 
+
+  // Diameter: Nominal outer diameter of the needle, in mm.
+  // Diameter is the needle outer diameter in mm. The following table can be used to convert from gauge to mm
+  // (source: http://www.sigmaaldrich.com/chemistry/stockroom-reagents/learning-center/technical-library/needle-gauge-chart.html)
+  /********************
+  Gauge Nominal outer diameter (mm)
+  10    3.404
+  11    3.048
+  12    2.769
+  13    2.413
+  14    2.108
+  15    1.829
+  16    1.651
+  17    1.473
+  18    1.27
+  19    1.067
+  20    0.902
+  21    0.813
+  22    0.711
+  22s   0.711
+  23    0.635
+  24    0.559
+  25    0.508
+  25s   0.508
+  26    0.457
+  26s   0.467
+  27    0.406
+  28    0.356
+  29    0.33
+  30    0.305
+  31    0.254
+  32    0.229
+  ********************/
+  double mDiameter; 
 
   // LastTargetIndex stores the last index that was used for adding a target for this needle.
   // It is useful for generating unique target names.
-  int LastTargetIndex;
+  int mLastTargetIndex;
 };
 
 class VTK_PROSTATENAV_EXPORT vtkProstateNavTargetDescriptor :
