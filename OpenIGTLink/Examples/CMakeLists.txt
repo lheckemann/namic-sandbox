@@ -15,6 +15,7 @@ SET(EXAMPLE_DIRS
 
 if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
   SET(EXAMPLE_DIRS
+    ${EXAMPLE_DIRS}
     ImageMeta
     Point
     TrackingData
