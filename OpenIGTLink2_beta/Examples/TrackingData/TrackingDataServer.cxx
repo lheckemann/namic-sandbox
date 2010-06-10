@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
           startTracking->SetMessageHeader(headerMsg);
           startTracking->AllocatePack();
         
-          //int r2 = socket->Receive(startTracking->GetPackBodyPointer(), startTracking->GetPackBodySize());
+          int r2 = socket->Receive(startTracking->GetPackBodyPointer(), startTracking->GetPackBodySize());
           int c = startTracking->Unpack(1);
           if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
             {
