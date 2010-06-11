@@ -280,6 +280,8 @@ vtkMRMLPerkStationModuleNode
   
   this->PlanList.clear();
   
+  this->PlanUID = 0;
+  
     // Insertion parameters ---------------------------------------------------
   
   this->TrackerToPhantomMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
@@ -811,6 +813,24 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+void
+vtkMRMLPerkStationModuleNode
+::AddCurrentPlan()
+{
+  std::stringstream ss;
+    ss << "Plan" << this->PlanUID;
+  ++ this->PlanUID;
+  
+  vtkSmartPointer< vtkPerkStationPlan > plan = vtkSmartPointer< vtkPerkStationPlan >::New();
+    plan->SetName( ss.str() );
+    plan->SetEntryPointRAS( this->PlanEntryPoint );
+    plan->SetTargetPointRAS( this->PlanTargetPoint );
+    plan->SetPlanningVolumeRef( std::string( this->PlanningVolumeRef ) );
+  
+  this->AddPlan( plan.GetPointer() );
+}
+
+
 vtkMRMLScalarVolumeNode*
 vtkMRMLPerkStationModuleNode
 ::GetPlanningVolumeNode()
@@ -824,7 +844,11 @@ void
 vtkMRMLPerkStationModuleNode
 ::SetPlanningVolumeNode( vtkMRMLScalarVolumeNode *planVolNode )
 {
-  vtkSetMRMLNodeMacro( this->PlanningVolumeNode, planVolNode );
+  if ( planVolNode != NULL )
+    {
+    vtkSetMRMLNodeMacro( this->PlanningVolumeNode, planVolNode );
+    this->PlanningVolumeRef = this->PlanningVolumeNode->GetID();
+    }
 }
 
 
@@ -833,7 +857,11 @@ void
 vtkMRMLPerkStationModuleNode
 ::SetValidationVolumeNode( vtkMRMLScalarVolumeNode* validationVolNode )
 {
-  vtkSetMRMLNodeMacro( this->ValidationVolumeNode, validationVolNode );
+  if ( validationVolNode != NULL )
+    {
+    vtkSetMRMLNodeMacro( this->ValidationVolumeNode, validationVolNode );
+    this->ValidationVolumeRef = this->ValidationVolumeNode->GetID();
+    }
 }
 
 

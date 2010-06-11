@@ -24,6 +24,7 @@ vtkPerkStationPlanStep
 : public vtkPerkStationStep
 {
 public:
+
   static vtkPerkStationPlanStep *New();
   vtkTypeRevisionMacro(vtkPerkStationPlanStep,vtkPerkStationStep);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -35,7 +36,6 @@ public:
   virtual void ShowTargetFirstFrame();
   virtual void ShowPlanListFrame();
   
-
     // Description:
     // Callbacks.
   void ProcessImageClickEvents( vtkObject *caller,
@@ -46,22 +46,23 @@ public:
                               unsigned long event,
                               void *callData );
   
-  
     // Description:
     // Process GUI events
   virtual void ProcessGUIEvents( vtkObject *caller,
                                  unsigned long event,
                                  void *callData );
   
-  
-  virtual void OverlayNeedleGuide();
-  
   virtual void Reset();
   
+  virtual void UpdateGUI();
+  void PopulateControlsOnLoadPlanning();
+  
+  void OnMultiColumnListUpdate(int row, int col, char * str);
+  void OnMultiColumnListSelectionChanged();
+  
+  virtual void OverlayNeedleGuide();
   void RemoveOverlayNeedleGuide();
   
-  void PopulateControlsOnLoadPlanning();
-
 protected:
   
   vtkPerkStationPlanStep();

@@ -312,6 +312,7 @@ void vtkPerkStationPlanStep::ShowUserInterface()
   this->InstallCallbacks();
   
   this->PopulateControlsOnLoadPlanning();
+  this->UpdateGUI();
 }
 
 
@@ -412,6 +413,83 @@ vtkPerkStationPlanStep
 }
 
 
+void
+vtkPerkStationPlanStep
+::UpdateGUI()
+{
+  vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetMRMLNode();
+  
+  if ( ! mrmlNode ) return;
+  
+  
+    // Update plan list.
+  
+  if ( this->PlanList == NULL || this->PlanList->GetWidget() == NULL ) return;
+  
+  int numPlans = mrmlNode->GetNumberOfPlans();
+  
+  bool deleteFlag = true;
+  if ( numPlans != this->PlanList->GetWidget()->GetNumberOfRows() )
+    {
+    this->PlanList->GetWidget()->DeleteAllRows();
+    }
+  else
+    {
+    deleteFlag = false;
+    }
+  
+  
+  const int PRECISION_DIGITS = 1;
+  
+  double planEntry[ 3 ];
+  double planTarget[ 3 ];
+  double validationEntry[ 3 ];
+  double validationTarget[ 3 ];
+  
+  for ( int row = 0; row < numPlans; ++ row )
+    {
+    vtkPerkStationPlan* plan = mrmlNode->GetPlanAtIndex( row );
+    
+    if ( deleteFlag )
+      {
+      this->PlanList->GetWidget()->AddRow();
+      }
+    
+    plan->GetEntryPointRAS( planEntry );
+    plan->GetTargetPointRAS( planTarget );
+    plan->GetValidationEntryPointRAS( validationEntry );
+    plan->GetValidationTargetPointRAS( validationTarget );
+    
+    if ( planEntry == NULL || planTarget == NULL )
+      {
+      vtkErrorMacro( "ERROR: No plan points in plan" );
+      }
+    
+    vtkKWMultiColumnList* colList = this->PlanList->GetWidget();
+    if ( deleteFlag || plan->GetName().compare( this->PlanList->GetWidget()->GetCellText( row, COL_NAME ) ) != 0 )
+      {
+      this->PlanList->GetWidget()->SetCellText( row, COL_NAME, plan->GetName().c_str() );
+      for ( int i = 0; i < 3; ++ i )
+        {
+        std::ostrstream os;
+        os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
+        os << planEntry[ i ] << std::ends;
+        colList->SetCellText( row, COL_ER + i, os.str() );
+        os.rdbuf()->freeze();
+        }
+      for ( int i = 0; i < 3; ++ i )
+        {
+        std::ostrstream os;
+        os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
+        os << planTarget[ i ] << std::ends;
+        colList->SetCellText( row, COL_ER + 3 + i, os.str() );
+        os.rdbuf()->freeze();
+        }
+      }
+    }
+}
+
+
 //----------------------------------------------------------------------------
 void
 vtkPerkStationPlanStep
@@ -430,7 +508,13 @@ vtkPerkStationPlanStep
     
   vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI() )->
     GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
-    GetOverlayRenderer()->AddActor( this->PlanningLineActor ); 
+    GetOverlayRenderer()->AddActor( this->PlanningLineActor );
+  
+  if ( this->PlanList )
+    {
+    this->PlanList->GetWidget()->SetCellUpdatedCommand( this, "OnMultiColumnListUpdate" );
+    this->PlanList->GetWidget()->SetSelectionChangedCommand( this, "OnMultiColumnListSelectionChanged" );
+    }
 }
 
 
@@ -481,7 +565,7 @@ vtkPerkStationPlanStep
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   
   
-    // If current step is not Planning.
+    // Return, if current step is not Planning.
   
   if (    ! wizard_widget
        || wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this
@@ -492,6 +576,8 @@ vtkPerkStationPlanStep
     return;
     }
   
+  
+    // Planning has to happen on slicer laptop, not secondary monitor
   
   vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast( caller );
   
@@ -504,9 +590,6 @@ vtkPerkStationPlanStep
     vtkSlicerInteractorStyle::SafeDownCast( sliceGUI->GetSliceViewer()->
       GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle() );
   
-  
-    // Planning has to happen on slicer laptop, not secondary monitor
-  
   if (    ( style != istyle0 )
        || ( event != vtkCommand::LeftButtonPressEvent ) )
     {
@@ -516,13 +599,10 @@ vtkPerkStationPlanStep
   
     // Get the RAS position of the image click.
   
-  vtkRenderWindowInteractor *rwi;
-  rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->
-        GetRenderWindowInteractor();    
+  vtkRenderWindowInteractor* rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->
+                                   GetRenderWindowInteractor();    
   
-  vtkMatrix4x4 *matrix;
-    matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
-  
+  vtkMatrix4x4* matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
   
   int point[ 2 ];
   rwi->GetLastEventPosition( point );
@@ -532,15 +612,22 @@ vtkPerkStationPlanStep
   double ras[ 3 ] = { outPt[ 0 ], outPt[ 1 ], outPt[ 2 ] };
   
   
-    // depending on click number, it is either Entry point or target point
+    // depending on click number, it is either Entry point or Target point
   
   ++ this->NumPointsSelected;
-  // ++ this->ClickNumber;
+  
+  if ( this->NumPointsSelected == 3 ) // Starting a new plan.
+    {
+    this->NumPointsSelected = 1;
+    this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
+    this->RemoveOverlayNeedleGuide();
+    }
+  
+  
+    // Determine which point is to be selected first.
   
   int entryClick = 1;
   int targetClick = 2;
-  
-  // this->TargetFirstCheck->GlobalWarningDisplayOn();
   
   if ( this->TargetFirstCheck->GetWidget()->GetSelectedState() != 0 )
     {
@@ -549,30 +636,22 @@ vtkPerkStationPlanStep
     }
   
   
+    // Process the new selected point.
+  
   if ( this->NumPointsSelected == entryClick )
     {
-      // entry point specification by user
-    this->EntryPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
-    this->EntryPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
-    this->EntryPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
-
       // record value in mrml node
     this->GetGUI()->GetMRMLNode()->SetPlanEntryPoint( ras );
 
       // record value in mrml fiducial list node          
-    int index = this->GetGUI()->GetMRMLNode()->
-      GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ(
-        ras[ 0 ], ras[ 1 ], ras[ 2 ], false );
+    int index = this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
+                AddFiducialWithXYZ( ras[ 0 ], ras[ 1 ], ras[ 2 ], false );
     
     this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
       SetNthFiducialLabelText( index, "Entry" );
     }
   else if ( this->NumPointsSelected == targetClick )
     {
-    this->TargetPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
-    this->TargetPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
-    this->TargetPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
-    
       // record value in the MRML node
     this->GetGUI()->GetMRMLNode()->SetPlanTargetPoint( ras );
   
@@ -587,7 +666,6 @@ vtkPerkStationPlanStep
   
   if ( this->NumPointsSelected == 1 )  // On first click.
     {   
-    this->LogTimer->StartTimer();  // Start the log timer.
     this->TargetFirstCheck->GetWidget()->SetEnabled( 0 );
     }
   
@@ -599,6 +677,10 @@ vtkPerkStationPlanStep
     this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();  
     
     this->TargetFirstCheck->GetWidget()->SetEnabled( 1 );
+    
+      // Store the plan, and prepare for next plan.
+    this->GetGUI()->GetMRMLNode()->AddCurrentPlan();
+    this->UpdateGUI();
     }
   
   if ( this->NumPointsSelected != 1 )
@@ -703,6 +785,73 @@ vtkPerkStationPlanStep
 }
 
 
+
+void
+vtkPerkStationPlanStep
+::OnMultiColumnListUpdate(int row, int col, char * str)
+{
+    // Make sure the row and col exists.
+  if (    ( row < 0 ) || ( row >= this->PlanList->GetWidget()->GetNumberOfRows() )
+       || ( row < 0 ) || ( row >= this->PlanList->GetWidget()->GetNumberOfRows() ) )
+    {
+    return;
+    }
+  
+  bool updated = false;
+  
+  if ( col == COL_NAME )
+    {
+    vtkPerkStationPlan* plan = this->GetGUI()->GetMRMLNode()->GetPlanAtIndex( row );
+    plan->SetName( std::string( str ) );
+    updated = true;
+    }
+  
+  if ( updated )
+    {
+    this->UpdateGUI();
+    }
+}
+
+
+void
+vtkPerkStationPlanStep
+::OnMultiColumnListSelectionChanged()
+{
+  int numRows = this->PlanList->GetWidget()->GetNumberOfSelectedRows();
+  
+  if ( numRows != 1 ) return;
+  
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetMRMLNode();
+  
+  int rowIndex = this->PlanList->GetWidget()->GetIndexOfFirstSelectedRow();
+  vtkPerkStationPlan* plan = moduleNode->GetPlanAtIndex( rowIndex );
+  
+  moduleNode->SetCurrentPlanIndex( rowIndex );
+  
+  
+  this->NumPointsSelected = 2;
+  moduleNode->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
+  this->RemoveOverlayNeedleGuide();
+  
+  double point[ 3 ];
+  
+  plan->GetEntryPointRAS( point );
+  int ind = moduleNode->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ( point[ 0 ], point[ 1 ], point[ 2 ], 0 );
+  moduleNode->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText( ind, "Entry" );
+  moduleNode->SetPlanEntryPoint( point );
+  
+  plan->GetTargetPointRAS( point );
+  ind = moduleNode->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ( point[ 0 ], point[ 1 ], point[ 2 ], 0 );
+  moduleNode->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText( ind, "Target" );
+  moduleNode->SetPlanTargetPoint( point );
+  
+  moduleNode->SetCurrentSliceOffset( point[ 2 ] );
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->SetSliceOffset(
+    moduleNode->GetCurrentSliceOffset() );
+  this->OverlayNeedleGuide();
+}
+
+
 //------------------------------------------------------------------------------
 void
 vtkPerkStationPlanStep
@@ -726,10 +875,14 @@ vtkPerkStationPlanStep
   int targetPointXY[ 2 ];
   double worldCoordinate[ 4 ];
   
+  
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetMRMLNode();
+  
+  
     // entry point
   
   double rasEntry[ 3 ];
-  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( rasEntry );
+  moduleNode->GetPlanEntryPoint( rasEntry );
   double inPt[ 4 ] = { rasEntry[ 0 ], rasEntry[ 1 ], rasEntry[ 2 ], 1.0 };
   double outPt[ 4 ];  
   rasToXY->MultiplyPoint( inPt, outPt );
@@ -744,7 +897,7 @@ vtkPerkStationPlanStep
   this->WCEntryPoint[ 2 ] = worldCoordinate[ 2 ];
   
   double rasTarget[ 3 ];
-  this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( rasTarget );
+  moduleNode->GetPlanTargetPoint( rasTarget );
   inPt[ 0 ] = rasTarget[ 0 ];
   inPt[ 1 ] = rasTarget[ 1 ];
   inPt[ 2 ] = rasTarget[ 2 ];

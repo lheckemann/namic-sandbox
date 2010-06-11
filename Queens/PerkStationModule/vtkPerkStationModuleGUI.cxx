@@ -1000,8 +1000,7 @@ vtkPerkStationModuleGUI
 ::PlanningVolumeChanged()
 {
   vtkMRMLScalarVolumeNode* volumeNode =
-      vtkMRMLScalarVolumeNode::SafeDownCast(
-                                 this->VolumeSelector->GetSelected() );
+      vtkMRMLScalarVolumeNode::SafeDownCast( this->VolumeSelector->GetSelected() );
   
   if ( ! volumeNode ) return;
   
@@ -1010,8 +1009,7 @@ vtkPerkStationModuleGUI
   
   
   vtkMRMLScalarVolumeDisplayNode *node = NULL;
-  vtkSetAndObserveMRMLNodeMacro( node,
-    volumeNode->GetScalarVolumeDisplayNode() );
+  vtkSetAndObserveMRMLNodeMacro( node, volumeNode->GetScalarVolumeDisplayNode() );
   
   
   this->MRMLNode->SetVolumeInUse( "Planning" );
