@@ -96,6 +96,10 @@
 
 #include <vector>
 
+// Precision of the target position and orientation display
+const int vtkProstateNavGUI::POSITION_PRECISION_DIGITS=1;
+const double vtkProstateNavGUI::POSITION_PRECISION_TOLERANCE=0.1/2.0;
+
 //---------------------------------------------------------------------------
 // This default needle set description is used when no description is found in the registry.
 // In this case the description is written to the registry. Once the description is written
