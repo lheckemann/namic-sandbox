@@ -59,7 +59,7 @@ enum
   COL_COUNT
   };
 static const char* COL_LABELS[ COL_COUNT ] = { "Name", "ER", "EA", "ES", "TR", "TA", "TS" };
-static const int COL_WIDTHS[ COL_COUNT ] = { 8, 6, 6, 6, 6, 6, 6 };
+static const int COL_WIDTHS[ COL_COUNT ] = { 10, 5, 5, 5, 5, 5, 5 };
 
 
 //----------------------------------------------------------------------------
@@ -74,7 +74,11 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
   this->SetDescription("Plan the needle insertion");
 
   this->WizardGUICallbackCommand->SetCallback(vtkPerkStationPlanStep::WizardGUICallback);
-
+  
+  this->GUICallbackCommand = vtkCallbackCommand::New();
+  this->GUICallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
+  this->GUICallbackCommand->SetCallback( &vtkPerkStationPlanStep::GUICallback );
+  
   this->TargetFirstFrame = NULL;
   this->TargetFirstCheck = NULL;
   this->EntryPointFrame = NULL;
@@ -112,6 +116,30 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
   this->NumPointsSelected = 0;
   this->SelectTargetFirst = true;
 }
+
+
+
+//----------------------------------------------------------------------------
+void vtkPerkStationPlanStep::GUICallback( vtkObject *caller,
+                           unsigned long eid, void *clientData, void *callData )
+{
+
+  vtkPerkStationPlanStep *self = reinterpret_cast< vtkPerkStationPlanStep* >( clientData );
+  
+  
+  if ( self->GetInGUICallbackFlag() )
+    {
+    }
+  
+  
+  vtkDebugWithObjectMacro(self, "In vtkProstateNavStep GUICallback");
+  
+  self->SetInGUICallbackFlag( 1 );
+  self->ProcessGUIEvents( caller, eid, callData );
+  self->SetInGUICallbackFlag( 0 );
+  
+}
+
 
 //----------------------------------------------------------------------------
 vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
@@ -358,6 +386,9 @@ vtkPerkStationPlanStep
 {
   vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
   
+  
+    // Create a frame for the plan list.
+  
   if ( ! this->PlanListFrame )
     {
     this->PlanListFrame = vtkKWFrame::New();
@@ -371,6 +402,8 @@ vtkPerkStationPlanStep
                 this->PlanListFrame->GetWidgetName() );
   
   
+    // Create the plan list.
+  
   if ( ! this->PlanList )
     {
     this->PlanList = vtkKWMultiColumnListWithScrollbars::New();
@@ -382,16 +415,16 @@ vtkPerkStationPlanStep
     this->PlanList->GetWidget()->MovableRowsOff();
     this->PlanList->GetWidget()->MovableColumnsOff();
     
+      // Create the columns.
+    
     for ( int col = 0; col < COL_COUNT; ++ col )
       {
       this->PlanList->GetWidget()->AddColumn( COL_LABELS[ col ] );
       this->PlanList->GetWidget()->SetColumnWidth( col, COL_WIDTHS[ col ] );
       this->PlanList->GetWidget()->SetColumnAlignmentToLeft( col );
-      this->PlanList->GetWidget()->ColumnEditableOn( col );
-      this->PlanList->GetWidget()->SetColumnEditWindowToSpinBox( col );
       }
-    
-    this->PlanList->GetWidget()->SetColumnEditWindowToCheckButton( 0 );
+    this->PlanList->GetWidget()->ColumnEditableOn( 0 );  // Name column.
+    this->PlanList->GetWidget()->SetColumnEditWindowToEntry( 0 );
     }
   
   this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
@@ -515,13 +548,28 @@ vtkPerkStationPlanStep
     this->PlanList->GetWidget()->SetCellUpdatedCommand( this, "OnMultiColumnListUpdate" );
     this->PlanList->GetWidget()->SetSelectionChangedCommand( this, "OnMultiColumnListSelectionChanged" );
     }
+  
+  if ( this->DeleteButton )
+    {
+    this->DeleteButton->AddObserver( vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand );
+    // this->DeleteButton->AddObserver( vtkKWPushButton::InvokedEvent, (vtkCommand*) );
+    }
 }
 
 
 //----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::RemoveGUIObservers()
 {
+  if ( this->PlanList )
+    {
+    this->PlanList->GetWidget()->SetCellUpdatedCommand( this, "" );
+    this->PlanList->GetWidget()->SetSelectionChangedCommand( this, "" );
+    }
   
+  if ( this->DeleteButton )
+    {
+    this->DeleteButton->RemoveObserver( (vtkCommand*)this->GUICallbackCommand );
+    }
 }
 
 
@@ -1111,6 +1159,21 @@ void vtkPerkStationPlanStep::ProcessGUIEvents( vtkObject* caller,
   if ( this->ProcessingCallback ) return;
   this->ProcessingCallback = true;
 
+  
+  if ( this->DeleteButton == vtkKWPushButton::SafeDownCast( caller )
+       && event == vtkKWPushButton::InvokedEvent )
+    {
+    vtkPerkStationPlan* plan = mrmlNode->GetPlanAtIndex( mrmlNode->GetCurrentPlanIndex() );
+    if ( plan != NULL )
+      {
+      mrmlNode->RemovePlanAtIndex( mrmlNode->GetCurrentPlanIndex() );
+      mrmlNode->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
+      this->RemoveOverlayNeedleGuide();
+      mrmlNode->SetCurrentPlanIndex( - 1 );
+      this->UpdateGUI();
+      }
+    }
+  
   
   this->ProcessingCallback = false;
 }
