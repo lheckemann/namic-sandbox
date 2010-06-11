@@ -160,6 +160,8 @@ public:
     return this->SliceToRAS.GetPointer();
   };
   
+  void AddCurrentPlan();
+  
   
     // Insertion parameters ---------------------------------------------------
   
@@ -343,6 +345,7 @@ protected:
   //BTX
   vtkSmartPointer< vtkMatrix4x4 > SliceToRAS;
   
+  unsigned int PlanUID;
   
     // Insertion parameters ---------------------------------------------------
   
