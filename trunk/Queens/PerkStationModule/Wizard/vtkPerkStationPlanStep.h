@@ -52,6 +52,11 @@ public:
                                  unsigned long event,
                                  void *callData );
   
+  void SetInGUICallbackFlag( int flag ) {
+    this->InGUICallbackFlag = flag;
+  }
+  vtkGetMacro( InGUICallbackFlag, int );
+  
   virtual void Reset();
   
   virtual void UpdateGUI();
@@ -68,11 +73,15 @@ protected:
   vtkPerkStationPlanStep();
   ~vtkPerkStationPlanStep();
   
+  static void GUICallback(vtkObject *caller,
+                          unsigned long eid, void *clientData, void *callData );
+
   vtkPerkStationPlanStep( const vtkPerkStationPlanStep& );
   void operator=( const vtkPerkStationPlanStep& );
   
   void AddGUIObservers();
   void RemoveGUIObservers();
+  vtkCallbackCommand *GUICallbackCommand;
   
   // Description:
   // GUI callback  
@@ -123,6 +132,8 @@ protected:
 private:
     
     // State description.
+  
+  int InGUICallbackFlag;
   
   unsigned int NumPointsSelected;
   bool ProcessingCallback;
