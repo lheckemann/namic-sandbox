@@ -223,7 +223,7 @@ public:
 
   // Mask related typedefs
   typedef Image< unsigned char, Dimension >                         ImageMaskType;
-  typedef ImageMaskSpatialObject<Dimension>                         ImageMaskSpatialObject;
+  typedef ImageMaskSpatialObject<Dimension>                         ImageMaskSpatialObjectType;
   typedef LargestForegroundFilledMaskImageFilter<ImageType, ImageMaskType> LFFMaskFilterType;
 
 

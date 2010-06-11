@@ -70,7 +70,7 @@ void MultiImageRegistrationFilter
       LFF->SetClosingSize(7);
       LFF->Update();
       
-      ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
+      ImageMaskSpatialObjectType::Pointer maskImage = ImageMaskSpatialObjectType::New();
       maskImage->SetImage(LFF->GetOutput());
       m_Registration->SetImageMaskArray(i, maskImage);
     //Set up the Image Pyramid
