@@ -59,11 +59,6 @@
 #include "vtkKWMultiColumnListWithScrollbars.h"
 #include "vtkKWCheckButton.h"
 
-// Precision of the target position and orientation display
-static const int POSITION_PRECISION_DIGITS=1;
-static const double POSITION_PRECISION_TOLERANCE=0.1/2.0;
-
-
 static const char TARGET_INDEX_ATTR[]="TARGET_IND";
 
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
@@ -837,7 +832,7 @@ void vtkProstateNavTargetingStep::OnMultiColumnListUpdate(int row, int col, char
       if (this->TargetList && this->TargetList->GetWidget())
       {
         std::ostrstream os;    
-        os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(POSITION_PRECISION_DIGITS);
+        os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(vtkProstateNavGUI::POSITION_PRECISION_DIGITS);
         os << newCoordinate << std::ends;
         this->TargetList->GetWidget()->SetCellText(row,col,os.str());
         os.rdbuf()->freeze();        
@@ -1036,10 +1031,10 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
     {
       for (int i = 0; i < 3; i ++) // for position (x, y, z)
       {
-        if (deleteFlag || fabs(columnList->GetCellTextAsDouble(row,COL_X+i)-xyz[i])>POSITION_PRECISION_TOLERANCE)
+        if (deleteFlag || fabs(columnList->GetCellTextAsDouble(row,COL_X+i)-xyz[i])>vtkProstateNavGUI::POSITION_PRECISION_TOLERANCE)
         {
           std::ostrstream os;    
-          os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(POSITION_PRECISION_DIGITS);
+          os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(vtkProstateNavGUI::POSITION_PRECISION_DIGITS);
           os << xyz[i] << std::ends;
           columnList->SetCellText(row,COL_X+i,os.str());
           os.rdbuf()->freeze();
@@ -1050,10 +1045,10 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
     {
       for (int i = 0; i < 4; i ++) // for orientation (w, x, y, z)
       {
-        if (deleteFlag || fabs(columnList->GetCellTextAsDouble(row, COL_OR_W+i)-wxyz[i])>POSITION_PRECISION_TOLERANCE)
+        if (deleteFlag || fabs(columnList->GetCellTextAsDouble(row, COL_OR_W+i)-wxyz[i])>vtkProstateNavGUI::POSITION_PRECISION_TOLERANCE)
         {
           std::ostrstream os;    
-          os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(POSITION_PRECISION_DIGITS);
+          os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(vtkProstateNavGUI::POSITION_PRECISION_DIGITS);
           os << wxyz[i] << std::ends;
           columnList->SetCellText(row,COL_OR_W+i,os.str());
           os.rdbuf()->freeze();

@@ -702,7 +702,11 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
         {
         if (recreateRows || columnList->GetCellTextAsDouble(row,COL_X+i) != xyz[i])
           {
-          columnList->SetCellTextAsDouble(row,COL_X+i,xyz[i]);
+          std::ostrstream os;    
+          os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(vtkProstateNavGUI::POSITION_PRECISION_DIGITS);
+          os << xyz[i] << std::ends;
+          columnList->SetCellText(row,COL_X+i,os.str());
+          os.rdbuf()->freeze();
           }
         }
       }
@@ -716,19 +720,35 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
       {
         if (recreateRows || columnList->GetCellTextAsDouble(row,COL_OVERALL_ERROR) != target->GetErrorDistanceFromNeedleLine())
         {
-        columnList->SetCellTextAsDouble(row,COL_OVERALL_ERROR,target->GetErrorDistanceFromNeedleLine());
+          std::ostrstream os;    
+          os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(vtkProstateNavGUI::POSITION_PRECISION_DIGITS*3);
+          os << target->GetErrorDistanceFromNeedleLine() << std::ends;
+          columnList->SetCellText(row,COL_OVERALL_ERROR,os.str());
+          os.rdbuf()->freeze();
         }
         if (recreateRows || columnList->GetCellTextAsDouble(row,COL_LR_ERROR) != target->GetErrorVector()[0])
         {
-        columnList->SetCellTextAsDouble(row,COL_LR_ERROR,target->GetErrorVector()[0]);
+        std::ostrstream os;    
+        os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(vtkProstateNavGUI::POSITION_PRECISION_DIGITS*3);
+        os << target->GetErrorVector()[0] << std::ends;
+        columnList->SetCellText(row,COL_LR_ERROR,os.str());
+        os.rdbuf()->freeze();
         }
       if (recreateRows || columnList->GetCellTextAsDouble(row,COL_AP_ERROR) != target->GetErrorVector()[1])
         {
-        columnList->SetCellTextAsDouble(row,COL_AP_ERROR,target->GetErrorVector()[1]);
+        std::ostrstream os;    
+        os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(vtkProstateNavGUI::POSITION_PRECISION_DIGITS*3);
+        os << target->GetErrorVector()[1] << std::ends;
+        columnList->SetCellText(row,COL_AP_ERROR,os.str());
+        os.rdbuf()->freeze();
         }
       if (recreateRows || columnList->GetCellTextAsDouble(row,COL_IS_ERROR) != target->GetErrorVector()[2])
         {
-        columnList->SetCellTextAsDouble(row,COL_IS_ERROR,target->GetErrorVector()[2]);
+        std::ostrstream os;    
+        os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(vtkProstateNavGUI::POSITION_PRECISION_DIGITS*3);
+        os << target->GetErrorVector()[2] << std::ends;
+        columnList->SetCellText(row,COL_IS_ERROR,os.str());
+        os.rdbuf()->freeze();
         }
       }
     else

@@ -78,6 +78,11 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   
   //ETX
   
+  // Precision of the target position and orientation display
+  static const int POSITION_PRECISION_DIGITS;
+  static const double POSITION_PRECISION_TOLERANCE;
+
+
  public:
   // Description:    
   // Usual vtk class functions
