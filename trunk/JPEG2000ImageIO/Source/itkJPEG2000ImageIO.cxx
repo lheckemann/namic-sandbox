@@ -27,18 +27,6 @@
 #include <stdio.h>
 #include <string.h>
 
-//
-// FIXME: Can we replace this with enums or const ints ?
-//
-#define J2K_CFMT 0
-#define JP2_CFMT 1
-#define JPT_CFMT 2
-#define MJ2_CFMT 3
-#define PXM_DFMT 0
-#define PGX_DFMT 1
-#define BMP_DFMT 2
-#define YUV_DFMT 3
-
 
 namespace itk
 {
@@ -129,22 +117,22 @@ void JPEG2000ImageIO::ReadImageInformation()
 
   if( extension == ".j2k" )
     {
-    m_DecompressionParameters.decod_format = J2K_CFMT;
+    m_DecompressionParameters.decod_format = Self::J2K_CFMT;
     }
 
   if( extension == ".jp2" )
     {
-    m_DecompressionParameters.decod_format = JP2_CFMT;
+    m_DecompressionParameters.decod_format = Self::JP2_CFMT;
     }
 
   if( extension == ".jpt" )
     {
-    m_DecompressionParameters.decod_format = JPT_CFMT;
+    m_DecompressionParameters.decod_format = Self::JPT_CFMT;
     }
 
   switch (m_DecompressionParameters.decod_format)
     {
-    case J2K_CFMT:
+    case Self::J2K_CFMT:
       {
       /* JPEG-2000 codestream */
 
@@ -152,14 +140,14 @@ void JPEG2000ImageIO::ReadImageInformation()
       dinfo = opj_create_decompress(CODEC_J2K);
       break;
       }
-    case JP2_CFMT:
+    case Self::JP2_CFMT:
       {
       /* JPEG 2000 compressed image data */
       /* get a decoder handle */
       dinfo = opj_create_decompress(CODEC_JP2);
       break;
       }
-    case JPT_CFMT:
+    case Self::JPT_CFMT:
       {
       /* JPEG 2000, JPIP */
       /* get a decoder handle */
@@ -273,7 +261,7 @@ void JPEG2000ImageIO::Read( void * buffer)
   /* ---------------------- */
   switch (m_DecompressionParameters.decod_format)
     {
-    case J2K_CFMT:
+    case Self::J2K_CFMT:
       {
       /* JPEG-2000 codestream */
 
@@ -281,14 +269,14 @@ void JPEG2000ImageIO::Read( void * buffer)
       dinfo = opj_create_decompress(CODEC_J2K);
       break;
       }
-    case JP2_CFMT:
+    case Self::JP2_CFMT:
       {
       /* JPEG 2000 compressed image data */
       /* get a decoder handle */
       dinfo = opj_create_decompress(CODEC_JP2);
       break;
       }
-    case JPT_CFMT:
+    case Self::JPT_CFMT:
       {
       /* JPEG 2000, JPIP */
       /* get a decoder handle */
@@ -524,13 +512,13 @@ JPEG2000ImageIO
   if( extension == ".j2k" )
     {
     cinfo = opj_create_compress(CODEC_J2K);
-    parameters.cod_format = J2K_CFMT;
+    parameters.cod_format = Self::J2K_CFMT;
     }
 
   if( extension == ".jp2" )
     {
     cinfo = opj_create_compress(CODEC_JP2);
-    parameters.cod_format = JP2_CFMT;
+    parameters.cod_format = Self::JP2_CFMT;
     }
 
   if ( this->GetNumberOfComponents() == 3 )
