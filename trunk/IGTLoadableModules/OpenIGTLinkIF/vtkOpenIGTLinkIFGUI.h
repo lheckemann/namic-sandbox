@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkOpenIGTLinkIFGUI.h $
-  Date:      $Date: 2010-04-01 11:42:15 -0400 (Thu, 01 Apr 2010) $
-  Version:   $Revision: 12582 $
+  Date:      $Date: 2010-06-10 20:55:02 -0400 (Thu, 10 Jun 2010) $
+  Version:   $Revision: 13756 $
 
 ==========================================================================*/
 
@@ -230,6 +230,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   int TimerFlag;
   int TimerInterval;
+  vtkTimerLog* TimerLog;
 
   //----------------------------------------------------------------
   // GUI widgets

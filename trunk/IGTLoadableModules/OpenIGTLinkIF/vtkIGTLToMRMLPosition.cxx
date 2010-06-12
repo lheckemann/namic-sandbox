@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkIGTLToMRMLPosition.cxx $
-  Date:      $Date: 2009-10-05 17:19:02 -0400 (Mon, 05 Oct 2009) $
-  Version:   $Revision: 10576 $
+  Date:      $Date: 2010-06-10 20:55:02 -0400 (Thu, 10 Jun 2010) $
+  Version:   $Revision: 13756 $
 
 ==========================================================================*/
 
@@ -23,7 +23,7 @@
 #include "igtlMath.h"
 
 vtkStandardNewMacro(vtkIGTLToMRMLPosition);
-vtkCxxRevisionMacro(vtkIGTLToMRMLPosition, "$Revision: 10576 $");
+vtkCxxRevisionMacro(vtkIGTLToMRMLPosition, "$Revision: 13756 $");
 
 
 //---------------------------------------------------------------------------
@@ -113,7 +113,7 @@ int vtkIGTLToMRMLPosition::IGTLToMRML(igtl::MessageBase::Pointer buffer, vtkMRML
   
   vtkMatrix4x4* transformToParent = transformNode->GetMatrixTransformToParent();
   int row, column;
-  for (row = 0; row < 4; row++)
+  for (row = 0; row < 3; row++)
     {
     for (column = 0; column < 3; column++)
       {
@@ -121,6 +121,10 @@ int vtkIGTLToMRMLPosition::IGTLToMRML(igtl::MessageBase::Pointer buffer, vtkMRML
       }
     transformToParent->Element[row][3] = position[row];
     }
+  transformToParent->Element[3][0] = 0.0;
+  transformToParent->Element[3][1] = 0.0;
+  transformToParent->Element[3][2] = 0.0;
+  transformToParent->Element[3][3] = 1.0;
 
   transformToParent->Modified();
 
