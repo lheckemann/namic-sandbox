@@ -346,7 +346,7 @@ void JPEG2000ImageIO::Read( void * buffer)
       {
       *charBuffer++ = image->comps[k].data[index];
       }
-      index++;
+    index++;
     }
   std::cout << " END COPY BUFFER" << std::endl;
 
@@ -422,7 +422,7 @@ JPEG2000ImageIO
 
 //--------------------------------------------------------
   // Copy the contents into the image structure
-  int i, w, h;
+  int w, h;
   w = this->m_Dimensions[0];
   h = this->m_Dimensions[1];
 
@@ -553,7 +553,7 @@ JPEG2000ImageIO
     return;
     }
 
-  for (i = 0; i < parameters.numpocs; i++)
+  for ( int i = 0; i < parameters.numpocs; i++)
     {
     if (parameters.POC[i].prg == -1)
       {
@@ -594,8 +594,6 @@ JPEG2000ImageIO
     fclose(f);
     itkExceptionMacro("failed to encode image");
     }
-
-//   itkExceptionMacro("Generated outfile " << parameters.outfile);
 
   /* close and free the byte stream */
   opj_stream_destroy(cio);
