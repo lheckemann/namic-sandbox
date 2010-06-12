@@ -564,7 +564,7 @@ void vtkProstateNavStepVerification::ProcessMRMLEvents(vtkObject *caller,
 //----------------------------------------------------------------------------
 void vtkProstateNavStepVerification::AddMRMLObservers()
 {
-  if (VerificationPointListNode!=NULL)
+  if (this->VerificationPointListNode!=NULL)
   {
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkCommand::ModifiedEvent);
@@ -721,7 +721,7 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
         if (recreateRows || columnList->GetCellTextAsDouble(row,COL_OVERALL_ERROR) != target->GetErrorDistanceFromNeedleLine())
         {
           std::ostrstream os;    
-          os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(vtkProstateNavGUI::POSITION_PRECISION_DIGITS*3);
+          os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(vtkProstateNavGUI::POSITION_PRECISION_DIGITS*2); // *2 to have double precision as the position that it was computed from
           os << target->GetErrorDistanceFromNeedleLine() << std::ends;
           columnList->SetCellText(row,COL_OVERALL_ERROR,os.str());
           os.rdbuf()->freeze();

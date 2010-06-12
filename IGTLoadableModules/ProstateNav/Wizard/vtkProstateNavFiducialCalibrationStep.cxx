@@ -51,8 +51,8 @@ vtkProstateNavFiducialCalibrationStep::vtkProstateNavFiducialCalibrationStep()
   
   this->LoadVolumeDialogFrame=vtkSmartPointer<vtkKWFrame>::New();
   this->LoadCalibrationVolumeButton=vtkSmartPointer<vtkKWPushButton>::New();
-  this->ShowWorkspaceButton=vtkKWCheckButton::New();;
-  this->ShowRobotButton=vtkKWCheckButton::New();
+  this->ShowWorkspaceButton=vtkSmartPointer<vtkKWCheckButton>::New();;
+  this->ShowRobotButton=vtkSmartPointer<vtkKWCheckButton>::New();
   this->VolumeSelectorWidget=vtkSmartPointer<vtkSlicerNodeSelectorWidget>::New();
   this->ResetCalibrationButton=vtkSmartPointer<vtkKWPushButton>::New();
   this->ResegmentButton=vtkSmartPointer<vtkKWPushButton>::New();

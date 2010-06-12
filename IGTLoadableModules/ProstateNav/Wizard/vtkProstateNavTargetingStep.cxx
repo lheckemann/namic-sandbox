@@ -1063,26 +1063,33 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
 
   }       
 
-  int selectedTargetIndex=-1;
-  int numRows = this->TargetList->GetWidget()->GetNumberOfSelectedRows();
-  if (numRows == 1)
-  {       
-    int rowIndex = this->TargetList->GetWidget()->GetIndexOfFirstSelectedRow();    
-    selectedTargetIndex=this->TargetList->GetWidget()->GetRowAttributeAsInt(rowIndex, TARGET_INDEX_ATTR);
-  }
   int currentTargetIndex=this->GetProstateNavManager()->GetCurrentTargetIndex();
-  if (currentTargetIndex!=selectedTargetIndex)
+  if (currentTargetIndex<0)
   {
-    for (int rowIndex=0; rowIndex<this->TargetList->GetWidget()->GetNumberOfRows(); rowIndex++)
-    {
-      if (this->TargetList->GetWidget()->GetRowAttributeAsInt(rowIndex, TARGET_INDEX_ATTR)==currentTargetIndex)
-      {
-        // found the row corresponding to the current target
-        this->TargetList->GetWidget()->SelectSingleRow(rowIndex);
-        break;
-      }
+    this->TargetList->GetWidget()->ClearSelection();
+  }
+  else
+  {
+    int selectedTargetIndex=-1;
+    int numRows = this->TargetList->GetWidget()->GetNumberOfSelectedRows();
+    if (numRows == 1)
+    {       
+      int rowIndex = this->TargetList->GetWidget()->GetIndexOfFirstSelectedRow();    
+      selectedTargetIndex=this->TargetList->GetWidget()->GetRowAttributeAsInt(rowIndex, TARGET_INDEX_ATTR);
     }
-  } 
+    if (currentTargetIndex!=selectedTargetIndex)
+    {
+      for (int rowIndex=0; rowIndex<this->TargetList->GetWidget()->GetNumberOfRows(); rowIndex++)
+      {
+        if (this->TargetList->GetWidget()->GetRowAttributeAsInt(rowIndex, TARGET_INDEX_ATTR)==currentTargetIndex)
+        {
+          // found the row corresponding to the current target
+          this->TargetList->GetWidget()->SelectSingleRow(rowIndex);
+          break;
+        }
+      }
+    } 
+  }
 
 }
 
