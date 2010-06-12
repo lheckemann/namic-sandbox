@@ -105,6 +105,23 @@ private:
   JPEG2000ImageIO(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
+
+  typedef enum 
+    {
+    J2K_CFMT = 0,
+    JP2_CFMT = 1,
+    JPT_CFMT = 2,
+    MJ2_CFMT = 3
+    } DecodingFormatType;
+
+  typedef enum 
+    {
+    PXM_DFMT = 0,
+    PGX_DFMT = 1,
+    BMP_DFMT = 2,
+    YUV_DFMT = 3
+    } DFMFormatType; 
+
 };
 
 } // end namespace itk
