@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkIGTLToMRMLImage.h $
-  Date:      $Date: 2009-08-12 21:30:38 -0400 (Wed, 12 Aug 2009) $
-  Version:   $Revision: 10236 $
+  Date:      $Date: 2010-06-10 11:05:22 -0400 (Thu, 10 Jun 2010) $
+  Version:   $Revision: 13728 $
 
 ==========================================================================*/
 

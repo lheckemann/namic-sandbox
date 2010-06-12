@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkOpenIGTLinkIFLogic.h $
-  Date:      $Date: 2009-10-08 13:47:03 -0400 (Thu, 08 Oct 2009) $
-  Version:   $Revision: 10599 $
+  Date:      $Date: 2010-06-10 11:05:22 -0400 (Thu, 10 Jun 2010) $
+  Version:   $Revision: 13728 $
 
 ==========================================================================*/
 

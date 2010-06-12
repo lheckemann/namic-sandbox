@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkOpenIGTLinkIFGUI.cxx $
-  Date:      $Date: 2010-04-28 18:04:17 -0400 (Wed, 28 Apr 2010) $
-  Version:   $Revision: 13006 $
+  Date:      $Date: 2010-06-10 21:06:38 -0400 (Thu, 10 Jun 2010) $
+  Version:   $Revision: 13758 $
 
 ==========================================================================*/
 
@@ -70,6 +70,8 @@
 #include "vtkImageChangeInformation.h"
 #include "vtkSlicerColorLogic.h"
 
+#include "vtkTimerLog.h"
+
 #include "vtkMRMLLinearTransformNode.h"
 
 #include "vtkMRMLIGTLConnectorNode.h"
@@ -79,12 +81,13 @@
 #include "vtkMRMLIGTLQueryNode.h"
 #include "vtkMRMLIGTLTrackingDataBundleNode.h"
 
+
 #include <vector>
 #include <sstream>
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkOpenIGTLinkIFGUI );
-vtkCxxRevisionMacro ( vtkOpenIGTLinkIFGUI, "$Revision: 13006 $");
+vtkCxxRevisionMacro ( vtkOpenIGTLinkIFGUI, "$Revision: 13758 $");
 //---------------------------------------------------------------------------
 
 
@@ -178,6 +181,7 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
   // Locator  (MRML)
   this->CloseScene              = false;
   this->TimerFlag = 0;
+  this->TimerLog = vtkTimerLog::New();
   this->ConnectorNodeList.clear();
   this->IOConfigTreeConnectorList.clear();
   this->IOConfigTreeIOList.clear();
@@ -211,6 +215,11 @@ vtkOpenIGTLinkIFGUI::~vtkOpenIGTLinkIFGUI ( )
 
   this->SetModuleLogic ( NULL );
 
+  if (this->TimerLog)
+    {
+    this->TimerLog->Delete();
+    }
+    
 
   //----------------------------------------------------------------
   // Visualization Control Frame
@@ -1448,6 +1457,8 @@ void vtkOpenIGTLinkIFGUI::ProcessTimerEvents()
     // -----------------------------------------
     // Update connector list, property frame and IO config tree
 
+    this->TimerLog->StartTimer();
+      
     // TODO: This part should be handled in MRML event handler
     if (this->UpdateConnectorListFlag)
       {
@@ -1473,9 +1484,15 @@ void vtkOpenIGTLinkIFGUI::ProcessTimerEvents()
     // Check incomming new data
     this->GetLogic()->ImportEvents();
     this->GetLogic()->ImportFromCircularBuffers();
+
+    this->TimerLog->StopTimer();
+    int msec = (int) (this->TimerLog->GetElapsedTime() * 1000.0); /* Elapsed time in the timer handler (ms)*/
+    int newtimer = this->TimerInterval - msec;
+    if (newtimer < 5) newtimer = 5;
+
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
-                                         this->TimerInterval,
-                                         this, "ProcessTimerEvents");        
+                                         newtimer,
+                                         this, "ProcessTimerEvents");
     }
 }
 

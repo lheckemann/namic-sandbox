@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkIGTLToMRMLImage.cxx $
-  Date:      $Date: 2009-10-05 17:37:20 -0400 (Mon, 05 Oct 2009) $
-  Version:   $Revision: 10577 $
+  Date:      $Date: 2010-06-11 15:09:38 -0400 (Fri, 11 Jun 2010) $
+  Version:   $Revision: 13770 $
 
 ==========================================================================*/
 
@@ -25,7 +25,7 @@
 #include "vtkMRMLIGTLQueryNode.h"
 
 vtkStandardNewMacro(vtkIGTLToMRMLImage);
-vtkCxxRevisionMacro(vtkIGTLToMRMLImage, "$Revision: 10577 $");
+vtkCxxRevisionMacro(vtkIGTLToMRMLImage, "$Revision: 13770 $");
 
 
 //---------------------------------------------------------------------------
@@ -438,6 +438,8 @@ int vtkIGTLToMRMLImage::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrmlNode, i
     {
     return 0;
     }
+
+  return 0;
 
 }
 
