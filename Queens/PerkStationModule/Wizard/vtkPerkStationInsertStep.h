@@ -4,18 +4,23 @@
 #include "vtkPerkStationStep.h"
 #include <vector>
 
-class vtkKWFrame;
-class vtkKWLabel;
-class vtkKWFrameWithLabel;
-class vtkKWEntrySet;
-class vtkKWCheckButtonWithLabel;
-class vtkKWLoadSaveButton;
 class vtkKWCheckButton;
+class vtkKWCheckButtonWithLabel;
+class vtkKWEntrySet;
+class vtkKWFrame;
+class vtkKWFrameWithLabel;
+class vtkKWLabel;
+class vtkKWLoadSaveButton;
+class vtkKWMultiColumnList;
+class vtkKWMultiColumnListWithScrollbars;
 class vtkLineSource;
+
 
 #if defined(USE_NDIOAPI)
 class vtkNDITracker;
 #endif
+
+
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationInsertStep : public vtkPerkStationStep
 {
@@ -23,7 +28,11 @@ public:
   static vtkPerkStationInsertStep *New();
   vtkTypeRevisionMacro(vtkPerkStationInsertStep,vtkPerkStationStep);
   void PrintSelf(ostream& os, vtkIndent indent);
-
+  
+  
+  void OnMultiColumnListSelectionChanged();
+  
+  
   // Description:
   // Reimplement the superclass's method (see vtkKWWizardStep).
   virtual void ShowUserInterface();
@@ -84,7 +93,16 @@ protected:
 /*  virtual void PopulateNormalizationTargetVolumeSelector();
   virtual void ResetDefaultParameters(vtkIdType target_vol_id);*/
 
-  // GUI elements
+
+    // GUI elements
+  
+  
+    // Plan list.
+  
+  vtkKWFrame* PlanListFrame;
+  vtkKWMultiColumnListWithScrollbars* PlanList;
+    
+  
   // button, msg for loading the registration file
   vtkKWFrameWithLabel *LoadTrackerConfigFrame;
   vtkKWLabel *TrackerConfigFileLoadMsg;  
