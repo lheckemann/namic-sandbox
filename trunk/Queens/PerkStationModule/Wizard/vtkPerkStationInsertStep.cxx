@@ -12,6 +12,8 @@
 #include "vtkKWEntry.h"
 #include "vtkKWEntrySet.h"
 #include "vtkKWLabel.h"
+#include "vtkKWMultiColumnList.h"
+#include "vtkKWMultiColumnListWithScrollbars.h"
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
@@ -26,6 +28,22 @@
 #include <stdio.h>
 
 
+  // Definition of plan list columns.
+enum
+  {
+  COL_NAME = 0,
+  COL_ER,
+  COL_EA,
+  COL_ES,
+  COL_TR,
+  COL_TA,
+  COL_TS,
+  COL_COUNT
+  };
+static const char* COL_LABELS[ COL_COUNT ] = { "Name", "ER", "EA", "ES", "TR", "TA", "TS" };
+static const int COL_WIDTHS[ COL_COUNT ] = { 10, 5, 5, 5, 5, 5, 5 };
+
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPerkStationInsertStep);
 vtkCxxRevisionMacro(vtkPerkStationInsertStep, "$Revision: 1.1 $");
@@ -37,7 +55,12 @@ vtkPerkStationInsertStep::vtkPerkStationInsertStep()
   this->SetDescription("Do the needle insertion");
   
   this->WizardGUICallbackCommand->SetCallback(vtkPerkStationInsertStep::WizardGUICallback);
-
+  
+  
+  this->PlanList = NULL;
+  this->PlanListFrame = NULL;
+  
+  
   this->LoadTrackerConfigFrame = NULL;
   this->LoadTrackerConfigFileButton = NULL;
   this->TrackerConfigFileLoadMsg = NULL;
@@ -188,16 +211,59 @@ void vtkPerkStationInsertStep::ShowUserInterface()
   // in clinical mode
   this->SetName("3/4. Insert");
   this->GetGUI()->GetWizardWidget()->Update();
-     
   
-  this->SetDescription("Do the needle insertion");
-
+  this->SetDescription("Select plan and insert needle.");
+  
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   wizard_widget->GetCancelButton()->SetEnabled(0);
-
   vtkKWWidget *parent = wizard_widget->GetClientArea();
-
-
+  
+  
+    // Plan list.
+  
+  
+    // Create a frame for the plan list.
+  
+  if ( ! this->PlanListFrame )
+    {
+    this->PlanListFrame = vtkKWFrame::New();
+    }
+  if ( ! this->PlanListFrame->IsCreated() )
+    {
+    this->PlanListFrame->SetParent( parent );
+    this->PlanListFrame->Create();
+    }
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                this->PlanListFrame->GetWidgetName() );
+  
+  
+    // Create the plan list.
+  
+  if ( ! this->PlanList )
+    {
+    this->PlanList = vtkKWMultiColumnListWithScrollbars::New();
+    this->PlanList->SetParent( this->PlanListFrame );
+    this->PlanList->Create();
+    this->PlanList->SetHeight( 1 );
+    this->PlanList->GetWidget()->SetSelectionTypeToRow();
+    this->PlanList->GetWidget()->SetSelectionBackgroundColor( 1, 0, 0 );
+    this->PlanList->GetWidget()->MovableRowsOff();
+    this->PlanList->GetWidget()->MovableColumnsOff();
+    
+      // Create the columns.
+    
+    for ( int col = 0; col < COL_COUNT; ++ col )
+      {
+      this->PlanList->GetWidget()->AddColumn( COL_LABELS[ col ] );
+      this->PlanList->GetWidget()->SetColumnWidth( col, COL_WIDTHS[ col ] );
+      this->PlanList->GetWidget()->SetColumnAlignmentToLeft( col );
+      }
+    }
+  
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                this->PlanList->GetWidgetName());
+  
+  
   // load registration file components
 
   if(!this->LoadTrackerConfigFrame)
@@ -530,6 +596,16 @@ void vtkPerkStationInsertStep::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
+
+
+void
+vtkPerkStationInsertStep
+::OnMultiColumnListSelectionChanged()
+{
+  
+}
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationInsertStep::InstallCallbacks()
 {
