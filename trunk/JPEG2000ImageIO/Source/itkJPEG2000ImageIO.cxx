@@ -198,6 +198,11 @@ void JPEG2000ImageIO::ReadImageInformation()
     &l_nb_tiles_y,
     cio);
 
+  if ( !image )
+    {
+    itkExceptionMacro("Error while reading image header");
+    }
+
   this->SetNumberOfComponents( image->numcomps );
 
   //  image = opj_decode(dinfo, cio); // FIXME : should this be here ?
