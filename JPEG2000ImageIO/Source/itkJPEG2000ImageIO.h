@@ -124,6 +124,8 @@ private:
     YUV_DFMT = 3
     } DFMFormatType; 
 
+  opj_codec_t *     m_Dinfo;
+
 };
 
 } // end namespace itk
