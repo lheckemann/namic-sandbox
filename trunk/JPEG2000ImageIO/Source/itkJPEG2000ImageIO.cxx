@@ -38,6 +38,8 @@ JPEG2000ImageIO::JPEG2000ImageIO()
 
   this->SetNumberOfDimensions(2); // JPEG2000 is 2D. (by now...)
   this->SetNumberOfComponents(1);
+
+  this->m_Dinfo = NULL;
 }
 
 JPEG2000ImageIO::~JPEG2000ImageIO()
@@ -106,7 +108,7 @@ void JPEG2000ImageIO::ReadImageInformation()
 
   cio = opj_stream_create_default_file_stream(fsrc,true);
 
-  opj_codec_t * dinfo = NULL;  /* handle to a decompressor */
+  this->m_Dinfo = NULL;  /* handle to a decompressor */
 
   opj_image_t *image = NULL;
 
@@ -137,21 +139,21 @@ void JPEG2000ImageIO::ReadImageInformation()
       /* JPEG-2000 codestream */
 
       /* get a decoder handle */
-      dinfo = opj_create_decompress(CODEC_J2K);
+      this->m_Dinfo = opj_create_decompress(CODEC_J2K);
       break;
       }
     case Self::JP2_CFMT:
       {
       /* JPEG 2000 compressed image data */
       /* get a decoder handle */
-      dinfo = opj_create_decompress(CODEC_JP2);
+      this->m_Dinfo = opj_create_decompress(CODEC_JP2);
       break;
       }
     case Self::JPT_CFMT:
       {
       /* JPEG 2000, JPIP */
       /* get a decoder handle */
-      dinfo = opj_create_decompress(CODEC_JPT);
+      this->m_Dinfo = opj_create_decompress(CODEC_JPT);
       break;
       }
     default:
@@ -163,7 +165,7 @@ void JPEG2000ImageIO::ReadImageInformation()
 
   /* setup the decoder decoding parameters using user parameters */
   /* No reading of image information done */
-  opj_setup_decoder(dinfo, &m_DecompressionParameters);
+  opj_setup_decoder( this->m_Dinfo, &m_DecompressionParameters);
 
   // Image parameters - first tile
   OPJ_INT32 l_tile_x0,l_tile_y0;
@@ -171,7 +173,7 @@ void JPEG2000ImageIO::ReadImageInformation()
   OPJ_UINT32 l_tile_width,l_tile_height,l_nb_tiles_x,l_nb_tiles_y;
 
   bool bResult = opj_read_header(
-    dinfo,
+    this->m_Dinfo,
     &image,
     &l_tile_x0,
     &l_tile_y0,
@@ -204,7 +206,8 @@ void JPEG2000ImageIO::ReadImageInformation()
 
   if ( !image )
     {
-    opj_destroy_codec(dinfo);
+    opj_destroy_codec( this->m_Dinfo );
+    this->m_Dinfo = NULL;
     opj_stream_destroy(cio);
     fclose(fsrc);
     itkExceptionMacro("ERROR -> j2k_to_image: failed to decode image!");
@@ -223,9 +226,10 @@ std::cout << "image->y1 = " << image->y1 << std::endl;
   opj_stream_destroy(cio);
   fclose(fsrc);
 
-  if (dinfo)
+  if ( this->m_Dinfo )
     {
-    opj_destroy_codec(dinfo);
+    opj_destroy_codec( this->m_Dinfo );
+    this->m_Dinfo = NULL;
     }
 }
 
@@ -247,7 +251,7 @@ void JPEG2000ImageIO::Read( void * buffer)
 
   cio = opj_stream_create_default_file_stream(fsrc,true);
 
-  opj_codec_t * dinfo = NULL;  /* handle to a decompressor */
+  this->m_Dinfo  = NULL;  /* handle to a decompressor */
 
   opj_image_t *image = NULL;
 
@@ -260,21 +264,21 @@ void JPEG2000ImageIO::Read( void * buffer)
       /* JPEG-2000 codestream */
 
       /* get a decoder handle */
-      dinfo = opj_create_decompress(CODEC_J2K);
+      this->m_Dinfo = opj_create_decompress(CODEC_J2K);
       break;
       }
     case Self::JP2_CFMT:
       {
       /* JPEG 2000 compressed image data */
       /* get a decoder handle */
-      dinfo = opj_create_decompress(CODEC_JP2);
+      this->m_Dinfo = opj_create_decompress(CODEC_JP2);
       break;
       }
     case Self::JPT_CFMT:
       {
       /* JPEG 2000, JPIP */
       /* get a decoder handle */
-      dinfo = opj_create_decompress(CODEC_JPT);
+      this->m_Dinfo = opj_create_decompress(CODEC_JPT);
       break;
       }
     default:
@@ -285,13 +289,13 @@ void JPEG2000ImageIO::Read( void * buffer)
   /* catch events using our callbacks and give a local context */
 
   /* setup the decoder decoding parameters using user parameters */
-  opj_setup_decoder(dinfo, &this->m_DecompressionParameters);
+  opj_setup_decoder(this->m_Dinfo, &this->m_DecompressionParameters);
 
   OPJ_INT32 l_tile_x0,l_tile_y0;
   OPJ_UINT32 l_tile_width,l_tile_height,l_nb_tiles_x,l_nb_tiles_y;
 
   bool bResult = opj_read_header(
-    dinfo,
+    this->m_Dinfo,
     &image,
     &l_tile_x0,
     &l_tile_y0,
@@ -301,7 +305,38 @@ void JPEG2000ImageIO::Read( void * buffer)
     &l_nb_tiles_y,
     cio);
 
-  image = opj_decode(dinfo, cio);
+
+  ImageIORegion regionToRead = this->GetIORegion();
+
+  ImageIORegion::SizeType  size  = regionToRead.GetSize();
+  ImageIORegion::IndexType start = regionToRead.GetIndex();
+
+  const unsigned int sizex = size[0];
+  const unsigned int sizey = size[1];
+  const unsigned int sizez = size[2];
+
+  const unsigned int startx = start[0];
+  const unsigned int starty = start[1];
+  const unsigned int startz = start[2];
+
+  OPJ_INT32 p_start_x = static_cast< OPJ_INT32 >( startx );
+  OPJ_INT32 p_start_y = static_cast< OPJ_INT32 >( starty );
+  OPJ_INT32 p_end_x   = static_cast< OPJ_INT32 >( startx + sizex );
+  OPJ_INT32 p_end_y   = static_cast< OPJ_INT32 >( starty + sizey );
+
+std::cout << "opj_set_decode_area() before " << std::endl;
+  bResult = opj_set_decode_area(
+    this->m_Dinfo,
+    p_start_x,
+    p_start_y,
+    p_end_x,
+    p_end_y
+    );
+std::cout << "opj_set_decode_area() after " << std::endl;
+
+
+  image = opj_decode(this->m_Dinfo, cio);
+
 
   if ( !bResult )
     {
@@ -310,13 +345,14 @@ void JPEG2000ImageIO::Read( void * buffer)
 
   if ( !image )
     {
-    opj_destroy_codec(dinfo);
+    opj_destroy_codec(this->m_Dinfo);
+    this->m_Dinfo = NULL;
     opj_stream_destroy(cio);
     fclose(fsrc);
     itkExceptionMacro("ERROR -> j2k_to_image: failed to decode image!");
     }
 
-  const size_t numberOfPixels = image->x1 * image->y1;
+  const size_t numberOfPixels = sizex * sizey;
 
   unsigned char * charBuffer = (unsigned char *)buffer;
   size_t index = 0;
@@ -337,9 +373,10 @@ void JPEG2000ImageIO::Read( void * buffer)
   opj_stream_destroy(cio);
   fclose(fsrc);
 
-  if (dinfo)
+  if (this->m_Dinfo)
     {
-    opj_destroy_codec(dinfo);
+    opj_destroy_codec(this->m_Dinfo);
+    this->m_Dinfo = NULL;
     }
 
   std::cout << "JPEG2000ImageIO::Read() End" << std::endl;
