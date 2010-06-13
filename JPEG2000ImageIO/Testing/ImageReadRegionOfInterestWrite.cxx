@@ -33,11 +33,11 @@
 int main( int argc, char ** argv )
 {
   // Verify the number of parameters in the command line
-  if( argc < 9 )
+  if( argc < 7 )
     {
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << " inputImageFile  outputImageFile " << std::endl;
-    std::cerr << " startX startY startZ sizeX sizeY sizeZ" << std::endl;
+    std::cerr << " startX startY sizeX sizeY " << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -47,7 +47,7 @@ int main( int argc, char ** argv )
   //  Image types are defined below.
   typedef unsigned char       InputPixelType;
   typedef unsigned char       OutputPixelType;
-  const   unsigned int        Dimension = 3;
+  const   unsigned int        Dimension = 2;
 
   typedef itk::Image< InputPixelType,  Dimension >    InputImageType;
   typedef itk::Image< OutputPixelType, Dimension >    OutputImageType;
@@ -71,12 +71,10 @@ int main( int argc, char ** argv )
   OutputImageType::IndexType start;
   start[0] = atoi( argv[3] );
   start[1] = atoi( argv[4] );
-  start[2] = atoi( argv[5] );
 
   OutputImageType::SizeType size;
-  size[0] = atoi( argv[6] );
-  size[1] = atoi( argv[7] );
-  size[2] = atoi( argv[8] );
+  size[0] = atoi( argv[5] );
+  size[1] = atoi( argv[6] );
 
   OutputImageType::RegionType desiredRegion;
   desiredRegion.SetSize(  size  );
