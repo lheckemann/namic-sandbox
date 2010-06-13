@@ -64,7 +64,7 @@ int checkArguments(int nlhs, mxArray *plhs[],
 int procTransformData(int sd, const char* name, const mxArray *ptr);
 int procImageData(int sd, const char* name, const mxArray *ptr);
 
-int checkData(const char* type, const mxArray* prhs);
+//int checkData(const char* type, const mxArray* prhs);
 
 
 // -----------------------------------------------------------------

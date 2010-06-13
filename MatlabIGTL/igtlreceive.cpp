@@ -15,10 +15,11 @@
 =========================================================================*/
 
 //
-//  DATA = igtlreceive(SD);
+//  [STATUS, DATA] = igtlreceive(SD);
 //
-//    DATA:    (structure)  Data contents
-//    SD  :    (integer)    Socket descriptor (-1 if failed to connect)
+//    STATUS:    (integer)    Status: 0: connection lost;  1: sucessful; -1: unknown data type/read error
+//    DATA  :    (structure)  Data contents
+//    SD    :    (integer)    Socket descriptor (-1 if failed to connect)
 //
 //  Data fields for IMAGE data
 //    DATA.Type : (string)     must be 'IMAGE'
@@ -49,6 +50,10 @@ using namespace std;
 //#define ARG_ID_TIMEOUT 1  // timeout : future work
 #define ARG_ID_NUM     1  // total number of arguments
 
+#define RET_ID_STATUS  0
+#define RET_ID_DATA    1
+#define RET_ID_NUM     2
+
 #define MAX_STRING_LEN 256
 
 //extern void _main();
@@ -56,11 +61,11 @@ using namespace std;
 // -----------------------------------------------------------------
 // Function declarations.
 //double  getMatlabScalar    (const mxArray* ptr);
-//double& createMatlabScalar (mxArray*& ptr);
+double& createMatlabScalar (mxArray*& ptr);
 
 int checkArguments(int nlhs, mxArray *plhs[],
                    int nrhs, const mxArray *prhs[]);
-
+void receiveError(mxArray *plhs[], int status, const char* name, const char* type);
 int waitAndReceiveMessage(int sd, mxArray *plhs[]);
 int receiveTransform(igtl::MexClientSocket::Pointer& socket,
                          igtl::MessageHeader::Pointer& headerMsg,
@@ -83,18 +88,17 @@ void mexFunction (int nlhs, mxArray *plhs[],
     {
     //double& retVal = createMatlabScalar(plhs[0]);
     //retVal = 0;
+    receiveError(plhs, -1, "", "");
     return;
     }
 
   // ---------------------------------------------------------------
   // Set socket descripter and timeout
   int  sd;
-
   sd = (int)*mxGetPr(prhs[ARG_ID_SD]);
 
   // ---------------------------------------------------------------
   // Wait for the message
-
   waitAndReceiveMessage(sd, plhs);
 
 }
@@ -105,13 +109,13 @@ int checkArguments(int nlhs, mxArray *plhs[],
 {
   // ---------------------------------------------------------------
   // Check numbers of arguments and outputs
-  if (nrhs != 1)
+  if (nrhs != ARG_ID_NUM)
     {
     mexErrMsgTxt("Incorrect number of input arguments");
     return 0;
     }
 
-  if (nlhs != 1)
+  if (nlhs != RET_ID_NUM)
     {
     mexErrMsgTxt("Incorrect number of output arguments");
     return 0;
@@ -152,6 +156,7 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
   if (r != 0)
     {
     mexErrMsgTxt("Invalid socket descriptor.");
+    receiveError(plhs, 0, "", "");
     return 0;
     }
 
@@ -163,11 +168,13 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
     {
     mexErrMsgTxt("Connection lost.");
     socket->CloseSocket();
+    receiveError(plhs, 0, "", "");
     return 0;
     }
   if (r != headerMsg->GetPackSize())
     {
     mexErrMsgTxt("Invalid data size.");
+    receiveError(plhs, -1, "", "");
     return 0;
     }
 
@@ -197,13 +204,40 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
   else
     {
     socket->Skip(headerMsg->GetBodySizeToRead(), 0);
+    receiveError(plhs, -1, "", "");
     }
 }
 
 
+void receiveError(mxArray *plhs[], int status, const char* name, const char* type)
+  // status=0: connection lost
+  // status=-1: invalid data size / no data handler
+{
+
+  double& retVal = createMatlabScalar(plhs[RET_ID_STATUS]);
+
+  // Get strcutre for returned value
+  const char* fnames [] = {
+    "Type", "Name", "Trans"
+  };
+  plhs[RET_ID_DATA] = mxCreateStructMatrix(1, 1, 3, fnames);
+  
+  // Set type string
+  mxArray* typeString = mxCreateString(type);
+  mxSetField(plhs[RET_ID_DATA], 0, "Type", typeString);
+  
+  // Set device name string
+  mxArray* nameString = mxCreateString(name);
+  mxSetField(plhs[RET_ID_DATA], 0, "Name", nameString);
+  
+  retVal = status;
+
+}
+
+
 int receiveTransform(igtl::MexClientSocket::Pointer& socket,
-                         igtl::MessageHeader::Pointer& headerMsg,
-                         mxArray *plhs[])
+                     igtl::MessageHeader::Pointer& headerMsg,
+                     mxArray *plhs[])
 {
   std::cerr << "Receiving TRANSFORM data type." << std::endl;
   
@@ -219,6 +253,14 @@ int receiveTransform(igtl::MexClientSocket::Pointer& socket,
   // Deserialize the transform data
   // If you want to skip CRC check, call Unpack() without argument.
   int c = transMsg->Unpack(1);
+
+  double& retVal = createMatlabScalar(plhs[RET_ID_STATUS]);
+  
+  // Get strcutre for returned value
+  const char* fnames [] = {
+    "Type", "Name", "Trans"
+  };
+  plhs[RET_ID_DATA] = mxCreateStructMatrix(1, 1, 3, fnames);
   
   if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
     {
@@ -227,19 +269,13 @@ int receiveTransform(igtl::MexClientSocket::Pointer& socket,
     transMsg->GetMatrix(mat);
     igtl::PrintMatrix(mat);
 
-    // Get strcutre for returned value
-    const char* fnames [] = {
-      "Type", "Name", "Trans"
-    };
-    plhs[0] = mxCreateStructMatrix(1, 1, 3, fnames);
-
     // Set type string
     mxArray* typeString = mxCreateString("TRANSFORM");
-    mxSetField(plhs[0], 0, "Type", typeString);
+    mxSetField(plhs[RET_ID_DATA], 0, "Type", typeString);
 
     // Set device name string
     mxArray* nameString = mxCreateString(transMsg->GetDeviceName());
-    mxSetField(plhs[0], 0, "Name", nameString);
+    mxSetField(plhs[RET_ID_DATA], 0, "Name", nameString);
 
     // Set transform
     mxArray* transMatrix = mxCreateDoubleMatrix(4, 4, mxREAL);
@@ -249,11 +285,13 @@ int receiveTransform(igtl::MexClientSocket::Pointer& socket,
     trans[2] = mat[2][0];  trans[6] = mat[2][1];  trans[10] = mat[2][2]; trans[14] = mat[2][3];
     trans[3] = mat[3][0];  trans[7] = mat[3][1];  trans[11] = mat[3][2]; trans[15] = mat[3][3];
 
-    mxSetField(plhs[0], 0, "Trans", transMatrix);
+    mxSetField(plhs[RET_ID_DATA], 0, "Trans", transMatrix);
+    retVal = 1;
     return 1;
     }
   else
     {
+    retVal = -1;
     return 0;
     }
 
@@ -430,10 +468,11 @@ double getMatlabScalar (const mxArray* ptr) {
 
   return *mxGetPr(ptr);
 }
+*/
 
-
-double& createMatlabScalar (mxArray*& ptr) { 
+double& createMatlabScalar (mxArray*& ptr)
+{
   ptr = mxCreateDoubleMatrix(1,1,mxREAL);
   return *mxGetPr(ptr);
 }
-*/
+

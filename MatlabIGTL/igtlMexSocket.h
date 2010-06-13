@@ -114,6 +114,11 @@ public:
   // not available in vtkSocket class.
   int Skip(int length, int skipFully=1);
 
+  int GetDescriptor() {return this->m_SocketDescriptor; };
+
+  int SetDescriptor(int sd);
+
+
 protected:
   MexSocket();
   ~MexSocket();

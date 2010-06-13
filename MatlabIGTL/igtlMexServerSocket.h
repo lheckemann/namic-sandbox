@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Open IGT Link Library
-  Module:    $RCSfile: $
+  Module:    $HeadURL: http://svn.na-mic.org/NAMICSandBox/trunk/OpenIGTLink/Source/igtlMexServerSocket.h $
   Language:  C++
-  Date:      $Date: $
-  Version:   $Revision: $
+  Date:      $Date: 2010-06-09 16:16:36 -0400 (Wed, 09 Jun 2010) $
+  Version:   $Revision: 6525 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
 
@@ -16,7 +16,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    $RCSfile: vtkClientSocket.h,v $
+  Module:    $RCSfile: vtkMexServerSocket.h,v $
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -27,9 +27,6 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME igtlClientSocket - Encapsulates a client socket.
-
-
 
 /*=========================================================================
 
@@ -41,48 +38,61 @@
   in different MEX files.
 =========================================================================*/
 
+// .NAME igtlMexServerSocket - Encapsulate a socket that accepts connections.
+// .SECTION Description
+//
 
-#ifndef __igtlMexClientSocket_h
-#define __igtlMexClientSocket_h
+#ifndef __igtlMexServerSocket_h
+#define __igtlMexServerSocket_h
 
 #include "igtlMexSocket.h"
+#include "igtlMexClientSocket.h"
 #include "igtlWin32Header.h"
 
 namespace igtl
 {
 
-class ServerSocket;
-
-class IGTLCommon_EXPORT MexClientSocket : public MexSocket
+class IGTLCommon_EXPORT MexServerSocket : public MexSocket
 {
 public:
-  typedef MexClientSocket              Self;
-  typedef MexSocket                    Superclass;
+  typedef MexServerSocket              Self;
+  typedef MexSocket  Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 
-  igtlTypeMacro(igtl::MexClientSocket, igtl::MexSocket)
-  igtlNewMacro(igtl::MexClientSocket);
+  igtlTypeMacro(igtl::MexServerSocket, igtl::MexSocket);
+  igtlNewMacro(igtl::MexServerSocket);
 
   void PrintSelf(std::ostream& os);
 
   // Description:
-  // Connects to host. Returns 0 on success, -1 on error.
-  int ConnectToServer(const char* hostname, int port); 
-  
-protected:
-  MexClientSocket();
-  ~MexClientSocket();
+  // Creates a server socket at a given port and binds to it.
+  // Returns -1 on error. 0 on success.
+  int CreateServer(int port);
 
-//BTX
-  friend class MexServerSocket;
-//ETX
+  // Description:
+  // Waits for a connection. When a connection is received
+  // a new ClientSocket object is created and returned.
+  // Returns NULL on timeout. 
+  //ClientSocket* WaitForConnection(unsigned long msec=0);
+  MexClientSocket::Pointer WaitForConnection(unsigned long msec=0);
+
+  // Description:
+  // Returns the port on which the server is running.
+  int GetServerPort();
+
+protected:
+  MexServerSocket();
+  ~MexServerSocket();
+
+
 private:
-  MexClientSocket(const MexClientSocket&); // Not implemented.
-  void operator=(const MexClientSocket&); // Not implemented.
+  MexServerSocket(const MexServerSocket&); // Not implemented.
+  void operator=(const MexServerSocket&); // Not implemented.
 };
 
-}
+} // end of igtl namespace 
+
 
 #endif
 
