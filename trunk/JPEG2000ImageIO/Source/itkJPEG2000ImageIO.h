@@ -22,7 +22,7 @@
 #endif
 
 #include <fstream>
-#include "itkImageIOBase.h"
+#include "itkStreamingImageIOBase.h"
 
 #define USE_OPJ_DEPRECATED
 
@@ -46,19 +46,19 @@ namespace itk
  *
  *  \ingroup IOFilters
  */
-class ITK_EXPORT JPEG2000ImageIO : public ImageIOBase
+class ITK_EXPORT JPEG2000ImageIO : public StreamingImageIOBase
 {
 public:
   /** Standard class typedefs. */
-  typedef JPEG2000ImageIO         Self;
-  typedef ImageIOBase             Superclass;
-  typedef SmartPointer<Self>      Pointer;
+  typedef JPEG2000ImageIO          Self;
+  typedef StreamingImageIOBase     Superclass;
+  typedef SmartPointer<Self>       Pointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(JPEG2000ImageIO, ImageIOBase);
+  itkTypeMacro(JPEG2000ImageIO, StreamingImageIOBase);
 
   /*-------- This part of the interfaces deals with reading data. ----- */
 
@@ -93,6 +93,8 @@ public:
   virtual ImageIORegion
   GenerateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requested ) const;
 
+  /** Method required by the base class StreamingImageIOBase */
+  virtual SizeType GetHeaderSize(void ) const;
 
 protected:
   JPEG2000ImageIO();

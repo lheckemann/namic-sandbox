@@ -170,11 +170,6 @@ void JPEG2000ImageIO::ReadImageInformation()
   // Image parameters - tile width, height and number of tiles
   OPJ_UINT32 l_tile_width,l_tile_height,l_nb_tiles_x,l_nb_tiles_y;
 
-  /* decode the stream and fill the image structure */
-  /*    if (*indexfilename)        // If need to extract codestream information
-      image = opj_decode_with_info(dinfo, cio, &cstr_info);
-    else
-    */
   bool bResult = opj_read_header(
     dinfo,
     &image,
@@ -186,14 +181,19 @@ void JPEG2000ImageIO::ReadImageInformation()
     &l_nb_tiles_y,
     cio);
 
+
+  if ( !bResult )
+    {
+    itkExceptionMacro("Error while reading image header. opj_read_header returns false");
+    }
+
+
   if ( !image )
     {
     itkExceptionMacro("Error while reading image header");
     }
 
   this->SetNumberOfComponents( image->numcomps );
-
-  //  image = opj_decode(dinfo, cio); // FIXME : should this be here ?
 
   std::cout << "l_tile_x0 = " << l_tile_x0 << std::endl;
   std::cout << "l_tile_y0 = " << l_tile_y0 << std::endl;
@@ -202,9 +202,6 @@ void JPEG2000ImageIO::ReadImageInformation()
   std::cout << "l_nb_tiles_x = " << l_nb_tiles_x << std::endl;
   std::cout << "l_nb_tiles_y = " << l_nb_tiles_y << std::endl;
 
-  //  bResult = bResult && (image != 00);
-  //  bResult = bResult && opj_end_decompress(dinfo,cio);  // FIXME : should this be here ?
-
   if ( !image )
     {
     opj_destroy_codec(dinfo);
@@ -212,9 +209,6 @@ void JPEG2000ImageIO::ReadImageInformation()
     fclose(fsrc);
     itkExceptionMacro("ERROR -> j2k_to_image: failed to decode image!");
     }
-
-  // FIXME: bResult is not used.  We should check for it and maybe throw an exception.
-  std::cout << "bResult = " << bResult << std::endl;
 
 std::cout << "image->x1 = " << image->x1 << std::endl;
 std::cout << "image->y1 = " << image->y1 << std::endl;
@@ -296,11 +290,6 @@ void JPEG2000ImageIO::Read( void * buffer)
   OPJ_INT32 l_tile_x0,l_tile_y0;
   OPJ_UINT32 l_tile_width,l_tile_height,l_nb_tiles_x,l_nb_tiles_y;
 
-  /* decode the stream and fill the image structure */
-  /*    if (*indexfilename)        // If need to extract codestream information
-      image = opj_decode_with_info(dinfo, cio, &cstr_info);
-    else
-    */
   bool bResult = opj_read_header(
     dinfo,
     &image,
@@ -311,12 +300,13 @@ void JPEG2000ImageIO::Read( void * buffer)
     &l_nb_tiles_x,
     &l_nb_tiles_y,
     cio);
+
   image = opj_decode(dinfo, cio);
 
-//   bResult = bResult && (image != 00);
-//   bResult = bResult && opj_end_decompress(dinfo,cio);
-
-  std::cout << "bResult = " << bResult << std::endl;
+  if ( !bResult )
+    {
+    itkExceptionMacro("Error while reading image header. opj_read_header returns false");
+    }
 
   if ( !image )
     {
@@ -610,6 +600,15 @@ JPEG2000ImageIO
   /* free image data */
   opj_image_destroy(image);
 }
+
+
+JPEG2000ImageIO::SizeType 
+JPEG2000ImageIO::
+GetHeaderSize(void ) const
+{
+  return 0;
+}
+
 
 /** Given a requested region, determine what could be the region that we can
  * read from the file. This is called the streamable region, which will be
