@@ -93,24 +93,24 @@ void JPEG2000ImageIO::ReadImageInformation()
   this->SetPixelType( SCALAR );
   this->SetComponentType( UCHAR );
 
-  FILE *fsrc = NULL;
+  FILE * l_file = NULL;
 
-  fsrc = fopen( this->m_FileName.c_str(), "rb");
+   l_file = fopen( this->m_FileName.c_str(), "rb");
 
   /* decompression parameters */
 
-  if ( !fsrc )
+  if ( ! l_file )
     {
     itkExceptionMacro("ERROR -> failed to open for reading");
     }
 
   opj_stream_t * cio = NULL;
 
-  cio = opj_stream_create_default_file_stream(fsrc,true);
+  cio = opj_stream_create_default_file_stream( l_file,true);
 
   this->m_Dinfo = NULL;  /* handle to a decompressor */
 
-  opj_image_t *image = NULL;
+  opj_image_t * l_image = NULL;
 
   /* decode the code-stream */
   /* ---------------------- */
@@ -168,13 +168,18 @@ void JPEG2000ImageIO::ReadImageInformation()
   opj_setup_decoder( this->m_Dinfo, &m_DecompressionParameters);
 
   // Image parameters - first tile
-  OPJ_INT32 l_tile_x0,l_tile_y0;
+  OPJ_INT32 l_tile_x0;
+  OPJ_INT32 l_tile_y0;
+
   // Image parameters - tile width, height and number of tiles
-  OPJ_UINT32 l_tile_width,l_tile_height,l_nb_tiles_x,l_nb_tiles_y;
+  OPJ_UINT32 l_tile_width;
+  OPJ_UINT32 l_tile_height;
+  OPJ_UINT32 l_nb_tiles_x;
+  OPJ_UINT32 l_nb_tiles_y;
 
   bool bResult = opj_read_header(
     this->m_Dinfo,
-    &image,
+    & l_image,
     &l_tile_x0,
     &l_tile_y0,
     &l_tile_width,
@@ -190,12 +195,13 @@ void JPEG2000ImageIO::ReadImageInformation()
     }
 
 
-  if ( !image )
+  if ( ! l_image )
     {
     itkExceptionMacro("Error while reading image header");
     }
 
-  this->SetNumberOfComponents( image->numcomps );
+  std::cout << "Number of Components = " << l_image->numcomps << std::endl;
+  this->SetNumberOfComponents(  l_image->numcomps );
 
   std::cout << "l_tile_x0 = " << l_tile_x0 << std::endl;
   std::cout << "l_tile_y0 = " << l_tile_y0 << std::endl;
@@ -204,27 +210,27 @@ void JPEG2000ImageIO::ReadImageInformation()
   std::cout << "l_nb_tiles_x = " << l_nb_tiles_x << std::endl;
   std::cout << "l_nb_tiles_y = " << l_nb_tiles_y << std::endl;
 
-  if ( !image )
+  if ( ! l_image )
     {
     opj_destroy_codec( this->m_Dinfo );
     this->m_Dinfo = NULL;
     opj_stream_destroy(cio);
-    fclose(fsrc);
+    fclose( l_file );
     itkExceptionMacro("ERROR -> j2k_to_image: failed to decode image!");
     }
 
-std::cout << "image->x1 = " << image->x1 << std::endl;
-std::cout << "image->y1 = " << image->y1 << std::endl;
+  std::cout << "image->x1 = " <<  l_image->x1 << std::endl;
+  std::cout << "image->y1 = " <<  l_image->y1 << std::endl;
 
-  this->SetDimensions( 0, image->x1 );
-  this->SetDimensions( 1, image->y1 );
+  this->SetDimensions( 0,  l_image->x1 );
+  this->SetDimensions( 1,  l_image->y1 );
 
   this->SetSpacing( 0, 1.0 );  // FIXME : Get the real pixel resolution.
   this->SetSpacing( 1, 1.0 );  // FIXME : Get the real pixel resolution.
 
   /* close the byte stream */
   opj_stream_destroy(cio);
-  fclose(fsrc);
+  fclose( l_file );
 
   if ( this->m_Dinfo )
     {
@@ -238,22 +244,22 @@ void JPEG2000ImageIO::Read( void * buffer)
 {
   std::cout << "JPEG2000ImageIO::Read() Begin" << std::endl;
 
-  FILE *fsrc = NULL;
+  FILE * l_file = NULL;
 
-  fsrc = fopen( this->m_FileName.c_str(), "rb");
+  l_file = fopen( this->m_FileName.c_str(), "rb");
 
-  if ( !fsrc )
+  if ( ! l_file )
     {
     itkExceptionMacro("ERROR -> failed to open for reading");
     }
 
-  opj_stream_t * cio = NULL;
+  opj_stream_t * l_stream = NULL;
 
-  cio = opj_stream_create_default_file_stream(fsrc,true);
+  l_stream = opj_stream_create_default_file_stream( l_file,true);
 
   this->m_Dinfo  = NULL;  /* handle to a decompressor */
 
-  opj_image_t *image = NULL;
+  opj_image_t * l_image = NULL;
 
   /* decode the code-stream */
   /* ---------------------- */
@@ -283,7 +289,7 @@ void JPEG2000ImageIO::Read( void * buffer)
       }
     default:
       itkExceptionMacro("skipping file..\n");
-      opj_stream_destroy(cio);
+      opj_stream_destroy(l_stream);
       return;
     }
   /* catch events using our callbacks and give a local context */
@@ -292,19 +298,31 @@ void JPEG2000ImageIO::Read( void * buffer)
   opj_setup_decoder(this->m_Dinfo, &this->m_DecompressionParameters);
 
   OPJ_INT32 l_tile_x0,l_tile_y0;
-  OPJ_UINT32 l_tile_width,l_tile_height,l_nb_tiles_x,l_nb_tiles_y;
+
+  OPJ_UINT32 l_tile_width;
+  OPJ_UINT32 l_tile_height;
+  OPJ_UINT32 l_nb_tiles_x;
+  OPJ_UINT32 l_nb_tiles_y;
 
   bool bResult = opj_read_header(
     this->m_Dinfo,
-    &image,
+    & l_image,
     &l_tile_x0,
     &l_tile_y0,
     &l_tile_width,
     &l_tile_height,
     &l_nb_tiles_x,
     &l_nb_tiles_y,
-    cio);
+    l_stream);
 
+  if ( !bResult )
+    {
+    opj_destroy_codec(this->m_Dinfo);
+    this->m_Dinfo = NULL;
+    opj_stream_destroy( l_stream );
+    fclose( l_file );
+    itkExceptionMacro("ERROR opj_read_header failed");
+    }
 
   ImageIORegion regionToRead = this->GetIORegion();
 
@@ -313,18 +331,23 @@ void JPEG2000ImageIO::Read( void * buffer)
 
   const unsigned int sizex = size[0];
   const unsigned int sizey = size[1];
-  const unsigned int sizez = size[2];
+  // const unsigned int sizez = size[2];
 
   const unsigned int startx = start[0];
   const unsigned int starty = start[1];
-  const unsigned int startz = start[2];
+  // const unsigned int startz = start[2];
 
   OPJ_INT32 p_start_x = static_cast< OPJ_INT32 >( startx );
   OPJ_INT32 p_start_y = static_cast< OPJ_INT32 >( starty );
   OPJ_INT32 p_end_x   = static_cast< OPJ_INT32 >( startx + sizex );
   OPJ_INT32 p_end_y   = static_cast< OPJ_INT32 >( starty + sizey );
 
-std::cout << "opj_set_decode_area() before " << std::endl;
+  std::cout << "opj_set_decode_area() before " << std::endl;
+  std::cout << "p_start_x = " << p_start_x << std::endl;
+  std::cout << "p_start_y = " << p_start_y << std::endl;
+  std::cout << "p_end_x = " << p_end_x << std::endl;
+  std::cout << "p_end_y = " << p_end_y << std::endl;
+
   bResult = opj_set_decode_area(
     this->m_Dinfo,
     p_start_x,
@@ -332,46 +355,170 @@ std::cout << "opj_set_decode_area() before " << std::endl;
     p_end_x,
     p_end_y
     );
-std::cout << "opj_set_decode_area() after " << std::endl;
 
-
-  image = opj_decode(this->m_Dinfo, cio);
-
+  std::cout << "opj_set_decode_area() after " << std::endl;
 
   if ( !bResult )
     {
-    itkExceptionMacro("Error while reading image header. opj_read_header returns false");
+    opj_destroy_codec(this->m_Dinfo);
+    this->m_Dinfo = NULL;
+    opj_stream_destroy( l_stream );
+    fclose( l_file );
+    itkExceptionMacro("ERROR opj_set_decode_area failed");
     }
 
-  if ( !image )
+
+  OPJ_INT32 l_current_tile_x0;
+  OPJ_INT32 l_current_tile_y0;
+  OPJ_INT32 l_current_tile_x1;
+  OPJ_INT32 l_current_tile_y1;
+
+  OPJ_UINT32 l_tile_index;
+  OPJ_UINT32 l_data_size;
+
+  OPJ_UINT32 l_nb_comps;
+
+  OPJ_UINT32 l_max_data_size = 1000;
+
+  bool l_go_on = true;
+
+  OPJ_BYTE * l_data = (OPJ_BYTE *) malloc(1000);
+
+  while ( l_go_on )
+    {
+    bool tileHeaderRead = opj_read_tile_header(
+      this->m_Dinfo,
+      &l_tile_index,
+      &l_data_size,
+      &l_current_tile_x0,
+      &l_current_tile_y0,
+      &l_current_tile_x1,
+      &l_current_tile_y1,
+      &l_nb_comps,
+      &l_go_on,
+      l_stream);
+
+    if ( !tileHeaderRead )
+      {
+      free(l_data);
+      opj_stream_destroy( l_stream );
+      fclose( l_file );
+      opj_destroy_codec( this->m_Dinfo );
+      opj_image_destroy( l_image );
+      itkExceptionMacro("Error opj_read_tile_header");
+      }
+
+    std::cout << "l_tile_index " << l_tile_index << std::endl;
+    std::cout << "l_data_size " << l_data_size << std::endl;
+    std::cout << "l_current_tile_x0 " << l_current_tile_x0 << std::endl;
+    std::cout << "l_current_tile_y0 " << l_current_tile_y0 << std::endl;
+    std::cout << "l_current_tile_x1 " << l_current_tile_x1 << std::endl;
+    std::cout << "l_current_tile_y1 " << l_current_tile_y1 << std::endl;
+    std::cout << "l_nb_comps " << l_nb_comps << std::endl;
+    std::cout << "l_go_on " << l_go_on << std::endl;
+
+    if ( l_go_on )
+      {
+
+      if ( l_data_size > l_max_data_size )
+        {
+
+        l_data = (OPJ_BYTE *) realloc( l_data, l_data_size );
+
+        if ( ! l_data )
+          {
+          opj_stream_destroy( l_stream );
+          fclose( l_file );
+          opj_destroy_codec( this->m_Dinfo );
+          opj_image_destroy( l_image );
+          itkExceptionMacro("Error reallocating memory");
+          }
+
+        std::cout << "reallocated for " << l_data_size << std::endl;
+
+        l_max_data_size = l_data_size;
+
+        }
+
+      bool decodeTileData = opj_decode_tile_data( 
+        this->m_Dinfo,
+        l_tile_index,
+        l_data,
+        l_data_size,
+        l_stream);
+
+      if ( ! decodeTileData )
+        {
+        free(l_data);
+        opj_stream_destroy( l_stream );
+        fclose( l_file );
+        opj_destroy_codec( this->m_Dinfo );
+        opj_image_destroy( l_image );
+        itkExceptionMacro("Error opj_decode_tile_data");
+        }
+
+      std::cout << "decoding data size = " << l_data_size << std::endl;
+      }
+    }
+
+  l_image = opj_decode( this->m_Dinfo, l_stream );
+
+  if (! opj_end_decompress( this->m_Dinfo, l_stream ) )
+    {
+    free(l_data);
+    opj_stream_destroy( l_stream );
+    fclose( l_file );
+    opj_destroy_codec( this->m_Dinfo );
+    opj_image_destroy( l_image );
+    itkExceptionMacro("ERROR opj_end_decompress");
+    }
+
+  if ( ! l_image )
     {
     opj_destroy_codec(this->m_Dinfo);
     this->m_Dinfo = NULL;
-    opj_stream_destroy(cio);
-    fclose(fsrc);
+    opj_stream_destroy( l_stream );
+    fclose( l_file );
     itkExceptionMacro("ERROR -> j2k_to_image: failed to decode image!");
     }
 
   const size_t numberOfPixels = sizex * sizey;
 
-  unsigned char * charBuffer = (unsigned char *)buffer;
   size_t index = 0;
 
   // HERE, copy the buffer
+  std::cout << "Copying " << numberOfPixels << " pixels " << std::endl;
+  std::cout << "sizex " << sizex << " pixels " << std::endl;
+  std::cout << "sizey " << sizey << " pixels " << std::endl;
+
+  std::cout << "number of components = " << this->GetNumberOfComponents() << std::endl;
+
+
   std::cout << " START COPY BUFFER" << std::endl;
-  for ( size_t j = 0; j < numberOfPixels; j++)
+
+  OPJ_BYTE * l_data_ptr = l_data;
+
+  const unsigned int numberOfComponents = this->GetNumberOfComponents();
+
+  for ( unsigned int k = 0; k < numberOfComponents; k++)
     {
-    for ( unsigned int k = 0; k < this->GetNumberOfComponents(); k++)
+    unsigned char * charBuffer = (unsigned char *)buffer;
+    charBuffer += k;
+
+    for ( size_t j = 0; j < numberOfPixels; j++)
       {
-      *charBuffer++ = image->comps[k].data[index];
+      *charBuffer = (unsigned char)(*l_data_ptr++);
+      charBuffer += numberOfComponents;
+      //   l_image->comps[k].data[index];
       }
     index++;
     }
+
   std::cout << " END COPY BUFFER" << std::endl;
 
   /* close the byte stream */
-  opj_stream_destroy(cio);
-  fclose(fsrc);
+  opj_stream_destroy( l_stream );
+  fclose( l_file );
 
   if (this->m_Dinfo)
     {
@@ -482,21 +629,22 @@ JPEG2000ImageIO
     }
 
 
-  opj_image_t *image = NULL;
-  image = opj_image_create( this->GetNumberOfComponents(), &cmptparm[0], color_space);
-  if(!image)
+  opj_image_t * l_image = NULL;
+  l_image = opj_image_create( this->GetNumberOfComponents(), &cmptparm[0], color_space);
+
+  if( ! l_image )
     {
     itkExceptionMacro("Image buffer not created");
     }
 
-  image->numcomps = this->GetNumberOfComponents();
+  l_image->numcomps = this->GetNumberOfComponents();
 
   int subsampling_dx = parameters.subsampling_dx;
   int subsampling_dy = parameters.subsampling_dy;
-  image->x0 = parameters.image_offset_x0;
-  image->y0 = parameters.image_offset_y0;
-  image->x1 = !image->x0 ? (w - 1) * subsampling_dx + 1 : image->x0 + (w - 1) * subsampling_dx + 1;
-  image->y1 = !image->y0 ? (h - 1) * subsampling_dy + 1 : image->y0 + (h - 1) * subsampling_dy + 1;
+  l_image->x0 = parameters.image_offset_x0;
+  l_image->y0 = parameters.image_offset_y0;
+  l_image->x1 = !l_image->x0 ? (w - 1) * subsampling_dx + 1 : l_image->x0 + (w - 1) * subsampling_dx + 1;
+  l_image->y1 = !l_image->y0 ? (h - 1) * subsampling_dy + 1 : l_image->y0 + (h - 1) * subsampling_dy + 1;
 
   // HERE, copy the buffer
   unsigned char * charBuffer = (unsigned char *)buffer;
@@ -507,7 +655,7 @@ JPEG2000ImageIO
     {
     for ( unsigned int k = 0; k < this->GetNumberOfComponents(); k++)
       {
-      image->comps[k].data[index] = *charBuffer++;
+      l_image->comps[k].data[index] = *charBuffer++;
       }
     index++;
     }
@@ -582,11 +730,11 @@ JPEG2000ImageIO
       }
     }
 
-  opj_setup_encoder(cinfo, &parameters, image);
+  opj_setup_encoder(cinfo, &parameters, l_image );
 
-  FILE *f = NULL;
-  f = fopen(parameters.outfile, "wb");
-  if (! f)
+  FILE * l_file = NULL;
+  l_file = fopen(parameters.outfile, "wb");
+  if ( ! l_file )
     {
     itkExceptionMacro("failed to encode image");
     }
@@ -594,7 +742,7 @@ JPEG2000ImageIO
   /* open a byte stream for writing */
   /* allocate memory for all tiles */
   opj_stream_t *cio = 00;
-  cio = opj_stream_create_default_file_stream(f,false);
+  cio = opj_stream_create_default_file_stream(l_file,false);
   if (! cio)
     {
     itkExceptionMacro("no file stream opened");
@@ -604,20 +752,20 @@ JPEG2000ImageIO
   /*if (*indexfilename)         // If need to extract codestream information
     bSuccess = opj_encode_with_info(cinfo, cio, image, &cstr_info);
   else*/
-  bSuccess = opj_start_compress(cinfo,image,cio);
+  bSuccess = opj_start_compress(cinfo,l_image,cio);
   bSuccess = bSuccess && opj_encode(cinfo, cio);
   bSuccess = bSuccess && opj_end_compress(cinfo, cio);
 
   if (!bSuccess)
     {
     opj_stream_destroy(cio);
-    fclose(f);
+    fclose( l_file );
     itkExceptionMacro("failed to encode image");
     }
 
   /* close and free the byte stream */
   opj_stream_destroy(cio);
-  fclose(f);
+  fclose( l_file );
 
   //   /* Write the index to disk */
   //   if (*indexfilename)
@@ -635,7 +783,7 @@ JPEG2000ImageIO
   //     opj_destroy_cstr_info(&cstr_info);
 
   /* free image data */
-  opj_image_destroy(image);
+  opj_image_destroy(l_image);
 }
 
 
