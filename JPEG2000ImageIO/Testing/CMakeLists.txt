@@ -23,7 +23,7 @@ TARGET_LINK_LIBRARIES(itkJPEG2000ImageIOTest03 JPEG2000ImageIO)
 ADD_TEST(RegionTest01  
   ${CXX_TEST_PATH}/ImageReadRegionOfInterestWrite 
   ${TEST_DATA_ROOT}/Input/Bretagne1.j2k
-  ${TEST_DATA_ROOT}/Input/Bretagne1_RegionTest01.tif
+  ${TEMP}/Bretagne1_RegionTest01.tif
   160 120
   320 240
   )
