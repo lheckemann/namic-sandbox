@@ -22,6 +22,8 @@
 #define ITK_LEAN_AND_MEAN
 #endif
 
+#include "itkJPEG2000ImageIOFactory.h"
+
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
@@ -38,6 +40,9 @@ int main( int argc, char ** argv )
     std::cerr << " startX startY startZ sizeX sizeY sizeZ" << std::endl;
     return EXIT_FAILURE;
     }
+
+  //  Register the factory
+  itk::JPEG2000ImageIOFactory::RegisterOneFactory();
 
   //  Image types are defined below.
   typedef unsigned char       InputPixelType;
