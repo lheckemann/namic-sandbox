@@ -24,8 +24,8 @@ ADD_TEST(RegionTest01
   ${CXX_TEST_PATH}/ImageReadRegionOfInterestWrite 
   ${TEST_DATA_ROOT}/Input/Bretagne1.j2k
   ${TEST_DATA_ROOT}/Input/Bretagne1_RegionTest01.tif
-  100 100 1
-  200 200 1
+  160 120
+  320 240
   )
 
 ADD_TEST(JpegTest00  ${CXX_TEST_PATH}/itkJPEG2000ImageIOFactoryTest01 )
