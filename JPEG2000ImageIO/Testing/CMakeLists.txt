@@ -20,7 +20,13 @@ TARGET_LINK_LIBRARIES(itkJPEG2000ImageIOTest02 JPEG2000ImageIO)
 ADD_EXECUTABLE(itkJPEG2000ImageIOTest03 itkJPEG2000ImageIOTest03.cxx)
 TARGET_LINK_LIBRARIES(itkJPEG2000ImageIOTest03 JPEG2000ImageIO)
 
-ADD_TEST(RegionTest01  ${CXX_TEST_PATH}/ImageReadRegionOfInterestWrite ${TEST_DATA_ROOT}/Input/Bretagne1.j2k )
+ADD_TEST(RegionTest01  
+  ${CXX_TEST_PATH}/ImageReadRegionOfInterestWrite 
+  ${TEST_DATA_ROOT}/Input/Bretagne1.j2k
+  ${TEST_DATA_ROOT}/Input/Bretagne1_RegionTest01.tif
+  100 100 1
+  200 200 1
+  )
 
 ADD_TEST(JpegTest00  ${CXX_TEST_PATH}/itkJPEG2000ImageIOFactoryTest01 )
 ADD_TEST(JpegTest01  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest00 )
