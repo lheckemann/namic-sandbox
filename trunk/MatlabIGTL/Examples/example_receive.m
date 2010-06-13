@@ -10,7 +10,7 @@ if sd == -1
 end
 
 for n=1:10
-  DATA = igtlreceive(sd);
+  [S, DATA] = igtlreceive(sd);
 end
 
 igtlclose(sd);

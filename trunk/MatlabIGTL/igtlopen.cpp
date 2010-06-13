@@ -18,16 +18,19 @@
 //  SD = igtlopen(HOST, PORT);
 //
 //    SD  : (integer)    Socket descriptor (-1 if failed to connect)
-//    HOST: (string)     Hostname or IP address
+//    HOST: (string)     Hostname or IP address. If '' is specified,
+//                       server socket will be created.
 //    PORT: (int)        Port #
 //
 
 #include "mex.h"
 #include <math.h>
+#include <string.h>
 
 #include "igtlOSUtil.h"
 #include "igtlImageMessage.h"
 #include "igtlMexClientSocket.h"
+#include "igtlMexServerSocket.h"
 
 using namespace std;
 
@@ -80,28 +83,55 @@ void mexFunction (int nlhs, mxArray *plhs[],
   // ---------------------------------------------------------------
   // Set variables
 
-  char hostname[MAX_STRING_LEN];
+  char hostname[MAX_STRING_LEN+1];
   
   mxGetString(prhs[ARG_ID_HOST], hostname, MAX_STRING_LEN);
   int         port     = (int)*mxGetPr(prhs[ARG_ID_PORT]);
 
+  // TODO: check length of hostname
+
+
+
   // ---------------------------------------------------------------
-  // Set up OpenIGTLink Connection
-  igtl::MexClientSocket::Pointer socket;
-  socket = igtl::MexClientSocket::New();
+  // Server or Client?
 
-  int result = socket->ConnectToServer(hostname, port);
-
-  //sleep(2);
   double& p = createMatlabScalar(plhs[0]);
 
-  if (result != 0)
+  if (strlen(hostname) == 0)  // Server
     {
-    p = -1;
+    // ----------------------------------------
+    // Set up OpenIGTLink server socket
+    igtl::MexServerSocket::Pointer serverSocket;
+    serverSocket = igtl::MexServerSocket::New();
+    int r = serverSocket->CreateServer(port);
+
+    if (r < 0)
+      {
+      p = -1;
+      mexErrMsgTxt("Cannot create a server socket.");
+      }
+    else
+      {
+      p = serverSocket->GetDescriptor();
+      }
     }
-  else
+  else // Client
     {
-    p = socket->GetDescriptor();
+    // ----------------------------------------
+    // Set up OpenIGTLink client socket
+    igtl::MexClientSocket::Pointer socket;
+    socket = igtl::MexClientSocket::New();
+    
+    int result = socket->ConnectToServer(hostname, port);
+    //sleep(2);
+    if (result != 0)
+      {
+      p = -1;
+      }
+    else
+      {
+      p = socket->GetDescriptor();
+      }
     }
 
 }

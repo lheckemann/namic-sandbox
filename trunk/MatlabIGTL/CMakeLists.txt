@@ -18,6 +18,7 @@ endif (MEX_COMPILER MATCHES mkoctfile$)
 
 set(OpenIGTLinkMex_SOURCES
   igtlMexClientSocket.cpp
+  igtlMexServerSocket.cpp
   igtlMexSocket.cpp
 )
 
@@ -51,7 +52,8 @@ set(LIB
 add_custom_target ( igtlopen ALL )
 add_custom_target ( igtlclose ALL )
 add_custom_target ( igtlsend ALL )
-add_custom_target ( igtlreceive ALL)
+add_custom_target ( igtlreceive ALL )
+add_custom_target ( igtlwaitcon ALL )
 
 add_custom_command (
   TARGET  igtlopen
@@ -82,6 +84,14 @@ add_custom_command (
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
   ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlreceive.cpp
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlreceive.cpp
+)
+
+add_custom_command (
+  TARGET  igtlwaitcon
+  PRE_BUILD
+  COMMAND ${MEX_COMPILER}
+  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlwaitcon.cpp
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlreceive.cpp
 )
 

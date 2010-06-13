@@ -402,6 +402,29 @@ int MexSocket::Skip(int length, int skipFully/*=1*/)
 
 }
 
+
+//-----------------------------------------------------------------------------
+int MexSocket::SetDescriptor(int sd)
+{
+  if (!sd)
+    {
+    igtlErrorMacro("Failed to create socket.");
+    return -1;
+    }
+
+  if (this->m_SocketDescriptor != -1)
+    {
+    igtlWarningMacro("Connection already exists. Closing it.");
+    this->CloseSocket(this->m_SocketDescriptor);
+    this->m_SocketDescriptor = -1;
+    }
+  
+  this->m_SocketDescriptor = sd;
+
+  return 0;
+}
+
+
 //-----------------------------------------------------------------------------
 void MexSocket::PrintSelf(std::ostream& os)
 {
