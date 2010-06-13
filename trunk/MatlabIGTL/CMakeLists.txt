@@ -11,6 +11,11 @@ include(${OpenIGTLink_USE_FILE})
 
 find_program(MEX_COMPILER mex)
 
+# if MEX_COMPILER is mkoctfile (for Octave)
+if (MEX_COMPILER MATCHES mkoctfile$)
+  set(MEX_OPTION --mex)
+endif (MEX_COMPILER MATCHES mkoctfile$)
+
 set(OpenIGTLinkMex_SOURCES
   igtlMexClientSocket.cpp
   igtlMexSocket.cpp
@@ -41,6 +46,7 @@ set(LIB
   -lOpenIGTLink
   -lOpenIGTLinkMex
 )
+
 
 add_custom_target ( igtlopen ALL )
 add_custom_target ( igtlclose ALL )
