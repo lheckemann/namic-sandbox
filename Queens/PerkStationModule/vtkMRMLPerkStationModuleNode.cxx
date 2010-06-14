@@ -16,6 +16,7 @@
 #include "itkGDCMImageIO.h"
 #include "itkSpatialOrientationAdapter.h"
 
+#include "vtkIndent.h"
 #include "vtkMath.h"
 #include "vtkObjectFactory.h"
 #include "vtkStringArray.h"
@@ -32,30 +33,31 @@
 // Internal file IO helper functions. -----------------------------------------
 
 void
-WriteBool( std::ostream& out, bool var, std::string name )
+WriteBool( std::ostream& out, vtkIndent indent, bool var, std::string name )
 {
-  out << " " << name << "=\"" << var << "\"" << std::endl;
+  out << indent << name << "=\"" << var << "\"" << std::endl;
 }
 
 
 void
-WriteDouble( std::ostream& out, double var, std::string name )
+WriteDouble( std::ostream& out, vtkIndent indent, double var, std::string name )
 {
-  out << " " << name << "=\"" << var << "\"" << std::endl;
+  out << indent << name << "=\"" << var << "\"" << std::endl;
 }
 
 
 void
-WriteInt( std::ostream& out, int var, std::string name )
+WriteInt( std::ostream& out, vtkIndent indent, int var, std::string name )
 {
-  out << " " << name << "=\"" << var << "\"" << std::endl;
+  out << indent << name << "=\"" << var << "\"" << std::endl;
 }
 
 
 void
-WriteDoubleVector( std::ostream& out, double* var, std::string name, int n )
+WriteDoubleVector( std::ostream& out, vtkIndent indent, double* var,
+                   std::string name, int n )
 {
-  out << " " << name << "=\"";
+  out << indent << name << "=\"";
   for ( int i = 0; i < n; ++ i )
     {
     out << var[ i ] << " ";
@@ -199,7 +201,8 @@ vtkMRMLPerkStationModuleNode
 vtkMRMLPerkStationModuleNode
 ::vtkMRMLPerkStationModuleNode()
 {
-  this->HideFromEditors = true;
+  this->HideFromEditorsOff();
+  this->SetSaveWithScene( true );
   
     // Hardware list.
     // TODO: fill this list from a config file.
@@ -334,8 +337,6 @@ vtkMRMLPerkStationModuleNode
   
   this->CurrentStep = 0;
   this->PreviousStep = WORKPHASE_CALIBRATION;
-  
-  
 }
 
 
@@ -359,61 +360,83 @@ vtkMRMLPerkStationModuleNode::~vtkMRMLPerkStationModuleNode()
 void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
 {  
   Superclass::WriteXML(of, nIndent);
+  of << std::endl;
   
   // Write all MRML node attributes into output stream
   
   vtkIndent indent( nIndent );
-  of << indent;
+  
   
   // Calibration step parameters
   
-  // flip parameters
-  of << " SecondMonitorVerticalFlip=\"" << this->SecondMonitorVerticalFlip << "\"";
-  of << " SecondMonitorHorizontalFlip=\"" << this->SecondMonitorHorizontalFlip << "\"";
-  of << " SecondMonitorTranslation=\"";
-  for( int i = 0; i < 3; i++ ) of << this->SecondMonitorTranslation[ i ] << " ";
-  of << "\"";
-  of << " SecondMonitorRotation=\"" << this->SecondMonitorRotation << "\"";
-  of << " SecondMonitorRotationCenter=\"";
-  for(int i = 0; i < 3; i++) of << this->SecondMonitorRotationCenter[ i ] << " ";
-  of << "\"";
+  of << indent << "SecondMonitorVerticalFlip=\""
+     << this->SecondMonitorVerticalFlip << "\"" << std::endl;
+  of << indent << "SecondMonitorHorizontalFlip=\""
+     << this->SecondMonitorHorizontalFlip << "\"" << std::endl;
+  of << indent << "SecondMonitorTranslation=\"";
+    for( int i = 0; i < 3; i++ ) of << this->SecondMonitorTranslation[ i ] << " ";
+    of << "\"" << std::endl;
+  of << "SecondMonitorRotation=\"" << this->SecondMonitorRotation << "\"" << std::endl;
+  of << "SecondMonitorRotationCenter=\"";
+    for(int i = 0; i < 3; i++) of << this->SecondMonitorRotationCenter[ i ] << " ";
+    of << "\"" << std::endl;
   
-  of << indent << " TableAtScanner=\"" << this->TableAtScanner << "\" \n";
-  of << indent << " TableAtOverlay=\"" << this->TableAtOverlay << "\" \n";
+  of << indent << "TableAtScanner=\"" << this->TableAtScanner << "\" \n" << std::endl;
+  of << indent << "TableAtOverlay=\"" << this->TableAtOverlay << "\" \n" << std::endl;
+  
   
     // Plan list.
   
-  of << indent << " CurrentPlanIndex=\"" << this->CurrentPlanIndex << "\"";
+  of << indent << "CurrentPlanIndex=\"" << this->CurrentPlanIndex << "\"" << std::endl;
   for ( unsigned int planInd =0;
         planInd < this->PlanList.size();
         planInd ++ )
     {
-    of << " Plan" << planInd << "_Name=\"" << this->PlanList[ planInd ]->GetName() << "\"";
-    of << " Plan" << planInd << "_PlanningVolumeRef=\"" << this->PlanList[ planInd ]->GetPlanningVolumeRef() << "\"";
-    of << " Plan" << planInd << "_EntryRASLocation=\""
-      << this->PlanList[ planInd ]->GetEntryPointRAS()[ 0 ] << " "
-      << this->PlanList[ planInd ]->GetEntryPointRAS()[ 1 ] << " "
-      << this->PlanList[ planInd ]->GetEntryPointRAS()[ 2 ] << "\"";
-    of << " Plan" << planInd << "_TargetRASLocation=\""
-      << this->PlanList[ planInd ]->GetTargetPointRAS()[ 0 ] << " "
-      << this->PlanList[ planInd ]->GetTargetPointRAS()[ 1 ] << " "
-      << this->PlanList[ planInd ]->GetTargetPointRAS()[ 2 ] << "\"";
-    of << " Plan" << planInd << "_Validated=\"" << this->PlanList[ planInd ]->GetValidated() << "\"";
-    of << " Plan" << planInd << "_ValidationVolumeRef=\"" << this->PlanList[ planInd ]->GetValidationVolumeRef() << "\"";
-    of << " Plan" << planInd << "_ValidationEntryRASLocation=\""
-      << this->PlanList[ planInd ]->GetValidationEntryPointRAS()[ 0 ] << " "
-      << this->PlanList[ planInd ]->GetValidationEntryPointRAS()[ 1 ] << " "
-      << this->PlanList[ planInd ]->GetValidationEntryPointRAS()[ 2 ] << "\"";
-    of << " Plan" << planInd << "_ValidationTargetRASLocation=\""
-      << this->PlanList[ planInd ]->GetValidationTargetPointRAS()[ 0 ] << " "
-      << this->PlanList[ planInd ]->GetValidationTargetPointRAS()[ 1 ] << " "
-      << this->PlanList[ planInd ]->GetValidationTargetPointRAS()[ 2 ] << "\"";
+    of << indent << "Plan" << planInd << "_Name=\""
+       << this->PlanList[ planInd ]->GetName() << "\"" << std::endl;
+    of << indent << "Plan" << planInd << "_PlanningVolumeRef=\""
+       << this->PlanList[ planInd ]->GetPlanningVolumeRef() << "\"" << std::endl;
+    of << indent << "Plan" << planInd << "_EntryRASLocation=\""
+       << this->PlanList[ planInd ]->GetEntryPointRAS()[ 0 ] << " "
+       << this->PlanList[ planInd ]->GetEntryPointRAS()[ 1 ] << " "
+       << this->PlanList[ planInd ]->GetEntryPointRAS()[ 2 ] << "\"" << std::endl;
+    of << indent << "Plan" << planInd << "_TargetRASLocation=\""
+       << this->PlanList[ planInd ]->GetTargetPointRAS()[ 0 ] << " "
+       << this->PlanList[ planInd ]->GetTargetPointRAS()[ 1 ] << " "
+       << this->PlanList[ planInd ]->GetTargetPointRAS()[ 2 ] << "\"" << std::endl;
+    of << indent << "Plan" << planInd << "_Validated=\""
+       << this->PlanList[ planInd ]->GetValidated() << "\"" << std::endl;
+    of << indent << "Plan" << planInd << "_ValidationVolumeRef=\""
+       << this->PlanList[ planInd ]->GetValidationVolumeRef() << "\"" << std::endl;
+    of << indent << "Plan" << planInd << "_ValidationEntryRASLocation=\""
+       << this->PlanList[ planInd ]->GetValidationEntryPointRAS()[ 0 ] << " "
+       << this->PlanList[ planInd ]->GetValidationEntryPointRAS()[ 1 ] << " "
+       << this->PlanList[ planInd ]->GetValidationEntryPointRAS()[ 2 ] << "\"" << std::endl;
+    of << indent << "Plan" << planInd << "_ValidationTargetRASLocation=\""
+       << this->PlanList[ planInd ]->GetValidationTargetPointRAS()[ 0 ] << " "
+       << this->PlanList[ planInd ]->GetValidationTargetPointRAS()[ 1 ] << " "
+       << this->PlanList[ planInd ]->GetValidationTargetPointRAS()[ 2 ] << "\"" << std::endl;
     }
+  
+  
+    // Validation.
+  
+  WriteDoubleVector( of, indent, this->ValidateEntryPoint, "ValidateEntryPoint", 3 );
+  WriteDoubleVector( of, indent, this->ValidateTargetPoint, "ValidateTargetPoint", 3 );
+  
+    // Common.
+  
+  WriteDouble( of, indent, this->TimeOnCalibrateStep, "TimeOnCalibrateStep" );
+  WriteDouble( of, indent, this->TimeOnPlanStep, "TimeOnPlanStep" );
+  WriteDouble( of, indent, this->TimeOnInsertStep, "TimeOnInsertStep" );
+  WriteDouble( of, indent, this->TimeOnValidateStep, "TimeOnValidateStep" );
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
+void
+vtkMRMLPerkStationModuleNode
+::ReadXMLAttributes( const char** atts )
 {
   vtkMRMLNode::ReadXMLAttributes( atts );
 
@@ -455,6 +478,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       {
       if ( sectionInd >= this->PlanList.size() ) {
         this->PlanList.resize( sectionInd + 1 );
+        this->PlanList[ sectionInd ] = vtkPerkStationPlan::New();
         }
       vtkPerkStationPlan* plan = this->PlanList[ sectionInd ];
       
@@ -504,16 +528,11 @@ void vtkMRMLPerkStationModuleNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy( anode );
   vtkMRMLPerkStationModuleNode *node = (vtkMRMLPerkStationModuleNode *) anode;
-
-/*  this->SetConductance(node->Conductance);
-  this->SetNumberOfIterations(node->NumberOfIterations);
-  this->SetTimeStep(node->TimeStep);
-  this->SetUseImageSpacing(node->UseImageSpacing);*/
   
-  this->SetPlanningVolumeRef(node->PlanningVolumeRef);
-  this->SetValidationVolumeRef(node->ValidationVolumeRef);
-  this->SetPlanningVolumeNode(node->GetPlanningVolumeNode());
-  this->SetValidationVolumeNode(node->GetValidationVolumeNode());
+  this->SetPlanningVolumeRef( node->PlanningVolumeRef );
+  this->SetValidationVolumeRef( node->ValidationVolumeRef );
+  this->SetPlanningVolumeNode( node->GetPlanningVolumeNode( ));
+  this->SetValidationVolumeNode( node->GetValidationVolumeNode() );
   
   
     // Work phases.
@@ -537,20 +556,17 @@ void
 vtkMRMLPerkStationModuleNode
 ::SaveClibration( std::ostream& out )
 {
-  WriteDouble( out, this->SecondMonitorRotation, "SecondMonitorRotation" );
-  WriteDoubleVector( out, this->SecondMonitorRotationCenter,
-                     "SecondMonitorRotationCenter", 2 );
-  WriteDoubleVector( out, this->SecondMonitorTranslation,
-                     "SecondMonitorTranslation", 2 );
-  WriteBool( out, this->SecondMonitorHorizontalFlip,
-             "SecondMonitorHorizontalFlip" );
-  WriteBool( out, this->SecondMonitorVerticalFlip,
-             "SecondMonitorVerticalFlip" );
-  WriteDouble( out, this->TableAtScanner, "TableAtScanner" );
-  WriteDouble( out, this->TableAtOverlay, "TableAtOverlay" );
-  WriteDouble( out, this->PatientAtScanner, "PatientAtScanner" );
-  WriteDouble( out, this->CurrentSliceOffset, "CurrentSliceOffset" );
-  WriteInt( out, this->HardwareIndex, "HardwareIndex" );
+  vtkIndent ind( 0 );
+  WriteDouble( out, ind, this->SecondMonitorRotation, "SecondMonitorRotation" );
+  WriteDoubleVector( out, ind, this->SecondMonitorRotationCenter, "SecondMonitorRotationCenter", 2 );
+  WriteDoubleVector( out, ind, this->SecondMonitorTranslation, "SecondMonitorTranslation", 2 );
+  WriteBool( out, ind, this->SecondMonitorHorizontalFlip, "SecondMonitorHorizontalFlip" );
+  WriteBool( out, ind, this->SecondMonitorVerticalFlip, "SecondMonitorVerticalFlip" );
+  WriteDouble( out, ind, this->TableAtScanner, "TableAtScanner" );
+  WriteDouble( out, ind, this->TableAtOverlay, "TableAtOverlay" );
+  WriteDouble( out, ind, this->PatientAtScanner, "PatientAtScanner" );
+  WriteDouble( out, ind, this->CurrentSliceOffset, "CurrentSliceOffset" );
+  WriteInt( out, ind, this->HardwareIndex, "HardwareIndex" );
 }
 
 
@@ -622,30 +638,14 @@ vtkMRMLPerkStationModuleNode
 }
 
 
-
+/**
+ * Writes standard xml part of this node to an ostream.
+ */
 void
 vtkMRMLPerkStationModuleNode
 ::SaveExperiment( std::ostream& out )
 {
-  this->SaveClibration( out );
-  
-    // Plan.
-  
-  WriteDoubleVector( out, this->PlanEntryPoint, "PlanEntryPoint", 3 );
-  WriteDoubleVector( out, this->PlanTargetPoint, "PlanTargetPoint", 3 );
-  WriteDouble( out, this->TiltAngle, "TiltAngle" );
-  
-    // Validation.
-  
-  WriteDoubleVector( out, this->ValidateEntryPoint, "ValidateEntryPoint", 3 );
-  WriteDoubleVector( out, this->ValidateTargetPoint, "ValidateTargetPoint", 3 );
-  
-    // Common.
-  
-  WriteDouble( out, this->TimeOnCalibrateStep, "TimeOnCalibrateStep" );
-  WriteDouble( out, this->TimeOnPlanStep, "TimeOnPlanStep" );
-  WriteDouble( out, this->TimeOnInsertStep, "TimeOnInsertStep" );
-  WriteDouble( out, this->TimeOnValidateStep, "TimeOnValidateStep" );
+  this->WriteXML( out, 0 );
 }
 
 
@@ -653,70 +653,9 @@ bool
 vtkMRMLPerkStationModuleNode
 ::LoadExperiment( std::istream& in )
 {
-  this->LoadCalibration( in );
+  // this->ReadXMLAttributes(
   
-  
-  std::map< std::string, std::string > map = ReadAttributes( in );
-  std::map< std::string, std::string >::iterator iter;
-  
-  bool nameNotFound = false;
-  
-  
-    // Plan.
-  
-  iter = map.find( "PlanEntryPoint" );
-  if ( iter != map.end() )
-    StringToDoubleVector( iter->second, this->PlanEntryPoint, 3 );
-  else nameNotFound = true;
-  
-  iter = map.find( "PlanTargetPoint" );
-  if ( iter != map.end() )
-    StringToDoubleVector( iter->second, this->PlanTargetPoint, 3 );
-  else nameNotFound = true;
-  
-  iter = map.find( "TiltAngle" );
-  if ( iter != map.end() )
-    StringToDouble( iter->second, this->TiltAngle );
-  else nameNotFound = true;
-  
-  
-    // Validation.
-  
-  iter = map.find( "ValidateEntryPoint" );
-  if ( iter != map.end() )
-    StringToDoubleVector( iter->second, this->ValidateEntryPoint, 3 );
-  else nameNotFound = true;
-  
-  iter = map.find( "ValidateTargetPoint" );
-  if ( iter != map.end() )
-    StringToDoubleVector( iter->second, this->ValidateTargetPoint, 3 );
-  else nameNotFound = true;
-  
-  
-    // Common.
-  
-  iter = map.find( "TimeOnCalibrateStep" );
-  if ( iter != map.end() )
-    StringToDouble( iter->second, this->TimeOnCalibrateStep );
-  else nameNotFound = true;
-  
-  iter = map.find( "TimeOnPlanStep" );
-  if ( iter != map.end() )
-    StringToDouble( iter->second, this->TimeOnPlanStep );
-  else nameNotFound = true;
-  
-  iter = map.find( "TimeOnInsertStep" );
-  if ( iter != map.end() )
-    StringToDouble( iter->second, this->TimeOnInsertStep );
-  else nameNotFound = true;
-  
-  iter = map.find( "TimeOnValidateStep" );
-  if ( iter != map.end() )
-    StringToDouble( iter->second, this->TimeOnValidateStep );
-  else nameNotFound = true;
-  
-  
-  return ! nameNotFound;
+  return true;
 }
 
 
@@ -1227,6 +1166,11 @@ vtkMRMLPerkStationModuleNode
   this->CurrentPlanIndex = index;
   
   this->Modified();
-  // this->InvokeEvent(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent);
+  // this->InvokeEvent( vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent );
   return this->CurrentPlanIndex;
+  
+  this->PlanList[ this->CurrentPlanIndex ]->GetEntryPointRAS( this->PlanEntryPoint );
+  this->PlanList[ this->CurrentPlanIndex ]->GetTargetPointRAS( this->PlanTargetPoint );
+  this->PlanList[ this->CurrentPlanIndex ]->GetValidationEntryPointRAS( this->ValidateEntryPoint );
+  this->PlanList[ this->CurrentPlanIndex ]->GetValidationTargetPointRAS( this->ValidateTargetPoint );
 }
