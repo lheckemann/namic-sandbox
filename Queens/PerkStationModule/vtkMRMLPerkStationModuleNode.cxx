@@ -262,8 +262,6 @@ vtkMRMLPerkStationModuleNode
   this->PatientAtScanner = 0.0;
   this->CurrentSliceOffset = 0.0;
   
-  this->InitializeTransform();
-  
   this->PatientPosition = PPNA;
   
   
@@ -689,25 +687,6 @@ void vtkMRMLPerkStationModuleNode::UpdateReferenceID( const char *oldID,
     {
     this->SetInputVolumeRef(newID);
     }*/
-}
-
-
-/**
- * Create and initialize CalibrationMRMLTransformNode as an identity transform.
- */
-void vtkMRMLPerkStationModuleNode::InitializeTransform()
-{
-    this->CalibrationMRMLTransformNode =
-      vtkSmartPointer< vtkMRMLLinearTransformNode >::New();
-    this->CalibrationMRMLTransformNode->
-      SetName( "PerkStationCalibrationTransform" );
-    this->CalibrationMRMLTransformNode->
-      SetDescription( "Created by PERK Station Module" );
-
-    vtkSmartPointer< vtkMatrix4x4 > matrix =
-      vtkSmartPointer< vtkMatrix4x4 >::New();
-    matrix->Identity();
-    this->CalibrationMRMLTransformNode->ApplyTransform( matrix );
 }
 
 

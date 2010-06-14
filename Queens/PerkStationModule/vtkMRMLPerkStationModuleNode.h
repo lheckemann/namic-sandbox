@@ -130,13 +130,6 @@ public:
   vtkGetMacro( CurrentSliceOffset, double );
   vtkSetMacro( CurrentSliceOffset, double );
   
-  //BTX
-  vtkSmartPointer< vtkMRMLLinearTransformNode >
-  GetCalibrationMRMLTransformNode() {
-    return this->CalibrationMRMLTransformNode;
-  }
-  //ETX
-  
   vtkGetMacro( HardwareIndex, int );
   vtkSetMacro( HardwareIndex, int );
   
@@ -306,8 +299,6 @@ protected:
   vtkMRMLPerkStationModuleNode( const vtkMRMLPerkStationModuleNode& );
   void operator=( const vtkMRMLPerkStationModuleNode& );
   
-  void InitializeTransform();
-
   void InitializeFiducialListNode();
   
   
@@ -325,10 +316,6 @@ protected:
   double PatientAtScanner;
   double CurrentSliceOffset;    // In RAS.
   
-  //BTX
-   // Slicer's volume transform node.
-  vtkSmartPointer< vtkMRMLLinearTransformNode > CalibrationMRMLTransformNode;
-  //ETX
   
   int HardwareIndex;
   
