@@ -1,1 +1,0 @@
-/home/neuroendo/IGTLoadableModules/NeuroEndoscopic/CMakeFiles/NeuroEndoscopic.dir
