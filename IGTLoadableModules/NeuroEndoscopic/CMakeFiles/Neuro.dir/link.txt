@@ -1,0 +1,1 @@
+/usr/bin/c++     -ftemplate-depth-50    -lpthread CMakeFiles/Neuro.dir/NeuroEndoscopic.o  -o bin/Neuro -rdynamic -L/home/neuroendo/Slicer3-lib/OpenIGTLink-build/bin -lOpenIGTLink -Wl,-rpath,/home/neuroendo/Slicer3-lib/OpenIGTLink-build/bin 
