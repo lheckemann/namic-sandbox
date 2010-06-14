@@ -297,7 +297,7 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
     // TODO: what to do on failure
     return;
     }
-
+  
   this->VolumeNode = mrmlNode->GetPlanningVolumeNode();
   if ( ! this->VolumeNode )
     {
