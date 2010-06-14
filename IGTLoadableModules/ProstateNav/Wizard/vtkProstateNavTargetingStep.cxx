@@ -936,7 +936,10 @@ void vtkProstateNavTargetingStep::OnMultiColumnListSelection()
     }
     */
 
-    this->GUI->BringTargetToViewIn2DViews(vtkProstateNavGUI::BRING_MARKERS_TO_VIEW_KEEP_CURRENT_ORIENTATION);
+    // Don't move slices to the current target immediately, because it would some time, and the delay would confuse KWWidget's double-click detection algorithm
+    // (double-clicks wouldn't be sensed, so cell editing by double-click wouldn't work).
+    //this->GUI->BringTargetToViewIn2DViews(vtkProstateNavGUI::BRING_MARKERS_TO_VIEW_KEEP_CURRENT_ORIENTATION);
+    this->Script("after 1000 \"%s BringTargetToViewIn2DViews %i\"", this->GUI->GetTclName(), vtkProstateNavGUI::BRING_MARKERS_TO_VIEW_KEEP_CURRENT_ORIENTATION);
     
     }
 }

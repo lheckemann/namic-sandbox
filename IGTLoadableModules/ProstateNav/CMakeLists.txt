@@ -80,9 +80,9 @@ install(FILES
   )
 
 foreach(file 
-  TransRectalProstateRobot/TransRectalProstateRobotSheath.stl
-  TransRectalProstateRobot/TransRectalProstateRobotWorkspace150mm.stl
-  TransRectalProstateRobot/TransRectalProstateRobotWorkspace200mm.stl
+  TransRectalProstateRobot/Sheath.stl
+  TransRectalProstateRobot/Workspace150mm.stl
+  TransRectalProstateRobot/Workspace200mm.stl
   )
   # Copy to the build tree (for Slicer execution in the Slicer3-build directory)
   configure_file(
