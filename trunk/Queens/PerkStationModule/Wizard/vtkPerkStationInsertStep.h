@@ -40,19 +40,15 @@ public:
   // Description:
   // Process GUI events
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
-
-  // Description:
-  // Callbacks.
-  // TO DO:
+  
   void Reset();
+  
+  void UpdateGUI();
+  
   
   // Description:
   // Tracker timer event callback to receive data from tracker and update on the GUI
   void TrackerTimerEvent();
-
-  // Description
-  // Callback on the load calibration button
-  void LoadConfigButtonCallback();
 
   // Description
   // Callback on the load calibration button
@@ -75,8 +71,8 @@ protected:
   void RemoveGUIObservers();
 
   virtual void Validate();
-
- 
+  
+  
   
   // Description:
   // GUI callback  
@@ -87,13 +83,7 @@ protected:
   bool TimerProcessing;
   char *TrackerTimerId;
   
-  bool LogToFile;
   
-
-/*  virtual void PopulateNormalizationTargetVolumeSelector();
-  virtual void ResetDefaultParameters(vtkIdType target_vol_id);*/
-
-
     // GUI elements
   
   
@@ -103,47 +93,6 @@ protected:
   vtkKWMultiColumnListWithScrollbars* PlanList;
     
   
-  // button, msg for loading the registration file
-  vtkKWFrameWithLabel *LoadTrackerConfigFrame;
-  vtkKWLabel *TrackerConfigFileLoadMsg;  
-  vtkKWLoadSaveButton *LoadTrackerConfigFileButton;
-  
-   //BTX
-  std::string ConfigFileName;  
-  std::string InsertionLogFileName;
-  //ETX
-
-
-  // tracker connection, and status msg
-  vtkKWFrameWithLabel *TrackerConnectionFrame;
-  vtkKWCheckButtonWithLabel *ConnectTrackerCheckButton;
-  vtkKWLabel *TrackerStatusMsg;
-
-  // display red line representing needle in real-time
-  vtkKWCheckButtonWithLabel *DisplayRealTimeNeedleTip;
-
-  // needle tip position info
-  vtkKWFrameWithLabel *NeedleToolFrame;
-  vtkKWFrame *NeedleTipPositionFrame;
-  vtkKWLabel *NeedleTipPositionLabel;
-  vtkKWEntrySet       *NeedleTipPosition;
-
-  // tool tip offset infor
-  vtkKWFrame *ToolTipOffsetFrame;
-  vtkKWLabel *ToolTipOffsetLabel;
-  vtkKWEntrySet       *ToolTipOffset;
-
-  // GUI controls for logging the insertion attempt
-  vtkKWFrameWithLabel *LoggingFrame;
-  vtkKWCheckButton *StartStopLoggingToFileCheckButton;
-  vtkKWLabel *LogFileLoadMsg;  
-  vtkKWLoadSaveButton *LogFileButton;
-  //BTX
-  #if defined(USE_NDIOAPI)
-  vtkNDITracker *Tracker;
-  FILE *InsertionLogFile;
-  #endif
-  //ETX
 private:    
   bool ProcessingCallback;
   vtkPerkStationInsertStep(const vtkPerkStationInsertStep&);
