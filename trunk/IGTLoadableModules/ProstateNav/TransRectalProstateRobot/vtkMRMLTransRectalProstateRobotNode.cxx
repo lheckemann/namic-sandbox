@@ -1029,7 +1029,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateWorkspaceModel()
 
   vtkSmartPointer <vtkSTLReader> modelReader=vtkSmartPointer<vtkSTLReader>::New();
 
-  vtksys_stl::string modelFileName=this->ModuleShareDirectory+"/TransRectalProstateRobotWorkspace150mm.stl";
+  vtksys_stl::string modelFileName=this->ModuleShareDirectory+"/TransRectalProstateRobot/Workspace150mm.stl";
   modelReader->SetFileName(modelFileName.c_str());
   modelReader->Update();
 
@@ -1350,7 +1350,7 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateRobotModelProbe()
 
   vtkSmartPointer <vtkSTLReader> modelReader=vtkSmartPointer<vtkSTLReader>::New();
 
-  vtksys_stl::string modelFileName=this->ModuleShareDirectory+"/TransRectalProstateRobotSheath.stl";
+  vtksys_stl::string modelFileName=this->ModuleShareDirectory+"/TransRectalProstateRobot/Sheath.stl";
   modelReader->SetFileName(modelFileName.c_str());
   modelReader->Update();
 
