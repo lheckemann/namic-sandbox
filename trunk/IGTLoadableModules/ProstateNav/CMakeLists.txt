@@ -93,7 +93,7 @@ foreach(file
   # Copy to the installation target (for Slicer execution when it is installed)
   install(
     FILES ${CMAKE_CURRENT_SOURCE_DIR}/${file} 
-    DESTINATION ${Slicer3_INSTALL_MODULES_SHARE_DIR}/${PROJECT_NAME}
+    DESTINATION ${Slicer3_INSTALL_MODULES_SHARE_DIR}/${PROJECT_NAME}/${file}
     )
 endforeach(file)  
 
