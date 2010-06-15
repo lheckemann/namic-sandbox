@@ -203,6 +203,8 @@ void JPEG2000ImageIO::ReadImageInformation()
   std::cout << "Number of Components = " << l_image->numcomps << std::endl;
   this->SetNumberOfComponents(  l_image->numcomps );
 
+  std::cout << "Color space = " << l_image->color_space << std::endl;
+
   std::cout << "l_tile_x0 = " << l_tile_x0 << std::endl;
   std::cout << "l_tile_y0 = " << l_tile_y0 << std::endl;
   std::cout << "l_tile_height = " << l_tile_height << std::endl;
