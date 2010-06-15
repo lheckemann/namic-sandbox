@@ -926,6 +926,26 @@ void vtkProstateNavGUI::BuildGUIForHelpFrame ()
   vtkKWWidget *page = this->UIPanel->GetPageWidget ( "ProstateNav" );
   this->BuildHelpAndAboutFrame (page, helpss.str().c_str(), aboutss.str().c_str());
 
+  vtkSmartPointer<vtkKWLabel> NAMICLabel = vtkSmartPointer<vtkKWLabel>::New();
+  NAMICLabel->SetParent ( this->GetLogoFrame() );
+  NAMICLabel->Create();
+  NAMICLabel->SetImageToIcon ( this->GetAcknowledgementIcons()->GetNAMICLogo() );    
+
+  vtkSmartPointer<vtkKWLabel> NCIGTLabel = vtkSmartPointer<vtkKWLabel>::New();
+  NCIGTLabel->SetParent ( this->GetLogoFrame() );
+  NCIGTLabel->Create();
+  NCIGTLabel->SetImageToIcon ( this->GetAcknowledgementIcons()->GetNCIGTLogo() );
+    
+  vtkSlicerApplication *app = vtkSlicerApplication::SafeDownCast (this->GetApplication() );
+  if ( !app )
+    {
+    vtkErrorMacro ( "BuildGUIForHelpFrame: got Null SlicerApplication" );
+    return;
+    }
+
+  app->Script ( "grid %s -row 0 -column 0 -padx 2 -pady 2 -sticky w", NAMICLabel->GetWidgetName());
+  app->Script ("grid %s -row 0 -column 1 -padx 2 -pady 2 -sticky w", NCIGTLabel->GetWidgetName());    
+
 }
 
 
