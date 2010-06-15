@@ -86,7 +86,7 @@ void mexFunction (int nlhs, mxArray *plhs[],
   serverSocket->SetDescriptor(sd);
 
   igtl::MexSocket::Pointer socket;
-  socket = serverSocket->WaitForConnection(1000);
+  socket = serverSocket->WaitForConnection(timeOut);
 
   // ---------------------------------------------------------------
   // Return result to Matlab

@@ -3,14 +3,14 @@
 %
 
 %%% read image data
-sd = igtlopen('localhost', 18944);
+sd = igtlopen('localhost', 18945);
 
 if sd == -1
   error('Could not connect to the server.');
 end
 
 for n=1:10
-  [S, DATA] = igtlreceive(sd);
+  DATA = igtlreceive(sd);
 end
 
 igtlclose(sd);

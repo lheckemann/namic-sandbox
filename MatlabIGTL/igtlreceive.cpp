@@ -68,9 +68,11 @@ int checkArguments(int nlhs, mxArray *plhs[],
 void receiveError(mxArray *plhs[], int status, const char* name, const char* type);
 int waitAndReceiveMessage(int sd, mxArray *plhs[]);
 int receiveTransform(igtl::MexClientSocket::Pointer& socket,
-                         igtl::MessageHeader::Pointer& headerMsg,
-                         mxArray *plhs[]);
-
+                     igtl::MessageHeader::Pointer& headerMsg,
+                     mxArray *plhs[]);
+int receiveImage(igtl::MexClientSocket::Pointer& socket,
+                 igtl::MessageHeader::Pointer& headerMsg,
+                 mxArray *plhs[]);
 //int procTransformData(int sd, const char* name, const mxArray *ptr);
 //int procImageData(int sd, const char* name, const mxArray *ptr);
 //int checkData(const char* type, const mxArray* prhs);
@@ -186,13 +188,13 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
 
   if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
     {
-    printf("procReceiveTransform(socket, headerMsg, plhs);\n");
+    //printf("procReceiveTransform(socket, headerMsg, plhs);\n");
     receiveTransform(socket, headerMsg, plhs);
     }
-  //else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
-  //  {
-  //  procReceiveImage(socket, headerMsg);
-  //  }
+  else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
+    {
+    receiveImage(socket, headerMsg, plhs);
+    }
   //else if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
   //  {
   //  procReceivePosition(socket, headerMsg);
@@ -298,71 +300,238 @@ int receiveTransform(igtl::MexClientSocket::Pointer& socket,
 }
 
 
-int procTransformData(int sd, const char* name, const mxArray *ptr)
+int receiveImage(igtl::MexClientSocket::Pointer& socket,
+                 igtl::MessageHeader::Pointer& headerMsg,
+                 mxArray *plhs[])
 {
-  mxArray*    transField = mxGetField(ptr, 0, "Trans");
+  std::cerr << "Receiving IMAGE data type." << std::endl;
 
-  double*    trans       = mxGetPr(transField);
-  const mwSize* s        = mxGetDimensions(transField);
+  // Create a message buffer to receive transform data
+  igtl::ImageMessage::Pointer imgMsg;
+  imgMsg = igtl::ImageMessage::New();
+  imgMsg->SetMessageHeader(headerMsg);
+  imgMsg->AllocatePack();
   
-  igtl::Matrix4x4 mat;
-  mat[0][0] = trans[0];  mat[0][1] = trans[4];  mat[0][2] = trans[8];  mat[0][3] = trans[12];
-  mat[1][0] = trans[1];  mat[1][1] = trans[5];  mat[1][2] = trans[9];  mat[1][3] = trans[13];
-  mat[2][0] = trans[2];  mat[2][1] = trans[6];  mat[2][2] = trans[10]; mat[2][3] = trans[14];
-  mat[3][0] = trans[3];  mat[3][1] = trans[7];  mat[3][2] = trans[11]; mat[3][3] = trans[15];
+  // Receive transform data from the socket
+  socket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
   
-  float norm_i[] = {mat[0][0], mat[1][0], mat[2][0]};
-  float norm_j[] = {mat[0][1], mat[1][1], mat[2][1]};
-  float norm_k[] = {mat[0][2], mat[1][2], mat[2][2]};
-  float pos[]    = {mat[0][3], mat[1][3], mat[2][3]};
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = imgMsg->Unpack(1);
 
-  float a[3];
-  // calculate absolutes
-  a[0] = sqrt(norm_i[0]*norm_i[0] + norm_i[1]*norm_i[1] + norm_i[2]*norm_i[2]);
-  a[1] = sqrt(norm_j[0]*norm_j[0] + norm_j[1]*norm_j[1] + norm_j[2]*norm_j[2]);
-  a[2] = sqrt(norm_k[0]*norm_k[0] + norm_k[1]*norm_k[1] + norm_k[2]*norm_k[2]);
+  double& retVal = createMatlabScalar(plhs[RET_ID_STATUS]);
+  
+  // Get strcutre for returned value
+  const char* fnames [] = {
+    "Type", "Name", "Image", "Trans"
+  };
+  plhs[RET_ID_DATA] = mxCreateStructMatrix(1, 1, 3, fnames);
 
-  // normalize
-  for (int i = 0; i < 3; i ++)
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
     {
-    norm_i[i] /= a[i];
-    norm_j[i] /= a[i];
-    norm_k[i] /= a[i];
+    // Retrive the image data
+    int   size[3];          // image dimension
+    float spacing[3];       // spacing (mm/pixel)
+    int   svsize[3];        // sub-volume size
+    int   svoffset[3];      // sub-volume offset
+    int   scalarType;       // scalar type
+
+    igtl::Matrix4x4 mat;
+
+    scalarType = imgMsg->GetScalarType();
+    imgMsg->GetDimensions(size);
+    imgMsg->GetSpacing(spacing);
+    imgMsg->GetSubVolume(svsize, svoffset);
+    imgMsg->GetMatrix(mat);
+
+    std::cerr << "Device Name           : " << imgMsg->GetDeviceName() << std::endl;
+    std::cerr << "Scalar Type           : " << scalarType << std::endl;
+    std::cerr << "Dimensions            : ("
+              << size[0] << ", " << size[1] << ", " << size[2] << ")" << std::endl;
+    std::cerr << "Spacing               : ("
+              << spacing[0] << ", " << spacing[1] << ", " << spacing[2] << ")" << std::endl;
+    std::cerr << "Sub-Volume dimensions : ("
+              << svsize[0] << ", " << svsize[1] << ", " << svsize[2] << ")" << std::endl;
+    std::cerr << "Sub-Volume offset     : ("
+              << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl;
+
+    // Set type string
+    mxArray* typeString = mxCreateString("TRANSFORM");
+    mxSetField(plhs[RET_ID_DATA], 0, "Type", typeString);
+
+    // Set device name string
+    mxArray* nameString = mxCreateString(imgMsg->GetDeviceName());
+    mxSetField(plhs[RET_ID_DATA], 0, "Name", nameString);
+
+    // Set transform
+    mxArray* transMatrix = mxCreateDoubleMatrix(4, 4, mxREAL);
+    double*  trans       = mxGetPr(transMatrix);
+
+    float norm_i[] = {mat[0][0], mat[1][0], mat[2][0]};
+    float norm_j[] = {mat[0][1], mat[1][1], mat[2][1]};
+    float norm_k[] = {mat[0][2], mat[1][2], mat[2][2]};
+    float pos[]    = {mat[0][3], mat[1][3], mat[2][3]};
+    float mspacing[3];
+
+    // calculate spacing from matrix
+    mspacing[0] = sqrt(norm_i[0]*norm_i[0] + norm_i[1]*norm_i[1] + norm_i[2]*norm_i[2]);
+    mspacing[1] = sqrt(norm_j[0]*norm_j[0] + norm_j[1]*norm_j[1] + norm_j[2]*norm_j[2]);
+    mspacing[2] = sqrt(norm_k[0]*norm_k[0] + norm_k[1]*norm_k[1] + norm_k[2]*norm_k[2]);
+
+    // calculate actual spacings
+    spacing[0] = spacing[0] * mspacing[0];
+    spacing[1] = spacing[1] * mspacing[1];
+    spacing[2] = spacing[2] * mspacing[2];
+
+    trans[0] = mat[0][0];  trans[4] = mat[0][1];  trans[8]  = mat[0][2]; trans[12] = mat[0][3];
+    trans[1] = mat[1][0];  trans[5] = mat[1][1];  trans[9]  = mat[1][2]; trans[13] = mat[1][3];
+    trans[2] = mat[2][0];  trans[6] = mat[2][1];  trans[10] = mat[2][2]; trans[14] = mat[2][3];
+    trans[3] = mat[3][0];  trans[7] = mat[3][1];  trans[11] = mat[3][2]; trans[15] = mat[3][3];
+
+    mxSetField(plhs[RET_ID_DATA], 0, "Trans", transMatrix);
+
+    mwSize dims[3];
+    mxArray* imageMatrix = mxCreateNumericArray(3, size, mxDOUBLE_CLASS, mxREAL);
+    double*  rdata       = mxGetPr(imageMatrix);
+
+    int ni = size[0]; int nj = size[1]; int nk = size[2];
+
+    if (scalarType == igtl::ImageMessage::TYPE_INT8)
+      {
+      igtlInt8* dest = (igtlInt8*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] = dest[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    else if (scalarType == igtl::ImageMessage::TYPE_UINT8)
+      {
+      igtlUint8* dest = (igtlUint8*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] = dest[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    else if (scalarType == igtl::ImageMessage::TYPE_INT16)
+      {
+      std::cerr << "scalarType == TYPE_UINT16." << std::endl;
+      std::cerr << "ni = " << ni << ", nj = " << nj << ", nk = " << nk << std::endl;
+      igtlInt16* dest = (igtlInt16*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] = dest[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    else if (scalarType == igtl::ImageMessage::TYPE_UINT16)
+      {
+      std::cerr << "scalarType == TYPE_UINT16." << std::endl;
+      std::cerr << "ni = " << ni << ", nj = " << nj << ", nk = " << nk << std::endl;
+      igtlUint16* dest = (igtlUint16*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] = dest[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    else if (scalarType == igtl::ImageMessage::TYPE_INT32)
+      {
+      igtlInt32* dest = (igtlInt32*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] = dest[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    else if (igtl::ImageMessage::TYPE_UINT32)
+      {
+      igtlUint32* dest = (igtlUint32*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] = dest[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    else if (igtl::ImageMessage::TYPE_FLOAT32)
+      {
+      igtlFloat32* dest = (igtlFloat32*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] = dest[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    else if (igtl::ImageMessage::TYPE_FLOAT64)
+      {
+      igtlFloat64* dest = (igtlFloat64*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] = dest[koff + j*ni + i];
+            }
+          }
+        }
+      }
+
+    mxSetField(plhs[RET_ID_DATA], 0, "Image", imageMatrix);
+    retVal = 1;
+    return 1;
     }
+
+  return 0;
   
-  // print variables
-  mexPrintf("Data Name  : %s\n", name);
-  mexPrintf("Transform  : [%1.6f, %1.6f %1.6f %1.6f]\n", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
-  mexPrintf("             [%1.6f, %1.6f %1.6f %1.6f]\n", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
-  mexPrintf("             [%1.6f, %1.6f %1.6f %1.6f]\n", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
-  mexPrintf("             [%1.6f, %1.6f %1.6f %1.6f]\n", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
-
-  // ---------------------------------------------------------------
-  // Set up OpenIGTLink Connection
-  igtl::MexClientSocket::Pointer socket;
-  socket = igtl::MexClientSocket::New();
-  int r = socket->SetDescriptor(sd);
-  if (r != 0)
-    {
-    mexErrMsgTxt("Invalid socket descriptor.");
-    }
-
-  // ---------------------------------------------------------------
-  // Prepare Transform message
-  igtl::TransformMessage::Pointer transMsg = igtl::TransformMessage::New();
-  transMsg->SetDeviceName(name);
-  transMsg->SetMatrix(mat);
-  transMsg->Pack();
-  socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
-
-  mexPrintf("The transform has been sent.\n");
-
-  return 1;
-
 }
 
-/*
-int procImageData(int sd, const char* name, const mxArray *ptr)
+
+int receiveImage(int sd, const char* name, const mxArray *ptr)
 {
   mxArray* imageField =  mxGetField(ptr, 0, "Image");
   mxArray* transField =  mxGetField(ptr, 0, "Trans");
@@ -468,7 +637,6 @@ double getMatlabScalar (const mxArray* ptr) {
 
   return *mxGetPr(ptr);
 }
-*/
 
 double& createMatlabScalar (mxArray*& ptr)
 {
