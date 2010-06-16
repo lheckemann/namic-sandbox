@@ -13,12 +13,12 @@ while sfd > 0
     disp ('Client connected.')
     while cfd
       [S, DATA] = igtlreceive(cfd);
-      DATA
       if S==0 % connection lost
 	igtlclose(cfd)
 	cfd = 0;
       else
         %figure; image(DATA.Image(:,:,60))
+	DATA.Trans
 	DATA.Name = 'MatlabImage';
 	r = igtlsend(cfd, DATA);
       end
