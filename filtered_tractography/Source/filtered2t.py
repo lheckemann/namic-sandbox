@@ -2,8 +2,8 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
 <executable>
 
   <category>Tractography</category>
-  <title>Filtered: One Tensor</title>
-  <description>Filtered tractography with single-tensor model.</description>
+  <title>Filtered: Two Tensor</title>
+  <description>Filtered tractography with equal-weight two-tensor model.</description>
 
   <parameters>
     <label>IO</label>
@@ -37,16 +37,16 @@ import filtered_ext as flt
 
 param = dict({'FA_min': .15,  # FA stopping threshold
               'GA_min': .1,  # generalized anisotropy stopping threshold
-              'dt': .3,     # forward Euler step size (path integration)
+              'dt': .2,     # forward Euler step size (path integration)
               'max_len': 250, # stop if fiber gets this long
               'min_radius': .87,  # stop if fiber curves this much
-              'seeds': 3, # how many seeds to spawn in each ROI voxel
+              'seeds': 5, # how many seeds to spawn in each ROI voxel
               'voxel': np.mat('1.70; 1.66; 1.66'), # voxel size (check your .nhdr file)
               # Kalman filter parameters
-              'Qm': .0015,  # injected angular noise (probably leave untouched)
-              'Ql': 25,    # injected eigenvalue noise (probably leave untouched)
-              'Rs': .020,  # dependent on latent noise in your data (likely change this)
-              'P0': np.eye(5) / 100,}) # initial covariance (likely change this)
+              'Qm': .0030,  # injected angular noise (probably leave untouched)
+              'Ql': 100,    # injected eigenvalue noise (probably leave untouched)
+              'Rs': .015,  # dependent on latent noise in your data (likely change this)
+              'P0': np.eye(10) / 100,}) # initial covariance (likely change this)
 
 # using this or the above had little effect
 # param['P0'] = np.mat(' 0.0076   -0.0001   -0.0000   -0.0002    0.0002;\
@@ -87,7 +87,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node):
     pts = slicer.vtkPoints()
     lines = slicer.vtkCellArray()
     cell_id = 0
-    for i in range(0,len(ff)):
+    for i in range(0,len(ff)):  # TODO xrange
         f = ff[i]
         lines.InsertNextCell(len(f))
         for j in range(0,len(f)):
@@ -135,15 +135,19 @@ def transform(M, v):
 def step(p, S, est, param):
     v = param['voxel']
     # unpack
-    x,X,P = p[0],p[1],p[2]
-    # move
+    x,X,P,m = p[0],p[1],p[2],p[3]  # ignore FA
+    # estimate
     X,P = est(X,P,interp3signal(S,x,v))
-    m,_ = state2tensor1(X)
+    m1,l1,m2,l2 = state2tensor2(X,m)
+    # pick most consistent direction
+    if dot(m1,m) >= dot(m2,m):   m = m1; l = l1;
+    else:                        m = m2; l = l2;
+    fa = iff(l[0] < l[1], 0, l2fa(l))  # ensure eliptic
+    # move
     dx = m / v
     x = x + param['dt'] * dx[::-1]  # HACK volume dimensions are reversed
     # repack
-    return x,X,P
-
+    return x,X,P,m,fa
 
 def tensor2fa(T):
     T_ = np.trace(T)/3
@@ -180,12 +184,13 @@ def follow(S,u,b,mask,fiber,param):
     ff = [np.array(x)]
 
     # initialize filter
-    f_fn,h_fn = model_1tensor(u,b)
+    f_fn,h_fn = model_2tensor(u,b)
     Qm = param['Qm']*np.eye(3,3)
     Ql = param['Ql']*np.eye(2,2)
     Rs = param['Rs']*np.eye(u.shape[0],u.shape[0])
-    Q = np.zeros((5,5))
+    Q = np.zeros((10,10))
     Q[0:3,0:3],Q[3:5,3:5] = Qm,Ql
+    Q[5:8,5:8],Q[8:10,8:10] = Qm,Ql
     est = filter_ukf(f_fn,h_fn,Q,Rs)
 
     # main loop
@@ -196,9 +201,7 @@ def follow(S,u,b,mask,fiber,param):
         fiber = step(fiber, S, est, param)
 
         # unpack
-        x,X = fiber[0],fiber[1]
-        _,l = state2tensor1(X)
-        fa = iff(l[0] < l[1], 0, l2fa(l))
+        x,X,fa = fiber[0],fiber[1],fiber[4]
 
         # terminate if off brain or in CSF
         is_brain = interp3scalar(mask,x,v) > .1
@@ -239,20 +242,25 @@ def init(S, seeds, u, b, param):
     ss = map(lambda p : interp3signal(S,p,v), pp)
     dd = map(direct(u,b), ss)
 
-    # {position, direction, lambda, covariance}
+    # {position, direction, lambda, covariance, FA}
     mmll = map(unpack_tensor, dd)
     P0 = np.mat(param['P0'])
-    ff = map(lambda p,ml : (p,ml[0],ml[1],P0), pp, mmll)
+    ff = map(lambda p,(m,l) : (p,m,l,P0,l2fa(l)), pp, mmll)
 
     # filter out only high-FA tensors
     fa_min = param['FA_min']
-    ff = filter(lambda pml : l2fa(pml[2]) > fa_min, ff)
+    ff = filter(lambda f : f[4] > fa_min, ff)
 
     # add in all opposite directions
-    ff.extend(map(lambda pmlP : (pmlP[0],-pmlP[1],pmlP[2],pmlP[3]), ff))
+    ff.extend(map(lambda f : (f[0],-f[1],f[2],f[3],f[4]), ff))
 
     # convert to column vectors
-    ff = map(lambda x : (np.mat(x[0]).T, np.mat(np.hstack((x[1],x[2]))).reshape(5,1), x[3]), ff)
+    ff = map(lambda x : (np.mat(x[0]).T,                                         # position
+                         np.mat(np.hstack((x[1],x[2],x[1],x[2]))).reshape(10,1), # state
+                         x[3],                                                   # cov
+                         x[1],                                                   # direction
+                         x[4]),                                                  # FA
+             ff)
 
     return ff
 
@@ -331,10 +339,6 @@ def filter_ukf(f_fn,h_fn,Q,R):
 
 
 
-def model_1tensor(u,b):
-    f_fn = model_1tensor_f   # identity, but fix up state
-    h_fn = lambda X : model_1tensor_h(X,u,b)
-    return f_fn,h_fn
 def model_2tensor(u,b):
     f_fn = model_2tensor_f   # identity, but fix up state
     h_fn = lambda X : model_2tensor_h(X,u,b)
@@ -343,12 +347,6 @@ def model_2tensor(u,b):
 
 
 
-def model_1tensor_f(X):
-    assert X.shape[0] == 5 and X.dtype == 'float64'
-    m = X.shape[1]
-    X = np.copy(X)
-    flt.c_model_1tensor_f(X, m)
-    return X
 def model_2tensor_f(X):
     assert X.shape[0] == 10 and X.dtype == 'float64'
     m = X.shape[1]
@@ -358,13 +356,6 @@ def model_2tensor_f(X):
 
 
 
-def model_1tensor_h(X,u,b):
-    assert X.shape[0] == 5 and X.dtype == 'float64' and u.dtype == 'float64'
-    n = u.shape[0]
-    m = X.shape[1]
-    s = np.empty((n,m), order='F') # preallocate output
-    flt.c_model_1tensor_h(s, X, u, b, n, m)
-    return s
 def model_2tensor_h(X,u,b):
     assert X.shape[0] == 10 and X.dtype == 'float64' and u.dtype == 'float64'
     n = u.shape[0]
@@ -376,13 +367,6 @@ def model_2tensor_h(X,u,b):
 
 
 
-def state2tensor1(X, y=np.zeros(3)):
-    assert X.shape[0] == 5 and X.shape[1] == 1 and X.dtype == 'float64'
-    m = np.empty((3,1))
-    l1 = np.empty(1);
-    l2 = np.empty(1);
-    flt.c_state2tensor1(X, y, m,l1,l2)
-    return m,(l1,l2)
 def state2tensor2(X, y=np.zeros(3)):
     assert X.shape[0] == 10 and X.shape[1] == 1 and X.dtype == 'float64'
     m1,m2 = np.empty((3,1)),np.empty((3,1))
