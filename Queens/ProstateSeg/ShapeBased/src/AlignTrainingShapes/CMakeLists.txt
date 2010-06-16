@@ -1,7 +1,8 @@
 PROJECT(AlignTrainingShapes)
 
 SET(SRCS
-  ICPTest3.cxx
+  imgRegByPtSet3DTest_uchar.cxx 
+#  ICPTest3.cxx
   kdtree2.cpp
   pointSetFileIO.cxx
   imageToPointSet.cxx
@@ -11,7 +12,8 @@ SET(SRCS
   imgRegByPtSet3D_uchar.cxx
 )
 #imgRegByPtSet3DTest.cxx
-#imgRegByPtSet3DTest_uchar.cxx 
+
+INCLUDE_DIRECTORIES(../shared/arrays)
 
 SET(LIBS
   ITKCommon
