@@ -1,1 +1,0 @@
-/home/neuroendo/Desktop/NeuroEndoscopic/Camera Calibration/CMakeFiles/NeuroEndoscopicCameraCalibration.dir

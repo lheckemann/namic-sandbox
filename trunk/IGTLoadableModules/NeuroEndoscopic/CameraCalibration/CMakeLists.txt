@@ -1,13 +1,14 @@
 # Configuration of the project
-project(NeuroEndoscopicCameraCalibration)
+project(CameraCalibration)
 
 cmake_minimum_required(VERSION 2.4)
 
 # Slicer3
-find_package(Slicer3 REQUIRED)
-include(${Slicer3_USE_FILE})
+#find_package(Slicer3 REQUIRED)
+#include(${Slicer3_USE_FILE})
 
 # OpenCV
+#find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIR})
 link_directories(${OpenCV_LIB_DIR})
 
@@ -25,7 +26,7 @@ set(EXECUTABLE_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
 #################################
 #       FaceDetect Plugin
 
-set(CLP NeuroEndoscopicCameraCalibration)
+set(CLP CameraCalibration)
 set(${CLP}_SOURCE NeuroEndoscopicCameraCalibration.cxx)
 #generateclp(${CLP}_SOURCE ${CLP}.xml)
 

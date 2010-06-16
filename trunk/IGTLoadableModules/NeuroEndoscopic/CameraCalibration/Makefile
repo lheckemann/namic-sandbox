@@ -39,10 +39,10 @@ RM = /home/neuroendo/slicer-head/Slicer3-lib/CMake-build/bin/cmake -E remove -f
 CMAKE_EDIT_COMMAND = /home/neuroendo/slicer-head/Slicer3-lib/CMake-build/bin/ccmake
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/home/neuroendo/Desktop/NeuroEndoscopic/Camera Calibration"
+CMAKE_SOURCE_DIR = /home/neuroendo/Desktop/NeuroEndoscopic/CameraCalibration
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/home/neuroendo/Desktop/NeuroEndoscopic/Camera Calibration"
+CMAKE_BINARY_DIR = /home/neuroendo/Desktop/NeuroEndoscopic/CameraCalibration
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -69,9 +69,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/neuroendo/Desktop/NeuroEndoscopic/Camera Calibration/CMakeFiles" "/home/neuroendo/Desktop/NeuroEndoscopic/Camera Calibration/CMakeFiles/progress.marks"
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/neuroendo/Desktop/NeuroEndoscopic/CameraCalibration/CMakeFiles /home/neuroendo/Desktop/NeuroEndoscopic/CameraCalibration/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/neuroendo/Desktop/NeuroEndoscopic/Camera Calibration/CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/neuroendo/Desktop/NeuroEndoscopic/CameraCalibration/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -99,31 +99,31 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named NeuroEndoscopicCameraCalibration
+# Target rules for targets named CameraCalibration
 
 # Build rule for target.
-NeuroEndoscopicCameraCalibration: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 NeuroEndoscopicCameraCalibration
-.PHONY : NeuroEndoscopicCameraCalibration
+CameraCalibration: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 CameraCalibration
+.PHONY : CameraCalibration
 
 # fast build rule for target.
-NeuroEndoscopicCameraCalibration/fast:
-	$(MAKE) -f CMakeFiles/NeuroEndoscopicCameraCalibration.dir/build.make CMakeFiles/NeuroEndoscopicCameraCalibration.dir/build
-.PHONY : NeuroEndoscopicCameraCalibration/fast
+CameraCalibration/fast:
+	$(MAKE) -f CMakeFiles/CameraCalibration.dir/build.make CMakeFiles/CameraCalibration.dir/build
+.PHONY : CameraCalibration/fast
 
 # target to build an object file
 NeuroEndoscopicCameraCalibration.o:
-	$(MAKE) -f CMakeFiles/NeuroEndoscopicCameraCalibration.dir/build.make CMakeFiles/NeuroEndoscopicCameraCalibration.dir/NeuroEndoscopicCameraCalibration.o
+	$(MAKE) -f CMakeFiles/CameraCalibration.dir/build.make CMakeFiles/CameraCalibration.dir/NeuroEndoscopicCameraCalibration.o
 .PHONY : NeuroEndoscopicCameraCalibration.o
 
 # target to preprocess a source file
 NeuroEndoscopicCameraCalibration.i:
-	$(MAKE) -f CMakeFiles/NeuroEndoscopicCameraCalibration.dir/build.make CMakeFiles/NeuroEndoscopicCameraCalibration.dir/NeuroEndoscopicCameraCalibration.i
+	$(MAKE) -f CMakeFiles/CameraCalibration.dir/build.make CMakeFiles/CameraCalibration.dir/NeuroEndoscopicCameraCalibration.i
 .PHONY : NeuroEndoscopicCameraCalibration.i
 
 # target to generate assembly for a file
 NeuroEndoscopicCameraCalibration.s:
-	$(MAKE) -f CMakeFiles/NeuroEndoscopicCameraCalibration.dir/build.make CMakeFiles/NeuroEndoscopicCameraCalibration.dir/NeuroEndoscopicCameraCalibration.s
+	$(MAKE) -f CMakeFiles/CameraCalibration.dir/build.make CMakeFiles/CameraCalibration.dir/NeuroEndoscopicCameraCalibration.s
 .PHONY : NeuroEndoscopicCameraCalibration.s
 
 # Help Target
@@ -132,7 +132,7 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... NeuroEndoscopicCameraCalibration"
+	@echo "... CameraCalibration"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... NeuroEndoscopicCameraCalibration.o"
