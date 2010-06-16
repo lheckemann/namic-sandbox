@@ -343,7 +343,7 @@ int receiveImage(igtl::MexClientSocket::Pointer& socket,
     mexPrintf("Dimensions            : ( %d, %d, %d )\n", size[0], size[1], size[2]);
     mexPrintf("Spacing               : ( %f, %f, %f )\n", spacing[0], spacing[1], spacing[2]);
     mexPrintf("Sub-Volume dimensions : ( %d, %d, %d )\n", svsize[0], svsize[1], svsize[2]);
-    mexPrintf("Sub-Volume offset     : ( %f, %f, %f )\n", svoffset[0], svoffset[1], svoffset[2]);
+    mexPrintf("Sub-Volume offset     : ( %d, %d, %d )\n", svoffset[0], svoffset[1], svoffset[2]);
 
     // Set type string
     mxArray* typeString = mxCreateString("IMAGE");
@@ -373,9 +373,9 @@ int receiveImage(igtl::MexClientSocket::Pointer& socket,
     spacing[1] = spacing[1] * mspacing[1];
     spacing[2] = spacing[2] * mspacing[2];
 
-    trans[0] = mat[0][0];  trans[4] = mat[0][1];  trans[8]  = mat[0][2]; trans[12] = mat[0][3];
-    trans[1] = mat[1][0];  trans[5] = mat[1][1];  trans[9]  = mat[1][2]; trans[13] = mat[1][3];
-    trans[2] = mat[2][0];  trans[6] = mat[2][1];  trans[10] = mat[2][2]; trans[14] = mat[2][3];
+    trans[0] = mat[0][0]*spacing[0];  trans[4] = mat[0][1]*spacing[1];  trans[8]  = mat[0][2]*spacing[2]; trans[12] = mat[0][3];
+    trans[1] = mat[1][0]*spacing[0];  trans[5] = mat[1][1]*spacing[1];  trans[9]  = mat[1][2]*spacing[2]; trans[13] = mat[1][3];
+    trans[2] = mat[2][0]*spacing[0];  trans[6] = mat[2][1]*spacing[1];  trans[10] = mat[2][2]*spacing[2]; trans[14] = mat[2][3];
     trans[3] = mat[3][0];  trans[7] = mat[3][1];  trans[11] = mat[3][2]; trans[15] = mat[3][3];
 
     mxSetField(plhs[RET_ID_DATA], 0, "Trans", transMatrix);

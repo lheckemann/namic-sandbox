@@ -247,16 +247,10 @@ int procImageData(int sd, const char* name, const mxArray *ptr)
   size[0] = s[0]; size[1] = s[1]; size[2] = (ndim == 3)? s[2] : 1;
   double*     trans    = mxGetPr(transField);
 
-  igtl::Matrix4x4 mat;
-  mat[0][0] = trans[0];  mat[0][1] = trans[4];  mat[0][2] = trans[8];  mat[0][3] = trans[12];
-  mat[1][0] = trans[1];  mat[1][1] = trans[5];  mat[1][2] = trans[9];  mat[1][3] = trans[13];
-  mat[2][0] = trans[2];  mat[2][1] = trans[6];  mat[2][2] = trans[10]; mat[2][3] = trans[14];
-  mat[3][0] = trans[3];  mat[3][1] = trans[7];  mat[3][2] = trans[11]; mat[3][3] = trans[15];
-
-  float norm_i[] = {mat[0][0], mat[1][0], mat[2][0]};
-  float norm_j[] = {mat[0][1], mat[1][1], mat[2][1]};
-  float norm_k[] = {mat[0][2], mat[1][2], mat[2][2]};
-  float pos[]      = {mat[0][3], mat[1][3], mat[2][3]};
+  float norm_i[] = {trans[0], trans[1], trans[2]};
+  float norm_j[] = {trans[4], trans[5], trans[6]};
+  float norm_k[] = {trans[8], trans[9], trans[10]};
+  float pos[]    = {trans[12], trans[13], trans[14]};
   float spacing[3];
   int svoffset[] = {0, 0, 0};
 
@@ -268,10 +262,16 @@ int procImageData(int sd, const char* name, const mxArray *ptr)
   // normalize
   for (int i = 0; i < 3; i ++)
     {
-    norm_i[i] /= spacing[i];
-    norm_j[i] /= spacing[i];
-    norm_k[i] /= spacing[i];
+    norm_i[i] /= spacing[0];
+    norm_j[i] /= spacing[1];
+    norm_k[i] /= spacing[2];
     }
+
+  igtl::Matrix4x4 mat;
+  mat[0][0] = norm_i[0]; mat[0][1] = norm_j[0]; mat[0][2] = norm_k[0]; mat[0][3] = pos[0];
+  mat[1][0] = norm_i[1]; mat[1][1] = norm_j[1]; mat[1][2] = norm_k[1]; mat[1][3] = pos[1];
+  mat[2][0] = norm_i[2]; mat[2][1] = norm_j[2]; mat[2][2] = norm_k[2]; mat[2][3] = pos[2];
+  mat[3][0] = 0.0;  mat[3][1] = 0.0;  mat[3][2] = 0.0; mat[3][3] = 1;
 
   // print variables
   mexPrintf("Data Name  : %s\n", name);
@@ -297,8 +297,9 @@ int procImageData(int sd, const char* name, const mxArray *ptr)
   // Prepare image message
   igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
   imgMsg->SetDimensions(size);
+  imgMsg->SetMatrix(mat);
   imgMsg->SetSpacing(spacing);
-  imgMsg->SetNormals(norm_i, norm_j, norm_k);
+  //imgMsg->SetNormals(norm_i, norm_j, norm_k);
   imgMsg->SetScalarType(igtl::ImageMessage::TYPE_UINT16);
   imgMsg->SetDeviceName(name);
   imgMsg->SetSubVolume(size, svoffset);
