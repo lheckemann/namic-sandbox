@@ -87,14 +87,11 @@ vtkPerkStationModuleGUI
     // gui elements
   
   this->VolumeSelector = vtkSmartPointer< vtkSlicerNodeSelectorWidget >::New();
-  this->ValidationVolumeSelector =
-    vtkSmartPointer< vtkSlicerNodeSelectorWidget >::New();
+  this->ValidationVolumeSelector = vtkSmartPointer< vtkSlicerNodeSelectorWidget >::New();
   this->PSNodeSelector = vtkSmartPointer< vtkSlicerNodeSelectorWidget >::New();
   
-  this->LoadExperimentFileButton =
-    vtkSmartPointer< vtkKWLoadSaveButton >::New();
-  this->SaveExperimentFileButton = 
-    vtkSmartPointer< vtkKWLoadSaveButton >::New();
+  this->LoadExperimentFileButton = vtkSmartPointer< vtkKWLoadSaveButton >::New();
+  this->SaveExperimentFileButton = vtkSmartPointer< vtkKWLoadSaveButton >::New();
   
   this->CalibrateTimeLabel = vtkSmartPointer< vtkKWLabel >::New();
   this->PlanTimeLabel = vtkSmartPointer< vtkKWLabel >::New();
@@ -116,8 +113,7 @@ vtkPerkStationModuleGUI
   
     // secondary monitor
   
-  this->SecondaryMonitor =
-                       vtkSmartPointer< vtkPerkStationSecondaryMonitor >::New();
+  this->SecondaryMonitor = vtkSmartPointer< vtkPerkStationSecondaryMonitor >::New();
     this->SecondaryMonitor->SetGUI( this );
     this->SecondaryMonitor->Initialize();
     
@@ -132,8 +128,7 @@ vtkPerkStationModuleGUI
   
   this->State = vtkPerkStationModuleGUI::Calibrate;  
   this->DisplayVolumeLevelValue = vtkSmartPointer< vtkKWScaleWithEntry >::New();
-  this->DisplayVolumeWindowValue =
-                                vtkSmartPointer< vtkKWScaleWithEntry >::New();
+  this->DisplayVolumeWindowValue = vtkSmartPointer< vtkKWScaleWithEntry >::New();
 
   this->Entered = false;
   this->Built = false;
@@ -489,6 +484,7 @@ vtkPerkStationModuleGUI
     this->SetMRMLNode( node );
     this->Logic->SetAndObservePerkStationModuleNode( node );
     this->SecondaryMonitor->SetPSNode( node );
+    this->GetLogic()->GetMRMLScene()->AddNode( this->MRMLNode->GetPlanMRMLFiducialListNode() );
     this->UpdateGUI();
     
     return;
@@ -839,7 +835,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
     // add MRMLFiducialListNode to the scene
     
     this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
-    this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetPlanMRMLFiducialListNode());
+    this->GetLogic()->GetMRMLScene()->AddNode( this->MRMLNode->GetPlanMRMLFiducialListNode() );
 
     // add listener to the slice logic, so that any time user makes change
     // to slice viewer in laptop, the display needs to be updated on secondary monitor
@@ -1344,7 +1340,7 @@ vtkPerkStationModuleGUI
     // Node selectors.
   
   this->PSNodeSelector->SetNodeClass( "vtkMRMLPerkStationModuleNode", NULL,
-                                      NULL, "PS Parameters" );
+                                      NULL, "Experiment data" );
   this->PSNodeSelector->SetParent( volSelFrame );
   this->PSNodeSelector->Create();
   this->PSNodeSelector->SetNewNodeEnabled( 1 );
@@ -1361,14 +1357,12 @@ vtkPerkStationModuleGUI
   this->VolumeSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
   this->VolumeSelector->UpdateMenu();
   this->VolumeSelector->SetLabelText( "Planning Volume:");
-  this->VolumeSelector->SetBalloonHelpString(
-                     "Select image for needle insertion planning." );
+  this->VolumeSelector->SetBalloonHelpString( "Select image for needle insertion planning." );
   
   app->Script( "pack %s -side top -anchor w -fill x -padx 2 -pady 4", 
                this->VolumeSelector->GetWidgetName() );
   
-  this->ValidationVolumeSelector->SetNodeClass( "vtkMRMLScalarVolumeNode", NULL,
-                                                NULL, NULL );
+  this->ValidationVolumeSelector->SetNodeClass( "vtkMRMLScalarVolumeNode", NULL, NULL, NULL );
   this->ValidationVolumeSelector->SetParent( volSelFrame );
   this->ValidationVolumeSelector->Create();
   this->ValidationVolumeSelector->NoneEnabledOn();
