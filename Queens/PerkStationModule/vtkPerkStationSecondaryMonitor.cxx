@@ -257,8 +257,9 @@ void vtkPerkStationSecondaryMonitor::RemoveOverlayNeedleGuide()
     if (this->DeviceActive)
         this->RenderWindow->Render();
     }
-
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::RemoveOverlayRealTimeNeedleTip()
 {

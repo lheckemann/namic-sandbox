@@ -113,19 +113,9 @@ protected:
     // Table calibration.
   
   vtkSmartPointer< vtkKWFrameWithLabel > TableFrame;
-  vtkSmartPointer< vtkKWLabel >          TableScannerLabel;
-  vtkSmartPointer< vtkKWEntry >          TableScannerEntry;
   vtkSmartPointer< vtkKWLabel >          TableOverlayLabel;
   vtkSmartPointer< vtkKWEntry >          TableOverlayEntry;
   vtkSmartPointer< vtkKWPushButton >     TableUpdateButton;
-  
-  
-    // Patient calibration.
-  
-  vtkSmartPointer< vtkKWFrameWithLabel > PatientFrame;
-  vtkSmartPointer< vtkKWLabel >          PatientLabel;
-  vtkSmartPointer< vtkKWEntry >          PatientEntry;
-  vtkSmartPointer< vtkKWPushButton >     PatientUpdateButton;
   
   
     // Hardware selection.

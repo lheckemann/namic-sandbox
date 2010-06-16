@@ -115,16 +115,9 @@ vtkPerkStationCalibrateStep
     // Table calibration.
   
   this->TableFrame = vtkSmartPointer< vtkKWFrameWithLabel >::New();
-  this->TableScannerLabel = vtkSmartPointer< vtkKWLabel >::New();
-  this->TableScannerEntry = vtkSmartPointer< vtkKWEntry >::New();
   this->TableOverlayLabel = vtkSmartPointer< vtkKWLabel >::New();
   this->TableOverlayEntry = vtkSmartPointer< vtkKWEntry >::New();
   this->TableUpdateButton = vtkSmartPointer< vtkKWPushButton >::New();
-  
-  this->PatientFrame = vtkSmartPointer< vtkKWFrameWithLabel >::New();
-  this->PatientLabel = vtkSmartPointer< vtkKWLabel >::New();
-  this->PatientEntry = vtkSmartPointer< vtkKWEntry >::New();
-  this->PatientUpdateButton = vtkSmartPointer< vtkKWPushButton >::New();
   
   
     // Hardware selection.
@@ -336,63 +329,23 @@ vtkPerkStationCalibrateStep
     this->TableFrame->SetLabelText( "Table calibration" );
     this->TableFrame->Create();
     
-    this->TableScannerLabel->SetParent( this->TableFrame->GetFrame() );
-    this->TableScannerLabel->Create();
-    this->TableScannerLabel->SetText( "Calibration at scanner laser (mm):" );
-    
-    this->TableScannerEntry->SetParent( this->TableFrame->GetFrame() );
-    this->TableScannerEntry->Create();
-    this->TableScannerEntry->SetWidth( 6 );
-    this->TableScannerEntry->SetBalloonHelpString(
-      "Value displayed on the scanner, when calibration object is under "
-      "the scanner laser." );
-    
     this->TableOverlayLabel->SetParent( this->TableFrame->GetFrame() );
     this->TableOverlayLabel->Create();
-    this->TableOverlayLabel->SetText( "Calibration at overlay laser (mm):" );
+    this->TableOverlayLabel->SetText( "Patient at overlay laser (mm):" );
     
     this->TableOverlayEntry->SetParent( this->TableFrame->GetFrame() );
     this->TableOverlayEntry->Create();
     this->TableOverlayEntry->SetWidth( 6 );
-    this->TableOverlayEntry->SetBalloonHelpString(
-      "Value displayed on the scanner, when calibration object is under "
-      "the overlay laser." );
     
     this->TableUpdateButton->SetParent( this->TableFrame->GetFrame() );
     this->TableUpdateButton->Create();
     this->TableUpdateButton->SetText( "Update" );
     this->TableUpdateButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
-    
-    
-    this->PatientFrame->SetParent( parent );
-    this->PatientFrame->SetLabelText( "Patient calibration" );
-    this->PatientFrame->Create();
-    
-    this->PatientLabel->SetParent( this->PatientFrame->GetFrame() );
-    this->PatientLabel->Create();
-    this->PatientLabel->SetText( "Patient at scanner laser (mm):" );
-    
-    this->PatientEntry->SetParent( this->PatientFrame->GetFrame() );
-    this->PatientEntry->Create();
-    this->PatientEntry->SetWidth( 6 );
-    this->PatientEntry->SetBalloonHelpString(
-      "Value displayed on the scanner, when patient point set as zero "
-      "image position, is under the scanner laser." );
-    
-    this->PatientUpdateButton->SetParent( this->PatientFrame->GetFrame() );
-    this->PatientUpdateButton->Create();
-    this->PatientUpdateButton->SetText( "Update" );
-    this->PatientUpdateButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
     }
   
   
   this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                 this->TableFrame->GetWidgetName() );
-  
-  this->Script( "grid %s -column 0 -row 0 -sticky w -padx 6 -pady 2", 
-                this->TableScannerLabel->GetWidgetName() );
-  this->Script( "grid %s -column 1 -row 0 -sticky w -padx 1 -pady 2",
-                this->TableScannerEntry->GetWidgetName() );
   
   this->Script( "grid %s -column 0 -row 1 -sticky w -padx 6 -pady 2", 
                 this->TableOverlayLabel->GetWidgetName() );
@@ -408,25 +361,6 @@ vtkPerkStationCalibrateStep
                 this->TableFrame->GetFrame()->GetWidgetName() );
   this->Script( "grid columnconfigure %s 2 -weight 1",
                 this->TableFrame->GetFrame()->GetWidgetName() );
-  
-  
-  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->PatientFrame->GetWidgetName() );
-  
-  this->Script( "grid %s -column 0 -row 0 -sticky w -padx 6 -pady 2", 
-                this->PatientLabel->GetWidgetName() );
-  this->Script( "grid %s -column 1 -row 0 -sticky w -padx 1 -pady 2",
-                this->PatientEntry->GetWidgetName() );
-  
-  this->Script( "grid %s -column 2 -row 0 -sticky e -padx 6 -pady 2",
-                this->PatientUpdateButton->GetWidgetName() );
-  
-  this->Script( "grid columnconfigure %s 0 -weight 1",
-                this->PatientFrame->GetFrame()->GetWidgetName() );
-  this->Script( "grid columnconfigure %s 1 -weight 3",
-                this->PatientFrame->GetFrame()->GetWidgetName() );
-  this->Script( "grid columnconfigure %s 2 -weight 1",
-                this->PatientFrame->GetFrame()->GetWidgetName() );
   
   
   
@@ -590,9 +524,7 @@ vtkPerkStationCalibrateStep
   
     // Update UI fields.
   
-  this->TableScannerEntry->SetValueAsDouble( node->GetTableAtScanner() );
   this->TableOverlayEntry->SetValueAsDouble( node->GetTableAtOverlay() );
-  this->PatientEntry->SetValueAsDouble( node->GetPatientAtScanner() );
   
   this->HardwareMenu->GetWidget()->SetValue( hardware.Name.c_str() );
   
@@ -866,8 +798,6 @@ void vtkPerkStationCalibrateStep::Reset()
     }
   
   this->GetGUI()->GetMRMLNode()->SetTableAtOverlay( 0.0 );
-  this->GetGUI()->GetMRMLNode()->SetTableAtScanner( 0.0 );
-  this->GetGUI()->GetMRMLNode()->SetPatientAtScanner( 0.0 );
   this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation( 0.0, 0.0 );
   this->GetGUI()->GetMRMLNode()->SetSecondMonitorRotation( 0.0 );
   this->PopulateControls();
@@ -906,29 +836,11 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
     this->TableOverlayEntry->AddObserver(
       vtkKWEntry::EntryValueChangedEvent,
       ( vtkCommand* )( this->WizardGUICallbackCommand ) );
-    
-    this->TableScannerEntry->AddObserver(
-      vtkKWEntry::EntryValueChangedEvent,
-      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
     }
   
   if ( this->TableUpdateButton )
     {
     this->TableUpdateButton->AddObserver(
-      vtkKWPushButton::InvokedEvent,
-      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
-    }
-  
-  if ( this->PatientEntry )
-    {
-    this->PatientEntry->AddObserver(
-      vtkKWEntry::EntryValueChangedEvent,
-      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
-    }
-  
-  if ( this->PatientUpdateButton )
-    {
-    this->PatientUpdateButton->AddObserver(
       vtkKWPushButton::InvokedEvent,
       ( vtkCommand* )( this->WizardGUICallbackCommand ) );
     }
@@ -1081,8 +993,7 @@ vtkPerkStationCalibrateStep
   
     // Table entries changed.
   
-  if (    this->TableOverlayEntry == vtkKWEntry::SafeDownCast( caller )
-       || this->TableScannerEntry == vtkKWEntry::SafeDownCast( caller ) )
+  if ( this->TableOverlayEntry == vtkKWEntry::SafeDownCast( caller ) )
     {
     if (    this->TableOverlayEntry->GetValueAsDouble()
          != node->GetTableAtOverlay()
@@ -1100,25 +1011,6 @@ vtkPerkStationCalibrateStep
     node->SetTableAtOverlay( this->TableOverlayEntry->GetValueAsDouble() );
     node->SetTableAtScanner( this->TableScannerEntry->GetValueAsDouble() );
     this->TableUpdateButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
-    }
-  
-    // Patient entry changed.
-  
-  if ( this->PatientEntry == vtkKWEntry::SafeDownCast( caller ) )
-    {
-    if (    this->PatientEntry->GetValueAsDouble()
-         != node->GetPatientAtScanner() )
-      {
-      this->PatientUpdateButton->SetBackgroundColor( 1.0, 0.8, 0.8 );
-      }
-    }
-  
-    // Patient update button pressed.
-  
-  if ( this->PatientUpdateButton == vtkKWPushButton::SafeDownCast( caller ) )
-    {
-    node->SetPatientAtScanner( this->PatientEntry->GetValueAsDouble() );
-    this->PatientUpdateButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
     }
   
   
