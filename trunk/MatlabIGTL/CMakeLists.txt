@@ -13,7 +13,7 @@ find_program(MEX_COMPILER mex)
 
 # if MEX_COMPILER is mkoctfile (for Octave)
 if (MEX_COMPILER MATCHES mkoctfile$)
-  set(MEX_OPTION --mex)
+  set(MEX_OPTION --mex -g)
 endif (MEX_COMPILER MATCHES mkoctfile$)
 
 set(OpenIGTLinkMex_SOURCES
