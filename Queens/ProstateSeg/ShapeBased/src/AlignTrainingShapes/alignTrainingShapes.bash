@@ -2,13 +2,14 @@
 
 date >> timeLog
 
-dataDir=./trainingShapes
+dataDir=../data/trainingShapes
 
 resultDataDir=alignTrainingShapes
 
 mkdir ${resultDataDir}
 
-exeFile='./src/imageRegByPointSet/c/affine/r/imgRegByPtSet3DTest_uchar'
+#exeFile='./src/imageRegByPointSet/c/affine/r/imgRegByPtSet3DTest_uchar'
+exeFile='src/bin/AlignTrainingShapes/AlignTrainingShapes'
 
 fixedImg=${dataDir}/02780302_label.nrrd
 

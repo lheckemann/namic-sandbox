@@ -1,6 +1,6 @@
 #include "imgRegByPtSet3D_uchar.h"
 
-#include "../../../douher/cArrayOp.h"
+#include "cArrayOp.h"
 
 
 #include <ctime>
