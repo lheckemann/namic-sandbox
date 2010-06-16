@@ -19,6 +19,7 @@ while sfd > 0
       else
         %figure; image(DATA.Image(:,:,60))
 	DATA.Trans
+        DATA.Image = convn (DATA.Image, ones (5, 5, 5) / (5*5*5), "same");
 	DATA.Name = 'MatlabImage';
 	r = igtlsend(cfd, DATA);
       end
