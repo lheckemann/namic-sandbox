@@ -230,13 +230,13 @@ public:
   
   vtkSetMacro( TimeOnCalibrateStep, double );
   vtkGetMacro( TimeOnCalibrateStep, double );
-
+  
   vtkSetMacro( TimeOnPlanStep, double );
   vtkGetMacro( TimeOnPlanStep, double );
-
+  
   vtkSetMacro( TimeOnInsertStep, double );
   vtkGetMacro( TimeOnInsertStep, double );
-
+  
   vtkSetMacro( TimeOnValidateStep, double );
   vtkGetMacro( TimeOnValidateStep, double );
   
@@ -249,7 +249,7 @@ public:
   
   
   vtkMRMLScalarVolumeNode* GetActiveVolumeNode();
-
+  
     // Update the stored reference to another node in the scene
   virtual void UpdateReferenceID( const char *oldID, const char *newID );
   
