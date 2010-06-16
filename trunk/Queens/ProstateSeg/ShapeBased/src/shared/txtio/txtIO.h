@@ -8,7 +8,7 @@
 
 namespace douher
 {
-  template<typename TNull>
+//  template<typename TNull>
   std::vector< std::string > readTextLineToListOfString(const char* textFileName);
 
 

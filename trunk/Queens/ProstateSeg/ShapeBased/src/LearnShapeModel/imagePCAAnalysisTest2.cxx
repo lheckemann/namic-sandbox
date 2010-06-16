@@ -44,7 +44,7 @@ int main( int argc, char * argv[] )
 
 
   // read the image file names
-  std::vector< std::string > listOfLines = douher::readTextLineToListOfString<char>(fileContainingFileNames);
+  std::vector< std::string > listOfLines = douher::readTextLineToListOfString(fileContainingFileNames);
 
 
   typedef double pixel_t;

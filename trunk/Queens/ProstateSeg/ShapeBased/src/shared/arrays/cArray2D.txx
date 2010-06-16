@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include <signal.h>
+
 namespace douher
 {
   template<typename T> 
