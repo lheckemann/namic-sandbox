@@ -145,8 +145,6 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
   // ---------------------------------------------------------------
   // Create a message buffer to receive data
 
-  printf("int waitAndReceiveMessage(int sd, mxArray *plhs[])\n");
-
   igtl::MessageHeader::Pointer headerMsg;
   headerMsg = igtl::MessageHeader::New();
 
@@ -157,7 +155,7 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
   r = socket->SetDescriptor(sd);
   if (r != 0)
     {
-    mexErrMsgTxt("Invalid socket descriptor.");
+    //mexErrMsgTxt("Invalid socket descriptor.");
     receiveError(plhs, 0, "", "");
     return 0;
     }
@@ -168,14 +166,13 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
   r = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
   if (r == 0)
     {
-    mexErrMsgTxt("Connection lost.");
-    socket->CloseSocket();
+    //mexErrMsgTxt("Connection lost.");
     receiveError(plhs, 0, "", "");
     return 0;
     }
   if (r != headerMsg->GetPackSize())
     {
-    mexErrMsgTxt("Invalid data size.");
+    //mexErrMsgTxt("Invalid data size.");
     receiveError(plhs, -1, "", "");
     return 0;
     }
@@ -189,11 +186,11 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
   if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
     {
     //printf("procReceiveTransform(socket, headerMsg, plhs);\n");
-    receiveTransform(socket, headerMsg, plhs);
+    return receiveTransform(socket, headerMsg, plhs);
     }
   else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
     {
-    receiveImage(socket, headerMsg, plhs);
+    return receiveImage(socket, headerMsg, plhs);
     }
   //else if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
   //  {
@@ -208,6 +205,7 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
     socket->Skip(headerMsg->GetBodySizeToRead(), 0);
     receiveError(plhs, -1, "", "");
     }
+  return 0;
 }
 
 
@@ -220,9 +218,9 @@ void receiveError(mxArray *plhs[], int status, const char* name, const char* typ
 
   // Get strcutre for returned value
   const char* fnames [] = {
-    "Type", "Name", "Trans"
+    "Type", "Name",
   };
-  plhs[RET_ID_DATA] = mxCreateStructMatrix(1, 1, 3, fnames);
+  plhs[RET_ID_DATA] = mxCreateStructMatrix(1, 1, 2, fnames);
   
   // Set type string
   mxArray* typeString = mxCreateString(type);
@@ -241,8 +239,7 @@ int receiveTransform(igtl::MexClientSocket::Pointer& socket,
                      igtl::MessageHeader::Pointer& headerMsg,
                      mxArray *plhs[])
 {
-  std::cerr << "Receiving TRANSFORM data type." << std::endl;
-  
+
   // Create a message buffer to receive transform data
   igtl::TransformMessage::Pointer transMsg;
   transMsg = igtl::TransformMessage::New();
@@ -269,7 +266,6 @@ int receiveTransform(igtl::MexClientSocket::Pointer& socket,
     // Retrive the transform data
     igtl::Matrix4x4 mat;
     transMsg->GetMatrix(mat);
-    igtl::PrintMatrix(mat);
 
     // Set type string
     mxArray* typeString = mxCreateString("TRANSFORM");
@@ -304,8 +300,6 @@ int receiveImage(igtl::MexClientSocket::Pointer& socket,
                  igtl::MessageHeader::Pointer& headerMsg,
                  mxArray *plhs[])
 {
-  std::cerr << "Receiving IMAGE data type." << std::endl;
-
   // Create a message buffer to receive transform data
   igtl::ImageMessage::Pointer imgMsg;
   imgMsg = igtl::ImageMessage::New();
@@ -325,7 +319,7 @@ int receiveImage(igtl::MexClientSocket::Pointer& socket,
   const char* fnames [] = {
     "Type", "Name", "Image", "Trans"
   };
-  plhs[RET_ID_DATA] = mxCreateStructMatrix(1, 1, 3, fnames);
+  plhs[RET_ID_DATA] = mxCreateStructMatrix(1, 1, 4, fnames);
 
   if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
     {
@@ -344,19 +338,15 @@ int receiveImage(igtl::MexClientSocket::Pointer& socket,
     imgMsg->GetSubVolume(svsize, svoffset);
     imgMsg->GetMatrix(mat);
 
-    std::cerr << "Device Name           : " << imgMsg->GetDeviceName() << std::endl;
-    std::cerr << "Scalar Type           : " << scalarType << std::endl;
-    std::cerr << "Dimensions            : ("
-              << size[0] << ", " << size[1] << ", " << size[2] << ")" << std::endl;
-    std::cerr << "Spacing               : ("
-              << spacing[0] << ", " << spacing[1] << ", " << spacing[2] << ")" << std::endl;
-    std::cerr << "Sub-Volume dimensions : ("
-              << svsize[0] << ", " << svsize[1] << ", " << svsize[2] << ")" << std::endl;
-    std::cerr << "Sub-Volume offset     : ("
-              << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl;
+    mexPrintf("Device Name           : %s\n", imgMsg->GetDeviceName());
+    mexPrintf("Scalar Type           : %d\n", scalarType);
+    mexPrintf("Dimensions            : ( %d, %d, %d )\n", size[0], size[1], size[2]);
+    mexPrintf("Spacing               : ( %f, %f, %f )\n", spacing[0], spacing[1], spacing[2]);
+    mexPrintf("Sub-Volume dimensions : ( %d, %d, %d )\n", svsize[0], svsize[1], svsize[2]);
+    mexPrintf("Sub-Volume offset     : ( %f, %f, %f )\n", svoffset[0], svoffset[1], svoffset[2]);
 
     // Set type string
-    mxArray* typeString = mxCreateString("TRANSFORM");
+    mxArray* typeString = mxCreateString("IMAGE");
     mxSetField(plhs[RET_ID_DATA], 0, "Type", typeString);
 
     // Set device name string
@@ -428,8 +418,6 @@ int receiveImage(igtl::MexClientSocket::Pointer& socket,
       }
     else if (scalarType == igtl::ImageMessage::TYPE_INT16)
       {
-      std::cerr << "scalarType == TYPE_UINT16." << std::endl;
-      std::cerr << "ni = " << ni << ", nj = " << nj << ", nk = " << nk << std::endl;
       igtlInt16* dest = (igtlInt16*)imgMsg->GetScalarPointer();
       for (int k = 0; k < nk; k ++)
         {
@@ -445,8 +433,6 @@ int receiveImage(igtl::MexClientSocket::Pointer& socket,
       }
     else if (scalarType == igtl::ImageMessage::TYPE_UINT16)
       {
-      std::cerr << "scalarType == TYPE_UINT16." << std::endl;
-      std::cerr << "ni = " << ni << ", nj = " << nj << ", nk = " << nk << std::endl;
       igtlUint16* dest = (igtlUint16*)imgMsg->GetScalarPointer();
       for (int k = 0; k < nk; k ++)
         {
@@ -522,110 +508,13 @@ int receiveImage(igtl::MexClientSocket::Pointer& socket,
       }
 
     mxSetField(plhs[RET_ID_DATA], 0, "Image", imageMatrix);
+
     retVal = 1;
     return 1;
     }
 
   return 0;
   
-}
-
-
-int receiveImage(int sd, const char* name, const mxArray *ptr)
-{
-  mxArray* imageField =  mxGetField(ptr, 0, "Image");
-  mxArray* transField =  mxGetField(ptr, 0, "Trans");
-  
-  double*     rdata    = mxGetPr(imageField);
-  int ndim             = mxGetNumberOfDimensions(imageField);
-  const int*  s        = mxGetDimensions(imageField);
-  int size[3];
-  size[0] = s[0]; size[1] = s[1]; size[2] = (ndim == 3)? s[2]:1;
-  double*     trans    = mxGetPr(transField);
-
-  igtl::Matrix4x4 mat;
-  mat[0][0] = trans[0];  mat[0][1] = trans[4];  mat[0][2] = trans[8];  mat[0][3] = trans[12];
-  mat[1][0] = trans[1];  mat[1][1] = trans[5];  mat[1][2] = trans[9];  mat[1][3] = trans[13];
-  mat[2][0] = trans[2];  mat[2][1] = trans[6];  mat[2][2] = trans[10]; mat[2][3] = trans[14];
-  mat[3][0] = trans[3];  mat[3][1] = trans[7];  mat[3][2] = trans[11]; mat[3][3] = trans[15];
-
-  float norm_i[] = {mat[0][0], mat[1][0], mat[2][0]};
-  float norm_j[] = {mat[0][1], mat[1][1], mat[2][1]};
-  float norm_k[] = {mat[0][2], mat[1][2], mat[2][2]};
-  float pos[]      = {mat[0][3], mat[1][3], mat[2][3]};
-  float spacing[3];
-  int svoffset[] = {0, 0, 0};
-
-  // calculate spacing
-  spacing[0] = sqrt(norm_i[0]*norm_i[0] + norm_i[1]*norm_i[1] + norm_i[2]*norm_i[2]);
-  spacing[1] = sqrt(norm_j[0]*norm_j[0] + norm_j[1]*norm_j[1] + norm_j[2]*norm_j[2]);
-  spacing[2] = sqrt(norm_k[0]*norm_k[0] + norm_k[1]*norm_k[1] + norm_k[2]*norm_k[2]);
-
-  // normalize
-  for (int i = 0; i < 3; i ++)
-    {
-    norm_i[i] /= spacing[i];
-    norm_j[i] /= spacing[i];
-    norm_k[i] /= spacing[i];
-    }
-
-  // print variables
-  mexPrintf("Data Name  : %s\n", name);
-  mexPrintf("Size       : (%d, %d, %d)\n", size[0], size[1], size[2]);
-  mexPrintf("Spacing    : (%f, %f, %f)\n", spacing[0], spacing[1], spacing[2]);
-  mexPrintf("Transform  : [%1.6f, %1.6f %1.6f %1.6f]\n", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
-  mexPrintf("             [%1.6f, %1.6f %1.6f %1.6f]\n", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
-  mexPrintf("             [%1.6f, %1.6f %1.6f %1.6f]\n", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
-  mexPrintf("             [%1.6f, %1.6f %1.6f %1.6f]\n", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
-
-  // ---------------------------------------------------------------
-  // Set up OpenIGTLink Connection
-  igtl::MexClientSocket::Pointer socket;
-  socket = igtl::MexClientSocket::New();
-  int r = socket->SetDescriptor(sd);
-
-  if (r != 0)
-    {
-    mexErrMsgTxt("Invalid socket descriptor.");
-    }
-
-  // ---------------------------------------------------------------
-  // Prepare image message
-  igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
-  imgMsg->SetDimensions(size);
-  imgMsg->SetSpacing(spacing);
-  imgMsg->SetNormals(norm_i, norm_j, norm_k);
-  imgMsg->SetScalarType(igtl::ImageMessage::TYPE_UINT16);
-  imgMsg->SetDeviceName(name);
-  imgMsg->SetSubVolume(size, svoffset);
-  imgMsg->AllocateScalars();
-
-  //int npixel = size[0]*size[1]*size[2];
-  int ni = size[0]; int nj = size[1]; int nk = size[2];
-  igtlUint16* dest = (igtlUint16*)imgMsg->GetScalarPointer();
-  for (int k = 0; k < nk; k ++)
-    {
-    int koff = k*ni*nj;
-    for (int j = 0; j < nj; j ++)
-      {
-      for (int i = 0; i < ni; i ++)
-        {
-        dest[koff + j*ni + i] = (igtlUint16)rdata[koff + i*nj + j];
-        }
-      }
-    }
-  
-  // ---------------------------------------------------------------
-  // Send image message
-  
-  imgMsg->Pack();
-  socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
-  socket->CloseSocket();
-
-  mexPrintf("The image has been sent.\n");
-
-  return 1;
-
 }
 
 

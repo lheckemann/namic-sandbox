@@ -104,7 +104,6 @@ int MexSocket::CreateSocket()
   int iResult = WSAStartup( MAKEWORD(2,2), &wsaData );
   if( iResult != NO_ERROR )
     {
-    std::cerr << "Error at WSAStartup" << std::endl;
     return -1;
     }
 #endif

@@ -76,7 +76,7 @@ void mexFunction (int nlhs, mxArray *plhs[],
   // ---------------------------------------------------------------
   // Get reference to return value
   double& retVal = createMatlabScalar(plhs[0]);
-  
+
   // ---------------------------------------------------------------
   // Check arguments
   if (checkArguments(nlhs, plhs, nrhs, prhs) == 0)
@@ -236,14 +236,15 @@ int procTransformData(int sd, const char* name, const mxArray *ptr)
 
 int procImageData(int sd, const char* name, const mxArray *ptr)
 {
+
   mxArray* imageField =  mxGetField(ptr, 0, "Image");
   mxArray* transField =  mxGetField(ptr, 0, "Trans");
-  
+
   double*     rdata    = mxGetPr(imageField);
   int ndim             = mxGetNumberOfDimensions(imageField);
   const mwSize*  s     = mxGetDimensions(imageField);
   int size[3];
-  size[0] = s[0]; size[1] = s[1]; size[2] = (ndim == 3)? s[2]:1;
+  size[0] = s[0]; size[1] = s[1]; size[2] = (ndim == 3)? s[2] : 1;
   double*     trans    = mxGetPr(transField);
 
   igtl::Matrix4x4 mat;
@@ -323,7 +324,6 @@ int procImageData(int sd, const char* name, const mxArray *ptr)
   
   imgMsg->Pack();
   socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
-  socket->CloseSocket();
 
   mexPrintf("The image has been sent.\n");
 
