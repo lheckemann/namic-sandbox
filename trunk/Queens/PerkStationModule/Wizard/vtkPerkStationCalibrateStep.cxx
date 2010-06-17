@@ -831,7 +831,7 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
   
     // Table calibration.
   
-  if ( this->TableOverlayEntry && this->TableScannerEntry )
+  if ( this->TableOverlayEntry )
     {
     this->TableOverlayEntry->AddObserver(
       vtkKWEntry::EntryValueChangedEvent,
@@ -996,9 +996,7 @@ vtkPerkStationCalibrateStep
   if ( this->TableOverlayEntry == vtkKWEntry::SafeDownCast( caller ) )
     {
     if (    this->TableOverlayEntry->GetValueAsDouble()
-         != node->GetTableAtOverlay()
-         || this->TableScannerEntry->GetValueAsDouble()
-         != node->GetTableAtScanner() )
+         != node->GetTableAtOverlay() )
       {
       this->TableUpdateButton->SetBackgroundColor( 1.0, 0.8, 0.8 );
       }
@@ -1009,7 +1007,6 @@ vtkPerkStationCalibrateStep
   if ( this->TableUpdateButton == vtkKWPushButton::SafeDownCast( caller ) )
     {
     node->SetTableAtOverlay( this->TableOverlayEntry->GetValueAsDouble() );
-    node->SetTableAtScanner( this->TableScannerEntry->GetValueAsDouble() );
     this->TableUpdateButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
     }
   

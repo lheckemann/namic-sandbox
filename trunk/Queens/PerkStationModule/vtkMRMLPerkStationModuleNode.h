@@ -65,6 +65,20 @@ struct OverlayHardware
   bool FlipVertical;
 };
 
+struct OverlayCalibration
+{
+  double SecondMonitorRotation;
+  double SecondMonitorRotationCenter[ 2 ];
+  double SecondMonitorTranslation[ 2 ];
+  
+  bool SecondMonitorHorizontalFlip;
+  bool SecondMonitorVerticalFlip;
+  
+  double TableAtOverlay; // Table position when target area is under the overlay laser.
+  
+  int HardwareIndex;
+}
+
 // ----------------------------------------------------------------------------
 
 
@@ -133,6 +147,15 @@ public:
   vtkGetMacro( HardwareIndex, int );
   vtkSetMacro( HardwareIndex, int );
   
+    // Calibration list management.
+  
+  unsigned int AddCalibration( OverlayCalibration newCalibration );
+  int RemoveCalibrationAtIndex( unsigned int index );
+  OverlayCalibration GetCalibrationAtIndex( unsigned int index );
+  int GetNumberOfCalibrations() { return this->CalibrationList.size(); };
+  vtkGetMacro( CurrentCalibrationIndex, int );
+  int SetCurrentCalibrationIndex( int index );
+  
   
   // Plan parameters ----------------------------------------------------------
   
@@ -154,6 +177,15 @@ public:
   };
   
   void AddCurrentPlan();
+  
+    // Plan list management.
+  
+  unsigned int AddPlan( vtkPerkStationPlan* newPlan );
+  int RemovePlanAtIndex( unsigned int index );
+  vtkPerkStationPlan *GetPlanAtIndex( unsigned int index );
+  int GetNumberOfPlans() { return this->PlanList.size(); };
+  vtkGetMacro( CurrentPlanIndex, int );
+  int SetCurrentPlanIndex( int index );
   
   
     // Insertion parameters ---------------------------------------------------
@@ -282,16 +314,6 @@ public:
   double GetValidationDepth();
   
   
-  // Plan list management -----------------------------------------------------
-  
-  unsigned int AddPlan( vtkPerkStationPlan* newPlan );
-  int RemovePlanAtIndex( unsigned int index );
-  vtkPerkStationPlan *GetPlanAtIndex( unsigned int index );
-  int GetNumberOfPlans() { return this->PlanList.size(); };
-  vtkGetMacro( CurrentPlanIndex, int );
-  int SetCurrentPlanIndex( int index );
-  
-  
 protected:
   
   vtkMRMLPerkStationModuleNode();
@@ -304,23 +326,10 @@ protected:
   
   // Calibration parameters ---------------------------------------------------
   
-  double SecondMonitorRotation;
-  double SecondMonitorRotationCenter[ 2 ];
-  double SecondMonitorTranslation[ 2 ];
-  
-  bool SecondMonitorHorizontalFlip;
-  bool SecondMonitorVerticalFlip;
-  
-  double TableAtScanner;
-  double TableAtOverlay;
-  double PatientAtScanner;
-  double CurrentSliceOffset;    // In RAS.
-  
-  
-  int HardwareIndex;
-  
-  PatientPositionEnum PatientPosition;
-  
+  //BTX
+  std::vector< OverlayCalibration > CalibrationList;
+  int CurrentCalibration; // If <0, no calibration is selected.
+  //ETX
   
     // Plan parameters --------------------------------------------------------
   
@@ -330,6 +339,10 @@ protected:
   double TiltAngle;
   
   //BTX
+  
+  std::vector< vtkPerkStationPlan* > PlanList;
+  int CurrentPlanIndex; // If <0, no plan is selected.
+  
   vtkSmartPointer< vtkMatrix4x4 > SliceToRAS;
   
   unsigned int PlanUID;
@@ -360,6 +373,9 @@ protected:
   vtkMRMLScalarVolumeNode* PlanningVolumeNode;
   vtkMRMLScalarVolumeNode* ValidationVolumeNode;
   
+  double CurrentSliceOffset;    // In RAS.
+  PatientPositionEnum PatientPosition;
+  
   double TimeOnCalibrateStep;
   double TimeOnPlanStep;
   double TimeOnInsertStep;
@@ -386,13 +402,6 @@ protected:
   std::vector< VolumeInformationStruct > VolumesList;
   
   std::vector< OverlayHardware > HardwareList;
-  //ETX
-  
-  //BTX
-  
-  std::vector< vtkPerkStationPlan* > PlanList;
-  int CurrentPlanIndex; // If <0, no plan is selected.
-  
   //ETX
 };
 
