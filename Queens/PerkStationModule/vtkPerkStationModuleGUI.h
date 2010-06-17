@@ -105,10 +105,6 @@ public:
   void LoadExperimentButtonCallback( const char* fileName );
   void SaveExperimentButtonCallback( const char* fileName );
   
-  virtual void SaveExperiment( ostream& of );
-  
-  virtual void LoadExperiment( istream& file );
-  
   
   //BTX
   // Mode identifier

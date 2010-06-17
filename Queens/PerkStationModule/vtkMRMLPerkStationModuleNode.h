@@ -65,8 +65,12 @@ struct OverlayHardware
   bool FlipVertical;
 };
 
-struct OverlayCalibration
+//BTX
+// Struct to hold calibration data.
+class OverlayCalibration
 {
+public:
+  std::string Name;
   double SecondMonitorRotation;
   double SecondMonitorRotationCenter[ 2 ];
   double SecondMonitorTranslation[ 2 ];
@@ -75,9 +79,8 @@ struct OverlayCalibration
   bool SecondMonitorVerticalFlip;
   
   double TableAtOverlay; // Table position when target area is under the overlay laser.
-  
-  int HardwareIndex;
-}
+};
+//ETX
 
 // ----------------------------------------------------------------------------
 
@@ -107,39 +110,26 @@ public:
     return "PS";
   };
   
-  //BTX
-  virtual void SaveClibration( std::ostream& out );
-  virtual bool LoadCalibration( std::istream& in );
-  
-  virtual void SaveExperiment( std::ostream& out );
-  virtual bool LoadExperiment( std::istream& in );
-  //ETX
   
   // Calibration parameters ---------------------------------------------------
   
-  vtkGetMacro( SecondMonitorRotation, double );
-  vtkSetMacro( SecondMonitorRotation, double );
+  double GetSecondMonitorRotation() const;
+  void SetSecondMonitorRotation( double rot );
   
-  vtkGetVector2Macro( SecondMonitorRotationCenter, double );
-  vtkSetVector2Macro( SecondMonitorRotationCenter, double );
+  void GetSecondMonitorRotationCenter( double* rotCent) const;
+  void SetSecondMonitorRotationCenter( const double* rotCent);
   
-  vtkGetMacro( SecondMonitorVerticalFlip, bool );
-  vtkSetMacro( SecondMonitorVerticalFlip, bool );
+  bool GetSecondMonitorVerticalFlip() const;
+  void SetSecondMonitorVerticalFlip( bool flip );
   
-  vtkGetMacro( SecondMonitorHorizontalFlip, bool );
-  vtkSetMacro( SecondMonitorHorizontalFlip, bool );
+  bool GetSecondMonitorHorizontalFlip() const;
+  void SetSecondMonitorHorizontalFlip( bool flip );
   
-  vtkGetVector2Macro( SecondMonitorTranslation, double );
-  vtkSetVector2Macro( SecondMonitorTranslation, double );
+  void GetSecondMonitorTranslation( double* tx ) const;
+  void SetSecondMonitorTranslation( const double* tx );
   
-  vtkGetMacro( TableAtScanner, double );
-  vtkSetMacro( TableAtScanner, double );
-  
-  vtkGetMacro( TableAtOverlay, double );
-  vtkSetMacro( TableAtOverlay, double );
-  
-  vtkGetMacro( PatientAtScanner, double );
-  vtkSetMacro( PatientAtScanner, double );
+  double GetTableAtOverlay() const;
+  void SetTableAtOverlay( double pos );
   
   vtkGetMacro( CurrentSliceOffset, double );
   vtkSetMacro( CurrentSliceOffset, double );
@@ -149,11 +139,11 @@ public:
   
     // Calibration list management.
   
-  unsigned int AddCalibration( OverlayCalibration newCalibration );
+  unsigned int AddCalibration( OverlayCalibration* newCalibration );
   int RemoveCalibrationAtIndex( unsigned int index );
-  OverlayCalibration GetCalibrationAtIndex( unsigned int index );
+  OverlayCalibration* GetCalibrationAtIndex( unsigned int index );
   int GetNumberOfCalibrations() { return this->CalibrationList.size(); };
-  vtkGetMacro( CurrentCalibrationIndex, int );
+  vtkGetMacro( CurrentCalibration, int );
   int SetCurrentCalibrationIndex( int index );
   
   
@@ -327,9 +317,11 @@ protected:
   // Calibration parameters ---------------------------------------------------
   
   //BTX
-  std::vector< OverlayCalibration > CalibrationList;
+  std::vector< OverlayCalibration* > CalibrationList;
   int CurrentCalibration; // If <0, no calibration is selected.
   //ETX
+  
+  int HardwareIndex;
   
     // Plan parameters --------------------------------------------------------
   

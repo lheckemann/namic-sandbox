@@ -693,8 +693,7 @@ vtkPerkStationCalibrateStep
   
   double translation[ 2 ];
   double rotation = this->GetGUI()->GetMRMLNode()->GetSecondMonitorRotation();
-  this->GetGUI()->GetMRMLNode()->GetSecondMonitorTranslation(
-    translation[ 0 ], translation[ 1 ] );
+  this->GetGUI()->GetMRMLNode()->GetSecondMonitorTranslation( translation );
   
   if ( event == vtkCommand::KeyPressEvent )
     {
@@ -707,8 +706,7 @@ vtkPerkStationCalibrateStep
     if ( ! strcmp( key, "h" ) ) rotation -= ( stepSize / 3.0 );
     }
   
-  this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation(
-        translation[ 0 ], translation[ 1 ] );
+  this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation( translation );
   this->GetGUI()->GetMRMLNode()->SetSecondMonitorRotation( rotation );
   
   this->ProcessingCallback = false;
@@ -718,67 +716,14 @@ vtkPerkStationCalibrateStep
 //-----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::LoadCalibrationButtonCallback()
 {
-  std::string fileNameWithPath = this->CalibFileName;
-  ifstream file( fileNameWithPath.c_str() );
-  if ( file.is_open() )
-    {
-    this->LoadCalibration( file );
-    file.close();
-    }
   
-  this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
 }
 
 
 //-----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::SaveCalibrationButtonCallback()
 {
-  std::string fileNameWithPath = this->CalibFileName;//+"/"+this->CalibFileName;
-  ofstream file( fileNameWithPath.c_str() );
-  if ( file.is_open() )
-    {
-    this->SaveCalibration( file );
-    file.close();
-    }
-}
-
-
-//-----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::LoadCalibration( istream& file )
-{
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if ( ! mrmlNode )
-    {
-    return;
-    }  
-
-  bool success = mrmlNode->LoadCalibration( file );
   
-  if ( success )
-    {
-    this->GetGUI()->GetSecondaryMonitor()->LoadCalibration();
-    this->PopulateControlsOnLoadCalibration();
-    }
-  else
-    {
-    PERKLOG_ERROR( "Could not read calibration from file." );
-    return;
-    }
-}
-
-
-//-----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::SaveCalibration( ostream& of )
-{
-  // reset parameters at MRML node
-   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if ( ! mrmlNode)
-    {
-    // TO DO: what to do on failure
-    return;
-    }  
-  
-  mrmlNode->SaveClibration( of );
 }
 
 
@@ -797,8 +742,9 @@ void vtkPerkStationCalibrateStep::Reset()
     return;
     }
   
+  double tx[ 2 ] = { 0.0, 0.0 };
   this->GetGUI()->GetMRMLNode()->SetTableAtOverlay( 0.0 );
-  this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation( 0.0, 0.0 );
+  this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation( tx );
   this->GetGUI()->GetMRMLNode()->SetSecondMonitorRotation( 0.0 );
   this->PopulateControls();
   

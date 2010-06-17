@@ -1882,51 +1882,19 @@ vtkPerkStationModuleGUI
 }
 
 
-//----------------------------------------------------------------------------
-void
-vtkPerkStationModuleGUI
-::SaveExperiment( ostream& of )
-{
-  if ( ! this->GetMRMLNode() ) return;
-  
-  this->MRMLNode->SaveExperiment( of );
-}
-
-
-//----------------------------------------------------------------------------
-void
-vtkPerkStationModuleGUI
-::LoadExperiment( istream &file )
-{
-  this->CalibrateStep->Reset();
-  this->PlanStep->Reset();
-  this->InsertStep->Reset();
-  this->ValidateStep->Reset();
-
-  this->MRMLNode->LoadExperiment( file );
-  this->UpdateGUI();
-}
-
-
 //---------------------------------------------------------------------------
 void
 vtkPerkStationModuleGUI
 ::SaveExperimentButtonCallback( const char* fileName )
 {
-    ofstream file( fileName );
-
-    this->SaveExperiment( file );
-    
-    file.close();
+  
 }
 
 
 //-----------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::LoadExperimentButtonCallback(const char *fileName)
 {
-    ifstream file(fileName);    
-    this->LoadExperiment( file );
-    file.close();
+  
 }
 
 

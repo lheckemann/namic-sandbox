@@ -58,8 +58,6 @@ public:
   void LoadCalibrationButtonCallback();
   void SaveCalibrationButtonCallback();
 
-  virtual void SaveCalibration( ostream& of );
-  virtual void LoadCalibration( istream& file );
   virtual void SuggestFileName();
 
   virtual void Validate();
