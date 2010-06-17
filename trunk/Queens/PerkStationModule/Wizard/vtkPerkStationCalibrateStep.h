@@ -18,6 +18,7 @@ class vtkKWCheckButtonWithLabel;
 class vtkKWEntrySet;
 class vtkKWFrame;
 class vtkKWMenuButtonWithLabel;
+class vtkKWMultiColumnListWithScrollbars;
 class vtkKWText;
 
 
@@ -76,16 +77,15 @@ protected:
   ~vtkPerkStationCalibrateStep(); 
   
   void ShowLoadResetControls();
+  void ShowCalibrationList();
   void ShowHardwareCalibration();
   
   void AddGUIObservers();
   void RemoveGUIObservers();
   
     // GUI callback  
-  static void WizardGUICallback( vtkObject *caller,
-                                 unsigned long event,
-                                 void *clientData,
-                                 void *callData );
+  static void WizardGUICallback( vtkObject *caller, unsigned long event,
+                                 void *clientData, void *callData );
   
   void InstallCallbacks();
   void PopulateControls();
@@ -120,7 +120,14 @@ protected:
   
   vtkSmartPointer< vtkKWFrameWithLabel >      HardwareFrame;
   vtkSmartPointer< vtkKWMenuButtonWithLabel > HardwareMenu;
-
+  
+  
+    // Calibration list.
+  
+  vtkKWMultiColumnListWithScrollbars* CalibrationList;
+  vtkKWPushButton* AddButton;
+  vtkKWPushButton* DeleteButton;
+  
   
     // Hardware calibration.
   

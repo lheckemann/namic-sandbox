@@ -215,14 +215,14 @@ vtkPerkStationModuleGUI
       }
     }
   
-  /*
+  
     // Set red slice only view.
   if ( this->GetApplicationGUI() != NULL )
     {
     vtkSlicerApplicationGUI *p = vtkSlicerApplicationGUI::SafeDownCast( this->GetApplicationGUI ( ));
     p->RepackMainViewer ( vtkMRMLLayoutNode::SlicerLayoutOneUpSliceView, "Red");       
     }
-  */
+  
   
   /*
   vtkMRMLPerkStationModuleNode* n = this->GetMRMLNode();
@@ -802,30 +802,19 @@ vtkPerkStationModuleGUI
 
 
 /**
- * Reads current window/level values and updates the corner annotation.
- */
-void
-vtkPerkStationModuleGUI
-::UpdateWindowLevelDisplay()
-{
-  
-}
-
-
-/**
- * Updates parameters values in MRML node based on GUI widgets.
+ * Updates parameter values in MRML node based on GUI widgets.
  */
 void vtkPerkStationModuleGUI::UpdateMRML ()
 {
   vtkMRMLPerkStationModuleNode* n = this->GetMRMLNode();
   
-  if (n == NULL)
+  if ( n == NULL )
     {
       // no parameter node selected yet, create new
     
-    this->PSNodeSelector->SetSelectedNew("vtkMRMLPerkStationModuleNode");
-    this->PSNodeSelector->ProcessNewNodeCommand("vtkMRMLPerkStationModuleNode", "PS");
-    n = vtkMRMLPerkStationModuleNode::SafeDownCast(this->PSNodeSelector->GetSelected());
+    this->PSNodeSelector->SetSelectedNew( "vtkMRMLPerkStationModuleNode" );
+    this->PSNodeSelector->ProcessNewNodeCommand( "vtkMRMLPerkStationModuleNode", "PS" );
+    n = vtkMRMLPerkStationModuleNode::SafeDownCast( this->PSNodeSelector->GetSelected() );
 
     // set an observe new node in Logic
     
@@ -842,7 +831,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
     // e.g. user may move to a certain slice in a series of slices
   
     vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic();
-    if (sliceLogic)
+    if ( sliceLogic )
       {  
       sliceLogic->GetSliceNode()->AddObserver(vtkCommand::ModifiedEvent, (vtkCommand *)this->GUICallbackCommand);
       }
@@ -868,11 +857,11 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
 
       // what if the volume selected is actually validation
       // in that case just return
-      if (n->GetValidationVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
+      if ( n->GetValidationVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL )
         {
-        if (strcmpi(n->GetValidationVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
+        if ( strcmpi(n->GetValidationVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0 )
           {
-          n->SetVolumeInUse("Validation");          
+          n->SetVolumeInUse( "Validation" );          
           return;
           }
         }
@@ -881,7 +870,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
         {
         if (strcmpi(n->GetPlanningVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
           {
-          n->SetVolumeInUse("Planning");   
+          n->SetVolumeInUse( "Planning" );   
           return;
           }
         // this implies that a planning volume already existed but now there is new image/volume chosen as planning volume in calibrate step
@@ -892,7 +881,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       // calibrate/planning volume set
       n->SetPlanningVolumeRef(this->VolumeSelector->GetSelected()->GetID());
       n->SetPlanningVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(n->GetPlanningVolumeRef())));
-      n->SetVolumeInUse("Planning");
+      n->SetVolumeInUse( "Planning" );
       
 
       vtkMRMLScalarVolumeDisplayNode *node = NULL;
@@ -947,13 +936,15 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
           n->SetVolumeInUse("Validation");  
           return;
           }
-        // this implies that a validation volume already existed but now there is new image/volume chosen as validation volume in validate step
+        // this implies that a validation volume already existed but now there
+        // is new image/volume chosen as validation volume in validate step
         }
            
 
       // validate volume set
       n->SetValidationVolumeRef(this->VolumeSelector->GetSelected()->GetID());    
-      n->SetValidationVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(n->GetValidationVolumeRef())));
+      n->SetValidationVolumeNode( vtkMRMLScalarVolumeNode::SafeDownCast(
+                                  this->GetMRMLScene()->GetNodeByID( n->GetValidationVolumeRef() ) ) );
       n->SetVolumeInUse("Validation");
 
       const char *strName = this->VolumeSelector->GetSelected()->GetName();

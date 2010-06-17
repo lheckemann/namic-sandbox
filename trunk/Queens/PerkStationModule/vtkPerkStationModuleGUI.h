@@ -148,12 +148,11 @@ protected:
   virtual void PlanningVolumeChanged();
   virtual void ValidationVolumeChanged();
   
-  // Updates GUI widgets based on parameters values in MRML node
+  
   void UpdateGUI();
-  void UpdateWindowLevelDisplay();
-
   void UpdateMRML();
-
+  
+  
   // Description
   // For creating a unique filename, to save the experiment
   char  *CreateFileName();

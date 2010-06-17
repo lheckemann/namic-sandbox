@@ -252,16 +252,13 @@ void
 vtkPerkStationModuleLogic::
 AdjustSliceView()
 {
-  PatientPositionEnum patientPosition =
-    this->PerkStationModuleNode->GetPatientPosition();
+  PatientPositionEnum patientPosition = this->PerkStationModuleNode->GetPatientPosition();
   
-  vtkSlicerSliceLogic *slice =
-        this->GetApplicationLogic()->GetSliceLogic( "Red" );
+  vtkSlicerSliceLogic *slice = this->GetApplicationLogic()->GetSliceLogic( "Red" );
   
   vtkMRMLSliceNode *sliceNode = slice->GetSliceNode();
   
-  vtkSmartPointer< vtkMatrix4x4 > newMatrix =
-      vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkSmartPointer< vtkMatrix4x4 > newMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   
   vtkMatrix4x4* oldMatrix = sliceNode->GetSliceToRAS();
   
@@ -351,19 +348,15 @@ AdjustSliceView()
     // Set Z offset to the central slice.
   
   int dims[ 3 ];
-  this->GetPerkStationModuleNode()->GetPlanningVolumeNode()->
-                    GetImageData()->GetDimensions( dims );
+  this->GetPerkStationModuleNode()->GetPlanningVolumeNode()->GetImageData()->GetDimensions( dims );
   double offsetZijk[ 4 ] = { 0.0, 0.0, double( dims[ 2 ] / 2 ), 1.0 };
   double offsetZras[ 4 ];
   
     // Create the ijkToRAS matrix.
   
-  vtkSmartPointer< vtkMatrix4x4 > rasToIJK =
-    vtkSmartPointer< vtkMatrix4x4 >::New();
-  this->GetPerkStationModuleNode()->GetPlanningVolumeNode()->
-    GetRASToIJKMatrix( rasToIJK );
-  vtkSmartPointer< vtkMatrix4x4 > ijkToRAS =
-    vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkSmartPointer< vtkMatrix4x4 > rasToIJK = vtkSmartPointer< vtkMatrix4x4 >::New();
+  this->GetPerkStationModuleNode()->GetPlanningVolumeNode()->GetRASToIJKMatrix( rasToIJK );
+  vtkSmartPointer< vtkMatrix4x4 > ijkToRAS = vtkSmartPointer< vtkMatrix4x4 >::New();
   vtkMatrix4x4::Invert( rasToIJK, ijkToRAS );
   
   ijkToRAS->MultiplyPoint( offsetZijk, offsetZras );

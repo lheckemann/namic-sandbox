@@ -27,6 +27,8 @@
 #include "vtkKWLoadSaveButton.h"
 #include "vtkKWMenuButton.h"
 #include "vtkKWMenuButtonWithLabel.h"
+#include "vtkKWMultiColumnList.h"
+#include "vtkKWMultiColumnListWithScrollbars.h"
 #include "vtkKWPushButton.h"
 #include "vtkKWText.h"
 #include "vtkKWWizardWidget.h"
@@ -37,6 +39,24 @@
 #include "vtkTransform.h"
 #include "vtkMRMLLinearTransformNode.h"
 
+
+// --------------------------------------------------------------
+
+#define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
+  if (obj) \
+    { \
+    obj->SetParent(NULL); \
+    obj->Delete(); \
+    obj = NULL; \
+    };
+
+#define FORGET( obj ) \
+  if ( obj ) \
+    { \
+    this->Script( "pack forget %s", obj->GetWidgetName() ); \
+    };
+
+// --------------------------------------------------------------
 
 
 /**
@@ -126,6 +146,13 @@ vtkPerkStationCalibrateStep
   this->HardwareMenu = vtkSmartPointer< vtkKWMenuButtonWithLabel >::New();
   
   
+    // Calibration list.
+  
+  this->CalibrationList = NULL;
+  this->AddButton = NULL;
+  this->DeleteButton = NULL;
+  
+  
     // Hardware calibration.
   
   this->HardwareCalibrationFrame = vtkSmartPointer< vtkKWFrameWithLabel >::New();
@@ -160,7 +187,9 @@ vtkPerkStationCalibrateStep
 vtkPerkStationCalibrateStep
 ::~vtkPerkStationCalibrateStep()
 {
-   
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->CalibrationList );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->AddButton );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->DeleteButton );
 }
 
 
@@ -311,6 +340,15 @@ void vtkPerkStationCalibrateStep::ShowLoadResetControls()
   
   this->Script( "pack %s -side right -anchor ne -padx 2 -pady 2", 
                 this->ResetCalibrationButton->GetWidgetName() );
+}
+
+
+void
+vtkPerkStationCalibrateStep
+::ShowCalibrationList()
+{
+  vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
+  
 }
 
 
@@ -519,8 +557,7 @@ vtkPerkStationCalibrateStep
   
   vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
   int ni = node->GetHardwareIndex();
-  OverlayHardware hardware =
-    node->GetHardwareList()[ node->GetHardwareIndex() ];
+  OverlayHardware hardware = node->GetHardwareList()[ node->GetHardwareIndex() ];
   
     // Update UI fields.
   
