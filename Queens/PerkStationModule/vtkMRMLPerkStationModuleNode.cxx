@@ -257,9 +257,7 @@ vtkMRMLPerkStationModuleNode
   this->SecondMonitorHorizontalFlip =
     this->HardwareList[ this->HardwareIndex ].FlipHorizontal;
   
-  this->TableAtScanner = 0.0;
   this->TableAtOverlay = 0.0;
-  this->PatientAtScanner = 0.0;
   this->CurrentSliceOffset = 0.0;
   
   this->PatientPosition = PPNA;
@@ -379,7 +377,6 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
     for(int i = 0; i < 3; i++) of << this->SecondMonitorRotationCenter[ i ] << " ";
     of << "\"" << std::endl;
   
-  of << indent << "TableAtScanner=\"" << this->TableAtScanner << "\" \n" << std::endl;
   of << indent << "TableAtOverlay=\"" << this->TableAtOverlay << "\" \n" << std::endl;
   
   
@@ -461,9 +458,6 @@ vtkMRMLPerkStationModuleNode
       }
     else if ( ! strcmp( attName, "SecondMonitorRotationCenter" ) ) {
       StringToDoubleVector( std::string( attValue ), this->SecondMonitorRotationCenter, 2 );
-      }
-    else if ( ! strcmp( attName, "TableAtScanner" ) ) {
-      StringToDouble( std::string( attValue ), this->TableAtScanner );
       }
     else if ( ! strcmp( attName, "TableAtOverlay" ) ) {
       StringToDouble( std::string( attValue ), this->TableAtOverlay );
@@ -560,9 +554,7 @@ vtkMRMLPerkStationModuleNode
   WriteDoubleVector( out, ind, this->SecondMonitorTranslation, "SecondMonitorTranslation", 2 );
   WriteBool( out, ind, this->SecondMonitorHorizontalFlip, "SecondMonitorHorizontalFlip" );
   WriteBool( out, ind, this->SecondMonitorVerticalFlip, "SecondMonitorVerticalFlip" );
-  WriteDouble( out, ind, this->TableAtScanner, "TableAtScanner" );
   WriteDouble( out, ind, this->TableAtOverlay, "TableAtOverlay" );
-  WriteDouble( out, ind, this->PatientAtScanner, "PatientAtScanner" );
   WriteDouble( out, ind, this->CurrentSliceOffset, "CurrentSliceOffset" );
   WriteInt( out, ind, this->HardwareIndex, "HardwareIndex" );
 }
@@ -607,19 +599,9 @@ vtkMRMLPerkStationModuleNode
     StringToBool( iter->second, this->SecondMonitorVerticalFlip );
   else nameNotFound = true;
   
-  iter = map.find( "TableAtScanner" );
-  if ( iter != map.end() )
-    StringToDouble( iter->second, this->TableAtScanner );
-  else nameNotFound = true;
-  
   iter = map.find( "TableAtOverlay" );
   if ( iter != map.end() )
     StringToDouble( iter->second, this->TableAtOverlay );
-  else nameNotFound = true;
-  
-  iter = map.find( "PatientAtScanner" );
-  if ( iter != map.end() )
-    StringToDouble( iter->second, this->PatientAtScanner );
   else nameNotFound = true;
   
   iter = map.find( "CurrentSliceOffset" );
@@ -961,14 +943,6 @@ double
 vtkMRMLPerkStationModuleNode
 ::GetCurrentTablePosition()
 {
-    // Direction positive if table position increases towards the overlay.
-  
-  double tableDirection = 1.0;
-  if ( this->TableAtScanner > this->TableAtOverlay )
-    {
-    tableDirection = - 1.0;
-    }
-  
     // Offset direction positive if the patient lies head-first,
     // because that is positive in RAS system.
   
@@ -981,19 +955,9 @@ vtkMRMLPerkStationModuleNode
     offsetDirection = - 1.0;
     }
   
-    // We know that:
-    // TableAtScanner - TableAtOverlay = PatientAtScanner - PatientAtOverlay
-    // Because both sides give the Overlay to Scanner vector.
+  double directedOffset = currentSlice * offsetDirection;
   
-  double patientAtOverlay = this->PatientAtScanner + this->TableAtOverlay
-                            - this->TableAtScanner;
-  
-    // CurrentSliceOffset is in RAS.
-  
-  double currentSlice = this->CurrentSliceOffset;
-  double directedOffset = currentSlice * offsetDirection * tableDirection;
-  
-  return patientAtOverlay + directedOffset;
+  return this->TableAtOverlay + directedOffset;
 }
 
 
