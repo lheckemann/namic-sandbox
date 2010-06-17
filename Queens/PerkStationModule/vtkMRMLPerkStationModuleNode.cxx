@@ -98,6 +98,15 @@ StringToBool( std::string str, bool& var )
   ss >> var;
 }
 
+bool
+StringToBool( std::string str )
+{
+  bool var;
+  std::stringstream ss( str );
+  ss >> var;
+  return var;
+}
+
 
 void
 StringToInt( std::string str, int& var )
@@ -106,12 +115,30 @@ StringToInt( std::string str, int& var )
   ss >> var;
 }
 
+int
+StringToInt( std::string str )
+{
+  int var;
+  std::stringstream ss( str );
+  ss >> var;
+  return var;
+}
+
 
 void
 StringToDouble( std::string str, double& var )
 {
   std::stringstream ss( str );
   ss >> var;
+}
+
+double
+StringToDouble( std::string str )
+{
+  double var;
+  std::stringstream ss( str );
+  ss >> var;
+  return var;
 }
 
 
@@ -241,6 +268,7 @@ vtkMRMLPerkStationModuleNode
     dell.SizeY = 299.0;
   this->HardwareList.push_back( dell );
   
+  this->HardwareIndex = 0;
   
   // Calibration parameters ---------------------------------------------------
   
@@ -444,29 +472,10 @@ vtkMRMLPerkStationModuleNode
     attName = *( atts++ );
     attValue = *( atts++ );
     
-    /*
-    if ( ! strcmp( attName, "SecondMonitorVerticalFlip" ) ) {
-      StringToBool( std::string( attValue ), this->SecondMonitorVerticalFlip );
-      }
-    else if ( ! strcmp( attName, "SecondMonitorHorizontalFlip" ) ) {
-      StringToBool( std::string( attValue ), this->SecondMonitorHorizontalFlip );
-      }
-    else if ( ! strcmp( attName, "SecondMonitorTranslation" ) ) {
-      StringToDoubleVector( std::string( attValue ), this->SecondMonitorTranslation, 2 );
-      }
-    else if ( ! strcmp( attName, "SecondMonitorRotation" ) ) {
-      StringToDouble( std::string( attValue ), this->SecondMonitorRotation );
-      }
-    else if ( ! strcmp( attName, "SecondMonitorRotationCenter" ) ) {
-      StringToDoubleVector( std::string( attValue ), this->SecondMonitorRotationCenter, 2 );
-      }
-    else if ( ! strcmp( attName, "TableAtOverlay" ) ) {
-      StringToDouble( std::string( attValue ), this->TableAtOverlay );
-      }
-    */
-    
     unsigned int sectionInd = 0;
     std::string sectionName;
+    
+      // Calibration list.
     
     if ( GetAttNameSection( attName, "Calibration", sectionInd, sectionName ) )
       {
@@ -480,10 +489,32 @@ vtkMRMLPerkStationModuleNode
         calib->Name = ( std::string( attValue ) );
         }
       else if ( ! sectionName.compare( "SecondMonitorVerticalFlip" ) ) {
-        plan->SetPlanningVolumeRef( std::string( attValue ) );
+        calib->SecondMonitorVerticalFlip = StringToBool( std::string( attValue ) );
         }
-      
+      else if ( ! sectionName.compare( "SecondMonitorHorizontalFlip" ) ) {
+        calib->SecondMonitorHorizontalFlip = StringToBool( std::string( attValue ) );
+        }
+      else if ( ! sectionName.compare( "SecondMonitorTranslation" ) ) {
+        double tx[ 2 ];
+        StringToDoubleVector( attValue, tx, 2 );
+        calib->SecondMonitorTranslation[ 0 ] = tx[ 0 ];
+        calib->SecondMonitorTranslation[ 1 ] = tx[ 1 ];
+        }
+      else if ( ! sectionName.compare( "SecondMonitorRotation" ) ) {
+        calib->SecondMonitorRotation = StringToDouble( std::string( attValue ) );
+        }
+      else if ( ! sectionName.compare( "SecondMonitorRotationCenter" ) ) {
+        double rc[ 2 ];
+        StringToDoubleVector( attValue, rc, 2 );
+        calib->SecondMonitorRotationCenter[ 0 ] = rc[ 0 ];
+        calib->SecondMonitorRotationCenter[ 1 ] = rc[ 1 ];
+        }
+      else if ( ! sectionName.compare( "TableAtOverlay" ) ) {
+        calib->TableAtOverlay = StringToDouble( std::string( attValue ) );
+        }
       }
+    
+      // Plan list.
     
     if ( GetAttNameSection( attName, "Plan", sectionInd, sectionName ) )
       {
@@ -528,6 +559,22 @@ vtkMRMLPerkStationModuleNode
         plan->SetValidationTargetPointRAS( loc );
         }
       }
+    
+      // Common parameters.
+    
+    if ( ! strcmp( attName, "TimeOnCalibrateStep" ) ) {
+      StringToDouble( std::string( attValue ), this->TimeOnCalibrateStep );
+      }
+    else if ( ! strcmp( attName, "TimeOnPlanStep" ) ) {
+      StringToDouble( std::string( attValue ), this->TimeOnPlanStep );
+      }
+    else if ( ! strcmp( attName, "TimeOnInsertStep" ) ) {
+      StringToDouble( std::string( attValue ), this->TimeOnInsertStep );
+      }
+    else if ( ! strcmp( attName, "TimeOnValidateStep" ) ) {
+      StringToDouble( std::string( attValue ), this->TimeOnValidateStep );
+      }
+    
     } // while ( *atts != NULL )
 }
 
