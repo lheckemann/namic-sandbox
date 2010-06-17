@@ -13,15 +13,17 @@ while sfd > 0
     disp ('Client connected.')
     while cfd
       [S, DATA] = igtlreceive(cfd);
-      if S==0 % connection lost
+      if S==0 
+        %% connection lost
 	igtlclose(cfd)
 	cfd = 0;
       else
-        %figure; image(DATA.Image(:,:,60))
-	DATA.Trans
-        DATA.Image = convn (DATA.Image, ones (5, 5, 5) / (5*5*5), 'same');
-	DATA.Name = 'MatlabImage';
-	r = igtlsend(cfd, DATA);
+        if strcmp(DATA.Type, 'IMAGE')
+          %% If the received data is an image, apply convolution filter.
+          DATA.Image = convn (DATA.Image, ones (5, 5, 5) / (5*5*5), 'same');
+          DATA.Name = 'MatlabImage';
+          r = igtlsend(cfd, DATA);
+        end
       end
     end
   else
