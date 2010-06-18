@@ -22,7 +22,9 @@ class vtkKWMultiColumnListWithScrollbars;
 class vtkKWText;
 
 
-
+/**
+ * GUI panel for calibration step.
+ */
 class
 VTK_PERKSTATIONMODULE_EXPORT
 vtkPerkStationCalibrateStep
@@ -62,6 +64,9 @@ public:
   virtual void SuggestFileName();
 
   virtual void Validate();
+  
+  void OnMultiColumnListUpdate(int row, int col, char * str);
+  void OnMultiColumnListSelectionChanged();
   
   
     // Hardware selection.
