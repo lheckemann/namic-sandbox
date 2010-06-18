@@ -73,6 +73,7 @@ vtkTransformRecorderGUI::vtkTransformRecorderGUI ( )
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkTransformRecorderGUI::DataCallback);
   
+  
   //----------------------------------------------------------------
   // GUI widgets
   
@@ -88,6 +89,12 @@ vtkTransformRecorderGUI::vtkTransformRecorderGUI ( )
   
   this->StatusLabel = NULL;
   this->TranslationLabel = NULL;
+  
+  for ( int i = 0; i < BUTTON_COUNT; ++ i )
+    {
+    vtkKWPushButton* button = NULL;
+    this->MessageButtons.push_back( button );
+    }
   
   
   //----------------------------------------------------------------
@@ -132,6 +139,10 @@ vtkTransformRecorderGUI::~vtkTransformRecorderGUI ( )
   DESTRUCT( this->StatusLabel );
   DESTRUCT( this->TranslationLabel );
   
+  for ( int i = 0; i < BUTTON_COUNT; ++ i )
+    {
+    DESTRUCT( this->MessageButtons[ i ] );
+    }
   
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -209,6 +220,11 @@ void vtkTransformRecorderGUI::RemoveGUIObservers ( )
   REMOVE_OBSERVER( this->StartButton );
   REMOVE_OBSERVER( this->StopButton );
   
+  for ( int i = 0; i < BUTTON_COUNT; ++ i )
+    {
+    REMOVE_OBSERVER( this->MessageButtons[ i ] );
+    }
+  
   this->RemoveLogicObservers();
   this->RemoveMRMLObservers();
 }
@@ -250,6 +266,12 @@ void vtkTransformRecorderGUI::AddGUIObservers ( )
   
   this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->AddObserver(
     vtkKWLoadSaveDialog::WithdrawEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+  
+  
+  for ( int i = 0; i < BUTTON_COUNT; ++ i )
+    {
+    ADD_BUTTONINVOKED_OBSERVER( this->MessageButtons[ i ] );
+    }
   
   
   ADD_BUTTONINVOKED_OBSERVER( this->StartButton );
@@ -368,6 +390,17 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
     {
     this->ModuleNode->SetRecording( false );
     }
+  
+  
+  for ( int i = 0; i < BUTTON_COUNT; ++ i )
+    {
+    if ( this->MessageButtons[ i ] == vtkKWPushButton::SafeDownCast( caller )
+         && event == vtkKWPushButton::InvokedEvent )
+      {
+      this->ModuleNode->CustomMessage( std::string( BUTTON_MESSAGES[ i ] ) );
+      }
+    }
+  
   
   if ( this->CustomButton == vtkKWPushButton::SafeDownCast( caller ) && event == vtkKWPushButton::InvokedEvent )
     {
@@ -630,6 +663,28 @@ vtkTransformRecorderGUI
   this->Script( "pack %s -side top -anchor w -padx 0 -pady 0", startFrame->GetWidgetName() );
   this->Script( "pack %s -side left -anchor w -padx 2 -pady 2", this->StopButton->GetWidgetName() );
   this->Script( "pack %s -side left -anchor w -padx 2 -pady 2", this->StartButton->GetWidgetName() );
+  
+  
+    // Message buttons.
+  
+  vtkSmartPointer< vtkKWFrame > messagesFrame = vtkSmartPointer< vtkKWFrame >::New();\
+    messagesFrame->SetParent( controlsFrame->GetFrame() );
+    messagesFrame->Create();
+  this->Script( "pack %s -side top -anchor w -padx 0 -pady 0", messagesFrame->GetWidgetName() );
+  
+  for ( int i = 0; i < BUTTON_COUNT; ++ i )
+    {
+    this->MessageButtons[ i ] = vtkKWPushButton::New();
+    this->MessageButtons[ i ]->SetParent( messagesFrame );
+    this->MessageButtons[ i ]->Create();
+    this->MessageButtons[ i ]->SetText( BUTTON_TEXTS[ i ] );
+    this->MessageButtons[ i ]->SetBackgroundColor( 0.9, 0.9, 0.9 );
+    this->MessageButtons[ i ]->SetWidth( 20 );
+    this->Script( "pack %s -side top -anchor w -padx 2 -pady 2",
+                  this->MessageButtons[ i ]->GetWidgetName() );
+    }
+  
+  
   
   vtkSmartPointer< vtkKWFrame > customFrame = vtkSmartPointer< vtkKWFrame >::New();
     customFrame->SetParent( controlsFrame->GetFrame() );

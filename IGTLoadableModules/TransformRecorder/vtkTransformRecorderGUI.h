@@ -19,6 +19,8 @@
 #include "vtkTransformRecorderWin32Header.h"
 #endif
 
+#include <vector>
+#include <string>
 
 #include "vtkCallbackCommand.h"
 #include "vtkSmartPointer.h"
@@ -35,6 +37,27 @@
 
 class vtkKWLoadSaveButtonWithLabel;
 class vtkKWLabel;
+
+
+// Quick message buttons. -----------------------------------------------------
+
+static const int BUTTON_COUNT = 4;
+static const char* BUTTON_TEXTS[ BUTTON_COUNT ] =
+  {
+  "Alignment outside",
+  "Pierce skin",
+  "Retract inside",
+  "Adjust angle inside"
+  };
+static const char* BUTTON_MESSAGES[ BUTTON_COUNT ] =
+  {
+  "Operator does alignment outside",
+  "Operator does pierce skin",
+  "Operator does retract inside",
+  "Operator does adjust angle inside"
+  };
+
+// ----------------------------------------------------------------------------
 
 
 class VTK_TransformRecorder_EXPORT vtkTransformRecorderGUI : public vtkSlicerModuleGUI
@@ -152,6 +175,10 @@ public:
   vtkKWPushButton* StopButton;
   vtkKWEntry* CustomEntry;
   vtkKWPushButton* CustomButton;
+  
+  //BTX
+  std::vector< vtkKWPushButton* > MessageButtons;
+  //ETX
   
   vtkKWLabel* StatusLabel;
   vtkKWLabel* TranslationLabel;
