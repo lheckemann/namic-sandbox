@@ -21,7 +21,7 @@ endif(NOT Slicer3_SOURCE_DIR)
 SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
 
 # Chinzei; This does eerything you want!
-#FIND_PACKAGE(OpenCV REQUIRED)
+FIND_PACKAGE(OpenCV REQUIRED)
 
 # --------------------------------------------------------------------------
 
@@ -43,7 +43,6 @@ include_directories(
   ${Slicer3_Libs_INCLUDE_DIRS}
   ${Slicer3_Base_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
-  ${OpenCV_LIB_DIR}  
 #  ${OpenIGTLink_INCLUDE_DIRS} # A.Yamada 2010-4-23;
 # 5/5/2010 ayamada for videoOverlay
   ${CMAKE_CURRENT_SOURCE_DIR}/VolumeRenderingReplacements2
@@ -113,7 +112,6 @@ target_link_libraries(${lib_name}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES}
   ${OpenCV_LIBRARIES}
-  ${OpenCV_LIBS}  
   # 5/5/2010 ayamada
   VolumeRenderingReplacements2
   VolumeRenderingCuda
