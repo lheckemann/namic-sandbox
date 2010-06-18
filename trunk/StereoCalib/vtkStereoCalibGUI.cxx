@@ -1,0 +1,1462 @@
+/*==========================================================================
+
+  Portions (c) Copyright 2008 Brigham and Women's Hospital (BWH) All Rights Reserved.
+
+  See Doc/copyright/copyright.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Program:   3D Slicer
+  Module:    $HeadURL: $
+  Date:      $Date: $
+  Version:   $Revision: $
+
+==========================================================================*/
+
+#include "vtkObject.h"
+#include "vtkObjectFactory.h"
+
+#include "vtkStereoCalibGUI.h"
+#include "vtkSlicerApplication.h"
+#include "vtkSlicerModuleCollapsibleFrame.h"
+#include "vtkSlicerSliceControllerWidget.h"
+#include "vtkSlicerSliceGUI.h"
+#include "vtkSlicerSlicesGUI.h"
+
+#include "vtkSlicerColor.h"
+#include "vtkSlicerTheme.h"
+
+#include "vtkKWTkUtilities.h"
+#include "vtkKWWidget.h"
+#include "vtkKWFrameWithLabel.h"
+#include "vtkKWFrame.h"
+#include "vtkKWLabel.h"
+#include "vtkKWEvent.h"
+
+#include "vtkKWPushButton.h"
+
+#include "vtkCornerAnnotation.h"
+
+#include "vtkStereoCalibCVClass.h" // 100607-komura
+//chessboard
+// std::vector<uchar> active[2];        // 
+// std::vector<CvPoint2D32f> points[2]; // 100603-komura
+//
+
+//---------------------------------------------------------------------------
+vtkStandardNewMacro (vtkStereoCalibGUI );
+vtkCxxRevisionMacro ( vtkStereoCalibGUI, "$Revision: 1.0 $");
+//---------------------------------------------------------------------------
+
+
+//---------------------------------------------------------------------------
+vtkStereoCalibGUI::vtkStereoCalibGUI ( )
+{
+
+  //----------------------------------------------------------------
+  // Logic values
+  this->Logic = NULL;
+  this->DataCallbackCommand = vtkCallbackCommand::New();
+  this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
+  this->DataCallbackCommand->SetCallback(vtkStereoCalibGUI::DataCallback);
+  
+  //----------------------------------------------------------------
+  // GUI widgets
+  this->TestButton11 = NULL;
+  this->TestButton12 = NULL;
+  this->displayChessboardButton = NULL;
+  this->TestButton22 = NULL;
+  this->TestButton31 = NULL;
+  
+  //----------------------------------------------------------------
+  // Locator  (MRML)
+  this->TimerFlag = 0;
+    
+  this->SecondaryViewerWindow = NULL;
+    
+  //----------------------------------------------------------------
+  // cameraFacusPlane                                    // 
+  // FocalPlaneSource = vtkPlaneSource::New();           // 
+  // FocalPlaneMapper = vtkPolyDataMapper::New();        // 
+  for(int i=0;i<2;i++){                                  // 
+      FocalPlaneSource[i] = vtkPlaneSource::New();       // 
+      FocalPlaneMapper[i] = vtkPolyDataMapper::New();    // 
+  }                                                      // 100603-komura
+  ExtrinsicMatrix = vtkMatrix4x4::New();
+  this->Pos[0] = 0.0;
+  this->Pos[1] = 0.0;
+  this->Pos[2] = 0.0;
+  this->Focal[0] = 0.0;
+  this->Focal[1] = 0.0;
+  this->Focal[2] = 0.0;
+  this->F = 0.0;
+  this->ViewAngle = 0.0;
+  this->h=0.0;
+  this->fx=0.0;
+  this->fy=0.0;
+  focal_length = FOCAL_LENGTH;
+  
+  //----------------------------------------------------------------
+  //multThread
+  this->ThreadID = -1;
+  this->Thread = vtkMultiThreader::New();
+  
+  //----------------------------------------------------------------
+  //cameraThread;
+  makeThread = 0;
+  // idata = NULL;                            // 
+  // atext = vtkTexture::New();               // 
+  // actor =vtkActor::New();                  // 
+  // importer = vtkImageImport::New();        // 
+  for(int i=0;i<2;i++){                       // 
+      idata[i] = NULL;                        // 
+      atext[i] = vtkTexture::New();           // 
+      actor[i] =vtkActor::New();              // 
+      importer[i] = vtkImageImport::New();    // 
+  }                                           //
+  this->displayChessboardFlag = 0;            // 
+  this->captureChessboardFlag = 0;            // 
+  this->stereoCalibFlag = 0;                  // 100603-komura
+    
+    
+    // 6/6/2010 ayamada
+    textActorSavePath = vtkTextActor::New();
+    textActorSavePath2 = vtkTextActor::New();
+    textActorSavePathH = vtkTextActor::New();
+    this->saveCameraImageEntry = NULL;         
+        
+    
+}
+
+//---------------------------------------------------------------------------
+vtkStereoCalibGUI::~vtkStereoCalibGUI ( )
+{
+
+  //----------------------------------------------------------------
+  // Remove Callbacks
+
+  if (this->DataCallbackCommand)
+    {
+    this->DataCallbackCommand->Delete();
+    }
+
+  //----------------------------------------------------------------
+  // Remove Observers
+
+  this->RemoveGUIObservers();
+
+  //----------------------------------------------------------------
+  // Remove GUI widgets
+
+  if (this->TestButton11)
+    {
+    this->TestButton11->SetParent(NULL);
+    this->TestButton11->Delete();
+    }
+
+  if (this->TestButton12)
+    {
+    this->TestButton12->SetParent(NULL);
+    this->TestButton12->Delete();
+    }
+
+  if (this->displayChessboardButton)
+    {
+    this->displayChessboardButton->SetParent(NULL);
+    this->displayChessboardButton->Delete();
+    }
+
+  if (this->TestButton22)
+    {
+    this->TestButton22->SetParent(NULL);
+    this->TestButton22->Delete();
+    }
+  if (this->TestButton31)
+    {
+    this->TestButton31->SetParent(NULL);
+    this->TestButton31->Delete();
+    }
+
+  if(this->SecondaryViewerWindow){
+      this->SecondaryViewerWindow->Withdraw();
+      this->SecondaryViewerWindow->SetApplication(NULL);
+      this->SecondaryViewerWindow->Delete();
+      this->SecondaryViewerWindow = NULL;
+  }
+
+  //----------------------------------------------------------------
+  // cameraFocalPlane                               // 
+  // FocalPlaneMapper->Delete();                    // 
+  // FocalPlaneMapper = NULL;                       // 
+  // FocalPlaneSource->Delete();                    // 
+  // FocalPlaneSource = NULL;                       // 
+  for(int i=0;i<2;i++){                             // 
+      FocalPlaneMapper[i]->Delete();                // 
+      FocalPlaneMapper[i] = NULL;                   // 
+      FocalPlaneSource[i]->Delete();                // 
+      FocalPlaneSource[i] = NULL;                   // 
+  }                                                 // 100603-komura
+  //----------------------------------------------------------------
+  // cameraThread;                       // 
+  // idata = NULL;                       // 
+  // atext->Delete();                    // 
+  // atext = NULL;                       // 
+  // actor->Delete();                    // 
+  // actor = NULL;                       // 
+  for(int i=0;i<2;i++){                  // 
+      idata[i] = NULL;                   // 
+      atext[i]->Delete();                // 
+      atext[i] = NULL;                   // 
+      actor[i]->Delete();                // 
+      actor[i] = NULL;                   // 
+  }                                      // 100603-komura
+    
+    // 6/6/2010 ayamada
+    this->textActorSavePath->Delete();
+    this->textActorSavePath2->Delete();
+    this->textActorSavePathH->Delete();
+    
+    
+  //----------------------------------------------------------------
+  // Unregister Logic class
+  
+  this->SetModuleLogic ( NULL );
+  
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::Init()
+{
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::Enter()
+{
+    // Fill in
+    //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+    
+    if (this->TimerFlag == 0)
+        {
+            this->TimerFlag = 1;
+            this->TimerInterval = 10;  // 100 ms
+            ProcessTimerEvents();
+        }
+    
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::Exit ( )
+{
+  // Fill in
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::PrintSelf ( ostream& os, vtkIndent indent )
+{
+  this->vtkObject::PrintSelf ( os, indent );
+
+  os << indent << "StereoCalibGUI: " << this->GetClassName ( ) << "\n";
+  os << indent << "Logic: " << this->GetLogic ( ) << "\n";
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::RemoveGUIObservers ( )
+{
+  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+
+  if (this->TestButton11)
+    {
+    this->TestButton11
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->TestButton12)
+    {
+    this->TestButton12
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->displayChessboardButton)
+    {
+    this->displayChessboardButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->TestButton22)
+    {
+    this->TestButton22
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->TestButton31)
+    {
+    this->TestButton31
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+
+  this->RemoveLogicObservers();
+
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::AddGUIObservers ( )
+{
+  this->RemoveGUIObservers();
+
+  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+
+  //----------------------------------------------------------------
+  // MRML
+
+  vtkIntArray* events = vtkIntArray::New();
+  //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+  //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
+  events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
+  
+  if (this->GetMRMLScene() != NULL)
+    {
+    this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
+    }
+  events->Delete();
+
+  //----------------------------------------------------------------
+  // GUI Observers
+
+  this->TestButton11
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->TestButton12
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->displayChessboardButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->TestButton22
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->TestButton31
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->AddLogicObservers();
+
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::RemoveLogicObservers ( )
+{
+  if (this->GetLogic())
+    {
+    this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent,
+                                      (vtkCommand *)this->LogicCallbackCommand);
+    }
+}
+
+
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::AddLogicObservers ( )
+{
+  this->RemoveLogicObservers();  
+
+  if (this->GetLogic())
+    {
+    this->GetLogic()->AddObserver(vtkStereoCalibLogic::StatusUpdateEvent,
+                                  (vtkCommand *)this->LogicCallbackCommand);
+    }
+}
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
+{
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::ProcessGUIEvents(vtkObject *caller,
+                                         unsigned long event, void *callData)
+{
+
+  const char *eventName = vtkCommand::GetStringFromEventId(event);
+
+  if (strcmp(eventName, "LeftButtonPressEvent") == 0)
+    {
+    vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast(caller);
+    HandleMouseEvent(style);
+    return;
+    }
+
+  
+  if (this->TestButton11 == vtkKWPushButton::SafeDownCast(caller) 
+      && event == vtkKWPushButton::InvokedEvent){
+        if(this->SecondaryViewerWindow){
+                this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
+                if(makeThread == 0){
+                        makeThread = 1;
+                        std::cerr << "makeThread" << std::endl;
+                }
+        }   
+  }
+  else if (this->TestButton12 == vtkKWPushButton::SafeDownCast(caller)
+       && event == vtkKWPushButton::InvokedEvent){
+                std::cerr << "TestButton12 is pressed." << std::endl;
+                if(this->SecondaryViewerWindow){
+                        this->SecondaryViewerWindow->Withdraw();
+                        makeThread = 4;
+                }   
+  }
+  else if (this->displayChessboardButton == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    std::cerr << "displayChessboardButton is pressed." << std::endl;
+        displayChessboardFlag = !displayChessboardFlag;
+    }
+  else if (this->TestButton22 == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+        std::cerr << "TestButton22 is pressed." << std::endl;
+        if(captureChessboardFlag == 0){
+            captureChessboardFlag = 1;
+        }
+    }
+  else if (this->TestButton31 == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    std::cerr << "TestButton31 is pressed." << std::endl;
+    if(stereoCalibFlag == 0){
+            stereoCalibFlag = 1;
+        }
+    }
+
+} 
+
+
+void vtkStereoCalibGUI::DataCallback(vtkObject *caller, 
+                                     unsigned long eid, void *clientData, void *callData)
+{
+  vtkStereoCalibGUI *self = reinterpret_cast<vtkStereoCalibGUI *>(clientData);
+  vtkDebugWithObjectMacro(self, "In vtkStereoCalibGUI DataCallback");
+  self->UpdateAll();
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::ProcessLogicEvents ( vtkObject *caller,
+                                             unsigned long event, void *callData )
+{
+
+  if (this->GetLogic() == vtkStereoCalibLogic::SafeDownCast(caller))
+    {
+    if (event == vtkStereoCalibLogic::StatusUpdateEvent)
+      {
+      //this->UpdateDeviceStatus();
+      }
+    }
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::ProcessMRMLEvents ( vtkObject *caller,
+                                            unsigned long event, void *callData )
+{
+  // Fill in
+
+  if (event == vtkMRMLScene::SceneCloseEvent)
+    {
+    }
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::ProcessTimerEvents()
+{
+        if (this->TimerFlag){
+                if(makeThread == 1){
+                        this->makeCameraThread("cameraThread");
+                        makeThread = 2;
+                }
+                if(makeThread == 3){
+                        this->SecondaryViewerWindow->rw->Render();
+                        this->SecondaryViewerWindow->lw->Render();
+                }
+                        
+    // update timer
+    vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
+                                         this->TimerInterval,
+                                         this, "ProcessTimerEvents");        
+    }
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::BuildGUI ( )
+{
+
+  // ---
+  // MODULE GUI FRAME 
+  // create a page
+  this->UIPanel->AddPage ( "StereoCalib", "StereoCalib", NULL );
+
+  BuildGUIForHelpFrame();
+  BuildGUIForTestFrame1();
+  BuildGUIForTestFrame2();
+  BuildGUIForTestFrame3();      // 100603-komura
+
+
+  // this->SecondaryViewerWindow = vtkSlicerSecondaryViewerWindow::New();
+  this->SecondaryViewerWindow = vtkStereoCalibViewerWidget::New();
+  this->SecondaryViewerWindow->SetApplication(this->GetApplication());
+  this->SecondaryViewerWindow->Create();
+
+}
+
+
+void vtkStereoCalibGUI::BuildGUIForHelpFrame ()
+{
+  // Define your help text here.
+  const char *help = 
+    "See "
+    "<a>http://www.slicer.org/slicerWiki/index.php/Modules:StereoCalib</a> for details.";
+  const char *about =
+    "This work is supported by NCIGT, NA-MIC.";
+
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "StereoCalib" );
+  this->BuildHelpAndAboutFrame (page, help, about);
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::BuildGUIForTestFrame1()
+{
+
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("StereoCalib");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Test Frame 1");
+  //conBrowsFrame->CollapseFrame();
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+  // -----------------------------------------
+  // Test child frame
+
+  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
+  frame->SetParent(conBrowsFrame->GetFrame());
+  frame->Create();
+    
+    // 6/6/2010 ayamada
+    //frame->SetLabelText ("Test child frame");
+    frame->SetLabelText ("Secondary Window Control");
+
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 frame->GetWidgetName() );
+
+  // -----------------------------------------
+  // Test push button
+
+  this->TestButton11 = vtkKWPushButton::New ( );
+  this->TestButton11->SetParent ( frame->GetFrame() );
+  this->TestButton11->Create ( );
+  this->TestButton11->SetText ("Window ON");
+
+    // 6/6/2010 ayamada
+    //this->TestButton11->SetWidth (12);
+    this->TestButton11->SetWidth (15);
+
+  this->TestButton12 = vtkKWPushButton::New ( );
+  this->TestButton12->SetParent ( frame->GetFrame() );
+  this->TestButton12->Create ( );
+  this->TestButton12->SetText ("Window OFF (Camera Disconnection)");
+
+    // 6/6/2010 ayamada
+    //this->TestButton12->SetWidth (12);
+    this->TestButton12->SetWidth (37);
+
+  this->Script("pack %s %s -side left -padx 2 -pady 2", 
+               this->TestButton11->GetWidgetName(),
+               this->TestButton12->GetWidgetName());
+
+  conBrowsFrame->Delete();
+  frame->Delete();
+
+}
+
+
+//---------------------------------------------------------------------------
+void vtkStereoCalibGUI::BuildGUIForTestFrame2 ()
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("StereoCalib");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Test Frame 2");
+  //conBrowsFrame->CollapseFrame();
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+  // -----------------------------------------
+  // Test child frame
+
+  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
+  frame->SetParent(conBrowsFrame->GetFrame());
+  frame->Create();
+    
+    // 6/6/2010 ayamada
+    //frame->SetLabelText ("Test child frame");
+    frame->SetLabelText ("Image Capture Control");
+    
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 frame->GetWidgetName() );
+  
+  // -----------------------------------------
+  // Test push button
+
+  this->displayChessboardButton = vtkKWPushButton::New ( );
+  this->displayChessboardButton->SetParent ( frame->GetFrame() );
+  this->displayChessboardButton->Create ( );
+  this->displayChessboardButton->SetText ("Chessboard Finder On");
+  
+  //this->displayChessboardButton->SetWidth (12);
+  // 6/6/2010 ayamada
+  this->displayChessboardButton->SetWidth (30);
+
+  this->TestButton22 = vtkKWPushButton::New ( );
+  this->TestButton22->SetParent ( frame->GetFrame() );
+  this->TestButton22->Create ( );
+  this->TestButton22->SetText ("Capture");
+  // 6/6/2010 ayamada
+  //this->TestButton22->SetWidth (12);
+  this->TestButton22->SetWidth (15);
+
+  this->Script("pack %s %s -side left -padx 2 -pady 2", 
+               this->displayChessboardButton->GetWidgetName(),
+               this->TestButton22->GetWidgetName());
+
+
+  conBrowsFrame->Delete();
+  frame->Delete();
+}
+
+//---------------------------------------------------------------------------
+// 100603-komura
+void vtkStereoCalibGUI::BuildGUIForTestFrame3 ()
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("StereoCalib");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Test Frame 3");
+  //conBrowsFrame->CollapseFrame();
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+  // -----------------------------------------
+  // Test child frame
+
+  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
+  frame->SetParent(conBrowsFrame->GetFrame());
+  frame->Create();
+    
+    // 6/6/2010 ayamada
+    //frame->SetLabelText ("Test child frame");
+    frame->SetLabelText ("Stereo Calibration");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 frame->GetWidgetName() );
+
+    
+    // 6/6/2010 ayamada
+    this->saveCameraImageEntry = vtkKWEntryWithLabel::New();
+    this->saveCameraImageEntry->SetParent(frame->GetFrame());
+    this->saveCameraImageEntry->Create();
+    this->saveCameraImageEntry->SetWidth(45);
+    this->saveCameraImageEntry->SetLabelWidth(30);
+    this->saveCameraImageEntry->SetLabelText("Save Path of Calibration Matrices:");
+    this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->saveCameraImageEntry->GetWidgetName());
+    
+    
+  // -----------------------------------------
+  // Test push button
+
+  this->TestButton31 = vtkKWPushButton::New ( );
+  this->TestButton31->SetParent ( frame->GetFrame() );
+  this->TestButton31->Create ( );
+  this->TestButton31->SetText ("Stereo Calibration");
+
+    // 6/6/2010 ayamada
+    //this->TestButton31->SetWidth (12);
+    this->TestButton31->SetWidth (25);
+
+  //this->Script("pack %s -side left -padx 2 -pady 2", 
+  //             this->TestButton31->GetWidgetName());
+
+    // 6/6/2010 ayamada
+    this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->TestButton31->GetWidgetName());
+    
+
+  conBrowsFrame->Delete();
+  frame->Delete();
+}
+
+
+//----------------------------------------------------------------------------
+void vtkStereoCalibGUI::UpdateAll()
+{
+}
+
+//----------------------------------------------------------------------------
+
+//////////////////////
+// CameraFocusPlane //
+//////////////////////
+
+void vtkStereoCalibGUI::CameraFocusPlane(vtkCamera * cam, double Ratio)
+{
+
+    cam->GetPosition(this->Pos);
+    cam->GetFocalPoint(this->Focal);
+    
+    this->ExtrinsicMatrix->DeepCopy(cam->GetViewTransformMatrix());
+    this->ExtrinsicMatrix->Invert();
+    this->F = sqrt(vtkMath::Distance2BetweenPoints(this->Pos, this->Focal));
+    this->ViewAngle = cam->GetViewAngle() / 2.0;
+    this->h = 2.0 * tan(vtkMath::RadiansFromDegrees(this->ViewAngle / 2.0)) * F;
+    this->fx = ( 2.0*this->h * Ratio * this->focal_point_x ) / 640.0;
+    this->fy = ( 2.0*this->h * this->focal_point_y ) / 480.0;
+    
+    // this->FocalPlaneSource->SetOrigin(-this->h * Ratio, -this->h, -this->F);    // 
+    // this->FocalPlaneSource->SetPoint1(this->h * Ratio, -this->h, -this->F);     // 
+    // this->FocalPlaneSource->SetPoint2(-this->h * Ratio, this->h, -this->F);     // 
+    // this->FocalPlaneSource->SetCenter(0.0, 0.0, -this->F);                        // 
+    for(int i=0;i<2;i++){                                                          // 
+        this->FocalPlaneSource[i]->SetOrigin(-this->h * Ratio, -this->h, -this->F);// 
+        this->FocalPlaneSource[i]->SetPoint1(this->h * Ratio, -this->h, -this->F); // 
+        this->FocalPlaneSource[i]->SetPoint2(-this->h * Ratio, this->h, -this->F); // 
+        this->FocalPlaneSource[i]->SetCenter(0.0, 0.0, -this->F);                  // 
+    }                                                                              // 100603-komura
+    
+
+
+}
+//----------------------------------------------------------------------------
+
+//////////////////////
+// makeCameraThread //
+//////////////////////
+int vtkStereoCalibGUI::makeCameraThread(const char* nodeName)
+{
+    
+    // 5/5/2010 ayamada    
+    // for videoOverlay
+    
+    vtkMRMLModelNode           *locatorModel;
+    vtkMRMLModelDisplayNode    *locatorDisp;
+    
+    
+    locatorModel = vtkMRMLModelNode::New();
+    locatorDisp = vtkMRMLModelDisplayNode::New();
+    
+    GetMRMLScene()->SaveStateForUndo();
+    GetMRMLScene()->AddNode(locatorDisp);
+    GetMRMLScene()->AddNode(locatorModel);  
+    
+    locatorDisp->SetScene(GetMRMLScene());
+    
+    locatorModel->SetName(nodeName);    
+    locatorModel->SetScene(GetMRMLScene());
+    locatorModel->SetAndObserveDisplayNodeID(locatorDisp->GetID());
+    locatorModel->SetHideFromEditors(0);
+             
+     //------------------------------------------------------------------
+     //  Setting up camera paramethers for rendering
+     //------------------------------------------------------------------
+     
+     fileCamera = vtkCamera::New();
+     fileCamera->SetViewUp (0.0, 0.0, 1.0);
+     fileCamera->SetClippingRange( 0, 5 * focal_length );
+     fileCamera->SetPosition ( 0.0, focal_length / 4.0, 0.0 );
+     fileCamera->SetFocalPoint (0.0, 0.0, 0.0);
+     fileCamera->SetViewAngle ( FOA );
+     fileCamera->Zoom(1.0);    
+
+    //------------------------------------------------------------------
+    //   starting thread for capturing camera image
+    //------------------------------------------------------------------
+  std::cerr << "\n\nmakeThread OK\n\n" << std::endl;
+
+    this->ThreadID = this->Thread->SpawnThread((vtkThreadFunctionType) &vtkStereoCalibGUI::thread_CameraThread, this);
+    locatorDisp->Delete();        
+    return 1;
+    
+}
+
+
+//////////////////
+// cameraThread //
+//////////////////
+void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
+{
+        
+    std::cerr << "\n\nmakeThread Start\n\n" << std::endl;
+    // 5/15/ayamada
+    
+                int deviceNum = 0;                                        // 100608-komura
+
+                CvCapture* capture[2] = {0};
+    IplImage*    captureImage[2];
+    IplImage*    RGBImage[2];
+    IplImage*    captureImageTmp[2];
+                 
+                double D1_mono[4]; // 100608-komura 
+    CvMat _D1_mono;                                                                        // 
+    _D1_mono = cvMat(1, 4, CV_64F, D1_mono ); // 
+
+                double M1[3][3], M2[3][3], D1[5], D2[5]; // 
+                CvMat _M1;                                                                        // 
+    CvMat _M2;                                                                        // 
+    CvMat _D1;                                                                        // 
+    CvMat _D2;                                                                        // 
+    _M1 = cvMat(3, 3, CV_64F, M1 ); // 
+    _M2 = cvMat(3, 3, CV_64F, M2 ); // 
+    _D1 = cvMat(1, 5, CV_64F, D1 ); // 
+    _D2 = cvMat(1, 5, CV_64F, D2 ); // 100607-komura
+    int calibTest = 0;                                                        // 
+                
+    captureImage[2] = NULL;
+    RGBImage[2] = NULL;
+    captureImageTmp[2] = NULL;
+    
+    
+    vtkMultiThreader::ThreadInfo* vinfo = 
+        static_cast<vtkMultiThreader::ThreadInfo*>(t);
+    vtkStereoCalibGUI* pGUI = 
+        static_cast<vtkStereoCalibGUI*>(vinfo->UserData);
+
+                vtkStereoCalibCVClass CVClass; // 100607-komura
+    
+    
+    int i=0;
+    int n = -1;
+    // while(i<=10){// 5/16/2010 ayamada
+    //     n++;
+    //     if( (NULL==(capture[n] = cvCaptureFromCAM(i))))    // 10.01.25 ayamada
+    //         {
+    //             std::cerr << "\n\nCan Not Find A Camera:"<< n << std::endl;
+    //             i++;                
+    //         }else{
+    //         std::cerr << "\n\nConnected Camera Device No:" << i << std::endl;
+    //         if(n == 2){
+    //             break;
+    //         }
+    //     }
+    // }
+    // if(i==11 || n < 2){
+    //     fprintf(stdout, "\nCan Not Find Camera Device!!\n");
+    // }
+    capture[0] = cvCaptureFromCAM(0);
+    capture[1] = cvCaptureFromCAM(1);
+                if(capture[1] != NULL){                    // 
+                                deviceNum = 2;                                        // 
+                }                                                                                                            // 
+                else{
+                                if(capture[0] != NULL){
+                                deviceNum = 1;
+                                }
+                }
+    // for(n=0;n<2;n++){                                            // 
+    for(n=0;n<deviceNum;n++){            // 100608-komura
+        if(capture[n] != NULL){
+            while(1){
+                if(NULL == (captureImageTmp[n] = cvQueryFrame( capture[n] ))){
+                    sleep(2);
+                    std::cerr << "\nCan Not Take A Picture\n" << std::endl;
+                    continue;
+                }        
+                                                        
+                CVClass.imageSize = cvGetSize( captureImageTmp[n] );
+                captureImage[n] = cvCreateImage(CVClass.imageSize, IPL_DEPTH_8U,3);    
+                RGBImage[n] = cvCreateImage(CVClass.imageSize, IPL_DEPTH_8U, 3);
+                CVClass.imageSize = cvGetSize( captureImageTmp[n] );
+                cvFlip(captureImageTmp[n], captureImage[n], 0);
+                cvCvtColor( captureImage[n], RGBImage[n], CV_BGR2RGB);
+                pGUI->idata[n] = (unsigned char*) RGBImage[n]->imageData;
+                pGUI->importer[n]->SetWholeExtent(0,CVClass.imageSize.width-1,0,CVClass.imageSize.height-1,0,0);
+                pGUI->importer[n]->SetDataExtentToWholeExtent();
+                pGUI->importer[n]->SetDataScalarTypeToUnsignedChar();
+                pGUI->importer[n]->SetNumberOfScalarComponents(3);
+                pGUI->importer[n]->SetImportVoidPointer(pGUI->idata[n]);
+                pGUI->atext[n]->SetInputConnection(pGUI->importer[n]->GetOutputPort());
+                pGUI->atext[n]->InterpolateOn(); 
+                pGUI->importer[n]->Update();
+                break;
+            }
+                                        
+            pGUI->planeRatio = VIEW_SIZE_X / VIEW_SIZE_Y;
+            pGUI->CameraFocusPlane(pGUI->fileCamera, pGUI->planeRatio);
+            pGUI->FocalPlaneMapper[n]->SetInput(pGUI->FocalPlaneSource[n]->GetOutput());
+            pGUI->actor[n]->SetMapper(pGUI->FocalPlaneMapper[n]);
+            pGUI->actor[n]->SetUserMatrix(pGUI->ExtrinsicMatrix);
+            pGUI->actor[n]->SetTexture(pGUI->atext[n]);
+        }
+    }
+    pGUI->SecondaryViewerWindow->lw->GetRenderer()->AddActor(pGUI->actor[0]);
+    fprintf(stdout, "\nget camera handle 1\n");
+    pGUI->SecondaryViewerWindow->lw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+    pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor[1]);
+    fprintf(stdout, "\nget camera handle 2\n");
+    pGUI->SecondaryViewerWindow->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+
+    CvMat* mx1 = cvCreateMat( CVClass.imageSize.height,                                        // 
+                              CVClass.imageSize.width, CV_32F ); // 
+    CvMat* my1 = cvCreateMat( CVClass.imageSize.height,                                        // 
+                                                                                                                        CVClass.imageSize.width, CV_32F ); // 
+    CvMat* mx2 = cvCreateMat( CVClass.imageSize.height,                                        // 
+                                                                                                                        CVClass.imageSize.width, CV_32F ); // 
+    CvMat* my2 = cvCreateMat( CVClass.imageSize.height,                                        // 
+                                                                                                                        CVClass.imageSize.width, CV_32F ); // 100607-komura
+
+    pGUI->makeThread = 3;
+    while(pGUI->makeThread < 4){
+        if(pGUI->captureChessboardFlag == 1){
+            pGUI->captureChessboardFlag = 2;
+        }
+        // for(n=0;n<2;n++){                            // 
+        for(n=0;n<deviceNum;n++){  // 100608-komura
+            if(capture[n] != NULL){
+                pGUI->CameraFocusPlane(pGUI->fileCamera, pGUI->planeRatio);    
+                pGUI->FocalPlaneMapper[n]->SetInput(pGUI->FocalPlaneSource[n]->GetOutput());
+                pGUI->actor[n]->SetMapper(pGUI->FocalPlaneMapper[n]);
+                pGUI->actor[n]->SetUserMatrix(pGUI->ExtrinsicMatrix);
+                captureImageTmp[n] = cvQueryFrame( capture[n] );
+                if(pGUI->captureChessboardFlag == 2){
+                                                                                CVClass.chessLoad(captureImageTmp[n], n);                   // 
+                    // pGUI->chessLoad(captureImageTmp[n], pGUI->imageSize, n); // 100607-komura
+                }
+                if(pGUI->displayChessboardFlag == 1){
+                    CVClass.displayChessboard(captureImageTmp[n]);
+                    // pGUI->displayChessboard(captureImageTmp[n]); // 100607-komura
+                }        
+
+                                                                if(calibTest == 1){     // 
+                                                                                if(deviceNum == 2){ // 100608-komura
+
+                                                                                                if(n==0){                                                                          // 
+                                                                                                                cvRemap( captureImageTmp[n], captureImage[n], mx1, my1 ); // 
+                                                                                                                cvCopy(captureImage[n], captureImageTmp[n]);              // 
+                                                                                                }                                                                // 
+                                                                                                if(n==1){                                                              // 
+                                                                                                                cvRemap( captureImageTmp[n], captureImage[n], mx2, my2 ); //  
+                                                                                                                cvCopy(captureImage[n], captureImageTmp[n]);              // 
+                                                                                                }                                                                // 
+                                                                                }                                                                                // 100607-komura
+
+                                                                                else if(deviceNum == 1){                                                // 
+                                                                                                cvUndistort2(captureImageTmp[n],captureImage[n], &_M1, &_D1_mono ); // 
+                                                                                                cvCopy(captureImage[n], captureImageTmp[n]);                        //
+                                                                                                // std::cerr << "\n\n mono\n\n" << std::endl;                       // 100608-komura
+                                                                                }
+                                                                }
+                                                                cvFlip(captureImageTmp[n], captureImage[n], 0);
+                cvCvtColor( captureImage[n], RGBImage[n], CV_BGR2RGB);
+                pGUI->idata[n] = (unsigned char*) RGBImage[n]->imageData;
+                pGUI->importer[n]->Modified();
+            }
+        }
+        if(pGUI->captureChessboardFlag == 2){ 
+            pGUI->captureChessboardFlag = 0;
+        }
+        if(pGUI->stereoCalibFlag == 1){
+            pGUI->makeThread = 2;
+                                                if(deviceNum == 2){
+                                                                CVClass.stereoCalib(_M1, _M2, _D1, _D2); // 
+                                                                CVClass.displayStereoCalib(mx1,mx2,my1,my2); // 100608-komura
+                                                }
+                                                else if(deviceNum == 1){
+                                                                CVClass.monoCalib(_M1, _D1_mono); // 
+                                                }
+            // pGUI->stereoCalib(); // 100607-komura
+                                                // 6/6/2010 ayamada
+                                                if(pGUI->saveCameraImageEntry->GetWidget()->GetValue() != NULL){
+                                                                //this->snapShotShutter=1;
+                                                                pGUI->snapShotNumber++;
+                                                                
+                                                                sprintf(pGUI->snapShotSavePath,"%sIntrimsics_%d.xml"
+                                                                                                ,pGUI->saveCameraImageEntry->GetWidget()->GetValue(),pGUI->snapShotNumber);
+                                                                //textActorSavePath->SetInput(this->snapShotSavePath);
+                                                                cvSave(pGUI->snapShotSavePath, &_M1);        
+                                                                
+                                                                if(deviceNum == 1){ // 100610-komura
+                                                                                sprintf(pGUI->snapShotSavePath2,"%sDistortion_%d.xml"
+                                                                                                                ,pGUI->saveCameraImageEntry->GetWidget()->GetValue(),pGUI->snapShotNumber);
+                                                                                cvSave(pGUI->snapShotSavePath2, &_D1_mono);        
+                                                                                fprintf(stdout, "Save Camera1 parametor\n");
+                                                                }
+                                                                
+                                                                if(deviceNum == 2){ // 100608-komura
+                                                                                sprintf(pGUI->snapShotSavePath2,"%sDistortion_%d.xml"
+                                                                                                                ,pGUI->saveCameraImageEntry->GetWidget()->GetValue(),pGUI->snapShotNumber);
+                                                                                cvSave(pGUI->snapShotSavePath, &_D1);        
+                                                                                fprintf(stdout, "Save Camera1 parametor\n");
+                                                                                
+                                                                                pGUI->snapShotNumber++;
+                                                                                
+                                                                                sprintf(pGUI->snapShotSavePath,"%sIntrimsics_%d.xml"
+                                                                                                                ,pGUI->saveCameraImageEntry->GetWidget()->GetValue(),pGUI->snapShotNumber);
+                                                                                //textActorSavePath->SetInput(this->snapShotSavePath);
+                                                                                cvSave(pGUI->snapShotSavePath, &_M2);        
+                                                                                sprintf(pGUI->snapShotSavePath2,"%sDistortion_%d.xml"
+                                                                                                                ,pGUI->saveCameraImageEntry->GetWidget()->GetValue(),pGUI->snapShotNumber);
+                                                                                cvSave(pGUI->snapShotSavePath2, &_D2);        
+                                                                                fprintf(stdout, "Save Camera2 parametor\n");   
+                                                                }
+
+                                                }else{
+                                                                
+                                                                fprintf(stdout, "Please decide the save path!!\n");        
+                                                                
+                                                }
+
+                                                // if(deviceNum == 2){                                  //
+                                                //                 CVClass.displayStereoCalib(mx1,mx2,my1,my2); // 
+                                                // }                                                // 100608-komura
+
+                                                calibTest = 1;
+                                                
+    
+                                                pGUI->stereoCalibFlag = 0;
+            pGUI->makeThread = 3;
+        }
+    }
+        
+    std::cerr << "thread was finished!!" << std::endl;
+                
+                if(mx1 != NULL){                                                // 
+                                cvReleaseMat( &mx1 );            // 
+                }                                                                                                            // 
+                if(my1 != NULL){                                                // 
+                                cvReleaseMat( &my1 );            // 
+                }                                                                                                            // 
+                if(mx2 != NULL){                                                // 
+                                cvReleaseMat( &mx2 );            // 
+                }                                                                                                            // 
+                if(my2 != NULL){                                                // 
+                                cvReleaseMat( &my2 );            // 
+                }                                                                                                            // 100607-komura
+
+    for(n=0;n<2;n++){
+        if(capture[n] != NULL){    
+            cvReleaseCapture(&capture[n]);  
+        }
+    }
+    pGUI->makeThread = 0;        
+    std::cerr << "makeThread No:"<< pGUI->makeThread << "\n" <<std::endl;
+    return NULL;
+        
+}
+//------------------------------------------------------------------
+///////////////////////////
+// StereoCalib_LoadImage //
+///////////////////////////
+/*
+void vtkStereoCalibGUI::chessLoad(IplImage* frame, CvSize &imageSize, int lr){//100603-komura
+    int i, n = CORNER_WIDTH*CORNER_HEIGHT, j, N = 0;
+    std::vector<CvPoint2D32f> temp(n);
+    int count = 0, result=0;
+    std::vector<CvPoint2D32f>& pts = points[lr];
+    
+    IplImage* img = cvCreateImage(cvSize(frame->width,frame->height), IPL_DEPTH_8U, 1); 
+    cvCvtColor(frame, img, CV_BGR2GRAY);
+
+    result = cvFindChessboardCorners( img, cvSize(CORNER_WIDTH, CORNER_HEIGHT ),
+                                      &temp[0], &count,
+                                      CV_CALIB_CB_ADAPTIVE_THRESH |
+                                      CV_CALIB_CB_NORMALIZE_IMAGE
+                                      );
+    N = pts.size();
+    pts.resize(N + n, cvPoint2D32f(0,0));
+    active[lr].push_back((uchar)result);
+    //assert( result != 0 );
+    if( result ){
+        //Calibration will suffer without subpixel interpolation
+        cvFindCornerSubPix( img, &temp[0], count,
+                            cvSize(11, 11), cvSize(-1,-1),
+                            cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS,
+                                           30, 0.01) );
+        copy( temp.begin(), temp.end(), pts.begin() + N );
+    }
+    // char test[255];
+    // sprintf(test,"/home/masai/Desktop/test%d.bmp",lr);
+    // cvSaveImage( test, img );
+    cvReleaseImage( &img );
+}
+*/
+
+//------------------------------------------------------------------
+///////////////////////
+// StereoCalib_solve //
+///////////////////////
+/*
+void vtkStereoCalibGUI::stereoCalib()//100603-komura
+{
+    int c;
+    bool isVerticalStereo = false;//OpenCV can handle left-right
+    //or up-down camera arrangements
+    const float squareSize = 1.f; //Set this to your actual square size
+    int i, j, nframes, n = CORNER_WIDTH*CORNER_HEIGHT, N = 0;
+    std::vector<CvPoint3D32f> objectPoints;
+    std::vector<int> npoints;
+    // ARRAY AND VECTOR STORAGE:
+    double M1[3][3], M2[3][3], D1[5], D2[5];
+    double R[3][3], T[3], E[3][3], F[3][3];
+    CvMat _M1 = cvMat(3, 3, CV_64F, M1 );
+    CvMat _M2 = cvMat(3, 3, CV_64F, M2 );
+    CvMat _D1 = cvMat(1, 5, CV_64F, D1 );
+    CvMat _D2 = cvMat(1, 5, CV_64F, D2 );
+    CvMat _R = cvMat(3, 3, CV_64F, R );
+    CvMat _T = cvMat(3, 1, CV_64F, T );
+    CvMat _E = cvMat(3, 3, CV_64F, E );
+    CvMat _F = cvMat(3, 3, CV_64F, F );
+    // HARVEST CHESSBOARD 3D OBJECT POINT LIST:
+    
+    nframes = active[0].size();//Number of good chessboads found
+    objectPoints.resize(nframes*n);
+    for( i = 0; i < CORNER_HEIGHT; i++ ){
+        for( j = 0; j < CORNER_WIDTH; j++ ){
+            objectPoints[i*CORNER_WIDTH + j] = cvPoint3D32f(i*squareSize, j*squareSize, 0);
+        }
+    }
+    for( i = 1; i < nframes; i++ ){
+        copy( objectPoints.begin(), objectPoints.begin() + n,
+              objectPoints.begin() + i*n );
+    }
+    npoints.resize(nframes,n);
+    N = nframes*n;
+    CvMat _objectPoints = cvMat(1, N, CV_32FC3, &objectPoints[0] );
+    CvMat _imagePoints1 = cvMat(1, N, CV_32FC2, &points[0][0] );
+    CvMat _imagePoints2 = cvMat(1, N, CV_32FC2, &points[1][0] );
+    CvMat _npoints = cvMat(1, npoints.size(), CV_32S, &npoints[0] );
+    cvSetIdentity(&_M1);
+    cvSetIdentity(&_M2);
+    cvZero(&_D1);
+    cvZero(&_D2);
+
+// CALIBRATE THE STEREO CAMERAS
+    std::cerr << "\n\nRunning stereo calibration ...\n\n" << std::endl;
+    cvStereoCalibrate( &_objectPoints, &_imagePoints1,
+               &_imagePoints2, &_npoints,
+               &_M1, &_D1, &_M2, &_D2,
+               imageSize, &_R, &_T, &_E, &_F,
+               cvTermCriteria(CV_TERMCRIT_ITER+
+                      CV_TERMCRIT_EPS, 100, 1e-5),
+               CV_CALIB_FIX_ASPECT_RATIO +
+               CV_CALIB_ZERO_TANGENT_DIST +
+               CV_CALIB_SAME_FOCAL_LENGTH );
+    std::cerr << "\n\n stereo calibration finish \n\n" << std::endl;
+
+
+    // cvSave("/home/masai/Desktop/Intrimsics_1.xml", &_M1);
+    // cvSave("/home/masai/Desktop/Distortion_1.xml", &_D1);
+    // fprintf(stdout, "Save Camera1 parametor\n");
+    // cvSave("/home/masai/Desktop/Intrimsics_2.xml", &_M2);
+    // cvSave("/home/masai/Desktop/Distortion_2.xml", &_D2);
+    // fprintf(stdout, "Save Camera2 parametor\n");
+
+    
+    // 6/6/2010 ayamada
+    if(this->saveCameraImageEntry->GetWidget()->GetValue() != NULL){
+        //this->snapShotShutter=1;
+        this->snapShotNumber++;
+        
+        sprintf(this->snapShotSavePath,"%sIntrimsics_%d.xml"
+                ,this->saveCameraImageEntry->GetWidget()->GetValue(),this->snapShotNumber);
+        //textActorSavePath->SetInput(this->snapShotSavePath);
+        cvSave(this->snapShotSavePath, &_M1);        
+        sprintf(this->snapShotSavePath2,"%sDistortion_%d.xml"
+                ,this->saveCameraImageEntry->GetWidget()->GetValue(),this->snapShotNumber);
+        cvSave(this->snapShotSavePath, &_D1);        
+        fprintf(stdout, "Save Camera1 parametor\n");
+
+        this->snapShotNumber++;
+
+        sprintf(this->snapShotSavePath,"%sIntrimsics_%d.xml"
+                ,this->saveCameraImageEntry->GetWidget()->GetValue(),this->snapShotNumber);
+        //textActorSavePath->SetInput(this->snapShotSavePath);
+        cvSave(this->snapShotSavePath, &_M2);        
+        sprintf(this->snapShotSavePath2,"%sDistortion_%d.xml"
+                ,this->saveCameraImageEntry->GetWidget()->GetValue(),this->snapShotNumber);
+        cvSave(this->snapShotSavePath, &_D2);        
+        fprintf(stdout, "Save Camera2 parametor\n");        
+        
+    }else{
+    
+        fprintf(stdout, "Please decide the save path!!\n");        
+        
+    }    
+    
+    
+}
+*/
+/*
+void vtkStereoCalibGUI::displayStereoCalib(int N){
+    printf(" done\n");
+    // CALIBRATION QUALITY CHECK
+    // because the output fundamental matrix implicitly
+    // includes all the output information,
+    // we can check the quality of calibration using the
+    // epipolar geometry constraint: m2^t*F*m1=0
+                std::vector<CvPoint3D32f> lines[2];
+    points[0].resize(N);
+    points[1].resize(N);
+    _imagePoints1 = cvMat(1, N, CV_32FC2, &points[0][0] );
+    _imagePoints2 = cvMat(1, N, CV_32FC2, &points[1][0] );
+    lines[0].resize(N);
+    lines[1].resize(N);
+    CvMat _L1 = cvMat(1, N, CV_32FC3, &lines[0][0]);
+    CvMat _L2 = cvMat(1, N, CV_32FC3, &lines[1][0]);
+//Always work in undistorted space
+    cvUndistortPoints( &_imagePoints1, &_imagePoints1,
+               &_M1, &_D1, 0, &_M1 );
+    cvUndistortPoints( &_imagePoints2, &_imagePoints2,
+               &_M2, &_D2, 0, &_M2 );
+    cvComputeCorrespondEpilines( &_imagePoints1, 1, &_F, &_L1 );
+    cvComputeCorrespondEpilines( &_imagePoints2, 2, &_F, &_L2 );
+    double avgErr = 0;
+    for( i = 0; i < N; i++ )
+    {
+        double err = fabs(points[0][i].x*lines[1][i].x +
+              points[0][i].y*lines[1][i].y + lines[1][i].z)
+            + fabs(points[1][i].x*lines[0][i].x +
+           points[1][i].y*lines[0][i].y + lines[0][i].z);
+        avgErr += err;
+    }
+    printf( "avg err = %g\n", avgErr/(nframes*n) );
+    //COMPUTE AND DISPLAY RECTIFICATION
+    CvMat* mx1 = cvCreateMat( imageSize.height,
+                              imageSize.width, CV_32F );
+    CvMat* my1 = cvCreateMat( imageSize.height,
+                  imageSize.width, CV_32F );
+    CvMat* mx2 = cvCreateMat( imageSize.height,                  
+                  imageSize.width, CV_32F );
+    CvMat* my2 = cvCreateMat( imageSize.height,
+                  imageSize.width, CV_32F );
+
+    double R1[3][3], R2[3][3], P1[3][4], P2[3][4];
+    CvMat _R1 = cvMat(3, 3, CV_64F, R1);
+    CvMat _R2 = cvMat(3, 3, CV_64F, R2);
+    // IF BY CALIBRATED (BOUGUET'S METHOD)
+    CvMat _P1 = cvMat(3, 4, CV_64F, P1);
+    CvMat _P2 = cvMat(3, 4, CV_64F, P2);
+    cvStereoRectify( &_M1, &_M2, &_D1, &_D2, imageSize,
+                     &_R, &_T,
+                     &_R1, &_R2, &_P1, &_P2, 0,
+                     0 );//CV_CALIB_ZERO_DISPARITY
+    isVerticalStereo = fabs(P2[1][3]) > fabs(P2[0][3]);
+    //Precompute maps for cvRemap()
+    cvInitUndistortRectifyMap(&_M1,&_D1,&_R1,&_P1,mx1,my1);
+    cvInitUndistortRectifyMap(&_M2,&_D2,&_R2,&_P2,mx2,my2);
+}
+    // cvReleaseMat( &mx1 );
+    // cvReleaseMat( &my1 );
+    // cvReleaseMat( &mx2 );
+    // cvReleaseMat( &my2 );
+
+*/
+
+
+//------------------------------------------------------------------
+/*
+////////////////////////////////
+// displayChessboard_findFlag //
+////////////////////////////////
+int vtkStereoCalibGUI::createFindChessboardCornersFlag() {//100603-komura
+   int flag = 0;
+   
+   if ( ADAPTIVE_THRESH != 0 ) {
+       flag = flag | CV_CALIB_CB_ADAPTIVE_THRESH;
+   }
+   if ( NORMALIZE_IMAGE != 0 ) {
+       flag = flag | CV_CALIB_CB_NORMALIZE_IMAGE;
+   }
+   if ( FILTER_QUADS != 0 ) {
+       flag = flag | CV_CALIB_CB_FILTER_QUADS;
+   }
+   
+   return flag;
+}
+*/
+/*
+//------------------------------------------------------------------
+///////////////////////
+// displayChessboard //
+///////////////////////
+void vtkStereoCalibGUI::displayChessboard(IplImage* frame){//100603-komura
+  CvPoint2D32f corners[CORNER_NUMBER];
+  // IplImage *grayImage = cvCreateImage( cvGetSize( frame ), IPL_DEPTH_8U, 1 );
+  int cornerCount;               
+  int findChessboardCornersFlag; 
+  int findFlag;                  
+  
+  findChessboardCornersFlag = createFindChessboardCornersFlag();
+  IplImage *halfImage = cvCreateImage (cvSize (frame->width / 2, frame->height / 2), 
+                                       frame->depth, frame->nChannels);
+  cvResize (frame, halfImage, CV_INTER_AREA);
+  
+  findFlag=cvFindChessboardCorners(
+                                   halfImage,
+                                   cvSize( CORNER_WIDTH, CORNER_HEIGHT ),
+                                   corners,
+                                   &cornerCount,
+                                   findChessboardCornersFlag
+                                   );
+  for(int i=0;i<CORNER_NUMBER;i++){
+    corners[i].x = corners[i].x * 2;
+    corners[i].y = corners[i].y * 2;
+  }
+  cvDrawChessboardCorners( frame, cvSize( CORNER_WIDTH, CORNER_HEIGHT ), corners, cornerCount, findFlag );
+  cvReleaseImage(&halfImage);
+}
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//----------------------------------------------------------------------------
+
+//////////////////
+// cameraThread //
+//////////////////
+// void *vtkStereoCalibGUI::thread_CameraThread(void* t)
+// {
+    
+//     std::cerr << "\n\nmakeThread Start\n\n" << std::endl;
+//     // 5/15/ayamada
+//     CvCapture* capture = 0;
+//     IplImage*    captureImage;
+//     IplImage*    RGBImage;
+//     IplImage*    captureImageTmp;
+    
+//     captureImage = NULL;
+//     RGBImage = NULL;
+//     captureImageTmp = NULL;
+    
+    
+//     vtkMultiThreader::ThreadInfo* vinfo = 
+//         static_cast<vtkMultiThreader::ThreadInfo*>(t);
+//     vtkStereoCalibGUI* pGUI = 
+//         static_cast<vtkStereoCalibGUI*>(vinfo->UserData);
+ 
+        
+//     int i=0;
+//     while(i<=10){// 5/16/2010 ayamada
+//         if( (NULL==(capture = cvCaptureFromCAM(i))))    // 10.01.25 ayamada
+//             {
+//                 std::cerr << "\n\nCan Not Find A Camera" << std::endl;
+//                 i++;                
+//             }else{
+//             std::cerr << "\n\nConnected Camera Device No:" << i << std::endl;
+//             break;
+//         }
+//     }
+//     if(i==11){
+//         fprintf(stdout, "\nCan Not Find Camera Device!!\n");
+//     }
+        
+//     if(capture != NULL){
+                
+//         while(1){
+//             if(NULL == (captureImageTmp = cvQueryFrame( capture ))){
+//                 sleep(2);
+//                 std::cerr << "\nCan Not Take A Picture\n" << std::endl;
+//                 continue;
+//             }        
+                        
+//             pGUI->imageSize = cvGetSize( captureImageTmp );
+//             captureImage = cvCreateImage(pGUI->imageSize, IPL_DEPTH_8U,3);    
+//             RGBImage = cvCreateImage(pGUI->imageSize, IPL_DEPTH_8U, 3);
+//             pGUI->imageSize = cvGetSize( captureImageTmp );
+//             cvFlip(captureImageTmp, captureImage, 0);
+//             cvCvtColor( captureImage, RGBImage, CV_BGR2RGB);
+//             pGUI->idata = (unsigned char*) RGBImage->imageData;
+//             pGUI->importer->SetWholeExtent(0,pGUI->imageSize.width-1,0,pGUI->imageSize.height-1,0,0);
+//             pGUI->importer->SetDataExtentToWholeExtent();
+//             pGUI->importer->SetDataScalarTypeToUnsignedChar();
+//             pGUI->importer->SetNumberOfScalarComponents(3);
+//             pGUI->importer->SetImportVoidPointer(pGUI->idata);
+//             pGUI->atext->SetInputConnection(pGUI->importer->GetOutputPort());
+//             pGUI->atext->InterpolateOn(); 
+//             pGUI->importer->Update();
+//             break;
+//         }
+        
+//         pGUI->planeRatio = VIEW_SIZE_X / VIEW_SIZE_Y;
+//         pGUI->CameraFocusPlane(pGUI->fileCamera, pGUI->planeRatio);
+//         pGUI->FocalPlaneMapper->SetInput(pGUI->FocalPlaneSource->GetOutput());
+//         pGUI->actor->SetMapper(pGUI->FocalPlaneMapper);
+//         pGUI->actor->SetUserMatrix(pGUI->ExtrinsicMatrix);
+//         pGUI->actor->SetTexture(pGUI->atext);
+//         pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor);
+//         fprintf(stdout, "\nget camera handle\n");
+//         pGUI->SecondaryViewerWindow->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+                
+//     }
+//     pGUI->makeThread = 3;
+//     while(pGUI->makeThread < 4){
+//         if(capture != NULL){
+//             pGUI->CameraFocusPlane(pGUI->fileCamera, pGUI->planeRatio);    
+//             pGUI->FocalPlaneMapper->SetInput(pGUI->FocalPlaneSource->GetOutput());
+//             pGUI->actor->SetMapper(pGUI->FocalPlaneMapper);
+//             pGUI->actor->SetUserMatrix(pGUI->ExtrinsicMatrix);
+//             captureImageTmp = cvQueryFrame( capture );
+//             cvFlip(captureImageTmp, captureImage, 0);        
+//             cvCvtColor( captureImage, RGBImage, CV_BGR2RGB);
+//             pGUI->idata = (unsigned char*) RGBImage->imageData;
+//             pGUI->importer->Modified();
+//         }
+//     }
+        
+//     std::cerr << "thread was finished!!" << std::endl;
+
+//     if(capture != NULL){    
+//         cvReleaseCapture(&capture);  
+//     }
+//     pGUI->makeThread = 0;        
+//     std::cerr << "makeThread No:"<< pGUI->makeThread << "\n" <<std::endl;
+//     return NULL;
+        
+// }
+// //------------------------------------------------------------------
