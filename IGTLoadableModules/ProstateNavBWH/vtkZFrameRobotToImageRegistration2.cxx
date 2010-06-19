@@ -47,6 +47,7 @@ vtkZFrameRobotToImageRegistration2::vtkZFrameRobotToImageRegistration2()
 {
   SliceRangeLow = -1;
   SliceRangeHigh = -1;
+  this->Mode = MODE_TEMPLATE;
 }
 
 
@@ -1201,68 +1202,78 @@ bool vtkZFrameRobotToImageRegistration2::LocalizeFrame(float Zcoordinates[7][2],
   //--- Compute diagonal points in the z-frame coordinates -------
   // Frame origin is at lower corner of Side 1,
   // y-axis is vertical, x-axis is horizontal.
-  
-  //--- SIDE 1
+
+  // For robot (Z-frame is rotated around z-axis by 180 degree)
+  float rot[3];
+  int zindex[7];
+  if (this->Mode == MODE_TEMPLATE)
+    {
+    rot[0] = 1.0;
+    rot[1] = 1.0;
+    rot[2] = 1.0;
+    for (int i = 0; i < 7; i ++)
+      {
+      zindex[i] = i;
+      }
+    }
+  else  // this->Mode  == MODE_TRANSPERINEAL_ROBOT
+    {
+    rot[0] = -1.0;
+    rot[1] = -1.0;
+    rot[2] = 1.0;
+    
+    // Should be implemented in OrderFidPoints()
+    for (int i = 0; i < 7; i ++)
+      {
+      zindex[i] = 6-i;
+      }
+    }
+
+  //--- SIDE 1 ---------------------------------------------------
   // Map the three points for this z-fiducial.
-  Pz1.setvalues( Zcoordinates[0][0], Zcoordinates[0][1], 0.0 );
-  Pz2.setvalues( Zcoordinates[1][0], Zcoordinates[1][1], 0.0 );
-  Pz3.setvalues( Zcoordinates[2][0], Zcoordinates[2][1], 0.0 );
+  Pz1.setvalues( Zcoordinates[zindex[0]][0], Zcoordinates[zindex[0]][1], 0.0 );
+  Pz2.setvalues( Zcoordinates[zindex[1]][0], Zcoordinates[zindex[1]][1], 0.0 );
+  Pz3.setvalues( Zcoordinates[zindex[2]][0], Zcoordinates[zindex[2]][1], 0.0 );
   
   // Origin and direction vector of diagonal fiducial.
-  //Oz.setvalues( -30.0, -30.0, 30.0 );
-  //Vz.setvalues( 0.0, 1.0, -1.0 );
-  //Oz.setvalues( 30.0, 30.0, -30.0 );
-  //Vz.setvalues( 0.0,  -1.0, 1.0 );
-  Oz.setvalues( -30.0, 30.0, 30.0 );
-  Vz.setvalues( 0.0, -1.0, -1.0 );
-
+  Oz.setvalues( -30.0*rot[0], 30.0*rot[1], 30.0*rot[2] );
+  Vz.setvalues( 0.0*rot[0], -1.0*rot[1], -1.0*rot[2] );
 
   // Solve for the diagonal intercept in Z-frame coordinates.
   SolveZ(Pz1, Pz2, Pz3, Oz, Vz, P2f);
   
-  //--- BASE
+  //--- BASE -----------------------------------------------------
   // Map the three points for this z-fiducial.
-  Pz1.setvalues( Zcoordinates[2][0], Zcoordinates[2][1], 0.0 );
-  Pz2.setvalues( Zcoordinates[3][0], Zcoordinates[3][1], 0.0 );
-  Pz3.setvalues( Zcoordinates[4][0], Zcoordinates[4][1], 0.0 );
+  Pz1.setvalues( Zcoordinates[zindex[2]][0], Zcoordinates[zindex[2]][1], 0.0 );
+  Pz2.setvalues( Zcoordinates[zindex[3]][0], Zcoordinates[zindex[3]][1], 0.0 );
+  Pz3.setvalues( Zcoordinates[zindex[4]][0], Zcoordinates[zindex[4]][1], 0.0 );
   
   // Origin and direction vector of diagonal fiducial.
-  //Oz.setvalues( 30.0, -30.0, 30.0 );
-  //Vz.setvalues( -1.0, 0.0, -1.0 );
-  //Oz.setvalues( -30.0, 30.0, -30.0 );
-  //Vz.setvalues( 1.0, 0.0, 1.0 );
-  Oz.setvalues( 30.0, 30.0, 30.0 );
-  Vz.setvalues( -1.0, 0.0, -1.0 );
+  Oz.setvalues( 30.0*rot[0], 30.0*rot[1], 30.0*rot[2] );
+  Vz.setvalues( -1.0*rot[0], 0.0*rot[1], -1.0*rot[2]);
+
   
   // Solve for the diagonal intercept in Z-frame coordinates.
   SolveZ(Pz1, Pz2, Pz3, Oz, Vz, P4f);
   
-  //--- SIDE 2
+  //--- SIDE 2 ---------------------------------------------------
   // Map the three points for this z-fiducial.
-  Pz1.setvalues( Zcoordinates[4][0], Zcoordinates[4][1], 0.0 );
-  Pz2.setvalues( Zcoordinates[5][0], Zcoordinates[5][1], 0.0 );
-  Pz3.setvalues( Zcoordinates[6][0], Zcoordinates[6][1], 0.0 );
+  Pz1.setvalues( Zcoordinates[zindex[4]][0], Zcoordinates[zindex[4]][1], 0.0 );
+  Pz2.setvalues( Zcoordinates[zindex[5]][0], Zcoordinates[zindex[5]][1], 0.0 );
+  Pz3.setvalues( Zcoordinates[zindex[6]][0], Zcoordinates[zindex[6]][1], 0.0 );
   
   // Origin and direction vector of diagonal fiducial.
-  //Oz.setvalues( 30.0, 30.0, 30.0 );
-  //Vz.setvalues( 0.0, -1.0, -1.0 );
-  //Oz.setvalues( -30.0, -30.0, -30.0 );
-  //Vz.setvalues( 0.0, 1.0, 1.0 );
-  Oz.setvalues( 30.0, -30.0, 30.0 );
-  Vz.setvalues( 0.0,  1.0, -1.0 );
+  Oz.setvalues( 30.0*rot[0], -30.0*rot[1], 30.0*rot[2] );
+  Vz.setvalues( 0.0*rot[0],  1.0*rot[1], -1.0*rot[2] );
 
   // Solve for the diagonal intercept in Z-frame coordinates.
   SolveZ(Pz1, Pz2, Pz3, Oz, Vz, P6f);
-  
-  
+
+
   //--- Compute Transformation Between Image and Frame -----------
   
   // Compute orientation component first.
   // Compute z-frame cross section coordinate frame 
-  //Vx = P4f - P2f;
-  //Vy = P6f - P2f;
-  //Vx = P4f - P6f;
-  //Vy = P2f - P6f;
   Vx = P4f - P2f;
   Vy = P6f - P2f;
 
@@ -1273,14 +1284,10 @@ bool vtkZFrameRobotToImageRegistration2::LocalizeFrame(float Zcoordinates[7][2],
     return(false);
   
   // Compute image cross-section coordinate frame 
-  Pz1.setvalues( Zcoordinates[1][0], Zcoordinates[1][1], 0.0 );
-  Pz2.setvalues( Zcoordinates[3][0], Zcoordinates[3][1], 0.0);
-  Pz3.setvalues( Zcoordinates[5][0], Zcoordinates[5][1], 0.0);
+  Pz1.setvalues( Zcoordinates[zindex[1]][0], Zcoordinates[zindex[1]][1], 0.0 );
+  Pz2.setvalues( Zcoordinates[zindex[3]][0], Zcoordinates[zindex[3]][1], 0.0);
+  Pz3.setvalues( Zcoordinates[zindex[5]][0], Zcoordinates[zindex[5]][1], 0.0);
   
-  //Vx = Pz2 - Pz1;
-  //Vy = Pz3 - Pz1;
-  //Vx = Pz2 - Pz3;
-  //Vy = Pz1 - Pz3;
   Vx = Pz2 - Pz1;
   Vy = Pz3 - Pz1;
   
