@@ -969,6 +969,7 @@ int vtkMRMLTransPerinealProstateRobotNode::PerformRegistration(vtkMRMLScalarVolu
 {
   vtkZFrameRobotToImageRegistration2* registration = vtkZFrameRobotToImageRegistration2::New();
   registration->SetFiducialVolume(volumeNode);
+  registration->SetMode(vtkZFrameRobotToImageRegistration2::MODE_TRANSPERINEAL_ROBOT);
 
   vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->Scene->GetNodeByID(this->GetZFrameTransformNodeID()));
   if (transformNode != NULL)
@@ -997,6 +998,7 @@ int vtkMRMLTransPerinealProstateRobotNode::PerformRegistration(vtkMRMLScalarVolu
 {
   vtkZFrameRobotToImageRegistration2* registration = vtkZFrameRobotToImageRegistration2::New();
   registration->SetFiducialVolume(volumeNode);
+  registration->SetMode(vtkZFrameRobotToImageRegistration2::MODE_TRANSPERINEAL_ROBOT);
 
   vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->Scene->GetNodeByID(this->GetZFrameTransformNodeID()));
   if (transformNode != NULL)

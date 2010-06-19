@@ -35,6 +35,14 @@
 
 class VTK_PROSTATENAV_EXPORT vtkZFrameRobotToImageRegistration2 : public vtkRobotToImageRegistration
 {
+ public:
+  //BTX
+  enum {
+    MODE_TEMPLATE,
+    MODE_TRANSPERINEAL_ROBOT,
+  };
+  //ETX
+
 
  public:
 
@@ -46,6 +54,9 @@ class VTK_PROSTATENAV_EXPORT vtkZFrameRobotToImageRegistration2 : public vtkRobo
   virtual int DoRegistration();
 
   void SetSliceRange(int param1, int param2);
+
+  vtkGetMacro(Mode,int);
+  vtkSetMacro(Mode,int);
 
  protected:
   vtkZFrameRobotToImageRegistration2();
@@ -110,6 +121,7 @@ class VTK_PROSTATENAV_EXPORT vtkZFrameRobotToImageRegistration2 : public vtkRobo
   int SliceRangeLow;
   int SliceRangeHigh;
 
+  int Mode;
 
 };
 
