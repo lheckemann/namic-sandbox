@@ -1218,9 +1218,9 @@ bool vtkZFrameRobotToImageRegistration2::LocalizeFrame(float Zcoordinates[7][2],
     }
   else  // this->Mode  == MODE_TRANSPERINEAL_ROBOT
     {
-    rot[0] = -1.0;
+    rot[0] = 1.0;
     rot[1] = -1.0;
-    rot[2] = 1.0;
+    rot[2] = -1.0;
     
     // Should be implemented in OrderFidPoints()
     for (int i = 0; i < 7; i ++)
