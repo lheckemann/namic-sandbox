@@ -307,6 +307,7 @@ namespace douher
 
     try
       {
+        writer->SetUseCompression(1);
         writer->Update();
       }
     catch ( itk::ExceptionObject &err)
