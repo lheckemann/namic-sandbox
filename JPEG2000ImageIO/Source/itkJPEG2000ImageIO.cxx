@@ -76,10 +76,10 @@ bool JPEG2000ImageIO::CanReadFile( const char* filename )
     return true;
     }
 
-  if( extension == ".jpt" )
-    {
-    return true;
-    }
+//   if( extension == ".jpt" )
+//     {
+//     return true;
+//     }
 
   return false;
 }
@@ -442,7 +442,7 @@ void JPEG2000ImageIO::Read( void * buffer)
 
         }
 
-      bool decodeTileData = opj_decode_tile_data( 
+      bool decodeTileData = opj_decode_tile_data(
         this->m_Dinfo,
         l_tile_index,
         l_data,
@@ -568,9 +568,15 @@ JPEG2000ImageIO
     }
 
   if ( this->GetComponentType() != UCHAR
-    && this->GetComponentType() != UINT)
+    && this->GetComponentType() != USHORT)
     {
-    itkExceptionMacro(<<"JPEG 2000 supports unsigned char/int only");
+    itkExceptionMacro(<<"JPEG 2000 supports unsigned char/unsigned short int only");
+    }
+
+  if ( this->GetNumberOfComponents() != 1
+    && this->GetNumberOfComponents() != 3)
+    {
+    itkExceptionMacro(<<"JPEG 2000 supports 1 or 3 components only");
     }
 }
 
@@ -588,6 +594,62 @@ JPEG2000ImageIO
 
   opj_cparameters_t parameters;
   opj_set_default_encoder_parameters(&parameters);
+
+  std::string extension = itksys::SystemTools::GetFilenameLastExtension( this->m_FileName.c_str() );
+  if( extension == ".j2k" )
+    {
+    parameters.cod_format = Self::J2K_CFMT;
+    }
+
+  if( extension == ".jp2" )
+    {
+    parameters.cod_format = Self::JP2_CFMT;
+    }
+
+  strncpy(parameters.outfile, this->m_FileName.c_str(), sizeof(parameters.outfile)-1);
+
+  /* if no rate entered, lossless by default */
+  if (parameters.tcp_numlayers == 0)
+    {
+    parameters.tcp_rates[0] = 0; /* MOD antonin : losslessbug */
+    parameters.tcp_numlayers++;
+    parameters.cp_disto_alloc = 1;
+    }
+
+  if( (parameters.cp_tx0 > parameters.image_offset_x0) || (parameters.cp_ty0 > parameters.image_offset_y0))
+    {
+    itkExceptionMacro("Error: Tile offset dimension is unnappropriate -->"
+      << "  TX0(" << parameters.cp_tx0 << ") <= IMG_X0( " << parameters.image_offset_x0
+      << ") TYO(" << parameters.cp_ty0 << ") <= IMG_Y0( " << parameters.image_offset_y0 << ") ");
+    return;
+    }
+
+  for ( int i = 0; i < parameters.numpocs; i++)
+    {
+    if (parameters.POC[i].prg == -1)
+      {
+      std::cerr << "Unrecognized progression order in option -P (POC n " << i+1;
+      std::cerr << ") [LRCP, RLCP, RPCL, PCRL, CPRL] !!" << std::endl;
+      }
+    }
+
+  /* Create comment for codestream */
+  if(parameters.cp_comment == NULL)
+    {
+    const char comment[] = "Created by OpenJPEG version ";
+    const size_t clen = strlen(comment);
+    const char *version = opj_version();
+
+    /* UniPG>> */
+#ifdef USE_JPWL
+    parameters.cp_comment = (char*)malloc(clen+strlen(version)+11);
+    sprintf(parameters.cp_comment,"%s%s with JPWL", comment, version);
+#else
+    parameters.cp_comment = (char*)malloc(clen+strlen(version)+1);
+    sprintf(parameters.cp_comment,"%s%s", comment, version);
+#endif
+    /* <<UniPG */
+    }
 
 //--------------------------------------------------------
   // Copy the contents into the image structure
@@ -615,14 +677,26 @@ JPEG2000ImageIO
       cmptparm[i].h = h;
       }
     }
-  else
+
+  if ( this->GetNumberOfComponents() == 1 )
     {
     color_space = CLRSPC_GRAY;
 
     /* initialize image components */
     memset(&cmptparm[0], 0, sizeof(opj_image_cmptparm_t));
-    cmptparm[0].prec = 8;
-    cmptparm[0].bpp = 8;
+
+    if ( this->GetComponentType() == UCHAR )
+    {
+      cmptparm[0].prec = 8;
+      cmptparm[0].bpp = 8;
+    }
+
+    if ( this->GetComponentType() == USHORT )
+    {
+      cmptparm[0].prec = 16;
+      cmptparm[0].bpp = 16;
+    }
+
     cmptparm[0].sgnd = 0;
     cmptparm[0].dx = 1;
     cmptparm[0].dy = 1;//this->GetSpacing( 1 )
@@ -649,53 +723,46 @@ JPEG2000ImageIO
   l_image->y1 = !l_image->y0 ? (h - 1) * subsampling_dy + 1 : l_image->y0 + (h - 1) * subsampling_dy + 1;
 
   // HERE, copy the buffer
-  unsigned char * charBuffer = (unsigned char *)buffer;
   size_t index = 0;
   size_t numberOfPixels = size_t(w) * size_t(h);
   std::cout << " START COPY BUFFER" << std::endl;
-  for ( size_t j = 0; j < numberOfPixels; j++)
+  if ( this->GetComponentType() == UCHAR )
     {
-    for ( unsigned int k = 0; k < this->GetNumberOfComponents(); k++)
+    unsigned char * charBuffer = (unsigned char *)buffer;
+    for ( size_t j = 0; j < numberOfPixels; j++)
       {
-      l_image->comps[k].data[index] = *charBuffer++;
+      for ( unsigned int k = 0; k < this->GetNumberOfComponents(); k++)
+        {
+        l_image->comps[k].data[index] = *charBuffer++;
+        }
+      index++;
       }
-    index++;
+    }
+
+  if ( this->GetComponentType() == USHORT )
+    {
+    unsigned short * shortBuffer = (unsigned short *)buffer;
+    for ( size_t j = 0; j < numberOfPixels; j++)
+      {
+      for ( unsigned int k = 0; k < this->GetNumberOfComponents(); k++)
+        {
+        l_image->comps[k].data[index] = *shortBuffer++;
+        }
+      index++;
+      }
     }
   std::cout << " END COPY BUFFER" << std::endl;
 //--------------------------------------------------------------------
-
-  /* Create comment for codestream */
-  if(parameters.cp_comment == NULL)
-    {
-    const char comment[] = "Created by OpenJPEG version ";
-    const size_t clen = strlen(comment);
-    const char *version = opj_version();
-
-    /* UniPG>> */
-#ifdef USE_JPWL
-    parameters.cp_comment = (char*)malloc(clen+strlen(version)+11);
-    sprintf(parameters.cp_comment,"%s%s with JPWL", comment, version);
-#else
-    parameters.cp_comment = (char*)malloc(clen+strlen(version)+1);
-    sprintf(parameters.cp_comment,"%s%s", comment, version);
-#endif
-    /* <<UniPG */
-    }
-
-  strncpy(parameters.outfile, this->m_FileName.c_str(), sizeof(parameters.outfile)-1);
-  std::string extension = itksys::SystemTools::GetFilenameLastExtension( this->m_FileName.c_str() );
 
   opj_codec_t* cinfo = NULL;
   if( extension == ".j2k" )
     {
     cinfo = opj_create_compress(CODEC_J2K);
-    parameters.cod_format = Self::J2K_CFMT;
     }
 
   if( extension == ".jp2" )
     {
     cinfo = opj_create_compress(CODEC_JP2);
-    parameters.cod_format = Self::JP2_CFMT;
     }
 
   if ( this->GetNumberOfComponents() == 3 )
@@ -705,31 +772,6 @@ JPEG2000ImageIO
   else
     {
     parameters.tcp_mct = 0;
-    }
-
-  /* if no rate entered, lossless by default */
-  if (parameters.tcp_numlayers == 0)
-    {
-    parameters.tcp_rates[0] = 0; /* MOD antonin : losslessbug */
-    parameters.tcp_numlayers++;
-    parameters.cp_disto_alloc = 1;
-    }
-
-  if( (parameters.cp_tx0 > parameters.image_offset_x0) || (parameters.cp_ty0 > parameters.image_offset_y0))
-    {
-    itkExceptionMacro("Error: Tile offset dimension is unnappropriate -->"
-      << "  TX0(" << parameters.cp_tx0 << ") <= IMG_X0( " << parameters.image_offset_x0
-      << ") TYO(" << parameters.cp_ty0 << ") <= IMG_Y0( " << parameters.image_offset_y0 << ") ");
-    return;
-    }
-
-  for ( int i = 0; i < parameters.numpocs; i++)
-    {
-    if (parameters.POC[i].prg == -1)
-      {
-      std::cerr << "Unrecognized progression order in option -P (POC n " << i+1;
-      std::cerr << ") [LRCP, RLCP, RPCL, PCRL, CPRL] !!" << std::endl;
-      }
     }
 
   opj_setup_encoder(cinfo, &parameters, l_image );
@@ -789,7 +831,7 @@ JPEG2000ImageIO
 }
 
 
-JPEG2000ImageIO::SizeType 
+JPEG2000ImageIO::SizeType
 JPEG2000ImageIO::
 GetHeaderSize(void ) const
 {

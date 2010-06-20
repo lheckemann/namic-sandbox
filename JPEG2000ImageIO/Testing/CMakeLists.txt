@@ -36,13 +36,13 @@ ADD_TEST(JpegTest02  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest01 ${TEST_DATA_ROOT}
 ADD_TEST(JpegTest03  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest01 ${TEST_DATA_ROOT}/Input/file4.jp2 ${TEMP}/file4.png )
 
 # tests for writing 8-bit single component data
-ADD_TEST(JpegTest04  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest01 ${TEST_DATA_ROOT}/Input/Bretagne0.tif ${TEMP}/Bretagne0_02.j2k )
+ADD_TEST(JpegTest04  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest01 ${TEST_DATA_ROOT}/Input/Bretagne0.bmp ${TEMP}/Bretagne0_02.j2k )
 
 # tests for reading 16-bit single component data
-ADD_TEST(JpegTest05  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest02 ${TEST_DATA_ROOT}/Input/Bretagne2.j2k ${TEMP}/Bretagne2_04.png )
+ADD_TEST(JpegTest05  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest02 ${TEST_DATA_ROOT}/Input/test16bit.j2k ${TEMP}/test16bit_01.png )
 
 # tests for writing 16-bit single component data
-ADD_TEST(JpegTest06  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest02 ${TEST_DATA_ROOT}/Input/test16bit.tif ${TEMP}/test16bit_01.j2k )
+ADD_TEST(JpegTest06  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest02 ${TEST_DATA_ROOT}/Input/test16bit.png ${TEMP}/test16bit_02.j2k )
 
 # tests for reading 3 component data with 8bits per component
 ADD_TEST(JpegTest07  ${CXX_TEST_PATH}/itkJPEG2000ImageIOTest03 ${TEST_DATA_ROOT}/Input/Bretagne1.j2k ${TEMP}/Bretagne1_01.png )
