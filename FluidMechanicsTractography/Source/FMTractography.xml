@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>
+            Diffusion.Tractography</category>
+  <title>
+         Fluid Mechanics Tractography</title>
+  <description>
+               Tractography algorithm based on a fluid mechanics model, created by Nathan Hageman</description>
+  <version>
+           1.0</version>
+  <documentation-url></documentation-url>
+  <license></license>
+  <contributor>
+               Nathan Hageman, Arthur W. Toga, Ph.D </contributor>
+  <acknowledgements>
+                    This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149. </acknowledgements>
+ <parameters>
+    <label>Input Volumes</label>
+    <description>Input volumes</description>
+    <image>
+	  <name>tensorfname</name>
+	  <longflag>ieigenvolfname</longflag> 	  
+      <label>Input Tensor Volume</label>
+      <channel>input</channel>
+      <default>None</default>
+      <description>Tensor volume</description>
+    </image>
+	<image>
+		<name>seedroi</name>
+		<longflag>seedroi</longflag>
+		<label>Fluid Source ROIs</label>
+		<channel>input</channel>
+		<default>None</default>
+		<description>Mask volumes that define the regions of fluid source</description>
+	</image>
+	<image>
+		<name>stoproi</name>
+		<longflag>stoproi</longflag>
+		<label>Tract Select ROIs</label>
+		<channel>input</channel>
+		<default>None</default>
+		<description>Masks volumes that define regions to select tracts</description>
+	</image>
+   <string>\n
+	  <name>idtype</name>\n
+      <longflag>idtype</longflag> 	  \n
+      <label>Seed ROI Volume Datatype</label>\n
+      <channel>input</channel>\n
+      <default>UINT16</default>\n
+      <description>Datatype of Mask ROI volumes (valid values = UINT8, SINT8, UINT16, SINT16, UINT32, SINT32, FLOAT</description>\n
+    </string>\n
+</parameters>
+<parameters>
+	<label>Output</label>
+	<description>Parameters for output</description>	
+    <string>
+	  <name>ofprefix</name>
+      <longflag>ofprefix</longflag> 	  
+      <label>Output Prefix</label>
+      <channel>input</channel>
+      <default>output</default>
+      <description>Output prefix for tracts</description>
+    </string>
+	<directory>
+		<name>odir</name>
+		<longflag>ofpath</longflag>
+		<label>Output Directory</label>
+		<channel>input</channel>
+		<default>None</default>
+		<description>Directory to output tracts</description>
+	</directory>
+</parameters>
+<parameters>
+	<label>Fluid Parameters</label>
+    <description>Model Parameters for the Fluid Mechanics Method</description>
+	<double>\n
+      <name>viscosityconstant</name>\n
+      <longflag>VISCOSITYCONSTANT</longflag>\n
+      <description>Constant which determines the magnitude of the viscous force (0 to 1)</description>\n
+      <label>Viscosity Constant</label>\n
+      <default>0.3</default>\n
+	</double>\n
+</parameters>
+<parameters>
+	<label>Tractography Parameters</label>
+    <description>Model Parameters for the tractography method</description>
+	<double>\n"
+      <name>maxturnangle</name>\n
+      <longflag>MAXTURNANGLE</longflag>\n
+      <description>Max turn angle criteria for tract (in degrees)</description>\n
+      <label>Max Turn Angle</label>\n"
+      <default>45.0</default>\n
+	</double>\n	
+	<double>
+      <name>mintractlength</name>
+      <longflag>MINTRACTLENGTH</longflag>
+      <description>Minimum tract length (in mm) </description>
+      <label>Min Tract Length</label>
+      <default>0.0</default>
+	</double>
+	<double>
+      <name>maxtractlength</name>
+      <longflag>MAXTRACTLENGTH</longflag>
+      <description>Maximum tract length (in mm) </description>
+      <label>Max Tract Length</label>
+      <default>0.0</default>
+	</double>
+	<integer>
+      <name>totaltrys</name>
+      <longflag>totaltrys</longflag>
+      <description>Number of seed points</description>
+      <label>Seed Density</label>
+      <default>1</default>
+	</integer>
+</parameters>
+</executable>
