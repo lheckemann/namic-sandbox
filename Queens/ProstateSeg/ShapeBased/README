@@ -1,0 +1,23 @@
+
+1) build the source code: create a bin directory, run ccmake ../src, compile.
+Make sure RELEASE is selected for build typ
+
+2) SLICER var in some of the scripts has to be initialized to point to the
+Slicer installation
+
+3) All scripts to be executed from this top level:
+
+  I. Training
+
+  1) alignTrainingShapes.bash, output in output/alignTrainingShapes
+  2) toSFLS.bash creates level set representation, saved to
+  output/LevelSetRepresentation
+  3) learning using PCA, learn.bash; output in output/ShapeLearning, mean
+  shape and i-th eigenshape multiplied by eigenvalue. the number of
+  eigenshapes to consider is in learnShapes.bash
+
+
+  II. Segmentation
+
+  1) bin/SegmentImage/ProstateSegSBTest -- unclear where input files are
+  generated
