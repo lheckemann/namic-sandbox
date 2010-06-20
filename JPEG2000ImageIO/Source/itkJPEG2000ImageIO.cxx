@@ -76,10 +76,10 @@ bool JPEG2000ImageIO::CanReadFile( const char* filename )
     return true;
     }
 
-//   if( extension == ".jpt" )
-//     {
-//     return true;
-//     }
+  if( extension == ".jpt" )
+    {
+    return true;
+    }
 
   return false;
 }
@@ -88,10 +88,6 @@ bool JPEG2000ImageIO::CanReadFile( const char* filename )
 void JPEG2000ImageIO::ReadImageInformation()
 {
   std::cout << "ReadImageInformation() " << std::endl;
-
-  // JPEG2000 By NOW.... only reads 8-bits unsigned char images. (FIXME)
-  this->SetPixelType( SCALAR );
-  this->SetComponentType( UCHAR );
 
   FILE * l_file = NULL;
 
@@ -203,8 +199,20 @@ void JPEG2000ImageIO::ReadImageInformation()
   std::cout << "Number of Components = " << l_image->numcomps << std::endl;
   this->SetNumberOfComponents(  l_image->numcomps );
 
-  std::cout << "Color space = " << l_image->color_space << std::endl;
+  if ( l_image->comps[0].prec  == 8 )
+    {
+    this->SetPixelType( SCALAR );
+    this->SetComponentType( UCHAR );
+    }
 
+  if ( l_image->comps[0].prec  == 16 )
+    {
+    this->SetPixelType( SCALAR );
+    this->SetComponentType( USHORT );
+    }
+
+  std::cout << "bits per pixel = " << l_image->comps[0].prec << std::endl;
+  std::cout << "Color space = " << l_image->color_space << std::endl;
   std::cout << "l_tile_x0 = " << l_tile_x0 << std::endl;
   std::cout << "l_tile_y0 = " << l_tile_y0 << std::endl;
   std::cout << "l_tile_height = " << l_tile_height << std::endl;
@@ -502,6 +510,8 @@ void JPEG2000ImageIO::Read( void * buffer)
 
   const unsigned int numberOfComponents = this->GetNumberOfComponents();
 
+//   if ( this->GetComponentType() == UCHAR )
+  {
   for ( unsigned int k = 0; k < numberOfComponents; k++)
     {
     unsigned char * charBuffer = (unsigned char *)buffer;
@@ -511,10 +521,27 @@ void JPEG2000ImageIO::Read( void * buffer)
       {
       *charBuffer = (unsigned char)(*l_data_ptr++);
       charBuffer += numberOfComponents;
-      //   l_image->comps[k].data[index];
+      //  l_image->comps[k].data[index];
       }
     index++;
     }
+  }
+
+//   if ( this->GetComponentType() == USHORT )
+//   {
+//   for ( unsigned int k = 0; k < numberOfComponents; k++)
+//     {
+//     unsigned short * shortBuffer = (unsigned short *)buffer;
+//     shortBuffer += k;
+//
+//     for ( size_t j = 0; j < numberOfPixels; j++)
+//       {
+//       *shortBuffer = (unsigned short)(*l_data_ptr++);
+//       shortBuffer += numberOfComponents;
+//       }
+//     index++;
+//     }
+//   }
 
   std::cout << " END COPY BUFFER" << std::endl;
 
