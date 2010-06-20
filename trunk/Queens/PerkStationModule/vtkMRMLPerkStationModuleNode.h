@@ -70,6 +70,20 @@ struct OverlayHardware
 class OverlayCalibration
 {
 public:
+  
+  OverlayCalibration()
+  {
+    this->Name = "";
+    this->SecondMonitorHorizontalFlip = false;
+    this->SecondMonitorRotation = 0.0;
+    this->SecondMonitorRotationCenter[ 0 ] = 0.0;
+    this->SecondMonitorRotationCenter[ 1 ] = 0.0;
+    this->SecondMonitorTranslation[ 0 ] = 0.0;
+    this->SecondMonitorTranslation[ 1 ] = 0.0;
+    this->SecondMonitorVerticalFlip = false;
+    this->TableAtOverlay = 0.0;
+  }
+  
   std::string Name;
   double SecondMonitorRotation;
   double SecondMonitorRotationCenter[ 2 ];
@@ -319,6 +333,7 @@ protected:
   //BTX
   std::vector< OverlayCalibration* > CalibrationList;
   int CurrentCalibration; // If <0, no calibration is selected.
+  unsigned int CalibrationUID;
   //ETX
   
   int HardwareIndex;

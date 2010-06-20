@@ -132,6 +132,7 @@ protected:
   vtkKWMultiColumnListWithScrollbars* CalibrationList;
   vtkKWPushButton* AddButton;
   vtkKWPushButton* DeleteButton;
+  unsigned int CalibrationUID;
   
   
     // Hardware calibration.
