@@ -167,7 +167,7 @@ vtkPerkStationCalibrateStep
   this->CalibrationList = NULL;
   this->AddButton = NULL;
   this->DeleteButton = NULL;
-  
+  this->CalibrationUID = 0;
   
     // Hardware calibration.
   
@@ -1131,11 +1131,41 @@ vtkPerkStationCalibrateStep
     return;
     }
   
-  if ( this->AddButton == vtkKWPushButton::SafeDownCast( caller )
-       && ( event == vtkKWPuahButton::InvokedEvent ) )
-    {
     
+    // Add and delete calibrations.
+  
+  if ( this->AddButton == vtkKWPushButton::SafeDownCast( caller )
+       && ( event == vtkKWPushButton::InvokedEvent ) )
+    {
+    std::stringstream ss;
+      ss << "Calibr" << this->CalibrationUID;
+    this->CalibrationUID ++;
+    OverlayCalibration* newCal = new OverlayCalibration;
+      newCal->Name = ss.str();
+    int index = mrmlNode->AddCalibration( newCal );
+    mrmlNode->SetCurrentCalibrationIndex( index );
+    this->UpdateGUI();
     }
+  
+  if ( this->DeleteButton == vtkKWPushButton::SafeDownCast( caller )
+       && ( event == vtkKWPushButton::InvokedEvent ) )
+    {
+    OverlayCalibration* cal = mrmlNode->GetCalibrationAtIndex( mrmlNode->GetCurrentCalibration() );
+    if ( cal != NULL )
+      {
+      mrmlNode->RemoveCalibrationAtIndex( mrmlNode->GetCurrentCalibration() );
+      if ( mrmlNode->GetNumberOfCalibrations() > 0 )
+        {
+        mrmlNode->SetCurrentCalibrationIndex( 0 );
+        }
+      else 
+        {
+        mrmlNode->SetCurrentCalibrationIndex( -1 );
+        }
+      this->UpdateGUI();
+      }
+    }
+  
   
     // reset calib button
   

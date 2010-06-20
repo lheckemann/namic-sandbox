@@ -273,6 +273,7 @@ vtkMRMLPerkStationModuleNode
   // Calibration parameters ---------------------------------------------------
   
   this->CurrentCalibration = -1; // No calibration;
+  this->CalibrationUID = 0;
   
   this->CurrentSliceOffset = 0.0;
   
