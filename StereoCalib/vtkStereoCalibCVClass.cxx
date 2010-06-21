@@ -124,7 +124,18 @@ void vtkStereoCalibCVClass::stereoCalib(CvMat &_M12, CvMat &_M22, CvMat &_D12, C
     cvCopy(&_M1, &_M12);
     cvCopy(&_M2, &_M22);
     cvCopy(&_D1, &_D12);
-    cvCopy(&_D2, &_D22);    
+    cvCopy(&_D2, &_D22);
+
+    // 100621-komura
+    objectPoints.clear();
+    npoints.clear();
+    for(int n=0;n<2;n++){
+        lines[n].clear();
+        active[n].clear();
+        points[n].clear(); 
+    }
+
+    
 }
 
 void vtkStereoCalibCVClass::monoCalib(CvMat &_M12, CvMat &_D12)//100603-komura
@@ -169,7 +180,16 @@ void vtkStereoCalibCVClass::monoCalib(CvMat &_M12, CvMat &_D12)//100603-komura
 
     std::cerr << "\n\n mono calibration finish \n\n" << std::endl;
     cvCopy(&_M1, &_M12);
-    cvCopy(&_D1_mono, &_D12);  
+    cvCopy(&_D1_mono, &_D12); 
+
+    // 100621-komura
+    objectPoints.clear();
+    npoints.clear();
+    for(int n=0;n<2;n++){
+        lines[n].clear();
+        active[n].clear();
+        points[n].clear(); 
+    } 
 }
  
 
