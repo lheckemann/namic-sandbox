@@ -649,7 +649,7 @@ void vtkSecondaryWindowWithOpenCVGUI::Enter()
     {
     this->TimerFlag = 1;
 //    this->TimerInterval = 100;  // 100 ms
-    this->TimerInterval = 1;  // 10 ms 4/25/2010 ayamada
+    this->TimerInterval = 10;  // 10 ms 4/25/2010 ayamada
     ProcessTimerEvents();
     }
 
