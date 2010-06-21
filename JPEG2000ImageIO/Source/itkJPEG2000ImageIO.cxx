@@ -376,7 +376,7 @@ void JPEG2000ImageIO::Read( void * buffer)
     fclose( l_file );
     itkExceptionMacro("ERROR opj_set_decode_area failed");
     }
-
+/*
 
   OPJ_INT32 l_current_tile_x0;
   OPJ_INT32 l_current_tile_y0;
@@ -388,11 +388,11 @@ void JPEG2000ImageIO::Read( void * buffer)
 
   OPJ_UINT32 l_nb_comps;
 
-  OPJ_UINT32 l_max_data_size = 1000;
+  OPJ_UINT32 l_max_data_size = 1000000;
 
   bool l_go_on = true;
 
-  OPJ_BYTE * l_data = (OPJ_BYTE *) malloc(1000);
+  OPJ_BYTE * l_data = (OPJ_BYTE *) malloc(1000000);
 
   while ( l_go_on )
     {
@@ -429,10 +429,8 @@ void JPEG2000ImageIO::Read( void * buffer)
 
     if ( l_go_on )
       {
-
       if ( l_data_size > l_max_data_size )
         {
-
         l_data = (OPJ_BYTE *) realloc( l_data, l_data_size );
 
         if ( ! l_data )
@@ -468,14 +466,32 @@ void JPEG2000ImageIO::Read( void * buffer)
         }
 
       std::cout << "decoding data size = " << l_data_size << std::endl;
+      const unsigned int numberOfComponents = this->GetNumberOfComponents();
+      const size_t numberOfPixels = sizex * sizey;
+
+      size_t index = 0;
+
+      for ( unsigned int k = 0; k < numberOfComponents; k++)
+        {
+        unsigned int * shortBuffer = (unsigned int *)buffer;
+        shortBuffer += k;
+
+        for ( size_t j = 0; j < 10; j++)//numberOfPixels
+          {
+          *shortBuffer = (unsigned int)(*l_data++);
+          std::cout << j << ' ' << (unsigned int)(*shortBuffer) << std::endl;
+          shortBuffer += numberOfComponents;
+          }
+        index++;
+        }
       }
-    }
+    }*/
 
   l_image = opj_decode( this->m_Dinfo, l_stream );
 
   if (! opj_end_decompress( this->m_Dinfo, l_stream ) )
     {
-    free(l_data);
+//     free(l_data);
     opj_stream_destroy( l_stream );
     fclose( l_file );
     opj_destroy_codec( this->m_Dinfo );
@@ -492,56 +508,43 @@ void JPEG2000ImageIO::Read( void * buffer)
     itkExceptionMacro("ERROR -> j2k_to_image: failed to decode image!");
     }
 
-  const size_t numberOfPixels = sizex * sizey;
+//   OPJ_BYTE * l_data_ptr = l_data;
 
+  const size_t numberOfPixels = sizex * sizey;
+  const unsigned int numberOfComponents = this->GetNumberOfComponents();
   size_t index = 0;
 
   // HERE, copy the buffer
   std::cout << "Copying " << numberOfPixels << " pixels " << std::endl;
   std::cout << "sizex " << sizex << " pixels " << std::endl;
   std::cout << "sizey " << sizey << " pixels " << std::endl;
-
   std::cout << "number of components = " << this->GetNumberOfComponents() << std::endl;
 
 
   std::cout << " START COPY BUFFER" << std::endl;
-
-  OPJ_BYTE * l_data_ptr = l_data;
-
-  const unsigned int numberOfComponents = this->GetNumberOfComponents();
-
-//   if ( this->GetComponentType() == UCHAR )
+  if ( this->GetComponentType() == UCHAR )
   {
-  for ( unsigned int k = 0; k < numberOfComponents; k++)
-    {
     unsigned char * charBuffer = (unsigned char *)buffer;
-    charBuffer += k;
-
     for ( size_t j = 0; j < numberOfPixels; j++)
+    {
+      for ( unsigned int k = 0; k < numberOfComponents; k++)
       {
-      *charBuffer = (unsigned char)(*l_data_ptr++);
-      charBuffer += numberOfComponents;
-      //  l_image->comps[k].data[index];
+      *charBuffer++ = l_image->comps[k].data[j];
       }
-    index++;
     }
   }
 
-//   if ( this->GetComponentType() == USHORT )
-//   {
-//   for ( unsigned int k = 0; k < numberOfComponents; k++)
-//     {
-//     unsigned short * shortBuffer = (unsigned short *)buffer;
-//     shortBuffer += k;
-//
-//     for ( size_t j = 0; j < numberOfPixels; j++)
-//       {
-//       *shortBuffer = (unsigned short)(*l_data_ptr++);
-//       shortBuffer += numberOfComponents;
-//       }
-//     index++;
-//     }
-//   }
+  if ( this->GetComponentType() == USHORT )
+  {
+    unsigned short * shortBuffer = (unsigned short *)buffer;
+    for ( size_t j = 0; j < numberOfPixels; j++)
+    {
+      for ( unsigned int k = 0; k < numberOfComponents; k++)
+      {
+        *shortBuffer++ = l_image->comps[k].data[j];
+      }
+    }
+  }
 
   std::cout << " END COPY BUFFER" << std::endl;
 
