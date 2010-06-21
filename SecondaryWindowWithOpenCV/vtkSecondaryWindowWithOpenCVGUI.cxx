@@ -130,13 +130,18 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     RGBImage = NULL;
     captureImageTmp = NULL;
 */
-    idata = NULL;
+
+    // 6/20/2010 ayamada
+    for(int i=0; i<2; i++){
+    idata[i] = NULL;
+    importer[i] = vtkImageImport::New();
+    atext[i] = vtkTexture::New();
+    actor[i] = vtkActor::New();
+    }
+
     capture = NULL;
-    importer = vtkImageImport::New();
-    atext = vtkTexture::New();
     planeSource = vtkPlaneSource::New();
     planeMapper = vtkPolyDataMapper::New();
-    actor = vtkActor::New();
 
     // 10.01.25 ayamada
     planeSourceLeftPane = vtkPlaneSource::New();
@@ -180,7 +185,7 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     
     // 5/5/2010 ayamada
     // for videoOverlay
-    atext = vtkTexture::New();
+    //atext = vtkTexture::New();
     plane = vtkPlaneSource::New();
     volume = vtkVolume::New();    
     polyActor = vtkActor::New();    //adding at 10. 02. 01 - smkim
@@ -273,9 +278,7 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     focal_point_y = (VIEW_SIZE_Y / 2.0) - cvmGet(intrinsicMatrix, 1, 2);    //178.543373;    //intrinsicMatrix->GetElement(1, 2);
     
     focal_length = FOCAL_LENGTH;
-    
-    idata = NULL;
-    
+        
     capture = NULL;
     
     
@@ -357,16 +360,16 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
     polyReader1 = NULL;
     
     
-    actor->Delete();
-    actor=NULL;
+    Actor->Delete();
+    Actor=NULL;
     planeMapper->Delete();
     planeMapper = NULL;
     planeSource->Delete();
     planeSource = NULL;
-    atext->Delete(); 
-    atext=NULL;
-    importer->Delete();
-    importer=NULL;
+    atext[i]->Delete(); 
+    atext[i]=NULL;
+    importer[i]->Delete();
+    importer[i]=NULL;
 */        
  
     // 5/15/2010 ayamada
@@ -381,20 +384,23 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
 
     
     // 5/15/2010 ayamada
-    //idata->Delete();
-    //idata = NULL;    
+    //idata[i]->Delete();
+    //idata[i] = NULL;    
     
-    actor->Delete();
-    actor=NULL;    
     FocalPlaneMapper->Delete();
     FocalPlaneMapper = NULL;
     FocalPlaneSource->Delete();
     FocalPlaneSource = NULL;
-    atext->Delete(); 
-    atext=NULL;
+
+    for(int i=0; i<2; i++){
+    actor[i]->Delete();
+    actor[i]=NULL;    
+    atext[i]->Delete(); 
+    atext[i]=NULL;
+    }
     
-//    importer->Delete();
-//    importer=NULL;
+//    importer[i]->Delete();
+//    importer[i]=NULL;
         
     if (this->Thread)
     {
@@ -580,8 +586,8 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
     planeSourceLeftPane = NULL;
     planeMapperLeftPane->Delete();
     planeMapperLeftPane = NULL;
-    actorLeftPane->Delete();
-    actorLeftPane=NULL;
+    ActorLeftPane->Delete();
+    ActorLeftPane=NULL;
 */
     // 5/5/2010 ayamada
     // for videoOverlay
@@ -1211,7 +1217,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         // for applying the value of scale control to the surface rendering at 10. 02. 01 - smkim
         this->polyActor->SetOrientation(this->rotationAngleX, this->rotationAngleY, this->rotationAngleZ);
         
-        this->importer->Update();
+        this->importer[0]->Update();
         
     }
     
@@ -1232,7 +1238,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         // for applying the value of scale control to the surface rendering at 10. 02. 01 - smkim
         this->polyActor->SetPosition(this->translationX, this->translationY, this->translationZ);
         
-        this->importer->Update();
+        this->importer[0]->Update();
         
     }
     
@@ -1777,20 +1783,20 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);    //comment not to undistort    at 10. 01. 07 - smkim
             
             // 5/6/2010 ayamada ok for videoOverlay
-            pGUI->idata = (unsigned char*) RGBImage->imageData;
+            pGUI->idata[0] = (unsigned char*) RGBImage->imageData;
             
-            pGUI->importer->SetWholeExtent(0,pGUI->imageSize.width-1,0,pGUI->imageSize.height-1,0,0);
-            //this->importer->SetDataSpacing( 2.0, 2.0, 2.0); // 5/6/2010 ayamada for videoOverlay
-            pGUI->importer->SetDataExtentToWholeExtent();
-            pGUI->importer->SetDataScalarTypeToUnsignedChar();
-            pGUI->importer->SetNumberOfScalarComponents(3);
-            pGUI->importer->SetImportVoidPointer(pGUI->idata);
+            pGUI->importer[0]->SetWholeExtent(0,pGUI->imageSize.width-1,0,pGUI->imageSize.height-1,0,0);
+            //this->importer[i]->SetDataSpacing( 2.0, 2.0, 2.0); // 5/6/2010 ayamada for videoOverlay
+            pGUI->importer[0]->SetDataExtentToWholeExtent();
+            pGUI->importer[0]->SetDataScalarTypeToUnsignedChar();
+            pGUI->importer[0]->SetNumberOfScalarComponents(3);
+            pGUI->importer[0]->SetImportVoidPointer(pGUI->idata[0]);
             
             // 5/6/2010 ayamada fot videoOverlay
-            pGUI->atext->SetInputConnection(pGUI->importer->GetOutputPort());
-            pGUI->atext->InterpolateOn();            
+            pGUI->atext[0]->SetInputConnection(pGUI->importer[0]->GetOutputPort());
+            pGUI->atext[0]->InterpolateOn();            
             
-            pGUI->importer->Update();
+            pGUI->importer[0]->Update();
             
             /*            
              // 10.01.24 ayamada
@@ -1805,11 +1811,11 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
              this->planeSource->SetPoint2(planeX,planeLength,0.0);
              
              this->planeMapper->SetInputConnection(this->planeSource->GetOutputPort());
-             this->actor->SetMapper(this->planeMapper);   // plane source mapper
-             this->actor->SetTexture(this->atext);        // texture mapper
-             this->actor->SetMapper(this->planeMapper);
-             //actor->SetMapper(mapper); //10.01.16-komura
-             this->SecondaryViewerWindow->rw->AddViewProp(this->actor);
+             this->Actor->SetMapper(this->planeMapper);   // plane source mapper
+             this->Actor->SetTexture(this->atext[i]);        // texture mapper
+             this->Actor->SetMapper(this->planeMapper);
+             //Actor->SetMapper(mapper); //10.01.16-komura
+             this->SecondaryViewerWindow->rw->AddViewProp(this->Actor);
              
              // 10.01.25 ayamada
              //        pGUI->Mutex->Lock();
@@ -1888,22 +1894,22 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     pGUI->planeRatio = VIEW_SIZE_X / VIEW_SIZE_Y;
     
     // 5/6/2010 ayamada for videoOverlay
-    //CameraFocusPlane(this->fileCamera, this->planeRatio, this->actor);
+    //CameraFocusPlane(this->fileCamera, this->planeRatio, this->Actor);
     pGUI->CameraFocusPlane(pGUI->fileCamera, pGUI->planeRatio);
     
     
     // 5/7/2010 ayamada
     pGUI->FocalPlaneMapper->SetInput(pGUI->FocalPlaneSource->GetOutput());
-    pGUI->actor->SetMapper(pGUI->FocalPlaneMapper);
-    pGUI->actor->SetUserMatrix(pGUI->ExtrinsicMatrix);
+    pGUI->actor[0]->SetMapper(pGUI->FocalPlaneMapper);
+    pGUI->actor[0]->SetUserMatrix(pGUI->ExtrinsicMatrix);
     
     // 5/6/2010 ayamada for videoOverlay
     // 10.01.24 ayamada
-    pGUI->actor->SetTexture(pGUI->atext);        // texture mapper
-    //this->actor->GetProperty()->SetOpacity(1.0);// configuration property
-    //this->SecondaryViewerWindow->rw->AddViewProp(this->actor);
+    pGUI->actor[0]->SetTexture(pGUI->atext[i]);        // texture mapper
+    //this->Actor->GetProperty()->SetOpacity(1.0);// configuration property
+    //this->SecondaryViewerWindow->rw->AddViewProp(this->Actor);
     // 5/8/2010 ayamada
-    pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor);
+    pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor[0]);
     
     
     // 10.01.25 ayamada
@@ -1969,8 +1975,8 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             // 5/29/2010 ayamada
             // the following codes are needed with the CameraFocusPlane
             pGUI->FocalPlaneMapper->SetInput(pGUI->FocalPlaneSource->GetOutput());
-            pGUI->actor->SetMapper(pGUI->FocalPlaneMapper);
-            pGUI->actor->SetUserMatrix(pGUI->ExtrinsicMatrix);                        
+            pGUI->actor[0]->SetMapper(pGUI->FocalPlaneMapper);
+            pGUI->actor[0]->SetUserMatrix(pGUI->ExtrinsicMatrix);                        
             
                                  
         }                
@@ -1995,8 +2001,8 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
         // 5/15/2010 ayamada
         cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);
               
-        pGUI->idata = (unsigned char*) RGBImage->imageData;
-        pGUI->importer->Modified();        
+        pGUI->idata[i] = (unsigned char*) RGBImage->imageData;
+        pGUI->importer[i]->Modified();        
         
 /* 10.01.26-komura
 
@@ -2079,7 +2085,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
 //---------------------------------------------------------------------------
 // for calculating position and orientation of camera image plane
 // adding at 09. 11. 5 - from wang
-//void vtkSecondaryWindowWithOpenCVGUI::CameraFocusPlane(vtkCamera * cam, double Ratio, vtkActor * actor_CFP)
+//void vtkSecondaryWindowWithOpenCVGUI::CameraFocusPlane(vtkCamera * cam, double Ratio, vtkActor * Actor_CFP)
 void vtkSecondaryWindowWithOpenCVGUI::CameraFocusPlane(vtkCamera * cam, double Ratio)
 {
 
@@ -2139,13 +2145,13 @@ void vtkSecondaryWindowWithOpenCVGUI::CameraFocusPlane(vtkCamera * cam, double R
     //focalPlaneMapper->SetInputConnection(FocalPlaneSource->GetOutputPort());
     ///FocalPlaneSource->Delete();
 
-    ///actor_CFP->SetMapper(FocalPlaneMapper);
+    ///Actor_CFP->SetMapper(FocalPlaneMapper);
     //FocalPlaneMapper->Delete();
-    //actor_CFP->SetMapper(focalPlaneMapper);
+    //Actor_CFP->SetMapper(focalPlaneMapper);
     //focalPlaneMapper->Delete();
-    //actor_CFP->SetUserMatrix(ExtrinsicMatrix);
+    //Actor_CFP->SetUserMatrix(ExtrinsicMatrix);
     //ExtrinsicMatrix->Delete();
-    ///actor_CFP->SetUserMatrix(ExtrinsicMatrix);
+    ///Actor_CFP->SetUserMatrix(ExtrinsicMatrix);
     //ExtrinsicMatrix->Delete();
     //this->Mutex->Unlock();        
     
