@@ -36,13 +36,13 @@
 
 #include "vtkCornerAnnotation.h"
 
-#include "vtkStereoCalibCVClass.h" // 100607-komura
+// #include "vtkStereoCalibCVClass.h" // 100607-komura
 //chessboard
 // std::vector<uchar> active[2];        // 
 // std::vector<CvPoint2D32f> points[2]; // 100603-komura
 //
 
-#include "vtkppr.h"
+// #include "vtkppr.h"
 #include "vtkProperty.h"        // 100616-komura
 
 //---------------------------------------------------------------------------
@@ -144,8 +144,8 @@ vtkStereoCalibGUI::vtkStereoCalibGUI ( )
   this->leftOpacity = 0.0;      // 100617-komura
   
   //----------------------------------------------------------------
-    
-    
+        
+  this->CVClass = vtkStereoCalibCVClass::New(); // 100621-komura
     
     
 }
@@ -266,7 +266,10 @@ vtkStereoCalibGUI::~vtkStereoCalibGUI ( )
     
   //----------------------------------------------------------------
   // Unregister Logic class
-  
+
+  this->CVClass->Delete(); //
+  this->CVClass = NULL;    // 100621-komura
+
   this->SetModuleLogic ( NULL );
   
 }
@@ -508,7 +511,7 @@ void vtkStereoCalibGUI::ProcessGUIEvents(vtkObject *caller,
     std::cerr << "TestButton12 is pressed." << std::endl;
     std::cerr << "\n makeThread:No" << makeThread <<  std::endl;
     // vtkppr test;                     // 
-    // test.ppr(-1)                     // 
+    // test.ppr(-1);                     // 
     // if(this->SecondaryViewerWindow){ // 100616-komura
     if(this->SecondaryViewerWindow){ 
         this->SecondaryViewerWindow->Withdraw();
@@ -1187,7 +1190,7 @@ void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
     vtkStereoCalibGUI* pGUI = 
         static_cast<vtkStereoCalibGUI*>(vinfo->UserData);
 
-    vtkStereoCalibCVClass CVClass; // 100607-komura
+    // vtkStereoCalibCVClass CVClass; // 100607-komura
     
     
     int i=0;
@@ -1249,14 +1252,14 @@ void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
                     continue;
                 }  
               
-                CVClass.imageSize = cvGetSize( captureImageTmp[n] );
-                captureImage[n] = cvCreateImage(CVClass.imageSize, IPL_DEPTH_8U,3); 
-                RGBImage[n] = cvCreateImage(CVClass.imageSize, IPL_DEPTH_8U, 3);
-                CVClass.imageSize = cvGetSize( captureImageTmp[n] );
+                pGUI->CVClass->imageSize = cvGetSize( captureImageTmp[n] );
+                captureImage[n] = cvCreateImage(pGUI->CVClass->imageSize, IPL_DEPTH_8U,3); 
+                RGBImage[n] = cvCreateImage(pGUI->CVClass->imageSize, IPL_DEPTH_8U, 3);
+                pGUI->CVClass->imageSize = cvGetSize( captureImageTmp[n] );
                 cvFlip(captureImageTmp[n], captureImage[n], 0);
                 cvCvtColor( captureImage[n], RGBImage[n], CV_BGR2RGB);
                 pGUI->idata[n] = (unsigned char*) RGBImage[n]->imageData;
-                pGUI->importer[n]->SetWholeExtent(0,CVClass.imageSize.width-1,0,CVClass.imageSize.height-1,0,0);
+                pGUI->importer[n]->SetWholeExtent(0,pGUI->CVClass->imageSize.width-1,0,pGUI->CVClass->imageSize.height-1,0,0);
                 pGUI->importer[n]->SetDataExtentToWholeExtent();
                 pGUI->importer[n]->SetDataScalarTypeToUnsignedChar();
                 pGUI->importer[n]->SetNumberOfScalarComponents(3);
@@ -1298,14 +1301,14 @@ void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
     pGUI->SecondaryViewerWindow2x->rw->GetRenderer()->AddActor(pGUI->actor[1]); // 
     pGUI->SecondaryViewerWindow2x->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera ); // 100616-komura
 
-    CvMat* mx1 = cvCreateMat( CVClass.imageSize.height,          // 
-                              CVClass.imageSize.width, CV_32F ); // 
-    CvMat* my1 = cvCreateMat( CVClass.imageSize.height,          // 
-                              CVClass.imageSize.width, CV_32F ); // 
-    CvMat* mx2 = cvCreateMat( CVClass.imageSize.height,          // 
-                              CVClass.imageSize.width, CV_32F ); // 
-    CvMat* my2 = cvCreateMat( CVClass.imageSize.height,          // 
-                              CVClass.imageSize.width, CV_32F ); // 100607-komura
+    CvMat* mx1 = cvCreateMat( pGUI->CVClass->imageSize.height,          // 
+                              pGUI->CVClass->imageSize.width, CV_32F ); // 
+    CvMat* my1 = cvCreateMat( pGUI->CVClass->imageSize.height,          // 
+                              pGUI->CVClass->imageSize.width, CV_32F ); // 
+    CvMat* mx2 = cvCreateMat( pGUI->CVClass->imageSize.height,          // 
+                              pGUI->CVClass->imageSize.width, CV_32F ); // 
+    CvMat* my2 = cvCreateMat( pGUI->CVClass->imageSize.height,          // 
+                              pGUI->CVClass->imageSize.width, CV_32F ); // 100607-komura
 
     pGUI->makeThread = 3;
     while(pGUI->makeThread < 4){
@@ -1321,11 +1324,11 @@ void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
                 pGUI->actor[n]->SetUserMatrix(pGUI->ExtrinsicMatrix);
                 captureImageTmp[n] = cvQueryFrame( capture[n] );
                 if(pGUI->captureChessboardFlag == 2){
-                    CVClass.chessLoad(captureImageTmp[n], n);                   // 
+                    pGUI->CVClass->chessLoad(captureImageTmp[n], n);                   // 
                     // pGUI->chessLoad(captureImageTmp[n], pGUI->imageSize, n); // 100607-komura
                 }
                 if(pGUI->displayChessboardFlag == 1){
-                    CVClass.displayChessboard(captureImageTmp[n]);
+                    pGUI->CVClass->displayChessboard(captureImageTmp[n]);
                     // pGUI->displayChessboard(captureImageTmp[n]); // 100607-komura
                 }        
 
@@ -1360,11 +1363,11 @@ void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
         if(pGUI->stereoCalibFlag == 1){
             pGUI->makeThread = 2;
             if(deviceNum == 2){
-                CVClass.stereoCalib(_M1, _M2, _D1, _D2); // 
-                CVClass.displayStereoCalib(mx1,mx2,my1,my2); // 100608-komura
+                pGUI->CVClass->stereoCalib(_M1, _M2, _D1, _D2); // 
+                pGUI->CVClass->displayStereoCalib(mx1,mx2,my1,my2); // 100608-komura
             }
             else if(deviceNum == 1){
-                CVClass.monoCalib(_M1, _D1_mono); // 
+                pGUI->CVClass->monoCalib(_M1, _D1_mono); // 
             }
             // pGUI->stereoCalib(); // 100607-komura
             // 6/6/2010 ayamada
@@ -1440,6 +1443,7 @@ void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
             cvReleaseCapture(&capture[n]);  
         }
     }
+
     pGUI->makeThread = 0;  
     std::cerr << "makeThread No:"<< pGUI->makeThread << "\n" <<std::endl;
     return NULL;
