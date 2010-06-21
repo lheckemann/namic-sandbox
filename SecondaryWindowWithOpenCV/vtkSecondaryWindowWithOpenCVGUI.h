@@ -1,6 +1,7 @@
 /*==========================================================================
  
- Portions (c) Copyright 2010 Atsushi Yamada (Fujimoto Lab, Nagoya Institute of Technology (NIT)) and M. Komura (NIT) All Rights Reserved.
+ Portions (c) Copyright 2010 Atsushi Yamada (Fujimoto Lab, Nagoya Institute of Technology (NIT)) 
+                 and M. Komura (NIT) All Rights Reserved.
  
  Acknowledgement: K. Chinzei (AIST), Y. Hayashi (Nagoya Univ.), T. Takeuchi (SFC Corp.), H. Liu (BWH), J. Tokuda (BWH), N. Hata (BWH), and H. Fujimoto (NIT). 
  CMakeLists.txt, FindOpenCV.cmake, and FindOpenIGTLink.cmake are contributions of K. Chinzei(AIST) and T. Takeuchi (SFC Corp.).
@@ -115,40 +116,40 @@
 #include "vtkFixedPointVolumeRayCastMapper.h"
 #include <vtkTextMapper.h>
 
-#include "vtkPolyDataReader.h" //adding at 10. 02. 01 - smkim
-#include "vtkSlicerVolumeTextureMapper3D2.h" //adding at 09. 8. 20 - smkim
-#include "vtkCudaVolumeMapper.h" //adding at 09. 8. 26 - smkim
-#include "vtkSlicerNodeSelectorWidget.h"//adding at 09. 8. 19 - smkim
-#include "vtkMRMLLinearTransformNode.h" //To get patient coordinates // adding at 09. 9. 14 - smkim
-#include "vtkSlicerTransformEditorWidget.h"   //adding at 09. 12. 24 - smkim
-#include "vtkHomogeneousTransform.h" //adding at 09. 10. 28 - smkim
+#include "vtkPolyDataReader.h"        //adding at 10. 02. 01 - smkim
+#include "vtkSlicerVolumeTextureMapper3D2.h"     //adding at 09. 8. 20 - smkim
+#include "vtkCudaVolumeMapper.h"                //adding at 09. 8. 26 - smkim
+#include "vtkSlicerNodeSelectorWidget.h"    //adding at 09. 8. 19 - smkim
+#include "vtkMRMLLinearTransformNode.h"    //To get patient coordinates    // adding at 09. 9. 14 - smkim
+#include "vtkSlicerTransformEditorWidget.h"     //adding at 09. 12. 24 - smkim
+#include "vtkHomogeneousTransform.h"    //adding at 09. 10. 28 - smkim
 #include "vtkMath.h"
 
 #include "vtkRenderer.h"
 
-#include "vtkKWScaleWithLabel.h" //adding at 09. 9. 8 - smkim
+#include "vtkKWScaleWithLabel.h"        //adding at 09. 9. 8 - smkim
 
-#include "vtkSlicerNodeSelectorWidget.h" //adding at 09. 8. 19 - smkim
-#include "vtkSlicerVolumeHeaderWidget.h"     //adding at 09. 9. 2 - smkim
-#include "vtkSlicerTransformEditorWidget.h"  //adding at 09. 9. 4 - smkim
-#include "vtkSlicerTransformManagerWidget.h" //adding at 09. 9. 4 - smkim
+#include "vtkSlicerNodeSelectorWidget.h"    //adding at 09. 8. 19 - smkim
+#include "vtkSlicerVolumeHeaderWidget.h"        //adding at 09. 9. 2 - smkim
+#include "vtkSlicerTransformEditorWidget.h"     //adding at 09. 9. 4 - smkim
+#include "vtkSlicerTransformManagerWidget.h"    //adding at 09. 9. 4 - smkim
 
-#include "vtkKWLoadSaveButtonWithLabel.h" //Adding at 10. 2. 23 - smkim
+#include "vtkKWLoadSaveButtonWithLabel.h"    //Adding at 10. 2. 23 - smkim
 
 
 
 // 5.5.10 ayamada
 // Intrinsic Parameters of Camera
-#define FOCAL_LENGTH 900.0 // 5/5/2010 ayamada is it dammy?
-//#define FOA 7.36 //Microscope
+#define FOCAL_LENGTH    900.0 // 5/5/2010 ayamada is it dammy?
+//#define FOA        7.36    //Microscope
 // 5/5/2010 ayamada FOA is lead at the l.962 in .cxx file.
-#define FOA 31.76 //27.0 //31.76 //40.3 //Endoscope 
-//#define FOA 45.0 //35.0 //usb camera
-//#define Focal_Point_X (320-299.418431) //-35.0 //463.686970 //-(463.686979-320.0) //2.0
-//#define Focal_Point_Y (240-178.543373) //45.0 //57.813819 //-(57.813819-240.0) //72.0
+#define FOA        31.76    //27.0    //31.76    //40.3    //Endoscope 
+//#define FOA        45.0    //35.0    //usb camera
+//#define Focal_Point_X    (320-299.418431)    //-35.0    //463.686970    //-(463.686979-320.0)    //2.0
+//#define Focal_Point_Y    (240-178.543373)    //45.0    //57.813819    //-(57.813819-240.0)    //72.0
 
-#define VIEW_SIZE_X 640.0
-#define VIEW_SIZE_Y 480.0
+#define VIEW_SIZE_X    640.0
+#define VIEW_SIZE_Y    480.0
 
 //----
 class vtkKWPushButton;
@@ -223,7 +224,7 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     void BuildGUIForTransformation();
 
 /*
- void BuildGUIForNavigationFrame(); // adding at 09. 9. 16 - smkim
+    void BuildGUIForNavigationFrame();    // adding at 09. 9. 16 - smkim
 */    
     
     //----------------------------------------------------------------
@@ -246,7 +247,7 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     vtkGetStringMacro(TransformNodeName);
     
 
- // Adding to get patient coordinates...
+    // Adding to get patient coordinates...    
     // adding at 09. 9. 16 - smkim
     void GetCurrentPosition( double *px, double *py, double *pz);
     void GetCurrentTransformMatrix();
@@ -263,12 +264,13 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     int makeCameraThread(const char*); // 5/5/2010 ayamada
     
     
- /* // 5/16/2010 ayamada
- IplImage* captureImage;
- IplImage* RGBImage;
- IplImage* captureImageTmp;
+    /* // 5/16/2010 ayamada
+    IplImage*    captureImage;
+    IplImage*    RGBImage;
+    IplImage*    captureImageTmp;
     */
-    CvSize imageSize;
+    
+    CvSize        imageSize;
     unsigned char* idata;
     // 5/15/2010 ayamada
     CvCapture* capture;
@@ -335,7 +337,7 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     
     // 5/17/2010 ayamada
     vtkTextActor *textActorSavePath;
-    vtkTextActor *textActorSavePathH;
+    vtkTextActor *textActorSavePathH;    
     
     //vtkTextActor *textActor6;
     //vtkActor2D *testActor;
@@ -382,9 +384,9 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     //vtkTexture *atext;
     vtkPlaneSource *plane;
     vtkVolume *volume;
-    vtkActor* polyActor; // adding at 10. 02. 01 - smkim
-    vtkActor* polyActor1; // adding at 10. 02. 05 - smkim    
-    vtkCamera *fileCamera; // adding at 09. 10. 26 - smkim
+    vtkActor* polyActor;    // adding at 10. 02. 01 - smkim
+    vtkActor* polyActor1;    // adding at 10. 02. 05 - smkim    
+    vtkCamera *fileCamera;    // adding at 09. 10. 26 - smkim
     
     vtkActor2D *captureActor;
     vtkImageMapper *captureMapper;
@@ -393,63 +395,63 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     //vtkPolyDataMapper *planeMapper;    
     
     vtkRenderer *ren;
-    vtkRenderer *ren1; // adding at 09. 9. 14 - smkim
+    vtkRenderer *ren1;        // adding at 09. 9. 14 - smkim
     vtkRenderer *captureRen;
     vtkRenderWindow *captureRenWin;
     
     vtkMRMLVolumeNode* volumenode;
     vtkVolumeProperty *volumeProperty;
     
-    double focal_point_x;//adding at 10. 02. 22 - smkim
-    double focal_point_y;//adding at 10. 02. 22 - smkim
+    double focal_point_x;        //adding at 10. 02. 22 - smkim
+    double focal_point_y;        //adding at 10. 02. 22 - smkim
     
-    double rotationAngleX;// adding at 09. 9. 8 - smkim
-    double rotationAngleY;// adding at 09. 9. 8 - smkim
-    double rotationAngleZ;// adding at 09. 9. 8 - smkim
+    double rotationAngleX;    // adding at 09. 9. 8 - smkim
+    double rotationAngleY;    // adding at 09. 9. 8 - smkim
+    double rotationAngleZ;    // adding at 09. 9. 8 - smkim
     
-    double translationX;// adding at 09. 9. 14 - smkim
-    double translationY;// adding at 09. 9. 14 - smkim
-    double translationZ;// adding at 09. 9. 14 - smkim
+    double translationX;        // adding at 09. 9. 14 - smkim
+    double translationY;        // adding at 09. 9. 14 - smkim
+    double translationZ;        // adding at 09. 9. 14 - smkim
     
-    vtkMatrix4x4* transformMatrix;// adding at 09. 9. 16 - smkim
-    vtkMatrix4x4* volumeTransformMatrix;// adding at 09. 10. 26 - smkim
+    vtkMatrix4x4* transformMatrix;    // adding at 09. 9. 16 - smkim
+    vtkMatrix4x4* volumeTransformMatrix;    // adding at 09. 10. 26 - smkim
     
     vtkMatrix4x4* tempMatrix;
     vtkMatrix4x4* compensationMatrix;
     
-    double* cameraMatrix;// adding at 09. 11. 5 - smkim
+    double* cameraMatrix;    // adding at 09. 11. 5 - smkim
     
     //for setting up camera image plane
     double planeRatio;
     
     vtkTransform* cameraTransform;
-    vtkMRMLLinearTransformNode *OriginalTrackerNode;// adding at 09. 9. 16 - smkim
-    vtkSlicerTransformEditorWidget *TransformEditorWidget;//adding at 09. 12. 24 - smkim
+    vtkMRMLLinearTransformNode *OriginalTrackerNode;    // adding at 09. 9. 16 - smkim
+    vtkSlicerTransformEditorWidget *TransformEditorWidget;   //adding at 09. 12. 24 - smkim
     
-char *TransformNodeName;// adding at 09. 9. 16 - smkim
-    bool m_bVolumeRendering;// false: before volume rendering, true: after volume rendering// adding at 10. 02. 01 - smkim
-    bool m_bSurfaceRendering;// false: before surface rendering, true: after surface rendering// adding at 10. 02. 01 - smkim
-    bool m_bDriveSource;// false: manual, true: data of optical tracking system// adding at 09. 9. 17 - smkim
-    bool m_bOpenSecondaryWindow;//false: not open, true: open// adding at 10. 01. 19 - smkim
+    char *TransformNodeName;                // adding at 09. 9. 16 - smkim    
+    bool m_bVolumeRendering;    // false: before volume rendering, true: after volume rendering    // adding at 10. 02. 01 - smkim
+    bool m_bSurfaceRendering;    // false: before surface rendering, true: after surface rendering    // adding at 10. 02. 01 - smkim
+    bool m_bDriveSource;        // false: manual, true: data of optical tracking system        // adding at 09. 9. 17 - smkim
+    bool m_bOpenSecondaryWindow;    //false: not open, true: open    // adding at 10. 01. 19 - smkim
     
     //--------------------------------------------------------------------------------------------
     // variables for capturing camera image
     // Query image from camera
-    ///IplImage* captureImage;
-//IplImage* RGBImage;
-//IplImage* captureImageTmp;
-// 5/16/2010 ayamada
-//IplImage* undistortionImage; //adding at 09. 12. 15 - smkim
+    ///IplImage*    captureImage;
+    //IplImage*    RGBImage;
+    //IplImage*    captureImageTmp;
+    // 5/16/2010 ayamada
+    //IplImage*    undistortionImage;    //adding at 09. 12. 15 - smkim
     
-// 5/6/2010 ayamada
+    // 5/6/2010 ayamada
     // the above pointer is used at cvGetImageFromCamera in .cxx file. 
     
-    //CvSize imageSize;
-//unsigned char* idata;
+    //CvSize        imageSize;
+    //unsigned char* idata;
     
     //CvCapture* capture;
-CvMat* intrinsicMatrix; //for intrinsic matrix in camera calibration //at 09. 12. 15 - smkim
-CvMat* distortionCoefficient; //for distortion coefficient in camera calibration //at 09. 12. 15 - smkim
+    CvMat* intrinsicMatrix;    //for intrinsic matrix in camera calibration    //at 09. 12. 15 - smkim
+    CvMat* distortionCoefficient;    //for distortion coefficient in camera calibration    //at 09. 12. 15 - smkim
         
     double focal_length;
     
@@ -473,13 +475,13 @@ CvMat* distortionCoefficient; //for distortion coefficient in camera calibration
     double EstimateSampleDistances(void);   //the function for estimating the dimension of resolution   //adding at 09. 9. 3 - smkim
     double* EstimateScalarRange(void);   //the function for estimating the range of scalar value   //adding at 09. 9. 3 - smkim
     
- void vtkSurfaceModelRender(); // function for surface rendering of model //adding at 10. 01. 29 - smkim
+    void vtkSurfaceModelRender();   // function for surface rendering of model    //adding at 10. 01. 29 - smkim
 
- void CameraSet(vtkCamera *NaviCamera, double *Matrix, double FOV); //for calculating camera position and orientation //adding at 09. 11. 5 - from wang
+    void CameraSet(vtkCamera *NaviCamera, double *Matrix, double FOV);    //for calculating camera position and orientation    //adding at 09. 11. 5 - from wang
     
-// 5/7/2010 ayamada
-//void CameraFocusPlane(vtkCamera * cam, double Ratio, vtkActor * actor);//for calculating position and orientation of camera image plane//adding at 09. 11. 5 - from wang
- void CameraFocusPlane(vtkCamera * cam, double Ratio); //for calculating position and orientation of camera image plane//adding at 09. 11. 5 - from wang, 5/7/2010 improvement by ayamada
+    // 5/7/2010 ayamada
+    //void CameraFocusPlane(vtkCamera * cam, double Ratio, vtkActor * actor);    //for calculating position and orientation of camera image plane    //adding at 09. 11. 5 - from wang
+    void CameraFocusPlane(vtkCamera * cam, double Ratio);    //for calculating position and orientation of camera image plane    //adding at 09. 11. 5 - from wang, 5/7/2010 improvement by ayamada
     
     //----    
     
@@ -521,26 +523,30 @@ protected:
 
     // 5/6/2010 ayamda for videoOverlay
     
-    vtkSlicerNodeSelectorWidget* NS_ImageData;//adding at 09. 8. 19 - smkim
-    vtkSlicerVolumeHeaderWidget *VolumeHeaderWidget;//adding at 09. 9. 2 - smkim
+    vtkSlicerNodeSelectorWidget* NS_ImageData;       //adding at 09. 8. 19 - smkim
+    vtkSlicerVolumeHeaderWidget *VolumeHeaderWidget;         //adding at 09. 9. 2 - smkim
     
-    vtkKWScaleWithLabel *RotationAngleX;//adding at 09. 9. 8 - smkim
-    vtkKWScaleWithLabel *RotationAngleY;//adding at 09. 9. 8 - smkim
-    vtkKWScaleWithLabel *RotationAngleZ;//adding at 09. 9. 8 - smkim
+    vtkKWScaleWithLabel  *RotationAngleX;    //adding at 09. 9. 8 - smkim
+    vtkKWScaleWithLabel  *RotationAngleY;    //adding at 09. 9. 8 - smkim
+    vtkKWScaleWithLabel  *RotationAngleZ;    //adding at 09. 9. 8 - smkim
     
-    vtkKWScaleWithLabel *TranslationX;//adding at 09. 9. 14 - smkim
-    vtkKWScaleWithLabel *TranslationY;//adding at 09. 9. 14 - smkim
-    vtkKWScaleWithLabel *TranslationZ;//adding at 09. 9. 14 - smkim  
+    vtkKWScaleWithLabel  *TranslationX;    //adding at 09. 9. 14 - smkim
+    vtkKWScaleWithLabel  *TranslationY;    //adding at 09. 9. 14 - smkim
+    vtkKWScaleWithLabel  *TranslationZ;    //adding at 09. 9. 14 - smkim  
     
     vtkKWPushButton* showCaptureData;
     vtkKWPushButton* closeCaptureData;
     
-    vtkKWPushButton* selectDriveSource; // adding at 09. 9. 17 - smkim
+    vtkKWPushButton* selectDriveSource;    // adding at 09. 9. 17 - smkim
     
-    vtkKWEntryWithLabel *TransformNodeNameEntry; // adding at 09. 9. 16 - smkim
+    vtkKWEntryWithLabel *TransformNodeNameEntry;    // adding at 09. 9. 16 - smkim
     
-    vtkKWLoadSaveButtonWithLabel *loadLensDistortionCoefButton; //adding at 10. 2. 23 - smkim
-    vtkKWLoadSaveButtonWithLabel *loadIntrinsicParameterButton; //adding at 10. 2. 23 - smkim
+    vtkKWLoadSaveButtonWithLabel *loadLensDistortionCoefButton;    //adding at 10. 2. 23 - smkim
+    vtkKWLoadSaveButtonWithLabel *loadIntrinsicParameterButton;    //adding at 10. 2. 23 - smkim
+
+    // 6/21/2010 ayamada
+    vtkKWLoadSaveButtonWithLabel *loadLensDistortionCoefButton2;
+    vtkKWLoadSaveButtonWithLabel *loadIntrinsicParameterButton2;
 
     // 5/17/2010 ayamada
     vtkKWPushButton* captureCameraImage;
@@ -555,7 +561,7 @@ protected:
 
   vtkSecondaryWindowWithOpenCVLogic *Logic;
   vtkCallbackCommand *DataCallbackCommand;
-    int CloseScene;
+  int                        CloseScene;
 
 };
 
