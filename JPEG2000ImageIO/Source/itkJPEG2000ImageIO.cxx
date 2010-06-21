@@ -376,7 +376,6 @@ void JPEG2000ImageIO::Read( void * buffer)
     fclose( l_file );
     itkExceptionMacro("ERROR opj_set_decode_area failed");
     }
-/*
 
   OPJ_INT32 l_current_tile_x0;
   OPJ_INT32 l_current_tile_y0;
@@ -465,33 +464,32 @@ void JPEG2000ImageIO::Read( void * buffer)
         itkExceptionMacro("Error opj_decode_tile_data");
         }
 
-      std::cout << "decoding data size = " << l_data_size << std::endl;
-      const unsigned int numberOfComponents = this->GetNumberOfComponents();
-      const size_t numberOfPixels = sizex * sizey;
+      OPJ_BYTE * l_data_ptr = l_data;
 
-      size_t index = 0;
+      const size_t numberOfPixels = sizex * sizey;
+      const unsigned int numberOfComponents = this->GetNumberOfComponents();
+      const unsigned int sizePerComponent = l_data_size/( numberOfPixels * numberOfComponents );
+      const unsigned int sizePerChannel = l_data_size/( numberOfComponents );
 
       for ( unsigned int k = 0; k < numberOfComponents; k++)
         {
-        unsigned int * shortBuffer = (unsigned int *)buffer;
-        shortBuffer += k;
+        unsigned char * charBuffer = (unsigned char *)buffer;
+        charBuffer += k * sizePerComponent;
 
-        for ( size_t j = 0; j < 10; j++)//numberOfPixels
+        for ( size_t j = 0; j < sizePerChannel; j++)
           {
-          *shortBuffer = (unsigned int)(*l_data++);
-          std::cout << j << ' ' << (unsigned int)(*shortBuffer) << std::endl;
-          shortBuffer += numberOfComponents;
+          *charBuffer = (unsigned char)(*l_data_ptr++);
+          charBuffer += numberOfComponents;
           }
-        index++;
         }
+      free(l_data);
       }
-    }*/
+    }
 
-  l_image = opj_decode( this->m_Dinfo, l_stream );
+//  l_image = opj_decode( this->m_Dinfo, l_stream );
 
   if (! opj_end_decompress( this->m_Dinfo, l_stream ) )
     {
-//     free(l_data);
     opj_stream_destroy( l_stream );
     fclose( l_file );
     opj_destroy_codec( this->m_Dinfo );
@@ -507,46 +505,6 @@ void JPEG2000ImageIO::Read( void * buffer)
     fclose( l_file );
     itkExceptionMacro("ERROR -> j2k_to_image: failed to decode image!");
     }
-
-//   OPJ_BYTE * l_data_ptr = l_data;
-
-  const size_t numberOfPixels = sizex * sizey;
-  const unsigned int numberOfComponents = this->GetNumberOfComponents();
-  size_t index = 0;
-
-  // HERE, copy the buffer
-  std::cout << "Copying " << numberOfPixels << " pixels " << std::endl;
-  std::cout << "sizex " << sizex << " pixels " << std::endl;
-  std::cout << "sizey " << sizey << " pixels " << std::endl;
-  std::cout << "number of components = " << this->GetNumberOfComponents() << std::endl;
-
-
-  std::cout << " START COPY BUFFER" << std::endl;
-  if ( this->GetComponentType() == UCHAR )
-  {
-    unsigned char * charBuffer = (unsigned char *)buffer;
-    for ( size_t j = 0; j < numberOfPixels; j++)
-    {
-      for ( unsigned int k = 0; k < numberOfComponents; k++)
-      {
-      *charBuffer++ = l_image->comps[k].data[j];
-      }
-    }
-  }
-
-  if ( this->GetComponentType() == USHORT )
-  {
-    unsigned short * shortBuffer = (unsigned short *)buffer;
-    for ( size_t j = 0; j < numberOfPixels; j++)
-    {
-      for ( unsigned int k = 0; k < numberOfComponents; k++)
-      {
-        *shortBuffer++ = l_image->comps[k].data[j];
-      }
-    }
-  }
-
-  std::cout << " END COPY BUFFER" << std::endl;
 
   /* close the byte stream */
   opj_stream_destroy( l_stream );
@@ -716,16 +674,16 @@ JPEG2000ImageIO
     memset(&cmptparm[0], 0, sizeof(opj_image_cmptparm_t));
 
     if ( this->GetComponentType() == UCHAR )
-    {
+      {
       cmptparm[0].prec = 8;
       cmptparm[0].bpp = 8;
-    }
+      }
 
     if ( this->GetComponentType() == USHORT )
-    {
+      {
       cmptparm[0].prec = 16;
       cmptparm[0].bpp = 16;
-    }
+      }
 
     cmptparm[0].sgnd = 0;
     cmptparm[0].dx = 1;
