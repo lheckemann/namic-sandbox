@@ -1,6 +1,7 @@
 /*==========================================================================
  
- Portions (c) Copyright 2010 Atsushi Yamada (Fujimoto Lab, Nagoya Institute of Technology (NIT)) and M. Komura (NIT) All Rights Reserved.
+ Portions (c) Copyright 2010 Atsushi Yamada (Fujimoto Lab, Nagoya Institute of Technology (NIT)) 
+                 and M. Komura (NIT) All Rights Reserved.
  
  Acknowledgement: K. Chinzei (AIST), Y. Hayashi (Nagoya Univ.), T. Takeuchi (SFC Corp.), H. Liu (BWH), J. Tokuda (BWH), N. Hata (BWH), and H. Fujimoto (NIT). 
  CMakeLists.txt, FindOpenCV.cmake, and FindOpenIGTLink.cmake are contributions of K. Chinzei(AIST) and T. Takeuchi (SFC Corp.).
@@ -50,7 +51,7 @@
 #include "vtkMRMLLinearTransformNode.h"
 
 // 5/6/2010 ayamada
-#include "vtkKWScale.h" //adding at 09. 9. 8 - smkim
+#include "vtkKWScale.h"        //adding at 09. 9. 8 - smkim
 
 
 int first=0;//10.01.12-komura
@@ -81,30 +82,35 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
   this->SecondaryViewerWindow = NULL;
 
     // 5/6/2010 ayamada for videoOverlay
-    this->NS_ImageData = NULL; // adding at 09.08.19 - smkim
-    this->VolumeHeaderWidget = NULL; //adding at 09. 9. 2 - smkim
-    this->DetailsFrame = NULL; //Frame Details // adding at 09. 9. 4 - smkim
+    this->NS_ImageData = NULL;     // adding at 09.08.19 - smkim
+    this->VolumeHeaderWidget = NULL;       // adding at 09. 9. 2 - smkim
+    this->DetailsFrame = NULL;        //Frame Details    // adding at 09. 9. 4 - smkim
     
-    this->RotationAngleX = NULL; // adding at 09. 9. 8 - smkim
-    this->RotationAngleY = NULL; // adding at 09. 9. 8 - smkim
-    this->RotationAngleZ = NULL; // adding at 09. 9. 8 - smkim
-    this->TranslationX = NULL; // adding at 09. 9. 14 - smkim
-    this->TranslationY = NULL; // adding at 09. 9. 14 - smkim
-    this->TranslationZ = NULL; // adding at 09. 9. 14 - smkim
+    this->RotationAngleX = NULL;        // adding at 09. 9. 8 - smkim
+    this->RotationAngleY = NULL;        // adding at 09. 9. 8 - smkim
+    this->RotationAngleZ = NULL;        // adding at 09. 9. 8 - smkim
     
-    this->TransformNodeNameEntry = NULL; // adding at 09. 9. 16 - smkim
+    this->TranslationX = NULL;        // adding at 09. 9. 14 - smkim
+    this->TranslationY = NULL;        // adding at 09. 9. 14 - smkim
+    this->TranslationZ = NULL;        // adding at 09. 9. 14 - smkim
     
-    this->selectDriveSource = NULL; // adding at 09. 9. 17 - smkim
+    this->TransformNodeNameEntry = NULL;    // adding at 09. 9. 16 - smkim
+    
+    this->selectDriveSource = NULL;     // adding at 09. 9. 17 - smkim
     
     this->showCaptureData = NULL;
     this->closeCaptureData = NULL;
-    this->loadLensDistortionCoefButton = NULL;// adding at 10. 2. 23 - smkim
-    this->loadIntrinsicParameterButton = NULL;// adding at 10. 2. 23 - smkim
+    
+    this->loadLensDistortionCoefButton = NULL;    // adding at 10. 2. 23 - smkim
+    this->loadIntrinsicParameterButton = NULL;    // adding at 10. 2. 23 - smkim         
+
     // 5/17/2010 ayamada
     this->captureCameraImage = NULL;
-    this->saveCameraImageEntry = NULL;
+    this->saveCameraImageEntry = NULL;         
+
+    
     //----------------------------------------------------------------
-    // Locator  (MRML)
+  // Locator  (MRML)
   this->TimerFlag = 0;
 
 //----10.01.12-komura
@@ -119,10 +125,10 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
   this->camNumber = 0;
   this->secView = 0;  // 5/5/2010 ayamada
 
-/*// 5/16/2010 ayamada
- captureImage = NULL;
- RGBImage = NULL;
- captureImageTmp = NULL;
+/*    // 5/16/2010 ayamada
+    captureImage = NULL;
+    RGBImage = NULL;
+    captureImageTmp = NULL;
 */
     idata = NULL;
     capture = NULL;
@@ -161,6 +167,7 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     textActor1 = vtkTextActor::New();
     textActor2 = vtkTextActor::New();
     textActor3 = vtkTextActor::New();
+    
     // 5/16/2010 ayamada
     textActorCamera = vtkTextActor::New();
     textActorCamera1 = vtkTextActor::New();
@@ -174,9 +181,10 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     // 5/5/2010 ayamada
     // for videoOverlay
     atext = vtkTexture::New();
-    plane = vtkPlaneSource::New();volume = vtkVolume::New();
-    polyActor = vtkActor::New();//adding at 10. 02. 01 - smkim
-    polyActor1 = vtkActor::New();//adding at 10. 02. 05 - smkim
+    plane = vtkPlaneSource::New();
+    volume = vtkVolume::New();    
+    polyActor = vtkActor::New();    //adding at 10. 02. 01 - smkim
+    polyActor1 = vtkActor::New();    //adding at 10. 02. 05 - smkim
 
     // 5/11/2010 ayamada
    polyReader = vtkPolyDataReader::New(); 
@@ -184,33 +192,45 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
    polyMapper = vtkPolyDataMapper::New(); 
    polyReader1 = vtkPolyDataReader::New(); 
    polyNormal1 = vtkPolyDataNormals::New(); 
-   polyMapper1 = vtkPolyDataMapper::New();
+   polyMapper1 = vtkPolyDataMapper::New();     
+    
     
     ren = vtkRenderer::New();
-    ren1 = vtkRenderer::New();// adding at 09. 9. 14 - smkim
+    ren1 = vtkRenderer::New();            // adding at 09. 9. 14 - smkim
     captureRen = vtkRenderer::New();
     captureRenWin = vtkRenderWindow::New();
     
     tempMatrix = vtkMatrix4x4::New();
-    tempMatrix->Identity();
+    tempMatrix->Identity();  
     
     compensationMatrix = vtkMatrix4x4::New();
     compensationMatrix->Identity();
+    
     cameraTransform = vtkTransform::New();
+    
     cameraMatrix = new double[16];
     
     
     // Query image from camera
-    intrinsicMatrix = cvCreateMat( 3, 3, CV_64FC1 );// initialization of intrinsic matrix//adding at 09. 12. 15 - smkim
-    distortionCoefficient = cvCreateMat( 4, 1, CV_64FC1 );// initialization of distortion coefficient//adding at 09. 12. 15 - smkim
+    
+    // 5/16/2010 ayamada
+    //captureImage = NULL;
+    //RGBImage = NULL;
+    
+    //captureImageTmp = NULL;
+    //undistortionImage = NULL;
+    
+    intrinsicMatrix = cvCreateMat( 3, 3, CV_64FC1 );    // initialization of intrinsic matrix    //adding at 09. 12. 15 - smkim
+    distortionCoefficient = cvCreateMat( 4, 1, CV_64FC1 );    // initialization of distortion coefficient    //adding at 09. 12. 15 - smkim
     
     /*
-     // for microscope
+     //    for microscope
      // Setting element value of intrinsic matrix
-     //cvSetIdentity( intrinsicMatrix );
+     //    cvSetIdentity( intrinsicMatrix );
      cvmSet( intrinsicMatrix, 0, 0, 3533.685468 );
      cvmSet( intrinsicMatrix, 0, 1, 0.0 );
      cvmSet( intrinsicMatrix, 0, 2, 463.686979 );
+     
      cvmSet( intrinsicMatrix, 1, 0, 0.0 );
      cvmSet( intrinsicMatrix, 1, 1, 3471.553424 );
      cvmSet( intrinsicMatrix, 1, 2, 57.813819 );
@@ -226,9 +246,9 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
      cvmSet( distortionCoefficient, 3, 0, -0.065260 );
      */
     
-    //for endoscope
-    //Setting element value of intrinsic matrix
-    //cvSetIdentity( intrinsicMatrix );
+    //    for endoscope
+    // Setting element value of intrinsic matrix
+    //    cvSetIdentity( intrinsicMatrix );
     cvmSet( intrinsicMatrix, 0, 0, 906.759458 );
     cvmSet( intrinsicMatrix, 0, 1, 0.0 );
     cvmSet( intrinsicMatrix, 0, 2, 299.418431 );
@@ -249,86 +269,106 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     
     // calculating focal point with intrinsic matrix
     // adding at 10. 02. 22 - smkim
-    focal_point_x = (VIEW_SIZE_X / 2.0) - cvmGet(intrinsicMatrix, 0, 2);//299.418431;//intrinsicMatrix->GetElement(0, 2);
-    focal_point_y = (VIEW_SIZE_Y / 2.0) - cvmGet(intrinsicMatrix, 1, 2);//178.543373;//intrinsicMatrix->GetElement(1, 2);
+    focal_point_x = (VIEW_SIZE_X / 2.0) - cvmGet(intrinsicMatrix, 0, 2);    //299.418431;    //intrinsicMatrix->GetElement(0, 2);
+    focal_point_y = (VIEW_SIZE_Y / 2.0) - cvmGet(intrinsicMatrix, 1, 2);    //178.543373;    //intrinsicMatrix->GetElement(1, 2);
     
     focal_length = FOCAL_LENGTH;
     
     idata = NULL;
+    
     capture = NULL;
+    
     
     // Timer Handling
     
-//this->DataCallbackCommand = vtkCallbackCommand::New();
-//this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
-//this->DataCallbackCommand->SetCallback(vtkvideoOverlayLogic::DataCallback);
+//    this->DataCallbackCommand = vtkCallbackCommand::New();
+//    this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
+//    this->DataCallbackCommand->SetCallback(vtkvideoOverlayLogic::DataCallback);
     
-    this->volumenode = NULL;//adding at 09. 8. 19 - smkim
-    this->volumeProperty = NULL;//adding at 09. 8. 28 - smkim
-    this->rotationAngleX = 0.0;//adding at 09. 9. 8 - smkim
-    this->rotationAngleY = 0.0;//adding at 09. 9. 8 - smkim
+    this->volumenode = NULL;    //adding at 09. 8. 19 - smkim    
+    this->volumeProperty = NULL;   //adding at 09. 8. 28 - smkim
     
-    this->rotationAngleZ = 0.0;//adding at 09. 9. 8 - smkim
-    this->translationX = 0.0;//adding at 09. 9. 14 - smkim
-    this->translationY = 0.0;//adding at 09. 9. 14 - smkim
-    this->translationZ = 0.0;//adding at 09. 9. 14 - smkim
-    this->TransformNodeName = NULL;// adding at 09. 9. 16 - smkim
-    this->OriginalTrackerNode = NULL;// adding at 09. 9. 16 - smkim
-    this->TransformEditorWidget = NULL;// adding at 09. 12. 24 - smkim
-    this->m_bVolumeRendering = false;// initializing volume rendering flag (false: before volume rendering)// adding at 10. 02. 01 - smkim
-    this->m_bSurfaceRendering = false;//initializing surface rendering flag(false:before surface rendering)//adding at 10. 02. 01 - smkim
-    this->m_bDriveSource = false;// initializing drive souce flag (false: manual)// adding at 09. 9. 17 - smkim
-    this->m_bOpenSecondaryWindow = false;//initializing secondary window flag//adding at 10. 01. 19 - smkim
-    this->transformMatrix = vtkMatrix4x4::New();// adding at 09. 9. 16 - smkim
-    this->volumeTransformMatrix = vtkMatrix4x4::New();// adding at 09. 10. 26 - smkim
+    this->rotationAngleX = 0.0;    // adding at 09. 9. 8 - smkim
+    this->rotationAngleY = 0.0;    // adding at 09. 9. 8 - smkim
+    this->rotationAngleZ = 0.0;    // adding at 09. 9. 8 - smkim
+    
+    this->translationX = 0.0;    // adding at 09. 9. 14 - smkim
+    this->translationY = 0.0;     // adding at 09. 9. 14 - smkim
+    this->translationZ = 0.0;    // adding at 09. 9. 14 - smkim
+    
+    this->TransformNodeName = NULL;    // adding at 09. 9. 16 - smkim
+    this->OriginalTrackerNode = NULL;    // adding at 09. 9. 16 - smkim
+    
+    this->TransformEditorWidget = NULL;    // adding at 09. 12. 24 - smkim
+    
+    this->m_bVolumeRendering = false;    // initializing volume rendering flag (false: before volume rendering)     // adding at 10. 02. 01 - smkim
+    this->m_bSurfaceRendering = false;    // initializing surface rendering flag (false: before surface rendering)     // adding at 10. 02. 01 - smkim
+    
+    this->m_bDriveSource = false;        // initializing drive souce flag (false: manual)    // adding at 09. 9. 17 - smkim
+    this->m_bOpenSecondaryWindow = false;    // initializing secondary window flag     // adding at 10. 01. 19 - smkim
+    
+    this->transformMatrix = vtkMatrix4x4::New();        // adding at 09. 9. 16 - smkim
+    this->volumeTransformMatrix = vtkMatrix4x4::New();    // adding at 09. 10. 26 - smkim
+    
     // 5/16/2010 ayamada
     this->closeWindowFlag = 1;
+    
     // 5/17/2010 ayamada
     this->snapShotNumber = 0;
     this->snapShotShutter = 0;
+    
     // 6/13/2010 ayamada
     this->undistortionFlag = 0;
+    
     //----
 }
 
 //---------------------------------------------------------------------------
 vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
 {
+    
     // 5/16/2010 ayamada
     this->closeWindowFlag = 2;
+    
     // 5/16/2010 ayamada
     while(this->closeWindowFlag==3){};
-    //cvReleaseCapture(&capture);
-    /*// 5/15/2010 ayamada
- polyActor->Delete();
- polyActor = NULL;
- polyActor1->Delete();
- polyActor1 = NULL;
- polyMapper->Delete();
- polyMapper = NULL;
- polyMapper1->Delete();
- polyMapper1 = NULL;
- polyNormal->Delete();
- polyNormal = NULL;
- polyNormal1->Delete();
- polyNormal1 = NULL;
- polyReader->Delete();
- polyReader = NULL;
- polyReader1->Delete();
- polyReader1 = NULL;
- 
- actor->Delete();
- actor=NULL;
- planeMapper->Delete();
- planeMapper = NULL;
- planeSource->Delete();
- planeSource = NULL;
- atext->Delete(); 
- atext=NULL;
- importer->Delete();
- importer=NULL;
-*/
+
+//    cvReleaseCapture(&capture);   
+
+/*        // 5/15/2010 ayamada
+    polyActor->Delete();
+    polyActor = NULL;
+    polyActor1->Delete();
+    polyActor1 = NULL;
     
+    polyMapper->Delete();
+    polyMapper = NULL;
+    polyMapper1->Delete();
+    polyMapper1 = NULL;
+    
+    polyNormal->Delete();
+    polyNormal = NULL;
+    polyNormal1->Delete();
+    polyNormal1 = NULL;
+    
+    polyReader->Delete();
+    polyReader = NULL;
+    polyReader1->Delete();
+    polyReader1 = NULL;
+    
+    
+    actor->Delete();
+    actor=NULL;
+    planeMapper->Delete();
+    planeMapper = NULL;
+    planeSource->Delete();
+    planeSource = NULL;
+    atext->Delete(); 
+    atext=NULL;
+    importer->Delete();
+    importer=NULL;
+*/        
+ 
     // 5/15/2010 ayamada
     // 5/15/2010 ayamada for release image
     if (this->SecondaryViewerWindow)
@@ -338,24 +378,29 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
         this->SecondaryViewerWindow->Delete();
         this->SecondaryViewerWindow = NULL;
     }
+
     
     // 5/15/2010 ayamada
     //idata->Delete();
-    //idata = NULL;
+    //idata = NULL;    
+    
     actor->Delete();
-    actor=NULL;
+    actor=NULL;    
     FocalPlaneMapper->Delete();
     FocalPlaneMapper = NULL;
     FocalPlaneSource->Delete();
     FocalPlaneSource = NULL;
     atext->Delete(); 
     atext=NULL;
-    //importer->Delete();
-    //importer=NULL;
+    
+//    importer->Delete();
+//    importer=NULL;
+        
     if (this->Thread)
     {
         this->Thread->Delete();
     }
+    
     
     if (this->Mutex)
     {
@@ -411,165 +456,173 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
  
     
   /*    // 5/11/2010 ayamada
-   
-   // 5/6/2010 ayamada for videoOverlay
-   if (this->NS_ImageData)
-   {
-   this->NS_ImageData->SetParent(NULL);
-   this->NS_ImageData->Delete();
-   this->NS_ImageData=NULL;
-   }//adding at 09. 8. 19 - smkim
-   
-   if (this->VolumeHeaderWidget)
-   {
-   this->VolumeHeaderWidget->SetParent(NULL );
-   this->VolumeHeaderWidget->Delete ( );
-   }   //adding at 09. 9. 2 - smkim
-   
-   if(this->DetailsFrame)
-   {
-   this->DetailsFrame->Delete();
-   this->DetailsFrame=NULL;
-   }//adding at 09. 9. 4 - smkim
-   
-   if (this->RotationAngleX)
-   {
-   this->RotationAngleX->SetParent(NULL);
-   this->RotationAngleX->Delete();
-   this->RotationAngleX = NULL;
-   }//adding at 09. 9. 8 - smkim
-   
-   if (this->RotationAngleY)
-   {
-   this->RotationAngleY->SetParent(NULL);
-   this->RotationAngleY->Delete();
-   this->RotationAngleY = NULL;
-   }//adding at 09. 9. 8 - smkim
-   
-   if (this->RotationAngleZ)
-   {
-   this->RotationAngleZ->SetParent(NULL);
-   this->RotationAngleZ->Delete();
-   this->RotationAngleZ = NULL;
-   }//adding at 09. 9. 8 - smkim
-   
-   if (this->TranslationX)
-   {
-   this->TranslationX->SetParent(NULL);
-   this->TranslationX->Delete();
-   this->TranslationX = NULL;
-   }//adding at 09. 9. 14 - smkim
-   
-   if (this->TranslationY)
-   {
-   this->TranslationY->SetParent(NULL);
-   this->TranslationY->Delete();
-   this->TranslationY = NULL;
-   }//adding at 09. 9. 14 - smkim
-   
-   if (this->TranslationZ)
-   {
-   this->TranslationZ->SetParent(NULL);
-   this->TranslationZ->Delete();
-   this->TranslationZ = NULL;
-   }//adding at 09. 9. 14 - smkim
-   
-   if (this->TransformNodeNameEntry)
-   {
-   this->TransformNodeNameEntry->SetParent(NULL);
-   this->TransformNodeNameEntry->Delete();
-   }// adding at 09. 9. 16 - smkim
-   
-   if (this->selectDriveSource)
-   {
-   this->selectDriveSource->SetParent(NULL);
-   this->selectDriveSource->Delete();
-   }// adding at 09. 9. 17 - smkim
-   
-   if (this->showCaptureData)
-   {
-   this->showCaptureData->SetParent(NULL);
-   this->showCaptureData->Delete();
-   }
-   
-   if (this->closeCaptureData)
-   {
-   this->closeCaptureData->SetParent(NULL);
-   this->closeCaptureData->Delete();
-   }
-   
-   if (this->loadLensDistortionCoefButton)
-   {
-   this->loadLensDistortionCoefButton->SetParent(NULL);
-   this->loadLensDistortionCoefButton->Delete();
-   this->loadLensDistortionCoefButton = NULL;
-   }// adding at 10. 2. 23 - smkim
-   
-   if (this->loadIntrinsicParameterButton)
-   {
-   this->loadIntrinsicParameterButton->SetParent(NULL);
-   this->loadIntrinsicParameterButton->Delete();
-   this->loadIntrinsicParameterButton = NULL;
-   }// adding at 10. 2. 23 - smkim
-   */
-//----10.01.12-komura
     
-    /* // 5/15/2010 ayamada
-     // 5/7/2010 ayamada
-     // for the function "CameraFocusPlane"
-     FocalPlaneSource->Delete();
-     FocalPlaneSource = NULL;
-     FocalPlaneMapper->Delete();
-     FocalPlaneMapper = NULL;
-     ExtrinsicMatrix->Delete();
-     ExtrinsicMatrix = NULL;
-     
-     // 10.01.25 ayamada
-     planeSourceLeftPane->Delete();
-     planeSourceLeftPane = NULL;
-     planeMapperLeftPane->Delete();
-     planeMapperLeftPane = NULL;
-     actorLeftPane->Delete();
-     actorLeftPane=NULL;
-     */
+    // 5/6/2010 ayamada for videoOverlay
+    if (this->NS_ImageData)
+    {
+        this->NS_ImageData->SetParent(NULL);
+        this->NS_ImageData->Delete();
+        this->NS_ImageData=NULL;
+    }    //adding at 09. 8. 19 - smkim
+    
+    if (this->VolumeHeaderWidget)
+    {
+        this->VolumeHeaderWidget->SetParent(NULL );
+        this->VolumeHeaderWidget->Delete ( );
+    }   //adding at 09. 9. 2 - smkim
+    
+    if(this->DetailsFrame)
+    {
+        this->DetailsFrame->Delete();
+        this->DetailsFrame=NULL;
+    }    //adding at 09. 9. 4 - smkim
+    
+    if (this->RotationAngleX)
+    {
+        this->RotationAngleX->SetParent(NULL);
+        this->RotationAngleX->Delete();
+        this->RotationAngleX = NULL;
+    }    //adding at 09. 9. 8 - smkim
+    
+    if (this->RotationAngleY)
+    {
+        this->RotationAngleY->SetParent(NULL);
+        this->RotationAngleY->Delete();
+        this->RotationAngleY = NULL;
+    }    //adding at 09. 9. 8 - smkim
+    
+    if (this->RotationAngleZ)
+    {
+        this->RotationAngleZ->SetParent(NULL);
+        this->RotationAngleZ->Delete();
+        this->RotationAngleZ = NULL;
+    }    //adding at 09. 9. 8 - smkim
+    
+    if (this->TranslationX)
+    {
+        this->TranslationX->SetParent(NULL);
+        this->TranslationX->Delete();
+        this->TranslationX = NULL;
+    }    //adding at 09. 9. 14 - smkim
+    
+    if (this->TranslationY)
+    {
+        this->TranslationY->SetParent(NULL);
+        this->TranslationY->Delete();
+        this->TranslationY = NULL;
+    }    //adding at 09. 9. 14 - smkim
+    
+    if (this->TranslationZ)
+    {
+        this->TranslationZ->SetParent(NULL);
+        this->TranslationZ->Delete();
+        this->TranslationZ = NULL;
+    }    //adding at 09. 9. 14 - smkim
+    
+    if (this->TransformNodeNameEntry)
+    {
+        this->TransformNodeNameEntry->SetParent(NULL);
+        this->TransformNodeNameEntry->Delete();
+    }    // adding at 09. 9. 16 - smkim
+    
+    if (this->selectDriveSource)
+    {
+        this->selectDriveSource->SetParent(NULL);
+        this->selectDriveSource->Delete();
+    }    // adding at 09. 9. 17 - smkim
+    
+    if (this->showCaptureData)
+    {
+        this->showCaptureData->SetParent(NULL);
+        this->showCaptureData->Delete();
+    }
+    
+    if (this->closeCaptureData)
+    {
+        this->closeCaptureData->SetParent(NULL);
+        this->closeCaptureData->Delete();
+    }
+    
+    if (this->loadLensDistortionCoefButton)
+    {
+        this->loadLensDistortionCoefButton->SetParent(NULL);
+        this->loadLensDistortionCoefButton->Delete();
+        this->loadLensDistortionCoefButton = NULL;
+    }    // adding at 10. 2. 23 - smkim
+    
+    if (this->loadIntrinsicParameterButton)
+    {
+        this->loadIntrinsicParameterButton->SetParent(NULL);
+        this->loadIntrinsicParameterButton->Delete();
+        this->loadIntrinsicParameterButton = NULL;
+    }    // adding at 10. 2. 23 - smkim
+
+   */
+   
+    
+    
+//----10.01.12-komura
+
+        
+/*  // 5/15/2010 ayamada
+ 
+    // 5/7/2010 ayamada
+    // for the function "CameraFocusPlane"
+    FocalPlaneSource->Delete();
+    FocalPlaneSource = NULL;
+    FocalPlaneMapper->Delete();
+    FocalPlaneMapper = NULL;
+    ExtrinsicMatrix->Delete();
+    ExtrinsicMatrix = NULL;
+    
+    // 10.01.25 ayamada
+    planeSourceLeftPane->Delete();
+    planeSourceLeftPane = NULL;
+    planeMapperLeftPane->Delete();
+    planeMapperLeftPane = NULL;
+    actorLeftPane->Delete();
+    actorLeftPane=NULL;
+*/
     // 5/5/2010 ayamada
     // for videoOverlay
 
-/*// 5/15/2010 ayamada
- if (this->volumenode)
- {
- //this->volumenode->SetParent(NULL);
- this->volumenode->Delete();
- this->volumenode = NULL;
- }//adding at 09. 8. 19 - smkim
- 
- if (this->volumeProperty)
- {
- //this->volumeProperty->SetParent(NULL);
- this->volumeProperty->Delete();
- this->volumeProperty = NULL;
- }//adding at 09. 8. 19 - smkim
- 
- if (this->TransformEditorWidget)
- {
- this->TransformEditorWidget->RemoveWidgetObservers ( );
- this->TransformEditorWidget->SetParent (NULL);
- this->TransformEditorWidget->Delete ( );
- }//adding at 09. 12. 24 - smkim
- 
- // adding at 09. 9. 16 - smkim
- transformMatrix->Delete();
- transformMatrix = NULL;
- 
- // adding at 09. 10. 26 - smkim
- volumeTransformMatrix->Delete();
- volumeTransformMatrix = NULL;
+/*        // 5/15/2010 ayamada
+    if (this->volumenode)
+    {
+        //this->volumenode->SetParent(NULL);
+        this->volumenode->Delete();
+        this->volumenode = NULL;
+    }    //adding at 09. 8. 19 - smkim
+    
+    if (this->volumeProperty)
+    {
+        //this->volumeProperty->SetParent(NULL);
+        this->volumeProperty->Delete();
+        this->volumeProperty = NULL;
+    }    //adding at 09. 8. 19 - smkim
+    
+    if (this->TransformEditorWidget)
+    {
+        this->TransformEditorWidget->RemoveWidgetObservers ( );
+        this->TransformEditorWidget->SetParent (NULL);
+        this->TransformEditorWidget->Delete ( );
+    }    //adding at 09. 12. 2    4 - smkim
+    
+    // adding at 09. 9. 16 - smkim
+    transformMatrix->Delete();
+    transformMatrix = NULL;
+    
+    // adding at 09. 10. 26 - smkim
+    volumeTransformMatrix->Delete();
+    volumeTransformMatrix = NULL;
 */
     
     //----------------------------------------------------------------
     // Unregister Logic class
     
     this->SetModuleLogic ( NULL );
+    
+    
     //----
 }
 
@@ -644,17 +697,17 @@ void vtkSecondaryWindowWithOpenCVGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
    */
-    
+
     // 5/6/2010 ayamada
     if (this->NS_ImageData)
     {
         this->NS_ImageData->RemoveObservers(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }//adding at 09. 8. 19 - smkim
+    }    //adding at 09. 8. 19 - smkim
     
     if (this->selectDriveSource)
     {
         this->selectDriveSource->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }// adding at 09. 9. 17 - smkim
+    }    // adding at 09. 9. 17 - smkim
     
     if (this->showCaptureData)
     {
@@ -665,64 +718,77 @@ void vtkSecondaryWindowWithOpenCVGUI::RemoveGUIObservers ( )
     {
         this->closeCaptureData->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-    
+   
     // 5/17/2010 ayamada
     if (this->captureCameraImage)
     {
         this->captureCameraImage->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
     
+    
     // load lens distortion coefficient
     // adding at 10. 2. 23 - smkim
     if (this->loadLensDistortionCoefButton)
     {
-        this->loadLensDistortionCoefButton->GetWidget()->GetLoadSaveDialog()->RemoveObservers ( vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+        this->loadLensDistortionCoefButton
+        ->GetWidget()->GetLoadSaveDialog()->RemoveObservers ( vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
     }
+    
     // load intrinsic parameters of camera
     // adding at 10. 2. 23 - smkim
     if (this->loadIntrinsicParameterButton)
     {
-        this->loadIntrinsicParameterButton->GetWidget()->GetLoadSaveDialog()->RemoveObservers ( vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+        this->loadIntrinsicParameterButton
+        ->GetWidget()->GetLoadSaveDialog()->RemoveObservers ( vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
     }
-    
+
     // 5/17/2010 ayamada
 /*
- if (this->saveCameraImageEntry)
- {
- this->saveCameraImageEntry->GetWidget()->GetLoadSaveDialog()->RemoveObservers ( vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
- }
-*/
+    if (this->saveCameraImageEntry)
+    {
+        this->saveCameraImageEntry
+        ->GetWidget()->GetLoadSaveDialog()->RemoveObservers ( vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    }
+*/    
+  
     // adding removeobserver for RotationAngleX, scale with label 
     // adding at 09. 9. 8 - smkim
     this->RotationAngleX->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->RotationAngleX->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->RotationAngleX->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
     // adding removeobserver for RotationAngleY, scale with label 
     // adding at 09. 9. 8 - smkim
     this->RotationAngleY->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->RotationAngleY->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->RotationAngleY->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
     // adding removeobserver for RotationAngleZ, scale with label 
     // adding at 09. 9. 8 - smkim
     this->RotationAngleZ->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->RotationAngleZ->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->RotationAngleZ->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
     // adding removeobserver for RotationAngleZ, scale with label 
     // adding at 09. 9. 14 - smkim
     this->TranslationX->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationX->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationX->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
     // adding removeobserver for RotationAngleZ, scale with label 
     // adding at 09. 9. 14 - smkim
     this->TranslationY->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationY->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationY->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
     // adding removeobserver for RotationAngleZ, scale with label 
     // adding at 09. 9. 14 - smkim
     this->TranslationZ->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationZ->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationZ->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
     this->RemoveLogicObservers();
+    
 }
 
 
@@ -760,55 +826,69 @@ void vtkSecondaryWindowWithOpenCVGUI::AddGUIObservers ( )
    
     // 5/6/2010 ayamada
     
-    // adding addobserver for RotationAngleX, scale with label
+    // adding addobserver for RotationAngleX, scale with label 
     // adding at 09. 9. 8 - smkim
     this->RotationAngleX->GetWidget()->AddObserver(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->RotationAngleX->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->RotationAngleX->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
     // adding addobserver for RotationAngleY, scale with label 
     // adding at 09. 9. 8 - smkim
     this->RotationAngleY->GetWidget()->AddObserver(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->RotationAngleY->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->RotationAngleY->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
     // adding addobserver for RotationAngleZ, scale with label 
     // adding at 09. 9. 8 - smkim
     this->RotationAngleZ->GetWidget()->AddObserver(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->RotationAngleZ->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->RotationAngleZ->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
     // adding removeobserver for RotationAngleZ, scale with label 
     // adding at 09. 9. 14 - smkim
     this->TranslationX->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationX->GetWidget()->AddObserver(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationX->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
     // adding removeobserver for RotationAngleZ, scale with label 
     // adding at 09. 9. 14 - smkim
     this->TranslationY->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationY->GetWidget()->AddObserver(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationY->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
     // adding removeobserver for RotationAngleZ, scale with label 
     // adding at 09. 9. 14 - smkim
     this->TranslationZ->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationZ->GetWidget()->AddObserver(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationZ->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
+    
     //Selecting Volume Node
-    this->NS_ImageData->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );//adding at 09. 8. 19 - smkim
-    this->selectDriveSource->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);//adding at 09. 9. 17 - smkim
+    this->NS_ImageData->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );     // adding at 09. 8. 19 - smkim
+    
+    this->selectDriveSource->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);    // adding at 09. 9. 17 - smkim
     
     this->showCaptureData->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     this->closeCaptureData->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
     // 5/17/2010 ayamada
     this->captureCameraImage->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    
     // load lens distortion coefficient
     // adding at 10. 2. 23 - smkim
-    this->loadLensDistortionCoefButton->GetWidget()->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->loadLensDistortionCoefButton
+    ->GetWidget()->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand);
+    
     // load intrinsic parameters of camera
     // adding at 10. 2. 23 - smkim
-    this->loadIntrinsicParameterButton->GetWidget()->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->loadIntrinsicParameterButton
+    ->GetWidget()->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand);
 
 /*    
     // 5/17/2010 ayamada
- this->saveCameraImageEntry->GetWidget()->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand);
- */
+    this->saveCameraImageEntry
+    ->GetWidget()->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand);
+ */   
     //this->saveCameraImageEntry->AddObserver(vtkKWEntryWithLabel::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
     
@@ -869,9 +949,9 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
       && event == vtkKWPushButton::InvokedEvent)
     {
     if (this->SecondaryViewerWindow)
-      {
- //this->makeCameraThread();//10.01.12-komura //10.01.21-komura
- this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
+      {  
+      //this->makeCameraThread();//10.01.12-komura //10.01.21-komura
+      this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
           
           secView=1;    // 5/5/2010 ayamada
           
@@ -921,74 +1001,96 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
     if (this->showCaptureData == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
         std::cerr << "showCaptureData button is pressed." << std::endl;
-        // 5/6/2010 ayamada
+        
+        // 5/6/2010 ayamada        
         // for display capture data
         if (this->SecondaryViewerWindow)
-        {
+        {  
             //this->makeCameraThread();//10.01.12-komura //10.01.21-komura
             this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
             
-            secView=1;// 5/5/2010 ayamada
-            this->m_bOpenSecondaryWindow = true;//5/7/2010 ayamada
+            secView=1;    // 5/5/2010 ayamada            
+            this->m_bOpenSecondaryWindow = true;  // 5/7/2010 ayamada
+        
             this->updateViewTriger = 1;
+
         }
+        
     }
+    
     else if (this->closeCaptureData == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
         std::cerr << "The secondary window off button is pressed." << std::endl;
-        // 5/16/2010 ayamada
-        this->closeWindowFlag=2;
-        std::cerr << "closeWindowFlag=" << this->closeWindowFlag << std::endl;
         
         // 5/16/2010 ayamada
+        this->closeWindowFlag=2;
+        
+        std::cerr << "closeWindowFlag=" << this->closeWindowFlag << std::endl;
+
+        // 5/16/2010 ayamada
         if (this->SecondaryViewerWindow)
-        {
+        {  
             this->SecondaryViewerWindow->Withdraw();
             // 5/16/2010
             first = 0;
+
         }
+        
+        
     }
-    
+
     // 5/17/2010 ayamada
     else if (this->captureCameraImage == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
-        std::cerr << "The snapshot button is pressed." << std::endl;
+        std::cerr << "The snapshot button is pressed." << std::endl;                
+                
         // 5/17/2010 ayamada
+        
         if(this->saveCameraImageEntry->GetWidget()->GetValue() != NULL){
             this->snapShotShutter=1;
             this->snapShotNumber++;
-            sprintf(this->snapShotSavePath,"%s%d.bmp",this->saveCameraImageEntry->GetWidget()->GetValue(),this->snapShotNumber);
-            textActorSavePath->SetInput(this->snapShotSavePath);
+            sprintf(this->snapShotSavePath,"%s%d.bmp"
+                    ,this->saveCameraImageEntry->GetWidget()->GetValue(),this->snapShotNumber);
+            textActorSavePath->SetInput(this->snapShotSavePath);            
         }
+        
     }
-    
-    // 5/17/2010 ayamada
+
+    // 5/17/2010 ayamada    
     // save camera images
-    /*
-     else if (this->saveCameraImageEntry->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && event == vtkKWTopLevel::WithdrawEvent )
-     {
-     // 5/17/2010 ayamada
-     const char * filepath = this->loadLensDistortionCoefButton->GetWidget()->GetFileName();
-     
-     if(filepath)
-     {
-     ifstream ldstream;//file input stream
-     ldstream.open(filepath);//open input file
-     double m_dLensDistortionCoef[4];
-     for(int i = 0; i < 4; i++)
-     {
-     ldstream >> m_dLensDistortionCoef[i];
-     cvmSet( this->distortionCoefficient, i, 0, m_dLensDistortionCoef[i] );
-     }
-     ldstream.close();
-     }
-     }
-     */
+/*
+    else if (this->saveCameraImageEntry->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && event == vtkKWTopLevel::WithdrawEvent )
+    {
+
+        // 5/17/2010 ayamada
+
+        const char * filepath = this->loadLensDistortionCoefButton->GetWidget()->GetFileName();
+        
+        if(filepath)
+        {
+            ifstream ldstream;            //file input stream        
+            ldstream.open(filepath);            //open input file
+            
+            double m_dLensDistortionCoef[4];
+            
+            for(int i = 0; i < 4; i++)
+            {
+                ldstream >> m_dLensDistortionCoef[i];
+                cvmSet( this->distortionCoefficient, i, 0, m_dLensDistortionCoef[i] );
+            }
+            
+            ldstream.close();
+        }
+        
+        
+    }    
+  */ 
     
     // to select drive source ( manual / data of optical tracking system )
     // adding at 09. 9. 17 - smkim
     else if (this->selectDriveSource == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
+        
         if(this->m_bOpenSecondaryWindow == false)
         {
             std::cerr << "The secondary window is not open." << std::endl;
@@ -996,6 +1098,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         }
         
         std::cerr << "selectDriveSource button is pressed." << std::endl;
+        
         if (this->SecondaryViewerWindow)
         {  
             // 5/7/2010 ayamada
@@ -1033,46 +1136,60 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->m_bDriveSource = true;
         else
             this->m_bDriveSource = false;
+        
     }
     
-    // to get VolumeNode with VolumeSelectorWidget at 09. 8. 19 - smkim
-    else if (this->NS_ImageData == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent )
+    
+    // to get VolumeNode with VolumeSelectorWidget        at 09. 8. 19 - smkim
+    else if (this->NS_ImageData == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent ) 
     {
+        
+        
         if(this->m_bOpenSecondaryWindow == false)
         {
             std::cerr << "The secondary window is not open." << std::endl;
             return;
         }
+        
         //getting VolumeNode from MRML of Slicer3 with VolumeSelectorWidget
         vtkMRMLVolumeNode *volume = vtkMRMLVolumeNode::SafeDownCast(this->NS_ImageData->GetSelected());
         
         if (volume != NULL)
         {
             // Deactivate GradientsEditor, as it should only enabled when activenode is a DWI
-            this->volumenode = volume;// syncronizing with the volume node instance of Logic class   // adding at 09. 8. 19 - smkim
+            this->volumenode = volume;    // syncronizing with the volume node instance of Logic class   // adding at 09. 8. 19 - smkim
+            
             //Add observer to trigger update of transform
             this->volumenode->AddObserver(vtkMRMLTransformableNode::TransformModifiedEvent,(vtkCommand *) this->MRMLCallbackCommand);
             //NH
             this->volumenode->AddObserver(vtkMRMLScalarVolumeNode::ImageDataModifiedEvent, (vtkCommand *)this->MRMLCallbackCommand );
+            
             this->ApplicationLogic->GetSelectionNode()->SetActiveLabelVolumeID( volume->GetID() );
             
             //------------------------------------------------------------------
             //  Invoking Volume Rendering function
             //------------------------------------------------------------------
+            
             //this->vtkRayCastingVolumeRender();
             // 5/8/2010 ayamada
             this->vtkTexture3DVolumeRender();
             //this->vtkCUDAVolumeRender();
+            
             // 5/8/2010 ayamada
             this->vtkSurfaceModelRender();
             this->UpdateFramesFromMRML();
+            
         }
+        
         else
         {
             return;
         }
         //return;
-    }
+
+ } 
+    
+    
     // to get the rotation angle from scale widget and to apply the value to the rendering volume
     // adding at 09. 9. 8 - smkim
     else if ( (vtkKWScale::SafeDownCast(caller) == this->RotationAngleX->GetWidget() 
@@ -1083,60 +1200,78 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         this->rotationAngleX = this->RotationAngleX->GetWidget()->GetValue();
         this->rotationAngleY = this->RotationAngleY->GetWidget()->GetValue();
         this->rotationAngleZ = this->RotationAngleZ->GetWidget()->GetValue();
+        
         // for applying the value of scale control to the volume rendering at 09. 10. 30 - smkim
         //this->volume->SetOrientation(this->rotationAngleX, this->rotationAngleY, this->rotationAngleZ);
+
         // 5/30/2010 ayamada
         this->volume->SetOrientation(this->rotationAngleX+180.0, -this->rotationAngleY-180.0, this->rotationAngleZ);
+        
+        
         // for applying the value of scale control to the surface rendering at 10. 02. 01 - smkim
         this->polyActor->SetOrientation(this->rotationAngleX, this->rotationAngleY, this->rotationAngleZ);
         
         this->importer->Update();
+        
     }
-    //to get the translation distances from scale widget and to apply the value to the rendering volume
-    //adding at 09. 9. 14 - smkim
-    else if ( (vtkKWScale::SafeDownCast(caller) == this->TranslationX->GetWidget()
-               || vtkKWScale::SafeDownCast(caller) == this->TranslationY->GetWidget()
+    
+    // to get the translation distances from scale widget and to apply the value to the rendering volume
+    // adding at 09. 9. 14 - smkim
+    else if ( (vtkKWScale::SafeDownCast(caller) == this->TranslationX->GetWidget() 
+               || vtkKWScale::SafeDownCast(caller) == this->TranslationY->GetWidget() 
                || vtkKWScale::SafeDownCast(caller) == this->TranslationZ->GetWidget() )
              && static_cast<int>(event) == vtkKWScale::ScaleValueChangingEvent )
     {
         this->translationX = this->TranslationX->GetWidget()->GetValue();
         this->translationY = this->TranslationY->GetWidget()->GetValue();
         this->translationZ = this->TranslationZ->GetWidget()->GetValue();
+        
         // for applying the value of scale control to the volume rendering at 09. 10. 30 - smkim
         this->volume->SetPosition(this->translationX, this->translationY, this->translationZ);
         
         // for applying the value of scale control to the surface rendering at 10. 02. 01 - smkim
         this->polyActor->SetPosition(this->translationX, this->translationY, this->translationZ);
+        
         this->importer->Update();
+        
     }
-    //load lens distortion coefficient
-    //adding at 10.2.23 - smkim
+    
+    // load lens distortion coefficient
+    // adding at 10. 2. 23 - smkim
     else if (this->loadLensDistortionCoefButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && event == vtkKWTopLevel::WithdrawEvent )
     {
         const char * filepath = this->loadLensDistortionCoefButton->GetWidget()->GetFileName();
+        
         if(filepath)
         {
-            // 6/10/2010 ayamada
-            this->distortionCoefficient = (CvMat*) cvLoad(filepath);
+
+        // 6/10/2010 ayamada
+            this->distortionCoefficient = (CvMat*) cvLoad(filepath);    
             
-            /*
-             ifstream ldstream;//file input stream
-             ldstream.open(filepath);//open input file
-             double m_dLensDistortionCoef[4];
-             
-             for(int i = 0; i < 4; i++)
-             {
-             ldstream >> m_dLensDistortionCoef[i];
-             cvmSet( this->distortionCoefficient, i, 0, m_dLensDistortionCoef[i] );
-             }
-             
-             ldstream.close();
-             */
+        /*    
+            ifstream ldstream;            //file input stream        
+            ldstream.open(filepath);            //open input file
             
-            // 6/13/2010 ayamada
-            this->undistortionFlag = 1;
+            double m_dLensDistortionCoef[4];
+            
+            for(int i = 0; i < 4; i++)
+            {
+                ldstream >> m_dLensDistortionCoef[i];
+                cvmSet( this->distortionCoefficient, i, 0, m_dLensDistortionCoef[i] );
+            }
+            
+            ldstream.close();
+         */
+            
+        // 6/13/2010 ayamada
+        this->undistortionFlag = 1;
+            
+            
         }
+        
+        
     }
+    
     // load intrinsic parameters of camera
     // adding at 10. 2. 23 - smkim
     else if (this->loadIntrinsicParameterButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && event == vtkKWTopLevel::WithdrawEvent )
@@ -1147,38 +1282,42 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         {
             // 6/10/2010 ayamada
             /*
-             ifstream ipstream;//file input stream
-             ipstream.open(filepath);//open input file
-             double m_dIntrinsicParameter[3][3];
-             
-             for(int i = 0; i < 3; i++)
-             {
-             ipstream >> m_dIntrinsicParameter[i][0] >> m_dIntrinsicParameter[i][1] >> m_dIntrinsicParameter[i][2] ;
-             }
-             
-             ipstream.close();
-             for(int i = 0; i < 3; i++)
-             for(int j = 0; j < 3; j++)
-             {
-             cvmSet( this->intrinsicMatrix, i, j, m_dIntrinsicParameter[i][j] );
-             }
-             */
-            /*
-             for(int i = 0; i < 3; i++)
-             {
-             for(int j = 0; j < 3; j++)
-             {
-             cvmSet( this->intrinsicMatrix, i, j, this->intrinsicMatrixTmp[i][j] );
-             }
-             }
-             */
-            // 6/10/2010 ayamada
-            this->intrinsicMatrix = (CvMat*) cvLoad(filepath);
+            ifstream ipstream;            //file input stream        
+            ipstream.open(filepath);            //open input file
+            double m_dIntrinsicParameter[3][3];
             
+            
+            for(int i = 0; i < 3; i++)
+            {
+                ipstream >> m_dIntrinsicParameter[i][0] >> m_dIntrinsicParameter[i][1] >> m_dIntrinsicParameter[i][2] ;
+            }
+            
+            ipstream.close();
+            
+            for(int i = 0; i < 3; i++)
+                for(int j = 0; j < 3; j++)
+                {
+                    cvmSet( this->intrinsicMatrix, i, j, m_dIntrinsicParameter[i][j] );
+                }
+            */
+            /*
+            for(int i = 0; i < 3; i++)
+            {
+                for(int j = 0; j < 3; j++)
+                {
+                    cvmSet( this->intrinsicMatrix, i, j, this->intrinsicMatrixTmp[i][j] );
+                }
+            }
+            */
+            
+            // 6/10/2010 ayamada
+            this->intrinsicMatrix = (CvMat*) cvLoad(filepath);                
+                        
             // calculating focal point with intrinsic matrix
             // adding at 10. 02. 22 - smkim
             this->focal_point_x = (VIEW_SIZE_X / 2.0) - cvmGet(this->intrinsicMatrix, 0, 2);
             this->focal_point_y = (VIEW_SIZE_Y / 2.0) - cvmGet(this->intrinsicMatrix, 1, 2);
+            
             //this->focal_length = (m_dIntrinsicParameter[0][0] + m_dIntrinsicParameter[1][1]) / 2.0;
             // 6/10/2010 ayamada
             this->focal_length = (cvmGet(this->intrinsicMatrix, 0, 0) + cvmGet(this->intrinsicMatrix, 1, 1)) / 2.0;
@@ -1186,8 +1325,12 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             // 6/13/2010 ayamada
             this->undistortionFlag = 1;
         }
+        
     }
-
+    
+    
+    
+    
 } 
 
 
@@ -1227,10 +1370,13 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessMRMLEvents ( vtkObject *caller,
         // 5/7/2010 ayamada
         //std::cerr << "TransformModifiedEvent is invoked." << std::endl;
         
+        
         vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast(caller);
         vtkMatrix4x4* transformToParent = node->GetMatrixTransformToParent();
+        
         vtkMRMLLinearTransformNode* node2 = vtkMRMLLinearTransformNode::SafeDownCast(caller);
         vtkMatrix4x4* transformToParent2 = node2->GetMatrixTransformToParent();
+        
         tx = transformToParent->GetElement(0, 0);
         ty = transformToParent->GetElement(1, 0);
         tz = transformToParent->GetElement(2, 0);
@@ -1264,57 +1410,64 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessMRMLEvents ( vtkObject *caller,
         py2 = transformToParent2->GetElement(1, 3);
         pz2 = transformToParent2->GetElement(2, 3);
         p02 = transformToParent2->GetElement(3, 3);
-        
+
         /*
-         std::cerr << "tx  = "  << tx << std::endl;
-         std::cerr << "ty  = "  << ty << std::endl;
-         td::cerr << "tz  = "  << tz << std::endl;
-         std::cerr << "t0  = "  << t0 << std::endl;
-         std::cerr << "sx  = "  << sx << std::endl;
-         std::cerr << "sy  = "  << sy << std::endl;
-         std::cerr << "sz  = "  << sz << std::endl;
-         std::cerr << "s0  = "  << s0 << std::endl;
-         std::cerr << "nx  = "  << nx << std::endl;
-         std::cerr << "ny  = "  << ny << std::endl;
-         std::cerr << "nz  = "  << nz << std::endl;
-         std::cerr << "n0  = "  << n0 << std::endl;
-         std::cerr << "px  = "  << px << std::endl;
-         std::cerr << "py  = "  << py << std::endl;
-         std::cerr << "pz  = "  << pz << std::endl;
-         std::cerr << "p0  = "  << p0 << std::endl;
-         
-         std::cerr << "tx2  = "  << tx2 << std::endl;
-         std::cerr << "ty2  = "  << ty2 << std::endl;
-         std::cerr << "tz2  = "  << tz2 << std::endl;
-         std::cerr << "t02  = "  << t02 << std::endl;
-         std::cerr << "sx2  = "  << sx2 << std::endl;
-         std::cerr << "sy2  = "  << sy2 << std::endl;
-         std::cerr << "sz2  = "  << sz2 << std::endl;
-         std::cerr << "s02  = "  << s02 << std::endl;
-         std::cerr << "nx2  = "  << nx2 << std::endl;
-         std::cerr << "ny2  = "  << ny2 << std::endl;
-         std::cerr << "nz2  = "  << nz2 << std::endl;
-         std::cerr << "n02  = "  << n02 << std::endl;
-         std::cerr << "px2  = "  << px2 << std::endl;
-         std::cerr << "py2  = "  << py2 << std::endl;
-         std::cerr << "pz2  = "  << pz2 << std::endl;
-         std::cerr << "p02  = "  << p02 << std::endl;
-         */
+        std::cerr << "tx  = "  << tx << std::endl;
+        std::cerr << "ty  = "  << ty << std::endl;
+        std::cerr << "tz  = "  << tz << std::endl;
+        std::cerr << "t0  = "  << t0 << std::endl;
+        std::cerr << "sx  = "  << sx << std::endl;
+        std::cerr << "sy  = "  << sy << std::endl;
+        std::cerr << "sz  = "  << sz << std::endl;
+        std::cerr << "s0  = "  << s0 << std::endl;
+        std::cerr << "nx  = "  << nx << std::endl;
+        std::cerr << "ny  = "  << ny << std::endl;
+        std::cerr << "nz  = "  << nz << std::endl;
+        std::cerr << "n0  = "  << n0 << std::endl;
+        std::cerr << "px  = "  << px << std::endl;
+        std::cerr << "py  = "  << py << std::endl;
+        std::cerr << "pz  = "  << pz << std::endl;
+        std::cerr << "p0  = "  << p0 << std::endl;
+        
+        std::cerr << "tx2  = "  << tx2 << std::endl;
+        std::cerr << "ty2  = "  << ty2 << std::endl;
+        std::cerr << "tz2  = "  << tz2 << std::endl;
+        std::cerr << "t02  = "  << t02 << std::endl;
+        std::cerr << "sx2  = "  << sx2 << std::endl;
+        std::cerr << "sy2  = "  << sy2 << std::endl;
+        std::cerr << "sz2  = "  << sz2 << std::endl;
+        std::cerr << "s02  = "  << s02 << std::endl;
+        std::cerr << "nx2  = "  << nx2 << std::endl;
+        std::cerr << "ny2  = "  << ny2 << std::endl;
+        std::cerr << "nz2  = "  << nz2 << std::endl;
+        std::cerr << "n02  = "  << n02 << std::endl;
+        std::cerr << "px2  = "  << px2 << std::endl;
+        std::cerr << "py2  = "  << py2 << std::endl;
+        std::cerr << "pz2  = "  << pz2 << std::endl;
+        std::cerr << "p02  = "  << p02 << std::endl;
+        */
         
         // display the status 4/25/2010 ayamada
-        
         char bufA[100],bufB[100],bufC[100];
+        
         sprintf(bufA, "Position X:   %f",px);
         textActor1->SetInput(bufA);
+                
         sprintf(bufB, "Position Y:   %f ",py);
         textActor2->SetInput(bufB);
+
         sprintf(bufC,"Position Z:    %f ",pz);
         textActor3->SetInput(bufC);
+
         // 5/17/2010 ayamada for test
         //this->saveCameraImageEntry->GetWidget()->GetValue ();
-    }
-    
-    if (event == vtkMRMLScene::SceneCloseEvent)
+
+        
+        
+        
+    }        
+
+  if (event == vtkMRMLScene::SceneCloseEvent)
     {
     }
     
@@ -1323,39 +1476,47 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessMRMLEvents ( vtkObject *caller,
     {
         if(event == vtkMRMLScalarVolumeNode::ImageDataModifiedEvent)
         {
-            //this->GetApplicationGUI()->GetViewerWidget()->RequestRender();
-            //Adding 10.5.5 ayamada
+            //    this->GetApplicationGUI()->GetViewerWidget()->RequestRender();
+            // Adding 10.5.5 ayamada 
             this->GetViewerWidget()->RequestRender();
-        }
+          }
     }
+    
 }
+
 
 //---------------------------------------------------------------------------
 void vtkSecondaryWindowWithOpenCVGUI::ProcessTimerEvents()
 {
   if (this->TimerFlag)
     {
-        //if(SecondaryViewerWindow->rw->IsMapped() == 1){ //----10.01.21-komura
-        if(this->updateViewTriger==1){//10.01.25 ayamada
-            if(this->runThread == 0){
-                // 5/16/2010 ayamada
-                this->closeWindowFlag = 1;
-                this->makeCameraThread("cameraThread"); // 5/5/2010 ayamada
-                this->runThread = 1;
-            }else{
-                if(updateView==1){//10.01.25 ayamada
-                    this->SecondaryViewerWindow->rw->Render();//10.01.12-komura
-                }
-                if(secView==1){ // 5/5/2010 ayamada
-                    this->SecondaryViewerWindow->rwLeft->Render();  // 5/5/2010 ayamada
-                }
+    
+//    if(SecondaryViewerWindow->rw->IsMapped() == 1){ //----10.01.21-komura
+    if(this->updateViewTriger==1){ // 10.01.25 ayamada
+        if(this->runThread == 0){                  
+
+            // 5/16/2010 ayamada
+            this->closeWindowFlag = 1;
+
+            this->makeCameraThread("cameraThread"); // 5/5/2010 ayamada             
+            this->runThread = 1;               
+        }else{
+            if(updateView==1){    // 10.01.25 ayamada
+                this->SecondaryViewerWindow->rw->Render();//10.01.12-komura
+            }
+            if(secView==1){ // 5/5/2010 ayamada
+                this->SecondaryViewerWindow->rwLeft->Render();  // 5/5/2010 ayamada
             }
         }
-        //----
-        // update timer
-        vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), this->TimerInterval,this, "ProcessTimerEvents");
+    }
+    //----
+    // update timer
+    vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
+                                         this->TimerInterval,
+                                         this, "ProcessTimerEvents");        
     }
 }
+
 
 //---------------------------------------------------------------------------
 void vtkSecondaryWindowWithOpenCVGUI::BuildGUI ( )
@@ -1376,7 +1537,7 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUI ( )
 
   // 5/6/2010 ayamada
 //  BuildGUIForCaptureCameraImageFrame();
-  //BuildGUIForNavigationFrame();//adding at 09. 9. 16 - smkim
+  //    BuildGUIForNavigationFrame();            // adding at 09. 9. 16 - smkim
   BuildGUIForTransformationFrame(); 
   BuildGUIForVolumeInfoFrame();
   BuildGUIForTransformation();    
@@ -1495,32 +1656,35 @@ int vtkSecondaryWindowWithOpenCVGUI::makeCameraThread(const char* nodeName)
      fileCamera->SetPosition ( 0.0, focal_length / 4.0, 0.0 );
      fileCamera->SetFocalPoint (0.0, 0.0, 0.0);
      fileCamera->SetViewAngle ( FOA );
-    fileCamera->Zoom(1.0);
-    //fileCamera->ComputeViewPlaneNormal();
+     fileCamera->Zoom(1.0);    
+     //fileCamera->ComputeViewPlaneNormal();
+
     //------------------------------------------------------------------
-    //starting thread for capturing camera image
+    //   starting thread for capturing camera image
     //------------------------------------------------------------------
-    
-    //5/11/2010 ayamada
+  
+    // 5/11/2010 ayamada
     this->ThreadID = this->Thread->SpawnThread((vtkThreadFunctionType) &vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread, this);
-    //sleep(1);//10.01.23 ayamada
-    locatorDisp->Delete();
+    //sleep(1);    // 10.01.23 ayamada
+    locatorDisp->Delete();        
     return 1;
     
 }
 
 void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
 {
-    //5/15/ayamada
+
+    // 5/15/ayamada
     CvCapture* capture;
     
     char bufCamera[100],bufCamera1[100];
-    // 5/15/2010 ayamada
-    IplImage* captureImage;
-    IplImage* RGBImage;
-    IplImage* captureImageTmp;
-    IplImage* undistortionImage;//adding at 09. 12. 15 - smkim
     
+    // 5/15/2010 ayamada
+    IplImage*    captureImage;
+    IplImage*    RGBImage;
+    IplImage*    captureImageTmp;
+    IplImage*    undistortionImage;    //adding at 09. 12. 15 - smkim
+
     // 6/6/2010 ayamada
     CvMat* mx1;
     CvMat* my1;    
@@ -1529,6 +1693,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     RGBImage = NULL;
     captureImageTmp = NULL;
     undistortionImage = NULL;
+    
     
     vtkMultiThreader::ThreadInfo* vinfo = 
     static_cast<vtkMultiThreader::ThreadInfo*>(t);
@@ -1540,9 +1705,11 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     vtkSecondaryWindowWithOpenCVGUI* pGUI 
     = (vtkSecondaryWindowWithOpenCVGUI*)
     (((vtkMultiThreader::ThreadInfo *)(t))->UserData);
-*/
+*/    
+
+    
     //**************************************************************************
-    //getting camera image initially
+    //   getting camera image initially
     //**************************************************************************
     // 5/15/2010 ayamada
     // for videoOverlay
@@ -1551,43 +1718,47 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     
     if(first == 0){
         
-        while(i<=10){//5/16/2010 ayamada
-            if( (NULL==(capture = cvCaptureFromCAM(i))))// 10.01.25 ayamada
+        while(i<=10){// 5/16/2010 ayamada
+            if( (NULL==(capture = cvCaptureFromCAM(i))))    // 10.01.25 ayamada
             {
-                fprintf(stdout, "\n\nCan Not Find A Camera\n\n"); // 10.01.25 ayamada
-                i++;
+                fprintf(stdout, "\n\nCan Not Find A Camera\n\n");    // 10.01.25 ayamada
+                i++;                
             }else{
                 // 5/16/2010 ayamada
                 sprintf(bufCamera, "Connected Camera Device No: %d",i);
                 pGUI->textActorCamera->SetInput(bufCamera);
                 break;
             }
-        }
-        
+       }
+
         // 5/16/2010 ayamada
         if(i==11){
             sprintf(bufCamera, "Can Not Find Camera Device!!");
             pGUI->textActorCamera->SetInput(bufCamera);
         }
+
+
+    // 5/16/2010 ayamada
+    if(capture != NULL){
         
-        // 5/16/2010 ayamada
-        if(capture != NULL){
+        while(1){//10.01.20-komura
             
-            while(1){//10.01.20-komura
-                
+            // 5/15/2010 ayamada
+            if(NULL == (captureImageTmp = cvQueryFrame( capture ))){
+
+                sleep(2);    // 5/18/2010 ayamada
+
+                fprintf(stdout, "\n\nCan Not Take A Picture\n\n");
                 // 5/15/2010 ayamada
-                if(NULL == (captureImageTmp = cvQueryFrame( capture ))){
-                    sleep(2);// 5/18/2010 ayamada
-                    fprintf(stdout, "\n\nCan Not Take A Picture\n\n");
-                    // 5/15/2010 ayamada
-                    continue;
-                }
-                
-                // 5/6/2010 ayamada creating RGB image and capture image
-                pGUI->imageSize = cvGetSize( captureImageTmp );
-                captureImage = cvCreateImage(pGUI->imageSize, IPL_DEPTH_8U,3);
-                RGBImage = cvCreateImage(pGUI->imageSize, IPL_DEPTH_8U, 3);
-                // create rgb image
+                continue;
+            }        
+            
+            // 5/6/2010 ayamada creating RGB image and capture image
+            pGUI->imageSize = cvGetSize( captureImageTmp );
+            captureImage = cvCreateImage(pGUI->imageSize, IPL_DEPTH_8U,3);    
+            RGBImage = cvCreateImage(pGUI->imageSize, IPL_DEPTH_8U, 3);    
+            
+            // create rgb image
             // 5/6/2010 ayamada for videoOverlay
             pGUI->imageSize = cvGetSize( captureImageTmp );
             cvFlip(captureImageTmp, captureImage, 0);
@@ -1601,8 +1772,9 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             
             // capture image
             // 5/6/2010 ayamada for videoOverlay
-                cvUndistort2( captureImage, undistortionImage, pGUI->intrinsicMatrix, pGUI->distortionCoefficient );
-                cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);//comment not to undistort at 10.01.07-smkim
+            cvUndistort2( captureImage, undistortionImage, pGUI->intrinsicMatrix, pGUI->distortionCoefficient );            
+            
+            cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);    //comment not to undistort    at 10. 01. 07 - smkim
             
             // 5/6/2010 ayamada ok for videoOverlay
             pGUI->idata = (unsigned char*) RGBImage->imageData;
@@ -1613,151 +1785,182 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             pGUI->importer->SetDataScalarTypeToUnsignedChar();
             pGUI->importer->SetNumberOfScalarComponents(3);
             pGUI->importer->SetImportVoidPointer(pGUI->idata);
-                // 5/6/2010 ayamada fot videoOverlay
-                pGUI->atext->SetInputConnection(pGUI->importer->GetOutputPort());
-                pGUI->atext->InterpolateOn();
-                pGUI->importer->Update();
-                
-                /*
-                 // 10.01.24 ayamada
-                 double planeX = -1.0;
-                 double planeY = -1.0;
-                 double planeLength = 1.0;
-                 this->planeSource->SetOrigin(planeX,planeY,0.0);
-                 this->planeSource->SetCenter(0.0,0.0,0.0);
-                 this->planeSource->SetResolution(1,1);
-                 this->planeSource->SetPoint1(planeLength,planeY,0.0);
-                 this->planeSource->SetPoint2(planeX,planeLength,0.0);
-                 this->planeMapper->SetInputConnection(this->planeSource->GetOutputPort());
-                 this->actor->SetMapper(this->planeMapper);// plane source mapper
-                 this->actor->SetTexture(this->atext);// texture mapper
-                 this->actor->SetMapper(this->planeMapper);
-                 //actor->SetMapper(mapper); //10.01.16-komura
-                 this->SecondaryViewerWindow->rw->AddViewProp(this->actor);
-                 // 10.01.25 ayamada
-                 //pGUI->Mutex->Lock();
-                 //pGUI->SecondaryViewerWindow->rw->Render();
-                 //pGUI->Mutex->Unlock();
-                 this->updateView=1;
-                 sleep(1);//10.01.25 ayamada
-                 //pGUI->SecondaryViewerWindow->rw->ResetCamera(); //10.01.27-komura
-                 //pGUI->SecondaryViewerWindow->rw->SetCameraPosition(0,0,0);
-                 // pGUI->Mutex->Unlock();
-                 first = 1;
-                 fprintf(stdout, "\nget camera handle\n");//10.01.20-komura
-                 */
-                
-                // 5/15/2010 ayamada
-                first = 1;
-                break;//10.01.20-komura
-            }
+            
+            // 5/6/2010 ayamada fot videoOverlay
+            pGUI->atext->SetInputConnection(pGUI->importer->GetOutputPort());
+            pGUI->atext->InterpolateOn();            
+            
+            pGUI->importer->Update();
+            
+            /*            
+             // 10.01.24 ayamada
+             double planeX = -1.0;
+             double planeY = -1.0;
+             double planeLength = 1.0;
+             
+             this->planeSource->SetOrigin(planeX,planeY,0.0);    
+             this->planeSource->SetCenter(0.0,0.0,0.0);    
+             this->planeSource->SetResolution(1,1);
+             this->planeSource->SetPoint1(planeLength,planeY,0.0);
+             this->planeSource->SetPoint2(planeX,planeLength,0.0);
+             
+             this->planeMapper->SetInputConnection(this->planeSource->GetOutputPort());
+             this->actor->SetMapper(this->planeMapper);   // plane source mapper
+             this->actor->SetTexture(this->atext);        // texture mapper
+             this->actor->SetMapper(this->planeMapper);
+             //actor->SetMapper(mapper); //10.01.16-komura
+             this->SecondaryViewerWindow->rw->AddViewProp(this->actor);
+             
+             // 10.01.25 ayamada
+             //        pGUI->Mutex->Lock();
+             //        pGUI->SecondaryViewerWindow->rw->Render();
+             //        pGUI->Mutex->Unlock();
+             this->updateView=1;
+             
+             sleep(1);    // 10.01.25 ayamada
+             
+             //pGUI->SecondaryViewerWindow->rw->ResetCamera(); //10.01.27-komura
+             //    pGUI->SecondaryViewerWindow->rw->SetCameraPosition(0,0,0);
+             
+             // pGUI->Mutex->Unlock();
+             first = 1;
+             fprintf(stdout, "\nget camera handle\n");//10.01.20-komura
+             */
+            // 5/15/2010 ayamada
+            first = 1;
+            break;//10.01.20-komura
         }
-        // 4/25/2010 ayamada
-        pGUI->textActor->SetInput("Marker Position");
-        pGUI->textActor->GetTextProperty()->SetFontSize(14);
-        pGUI->textActor->GetTextProperty()->BoldOn();
-        pGUI->textActor->SetPosition(10,70);
+    }
+    
+    
+    // 4/25/2010 ayamada
+    pGUI->textActor->SetInput("Marker Position");
+    pGUI->textActor->GetTextProperty()->SetFontSize(14);
+    pGUI->textActor->GetTextProperty()->BoldOn();
+    pGUI->textActor->SetPosition(10,70);    
+    
+    //this->SecondaryViewerWindow->rwLeft->AddViewProp(this->textActor);
+    // 5/8/2010 ayamada
+    pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActor);
+    
+    
+    pGUI->textActor1->SetInput("Position X:");
+    pGUI->textActor1->GetTextProperty()->SetFontSize(14);
+    pGUI->textActor1->SetPosition(10,50);
+    
+    pGUI->textActor2->SetInput("Position Y:");
+    pGUI->textActor2->GetTextProperty()->SetFontSize(14);
+    pGUI->textActor2->SetPosition(10,30);
+    
+    pGUI->textActor3->SetInput("Position Z:");
+    pGUI->textActor3->GetTextProperty()->SetFontSize(14);
+    pGUI->textActor3->SetPosition(10,10);
+
+    // for camera information
+    // 5/16/2010 ayamada
+    pGUI->textActorCamera->GetTextProperty()->SetFontSize(14);
+    pGUI->textActorCamera->GetTextProperty()->BoldOn();
+    pGUI->textActorCamera->SetPosition(200,70);    
+    pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActorCamera);
+
+    // for camera information
+    // 5/16/2010 ayamada
+    pGUI->textActorSavePathH->SetInput("Snapshot Save Path:");
+    pGUI->textActorSavePathH->GetTextProperty()->SetFontSize(14);
+    pGUI->textActorSavePathH->GetTextProperty()->BoldOn();
+    pGUI->textActorSavePathH->SetPosition(200,50);    
+    pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActorSavePathH);
         
-        //this->SecondaryViewerWindow->rwLeft->AddViewProp(this->textActor);
-        // 5/8/2010 ayamada
-        pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActor);
-        pGUI->textActor1->SetInput("Position X:");
-        pGUI->textActor1->GetTextProperty()->SetFontSize(14);
-        pGUI->textActor1->SetPosition(10,50);
-        pGUI->textActor2->SetInput("Position Y:");
-        pGUI->textActor2->GetTextProperty()->SetFontSize(14);
-        pGUI->textActor2->SetPosition(10,30);
-        pGUI->textActor3->SetInput("Position Z:");
-        pGUI->textActor3->GetTextProperty()->SetFontSize(14);
-        pGUI->textActor3->SetPosition(10,10);
+    pGUI->textActorSavePath->GetTextProperty()->SetFontSize(12);
+    pGUI->textActorSavePath->SetPosition(200,30);    
+    pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActorSavePath);
+
         
-        // for camera information
-        // 5/16/2010 ayamada
-        pGUI->textActorCamera->GetTextProperty()->SetFontSize(14);
-        pGUI->textActorCamera->GetTextProperty()->BoldOn();
-        pGUI->textActorCamera->SetPosition(200,70);
-        pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActorCamera);
         
-        // for camera information
-        // 5/16/2010 ayamada
-        pGUI->textActorSavePathH->SetInput("Snapshot Save Path:");
-        pGUI->textActorSavePathH->GetTextProperty()->SetFontSize(14);
-        pGUI->textActorSavePathH->GetTextProperty()->BoldOn();
-        pGUI->textActorSavePathH->SetPosition(200,50);
-        pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActorSavePathH);
-        pGUI->textActorSavePath->GetTextProperty()->SetFontSize(12);
-        pGUI->textActorSavePath->SetPosition(200,30);
-        pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActorSavePath);
-        //**************************************************************************
-        
-        //**************************************************************************
-        //  Setting visualization environment for camera image up
-        //**************************************************************************
-        // 5/15/2010 ayamada
-        // for videoOverlay
-        pGUI->planeRatio = VIEW_SIZE_X / VIEW_SIZE_Y;
-        
-        // 5/6/2010 ayamada for videoOverlay
-        //CameraFocusPlane(this->fileCamera, this->planeRatio, this->actor);
-        pGUI->CameraFocusPlane(pGUI->fileCamera, pGUI->planeRatio);
-        
-        // 5/7/2010 ayamada
-        pGUI->FocalPlaneMapper->SetInput(pGUI->FocalPlaneSource->GetOutput());
-        pGUI->actor->SetMapper(pGUI->FocalPlaneMapper);
-        pGUI->actor->SetUserMatrix(pGUI->ExtrinsicMatrix);
-        // 5/6/2010 ayamada for videoOverlay
-        // 10.01.24 ayamada
-        pGUI->actor->SetTexture(pGUI->atext);// texture mapper
-        //this->actor->GetProperty()->SetOpacity(1.0);// configuration property
+    //**************************************************************************
+
+    //**************************************************************************
+    //  Setting visualization environment for camera image up
+    //**************************************************************************
+    // 5/15/2010 ayamada
+    // for videoOverlay
+    
+    pGUI->planeRatio = VIEW_SIZE_X / VIEW_SIZE_Y;
+    
+    // 5/6/2010 ayamada for videoOverlay
+    //CameraFocusPlane(this->fileCamera, this->planeRatio, this->actor);
+    pGUI->CameraFocusPlane(pGUI->fileCamera, pGUI->planeRatio);
+    
+    
+    // 5/7/2010 ayamada
+    pGUI->FocalPlaneMapper->SetInput(pGUI->FocalPlaneSource->GetOutput());
+    pGUI->actor->SetMapper(pGUI->FocalPlaneMapper);
+    pGUI->actor->SetUserMatrix(pGUI->ExtrinsicMatrix);
+    
+    // 5/6/2010 ayamada for videoOverlay
+    // 10.01.24 ayamada
+    pGUI->actor->SetTexture(pGUI->atext);        // texture mapper
+    //this->actor->GetProperty()->SetOpacity(1.0);// configuration property
     //this->SecondaryViewerWindow->rw->AddViewProp(this->actor);
     // 5/8/2010 ayamada
     pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor);
-        
-        // 10.01.25 ayamada
-        //pGUI->Mutex->Lock();
-        //pGUI->SecondaryViewerWindow->rw->Render();
-        //pGUI->Mutex->Unlock();
-        pGUI->updateView=1;
-        //sleep(1);//10.01.25 ayamada
-        //pGUI->SecondaryViewerWindow->rw->ResetCamera(); //10.01.27-komura
-        //pGUI->SecondaryViewerWindow->rw->SetCameraPosition(0,0,0);
+    
+    
+    // 10.01.25 ayamada
+    //        pGUI->Mutex->Lock();
+    //        pGUI->SecondaryViewerWindow->rw->Render();
+    //        pGUI->Mutex->Unlock();
+    pGUI->updateView=1;
+    
+    //sleep(1);    // 10.01.25 ayamada
+    
+    //      pGUI->SecondaryViewerWindow->rw->ResetCamera(); //10.01.27-komura
+    //    pGUI->SecondaryViewerWindow->rw->SetCameraPosition(0,0,0);
     
     fprintf(stdout, "\nget camera handle\n");//10.01.20-komura
-        //**************************************************************************
-        // 5/8/2010 ayamada
-        //vtkRayCastingVolumeRender();
-        //vtkTexture3DVolumeRender();
-        //vtkCUDAVolumeRender();
-        
-        //------------------------------------------------------------------
-        //Setting up visualization environment for rendering
-        //------------------------------------------------------------------
-        // 5/15/2010 ayamada
-        // camera position
-        // 5/6/2010 ayamada for videoOverlay. 
-        // The details are in the following URL: http://www.paraview.org/doc/nightly/html/classvtkKWRenderWidget.html
-        //pGUI->SecondaryViewerWindow->rw->GetRenderer()->GetActiveCamera()->ParallelProjectionOff();
-        pGUI->SecondaryViewerWindow->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
-        //**************************************************************************
-    }// 5/16/2010 if(capture != NULL)
     
+    //**************************************************************************
+
+    // 5/8/2010 ayamada
+    //vtkRayCastingVolumeRender();
+    //vtkTexture3DVolumeRender();
+    //vtkCUDAVolumeRender();
+        
+    //------------------------------------------------------------------
+    //   Setting up visualization environment for rendering
+    //------------------------------------------------------------------
+    // 5/15/2010 ayamada
+    // camera position
+    // 5/6/2010 ayamada for videoOverlay. 
+    // The details are in the following URL: http://www.paraview.org/doc/nightly/html/classvtkKWRenderWidget.html
+    //pGUI->SecondaryViewerWindow->rw->GetRenderer()->GetActiveCamera()->ParallelProjectionOff();
+    pGUI->SecondaryViewerWindow->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+
+    //**************************************************************************
+    
+    }    // 5/16/2010 if(capture != NULL)
+
     // 6/6/2010 ayamada
-    cvInitUndistortMap(pGUI->intrinsicMatrix, pGUI->distortionCoefficient, mx1,my1);
+    cvInitUndistortMap(pGUI->intrinsicMatrix, pGUI->distortionCoefficient, mx1,my1);    
     
-    // 5/11/2010 ayamada
+     // 5/11/2010 ayamada
     while(pGUI->closeWindowFlag==1){
+
+        if(capture != NULL){    // 5/16/2010 ayamada
         
-        if(capture != NULL){// 5/16/2010 ayamada
-            // 5/6/2010 ayamada for videoOverlay
-            if(pGUI->m_bDriveSource == false )//driven by manual
+        // 5/6/2010 ayamada for videoOverlay
+        if ( pGUI->m_bDriveSource == false )    // driven by manual
         {
-            //m_pLogic->volume->SetOrientation(m_pLogic->rotationAngleX, m_pLogic->rotationAngleY, m_pLogic->rotationAngleZ);// adding at 09. 9. 8 - smkim
-            //m_pLogic->volume->SetPosition(m_pLogic->translationX, m_pLogic->translationY, m_pLogic->translationZ);// adding at 09. 9. 14 - smkim
+            //m_pLogic->volume->SetOrientation(m_pLogic->rotationAngleX, m_pLogic->rotationAngleY, m_pLogic->rotationAngleZ);        // adding at 09. 9. 8 - smkim
+            //m_pLogic->volume->SetPosition(m_pLogic->translationX, m_pLogic->translationY, m_pLogic->translationZ);            // adding at 09. 9. 14 - smkim
+            
             //m_pLogic->fileCamera->Yaw(m_pLogic->rotationAngleZ);
+            
         }
-        else// driven by optical tracking system
+        else    // driven by optical tracking system
         {
-            // 5/15/2010 ayamada
+        
+            // 5/15/2010 ayamada            
             pGUI->GetCurrentTransformMatrix ();
             pGUI->CameraSet(pGUI->fileCamera, pGUI->cameraMatrix, FOA);
             // 5/7/2010 ayamada
@@ -1767,81 +1970,109 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             // the following codes are needed with the CameraFocusPlane
             pGUI->FocalPlaneMapper->SetInput(pGUI->FocalPlaneSource->GetOutput());
             pGUI->actor->SetMapper(pGUI->FocalPlaneMapper);
-            pGUI->actor->SetUserMatrix(pGUI->ExtrinsicMatrix);
+            pGUI->actor->SetUserMatrix(pGUI->ExtrinsicMatrix);                        
+            
+                                 
+        }                
+        
+            
+    // 5/15/2010 ayamada
+    captureImageTmp = cvQueryFrame( capture );    // 10.01.23 ayamada
+////        pGUI->imageSize = cvGetSize( pGUI->captureImageTmp );
+        
+        cvFlip(captureImageTmp, captureImage, 0);        
+
+        //cvUndistort2( captureImage, undistortionImage, pGUI->intrinsicMatrix, pGUI->distortionCoefficient );        
+        // 6/6/2010 ayamada
+        if(pGUI->undistortionFlag==1){
+            cvInitUndistortMap(pGUI->intrinsicMatrix, pGUI->distortionCoefficient, mx1,my1);
+            pGUI->undistortionFlag=0;
         }
-            
-            // 5/15/2010 ayamada
-            captureImageTmp = cvQueryFrame( capture );// 10.01.23 ayamada
-            cvFlip(captureImageTmp, captureImage, 0);
-            
-            //cvUndistort2(captureImage, undistortionImage, pGUI->intrinsicMatrix, pGUI->distortionCoefficient);
-            // 6/6/2010 ayamada
-            if(pGUI->undistortionFlag==1){
-                cvInitUndistortMap(pGUI->intrinsicMatrix, pGUI->distortionCoefficient, mx1,my1);
-                pGUI->undistortionFlag=0;
-            }
-            cvRemap(captureImage, undistortionImage,mx1,my1);
+        cvRemap(captureImage, undistortionImage,mx1,my1);
             
         // 5/7/2010 ayamada
         //cvCvtColor( pGUI->captureImage, pGUI->RGBImage, CV_BGR2RGB);
-            // 5/15/2010 ayamada
-            cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);
-            pGUI->idata = (unsigned char*) RGBImage->imageData;
-            pGUI->importer->Modified();
-            
-            /* 10.01.26-komura
-             if(pGUI->SecondaryViewerWindow->rw->GetApplication()->EvaluateBooleanExpression("expr {[winfo exists %s] && [winfo ismapped %s]}", pGUI->SecondaryViewerWindow->rw->GetWidgetName(), pGUI->SecondaryViewerWindow->rw->GetWidgetName())== 0)
-             {
-             fprintf(stdout,"\nbreak\n");//10.01.20-komura
-             break;
-             }
-             */
+        // 5/15/2010 ayamada
+        cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);
+              
+        pGUI->idata = (unsigned char*) RGBImage->imageData;
+        pGUI->importer->Modified();        
+        
+/* 10.01.26-komura
+
+        if(pGUI->SecondaryViewerWindow->rw->GetApplication()->EvaluateBooleanExpression(
+        "expr {[winfo exists %s] && [winfo ismapped %s]}", 
+        pGUI->SecondaryViewerWindow->rw->GetWidgetName(), pGUI->SecondaryViewerWindow->rw->GetWidgetName())
+        == 0){
+    
+        fprintf(stdout,"\nbreak\n");//10.01.20-komura
+        break;
+        }
+*/
 
 /* 10.01.26-komura
 
 //IsMapped function returns 0 when "rw" is disappeared.
 //But this function isn't stability, so I stoped using this.
- if(pGUI->SecondaryViewerWindow->rw->IsMapped() == 0){//10.01.21-komura
- //if(pGUI->SecondaryViewerWindow->rw->IsAlive() == 0){//10.01.21-komura
- //if(pGUI->SecondaryViewerWindow->rw->IsCreated() == 0){//10.01.21-komura
- fprintf(stdout,"\nbreak\n");//10.01.20-komura
- break;
- }
- */
-        }// 5/16/2010 ayamada if(capture != NULL) 2
+
+        if(pGUI->SecondaryViewerWindow->rw->IsMapped() == 0){//10.01.21-komura
+        //if(pGUI->SecondaryViewerWindow->rw->IsAlive() == 0){//10.01.21-komura
+        //if(pGUI->SecondaryViewerWindow->rw->IsCreated() == 0){//10.01.21-komura
+        fprintf(stdout,"\nbreak\n");//10.01.20-komura
+        break;
+        }
+*/
+
+        }    // 5/16/2010 ayamada    if(capture != NULL) 2        
+
+                
         pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActor1);
         pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActor2);
         pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActor3);
+        
         //pGUI->SecondaryViewerWindow->rwLeft->AddViewProp(pGUI->textActor1);
-        // 5/17/2010 ayamada get snapshot
+        
+        // 5/17/2010 ayamada get snapshot 
         if(pGUI->snapShotShutter==1){
-            pGUI->Mutex->Lock();
+            pGUI->Mutex->Lock();        
             cvSaveImage(pGUI->snapShotSavePath, captureImageTmp);
             pGUI->snapShotShutter = 0;
-            pGUI->Mutex->Unlock();
+            pGUI->Mutex->Unlock();            
         }
+        
+        
+            
     }
+
+        
+            
+    // 5/16/2010 ayamada
+//    pGUI->closeWindowFlag = 3;
+    
+    std::cerr << "thread was finished!!" << std::endl;
     
     // 5/16/2010 ayamada
-    //pGUI->closeWindowFlag = 3;
-    std::cerr << "thread was finished!!" << std::endl;
-    // 5/16/2010 ayamada
-    pGUI->updateViewTriger = 0;
+    pGUI->updateViewTriger = 0;    
     pGUI->runThread = 0;//10.01.21-komura
-    /*
-     // 5/15/2010 ayamada
-     cvReleaseImage(&RGBImage);
-     cvReleaseImage(&undistortionImage);
-     cvReleaseImage(&captureImage);
-     cvReleaseImage(&captureImageTmp);
-     */
-    if(capture != NULL){
+
+/*    
+    // 5/15/2010 ayamada
+    cvReleaseImage(&RGBImage);
+    cvReleaseImage(&undistortionImage);    
+    cvReleaseImage(&captureImage);            
+    cvReleaseImage(&captureImageTmp);        
+*/
+    
+    if(capture != NULL){    
         // 5/15/2010 ayamada
-        cvReleaseCapture(&capture);
+        cvReleaseCapture(&capture);  
     }
+        
     // 5/16/2010 ayamada
     pGUI->closeWindowFlag = 3;
+        
     return NULL;
+     
 }
 
 
@@ -1851,48 +2082,63 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
 //void vtkSecondaryWindowWithOpenCVGUI::CameraFocusPlane(vtkCamera * cam, double Ratio, vtkActor * actor_CFP)
 void vtkSecondaryWindowWithOpenCVGUI::CameraFocusPlane(vtkCamera * cam, double Ratio)
 {
+
     //double Pos[3];
     //double Focal[3];
     //vtkMatrix4x4 * ExtrinsicMatrix = vtkMatrix4x4::New();
+    
     cam->GetPosition(this->Pos);
     cam->GetFocalPoint(this->Focal);
+
     this->ExtrinsicMatrix->DeepCopy(cam->GetViewTransformMatrix());
     this->ExtrinsicMatrix->Invert();
+
     //double F = sqrt(vtkMath::Distance2BetweenPoints(Pos, Focal));
     //double ViewAngle = cam->GetViewAngle() / 2;
     //double h = 2 * tan(vtkMath::DoubleDegreesToRadians() * (ViewAngle / 2.0) ) * F;
+
     this->F = sqrt(vtkMath::Distance2BetweenPoints(this->Pos, this->Focal));
     this->ViewAngle = cam->GetViewAngle() / 2.0;    // 5/7/2010 ayamada 2->2.0
-    // 5/7/2010 ayamada; changing fuction from DoubleDegreesToRadians() to RadiansFromDegrees()
+    // 5/7/2010 ayamada; changing fuction from DoubleDegreesToRadians() to RadiansFromDegrees()  
+    
     // 5/11/2010 ayamada
     //this->h = 2.0 * tan(vtkMath::DoubleDegreesToRadians() * (this->ViewAngle / 2.0) ) * F; // 5/7/2010 ayamada 2->2.0
     this->h = 2.0 * tan(vtkMath::RadiansFromDegrees(this->ViewAngle / 2.0)) * F; // 5/7/2010 ayamada 2->2.0
+    
     //vtkPlaneSource * FocalPlaneSource = vtkPlaneSource::New();
+    
     //double fx = ( 2*h * Ratio * focal_point_x ) / 640.0;
     //double fy = ( 2*h * focal_point_y ) / 480.0;
+
     this->fx = ( 2.0*this->h * Ratio * this->focal_point_x ) / 640.0; // 5/7/2010 ayamada 2->2.0
     this->fy = ( 2.0*this->h * this->focal_point_y ) / 480.0; // 5/7/2010 ayamada 2->2.0
+    
     this->FocalPlaneSource->SetOrigin(-this->h * Ratio, -this->h, -this->F);
     this->FocalPlaneSource->SetPoint1(this->h * Ratio, -this->h, -this->F);
     this->FocalPlaneSource->SetPoint2(-this->h * Ratio, this->h, -this->F);
+    
     this->FocalPlaneSource->SetCenter(0.0, 0.0, -this->F);
-    /*
+    
+     /*
      double fx = ( 2*h * Ratio * focal_point_x ) / 640.0;
      double fy = ( 2*h * focal_point_y ) / 480.0;
+     
      FocalPlaneSource->SetOrigin(-h * Ratio + fx, -h + fy, -F);
      FocalPlaneSource->SetPoint1(h * Ratio + fx, -h + fy, -F);
      FocalPlaneSource->SetPoint2(-h * Ratio + fx, h + fy, -F);
+     
      FocalPlaneSource->SetCenter(fx, fy, -F);
-     */
+     */    
     
     //vtkPolyDataMapper * focalPlaneMapper = vtkPolyDataMapper::New();
+
     //this->Mutex->Lock();
     // 5/7/2010 ayamada
     ///FocalPlaneMapper->SetInput(FocalPlaneSource->GetOutput());
     //focalPlaneMapper->SetInput(FocalPlaneSource->GetOutput());
     //focalPlaneMapper->SetInputConnection(FocalPlaneSource->GetOutputPort());
     ///FocalPlaneSource->Delete();
-    
+
     ///actor_CFP->SetMapper(FocalPlaneMapper);
     //FocalPlaneMapper->Delete();
     //actor_CFP->SetMapper(focalPlaneMapper);
@@ -1901,7 +2147,9 @@ void vtkSecondaryWindowWithOpenCVGUI::CameraFocusPlane(vtkCamera * cam, double R
     //ExtrinsicMatrix->Delete();
     ///actor_CFP->SetUserMatrix(ExtrinsicMatrix);
     //ExtrinsicMatrix->Delete();
-    //this->Mutex->Unlock();
+    //this->Mutex->Unlock();        
+    
+    
 }
 
 //---------------------------------------------------------------------------
@@ -1909,7 +2157,9 @@ void vtkSecondaryWindowWithOpenCVGUI::CameraFocusPlane(vtkCamera * cam, double R
 // adding at 09. 9. 16 - smkim
 void vtkSecondaryWindowWithOpenCVGUI::GetCurrentTransformMatrix()
 {
-    this->OriginalTrackerNode = vtkMRMLLinearTransformNode::SafeDownCast(this->TransformEditorWidget->GetTransformEditSelectorWidget()->GetSelected()); //adding at 09. 12. 24. - smkim
+    
+    this->OriginalTrackerNode = vtkMRMLLinearTransformNode::SafeDownCast(this->TransformEditorWidget->GetTransformEditSelectorWidget()->GetSelected());    //adding at 09. 12. 24. - smkim
+    
     if (! this->OriginalTrackerNode)
     {
         return;
@@ -1940,7 +2190,7 @@ void vtkSecondaryWindowWithOpenCVGUI::GetCurrentTransformMatrix()
         cameraMatrix[14] = transformMatrix->GetElement(3, 2);
         cameraMatrix[15] = transformMatrix->GetElement(3, 3);
     }
-
+    
 }
 
 //---------------------------------------------------------------------------
@@ -1948,17 +2198,23 @@ void vtkSecondaryWindowWithOpenCVGUI::GetCurrentTransformMatrix()
 // adding at 09. 11. 5 - from wang
 void vtkSecondaryWindowWithOpenCVGUI::CameraSet(vtkCamera *NaviCamera, double *Matrix, double FOV)
 {
+    
     double F = focal_length;
     double * m = Matrix;
     //vtkMatrix4x4::Invert(Matrix, m);
     double pos[3] = {m[3], m[7], m[11]};
-    double focal[3] = { pos[0] + m[0] * focal_point_x + m[1] * focal_point_y + m[2] * (F), pos[1] + m[4] * focal_point_x + m[5] * focal_point_y + m[6] * (F), pos[2] + m[8] * focal_point_x + m[9] * focal_point_y + m[10] * (F)};
+    double focal[3] = {    pos[0] + m[0] * focal_point_x + m[1] * focal_point_y + m[2] * (F), 
+        pos[1] + m[4] * focal_point_x + m[5] * focal_point_y + m[6] * (F), 
+        pos[2] + m[8] * focal_point_x + m[9] * focal_point_y + m[10] * (F)    };
+    
     double viewup[3] = {-m[1], -m[5], -m[9]};
+    
     NaviCamera->SetPosition(pos);
     NaviCamera->SetFocalPoint(focal);
     NaviCamera->SetViewUp(viewup);
     NaviCamera->SetClippingRange(0, 5 * F);
     NaviCamera->SetViewAngle(FOV);
+    
 }
 
 //**************************************************************************
@@ -1972,37 +2228,42 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkSurfaceModelRender()
         //-------------------------------------------------------------
         //to add MRML node on Slicer3
         //adding at 09. 9. 4 - smkim
-        vtkMRMLModelNode *ModelNode;
-        vtkMRMLModelDisplayNode *DispNode;
+         vtkMRMLModelNode           *ModelNode;
+        vtkMRMLModelDisplayNode    *DispNode;
+        
         
         ModelNode = vtkMRMLModelNode::New();
         DispNode = vtkMRMLModelDisplayNode::New();
         
         GetMRMLScene()->SaveStateForUndo();
         GetMRMLScene()->AddNode(DispNode);
-        GetMRMLScene()->AddNode(ModelNode);
+        GetMRMLScene()->AddNode(ModelNode);  
         
         DispNode->SetScene(this->GetMRMLScene());
+        
         
         ModelNode->SetName( "Model on Camera Image" );
         ModelNode->SetScene(this->GetMRMLScene());
         ModelNode->SetAndObserveDisplayNodeID(DispNode->GetID());
         ModelNode->SetHideFromEditors(0);
         
+        
         //-------------------------------------------------------------
         //to add MRML node for multi-object rendering on Slicer3
         //adding at 10. 2. 5 - smkim
-        vtkMRMLModelNode *ModelNode1;
-        vtkMRMLModelDisplayNode *DispNode1;
+         vtkMRMLModelNode           *ModelNode1;
+        vtkMRMLModelDisplayNode    *DispNode1;
+        
         
         ModelNode1 = vtkMRMLModelNode::New();
         DispNode1 = vtkMRMLModelDisplayNode::New();
         
         GetMRMLScene()->SaveStateForUndo();
         GetMRMLScene()->AddNode(DispNode1);
-        GetMRMLScene()->AddNode(ModelNode1);
+        GetMRMLScene()->AddNode(ModelNode1);  
         
         DispNode1->SetScene(this->GetMRMLScene());
+        
         
         ModelNode1->SetName( "2nd Model on Camera Image" );
         ModelNode1->SetScene(this->GetMRMLScene());
@@ -2011,9 +2272,9 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkSurfaceModelRender()
     }
     
     //vtkPolyDataReader* polyReader = vtkPolyDataReader::New();
-    //polyReader->SetFileName( "/home/sungminkim/model.vtk" );//target.vtk
-    //polyReader->SetFileName( "/Users/ayamada/slicerData05082010/Muscles.vtk" );//target.vtk
-    polyReader->SetFileName( "/Users/ayamada/Downloads/100530-videoAndSecondAxialTest/SlicerMRML_MRI/Bone.vtk" );//target.vtk
+    //polyReader->SetFileName( "/home/sungminkim/model.vtk" );    //target.vtk
+      //polyReader->SetFileName( "/Users/ayamada/slicerData05082010/Muscles.vtk" );    //target.vtk
+    polyReader->SetFileName( "/Users/ayamada/Downloads/100530-videoAndSecondAxialTest/SlicerMRML_MRI/Bone.vtk" );    //target.vtk
     
     //vtkPolyDataNormals* polyNormal = vtkPolyDataNormals::New();
     polyNormal->SetInputConnection( polyReader->GetOutputPort() );
@@ -2027,39 +2288,43 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkSurfaceModelRender()
     polyActor->GetProperty()->SetColor( 0.0, 1.0, 0.0 );
     polyActor->GetProperty()->SetOpacity( 0.2 );
     polyActor->SetOrientation( 0.0, 0.0, 0.0 );
-    
-    //5/6/2010 ayamada, need to change
-    //ren->AddActor( polyActor );
+
+    // 5/6/2010 ayamada, need to change
+    //    ren->AddActor( polyActor );
     //this->SecondaryViewerWindow->rw->AddViewProp(polyActor);
-    //5/8/2010 ayamada
+    // 5/8/2010 ayamada
     this->SecondaryViewerWindow->rw->GetRenderer()->AddActor(polyActor);
+    
     
     // for multi-object rendering
     // adding at 10. 02. 05 - smkim
     //vtkPolyDataReader* polyReader1 = vtkPolyDataReader::New();
-    polyReader1->SetFileName( "/home/sungminkim/model1.vtk" ); //obstacle.vtk
+    polyReader1->SetFileName( "/home/sungminkim/model1.vtk" );    //obstacle.vtk
     
     //vtkPolyDataNormals* polyNormal1 = vtkPolyDataNormals::New();
     polyNormal1->SetInputConnection( polyReader1->GetOutputPort() );
     polyNormal1->SetFeatureAngle( 70.0 );
     
     //vtkPolyDataMapper* polyMapper1 = vtkPolyDataMapper::New();
-    polyMapper1->SetInputConnection(polyNormal1->GetOutputPort());
+    polyMapper1->SetInputConnection( polyNormal1->GetOutputPort() );
     polyMapper1->ScalarVisibilityOff();
     
-    polyActor1->SetMapper(polyMapper1);
+    polyActor1->SetMapper( polyMapper1 );
     polyActor1->GetProperty()->SetColor( 1.0, 0.0, 0.0 );
     polyActor1->GetProperty()->SetOpacity( 0.2 );
     polyActor1->SetOrientation( 0.0, 0.0, 0.0 );
-    //5/6/2010 ayamada, need to change
-    //ren->AddActor( polyActor1 );
+    
+    // 5/6/2010 ayamada, need to change
+    //    ren->AddActor( polyActor1 );
     //this->SecondaryViewerWindow->rw->AddViewProp(polyActor1);
     // 5/8/2010 ayamada
     // 5/10/2010 ayamada
     //this->SecondaryViewerWindow->rw->GetRenderer()->AddActor(polyActor1);
     
-    if(!this->m_bSurfaceRendering)
-        this->m_bSurfaceRendering = true;//setting the flag of surface rendering up//adding at 10. 02. 01 - smkim
+    
+    if( !this->m_bSurfaceRendering )
+        this->m_bSurfaceRendering = true;    //setting the flag of surface rendering up    // adding at 10. 02. 01 - smkim
+    
 }
 
 //---------------------------------------------------------------------------
@@ -2070,36 +2335,41 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForTransformationFrame ()
  
     // 5/6/2010 ayamada
     vtkKWWidget *page = this->UIPanel->GetPageWidget ("SecondaryWindowWithOpenCV");
+
     vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+    
     conBrowsFrame->SetParent(page);
     conBrowsFrame->Create();
     conBrowsFrame->SetLabelText("Volume Transformation");
-    //conBrowsFrame->CollapseFrame();
-    this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+    //    conBrowsFrame->CollapseFrame();
+    this->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+    
     // -----------------------------------------
     // frame with label
     
+    
     // Navigation FRAME
-    // adding at 09. 9. 16 - smkim
+    // adding at 09. 9. 16 - smkim            
     vtkKWFrameWithLabel *trackingFrame = vtkKWFrameWithLabel::New();
     trackingFrame->SetParent(conBrowsFrame->GetFrame());
-    trackingFrame->Create( );
+    trackingFrame->Create ( );
     trackingFrame->SetLabelText ("Navigation");
     this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", trackingFrame->GetWidgetName() );
     
-    // rotation frame adding at 09. 9. 14 - smkim
+    // rotation frame    adding at 09. 9. 14 - smkim
     vtkKWFrameWithLabel *RotationFrame = vtkKWFrameWithLabel::New();
     RotationFrame->SetParent(conBrowsFrame->GetFrame());
     RotationFrame->Create();
     RotationFrame->SetLabelText ("Rotation");
     this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", RotationFrame->GetWidgetName() );
     
-    // translation frame adding at 09. 9. 14 - smkim
+    // translation frame    adding at 09. 9. 14 - smkim
     vtkKWFrameWithLabel *TranslationFrame = vtkKWFrameWithLabel::New();
     TranslationFrame->SetParent(conBrowsFrame->GetFrame());
     TranslationFrame->Create();
     TranslationFrame->SetLabelText ("Translation");
     this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", TranslationFrame->GetWidgetName() );
+    
     
     // -----------------------------------------
     // Transform node name entry
@@ -2111,6 +2381,7 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForTransformationFrame ()
     this->TransformNodeNameEntry->SetLabelText("Input (Transform) Node Name:");
     this->TransformNodeNameEntry->GetWidget()->SetValue ( "Tracker" );
     this->Script( "pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->TransformNodeNameEntry->GetWidgetName());
+    
     
     // selecting drive source ( manual / data of optical tracking system )
     // adding at 09. 9. 17 - smkim
@@ -2124,6 +2395,7 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForTransformationFrame ()
     
     // -----------------------------------------
     // ScaleWithLabel
+
     
     // related to rotations
     this->RotationAngleX = vtkKWScaleWithLabel::New();
@@ -2153,7 +2425,8 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForTransformationFrame ()
     this->RotationAngleZ->SetBalloonHelpString("set rotation angle on Z axis.");
     this->Script ( "pack %s -side top -anchor nw -expand y -fill x -padx 2 -pady 2", this->RotationAngleZ->GetWidgetName(), RotationFrame->GetFrame()->GetWidgetName());
     
-    // related to rotations //adding at 09. 9. 14 - smkim
+    
+    // related to rotations    // adding at 09. 9. 14 - smkim
     this->TranslationX = vtkKWScaleWithLabel::New();
     this->TranslationX->SetParent ( TranslationFrame->GetFrame() );
     this->TranslationX->Create ( );
@@ -2181,6 +2454,8 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForTransformationFrame ()
     this->TranslationZ->SetBalloonHelpString("set translation on Z axis.");
     this->Script ( "pack %s -side top -anchor nw -expand y -fill x -padx 2 -pady 2", this->TranslationZ->GetWidgetName(), TranslationFrame->GetFrame()->GetWidgetName());
     
+   
+
     conBrowsFrame->Delete();
     RotationFrame->Delete();
     TranslationFrame->Delete();
@@ -2205,6 +2480,7 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForVolumeInfoFrame ()
     
     // -----------------------------------------
     // Test child frame
+    
     this->VolumeHeaderWidget = vtkSlicerVolumeHeaderWidget::New();
     this->VolumeHeaderWidget->AddNodeSelectorWidgetOff();
     this->VolumeHeaderWidget->SetMRMLScene(this->GetMRMLScene());
@@ -2212,8 +2488,10 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForVolumeInfoFrame ()
     this->VolumeHeaderWidget->Create();
     this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", this->VolumeHeaderWidget->GetWidgetName(), conBrowsFrame->GetFrame()->GetWidgetName());
     
+    
     conBrowsFrame->Delete();
-
+    
+    
 }
 
 //---------------------------------------------------------------------------
@@ -2222,7 +2500,6 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForVolumeInfoFrame ()
 void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForTransformation ()
 {
     // 5/6/2010 ayamada
-    
     vtkKWWidget *page = this->UIPanel->GetPageWidget ("SecondaryWindowWithOpenCV");
     
     vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
@@ -2241,8 +2518,9 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForTransformation ()
     this->TransformEditorWidget->SetParent ( conBrowsFrame->GetFrame() );
     this->TransformEditorWidget->Create ( );
     this->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", this->TransformEditorWidget->GetWidgetName(), conBrowsFrame->GetFrame()->GetWidgetName());
+    
     conBrowsFrame->Delete();
-
+    
 }
 
 // to make node selector frame   // adding at 09. 8. 19 - smkim
@@ -2251,6 +2529,7 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForNodeSelectorFrame()
     vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
     // 5/6/2010 ayamada
     vtkKWWidget *page = this->UIPanel->GetPageWidget ("SecondaryWindowWithOpenCV");
+    
     vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
     
     conBrowsFrame->SetParent(page);
@@ -2261,7 +2540,7 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForNodeSelectorFrame()
     
     // -----------------------------------------
     
-    //NodeSelector for Node from MRML Scene//adding at 09. 8. 19 - smkim 
+    //NodeSelector for Node from MRML Scene    //adding at 09. 8. 19 - smkim 
     this->NS_ImageData=vtkSlicerNodeSelectorWidget::New();
     this->NS_ImageData->SetParent( conBrowsFrame->GetFrame() );
     this->NS_ImageData->Create();
@@ -2274,8 +2553,10 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForNodeSelectorFrame()
     this->NS_ImageData->SetBalloonHelpString("Select a volume from the current scene.");
     app->Script("pack %s -side top -fill x -anchor nw -padx 2 -pady 2", this->NS_ImageData->GetWidgetName());
     
+    
     conBrowsFrame->Delete();
-
+    
+    
 }
 
 //---------------------------------------------------------------------------
@@ -2284,6 +2565,7 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForCaptureCameraImageFrame()
     vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
     // 5/6/2010 ayamada
     vtkKWWidget *page = this->UIPanel->GetPageWidget ("SecondaryWindowWithOpenCV");
+    
     vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
     
     conBrowsFrame->SetParent(page);
@@ -2294,11 +2576,14 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForCaptureCameraImageFrame()
     
     // -----------------------------------------
     // Test child frame
+    
     vtkKWFrameWithLabel *cameraCalibrationframe = vtkKWFrameWithLabel::New();
     cameraCalibrationframe->SetParent(conBrowsFrame->GetFrame());
     cameraCalibrationframe->Create();
-    cameraCalibrationframe->SetLabelText ("Secondary Window");
+    cameraCalibrationframe->SetLabelText ("Camera Calibrattion Matrices Loader");
     this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", cameraCalibrationframe->GetWidgetName() );
+    
+    
     
     vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
     frame->SetParent(conBrowsFrame->GetFrame());
@@ -2306,36 +2591,75 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForCaptureCameraImageFrame()
     frame->SetLabelText ("Secondary Window");
     this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", frame->GetWidgetName() );
     
+    
+    
     // -----------------------------------------
     // Test push button
     
-    // add a file browser for loading lens distortion coefficient adding at 10. 2. 23 - smkim
+    // add a file browser for loading lens distortion coefficient        adding at 10. 2. 23 - smkim
     this->loadLensDistortionCoefButton = vtkKWLoadSaveButtonWithLabel::New ( );
     this->loadLensDistortionCoefButton->SetParent ( cameraCalibrationframe->GetFrame() );
     this->loadLensDistortionCoefButton->Create ( );
     this->loadLensDistortionCoefButton->SetWidth(50);
     this->loadLensDistortionCoefButton->GetWidget()->SetText ("Load Lens distortion Coef.");
     this->loadLensDistortionCoefButton->GetWidget()->GetLoadSaveDialog()->SetTitle("Lens Distortion Coef.");
-    
+    // 6/21/2010 ayamada
+    this->loadLensDistortionCoefButton->SetLabelText("Single/Left:");
+
+
     // 6/10/2010 ayamada
     //this->loadLensDistortionCoefButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes("{ {data} {*.dat} }");
     this->loadLensDistortionCoefButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes("{ {xml} {*.xml} }");
     this->loadLensDistortionCoefButton->GetWidget()->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
-    app->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->loadLensDistortionCoefButton->GetWidgetName());
+    app->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", 
+                this->loadLensDistortionCoefButton->GetWidgetName());
     
-    //add a file browser for loading Intrinsic parameters of camera adding at 10. 2. 23 - smkim
+    // add a file browser for loading Intrinsic parameters of camera        adding at 10. 2. 23 - smkim
     this->loadIntrinsicParameterButton = vtkKWLoadSaveButtonWithLabel::New ( );
     this->loadIntrinsicParameterButton->SetParent ( cameraCalibrationframe->GetFrame() );
     this->loadIntrinsicParameterButton->Create ( );
     this->loadIntrinsicParameterButton->SetWidth(50);
     this->loadIntrinsicParameterButton->GetWidget()->SetText ("Load Intrinsic Parameters");
     this->loadIntrinsicParameterButton->GetWidget()->GetLoadSaveDialog()->SetTitle("Intrinsic Parameters");
-    
+    // 6/21/2010 ayamada
+    this->loadIntrinsicParameterButton->SetLabelText("Single/Left:");
+
     // 6/10/2010 ayamada
     //this->loadIntrinsicParameterButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes("{ {data} {*.dat} }");
     this->loadIntrinsicParameterButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes("{ {xml} {*.xml} }");
     this->loadIntrinsicParameterButton->GetWidget()->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
-    app->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->loadIntrinsicParameterButton->GetWidgetName());
+    app->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", 
+                this->loadIntrinsicParameterButton->GetWidgetName());
+
+    // 6/21/2010 ayamada
+    this->loadLensDistortionCoefButton2 = vtkKWLoadSaveButtonWithLabel::New ( );
+    this->loadLensDistortionCoefButton2->SetParent ( cameraCalibrationframe->GetFrame() );
+    this->loadLensDistortionCoefButton2->Create ( );
+    this->loadLensDistortionCoefButton2->SetWidth(50);
+    this->loadLensDistortionCoefButton2->GetWidget()->SetText ("Load Lens distortion Coef.");
+    this->loadLensDistortionCoefButton2->GetWidget()->GetLoadSaveDialog()->SetTitle("Lens Distortion Coef.");
+    this->loadLensDistortionCoefButton2->SetLabelText("        Right:");
+
+    this->loadLensDistortionCoefButton2->GetWidget()->GetLoadSaveDialog()->SetFileTypes("{ {xml} {*.xml} }");
+    this->loadLensDistortionCoefButton2->GetWidget()->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+    app->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", 
+            this->loadLensDistortionCoefButton2->GetWidgetName());
+
+
+    // 6/21/2010 ayamada
+    this->loadIntrinsicParameterButton2 = vtkKWLoadSaveButtonWithLabel::New ( );
+    this->loadIntrinsicParameterButton2->SetParent ( cameraCalibrationframe->GetFrame() );
+    this->loadIntrinsicParameterButton2->Create ( );
+    this->loadIntrinsicParameterButton2->SetWidth(50);
+    this->loadIntrinsicParameterButton2->GetWidget()->SetText ("Load Intrinsic Parameters");
+    this->loadIntrinsicParameterButton2->GetWidget()->GetLoadSaveDialog()->SetTitle("Intrinsic Parameters");
+    this->loadIntrinsicParameterButton2->SetLabelText("        Right:");
+
+    this->loadIntrinsicParameterButton2->GetWidget()->GetLoadSaveDialog()->SetFileTypes("{ {xml} {*.xml} }");
+    this->loadIntrinsicParameterButton2->GetWidget()->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+    app->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", 
+                this->loadIntrinsicParameterButton2->GetWidgetName());
+
     
     this->showCaptureData = vtkKWPushButton::New ( );
     this->showCaptureData->SetParent ( frame->GetFrame() );
@@ -2346,30 +2670,32 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForCaptureCameraImageFrame()
     this->closeCaptureData = vtkKWPushButton::New ( );
     this->closeCaptureData->SetParent ( frame->GetFrame() );
     this->closeCaptureData->Create ( );
-    this->closeCaptureData->SetText ("Camera Disconnection/Reconnection");
-    //this->closeCaptureData->SetText ("MRML observer on");
+    this->closeCaptureData->SetText ("Camera Connection/Disconnection");
+    //    this->closeCaptureData->SetText ("MRML observer on");
     this->closeCaptureData->SetWidth (35);
     
-//this->Script("pack %s %s -side left -padx 2 -pady 2", this->showCaptureData->GetWidgetName(), this->closeCaptureData->GetWidgetName());
+//    this->Script("pack %s %s -side left -padx 2 -pady 2", this->showCaptureData->GetWidgetName(), this->closeCaptureData->GetWidgetName());
     // 5/16/2010 ayamada
     this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->showCaptureData->GetWidgetName());
     this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->closeCaptureData->GetWidgetName());
-    // 5/17/2010 ayamada
+
+    // 5/17/2010 ayamada    
     // add file browser for saving camera images
 /*
- this->saveCameraImageButton = vtkKWLoadSaveButtonWithLabel::New ( );
- this->saveCameraImageButton =vtkKWSaveImageDialog::New ( );
- this->saveCameraImageButton->SetParent ( frame->GetFrame() );
- this->saveCameraImageButton->Create ( );
- this->saveCameraImageButton->SetWidth(50);
- this->saveCameraImageButton->GetWidget()->SetText ("Save Path of Captured Camera Images");
- this->saveCameraImageButton->GetWidget()->GetLoadSaveDialog()->SetTitle("Save Path of Captured Camera Images");
- this->saveCameraImageButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes("{ {All Files} {*} }");
- this->saveCameraImageButton->GetWidget()->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");       
- 
- // 5/17/2010 ayamada
- this->saveCameraImageButton->GetWidget()->GetLoadSaveDialog()->SetInitialFileName("CapturedImage");
- this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->saveCameraImageButton->GetWidgetName());
+    this->saveCameraImageButton = vtkKWLoadSaveButtonWithLabel::New ( );
+    this->saveCameraImageButton =vtkKWSaveImageDialog::New ( );
+    this->saveCameraImageButton->SetParent ( frame->GetFrame() );
+    this->saveCameraImageButton->Create ( );
+    this->saveCameraImageButton->SetWidth(50);
+
+    this->saveCameraImageButton->GetWidget()->SetText ("Save Path of Captured Camera Images");
+    this->saveCameraImageButton->GetWidget()->GetLoadSaveDialog()->SetTitle("Save Path of Captured Camera Images");
+    this->saveCameraImageButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes("{ {All Files} {*} }");
+    this->saveCameraImageButton->GetWidget()->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");       
+
+    // 5/17/2010 ayamada
+    this->saveCameraImageButton->GetWidget()->GetLoadSaveDialog()->SetInitialFileName("CapturedImage");
+    this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->saveCameraImageButton->GetWidgetName());
 */
     
     // 5/17/2010 ayamada
@@ -2387,13 +2713,13 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForCaptureCameraImageFrame()
     this->captureCameraImage->SetParent ( frame->GetFrame() );
     this->captureCameraImage->Create ( );
     this->captureCameraImage->SetText ("Get Snapshot");
-    this->captureCameraImage->SetWidth (35);
+    this->captureCameraImage->SetWidth (35);    
     this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->captureCameraImage->GetWidgetName());
     
     conBrowsFrame->Delete();
     cameraCalibrationframe->Delete();
     frame->Delete();
-
+    
 }
 
 
@@ -2402,9 +2728,10 @@ void vtkSecondaryWindowWithOpenCVGUI::UpdateAll()
 {
 }
 
-//to update frames from MRML of Slicer3 at 09. 8. 6 - smkim
+//to update frames from MRML of Slicer3        at 09. 8. 6 - smkim
 void vtkSecondaryWindowWithOpenCVGUI::UpdateFramesFromMRML()
 {
+    
     //to get VolumeNode
     vtkMRMLVolumeNode *refNode = vtkMRMLVolumeNode::SafeDownCast(this->NS_ImageData->GetSelected());
     
@@ -2414,11 +2741,15 @@ void vtkSecondaryWindowWithOpenCVGUI::UpdateFramesFromMRML()
     {
         this->VolumeHeaderWidget->SetVolumeNode(refNode);
         this->VolumeHeaderWidget->UpdateWidgetFromMRML();
+        
         // 5/6/2010 ayamada
         this->volumenode = vtkMRMLVolumeNode::SafeDownCast(this->NS_ImageData->GetSelected());
+        
     }
+    
 }
-//--------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
 // Getting position data from OpenIGTLinkIF module
 // adding at 09. 9. 16 - smkim
 void vtkSecondaryWindowWithOpenCVGUI::GetCurrentPosition(double *px, double *py, double *pz)
@@ -2427,11 +2758,13 @@ void vtkSecondaryWindowWithOpenCVGUI::GetCurrentPosition(double *px, double *py,
     *py = 0.0;
     *pz = 0.0;
     
-    this->OriginalTrackerNode = vtkMRMLLinearTransformNode::SafeDownCast(this->TransformEditorWidget->GetTransformEditSelectorWidget()->GetSelected());//adding at 09. 12. 24. - smkim
+    this->OriginalTrackerNode = vtkMRMLLinearTransformNode::SafeDownCast(this->TransformEditorWidget->GetTransformEditSelectorWidget()->GetSelected());    //adding at 09. 12. 24. - smkim
+    
     if (! this->OriginalTrackerNode)
     {
         return;
     }
+    
     vtkMatrix4x4* transform;
     //transform = transformNode->GetMatrixTransformToParent();
     transform = this->OriginalTrackerNode->GetMatrixTransformToParent();
@@ -2450,6 +2783,7 @@ void vtkSecondaryWindowWithOpenCVGUI::UpdateTransformNodeByName(const char *name
     if (name)
     {
         this->SetTransformNodeName(name);
+        
         vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
         vtkCollection* collection = scene->GetNodesByName(this->TransformNodeName);
         
@@ -2458,12 +2792,15 @@ void vtkSecondaryWindowWithOpenCVGUI::UpdateTransformNodeByName(const char *name
             // the node name does not exist in the MRML tree
             return;
         }
+        
         this->OriginalTrackerNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));
         //if (this->Pat2ImgReg && this->UseRegistration)
         //  {
         //  this->UpdateLocatorTransform();
         //  }
+        
     }
+    
 }
 
 //---------------------------------------------------------------------------
@@ -2471,8 +2808,9 @@ void vtkSecondaryWindowWithOpenCVGUI::UpdateTransformNodeByName(const char *name
 // adding at 09. 8. 20 - smkim
 double vtkSecondaryWindowWithOpenCVGUI::EstimateSampleDistances(void)
 {
-    //to get the active volume node // adding at 09. 8. 20 - smkim
-    vtkImageData *volumedata = volumenode->GetImageData(); // adding at 09. 8. 20 - smkim
+    
+    //to get the active volume node     // adding at 09. 8. 20 - smkim
+    vtkImageData *volumedata = volumenode->GetImageData();   // adding at 09. 8. 20 - smkim
     double* spacing = volumedata->GetSpacing();
     
     double minSpace = spacing[0];
@@ -2485,7 +2823,9 @@ double vtkSecondaryWindowWithOpenCVGUI::EstimateSampleDistances(void)
         if (spacing[i] < minSpace)
             minSpace = spacing[i];
     }
+    
     return minSpace * 0.5f;
+    
 }
 
 //---------------------------------------------------------------------------
@@ -2493,11 +2833,13 @@ double vtkSecondaryWindowWithOpenCVGUI::EstimateSampleDistances(void)
 // adding at 09. 8. 20 - smkim
 double* vtkSecondaryWindowWithOpenCVGUI::EstimateScalarRange(void)
 {
-    //to get the active volume node // adding at 09. 8. 20 - smkim
-    vtkImageData *volumedata = volumenode->GetImageData(); // adding at 09. 8. 20 - smkim
+    //to get the active volume node     // adding at 09. 8. 20 - smkim
+    vtkImageData *volumedata = volumenode->GetImageData();   // adding at 09. 8. 20 - smkim
     
     double scalarRange[2];
+    
     volumedata->GetPointData()->GetScalars()->GetRange(scalarRange, 0);
+    
     return scalarRange;
 }
 
@@ -2515,12 +2857,13 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkCUDAVolumeRender()
     vtkMRMLModelNode           *locatorModel;
     vtkMRMLModelDisplayNode    *locatorDisp;
     
+    
     locatorModel = vtkMRMLModelNode::New();
     locatorDisp = vtkMRMLModelDisplayNode::New();
     
     this->GetMRMLScene()->SaveStateForUndo();
     this->GetMRMLScene()->AddNode(locatorDisp);
-    this->GetMRMLScene()->AddNode(locatorModel);
+    this->GetMRMLScene()->AddNode(locatorModel);  
     
     locatorDisp->SetScene(this->GetMRMLScene());
     
@@ -2529,16 +2872,18 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkCUDAVolumeRender()
     locatorModel->SetAndObserveDisplayNodeID(locatorDisp->GetID());
     locatorModel->SetHideFromEditors(0);
     
+    
     //--------------------------------------------------------------------------------------------------------------
-    //to get the active volume node
+    //to get the active volume node     
     // adding at 09. 8. 20 - smkim
-    vtkImageData *volumedata = volumenode->GetImageData(); // adding at 09. 8. 20 - smkim
+    vtkImageData *volumedata = volumenode->GetImageData();   // adding at 09. 8. 20 - smkim
+    
     
     //----------------------------------------------------------------------------------------------------------------
-    //to get the properties of volume data
+    //to get the properties of volume data   
     // adding at 09. 9. 3 - smkim
-    int* dimension = volumedata->GetDimensions();//getting volume dimensions
-    double* spacing = volumedata->GetSpacing();  //getting volume spacing: dimensions of resolution
+    int* dimension = volumedata->GetDimensions();                 //getting volume dimensions
+    double* spacing = volumedata->GetSpacing();                   //getting volume spacing: dimensions of resolution
     volumedata->SetOrigin( -dimension[0]*spacing[0]/2.0, -dimension[1]*spacing[1]/2.0, -dimension[2]*spacing[2]/2.0  );   //setting up the origin of volume data
     
     //getting scalar range of volume data
@@ -2549,7 +2894,7 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkCUDAVolumeRender()
     vtkThreshold *thresh = vtkThreshold::New();
     thresh->ThresholdByUpper(0);
     thresh->AllScalarsOff();
-    thresh->SetInput( volumedata  ); // if volume data is obtained from volume 
+    thresh->SetInput( volumedata  );                                  // if volume data is obtained from volume 
     vtkDataSetTriangleFilter *trifilter = vtkDataSetTriangleFilter::New();
     trifilter->SetInputConnection(thresh->GetOutputPort());
     
@@ -2572,8 +2917,9 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkCUDAVolumeRender()
     volumeProperty->ShadeOff();
     volumeProperty->SetInterpolationTypeToLinear();
     
+    
     vtkCudaVolumeMapper *CudaVolumeMapper = vtkCudaVolumeMapper::New();
-    //CudaVolumeMapper->SetInputConnection( trifilter->GetOutputPort() );
+    //CudaVolumeMapper->SetInputConnection( trifilter->GetOutputPort() );    
     CudaVolumeMapper->SetInput( volumedata );
     CudaVolumeMapper->SetIntendedFrameRate(10.0);
     volume->SetMapper( CudaVolumeMapper );
@@ -2582,6 +2928,8 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkCUDAVolumeRender()
     // 5/8/2010 ayamada
     //ren->AddVolume( volume );
     this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
+    
+    
 }
 
 //**************************************************************************
@@ -2590,42 +2938,44 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkCUDAVolumeRender()
 // adding at 09. 8. 25 - smkim
 void vtkSecondaryWindowWithOpenCVGUI::vtkTexture3DVolumeRender()
 {
+    
     if(!this->m_bVolumeRendering)
     {
         //-------------------------------------------------------------
         //to add MRML node on Slicer3
         //adding at 09. 9. 4 - smkim
-        vtkMRMLModelNode           *ModelNode;
+         vtkMRMLModelNode           *ModelNode;
         vtkMRMLModelDisplayNode    *DispNode;
+        
         
         ModelNode = vtkMRMLModelNode::New();
         DispNode = vtkMRMLModelDisplayNode::New();
         
         this->GetMRMLScene()->SaveStateForUndo();
         this->GetMRMLScene()->AddNode(DispNode);
-        this->GetMRMLScene()->AddNode(ModelNode);
+        this->GetMRMLScene()->AddNode(ModelNode);  
         
         DispNode->SetScene(this->GetMRMLScene());
+        
         
         ModelNode->SetName( "Volume on Camera Image" );
         ModelNode->SetScene(this->GetMRMLScene());
         ModelNode->SetAndObserveDisplayNodeID(DispNode->GetID());
         ModelNode->SetHideFromEditors(0);
-    
     }
     
     /*        //to add MRML node on Slicer3
      //adding at 09. 9. 4 - smkim
      //        vtkMRMLModelNode           *locatorModel;
-     vtkMRMLModelDisplayNode *locatorDisp;
+     vtkMRMLModelDisplayNode    *locatorDisp;
      
-     // locatorModel = vtkMRMLModelNode::New();
      
+     //    locatorModel = vtkMRMLModelNode::New();
      locatorDisp = vtkMRMLModelDisplayNode::New();
      
      this->GetMRMLScene()->SaveStateForUndo();
      this->GetMRMLScene()->AddNode(locatorDisp);
-     this->GetMRMLScene()->AddNode(volumenode);
+     this->GetMRMLScene()->AddNode(volumenode);  
      
      locatorDisp->SetScene(this->GetMRMLScene());
      
@@ -2633,35 +2983,36 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkTexture3DVolumeRender()
      volumenode->SetScene(this->GetMRMLScene());
      volumenode->SetAndObserveDisplayNodeID(locatorDisp->GetID());
      volumenode->SetHideFromEditors(0);
-     */ // comment out because of some problem related to change segmented model // comment out at 09. 9. 16 - smkim
+     */    // comment out because of some problem related to change segmented model    // comment out at 09. 9. 16 - smkim
     
-    //-------------------------------------------------------------------------------------------------------------
-    //to get the active volume node
+    //--------------------------------------------------------------------------------------------------------------
+    //to get the active volume node     
     // adding at 09. 8. 20 - smkim
-    vtkImageData *volumedata = volumenode->GetImageData(); // adding at 09. 8. 20 - smkim
+    vtkImageData *volumedata = volumenode->GetImageData();   // adding at 09. 8. 20 - smkim
+    
     
     //----------------------------------------------------------------------------------------------------------------
-    //to get the properties of volume data
+    //to get the properties of volume data   
     // adding at 09. 9. 3 - smkim
-    int* dimension = volumedata->GetDimensions();//getting volume dimensions
-    double* spacing = volumenode->GetSpacing();//getting volume spacing:dimensions of resolution// getting from selected volumenode// modifying at 09. 10. 16 - smkim
-    double* origin = volumenode->GetOrigin();//getting volume origin // adding at 09. 10. 20 - smkim
+    int* dimension = volumedata->GetDimensions();        // getting volume dimensions
+    double* spacing = volumenode->GetSpacing();        // getting volume spacing: dimensions of resolution // getting from selected volumenode // modifying at 09. 10. 16 - smkim
+    double* origin = volumenode->GetOrigin();        // getting volume origin     // adding at 09. 10. 20 - smkim
     
     // setting volume center & volume spacing
-    volumedata->SetOrigin( -dimension[0]*spacing[0]/2.0, -dimension[1]*spacing[1]/2.0, -dimension[2]*spacing[2]/2.0 ); // setting origin of volume // adding at 09. 10. 20 - smkim
-    volumedata->SetSpacing( spacing[0], spacing[1], spacing[2] );// setting spacing of volume // adding at 09. 10. 20 - smkim
+    volumedata->SetOrigin( -dimension[0]*spacing[0]/2.0, -dimension[1]*spacing[1]/2.0, -dimension[2]*spacing[2]/2.0 );    // setting origin of volume // adding at 09. 10. 20 - smkim
+    volumedata->SetSpacing( spacing[0], spacing[1], spacing[2] );                                // setting spacing of volume // adding at 09. 10. 20 - smkim
     
     // adding for debugging at 09. 10. 16 - smkim
     std::cerr << "dimension \t" << dimension[0] << "\t" << dimension[1] << "\t" << dimension[2] << std::endl;
     std::cerr << "spacing \t" << spacing[0] << "\t" << spacing[1] << "\t" << spacing[2] << std::endl;
-    std::cerr << "origin \t" << origin[0] << "\t" << origin[1] << "\t" << origin[2] << std::endl;// adding at 09. 10. 20 - smkim
+    std::cerr << "origin \t" << origin[0] << "\t" << origin[1] << "\t" << origin[2] << std::endl;        // adding at 09. 10. 20 - smkim
     
     //getting scalar range of volume data
     double scalarRange[2];
     volumedata->GetPointData()->GetScalars()->GetRange(scalarRange);
     double RangeofScalar = scalarRange[1] - scalarRange[0];
     
-    /*// volume transformation
+    /*    // volume transformation 
      // adding at 09. 10. 16 - smkim
      vtkTransform *transform = vtkTransform::New();
      transform->Scale( 1.0, 1.0, spacing[0]/spacing[2] );
@@ -2679,26 +3030,26 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkTexture3DVolumeRender()
     vtkThreshold *thresh = vtkThreshold::New();
     thresh->ThresholdByUpper(0);
     thresh->AllScalarsOff();
-    thresh->SetInput( volumedata  );// if volume data is obtained from volume
+    thresh->SetInput( volumedata  );                                  // if volume data is obtained from volume 
     //thresh->SetInputConnection( reslice->GetOutputPort() );
     vtkDataSetTriangleFilter *trifilter = vtkDataSetTriangleFilter::New();
     trifilter->SetInputConnection(thresh->GetOutputPort());
     
-    /* vtkPiecewiseFunction *opacityTransferFunction = vtkPiecewiseFunction::New();
+    /*    vtkPiecewiseFunction *opacityTransferFunction = vtkPiecewiseFunction::New();
      opacityTransferFunction->AddPoint(scalarRange[0], 0.0);
      opacityTransferFunction->AddPoint(scalarRange[0] + RangeofScalar * 0.31, 0.0);
      opacityTransferFunction->AddPoint(scalarRange[0] + RangeofScalar * 0.5, 0.2);
      opacityTransferFunction->AddPoint(scalarRange[1], 0.2);
      */
     
-    // to display 4D ultrasound imaging
-    //at 09. 9. 17 - smkim
+    // to display 4D ultrasound imaging 
+    // at 09. 9. 17 - smkim
     vtkPiecewiseFunction *opacityTransferFunction = vtkPiecewiseFunction::New();
-    /* opacityTransferFunction->AddPoint(scalarRange[0], 0.0);
+    /*    opacityTransferFunction->AddPoint(scalarRange[0], 0.0);
      opacityTransferFunction->AddPoint(74.551, 0.0);
      opacityTransferFunction->AddPoint(112.67, 0.4);
      opacityTransferFunction->AddPoint(scalarRange[1], 0.4);
-     */
+     */    
     ////comment at 10. 01. 06 - smkim
     //opacityTransferFunction->AddPoint(0.0, 0.0);
     //opacityTransferFunction->AddPoint(508.45, 0.0);
@@ -2707,10 +3058,10 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkTexture3DVolumeRender()
     
     opacityTransferFunction->AddPoint(scalarRange[0], 0.0);
     opacityTransferFunction->AddPoint(0.01, 0.0);
-    //opacityTransferFunction->AddPoint(0.01, 1.0);
+    //opacityTransferFunction->AddPoint(0.01, 1.0);    
     opacityTransferFunction->AddPoint(scalarRange[1], 0.45);
     
-    /* opacityTransferFunction->AddPoint(0.0, 0.0);
+    /*    opacityTransferFunction->AddPoint(0.0, 0.0);
      opacityTransferFunction->AddPoint(0.01, 0.0);
      opacityTransferFunction->AddPoint(0.01, 1.0);
      opacityTransferFunction->AddPoint(27783, 1.0);
@@ -2728,27 +3079,32 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkTexture3DVolumeRender()
     volumeProperty->ShadeOff();
     volumeProperty->SetInterpolationTypeToLinear();
     
+    
     vtkSlicerVolumeTextureMapper3D2 *MapperTexture = vtkSlicerVolumeTextureMapper3D2::New();
-    // MapperTexture->SetInputConnection( reslice->GetOutputPort() );
+    //    MapperTexture->SetInputConnection( reslice->GetOutputPort() );
     MapperTexture->SetInput( volumedata );
-    // MapperTexture->SetSampleDistance( EstimateSampleDistances() );
+    //    MapperTexture->SetSampleDistance( EstimateSampleDistances() );
     volume->SetMapper( MapperTexture );
     volume->SetProperty( volumeProperty );
-    //volume->SetOrientation(0.0, 0.0, 180.0);//using for data taken with axial direction - smkim
-    //volume->SetOrientation(-90.0, 0.0, 180.0);//using for data taken with sagittal direction - smkim
-    //volume->SetOrientation(-90.0, 180.0, 90.0);//using for data taken with sagittal direction (CARS Phantom) 10. 01. 06 - smkim
-    
+    //    volume->SetOrientation(0.0, 0.0, 180.0);    //using for data taken with axial direction - smkim
+    //    volume->SetOrientation(-90.0, 0.0, 180.0);        //using for data taken with sagittal direction - smkim
+    //volume->SetOrientation(-90.0, 180.0, 90.0);        //using for data taken with sagittal direction (CARS Phantom) 10. 01. 06 - smkim    
+
     // 5/30/2010 ayamada
     // warning: this is only for the initial figure
     volume->SetOrientation(0.0, 0.0, -180.0);
     
-    if( !this->m_bVolumeRendering )
-        this->m_bVolumeRendering = true;//setting the flag of volume rendering up// adding at 10. 02. 01 - smkim
     
-    //5/8/2010 ayamada
+    if( !this->m_bVolumeRendering )
+        this->m_bVolumeRendering = true;    //setting the flag of volume rendering up    // adding at 10. 02. 01 - smkim
+    
+    // 5/8/2010 ayamada
     //ren->AddVolume( volume );
     this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
+
+    
 }
+
 
 //**************************************************************************
 //  Volume Rendering with software Ray Casting Method
@@ -2763,12 +3119,13 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkRayCastingVolumeRender()
     vtkMRMLModelNode           *locatorModel;
     vtkMRMLModelDisplayNode    *locatorDisp;
     
+    
     locatorModel = vtkMRMLModelNode::New();
     locatorDisp = vtkMRMLModelDisplayNode::New();
     
     this->GetMRMLScene()->SaveStateForUndo();
     this->GetMRMLScene()->AddNode(locatorDisp);
-    this->GetMRMLScene()->AddNode(locatorModel);
+    this->GetMRMLScene()->AddNode(locatorModel);  
     
     locatorDisp->SetScene(this->GetMRMLScene());
     
@@ -2778,26 +3135,30 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkRayCastingVolumeRender()
     locatorModel->SetHideFromEditors(0);
     
     //--------------------------------------------------------------------------------------------------------------
-    //to get the active volume node
+    //to get the active volume node     
     // adding at 09. 8. 20 - smkim
-    vtkImageData *volumedata = volumenode->GetImageData(); // adding at 09. 8. 20 - smkim
+    vtkImageData *volumedata = volumenode->GetImageData();   // adding at 09. 8. 20 - smkim
+    
     
     //----------------------------------------------------------------------------------------------------------------
-    //to get the properties of volume data
+    //to get the properties of volume data   
     // adding at 09. 9. 3 - smkim
-    int* dimension = volumedata->GetDimensions();//getting volume dimensions
-    double* spacing = volumedata->GetSpacing();//getting volume spacing: dimensions of resolution
-    volumedata->SetOrigin( -dimension[0]*spacing[0]/2.0, -dimension[1]*spacing[1]/2.0, -dimension[2]*spacing[2]/2.0);//setting up the origin of volume data
+    int* dimension = volumedata->GetDimensions();                 //getting volume dimensions
+    double* spacing = volumedata->GetSpacing();                   //getting volume spacing: dimensions of resolution
+    volumedata->SetOrigin( -dimension[0]*spacing[0]/2.0, -dimension[1]*spacing[1]/2.0, -dimension[2]*spacing[2]/2.0  );   //setting up the origin of volume data
     
     //getting scalar range of volume data
     double scalarRange[2];
     volumedata->GetPointData()->GetScalars()->GetRange(scalarRange);
     double RangeofScalar = scalarRange[1] - scalarRange[0];
     
+    
+    
+    
     vtkThreshold *thresh = vtkThreshold::New();
     thresh->ThresholdByUpper(0);
     thresh->AllScalarsOff();
-    thresh->SetInput( volumedata  );// if volume data is obtained from volume 
+    thresh->SetInput( volumedata  );                                  // if volume data is obtained from volume 
     vtkDataSetTriangleFilter *trifilter = vtkDataSetTriangleFilter::New();
     trifilter->SetInputConnection(thresh->GetOutputPort());
     
@@ -2820,6 +3181,7 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkRayCastingVolumeRender()
     volumeProperty->ShadeOff();
     volumeProperty->SetInterpolationTypeToLinear();
     
+    
     vtkUnstructuredGridVolumeRayCastMapper *volumeMapper = vtkUnstructuredGridVolumeRayCastMapper::New();
     volumeMapper->SetInputConnection( trifilter->GetOutputPort() );
     volume->SetMapper( volumeMapper );
@@ -2828,7 +3190,8 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkRayCastingVolumeRender()
     // 5/7/2010 ayamada
     //ren->AddVolume( volume );
     this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
-
+    
+    
 }
 
 
