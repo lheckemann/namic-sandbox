@@ -2052,6 +2052,12 @@ vtkPerkStationModuleGUI
     }
   
   
+  if ( phase != this->Plan )
+    {
+    this->PlanStep->RemoveOverlayNeedleGuide();
+    }
+  
+  
     // Change working volume in validation phase.
   
   if ( phase == this->Validate && step_from != this->Validate )
