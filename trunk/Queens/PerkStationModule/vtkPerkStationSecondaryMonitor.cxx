@@ -627,6 +627,13 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
   this->OverlayNeedleGuide();
   this->SetDepthPerceptionLines();
   
+    
+    // Update the current slice offset value.
+  
+  this->SliceOffsetRAS = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )
+     ->GetLogic()->GetSliceOffset();
+     
+  
   double entry[ 3 ];
   double target[ 3 ];
   this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( entry );
