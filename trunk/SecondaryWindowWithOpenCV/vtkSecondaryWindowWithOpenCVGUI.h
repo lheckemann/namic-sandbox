@@ -271,14 +271,17 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     */
     
     CvSize        imageSize;
-    unsigned char* idata;
+
+    // 6/20/2010 ayamada
+    unsigned char* idata[2];
+    vtkImageImport *importer[2];
+    vtkTexture *atext[2];
+    vtkActor *actor[2];
+
     // 5/15/2010 ayamada
     CvCapture* capture;
-    vtkImageImport *importer;
-    vtkTexture *atext;
     vtkPlaneSource *planeSource;
     vtkPolyDataMapper *planeMapper;
-    vtkActor *actor;
     
     // 5/7/2010 ayamada
     // for the function "CameraFocusPlane" at .cxx file
