@@ -42,6 +42,22 @@
 
 // --------------------------------------------------------------
 
+std::string DoubleToString( double d )
+{
+  std::stringstream ss;
+  ss << d;
+  return ss.str();
+}
+
+std::string BoolToString( bool d )
+{
+  std::stringstream ss;
+  ss << d;
+  return ss.str();
+}
+
+// --------------------------------------------------------------
+
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj) \
     { \
@@ -164,6 +180,8 @@ vtkPerkStationCalibrateStep
   
     // Calibration list.
   
+  this->ListButtonsFrame = NULL;
+  this->CalibrationListFrame = NULL;
   this->CalibrationList = NULL;
   this->AddButton = NULL;
   this->DeleteButton = NULL;
@@ -369,16 +387,26 @@ vtkPerkStationCalibrateStep
   
     // Create frame for the buttons.
   
-  vtkKWFrame* buttonsFrame = vtkKWFrame::New();
-    buttonsFrame->SetParent( parent );
-    buttonsFrame->Create();
+  if ( ! this->ListButtonsFrame )
+    {
+    this->ListButtonsFrame = vtkKWFrame::New();
+    }
+  if ( ! this->ListButtonsFrame->IsCreated() )
+    {
+    this->ListButtonsFrame->SetParent( parent );
+    this->ListButtonsFrame->Create();
+    }
   this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
-                buttonsFrame->GetWidgetName() );
+                this->ListButtonsFrame->GetWidgetName() );
+  
   
   if ( ! this->AddButton )
     {
     this->AddButton = vtkKWPushButton::New();
-    this->AddButton->SetParent( buttonsFrame );
+    }
+  if ( ! this->AddButton->IsCreated() )
+    {
+    this->AddButton->SetParent( this->ListButtonsFrame );
     this->AddButton->Create();
     this->AddButton->SetText( "Add Calibration" );
     this->AddButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
@@ -389,7 +417,10 @@ vtkPerkStationCalibrateStep
   if ( ! this->DeleteButton )
     {
     this->DeleteButton = vtkKWPushButton::New();
-    this->DeleteButton->SetParent( buttonsFrame );
+    }
+  if ( ! this->DeleteButton->IsCreated() )
+    {
+    this->DeleteButton->SetParent( this->ListButtonsFrame );
     this->DeleteButton->Create();
     this->DeleteButton->SetText( "Delete Selected" );
     this->DeleteButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
@@ -397,6 +428,18 @@ vtkPerkStationCalibrateStep
   this->Script( "pack %s -side left -anchor nw -expand n -fill x -padx 2 -pady 2",
                 this->DeleteButton->GetWidgetName() );
   
+  
+  if ( ! this->CalibrationListFrame )
+    {
+    this->CalibrationListFrame = vtkKWFrame::New();
+    }
+  if ( ! this->CalibrationListFrame->IsCreated() )
+    {
+    this->CalibrationListFrame->SetParent( parent );
+    this->CalibrationListFrame->Create();
+    }
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                this->CalibrationListFrame->GetWidgetName() );
   
   
     // Create a frame for the list.
@@ -412,7 +455,10 @@ vtkPerkStationCalibrateStep
   if ( ! this->CalibrationList )
     {
     this->CalibrationList = vtkKWMultiColumnListWithScrollbars::New();
-    this->CalibrationList->SetParent( calibrationListFrame );
+    }
+  if ( ! this->CalibrationList->IsCreated() )
+    {
+    this->CalibrationList->SetParent( this->CalibrationListFrame );
     this->CalibrationList->Create();
     this->CalibrationList->SetHeight( 1 );
     this->CalibrationList->GetWidget()->SetSelectionTypeToRow();
@@ -943,8 +989,10 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
   if ( this->CalibrationList )
     {
     this->CalibrationList->GetWidget()->SetCellUpdatedCommand( this, "OnMultiColumnListUpdate" );
-    this->CalibrationList->GetWidget()->SetSelectionChangedCommand( this, "OnMultiColumnListSelectionChanged" );
+    this->CalibrationList->GetWidget()->SetSelectionChangedCommand(
+      this, "OnMultiColumnListSelectionChanged" );
     }
+  
   if ( this->AddButton )
     {
     this->AddButton->AddObserver( vtkKWPushButton::InvokedEvent,
@@ -975,8 +1023,7 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
   
   if ( this->HardwareUpdateButton )
     {
-    this->HardwareUpdateButton->AddObserver(
-      vtkKWPushButton::InvokedEvent,
+    this->HardwareUpdateButton->AddObserver( vtkKWPushButton::InvokedEvent,
       (vtkCommand*)( this->WizardGUICallbackCommand ) );  
     }
   
@@ -984,8 +1031,7 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
   if ( this->SaveCalibrationFileButton )
     {
     this->SaveCalibrationFileButton->GetLoadSaveDialog()->AddObserver(
-      vtkKWTopLevel::WithdrawEvent,
-      (vtkCommand *)this->WizardGUICallbackCommand );
+      vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
     }
   
   this->ObserverCount++;
@@ -1008,6 +1054,26 @@ vtkPerkStationCalibrateStep
     {
     this->ResetCalibrationButton->RemoveObservers(
       vtkKWPushButton::InvokedEvent,
+      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
+    }
+  
+  
+    // Calibration list.
+  
+  if ( this->CalibrationList )
+    {
+    this->CalibrationList->GetWidget()->SetCellUpdatedCommand( this, "" );
+    this->CalibrationList->GetWidget()->SetSelectionChangedCommand( this, "" );
+    }
+  
+  if ( this->AddButton )
+    {
+    this->AddButton->RemoveObservers( vtkKWPushButton::InvokedEvent,
+      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
+    }
+  if ( this->DeleteButton )
+    {
+    this->DeleteButton->RemoveObservers( vtkKWPushButton::InvokedEvent,
       ( vtkCommand* )( this->WizardGUICallbackCommand ) );
     }
   
@@ -1134,13 +1200,15 @@ vtkPerkStationCalibrateStep
     
     // Add and delete calibrations.
   
-  if ( this->AddButton == vtkKWPushButton::SafeDownCast( caller )
+  if (    ( this->AddButton == vtkKWPushButton::SafeDownCast( caller ) )
        && ( event == vtkKWPushButton::InvokedEvent ) )
     {
+    
     std::stringstream ss;
       ss << "Calibr" << this->CalibrationUID;
+    
     this->CalibrationUID ++;
-    OverlayCalibration* newCal = new OverlayCalibration;
+    OverlayCalibration* newCal = new OverlayCalibration;  
       newCal->Name = ss.str();
     int index = mrmlNode->AddCalibration( newCal );
     mrmlNode->SetCurrentCalibrationIndex( index );
@@ -1434,16 +1502,16 @@ vtkPerkStationCalibrateStep
            this->CalibrationList->GetWidget()->GetCellText( row, COL_NAME ) ) != 0 )
       {
       colList->SetCellText( row, COL_NAME, cal->Name.c_str() );
-      std::stringstream ss;
-      ss << cal->SecondMonitorTranslation[ 0 ];
-      colList->SetCellText( row, COL_TX, ss.str().c_str() );
-      ss.clear();
-      ss << cal->SecondMonitorTranslation[ 1 ];
-      colList->SetCellText( row, COL_TX, ss.str().c_str() );
-      ss.clear();
-      
-      // TODO: continue.
-      
+      colList->SetCellText( row, COL_TX,
+                            DoubleToString( cal->SecondMonitorTranslation[ 0 ] ).c_str() );
+      colList->SetCellText( row, COL_TY,
+                            DoubleToString( cal->SecondMonitorTranslation[ 1 ] ).c_str() );
+      colList->SetCellText( row, COL_RO,
+                            DoubleToString( cal->SecondMonitorRotation ).c_str() );
+      colList->SetCellText( row, COL_FV,
+                            BoolToString( cal->SecondMonitorVerticalFlip ).c_str() );
+      colList->SetCellText( row, COL_FH,
+                            BoolToString( cal->SecondMonitorHorizontalFlip ).c_str() );
       }
     } // for ( int row = 0; row < numPlans; ++ row )
   

@@ -129,6 +129,8 @@ protected:
   
     // Calibration list.
   
+  vtkKWFrame* ListButtonsFrame;
+  vtkKWFrame* CalibrationListFrame;
   vtkKWMultiColumnListWithScrollbars* CalibrationList;
   vtkKWPushButton* AddButton;
   vtkKWPushButton* DeleteButton;
