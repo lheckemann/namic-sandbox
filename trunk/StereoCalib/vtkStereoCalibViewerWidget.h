@@ -27,6 +27,7 @@ public:
   // vtkKWRenderWidget* ViewerWidget; // 
   vtkKWRenderWidget* lw;       // 100603-komura
   vtkKWRenderWidget* rw;
+  vtkKWRenderWidget* mw;        // 100616-komura for mixture
 
 
 protected:

@@ -64,7 +64,11 @@ set(StereoCalib_SRCS
   # vtkSlicerSecondaryViewerWindow.cxx
   vtkStereoCalibViewerWidget.cxx
 #100607-komura
-            vtkStereoCalibCVClass.cxx
+  vtkStereoCalibCVClass.cxx
+
+  vtkppr.cxx
+  vtkpuc.cxx
+  vtkdete.cxx
 #  vtkSlicerSecondaryViewerWidget.cxx
 )
 
