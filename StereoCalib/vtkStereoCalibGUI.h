@@ -48,23 +48,27 @@
 // #include <cxmisc.h>
 //
 
-#define FOCAL_LENGTH    900.0 // 5/5/2010 ayamada is it dammy?
-#define FOA        31.76    //27.0    //31.76    //40.3    //Endoscope 
-#define VIEW_SIZE_X    640.0
-#define VIEW_SIZE_Y    480.0
+#include "vtkKWScale.h"         // 100617-komura
+
+#define FOCAL_LENGTH 900.0 // 5/5/2010 ayamada is it dammy?
+#define FOA  31.76 //27.0 //31.76 //40.3 //Endoscope 
+#define VIEW_SIZE_X 640.0
+#define VIEW_SIZE_Y 480.0
 
 
 //chessLoad 100603-komura
-// #define ADAPTIVE_THRESH    0                        
-// #define NORMALIZE_IMAGE    0                        
-// #define FILTER_QUADS    0                                
-// #define CORNER_WIDTH    9                               
+// #define ADAPTIVE_THRESH 0                        // CV_CALIB_CB_ADAPTIVE_THRESH Setting parameta
+// #define NORMALIZE_IMAGE 0                        // CV_CALIB_CB_NORMALIZE_IMAGE Setting parameta
+// #define FILTER_QUADS 0                                // CV_CALIB_CB_FILTER_QUADS Setting parameta
+// #define CORNER_WIDTH 9                                // number of side coner 
 // #define CORNER_HEIGHT 6                                  // 
-// #define CORNER_NUMBER    ( CORNER_WIDTH * CORNER_HEIGHT ) 
+// #define CORNER_NUMBER ( CORNER_WIDTH * CORNER_HEIGHT ) // sum of all coner
 //100607-komura
 //
 
 class vtkKWPushButton;
+class vtkKWCheckButton;         // 100615-komura
+class vtkKWScaleWithLabel;      // 100617-komura
 
 class VTK_StereoCalib_EXPORT vtkStereoCalibGUI : public vtkSlicerModuleGUI
 {
@@ -181,7 +185,8 @@ class VTK_StereoCalib_EXPORT vtkStereoCalibGUI : public vtkSlicerModuleGUI
   vtkKWPushButton* TestButton22;
   vtkKWPushButton* TestButton31;
   // vtkSlicerSecondaryViewerWindow* SecondaryViewerWindow;
-    vtkStereoCalibViewerWidget* SecondaryViewerWindow;
+  vtkStereoCalibViewerWidget* SecondaryViewerWindow;
+  vtkStereoCalibViewerWidget* SecondaryViewerWindow2x;
 
     // 6/6/2010 ayamada
     vtkKWEntryWithLabel *saveCameraImageEntry;
@@ -191,35 +196,35 @@ class VTK_StereoCalib_EXPORT vtkStereoCalibGUI : public vtkSlicerModuleGUI
   // MultiThread
   //----------------------------------------------------------------
   int makeCameraThread(const char* );
-    vtkCamera* fileCamera;
-    int               ThreadID;
-    vtkMultiThreader* Thread;
-    static void *thread_CameraThread(void*);
+ vtkCamera* fileCamera;
+ int               ThreadID;
+ vtkMultiThreader* Thread;
+ static void *thread_CameraThread(void*);
 
   //----------------------------------------------------------------
   // CameraFocusPlane
   //----------------------------------------------------------------
-    void CameraFocusPlane(vtkCamera *, double);
-    vtkMatrix4x4 * ExtrinsicMatrix;
-    double Pos[3];
-    double Focal[3];
-    double F;
-    double ViewAngle;
-    double h;
-    double fx;
-    double fy;
-    double focal_point_x;        //adding at 10. 02. 22 - smkim
-    double focal_point_y;        //adding at 10. 02. 22 - smkim
-    double focal_length;            // 
-    // vtkPlaneSource *FocalPlaneSource;       // 
-    // vtkPolyDataMapper *FocalPlaneMapper;    // 
-    vtkPlaneSource *FocalPlaneSource[2];       // 
-    vtkPolyDataMapper *FocalPlaneMapper[2];    // 100603-komura
+ void CameraFocusPlane(vtkCamera *, double);
+ vtkMatrix4x4 * ExtrinsicMatrix;
+ double Pos[3];
+ double Focal[3];
+ double F;
+ double ViewAngle;
+ double h;
+ double fx;
+ double fy;
+ double focal_point_x;  //adding at 10. 02. 22 - smkim
+ double focal_point_y;  //adding at 10. 02. 22 - smkim
+ double focal_length;   // 
+ // vtkPlaneSource *FocalPlaneSource;       // 
+ // vtkPolyDataMapper *FocalPlaneMapper;    // 
+ vtkPlaneSource *FocalPlaneSource[2];       // 
+ vtkPolyDataMapper *FocalPlaneMapper[2];    // 100603-komura
 
     //----------------------------------------------------------------
     // cameraThread
     //----------------------------------------------------------------
-    CvSize        imageSize;
+    CvSize  imageSize;
     double planeRatio;
     int makeThread;
     // unsigned char* idata;        // 
@@ -243,6 +248,22 @@ class VTK_StereoCalib_EXPORT vtkStereoCalibGUI : public vtkSlicerModuleGUI
     int captureChessboardFlag;                //
     int stereoCalibFlag;                      // 100603-komura 
     // void displayStereoCalib(int);                // 100607-komura
+
+    //----------------------------------------------------------------
+    // SecondWindowMode
+    //----------------------------------------------------------------
+
+    vtkKWCheckButton *stereoOneWindowCheckButton; // 
+    vtkKWCheckButton *stereoTwoWindowCheckButton; // 
+    vtkKWCheckButton *stereoOneWindowLayeredCheckButton; // 100615-komura
+
+    vtkKWScaleWithLabel *rightOpacityBar; //
+    double rightOpacity;                  //
+    vtkKWScaleWithLabel *leftOpacityBar; //
+    double leftOpacity;                  //
+    vtkKWScaleWithLabel *gapGraphicsBar;     //
+    double gapGraphics;                      // 100617-komura
+
     //----------------------------------------------------------------
     // Logic Values
     //----------------------------------------------------------------
