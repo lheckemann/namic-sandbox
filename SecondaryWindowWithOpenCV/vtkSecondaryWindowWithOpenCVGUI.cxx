@@ -633,6 +633,20 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
     
     this->SetModuleLogic ( NULL );
     
+
+
+    // second window mode
+    // 6/22/2010 ayamada
+    if (this->singleWindowCheckButton)
+    {
+        this->singleWindowCheckButton->SetParent(NULL );
+        this->singleWindowCheckButton->Delete ( );
+    }
+    if (this->stereoWindowCheckButton)
+    {
+        this->stereoWindowCheckButton->SetParent(NULL );
+        this->stereoWindowCheckButton->Delete ( );
+    }
     
     //----
 }
