@@ -323,6 +323,11 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     // 6/13/2010 ayamada
     this->undistortionFlag = 0;
     
+    // 6/22/2010 ayamada
+    // secondary window mode
+    this->singleWindowCheckButton = NULL;
+    this->stereoWindowCheckButton = NULL;
+    
     //----
 }
 
