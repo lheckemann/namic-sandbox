@@ -46,7 +46,7 @@
       <longflag>idtype</longflag> 	  \n
       <label>Seed ROI Volume Datatype</label>\n
       <channel>input</channel>\n
-      <default>UINT16</default>\n
+      <default>UINT8</default>\n
       <description>Datatype of Mask ROI volumes (valid values = UINT8, SINT8, UINT16, SINT16, UINT32, SINT32, FLOAT</description>\n
     </string>\n
 </parameters>
