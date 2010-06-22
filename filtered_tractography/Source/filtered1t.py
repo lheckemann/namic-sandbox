@@ -41,7 +41,6 @@ param = dict({'FA_min': .15,  # FA stopping threshold
               'max_len': 250, # stop if fiber gets this long
               'min_radius': .87,  # stop if fiber curves this much
               'seeds': 3, # how many seeds to spawn in each ROI voxel
-              'voxel': np.mat('1.70; 1.66; 1.66'), # voxel size (check your .nhdr file)
               # Kalman filter parameters
               'Qm': .0015,  # injected angular noise (probably leave untouched)
               'Ql': 25,    # injected eigenvalue noise (probably leave untouched)
@@ -76,6 +75,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node):
     mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
     r2i = vtk2mat(dwi_node.GetRASToIJKMatrix, slicer)
     i2r = vtk2mat(dwi_node.GetIJKToRASMatrix, slicer)
+    param['voxel'] = np.mat(dwi_node.GetSpacing())[::-1].reshape(3,1)
 
     # tractography...
     ff = init(S, seeds, u, b, param)
@@ -136,9 +136,10 @@ def step(p, S, est, param):
     v = param['voxel']
     # unpack
     x,X,P = p[0],p[1],p[2]
-    # move
+    # estimate
     X,P = est(X,P,interp3signal(S,x,v))
     m,_ = state2tensor1(X)
+    # move
     dx = m / v
     x = x + param['dt'] * dx[::-1]  # HACK volume dimensions are reversed
     # repack
@@ -206,8 +207,8 @@ def follow(S,u,b,mask,fiber,param):
         is_curving = curve_radius(ff) < param['min_radius']
 
         if not is_brain or is_csf or len(ff) > param['max_len'] or is_curving :
-          if len(ff) > param['max_len'] : warnings.warn('wild fiber')
-          return ff
+            if len(ff) > param['max_len'] : warnings.warn('wild fiber')
+            return ff
 
         # record roughly once per voxel
         if ct == round(1.0/param['dt']):
@@ -335,11 +336,6 @@ def model_1tensor(u,b):
     f_fn = model_1tensor_f   # identity, but fix up state
     h_fn = lambda X : model_1tensor_h(X,u,b)
     return f_fn,h_fn
-def model_2tensor(u,b):
-    f_fn = model_2tensor_f   # identity, but fix up state
-    h_fn = lambda X : model_2tensor_h(X,u,b)
-    return f_fn,h_fn
-
 
 
 
@@ -348,12 +344,6 @@ def model_1tensor_f(X):
     m = X.shape[1]
     X = np.copy(X)
     flt.c_model_1tensor_f(X, m)
-    return X
-def model_2tensor_f(X):
-    assert X.shape[0] == 10 and X.dtype == 'float64'
-    m = X.shape[1]
-    X = np.copy(X)
-    flt.c_model_2tensor_f(X, m)
     return X
 
 
@@ -364,13 +354,6 @@ def model_1tensor_h(X,u,b):
     m = X.shape[1]
     s = np.empty((n,m), order='F') # preallocate output
     flt.c_model_1tensor_h(s, X, u, b, n, m)
-    return s
-def model_2tensor_h(X,u,b):
-    assert X.shape[0] == 10 and X.dtype == 'float64' and u.dtype == 'float64'
-    n = u.shape[0]
-    m = X.shape[1]
-    s = np.empty((n,m), order='F') # preallocate output
-    flt.c_model_2tensor_h(s, X, u, b, n, m)
     return s
 
 
@@ -383,14 +366,6 @@ def state2tensor1(X, y=np.zeros(3)):
     l2 = np.empty(1);
     flt.c_state2tensor1(X, y, m,l1,l2)
     return m,(l1,l2)
-def state2tensor2(X, y=np.zeros(3)):
-    assert X.shape[0] == 10 and X.shape[1] == 1 and X.dtype == 'float64'
-    m1,m2 = np.empty((3,1)),np.empty((3,1))
-    l11,l12 = np.empty(1),np.empty(1);
-    l21,l22 = np.empty(1),np.empty(1);
-    flt.c_state2tensor2(X, y, m1,l11,l12, m2,l21,l22)
-    return m1,(l11,l12), m2,(l21,l22)
-
 
 
 
