@@ -6,6 +6,8 @@
 #include <vnl/vnl_matrix.h>
 #include <vnl/vnl_file_matrix.h>
 #include <vnl/vnl_vector.h>
+#include "itkTimeProbesCollectorBase.h"
+#include "itkPermuteAxesImageFilter.h"
 
 typedef vnl_matrix< float >    TMatrix;
 typedef vnl_vector< float >    TVector;
@@ -19,6 +21,9 @@ int main( int argc, char * argv [] )
     std::cerr << argv[0] << " input_filename recon_matrix output_filename mask_filename" << std::endl;
     return EXIT_FAILURE;
   }
+
+  itk::TimeProbesCollectorBase chronometer;
+
 
     const unsigned int ImageDimension = 4;
 
@@ -70,6 +75,29 @@ int main( int argc, char * argv [] )
     typedef DWIImageType::RegionType   DWIRegionType;
     typedef DWIImageType::SpacingType  DWISpacingType;
     typedef DWIImageType::PointType    DWIOriginType;
+
+  typedef itk::PermuteAxesImageFilter< DWIImageType > PermuteFilterType;
+  PermuteFilterType::Pointer permuter = PermuteFilterType::New();
+
+  PermuteFilterType::PermuteOrderArrayType  permuteOrder;
+
+  permuteOrder[0] = 3;
+  permuteOrder[1] = 0;
+  permuteOrder[2] = 1;
+  permuteOrder[3] = 2;
+
+  permuter->SetInput( dwi_image );
+
+  permuter->SetOrder( permuteOrder );
+
+  chronometer.Start("Permute1");
+  permuter->Update();
+  chronometer.Stop("Permute1");
+
+  chronometer.Report( std::cout );
+
+  DWIImageType::ConstPointer dwi_image_t = permuter->GetOutput();
+
 
     DWISizeType        dwi_size    = dwi_image->GetLargestPossibleRegion().GetSize();
     DWISpacingType     dwi_spacing = dwi_image->GetSpacing();
@@ -139,7 +167,7 @@ int main( int argc, char * argv [] )
 
   typedef itk::ImageLinearIteratorWithIndex< ODFImageType > ODFIteratorType;
     ODFIteratorType odf_it( odf_image, odf_region );
-  odf_it.SetDirection( 3 );
+  odf_it.SetDirection( 0 );
 
   MaskImageType::ConstPointer mask_image = mask_reader->GetOutput();
   typedef MaskImageType::IndexType    MaskIndexType;
@@ -174,6 +202,10 @@ int main( int argc, char * argv [] )
   odf_it.GoToBegin();
   mask_it.GoToBegin();
 
+  std::cout << "BEGIN of multiplication " << std::endl;
+  std::cout << "dwi_region = " << dwi_region << std::endl; 
+
+  chronometer.Start("Multiplication");
     while( !dwi_it.IsAtEnd() )
     {
  //       dwi_it.GoToBeginOfLine();
@@ -199,13 +231,17 @@ int main( int argc, char * argv [] )
             }
 */
             //i = 0; j = 0;
+
+
             for(i = 0, odf_it.GoToBeginOfLine();!odf_it.IsAtEndOfLine();++odf_it, ++i)
             {
+              double sum = 0.0;
                 for(j = 0, dwi_it.GoToBeginOfLine();!dwi_it.IsAtEndOfLine();++dwi_it, ++j)
                 {
                     //std::cout << i << " , " << j << " ";
-                    odf_it.Value() += BTable(i,j)*dwi_it.Value();
+                   sum += BTable(i,j)*dwi_it.Value();
                 }
+              odf_it.Value()  = sum;
                 //std::cout << std::endl;
             }
 
@@ -215,6 +251,9 @@ int main( int argc, char * argv [] )
         dwi_it.NextLine();
         odf_it.NextLine();
     }
+  chronometer.Stop("Multiplication");
+  std::cout << "END of multiplication " << std::endl;
+  chronometer.Report( std::cout );
 
   typedef itk::ImageFileWriter< ODFImageType >  WriterType;
   WriterType::Pointer writer = WriterType::New();
