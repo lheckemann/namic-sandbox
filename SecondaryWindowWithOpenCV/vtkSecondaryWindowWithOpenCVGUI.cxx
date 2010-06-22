@@ -2117,6 +2117,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
         cvReleaseCapture(&capture[0]);  
     }
 
+    // 6/22/2010 ayamada
     if(capture[1] != NULL){    
         // 5/15/2010 ayamada
         cvReleaseCapture(&capture[1]);  
