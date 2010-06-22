@@ -260,7 +260,7 @@ VectorFieldPCA<TVectorFieldElementType, TPCType, KernelFunctionType, TPointSetPi
   
   for (unsigned int i = 0; i < accum.size(); ++i)
     m_AveVectorField.begin()[i] = TPCType(accum.begin()[i]);
-  vnl_copy(accum, m_AveVectorField);
+//  vnl_copy(accum, m_AveVectorField);
 
 
   MatrixType kernelM(m_VectorDimCount, m_VectorDimCount);
