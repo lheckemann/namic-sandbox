@@ -92,7 +92,7 @@ for i in range(1, n):
         lf.close();
 
 
-        outputName = rawImgName.replace(".nrrd", "-seg.nrrd");
+        outputName = rawImgName.replace(".nrrd", "-atlas.nrrd");
         outputName = os.path.basename(outputName)
         outputName = os.path.join(rsltDir, outputName)
 
