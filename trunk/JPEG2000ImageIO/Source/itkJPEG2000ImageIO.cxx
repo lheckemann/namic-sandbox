@@ -877,23 +877,40 @@ JPEG2000ImageIO
     //
     // Compute the required set of tiles that fully contain the requested region 
     //
-    typedef ImageIORegion::SizeValueType    SizeValueType;
-    typedef ImageIORegion::IndexValueType   IndexValueType;
+    streamableRegion = requestedRegion;
 
-    for( unsigned int i=0; i < this->m_NumberOfDimensions; i++ )
-      {
-      SizeValueType sizeQuantizedInTileSize = requestedRegion.GetSize(i);
-      IndexValueType startQuantizedInTileSize = requestedRegion.GetIndex(i);
-
-      // Do quantization here...
-
-      streamableRegion.SetSize( i, sizeQuantizedInTileSize );
-      streamableRegion.SetIndex( i, startQuantizedInTileSize );
-      }
+    this->ComputeRegionInTileBoundaries( 0, this->m_TileWidth, streamableRegion );
+    this->ComputeRegionInTileBoundaries( 1, this->m_TileHeight, streamableRegion );
     }
+
+  std::cout << "Streamable region = " << streamableRegion << std::endl;
 
   return streamableRegion;
 }
 
+
+void
+JPEG2000ImageIO
+::ComputeRegionInTileBoundaries( unsigned int dimension, 
+  SizeValueType tileSize, ImageIORegion & streamableRegion ) const
+{
+  SizeValueType requestedSize = streamableRegion.GetSize( dimension );
+  IndexValueType requestedIndex = streamableRegion.GetIndex( dimension );
+
+  IndexValueType startQuantizedInTileSize = requestedIndex - ( requestedIndex % tileSize );
+  IndexValueType requestedEnd = requestedIndex + requestedSize;
+  SizeValueType extendedSize = requestedEnd - startQuantizedInTileSize;
+  SizeValueType tileRemanent = extendedSize % tileSize;
+
+  SizeValueType sizeQuantizedInTileSize = extendedSize;
+
+  if ( tileRemanent )
+    {
+    sizeQuantizedInTileSize += tileSize - tileRemanent;
+    }
+
+  streamableRegion.SetSize(  dimension, sizeQuantizedInTileSize );
+  streamableRegion.SetIndex( dimension, startQuantizedInTileSize );
+}
 
 } // end namespace itk
