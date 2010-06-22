@@ -928,6 +928,14 @@ void vtkSecondaryWindowWithOpenCVGUI::AddGUIObservers ( )
     //this->saveCameraImageEntry->AddObserver(vtkKWEntryWithLabel::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
     
+    // secondary Window Mode CheckBox
+    // 6/22/2010 ayamada
+    this->singleWindowCheckButton
+    ->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->stereoWindowCheckButton
+    ->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
+    
   this->AddLogicObservers();
 
 }
@@ -1049,6 +1057,17 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->m_bOpenSecondaryWindow = true;  // 5/7/2010 ayamada
         
             this->updateViewTriger = 1;
+      
+            /*
+            // change decondary monitor size
+            // 100622-komura
+            if(singleWindowCheckButton->GetSelectedState() != 1){
+                this->SecondaryViewerWindow->changeSecondaryMonitorSize(640, 480);
+            }
+            else{
+                this->SecondaryViewerWindow->changeSecondaryMonitorSize(1280, 480);
+            }            
+            */
 
         }
         
@@ -1216,6 +1235,86 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->UpdateFramesFromMRML();
             
         }
+        
+        // --------------------------
+        // make secondary window type
+        // --------------------------
+        else if (this->singleWindowCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
+                 && event == vtkKWCheckButton::SelectedStateChangedEvent )
+        {
+            int checked = this->singleWindowCheckButton->GetSelectedState();
+            if(checked == 1){
+                
+                this->singleWindowCheckButton->SelectedStateOn();
+                this->stereoWindowCheckButton->SelectedStateOff();
+               
+                this->SecondaryViewerWindow->SetTitle ("3D Slicer -- Secondary Window -- ");
+                //this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0 -anchor nw -relwidth 0.5 -relheight 0.8", 
+                //             this->SecondaryViewerWindow->MainFrame->GetWidgetName() );//10.01.25 ayamada
+                this->SecondaryViewerWindow->Script("place %s -relx 0.5 -rely 0.0 -anchor nw -relwidth 0.5 -relheight 1", 
+                             this->SecondaryViewerWindow->rw->GetWidgetName());//10.01.25 ayamada
+                this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0.8 -anchor nw -relwidth 0.5 -relheight 0.2", 
+                             this->SecondaryViewerWindow->rwLeft->GetWidgetName());
+                
+                /*
+                 
+                // he write the build components directly?
+                // 6/22/2010 ayamada 
+                 
+                this->SecondaryViewerWindow
+                ->Script("place %s -relx 0 -rely 0 -anchor nw -relwidth 0.5 -relheight 1",
+                         this->SecondaryViewerWindow->lw->GetWidgetName());
+                this->SecondaryViewerWindow
+                ->Script("place %s -relx 0.5 -rely 0 -anchor nw -relwidth 0.5 -relheight 1",
+                         this->SecondaryViewerWindow->rw->GetWidgetName()); 
+                this->SecondaryViewerWindow
+                ->Script("place %s -relx 0.0 -rely 0 -anchor nw -relwidth 0.0 -relheight 1",
+                         this->SecondaryViewerWindow->mw->GetWidgetName());
+                */
+                
+                // 100618-komura
+                /*
+                std::cerr << this->actor[1]->GetProperty()->GetBackfaceCulling() << std::endl;
+                this->actor[1]->GetProperty()->SetColor(255, 255, 255);
+                this->actor[0]->GetProperty()->SetColor(255, 255, 255);
+                */
+                //this->SecondaryViewerWindow->changeSecondaryMonitorSize(1280, 480);   // 100622-komura
+                
+                /*
+                if(this->SecondaryViewerWindow2x && makeThread != 0){
+                    this->SecondaryViewerWindow2x->Withdraw();
+                }
+                */
+            }
+            }
+
+        else if (this->stereoWindowCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
+                 && event == vtkKWCheckButton::SelectedStateChangedEvent )
+        {
+            int checked = this->stereoWindowCheckButton->GetSelectedState();
+            if(checked == 1){
+                
+                this->stereoWindowCheckButton->SelectedStateOn();
+                this->singleWindowCheckButton->SelectedStateOff();
+                
+                this->SecondaryViewerWindow->SetTitle ("3D Slicer -- Secondary Window -- ");
+                //this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0 -anchor nw -relwidth 0.5 -relheight 0.8", 
+                //             this->SecondaryViewerWindow->MainFrame->GetWidgetName() );//10.01.25 ayamada
+                this->SecondaryViewerWindow->Script("place %s -relx 0.5 -rely 0.0 -anchor nw -relwidth 0.5 -relheight 1", 
+                                                    this->SecondaryViewerWindow->rw->GetWidgetName());//10.01.25 ayamada
+                this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0.8 -anchor nw -relwidth 0.5 -relheight 0.2", 
+                                                    this->SecondaryViewerWindow->rwLeft->GetWidgetName());
+                
+                /*
+                 if(this->SecondaryViewerWindow2x && makeThread != 0){
+                 this->SecondaryViewerWindow2x->Withdraw();
+                 }
+                 */
+            }
+        }
+        
+            
+       // -------------------------        
         
         else
         {
