@@ -1257,28 +1257,8 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->singleWindowCheckButton->SelectedStateOn();
             this->stereoWindowCheckButton->SelectedStateOff();
         }
-            //this->stereoWindowCheckButton->SelectedStateOn();            
-
-/*            
-            int checked = this->singleWindowCheckButton->GetSelectedState();
-            //if(checked == 1){
-            if(stereoWindowCheckButton->GetSelectedState()){
-                this->stereoWindowCheckButton->SelectedStateOff();            
-            }
-            
-            if (this->SecondaryViewerWindow)
-            {  
-                this->SecondaryViewerWindow->Withdraw();
-                // 5/16/2010
-                first = 0;
-                
-            }
-           
-            this->SecondaryViewerWindow->Withdraw();
-            // 5/16/2010
-            first = 0;
-*/            
-        }
+    
+    }
 
     else if (this->singleWindowCheckButton == vtkKWCheckButton::SafeDownCast(caller) && 
              event == vtkKWCheckButton::SelectedStateChangedEvent )
@@ -1292,29 +1272,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->stereoWindowCheckButton->SelectedStateOn();
             this->singleWindowCheckButton->SelectedStateOff();
         }
-        
-        
-        //this->singleWindowCheckButton->SelectedStateOn();            
-        
-        /*            
-         int checked = this->singleWindowCheckButton->GetSelectedState();
-         //if(checked == 1){
-         if(stereoWindowCheckButton->GetSelectedState()){
-         this->stereoWindowCheckButton->SelectedStateOff();            
-         }
-         
-         if (this->SecondaryViewerWindow)
-         {  
-         this->SecondaryViewerWindow->Withdraw();
-         // 5/16/2010
-         first = 0;
-         
-         }
-         
-         this->SecondaryViewerWindow->Withdraw();
-         // 5/16/2010
-         first = 0;
-         */            
+    
     }
     
     
