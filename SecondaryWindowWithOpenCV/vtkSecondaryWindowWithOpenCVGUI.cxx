@@ -635,7 +635,7 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
     
 
 
-    // second window mode
+    // second window checkbox
     // 6/22/2010 ayamada
     if (this->singleWindowCheckButton)
     {
@@ -811,6 +811,17 @@ void vtkSecondaryWindowWithOpenCVGUI::RemoveGUIObservers ( )
     this->TranslationZ->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationZ->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
     this->TranslationZ->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
+    // secondary Window Mode Checkbox
+    // 6/22/2010 ayamada
+    if (this->singleWindowCheckButton)
+    {
+        this->singleWindowCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+    if (this->stereoWindowCheckButton)
+    {
+        this->stereoWindowCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
     
     this->RemoveLogicObservers();
     
