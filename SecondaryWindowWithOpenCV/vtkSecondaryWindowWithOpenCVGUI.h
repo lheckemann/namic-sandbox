@@ -551,6 +551,11 @@ protected:
     // 6/21/2010 ayamada
     vtkKWLoadSaveButtonWithLabel *loadLensDistortionCoefButton2;
     vtkKWLoadSaveButtonWithLabel *loadIntrinsicParameterButton2;
+    
+    // 6/22/2010 ayamada
+    vtkKWCheckButton *singleWindowCheckButton; // 
+    vtkKWCheckButton *stereoWindowCheckButton; // 
+
 
     // 5/17/2010 ayamada
     vtkKWPushButton* captureCameraImage;
