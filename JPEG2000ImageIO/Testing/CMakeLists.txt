@@ -21,24 +21,34 @@ ADD_EXECUTABLE(itkJPEG2000ImageIOTest03 itkJPEG2000ImageIOTest03.cxx)
 TARGET_LINK_LIBRARIES(itkJPEG2000ImageIOTest03 JPEG2000ImageIO)
 
 
-IF(CLIF2007_DATA_ROOT)
-  ADD_TEST(RegionTest01
-    ${CXX_TEST_PATH}/ImageReadRegionOfInterestWrite
-    ${CLIF2007_DATA_ROOT}/mosaic_im100010_05.jp2
-    ${TEMP}/mosaic_im100010_05_tile_00.png
-    0   0
-    256 256
-    )
-ENDIF(CLIF2007_DATA_ROOT)
-
-
-ADD_TEST(RegionTest02
+ADD_TEST(RegionTest00
   ${CXX_TEST_PATH}/ImageReadRegionOfInterestWrite
   ${TEST_DATA_ROOT}/Input/Bretagne1.j2k
   ${TEMP}/Bretagne1_RegionTest01.tif
   160 120
   320 240
   )
+
+
+IF(CLIF2007_DATA_ROOT)
+
+  FUNCTION(MOSAIC_TEST TESTID INITIAL_X INITIAL_Y)
+    SET(TILE_SIZE_X 256)
+    SET(TILE_SIZE_Y 256)
+    ADD_TEST(MosaicTest${TESTID}
+      ${CXX_TEST_PATH}/ImageReadRegionOfInterestWrite
+      ${CLIF2007_DATA_ROOT}/mosaic_im100010_05.jp2
+      ${TEMP}/mosaic_im100010_05_tile_${TESTID}.png
+      ${INITIAL_X}   ${INITIAL_Y}
+      ${TILE_SIZE_X} ${TILE_SIZE_Y}
+      )
+  ENDFUNCTION(MOSAIC_TEST)
+
+  MOSAIC_TEST( 00    0    0 )
+  MOSAIC_TEST( 01    0  256 )
+  MOSAIC_TEST( 02    0  512 )
+
+ENDIF(CLIF2007_DATA_ROOT)
 
 
 ADD_TEST(JpegTest00  ${CXX_TEST_PATH}/itkJPEG2000ImageIOFactoryTest01 )
