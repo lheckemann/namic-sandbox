@@ -622,12 +622,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
   
     // Switch visibility of needle guide.
     // Show needle guide only in planning plane +/- 0.5 mm.
-  
-    // Recompute the position of the needle guide, and depth guides.
-  this->OverlayNeedleGuide();
-  this->SetDepthPerceptionLines();
-  
-    
+ 
     // Update the current slice offset value.
   
   this->SliceOffsetRAS = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )
@@ -647,12 +642,15 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
    }
   
   if (
-       ( this->SliceOffsetRAS <= maxOffset )
+          ( this->SliceOffsetRAS < maxOffset )
        && ( this->SliceOffsetRAS >= minOffset )
        && ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 )
        )
     {
-    
+      // Recompute the position of the needle guide, and depth guides.
+    this->OverlayNeedleGuide();
+    this->SetDepthPerceptionLines();
+  
     this->ShowNeedleGuide( true );
     this->ShowDepthPerceptionLines( true );
     this->MeasureDigitsActor->SetVisibility( 1 );

@@ -1104,13 +1104,15 @@ vtkPerkStationModuleGUI
   
   this->CalibrateStep->UpdateGUI();
   
-  // this->SecondaryMonitor->UpdateImageDisplay();
+  this->SecondaryMonitor->UpdateImageDisplay();
   
-  
+  /*
+    // Uncomment this only if volume is checked for existing 0 offset slice.
     // Make the zero (RAS) slice the starting slice.
   this->MRMLNode->SetCurrentSliceOffset( 0.0 );
   this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()
     ->SetSliceOffset( this->MRMLNode->GetCurrentSliceOffset() );
+  */
 }
 
 

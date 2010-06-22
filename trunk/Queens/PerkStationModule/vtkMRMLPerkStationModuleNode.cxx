@@ -797,7 +797,7 @@ unsigned int
 vtkMRMLPerkStationModuleNode
 ::AddCalibration( OverlayCalibration* newCalibration )
 {
-  unsigned int index = this->PlanList.size();
+  unsigned int index = this->CalibrationList.size();
   this->CalibrationList.push_back( newCalibration );
   return index;
 }
