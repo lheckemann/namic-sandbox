@@ -466,7 +466,9 @@ void JPEG2000ImageIO::Read( void * buffer)
 
       OPJ_BYTE * l_data_ptr = l_data;
 
-      const size_t numberOfPixels = sizex * sizey;
+      unsigned int tsizex = l_current_tile_x1 - l_current_tile_x0;
+      unsigned int tsizey = l_current_tile_y1 - l_current_tile_y0;
+      const size_t numberOfPixels = tsizex * tsizey;
       const unsigned int numberOfComponents = this->GetNumberOfComponents();
       const unsigned int sizePerComponentInBytes = l_data_size/( numberOfPixels * numberOfComponents );
       const unsigned int sizePerChannelInBytes = l_data_size/( numberOfComponents );
@@ -485,6 +487,7 @@ void JPEG2000ImageIO::Read( void * buffer)
           }
         }
       }
+      l_go_on = 0;
     }
 
 //  l_image = opj_decode( this->m_Dinfo, l_stream );
