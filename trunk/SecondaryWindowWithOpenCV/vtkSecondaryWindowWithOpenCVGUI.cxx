@@ -1751,14 +1751,14 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
                     pGUI->textActorCamera->SetInput(bufCamera);
                     
                     deviceNum = 1;
-                    //i++; // if i++, the viewer can not obtain the image!!
+                    i++; // if i++, the viewer can not obtain the image!!
                     
                     break;
                 }
                 
         
             }// end of while
-/*
+
         while(i<=10){// 6/22/2010 ayamada
             if( (NULL==(capture[deviceNum] = cvCaptureFromCAM(i))))    // 10.01.25 ayamada
             {
@@ -1776,10 +1776,11 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             
             
         }// end of while
-  */      
+        
         
 
         // 5/16/2010 ayamada
+        //if(i==11 && deviceNum == 0){ // 6/22/2010 ayamada 
         if(i==11 && deviceNum == 0){ // 6/22/2010 ayamada 
             sprintf(bufCamera, "Can Not Find Camera Device!!");
             pGUI->textActorCamera->SetInput(bufCamera);
@@ -2044,8 +2045,8 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
         // 5/15/2010 ayamada
         cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);
               
-        pGUI->idata[i] = (unsigned char*) RGBImage->imageData;
-        pGUI->importer[i]->Modified();        
+        pGUI->idata[0] = (unsigned char*) RGBImage->imageData;
+        pGUI->importer[0]->Modified();        
         
 /* 10.01.26-komura
 
