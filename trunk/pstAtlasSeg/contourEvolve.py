@@ -49,20 +49,20 @@ for i in range(len(imgAll)):
 
 # prepare probability maps
 #probabilityMapDir = '../pstSeg-2010-6-16-9'
-probabilityMapAll = ['000035.00001.001-seg.nrrd',
-                     '000036.00002.002-seg.nrrd',
-                     '000041.00002.001-seg.nrrd',
-                     '000045.00002.004-seg.nrrd',
-                     '000049.00001.001-seg.nrrd',
-                     '000054.00003.001-seg.nrrd',
-                     '000055.00001.001-seg.nrrd',
-                     '000056.00002.001-seg.nrrd',
-                     '000060.00001.002-seg.nrrd',
-                     '000064.00003.001-seg.nrrd',
-                     '000069.00001.001-seg.nrrd',
-                     '000073.00002.001-seg.nrrd',
-                     '000085.00002.001-seg.nrrd',
-                     '000088.00002.001-seg.nrrd']
+probabilityMapAll = ['000035.00001.001-atlas.nrrd',
+                     '000036.00002.002-atlas.nrrd',
+                     '000041.00002.001-atlas.nrrd',
+                     '000045.00002.004-atlas.nrrd',
+                     '000049.00001.001-atlas.nrrd',
+                     '000054.00003.001-atlas.nrrd',
+                     '000055.00001.001-atlas.nrrd',
+                     '000056.00002.001-atlas.nrrd',
+                     '000060.00001.002-atlas.nrrd',
+                     '000064.00003.001-atlas.nrrd',
+                     '000069.00001.001-atlas.nrrd',
+                     '000073.00002.001-atlas.nrrd',
+                     '000085.00002.001-atlas.nrrd',
+                     '000088.00002.001-atlas.nrrd']
 for i in range(len(probabilityMapAll)):
     probabilityMapAll[i] = os.path.join(probabilityMapDir, probabilityMapAll[i])
 
