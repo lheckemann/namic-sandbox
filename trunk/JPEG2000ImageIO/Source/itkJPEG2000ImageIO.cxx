@@ -468,21 +468,22 @@ void JPEG2000ImageIO::Read( void * buffer)
 
       const size_t numberOfPixels = sizex * sizey;
       const unsigned int numberOfComponents = this->GetNumberOfComponents();
-      const unsigned int sizePerComponent = l_data_size/( numberOfPixels * numberOfComponents );
-      const unsigned int sizePerChannel = l_data_size/( numberOfComponents );
+      const unsigned int sizePerComponentInBytes = l_data_size/( numberOfPixels * numberOfComponents );
+      const unsigned int sizePerChannelInBytes = l_data_size/( numberOfComponents );
 
+      //TODO: Read the void buffer within the tile ROI. How do we specify the tile ROI iteration
       for ( unsigned int k = 0; k < numberOfComponents; k++)
         {
         unsigned char * charBuffer = (unsigned char *)buffer;
-        charBuffer += k * sizePerComponent;
+        charBuffer += k * sizePerComponentInBytes;
 
-        for ( size_t j = 0; j < sizePerChannel; j++)
+        for ( size_t j = 0; j < sizePerChannelInBytes; j++)
           {
           *charBuffer = (unsigned char)(*l_data_ptr++);
+//           std::cout << static_cast<unsigned char>(*charBuffer) << ' ';
           charBuffer += numberOfComponents;
           }
         }
-      free(l_data);
       }
     }
 
@@ -490,6 +491,7 @@ void JPEG2000ImageIO::Read( void * buffer)
 
   if (! opj_end_decompress( this->m_Dinfo, l_stream ) )
     {
+    free(l_data);
     opj_stream_destroy( l_stream );
     fclose( l_file );
     opj_destroy_codec( this->m_Dinfo );
