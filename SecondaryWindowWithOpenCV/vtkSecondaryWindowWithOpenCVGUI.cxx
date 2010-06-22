@@ -1777,7 +1777,6 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             
         }// end of while
         
-        
 
         // 5/16/2010 ayamada
         //if(i==11 && deviceNum == 0){ // 6/22/2010 ayamada 
@@ -1788,8 +1787,8 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
 
 
     // 5/16/2010 ayamada
-//    if(capture[0] != NULL && capture[1] != NULL){ // 6/22/2010 ayamada
-        if(capture[0] != NULL){ // 6/22/2010 ayamada
+    if((capture[0] != NULL) && (capture[1] != NULL)){ // 6/22/2010 ayamada
+//        if(capture[0] != NULL){ // 6/22/2010 ayamada
         
         while(1){//10.01.20-komura
             
@@ -2117,7 +2116,13 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
         // 5/15/2010 ayamada
         cvReleaseCapture(&capture[0]);  
     }
-        
+
+    if(capture[1] != NULL){    
+        // 5/15/2010 ayamada
+        cvReleaseCapture(&capture[1]);  
+    }
+    
+    
     // 5/16/2010 ayamada
     pGUI->closeWindowFlag = 3;
         
