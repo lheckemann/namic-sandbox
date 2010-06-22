@@ -491,6 +491,15 @@ void vtkStereoCalibGUI::ProcessGUIEvents(vtkObject *caller,
       && event == vtkKWPushButton::InvokedEvent){
       if(this->SecondaryViewerWindow){
           this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
+
+          // 100622-komura
+          if(stereoOneWindowCheckButton->GetSelectedState() != 1){
+              this->SecondaryViewerWindow->changeSecondaryMonitorSize(640, 480);
+          }
+          else{
+              this->SecondaryViewerWindow->changeSecondaryMonitorSize(1280, 480);
+          }
+
           // if(makeThread == 0){  // 
           //     makeThread = 1;   // 
           //     std::cerr << "makeThread" << std::endl; // 
@@ -582,6 +591,8 @@ void vtkStereoCalibGUI::ProcessGUIEvents(vtkObject *caller,
               this->actor[1]->GetProperty()->SetColor(255, 255, 255);
               this->actor[0]->GetProperty()->SetColor(255, 255, 255);
 
+              this->SecondaryViewerWindow->changeSecondaryMonitorSize(1280, 480);   // 100622-komura
+
               if(this->SecondaryViewerWindow2x && makeThread != 0){
                   this->SecondaryViewerWindow2x->Withdraw();
               }
@@ -618,6 +629,9 @@ void vtkStereoCalibGUI::ProcessGUIEvents(vtkObject *caller,
               this->actor[1]->GetProperty()->SetColor(255, 255, 255);
               this->actor[0]->GetProperty()->SetColor(255, 255, 255);
               // this->SecondaryViewerWindow->MainFrame->SetBackgroundColor(255, 255, 255);
+
+              this->SecondaryViewerWindow->changeSecondaryMonitorSize(640, 480);   // 100622-komura
+
               if(this->SecondaryViewerWindow2x && makeThread != 0){
                   this->SecondaryViewerWindow2x->DisplayOnSecondaryMonitor();
               }
@@ -648,6 +662,9 @@ void vtkStereoCalibGUI::ProcessGUIEvents(vtkObject *caller,
               // 100618-komura
               this->actor[1]->GetProperty()->SetColor(0, 0, 255);
               this->actor[0]->GetProperty()->SetColor(255, 0, 0);
+
+              this->SecondaryViewerWindow->changeSecondaryMonitorSize(640, 480);   // 100622-komura
+
               
               if(this->SecondaryViewerWindow2x && makeThread != 0){
                   this->SecondaryViewerWindow2x->Withdraw();
@@ -774,6 +791,8 @@ void vtkStereoCalibGUI::BuildGUI ( )
                                       this->SecondaryViewerWindow2x->rw->GetWidgetName()); // 100616-komura
   this->SecondaryViewerWindow2x->Script("place %s -relx 0 -rely 0 -anchor nw -relwidth 0 -relheight 1", // 
                                       this->SecondaryViewerWindow2x->lw->GetWidgetName()); // 100616-komura
+  this->SecondaryViewerWindow2x->changeSecondaryMonitorSize(640, 480); // 100622-komura
+
 
 }
 

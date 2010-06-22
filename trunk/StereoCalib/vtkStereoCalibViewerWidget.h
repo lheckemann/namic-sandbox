@@ -28,7 +28,7 @@ public:
   vtkKWRenderWidget* lw;       // 100603-komura
   vtkKWRenderWidget* rw;
   vtkKWRenderWidget* mw;        // 100616-komura for mixture
-
+  void changeSecondaryMonitorSize(int, int); // 100622-komura
 
 protected:
   vtkStereoCalibViewerWidget();

@@ -91,7 +91,8 @@ void vtkStereoCalibViewerWidget::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkStereoCalibViewerWidget::UpdateSecondaryMonitorPoisition()
 {
-  this->SecondaryMonitorSize[0]=1280; // 5/7/2010 ayamada
+  // this->SecondaryMonitorSize[0]=1280; // 5/7/2010 ayamada
+  this->SecondaryMonitorSize[0]=640; // 100622-komura
   this->SecondaryMonitorSize[1]=480; // 5/7/2010 ayamada
 
 }
@@ -105,5 +106,16 @@ void vtkStereoCalibViewerWidget::DisplayOnSecondaryMonitor()
   this->UpdateSecondaryMonitorPoisition();
 
   this->SetSize(this->SecondaryMonitorSize[0], this->SecondaryMonitorSize[1]);
+
+}
+
+//100622-komura
+//----------------------------------------------------------------------------
+void vtkStereoCalibViewerWidget::changeSecondaryMonitorSize(int width, int height)
+{
+  this->SecondaryMonitorSize[0]=width;
+  this->SecondaryMonitorSize[1]=height;
+  this->SetSize(this->SecondaryMonitorSize[0], this->SecondaryMonitorSize[1]);
+
 
 }
