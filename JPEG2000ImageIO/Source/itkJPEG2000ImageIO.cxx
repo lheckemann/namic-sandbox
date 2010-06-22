@@ -40,6 +40,15 @@ JPEG2000ImageIO::JPEG2000ImageIO()
   this->SetNumberOfComponents(1);
 
   this->m_Dinfo = NULL;
+
+  this->m_TileWidth = 0;
+  this->m_TileHeight = 0;
+
+  this->m_TileStartX = 0;
+  this->m_TileStartY = 0;
+
+  this->m_NumberOfTilesInX = 0;
+  this->m_NumberOfTilesInY = 0;
 }
 
 JPEG2000ImageIO::~JPEG2000ImageIO()
@@ -196,6 +205,15 @@ void JPEG2000ImageIO::ReadImageInformation()
     itkExceptionMacro("Error while reading image header");
     }
 
+  this->m_TileStartX = l_tile_x0;
+  this->m_TileStartY = l_tile_y0;
+
+  this->m_TileWidth  = l_tile_width;
+  this->m_TileHeight = l_tile_height;
+
+  this->m_NumberOfTilesInX = l_nb_tiles_x;
+  this->m_NumberOfTilesInY = l_nb_tiles_y;
+
   std::cout << "Number of Components = " << l_image->numcomps << std::endl;
   this->SetNumberOfComponents(  l_image->numcomps );
 
@@ -213,12 +231,12 @@ void JPEG2000ImageIO::ReadImageInformation()
 
   std::cout << "bits per pixel = " << l_image->comps[0].prec << std::endl;
   std::cout << "Color space = " << l_image->color_space << std::endl;
-  std::cout << "l_tile_x0 = " << l_tile_x0 << std::endl;
-  std::cout << "l_tile_y0 = " << l_tile_y0 << std::endl;
-  std::cout << "l_tile_height = " << l_tile_height << std::endl;
-  std::cout << "l_tile_width = " << l_tile_width << std::endl;
-  std::cout << "l_nb_tiles_x = " << l_nb_tiles_x << std::endl;
-  std::cout << "l_nb_tiles_y = " << l_nb_tiles_y << std::endl;
+  std::cout << "Tile Start X = " << this->m_TileStartX << std::endl;
+  std::cout << "Tile Start Y = " << this->m_TileStartY << std::endl;
+  std::cout << "Tile Width = " << this->m_TileWidth << std::endl;
+  std::cout << "Tile Height = " << this->m_TileHeight << std::endl;
+  std::cout << "Number of Tiles X = " << this->m_NumberOfTilesInX << std::endl;
+  std::cout << "Number of Tiles Y = " << this->m_NumberOfTilesInY << std::endl;
 
   if ( ! l_image )
     {

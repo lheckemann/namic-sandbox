@@ -126,6 +126,15 @@ private:
 
   opj_codec_t *     m_Dinfo;
 
+  OPJ_UINT32        m_TileWidth;
+  OPJ_UINT32        m_TileHeight;
+
+  OPJ_UINT32        m_TileStartX;
+  OPJ_UINT32        m_TileStartY;
+
+  OPJ_UINT32        m_NumberOfTilesInX;
+  OPJ_UINT32        m_NumberOfTilesInY;
+
 };
 
 } // end namespace itk
