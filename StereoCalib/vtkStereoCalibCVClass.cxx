@@ -2,9 +2,9 @@
 #include <stdio.h>              
 #include <vector>
  #include <iostream>
-std::vector<CvPoint3D32f> objectPoints;
-std::vector<int> npoints;
-std::vector<CvPoint3D32f> lines[2];
+// std::vector<CvPoint3D32f> objectPoints; // 
+// std::vector<int> npoints;               //
+// std::vector<CvPoint3D32f> lines[2];     // 100621-komura
 std::vector<uchar> active[2];
 std::vector<CvPoint2D32f> points[2]; 
 
@@ -127,10 +127,7 @@ void vtkStereoCalibCVClass::stereoCalib(CvMat &_M12, CvMat &_M22, CvMat &_D12, C
     cvCopy(&_D2, &_D22);
 
     // 100621-komura
-    objectPoints.clear();
-    npoints.clear();
     for(int n=0;n<2;n++){
-        lines[n].clear();
         active[n].clear();
         points[n].clear(); 
     }
@@ -183,10 +180,7 @@ void vtkStereoCalibCVClass::monoCalib(CvMat &_M12, CvMat &_D12)//100603-komura
     cvCopy(&_D1_mono, &_D12); 
 
     // 100621-komura
-    objectPoints.clear();
-    npoints.clear();
     for(int n=0;n<2;n++){
-        lines[n].clear();
         active[n].clear();
         points[n].clear(); 
     } 
