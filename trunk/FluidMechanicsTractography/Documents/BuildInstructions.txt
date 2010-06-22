@@ -1,0 +1,7 @@
+
+Build Instructions for Mac OS X:
+
+Include the following CMake options:
+
+CMAKE_CXX_FLAGS: -w -fpermissive
+CMAKE_EXE_LINKER_FLAGS: -Wl,-dylib_file,/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib:/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib
