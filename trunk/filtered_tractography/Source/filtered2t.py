@@ -40,7 +40,7 @@ param = dict({'FA_min': .15,  # FA stopping threshold
               'dt': .2,     # forward Euler step size (path integration)
               'max_len': 250, # stop if fiber gets this long
               'min_radius': .87,  # stop if fiber curves this much
-              'seeds': 5, # how many seeds to spawn in each ROI voxel
+              'seeds': 3, # how many seeds to spawn in each ROI voxel
               'voxel': np.mat('1.70; 1.66; 1.66'), # voxel size (check your .nhdr file)
               # Kalman filter parameters
               'Qm': .0030,  # injected angular noise (probably leave untouched)
@@ -49,11 +49,14 @@ param = dict({'FA_min': .15,  # FA stopping threshold
               'P0': np.eye(10) / 100,}) # initial covariance (likely change this)
 
 # using this or the above had little effect
-# param['P0'] = np.mat(' 0.0076   -0.0001   -0.0000   -0.0002    0.0002;\
-#                       -0.0001    0.0059    0.0003   -0.0003    0.0003;\
-#                       -0.0000    0.0003    0.0065    0.0001    0.0004;\
-#                       -0.0002   -0.0003    0.0001  690.6269  -75.2103;\
-#                        0.0002    0.0003    0.0004  -75.2103  355.8088')
+P0 = np.mat(' 0.0076   -0.0001   -0.0000   -0.0002    0.0002;\
+             -0.0001    0.0059    0.0003   -0.0003    0.0003;\
+             -0.0000    0.0003    0.0065    0.0001    0.0004;\
+             -0.0002   -0.0003    0.0001  690.6269  -75.2103;\
+              0.0002    0.0003    0.0004  -75.2103  355.8088')
+param['P0'][:] = 0;
+param['P0'][0:5,0:5] = P0
+param['P0'][5:10,5:10] = P0
 
 def Execute(dwi_node, seeds_node, mask_node, ff_node):
     from Slicer import slicer
@@ -76,6 +79,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node):
     mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
     r2i = vtk2mat(dwi_node.GetRASToIJKMatrix, slicer)
     i2r = vtk2mat(dwi_node.GetIJKToRASMatrix, slicer)
+    param['voxel'] = np.mat(dwi_node.GetSpacing())[::-1].reshape(3,1)
 
     # tractography...
     ff = init(S, seeds, u, b, param)
@@ -205,12 +209,13 @@ def follow(S,u,b,mask,fiber,param):
 
         # terminate if off brain or in CSF
         is_brain = interp3scalar(mask,x,v) > .1
-        is_csf = fa < param['FA_min']
+        ga = s2ga(h_fn(X))
+        is_csf = ga < param['GA_min'] or fa < param['FA_min']
         is_curving = curve_radius(ff) < param['min_radius']
 
         if not is_brain or is_csf or len(ff) > param['max_len'] or is_curving :
-          if len(ff) > param['max_len'] : warnings.warn('wild fiber')
-          return ff
+            if len(ff) > param['max_len'] : warnings.warn('wild fiber')
+            return ff
 
         # record roughly once per voxel
         if ct == round(1.0/param['dt']):
@@ -344,17 +349,12 @@ def model_2tensor(u,b):
     h_fn = lambda X : model_2tensor_h(X,u,b)
     return f_fn,h_fn
 
-
-
-
 def model_2tensor_f(X):
     assert X.shape[0] == 10 and X.dtype == 'float64'
     m = X.shape[1]
     X = np.copy(X)
     flt.c_model_2tensor_f(X, m)
     return X
-
-
 
 def model_2tensor_h(X,u,b):
     assert X.shape[0] == 10 and X.dtype == 'float64' and u.dtype == 'float64'
@@ -363,9 +363,6 @@ def model_2tensor_h(X,u,b):
     s = np.empty((n,m), order='F') # preallocate output
     flt.c_model_2tensor_h(s, X, u, b, n, m)
     return s
-
-
-
 
 def state2tensor2(X, y=np.zeros(3)):
     assert X.shape[0] == 10 and X.shape[1] == 1 and X.dtype == 'float64'
