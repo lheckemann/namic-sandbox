@@ -1286,6 +1286,13 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
                 }
                 */
             }
+            
+            // 6/22/2010 ayamada
+            else if(this->stereoWindowCheckButton->GetSelectedState() == 0 ){
+                this->singleWindowCheckButton->SelectedStateOn();
+            }
+            
+            
             }
 
         else if (this->stereoWindowCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
@@ -1311,6 +1318,12 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
                  }
                  */
             }
+
+            // 6/22/2010 ayamada
+            else if(this->singleWindowCheckButton->GetSelectedState() == 0 ){
+                this->stereoWindowCheckButton->SelectedStateOn();
+            }
+            
         }
         
             
@@ -1636,11 +1649,19 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessTimerEvents()
             this->makeCameraThread("cameraThread"); // 5/5/2010 ayamada             
             this->runThread = 1;               
         }else{
+            
+            if(singleWindowCheckButton->GetSelectedState()){
+            
             if(updateView==1){    // 10.01.25 ayamada
                 this->SecondaryViewerWindow->rw->Render();//10.01.12-komura
             }
             if(secView==1){ // 5/5/2010 ayamada
                 this->SecondaryViewerWindow->rwLeft->Render();  // 5/5/2010 ayamada
+            }
+                
+            }// end of if about getselectedstate 6/22/2010 ayamada
+            else if(this->stereoWindowCheckButton->GetSelectedState()){
+                  this->SecondaryViewerWindow->rwLeft->Render();  // 5/5/2010 ayamada
             }
         }
     }
