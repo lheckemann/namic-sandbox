@@ -88,6 +88,7 @@ namespace douher
     typename WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( fileName );
     writer->SetInput(img);
+    writer->UseCompressionOn();
 
     try
       {
