@@ -58,9 +58,7 @@ public:
   virtual void HorizontalFlipCallback( bool value );
   
   virtual void Reset();
-  void LoadCalibrationButtonCallback();
-  void SaveCalibrationButtonCallback();
-
+  
   virtual void SuggestFileName();
 
   virtual void Validate();

@@ -815,9 +815,7 @@ void vtkPerkStationCalibrateStep::UpdateAutoScaleCallback()
 //----------------------------------------------------------------------------
 void
 vtkPerkStationCalibrateStep
-::ProcessKeyboardEvents( vtkObject *caller,
-                         unsigned long event,
-                         void *callData )
+::ProcessKeyboardEvents( vtkObject *caller, unsigned long event, void *callData )
 {
   if (    ! this->GetGUI()->GetMRMLNode()
        || ! this->GetGUI()->GetMRMLNode()->GetPlanningVolumeNode()
@@ -828,38 +826,23 @@ vtkPerkStationCalibrateStep
     }
   
   
-  // has to be when it is in 
+    // has to be when it is in 
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-  
-  if ( ! wizard_widget
+  if (    ! wizard_widget
        || wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this )
     {
     return;
     }
   
   
-  if ( this->ProcessingCallback )
-    {
-    return;
-    }
-  
+  if ( this->ProcessingCallback ) return;
   this->ProcessingCallback = true;
   
   
-  vtkSlicerInteractorStyle *style =
-    vtkSlicerInteractorStyle::SafeDownCast( caller );
-  /*
-  vtkSlicerInteractorStyle *istyle0 =
-    vtkSlicerInteractorStyle::SafeDownCast(
-      this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
-      GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->
-      GetInteractorStyle() );
-  */
+  vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast( caller );
   
   
     // Image calibration on second monitor with focus on Red Slice.
-  
-  // todo: handle keys "Up" "Down" etc.
   
   double stepSize = 0.8;
   
@@ -881,21 +864,9 @@ vtkPerkStationCalibrateStep
   this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation( translation );
   this->GetGUI()->GetMRMLNode()->SetSecondMonitorRotation( rotation );
   
+  this->UpdateGUI();
+  
   this->ProcessingCallback = false;
-}
-
-
-//-----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::LoadCalibrationButtonCallback()
-{
-  
-}
-
-
-//-----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::SaveCalibrationButtonCallback()
-{
-  
 }
 
 
@@ -971,12 +942,6 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
     }
   
   
-   // load reset components
-  if (this->LoadCalibrationFileButton)
-    {
-    this->LoadCalibrationFileButton->GetLoadSaveDialog()->AddObserver(
-      vtkKWTopLevel::WithdrawEvent, ( vtkCommand* )( this->WizardGUICallbackCommand ) );
-    }
   if (this->ResetCalibrationButton)
     {
     this->ResetCalibrationButton->AddObserver( vtkKWPushButton::InvokedEvent,
@@ -1144,7 +1109,7 @@ vtkPerkStationCalibrateStep
   vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
   
   
-    // Table entries changed.
+    // Table position entries changed.
   
   if ( this->TableOverlayEntry == vtkKWEntry::SafeDownCast( caller ) )
     {
@@ -1154,6 +1119,7 @@ vtkPerkStationCalibrateStep
       this->TableUpdateButton->SetBackgroundColor( 1.0, 0.8, 0.8 );
       }
     }
+  
   
     // Table update button pressed.
   
@@ -1187,7 +1153,7 @@ vtkPerkStationCalibrateStep
     }
   
   
-    // Continue only with valid MRMLPerkStation node.
+  // Continue only with valid MRMLPerkStation node. ----------------------------
   
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   
@@ -1215,7 +1181,7 @@ vtkPerkStationCalibrateStep
     this->UpdateGUI();
     }
   
-  if ( this->DeleteButton == vtkKWPushButton::SafeDownCast( caller )
+  if (    this->DeleteButton == vtkKWPushButton::SafeDownCast( caller )
        && ( event == vtkKWPushButton::InvokedEvent ) )
     {
     OverlayCalibration* cal = mrmlNode->GetCalibrationAtIndex( mrmlNode->GetCurrentCalibration() );
@@ -1242,49 +1208,6 @@ vtkPerkStationCalibrateStep
        && ( event == vtkKWPushButton::InvokedEvent ) )
     {
     this->Reset();
-    }
-  
-  
-    // load calib dialog button
-  
-  if ( this->LoadCalibrationFileButton
-       && this->LoadCalibrationFileButton->GetLoadSaveDialog()
-          == vtkKWLoadSaveDialog::SafeDownCast( caller )
-       && ( event == vtkKWTopLevel::WithdrawEvent ) )
-    {
-    const char *fileName = this->LoadCalibrationFileButton->GetLoadSaveDialog()->GetFileName();
-    if ( fileName ) 
-      {
-      this->CalibFileName = std::string( fileName );
-      this->LoadCalibrationButtonCallback();
-      }
-    // reset the file browse button text
-    this->LoadCalibrationFileButton->SetText ( "Load calibration" );
-    }
-  
-  
-    // save calib dialog button
-  
-  if ( this->SaveCalibrationFileButton
-       && this->SaveCalibrationFileButton->GetLoadSaveDialog()
-          == vtkKWLoadSaveDialog::SafeDownCast( caller )
-       && ( event == vtkKWTopLevel::WithdrawEvent ) )
-    {
-    const char *fileName = this->SaveCalibrationFileButton->
-                           GetLoadSaveDialog()->GetFileName();
-    if ( fileName ) 
-      {
-      this->CalibFileName = std::string(fileName) + ".xml";
-      
-        // get the file name and file path
-      this->SaveCalibrationFileButton->GetLoadSaveDialog()->
-            SaveLastPathToRegistry( "OpenPath" );
-        
-      // call the callback function
-      this->SaveCalibrationButtonCallback();
-      }
-    // reset the file browse button text
-    this->SaveCalibrationFileButton->SetText( "Save calibration" );
     }
   
   
@@ -1381,7 +1304,8 @@ vtkPerkStationCalibrateStep
   int rowIndex = this->CalibrationList->GetWidget()->GetIndexOfFirstSelectedRow();
   OverlayCalibration* cal = moduleNode->GetCalibrationAtIndex( rowIndex );
   
-  moduleNode->SetCurrentPlanIndex( rowIndex );
+  moduleNode->SetCurrentCalibrationIndex( rowIndex );
+  this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
 }
 
 
@@ -1422,17 +1346,15 @@ vtkPerkStationCalibrateStep
 {
   vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
   
-  if ( node == NULL )
-    {
-    return;
-    }
+  if ( node == NULL ) return; // No MRML node, no GUI update.
+  
+  this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
+  
+ 
+    // Update hardware list, only if it changed.
   
   this->HardwareMenu->GetWidget()->GetMenu()->DeleteAllItems();
-  
   std::vector< OverlayHardware > list = node->GetHardwareList();
-  
-    // Update hardware list only if it changed.
-  
   bool listChanged = false;
   if ( list.size() != this->HardwareMenu->GetWidget()->GetMenu()->
                       GetNumberOfItems() )
@@ -1455,66 +1377,66 @@ vtkPerkStationCalibrateStep
     {
     for ( unsigned int i = 0; i < list.size(); ++ i )
       {
-      this->HardwareMenu->GetWidget()->GetMenu()->
-              AddRadioButton( list[ i ].Name.c_str() );
+      this->HardwareMenu->GetWidget()->GetMenu()->AddRadioButton( list[ i ].Name.c_str() );
       }
     }
-  
-  // this->HardwareMenu->GetWidget()->SetValue( list[ 0 ].Name.c_str() );
-  // this->HardwareSelected( 0 );
   
   
     // Update calibration list.
   
-  if ( this->CalibrationList == NULL || this->CalibrationList->GetWidget() == NULL ) return;
-  
-  int numCals = node->GetNumberOfCalibrations();
-  
-  bool deleteFlag = true;
-  if ( numCals != this->CalibrationList->GetWidget()->GetNumberOfRows() )
+  bool updateCalibrationList = true;
+  if ( this->CalibrationList == NULL || this->CalibrationList->GetWidget() == NULL )
     {
-    this->CalibrationList->GetWidget()->DeleteAllRows();
-    }
-  else
-    {
-    deleteFlag = false;
+    updateCalibrationList = false;
     }
   
-  const int PRECISION_DIGITS = 1;
-  
-  for ( int row = 0; row < numCals; ++ row )
+  if ( updateCalibrationList )
     {
-    OverlayCalibration* cal = node->GetCalibrationAtIndex( row );
+    int numCals = node->GetNumberOfCalibrations();
     
-    if ( cal == NULL )
+    bool deleteFlag = true;
+    if ( numCals != this->CalibrationList->GetWidget()->GetNumberOfRows() )
       {
-      vtkErrorMacro( "ERROR: Calibration expected is NULL." );
-      return;
+      this->CalibrationList->GetWidget()->DeleteAllRows();
+      }
+    else
+      {
+      deleteFlag = false;
       }
     
-    if ( deleteFlag )
-      {
-      this->CalibrationList->GetWidget()->AddRow();
-      }
+    const int PRECISION_DIGITS = 1;
     
-    vtkKWMultiColumnList* colList = this->CalibrationList->GetWidget();
-    if ( deleteFlag || cal->Name.compare(
-           this->CalibrationList->GetWidget()->GetCellText( row, COL_NAME ) ) != 0 )
+    for ( int row = 0; row < numCals; ++ row )
       {
+      OverlayCalibration* cal = node->GetCalibrationAtIndex( row );
+      
+      if ( cal == NULL )
+        {
+        vtkErrorMacro( "ERROR: Calibration expected is NULL." );
+        return;
+        }
+      
+      if ( deleteFlag )
+        {
+        this->CalibrationList->GetWidget()->AddRow();
+        }
+      
+      vtkKWMultiColumnList* colList = this->CalibrationList->GetWidget();
+      if ( deleteFlag || cal->Name.compare(
+             this->CalibrationList->GetWidget()->GetCellText( row, COL_NAME ) ) != 0 )
+        {
+        }
+      
       colList->SetCellText( row, COL_NAME, cal->Name.c_str() );
-      colList->SetCellText( row, COL_TX,
-                            DoubleToString( cal->SecondMonitorTranslation[ 0 ] ).c_str() );
-      colList->SetCellText( row, COL_TY,
-                            DoubleToString( cal->SecondMonitorTranslation[ 1 ] ).c_str() );
-      colList->SetCellText( row, COL_RO,
-                            DoubleToString( cal->SecondMonitorRotation ).c_str() );
-      colList->SetCellText( row, COL_FV,
-                            BoolToString( cal->SecondMonitorVerticalFlip ).c_str() );
-      colList->SetCellText( row, COL_FH,
-                            BoolToString( cal->SecondMonitorHorizontalFlip ).c_str() );
-      }
-    } // for ( int row = 0; row < numPlans; ++ row )
-  
+      colList->SetCellText( row, COL_TX, DoubleToString( cal->SecondMonitorTranslation[ 0 ] ).c_str() );
+      colList->SetCellText( row, COL_TY, DoubleToString( cal->SecondMonitorTranslation[ 1 ] ).c_str() );
+      colList->SetCellText( row, COL_RO, DoubleToString( cal->SecondMonitorRotation ).c_str() );
+      colList->SetCellText( row, COL_FV, BoolToString( cal->SecondMonitorVerticalFlip ).c_str() );
+      colList->SetCellText( row, COL_FH, BoolToString( cal->SecondMonitorHorizontalFlip ).c_str() );
+      } // for ( int row = 0; row < numPlans; ++ row )
+    
+    this->CalibrationList->GetWidget()->SelectRow( node->GetCurrentCalibration() );
+    }
   
   this->PopulateControls();
 }
