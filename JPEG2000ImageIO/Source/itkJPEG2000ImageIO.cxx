@@ -214,6 +214,7 @@ void JPEG2000ImageIO::ReadImageInformation()
   this->m_NumberOfTilesInX = l_nb_tiles_x;
   this->m_NumberOfTilesInY = l_nb_tiles_y;
 
+
   std::cout << "Number of Components = " << l_image->numcomps << std::endl;
   this->SetNumberOfComponents(  l_image->numcomps );
 
@@ -856,16 +857,40 @@ GetHeaderSize(void ) const
 RequestedRegion */
 ImageIORegion
 JPEG2000ImageIO
-::GenerateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requested ) const
+::GenerateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const
 {
   std::cout << "JPEG2000ImageIO::GenerateStreamableReadRegionFromRequestedRegion()" << std::endl;
-  std::cout << "Requested region = " << requested << std::endl;
-  //
-  // JPEG2000 is the ultimate streamer.
-  //
-  ImageIORegion streamableRegion = requested;
+  std::cout << "Requested region = " << requestedRegion << std::endl;
 
-  std::cout << "StreamableRegion = " << streamableRegion << std::endl;
+  ImageIORegion streamableRegion(this->m_NumberOfDimensions);
+
+  if(!m_UseStreamedReading)
+    { 
+    for( unsigned int i=0; i < this->m_NumberOfDimensions; i++ )
+      {
+      streamableRegion.SetSize( i, this->m_Dimensions[i] );
+      streamableRegion.SetIndex( i, 0 );
+      }
+    }
+  else
+    {
+    //
+    // Compute the required set of tiles that fully contain the requested region 
+    //
+    typedef ImageIORegion::SizeValueType    SizeValueType;
+    typedef ImageIORegion::IndexValueType   IndexValueType;
+
+    for( unsigned int i=0; i < this->m_NumberOfDimensions; i++ )
+      {
+      SizeValueType sizeQuantizedInTileSize = requestedRegion.GetSize(i);
+      IndexValueType startQuantizedInTileSize = requestedRegion.GetIndex(i);
+
+      // Do quantization here...
+
+      streamableRegion.SetSize( i, sizeQuantizedInTileSize );
+      streamableRegion.SetIndex( i, startQuantizedInTileSize );
+      }
+    }
 
   return streamableRegion;
 }
