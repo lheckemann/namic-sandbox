@@ -135,6 +135,12 @@ private:
   OPJ_UINT32        m_NumberOfTilesInX;
   OPJ_UINT32        m_NumberOfTilesInY;
 
+  typedef ImageIORegion::SizeValueType    SizeValueType;
+  typedef ImageIORegion::IndexValueType   IndexValueType;
+
+  void ComputeRegionInTileBoundaries( unsigned int dimension, 
+    SizeValueType tileSize, ImageIORegion & streamableRegion ) const;
+
 };
 
 } // end namespace itk
