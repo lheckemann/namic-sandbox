@@ -64,7 +64,8 @@ reg_3d_affine_mi(typename fix_image_t::Pointer fixImg,         \
   initializer->SetTransform(   transform );
   initializer->SetFixedImage(  fixImg );
   initializer->SetMovingImage( movingImg );
-  initializer->MomentsOn();
+  //initializer->MomentsOn();
+  initializer->GeometryOn();
   initializer->InitializeTransform();
 
 
