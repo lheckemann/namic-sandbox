@@ -5,8 +5,12 @@
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkBinaryThresholdImageFilter.h"
 
 #include "walltime.h"
+
+
+#include <limits>
 
 int main(int argc, char** argv)
 {
@@ -98,10 +102,25 @@ int main(int argc, char** argv)
 
 
 
-  typedef itk::ImageFileWriter< SFLSRobustStatSegmentor3DProbMap_c::LSImageType > WriterType;
+  /* thld level set image to get binary output */
+  typedef itk::Image<unsigned char, 3> outputImage_t;
+  typedef itk::BinaryThresholdImageFilter<SFLSRobustStatSegmentor3DProbMap_c::LSImageType, \
+    outputImage_t> binaryThresholdImageFilter_t;
+
+  binaryThresholdImageFilter_t::Pointer thlder = binaryThresholdImageFilter_t::New();
+  thlder->SetInput(seg->mp_phi);
+  thlder->SetInsideValue(1);
+  thlder->SetOutsideValue(0);
+  thlder->SetUpperThreshold(0);
+  thlder->SetLowerThreshold(std::numeric_limits<SFLSRobustStatSegmentor3DProbMap_c::LSImageType::PixelType>::min());
+  thlder->Update();
+  
+
+  /* write out binary results */
+  typedef itk::ImageFileWriter< outputImage_t > WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( outputImage );
-  writer->SetInput(seg->mp_phi);
+  writer->SetInput(thlder->GetOutput());
 
   try
     {
