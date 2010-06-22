@@ -153,6 +153,7 @@
 
 //----
 class vtkKWPushButton;
+class vtkKWCheckButton;  // 6/22/2010 ayamada
 
 class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : public vtkSlicerModuleGUI
 {

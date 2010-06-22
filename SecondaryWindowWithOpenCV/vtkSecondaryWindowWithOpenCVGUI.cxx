@@ -627,14 +627,8 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
     volumeTransformMatrix->Delete();
     volumeTransformMatrix = NULL;
 */
-    
-    //----------------------------------------------------------------
-    // Unregister Logic class
-    
-    this->SetModuleLogic ( NULL );
-    
 
-
+    
     // second window checkbox
     // 6/22/2010 ayamada
     if (this->singleWindowCheckButton)
@@ -647,6 +641,16 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
         this->stereoWindowCheckButton->SetParent(NULL );
         this->stereoWindowCheckButton->Delete ( );
     }
+    
+    
+    
+    //----------------------------------------------------------------
+    // Unregister Logic class
+    
+    this->SetModuleLogic ( NULL );
+    
+
+
     
     //----
 }
@@ -934,8 +938,7 @@ void vtkSecondaryWindowWithOpenCVGUI::AddGUIObservers ( )
     ->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
     this->stereoWindowCheckButton
     ->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
-    
-    
+
   this->AddLogicObservers();
 
 }
@@ -1239,13 +1242,36 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         // --------------------------
         // make secondary window type
         // --------------------------
-        else if (this->singleWindowCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
-                 && event == vtkKWCheckButton::SelectedStateChangedEvent )
+
+        else if (this->stereoWindowCheckButton == vtkKWCheckButton::SafeDownCast(caller) && 
+                 event == vtkKWCheckButton::SelectedStateChangedEvent )
         {
+
+            this->singleWindowCheckButton->SelectedStateOff();            
+
+/*            
             int checked = this->singleWindowCheckButton->GetSelectedState();
-            if(checked == 1){
+            //if(checked == 1){
+            if(stereoWindowCheckButton->GetSelectedState()){
+                this->stereoWindowCheckButton->SelectedStateOff();            
+            }
+            
+            if (this->SecondaryViewerWindow)
+            {  
+                this->SecondaryViewerWindow->Withdraw();
+                // 5/16/2010
+                first = 0;
                 
-                this->singleWindowCheckButton->SelectedStateOn();
+            }
+           
+            this->SecondaryViewerWindow->Withdraw();
+            // 5/16/2010
+            first = 0;
+*/            
+        }
+                
+                /*
+                //this->singleWindowCheckButton->SelectedStateOn();
                 this->stereoWindowCheckButton->SelectedStateOff();
                
                 this->SecondaryViewerWindow->SetTitle ("3D Slicer -- Secondary Window -- ");
@@ -1255,7 +1281,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
                              this->SecondaryViewerWindow->rw->GetWidgetName());//10.01.25 ayamada
                 this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0.8 -anchor nw -relwidth 0.5 -relheight 0.2", 
                              this->SecondaryViewerWindow->rwLeft->GetWidgetName());
-                
+                */
                 /*
                  
                 // he write the build components directly?
@@ -1285,23 +1311,35 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
                     this->SecondaryViewerWindow2x->Withdraw();
                 }
                 */
-            }
+                
+                // 100618-komura
+                /*
+                std::cerr << this->actor[1]->GetProperty()->GetBackfaceCulling() << std::endl;
+                this->actor[1]->GetProperty()->SetColor(255, 255, 255);
+                this->actor[0]->GetProperty()->SetColor(255, 255, 255);
+                
+                this->SecondaryViewerWindow->changeSecondaryMonitorSize(1280, 480);   // 100622-komura
+*/
+                 /*
+                // 6/22/2010 ayamada
+                if(this->stereoWindowCheckButton->GetSelectedState() == 1 ){
+                    this->stereoWindowCheckButton->SelectedStateOff();
+                }
+  */              
+                
+   //         }
             
-            // 6/22/2010 ayamada
-            else if(this->stereoWindowCheckButton->GetSelectedState() == 0 ){
-                this->singleWindowCheckButton->SelectedStateOn();
-            }
             
             
-            }
-
+   ///         }
+/*
         else if (this->stereoWindowCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
                  && event == vtkKWCheckButton::SelectedStateChangedEvent )
         {
-            int checked = this->stereoWindowCheckButton->GetSelectedState();
-            if(checked == 1){
+            //int checked = this->stereoWindowCheckButton->GetSelectedState();
+            //if(checked == 1){
                 
-                this->stereoWindowCheckButton->SelectedStateOn();
+                //this->stereoWindowCheckButton->SelectedStateOn();
                 this->singleWindowCheckButton->SelectedStateOff();
                 
                 this->SecondaryViewerWindow->SetTitle ("3D Slicer -- Secondary Window -- ");
@@ -1317,15 +1355,19 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
                  this->SecondaryViewerWindow2x->Withdraw();
                  }
                  */
+      /*
+        }else {
+                this->stereoWindowCheckButton->SelectedStateOn();
             }
-
+*/
+/*
             // 6/22/2010 ayamada
             else if(this->singleWindowCheckButton->GetSelectedState() == 0 ){
                 this->stereoWindowCheckButton->SelectedStateOn();
             }
             
         }
-        
+  */      
             
        // -------------------------        
         
@@ -1645,6 +1687,10 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessTimerEvents()
 
             // 5/16/2010 ayamada
             this->closeWindowFlag = 1;
+            
+            // 6/22/2010 ayamada
+            this->singleWindowCheckButton->SelectedStateOn();            
+            this->stereoWindowCheckButton->SelectedStateOff();            
 
             this->makeCameraThread("cameraThread"); // 5/5/2010 ayamada             
             this->runThread = 1;               
@@ -1659,9 +1705,18 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessTimerEvents()
                 this->SecondaryViewerWindow->rwLeft->Render();  // 5/5/2010 ayamada
             }
                 
-            }// end of if about getselectedstate 6/22/2010 ayamada
-            else if(this->stereoWindowCheckButton->GetSelectedState()){
+            //    this->stereoWindowCheckButton->SelectedStateOff();
+            //    this->singleWindowCheckButton->SelectedStateOn();
+                
+            }
+            
+            // 6/22/2010 ayamada
+            if(this->stereoWindowCheckButton->GetSelectedState()){
                   this->SecondaryViewerWindow->rwLeft->Render();  // 5/5/2010 ayamada
+
+            //    this->singleWindowCheckButton->SelectedStateOff();                
+            //    this->stereoWindowCheckButton->SelectedStateOn();
+            
             }
         }
     }
