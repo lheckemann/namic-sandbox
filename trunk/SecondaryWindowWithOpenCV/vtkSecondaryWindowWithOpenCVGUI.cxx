@@ -2644,11 +2644,36 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForCaptureCameraImageFrame()
     vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
     frame->SetParent(conBrowsFrame->GetFrame());
     frame->Create();
-    frame->SetLabelText ("Secondary Window");
+    frame->SetLabelText ("Secondary Window Control");
+
+    // 6/22/2010 ayamada
+    vtkKWFrameWithLabel *frame2 = vtkKWFrameWithLabel::New();
+    frame2->SetParent(conBrowsFrame->GetFrame());
+    frame2->Create();
+    frame2->SetLabelText ("Secondary Window Mode");
+    
     this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", frame->GetWidgetName() );
+    this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", frame2->GetWidgetName() );
+
+    // --------------------------------------------
+    // secondaey window mode control check box
+    // 6/22/2010 ayamada
+    this->singleWindowCheckButton = vtkKWCheckButton::New();
+    this->singleWindowCheckButton->SetParent(frame2->GetFrame());
+    this->singleWindowCheckButton->Create();
+    this->singleWindowCheckButton->SelectedStateOn();
+    this->singleWindowCheckButton->SetText("For Single Camera");
     
-    
-    
+    this->stereoWindowCheckButton = vtkKWCheckButton::New();
+    this->stereoWindowCheckButton->SetParent(frame2->GetFrame());
+    this->stereoWindowCheckButton->Create();
+    this->stereoWindowCheckButton->SelectedStateOff();
+    this->stereoWindowCheckButton->SetText("For Stereo Camera");
+        
+    this->Script("pack %s %s -side left -padx 2 -pady 2", 
+                 this->singleWindowCheckButton->GetWidgetName(),
+                 this->stereoWindowCheckButton->GetWidgetName());  
+
     // -----------------------------------------
     // Test push button
     
