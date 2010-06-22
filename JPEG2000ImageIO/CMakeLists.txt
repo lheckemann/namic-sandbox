@@ -74,6 +74,12 @@ CONFIGURE_FILE(
 #
 FIND_PATH(JPEG2000_DATA_ROOT COPYRIGHT)
 
+#
+#  Datasets from:
+#  https://www.sdms.afrl.af.mil/datasets/clif2007/
+#
+FIND_PATH(CLIF2007_DATA_ROOT mosaic_im100010_05.jp2)
+
 
 ADD_SUBDIRECTORY( Source )
 ADD_SUBDIRECTORY( Testing )
