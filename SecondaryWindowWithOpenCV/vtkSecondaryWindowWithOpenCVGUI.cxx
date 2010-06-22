@@ -1242,12 +1242,22 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         // --------------------------
         // make secondary window type
         // --------------------------
-
-        else if (this->stereoWindowCheckButton == vtkKWCheckButton::SafeDownCast(caller) && 
+    }
+    
+    
+    else if (this->stereoWindowCheckButton == vtkKWCheckButton::SafeDownCast(caller) && 
                  event == vtkKWCheckButton::SelectedStateChangedEvent )
+    {
+        
+        if(this->stereoWindowCheckButton->GetSelectedState() == 1)
         {
-
-            this->singleWindowCheckButton->SelectedStateOff();            
+            this->singleWindowCheckButton->SelectedStateOff();
+        }else if(this->stereoWindowCheckButton->GetSelectedState() == 0)
+        {
+            this->singleWindowCheckButton->SelectedStateOn();
+            this->stereoWindowCheckButton->SelectedStateOff();
+        }
+            //this->stereoWindowCheckButton->SelectedStateOn();            
 
 /*            
             int checked = this->singleWindowCheckButton->GetSelectedState();
@@ -1269,6 +1279,45 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             first = 0;
 */            
         }
+
+    else if (this->singleWindowCheckButton == vtkKWCheckButton::SafeDownCast(caller) && 
+             event == vtkKWCheckButton::SelectedStateChangedEvent )
+    {
+        
+        if(this->singleWindowCheckButton->GetSelectedState() == 1)
+        {
+            this->stereoWindowCheckButton->SelectedStateOff();
+        }else if(this->singleWindowCheckButton->GetSelectedState() == 0)
+        {
+            this->stereoWindowCheckButton->SelectedStateOn();
+            this->singleWindowCheckButton->SelectedStateOff();
+        }
+        
+        
+        //this->singleWindowCheckButton->SelectedStateOn();            
+        
+        /*            
+         int checked = this->singleWindowCheckButton->GetSelectedState();
+         //if(checked == 1){
+         if(stereoWindowCheckButton->GetSelectedState()){
+         this->stereoWindowCheckButton->SelectedStateOff();            
+         }
+         
+         if (this->SecondaryViewerWindow)
+         {  
+         this->SecondaryViewerWindow->Withdraw();
+         // 5/16/2010
+         first = 0;
+         
+         }
+         
+         this->SecondaryViewerWindow->Withdraw();
+         // 5/16/2010
+         first = 0;
+         */            
+    }
+    
+    
                 
                 /*
                 //this->singleWindowCheckButton->SelectedStateOn();
@@ -1370,7 +1419,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
   */      
             
        // -------------------------        
-        
+ /*       
         else
         {
             return;
@@ -1378,7 +1427,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         //return;
 
  } 
-    
+ */   
     
     // to get the rotation angle from scale widget and to apply the value to the rendering volume
     // adding at 09. 9. 8 - smkim
@@ -1689,8 +1738,8 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessTimerEvents()
             this->closeWindowFlag = 1;
             
             // 6/22/2010 ayamada
-            this->singleWindowCheckButton->SelectedStateOn();            
-            this->stereoWindowCheckButton->SelectedStateOff();            
+            //this->singleWindowCheckButton->SelectedStateOn();            
+            //this->stereoWindowCheckButton->SelectedStateOff();            
 
             this->makeCameraThread("cameraThread"); // 5/5/2010 ayamada             
             this->runThread = 1;               
