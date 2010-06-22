@@ -1680,8 +1680,10 @@ int vtkSecondaryWindowWithOpenCVGUI::makeCameraThread(const char* nodeName)
 void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
 {
 
+    int deviceNum = 0; // 6/21/2010 ayamada
+    
     // 5/15/ayamada
-    CvCapture* capture;
+    CvCapture* capture[2];
     
     char bufCamera[100],bufCamera1[100];
     
@@ -1723,7 +1725,8 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     int i=0;
     
     if(first == 0){
-        
+
+        /*
         while(i<=10){// 5/16/2010 ayamada
             if( (NULL==(capture = cvCaptureFromCAM(i))))    // 10.01.25 ayamada
             {
@@ -1735,7 +1738,22 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
                 pGUI->textActorCamera->SetInput(bufCamera);
                 break;
             }
-       }
+         */
+        
+            while(i<=10){// 5/16/2010 ayamada
+                if( (NULL==(capture[deviceNum] = cvCaptureFromCAM(i))))    // 10.01.25 ayamada
+                {
+                    fprintf(stdout, "\n\nCan Not Find A Camera\n\n");    // 10.01.25 ayamada
+                    i++;                
+                }else{
+                    // 5/16/2010 ayamada
+                    sprintf(bufCamera, "Connected Camera Device No: %d",i);
+                    pGUI->textActorCamera->SetInput(bufCamera);
+                    break;
+                }
+                
+        
+        }
 
         // 5/16/2010 ayamada
         if(i==11){
@@ -1745,12 +1763,12 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
 
 
     // 5/16/2010 ayamada
-    if(capture != NULL){
+    if(capture[0] != NULL){
         
         while(1){//10.01.20-komura
             
             // 5/15/2010 ayamada
-            if(NULL == (captureImageTmp = cvQueryFrame( capture ))){
+            if(NULL == (captureImageTmp = cvQueryFrame( capture[0] ))){
 
                 sleep(2);    // 5/18/2010 ayamada
 
@@ -1952,7 +1970,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
      // 5/11/2010 ayamada
     while(pGUI->closeWindowFlag==1){
 
-        if(capture != NULL){    // 5/16/2010 ayamada
+        if(capture[0] != NULL){    // 5/16/2010 ayamada
         
         // 5/6/2010 ayamada for videoOverlay
         if ( pGUI->m_bDriveSource == false )    // driven by manual
@@ -1983,7 +2001,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
         
             
     // 5/15/2010 ayamada
-    captureImageTmp = cvQueryFrame( capture );    // 10.01.23 ayamada
+    captureImageTmp = cvQueryFrame( capture[0] );    // 10.01.23 ayamada
 ////        pGUI->imageSize = cvGetSize( pGUI->captureImageTmp );
         
         cvFlip(captureImageTmp, captureImage, 0);        
@@ -2069,9 +2087,9 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     cvReleaseImage(&captureImageTmp);        
 */
     
-    if(capture != NULL){    
+    if(capture[0] != NULL){    
         // 5/15/2010 ayamada
-        cvReleaseCapture(&capture);  
+        cvReleaseCapture(&capture[0]);  
     }
         
     // 5/16/2010 ayamada

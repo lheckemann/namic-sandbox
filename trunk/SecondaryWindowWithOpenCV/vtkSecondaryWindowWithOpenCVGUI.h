@@ -280,6 +280,7 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
 
     // 5/15/2010 ayamada
     CvCapture* capture;
+//    CvCapture* capture[2]; // 6/21/2010 ayamada
     vtkPlaneSource *planeSource;
     vtkPolyDataMapper *planeMapper;
     
