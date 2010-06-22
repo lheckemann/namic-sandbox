@@ -1740,30 +1740,54 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             }
          */
         
-            while(i<=10){// 5/16/2010 ayamada
+            while(i<=10){// 6/20/2010 ayamada
                 if( (NULL==(capture[deviceNum] = cvCaptureFromCAM(i))))    // 10.01.25 ayamada
                 {
-                    fprintf(stdout, "\n\nCan Not Find A Camera\n\n");    // 10.01.25 ayamada
+                    fprintf(stdout, "\n\nCan Not Find A First Camera\n\n");    // 10.01.25 ayamada
                     i++;                
                 }else{
                     // 5/16/2010 ayamada
-                    sprintf(bufCamera, "Connected Camera Device No: %d",i);
+                    sprintf(bufCamera, "Connected A First Camera Device No: %d",i);
                     pGUI->textActorCamera->SetInput(bufCamera);
+                    
+                    deviceNum = 1;
+                    i++;
+                    
                     break;
                 }
                 
         
-        }
+            }// end of while
+
+        while(i<=10){// 6/22/2010 ayamada
+            if( (NULL==(capture[deviceNum] = cvCaptureFromCAM(i))))    // 10.01.25 ayamada
+            {
+                fprintf(stdout, "\n\nCan Not Find A Second Camera\n\n");    // 10.01.25 ayamada
+                i++;                
+            }else{
+                // 5/16/2010 ayamada
+                sprintf(bufCamera, "Connected A Second Camera Device No: %d",i);
+                pGUI->textActorCamera->SetInput(bufCamera);
+
+                deviceNum = 2; // 6/22/2010 ayamada
+
+                break;
+            }
+            
+            
+        }// end of while
+        
+        
 
         // 5/16/2010 ayamada
-        if(i==11){
+        if(i==11 && deviceNum == 0){ // 6/22/2010 ayamada 
             sprintf(bufCamera, "Can Not Find Camera Device!!");
             pGUI->textActorCamera->SetInput(bufCamera);
         }
 
 
     // 5/16/2010 ayamada
-    if(capture[0] != NULL){
+    if((capture[0] && capture[1]) != NULL){ // 6/22/2010 ayamada
         
         while(1){//10.01.20-komura
             
