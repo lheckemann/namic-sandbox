@@ -1751,14 +1751,14 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
                     pGUI->textActorCamera->SetInput(bufCamera);
                     
                     deviceNum = 1;
-                    i++;
+                    //i++; // if i++, the viewer can not obtain the image!!
                     
                     break;
                 }
                 
         
             }// end of while
-
+/*
         while(i<=10){// 6/22/2010 ayamada
             if( (NULL==(capture[deviceNum] = cvCaptureFromCAM(i))))    // 10.01.25 ayamada
             {
@@ -1776,7 +1776,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             
             
         }// end of while
-        
+  */      
         
 
         // 5/16/2010 ayamada
@@ -1787,7 +1787,8 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
 
 
     // 5/16/2010 ayamada
-    if((capture[0] && capture[1]) != NULL){ // 6/22/2010 ayamada
+//    if(capture[0] != NULL && capture[1] != NULL){ // 6/22/2010 ayamada
+        if(capture[0] != NULL){ // 6/22/2010 ayamada
         
         while(1){//10.01.20-komura
             
@@ -1947,7 +1948,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     
     // 5/6/2010 ayamada for videoOverlay
     // 10.01.24 ayamada
-    pGUI->actor[0]->SetTexture(pGUI->atext[i]);        // texture mapper
+    pGUI->actor[0]->SetTexture(pGUI->atext[0]);        // texture mapper
     //this->Actor->GetProperty()->SetOpacity(1.0);// configuration property
     //this->SecondaryViewerWindow->rw->AddViewProp(this->Actor);
     // 5/8/2010 ayamada
