@@ -11,10 +11,29 @@ include(${OpenIGTLink_USE_FILE})
 
 find_program(MEX_COMPILER mex)
 
+
+### Compiler (Matlab or Octave)
 # if MEX_COMPILER is mkoctfile (for Octave)
 if (MEX_COMPILER MATCHES mkoctfile$)
   set(MEX_OPTION --mex -g)
 endif (MEX_COMPILER MATCHES mkoctfile$)
+
+
+### Platform specific option
+IF(OpenIGTLink_PLATFORM_WIN32) # for Windows
+  SET(LINK_LIBS
+    -lws2_32
+    -lwsock32
+  )
+ELSE(OpenIGTLink_PLATFORM_WIN32) # for POSIX-compatible OSs
+  SET(LINK_LIBS
+  )
+  IF(OpenIGTLink_PLATFORM_SUNOS)
+    SET(LINK_LIBS
+    )
+  ENDIF(OpenIGTLink_PLATFORM_SUNOS)
+ENDIF(OpenIGTLink_PLATFORM_WIN32)
+
 
 set(OpenIGTLinkMex_SOURCES
   igtlMexClientSocket.cpp
@@ -46,6 +65,7 @@ set(LIBDIR
 set(LIB
   -lOpenIGTLink
   -lOpenIGTLinkMex
+  ${LINK_LIBS}
 )
 
 
