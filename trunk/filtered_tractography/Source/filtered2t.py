@@ -34,13 +34,15 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
 import numpy as np
 import warnings
 import filtered_ext as flt
+import pdb
+import time
 
 param = dict({'FA_min': .15,  # FA stopping threshold
               'GA_min': .1,  # generalized anisotropy stopping threshold
               'dt': .2,     # forward Euler step size (path integration)
               'max_len': 250, # stop if fiber gets this long
               'min_radius': .87,  # stop if fiber curves this much
-              'seeds': 3, # how many seeds to spawn in each ROI voxel
+              'seeds': 10, # how many seeds to spawn in each ROI voxel
               'voxel': np.mat('1.70; 1.66; 1.66'), # voxel size (check your .nhdr file)
               # Kalman filter parameters
               'Qm': .0030,  # injected angular noise (probably leave untouched)
@@ -49,14 +51,14 @@ param = dict({'FA_min': .15,  # FA stopping threshold
               'P0': np.eye(10) / 100,}) # initial covariance (likely change this)
 
 # using this or the above had little effect
-P0 = np.mat(' 0.0076   -0.0001   -0.0000   -0.0002    0.0002;\
-             -0.0001    0.0059    0.0003   -0.0003    0.0003;\
-             -0.0000    0.0003    0.0065    0.0001    0.0004;\
-             -0.0002   -0.0003    0.0001  690.6269  -75.2103;\
-              0.0002    0.0003    0.0004  -75.2103  355.8088')
-param['P0'][:] = 0;
-param['P0'][0:5,0:5] = P0
-param['P0'][5:10,5:10] = P0
+# P0 = np.mat(' 0.0076   -0.0001   -0.0000   -0.0002    0.0002;\
+#              -0.0001    0.0059    0.0003   -0.0003    0.0003;\
+#              -0.0000    0.0003    0.0065    0.0001    0.0004;\
+#              -0.0002   -0.0003    0.0001  690.6269  -75.2103;\
+#               0.0002    0.0003    0.0004  -75.2103  355.8088')
+# param['P0'][:] = 0;
+# param['P0'][0:5,0:5] = P0
+# param['P0'][5:10,5:10] = P0
 
 def Execute(dwi_node, seeds_node, mask_node, ff_node):
     from Slicer import slicer
@@ -83,9 +85,11 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node):
 
     # tractography...
     ff = init(S, seeds, u, b, param)
+    t1 = time.time()
     for i in range(0,len(ff)):
         print '[%3.0f%%] (%7d - %7d)' % (100.0*i/len(ff), i, len(ff))
         ff[i] = follow(S,u,b,mask,ff[i],param)
+    print 'time: ', time.time() - t1
 
     # build polydata
     pts = slicer.vtkPoints()
@@ -250,7 +254,7 @@ def init(S, seeds, u, b, param):
     # {position, direction, lambda, covariance, FA}
     mmll = map(unpack_tensor, dd)
     P0 = np.mat(param['P0'])
-    ff = map(lambda p,(m,l) : (p,m,l,P0,l2fa(l)), pp, mmll)
+    ff = map(lambda p,(m,l) : (p,m,l,P0,iff(l[0]>=l[1],l2fa(l),0)), pp, mmll)
 
     # filter out only high-FA tensors
     fa_min = param['FA_min']
@@ -390,6 +394,7 @@ def s2ga(s):
 
 
 def interp3signal(S, p, v=np.ones(3)):
+    v = np.ones(3)
     assert S.ndim == 4 and S.dtype == 'float32'
     nx,ny,nz,n = S.shape
     s = np.zeros((2*n,), dtype='float32')  # preallocate output (doubled)
