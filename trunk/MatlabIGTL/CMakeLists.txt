@@ -70,7 +70,7 @@ set(INCDIR
 )
 
 set(LIBDIR
-  -L${OpenIGTLink_DIR}/bin
+  -L${OpenIGTLink_LIBRARY_DIRS}
   -L${CMAKE_CURRENT_BINARY_DIR}
 )
 
