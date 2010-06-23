@@ -309,6 +309,17 @@ void vtkSlicerSecondaryViewerWindow::DisplayOnSecondaryMonitor()
 
 }
 
+//100622-komura
+//----------------------------------------------------------------------------
+void vtkSlicerSecondaryViewerWindow::changeSecondaryMonitorSize(int width, int height)
+{
+    this->SecondaryMonitorSize[0]=width;
+    this->SecondaryMonitorSize[1]=height;
+    this->SetSize(this->SecondaryMonitorSize[0], this->SecondaryMonitorSize[1]);
+        
+}
+
+
 
 //void vtkSlicerSecondaryViewerWindow::SetCurrentTarget(vtkTRProstateBiopsyTargetDescriptor* target)
 //{
