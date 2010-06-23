@@ -101,7 +101,7 @@ add_custom_command (
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
   ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlclose.cpp
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlclose.cpp OpenIGTLinkMex
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlclose.cpp
 )
 add_dependencies(igtlclose OpenIGTLinkMex)
 
@@ -110,7 +110,7 @@ add_custom_command (
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
   ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlsend.cpp
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtsend.cpp OpenIGTLinkMex
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtsend.cpp
 )
 add_dependencies(igtlsend OpenIGTLinkMex)
 
@@ -119,7 +119,7 @@ add_custom_command (
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
   ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlreceive.cpp
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlreceive.cpp OpenIGTLinkMex
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlreceive.cpp
 )
 add_dependencies(igtlreceive OpenIGTLinkMex)
 
@@ -128,6 +128,6 @@ add_custom_command (
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
   ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlwaitcon.cpp
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlreceive.cpp OpenIGTLinkMex
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlreceive.cpp
 )
 add_dependencies(igtlwaitcon OpenIGTLinkMex)
