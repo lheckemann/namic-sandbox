@@ -139,7 +139,6 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     actor[i] = vtkActor::New();
     }
 
-    capture = NULL;
     planeSource = vtkPlaneSource::New();
     planeMapper = vtkPolyDataMapper::New();
 
@@ -225,8 +224,8 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     //captureImageTmp = NULL;
     //undistortionImage = NULL;
     
-    intrinsicMatrix = cvCreateMat( 3, 3, CV_64FC1 );    // initialization of intrinsic matrix    //adding at 09. 12. 15 - smkim
-    distortionCoefficient = cvCreateMat( 4, 1, CV_64FC1 );    // initialization of distortion coefficient    //adding at 09. 12. 15 - smkim
+//    intrinsicMatrix = cvCreateMat( 3, 3, CV_64FC1 );    // initialization of intrinsic matrix    //adding at 09. 12. 15 - smkim
+//    distortionCoefficient = cvCreateMat( 4, 1, CV_64FC1 );    // initialization of distortion coefficient    //adding at 09. 12. 15 - smkim
     
     /*
      //    for microscope
@@ -254,32 +253,40 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     //    for endoscope
     // Setting element value of intrinsic matrix
     //    cvSetIdentity( intrinsicMatrix );
-    cvmSet( intrinsicMatrix, 0, 0, 906.759458 );
-    cvmSet( intrinsicMatrix, 0, 1, 0.0 );
-    cvmSet( intrinsicMatrix, 0, 2, 299.418431 );
+
+    for(int k = 0; k<2; k++)
+    {
+        intrinsicMatrix[k] = cvCreateMat( 3, 3, CV_64FC1 );    // initialization of intrinsic matrix    //adding at 09. 12. 15 - smkim
+        distortionCoefficient[k] = cvCreateMat( 4, 1, CV_64FC1 );    // initialization of distortion coefficient    //adding at 09. 12. 15 - smkim
+        
+        
+    cvmSet( intrinsicMatrix[k], 0, 0, 906.759458 );
+    cvmSet( intrinsicMatrix[k], 0, 1, 0.0 );
+    cvmSet( intrinsicMatrix[k], 0, 2, 299.418431 );
     
-    cvmSet( intrinsicMatrix, 1, 0, 0.0 );
-    cvmSet( intrinsicMatrix, 1, 1, 895.109642 );
-    cvmSet( intrinsicMatrix, 1, 2, 178.543373 );
+    cvmSet( intrinsicMatrix[k], 1, 0, 0.0 );
+    cvmSet( intrinsicMatrix[k], 1, 1, 895.109642 );
+    cvmSet( intrinsicMatrix[k], 1, 2, 178.543373 );
     
-    cvmSet( intrinsicMatrix, 2, 0, 0.0 );
-    cvmSet( intrinsicMatrix, 2, 1, 0.0 );
-    cvmSet( intrinsicMatrix, 2, 2, 1.0 );
+    cvmSet( intrinsicMatrix[k], 2, 0, 0.0 );
+    cvmSet( intrinsicMatrix[k], 2, 1, 0.0 );
+    cvmSet( intrinsicMatrix[k], 2, 2, 1.0 );
     
     // Setting element value of distortion coefficient
-    cvmSet( distortionCoefficient, 0, 0, -0.747239 );
-    cvmSet( distortionCoefficient, 1, 0, 0.521642 );
-    cvmSet( distortionCoefficient, 2, 0, -0.003403 );
-    cvmSet( distortionCoefficient, 3, 0, 0.002532 );
-    
+    cvmSet( distortionCoefficient[k], 0, 0, -0.747239 );
+    cvmSet( distortionCoefficient[k], 1, 0, 0.521642 );
+    cvmSet( distortionCoefficient[k], 2, 0, -0.003403 );
+    cvmSet( distortionCoefficient[k], 3, 0, 0.002532 );
+    }
     // calculating focal point with intrinsic matrix
     // adding at 10. 02. 22 - smkim
-    focal_point_x = (VIEW_SIZE_X / 2.0) - cvmGet(intrinsicMatrix, 0, 2);    //299.418431;    //intrinsicMatrix->GetElement(0, 2);
-    focal_point_y = (VIEW_SIZE_Y / 2.0) - cvmGet(intrinsicMatrix, 1, 2);    //178.543373;    //intrinsicMatrix->GetElement(1, 2);
+    focal_point_x = (VIEW_SIZE_X / 2.0) - cvmGet(intrinsicMatrix[0], 0, 2);    //299.418431;    //intrinsicMatrix->GetElement(0, 2);
+    focal_point_y = (VIEW_SIZE_Y / 2.0) - cvmGet(intrinsicMatrix[0], 1, 2);    //178.543373;    //intrinsicMatrix->GetElement(1, 2);
     
     focal_length = FOCAL_LENGTH;
         
-    capture = NULL;
+    capture[0] = NULL;
+    capture[1] = NULL;
     
     
     // Timer Handling
@@ -1466,7 +1473,8 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         {
 
         // 6/10/2010 ayamada
-            this->distortionCoefficient = (CvMat*) cvLoad(filepath);    
+            this->distortionCoefficient[0] = (CvMat*) cvLoad(filepath);    
+            this->distortionCoefficient[1] = (CvMat*) cvLoad(filepath);    
             
         /*    
             ifstream ldstream;            //file input stream        
@@ -1531,19 +1539,22 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             */
             
             // 6/10/2010 ayamada
-            this->intrinsicMatrix = (CvMat*) cvLoad(filepath);                
+            for(int k = 0; k<2; k++)
+            {
+            this->intrinsicMatrix[k] = (CvMat*) cvLoad(filepath);                
                         
             // calculating focal point with intrinsic matrix
             // adding at 10. 02. 22 - smkim
-            this->focal_point_x = (VIEW_SIZE_X / 2.0) - cvmGet(this->intrinsicMatrix, 0, 2);
-            this->focal_point_y = (VIEW_SIZE_Y / 2.0) - cvmGet(this->intrinsicMatrix, 1, 2);
+            this->focal_point_x = (VIEW_SIZE_X / 2.0) - cvmGet(this->intrinsicMatrix[k], 0, 2);
+            this->focal_point_y = (VIEW_SIZE_Y / 2.0) - cvmGet(this->intrinsicMatrix[k], 1, 2);
             
             //this->focal_length = (m_dIntrinsicParameter[0][0] + m_dIntrinsicParameter[1][1]) / 2.0;
             // 6/10/2010 ayamada
-            this->focal_length = (cvmGet(this->intrinsicMatrix, 0, 0) + cvmGet(this->intrinsicMatrix, 1, 1)) / 2.0;
+            this->focal_length = (cvmGet(this->intrinsicMatrix[k], 0, 0) + cvmGet(this->intrinsicMatrix[k], 1, 1)) / 2.0;
             
             // 6/13/2010 ayamada
             this->undistortionFlag = 1;
+            }
         }
         
     }
@@ -1917,20 +1928,22 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     char bufCamera[100],bufCamera1[100];
     
     // 5/15/2010 ayamada
-    IplImage*    captureImage;
-    IplImage*    RGBImage;
-    IplImage*    captureImageTmp;
-    IplImage*    undistortionImage;    //adding at 09. 12. 15 - smkim
+    IplImage*    captureImage[2];
+    IplImage*    RGBImage[2];
+    IplImage*    captureImageTmp[2];
+    IplImage*    undistortionImage[2];    //adding at 09. 12. 15 - smkim
 
     // 6/6/2010 ayamada
     CvMat* mx1;
     CvMat* my1;    
     
-    captureImage = NULL;
-    RGBImage = NULL;
-    captureImageTmp = NULL;
-    undistortionImage = NULL;
-    
+    for(int j = 0; j<2; j++)
+    {
+    captureImage[j] = NULL;
+    RGBImage[j] = NULL;
+    captureImageTmp[j] = NULL;
+    undistortionImage[j] = NULL;
+    }
     
     vtkMultiThreader::ThreadInfo* vinfo = 
     static_cast<vtkMultiThreader::ThreadInfo*>(t);
@@ -1978,6 +1991,9 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
                     // 5/16/2010 ayamada
                     sprintf(bufCamera, "Connected A First Camera Device No: %d",i);
                     pGUI->textActorCamera->SetInput(bufCamera);
+
+                    fprintf(stdout, "Connected A First Camera Device\n\n");    // 6/22/2010 ayamada
+
                     
                     deviceNum = 1;
                     i++; // if i++, the viewer can not obtain the image!!
@@ -1998,6 +2014,9 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
                 sprintf(bufCamera, "Connected A Second Camera Device No: %d",i);
                 pGUI->textActorCamera->SetInput(bufCamera);
 
+                fprintf(stdout, "Connected A Second Camera Device\n\n");    // 6/22/2010 ayamada
+
+                
                 deviceNum = 2; // 6/22/2010 ayamada
 
                 break;
@@ -2005,7 +2024,6 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             
             
         }// end of while
-        
 
         // 5/16/2010 ayamada
         //if(i==11 && deviceNum == 0){ // 6/22/2010 ayamada 
@@ -2016,13 +2034,16 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
 
 
     // 5/16/2010 ayamada
-    if((capture[0] != NULL) && (capture[1] != NULL)){ // 6/22/2010 ayamada
+//    if((capture[0] != NULL) && (capture[1] != NULL)){ // 6/22/2010 ayamada
 //        if(capture[0] != NULL){ // 6/22/2010 ayamada
+        
+        for(int n=0;n<deviceNum;n++){   // 6/22/2010 ayamada
+            if(capture[n] != NULL){        
         
         while(1){//10.01.20-komura
             
             // 5/15/2010 ayamada
-            if(NULL == (captureImageTmp = cvQueryFrame( capture[0] ))){
+            if(NULL == (captureImageTmp[n] = cvQueryFrame( capture[n] ))){
 
                 sleep(2);    // 5/18/2010 ayamada
 
@@ -2032,43 +2053,43 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             }        
             
             // 5/6/2010 ayamada creating RGB image and capture image
-            pGUI->imageSize = cvGetSize( captureImageTmp );
-            captureImage = cvCreateImage(pGUI->imageSize, IPL_DEPTH_8U,3);    
-            RGBImage = cvCreateImage(pGUI->imageSize, IPL_DEPTH_8U, 3);    
+            pGUI->imageSize = cvGetSize( captureImageTmp[n] );
+            captureImage[n] = cvCreateImage(pGUI->imageSize, IPL_DEPTH_8U,3);    
+            RGBImage[n] = cvCreateImage(pGUI->imageSize, IPL_DEPTH_8U, 3);    
             
             // create rgb image
             // 5/6/2010 ayamada for videoOverlay
-            pGUI->imageSize = cvGetSize( captureImageTmp );
-            cvFlip(captureImageTmp, captureImage, 0);
+            pGUI->imageSize = cvGetSize( captureImageTmp[n] );
+            cvFlip(captureImageTmp[n], captureImage[n], 0);
 
             // 6/6/2010 ayamada
             mx1 = cvCreateMat(pGUI->imageSize.height,pGUI->imageSize.width, CV_32F);
             my1 = cvCreateMat(pGUI->imageSize.height,pGUI->imageSize.width, CV_32F);
             
             // 5/6/2010 for videoOverlay ayamada
-            undistortionImage = cvCreateImage( pGUI->imageSize, IPL_DEPTH_8U, 3);
+            undistortionImage[n] = cvCreateImage( pGUI->imageSize, IPL_DEPTH_8U, 3);
             
             // capture image
             // 5/6/2010 ayamada for videoOverlay
-            cvUndistort2( captureImage, undistortionImage, pGUI->intrinsicMatrix, pGUI->distortionCoefficient );            
+            cvUndistort2( captureImage[n], undistortionImage[n], pGUI->intrinsicMatrix[n], pGUI->distortionCoefficient[n] );            
             
-            cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);    //comment not to undistort    at 10. 01. 07 - smkim
+            cvCvtColor( undistortionImage[n], RGBImage[n], CV_BGR2RGB);    //comment not to undistort    at 10. 01. 07 - smkim
             
             // 5/6/2010 ayamada ok for videoOverlay
-            pGUI->idata[0] = (unsigned char*) RGBImage->imageData;
+            pGUI->idata[n] = (unsigned char*) RGBImage[n]->imageData;
             
-            pGUI->importer[0]->SetWholeExtent(0,pGUI->imageSize.width-1,0,pGUI->imageSize.height-1,0,0);
+            pGUI->importer[n]->SetWholeExtent(0,pGUI->imageSize.width-1,0,pGUI->imageSize.height-1,0,0);
             //this->importer[i]->SetDataSpacing( 2.0, 2.0, 2.0); // 5/6/2010 ayamada for videoOverlay
-            pGUI->importer[0]->SetDataExtentToWholeExtent();
-            pGUI->importer[0]->SetDataScalarTypeToUnsignedChar();
-            pGUI->importer[0]->SetNumberOfScalarComponents(3);
-            pGUI->importer[0]->SetImportVoidPointer(pGUI->idata[0]);
+            pGUI->importer[n]->SetDataExtentToWholeExtent();
+            pGUI->importer[n]->SetDataScalarTypeToUnsignedChar();
+            pGUI->importer[n]->SetNumberOfScalarComponents(3);
+            pGUI->importer[n]->SetImportVoidPointer(pGUI->idata[n]);
             
             // 5/6/2010 ayamada fot videoOverlay
-            pGUI->atext[0]->SetInputConnection(pGUI->importer[0]->GetOutputPort());
-            pGUI->atext[0]->InterpolateOn();            
+            pGUI->atext[n]->SetInputConnection(pGUI->importer[n]->GetOutputPort());
+            pGUI->atext[n]->InterpolateOn();            
             
-            pGUI->importer[0]->Update();
+            pGUI->importer[n]->Update();
             
             /*            
              // 10.01.24 ayamada
@@ -2109,8 +2130,9 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             break;//10.01.20-komura
         }
     }
+ //       }
     
-    
+/*    
     // 4/25/2010 ayamada
     pGUI->textActor->SetInput("Marker Position");
     pGUI->textActor->GetTextProperty()->SetFontSize(14);
@@ -2152,7 +2174,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     pGUI->textActorSavePath->GetTextProperty()->SetFontSize(12);
     pGUI->textActorSavePath->SetPosition(200,30);    
     pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActorSavePath);
-
+*/
         
         
     //**************************************************************************
@@ -2172,16 +2194,16 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     
     // 5/7/2010 ayamada
     pGUI->FocalPlaneMapper->SetInput(pGUI->FocalPlaneSource->GetOutput());
-    pGUI->actor[0]->SetMapper(pGUI->FocalPlaneMapper);
-    pGUI->actor[0]->SetUserMatrix(pGUI->ExtrinsicMatrix);
+    pGUI->actor[n]->SetMapper(pGUI->FocalPlaneMapper);
+    pGUI->actor[n]->SetUserMatrix(pGUI->ExtrinsicMatrix);
     
     // 5/6/2010 ayamada for videoOverlay
     // 10.01.24 ayamada
-    pGUI->actor[0]->SetTexture(pGUI->atext[0]);        // texture mapper
+    pGUI->actor[n]->SetTexture(pGUI->atext[n]);        // texture mapper
     //this->Actor->GetProperty()->SetOpacity(1.0);// configuration property
     //this->SecondaryViewerWindow->rw->AddViewProp(this->Actor);
     // 5/8/2010 ayamada
-    pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor[0]);
+    pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor[n]);
     
     
     // 10.01.25 ayamada
@@ -2218,13 +2240,62 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     
     }    // 5/16/2010 if(capture != NULL)
 
+        
+    } // end of for 6/22/2010 ayamada
+   
+    // 4/25/2010 ayamada
+    pGUI->textActor->SetInput("Marker Position");
+    pGUI->textActor->GetTextProperty()->SetFontSize(14);
+    pGUI->textActor->GetTextProperty()->BoldOn();
+    pGUI->textActor->SetPosition(10,70);    
+    
+    //this->SecondaryViewerWindow->rwLeft->AddViewProp(this->textActor);
+    // 5/8/2010 ayamada
+    pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActor);
+    
+    
+    pGUI->textActor1->SetInput("Position X:");
+    pGUI->textActor1->GetTextProperty()->SetFontSize(14);
+    pGUI->textActor1->SetPosition(10,50);
+    
+    pGUI->textActor2->SetInput("Position Y:");
+    pGUI->textActor2->GetTextProperty()->SetFontSize(14);
+    pGUI->textActor2->SetPosition(10,30);
+    
+    pGUI->textActor3->SetInput("Position Z:");
+    pGUI->textActor3->GetTextProperty()->SetFontSize(14);
+    pGUI->textActor3->SetPosition(10,10);
+    
+    // for camera information
+    // 5/16/2010 ayamada
+    pGUI->textActorCamera->GetTextProperty()->SetFontSize(14);
+    pGUI->textActorCamera->GetTextProperty()->BoldOn();
+    pGUI->textActorCamera->SetPosition(200,70);    
+    pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActorCamera);
+    
+    // for camera information
+    // 5/16/2010 ayamada
+    pGUI->textActorSavePathH->SetInput("Snapshot Save Path:");
+    pGUI->textActorSavePathH->GetTextProperty()->SetFontSize(14);
+    pGUI->textActorSavePathH->GetTextProperty()->BoldOn();
+    pGUI->textActorSavePathH->SetPosition(200,50);    
+    pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActorSavePathH);
+    
+    pGUI->textActorSavePath->GetTextProperty()->SetFontSize(12);
+    pGUI->textActorSavePath->SetPosition(200,30);    
+    pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActorSavePath);
+    
+    
     // 6/6/2010 ayamada
-    cvInitUndistortMap(pGUI->intrinsicMatrix, pGUI->distortionCoefficient, mx1,my1);    
+    cvInitUndistortMap(pGUI->intrinsicMatrix[0], pGUI->distortionCoefficient[0], mx1,my1);    
+    cvInitUndistortMap(pGUI->intrinsicMatrix[1], pGUI->distortionCoefficient[1], mx1,my1);    
     
      // 5/11/2010 ayamada
     while(pGUI->closeWindowFlag==1){
 
-        if(capture[0] != NULL){    // 5/16/2010 ayamada
+        for(int i2 = 0; i2 < deviceNum; i2++){ 
+        
+        if(capture[i2] != NULL){    // 5/16/2010 ayamada
         
         // 5/6/2010 ayamada for videoOverlay
         if ( pGUI->m_bDriveSource == false )    // driven by manual
@@ -2247,59 +2318,64 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             // 5/29/2010 ayamada
             // the following codes are needed with the CameraFocusPlane
             pGUI->FocalPlaneMapper->SetInput(pGUI->FocalPlaneSource->GetOutput());
-            pGUI->actor[0]->SetMapper(pGUI->FocalPlaneMapper);
-            pGUI->actor[0]->SetUserMatrix(pGUI->ExtrinsicMatrix);                        
+            pGUI->actor[i2]->SetMapper(pGUI->FocalPlaneMapper);
+            pGUI->actor[i2]->SetUserMatrix(pGUI->ExtrinsicMatrix);                        
             
                                  
         }                
         
+        }
+            
+            for(int i3 = 0; i3 < deviceNum; i3++){ 
+            
             
     // 5/15/2010 ayamada
-    captureImageTmp = cvQueryFrame( capture[0] );    // 10.01.23 ayamada
+    captureImageTmp[i3] = cvQueryFrame( capture[i3] );    // 10.01.23 ayamada
 ////        pGUI->imageSize = cvGetSize( pGUI->captureImageTmp );
         
-        cvFlip(captureImageTmp, captureImage, 0);        
+        cvFlip(captureImageTmp[i3], captureImage[i3], 0);        
 
         //cvUndistort2( captureImage, undistortionImage, pGUI->intrinsicMatrix, pGUI->distortionCoefficient );        
         // 6/6/2010 ayamada
         if(pGUI->undistortionFlag==1){
-            cvInitUndistortMap(pGUI->intrinsicMatrix, pGUI->distortionCoefficient, mx1,my1);
+            cvInitUndistortMap(pGUI->intrinsicMatrix[i3], pGUI->distortionCoefficient[i3], mx1,my1);
+            //cvInitUndistortMap(pGUI->intrinsicMatrix[1], pGUI->distortionCoefficient[1], mx1,my1);
             pGUI->undistortionFlag=0;
         }
-        cvRemap(captureImage, undistortionImage,mx1,my1);
+        cvRemap(captureImage[i3], undistortionImage[i3],mx1,my1);
             
         // 5/7/2010 ayamada
         //cvCvtColor( pGUI->captureImage, pGUI->RGBImage, CV_BGR2RGB);
         // 5/15/2010 ayamada
-        cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);
+        cvCvtColor( undistortionImage[i3], RGBImage[i3], CV_BGR2RGB);
               
-        pGUI->idata[0] = (unsigned char*) RGBImage->imageData;
-        pGUI->importer[0]->Modified();        
+        pGUI->idata[i3] = (unsigned char*) RGBImage[i3]->imageData;
+        pGUI->importer[i3]->Modified();        
         
-/* 10.01.26-komura
+// 10.01.26-komura
+//
+//        if(pGUI->SecondaryViewerWindow->rw->GetApplication()->EvaluateBooleanExpression(
+//        "expr {[winfo exists %s] && [winfo ismapped %s]}", 
+//        pGUI->SecondaryViewerWindow->rw->GetWidgetName(), pGUI->SecondaryViewerWindow->rw->GetWidgetName())
+//        == 0){
+//    
+//        fprintf(stdout,"\nbreak\n");//10.01.20-komura
+//        break;
+//        }
 
-        if(pGUI->SecondaryViewerWindow->rw->GetApplication()->EvaluateBooleanExpression(
-        "expr {[winfo exists %s] && [winfo ismapped %s]}", 
-        pGUI->SecondaryViewerWindow->rw->GetWidgetName(), pGUI->SecondaryViewerWindow->rw->GetWidgetName())
-        == 0){
-    
-        fprintf(stdout,"\nbreak\n");//10.01.20-komura
-        break;
-        }
-*/
 
-/* 10.01.26-komura
+// 10.01.26-komura
 
 //IsMapped function returns 0 when "rw" is disappeared.
 //But this function isn't stability, so I stoped using this.
 
-        if(pGUI->SecondaryViewerWindow->rw->IsMapped() == 0){//10.01.21-komura
-        //if(pGUI->SecondaryViewerWindow->rw->IsAlive() == 0){//10.01.21-komura
-        //if(pGUI->SecondaryViewerWindow->rw->IsCreated() == 0){//10.01.21-komura
-        fprintf(stdout,"\nbreak\n");//10.01.20-komura
-        break;
-        }
-*/
+//        if(pGUI->SecondaryViewerWindow->rw->IsMapped() == 0){//10.01.21-komura
+//        //if(pGUI->SecondaryViewerWindow->rw->IsAlive() == 0){//10.01.21-komura
+//        //if(pGUI->SecondaryViewerWindow->rw->IsCreated() == 0){//10.01.21-komura
+//        fprintf(stdout,"\nbreak\n");//10.01.20-komura
+//        break;
+//        }
+
 
         }    // 5/16/2010 ayamada    if(capture != NULL) 2        
 
@@ -2318,7 +2394,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             pGUI->Mutex->Unlock();            
         }
         
-        
+        } // end of for loop i3, 6/22/2010 ayamada
             
     }
 
