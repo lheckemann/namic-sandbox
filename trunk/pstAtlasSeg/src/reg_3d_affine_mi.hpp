@@ -104,7 +104,7 @@ reg_3d_affine_mi(typename fix_image_t::Pointer fixImg,         \
   metric->SetNumberOfHistogramBins( 50 );
   
   const unsigned int numberOfSamples = 
-    static_cast<unsigned int>( fixImg->GetBufferedRegion().GetNumberOfPixels() / 10.0 );
+    static_cast<unsigned int>( fixImg->GetBufferedRegion().GetNumberOfPixels() / 20.0 );
 
   metric->SetNumberOfSpatialSamples( numberOfSamples );
   //metric->SetNumberOfSpatialSamples( 50000 );
@@ -191,7 +191,8 @@ reg_3d_affine_mi(typename fix_image_t::Pointer fixImg,         \
   initializer->SetTransform(   transform );
   initializer->SetFixedImage(  fixImg );
   initializer->SetMovingImage( movingImg1 );
-  initializer->MomentsOn();
+//  initializer->MomentsOn();
+initializer->GeometryOn();
   initializer->InitializeTransform();
 
 
@@ -230,7 +231,7 @@ reg_3d_affine_mi(typename fix_image_t::Pointer fixImg,         \
   metric->SetNumberOfHistogramBins( 50 );
   
   const unsigned int numberOfSamples = 
-    static_cast<unsigned int>( fixImg->GetBufferedRegion().GetNumberOfPixels() / 10.0 );
+    static_cast<unsigned int>( fixImg->GetBufferedRegion().GetNumberOfPixels() / 20.0 );
 
   metric->SetNumberOfSpatialSamples( numberOfSamples );
   //metric->SetNumberOfSpatialSamples( 50000 );
