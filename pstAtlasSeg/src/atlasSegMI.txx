@@ -305,8 +305,10 @@ atlasSegMI_outputPr(typename raw_image_t::Pointer rawImg,                       
       // 1.3
       // 1.3.1
       std::cout<<"       Affine registering...\n"<<std::flush;
+      double finalCostFn = 0.0;
       std::pair<typename internal_image_t::Pointer, typename internal_image_t::Pointer> affineRegPair = \
-        reg_3d_affine_mi<internal_image_t, internal_image_t, internal_image_t>(rawImg, trainingImg, labelImg, 0);
+        reg_3d_affine_mi<internal_image_t, internal_image_t, internal_image_t>(rawImg, trainingImg, labelImg, 0, finalCostFn);
+      std::cout<<"           final cost = "<<finalCostFn<<std::endl;
 
 
       std::cout<<"       BSpline registering...\n"<<std::flush;
