@@ -28,129 +28,129 @@
 
 
 
-template<typename fix_image_t, typename moving_image_t, typename output_image_t>
-typename output_image_t::Pointer
-reg_3d_affine_mi(typename fix_image_t::Pointer fixImg,         \
-                 typename moving_image_t::Pointer movingImg,    \
-                 typename moving_image_t::PixelType fillInVal)
-{
-  typedef itk::AffineTransform< double, 3 > transform_t;
+// template<typename fix_image_t, typename moving_image_t, typename output_image_t>
+// typename output_image_t::Pointer
+// reg_3d_affine_mi(typename fix_image_t::Pointer fixImg,         \
+//                  typename moving_image_t::Pointer movingImg,    \
+//                  typename moving_image_t::PixelType fillInVal)
+// {
+//   typedef itk::AffineTransform< double, 3 > transform_t;
 
-  typedef itk::RegularStepGradientDescentOptimizer OptimizerType;
-  typedef itk::MattesMutualInformationImageToImageMetric< fix_image_t, moving_image_t >    MetricType;
-  typedef itk::LinearInterpolateImageFunction< moving_image_t, double >    InterpolatorType;
-  typedef itk::ImageRegistrationMethod< fix_image_t, moving_image_t >    RegistrationType;
+//   typedef itk::RegularStepGradientDescentOptimizer OptimizerType;
+//   typedef itk::MattesMutualInformationImageToImageMetric< fix_image_t, moving_image_t >    MetricType;
+//   typedef itk::LinearInterpolateImageFunction< moving_image_t, double >    InterpolatorType;
+//   typedef itk::ImageRegistrationMethod< fix_image_t, moving_image_t >    RegistrationType;
 
-  typename MetricType::Pointer         metric        = MetricType::New();
-  typename OptimizerType::Pointer      optimizer     = OptimizerType::New();
-  typename InterpolatorType::Pointer   interpolator  = InterpolatorType::New();
-  typename RegistrationType::Pointer   registration  = RegistrationType::New();
+//   typename MetricType::Pointer         metric        = MetricType::New();
+//   typename OptimizerType::Pointer      optimizer     = OptimizerType::New();
+//   typename InterpolatorType::Pointer   interpolator  = InterpolatorType::New();
+//   typename RegistrationType::Pointer   registration  = RegistrationType::New();
 
-  registration->SetMetric(        metric        );
-  registration->SetOptimizer(     optimizer     );
-  registration->SetInterpolator(  interpolator  );
+//   registration->SetMetric(        metric        );
+//   registration->SetOptimizer(     optimizer     );
+//   registration->SetInterpolator(  interpolator  );
 
-  typename transform_t::Pointer  transform = transform_t::New();
-  registration->SetTransform( transform );
+//   typename transform_t::Pointer  transform = transform_t::New();
+//   registration->SetTransform( transform );
 
-  registration->SetFixedImage(  fixImg    );
-  registration->SetMovingImage( movingImg );
+//   registration->SetFixedImage(  fixImg    );
+//   registration->SetMovingImage( movingImg );
 
-  registration->SetFixedImageRegion( fixImg->GetBufferedRegion() );
-
-
-  typedef itk::CenteredTransformInitializer< transform_t, fix_image_t, moving_image_t >  TransformInitializerType;
-  typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
-  initializer->SetTransform(   transform );
-  initializer->SetFixedImage(  fixImg );
-  initializer->SetMovingImage( movingImg );
-  //initializer->MomentsOn();
-  initializer->GeometryOn();
-  initializer->InitializeTransform();
+//   registration->SetFixedImageRegion( fixImg->GetBufferedRegion() );
 
 
-  registration->SetInitialTransformParameters( transform->GetParameters() );
-
-  double translationScale = 1.0 / 1000.0;
-
-  typedef OptimizerType::ScalesType       OptimizerScalesType;
-  OptimizerScalesType optimizerScales( transform->GetNumberOfParameters() );
-
-  optimizerScales[0] =  1.0;
-  optimizerScales[1] =  1.0;
-  optimizerScales[2] =  1.0;
-  optimizerScales[3] =  1.0;
-  optimizerScales[4] =  1.0;
-  optimizerScales[5] =  1.0;
-  optimizerScales[6] =  1.0;
-  optimizerScales[7] =  1.0;
-  optimizerScales[8] =  1.0;
-  optimizerScales[9] =  translationScale;
-  optimizerScales[10] =  translationScale;
-  optimizerScales[11] =  translationScale;
-
-  optimizer->SetScales( optimizerScales );
-
-  double steplength = 0.1;
-  optimizer->SetMaximumStepLength( steplength ); 
-  optimizer->SetMinimumStepLength( 0.0005 );
-
-  unsigned int maxNumberOfIterations = 2000;
-  optimizer->SetNumberOfIterations( maxNumberOfIterations );
-
-  optimizer->MinimizeOn();
+//   typedef itk::CenteredTransformInitializer< transform_t, fix_image_t, moving_image_t >  TransformInitializerType;
+//   typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
+//   initializer->SetTransform(   transform );
+//   initializer->SetFixedImage(  fixImg );
+//   initializer->SetMovingImage( movingImg );
+//   //initializer->MomentsOn();
+//   initializer->GeometryOn();
+//   initializer->InitializeTransform();
 
 
-  metric->SetNumberOfHistogramBins( 50 );
+//   registration->SetInitialTransformParameters( transform->GetParameters() );
+
+//   double translationScale = 1.0 / 1000.0;
+
+//   typedef OptimizerType::ScalesType       OptimizerScalesType;
+//   OptimizerScalesType optimizerScales( transform->GetNumberOfParameters() );
+
+//   optimizerScales[0] =  1.0;
+//   optimizerScales[1] =  1.0;
+//   optimizerScales[2] =  1.0;
+//   optimizerScales[3] =  1.0;
+//   optimizerScales[4] =  1.0;
+//   optimizerScales[5] =  1.0;
+//   optimizerScales[6] =  1.0;
+//   optimizerScales[7] =  1.0;
+//   optimizerScales[8] =  1.0;
+//   optimizerScales[9] =  translationScale;
+//   optimizerScales[10] =  translationScale;
+//   optimizerScales[11] =  translationScale;
+
+//   optimizer->SetScales( optimizerScales );
+
+//   double steplength = 0.1;
+//   optimizer->SetMaximumStepLength( steplength ); 
+//   optimizer->SetMinimumStepLength( 0.0005 );
+
+//   unsigned int maxNumberOfIterations = 2000;
+//   optimizer->SetNumberOfIterations( maxNumberOfIterations );
+
+//   optimizer->MinimizeOn();
+
+
+//   metric->SetNumberOfHistogramBins( 50 );
   
-  const unsigned int numberOfSamples = 
-    static_cast<unsigned int>( fixImg->GetBufferedRegion().GetNumberOfPixels() / 20.0 );
+//   const unsigned int numberOfSamples = 
+//     static_cast<unsigned int>( fixImg->GetBufferedRegion().GetNumberOfPixels() / 20.0 );
 
-  metric->SetNumberOfSpatialSamples( numberOfSamples );
-  //metric->SetNumberOfSpatialSamples( 50000 );
-  metric->ReinitializeSeed( 76926294 );
-  metric->SetUseCachingOfBSplineWeights( true );
-
-
-  try 
-    { 
-    registration->StartRegistration(); 
-//     std::cout << "Optimizer stop condition: "
-//               << registration->GetOptimizer()->GetStopConditionDescription()
-//               << std::endl;
-    } 
-  catch( itk::ExceptionObject & err ) 
-    { 
-    std::cerr << "ExceptionObject caught !" << std::endl; 
-    std::cerr << err << std::endl; 
-    exit(-1);
-    } 
+//   metric->SetNumberOfSpatialSamples( numberOfSamples );
+//   //metric->SetNumberOfSpatialSamples( 50000 );
+//   metric->ReinitializeSeed( 76926294 );
+//   metric->SetUseCachingOfBSplineWeights( true );
 
 
-  OptimizerType::ParametersType finalParameters = registration->GetLastTransformParameters();
+//   try 
+//     { 
+//     registration->StartRegistration(); 
+// //     std::cout << "Optimizer stop condition: "
+// //               << registration->GetOptimizer()->GetStopConditionDescription()
+// //               << std::endl;
+//     } 
+//   catch( itk::ExceptionObject & err ) 
+//     { 
+//     std::cerr << "ExceptionObject caught !" << std::endl; 
+//     std::cerr << err << std::endl; 
+//     exit(-1);
+//     } 
 
-  typename transform_t::Pointer finalTransform = transform_t::New();
-  finalTransform->SetParameters( finalParameters );
-  finalTransform->SetFixedParameters( transform->GetFixedParameters() );
 
-  typedef itk::ResampleImageFilter< moving_image_t, fix_image_t >    ResampleFilterType;
-  typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
-  resampler->SetTransform( finalTransform );
-  resampler->SetInput( movingImg );
-  resampler->SetSize(    fixImg->GetLargestPossibleRegion().GetSize() );
-  resampler->SetOutputOrigin(  fixImg->GetOrigin() );
-  resampler->SetOutputSpacing( fixImg->GetSpacing() );
-  resampler->SetOutputDirection( fixImg->GetDirection() );
-  resampler->SetDefaultPixelValue( fillInVal );
+//   OptimizerType::ParametersType finalParameters = registration->GetLastTransformParameters();
+
+//   typename transform_t::Pointer finalTransform = transform_t::New();
+//   finalTransform->SetParameters( finalParameters );
+//   finalTransform->SetFixedParameters( transform->GetFixedParameters() );
+
+//   typedef itk::ResampleImageFilter< moving_image_t, fix_image_t >    ResampleFilterType;
+//   typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+//   resampler->SetTransform( finalTransform );
+//   resampler->SetInput( movingImg );
+//   resampler->SetSize(    fixImg->GetLargestPossibleRegion().GetSize() );
+//   resampler->SetOutputOrigin(  fixImg->GetOrigin() );
+//   resampler->SetOutputSpacing( fixImg->GetSpacing() );
+//   resampler->SetOutputDirection( fixImg->GetDirection() );
+//   resampler->SetDefaultPixelValue( fillInVal );
   
 
-  typedef itk::CastImageFilter< fix_image_t, output_image_t > CastFilterType;
-  typename CastFilterType::Pointer  caster =  CastFilterType::New();
-  caster->SetInput( resampler->GetOutput() );
-  caster->Update();
+//   typedef itk::CastImageFilter< fix_image_t, output_image_t > CastFilterType;
+//   typename CastFilterType::Pointer  caster =  CastFilterType::New();
+//   caster->SetInput( resampler->GetOutput() );
+//   caster->Update();
   
-  return caster->GetOutput();
-}
+//   return caster->GetOutput();
+// }
 
 
 
@@ -159,7 +159,8 @@ std::pair<typename output_image_t::Pointer, typename output_image_t::Pointer>
 reg_3d_affine_mi(typename fix_image_t::Pointer fixImg,         \
                  typename moving_image_t::Pointer movingImg1,      \
                  typename moving_image_t::Pointer movingImg2,  \
-                 typename moving_image_t::PixelType fillInVal)
+                 typename moving_image_t::PixelType fillInVal, \
+                 double& finalCost = 0)
 {
   typedef itk::AffineTransform< double, 3 > transform_t;
 
@@ -192,7 +193,7 @@ reg_3d_affine_mi(typename fix_image_t::Pointer fixImg,         \
   initializer->SetFixedImage(  fixImg );
   initializer->SetMovingImage( movingImg1 );
 //  initializer->MomentsOn();
-initializer->GeometryOn();
+  initializer->GeometryOn();
   initializer->InitializeTransform();
 
 
@@ -222,7 +223,8 @@ initializer->GeometryOn();
   optimizer->SetMaximumStepLength( steplength ); 
   optimizer->SetMinimumStepLength( 0.0005 );
 
-  unsigned int maxNumberOfIterations = 2000;
+  //unsigned int maxNumberOfIterations = 2000;
+  unsigned int maxNumberOfIterations = 0;
   optimizer->SetNumberOfIterations( maxNumberOfIterations );
   optimizer->MinimizeOn();
 
@@ -252,6 +254,8 @@ initializer->GeometryOn();
     std::cerr << err << std::endl; 
     exit(-1);
     } 
+
+  finalCost = optimizer->GetValue();
 
 
   OptimizerType::ParametersType finalParameters = registration->GetLastTransformParameters();
