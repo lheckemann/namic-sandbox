@@ -1151,6 +1151,10 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         
         // 5/16/2010 ayamada
         this->closeWindowFlag=2;
+
+        // 6/23/2010 ayamada
+        this->singleOn = 0;
+        this->stereoOn = 0;
         
         std::cerr << "closeWindowFlag=" << this->closeWindowFlag << std::endl;
 
@@ -1340,8 +1344,10 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         this->ConfigurationOfSecondaryWindow(2); // 6/23/2010 ayamada
         
         // 6/23/2010 ayamada
-        this->singleOn = 0;
-        this->stereoOn = 1;
+//        if( this->singleOn == 0 && this->stereoOn == 0 ){ 
+            this->singleOn = 0;
+            this->stereoOn = 1;
+//        }
         
     }
 
@@ -1366,8 +1372,10 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         this->ConfigurationOfSecondaryWindow(1); // 6/23/2010 ayamada
 
         // 6/23/2010 ayamada
-        this->singleOn = 1;
-        this->stereoOn = 0;
+//        if( this->singleOn == 0 && this->stereoOn == 0 ){ 
+            this->singleOn = 1;
+            this->stereoOn = 0;
+//        }
         
         
     }

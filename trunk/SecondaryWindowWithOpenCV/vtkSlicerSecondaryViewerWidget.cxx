@@ -639,5 +639,5 @@ void vtkSlicerSecondaryViewerWidget::Render()
   //this->MainViewer->RenderStateOff();
   this->MainViewer->SetRenderState(currentRenderState);
   // 5/31/2010 ayamada  
-  //this->SetRenderPending(0);
+  this->SetRenderPending(0);
 }
