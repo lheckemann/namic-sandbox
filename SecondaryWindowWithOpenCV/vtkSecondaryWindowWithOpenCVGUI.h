@@ -381,7 +381,9 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     float py2;
     float pz2;
     float p02;
-    
+
+    int singleOn;
+    int stereoOn;
     
     // 5/5/2010 ayamada
     // for videoOverlay
