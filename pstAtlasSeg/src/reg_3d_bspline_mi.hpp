@@ -152,7 +152,7 @@ reg_3d_bspline_mi(typename fix_image_t::Pointer fixImg,         \
 
   metric->SetNumberOfHistogramBins( 50 );
   const unsigned int numberOfSamples = 
-    static_cast<unsigned int>( fixedRegion.GetNumberOfPixels() / 10.0 );
+    static_cast<unsigned int>( fixedRegion.GetNumberOfPixels() / 20.0 );
 
   metric->SetNumberOfSpatialSamples( numberOfSamples );
   //metric->SetNumberOfSpatialSamples( 50000 );
@@ -330,7 +330,7 @@ reg_3d_bspline_mi(typename fix_image_t::Pointer fixImg,         \
 
   metric->SetNumberOfHistogramBins( 50 );
   const unsigned int numberOfSamples = 
-    static_cast<unsigned int>( fixedRegion.GetNumberOfPixels() / 10.0 );
+    static_cast<unsigned int>( fixedRegion.GetNumberOfPixels() / 20.0 );
 
   metric->SetNumberOfSpatialSamples( numberOfSamples );
   //metric->SetNumberOfSpatialSamples( 50000 );

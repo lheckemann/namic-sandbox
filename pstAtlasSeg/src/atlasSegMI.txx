@@ -82,9 +82,10 @@ atlasSegMI(typename raw_image_t::Pointer rawImg,                       \
 
 
   // 1.
-#pragma omp parallel for
+#pragma omp parallel for num_threads(nTrainingImg)
   for (long iTrainingImg = 0; iTrainingImg < (long)nTrainingImg; ++iTrainingImg)
     {
+
       //tst
 #pragma omp critical
       {
@@ -246,8 +247,8 @@ atlasSegMI_outputPr(typename raw_image_t::Pointer rawImg,                       
 
 
   // 1.
-#pragma omp parallel for
-  for (long iTrainingImg = 0; iTrainingImg < (long)nTrainingImg; ++iTrainingImg)
+#pragma omp parallel for num_threads(nTrainingImg)
+ for (long iTrainingImg = 0; iTrainingImg < (long)nTrainingImg; ++iTrainingImg)
     {
       //tst
 #pragma omp critical
