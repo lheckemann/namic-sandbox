@@ -20,19 +20,31 @@ endif (MEX_COMPILER MATCHES mkoctfile$)
 
 
 ### Platform specific option
-IF(OpenIGTLink_PLATFORM_WIN32) # for Windows
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   SET(LINK_LIBS
     -lws2_32
     -lwsock32
   )
-ELSE(OpenIGTLink_PLATFORM_WIN32) # for POSIX-compatible OSs
+endif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+
+if(CMAKE_SYSTEM_NAME MATCHES "SunOS")
   SET(LINK_LIBS
+    -lrt
+    -lnsl
+    -lsocket
   )
-  IF(OpenIGTLink_PLATFORM_SUNOS)
-    SET(LINK_LIBS
-    )
-  ENDIF(OpenIGTLink_PLATFORM_SUNOS)
-ENDIF(OpenIGTLink_PLATFORM_WIN32)
+  IF(CMAKE_COMPILER_IS_GNUCXX)
+     SET(LINK_LIBS
+       -lstdc++
+     )
+  ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+endif(CMAKE_SYSTEM_NAME MATCHES "SunOS")
 
 
 set(OpenIGTLinkMex_SOURCES
