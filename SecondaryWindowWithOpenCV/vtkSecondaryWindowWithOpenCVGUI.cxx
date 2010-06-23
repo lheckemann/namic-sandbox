@@ -1071,15 +1071,11 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         if (this->SecondaryViewerWindow)
         {  
             //this->makeCameraThread();//10.01.12-komura //10.01.21-komura
+            //this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
             this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
-    
-            // 6/23/2010 ayamada
-            if(this->stereoWindowCheckButton->GetSelectedState() == 1){
-                if(this->SecondaryViewerWindow2){
-                    this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
-                }
-            }           
+
             
+            //this->SecondaryViewerWindow2->Withdraw();
             
             secView=1;    // 5/5/2010 ayamada            
             this->m_bOpenSecondaryWindow = true;  // 5/7/2010 ayamada
@@ -1098,6 +1094,20 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             */
 
         }
+/*
+        if(this->SecondaryViewerWindow2){
+            this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
+        }
+*/
+        
+/*        
+        // 6/23/2010 ayamada
+        if(this->stereoWindowCheckButton->GetSelectedState() == 1){
+        //    if(this->SecondaryViewerWindow2){
+                this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
+        //    }
+        }           
+*/        
         
     }
     
@@ -1303,7 +1313,9 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
 
         this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0.0 -anchor nw -relwidth 0.0 -relheight 0.0", 
                                             this->SecondaryViewerWindow->lw->GetWidgetName());        
+
         
+        this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor(); // 6/23/2010 ayamada
         
         this->SecondaryViewerWindow2->SetTitle ("3D Slicer -- Secondary Window2 -- ");
         this->SecondaryViewerWindow2->changeSecondaryMonitorSize(640, 480);
@@ -1316,6 +1328,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
                                             this->SecondaryViewerWindow2->rwLeft->GetWidgetName());        
         this->SecondaryViewerWindow2->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 0 -relheight 0", 
                                             this->SecondaryViewerWindow2->lw->GetWidgetName());//6/23/2010 ayamada
+
         
     }
 
