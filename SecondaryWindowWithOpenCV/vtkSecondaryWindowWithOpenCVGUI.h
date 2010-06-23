@@ -287,8 +287,8 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     
     // 5/7/2010 ayamada
     // for the function "CameraFocusPlane" at .cxx file
-    vtkPlaneSource *FocalPlaneSource;
-    vtkPolyDataMapper *FocalPlaneMapper;
+    vtkPlaneSource *FocalPlaneSource[2];
+    vtkPolyDataMapper *FocalPlaneMapper[2];
     vtkMatrix4x4 * ExtrinsicMatrix;
     double Pos[3];
     double Focal[3];

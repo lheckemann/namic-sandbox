@@ -138,6 +138,8 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     importer[i] = vtkImageImport::New();
     atext[i] = vtkTexture::New();
     actor[i] = vtkActor::New();
+    FocalPlaneSource[i] = vtkPlaneSource::New();
+    FocalPlaneMapper[i] = vtkPolyDataMapper::New();    
     }
 
     planeSource = vtkPlaneSource::New();
@@ -150,8 +152,8 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
 
     // 5/7/2010 ayamada
     // for the function "CameraFocusPlane"
-    FocalPlaneSource = vtkPlaneSource::New();
-    FocalPlaneMapper = vtkPolyDataMapper::New();    
+//    FocalPlaneSource[0] = vtkPlaneSource::New();
+//    FocalPlaneMapper[0] = vtkPolyDataMapper::New();    
     ExtrinsicMatrix = vtkMatrix4x4::New();
     this->Pos[0] = 0.0;
     this->Pos[1] = 0.0;
@@ -415,16 +417,17 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
     //idata[i]->Delete();
     //idata[i] = NULL;    
     
-    FocalPlaneMapper->Delete();
-    FocalPlaneMapper = NULL;
-    FocalPlaneSource->Delete();
-    FocalPlaneSource = NULL;
 
     for(int i=0; i<2; i++){
     actor[i]->Delete();
     actor[i]=NULL;    
     atext[i]->Delete(); 
     atext[i]=NULL;
+        FocalPlaneMapper[i]->Delete();
+        FocalPlaneMapper[i] = NULL;
+        FocalPlaneSource[i]->Delete();
+        FocalPlaneSource[i] = NULL;
+        
     }
     
 //    importer[i]->Delete();
@@ -1337,12 +1340,13 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         {
             this->singleWindowCheckButton->SelectedStateOff();
             
-        }else if(this->stereoWindowCheckButton->GetSelectedState() == 0)
+        }
+        else if(this->singleWindowCheckButton->GetSelectedState() == 0)
         {
-            this->singleWindowCheckButton->SelectedStateOn();
-            this->stereoWindowCheckButton->SelectedStateOff();
+            this->stereoWindowCheckButton->SelectedStateOn();
         }
 
+        
         if(singleOn == 1 && firstOn == 1){
             this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor(); // 6/23/2010 ayamada            
         }
@@ -1351,8 +1355,8 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         
         // 6/23/2010 ayamada
 //        if( this->singleOn == 0 && this->stereoOn == 0 ){ 
-            this->singleOn = 0;
-            this->stereoOn = 1;
+//            this->singleOn = 0;
+//            this->stereoOn = 1;
 //        }
         
     }
@@ -1363,24 +1367,27 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         
         if(this->singleWindowCheckButton->GetSelectedState() == 1)
         {
+            
             this->stereoWindowCheckButton->SelectedStateOff();
             
-        }else if(this->singleWindowCheckButton->GetSelectedState() == 0)
+        }
+        else if(this->stereoWindowCheckButton->GetSelectedState() == 0)
         {
-            this->stereoWindowCheckButton->SelectedStateOn();
-            this->singleWindowCheckButton->SelectedStateOff();
+            this->singleWindowCheckButton->SelectedStateOn();
         }
 
         if(stereoOn == 1 && firstOn == 1){
-            this->SecondaryViewerWindow2->Withdraw(); // 6/23/2010 ayamada                        
+            if(this->SecondaryViewerWindow2){
+            this->SecondaryViewerWindow2->Withdraw(); // 6/23/2010 ayamada
+            }
         }
         
         this->ConfigurationOfSecondaryWindow(1); // 6/23/2010 ayamada
 
         // 6/23/2010 ayamada
 //        if( this->singleOn == 0 && this->stereoOn == 0 ){ 
-            this->singleOn = 1;
-            this->stereoOn = 0;
+//            this->singleOn = 1;
+//            this->stereoOn = 0;
 //        }
         
         
@@ -1963,7 +1970,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             }
          */
         
-            while(i<=10){// 6/20/2010 ayamada
+            while(i<=7){// 6/20/2010 ayamada
                 if( (NULL==(capture[deviceNum] = cvCaptureFromCAM(i))))    // 10.01.25 ayamada
                 {
                     fprintf(stdout, "\n\nCan Not Find A First Camera\n\n");    // 10.01.25 ayamada
@@ -1985,7 +1992,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
         
             }// end of while
 
-        while(i<=10){// 6/22/2010 ayamada
+        while(i<=7){// 6/22/2010 ayamada
             if( (NULL==(capture[deviceNum] = cvCaptureFromCAM(i))))    // 10.01.25 ayamada
             {
                 fprintf(stdout, "\n\nCan Not Find A Second Camera\n\n");    // 10.01.25 ayamada
@@ -2008,7 +2015,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
 
         // 5/16/2010 ayamada
         //if(i==11 && deviceNum == 0){ // 6/22/2010 ayamada 
-        if(i==11 && deviceNum == 0){ // 6/22/2010 ayamada 
+        if(i==8 && deviceNum == 0){ // 6/22/2010 ayamada 
             sprintf(bufCamera, "Can Not Find Camera Device!!");
             pGUI->textActorCamera->SetInput(bufCamera);
         }
@@ -2174,8 +2181,8 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     
     
     // 5/7/2010 ayamada
-    pGUI->FocalPlaneMapper->SetInput(pGUI->FocalPlaneSource->GetOutput());
-    pGUI->actor[n]->SetMapper(pGUI->FocalPlaneMapper);
+    pGUI->FocalPlaneMapper[n]->SetInput(pGUI->FocalPlaneSource[n]->GetOutput());
+    pGUI->actor[n]->SetMapper(pGUI->FocalPlaneMapper[n]);
     pGUI->actor[n]->SetUserMatrix(pGUI->ExtrinsicMatrix);
     
     // 5/6/2010 ayamada for videoOverlay
@@ -2227,12 +2234,12 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
 
     // connect to renderer 6/23/2010 ayamada
     pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor[1]);
-    fprintf(stdout, "\nget right camera handle\n");//10.01.20-komura
     pGUI->SecondaryViewerWindow->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
-
-    
+    pGUI->SecondaryViewerWindow->lw->GetRenderer()->AddActor(pGUI->actor[0]);
+    pGUI->SecondaryViewerWindow->lw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+    pGUI->SecondaryViewerWindow2->rw->GetRenderer()->AddActor(pGUI->actor[1]);
+    pGUI->SecondaryViewerWindow2->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
     pGUI->SecondaryViewerWindow2->lw->GetRenderer()->AddActor(pGUI->actor[0]);
-    fprintf(stdout, "\nget left camera handle\n");//10.01.20-komura
     pGUI->SecondaryViewerWindow2->lw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
     
     
@@ -2312,8 +2319,8 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             
             // 5/29/2010 ayamada
             // the following codes are needed with the CameraFocusPlane
-            pGUI->FocalPlaneMapper->SetInput(pGUI->FocalPlaneSource->GetOutput());
-            pGUI->actor[i2]->SetMapper(pGUI->FocalPlaneMapper);
+            pGUI->FocalPlaneMapper[i2]->SetInput(pGUI->FocalPlaneSource[i2]->GetOutput());
+            pGUI->actor[i2]->SetMapper(pGUI->FocalPlaneMapper[i2]);
             pGUI->actor[i2]->SetUserMatrix(pGUI->ExtrinsicMatrix);                        
             
                                  
@@ -2469,11 +2476,18 @@ void vtkSecondaryWindowWithOpenCVGUI::CameraFocusPlane(vtkCamera * cam, double R
     this->fx = ( 2.0*this->h * Ratio * this->focal_point_x ) / 640.0; // 5/7/2010 ayamada 2->2.0
     this->fy = ( 2.0*this->h * this->focal_point_y ) / 480.0; // 5/7/2010 ayamada 2->2.0
     
-    this->FocalPlaneSource->SetOrigin(-this->h * Ratio, -this->h, -this->F);
-    this->FocalPlaneSource->SetPoint1(this->h * Ratio, -this->h, -this->F);
-    this->FocalPlaneSource->SetPoint2(-this->h * Ratio, this->h, -this->F);
+    this->FocalPlaneSource[0]->SetOrigin(-this->h * Ratio, -this->h, -this->F);
+    this->FocalPlaneSource[0]->SetPoint1(this->h * Ratio, -this->h, -this->F);
+    this->FocalPlaneSource[0]->SetPoint2(-this->h * Ratio, this->h, -this->F);
     
-    this->FocalPlaneSource->SetCenter(0.0, 0.0, -this->F);
+    this->FocalPlaneSource[0]->SetCenter(0.0, 0.0, -this->F);
+
+    this->FocalPlaneSource[1]->SetOrigin(-this->h * Ratio, -this->h, -this->F);
+    this->FocalPlaneSource[1]->SetPoint1(this->h * Ratio, -this->h, -this->F);
+    this->FocalPlaneSource[1]->SetPoint2(-this->h * Ratio, this->h, -this->F);
+    
+    this->FocalPlaneSource[1]->SetCenter(0.0, 0.0, -this->F);
+    
     
      /*
      double fx = ( 2*h * Ratio * focal_point_x ) / 640.0;
