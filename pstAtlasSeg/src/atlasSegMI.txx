@@ -276,7 +276,7 @@ atlasSegMI_outputPr(typename raw_image_t::Pointer rawImg,                       
       typename SmoothingFilterType::Pointer smoother = SmoothingFilterType::New();
       smoother->SetInput( trainingImg );
       const unsigned int numberOfIterations = 5;
-      const double       timeStep = 0.0625;
+      const double       timeStep = 0.02;
       const double       conductance = 1;
       
       smoother->SetNumberOfIterations( numberOfIterations );
