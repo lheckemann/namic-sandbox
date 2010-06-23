@@ -489,7 +489,8 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     void CameraFocusPlane(vtkCamera * cam, double Ratio);    //for calculating position and orientation of camera image plane    //adding at 09. 11. 5 - from wang, 5/7/2010 improvement by ayamada
     
     //----    
-    
+    // 6/23/2010 ayamada
+    void ConfigurationOfSecondaryWindow(int);
 
  private:
   vtkSecondaryWindowWithOpenCVGUI ( const vtkSecondaryWindowWithOpenCVGUI& ); // Not implemented.
@@ -566,6 +567,9 @@ protected:
     vtkKWEntryWithLabel *saveCameraImageEntry;
     //Frame Details
     vtkSlicerModuleCollapsibleFrame *DetailsFrame;
+    
+
+    
     
   //----------------------------------------------------------------
   // Logic Values
