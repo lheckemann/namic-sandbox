@@ -192,8 +192,8 @@ reg_3d_affine_mi(typename fix_image_t::Pointer fixImg,         \
   initializer->SetTransform(   transform );
   initializer->SetFixedImage(  fixImg );
   initializer->SetMovingImage( movingImg1 );
-//  initializer->MomentsOn();
-  initializer->GeometryOn();
+  initializer->MomentsOn();
+//  initializer->GeometryOn();
   initializer->InitializeTransform();
 
 
@@ -224,7 +224,7 @@ reg_3d_affine_mi(typename fix_image_t::Pointer fixImg,         \
   optimizer->SetMinimumStepLength( 0.0005 );
 
   //unsigned int maxNumberOfIterations = 2000;
-  unsigned int maxNumberOfIterations = 0;
+  unsigned int maxNumberOfIterations = 100;
   optimizer->SetNumberOfIterations( maxNumberOfIterations );
   optimizer->MinimizeOn();
 
