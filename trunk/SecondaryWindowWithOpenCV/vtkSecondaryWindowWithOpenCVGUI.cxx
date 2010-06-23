@@ -1239,11 +1239,13 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             
         }
         
-        // --------------------------
-        // make secondary window type
-        // --------------------------
     }
+
+
     
+    // --------------------------
+    // make secondary window type
+    // --------------------------
     
     else if (this->stereoWindowCheckButton == vtkKWCheckButton::SafeDownCast(caller) && 
                  event == vtkKWCheckButton::SelectedStateChangedEvent )
@@ -1257,7 +1259,18 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->singleWindowCheckButton->SelectedStateOn();
             this->stereoWindowCheckButton->SelectedStateOff();
         }
-    
+
+        
+        this->SecondaryViewerWindow->SetTitle ("3D Slicer -- Secondary Window -- ");
+        this->SecondaryViewerWindow->changeSecondaryMonitorSize(640, 480);
+
+        this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0 -anchor nw -relwidth 0.0 -relheight 0.0", 
+                     this->SecondaryViewerWindow->MainFrame->GetWidgetName() );//10.01.25 ayamada
+        this->SecondaryViewerWindow->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 1 -relheight 1", 
+                                            this->SecondaryViewerWindow->rw->GetWidgetName());//10.01.25 ayamada
+        this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0.0 -anchor nw -relwidth 0.0 -relheight 0.0", 
+                                            this->SecondaryViewerWindow->rwLeft->GetWidgetName());        
+        
     }
 
     else if (this->singleWindowCheckButton == vtkKWCheckButton::SafeDownCast(caller) && 
@@ -1272,7 +1285,17 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->stereoWindowCheckButton->SelectedStateOn();
             this->singleWindowCheckButton->SelectedStateOff();
         }
-    
+        
+        this->SecondaryViewerWindow->SetTitle ("3D Slicer -- Secondary Window -- ");
+        this->SecondaryViewerWindow->changeSecondaryMonitorSize(1280, 480);
+
+        this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0 -anchor nw -relwidth 0.5 -relheight 0.8", 
+                     this->SecondaryViewerWindow->MainFrame->GetWidgetName() );//10.01.25 ayamada
+        this->SecondaryViewerWindow->Script("place %s -relx 0.5 -rely 0.0 -anchor nw -relwidth 0.5 -relheight 1", 
+                                            this->SecondaryViewerWindow->rw->GetWidgetName());//10.01.25 ayamada
+        this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0.8 -anchor nw -relwidth 0.5 -relheight 0.2", 
+                                            this->SecondaryViewerWindow->rwLeft->GetWidgetName());
+        
     }
     
     
@@ -1695,10 +1718,6 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessTimerEvents()
             // 5/16/2010 ayamada
             this->closeWindowFlag = 1;
             
-            // 6/22/2010 ayamada
-            //this->singleWindowCheckButton->SelectedStateOn();            
-            //this->stereoWindowCheckButton->SelectedStateOff();            
-
             this->makeCameraThread("cameraThread"); // 5/5/2010 ayamada             
             this->runThread = 1;               
         }else{
@@ -1712,17 +1731,15 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessTimerEvents()
                 this->SecondaryViewerWindow->rwLeft->Render();  // 5/5/2010 ayamada
             }
                 
-            //    this->stereoWindowCheckButton->SelectedStateOff();
-            //    this->singleWindowCheckButton->SelectedStateOn();
                 
             }
             
             // 6/22/2010 ayamada
             if(this->stereoWindowCheckButton->GetSelectedState()){
-                  this->SecondaryViewerWindow->rwLeft->Render();  // 5/5/2010 ayamada
+                
+                this->SecondaryViewerWindow->rw->Render();  // 5/5/2010 ayamada
+            //    this->SecondaryViewerWindow->lw->Render();  // 6/22/2010 ayamada
 
-            //    this->singleWindowCheckButton->SelectedStateOff();                
-            //    this->stereoWindowCheckButton->SelectedStateOn();
             
             }
         }

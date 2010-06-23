@@ -49,7 +49,9 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   void DisplayOnSecondaryMonitor();
-
+    
+    void changeSecondaryMonitorSize(int, int); // 100622-komura
+    
   //void SetCurrentTarget(vtkTRProstateBiopsyTargetDescriptor* target);
 
   vtkKWRenderWidget *rw;//10.01.12-komura
@@ -59,6 +61,8 @@ public:
   // vtkKWRenderWidget slcass reference website
   //http://www.kwwidgets.org/doc/nightly/html/classvtkKWRenderWidget.html
 
+    vtkKWFrame* MainFrame; // 6/22/2010 ayamada   
+    
 protected:
 
   void UpdateSecondaryMonitorPoisition();
@@ -67,7 +71,7 @@ protected:
   vtkSlicerSecondaryViewerWindow();
   ~vtkSlicerSecondaryViewerWindow();  
 
-  vtkKWFrame* MainFrame;
+  //vtkKWFrame* MainFrame; // 6/22/2010 ayamada
   vtkKWFrame* MainGrid; //10.01.15-komura
 //  vtkKWFrame* SubFrame; //10.01.25 ayamada
 
