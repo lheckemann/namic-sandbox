@@ -56,6 +56,7 @@ public:
 
   vtkKWRenderWidget *rw;//10.01.12-komura
   vtkKWRenderWidget *rwLeft;//10.01.25 ayamada
+  vtkKWRenderWidget *lw;// 6/23/2010 ayamada
 
 
   // vtkKWRenderWidget slcass reference website

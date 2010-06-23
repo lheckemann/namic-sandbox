@@ -57,6 +57,7 @@ vtkSlicerSecondaryViewerWindow::vtkSlicerSecondaryViewerWindow()
   this->MainGrid = vtkKWFrame::New();//10.01.15-komura
   this->rw = vtkKWRenderWidget::New();//10.01.12-komura
   this->rwLeft = vtkKWRenderWidget::New();//10.01.25 ayamda
+  this->lw = vtkKWRenderWidget::New();//6/23/2010 ayamada
 
 }
 
@@ -74,6 +75,10 @@ vtkSlicerSecondaryViewerWindow::~vtkSlicerSecondaryViewerWindow()
  this->rw->Delete();//10.01.12-komura
  this->rwLeft->Delete();//10.01.25 ayamada
  this->MainGrid->Delete();//10.01.15-komura
+
+ // 6/23/2010 ayamada
+ this->lw->Delete();
+    
     
   this->ViewerWidget->RemoveAllObservers();
   this->ViewerWidget->SetApplicationLogic (NULL);
@@ -252,6 +257,14 @@ void vtkSlicerSecondaryViewerWindow::CreateWidget()
                this->rwLeft->GetWidgetName());
 //----
 
+
+    // 6/23/2010 ayamada
+    this->lw->SetParent(this);
+    this->lw->Create();
+    this->lw->RemoveInteractionBindings();
+    this->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 0 -relheight 1", 
+                 this->lw->GetWidgetName());
+    
   //
   // Make 3D Viewer
   //

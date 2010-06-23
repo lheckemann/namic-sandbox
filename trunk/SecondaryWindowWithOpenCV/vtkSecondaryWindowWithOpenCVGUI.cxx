@@ -80,6 +80,7 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
   //this->HideSecondaryWindowWithOpenCVButton = NULL;
 
   this->SecondaryViewerWindow = NULL;
+  this->SecondaryViewerWindow2 = NULL; // 6/23/2010 ayamada
 
     // 5/6/2010 ayamada for videoOverlay
     this->NS_ImageData = NULL;     // adding at 09.08.19 - smkim
@@ -394,6 +395,15 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
         this->SecondaryViewerWindow = NULL;
     }
 
+    // 6/23/2010 ayamada for release image
+    if (this->SecondaryViewerWindow2)
+    {
+        this->SecondaryViewerWindow2->Withdraw();
+        this->SecondaryViewerWindow2->SetApplication(NULL);
+        this->SecondaryViewerWindow2->Delete();
+        this->SecondaryViewerWindow2 = NULL;
+    }
+    
     
     // 5/15/2010 ayamada
     //idata[i]->Delete();
@@ -1277,6 +1287,11 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
                                             this->SecondaryViewerWindow->rw->GetWidgetName());//10.01.25 ayamada
         this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0.0 -anchor nw -relwidth 0.0 -relheight 0.0", 
                                             this->SecondaryViewerWindow->rwLeft->GetWidgetName());        
+
+        this->SecondaryViewerWindow2->SetTitle ("3D Slicer -- Secondary Window -- ");
+        this->SecondaryViewerWindow2->changeSecondaryMonitorSize(640, 480);
+        this->SecondaryViewerWindow2->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 1 -relheight 1", 
+                                            this->SecondaryViewerWindow2->lw->GetWidgetName());//6/23/2010 ayamada
         
     }
 
@@ -1749,7 +1764,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessTimerEvents()
             if(this->stereoWindowCheckButton->GetSelectedState()){
                 
                 this->SecondaryViewerWindow->rw->Render();  // 5/5/2010 ayamada
-            //    this->SecondaryViewerWindow->lw->Render();  // 6/22/2010 ayamada
+                this->SecondaryViewerWindow2->lw->Render();  // 6/22/2010 ayamada
 
             
             }
@@ -1791,7 +1806,13 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUI ( )
   this->SecondaryViewerWindow = vtkSlicerSecondaryViewerWindow::New();
   this->SecondaryViewerWindow->SetApplication(this->GetApplication());
   this->SecondaryViewerWindow->Create();
-  
+
+  // 6/23/2010 ayamada
+  this->SecondaryViewerWindow2 = vtkSlicerSecondaryViewerWindow::New();
+  this->SecondaryViewerWindow2->SetApplication(this->GetApplication());
+  this->SecondaryViewerWindow2->Create();
+    
+    
   // 5/16/2010 ayamada
   this->updateViewTriger = 0;
 
@@ -2203,21 +2224,21 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     //this->Actor->GetProperty()->SetOpacity(1.0);// configuration property
     //this->SecondaryViewerWindow->rw->AddViewProp(this->Actor);
     // 5/8/2010 ayamada
-    pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor[n]);
+/////    pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor[n]); // 6/23/2010 ayamada
     
     
     // 10.01.25 ayamada
     //        pGUI->Mutex->Lock();
     //        pGUI->SecondaryViewerWindow->rw->Render();
     //        pGUI->Mutex->Unlock();
-    pGUI->updateView=1;
+/////    pGUI->updateView=1; // 6/23/2010 ayamada 
     
     //sleep(1);    // 10.01.25 ayamada
     
     //      pGUI->SecondaryViewerWindow->rw->ResetCamera(); //10.01.27-komura
     //    pGUI->SecondaryViewerWindow->rw->SetCameraPosition(0,0,0);
     
-    fprintf(stdout, "\nget camera handle\n");//10.01.20-komura
+/////    fprintf(stdout, "\nget camera handle\n");//10.01.20-komura // 6/23/2010 ayamada
     
     //**************************************************************************
 
@@ -2234,7 +2255,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     // 5/6/2010 ayamada for videoOverlay. 
     // The details are in the following URL: http://www.paraview.org/doc/nightly/html/classvtkKWRenderWidget.html
     //pGUI->SecondaryViewerWindow->rw->GetRenderer()->GetActiveCamera()->ParallelProjectionOff();
-    pGUI->SecondaryViewerWindow->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+/////    pGUI->SecondaryViewerWindow->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera ); // 6/23/2010 ayamada
 
     //**************************************************************************
     
@@ -2242,6 +2263,21 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
 
         
     } // end of for 6/22/2010 ayamada
+    
+
+    // connect to renderer 6/23/2010 ayamada
+    pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor[1]);
+    fprintf(stdout, "\nget right camera handle\n");//10.01.20-komura
+    pGUI->SecondaryViewerWindow->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+
+    
+    pGUI->SecondaryViewerWindow2->lw->GetRenderer()->AddActor(pGUI->actor[0]);
+    fprintf(stdout, "\nget left camera handle\n");//10.01.20-komura
+    pGUI->SecondaryViewerWindow2->lw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+    
+    
+    pGUI->updateView=1;
+    
    
     // 4/25/2010 ayamada
     pGUI->textActor->SetInput("Marker Position");
@@ -2252,7 +2288,6 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     //this->SecondaryViewerWindow->rwLeft->AddViewProp(this->textActor);
     // 5/8/2010 ayamada
     pGUI->SecondaryViewerWindow->rwLeft->GetRenderer()->AddActor(pGUI->textActor);
-    
     
     pGUI->textActor1->SetInput("Position X:");
     pGUI->textActor1->GetTextProperty()->SetFontSize(14);
@@ -2655,6 +2690,7 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkSurfaceModelRender()
     //this->SecondaryViewerWindow->rw->AddViewProp(polyActor);
     // 5/8/2010 ayamada
     this->SecondaryViewerWindow->rw->GetRenderer()->AddActor(polyActor);
+    this->SecondaryViewerWindow2->lw->GetRenderer()->AddActor(polyActor);
     
     
     // for multi-object rendering
@@ -3314,7 +3350,8 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkCUDAVolumeRender()
     // 5/8/2010 ayamada
     //ren->AddVolume( volume );
     this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
-    
+    // 6/23/2010 ayamada
+    this->SecondaryViewerWindow2->lw->GetRenderer()->AddVolume( volume );
     
 }
 
@@ -3488,6 +3525,9 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkTexture3DVolumeRender()
     //ren->AddVolume( volume );
     this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
 
+    // 6/23/2010 ayamada
+    this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
+    
     
 }
 
@@ -3576,6 +3616,9 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkRayCastingVolumeRender()
     // 5/7/2010 ayamada
     //ren->AddVolume( volume );
     this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
+
+    // 6/23/2010 ayamada
+    this->SecondaryViewerWindow2->lw->GetRenderer()->AddVolume( volume );
     
     
 }
