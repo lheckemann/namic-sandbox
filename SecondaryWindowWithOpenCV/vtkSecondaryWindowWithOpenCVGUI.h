@@ -280,7 +280,7 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     vtkActor *actor[2];
 
     // 5/15/2010 ayamada
-    CvCapture* capture;
+    CvCapture* capture[2];
 //    CvCapture* capture[2]; // 6/21/2010 ayamada
     vtkPlaneSource *planeSource;
     vtkPolyDataMapper *planeMapper;
@@ -455,8 +455,8 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     //unsigned char* idata;
     
     //CvCapture* capture;
-    CvMat* intrinsicMatrix;    //for intrinsic matrix in camera calibration    //at 09. 12. 15 - smkim
-    CvMat* distortionCoefficient;    //for distortion coefficient in camera calibration    //at 09. 12. 15 - smkim
+    CvMat* intrinsicMatrix[2];    //for intrinsic matrix in camera calibration    //at 09. 12. 15 - smkim
+    CvMat* distortionCoefficient[2];    //for distortion coefficient in camera calibration    //at 09. 12. 15 - smkim
         
     double focal_length;
     
