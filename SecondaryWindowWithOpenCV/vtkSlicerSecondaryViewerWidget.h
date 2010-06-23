@@ -83,6 +83,11 @@ public:
   // alternative method to propagate events generated in GUI to logic / mrml
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
 
+    // 100623-komura
+    vtkSetMacro (RenderPending, int);
+    vtkGetMacro (RenderPending, int);
+    
+    
   // Description:
   // Updates Actors based on models in the scene
   void UpdateFromMRML();
