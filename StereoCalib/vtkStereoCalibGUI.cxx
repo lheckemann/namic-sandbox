@@ -264,6 +264,16 @@ vtkStereoCalibGUI::~vtkStereoCalibGUI ( )
           this->stereoOneWindowLayeredCheckButton->Delete ( );
       }
     
+  //-----------------------------------------------------------
+  //wait for releasing camera device
+  // 100623-komura
+  while(this->makeThread != 0){
+      if(this->makeThread < 5){
+          this->makeThread = 5;
+      } 
+      std::cerr << "wait thread end\n"  <<std::endl;
+  }
+
   //----------------------------------------------------------------
   // Unregister Logic class
 
