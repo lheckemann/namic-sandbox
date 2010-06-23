@@ -339,6 +339,7 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     // 6/23/2010 ayamada
     this->singleOn = 0;
     this->stereoOn = 0;
+    this->firstOn = 0;
 
     
     //----
@@ -1096,6 +1097,8 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             // 6/23/2010 ayamada
             this->singleOn = 1;
             this->stereoOn = 0;
+            
+            this->firstOn = 1;
       
             /*
             // change decondary monitor size
@@ -1125,6 +1128,8 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             // 6/23/2010 ayamada
             this->stereoOn = 1;
             this->singleOn = 0;
+
+            this->firstOn = 1;
             
         }
         
@@ -1155,6 +1160,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         // 6/23/2010 ayamada
         this->singleOn = 0;
         this->stereoOn = 0;
+        this->firstOn = 0;
         
         std::cerr << "closeWindowFlag=" << this->closeWindowFlag << std::endl;
 
@@ -1337,7 +1343,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->stereoWindowCheckButton->SelectedStateOff();
         }
 
-        if(singleOn == 1){
+        if(singleOn == 1 && firstOn == 1){
             this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor(); // 6/23/2010 ayamada            
         }
         
@@ -1365,7 +1371,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->singleWindowCheckButton->SelectedStateOff();
         }
 
-        if(stereoOn == 1){
+        if(stereoOn == 1 && firstOn == 1){
             this->SecondaryViewerWindow2->Withdraw(); // 6/23/2010 ayamada                        
         }
         
