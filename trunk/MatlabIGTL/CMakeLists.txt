@@ -92,7 +92,7 @@ add_custom_command (
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
   ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlopen.cpp
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlopen.cpp
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlopen.cpp OpenIGTLinkMex
 )
 
 add_custom_command (
