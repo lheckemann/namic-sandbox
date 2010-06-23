@@ -336,6 +336,11 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     this->singleWindowCheckButton = NULL;
     this->stereoWindowCheckButton = NULL;
     
+    // 6/23/2010 ayamada
+    this->singleOn = 0;
+    this->stereoOn = 0;
+
+    
     //----
 }
 
@@ -1074,15 +1079,23 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             //this->makeCameraThread();//10.01.12-komura //10.01.21-komura
             //this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
             this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
+            //this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
             
             this->ConfigurationOfSecondaryWindow(1); // 6/23/2010 ayamada            
             
-            //this->SecondaryViewerWindow2->Withdraw();
+            // 6/23/2010 ayamada
+            if(this->SecondaryViewerWindow2){
+                this->SecondaryViewerWindow2->Withdraw();
+            }
             
             secView=1;    // 5/5/2010 ayamada            
             this->m_bOpenSecondaryWindow = true;  // 5/7/2010 ayamada
         
             this->updateViewTriger = 1;
+            
+            // 6/23/2010 ayamada
+            this->singleOn = 1;
+            this->stereoOn = 0;
       
             /*
             // change decondary monitor size
@@ -1108,6 +1121,10 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->m_bOpenSecondaryWindow = true;  // 5/7/2010 ayamada
             
             this->updateViewTriger = 1;
+            
+            // 6/23/2010 ayamada
+            this->stereoOn = 1;
+            this->singleOn = 0;
             
         }
         
@@ -1316,7 +1333,15 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->stereoWindowCheckButton->SelectedStateOff();
         }
 
+        if(singleOn == 1){
+            this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor(); // 6/23/2010 ayamada            
+        }
+        
         this->ConfigurationOfSecondaryWindow(2); // 6/23/2010 ayamada
+        
+        // 6/23/2010 ayamada
+        this->singleOn = 0;
+        this->stereoOn = 1;
         
     }
 
@@ -1334,8 +1359,17 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->singleWindowCheckButton->SelectedStateOff();
         }
 
+        if(stereoOn == 1){
+            this->SecondaryViewerWindow2->Withdraw(); // 6/23/2010 ayamada                        
+        }
+        
         this->ConfigurationOfSecondaryWindow(1); // 6/23/2010 ayamada
 
+        // 6/23/2010 ayamada
+        this->singleOn = 1;
+        this->stereoOn = 0;
+        
+        
     }
     
     
