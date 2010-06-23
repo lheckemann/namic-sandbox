@@ -384,6 +384,7 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
 
     int singleOn;
     int stereoOn;
+    int firstOn;
     
     // 5/5/2010 ayamada
     // for videoOverlay
