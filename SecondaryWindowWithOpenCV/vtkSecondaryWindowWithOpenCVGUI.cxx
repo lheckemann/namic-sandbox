@@ -1068,7 +1068,8 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         
         // 5/6/2010 ayamada        
         // for display capture data
-        if (this->SecondaryViewerWindow)
+        //if (this->SecondaryViewerWindow)
+        if (this->singleWindowCheckButton->GetSelectedState() == 1)
         {  
             //this->makeCameraThread();//10.01.12-komura //10.01.21-komura
             //this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
@@ -1095,6 +1096,21 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             */
 
         }
+        
+        if(this->stereoWindowCheckButton->GetSelectedState() == 1)
+        {
+            this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
+            this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
+            
+            this->ConfigurationOfSecondaryWindow(2); // 6/23/2010 ayamada            
+
+            secView=1;    // 5/5/2010 ayamada            
+            this->m_bOpenSecondaryWindow = true;  // 5/7/2010 ayamada
+            
+            this->updateViewTriger = 1;
+            
+        }
+        
 /*
         if(this->SecondaryViewerWindow2){
             this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
@@ -1293,6 +1309,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         if(this->stereoWindowCheckButton->GetSelectedState() == 1)
         {
             this->singleWindowCheckButton->SelectedStateOff();
+            
         }else if(this->stereoWindowCheckButton->GetSelectedState() == 0)
         {
             this->singleWindowCheckButton->SelectedStateOn();
@@ -1310,6 +1327,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         if(this->singleWindowCheckButton->GetSelectedState() == 1)
         {
             this->stereoWindowCheckButton->SelectedStateOff();
+            
         }else if(this->singleWindowCheckButton->GetSelectedState() == 0)
         {
             this->stereoWindowCheckButton->SelectedStateOn();
@@ -3547,7 +3565,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ConfigurationOfSecondaryWindow(int i){
                                             this->SecondaryViewerWindow->lw->GetWidgetName());        
         
         
-        this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor(); // 6/23/2010 ayamada
+        //this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor(); // 6/23/2010 ayamada
         
         this->SecondaryViewerWindow2->SetTitle ("3D Slicer -- Secondary Window2 -- ");
         this->SecondaryViewerWindow2->changeSecondaryMonitorSize(640, 480);
