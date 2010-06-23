@@ -262,7 +262,7 @@ void vtkSlicerSecondaryViewerWindow::CreateWidget()
     this->lw->SetParent(this);
     this->lw->Create();
     this->lw->RemoveInteractionBindings();
-    this->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 0 -relheight 1", 
+    this->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 0.0 -relheight 1", 
                  this->lw->GetWidgetName());
     
   //

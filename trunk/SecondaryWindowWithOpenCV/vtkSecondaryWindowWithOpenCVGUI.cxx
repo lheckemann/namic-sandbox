@@ -1072,6 +1072,14 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         {  
             //this->makeCameraThread();//10.01.12-komura //10.01.21-komura
             this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
+    
+            // 6/23/2010 ayamada
+            if(this->stereoWindowCheckButton->GetSelectedState() == 1){
+                if(this->SecondaryViewerWindow2){
+                    this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
+                }
+            }           
+            
             
             secView=1;    // 5/5/2010 ayamada            
             this->m_bOpenSecondaryWindow = true;  // 5/7/2010 ayamada
@@ -1109,6 +1117,11 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             // 5/16/2010
             first = 0;
 
+        }
+        if (this->SecondaryViewerWindow2)
+        {  
+            this->SecondaryViewerWindow2->Withdraw();
+            
         }
         
         
@@ -1288,9 +1301,20 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0.0 -anchor nw -relwidth 0.0 -relheight 0.0", 
                                             this->SecondaryViewerWindow->rwLeft->GetWidgetName());        
 
-        this->SecondaryViewerWindow2->SetTitle ("3D Slicer -- Secondary Window -- ");
+        this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0.0 -anchor nw -relwidth 0.0 -relheight 0.0", 
+                                            this->SecondaryViewerWindow->lw->GetWidgetName());        
+        
+        
+        this->SecondaryViewerWindow2->SetTitle ("3D Slicer -- Secondary Window2 -- ");
         this->SecondaryViewerWindow2->changeSecondaryMonitorSize(640, 480);
+
+        this->SecondaryViewerWindow2->Script("place %s -relx 0 -rely 0 -anchor nw -relwidth 0.0 -relheight 0.0", 
+                                            this->SecondaryViewerWindow2->MainFrame->GetWidgetName() );//10.01.25 ayamada
         this->SecondaryViewerWindow2->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 1 -relheight 1", 
+                                            this->SecondaryViewerWindow2->rw->GetWidgetName());//10.01.25 ayamada
+        this->SecondaryViewerWindow2->Script("place %s -relx 0 -rely 0.0 -anchor nw -relwidth 0.0 -relheight 0.0", 
+                                            this->SecondaryViewerWindow2->rwLeft->GetWidgetName());        
+        this->SecondaryViewerWindow2->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 0 -relheight 0", 
                                             this->SecondaryViewerWindow2->lw->GetWidgetName());//6/23/2010 ayamada
         
     }
@@ -1317,6 +1341,8 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
                                             this->SecondaryViewerWindow->rw->GetWidgetName());//10.01.25 ayamada
         this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0.8 -anchor nw -relwidth 0.5 -relheight 0.2", 
                                             this->SecondaryViewerWindow->rwLeft->GetWidgetName());
+        this->SecondaryViewerWindow->Script("place %s -relx 0 -rely 0.0 -anchor nw -relwidth 0.0 -relheight 0.0", 
+                                            this->SecondaryViewerWindow->lw->GetWidgetName());
         
     }
     
@@ -1764,7 +1790,11 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessTimerEvents()
             if(this->stereoWindowCheckButton->GetSelectedState()){
                 
                 this->SecondaryViewerWindow->rw->Render();  // 5/5/2010 ayamada
+//                this->SecondaryViewerWindow->lw->Render();  // 5/5/2010 ayamada
+//                this->SecondaryViewerWindow->rwLeft->Render();  // 5/5/2010 ayamada
                 this->SecondaryViewerWindow2->lw->Render();  // 6/22/2010 ayamada
+//                this->SecondaryViewerWindow2->rw->Render();  // 6/22/2010 ayamada
+//                this->SecondaryViewerWindow2->rwLeft->Render();  // 6/22/2010 ayamada
 
             
             }
