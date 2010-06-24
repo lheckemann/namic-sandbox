@@ -81,7 +81,6 @@ public:
     this->SecondMonitorTranslation[ 0 ] = 0.0;
     this->SecondMonitorTranslation[ 1 ] = 0.0;
     this->SecondMonitorVerticalFlip = false;
-    this->TableAtOverlay = 0.0;
   }
   
   std::string Name;
@@ -91,10 +90,9 @@ public:
   
   bool SecondMonitorHorizontalFlip;
   bool SecondMonitorVerticalFlip;
-  
-  double TableAtOverlay; // Table position when target area is under the overlay laser.
 };
 //ETX
+
 
 // ----------------------------------------------------------------------------
 
@@ -337,6 +335,8 @@ protected:
   //ETX
   
   int HardwareIndex;
+  double TableAtOverlay;
+  
   
     // Plan parameters --------------------------------------------------------
   
@@ -353,6 +353,7 @@ protected:
   vtkSmartPointer< vtkMatrix4x4 > SliceToRAS;
   
   unsigned int PlanUID;
+  
   
     // Insertion parameters ---------------------------------------------------
   

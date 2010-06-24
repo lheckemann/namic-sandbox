@@ -140,8 +140,7 @@ public:
   
   
   void OverlayNeedleGuide();
-  void OverlayRealTimeNeedleTip( double tipRAS[3],
-                                 vtkMatrix4x4 *tranformMatrix = NULL );
+  void OverlayRealTimeNeedleTip( double tipRAS[3], vtkMatrix4x4 *tranformMatrix = NULL );
   void RemoveOverlayRealTimeNeedleTip();
 
   

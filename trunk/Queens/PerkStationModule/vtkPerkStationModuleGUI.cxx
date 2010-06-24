@@ -90,9 +90,6 @@ vtkPerkStationModuleGUI
   this->ValidationVolumeSelector = vtkSmartPointer< vtkSlicerNodeSelectorWidget >::New();
   this->PSNodeSelector = vtkSmartPointer< vtkSlicerNodeSelectorWidget >::New();
   
-  this->LoadExperimentFileButton = vtkSmartPointer< vtkKWLoadSaveButton >::New();
-  this->SaveExperimentFileButton = vtkSmartPointer< vtkKWLoadSaveButton >::New();
-  
   this->CalibrateTimeLabel = vtkSmartPointer< vtkKWLabel >::New();
   this->PlanTimeLabel = vtkSmartPointer< vtkKWLabel >::New();
   this->InsertTimeLabel = vtkSmartPointer< vtkKWLabel >::New();
@@ -127,9 +124,7 @@ vtkPerkStationModuleGUI
   this->ValidateStep = vtkSmartPointer< vtkPerkStationValidateStep >::New();
   
   this->State = vtkPerkStationModuleGUI::Calibrate;  
-  this->DisplayVolumeLevelValue = vtkSmartPointer< vtkKWScaleWithEntry >::New();
-  this->DisplayVolumeWindowValue = vtkSmartPointer< vtkKWScaleWithEntry >::New();
-
+  
   this->Entered = false;
   this->Built = false;
   this->SliceOffset = 0;
@@ -344,28 +339,12 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
     vtkKWWizardWorkflow::CurrentStateChangedEvent,
     static_cast< vtkCommand* >( this->GUICallbackCommand ) );  
 
+
   this->VolumeSelector->AddObserver(
     vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
     ( vtkCommand* )this->GUICallbackCommand );
   
-  if ( this->LoadExperimentFileButton )
-    {
-    this->LoadExperimentFileButton->GetLoadSaveDialog()->AddObserver(
-      vtkKWTopLevel::WithdrawEvent, ( vtkCommand* )this->GUICallbackCommand );
-    }
   
-  if (this->SaveExperimentFileButton)
-    {
-    this->SaveExperimentFileButton->GetLoadSaveDialog()->AddObserver(
-      vtkKWTopLevel::WithdrawEvent, ( vtkCommand* )this->GUICallbackCommand );
-    }
-  
-  this->DisplayVolumeLevelValue->AddObserver( vtkKWScale::ScaleValueChangedEvent,
-    ( vtkCommand* )this->GUICallbackCommand );
-  
-  this->DisplayVolumeWindowValue->AddObserver( vtkKWScale::ScaleValueChangedEvent,
-    ( vtkCommand* )this->GUICallbackCommand );
-
   this->ObserverCount++;
   
 }
@@ -392,25 +371,6 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
     ( vtkCommand* )this->GUICallbackCommand );    
   
   
-  this->DisplayVolumeLevelValue->RemoveObservers(
-    vtkKWScale::ScaleValueChangedEvent,
-    ( vtkCommand* )this->GUICallbackCommand );
-
-  this->DisplayVolumeWindowValue->RemoveObservers(
-    vtkKWScale::ScaleValueChangedEvent,
-    (vtkCommand*)( this->GUICallbackCommand ) );
-  
-  if (this->LoadExperimentFileButton)
-    {
-    this->LoadExperimentFileButton->GetLoadSaveDialog()->RemoveObservers(
-      vtkKWTopLevel::WithdrawEvent, (vtkCommand*)( this->GUICallbackCommand ) );
-    }
-  if (this->SaveExperimentFileButton)
-    {
-    this->SaveExperimentFileButton->GetLoadSaveDialog()->RemoveObservers(
-      vtkKWTopLevel::WithdrawEvent, (vtkCommand*)( this->GUICallbackCommand ) );
-    }
-
   this->ObserverCount--;
 }
 
@@ -679,86 +639,6 @@ vtkPerkStationModuleGUI
     }  
   
   
-    // Load experiment.
-  
-  if ( this->LoadExperimentFileButton
-       && this->LoadExperimentFileButton->GetLoadSaveDialog()
-       == vtkKWLoadSaveDialog::SafeDownCast( caller )
-       && ( event == vtkKWTopLevel::WithdrawEvent ) )
-    {
-      // load calib dialog button
-    const char *fileName = this->LoadExperimentFileButton->
-      GetLoadSaveDialog()->GetFileName();
-    if ( fileName ) 
-      {
-        // call the callback function
-      this->LoadExperimentButtonCallback( fileName );
-      }
-    
-    // reset the file browse button text
-    this->LoadExperimentFileButton->SetText( "Load experiment" );
-    }  
-  
-  
-    // Save experiment.
-  
-  if ( this->SaveExperimentFileButton
-            && this->SaveExperimentFileButton->GetLoadSaveDialog()
-               == vtkKWLoadSaveDialog::SafeDownCast(caller)
-            && ( event == vtkKWTopLevel::WithdrawEvent ) )
-    {
-      // save calib dialog button
-    const char *fileName = this->SaveExperimentFileButton->GetLoadSaveDialog()->
-                           GetFileName();
-    if ( fileName ) 
-      {
-      std::string fullFileName = std::string(fileName) + ".xml";
-        // get the file name and file path
-      this->SaveExperimentFileButton->GetLoadSaveDialog()->
-            SaveLastPathToRegistry( "OpenPath" );
-        // call the callback function
-      this->SaveExperimentButtonCallback( fullFileName.c_str() );
-      }
-    
-      // reset the file browse button text
-    this->SaveExperimentFileButton->SetText( "Save experiment" );
-    }  
-  
-  
-    // Grayscale window level change.
-  
-  if (    this->DisplayVolumeLevelValue
-       && this->DisplayVolumeLevelValue
-          == vtkKWScaleWithEntry::SafeDownCast( caller )
-       && ( event == vtkKWScale::ScaleValueChangedEvent ) )
-    {
-    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->
-      SetAutoWindowLevel( 0 );
-    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->
-      SetLevel( this->DisplayVolumeLevelValue->GetValue() );
-    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->
-      Modified();
-    this->SecondaryMonitor->UpdateImageDisplay();
-    }
-  
-  
-    // Grayscale window width change.
-  
-  if (    this->DisplayVolumeWindowValue
-       && this->DisplayVolumeWindowValue
-          == vtkKWScaleWithEntry::SafeDownCast( caller )
-       && ( event == vtkKWScale::ScaleValueChangedEvent ) )
-    {
-    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->
-      SetAutoWindowLevel( 0 );
-    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->
-      SetWindow( this->DisplayVolumeWindowValue->GetValue() );
-    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->
-      Modified();
-    this->SecondaryMonitor->UpdateImageDisplay();
-    }
-  
-  
     // Corner annotation.
   
   if (    this->MRMLNode
@@ -898,10 +778,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       // set up the image on secondary monitor    
       this->SecondaryMonitor->SetupImageData();
       
-      // set the window/level controls values from the scalar volume display node
-      this->DisplayVolumeLevelValue->SetValue(n->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode()->GetLevel());
-      this->DisplayVolumeWindowValue->SetValue(n->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode()->GetWindow());
-    
+      
       if (!planningVolumePreExists)
         {
         // repopulate/enable/disable controls now that volume has been loaded
@@ -954,12 +831,6 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       this->VolumeSelector->GetSelected()->Modified();
 
       this->VolumeSelector->UpdateMenu();
-
-       // set the window/level controls values from the scalar volume display node
-      this->DisplayVolumeLevelValue->SetValue(n->GetValidationVolumeNode()->GetScalarVolumeDisplayNode()->GetLevel());
-      this->DisplayVolumeWindowValue->SetValue(n->GetValidationVolumeNode()->GetScalarVolumeDisplayNode()->GetWindow());
-
-
       }
     else
       {
@@ -1085,13 +956,6 @@ vtkPerkStationModuleGUI
   this->ResetAndStartNewExperiment();
   
   
-    // set the window/level controls values from scalar volume display node
-  this->DisplayVolumeLevelValue->SetValue(
-    volumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
-  this->DisplayVolumeWindowValue->SetValue(
-    volumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
-  
-  
     // Update the application logic.
   this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID(
     volumeNode->GetID() );
@@ -1127,11 +991,6 @@ vtkPerkStationModuleGUI
   if ( ! volumeNode ) return;
   
   this->MRMLNode->SetValidationVolumeNode( volumeNode );
-  
-  this->DisplayVolumeLevelValue->SetValue(
-      volumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
-  this->DisplayVolumeWindowValue->SetValue(
-      volumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
   
   this->Logic->AdjustSliceView();
 }
@@ -1369,118 +1228,6 @@ vtkPerkStationModuleGUI
                this->ValidationVolumeSelector->GetWidgetName() );
   
   
-    // Window level frame.
-  
-  vtkSmartPointer< vtkKWFrameWithLabel > windowLevelFrame =
-      vtkSmartPointer< vtkKWFrameWithLabel >::New();
-    windowLevelFrame->SetParent( loadSaveExptFrame->GetFrame() );
-    windowLevelFrame->SetLabelText( "Window/Level" );
-    windowLevelFrame->Create();
-  
-  /*
-  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                windowLevelFrame->GetWidgetName() );
-  */
-  
-  if ( ! this->DisplayVolumeWindowValue->IsCreated() )
-    {
-    this->DisplayVolumeWindowValue->SetParent( windowLevelFrame->GetFrame() );
-    this->DisplayVolumeWindowValue->Create();
-    this->DisplayVolumeWindowValue->SetRange(0.0, 8192.0);
-    this->DisplayVolumeWindowValue->SetResolution(10.0);
-    this->DisplayVolumeWindowValue->SetLength(150);
-    this->DisplayVolumeWindowValue->SetLabelText("Window"); 
-    this->DisplayVolumeWindowValue->SetLabelPositionToTop();
-    this->DisplayVolumeWindowValue->SetEntryPositionToTop();
-    }
-  
-  if ( ! this->DisplayVolumeLevelValue->IsCreated() )
-    {
-    this->DisplayVolumeLevelValue->SetParent( windowLevelFrame->GetFrame() );
-    this->DisplayVolumeLevelValue->Create();
-    this->DisplayVolumeLevelValue->SetRange(0.0, 2048.0);
-    this->DisplayVolumeLevelValue->SetResolution(10.0);
-    this->DisplayVolumeLevelValue->SetLength(150);
-    this->DisplayVolumeLevelValue->SetLabelText("Level");   
-    this->DisplayVolumeLevelValue->SetLabelPositionToTop();
-    this->DisplayVolumeLevelValue->SetEntryPositionToTop();
-    }
-  /*
-  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->DisplayVolumeWindowValue->GetWidgetName() );
-  
-  this->Script("pack %s -side top -anchor ne -padx 2 -pady 2", 
-                        this->DisplayVolumeLevelValue->GetWidgetName());
-  */
-  
-    // Load save frame.
-  
-  vtkSmartPointer< vtkKWFrame > loadSaveFrame =
-      vtkSmartPointer< vtkKWFrame >::New();
-    loadSaveFrame->SetParent( loadSaveExptFrame->GetFrame() );
-    loadSaveFrame->Create();
-  /*
-  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                loadSaveFrame->GetWidgetName() );
-  */
-  
-    // create the load file dialog button
-  
-  if ( ! this->LoadExperimentFileButton->IsCreated() )
-    {
-    this->LoadExperimentFileButton->SetParent( loadSaveFrame );
-    this->LoadExperimentFileButton->Create();
-    this->LoadExperimentFileButton->SetBorderWidth(2);
-    this->LoadExperimentFileButton->SetReliefToRaised();       
-    this->LoadExperimentFileButton->SetHighlightThickness(2);
-    this->LoadExperimentFileButton->SetBackgroundColor(0.85,0.85,0.85);
-    this->LoadExperimentFileButton->SetActiveBackgroundColor(1,1,1);
-    this->LoadExperimentFileButton->SetText("Load experiment");
-    this->LoadExperimentFileButton->SetImageToPredefinedIcon(
-      vtkKWIcon::IconPresetLoad );
-    this->LoadExperimentFileButton->SetBalloonHelpString(
-      "Click to load a previous experiment file" );
-    this->LoadExperimentFileButton->GetLoadSaveDialog()->
-      RetrieveLastPathFromRegistry( "OpenPath" );
-    this->LoadExperimentFileButton->TrimPathFromFileNameOff();
-    this->LoadExperimentFileButton->SetMaximumFileNameLength(256);
-    this->LoadExperimentFileButton->GetLoadSaveDialog()->SaveDialogOff();
-    this->LoadExperimentFileButton->GetLoadSaveDialog()->SetFileTypes(
-      "{{XML File} {.xml}} {{All Files} {*.*}}" );
-    }
-    
-  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->LoadExperimentFileButton->GetWidgetName() );
-
-      // create the load file dialog button
-    
-  if ( ! this->SaveExperimentFileButton->IsCreated() )
-    {
-    this->SaveExperimentFileButton->SetParent( loadSaveFrame );
-    this->SaveExperimentFileButton->Create();
-    this->SaveExperimentFileButton->SetText( "Save experiment" );
-    this->SaveExperimentFileButton->SetBorderWidth(2);
-    this->SaveExperimentFileButton->SetReliefToRaised();       
-    this->SaveExperimentFileButton->SetHighlightThickness( 2 );
-    this->SaveExperimentFileButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
-    this->SaveExperimentFileButton->SetActiveBackgroundColor( 1, 1, 1 );               
-    this->SaveExperimentFileButton->SetImageToPredefinedIcon(
-      vtkKWIcon::IconFloppy );
-    this->SaveExperimentFileButton->SetBalloonHelpString(
-      "Click to save experiment in a file" );
-    this->SaveExperimentFileButton->GetLoadSaveDialog()->SaveDialogOn();
-    this->SaveExperimentFileButton->TrimPathFromFileNameOff();
-    this->SaveExperimentFileButton->SetMaximumFileNameLength( 256 );
-    this->SaveExperimentFileButton->GetLoadSaveDialog()->SetFileTypes(
-      "{{XML File} {.xml}} {{All Files} {*.*}}" ); 
-    this->SaveExperimentFileButton->GetLoadSaveDialog()->
-      RetrieveLastPathFromRegistry( "OpenPath" );
-    }
-  
-  this->Script( "pack %s -side top -anchor ne -padx 2 -pady 2", 
-                this->SaveExperimentFileButton->GetWidgetName() );
-  
-  
   vtkSmartPointer< vtkKWFrame > timerFrame =
       vtkSmartPointer< vtkKWFrame > ::New();
     timerFrame->SetParent( page );
@@ -1672,24 +1419,6 @@ void
 vtkPerkStationModuleGUI
 ::TearDownGUI() 
 {
-  if (this->LoadExperimentFileButton)
-    {
-    this->LoadExperimentFileButton->SetParent(NULL);
-    if(this->LoadExperimentFileButton->IsCreated())
-      {
-      // same as the above reason
-      this->LoadExperimentFileButton->GetLoadSaveDialog()->SetParent(NULL);
-      }
-    }
-  if (this->SaveExperimentFileButton)
-    {
-    this->SaveExperimentFileButton->SetParent(NULL);
-    if(this->SaveExperimentFileButton->IsCreated())
-      {
-      // same as the above reason
-      this->SaveExperimentFileButton->GetLoadSaveDialog()->SetParent(NULL);
-      }    
-    }
   if (this->WizardFrame)
     {    
     this->WizardFrame->SetParent(NULL);    
@@ -1740,14 +1469,6 @@ vtkPerkStationModuleGUI
       this->PSNodeSelector->GetLabel()->SetParent(NULL);
       }
     this->PSNodeSelector->SetParent(NULL);
-    }
-  if (this->DisplayVolumeLevelValue)
-    {
-    this->DisplayVolumeLevelValue->SetParent(NULL);
-    }
-  if (this->DisplayVolumeWindowValue)
-    {
-    this->DisplayVolumeWindowValue->SetParent(NULL);
     }
 }
 
@@ -1872,22 +1593,6 @@ vtkPerkStationModuleGUI
   this->PlanStep->Reset();
   this->InsertStep->Reset();
   this->ValidateStep->Reset();
-}
-
-
-//---------------------------------------------------------------------------
-void
-vtkPerkStationModuleGUI
-::SaveExperimentButtonCallback( const char* fileName )
-{
-  
-}
-
-
-//-----------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::LoadExperimentButtonCallback(const char *fileName)
-{
-  
 }
 
 

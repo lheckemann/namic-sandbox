@@ -620,19 +620,18 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
   if ( ! this->DisplayInitialized ) return;
   
   
-    // Switch visibility of needle guide.
-    // Show needle guide only in planning plane +/- 0.5 mm.
- 
+    // Switch visibility of needle guide and depth perception lines.
+    
     // Update the current slice offset value.
   
   this->SliceOffsetRAS = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )
      ->GetLogic()->GetSliceOffset();
      
-  
   double entry[ 3 ];
   double target[ 3 ];
   this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( entry );
   this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( target );
+    // Show needle guide only in planning plane +/- 0.5 mm.
   double minOffset = target[ 2 ] - 0.5;
   double maxOffset = entry[ 2 ] + 0.5;
   if ( entry[ 2 ] < target[ 2 ] )
@@ -650,11 +649,11 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
       // Recompute the position of the needle guide, and depth guides.
     this->OverlayNeedleGuide();
     this->SetDepthPerceptionLines();
-  
+    
     this->ShowNeedleGuide( true );
     this->ShowDepthPerceptionLines( true );
     this->MeasureDigitsActor->SetVisibility( 1 );
-
+    
     if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
       this->MeasureDigitsActor->FlipAroundY( true );
     else
@@ -668,7 +667,8 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     }
  
    
-   // Switch visibility of table position guide.
+   // Switch visibility of table position guide. ------------------------
+   
    // Always show it when workphase is Insertion.
  
  if ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 ) // Insertion.
@@ -699,7 +699,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
    }
  
  
-   // Position Left / Right side indicator letters.
+   // Position L/R side indicator and calibration guide texts. ------------------------
  
  bool Lup = false;
  bool Lleft = false;
@@ -754,26 +754,20 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
  
     // Position the actors.
 
-  this->LeftSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ],
-                                           this->UpperLeftCorner[ 1 ] );
+  this->LeftSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ], this->UpperLeftCorner[ 1 ] );
   if ( ! Lleft && Lup )
-    this->LeftSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ],
-                                             this->UpperRightCorner[ 1 ] );
+    this->LeftSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ], this->UpperRightCorner[ 1 ] );
   if ( Lleft && ! Lup )
-    this->LeftSideActor->SetDisplayPosition( this->LowerLeftCorner[ 0 ],
-                                             this->LowerLeftCorner[ 1 ] );
+    this->LeftSideActor->SetDisplayPosition( this->LowerLeftCorner[ 0 ], this->LowerLeftCorner[ 1 ] );
   
-  this->RightSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ],
-                                            this->UpperLeftCorner[ 1 ] );
+  this->RightSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ], this->UpperLeftCorner[ 1 ] );
   if ( ! Rleft && Rup )
-    this->RightSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ],
-                                              this->UpperRightCorner[ 1 ] );
+    this->RightSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ], this->UpperRightCorner[ 1 ] );
   if ( Rleft && ! Rup )
-    this->RightSideActor->SetDisplayPosition( this->LowerLeftCorner[ 0 ],
-                                              this->LowerLeftCorner[ 1 ] );
+    this->RightSideActor->SetDisplayPosition( this->LowerLeftCorner[ 0 ], this->LowerLeftCorner[ 1 ] );
   
   
-    // Extract slice from the image volume.
+    // Extract slice from the image volume. -------------------------------
   
     // It is not possible to apply vtkTransformFilter on an image data.
     // So all transformations has to be applied in ResliceFilter.
@@ -793,12 +787,9 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
   
     // Adjust color window / level.
   
-  this->MapToWindowLevelColors->SetWindow(
-      this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
-  this->MapToWindowLevelColors->SetLevel( 
-      this->VolumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
-  this->MapToWindowLevelColors->SetInput(
-      this->ResliceFilter->GetOutput() );
+  this->MapToWindowLevelColors->SetWindow( this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
+  this->MapToWindowLevelColors->SetLevel( this->VolumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
+  this->MapToWindowLevelColors->SetInput( this->ResliceFilter->GetOutput() );
   this->MapToWindowLevelColors->Update();
   
   

@@ -151,6 +151,7 @@ endif(BUILD_USING_NDIOAPI)
 set(lib_name PerkStationModule)
 add_library(${lib_name} 
   ${PerkStationModule_SRCS}
+  PerkStationCommon.h
   ${PerkStationModule_TCL_SRCS}
   
   )
