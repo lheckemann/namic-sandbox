@@ -325,7 +325,7 @@ def init(S, seeds, u, b, param):
 
     # generate random unit directions
     np.random.seed(0) # determinism
-    E = np.random.rand(3,param['seeds'])
+    E = np.random.randn(3,param['seeds'])
     E = E / np.sqrt(np.sum(E**2,axis=0)) / 2  # half unit
     
     # perturb each index with those directions
