@@ -19,7 +19,6 @@
 #define ANGLE_SCALE 1/32767
 #define INCH_TO_MM 25.40005
 
-
 #define STREAM "stream"
 #define POINT  "point"
 
@@ -31,13 +30,8 @@ int board_w;      //Enclosed corners horizontally on the chessboard
 int board_h;      //Enclosed corners vertically on the chessboard
 
 igtl::Matrix4x4 matrix;
-//igtl::Matrix4x4 matrix_recalibrated;
 CvMat* distortion_coeffs;
 CvMat* intrinsic_matrix;
-//CvMat* opencv_matrix_recalibrated;
-//CvMat* transformation_matrix;
-
-//bool intrinsic_parameters_calculated = false;
 
 bool exit_while = false;
 
@@ -267,7 +261,7 @@ int opencv_camera_calibration()
 
         /*
         for(int testme = 0; testme < n_boards; testme++)
-    {
+     {
           std::cout << "MatRot " << testme << ":" << std::endl;
           std::cout << CV_MAT_ELEM(*rotmatrix, float, testme, 0) << " " << CV_MAT_ELEM(*rotmatrix, float, testme, 1) << " " << CV_MAT_ELEM(*rotmatrix, float, testme, 2) << std::endl; 
 
@@ -275,12 +269,12 @@ int opencv_camera_calibration()
 
           std::cout << CV_MAT_ELEM(*rotmatrix, float, testme, 6) << " " << CV_MAT_ELEM(*rotmatrix, float, testme, 7) << " " << CV_MAT_ELEM(*rotmatrix, float, testme, 8) << std::endl << std::endl;
 
-      std::cout << "TransVect " << testme << ":" << std::endl;
+       std::cout << "TransVect " << testme << ":" << std::endl;
 
-      std::cout << "( " << CV_MAT_ELEM(*transvect, float, testme, 0) << "," << CV_MAT_ELEM(*transvect, float, testme, 1) << "," << CV_MAT_ELEM(*transvect, float, testme, 2) << " )" << std::endl;
+       std::cout << "( " << CV_MAT_ELEM(*transvect, float, testme, 0) << "," << CV_MAT_ELEM(*transvect, float, testme, 1) << "," << CV_MAT_ELEM(*transvect, float, testme, 2) << " )" << std::endl;
 
-      std::cout << std::endl;
-    }
+       std::cout << std::endl;
+     }
 
         */
 
@@ -385,6 +379,13 @@ void* thread_pos_ang(void* data)
 int retrieve_pos_ang_matrix()
 {
 
+  // TODO ****************************************
+  // Interface: ¤ USB Camera device
+  //            ¤ Tracker Name
+  //            ¤ RS232 Configuration ?
+  //            ¤ Sending Commands ?
+  //            ¤ Connection parameters
+
 //-----------------
 // Open RS232 Communication (via USB Converter)
 
@@ -435,7 +436,7 @@ pthread_t thread;
 //-----------------
 // Clear terminal
 
-system("clear");
+// system("clear");
 
 //-----------------
 // Open connection to localhost:18944
@@ -449,17 +450,11 @@ transMsg = igtl::TransformMessage::New();
 transMsg->SetDeviceName("Tracker");
 
 
-if (r != 0)
-{
-  std::cout << "Connect to the server\t\t\t\t\t\t\t[Failed]" << std::endl;
-}
-else
-{
   //std::cout << "Connect to the server\t\t\t\t\t\t[Succeed]" << std::endl;  
 
   if(usb_device < 0) 
   {
-    printf("Open USB Device\t\t\t\t\t\t\t[Failed]\n");
+    printf("\nOpen USB Device\t\t\t\t\t\t\t[Failed]\n");
   }
   else
   {
@@ -564,23 +559,10 @@ else
             
             //-----------------
             // Angles
-
-      /*
-          matrix[0][0] = (float)unpack_coordinates[3]*ANGLE_SCALE;
-          matrix[1][0] = (float)unpack_coordinates[4]*ANGLE_SCALE;
-          matrix[2][0] = (float)unpack_coordinates[5]*ANGLE_SCALE;
-          matrix[3][0] = (float)0;
-
-          matrix[0][1] = (float)unpack_coordinates[6]*ANGLE_SCALE;
-          matrix[1][1] = (float)unpack_coordinates[7]*ANGLE_SCALE;
-          matrix[2][1] = (float)unpack_coordinates[8]*ANGLE_SCALE;
-          matrix[3][1] = (float)0;
-
-          matrix[0][2] = (float)unpack_coordinates[9]*ANGLE_SCALE;
-          matrix[1][2] = (float)unpack_coordinates[10]*ANGLE_SCALE;
-          matrix[2][2] = (float)unpack_coordinates[11]*ANGLE_SCALE;
-          matrix[3][2] = (float)0;
-      */
+            // TODO: Check why this order is working
+            // |  4  5  3  |
+            // |  7  8  6  |
+            // | 10 11  9  |
 
           matrix[0][0] = (float)unpack_coordinates[4 ]*ANGLE_SCALE;
           matrix[1][0] = (float)unpack_coordinates[7 ]*ANGLE_SCALE;
@@ -607,31 +589,23 @@ else
           matrix[3][3] = (float)1;
 
           //-----------------
-          // Print created matrix in the terminal
+          // Print created matrix in the terminal (debug)
 
           // igtl::PrintMatrix(matrix);
 
           //-----------------
-          // Send Matrix
-          //if(intrinsic_parameters_calculated == true)
-          //{
-            // Multiply intrinsic matrix parameters with transformation matrix (result in opencv_matrix_recalibrated)
-
-            //convertMatrixOpenIGTLinktoOpenCV(matrix, transformation_matrix);
-
-            // std::cout << "test: " << CV_MAT_ELEM(*transformation_matrix, float, 1,1) << ":" << CV_MAT_ELEM(*intrinsic_matrix, float, 0,0) << std::endl;
-
-            //cvGEMM(intrinsic_matrix, transformation_matrix,0,NULL,0, opencv_matrix_recalibrated);  
-            //cvMatMulAdd(intrinsic_matrix, transformation_matrix,0, opencv_matrix_recalibrated);          
-            //convertMatrixOpenCVtoOpenIGTLink(opencv_matrix_recalibrated, matrix_recalibrated);
-
-            //igtl::PrintMatrix(matrix_recalibrated);
-
+          // Send Matrix 
+            if (r != 0)
+            {
+              std::cout << "Connect to the server\t\t\t\t\t\t\t[Failed]" << std::endl;
+            }
+            else
+            {
             transMsg->SetMatrix(matrix);
             transMsg->Pack();
             socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
             //igtl::Sleep(100);
-            //}
+            }
           usleep(100000);
 
         } // else (Read successful)
@@ -671,8 +645,6 @@ else
 
   } // else (Open device successful) 
 
-} // else (Connect to Slicer successful )
-
 printf("\n\n\n\n\n");
 
 return 0;
@@ -685,10 +657,11 @@ int main()
 
   pthread_create(&pos_ang_matrix_thread,NULL, thread_pos_ang,NULL);  
 
-  opencv_camera_calibration();
+  // opencv_camera_calibration();
 
-  pthread_cancel(pos_ang_matrix_thread);
-
+  //pthread_cancel(pos_ang_matrix_thread);
+ 
+  pthread_join(pos_ang_matrix_thread,NULL); 
   return 0;
 }
 
