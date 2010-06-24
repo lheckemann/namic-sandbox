@@ -394,7 +394,6 @@ def s2ga(s):
 
 
 def interp3signal(S, p, v=np.ones(3)):
-    v = np.ones(3)
     assert S.ndim == 4 and S.dtype == 'float32'
     nx,ny,nz,n = S.shape
     s = np.zeros((2*n,), dtype='float32')  # preallocate output (doubled)
