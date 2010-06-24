@@ -64,12 +64,18 @@ protected:
 
   void PresentValidationErrors();
 
-
-  // in clinical mode
+  
+    // GUI widgets.
+  
+    // Plan list.
+  
+  vtkKWFrame* PlanListFrame;
+  
+  
   // reset push button
   vtkKWPushButton *ResetValidationButton;
   vtkKWFrame *ResetFrame;
-
+  
   // entry point RAS
   // information to be had from the user
   vtkKWFrame *EntryPointFrame;

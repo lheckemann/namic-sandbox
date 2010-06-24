@@ -102,10 +102,6 @@ public:
   virtual void ResetAndStartNewExperiment();
   
   
-  void LoadExperimentButtonCallback( const char* fileName );
-  void SaveExperimentButtonCallback( const char* fileName );
-  
-  
   //BTX
   // Mode identifier
   enum ModeId

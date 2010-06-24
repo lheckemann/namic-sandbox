@@ -520,6 +520,8 @@ vtkPerkStationPlanStep
         }
       }
     }
+    
+  this->PlanList->GetWidget()->SelectRow( mrmlNode->GetCurrentPlanIndex() );
 }
 
 
@@ -757,8 +759,7 @@ vtkPerkStationPlanStep
     this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
   
   vtkRenderWindowInteractor *rwi;
-  rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->
-        GetRenderWindowInteractor();    
+  rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();    
   
   vtkMatrix4x4 *matrix;
   matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
@@ -1159,6 +1160,8 @@ void vtkPerkStationPlanStep::ProcessGUIEvents( vtkObject* caller,
   if ( this->ProcessingCallback ) return;
   this->ProcessingCallback = true;
 
+  
+    // Delete selected plan.
   
   if ( this->DeleteButton == vtkKWPushButton::SafeDownCast( caller )
        && event == vtkKWPushButton::InvokedEvent )

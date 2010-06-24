@@ -40,21 +40,8 @@
 #include "vtkMRMLLinearTransformNode.h"
 
 
-// --------------------------------------------------------------
+#include "PerkStationCommon.h"
 
-std::string DoubleToString( double d )
-{
-  std::stringstream ss;
-  ss << d;
-  return ss.str();
-}
-
-std::string BoolToString( bool d )
-{
-  std::stringstream ss;
-  ss << d;
-  return ss.str();
-}
 
 // --------------------------------------------------------------
 
@@ -72,73 +59,12 @@ std::string BoolToString( bool d )
     this->Script( "pack forget %s", obj->GetWidgetName() ); \
     };
 
-// --------------------------------------------------------------
-
-  // Definition of plan list columns.
-enum
-  {
-  COL_NAME = 0,
-  COL_TX,
-  COL_TY,
-  COL_RO,
-  COL_FV,
-  COL_FH,
-  COL_COUNT
-  };
-static const char* COL_LABELS[ COL_COUNT ] = { "Name", "TX", "TY", "RO", "FV", "FH" };
-static const int COL_WIDTHS[ COL_COUNT ] = { 10, 5, 5, 5, 5, 5 };
-
-// --------------------------------------------------------------
-
-
-/**
- * @param cstr C string to be converted.
- * @returns String content converted to bool.
- */
-bool CharToBool( char* cstr )
-{
-  std::stringstream ss;
-  ss << cstr;
-  bool ret;
-  ss >> ret;
-  return ret;
-}
-
-
-/**
- * @param cstr C string to be converted.
- * @returns String content converted to double.
- */
-double CharToDouble( char* cstr )
-{
-  std::stringstream ss;
-  ss << cstr;
-  double ret;
-  ss >> ret;
-  return ret;
-}
-
-
-/**
- * @param cstr C string containing double numbers.
- * @returns Vector of doubles converted from argument.
- */
-std::vector< double > CharToDoubleVector( char* cstr )
-{
-  std::stringstream ss( cstr );
-  double d;
-  std::vector< double > ret;
-  while ( ss >> d )
-    {
-    ret.push_back( d );
-    }
-  return ret;
-}
-
 
 
 //----------------------------------------------------------------------------
+
 vtkStandardNewMacro( vtkPerkStationCalibrateStep );
+
 vtkCxxRevisionMacro( vtkPerkStationCalibrateStep, "$Revision: 1.0 $" );
 
 
@@ -468,10 +394,10 @@ vtkPerkStationCalibrateStep
     
       // Create the columns.
     
-    for ( int col = 0; col < COL_COUNT; ++ col )
+    for ( int col = 0; col < CALIBRATION_COL_COUNT; ++ col )
       {
-      this->CalibrationList->GetWidget()->AddColumn( COL_LABELS[ col ] );
-      this->CalibrationList->GetWidget()->SetColumnWidth( col, COL_WIDTHS[ col ] );
+      this->CalibrationList->GetWidget()->AddColumn( CALIBRATION_COL_LABELS[ col ] );
+      this->CalibrationList->GetWidget()->SetColumnWidth( col, CALIBRATION_COL_WIDTHS[ col ] );
       this->CalibrationList->GetWidget()->SetColumnAlignmentToLeft( col );
       }
     this->CalibrationList->GetWidget()->ColumnEditableOn( 0 );  // Name column.
@@ -1277,7 +1203,7 @@ vtkPerkStationCalibrateStep
   
   bool updated = false;
   
-  if ( col == COL_NAME )
+  if ( col == CALIBRATION_COL_NAME )
     {
     OverlayCalibration* cal = this->GetGUI()->GetMRMLNode()->GetCalibrationAtIndex( row );
     cal->Name = std::string( str );
@@ -1423,16 +1349,16 @@ vtkPerkStationCalibrateStep
       
       vtkKWMultiColumnList* colList = this->CalibrationList->GetWidget();
       if ( deleteFlag || cal->Name.compare(
-             this->CalibrationList->GetWidget()->GetCellText( row, COL_NAME ) ) != 0 )
+             this->CalibrationList->GetWidget()->GetCellText( row, CALIBRATION_COL_NAME ) ) != 0 )
         {
         }
       
-      colList->SetCellText( row, COL_NAME, cal->Name.c_str() );
-      colList->SetCellText( row, COL_TX, DoubleToString( cal->SecondMonitorTranslation[ 0 ] ).c_str() );
-      colList->SetCellText( row, COL_TY, DoubleToString( cal->SecondMonitorTranslation[ 1 ] ).c_str() );
-      colList->SetCellText( row, COL_RO, DoubleToString( cal->SecondMonitorRotation ).c_str() );
-      colList->SetCellText( row, COL_FV, BoolToString( cal->SecondMonitorVerticalFlip ).c_str() );
-      colList->SetCellText( row, COL_FH, BoolToString( cal->SecondMonitorHorizontalFlip ).c_str() );
+      colList->SetCellText( row, CALIBRATION_COL_NAME, cal->Name.c_str() );
+      colList->SetCellText( row, CALIBRATION_COL_TX, DoubleToString( cal->SecondMonitorTranslation[ 0 ] ).c_str() );
+      colList->SetCellText( row, CALIBRATION_COL_TY, DoubleToString( cal->SecondMonitorTranslation[ 1 ] ).c_str() );
+      colList->SetCellText( row, CALIBRATION_COL_RO, DoubleToString( cal->SecondMonitorRotation ).c_str() );
+      colList->SetCellText( row, CALIBRATION_COL_FV, BoolToString( cal->SecondMonitorVerticalFlip ).c_str() );
+      colList->SetCellText( row, CALIBRATION_COL_FH, BoolToString( cal->SecondMonitorHorizontalFlip ).c_str() );
       } // for ( int row = 0; row < numPlans; ++ row )
     
     this->CalibrationList->GetWidget()->SelectRow( node->GetCurrentCalibration() );

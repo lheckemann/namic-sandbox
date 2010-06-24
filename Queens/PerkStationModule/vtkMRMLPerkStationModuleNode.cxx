@@ -270,6 +270,7 @@ vtkMRMLPerkStationModuleNode
   
   this->HardwareIndex = 0;
   
+  
   // Calibration parameters ---------------------------------------------------
   
   this->CurrentCalibration = -1; // No calibration;
@@ -278,6 +279,8 @@ vtkMRMLPerkStationModuleNode
   this->CurrentSliceOffset = 0.0;
   
   this->PatientPosition = PPNA;
+  
+  this->TableAtOverlay = 0.0;
   
   
     // Plan parameters --------------------------------------------------------
@@ -406,7 +409,7 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
     of << std::endl;
     
     of << indent << "Calibration" << calInd << "_TableAtOverlay=\""
-       << this->CalibrationList[ calInd ]->TableAtOverlay << "\"" << std::endl;
+       << this->TableAtOverlay << "\"" << std::endl;
     }
   
     // Plan list.
@@ -511,7 +514,7 @@ vtkMRMLPerkStationModuleNode
         calib->SecondMonitorRotationCenter[ 1 ] = rc[ 1 ];
         }
       else if ( ! sectionName.compare( "TableAtOverlay" ) ) {
-        calib->TableAtOverlay = StringToDouble( std::string( attValue ) );
+        this->TableAtOverlay = StringToDouble( std::string( attValue ) );
         }
       }
     
@@ -649,8 +652,15 @@ bool
 vtkMRMLPerkStationModuleNode
 ::GetSecondMonitorVerticalFlip() const
 {
-  if ( this->CurrentCalibration < 0 ) return false;
-  return this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorVerticalFlip;
+  bool ret = this->HardwareList[ this->HardwareIndex ].FlipVertical;
+  if ( this->CurrentCalibration >= 0 )
+    {
+    if ( this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorVerticalFlip )
+      {
+      ret = ! ret;
+      }
+    }
+  return ret;
 }
 
 
@@ -667,8 +677,15 @@ bool
 vtkMRMLPerkStationModuleNode
 ::GetSecondMonitorHorizontalFlip() const
 {
-  if ( this->CurrentCalibration < 0 ) return false;
-  return this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorHorizontalFlip;
+  bool ret = this->HardwareList[ this->HardwareIndex ].FlipHorizontal;
+  if ( this->CurrentCalibration >= 0 )
+    {
+    if ( this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorHorizontalFlip )
+      {
+      ret = ! ret;
+      }
+    }
+  return ret;
 }
 
 
@@ -705,8 +722,7 @@ double
 vtkMRMLPerkStationModuleNode
 ::GetTableAtOverlay() const
 {
-  if ( this->CurrentCalibration < 0 ) return 0.0;
-  return this->CalibrationList[ this->CurrentCalibration ]->TableAtOverlay;
+  return this->TableAtOverlay;
 }
 
 
@@ -714,8 +730,7 @@ void
 vtkMRMLPerkStationModuleNode
 ::SetTableAtOverlay( double pos )
 {
-  if ( this->CurrentCalibration < 0 ) return;
-  this->CalibrationList[ this->CurrentCalibration ]->TableAtOverlay = pos;
+  this->TableAtOverlay = pos;
 }
 
 
@@ -867,7 +882,8 @@ vtkMRMLPerkStationModuleNode
     plan->SetTargetPointRAS( this->PlanTargetPoint );
     plan->SetPlanningVolumeRef( std::string( this->PlanningVolumeRef ) );
   
-  this->AddPlan( plan.GetPointer() );
+  unsigned int index = this->AddPlan( plan.GetPointer() );
+  this->SetCurrentPlanIndex( index );
 }
 
 
@@ -1099,7 +1115,7 @@ vtkMRMLPerkStationModuleNode
   
   double directedOffset = this->CurrentSliceOffset * offsetDirection;
   
-  return this->CalibrationList[ this->CurrentCalibration ]->TableAtOverlay + directedOffset;
+  return this->TableAtOverlay + directedOffset;
 }
 
 

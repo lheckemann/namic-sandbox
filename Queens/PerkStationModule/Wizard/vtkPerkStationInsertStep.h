@@ -31,6 +31,7 @@ public:
   
   
   void OnMultiColumnListSelectionChanged();
+  void OnCalibrationSelectionChanged();
   
   
   // Description:
@@ -92,6 +93,12 @@ protected:
   vtkKWFrame* PlanListFrame;
   vtkKWMultiColumnListWithScrollbars* PlanList;
     
+    
+    // Calibration list.
+  
+  vtkKWFrame* CalibrationListFrame;
+  vtkKWMultiColumnListWithScrollbars* CalibrationList;
+  
   
 private:    
   bool ProcessingCallback;
