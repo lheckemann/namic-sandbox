@@ -80,7 +80,7 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
   //this->HideSecondaryWindowWithOpenCVButton = NULL;
 
   this->SecondaryViewerWindow = NULL;
-  this->SecondaryViewerWindow2 = NULL; // 6/23/2010 ayamada
+  this->SecondaryViewerWindow2x = NULL; // 6/23/2010 ayamada
 
     // 5/6/2010 ayamada for videoOverlay
     this->NS_ImageData = NULL;     // adding at 09.08.19 - smkim
@@ -404,12 +404,12 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
     }
 
     // 6/23/2010 ayamada for release image
-    if (this->SecondaryViewerWindow2)
+    if (this->SecondaryViewerWindow2x)
     {
-        this->SecondaryViewerWindow2->Withdraw();
-        this->SecondaryViewerWindow2->SetApplication(NULL);
-        this->SecondaryViewerWindow2->Delete();
-        this->SecondaryViewerWindow2 = NULL;
+        this->SecondaryViewerWindow2x->Withdraw();
+        this->SecondaryViewerWindow2x->SetApplication(NULL);
+        this->SecondaryViewerWindow2x->Delete();
+        this->SecondaryViewerWindow2x = NULL;
     }
     
     
@@ -1081,15 +1081,15 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         if (this->singleWindowCheckButton->GetSelectedState() == 1)
         {  
             //this->makeCameraThread();//10.01.12-komura //10.01.21-komura
-            //this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
+            //this->SecondaryViewerWindow2x->DisplayOnSecondaryMonitor();
             this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
-            //this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
+            //this->SecondaryViewerWindow2x->DisplayOnSecondaryMonitor();
             
             this->ConfigurationOfSecondaryWindow(1); // 6/23/2010 ayamada            
             
             // 6/23/2010 ayamada
-            if(this->SecondaryViewerWindow2){
-                this->SecondaryViewerWindow2->Withdraw();
+            if(this->SecondaryViewerWindow2x){
+                this->SecondaryViewerWindow2x->Withdraw();
             }
             
             secView=1;    // 5/5/2010 ayamada            
@@ -1119,7 +1119,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         if(this->stereoWindowCheckButton->GetSelectedState() == 1)
         {
             this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
-            this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
+            this->SecondaryViewerWindow2x->DisplayOnSecondaryMonitor();
             
             this->ConfigurationOfSecondaryWindow(2); // 6/23/2010 ayamada            
 
@@ -1137,16 +1137,16 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         }
         
 /*
-        if(this->SecondaryViewerWindow2){
-            this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
+        if(this->SecondaryViewerWindow2x){
+            this->SecondaryViewerWindow2x->DisplayOnSecondaryMonitor();
         }
 */
         
 /*        
         // 6/23/2010 ayamada
         if(this->stereoWindowCheckButton->GetSelectedState() == 1){
-        //    if(this->SecondaryViewerWindow2){
-                this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor();
+        //    if(this->SecondaryViewerWindow2x){
+                this->SecondaryViewerWindow2x->DisplayOnSecondaryMonitor();
         //    }
         }           
 */        
@@ -1175,9 +1175,9 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             first = 0;
 
         }
-        if (this->SecondaryViewerWindow2)
+        if (this->SecondaryViewerWindow2x)
         {  
-            this->SecondaryViewerWindow2->Withdraw();
+            this->SecondaryViewerWindow2x->Withdraw();
             
         }
         
@@ -1348,7 +1348,7 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
 
         
         if(singleOn == 1 && firstOn == 1){
-            this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor(); // 6/23/2010 ayamada            
+            this->SecondaryViewerWindow2x->DisplayOnSecondaryMonitor(); // 6/23/2010 ayamada            
         }
         
         this->ConfigurationOfSecondaryWindow(2); // 6/23/2010 ayamada
@@ -1376,9 +1376,9 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->singleWindowCheckButton->SelectedStateOn();
         }
 
-        if(stereoOn == 1 && firstOn == 1){
-            if(this->SecondaryViewerWindow2){
-            this->SecondaryViewerWindow2->Withdraw(); // 6/23/2010 ayamada
+        if(/*stereoOn == 1 && where is this variable changed? 100624-komura*/ firstOn == 1){
+            if(this->SecondaryViewerWindow2x){
+            this->SecondaryViewerWindow2x->Withdraw(); // 6/23/2010 ayamada
             }
         }
         
@@ -1697,51 +1697,51 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessMRMLEvents ( vtkObject *caller,
 //---------------------------------------------------------------------------
 void vtkSecondaryWindowWithOpenCVGUI::ProcessTimerEvents()
 {
-  if (this->TimerFlag)
-    {
-    
+    if (this->TimerFlag){
+        
 //    if(SecondaryViewerWindow->rw->IsMapped() == 1){ //----10.01.21-komura
-    if(this->updateViewTriger==1){ // 10.01.25 ayamada
-        if(this->runThread == 0){                  
-
-            // 5/16/2010 ayamada
-            this->closeWindowFlag = 1;
-            
-            this->makeCameraThread("cameraThread"); // 5/5/2010 ayamada             
-            this->runThread = 1;               
-        }else{
-            
-            if(singleWindowCheckButton->GetSelectedState()){
-            
-            if(updateView==1){    // 10.01.25 ayamada
-                this->SecondaryViewerWindow->rw->Render();//10.01.12-komura
-            }
-            if(secView==1){ // 5/5/2010 ayamada
-                this->SecondaryViewerWindow->rwLeft->Render();  // 5/5/2010 ayamada
-            }
+        if(this->updateViewTriger==1){ // 10.01.25 ayamada
+            if(this->runThread == 0){                  
                 
+                // 5/16/2010 ayamada
+                this->closeWindowFlag = 1;
                 
+                this->makeCameraThread("cameraThread"); // 5/5/2010 ayamada             
+                this->runThread = 1;               
             }
-            
-            // 6/22/2010 ayamada
-            if(this->stereoWindowCheckButton->GetSelectedState()){
+            else{
                 
-                this->SecondaryViewerWindow->rw->Render();  // 5/5/2010 ayamada
+                if(singleWindowCheckButton->GetSelectedState()){
+                    
+                    if(updateView==1){    // 10.01.25 ayamada
+                        this->SecondaryViewerWindow->rw->Render();//10.01.12-komura
+                    }
+                    if(secView==1){ // 5/5/2010 ayamada
+                        this->SecondaryViewerWindow->rwLeft->Render();  // 5/5/2010 ayamada
+                    }
+                    
+                    
+                }
+                
+                // 6/22/2010 ayamada
+                if(this->stereoWindowCheckButton->GetSelectedState()){
+                    
+                    this->SecondaryViewerWindow->rw->Render();  // 5/5/2010 ayamada
 //                this->SecondaryViewerWindow->lw->Render();  // 5/5/2010 ayamada
 //                this->SecondaryViewerWindow->rwLeft->Render();  // 5/5/2010 ayamada
-                this->SecondaryViewerWindow2->lw->Render();  // 6/22/2010 ayamada
-//                this->SecondaryViewerWindow2->rw->Render();  // 6/22/2010 ayamada
-//                this->SecondaryViewerWindow2->rwLeft->Render();  // 6/22/2010 ayamada
-
-            
+                    this->SecondaryViewerWindow2x->lw->Render();  // 6/22/2010 ayamada
+//                this->SecondaryViewerWindow2x->rw->Render();  // 6/22/2010 ayamada
+//                this->SecondaryViewerWindow2x->rwLeft->Render();  // 6/22/2010 ayamada
+                    
+                    
+                }
             }
         }
-    }
-    //----
-    // update timer
-    vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
-                                         this->TimerInterval,
-                                         this, "ProcessTimerEvents");        
+        //----
+        // update timer
+        vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
+                                             this->TimerInterval,
+                                             this, "ProcessTimerEvents");        
     }
 }
 
@@ -1775,9 +1775,9 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUI ( )
   this->SecondaryViewerWindow->Create();
 
   // 6/23/2010 ayamada
-  this->SecondaryViewerWindow2 = vtkSlicerSecondaryViewerWindow::New();
-  this->SecondaryViewerWindow2->SetApplication(this->GetApplication());
-  this->SecondaryViewerWindow2->Create();
+  this->SecondaryViewerWindow2x = vtkSlicerSecondaryViewerWindow::New();
+  this->SecondaryViewerWindow2x->SetApplication(this->GetApplication());
+  this->SecondaryViewerWindow2x->Create();
     
     
   // 5/16/2010 ayamada
@@ -1911,7 +1911,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     int deviceNum = 0; // 6/21/2010 ayamada
     
     // 5/15/ayamada
-    CvCapture* capture[2];
+    CvCapture* capture[2]={0};
     
     char bufCamera[100],bufCamera1[100];
     
@@ -1922,17 +1922,20 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     IplImage*    undistortionImage[2];    //adding at 09. 12. 15 - smkim
 
     // 6/6/2010 ayamada
-    CvMat* mx1;
-    CvMat* my1;    
+    CvMat* mx[2];
+    CvMat* my[2];    
     
     for(int j = 0; j<2; j++)
     {
+        mx[j] = NULL;
+        my[j] = NULL;
     captureImage[j] = NULL;
     RGBImage[j] = NULL;
     captureImageTmp[j] = NULL;
     undistortionImage[j] = NULL;
     }
     
+        
     vtkMultiThreader::ThreadInfo* vinfo = 
     static_cast<vtkMultiThreader::ThreadInfo*>(t);
     vtkSecondaryWindowWithOpenCVGUI* pGUI = 
@@ -1954,7 +1957,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     
     int i=0;
     
-    if(first == 0){
+    //if(first == 0){
 
         /*
         while(i<=10){// 5/16/2010 ayamada
@@ -2035,7 +2038,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
 
                 sleep(2);    // 5/18/2010 ayamada
 
-                fprintf(stdout, "\n\nCan Not Take A Picture\n\n");
+                //fprintf(stdout, "\n\nCan Not Take A Picture\n\n");
                 // 5/15/2010 ayamada
                 continue;
             }        
@@ -2050,9 +2053,9 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             pGUI->imageSize = cvGetSize( captureImageTmp[n] );
             cvFlip(captureImageTmp[n], captureImage[n], 0);
 
-            // 6/6/2010 ayamada
-            mx1 = cvCreateMat(pGUI->imageSize.height,pGUI->imageSize.width, CV_32F);
-            my1 = cvCreateMat(pGUI->imageSize.height,pGUI->imageSize.width, CV_32F);
+            // 6/24/2010 ayamada
+            mx[n] = cvCreateMat(pGUI->imageSize.height,pGUI->imageSize.width, CV_32F);
+            my[n] = cvCreateMat(pGUI->imageSize.height,pGUI->imageSize.width, CV_32F);
             
             // 5/6/2010 for videoOverlay ayamada
             undistortionImage[n] = cvCreateImage( pGUI->imageSize, IPL_DEPTH_8U, 3);
@@ -2114,7 +2117,7 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
              fprintf(stdout, "\nget camera handle\n");//10.01.20-komura
              */
             // 5/15/2010 ayamada
-            first = 1;
+            //first = 1;
             break;//10.01.20-komura
         }
     }
@@ -2229,18 +2232,26 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     }    // 5/16/2010 if(capture != NULL)
 
         
-    } // end of for 6/22/2010 ayamada
+  //  } // end of for 6/22/2010 ayamada
     
-
+    // 100624-komura
     // connect to renderer 6/23/2010 ayamada
-    pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor[1]);
+    // pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor[1]);
+    // pGUI->SecondaryViewerWindow->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+    // pGUI->SecondaryViewerWindow->lw->GetRenderer()->AddActor(pGUI->actor[0]);
+    // pGUI->SecondaryViewerWindow->lw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+    // pGUI->SecondaryViewerWindow2x->rw->GetRenderer()->AddActor(pGUI->actor[1]);
+    // pGUI->SecondaryViewerWindow2x->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+    // pGUI->SecondaryViewerWindow2x->lw->GetRenderer()->AddActor(pGUI->actor[0]);
+    // pGUI->SecondaryViewerWindow2x->lw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+    pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor[0]);
     pGUI->SecondaryViewerWindow->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
-    pGUI->SecondaryViewerWindow->lw->GetRenderer()->AddActor(pGUI->actor[0]);
+    pGUI->SecondaryViewerWindow->lw->GetRenderer()->AddActor(pGUI->actor[1]);
     pGUI->SecondaryViewerWindow->lw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
-    pGUI->SecondaryViewerWindow2->rw->GetRenderer()->AddActor(pGUI->actor[1]);
-    pGUI->SecondaryViewerWindow2->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
-    pGUI->SecondaryViewerWindow2->lw->GetRenderer()->AddActor(pGUI->actor[0]);
-    pGUI->SecondaryViewerWindow2->lw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+    pGUI->SecondaryViewerWindow2x->rw->GetRenderer()->AddActor(pGUI->actor[0]);
+    pGUI->SecondaryViewerWindow2x->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+    pGUI->SecondaryViewerWindow2x->lw->GetRenderer()->AddActor(pGUI->actor[1]);
+    pGUI->SecondaryViewerWindow2x->lw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
     
     
     pGUI->updateView=1;
@@ -2289,15 +2300,15 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     
     
     // 6/6/2010 ayamada
-    cvInitUndistortMap(pGUI->intrinsicMatrix[0], pGUI->distortionCoefficient[0], mx1,my1);    
-    cvInitUndistortMap(pGUI->intrinsicMatrix[1], pGUI->distortionCoefficient[1], mx1,my1);    
+    cvInitUndistortMap(pGUI->intrinsicMatrix[0], pGUI->distortionCoefficient[0], mx[0],my[0]);    
+    cvInitUndistortMap(pGUI->intrinsicMatrix[1], pGUI->distortionCoefficient[1], mx[1],my[1]);    
     
      // 5/11/2010 ayamada
     while(pGUI->closeWindowFlag==1){
 
-        for(int i2 = 0; i2 < deviceNum; i2++){ 
+        for(int xx = 0; xx < deviceNum; xx++){ 
         
-        if(capture[i2] != NULL){    // 5/16/2010 ayamada
+        if(capture[xx] != NULL){    // 5/16/2010 ayamada
         
         // 5/6/2010 ayamada for videoOverlay
         if ( pGUI->m_bDriveSource == false )    // driven by manual
@@ -2319,42 +2330,67 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             
             // 5/29/2010 ayamada
             // the following codes are needed with the CameraFocusPlane
-            pGUI->FocalPlaneMapper[i2]->SetInput(pGUI->FocalPlaneSource[i2]->GetOutput());
-            pGUI->actor[i2]->SetMapper(pGUI->FocalPlaneMapper[i2]);
-            pGUI->actor[i2]->SetUserMatrix(pGUI->ExtrinsicMatrix);                        
+            pGUI->FocalPlaneMapper[xx]->SetInput(pGUI->FocalPlaneSource[xx]->GetOutput());
+            pGUI->actor[xx]->SetMapper(pGUI->FocalPlaneMapper[xx]);
+            pGUI->actor[xx]->SetUserMatrix(pGUI->ExtrinsicMatrix);                        
             
                                  
         }                
         
         }
-    
-          
-            for(int i3 = 0; i3 < deviceNum; i3++){ 
+            
+            for(int x = 0; x < deviceNum; x++){ 
             
             
     // 5/15/2010 ayamada
-    captureImageTmp[i3] = cvQueryFrame( capture[i3] );    // 10.01.23 ayamada
+    captureImageTmp[x] = cvQueryFrame( capture[x] );    // 10.01.23 ayamada
 ////        pGUI->imageSize = cvGetSize( pGUI->captureImageTmp );
         
-        cvFlip(captureImageTmp[i3], captureImage[i3], 0);        
+        cvFlip(captureImageTmp[x], captureImage[x], 0);        
 
         //cvUndistort2( captureImage, undistortionImage, pGUI->intrinsicMatrix, pGUI->distortionCoefficient );        
         // 6/6/2010 ayamada
         if(pGUI->undistortionFlag==1){
-            cvInitUndistortMap(pGUI->intrinsicMatrix[i3], pGUI->distortionCoefficient[i3], mx1,my1);
-            //cvInitUndistortMap(pGUI->intrinsicMatrix[1], pGUI->distortionCoefficient[1], mx1,my1);
+            cvInitUndistortMap(pGUI->intrinsicMatrix[x], pGUI->distortionCoefficient[x], mx[x],my[x]);
             pGUI->undistortionFlag=0;
         }
-        cvRemap(captureImage[i3], undistortionImage[i3],mx1,my1);
+        cvRemap(captureImage[x], undistortionImage[x],mx[x],my[x]); // 6/24/2010 ayamada
             
         // 5/7/2010 ayamada
         //cvCvtColor( pGUI->captureImage, pGUI->RGBImage, CV_BGR2RGB);
         // 5/15/2010 ayamada
-        cvCvtColor( undistortionImage[i3], RGBImage[i3], CV_BGR2RGB);
+ 
+                //cvCvtColor( undistortionImage[x], RGBImage[x], CV_BGR2RGB);
+                cvCvtColor( captureImage[x], RGBImage[x], CV_BGR2RGB);
               
-        pGUI->idata[i3] = (unsigned char*) RGBImage[i3]->imageData;
-        pGUI->importer[i3]->Modified();        
+        pGUI->idata[x] = (unsigned char*) RGBImage[x]->imageData;
+        pGUI->importer[x]->Modified();        
         
+// 10.01.26-komura
+//
+//        if(pGUI->SecondaryViewerWindow->rw->GetApplication()->EvaluateBooleanExpression(
+//        "expr {[winfo exists %s] && [winfo ismapped %s]}", 
+//        pGUI->SecondaryViewerWindow->rw->GetWidgetName(), pGUI->SecondaryViewerWindow->rw->GetWidgetName())
+//        == 0){
+//    
+//        fprintf(stdout,"\nbreak\n");//10.01.20-komura
+//        break;
+//        }
+
+
+// 10.01.26-komura
+
+//IsMapped function returns 0 when "rw" is disappeared.
+//But this function isn't stability, so I stoped using this.
+
+//        if(pGUI->SecondaryViewerWindow->rw->IsMapped() == 0){//10.01.21-komura
+//        //if(pGUI->SecondaryViewerWindow->rw->IsAlive() == 0){//10.01.21-komura
+//        //if(pGUI->SecondaryViewerWindow->rw->IsCreated() == 0){//10.01.21-komura
+//        fprintf(stdout,"\nbreak\n");//10.01.20-komura
+//        break;
+//        }
+
+
         }    // 5/16/2010 ayamada    if(capture != NULL) 2        
 
                 
@@ -2371,9 +2407,9 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             pGUI->snapShotShutter = 0;
             pGUI->Mutex->Unlock();            
         }
-       
-        } // end of for loop i3, 6/22/2010 ayamada
-          
+        
+        } // end of for loop x, 6/22/2010 ayamada
+            
     }
 
         
@@ -2640,7 +2676,7 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkSurfaceModelRender()
     //this->SecondaryViewerWindow->rw->AddViewProp(polyActor);
     // 5/8/2010 ayamada
     this->SecondaryViewerWindow->rw->GetRenderer()->AddActor(polyActor);
-    this->SecondaryViewerWindow2->lw->GetRenderer()->AddActor(polyActor);
+    this->SecondaryViewerWindow2x->lw->GetRenderer()->AddActor(polyActor);
     
     
     // for multi-object rendering
@@ -3301,7 +3337,7 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkCUDAVolumeRender()
     //ren->AddVolume( volume );
     this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
     // 6/23/2010 ayamada
-    this->SecondaryViewerWindow2->lw->GetRenderer()->AddVolume( volume );
+    this->SecondaryViewerWindow2x->lw->GetRenderer()->AddVolume( volume );
     
 }
 
@@ -3568,7 +3604,7 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkRayCastingVolumeRender()
     this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
 
     // 6/23/2010 ayamada
-    this->SecondaryViewerWindow2->lw->GetRenderer()->AddVolume( volume );
+    this->SecondaryViewerWindow2x->lw->GetRenderer()->AddVolume( volume );
     
     
 }
@@ -3603,20 +3639,28 @@ void vtkSecondaryWindowWithOpenCVGUI::ConfigurationOfSecondaryWindow(int i){
                                             this->SecondaryViewerWindow->lw->GetWidgetName());        
         
         
-        //this->SecondaryViewerWindow2->DisplayOnSecondaryMonitor(); // 6/23/2010 ayamada
+        //this->SecondaryViewerWindow2x->DisplayOnSecondaryMonitor(); // 6/23/2010 ayamada
         
-        this->SecondaryViewerWindow2->SetTitle ("3D Slicer -- Secondary Window2 -- ");
-        this->SecondaryViewerWindow2->changeSecondaryMonitorSize(640, 480);
+        this->SecondaryViewerWindow2x->SetTitle ("3D Slicer -- Secondary Window2 -- ");
+        this->SecondaryViewerWindow2x->changeSecondaryMonitorSize(640, 480);
         
-        this->SecondaryViewerWindow2->Script("place %s -relx 0 -rely 0 -anchor nw -relwidth 0.0 -relheight 0.0", 
-                                             this->SecondaryViewerWindow2->MainFrame->GetWidgetName() );//10.01.25 ayamada
-        this->SecondaryViewerWindow2->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 1 -relheight 1", 
-                                             this->SecondaryViewerWindow2->rw->GetWidgetName());//10.01.25 ayamada
-        this->SecondaryViewerWindow2->Script("place %s -relx 0 -rely 0.0 -anchor nw -relwidth 0.0 -relheight 0.0", 
-                                             this->SecondaryViewerWindow2->rwLeft->GetWidgetName());        
-        this->SecondaryViewerWindow2->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 0 -relheight 0", 
-                                             this->SecondaryViewerWindow2->lw->GetWidgetName());//6/23/2010 ayamada
-                
+        // 100624-komura
+        // this->SecondaryViewerWindow2x->Script("place %s -relx 0 -rely 0 -anchor nw -relwidth 0.0 -relheight 0.0", 
+        //                                      this->SecondaryViewerWindow2x->MainFrame->GetWidgetName() );//10.01.25 ayamada
+        // this->SecondaryViewerWindow2x->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 1 -relheight 1", 
+        //                                      this->SecondaryViewerWindow2x->rw->GetWidgetName());//10.01.25 ayamada
+        // this->SecondaryViewerWindow2x->Script("place %s -relx 0 -rely 0.0 -anchor nw -relwidth 0.0 -relheight 0.0", 
+        //                                      this->SecondaryViewerWindow2x->rwLeft->GetWidgetName());        
+        // this->SecondaryViewerWindow2x->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 0 -relheight 0", 
+        //                                      this->SecondaryViewerWindow2x->lw->GetWidgetName());//6/23/2010 ayamada
+        this->SecondaryViewerWindow2x->Script("place %s -relx 0 -rely 0 -anchor nw -relwidth 0.0 -relheight 0.0", 
+                                             this->SecondaryViewerWindow2x->MainFrame->GetWidgetName() );//10.01.25 ayamada
+        this->SecondaryViewerWindow2x->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 1 -relheight 1", 
+                                             this->SecondaryViewerWindow2x->lw->GetWidgetName());//10.01.25 ayamada
+        this->SecondaryViewerWindow2x->Script("place %s -relx 0 -rely 0.0 -anchor nw -relwidth 0.0 -relheight 0.0", 
+                                             this->SecondaryViewerWindow2x->rwLeft->GetWidgetName());        
+        this->SecondaryViewerWindow2x->Script("place %s -relx 0.0 -rely 0.0 -anchor nw -relwidth 0 -relheight 0", 
+                                             this->SecondaryViewerWindow2x->rw->GetWidgetName());//6/23/2010 ayamada
     }
     
 }
