@@ -17,6 +17,8 @@
 #define RESPONSE_SIZE 24
 #define POS_SCALE 72/32767
 #define ANGLE_SCALE 1/32767
+#define INCH_TO_MM 25.40005
+
 
 #define STREAM "stream"
 #define POINT  "point"
@@ -29,6 +31,60 @@ int board_w;      //Enclosed corners horizontally on the chessboard
 int board_h;      //Enclosed corners vertically on the chessboard
 
 igtl::Matrix4x4 matrix;
+//igtl::Matrix4x4 matrix_recalibrated;
+CvMat* distortion_coeffs;
+CvMat* intrinsic_matrix;
+//CvMat* opencv_matrix_recalibrated;
+//CvMat* transformation_matrix;
+
+//bool intrinsic_parameters_calculated = false;
+
+bool exit_while = false;
+
+
+void convertMatrixOpenCVtoOpenIGTLink(CvMat* OpenCV_matrix, igtl::Matrix4x4 OpenIGTLink_matrix)
+{
+  // Convert 3x4 Matrix from OpenCV, to 4x4 Matrix from OpenIGTLink  
+  OpenIGTLink_matrix[0][0] = CV_MAT_ELEM(*OpenCV_matrix,float,0,0);
+  OpenIGTLink_matrix[1][0] = CV_MAT_ELEM(*OpenCV_matrix,float,1,0);
+  OpenIGTLink_matrix[2][0] = CV_MAT_ELEM(*OpenCV_matrix,float,2,0);
+  OpenIGTLink_matrix[3][0] = 0;
+
+  OpenIGTLink_matrix[0][1] = CV_MAT_ELEM(*OpenCV_matrix,float,0,1);
+  OpenIGTLink_matrix[1][1] = CV_MAT_ELEM(*OpenCV_matrix,float,1,1);
+  OpenIGTLink_matrix[2][1] = CV_MAT_ELEM(*OpenCV_matrix,float,2,1);
+  OpenIGTLink_matrix[3][1] = 0;
+
+  OpenIGTLink_matrix[0][2] = CV_MAT_ELEM(*OpenCV_matrix,float,0,2);
+  OpenIGTLink_matrix[1][2] = CV_MAT_ELEM(*OpenCV_matrix,float,1,2);
+  OpenIGTLink_matrix[2][2] = CV_MAT_ELEM(*OpenCV_matrix,float,2,2);
+  OpenIGTLink_matrix[3][2] = 0;
+
+  OpenIGTLink_matrix[0][3] = CV_MAT_ELEM(*OpenCV_matrix,float,0,3);
+  OpenIGTLink_matrix[1][3] = CV_MAT_ELEM(*OpenCV_matrix,float,1,3);
+  OpenIGTLink_matrix[2][3] = CV_MAT_ELEM(*OpenCV_matrix,float,2,3);
+  OpenIGTLink_matrix[3][3] = 1;
+}
+
+void convertMatrixOpenIGTLinktoOpenCV(igtl::Matrix4x4 OpenIGTLink_matrix, CvMat* OpenCV_matrix)
+{
+  CV_MAT_ELEM(*OpenCV_matrix, float, 0,0) = OpenIGTLink_matrix[0][0];
+  CV_MAT_ELEM(*OpenCV_matrix, float, 1,0) = OpenIGTLink_matrix[1][0];
+  CV_MAT_ELEM(*OpenCV_matrix, float, 2,0) = OpenIGTLink_matrix[2][0];
+        
+  CV_MAT_ELEM(*OpenCV_matrix, float, 0,1) = OpenIGTLink_matrix[0][1];
+  CV_MAT_ELEM(*OpenCV_matrix, float, 1,1) = OpenIGTLink_matrix[1][1];
+  CV_MAT_ELEM(*OpenCV_matrix, float, 2,1) = OpenIGTLink_matrix[2][1];
+
+  CV_MAT_ELEM(*OpenCV_matrix, float, 0,2) = OpenIGTLink_matrix[0][2];
+  CV_MAT_ELEM(*OpenCV_matrix, float, 1,2) = OpenIGTLink_matrix[1][2];
+  CV_MAT_ELEM(*OpenCV_matrix, float, 2,2) = OpenIGTLink_matrix[2][2];
+
+  CV_MAT_ELEM(*OpenCV_matrix, float, 0,3) = OpenIGTLink_matrix[0][3];
+  CV_MAT_ELEM(*OpenCV_matrix, float, 1,3) = OpenIGTLink_matrix[1][3];
+  CV_MAT_ELEM(*OpenCV_matrix, float, 2,3) = OpenIGTLink_matrix[2][3];
+
+}
 
 
 int retrieve_pos_ang_matrix();
@@ -67,44 +123,28 @@ int opencv_camera_calibration()
         CvMat* image_points      = cvCreateMat(n_boards*board_total,2,CV_32FC1);
         CvMat* object_points     = cvCreateMat(n_boards*board_total,3,CV_32FC1);
         CvMat* point_counts      = cvCreateMat(n_boards,1,CV_32SC1);
-        CvMat* intrinsic_matrix  = cvCreateMat(3,3,CV_32FC1);
-        CvMat* distortion_coeffs = cvCreateMat(4,1,CV_32FC1);
 
-        CvMat* rotation_matrix   = cvCreateMat(3,3,CV_32FC1);
-        CvMat* translation_vector= cvCreateMat(3,1,CV_32FC1);
+        //opencv_matrix_recalibrated = cvCreateMat(3,4,CV_32FC1);
+        intrinsic_matrix  = cvCreateMat(3,3,CV_32FC1);
+        distortion_coeffs = cvCreateMat(4,1,CV_32FC1);
 
+        //transformation_matrix  = cvCreateMat(3,4,CV_32FC1);
 
-        CV_MAT_ELEM(*rotation_matrix, float, 0,0) = matrix[0][0];
-        CV_MAT_ELEM(*rotation_matrix, float, 1,0) = matrix[1][0];
-        CV_MAT_ELEM(*rotation_matrix, float, 2,0) = matrix[2][0];
-        
-        CV_MAT_ELEM(*rotation_matrix, float, 0,1) = matrix[0][1];
-        CV_MAT_ELEM(*rotation_matrix, float, 1,1) = matrix[1][1];
-        CV_MAT_ELEM(*rotation_matrix, float, 2,1) = matrix[2][1];
-   
-        CV_MAT_ELEM(*rotation_matrix, float, 0,2) = matrix[0][2];
-        CV_MAT_ELEM(*rotation_matrix, float, 1,2) = matrix[1][2];
-        CV_MAT_ELEM(*rotation_matrix, float, 2,2) = matrix[2][2];
-
-
-        CV_MAT_ELEM(*translation_vector, float, 0,0) = matrix[0][3];
-        CV_MAT_ELEM(*translation_vector, float, 1,0) = matrix[1][3];
-        CV_MAT_ELEM(*translation_vector, float, 2,0) = matrix[2][3]; 
 
 
         /*
 
         for(int i=0;i<n_boards;i++)
         {
-          CV_MAT_ELEM(*rotation_matrix, float, i, 0) = matrix[0][0];
-          CV_MAT_ELEM(*rotation_matrix, float, i, 1) = matrix[0][1];
-          CV_MAT_ELEM(*rotation_matrix, float, i, 2) = matrix[0][2];
-          CV_MAT_ELEM(*rotation_matrix, float, i, 3) = matrix[1][0];
-          CV_MAT_ELEM(*rotation_matrix, float, i, 4) = matrix[1][1];
-          CV_MAT_ELEM(*rotation_matrix, float, i, 5) = matrix[1][2];
-          CV_MAT_ELEM(*rotation_matrix, float, i, 6) = matrix[2][0];
-          CV_MAT_ELEM(*rotation_matrix, float, i, 7) = matrix[2][1];
-          CV_MAT_ELEM(*rotation_matrix, float, i, 8) = matrix[2][2];
+          CV_MAT_ELEM(*transformation_matrix, float, i, 0) = matrix[0][0];
+          CV_MAT_ELEM(*transformation_matrix, float, i, 1) = matrix[0][1];
+          CV_MAT_ELEM(*transformation_matrix, float, i, 2) = matrix[0][2];
+          CV_MAT_ELEM(*transformation_matrix, float, i, 3) = matrix[1][0];
+          CV_MAT_ELEM(*transformation_matrix, float, i, 4) = matrix[1][1];
+          CV_MAT_ELEM(*transformation_matrix, float, i, 5) = matrix[1][2];
+          CV_MAT_ELEM(*transformation_matrix, float, i, 6) = matrix[2][0];
+          CV_MAT_ELEM(*transformation_matrix, float, i, 7) = matrix[2][1];
+          CV_MAT_ELEM(*transformation_matrix, float, i, 8) = matrix[2][2];
 
           CV_MAT_ELEM(*translation_vector, float, i, 0) = matrix[0][3];
           CV_MAT_ELEM(*translation_vector, float, i, 1) = matrix[1][3];
@@ -215,10 +255,36 @@ int opencv_camera_calibration()
         CV_MAT_ELEM( *intrinsic_matrix, float, 0, 0 ) = 1.0f;
         CV_MAT_ELEM( *intrinsic_matrix, float, 1, 1 ) = 1.0f;
 
+        // CvMat* rotmatrix = cvCreateMat(n_boards,9,CV_32FC1);
+        // CvMat* transvect = cvCreateMat(n_boards,3,CV_32FC1);
+
+
+
         //Calibrate the camera
         //_____________________________________________________________________________________
  
-        cvCalibrateCamera2(object_points2, image_points2, point_counts2,  cvGetSize( image ), intrinsic_matrix, distortion_coeffs, NULL, NULL,0 );
+        cvCalibrateCamera2(object_points2, image_points2, point_counts2,  cvGetSize( image ), intrinsic_matrix, distortion_coeffs, NULL, NULL, 0);//rotmatrix, transvect,0 );
+
+        /*
+        for(int testme = 0; testme < n_boards; testme++)
+    {
+          std::cout << "MatRot " << testme << ":" << std::endl;
+          std::cout << CV_MAT_ELEM(*rotmatrix, float, testme, 0) << " " << CV_MAT_ELEM(*rotmatrix, float, testme, 1) << " " << CV_MAT_ELEM(*rotmatrix, float, testme, 2) << std::endl; 
+
+          std::cout << CV_MAT_ELEM(*rotmatrix, float, testme, 3) << " " << CV_MAT_ELEM(*rotmatrix, float, testme, 4) << " " << CV_MAT_ELEM(*rotmatrix, float, testme, 5) << std::endl;
+
+          std::cout << CV_MAT_ELEM(*rotmatrix, float, testme, 6) << " " << CV_MAT_ELEM(*rotmatrix, float, testme, 7) << " " << CV_MAT_ELEM(*rotmatrix, float, testme, 8) << std::endl << std::endl;
+
+      std::cout << "TransVect " << testme << ":" << std::endl;
+
+      std::cout << "( " << CV_MAT_ELEM(*transvect, float, testme, 0) << "," << CV_MAT_ELEM(*transvect, float, testme, 1) << "," << CV_MAT_ELEM(*transvect, float, testme, 2) << " )" << std::endl;
+
+      std::cout << std::endl;
+    }
+
+        */
+
+
 
         //CV_CALIB_FIX_ASPECT_RATIO
         //_____________________________________________________________________________________
@@ -230,11 +296,13 @@ int opencv_camera_calibration()
         cvSave("Distortion.xml",distortion_coeffs);
         printf("Files saved.\n\n");
 
-        printf("Starting corrected display....");
+        //printf("Starting corrected display....");
 
         //Sample: load the matrices from the file
         CvMat *intrinsic = (CvMat*)cvLoad("Intrinsics.xml");
         CvMat *distortion = (CvMat*)cvLoad("Distortion.xml");
+
+        //intrinsic_parameters_calculated = true;
 
         // Build the undistort map used for all subsequent frames.
 
@@ -244,25 +312,15 @@ int opencv_camera_calibration()
 
         // Run the camera to the screen, showing the raw and the undistorted image.
 
-        //CvMat* projected_image = cvCreateMat(successes*board_total,2,CV_32FC1);
-        //CvMat* rotation_vector = cvCreateMat(3,1,CV_32FC1);
-
-        cvNamedWindow( "Undistort" );
-        // cvNamedWindow( "My Test" );
-        while(image) 
+        //cvNamedWindow( "Undistort" );
+        while(!exit_while)//image) 
         {
                 IplImage *t = cvCloneImage(image);
                 cvShowImage( "Raw Video", image );                      // Show raw image
                 cvRemap( t, image, mapx, mapy );                        // Undistort image
                 cvReleaseImage(&t);
-                cvShowImage("Undistort", image);                        // Show corrected image
+                //cvShowImage("Undistort", image);                        // Show corrected image
 
-                //cvRodrigues2(rotation_matrix,rotation_vector);
-
-                //cvProjectPoints2(object_points2, rotation_vector, translation_vector, intrinsic, distortion, projected_image);
-
-                //                cvShowImage("My Test", projected_image);
-         
 
                 //Handle pause/unpause and ESC
                 int c = cvWaitKey(15);
@@ -309,11 +367,11 @@ unpack( unsigned char *buffer, short *output, int size )
 
 void* keybord_input(void* data)
 {
-  bool *exit_while = (bool*)data;
+  //bool *exit_while = (bool*)data;
 
   while(getchar() != 'q'){}
  
-  (*exit_while) = true;
+  exit_while = true;
 
 }
 
@@ -367,7 +425,7 @@ struct termios oldtio,newtio;
 // Initialize variables
 
 int loop=0;
-bool exit_while = false;
+
 
 //-----------------
 // Thread
@@ -382,22 +440,22 @@ system("clear");
 //-----------------
 // Open connection to localhost:18944
 
-// igtl::ClientSocket::Pointer socket;
-// socket = igtl::ClientSocket::New();
-// int r = socket->ConnectToServer("localhost", 18944);
+igtl::ClientSocket::Pointer socket;
+socket = igtl::ClientSocket::New();
+int r = socket->ConnectToServer("localhost", 18944);
 
-// igtl::TransformMessage::Pointer transMsg;
-// transMsg = igtl::TransformMessage::New();
-// transMsg->SetDeviceName("NeuroEndoscope");
+igtl::TransformMessage::Pointer transMsg;
+transMsg = igtl::TransformMessage::New();
+transMsg->SetDeviceName("Tracker");
 
 
-// if (r != 0)
-// {
-//   std::cout << "Connect to the server\t\t\t\t\t\t\t[Failed]" << std::endl;
-// }
-// else
-// {
-//   std::cout << "Connect to the server\t\t\t\t\t\t[Succeed]" << std::endl;  
+if (r != 0)
+{
+  std::cout << "Connect to the server\t\t\t\t\t\t\t[Failed]" << std::endl;
+}
+else
+{
+  //std::cout << "Connect to the server\t\t\t\t\t\t[Succeed]" << std::endl;  
 
   if(usb_device < 0) 
   {
@@ -409,7 +467,7 @@ system("clear");
    //-----------------
    // Slicer connection and RS232 opened successfully
 
-    printf("Open USB Device\t\t\t\t\t\t\t[Succeed]\n");
+    //printf("Open USB Device\t\t\t\t\t\t\t[Succeed]\n");
 
    //-----------------
    // Use termios to configure RS232 communication port
@@ -458,7 +516,7 @@ system("clear");
     }
     else
     {
-      printf("Write on USB Device\t\t\t\t\t\t[Succeed]\n");
+      //printf("Write on USB Device\t\t\t\t\t\t[Succeed]\n");
 
       //-----------------
       // Used first sensor, and ask a stream of data (instead of asking data each time (point)) 
@@ -470,7 +528,7 @@ system("clear");
       write(usb_device,&stream,1);
       }
 
-      pthread_create(&thread, NULL, keybord_input, &exit_while);
+      pthread_create(&thread, NULL, keybord_input, NULL);
 
       while(!exit_while)//loop <= 80)
       {
@@ -507,6 +565,7 @@ system("clear");
             //-----------------
             // Angles
 
+      /*
           matrix[0][0] = (float)unpack_coordinates[3]*ANGLE_SCALE;
           matrix[1][0] = (float)unpack_coordinates[4]*ANGLE_SCALE;
           matrix[2][0] = (float)unpack_coordinates[5]*ANGLE_SCALE;
@@ -521,14 +580,31 @@ system("clear");
           matrix[1][2] = (float)unpack_coordinates[10]*ANGLE_SCALE;
           matrix[2][2] = (float)unpack_coordinates[11]*ANGLE_SCALE;
           matrix[3][2] = (float)0;
+      */
+
+          matrix[0][0] = (float)unpack_coordinates[4 ]*ANGLE_SCALE;
+          matrix[1][0] = (float)unpack_coordinates[7 ]*ANGLE_SCALE;
+          matrix[2][0] = (float)unpack_coordinates[10]*ANGLE_SCALE;
+
+          matrix[0][1] = (float)unpack_coordinates[5 ]*ANGLE_SCALE;
+          matrix[1][1] = (float)unpack_coordinates[8 ]*ANGLE_SCALE;
+          matrix[2][1] = (float)unpack_coordinates[11]*ANGLE_SCALE;
+
+          matrix[0][2] = (float)unpack_coordinates[3]*ANGLE_SCALE;
+          matrix[1][2] = (float)unpack_coordinates[6]*ANGLE_SCALE;
+          matrix[2][2] = (float)unpack_coordinates[9]*ANGLE_SCALE;
+
+          matrix[3][0] = (float)0;
+          matrix[3][1] = (float)0;
+          matrix[3][2] = (float)0;
 
             //-----------------
             // Position
 
-          matrix[0][3] = unpack_coordinates[0]*POS_SCALE*5;
-          matrix[1][3] = unpack_coordinates[1]*POS_SCALE*5;
-          matrix[2][3] = unpack_coordinates[2]*POS_SCALE*5;
-          matrix[3][3] = 1;
+          matrix[0][3] = (float)unpack_coordinates[0]*POS_SCALE*INCH_TO_MM;
+          matrix[1][3] = (float)unpack_coordinates[1]*POS_SCALE*INCH_TO_MM;
+          matrix[2][3] = (float)unpack_coordinates[2]*POS_SCALE*INCH_TO_MM;
+          matrix[3][3] = (float)1;
 
           //-----------------
           // Print created matrix in the terminal
@@ -537,11 +613,25 @@ system("clear");
 
           //-----------------
           // Send Matrix
+          //if(intrinsic_parameters_calculated == true)
+          //{
+            // Multiply intrinsic matrix parameters with transformation matrix (result in opencv_matrix_recalibrated)
 
-          // transMsg->SetMatrix(matrix);
-          // transMsg->Pack();
-          // socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
-          // igtl::Sleep(100);
+            //convertMatrixOpenIGTLinktoOpenCV(matrix, transformation_matrix);
+
+            // std::cout << "test: " << CV_MAT_ELEM(*transformation_matrix, float, 1,1) << ":" << CV_MAT_ELEM(*intrinsic_matrix, float, 0,0) << std::endl;
+
+            //cvGEMM(intrinsic_matrix, transformation_matrix,0,NULL,0, opencv_matrix_recalibrated);  
+            //cvMatMulAdd(intrinsic_matrix, transformation_matrix,0, opencv_matrix_recalibrated);          
+            //convertMatrixOpenCVtoOpenIGTLink(opencv_matrix_recalibrated, matrix_recalibrated);
+
+            //igtl::PrintMatrix(matrix_recalibrated);
+
+            transMsg->SetMatrix(matrix);
+            transMsg->Pack();
+            socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
+            //igtl::Sleep(100);
+            //}
           usleep(100000);
 
         } // else (Read successful)
@@ -563,7 +653,7 @@ system("clear");
     //-----------------
     // Close connection
 
-    // socket->CloseSocket();
+    socket->CloseSocket();
     tcsetattr(usb_device,TCSANOW,&oldtio);
 
     //-----------------
@@ -581,7 +671,7 @@ system("clear");
 
   } // else (Open device successful) 
 
-// } // else (Connect to Slicer successful )
+} // else (Connect to Slicer successful )
 
 printf("\n\n\n\n\n");
 
