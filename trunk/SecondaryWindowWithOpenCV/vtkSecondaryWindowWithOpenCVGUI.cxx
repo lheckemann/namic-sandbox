@@ -2327,7 +2327,8 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
         }                
         
         }
-            
+    
+          
             for(int i3 = 0; i3 < deviceNum; i3++){ 
             
             
@@ -2354,31 +2355,6 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
         pGUI->idata[i3] = (unsigned char*) RGBImage[i3]->imageData;
         pGUI->importer[i3]->Modified();        
         
-// 10.01.26-komura
-//
-//        if(pGUI->SecondaryViewerWindow->rw->GetApplication()->EvaluateBooleanExpression(
-//        "expr {[winfo exists %s] && [winfo ismapped %s]}", 
-//        pGUI->SecondaryViewerWindow->rw->GetWidgetName(), pGUI->SecondaryViewerWindow->rw->GetWidgetName())
-//        == 0){
-//    
-//        fprintf(stdout,"\nbreak\n");//10.01.20-komura
-//        break;
-//        }
-
-
-// 10.01.26-komura
-
-//IsMapped function returns 0 when "rw" is disappeared.
-//But this function isn't stability, so I stoped using this.
-
-//        if(pGUI->SecondaryViewerWindow->rw->IsMapped() == 0){//10.01.21-komura
-//        //if(pGUI->SecondaryViewerWindow->rw->IsAlive() == 0){//10.01.21-komura
-//        //if(pGUI->SecondaryViewerWindow->rw->IsCreated() == 0){//10.01.21-komura
-//        fprintf(stdout,"\nbreak\n");//10.01.20-komura
-//        break;
-//        }
-
-
         }    // 5/16/2010 ayamada    if(capture != NULL) 2        
 
                 
@@ -2395,9 +2371,9 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
             pGUI->snapShotShutter = 0;
             pGUI->Mutex->Unlock();            
         }
-        
+       
         } // end of for loop i3, 6/22/2010 ayamada
-            
+          
     }
 
         
