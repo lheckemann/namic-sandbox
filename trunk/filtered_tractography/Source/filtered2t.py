@@ -34,7 +34,6 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
 import numpy as np
 import warnings
 import filtered_ext as flt
-import pdb
 import time
 
 param = dict({'FA_min': .15,  # FA stopping threshold
@@ -62,6 +61,7 @@ param = dict({'FA_min': .15,  # FA stopping threshold
 
 def Execute(dwi_node, seeds_node, mask_node, ff_node):
     from Slicer import slicer
+
     for i in range(10) : print ''
     scene = slicer.MRMLScene
     dwi_node = scene.GetNodeByID(dwi_node)
