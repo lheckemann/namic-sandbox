@@ -114,7 +114,7 @@ int r = socket->ConnectToServer("localhost", 18944);
 
 igtl::TransformMessage::Pointer transMsg;
 transMsg = igtl::TransformMessage::New();
-transMsg->SetDeviceName("NeuroEndoscope");
+transMsg->SetDeviceName("Tracker");
 
 
 if (r != 0)
@@ -251,9 +251,9 @@ else
             //-----------------
             // Position
 
-          matrix[0][3] = unpack_coordinates[0]*POS_SCALE*5;
-          matrix[1][3] = unpack_coordinates[1]*POS_SCALE*5;
-          matrix[2][3] = unpack_coordinates[2]*POS_SCALE*5;
+          matrix[0][3] = unpack_coordinates[1]*POS_SCALE;
+          matrix[1][3] = unpack_coordinates[0]*POS_SCALE;
+          matrix[2][3] = unpack_coordinates[2]*POS_SCALE;
           matrix[3][3] = 1;
 
           //-----------------
