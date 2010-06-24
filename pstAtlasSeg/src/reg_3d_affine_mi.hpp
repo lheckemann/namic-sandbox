@@ -4,23 +4,28 @@
    #pragma warning ( disable : 4786 )
 #endif
 
+
+// itk, IO
+#include "itkImage.h"
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+
+
 #include "itkImageRegistrationMethod.h"
 #include "itkMattesMutualInformationImageToImageMetric.h"
 #include "itkLinearInterpolateImageFunction.h"
-#include "itkRegularStepGradientDescentOptimizer.h"
-#include "itkImage.h"
+
+
+// itk reg-opt
+//#include "itkRegularStepGradientDescentOptimizer.h"
+#include "itkLBFGSBOptimizer.h"
 
 #include "itkCenteredTransformInitializer.h"
 
 #include "itkAffineTransform.h"
 
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-
 #include "itkResampleImageFilter.h"
 #include "itkCastImageFilter.h"
-#include "itkSubtractImageFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
 
 
 // std
@@ -164,7 +169,9 @@ reg_3d_affine_mi(typename fix_image_t::Pointer fixImg,         \
 {
   typedef itk::AffineTransform< double, 3 > transform_t;
 
-  typedef itk::RegularStepGradientDescentOptimizer OptimizerType;
+  //typedef itk::RegularStepGradientDescentOptimizer OptimizerType;
+  typedef itk::LBFGSBOptimizer       OptimizerType;
+
   typedef itk::MattesMutualInformationImageToImageMetric< fix_image_t, moving_image_t >    MetricType;
   typedef itk::LinearInterpolateImageFunction< moving_image_t, double >    InterpolatorType;
   typedef itk::ImageRegistrationMethod< fix_image_t, moving_image_t >    RegistrationType;
@@ -199,6 +206,25 @@ reg_3d_affine_mi(typename fix_image_t::Pointer fixImg,         \
 
   registration->SetInitialTransformParameters( transform->GetParameters() );
 
+  typename OptimizerType::BoundSelectionType boundSelect( transform->GetNumberOfParameters() );
+  typename OptimizerType::BoundValueType upperBound( transform->GetNumberOfParameters() );
+  typename OptimizerType::BoundValueType lowerBound( transform->GetNumberOfParameters() );
+
+  boundSelect.Fill( 0 );
+  upperBound.Fill( 0.0 );
+  lowerBound.Fill( 0.0 );
+
+  optimizer->SetBoundSelection( boundSelect );
+  optimizer->SetUpperBound( upperBound );
+  optimizer->SetLowerBound( lowerBound );
+
+  //optimizer->SetCostFunctionConvergenceFactor( 1e+1 );
+  optimizer->SetProjectedGradientTolerance( 1e-7 );
+  //optimizer->SetMaximumNumberOfIterations( 20 );
+  //optimizer->SetMaximumNumberOfEvaluations( 500 );
+  optimizer->SetMaximumNumberOfEvaluations( 100 );
+  optimizer->SetMaximumNumberOfCorrections( 12 );
+
   double translationScale = 1.0 / 1000.0;
 
   typedef OptimizerType::ScalesType       OptimizerScalesType;
@@ -219,13 +245,13 @@ reg_3d_affine_mi(typename fix_image_t::Pointer fixImg,         \
 
   optimizer->SetScales( optimizerScales );
 
-  double steplength = 0.1;
-  optimizer->SetMaximumStepLength( steplength ); 
-  optimizer->SetMinimumStepLength( 0.0005 );
+  //double steplength = 0.1;
+//   optimizer->SetMaximumStepLength( steplength ); 
+//   optimizer->SetMinimumStepLength( 0.0005 );
 
   //unsigned int maxNumberOfIterations = 2000;
   unsigned int maxNumberOfIterations = 100;
-  optimizer->SetNumberOfIterations( maxNumberOfIterations );
+  optimizer->SetMaximumNumberOfIterations( maxNumberOfIterations );
   optimizer->MinimizeOn();
 
 
