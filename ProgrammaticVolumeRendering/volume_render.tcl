@@ -20,16 +20,9 @@ $vrLogic SetVolumeVisibility 1
 
 # controlling the opacity mapping
 set vp [$propertyNode GetVolumeProperty]
-#set opacity [vtkPiecewiseFunction New]
-#set color [vtkColorTransferFunction New]
-
-#$vp SetScalarOpacity $opacity
-#$vp SetRGBTransferFunction $color
-
-#set opacityStr "2 0 0 500 1"
-#[$property GetVolumePropertyNode] GetPiecewiseFunctionFromString $opacityStr 
 
 # need to query input data for scalar range
+
 
 # this is vtkPiecewiseFunction
 set opacity [$vp GetScalarOpacity]    
@@ -37,6 +30,7 @@ set opacity [$vp GetScalarOpacity]
 # this is vtkColorTransferFunction
 set color [$vp GetRGBTransferFunction] 
 
+# this is vtkPiecewiseFunction
 set gradient [$vp GetGradientOpacity]
 
 $opacity RemoveAllPoints
@@ -45,6 +39,7 @@ $opacity AddPoint 198 0
 $opacity AddPoint 300 1
 $opacity AddPoint 430 0
 
+# RGB values should be between 0 and 1
 $color RemoveAllPoints
 $color AddRGBPoint -1000 0 0 0
 $color AddRGBPoint 300 0.3 0.9 0.1
@@ -66,7 +61,6 @@ $propertyNode SetModifiedSinceRead 1
 $roiNode InsideOutOn
 $roiNode VisibilityOff
 
-#set 
 $scene AddNode $propertyNode
 $scene AddNode $roiNode
 
@@ -75,6 +69,13 @@ $parametersNode SetAndObserveVolumePropertyNodeID [$propertyNode GetID]
 $parametersNode SetAndObserveROINodeID [$roiNode GetID]
 $parametersNode SetCurrentVolumeMapper 3
 
+# TODO: there is currently no handling of the removing the node from the scene when
+# there is only one parameters node. Need to implement clean-up
 $scene AddNode $parametersNode
 
-# controlling the color mapping
+# check if the selected mapper supported on your platform
+$vrLogic IsCurrentMapperSupported $parametersNode
+
+# TODO: it is not possible to control the parameters, because the logic does
+# not observe the MRML, so it is not possible to dynamically update the
+# rendering for the given volume
