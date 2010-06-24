@@ -1957,6 +1957,8 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     
     int i=0;
     
+    int xx = 0;
+    
     //if(first == 0){
 
         /*
@@ -2244,15 +2246,21 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     // pGUI->SecondaryViewerWindow2x->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
     // pGUI->SecondaryViewerWindow2x->lw->GetRenderer()->AddActor(pGUI->actor[0]);
     // pGUI->SecondaryViewerWindow2x->lw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+
+    if(deviceNum == 1){
     pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor[0]);
     pGUI->SecondaryViewerWindow->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
-    pGUI->SecondaryViewerWindow->lw->GetRenderer()->AddActor(pGUI->actor[1]);
-    pGUI->SecondaryViewerWindow->lw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+    pGUI->SecondaryViewerWindow2x->rw->GetRenderer()->AddActor(pGUI->actor[0]);
+    }else if(deviceNum == 2){
+    pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor[0]);
+    pGUI->SecondaryViewerWindow->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
     pGUI->SecondaryViewerWindow2x->rw->GetRenderer()->AddActor(pGUI->actor[0]);
     pGUI->SecondaryViewerWindow2x->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
     pGUI->SecondaryViewerWindow2x->lw->GetRenderer()->AddActor(pGUI->actor[1]);
     pGUI->SecondaryViewerWindow2x->lw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
-    
+    pGUI->SecondaryViewerWindow->lw->GetRenderer()->AddActor(pGUI->actor[1]);
+    pGUI->SecondaryViewerWindow->lw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
+}
     
     pGUI->updateView=1;
     
@@ -2300,13 +2308,13 @@ void *vtkSecondaryWindowWithOpenCVGUI::thread_CameraThread(void* t)
     
     
     // 6/6/2010 ayamada
-    cvInitUndistortMap(pGUI->intrinsicMatrix[0], pGUI->distortionCoefficient[0], mx[0],my[0]);    
-    cvInitUndistortMap(pGUI->intrinsicMatrix[1], pGUI->distortionCoefficient[1], mx[1],my[1]);    
-    
+    for(xx == 0; xx< deviceNum; xx++){
+    cvInitUndistortMap(pGUI->intrinsicMatrix[xx], pGUI->distortionCoefficient[xx], mx[xx],my[xx]);    
+    }
      // 5/11/2010 ayamada
     while(pGUI->closeWindowFlag==1){
 
-        for(int xx = 0; xx < deviceNum; xx++){ 
+        for(xx = 0; xx < deviceNum; xx++){ 
         
         if(capture[xx] != NULL){    // 5/16/2010 ayamada
         
