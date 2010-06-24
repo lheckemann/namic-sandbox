@@ -288,19 +288,6 @@ atlasSegMI_outputPr(typename raw_image_t::Pointer rawImg,                       
 
       trainingImg = smoother->GetOutput();
 
-//       typedef itk::HistogramMatchingImageFilter<internal_image_t, internal_image_t >   MatchingFilterType;
-//       typename MatchingFilterType::Pointer matcher = MatchingFilterType::New();
-
-//       matcher->SetInput(trainingImg );
-//       matcher->SetReferenceImage( rawImg );
-//       matcher->SetNumberOfHistogramLevels( 1024 );
-//       matcher->SetNumberOfMatchPoints( 7 );
-//       matcher->ThresholdAtMeanIntensityOn();
-
-//       matcher->Update();
-
-//       trainingImg = matcher->GetOutput();
-
 
       // 1.1
       typename internal_image_t::Pointer labelImg =                        \
