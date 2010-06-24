@@ -285,7 +285,7 @@ def add_interp3signal(mod):
 
     code = """
            #line 0 "interp3signal"
-           double w_sum = 1e-16, sigma = 0.5;
+           double w_sum = 1e-16, sigma = 1.66 * 1.66 * 1.66;
            double px = p[0], py = p[1], pz = p[2];
            double vx = v[0], vy = v[1], vz = v[2];
 
@@ -336,7 +336,7 @@ def add_interp3scalar(mod):
 
     code = """
            #line 0 "interp3scalar"
-           double s = 0, w_sum = 1e-16, sigma = 0.5;
+           double s = 0, w_sum = 1e-16, sigma = 1.66 * 1.66 * 1.66;
            double px = p[0], py = p[1], pz = p[2];
            double vx = v[0], vy = v[1], vz = v[2];
 
