@@ -529,7 +529,7 @@ protected:
 
   vtkSlicerSecondaryViewerWindow* SecondaryViewerWindow;
   // 6/23/2010 ayamada
-  vtkSlicerSecondaryViewerWindow* SecondaryViewerWindow2;
+  vtkSlicerSecondaryViewerWindow* SecondaryViewerWindow2x;
 
 
     // 5/6/2010 ayamda for videoOverlay
