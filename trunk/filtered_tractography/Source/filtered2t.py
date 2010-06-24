@@ -5,6 +5,8 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
   <title>Filtered: Two Tensor</title>
   <description>Filtered tractography with equal-weight two-tensor model.</description>
 
+
+
   <parameters>
     <label>IO</label>
     <description>Input/output parameters</description>
@@ -26,7 +28,84 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
       <name>ff_node</name> <channel>output</channel> <index>3</index>
       <label>Output fiber paths</label>
     </geometry>
+  </parameters>
 
+
+
+  <parameters>
+    <label>Settings</label>
+    <description>Settings effecting fiber tracing</description>
+
+    <float>
+      <name>FA_min</name> <channel>input</channel> <index>5</index>
+      <label>Fractional anisotropy minimum</label>
+      <description>Tracing stops if the estimated FA drops below this threshold</description>
+      <default>0.15</default>
+      <constraints> <minimum>0</minimum> </constraints>
+    </float>
+    <float>
+      <name>GA_min</name> <channel>input</channel> <index>6</index>
+      <label>Generalized anisotropy minimum</label>
+      <description>Tracing stops if the estimated GA drops below this threshold</description>
+      <default>0.10</default>
+      <constraints> <minimum>0</minimum> </constraints>
+    </float>
+    <float>
+      <name>min_radius</name> <channel>input</channel> <index>7</index>
+      <label>Curving radius minimum</label>
+      <description>Tracing stops if the curve radius drops this threshold</description>
+      <default>0.87</default>
+      <constraints> <minimum>0</minimum> </constraints>
+    </float>
+    <float>
+      <name>dt</name> <channel>input</channel> <index>8</index>
+      <label>Time step (dt)</label>
+      <description>Forward Euler time step</description>
+      <default>0.2</default>
+      <constraints> <minimum>0</minimum> </constraints>
+    </float>
+    <integer>
+      <name>seeds</name> <channel>input</channel> <index>9</index>
+      <label>Seeds per voxel</label>
+      <description>Number of random seeds to initialize in each voxel.  Deterministic between each run, i.e. run twice with same settings and get exact same tracts.</description>
+      <default>5</default>
+      <constraints> <minimum>0</minimum> </constraints>
+    </integer>
+    <integer>
+      <name>max_len</name> <channel>input</channel> <index>10</index>
+      <label>Maximum fiber length</label>
+      <description>Tracing stops if the fiber length goes beyond this threshold</description>
+      <default>250</default>
+      <constraints> <minimum>0</minimum> </constraints>
+    </integer>
+    <float>
+      <name>Qm</name> <channel>input</channel> <index>11</index>
+      <label>Eigenvector sensitivity (Qm)</label>
+      <description>Higher: orientation changes faster.  Lower: smoother paths.</description>
+      <default>0.0030</default>
+      <constraints> <minimum>0</minimum> </constraints>
+    </float>
+    <float>
+      <name>Ql</name> <channel>input</channel> <index>12</index>
+      <label>Eigenvalue sensitivity (Ql)</label>
+      <description>Higher: tensor changes shape.  Lower: adapts to measurements slower.</description>
+      <default>100</default>
+      <constraints> <minimum>0</minimum> </constraints>
+    </float>
+    <float>
+      <name>Rs</name> <channel>input</channel> <index>13</index>
+      <label>Signal sensitivity (Rs)</label>
+      <description>Higher: adapts to signal measurements faster.  Lower: relies on model estimates more.</description>
+      <default>0.015</default>
+      <constraints> <minimum>0</minimum> </constraints>
+    </float>
+    <float>
+      <name>P0</name> <channel>input</channel> <index>14</index>
+      <label>Initial covariance scale (P0)</label>
+      <description>Level of uncertainty at start.  No effect after a few steps.</description>
+      <default>0.01</default>
+      <constraints> <minimum>0</minimum> </constraints>
+    </float>
   </parameters>
 </executable>
 """
@@ -59,10 +138,22 @@ param = dict({'FA_min': .15,  # FA stopping threshold
 # param['P0'][0:5,0:5] = P0
 # param['P0'][5:10,5:10] = P0
 
-def Execute(dwi_node, seeds_node, mask_node, ff_node):
-    from Slicer import slicer
-
+def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, min_radius, dt, seeds, max_len, Qm, Ql, Rs, P0):
     for i in range(10) : print ''
+
+    param = dict({'FA_min': FA_min, # fractional anisotropy stopping threshold
+                  'GA_min': GA_min, # generalized anisotropy stopping threshold
+                  'dt': dt,     # forward Euler step size (path integration)
+                  'max_len': max_len, # stop if fiber gets this long
+                  'min_radius': min_radius,  # stop if fiber curves this much
+                  'seeds': seeds, # how many seeds to spawn in each ROI voxel
+                  # Kalman filter parameters
+                  'Qm': Qm,  # injected angular noise (probably leave untouched)
+                  'Ql': Ql,    # injected eigenvalue noise (probably leave untouched)
+                  'Rs': Rs,  # dependent on latent noise in your data (likely change this)
+                  'P0': P0 * np.eye(10)}) # initial covariance (likely change this)
+
+    from Slicer import slicer
     scene = slicer.MRMLScene
     dwi_node = scene.GetNodeByID(dwi_node)
     seeds_node = scene.GetNodeByID(seeds_node)
