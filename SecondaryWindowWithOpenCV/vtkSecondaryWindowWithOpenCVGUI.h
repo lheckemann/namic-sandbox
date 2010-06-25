@@ -559,6 +559,10 @@ protected:
     vtkKWLoadSaveButtonWithLabel *loadLensDistortionCoefButton;    //adding at 10. 2. 23 - smkim
     vtkKWLoadSaveButtonWithLabel *loadIntrinsicParameterButton;    //adding at 10. 2. 23 - smkim
 
+    // 6/25/2010 ayamada
+    vtkKWLoadSaveButtonWithLabel *loadVTKButton;
+    
+    
     // 6/21/2010 ayamada
     vtkKWLoadSaveButtonWithLabel *loadLensDistortionCoefButton2;
     vtkKWLoadSaveButtonWithLabel *loadIntrinsicParameterButton2;

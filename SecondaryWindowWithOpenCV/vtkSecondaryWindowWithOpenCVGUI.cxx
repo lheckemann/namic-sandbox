@@ -3107,6 +3107,42 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForNodeSelectorFrame()
     
     this->Script("pack %s -side left -padx 2 -pady 2", 
                  this->volumeCheckButton->GetWidgetName());  
+
+/*    
+    // Overlaid VTK Model Selector  //6/25/2010 ayamada
+    this->NS_ImageData=vtkSlicerNodeSelectorWidget::New();
+    this->NS_ImageData->SetParent( conBrowsFrame->GetFrame() );
+    this->NS_ImageData->Create();
+    this->NS_ImageData->SetNodeClass("vtkMRMLVolumeNode", NULL, NULL, NULL);
+    this->NS_ImageData->SetMRMLScene(this->GetMRMLScene());
+    this->NS_ImageData->SetBorderWidth(2);
+    this->NS_ImageData->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+    this->NS_ImageData->GetWidget()->GetWidget()->SetWidth(24);
+    this->NS_ImageData->SetLabelText( "Active Volume: ");
+    this->NS_ImageData->SetBalloonHelpString("Select a volume from the current scene.");
+    app->Script("pack %s -side top -fill x -anchor nw -padx 2 -pady 2", this->NS_ImageData->GetWidgetName());
+*/
+
+    // Overlaid VTK Model Selector  //6/25/2010 ayamada
+    this->loadVTKButton = vtkKWLoadSaveButtonWithLabel::New ( );
+    this->loadVTKButton->SetParent ( conBrowsFrame->GetFrame() );
+    this->loadVTKButton->Create ( );
+    this->loadVTKButton->SetWidth(50);
+    this->loadVTKButton->GetWidget()->SetText ("Load Overlaid VTK File");
+    this->loadVTKButton->GetWidget()->GetLoadSaveDialog()->SetTitle("VTK File");
+    // 6/21/2010 ayamada
+    this->loadVTKButton->SetLabelText("Overlaid VTK File:");
+    
+    // 6/10/2010 ayamada
+    //this->loadIntrinsicParameterButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes("{ {data} {*.dat} }");
+    this->loadVTKButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes("{ {vtk} {*.vtk} }");
+    this->loadVTKButton->GetWidget()->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+    app->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", 
+                this->loadVTKButton->GetWidgetName());
+    
+    
+    
+    
     
     conBrowsFrame->Delete();
     
