@@ -1,8 +1,8 @@
 XML = """<?xml version="1.0" encoding="utf-8"?>
 <executable>
 
-  <category>Diffusion Weighted</category>
-  <title>Normalize Signal (Python)</title>
+  <category>Diffusion.Utilities</category>
+  <title>Normalize Signal</title>
   <description>Divide out baseline image (s0) from signal.</description>
   <contributor>James Malcolm (malcolm@bwh.harvard.edu)</contributor>
 
