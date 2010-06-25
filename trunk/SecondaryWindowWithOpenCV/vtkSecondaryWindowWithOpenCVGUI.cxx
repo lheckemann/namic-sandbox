@@ -343,6 +343,12 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     this->stereoOn = 0;
     this->firstOn = 0;
 
+    // 6/24/2010 ayamada
+    this->volumeCheckButton = 0;
+    this->volumeFlag = 0;
+    
+    // 6/25/2010 ayamada
+    //this->volume = NULL;
     
     //----
 }
@@ -668,7 +674,12 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
         this->stereoWindowCheckButton->Delete ( );
     }
     
-    
+    // 6/24/2010 ayamada
+    if (this->volumeCheckButton)
+    {
+        this->volumeCheckButton->SetParent(NULL );
+        this->volumeCheckButton->Delete ( );
+    }
     
     //----------------------------------------------------------------
     // Unregister Logic class
@@ -852,6 +863,12 @@ void vtkSecondaryWindowWithOpenCVGUI::RemoveGUIObservers ( )
     {
         this->stereoWindowCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+
+    // 6/24/2010 ayamada
+    if (this->volumeCheckButton)
+    {
+        this->volumeCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
     
     this->RemoveLogicObservers();
     
@@ -964,7 +981,14 @@ void vtkSecondaryWindowWithOpenCVGUI::AddGUIObservers ( )
     ->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
     this->stereoWindowCheckButton
     ->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
-
+    
+    // 6/24/2010 ayamada
+    this->volumeCheckButton
+    ->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+    
+    
+    
+    
   this->AddLogicObservers();
 
 }
@@ -1136,6 +1160,41 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             
         }
         
+        
+        // 6/24/2010 ayamada
+        if((this->volumeCheckButton->GetSelectedState() == 1) && (volume != NULL))
+        {
+
+            //getting VolumeNode from MRML of Slicer3 with VolumeSelectorWidget
+            vtkMRMLVolumeNode *volume = vtkMRMLVolumeNode::SafeDownCast(this->NS_ImageData->GetSelected());
+
+            if (volume != NULL)
+            {
+                // Deactivate GradientsEditor, as it should only enabled when activenode is a DWI
+                this->volumenode = volume;    // syncronizing with the volume node instance of Logic class   // adding at 09. 8. 19 - smkim
+                
+                //Add observer to trigger update of transform
+                this->volumenode->AddObserver(vtkMRMLTransformableNode::TransformModifiedEvent,(vtkCommand *) this->MRMLCallbackCommand);
+                //NH
+                this->volumenode->AddObserver(vtkMRMLScalarVolumeNode::ImageDataModifiedEvent, (vtkCommand *)this->MRMLCallbackCommand );
+                
+                this->ApplicationLogic->GetSelectionNode()->SetActiveLabelVolumeID( volume->GetID() );
+                
+                //this->vtkSurfaceModelRender();
+                //this->volumeFlag = 2;
+                this->UpdateFramesFromMRML();
+
+                this->vtkTexture3DVolumeRender();
+                //this->vtkSurfaceModelRender();
+                this->volumeFlag = 1;
+                
+            }   
+            
+            
+        }
+        
+        
+        
 /*
         if(this->SecondaryViewerWindow2x){
             this->SecondaryViewerWindow2x->DisplayOnSecondaryMonitor();
@@ -1180,6 +1239,15 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             this->SecondaryViewerWindow2x->Withdraw();
             
         }
+        
+        // 6/24/2010 ayamada
+        if(this->volumeFlag == 1 || this->volumeFlag == 2)
+        {
+            
+            this->volumeFlag = 0;
+            
+        }
+        
         
         
     }
@@ -1303,12 +1371,10 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         {
             // Deactivate GradientsEditor, as it should only enabled when activenode is a DWI
             this->volumenode = volume;    // syncronizing with the volume node instance of Logic class   // adding at 09. 8. 19 - smkim
-            
             //Add observer to trigger update of transform
             this->volumenode->AddObserver(vtkMRMLTransformableNode::TransformModifiedEvent,(vtkCommand *) this->MRMLCallbackCommand);
             //NH
-            this->volumenode->AddObserver(vtkMRMLScalarVolumeNode::ImageDataModifiedEvent, (vtkCommand *)this->MRMLCallbackCommand );
-            
+            this->volumenode->AddObserver(vtkMRMLScalarVolumeNode::ImageDataModifiedEvent, (vtkCommand *)this->MRMLCallbackCommand );            
             this->ApplicationLogic->GetSelectionNode()->SetActiveLabelVolumeID( volume->GetID() );
             
             //------------------------------------------------------------------
@@ -1321,7 +1387,10 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             //this->vtkCUDAVolumeRender();
             
             // 5/8/2010 ayamada
-            this->vtkSurfaceModelRender();
+            //this->vtkSurfaceModelRender(); // 6/24/2010 ayamada
+            
+            this->volumeFlag==0; // 6/24/2010 ayamada
+            
             this->UpdateFramesFromMRML();
             
         }
@@ -1392,6 +1461,81 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         
         
     }
+
+    // 6/24/2010 ayamada
+    else if (this->volumeCheckButton == vtkKWCheckButton::SafeDownCast(caller) && 
+             event == vtkKWCheckButton::SelectedStateChangedEvent )
+    {
+        
+        if(this->volumeCheckButton->GetSelectedState() == 1)
+        {
+            
+            
+            this->volumeCheckButton->SelectedStateOn();
+
+            if(this->volumeFlag==1){
+                this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
+            //    this->SecondaryViewerWindow->rw->GetRenderer()->AddActor(polyActor);
+                this->volumeFlag = 2;
+//            }else if(this->volumeFlag==0 && volume!=NULL){
+            }else if(this->volumeFlag==0){
+                
+                //this->vtkTexture3DVolumeRender();
+   /*     
+                this->volumenode = volume;    // syncronizing with the volume node instance of Logic class   // adding at 09. 8. 19 - smkim
+                //Add observer to trigger update of transform
+                this->volumenode->AddObserver(vtkMRMLTransformableNode::TransformModifiedEvent,(vtkCommand *) this->MRMLCallbackCommand);
+                //NH
+                this->volumenode->AddObserver(vtkMRMLScalarVolumeNode::ImageDataModifiedEvent, (vtkCommand *)this->MRMLCallbackCommand );                
+                this->ApplicationLogic->GetSelectionNode()->SetActiveLabelVolumeID( volume->GetID() );
+    */          
+                
+                vtkMRMLVolumeNode *volume = vtkMRMLVolumeNode::SafeDownCast(this->NS_ImageData->GetSelected());
+                
+                if (volume != NULL)
+                {
+                    // Deactivate GradientsEditor, as it should only enabled when activenode is a DWI
+                    this->volumenode = volume;    // syncronizing with the volume node instance of Logic class   // adding at 09. 8. 19 - smkim
+                    
+                    //Add observer to trigger update of transform
+                    this->volumenode->AddObserver(vtkMRMLTransformableNode::TransformModifiedEvent,(vtkCommand *) this->MRMLCallbackCommand);
+                    //NH
+                    this->volumenode->AddObserver(vtkMRMLScalarVolumeNode::ImageDataModifiedEvent, (vtkCommand *)this->MRMLCallbackCommand );
+                    
+                    this->ApplicationLogic->GetSelectionNode()->SetActiveLabelVolumeID( volume->GetID() );
+
+                    //this->vtkSurfaceModelRender();
+                    this->vtkTexture3DVolumeRender();
+                    this->volumeFlag = 2;
+                    this->UpdateFramesFromMRML();
+                    
+                }   
+                
+                
+            }
+            
+        }else if(this->volumeCheckButton->GetSelectedState() == 0)
+        {
+            this->volumeCheckButton->SelectedStateOff();
+/*
+           if(this->volumeFlag==0){
+                this->vtkTexture3DVolumeRender();
+                this->volumeFlag = 1;
+           }
+*/
+ //            }else 
+            if(this->volumeFlag==2){
+                this->SecondaryViewerWindow->rw->GetRenderer()->RemoveVolume( volume );
+           //     this->SecondaryViewerWindow->rw->GetRenderer()->RemoveActor(polyActor);
+                
+                this->UpdateFramesFromMRML();
+
+                this->volumeFlag = 1;
+            }
+        
+        }
+        
+    }
     
     
     
@@ -1409,9 +1553,10 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         // for applying the value of scale control to the volume rendering at 09. 10. 30 - smkim
         //this->volume->SetOrientation(this->rotationAngleX, this->rotationAngleY, this->rotationAngleZ);
 
-        // 5/30/2010 ayamada
+        // 6/24/2010 ayamada
+        if(this->volume!=NULL){
         this->volume->SetOrientation(this->rotationAngleX+180.0, -this->rotationAngleY-180.0, this->rotationAngleZ);
-        
+        }
         
         // for applying the value of scale control to the surface rendering at 10. 02. 01 - smkim
         this->polyActor->SetOrientation(this->rotationAngleX, this->rotationAngleY, this->rotationAngleZ);
@@ -1432,7 +1577,9 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         this->translationZ = this->TranslationZ->GetWidget()->GetValue();
         
         // for applying the value of scale control to the volume rendering at 09. 10. 30 - smkim
+        if(this->volume!=NULL){
         this->volume->SetPosition(this->translationX, this->translationY, this->translationZ);
+        }
         
         // for applying the value of scale control to the surface rendering at 10. 02. 01 - smkim
         this->polyActor->SetPosition(this->translationX, this->translationY, this->translationZ);
@@ -2944,6 +3091,22 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForNodeSelectorFrame()
     this->NS_ImageData->SetBalloonHelpString("Select a volume from the current scene.");
     app->Script("pack %s -side top -fill x -anchor nw -padx 2 -pady 2", this->NS_ImageData->GetWidgetName());
     
+
+    // 6/24/2010 ayamada
+    vtkKWFrameWithLabel *checkVolume = vtkKWFrameWithLabel::New();
+    checkVolume->SetParent(conBrowsFrame->GetFrame());
+    checkVolume->Create();
+    checkVolume->SetLabelText ("Overlaid View");
+    this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", checkVolume->GetWidgetName() );
+    
+    this->volumeCheckButton = vtkKWCheckButton::New();
+    this->volumeCheckButton->SetParent(checkVolume->GetFrame());
+    this->volumeCheckButton->Create();
+    this->volumeCheckButton->SelectedStateOff();
+    this->volumeCheckButton->SetText("On/Off Overlaid Data");
+    
+    this->Script("pack %s -side left -padx 2 -pady 2", 
+                 this->volumeCheckButton->GetWidgetName());  
     
     conBrowsFrame->Delete();
     
@@ -3501,6 +3664,8 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkTexture3DVolumeRender()
     //    MapperTexture->SetInputConnection( reslice->GetOutputPort() );
     MapperTexture->SetInput( volumedata );
     //    MapperTexture->SetSampleDistance( EstimateSampleDistances() );
+
+    
     volume->SetMapper( MapperTexture );
     volume->SetProperty( volumeProperty );
     //    volume->SetOrientation(0.0, 0.0, 180.0);    //using for data taken with axial direction - smkim
@@ -3517,7 +3682,7 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkTexture3DVolumeRender()
     
     // 5/8/2010 ayamada
     //ren->AddVolume( volume );
-    this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
+    //this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
 
     // 6/23/2010 ayamada
     this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
