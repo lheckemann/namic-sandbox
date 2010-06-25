@@ -122,7 +122,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     param = dict({'FA_min': FA_min, # fractional anisotropy stopping threshold
                   'GA_min': GA_min, # generalized anisotropy stopping threshold
                   'dt': .2,     # forward Euler step size (path integration)
-                  'max_len': 50, # stop if fiber gets this long
+                  'max_len': 250, # stop if fiber gets this long
                   'min_radius': .87,  # stop if fiber curves this much
                   'seeds': seeds, # how many seeds to spawn in each ROI voxel
                   'label': label, # label ID for seeding
@@ -168,10 +168,12 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
 
     # tractography...
     ff = init(S, seeds, u, b, param)
+    xx = []
     t1 = time.time()
     for i in range(0,len(ff)):
         print '[%3.0f%%]p (%7d - %7d)' % (100.0*i/len(ff), i, len(ff))
-        ff[i] = follow(S,u,b,mask,ff[i],param,False)
+        ff[i],x = follow(S,u,b,mask,ff[i],param,False)
+        xx.append(x)
     t2 = time.time()
     print 'Primary time: ', t2 - t1
 #     for i in range(0,len(ff)):
@@ -181,10 +183,13 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
 
     # build polydata
     pts = slicer.vtkPoints()
+    fas = slicer.vtkFloatArray()
+    fas.SetNumberOfComponents(1)
     lines = slicer.vtkCellArray()
     cell_id = 0
     for i in range(0,len(ff)):  # TODO xrange
         f = ff[i]
+        X = xx[i]
         lines.InsertNextCell(len(f))
         for j in range(0,len(f)):
             lines.InsertCellPoint(cell_id)
@@ -193,10 +198,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
             x = x[::-1] # HACK
             x_ = np.array(transform(i2r, x)).ravel() # HACK
             pts.InsertNextPoint(x_[0],x_[1],x_[2])
-
-
-#             m_ = np.array(transform(i2r, m)).ravel() # HACK
-#             vec.InsertNextTouple(m_[0],m_[1],m_[2])
+            fas.InsertNextValue(X[0]) # push FA
 
     # setup output fibers
     dnode = ff_node.GetDisplayNode()
@@ -209,6 +211,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
         pd = slicer.vtkPolyData() # create if necessary
         ff_node.SetAndObservePolyData(pd)
     pd.SetPoints(pts)
+    pd.GetPointData().SetScalars(fas)
     pd.SetLines(lines)
     pd.Update()
     ff_node.Modified()
@@ -281,7 +284,7 @@ def norm(a):
 def follow(S,u,b,mask,fiber,param,is_last):
     # unpack and initialize tract
     x,X,P = fiber[0],fiber[1],fiber[2]
-    ff,ff_ = [np.array(x)],[]
+    ff,xx = [np.array(x)],[0]
 
     # initialize filter
     f_fn,h_fn = model_2tensor(u,b)
@@ -311,12 +314,13 @@ def follow(S,u,b,mask,fiber,param,is_last):
 
         if not is_brain or is_csf or len(ff) > param['max_len'] or is_curving :
             if len(ff) > param['max_len'] : warnings.warn('wild fiber')
-            return ff
+            return ff,xx
 
         # record roughly once per voxel
         if ct == round(1.0/param['dt']):
             ct = 0
             ff.append(x)
+            xx.append(fa)
         else:
             ct += 1
 
