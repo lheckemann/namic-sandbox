@@ -155,6 +155,7 @@
 class vtkKWPushButton;
 class vtkKWCheckButton;  // 6/22/2010 ayamada
 
+
 class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : public vtkSlicerModuleGUI
 {
  public:
@@ -386,6 +387,9 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     int stereoOn;
     int firstOn;
     
+    // 6/24/2010 ayamada
+    int volumeFlag;
+    
     // 5/5/2010 ayamada
     // for videoOverlay
     // variables for rendering
@@ -563,6 +567,9 @@ protected:
     vtkKWCheckButton *singleWindowCheckButton; // 
     vtkKWCheckButton *stereoWindowCheckButton; // 
 
+    // 6/24/2010 ayamada
+    vtkKWCheckButton *volumeCheckButton;
+    
 
     // 5/17/2010 ayamada
     vtkKWPushButton* captureCameraImage;
