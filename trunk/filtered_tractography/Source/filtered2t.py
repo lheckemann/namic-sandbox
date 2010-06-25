@@ -12,20 +12,20 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
     <description>Input/output parameters</description>
 
     <image type="diffusion-weighted">
-      <name>dwi_node</name> <channel>input</channel> <index>0</index>
+      <name>dwi_node</name> <longflag>dwi_node</longflag> <channel>input</channel>
       <label>Input diffusion signal</label>
     </image>
     <image type="label">
-      <name>seeds_node</name> <channel>input</channel> <index>1</index>
+      <name>seeds_node</name> <longflag>seeds_node</longflag> <channel>input</channel>
       <label>Input seed region</label>
     </image>
     <image type="label">
-      <name>mask_node</name> <channel>input</channel> <index>2</index>
+      <name>mask_node</name> <longflag>mask_node</longflag> <channel>input</channel>
       <label>Input brain mask</label>
     </image>
 
     <geometry>
-      <name>ff_node</name> <channel>output</channel> <index>3</index>
+      <name>ff_node</name> <longflag>ff_node</longflag> <channel>output</channel>
       <label>Output fiber paths</label>
     </geometry>
   </parameters>
@@ -37,73 +37,51 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
     <description>Settings effecting fiber tracing</description>
 
     <float>
-      <name>FA_min</name> <channel>input</channel> <index>5</index>
+      <name>FA_min</name> <longflag>FA_min</longflag> <channel>input</channel>
       <label>Fractional anisotropy minimum</label>
       <description>Tracing stops if the estimated FA drops below this threshold</description>
       <default>0.15</default>
       <constraints> <minimum>0</minimum> </constraints>
     </float>
     <float>
-      <name>GA_min</name> <channel>input</channel> <index>6</index>
+      <name>GA_min</name> <longflag>GA_min</longflag> <channel>input</channel>
       <label>Generalized anisotropy minimum</label>
       <description>Tracing stops if the estimated GA drops below this threshold</description>
       <default>0.10</default>
       <constraints> <minimum>0</minimum> </constraints>
     </float>
-    <float>
-      <name>min_radius</name> <channel>input</channel> <index>7</index>
-      <label>Curving radius minimum</label>
-      <description>Tracing stops if the curve radius drops this threshold</description>
-      <default>0.87</default>
-      <constraints> <minimum>0</minimum> </constraints>
-    </float>
-    <float>
-      <name>dt</name> <channel>input</channel> <index>8</index>
-      <label>Time step (dt)</label>
-      <description>Forward Euler time step</description>
-      <default>0.2</default>
-      <constraints> <minimum>0</minimum> </constraints>
-    </float>
     <integer>
-      <name>seeds</name> <channel>input</channel> <index>9</index>
+      <name>seeds</name> <longflag>seeds</longflag> <channel>input</channel>
       <label>Seeds per voxel</label>
       <description>Number of random seeds to initialize in each voxel.  Deterministic between each run, i.e. run twice with same settings and get exact same tracts.</description>
       <default>5</default>
       <constraints> <minimum>0</minimum> </constraints>
     </integer>
     <integer>
-      <name>max_len</name> <channel>input</channel> <index>10</index>
-      <label>Maximum fiber length</label>
-      <description>Tracing stops if the fiber length goes beyond this threshold</description>
-      <default>250</default>
-      <constraints> <minimum>0</minimum> </constraints>
+      <name>label</name> <longflag>label</longflag> <channel>input</channel>
+      <label>Label used for seeding</label>
+      <description>The value of the label indicating voxels to seed.</description>
+      <default>4</default>
     </integer>
     <float>
-      <name>Qm</name> <channel>input</channel> <index>11</index>
+      <name>Qm</name> <longflag>Qm</longflag> <channel>input</channel>
       <label>Eigenvector sensitivity (Qm)</label>
       <description>Higher: orientation changes faster.  Lower: smoother paths.</description>
       <default>0.0030</default>
       <constraints> <minimum>0</minimum> </constraints>
     </float>
     <float>
-      <name>Ql</name> <channel>input</channel> <index>12</index>
+      <name>Ql</name> <longflag>Ql</longflag> <channel>input</channel>
       <label>Eigenvalue sensitivity (Ql)</label>
       <description>Higher: tensor changes shape.  Lower: adapts to measurements slower.</description>
       <default>100</default>
       <constraints> <minimum>0</minimum> </constraints>
     </float>
     <float>
-      <name>Rs</name> <channel>input</channel> <index>13</index>
+      <name>Rs</name> <longflag>Rs</longflag> <channel>input</channel>
       <label>Signal sensitivity (Rs)</label>
       <description>Higher: adapts to signal measurements faster.  Lower: relies on model estimates more.</description>
       <default>0.015</default>
-      <constraints> <minimum>0</minimum> </constraints>
-    </float>
-    <float>
-      <name>P0</name> <channel>input</channel> <index>14</index>
-      <label>Initial covariance scale (P0)</label>
-      <description>Level of uncertainty at start.  No effect after a few steps.</description>
-      <default>0.01</default>
       <constraints> <minimum>0</minimum> </constraints>
     </float>
   </parameters>
@@ -118,9 +96,9 @@ import time
 param = dict({'FA_min': .15,  # FA stopping threshold
               'GA_min': .1,  # generalized anisotropy stopping threshold
               'dt': .2,     # forward Euler step size (path integration)
-              'max_len': 250, # stop if fiber gets this long
+              'max_len': 50, # stop if fiber gets this long
               'min_radius': .87,  # stop if fiber curves this much
-              'seeds': 10, # how many seeds to spawn in each ROI voxel
+              'seeds': 1, # how many seeds to spawn in each ROI voxel
               'voxel': np.mat('1.70; 1.66; 1.66'), # voxel size (check your .nhdr file)
               # Kalman filter parameters
               'Qm': .0030,  # injected angular noise (probably leave untouched)
@@ -138,20 +116,21 @@ param = dict({'FA_min': .15,  # FA stopping threshold
 # param['P0'][0:5,0:5] = P0
 # param['P0'][5:10,5:10] = P0
 
-def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, min_radius, dt, seeds, max_len, Qm, Ql, Rs, P0):
+def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, label, Qm, Ql, Rs):
     for i in range(10) : print ''
 
     param = dict({'FA_min': FA_min, # fractional anisotropy stopping threshold
                   'GA_min': GA_min, # generalized anisotropy stopping threshold
-                  'dt': dt,     # forward Euler step size (path integration)
-                  'max_len': max_len, # stop if fiber gets this long
-                  'min_radius': min_radius,  # stop if fiber curves this much
+                  'dt': .2,     # forward Euler step size (path integration)
+                  'max_len': 50, # stop if fiber gets this long
+                  'min_radius': .87,  # stop if fiber curves this much
                   'seeds': seeds, # how many seeds to spawn in each ROI voxel
+                  'label': label, # label ID for seeding
                   # Kalman filter parameters
-                  'Qm': Qm,  # injected angular noise (probably leave untouched)
-                  'Ql': Ql,    # injected eigenvalue noise (probably leave untouched)
-                  'Rs': Rs,  # dependent on latent noise in your data (likely change this)
-                  'P0': P0 * np.eye(10)}) # initial covariance (likely change this)
+                  'Qm': Qm,  # injected angular noise
+                  'Ql': Ql,    # injected eigenvalue noise
+                  'Rs': Rs,  # dependent on latent noise in your data
+                  'P0': 0.01 * np.eye(10)}) # initial covariance
 
     from Slicer import slicer
     scene = slicer.MRMLScene
@@ -160,27 +139,45 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, min_radius
     mask_node = scene.GetNodeByID(mask_node)
     ff_node = scene.GetNodeByID(ff_node)
 
-    # gather inputs
+    # ensure normalized signal
+    bb = dwi_node.GetBValues().ToArray()
+    if np.any(bb.sum(1) == 0):
+        import Slicer
+        Slicer.tk.eval('tk_messageBox -message "Use the \'Normalize Signal\' module to prepare the DWI data"')
+        return
+    b = bb.mean()
     S = dwi_node.GetImageData().ToArray()
-    u = dwi_node.GetDiffusionGradients().ToArray()
-    u = np.vstack((u,-u)) # duplicate signal
-    b = dwi_node.GetBValues().ToArray().mean()
-    mask  = mask_node.GetImageData().ToArray().astype('uint16')
-    seeds = seeds_node.GetImageData().ToArray()
-
     # gather transformations
     mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
-    r2i = vtk2mat(dwi_node.GetRASToIJKMatrix, slicer)
     i2r = vtk2mat(dwi_node.GetIJKToRASMatrix, slicer)
-    param['voxel'] = np.mat(dwi_node.GetSpacing())[::-1].reshape(3,1)
+
+    voxel = np.sqrt(np.power(i2r[:,0:3],2).sum(0)).reshape(3,1)
+    R = i2r[0:3,0:3] / voxel.T  # normalize each column
+    M = mf[0:3,0:3]
+    voxel = voxel[::-1]  # HACK Numpy has [z y x]
+
+    # transform gradients
+    u = dwi_node.GetDiffusionGradients().ToArray()
+    u = u * (np.linalg.inv(R) * M).T
+    u = u / np.sqrt(np.power(u,2).sum(1))
+    u = np.vstack((u,-u)) # duplicate signal
+
+    param['voxel'] = voxel
+    mask  = mask_node.GetImageData().ToArray().astype('uint16')
+    seeds = (seeds_node.GetImageData().ToArray() == label)
 
     # tractography...
     ff = init(S, seeds, u, b, param)
     t1 = time.time()
     for i in range(0,len(ff)):
-        print '[%3.0f%%] (%7d - %7d)' % (100.0*i/len(ff), i, len(ff))
-        ff[i] = follow(S,u,b,mask,ff[i],param)
-    print 'time: ', time.time() - t1
+        print '[%3.0f%%]p (%7d - %7d)' % (100.0*i/len(ff), i, len(ff))
+        ff[i] = follow(S,u,b,mask,ff[i],param,False)
+    t2 = time.time()
+    print 'Primary time: ', t2 - t1
+#     for i in range(0,len(ff)):
+#         print '[%3.0f%%]s (%7d - %7d)' % (100.0*i/len(ff), i, len(ff))
+#         ff[i] = follow(S,u,b,mask,ff[i],param,False)
+#     print 'Secondary time: ', time.time() - t2
 
     # build polydata
     pts = slicer.vtkPoints()
@@ -196,6 +193,10 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, min_radius
             x = x[::-1] # HACK
             x_ = np.array(transform(i2r, x)).ravel() # HACK
             pts.InsertNextPoint(x_[0],x_[1],x_[2])
+
+
+#             m_ = np.array(transform(i2r, m)).ravel() # HACK
+#             vec.InsertNextTouple(m_[0],m_[1],m_[2])
 
     # setup output fibers
     dnode = ff_node.GetDisplayNode()
@@ -277,10 +278,10 @@ def norm(a):
     return np.linalg.norm(a)
 
 
-def follow(S,u,b,mask,fiber,param):
+def follow(S,u,b,mask,fiber,param,is_last):
     # unpack and initialize tract
     x,X,P = fiber[0],fiber[1],fiber[2]
-    ff = [np.array(x)]
+    ff,ff_ = [np.array(x)],[]
 
     # initialize filter
     f_fn,h_fn = model_2tensor(u,b)
@@ -321,6 +322,7 @@ def follow(S,u,b,mask,fiber,param):
 
 
 def init(S, seeds, u, b, param):
+    u = np.array(u)
     print 'initial seed voxels: %d' % len(seeds.nonzero())
 
     # generate random unit directions
