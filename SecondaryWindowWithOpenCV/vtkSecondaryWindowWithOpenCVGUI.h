@@ -561,6 +561,11 @@ protected:
 
     // 6/25/2010 ayamada
     vtkKWLoadSaveButtonWithLabel *loadVTKButton;
+    vtkKWCheckButton *vtkCheckButton;
+    
+    // 6/26/2010 ayamada
+    const char * filepathOfVTK;
+    int vtkAddedFlag;
     
     
     // 6/21/2010 ayamada
