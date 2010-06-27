@@ -350,6 +350,11 @@ vtkSecondaryWindowWithOpenCVGUI::vtkSecondaryWindowWithOpenCVGUI ( )
     // 6/25/2010 ayamada
     //this->volume = NULL;
     
+    // 6/26/2010 ayamada
+    this->vtkAddedFlag = 0;
+    
+    this->filepathOfVTK = NULL;
+    
     //----
 }
 
@@ -680,6 +685,14 @@ vtkSecondaryWindowWithOpenCVGUI::~vtkSecondaryWindowWithOpenCVGUI ( )
         this->volumeCheckButton->SetParent(NULL );
         this->volumeCheckButton->Delete ( );
     }
+
+    // 6/26/2010 ayamada
+    if (this->vtkCheckButton)
+    {
+        this->vtkCheckButton->SetParent(NULL );
+        this->vtkCheckButton->Delete ( );
+    }
+    
     
     //----------------------------------------------------------------
     // Unregister Logic class
@@ -808,6 +821,14 @@ void vtkSecondaryWindowWithOpenCVGUI::RemoveGUIObservers ( )
         ->GetWidget()->GetLoadSaveDialog()->RemoveObservers ( vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
     }
 
+    // 6/26/2010 ayamada
+    // load overlaid vtk file
+    if (this->loadVTKButton)
+    {
+        this->loadVTKButton
+        ->GetWidget()->GetLoadSaveDialog()->RemoveObservers ( vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    }
+    
     // 5/17/2010 ayamada
 /*
     if (this->saveCameraImageEntry)
@@ -868,6 +889,12 @@ void vtkSecondaryWindowWithOpenCVGUI::RemoveGUIObservers ( )
     if (this->volumeCheckButton)
     {
         this->volumeCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+    // 6/26/2010 ayamada
+    if (this->vtkCheckButton)
+    {
+        this->vtkCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
     
     this->RemoveLogicObservers();
@@ -967,6 +994,11 @@ void vtkSecondaryWindowWithOpenCVGUI::AddGUIObservers ( )
     this->loadIntrinsicParameterButton
     ->GetWidget()->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand);
 
+    // 6/26/2010 ayamada
+    this->loadVTKButton
+    ->GetWidget()->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand);
+    
+    
 /*    
     // 5/17/2010 ayamada
     this->saveCameraImageEntry
@@ -986,6 +1018,9 @@ void vtkSecondaryWindowWithOpenCVGUI::AddGUIObservers ( )
     this->volumeCheckButton
     ->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
     
+    // 6/26/2010 ayamada
+    this->vtkCheckButton
+    ->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
     
     
     
@@ -1166,32 +1201,66 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         {
 
             //getting VolumeNode from MRML of Slicer3 with VolumeSelectorWidget
-            vtkMRMLVolumeNode *volume = vtkMRMLVolumeNode::SafeDownCast(this->NS_ImageData->GetSelected());
-
-            if (volume != NULL)
+            vtkMRMLVolumeNode *volumeTmp = vtkMRMLVolumeNode::SafeDownCast(this->NS_ImageData->GetSelected());            
+            
+// 6/25/2010 ayamada            
+            if (volumeTmp != NULL)
             {
                 // Deactivate GradientsEditor, as it should only enabled when activenode is a DWI
-                this->volumenode = volume;    // syncronizing with the volume node instance of Logic class   // adding at 09. 8. 19 - smkim
+                this->volumenode = volumeTmp;    // syncronizing with the volume node instance of Logic class   // adding at 09. 8. 19 - smkim
                 
                 //Add observer to trigger update of transform
                 this->volumenode->AddObserver(vtkMRMLTransformableNode::TransformModifiedEvent,(vtkCommand *) this->MRMLCallbackCommand);
                 //NH
                 this->volumenode->AddObserver(vtkMRMLScalarVolumeNode::ImageDataModifiedEvent, (vtkCommand *)this->MRMLCallbackCommand );
                 
-                this->ApplicationLogic->GetSelectionNode()->SetActiveLabelVolumeID( volume->GetID() );
+                this->ApplicationLogic->GetSelectionNode()->SetActiveLabelVolumeID( volumeTmp->GetID() );
                 
                 //this->vtkSurfaceModelRender();
                 //this->volumeFlag = 2;
                 this->UpdateFramesFromMRML();
 
+                // 6/25/2010 ayamada
                 this->vtkTexture3DVolumeRender();
                 //this->vtkSurfaceModelRender();
-                this->volumeFlag = 1;
+                this->volumeFlag = 2;
+                this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
                 
-            }   
+            }else{
+                
+        
+            
+            // 6/25/2010 ayamada
+            //this->vtkTexture3DVolumeRender();
+            //this->vtkSurfaceModelRender();
+            this->volumeFlag = 1;
+            
+            }
             
             
         }
+
+        
+
+        // 6/26/2010 ayamada
+        if(this->vtkCheckButton->GetSelectedState() == 1)
+        {
+                
+            if(filepathOfVTK!=NULL){
+                this->vtkSurfaceModelRender();
+                this->SecondaryViewerWindow->rw->GetRenderer()->AddActor(polyActor);
+                this->vtkAddedFlag = 1;
+            }
+            
+        }
+        
+        
+
+        /*
+        if(this->volumeCheckButton->GetSelectedState() == 1){
+            this->volumeFlag = 1;                
+        }
+         */
         
         
         
@@ -1385,12 +1454,19 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             // 5/8/2010 ayamada
             //this->vtkTexture3DVolumeRender();
             //this->vtkCUDAVolumeRender();
+
+            //this->vtkTexture3DVolumeRender();
+            
             
             // 5/8/2010 ayamada
             //this->vtkSurfaceModelRender(); // 6/24/2010 ayamada
             
-            this->volumeFlag==0; // 6/24/2010 ayamada
-            
+            // 6/25/2010 ayamada
+            /*
+            if(this->volumeFlag == 2){
+                this->volumeFlag = 1; // 6/24/2010 ayamada
+            }
+            */
             this->UpdateFramesFromMRML();
             
         }
@@ -1473,71 +1549,98 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
             
             this->volumeCheckButton->SelectedStateOn();
 
-            if(this->volumeFlag==1){
-                this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
-            //    this->SecondaryViewerWindow->rw->GetRenderer()->AddActor(polyActor);
-                this->volumeFlag = 2;
-//            }else if(this->volumeFlag==0 && volume!=NULL){
-            }else if(this->volumeFlag==0){
+//            if(this->volumeFlag==1){
+            if(1){ // 6/26/2010 ayamada
                 
-                //this->vtkTexture3DVolumeRender();
-   /*     
-                this->volumenode = volume;    // syncronizing with the volume node instance of Logic class   // adding at 09. 8. 19 - smkim
-                //Add observer to trigger update of transform
-                this->volumenode->AddObserver(vtkMRMLTransformableNode::TransformModifiedEvent,(vtkCommand *) this->MRMLCallbackCommand);
-                //NH
-                this->volumenode->AddObserver(vtkMRMLScalarVolumeNode::ImageDataModifiedEvent, (vtkCommand *)this->MRMLCallbackCommand );                
-                this->ApplicationLogic->GetSelectionNode()->SetActiveLabelVolumeID( volume->GetID() );
-    */          
+                // 6/25/2010 ayamada
+
+                vtkMRMLVolumeNode *volumeTmp = vtkMRMLVolumeNode::SafeDownCast(this->NS_ImageData->GetSelected());
                 
-                vtkMRMLVolumeNode *volume = vtkMRMLVolumeNode::SafeDownCast(this->NS_ImageData->GetSelected());
-                
-                if (volume != NULL)
+                if (volumeTmp != NULL)
                 {
                     // Deactivate GradientsEditor, as it should only enabled when activenode is a DWI
-                    this->volumenode = volume;    // syncronizing with the volume node instance of Logic class   // adding at 09. 8. 19 - smkim
+                    this->volumenode = volumeTmp;    // syncronizing with the volume node instance of Logic class   // adding at 09. 8. 19 - smkim
                     
                     //Add observer to trigger update of transform
                     this->volumenode->AddObserver(vtkMRMLTransformableNode::TransformModifiedEvent,(vtkCommand *) this->MRMLCallbackCommand);
                     //NH
                     this->volumenode->AddObserver(vtkMRMLScalarVolumeNode::ImageDataModifiedEvent, (vtkCommand *)this->MRMLCallbackCommand );
                     
-                    this->ApplicationLogic->GetSelectionNode()->SetActiveLabelVolumeID( volume->GetID() );
-
+                    this->ApplicationLogic->GetSelectionNode()->SetActiveLabelVolumeID( volumeTmp->GetID() );
+                    
+                    // 6/25/2010 ayamada
                     //this->vtkSurfaceModelRender();
+                    //this->vtkTexture3DVolumeRender();
+                    
+                    this->UpdateFramesFromMRML();
+
                     this->vtkTexture3DVolumeRender();
                     this->volumeFlag = 2;
-                    this->UpdateFramesFromMRML();
+
+                    //this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
+                    //this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
+                    this->SecondaryViewerWindow->rw->GetRenderer()->AddVolume( volume );
                     
                 }   
                 
-                
-            }
-            
-        }else if(this->volumeCheckButton->GetSelectedState() == 0)
+
+                //this->SecondaryViewerWindow->rw->GetRenderer()->AddActor(polyActor);
+                //this->volumeFlag = 2;
+//            }else if(this->volumeFlag==0 && volume!=NULL){
+           } // if(1)
+
+   //6/25/2010 ayamada         
+    }else if(this->volumeCheckButton->GetSelectedState() == 0)
         {
             this->volumeCheckButton->SelectedStateOff();
-/*
-           if(this->volumeFlag==0){
-                this->vtkTexture3DVolumeRender();
-                this->volumeFlag = 1;
-           }
-*/
  //            }else 
             if(this->volumeFlag==2){
+           
+                // 6/25/2010 ayamada
                 this->SecondaryViewerWindow->rw->GetRenderer()->RemoveVolume( volume );
-           //     this->SecondaryViewerWindow->rw->GetRenderer()->RemoveActor(polyActor);
+            //    this->SecondaryViewerWindow->rw->GetRenderer()->RemoveActor(polyActor);
                 
                 this->UpdateFramesFromMRML();
 
                 this->volumeFlag = 1;
             }
-        
-        }
+     
+        } // end of == 0
+    
+    } // end of else if
+    
+    // 6/26/2010 ayamada
+    else if (this->vtkCheckButton == vtkKWCheckButton::SafeDownCast(caller) && 
+             event == vtkKWCheckButton::SelectedStateChangedEvent )
+    {
+        //fprintf(stdout, "vtkCheckedButton == 11\n\n");
+                    
+        if(this->vtkCheckButton->GetSelectedState() == 1)
+        {            
+            this->vtkCheckButton->SelectedStateOn();
+            
+            if(this->vtkAddedFlag==0 && (this->filepathOfVTK != NULL)){
+                
+            this->UpdateFramesFromMRML();
+            this->vtkSurfaceModelRender();
+            this->SecondaryViewerWindow->rw->GetRenderer()->AddActor(polyActor);
+
+                this->vtkAddedFlag = 1;
+            
+            }
+                
+            //fprintf(stdout, "vtkCheckedButton == 1\n\n");
+            
+
+        }else if(this->vtkCheckButton->GetSelectedState() == 0)
+        {
+            this->vtkCheckButton->SelectedStateOff();
+            this->SecondaryViewerWindow->rw->GetRenderer()->RemoveActor(polyActor);
+            //fprintf(stdout, "vtkCheckedButton == 222\n\n");
+            this->vtkAddedFlag = 0;
+        }            
         
     }
-    
-    
     
     // to get the rotation angle from scale widget and to apply the value to the rendering volume
     // adding at 09. 9. 8 - smkim
@@ -1624,6 +1727,16 @@ void vtkSecondaryWindowWithOpenCVGUI::ProcessGUIEvents(vtkObject *caller,
         
         
     }
+
+    // 6/26/2010 ayamada
+    else if (this->loadVTKButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && event == vtkKWTopLevel::WithdrawEvent )
+    {
+        filepathOfVTK = this->loadVTKButton->GetWidget()->GetFileName();
+        this->vtkAddedFlag = 0;
+        
+        
+    }
+    
     
     // load intrinsic parameters of camera
     // adding at 10. 2. 23 - smkim
@@ -2811,7 +2924,11 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkSurfaceModelRender()
     //vtkPolyDataReader* polyReader = vtkPolyDataReader::New();
     //polyReader->SetFileName( "/home/sungminkim/model.vtk" );    //target.vtk
       //polyReader->SetFileName( "/Users/ayamada/slicerData05082010/Muscles.vtk" );    //target.vtk
-    polyReader->SetFileName( "/Users/ayamada/Downloads/100530-videoAndSecondAxialTest/SlicerMRML_MRI/Bone.vtk" );    //target.vtk
+
+    // 6/26/2010 ayamada    
+    //polyReader->SetFileName( "/Users/ayamada/Downloads/100530-videoAndSecondAxialTest/SlicerMRML_MRI/Bone.vtk" );    //target.vtk
+    polyReader->SetFileName(this->filepathOfVTK);    //target.vtk
+
     
     //vtkPolyDataNormals* polyNormal = vtkPolyDataNormals::New();
     polyNormal->SetInputConnection( polyReader->GetOutputPort() );
@@ -2837,7 +2954,10 @@ void vtkSecondaryWindowWithOpenCVGUI::vtkSurfaceModelRender()
     // for multi-object rendering
     // adding at 10. 02. 05 - smkim
     //vtkPolyDataReader* polyReader1 = vtkPolyDataReader::New();
-    polyReader1->SetFileName( "/home/sungminkim/model1.vtk" );    //obstacle.vtk
+
+    // 6/26/2010 ayamada    
+    //polyReader1->SetFileName( "/home/sungminkim/model1.vtk" );    //obstacle.vtk
+    polyReader1->SetFileName(this->filepathOfVTK);    //target.vtk
     
     //vtkPolyDataNormals* polyNormal1 = vtkPolyDataNormals::New();
     polyNormal1->SetInputConnection( polyReader1->GetOutputPort() );
@@ -3072,7 +3192,7 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForNodeSelectorFrame()
     
     conBrowsFrame->SetParent(page);
     conBrowsFrame->Create();
-    conBrowsFrame->SetLabelText("Volume Node Selctor");
+    conBrowsFrame->SetLabelText("Overlaid Data Selctor");
     //conBrowsFrame->CollapseFrame();
     app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", conBrowsFrame->GetWidgetName(), page->GetWidgetName());
     
@@ -3096,14 +3216,14 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForNodeSelectorFrame()
     vtkKWFrameWithLabel *checkVolume = vtkKWFrameWithLabel::New();
     checkVolume->SetParent(conBrowsFrame->GetFrame());
     checkVolume->Create();
-    checkVolume->SetLabelText ("Overlaid View");
+    checkVolume->SetLabelText ("Overlaid Volume Data View");
     this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", checkVolume->GetWidgetName() );
     
     this->volumeCheckButton = vtkKWCheckButton::New();
     this->volumeCheckButton->SetParent(checkVolume->GetFrame());
     this->volumeCheckButton->Create();
     this->volumeCheckButton->SelectedStateOff();
-    this->volumeCheckButton->SetText("On/Off Overlaid Data");
+    this->volumeCheckButton->SetText("On/Off Overlaid Volume Data");
     
     this->Script("pack %s -side left -padx 2 -pady 2", 
                  this->volumeCheckButton->GetWidgetName());  
@@ -3140,6 +3260,22 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForNodeSelectorFrame()
     app->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", 
                 this->loadVTKButton->GetWidgetName());
     
+
+    // 6/25/2010 ayamada
+    vtkKWFrameWithLabel *checkVolume2 = vtkKWFrameWithLabel::New();
+    checkVolume2->SetParent(conBrowsFrame->GetFrame());
+    checkVolume2->Create();
+    checkVolume2->SetLabelText ("Overlaid VTK Model View");
+    this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", checkVolume2->GetWidgetName() );
+    
+    this->vtkCheckButton = vtkKWCheckButton::New();
+    this->vtkCheckButton->SetParent(checkVolume2->GetFrame());
+    this->vtkCheckButton->Create();
+    this->vtkCheckButton->SelectedStateOff();
+    this->vtkCheckButton->SetText("On/Off Overlaid VTK Model Data");
+    
+    this->Script("pack %s -side left -padx 2 -pady 2", 
+                 this->vtkCheckButton->GetWidgetName());  
     
     
     
@@ -3319,7 +3455,7 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForCaptureCameraImageFrame()
     this->saveCameraImageEntry->Create();
     this->saveCameraImageEntry->SetWidth(40);
     this->saveCameraImageEntry->SetLabelWidth(30);
-    this->saveCameraImageEntry->SetLabelText("Save Path of Snapshot:");
+    this->saveCameraImageEntry->SetLabelText("Save Path of Snapshots:");
     //this->saveCameraImageEntry->GetWidget()->SetValue ( "" );
     this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->saveCameraImageEntry->GetWidgetName());
     
@@ -3327,7 +3463,7 @@ void vtkSecondaryWindowWithOpenCVGUI::BuildGUIForCaptureCameraImageFrame()
     this->captureCameraImage = vtkKWPushButton::New ( );
     this->captureCameraImage->SetParent ( frame->GetFrame() );
     this->captureCameraImage->Create ( );
-    this->captureCameraImage->SetText ("Get Snapshot");
+    this->captureCameraImage->SetText ("Get Snapshots");
     this->captureCameraImage->SetWidth (35);    
     this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->captureCameraImage->GetWidgetName());
     
