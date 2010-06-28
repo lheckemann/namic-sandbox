@@ -84,6 +84,20 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
       <default>0.015</default>
       <constraints> <minimum>0</minimum> </constraints>
     </float>
+    <integer>
+      <name>theta_min</name> <longflag>theta_min</longflag> <channel>input</channel>
+      <label>Angle to trigger branch (degrees)</label>
+      <description>Angle above which to consider branching the fiber path.  If no branching, set to zero.</description>
+      <default>5</default>
+      <constraints> <minimum>0</minimum> </constraints>
+    </integer>
+    <integer>
+      <name>theta_max</name> <longflag>theta_max</longflag> <channel>input</channel>
+      <label>Maximum branching angle (degrees)</label>
+      <description>Ignore branching if angle above this.</description>
+      <default>45</default>
+      <constraints> <maximum>90</maximum> </constraints>
+    </integer>
   </parameters>
 </executable>
 """
@@ -116,13 +130,16 @@ param = dict({'FA_min': .15,  # FA stopping threshold
 # param['P0'][0:5,0:5] = P0
 # param['P0'][5:10,5:10] = P0
 
-def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, label, Qm, Ql, Rs):
+def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, label, Qm, Ql, Rs, theta_min, theta_max):
     for i in range(10) : print ''
 
     param = dict({'FA_min': FA_min, # fractional anisotropy stopping threshold
                   'GA_min': GA_min, # generalized anisotropy stopping threshold
                   'dt': .2,     # forward Euler step size (path integration)
                   'max_len': 250, # stop if fiber gets this long
+                  'min_radius': .87,  # stop if fiber curves this much
+                  'theta_min': np.cos(theta_min * np.pi/180),  # angle which triggers branch
+                  'theta_max': np.cos(theta_max * np.pi/180),  # angle which triggers branch
                   'min_radius': .87,  # stop if fiber curves this much
                   'seeds': seeds, # how many seeds to spawn in each ROI voxel
                   'label': label, # label ID for seeding
@@ -147,49 +164,46 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
         return
     b = bb.mean()
     S = dwi_node.GetImageData().ToArray()
-    # gather transformations
-    mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
     i2r = vtk2mat(dwi_node.GetIJKToRASMatrix, slicer)
 
-    voxel = np.sqrt(np.power(i2r[:,0:3],2).sum(0)).reshape(3,1)
-    R = i2r[0:3,0:3] / voxel.T  # normalize each column
-    M = mf[0:3,0:3]
-    voxel = voxel[::-1]  # HACK Numpy has [z y x]
-
-    # transform gradients
+    voxel = np.mat(dwi_node.GetSpacing())[::-1].reshape(3,1)
     u = dwi_node.GetDiffusionGradients().ToArray()
-    u = u * (np.linalg.inv(R) * M).T
-    u = u / np.sqrt(np.power(u,2).sum(1))
     u = np.vstack((u,-u)) # duplicate signal
 
     param['voxel'] = voxel
     mask  = mask_node.GetImageData().ToArray().astype('uint16')
-    seeds = (seeds_node.GetImageData().ToArray() == label)
+    seeds = (seeds_node.GetImageData().ToArray())
+
+    # double check branching
+    if theta_min > theta_max:
+        import Slicer
+        Slicer.tk.eval('tk_messageBox -message "theta_min must be less than theta_max"')
+        return
+    is_branching = param['theta_min'] < 1
 
     # tractography...
     ff = init(S, seeds, u, b, param)
-    xx = []
+    pp = []
     t1 = time.time()
     for i in range(0,len(ff)):
         print '[%3.0f%%]p (%7d - %7d)' % (100.0*i/len(ff), i, len(ff))
-        ff[i],x = follow(S,u,b,mask,ff[i],param,False)
-        xx.append(x)
+        ff[i],p = follow(S,u,b,mask,ff[i],param,is_branching)
+        pp.extend(p)
     t2 = time.time()
     print 'Primary time: ', t2 - t1
-#     for i in range(0,len(ff)):
-#         print '[%3.0f%%]s (%7d - %7d)' % (100.0*i/len(ff), i, len(ff))
-#         ff[i] = follow(S,u,b,mask,ff[i],param,False)
-#     print 'Secondary time: ', time.time() - t2
+
+    for i in range(0,len(pp)):
+        print '[%3.0f%%]s (%7d - %7d)' % (100.0*i/len(pp), i, len(pp))
+        p,_ = follow(S,u,b,mask,pp[i],param,False)
+        ff.append(p)
+    print 'Secondary time: ', time.time() - t2
 
     # build polydata
     pts = slicer.vtkPoints()
-    fas = slicer.vtkFloatArray()
-    fas.SetNumberOfComponents(1)
     lines = slicer.vtkCellArray()
     cell_id = 0
     for i in range(0,len(ff)):  # TODO xrange
         f = ff[i]
-        X = xx[i]
         lines.InsertNextCell(len(f))
         for j in range(0,len(f)):
             lines.InsertCellPoint(cell_id)
@@ -198,7 +212,6 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
             x = x[::-1] # HACK
             x_ = np.array(transform(i2r, x)).ravel() # HACK
             pts.InsertNextPoint(x_[0],x_[1],x_[2])
-            fas.InsertNextValue(X[0]) # push FA
 
     # setup output fibers
     dnode = ff_node.GetDisplayNode()
@@ -211,7 +224,6 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
         pd = slicer.vtkPolyData() # create if necessary
         ff_node.SetAndObservePolyData(pd)
     pd.SetPoints(pts)
-    pd.GetPointData().SetScalars(fas)
     pd.SetLines(lines)
     pd.Update()
     ff_node.Modified()
@@ -281,10 +293,10 @@ def norm(a):
     return np.linalg.norm(a)
 
 
-def follow(S,u,b,mask,fiber,param,is_last):
+def follow(S,u,b,mask,fiber,param,is_branching):
     # unpack and initialize tract
     x,X,P = fiber[0],fiber[1],fiber[2]
-    ff,xx = [np.array(x)],[0]
+    ff,pp = [np.array(x)],[]
 
     # initialize filter
     f_fn,h_fn = model_2tensor(u,b)
@@ -299,7 +311,7 @@ def follow(S,u,b,mask,fiber,param,is_last):
     # main loop
     ct = 0
     v = param['voxel']
-    while True :
+    while True:
         # estimate
         fiber = step(fiber, S, est, param)
 
@@ -314,13 +326,31 @@ def follow(S,u,b,mask,fiber,param,is_last):
 
         if not is_brain or is_csf or len(ff) > param['max_len'] or is_curving :
             if len(ff) > param['max_len'] : warnings.warn('wild fiber')
-            return ff,xx
+            return ff,pp
 
         # record roughly once per voxel
         if ct == round(1.0/param['dt']):
             ct = 0
             ff.append(x)
-            xx.append(fa)
+
+            # record branch if necessar
+            if is_branching:
+                P,m = fiber[2],fiber[3]
+                m1,l1,m2,l2 = state2tensor2(X,m)
+                is_two = l1[0] > l1[1] and l2[0] > l2[1] # non-planar
+                fa = param['FA_min']
+                is_two = is_two and l2fa(l1) > fa and l2fa(l2) > fa
+                th = dot(m1,m2)
+                is_branch = th < param['theta_min'] and th > param['theta_max']
+                if is_two and is_branch:
+                    if dot(m,m1) > dot(m,m2): # follow other orientation now...
+                        X = np.vstack((m2,l2,m1,l1))
+                        m = m2
+                    else:
+                        X = np.vstack((m1,l1,m2,l2))
+                        m = m1
+                    assert X.shape[0] == 10 and X.shape[1] == 1
+                    pp.append((x,X,P,m))  # P should probably be rearranged but no big deal
         else:
             ct += 1
 
@@ -333,7 +363,7 @@ def init(S, seeds, u, b, param):
     np.random.seed(0) # determinism
     E = np.random.randn(3,param['seeds'])
     E = E / np.sqrt(np.sum(E**2,axis=0)) / 2  # half unit
-    
+
     # perturb each index with those directions
     qq = zip(*seeds.nonzero())
     pp = []
