@@ -406,11 +406,11 @@ void JPEG2000ImageIO::Read( void * buffer)
 
   OPJ_UINT32 l_nb_comps;
 
-  OPJ_UINT32 l_max_data_size = 1000000;
+  OPJ_UINT32 l_max_data_size = 1000;
 
   bool l_go_on = true;
 
-  OPJ_BYTE * l_data = (OPJ_BYTE *) malloc(1000000);
+  OPJ_BYTE * l_data = (OPJ_BYTE *) malloc(1000);
 
   while ( l_go_on )
     {
@@ -492,21 +492,42 @@ void JPEG2000ImageIO::Read( void * buffer)
       const unsigned int sizePerComponentInBytes = l_data_size/( numberOfPixels * numberOfComponents );
       const unsigned int sizePerChannelInBytes = l_data_size/( numberOfComponents );
 
+      std::cout << "sizePerComponentInBytes: " << sizePerComponentInBytes << std::endl;
+      std::cout << "sizePerChannelInBytes:   " << sizePerChannelInBytes << std::endl;
+
+      const unsigned int sizePerStrideYInBytes = sizePerChannelInBytes/tsizex;
+      const unsigned int sizePerStrideXInBytes = sizePerChannelInBytes/tsizey;
+      const unsigned int initialStrideInBytes = ( l_current_tile_y0 - p_start_y ) * sizex * sizePerComponentInBytes * numberOfComponents;
+      const unsigned int priorStrideInBytes = ( l_current_tile_x0 - p_start_x ) * sizePerComponentInBytes * numberOfComponents;
+      const unsigned int postStrideInBytes = ( p_end_x - l_current_tile_x1 ) * sizePerComponentInBytes * numberOfComponents;
+
+      std::cout << "sizePerStrideYInBytes:   " << sizePerStrideYInBytes << std::endl;
+      std::cout << "sizePerStrideXInBytes:   " << sizePerStrideXInBytes << std::endl;
+      std::cout << "initialStrideInBytes:    " << initialStrideInBytes << std::endl;
+      std::cout << "priorStrideInBytes:      " << priorStrideInBytes << std::endl;
+      std::cout << "postStrideInBytes:       " << postStrideInBytes << std::endl;
+
       //TODO: Read the void buffer within the tile ROI. How do we specify the tile ROI iteration
       for ( unsigned int k = 0; k < numberOfComponents; k++)
         {
         unsigned char * charBuffer = (unsigned char *)buffer;
         charBuffer += k * sizePerComponentInBytes;
 
-        for ( size_t j = 0; j < sizePerChannelInBytes; j++)
+        charBuffer += initialStrideInBytes;
+
+        for ( size_t m = 0; m < tsizey; m++)
           {
-          *charBuffer = (unsigned char)(*l_data_ptr++);
-//           std::cout << static_cast<unsigned char>(*charBuffer) << ' ';
-          charBuffer += numberOfComponents;
+          charBuffer += priorStrideInBytes;
+          for ( size_t j = 0; j < sizePerStrideXInBytes; j++)
+            {
+            *charBuffer = (unsigned char)(*l_data_ptr++);
+            charBuffer += numberOfComponents;
+            }
+          charBuffer += postStrideInBytes;
           }
         }
       }
-      l_go_on = 0;
+//       l_go_on = 0;
     }
 
 //  l_image = opj_decode( this->m_Dinfo, l_stream );
@@ -804,10 +825,6 @@ JPEG2000ImageIO
     itkExceptionMacro("no file stream opened");
     }
 
-  /* encode the image */
-  /*if (*indexfilename)         // If need to extract codestream information
-    bSuccess = opj_encode_with_info(cinfo, cio, image, &cstr_info);
-  else*/
   bSuccess = opj_start_compress(cinfo,l_image,cio);
   bSuccess = bSuccess && opj_encode(cinfo, cio);
   bSuccess = bSuccess && opj_end_compress(cinfo, cio);
@@ -823,20 +840,8 @@ JPEG2000ImageIO
   opj_stream_destroy(cio);
   fclose( l_file );
 
-  //   /* Write the index to disk */
-  //   if (*indexfilename)
-  //   {
-  //     bSuccess = write_index_file(&cstr_info, indexfilename);
-  //     if (bSuccess)
-  //       {
-  //       itkExceptionMacro("Failed to output index file");
-  //       }
-  //   }
-
   /* free remaining compression structures */
   opj_destroy_codec(cinfo);
-  //   if (*indexfilename)
-  //     opj_destroy_cstr_info(&cstr_info);
 
   /* free image data */
   opj_image_destroy(l_image);
@@ -865,7 +870,7 @@ JPEG2000ImageIO
   ImageIORegion streamableRegion(this->m_NumberOfDimensions);
 
   if(!m_UseStreamedReading)
-    { 
+    {
     for( unsigned int i=0; i < this->m_NumberOfDimensions; i++ )
       {
       streamableRegion.SetSize( i, this->m_Dimensions[i] );
@@ -875,7 +880,7 @@ JPEG2000ImageIO
   else
     {
     //
-    // Compute the required set of tiles that fully contain the requested region 
+    // Compute the required set of tiles that fully contain the requested region
     //
     streamableRegion = requestedRegion;
 
@@ -891,7 +896,7 @@ JPEG2000ImageIO
 
 void
 JPEG2000ImageIO
-::ComputeRegionInTileBoundaries( unsigned int dimension, 
+::ComputeRegionInTileBoundaries( unsigned int dimension,
   SizeValueType tileSize, ImageIORegion & streamableRegion ) const
 {
   SizeValueType requestedSize = streamableRegion.GetSize( dimension );
