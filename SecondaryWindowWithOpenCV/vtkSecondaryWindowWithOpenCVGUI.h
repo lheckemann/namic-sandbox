@@ -137,6 +137,10 @@
 #include "vtkKWLoadSaveButtonWithLabel.h"    //Adding at 10. 2. 23 - smkim
 
 
+// 6/28/2010 ayamada
+#include "vtkSlicerModelInfoWidget.h"
+#include "vtkMRMLModelNode.h"
+//#include "vtkMRMLModelTransformNode.h"
 
 // 5.5.10 ayamada
 // Intrinsic Parameters of Camera
@@ -175,6 +179,10 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     // Adding 10.5.5 ayamada
     vtkSlicerViewerWidget* GetViewerWidget () { return this->ViewerWidget; };
     
+
+    // 6/28/2010 ayamada from ModelTransform module
+    vtkGetObjectMacro ( ModelSelector, vtkSlicerNodeSelectorWidget );
+
     
     //----------------------------------------------------------------
     // New method, Initialization etc.
@@ -413,6 +421,10 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     
     vtkMRMLVolumeNode* volumenode;
     vtkVolumeProperty *volumeProperty;
+
+    // 6/28/2010 ayamada
+    vtkMRMLModelNode* modelnode;
+    
     
     double focal_point_x;        //adding at 10. 02. 22 - smkim
     double focal_point_y;        //adding at 10. 02. 22 - smkim
@@ -490,6 +502,7 @@ class VTK_SecondaryWindowWithOpenCV_EXPORT vtkSecondaryWindowWithOpenCVGUI : pub
     void vtkSurfaceModelRender();   // function for surface rendering of model    //adding at 10. 01. 29 - smkim
 
     void CameraSet(vtkCamera *NaviCamera, double *Matrix, double FOV);    //for calculating camera position and orientation    //adding at 09. 11. 5 - from wang
+    void CameraSet(vtkCamera *NaviCamera, double *Matrix, double FOV, int);    //for calculating camera position and orientation    //100628-komura
     
     // 5/7/2010 ayamada
     //void CameraFocusPlane(vtkCamera * cam, double Ratio, vtkActor * actor);    //for calculating position and orientation of camera image plane    //adding at 09. 11. 5 - from wang
@@ -516,6 +529,10 @@ protected:
     // Adding 10.5.5 ayamada
     vtkSlicerViewerWidget* ViewerWidget; // 3D viewer widget    
     
+  // 6/28/2010 ayamada
+  vtkSlicerNodeSelectorWidget *ModelSelector;    
+  vtkMRMLModelNode            *ModelNode;
+//  vtkMRMLModelTransformNode   *ModelTransformNode;
     
   //----------------------------------------------------------------
   // Timer
@@ -540,6 +557,11 @@ protected:
     
     vtkSlicerNodeSelectorWidget* NS_ImageData;       //adding at 09. 8. 19 - smkim
     vtkSlicerVolumeHeaderWidget *VolumeHeaderWidget;         //adding at 09. 9. 2 - smkim
+
+    // 6/28/2010 ayamada
+    vtkSlicerNodeSelectorWidget* VTK_ImageData;
+    vtkSlicerModelInfoWidget *VTKHeaderWidget;
+
     
     vtkKWScaleWithLabel  *RotationAngleX;    //adding at 09. 9. 8 - smkim
     vtkKWScaleWithLabel  *RotationAngleY;    //adding at 09. 9. 8 - smkim
