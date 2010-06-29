@@ -678,24 +678,23 @@ vtkPerkStationCalibrateStep
 
   if ( mrmlNode && this->GetGUI()->GetSecondaryMonitor() )
     {
-    this->GetGUI()->GetMRMLNode()->
-                              SetSecondMonitorHorizontalFlip( ( bool ) value );
-    
+    this->GetGUI()->GetMRMLNode()->SetSecondMonitorHorizontalFlip( (bool)value );
+    this->UpdateGUI();
     this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
     }
 }
 
 
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::VerticalFlipCallback( bool value )
+void vtkPerkStationCalibrateStep
+::VerticalFlipCallback( bool value )
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   
   if ( mrmlNode && this->GetGUI()->GetSecondaryMonitor() )
     {
-    this->GetGUI()->GetMRMLNode()->
-                                 SetSecondMonitorVerticalFlip( ( bool )value );
-    
+    this->GetGUI()->GetMRMLNode()->SetSecondMonitorVerticalFlip( (bool)value );
+    this->UpdateGUI();
     this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
     }
 }
