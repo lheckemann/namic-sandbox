@@ -146,8 +146,12 @@ vtkStereoCalibGUI::vtkStereoCalibGUI ( )
   //----------------------------------------------------------------
         
   this->CVClass = vtkStereoCalibCVClass::New(); // 100621-komura
-    
-    
+
+  // 100625-komura
+  this->entryCheckerBoardWidth = NULL;      
+  this->entryCheckerBoardHeight = NULL;     
+  this->applyChessSettingButton = NULL; // 100626-komura
+  this->Mutex = vtkMutexLock::New(); // 100628-komura
 }
 
 //---------------------------------------------------------------------------
@@ -274,11 +278,35 @@ vtkStereoCalibGUI::~vtkStereoCalibGUI ( )
       std::cerr << "wait thread end\n"  <<std::endl;
   }
 
+  //----------------------------------------------------------
+  // chess board Setting
+  // 100625-komura
+  if (this->entryCheckerBoardWidth)
+    {
+    this->entryCheckerBoardWidth->SetParent(NULL);
+    this->entryCheckerBoardWidth ->Delete();
+    this->entryCheckerBoardWidth = NULL;
+    }
+  if (this->entryCheckerBoardHeight)
+    {
+    this->entryCheckerBoardHeight->SetParent(NULL);
+    this->entryCheckerBoardHeight->Delete();
+    this->entryCheckerBoardHeight = NULL;
+    }
   //----------------------------------------------------------------
   // Unregister Logic class
 
   this->CVClass->Delete(); //
   this->CVClass = NULL;    // 100621-komura
+
+  this->applyChessSettingButton->Delete(); // 
+  this->applyChessSettingButton = NULL;    // 100626-komura
+
+  // 100628-komura
+  if (this->Mutex)
+      {
+          this->Mutex->Delete();
+      }
 
   this->SetModuleLogic ( NULL );
   
@@ -384,6 +412,16 @@ void vtkStereoCalibGUI::RemoveGUIObservers ( )
   this->leftOpacityBar->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
   this->leftOpacityBar->GetWidget()->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
 
+  // 100625-komura
+  this->entryCheckerBoardWidth->GetWidget()->RemoveObservers ( vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->entryCheckerBoardHeight->GetWidget()->RemoveObservers ( vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  // 100626-komura
+  if (this->applyChessSettingButton)
+    {
+    this->applyChessSettingButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   this->RemoveLogicObservers();
 
 }
@@ -444,6 +482,12 @@ void vtkStereoCalibGUI::AddGUIObservers ( )
   this->leftOpacityBar->GetWidget()->AddObserver(vtkKWScale::ScaleValueStartChangingEvent, (vtkCommand *)this->GUICallbackCommand );
   this->leftOpacityBar->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
 
+  // 100625-komura
+  this->entryCheckerBoardWidth->GetWidget()->AddObserver ( vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->entryCheckerBoardHeight->GetWidget()->AddObserver ( vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  // 100626-komura
+  this->applyChessSettingButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
 
   this->AddLogicObservers();
@@ -687,25 +731,96 @@ void vtkStereoCalibGUI::ProcessGUIEvents(vtkObject *caller,
       }
   
   // 100617-komura
- else if ( vtkKWScale::SafeDownCast(caller) == this->gapGraphicsBar->GetWidget() 
-           && static_cast<int>(event) == vtkKWScale::ScaleValueChangingEvent ){
-     this->gapGraphics = this->gapGraphicsBar->GetWidget()->GetValue();
- }
- else if ( vtkKWScale::SafeDownCast(caller) == this->rightOpacityBar->GetWidget() 
-           && static_cast<int>(event) == vtkKWScale::ScaleValueChangingEvent ){
-     this->rightOpacity = this->rightOpacityBar->GetWidget()->GetValue();
-     this->actor[1]->GetProperty()->SetOpacity(this->rightOpacity);
- }
- else if ( vtkKWScale::SafeDownCast(caller) == this->leftOpacityBar->GetWidget() 
-           && static_cast<int>(event) == vtkKWScale::ScaleValueChangingEvent ){
-     this->leftOpacity = this->leftOpacityBar->GetWidget()->GetValue();
-     this->actor[0]->GetProperty()->SetOpacity(this->leftOpacity);
- }
-        
+  else if ( vtkKWScale::SafeDownCast(caller) == this->gapGraphicsBar->GetWidget() 
+            && static_cast<int>(event) == vtkKWScale::ScaleValueChangingEvent ){
+      this->gapGraphics = this->gapGraphicsBar->GetWidget()->GetValue();
+  }
+  else if ( vtkKWScale::SafeDownCast(caller) == this->rightOpacityBar->GetWidget() 
+            && static_cast<int>(event) == vtkKWScale::ScaleValueChangingEvent ){
+      this->rightOpacity = this->rightOpacityBar->GetWidget()->GetValue();
+      this->actor[1]->GetProperty()->SetOpacity(this->rightOpacity);
+  }
+  else if ( vtkKWScale::SafeDownCast(caller) == this->leftOpacityBar->GetWidget() 
+            && static_cast<int>(event) == vtkKWScale::ScaleValueChangingEvent ){
+      this->leftOpacity = this->leftOpacityBar->GetWidget()->GetValue();
+      this->actor[0]->GetProperty()->SetOpacity(this->leftOpacity);
+  }
 
+  // 100625-komura
+  else if (
+      (vtkKWEntry::SafeDownCast(caller) == this->entryCheckerBoardWidth->GetWidget()
+       && static_cast<int>(event) == vtkKWEntry::EntryValueChangedEvent)
+      || (vtkKWEntry::SafeDownCast(caller) == this->entryCheckerBoardHeight->GetWidget()
+          && static_cast<int>(event) == vtkKWEntry::EntryValueChangedEvent)
+      ){
 
-  
-} 
+      // 100626-komura
+      // int changeSwitch = 0;
+      // if(displayChessboardFlag == 1){
+      //     displayChessboardFlag = 0;
+      //     this->displayChessboardButton->SetText ("Chessboard Finder ON");
+      //     changeSwitch = 1;
+      // }
+
+      // int width = this->entryCheckerBoardWidth->GetWidget()->GetValueAsInt();
+      // int height = this->entryCheckerBoardHeight->GetWidget()->GetValueAsInt();
+      // if( (abs(width - height) < 3 ) || width < 3 || height < 3 ) {
+      //     std::cerr << "shoud have bigger than 2" << std::endl;
+      //     this->entryCheckerBoardWidth->GetWidget()->SetValueAsInt(CVClass->cornerWidth);
+      //     this->entryCheckerBoardHeight->GetWidget()->SetValueAsInt(CVClass->cornerHeight);
+      // }
+      // else{
+          // CVClass->cornerWidth = width;
+          // CVClass->cornerHeight = height;
+          // CVClass->n = width * height;
+      // }
+      // if(changeSwitch == 1){
+      //     displayChessboardFlag = 1;
+      //     this->displayChessboardButton->SetText ("Chessboard Finder OFF");
+      // }
+      // 100626-komura
+      // int width = this->entryCheckerBoardWidth->GetWidget()->GetValueAsInt();
+      // int height = this->entryCheckerBoardHeight->GetWidget()->GetValueAsInt();
+      // if( (abs(width - height) < 3 ) || width < 3 || height < 3 ) {
+      //     std::cerr << "shoud have bigger than 2" << std::endl;
+      //     this->applyChessSettingButton->SetEnabled(0);
+      // }
+      // else{
+      //   this->applyChessSettingButton->SetEnabled(1);
+      // }
+  }
+
+  // 100626-komura
+  else if (this->applyChessSettingButton == vtkKWPushButton::SafeDownCast(caller)
+    && event == vtkKWPushButton::InvokedEvent){
+      int changeSwitch = 0;
+      int width = this->entryCheckerBoardWidth->GetWidget()->GetValueAsInt();
+      int height = this->entryCheckerBoardHeight->GetWidget()->GetValueAsInt();
+
+      if( (abs(width - height) < 3 ) || width < 3 || height < 3 ) {
+          std::cerr << "\nshoud have bigger than 2\n" << std::endl;
+          vtkSlicerApplication::GetInstance()
+            ->ErrorMessage("Error. Width or Height sholud have bigger than 2");
+      }
+      else{
+          // if(displayChessboardFlag == 1){
+          //     displayChessboardFlag = 0;
+          //     this->displayChessboardButton->SetText ("Chessboard Finder ON");
+          //     changeSwitch = 1;
+          //    sleep(1);         // 100628-komura wait for display stop
+          // }
+          this->Mutex->Lock();
+          CVClass->cornerWidth = width;
+          CVClass->cornerHeight = height;
+          CVClass->n = width * height;
+          this->Mutex->Unlock();
+          // if(changeSwitch == 1){
+          //     displayChessboardFlag = 1;
+          //     this->displayChessboardButton->SetText ("Chessboard Finder OFF");
+          // }
+      }
+  }
+}
 
 
 void vtkStereoCalibGUI::DataCallback(vtkObject *caller, 
@@ -973,17 +1088,60 @@ void vtkStereoCalibGUI::BuildGUIForTestFrame2 ()
   // -----------------------------------------
   // Test child frame
 
+  vtkKWFrameWithLabel *frame2 = vtkKWFrameWithLabel::New();
+  frame2->SetParent(conBrowsFrame->GetFrame());
+  frame2->Create();
+  // 100625-komura
+  frame2->SetLabelText ("Checker Board Setting");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 frame2->GetWidgetName() );
+
+
   vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
   frame->SetParent(conBrowsFrame->GetFrame());
   frame->Create();
     
-    // 6/6/2010 ayamada
-    //frame->SetLabelText ("Test child frame");
-    frame->SetLabelText ("Image Capture Control");
-    
+  // 6/6/2010 ayamada
+  //frame->SetLabelText ("Test child frame");
+  frame->SetLabelText ("Image Capture Control");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  frame->GetWidgetName() );
   
+
+  //-----------------------------------------
+  // 
+  // 100625-komura
+  frame2->SetLabelText ("Checker Board Setting");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 frame2->GetWidgetName() );
+  
+  this->entryCheckerBoardWidth = vtkKWEntryWithLabel::New();
+  this->entryCheckerBoardWidth->SetParent(frame2->GetFrame());
+  this->entryCheckerBoardWidth->Create();
+  this->entryCheckerBoardWidth->SetWidth(45);
+  this->entryCheckerBoardWidth->SetLabelWidth(30);
+  this->entryCheckerBoardWidth->SetLabelText("Checker Board Width:");
+  this->entryCheckerBoardWidth->GetWidget()->SetValueAsDouble(CVClass->cornerWidth);
+  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->entryCheckerBoardWidth->GetWidgetName());
+
+  this->entryCheckerBoardHeight = vtkKWEntryWithLabel::New();
+  this->entryCheckerBoardHeight->SetParent(frame2->GetFrame());
+  this->entryCheckerBoardHeight->Create();
+  this->entryCheckerBoardHeight->SetWidth(45);
+  this->entryCheckerBoardHeight->SetLabelWidth(30);
+  this->entryCheckerBoardHeight->SetLabelText("Checker Board Heihgt:");
+  this->entryCheckerBoardHeight->GetWidget()->SetValueAsDouble(CVClass->cornerHeight);
+  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", this->entryCheckerBoardHeight->GetWidgetName());
+    
+  // 100626-komura
+  this->applyChessSettingButton = vtkKWPushButton::New ( );
+  this->applyChessSettingButton->SetParent ( frame2->GetFrame() );
+  this->applyChessSettingButton->Create ( );
+  this->applyChessSettingButton->SetText ("Apply Checker Board Setting");
+  this->applyChessSettingButton->SetWidth (25);
+  this->Script("pack %s -side left -padx 2 -pady 2",
+                 this->applyChessSettingButton->GetWidgetName());
+
   // -----------------------------------------
   // Test push button
 
@@ -1011,6 +1169,7 @@ void vtkStereoCalibGUI::BuildGUIForTestFrame2 ()
 
   conBrowsFrame->Delete();
   frame->Delete();
+  frame2->Delete();
 }
 
 //---------------------------------------------------------------------------
@@ -1194,18 +1353,17 @@ void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
     IplImage* RGBImage[2];
     IplImage* captureImageTmp[2];
      
-    double D1_mono[4]; // 100608-komura 
-    CvMat _D1_mono;                  // 
-    _D1_mono = cvMat(1, 4, CV_64F, D1_mono ); // 
+    // double D1_mono[4]; // 100608-komura 
+    // CvMat _D1_mono;                  // 
+    // _D1_mono = cvMat(1, 4, CV_64F, D1_mono ); // 
 
-    double M1[3][3], M2[3][3], D1[5], D2[5]; // 
+    double M1[3][3], M2[3][3], D2[5]; // 
     CvMat _M1;                  // 
-    CvMat _M2;                  // 
+    CvMat _M2;                  //
     CvMat _D1;                  // 
     CvMat _D2;                  // 
     _M1 = cvMat(3, 3, CV_64F, M1 ); // 
     _M2 = cvMat(3, 3, CV_64F, M2 ); // 
-    _D1 = cvMat(1, 5, CV_64F, D1 ); // 
     _D2 = cvMat(1, 5, CV_64F, D2 ); // 100607-komura
     int calibTest = 0;              // 
     
@@ -1261,7 +1419,13 @@ void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
         std::cerr << "makeThread No:"<< pGUI->makeThread << "\n" <<std::endl;
         return NULL;
     }
+    
+    // 100625-komura
+    double *D1;
+    D1 = new double[deviceNum + 3];
+    _D1 = cvMat(1, deviceNum + 3, CV_64F, D1 ); 
 
+ 
     // if(capture[1] != NULL){     // 
     //     deviceNum = 2;          // 
     // }                           // 
@@ -1357,7 +1521,9 @@ void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
                     // pGUI->chessLoad(captureImageTmp[n], pGUI->imageSize, n); // 100607-komura
                 }
                 if(pGUI->displayChessboardFlag == 1){
+                    pGUI->Mutex->Lock();
                     pGUI->CVClass->displayChessboard(captureImageTmp[n]);
+                    pGUI->Mutex->Unlock();
                     // pGUI->displayChessboard(captureImageTmp[n]); // 100607-komura
                 }        
 
@@ -1375,7 +1541,7 @@ void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
                     }                                                                 // 100607-komura
 
                     else if(deviceNum == 1){                                                // 
-                        cvUndistort2(captureImageTmp[n],captureImage[n], &_M1, &_D1_mono ); // 
+                        cvUndistort2(captureImageTmp[n],captureImage[n], &_M1, &_D1 ); // 
                         cvCopy(captureImage[n], captureImageTmp[n]);                        //
                         // std::cerr << "\n\n mono\n\n" << std::endl;                       // 100608-komura
                     }
@@ -1396,7 +1562,7 @@ void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
                 pGUI->CVClass->displayStereoCalib(mx1,mx2,my1,my2); // 100608-komura
             }
             else if(deviceNum == 1){
-                pGUI->CVClass->monoCalib(_M1, _D1_mono); // 
+                pGUI->CVClass->monoCalib(_M1, _D1); // 
             }
             // pGUI->stereoCalib(); // 100607-komura
             // 6/6/2010 ayamada
@@ -1404,27 +1570,27 @@ void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
                 //this->snapShotShutter=1;
                 pGUI->snapShotNumber++;
                 
-                sprintf(pGUI->snapShotSavePath,"%sIntrimsics_%d.xml"
+                sprintf(pGUI->snapShotSavePath,"%sIntrinsics_%d.xml"
                         ,pGUI->saveCameraImageEntry->GetWidget()->GetValue(),pGUI->snapShotNumber);
                 //textActorSavePath->SetInput(this->snapShotSavePath);
                 cvSave(pGUI->snapShotSavePath, &_M1);        
                 
-                if(deviceNum == 1){ // 100610-komura
-                    sprintf(pGUI->snapShotSavePath2,"%sDistortion_%d.xml"
-                            ,pGUI->saveCameraImageEntry->GetWidget()->GetValue(),pGUI->snapShotNumber);
-                    cvSave(pGUI->snapShotSavePath2, &_D1_mono);        
-                    fprintf(stdout, "Save Camera1 parametor\n");
-                }
+                sprintf(pGUI->snapShotSavePath2,"%sDistortion_%d.xml"
+                        ,pGUI->saveCameraImageEntry->GetWidget()->GetValue(),pGUI->snapShotNumber);
+                cvSave(pGUI->snapShotSavePath2, &_D1);        
+                fprintf(stdout, "Save Camera1 parametor\n");
+                
+                pGUI->snapShotNumber++;
                 
                 if(deviceNum == 2){ // 100608-komura
-                    sprintf(pGUI->snapShotSavePath2,"%sDistortion_%d.xml"
-                            ,pGUI->saveCameraImageEntry->GetWidget()->GetValue(),pGUI->snapShotNumber);
-                    cvSave(pGUI->snapShotSavePath, &_D1);        
-                    fprintf(stdout, "Save Camera1 parametor\n");
+                    // sprintf(pGUI->snapShotSavePath2,"%sDistortion_%d.xml"
+                    //         ,pGUI->saveCameraImageEntry->GetWidget()->GetValue(),pGUI->snapShotNumber);
+                    // cvSave(pGUI->snapShotSavePath, &_D1);        
+                    // fprintf(stdout, "Save Camera1 parametor\n");
                     
-                    pGUI->snapShotNumber++;
+                    // pGUI->snapShotNumber++;
                     
-                    sprintf(pGUI->snapShotSavePath,"%sIntrimsics_%d.xml"
+                    sprintf(pGUI->snapShotSavePath,"%sIntrinsics_%d.xml"
                             ,pGUI->saveCameraImageEntry->GetWidget()->GetValue(),pGUI->snapShotNumber);
                     //textActorSavePath->SetInput(this->snapShotSavePath);
                     cvSave(pGUI->snapShotSavePath, &_M2);        
@@ -1473,11 +1639,17 @@ void *vtkStereoCalibGUI::thread_CameraThread(void* t)//100603-komura
         }
     }
 
+    delete [] D1;               // 100625-komura
+
     pGUI->makeThread = 0;  
     std::cerr << "makeThread No:"<< pGUI->makeThread << "\n" <<std::endl;
     return NULL;
   
 }
+
+
+
+
 //------------------------------------------------------------------
 ///////////////////////////
 // StereoCalib_LoadImage //

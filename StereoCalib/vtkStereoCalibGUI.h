@@ -50,6 +50,7 @@
 
 #include "vtkKWScale.h"         // 100617-komura
 #include "vtkStereoCalibCVClass.h" // 100621-komura
+#include "vtkMutexLock.h"          // 100628-komura
 
 #define FOCAL_LENGTH 900.0 // 5/5/2010 ayamada is it dammy?
 #define FOA  31.76 //27.0 //31.76 //40.3 //Endoscope 
@@ -250,6 +251,12 @@ class VTK_StereoCalib_EXPORT vtkStereoCalibGUI : public vtkSlicerModuleGUI
     int stereoCalibFlag;                      // 100603-komura 
     // void displayStereoCalib(int);                // 100607-komura
 
+    // 100625-komura
+    // checkerBoardSetting
+    vtkKWEntryWithLabel *entryCheckerBoardWidth;
+    vtkKWEntryWithLabel *entryCheckerBoardHeight;
+    vtkKWPushButton *applyChessSettingButton;
+
     //----------------------------------------------------------------
     // SecondWindowMode
     //----------------------------------------------------------------
@@ -265,6 +272,7 @@ class VTK_StereoCalib_EXPORT vtkStereoCalibGUI : public vtkSlicerModuleGUI
     vtkKWScaleWithLabel *gapGraphicsBar;     //
     double gapGraphics;                      // 100617-komura
     vtkStereoCalibCVClass *CVClass;          // 100621-komura
+    vtkMutexLock*     Mutex;                 // 100628-komura
 
     //----------------------------------------------------------------
     // Logic Values
