@@ -3,6 +3,28 @@
 #define PERKSTATIONCOMMON_H
 
 
+#include <string>
+#include <sstream>
+#include <vector>
+
+
+  // Macros.
+
+#define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
+  if (obj) \
+    { \
+    obj->SetParent(NULL); \
+    obj->Delete(); \
+    obj = NULL; \
+    };
+
+#define FORGET( obj ) \
+  if ( obj ) \
+    { \
+    this->Script( "pack forget %s", obj->GetWidgetName() ); \
+    };
+
+
   // Definition of plan calibration columns.
 
 enum

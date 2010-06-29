@@ -1,9 +1,9 @@
 #include "vtkPerkStationPlanStep.h"
 
+#include "PerkStationCommon.h"
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkPerkStationModuleLogic.h"
 #include "vtkPerkStationSecondaryMonitor.h"
-#include "vtkMRMLFiducialListNode.h"
 
 #include "vtkKWCheckButtonWithLabel.h"
 #include "vtkKWEntry.h"
@@ -17,6 +17,8 @@
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
 
+#include "vtkMRMLFiducialListNode.h"
+
 #include "vtkCylinderSource.h"
 #include "vtkIdentityTransform.h"
 #include "vtkLineSource.h"
@@ -28,38 +30,6 @@
 
 // debug
 #include "vtkSlicerApplication.h"
-
-
-
-#define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
-  if (obj) \
-    { \
-    obj->SetParent(NULL); \
-    obj->Delete(); \
-    obj = NULL; \
-    };
-
-#define FORGET( obj ) \
-  if ( obj ) \
-    { \
-    this->Script( "pack forget %s", obj->GetWidgetName() ); \
-    };
-
-
-  // Definition of plan list columns.
-enum
-  {
-  COL_NAME = 0,
-  COL_ER,
-  COL_EA,
-  COL_ES,
-  COL_TR,
-  COL_TA,
-  COL_TS,
-  COL_COUNT
-  };
-static const char* COL_LABELS[ COL_COUNT ] = { "Name", "ER", "EA", "ES", "TR", "TA", "TS" };
-static const int COL_WIDTHS[ COL_COUNT ] = { 10, 5, 5, 5, 5, 5, 5 };
 
 
 //----------------------------------------------------------------------------
@@ -417,10 +387,10 @@ vtkPerkStationPlanStep
     
       // Create the columns.
     
-    for ( int col = 0; col < COL_COUNT; ++ col )
+    for ( int col = 0; col < PLAN_COL_COUNT; ++ col )
       {
-      this->PlanList->GetWidget()->AddColumn( COL_LABELS[ col ] );
-      this->PlanList->GetWidget()->SetColumnWidth( col, COL_WIDTHS[ col ] );
+      this->PlanList->GetWidget()->AddColumn( PLAN_COL_LABELS[ col ] );
+      this->PlanList->GetWidget()->SetColumnWidth( col, PLAN_COL_WIDTHS[ col ] );
       this->PlanList->GetWidget()->SetColumnAlignmentToLeft( col );
       }
     this->PlanList->GetWidget()->ColumnEditableOn( 0 );  // Name column.
@@ -499,15 +469,15 @@ vtkPerkStationPlanStep
       }
     
     vtkKWMultiColumnList* colList = this->PlanList->GetWidget();
-    if ( deleteFlag || plan->GetName().compare( this->PlanList->GetWidget()->GetCellText( row, COL_NAME ) ) != 0 )
+    if ( deleteFlag || plan->GetName().compare( this->PlanList->GetWidget()->GetCellText( row, PLAN_COL_NAME ) ) != 0 )
       {
-      this->PlanList->GetWidget()->SetCellText( row, COL_NAME, plan->GetName().c_str() );
+      this->PlanList->GetWidget()->SetCellText( row, PLAN_COL_NAME, plan->GetName().c_str() );
       for ( int i = 0; i < 3; ++ i )
         {
         std::ostrstream os;
         os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
         os << planEntry[ i ] << std::ends;
-        colList->SetCellText( row, COL_ER + i, os.str() );
+        colList->SetCellText( row, PLAN_COL_ER + i, os.str() );
         os.rdbuf()->freeze();
         }
       for ( int i = 0; i < 3; ++ i )
@@ -515,7 +485,7 @@ vtkPerkStationPlanStep
         std::ostrstream os;
         os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
         os << planTarget[ i ] << std::ends;
-        colList->SetCellText( row, COL_ER + 3 + i, os.str() );
+        colList->SetCellText( row, PLAN_COL_ER + 3 + i, os.str() );
         os.rdbuf()->freeze();
         }
       }
@@ -848,7 +818,7 @@ vtkPerkStationPlanStep
   
   bool updated = false;
   
-  if ( col == COL_NAME )
+  if ( col == PLAN_COL_NAME )
     {
     vtkPerkStationPlan* plan = this->GetGUI()->GetMRMLNode()->GetPlanAtIndex( row );
     plan->SetName( std::string( str ) );
