@@ -51,11 +51,7 @@ vtkPerkStationInsertStep::vtkPerkStationInsertStep()
   this->CalibrationListFrame = NULL;
   
   
-  this->ProcessingCallback = false; 
-  this->TimerProcessing = false;
-  
-  
-  this->TrackerTimerId = NULL;
+  this->ProcessingCallback = false;
 }
 
 
@@ -172,8 +168,6 @@ void vtkPerkStationInsertStep::ShowUserInterface()
                 this->CalibrationList->GetWidgetName());
   
   
-  
-  
     // TO DO: install callbacks
   this->InstallCallbacks();
 
@@ -184,6 +178,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
   this->UpdateGUI();
 
 }
+
 
 //----------------------------------------------------------------------------
 void vtkPerkStationInsertStep::PrintSelf(ostream& os, vtkIndent indent)
@@ -248,17 +243,20 @@ vtkPerkStationInsertStep
 }
 
 
-
 //----------------------------------------------------------------------------
 void vtkPerkStationInsertStep::InstallCallbacks()
 {
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationInsertStep::WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData )
 {
     vtkPerkStationInsertStep *self = reinterpret_cast<vtkPerkStationInsertStep *>(clientData);
     if (self) { self->ProcessGUIEvents(caller, event, callData); }
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationInsertStep::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
 {
@@ -279,75 +277,6 @@ void vtkPerkStationInsertStep::ProcessGUIEvents(vtkObject *caller, unsigned long
   this->ProcessingCallback = true;
 
   this->ProcessingCallback = false;
-}
-
-
-//-------------------------------------------------------------------------------------------
-void vtkPerkStationInsertStep::ConnectTrackerCallback(bool value)
-{
-  #if defined(USE_NDIOAPI)
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-
-  if(!mrmlNode)
-      return;
-
-  if (value)
-    {
-    this->TrackerStatusMsg->SetText("Connecting to tracker...");
-    if(this->Tracker->Probe() != 1)
-      {
-      this->TrackerStatusMsg->SetText("Could not connect to tracker");
-      return;
-      } 
-
-    this->TrackerStatusMsg->SetText("Connected to tracker");
-    this->Tracker->SetReferenceTool(mrmlNode->GetReferenceBodyToolPort());
-    this->Tracker->StartTracking();
-    this->TrackerStatusMsg->SetText("Tracking...");
-    // calculate trackerToRAS matrix from the two registration matrices
-    // and apply it to tracker class as a calibration matrix
-    // the resulting reading from the tracker would then be directly in RAS coordinates
-    vtkMatrix4x4 *trackerToImageRASMatrix = vtkMatrix4x4::New();
-    //update trackerToRAS
-    vtkMatrix4x4::Multiply4x4(mrmlNode->GetPhantomToImageRASMatrix(), mrmlNode->GetTrackerToPhantomMatrix(), trackerToImageRASMatrix);
-    this->Tracker->SetWorldCalibrationMatrix(trackerToImageRASMatrix);
-
-    // apply tool tip offset which is retrieved from GUI
-    vtkTrackerTool *tool = this->Tracker->GetTool(mrmlNode->GetNeedleToolPort());
-    vtkMatrix4x4 *toolCalibrationMatrix = tool->GetBuffer()->GetToolCalibrationMatrix();
-    for(unsigned int i=0;i<3;i++)
-      toolCalibrationMatrix->SetElement(i, 3, this->ToolTipOffset->GetWidget(i)->GetValueAsDouble());
-
-    // disable tool tip offset entry widget
-    for(unsigned int i=0;i<3;i++)
-      this->ToolTipOffset->GetWidget(i)->SetEnabled(0);
-
-    // start the callback timer
-    // inititate timer call
-     const char *tmpId = vtkKWTkUtilities::CreateTimerHandler(this->GetApplication()->GetMainInterp(), 50, this, "TrackerTimerEvent");
-     this->TrackerTimerId = new char[strlen(tmpId)+1];
-     strcpy(this->TrackerTimerId, tmpId);
-    }
-  else
-    {
-    if (this->Tracker->IsTracking())
-      { 
-      this->Tracker->StopTracking();
-      this->TrackerStatusMsg->SetText("Tracking stopped");
-      this->GetGUI()->GetSecondaryMonitor()->RemoveOverlayRealTimeNeedleTip();
-
-      // enable tool tip offset entry widget
-      for(unsigned int i=0;i<3;i++)
-        this->ToolTipOffset->GetWidget(i)->SetEnabled(1);
-      }
-      if (this->TrackerTimerId)
-      {
-      vtkKWTkUtilities::CancelTimerHandler(vtkKWApplication::GetMainInterp(), this->TrackerTimerId); 
-      }
-    }
-
-
-  #endif(USE_NDIOAPI)
 }
 
 
@@ -486,105 +415,6 @@ vtkPerkStationInsertStep
 }
   
 
-
-//----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::TrackerTimerEvent()
-{
-  #if defined(USE_NDIOAPI)
-
-  if (this->TimerProcessing)
-    return;
-
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-
-  if(!mrmlNode)
-      return;
-
-  
-  // sort of locking mechanism
-  this->TimerProcessing = true;
-
-  // read the marix/transform from the tracker
-  // update on gui text
-  // update on gui, in 3D view the needle tip actor
-  // update on gui, in 3D the needle line actor
-
-  
-  this->Tracker->Update();
-  int numOfTools = this->Tracker->GetNumberOfTools();
-
-  vtkTrackerTool *tool = this->Tracker->GetTool(mrmlNode->GetNeedleToolPort());
-  
-
-  if( !(tool->IsMissing() || tool->IsOutOfView() || tool->IsOutOfVolume()))
-    {
-    //vtkTransform *toolTransform = vtkTransform::New();
-    //toolTransform = tool->GetTransform();
-    //vtkMatrix4x4 *toolMatrix = vtkMatrix4x4::New();
-    //tool->GetBuffer()->GetUncalibratedMatrix(toolMatrix,0);
-
-    vtkMatrix4x4 *toolCalMatrix = vtkMatrix4x4::New();
-    tool->GetBuffer()->GetMatrix(toolCalMatrix, 0);
-    double *elements;
-    double timestamp = tool->GetBuffer()->GetTimeStamp(0);
-
-    double rasPt[4] = {toolCalMatrix->GetElement(0,3), toolCalMatrix->GetElement(1,3), toolCalMatrix->GetElement(2,3), 1};
-    //double inPt[4] = {toolMatrix->GetElement(0,3), toolMatrix->GetElement(1,3), toolMatrix->GetElement(2,3), 1};
-    //double pointInPhantomSpace[4];
-    //mrmlNode->GetTrackerToPhantomMatrix()->MultiplyPoint(inPt, pointInPhantomSpace);
-    //double pointInImageRAS[4];
-    //mrmlNode->GetPhantomToImageRASMatrix()->MultiplyPoint(pointInPhantomSpace, pointInImageRAS);
-     
-    this->NeedleTipPosition->GetWidget(0)->SetValueAsDouble(rasPt[0]);
-    this->NeedleTipPosition->GetWidget(1)->SetValueAsDouble(rasPt[1]);
-    this->NeedleTipPosition->GetWidget(2)->SetValueAsDouble(rasPt[2]);
-
-    // update visual overlay on secondary monitor
-    this->GetGUI()->GetSecondaryMonitor()->OverlayRealTimeNeedleTip(rasPt, toolCalMatrix);
-
-    if (this->LogToFile)
-      {
-      elements = *(toolCalMatrix->Element);   
-      this->WriteTrackingRecordToFile(timestamp,elements);
-      }
-
-    }
-
-  
-
-  this->TimerProcessing = false;
-
-  const char *tmpId = vtkKWTkUtilities::CreateTimerHandler(this->GetApplication()->GetMainInterp(), 50, this, "TrackerTimerEvent");
-  this->TrackerTimerId = new char[strlen(tmpId)+1];
-  strcpy(this->TrackerTimerId, tmpId);
- 
-  #endif(USE_NDIOAPI)
-}
-//----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::WriteTrackingRecordToFile(double timestamp, const double *matrix)
-{
-  #if defined(USE_NDIOAPI)
-
-  fprintf(this->InsertionLogFile,"%14.3f ",timestamp);  
-  fprintf(this->InsertionLogFile,"%8.2f %8.2f %8.2f ",
-          matrix[4*0+3],matrix[4*1+3],matrix[4*2+3]);
-  
-  for (int i = 0; i < 3; i++)
-    {
-    fprintf(this->InsertionLogFile,"%15.13f %15.13f %15.13f",
-            matrix[4*i],matrix[4*i+1],matrix[4*i+2]);
-    if (i < 2)
-      {
-      fprintf(this->InsertionLogFile," ");
-      }
-    else
-      {
-      fprintf(this->InsertionLogFile,";\n");
-      }
-    }
-
-  #endif(USE_NDIOAPI)
-}
 //----------------------------------------------------------------------------
 void vtkPerkStationInsertStep::PopulateControls()
 {

@@ -1,5 +1,6 @@
 #include "vtkPerkStationValidateStep.h"
 
+#include "PerkStationCommon.h"
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkMRMLPerkStationModuleNode.h"
 #include "vtkPerkStationSecondaryMonitor.h"
@@ -9,6 +10,8 @@
 #include "vtkKWEntry.h"
 #include "vtkKWEntryWithLabel.h"
 #include "vtkKWEntrySet.h"
+#include "vtkKWMultiColumnList.h"
+#include "vtkKWMultiColumnListWithScrollbars.h"
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
@@ -23,6 +26,47 @@
 vtkStandardNewMacro(vtkPerkStationValidateStep);
 vtkCxxRevisionMacro(vtkPerkStationValidateStep, "$Revision: 1.0 $");
 
+
+//----------------------------------------------------------------------------
+void
+vtkPerkStationValidateStep
+::AddGUIObservers()
+{
+  this->RemoveGUIObservers();
+  
+  
+  if ( this->PlanList )
+    {
+    this->PlanList->GetWidget()->SetSelectionChangedCommand(
+      this, "OnMultiColumnListSelectionChanged" );
+    }
+  
+  
+  if (this->ResetValidationButton)
+    {
+    this->ResetValidationButton->AddObserver( vtkKWPushButton::InvokedEvent,
+                                              (vtkCommand *)this->WizardGUICallbackCommand );
+    }
+}
+
+
+//----------------------------------------------------------------------------
+void vtkPerkStationValidateStep::InstallCallbacks()
+{
+  // Configure the OK button to start
+  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+
+  if (wizard_widget->GetOKButton())
+    {
+    wizard_widget->GetOKButton()->SetText("Start over");
+    wizard_widget->GetOKButton()->SetCommand( this, "StartOverNewExperiment");
+    wizard_widget->GetOKButton()->SetBalloonHelpString( "Do another experiment");
+    }
+  
+  this->AddGUIObservers();
+}
+
+
 //----------------------------------------------------------------------------
 vtkPerkStationValidateStep::vtkPerkStationValidateStep()
 {
@@ -30,6 +74,11 @@ vtkPerkStationValidateStep::vtkPerkStationValidateStep()
   this->SetDescription("Mark actual entry point and target hit");  
   this->WizardGUICallbackCommand->SetCallback(vtkPerkStationValidateStep::WizardGUICallback);
 
+  
+  this->PlanListFrame = NULL;
+  this->PlanList = NULL;
+  
+  
   this->ResetFrame = NULL;
   this->ResetValidationButton = NULL;
 
@@ -183,8 +232,13 @@ void vtkPerkStationValidateStep::ShowUserInterface()
   wizard_widget->GetCancelButton()->SetEnabled(0);
   vtkKWWidget *parent = wizard_widget->GetClientArea();
   int enabled = parent->GetEnabled();
-
-  // clear controls
+  
+  
+  this->ShowPlanListFrame();
+  
+  
+    // clear controls
+  
   if (this->ResetFrame)
     {
     this->Script("pack forget %s", 
@@ -196,10 +250,10 @@ void vtkPerkStationValidateStep::ShowUserInterface()
     this->Script("pack forget %s", 
                     this->ResetValidationButton->GetWidgetName());
     }
-
-
-
-  // in clinical mode
+  
+  
+    // in clinical mode
+  
   this->SetName("4/4. Validate");
   this->GetGUI()->GetWizardWidget()->Update();
 
@@ -237,7 +291,6 @@ void vtkPerkStationValidateStep::ShowUserInterface()
   
   this->Script("pack %s -side top -padx 2 -pady 4", 
                     this->ResetValidationButton->GetWidgetName());
-  
      
   
   this->SetDescription("Mark actual entry point and target hit");  
@@ -542,213 +595,107 @@ void vtkPerkStationValidateStep::ShowUserInterface()
     {
     this->InsertionTime =  vtkKWEntryWithLabel::New();  
     }
-  if (!this->InsertionTime->IsCreated())
+  if ( ! this->InsertionTime->IsCreated() )
     {
-    this->InsertionTime->SetParent(this->TimePerformanceFrame->GetFrame());
+    this->InsertionTime->SetParent( this->TimePerformanceFrame->GetFrame() );
     this->InsertionTime->Create();
     //this->InsertionTime->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionTime->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
-    this->InsertionTime->SetLabelText("Time spent on insertion (minutes, seconds):");
-    this->InsertionTime->SetWidth(7);
-    this->InsertionTime->GetWidget()->SetDisabledBackgroundColor(0.9,0.9,0.9);
+    this->InsertionTime->GetLabel()->SetBackgroundColor( 0.7, 0.7, 0.7 );
+    this->InsertionTime->SetLabelText( "Time spent on insertion (minutes, seconds):" );
+    this->InsertionTime->SetWidth( 7 );
+    this->InsertionTime->GetWidget()->SetDisabledBackgroundColor( 0.9, 0.9, 0.9 );
     this->InsertionTime->GetWidget()->ReadOnlyOn();
     }
 
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->InsertionTime->GetWidgetName());
-
-
-
+  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", 
+                this->InsertionTime->GetWidgetName() );
+  
+  
   // TO DO: install callbacks
   this->InstallCallbacks();
-
-  // TO DO: populate controls wherever needed
+  
   this->PopulateControls();
-
-  this->LogTimer->StartTimer();
-
-  wizard_widget->SetErrorText(
-    "Please note that the order of the clicks on image is important.");
+  this->UpdateGUI();
 }
 
-//----------------------------------------------------------------------------
-/*void vtkPerkStationValidateStep::PopulateLoadedParameterSets(
-  vtkObject *obj, const char *method)
+
+void
+vtkPerkStationValidateStep
+::ShowPlanListFrame()
 {
-  if(!this->ParameterSetMenuButton ||
-     !this->ParameterSetMenuButton->IsCreated())
-    {
-    return;
-    }
-
-  vtkEMSegmentMRMLManager *mrmlManager = this->GetGUI()->GetMRMLManager();
-
-  vtkKWMenu *menu = 
-    this->ParameterSetMenuButton->GetWidget()->GetMenu();
-  menu->DeleteAllItems();
-  char buffer[256];
+  vtkKWWizardWidget* wizard_widget = this->GetGUI()->GetWizardWidget();
+  vtkKWWidget* parent = wizard_widget->GetClientArea();
   
-  sprintf(buffer, "%s %d", method, -1);
-  menu->AddRadioButton("Create New Parameters", obj, buffer);
   
-  if(!mrmlManager)
+    // Create a frame for the plan list.
+  
+  if ( ! this->PlanListFrame )
     {
-    vtkWarningMacro("PopulateLoadedParameterSets: returning, no mrml manager");
-    return;
+    this->PlanListFrame = vtkKWFrame::New();
     }
-
-  int nb_of_sets = mrmlManager->GetNumberOfParameterSets();
-  for(int index = 0; index < nb_of_sets; index++)
+  if ( ! this->PlanListFrame->IsCreated() )
     {
-    const char *name = mrmlManager->GetNthParameterSetName(index);
-    if (name)
+    this->PlanListFrame->SetParent( parent );
+    this->PlanListFrame->Create();
+    }
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                this->PlanListFrame->GetWidgetName() );
+  
+  
+    // Create the plan list.
+  
+  if ( ! this->PlanList )
+    {
+    this->PlanList = vtkKWMultiColumnListWithScrollbars::New();
+    this->PlanList->SetParent( this->PlanListFrame );
+    this->PlanList->Create();
+    this->PlanList->SetHeight( 1 );
+    this->PlanList->GetWidget()->SetSelectionTypeToRow();
+    this->PlanList->GetWidget()->SetSelectionBackgroundColor( 1, 0, 0 );
+    this->PlanList->GetWidget()->MovableRowsOff();
+    this->PlanList->GetWidget()->MovableColumnsOff();
+    
+      // Create the columns.
+    
+    for ( int col = 0; col < PLAN_COL_COUNT; ++ col )
       {
-      sprintf(buffer, "%s %d", method, index);
-      menu->AddRadioButton(name, this, buffer);
+      this->PlanList->GetWidget()->AddColumn( PLAN_COL_LABELS[ col ] );
+      this->PlanList->GetWidget()->SetColumnWidth( col, PLAN_COL_WIDTHS[ col ] );
+      this->PlanList->GetWidget()->SetColumnAlignmentToLeft( col );
       }
     }
+  
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                this->PlanList->GetWidgetName() );
 }
 
+
 //----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::UpdateLoadedParameterSets()
+void
+vtkPerkStationValidateStep
+::PrintSelf( ostream& os, vtkIndent indent )
 {
-  if(!this->ParameterSetMenuButton ||
-     !this->ParameterSetMenuButton->IsCreated())
-    {
-    return;
-    }
-
-  vtkEMSegmentMRMLManager *mrmlManager = this->GetGUI()->GetMRMLManager();
-  if(!mrmlManager)
-    {
-    return;
-    }
-
-  vtkKWMenuButton *menuButton = this->ParameterSetMenuButton->GetWidget();
-  vtksys_stl::string sel_value = "";
-  if(menuButton->GetValue())
-    {
-    sel_value = menuButton->GetValue();
-    }
-
-  this->PopulateLoadedParameterSets(
-    this, "SelectedParameterSetChangedCallback");
-
-  if (strcmp(sel_value.c_str(), "") != 0)
-    {
-    // Select the original
-    int nb_of_sets = menuButton->GetMenu()->GetNumberOfItems();
-    for (int index = 0; index < nb_of_sets; index++)
-      {
-      const char *name = menuButton->GetMenu()->GetItemLabel(index);
-      if (name && strcmp(sel_value.c_str(), name) == 0)
-        {
-        menuButton->GetMenu()->SelectItem(index);
-        return;
-        }
-      }
-    }
-
-  // if there is no previous selection, select the first loaded set,
-  // or if there is no loaded set, leave it blank
-
-  int nb_of_sets = mrmlManager->GetNumberOfParameterSets();
-  if(nb_of_sets > 0 &&
-     menuButton->GetMenu()->GetNumberOfItems() > 1)
-    {
-    this->ParameterSetMenuButton->GetWidget()->GetMenu()->SelectItem(1);
-    this->SelectedParameterSetChangedCallback(0);
-    }
+  this->Superclass::PrintSelf( os,indent );
 }
 
+
 //----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::SelectedParameterSetChangedCallback(
-  int index)
+void
+vtkPerkStationValidateStep
+::RemoveGUIObservers()
 {
-  vtkEMSegmentMRMLManager *mrmlManager = this->GetGUI()->GetMRMLManager();
-
-  // New Parameters
-
-  if (index < 0)
+  if ( this->PlanList )
     {
-    mrmlManager->CreateAndObserveNewParameterSet();
-    //Assuming the mrml manager adds the node to the end.
-    int nb_of_sets = mrmlManager->GetNumberOfParameterSets();
-    if (nb_of_sets > 0)
-      {
-      this->UpdateLoadedParameterSets();
-      const char *name = mrmlManager->GetNthParameterSetName(nb_of_sets-1);
-      if (name)
-        {
-        // Select the newly created parameter set
-        vtkKWMenuButton *menuButton = 
-          this->ParameterSetMenuButton->GetWidget();
-        if (menuButton->GetMenu()->GetNumberOfItems() == nb_of_sets + 1)
-          {
-          menuButton->GetMenu()->SelectItem(nb_of_sets);
-          }
-        }
-      }
-    }
-  else
-    {
-    mrmlManager->SetLoadedParameterSetIndex(index);
+    this->PlanList->GetWidget()->SetSelectionChangedCommand( this, "" );
     }
   
-  vtkEMSegmentAnatomicalStructureStep *anat_step = 
-    this->GetGUI()->GetAnatomicalStructureStep();
-  if (anat_step && 
-      anat_step->GetAnatomicalStructureTree() && 
-      anat_step->GetAnatomicalStructureTree()->IsCreated())
-    {
-    anat_step->GetAnatomicalStructureTree()->GetWidget()->DeleteAllNodes();
-    }
-}
-*/
-//----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::PrintSelf(ostream& os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os,indent);
-}
-//----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::AddGUIObservers()
-{
-  this->RemoveGUIObservers();
-
   if (this->ResetValidationButton)
     {
-    this->ResetValidationButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+    this->ResetValidationButton->RemoveObservers( vtkKWPushButton::InvokedEvent,
+                                                  (vtkCommand *)this->WizardGUICallbackCommand );
     }
- 
-}
-//----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::RemoveGUIObservers()
-{
-  if (this->ResetValidationButton)
-    {
-    this->ResetValidationButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-  
-
 }
 
-//----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::InstallCallbacks()
-{
-  // Configure the OK button to start
-  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-
-  if (wizard_widget->GetOKButton())
-    {
-    wizard_widget->GetOKButton()->SetText("Start over");
-    wizard_widget->GetOKButton()->SetCommand(
-    this, "StartOverNewExperiment");
-    wizard_widget->GetOKButton()->SetBalloonHelpString(
-    "Do another experiment");
-    }
-  
-  this->AddGUIObservers();
-}
 
 
 //----------------------------------------------------------------------------
@@ -1008,32 +955,115 @@ void vtkPerkStationValidateStep::RemoveValidationNeedleAxis()
 
 
 //------------------------------------------------------------------------------
-void vtkPerkStationValidateStep::Reset()
+void
+vtkPerkStationValidateStep
+::Reset()
 {
  
-  // reset parameters of mrml node
+    // reset parameters of mrml node
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if (!mrmlNode)
+  if ( ! mrmlNode )
     {
-    // TO DO: what to do on failure
+      // TO DO: what to do on failure
     return;
     }
 
-  double ras[3] = {0.0,0.0,0.0};
-  mrmlNode->SetValidateEntryPoint(ras);
-  mrmlNode->SetValidateTargetPoint(ras);
+  double ras[3] = { 0.0, 0.0, 0.0 };
+  mrmlNode->SetValidateEntryPoint( ras );
+  mrmlNode->SetValidateTargetPoint( ras );
   
-  // remove the overlaid needle axis
+    // remove the overlaid needle axis
   this->RemoveValidationNeedleAxis();
 
-  // reset local member variables to defaults
+    // reset local member variables to defaults
   this->EntryTargetAcquired = false;
   this->ClickNumber = 0;
   this->ProcessingCallback = false;
-  // reset gui controls
+    // reset gui controls
   this->ResetControls();
-  
 }
+
+
+
+void
+vtkPerkStationValidateStep
+::UpdateGUI()
+{
+  vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetMRMLNode();
+  
+  if ( ! mrmlNode ) return;
+  
+  
+    // Update plan list.
+  
+  if ( this->PlanList == NULL || this->PlanList->GetWidget() == NULL ) return;
+  
+  int numPlans = mrmlNode->GetNumberOfPlans();
+  
+  bool deleteFlag = true;
+  if ( numPlans != this->PlanList->GetWidget()->GetNumberOfRows() )
+    {
+    this->PlanList->GetWidget()->DeleteAllRows();
+    }
+  else
+    {
+    deleteFlag = false;
+    }
+  
+  
+  const int PRECISION_DIGITS = 1;
+  
+  double planEntry[ 3 ];
+  double planTarget[ 3 ];
+  double validationEntry[ 3 ];
+  double validationTarget[ 3 ];
+  
+  for ( int row = 0; row < numPlans; ++ row )
+    {
+    vtkPerkStationPlan* plan = mrmlNode->GetPlanAtIndex( row );
+    
+    if ( deleteFlag )
+      {
+      this->PlanList->GetWidget()->AddRow();
+      }
+    
+    plan->GetEntryPointRAS( planEntry );
+    plan->GetTargetPointRAS( planTarget );
+    plan->GetValidationEntryPointRAS( validationEntry );
+    plan->GetValidationTargetPointRAS( validationTarget );
+    
+    if ( planEntry == NULL || planTarget == NULL )
+      {
+      vtkErrorMacro( "ERROR: No plan points in plan" );
+      }
+    
+    vtkKWMultiColumnList* colList = this->PlanList->GetWidget();
+    if ( deleteFlag || plan->GetName().compare( this->PlanList->GetWidget()->GetCellText( row, PLAN_COL_NAME ) ) != 0 )
+      {
+      this->PlanList->GetWidget()->SetCellText( row, PLAN_COL_NAME, plan->GetName().c_str() );
+      for ( int i = 0; i < 3; ++ i )
+        {
+        std::ostrstream os;
+        os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
+        os << planEntry[ i ] << std::ends;
+        colList->SetCellText( row, PLAN_COL_ER + i, os.str() );
+        os.rdbuf()->freeze();
+        }
+      for ( int i = 0; i < 3; ++ i )
+        {
+        std::ostrstream os;
+        os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
+        os << planTarget[ i ] << std::ends;
+        colList->SetCellText( row, PLAN_COL_ER + 3 + i, os.str() );
+        os.rdbuf()->freeze();
+        }
+      }
+    }
+  
+  this->PlanList->GetWidget()->SelectRow( mrmlNode->GetCurrentPlanIndex() );
+}
+
+
 //------------------------------------------------------------------------------
 void vtkPerkStationValidateStep::ResetControls()
 {
@@ -1057,169 +1087,20 @@ void vtkPerkStationValidateStep::ResetControls()
     }
 }
 
-//-----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::LoadValidation(istream &file)
-{
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if (!mrmlNode)
-    {
-    // TO DO: what to do on failure
-    return;
-    }  
-
-  char currentLine[256];  
-  char* attName = "";
-  char* attValue = "";
-  char* pdest;
-  int nCharCount = 0;
-  unsigned int indexEndOfAttribute = 0;
-  unsigned int indexStartOfValue = 0;
-  unsigned int indexEndOfValue = 0;
-
-  int paramSetCount = 0;
-  while(!file.eof())
-    {
-    // first get each line,
-    // then parse each line on basis of attName, and attValue
-    // this can be done as delimiters '='[]' is used to separate out name from value
-    file.getline(&currentLine[0], 256, '\n');   
-    nCharCount = strlen(currentLine);
-    indexEndOfAttribute = strcspn(currentLine,"=");
-    if(indexEndOfAttribute >0)
-      {
-      attName = new char[indexEndOfAttribute+1];
-      strncpy(attName, currentLine,indexEndOfAttribute);
-      attName[indexEndOfAttribute] = '\0';
-      pdest = strchr(currentLine, '"');   
-      indexStartOfValue = (int)(pdest - currentLine + 1);
-      pdest = strrchr(currentLine, '"');
-      indexEndOfValue = (int)(pdest - currentLine + 1);
-      attValue = new char[indexEndOfValue-indexStartOfValue+1];
-      strncpy(attValue, &currentLine[indexStartOfValue], indexEndOfValue-indexStartOfValue-1);
-      attValue[indexEndOfValue-indexStartOfValue-1] = '\0';
-
-      // at this point, we have line separated into, attributeName, and attributeValue
-      // now we need to do string matching on attributeName, and further parse attributeValue as it may have more than one value
-      if (!strcmp(attName, " ValidateEntryPoint"))
-        {
-        // read data into a temporary vector
-        std::stringstream ss;
-        ss << attValue;
-        double d;
-        std::vector<double> tmpVec;
-        while (ss >> d)
-          {
-          tmpVec.push_back(d);
-          }
-        if (tmpVec.size()==3)
-          {
-          double point[3];
-          for (unsigned int i = 0; i < tmpVec.size(); i++)
-            point[i] = tmpVec[i];
-          mrmlNode->SetValidateEntryPoint(point[0], point[1], point[2]);
-          paramSetCount++;
-          }
-        else
-          {
-          // error in file?
-          }     
-        }
-      else if (!strcmp(attName, " ValidateTargetPoint"))
-        {
-        // read data into a temporary vector
-        std::stringstream ss;
-        ss << attValue;
-        double d;
-        std::vector<double> tmpVec;
-        while (ss >> d)
-          {
-          tmpVec.push_back(d);
-          }
-        if (tmpVec.size()==3)
-          {
-          double point[3];
-          for (unsigned int i = 0; i < tmpVec.size(); i++)
-            point[i] = tmpVec[i];
-          mrmlNode->SetValidateTargetPoint(point[0], point[1], point[2]);
-          paramSetCount++;
-          }
-        else
-          {
-          // error in file?
-          }     
-        }
-      
-      }// end if testing for it is a valid attName
-
-    } // end while going through the file
-  
-  if (paramSetCount == 3)
-    {
-    // all params correctly read from file
-    
-    // reflect the values of params in GUI controls
-//  this->PopulateControlsOnLoadCalibration();
-    // set any state variables required to be set
-    }
-  else
-    {
-    // error reading file, not all values set
-    int error = -1;
-    }
-}
-
-//-----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::SaveValidation(ostream& of)
-{
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if (!mrmlNode)
-    {
-    // TO DO: what to do on failure
-    return;
-    }  
-
-  
-  // entry point
-  of << " ValidateEntryPoint=\"" ;
-  double entryPoint[3];
-  mrmlNode->GetValidateEntryPoint(entryPoint);
-  for(int i = 0; i < 3; i++)
-      of << entryPoint[i] << " ";
-  of << "\" \n";
-     
-  // target point
-  of << " ValidateTargetPoint=\""; 
-  double targetPoint[3];
-  mrmlNode->GetValidateTargetPoint(targetPoint);
-  for(int i = 0; i < 3; i++)
-      of << targetPoint[i] << " ";
-  of << "\" \n";
-  
-  // entry point error
-  of << " EntryPointError=\"";
-  double entryError = mrmlNode->GetEntryPointError();  
-  of << entryError << " ";
-  of << "\" \n";
-  
-  // target point error
-  of << " TargetPointError=\"";
-  double targetError = mrmlNode->GetTargetPointError();  
-  of << targetError << " ";
-  of << "\" \n";
-
-}
-
-
 
 //----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData )
+void
+vtkPerkStationValidateStep
+::WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData )
 {
     vtkPerkStationValidateStep *self = reinterpret_cast<vtkPerkStationValidateStep *>(clientData);
     if (self) { self->ProcessGUIEvents(caller, event, callData); }
 }
 
 //----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
+void
+vtkPerkStationValidateStep
+::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
 
