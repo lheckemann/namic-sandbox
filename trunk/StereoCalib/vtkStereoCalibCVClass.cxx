@@ -24,7 +24,13 @@ vtkStereoCalibCVClass::vtkStereoCalibCVClass()
     _T = cvMat(3, 1, CV_64F, T );
     _E = cvMat(3, 3, CV_64F, E );
     _F = cvMat(3, 3, CV_64F, F );
-    n = CORNER_NUMBER;
+
+    // 100625-komura
+    cornerWidth = 9;
+    cornerHeight = 5;
+    cornerNumber = cornerWidth * cornerHeight;
+    // n = CORNER_NUMBER;
+    n = cornerNumber;
 }
 vtkStereoCalibCVClass::~vtkStereoCalibCVClass()
 {
@@ -47,11 +53,12 @@ void vtkStereoCalibCVClass::chessLoad(IplImage* frame, int lr){//100603-komura
     std::vector<CvPoint2D32f> temp(n);
     int count = 0, result=0;
     std::vector<CvPoint2D32f>& pts = points[lr];
+    CvSize cornerSize = cvSize(cornerWidth, cornerHeight); // 100625-komura
     
     IplImage* img = cvCreateImage(cvSize(frame->width,frame->height), IPL_DEPTH_8U, 1); 
     cvCvtColor(frame, img, CV_BGR2GRAY);
 
-    result = cvFindChessboardCorners( img, cvSize(CORNER_WIDTH, CORNER_HEIGHT ),
+    result = cvFindChessboardCorners( img, cornerSize,
                                       &temp[0], &count,
                                       CV_CALIB_CB_ADAPTIVE_THRESH |
                                       CV_CALIB_CB_NORMALIZE_IMAGE
@@ -89,9 +96,9 @@ void vtkStereoCalibCVClass::stereoCalib(CvMat &_M12, CvMat &_M22, CvMat &_D12, C
 
     nframes = active[0].size();//Number of good chessboads found
     objectPoints.resize(nframes*n);
-    for( i = 0; i < CORNER_HEIGHT; i++ ){
-        for( j = 0; j < CORNER_WIDTH; j++ ){
-            objectPoints[i*CORNER_WIDTH + j] = cvPoint3D32f(i*squareSize, j*squareSize, 0);
+    for( i = 0; i < cornerHeight; i++ ){
+        for( j = 0; j < cornerWidth; j++ ){
+            objectPoints[i*cornerWidth + j] = cvPoint3D32f(i*squareSize, j*squareSize, 0);
         }
     }
     for( i = 1; i < nframes; i++ ){
@@ -149,9 +156,9 @@ void vtkStereoCalibCVClass::monoCalib(CvMat &_M12, CvMat &_D12)//100603-komura
 
     nframes = active[0].size();//Number of good chessboads found
     objectPoints.resize(nframes*n);
-    for( i = 0; i < CORNER_HEIGHT; i++ ){
-        for( j = 0; j < CORNER_WIDTH; j++ ){
-            objectPoints[i*CORNER_WIDTH + j] = cvPoint3D32f(i*squareSize, j*squareSize, 0);
+    for( i = 0; i < cornerHeight; i++ ){
+        for( j = 0; j < cornerWidth; j++ ){
+            objectPoints[i*cornerWidth + j] = cvPoint3D32f(i*squareSize, j*squareSize, 0);
         }
     }
     for( i = 1; i < nframes; i++ ){
@@ -179,11 +186,11 @@ void vtkStereoCalibCVClass::monoCalib(CvMat &_M12, CvMat &_D12)//100603-komura
     cvCopy(&_M1, &_M12);
     cvCopy(&_D1_mono, &_D12); 
 
-    // 100621-komura
-    for(int n=0;n<2;n++){
-        active[n].clear();
-        points[n].clear(); 
-    } 
+    // // 100621-komura
+    // for(int n=0;n<2;n++){
+    //     active[n].clear();
+    //     points[n].clear(); 
+    // } 
 }
  
 
@@ -248,7 +255,39 @@ void vtkStereoCalibCVClass::displayStereoCalib(CvMat* _mx1_, CvMat* _mx2_, CvMat
     cvCopy(mx1, _mx1_);
     cvCopy(mx2, _mx2_);
     cvCopy(my1, _my1_);
-    cvCopy(my2, _my2_);    
+    cvCopy(my2, _my2_);
+
+    // 100625-komura
+    cvZero(&_R);
+    cvZero(&_T);
+    cvZero(&_E);
+    cvZero(&_F);
+    cvZero(&_objectPoints);
+    cvZero(&_imagePoints1);
+    cvZero(&_imagePoints2);
+    cvZero(&_npoints);
+
+    // 100621-komura
+    for(int x=0;x<2;x++){
+        if(active[x].size() != 0){
+            active[x].clear();
+        }
+        if(points[x].size() != 0){
+            points[x].clear(); 
+        }
+    } 
+    if(mx1 != NULL){
+        cvReleaseMat( &mx1 );
+    }
+    if(my1 != NULL){
+        cvReleaseMat( &my1 );
+    }
+    if(mx2 != NULL){
+        cvReleaseMat( &mx2 );
+    }
+    if(my2 != NULL){
+        cvReleaseMat( &my2 );
+    }
 }
 
 int vtkStereoCalibCVClass::createFindChessboardCornersFlag() {
@@ -268,12 +307,13 @@ int vtkStereoCalibCVClass::createFindChessboardCornersFlag() {
 }
 
 void vtkStereoCalibCVClass::displayChessboard(IplImage* frame){//100603-komura
-  CvPoint2D32f corners[CORNER_NUMBER];
+  CvPoint2D32f corners[n];
   // IplImage *grayImage = cvCreateImage( cvGetSize( frame ), IPL_DEPTH_8U, 1 );
   int cornerCount;               // number of finding coners  
   int findChessboardCornersFlag; // cvFindChessboardCorners of flag
   int findFlag;                  //  flag of finding all coners
-  
+  CvSize cornerSize = cvSize(cornerWidth, cornerHeight);
+ 
   //create flag for cvChessboardCorners
   findChessboardCornersFlag = createFindChessboardCornersFlag();
   IplImage *halfImage = cvCreateImage (cvSize (frame->width / 2, frame->height / 2), 
@@ -283,15 +323,21 @@ void vtkStereoCalibCVClass::displayChessboard(IplImage* frame){//100603-komura
   // find coner
   findFlag=cvFindChessboardCorners(
                                    halfImage,
-                                   cvSize( CORNER_WIDTH, CORNER_HEIGHT ),
+                                   // 100625-komura
+                                   // cvSize( CORNER_WIDTH, CORNER_HEIGHT ),
+                                   cornerSize,
                                    corners,
                                    &cornerCount,
                                    findChessboardCornersFlag
                                    );
-  for(int i=0;i<CORNER_NUMBER;i++){
+  for(int i=0;i<n;i++){
     corners[i].x = corners[i].x * 2;
     corners[i].y = corners[i].y * 2;
   }
-  cvDrawChessboardCorners( frame, cvSize( CORNER_WIDTH, CORNER_HEIGHT ), corners, cornerCount, findFlag );
+  cvDrawChessboardCorners( frame, 
+                           // 100625-komura
+                           // cvSize( CORNER_WIDTH, CORNER_HEIGHT ),
+                           cornerSize,
+                           corners, cornerCount, findFlag );
   cvReleaseImage(&halfImage);
 }

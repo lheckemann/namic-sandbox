@@ -21,9 +21,11 @@
 #define ADAPTIVE_THRESH 0                        // CV_CALIB_CB_ADAPTIVE_THRESH Setting parameta
 #define NORMALIZE_IMAGE 0                        // CV_CALIB_CB_NORMALIZE_IMAGE Setting parameta
 #define FILTER_QUADS 0                                // CV_CALIB_CB_FILTER_QUADS Setting parameta
-#define CORNER_WIDTH 9                                //  number of side coner 
-#define CORNER_HEIGHT 6                                  // 
-#define CORNER_NUMBER ( CORNER_WIDTH * CORNER_HEIGHT ) // sum of all coner
+
+// 100625-komura
+// #define CORNER_WIDTH 9                                //  number of side coner 
+// #define CORNER_HEIGHT 6                                  // 
+// #define CORNER_NUMBER ( CORNER_WIDTH * CORNER_HEIGHT ) // sum of all coner
 
 class vtkStereoCalibCVClass :
   public vtkSlicerWidget      // 100620-komura
@@ -35,6 +37,11 @@ public:
     int n;
     int N;
     int nframes;
+
+    // 100625-komura
+    int cornerWidth;
+    int cornerHeight;
+    int cornerNumber;
 
     double M1[3][3];
     double M2[3][3];
