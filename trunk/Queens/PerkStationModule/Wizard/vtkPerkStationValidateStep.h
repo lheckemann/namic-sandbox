@@ -64,6 +64,7 @@ protected:
   
     // Plan list.
   vtkKWFrame*                          PlanListFrame;
+  vtkKWLabel*                          PlanListLabel;
   vtkKWMultiColumnListWithScrollbars*  PlanList;
   
   

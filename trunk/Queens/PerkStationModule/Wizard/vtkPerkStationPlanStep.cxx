@@ -274,7 +274,7 @@ vtkPerkStationPlanStep
     }
   
   this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
-                this->PlanList->GetWidgetName());
+                this->PlanList->GetWidgetName() );
   
   
   if ( ! this->DeleteButton )
@@ -345,7 +345,8 @@ vtkPerkStationPlanStep
       }
     
     vtkKWMultiColumnList* colList = this->PlanList->GetWidget();
-    if ( deleteFlag || plan->GetName().compare( this->PlanList->GetWidget()->GetCellText( row, PLAN_COL_NAME ) ) != 0 )
+    if (    deleteFlag
+         || plan->GetName().compare( this->PlanList->GetWidget()->GetCellText( row, PLAN_COL_NAME ) ) != 0 )
       {
       this->PlanList->GetWidget()->SetCellText( row, PLAN_COL_NAME, plan->GetName().c_str() );
       for ( int i = 0; i < 3; ++ i )
@@ -364,24 +365,27 @@ vtkPerkStationPlanStep
         colList->SetCellText( row, PLAN_COL_ER + 3 + i, os.str() );
         os.rdbuf()->freeze();
         }
-      for ( int i = 0; i < 3; ++ i )
+      if ( plan->GetValidated() )
         {
-        std::ostrstream os;
-        os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
-        os << validationEntry[ i ] << std::ends;
-        colList->SetCellText( row, PLAN_COL_ER + 6 + i, os.str() );
-        os.rdbuf()->freeze();
-        }
-      for ( int i = 0; i < 3; ++ i )
-        {
-        std::ostrstream os;
-        os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
-        os << validationTarget[ i ] << std::ends;
-        colList->SetCellText( row, PLAN_COL_ER + 9 + i, os.str() );
-        os.rdbuf()->freeze();
+        for ( int i = 0; i < 3; ++ i )
+          {
+          std::ostrstream os;
+          os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
+          os << validationEntry[ i ] << std::ends;
+          colList->SetCellText( row, PLAN_COL_ER + 6 + i, os.str() );
+          os.rdbuf()->freeze();
+          }
+        for ( int i = 0; i < 3; ++ i )
+          {
+          std::ostrstream os;
+          os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
+          os << validationTarget[ i ] << std::ends;
+          colList->SetCellText( row, PLAN_COL_ER + 9 + i, os.str() );
+          os.rdbuf()->freeze();
+          }
         }
       }
-    }
+    } // for ( int row = 0; row < numPlans; ++ row )
     
   this->PlanList->GetWidget()->SelectRow( mrmlNode->GetCurrentPlanIndex() );
 }
