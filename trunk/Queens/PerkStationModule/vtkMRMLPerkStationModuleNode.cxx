@@ -1252,6 +1252,21 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
+double
+vtkMRMLPerkStationModuleNode
+::GetDepthError()
+{
+  double val = GetValidationDepth();
+  double plan = GetActualPlanInsertionDepth();
+  
+  double diff = val - plan;
+  if ( diff >= 0 ) return diff;
+  else return - diff;
+}
+
+
+
 unsigned int
 vtkMRMLPerkStationModuleNode
 ::AddPlan( vtkPerkStationPlan* newPlan )

@@ -50,21 +50,16 @@ vtkPerkStationValidateStep
 }
 
 
+
 //----------------------------------------------------------------------------
 void vtkPerkStationValidateStep::InstallCallbacks()
 {
   // Configure the OK button to start
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-
-  if (wizard_widget->GetOKButton())
-    {
-    wizard_widget->GetOKButton()->SetText("Start over");
-    wizard_widget->GetOKButton()->SetCommand( this, "StartOverNewExperiment");
-    wizard_widget->GetOKButton()->SetBalloonHelpString( "Do another experiment");
-    }
   
   this->AddGUIObservers();
 }
+
 
 
 //----------------------------------------------------------------------------
@@ -81,14 +76,7 @@ vtkPerkStationValidateStep::vtkPerkStationValidateStep()
   
   this->ResetFrame = NULL;
   this->ResetValidationButton = NULL;
-
-  this->EntryPointFrame = NULL;
-  this->EntryPointLabel = NULL;
-  this->EntryPoint = NULL;
   
-  this->TargetPointFrame = NULL;
-  this->TargetPointLabel = NULL;
-  this->TargetPoint = NULL;
   
   this->InsertionDepth = NULL;
 
@@ -121,14 +109,6 @@ vtkPerkStationValidateStep
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ResetFrame );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ResetValidationButton );
   
-  
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPointFrame );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPointLabel );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPoint );
-  
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPointFrame );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPointLabel );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPoint );
   
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionDepth );
   
@@ -213,118 +193,6 @@ vtkPerkStationValidateStep
 
   
   // Create the individual components
-
-  //frame
-  if (!this->EntryPointFrame)
-    {
-    this->EntryPointFrame = vtkKWFrame::New();
-    }
-  if (!this->EntryPointFrame->IsCreated())
-    {
-    this->EntryPointFrame->SetParent(parent);
-    this->EntryPointFrame->Create();
-    }
-
-  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->EntryPointFrame->GetWidgetName());
-
-  // label.
-  if (!this->EntryPointLabel)
-    { 
-    this->EntryPointLabel = vtkKWLabel::New();
-    }
-  if (!this->EntryPointLabel->IsCreated())
-    {
-    this->EntryPointLabel->SetParent(this->EntryPointFrame);
-    this->EntryPointLabel->Create();
-    this->EntryPointLabel->SetText("Entry point:   ");
-    this->EntryPointLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-    } 
-  
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->EntryPointLabel->GetWidgetName());
-
-  // Entry point: will get populated in a callback, which listens for mouse clicks on image
- 
-  if (!this->EntryPoint)
-    {
-    this->EntryPoint =  vtkKWEntrySet::New();   
-    }
-  if (!this->EntryPoint->IsCreated())
-    {
-    this->EntryPoint->SetParent(this->EntryPointFrame);
-    this->EntryPoint->Create();
-    this->EntryPoint->SetBorderWidth(2);
-    this->EntryPoint->SetReliefToGroove();
-    this->EntryPoint->SetPackHorizontally(1);
-    this->EntryPoint->SetMaximumNumberOfWidgetsInPackingDirection(3);
-    // two entries of image spacing (x, y)
-    for (int id = 0; id < 3; id++)
-      {
-      vtkKWEntry *entry = this->EntryPoint->AddWidget(id);
-      entry->SetWidth(7);
-      //entry->ReadOnlyOn();      
-      }
-    }
-
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->EntryPoint->GetWidgetName());
-
-  //frame
-  if (!this->TargetPointFrame)
-    {
-    this->TargetPointFrame = vtkKWFrame::New();
-    }
-  if (!this->TargetPointFrame->IsCreated())
-    {
-    this->TargetPointFrame->SetParent(parent);
-    this->TargetPointFrame->Create();
-    }
-
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->TargetPointFrame->GetWidgetName());
-
-  // label
-  if (!this->TargetPointLabel)
-    { 
-    this->TargetPointLabel = vtkKWLabel::New();
-    }
-  if (!this->TargetPointLabel->IsCreated())
-    {
-    this->TargetPointLabel->SetParent(this->TargetPointFrame);
-    this->TargetPointLabel->Create();
-    this->TargetPointLabel->SetText("Target point: ");
-    this->TargetPointLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-    }
-  
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->TargetPointLabel->GetWidgetName());
- 
-  // Target point: will get populated in a callback, which listens for mouse clicks on image
- 
-  if (!this->TargetPoint)
-    {
-    this->TargetPoint =  vtkKWEntrySet::New();  
-    }
-  if (!this->TargetPoint->IsCreated())
-    {
-    this->TargetPoint->SetParent(this->TargetPointFrame);
-    this->TargetPoint->Create();
-    this->TargetPoint->SetBorderWidth(2);
-    this->TargetPoint->SetReliefToGroove();
-    this->TargetPoint->SetPackHorizontally(1);
-    this->TargetPoint->SetMaximumNumberOfWidgetsInPackingDirection(3);
-    // two entries of image spacing (x, y)
-    for (int id = 0; id < 3; id++)
-      {
-      vtkKWEntry *entry = this->TargetPoint->AddWidget(id);
-      entry->SetWidth(7);
-      //entry->ReadOnlyOn();      
-      }
-    }
-
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->TargetPoint->GetWidgetName());
 
 
    // insertion depth  
@@ -609,14 +477,6 @@ vtkPerkStationValidateStep
     this->ResetValidationButton->RemoveObservers( vtkKWPushButton::InvokedEvent,
                                                   (vtkCommand *)this->WizardGUICallbackCommand );
     }
-}
-
-
-
-//----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::StartOverNewExperiment()
-{
- this->GetGUI()->ResetAndStartNewExperiment();
 }
 
 
@@ -965,33 +825,19 @@ vtkPerkStationValidateStep
   this->PlanList->GetWidget()->SelectRow( mrmlNode->GetCurrentPlanIndex() );
   
   
-    // Update validation point values. ----------------------------------------
-  
-  double ras[ 3 ];
-  this->GetGUI()->GetMRMLNode()->GetValidationEntryPoint( ras );
-      
-  this->EntryPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
-  this->EntryPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
-  this->EntryPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
-  
-  this->GetGUI()->GetMRMLNode()->GetValidationTargetPoint( ras );
-  
-  this->TargetPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
-  this->TargetPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
-  this->TargetPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
-  
-  
     // Update error metric values. --------------------------------------------
   
   if ( mrmlNode->GetValidated() )
     {
     this->EntryPointError->GetWidget()->SetValueAsDouble( mrmlNode->GetEntryPointError() );
     this->TargetPointError->GetWidget()->SetValueAsDouble( mrmlNode->GetTargetPointError() );
+    this->InsertionDepthError->GetWidget()->SetValueAsDouble( mrmlNode->GetDepthError() );
     }
   else
     {
     this->EntryPointError->GetWidget()->SetValue( "" );
     this->TargetPointError->GetWidget()->SetValue( "" );
+    this->InsertionDepthError->GetWidget()->SetValue( "" );
     }
   
   
@@ -1048,6 +894,16 @@ vtkPerkStationValidateStep
     }
   
   mrmlNode->GetPlanMRMLFiducialListNode()->SetAllFiducialsVisibility( 1 );
+}
+
+
+
+void
+vtkPerkStationValidateStep
+::HideOverlays()
+{
+  this->RemoveValidationNeedleAxis();
+  this->OverlayPlan( false );
 }
 
 
