@@ -164,15 +164,37 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
         return
     b = bb.mean()
     S = dwi_node.GetImageData().ToArray()
-    i2r = vtk2mat(dwi_node.GetIJKToRASMatrix, slicer)
-
-    voxel = np.mat(dwi_node.GetSpacing())[::-1].reshape(3,1)
+    i2r = vtk2mat(dwi_node.GetIJKToRASMatrix,         slicer)
+    r2i = vtk2mat(dwi_node.GetRASToIJKMatrix,         slicer)
+    mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
+    mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
     u = dwi_node.GetDiffusionGradients().ToArray()
-    u = np.vstack((u,-u)) # duplicate signal
+
+    if False:
+        #--- old matlab
+        voxel = np.mat(dwi_node.GetSpacing())[::-1].reshape(3,1)
+    else:
+        #--- generalized...
+        voxel = np.sqrt(np.power(r2i[:,0:3],2).sum(0)).reshape(3,1) # voxel spacing
+        R = r2i[0:3,0:3] / voxel.T  # normalize each column
+        M = mf[0:3,0:3]
+        voxel = voxel[::-1]  # HACK Numpy has [z y x]
+
+        # transform gradients
+        u = dwi_node.GetDiffusionGradients().ToArray()
+        u = u * (np.linalg.inv(R) * M).T
+        u = u / np.sqrt(np.power(u,2).sum(1))
 
     param['voxel'] = voxel
     mask  = mask_node.GetImageData().ToArray().astype('uint16')
-    seeds = (seeds_node.GetImageData().ToArray())
+
+    if True:
+        # FIXME grab nonzeros later
+        seeds = seeds_node.GetImageData().ToArray()
+    else:
+        # BUG this returns booleans and then nonzero() inside init returns empties
+        seeds = (seeds_node.GetImageData().ToArray() == label)
+        
 
     # double check branching
     if theta_min > theta_max:
