@@ -285,14 +285,6 @@ vtkMRMLPerkStationModuleNode
   
     // Plan parameters --------------------------------------------------------
   
-  this->PlanEntryPoint[0] = 0.0;
-  this->PlanEntryPoint[1] = 0.0;
-  this->PlanEntryPoint[2] = 0.0;
-  
-  this->PlanTargetPoint[0] = 0.0;
-  this->PlanTargetPoint[1] = 0.0;
-  this->PlanTargetPoint[2] = 0.0;
-  
   this->TiltAngle = 0;
   
   this->SliceToRAS = vtkSmartPointer< vtkMatrix4x4 >::New();
@@ -312,17 +304,6 @@ vtkMRMLPerkStationModuleNode
   
   this->ReferenceBodyToolPort = 0;
   this->NeedleToolPort = 1;
-  
-  
-    // Validation parameters --------------------------------------------------
-  
-  this->ValidateEntryPoint[ 0 ] = 0.0;
-  this->ValidateEntryPoint[ 1 ] = 0.0;
-  this->ValidateEntryPoint[ 2 ] = 0.0;
-  
-  this->ValidateTargetPoint[ 0 ] = 0.0;
-  this->ValidateTargetPoint[ 1 ] = 0.0;
-  this->ValidateTargetPoint[ 2 ] = 0.0;
   
   
     // Common parameters ------------------------------------------------------
@@ -445,12 +426,6 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
        << this->PlanList[ planInd ]->GetValidationTargetPointRAS()[ 2 ] << "\"" << std::endl;
     }
   
-  
-    // Validation.
-  
-  WriteDoubleVector( of, indent, this->ValidateEntryPoint, "ValidateEntryPoint", 3 );
-  WriteDoubleVector( of, indent, this->ValidateTargetPoint, "ValidateTargetPoint", 3 );
-  
     // Common.
   
   WriteDouble( of, indent, this->TimeOnCalibrateStep, "TimeOnCalibrateStep" );
@@ -562,7 +537,8 @@ vtkMRMLPerkStationModuleNode
         StringToDoubleVector( attValue, loc, 3 );
         plan->SetValidationTargetPointRAS( loc );
         }
-      }
+      } // if ( GetAttNameSection( attName, "Plan", sectionInd, sectionName ) )
+    
     
       // Common parameters.
     
@@ -777,12 +753,11 @@ void vtkMRMLPerkStationModuleNode::InitializeFiducialListNode()
     this->PlanMRMLFiducialListNode->SetDescription(
       "Created by PERK Station Module; marks entry point and target point" );
     this->PlanMRMLFiducialListNode->SetColor( 0.5, 1, 0.5 );
-    this->PlanMRMLFiducialListNode->SetGlyphType(
-      vtkMRMLFiducialListNode::Diamond3D );
+    this->PlanMRMLFiducialListNode->SetGlyphType( vtkMRMLFiducialListNode::Diamond3D );
     this->PlanMRMLFiducialListNode->SetOpacity( 0.7 );
     this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility( true );
-    this->PlanMRMLFiducialListNode->SetSymbolScale( 10 );
-    this->PlanMRMLFiducialListNode->SetTextScale( 10 );
+    this->PlanMRMLFiducialListNode->SetSymbolScale( 6 );
+    this->PlanMRMLFiducialListNode->SetTextScale( 8 );
 }
 
 
@@ -870,7 +845,54 @@ vtkMRMLPerkStationModuleNode
 
 void
 vtkMRMLPerkStationModuleNode
-::AddCurrentPlan()
+::GetPlanEntryPoint( double* point ) const
+{
+  if ( this->CurrentPlanIndex < 0 )
+    {
+    point = NULL;
+    return;
+    }
+  this->PlanList[ this->CurrentPlanIndex ]->GetEntryPointRAS( point );
+}
+
+
+void
+vtkMRMLPerkStationModuleNode
+::SetPlanEntryPoint( const double* point )
+{
+  if ( this->CurrentPlanIndex < 0 ) return;
+  this->PlanList[ this->CurrentPlanIndex ]->SetEntryPointRAS(
+    point[ 0 ], point[ 1 ], point[ 2 ] );
+}
+
+
+
+void
+vtkMRMLPerkStationModuleNode
+::GetPlanTargetPoint( double* point ) const
+{
+  if ( this->CurrentPlanIndex < 0 )
+    {
+    point = NULL;
+    return;
+    }
+  this->PlanList[ this->CurrentPlanIndex ]->GetTargetPointRAS( point );
+}
+
+
+void
+vtkMRMLPerkStationModuleNode
+::SetPlanTargetPoint( const double* point )
+{
+  if ( this->CurrentPlanIndex < 0 ) return;
+  this->PlanList[ this->CurrentPlanIndex ]->SetTargetPointRAS(
+    point[ 0 ], point[ 1 ], point[ 2 ] );
+}
+
+
+void
+vtkMRMLPerkStationModuleNode
+::AddNewPlan()
 {
   std::stringstream ss;
     ss << "Plan" << this->PlanUID;
@@ -878,8 +900,6 @@ vtkMRMLPerkStationModuleNode
   
   vtkSmartPointer< vtkPerkStationPlan > plan = vtkSmartPointer< vtkPerkStationPlan >::New();
     plan->SetName( ss.str() );
-    plan->SetEntryPointRAS( this->PlanEntryPoint );
-    plan->SetTargetPointRAS( this->PlanTargetPoint );
     plan->SetPlanningVolumeRef( std::string( this->PlanningVolumeRef ) );
   
   unsigned int index = this->AddPlan( plan.GetPointer() );
@@ -1000,6 +1020,7 @@ vtkMRMLPerkStationModuleNode
   this->PreviousStep = this->CurrentStep;
   this->CurrentStep = newStep;
   
+  /*
   if ( this->CurrentStep == WORKPHASE_PLANNING )
     {
     this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility( 1 );
@@ -1008,7 +1029,7 @@ vtkMRMLPerkStationModuleNode
     {
     this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility( 0 );
     }
-  
+  */
   
     // Update active volume.
   
@@ -1126,12 +1147,18 @@ double
 vtkMRMLPerkStationModuleNode
 ::GetEntryPointError()
 {
+  double planEntry[ 3 ];
+  this->GetPlanEntryPoint( planEntry );
+  
+  double validationEntry[ 3 ];
+  this->GetValidationEntryPoint( validationEntry );
+  
   double sum = 0.0;
   
   for ( int i = 0; i < 3; ++ i )
     {
-    sum += (   ( this->ValidateEntryPoint[ i ] - this->PlanEntryPoint[ i ] )
-             * ( this->ValidateEntryPoint[ i ] - this->PlanEntryPoint[ i ] ) );
+    sum += (   ( validationEntry[ i ] - planEntry[ i ] )
+             * ( validationEntry[ i ] - planEntry[ i ] ) );
     }
   
   return std::sqrt( sum );
@@ -1145,12 +1172,18 @@ double
 vtkMRMLPerkStationModuleNode
 ::GetTargetPointError()
 {
+  double planTarget[ 3 ];
+  this->GetPlanTargetPoint( planTarget );
+  
+  double validationTarget[ 3 ];
+  this->GetValidationTargetPoint( validationTarget );
+  
   double sum = 0.0;
   
   for ( int i = 0; i < 3; ++ i )
     {
-    sum += (   ( this->ValidateTargetPoint[ i ] - this->PlanTargetPoint[ i ] )
-             * ( this->ValidateTargetPoint[ i ] - this->PlanTargetPoint[ i ] ) );
+    sum += (   ( validationTarget[ i ] - planTarget[ i ] )
+             * ( validationTarget[ i ] - planTarget[ i ] ) );
     }
   
   return std::sqrt( sum );
@@ -1170,8 +1203,12 @@ double
 vtkMRMLPerkStationModuleNode
 ::GetActualPlanInsertionAngle()
 {
-  double tangent =   ( this->PlanEntryPoint[ 0 ] - this->PlanTargetPoint[ 0 ] )
-                   / ( this->PlanEntryPoint[ 1 ] - this->PlanTargetPoint[ 1 ] );
+  double planEntry[ 3 ];
+  this->GetPlanEntryPoint( planEntry );
+  double planTarget[ 3 ];
+  this->GetPlanTargetPoint( planTarget );
+  
+  double tangent = ( planEntry[ 0 ] - planTarget[ 0 ] ) / ( planEntry[ 1 ] - planTarget[ 1 ] );
   
   double angle = - ( 180.0 / vtkMath::Pi() ) * atan( tangent );
   
@@ -1188,9 +1225,12 @@ double
 vtkMRMLPerkStationModuleNode
 ::GetActualPlanInsertionDepth()
 {
-  double insDepth =
-    sqrt( vtkMath::Distance2BetweenPoints( this->PlanTargetPoint,
-                                           this->PlanEntryPoint ) );
+  double planEntry[ 3 ];
+  this->GetPlanEntryPoint( planEntry );
+  double planTarget[ 3 ];
+  this->GetPlanTargetPoint( planTarget );
+  
+  double insDepth = sqrt( vtkMath::Distance2BetweenPoints( planTarget, planEntry ) );
   return insDepth;
 }
 
@@ -1202,9 +1242,12 @@ double
 vtkMRMLPerkStationModuleNode
 ::GetValidationDepth()
 {
-  double insDepth =
-    sqrt( vtkMath::Distance2BetweenPoints( this->ValidateTargetPoint,
-                                           this->ValidateEntryPoint ) );
+  double validationEntry[ 3 ];
+  this->GetPlanEntryPoint( validationEntry );
+  double validationTarget[ 3 ];
+  this->GetPlanTargetPoint( validationTarget );
+  
+  double insDepth = sqrt( vtkMath::Distance2BetweenPoints( validationTarget, validationEntry ) );
   return insDepth;
 }
 
@@ -1231,6 +1274,7 @@ vtkMRMLPerkStationModuleNode
     {
     return 0;
     }
+  
   vtkPerkStationPlan* plan = GetPlanAtIndex( index );
   if ( plan != NULL )
   {
@@ -1267,11 +1311,69 @@ vtkMRMLPerkStationModuleNode
   this->CurrentPlanIndex = index;
   
   this->Modified();
-  // this->InvokeEvent( vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent );
   return this->CurrentPlanIndex;
-  
-  this->PlanList[ this->CurrentPlanIndex ]->GetEntryPointRAS( this->PlanEntryPoint );
-  this->PlanList[ this->CurrentPlanIndex ]->GetTargetPointRAS( this->PlanTargetPoint );
-  this->PlanList[ this->CurrentPlanIndex ]->GetValidationEntryPointRAS( this->ValidateEntryPoint );
-  this->PlanList[ this->CurrentPlanIndex ]->GetValidationTargetPointRAS( this->ValidateTargetPoint );
+}
+
+
+bool
+vtkMRMLPerkStationModuleNode
+::GetValidated() const
+{
+  if ( this->CurrentPlanIndex < 0 ) return false;
+  return this->PlanList[ this->CurrentPlanIndex ]->GetValidated();
+}
+
+
+void
+vtkMRMLPerkStationModuleNode
+::SetValidated( const bool validated )
+{
+  if ( this->CurrentPlanIndex < 0 ) return;
+  this->PlanList[ this->CurrentPlanIndex ]->SetValidated( validated );
+}
+
+
+void
+vtkMRMLPerkStationModuleNode
+::GetValidationEntryPoint( double* point ) const
+{
+  if ( this->CurrentPlanIndex < 0 )
+    {
+    point = NULL;
+    return;
+    }
+  this->PlanList[ this->CurrentPlanIndex ]->GetValidationEntryPointRAS( point );
+}
+
+
+void
+vtkMRMLPerkStationModuleNode
+::SetValidationEntryPoint( const double* point )
+{
+  if ( this->CurrentPlanIndex < 0 ) return;
+  this->PlanList[ this->CurrentPlanIndex ]->SetValidationEntryPointRAS(
+    point[ 0 ], point[ 1 ], point[ 2 ] );
+}
+
+
+void
+vtkMRMLPerkStationModuleNode
+::GetValidationTargetPoint( double* point ) const
+{
+  if ( this->CurrentPlanIndex < 0 )
+    {
+    point = NULL;
+    return;
+    }
+  this->PlanList[ this->CurrentPlanIndex ]->GetValidationTargetPointRAS( point );
+}
+
+
+void
+vtkMRMLPerkStationModuleNode
+::SetValidationTargetPoint( const double* point )
+{
+  if ( this->CurrentPlanIndex < 0 ) return;
+  this->PlanList[ this->CurrentPlanIndex ]->SetValidationTargetPointRAS(
+    point[ 0 ], point[ 1 ], point[ 2 ] );
 }

@@ -85,9 +85,11 @@ vtkPerkStationValidateStep::vtkPerkStationValidateStep()
   this->EntryPointFrame = NULL;
   this->EntryPointLabel = NULL;
   this->EntryPoint = NULL;
+  
   this->TargetPointFrame = NULL;
   this->TargetPointLabel = NULL;
   this->TargetPoint = NULL;
+  
   this->InsertionDepth = NULL;
 
   this->ValidationErrorsFrame = NULL;
@@ -96,135 +98,60 @@ vtkPerkStationValidateStep::vtkPerkStationValidateStep()
   this->InsertionAngleError = NULL;
   this->InsertionDepthError = NULL;
   
+  
   this->ValidationNeedleActor = vtkActor::New();
-
+  this->PlanActor = vtkActor::New();
+  
+  
   this->TimePerformanceFrame = NULL;
   this->CalibrationTime = NULL;
   this->PlanTime = NULL;
   this->InsertionTime = NULL;
   
-  this->EntryTargetAcquired = false;
   this->ClickNumber = 0;
   this->ProcessingCallback = false;
 
 }
 
+
 //----------------------------------------------------------------------------
-vtkPerkStationValidateStep::~vtkPerkStationValidateStep()
+vtkPerkStationValidateStep
+::~vtkPerkStationValidateStep()
 {
-  if (this->ResetFrame)
-    {
-    this->ResetFrame->Delete();
-    this->ResetFrame = NULL;
-    }
-  if (this->ResetValidationButton)
-    {
-    this->ResetValidationButton->Delete();
-    this->ResetValidationButton = NULL;
-    }
-
-
-  if (this->EntryPointFrame)
-    {
-    this->EntryPointFrame->Delete();
-    this->EntryPointFrame = NULL;
-    }
-  if (this->EntryPointLabel)
-    {
-    this->EntryPointLabel->Delete();
-    this->EntryPointLabel = NULL;
-    }
-
-  if (this->EntryPoint)
-    {
-    this->EntryPoint->DeleteAllWidgets();
-    this->EntryPoint = NULL;
-    }
-
-  if (this->TargetPointFrame)
-    {
-    this->TargetPointFrame->Delete();
-    this->TargetPointFrame = NULL;
-    }
-  if (this->TargetPointLabel)
-    {
-    this->TargetPointLabel->Delete();
-    this->TargetPointLabel = NULL;
-    }
-  if (this->TargetPoint)
-    {
-    this->TargetPoint->DeleteAllWidgets();
-    this->TargetPoint = NULL;
-    }
-
-  if (this->InsertionDepth)
-    {
-    this->InsertionDepth->Delete();
-    this->InsertionDepth = NULL;
-    }
-  if (this->ValidationErrorsFrame)
-    {
-    this->ValidationErrorsFrame->SetParent(NULL);
-    this->ValidationErrorsFrame->Delete();
-    this->ValidationErrorsFrame = NULL;
-    }
-  if (this->EntryPointError)
-    {
-    this->EntryPointError->SetParent(NULL);
-    this->EntryPointError->Delete();
-    this->EntryPointError = NULL;
-    }
-  if (this->TargetPointError)
-    {
-    this->TargetPointError->SetParent(NULL);
-    this->TargetPointError->Delete();
-    this->TargetPointError = NULL;
-    }
-  if (this->InsertionAngleError)
-    {
-    this->InsertionAngleError->SetParent(NULL);
-    this->InsertionAngleError->Delete();
-    this->InsertionAngleError = NULL;
-    }
-  if (this->InsertionDepthError)
-    {
-    this->InsertionDepthError->SetParent(NULL);
-    this->InsertionDepthError->Delete();
-    this->InsertionDepthError = NULL;
-    }
-  if (this->TimePerformanceFrame)
-    {
-    this->TimePerformanceFrame->SetParent(NULL);
-    this->TimePerformanceFrame->Delete();
-    this->TimePerformanceFrame = NULL;
-    }
-  if (this->CalibrationTime)
-    {
-    this->CalibrationTime->SetParent(NULL);
-    this->CalibrationTime->Delete();
-    this->CalibrationTime = NULL;
-    }
-  if (this->PlanTime)
-    {
-    this->PlanTime->SetParent(NULL);
-    this->PlanTime->Delete();
-    this->PlanTime = NULL;
-    }
-  if (this->InsertionTime)
-    {
-    this->InsertionTime->SetParent(NULL);
-    this->InsertionTime->Delete();
-    this->InsertionTime = NULL;
-    }  
-  if (this->ValidationNeedleActor)
-    {
-    this->ValidationNeedleActor->Delete();
-    this->ValidationNeedleActor = NULL;
-    }
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ResetFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ResetValidationButton );
+  
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPointFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPointLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPoint );
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPointFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPointLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPoint );
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionDepth );
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ValidationErrorsFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPointError );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPointError );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionAngleError );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionDepthError );
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TimePerformanceFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->CalibrationTime );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanTime );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionTime );
+  
+  DELETE_IF_NOT_NULL( this->ValidationNeedleActor );
+  DELETE_IF_NOT_NULL( this->PlanActor );
 }
 
+
 //----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::ShowUserInterface()
+void
+vtkPerkStationValidateStep
+::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
 
@@ -239,20 +166,9 @@ void vtkPerkStationValidateStep::ShowUserInterface()
   
     // clear controls
   
-  if (this->ResetFrame)
-    {
-    this->Script("pack forget %s", 
-                    this->ResetFrame->GetWidgetName());
-    }
-
-  if (this->ResetValidationButton)
-    {
-    this->Script("pack forget %s", 
-                    this->ResetValidationButton->GetWidgetName());
-    }
+  FORGET( this->ResetFrame )
+  FORGET( this->ResetValidationButton )
   
-  
-    // in clinical mode
   
   this->SetName("4/4. Validate");
   this->GetGUI()->GetWizardWidget()->Update();
@@ -289,11 +205,11 @@ void vtkPerkStationValidateStep::ShowUserInterface()
     this->ResetValidationButton->Create();
     }
   
-  this->Script("pack %s -side top -padx 2 -pady 4", 
-                    this->ResetValidationButton->GetWidgetName());
+  this->Script( "pack %s -side top -padx 2 -pady 4", 
+                this->ResetValidationButton->GetWidgetName() );
      
   
-  this->SetDescription("Mark actual entry point and target hit");  
+  this->SetDescription( "Mark actual entry point and target hit" );  
 
   
   // Create the individual components
@@ -309,7 +225,7 @@ void vtkPerkStationValidateStep::ShowUserInterface()
     this->EntryPointFrame->Create();
     }
 
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                 this->EntryPointFrame->GetWidgetName());
 
   // label.
@@ -614,7 +530,6 @@ void vtkPerkStationValidateStep::ShowUserInterface()
   // TO DO: install callbacks
   this->InstallCallbacks();
   
-  this->PopulateControls();
   this->UpdateGUI();
 }
 
@@ -705,24 +620,6 @@ void vtkPerkStationValidateStep::StartOverNewExperiment()
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::PopulateControls()
-{
-  double ras[ 3 ];
-  this->GetGUI()->GetMRMLNode()->GetValidateEntryPoint( ras );
-      
-  this->EntryPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
-  this->EntryPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
-  this->EntryPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
-  
-  this->GetGUI()->GetMRMLNode()->GetValidateTargetPoint( ras );
-  
-  this->TargetPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
-  this->TargetPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
-  this->TargetPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );    
-}
-
-
 //-----------------------------------------------------------------------------
 void vtkPerkStationValidateStep::ProcessImageClickEvents(
   vtkObject *caller, unsigned long event, void *callData )
@@ -738,14 +635,13 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(
     {
     return;
     }
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetMRMLNode();
   
-  if( this->EntryTargetAcquired )
-    {
-    return;
-    }
+    
+  if ( this->ClickNumber > 1 ) return;  // Don't do anything after two clicks.
   
-  vtkSlicerInteractorStyle *s =
-    vtkSlicerInteractorStyle::SafeDownCast( caller );
+  
+  vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast( caller );
   
   vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(
     this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
@@ -753,9 +649,7 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(
     GetInteractorStyle() );
   
   vtkRenderWindowInteractor *rwi;
-  vtkMatrix4x4 *matrix;
-  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->
-                                GetMainSliceGUI( "Red" )->GetSliceViewer()->
+  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->
                                 GetRenderWidget()->GetOverlayRenderer();
 
   if (    ( s == istyle0 )
@@ -766,9 +660,10 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(
       // mouse click happened in the axial slice view      
     vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(
          this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
-    rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->
-          GetRenderWindowInteractor();    
-    matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+    rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();    
+    
+    vtkMatrix4x4 *xyToRas;
+      xyToRas = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
     
     // capture the point
     int point[ 2 ];
@@ -776,182 +671,183 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(
     double inPt[ 4 ] = { point[ 0 ], point[ 1 ], 0, 1 };
     double outPt[ 4 ];
     
-    matrix->MultiplyPoint( inPt, outPt ); 
+    xyToRas->MultiplyPoint( inPt, outPt ); 
     double ras[ 3 ] = { outPt[ 0 ], outPt[ 1 ], outPt[ 2 ] };
-
+    
+    
       // depending on click number, it is either Entry point or target point
     
     if ( this->ClickNumber == 1 )
       {
-      this->GetGUI()->GetMRMLNode()->SetValidateEntryPoint( ras );
+      moduleNode->SetValidationEntryPoint( ras );
       }
     else if ( this->ClickNumber == 2 )
       {
-      this->GetGUI()->GetMRMLNode()->SetValidateTargetPoint( ras );      
+      moduleNode->SetValidationTargetPoint( ras );      
+      moduleNode->SetValidated( true );
       
-      this->ClickNumber = 0;
-
       this->OverlayValidationNeedleAxis();
-
-      double rasEntry[ 3 ];
-      double rasTarget[ 3 ];
-      this->GetGUI()->GetMRMLNode()->GetValidateEntryPoint( rasEntry );
-      this->GetGUI()->GetMRMLNode()->GetValidateTargetPoint( rasTarget );
       
-      this->InsertionDepth->GetWidget()->SetValueAsDouble(
-        this->GetGUI()->GetMRMLNode()->GetValidationDepth() );
-      
-      this->LogTimer->StopTimer();
-      this->GetGUI()->GetMRMLNode()->SetTimeOnValidateStep(
-        this->LogTimer->GetElapsedTime() );
-
-      this->PresentValidationErrors();
-
-      this->EntryTargetAcquired = true;
+      this->InsertionDepth->GetWidget()->SetValueAsDouble( moduleNode->GetValidationDepth() );
       }
     
-    this->PopulateControls();
-
+    this->UpdateGUI();
     }
-
 }
-//------------------------------------------------------------------------------
-void vtkPerkStationValidateStep::PresentValidationErrors()
-{
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-
-  if(!mrmlNode)
-      return;
-
-  // things to do
-  // overlay the needle line
-  // display entry point error, target point error, insertion angle error, insertion depth error
-  // display time performance
-
-    // display entry point error, target point error, insertion angle error,
-    // insertion depth error
-  
-  this->EntryPointError->GetWidget()->SetValueAsDouble(
-    mrmlNode->GetEntryPointError() );
-  this->TargetPointError->GetWidget()->SetValueAsDouble(
-    mrmlNode->GetTargetPointError() );
-  
-  // todo: fix this
-  // insertion depth error
-  // double depthError = mrmlNode->GetActualPlanInsertionDepth() - this->InsertionDepth->GetWidget()->GetValueAsDouble();
-  // this->InsertionDepthError->GetWidget()->SetValueAsDouble(depthError);
-
-  // time performance
-  char timeStr[20];
-  long time = 0;
-  time = mrmlNode->GetTimeOnCalibrateStep();
-  sprintf(timeStr, "%02d:%02d", time/60, time%60);
-  this->CalibrationTime->GetWidget()->SetValue(timeStr);
-
-  time = mrmlNode->GetTimeOnPlanStep();
-  sprintf(timeStr, "%02d:%02d", time/60, time%60);
-  this->PlanTime->GetWidget()->SetValue(timeStr);
-
-  time = mrmlNode->GetTimeOnInsertStep();
-  sprintf(timeStr, "%02d:%02d", time/60, time%60);
-  this->InsertionTime->GetWidget()->SetValue(timeStr);
 
 
 
-
-
-}
-//------------------------------------------------------------------------------
-void vtkPerkStationValidateStep::OverlayValidationNeedleAxis()
+void
+vtkPerkStationValidateStep
+::OverlayValidationNeedleAxis()
 {
   vtkSlicerSliceGUI* sliceGUI = vtkSlicerApplicationGUI::SafeDownCast( 
-                                  this->GetGUI()->GetApplicationGUI() )->
-                                  GetMainSliceGUI( "Red" );
+                                  this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
   
-  vtkRenderer* renderer = sliceGUI->GetSliceViewer()->
-                          GetRenderWidget()->GetOverlayRenderer();
-  
+  vtkRenderer* renderer = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
   
     // get the world coordinates
   
-  int point[ 2 ];
-  double worldCoordinate[ 4 ];
-  vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
-  vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
-  vtkMatrix4x4::Invert( xyToRAS, rasToXY );
-  
-  
   double rasEntry[ 3 ];
-  this->GetGUI()->GetMRMLNode()->GetValidateEntryPoint( rasEntry );
-  double inPt[ 4 ] = { rasEntry[ 0 ], rasEntry[ 1 ], rasEntry[ 2 ], 1 };
-  double outPt[ 4 ];  
-  rasToXY->MultiplyPoint( inPt, outPt );
-  point[ 0 ] = outPt[ 0 ];
-  point[ 1 ] = outPt[ 1 ];
-
-  renderer->SetDisplayPoint( point[ 0 ], point[ 1 ], 0 );
-  renderer->DisplayToWorld();
-  renderer->GetWorldPoint( worldCoordinate );
-  double wcEntry[ 3 ] = { worldCoordinate[ 0 ], worldCoordinate[ 1 ],
-                          worldCoordinate[ 2 ] };
-
+  this->GetGUI()->GetMRMLNode()->GetValidationEntryPoint( rasEntry );
+  
   double rasTarget[ 3 ];
-  this->GetGUI()->GetMRMLNode()->GetValidateTargetPoint( rasTarget );
-  inPt[ 0 ] = rasTarget[ 0 ];
-  inPt[ 1 ] = rasTarget[ 1 ];
-  inPt[ 2 ] = rasTarget[ 2 ];
-  rasToXY->MultiplyPoint( inPt, outPt );
-  point[ 0 ] = outPt[ 0 ];
-  point[ 1 ] = outPt[ 1 ];
-  renderer->SetDisplayPoint( point[ 0 ], point[ 1 ], 0 );
-  renderer->DisplayToWorld();
-  renderer->GetWorldPoint( worldCoordinate );
-  double wcTarget[ 3 ] = { worldCoordinate[ 0 ], worldCoordinate[ 1 ],
-                           worldCoordinate[ 2 ] };
-
-    // add a dotted line using two end points
+  this->GetGUI()->GetMRMLNode()->GetValidationTargetPoint( rasTarget );
+  
+  
+  double wcEntry[ 3 ];
+  this->RasToWorld( rasEntry, wcEntry );
+  
+  double wcTarget[ 3 ];
+  this->RasToWorld( rasTarget, wcTarget );
+  
+  
     // set up the line
-  vtkSmartPointer< vtkLineSource > line =
-      vtkSmartPointer< vtkLineSource >::New();
+  vtkSmartPointer< vtkLineSource > line = vtkSmartPointer< vtkLineSource >::New();
     line->SetPoint1( wcEntry );
     line->SetPoint2( wcTarget );
-    line->SetResolution( 100 );
-
+  
     // set up the mapper
-  vtkSmartPointer< vtkPolyDataMapper > lineMapper =
-      vtkSmartPointer< vtkPolyDataMapper >::New();
+  vtkSmartPointer< vtkPolyDataMapper > lineMapper = vtkSmartPointer< vtkPolyDataMapper >::New();
     lineMapper->SetInputConnection( line->GetOutputPort() );
   
+  
   this->ValidationNeedleActor->SetMapper( lineMapper );
-  this->ValidationNeedleActor->GetProperty()->SetLineStipplePattern( 0xffff );
   this->ValidationNeedleActor->GetProperty()->SetColor( 255, 0, 255 );
 
 
     // add to actor collection
-  sliceGUI->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->
-            AddActor( this->ValidationNeedleActor );
+  sliceGUI->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->AddActor( this->ValidationNeedleActor );
   
   sliceGUI->GetSliceViewer()->RequestRender(); 
 }
 
 
+
+void
+vtkPerkStationValidateStep
+::OverlayPlan( bool visible )
+{
+  if ( ! visible )
+    {
+    this->PlanActor->SetVisibility( false );
+    return;
+    }
+  
+  
+  vtkSlicerSliceGUI* sliceGUI = vtkSlicerApplicationGUI::SafeDownCast( 
+                                  this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
+  
+  vtkRenderer* renderer = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
+  
+  
+    // Remove actor if already added.
+  
+  vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->
+    GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->GetActors();
+  
+  if ( collection->IsItemPresent( this->PlanActor ) )
+    {
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
+          GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->RemoveActor( this->PlanActor );
+    }
+  
+  
+    // Compute world coordinates.
+  
+  double rasEntry[ 3 ];
+  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( rasEntry );
+  
+  double rasTarget[ 3 ];
+  this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( rasTarget );
+  
+  double wcEntry[ 3 ];
+  this->RasToWorld( rasEntry, wcEntry );
+  
+  double wcTarget[ 3 ];
+  this->RasToWorld( rasTarget, wcTarget );
+  
+  
+    // set up the line
+  vtkSmartPointer< vtkLineSource > line = vtkSmartPointer< vtkLineSource >::New();
+    line->SetPoint1( wcEntry );
+    line->SetPoint2( wcTarget );
+    line->SetResolution( 100 );
+  
+    // set up the mapper
+  vtkSmartPointer< vtkPolyDataMapper > lineMapper = vtkSmartPointer< vtkPolyDataMapper >::New();
+    lineMapper->SetInputConnection( line->GetOutputPort() );
+  
+  
+  this->PlanActor->SetMapper( lineMapper );
+  this->PlanActor->GetProperty()->SetLineStipplePattern( 0xffff );
+  this->PlanActor->GetProperty()->SetColor( 255, 50, 0 );
+  this->PlanActor->SetVisibility( true );
+  
+  
+    // add to actor collection and render
+  sliceGUI->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->AddActor( this->PlanActor );
+  sliceGUI->GetSliceViewer()->RequestRender();
+}
+
+
+
 //------------------------------------------------------------------------------
 void vtkPerkStationValidateStep::RemoveValidationNeedleAxis()
 {
-  // should remove the overlay needle guide
+    // should remove the overlay needle guide
+  
   vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->
-    GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
-    GetOverlayRenderer()->GetActors();
+    GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->GetActors();
+  
   
   if ( collection->IsItemPresent( this->ValidationNeedleActor ) )
     {
     this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
-          GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->
-          RemoveActor( this->ValidationNeedleActor );
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
-          GetSliceViewer()->RequestRender();
+          GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->RemoveActor( this->ValidationNeedleActor );
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->RequestRender();
     }
 }
+
+
+
+void
+vtkPerkStationValidateStep
+::OnMultiColumnListSelectionChanged()
+{
+  int numRows = this->PlanList->GetWidget()->GetNumberOfSelectedRows();
+  if ( numRows != 1 ) return;
+  
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetMRMLNode();
+  
+  int rowIndex = this->PlanList->GetWidget()->GetIndexOfFirstSelectedRow();
+  moduleNode->SetCurrentPlanIndex( rowIndex );
+  
+  this->ClickNumber = 0;
+  
+  this->UpdateGUI();
+}
+
 
 
 //------------------------------------------------------------------------------
@@ -959,28 +855,18 @@ void
 vtkPerkStationValidateStep
 ::Reset()
 {
- 
     // reset parameters of mrml node
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if ( ! mrmlNode )
-    {
-      // TO DO: what to do on failure
-    return;
-    }
-
-  double ras[3] = { 0.0, 0.0, 0.0 };
-  mrmlNode->SetValidateEntryPoint( ras );
-  mrmlNode->SetValidateTargetPoint( ras );
+  if ( ! mrmlNode ) return;
+  
+  mrmlNode->SetValidated( false );
   
     // remove the overlaid needle axis
   this->RemoveValidationNeedleAxis();
 
     // reset local member variables to defaults
-  this->EntryTargetAcquired = false;
   this->ClickNumber = 0;
   this->ProcessingCallback = false;
-    // reset gui controls
-  this->ResetControls();
 }
 
 
@@ -990,11 +876,12 @@ vtkPerkStationValidateStep
 ::UpdateGUI()
 {
   vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetMRMLNode();
-  
   if ( ! mrmlNode ) return;
   
   
-    // Update plan list.
+    // Update plan list. ------------------------------------------------------
+  
+  const int PRECISION_DIGITS = 1;
   
   if ( this->PlanList == NULL || this->PlanList->GetWidget() == NULL ) return;
   
@@ -1009,9 +896,6 @@ vtkPerkStationValidateStep
     {
     deleteFlag = false;
     }
-  
-  
-  const int PRECISION_DIGITS = 1;
   
   double planEntry[ 3 ];
   double planTarget[ 3 ];
@@ -1038,57 +922,136 @@ vtkPerkStationValidateStep
       }
     
     vtkKWMultiColumnList* colList = this->PlanList->GetWidget();
-    if ( deleteFlag || plan->GetName().compare( this->PlanList->GetWidget()->GetCellText( row, PLAN_COL_NAME ) ) != 0 )
+    
+    this->PlanList->GetWidget()->SetCellText( row, PLAN_COL_NAME, plan->GetName().c_str() );
+    for ( int i = 0; i < 3; ++ i )
       {
-      this->PlanList->GetWidget()->SetCellText( row, PLAN_COL_NAME, plan->GetName().c_str() );
-      for ( int i = 0; i < 3; ++ i )
-        {
-        std::ostrstream os;
-        os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
-        os << planEntry[ i ] << std::ends;
-        colList->SetCellText( row, PLAN_COL_ER + i, os.str() );
-        os.rdbuf()->freeze();
-        }
-      for ( int i = 0; i < 3; ++ i )
-        {
-        std::ostrstream os;
-        os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
-        os << planTarget[ i ] << std::ends;
-        colList->SetCellText( row, PLAN_COL_ER + 3 + i, os.str() );
-        os.rdbuf()->freeze();
-        }
+      std::ostrstream os;
+      os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
+      os << planEntry[ i ] << std::ends;
+      colList->SetCellText( row, PLAN_COL_ER + i, os.str() );
+      os.rdbuf()->freeze();
       }
-    }
+    for ( int i = 0; i < 3; ++ i )
+      {
+      std::ostrstream os;
+      os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
+      os << planTarget[ i ] << std::ends;
+      colList->SetCellText( row, PLAN_COL_ER + 3 + i, os.str() );
+      os.rdbuf()->freeze();
+      }
+    
+    if ( plan->GetValidated() )
+      {
+      for ( int i = 0; i < 3; ++ i )
+        {
+        std::ostrstream os;
+        os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
+        os << validationEntry[ i ] << std::ends;
+        colList->SetCellText( row, PLAN_COL_ER + 6 + i, os.str() );
+        os.rdbuf()->freeze();
+        }
+      for ( int i = 0; i < 3; ++ i )
+        {
+        std::ostrstream os;
+        os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
+        os << validationTarget[ i ] << std::ends;
+        colList->SetCellText( row, PLAN_COL_ER + 9 + i, os.str() );
+        os.rdbuf()->freeze();
+        }
+      } // if ( plan->GetValidated() )
+    } // for ( int row = 0; row < numPlans; ++ row )
   
   this->PlanList->GetWidget()->SelectRow( mrmlNode->GetCurrentPlanIndex() );
-}
-
-
-//------------------------------------------------------------------------------
-void vtkPerkStationValidateStep::ResetControls()
-{
-  if (this->EntryPoint)
+  
+  
+    // Update validation point values. ----------------------------------------
+  
+  double ras[ 3 ];
+  this->GetGUI()->GetMRMLNode()->GetValidationEntryPoint( ras );
+      
+  this->EntryPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
+  this->EntryPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
+  this->EntryPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
+  
+  this->GetGUI()->GetMRMLNode()->GetValidationTargetPoint( ras );
+  
+  this->TargetPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
+  this->TargetPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
+  this->TargetPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
+  
+  
+    // Update error metric values. --------------------------------------------
+  
+  if ( mrmlNode->GetValidated() )
     {
-    this->EntryPoint->GetWidget(0)->SetValue("");
-    this->EntryPoint->GetWidget(1)->SetValue("");
-    this->EntryPoint->GetWidget(2)->SetValue("");
+    this->EntryPointError->GetWidget()->SetValueAsDouble( mrmlNode->GetEntryPointError() );
+    this->TargetPointError->GetWidget()->SetValueAsDouble( mrmlNode->GetTargetPointError() );
     }
+  else
+    {
+    this->EntryPointError->GetWidget()->SetValue( "" );
+    this->TargetPointError->GetWidget()->SetValue( "" );
+    }
+  
+  
+    // Time performance. ------------------------------------------------------
+  
+  char timeStr[ 20 ];
+  long time = 0;
+  
+  time = mrmlNode->GetTimeOnCalibrateStep();
+  sprintf( timeStr, "%02d:%02d", time/60, time%60 );
+  this->CalibrationTime->GetWidget()->SetValue( timeStr );
 
-  if (this->TargetPoint)
-    {  
-    this->TargetPoint->GetWidget(0)->SetValue("");
-    this->TargetPoint->GetWidget(1)->SetValue("");
-    this->TargetPoint->GetWidget(2)->SetValue(""); 
-    }
+  time = mrmlNode->GetTimeOnPlanStep();
+  sprintf( timeStr, "%02d:%02d", time/60, time%60 );
+  this->PlanTime->GetWidget()->SetValue( timeStr );
 
-  if (this->InsertionDepth)
-    {  
-    this->InsertionDepth->GetWidget()->SetValue("");
+  time = mrmlNode->GetTimeOnInsertStep();
+  sprintf( timeStr, "%02d:%02d", time/60, time%60 );
+  this->InsertionTime->GetWidget()->SetValue( timeStr );
+  
+  
+    // Second monitor. --------------------------------------------------------
+  
+  if ( mrmlNode->GetCurrentPlanIndex() >= 0 )
+    {
+    this->OverlayPlan( true );
     }
+  else
+    {
+    this->OverlayPlan( false );
+    }
+  
+  
+    // Fiducials on first monitor. --------------------------------------------
+  
+  mrmlNode->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
+  this->RemoveValidationNeedleAxis();
+  
+  if ( this->ClickNumber > 0  ||  mrmlNode->GetValidated() )
+    {
+    double point[ 3 ];
+    mrmlNode->GetValidationEntryPoint( point );
+    int index = mrmlNode->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ( point[ 0 ], point[ 1 ], point[ 2 ], 0 );
+    mrmlNode->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText( index, "Entry" );
+    }
+  
+  if ( this->ClickNumber > 1  ||  mrmlNode->GetValidated() )
+    {
+    double point[ 3 ];
+    mrmlNode->GetValidationTargetPoint( point );
+    int index = mrmlNode->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ( point[ 0 ], point[ 1 ], point[ 2 ], 0 );
+    mrmlNode->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText( index, "Target" );
+    this->OverlayValidationNeedleAxis();
+    }
+  
+  mrmlNode->GetPlanMRMLFiducialListNode()->SetAllFiducialsVisibility( 1 );
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkPerkStationValidateStep
 ::WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData )
@@ -1097,31 +1060,63 @@ vtkPerkStationValidateStep
     if (self) { self->ProcessGUIEvents(caller, event, callData); }
 }
 
-//----------------------------------------------------------------------------
+
+
 void
 vtkPerkStationValidateStep
-::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
+::ProcessGUIEvents( vtkObject *caller, unsigned long event, void *callData )
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-
-  if(!mrmlNode)
-      return;
-
-  if(!mrmlNode->GetPlanningVolumeNode() || strcmp(mrmlNode->GetVolumeInUse(), "Validation")!=0)
-      return;
-
   
-  if (this->ProcessingCallback)
+  if(    ! mrmlNode
+      || ! mrmlNode->GetPlanningVolumeNode()
+      || strcmp( mrmlNode->GetVolumeInUse(), "Validation" ) != 0 )
     {
     return;
     }
 
+  
+  if ( this->ProcessingCallback ) return;
   this->ProcessingCallback = true;
   
-  // reset plan button
-  if (this->ResetValidationButton && this->ResetValidationButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+  
+    // reset plan button
+  
+  if (    this->ResetValidationButton
+       && this->ResetValidationButton == vtkKWPushButton::SafeDownCast( caller )
+       && ( event == vtkKWPushButton::InvokedEvent ) )
     {
     this->Reset();
     }
+  
+  
+  this->UpdateGUI();
+  
   this->ProcessingCallback = false;
+}
+
+
+
+void
+vtkPerkStationValidateStep
+::RasToWorld( const double ras[ 3 ], double wc[ 3 ] )
+{
+  vtkSlicerSliceGUI* sliceGUI =
+    vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
+  vtkRenderer* renderer = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
+  
+  vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+  vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+  vtkMatrix4x4::Invert( xyToRAS, rasToXY );
+  
+  double inPt[ 4 ] = { ras[ 0 ], ras[ 1 ], ras[ 2 ], 1 };
+  double outPt[ 4 ];  
+  rasToXY->MultiplyPoint( inPt, outPt );
+  
+  double wc4[ 4 ];
+  renderer->SetDisplayPoint( outPt[ 0 ], outPt[ 1 ], 0 );
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint( wc4 );
+  
+  for ( int i = 0; i < 3; ++ i ) wc[ i ] = wc4[ i ];
 }

@@ -51,12 +51,7 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
   
   this->TargetFirstFrame = NULL;
   this->TargetFirstCheck = NULL;
-  this->EntryPointFrame = NULL;
-  this->EntryPointLabel = NULL;
-  this->EntryPoint = NULL;
-  this->TargetPointFrame = NULL;
-  this->TargetPointLabel = NULL;
-  this->TargetPoint = NULL;
+  
   this->TiltInformationFrame = NULL;
   this->SystemTiltAngle = NULL;
   
@@ -118,12 +113,7 @@ vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
   
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetFirstFrame );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetFirstCheck );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPointFrame );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPointLabel );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPoint );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPointFrame );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPointLabel );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPoint );
+  
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TiltInformationFrame );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->SystemTiltAngle );
   
@@ -156,119 +146,6 @@ void vtkPerkStationPlanStep::ShowUserInterface()
   
   this->ShowTargetFirstFrame();
   
-  
-  //frame
-  if (!this->EntryPointFrame)
-    {
-    this->EntryPointFrame = vtkKWFrame::New();
-    }
-  if (!this->EntryPointFrame->IsCreated())
-    {
-    this->EntryPointFrame->SetParent(parent);
-    this->EntryPointFrame->Create();
-    }
-
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->EntryPointFrame->GetWidgetName() );
-
-  // label.
-  if (!this->EntryPointLabel)
-    { 
-    this->EntryPointLabel = vtkKWLabel::New();
-    }
-  if (!this->EntryPointLabel->IsCreated())
-    {
-    this->EntryPointLabel->SetParent(this->EntryPointFrame);
-    this->EntryPointLabel->Create();
-    this->EntryPointLabel->SetText("Entry point:   ");
-    this->EntryPointLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-    } 
-  
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->EntryPointLabel->GetWidgetName());
-
-  // Entry point: will get populated in a callback, which listens for mouse clicks on image
- 
-  if (!this->EntryPoint)
-    {
-    this->EntryPoint =  vtkKWEntrySet::New();   
-    }
-  if (!this->EntryPoint->IsCreated())
-    {
-    this->EntryPoint->SetParent(this->EntryPointFrame);
-    this->EntryPoint->Create();
-    this->EntryPoint->SetBorderWidth(2);
-    this->EntryPoint->SetReliefToGroove();
-    this->EntryPoint->SetPackHorizontally(1);
-    this->EntryPoint->SetMaximumNumberOfWidgetsInPackingDirection(3);
-    // two entries of image spacing (x, y)
-    for (int id = 0; id < 3; id++)
-      {
-      vtkKWEntry *entry = this->EntryPoint->AddWidget(id);
-      entry->SetWidth(7);
-      //entry->ReadOnlyOn();      
-      }
-    }
-
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->EntryPoint->GetWidgetName());
-
-  //frame
-  if (!this->TargetPointFrame)
-    {
-    this->TargetPointFrame = vtkKWFrame::New();
-    }
-  if (!this->TargetPointFrame->IsCreated())
-    {
-    this->TargetPointFrame->SetParent(parent);
-    this->TargetPointFrame->Create();
-    }
-
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->TargetPointFrame->GetWidgetName());
-
-  // label
-  if (!this->TargetPointLabel)
-    { 
-    this->TargetPointLabel = vtkKWLabel::New();
-    }
-  if (!this->TargetPointLabel->IsCreated())
-    {
-    this->TargetPointLabel->SetParent(this->TargetPointFrame);
-    this->TargetPointLabel->Create();
-    this->TargetPointLabel->SetText("Target point: ");
-    this->TargetPointLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-    }
-  
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->TargetPointLabel->GetWidgetName());
- 
-  // Target point: will get populated in a callback, which listens for mouse clicks on image
- 
-  if (!this->TargetPoint)
-    {
-    this->TargetPoint =  vtkKWEntrySet::New();  
-    }
-  if (!this->TargetPoint->IsCreated())
-    {
-    this->TargetPoint->SetParent(this->TargetPointFrame);
-    this->TargetPoint->Create();
-    this->TargetPoint->SetBorderWidth(2);
-    this->TargetPoint->SetReliefToGroove();
-    this->TargetPoint->SetPackHorizontally(1);
-    this->TargetPoint->SetMaximumNumberOfWidgetsInPackingDirection(3);
-    // two entries of image spacing (x, y)
-    for (int id = 0; id < 3; id++)
-      {
-      vtkKWEntry *entry = this->TargetPoint->AddWidget(id);
-      entry->SetWidth(7);
-      //entry->ReadOnlyOn();      
-      }
-    }
-
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->TargetPoint->GetWidgetName());
-
   
    //frame
   if (!this->TiltInformationFrame)
@@ -309,7 +186,6 @@ void vtkPerkStationPlanStep::ShowUserInterface()
   // TO DO: install callbacks
   this->InstallCallbacks();
   
-  this->PopulateControlsOnLoadPlanning();
   this->UpdateGUI();
 }
 
@@ -488,6 +364,22 @@ vtkPerkStationPlanStep
         colList->SetCellText( row, PLAN_COL_ER + 3 + i, os.str() );
         os.rdbuf()->freeze();
         }
+      for ( int i = 0; i < 3; ++ i )
+        {
+        std::ostrstream os;
+        os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
+        os << validationEntry[ i ] << std::ends;
+        colList->SetCellText( row, PLAN_COL_ER + 6 + i, os.str() );
+        os.rdbuf()->freeze();
+        }
+      for ( int i = 0; i < 3; ++ i )
+        {
+        std::ostrstream os;
+        os << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( PRECISION_DIGITS );
+        os << validationTarget[ i ] << std::ends;
+        colList->SetCellText( row, PLAN_COL_ER + 9 + i, os.str() );
+        os.rdbuf()->freeze();
+        }
       }
     }
     
@@ -549,29 +441,6 @@ void vtkPerkStationPlanStep::RemoveGUIObservers()
 void vtkPerkStationPlanStep::InstallCallbacks()
 {
   this->AddGUIObservers();
-}
-
-
-//---------------------------------------------------------------------------
-void vtkPerkStationPlanStep::PopulateControlsOnLoadPlanning()
-{
-    if ( ! this->GetGUI()->GetMRMLNode() ) return;
-    
-    double rasEntry[ 3 ];
-    this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( rasEntry );
-    
-    // entry point
-    this->EntryPoint->GetWidget( 0 )->SetValueAsDouble( rasEntry[ 0 ] );
-    this->EntryPoint->GetWidget( 1 )->SetValueAsDouble( rasEntry[ 1 ] );
-    this->EntryPoint->GetWidget( 2 )->SetValueAsDouble( rasEntry[ 2 ] );
-    
-    double rasTarget[ 3 ];
-    this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( rasTarget );
-    
-    // target point
-    this->TargetPoint->GetWidget( 0 )->SetValueAsDouble( rasTarget[ 0 ] );
-    this->TargetPoint->GetWidget( 1 )->SetValueAsDouble( rasTarget[ 1 ] );
-    this->TargetPoint->GetWidget( 2 )->SetValueAsDouble( rasTarget[ 2 ] );
 }
 
 
@@ -644,6 +513,13 @@ vtkPerkStationPlanStep
     }
   
   
+  if ( this->NumPointsSelected == 1 )  // On first click.
+    {   
+    this->GetGUI()->GetMRMLNode()->AddNewPlan();
+    this->TargetFirstCheck->GetWidget()->SetEnabled( 0 );
+    }
+  
+  
     // Determine which point is to be selected first.
   
   int entryClick = 1;
@@ -684,22 +560,14 @@ vtkPerkStationPlanStep
     }
   
   
-  if ( this->NumPointsSelected == 1 )  // On first click.
-    {   
-    this->TargetFirstCheck->GetWidget()->SetEnabled( 0 );
-    }
-  
   
   if ( this->NumPointsSelected == 2 ) // Needle guide ready.
     {
-    this->PopulateControlsOnLoadPlanning();
     this->OverlayNeedleGuide();
     this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();  
     
     this->TargetFirstCheck->GetWidget()->SetEnabled( 1 );
     
-      // Store the plan, and prepare for next plan.
-    this->GetGUI()->GetMRMLNode()->AddCurrentPlan();
     this->UpdateGUI();
     }
   
@@ -1053,30 +921,6 @@ vtkPerkStationPlanStep
   this->WCTargetPoint[2] = 0.0;
   this->NumPointsSelected = 0;
   this->ProcessingCallback = false;
-  // reset gui controls
-  this->ResetControls();
-  
-}
-//------------------------------------------------------------------------------
-void vtkPerkStationPlanStep::ResetControls()
-{
-  if(this->EntryPoint)
-    {
-    this->EntryPoint->GetWidget(0)->SetValue("");
-    this->EntryPoint->GetWidget(1)->SetValue("");
-    this->EntryPoint->GetWidget(2)->SetValue("");
-    }
-  if (this->TargetPoint)
-    {
-    this->TargetPoint->GetWidget(0)->SetValue("");
-    this->TargetPoint->GetWidget(1)->SetValue("");
-    this->TargetPoint->GetWidget(2)->SetValue("");
-    }
-
-  if (this->SystemTiltAngle)
-    {
-    this->SystemTiltAngle->GetWidget()->SetValue("");
-    }
 }
 
 
@@ -1091,29 +935,26 @@ void vtkPerkStationPlanStep::RemoveOverlayNeedleGuide()
   if ( collection->IsItemPresent( this->NeedleActor ) )
     {
     this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
-          GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->
-          RemoveActor( this->NeedleActor );
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
-          GetSliceViewer()->RequestRender();
+          GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->RemoveActor( this->NeedleActor );
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->RequestRender();
     }
 }
 
 
 // ----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::WizardGUICallback( vtkObject* caller,
-                                                unsigned   long event,
-                                                void*      clientData,
-                                                void*      callData )
+void
+vtkPerkStationPlanStep
+::WizardGUICallback( vtkObject* caller, unsigned long event, void* clientData, void* callData )
 {
-    vtkPerkStationPlanStep *self =
-      reinterpret_cast< vtkPerkStationPlanStep* >( clientData );
+    vtkPerkStationPlanStep *self = reinterpret_cast< vtkPerkStationPlanStep* >( clientData );
     if ( self ) self->ProcessGUIEvents( caller, event, callData );
 }
 
 
 //----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::ProcessGUIEvents( vtkObject* caller,
-                                           unsigned long event, void* callData )
+void
+vtkPerkStationPlanStep
+::ProcessGUIEvents( vtkObject* caller, unsigned long event, void* callData )
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
 
@@ -1123,7 +964,7 @@ void vtkPerkStationPlanStep::ProcessGUIEvents( vtkObject* caller,
     {
     return;
     }
-
+  
   
     // Avoid parallel instances.
   
@@ -1146,7 +987,6 @@ void vtkPerkStationPlanStep::ProcessGUIEvents( vtkObject* caller,
       this->UpdateGUI();
       }
     }
-  
   
   this->ProcessingCallback = false;
 }
