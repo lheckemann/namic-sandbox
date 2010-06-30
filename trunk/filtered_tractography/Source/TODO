@@ -1,0 +1,13 @@
+1. Signal normalization
+   -- HACK report error for now
+
+2. Have a field where the user can specify the label number and the number of times to seed in that label.
+
+
+5. Store the state and covariance at each point along the tract.
+
+
+--Future--
+initial covariance
+all in one module
+progress bar
