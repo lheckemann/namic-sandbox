@@ -170,7 +170,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
     u = dwi_node.GetDiffusionGradients().ToArray()
 
-    if False:
+    if True:
         #--- old matlab
         voxel = np.mat(dwi_node.GetSpacing())[::-1].reshape(3,1)
     else:
@@ -542,17 +542,20 @@ def s2ga(s):
     return flt.c_s2ga(s,n)
 
 
-def interp3signal(S, p, v, sigma = 1.66*1.66*1.66):
+def interp3signal(S, p, v):
     assert S.ndim == 4 and S.dtype == 'float32'
     nx,ny,nz,n = S.shape
+    sigma = 1.66*1.66*1.66
     s = np.zeros((2*n,), dtype='float32')  # preallocate output (doubled)
     flt.c_interp3signal(s, S, p, v, sigma, nx, ny, nz, n)
+    print s.shape
     return s
 
 
-def interp3scalar(M, p, v, sigma = 1.66*1.66*1.66):
+def interp3scalar(M, p, v):
     assert M.ndim == 3 and M.dtype == 'uint16'
     nx,ny,nz = M.shape
+    sigma = 1.66*1.66*1.66
     return flt.c_interp3scalar(M, p, v, sigma, nx, ny, nz)
 
 # ternary operator (no short circuit)
