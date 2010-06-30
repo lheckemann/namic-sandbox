@@ -10,6 +10,13 @@
 
   // Macros.
 
+#define DELETE_IF_NOT_NULL( obj ) \
+  if ( obj ) \
+    { \
+    obj->Delete(); \
+    obj = NULL; \
+    };
+
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj) \
     { \
@@ -53,10 +60,17 @@ enum
   PLAN_COL_TR,
   PLAN_COL_TA,
   PLAN_COL_TS,
+  PLAN_COL_VER,
+  PLAN_COL_VEA,
+  PLAN_COL_VES,
+  PLAN_COL_VTR,
+  PLAN_COL_VTA,
+  PLAN_COL_VTS,
   PLAN_COL_COUNT
   };
-static const char* PLAN_COL_LABELS[ PLAN_COL_COUNT ] = { "Name", "ER", "EA", "ES", "TR", "TA", "TS" };
-static const int PLAN_COL_WIDTHS[ PLAN_COL_COUNT ] = { 10, 5, 5, 5, 5, 5, 5 };
+static const char* PLAN_COL_LABELS[ PLAN_COL_COUNT ] = { "Name", "ER", "EA", "ES", "TR", "TA", "TS",
+                                                         "VER", "VEA", "VES", "VTR", "VTA", "VTS" };
+static const int PLAN_COL_WIDTHS[ PLAN_COL_COUNT ] = { 10, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 };
 
 
 // --------------------------------------------------------------

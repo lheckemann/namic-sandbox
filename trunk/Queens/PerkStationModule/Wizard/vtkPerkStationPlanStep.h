@@ -60,13 +60,14 @@ public:
   virtual void Reset();
   
   virtual void UpdateGUI();
-  void PopulateControlsOnLoadPlanning();
+  
   
   void OnMultiColumnListUpdate(int row, int col, char * str);
   void OnMultiColumnListSelectionChanged();
   
   virtual void OverlayNeedleGuide();
   void RemoveOverlayNeedleGuide();
+  
   
 protected:
   
@@ -83,7 +84,7 @@ protected:
   void RemoveGUIObservers();
   vtkCallbackCommand *GUICallbackCommand;
   
-  // Description:
+  
   // GUI callback  
   static void WizardGUICallback( vtkObject *caller, unsigned long event,
                                  void *clientData, void *callData );
@@ -92,7 +93,6 @@ protected:
 
   virtual void Validate();
 
-  void ResetControls();
   bool DoubleEqual( double val1, double val2 );
   
 
@@ -101,16 +101,6 @@ protected:
   vtkKWFrame* TargetFirstFrame;
   vtkKWCheckButtonWithLabel* TargetFirstCheck;
   
-  // entry point RAS
-  // information to be had from the user
-  
-  vtkKWFrame*    EntryPointFrame;
-  vtkKWLabel*    EntryPointLabel;
-  vtkKWEntrySet* EntryPoint;
-  
-  vtkKWFrame*    TargetPointFrame;
-  vtkKWLabel*    TargetPointLabel;  
-  vtkKWEntrySet* TargetPoint;
   
   vtkKWFrame* PlanListFrame;
   vtkKWMultiColumnListWithScrollbars* PlanList;
@@ -124,10 +114,11 @@ protected:
   vtkSmartPointer< vtkActor > PlanningLineActor;
   //ETX
   
-  double WCEntryPoint[3];
-  double WCTargetPoint[3];
+    // World coordinates for display.
+  double WCEntryPoint[ 3 ];
+  double WCTargetPoint[ 3 ];
 
-  vtkActor *NeedleActor;
+  vtkActor* NeedleActor;
 
 private:
     

@@ -28,9 +28,9 @@ public:
   virtual void ShowPlanListFrame();
 
   void ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData);
-
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
-
+  void OnMultiColumnListSelectionChanged();
+  
   virtual void Reset();
   
   void UpdateGUI();
@@ -48,62 +48,75 @@ protected:
   
   static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
 
-  virtual void PopulateControls();
   virtual void InstallCallbacks();
-
-  void ResetControls();
-
+  
+  
   void OverlayValidationNeedleAxis();
   void RemoveValidationNeedleAxis();
-
+  void OverlayPlan( bool visible );
+  
+  
   void PresentValidationErrors();
 
   
     // GUI widgets.
   
     // Plan list.
+  vtkKWFrame*                          PlanListFrame;
+  vtkKWMultiColumnListWithScrollbars*  PlanList;
   
-  vtkKWFrame* PlanListFrame;
-  vtkKWMultiColumnListWithScrollbars* PlanList;
+  
+    // reset push button
+  vtkKWFrame*       ResetFrame;
+  vtkKWPushButton*  ResetValidationButton;
   
   
-  // reset push button
-  vtkKWPushButton *ResetValidationButton;
-  vtkKWFrame *ResetFrame;
+    // validation points
+    
+  vtkKWFrame*     EntryPointFrame;
+  vtkKWLabel*     EntryPointLabel; 
+  vtkKWEntrySet*  EntryPoint;
   
-  // entry point RAS
-  // information to be had from the user
-  vtkKWFrame *EntryPointFrame;
-  vtkKWLabel *EntryPointLabel; 
-  vtkKWEntrySet*      EntryPoint;
-  vtkKWFrame*         TargetPointFrame;
-  vtkKWLabel *TargetPointLabel;  
-  vtkKWEntrySet      *TargetPoint; 
-  vtkKWEntryWithLabel *InsertionDepth;
+  vtkKWFrame*     TargetPointFrame;
+  vtkKWLabel*     TargetPointLabel;  
+  vtkKWEntrySet*  TargetPoint; 
+  
+  vtkKWEntryWithLabel* InsertionDepth;
 
 
-   // for insertion/validation
-  vtkKWFrameWithLabel *ValidationErrorsFrame;
-  vtkKWEntryWithLabel      *EntryPointError; // read only  
-  vtkKWEntryWithLabel      *TargetPointError; // read only
-  vtkKWEntryWithLabel      *InsertionAngleError;
-  vtkKWEntryWithLabel      *InsertionDepthError;
+    // for insertion/validation
   
-  vtkKWFrameWithLabel *TimePerformanceFrame;
-  vtkKWEntryWithLabel *CalibrationTime;
-  vtkKWEntryWithLabel *PlanTime;
-  vtkKWEntryWithLabel *InsertionTime;
+  vtkKWFrameWithLabel* ValidationErrorsFrame;
+  vtkKWEntryWithLabel* EntryPointError;
+  vtkKWEntryWithLabel* TargetPointError;
+  vtkKWEntryWithLabel* InsertionAngleError;
+  vtkKWEntryWithLabel* InsertionDepthError;
+  
+  vtkKWFrameWithLabel* TimePerformanceFrame;
+  vtkKWEntryWithLabel* CalibrationTime;
+  vtkKWEntryWithLabel* PlanTime;
+  vtkKWEntryWithLabel* InsertionTime;
 
-
-  vtkActor *ValidationNeedleActor;
-  bool EntryTargetAcquired;
-  unsigned int ClickNumber;
-
+  
+    // On second monitor.
+  
+  vtkActor* ValidationNeedleActor;
+  vtkActor* PlanActor;
+  
+  
+    // Helper functions.
+  
+  void RasToWorld( const double ras[ 3 ], double wc[ 3 ] );
+  
+  
 private:
+  
+  unsigned int ClickNumber;
+  
   bool ProcessingCallback;
 
-  vtkPerkStationValidateStep(const vtkPerkStationValidateStep&);
-  void operator=(const vtkPerkStationValidateStep&);
+  vtkPerkStationValidateStep( const vtkPerkStationValidateStep& );
+  void operator=( const vtkPerkStationValidateStep& );
 };
 
 #endif

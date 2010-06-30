@@ -71,13 +71,13 @@ void vtkPerkStationStep::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkPerkStationStep::ReleaseReferencesForKWEntrySet(vtkKWEntrySet *entrySet)
 {
-  if (entrySet)
+  if ( entrySet )
     {
-    if (entrySet->IsCreated())
+    if ( entrySet->IsCreated() )
       {
-      for(unsigned int i=0;i<entrySet->GetNumberOfWidgets();i++)
+      for( int i=0; i < entrySet->GetNumberOfWidgets(); i++ )
         {
-        entrySet->GetWidget(i)->SetParent(NULL);
+        entrySet->GetWidget( i )->SetParent( NULL );
         }
       }  
     }

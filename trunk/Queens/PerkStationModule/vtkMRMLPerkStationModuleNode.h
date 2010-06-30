@@ -161,11 +161,13 @@ public:
   
   // Plan parameters ----------------------------------------------------------
   
-  vtkGetVector3Macro( PlanEntryPoint, double );
-  vtkSetVector3Macro( PlanEntryPoint, double );
   
-  vtkGetVector3Macro( PlanTargetPoint, double );
-  vtkSetVector3Macro( PlanTargetPoint, double );
+  void GetPlanEntryPoint( double* point ) const;
+  void SetPlanEntryPoint( const double* point );
+  
+  void GetPlanTargetPoint( double* point ) const;
+  void SetPlanTargetPoint( const double* point );
+  
   
   vtkGetMacro( TiltAngle, double );
   vtkSetMacro( TiltAngle, double );
@@ -178,7 +180,7 @@ public:
     return this->SliceToRAS.GetPointer();
   };
   
-  void AddCurrentPlan();
+  void AddNewPlan();
   
     // Plan list management.
   
@@ -235,13 +237,16 @@ public:
   
     // Validation parameters --------------------------------------------------
   
-  vtkGetVector3Macro(ValidateEntryPoint, double);
-  vtkSetVector3Macro(ValidateEntryPoint, double);
-
-  vtkGetVector3Macro(ValidateTargetPoint, double);
-  vtkSetVector3Macro(ValidateTargetPoint, double);
-
-
+  bool GetValidated() const;
+  void SetValidated( const bool validated );
+  
+  void GetValidationEntryPoint( double* point ) const;
+  void SetValidationEntryPoint( const double* point );
+  
+  void GetValidationTargetPoint( double* point ) const;
+  void SetValidationTargetPoint( const double* point );
+  
+  
     // Common parameters ------------------------------------------------------
   
   vtkGetStringMacro( PlanningVolumeRef );
@@ -340,9 +345,6 @@ protected:
   
     // Plan parameters --------------------------------------------------------
   
-  double PlanEntryPoint[ 3 ];
-  double PlanTargetPoint[ 3 ];
-  
   double TiltAngle;
   
   //BTX
@@ -364,12 +366,6 @@ protected:
   int ReferenceBodyToolPort;
   int NeedleToolPort;
   //ETX
-  
-  
-    // Validation parameters --------------------------------------------------
-  
-  double ValidateEntryPoint[ 3 ];
-  double ValidateTargetPoint[ 3 ];
   
   
     // Common parameters ------------------------------------------------------
