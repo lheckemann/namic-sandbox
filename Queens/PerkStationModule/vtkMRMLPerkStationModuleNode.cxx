@@ -292,6 +292,7 @@ vtkMRMLPerkStationModuleNode
   this->PlanList.clear();
   
   this->PlanUID = 0;
+  this->CurrentPlanIndex = -1;
   
     // Insertion parameters ---------------------------------------------------
   
@@ -847,11 +848,13 @@ void
 vtkMRMLPerkStationModuleNode
 ::GetPlanEntryPoint( double* point ) const
 {
+  PERKLOG_ERROR( "GetPlanEntryPoint" );
   if ( this->CurrentPlanIndex < 0 )
     {
-    point = NULL;
+    PERKLOG_ERROR( "  returning" );
     return;
     }
+  PERKLOG_ERROR( "  there is a plan" );
   this->PlanList[ this->CurrentPlanIndex ]->GetEntryPointRAS( point );
 }
 
@@ -873,7 +876,6 @@ vtkMRMLPerkStationModuleNode
 {
   if ( this->CurrentPlanIndex < 0 )
     {
-    point = NULL;
     return;
     }
   this->PlanList[ this->CurrentPlanIndex ]->GetTargetPointRAS( point );

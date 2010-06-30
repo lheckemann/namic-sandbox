@@ -619,26 +619,41 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
   
   if ( ! this->DisplayInitialized ) return;
   
-  
     // Switch visibility of needle guide and depth perception lines.
     
     // Update the current slice offset value.
   
   this->SliceOffsetRAS = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )
      ->GetLogic()->GetSliceOffset();
-     
-  double entry[ 3 ];
-  double target[ 3 ];
+  
+  PERKLOG_ERROR( "update image display 1" );
+  
+  double entry[ 3 ] = { 0, 0, -100000 };
+  double target[ 3 ] = { 0, 0, -100000 };
+  
+  PERKLOG_ERROR( "update image display 2" );
+  
   this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( entry );
   this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( target );
-    // Show needle guide only in planning plane +/- 0.5 mm.
-  double minOffset = target[ 2 ] - 0.5;
-  double maxOffset = entry[ 2 ] + 0.5;
-  if ( entry[ 2 ] < target[ 2 ] )
-   {
-   minOffset = entry[ 2 ] - 0.5;
-   maxOffset = target[ 2 ] + 0.5;
-   }
+  
+  double minOffset = -100000;
+  double maxOffset = -100000;
+  
+  PERKLOG_ERROR( "update image display 3" );  
+  
+  if ( entry != NULL && target != NULL )
+    {
+      // Show needle guide only in planning plane +/- 0.5 mm.
+    minOffset = target[ 2 ] - 0.5;
+    maxOffset = entry[ 2 ] + 0.5;
+    if ( entry[ 2 ] < target[ 2 ] )
+      {
+      minOffset = entry[ 2 ] - 0.5;
+      maxOffset = target[ 2 ] + 0.5;
+      }
+    }
+  
+  PERKLOG_ERROR( "update image display 4" );
   
   if (
           ( this->SliceOffsetRAS < maxOffset )
@@ -666,7 +681,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     this->MeasureDigitsActor->SetVisibility( 0 );
     }
  
-   
+ 
    // Switch visibility of table position guide. ------------------------
    
    // Always show it when workphase is Insertion.
@@ -699,12 +714,13 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
    }
  
  
+ 
    // Position L/R side indicator and calibration guide texts. ------------------------
  
- bool Lup = false;
- bool Lleft = false;
- bool Rup = false;
- bool Rleft = false;
+  bool Lup = false;
+  bool Lleft = false;
+  bool Rup = false;
+  bool Rleft = false;
  
    // Take patient position into account.
    
@@ -721,7 +737,9 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
    }
  
     // Take hardware into account.
-
+  
+  PERKLOG_ERROR( "update image display 6" );
+  
   if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
     {
     Lleft = ! Lleft;
@@ -753,7 +771,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     }
  
     // Position the actors.
-
+  
   this->LeftSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ], this->UpperLeftCorner[ 1 ] );
   if ( ! Lleft && Lup )
     this->LeftSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ], this->UpperRightCorner[ 1 ] );

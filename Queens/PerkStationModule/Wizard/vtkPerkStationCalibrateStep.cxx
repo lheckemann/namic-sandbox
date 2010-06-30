@@ -75,6 +75,7 @@ vtkPerkStationCalibrateStep
   this->SetName( "1/4. Calibrate" );
   this->SetDescription( "Do image overlay system calibration" );
   
+  PERKLOG_ERROR( "calibration constructor" );
   
   this->WizardGUICallbackCommand->SetCallback(
     vtkPerkStationCalibrateStep::WizardGUICallback );
@@ -208,24 +209,26 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
   this->GetGUI()->GetWizardWidget()->SetErrorText( "");
   this->GetGUI()->GetWizardWidget()->Update();
   
-  
   this->SetDescription("Do image overlay system calibration");
 
   // gui building/showing
 
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   wizard_widget->GetCancelButton()->SetEnabled(0);
-
+  
   this->ShowHardwareCalibration();
   // this->ShowLoadResetControls();
   this->ShowCalibrationList();
   
+  PERKLOG_ERROR( "calibration 1" );
+  
   this->UpdateGUI();
-    
+  
+  PERKLOG_ERROR( "calibration 2" );
+  
   this->InstallCallbacks();
   
-  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
-    GetSliceViewer()->Focus();
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->Focus();
 }
 
 
@@ -1276,9 +1279,12 @@ vtkPerkStationCalibrateStep
   
   if ( node == NULL ) return; // No MRML node, no GUI update.
   
+  PERKLOG_ERROR( "cal updategui 2" );
+  
   this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
   
- 
+  PERKLOG_ERROR( "cal updategui 3" );
+  
     // Update hardware list, only if it changed.
   
   this->HardwareMenu->GetWidget()->GetMenu()->DeleteAllItems();
@@ -1308,7 +1314,6 @@ vtkPerkStationCalibrateStep
       this->HardwareMenu->GetWidget()->GetMenu()->AddRadioButton( list[ i ].Name.c_str() );
       }
     }
-  
   
     // Update calibration list.
   
