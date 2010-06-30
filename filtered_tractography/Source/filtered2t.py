@@ -359,7 +359,7 @@ def follow(S,u,b,mask,fiber,param,is_branching):
                     if dot(m,m1) > dot(m,m2):
                         X = np.vstack((m2,l2,m1,l1))
                         m = m2
-                        P[:4,:4],P[5:,5:] = P[5:,5:],P[:4,:4] # swap covariance
+                        P[:5,:5],P[5:,5:] = P[5:,5:],P[:5,:5] # swap covariance
                     assert X.shape[0] == 10 and X.shape[1] == 1
                     pp.append((x,X,P,m))
         else:
