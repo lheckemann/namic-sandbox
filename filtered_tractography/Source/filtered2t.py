@@ -170,7 +170,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
     u = dwi_node.GetDiffusionGradients().ToArray()
 
-    if True:
+    if False:
         #--- old matlab
         voxel = np.mat(dwi_node.GetSpacing())[::-1].reshape(3,1)
     else:
@@ -184,6 +184,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
         u = dwi_node.GetDiffusionGradients().ToArray()
         u = u * (np.linalg.inv(R) * M).T
         u = u / np.sqrt(np.power(u,2).sum(1))
+    u = np.vstack((u,-u)) # duplicate signal
 
     param['voxel'] = voxel
     mask  = mask_node.GetImageData().ToArray().astype('uint16')
