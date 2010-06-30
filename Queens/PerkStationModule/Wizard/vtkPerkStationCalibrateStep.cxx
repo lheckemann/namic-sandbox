@@ -1036,7 +1036,9 @@ vtkPerkStationCalibrateStep
   
     // Table position entries changed.
   
-  if ( this->TableOverlayEntry == vtkKWEntry::SafeDownCast( caller ) )
+  if (    this->TableOverlayEntry
+       && this->TableOverlayEntry == vtkKWEntry::SafeDownCast( caller )
+       && event == vtkKWEntry::EntryValueChangedEvent )
     {
     if (    this->TableOverlayEntry->GetValueAsDouble()
          != node->GetTableAtOverlay() )
@@ -1048,7 +1050,8 @@ vtkPerkStationCalibrateStep
   
     // Table update button pressed.
   
-  if ( this->TableUpdateButton == vtkKWPushButton::SafeDownCast( caller ) )
+  if (    this->TableUpdateButton
+       && this->TableUpdateButton == vtkKWPushButton::SafeDownCast( caller ) )
     {
     node->SetTableAtOverlay( this->TableOverlayEntry->GetValueAsDouble() );
     this->TableUpdateButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
@@ -1057,8 +1060,8 @@ vtkPerkStationCalibrateStep
   
     // Hardware selection menu.
   
-  if ( this->HardwareMenu->GetWidget()->GetMenu()
-         == vtkKWMenu::SafeDownCast( caller )
+  if (    this->HardwareMenu
+       && this->HardwareMenu->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast( caller )
        && event == vtkKWMenu::MenuItemInvokedEvent )
     {
     this->HardwareSelected( 
@@ -1070,7 +1073,7 @@ vtkPerkStationCalibrateStep
   
     // Hardware calibration.
   
-  if ( this->HardwareUpdateButton
+  if (    this->HardwareUpdateButton
        && this->HardwareUpdateButton == vtkKWPushButton::SafeDownCast(caller)
        && ( event == vtkKWPushButton::InvokedEvent ) )
     {

@@ -71,6 +71,7 @@ vtkPerkStationValidateStep::vtkPerkStationValidateStep()
 
   
   this->PlanListFrame = NULL;
+  this->PlanListLabel = NULL;
   this->PlanList = NULL;
   
   
@@ -415,14 +416,22 @@ vtkPerkStationValidateStep
   if ( ! this->PlanListFrame )
     {
     this->PlanListFrame = vtkKWFrame::New();
+    this->PlanListLabel = vtkKWLabel::New();
     }
   if ( ! this->PlanListFrame->IsCreated() )
     {
     this->PlanListFrame->SetParent( parent );
     this->PlanListFrame->Create();
+    
+    this->PlanListLabel->SetParent( this->PlanListFrame );
+    this->PlanListLabel->Create();
+    this->PlanListLabel->SetText( "Select plan to be validated. Then click on real \n"
+                                  "needle tip and real needle entry point on the image." );
     }
   this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
                 this->PlanListFrame->GetWidgetName() );
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                this->PlanListLabel->GetWidgetName() );
   
   
     // Create the plan list.
