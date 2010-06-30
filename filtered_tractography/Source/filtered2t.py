@@ -187,9 +187,9 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
         seeds = (seeds_node.GetImageData().ToArray() == label)
 
     # double check branching
-    if theta_min > theta_max:
+    if theta_max > 0 and theta_max <= 5:
         import Slicer
-        Slicer.tk.eval('tk_messageBox -message "theta_min must be less than theta_max"')
+        Slicer.tk.eval('tk_messageBox -message "theta_max must be greater than 5 degrees"')
         return
     is_branching = param['theta_min'] < 1
 
@@ -359,8 +359,7 @@ def follow(S,u,b,mask,fiber,param,is_branching):
                     if dot(m,m1) > dot(m,m2):
                         X = np.vstack((m2,l2,m1,l1))
                         m = m2
-                        ind = [5,6,7,8,9,0,1,2,3,4]
-                        P = P[ind,ind] # swap covariance
+                        P[:4,:4],P[5:,5:] = P[5:,5:],P[:4,:4] # swap covariance
                     assert X.shape[0] == 10 and X.shape[1] == 1
                     pp.append((x,X,P,m))
         else:
