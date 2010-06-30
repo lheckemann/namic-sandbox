@@ -85,13 +85,6 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
       <constraints> <minimum>0</minimum> </constraints>
     </float>
     <integer>
-      <name>theta_min</name> <longflag>theta_min</longflag> <channel>input</channel>
-      <label>Angle to trigger branch (degrees)</label>
-      <description>Angle above which to consider branching the fiber path.  If no branching, set to zero.</description>
-      <default>5</default>
-      <constraints> <minimum>0</minimum> </constraints>
-    </integer>
-    <integer>
       <name>theta_max</name> <longflag>theta_max</longflag> <channel>input</channel>
       <label>Maximum branching angle (degrees)</label>
       <description>Ignore branching if angle above this.</description>
@@ -130,9 +123,10 @@ param = dict({'FA_min': .15,  # FA stopping threshold
 # param['P0'][0:5,0:5] = P0
 # param['P0'][5:10,5:10] = P0
 
-def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, label, Qm, Ql, Rs, theta_min, theta_max):
+def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, label, Qm, Ql, Rs, theta_max):
     for i in range(10) : print ''
 
+    theta_min = 5  # angle which triggers branch
     param = dict({'FA_min': FA_min, # fractional anisotropy stopping threshold
                   'GA_min': GA_min, # generalized anisotropy stopping threshold
                   'dt': .2,     # forward Euler step size (path integration)
@@ -169,21 +163,17 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
     mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
     u = dwi_node.GetDiffusionGradients().ToArray()
+    voxel = np.mat(dwi_node.GetSpacing()).reshape(3,1)
+    voxel = voxel[::-1]  # HACK Numpy has [z y x]
 
-    if False:
-        #--- old matlab
-        voxel = np.mat(dwi_node.GetSpacing())[::-1].reshape(3,1)
-    else:
-        #--- generalized...
-        voxel = np.sqrt(np.power(r2i[:,0:3],2).sum(0)).reshape(3,1) # voxel spacing
-        R = r2i[0:3,0:3] / voxel.T  # normalize each column
-        M = mf[0:3,0:3]
-        voxel = voxel[::-1]  # HACK Numpy has [z y x]
+    #--- generalized...
+    R = r2i[0:3,0:3] / voxel.T  # normalize each column
+    M = mf[0:3,0:3]
 
-        # transform gradients
-        u = dwi_node.GetDiffusionGradients().ToArray()
-        u = u * (np.linalg.inv(R) * M).T
-        u = u / np.sqrt(np.power(u,2).sum(1))
+    # transform gradients
+    u = dwi_node.GetDiffusionGradients().ToArray()
+    u = u * (np.linalg.inv(R) * M).T
+    u = u / np.sqrt(np.power(u,2).sum(1))
     u = np.vstack((u,-u)) # duplicate signal
 
     param['voxel'] = voxel
@@ -195,7 +185,6 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     else:
         # BUG this returns booleans and then nonzero() inside init returns empties
         seeds = (seeds_node.GetImageData().ToArray() == label)
-        
 
     # double check branching
     if theta_min > theta_max:
@@ -366,14 +355,14 @@ def follow(S,u,b,mask,fiber,param,is_branching):
                 th = dot(m1,m2)
                 is_branch = th < param['theta_min'] and th > param['theta_max']
                 if is_two and is_branch:
-                    if dot(m,m1) > dot(m,m2): # follow other orientation now...
+                    # need to swap orientations?
+                    if dot(m,m1) > dot(m,m2):
                         X = np.vstack((m2,l2,m1,l1))
                         m = m2
-                    else:
-                        X = np.vstack((m1,l1,m2,l2))
-                        m = m1
+                        ind = [5,6,7,8,9,0,1,2,3,4]
+                        P = P[ind,ind] # swap covariance
                     assert X.shape[0] == 10 and X.shape[1] == 1
-                    pp.append((x,X,P,m))  # P should probably be rearranged but no big deal
+                    pp.append((x,X,P,m))
         else:
             ct += 1
 
