@@ -16,27 +16,28 @@ class vtkKWFrameWithLabel;
 class vtkActor;
 
 
-class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationValidateStep : public vtkPerkStationStep
+class
+VTK_PERKSTATIONMODULE_EXPORT
+vtkPerkStationValidateStep
+: public vtkPerkStationStep
 {
 public:
   
   static vtkPerkStationValidateStep *New();
-  vtkTypeRevisionMacro(vtkPerkStationValidateStep,vtkPerkStationStep);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  vtkTypeRevisionMacro( vtkPerkStationValidateStep, vtkPerkStationStep );
+  void PrintSelf( ostream& os, vtkIndent indent );
   
   virtual void ShowUserInterface();
   virtual void ShowPlanListFrame();
 
-  void ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData);
-  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
+  void ProcessImageClickEvents( vtkObject *caller, unsigned long event, void *callData );
+  virtual void ProcessGUIEvents( vtkObject *caller, unsigned long event, void *callData );
   void OnMultiColumnListSelectionChanged();
   
   virtual void Reset();
   
   void UpdateGUI();
-  
-  void StartOverNewExperiment();
-  
+  void HideOverlays();
   
 protected:
   
@@ -46,7 +47,7 @@ protected:
   void AddGUIObservers();
   void RemoveGUIObservers();
   
-  static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
+  static void WizardGUICallback( vtkObject *caller, unsigned long event, void *clientData, void *callData );
 
   virtual void InstallCallbacks();
   
@@ -72,14 +73,6 @@ protected:
   
   
     // validation points
-    
-  vtkKWFrame*     EntryPointFrame;
-  vtkKWLabel*     EntryPointLabel; 
-  vtkKWEntrySet*  EntryPoint;
-  
-  vtkKWFrame*     TargetPointFrame;
-  vtkKWLabel*     TargetPointLabel;  
-  vtkKWEntrySet*  TargetPoint; 
   
   vtkKWEntryWithLabel* InsertionDepth;
 

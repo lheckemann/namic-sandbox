@@ -316,10 +316,10 @@ public:
   double GetTargetPointError();
   
   double GetActualPlanInsertionAngle();
+  
   double GetActualPlanInsertionDepth();
-  
   double GetValidationDepth();
-  
+  double GetDepthError();
   
 protected:
   

@@ -1534,12 +1534,7 @@ void vtkPerkStationModuleGUI::RenderSecondaryMonitor()
     reader->GetOutput()->GetWholeExtent(extent);
     reader->GetOutput()->GetSpacing(spacing);
     reader->GetOutput()->GetOrigin(origin);
-
-    /*
-    vtkImageData *image = this->GetApplicationGUI()->GetMainSliceGUI0()->GetLogic()->GetImageData();
-    imageMapper->SetInput(image);
-    */
-
+    
     vtkImageData *image = reader->GetOutput();
     
 
@@ -1552,11 +1547,8 @@ void vtkPerkStationModuleGUI::RenderSecondaryMonitor()
     vtkImageReslice *reslice = vtkImageReslice::New();
     reslice->SetInput(image);
     reslice->SetOutputDimensionality(2);
-    reslice->SetOutputExtent(0, winSize[0]-1, 0, winSize[1]-1,0,0);
-    //reslice->SetOutputSpacing(spacing);
-    //reslice->SetOutputOrigin(center[0], center[1],0);
-
-    //reslice->SetResliceTransform(transform);
+    reslice->SetOutputExtent( 0, winSize[0]-1, 0, winSize[1]-1, 0, 0 );
+    
     reslice->SetInterpolationModeToLinear();
 
     reslice->Update();
@@ -1581,7 +1573,7 @@ void vtkPerkStationModuleGUI::RenderSecondaryMonitor()
 }
 
 
-//---------------------------------------------------------------------------
+
 void
 vtkPerkStationModuleGUI
 ::ResetAndStartNewExperiment()
@@ -1596,7 +1588,7 @@ vtkPerkStationModuleGUI
 }
 
 
-//-----------------------------------------------------------------------------
+
 char*
 vtkPerkStationModuleGUI
 ::CreateFileName()
@@ -1759,11 +1751,17 @@ vtkPerkStationModuleGUI
     }
   
   
-  if ( phase != this->Plan )
+  if (    phase != this->Plan
+       && step_from == this->Plan )
     {
     this->PlanStep->RemoveOverlayNeedleGuide();
     }
   
+  if ( phase == this->Calibrate )
+    {
+    this->MRMLNode->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
+    }
+    
   
     // Change working volume in validation phase.
   
@@ -1772,12 +1770,14 @@ vtkPerkStationModuleGUI
     this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID(
       this->GetMRMLNode()->GetValidationVolumeNode()->GetID() );
     this->GetApplicationLogic()->PropagateVolumeSelection();
+    this->ValidateStep->UpdateGUI();
     }
   else if ( step_from == this->Validate )
     {
     this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID(
       this->GetMRMLNode()->GetPlanningVolumeNode()->GetID() );
     this->GetApplicationLogic()->PropagateVolumeSelection();
+    this->ValidateStep->HideOverlays();
     }
   
   
