@@ -538,7 +538,6 @@ def interp3signal(S, p, v):
     sigma = 1.66*1.66*1.66
     s = np.zeros((2*n,), dtype='float32')  # preallocate output (doubled)
     flt.c_interp3signal(s, S, p, v, sigma, nx, ny, nz, n)
-    print s.shape
     return s
 
 
