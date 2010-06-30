@@ -542,18 +542,18 @@ def s2ga(s):
     return flt.c_s2ga(s,n)
 
 
-def interp3signal(S, p, v=np.ones(3)):
+def interp3signal(S, p, v, sigma = 1.66*1.66*1.66):
     assert S.ndim == 4 and S.dtype == 'float32'
     nx,ny,nz,n = S.shape
     s = np.zeros((2*n,), dtype='float32')  # preallocate output (doubled)
-    flt.c_interp3signal(s, S, p, v, nx, ny, nz, n)
+    flt.c_interp3signal(s, S, p, v, sigma, nx, ny, nz, n)
     return s
 
 
-def interp3scalar(M, p, v=np.ones(3)):
+def interp3scalar(M, p, v, sigma = 1.66*1.66*1.66):
     assert M.ndim == 3 and M.dtype == 'uint16'
     nx,ny,nz = M.shape
-    return flt.c_interp3scalar(M, p, v, nx, ny, nz)
+    return flt.c_interp3scalar(M, p, v, sigma, nx, ny, nz)
 
 # ternary operator (no short circuit)
 def iff(test, true, false):

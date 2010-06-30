@@ -282,10 +282,11 @@ def add_interp3signal(mod):
     S = np.empty((100,100,100,52), dtype='float32', order='F')
     p = np.empty(3)
     v = np.empty(3)
+    sigma = 0.
 
     code = """
            #line 0 "interp3signal"
-           double w_sum = 1e-16, sigma = 1.66 * 1.66 * 1.66;
+           double w_sum = 1e-16;
            double px = p[0], py = p[1], pz = p[2];
            double vx = v[0], vy = v[1], vz = v[2];
 
@@ -325,7 +326,7 @@ def add_interp3signal(mod):
            """
     nx,ny,nz,n = S.shape
     s = np.empty((2*n,), dtype='float32')  # preallocate output (doubled)
-    fn = et.ext_function('c_interp3signal', code, ['s','S', 'p', 'v', 'nx','ny','nz','n'])
+    fn = et.ext_function('c_interp3signal', code, ['s','S', 'p', 'v', 'sigma', 'nx','ny','nz','n'])
     mod.add_function(fn)
 
 
@@ -333,10 +334,11 @@ def add_interp3scalar(mod):
     M = np.empty((100,100,100), dtype='uint16', order='F')
     p = np.empty(3)
     v = np.empty(3)
+    sigma = 0.
 
     code = """
            #line 0 "interp3scalar"
-           double s = 0, w_sum = 1e-16, sigma = 1.66 * 1.66 * 1.66;
+           double s = 0, w_sum = 1e-16;
            double px = p[0], py = p[1], pz = p[2];
            double vx = v[0], vy = v[1], vz = v[2];
 
@@ -366,7 +368,7 @@ def add_interp3scalar(mod):
            """
     nx,ny,nz = M.shape
 
-    fn = et.ext_function('c_interp3scalar', code, ['M', 'p', 'v', 'nx','ny','nz'])
+    fn = et.ext_function('c_interp3scalar', code, ['M', 'p', 'v', 'sigma', 'nx','ny','nz'])
     mod.add_function(fn)
 
 
