@@ -166,7 +166,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     voxel = np.mat(dwi_node.GetSpacing()).reshape(3,1)
     voxel = voxel[::-1]  # HACK Numpy has [z y x]
 
-    #--- generalized...
+    # generalized loading...
     R = r2i[0:3,0:3] / voxel.T  # normalize each column
     M = mf[0:3,0:3]
 
@@ -361,7 +361,9 @@ def follow(S,u,b,mask,fiber,param,is_branching):
                     if dot(m,m1) > dot(m,m2):
                         X = np.vstack((m2,l2,m1,l1))
                         m = m2
-                        P[:5,:5],P[5:,5:] = P[5:,5:],P[:5,:5] # swap covariance
+                        tmp = P.copy()
+                        P[:5,:5] = tmp[5:,5:]
+                        P[5:,5:] = tmp[:5,:5] # swap covariance
                     assert X.shape[0] == 10 and X.shape[1] == 1
                     pp.append((x,X,P,m))
         else:
