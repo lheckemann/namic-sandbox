@@ -219,6 +219,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     pts = slicer.vtkPoints()
     lines = slicer.vtkCellArray()
     fas = slicer.vtkFloatArray()
+    fas.SetName('FA')
     fas.SetNumberOfComponents(1)
     cell_id = 0
     for i in xrange(0,len(ff)):
@@ -231,7 +232,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
             x = x[::-1] # HACK
             x_ = np.array(transform(i2r, x)).ravel() # HACK
             pts.InsertNextPoint(x_[0],x_[1],x_[2])
-            fas.InsertNextValue(np.random.rand()) # push random values for now
+            fas.InsertNextValue(255 * np.random.rand()) # push random values for now
  
 
     # setup output fibers
