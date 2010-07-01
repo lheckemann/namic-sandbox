@@ -179,17 +179,19 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     param['voxel'] = voxel
     mask  = mask_node.GetImageData().ToArray().astype('uint16')
 
-    if True:
-        # FIXME grab nonzeros later
-        seeds = seeds_node.GetImageData().ToArray()
-    else:
-        # BUG this returns booleans and then nonzero() inside init returns empties
-        seeds = (seeds_node.GetImageData().ToArray() == label)
+    seeds = (seeds_node.GetImageData().ToArray() == label)
+    seeds = zip(*seeds.nonzero())
+
+    # ensure seeds
+    if len(seeds) == 0:
+        import Slicer
+        Slicer.tk.eval('tk_messageBox -message "No seeds found for this label"')
+        return
 
     # double check branching
     if theta_max > 0 and theta_max <= 5:
         import Slicer
-        Slicer.tk.eval('tk_messageBox -message "theta_max must be greater than 5 degrees"')
+        Slicer.tk.eval('tk_messageBox -message "Nonzero branching angle must be greater than 5 degrees"')
         return
     is_branching = param['theta_min'] < 1
 
@@ -368,7 +370,7 @@ def follow(S,u,b,mask,fiber,param,is_branching):
 
 def init(S, seeds, u, b, param):
     u = np.array(u)
-    print 'initial seed voxels: %d' % len(seeds.nonzero())
+    print 'initial seed voxels: %d' % len(seeds)
 
     # generate random unit directions
     np.random.seed(0) # determinism
@@ -376,9 +378,8 @@ def init(S, seeds, u, b, param):
     E = E / np.sqrt(np.sum(E**2,axis=0)) / 2  # half unit
 
     # perturb each index with those directions
-    qq = zip(*seeds.nonzero())
     pp = []
-    map(lambda p : map(lambda e : pp.append(p+e), list(E.T)), qq)
+    map(lambda p : map(lambda e : pp.append(p+e), list(E.T)), seeds)
 
 #     print 'HACK...'
 #     pp = [np.array((27.0,69.0,72.0))] # HACK
