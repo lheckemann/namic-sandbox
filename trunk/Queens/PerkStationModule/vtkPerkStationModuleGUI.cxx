@@ -941,20 +941,16 @@ vtkPerkStationModuleGUI
   this->MRMLNode->SetPlanningVolumeNode( volumeNode );
   this->SecondaryMonitor->SetupImageData();
   
-  PERKLOG_ERROR( "3" );
   
     // Bring wizard to Calibration phase.
   
   while( this->WizardWidget->GetWizardWorkflow()->GetCurrentState()
          != this->WizardWidget->GetWizardWorkflow()->GetInitialState() )
     {
-    PERKLOG_ERROR( "3.1" );
     this->WizardWidget->GetWizardWorkflow()->AttemptToGoToPreviousStep();
     }
-  PERKLOG_ERROR( "3.2" );
-  this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
   
-  PERKLOG_ERROR( "4" );
+  this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
   
   this->ResetAndStartNewExperiment();
   
@@ -966,14 +962,15 @@ vtkPerkStationModuleGUI
   
     // Set the Slice view to the correct position.
   this->Logic->AdjustSliceView();
-  
-  PERKLOG_ERROR( "5" );
+  // this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->RequestRender();
+  double sliceOffset = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->
+                             GetSliceOffset();
+  this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->SetSliceOffset( sliceOffset + 0.1 );
   
   this->CalibrateStep->UpdateGUI();
   
   this->SecondaryMonitor->UpdateImageDisplay();
   
-  PERKLOG_ERROR( "6" );
   
   /*
     // Uncomment this only if volume is checked for existing 0 offset slice.
