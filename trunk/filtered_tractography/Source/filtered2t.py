@@ -57,12 +57,12 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
       <default>5</default>
       <constraints> <minimum>0</minimum> </constraints>
     </integer>
-    <integer>
-      <name>label</name> <longflag>label</longflag> <channel>input</channel>
-      <label>Label used for seeding</label>
-      <description>The value of the label indicating voxels to seed.</description>
+    <integer-vector>
+      <name>labels</name> <longflag>labels</longflag> <channel>input</channel>
+      <label>Labels used for seeding</label>
+      <description>The values of the labels indicating voxels to seed.  Accepts multiple comma-separated values.</description>
       <default>4</default>
-    </integer>
+    </integer-vector>
     <float>
       <name>Qm</name> <longflag>Qm</longflag> <channel>input</channel>
       <label>Eigenvector sensitivity (Qm)</label>
@@ -123,7 +123,7 @@ param = dict({'FA_min': .15,  # FA stopping threshold
 # param['P0'][0:5,0:5] = P0
 # param['P0'][5:10,5:10] = P0
 
-def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, label, Qm, Ql, Rs, theta_max):
+def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, labels, Qm, Ql, Rs, theta_max):
     for i in range(10) : print ''
 
     theta_min = 5  # angle which triggers branch
@@ -135,8 +135,6 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
                   'theta_min': np.cos(theta_min * np.pi/180),  # angle which triggers branch
                   'theta_max': np.cos(theta_max * np.pi/180),  # angle which triggers branch
                   'min_radius': .87,  # stop if fiber curves this much
-                  'seeds': seeds, # how many seeds to spawn in each ROI voxel
-                  'label': label, # label ID for seeding
                   # Kalman filter parameters
                   'Qm': Qm,  # injected angular noise
                   'Ql': Ql,    # injected eigenvalue noise
@@ -179,7 +177,11 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     param['voxel'] = voxel
     mask  = mask_node.GetImageData().ToArray().astype('uint16')
 
-    seeds = (seeds_node.GetImageData().ToArray() == label)
+    # pull all seeds
+    seeds_ = seeds_node.GetImageData().ToArray()
+    seeds = np.zeros(seeds_.shape, dtype='bool')
+    for lbl in labels:
+        seeds |= (seeds_ == lbl)
     seeds = zip(*seeds.nonzero())
 
     # ensure seeds
