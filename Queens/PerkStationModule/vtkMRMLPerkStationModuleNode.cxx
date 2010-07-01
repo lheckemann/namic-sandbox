@@ -378,16 +378,16 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
        << this->CalibrationList[ calInd ]->SecondMonitorHorizontalFlip << "\"" << std::endl;
     
     of << indent << "Calibration" << calInd << "_SecondMonitorTranslation=\"";
-    of << this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorTranslation[ 0 ] << " ";
-    of << this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorTranslation[ 1 ] << "\"";
+    of << this->CalibrationList[ calInd ]->SecondMonitorTranslation[ 0 ] << " ";
+    of << this->CalibrationList[ calInd ]->SecondMonitorTranslation[ 1 ] << "\"";
     of << std::endl;
     
     of << indent << "Calibration" << calInd << "_SecondMonitorRotation=\""
        << this->CalibrationList[ calInd ]->SecondMonitorRotation << "\"" << std::endl;
     
     of << indent << "Calibration" << calInd << "_SecondMonitorRotationCenter=\"";
-    of << this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorRotationCenter[ 0 ] << " ";
-    of << this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorRotationCenter[ 1 ] << "\"";
+    of << this->CalibrationList[ calInd ]->SecondMonitorRotationCenter[ 0 ] << " ";
+    of << this->CalibrationList[ calInd ]->SecondMonitorRotationCenter[ 1 ] << "\"";
     of << std::endl;
     
     of << indent << "Calibration" << calInd << "_TableAtOverlay=\""
@@ -848,13 +848,13 @@ void
 vtkMRMLPerkStationModuleNode
 ::GetPlanEntryPoint( double* point ) const
 {
-  PERKLOG_ERROR( "GetPlanEntryPoint" );
+  //PERKLOG_ERROR( "GetPlanEntryPoint" );
   if ( this->CurrentPlanIndex < 0 )
     {
-    PERKLOG_ERROR( "  returning" );
+    //PERKLOG_ERROR( "  returning" );
     return;
     }
-  PERKLOG_ERROR( "  there is a plan" );
+  //PERKLOG_ERROR( "  there is a plan" );
   this->PlanList[ this->CurrentPlanIndex ]->GetEntryPointRAS( point );
 }
 
