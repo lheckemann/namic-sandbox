@@ -124,7 +124,7 @@ param = dict({'FA_min': .15,  # FA stopping threshold
 # param['P0'][5:10,5:10] = P0
 
 def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, labels, Qm, Ql, Rs, theta_max):
-    for i in range(10) : print ''
+    for i in xrange(10) : print ''
 
     theta_min = 5  # angle which triggers branch
     param = dict({'FA_min': FA_min, # fractional anisotropy stopping threshold
@@ -132,6 +132,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
                   'dt': .2,     # forward Euler step size (path integration)
                   'max_len': 250, # stop if fiber gets this long
                   'min_radius': .87,  # stop if fiber curves this much
+                  'seeds' : seeds,  # number of seeds in each voxel
                   'theta_min': np.cos(theta_min * np.pi/180),  # angle which triggers branch
                   'theta_max': np.cos(theta_max * np.pi/180),  # angle which triggers branch
                   'min_radius': .87,  # stop if fiber curves this much
@@ -201,14 +202,14 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     ff = init(S, seeds, u, b, param)
     pp = []
     t1 = time.time()
-    for i in range(0,len(ff)):
+    for i in xrange(0,len(ff)):
         print '[%3.0f%%]p (%7d - %7d)' % (100.0*i/len(ff), i, len(ff))
         ff[i],p = follow(S,u,b,mask,ff[i],param,is_branching)
         pp.extend(p)
     t2 = time.time()
     print 'Primary time: ', t2 - t1
 
-    for i in range(0,len(pp)):
+    for i in xrange(0,len(pp)):
         print '[%3.0f%%]s (%7d - %7d)' % (100.0*i/len(pp), i, len(pp))
         p,_ = follow(S,u,b,mask,pp[i],param,False)
         ff.append(p)
@@ -218,10 +219,10 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     pts = slicer.vtkPoints()
     lines = slicer.vtkCellArray()
     cell_id = 0
-    for i in range(0,len(ff)):  # TODO xrange
+    for i in xrange(0,len(ff)):
         f = ff[i]
         lines.InsertNextCell(len(f))
-        for j in range(0,len(f)):
+        for j in xrange(0,len(f)):
             lines.InsertCellPoint(cell_id)
             cell_id += 1
             x = f[j]
@@ -363,11 +364,11 @@ def follow(S,u,b,mask,fiber,param,is_branching):
                     if dot(m,m1) > dot(m,m2):
                         X = np.vstack((m2,l2,m1,l1))
                         m = m2
-                        tmp = P.copy()
-                        P[:5,:5] = tmp[5:,5:]
-                        P[5:,5:] = tmp[:5,:5] # swap covariance
+                        P_ = P.copy()
+                        P_[:5,:5] = P[5:,5:]
+                        P_[5:,5:] = P[:5,:5] # swap covariance
                     assert X.shape[0] == 10 and X.shape[1] == 1
-                    pp.append((x,X,P,m))
+                    pp.append((x,X,P_,m))
         else:
             ct += 1
 
