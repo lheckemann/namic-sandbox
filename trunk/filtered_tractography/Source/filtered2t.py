@@ -218,6 +218,8 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     # build polydata
     pts = slicer.vtkPoints()
     lines = slicer.vtkCellArray()
+    fas = slicer.vtkFloatArray()
+    fas.SetNumberOfComponents(1)
     cell_id = 0
     for i in xrange(0,len(ff)):
         f = ff[i]
@@ -229,6 +231,8 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
             x = x[::-1] # HACK
             x_ = np.array(transform(i2r, x)).ravel() # HACK
             pts.InsertNextPoint(x_[0],x_[1],x_[2])
+            fas.InsertNextValue(np.random.rand()) # push random values for now
+ 
 
     # setup output fibers
     dnode = ff_node.GetDisplayNode()
@@ -241,6 +245,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
         pd = slicer.vtkPolyData() # create if necessary
         ff_node.SetAndObservePolyData(pd)
     pd.SetPoints(pts)
+    pd.GetPointData().SetScalars(fas)
     pd.SetLines(lines)
     pd.Update()
     ff_node.Modified()
