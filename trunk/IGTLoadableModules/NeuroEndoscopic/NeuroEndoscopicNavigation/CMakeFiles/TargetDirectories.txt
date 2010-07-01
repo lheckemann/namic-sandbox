@@ -1,0 +1,1 @@
+/home/freak/Slicer3/Modules/NeuroEndoscopicNavigation/CMakeFiles/NeuroEndoscopicNavigation.dir
