@@ -159,7 +159,6 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     i2r = vtk2mat(dwi_node.GetIJKToRASMatrix,         slicer)
     r2i = vtk2mat(dwi_node.GetRASToIJKMatrix,         slicer)
     mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
-    mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
     u = dwi_node.GetDiffusionGradients().ToArray()
     voxel = np.mat(dwi_node.GetSpacing()).reshape(3,1)
     voxel = voxel[::-1]  # HACK Numpy has [z y x]
