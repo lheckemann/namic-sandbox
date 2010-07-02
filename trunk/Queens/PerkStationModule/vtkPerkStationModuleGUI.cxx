@@ -66,14 +66,13 @@
  */
 vtkPerkStationModuleGUI* vtkPerkStationModuleGUI::New()
 {
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance(
-    "vtkPerkStationModuleGUI" );
+    // First try to create the object from the vtkObjectFactory
+  vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkPerkStationModuleGUI" );
   if( ret )
     {
-      return ( vtkPerkStationModuleGUI* )ret;
+    return ( vtkPerkStationModuleGUI* )ret;
     }
-  // If the factory was unable to create the object, then create it here.
+    // If the factory was unable to create the object, then create it here.
   return new vtkPerkStationModuleGUI;
 }
 
@@ -536,11 +535,9 @@ vtkPerkStationModuleGUI
   if (    this->MRMLNode
        && strcmp( eventName, "MouseMoveEvent" ) == 0 )
     {
-    vtkSlicerSliceGUI* sliceGUI =
-      this->GetApplicationGUI()->GetMainSliceGUI( "Red" );
+    vtkSlicerSliceGUI* sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI( "Red" );
     
-    vtkCornerAnnotation* anno = sliceGUI->GetSliceViewer()->GetRenderWidget()->
-                                GetCornerAnnotation();
+    vtkCornerAnnotation* anno = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
      
     vtkMRMLScalarVolumeNode* volume = this->MRMLNode->GetActiveVolumeNode();
     
@@ -633,11 +630,9 @@ vtkPerkStationModuleGUI
       case FFS:  pptext = "PP: FFS"; break;
       }
     
-    vtkSlicerSliceGUI* sliceGUI =
-      this->GetApplicationGUI()->GetMainSliceGUI( "Red" );
+    vtkSlicerSliceGUI* sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI( "Red" );
     
-    vtkCornerAnnotation* anno = sliceGUI->GetSliceViewer()->GetRenderWidget()->
-                                GetCornerAnnotation();
+    vtkCornerAnnotation* anno = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
      
     std::string str( anno->GetText( 2 ) );
     
