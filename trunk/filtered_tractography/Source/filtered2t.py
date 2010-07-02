@@ -54,14 +54,13 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
       <name>seeds</name> <longflag>seeds</longflag> <channel>input</channel>
       <label>Seeds per voxel</label>
       <description>Number of random seeds to initialize in each voxel.  Deterministic between each run, i.e. run twice with same settings and get exact same tracts.</description>
-      <default>5</default>
+      <default>1</default>
       <constraints> <minimum>0</minimum> </constraints>
     </integer>
     <integer-vector>
       <name>labels</name> <longflag>labels</longflag> <channel>input</channel>
       <label>Labels used for seeding</label>
       <description>The values of the labels indicating voxels to seed.  Accepts multiple comma-separated values.</description>
-      <default>4</default>
     </integer-vector>
     <float>
       <name>Qm</name> <longflag>Qm</longflag> <channel>input</channel>
