@@ -1035,6 +1035,7 @@ vtkPerkStationCalibrateStep
   this->ProcessingCallback = true;
   
   vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
+  if ( node == NULL ) return;
   
   
     // Table position entries changed.
@@ -1083,8 +1084,6 @@ vtkPerkStationCalibrateStep
     this->UpdateAutoScaleCallback();
     }
   
-  
-  // Continue only with valid MRMLPerkStation node. ----------------------------
   
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   
