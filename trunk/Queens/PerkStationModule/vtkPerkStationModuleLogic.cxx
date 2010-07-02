@@ -59,181 +59,38 @@ vtkPerkStationModuleLogic
   this->PerkStationModuleNode = NULL;
 }
 
-//----------------------------------------------------------------------------
+
+
 vtkPerkStationModuleLogic::~vtkPerkStationModuleLogic()
 {
   vtkSetMRMLNodeMacro(this->PerkStationModuleNode, NULL);
 }
 
-//----------------------------------------------------------------------------
+
+
 void vtkPerkStationModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
 }
-//---------------------------------------------------------------------------
-bool vtkPerkStationModuleLogic::ReadConfigFile(istream &file)
-{
-  char currentLine[256];  
-  char* attName = "";
-  char* attValue = "";
-  char* pdest;
-  int nCharCount = 0;
-  unsigned int indexEndOfAttribute = 0;
-  unsigned int indexStartOfValue = 0;
-  unsigned int indexEndOfValue = 0;
 
-  // local variables to temporarily store the loaded values
-  // we apply these values to MRML node only if all the requied fields are successfully loaded
-  double tool_tip_offset[3] = {0.0, 0.0, 0.0};
-  int needle_tool_port = 0, reference_body_tool_port = 0;
-  std::vector<double> tracker_to_phantom_matrix, phantom_to_imageRAS_matrix;
 
-  // flags to check if all the required fields are loaded or not
-  bool is_tracker_to_phantom_matrix_read = false;
-  bool is_phantom_to_imageRAS_matrix_read = false;
 
-  int paramSetCount = 0;
-  while(!file.eof())
-    {
-    // first get each line,
-    // then parse each line on basis of attName, and attValue
-    // this can be done as delimiters '='[]' is used to separate out name from value
-    file.getline(&currentLine[0], 256, '\n');   
-    nCharCount = strlen(currentLine);
-    indexEndOfAttribute = strcspn(currentLine,"=");
-    if(indexEndOfAttribute >0)
-        {
-        attName = new char[indexEndOfAttribute+1];
-        strncpy(attName, currentLine,indexEndOfAttribute);
-        attName[indexEndOfAttribute] = '\0';
-        pdest = strchr(currentLine, '"');   
-        indexStartOfValue = (int)(pdest - currentLine + 1);
-        pdest = strrchr(currentLine, '"');
-        indexEndOfValue = (int)(pdest - currentLine + 1);
-        attValue = new char[indexEndOfValue-indexStartOfValue+1];
-        strncpy(attValue, &currentLine[indexStartOfValue], indexEndOfValue-indexStartOfValue-1);
-        attValue[indexEndOfValue-indexStartOfValue-1] = '\0';
-
-        // at this point, we have line separated into, attributeName, and attributeValue
-        // now we need to do string matching on attributeName, and further parse attributeValue as it may have more than one value
-        if (!strcmp(attName, "NeedleToolPort"))
-            {
-            // read needle tool port number into a local variable, needle_port
-            std::stringstream ss;
-            ss << attValue;
-            ss >> needle_tool_port;              
-            }
-        else if (!strcmp(attName, "ReferenceBodyToolPort"))
-            {
-            // read reference body tool port number into a local variable, reference_body_tool_port
-            std::stringstream ss;
-            ss << attValue;
-            ss >> reference_body_tool_port;              
-            }
-        else if (!strcmp(attName, "TrackerToPhantomMatrix"))
-            {
-            // read tracker to phantom matrix into a local array, tracker_to_phantom_matrix
-            std::stringstream ss;
-            ss << attValue;
-            double d;
-            while (ss >> d)
-              {
-              tracker_to_phantom_matrix.push_back(d);
-              }
-            if (tracker_to_phantom_matrix.size()==16)
-              {
-              is_tracker_to_phantom_matrix_read = true;
-              }
-            else
-              {
-              vtkErrorMacro("TrackerToPhantomMatrix field in configuration file could not be loaded correctly.");
-              }
-            }
-        else if (!strcmp(attName, "PhantomToImageMatrix"))
-            {
-            // read phantom to image matrix into a local array, phantom_to_imageRAS_matrix
-            std::stringstream ss;
-            ss << attValue;
-            double d;
-            while (ss >> d)
-              {
-              phantom_to_imageRAS_matrix.push_back(d);
-              }
-            if (phantom_to_imageRAS_matrix.size()==16)
-              {
-              is_phantom_to_imageRAS_matrix_read = true;
-              }
-            else
-              {
-              vtkErrorMacro("PhantomToImageMatrix field in configuration file could not be loaded correctly.");
-              }
-            }
-        else if (!strcmp(attName, "ToolTipOffset"))
-            {
-            // read tool tip offset into a local array, tool_tip_offset
-            std::stringstream ss;
-            ss << attValue;
-            double d;
-            std::vector<double> tmpVec;
-            while (ss >> d)
-              {
-              tmpVec.push_back(d);
-              }
-            if (tmpVec.size()==3)
-              {
-              memcpy(tool_tip_offset, &(tmpVec[0]), sizeof(double)*3);
-              }
-            }
-         else
-            {
-            // the attribute name does not match to any of the defined attribute names.
-            vtkErrorMacro("Attribute name " << attName << " is not defined.");
-            }     
-        
-        }// end if testing for it is a valid attName
-
-    } // end while going through the file
-
-  // if TrackerToPhantomMatrix and PhantomToImageMatrix were properly loaded,
-  // we consider that the config file was loaded successfully.
-  if (is_tracker_to_phantom_matrix_read && is_phantom_to_imageRAS_matrix_read)
-    {
-    // if successful, update MRML node and return 'true'
-    this->GetPerkStationModuleNode()->SetNeedleToolPort(needle_tool_port);          
-    this->GetPerkStationModuleNode()->SetReferenceBodyToolPort(reference_body_tool_port);             
-    this->GetPerkStationModuleNode()->SetToolTipOffset(tool_tip_offset);
-
-    vtkMatrix4x4 *matrix = vtkMatrix4x4::New();
-    matrix->DeepCopy( &(tracker_to_phantom_matrix[0]) );
-    this->GetPerkStationModuleNode()->SetTrackerToPhantomMatrix(matrix);
-    matrix->DeepCopy( &(phantom_to_imageRAS_matrix[0]) );
-    this->GetPerkStationModuleNode()->SetPhantomToImageRASMatrix(matrix);
-    matrix->Delete();
-
-    return true;
-    } 
-  else
-    {
-    // if failed, just return 'false'
-    return false;
-    }
-}
-//----------------------------------------------------------------------------------
 char *vtkPerkStationModuleLogic::strrev(char *s,int n)
 {
-       int i=0;
-       while (i<n/2)
-       {
-               *(s+n) = *(s+i);       //uses the null character as the temporary storage.
-               *(s+i) = *(s + n - i -1);
-               *(s+n-i-1) = *(s+n);
-               i++;
-       }
-       *(s+n) = '\0';
+   int i=0;
+   while ( i < n / 2 )
+   {
+     *(s+n) = *(s+i);       //uses the null character as the temporary storage.
+     *(s+i) = *(s + n - i -1);
+     *(s+n-i-1) = *(s+n);
+     i++;
+   }
+   *(s+n) = '\0';
 
-       return s;
+   return s;
 }
 
-//----------------------------------------------------------------------------------
+
+
 bool vtkPerkStationModuleLogic::DoubleEqual(double val1, double val2)
 {
   bool result = false;
@@ -347,7 +204,10 @@ AdjustSliceView()
   
     // Set Z offset to the central slice.
   
-  int dims[ 3 ];
+  int dims[ 3 ] = { 0, 0, 0 };
+  
+  vtkMRMLScalarVolumeNode* planningVolume = this->GetPerkStationModuleNode()->GetPlanningVolumeNode();
+  
   this->GetPerkStationModuleNode()->GetPlanningVolumeNode()->GetImageData()->GetDimensions( dims );
   double offsetZijk[ 4 ] = { 0.0, 0.0, double( dims[ 2 ] / 2 ), 1.0 };
   double offsetZras[ 4 ];

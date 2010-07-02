@@ -38,7 +38,7 @@ public:
    // targeting or verification volume
   vtkMRMLScalarVolumeNode *AddVolumeToScene(vtkSlicerApplication* app,const char *fileName, VolumeType volumeType=VOL_GENERIC);  
   static void ComputePermutationFromOrientation(vtkMatrix4x4 *matrix, int permutation[3], int flip[3]);
-  bool ReadConfigFile(istream &file);
+  
   static char *strrev(char *s,int n);
   static bool DoubleEqual(double val1, double val2);
   

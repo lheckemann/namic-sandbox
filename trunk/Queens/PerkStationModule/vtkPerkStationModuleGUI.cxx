@@ -238,21 +238,18 @@ vtkPerkStationModuleGUI
     
     this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
     this->GetLogic()->GetMRMLScene()->AddNode( this->MRMLNode->GetPlanMRMLFiducialListNode() );
-    
-    
-    // add listener to the slice logic, so that any time user makes change to
-    // slice viewer in laptop, the display needs to be updated on secondary
-    // monitor e.g. user may move to a certain slice in a series of slices
-  
-    vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic();
-    
-    if ( sliceLogic )
-      {  
-      sliceLogic->GetSliceNode()->AddObserver( vtkCommand::ModifiedEvent,
-                                               (vtkCommand*)( this->GUICallbackCommand ) );
-      }
     }
   */
+  
+    // Slice offset changed event.
+  
+  vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic();
+  if (    sliceLogic != NULL
+       && ! sliceLogic->GetSliceNode()->HasObserver( vtkCommand::ModifiedEvent, (vtkCommand*)( this->GUICallbackCommand ) ) )
+    {
+    sliceLogic->GetSliceNode()->AddObserver( vtkCommand::ModifiedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+    }
+  
   
   this->Entered = true;
   
@@ -261,7 +258,7 @@ vtkPerkStationModuleGUI
 }
 
 
-//------------------------------------------------------------------------------
+
 void
 vtkPerkStationModuleGUI
 ::Exit()
@@ -280,14 +277,25 @@ vtkPerkStationModuleGUI
         }
       }
     }
+  
+  
+  vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic();
+  if (    sliceLogic != NULL
+       && sliceLogic->GetSliceNode()->HasObserver( vtkCommand::ModifiedEvent, (vtkCommand*)( this->GUICallbackCommand ) ) )
+    {
+    sliceLogic->GetSliceNode()->RemoveObservers( vtkCommand::ModifiedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+    }
 }
+
 
 
 /**
  * Set observers on widgets and GUI classes.
  * (GUICallbackCommand will call ProcessGUIEvents.)
  */
-void vtkPerkStationModuleGUI::AddGUIObservers() 
+void
+vtkPerkStationModuleGUI
+::AddGUIObservers() 
 {
   this->RemoveGUIObservers();
   
@@ -296,14 +304,9 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
   
     // Node selector and volume selector.
   
-  this->PSNodeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
-                                    (vtkCommand*)( this->GUICallbackCommand ) );
-  
-  this->VolumeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
-                                     (vtkCommand*)( this->GUICallbackCommand ) );
-  
-  this->ValidationVolumeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
-                                               (vtkCommand*)( this->GUICallbackCommand ) );
+  this->PSNodeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+  this->VolumeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+  this->ValidationVolumeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
     
   
     // Timer buttons.
@@ -315,8 +318,7 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
     // Red slice keyboard and mouse events.
   
   vtkInteractorStyle* iStyle = vtkInteractorStyle::SafeDownCast(
-    appGUI->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()
-    ->GetRenderWindowInteractor()->GetInteractorStyle() );
+    appGUI->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle() );
   
   
   iStyle->AddObserver( vtkCommand::LeftButtonPressEvent, ( vtkCommand* )this->GUICallbackCommand );
@@ -328,25 +330,20 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
   
   for ( int i = 0; i < this->WorkphaseButtonSet->GetNumberOfWidgets(); ++ i )
     {
-    this->WorkphaseButtonSet->GetWidget( i )->AddObserver( vtkKWPushButton::InvokedEvent,
-                                  ( vtkCommand* )( this->GUICallbackCommand ) );
+    this->WorkphaseButtonSet->GetWidget( i )->AddObserver( vtkKWPushButton::InvokedEvent, ( vtkCommand* )( this->GUICallbackCommand ) );
     }
   
   
     // wizard workflow
     
   this->WizardWidget->GetWizardWorkflow()->AddObserver(
-    vtkKWWizardWorkflow::CurrentStateChangedEvent,
-    static_cast< vtkCommand* >( this->GUICallbackCommand ) );  
-
-
-  this->VolumeSelector->AddObserver(
-    vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
-    ( vtkCommand* )this->GUICallbackCommand );
+    vtkKWWizardWorkflow::CurrentStateChangedEvent, static_cast< vtkCommand* >( this->GUICallbackCommand ) );  
+  
+  
+  this->VolumeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, ( vtkCommand* )this->GUICallbackCommand );
   
   
   this->ObserverCount++;
-  
 }
 
 
@@ -354,22 +351,12 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
 // ----------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
 {
-  this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()
-      ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()
+  this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()
       ->RemoveObserver( (vtkCommand*)( this->GUICallbackCommand ) );
   
-  
-  this->WizardWidget->GetWizardWorkflow()->RemoveObserver(
-    static_cast< vtkCommand* >( this->GUICallbackCommand ) );
-  
-  this->VolumeSelector->RemoveObservers(
-    vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
-    ( vtkCommand* )this->GUICallbackCommand );
-
-  this->PSNodeSelector->RemoveObservers(
-    vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
-    ( vtkCommand* )this->GUICallbackCommand );    
-  
+  this->WizardWidget->GetWizardWorkflow()->RemoveObserver( static_cast< vtkCommand* >( this->GUICallbackCommand ) );
+  this->VolumeSelector->RemoveObservers( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, ( vtkCommand* )this->GUICallbackCommand );
+  this->PSNodeSelector->RemoveObservers( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, ( vtkCommand* )this->GUICallbackCommand );    
   
   this->ObserverCount--;
 }
@@ -438,8 +425,7 @@ vtkPerkStationModuleGUI
        && (    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
             || event == vtkSlicerNodeSelectorWidget::NewNodeEvent ) )
     {
-    vtkMRMLPerkStationModuleNode* node =
-      vtkMRMLPerkStationModuleNode::SafeDownCast( this->PSNodeSelector->GetSelected() );
+    vtkMRMLPerkStationModuleNode* node = vtkMRMLPerkStationModuleNode::SafeDownCast( this->PSNodeSelector->GetSelected() );
     
     this->SetMRMLNode( node );
     this->Logic->SetAndObservePerkStationModuleNode( node );
@@ -583,16 +569,13 @@ vtkPerkStationModuleGUI
   
     // Red slice is selected and slice offset is changed.
   
-  if ( this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()
-       ->GetSliceNode() == vtkMRMLSliceNode::SafeDownCast( caller )
+  if (    this->MRMLNode
+       && this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->GetSliceNode() == vtkMRMLSliceNode::SafeDownCast( caller )
        && event == vtkCommand::ModifiedEvent
-       && ! vtkPerkStationModuleLogic::DoubleEqual(
-                   this->SliceOffset,
-                   this->GetApplicationGUI()->GetMainSliceGUI( "Red" )
-                     ->GetLogic()->GetSliceOffset() ) )
+       && ! vtkPerkStationModuleLogic::DoubleEqual( this->SliceOffset,
+                 this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->GetSliceOffset() ) )
    {
-   this->SliceOffset = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )
-     ->GetLogic()->GetSliceOffset();
+   this->SliceOffset = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->GetSliceOffset();
    this->MRMLNode->SetCurrentSliceOffset( this->SliceOffset );
    this->SecondaryMonitor->UpdateImageDataOnSliceOffset( this->SliceOffset );
    }
@@ -600,40 +583,32 @@ vtkPerkStationModuleGUI
   
     // If the Wizard Widget changed state.
     
-  if ( this->WizardWidget->GetWizardWorkflow()
-       == vtkKWWizardWorkflow::SafeDownCast( caller )
+  if (    this->WizardWidget->GetWizardWorkflow() == vtkKWWizardWorkflow::SafeDownCast( caller )
        && event == vtkKWWizardWorkflow::CurrentStateChangedEvent )
     {
-    // TO DO  -- What?
-    
-    if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
-         == this->CalibrateStep.GetPointer() )
+    if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->CalibrateStep.GetPointer() )
       {
       this->State = vtkPerkStationModuleGUI::Calibrate;
       this->MRMLNode->SwitchStep( 0 );
       }
-    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
-              == this->PlanStep.GetPointer() )
+    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->PlanStep.GetPointer() )
       {
       this->State = vtkPerkStationModuleGUI::Plan;
       this->MRMLNode->SwitchStep( 1 );
       }
-    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
-              == this->InsertStep.GetPointer() )
+    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->InsertStep.GetPointer() )
       {
       this->State = vtkPerkStationModuleGUI::Insert;
       this->MRMLNode->SwitchStep( 2 );
       }
-    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
-              == this->ValidateStep.GetPointer() )
+    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->ValidateStep.GetPointer() )
       {
       this->State = vtkPerkStationModuleGUI::Validate;
       this->MRMLNode->SwitchStep( 3 );
       }
     
     this->WizardWidget->GetWizardWorkflow()->GetStepFromState(
-      this->WizardWidget->GetWizardWorkflow()->GetPreviousState() )->
-      HideUserInterface();
+      this->WizardWidget->GetWizardWorkflow()->GetPreviousState() )->HideUserInterface();
       
     this->UpdateWorkphaseButtons();
     }  
@@ -681,6 +656,7 @@ vtkPerkStationModuleGUI
 }
 
 
+
 /**
  * Updates parameter values in MRML node based on GUI widgets.
  */
@@ -698,14 +674,15 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
 
     // set an observe new node in Logic
     
-    this->Logic->SetAndObservePerkStationModuleNode(n);
-    vtkSetAndObserveMRMLNodeMacro(this->MRMLNode, n);
+    this->Logic->SetAndObservePerkStationModuleNode( n );
+    vtkSetAndObserveMRMLNodeMacro( this->MRMLNode, n );
 
     // add MRMLFiducialListNode to the scene
     
     this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
     this->GetLogic()->GetMRMLScene()->AddNode( this->MRMLNode->GetPlanMRMLFiducialListNode() );
-
+    
+    
     // add listener to the slice logic, so that any time user makes change
     // to slice viewer in laptop, the display needs to be updated on secondary monitor
     // e.g. user may move to a certain slice in a series of slices
@@ -713,10 +690,8 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
     vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic();
     if ( sliceLogic )
       {  
-      sliceLogic->GetSliceNode()->AddObserver(vtkCommand::ModifiedEvent, (vtkCommand *)this->GUICallbackCommand);
+      sliceLogic->GetSliceNode()->AddObserver( vtkCommand::ModifiedEvent, (vtkCommand *)this->GUICallbackCommand );
       }
-
-    
     }
 
   // save node parameters for Undo
@@ -724,14 +699,12 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
    
   
   
-  if (this->VolumeSelector->GetSelected() != NULL)
+  if ( this->VolumeSelector->GetSelected() != NULL )
     {    
     
     // see in what state wizard gui is, act accordingly
-    if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() ==
-         this->CalibrateStep.GetPointer() )
+    if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->CalibrateStep.GetPointer() )
       {
-
       bool planningVolumePreExists = false;
       // inside calibrate step
 
@@ -768,18 +741,18 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       vtkSetAndObserveMRMLNodeMacro(node, n->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode());
 
       const char *strName = this->VolumeSelector->GetSelected()->GetName();
-      std::string strPlan = std::string(strName) + "-Plan";
-      this->VolumeSelector->GetSelected()->SetName(strPlan.c_str());
-      this->VolumeSelector->GetSelected()->SetDescription("Planning image/volume; created by PerkStation module");
+      std::string strPlan = std::string( strName ) + "-Plan";
+      this->VolumeSelector->GetSelected()->SetName( strPlan.c_str() );
+      this->VolumeSelector->GetSelected()->SetDescription( "Planning image/volume; created by PerkStation module" );
       this->VolumeSelector->GetSelected()->Modified();
 
       this->VolumeSelector->UpdateMenu();
 
-      // set up the image on secondary monitor    
+        // set up the image on secondary monitor
       this->SecondaryMonitor->SetupImageData();
       
       
-      if (!planningVolumePreExists)
+      if ( ! planningVolumePreExists )
         {
         // repopulate/enable/disable controls now that volume has been loaded
         this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
@@ -790,27 +763,26 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
         }
 
       }
-    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() ==
-              this->ValidateStep.GetPointer() )
+    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->ValidateStep.GetPointer() )
       {
       // what if the volume selected is actually planning
       // in that case just return
-      if (n->GetPlanningVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
+      if ( n->GetPlanningVolumeRef() != NULL && this->VolumeSelector->GetSelected()->GetID() != NULL )
         {
-        if (strcmpi(n->GetPlanningVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
+        if ( strcmpi( n->GetPlanningVolumeRef(), this->VolumeSelector->GetSelected()->GetID() ) == 0 )
           {
-          n->SetVolumeInUse("Planning");          
+          n->SetVolumeInUse( "Planning" );          
           return;
           }
         }
 
       // in case, the validation volume already exists
-      if (n->GetValidationVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
+      if ( n->GetValidationVolumeRef() != NULL && this->VolumeSelector->GetSelected()->GetID() != NULL )
         {
         // in case, the selected volume is actually validation volume
-        if (strcmpi(n->GetValidationVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
+        if ( strcmpi( n->GetValidationVolumeRef(), this->VolumeSelector->GetSelected()->GetID() ) == 0 )
           {
-          n->SetVolumeInUse("Validation");  
+          n->SetVolumeInUse( "Validation" );  
           return;
           }
         // this implies that a validation volume already existed but now there
@@ -820,8 +792,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
 
       // validate volume set
       n->SetValidationVolumeRef(this->VolumeSelector->GetSelected()->GetID());    
-      n->SetValidationVolumeNode( vtkMRMLScalarVolumeNode::SafeDownCast(
-                                  this->GetMRMLScene()->GetNodeByID( n->GetValidationVolumeRef() ) ) );
+      n->SetValidationVolumeNode( vtkMRMLScalarVolumeNode::SafeDownCast( this->GetMRMLScene()->GetNodeByID( n->GetValidationVolumeRef() ) ) );
       n->SetVolumeInUse("Validation");
 
       const char *strName = this->VolumeSelector->GetSelected()->GetName();
@@ -894,6 +865,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
 }
 
 
+
 void
 vtkPerkStationModuleGUI
 ::TimerHandler()
@@ -903,8 +875,7 @@ vtkPerkStationModuleGUI
     return;
     }
   
-  vtkKWTkUtilities::CreateTimerHandler(
-    this->GetApplication(), 1000, this, "TimerHandler" );
+  vtkKWTkUtilities::CreateTimerHandler( this->GetApplication(), 1000, this, "TimerHandler" );
   
   std::stringstream ss;
   
@@ -921,12 +892,12 @@ vtkPerkStationModuleGUI
 }
 
 
+
 void
 vtkPerkStationModuleGUI
 ::PlanningVolumeChanged()
 {
-  vtkMRMLScalarVolumeNode* volumeNode =
-      vtkMRMLScalarVolumeNode::SafeDownCast( this->VolumeSelector->GetSelected() );
+  vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast( this->VolumeSelector->GetSelected() );
   
   if ( ! volumeNode ) return;
   
@@ -949,22 +920,21 @@ vtkPerkStationModuleGUI
     {
     this->WizardWidget->GetWizardWorkflow()->AttemptToGoToPreviousStep();
     }
-  
   this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
+  
   
   this->ResetAndStartNewExperiment();
   
     // Update the application logic.
-  this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID(
-    volumeNode->GetID() );
+  this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID( volumeNode->GetID() );
   this->GetApplicationLogic()->PropagateVolumeSelection();
   
   
-    // Set the Slice view to the correct position.
+    // Set the Slice view to match patient position.
   this->Logic->AdjustSliceView();
-  // this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->RequestRender();
-  double sliceOffset = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->
-                             GetSliceOffset();
+  
+    // Update the red slice view.
+  double sliceOffset = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->GetSliceOffset();
   this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->SetSliceOffset( sliceOffset + 0.1 );
   
   this->CalibrateStep->UpdateGUI();
@@ -982,13 +952,13 @@ vtkPerkStationModuleGUI
 }
 
 
+
 void
 vtkPerkStationModuleGUI
 ::ValidationVolumeChanged()
 {
   vtkMRMLScalarVolumeNode* volumeNode =
-      vtkMRMLScalarVolumeNode::SafeDownCast(
-                    this->ValidationVolumeSelector->GetSelected() );
+      vtkMRMLScalarVolumeNode::SafeDownCast( this->ValidationVolumeSelector->GetSelected() );
   
   if ( ! volumeNode ) return;
   
@@ -998,7 +968,7 @@ vtkPerkStationModuleGUI
 }
 
 
-// ----------------------------------------------------------------------------
+
 void
 vtkPerkStationModuleGUI
 ::UpdateGUI()
@@ -1072,12 +1042,14 @@ vtkPerkStationModuleGUI
 }
 
 
+
 vtkPerkStationSecondaryMonitor*
 vtkPerkStationModuleGUI
 ::GetSecondaryMonitor()
 {
   return this->SecondaryMonitor.GetPointer();
 }
+
   
 
 vtkKWWizardWidget*
@@ -1088,8 +1060,10 @@ vtkPerkStationModuleGUI
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::BuildGUI() 
+
+void
+vtkPerkStationModuleGUI
+::BuildGUI() 
 {
   if ( this->Built) return;
   
@@ -1097,8 +1071,7 @@ void vtkPerkStationModuleGUI::BuildGUI()
   
     // Register MRML PS node, not create it.
   
-  this->Logic->GetMRMLScene()->RegisterNodeClass(
-    vtkSmartPointer< vtkMRMLPerkStationModuleNode >::New() );
+  this->Logic->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLPerkStationModuleNode >::New() );
   
   this->UIPanel->AddPage ( "PerkStationModule", "PerkStationModule", NULL );
   
