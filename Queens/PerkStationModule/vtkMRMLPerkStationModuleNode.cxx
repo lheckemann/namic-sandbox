@@ -338,13 +338,14 @@ vtkMRMLPerkStationModuleNode
 }
 
 
-//----------------------------------------------------------------------------
-vtkMRMLPerkStationModuleNode::~vtkMRMLPerkStationModuleNode()
+
+vtkMRMLPerkStationModuleNode
+::~vtkMRMLPerkStationModuleNode()
 {
   for ( std::vector< vtkPerkStationPlan* >::iterator it = this->PlanList.begin();
         it != this->PlanList.end(); ++ it )
     {   
-    if ((*it)!=NULL)
+    if ( (*it) != NULL )
       {
       (*it)->Delete();
       (*it)=NULL;
@@ -354,10 +355,12 @@ vtkMRMLPerkStationModuleNode::~vtkMRMLPerkStationModuleNode()
 }
 
 
-//----------------------------------------------------------------------------
-void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
+
+void
+vtkMRMLPerkStationModuleNode
+::WriteXML( ostream& of, int nIndent )
 {  
-  Superclass::WriteXML(of, nIndent);
+  Superclass::WriteXML( of, nIndent );
   of << std::endl;
   
   // Write all MRML node attributes into output stream
@@ -436,7 +439,7 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkMRMLPerkStationModuleNode
 ::ReadXMLAttributes( const char** atts )
@@ -560,10 +563,11 @@ vtkMRMLPerkStationModuleNode
 }
 
 
-//----------------------------------------------------------------------------
+
 // Copy the node's attributes to this object.
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
-void vtkMRMLPerkStationModuleNode::Copy(vtkMRMLNode *anode)
+void vtkMRMLPerkStationModuleNode
+::Copy( vtkMRMLNode *anode )
 {
   Superclass::Copy( anode );
   vtkMRMLPerkStationModuleNode *node = (vtkMRMLPerkStationModuleNode *) anode;
