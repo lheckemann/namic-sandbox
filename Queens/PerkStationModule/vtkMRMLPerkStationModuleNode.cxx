@@ -591,6 +591,7 @@ void vtkMRMLPerkStationModuleNode
 }
 
 
+
 double
 vtkMRMLPerkStationModuleNode
 ::GetSecondMonitorRotation() const
@@ -600,6 +601,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 void
 vtkMRMLPerkStationModuleNode
 ::SetSecondMonitorRotation( const double rot )
@@ -607,6 +609,7 @@ vtkMRMLPerkStationModuleNode
   if ( this->CurrentCalibration < 0 ) return;
   this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorRotation = rot;
 }
+
 
 
 void
@@ -619,6 +622,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 void
 vtkMRMLPerkStationModuleNode
 ::SetSecondMonitorRotationCenter( const double* rotCent )
@@ -627,6 +631,7 @@ vtkMRMLPerkStationModuleNode
   this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorRotationCenter[ 0 ] = rotCent[ 0 ];
   this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorRotationCenter[ 1 ] = rotCent[ 1 ];
 }
+
 
 
 bool
@@ -645,6 +650,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 void
 vtkMRMLPerkStationModuleNode
 ::SetSecondMonitorVerticalFlip( bool flip )
@@ -652,6 +658,7 @@ vtkMRMLPerkStationModuleNode
   if ( this->CurrentCalibration < 0 ) return;
   this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorVerticalFlip = flip;
 }
+
 
 
 bool
@@ -670,6 +677,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 void
 vtkMRMLPerkStationModuleNode
 ::SetSecondMonitorHorizontalFlip( bool flip )
@@ -677,6 +685,7 @@ vtkMRMLPerkStationModuleNode
   if ( this->CurrentCalibration < 0 ) return;
   this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorHorizontalFlip = flip;
 }
+
 
 
 void
@@ -689,6 +698,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 void
 vtkMRMLPerkStationModuleNode
 ::SetSecondMonitorTranslation( const double* tx )
@@ -699,12 +709,14 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 double
 vtkMRMLPerkStationModuleNode
 ::GetTableAtOverlay() const
 {
   return this->TableAtOverlay;
 }
+
 
 
 void
@@ -715,6 +727,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 std::vector< OverlayHardware >
 vtkMRMLPerkStationModuleNode
 ::GetHardwareList()
@@ -723,7 +736,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkMRMLPerkStationModuleNode
 ::PrintSelf( ostream& os, vtkIndent indent )
@@ -737,7 +750,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
-//----------------------------------------------------------------------------
+
 void vtkMRMLPerkStationModuleNode::UpdateReferenceID( const char *oldID,
                                                       const char *newID )
 {
@@ -748,7 +761,7 @@ void vtkMRMLPerkStationModuleNode::UpdateReferenceID( const char *oldID,
 }
 
 
-//-----------------------------------------------------------------------------
+
 void vtkMRMLPerkStationModuleNode::InitializeFiducialListNode()
 {
     this->PlanMRMLFiducialListNode =
@@ -766,7 +779,7 @@ void vtkMRMLPerkStationModuleNode::InitializeFiducialListNode()
 }
 
 
-//-----------------------------------------------------------------------------
+
 vtkMRMLScalarVolumeNode*
 vtkMRMLPerkStationModuleNode
 ::GetActiveVolumeNode()
@@ -788,6 +801,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 unsigned int
 vtkMRMLPerkStationModuleNode
 ::AddCalibration( OverlayCalibration* newCalibration )
@@ -796,6 +810,7 @@ vtkMRMLPerkStationModuleNode
   this->CalibrationList.push_back( newCalibration );
   return index;
 }
+
 
 
 int
@@ -816,6 +831,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 OverlayCalibration*
 vtkMRMLPerkStationModuleNode
 ::GetCalibrationAtIndex( unsigned int index )
@@ -829,6 +845,7 @@ vtkMRMLPerkStationModuleNode
     return NULL;
     }
 }
+
 
 
 int
@@ -848,19 +865,18 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 void
 vtkMRMLPerkStationModuleNode
 ::GetPlanEntryPoint( double* point ) const
 {
-  //PERKLOG_ERROR( "GetPlanEntryPoint" );
   if ( this->CurrentPlanIndex < 0 )
     {
-    //PERKLOG_ERROR( "  returning" );
     return;
     }
-  //PERKLOG_ERROR( "  there is a plan" );
   this->PlanList[ this->CurrentPlanIndex ]->GetEntryPointRAS( point );
 }
+
 
 
 void
