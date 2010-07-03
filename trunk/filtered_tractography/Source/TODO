@@ -1,5 +1,6 @@
 - Store the state and covariance at each point along the tract.
 - pull in 1T
+- BUG: still branches with theta_max == 0
 
 
 
