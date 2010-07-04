@@ -39,6 +39,7 @@ WriteBool( std::ostream& out, vtkIndent indent, bool var, std::string name )
 }
 
 
+
 void
 WriteDouble( std::ostream& out, vtkIndent indent, double var, std::string name )
 {
@@ -46,11 +47,13 @@ WriteDouble( std::ostream& out, vtkIndent indent, double var, std::string name )
 }
 
 
+
 void
 WriteInt( std::ostream& out, vtkIndent indent, int var, std::string name )
 {
   out << indent << name << "=\"" << var << "\"" << std::endl;
 }
+
 
 
 void
@@ -64,6 +67,7 @@ WriteDoubleVector( std::ostream& out, vtkIndent indent, double* var,
     }
   out << "\"" << std::endl;
 }
+
 
 
 std::map< std::string, std::string >
@@ -151,12 +155,10 @@ StringToDoubleVector( std::string str, double* var, int n )
 }
 
 
-//----------------------------------------------------------------------------
+
 // Separate attName = Needle123_Length to a sectionInd=123 and sectionName=Length
-bool GetAttNameSection( const std::string& attName,
-                        const std::string& groupName,
-                        unsigned int &sectionInd,
-                        std::string &sectionName)
+bool GetAttNameSection( const std::string& attName, const std::string& groupName,
+                        unsigned int &sectionInd, std::string &sectionName )
 {
   int groupNameLen = groupName.length();
   if ( attName.compare( 0, groupNameLen, groupName ) != 0 )
@@ -190,7 +192,7 @@ bool GetAttNameSection( const std::string& attName,
 
 
 
-//-----------------------------------------------------------------------------
+
 vtkMRMLPerkStationModuleNode*
 vtkMRMLPerkStationModuleNode
 ::New()
@@ -199,7 +201,7 @@ vtkMRMLPerkStationModuleNode
   vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLPerkStationModuleNode");
   if(ret)
     {
-      return (vtkMRMLPerkStationModuleNode*)ret;
+      return ( vtkMRMLPerkStationModuleNode* )ret;
     }
   // If the factory was unable to create the object, then create it here.
   return new vtkMRMLPerkStationModuleNode;
@@ -215,11 +217,12 @@ vtkMRMLPerkStationModuleNode
   vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLPerkStationModuleNode");
   if(ret)
     {
-      return (vtkMRMLPerkStationModuleNode*)ret;
+      return ( vtkMRMLPerkStationModuleNode* )ret;
     }
   // If the factory was unable to create the object, then create it here.
   return new vtkMRMLPerkStationModuleNode;
 }
+
 
 
 /**
@@ -741,7 +744,6 @@ void
 vtkMRMLPerkStationModuleNode
 ::PrintSelf( ostream& os, vtkIndent indent )
 {
-  
   vtkMRMLNode::PrintSelf(os,indent);
 
   os << indent << "PlanningVolumeRef: " << 
@@ -751,10 +753,10 @@ vtkMRMLPerkStationModuleNode
 
 
 
-void vtkMRMLPerkStationModuleNode::UpdateReferenceID( const char *oldID,
-                                                      const char *newID )
+void vtkMRMLPerkStationModuleNode::UpdateReferenceID( const char *oldID, const char *newID )
 {
-  /*if (!strcmp(oldID, this->InputVolumeRef))
+  /*
+  if (!strcmp(oldID, this->InputVolumeRef))
     {
     this->SetInputVolumeRef(newID);
     }*/
@@ -762,20 +764,23 @@ void vtkMRMLPerkStationModuleNode::UpdateReferenceID( const char *oldID,
 
 
 
-void vtkMRMLPerkStationModuleNode::InitializeFiducialListNode()
+void
+vtkMRMLPerkStationModuleNode
+::InitializeFiducialListNode()
 {
-    this->PlanMRMLFiducialListNode =
-      vtkSmartPointer< vtkMRMLFiducialListNode >::New();
-    
-    this->PlanMRMLFiducialListNode->SetName( "PerkStationFiducialList" );
-    this->PlanMRMLFiducialListNode->SetDescription(
-      "Created by PERK Station Module; marks entry point and target point" );
-    this->PlanMRMLFiducialListNode->SetColor( 0.5, 1, 0.5 );
-    this->PlanMRMLFiducialListNode->SetGlyphType( vtkMRMLFiducialListNode::Diamond3D );
-    this->PlanMRMLFiducialListNode->SetOpacity( 0.7 );
-    this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility( true );
-    this->PlanMRMLFiducialListNode->SetSymbolScale( 6 );
-    this->PlanMRMLFiducialListNode->SetTextScale( 8 );
+  // vtkMRMLScene* scene = th
+  this->PlanMRMLFiducialListNode = vtkSmartPointer< vtkMRMLFiducialListNode >::New();
+  
+  this->PlanMRMLFiducialListNode->SetName( "PerkStationFiducialList" );
+  this->PlanMRMLFiducialListNode->SetDescription(
+    "Created by PERK Station Module; marks entry point and target point" );
+  this->PlanMRMLFiducialListNode->SetColor( 0.5, 1, 0.5 );
+  this->PlanMRMLFiducialListNode->SetGlyphType( vtkMRMLFiducialListNode::Diamond3D );
+  this->PlanMRMLFiducialListNode->SetOpacity( 0.7 );
+  this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility( true );
+  this->PlanMRMLFiducialListNode->SetSymbolScale( 6 );
+  this->PlanMRMLFiducialListNode->SetTextScale( 8 );
+  this->PlanMRMLFiducialListNode->SetSaveWithScene( 0 );
 }
 
 
