@@ -66,15 +66,17 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
   this->DeleteButton = NULL;
   
   
-  this->WCEntryPoint[0] = 0.0;
-  this->WCEntryPoint[1] = 0.0;
-  this->WCEntryPoint[2] = 0.0;
-  this->WCTargetPoint[0] = 0.0;
-  this->WCTargetPoint[1] = 0.0;
-  this->WCTargetPoint[2] = 0.0;
+  this->WCEntryPoint[ 0 ] = 0.0;
+  this->WCEntryPoint[ 1 ] = 0.0;
+  this->WCEntryPoint[ 2 ] = 0.0;
+  this->WCTargetPoint[ 0 ] = 0.0;
+  this->WCTargetPoint[ 1 ] = 0.0;
+  this->WCTargetPoint[ 2 ] = 0.0;
 
   this->ProcessingCallback = false;
-  this->NeedleActor = NULL;
+  
+  this->NeedleActor = vtkActor::New(); 
+  
   
     // Initail state.
   
@@ -122,6 +124,12 @@ vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanListFrame );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanList );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->DeleteButton );
+  
+  if ( this->NeedleActor )
+    {
+    this->NeedleActor->Delete();
+    this->NeedleActor = NULL;
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -743,21 +751,40 @@ vtkPerkStationPlanStep
 }
 
 
-//------------------------------------------------------------------------------
+
+void
+vtkPerkStationPlanStep
+::OnSliceOffsetChanged( double offset )
+{
+  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
+  vtkPerkStationPlan* plan = node->GetPlanAtIndex( node->GetCurrentPlanIndex() );
+  
+  double* target = plan->GetTargetPointRAS();
+  
+  if ( target[ 2 ] >= ( offset - 0.5 )  &&  target[ 2 ] < ( offset + 0.5 ) )
+    {
+    this->OverlayNeedleGuide();
+    }
+  else
+    {
+    this->RemoveOverlayNeedleGuide();
+    }
+}
+
+
+
 void
 vtkPerkStationPlanStep
 ::OverlayNeedleGuide()
 {
   vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->
-    GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
-    GetOverlayRenderer();
+    GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
 
   
     // get the world coordinates of Entry and Target points.
   
   vtkSlicerSliceGUI *sliceGUI =
-    vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->
-      GetApplicationGUI() )->GetMainSliceGUI( "Red" );
+    vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
   vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
   vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
   vtkMatrix4x4::Invert( xyToRAS, rasToXY );
@@ -838,8 +865,7 @@ vtkPerkStationPlanStep
   double angle = - ( 180.0 / vtkMath::Pi() ) * atan( tang );
   
   
-  vtkSmartPointer< vtkTransform > transform =
-      vtkSmartPointer< vtkTransform >::New();
+  vtkSmartPointer< vtkTransform > transform = vtkSmartPointer< vtkTransform >::New();
     transform->Translate( needleCenter[ 0 ], needleCenter[ 1 ], 0.0 );
     transform->RotateZ( angle );
   
@@ -848,21 +874,18 @@ vtkPerkStationPlanStep
     filter->SetInputConnection( needleGuide->GetOutputPort() );
     filter->SetTransform( transform );
   
-  vtkSmartPointer< vtkPolyDataMapper > needleMapper =
-      vtkSmartPointer< vtkPolyDataMapper >::New();
+  vtkSmartPointer< vtkPolyDataMapper > needleMapper = vtkSmartPointer< vtkPolyDataMapper >::New();
     needleMapper->SetInputConnection( filter->GetOutputPort() );
   
-  this->NeedleActor = vtkActor::New(); 
   this->NeedleActor->SetMapper( needleMapper );  
   this->NeedleActor->GetProperty()->SetOpacity( 0.3 );
   
   // add to renderer of the Axial slice viewer
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
-    GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->
-      AddActor( this->NeedleActor );
-  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
-    GetSliceViewer()->RequestRender(); 
+    GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->AddActor( this->NeedleActor );
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->RequestRender(); 
 }
+
 
 
 void
@@ -928,8 +951,10 @@ vtkPerkStationPlanStep
 }
 
 
-// ----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::RemoveOverlayNeedleGuide()
+
+void
+vtkPerkStationPlanStep
+::RemoveOverlayNeedleGuide()
 {
     // should remove the overlay needle guide
   vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->
@@ -945,7 +970,7 @@ void vtkPerkStationPlanStep::RemoveOverlayNeedleGuide()
 }
 
 
-// ----------------------------------------------------------------------------
+
 void
 vtkPerkStationPlanStep
 ::WizardGUICallback( vtkObject* caller, unsigned long event, void* clientData, void* callData )
@@ -955,7 +980,7 @@ vtkPerkStationPlanStep
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkPerkStationPlanStep
 ::ProcessGUIEvents( vtkObject* caller, unsigned long event, void* callData )

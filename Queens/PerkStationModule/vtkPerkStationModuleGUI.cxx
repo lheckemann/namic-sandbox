@@ -574,6 +574,12 @@ vtkPerkStationModuleGUI
    {
    this->SliceOffset = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->GetSliceOffset();
    this->MRMLNode->SetCurrentSliceOffset( this->SliceOffset );
+   
+   if ( this->MRMLNode->GetCurrentStep() == this->Plan )
+     {
+     this->PlanStep->OnSliceOffsetChanged( this->SliceOffset );
+     }
+   
    this->SecondaryMonitor->UpdateImageDataOnSliceOffset( this->SliceOffset );
    }
    
@@ -1000,26 +1006,33 @@ vtkPerkStationModuleGUI
 }
 
 
-// ----------------------------------------------------------------------------
+
 void
 vtkPerkStationModuleGUI
-::ProcessMRMLEvents ( vtkObject *caller,
-                      unsigned long event,
-                      void *callData ) 
+::ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData ) 
 {
     // if parameter node has been changed externally,
     // update GUI widgets with new values
   
-  vtkMRMLPerkStationModuleNode*   node =
-                       vtkMRMLPerkStationModuleNode::SafeDownCast( caller );
-  vtkMRMLLinearTransformNode*     transformNode =
-                       vtkMRMLLinearTransformNode::SafeDownCast( caller );
-  vtkMRMLScalarVolumeDisplayNode* displayNode =
-                       vtkMRMLScalarVolumeDisplayNode::SafeDownCast( caller );
+  vtkMRMLPerkStationModuleNode* node = vtkMRMLPerkStationModuleNode::SafeDownCast( caller );
+  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast( caller );
+  vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast( caller );
   
   
-  if (    node != NULL
-       && this->GetMRMLNode() == node ) 
+  /*
+  if ( node != NULL )
+    {
+    std::cout << "module node" << std::endl;
+    }
+    
+  if ( transformNode != NULL )
+    {
+    std::cout << "transform node" << std::endl;
+    }
+  */
+  
+  
+  if ( node != NULL && this->GetMRMLNode() == node ) 
   {
     this->UpdateGUI();
   }
@@ -1027,9 +1040,7 @@ vtkPerkStationModuleGUI
   
   if (    displayNode != NULL
        && this->GetMRMLNode()->GetPlanningVolumeNode()
-       && this->GetMRMLNode()->GetPlanningVolumeNode()->
-                GetScalarVolumeDisplayNode()
-          == displayNode
+       && this->GetMRMLNode()->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode() == displayNode
        && event == vtkCommand::ModifiedEvent )
     {
     this->GetSecondaryMonitor()->UpdateImageDisplay();
