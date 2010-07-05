@@ -234,6 +234,7 @@ vtkMRMLPerkStationModuleNode
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
   
+  
     // Hardware list.
     // TODO: fill this list from a config file.
   
