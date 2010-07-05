@@ -43,6 +43,7 @@ vtkPerkStationInsertStep::vtkPerkStationInsertStep()
   
   this->WizardGUICallbackCommand->SetCallback(vtkPerkStationInsertStep::WizardGUICallback);
   
+  this->AngleInPlaneLabel = NULL;
   
   this->PlanList = NULL;
   this->PlanListFrame = NULL;
@@ -55,13 +56,21 @@ vtkPerkStationInsertStep::vtkPerkStationInsertStep()
 }
 
 
-//----------------------------------------------------------------------------
-vtkPerkStationInsertStep::~vtkPerkStationInsertStep()
+
+vtkPerkStationInsertStep
+::~vtkPerkStationInsertStep()
 {
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->AngleInPlaneLabel );
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanList );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanListFrame );
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->CalibrationList );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->CalibrationListFrame );
 }
 
 
-//----------------------------------------------------------------------------
+
 void vtkPerkStationInsertStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
@@ -75,6 +84,23 @@ void vtkPerkStationInsertStep::ShowUserInterface()
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   wizard_widget->GetCancelButton()->SetEnabled(0);
   vtkKWWidget *parent = wizard_widget->GetClientArea();
+  
+  
+    // Angle in plane.
+  
+  
+  if ( ! this->AngleInPlaneLabel )
+    {
+    this->AngleInPlaneLabel = vtkKWLabel::New();
+    }
+  if ( ! this->AngleInPlaneLabel->IsCreated() )
+    {
+    this->AngleInPlaneLabel->SetParent( parent );
+    this->AngleInPlaneLabel->Create();
+    this->AngleInPlaneLabel->SetText( "In plane angle: " );
+    }
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                this->AngleInPlaneLabel->GetWidgetName() );
   
   
     // Plan list.
@@ -136,12 +162,6 @@ void vtkPerkStationInsertStep::ShowUserInterface()
   this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
                 this->CalibrationListFrame->GetWidgetName() );
   
-  vtkSmartPointer< vtkKWLabel > calibrationLabel = vtkSmartPointer< vtkKWLabel >::New();
-    calibrationLabel->SetParent( this->CalibrationListFrame );
-    calibrationLabel->Create();
-    calibrationLabel->SetText( "Select calibration for operator and side:" );
-  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
-                calibrationLabel->GetWidgetName() );
   
   if ( ! this->CalibrationList )
     {
@@ -176,15 +196,26 @@ void vtkPerkStationInsertStep::ShowUserInterface()
   // TO DO: populate controls wherever needed
   this->PopulateControls();
   this->UpdateGUI();
-
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::PrintSelf(ostream& os, vtkIndent indent)
+
+void
+vtkPerkStationInsertStep
+::HideUserInterface()
+{
+  
+}
+
+
+
+void
+vtkPerkStationInsertStep
+::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->Superclass::PrintSelf(os,indent);
 }
+
 
 
 void
@@ -221,7 +252,7 @@ vtkPerkStationInsertStep
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->SetSliceOffset(
     moduleNode->GetCurrentSliceOffset() );
   
-  this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
+  this->UpdateGUI();
 }
 
 
@@ -287,6 +318,15 @@ vtkPerkStationInsertStep
   vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetMRMLNode();
   
   if ( ! mrmlNode ) return;
+  
+  
+    // In plane angle.
+  
+  double angle = mrmlNode->GetActualPlanInsertionAngle();
+  std::stringstream ss;
+  ss << "In plane insertion angle: " << angle;
+  this->AngleInPlaneLabel->SetText( ss.str().c_str() );
+  
   
   
     // Update plan list.
@@ -412,6 +452,9 @@ vtkPerkStationInsertStep
     this->CalibrationList->GetWidget()->SelectRow( mrmlNode->GetCurrentCalibration() );
     }
   
+  
+    // Second monitor.
+  this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
 }
   
 
