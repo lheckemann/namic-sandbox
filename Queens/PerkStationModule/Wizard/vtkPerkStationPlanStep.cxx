@@ -757,7 +757,11 @@ vtkPerkStationPlanStep
 ::OnSliceOffsetChanged( double offset )
 {
   vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
+  if ( node == NULL ) return;
+  
   vtkPerkStationPlan* plan = node->GetPlanAtIndex( node->GetCurrentPlanIndex() );
+  if ( plan == NULL ) return;
+  
   
   double* target = plan->GetTargetPointRAS();
   

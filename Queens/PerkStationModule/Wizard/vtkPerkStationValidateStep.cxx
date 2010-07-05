@@ -732,7 +732,6 @@ vtkPerkStationValidateStep
 ::OnSliceOffsetChanged( double offset )
 {
   vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
-  
   if ( ! node  ||  node->GetCurrentPlanIndex() < 0 ) return;
   
   
