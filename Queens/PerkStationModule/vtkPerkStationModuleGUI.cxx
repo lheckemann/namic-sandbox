@@ -580,6 +580,11 @@ vtkPerkStationModuleGUI
      this->PlanStep->OnSliceOffsetChanged( this->SliceOffset );
      }
    
+   if ( this->MRMLNode->GetCurrentStep() == this->Validate )
+     {
+     this->ValidateStep->OnSliceOffsetChanged( this->SliceOffset );
+     }
+   
    this->SecondaryMonitor->UpdateImageDataOnSliceOffset( this->SliceOffset );
    }
    
