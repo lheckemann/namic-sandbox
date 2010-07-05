@@ -481,17 +481,20 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   
   vtkSmartPointer< vtkMatrix4x4 > sliceToRAS = sliceNode->GetSliceToRAS();
   
-  vtkSmartPointer< vtkMatrix4x4 > rasToIJK =
-    vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkSmartPointer< vtkMatrix4x4 > rasToIJK = vtkSmartPointer< vtkMatrix4x4 >::New();
   this->VolumeNode->GetRASToIJKMatrix( rasToIJK );
   
-  vtkSmartPointer< vtkMatrix4x4 > sliceToIJK =
-    vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkSmartPointer< vtkMatrix4x4 > sliceToIJK = vtkSmartPointer< vtkMatrix4x4 >::New();
   vtkMatrix4x4::Multiply4x4( rasToIJK, sliceToRAS, sliceToIJK );
   
     // Set this as our starting transform.
   
+  
+    // Make X and Y translation independent from the Slicer slice widget position.
+  int* imageSizePixels = this->ImageData->GetDimensions();
   ret->SetMatrix( sliceToIJK );
+  ret->GetMatrix()->SetElement( 0, 3, imageSizePixels[ 0 ] / 2.0 );
+  ret->GetMatrix()->SetElement( 1, 3, imageSizePixels[ 1 ] / 2.0 );
   
   
     // Apply the following transforms, that implement the XYToSlice transform.
@@ -514,18 +517,12 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   
   ret->RotateZ( this->PSNode->GetSecondMonitorRotation() );
   
-  double s0 =
-    this->PSNode->GetHardwareList()[ this->PSNode->GetHardwareIndex() ].SizeX
-              / this->ScreenSize[ 0 ];
-  double s1 =
-   this->PSNode->GetHardwareList()[ this->PSNode->GetHardwareIndex() ].SizeY
-              / this->ScreenSize[ 1 ];
+  double s0 = this->PSNode->GetHardwareList()[ this->PSNode->GetHardwareIndex() ].SizeX / this->ScreenSize[ 0 ];
+  double s1 = this->PSNode->GetHardwareList()[ this->PSNode->GetHardwareIndex() ].SizeY / this->ScreenSize[ 1 ];
   
   ret->Scale( s0 * hFlipFactor, s1 * vFlipFactor, 1.0 );
   
-  ret->Translate( - this->ScreenSize[ 0 ] / 2.0,
-                  - this->ScreenSize[ 1 ] / 2.0,
-                  0.0 );
+  ret->Translate( - this->ScreenSize[ 0 ] / 2.0,  - this->ScreenSize[ 1 ] / 2.0,  0.0 );
   
   return ret;
 }
@@ -612,7 +609,7 @@ vtkPerkStationSecondaryMonitor
 }
 
 
-//----------------------------------------------------------------------------
+
 void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
 {
   if ( ! this->GetGUI()->GetMRMLNode() ) return;
@@ -623,15 +620,12 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     
     // Update the current slice offset value.
   
-  this->SliceOffsetRAS = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )
-     ->GetLogic()->GetSliceOffset();
+  this->SliceOffsetRAS = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->GetSliceOffset();
   
-  PERKLOG_ERROR( "update image display 1" );
   
   double entry[ 3 ] = { 0, 0, -100000 };
   double target[ 3 ] = { 0, 0, -100000 };
   
-  PERKLOG_ERROR( "update image display 2" );
   
   this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( entry );
   this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( target );
@@ -639,7 +633,6 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
   double minOffset = -100000;
   double maxOffset = -100000;
   
-  PERKLOG_ERROR( "update image display 3" );  
   
   if ( entry != NULL && target != NULL )
     {
@@ -653,7 +646,6 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
       }
     }
   
-  PERKLOG_ERROR( "update image display 4" );
   
   if (
           ( this->SliceOffsetRAS < maxOffset )
@@ -715,7 +707,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
  
  
  
-   // Position L/R side indicator and calibration guide texts. ------------------------
+   // Position L/R side indicator and calibration guide texts. ----------------
  
   bool Lup = false;
   bool Lleft = false;
@@ -723,7 +715,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
   bool Rleft = false;
  
    // Take patient position into account.
-   
+ 
  switch ( this->GetGUI()->GetMRMLNode()->GetPatientPosition() )
    {
    case HFP :  Lleft = true;  Lup = true;  Rleft = false; Rup = true;   break;
@@ -736,11 +728,11 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
    case FFS :  Lleft = true;  Lup = true;  Rleft = false; Rup = true;   break;
    }
  
+ 
     // Take hardware into account.
   
-  PERKLOG_ERROR( "update image display 6" );
-  
-  if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
+  if (    this->PSNode->GetSecondMonitorHorizontalFlip()
+       || this->PSNode->GetHardwareList()[ this->PSNode->GetHardwareIndex() ].FlipHorizontal )
     {
     Lleft = ! Lleft;
     Rleft = ! Rleft;
@@ -755,7 +747,8 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     this->CalibrationControlsActor->FlipAroundY( false );
     }
 
-  if ( this->PSNode->GetSecondMonitorVerticalFlip() )
+  if (    this->PSNode->GetSecondMonitorVerticalFlip()
+       || this->PSNode->GetHardwareList()[ this->PSNode->GetHardwareIndex() ].FlipVertical )
     {
     Lup = ! Lup;
     Rup = ! Lup;
@@ -769,7 +762,8 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     this->RightSideActor->FlipAroundX( false );
     this->CalibrationControlsActor->FlipAroundX( false );
     }
- 
+  
+  
     // Position the actors.
   
   this->LeftSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ], this->UpperLeftCorner[ 1 ] );
@@ -795,9 +789,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
   this->ResliceTransform->SetMatrix( this->XYToIJK()->GetMatrix() );
   this->ResliceTransform->Update();
   
-  this->ResliceFilter->SetOutputExtent( 0, this->ScreenSize[ 0 ] - 1,
-                                        0, this->ScreenSize[ 1 ] - 1,
-                                        0, 0 );
+  this->ResliceFilter->SetOutputExtent( 0, this->ScreenSize[ 0 ] - 1, 0, this->ScreenSize[ 1 ] - 1,0, 0 );
   this->ResliceFilter->SetOutputSpacing( 1.0, 1.0, 1.0 );
   this->ResliceFilter->SetOutputOrigin( 0.0, 0.0, 0.0 );
   this->ResliceFilter->SetInput( this->ImageData );

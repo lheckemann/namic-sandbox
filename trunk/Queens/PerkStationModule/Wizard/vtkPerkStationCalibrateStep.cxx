@@ -1068,8 +1068,7 @@ vtkPerkStationCalibrateStep
        && this->HardwareMenu->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast( caller )
        && event == vtkKWMenu::MenuItemInvokedEvent )
     {
-    this->HardwareSelected( 
-       this->HardwareMenu->GetWidget()->GetMenu()->GetIndexOfSelectedItem() );
+    this->HardwareSelected( this->HardwareMenu->GetWidget()->GetMenu()->GetIndexOfSelectedItem() );
     
     this->HardwareMenu->SetWidth( 200 );
     }
@@ -1250,13 +1249,6 @@ vtkPerkStationCalibrateStep
   this->SecondMonitor = index;
   
   this->GetGUI()->GetMRMLNode()->SetHardwareIndex( index );
-  
-  this->GetGUI()->GetMRMLNode()->SetSecondMonitorHorizontalFlip(
-    this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].FlipHorizontal );
-  
-  this->GetGUI()->GetMRMLNode()->SetSecondMonitorVerticalFlip(
-    this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].FlipVertical );
-  
   
   this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize(
           this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].SizeX,

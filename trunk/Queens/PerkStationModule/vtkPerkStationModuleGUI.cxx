@@ -388,6 +388,7 @@ vtkPerkStationModuleGUI
 }
 
 
+
 void
 vtkPerkStationModuleGUI
 ::RemoveMRMLObservers()
@@ -402,6 +403,7 @@ vtkPerkStationModuleGUI
 }
 
 
+
 /**
  * Responds to events form widgets or slicer GUI.
  *
@@ -411,9 +413,7 @@ vtkPerkStationModuleGUI
  */
 void
 vtkPerkStationModuleGUI
-::ProcessGUIEvents ( vtkObject*    caller,
-                     unsigned long event,
-                     void*         callData ) 
+::ProcessGUIEvents ( vtkObject* caller, unsigned long event, void* callData ) 
 {
   const char* eventName = vtkCommand::GetStringFromEventId( event );
   
