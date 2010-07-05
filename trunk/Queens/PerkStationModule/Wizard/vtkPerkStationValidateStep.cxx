@@ -712,6 +712,14 @@ vtkPerkStationValidateStep
   int rowIndex = this->PlanList->GetWidget()->GetIndexOfFirstSelectedRow();
   moduleNode->SetCurrentPlanIndex( rowIndex );
   
+  
+  vtkPerkStationPlan* plan = moduleNode->GetPlanAtIndex( rowIndex );
+  double point[ 3 ] = { 0, 0, 0 };
+  plan->GetTargetPointRAS( point );
+  moduleNode->SetCurrentSliceOffset( point[ 2 ] );
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->SetSliceOffset(
+    moduleNode->GetCurrentSliceOffset() );
+  
   this->ClickNumber = 0;
   
   this->UpdateGUI();
@@ -719,7 +727,30 @@ vtkPerkStationValidateStep
 
 
 
-//------------------------------------------------------------------------------
+void
+vtkPerkStationValidateStep
+::OnSliceOffsetChanged( double offset )
+{
+  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
+  
+  if ( ! node  ||  node->GetCurrentPlanIndex() < 0 ) return;
+  
+  
+  vtkPerkStationPlan* plan = node->GetPlanAtIndex( node->GetCurrentPlanIndex() );
+  double* target = plan->GetTargetPointRAS();
+  
+  if ( target[ 2 ] >= ( offset - 0.5 )  &&  target[ 2 ] < ( offset + 0.5 ) )
+    {
+    this->PlanActor->SetVisibility( 1 );
+    }
+  else
+    {
+    this->PlanActor->SetVisibility( 0 );
+    }
+}
+
+
+
 void
 vtkPerkStationValidateStep
 ::Reset()

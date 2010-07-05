@@ -32,7 +32,10 @@ public:
 
   void ProcessImageClickEvents( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessGUIEvents( vtkObject *caller, unsigned long event, void *callData );
+  
   void OnMultiColumnListSelectionChanged();
+  void OnSliceOffsetChanged( double offset );
+  
   
   virtual void Reset();
   
