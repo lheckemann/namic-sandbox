@@ -28,8 +28,9 @@ public:
   void OnCalibrationSelectionChanged();
   
   
-  // Description:
   virtual void ShowUserInterface();
+  virtual void HideUserInterface();
+  
 
   // Description:
   // Process GUI events
@@ -70,6 +71,9 @@ protected:
   
   
     // GUI elements
+  
+  
+  vtkKWLabel* AngleInPlaneLabel;
   
   
     // Plan list.
