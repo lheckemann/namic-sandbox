@@ -91,6 +91,7 @@ fashion.
 #include "itkConnectedThresholdImageFilter.h"
 #include "itkNeighborhoodConnectedImageFilter.h"
 #include "itkLargestForegroundFilledMaskImageFilter.h"
+#include "itkBinaryThresholdImageFilter.h"
 
 #include "CommandIterationUpdate.h"
 #include "RegistrationInterfaceCommand.h"
@@ -935,6 +936,21 @@ int main(int argc, char *argv[])
 
         ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
         maskImage->SetImage(neighborhoodConnected->GetOutput());
+        registration->SetImageMaskArray(i, maskImage);
+
+        std::cout << "message: Computing mask " << std::endl;
+      }
+      else if( maskType == "threshold" && ((mask == "single" && i==0 ) || mask == "all"))
+      {
+        typedef itk::BinaryThresholdImageFilter<ImageType,ImageMaskType> ThresholdType;
+        ThresholdType::Pointer thresh = ThresholdType::New();
+        thresh->SetInput(InputImage);
+        thresh->SetLowerThreshold(threshold1);
+        thresh->SetUpperThreshold(threshold2);
+        thresh->Update();
+
+        ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
+        maskImage->SetImage(thresh->GetOutput());
         registration->SetImageMaskArray(i, maskImage);
 
         std::cout << "message: Computing mask " << std::endl;
