@@ -642,13 +642,10 @@ bool
 vtkMRMLPerkStationModuleNode
 ::GetSecondMonitorVerticalFlip() const
 {
-  bool ret = this->HardwareList[ this->HardwareIndex ].FlipVertical;
+  bool ret = false;
   if ( this->CurrentCalibration >= 0 )
     {
-    if ( this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorVerticalFlip )
-      {
-      ret = ! ret;
-      }
+    ret = this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorVerticalFlip;
     }
   return ret;
 }
@@ -669,13 +666,10 @@ bool
 vtkMRMLPerkStationModuleNode
 ::GetSecondMonitorHorizontalFlip() const
 {
-  bool ret = this->HardwareList[ this->HardwareIndex ].FlipHorizontal;
+  bool ret = false;
   if ( this->CurrentCalibration >= 0 )
     {
-    if ( this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorHorizontalFlip )
-      {
-      ret = ! ret;
-      }
+    ret = this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorHorizontalFlip;
     }
   return ret;
 }

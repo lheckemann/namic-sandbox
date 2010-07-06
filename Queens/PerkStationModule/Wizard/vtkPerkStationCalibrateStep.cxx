@@ -629,10 +629,6 @@ vtkPerkStationCalibrateStep
   
   this->HardwareMenu->GetWidget()->SetValue( hardware.Name.c_str() );
   
-  this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState(
-          node->GetSecondMonitorHorizontalFlip() );
-  this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(
-          node->GetSecondMonitorVerticalFlip() );
   
   // double monPhySize[ 2 ];
   // this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize(
@@ -882,8 +878,7 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
   if ( this->CalibrationList )
     {
     this->CalibrationList->GetWidget()->SetCellUpdatedCommand( this, "OnMultiColumnListUpdate" );
-    this->CalibrationList->GetWidget()->SetSelectionChangedCommand(
-      this, "OnMultiColumnListSelectionChanged" );
+    this->CalibrationList->GetWidget()->SetSelectionChangedCommand( this, "OnMultiColumnListSelectionChanged" );
     }
   
   if ( this->AddButton )
@@ -903,14 +898,12 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
   if (this->VerticalFlipCheckButton)
     {
     this->VerticalFlipCheckButton->GetWidget()->AddObserver(
-      vtkKWCheckButton::SelectedStateChangedEvent,
-      (vtkCommand*)( this->WizardGUICallbackCommand ) );
+      vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)( this->WizardGUICallbackCommand ) );
     }
   if (this->HorizontalFlipCheckButton)
     {
     this->HorizontalFlipCheckButton->GetWidget()->AddObserver(
-      vtkKWCheckButton::SelectedStateChangedEvent,
-      (vtkCommand*)( this->WizardGUICallbackCommand ) );
+      vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)( this->WizardGUICallbackCommand ) );
     }
   
   
@@ -1270,11 +1263,17 @@ vtkPerkStationCalibrateStep
   
   if ( node == NULL ) return; // No MRML node, no GUI update.
   
-  PERKLOG_ERROR( "cal updategui 2" );
+  
   
   this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
   
-  PERKLOG_ERROR( "cal updategui 3" );
+  
+    // Hardware calibration.
+  
+  this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState( node->GetSecondMonitorHorizontalFlip() );
+  this->VerticalFlipCheckButton->GetWidget()->SetSelectedState( node->GetSecondMonitorVerticalFlip() );
+  
+  
   
     // Update hardware list, only if it changed.
   

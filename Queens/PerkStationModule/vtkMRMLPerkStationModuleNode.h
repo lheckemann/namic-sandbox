@@ -65,6 +65,7 @@ struct OverlayHardware
   bool FlipVertical;
 };
 
+
 //BTX
 // Struct to hold calibration data.
 class OverlayCalibration
