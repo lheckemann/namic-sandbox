@@ -128,7 +128,7 @@
 
 
 //       std::cout<<"       BSpline registering...\n"<<std::flush;
-//       std::pair<typename internal_image_t::Pointer, typename internal_image_t::Pointer> demonsRegPair = \
+//       std::pair<typename internal_image_t::Pointer, typename internal_image_t::Pointer> bsplineRegPair = \
 //         reg_3d_bspline_mi<internal_image_t, internal_image_t, internal_image_t>(rawImg, \
 //                                                                                 affineRegPair.first, \
 //                                                                                 affineRegPair.second, \
@@ -156,7 +156,7 @@
 //         ImageRegionIterator_t resultLabelImgIter(resultLabelImg, resultLabelImg->GetLargestPossibleRegion() );
 //         resultLabelImgIter.GoToBegin();
 
-//         typename internal_image_t::Pointer regLabelImg = demonsRegPair.second;
+//         typename internal_image_t::Pointer regLabelImg = bsplineRegPair.second;
 //         ImageRegionConstIterator_t regLabelImgIter(regLabelImg, regLabelImg->GetLargestPossibleRegion() );
 //         regLabelImgIter.GoToBegin();
 
@@ -312,8 +312,10 @@ atlasSegMI_outputPr(typename raw_image_t::Pointer rawImg,                       
       std::cout<<"           final cost = "<<finalCostFn<<std::endl;
 
 
+      //std::pair<typename internal_image_t::Pointer, typename internal_image_t::Pointer> bsplineRegPair =  affineRegPair;
+
       std::cout<<"       BSpline registering...\n"<<std::flush;
-      std::pair<typename internal_image_t::Pointer, typename internal_image_t::Pointer> demonsRegPair = \
+      std::pair<typename internal_image_t::Pointer, typename internal_image_t::Pointer> bsplineRegPair = \
         reg_3d_bspline_mi<internal_image_t, internal_image_t, internal_image_t>(rawImg, \
                                                                                 affineRegPair.first, \
                                                                                 affineRegPair.second, \
@@ -324,13 +326,13 @@ atlasSegMI_outputPr(typename raw_image_t::Pointer rawImg,                       
       //write intermediate result
       char tmp1[1000];
       sprintf(tmp1, "regTrainImg%ld.nrrd", iTrainingImg);
-      douher::writeImage3<internal_pixel_t>(affineRegPair.first, tmp1);
+      douher::writeImage3<internal_pixel_t>(bsplineRegPair.first, tmp1);
 
 
 
       char tmp[1000];
       sprintf(tmp, "regLableImg%ld.nrrd", iTrainingImg);
-      douher::writeImage3<internal_pixel_t>(affineRegPair.second, tmp);
+      douher::writeImage3<internal_pixel_t>(bsplineRegPair.second, tmp);
       //tst//
 
 
@@ -340,7 +342,7 @@ atlasSegMI_outputPr(typename raw_image_t::Pointer rawImg,                       
         ImageRegionIterator_t resultLabelImgIter(resultLabelImg, resultLabelImg->GetLargestPossibleRegion() );
         resultLabelImgIter.GoToBegin();
 
-        typename internal_image_t::Pointer regLabelImg = demonsRegPair.second;
+        typename internal_image_t::Pointer regLabelImg = bsplineRegPair.second;
         ImageRegionConstIterator_t regLabelImgIter(regLabelImg, regLabelImg->GetLargestPossibleRegion() );
         regLabelImgIter.GoToBegin();
 

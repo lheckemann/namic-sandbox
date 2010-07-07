@@ -116,9 +116,9 @@ CSFLSRobustStatSegmentor3DProbMap< TPixel >
       std::cout<<"Warning: min prob > 0.1, there might be something wrong...\n";
     }
 
-  if (maxPb < 0.9)
+  if (maxPb < 0.8)
     {
-      std::cout<<"Warning: max prob < 0.9, there might be something wrong...\n";
+      std::cout<<"Warning: max prob < 0.8, there might be something wrong...\n";
     }
 
 
@@ -145,7 +145,7 @@ CSFLSRobustStatSegmentor3DProbMap< TPixel >
   thlder->SetInput(m_probabilityMap);
   thlder->SetInsideValue(0);
   thlder->SetOutsideValue(1);
-  thlder->SetUpperThreshold(0.9);
+  thlder->SetUpperThreshold(0.8);
   thlder->SetLowerThreshold(0);
   thlder->Update();
 
