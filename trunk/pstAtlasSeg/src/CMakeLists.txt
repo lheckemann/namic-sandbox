@@ -42,7 +42,7 @@ set(Libraries
     )
 
 
-option(build_imagePCAAnalysisTest2 "build imagePCAAnalysisTest2?" OFF)
+option(build_imagePCAAnalysisTest2 "build imagePCAAnalysisTest2?" ON)
 if (build_imagePCAAnalysisTest2)
     set(cexx imagePCAAnalysisTest2)
     add_executable(${cexx} ${cexx}.cxx)
@@ -51,7 +51,7 @@ endif (build_imagePCAAnalysisTest2)
 
 
 
-option(build_reg_3d_similarity_mse "build reg_3d_similarity_mse?" OFF)
+option(build_reg_3d_similarity_mse "build reg_3d_similarity_mse?" ON)
 if (build_reg_3d_similarity_mse)
     set(cexx reg_3d_similarity_mse)
     add_executable(${cexx} ${cexx}.cxx)
@@ -78,7 +78,7 @@ endif (build_SFLSRobustStat3DTestProbMap)
 
 
 
-option(build_probMapShapeBasedSegExe "build probMapShapeBasedSegExe?" OFF)
+option(build_probMapShapeBasedSegExe "build probMapShapeBasedSegExe?" ON)
 if (build_probMapShapeBasedSegExe)
     set(cexx probMapShapeBasedSegExe)
     add_executable(${cexx} ${cexx}.cxx)
@@ -87,7 +87,7 @@ endif(build_probMapShapeBasedSegExe)
 
 
 
-option(build_atlasSegMIExe_outputPr "build atlasSegMIExe_outputPr?" OFF)
+option(build_atlasSegMIExe_outputPr "build atlasSegMIExe_outputPr?" ON)
 if (build_atlasSegMIExe_outputPr)
     set(cexx atlasSegMIExe_outputPr)
     add_executable(${cexx} ${cexx}.cxx)
