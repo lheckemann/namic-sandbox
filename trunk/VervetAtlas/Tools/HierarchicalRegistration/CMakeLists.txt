@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.4)
 
-PROJECT( ThreePointMirror )
+PROJECT( HierarchicalRegistration )
 
 #------------------Setup slicer builds.
 IF(BUILD_AGAINST_SLICER3)
@@ -29,11 +29,12 @@ ELSE(GenerateCLP_DIR)
   MESSAGE(FATAL_ERROR "Can't build without GenerateCLP. Please set GenerateCLP_DIR")
 ENDIF(GenerateCLP_DIR)
 
-GENERATECLP(ThreePointMirror ThreePointMirror.xml)
-ADD_EXECUTABLE(ThreePointMirror ThreePointMirror.cxx)
-slicer3_set_plugins_output_path(ThreePointMirror)
-TARGET_LINK_LIBRARIES(ThreePointMirror ITKIO ITKStatistics)
+set(CLP HierarchicalRegistration)
+GENERATECLP(${CLP} ${CLP}.xml)
+ADD_EXECUTABLE(${CLP} ${CLP}.cxx)
+slicer3_set_plugins_output_path(${CLP})
+TARGET_LINK_LIBRARIES(${CLP} ITKIO ITKStatistics)
 
 IF(BUILD_AGAINST_SLICER3)
-  slicer3_install_plugins(ThreePointMirror)
+  slicer3_install_plugins(${CLP})
 ENDIF(BUILD_AGAINST_SLICER3)
