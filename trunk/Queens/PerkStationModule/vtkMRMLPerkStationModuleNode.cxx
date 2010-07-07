@@ -256,6 +256,14 @@ vtkMRMLPerkStationModuleNode
     viewsonic.SizeY = 228.0;
   this->HardwareList.push_back( viewsonic );
   
+  OverlayHardware perkdell;
+    perkdell.FlipHorizontal = false;
+    perkdell.FlipVertical = false;
+    perkdell.Name = "PerkStation External Dell";
+    perkdell.SizeX = 360.0;
+    perkdell.SizeY = 340.0;
+  this->HardwareList.push_back( perkdell );
+  
   OverlayHardware acer;
     acer.FlipHorizontal = false;
     acer.FlipVertical = false;
