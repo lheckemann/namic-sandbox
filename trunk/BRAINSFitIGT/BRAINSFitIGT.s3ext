@@ -1,6 +1,6 @@
 
 scm       svn
-svnpath   https://svn.na-mic.org/NAMICSandBox/trunk/BRAINSFitIGT
+svnpath   http://svn.na-mic.org/NAMICSandBox/trunk/BRAINSFitIGT
 name      BRAINSFitIGT
 cmakeproject      BRAINSFitIGT
 svnusername slicerbot
