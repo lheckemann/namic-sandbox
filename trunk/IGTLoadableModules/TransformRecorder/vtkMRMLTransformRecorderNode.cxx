@@ -24,6 +24,7 @@ StringToBool( std::string str )
 // ----------------------------------------------------------------------------
 
 
+
 vtkMRMLTransformRecorderNode*
 vtkMRMLTransformRecorderNode
 ::New()
@@ -37,6 +38,7 @@ vtkMRMLTransformRecorderNode
   // If the factory was unable to create the object, then create it here.
   return new vtkMRMLTransformRecorderNode;
 }
+
 
 
 vtkMRMLNode*
@@ -54,8 +56,9 @@ vtkMRMLTransformRecorderNode
 }
 
 
-//----------------------------------------------------------------------------
-vtkMRMLTransformRecorderNode::vtkMRMLTransformRecorderNode()
+
+vtkMRMLTransformRecorderNode
+::vtkMRMLTransformRecorderNode()
 {
   this->SetHideFromEditors( false );
   this->ObservedTransformNodeID = NULL;
@@ -71,7 +74,7 @@ vtkMRMLTransformRecorderNode::vtkMRMLTransformRecorderNode()
 }
 
 
-//----------------------------------------------------------------------------
+
 vtkMRMLTransformRecorderNode::~vtkMRMLTransformRecorderNode()
 {
   this->RemoveMRMLObservers();
@@ -206,7 +209,10 @@ vtkMRMLTransformRecorderNode
   this->SetObservedTransformNodeID( nodeID );
   vtkMRMLTransformNode *tnode = this->GetObservedTransformNode();
   vtkSetAndObserveMRMLObjectMacro(this->ObservedTransformNode, tnode);
-  tnode->AddObserver( vtkMRMLTransformNode::TransformModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand );
+  if ( tnode )
+    {
+    tnode->AddObserver( vtkMRMLTransformNode::TransformModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand );
+    }
 }
 
 
