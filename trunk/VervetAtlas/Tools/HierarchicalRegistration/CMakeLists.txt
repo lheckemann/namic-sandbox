@@ -33,7 +33,7 @@ set(CLP HierarchicalRegistration)
 GENERATECLP(${CLP} ${CLP}.xml)
 ADD_EXECUTABLE(${CLP} ${CLP}.cxx)
 slicer3_set_plugins_output_path(${CLP})
-TARGET_LINK_LIBRARIES(${CLP} ITKIO ITKStatistics)
+TARGET_LINK_LIBRARIES(${CLP} ITKIO ITKStatistics ITKNumerics ITKBasicFilters ITKCommon)
 
 IF(BUILD_AGAINST_SLICER3)
   slicer3_install_plugins(${CLP})
