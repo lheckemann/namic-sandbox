@@ -112,7 +112,7 @@ int main(int argc, char** argv)
   thlder->SetInsideValue(1);
   thlder->SetOutsideValue(0);
   thlder->SetUpperThreshold(0);
-  thlder->SetLowerThreshold(std::numeric_limits<SFLSRobustStatSegmentor3DProbMap_c::LSImageType::PixelType>::min());
+  thlder->SetLowerThreshold(-1e+10);
   thlder->Update();
   
 
@@ -121,6 +121,8 @@ int main(int argc, char** argv)
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( outputImage );
   writer->SetInput(thlder->GetOutput());
+  writer->UseCompressionOn();
+
 
   try
     {

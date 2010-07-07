@@ -28,14 +28,14 @@ os.system(cmd)
 #print cmd
 
 
-for numIter in [100, 500, 900]:
-    for curvatureWeight in [0.5, 0.7, 0.9]:
-        for homogeniety in [0.5, 0.7, 0.9]:
+for numIter in [1500, 2500]:
+    for curvatureWeight in [0.6, 0.8, 0.9]:
+        for homogeniety in [0.6, 0.8, 0.9]:
 
             outputName = targetT2Image.replace(".nrrd", "-finalSeg");
-            outputName = outputName + '-' + str(numIter) + '-' + str(curvatureWeight) + '-' + str(homogeniety) + '.nrrd'
+            outputName = outputName + '-' + str(numIter) + '-' + str(homogeniety) + '-' + str(curvatureWeight) + '.nrrd'
             outputName = os.path.basename(outputName)
             outputName = os.path.join(rsltDir, outputName)
     
-            segCmd = " ".join([segExe, targetT2Image, atlasImage, outputName, str(numIter), str(curvatureWeight), str(homogeniety)])
+            segCmd = " ".join([segExe, targetT2Image, atlasImage, outputName, str(numIter), str(homogeniety), str(curvatureWeight)])
             os.system(segCmd)
