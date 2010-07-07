@@ -158,7 +158,6 @@ int main( int argc, char *argv[] )
   OptimizerType::Pointer      optimizer     = OptimizerType::New();
   InterpolatorType::Pointer   interpolator  = InterpolatorType::New();
   RegistrationType::Pointer   registration  = RegistrationType::New();
-  double samplesIntensityThreshold = 1.;
 
   registration->SetMetric(        metric        );
   registration->SetOptimizer(     optimizer     );
@@ -217,7 +216,7 @@ int main( int argc, char *argv[] )
 
   metric->ReinitializeSeed( 76926294 );
 
-  metric->SetUseExplicitPDFDerivatives( useExplicitPDFDerivatives );
+  metric->SetUseExplicitPDFDerivatives( useExplicitPDFderivatives );
 
   metric->SetUseCachingOfBSplineWeights( useCachingOfBSplineWeights );
 
@@ -510,10 +509,8 @@ int main( int argc, char *argv[] )
 
   DeformableTransformType::Pointer  bsplineTransformFine = DeformableTransformType::New();
 
-  numberOfGridNodesInOneDimensionFine = atoi( bsplineGridFine );
-
   RegionType::SizeType   gridHighSizeOnImage;
-  gridHighSizeOnImage.Fill( numberOfGridNodesInOneDimensionFine );
+  gridHighSizeOnImage.Fill( bsplineGridFine );
   totalGridSize = gridHighSizeOnImage + gridBorderSize;
 
   bsplineRegion.SetSize( totalGridSize );
