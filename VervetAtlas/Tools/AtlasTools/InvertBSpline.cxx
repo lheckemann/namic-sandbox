@@ -102,5 +102,6 @@ int main( int argc , char * argv[] )
    DeformationFieldWriterType::Pointer  deformationFieldWriter =  DeformationFieldWriterType::New();
    deformationFieldWriter->SetFileName( argv[3] );
    deformationFieldWriter->SetInput( deformationinvert -> GetOutput());
+   deformationFieldWriter->SetUseCompression(1);
    deformationFieldWriter->Update();
 }
