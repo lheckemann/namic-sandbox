@@ -125,6 +125,7 @@ int main(int argc, char** argv){
 
   writer->SetInput(cast->GetOutput());
   writer->SetFileName(argv[argc-1]);
+  writer->SetUseCompression(1);
   writer->Update();
 
   return 0;

@@ -11,6 +11,9 @@ target_link_libraries(AverageTemplate ITKIO ITKStatistics)
 add_executable(HistogramMatchICC HistogramMatchICC.cxx)
 target_link_libraries(HistogramMatchICC ITKIO ITKStatistics)
 
+add_executable(HistogramMatch HistogramMatch.cxx)
+target_link_libraries(HistogramMatch ITKIO ITKStatistics)
+
 add_executable(GridWarp GridWarp.cxx)
 target_link_libraries(GridWarp ITKIO ITKStatistics vtkIO vtkGraphics)
 
