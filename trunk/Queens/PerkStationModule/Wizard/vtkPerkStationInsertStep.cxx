@@ -204,7 +204,7 @@ void
 vtkPerkStationInsertStep
 ::HideUserInterface()
 {
-  
+  Superclass::HideUserInterface();
 }
 
 

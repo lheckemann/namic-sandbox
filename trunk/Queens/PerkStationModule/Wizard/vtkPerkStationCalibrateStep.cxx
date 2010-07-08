@@ -83,10 +83,6 @@ vtkPerkStationCalibrateStep
   
     // Load, save, reset controls.
   
-  this->LoadResetFrame = vtkSmartPointer< vtkKWFrame >::New();
-  this->LoadCalibrationFileButton = vtkSmartPointer< vtkKWLoadSaveButton >::New();
-  this->SaveCalibrationFileButton = vtkSmartPointer< vtkKWLoadSaveButton >::New();
-  this->ResetCalibrationButton = vtkSmartPointer< vtkKWPushButton >::New();
   this->CalibFileName = "";
   this->CalibFilePath = "";
 
@@ -154,8 +150,10 @@ vtkPerkStationCalibrateStep
 }
 
 
-//----------------------------------------------------------------------------
-bool vtkPerkStationCalibrateStep::DoubleEqual(double val1, double val2)
+
+bool
+vtkPerkStationCalibrateStep
+::DoubleEqual( double val1, double val2 )
 {
   bool result = false;
     
@@ -166,31 +164,20 @@ bool vtkPerkStationCalibrateStep::DoubleEqual(double val1, double val2)
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::EnableDisableLoadResetControls( bool enable )
-{
-  this->LoadCalibrationFileButton->SetEnabled(enable);
-  this->ResetCalibrationButton->SetEnabled(enable);
-}
 
-
-//----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::EnableDisableSaveControls( bool enable )
-{
-  this->SaveCalibrationFileButton->SetEnabled( enable );
-}
-
-
-//----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::EnableDisableFlipComponents( bool enable )
+void
+vtkPerkStationCalibrateStep
+::EnableDisableFlipComponents( bool enable )
 {
   this->VerticalFlipCheckButton->GetWidget()->SetEnabled( enable );
   this->HorizontalFlipCheckButton->GetWidget()->SetEnabled( enable );
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::EnableDisableScaleComponents( bool enable )
+
+void
+vtkPerkStationCalibrateStep
+::EnableDisableScaleComponents( bool enable )
 {
   this->MonPhySize->GetWidget( 0 )->SetEnabled( enable );
   this->MonPhySize->GetWidget( 1 )->SetEnabled( enable);
@@ -200,111 +187,33 @@ void vtkPerkStationCalibrateStep::EnableDisableScaleComponents( bool enable )
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::ShowUserInterface()
+
+void
+vtkPerkStationCalibrateStep
+::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
   
   this->SetName("1/4. Calibrate");
-  this->GetGUI()->GetWizardWidget()->SetErrorText( "");
+  this->GetGUI()->GetWizardWidget()->SetErrorText( "" );
   this->GetGUI()->GetWizardWidget()->Update();
   
-  this->SetDescription("Do image overlay system calibration");
+  this->SetDescription( "Do image overlay system calibration" );
 
-  // gui building/showing
-
+  
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-  wizard_widget->GetCancelButton()->SetEnabled(0);
+    wizard_widget->GetCancelButton()->SetEnabled( 0 );
   
   this->ShowHardwareCalibration();
-  // this->ShowLoadResetControls();
   this->ShowCalibrationList();
   
-  PERKLOG_ERROR( "calibration 1" );
-  
   this->UpdateGUI();
-  
-  PERKLOG_ERROR( "calibration 2" );
   
   this->InstallCallbacks();
   
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->Focus();
 }
 
-
-//----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::ShowLoadResetControls()
-{
-  vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
-  
-  
-  // Create the frame
-  if ( ! this->LoadResetFrame->IsCreated() )
-    {
-    this->LoadResetFrame->SetParent( parent );
-    this->LoadResetFrame->Create();
-    
-    this->LoadCalibrationFileButton->SetParent( this->LoadResetFrame );
-    this->LoadCalibrationFileButton->Create();
-    this->LoadCalibrationFileButton->SetReliefToRaised();
-    this->LoadCalibrationFileButton->SetBorderWidth( 2 );
-    this->LoadCalibrationFileButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
-    this->LoadCalibrationFileButton->SetActiveBackgroundColor( 1, 1, 1 );
-    this->LoadCalibrationFileButton->SetHighlightThickness( 2 );
-    this->LoadCalibrationFileButton->SetText( "Load calibration" );
-    this->LoadCalibrationFileButton->SetImageToPredefinedIcon(
-      vtkKWIcon::IconPresetLoad );
-    this->LoadCalibrationFileButton->GetLoadSaveDialog()->
-      RetrieveLastPathFromRegistry( "OpenPath" );
-    this->LoadCalibrationFileButton->TrimPathFromFileNameOff();
-    this->LoadCalibrationFileButton->SetMaximumFileNameLength( 256 );
-    this->LoadCalibrationFileButton->GetLoadSaveDialog()->SaveDialogOff();
-    this->LoadCalibrationFileButton->GetLoadSaveDialog()->SetFileTypes(
-      "{{XML File} {.xml}} {{All Files} {*.*}}" );
-    
-    this->SaveCalibrationFileButton->SetParent( this->LoadResetFrame );
-    this->SaveCalibrationFileButton->Create();
-    this->SaveCalibrationFileButton->SetText( "Save calibration" );
-    this->SaveCalibrationFileButton->SetReliefToRaised();
-    this->SaveCalibrationFileButton->SetBorderWidth( 2 );
-    this->SaveCalibrationFileButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
-    this->SaveCalibrationFileButton->SetActiveBackgroundColor( 1, 1, 1 );
-    this->SaveCalibrationFileButton->SetHighlightThickness( 2 );
-    this->SaveCalibrationFileButton->SetImageToPredefinedIcon(
-      vtkKWIcon::IconFloppy  );
-    this->SaveCalibrationFileButton->GetLoadSaveDialog()->SaveDialogOn();
-    this->SaveCalibrationFileButton->TrimPathFromFileNameOff();
-    this->SaveCalibrationFileButton->SetMaximumFileNameLength( 256 );
-    this->SaveCalibrationFileButton->GetLoadSaveDialog()->SetFileTypes(
-      "{{XML File} {.xml}} {{All Files} {*.*}}");      
-    this->SaveCalibrationFileButton->GetLoadSaveDialog()->
-      RetrieveLastPathFromRegistry( "OpenPath" );
-    
-    this->ResetCalibrationButton->SetParent( this->LoadResetFrame );
-    this->ResetCalibrationButton->Create();
-    this->ResetCalibrationButton->SetText( "Reset calibration" );
-    // this->ResetCalibrationButton->SetWidth( 100 );
-    this->ResetCalibrationButton->SetReliefToRaised();
-    this->ResetCalibrationButton->SetBorderWidth( 2 );
-    this->ResetCalibrationButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
-    this->ResetCalibrationButton->SetActiveBackgroundColor( 1, 1, 1 );
-    this->ResetCalibrationButton->SetHighlightThickness( 2 );
-    // this->ResetCalibrationButton->SetImageToPredefinedIcon(
-    //     vtkKWIcon::IconTrashcan );
-    }
-  
-  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->LoadResetFrame->GetWidgetName() );
-  
-  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->LoadCalibrationFileButton->GetWidgetName() );
-
-  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->SaveCalibrationFileButton->GetWidgetName() );
-  
-  this->Script( "pack %s -side right -anchor ne -padx 2 -pady 2", 
-                this->ResetCalibrationButton->GetWidgetName() );
-}
 
 
 void
@@ -866,13 +775,6 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
     }
   
   
-  if (this->ResetCalibrationButton)
-    {
-    this->ResetCalibrationButton->AddObserver( vtkKWPushButton::InvokedEvent,
-    ( vtkCommand* )( this->WizardGUICallbackCommand ) );
-    }
-  
-  
     // Calibration list.
   
   if ( this->CalibrationList )
@@ -914,12 +816,6 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
     }
   
   
-  if ( this->SaveCalibrationFileButton )
-    {
-    this->SaveCalibrationFileButton->GetLoadSaveDialog()->AddObserver(
-      vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-  
   this->ObserverCount++;
 }
 
@@ -928,22 +824,6 @@ void
 vtkPerkStationCalibrateStep
 ::RemoveGUIObservers()
 {
-    // load reset components
-  
-  if ( this->LoadCalibrationFileButton )
-    {
-    this->LoadCalibrationFileButton->GetLoadSaveDialog()->RemoveObservers(
-      vtkKWTopLevel::WithdrawEvent,
-      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
-    }
-  if ( this->ResetCalibrationButton )
-    {
-    this->ResetCalibrationButton->RemoveObservers(
-      vtkKWPushButton::InvokedEvent,
-      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
-    }
-  
-  
     // Calibration list.
   
   if ( this->CalibrationList )
@@ -989,37 +869,34 @@ vtkPerkStationCalibrateStep
       ( vtkCommand* )( this->WizardGUICallbackCommand ) );
     }
   
-
-    // save controls    
-  
-  if (this->SaveCalibrationFileButton)
-    {
-    this->SaveCalibrationFileButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-      
   
   this->ObserverCount--;
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkPerkStationCalibrateStep
-::WizardGUICallback( vtkObject *caller,
-                     unsigned long event,
-                     void *clientData,
-                     void *callData )
+::WizardGUICallback( vtkObject *caller, unsigned long event, void *clientData, void *callData )
 {
-  vtkPerkStationCalibrateStep *self =
-    reinterpret_cast< vtkPerkStationCalibrateStep *>( clientData );
-  if (self)
+  vtkPerkStationCalibrateStep *self = reinterpret_cast< vtkPerkStationCalibrateStep *>( clientData );
+  if ( self )
     {
     self->ProcessGUIEvents( caller, event, callData );
     }
 }
 
 
-//----------------------------------------------------------------------------
+
+void
+vtkPerkStationCalibrateStep
+::HideUserInterface()
+{
+  Superclass::HideUserInterface();
+}
+
+
+
 void
 vtkPerkStationCalibrateStep
 ::ProcessGUIEvents( vtkObject *caller, unsigned long event, void *callData )
@@ -1123,16 +1000,6 @@ vtkPerkStationCalibrateStep
     }
   
   
-    // reset calib button
-  
-  if (    this->ResetCalibrationButton
-       && this->ResetCalibrationButton == vtkKWPushButton::SafeDownCast(caller)
-       && ( event == vtkKWPushButton::InvokedEvent ) )
-    {
-    this->Reset();
-    }
-  
-  
     // Continue only with panning volume loaded.
   
   if( ! mrmlNode->GetPlanningVolumeNode()
@@ -1143,26 +1010,21 @@ vtkPerkStationCalibrateStep
     }
   
   
-  
     // check buttons
   
   if ( this->VerticalFlipCheckButton
-       && this->VerticalFlipCheckButton->GetWidget()
-          == vtkKWCheckButton::SafeDownCast( caller )
+       && this->VerticalFlipCheckButton->GetWidget() == vtkKWCheckButton::SafeDownCast( caller )
        && (event == vtkKWCheckButton::SelectedStateChangedEvent ) )
     {
-    this->VerticalFlipCallback(
-      bool( this->VerticalFlipCheckButton->GetWidget()->GetSelectedState() ) );
+    this->VerticalFlipCallback( bool( this->VerticalFlipCheckButton->GetWidget()->GetSelectedState() ) );
     }
   
   
   if ( this->HorizontalFlipCheckButton
-       && this->HorizontalFlipCheckButton->GetWidget()
-          == vtkKWCheckButton::SafeDownCast( caller )
+       && this->HorizontalFlipCheckButton->GetWidget() == vtkKWCheckButton::SafeDownCast( caller )
        && ( event == vtkKWCheckButton::SelectedStateChangedEvent ) )
     {
-    this->HorizontalFlipCallback(
-      bool( this->HorizontalFlipCheckButton->GetWidget()->GetSelectedState() ));
+    this->HorizontalFlipCallback( bool( this->HorizontalFlipCheckButton->GetWidget()->GetSelectedState() ) );
     }
 
   
@@ -1170,8 +1032,10 @@ vtkPerkStationCalibrateStep
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::Validate()
+
+void
+vtkPerkStationCalibrateStep
+::Validate()
 {
   this->Superclass::Validate();
 
