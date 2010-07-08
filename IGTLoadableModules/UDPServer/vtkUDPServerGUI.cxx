@@ -62,6 +62,8 @@ vtkUDPServerGUI::vtkUDPServerGUI ( )
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkUDPServerGUI::DataCallback);
   
+  this->svrNode = NULL; 
+
   //----------------------------------------------------------------
   // GUI widgets
   this->ConnectButton = NULL;
@@ -69,7 +71,8 @@ vtkUDPServerGUI::vtkUDPServerGUI ( )
   this->DataTable = NULL;
   this->UpdateEntry = NULL;
   this->ClearListButton = NULL;
-  
+  this->ProbeTypeButtonSet = NULL;
+
   //----------------------------------------------------------------
   //Message Variables
   this->ServerConnected = 0;
@@ -132,6 +135,11 @@ vtkUDPServerGUI::~vtkUDPServerGUI ( )
     {
     this->ProbeTypeButtonSet->SetParent(NULL);
     this->ProbeTypeButtonSet->Delete();
+    }
+
+  if (this->svrNode)
+    {
+    this->svrNode->Delete();
     }
 
   //----------------------------------------------------------------
@@ -198,13 +206,13 @@ void vtkUDPServerGUI::RemoveGUIObservers ( )
     this->UpdateEntry
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
+/*
   if (this->DataTable)
     {
     this->DataTable
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-  
+*/  
   if (this->ClearListButton)
     {
     this->ClearListButton
@@ -246,17 +254,37 @@ void vtkUDPServerGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // GUI Observers
 
+if(this->ConnectButton)
+{
   this->ConnectButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+}
+
+if(this->PortEntry)
+{
   this->PortEntry
      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+}
+
+if(this->UpdateEntry)
+{
   this->UpdateEntry
      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->AddLogicObservers();
+}
+
+if(this->ClearListButton)
+{
   this->ClearListButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+}
+
+if(this->ProbeTypeButtonSet)
+{
   this->ProbeTypeButtonSet
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+}
+
+  this->AddLogicObservers();
 }
 
 
@@ -317,13 +345,12 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
       this->GetLogic()->ProbeType = 1;
       }
 
-    this->ServerConnected = !(this->ServerConnected);
-    if (this->ServerConnected == 1)
+    //this->ServerConnected = !(this->ServerConnected);
+    if ( this->GetLogic()->GetServerStopFlag() && this->PortEntry )//this->ServerConnected == 1 && this->PortEntry)
       {
       //Call server connect loop to connect
       this->GetLogic()->Start(this->PortEntry->GetValueAsInt());
-      if (!this->GetLogic()->GetServerStopFlag())
-        {
+
         this->ConnectButton->SetText("Disconnect");
         //Add a node to the scene
         if (svrNode == NULL)
@@ -336,7 +363,7 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
         this->TimerFlag = 1;
         this->TimerInterval = this->UpdateEntry->GetValueAsInt();
         ProcessTimerEvents();
-        }
+        
       }
     else
       {
@@ -361,7 +388,7 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
     this->TimerInterval = this->UpdateEntry->GetValueAsInt();
     } 
   else if (this->ClearListButton == vtkKWPushButton::SafeDownCast(caller) 
-      && event == vtkKWPushButton::InvokedEvent)
+      && event == vtkKWPushButton::InvokedEvent && this->DataTable)
     {
     this->DataTable->GetWidget()->DeleteAllRows();
     }

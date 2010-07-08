@@ -35,9 +35,19 @@ vtkUDPServerLogic::vtkUDPServerLogic()
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkUDPServerLogic::DataCallback);
-  this->ServerStopFlag = false;
+  this->ServerStopFlag = true;
   this->ThreadID = -1;
   this->Thread = vtkMultiThreader::New();
+
+
+  this->sock = 0;
+  this->port = 0;
+  this->received = 0;
+  this->echolen = 0;
+  this->clientlen = 0;
+  this->serverlen = 0;
+  this->ImportedData = NULL;
+
 }
 
 
@@ -80,23 +90,27 @@ void vtkUDPServerLogic::UpdateAll()
 int vtkUDPServerLogic::StartServerConnection()
 {
   //Create the UDP socket
-  if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) 
+  if ((this->sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) 
     {
     std::cerr << "Failed to create socket" << std::endl;
     return 0;
     }
   else
     {
+      if(this->port <= 0 || this->port > 65535)
+        {
+        return 0; 
+        } 
     // Construct the server sockaddr_in structure
-    memset(&echoserver, 0, sizeof(echoserver));     // Clear struct
-    echoserver.sin_family = AF_INET;                // Internet IP
-    echoserver.sin_addr.s_addr = htonl(INADDR_ANY); // Any IP address
-    //echoserver.sin_addr.s_addr = inet_addr("134.174.54.47");
-    echoserver.sin_port = htons(port);              // server port
+    memset(&echoserver, 0, sizeof(this->echoserver));     // Clear struct
+    this->echoserver.sin_family = AF_INET;                // Internet IP
+    this->echoserver.sin_addr.s_addr = htonl(INADDR_ANY); // Any IP address
+    //this->echoserver.sin_addr.s_addr = inet_addr("134.174.54.47");
+    this->echoserver.sin_port = htons(this->port);              // server port
     
     // Setup the socket option to reuse
     int on = 1;
-    setsockopt( sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+    setsockopt( this->sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
     /*//Non blocking flag
     int flags = fcntl(sock, F_GETFL);
@@ -104,8 +118,8 @@ int vtkUDPServerLogic::StartServerConnection()
     fcntl(sock, F_SETFL, flags);*/
     
     // Bind the socket
-    serverlen = sizeof(echoserver);
-    if (bind(sock, (struct sockaddr *) &echoserver, serverlen) < 0) 
+    this->serverlen = sizeof(this->echoserver);
+    if (bind(this->sock, (struct sockaddr *) &echoserver, this->serverlen) < 0) 
       {
       std::cerr << "Failed to bind server socket" << std::endl;
       return 0;
@@ -118,13 +132,13 @@ int vtkUDPServerLogic::StartServerConnection()
 void vtkUDPServerLogic::ImportData()
 {
   // Receive a message from the client
-  clientlen = sizeof(echoclient);
+  clientlen = sizeof(this->echoclient);
   if ((received = recvfrom(sock, buffer, BUFFSIZE, 0, (struct sockaddr *) &echoclient, &clientlen)) < 0) 
     {
     std::cerr << "Failed to receive message" << std::endl;
     }
   //fprintf(stderr, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));
-  buffer[received]= '\0';
+  this->buffer[received]= '\0';
   //Print out received data
   //std::cerr << received << " bytes received" << std::endl;
   this->ImportedData = buffer;
