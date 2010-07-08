@@ -1689,8 +1689,7 @@ vtkPerkStationModuleGUI
     for (int i = 0; i < steps; i ++) 
       {
         // Hide old step UI.
-      vtkPerkStationStep* oldStep =
-        vtkPerkStationStep::SafeDownCast( wizard->GetCurrentStep() );
+      vtkPerkStationStep* oldStep = vtkPerkStationStep::SafeDownCast( wizard->GetCurrentStep() );
       if ( oldStep )
         {
         oldStep->HideUserInterface();

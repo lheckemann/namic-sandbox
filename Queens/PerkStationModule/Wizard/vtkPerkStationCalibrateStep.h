@@ -39,6 +39,8 @@ public:
 
     // Reimplement the superclass's method (see vtkKWWizardStep).
   virtual void ShowUserInterface();
+  virtual void HideUserInterface();
+  
   
   virtual void ProcessGUIEvents( vtkObject *caller,
                                  unsigned long event,
@@ -79,7 +81,6 @@ protected:
   vtkPerkStationCalibrateStep();
   ~vtkPerkStationCalibrateStep(); 
   
-  void ShowLoadResetControls();
   void ShowCalibrationList();
   void ShowHardwareCalibration();
   
@@ -94,8 +95,6 @@ protected:
   void PopulateControls();
   void PopulateControlsOnLoadCalibration();
 
-  void EnableDisableLoadResetControls( bool enable );
-  void EnableDisableSaveControls( bool enable );
   void EnableDisableFlipComponents( bool enable );
   void EnableDisableScaleComponents( bool enable );
   
@@ -103,14 +102,6 @@ protected:
   // Widgets ------------------------------------------------------------------
   //BTX
   
-    // Load, save, reset calibration.
-  
-  vtkSmartPointer< vtkKWFrame >          LoadResetFrame;
-  vtkSmartPointer< vtkKWLoadSaveButton > LoadCalibrationFileButton;
-  vtkSmartPointer< vtkKWLoadSaveButton > SaveCalibrationFileButton;
-  vtkSmartPointer< vtkKWPushButton >     ResetCalibrationButton;
-  
-
     // Table calibration.
   
   vtkSmartPointer< vtkKWFrameWithLabel > TableFrame;
