@@ -206,13 +206,14 @@ void vtkUDPServerGUI::RemoveGUIObservers ( )
     this->UpdateEntry
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
+  /* 
   if (this->DataTable)
     {
     this->DataTable
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
- 
+  */
+
   if (this->ClearListButton)
     {
     this->ClearListButton
@@ -431,18 +432,19 @@ void vtkUDPServerGUI::ProcessMRMLEvents ( vtkObject *caller,
 {
  // -----------------------------------------
   // Adding a new node
+  /*
   if (event == vtkMRMLScene::NodeAddedEvent)
     {
     vtkObject* obj = (vtkObject*)callData;
     vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(obj);
-    
+  */  
     //Check to see if node is UDPServerNode
     /*if (node && strcmp(node->GetNodeTagName(), "UDPServerNode") == 0)
       {
       //Make new node active
       this->svrNode = vtkMRMLUDPServerNode::SafeDownCast(node);
       }*/
-    }
+  // }
     
 }
 
@@ -611,6 +613,9 @@ void vtkUDPServerGUI::BuildGUIForServerFrame()
 
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
               probeLabel->GetWidgetName() , this->ProbeTypeButtonSet->GetWidgetName());
+
+  probeFrame->Delete();
+  probeLabel->Delete();
   //--------------------------------------------
   // Connect Button
   vtkKWFrame *connectFrame = vtkKWFrame::New();
