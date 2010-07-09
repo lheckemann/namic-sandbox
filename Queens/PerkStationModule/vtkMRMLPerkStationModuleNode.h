@@ -95,7 +95,7 @@ public:
 //ETX
 
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 
 class
@@ -317,10 +317,14 @@ public:
   double GetTargetPointError();
   
   double GetActualPlanInsertionAngle();
-  
   double GetActualPlanInsertionDepth();
+  
+  double GetValidationAngle();
   double GetValidationDepth();
+  
   double GetDepthError();
+  double GetAngleError();
+  
   
 protected:
   
