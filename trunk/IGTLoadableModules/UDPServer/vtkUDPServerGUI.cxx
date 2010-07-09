@@ -206,13 +206,13 @@ void vtkUDPServerGUI::RemoveGUIObservers ( )
     this->UpdateEntry
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-/*
+
   if (this->DataTable)
     {
     this->DataTable
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-*/  
+ 
   if (this->ClearListButton)
     {
     this->ClearListButton
@@ -371,6 +371,12 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
       if (this->GetLogic()->GetServerStopFlag())
         {
         this->ConnectButton->SetText("Connect");
+     /*
+        if(svrNode)
+       {
+       svrNode->Delete();
+       }
+     */
         this->TimerFlag = 0;
         }
       }
