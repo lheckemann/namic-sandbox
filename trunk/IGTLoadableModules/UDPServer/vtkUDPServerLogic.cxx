@@ -59,6 +59,11 @@ vtkUDPServerLogic::~vtkUDPServerLogic()
     {
     this->DataCallbackCommand->Delete();
     }
+
+  if(this->Thread)
+    {
+    this->Thread->Delete();
+    } 
 }
 
 //---------------------------------------------------------------------------
