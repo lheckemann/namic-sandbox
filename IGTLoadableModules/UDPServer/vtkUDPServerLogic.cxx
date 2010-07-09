@@ -112,10 +112,10 @@ int vtkUDPServerLogic::StartServerConnection()
     int on = 1;
     setsockopt( this->sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
-    /*//Non blocking flag
+    //Non blocking flag (useful if no data are coming, not wait for ever)
     int flags = fcntl(sock, F_GETFL);
     flags |= O_NONBLOCK;
-    fcntl(sock, F_SETFL, flags);*/
+    fcntl(sock, F_SETFL, flags);
     
     // Bind the socket
     this->serverlen = sizeof(this->echoserver);
@@ -132,8 +132,8 @@ int vtkUDPServerLogic::StartServerConnection()
 void vtkUDPServerLogic::ImportData()
 {
   // Receive a message from the client
-  clientlen = sizeof(this->echoclient);
-  if ((received = recvfrom(sock, buffer, BUFFSIZE, 0, (struct sockaddr *) &echoclient, &clientlen)) < 0) 
+  this->clientlen = sizeof(this->echoclient);
+  if ((this->received = recvfrom(this->sock, this->buffer, this->BUFFSIZE, 0, (struct sockaddr *) &echoclient, &clientlen)) < 0) 
     {
     std::cerr << "Failed to receive message" << std::endl;
     }
@@ -141,7 +141,7 @@ void vtkUDPServerLogic::ImportData()
   this->buffer[received]= '\0';
   //Print out received data
   //std::cerr << received << " bytes received" << std::endl;
-  this->ImportedData = buffer;
+  this->ImportedData = this->buffer;
 }
 
 //-------------------------------------------------------------------------------
@@ -199,6 +199,7 @@ int vtkUDPServerLogic::Stop()
     this->Thread->TerminateThread(this->ThreadID);
     this->ThreadID = -1;
     std::cerr << "Socket Disconnected" << std::endl;
+    memset(buffer,0,sizeof(buffer));
     return 1;
     }
   else
