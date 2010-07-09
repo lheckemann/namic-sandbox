@@ -1234,14 +1234,13 @@ vtkMRMLPerkStationModuleNode
 ::GetActualPlanInsertionAngle()
 {
   double planEntry[ 3 ];
-  this->GetPlanEntryPoint( planEntry );
   double planTarget[ 3 ];
+  
+  this->GetPlanEntryPoint( planEntry );
   this->GetPlanTargetPoint( planTarget );
   
   double tangent = ( planEntry[ 0 ] - planTarget[ 0 ] ) / ( planEntry[ 1 ] - planTarget[ 1 ] );
-  
   double angle = - ( 180.0 / vtkMath::Pi() ) * atan( tangent );
-  
   angle = angle + 90.0;
   
   return angle;
@@ -1265,6 +1264,26 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
+double
+vtkMRMLPerkStationModuleNode
+::GetValidationAngle()
+{
+  double entry[ 3 ];
+  double target[ 3 ];
+  
+  this->GetValidationEntryPoint( entry );
+  this->GetValidationTargetPoint( target );
+  
+  double tangent = ( entry[ 0 ] - target[ 0 ] ) / ( entry[ 1 ] - target[ 1 ] );
+  double angle = - ( 180.0 / vtkMath::Pi() ) * atan( tangent );
+  angle = angle + 90.0;
+  
+  return angle;
+}
+
+
+
 /**
  * @returns Euclidean distance between validation target and entry points.
  */
@@ -1272,12 +1291,14 @@ double
 vtkMRMLPerkStationModuleNode
 ::GetValidationDepth()
 {
-  double validationEntry[ 3 ];
-  this->GetPlanEntryPoint( validationEntry );
-  double validationTarget[ 3 ];
-  this->GetPlanTargetPoint( validationTarget );
+  double entry[ 3 ];
+  double target[ 3 ];
   
-  double insDepth = sqrt( vtkMath::Distance2BetweenPoints( validationTarget, validationEntry ) );
+  this->GetValidationEntryPoint( entry );
+  this->GetValidationTargetPoint( target );
+  
+  double insDepth = sqrt( vtkMath::Distance2BetweenPoints( target, entry ) );
+  
   return insDepth;
 }
 
@@ -1289,6 +1310,20 @@ vtkMRMLPerkStationModuleNode
 {
   double val = GetValidationDepth();
   double plan = GetActualPlanInsertionDepth();
+  
+  double diff = val - plan;
+  if ( diff >= 0 ) return diff;
+  else return - diff;
+}
+
+
+
+double
+vtkMRMLPerkStationModuleNode
+::GetAngleError()
+{
+  double val = this->GetValidationAngle();
+  double plan = this->GetActualPlanInsertionAngle();
   
   double diff = val - plan;
   if ( diff >= 0 ) return diff;

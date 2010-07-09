@@ -89,11 +89,6 @@ protected:
   vtkKWEntryWithLabel* InsertionAngleError;
   vtkKWEntryWithLabel* InsertionDepthError;
   
-  vtkKWFrameWithLabel* TimePerformanceFrame;
-  vtkKWEntryWithLabel* CalibrationTime;
-  vtkKWEntryWithLabel* PlanTime;
-  vtkKWEntryWithLabel* InsertionTime;
-
   
     // On second monitor.
   

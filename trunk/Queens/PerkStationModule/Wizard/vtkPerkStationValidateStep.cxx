@@ -22,12 +22,12 @@
 #include "vtkSmartPointer.h"
 
 
-//----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkPerkStationValidateStep);
-vtkCxxRevisionMacro(vtkPerkStationValidateStep, "$Revision: 1.0 $");
+
+vtkStandardNewMacro( vtkPerkStationValidateStep );
+vtkCxxRevisionMacro( vtkPerkStationValidateStep, "$Revision: 1.0 $" );
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkPerkStationValidateStep
 ::AddGUIObservers()
@@ -51,10 +51,11 @@ vtkPerkStationValidateStep
 
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationValidateStep::InstallCallbacks()
+void
+vtkPerkStationValidateStep
+::InstallCallbacks()
 {
-  // Configure the OK button to start
+    // Configure the OK button to start
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   
   this->AddGUIObservers();
@@ -62,8 +63,8 @@ void vtkPerkStationValidateStep::InstallCallbacks()
 
 
 
-//----------------------------------------------------------------------------
-vtkPerkStationValidateStep::vtkPerkStationValidateStep()
+vtkPerkStationValidateStep
+::vtkPerkStationValidateStep()
 {
   this->SetName("4/5. Validate");
   this->SetDescription("Mark actual entry point and target hit");  
@@ -92,18 +93,13 @@ vtkPerkStationValidateStep::vtkPerkStationValidateStep()
   this->PlanActor = vtkActor::New();
   
   
-  this->TimePerformanceFrame = NULL;
-  this->CalibrationTime = NULL;
-  this->PlanTime = NULL;
-  this->InsertionTime = NULL;
-  
   this->ClickNumber = 0;
   this->ProcessingCallback = false;
 
 }
 
 
-//----------------------------------------------------------------------------
+
 vtkPerkStationValidateStep
 ::~vtkPerkStationValidateStep()
 {
@@ -119,17 +115,12 @@ vtkPerkStationValidateStep
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionAngleError );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionDepthError );
   
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TimePerformanceFrame );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->CalibrationTime );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanTime );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionTime );
-  
   DELETE_IF_NOT_NULL( this->ValidationNeedleActor );
   DELETE_IF_NOT_NULL( this->PlanActor );
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkPerkStationValidateStep
 ::ShowUserInterface()
@@ -137,7 +128,7 @@ vtkPerkStationValidateStep
   this->Superclass::ShowUserInterface();
 
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-  wizard_widget->GetCancelButton()->SetEnabled(0);
+  wizard_widget->GetCancelButton()->SetEnabled( 0 );
   vtkKWWidget *parent = wizard_widget->GetClientArea();
   int enabled = parent->GetEnabled();
   
@@ -154,40 +145,38 @@ vtkPerkStationValidateStep
   this->SetName("4/4. Validate");
   this->GetGUI()->GetWizardWidget()->Update();
 
-   // additional reset button
-
-  // frame for reset button
-  if (!this->ResetFrame)
+    // additional reset button
+  
+  
+    // frame for reset button
+  
+  if ( ! this->ResetFrame )
     {
     this->ResetFrame = vtkKWFrame::New();
     }
-  if (!this->ResetFrame->IsCreated())
+  if ( ! this->ResetFrame->IsCreated() )
     {
-    this->ResetFrame->SetParent(parent);
+    this->ResetFrame->SetParent( parent );
     this->ResetFrame->Create();     
     }
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    this->ResetFrame->GetWidgetName());
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", this->ResetFrame->GetWidgetName() );
   
-  if (!this->ResetValidationButton)
+  
+  if ( ! this->ResetValidationButton )
     {
     this->ResetValidationButton = vtkKWPushButton::New();
     }
-  if(!this->ResetValidationButton->IsCreated())
+  if( ! this->ResetValidationButton->IsCreated() )
     {
-    this->ResetValidationButton->SetParent(this->ResetFrame);
-    this->ResetValidationButton->SetText("Reset validation");
-    this->ResetValidationButton->SetBorderWidth(2);
+    this->ResetValidationButton->SetParent( this->ResetFrame );
+    this->ResetValidationButton->SetText( "Reset validation" );
+    this->ResetValidationButton->SetBorderWidth( 2 );
     this->ResetValidationButton->SetReliefToRaised();      
-    this->ResetValidationButton->SetHighlightThickness(2);
-    this->ResetValidationButton->SetBackgroundColor(0.85,0.85,0.85);
-    this->ResetValidationButton->SetActiveBackgroundColor(1,1,1);      
-    this->ResetValidationButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
+    this->ResetValidationButton->SetHighlightThickness( 2 );
+    this->ResetValidationButton->SetImageToPredefinedIcon( vtkKWIcon::IconTrashcan );
     this->ResetValidationButton->Create();
     }
-  
-  this->Script( "pack %s -side top -padx 2 -pady 4", 
-                this->ResetValidationButton->GetWidgetName() );
+  this->Script( "pack %s -side top -padx 2 -pady 4", this->ResetValidationButton->GetWidgetName() );
      
   
   this->SetDescription( "Mark actual entry point and target hit" );  
@@ -197,203 +186,108 @@ vtkPerkStationValidateStep
 
 
    // insertion depth  
-  if (!this->InsertionDepth)
+  if ( ! this->InsertionDepth )
     {
     this->InsertionDepth =  vtkKWEntryWithLabel::New(); 
     }
-  if (!this->InsertionDepth->IsCreated())
+  if ( ! this->InsertionDepth->IsCreated() )
     {
-    this->InsertionDepth->SetParent(parent);
+    this->InsertionDepth->SetParent( parent );
     this->InsertionDepth->Create();
     this->InsertionDepth->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionDepth->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
-    this->InsertionDepth->SetLabelText("Insertion depth (in mm):");
+    this->InsertionDepth->SetLabelText( "Planned insertion depth (mm):" );
     }
-
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->InsertionDepth->GetWidgetName());
-
-  if (!this->ValidationErrorsFrame)
+  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", this->InsertionDepth->GetWidgetName() );
+  
+  
+  if ( ! this->ValidationErrorsFrame )
     {
     this->ValidationErrorsFrame = vtkKWFrameWithLabel::New();
     }
-  if (!this->ValidationErrorsFrame->IsCreated())
+  if ( ! this->ValidationErrorsFrame->IsCreated() )
     {
-    this->ValidationErrorsFrame->SetParent(parent);
+    this->ValidationErrorsFrame->SetParent( parent );
     this->ValidationErrorsFrame->Create();
-    this->ValidationErrorsFrame->SetLabelText("Evaluation");
-    this->ValidationErrorsFrame->SetBalloonHelpString("");
+    this->ValidationErrorsFrame->SetLabelText( "Evaluation" );
+    this->ValidationErrorsFrame->SetBalloonHelpString( "" );
     }
-
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->ValidationErrorsFrame->GetWidgetName());
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                this->ValidationErrorsFrame->GetWidgetName() );
 
 
 
   // entry point error
-  if (!this->EntryPointError)
+  if ( ! this->EntryPointError )
     {
     this->EntryPointError =  vtkKWEntryWithLabel::New();  
     }
-  if (!this->EntryPointError->IsCreated())
+  if ( ! this->EntryPointError->IsCreated() )
     {
-    this->EntryPointError->SetParent(this->ValidationErrorsFrame->GetFrame());
+    this->EntryPointError->SetParent( this->ValidationErrorsFrame->GetFrame() );
     this->EntryPointError->Create();
     this->EntryPointError->GetWidget()->SetRestrictValueToDouble();
-    this->EntryPointError->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
-    this->EntryPointError->SetLabelText("Error in entry point (mm):");
+    this->EntryPointError->SetLabelText( "Error in entry point (mm):" );
     this->EntryPointError->SetWidth(7);
-    this->EntryPointError->GetWidget()->SetDisabledBackgroundColor(0.9,0.9,0.9);
     this->EntryPointError->GetWidget()->ReadOnlyOn();
     }
 
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->EntryPointError->GetWidgetName());
+  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", 
+                this->EntryPointError->GetWidgetName() );
 
 
-  // target point error
-  if (!this->TargetPointError)
+    // target point error
+  
+  if ( ! this->TargetPointError )
     {
     this->TargetPointError =  vtkKWEntryWithLabel::New();  
     }
-  if (!this->TargetPointError->IsCreated())
+  if ( ! this->TargetPointError->IsCreated() )
     {
-    this->TargetPointError->SetParent(this->ValidationErrorsFrame->GetFrame());
+    this->TargetPointError->SetParent( this->ValidationErrorsFrame->GetFrame() );
     this->TargetPointError->Create();
     this->TargetPointError->GetWidget()->SetRestrictValueToDouble();
-    this->TargetPointError->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
-    this->TargetPointError->SetLabelText("Error in target point (mm):");
-    this->TargetPointError->SetWidth(7);
-    this->TargetPointError->GetWidget()->SetDisabledBackgroundColor(0.9,0.9,0.9);
+    this->TargetPointError->SetLabelText( "Error in target point (mm):" );
+    this->TargetPointError->SetWidth( 7 );
     this->TargetPointError->GetWidget()->ReadOnlyOn();
     }
-
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->TargetPointError->GetWidgetName());
+  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", this->TargetPointError->GetWidgetName() );
 
  
 
-  // entry point error
-  if (!this->InsertionDepthError)
+    // entry point error
+  
+  if ( ! this->InsertionDepthError )
     {
     this->InsertionDepthError =  vtkKWEntryWithLabel::New();  
     }
-  if (!this->InsertionDepthError->IsCreated())
+  if ( ! this->InsertionDepthError->IsCreated() )
     {
-    this->InsertionDepthError->SetParent(this->ValidationErrorsFrame->GetFrame());
+    this->InsertionDepthError->SetParent( this->ValidationErrorsFrame->GetFrame() );
     this->InsertionDepthError->Create();
     this->InsertionDepthError->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionDepthError->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
-    this->InsertionDepthError->SetLabelText("Error in insertion depth (mm):");
-    this->InsertionDepthError->SetWidth(7);
-    this->InsertionDepthError->GetWidget()->SetDisabledBackgroundColor(0.9,0.9,0.9);
+    this->InsertionDepthError->SetLabelText( "Error in insertion depth (mm):" );
+    this->InsertionDepthError->SetWidth( 7 );
     this->InsertionDepthError->GetWidget()->ReadOnlyOn();
     }
-
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->InsertionDepthError->GetWidgetName());
+  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", this->InsertionDepthError->GetWidgetName() );
 
 
-  // target point error
-  if (!this->InsertionAngleError)
+    // target point error
+  
+  if ( ! this->InsertionAngleError )
     {
     this->InsertionAngleError =  vtkKWEntryWithLabel::New();  
     }
-  if (!this->InsertionAngleError->IsCreated())
+  if ( ! this->InsertionAngleError->IsCreated() )
     {
     this->InsertionAngleError->SetParent(this->ValidationErrorsFrame->GetFrame());
     this->InsertionAngleError->Create();
     this->InsertionAngleError->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionAngleError->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
-    this->InsertionAngleError->SetLabelText("Error in-plane angle(degrees):");
-    this->InsertionAngleError->SetWidth(7);
-    this->InsertionAngleError->GetWidget()->SetDisabledBackgroundColor(0.9,0.9,0.9);
+    this->InsertionAngleError->SetLabelText( "Error in-plane angle (degrees):" );
+    this->InsertionAngleError->SetWidth( 7 );
     this->InsertionAngleError->GetWidget()->ReadOnlyOn();
     }
-
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->InsertionAngleError->GetWidgetName());
-
-
-  if (!this->TimePerformanceFrame)
-    {
-    this->TimePerformanceFrame = vtkKWFrameWithLabel::New();
-    }
-  if (!this->TimePerformanceFrame->IsCreated())
-    {
-    this->TimePerformanceFrame->SetParent(parent);
-    this->TimePerformanceFrame->Create();
-    this->TimePerformanceFrame->SetLabelText("Time performance");
-    this->TimePerformanceFrame->SetBalloonHelpString("");
-    }
-
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->TimePerformanceFrame->GetWidgetName());
-
-
-
-  // entry point error
-  if (!this->CalibrationTime)
-    {
-    this->CalibrationTime =  vtkKWEntryWithLabel::New();  
-    }
-  if (!this->CalibrationTime->IsCreated())
-    {
-    this->CalibrationTime->SetParent(this->TimePerformanceFrame->GetFrame());
-    this->CalibrationTime->Create();
-    //this->CalibrationTime->GetWidget()->SetRestrictValueToDouble();
-    this->CalibrationTime->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
-    this->CalibrationTime->SetLabelText("Time spent on calibration (minutes, seconds):");
-    this->CalibrationTime->SetWidth(7);
-    this->CalibrationTime->GetWidget()->SetDisabledBackgroundColor(0.9,0.9,0.9);
-    this->CalibrationTime->GetWidget()->ReadOnlyOn();
-    }
-
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->CalibrationTime->GetWidgetName());
-
-
-  // target point error
-  if (!this->PlanTime)
-    {
-    this->PlanTime =  vtkKWEntryWithLabel::New();  
-    }
-  if (!this->PlanTime->IsCreated())
-    {
-    this->PlanTime->SetParent(this->TimePerformanceFrame->GetFrame());
-    this->PlanTime->Create();
-    //this->PlanTime->GetWidget()->SetRestrictValueToDouble();
-    this->PlanTime->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
-    this->PlanTime->SetLabelText("Time spent on planning (minutes, seconds):");
-    this->PlanTime->SetWidth(7);
-    this->PlanTime->GetWidget()->SetDisabledBackgroundColor(0.9,0.9,0.9);
-    this->PlanTime->GetWidget()->ReadOnlyOn();
-    }
-
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->PlanTime->GetWidgetName());
-
- 
-
-  // entry point error
-  if (!this->InsertionTime)
-    {
-    this->InsertionTime =  vtkKWEntryWithLabel::New();  
-    }
-  if ( ! this->InsertionTime->IsCreated() )
-    {
-    this->InsertionTime->SetParent( this->TimePerformanceFrame->GetFrame() );
-    this->InsertionTime->Create();
-    //this->InsertionTime->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionTime->GetLabel()->SetBackgroundColor( 0.7, 0.7, 0.7 );
-    this->InsertionTime->SetLabelText( "Time spent on insertion (minutes, seconds):" );
-    this->InsertionTime->SetWidth( 7 );
-    this->InsertionTime->GetWidget()->SetDisabledBackgroundColor( 0.9, 0.9, 0.9 );
-    this->InsertionTime->GetWidget()->ReadOnlyOn();
-    }
-
-  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->InsertionTime->GetWidgetName() );
+  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", this->InsertionAngleError->GetWidgetName() );
   
   
   // TO DO: install callbacks
@@ -401,6 +295,7 @@ vtkPerkStationValidateStep
   
   this->UpdateGUI();
 }
+
 
 
 void
@@ -462,7 +357,7 @@ vtkPerkStationValidateStep
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkPerkStationValidateStep
 ::PrintSelf( ostream& os, vtkIndent indent )
@@ -471,7 +366,7 @@ vtkPerkStationValidateStep
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkPerkStationValidateStep
 ::RemoveGUIObservers()
@@ -489,9 +384,9 @@ vtkPerkStationValidateStep
 }
 
 
-//-----------------------------------------------------------------------------
+
 void vtkPerkStationValidateStep::ProcessImageClickEvents(
-  vtkObject *caller, unsigned long event, void *callData )
+   vtkObject *caller, unsigned long event, void *callData )
 {
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   
@@ -681,8 +576,9 @@ vtkPerkStationValidateStep
 
 
 
-//------------------------------------------------------------------------------
-void vtkPerkStationValidateStep::RemoveValidationNeedleAxis()
+void
+vtkPerkStationValidateStep
+::RemoveValidationNeedleAxis()
 {
     // should remove the overlay needle guide
   
@@ -864,6 +760,18 @@ vtkPerkStationValidateStep
   this->PlanList->GetWidget()->SelectRow( mrmlNode->GetCurrentPlanIndex() );
   
   
+    // Plan depth.
+ 
+  if ( mrmlNode->GetCurrentPlanIndex() >= 0 )
+    {
+    this->InsertionDepth->GetWidget()->SetValueAsDouble( mrmlNode->GetActualPlanInsertionDepth() );
+    }
+  else
+    {
+    this->InsertionDepth->GetWidget()->SetValue( "" );
+    }
+
+  
     // Update error metric values. --------------------------------------------
   
   if ( mrmlNode->GetValidated() )
@@ -871,31 +779,15 @@ vtkPerkStationValidateStep
     this->EntryPointError->GetWidget()->SetValueAsDouble( mrmlNode->GetEntryPointError() );
     this->TargetPointError->GetWidget()->SetValueAsDouble( mrmlNode->GetTargetPointError() );
     this->InsertionDepthError->GetWidget()->SetValueAsDouble( mrmlNode->GetDepthError() );
+    this->InsertionAngleError->GetWidget()->SetValueAsDouble( mrmlNode->GetAngleError() );
     }
   else
     {
     this->EntryPointError->GetWidget()->SetValue( "" );
     this->TargetPointError->GetWidget()->SetValue( "" );
     this->InsertionDepthError->GetWidget()->SetValue( "" );
+    this->InsertionAngleError->GetWidget()->SetValue( "" );
     }
-  
-  
-    // Time performance. ------------------------------------------------------
-  
-  char timeStr[ 20 ];
-  long time = 0;
-  
-  time = mrmlNode->GetTimeOnCalibrateStep();
-  sprintf( timeStr, "%02d:%02d", time/60, time%60 );
-  this->CalibrationTime->GetWidget()->SetValue( timeStr );
-
-  time = mrmlNode->GetTimeOnPlanStep();
-  sprintf( timeStr, "%02d:%02d", time/60, time%60 );
-  this->PlanTime->GetWidget()->SetValue( timeStr );
-
-  time = mrmlNode->GetTimeOnInsertStep();
-  sprintf( timeStr, "%02d:%02d", time/60, time%60 );
-  this->InsertionTime->GetWidget()->SetValue( timeStr );
   
   
     // Second monitor. --------------------------------------------------------
