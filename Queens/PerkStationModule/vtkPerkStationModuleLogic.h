@@ -18,12 +18,11 @@ vtkPerkStationModuleLogic
 {
 public:
   static vtkPerkStationModuleLogic *New();
-  vtkTypeMacro(vtkPerkStationModuleLogic,vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  vtkTypeMacro( vtkPerkStationModuleLogic,vtkSlicerModuleLogic );
+  void PrintSelf( ostream& os, vtkIndent indent );
 
   // TODO: do we need to observe MRML here?
-  virtual void ProcessMrmlEvents ( vtkObject *caller, unsigned long event,
-                                   void *callData ){};
+  virtual void ProcessMrmlEvents ( vtkObject *caller, unsigned long event, void *callData ){};
 
   // Description: Get/Set MRML node storing parameter values
   vtkGetObjectMacro (PerkStationModuleNode, vtkMRMLPerkStationModuleNode);
@@ -32,15 +31,11 @@ public:
     vtkSetAndObserveMRMLNodeMacro( this->PerkStationModuleNode, n);
     }
 
-   // Description:
-   // Add volume to MRML scene and return the MRML node.
-   // If volumeType is specified, then the volume is also selected as the current Calibration
-   // targeting or verification volume
-  vtkMRMLScalarVolumeNode *AddVolumeToScene(vtkSlicerApplication* app,const char *fileName, VolumeType volumeType=VOL_GENERIC);  
-  static void ComputePermutationFromOrientation(vtkMatrix4x4 *matrix, int permutation[3], int flip[3]);
   
-  static char *strrev(char *s,int n);
-  static bool DoubleEqual(double val1, double val2);
+  static void ComputePermutationFromOrientation( vtkMatrix4x4 *matrix, int permutation[3], int flip[3] );
+  
+  static char *strrev( char *s,int n );
+  static bool DoubleEqual( double val1, double val2 );
   
   void AdjustSliceView();
    

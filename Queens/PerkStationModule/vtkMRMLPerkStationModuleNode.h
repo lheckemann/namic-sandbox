@@ -36,12 +36,14 @@ enum
   WORKPHASE_VALIDATION = 3
 };
 
+
 enum VolumeType
 {
   VOL_GENERIC, // any other than the specific volumes 
   VOL_CALIBRATE_PLAN,  
   VOL_VALIDATION
 };
+
 
 enum PatientPositionEnum
   {
@@ -55,6 +57,7 @@ enum PatientPositionEnum
   FFP,  // Feet First-Prone
   FFS   // Feet First-Supine
   };
+
 
 struct OverlayHardware
 {
@@ -328,6 +331,8 @@ public:
   
 protected:
   
+  //BTX
+  
   vtkMRMLPerkStationModuleNode();
   ~vtkMRMLPerkStationModuleNode();
   vtkMRMLPerkStationModuleNode( const vtkMRMLPerkStationModuleNode& );
@@ -338,11 +343,9 @@ protected:
   
   // Calibration parameters ---------------------------------------------------
   
-  //BTX
   std::vector< OverlayCalibration* > CalibrationList;
   int CurrentCalibration; // If <0, no calibration is selected.
   unsigned int CalibrationUID;
-  //ETX
   
   int HardwareIndex;
   double TableAtOverlay;
@@ -351,8 +354,6 @@ protected:
     // Plan parameters --------------------------------------------------------
   
   double TiltAngle;
-  
-  //BTX
   
   std::vector< vtkPerkStationPlan* > PlanList;
   int CurrentPlanIndex; // If <0, no plan is selected.
@@ -370,9 +371,8 @@ protected:
   
   int ReferenceBodyToolPort;
   int NeedleToolPort;
-  //ETX
   
-  
+ 
     // Common parameters ------------------------------------------------------
   
   char* PlanningVolumeRef;
@@ -390,17 +390,18 @@ protected:
   double TimeOnInsertStep;
   double TimeOnValidateStep;
   
-  //BTX
   vtkSmartPointer< vtkMRMLFiducialListNode > PlanMRMLFiducialListNode;
   
   vtkSmartPointer< vtkStringArray > StepList;
-  //ETX
+  
   int CurrentStep;
   int PreviousStep;
   
+  std::vector< OverlayHardware > HardwareList;
   
-  //keep track of all the volumes that were opened, maintain a list
-  //BTX
+  
+    // keep track of all the volumes that were opened, maintain a list
+  
   typedef struct {
     std::string Type;
     std::string DiskLocation;
@@ -410,7 +411,6 @@ protected:
   
   std::vector< VolumeInformationStruct > VolumesList;
   
-  std::vector< OverlayHardware > HardwareList;
   //ETX
 };
 
