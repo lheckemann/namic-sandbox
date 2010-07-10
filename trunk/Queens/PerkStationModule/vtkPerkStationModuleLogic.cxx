@@ -316,49 +316,9 @@ void vtkPerkStationModuleLogic::SetSliceViewFromVolume(
     }
 
 }
-//---------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode *vtkPerkStationModuleLogic::AddVolumeToScene(vtkSlicerApplication* app, const char *fileName, VolumeType volumeType/*=VOL_GENERIC*/)
-{
-  if (fileName==0)
-  {
-    vtkErrorMacro("AddVolumeToScene: invalid filename");
-    return 0;
-  }
 
-  vtksys_stl::string volumeNameString = vtksys::SystemTools::GetFilenameName(fileName);
-  vtkMRMLScalarVolumeNode *volumeNode = this->AddArchetypeVolume(app, fileName, volumeNameString.c_str());
 
-  this->SetAutoScaleScalarVolume(volumeNode);
-  this->SetSliceViewFromVolume(app, volumeNode);
 
-  
-  switch (volumeType)
-  {
-  case VOL_CALIBRATE_PLAN:
-    this->PerkStationModuleNode->SetPlanningVolumeNode(volumeNode); 
-    this->PerkStationModuleNode->SetPlanningVolumeRef(volumeNode->GetID());
-    this->PerkStationModuleNode->AddVolumeInformationToList(volumeNode, fileName, "Planning");
-    break;
- 
-  case VOL_VALIDATION:
-    this->PerkStationModuleNode->SetValidationVolumeNode(volumeNode);   
-    this->PerkStationModuleNode->SetValidationVolumeRef(volumeNode->GetID());
-    this->PerkStationModuleNode->AddVolumeInformationToList(volumeNode, fileName, "Validation");
-    break;
-  case VOL_GENERIC:
-    this->PerkStationModuleNode->AddVolumeInformationToList(volumeNode, fileName, "Other");
-    break;
-  default:
-    vtkErrorMacro("AddVolumeToScene: unknown volume type: " << volumeType);
-  }
-  
-  volumeNode->Modified();
-  this->Modified();
-
-  return volumeNode;
-}
-
-//---------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode *vtkPerkStationModuleLogic::AddArchetypeVolume(vtkSlicerApplication* app, const char* fileName, const char *volumeName)
 {
   // Set up storageNode
