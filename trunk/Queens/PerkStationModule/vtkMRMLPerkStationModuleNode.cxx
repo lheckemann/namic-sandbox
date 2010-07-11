@@ -354,6 +354,21 @@ vtkMRMLPerkStationModuleNode
 vtkMRMLPerkStationModuleNode
 ::~vtkMRMLPerkStationModuleNode()
 {
+    // Calibration list.
+  
+  for ( std::vector< OverlayCalibration* >::iterator it = this->CalibrationList.begin();
+        it != this->CalibrationList.end(); ++ it )
+    {
+    if ( (*it) != NULL )
+      {
+      delete (*it);
+      (*it) = NULL;
+      }
+    }
+  
+  
+    // Plan list.
+  
   for ( std::vector< vtkPerkStationPlan* >::iterator it = this->PlanList.begin();
         it != this->PlanList.end(); ++ it )
     {   
@@ -758,6 +773,19 @@ vtkMRMLPerkStationModuleNode
 
 void vtkMRMLPerkStationModuleNode::UpdateReferenceID( const char *oldID, const char *newID )
 {
+  Superclass::UpdateReferenceID( oldID, newID );
+  
+  
+  if ( this->PlanningVolumeRef && ! strcmp( oldID, this->PlanningVolumeRef ) )
+    {
+    this->SetPlanningVolumeRef( newID );
+    }
+  
+  if ( this->ValidationVolumeRef && ! strcmp( oldID, this->ValidationVolumeRef ) )
+    {
+    this->SetValidationVolumeRef( newID );
+    }
+  
   /*
   if (!strcmp(oldID, this->InputVolumeRef))
     {
@@ -970,21 +998,6 @@ vtkMRMLPerkStationModuleNode
     }
 }
 
-
-//-----------------------------------------------------------------------------
-void
-vtkMRMLPerkStationModuleNode
-::AddVolumeInformationToList( vtkMRMLScalarVolumeNode* volNode,
-                              const char* diskLocation,
-                              char* type )
-{
-  VolumeInformationStruct volStruct;
-  volStruct.DiskLocation=diskLocation;
-  volStruct.Type = type;
-  volStruct.VolumeNode = volNode;
-  volStruct.Active = false;
-  this->VolumesList.push_back(volStruct);
-}
 
 
 /**

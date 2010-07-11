@@ -6,8 +6,6 @@
 
 #include <string>
 
-#include "vtkSmartPointer.h"
-
 #include "vtkKWEntryWithLabel.h"
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWLabel.h"
@@ -42,15 +40,11 @@ public:
   virtual void HideUserInterface();
   
   
-  virtual void ProcessGUIEvents( vtkObject *caller,
-                                 unsigned long event,
-                                 void *callData );
+  virtual void ProcessGUIEvents( vtkObject *caller, unsigned long event, void *callData );
 
     // Callbacks to capture keyboard events which will do translation/rotation
     // depending on key pressed
-  virtual void ProcessKeyboardEvents( vtkObject *caller,
-                                      unsigned long event,
-                                      void *callData );
+  virtual void ProcessKeyboardEvents( vtkObject *caller, unsigned long event, void *callData );
   
   
     // Callbacks
@@ -104,45 +98,45 @@ protected:
   
     // Table calibration.
   
-  vtkSmartPointer< vtkKWFrameWithLabel > TableFrame;
-  vtkSmartPointer< vtkKWLabel >          TableOverlayLabel;
-  vtkSmartPointer< vtkKWEntry >          TableOverlayEntry;
-  vtkSmartPointer< vtkKWPushButton >     TableUpdateButton;
+  vtkKWFrameWithLabel* TableFrame;
+  vtkKWLabel*          TableOverlayLabel;
+  vtkKWEntry*          TableOverlayEntry;
+  vtkKWPushButton*     TableUpdateButton;
   
   
     // Hardware selection.
   
-  vtkSmartPointer< vtkKWFrameWithLabel >      HardwareFrame;
-  vtkSmartPointer< vtkKWMenuButtonWithLabel > HardwareMenu;
+  vtkKWFrameWithLabel*      HardwareFrame;
+  vtkKWMenuButtonWithLabel* HardwareMenu;
   
   
     // Calibration list.
   
-  vtkKWFrame* ListButtonsFrame;
-  vtkKWFrame* CalibrationListFrame;
+  vtkKWFrame*        ListButtonsFrame;
+  vtkKWFrame*        CalibrationListFrame;
   vtkKWMultiColumnListWithScrollbars* CalibrationList;
-  vtkKWPushButton* AddButton;
-  vtkKWPushButton* DeleteButton;
-  unsigned int CalibrationUID;
+  vtkKWPushButton*   AddButton;
+  vtkKWPushButton*   DeleteButton;
+  unsigned int       CalibrationUID;
   
   
     // Hardware calibration.
   
-  vtkSmartPointer< vtkKWFrameWithLabel > HardwareCalibrationFrame;
+  vtkKWFrameWithLabel* HardwareCalibrationFrame;
   
-  vtkSmartPointer< vtkKWFrame >                FlipFrame;
-  vtkSmartPointer< vtkKWCheckButtonWithLabel > VerticalFlipCheckButton;
-  vtkSmartPointer< vtkKWCheckButtonWithLabel > HorizontalFlipCheckButton;
+  vtkKWFrame*                FlipFrame;
+  vtkKWCheckButtonWithLabel* VerticalFlipCheckButton;
+  vtkKWCheckButtonWithLabel* HorizontalFlipCheckButton;
   
-  vtkSmartPointer< vtkKWFrame >    MonPhySizeFrame;
-  vtkSmartPointer< vtkKWLabel >    MonPhySizeLabel;
-  vtkSmartPointer< vtkKWEntrySet > MonPhySize; 
+  vtkKWFrame*    MonPhySizeFrame;
+  vtkKWLabel*    MonPhySizeLabel;
+  vtkKWEntrySet* MonPhySize; 
   
-  vtkSmartPointer< vtkKWFrame >    MonPixResFrame;
-  vtkSmartPointer< vtkKWLabel >    MonPixResLabel;  
-  vtkSmartPointer< vtkKWEntrySet > MonPixRes; 
+  vtkKWFrame*    MonPixResFrame;
+  vtkKWLabel*    MonPixResLabel;  
+  vtkKWEntrySet* MonPixRes; 
   
-  vtkSmartPointer< vtkKWPushButton > HardwareUpdateButton;
+  vtkKWPushButton* HardwareUpdateButton;
   
   //ETX
   // --------------------------------------------------------------------------

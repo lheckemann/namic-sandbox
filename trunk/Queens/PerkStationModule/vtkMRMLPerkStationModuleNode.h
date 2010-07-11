@@ -296,9 +296,6 @@ public:
     // Update the stored reference to another node in the scene
   virtual void UpdateReferenceID( const char *oldID, const char *newID );
   
-  void AddVolumeInformationToList( vtkMRMLScalarVolumeNode *volNode,
-                                   const char *diskLocation, char *type ); 
-  
   int GetNumberOfSteps();
   int GetCurrentStep();
   int GetPreviousStep();

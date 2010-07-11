@@ -10,6 +10,37 @@
 
   // Macros.
 
+#define ADD_BUTTON_INVOKED_EVENT_GUI( obj ) \
+  if ( obj ) \
+    { \
+    obj->AddObserver( vtkKWPushButton::InvokedEvent, (vtkCommand*)( this->GUICallbackCommand ) ); \
+    };
+  
+
+#define REMOVE_BUTTON_INVOKED_EVENT_GUI( obj ) \
+  if ( obj ) \
+    { \
+    obj->RemoveObservers( vtkKWPushButton::InvokedEvent, \
+                          ( vtkCommand* )( this->GUICallbackCommand ) ); \
+    };
+
+
+#define ADD_BUTTON_INVOKED_EVENT_WIZARD( obj ) \
+  if ( obj ) \
+    { \
+    obj->AddObserver( vtkKWPushButton::InvokedEvent, \
+                      (vtkCommand*)( this->WizardGUICallbackCommand ) ); \
+    };
+
+
+#define REMOVE_BUTTON_INVOKED_EVENT_WIZARD( obj ) \
+  if ( obj ) \
+    { \
+    obj->RemoveObservers( vtkKWPushButton::InvokedEvent, \
+                          ( vtkCommand* )( this->WizardGUICallbackCommand ) ); \
+    };
+
+
 #define DELETE_IF_NOT_NULL( obj ) \
   if ( obj ) \
     { \

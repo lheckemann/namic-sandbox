@@ -136,7 +136,7 @@ vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
 void vtkPerkStationPlanStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
-    
+  
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   wizard_widget->GetCancelButton()->SetEnabled(0);
   vtkKWWidget *parent = wizard_widget->GetClientArea();
@@ -156,7 +156,7 @@ void vtkPerkStationPlanStep::ShowUserInterface()
   
   
    //frame
-  if (!this->TiltInformationFrame)
+  if ( ! this->TiltInformationFrame )
     {
     this->TiltInformationFrame = vtkKWFrame::New();
     }
