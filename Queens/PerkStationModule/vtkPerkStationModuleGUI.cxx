@@ -64,7 +64,9 @@
 /**
  * Factory.
  */
-vtkPerkStationModuleGUI* vtkPerkStationModuleGUI::New()
+vtkPerkStationModuleGUI*
+vtkPerkStationModuleGUI
+::New()
 {
     // First try to create the object from the vtkObjectFactory
   vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkPerkStationModuleGUI" );
@@ -85,68 +87,69 @@ vtkPerkStationModuleGUI
 {
     // gui elements
   
-  this->VolumeSelector = vtkSmartPointer< vtkSlicerNodeSelectorWidget >::New();
-  this->ValidationVolumeSelector = vtkSmartPointer< vtkSlicerNodeSelectorWidget >::New();
-  this->PSNodeSelector = vtkSmartPointer< vtkSlicerNodeSelectorWidget >::New();
+  this->InputFrame = NULL;
+  this->PSNodeSelector = NULL;
+  this->VolumeSelector = NULL;
+  this->ValidationVolumeSelector = NULL;
   
-  this->CalibrateTimeLabel = vtkSmartPointer< vtkKWLabel >::New();
-  this->PlanTimeLabel = vtkSmartPointer< vtkKWLabel >::New();
-  this->InsertTimeLabel = vtkSmartPointer< vtkKWLabel >::New();
-  this->ValidateTimeLabel = vtkSmartPointer< vtkKWLabel >::New();
-  this->TimerButton = vtkSmartPointer< vtkKWPushButton >::New();
-  this->ResetTimerButton = vtkSmartPointer< vtkKWPushButton >::New();
+  this->TimerFrame = NULL;
+  this->CalibrateTimeLabel = NULL;
+  this->PlanTimeLabel = NULL;
+  this->InsertTimeLabel = NULL;
+  this->ValidateTimeLabel = NULL;
+  this->TimerButton = NULL;
+  this->ResetTimerButton = NULL;
   
   for ( int i = 0; i < 4; ++ i ) this->WorkingTimes[ i ] = 0.0;
   this->TimerOn = false;
   this->LastTime = 0.0;
   
-  this->Logic = NULL;
-  this->MRMLNode = NULL;
-  
-  
-  this->WizardWidget = vtkSmartPointer< vtkKWWizardWidget >::New();
-  
-  
-    // secondary monitor
-  
-  this->SecondaryMonitor = vtkSmartPointer< vtkPerkStationSecondaryMonitor >::New();
-    this->SecondaryMonitor->SetGUI( this );
-    this->SecondaryMonitor->Initialize();
-    
-  
-    // wizard workflow
-  
-  this->WizardFrame = vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();  
-  this->CalibrateStep = vtkSmartPointer< vtkPerkStationCalibrateStep >::New();
-  this->PlanStep = vtkSmartPointer< vtkPerkStationPlanStep >::New();
-  this->InsertStep = vtkSmartPointer< vtkPerkStationInsertStep >::New();
-  this->ValidateStep = vtkSmartPointer< vtkPerkStationValidateStep >::New();
-  
-  this->State = vtkPerkStationModuleGUI::Calibrate;  
-  
-  this->Entered = false;
-  this->Built = false;
-  this->SliceOffset = 0;
-  
-  this->ObserverCount = 0;
-  
   
     // Workphase handling.
   
-  this->WorkphaseButtonFrame = vtkSmartPointer< vtkKWFrame >::New();
-  this->WorkphaseButtonSet = vtkSmartPointer< vtkKWPushButtonSet >::New();
+  this->WorkphaseButtonFrame = NULL;
+  this->WorkphaseButtonSet = NULL;
   
-  this->TimerLog = vtkSmartPointer< vtkTimerLog >::New();
+  
+    // wizard workflow
+  
+  this->WizardFrame = NULL;  
+  this->WizardWidget = NULL;
+  this->CalibrateStep = NULL;
+  this->PlanStep = NULL;
+  this->InsertStep = NULL;
+  this->ValidateStep = NULL;
+  
+  
+    // Collaborator classes.
+  
+  this->Logic = NULL;
+  this->MRMLNode = NULL;
+  
+  this->SecondaryMonitor = vtkPerkStationSecondaryMonitor::New();
+  this->SecondaryMonitor->SetGUI( this );
+  this->SecondaryMonitor->Initialize();
+    
+  
+    // Initial state.
+  
+  this->State = vtkPerkStationModuleGUI::Calibrate;  
+  this->Entered = false;
+  this->Built = false;
+  this->SliceOffset = 0;
+  this->ObserverCount = 0;
+  this->TimerLog = NULL;
 }
 
 
-// ----------------------------------------------------------------------------
-vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
+
+vtkPerkStationModuleGUI
+::~vtkPerkStationModuleGUI()
 {
   this->RemoveGUIObservers();
   
-  vtkSlicerSliceLogic *sliceLogic =
-    this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic();
+  vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic();
+  
   if ( sliceLogic )
     {  
     sliceLogic->GetSliceNode()->RemoveObservers(
@@ -159,19 +162,47 @@ vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
     {
     vtkSetMRMLNodeMacro( this->MRMLNode, NULL );
     }
+  
+  DELETE_IF_NOT_NULL( this->SecondaryMonitor );
+  
+  
+    // GUI widgets.
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InputFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->VolumeSelector );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ValidationVolumeSelector );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PSNodeSelector );
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TimerFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->CalibrateTimeLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanTimeLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertTimeLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ValidateTimeLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TimerButton );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ResetTimerButton );
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->WorkphaseButtonFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->WorkphaseButtonSet );
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->WizardFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->WizardWidget );
+  DELETE_IF_NOT_NULL( this->CalibrateStep );
+  DELETE_IF_NOT_NULL( this->PlanStep );
+  DELETE_IF_NOT_NULL( this->InsertStep );
+  DELETE_IF_NOT_NULL( this->ValidateStep );
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkPerkStationModuleGUI
 ::PrintSelf( ostream& os, vtkIndent indent )
 {
-  
+  Superclass::PrintSelf( os, indent );
 }
 
 
-//---------------------------------------------------------------------------
+
 void
 vtkPerkStationModuleGUI
 ::Enter( vtkMRMLNode *node )
@@ -189,7 +220,7 @@ vtkPerkStationModuleGUI
 }
 
 
-//------------------------------------------------------------------------------
+
 void
 vtkPerkStationModuleGUI
 ::Enter()
@@ -217,28 +248,6 @@ vtkPerkStationModuleGUI
     p->RepackMainViewer ( vtkMRMLLayoutNode::SlicerLayoutOneUpSliceView, "Red");       
     }
   
-  
-  /*
-  vtkMRMLPerkStationModuleNode* n = this->GetMRMLNode();
-  if ( n == NULL )
-    {
-      // no parameter node selected yet, create new
-    
-    this->PSNodeSelector->SetSelectedNew( "vtkMRMLPerkStationModuleNode" );
-    this->PSNodeSelector->ProcessNewNodeCommand( "vtkMRMLPerkStationModuleNode", "PS" );
-    n = vtkMRMLPerkStationModuleNode::SafeDownCast( this->PSNodeSelector->GetSelected() );
-
-      // set an observe new node in Logic
-    
-    this->Logic->SetAndObservePerkStationModuleNode( n );
-    vtkSetAndObserveMRMLNodeMacro( this->MRMLNode, n );
-    
-      // add MRMLFiducialListNode to the scene
-    
-    this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
-    this->GetLogic()->GetMRMLScene()->AddNode( this->MRMLNode->GetPlanMRMLFiducialListNode() );
-    }
-  */
   
     // Slice offset changed event.
   
@@ -310,15 +319,15 @@ vtkPerkStationModuleGUI
   
     // Timer buttons.
   
-  this->TimerButton->AddObserver( vtkKWPushButton::InvokedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
-  this->ResetTimerButton->AddObserver( vtkKWPushButton::InvokedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+  ADD_BUTTON_INVOKED_EVENT_GUI( this->TimerButton );
+  ADD_BUTTON_INVOKED_EVENT_GUI( this->ResetTimerButton );
   
   
     // Red slice keyboard and mouse events.
   
   vtkInteractorStyle* iStyle = vtkInteractorStyle::SafeDownCast(
-    appGUI->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle() );
-  
+    appGUI->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
+    GetRenderWindowInteractor()->GetInteractorStyle() );
   
   iStyle->AddObserver( vtkCommand::LeftButtonPressEvent, ( vtkCommand* )this->GUICallbackCommand );
   iStyle->AddObserver( vtkCommand::KeyPressEvent, ( vtkCommand* )this->GUICallbackCommand );
@@ -329,7 +338,7 @@ vtkPerkStationModuleGUI
   
   for ( int i = 0; i < this->WorkphaseButtonSet->GetNumberOfWidgets(); ++ i )
     {
-    this->WorkphaseButtonSet->GetWidget( i )->AddObserver( vtkKWPushButton::InvokedEvent, ( vtkCommand* )( this->GUICallbackCommand ) );
+    ADD_BUTTON_INVOKED_EVENT_GUI( this->WorkphaseButtonSet->GetWidget( i ) );
     }
   
   
@@ -339,25 +348,63 @@ vtkPerkStationModuleGUI
     vtkKWWizardWorkflow::CurrentStateChangedEvent, static_cast< vtkCommand* >( this->GUICallbackCommand ) );  
   
   
-  this->VolumeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, ( vtkCommand* )this->GUICallbackCommand );
-  
-  
-  this->ObserverCount++;
+  this->ObserverCount ++;
 }
 
 
 
-// ----------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
+void
+vtkPerkStationModuleGUI
+::RemoveGUIObservers ( )
 {
-  this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()
-      ->RemoveObserver( (vtkCommand*)( this->GUICallbackCommand ) );
+  /*
+  this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->
+      GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver(
+                                      (vtkCommand*)( this->GUICallbackCommand ) );
+  */
   
-  this->WizardWidget->GetWizardWorkflow()->RemoveObserver( static_cast< vtkCommand* >( this->GUICallbackCommand ) );
+    // Node selector and volume selector.
+  
   this->VolumeSelector->RemoveObservers( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, ( vtkCommand* )this->GUICallbackCommand );
   this->PSNodeSelector->RemoveObservers( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, ( vtkCommand* )this->GUICallbackCommand );    
+  this->ValidationVolumeSelector->RemoveObservers( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
   
-  this->ObserverCount--;
+  
+    // Timer buttons.
+  
+  REMOVE_BUTTON_INVOKED_EVENT_GUI( this->TimerButton );
+  REMOVE_BUTTON_INVOKED_EVENT_GUI( this->ResetTimerButton );
+  
+  
+    // Red slice keyboard and mouse events.
+  
+  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+  
+  vtkInteractorStyle* iStyle = vtkInteractorStyle::SafeDownCast(
+    appGUI->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
+    GetRenderWindowInteractor()->GetInteractorStyle() );
+  
+  iStyle->RemoveObservers( vtkCommand::LeftButtonPressEvent, ( vtkCommand* )this->GUICallbackCommand );
+  iStyle->RemoveObservers( vtkCommand::KeyPressEvent, ( vtkCommand* )this->GUICallbackCommand );
+  iStyle->RemoveObservers( vtkCommand::MouseMoveEvent, ( vtkCommand* )this->GUICallbackCommand );
+  
+  
+    // Workphase pushbutton set.
+  
+  for ( int i = 0; i < this->WorkphaseButtonSet->GetNumberOfWidgets(); ++ i )
+    {
+    REMOVE_BUTTON_INVOKED_EVENT_GUI( this->WorkphaseButtonSet->GetWidget( i ) );
+    }
+  
+  
+    // wizard workflow
+    
+  this->WizardWidget->GetWizardWorkflow()->RemoveObservers(
+    vtkKWWizardWorkflow::CurrentStateChangedEvent,
+    static_cast< vtkCommand* >( this->GUICallbackCommand ) );  
+  
+  
+  this->ObserverCount --;
 }
 
 
@@ -522,8 +569,7 @@ vtkPerkStationModuleGUI
   
   if (    this->MRMLNode
        && strcmp( eventName, "MouseMoveEvent" ) == 0
-       && this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
-          == this->PlanStep.GetPointer()
+       && this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->PlanStep
        && strcmp( this->MRMLNode->GetVolumeInUse(), "Planning" ) == 0 )
     {
     this->PlanStep->ProcessMouseMoveEvent( caller, event, callData );
@@ -594,22 +640,22 @@ vtkPerkStationModuleGUI
   if (    this->WizardWidget->GetWizardWorkflow() == vtkKWWizardWorkflow::SafeDownCast( caller )
        && event == vtkKWWizardWorkflow::CurrentStateChangedEvent )
     {
-    if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->CalibrateStep.GetPointer() )
+    if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->CalibrateStep )
       {
       this->State = vtkPerkStationModuleGUI::Calibrate;
       this->MRMLNode->SwitchStep( 0 );
       }
-    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->PlanStep.GetPointer() )
+    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->PlanStep )
       {
       this->State = vtkPerkStationModuleGUI::Plan;
       this->MRMLNode->SwitchStep( 1 );
       }
-    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->InsertStep.GetPointer() )
+    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->InsertStep )
       {
       this->State = vtkPerkStationModuleGUI::Insert;
       this->MRMLNode->SwitchStep( 2 );
       }
-    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->ValidateStep.GetPointer() )
+    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->ValidateStep )
       {
       this->State = vtkPerkStationModuleGUI::Validate;
       this->MRMLNode->SwitchStep( 3 );
@@ -709,7 +755,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
     {    
     
     // see in what state wizard gui is, act accordingly
-    if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->CalibrateStep.GetPointer() )
+    if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->CalibrateStep )
       {
       bool planningVolumePreExists = false;
       // inside calibrate step
@@ -769,7 +815,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
         }
 
       }
-    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->ValidateStep.GetPointer() )
+    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->ValidateStep )
       {
       // what if the volume selected is actually planning
       // in that case just return
@@ -1058,7 +1104,7 @@ vtkPerkStationSecondaryMonitor*
 vtkPerkStationModuleGUI
 ::GetSecondaryMonitor()
 {
-  return this->SecondaryMonitor.GetPointer();
+  return this->SecondaryMonitor;
 }
 
   
@@ -1155,134 +1201,160 @@ vtkPerkStationModuleGUI
   vtkKWWidget* page = this->UIPanel->GetPageWidget( "PerkStationModule" );
   
   
-  vtkSmartPointer< vtkKWFrameWithLabel > loadSaveExptFrame =
-      vtkSmartPointer< vtkKWFrameWithLabel >::New();
-    loadSaveExptFrame->SetParent( page );
-    loadSaveExptFrame->Create();
-    loadSaveExptFrame->SetLabelText( "Experiment" );
-  
+  if ( ! this->InputFrame )
+    {
+    this->InputFrame = vtkKWFrameWithLabel::New();
+    }
+  if ( ! this->InputFrame->IsCreated() )
+    {
+    this->InputFrame->SetParent( page );
+    this->InputFrame->Create();
+    this->InputFrame->SetLabelText( "Input" );
+    }
   app->Script( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-               loadSaveExptFrame->GetWidgetName(), page->GetWidgetName() );
+               this->InputFrame->GetWidgetName(), page->GetWidgetName() );
   
-  
-    // Volume selection frame
-  
-  vtkSmartPointer< vtkKWFrame > volSelFrame =
-      vtkSmartPointer< vtkKWFrame >::New();
-    volSelFrame->SetParent( loadSaveExptFrame->GetFrame() );
-    volSelFrame->Create();
-  
-  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                volSelFrame->GetWidgetName() );
   
     // Node selectors.
   
-  this->PSNodeSelector->SetNodeClass( "vtkMRMLPerkStationModuleNode", NULL,
-                                      NULL, "Experiment data" );
-  this->PSNodeSelector->SetParent( volSelFrame );
-  this->PSNodeSelector->Create();
-  this->PSNodeSelector->SetNewNodeEnabled( 1 );
-  this->PSNodeSelector->NoneEnabledOff();
-  this->PSNodeSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
-  this->PSNodeSelector->UpdateMenu();
-  this->PSNodeSelector->SetLabelText( "Module parameters");
-  app->Script( "pack %s -side top -anchor w -fill x -padx 2 -pady 4", this->PSNodeSelector->GetWidgetName() );
   
-  this->VolumeSelector->SetNodeClass( "vtkMRMLScalarVolumeNode", NULL, NULL, NULL );
-  this->VolumeSelector->SetParent( volSelFrame );
-  this->VolumeSelector->Create();
-  this->VolumeSelector->NoneEnabledOn();
-  this->VolumeSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
-  this->VolumeSelector->UpdateMenu();
-  this->VolumeSelector->SetLabelText( "Planning Volume:");
-  this->VolumeSelector->SetBalloonHelpString( "Select image for needle insertion planning." );
+  if ( ! this->PSNodeSelector )
+    {
+    this->PSNodeSelector = vtkSlicerNodeSelectorWidget::New();
+    }
+  if ( ! this->PSNodeSelector->IsCreated() )
+    {
+    this->PSNodeSelector->SetNodeClass( "vtkMRMLPerkStationModuleNode", NULL,
+                                        NULL, "Experiment data" );
+    this->PSNodeSelector->SetParent( this->InputFrame->GetFrame() );
+    this->PSNodeSelector->Create();
+    this->PSNodeSelector->SetNewNodeEnabled( 1 );
+    this->PSNodeSelector->NoneEnabledOff();
+    this->PSNodeSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
+    this->PSNodeSelector->UpdateMenu();
+    this->PSNodeSelector->SetLabelText( "Module parameters" );
+    }
+  app->Script( "pack %s -side top -anchor w -fill x -padx 2 -pady 4",
+               this->PSNodeSelector->GetWidgetName() );
   
+  
+  if ( ! this->VolumeSelector )
+    {
+    this->VolumeSelector = vtkSlicerNodeSelectorWidget::New();
+    }
+  if ( ! this->VolumeSelector->IsCreated() )
+    {
+    this->VolumeSelector->SetNodeClass( "vtkMRMLScalarVolumeNode", NULL, NULL, NULL );
+    this->VolumeSelector->SetParent( this->InputFrame->GetFrame() );
+    this->VolumeSelector->Create();
+    this->VolumeSelector->NoneEnabledOn();
+    this->VolumeSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
+    this->VolumeSelector->UpdateMenu();
+    this->VolumeSelector->SetLabelText( "Planning Volume:");
+    this->VolumeSelector->SetBalloonHelpString( "Select image for needle insertion planning." );
+    }
   app->Script( "pack %s -side top -anchor w -fill x -padx 2 -pady 4", 
                this->VolumeSelector->GetWidgetName() );
   
-  this->ValidationVolumeSelector->SetNodeClass( "vtkMRMLScalarVolumeNode", NULL, NULL, NULL );
-  this->ValidationVolumeSelector->SetParent( volSelFrame );
-  this->ValidationVolumeSelector->Create();
-  this->ValidationVolumeSelector->NoneEnabledOn();
-  this->ValidationVolumeSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
-  this->ValidationVolumeSelector->UpdateMenu();
-  this->ValidationVolumeSelector->SetLabelText( "Validation volume:" );
-  this->ValidationVolumeSelector->SetBalloonHelpString(
-              "Select image for validation of needle position." );
   
+  if ( ! this->ValidationVolumeSelector )
+    {
+    this->ValidationVolumeSelector = vtkSlicerNodeSelectorWidget::New();
+    }
+  if ( ! this->ValidationVolumeSelector->IsCreated() )
+    {
+    this->ValidationVolumeSelector->SetNodeClass( "vtkMRMLScalarVolumeNode", NULL, NULL, NULL );
+    this->ValidationVolumeSelector->SetParent( this->InputFrame->GetFrame() );
+    this->ValidationVolumeSelector->Create();
+    this->ValidationVolumeSelector->NoneEnabledOn();
+    this->ValidationVolumeSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
+    this->ValidationVolumeSelector->UpdateMenu();
+    this->ValidationVolumeSelector->SetLabelText( "Validation volume:" );
+    this->ValidationVolumeSelector->SetBalloonHelpString(
+                "Select image for validation of needle position." );
+    }
   app->Script( "pack %s -side top -anchor w -fill x -padx 2 -pady 4",
                this->ValidationVolumeSelector->GetWidgetName() );
   
   
-  vtkSmartPointer< vtkKWFrame > timerFrame =
-      vtkSmartPointer< vtkKWFrame > ::New();
-    timerFrame->SetParent( page );
-    timerFrame->Create();
+    // Timer widgets.
   
-  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                timerFrame->GetWidgetName() );
   
-  if ( ! this->CalibrateTimeLabel->IsCreated() )
+  if ( ! this->TimerFrame )
     {
-    this->CalibrateTimeLabel->SetParent( timerFrame );
+    this->TimerFrame = vtkKWFrame::New();
+    this->CalibrateTimeLabel = vtkKWLabel::New();
+    this->PlanTimeLabel = vtkKWLabel::New();
+    this->InsertTimeLabel = vtkKWLabel::New();
+    this->ValidateTimeLabel = vtkKWLabel::New();
+    this->TimerButton = vtkKWPushButton::New();
+    this->ResetTimerButton = vtkKWPushButton::New();
+    }
+  if ( ! this->TimerFrame->IsCreated() )
+    {
+    this->TimerFrame->SetParent( page );
+    this->TimerFrame->Create();
+    
+    this->CalibrateTimeLabel->SetParent( this->TimerFrame );
     this->CalibrateTimeLabel->Create();
     this->CalibrateTimeLabel->SetWidth( 8 );
     this->CalibrateTimeLabel->SetText( "00:00" );
     
-    this->PlanTimeLabel->SetParent( timerFrame );
+    this->PlanTimeLabel->SetParent( this->TimerFrame );
     this->PlanTimeLabel->Create();
     this->PlanTimeLabel->SetWidth( 8 );
     this->PlanTimeLabel->SetText( "00:00" );
     
-    this->InsertTimeLabel->SetParent( timerFrame );
+    this->InsertTimeLabel->SetParent( this->TimerFrame );
     this->InsertTimeLabel->Create();
     this->InsertTimeLabel->SetWidth( 8 );
     this->InsertTimeLabel->SetText( "00:00" );
     
-    this->ValidateTimeLabel->SetParent( timerFrame );
+    this->ValidateTimeLabel->SetParent( this->TimerFrame );
     this->ValidateTimeLabel->Create();
     this->ValidateTimeLabel->SetWidth( 8 );
     this->ValidateTimeLabel->SetText( "00:00" );
     
-    this->TimerButton->SetParent( timerFrame );
+    this->TimerButton->SetParent( this->TimerFrame );
     this->TimerButton->Create();
     this->TimerButton->SetWidth( 8 );
     this->TimerButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
     this->TimerButton->SetText( "Timer" );
     
-    this->ResetTimerButton->SetParent( timerFrame );
+    this->ResetTimerButton->SetParent( this->TimerFrame );
     this->ResetTimerButton->Create();
     this->ResetTimerButton->SetWidth( 12 );
     this->ResetTimerButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
     this->ResetTimerButton->SetText( "Reset Timer" );
+    
     }
-  
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                this->TimerFrame->GetWidgetName() );
   this->Script( "grid %s -column 0 -row 0 -sticky w -padx 2 -pady 2",
-    this->CalibrateTimeLabel->GetWidgetName() );
+                this->CalibrateTimeLabel->GetWidgetName() );
   this->Script( "grid %s -column 1 -row 0 -sticky w -padx 2 -pady 2",
-    this->PlanTimeLabel->GetWidgetName() );
+                this->PlanTimeLabel->GetWidgetName() );
   this->Script( "grid %s -column 2 -row 0 -sticky w -padx 2 -pady 2",
-    this->InsertTimeLabel->GetWidgetName() );
+                this->InsertTimeLabel->GetWidgetName() );
   this->Script( "grid %s -column 3 -row 0 -sticky w -padx 2 -pady 2",
-    this->ValidateTimeLabel->GetWidgetName() );
+                this->ValidateTimeLabel->GetWidgetName() );
   this->Script( "grid %s -column 4 -row 0 -sticky e -padx 2 -pady 2",
-    this->TimerButton->GetWidgetName() );
+                this->TimerButton->GetWidgetName() );
   this->Script( "grid %s -column 5 -row 0 -sticky e -padx 2 -pady 2",
-    this->ResetTimerButton->GetWidgetName() );
+                this->ResetTimerButton->GetWidgetName() );
   
   this->Script( "grid columnconfigure %s 0 -weight 1",
-                timerFrame->GetWidgetName() );
+                this->TimerFrame->GetWidgetName() );
   this->Script( "grid columnconfigure %s 1 -weight 1",
-                timerFrame->GetWidgetName() );
+                this->TimerFrame->GetWidgetName() );
   this->Script( "grid columnconfigure %s 2 -weight 1",
-                timerFrame->GetWidgetName() );
+                this->TimerFrame->GetWidgetName() );
   this->Script( "grid columnconfigure %s 3 -weight 1",
-                timerFrame->GetWidgetName() );
+                this->TimerFrame->GetWidgetName() );
   this->Script( "grid columnconfigure %s 4 -weight 10",
-                timerFrame->GetWidgetName() );
+                this->TimerFrame->GetWidgetName() );
   this->Script( "grid columnconfigure %s 5 -weight 10",
-                timerFrame->GetWidgetName() );
-  
+                this->TimerFrame->GetWidgetName() );
 }
 
 
@@ -1293,17 +1365,28 @@ vtkPerkStationModuleGUI
   vtkSlicerApplication *app = (vtkSlicerApplication*)( this->GetApplication() );
   vtkKWWidget* page = this->UIPanel->GetPageWidget( "PerkStationModule" );
   
+  
     // Work phase collapsible frame with push buttons.
   
-  this->WorkphaseButtonFrame->SetParent( page );
-  this->WorkphaseButtonFrame->Create();
+  if ( ! this->WorkphaseButtonFrame )
+    {
+    this->WorkphaseButtonFrame = vtkKWFrame::New();
+    this->WorkphaseButtonFrame->SetParent( page );
+    this->WorkphaseButtonFrame->Create();
+    }
   
-  app->Script("pack %s -side top -fill x -expand y -anchor w -padx 4 -pady 2",
-                this->WorkphaseButtonFrame->GetWidgetName());
+  app->Script( "pack %s -side top -fill x -expand y -anchor w -padx 4 -pady 2",
+               this->WorkphaseButtonFrame->GetWidgetName() );
+  
   
     // Workphase button set.
   
-  this->WorkphaseButtonSet = vtkKWPushButtonSet::New();
+  if ( ! this->WorkphaseButtonSet )
+    {
+    this->WorkphaseButtonSet = vtkKWPushButtonSet::New();
+    }
+  if ( ! this->WorkphaseButtonSet->IsCreated() )
+    {
     this->WorkphaseButtonSet->SetParent( this->WorkphaseButtonFrame );
     this->WorkphaseButtonSet->Create();
     this->WorkphaseButtonSet->PackHorizontallyOn();
@@ -1311,96 +1394,84 @@ vtkPerkStationModuleGUI
     this->WorkphaseButtonSet->SetWidgetsPadX( 1 );
     this->WorkphaseButtonSet->SetWidgetsPadY( 1 );
     this->WorkphaseButtonSet->UniformColumnsOn();
-    this->WorkphaseButtonSet->UniformRowsOn();  
-    this->Script( "pack %s -side left -anchor w -fill x -padx 1 -pady 1", 
-                  this->WorkphaseButtonSet->GetWidgetName() );    
-
-    // Captions for radiobuttons.
-  
-  const char *buffer[] =
-    {
-    "Calibrate", "Plan", "Insert", "Validate"
-    };
-  
-    // Individual radiobuttons.
-  int numSteps = 4;
-  for (int id = 0; id < numSteps; id ++ )
-    {
-    vtkKWPushButton *pb = this->WorkphaseButtonSet->AddWidget( id );
-      pb->SetText( buffer[ id ] );
-      pb->SetBorderWidth( 2 );
-      pb->SetReliefToGroove();
-      pb->SetHighlightThickness( 2 );
-      pb->SetBackgroundColor( 0.85, 0.85, 0.85 );
-      pb->SetActiveBackgroundColor( 1, 1, 1 );
+    this->WorkphaseButtonSet->UniformRowsOn();
+      
+      // Individual buttons.
+    
+    const char *buffer[] = { "Calibrate", "Plan", "Insert", "Validate" };
+    int numSteps = 4;
+    for (int id = 0; id < numSteps; id ++ )
+      {
+      vtkKWPushButton *pb = this->WorkphaseButtonSet->AddWidget( id );
+        pb->SetText( buffer[ id ] );
+        pb->SetBorderWidth( 2 );
+        pb->SetReliefToGroove();
+        pb->SetHighlightThickness( 2 );
+        pb->SetBackgroundColor( 0.85, 0.85, 0.85 );
+        pb->SetActiveBackgroundColor( 1, 1, 1 );
+      }
+    
+    this->WorkphaseButtonSet->GetWidget( 0 )->SetReliefToSunken(); // Initial phase.
     }
+  this->Script( "pack %s -side left -anchor w -fill x -padx 1 -pady 1", 
+                this->WorkphaseButtonSet->GetWidgetName() );    
   
-    // Initial state.
-  
-  this->WorkphaseButtonSet->GetWidget( 0 )->SetReliefToSunken();
   
     // Wizard collapsible frame with individual steps inside
   
-  this->WizardFrame = vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();
+  if ( ! this->WizardFrame )
+    {
+    this->WizardFrame = vtkSlicerModuleCollapsibleFrame::New();
     this->WizardFrame->SetParent( page );
     this->WizardFrame->Create();
     this->WizardFrame->SetLabelText( "Wizard" );
     this->WizardFrame->ExpandFrame();
-
+    }
   app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               this->WizardFrame->GetWidgetName(), 
-               page->GetWidgetName() );
-
+               this->WizardFrame->GetWidgetName(), page->GetWidgetName() );
+  
+  
     // individual page/collapsible frame with their own widgets inside:
   
-  this->WizardWidget->SetParent( this->WizardFrame->GetFrame() );
-  this->WizardWidget->Create();  
-  this->WizardWidget->GetSubTitleLabel()->SetHeight( 1 );
-  this->WizardWidget->SetClientAreaMinimumHeight( 320 );
-  this->WizardWidget->HelpButtonVisibilityOn();
-  this->GetApplication()->Script(
-    "pack %s -side top -anchor nw -fill both -expand y",
-    this->WizardWidget->GetWidgetName() );
+  if ( ! this->WizardWidget )
+    {
+    this->WizardWidget = vtkKWWizardWidget::New();
+    this->WizardWidget->SetParent( this->WizardFrame->GetFrame() );
+    this->WizardWidget->Create();  
+    this->WizardWidget->GetSubTitleLabel()->SetHeight( 1 );
+    this->WizardWidget->SetClientAreaMinimumHeight( 320 );
+    this->WizardWidget->HelpButtonVisibilityOn();
+    }
+  this->GetApplication()->Script( "pack %s -side top -anchor nw -fill both -expand y",
+                                  this->WizardWidget->GetWidgetName() );
   
   
-  vtkKWWizardWorkflow *wizard_workflow =
-    this->WizardWidget->GetWizardWorkflow();
+  vtkKWWizardWorkflow *wizard_workflow = this->WizardWidget->GetWizardWorkflow();
   
-  this->CalibrateStep = vtkSmartPointer< vtkPerkStationCalibrateStep >::New();
+  this->CalibrateStep = vtkPerkStationCalibrateStep::New();
   this->CalibrateStep->SetGUI( this );
-  
   wizard_workflow->AddStep( this->CalibrateStep );
   
-
-  this->PlanStep = vtkSmartPointer< vtkPerkStationPlanStep >::New();
+  this->PlanStep = vtkPerkStationPlanStep::New();
   this->PlanStep->SetGUI( this );
-  
   wizard_workflow->AddNextStep( this->PlanStep );
   
-  
-  this->InsertStep = vtkSmartPointer< vtkPerkStationInsertStep >::New();
+  this->InsertStep = vtkPerkStationInsertStep::New();
   this->InsertStep->SetGUI(this);
+  wizard_workflow->AddNextStep( this->InsertStep );
   
-  wizard_workflow->AddNextStep(this->InsertStep);
-  
-  
-  this->ValidateStep = vtkSmartPointer< vtkPerkStationValidateStep >::New();
+  this->ValidateStep = vtkPerkStationValidateStep::New();
   this->ValidateStep->SetGUI(this);
-  
   wizard_workflow->AddNextStep( this->ValidateStep );
   
   
   wizard_workflow->SetFinishStep( this->ValidateStep );
-  
-  // TODO: How to set up the transitions correctly?
-  
   wizard_workflow->SetInitialStep( this->CalibrateStep );    
-  
-  this->SetUpPerkStationWizardWorkflow();
+  wizard_workflow->GetCurrentStep()->ShowUserInterface();  
 }
 
 
-//---------------------------------------------------------------------------
+
 void
 vtkPerkStationModuleGUI
 ::TearDownGUI() 
@@ -1459,103 +1530,76 @@ vtkPerkStationModuleGUI
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::SetUpPerkStationMode()
-{
-  // note this can only be done during or before calibrate step
-  // the following tasks need to be done
-  // Wizard workflow wizard needs to be re-done i.e. steps/transitions as well
-  this->SetUpPerkStationWizardWorkflow();
-}
 
-
-//---------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::SetUpPerkStationWizardWorkflow()
-{  
-  // vtkNotUsed( vtkKWWizardWidget *wizard_widget = this->WizardWidget; );
-  vtkKWWizardWorkflow *wizard_workflow = this->WizardWidget->GetWizardWorkflow();
-  
-    // create transition/program validate button such that it doesn't go further
-  wizard_workflow->SetFinishStep( this->ValidateStep );
-  
-  this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();  
-}
-
-
-//---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::RenderSecondaryMonitor()
 {
-  if (this->SecondaryMonitor->IsSecondaryMonitorActive())
-    {
-    vtkRenderer *ren1 = vtkRenderer::New();
-    vtkWin32OpenGLRenderWindow *renWin = vtkWin32OpenGLRenderWindow::New();
-    renWin->AddRenderer(ren1);
-    renWin->SetBorders(0);
-    
-    // positioning window
-    int virtualScreenPos[2];
-    this->SecondaryMonitor->GetVirtualScreenCoord(virtualScreenPos[0], virtualScreenPos[1]);
-    renWin->SetPosition(virtualScreenPos[0], virtualScreenPos[1]);
-
-    // window size
-    unsigned int winSize[2];
-    this->SecondaryMonitor->GetScreenDimensions(winSize[0], winSize[1]);
-    renWin->SetSize(winSize[0], winSize[1]);
-    vtkRenderWindowInteractor *iren = vtkRenderWindowInteractor::New();
-    iren->SetRenderWindow(renWin);
-
-    vtkImageMapper *imageMapper = vtkImageMapper::New();
-    imageMapper->SetColorWindow(255);
-    imageMapper->SetColorLevel(127.5);
-    
-    vtkDICOMImageReader *reader = vtkDICOMImageReader::New();
-    reader->SetFileName("C:\\Work\\SliceVolReg\\Data\\Pt1\\SR301\\I0022_1");
-    reader->Update();
-    
-    float *direction = reader->GetImageOrientationPatient();
-
-    int extent[6];
-    double spacing[3];
-    double origin[3];
-    reader->GetOutput()->GetWholeExtent(extent);
-    reader->GetOutput()->GetSpacing(spacing);
-    reader->GetOutput()->GetOrigin(origin);
-    
-    vtkImageData *image = reader->GetOutput();
-    
-
-    
-    double center[3];
-    center[0] = origin[0] + spacing[0] * 0.5 * (extent[0] + extent[1]); 
-    center[1] = origin[1] + spacing[1] * 0.5 * (extent[2] + extent[3]); 
-    center[2] = origin[2] + spacing[2] * 0.5 * (extent[4] + extent[5]); 
-
-    vtkImageReslice *reslice = vtkImageReslice::New();
-    reslice->SetInput(image);
-    reslice->SetOutputDimensionality(2);
-    reslice->SetOutputExtent( 0, winSize[0]-1, 0, winSize[1]-1, 0, 0 );
-    
-    reslice->SetInterpolationModeToLinear();
-
-    reslice->Update();
-
-    
-    imageMapper->SetInput(reslice->GetOutput());
-
-    
-    vtkActor2D *imageActor = vtkActor2D::New();
-    imageActor->SetMapper(imageMapper);
-    //imageActor->SetPosition(winSize[0]/2, winSize[1]/2, 0);
-
-    ren1->AddActor(imageActor);
-    renWin->Render();
-
-    //iren->Start();
-    }
-  else
+  if ( ! this->SecondaryMonitor->IsSecondaryMonitorActive() )
     {
     vtkErrorMacro( "No secondary monitor detected" );
+    return;
     }
+  
+  vtkRenderer *ren1 = vtkRenderer::New();
+  vtkWin32OpenGLRenderWindow *renWin = vtkWin32OpenGLRenderWindow::New();
+  renWin->AddRenderer(ren1);
+  renWin->SetBorders(0);
+  
+  // positioning window
+  int virtualScreenPos[2];
+  this->SecondaryMonitor->GetVirtualScreenCoord(virtualScreenPos[0], virtualScreenPos[1]);
+  renWin->SetPosition(virtualScreenPos[0], virtualScreenPos[1]);
+
+  // window size
+  unsigned int winSize[2];
+  this->SecondaryMonitor->GetScreenDimensions( winSize[ 0 ], winSize[ 1 ] );
+  renWin->SetSize( winSize[ 0 ], winSize[ 1 ] );
+  vtkRenderWindowInteractor *iren = vtkRenderWindowInteractor::New();
+  iren->SetRenderWindow( renWin );
+
+  vtkImageMapper *imageMapper = vtkImageMapper::New();
+  imageMapper->SetColorWindow( 255 );
+  imageMapper->SetColorLevel( 127.5 );
+  
+  vtkDICOMImageReader *reader = vtkDICOMImageReader::New();
+  reader->SetFileName( "C:\\Work\\SliceVolReg\\Data\\Pt1\\SR301\\I0022_1" );
+  reader->Update();
+  
+  float *direction = reader->GetImageOrientationPatient();
+
+  int extent[ 6 ] = { 0, 0, 0, 0, 0, 0 };
+  double spacing[ 3 ] = { 0, 0, 0 };
+  double origin[ 3 ] = { 0, 0, 0 };
+  reader->GetOutput()->GetWholeExtent( extent );
+  reader->GetOutput()->GetSpacing( spacing );
+  reader->GetOutput()->GetOrigin( origin );
+  
+  vtkImageData *image = reader->GetOutput();
+  
+
+  
+  double center[ 3 ];
+  center[ 0 ] = origin[0] + spacing[0] * 0.5 * ( extent[0] + extent[1] ); 
+  center[ 1 ] = origin[1] + spacing[1] * 0.5 * ( extent[2] + extent[3] ); 
+  center[ 2 ] = origin[2] + spacing[2] * 0.5 * ( extent[4] + extent[5] ); 
+
+  vtkImageReslice *reslice = vtkImageReslice::New();
+  reslice->SetInput( image );
+  reslice->SetOutputDimensionality( 2 );
+  reslice->SetOutputExtent( 0, winSize[ 0 ] - 1, 0, winSize[ 1 ] - 1, 0, 0 );
+  
+  reslice->SetInterpolationModeToLinear();
+
+  reslice->Update();
+
+  
+  imageMapper->SetInput( reslice->GetOutput() );
+
+  
+  vtkActor2D *imageActor = vtkActor2D::New();
+  imageActor->SetMapper( imageMapper );
+  
+  ren1->AddActor( imageActor );
+  renWin->Render();
 }
 
 
@@ -1575,41 +1619,6 @@ vtkPerkStationModuleGUI
 
 
 
-char*
-vtkPerkStationModuleGUI
-::CreateFileName()
-{
-  // create a folder for current date, if not already created
-  // get the system calendar time
-  std::time_t tt = std::time(0);
-  // convert it into tm struct
-  std::tm ttm = *std::localtime(&tt);
-  // extract the values for day, month, year
-  char dirName[9] = "";
-  sprintf(dirName, "%4d%2d%2d", ttm.tm_year, ttm.tm_mon+1, ttm.tm_mday);
-  if (access(dirName,0) ==0)
-      {
-      struct stat status;
-      stat( dirName, &status );
-      if ( status.st_mode & S_IFDIR )
-      {
-      // directory exists
-      }
-      else
-      {
-      //create directory
-      }
-      }
-  else
-      {
-      //create directory
-          ::CreateDirectory(dirName,NULL);
-      }
-  
-  return dirName;
-}
-
-
 void
 vtkPerkStationModuleGUI
 ::UpdateTimerDisplay()
@@ -1624,29 +1633,25 @@ vtkPerkStationModuleGUI
   std::stringstream ss;
   
   ss.str( "" );
-  ss << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 0 ] ) / 60
-     << ":"
+  ss << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 0 ] ) / 60 << ":"
      << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 0 ] ) % 60;
   
   this->CalibrateTimeLabel->SetText( ss.str().c_str() );
   
   ss.str( "" );
-  ss << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 1 ] ) / 60
-     << ":"
+  ss << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 1 ] ) / 60 << ":"
      << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 1 ] ) % 60;
   
   this->PlanTimeLabel->SetText( ss.str().c_str() );
   
   ss.str( "" );
-  ss << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 2 ] ) / 60
-     << ":"
+  ss << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 2 ] ) / 60 << ":"
      << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 2 ] ) % 60;
   
   this->InsertTimeLabel->SetText( ss.str().c_str() );
   
   ss.str( "" );
-  ss << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 3 ] ) / 60
-     << ":"
+  ss << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 3 ] ) / 60 << ":"
      << setfill( '0' ) << setw( 2 ) << (int)( this->WorkingTimes[ 3 ] ) % 60;
   
   this->ValidateTimeLabel->SetText( ss.str().c_str() );

@@ -89,16 +89,16 @@ vtkPerkStationCalibrateStep
   
     // Table calibration.
   
-  this->TableFrame = vtkSmartPointer< vtkKWFrameWithLabel >::New();
-  this->TableOverlayLabel = vtkSmartPointer< vtkKWLabel >::New();
-  this->TableOverlayEntry = vtkSmartPointer< vtkKWEntry >::New();
-  this->TableUpdateButton = vtkSmartPointer< vtkKWPushButton >::New();
+  this->TableFrame = NULL;
+  this->TableOverlayLabel = NULL;
+  this->TableOverlayEntry = NULL;
+  this->TableUpdateButton = NULL;
   
   
     // Hardware selection.
   
-  this->HardwareFrame = vtkSmartPointer< vtkKWFrameWithLabel >::New();
-  this->HardwareMenu = vtkSmartPointer< vtkKWMenuButtonWithLabel >::New();
+  this->HardwareFrame = NULL;
+  this->HardwareMenu = NULL;
   
   
     // Calibration list.
@@ -112,23 +112,17 @@ vtkPerkStationCalibrateStep
   
     // Hardware calibration.
   
-  this->HardwareCalibrationFrame = vtkSmartPointer< vtkKWFrameWithLabel >::New();
-  
-  this->FlipFrame = vtkSmartPointer< vtkKWFrame >::New();
-  this->VerticalFlipCheckButton =
-    vtkSmartPointer< vtkKWCheckButtonWithLabel >::New();
-  this->HorizontalFlipCheckButton =
-    vtkSmartPointer< vtkKWCheckButtonWithLabel >::New();
-  
-  this->MonPhySizeFrame = vtkSmartPointer< vtkKWFrame >::New();
-  this->MonPhySizeLabel = vtkSmartPointer< vtkKWLabel >::New();
-  this->MonPhySize = vtkSmartPointer< vtkKWEntrySet >::New();
-  
-  this->MonPixResFrame = vtkSmartPointer< vtkKWFrame >::New();
-  this->MonPixResLabel = vtkSmartPointer< vtkKWLabel >::New();
-  this->MonPixRes = vtkSmartPointer< vtkKWEntrySet >::New();
-  
-  this->HardwareUpdateButton = vtkSmartPointer< vtkKWPushButton >::New();
+  this->HardwareCalibrationFrame = NULL;
+  this->FlipFrame = NULL;
+  this->VerticalFlipCheckButton = NULL;
+  this->HorizontalFlipCheckButton = NULL;
+  this->MonPhySizeFrame = NULL;
+  this->MonPhySizeLabel = NULL;
+  this->MonPhySize = NULL;
+  this->MonPixResFrame = NULL;
+  this->MonPixResLabel = NULL;
+  this->MonPixRes = NULL;
+  this->HardwareUpdateButton = NULL;
   
   
     // GUI state.
@@ -144,9 +138,43 @@ vtkPerkStationCalibrateStep
 vtkPerkStationCalibrateStep
 ::~vtkPerkStationCalibrateStep()
 {
+  
+    // Table calibration.
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TableFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TableOverlayLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TableOverlayEntry );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TableUpdateButton );
+  
+  
+    // Hardware selection.
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->HardwareFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->HardwareMenu );
+  
+  
+    // Calibration list.
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ListButtonsFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->CalibrationListFrame );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->CalibrationList );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->AddButton );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->DeleteButton );
+  
+  
+    // Hardware calibration.
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->HardwareCalibrationFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->FlipFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->VerticalFlipCheckButton );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->HorizontalFlipCheckButton );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->MonPhySizeFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->MonPhySizeLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->MonPhySize );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->MonPixResFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->MonPixResLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->MonPixRes );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->HardwareUpdateButton );
 }
 
 
@@ -203,6 +231,7 @@ vtkPerkStationCalibrateStep
   
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
     wizard_widget->GetCancelButton()->SetEnabled( 0 );
+  
   
   this->ShowHardwareCalibration();
   this->ShowCalibrationList();
@@ -324,6 +353,7 @@ vtkPerkStationCalibrateStep
 }
 
 
+
 void
 vtkPerkStationCalibrateStep
 ::ShowHardwareCalibration()
@@ -333,6 +363,13 @@ vtkPerkStationCalibrateStep
   
     // Table calibration.
   
+  if ( ! this->TableFrame )
+    {
+    this->TableFrame = vtkKWFrameWithLabel::New();
+    this->TableOverlayLabel = vtkKWLabel::New();
+    this->TableOverlayEntry = vtkKWEntry::New();
+    this->TableUpdateButton = vtkKWPushButton::New();
+    }
   if ( ! this->TableFrame->IsCreated() )
     {
     this->TableFrame->SetParent( parent );
@@ -376,6 +413,11 @@ vtkPerkStationCalibrateStep
   
     // Hardware selection.
   
+  if ( ! this->HardwareFrame )
+    {
+    this->HardwareFrame = vtkKWFrameWithLabel::New();
+    this->HardwareMenu = vtkKWMenuButtonWithLabel::New();
+    }
   if ( ! this->HardwareFrame->IsCreated() )
     {
     this->HardwareFrame->SetParent( parent );
@@ -396,6 +438,20 @@ vtkPerkStationCalibrateStep
 
     // Hardware calibration.
   
+  if ( ! this->HardwareCalibrationFrame )
+    {
+    this->HardwareCalibrationFrame = vtkKWFrameWithLabel::New();
+    this->FlipFrame = vtkKWFrame::New();
+    this->VerticalFlipCheckButton = vtkKWCheckButtonWithLabel::New();
+    this->HorizontalFlipCheckButton = vtkKWCheckButtonWithLabel::New();
+    this->MonPhySizeFrame = vtkKWFrame::New();
+    this->MonPhySizeLabel =  vtkKWLabel::New();
+    this->MonPhySize = vtkKWEntrySet::New();
+    this->MonPixResFrame = vtkKWFrame::New();
+    this->MonPixResLabel = vtkKWLabel::New();
+    this->MonPixRes = vtkKWEntrySet::New();
+    this->HardwareUpdateButton = vtkKWPushButton::New();
+    }
   if ( ! this->HardwareCalibrationFrame->IsCreated() )
     {
     this->HardwareCalibrationFrame->SetParent( parent );
@@ -416,8 +472,7 @@ vtkPerkStationCalibrateStep
     this->HorizontalFlipCheckButton->SetLabelText( "Horizontal Flip:" );
     
     
-    this->MonPhySizeFrame->SetParent(
-      this->HardwareCalibrationFrame->GetFrame() );
+    this->MonPhySizeFrame->SetParent( this->HardwareCalibrationFrame->GetFrame() );
     this->MonPhySizeFrame->Create();
     
     this->MonPhySizeLabel->SetParent( this->MonPhySizeFrame );
@@ -470,34 +525,24 @@ vtkPerkStationCalibrateStep
   
   this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                 this->HardwareCalibrationFrame->GetWidgetName() );
-  
   this->Script( "pack %s -side top -anchor nw -padx 0 -pady 2", 
                 this->FlipFrame->GetWidgetName() );
-  
   this->Script( "pack %s -side left -anchor nw -padx 6 -pady 2", 
                 this->VerticalFlipCheckButton->GetWidgetName() );
-    
   this->Script( "pack %s -side top -anchor nw -padx 6 -pady 2", 
                 this->HorizontalFlipCheckButton->GetWidgetName() );
-  
   this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                 this->MonPhySizeFrame->GetWidgetName() );
-  
   this->Script( "pack %s -side left -anchor nw -padx 6 -pady 2", 
                 this->MonPhySizeLabel->GetWidgetName() );
-      
   this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
                 this->MonPhySize->GetWidgetName() );
-
   this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                 this->MonPixResFrame->GetWidgetName() );
-    
   this->Script( "pack %s -side left -anchor nw -padx 6 -pady 2", 
                 this->MonPixResLabel->GetWidgetName() );
-  
   this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
                 this->MonPixRes->GetWidgetName() );
-  
   this->Script( "pack %s -side top -anchor ne -padx 2 -pady 4", 
                 this->HardwareUpdateButton->GetWidgetName() );
   
@@ -738,14 +783,13 @@ void vtkPerkStationCalibrateStep::Reset()
 
 
 
-//----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf( os,indent );
 }
 
 
-//-----------------------------------------------------------------------------
+
 void vtkPerkStationCalibrateStep::AddGUIObservers()
 {
   this->RemoveGUIObservers();
@@ -759,11 +803,7 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
       vtkKWEntry::EntryValueChangedEvent, ( vtkCommand* )( this->WizardGUICallbackCommand ) );
     }
   
-  if ( this->TableUpdateButton )
-    {
-    this->TableUpdateButton->AddObserver(
-      vtkKWPushButton::InvokedEvent, ( vtkCommand* )( this->WizardGUICallbackCommand ) );
-    }
+  ADD_BUTTON_INVOKED_EVENT_WIZARD( this->TableUpdateButton );
   
   
     // Hardware selection.
@@ -783,16 +823,8 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
     this->CalibrationList->GetWidget()->SetSelectionChangedCommand( this, "OnMultiColumnListSelectionChanged" );
     }
   
-  if ( this->AddButton )
-    {
-    this->AddButton->AddObserver( vtkKWPushButton::InvokedEvent,
-        (vtkCommand*)( this->WizardGUICallbackCommand ) );
-    }
-  if ( this->DeleteButton )
-    {
-    this->DeleteButton->AddObserver( vtkKWPushButton::InvokedEvent,
-        (vtkCommand*)( this->WizardGUICallbackCommand ) );
-    }
+  ADD_BUTTON_INVOKED_EVENT_WIZARD( this->AddButton );
+  ADD_BUTTON_INVOKED_EVENT_WIZARD( this->DeleteButton );
   
   
     // flip controls
@@ -809,11 +841,7 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
     }
   
   
-  if ( this->HardwareUpdateButton )
-    {
-    this->HardwareUpdateButton->AddObserver( vtkKWPushButton::InvokedEvent,
-      (vtkCommand*)( this->WizardGUICallbackCommand ) );  
-    }
+  ADD_BUTTON_INVOKED_EVENT_WIZARD( this->HardwareUpdateButton );
   
   
   this->ObserverCount++;
@@ -824,6 +852,27 @@ void
 vtkPerkStationCalibrateStep
 ::RemoveGUIObservers()
 {
+  
+    // Table calibration.
+  
+  if ( this->TableOverlayEntry )
+    {
+    this->TableOverlayEntry->RemoveObservers( vtkKWEntry::EntryValueChangedEvent,
+                                              ( vtkCommand* )( this->WizardGUICallbackCommand ) );
+    }
+  
+  REMOVE_BUTTON_INVOKED_EVENT_WIZARD( this->TableUpdateButton );
+  
+  
+    // Hardware selection.
+  
+  if ( this->HardwareMenu )
+    {
+    this->HardwareMenu->GetWidget()->GetMenu()->RemoveObservers(
+      vtkKWMenu::MenuItemInvokedEvent, ( vtkCommand* )( this->WizardGUICallbackCommand ) );
+    }
+  
+  
     // Calibration list.
   
   if ( this->CalibrationList )
@@ -832,16 +881,8 @@ vtkPerkStationCalibrateStep
     this->CalibrationList->GetWidget()->SetSelectionChangedCommand( this, "" );
     }
   
-  if ( this->AddButton )
-    {
-    this->AddButton->RemoveObservers( vtkKWPushButton::InvokedEvent,
-      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
-    }
-  if ( this->DeleteButton )
-    {
-    this->DeleteButton->RemoveObservers( vtkKWPushButton::InvokedEvent,
-      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
-    }
+  REMOVE_BUTTON_INVOKED_EVENT_WIZARD( this->AddButton );
+  REMOVE_BUTTON_INVOKED_EVENT_WIZARD( this->DeleteButton );
   
   
     // flip controls
@@ -862,12 +903,7 @@ vtkPerkStationCalibrateStep
   
    // change in monitor physical size/ res, therefore update button
   
-  if ( this->HardwareUpdateButton )
-    {
-    this->HardwareUpdateButton->RemoveObservers(
-      vtkKWPushButton::InvokedEvent,
-      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
-    }
+  REMOVE_BUTTON_INVOKED_EVENT_WIZARD( this->HardwareUpdateButton );
   
   
   this->ObserverCount--;
@@ -973,7 +1009,7 @@ vtkPerkStationCalibrateStep
       ss << "Calibr" << this->CalibrationUID;
     
     this->CalibrationUID ++;
-    OverlayCalibration* newCal = new OverlayCalibration;  
+    OverlayCalibration* newCal = new OverlayCalibration; // Deleted by mrmlNode destructor.
       newCal->Name = ss.str();
     int index = mrmlNode->AddCalibration( newCal );
     mrmlNode->SetCurrentCalibrationIndex( index );
