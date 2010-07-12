@@ -213,6 +213,15 @@ vtkHybridNavGUI::~vtkHybridNavGUI ( )
     }
 
   //----------------------------------------------------------------
+  // Variables
+  //----------------------------------------------------------------
+  if (this->pivot)
+    {
+      this->pivot->Delete();
+    }
+
+
+  //----------------------------------------------------------------
   // Unregister Logic class
 
   this->SetModuleLogic ( NULL );
@@ -870,9 +879,10 @@ void vtkHybridNavGUI::BuildGUIForToolFrame()
   vtkKWFrame *listButtonsFrame = vtkKWFrame::New();
   listButtonsFrame->SetParent(listFrame->GetFrame());
   listButtonsFrame->Create();
-  listButtonsFrame->Delete();
   app->Script ("pack %s %s -fill both -expand true",
                this->ToolList->GetWidgetName(), listButtonsFrame->GetWidgetName());
+
+  listButtonsFrame->Delete();
 
   //ToolList Buttons
   this->AddToolButton = vtkKWPushButton::New();
@@ -899,6 +909,8 @@ void vtkHybridNavGUI::BuildGUIForToolFrame()
   controlFrame->SetLabelText ("Tool Properties");
   app->Script ( "pack %s -fill both -expand true",
                 controlFrame->GetWidgetName());
+
+  controlFrame->Delete();
 
   // Tool Property -- Tool name
   vtkKWFrame *nameFrame = vtkKWFrame::New();
@@ -974,6 +986,9 @@ void vtkHybridNavGUI::BuildGUIForToolFrame()
   this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
                  descriptionLabel->GetWidgetName(),
                  this->ToolDescriptionEntry->GetWidgetName());
+  
+  descriptionFrame->Delete();
+  descriptionLabel->Delete();
 
   //Tool Model -- Visualization Check button
   vtkKWFrame* ModelFrame = vtkKWFrame::New();
@@ -997,7 +1012,12 @@ void vtkHybridNavGUI::BuildGUIForToolFrame()
   app->Script("pack %s %s -side left -anchor w -padx 2 -pady 2", 
                ModelLabel->GetWidgetName(),
                this->ToolCheckButton->GetWidgetName());
+
+  ModelFrame->Delete();
+  ModelLabel->Delete();
   
+  ToolFrame->Delete();
+ 
   //Un-enable all elements in Tool Property Frame
   UpdateToolPropertyFrame(-1);
 }
@@ -1149,13 +1169,16 @@ void vtkHybridNavGUI::BuildGUIForCalibrationFrame()
 
   //Delete widget pointers
   calibrationFrame->Delete();
+  frame->Delete();
   nodeFrame->Delete();
+  nodeLabel->Delete();  
   pointsFrame->Delete();
   pointsLabel->Delete();
+  resultFrame->Delete();
+  resultLabel->Delete();
+  errorFrame->Delete();
+  errorLabel->Delete();
   startCalibrationFrame->Delete();
-  frame->Delete();
-  nodeLabel->Delete();
-
 }
 
 
@@ -1263,12 +1286,12 @@ void vtkHybridNavGUI::BuildGUIForManualCalibrationFrame()
 
   //Delete widget pointers
   manualCalibrationFrame->Delete();
-  nodeFrame1->Delete();
-  nodeFrame2->Delete();
-  CalibrationButtonFrame->Delete();
   mcframe->Delete();
-  nodeLabel1->Delete();
-  nodeLabel2->Delete();
+  nodeFrame1->Delete();
+  nodeLabel1->Delete();  
+  nodeFrame2->Delete();
+  nodeLabel2->Delete();  
+  CalibrationButtonFrame->Delete(); 
 }
 
 //----------------------------------------------------------------------------

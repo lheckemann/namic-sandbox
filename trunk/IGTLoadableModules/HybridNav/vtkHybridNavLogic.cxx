@@ -221,6 +221,7 @@ void vtkHybridNavLogic::AppendToolTipModel(vtkMRMLHybridNavToolNode* mnode)
   
   //Clean up
   cm->Delete();
+  m->Delete();
   //tfilter->Delete();
   //trans->Delete();
   //sphere->Delete();
