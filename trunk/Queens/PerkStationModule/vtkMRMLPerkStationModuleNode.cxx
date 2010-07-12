@@ -28,6 +28,7 @@
 
 #include "vtkSlicerLogic.h"
 
+#include "PerkStationCommon.h"
 
 
 // Internal file IO helper functions. -----------------------------------------
@@ -354,6 +355,7 @@ vtkMRMLPerkStationModuleNode
 vtkMRMLPerkStationModuleNode
 ::~vtkMRMLPerkStationModuleNode()
 {
+  LOG_TO_FILE( "node destructor" );
     // Calibration list.
   
   for ( std::vector< OverlayCalibration* >::iterator it = this->CalibrationList.begin();
@@ -762,7 +764,7 @@ void
 vtkMRMLPerkStationModuleNode
 ::PrintSelf( ostream& os, vtkIndent indent )
 {
-  vtkMRMLNode::PrintSelf(os,indent);
+  vtkMRMLNode::PrintSelf( os, indent );
 
   os << indent << "PlanningVolumeRef: " << 
    ( this->PlanningVolumeRef ? this->PlanningVolumeRef : "(none)" ) << "\n";
@@ -938,6 +940,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 void
 vtkMRMLPerkStationModuleNode
 ::SetPlanTargetPoint( const double* point )
@@ -946,6 +949,7 @@ vtkMRMLPerkStationModuleNode
   this->PlanList[ this->CurrentPlanIndex ]->SetTargetPointRAS(
     point[ 0 ], point[ 1 ], point[ 2 ] );
 }
+
 
 
 void
@@ -965,6 +969,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 vtkMRMLScalarVolumeNode*
 vtkMRMLPerkStationModuleNode
 ::GetPlanningVolumeNode()
@@ -973,7 +978,7 @@ vtkMRMLPerkStationModuleNode
 }
 
   
-//-----------------------------------------------------------------------------
+
 void
 vtkMRMLPerkStationModuleNode
 ::SetPlanningVolumeNode( vtkMRMLScalarVolumeNode *planVolNode )
@@ -986,7 +991,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
-//-----------------------------------------------------------------------------
+
 void
 vtkMRMLPerkStationModuleNode
 ::SetValidationVolumeNode( vtkMRMLScalarVolumeNode* validationVolNode )
@@ -1011,6 +1016,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 /**
  * @returns Current step ID.
  */
@@ -1020,6 +1026,7 @@ vtkMRMLPerkStationModuleNode
 {
   return this->CurrentStep;
 }
+
 
 
 /**
@@ -1032,6 +1039,7 @@ vtkMRMLPerkStationModuleNode
   return this->PreviousStep;
 }
   
+
 
 /**
  * Modifies the workphase step.
@@ -1063,16 +1071,6 @@ vtkMRMLPerkStationModuleNode
   this->PreviousStep = this->CurrentStep;
   this->CurrentStep = newStep;
   
-  /*
-  if ( this->CurrentStep == WORKPHASE_PLANNING )
-    {
-    this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility( 1 );
-    }
-  else
-    {
-    this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility( 0 );
-    }
-  */
   
     // Update active volume.
   
@@ -1092,6 +1090,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 /**
  * @returns Name of work phase step i.
  */
@@ -1108,6 +1107,7 @@ vtkMRMLPerkStationModuleNode
     return NULL;
     }
 }
+
 
 
 /**
@@ -1233,6 +1233,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 /**
  * Angle definition:
  * - : 0   degrees
@@ -1258,6 +1259,7 @@ vtkMRMLPerkStationModuleNode
   
   return angle;
 }
+
 
 
 /**
@@ -1356,6 +1358,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 /**
  * @returns 0 on failure, other on success.
  */
@@ -1378,6 +1381,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 vtkPerkStationPlan*
 vtkMRMLPerkStationModuleNode
 ::GetPlanAtIndex( unsigned int index )
@@ -1391,6 +1395,7 @@ vtkMRMLPerkStationModuleNode
     return NULL;
     }
 }
+
 
 
 int
@@ -1408,6 +1413,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 bool
 vtkMRMLPerkStationModuleNode
 ::GetValidated() const
@@ -1417,6 +1423,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 void
 vtkMRMLPerkStationModuleNode
 ::SetValidated( const bool validated )
@@ -1424,6 +1431,7 @@ vtkMRMLPerkStationModuleNode
   if ( this->CurrentPlanIndex < 0 ) return;
   this->PlanList[ this->CurrentPlanIndex ]->SetValidated( validated );
 }
+
 
 
 void
@@ -1439,6 +1447,7 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
 void
 vtkMRMLPerkStationModuleNode
 ::SetValidationEntryPoint( const double* point )
@@ -1447,6 +1456,7 @@ vtkMRMLPerkStationModuleNode
   this->PlanList[ this->CurrentPlanIndex ]->SetValidationEntryPointRAS(
     point[ 0 ], point[ 1 ], point[ 2 ] );
 }
+
 
 
 void
@@ -1460,6 +1470,7 @@ vtkMRMLPerkStationModuleNode
     }
   this->PlanList[ this->CurrentPlanIndex ]->GetValidationTargetPointRAS( point );
 }
+
 
 
 void

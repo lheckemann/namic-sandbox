@@ -3,12 +3,21 @@
 #define PERKSTATIONCOMMON_H
 
 
+#include <fstream>
 #include <string>
 #include <sstream>
 #include <vector>
 
 
   // Macros.
+
+#define LOG_TO_FILE( msg ) \
+  { \
+  ofstream out( "perklog.txt", std::ios_base::app ); \
+  out << msg << std::endl; \
+  out.close(); \
+  };
+
 
 #define ADD_BUTTON_INVOKED_EVENT_GUI( obj ) \
   if ( obj ) \
