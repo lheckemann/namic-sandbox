@@ -42,8 +42,9 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
 {
   this->SetName("2/5. Plan");
   this->SetDescription("Plan the needle insertion");
-
-  this->WizardGUICallbackCommand->SetCallback(vtkPerkStationPlanStep::WizardGUICallback);
+  
+  
+  this->WizardGUICallbackCommand->SetCallback( vtkPerkStationPlanStep::WizardGUICallback );
   
   this->GUICallbackCommand = vtkCallbackCommand::New();
   this->GUICallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
@@ -58,6 +59,7 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
   this->PlanningLineActor = vtkSmartPointer< vtkActor >::New();
     this->PlanningLineActor->SetVisibility( 0 );
     this->PlanningLineActor->GetProperty()->SetColor( 1.0, 0.0, 1.0 );
+  
   
     // PlanList frame
   
@@ -113,6 +115,8 @@ vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
 {
   this->RemoveGUIObservers();
   
+  DELETE_IF_NOT_NULL( this->GUICallbackCommand );
+  
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetFirstFrame );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetFirstCheck );
   
@@ -143,6 +147,11 @@ void vtkPerkStationPlanStep::ShowUserInterface()
   int enabled = parent->GetEnabled();
   
   this->SetDescription( "Plan the needle insertion" );
+  
+  
+  vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI() )->
+    GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
+    GetOverlayRenderer()->AddActor( this->PlanningLineActor );
   
   
   // clear controls
@@ -302,6 +311,22 @@ vtkPerkStationPlanStep
 
 void
 vtkPerkStationPlanStep
+::HideUserInterface()
+{
+  Superclass::HideUserInterface();
+  
+  vtkSlicerApplicationGUI* app = vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI() );
+  vtkRenderer* renderer = app->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
+  
+  if ( renderer->GetActors()->IsItemPresent( this->PlanningLineActor ) )
+    {
+    renderer->RemoveActor( this->PlanningLineActor );
+    }
+}
+
+
+void
+vtkPerkStationPlanStep
 ::UpdateGUI()
 {
   vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetMRMLNode();
@@ -414,10 +439,6 @@ vtkPerkStationPlanStep
 ::AddGUIObservers()
 {
   this->RemoveGUIObservers();
-    
-  vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI() )->
-    GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
-    GetOverlayRenderer()->AddActor( this->PlanningLineActor );
   
   if ( this->PlanList )
     {
@@ -428,7 +449,6 @@ vtkPerkStationPlanStep
   if ( this->DeleteButton )
     {
     this->DeleteButton->AddObserver( vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand );
-    // this->DeleteButton->AddObserver( vtkKWPushButton::InvokedEvent, (vtkCommand*) );
     }
 }
 
@@ -444,7 +464,7 @@ void vtkPerkStationPlanStep::RemoveGUIObservers()
   
   if ( this->DeleteButton )
     {
-    this->DeleteButton->RemoveObserver( (vtkCommand*)this->GUICallbackCommand );
+    this->DeleteButton->RemoveObservers( vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand );
     }
 }
 
@@ -452,15 +472,13 @@ void vtkPerkStationPlanStep::RemoveGUIObservers()
 //----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::InstallCallbacks()
 {
-  this->AddGUIObservers();
+  
 }
 
 
 void
 vtkPerkStationPlanStep
-::ProcessImageClickEvents( vtkObject *caller,
-                           unsigned long event,
-                           void *callData )
+::ProcessImageClickEvents( vtkObject *caller, unsigned long event, void *callData )
 {
   
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();

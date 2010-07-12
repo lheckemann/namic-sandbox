@@ -85,6 +85,7 @@ vtkPerkStationModuleGUI
 vtkPerkStationModuleGUI
 ::vtkPerkStationModuleGUI()
 {
+  
     // gui elements
   
   this->InputFrame = NULL;
@@ -126,10 +127,11 @@ vtkPerkStationModuleGUI
   this->Logic = NULL;
   this->MRMLNode = NULL;
   
+  this->SecondaryMonitor = NULL;
   this->SecondaryMonitor = vtkPerkStationSecondaryMonitor::New();
   this->SecondaryMonitor->SetGUI( this );
   this->SecondaryMonitor->Initialize();
-    
+  
   
     // Initial state.
   
@@ -139,6 +141,7 @@ vtkPerkStationModuleGUI
   this->SliceOffset = 0;
   this->ObserverCount = 0;
   this->TimerLog = NULL;
+  
 }
 
 
@@ -146,15 +149,6 @@ vtkPerkStationModuleGUI
 vtkPerkStationModuleGUI
 ::~vtkPerkStationModuleGUI()
 {
-  this->RemoveGUIObservers();
-  
-  vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic();
-  
-  if ( sliceLogic )
-    {  
-    sliceLogic->GetSliceNode()->RemoveObservers(
-      vtkCommand::ModifiedEvent, ( vtkCommand *)( this->GUICallbackCommand ) );
-    }
   
   this->SetLogic( NULL );
 
@@ -263,6 +257,7 @@ vtkPerkStationModuleGUI
   
   this->AddMRMLObservers();
   this->UpdateGUI();
+  
 }
 
 
@@ -272,6 +267,7 @@ vtkPerkStationModuleGUI
 ::Exit()
 {
   this->RemoveGUIObservers();
+  this->RemoveMRMLObservers();
   
   if ( this->WizardWidget != NULL )
     {
@@ -305,16 +301,25 @@ void
 vtkPerkStationModuleGUI
 ::AddGUIObservers() 
 {
+  
   this->RemoveGUIObservers();
   
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
   
     // Node selector and volume selector.
-  
-  this->PSNodeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
-  this->VolumeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
-  this->ValidationVolumeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+  if ( this->PSNodeSelector )
+    {
+    this->PSNodeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+    }
+  if ( this->VolumeSelector )
+    {
+    this->VolumeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+    }
+  if ( this->ValidationVolumeSelector )
+    {
+    this->ValidationVolumeSelector->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+    }
     
   
     // Timer buttons.
@@ -336,19 +341,26 @@ vtkPerkStationModuleGUI
   
     // Workphase pushbutton set.
   
-  for ( int i = 0; i < this->WorkphaseButtonSet->GetNumberOfWidgets(); ++ i )
+  if ( this->WorkphaseButtonSet )
     {
-    ADD_BUTTON_INVOKED_EVENT_GUI( this->WorkphaseButtonSet->GetWidget( i ) );
+    for ( int i = 0; i < this->WorkphaseButtonSet->GetNumberOfWidgets(); ++ i )
+      {
+      ADD_BUTTON_INVOKED_EVENT_GUI( this->WorkphaseButtonSet->GetWidget( i ) );
+      }
     }
   
   
     // wizard workflow
-    
-  this->WizardWidget->GetWizardWorkflow()->AddObserver(
-    vtkKWWizardWorkflow::CurrentStateChangedEvent, static_cast< vtkCommand* >( this->GUICallbackCommand ) );  
+  
+  if ( this->WizardWidget )
+    {
+    this->WizardWidget->GetWizardWorkflow()->AddObserver(
+      vtkKWWizardWorkflow::CurrentStateChangedEvent, static_cast< vtkCommand* >( this->GUICallbackCommand ) );
+    }
   
   
   this->ObserverCount ++;
+  
 }
 
 
@@ -363,11 +375,21 @@ vtkPerkStationModuleGUI
                                       (vtkCommand*)( this->GUICallbackCommand ) );
   */
   
+  /*
     // Node selector and volume selector.
   
-  this->VolumeSelector->RemoveObservers( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, ( vtkCommand* )this->GUICallbackCommand );
-  this->PSNodeSelector->RemoveObservers( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, ( vtkCommand* )this->GUICallbackCommand );    
-  this->ValidationVolumeSelector->RemoveObservers( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+  if ( this->VolumeSelector )
+    {
+    this->VolumeSelector->RemoveObservers( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, ( vtkCommand* )this->GUICallbackCommand );
+    }
+  if ( this->PSNodeSelector )
+    {
+    this->PSNodeSelector->RemoveObservers( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, ( vtkCommand* )this->GUICallbackCommand );
+    }
+  if ( this->ValidationVolumeSelector )
+    {
+    this->ValidationVolumeSelector->RemoveObservers( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+    }
   
   
     // Timer buttons.
@@ -391,20 +413,25 @@ vtkPerkStationModuleGUI
   
     // Workphase pushbutton set.
   
-  for ( int i = 0; i < this->WorkphaseButtonSet->GetNumberOfWidgets(); ++ i )
+  if ( this->WorkphaseButtonSet )
     {
-    REMOVE_BUTTON_INVOKED_EVENT_GUI( this->WorkphaseButtonSet->GetWidget( i ) );
+    for ( int i = 0; i < this->WorkphaseButtonSet->GetNumberOfWidgets(); ++ i )
+      {
+      REMOVE_BUTTON_INVOKED_EVENT_GUI( this->WorkphaseButtonSet->GetWidget( i ) );
+      }
     }
   
   
     // wizard workflow
-    
-  this->WizardWidget->GetWizardWorkflow()->RemoveObservers(
-    vtkKWWizardWorkflow::CurrentStateChangedEvent,
-    static_cast< vtkCommand* >( this->GUICallbackCommand ) );  
   
+  if ( this->WizardWidget )
+    {
+    this->WizardWidget->GetWizardWorkflow()->RemoveObservers(
+      vtkKWWizardWorkflow::CurrentStateChangedEvent, static_cast< vtkCommand* >( this->GUICallbackCommand ) );  
+    }
   
   this->ObserverCount --;
+  */
 }
 
 
@@ -413,6 +440,7 @@ void
 vtkPerkStationModuleGUI
 ::AddMRMLObservers()
 {
+  
   if ( this->MRMLScene != NULL )
     {
     if ( this->MRMLScene->HasObserver( vtkMRMLScene::NodeRemovedEvent, (vtkCommand*)this->MRMLCallbackCommand ) < 1 )
@@ -432,6 +460,7 @@ vtkPerkStationModuleGUI
       this->MRMLScene->AddObserver(vtkMRMLScene::SceneCloseEvent, (vtkCommand*)this->MRMLCallbackCommand );
       }
     }
+  
 }
 
 
@@ -440,13 +469,15 @@ void
 vtkPerkStationModuleGUI
 ::RemoveMRMLObservers()
 {
-  if (this->MRMLScene!=NULL)
+  
+  if ( this->MRMLScene != NULL )
   {
     this->MRMLScene->RemoveObservers(vtkMRMLScene::NodeRemovedEvent, (vtkCommand*)this->MRMLCallbackCommand );
     this->MRMLScene->RemoveObservers(vtkMRMLScene::NodeAboutToBeRemovedEvent, (vtkCommand*)this->MRMLCallbackCommand );
     this->MRMLScene->RemoveObservers(vtkMRMLScene::NodeAddedEvent, (vtkCommand*)this->MRMLCallbackCommand );
     this->MRMLScene->RemoveObservers(vtkMRMLScene::SceneCloseEvent, (vtkCommand*)this->MRMLCallbackCommand );
   }
+  
 }
 
 
@@ -507,7 +538,8 @@ vtkPerkStationModuleGUI
   
     // Timer buttons.
   
-  if ( vtkKWPushButton::SafeDownCast( caller ) == this->TimerButton )
+  if ( this->TimerLog
+       && vtkKWPushButton::SafeDownCast( caller ) == this->TimerButton )
     {
     this->TimerOn = ! this->TimerOn;
     
@@ -521,7 +553,8 @@ vtkPerkStationModuleGUI
       }
     }
   
-  if ( vtkKWPushButton::SafeDownCast( caller ) == this->ResetTimerButton )
+  if ( vtkKWPushButton::SafeDownCast( caller ) == this->ResetTimerButton
+       && event == vtkKWPushButton::InvokedEvent )
     {
     int step = this->GetMRMLNode()->GetCurrentStep();
     this->WorkingTimes[ step ] = 0.0;
@@ -636,7 +669,7 @@ vtkPerkStationModuleGUI
    
   
     // If the Wizard Widget changed state.
-    
+  
   if (    this->WizardWidget->GetWizardWorkflow() == vtkKWWizardWorkflow::SafeDownCast( caller )
        && event == vtkKWWizardWorkflow::CurrentStateChangedEvent )
     {
@@ -1416,7 +1449,6 @@ vtkPerkStationModuleGUI
   this->Script( "pack %s -side left -anchor w -fill x -padx 1 -pady 1", 
                 this->WorkphaseButtonSet->GetWidgetName() );    
   
-  
     // Wizard collapsible frame with individual steps inside
   
   if ( ! this->WizardFrame )
@@ -1440,7 +1472,7 @@ vtkPerkStationModuleGUI
     this->WizardWidget->Create();  
     this->WizardWidget->GetSubTitleLabel()->SetHeight( 1 );
     this->WizardWidget->SetClientAreaMinimumHeight( 320 );
-    this->WizardWidget->HelpButtonVisibilityOn();
+    // this->WizardWidget->HelpButtonVisibilityOn();
     }
   this->GetApplication()->Script( "pack %s -side top -anchor nw -fill both -expand y",
                                   this->WizardWidget->GetWidgetName() );
@@ -1451,6 +1483,7 @@ vtkPerkStationModuleGUI
   this->CalibrateStep = vtkPerkStationCalibrateStep::New();
   this->CalibrateStep->SetGUI( this );
   wizard_workflow->AddStep( this->CalibrateStep );
+  
   
   this->PlanStep = vtkPerkStationPlanStep::New();
   this->PlanStep->SetGUI( this );
@@ -1468,6 +1501,7 @@ vtkPerkStationModuleGUI
   wizard_workflow->SetFinishStep( this->ValidateStep );
   wizard_workflow->SetInitialStep( this->CalibrateStep );    
   wizard_workflow->GetCurrentStep()->ShowUserInterface();  
+  
 }
 
 
@@ -1476,6 +1510,18 @@ void
 vtkPerkStationModuleGUI
 ::TearDownGUI() 
 {
+  this->RemoveMRMLObservers();
+  this->RemoveGUIObservers();
+  
+  vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic();
+  
+  if ( sliceLogic )
+    {  
+    sliceLogic->GetSliceNode()->RemoveObservers(
+      vtkCommand::ModifiedEvent, ( vtkCommand *)( this->GUICallbackCommand ) );
+    }
+  
+  
   if (this->WizardFrame)
     {    
     this->WizardFrame->SetParent(NULL);    
@@ -1533,6 +1579,7 @@ vtkPerkStationModuleGUI
 
 void vtkPerkStationModuleGUI::RenderSecondaryMonitor()
 {
+  
   if ( ! this->SecondaryMonitor->IsSecondaryMonitorActive() )
     {
     vtkErrorMacro( "No secondary monitor detected" );
@@ -1600,6 +1647,7 @@ void vtkPerkStationModuleGUI::RenderSecondaryMonitor()
   
   ren1->AddActor( imageActor );
   renWin->Render();
+  
 }
 
 

@@ -232,6 +232,12 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
     }
   */
   
+  if ( this->ImageData )
+    {
+    this->ImageData->Delete();
+    this->ImageData = NULL;
+    }
+  
   if ( this->DepthPerceptionLines )
     {
     this->DepthPerceptionLines->RemoveAllItems();
