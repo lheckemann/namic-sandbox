@@ -120,6 +120,13 @@ StringToInt( std::string str, int& var )
   ss >> var;
 }
 
+void
+StringToInt( std::string str, unsigned int& var )
+{
+  std::stringstream ss( str );
+  ss >> var;
+}
+
 int
 StringToInt( std::string str )
 {
@@ -392,12 +399,18 @@ vtkMRMLPerkStationModuleNode
   Superclass::WriteXML( of, nIndent );
   of << std::endl;
   
-  // Write all MRML node attributes into output stream
+    // Write all MRML node attributes into output stream
   
   vtkIndent indent( nIndent );
   
   
-  // Calibration step parameters
+    // Global parameters.
+  
+  of << indent << "PlanUID=\"" << this->PlanUID << "\"" << std::endl;
+  of << indent << "HardwareIndex=\"" << this->HardwareIndex << "\"" << std::endl;
+  
+  
+    // Calibration list.
   
   of << indent << "CurrentCalibration=\"" << this->CurrentCalibration << "\"" << std::endl;
   for ( unsigned int calInd = 0; calInd < this->CalibrationList.size(); ++ calInd )
@@ -459,7 +472,7 @@ vtkMRMLPerkStationModuleNode
        << this->PlanList[ planInd ]->GetValidationTargetPointRAS()[ 2 ] << "\"" << std::endl;
     }
   
-    // Common.
+    // Times.
   
   WriteDouble( of, indent, this->TimeOnCalibrateStep, "TimeOnCalibrateStep" );
   WriteDouble( of, indent, this->TimeOnPlanStep, "TimeOnPlanStep" );
@@ -487,6 +500,13 @@ vtkMRMLPerkStationModuleNode
     unsigned int sectionInd = 0;
     std::string sectionName;
     
+    
+      // Global parameters.
+    
+    if ( ! strcmp( attName, "PlanUID" ) ) StringToInt( std::string( attValue ), this->PlanUID );
+    else if ( ! strcmp( attName, "HardwareIndex" ) ) StringToInt( std::string( attValue ), this->HardwareIndex );
+    
+  
       // Calibration list.
     
     if ( GetAttNameSection( attName, "Calibration", sectionInd, sectionName ) )
