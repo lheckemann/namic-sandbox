@@ -129,8 +129,8 @@ vtkPerkStationSecondaryMonitor
    this->ImageMapper->SetColorWindow( 255 );
    this->ImageMapper->SetColorLevel( 127.5 );
 
-
-  this->ImageActor = vtkSmartPointer< vtkActor2D >::New();
+  
+  this->ImageActor = vtkActor2D::New();
    this->ImageActor->SetMapper( this->ImageMapper );
    this->ImageActor->GetProperty()->SetDisplayLocationToBackground();
 
@@ -219,6 +219,8 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
   if (this->ImageActor)
     {
     this->ImageActor->SetMapper( NULL );
+    this->ImageActor->Delete();
+    this->ImageActor = NULL;
     }
 
   
@@ -238,6 +240,8 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
   if ( this->TextActorsCollection )
     {
     this->TextActorsCollection->RemoveAllItems();
+    this->TextActorsCollection->Delete();
+    this->TextActorsCollection = NULL;
     }
 
 }
@@ -1404,7 +1408,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
         }
 
       // add text actor to text actor collection
-      this->TextActorsCollection->AddItem(textActor);
+      this->TextActorsCollection->AddItem( textActor );
      
       // add text actor to the renderer
       this->Renderer->AddActor(textActor);

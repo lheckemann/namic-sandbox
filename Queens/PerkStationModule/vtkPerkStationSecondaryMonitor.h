@@ -179,7 +179,7 @@ protected:
   vtkSmartPointer< vtkRenderer >                Renderer;
   vtkSmartPointer< vtkRenderWindowInteractor >  Interactor;
   vtkSmartPointer< vtkImageMapper >             ImageMapper;
-  vtkSmartPointer< vtkActor2D >                 ImageActor;
+  vtkActor2D*                 ImageActor;
   
     // Real time needle display.
   vtkSmartPointer< vtkActor >       NeedleGuideActor;
@@ -189,7 +189,7 @@ protected:
   
     // Collection of depth perception lines and needle measure.
   vtkSmartPointer< vtkActorCollection >    DepthPerceptionLines;  
-  vtkSmartPointer< vtkActor2DCollection >  TextActorsCollection;
+  vtkActor2DCollection*  TextActorsCollection;
   vtkSmartPointer< vtkTextActorFlippable > MeasureDigitsActor;
   
     // Guide of keys for calibration.
