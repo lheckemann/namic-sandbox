@@ -34,6 +34,7 @@ public:
   virtual void ShowUserInterface();
   virtual void ShowTargetFirstFrame();
   virtual void ShowPlanListFrame();
+  virtual void HideUserInterface();
   
   
     // Callbacks.
