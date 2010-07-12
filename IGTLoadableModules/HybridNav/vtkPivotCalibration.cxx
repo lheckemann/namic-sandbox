@@ -38,6 +38,9 @@ vtkPivotCalibration::vtkPivotCalibration()
   this->CalibrationTransform = vtkMatrix4x4::New();
   this->m_SingularValueThreshold = DEFAULT_SINGULAR_VALUE_THRESHOLD;
   this->m_RMSE = 0.0;
+
+  this->transformNode = NULL;
+  this->toolNode = NULL;
 }
 
 //------------------------------------------------------------------------
@@ -45,6 +48,22 @@ vtkPivotCalibration::~vtkPivotCalibration()
 {
   //Destroy contents of vector
   this->m_Transforms.clear();
+  
+  if (this->transformNode)
+    {
+      this->transformNode->Delete();
+    }
+  
+  if (this->CalibrationTransform)
+    {
+      this->CalibrationTransform->Delete();
+    }
+
+  if (this->toolNode)
+    {
+      this->toolNode->Delete();
+    }
+  
 }
 
 //------------------------------------------------------------------------
@@ -282,7 +301,8 @@ vtkPivotCalibration::RequestCalibrationRMSE()
   //Make sure computation error is off
 }
 
-/*void
+/*
+void
 PivotCalibration::ComputeCalibrationProcessing()
 {
   this->m_Transforms.clear();
@@ -459,4 +479,5 @@ PivotCalibration::ErrorObserver::Execute(itk::Object *caller,
 {
   const itk::Object * constCaller = caller;
   this->Execute(constCaller, event);
-}*/
+}
+*/
