@@ -45,14 +45,6 @@
 
 // --------------------------------------------------------------
 
-#define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
-  if (obj) \
-    { \
-    obj->SetParent(NULL); \
-    obj->Delete(); \
-    obj = NULL; \
-    };
-
 #define FORGET( obj ) \
   if ( obj ) \
     { \
@@ -748,13 +740,13 @@ vtkPerkStationCalibrateStep
 }
 
 
-//----------------------------------------------------------------------------
+
 void vtkPerkStationCalibrateStep::SuggestFileName()
 {
 }
 
 
-//-----------------------------------------------------------------------------
+
 void vtkPerkStationCalibrateStep::Reset()
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();

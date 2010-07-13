@@ -35,12 +35,13 @@
 
 
 
-//----------------------------------------------------------------------------
-vtkPerkStationSecondaryMonitor* vtkPerkStationSecondaryMonitor::New()
+
+vtkPerkStationSecondaryMonitor*
+vtkPerkStationSecondaryMonitor
+::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance(
-    "vtkPerkStationSecondaryMonitor" );
+  vtkObject* ret = vtkObjectFactory::CreateInstance( "vtkPerkStationSecondaryMonitor" );
   if( ret )
     {
       return ( vtkPerkStationSecondaryMonitor* )ret;
@@ -110,7 +111,6 @@ vtkPerkStationSecondaryMonitor
   
   vtkCamera *camera = vtkCamera::New();
   camera->SetParallelProjection( 1 );
-
   this->Renderer->SetActiveCamera(camera);
   camera->Delete();
 
@@ -121,8 +121,7 @@ vtkPerkStationSecondaryMonitor
   this->Interactor->SetInteractorStyle( iStyle );
   iStyle->Delete();
 
-  this->MapToWindowLevelColors =
-     vtkSmartPointer< vtkImageMapToWindowLevelColors >::New();
+  this->MapToWindowLevelColors = vtkSmartPointer< vtkImageMapToWindowLevelColors >::New();
    this->MapToWindowLevelColors->SetOutputFormatToLuminance();
 
   this->ImageMapper = vtkSmartPointer< vtkImageMapper >::New();
@@ -165,8 +164,7 @@ vtkPerkStationSecondaryMonitor
     
   
    // Calibration controls.
-  this->CalibrationControlsActor =
-   vtkSmartPointer< vtkTextActorFlippable >::New();
+  this->CalibrationControlsActor = vtkSmartPointer< vtkTextActorFlippable >::New();
 
   
   this->TablePositionActor = vtkSmartPointer< vtkTextActorFlippable >::New();
@@ -198,8 +196,9 @@ vtkPerkStationSecondaryMonitor
 }
 
 
-//----------------------------------------------------------------------------
-vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
+
+vtkPerkStationSecondaryMonitor
+::~vtkPerkStationSecondaryMonitor()
 {
   this->SetGUI( NULL );
 
@@ -224,19 +223,14 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
     }
 
   
-  /*
-  if ( this->VolumeNode )
-    {
-    this->VolumeNode->Delete();
-    this->VolumeNode = NULL;
-    }
-  */
-  
   if ( this->ImageData )
     {
-    this->ImageData->Delete();
+    // Deleted when MRML scene is deleted.
     this->ImageData = NULL;
     }
+  
+  this->VolumeNode = NULL;
+  
   
   if ( this->DepthPerceptionLines )
     {
@@ -249,7 +243,6 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
     this->TextActorsCollection->Delete();
     this->TextActorsCollection = NULL;
     }
-
 }
 
 
@@ -303,18 +296,11 @@ void vtkPerkStationSecondaryMonitor::RemoveOverlayRealTimeNeedleTip()
 void vtkPerkStationSecondaryMonitor::SetupImageData()
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if ( ! mrmlNode || ! this->PSNode )
-    {
-    // TODO: what to do on failure
-    return;
-    }
+  if ( ! mrmlNode || ! this->PSNode ) return;
   
   this->VolumeNode = mrmlNode->GetPlanningVolumeNode();
-  if ( ! this->VolumeNode )
-    {
-    // TODO: what to do on failure
-    return;
-    }
+  if ( ! this->VolumeNode ) return;
+  
 
   this->ImageData = this->VolumeNode->GetImageData();
   
@@ -330,8 +316,7 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   
   if ( this->NumberOfMonitors == 2 )
     {
-    this->RenderWindow->SetPosition(
-      this->VirtualScreenCoord[ 0 ], this->VirtualScreenCoord[ 1 ] );
+    this->RenderWindow->SetPosition( this->VirtualScreenCoord[ 0 ], this->VirtualScreenCoord[ 1 ] );
     }
   else
     {
@@ -340,10 +325,8 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   
   this->RenderWindow->SetSize( this->ScreenSize[ 0 ], this->ScreenSize[ 1 ] );
   
-  this->MapToWindowLevelColors->SetWindow(
-      this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
-  this->MapToWindowLevelColors->SetLevel(
-      this->VolumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
+  this->MapToWindowLevelColors->SetWindow( this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
+  this->MapToWindowLevelColors->SetLevel( this->VolumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
   this->MapToWindowLevelColors->SetInput( this->ResliceFilter->GetOutput() );
   
   this->ImageMapper->SetInput( this->MapToWindowLevelColors->GetOutput() );
@@ -352,8 +335,7 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->Renderer->AddActor( this->ImageActor ); // add new image actor
   
   
-  this->LeftSideActor->SetDisplayPosition( this->ScreenSize[ 0 ] - 50,
-                                           this->ScreenSize[ 1 ] - 50 );
+  this->LeftSideActor->SetDisplayPosition( this->ScreenSize[ 0 ] - 50, this->ScreenSize[ 1 ] - 50 );
   this->Renderer->AddActor( this->LeftSideActor );
   
   this->RightSideActor->SetDisplayPosition( 50, this->ScreenSize[ 1 ] - 50 );
@@ -362,14 +344,13 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   
     // Calibration controls.
   
-  this->CalibrationControlsActor->SetInput(
-    "Up:[A]  Down:[Z]  Left:[Q]  Right:[W]   Rotatations:[G][H]" );
+  this->CalibrationControlsActor->SetInput( "Up:[A]  Down:[Z]  Left:[Q]  Right:[W]   Rotatations:[G][H]" );
   this->CalibrationControlsActor->GetTextProperty()->SetColor( 1, 1, 0 );
   this->CalibrationControlsActor->SetTextScaleModeToNone();
   this->CalibrationControlsActor->GetTextProperty()->SetFontSize( 28 );
   this->CalibrationControlsActor->GetTextProperty()->BoldOn();
   this->CalibrationControlsActor->SetDisplayPosition(
-    this->ScreenSize[ 0 ] / 2 - 370, this->ScreenSize[ 1 ] - 50 );
+          this->ScreenSize[ 0 ] / 2 - 370, this->ScreenSize[ 1 ] - 50 );
   if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
     {
     this->CalibrationControlsActor->FlipAroundY( true );
@@ -390,20 +371,17 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   // It only makes sure that two displays have same view if they are physically 
   // in same orientation
   
-  vtkMatrix4x4 *directionMatrix = vtkMatrix4x4::New();
-  this->VolumeNode->GetIJKToRASDirectionMatrix( directionMatrix );
-
-  vtkMatrix4x4 *flipMatrix = vtkMatrix4x4::New();
+  
   bool verticalFlip = false;
   bool horizontalFlip = false;
-
+  
   
     // Set RASToIJK matrix, which only be updated at image load.
   
-  vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
+  vtkMatrix4x4* ijkToRAS = vtkMatrix4x4::New();
   this->VolumeNode->GetIJKToRASMatrix( ijkToRAS );
   vtkMatrix4x4::Invert( ijkToRAS, this->RASToIJK->GetMatrix() );
-    
+  ijkToRAS->Delete();
     
   this->DisplayInitialized = true;
   
@@ -435,14 +413,11 @@ vtkPerkStationSecondaryMonitor
 {
   vtkSmartPointer< vtkTransform > ret = vtkSmartPointer< vtkTransform >::New();
   
-  vtkSmartPointer< vtkMatrix4x4 > ijkToRASMatrix =
-    vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkSmartPointer< vtkMatrix4x4 > ijkToRASMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   this->VolumeNode->GetIJKToRASMatrix( ijkToRASMatrix );
   
-  vtkSmartPointer< vtkMatrix4x4 > xyToRASMatrix =
-    vtkSmartPointer< vtkMatrix4x4 >::New();
-  vtkMatrix4x4::Multiply4x4( ijkToRASMatrix, this->XYToIJK()->GetMatrix(),
-    xyToRASMatrix );
+  vtkSmartPointer< vtkMatrix4x4 > xyToRASMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkMatrix4x4::Multiply4x4( ijkToRASMatrix, this->XYToIJK()->GetMatrix(), xyToRASMatrix );
   
   ret->GetMatrix()->DeepCopy( xyToRASMatrix );
   
@@ -538,54 +513,17 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationSecondaryMonitor::LoadCalibration()
-{
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if ( ! mrmlNode )
-    {
-    return;
-    }
-  
-  OverlayHardware hardware =
-    mrmlNode->GetHardwareList()[ mrmlNode->GetHardwareIndex() ];
-  
-  this->SetPhysicalSize( hardware.SizeX, hardware.SizeY );
-  
-  
-  if ( ! this->VolumeNode )
-    {
-    return;
-    }
-  
-  
-  double monSpacing[ 2 ];
-  this->GetMonitorSpacing( monSpacing[ 0 ], monSpacing[ 1 ] );
-      
-  double imgSpacing[ 3 ];
-  this->VolumeNode->GetSpacing( imgSpacing );
-  
-  
-    // actually scale the image
-  this->Scale[ 0 ] = imgSpacing[ 0 ] / monSpacing[ 0 ];
-  this->Scale[ 1 ] = imgSpacing[ 1 ] / monSpacing[ 1 ];
-  
-  
-  this->CalibrationFromFileLoaded = true;
-}
 
-
-//----------------------------------------------------------------------------
 vtkMatrix4x4*
 vtkPerkStationSecondaryMonitor
 ::GetFlipMatrixFromDirectionCosines ( vtkMatrix4x4 *directionMatrix,
                                       bool & verticalFlip,
                                       bool & horizontalFlip )
 {
-  vtkMatrix4x4 *flipMatrix = vtkMatrix4x4::New();
+  vtkSmartPointer< vtkMatrix4x4 > flipMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   flipMatrix->Identity();
 
-  vtkMatrix4x4 *targetMatrix = vtkMatrix4x4::New();
+  vtkSmartPointer< vtkMatrix4x4 > targetMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
     targetMatrix->Identity();
     targetMatrix->SetElement( 0, 0, -1.0 );
 
@@ -820,9 +758,10 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(
-  double rasOffset )
+
+void
+vtkPerkStationSecondaryMonitor
+::UpdateImageDataOnSliceOffset( double rasOffset )
 {
   this->SliceOffsetRAS = rasOffset;
   
@@ -981,10 +920,9 @@ void vtkPerkStationSecondaryMonitor::Initialize()
 // ----------------------------------------------------------------------------
 void
 vtkPerkStationSecondaryMonitor
-::OverlayRealTimeNeedleTip( double tipRAS[ 3 ],
-                            vtkMatrix4x4* toolTransformMatrix )
+::OverlayRealTimeNeedleTip( double tipRAS[ 3 ], vtkMatrix4x4* toolTransformMatrix )
 {
-  vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+  vtkSmartPointer< vtkMatrix4x4 > rasToXY = vtkSmartPointer< vtkMatrix4x4 >::New();
   vtkMatrix4x4::Invert( this->XYToRAS()->GetMatrix(), rasToXY );
   
   
@@ -1010,33 +948,33 @@ vtkPerkStationSecondaryMonitor
   // we know the slope of the line, hence we can get the second point on the line
   // y = mx + c
     
-  vtkTransform *toolTransform = vtkTransform::New();
-  toolTransform->SetMatrix(toolTransformMatrix);
-  float xyz[3];
-  toolTransform->GetOrientation(xyz);
+  vtkSmartPointer< vtkTransform > toolTransform = vtkSmartPointer< vtkTransform >::New();
+  toolTransform->SetMatrix( toolTransformMatrix );
+  float xyz[ 3 ];
+  toolTransform->GetOrientation( xyz );
    
-  double angleRad = double(vtkMath::Pi()/180)*xyz[2];
+  double angleRad = double( vtkMath::Pi() / 180 ) * xyz[ 2 ];
 
   // make needle tip point lie on the line
   // c = y1 - mx1
-  float c = tipRAS[1] - tan(angleRad)*tipRAS[0];
+  float c = tipRAS[ 1 ] - tan( angleRad ) * tipRAS[ 0 ];
 
   // for the end point lets say we know y = 0, we need to know x
-  double xyEndPoint[2];
-  xyEndPoint[1] = this->ScreenSize[1];
+  double xyEndPoint[ 2 ];
+  xyEndPoint[ 1 ] = this->ScreenSize[ 1 ];
 
   // first to RAS
   // to get correct A coordinate
-  double rasEndPoint[3];
-  inPt[0] = 0;
-  inPt[1] = xyEndPoint[1];
-  inPt[2] = 0;
-  this->XYToRAS()->GetMatrix()->MultiplyPoint(inPt, outPt);
-  rasEndPoint[1] = outPt[1];
+  double rasEndPoint[ 3 ];
+  inPt[ 0 ] = 0;
+  inPt[ 1 ] = xyEndPoint[ 1 ];
+  inPt[ 2 ] = 0;
+  this->XYToRAS()->GetMatrix()->MultiplyPoint( inPt, outPt );
+  rasEndPoint[ 1 ] = outPt[ 1 ];
 
   // get the R coordinate
   // x = (y - c)/m
-  rasEndPoint[0] = (rasEndPoint[1]-c)/tan(angleRad);
+  rasEndPoint[0] = ( rasEndPoint[ 1 ] - c ) / tan( angleRad );
   rasEndPoint[2] = 0;
 
   // back to xy coordinate system
@@ -1049,80 +987,74 @@ vtkPerkStationSecondaryMonitor
 
 
   // now from xy to world coordinates
-  double wcEndPoint[3];
-  this->Renderer->SetDisplayPoint(xyEndPoint[0],xyEndPoint[1], 0);
+  double wcEndPoint[ 3 ];
+  this->Renderer->SetDisplayPoint( xyEndPoint[ 0 ],xyEndPoint[ 1 ], 0 );
   this->Renderer->DisplayToWorld();
-  this->Renderer->GetWorldPoint(worldCoordinate);
-  wcEndPoint[0] = worldCoordinate[0];
-  wcEndPoint[1] = worldCoordinate[1];
-  wcEndPoint[2] = worldCoordinate[2];
+  this->Renderer->GetWorldPoint( worldCoordinate );
+  wcEndPoint[ 0 ] = worldCoordinate[ 0 ];
+  wcEndPoint[ 1 ] = worldCoordinate[ 1 ];
+  wcEndPoint[ 2 ] = worldCoordinate[ 2 ];
 
-  vtkLineSource *needleLine = vtkLineSource::New();
-  needleLine->SetPoint1(wcPoint);
-  needleLine->SetPoint2(wcEndPoint);
+  vtkSmartPointer< vtkLineSource > needleLine = vtkSmartPointer< vtkLineSource >::New();
+  needleLine->SetPoint1( wcPoint );
+  needleLine->SetPoint2( wcEndPoint );
   
 
-  vtkPolyDataMapper *needleLineMapper = vtkPolyDataMapper::New();  
-  needleLineMapper->SetInputConnection(needleLine->GetOutputPort());
+  vtkSmartPointer< vtkPolyDataMapper > needleLineMapper = vtkSmartPointer< vtkPolyDataMapper >::New();  
+  needleLineMapper->SetInputConnection( needleLine->GetOutputPort() );
 
   this->RealTimeNeedleLineActor->SetMapper(needleLineMapper);
-  this->RealTimeNeedleLineActor->GetProperty()->SetColor(1,0,0);
+  this->RealTimeNeedleLineActor->GetProperty()->SetColor( 1, 0, 0 );
  
   // add to renderer of the Axial slice viewer
   this->Renderer->AddActor(this->RealTimeNeedleLineActor);  
 
 
   // set up the needle tip actor
-  vtkGlyphSource2D *needleTip = vtkGlyphSource2D::New();
+  vtkSmartPointer< vtkGlyphSource2D > needleTip = vtkSmartPointer< vtkGlyphSource2D >::New();
   needleTip->SetGlyphTypeToThickCross(); 
-  needleTip->SetFilled (0);
-  needleTip->SetScale(0.05);
-  needleTip->SetColor(1,0,0);  
+  needleTip->SetFilled( 0 );
+  needleTip->SetScale( 0.05 );
+  needleTip->SetColor( 1, 0, 0 );  
   needleTip->Update();
   
   
-  vtkPolyDataMapper *needleMapper = vtkPolyDataMapper::New();
-  //needleMapper->SetInputConnection(filter->GetOutputPort());
-  needleMapper->SetInputConnection(needleTip->GetOutputPort());
+  vtkSmartPointer< vtkPolyDataMapper > needleMapper = vtkSmartPointer< vtkPolyDataMapper >::New();
+    needleMapper->SetInputConnection( needleTip->GetOutputPort() );
 
-  this->NeedleTipActor->SetMapper(needleMapper);
-  this->NeedleTipActor->SetPosition(wcPoint[0], wcPoint[1],wcPoint[2]);
-  //this->NeedleTipActor->RotateZ(xyz[2]);
+  this->NeedleTipActor->SetMapper( needleMapper );
+  this->NeedleTipActor->SetPosition( wcPoint[ 0 ], wcPoint[ 1 ],wcPoint[ 2 ] );
   
  
   // add to renderer of the Axial slice viewer
-  this->Renderer->AddActor(this->NeedleTipActor);
+  this->Renderer->AddActor( this->NeedleTipActor );
 
   // text actors for needle tip S, and target location    
-  double rasTarget[3];
-  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasTarget);
-  char text[50];
+  double rasTarget[ 3 ];
+  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( rasTarget );
+  char text[ 50 ];
   sprintf(text,"Needle Tip Z:  %.2f\nTarget Z:     %.2f",tipRAS[2], rasTarget[2]);      
-  this->NeedleTipZLocationText->SetInput(text);
+  this->NeedleTipZLocationText->SetInput( text );
   this->NeedleTipZLocationText->SetTextScaleModeToNone();
-  this->NeedleTipZLocationText->GetTextProperty()->SetFontSize(25);
-  this->NeedleTipZLocationText->SetDisplayPosition(
-    this->MonitorPixelResolution[ 0 ] - 250, 100 );
+  this->NeedleTipZLocationText->GetTextProperty()->SetFontSize( 25 );
+  this->NeedleTipZLocationText->SetDisplayPosition( this->MonitorPixelResolution[ 0 ] - 250, 100 );
   if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
     { 
-    this->NeedleTipZLocationText->GetTextProperty()->
-      SetJustificationToCentered();
-    this->NeedleTipZLocationText->SetOrientation(180);
-    //char *revText = vtkPerkStationModuleLogic::strrev(text, strlen(text));
-    //this->NeedleTipZLocationText->SetInput(revText);
+    this->NeedleTipZLocationText->GetTextProperty()->SetJustificationToCentered();
+    this->NeedleTipZLocationText->SetOrientation( 180 );
     }
   else if ( this->PSNode->GetSecondMonitorVerticalFlip() )
     {
-    this->NeedleTipZLocationText->GetTextProperty()->
-      SetVerticalJustificationToTop();
-    this->NeedleTipZLocationText->SetOrientation(180);
+    this->NeedleTipZLocationText->GetTextProperty()->SetVerticalJustificationToTop();
+    this->NeedleTipZLocationText->SetOrientation( 180 );
     }
 
-  this->Renderer->AddActor(this->NeedleTipZLocationText);
+  this->Renderer->AddActor( this->NeedleTipZLocationText );
 
-  if (this->DeviceActive && this->DisplayInitialized)
-    this->RenderWindow->Render(); 
-  
+  if ( this->DeviceActive && this->DisplayInitialized )
+    {
+    this->RenderWindow->Render();
+    }
 }
 
 
@@ -1147,7 +1079,7 @@ vtkPerkStationSecondaryMonitor
   double wcTargetPoint[ 3 ];
   
     // Create transform matrix for RAS to XY transform.
-  vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+  vtkSmartPointer< vtkMatrix4x4 > rasToXY = vtkSmartPointer< vtkMatrix4x4 >::New();
   vtkMatrix4x4::Invert( this->XYToRAS()->GetMatrix(), rasToXY );
 
     // Convert entry point position from RAS to XY coordinates.
@@ -1190,10 +1122,8 @@ vtkPerkStationSecondaryMonitor
 
 
   double halfNeedleGuideLength =
-    sqrt( ( wcTargetPoint[ 0 ] - wcEntryPoint[ 0 ] ) *
-          ( wcTargetPoint[ 0 ] - wcEntryPoint[ 0 ] ) +
-          ( wcTargetPoint[ 1 ] - wcEntryPoint[ 1 ] ) *
-          ( wcTargetPoint[ 1 ] - wcEntryPoint[ 1 ] ) );
+    sqrt(   ( wcTargetPoint[ 0 ] - wcEntryPoint[ 0 ] ) * ( wcTargetPoint[ 0 ] - wcEntryPoint[ 0 ] )
+          + ( wcTargetPoint[ 1 ] - wcEntryPoint[ 1 ] ) * ( wcTargetPoint[ 1 ] - wcEntryPoint[ 1 ] ) );
   
   this->MeasureNeedleLengthInWorldCoordinates = halfNeedleGuideLength;
 
@@ -1204,7 +1134,7 @@ vtkPerkStationSecondaryMonitor
   // i.e. using the insertion angle
   // add it to slice viewer's renderer
 
-  vtkCylinderSource *needleGuide = vtkCylinderSource::New();
+  vtkSmartPointer< vtkCylinderSource > needleGuide = vtkSmartPointer< vtkCylinderSource >::New();
   // TO DO: how to relate this to actual depth???
   needleGuide->SetHeight( 2 * halfNeedleGuideLength );
   // needleGuide->SetHeight( halfNeedleGuideLength );
@@ -1219,24 +1149,20 @@ vtkPerkStationSecondaryMonitor
   
   // angle as calculated from xy coordinates
   double insAngle = - double( 180 / vtkMath::Pi() ) *
-                    atan( double( ( xyEntry[ 1 ] - xyTarget[ 1 ] ) /
-                                  ( xyEntry[ 0 ] - xyTarget[ 0 ] ) ) );
+              atan( double( ( xyEntry[ 1 ] - xyTarget[ 1 ] ) / ( xyEntry[ 0 ] - xyTarget[ 0 ] ) ) );
   
   
-  vtkSmartPointer< vtkTransform > needleTransform =
-      vtkSmartPointer< vtkTransform >::New();
+  vtkSmartPointer< vtkTransform > needleTransform = vtkSmartPointer< vtkTransform >::New();
     needleTransform->Translate( needleCenter[ 0 ], needleCenter[ 1 ], 0.0 );
     needleTransform->RotateZ( 90.0 - insAngle );
   
-  vtkSmartPointer< vtkTransformPolyDataFilter > filter =
-    vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  vtkSmartPointer< vtkTransformPolyDataFilter > filter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
   filter->SetInputConnection( needleGuide->GetOutputPort() ); 
   // filter->SetTransform( transform );
   filter->SetTransform( needleTransform );
 
   // map
-  vtkSmartPointer< vtkPolyDataMapper > needleMapper =
-    vtkSmartPointer< vtkPolyDataMapper >::New();
+  vtkSmartPointer< vtkPolyDataMapper > needleMapper = vtkSmartPointer< vtkPolyDataMapper >::New();
   needleMapper->SetInputConnection( filter->GetOutputPort() );
   
   // after transfrom, set up actor 
@@ -1250,7 +1176,9 @@ vtkPerkStationSecondaryMonitor
 
 
 //------------------------------------------------------------------------------
-void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
+void
+vtkPerkStationSecondaryMonitor
+::SetDepthPerceptionLines()
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   
@@ -1279,7 +1207,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
     double lengthIncrement = 10.0; // in mm
     
     
-    vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+    vtkSmartPointer< vtkMatrix4x4 > rasToXY = vtkSmartPointer< vtkMatrix4x4 >::New();
     vtkMatrix4x4::Invert( this->XYToRAS()->GetMatrix(), rasToXY );
     
     double pointXY[ 2 ];
@@ -1363,14 +1291,12 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
       wcEndPoint[2] = worldCoordinate[2];
 
       // set up the line
-      vtkSmartPointer< vtkLineSource > line =
-          vtkSmartPointer< vtkLineSource >::New();
+      vtkSmartPointer< vtkLineSource > line = vtkSmartPointer< vtkLineSource >::New();
         line->SetPoint1( wcStartPoint );
         line->SetPoint2( wcEndPoint );
 
       // set up the mapper,
-      vtkSmartPointer< vtkPolyDataMapper > lineMapper =
-          vtkSmartPointer< vtkPolyDataMapper >::New();
+      vtkSmartPointer< vtkPolyDataMapper > lineMapper = vtkSmartPointer< vtkPolyDataMapper >::New();
         lineMapper->SetInputConnection( line->GetOutputPort() );
       
       // actor
@@ -1383,8 +1309,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
       sprintf( text, "%d mm", ( i + 1 ) * 10 );     
      
       // vtkTextActor *textActor = vtkTextActor::New();
-      vtkSmartPointer< vtkTextActorFlippable > textActor =
-          vtkSmartPointer< vtkTextActorFlippable >::New();
+      vtkSmartPointer< vtkTextActorFlippable > textActor = vtkSmartPointer< vtkTextActorFlippable >::New();
         textActor->SetInput( text );
         textActor->GetTextProperty()->SetColor( 0, 1, 0 );
         textActor->SetTextScaleModeToNone();
@@ -1394,7 +1319,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
           textActor->FlipAroundY( true );
         if ( this->PSNode->GetSecondMonitorVerticalFlip() )
           textActor->FlipAroundX( true );
-          
+      
       
       if ( denom >= 0 )
         {
@@ -1469,13 +1394,11 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
 
 
     // Set up the line and its actor.
-    vtkSmartPointer< vtkLineSource > line =
-        vtkSmartPointer< vtkLineSource >::New();
+    vtkSmartPointer< vtkLineSource > line = vtkSmartPointer< vtkLineSource >::New();
       line->SetPoint1( wcStartPoint );
       line->SetPoint2( wcEndPoint );
 
-    vtkSmartPointer< vtkPolyDataMapper > lineMapper =
-        vtkSmartPointer< vtkPolyDataMapper >::New();
+    vtkSmartPointer< vtkPolyDataMapper > lineMapper = vtkSmartPointer< vtkPolyDataMapper >::New();
       lineMapper->SetInputConnection( line->GetOutputPort() );
     
     vtkSmartPointer< vtkActor > lineActor = vtkSmartPointer< vtkActor >::New();
@@ -1504,28 +1427,23 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
     
       // Set up the needle measure.
     
-    vtkSmartPointer< vtkCylinderSource > needleMeasure =
-        vtkSmartPointer< vtkCylinderSource >::New();    
+    vtkSmartPointer< vtkCylinderSource > needleMeasure = vtkSmartPointer< vtkCylinderSource >::New();    
       needleMeasure->SetHeight( this->MeasureNeedleLengthInWorldCoordinates ); 
       needleMeasure->SetRadius( 0.005 );  
       needleMeasure->SetResolution( 10 );
 
-    vtkSmartPointer< vtkPolyDataMapper > measureMapper =
-        vtkSmartPointer< vtkPolyDataMapper >::New();  
+    vtkSmartPointer< vtkPolyDataMapper > measureMapper = vtkSmartPointer< vtkPolyDataMapper >::New();  
       measureMapper->SetInputConnection( needleMeasure->GetOutputPort() );
 
-    vtkSmartPointer< vtkActor > measureLineActor =
-        vtkSmartPointer< vtkActor >::New();
+    vtkSmartPointer< vtkActor > measureLineActor = vtkSmartPointer< vtkActor >::New();
       measureLineActor->SetMapper( measureMapper );  
     
       // convert to world coordinate
-    this->Renderer->SetDisplayPoint( xyMeasuringLineDock[ 0 ],
-      xyMeasuringLineDock[ 1 ], 0 );
+    this->Renderer->SetDisplayPoint( xyMeasuringLineDock[ 0 ], xyMeasuringLineDock[ 1 ], 0 );
     this->Renderer->DisplayToWorld();
     this->Renderer->GetWorldPoint( worldCoordinate );
 
-    measureLineActor->SetPosition( worldCoordinate[ 0 ],
-      worldCoordinate[ 1 ], worldCoordinate[ 2 ] );
+    measureLineActor->SetPosition( worldCoordinate[ 0 ], worldCoordinate[ 1 ], worldCoordinate[ 2 ] );
     
      // add to actor collection
     this->DepthPerceptionLines->AddItem( measureLineActor );
@@ -1534,8 +1452,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
     
       // Measure with numbers.
     
-    this->MeasureDigitsActor->SetPosition( xyMeasuringLineDock[ 0 ] + 10,
-                                           xyMeasuringLineDock[ 1 ] + 80 );
+    this->MeasureDigitsActor->SetPosition( xyMeasuringLineDock[ 0 ] + 10, xyMeasuringLineDock[ 1 ] + 80 );
     double length =      sqrt(   ( rasTarget[ 0 ] - rasEntry[ 0 ] )
                                * ( rasTarget[ 0 ] - rasEntry[ 0 ] )
                                + ( rasTarget[ 1 ] - rasEntry[ 1 ] )
@@ -1557,8 +1474,10 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
 }
 
 
-//------------------------------------------------------------------------------
-void vtkPerkStationSecondaryMonitor::RemoveDepthPerceptionLines()
+
+void
+vtkPerkStationSecondaryMonitor
+::RemoveDepthPerceptionLines()
 {
   if( ! this->DepthLinesInitialized ) return;
 
@@ -1588,7 +1507,7 @@ void vtkPerkStationSecondaryMonitor::RemoveDepthPerceptionLines()
 }
 
 
-//--------------------------------------------------------------------------------
+
 void vtkPerkStationSecondaryMonitor::RemoveTextActors()
 {
   int actorCount = this->Renderer->VisibleActorCount();
