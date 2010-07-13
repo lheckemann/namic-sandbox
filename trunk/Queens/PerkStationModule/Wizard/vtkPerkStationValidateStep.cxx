@@ -103,9 +103,12 @@ vtkPerkStationValidateStep
 vtkPerkStationValidateStep
 ::~vtkPerkStationValidateStep()
 {
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanListFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanListLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanList );
+  
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ResetFrame );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ResetValidationButton );
-  
   
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionDepth );
   
@@ -884,7 +887,7 @@ vtkPerkStationValidateStep
   vtkRenderer* renderer = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
   
   vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
-  vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+  vtkSmartPointer< vtkMatrix4x4 > rasToXY = vtkSmartPointer< vtkMatrix4x4 >::New();
   vtkMatrix4x4::Invert( xyToRAS, rasToXY );
   
   double inPt[ 4 ] = { ras[ 0 ], ras[ 1 ], ras[ 2 ], 1 };
