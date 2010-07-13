@@ -1,4 +1,8 @@
 
+#ifndef VTKPERKSTATIONPLAN_H
+#define VTKPERKSTATIONPLAN_H
+
+
 #include "vtkObject.h"
 
 #include <string>
@@ -19,6 +23,7 @@ public:
 
   static vtkPerkStationPlan *New();  
   void PrintSelf( ostream& os, vtkIndent indent );
+  vtkTypeMacro( vtkPerkStationPlan, vtkObject );
   
   
   //BTX
@@ -52,10 +57,7 @@ public:
 protected:
   
   vtkPerkStationPlan( void );
-  ~vtkPerkStationPlan( void );
   
-  vtkPerkStationPlan( const vtkPerkStationPlan& );
-  void operator=( const vtkPerkStationPlan& );
   
   //BTX
   
@@ -71,4 +73,12 @@ protected:
   double ValidationTargetPointRAS[ 3 ];
   
   //ETX
+
+private:
+  
+  vtkPerkStationPlan( const vtkPerkStationPlan& ); // Not implemented.
+  void operator=( const vtkPerkStationPlan& ); // Not implemented.
 };
+
+
+#endif

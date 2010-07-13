@@ -25,15 +25,6 @@ vtkPerkStationPlan
 }
 
 
-/**
- * Destructor.
- */
-vtkPerkStationPlan
-::~vtkPerkStationPlan(void)
-{
-}
-
-
 void vtkPerkStationPlan::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->Superclass::PrintSelf(os,indent);
