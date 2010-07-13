@@ -650,15 +650,6 @@ void
 vtkPerkStationValidateStep
 ::Reset()
 {
-    // reset parameters of mrml node
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if ( ! mrmlNode ) return;
-  
-  mrmlNode->SetValidated( false );
-  
-    // remove the overlaid needle axis
-  this->RemoveValidationNeedleAxis();
-
     // reset local member variables to defaults
   this->ClickNumber = 0;
   this->ProcessingCallback = false;

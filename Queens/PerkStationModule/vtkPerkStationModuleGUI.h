@@ -79,19 +79,10 @@ public:
   void RemoveMRMLObservers();
   
   
-  virtual void RenderSecondaryMonitor();
-  
   virtual void ResetAndStartNewExperiment();
   
   
   //BTX
-  // Mode identifier
-  enum ModeId
-    {
-      Clinical = 1,
-      Training = 2,
-    };
-  
   // Description:
   // State identifier
   enum StateId

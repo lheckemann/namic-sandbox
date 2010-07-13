@@ -930,14 +930,14 @@ vtkPerkStationPlanStep
     return;
     }
   
-  double ras[3] = {0.0,0.0,0.0};
-  mrmlNode->SetPlanEntryPoint(ras);
-  mrmlNode->SetPlanTargetPoint(ras);
+  double ras[ 3 ] = { 0.0, 0.0, 0.0 };
+  mrmlNode->SetPlanEntryPoint( ras );
+  mrmlNode->SetPlanTargetPoint( ras );
   
   
   double tiltAngle = mrmlNode->GetTiltAngle();
 
-  if (!vtkPerkStationModuleLogic::DoubleEqual(tiltAngle,0))
+  if ( ! vtkPerkStationModuleLogic::DoubleEqual( tiltAngle, 0 ) )
     {
      // also if the tilt angle was not zero,
     // then reset the slice to ras matrix to the original

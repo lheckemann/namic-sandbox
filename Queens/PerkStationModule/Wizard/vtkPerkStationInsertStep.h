@@ -16,7 +16,10 @@ class vtkKWMultiColumnListWithScrollbars;
 class vtkLineSource;
 
 
-class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationInsertStep : public vtkPerkStationStep
+class
+VTK_PERKSTATIONMODULE_EXPORT
+vtkPerkStationInsertStep
+: public vtkPerkStationStep
 {
 public:
   static vtkPerkStationInsertStep *New();
@@ -32,32 +35,18 @@ public:
   virtual void HideUserInterface();
   
 
-  // Description:
-  // Process GUI events
   virtual void ProcessGUIEvents( vtkObject *caller, unsigned long event, void *callData );
-  
-  void Reset();
   
   void UpdateGUI();
   
   
-  // Description
-  // Callback on the load calibration button
-  void LogFileSaveButtonCallback();
-
-  // Description
-  // Callback on the load calibration button
-  void LogFileCheckButtonCallback(bool state);
-
 protected:
   vtkPerkStationInsertStep();
   ~vtkPerkStationInsertStep();
 
-   // virtual void PopulateIntensityImagesTargetVolumeSelector();
-  virtual void PopulateControls();
+    // virtual void PopulateIntensityImagesTargetVolumeSelector();
   virtual void InstallCallbacks();
-  void ResetControls();
-
+  
   void AddGUIObservers();
   void RemoveGUIObservers();
 
@@ -71,7 +60,6 @@ protected:
   
   
     // GUI elements
-  
   
   vtkKWLabel* AngleInPlaneLabel;
   

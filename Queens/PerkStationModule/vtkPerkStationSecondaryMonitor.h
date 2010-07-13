@@ -55,35 +55,29 @@ class
 vtkPerkStationSecondaryMonitor : public vtkObject
 {
 public:
-  static vtkPerkStationSecondaryMonitor *New();  
   
+  static vtkPerkStationSecondaryMonitor *New();  
   vtkTypeMacro( vtkPerkStationSecondaryMonitor, vtkObject );
   
   
-  // Get/Set GUI
-  
   vtkPerkStationModuleGUI* GetGUI();
-  
   virtual void SetGUI( vtkPerkStationModuleGUI* gui );
-  
   virtual void SetPSNode( vtkMRMLPerkStationModuleNode* node );
   
   
-  // About the secondary monitor itself:
+    // See if the secondary monitor is attached or not
+  bool IsSecondaryMonitorActive() {
+   return this->DeviceActive;
+  };
   
-  // Description:
-  // See if the secondary monitor is attached or not
-  bool IsSecondaryMonitorActive(){ return this->DeviceActive;};
   
-  
-  // Detect the secondary monitor attached to the system,
-  // gather information about it
+    // Detect the secondary monitor attached to the system, gather information about it.
   void Initialize();
   
   
   void GetMonitorSpacing( double & xSpacing, double & ySpacing ) {
-    xSpacing = this->MonitorPhysicalSizeMM[0] / this->MonitorPixelResolution[0];
-    ySpacing = this->MonitorPhysicalSizeMM[1] / this->MonitorPixelResolution[1];
+    xSpacing = this->MonitorPhysicalSizeMM[ 0 ] / this->MonitorPixelResolution[ 0 ];
+    ySpacing = this->MonitorPhysicalSizeMM[ 1 ] / this->MonitorPixelResolution[ 1 ];
   };
   
   
@@ -122,21 +116,14 @@ public:
   };
   
   
-  // Description:
-  // Get/Set ScreenSize
   void GetScreenDimensions( unsigned int & sizeX, unsigned int & sizeY ) {
     sizeX = this->ScreenSize[ 0 ];
     sizeY = this->ScreenSize[ 1 ];
   };
   
-  // Description
-  // set up image data, once the volume has been loaded inside slicer
+  
+    // set up image data, once the volume has been loaded inside slicer
   void SetupImageData();
-  
-  
-  // Description
-  // load calibration, which has been read in from a file already
-  void LoadCalibration();
   
   
   void OverlayNeedleGuide();

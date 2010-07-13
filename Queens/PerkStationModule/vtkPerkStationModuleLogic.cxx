@@ -229,21 +229,19 @@ AdjustSliceView()
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkStationModuleLogic::SetSliceViewFromVolume(
-  vtkSlicerApplication *app,vtkMRMLVolumeNode *volumeNode )
+
+void
+vtkPerkStationModuleLogic
+::SetSliceViewFromVolume( vtkSlicerApplication *app,vtkMRMLVolumeNode *volumeNode )
 {
-  if (!volumeNode)
+  if ( ! volumeNode )
     {
     return;
     }
 
-  vtkSmartPointer< vtkMatrix4x4 > matrix = 
-    vtkSmartPointer< vtkMatrix4x4 >::New();
-  vtkSmartPointer< vtkMatrix4x4 > permutationMatrix = 
-    vtkSmartPointer< vtkMatrix4x4 >::New();
-  vtkSmartPointer< vtkMatrix4x4 > rotationMatrix = 
-    vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkSmartPointer< vtkMatrix4x4 > matrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkSmartPointer< vtkMatrix4x4 > permutationMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkSmartPointer< vtkMatrix4x4 > rotationMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
 
   volumeNode->GetIJKToRASDirectionMatrix( matrix );
   
@@ -252,22 +250,18 @@ void vtkPerkStationModuleLogic::SetSliceViewFromVolume(
   this->ComputePermutationFromOrientation( matrix, permutation, flip );
 
   
-  permutationMatrix->SetElement(0,0,0);
-  permutationMatrix->SetElement(1,1,0);
-  permutationMatrix->SetElement(2,2,0);
+  permutationMatrix->SetElement( 0, 0, 0 );
+  permutationMatrix->SetElement( 1, 1, 0 );
+  permutationMatrix->SetElement( 2, 2, 0 );
 
-  permutationMatrix->SetElement(0, permutation[0],
-                     (flip[permutation[0]] ? -1 : 1));
-  permutationMatrix->SetElement(1, permutation[1],
-                     (flip[permutation[1]] ? -1 : 1));
-  permutationMatrix->SetElement(2, permutation[2],
-                     (flip[permutation[2]] ? -1 : 1));
+  permutationMatrix->SetElement( 0, permutation[ 0 ], ( flip[ permutation[ 0 ] ] ? -1 : 1 ) );
+  permutationMatrix->SetElement( 1, permutation[ 1 ], ( flip[ permutation[ 1 ] ] ? -1 : 1 ) );
+  permutationMatrix->SetElement( 2, permutation[ 2 ], ( flip[ permutation[ 2 ] ] ? -1 : 1 ) );
   
   permutationMatrix->Invert();
   vtkMatrix4x4::Multiply4x4( matrix, permutationMatrix, rotationMatrix ); 
 
-  vtkSlicerApplicationLogic *appLogic =
-    app->GetApplicationGUI()->GetApplicationLogic();
+  vtkSlicerApplicationLogic *appLogic = app->GetApplicationGUI()->GetApplicationLogic();
 
   
   // Set the slice views to match the volume slice orientation
@@ -319,13 +313,15 @@ void vtkPerkStationModuleLogic::SetSliceViewFromVolume(
 
 
 
-vtkMRMLScalarVolumeNode *vtkPerkStationModuleLogic::AddArchetypeVolume(vtkSlicerApplication* app, const char* fileName, const char *volumeName)
+vtkMRMLScalarVolumeNode*
+vtkPerkStationModuleLogic
+::AddArchetypeVolume( vtkSlicerApplication* app, const char* fileName, const char* volumeName )
 {
   // Set up storageNode
   vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> storageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New(); 
-  storageNode->SetFileName(fileName);
+  storageNode->SetFileName( fileName );
   // check to see if can read this type of file
-  if (storageNode->SupportedFileType(fileName) == 0)
+  if ( storageNode->SupportedFileType( fileName ) == 0 )
     {
     vtkErrorMacro("AddArchetypeVolume: can't read this kind of file: " << fileName);
     return 0;

@@ -295,22 +295,16 @@ vtkMRMLPerkStationModuleNode
   
   this->CurrentCalibration = -1; // No calibration;
   this->CalibrationUID = 0;
-  
   this->CurrentSliceOffset = 0.0;
-  
   this->PatientPosition = PPNA;
-  
   this->TableAtOverlay = 0.0;
   
   
     // Plan parameters --------------------------------------------------------
   
   this->TiltAngle = 0;
-  
   this->SliceToRAS = vtkSmartPointer< vtkMatrix4x4 >::New();
-  
   this->PlanList.clear();
-  
   this->PlanUID = 0;
   this->CurrentPlanIndex = -1;
   
@@ -362,7 +356,15 @@ vtkMRMLPerkStationModuleNode
 vtkMRMLPerkStationModuleNode
 ::~vtkMRMLPerkStationModuleNode()
 {
-  LOG_TO_FILE( "node destructor" );
+  // LOG_TO_FILE( "node destructor" );
+  
+  
+  if ( this->PlanningVolumeNode )
+    {
+    vtkSetMRMLNodeMacro( this->PlanningVolumeNode, NULL );
+    }
+  
+  
     // Calibration list.
   
   for ( std::vector< OverlayCalibration* >::iterator it = this->CalibrationList.begin();
@@ -1006,6 +1008,7 @@ vtkMRMLPerkStationModuleNode
   if ( planVolNode != NULL )
     {
     vtkSetMRMLNodeMacro( this->PlanningVolumeNode, planVolNode );
+    // this->PlanningVolumeNode = planVolNode;
     this->PlanningVolumeRef = this->PlanningVolumeNode->GetID();
     }
 }

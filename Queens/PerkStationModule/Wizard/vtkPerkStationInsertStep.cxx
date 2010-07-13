@@ -19,24 +19,19 @@
 #include "vtkKWWizardWorkflow.h"
 #include "vtkKWLoadSaveButton.h"
 
-#if defined(USE_NDIOAPI)
-#include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
-#include "vtkNDITracker.h"
-#endif
-
 #include <stdio.h>
 
 #include "PerkStationCommon.h"
 
 
-//----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkPerkStationInsertStep);
-vtkCxxRevisionMacro(vtkPerkStationInsertStep, "$Revision: 1.1 $");
+
+vtkStandardNewMacro( vtkPerkStationInsertStep );
+vtkCxxRevisionMacro( vtkPerkStationInsertStep, "$Revision: 1.1 $" );
 
 
-//----------------------------------------------------------------------------
-vtkPerkStationInsertStep::vtkPerkStationInsertStep()
+
+vtkPerkStationInsertStep
+::vtkPerkStationInsertStep()
 {
   this->SetName("3/5. Insert");
   this->SetDescription("Do the needle insertion");
@@ -193,8 +188,6 @@ void vtkPerkStationInsertStep::ShowUserInterface()
 
   this->AddGUIObservers();
 
-  // TO DO: populate controls wherever needed
-  this->PopulateControls();
   this->UpdateGUI();
 }
 
@@ -256,6 +249,7 @@ vtkPerkStationInsertStep
 }
 
 
+
 void
 vtkPerkStationInsertStep
 ::OnCalibrationSelectionChanged()
@@ -274,22 +268,31 @@ vtkPerkStationInsertStep
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::InstallCallbacks()
+
+void
+vtkPerkStationInsertStep
+::InstallCallbacks()
 {
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData )
+
+void
+vtkPerkStationInsertStep
+::WizardGUICallback( vtkObject *caller, unsigned long event, void *clientData, void *callData )
 {
-    vtkPerkStationInsertStep *self = reinterpret_cast<vtkPerkStationInsertStep *>(clientData);
-    if (self) { self->ProcessGUIEvents(caller, event, callData); }
+  vtkPerkStationInsertStep *self = reinterpret_cast<vtkPerkStationInsertStep *>( clientData );
+  if (self)
+    {
+    self->ProcessGUIEvents(caller, event, callData);
+    }
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
+
+void
+vtkPerkStationInsertStep
+::ProcessGUIEvents( vtkObject *caller, unsigned long event, void *callData )
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
 
@@ -309,6 +312,7 @@ void vtkPerkStationInsertStep::ProcessGUIEvents(vtkObject *caller, unsigned long
 
   this->ProcessingCallback = false;
 }
+
 
 
 void
@@ -458,25 +462,10 @@ vtkPerkStationInsertStep
 }
   
 
-//----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::PopulateControls()
-{
 
-}
-
-//----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::ResetControls()
-{
-}
-//----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::Reset()
-{ 
-  this->ResetControls();
-}
-
-
-//----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::AddGUIObservers()
+void
+vtkPerkStationInsertStep
+::AddGUIObservers()
 {
   this->RemoveGUIObservers();
   
@@ -494,8 +483,10 @@ void vtkPerkStationInsertStep::AddGUIObservers()
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::RemoveGUIObservers()
+
+void
+vtkPerkStationInsertStep
+::RemoveGUIObservers()
 {
   if ( this->PlanList )
     {
@@ -504,43 +495,10 @@ void vtkPerkStationInsertStep::RemoveGUIObservers()
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkStationInsertStep::LogFileSaveButtonCallback()
-{
-#if defined(USE_NDIOAPI)
-  this->InsertionLogFile = fopen(this->InsertionLogFileName.c_str(),"w");   
-  if (this->InsertionLogFile == 0)
-    {
-    this->LogFileLoadMsg->SetText("Could not open file for writing...");
-    return;
-    }
-  this->StartStopLoggingToFileCheckButton->SetEnabled(1);
-#endif // USE_NDIOAPI
-}
-//---------------------------------------------------------------------------
-void vtkPerkStationInsertStep::LogFileCheckButtonCallback(bool state)
-{ 
-  #if defined(USE_NDIOAPI)
 
-  if (state)
-    {    
-    this->LogToFile = true;
-    this->StartStopLoggingToFileCheckButton->SetText("Logging..press to stop");
-    }
-  else
-    {
-    this->LogToFile = false;
-    this->StartStopLoggingToFileCheckButton->SetText("Start logging");
-    if (this->InsertionLogFile)
-      {
-      fclose(this->InsertionLogFile);
-      }    
-    }
-
-  #endif(USE_NDIOAPI)
-}
-//---------------------------------------------------------------------------
-void vtkPerkStationInsertStep::Validate()
+void
+vtkPerkStationInsertStep
+::Validate()
 {
   this->Superclass::Validate();
 
