@@ -501,18 +501,4 @@ vtkPerkStationInsertStep
 ::Validate()
 {
   this->Superclass::Validate();
-
-   // reset the overlay needle guide both in sliceviewer and in secondary monitor
- // this->GetGUI()->GetSecondaryMonitor()->RemoveOverlayNeedleGuide();
-
-  this->GetGUI()->GetSecondaryMonitor()->RemoveDepthPerceptionLines();
-
-  this->GetGUI()->GetSecondaryMonitor()->RemoveOverlayRealTimeNeedleTip();
-
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if (!mrmlNode)
-    {
-    // TO DO: what to do on failure
-    return;
-    }
 }

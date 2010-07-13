@@ -499,11 +499,7 @@ vtkPerkStationPlanStep
     // Planning has to happen on slicer laptop, not secondary monitor
   
   vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast( caller );
-  
-  vtkSlicerSliceGUI* sliceGUI =
-    // vtkSlicerApplicationGUI::SafeDownCast(
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red");
-    // );
+  vtkSlicerSliceGUI* sliceGUI = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red");
   
   vtkSlicerInteractorStyle *istyle0 =
     vtkSlicerInteractorStyle::SafeDownCast( sliceGUI->GetSliceViewer()->
@@ -662,8 +658,7 @@ vtkPerkStationPlanStep
   
   double entryPointXY[ 2 ] = { outPt[ 0 ], outPt[ 1 ] };
   
-  vtkRenderer *renderer = sliceGUI->GetSliceViewer()->GetRenderWidget()->
-    GetOverlayRenderer();
+  vtkRenderer *renderer = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
   
   double wc[ 4 ];
   renderer->SetDisplayPoint( point[ 0 ], point[ 1 ], 0 );
@@ -676,8 +671,7 @@ vtkPerkStationPlanStep
   renderer->GetWorldPoint( wc );
   double startPointWC[ 3 ] = { wc[ 0 ], wc[ 1 ], wc[ 2 ] };
   
-  vtkSmartPointer< vtkLineSource > lineSource =
-      vtkSmartPointer< vtkLineSource >::New();
+  vtkSmartPointer< vtkLineSource > lineSource = vtkSmartPointer< vtkLineSource >::New();
     lineSource->SetPoint1( startPointWC );
     lineSource->SetPoint2( endPointWC );
   
@@ -916,19 +910,14 @@ vtkPerkStationPlanStep
 {
   // reset the overlay needle guide both in sliceviewer and in secondary monitor
   this->GetGUI()->GetSecondaryMonitor()->RemoveOverlayNeedleGuide();
-
   this->GetGUI()->GetSecondaryMonitor()->RemoveDepthPerceptionLines();
   
-  
   this->RemoveOverlayNeedleGuide();
-
+  
   // reset parameters of mrml node
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if (!mrmlNode)
-    {
-    // TO DO: what to do on failure
-    return;
-    }
+  if ( ! mrmlNode ) return;
+  
   
   double ras[ 3 ] = { 0.0, 0.0, 0.0 };
   mrmlNode->SetPlanEntryPoint( ras );
@@ -939,28 +928,16 @@ vtkPerkStationPlanStep
 
   if ( ! vtkPerkStationModuleLogic::DoubleEqual( tiltAngle, 0 ) )
     {
-     // also if the tilt angle was not zero,
-    // then reset the slice to ras matrix to the original
-    vtkSlicerSliceLogic *sliceLogic = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic();
-    vtkMRMLSliceNode *sliceNode = sliceLogic->GetSliceNode();
-    sliceNode->GetSliceToRAS()->DeepCopy( mrmlNode->GetSliceToRAS() );
-    sliceNode->UpdateMatrices();
-    // this should reset the display in slicer viewer's
-
-    // the display and hence matrices also need to be reset in secondary monitor
-    // this->GetGUI()->GetSecondaryMonitor()->ResetTilt();
-
-     // repack the slicer viewer's layout to one slice only   
-    vtkSlicerApplicationGUI *p = vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI ( ));
-    p->RepackMainViewer ( vtkMRMLLayoutNode::SlicerLayoutOneUpRedSliceView, "Red");
-    
+    // TODO: Reset slice angle.
     }
-  // set tilt angle back to zero
-  mrmlNode->SetTiltAngle(0);
-  // the fiducial list node
+  
+  
+    // set tilt angle back to zero
+  mrmlNode->SetTiltAngle( 0 );
+    // the fiducial list node
   mrmlNode->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
-
-
+  
+  
   // reset local member variables to defaults
   this->WCEntryPoint[0] = 0.0;
   this->WCEntryPoint[1] = 0.0;
@@ -1049,13 +1026,6 @@ void vtkPerkStationPlanStep::Validate()
   this->Superclass::Validate();
   
   // depth perception lines render
-  this->GetGUI()->GetSecondaryMonitor()->SetDepthPerceptionLines();
-
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if (!mrmlNode)
-    {
-    // TO DO: what to do on failure
-    return;
-    }
+  // this->GetGUI()->GetSecondaryMonitor()->SetDepthPerceptionLines();
 }
 

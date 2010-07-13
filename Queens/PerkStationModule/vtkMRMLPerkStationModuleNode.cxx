@@ -364,6 +364,11 @@ vtkMRMLPerkStationModuleNode
     vtkSetMRMLNodeMacro( this->PlanningVolumeNode, NULL );
     }
   
+  if ( this->ValidationVolumeNode )
+    {
+    vtkSetMRMLNodeMacro( this->ValidationVolumeNode, NULL );
+    }
+  
   
     // Calibration list.
   
@@ -376,21 +381,6 @@ vtkMRMLPerkStationModuleNode
       (*it) = NULL;
       }
     }
-  
-  /*
-    // Plan list.
-  
-  for ( std::vector< vtkPerkStationPlan* >::iterator it = this->PlanList.begin();
-        it != this->PlanList.end(); ++ it )
-    {   
-    if ( (*it) != NULL )
-      {
-      (*it) = NULL;
-      }
-    }
-  
-  this->PlanList.clear();
-  */
 }
 
 

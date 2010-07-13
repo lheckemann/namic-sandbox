@@ -1066,13 +1066,6 @@ vtkPerkStationCalibrateStep
 ::Validate()
 {
   this->Superclass::Validate();
-
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if (!mrmlNode)
-    {
-    // TO DO: what to do on failure
-    return;
-    }
 }
 
 
