@@ -352,7 +352,7 @@ protected:
   
   double TiltAngle;
   
-  std::vector< vtkPerkStationPlan* > PlanList;
+  std::vector< vtkSmartPointer< vtkPerkStationPlan > > PlanList;
   int CurrentPlanIndex; // If <0, no plan is selected.
   
   vtkSmartPointer< vtkMatrix4x4 > SliceToRAS;

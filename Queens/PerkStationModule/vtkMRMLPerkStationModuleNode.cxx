@@ -377,7 +377,7 @@ vtkMRMLPerkStationModuleNode
       }
     }
   
-  
+  /*
     // Plan list.
   
   for ( std::vector< vtkPerkStationPlan* >::iterator it = this->PlanList.begin();
@@ -385,11 +385,12 @@ vtkMRMLPerkStationModuleNode
     {   
     if ( (*it) != NULL )
       {
-      (*it)->Delete();
-      (*it)=NULL;
+      (*it) = NULL;
       }
     }
+  
   this->PlanList.clear();
+  */
 }
 
 
@@ -986,7 +987,7 @@ vtkMRMLPerkStationModuleNode
     plan->SetName( ss.str() );
     plan->SetPlanningVolumeRef( std::string( this->PlanningVolumeRef ) );
   
-  unsigned int index = this->AddPlan( plan.GetPointer() );
+  unsigned int index = this->AddPlan( plan );
   this->SetCurrentPlanIndex( index );
 }
 
@@ -1375,7 +1376,7 @@ vtkMRMLPerkStationModuleNode
 ::AddPlan( vtkPerkStationPlan* newPlan )
 {
   unsigned int index = this->PlanList.size();
-  newPlan->Register( this );
+  // newPlan->Register( this ); // Not for smart pointers.
   this->PlanList.push_back( newPlan );
   return index;
 }
@@ -1394,11 +1395,14 @@ vtkMRMLPerkStationModuleNode
     return 0;
     }
   
+  /*  // Not for smart pointer.
   vtkPerkStationPlan* plan = GetPlanAtIndex( index );
   if ( plan != NULL )
   {
     plan->Delete();
   }
+  */
+  
   this->PlanList.erase( this->PlanList.begin() + index );
   return 1;
 }
@@ -1411,7 +1415,7 @@ vtkMRMLPerkStationModuleNode
 {
   if ( index < this->PlanList.size() )
     {
-    return this->PlanList[ index ];
+    return this->PlanList[ index ].GetPointer();
     }
   else
     {

@@ -642,7 +642,7 @@ vtkPerkStationPlanStep
   
     // get the world coordinates
   vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
-  vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+  vtkSmartPointer< vtkMatrix4x4 > rasToXY = vtkSmartPointer< vtkMatrix4x4 >::New();
   vtkMatrix4x4::Invert(xyToRAS, rasToXY);
   
     // start point
@@ -808,7 +808,7 @@ vtkPerkStationPlanStep
   vtkSlicerSliceGUI *sliceGUI =
     vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
   vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
-  vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+  vtkSmartPointer< vtkMatrix4x4 > rasToXY = vtkSmartPointer< vtkMatrix4x4 >::New();
   vtkMatrix4x4::Invert( xyToRAS, rasToXY );
   
   int entryPointXY[ 2 ];
