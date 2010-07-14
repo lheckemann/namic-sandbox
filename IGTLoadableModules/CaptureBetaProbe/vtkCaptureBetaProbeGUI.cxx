@@ -76,7 +76,7 @@ vtkCaptureBetaProbeGUI::vtkCaptureBetaProbeGUI ( )
   //----------------------------------------------------------------
   // File
   this->BetaProbeCountsWithTimestamp.open("BetaProbeCountsWithTimestamp.txt");
-
+  // this->BetaProbeCountsWithTimestamp << "Smoothed \t Beta \t Gamma \t X \t Y \t Z \t Time" << std::endl;
 }
 
 //---------------------------------------------------------------------------
@@ -166,7 +166,7 @@ void vtkCaptureBetaProbeGUI::Enter()
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
-    this->TimerInterval = 100;  // 100 ms
+    this->TimerInterval = 2000;  // 100 ms
     ProcessTimerEvents();
     }
 
@@ -315,7 +315,10 @@ void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
       sprintf(mytime, "%.2d:%.2d:%.2d", current->tm_hour, current->tm_min, current->tm_sec);
       
       this->Probe_Position->GetMatrixTransformToWorld(this->Probe_Matrix);
-      this->BetaProbeCountsWithTimestamp << this->Probe_Matrix->GetElement(0,3) << "\t"
+      this->BetaProbeCountsWithTimestamp << this->Counts->GetSmoothedCounts()   << "\t"
+                                         << this->Counts->GetBetaCounts()       << "\t"
+                                         << this->Counts->GetGammaCounts()      << "\t"
+                                         << this->Probe_Matrix->GetElement(0,3) << "\t"
                                          << this->Probe_Matrix->GetElement(1,3) << "\t"
                                          << this->Probe_Matrix->GetElement(2,3) << "\t"
                                       << mytime
@@ -324,6 +327,12 @@ void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
       this->Probe_Matrix->Delete();
       this->Probe_Matrix = NULL;
 
+      this->Capture_status->SetText("Data captured");
+
+      }
+    else
+      {
+     this->Capture_status->SetText("Sorry. Node is missing (BetaProbe or Tracker)");
       }
     }
   else if (this->CounterNode == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
@@ -333,6 +342,10 @@ void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
     if(this->CounterNode->GetSelected())
       {
       this->Counts = vtkMRMLUDPServerNode::SafeDownCast(this->CounterNode->GetSelected());
+      std::stringstream counter_selected;
+      counter_selected << this->CounterNode->GetSelected()->GetName();
+      counter_selected << " selected";
+      this->Capture_status->SetText(counter_selected.str().c_str());
       }
     }
   else if (this->TrackerNode == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
@@ -342,6 +355,10 @@ void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
     if(this->TrackerNode->GetSelected())
       {
       this->Probe_Position = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNode->GetSelected());
+      std::stringstream tracker_selected;
+      tracker_selected << this->TrackerNode->GetSelected()->GetName();
+      tracker_selected << " selected";
+      this->Capture_status->SetText(tracker_selected.str().c_str());
       } 
     }
 
@@ -393,6 +410,11 @@ void vtkCaptureBetaProbeGUI::ProcessTimerEvents()
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
                                          this->TimerInterval,
                                          this, "ProcessTimerEvents");        
+    }
+
+  if(this->Capture_status)
+    {
+    this->Capture_status->SetText("");
     }
 }
 
