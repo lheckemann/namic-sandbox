@@ -138,9 +138,10 @@ void vtkUDPServerLogic::ImportData()
 {
   // Receive a message from the client
   this->clientlen = sizeof(this->echoclient);
+  this->received = 0;
   if ((this->received = recvfrom(this->sock, this->buffer, this->BUFFSIZE, 0, (struct sockaddr *) &echoclient, &clientlen)) < 0) 
     {
-    std::cerr << "Failed to receive message" << std::endl;
+      //std::cerr << "Failed to receive message" << std::endl;
     }
   //fprintf(stderr, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));
   this->buffer[received]= '\0';

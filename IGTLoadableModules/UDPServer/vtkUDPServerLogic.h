@@ -61,6 +61,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
   int Stop();
   bool GetServerStopFlag() {return this->ServerStopFlag;};
   char* GetImportedData(){return this->ImportedData;};
+  int GetBytesReceived(){return this->received;};
   void SetPort(int p) {this->port = p;};
   
   int ProbeType; //Probe Type 0 for rejection probe and 1 for single probe
