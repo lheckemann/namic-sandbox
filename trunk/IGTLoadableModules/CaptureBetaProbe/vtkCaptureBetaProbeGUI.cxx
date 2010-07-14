@@ -61,6 +61,8 @@ vtkCaptureBetaProbeGUI::vtkCaptureBetaProbeGUI ( )
   //----------------------------------------------------------------
   // GUI widgets
   this->Capture = NULL;
+  this->Start_Button = NULL;
+  this->Stop_Button = NULL;
   this->CounterNode = NULL;
   this->TrackerNode = NULL;
   this->Capture_status = NULL;
@@ -72,6 +74,8 @@ vtkCaptureBetaProbeGUI::vtkCaptureBetaProbeGUI ( )
   //----------------------------------------------------------------
   // Locator  (MRML)
   this->TimerFlag = 0;
+
+  this->SetContinuousMode(false);
 
   //----------------------------------------------------------------
   // File
@@ -103,6 +107,18 @@ vtkCaptureBetaProbeGUI::~vtkCaptureBetaProbeGUI ( )
     {
     this->Capture->SetParent(NULL);
     this->Capture->Delete();
+    }
+
+  if (this->Start_Button)
+    {
+    this->Start_Button->SetParent(NULL);
+    this->Start_Button->Delete();
+    }
+
+  if (this->Stop_Button)
+    {
+    this->Stop_Button->SetParent(NULL);
+    this->Stop_Button->Delete();
     }
 
   if (this->CounterNode)
@@ -166,7 +182,7 @@ void vtkCaptureBetaProbeGUI::Enter()
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
-    this->TimerInterval = 2000;  // 100 ms
+    this->TimerInterval = 100;  // 100 ms
     ProcessTimerEvents();
     }
 
@@ -198,6 +214,18 @@ void vtkCaptureBetaProbeGUI::RemoveGUIObservers ( )
   if (this->Capture)
     {
     this->Capture
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->Start_Button)
+    {
+    this->Start_Button
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->Stop_Button)
+    {
+    this->Stop_Button
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
@@ -241,14 +269,35 @@ void vtkCaptureBetaProbeGUI::AddGUIObservers ( )
 
   //----------------------------------------------------------------
   // GUI Observers
-
+  if(this->Capture)
+    {
   this->Capture
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->CounterNode
+    }
+
+  if(this->Start_Button)
+    {
+  this->Start_Button
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->Stop_Button)
+    {
+  this->Stop_Button
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }    
+
+  if(this->CounterNode)
+    {
+this->CounterNode
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->TrackerNode)
+    {
   this->TrackerNode
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
-
+    }
   this->AddLogicObservers();
 
 }
@@ -306,34 +355,44 @@ void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
     std::cerr << "Capture is pressed." << std::endl;
     if(this->Counts && this->Probe_Position)
       {
-
-      this->Probe_Matrix = vtkMatrix4x4::New();
-      
-      time_t now = time(0);
-      struct tm *current = localtime(&now);
-      char mytime[20];
-      sprintf(mytime, "%.2d:%.2d:%.2d", current->tm_hour, current->tm_min, current->tm_sec);
-      
-      this->Probe_Position->GetMatrixTransformToWorld(this->Probe_Matrix);
-      this->BetaProbeCountsWithTimestamp << this->Counts->GetSmoothedCounts()   << "\t\t"
-                                         << this->Counts->GetBetaCounts()       << "\t\t"
-                                         << this->Counts->GetGammaCounts()      << "\t\t"
-                                         << this->Probe_Matrix->GetElement(0,3) << "\t\t"
-                                         << this->Probe_Matrix->GetElement(1,3) << "\t\t"
-                                         << this->Probe_Matrix->GetElement(2,3) << "\t\t"
-                                      << mytime
-                                         << std::endl;
-
-      this->Probe_Matrix->Delete();
-      this->Probe_Matrix = NULL;
-
-      this->Capture_status->SetText("Data captured");
-
+     this->Capture_Data();
       }
     else
       {
      this->Capture_status->SetText("Sorry. Node is missing (BetaProbe or Tracker)");
       }
+    }
+  else if (this->Start_Button == vtkKWPushButton::SafeDownCast(caller) 
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    std::cerr << "Start Button is pressed." << std::endl;
+    if(this->Counts && this->Probe_Position)
+      {
+      this->SetContinuousMode(true);
+      this->Capture->SetState(0);
+      this->Start_Button->SetState(0);
+      this->Stop_Button->SetState(1);
+      }
+    else
+      {
+      this->Capture_status->SetText("Sorry. Node is missing (BetaProbe or Tracker)");
+      }   
+    }
+  else if (this->Stop_Button == vtkKWPushButton::SafeDownCast(caller) 
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    std::cerr << "Start Button is pressed." << std::endl;
+    if(this->Counts && this->Probe_Position)
+      {
+      this->SetContinuousMode(false);
+      this->Capture->SetState(1);
+      this->Start_Button->SetState(1);
+      this->Stop_Button->SetState(0);
+      }
+    else
+      {
+      this->Capture_status->SetText("Sorry. Node is missing (BetaProbe or Tracker)");
+      }   
     }
   else if (this->CounterNode == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
       && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
@@ -412,10 +471,11 @@ void vtkCaptureBetaProbeGUI::ProcessTimerEvents()
                                          this, "ProcessTimerEvents");        
     }
 
-  if(this->Capture_status)
+  if(this->GetContinuousMode())
     {
-    this->Capture_status->SetText("");
+      this->Capture_Data();
     }
+  
 }
 
 
@@ -475,48 +535,87 @@ void vtkCaptureBetaProbeGUI::BuildGUIForTestFrame1()
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  frame->GetWidgetName() );
 
-  // -----------------------------------------
-  // Test push button
+  vtkKWFrame *frame4 = vtkKWFrame::New();
+  frame4->SetParent(frame->GetFrame());
+  frame4->Create();
+  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+       frame4->GetWidgetName() );
 
-  this->Capture = vtkKWPushButton::New ( );
-  this->Capture->SetParent ( frame->GetFrame() );
-  this->Capture->Create ( );
-  this->Capture->SetText ("Capture");
-  this->Capture->SetWidth (12);
 
-  this->CounterNode = vtkSlicerNodeSelectorWidget::New ( );
-  this->CounterNode->SetParent ( frame->GetFrame() );
-  this->CounterNode->Create ( );
+  this->CounterNode = vtkSlicerNodeSelectorWidget::New();
+  this->CounterNode->SetParent(frame4);
+  this->CounterNode->Create();
   this->CounterNode->SetWidth(30);
   this->CounterNode->SetNewNodeEnabled(0);
   this->CounterNode->SetNodeClass("vtkMRMLUDPServerNode",NULL,NULL,NULL);
   this->CounterNode->SetMRMLScene(this->Logic->GetMRMLScene());
   this->CounterNode->UpdateMenu();
-  // Configure
 
-  this->TrackerNode = vtkSlicerNodeSelectorWidget::New ( );
-  this->TrackerNode->SetParent ( frame->GetFrame() );
-  this->TrackerNode->Create ( );
+  this->TrackerNode = vtkSlicerNodeSelectorWidget::New();
+  this->TrackerNode->SetParent(frame4);
+  this->TrackerNode->Create();
   this->TrackerNode->SetWidth(30);
   this->TrackerNode->SetNewNodeEnabled(0);
   this->TrackerNode->SetNodeClass("vtkMRMLLinearTransformNode",NULL,NULL,NULL);
   this->TrackerNode->SetMRMLScene(this->Logic->GetMRMLScene());
   this->TrackerNode->UpdateMenu();
-  // Configure
 
-  this->Capture_status = vtkKWLabel::New();
-  this->Capture_status->SetParent( frame->GetFrame() );
+  app->Script("pack %s %s -fill x -side top -padx 2 -pady 2", 
+               this->TrackerNode->GetWidgetName(),
+               this->CounterNode->GetWidgetName());
+
+  vtkKWFrame *frame2 = vtkKWFrame::New();
+  frame2->SetParent(frame->GetFrame());
+  frame2->Create();
+  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+       frame2->GetWidgetName() );
+
+
+  this->Capture = vtkKWPushButton::New();           
+  this->Capture->SetParent(frame2);      
+  this->Capture->Create();                     
+  this->Capture->SetText("Capture");                
+  this->Capture->SetWidth(18);                     
+                                                        
+  this->Start_Button = vtkKWPushButton::New();      
+  this->Start_Button->SetParent(frame2);      
+  this->Start_Button->Create();                
+  this->Start_Button->SetState(1);                
+  this->Start_Button->SetText("Start");           
+  this->Start_Button->SetWidth(18);                
+                                                       
+  this->Stop_Button = vtkKWPushButton::New();           
+  this->Stop_Button->SetParent(frame2);      
+  this->Stop_Button->Create();                
+  this->Stop_Button->SetState(0);                
+  this->Stop_Button->SetText("Stop");                
+  this->Stop_Button->SetWidth(18);                      
+
+  app->Script("pack %s %s %s -fill x -side left -padx 2 -pady 2", 
+               this->Capture->GetWidgetName(),
+            this->Start_Button->GetWidgetName(),
+            this->Stop_Button->GetWidgetName());
+
+
+  vtkKWFrame *frame3 = vtkKWFrame::New();
+  frame3->SetParent(frame->GetFrame());
+  frame3->Create();
+  app->Script("pack %s -fill x -side top -padx 2 -pady 2", 
+             frame3->GetWidgetName());
+ 
+
+  this->Capture_status = vtkKWLabel::New();             
+  this->Capture_status->SetParent(frame3);
   this->Capture_status->Create();
 
-  this->Script("pack %s %s %s %s -fill x -side top -padx 2 -pady 2", 
-               this->TrackerNode->GetWidgetName(),
-               this->CounterNode->GetWidgetName(),
-               this->Capture->GetWidgetName(),
+  app->Script("pack %s -fill x -side top -padx 2 -pady 2", 
                this->Capture_status->GetWidgetName());
 
   conBrowsFrame->Delete();
   frame->Delete();
-
+  frame2->Delete();
+  frame3->Delete();
+  frame4->Delete();
 }
 
 
@@ -575,4 +674,33 @@ void vtkCaptureBetaProbeGUI::BuildGUIForTestFrame2 ()
 void vtkCaptureBetaProbeGUI::UpdateAll()
 {
 }
+
+void vtkCaptureBetaProbeGUI::Capture_Data()
+{                                                                 
+  this->Probe_Matrix = vtkMatrix4x4::New();                                        
+                                                                  
+ time_t now = time(0);                                                  
+ struct tm *current = localtime(&now);                                        
+ char mytime[20];                                                       
+ sprintf(mytime, "%.2d:%.2d:%.2d", current->tm_hour, current->tm_min, current->tm_sec);          
+                                                                  
+ this->Probe_Position->GetMatrixTransformToWorld(this->Probe_Matrix);                    
+ this->BetaProbeCountsWithTimestamp << this->Counts->GetSmoothedCounts()   << "\t\t"          
+                               << this->Counts->GetBetaCounts()       << "\t\t"          
+                               << this->Counts->GetGammaCounts()      << "\t\t"          
+                               << this->Probe_Matrix->GetElement(0,3) << "\t\t"          
+                               << this->Probe_Matrix->GetElement(1,3) << "\t\t"          
+                               << this->Probe_Matrix->GetElement(2,3) << "\t\t"          
+                                              << mytime                                        
+                                              << std::endl;                                   
+                                                                 
+ this->Probe_Matrix->Delete();                                             
+ this->Probe_Matrix = NULL;                                             
+                                                                 
+ this->Capture_status->SetText("Data captured");                                                
+}
+
+
+
+
 

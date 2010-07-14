@@ -52,7 +52,12 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   void SetModuleLogic ( vtkSlicerLogic *logic )
   { 
     this->SetLogic ( vtkObjectPointer (&this->Logic), logic );
-  }
+  } 
+
+  void SetContinuousMode(bool val){this->continuous_mode = val;};
+  bool GetContinuousMode(){return this->continuous_mode;};
+
+  void Capture_Data();
 
  protected:
   //----------------------------------------------------------------
@@ -134,6 +139,8 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   //----------------------------------------------------------------
 
   vtkKWPushButton* Capture;
+  vtkKWPushButton* Start_Button;
+  vtkKWPushButton* Stop_Button;
   vtkSlicerNodeSelectorWidget* CounterNode;
   vtkSlicerNodeSelectorWidget* TrackerNode;
   vtkKWLabel* Capture_status;
@@ -149,6 +156,8 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   vtkCaptureBetaProbeLogic *Logic;
   vtkCallbackCommand *DataCallbackCommand;
   int                        CloseScene;
+
+  bool continuous_mode;
 
 };
 
