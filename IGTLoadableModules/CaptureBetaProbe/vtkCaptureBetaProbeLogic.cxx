@@ -73,9 +73,3 @@ void vtkCaptureBetaProbeLogic::UpdateAll()
 
 }
 
-
-
-
-
-
-
