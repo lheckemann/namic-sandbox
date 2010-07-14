@@ -465,11 +465,11 @@ void vtkUDPServerGUI::ProcessTimerEvents()
     // Check incoming new data
     char* data;
     data = this->GetLogic()->GetImportedData();
-    if (this->GetLogic()->GetBytesReceived())
-      {
+    // if (this->GetLogic()->GetBytesReceived())
+    //  {
       //Place data in the Data Frame List
       this->UpdateDataFrame(data);
-      }
+      //  }
     
     // update timer
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
@@ -679,6 +679,7 @@ void vtkUDPServerGUI::BuildGUIForDataFrame()
   this->DataTable->GetWidget()->SetSelectionModeToSingle();
   this->DataTable->GetWidget()->MovableRowsOff();
   this->DataTable->GetWidget()->MovableColumnsOff();
+  this->DataTable->GetWidget()->RejectInput();
 
   const char* labels[] =
     { "Date", "Time", "Smoothed", "Beta", "Gamma"};
@@ -830,8 +831,9 @@ int vtkUDPServerGUI::UpdateDataFrame(char* data)
   //itoa(pd.gammaCount, gc, 10);
   this->DataTable->GetWidget()->SetCellText(row, 4, gc);
   
-  //TODO: Make sure the last row is selected and always shown
-  
+  // Make sure the last row is selected and always shown
+  this->DataTable->GetWidget()->SeeRow(this->DataTable->GetWidget()->GetNumberOfRows());  
+
   //Update Node with values
   this->svrNode->SetSmoothedCounts(pd.smoothedCount);
   this->svrNode->SetBetaCounts(pd.betaCount);
