@@ -85,6 +85,14 @@ vtkUDPServerGUI::vtkUDPServerGUI ( )
 vtkUDPServerGUI::~vtkUDPServerGUI ( )
 {
 
+  //---------------------------------------------------------------- 
+  // Stop the server before leaving
+  
+  if (this->GetLogic()->GetServerStopFlag())
+    {
+      this->GetLogic()->Stop();
+    }
+
   //----------------------------------------------------------------
   // Remove Callbacks
 
@@ -457,7 +465,7 @@ void vtkUDPServerGUI::ProcessTimerEvents()
     // Check incoming new data
     char* data;
     data = this->GetLogic()->GetImportedData();
-    if (data)
+    if (this->GetLogic()->GetBytesReceived())
       {
       //Place data in the Data Frame List
       this->UpdateDataFrame(data);
