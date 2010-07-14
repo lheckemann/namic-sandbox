@@ -315,12 +315,12 @@ void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
       sprintf(mytime, "%.2d:%.2d:%.2d", current->tm_hour, current->tm_min, current->tm_sec);
       
       this->Probe_Position->GetMatrixTransformToWorld(this->Probe_Matrix);
-      this->BetaProbeCountsWithTimestamp << this->Counts->GetSmoothedCounts()   << "\t"
-                                         << this->Counts->GetBetaCounts()       << "\t"
-                                         << this->Counts->GetGammaCounts()      << "\t"
-                                         << this->Probe_Matrix->GetElement(0,3) << "\t"
-                                         << this->Probe_Matrix->GetElement(1,3) << "\t"
-                                         << this->Probe_Matrix->GetElement(2,3) << "\t"
+      this->BetaProbeCountsWithTimestamp << this->Counts->GetSmoothedCounts()   << "\t\t"
+                                         << this->Counts->GetBetaCounts()       << "\t\t"
+                                         << this->Counts->GetGammaCounts()      << "\t\t"
+                                         << this->Probe_Matrix->GetElement(0,3) << "\t\t"
+                                         << this->Probe_Matrix->GetElement(1,3) << "\t\t"
+                                         << this->Probe_Matrix->GetElement(2,3) << "\t\t"
                                       << mytime
                                          << std::endl;
 
