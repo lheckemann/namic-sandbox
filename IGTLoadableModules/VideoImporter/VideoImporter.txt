@@ -1,0 +1,2 @@
+Name: VideoImporter
+GUIName: VideoImporter
