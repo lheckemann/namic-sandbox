@@ -40,10 +40,6 @@
 #include "vtkCornerAnnotation.h"
 
 
-#include <cv.h>
-#include <cxcore.h>
-#include <highgui.h>
-
 
 // for test
 #include "vtkJPEGReader.h"
@@ -77,16 +73,12 @@ vtkSecondaryWindowGUI::vtkSecondaryWindowGUI ( )
   this->StartCaptureButton = NULL;
   this->StopCaptureButton  = NULL;
 
-  //----------------------------------------------------------------
-  // Locator  (MRML)
   this->TimerFlag = 0;
-  
-  //----10.01.12-komura
-  this->ThreadLock = 0;
-  this->ThreadID = -1;
-  this->Mutex = vtkMutexLock::New();
-  this->Thread = vtkMultiThreader::New();
+  this->CameraActiveFlag = 0;
 
+
+  this->VideoImageData = NULL;
+  this->BackgroundRenderer = NULL;
 }
 
 
@@ -94,19 +86,6 @@ vtkSecondaryWindowGUI::vtkSecondaryWindowGUI ( )
 vtkSecondaryWindowGUI::~vtkSecondaryWindowGUI ( )
 {
 
-  //----------------------------------------------------------------
-  // Thread
-  
-  if (this->Thread)
-    {
-    this->Thread->Delete();
-    }
-  if (this->Mutex)
-    {
-    this->Mutex->Delete();
-    }
-  
-  
   //----------------------------------------------------------------
   // Remove Callbacks
 
@@ -166,7 +145,7 @@ void vtkSecondaryWindowGUI::Enter()
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
-    this->TimerInterval = 100;  // 100 ms
+    this->TimerInterval = 30;  // 100 ms
     ProcessTimerEvents();
     }
 
@@ -365,14 +344,14 @@ void vtkSecondaryWindowGUI::ProcessGUIEvents(vtkObject *caller,
     {
     vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
     SwitchViewerBackground(vwidget, 1);
-    //this->StartCameraThread();
+    this->StartCamera();
     }
   else if (this->StopCaptureButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
+    this->StopCamera();
     vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
     SwitchViewerBackground(vwidget, 0);
-    //this->StopCameraThread();
     }
 
 } 
@@ -420,10 +399,14 @@ void vtkSecondaryWindowGUI::ProcessTimerEvents()
 {
   if (this->TimerFlag)
     {
+    if (this->CameraActiveFlag)
+      {
+      CameraHandler();
+      }
     // update timer
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
                                          this->TimerInterval,
-                                         this, "ProcessTimerEvents");        
+                                         this, "ProcessTimerEvents");
     }
 }
 
@@ -595,28 +578,29 @@ int vtkSecondaryWindowGUI::SwitchViewerBackground(vtkSlicerViewerWidget* vwidget
       {
       if (rwidget->GetNumberOfRenderers() == 1)
         {
-        vtkJPEGReader* jpegReader = vtkJPEGReader::New();
-        const char* filename = "/Users/junichi/igtdev/slicer_dev/test.jpg";
-        if( !jpegReader->CanReadFile( filename ) )
+        if (!this->VideoImageData)
           {
-          std::cerr << "Error reading file " << filename << std::endl;
-          return EXIT_FAILURE;
+          this->VideoImageData = vtkImageData::New();
+          this->VideoImageData->SetDimensions(64, 64, 1);
+          this->VideoImageData->SetExtent(0, 63, 0, 63, 0, 0 );
+          this->VideoImageData->SetSpacing(1.0, 1.0, 1.0);
+          this->VideoImageData->SetOrigin(0.0, 0.0, 0.0);
+          this->VideoImageData->SetNumberOfScalarComponents(3);
+          this->VideoImageData->SetScalarTypeToUnsignedChar();
+          this->VideoImageData->AllocateScalars();
           }
-        jpegReader->SetFileName ( filename );
+        this->VideoImageData->Update();
         
-        jpegReader->Update();
-        
-        vtkImageData* imageData = jpegReader->GetOutput();
         vtkImageActor* imageActor = vtkImageActor::New();
-        imageActor->SetInput(imageData);
+        imageActor->SetInput(this->VideoImageData);
         
-        vtkRenderer* backgroundRenderer = vtkRenderer::New();
-        backgroundRenderer->SetLayer(0);
-        backgroundRenderer->InteractiveOff();
+        this->BackgroundRenderer = vtkRenderer::New();
+        this->BackgroundRenderer->SetLayer(0);
+        this->BackgroundRenderer->InteractiveOff();
 
         rwidget->GetNthRenderer(0)->SetLayer(1);
-        rwidget->AddRenderer(backgroundRenderer);
-        backgroundRenderer->AddActor(imageActor);
+        rwidget->AddRenderer(this->BackgroundRenderer);
+        this->BackgroundRenderer->AddActor(imageActor);
         rwindow->Render();
         return 0;
         }
@@ -640,74 +624,24 @@ int vtkSecondaryWindowGUI::SwitchViewerBackground(vtkSlicerViewerWidget* vwidget
 // Launch Camera thread
 int vtkSecondaryWindowGUI::StartCamera()
 {
-  if (this->ThreadID < 0)
-    {
-    this->fRunThread = 1;
-    this->ThreadID = this->Thread->SpawnThread((vtkThreadFunctionType) &vtkSecondaryWindowGUI::CameraThread, this);
-    //sleep(1); // 10.01.23 ayamada
-    return 1;
-    }
-  else
-    {
-    return 0;
-    }
+  this->capture      = NULL;
+  this->captureImage = NULL;
+  this->RGBImage     = NULL;
+  this->undistortionImage = NULL;
+  this->imageSize.width = 0;
+  this->imageSize.height = 0;
 
-  return 0;
-  // for test
-
-} 
-
-//----------------------------------------------------------------------------
-// Stop Camera thread
-int vtkSecondaryWindowGUI::StopCamera()
-{
-  this->fRunThread = 0;
-  this->Thread->TerminateThread(this->ThreadID);
-  this->ThreadID = -1;
-  return 1;
-} 
-
-
-//----------------------------------------------------------------------------
-// Camera thread / Originally created by A. Yamada
-void *vtkSecondaryWindowGUI::CameraThread(void* t)
-{
-  // 5/15/ayamada
-  CvCapture* capture;
-  
-  char bufCamera[100],bufCamera1[100];
-  
-  // 5/15/2010 ayamada
-  IplImage*     captureImage;
-  IplImage*     RGBImage;
-  IplImage*     captureImageTmp;
-  IplImage*     undistortionImage;      //adding at 09. 12. 15 - smkim
-
-  CvSize        imageSize;
-  
-  captureImage = NULL;
-  RGBImage = NULL;
-  captureImageTmp = NULL;
-  undistortionImage = NULL;
-  
-  
-  vtkMultiThreader::ThreadInfo* vinfo = 
-    static_cast<vtkMultiThreader::ThreadInfo*>(t);
-  vtkSecondaryWindowGUI* pGUI = 
-    static_cast<vtkSecondaryWindowGUI*>(vinfo->UserData);
-  
   //**************************************************************************
   //   getting camera image initially
   //**************************************************************************
   // 5/15/2010 ayamada
   // for videoOverlay
-
-
   // Camera initialization
   int i = 0;
+
   while (i<=10)
     {// 5/16/2010 ayamada
-    if (NULL==(capture = cvCaptureFromCAM(i)))  // 10.01.25 ayamada
+    if (NULL==(this->capture = cvCaptureFromCAM(i)))  // 10.01.25 ayamada
       {
       fprintf(stdout, "\n\nCouldn't find a camera\n\n");// 10.01.25 ayamada
       i++;                
@@ -715,187 +649,99 @@ void *vtkSecondaryWindowGUI::CameraThread(void* t)
     else
       {
       // 5/16/2010 ayamada
-      sprintf(bufCamera, "Connected camera device No: %d", i);
+      //sprintf(bufCamera, "Connected camera device No: %d", i);
       //pGUI->textActorCamera->SetInput(bufCamera);
       break;
       }
     }
+
   if (i >= 11)
     {
-    sprintf(bufCamera, "Couldn't find camera device!!");
+    //sprintf(bufCamera, "Couldn't find camera device!!");
     //pGUI->textActorCamera->SetInput(bufCamera);
     }
-    
-  while (pGUI->fRunThread && capture)
+
+  this->CameraActiveFlag = 1;
+
+  return 0;
+  // for test
+} 
+
+//----------------------------------------------------------------------------
+// Stop Camera thread
+int vtkSecondaryWindowGUI::StopCamera()
+{
+  this->CameraActiveFlag = 0;
+
+  cvReleaseCapture(&(this->capture));
+  return 1;
+} 
+
+
+//----------------------------------------------------------------------------
+// Camera thread / Originally created by A. Yamada
+int vtkSecondaryWindowGUI::CameraHandler()
+{
+  IplImage* captureImageTmp = NULL;
+
+  CvSize   newImageSize;
+  
+  if (this->capture)
     {
     // 5/15/2010 ayamada
     if(NULL == (captureImageTmp = cvQueryFrame( capture )))
       {
-      sleep(2); // 5/18/2010 ayamada
       fprintf(stdout, "\n\nCouldn't take a picture\n\n");
-      // 5/15/2010 ayamada
-      continue;
+      return 0;
       }
-    
+
     // 5/6/2010 ayamada creating RGB image and capture image
-    imageSize = cvGetSize( captureImageTmp );
-    captureImage = cvCreateImage(imageSize, IPL_DEPTH_8U,3);    
-    RGBImage = cvCreateImage(imageSize, IPL_DEPTH_8U, 3);       
+    newImageSize = cvGetSize( captureImageTmp );
+
+    // check if the image size is changed
+    if (newImageSize.width != this->imageSize.width ||
+        newImageSize.height != this->imageSize.height)
+      {
+      this->imageSize.width = newImageSize.width;
+      this->imageSize.height = newImageSize.height;
+      this->captureImage = cvCreateImage(imageSize, IPL_DEPTH_8U,3);
+      this->RGBImage = cvCreateImage(imageSize, IPL_DEPTH_8U, 3);
+      this->undistortionImage = cvCreateImage( imageSize, IPL_DEPTH_8U, 3);
+
+      this->VideoImageData->SetDimensions(newImageSize.width, newImageSize.height, 1);
+      this->VideoImageData->SetExtent(0, newImageSize.width-1, 0, newImageSize.height-1, 0, 0 );
+      this->VideoImageData->SetNumberOfScalarComponents(3);
+      this->VideoImageData->SetScalarTypeToUnsignedChar();
+      this->VideoImageData->AllocateScalars();
+      }
 
     // create rgb image
     // 5/6/2010 ayamada for videoOverlay
-    cvFlip(captureImageTmp, captureImage, 0);
+    cvFlip(captureImageTmp, this->captureImage, 0);
     
-    // 5/6/2010 for videoOverlay ayamada
-    undistortionImage = cvCreateImage( imageSize, IPL_DEPTH_8U, 3);
-    
-    // capture image
-    // 5/6/2010 ayamada for videoOverlay
-    
-    /*
-    cvUndistort2( captureImage, undistortionImage, pGUI->intrinsicMatrix, pGUI->distortionCoefficient );            
-    */
-    
-    cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);       //comment not to undistort      at 10. 01. 07 - smkim
+    //cvUndistort2( captureImage, undistortionImage, pGUI->intrinsicMatrix, pGUI->distortionCoefficient );            
+    //cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);       //comment not to undistort      at 10. 01. 07 - smkim
+    cvCvtColor( captureImage, RGBImage, CV_BGR2RGB);       //comment not to undistort      at 10. 01. 07 - smkim
 
     unsigned char* idata;    
     // 5/6/2010 ayamada ok for videoOverlay
     idata = (unsigned char*) RGBImage->imageData;
     
-    pGUI->importer->SetWholeExtent(0,imageSize.width-1,0,imageSize.height-1,0,0);
-    //this->importer->SetDataSpacing( 2.0, 2.0, 2.0); // 5/6/2010 ayamada for videoOverlay
-    pGUI->importer->SetDataExtentToWholeExtent();
-    pGUI->importer->SetDataScalarTypeToUnsignedChar();
-    pGUI->importer->SetNumberOfScalarComponents(3);
-    pGUI->importer->SetImportVoidPointer(idata);
-    
-    // 5/6/2010 ayamada fot videoOverlay
-    /*
-    pGUI->atext->SetInputConnection(pGUI->importer->GetOutputPort());
-    pGUI->atext->InterpolateOn();            
-    
-    pGUI->importer->Update();
-    */
-    
-    //first = 1;
-    break;//10.01.20-komura
-    }
+    int dsize = this->imageSize.width*this->imageSize.height*3;
+    memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->RGBImage->imageData, dsize);
+    //memset((void*)this->VideoImageData->GetScalarPointer(), 0xff, dsize);
 
-#if 0
-    
-  //**************************************************************************
-  //**************************************************************************
-  //  Setting visualization environment for camera image up
-  //**************************************************************************
-  // 5/15/2010 ayamada
-  // for videoOverlay
-  
-  pGUI->planeRatio = VIEW_SIZE_X / VIEW_SIZE_Y;
-  
-  // 5/6/2010 ayamada for videoOverlay
-  //CameraFocusPlane(this->fileCamera, this->planeRatio, this->actor);
-  pGUI->CameraFocusPlane(pGUI->fileCamera, pGUI->planeRatio);
-  
-  
-  // 5/7/2010 ayamada
-  pGUI->FocalPlaneMapper->SetInput(pGUI->FocalPlaneSource->GetOutput());
-  pGUI->actor->SetMapper(pGUI->FocalPlaneMapper);
-  pGUI->actor->SetUserMatrix(pGUI->ExtrinsicMatrix);
-  
-  // 5/6/2010 ayamada for videoOverlay
-  // 10.01.24 ayamada
-  pGUI->actor->SetTexture(pGUI->atext);        // texture mapper
-  //this->actor->GetProperty()->SetOpacity(1.0);// configuration property
-  //this->SecondaryViewerWindow->rw->AddViewProp(this->actor);
-  // 5/8/2010 ayamada
-  pGUI->SecondaryViewerWindow->rw->GetRenderer()->AddActor(pGUI->actor);
-  
-  
-  // 10.01.25 ayamada
-  //        pGUI->Mutex->Lock();
-  //        pGUI->SecondaryViewerWindow->rw->Render();
-  //        pGUI->Mutex->Unlock();
-  pGUI->updateView=1;
-  
-  //sleep(1);   // 10.01.25 ayamada
-  
-  //      pGUI->SecondaryViewerWindow->rw->ResetCamera(); //10.01.27-komura
-  //    pGUI->SecondaryViewerWindow->rw->SetCameraPosition(0,0,0);
-  
-  fprintf(stdout, "\nget camera handle\n");//10.01.20-komura
-  
-  //**************************************************************************
-  
-  // 5/8/2010 ayamada
-  //vtkRayCastingVolumeRender();
-  //vtkTexture3DVolumeRender();
-  //vtkCUDAVolumeRender();
-  
-  //------------------------------------------------------------------
-  //   Setting up visualization environment for rendering
-  //------------------------------------------------------------------
-  // 5/15/2010 ayamada
-  // camera position
-  // 5/6/2010 ayamada for videoOverlay. 
-  // The details are in the following URL: http://www.paraview.org/doc/nightly/html/classvtkKWRenderWidget.html
-  pGUI->SecondaryViewerWindow->rw->GetRenderer()->GetActiveCamera()->ParallelProjectionOff();
-  pGUI->SecondaryViewerWindow->rw->GetRenderer()->SetActiveCamera( pGUI->fileCamera );
-  
-  //**************************************************************************
-  
-}       // 5/16/2010 if(capture != NULL)
-
-  
-  if (capture != NULL)
-    {   // 5/16/2010 ayamada
-    // 5/6/2010 ayamada for videoOverlay
-    if ( pGUI->m_bDriveSource == false )        // driven by manual
+    if (this->VideoImageData && this->BackgroundRenderer)
       {
-      //m_pLogic->volume->SetOrientation(m_pLogic->rotationAngleX, m_pLogic->rotationAngleY, m_pLogic->rotationAngleZ);         // adding at 09. 9. 8 - smkim
-      //m_pLogic->volume->SetPosition(m_pLogic->translationX, m_pLogic->translationY, m_pLogic->translationZ);                  // adding at 09. 9. 14 - smkim
-      
-      //m_pLogic->fileCamera->Yaw(m_pLogic->rotationAngleZ);
-      
+      //this->VideoImageData->Update();
+      this->VideoImageData->Modified();
+      this->BackgroundRenderer->GetRenderWindow()->Render();
       }
-    else        // driven by optical tracking system
-      {
-      // 5/15/2010 ayamada                      
-      pGUI->GetCurrentTransformMatrix ();
-      pGUI->CameraSet(pGUI->fileCamera, pGUI->cameraMatrix, FOA);
-      // 5/7/2010 ayamada
-      pGUI->CameraFocusPlane(pGUI->fileCamera, pGUI->planeRatio);                               
-      }                
-    
-    
-    // 5/15/2010 ayamada
-    captureImageTmp = cvQueryFrame( capture );  // 10.01.23 ayamada
-    ////pGUI->imageSize = cvGetSize( pGUI->captureImageTmp );
-    
-    cvFlip(captureImageTmp, captureImage, 0);        
-    
-    cvUndistort2( captureImage, undistortionImage, pGUI->intrinsicMatrix, pGUI->distortionCoefficient );
-    
-    // 5/7/2010 ayamada
-    //cvCvtColor( pGUI->captureImage, pGUI->RGBImage, CV_BGR2RGB);
-    // 5/15/2010 ayamada
-    cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);
-    
-    pGUI->idata = (unsigned char*) RGBImage->imageData;
-    pGUI->importer->Modified();         
-    
-    }   // 5/16/2010 ayamada    if(capture != NULL) 2           
-    
-    
-if(capture != NULL)
-    {   
-    // 5/15/2010 ayamada
-    cvReleaseCapture(&capture);  
-    }
-  
-#endif
 
-  return NULL;
-         
+    }
+
+  return 1;
+  
 }
 
 
