@@ -28,7 +28,7 @@
 #include "vtkSecondaryWindowViwerWindow.h"
 #include "vtkMutexLock.h"
 #include "vtkMultiThreader.h"
-#include "vtkImageImport.h"
+#include "vtkImageActor.h"
 
 #include <cv.h>
 #include <cxcore.h>
@@ -115,7 +115,8 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
 
  protected:
 
-  int SwitchViewerBackground(vtkSlicerViewerWidget* vwidget, int sw);
+  int ViewerBackgroundOn(vtkSlicerViewerWidget* vwidget, vtkImageData* imageData);
+  int ViewerBackgroundOff(vtkSlicerViewerWidget* vwidget);
   int StartCamera();
   int StopCamera();
   int CameraHandler();
@@ -131,7 +132,8 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
   // Video import
   //----------------------------------------------------------------
 
-  vtkRenderer*  BackgroundRenderer;
+  vtkRenderer*   BackgroundRenderer;
+  vtkImageActor*      BackgroundActor;
   int CameraActiveFlag;
   CvCapture* capture;
 
@@ -142,8 +144,6 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
   IplImage*     undistortionImage;      //adding at 09. 12. 15 - smkim
 
   vtkImageData* VideoImageData;
-
-  vtkImageImport *importer;
 
   //----------------------------------------------------------------
   // GUI widgets

@@ -77,7 +77,7 @@ vtkSecondaryWindowGUI::vtkSecondaryWindowGUI ( )
   this->CameraActiveFlag = 0;
 
 
-  this->VideoImageData = NULL;
+  this->VideoImageData     = NULL;
   this->BackgroundRenderer = NULL;
 }
 
@@ -330,28 +330,30 @@ void vtkSecondaryWindowGUI::ProcessGUIEvents(vtkObject *caller,
     {
     vtkMRMLCameraNode* cameraNode = 
       vtkMRMLCameraNode::SafeDownCast(this->CameraNodeSelector->GetSelected());
-    this->SecondaryViewerWindow->SetCameraNode(cameraNode);
+    if (this->SecondaryViewerWindow)
+      {
+      this->SecondaryViewerWindow->SetCameraNode(cameraNode);
+      }
     }
   else if (this->CameraNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
            && event == vtkSlicerNodeSelectorWidget::NewNodeEvent) 
     {
     vtkMRMLCameraNode* cameraNode = 
       vtkMRMLCameraNode::SafeDownCast(this->CameraNodeSelector->GetSelected());
-    this->SecondaryViewerWindow->SetCameraNode(cameraNode);
+    if (this->SecondaryViewerWindow)
+      {
+      this->SecondaryViewerWindow->SetCameraNode(cameraNode);
+      }
     }
   else if (this->StartCaptureButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
-    vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
-    SwitchViewerBackground(vwidget, 1);
     this->StartCamera();
     }
   else if (this->StopCaptureButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
     this->StopCamera();
-    vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
-    SwitchViewerBackground(vwidget, 0);
     }
 
 } 
@@ -423,12 +425,14 @@ void vtkSecondaryWindowGUI::BuildGUI ( )
   BuildGUIForHelpFrame();
   BuildGUIForWindowConfigurationFrame();
 
+  /*
   this->SecondaryViewerWindow = vtkSecondaryWindowViwerWindow::New();
   this->SecondaryViewerWindow->SetApplication(this->GetApplication());
   this->SecondaryViewerWindow->Create();
+  */
 
   vtkMRMLCameraNode* cameraNode = vtkMRMLCameraNode::New();
-  this->SecondaryViewerWindow->SetCameraNode(cameraNode);
+  //this->SecondaryViewerWindow->SetCameraNode(cameraNode);
 
   //// no view in the scene and local
   //// create an active camera
@@ -563,10 +567,9 @@ void vtkSecondaryWindowGUI::UpdateAll()
 
 
 //----------------------------------------------------------------------------
-int vtkSecondaryWindowGUI::SwitchViewerBackground(vtkSlicerViewerWidget* vwidget, int sw)
+int vtkSecondaryWindowGUI::ViewerBackgroundOn(vtkSlicerViewerWidget* vwidget, vtkImageData* imageData)
 {
   
-  //vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
   vtkKWRenderWidget* rwidget;
   vtkRenderWindow* rwindow;
 
@@ -574,46 +577,29 @@ int vtkSecondaryWindowGUI::SwitchViewerBackground(vtkSlicerViewerWidget* vwidget
       (rwidget = vwidget->GetMainViewer()) &&
       (rwindow = rwidget->GetRenderWindow()))
     {
-    if (sw)
+    if (rwidget->GetNumberOfRenderers() == 1)
       {
-      if (rwidget->GetNumberOfRenderers() == 1)
-        {
-        if (!this->VideoImageData)
-          {
-          this->VideoImageData = vtkImageData::New();
-          this->VideoImageData->SetDimensions(64, 64, 1);
-          this->VideoImageData->SetExtent(0, 63, 0, 63, 0, 0 );
-          this->VideoImageData->SetSpacing(1.0, 1.0, 1.0);
-          this->VideoImageData->SetOrigin(0.0, 0.0, 0.0);
-          this->VideoImageData->SetNumberOfScalarComponents(3);
-          this->VideoImageData->SetScalarTypeToUnsignedChar();
-          this->VideoImageData->AllocateScalars();
-          }
-        this->VideoImageData->Update();
-        
-        vtkImageActor* imageActor = vtkImageActor::New();
-        imageActor->SetInput(this->VideoImageData);
-        
-        this->BackgroundRenderer = vtkRenderer::New();
-        this->BackgroundRenderer->SetLayer(0);
-        this->BackgroundRenderer->InteractiveOff();
+      this->BackgroundRenderer = vtkRenderer::New();
+      this->BackgroundActor = vtkImageActor::New();
+      this->BackgroundActor->SetInput(imageData);
+      this->BackgroundRenderer->AddActor(this->BackgroundActor);
+      this->BackgroundRenderer->InteractiveOff();
+      this->BackgroundRenderer->SetLayer(0);
 
-        rwidget->GetNthRenderer(0)->SetLayer(1);
-        rwidget->AddRenderer(this->BackgroundRenderer);
-        this->BackgroundRenderer->AddActor(imageActor);
-        rwindow->Render();
-        return 0;
-        }
-      }
-    else
-      {
-      if (rwidget->GetNumberOfRenderers() > 1)
-        {
-        rwidget->RemoveNthRenderer(1);
-        rwidget->GetNthRenderer(0)->SetLayer(0);
-        rwindow->Render();
-        return 0;
-        }
+      // Adjust camera position so that image covers the draw area.
+
+      this->BackgroundActor->Modified();
+      rwidget->GetNthRenderer(0)->SetLayer(1);
+      rwidget->AddRenderer(this->BackgroundRenderer);
+      rwindow->Render();
+
+      vtkCamera* camera = this->BackgroundRenderer->GetActiveCamera();
+      double x, y, z;
+      camera->GetPosition(x, y, z);
+      camera->SetViewAngle(90.0);
+      camera->SetPosition(x, y, y); 
+
+      return 1;
       }
     }
   return 0;
@@ -621,15 +607,59 @@ int vtkSecondaryWindowGUI::SwitchViewerBackground(vtkSlicerViewerWidget* vwidget
 
 
 //----------------------------------------------------------------------------
+int vtkSecondaryWindowGUI::ViewerBackgroundOff(vtkSlicerViewerWidget* vwidget)
+{
+  vtkKWRenderWidget* rwidget;
+  vtkRenderWindow* rwindow;
+
+  if (vwidget&&
+      (rwidget = vwidget->GetMainViewer()) &&
+      (rwindow = rwidget->GetRenderWindow()))
+    {
+    if (rwidget->GetNumberOfRenderers() > 1)
+      {
+      rwidget->RemoveNthRenderer(1);
+      rwidget->GetNthRenderer(0)->SetLayer(0);
+      rwindow->Render();
+      this->BackgroundRenderer = NULL;
+      this->BackgroundActor = NULL;
+      }
+    }
+
+  return 0;
+
+}  
+
+
+
+
+//----------------------------------------------------------------------------
 // Launch Camera thread
 int vtkSecondaryWindowGUI::StartCamera()
 {
+
   this->capture      = NULL;
   this->captureImage = NULL;
   this->RGBImage     = NULL;
   this->undistortionImage = NULL;
   this->imageSize.width = 0;
   this->imageSize.height = 0;
+
+  vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
+
+  if (!this->VideoImageData)
+    {
+    this->VideoImageData = vtkImageData::New();
+    this->VideoImageData->SetDimensions(64, 64, 1);
+    this->VideoImageData->SetExtent(0, 63, 0, 63, 0, 0 );
+    this->VideoImageData->SetSpacing(1.0, 1.0, 1.0);
+    this->VideoImageData->SetOrigin(0.0, 0.0, 0.0);
+    this->VideoImageData->SetNumberOfScalarComponents(3);
+    this->VideoImageData->SetScalarTypeToUnsignedChar();
+    this->VideoImageData->AllocateScalars();
+    }
+  this->VideoImageData->Update();
+  ViewerBackgroundOn(vwidget, this->VideoImageData);
 
   //**************************************************************************
   //   getting camera image initially
@@ -674,6 +704,10 @@ int vtkSecondaryWindowGUI::StopCamera()
   this->CameraActiveFlag = 0;
 
   cvReleaseCapture(&(this->capture));
+
+  vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
+  ViewerBackgroundOff(vwidget);
+
   return 1;
 } 
 
@@ -713,8 +747,14 @@ int vtkSecondaryWindowGUI::CameraHandler()
       this->VideoImageData->SetNumberOfScalarComponents(3);
       this->VideoImageData->SetScalarTypeToUnsignedChar();
       this->VideoImageData->AllocateScalars();
-      }
+      this->VideoImageData->Update();
 
+      vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
+      ViewerBackgroundOff(vwidget);
+      ViewerBackgroundOn(vwidget, this->VideoImageData);
+
+      }
+    
     // create rgb image
     // 5/6/2010 ayamada for videoOverlay
     cvFlip(captureImageTmp, this->captureImage, 0);
