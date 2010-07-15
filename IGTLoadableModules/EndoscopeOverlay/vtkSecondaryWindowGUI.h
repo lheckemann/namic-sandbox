@@ -110,6 +110,8 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
   void UpdateAll();
 
  protected:
+
+  int SwitchViewerBackground(vtkSlicerViewerWidget* vwidget, int sw);
   //----------------------------------------------------------------
   // Timer
   //----------------------------------------------------------------
@@ -123,8 +125,8 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
   int fRunThread;
   vtkMutexLock*     Mutex;
   vtkMultiThreader* Thread;
-  int StartCameraThread();
-  int StopCameraThread();
+  int StartCamera();
+  int StopCamera();
   static void *CameraThread(void*);
   
   vtkImageImport *importer;
