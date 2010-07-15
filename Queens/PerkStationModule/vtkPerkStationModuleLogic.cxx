@@ -157,44 +157,44 @@ AdjustSliceView()
   switch ( patientPosition )
     {
     case HFP :
-      newMatrix->SetElement( 1.0, 1.0, - 1.0 );
+      newMatrix->SetElement( 1, 1, - 1.0 );
       break;
     
     case HFS :
-      newMatrix->SetElement( 0.0, 0.0, - 1.0 );
+      newMatrix->SetElement( 0, 0, - 1.0 );
       break;
     
     case HFDR :
-      newMatrix->SetElement( 0.0, 0.0, - std::cos(   90.0 ) );
-      newMatrix->SetElement( 0.0, 1.0, - std::sin(   90.0 ) );
-      newMatrix->SetElement( 1.0, 0.0, - std::sin(   90.0 ) );
-      newMatrix->SetElement( 1.0, 1.0,   std::cos(   90.0 ) );
+      newMatrix->SetElement( 0, 0, - std::cos(   90.0 ) );
+      newMatrix->SetElement( 0, 1, - std::sin(   90.0 ) );
+      newMatrix->SetElement( 1, 0, - std::sin(   90.0 ) );
+      newMatrix->SetElement( 1, 1,   std::cos(   90.0 ) );
       break;
     
     case HFDL :
-      newMatrix->SetElement( 0.0, 0.0, - std::cos( - 90.0 ) );
-      newMatrix->SetElement( 0.0, 1.0, - std::sin( - 90.0 ) );
-      newMatrix->SetElement( 1.0, 0.0, - std::sin( - 90.0 ) );
-      newMatrix->SetElement( 1.0, 1.0,   std::cos( - 90.0 ) );
+      newMatrix->SetElement( 0, 0, - std::cos( - 90.0 ) );
+      newMatrix->SetElement( 0, 1, - std::sin( - 90.0 ) );
+      newMatrix->SetElement( 1, 0, - std::sin( - 90.0 ) );
+      newMatrix->SetElement( 1, 1,   std::cos( - 90.0 ) );
       break;
     
     case FFDR :
-      newMatrix->SetElement( 0.0, 0.0,   std::cos(   90.0 ) );
-      newMatrix->SetElement( 0.0, 1.0, - std::sin(   90.0 ) );
-      newMatrix->SetElement( 1.0, 0.0,   std::sin(   90.0 ) );
-      newMatrix->SetElement( 1.0, 1.0,   std::cos(   90.0 ) );
+      newMatrix->SetElement( 0, 0,   std::cos(   90.0 ) );
+      newMatrix->SetElement( 0, 1, - std::sin(   90.0 ) );
+      newMatrix->SetElement( 1, 0,   std::sin(   90.0 ) );
+      newMatrix->SetElement( 1, 1,   std::cos(   90.0 ) );
       break;
     
     case FFDL :
-      newMatrix->SetElement( 0.0, 0.0,   std::cos( - 90.0 ) );
-      newMatrix->SetElement( 0.0, 1.0, - std::sin( - 90.0 ) );
-      newMatrix->SetElement( 1.0, 0.0,   std::sin( - 90.0 ) );
-      newMatrix->SetElement( 1.0, 1.0,   std::cos( - 90.0 ) );
+      newMatrix->SetElement( 0, 0,   std::cos( - 90.0 ) );
+      newMatrix->SetElement( 0, 1, - std::sin( - 90.0 ) );
+      newMatrix->SetElement( 1, 0,   std::sin( - 90.0 ) );
+      newMatrix->SetElement( 1, 1,   std::cos( - 90.0 ) );
       break;
     
     case FFP :
-      newMatrix->SetElement( 0.0, 0.0, - 1.0 );
-      newMatrix->SetElement( 1.0, 1.0, - 1.0 );
+      newMatrix->SetElement( 0, 0, - 1.0 );
+      newMatrix->SetElement( 1, 1, - 1.0 );
       break;
     
     case FFS :
@@ -202,8 +202,9 @@ AdjustSliceView()
     }
   
   
-    // Set Z offset to the central slice.
+    // Set offsets.
   
+  /*  // Why is this commented out method not working???
   int dims[ 3 ] = { 0, 0, 0 };
   
   vtkMRMLScalarVolumeNode* planningVolume = this->GetPerkStationModuleNode()->GetPlanningVolumeNode();
@@ -221,7 +222,11 @@ AdjustSliceView()
   
   ijkToRAS->MultiplyPoint( offsetZijk, offsetZras );
   newMatrix->SetElement( 2, 3, offsetZras[ 2 ] );
+  */
   
+  newMatrix->SetElement( 0, 3, oldMatrix->GetElement( 0, 3 ) ); // debug.
+  newMatrix->SetElement( 1, 3, oldMatrix->GetElement( 1, 3 ) ); // debug.
+  newMatrix->SetElement( 2, 3, oldMatrix->GetElement( 2, 3 ) ); // debug.
   
     // Finally, update the slice widget position.
   
