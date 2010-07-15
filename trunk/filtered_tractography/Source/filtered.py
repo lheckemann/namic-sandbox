@@ -133,8 +133,9 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
     for i in xrange(10) : print ''
 
     is_2t = (model == "two-tensor")
-    if is_2t:  init,follow = init2t,follow2t
-    else:      init,follow = init1t,follow1t
+
+    print 'HACK hardcode 2T'; is_2t = True
+    follow = iff(is_2t, follow2t, follow1t)
 
     state_dim = iff(is_2t, 10, 5)  # dimension of state space
 
@@ -148,9 +149,9 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
                   'theta_min': np.cos(theta_min * np.pi/180),  # angle which triggers branch
                   'theta_max': np.cos(theta_max * np.pi/180),  # angle which triggers branch
                   'min_radius': .87,  # stop if fiber curves this much
-                  'record_fa'    : record_fa,
-                  'record_state' : record_state,
-                  'record_cov'   : record_cov,
+                  'record_fa' : record_fa,
+                  'record_st' : record_state,
+                  'record_co' : record_cov,
                   # Kalman filter parameters
                   'Qm': Qm, # injected angular noise
                   'Ql': Ql, # injected eigenvalue noise
@@ -158,6 +159,18 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
                   'P0': 0.01 * np.eye(state_dim)}) # initial covariance
 
     from Slicer import slicer
+
+#     foo = slicer.vtkFloatArray()
+#     foo.SetNumberOfComponents(1)
+#     foo.SetName('foo')
+
+#     foo.InsertNextValue(234)          # Success
+#     foo.InsertNextValue(23.4)         # Success
+#     foo.InsertNextValue(255 * np.random.rand())       # Success
+#     foo.InsertNextValue(np.empty(1,dtype='float32'))  # FAIL
+#     foo.InsertNextValue(np.empty(1,dtype='float64'))  # FAIL
+#     asdf
+
     scene = slicer.MRMLScene
     dwi_node = scene.GetNodeByID(dwi_node)
     seeds_node = scene.GetNodeByID(seeds_node)
@@ -206,23 +219,25 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
         return
 
     # double check branching
-    if theta_max > 0 and theta_max <= 5:
+    if 0 < theta_max and theta_max < 5:
         import Slicer
         Slicer.tk.eval('tk_messageBox -message "Nonzero branching angle must be greater than 5 degrees"')
         return
-    is_branching = param['theta_min'] < 1 and not is_2t
-    print 'is_branching',is_branching
+    is_branching = is_2t and param['theta_max'] < 1
 
     # tractography...
-    ff1 = init(S, seeds, u, b, param)
-    ff2 = []
-    ff_fa,ff_st,ff_co = [],[],[]
+    ff1 = init(S, seeds, u, b, param, is_2t)
+    ff2,ff_fa,ff_st,ff_co = [],[],[],[]
     t1 = time.time()
     for i in xrange(0,len(ff1)):
         print '[%3.0f%%] (%7d - %7d)' % (100.0*i/len(ff1), i, len(ff1))
-        ff1[i],p,extra = follow(S,u,b,mask,ff1[i],param,is_branching)
-        ff2.extend(p)
-        if record_fa or record_st or record_cov: 
+        ff1[i],next,extra = follow(S,u,b,mask,ff1[i],param,is_branching)
+        ff2.extend(next)
+        # store extras
+        if record_fa:    ff_fa.append(extra[0])
+        if record_state: ff_st.append(extra[1])
+        if record_cov:   ff_co.append(extra[2])
+
     t2 = time.time()
     print 'Time: ', t2 - t1, 'sec'
 
@@ -234,23 +249,29 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
         print 'Time: ', time.time() - t2, 'sec'
 
     # build polydata
-    ff_x = slicer.vtkPoints()
+    ss_x = slicer.vtkPoints()
     lines = slicer.vtkCellArray()
-    if record_fa:    ff_fa = slicer.vtkFloatArray(); ff_fa.SetNumberOfComponents(state_dim); ff_fa.SetName('FA');
-    if record_state: ff_st = slicer.vtkFloatArray(); ff_st.SetNumberOfComponents(state_dim); ff_st.SetName('state');
-    if record_cov:   ff_co = slicer.vtkFloatArray(); ff_co.SetNumberOfComponents(state_dim); ff_co.SetName('covariance');
+    if record_fa:    ss_fa = slicer.vtkFloatArray(); ss_fa.SetNumberOfComponents(1);            ss_fa.SetName('FA');
+    if record_state: ss_st = slicer.vtkFloatArray(); ss_st.SetNumberOfComponents(state_dim);    ss_st.SetName('state');
+    if record_cov:   ss_co = slicer.vtkFloatArray(); ss_co.SetNumberOfComponents(state_dim**2); ss_co.SetName('covariance');
     cell_id = 0
+
     for i in xrange(0,len(ff1)):
         f = ff1[i]
         lines.InsertNextCell(len(f))
+        if record_fa:    f_fa = ff_fa[i]
+        if record_state: f_st = ff_st[i]
+        if record_cov:   f_co = ff_co[i]
         for j in xrange(0,len(f)):
             lines.InsertCellPoint(cell_id)
             cell_id += 1
             x = f[j]
             x = x[::-1] # HACK
             x_ = np.array(transform(i2r, x)).ravel() # HACK
-            ff_x.InsertNextPoint(x_[0],x_[1],x_[2])
-            ff_fa.InsertNextValue(255 * np.random.rand()) # push random values for now
+            ss_x.InsertNextPoint(x_[0],x_[1],x_[2])
+            if record_fa    : ss_fa.InsertNextValue(255 * f_fa[j]) # FIXME numpy type
+            if record_state : ss_st.InsertNextValue(f_fa[j])  # FIXME tuples?
+            if record_cov   : ss_co.InsertNextValue(f_fa[j])  # FIXME tuples?
  
 
     # setup output fibers
@@ -263,8 +284,8 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
     if not pd:
         pd = slicer.vtkPolyData() # create if necessary
         ff_node.SetAndObservePolyData(pd)
-    pd.SetPoints(ff_x)
-    pd.GetPointData().SetScalars(ff_fa)
+    pd.SetPoints(ss_x)
+    if record_fa : pd.GetPointData().SetScalars(ss_fa)
     pd.SetLines(lines)
     pd.Update()
     ff_node.Modified()
@@ -334,10 +355,15 @@ def norm(a):
     return np.linalg.norm(a)
 
 
+def follow1t(S,u,b,mask,fiber,param,is_branching):
+    return
+
+
 def follow2t(S,u,b,mask,fiber,param,is_branching):
     # unpack and initialize tract
-    x,X,P,fa = fiber[0],fiber[1],fiber[2],fiber[4]
-    ff,ff_fa = [np.array(x)],[fa]
+    x,X,P,m,fa = fiber
+    ff,ff_fa,ff_st,ff_co = [np.array(x)],[fa],[X],[P]
+    pp = [] # branches if any
 
     # initialize filter
     f_fn,h_fn = model_2tensor(u,b)
@@ -354,10 +380,10 @@ def follow2t(S,u,b,mask,fiber,param,is_branching):
     v = param['voxel']
     while True:
         # estimate
-        fiber = step(fiber, S, est, param)
+        fiber = step2t(fiber, S, est, param)
 
         # unpack
-        x,X,fa = fiber[0],fiber[1],fiber[4]
+        x,X,P,m,fa = fiber
 
         # terminate if off brain or in CSF
         is_brain = interp3scalar(mask,x,v) > .1
@@ -367,16 +393,18 @@ def follow2t(S,u,b,mask,fiber,param,is_branching):
 
         if not is_brain or is_csf or len(ff) > param['max_len'] or is_curving :
             if len(ff) > param['max_len'] : warnings.warn('wild fiber')
-            return ff,pp
+            return ff,pp,(ff_fa,ff_st,ff_co)
 
         # record roughly once per voxel
         if ct == round(1.0/param['dt']):
             ct = 0
             ff.append(x)
+            if param['record_fa'] : ff_fa.append(fa)
+            if param['record_st'] : ff_fa.append(X)
+            if param['record_co'] : ff_fa.append(P)
 
             # record branch if necessar
             if is_branching:
-                P,m = fiber[2],fiber[3]
                 m1,l1,m2,l2 = state2tensor2(X,m)
                 is_two = l1[0] > l1[1] and l2[0] > l2[1] # non-planar
                 fa = param['FA_min']
@@ -392,7 +420,7 @@ def follow2t(S,u,b,mask,fiber,param,is_branching):
                         P_[:5,:5] = P[5:,5:]
                         P_[5:,5:] = P[:5,:5] # swap covariance
                     assert X.shape[0] == 10 and X.shape[1] == 1
-                    pp.append((x,X,P_,m))
+                    pp.append((x,X,P_,m,fa))
         else:
             ct += 1
 
@@ -410,8 +438,8 @@ def init(S, seeds, u, b, param, is_2t):
     pp = []
     map(lambda p : map(lambda e : pp.append(p+e), list(E.T)), seeds)
 
-    print 'HACK...'
-    pp = [np.array((27.0,69.0,72.0))] # HACK
+#     print 'HACK initialize with voxel x=(27,69,72)'
+#     pp = [np.array((27.0,69.0,72.0))] # HACK
 
     print 'initial seed upper limit: %d' % (2*len(pp))
     # indices -> signals -> tensors
