@@ -45,6 +45,12 @@
 #include <highgui.h>
 
 
+// for test
+#include "vtkJPEGReader.h"
+#include "vtkImageCanvasSource2D.h"
+#include "vtkImageActor.h"
+#include "vtkRenderer.h"
+
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkSecondaryWindowGUI );
 vtkCxxRevisionMacro ( vtkSecondaryWindowGUI, "$Revision: 1.0 $");
@@ -357,12 +363,16 @@ void vtkSecondaryWindowGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->StartCaptureButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
-    this->StartCameraThread();
+    vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
+    SwitchViewerBackground(vwidget, 1);
+    //this->StartCameraThread();
     }
   else if (this->StopCaptureButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
-    this->StopCameraThread();
+    vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
+    SwitchViewerBackground(vwidget, 0);
+    //this->StopCameraThread();
     }
 
 } 
@@ -570,8 +580,65 @@ void vtkSecondaryWindowGUI::UpdateAll()
 
 
 //----------------------------------------------------------------------------
+int vtkSecondaryWindowGUI::SwitchViewerBackground(vtkSlicerViewerWidget* vwidget, int sw)
+{
+  
+  //vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
+  vtkKWRenderWidget* rwidget;
+  vtkRenderWindow* rwindow;
+
+  if (vwidget&&
+      (rwidget = vwidget->GetMainViewer()) &&
+      (rwindow = rwidget->GetRenderWindow()))
+    {
+    if (sw)
+      {
+      if (rwidget->GetNumberOfRenderers() == 1)
+        {
+        vtkJPEGReader* jpegReader = vtkJPEGReader::New();
+        const char* filename = "/Users/junichi/igtdev/slicer_dev/test.jpg";
+        if( !jpegReader->CanReadFile( filename ) )
+          {
+          std::cerr << "Error reading file " << filename << std::endl;
+          return EXIT_FAILURE;
+          }
+        jpegReader->SetFileName ( filename );
+        
+        jpegReader->Update();
+        
+        vtkImageData* imageData = jpegReader->GetOutput();
+        vtkImageActor* imageActor = vtkImageActor::New();
+        imageActor->SetInput(imageData);
+        
+        vtkRenderer* backgroundRenderer = vtkRenderer::New();
+        backgroundRenderer->SetLayer(0);
+        backgroundRenderer->InteractiveOff();
+
+        rwidget->GetNthRenderer(0)->SetLayer(1);
+        rwidget->AddRenderer(backgroundRenderer);
+        backgroundRenderer->AddActor(imageActor);
+        rwindow->Render();
+        return 0;
+        }
+      }
+    else
+      {
+      if (rwidget->GetNumberOfRenderers() > 1)
+        {
+        rwidget->RemoveNthRenderer(1);
+        rwidget->GetNthRenderer(0)->SetLayer(0);
+        rwindow->Render();
+        return 0;
+        }
+      }
+    }
+  return 0;
+}
+
+
+//----------------------------------------------------------------------------
 // Launch Camera thread
-int vtkSecondaryWindowGUI::StartCameraThread()
+int vtkSecondaryWindowGUI::StartCamera()
 {
   if (this->ThreadID < 0)
     {
@@ -584,11 +651,15 @@ int vtkSecondaryWindowGUI::StartCameraThread()
     {
     return 0;
     }
+
+  return 0;
+  // for test
+
 } 
 
 //----------------------------------------------------------------------------
 // Stop Camera thread
-int vtkSecondaryWindowGUI::StopCameraThread()
+int vtkSecondaryWindowGUI::StopCamera()
 {
   this->fRunThread = 0;
   this->Thread->TerminateThread(this->ThreadID);
