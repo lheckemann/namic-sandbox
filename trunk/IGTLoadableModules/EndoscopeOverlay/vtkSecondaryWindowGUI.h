@@ -30,6 +30,10 @@
 #include "vtkMultiThreader.h"
 #include "vtkImageImport.h"
 
+#include <cv.h>
+#include <cxcore.h>
+#include <highgui.h>
+
 class vtkKWPushButton;
 
 class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleGUI
@@ -112,6 +116,10 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
  protected:
 
   int SwitchViewerBackground(vtkSlicerViewerWidget* vwidget, int sw);
+  int StartCamera();
+  int StopCamera();
+  int CameraHandler();
+
   //----------------------------------------------------------------
   // Timer
   //----------------------------------------------------------------
@@ -119,16 +127,22 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
   int TimerFlag;
   int TimerInterval;
 
-  // Thread (by A. Yamada, M. Komura)
-  int ThreadLock;
-  int ThreadID;
-  int fRunThread;
-  vtkMutexLock*     Mutex;
-  vtkMultiThreader* Thread;
-  int StartCamera();
-  int StopCamera();
-  static void *CameraThread(void*);
-  
+  //----------------------------------------------------------------
+  // Video import
+  //----------------------------------------------------------------
+
+  vtkRenderer*  BackgroundRenderer;
+  int CameraActiveFlag;
+  CvCapture* capture;
+
+  // 5/15/2010 ayamada
+  CvSize        imageSize;
+  IplImage*     captureImage;
+  IplImage*     RGBImage;
+  IplImage*     undistortionImage;      //adding at 09. 12. 15 - smkim
+
+  vtkImageData* VideoImageData;
+
   vtkImageImport *importer;
 
   //----------------------------------------------------------------
