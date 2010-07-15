@@ -33,6 +33,7 @@
 class vtkKWPushButton;
 class vtkSlicerNodeSelectorWidget;
 class vtkKWLabel;
+class vtkKWFileBrowserDialog;
 
 //class vtkMRMLUDPServerNode;
 class vtkMRMLLinearTransformNode;
@@ -141,9 +142,12 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   vtkKWPushButton* Capture;
   vtkKWPushButton* Start_Button;
   vtkKWPushButton* Stop_Button;
+  vtkKWPushButton* SelectFile;
+  vtkKWPushButton* CloseFile;
   vtkSlicerNodeSelectorWidget* CounterNode;
   vtkSlicerNodeSelectorWidget* TrackerNode;
   vtkKWLabel* Capture_status;
+  vtkKWFileBrowserDialog* FileSelector;
 
   vtkMRMLUDPServerNode* Counts;
   vtkMRMLLinearTransformNode* Probe_Position;
