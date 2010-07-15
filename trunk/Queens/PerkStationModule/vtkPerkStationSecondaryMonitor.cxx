@@ -466,11 +466,23 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   
   vtkSmartPointer< vtkMatrix4x4 > sliceToRAS = sliceNode->GetSliceToRAS();
   
+  
+  /*
+  // debug.
+  std::stringstream sss;
+  sss << sliceToRAS->GetElement( 0, 3 ) << " "
+     << sliceToRAS->GetElement( 1, 3 ) << " "
+     << sliceToRAS->GetElement( 2, 3 ) << std::endl;
+  LOG_TO_FILE( sss.str() );
+  */
+  
+  
   vtkSmartPointer< vtkMatrix4x4 > rasToIJK = vtkSmartPointer< vtkMatrix4x4 >::New();
   this->VolumeNode->GetRASToIJKMatrix( rasToIJK );
   
   vtkSmartPointer< vtkMatrix4x4 > sliceToIJK = vtkSmartPointer< vtkMatrix4x4 >::New();
   vtkMatrix4x4::Multiply4x4( rasToIJK, sliceToRAS, sliceToIJK );
+  
   
     // Set this as our starting transform.
   
@@ -480,6 +492,23 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   ret->SetMatrix( sliceToIJK );
   ret->GetMatrix()->SetElement( 0, 3, imageSizePixels[ 0 ] / 2.0 );
   ret->GetMatrix()->SetElement( 1, 3, imageSizePixels[ 1 ] / 2.0 );
+  
+  
+  
+    // debug.
+  double _sliceToIJK_s = sliceToIJK->GetElement( 2, 3 ); // debug.
+  int* dim = this->ImageData->GetDimensions();
+  double* ori = this->ImageData->GetOrigin();
+  double* spa = this->ImageData->GetSpacing();
+  std::stringstream ss;
+  ss << "slice RAS  = " << this->SliceOffsetRAS << std::endl;
+  ss << "slice IJK  = " << this->SliceOffsetIJK << std::endl;
+  ss << "Slice2IJK  = " << _sliceToIJK_s << std::endl;
+  ss << "image dims = " << dim[ 0 ] << " " << dim[ 1 ] << " " << dim[ 2 ] << std::endl;
+  ss << "image orig = " << ori[ 0 ] << " " << ori[ 1 ] << " " << ori[ 2 ] << std::endl;
+  ss << "image spac = " << spa[ 0 ] << " " << spa[ 1 ] << " " << spa[ 2 ] << std::endl;
+  LOG_TO_FILE( ss.str() );
+  
   
   
     // Apply the following transforms, that implement the XYToSlice transform.
