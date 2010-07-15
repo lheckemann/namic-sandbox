@@ -120,6 +120,7 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
   int StartCamera();
   int StopCamera();
   int CameraHandler();
+  int ProcessMotion(CvPoint2D32f* vector, CvPoint2D32f* position, int n);
 
   //----------------------------------------------------------------
   // Timer
@@ -145,6 +146,22 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
 
   vtkImageData* VideoImageData;
 
+  // Optical Tracking
+  int           OpticalFlowTrackingFlag;
+  IplImage*     GrayImage;
+  IplImage*     PrevGrayImage;
+  IplImage*     Pyramid;
+  IplImage*     PrevPyramid;
+  IplImage*     SwapTempImage;
+  int           PyrFlag;
+
+  CvPoint2D32f* Points[2];
+  CvPoint2D32f* SwapPoints;
+  CvPoint2D32f* GridPoints[2];// = {0,0};
+  CvPoint2D32f* RVector;
+  char*         OpticalFlowStatus;
+
+
   //----------------------------------------------------------------
   // GUI widgets
   //----------------------------------------------------------------
@@ -154,7 +171,7 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
 
   vtkSecondaryWindowViwerWindow* SecondaryViewerWindow;
 
-  vtkSlicerNodeSelectorWidget* CameraNodeSelector;
+  vtkSlicerNodeSelectorWidget* TransformNodeSelector;
 
   vtkKWPushButton* StartCaptureButton;
   vtkKWPushButton* StopCaptureButton;

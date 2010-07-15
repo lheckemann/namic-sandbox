@@ -38,7 +38,7 @@
 #include "vtkKWPushButton.h"
 
 #include "vtkCornerAnnotation.h"
-
+#include "vtkMRMLLinearTransformNode.h"
 
 
 // for test
@@ -79,6 +79,15 @@ vtkSecondaryWindowGUI::vtkSecondaryWindowGUI ( )
 
   this->VideoImageData     = NULL;
   this->BackgroundRenderer = NULL;
+
+  this->OpticalFlowTrackingFlag = 1;
+  this->GrayImage = NULL;
+  this->PrevGrayImage = NULL;
+  this->Pyramid = NULL;
+  this->PrevPyramid = NULL;
+  this->SwapTempImage = NULL;
+  this->PyrFlag = 0;
+
 }
 
 
@@ -243,12 +252,12 @@ void vtkSecondaryWindowGUI::AddGUIObservers ( )
   this->HideSecondaryWindowButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
-  if (this->CameraNodeSelector)
+  if (this->TransformNodeSelector)
     {
-    this->CameraNodeSelector
+    this->TransformNodeSelector
       ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
                     (vtkCommand *)this->GUICallbackCommand );
-    this->CameraNodeSelector
+    this->TransformNodeSelector
       ->AddObserver(vtkSlicerNodeSelectorWidget::NewNodeEvent,
                     (vtkCommand *)this->GUICallbackCommand );
     }
@@ -325,25 +334,29 @@ void vtkSecondaryWindowGUI::ProcessGUIEvents(vtkObject *caller,
       this->SecondaryViewerWindow->Withdraw();
       }
     }
-  else if (this->CameraNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+  else if (this->TransformNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
            && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent )
     {
+    /*
     vtkMRMLCameraNode* cameraNode = 
-      vtkMRMLCameraNode::SafeDownCast(this->CameraNodeSelector->GetSelected());
+      vtkMRMLCameraNode::SafeDownCast(this->TransformNodeSelector->GetSelected());
     if (this->SecondaryViewerWindow)
       {
       this->SecondaryViewerWindow->SetCameraNode(cameraNode);
       }
+    */
     }
-  else if (this->CameraNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+  else if (this->TransformNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
            && event == vtkSlicerNodeSelectorWidget::NewNodeEvent) 
     {
+    /*
     vtkMRMLCameraNode* cameraNode = 
-      vtkMRMLCameraNode::SafeDownCast(this->CameraNodeSelector->GetSelected());
+      vtkMRMLCameraNode::SafeDownCast(this->TransformNodeSelector->GetSelected());
     if (this->SecondaryViewerWindow)
       {
       this->SecondaryViewerWindow->SetCameraNode(cameraNode);
       }
+    */
     }
   else if (this->StartCaptureButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
@@ -512,19 +525,20 @@ void vtkSecondaryWindowGUI::BuildGUIForWindowConfigurationFrame()
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  selectframe->GetWidgetName() );
 
-  this->CameraNodeSelector = vtkSlicerNodeSelectorWidget::New();
-  this->CameraNodeSelector->SetParent(selectframe);
-  this->CameraNodeSelector->Create();
-  this->CameraNodeSelector->SetNodeClass("vtkMRMLCameraNode", NULL, NULL, NULL);
-  this->CameraNodeSelector->SetMRMLScene(this->GetMRMLScene());
-  this->CameraNodeSelector->SetBorderWidth(2);
-  this->CameraNodeSelector->GetWidget()->GetWidget()->IndicatorVisibilityOff();
-  this->CameraNodeSelector->GetWidget()->GetWidget()->SetWidth(24);
-  this->CameraNodeSelector->SetLabelText( "Camera node : ");
-  this->CameraNodeSelector->SetBalloonHelpString("Select or create a camera.");
+  this->TransformNodeSelector = vtkSlicerNodeSelectorWidget::New();
+  this->TransformNodeSelector->SetParent(selectframe);
+  this->TransformNodeSelector->Create();
+  this->TransformNodeSelector->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
+  this->TransformNodeSelector->SetNewNodeEnabled(1);
+  this->TransformNodeSelector->SetMRMLScene(this->GetMRMLScene());
+  this->TransformNodeSelector->SetBorderWidth(2);
+  this->TransformNodeSelector->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+  this->TransformNodeSelector->GetWidget()->GetWidget()->SetWidth(24);
+  this->TransformNodeSelector->SetLabelText( "Transform : ");
+  this->TransformNodeSelector->SetBalloonHelpString("Select or create a camera.");
 
   this->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-               this->CameraNodeSelector->GetWidgetName());
+               this->TransformNodeSelector->GetWidgetName());
 
   conBrowsFrame->Delete();
   switchframe->Delete();
@@ -711,13 +725,15 @@ int vtkSecondaryWindowGUI::StopCamera()
   return 1;
 } 
 
+#define NGRID_X  20
+#define NGRID_Y  20
+#define TIME_POINTS (30*30)
 
 //----------------------------------------------------------------------------
 // Camera thread / Originally created by A. Yamada
 int vtkSecondaryWindowGUI::CameraHandler()
 {
   IplImage* captureImageTmp = NULL;
-
   CvSize   newImageSize;
   
   if (this->capture)
@@ -738,9 +754,9 @@ int vtkSecondaryWindowGUI::CameraHandler()
       {
       this->imageSize.width = newImageSize.width;
       this->imageSize.height = newImageSize.height;
-      this->captureImage = cvCreateImage(imageSize, IPL_DEPTH_8U,3);
+      this->captureImage = cvCreateImage(this->imageSize, IPL_DEPTH_8U,3);
       this->RGBImage = cvCreateImage(imageSize, IPL_DEPTH_8U, 3);
-      this->undistortionImage = cvCreateImage( imageSize, IPL_DEPTH_8U, 3);
+      this->undistortionImage = cvCreateImage( this->imageSize, IPL_DEPTH_8U, 3);
 
       this->VideoImageData->SetDimensions(newImageSize.width, newImageSize.height, 1);
       this->VideoImageData->SetExtent(0, newImageSize.width-1, 0, newImageSize.height-1, 0, 0 );
@@ -753,6 +769,33 @@ int vtkSecondaryWindowGUI::CameraHandler()
       ViewerBackgroundOff(vwidget);
       ViewerBackgroundOn(vwidget, this->VideoImageData);
 
+
+      // for optical flow
+      this->Pyramid       = cvCreateImage( this->imageSize , IPL_DEPTH_8U, 1 );
+      this->PrevPyramid   = cvCreateImage( this->imageSize , IPL_DEPTH_8U, 1 );
+      this->GrayImage     = cvCreateImage( this->imageSize , IPL_DEPTH_8U, 1 );
+      this->PrevGrayImage = cvCreateImage( this->imageSize , IPL_DEPTH_8U, 1 );
+      this->SwapTempImage = cvCreateImage( this->imageSize , IPL_DEPTH_8U, 1 );
+
+      double gridSpaceX = (double)newImageSize.width / (double)(NGRID_X+1);
+      double gridSpaceY = (double)newImageSize.height / (double)(NGRID_Y+1);
+
+      this->Points[0] = 0;
+      this->Points[1] = 0;
+      this->GridPoints[0] = (CvPoint2D32f*)cvAlloc(NGRID_X*NGRID_Y*sizeof(this->Points[0][0]));
+      this->GridPoints[1] = (CvPoint2D32f*)cvAlloc(NGRID_X*NGRID_Y*sizeof(this->Points[0][0]));
+      this->RVector = (CvPoint2D32f*)cvAlloc(NGRID_X*NGRID_Y*sizeof(this->Points[0][0]));
+
+      for (int i = 0; i < NGRID_X; i ++)
+        {
+        for (int j = 0; j < NGRID_Y; j ++)
+          {
+          this->GridPoints[0][i+j*NGRID_X].x = gridSpaceX*i + gridSpaceX;
+          this->GridPoints[0][i+j*NGRID_Y].y = gridSpaceY*j + gridSpaceY;
+          }
+        }
+
+      this->OpticalFlowStatus = (char*)cvAlloc(NGRID_X*NGRID_Y);
       }
     
     // create rgb image
@@ -762,14 +805,58 @@ int vtkSecondaryWindowGUI::CameraHandler()
     //cvUndistort2( captureImage, undistortionImage, pGUI->intrinsicMatrix, pGUI->distortionCoefficient );            
     //cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);       //comment not to undistort      at 10. 01. 07 - smkim
     cvCvtColor( captureImage, RGBImage, CV_BGR2RGB);       //comment not to undistort      at 10. 01. 07 - smkim
+    
+    if (this->OpticalFlowTrackingFlag)
+      {
+      int win_size = 10;
+      int count = NGRID_X*NGRID_Y;
+      cvCvtColor(this->RGBImage, this->GrayImage, CV_RGB2GRAY );
+      cvCalcOpticalFlowPyrLK( this->PrevGrayImage, this->GrayImage, this->PrevPyramid, this->Pyramid,
+                              this->GridPoints[0], this->GridPoints[1], count, cvSize(win_size,win_size), 3, this->OpticalFlowStatus, 0,
+                              cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03), this->PyrFlag );
+      this->PyrFlag |= CV_LKFLOW_PYR_A_READY;
+      
+      double dx = 0.0;
+      double dy = 0.0;
+      int frameCount = 0;
 
+      for(int i =  0; i < count; i++ )
+        {
+        if( !this->OpticalFlowStatus[i] )
+          {
+          this->GridPoints[1][i].x = this->GridPoints[0][i].x;
+          this->GridPoints[1][i].y = this->GridPoints[0][i].y;
+          }
+        dx = this->GridPoints[1][i].x - this->GridPoints[0][i].x;
+        dy = this->GridPoints[1][i].y - this->GridPoints[0][i].y;
+        
+        if (sqrt(dx*dx + dy*dy) > 50.0)
+          {
+          this->GridPoints[1][i].x = this->GridPoints[0][i].x;
+          this->GridPoints[1][i].y = this->GridPoints[0][i].y;
+          dx = 0.0;
+          dy = 0.0;
+          }
+        
+        this->RVector[i].x = dx;
+        this->RVector[i].y = dy;
+        cvCircle(this->RGBImage, cvPointFrom32f(this->GridPoints[0][i]), 3, CV_RGB(0,255,255), -1, 8,0);
+        cvLine(this->RGBImage, cvPointFrom32f(this->GridPoints[0][i]), cvPointFrom32f(this->GridPoints[1][i]), CV_RGB(0,255,0), 2);
+        }
+      
+      CV_SWAP( this->PrevGrayImage, this->GrayImage, this->SwapTempImage );
+      CV_SWAP( this->PrevPyramid, this->Pyramid, this->SwapTempImage );
+      CV_SWAP( this->Points[0], this->Points[1], this->SwapPoints );
+
+      ProcessMotion(this->RVector, this->GridPoints[0], count);
+      }
+    
     unsigned char* idata;    
     // 5/6/2010 ayamada ok for videoOverlay
     idata = (unsigned char*) RGBImage->imageData;
     
     int dsize = this->imageSize.width*this->imageSize.height*3;
     memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->RGBImage->imageData, dsize);
-    //memset((void*)this->VideoImageData->GetScalarPointer(), 0xff, dsize);
 
     if (this->VideoImageData && this->BackgroundRenderer)
       {
@@ -779,8 +866,49 @@ int vtkSecondaryWindowGUI::CameraHandler()
       }
 
     }
-
+  
   return 1;
+  
+}
+
+
+//----------------------------------------------------------------------------
+int vtkSecondaryWindowGUI::ProcessMotion(CvPoint2D32f* vector, CvPoint2D32f* position, int n)
+{
+  float threshold = 5.0;
+  CvPoint2D32f mean;
+
+  mean.x = 0.0;
+  mean.y = 0.0;
+
+  // Use 10% vectors to calculate translation
+  for (int i = 0; i < n; i ++)
+    {
+    float x = vector[i].x;
+    float y = vector[i].y;
+    float len = sqrtf(x*x + y*y);
+    if (len > threshold)
+      {
+      mean.x += x;
+      mean.y += y;
+      }
+    }
+  mean.x /= (float)n;
+  mean.y /= (float)n;
+
+  vtkMRMLLinearTransformNode* transformNode = 
+    vtkMRMLLinearTransformNode::SafeDownCast(this->TransformNodeSelector->GetSelected());
+  if (transformNode)
+    {
+    vtkMatrix4x4* transform = transformNode->GetMatrixTransformToParent();
+    if (transform)
+      {
+      float x = transform->GetElement(0, 3) - mean.x*2.0;
+      float y = transform->GetElement(2, 3) + mean.y*2.0;
+      transform->SetElement(0, 3, x);
+      transform->SetElement(2, 3, y);
+      }
+    }
   
 }
 
