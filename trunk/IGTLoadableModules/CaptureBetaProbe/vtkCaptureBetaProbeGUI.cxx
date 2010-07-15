@@ -30,6 +30,7 @@
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWFrame.h"
 #include "vtkKWLabel.h"
+#include "vtkKWFileBrowserDialog.h"
 #include "vtkKWEvent.h"
 
 #include "vtkKWPushButton.h"
@@ -66,6 +67,9 @@ vtkCaptureBetaProbeGUI::vtkCaptureBetaProbeGUI ( )
   this->CounterNode = NULL;
   this->TrackerNode = NULL;
   this->Capture_status = NULL;
+  this->FileSelector = NULL;
+  this->SelectFile = NULL;
+  this->CloseFile = NULL;
 
   this->Counts = NULL;
   this->Probe_Position = NULL;
@@ -79,7 +83,7 @@ vtkCaptureBetaProbeGUI::vtkCaptureBetaProbeGUI ( )
 
   //----------------------------------------------------------------
   // File
-  this->BetaProbeCountsWithTimestamp.open("BetaProbeCountsWithTimestamp.txt");
+  //this->BetaProbeCountsWithTimestamp = NULL;
   // this->BetaProbeCountsWithTimestamp << "Smoothed \t Beta \t Gamma \t X \t Y \t Z \t Time" << std::endl;
 }
 
@@ -138,6 +142,24 @@ vtkCaptureBetaProbeGUI::~vtkCaptureBetaProbeGUI ( )
     this->Capture_status->SetParent(NULL);
     this->Capture_status->Delete();
     }
+
+  if (this->FileSelector)
+    {
+    this->FileSelector->SetParent(NULL);
+    this->FileSelector->Delete();
+    }
+
+  if (this->SelectFile)
+    {
+    this->SelectFile->SetParent(NULL);
+    this->SelectFile->Delete();
+    }
+
+  if (this->CloseFile)
+    {
+    this->CloseFile->SetParent(NULL);
+    this->CloseFile->Delete();
+    }
   /*  
 
   // DO NOT DELETE THESE ITEMS, BECAUSE THEY ARE JUST CAST, AND IF YOU DELETE THEM,
@@ -162,8 +184,10 @@ vtkCaptureBetaProbeGUI::~vtkCaptureBetaProbeGUI ( )
 
   this->SetModuleLogic ( NULL );
 
-  this->BetaProbeCountsWithTimestamp.close();
-
+  if(this->BetaProbeCountsWithTimestamp.is_open())
+    {  
+    this->BetaProbeCountsWithTimestamp.close();
+    }
 }
 
 
@@ -241,6 +265,24 @@ void vtkCaptureBetaProbeGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->FileSelector)
+    {
+    this->FileSelector
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  
+  if (this->SelectFile)
+    {
+    this->SelectFile
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  
+  if (this->CloseFile)
+    {
+    this->CloseFile
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   this->RemoveLogicObservers();
 
 }
@@ -298,6 +340,25 @@ this->CounterNode
   this->TrackerNode
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
+
+  if(this->FileSelector)
+    {
+  this->FileSelector
+    ->AddObserver(vtkKWFileBrowserDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->SelectFile)
+    {
+this->SelectFile
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->CloseFile)
+    {
+this->CloseFile
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
   this->AddLogicObservers();
 
 }
@@ -355,11 +416,11 @@ void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
     std::cerr << "Capture is pressed." << std::endl;
     if(this->Counts && this->Probe_Position)
       {
-     this->Capture_Data();
+      this->Capture_Data();
       }
     else
       {
-     this->Capture_status->SetText("Sorry. Node is missing (BetaProbe or Tracker)");
+      this->Capture_status->SetText("Sorry. Node is missing (BetaProbe or Tracker)");
       }
     }
   else if (this->Start_Button == vtkKWPushButton::SafeDownCast(caller) 
@@ -393,6 +454,44 @@ void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
       {
       this->Capture_status->SetText("Sorry. Node is missing (BetaProbe or Tracker)");
       }   
+    } 
+  else if (this->SelectFile == vtkKWPushButton::SafeDownCast(caller) 
+      && event == vtkKWPushButton::InvokedEvent)
+    { 
+    this->FileSelector = vtkKWFileBrowserDialog::New();
+    this->FileSelector->SetApplication(this->GetApplication()); 
+    this->FileSelector->Create(); 
+    this->FileSelector->SaveDialogOn();   
+    this->FileSelector->Invoke();
+
+    if (this->FileSelector->GetStatus()==vtkKWDialog::StatusOK)
+      {
+      std::string filename = this->FileSelector->GetFileName();
+      this->BetaProbeCountsWithTimestamp.open(filename.c_str());
+      if(this->BetaProbeCountsWithTimestamp.is_open())
+     {
+     std::stringstream open_file_succeed;
+     open_file_succeed << "File opened [" << filename.c_str() << "]";
+     this->Capture_status->SetText(open_file_succeed.str().c_str());
+     }
+      else
+     {
+     this->Capture_status->SetText("Failed to open file");
+     }
+      }
+
+    }
+  else if (this->CloseFile == vtkKWPushButton::SafeDownCast(caller) 
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+      if(this->BetaProbeCountsWithTimestamp.is_open())
+      {
+      std::string filename_c = this->FileSelector->GetFileName();
+      this->BetaProbeCountsWithTimestamp.close(); 
+      std::stringstream close_file_succeed;
+      close_file_succeed << "File closed [" << filename_c.c_str() << "]";
+      this->Capture_status->SetText(close_file_succeed.str().c_str());
+      }
     }
   else if (this->CounterNode == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
       && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
@@ -564,6 +663,27 @@ void vtkCaptureBetaProbeGUI::BuildGUIForTestFrame1()
                this->TrackerNode->GetWidgetName(),
                this->CounterNode->GetWidgetName());
 
+  vtkKWFrame *frame5 = vtkKWFrame::New();
+  frame5->SetParent(frame->GetFrame());
+  frame5->Create();
+  app->Script("pack %s -fill x -side top -padx 2 -pady 2", 
+             frame5->GetWidgetName());
+
+  this->SelectFile = vtkKWPushButton::New();
+  this->SelectFile->SetParent(frame5);
+  this->SelectFile->Create();
+  this->SelectFile->SetText("Select output file");
+
+  this->CloseFile = vtkKWPushButton::New();
+  this->CloseFile->SetParent(frame5);
+  this->CloseFile->Create();
+  this->CloseFile->SetText("Close file");
+
+  app->Script("pack %s %s -fill x -side left -padx 2 -pady 2", 
+           this->SelectFile->GetWidgetName(),
+              this->CloseFile->GetWidgetName());
+          
+
   vtkKWFrame *frame2 = vtkKWFrame::New();
   frame2->SetParent(frame->GetFrame());
   frame2->Create();
@@ -616,6 +736,7 @@ void vtkCaptureBetaProbeGUI::BuildGUIForTestFrame1()
   frame2->Delete();
   frame3->Delete();
   frame4->Delete();
+  frame5->Delete();
 }
 
 
@@ -676,28 +797,34 @@ void vtkCaptureBetaProbeGUI::UpdateAll()
 }
 
 void vtkCaptureBetaProbeGUI::Capture_Data()
-{                                                                 
-  this->Probe_Matrix = vtkMatrix4x4::New();                                        
-                                                                  
- time_t now = time(0);                                                  
- struct tm *current = localtime(&now);                                        
- char mytime[20];                                                       
- sprintf(mytime, "%.2d:%.2d:%.2d", current->tm_hour, current->tm_min, current->tm_sec);          
-                                                                  
- this->Probe_Position->GetMatrixTransformToWorld(this->Probe_Matrix);                    
- this->BetaProbeCountsWithTimestamp << this->Counts->GetSmoothedCounts()   << "\t\t"          
-                               << this->Counts->GetBetaCounts()       << "\t\t"          
-                               << this->Counts->GetGammaCounts()      << "\t\t"          
-                               << this->Probe_Matrix->GetElement(0,3) << "\t\t"          
-                               << this->Probe_Matrix->GetElement(1,3) << "\t\t"          
-                               << this->Probe_Matrix->GetElement(2,3) << "\t\t"          
-                                              << mytime                                        
-                                              << std::endl;                                   
-                                                                 
- this->Probe_Matrix->Delete();                                             
- this->Probe_Matrix = NULL;                                             
-                                                                 
- this->Capture_status->SetText("Data captured");                                                
+{                                                            
+  if(this->BetaProbeCountsWithTimestamp.is_open())
+    {   
+    this->Probe_Matrix = vtkMatrix4x4::New();                                   
+    
+    time_t now = time(0);                         
+    struct tm *current = localtime(&now);                                      
+    char mytime[20];                                                  
+    sprintf(mytime, "%.2d:%.2d:%.2d", current->tm_hour, current->tm_min, current->tm_sec);
+
+    this->Probe_Position->GetMatrixTransformToWorld(this->Probe_Matrix);                 
+    this->BetaProbeCountsWithTimestamp << this->Counts->GetSmoothedCounts()   << "\t\t"          
+                           << this->Counts->GetBetaCounts()       << "\t\t"          
+                           << this->Counts->GetGammaCounts()      << "\t\t"          
+                           << this->Probe_Matrix->GetElement(0,3) << "\t\t"          
+                           << this->Probe_Matrix->GetElement(1,3) << "\t\t"          
+                           << this->Probe_Matrix->GetElement(2,3) << "\t\t"          
+                                       << mytime                              
+                                       << std::endl;
+  
+    this->Probe_Matrix->Delete();                                
+    this->Probe_Matrix = NULL;     
+
+    this->Capture_status->SetText("Data captured");                                              }
+  else
+    {
+    this->Capture_status->SetText("Select a file first");
+    }
 }
 
 
