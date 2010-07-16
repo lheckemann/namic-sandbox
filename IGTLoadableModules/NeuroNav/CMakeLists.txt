@@ -1,10 +1,12 @@
 PROJECT(NeuroNav)
 
-cmake_minimum_required(VERSION 2.4)
-if(COMMAND cmake_policy)
-  cmake_policy(SET CMP0003 NEW)
-endif(COMMAND cmake_policy)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+IF(COMMAND CMAKE_POLICY)
+  CMAKE_POLICY(SET CMP0003 NEW)
+ENDIF(COMMAND CMAKE_POLICY)
+MARK_AS_ADVANCED(CMAKE_BACKWARDS_COMPATIBILITY)
 
+ 
 INCLUDE(${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 TEST_BIG_ENDIAN(CMAKE_WORDS_BIGENDIAN)
 
@@ -36,9 +38,14 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/vtkNeuroNavConfigure.h
   )
 
-file(GLOB headers 
-  "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+file(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
+
+install(FILES 
+  ${headers} 
+  "${CMAKE_CURRENT_BINARY_DIR}/vtkNeuroNavConfigure.h"
+  DESTINATION ${Slicer3_INSTALL_MODULES_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
   )
+
 
 # --------------------------------------------------------------------------
 # Sources
@@ -54,6 +61,10 @@ set(NeuroNav_SRCS
 include("${VTK_CMAKE_DIR}/vtkWrapTcl.cmake")
 vtk_wrap_tcl3(NeuroNav NeuroNav_TCL_SRCS "${NeuroNav_SRCS}" "")
 
+# --------------------------------------------------------------------------
+if(Slicer3_BUILD_TESTING)
+  ADD_SUBDIRECTORY(Testing)
+endif(Slicer3_BUILD_TESTING)
 
 
 #---------------------------------------------------------------------------
@@ -69,6 +80,7 @@ add_library(${lib_name}
   ${NeuroNav_SRCS} 
   ${NeuroNav_TCL_SRCS}
   )
+slicer3_set_modules_output_path(${lib_name})
 
 target_link_libraries(${lib_name}
   ${Slicer3_Libs_LIBRARIES}
@@ -77,10 +89,6 @@ target_link_libraries(${lib_name}
   ${ITK_LIBRARIES}
   )
 
-install(TARGETS ${lib_name}
-  RUNTIME DESTINATION ${Slicer3_INSTALL_MODULES_BIN_DIR} COMPONENT RuntimeLibraries 
-  LIBRARY DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT Development
-  )
+slicer3_install_modules(${lib_name})
 
-  
+
