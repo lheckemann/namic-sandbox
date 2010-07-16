@@ -29,6 +29,7 @@ Version:   $Revision: $
 #include "vtkMultiThreader.h"
 
 #include "vnl/vnl_float_3.h"
+#include <assert.h>
 
 
 vtkCxxRevisionMacro(vtkNeuroNavLogic, "$Revision: 1.9.12.1 $");
@@ -62,6 +63,7 @@ vtkNeuroNavLogic::vtkNeuroNavLogic()
 
   this->Pat2ImgReg = vtkIGTPat2ImgRegistration::New();
   this->UpdatedTrackerNode = NULL;
+  this->OriginalTrackerNode = NULL;
 }
 
 
@@ -79,6 +81,13 @@ vtkNeuroNavLogic::~vtkNeuroNavLogic()
     this->UpdatedTrackerNode->Delete();
     this->UpdatedTrackerNode = NULL;
     }
+
+  if (this->OriginalTrackerNode)
+    {
+    this->OriginalTrackerNode->Delete();
+    this->OriginalTrackerNode = NULL;
+    }
+
 }
 
 
@@ -95,6 +104,7 @@ void vtkNeuroNavLogic::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 vtkMRMLModelNode* vtkNeuroNavLogic::SetVisibilityOfLocatorModel(const char* nodeName, int v)
 {
+
   vtkMRMLModelNode*   locatorModel;
   vtkMRMLDisplayNode* locatorDisp;
 
@@ -119,6 +129,8 @@ vtkMRMLModelNode* vtkNeuroNavLogic::SetVisibilityOfLocatorModel(const char* node
     locatorModel->Modified();
     this->GetApplicationLogic()->GetMRMLScene()->Modified();
     }
+
+  collection->Delete();
 
   return locatorModel;
 }
@@ -184,27 +196,28 @@ vtkMRMLModelNode* vtkNeuroNavLogic::AddLocatorModel(const char* nodeName, double
 
 
 
-void vtkNeuroNavLogic::GetCurrentPosition(float *px, float *py, float *pz)
+void vtkNeuroNavLogic::GetCurrentPosition(double *px, double *py, double *pz)
 {
   *px = 0.0;
   *py = 0.0;
   *pz = 0.0;
 
-  if (! this->OriginalTrackerNode)
+  if (this->OriginalTrackerNode)
     {
-    return;
-    }
 
-  vtkMatrix4x4* transform;
-  //transform = transformNode->GetMatrixTransformToParent();
-  transform = this->OriginalTrackerNode->GetMatrixTransformToParent();
+    vtkMatrix4x4* transform;
+    //transform = transformNode->GetMatrixTransformToParent();
+    transform = this->OriginalTrackerNode->GetMatrixTransformToParent();
 
-  if (transform)
-    {
-    // set volume orientation
-    *px = transform->GetElement(0, 3);
-    *py = transform->GetElement(1, 3);
-    *pz = transform->GetElement(2, 3);
+    if (transform)
+      {
+      // set volume orientation
+      *px = transform->GetElement(0, 3);
+      *py = transform->GetElement(1, 3);
+      *pz = transform->GetElement(2, 3);
+      }
+   
+    // transform->Delete();
     }
 }
 
@@ -212,60 +225,104 @@ void vtkNeuroNavLogic::GetCurrentPosition(float *px, float *py, float *pz)
 
 void vtkNeuroNavLogic::UpdateTransformNodeByName(const char *name)
 {
+     
   if (name)
     {
     this->SetTransformNodeName(name);
 
-    vtkMRMLLinearTransformNode* transformNode;
     vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
     vtkCollection* collection = scene->GetNodesByName(this->TransformNodeName);
 
-    if (collection != NULL && collection->GetNumberOfItems() == 0)
-      {
-      // the node name does not exist in the MRML tree
-      return;
+    if (collection != NULL && collection->GetNumberOfItems() > 0)
+      {   
+
+      this->OriginalTrackerNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));    
+      if (this->Pat2ImgReg && this->UseRegistration)
+        {
+        this->UpdateLocatorTransform();
+        }
+
       }
 
-    this->OriginalTrackerNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));
-    if (this->Pat2ImgReg && this->UseRegistration)
-      {
-      this->UpdateLocatorTransform();
+     collection->Delete();
+
+    } 
+}
+
+
+void vtkNeuroNavLogic::UpdateFiducialSeeding(const char *name, double offset)
+{
+  if (name)
+    {
+    // The following line causes memory leaking.
+    // this->GetApplicationLogic()->GetMRMLScene()->SaveStateForUndo();
+
+    vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
+    vtkCollection* collection = scene->GetNodesByName(name);
+
+    if (collection != NULL && collection->GetNumberOfItems() > 0)
+      {    
+     
+      vtkMRMLFiducialListNode *flist = vtkMRMLFiducialListNode::SafeDownCast(collection->GetItemAsObject(0));
+      if (flist != NULL)
+        {  
+
+        double x, y, z;
+        this->GetCurrentPosition(&x, &y, &z);
+        if (offset != 0.0)
+          {
+          double len = sqrt(x*x + y*y + z*z);
+          double r = (len + offset) / len;
+          x = r*x;
+          y = r*y;
+          z = r*z;
+          }
+
+        flist->SetNthFiducialXYZ(0, x, y, z); 
+        }
+        else
+        {
+        vtkErrorMacro("NeuroNavLogic: The fiducial list node doesn't exist.");
+        }
       }
+    else
+      {
+      vtkErrorMacro("NeuroNavLogic: The node name: (" << name << ") does not exist in the MRML tree");
+      }
+
+    collection->Delete();
     }
 }
 
 
 void vtkNeuroNavLogic::UpdateDisplay(int sliceNo1, int sliceNo2, int sliceNo3)
 {
-  if (! this->OriginalTrackerNode)
-    {
-    return;
-    }
+  if (this->OriginalTrackerNode)
+    {  
+    vtkMatrix4x4* transform;
+    //transform = transformNode->GetMatrixTransformToParent();
+    transform = this->OriginalTrackerNode->GetMatrixTransformToParent();
 
-  vtkMatrix4x4* transform;
-  //transform = transformNode->GetMatrixTransformToParent();
-  transform = this->OriginalTrackerNode->GetMatrixTransformToParent();
+    if (transform)
+      {
+      // set volume orientation
+      float tx = transform->GetElement(0, 0);
+      float ty = transform->GetElement(1, 0);
+      float tz = transform->GetElement(2, 0);
+      float nx = transform->GetElement(0, 2);
+      float ny = transform->GetElement(1, 2);
+      float nz = transform->GetElement(2, 2);
+      float px = transform->GetElement(0, 3);
+      float py = transform->GetElement(1, 3);
+      float pz = transform->GetElement(2, 3);
 
-  if (transform)
-    {
-    // set volume orientation
-    float tx = transform->GetElement(0, 0);
-    float ty = transform->GetElement(1, 0);
-    float tz = transform->GetElement(2, 0);
-    float sx = transform->GetElement(0, 1);
-    float sy = transform->GetElement(1, 1);
-    float sz = transform->GetElement(2, 1);
-    float nx = transform->GetElement(0, 2);
-    float ny = transform->GetElement(1, 2);
-    float nz = transform->GetElement(2, 2);
-    float px = transform->GetElement(0, 3);
-    float py = transform->GetElement(1, 3);
-    float pz = transform->GetElement(2, 3);
+      UpdateSliceNode(sliceNo1, sliceNo2, sliceNo3, 
+                      nx, ny, nz, 
+                      tx, ty, tz, 
+                      px, py, pz);
+      }
 
-    UpdateSliceNode(sliceNo1, sliceNo2, sliceNo3, 
-                    nx, ny, nz, 
-                    tx, ty, tz, 
-                    px, py, pz);
+    //transform->Delete();
     }
 }
 
@@ -292,7 +349,7 @@ void vtkNeuroNavLogic::UpdateSliceNode(int sliceNo1, int sliceNo2, int sliceNo3,
     this->SliceNo1Last = sliceNo1;
     if (this->EnableOblique) // perpendicular
       {
-      this->SliceNode[0]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
+      this->SliceNode[0]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
       this->SliceNode[0]->UpdateMatrices();
       }
     else
@@ -318,7 +375,7 @@ void vtkNeuroNavLogic::UpdateSliceNode(int sliceNo1, int sliceNo2, int sliceNo3,
     this->SliceNo2Last = sliceNo2;
     if (this->EnableOblique) // In-Plane
       {
-      this->SliceNode[1]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+      this->SliceNode[1]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
       this->SliceNode[1]->UpdateMatrices();
       }
     else
@@ -345,7 +402,7 @@ void vtkNeuroNavLogic::UpdateSliceNode(int sliceNo1, int sliceNo2, int sliceNo3,
     this->SliceNo3Last = sliceNo3;
     if (this->EnableOblique)  // In-Plane 90
       {
-      this->SliceNode[2]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
+      this->SliceNode[2]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
       this->SliceNode[2]->UpdateMatrices();
       }
     else
@@ -361,14 +418,20 @@ void vtkNeuroNavLogic::UpdateSliceNode(int sliceNo1, int sliceNo2, int sliceNo3,
 
 void vtkNeuroNavLogic::CheckSliceNodes()
 {
-  for (int i = 0; i < 3; i ++)
+  if (this->SliceNode[0] == NULL)
     {
-    if (this->SliceNode[i] == NULL)
-      {
-      char nodename[36];
-      sprintf(nodename, "vtkMRMLSliceNode%d", i+1);
-      this->SliceNode[i] = vtkMRMLSliceNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodename));
-      }
+    this->SliceNode[0] = this->GetApplicationLogic()
+      ->GetSliceLogic("Red")->GetSliceNode();
+    }
+  if (this->SliceNode[1] == NULL)
+    {
+    this->SliceNode[1] = this->GetApplicationLogic()
+      ->GetSliceLogic("Yellow")->GetSliceNode();
+    }
+  if (this->SliceNode[2] == NULL)
+    {
+    this->SliceNode[2] = this->GetApplicationLogic()
+      ->GetSliceLogic("Green")->GetSliceNode();
     }
 }
 
@@ -409,49 +472,46 @@ void vtkNeuroNavLogic::ApplyTransform(float *position, float *norm, float *trans
 void vtkNeuroNavLogic::UpdateLocatorTransform()
 {
 
-  if (! this->OriginalTrackerNode)
+  if (this->OriginalTrackerNode)
     {
-    return;
-    }
 
-
-  vtkMatrix4x4* transform;
-  transform = this->OriginalTrackerNode->GetMatrixTransformToParent();
-  if (transform)
-    {
-    // Get locator matrix
-    vnl_float_3 p, n, t, c;
-    float tt[3], nn[3], pp[3];
-
-    // set volume orientation
-    tt[0] = transform->GetElement(0, 0);
-    tt[1] = transform->GetElement(1, 0);
-    tt[2] = transform->GetElement(2, 0);
-    nn[0] = transform->GetElement(0, 2);
-    nn[1] = transform->GetElement(1, 2);
-    nn[2] = transform->GetElement(2, 2);
-    pp[0] = transform->GetElement(0, 3);
-    pp[1] = transform->GetElement(1, 3);
-    pp[2] = transform->GetElement(2, 3);
-
-    this->ApplyTransform(pp, nn, tt);
-    for (int i = 0; i < 3; i++)
+    vtkMatrix4x4* transform;
+    transform = this->OriginalTrackerNode->GetMatrixTransformToParent();
+    if (transform)
       {
-      t[i] = tt[i];
-      n[i] = nn[i];
-      p[i] = pp[i];
-      }
+      // Get locator matrix
+      vnl_float_3 p, n, t, c;
+      float tt[3], nn[3], pp[3];
 
-    // Ensure N, T orthogonal:
-    //    C = N x T
-    //    T = C x N
-    c = vnl_cross_3d(n, t);
-    t = vnl_cross_3d(c, n);
+      // set volume orientation
+      tt[0] = transform->GetElement(0, 0);
+      tt[1] = transform->GetElement(1, 0);
+      tt[2] = transform->GetElement(2, 0);
+      nn[0] = transform->GetElement(0, 2);
+      nn[1] = transform->GetElement(1, 2);
+      nn[2] = transform->GetElement(2, 2);
+      pp[0] = transform->GetElement(0, 3);
+      pp[1] = transform->GetElement(1, 3);
+      pp[2] = transform->GetElement(2, 3);
 
-    // Ensure vectors are normalized
-    n.normalize();
-    t.normalize();
-    c.normalize(); 
+      this->ApplyTransform(pp, nn, tt);
+      for (int i = 0; i < 3; i++)
+        {
+        t[i] = tt[i];
+        n[i] = nn[i];
+        p[i] = pp[i];
+        }
+    
+      // Ensure N, T orthogonal:
+      //    C = N x T
+      //    T = C x N
+      c = vnl_cross_3d(n, t);
+      t = vnl_cross_3d(c, n);
+    
+      // Ensure vectors are normalized
+      n.normalize();
+      t.normalize();
+      c.normalize(); 
 
     /*
 # Find transform, N, that brings the locator coordinate frame 
@@ -480,96 +540,103 @@ void vtkNeuroNavLogic::UpdateLocatorTransform()
 #     where the locator's position is (x,y,z).
 # Then: M = T*R*C
 */
-    vtkMatrix4x4 *locator_matrix = vtkMatrix4x4::New();
-    vtkTransform *locator_transform = vtkTransform::New();
-
-    // Locator's offset: p[0], p[1], p[2]
-    float x0 = p[0];
-    float y0 = p[1];
-    float z0 = p[2];
-
-
-    // Locator's coordinate axis:
-    // Ux = T
-    float Uxx = t[0];
-    float Uxy = t[1];
-    float Uxz = t[2];
-
-    // Uy = -N
-    float Uyx = -n[0];
-    float Uyy = -n[1];
-    float Uyz = -n[2];
-
-    // Uz = Ux x Uy
-    float Uzx = Uxy*Uyz - Uyy*Uxz;
-    float Uzy = Uyx*Uxz - Uxx*Uyz;
-    float Uzz = Uxx*Uyy - Uyx*Uxy;
-
-    // Ux
-    locator_matrix->SetElement(0, 0, Uxx);
-    locator_matrix->SetElement(1, 0, Uxy);
-    locator_matrix->SetElement(2, 0, Uxz);
-    locator_matrix->SetElement(3, 0, 0);
-    // Uy
-    locator_matrix->SetElement(0, 1, Uyx);
-    locator_matrix->SetElement(1, 1, Uyy);
-    locator_matrix->SetElement(2, 1, Uyz);
-    locator_matrix->SetElement(3, 1, 0);
-    // Uz
-    locator_matrix->SetElement(0, 2, Uzx);
-    locator_matrix->SetElement(1, 2, Uzy);
-    locator_matrix->SetElement(2, 2, Uzz);
-    locator_matrix->SetElement(3, 2, 0);
-    // Bottom row
-    locator_matrix->SetElement(0, 3, 0);
-    locator_matrix->SetElement(1, 3, 0);
-    locator_matrix->SetElement(2, 3, 0);
-    locator_matrix->SetElement(3, 3, 1);
-
-    // Set the vtkTransform to PostMultiply so a concatenated matrix, C,
-    // is multiplied by the existing matrix, M: C*M (not M*C)
-    locator_transform->PostMultiply();
-    // M = T*R*C
-
-
-    // NORMAL PART
-
-    locator_transform->Identity();
-    // C:
-    locator_transform->Translate(0, (100 / 2.0), 0);
-    // R:
-    locator_transform->Concatenate(locator_matrix);
-    // T:
-    locator_transform->Translate(x0, y0, z0);
-
-    if (! this->UpdatedTrackerNode)
-      {
-      this->UpdatedTrackerNode = vtkMRMLLinearTransformNode::New();
-      this->UpdatedTrackerNode->SetName("NeuroNavTracker");
-      this->UpdatedTrackerNode->SetDescription("Tracker after patient to image registration.");
-      GetMRMLScene()->AddNode(this->UpdatedTrackerNode);
+      vtkMatrix4x4 *locator_matrix = vtkMatrix4x4::New();
+      vtkTransform *locator_transform = vtkTransform::New();
+  
+      // Locator's offset: p[0], p[1], p[2]
+      float x0 = p[0];
+      float y0 = p[1];
+      float z0 = p[2];
+  
+  
+      // Locator's coordinate axis:
+      // Ux = T
+      float Uxx = t[0];
+      float Uxy = t[1];
+      float Uxz = t[2];
+  
+      // Uy = -N
+      float Uyx = -n[0];
+      float Uyy = -n[1];
+      float Uyz = -n[2];
+  
+      // Uz = Ux x Uy
+      float Uzx = Uxy*Uyz - Uyy*Uxz;
+      float Uzy = Uyx*Uxz - Uxx*Uyz;
+      float Uzz = Uxx*Uyy - Uyx*Uxy;
+  
+      // Ux
+      locator_matrix->SetElement(0, 0, Uxx);
+      locator_matrix->SetElement(1, 0, Uxy);
+      locator_matrix->SetElement(2, 0, Uxz);
+      locator_matrix->SetElement(3, 0, 0);
+      // Uy
+      locator_matrix->SetElement(0, 1, Uyx);
+      locator_matrix->SetElement(1, 1, Uyy);
+      locator_matrix->SetElement(2, 1, Uyz);
+      locator_matrix->SetElement(3, 1, 0);
+      // Uz
+      locator_matrix->SetElement(0, 2, Uzx);
+      locator_matrix->SetElement(1, 2, Uzy);
+      locator_matrix->SetElement(2, 2, Uzz);
+      locator_matrix->SetElement(3, 2, 0);
+      // Bottom row
+      locator_matrix->SetElement(0, 3, 0);
+      locator_matrix->SetElement(1, 3, 0);
+      locator_matrix->SetElement(2, 3, 0);
+      locator_matrix->SetElement(3, 3, 1);
+  
+      // Set the vtkTransform to PostMultiply so a concatenated matrix, C,
+      // is multiplied by the existing matrix, M: C*M (not M*C)
+      locator_transform->PostMultiply();
+      // M = T*R*C
+  
+  
+      // NORMAL PART
+  
+      locator_transform->Identity();
+      // C:
+      locator_transform->Translate(0, 0, 0);
+      // R:
+      locator_transform->Concatenate(locator_matrix);
+      // T:
+      locator_transform->Translate(x0, y0, z0);
+  
+      if (! this->UpdatedTrackerNode)
+        {
+        this->UpdatedTrackerNode = vtkMRMLLinearTransformNode::New();
+        this->UpdatedTrackerNode->SetName("NeuroNavTracker");
+        this->UpdatedTrackerNode->SetDescription("Tracker after patient to image registration.");
+        GetMRMLScene()->AddNode(this->UpdatedTrackerNode);
+        }
+  
+      vtkMatrix4x4 *matrix = this->UpdatedTrackerNode->GetMatrixTransformToParent();
+      //  matrix->DeepCopy(locator_transform->GetMatrix());
+      matrix->DeepCopy(this->Pat2ImgReg->GetLandmarkTransformMatrix());
+  
+      this->UpdatedTrackerNode->Modified();
+  
+      locator_matrix->Delete();
+      locator_transform->Delete();
+      //transform->Delete();
+      //matrix->Delete();
       }
-
-    vtkMatrix4x4 *matrix = this->UpdatedTrackerNode->GetMatrixTransformToParent();
-    matrix->DeepCopy(locator_transform->GetMatrix());
-    this->UpdatedTrackerNode->Modified();
-
-    locator_matrix->Delete();
-    locator_transform->Delete();
     }
 }
-
+  
 int vtkNeuroNavLogic::PerformPatientToImageRegistration()
 {
   int error = this->GetPat2ImgReg()->DoRegistration();
   if (error)
     {
     this->SetUseRegistration(0);
-    return error;
     }
-
-  this->SetUseRegistration(1);
-  return 0;
+  else
+    {
+    this->SetUseRegistration(1);
+    }
+  
+  return error;
 }
 
 

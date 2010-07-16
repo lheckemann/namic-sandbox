@@ -47,6 +47,11 @@ public:
   vtkTypeRevisionMacro ( vtkNeuroNavGUI, vtkSlicerModuleGUI );
   void PrintSelf (ostream& os, vtkIndent indent );
 
+  // Description: 
+  // Get the categorization of the module.
+  const char *GetCategory() const { return "IGT"; }
+
+
   // Description:    
   // Get methods on class members (no Set methods required)
   vtkGetObjectMacro ( Logic, vtkNeuroNavLogic );
@@ -90,12 +95,15 @@ public:
                            unsigned long eid, void *clientData, void *callData);
 
   //ETX
+  void TransformChangedCallback(double);
+  void TransformChangingCallback(double);
 
 protected:
   vtkNeuroNavGUI ( );
   virtual ~vtkNeuroNavGUI ( );
 
   vtkKWCheckButton *LocatorCheckButton;
+  vtkKWCheckButton *TractographyCheckButton;
   vtkKWCheckButton *HandleCheckButton;
   vtkKWCheckButton *GuideCheckButton;
 
@@ -109,6 +117,9 @@ protected:
   vtkKWMenuButton *GreenSliceMenu;
 
   vtkKWEntryWithLabel *TransformNodeNameEntry;
+  vtkKWEntryWithLabel *FiducialListNodeNameEntry;
+
+
 
   vtkKWEntryWithLabel *PatCoordinatesEntry;
   vtkKWEntryWithLabel *SlicerCoordinatesEntry;
@@ -117,8 +128,8 @@ protected:
 
   vtkKWMultiColumnListWithScrollbars *PointPairMultiColumnList;
 
-  //    vtkKWPushButton *LoadPointPairPushButton;
-  //    vtkKWPushButton *SavePointPairPushButton;
+ //    vtkKWPushButton *LoadPointPairPushButton;
+ //    vtkKWPushButton *SavePointPairPushButton;
   vtkKWPushButton *DeletePointPairPushButton;
   vtkKWPushButton *DeleteAllPointPairPushButton;    
   vtkKWPushButton *RegisterPushButton;
@@ -128,7 +139,7 @@ protected:
   // Module logic and mrml pointers
   vtkNeuroNavLogic *Logic;
 
-  // Access the slice windows
+  vtkKWScaleWithEntry *TranslationScale;
 
 private:
   vtkNeuroNavGUI ( const vtkNeuroNavGUI& ); // Not implemented.
@@ -136,6 +147,7 @@ private:
 
   void BuildGUIForTrackingFrame ();
   void BuildGUIForRegistrationFrame ();
+  void BuildGUIForHelpFrame ();
 
   void TrackerLoop();
 
