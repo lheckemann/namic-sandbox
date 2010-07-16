@@ -494,7 +494,7 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   ret->GetMatrix()->SetElement( 1, 3, imageSizePixels[ 1 ] / 2.0 );
   
   
-  
+  /*
     // debug.
   double _sliceToIJK_s = sliceToIJK->GetElement( 2, 3 ); // debug.
   int* dim = this->ImageData->GetDimensions();
@@ -508,7 +508,7 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   ss << "image orig = " << ori[ 0 ] << " " << ori[ 1 ] << " " << ori[ 2 ] << std::endl;
   ss << "image spac = " << spa[ 0 ] << " " << spa[ 1 ] << " " << spa[ 2 ] << std::endl;
   LOG_TO_FILE( ss.str() );
-  
+  */
   
   
     // Apply the following transforms, that implement the XYToSlice transform.
@@ -519,8 +519,8 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   
   double hFlipFactor = 1.0;
   double vFlipFactor = 1.0;
-  if ( this->PSNode->GetSecondMonitorHorizontalFlip() ) hFlipFactor = - 1.0;
-  if ( this->PSNode->GetSecondMonitorVerticalFlip() ) vFlipFactor = - 1.0;
+  if ( this->PSNode->GetFinalHorizontalFlip() ) hFlipFactor = - 1.0;
+  if ( this->PSNode->GetFinalVerticalFlip() ) vFlipFactor = - 1.0;
   
   
     // We are in pre-multiply mode, so write transforms in reverse order.
@@ -546,8 +546,7 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
 vtkMatrix4x4*
 vtkPerkStationSecondaryMonitor
 ::GetFlipMatrixFromDirectionCosines ( vtkMatrix4x4 *directionMatrix,
-                                      bool & verticalFlip,
-                                      bool & horizontalFlip )
+                                      bool & verticalFlip, bool & horizontalFlip )
 {
   vtkSmartPointer< vtkMatrix4x4 > flipMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   flipMatrix->Identity();
@@ -593,16 +592,16 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
   
   if ( ! this->DisplayInitialized ) return;
   
-    // Switch visibility of needle guide and depth perception lines.
-    
+  
     // Update the current slice offset value.
   
   this->SliceOffsetRAS = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->GetSliceOffset();
   
   
+    // Switch visibility of needle guide and depth perception lines.
+   
   double entry[ 3 ] = { 0, 0, -100000 };
   double target[ 3 ] = { 0, 0, -100000 };
-  
   
   this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( entry );
   this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( target );
@@ -622,7 +621,6 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
       maxOffset = target[ 2 ] + 0.5;
       }
     }
-  
   
   if (
           ( this->SliceOffsetRAS < maxOffset )
@@ -662,20 +660,10 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
      this->ScreenSize[ 1 ] - 50 );
    std::stringstream ss;
    ss.setf( std::ios::fixed );
-   ss << "Table position: "
-      << std::setprecision( 1 )
-      << this->GetGUI()->GetMRMLNode()->GetCurrentTablePosition()
-      << " mm";
+   ss << "Table position: " << std::setprecision( 1 )
+      << this->GetGUI()->GetMRMLNode()->GetCurrentTablePosition() << " mm";
    this->TablePositionActor->SetInput( ss.str().c_str() );
    this->TablePositionActor->SetVisibility( 1 );
-   if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
-     {
-     this->TablePositionActor->FlipAroundY( true );
-     }
-   else
-     {
-     this->TablePositionActor->FlipAroundY( false );
-     }
    }
  else
    {
@@ -708,36 +696,38 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
  
     // Take hardware into account.
   
-  if (    this->PSNode->GetSecondMonitorHorizontalFlip()
-       || this->PSNode->GetHardwareList()[ this->PSNode->GetHardwareIndex() ].FlipHorizontal )
+  if ( this->PSNode->GetFinalHorizontalFlip() )
     {
     Lleft = ! Lleft;
     Rleft = ! Rleft;
     this->LeftSideActor->FlipAroundY( true );
     this->RightSideActor->FlipAroundY( true );
     this->CalibrationControlsActor->FlipAroundY( true );
+    this->TablePositionActor->FlipAroundY( true );
     }
   else
     {
     this->LeftSideActor->FlipAroundY( false );
     this->RightSideActor->FlipAroundY( false );
     this->CalibrationControlsActor->FlipAroundY( false );
+    this->TablePositionActor->FlipAroundY( false );
     }
 
-  if (    this->PSNode->GetSecondMonitorVerticalFlip()
-       || this->PSNode->GetHardwareList()[ this->PSNode->GetHardwareIndex() ].FlipVertical )
+  if (    this->PSNode->GetFinalVerticalFlip() )
     {
     Lup = ! Lup;
     Rup = ! Lup;
     this->LeftSideActor->FlipAroundX( true );
     this->RightSideActor->FlipAroundX( true );
     this->CalibrationControlsActor->FlipAroundX( true );
+    this->TablePositionActor->FlipAroundX( true );
     }
   else
     {
     this->LeftSideActor->FlipAroundX( false );
     this->RightSideActor->FlipAroundX( false );
     this->CalibrationControlsActor->FlipAroundX( false );
+    this->TablePositionActor->FlipAroundX( false );
     }
   
   

@@ -313,6 +313,9 @@ public:
   
   double GetCurrentTablePosition();
   
+  bool GetFinalHorizontalFlip();
+  bool GetFinalVerticalFlip();
+  
   double GetEntryPointError();
   double GetTargetPointError();
   

@@ -1197,6 +1197,46 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
+
+bool
+vtkMRMLPerkStationModuleNode
+::GetFinalHorizontalFlip()
+{
+  bool ret = false;
+  if ( this->HardwareIndex >= 0 )
+    {
+    ret = this->HardwareList[ this->HardwareIndex ].FlipHorizontal;
+    }
+  if (    this->CurrentCalibration >= 0
+       && this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorHorizontalFlip )
+    {
+    ret = ! ret;
+    }
+  return ret;
+}
+
+
+
+bool
+vtkMRMLPerkStationModuleNode
+::GetFinalVerticalFlip()
+{
+  bool ret = false;
+  if ( this->HardwareIndex >= 0 )
+    {
+    ret = this->HardwareList[ this->HardwareIndex ].FlipVertical;
+    }
+  if (    this->CurrentCalibration >= 0
+       && this->CalibrationList[ this->CurrentCalibration ]->SecondMonitorVerticalFlip )
+    {
+    ret = ! ret;
+    }
+  return ret;
+}
+
+
+
 /**
  * @returns Euclidean distance between plan and validation entry points.
  */

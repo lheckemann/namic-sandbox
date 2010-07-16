@@ -200,8 +200,8 @@ void vtkPerkStationPlanStep::ShowUserInterface()
   this->ShowPlanListFrame();
   
   
-  // TO DO: install callbacks
   this->InstallCallbacks();
+  this->AddGUIObservers();
   
   this->UpdateGUI();
 }
@@ -322,6 +322,8 @@ vtkPerkStationPlanStep
     {
     renderer->RemoveActor( this->PlanningLineActor );
     }
+  
+  this->RemoveGUIObservers();
 }
 
 
@@ -424,7 +426,7 @@ vtkPerkStationPlanStep
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkPerkStationPlanStep
 ::PrintSelf( ostream& os, vtkIndent indent )
@@ -433,7 +435,7 @@ vtkPerkStationPlanStep
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkPerkStationPlanStep
 ::AddGUIObservers()
@@ -453,8 +455,10 @@ vtkPerkStationPlanStep
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::RemoveGUIObservers()
+
+void
+vtkPerkStationPlanStep
+::RemoveGUIObservers()
 {
   if ( this->PlanList )
     {
