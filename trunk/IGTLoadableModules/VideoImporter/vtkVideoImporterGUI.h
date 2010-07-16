@@ -30,6 +30,10 @@
 #include "vtkMultiThreader.h"
 #include "vtkImageActor.h"
 
+#include "vtkKWRadioButtonSet.h"
+#include "vtkKWPushButton.h"
+
+
 #include <cv.h>
 #include <cxcore.h>
 #include <highgui.h>
@@ -117,7 +121,7 @@ class VTK_VideoImporter_EXPORT vtkVideoImporterGUI : public vtkSlicerModuleGUI
 
   int ViewerBackgroundOn(vtkSlicerViewerWidget* vwidget, vtkImageData* imageData);
   int ViewerBackgroundOff(vtkSlicerViewerWidget* vwidget);
-  int StartCamera();
+  int StartCamera(int channel);
   int StopCamera();
   int CameraHandler();
   int ProcessMotion(CvPoint2D32f* vector, CvPoint2D32f* position, int n);
@@ -166,16 +170,23 @@ class VTK_VideoImporter_EXPORT vtkVideoImporterGUI : public vtkSlicerModuleGUI
   // GUI widgets
   //----------------------------------------------------------------
 
-  vtkKWPushButton* ShowSecondaryWindowButton;
-  vtkKWPushButton* HideSecondaryWindowButton;
+  vtkKWLabel* CameraChannelLabel;
+  vtkKWEntry* CameraChannelEntry;
 
-  //vtkSecondaryWindowViwerWindow* SecondaryViewerWindow;
-
-  vtkSlicerNodeSelectorWidget* TransformNodeSelector;
+  vtkKWLabel* VideoFileLabel;
+  vtkKWEntry* VideoFileEntry;
+  vtkKWPushButton* VideoFileSelectButton;
+  vtkKWRadioButtonSet* VideoSourceButtonSet;
 
   vtkKWPushButton* StartCaptureButton;
   vtkKWPushButton* StopCaptureButton;
 
+  //vtkKWPushButton* ShowSecondaryWindowButton;
+  //vtkKWPushButton* HideSecondaryWindowButton;
+
+  //vtkSecondaryWindowViwerWindow* SecondaryViewerWindow;
+
+  vtkSlicerNodeSelectorWidget* TransformNodeSelector;
 
   //----------------------------------------------------------------
   // Logic Values
