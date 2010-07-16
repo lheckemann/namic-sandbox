@@ -79,18 +79,18 @@ vtkVideoImporterGUI::vtkVideoImporterGUI ( )
   this->TimerFlag = 0;
   this->CameraActiveFlag = 0;
 
-
   this->CameraChannelLabel = NULL;
   this->CameraChannelEntry = NULL;
   this->VideoFileLabel     = NULL;
   this->VideoFileEntry     = NULL;
   this->VideoFileSelectButton = NULL;
   this->VideoSourceButtonSet = NULL;
+  this->OpticalFlowStatusButtonSet = NULL;
 
   this->VideoImageData     = NULL;
   this->BackgroundRenderer = NULL;
 
-  this->OpticalFlowTrackingFlag = 1;
+  this->OpticalFlowTrackingFlag = 0;
   this->GrayImage = NULL;
   this->PrevGrayImage = NULL;
   this->Pyramid = NULL;
@@ -243,6 +243,15 @@ void vtkVideoImporterGUI::RemoveGUIObservers ( )
     this->StopCaptureButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->OpticalFlowStatusButtonSet)
+    {
+    this->OpticalFlowStatusButtonSet->GetWidget(0)
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    this->OpticalFlowStatusButtonSet->GetWidget(1)
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  this->AddLogicObservers();
 
   this->RemoveLogicObservers();
 
@@ -310,6 +319,14 @@ void vtkVideoImporterGUI::AddGUIObservers ( )
     {
     this->StopCaptureButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->OpticalFlowStatusButtonSet)
+    {
+    this->OpticalFlowStatusButtonSet->GetWidget(0)
+      ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->OpticalFlowStatusButtonSet->GetWidget(1)
+      ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   this->AddLogicObservers();
@@ -468,7 +485,20 @@ void vtkVideoImporterGUI::ProcessGUIEvents(vtkObject *caller,
     this->StartCaptureButton->EnabledOn();
     this->StopCaptureButton->EnabledOff();
     }
-
+  else if (this->OpticalFlowStatusButtonSet->GetWidget(0)
+      == vtkKWRadioButton::SafeDownCast(caller)
+      && event == vtkKWRadioButton::SelectedStateChangedEvent
+      && this->OpticalFlowStatusButtonSet->GetWidget(0)->GetSelectedState() == 1)
+    {
+    this->OpticalFlowTrackingFlag = 1;
+    }
+  else if (this->OpticalFlowStatusButtonSet->GetWidget(1)
+      == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->OpticalFlowStatusButtonSet->GetWidget(1)->GetSelectedState() == 1)
+    {
+    this->OpticalFlowTrackingFlag = 0;
+    }
 } 
 
 
@@ -537,6 +567,7 @@ void vtkVideoImporterGUI::BuildGUI ( )
 
   BuildGUIForHelpFrame();
   BuildGUIForWindowConfigurationFrame();
+  BuildGUIForOpticalFlowFrame();
 
   /*
   this->SecondaryViewerWindow = vtkSecondaryWindowViwerWindow::New();
@@ -544,7 +575,7 @@ void vtkVideoImporterGUI::BuildGUI ( )
   this->SecondaryViewerWindow->Create();
   */
 
-  vtkMRMLCameraNode* cameraNode = vtkMRMLCameraNode::New();
+  //vtkMRMLCameraNode* cameraNode = vtkMRMLCameraNode::New();
   //this->SecondaryViewerWindow->SetCameraNode(cameraNode);
 
   //// no view in the scene and local
@@ -676,6 +707,11 @@ void vtkVideoImporterGUI::BuildGUIForWindowConfigurationFrame()
               this->VideoFileEntry->GetWidgetName(),
               this->VideoFileSelectButton->GetWidgetName());
 
+  this->VideoFileLabel->EnabledOff();
+  this->VideoFileEntry->EnabledOff();
+  this->VideoFileSelectButton->EnabledOff();
+
+
   fileFrame->Delete();
 
 
@@ -747,6 +783,62 @@ void vtkVideoImporterGUI::BuildGUIForWindowConfigurationFrame()
                this->HideSecondaryWindowButton->GetWidgetName());
   */
 
+  conBrowsFrame->Delete();
+  //switchframe->Delete();
+
+}
+
+
+//----------------------------------------------------------------------------
+void vtkVideoImporterGUI::BuildGUIForOpticalFlowFrame()
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("VideoImporter");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Optical Flow");
+  //conBrowsFrame->CollapseFrame();
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+  // -----------------------------------------
+  // Video Import frame
+  
+  vtkKWFrame *statusframe = vtkKWFrame::New();
+  statusframe->SetParent(conBrowsFrame->GetFrame());
+  statusframe->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                statusframe->GetWidgetName() );
+
+  vtkKWLabel *statusLabel = vtkKWLabel::New();
+  statusLabel->SetParent(statusframe);
+  statusLabel->Create();
+  statusLabel->SetWidth(8);
+  statusLabel->SetText("Status: ");
+
+  this->OpticalFlowStatusButtonSet = vtkKWRadioButtonSet::New();
+  this->OpticalFlowStatusButtonSet->SetParent(statusframe);
+  this->OpticalFlowStatusButtonSet->Create();
+  this->OpticalFlowStatusButtonSet->PackHorizontallyOn();
+  this->OpticalFlowStatusButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(2);
+  this->OpticalFlowStatusButtonSet->UniformColumnsOn();
+  this->OpticalFlowStatusButtonSet->UniformRowsOn();
+
+  this->OpticalFlowStatusButtonSet->AddWidget(0);
+  this->OpticalFlowStatusButtonSet->GetWidget(0)->SetText("Enabled");
+  this->OpticalFlowStatusButtonSet->AddWidget(1);
+  this->OpticalFlowStatusButtonSet->GetWidget(1)->SetText("Disabled");
+  this->OpticalFlowStatusButtonSet->GetWidget(1)->SelectedStateOn();
+  
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              statusLabel->GetWidgetName() , this->OpticalFlowStatusButtonSet->GetWidgetName());
+  
+  statusframe->Delete();
+
+
   // -----------------------------------------
   // Node select frame
 
@@ -770,11 +862,6 @@ void vtkVideoImporterGUI::BuildGUIForWindowConfigurationFrame()
 
   this->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                this->TransformNodeSelector->GetWidgetName());
-
-  conBrowsFrame->Delete();
-  //switchframe->Delete();
-
-
 
 }
 
@@ -1032,7 +1119,7 @@ int vtkVideoImporterGUI::CameraHandler()
       
       double dx = 0.0;
       double dy = 0.0;
-      int frameCount = 0;
+      //int frameCount = 0;
 
       for(int i =  0; i < count; i++ )
         {
@@ -1123,7 +1210,8 @@ int vtkVideoImporterGUI::ProcessMotion(CvPoint2D32f* vector, CvPoint2D32f* posit
       transform->SetElement(2, 3, y);
       }
     }
-  
+
+  return 1;
 }
 
 

@@ -110,6 +110,7 @@ class VTK_VideoImporter_EXPORT vtkVideoImporterGUI : public vtkSlicerModuleGUI
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
   void BuildGUIForWindowConfigurationFrame();
+  void BuildGUIForOpticalFlowFrame();
 
   //----------------------------------------------------------------
   // Update routines
@@ -138,7 +139,7 @@ class VTK_VideoImporter_EXPORT vtkVideoImporterGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
 
   vtkRenderer*   BackgroundRenderer;
-  vtkImageActor*      BackgroundActor;
+  vtkImageActor* BackgroundActor;
   int CameraActiveFlag;
   CvCapture* capture;
 
@@ -183,10 +184,10 @@ class VTK_VideoImporter_EXPORT vtkVideoImporterGUI : public vtkSlicerModuleGUI
 
   //vtkKWPushButton* ShowSecondaryWindowButton;
   //vtkKWPushButton* HideSecondaryWindowButton;
-
   //vtkSecondaryWindowViwerWindow* SecondaryViewerWindow;
 
   vtkSlicerNodeSelectorWidget* TransformNodeSelector;
+  vtkKWRadioButtonSet* OpticalFlowStatusButtonSet;
 
   //----------------------------------------------------------------
   // Logic Values
