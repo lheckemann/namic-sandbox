@@ -1,4 +1,10 @@
 
+#include "vtkPerkProcedureEvaluatorGUI.h"
+
+
+#include <sstream>
+#include <string>
+
 #include "vtkCornerAnnotation.h"
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
@@ -9,12 +15,13 @@
 #include "vtkKWTkUtilities.h"
 #include "vtkKWLabel.h"
 #include "vtkKWLoadSaveButton.h"
+#include "vtkKWMultiColumnList.h"
+#include "vtkKWMultiColumnListWithScrollbars.h"
 #include "vtkKWPushButton.h"
 #include "vtkKWWidget.h"
 
 #include "vtkMRMLLinearTransformNode.h"
 
-#include "vtkPerkProcedureEvaluatorGUI.h"
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerColor.h"
 #include "vtkSlicerModuleCollapsibleFrame.h"
@@ -54,6 +61,20 @@
 
 
 //-----------------------------------------------------------------------------
+
+
+
+std::string
+DoubleToStr( double d )
+{
+  std::stringstream ss;
+  ss << d;
+  return ss.str();
+}
+
+
+
+//-----------------------------------------------------------------------------
 vtkStandardNewMacro (vtkPerkProcedureEvaluatorGUI );
 vtkCxxRevisionMacro ( vtkPerkProcedureEvaluatorGUI, "$Revision: 1.0 $");
 //-----------------------------------------------------------------------------
@@ -69,9 +90,9 @@ enum
   NOTES_COL_EVENT,
   NOTES_COL_MESSAGE,
   NOTES_COL_COUNT
-  }
+  };
 static const char* NOTES_COL_LABELS[ NOTES_COL_COUNT ] = { "Time", "Event", "Message" };
-static const int NOTES_COL_WIDTHS[ NOTES_COL_COUNT ] = { 5, 5, 20 };
+static const int NOTES_COL_WIDTHS[ NOTES_COL_COUNT ] = { 5, 5, 30 };
 
 
 // ============================================================================
@@ -95,6 +116,9 @@ vtkPerkProcedureEvaluatorGUI
   this->CalibrationSelector = NULL;
   
   this->LoadButton = NULL;
+  
+  this->NotesFrame = NULL;
+  this->NotesList = NULL;
   
   
   // Locator  (MRML)
@@ -129,6 +153,9 @@ vtkPerkProcedureEvaluatorGUI
   DELETE_WITH_SETPARENT_NULL( this->CalibrationSelector );
   
   DELETE_WITH_SETPARENT_NULL( this->LoadButton );
+  
+  DELETE_WITH_SETPARENT_NULL( this->NotesFrame );
+  DELETE_WITH_SETPARENT_NULL( this->NotesList );
   
   
     // Unregister Logic class
@@ -241,7 +268,7 @@ vtkPerkProcedureEvaluatorGUI
   ADD_OBSERVER( this->PlanningVolumeSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   ADD_OBSERVER( this->CalibrationSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
-  ADD_OBSERVER( this->LoadButton, vtkKWPushButton::InvokedEvent );
+  ADD_OBSERVER( this->LoadButton->GetLoadSaveDialog(), vtkKWTopLevel::WithdrawEvent );
   
   
   this->AddLogicObservers();
@@ -386,8 +413,9 @@ vtkPerkProcedureEvaluatorGUI
   // create a page
   this->UIPanel->AddPage ( "PerkProcedureEvaluator", "PerkProcedureEvaluator", NULL );
 
-  BuildGUIForHelpFrame();
-  BuildGUIForInputFrame();
+  this->BuildGUIForHelpFrame();
+  this->BuildGUIForInputFrame();
+  this->BuildGUIForNotesList();
   
 }
 
@@ -415,9 +443,9 @@ vtkPerkProcedureEvaluatorGUI
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("PerkProcedureEvaluator");
   
-  vtkSlicerModuleCollapsibleFrame *inputFrame = vtkSlicerModuleCollapsibleFrame::New();
   
-  inputFrame->SetParent(page);
+  vtkSlicerModuleCollapsibleFrame *inputFrame = vtkSlicerModuleCollapsibleFrame::New();
+  inputFrame->SetParent( page );
   inputFrame->Create();
   inputFrame->SetLabelText( "Input" );
   app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
@@ -489,7 +517,45 @@ void
 vtkPerkProcedureEvaluatorGUI
 ::BuildGUIForNotesList()
 {
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("PerkProcedureEvaluator");
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   
+  
+  if ( ! this->NotesFrame )
+    {
+    this->NotesFrame = vtkSlicerModuleCollapsibleFrame::New();
+    this->NotesFrame->SetParent( page );
+    this->NotesFrame->Create();
+    this->NotesFrame->SetLabelText( "Procedure" );
+    app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+                 this->NotesFrame->GetWidgetName(), page->GetWidgetName() );
+    }
+  
+  
+  if ( ! this->NotesList )
+    {
+    this->NotesList = vtkKWMultiColumnListWithScrollbars::New();
+    this->NotesList->SetParent( this->NotesFrame->GetFrame() );
+    this->NotesList->Create();
+    this->NotesList->SetHeight( 1 );
+    this->NotesList->GetWidget()->SetSelectionTypeToRow();
+    this->NotesList->GetWidget()->SetSelectionBackgroundColor( 1, 0, 0 );
+    this->NotesList->GetWidget()->MovableRowsOff();
+    this->NotesList->GetWidget()->MovableColumnsOff();
+    
+      // Create the columns.
+    
+    for ( int col = 0; col < NOTES_COL_COUNT; ++ col )
+      {
+      this->NotesList->GetWidget()->AddColumn( NOTES_COL_LABELS[ col ] );
+      this->NotesList->GetWidget()->SetColumnWidth( col, NOTES_COL_WIDTHS[ col ] );
+      this->NotesList->GetWidget()->SetColumnAlignmentToLeft( col );
+      }
+    
+    this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                  this->NotesList->GetWidgetName() );
+  
+    }
 }
 
 
@@ -498,6 +564,42 @@ void
 vtkPerkProcedureEvaluatorGUI
 ::UpdateAll()
 {
+  vtkMRMLPerkProcedureNode* procedure = this->GetProcedureNode();
+  if ( ! procedure ) return;
+  
+  
+  if ( this->NotesList == NULL || this->NotesList->GetWidget() == NULL ) return;
+  
+  
+  int numNotes = procedure->GetNumberOfNotes();
+  
+  bool deleteFlag = true;
+  if ( numNotes != this->NotesList->GetWidget()->GetNumberOfRows() )
+    {
+    this->NotesList->GetWidget()->DeleteAllRows();
+    }
+  else
+    {
+    deleteFlag = false;
+    }
+  
+  
+  const int PRECISION_DIGITS = 1;
+  
+  for ( int row = 0; row < numNotes; ++ row )
+    {
+    PerkNote* note = procedure->GetNoteAtIndex( row );
+    
+    if ( deleteFlag )
+      {
+      this->NotesList->GetWidget()->AddRow();
+      }
+    
+    vtkKWMultiColumnList* colList = this->NotesList->GetWidget();
+    
+    colList->SetCellText( row, NOTES_COL_TIME, DoubleToStr( note->Time ).c_str() );
+    colList->SetCellText( row, NOTES_COL_MESSAGE, note->Message.c_str() );
+    }
 }
 
 
@@ -520,6 +622,8 @@ vtkPerkProcedureEvaluatorGUI
     this->LoadButton->GetLoadSaveDialog()->SaveLastPathToRegistry( "PerkProcedurePath" );
     this->ProcedureNode->ImportFromFile( fileName );
     }
+    
+  this->UpdateAll();
 }
 
 

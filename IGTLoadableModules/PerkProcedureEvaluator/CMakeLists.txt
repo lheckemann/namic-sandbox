@@ -50,6 +50,7 @@ set(PerkProcedureEvaluator_SRCS
   vtkPerkProcedureEvaluatorLogic.cxx
   vtkPerkProcedureEvaluatorGUI.cxx
   vtkMRMLPerkProcedureNode.cxx
+  vtkTransformTimeSeries.cxx
 )
 
 

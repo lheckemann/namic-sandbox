@@ -17,6 +17,7 @@
 
 class vtkKWPushButton;
 class vtkKWLoadSaveButton;
+class vtkKWMultiColumnListWithScrollbars;
 class vtkSlicerNodeSelectorWidget;
 
 
@@ -125,7 +126,7 @@ protected:
   vtkSlicerNodeSelectorWidget* CalibrationSelector;
   vtkKWLoadSaveButton* LoadButton;
   
-  vtkKWFrame* NotesFrame;
+  vtkSlicerModuleCollapsibleFrame* NotesFrame;
   vtkKWMultiColumnListWithScrollbars* NotesList;
   
   
