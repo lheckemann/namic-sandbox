@@ -1,132 +1,162 @@
-/*==========================================================================
 
-  Portions (c) Copyright 2008 Brigham and Women's Hospital (BWH) All Rights Reserved.
-
-  See Doc/copyright/copyright.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
-
-  Program:   3D Slicer
-  Module:    $HeadURL: $
-  Date:      $Date: $
-  Version:   $Revision: $
-
-==========================================================================*/
-
+#include "vtkCornerAnnotation.h"
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
 
+#include "vtkKWEvent.h"
+#include "vtkKWFrameWithLabel.h"
+#include "vtkKWFrame.h"
+#include "vtkKWTkUtilities.h"
+#include "vtkKWLabel.h"
+#include "vtkKWLoadSaveButton.h"
+#include "vtkKWPushButton.h"
+#include "vtkKWWidget.h"
+
+#include "vtkMRMLLinearTransformNode.h"
+
 #include "vtkPerkProcedureEvaluatorGUI.h"
 #include "vtkSlicerApplication.h"
+#include "vtkSlicerColor.h"
 #include "vtkSlicerModuleCollapsibleFrame.h"
+#include "vtkSlicerNodeSelectorWidget.h"
 #include "vtkSlicerSliceControllerWidget.h"
 #include "vtkSlicerSliceGUI.h"
 #include "vtkSlicerSlicesGUI.h"
-
-#include "vtkSlicerColor.h"
 #include "vtkSlicerTheme.h"
 
-#include "vtkKWTkUtilities.h"
-#include "vtkKWWidget.h"
-#include "vtkKWFrameWithLabel.h"
-#include "vtkKWFrame.h"
-#include "vtkKWLabel.h"
-#include "vtkKWEvent.h"
-
-#include "vtkKWPushButton.h"
-
-#include "vtkCornerAnnotation.h"
 
 
-//---------------------------------------------------------------------------
+// ============================================================================
+
+
+#define ADD_OBSERVER( obj, evnt ) \
+  if ( obj ) \
+    { \
+    obj->AddObserver( evnt, (vtkCommand*)this->GUICallbackCommand ); \
+    }
+
+  
+#define REMOVE_OBSERVERS( obj, evnt ) \
+  if ( obj ) \
+    { \
+    obj->RemoveObservers( evnt, (vtkCommand *)this->GUICallbackCommand ); \
+    }
+
+
+#define DELETE_WITH_SETPARENT_NULL( obj ) \
+  if ( obj ) \
+    { \
+    obj->SetParent( NULL ); \
+    obj->Delete(); \
+    obj = NULL; \
+    };
+
+
+
+//-----------------------------------------------------------------------------
 vtkStandardNewMacro (vtkPerkProcedureEvaluatorGUI );
 vtkCxxRevisionMacro ( vtkPerkProcedureEvaluatorGUI, "$Revision: 1.0 $");
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 
-//---------------------------------------------------------------------------
-vtkPerkProcedureEvaluatorGUI::vtkPerkProcedureEvaluatorGUI ( )
+
+// ============================================================================
+
+
+enum
+  {
+  NOTES_COL_TIME = 0,
+  NOTES_COL_EVENT,
+  NOTES_COL_MESSAGE,
+  NOTES_COL_COUNT
+  }
+static const char* NOTES_COL_LABELS[ NOTES_COL_COUNT ] = { "Time", "Event", "Message" };
+static const int NOTES_COL_WIDTHS[ NOTES_COL_COUNT ] = { 5, 5, 20 };
+
+
+// ============================================================================
+
+
+
+vtkPerkProcedureEvaluatorGUI
+::vtkPerkProcedureEvaluatorGUI()
 {
-
-  //----------------------------------------------------------------
   // Logic values
   this->Logic = NULL;
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkPerkProcedureEvaluatorGUI::DataCallback);
   
-  //----------------------------------------------------------------
-  // GUI widgets
-  this->TestButton11 = NULL;
-  this->TestButton12 = NULL;
-  this->TestButton21 = NULL;
-  this->TestButton22 = NULL;
   
-  //----------------------------------------------------------------
+  // GUI widgets
+  
+  this->PerkProcedureSelector = NULL;
+  this->PlanningVolumeSelector = NULL;
+  this->CalibrationSelector = NULL;
+  
+  this->LoadButton = NULL;
+  
+  
   // Locator  (MRML)
+  
   this->TimerFlag = 0;
-
+  
+  this->ProcedureNode = NULL;
 }
 
-//---------------------------------------------------------------------------
-vtkPerkProcedureEvaluatorGUI::~vtkPerkProcedureEvaluatorGUI ( )
-{
 
-  //----------------------------------------------------------------
+
+vtkPerkProcedureEvaluatorGUI
+::~vtkPerkProcedureEvaluatorGUI()
+{
   // Remove Callbacks
 
   if (this->DataCallbackCommand)
     {
     this->DataCallbackCommand->Delete();
     }
-
-  //----------------------------------------------------------------
-  // Remove Observers
-
+  
+  
+    // Remove Observers
+  
   this->RemoveGUIObservers();
+  
+  
+    // Remove GUI widgets
 
-  //----------------------------------------------------------------
-  // Remove GUI widgets
-
-  if (this->TestButton11)
-    {
-    this->TestButton11->SetParent(NULL);
-    this->TestButton11->Delete();
-    }
-
-  if (this->TestButton12)
-    {
-    this->TestButton12->SetParent(NULL);
-    this->TestButton12->Delete();
-    }
-
-  if (this->TestButton21)
-    {
-    this->TestButton21->SetParent(NULL);
-    this->TestButton21->Delete();
-    }
-
-  if (this->TestButton22)
-    {
-    this->TestButton22->SetParent(NULL);
-    this->TestButton22->Delete();
-    }
-
-  //----------------------------------------------------------------
-  // Unregister Logic class
+  DELETE_WITH_SETPARENT_NULL( this->PerkProcedureSelector );
+  DELETE_WITH_SETPARENT_NULL( this->PlanningVolumeSelector );
+  DELETE_WITH_SETPARENT_NULL( this->CalibrationSelector );
+  
+  DELETE_WITH_SETPARENT_NULL( this->LoadButton );
+  
+  
+    // Unregister Logic class
 
   this->SetModuleLogic ( NULL );
-
+  
+  
+    // MRML
+  
+  if ( this->ProcedureNode )
+    {
+    vtkSetMRMLNodeMacro( this->ProcedureNode, NULL );
+    }
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::Init()
+
+void
+vtkPerkProcedureEvaluatorGUI
+::Init()
 {
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::Enter()
+
+void
+vtkPerkProcedureEvaluatorGUI
+::Enter()
 {
   // Fill in
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
@@ -148,8 +178,10 @@ void vtkPerkProcedureEvaluatorGUI::Exit ( )
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::PrintSelf ( ostream& os, vtkIndent indent )
+
+void
+vtkPerkProcedureEvaluatorGUI
+::PrintSelf ( ostream& os, vtkIndent indent )
 {
   this->vtkObject::PrintSelf ( os, indent );
 
@@ -158,50 +190,38 @@ void vtkPerkProcedureEvaluatorGUI::PrintSelf ( ostream& os, vtkIndent indent )
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::RemoveGUIObservers ( )
+
+void
+vtkPerkProcedureEvaluatorGUI
+::RemoveGUIObservers()
 {
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-
-  if (this->TestButton11)
-    {
-    this->TestButton11
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-  if (this->TestButton12)
-    {
-    this->TestButton12
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-  if (this->TestButton21)
-    {
-    this->TestButton21
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-  if (this->TestButton22)
-    {
-    this->TestButton22
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-
+  
+  
+    // GUI observers.
+  
+  REMOVE_OBSERVERS( this->PerkProcedureSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  REMOVE_OBSERVERS( this->PlanningVolumeSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  REMOVE_OBSERVERS( this->CalibrationSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  
+  REMOVE_OBSERVERS( this->LoadButton, vtkKWPushButton::InvokedEvent );
+  
+  
   this->RemoveLogicObservers();
-
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::AddGUIObservers ( )
+
+void
+vtkPerkProcedureEvaluatorGUI
+::AddGUIObservers()
 {
   this->RemoveGUIObservers();
-
+  
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-
-  //----------------------------------------------------------------
-  // MRML
+  
+  
+    // MRML
 
   vtkIntArray* events = vtkIntArray::New();
   //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -210,29 +230,28 @@ void vtkPerkProcedureEvaluatorGUI::AddGUIObservers ( )
   
   if (this->GetMRMLScene() != NULL)
     {
-    this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
+    this->SetAndObserveMRMLSceneEvents( this->GetMRMLScene(), events );
     }
   events->Delete();
 
-  //----------------------------------------------------------------
-  // GUI Observers
-
-  this->TestButton11
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton12
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton21
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton22
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-
+  
+    // GUI Observers.
+  
+  ADD_OBSERVER( this->PerkProcedureSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  ADD_OBSERVER( this->PlanningVolumeSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  ADD_OBSERVER( this->CalibrationSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  
+  ADD_OBSERVER( this->LoadButton, vtkKWPushButton::InvokedEvent );
+  
+  
   this->AddLogicObservers();
-
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::RemoveLogicObservers ( )
+
+void
+vtkPerkProcedureEvaluatorGUI
+::RemoveLogicObservers()
 {
   if (this->GetLogic())
     {
@@ -243,9 +262,9 @@ void vtkPerkProcedureEvaluatorGUI::RemoveLogicObservers ( )
 
 
 
-
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::AddLogicObservers ( )
+void
+vtkPerkProcedureEvaluatorGUI
+::AddLogicObservers()
 {
   this->RemoveLogicObservers();  
 
@@ -256,17 +275,20 @@ void vtkPerkProcedureEvaluatorGUI::AddLogicObservers ( )
     }
 }
 
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
+
+
+void
+vtkPerkProcedureEvaluatorGUI
+::HandleMouseEvent( vtkSlicerInteractorStyle *style )
 {
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::ProcessGUIEvents(vtkObject *caller,
-                                         unsigned long event, void *callData)
-{
 
+void
+vtkPerkProcedureEvaluatorGUI
+::ProcessGUIEvents( vtkObject *caller, unsigned long event, void *callData )
+{
   const char *eventName = vtkCommand::GetStringFromEventId(event);
 
   if (strcmp(eventName, "LeftButtonPressEvent") == 0)
@@ -277,32 +299,26 @@ void vtkPerkProcedureEvaluatorGUI::ProcessGUIEvents(vtkObject *caller,
     }
 
   
-  if (this->TestButton11 == vtkKWPushButton::SafeDownCast(caller) 
-      && event == vtkKWPushButton::InvokedEvent)
+  if (    this->PerkProcedureSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller ) 
+       && (    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
+            || event == vtkSlicerNodeSelectorWidget::NewNodeEvent ) )
     {
-    std::cerr << "TestButton11 is pressed." << std::endl;
+    this->ProcessProcedureSelected();
     }
-  else if (this->TestButton12 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
+  
+  
+  else if (    this->LoadButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast( caller )
+            && event == vtkKWTopLevel::WithdrawEvent )
     {
-    std::cerr << "TestButton12 is pressed." << std::endl;
+    this->ProcessLoadButton();
     }
-  else if (this->TestButton21 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    std::cerr << "TestButton21 is pressed." << std::endl;
-    }
-  else if (this->TestButton22 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    std::cerr << "TestButton22 is pressed." << std::endl;
-    }
-
 } 
 
 
-void vtkPerkProcedureEvaluatorGUI::DataCallback(vtkObject *caller, 
-                                     unsigned long eid, void *clientData, void *callData)
+
+void
+vtkPerkProcedureEvaluatorGUI
+::DataCallback( vtkObject *caller, unsigned long eid, void *clientData, void *callData )
 {
   vtkPerkProcedureEvaluatorGUI *self = reinterpret_cast<vtkPerkProcedureEvaluatorGUI *>(clientData);
   vtkDebugWithObjectMacro(self, "In vtkPerkProcedureEvaluatorGUI DataCallback");
@@ -310,11 +326,11 @@ void vtkPerkProcedureEvaluatorGUI::DataCallback(vtkObject *caller,
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::ProcessLogicEvents ( vtkObject *caller,
-                                             unsigned long event, void *callData )
-{
 
+void
+vtkPerkProcedureEvaluatorGUI
+::ProcessLogicEvents( vtkObject *caller, unsigned long event, void *callData )
+{
   if (this->GetLogic() == vtkPerkProcedureEvaluatorLogic::SafeDownCast(caller))
     {
     if (event == vtkPerkProcedureEvaluatorLogic::StatusUpdateEvent)
@@ -325,10 +341,16 @@ void vtkPerkProcedureEvaluatorGUI::ProcessLogicEvents ( vtkObject *caller,
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::ProcessMRMLEvents ( vtkObject *caller,
-                                            unsigned long event, void *callData )
+
+void
+vtkPerkProcedureEvaluatorGUI
+::ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData )
 {
+  vtkMRMLPerkProcedureNode* procedureNode = vtkMRMLPerkProcedureNode::SafeDownCast( caller );
+  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast( caller );
+  vtkMRMLScalarVolumeDisplayNode* volumeNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast( caller );
+  
+  
   // Fill in
 
   if (event == vtkMRMLScene::SceneCloseEvent)
@@ -337,8 +359,10 @@ void vtkPerkProcedureEvaluatorGUI::ProcessMRMLEvents ( vtkObject *caller,
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::ProcessTimerEvents()
+
+void
+vtkPerkProcedureEvaluatorGUI
+::ProcessTimerEvents()
 {
   if (this->TimerFlag)
     {
@@ -350,20 +374,23 @@ void vtkPerkProcedureEvaluatorGUI::ProcessTimerEvents()
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::BuildGUI ( )
-{
 
+void
+vtkPerkProcedureEvaluatorGUI
+::BuildGUI()
+{
+  this->Logic->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLPerkProcedureNode >::New() );
+  
   // ---
   // MODULE GUI FRAME 
   // create a page
   this->UIPanel->AddPage ( "PerkProcedureEvaluator", "PerkProcedureEvaluator", NULL );
 
   BuildGUIForHelpFrame();
-  BuildGUIForTestFrame1();
-  BuildGUIForTestFrame2();
-
+  BuildGUIForInputFrame();
+  
 }
+
 
 
 void vtkPerkProcedureEvaluatorGUI::BuildGUIForHelpFrame ()
@@ -380,109 +407,131 @@ void vtkPerkProcedureEvaluatorGUI::BuildGUIForHelpFrame ()
 }
 
 
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::BuildGUIForTestFrame1()
-{
 
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("PerkProcedureEvaluator");
-  
-  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
-
-  conBrowsFrame->SetParent(page);
-  conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 1");
-  //conBrowsFrame->CollapseFrame();
-  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
-
-  // -----------------------------------------
-  // Test child frame
-
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Test child frame");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
-
-  // -----------------------------------------
-  // Test push button
-
-  this->TestButton11 = vtkKWPushButton::New ( );
-  this->TestButton11->SetParent ( frame->GetFrame() );
-  this->TestButton11->Create ( );
-  this->TestButton11->SetText ("Test 11");
-  this->TestButton11->SetWidth (12);
-
-  this->TestButton12 = vtkKWPushButton::New ( );
-  this->TestButton12->SetParent ( frame->GetFrame() );
-  this->TestButton12->Create ( );
-  this->TestButton12->SetText ("Tset 12");
-  this->TestButton12->SetWidth (12);
-
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton11->GetWidgetName(),
-               this->TestButton12->GetWidgetName());
-
-  conBrowsFrame->Delete();
-  frame->Delete();
-
-}
-
-
-//---------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::BuildGUIForTestFrame2 ()
+void
+vtkPerkProcedureEvaluatorGUI
+::BuildGUIForInputFrame()
 {
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("PerkProcedureEvaluator");
   
-  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
-
-  conBrowsFrame->SetParent(page);
-  conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 2");
-  //conBrowsFrame->CollapseFrame();
-  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
-
-  // -----------------------------------------
-  // Test child frame
-
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Test child frame");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
+  vtkSlicerModuleCollapsibleFrame *inputFrame = vtkSlicerModuleCollapsibleFrame::New();
   
-  // -----------------------------------------
-  // Test push button
-
-  this->TestButton21 = vtkKWPushButton::New ( );
-  this->TestButton21->SetParent ( frame->GetFrame() );
-  this->TestButton21->Create ( );
-  this->TestButton21->SetText ("Test 21");
-  this->TestButton21->SetWidth (12);
-
-  this->TestButton22 = vtkKWPushButton::New ( );
-  this->TestButton22->SetParent ( frame->GetFrame() );
-  this->TestButton22->Create ( );
-  this->TestButton22->SetText ("Tset 22");
-  this->TestButton22->SetWidth (12);
-
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton21->GetWidgetName(),
-               this->TestButton22->GetWidgetName());
-
-
-  conBrowsFrame->Delete();
-  frame->Delete();
+  inputFrame->SetParent(page);
+  inputFrame->Create();
+  inputFrame->SetLabelText( "Input" );
+  app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               inputFrame->GetWidgetName(), page->GetWidgetName() );
+  
+  
+  if ( ! this->PerkProcedureSelector )
+    {
+    this->PerkProcedureSelector = vtkSlicerNodeSelectorWidget::New();
+    this->PerkProcedureSelector->SetNodeClass( "vtkMRMLPerkProcedureNode", NULL, NULL, "PerkProcedure" );
+    this->PerkProcedureSelector->SetParent( inputFrame->GetFrame() );
+    this->PerkProcedureSelector->Create();
+    this->PerkProcedureSelector->SetNewNodeEnabled( 1 );
+    this->PerkProcedureSelector->NoneEnabledOff();
+    this->PerkProcedureSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
+    this->PerkProcedureSelector->UpdateMenu();
+    this->PerkProcedureSelector->SetLabelText( "Perk procedure" );
+    this->PerkProcedureSelector->SetSelectedNew( "vtkMRMLPerkProcedureNode" );
+    }
+  
+  if ( ! this->PlanningVolumeSelector )
+    {
+    this->PlanningVolumeSelector = vtkSlicerNodeSelectorWidget::New();
+    this->PlanningVolumeSelector->SetNodeClass( "vtkMRMLScalarVolumeNode", NULL, NULL, "Planning volume" );
+    this->PlanningVolumeSelector->SetParent( inputFrame->GetFrame() );
+    this->PlanningVolumeSelector->Create();
+    this->PlanningVolumeSelector->NoneEnabledOn();
+    this->PlanningVolumeSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
+    this->PlanningVolumeSelector->UpdateMenu();
+    this->PlanningVolumeSelector->SetLabelText( "Planning image" );
+    }
+  
+  if ( ! this->CalibrationSelector )
+    {
+    this->CalibrationSelector = vtkSlicerNodeSelectorWidget::New();
+    this->CalibrationSelector->SetNodeClass( "vtkMRMLTransformNode", NULL, NULL, "Calibration transform" );
+    this->CalibrationSelector->SetParent( inputFrame->GetFrame() );
+    this->CalibrationSelector->Create();
+    this->CalibrationSelector->NoneEnabledOn();
+    this->CalibrationSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
+    this->CalibrationSelector->UpdateMenu();
+    this->CalibrationSelector->SetLabelText( "Calibration transform" );
+    }
+  
+  this->Script( "pack %s %s %s -side top -fill x -padx 2 -pady 2", 
+                this->PerkProcedureSelector->GetWidgetName(),
+                this->PlanningVolumeSelector->GetWidgetName(),
+                this->CalibrationSelector->GetWidgetName() );
+  
+  
+  if ( ! this->LoadButton )
+    {
+    this->LoadButton = vtkKWLoadSaveButton::New();
+    this->LoadButton->SetParent( inputFrame->GetFrame() );
+    this->LoadButton->Create();
+    this->LoadButton->SetText( "Load data" );
+    }
+  
+  this->Script( "pack %s -side top -fill x -padx 2 -pady 2", 
+                this->LoadButton->GetWidgetName() );
+  
+  
+  inputFrame->Delete();
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkProcedureEvaluatorGUI::UpdateAll()
+
+void
+vtkPerkProcedureEvaluatorGUI
+::BuildGUIForNotesList()
 {
+  
+}
+
+
+
+void
+vtkPerkProcedureEvaluatorGUI
+::UpdateAll()
+{
+}
+
+
+
+void
+vtkPerkProcedureEvaluatorGUI
+::ProcessLoadButton()
+{
+  // this->LoadButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry( "PerkProcedurePath" );
+  
+  
+  vtkMRMLPerkProcedureNode* selectedNode =
+    vtkMRMLPerkProcedureNode::SafeDownCast( this->PerkProcedureSelector->GetSelected() );
+  if ( ! selectedNode ) return;
+  
+  
+  const char* fileName = this->LoadButton->GetLoadSaveDialog()->GetFileName();
+  if ( fileName )
+    {
+    this->LoadButton->GetLoadSaveDialog()->SaveLastPathToRegistry( "PerkProcedurePath" );
+    this->ProcedureNode->ImportFromFile( fileName );
+    }
+}
+
+
+
+void
+vtkPerkProcedureEvaluatorGUI
+::ProcessProcedureSelected()
+{
+  vtkMRMLPerkProcedureNode* node = vtkMRMLPerkProcedureNode::SafeDownCast( this->PerkProcedureSelector->GetSelected() );
+  this->SetProcedureNode( node );
+  vtkSetAndObserveMRMLNodeMacro( this->ProcedureNode, node );
+  
+  this->UpdateAll();
 }
 
