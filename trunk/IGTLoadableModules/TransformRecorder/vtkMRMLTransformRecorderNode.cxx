@@ -299,7 +299,7 @@ vtkMRMLTransformRecorderNode
   ss << matrix->GetElement( 2, 0 ) << " " << matrix->GetElement( 2, 1 ) << " " << matrix->GetElement( 2, 2 ) << " " << matrix->GetElement( 2, 3 ) << " ";
   ss << matrix->GetElement( 3, 0 ) << " " << matrix->GetElement( 3, 1 ) << " " << matrix->GetElement( 3, 2 ) << " " << matrix->GetElement( 3, 3 ) << " ";
   ss << "\"";
-  ss << ">";
+  ss << " />";
   
   const char* cs = ss.str().c_str();
   
