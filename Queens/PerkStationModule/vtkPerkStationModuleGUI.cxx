@@ -256,9 +256,9 @@ vtkPerkStationModuleGUI
   
   this->Entered = true;
   
+  this->AddGUIObservers();
   this->AddMRMLObservers();
   this->UpdateGUI();
-  
 }
 
 
@@ -302,7 +302,6 @@ void
 vtkPerkStationModuleGUI
 ::AddGUIObservers() 
 {
-  
   this->RemoveGUIObservers();
   
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
