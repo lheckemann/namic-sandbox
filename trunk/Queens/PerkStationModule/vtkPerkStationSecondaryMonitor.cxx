@@ -351,29 +351,16 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->CalibrationControlsActor->GetTextProperty()->BoldOn();
   this->CalibrationControlsActor->SetDisplayPosition(
           this->ScreenSize[ 0 ] / 2 - 370, this->ScreenSize[ 1 ] - 50 );
-  if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
+  if ( this->PSNode->GetFinalHorizontalFlip() )
     {
     this->CalibrationControlsActor->FlipAroundY( true );
     }
-  if ( this->PSNode->GetSecondMonitorVerticalFlip() )
+  if ( this->PSNode->GetFinalVerticalFlip() )
     {
     this->CalibrationControlsActor->FlipAroundX( true );
     }
   
   this->Renderer->AddActor( this->CalibrationControlsActor );
-  
-  
-  // to have consistent display i.e. same display as in SLICER's slice viewer,
-  //  and own render window in secondary monitor
-  // figure out whether a horizontal flip required or a vertical flip or both
-  // Note: this does not counter the flip that will be required due to secondary
-  // monitors orientation/mounting
-  // It only makes sure that two displays have same view if they are physically 
-  // in same orientation
-  
-  
-  bool verticalFlip = false;
-  bool horizontalFlip = false;
   
   
     // Set RASToIJK matrix, which only be updated at image load.
@@ -636,7 +623,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     this->ShowDepthPerceptionLines( true );
     this->MeasureDigitsActor->SetVisibility( 1 );
     
-    if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
+    if ( this->PSNode->GetFinalHorizontalFlip() )
       this->MeasureDigitsActor->FlipAroundY( true );
     else
       this->MeasureDigitsActor->FlipAroundY( false );
@@ -655,9 +642,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
  
  if ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 ) // Insertion.
    {
-   this->TablePositionActor->SetDisplayPosition(
-     this->ScreenSize[ 0 ] / 2.0 - 150,
-     this->ScreenSize[ 1 ] - 50 );
+   this->TablePositionActor->SetDisplayPosition( this->ScreenSize[ 0 ] / 2.0 - 150, this->ScreenSize[ 1 ] - 50 );
    std::stringstream ss;
    ss.setf( std::ios::fixed );
    ss << "Table position: " << std::setprecision( 1 )
@@ -1057,12 +1042,12 @@ vtkPerkStationSecondaryMonitor
   this->NeedleTipZLocationText->SetTextScaleModeToNone();
   this->NeedleTipZLocationText->GetTextProperty()->SetFontSize( 25 );
   this->NeedleTipZLocationText->SetDisplayPosition( this->MonitorPixelResolution[ 0 ] - 250, 100 );
-  if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
+  if ( this->PSNode->GetFinalHorizontalFlip() )
     { 
     this->NeedleTipZLocationText->GetTextProperty()->SetJustificationToCentered();
     this->NeedleTipZLocationText->SetOrientation( 180 );
     }
-  else if ( this->PSNode->GetSecondMonitorVerticalFlip() )
+  else if ( this->PSNode->GetFinalVerticalFlip() )
     {
     this->NeedleTipZLocationText->GetTextProperty()->SetVerticalJustificationToTop();
     this->NeedleTipZLocationText->SetOrientation( 180 );
@@ -1334,10 +1319,8 @@ vtkPerkStationSecondaryMonitor
         textActor->SetTextScaleModeToNone();
         textActor->GetTextProperty()->SetFontSize( 28 );
         textActor->GetTextProperty()->BoldOn();
-        if ( this->PSNode->GetSecondMonitorHorizontalFlip() )
-          textActor->FlipAroundY( true );
-        if ( this->PSNode->GetSecondMonitorVerticalFlip() )
-          textActor->FlipAroundX( true );
+      if ( this->PSNode->GetFinalHorizontalFlip() ) textActor->FlipAroundY( true );
+      if ( this->PSNode->GetFinalVerticalFlip() ) textActor->FlipAroundX( true );
       
       
       if ( denom >= 0 )
