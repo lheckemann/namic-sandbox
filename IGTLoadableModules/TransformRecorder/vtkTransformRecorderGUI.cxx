@@ -308,13 +308,14 @@ void vtkTransformRecorderGUI::AddLogicObservers ( )
     }
 }
 
-//---------------------------------------------------------------------------
+
+
 void vtkTransformRecorderGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 {
 }
 
 
-//---------------------------------------------------------------------------
+
 void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
                                          unsigned long event, void *callData)
 {
@@ -336,8 +337,7 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
     {
     char* selectedNodeID = NULL;
     vtkMRMLTransformRecorderNode* selectedNode =
-      vtkMRMLTransformRecorderNode::SafeDownCast(
-        this->ModuleNodeSelector->GetSelected() );
+      vtkMRMLTransformRecorderNode::SafeDownCast( this->ModuleNodeSelector->GetSelected() );
     
     if ( selectedNode != NULL )
       {

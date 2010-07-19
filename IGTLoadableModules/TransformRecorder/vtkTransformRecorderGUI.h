@@ -41,22 +41,28 @@ class vtkKWLabel;
 
 // Quick message buttons. -----------------------------------------------------
 
-static const int BUTTON_COUNT = 5;
+static const int BUTTON_COUNT = 8;
 static const char* BUTTON_TEXTS[ BUTTON_COUNT ] =
   {
   "Alignment outside",
   "Pierce skin",
+  "Move forward inside",
+  "Pause motion",
   "Retract inside",
   "Adjust angle inside",
+  "Take out",
   "Needle placed"
   };
 static const char* BUTTON_MESSAGES[ BUTTON_COUNT ] =
   {
-  "Operator does alignment outside.",
-  "Operator does pierce skin.",
-  "Operator does retract inside.",
-  "Operator does adjust angle inside.",
-  "Operator placed the needle."
+  "Alignment outside",
+  "Pierce skin",
+  "Move forward inside",
+  "Pause motion",
+  "Retract inside",
+  "Adjust angle inside",
+  "Take out",
+  "Needle placed"
   };
 
 // ----------------------------------------------------------------------------
