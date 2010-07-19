@@ -1541,11 +1541,11 @@ void
 vtkPerkStationSecondaryMonitor
 ::UpdateCornerPositions()
 {
-  this->UpperRightCorner[ 0 ] = 40;
-  this->UpperRightCorner[ 1 ] = this->ScreenSize[ 1 ] - 50;
-  
-  this->UpperLeftCorner[ 0 ] = this->ScreenSize[ 0 ] - 50;
+  this->UpperLeftCorner[ 0 ] = 40;
   this->UpperLeftCorner[ 1 ] = this->ScreenSize[ 1 ] - 50;
+  
+  this->UpperRightCorner[ 0 ] = this->ScreenSize[ 0 ] - 50;
+  this->UpperRightCorner[ 1 ] = this->ScreenSize[ 1 ] - 50;
 }
 
 
