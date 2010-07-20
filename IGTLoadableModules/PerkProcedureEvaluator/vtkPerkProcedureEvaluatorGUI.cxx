@@ -50,6 +50,12 @@
     }
 
 
+#define CREATE_SETPARENT( obj, objType, parent ) \
+  if ( ! obj ) obj = objType::New(); \
+  obj->SetParent( parent ); \
+  obj->Create();
+
+
 #define DELETE_WITH_SETPARENT_NULL( obj ) \
   if ( obj ) \
     { \
@@ -92,7 +98,7 @@ enum
   NOTES_COL_COUNT
   };
 static const char* NOTES_COL_LABELS[ NOTES_COL_COUNT ] = { "Time", "Event", "Message" };
-static const int NOTES_COL_WIDTHS[ NOTES_COL_COUNT ] = { 5, 5, 30 };
+static const int NOTES_COL_WIDTHS[ NOTES_COL_COUNT ] = { 8, 5, 30 };
 
 
 // ============================================================================
@@ -119,6 +125,20 @@ vtkPerkProcedureEvaluatorGUI
   
   this->NotesFrame = NULL;
   this->NotesList = NULL;
+  
+  
+    // Playback.
+  
+  this->ButtonBegin = NULL;
+  this->ButtonPrevious = NULL;
+  this->ButtonNext = NULL;
+  this->ButtonEnd = NULL;
+  this->ButtonPlay = NULL;
+  this->ButtonStop = NULL;
+  this->EntrySec = NULL;
+  this->ButtonGo = NULL;
+  
+  this->PositionLabel = NULL;
   
   
   // Locator  (MRML)
@@ -157,6 +177,18 @@ vtkPerkProcedureEvaluatorGUI
   DELETE_WITH_SETPARENT_NULL( this->NotesFrame );
   DELETE_WITH_SETPARENT_NULL( this->NotesList );
   
+    // Playback frame.
+  
+  DELETE_WITH_SETPARENT_NULL( this->ButtonBegin );
+  DELETE_WITH_SETPARENT_NULL( this->ButtonPrevious );
+  DELETE_WITH_SETPARENT_NULL( this->ButtonNext );
+  DELETE_WITH_SETPARENT_NULL( this->ButtonEnd );
+  DELETE_WITH_SETPARENT_NULL( this->ButtonPlay );
+  DELETE_WITH_SETPARENT_NULL( this->ButtonStop );
+  DELETE_WITH_SETPARENT_NULL( this->EntrySec );
+  DELETE_WITH_SETPARENT_NULL( this->ButtonGo );
+  DELETE_WITH_SETPARENT_NULL( this->PositionLabel );
+    
   
     // Unregister Logic class
 
@@ -415,6 +447,7 @@ vtkPerkProcedureEvaluatorGUI
 
   this->BuildGUIForHelpFrame();
   this->BuildGUIForInputFrame();
+  this->BuildGUIForPlaybackFrame();
   this->BuildGUIForNotesList();
   
 }
@@ -556,6 +589,77 @@ vtkPerkProcedureEvaluatorGUI
                   this->NotesList->GetWidgetName() );
   
     }
+}
+
+
+
+void
+vtkPerkProcedureEvaluatorGUI
+::BuildGUIForPlaybackFrame()
+{
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "PerkProcedureEvaluator" );
+  vtkSlicerApplication *app = (vtkSlicerApplication*)this->GetApplication();
+  
+  
+  vtkSmartPointer< vtkSlicerModuleCollapsibleFrame > playbackFrame = vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();
+  playbackFrame->SetParent( page );
+  playbackFrame->Create();
+  playbackFrame->SetLabelText( "Playback" );
+  app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               playbackFrame->GetWidgetName(), page->GetWidgetName() );
+  
+    // Buttons frame.
+    
+  vtkSmartPointer< vtkKWFrame > buttonsFrame = vtkSmartPointer< vtkKWFrame >::New();
+  buttonsFrame->SetParent( playbackFrame->GetFrame() );
+  buttonsFrame->Create();
+  app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2", buttonsFrame->GetWidgetName() );
+  
+  
+  CREATE_SETPARENT( this->ButtonBegin, vtkKWPushButton, buttonsFrame );
+  this->ButtonBegin->SetText( "Begin" );
+  this->ButtonBegin->SetReliefToRaised();
+  CREATE_SETPARENT( this->ButtonPrevious, vtkKWPushButton, buttonsFrame );
+  this->ButtonPrevious->SetText( "Prev" );
+  this->ButtonPrevious->SetReliefToRaised();
+  CREATE_SETPARENT( this->ButtonNext, vtkKWPushButton, buttonsFrame );
+  this->ButtonNext->SetText( "Next" );
+  this->ButtonNext->SetReliefToRaised();
+  CREATE_SETPARENT( this->ButtonEnd, vtkKWPushButton, buttonsFrame );
+  this->ButtonEnd->SetText( "End" );
+  this->ButtonEnd->SetReliefToRaised();
+  CREATE_SETPARENT( this->ButtonPlay, vtkKWPushButton, buttonsFrame );
+  this->ButtonPlay->SetText( "Play" );
+  this->ButtonPlay->SetReliefToRaised();
+  CREATE_SETPARENT( this->ButtonStop, vtkKWPushButton, buttonsFrame );
+  this->ButtonStop->SetText( "Stop" );
+  this->ButtonStop->SetReliefToRaised();
+  vtkSmartPointer< vtkKWLabel > timeLabel = vtkSmartPointer< vtkKWLabel >::New();
+    timeLabel->SetParent( buttonsFrame );
+    timeLabel->Create();
+    timeLabel->SetText( " Time:" );
+  CREATE_SETPARENT( this->EntrySec, vtkKWEntry, buttonsFrame );
+  this->EntrySec->SetWidth( 7 );
+  CREATE_SETPARENT( this->ButtonGo, vtkKWPushButton, buttonsFrame );
+  this->ButtonGo->SetText( "Go" );
+  this->ButtonGo->SetReliefToRaised();
+  
+  app->Script( "pack %s -side left -anchor nw -padx 1 -pady 2", this->ButtonBegin->GetWidgetName() );
+  app->Script( "pack %s -side left -anchor nw -padx 1 -pady 2", this->ButtonPrevious->GetWidgetName() );
+  app->Script( "pack %s -side left -anchor nw -padx 1 -pady 2", this->ButtonNext->GetWidgetName() );
+  app->Script( "pack %s -side left -anchor nw -padx 1 -pady 2", this->ButtonEnd->GetWidgetName() );
+  app->Script( "pack %s -side left -anchor nw -padx 1 -pady 2", this->ButtonPlay->GetWidgetName() );
+  app->Script( "pack %s -side left -anchor nw -padx 1 -pady 2", this->ButtonStop->GetWidgetName() );
+  app->Script( "pack %s -side left -anchor nw -padx 1 -pady 2", timeLabel->GetWidgetName() );
+  app->Script( "pack %s -side left -anchor nw -padx 1 -pady 2", this->EntrySec->GetWidgetName() );
+  app->Script( "pack %s -side left -anchor nw -padx 1 -pady 2", this->ButtonGo->GetWidgetName() );
+  
+  
+    // Position label.
+  
+  CREATE_SETPARENT( this->PositionLabel, vtkKWLabel, playbackFrame->GetFrame() );
+  this->PositionLabel->SetText( "Needle position: " );
+  app->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", this->PositionLabel->GetWidgetName() );
 }
 
 
