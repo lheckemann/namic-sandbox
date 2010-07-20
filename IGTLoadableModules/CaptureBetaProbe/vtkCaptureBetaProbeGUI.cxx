@@ -673,11 +673,13 @@ void vtkCaptureBetaProbeGUI::BuildGUIForTestFrame1()
   this->SelectFile->SetParent(frame5);
   this->SelectFile->Create();
   this->SelectFile->SetText("Select output file");
+  this->SelectFile->SetWidth(30);
 
   this->CloseFile = vtkKWPushButton::New();
   this->CloseFile->SetParent(frame5);
   this->CloseFile->Create();
   this->CloseFile->SetText("Close file");
+  this->CloseFile->SetWidth(30);
 
   app->Script("pack %s %s -fill x -side left -padx 2 -pady 2", 
            this->SelectFile->GetWidgetName(),
@@ -709,7 +711,7 @@ void vtkCaptureBetaProbeGUI::BuildGUIForTestFrame1()
   this->Stop_Button->Create();                
   this->Stop_Button->SetState(0);                
   this->Stop_Button->SetText("Stop");                
-  this->Stop_Button->SetWidth(18);                      
+  this->Stop_Button->SetWidth(19);                      
 
   app->Script("pack %s %s %s -fill x -side left -padx 2 -pady 2", 
                this->Capture->GetWidgetName(),

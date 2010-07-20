@@ -54,16 +54,17 @@ vtkNeuroNavLogic::vtkNeuroNavLogic()
   this->ImagingControl = 0;
 
   this->EnableOblique = false;
-  this->TransformNodeName = NULL;
+  this->TransformNodeID = NULL;
   this->SliceNo1Last = 1;
   this->SliceNo2Last = 1;
   this->SliceNo3Last = 1;
-  this->OriginalTrackerNode = NULL;
   this->UseRegistration = false;
 
   this->Pat2ImgReg = vtkIGTPat2ImgRegistration::New();
   this->UpdatedTrackerNode = NULL;
   this->OriginalTrackerNode = NULL;
+
+  this->locatorModel = NULL;
 }
 
 
@@ -81,11 +82,17 @@ vtkNeuroNavLogic::~vtkNeuroNavLogic()
     this->UpdatedTrackerNode->Delete();
     this->UpdatedTrackerNode = NULL;
     }
-
-  if (this->OriginalTrackerNode)
+ 
+  // Delete Tracking node if still existing (created out by slicer)
+  if(this->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(this->TransformNodeID))
     {
-    this->OriginalTrackerNode->Delete();
-    this->OriginalTrackerNode = NULL;
+      this->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(this->TransformNodeID)->Delete();
+    }
+
+  if (this->locatorModel)
+    {
+    this->locatorModel->Delete();
+    this->locatorModel = NULL;
     }
 
 }
@@ -102,6 +109,7 @@ void vtkNeuroNavLogic::PrintSelf(ostream& os, vtkIndent indent)
 
 
 //---------------------------------------------------------------------------
+/*
 vtkMRMLModelNode* vtkNeuroNavLogic::SetVisibilityOfLocatorModel(const char* nodeName, int v)
 {
 
@@ -134,64 +142,101 @@ vtkMRMLModelNode* vtkNeuroNavLogic::SetVisibilityOfLocatorModel(const char* node
 
   return locatorModel;
 }
+*/
+
+void vtkNeuroNavLogic::SetVisibilityOfLocatorModel(const char* nodeName, int v)
+{
+
+  vtkMRMLDisplayNode* locatorDisp;
+
+  // Check if any node with the specified name exists
+  vtkMRMLScene*  scene = this->GetApplicationLogic()->GetMRMLScene();
+  vtkCollection* collection = scene->GetNodesByName(nodeName);
+
+  if (collection != NULL && collection->GetNumberOfItems() == 0 && this->locatorModel == NULL)
+    {
+    // if a node doesn't exist
+    this->locatorModel = vtkMRMLModelNode::New();
+    AddLocatorModel(nodeName, 0.0, 1.0, 1.0);
+    }
+  else
+    {
+    locatorModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+    }
+
+  if (this->locatorModel)
+    {
+    locatorDisp = this->locatorModel->GetDisplayNode();
+    locatorDisp->SetVisibility(v);
+
+    this->locatorModel->SetAndObserveTransformNodeID(this->TransformNodeID);
+      ;
+    this->locatorModel->Modified();
+    this->GetApplicationLogic()->GetMRMLScene()->Modified();
+    }
+
+  collection->Delete();
+
+  //  return locatorModel;
+}
 
 
 //---------------------------------------------------------------------------
-vtkMRMLModelNode* vtkNeuroNavLogic::AddLocatorModel(const char* nodeName, double r, double g, double b)
+void vtkNeuroNavLogic::AddLocatorModel(const char* nodeName, double r, double g, double b)
 {
+  
+  if(this->locatorModel)
+    {
+    vtkMRMLModelDisplayNode    *locatorDisp;
 
-  vtkMRMLModelNode           *locatorModel;
-  vtkMRMLModelDisplayNode    *locatorDisp;
+    locatorDisp = vtkMRMLModelDisplayNode::New();
 
-  locatorModel = vtkMRMLModelNode::New();
-  locatorDisp = vtkMRMLModelDisplayNode::New();
-
-  GetMRMLScene()->SaveStateForUndo();
-  GetMRMLScene()->AddNode(locatorDisp);
-  GetMRMLScene()->AddNode(locatorModel);  
-
-  locatorDisp->SetScene(this->GetMRMLScene());
-
-  locatorModel->SetName(nodeName);
-  locatorModel->SetScene(this->GetMRMLScene());
-  locatorModel->SetAndObserveDisplayNodeID(locatorDisp->GetID());
-  locatorModel->SetHideFromEditors(0);
-
-  // Cylinder represents the locator stick
-  vtkCylinderSource *cylinder = vtkCylinderSource::New();
-  cylinder->SetRadius(1.5);
-  cylinder->SetHeight(100);
-  cylinder->SetCenter(0, 50, 0);
-  cylinder->Update();
-
-  // Sphere represents the locator tip 
-  vtkSphereSource *sphere = vtkSphereSource::New();
-  sphere->SetRadius(3.0);
-  sphere->SetCenter(0, 0, 0);
-  sphere->Update();
-
-  vtkAppendPolyData *apd = vtkAppendPolyData::New();
-  apd->AddInput(sphere->GetOutput());
-  apd->AddInput(cylinder->GetOutput());
-  apd->Update();
-
-  locatorModel->SetAndObservePolyData(apd->GetOutput());
-
-  double color[3];
-  color[0] = r;
-  color[1] = g;
-  color[2] = b;
-  locatorDisp->SetPolyData(locatorModel->GetPolyData());
-  locatorDisp->SetColor(color);
-
-  cylinder->Delete();
-  sphere->Delete();
-  apd->Delete();
-
-  //locatorModel->Delete();
-  locatorDisp->Delete();
-
-  return locatorModel;
+    GetMRMLScene()->SaveStateForUndo();
+    GetMRMLScene()->AddNode(locatorDisp);
+    GetMRMLScene()->AddNode(this->locatorModel);  
+    
+    locatorDisp->SetScene(this->GetMRMLScene());
+    
+    this->locatorModel->SetName(nodeName);
+    this->locatorModel->SetScene(this->GetMRMLScene());
+    this->locatorModel->SetAndObserveDisplayNodeID(locatorDisp->GetID());
+    this->locatorModel->SetHideFromEditors(0);
+    
+    // Cylinder represents the locator stick
+    vtkCylinderSource *cylinder = vtkCylinderSource::New();
+    cylinder->SetRadius(1.5);
+    cylinder->SetHeight(100);
+    cylinder->SetCenter(0, 50, 0);
+    cylinder->Update();
+    
+    // Sphere represents the locator tip 
+    vtkSphereSource *sphere = vtkSphereSource::New();
+    sphere->SetRadius(3.0);
+    sphere->SetCenter(0, 0, 0);
+    sphere->Update();
+    
+    vtkAppendPolyData *apd = vtkAppendPolyData::New();
+    apd->AddInput(sphere->GetOutput());
+    apd->AddInput(cylinder->GetOutput());
+    apd->Update();
+    
+    this->locatorModel->SetAndObservePolyData(apd->GetOutput());
+    
+    double color[3];
+    color[0] = r;
+    color[1] = g;
+    color[2] = b;
+    locatorDisp->SetPolyData(locatorModel->GetPolyData());
+    locatorDisp->SetColor(color);
+    
+    cylinder->Delete();
+    sphere->Delete();
+    apd->Delete();
+    
+    //locatorModel->Delete();
+    locatorDisp->Delete();
+    }
+  //  return locatorModel;
 }
 
 
@@ -222,7 +267,7 @@ void vtkNeuroNavLogic::GetCurrentPosition(double *px, double *py, double *pz)
 }
 
 
-
+/*
 void vtkNeuroNavLogic::UpdateTransformNodeByName(const char *name)
 {
      
@@ -248,10 +293,42 @@ void vtkNeuroNavLogic::UpdateTransformNodeByName(const char *name)
 
     } 
 }
+*/
+
+void vtkNeuroNavLogic::UpdateTransformNodeByID(const char *id)
+{
+     
+  if (id)
+    {
+    this->SetTransformNodeID(id);
+
+    vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
+    //vtkCollection* collection = scene->GetNodesByName(this->TransformNodeName);
+    //vtkCollection* collection = scene->GetNodeByID(this->GetTransformNodeID());
+    vtkMRMLNode* transformationNode = scene->GetNodeByID(this->GetTransformNodeID());
+
+    //    if (collection != NULL && collection->GetNumberOfItems() > 0)
+    //  {   
+    if(transformationNode)
+      {
+     //  this->OriginalTrackerNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));  
+     this->OriginalTrackerNode = vtkMRMLLinearTransformNode::SafeDownCast(transformationNode);  
+      if (this->Pat2ImgReg && this->UseRegistration)
+        {
+        this->UpdateLocatorTransform();
+        }
+
+      }
+
+    //collection->Delete();
+    //transformationNode->Delete();
+    } 
+}
 
 
 void vtkNeuroNavLogic::UpdateFiducialSeeding(const char *name, double offset)
 {
+  
   if (name)
     {
     // The following line causes memory leaking.
@@ -292,6 +369,7 @@ void vtkNeuroNavLogic::UpdateFiducialSeeding(const char *name, double offset)
 
     collection->Delete();
     }
+  
 }
 
 
