@@ -32,7 +32,7 @@ class vtkKWFrame;
 class vtkKWEntryWithLabel;
 class vtkKWLoadSaveButtonWithLabel;
 class vtkKWMultiColumnListWithScrollbars;
-
+class vtkSlicerNodeSelectorWidget;
 
 // Description:    
 // This class implements Slicer's Volumes GUI.
@@ -116,9 +116,12 @@ protected:
   vtkKWMenuButton *YellowSliceMenu;
   vtkKWMenuButton *GreenSliceMenu;
 
-  vtkKWEntryWithLabel *TransformNodeNameEntry;
+  //  vtkKWEntryWithLabel *TransformNodeNameEntry;
+  vtkSlicerNodeSelectorWidget* TransformNodeNameEntry; 
+  vtkSlicerNodeSelectorWidget* LabelMapSelector; 
+  vtkKWEntryWithLabel *LabelMapNumberEntry;
+  vtkKWPushButton* BeepingButton;
   vtkKWEntryWithLabel *FiducialListNodeNameEntry;
-
 
 
   vtkKWEntryWithLabel *PatCoordinatesEntry;

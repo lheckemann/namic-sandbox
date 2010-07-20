@@ -105,10 +105,11 @@ public:
   vtkGetObjectMacro ( LocatorTransform, vtkTransform );
   vtkGetObjectMacro ( LocatorMatrix,    vtkMatrix4x4 );
   vtkGetObjectMacro ( Pat2ImgReg, vtkIGTPat2ImgRegistration );
+  vtkGetObjectMacro ( locatorModel, vtkMRMLModelNode );
 
 
-  vtkSetStringMacro(TransformNodeName); 
-  vtkGetStringMacro(TransformNodeName);
+  vtkSetStringMacro(TransformNodeID); 
+  vtkGetStringMacro(TransformNodeID);
 
   vtkSetMacro (UseRegistration, bool);
   vtkGetMacro (UseRegistration, bool);
@@ -117,12 +118,18 @@ public:
   //void AddRealtimeVolumeNode(const char* name);
 
 
-  vtkMRMLModelNode* SetVisibilityOfLocatorModel(const char* nodeName, int v);
-  vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
+  //  vtkMRMLModelNode* SetVisibilityOfLocatorModel(const char* nodeName, int v);
+  // vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
+
+  void SetVisibilityOfLocatorModel(const char* nodeName, int v);
+  void AddLocatorModel(const char* nodeName, double r, double g, double b);
+
 
   void UpdateDisplay(int sliceNo1, int sliceNo2, int sliceNo3);
   void GetCurrentPosition(double *px, double *py, double *pz);
-  void UpdateTransformNodeByName(const char *name);
+  //  void UpdateTransformNodeByName(const char *name);
+  void UpdateTransformNodeByID(const char *id);
+
   int PerformPatientToImageRegistration();
 
   void UpdateFiducialSeeding(const char *name, double offset);
@@ -187,10 +194,12 @@ private:
   vtkMatrix4x4*         LocatorMatrix;
   vtkTransform*         LocatorTransform;
 
+  vtkMRMLModelNode *locatorModel;
+
   bool  Connection;  
 
   bool UseRegistration;
-  char *TransformNodeName;
+  char *TransformNodeID;
   int SliceNo1Last;
   int SliceNo2Last;
   int SliceNo3Last;
