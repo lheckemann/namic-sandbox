@@ -101,6 +101,7 @@ public:
   void BuildGUIForHelpFrame();
   void BuildGUIForInputFrame();
   void BuildGUIForNotesList();
+  void BuildGUIForPlaybackFrame();
   
   
   //----------------------------------------------------------------
@@ -128,6 +129,20 @@ protected:
   
   vtkSlicerModuleCollapsibleFrame* NotesFrame;
   vtkKWMultiColumnListWithScrollbars* NotesList;
+  
+  
+    // Playback frame.
+  
+  vtkKWPushButton* ButtonBegin;
+  vtkKWPushButton* ButtonPrevious;
+  vtkKWPushButton* ButtonNext;
+  vtkKWPushButton* ButtonEnd;
+  vtkKWPushButton* ButtonPlay;
+  vtkKWPushButton* ButtonStop;
+  vtkKWEntry*      EntrySec;
+  vtkKWPushButton* ButtonGo;
+  
+  vtkKWLabel* PositionLabel;
   
   
   //----------------------------------------------------------------
