@@ -720,15 +720,34 @@ vtkPerkStationCalibrateStep
   double rotation = this->GetGUI()->GetMRMLNode()->GetSecondMonitorRotation();
   this->GetGUI()->GetMRMLNode()->GetSecondMonitorTranslation( translation );
   
+  /*
+  double hFlip = 1.0;
+  if ( this->GetGUI()->GetMRMLNode()->GetFinalHorizontalFlip() )
+    {
+    hFlip = - 1.0;
+    }
+  */
+  
   if ( event == vtkCommand::KeyPressEvent )
     {
     char  *key = style->GetKeySym();
+    switch ( *key )
+      {
+      case 'a' : translation[ 1 ] -= stepSize; break;
+      case 'z' : translation[ 1 ] += stepSize; break;
+      case 'q' : translation[ 0 ] += stepSize; break;
+      case 'w' : translation[ 0 ] -= stepSize; break;
+      case 'g' : rotation += ( stepSize / 3.0 ); break;
+      case 'h' : rotation -= ( stepSize / 3.0 ); break;
+      }
+    /*
     if ( ! strcmp( key, "a" ) ) translation[ 1 ] -= stepSize;
     if ( ! strcmp( key, "z" ) ) translation[ 1 ] += stepSize;
-    if ( ! strcmp( key, "q" ) ) translation[ 0 ] -= stepSize;
-    if ( ! strcmp( key, "w" ) ) translation[ 0 ] += stepSize;
+    if ( ! strcmp( key, "q" ) ) translation[ 0 ] -= ( stepSize * hFlip );
+    if ( ! strcmp( key, "w" ) ) translation[ 0 ] += ( stepSize * hFlip );
     if ( ! strcmp( key, "g" ) ) rotation += ( stepSize / 3.0 );
     if ( ! strcmp( key, "h" ) ) rotation -= ( stepSize / 3.0 );
+    */
     }
   
   this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation( translation );
