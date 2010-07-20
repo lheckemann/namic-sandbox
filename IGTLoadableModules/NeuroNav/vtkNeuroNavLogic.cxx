@@ -84,11 +84,12 @@ vtkNeuroNavLogic::~vtkNeuroNavLogic()
     }
  
   // Delete Tracking node if still existing (created out by slicer)
+  /*
   if(this->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(this->TransformNodeID))
     {
       this->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(this->TransformNodeID)->Delete();
     }
-
+  */
   if (this->locatorModel)
     {
     this->locatorModel->Delete();
@@ -325,6 +326,27 @@ void vtkNeuroNavLogic::UpdateTransformNodeByID(const char *id)
     } 
 }
 
+void vtkNeuroNavLogic::UpdateCrosshair(vtkMRMLCrosshairNode* crosshair)
+{
+      CheckSliceNodes();
+
+      vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
+      vtkMRMLLinearTransformNode* transformationNode = vtkMRMLLinearTransformNode::SafeDownCast(scene->GetNodeByID(this->GetTransformNodeID()));
+      vtkMatrix4x4* transformationMatrix = vtkMatrix4x4::New();
+      transformationNode->GetMatrixTransformToWorld(transformationMatrix);
+
+      if(crosshair)
+     {
+       this->SliceNode[0]->JumpSlice(transformationMatrix->GetElement(0,3),transformationMatrix->GetElement(1,3),transformationMatrix->GetElement(2,3));
+       this->SliceNode[1]->JumpSlice(transformationMatrix->GetElement(0,3),transformationMatrix->GetElement(1,3),transformationMatrix->GetElement(2,3));
+        this->SliceNode[2]->JumpSlice(transformationMatrix->GetElement(0,3),transformationMatrix->GetElement(1,3),transformationMatrix->GetElement(2,3));
+       crosshair->SetCrosshairRAS(transformationMatrix->GetElement(0,3),transformationMatrix->GetElement(1,3),transformationMatrix->GetElement(2,3));
+     }
+
+      transformationMatrix->Delete();
+
+}
+ 
 
 void vtkNeuroNavLogic::UpdateFiducialSeeding(const char *name, double offset)
 {

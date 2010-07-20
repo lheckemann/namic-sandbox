@@ -35,6 +35,8 @@ Version:   $Revision: $
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkIGTPat2ImgRegistration.h"
 
+#include "vtkMRMLCrosshairNode.h"
+#include "vtkMRMLSliceNode.h"
 
 class VTK_NEURONAV_EXPORT vtkNeuroNavLogic : public vtkSlicerModuleLogic 
 {
@@ -129,6 +131,7 @@ public:
   void GetCurrentPosition(double *px, double *py, double *pz);
   //  void UpdateTransformNodeByName(const char *name);
   void UpdateTransformNodeByID(const char *id);
+  void UpdateCrosshair(vtkMRMLCrosshairNode* crosshair);
 
   int PerformPatientToImageRegistration();
 
