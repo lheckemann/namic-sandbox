@@ -43,6 +43,8 @@
 #include "vtkCylinderSource.h"
 #include "vtkMRMLLinearTransformNode.h"
 
+#include "vtkMRMLCrosshairNode.h"
+#include "vtkSlicerSlicesControlGUI.h"
 
 //---------------------------------------------------------------------------
 vtkCxxRevisionMacro ( vtkNeuroNavGUI, "$Revision: 1.0 $");
@@ -645,6 +647,8 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
     else if (this->LocatorModeCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
              && event == vtkKWCheckButton::SelectedStateChangedEvent )
       {
+
+
       int checked = this->LocatorModeCheckButton->GetSelectedState(); 
       std::string val("Locator");
 
@@ -708,7 +712,7 @@ void vtkNeuroNavGUI::ProcessLogicEvents ( vtkObject *vtkNotUsed(caller),
 
 
 //---------------------------------------------------------------------------
-void vtkNeuroNavGUI::ProcessMRMLEvents ( vtkObject *vtkNotUsed(caller),
+void vtkNeuroNavGUI::ProcessMRMLEvents ( vtkObject *caller,
                                          unsigned long event, void *vtkNotUsed(callData))
 {
   if (event == vtkMRMLScene::SceneCloseEvent)
@@ -719,6 +723,13 @@ void vtkNeuroNavGUI::ProcessMRMLEvents ( vtkObject *vtkNotUsed(caller),
       this->LocatorCheckButton->SelectedStateOff();
       }
     }
+
+  //if ( vtkMRMLScene::SafeDownCast(caller) == this->MRMLScene 
+  //      && (event == vtkMRMLScene::NodeAddedEvent || event == vtkMRMLScene::NodeRemovedEvent ) )
+  //  {
+  //     this->GetApplicationGUI()->GetSlicesControlGUI()->UpdateFromMRML();
+      //  }
+
 
 
 }
@@ -736,6 +747,21 @@ void vtkNeuroNavGUI::Enter ( )
     this->TimerInterval = 100;  // 100 ms
     ProcessTimerEvents();
     }
+
+     //******
+
+ vtkMRMLCrosshairNode* crosshair = this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode();
+
+ if(crosshair)
+   {
+ crosshair->SetCrosshairName("default");
+ crosshair->SetCrosshairBehavior(vtkMRMLCrosshairNode::Normal);
+ crosshair->SetCrosshairThickness(vtkMRMLCrosshairNode::Fine);
+ crosshair->SetNavigation(1);
+ crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::ShowAll);
+   }
+     //*******
+
 
 }
 
@@ -757,6 +783,7 @@ void vtkNeuroNavGUI::ProcessTimerEvents()
       if(this->TransformNodeNameEntry->GetSelected())
      {
       this->GetLogic()->UpdateTransformNodeByID(this->TransformNodeNameEntry->GetSelected()->GetID());
+      this->GetLogic()->UpdateCrosshair(this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode());
      }
     int checked = this->FreezeCheckButton->GetSelectedState(); 
     if (!checked)
