@@ -33,6 +33,7 @@ class vtkKWEntryWithLabel;
 class vtkKWLoadSaveButtonWithLabel;
 class vtkKWMultiColumnListWithScrollbars;
 class vtkSlicerNodeSelectorWidget;
+class vtkMRMLScalarVolumeNode;
 
 // Description:    
 // This class implements Slicer's Volumes GUI.
@@ -51,6 +52,15 @@ public:
   // Get the categorization of the module.
   const char *GetCategory() const { return "IGT"; }
 
+  vtkGetMacro(ShowCrosshair, bool);
+  vtkSetMacro(ShowCrosshair, bool);
+
+  vtkGetMacro(LabelMapLoaded, bool);
+  vtkSetMacro(LabelMapLoaded, bool);
+
+  vtkGetMacro(LabelDetectionRunning, bool);
+  vtkSetMacro(LabelDetectionRunning, bool);
+  
 
   // Description:    
   // Get methods on class members (no Set methods required)
@@ -103,6 +113,7 @@ protected:
   virtual ~vtkNeuroNavGUI ( );
 
   vtkKWCheckButton *LocatorCheckButton;
+  vtkKWCheckButton *CrosshairCheckButton;
   vtkKWCheckButton *TractographyCheckButton;
   vtkKWCheckButton *HandleCheckButton;
   vtkKWCheckButton *GuideCheckButton;
@@ -120,9 +131,10 @@ protected:
   vtkSlicerNodeSelectorWidget* TransformNodeNameEntry; 
   vtkSlicerNodeSelectorWidget* LabelMapSelector; 
   vtkKWEntryWithLabel *LabelMapNumberEntry;
-  vtkKWPushButton* BeepingButton;
+  vtkKWPushButton* StartBeepingButton; 
+  vtkKWPushButton* StopBeepingButton;
   vtkKWEntryWithLabel *FiducialListNodeNameEntry;
-
+  vtkMRMLScalarVolumeNode *LabelMapNode;
 
   vtkKWEntryWithLabel *PatCoordinatesEntry;
   vtkKWEntryWithLabel *SlicerCoordinatesEntry;
@@ -157,7 +169,9 @@ private:
   bool CloseScene;
   int TimerFlag;
   int TimerInterval;
-
+  bool ShowCrosshair;
+  bool LabelMapLoaded;
+  bool LabelDetectionRunning;
 };
 
 #endif
