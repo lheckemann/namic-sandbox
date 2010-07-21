@@ -193,7 +193,7 @@ const char test_image_message[] = {
   
   /* Image header */
   0x00, 0x01,                                     /* Version number */
-  0x01,                                           /* Image type (scalar) */
+  0x01,                                           /* Number of components (scalar) */
   0x03,                                           /* Scalar type (8-bit unsigned int) */
   0x02,                                           /* Little endian */
   0x01,                                           /* Image coordinate */
