@@ -31,7 +31,6 @@ Version:   $Revision: $
 #include "vnl/vnl_float_3.h"
 #include <assert.h>
 
-
 vtkCxxRevisionMacro(vtkNeuroNavLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkNeuroNavLogic);
 
@@ -739,4 +738,30 @@ int vtkNeuroNavLogic::PerformPatientToImageRegistration()
   return error;
 }
 
+
+int vtkNeuroNavLogic::GetLabelNumber(const char *id, vtkMRMLScalarVolumeNode* LabelMap)
+{
+  vtkMatrix4x4* rastoijk = vtkMatrix4x4::New();
+
+  LabelMap->GetRASToIJKMatrix(rastoijk);
+
+  std::cout << rastoijk->GetElement(0,0) << " " << rastoijk->GetElement(0,1) << " " << rastoijk->GetElement(0,2) << " " << rastoijk->GetElement(0,3) << std::endl
+            << rastoijk->GetElement(1,0) << " " << rastoijk->GetElement(1,1) << " " << rastoijk->GetElement(1,2) << " " << rastoijk->GetElement(1,3) << std::endl
+            << rastoijk->GetElement(2,0) << " " << rastoijk->GetElement(2,1) << " " << rastoijk->GetElement(2,2) << " " << rastoijk->GetElement(2,3) << std::endl
+            << rastoijk->GetElement(3,0) << " " << rastoijk->GetElement(3,1) << " " << rastoijk->GetElement(3,2) << " " << rastoijk->GetElement(3,3) << std::endl << std::endl;
+
+  vtkMRMLLinearTransformNode* transformationNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(id));
+  vtkMatrix4x4* transformationMatrix = vtkMatrix4x4::New();
+  transformationNode->GetMatrixTransformToWorld(transformationMatrix);
+
+  vtkImageData* LabelData = LabelMap->GetImageData();
+  vtkIdType LabelValue = LabelData->FindPoint(transformationMatrix->GetElement(0,3),transformationMatrix->GetElement(1,3),transformationMatrix->GetElement(2,3));
+
+  std::cout << LabelValue << std::endl;
+
+  transformationMatrix->Delete();
+  rastoijk->Delete();
+
+  return 1;
+}
 

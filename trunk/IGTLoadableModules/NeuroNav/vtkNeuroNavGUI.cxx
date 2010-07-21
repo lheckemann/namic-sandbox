@@ -45,6 +45,7 @@
 
 #include "vtkMRMLCrosshairNode.h"
 #include "vtkSlicerSlicesControlGUI.h"
+#include "vtkMRMLScalarVolumeNode.h"
 
 //---------------------------------------------------------------------------
 vtkCxxRevisionMacro ( vtkNeuroNavGUI, "$Revision: 1.0 $");
@@ -76,6 +77,7 @@ vtkNeuroNavGUI::vtkNeuroNavGUI ( )
   this->GuideCheckButton = NULL;
 
   this->LocatorModeCheckButton = NULL;
+  this->CrosshairCheckButton = NULL;
   this->UserModeCheckButton = NULL;
   this->FreezeCheckButton = NULL;
   this->ObliqueCheckButton = NULL;
@@ -87,9 +89,11 @@ vtkNeuroNavGUI::vtkNeuroNavGUI ( )
   this->TransformNodeNameEntry = NULL;
   this->LabelMapSelector = NULL; 
   this->LabelMapNumberEntry = NULL;
-  this->BeepingButton = NULL;
+  this->StartBeepingButton = NULL;
+  this->StopBeepingButton = NULL;
   this->FiducialListNodeNameEntry = NULL;
-
+  this->LabelMapNode = NULL;
+ 
   this->PatCoordinatesEntry = NULL;
   this->SlicerCoordinatesEntry = NULL;
   this->GetPatCoordinatesPushButton = NULL;
@@ -103,6 +107,10 @@ vtkNeuroNavGUI::vtkNeuroNavGUI ( )
   this->DeleteAllPointPairPushButton = NULL;
   this->RegisterPushButton = NULL;
   this->ResetPushButton = NULL;
+
+  this->ShowCrosshair = false;
+  this->LabelMapLoaded = false;
+  this->LabelDetectionRunning = false;
 
   this->CloseScene = false;
   this->TimerFlag = 0;
@@ -141,6 +149,11 @@ vtkNeuroNavGUI::~vtkNeuroNavGUI ( )
     {
     this->LocatorModeCheckButton->SetParent(NULL );
     this->LocatorModeCheckButton->Delete ( );
+    }
+  if (this->CrosshairCheckButton)
+    {
+    this->CrosshairCheckButton->SetParent(NULL );
+    this->CrosshairCheckButton->Delete ( );
     }
   if (this->UserModeCheckButton)
     {
@@ -192,12 +205,24 @@ vtkNeuroNavGUI::~vtkNeuroNavGUI ( )
     this->LabelMapNumberEntry->Delete();
     }
 
-  if (this->BeepingButton)
+  if (this->StartBeepingButton)
     {
-    this->BeepingButton->SetParent(NULL);
-    this->BeepingButton->Delete();
+    this->StartBeepingButton->SetParent(NULL);
+    this->StartBeepingButton->Delete();
     }
 
+  if (this->StopBeepingButton)
+    {
+    this->StopBeepingButton->SetParent(NULL);
+    this->StopBeepingButton->Delete();
+    }
+
+  /*
+  if (this->LabelMapNode)
+    {
+    this->LabelMapNode->Delete();
+    }
+  */
   if (this->FiducialListNodeNameEntry)
     {
     this->FiducialListNodeNameEntry->SetParent(NULL);
@@ -321,9 +346,14 @@ void vtkNeuroNavGUI::RemoveGUIObservers ( )
     this->LabelMapNumberEntry->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->BeepingButton)
+  if (this->StartBeepingButton)
     {
-    this->BeepingButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    this->StartBeepingButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->StopBeepingButton)
+    {
+    this->StopBeepingButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
   if (this->GetPatCoordinatesPushButton)
@@ -357,6 +387,10 @@ void vtkNeuroNavGUI::RemoveGUIObservers ( )
   if (this->LocatorModeCheckButton)
     {
     this->LocatorModeCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CrosshairCheckButton)
+    {
+    this->CrosshairCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->UserModeCheckButton)
     {
@@ -417,7 +451,8 @@ void vtkNeuroNavGUI::AddGUIObservers ( )
 
   this->TransformNodeNameEntry->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->LabelMapSelector->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );
-  this->BeepingButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
+  this->StartBeepingButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
+  this->StopBeepingButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->GetPatCoordinatesPushButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->AddPointPairPushButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->DeletePointPairPushButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
@@ -426,6 +461,7 @@ void vtkNeuroNavGUI::AddGUIObservers ( )
   this->ResetPushButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
 
   this->LocatorCheckButton->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
+  this->CrosshairCheckButton->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->LocatorModeCheckButton->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->UserModeCheckButton->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->FreezeCheckButton->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
@@ -644,10 +680,81 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
         this->CloseScene = false;
         }
       }
+    else if (this->CrosshairCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
+             && event == vtkKWCheckButton::SelectedStateChangedEvent )
+      {
+      int checked = this->CrosshairCheckButton->GetSelectedState();
+      if(checked)
+     {
+         vtkMRMLCrosshairNode* crosshair = this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode();
+
+         if(crosshair)
+           {
+           crosshair->SetCrosshairName("default");
+           crosshair->SetCrosshairBehavior(vtkMRMLCrosshairNode::Normal);
+           crosshair->SetCrosshairThickness(vtkMRMLCrosshairNode::Fine);
+           crosshair->SetNavigation(1);
+           crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::ShowAll);
+        this->SetShowCrosshair(true);
+           }
+     }
+      else
+     {
+         vtkMRMLCrosshairNode* crosshair = this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode();
+
+         if(crosshair)
+           {
+           crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::NoCrosshair);
+        this->SetShowCrosshair(false);
+        }
+     }
+      }
+    else if (this->LabelMapSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) 
+             && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent )
+      {
+        this->LabelMapNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->LabelMapSelector->GetSelected());
+     if(this->LabelMapNode->GetLabelMap())
+       {
+       this->SetLabelMapLoaded(true);
+       }
+     else
+       {
+       this->SetLabelMapLoaded(false);
+       this->LabelMapSelector->SetSelected(NULL);
+       }
+      }
+    if (this->StartBeepingButton == vtkKWPushButton::SafeDownCast(caller) 
+        && event == vtkKWPushButton::InvokedEvent)
+      {
+     if(this->GetLabelDetectionRunning() == false)
+       {
+         if(this->GetLabelMapLoaded())
+           {
+           this->SetLabelDetectionRunning(true);
+              if(this->StartBeepingButton && this->StopBeepingButton)
+          {
+            this->StartBeepingButton->SetState(0);
+                  this->StopBeepingButton->SetState(1);
+          }
+           }
+       }
+      }
+    if (this->StopBeepingButton == vtkKWPushButton::SafeDownCast(caller) 
+        && event == vtkKWPushButton::InvokedEvent)
+      {
+     if(this->GetLabelDetectionRunning())
+       {
+       this->SetLabelDetectionRunning(false);
+          if(this->StartBeepingButton && this->StopBeepingButton)
+         {
+         this->StartBeepingButton->SetState(1);
+            this->StopBeepingButton->SetState(0);
+         }
+       }
+      }
     else if (this->LocatorModeCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
              && event == vtkKWCheckButton::SelectedStateChangedEvent )
       {
-
 
       int checked = this->LocatorModeCheckButton->GetSelectedState(); 
       std::string val("Locator");
@@ -748,19 +855,6 @@ void vtkNeuroNavGUI::Enter ( )
     ProcessTimerEvents();
     }
 
-     //******
-
- vtkMRMLCrosshairNode* crosshair = this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode();
-
- if(crosshair)
-   {
- crosshair->SetCrosshairName("default");
- crosshair->SetCrosshairBehavior(vtkMRMLCrosshairNode::Normal);
- crosshair->SetCrosshairThickness(vtkMRMLCrosshairNode::Fine);
- crosshair->SetNavigation(1);
- crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::ShowAll);
-   }
-     //*******
 
 
 }
@@ -775,15 +869,29 @@ void vtkNeuroNavGUI::ProcessTimerEvents()
     // -----------------------------------------
     // Check incomming new data
 
-    // this->GetLogic()->ImportFromCircularBuffers();
-
-    //const char *nodeName = this->TransformNodeNameEntry->GetWidget()->GetValue();
-    //this->GetLogic()->SetTransformNodeID(this->TransformNodeNameEntry->GetID());
-    //this->GetLogic()->UpdateTransformNodeByName(nodeName);
-      if(this->TransformNodeNameEntry->GetSelected())
+    if(this->TransformNodeNameEntry->GetSelected())
      {
       this->GetLogic()->UpdateTransformNodeByID(this->TransformNodeNameEntry->GetSelected()->GetID());
-      this->GetLogic()->UpdateCrosshair(this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode());
+
+      if(this->GetShowCrosshair())
+     {
+        this->GetLogic()->UpdateCrosshair(this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode());
+     }
+
+      // **********************
+      // Reading Label Map
+      if(this->GetLabelDetectionRunning())
+     {
+       int LabelNumber = this->GetLogic()->GetLabelNumber(this->TransformNodeNameEntry->GetSelected()->GetID(),vtkMRMLScalarVolumeNode::SafeDownCast(this->LabelMapNode));
+          if(LabelNumber)
+         {
+         // TODO: Add preprocessor for different OS 
+            std::cout << "\a" << std::endl;
+         }
+     }
+
+      // *********************
+           
      }
     int checked = this->FreezeCheckButton->GetSelectedState(); 
     if (!checked)
@@ -828,7 +936,6 @@ void vtkNeuroNavGUI::ProcessTimerEvents()
 //---------------------------------------------------------------------------
 void vtkNeuroNavGUI::Exit ( )
 {
-  // Fill in
 }
 
 
@@ -1145,6 +1252,13 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   this->LocatorCheckButton->SelectedStateOff();
   this->LocatorCheckButton->SetText("Show Locator");
 
+  this->CrosshairCheckButton = vtkKWCheckButton::New();
+  this->CrosshairCheckButton->SetParent(displayFrame->GetFrame());
+  this->CrosshairCheckButton->Create();
+  this->CrosshairCheckButton->SelectedStateOff();
+  this->CrosshairCheckButton->SetText("Show Crosshair");
+
+
   /*
      this->HandleCheckButton = vtkKWCheckButton::New();
      this->HandleCheckButton->SetParent(displayFrame->GetFrame());
@@ -1166,8 +1280,9 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
      */
 
 
-  this->Script("pack %s -side left -anchor w -padx 2 -pady 2", 
-               this->LocatorCheckButton->GetWidgetName());
+  this->Script("pack %s %s -side left -anchor w -padx 2 -pady 2", 
+               this->LocatorCheckButton->GetWidgetName(),
+               this->CrosshairCheckButton->GetWidgetName());
 
 
   // Label frame: Options to locator display 
@@ -1209,14 +1324,22 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   this->LabelMapNumberEntry->GetWidget()->SetRestrictValueToInteger();  
   this->LabelMapNumberEntry->SetLabelText("Label number:");  
  
-  this->BeepingButton = vtkKWPushButton::New();
-  this->BeepingButton->SetParent(labelFrame->GetFrame());
-  this->BeepingButton->Create();
-  this->BeepingButton->SetText("Start Label Detection");  
+  this->StartBeepingButton = vtkKWPushButton::New();
+  this->StartBeepingButton->SetParent(labelFrame->GetFrame());
+  this->StartBeepingButton->Create();
+  this->StartBeepingButton->SetText("Start Label Detection");
 
-  this->Script("pack %s %s -fill x -side left -anchor w -padx 2 -pady 2", 
+  this->StopBeepingButton = vtkKWPushButton::New();
+  this->StopBeepingButton->SetParent(labelFrame->GetFrame());
+  this->StopBeepingButton->Create();
+  this->StopBeepingButton->SetText("Stop Label Detection");
+  this->StopBeepingButton->SetState(0);  
+  
+
+  this->Script("pack %s %s %s -fill x -side left -anchor w -padx 2 -pady 2", 
                this->LabelMapNumberEntry->GetWidgetName(),
-               this->BeepingButton->GetWidgetName());
+               this->StartBeepingButton->GetWidgetName(),
+               this->StopBeepingButton->GetWidgetName());
 
   // Tractography frame: Options to tractography display 
   // -----------------------------------------
