@@ -26,6 +26,7 @@ igtl_uint64 igtl_export igtl_image_get_data_size(igtl_image_header * header)
   igtl_uint64 sj;
   igtl_uint64 sk;
   igtl_uint64 sp;
+  igtl_uint64 nc;
   igtl_uint64 data_size;
 
   si = header->subvol_size[0];
@@ -50,7 +51,9 @@ igtl_uint64 igtl_export igtl_image_get_data_size(igtl_image_header * header)
     break;
   }
 
-  data_size = si*sj*sk*sp;
+  nc = header->num_components;
+
+  data_size = si*sj*sk*sp*nc;
   return data_size;
 }
 
@@ -161,6 +164,7 @@ igtl_uint64 igtl_export igtl_image_get_crc(igtl_image_header * header, void* ima
   igtl_uint64 sj;
   igtl_uint64 sk;
   igtl_uint64 sp;
+  igtl_uint64 nc;
 
   if (igtl_is_little_endian())
     {
@@ -191,8 +195,10 @@ igtl_uint64 igtl_export igtl_image_get_crc(igtl_image_header * header, void* ima
     sp = 0;
     break;
   }
-  
-  img_size = si*sj*sk*sp;
+
+  nc = header->num_components;
+
+  img_size = si*sj*sk*sp*nc;
   crc = crc64(0, 0, 0);
   crc = crc64((unsigned char*) header, IGTL_IMAGE_HEADER_SIZE, crc);
   crc = crc64((unsigned char*) image, (int)img_size, crc);

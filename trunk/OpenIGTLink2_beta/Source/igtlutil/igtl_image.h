@@ -25,10 +25,6 @@
 #define IGTL_IMAGE_HEADER_VERSION       1
 #define IGTL_IMAGE_HEADER_SIZE          72
 
-/* Data type */
-#define IGTL_IMAGE_DTYPE_SCALAR         1
-#define IGTL_IMAGE_DTYPE_VECTOR         2
-
 /* Scalar type */
 #define IGTL_IMAGE_STYPE_TYPE_INT8      2
 #define IGTL_IMAGE_STYPE_TYPE_UINT8     3
@@ -69,8 +65,7 @@ extern "C" {
 
 typedef struct {
   igtl_uint16    version;          /* data format version number(1)   */
-  igtl_uint8     data_type;        /* data type                       */
-                                   /* (scalar(1) or vector(3))        */
+  igtl_uint8     num_components;   /* number of components per element*/
   igtl_uint8     scalar_type;      /* scalar type                     */
   /*2:int8 3:uint8 4:int16 5:uint16 6:int32 7:uint32 10:float32 11:float64) */
   igtl_uint8     endian;           /* endian type of image data       */
