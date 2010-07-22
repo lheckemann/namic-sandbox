@@ -14,8 +14,12 @@
 #include "vtkSmartPointer.h"
 
 #include "vtkMRMLNode.h"
+#include "vtkMRMLScene.h"
 
 #include "vtkTransformTimeSeries.h"
+
+
+class vtkMRMLLinearTransformNode;
 
 
 
@@ -82,12 +86,27 @@ public:
   
   PerkNote* GetNoteAtIndex( int index );
   
+  
+  vtkGetStringMacro( ObservedTransformNodeID );
+  vtkMRMLLinearTransformNode* GetObservedTransformNode();
+  void SetAndObserveObservedTransformNodeID( const char *TransformNodeRef );
+  
+  void SetNoteIndex( int ind );
+  vtkGetMacro( NoteIndex, int );
+  
+  vtkSetMacro( TransformIndex, int );
+  vtkGetMacro( TransformIndex, int );
+  
+  void UpdateTransformIndex();
+  
 
 protected:
   
   vtkMRMLPerkProcedureNode();
   ~vtkMRMLPerkProcedureNode();
-
+  
+  void RemoveMRMLObservers();
+  
 
 private:
 
@@ -99,8 +118,19 @@ private:
   
   //BTX
   std::vector< PerkNote* > NoteList;
+  int NoteIndex;
+  
   vtkTransformTimeSeries* TransformTimeSeries;
+  int TransformIndex;
   //ETX
+  
+  
+    // Transform Needle tip to RAS.
+  
+  char* ObservedTransformNodeID;
+  vtkSetReferenceStringMacro( ObservedTransformNodeID );
+  vtkMRMLLinearTransformNode* ObservedTransformNode;
+  
 };
 
 

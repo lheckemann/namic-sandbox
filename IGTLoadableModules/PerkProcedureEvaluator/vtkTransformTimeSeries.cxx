@@ -43,6 +43,21 @@ vtkTransformTimeSeries
 
 
 
+vtkTransform*
+vtkTransformTimeSeries
+::GetTransformAtIndex( int index ) const
+{
+  if ( index < 0  ||  (unsigned int)index >= this->Data.size() )
+    {
+      // TODO: Exception.
+    return 0;
+    }
+  
+  return this->Data[ index ].second;
+}
+
+
+
 void
 vtkTransformTimeSeries
 ::AddRecord( double time, vtkTransform* transform )

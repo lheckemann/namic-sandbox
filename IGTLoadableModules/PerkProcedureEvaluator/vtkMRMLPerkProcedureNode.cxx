@@ -12,6 +12,8 @@
 #include "vtkXMLDataElement.h"
 #include "vtkXMLDataParser.h"
 
+#include "vtkMRMLLinearTransformNode.h"
+
 
 
 // =============================================================
@@ -98,7 +100,22 @@ void
 vtkMRMLPerkProcedureNode
 ::ReadXMLAttributes( const char** atts )
 {
-
+  Superclass::ReadXMLAttributes( atts );
+  
+  const char* attName;
+  const char* attValue;
+  
+  while( *atts != NULL )
+    {
+    attName = *(atts++);
+    attValue = *(atts++);
+    
+    if ( ! strcmp( attName, "ObservedTransformNodeID" ) )
+      {
+      this->SetAndObserveObservedTransformNodeID( NULL );
+      this->SetObservedTransformNodeID( attValue );
+      }
+    }
 }
 
 
@@ -107,7 +124,14 @@ void
 vtkMRMLPerkProcedureNode
 ::WriteXML( ostream& of, int indent )
 {
-
+  Superclass::WriteXML( of, indent );
+  
+  vtkIndent vindent( indent );
+  
+  if ( this->ObservedTransformNodeID != NULL )
+    {
+    of << vindent << " ObservedTransformNodeID=\"" << this->ObservedTransformNodeID << "\"";
+    }
 }
 
 
@@ -185,6 +209,89 @@ vtkMRMLPerkProcedureNode
 
 
 
+vtkMRMLLinearTransformNode*
+vtkMRMLPerkProcedureNode
+::GetObservedTransformNode()
+{
+  vtkMRMLLinearTransformNode* node = NULL;
+  if ( this->GetScene() && this->ObservedTransformNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->GetScene()->GetNodeByID( this->ObservedTransformNodeID );
+    node = vtkMRMLLinearTransformNode::SafeDownCast( snode );
+    }
+  return node;
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::SetAndObserveObservedTransformNodeID( const char *nodeID )
+{
+  vtkSetAndObserveMRMLObjectMacro( this->ObservedTransformNode, NULL );
+  this->SetObservedTransformNodeID( nodeID );
+  vtkMRMLLinearTransformNode *tnode = this->GetObservedTransformNode();
+  vtkSetAndObserveMRMLObjectMacro(this->ObservedTransformNode, tnode);
+  if ( tnode )
+    {
+    tnode->AddObserver( vtkMRMLLinearTransformNode::TransformModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand );
+    }
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::SetNoteIndex( int ind )
+{
+  if ( ind < 0 ) return;
+  else if ( ind >= (int)( this->NoteList.size() ) ) return;
+  
+  this->NoteIndex = ind;
+  
+  this->UpdateTransformIndex();
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::UpdateTransformIndex()
+{
+  PerkNote* note = this->GetNoteAtIndex( this->NoteIndex );
+  double time = note->Time;
+  
+  int numRecords = this->TransformTimeSeries->GetNumberOfRecords();
+  if ( numRecords < 1 ) return;
+  
+  int index = 0;
+  
+  while ( this->TransformTimeSeries->GetTimeAtIndex( index ) < time )
+    {
+    ++ index;
+    if ( index == numRecords ) break;
+    }
+  
+  if ( index < numRecords ) this->TransformIndex = index;
+  
+  
+    // Update transform.
+  
+  vtkTransform* transform = this->TransformTimeSeries->GetTransformAtIndex( this->TransformIndex );
+  
+  vtkMatrix4x4* obsMtx = this->ObservedTransformNode->GetMatrixTransformToParent();
+  
+  for ( int i = 0; i < 4; i ++ ) 
+    {
+    for ( int j = 0; j < 4; j ++ )
+      {
+      obsMtx->SetElement( i, j, ( transform->GetMatrix()->GetElement( i, j ) ) );
+      }
+    }
+}
+
+
+
 vtkMRMLPerkProcedureNode
 ::vtkMRMLPerkProcedureNode()
 {
@@ -192,6 +299,9 @@ vtkMRMLPerkProcedureNode
   this->SetSaveWithScene( true );
   
   this->TransformTimeSeries = vtkTransformTimeSeries::New();
+  
+  this->NoteIndex = -1;
+  this->TransformIndex = -1;
 }
 
 
@@ -203,6 +313,21 @@ vtkMRMLPerkProcedureNode
   
   this->TransformTimeSeries->Delete();
   this->TransformTimeSeries = NULL;
+  
+  this->RemoveMRMLObservers();
+  this->SetAndObserveObservedTransformNodeID( NULL );
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::RemoveMRMLObservers()
+{
+  if ( this->ObservedTransformNode && this->ObservedTransformNode->HasObserver( vtkMRMLTransformNode::TransformModifiedEvent ) )
+    {
+    this->ObservedTransformNode->RemoveObservers( vtkMRMLTransformNode::TransformModifiedEvent );
+    }
 }
 
 
