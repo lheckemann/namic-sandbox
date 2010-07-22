@@ -769,3 +769,20 @@ int vtkNeuroNavLogic::GetLabelNumber(const char *id, vtkMRMLScalarVolumeNode* La
   return PixelLabel;
 }
 
+void vtkNeuroNavLogic::BeepingFunction()
+{
+#ifdef _WIN32
+// TODO: Check if it's working on Windows 
+  // Beep
+  Beep(500,250);
+
+  // Sleep 500 ms
+  Sleep(500);
+#elif defined(__FreeBSD__) || defined(__linux__)
+  // Beep
+  std::cout << "\a" << std::endl;
+ 
+  // Sleep 500 ms
+  usleep(500000);
+#endif
+}

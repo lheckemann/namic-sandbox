@@ -588,7 +588,7 @@ void vtkCaptureBetaProbeGUI::BuildGUI ( )
   this->UIPanel->AddPage ( "CaptureBetaProbe", "CaptureBetaProbe", NULL );
 
   BuildGUIForHelpFrame();
-  BuildGUIForTestFrame1();
+  BuildGUIForCapturingDataFromBetaProbe();
   //  BuildGUIForTestFrame2();
 
 }
@@ -609,7 +609,7 @@ void vtkCaptureBetaProbeGUI::BuildGUIForHelpFrame ()
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::BuildGUIForTestFrame1()
+void vtkCaptureBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
 {
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
@@ -741,58 +741,6 @@ void vtkCaptureBetaProbeGUI::BuildGUIForTestFrame1()
   frame5->Delete();
 }
 
-
-//---------------------------------------------------------------------------
-/*
-void vtkCaptureBetaProbeGUI::BuildGUIForTestFrame2 ()
-{
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("CaptureBetaProbe");
-  
-  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
-
-  conBrowsFrame->SetParent(page);
-  conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 2");
-  //conBrowsFrame->CollapseFrame();
-  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
-
-  // -----------------------------------------
-  // Test child frame
-
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Test child frame");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
-  
-  // -----------------------------------------
-  // Test push button
-
-  this->TestButton21 = vtkKWPushButton::New ( );
-  this->TestButton21->SetParent ( frame->GetFrame() );
-  this->TestButton21->Create ( );
-  this->TestButton21->SetText ("Test 21");
-  this->TestButton21->SetWidth (12);
-
-  this->TestButton22 = vtkKWPushButton::New ( );
-  this->TestButton22->SetParent ( frame->GetFrame() );
-  this->TestButton22->Create ( );
-  this->TestButton22->SetText ("Tset 22");
-  this->TestButton22->SetWidth (12);
-
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton21->GetWidgetName(),
-               this->TestButton22->GetWidgetName());
-
-
-  conBrowsFrame->Delete();
-  frame->Delete();
-}
-
-*/
 //----------------------------------------------------------------------------
 void vtkCaptureBetaProbeGUI::UpdateAll()
 {
