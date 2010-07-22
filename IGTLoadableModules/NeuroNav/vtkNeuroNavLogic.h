@@ -138,6 +138,8 @@ public:
   void UpdateFiducialSeeding(const char *name, double offset);
 
   int GetLabelNumber(const char *id, vtkMRMLScalarVolumeNode* LabelMap);
+
+  void BeepingFunction();
 protected:
 
   vtkNeuroNavLogic();

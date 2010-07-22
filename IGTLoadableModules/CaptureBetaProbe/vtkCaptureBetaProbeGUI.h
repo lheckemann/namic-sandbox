@@ -110,8 +110,7 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
-  void BuildGUIForTestFrame1();
-  //void BuildGUIForTestFrame2();
+  void BuildGUIForCapturingDataFromBetaProbe();
 
   //----------------------------------------------------------------
   // Update routines

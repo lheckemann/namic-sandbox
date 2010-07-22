@@ -888,9 +888,8 @@ void vtkNeuroNavGUI::ProcessTimerEvents()
           int label_requested = this->LabelMapNumberEntry->GetWidget()->GetValueAsInt();
           if(LabelNumber == label_requested)
          {
-         // TODO: Add preprocessor for different OS 
-            std::cout << "\a" << std::endl;
-         }     
+           this->GetLogic()->BeepingFunction();
+            }     
        }
      }
 
