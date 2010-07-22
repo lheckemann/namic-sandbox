@@ -463,14 +463,17 @@ void vtkUDPServerGUI::ProcessTimerEvents()
     {
     // -----------------------------------------
     // Check incoming new data
-    char* data;
-    data = this->GetLogic()->GetImportedData();
-    // if (this->GetLogic()->GetBytesReceived())
-    //  {
-      //Place data in the Data Frame List
-      this->UpdateDataFrame(data);
-      //  }
-    
+
+      if((this->GetLogic()->GetServerStopFlag() == false) && (this->GetLogic()->GetBytesReceived() > 0))
+     {
+        char* data;
+        data = this->GetLogic()->GetImportedData();
+        // if (this->GetLogic()->GetBytesReceived())
+        //  {
+            //Place data in the Data Frame List
+        this->UpdateDataFrame(data);
+        //  }
+     }
     // update timer
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
                                          this->TimerInterval,
