@@ -84,13 +84,17 @@ public:
 
 public:
 
-  // Image dimensions
+  // Image dimensions.
+  // SetDimensions() should be called prior to SetSubVolume(), since SetDimensions()
+  // sets subvolume parameters automatically assuming that subvolume = entire volume.
   void SetDimensions(int s[3]);
   void SetDimensions(int i, int j, int k);
   void GetDimensions(int s[3]);
   void GetDimensions(int &i, int &j, int &k);
 
-  // Sub-volume dimensions and offset
+  // Sub-volume dimensions and offset.
+  // SetSubVolume() should be called after calling SetDiemensions(), since SetDimensions()
+  // reset the subvolume parameters automatically.
   int  SetSubVolume(int dim[3], int off[3]);
   int  SetSubVolume(int dimi, int dimj, int dimk, int offi, int offj, int offk);
   void GetSubVolume(int dim[3], int off[3]);
