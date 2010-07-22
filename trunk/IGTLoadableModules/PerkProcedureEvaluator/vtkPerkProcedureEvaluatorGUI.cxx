@@ -226,14 +226,15 @@ vtkPerkProcedureEvaluatorGUI
     this->TimerInterval = 100;  // 100 ms
     ProcessTimerEvents();
     }
-
+  
+  this->AddGUIObservers();
 }
 
 
 //---------------------------------------------------------------------------
 void vtkPerkProcedureEvaluatorGUI::Exit ( )
 {
-  // Fill in
+  this->RemoveGUIObservers();
 }
 
 
@@ -264,6 +265,12 @@ vtkPerkProcedureEvaluatorGUI
   REMOVE_OBSERVERS( this->CalibrationSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
   REMOVE_OBSERVERS( this->LoadButton, vtkKWPushButton::InvokedEvent );
+  
+  if ( this->NotesList )
+    {
+    this->NotesList->GetWidget()->SetSelectionChangedCommand( this, "" );
+    this->NotesList->GetWidget()->SetSelectionCommand( this, "" );
+    }
   
   
   this->RemoveLogicObservers();
@@ -301,6 +308,12 @@ vtkPerkProcedureEvaluatorGUI
   ADD_OBSERVER( this->CalibrationSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
   ADD_OBSERVER( this->LoadButton->GetLoadSaveDialog(), vtkKWTopLevel::WithdrawEvent );
+  
+  if ( this->NotesList )
+    {
+    this->NotesList->GetWidget()->SetSelectionChangedCommand( this, "OnNoteSelectionChanged" );
+    this->NotesList->GetWidget()->SetSelectionCommand( this, "OnNoteSelectionChanged" );
+    }
   
   
   this->AddLogicObservers();
@@ -575,6 +588,7 @@ vtkPerkProcedureEvaluatorGUI
     this->NotesList->GetWidget()->SetSelectionBackgroundColor( 1, 0, 0 );
     this->NotesList->GetWidget()->MovableRowsOff();
     this->NotesList->GetWidget()->MovableColumnsOff();
+    this->NotesList->GetWidget()->SetSelectionModeToSingle();
     
       // Create the columns.
     
@@ -741,5 +755,20 @@ vtkPerkProcedureEvaluatorGUI
   vtkSetAndObserveMRMLNodeMacro( this->ProcedureNode, node );
   
   this->UpdateAll();
+}
+
+
+
+void
+vtkPerkProcedureEvaluatorGUI
+::OnNoteSelectionChanged()
+{
+  int numSelRows = this->NotesList->GetWidget()->GetNumberOfSelectedRows();
+  if ( numSelRows != 1 ) return;
+  
+  vtkMRMLPerkProcedureNode* procedure = this->GetProcedureNode();
+  
+  int rowIndex = this->NotesList->GetWidget()->GetIndexOfFirstSelectedRow();
+  procedure->SetNoteIndex( rowIndex );
 }
 

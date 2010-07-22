@@ -30,6 +30,7 @@ public:
   
   int GetNumberOfRecords() const;
   double GetTimeAtIndex( int index ) const;
+  vtkTransform* GetTransformAtIndex( int index ) const;
   
   void AddRecord( double time, vtkTransform* transform );
   void Clear();
@@ -53,7 +54,7 @@ private:
   void operator=( const vtkTransformTimeSeries& ); // Not implemented.
   
   
-  DataType Data;
+  DataType Data; // std::vector
   double MinTime;
   double MaxTime;
   

@@ -157,6 +157,7 @@ private:
   
   void ProcessLoadButton();
   void ProcessProcedureSelected();
+  void OnNoteSelectionChanged();
   
   
   vtkMRMLPerkProcedureNode* ProcedureNode;
