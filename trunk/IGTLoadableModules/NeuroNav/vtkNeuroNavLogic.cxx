@@ -742,26 +742,30 @@ int vtkNeuroNavLogic::PerformPatientToImageRegistration()
 int vtkNeuroNavLogic::GetLabelNumber(const char *id, vtkMRMLScalarVolumeNode* LabelMap)
 {
   vtkMatrix4x4* rastoijk = vtkMatrix4x4::New();
-
-  LabelMap->GetRASToIJKMatrix(rastoijk);
-
-  std::cout << rastoijk->GetElement(0,0) << " " << rastoijk->GetElement(0,1) << " " << rastoijk->GetElement(0,2) << " " << rastoijk->GetElement(0,3) << std::endl
-            << rastoijk->GetElement(1,0) << " " << rastoijk->GetElement(1,1) << " " << rastoijk->GetElement(1,2) << " " << rastoijk->GetElement(1,3) << std::endl
-            << rastoijk->GetElement(2,0) << " " << rastoijk->GetElement(2,1) << " " << rastoijk->GetElement(2,2) << " " << rastoijk->GetElement(2,3) << std::endl
-            << rastoijk->GetElement(3,0) << " " << rastoijk->GetElement(3,1) << " " << rastoijk->GetElement(3,2) << " " << rastoijk->GetElement(3,3) << std::endl << std::endl;
-
-  vtkMRMLLinearTransformNode* transformationNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(id));
   vtkMatrix4x4* transformationMatrix = vtkMatrix4x4::New();
+
+  // Get RAS To IJK Matrix
+  LabelMap->GetRASToIJKMatrix(rastoijk);
+  
+  // Get Transformation Matrix
+  vtkMRMLLinearTransformNode* transformationNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(id));
   transformationNode->GetMatrixTransformToWorld(transformationMatrix);
 
-  vtkImageData* LabelData = LabelMap->GetImageData();
-  vtkIdType LabelValue = LabelData->FindPoint(transformationMatrix->GetElement(0,3),transformationMatrix->GetElement(1,3),transformationMatrix->GetElement(2,3));
+  // Preparing for Multiplication matrix
+  double PointRAS[4] = {transformationMatrix->GetElement(0,3),transformationMatrix->GetElement(1,3),transformationMatrix->GetElement(2,3),1};
+  double PointIJK[4];
+ 
+  // Convert RAS Point To IJK Point
+  rastoijk->MultiplyPoint(PointRAS, PointIJK);
 
-  std::cout << LabelValue << std::endl;
+  // Access Pixel Value (label) to the IJK Position
+  vtkImageData* LabelData = LabelMap->GetImageData(); 
+  double PixelLabel = LabelData->GetScalarComponentAsDouble(PointIJK[0],PointIJK[1],PointIJK[2],0);
 
+  // Delete Matrix
   transformationMatrix->Delete();
   rastoijk->Delete();
 
-  return 1;
+  return PixelLabel;
 }
 

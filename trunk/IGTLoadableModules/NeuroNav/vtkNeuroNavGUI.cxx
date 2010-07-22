@@ -882,12 +882,16 @@ void vtkNeuroNavGUI::ProcessTimerEvents()
       // Reading Label Map
       if(this->GetLabelDetectionRunning())
      {
-       int LabelNumber = this->GetLogic()->GetLabelNumber(this->TransformNodeNameEntry->GetSelected()->GetID(),vtkMRMLScalarVolumeNode::SafeDownCast(this->LabelMapNode));
-          if(LabelNumber)
+     int LabelNumber = this->GetLogic()->GetLabelNumber(this->TransformNodeNameEntry->GetSelected()->GetID(),vtkMRMLScalarVolumeNode::SafeDownCast(this->LabelMapNode));
+        if(this->LabelMapNumberEntry)
+       {
+          int label_requested = this->LabelMapNumberEntry->GetWidget()->GetValueAsInt();
+          if(LabelNumber == label_requested)
          {
          // TODO: Add preprocessor for different OS 
             std::cout << "\a" << std::endl;
-         }
+         }     
+       }
      }
 
       // *********************
