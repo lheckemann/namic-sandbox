@@ -387,6 +387,12 @@ vtkMRMLPerkProcedureNode
     {
     this->ObservedTransformNode->RemoveObservers( vtkMRMLTransformNode::TransformModifiedEvent );
     }
+  
+  if (    this->NeedleTransformNode
+       && this->NeedleTransformNode->HasObserver( vtkMRMLTransformNode::TransformModifiedEvent ) )
+    {
+    this->NeedleTransformNode->RemoveObservers( vtkMRMLTransformNode::TransformModifiedEvent );
+    }
 }
 
 
