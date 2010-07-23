@@ -300,6 +300,8 @@ vtkMRMLPerkProcedureNode
   
   this->TransformTimeSeries = vtkTransformTimeSeries::New();
   
+  this->ObservedTransformNode = NULL;
+  
   this->NoteIndex = -1;
   this->TransformIndex = -1;
 }
@@ -324,7 +326,8 @@ void
 vtkMRMLPerkProcedureNode
 ::RemoveMRMLObservers()
 {
-  if ( this->ObservedTransformNode && this->ObservedTransformNode->HasObserver( vtkMRMLTransformNode::TransformModifiedEvent ) )
+  if (    this->ObservedTransformNode
+       && this->ObservedTransformNode->HasObserver( vtkMRMLTransformNode::TransformModifiedEvent ) )
     {
     this->ObservedTransformNode->RemoveObservers( vtkMRMLTransformNode::TransformModifiedEvent );
     }

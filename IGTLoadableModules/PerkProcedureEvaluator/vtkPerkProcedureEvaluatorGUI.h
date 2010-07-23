@@ -92,6 +92,7 @@ public:
   void ProcessTimerEvents();
   void HandleMouseEvent( vtkSlicerInteractorStyle *style );
   static void DataCallback( vtkObject *caller, unsigned long eid, void *clientData, void *callData );
+  void OnNoteSelectionChanged();
   
   
   //----------------------------------------------------------------
@@ -125,6 +126,7 @@ protected:
   vtkSlicerNodeSelectorWidget* PerkProcedureSelector;
   vtkSlicerNodeSelectorWidget* PlanningVolumeSelector;
   vtkSlicerNodeSelectorWidget* CalibrationSelector;
+  vtkSlicerNodeSelectorWidget* NeedleTransformSelector;
   vtkKWLoadSaveButton* LoadButton;
   
   vtkSlicerModuleCollapsibleFrame* NotesFrame;
@@ -157,7 +159,6 @@ private:
   
   void ProcessLoadButton();
   void ProcessProcedureSelected();
-  void OnNoteSelectionChanged();
   
   
   vtkMRMLPerkProcedureNode* ProcedureNode;
