@@ -35,7 +35,7 @@ vtkTransformTimeSeries
   if ( index < 0  ||  (unsigned int)index >= this->Data.size() )
     {
       // TODO: Exception.
-    return 0;
+    return -1.0;
     }
   
   return this->Data[ index ].first;
@@ -62,19 +62,24 @@ void
 vtkTransformTimeSeries
 ::AddRecord( double time, vtkTransform* transform )
 {
-  vtkTransform* tr = vtkTransform::New();
+  vtkTransform* tr = vtkTransform::New(); // Deleted in Clear function.
   tr->DeepCopy( transform );
+  
   std::pair< double, vtkTransform* > p( time, tr );
+  
+  // bool inserted = false;
   
   if ( time < this->MinTime )
     {
     this->Data.insert( this->Data.begin(), p );
+    // inserted = true;
     this->MinTime = time;
     }
   
-  else if ( time > this->MaxTime )
+  else if ( time >= this->MaxTime )
     {
     this->Data.push_back( p );
+    // inserted = true;
     this->MaxTime = time;
     }
     
@@ -85,10 +90,18 @@ vtkTransformTimeSeries
       if ( (*it).first > time )
         {
         this->Data.insert( ( -- it ), p );
+        // inserted = true;
         break;
         }
       }
     }
+  
+  /*
+  if ( inserted )
+    {
+    vtkErrorMacro( "this is an error" );
+    }
+  */
 }
 
 

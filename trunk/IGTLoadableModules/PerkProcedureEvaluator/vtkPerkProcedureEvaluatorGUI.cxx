@@ -138,8 +138,19 @@ vtkPerkProcedureEvaluatorGUI
   this->ButtonStop = NULL;
   this->EntrySec = NULL;
   this->ButtonGo = NULL;
-  
   this->PositionLabel = NULL;
+  
+  
+    // Results frame.
+  
+  this->LabelBegin = NULL;
+  this->LabelEnd = NULL;
+  this->ButtonMeasureBegin = NULL;
+  this->ButtonMeasureEnd = NULL;
+  this->ButtonMeasure = NULL;
+  this->LabelTotalTime = NULL;
+  this->LabelPathInside = NULL;
+  this->LabelTimeInside = NULL;
   
   
   // Locator  (MRML)
@@ -173,7 +184,6 @@ vtkPerkProcedureEvaluatorGUI
   DELETE_WITH_SETPARENT_NULL( this->PlanningVolumeSelector );
   DELETE_WITH_SETPARENT_NULL( this->CalibrationSelector );
   DELETE_WITH_SETPARENT_NULL( this->NeedleTransformSelector );
-  
   DELETE_WITH_SETPARENT_NULL( this->LoadButton );
   
   DELETE_WITH_SETPARENT_NULL( this->NotesFrame );
@@ -190,7 +200,18 @@ vtkPerkProcedureEvaluatorGUI
   DELETE_WITH_SETPARENT_NULL( this->EntrySec );
   DELETE_WITH_SETPARENT_NULL( this->ButtonGo );
   DELETE_WITH_SETPARENT_NULL( this->PositionLabel );
-    
+  
+    // Results frame.
+  
+  DELETE_WITH_SETPARENT_NULL( this->LabelBegin );
+  DELETE_WITH_SETPARENT_NULL( this->LabelEnd );
+  DELETE_WITH_SETPARENT_NULL( this->ButtonMeasureBegin );
+  DELETE_WITH_SETPARENT_NULL( this->ButtonMeasureEnd );
+  DELETE_WITH_SETPARENT_NULL( this->ButtonMeasure );
+  DELETE_WITH_SETPARENT_NULL( this->LabelTotalTime );
+  DELETE_WITH_SETPARENT_NULL( this->LabelPathInside );
+  DELETE_WITH_SETPARENT_NULL( this->LabelTimeInside );
+  
   
     // Unregister Logic class
 
@@ -262,12 +283,21 @@ vtkPerkProcedureEvaluatorGUI
   
     // GUI observers.
   
+  
   REMOVE_OBSERVERS( this->PerkProcedureSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->PlanningVolumeSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->CalibrationSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->NeedleTransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
   REMOVE_OBSERVERS( this->LoadButton, vtkKWPushButton::InvokedEvent );
+  
+  
+    // Results frame.
+  
+  REMOVE_OBSERVERS( this->ButtonMeasure, vtkKWPushButton::InvokedEvent );
+  REMOVE_OBSERVERS( this->ButtonMeasureBegin, vtkKWPushButton::InvokedEvent );
+  REMOVE_OBSERVERS( this->ButtonMeasureEnd, vtkKWPushButton::InvokedEvent );
+  
   
   if ( this->NotesList )
     {
@@ -312,6 +342,14 @@ vtkPerkProcedureEvaluatorGUI
   ADD_OBSERVER( this->NeedleTransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
   ADD_OBSERVER( this->LoadButton->GetLoadSaveDialog(), vtkKWTopLevel::WithdrawEvent );
+  
+  
+    // Results frame.
+  
+  ADD_OBSERVER( this->ButtonMeasure, vtkKWPushButton::InvokedEvent );
+  ADD_OBSERVER( this->ButtonMeasureBegin, vtkKWPushButton::InvokedEvent );
+  ADD_OBSERVER( this->ButtonMeasureEnd, vtkKWPushButton::InvokedEvent );
+  
   
   if ( this->NotesList )
     {
@@ -388,7 +426,7 @@ vtkPerkProcedureEvaluatorGUI
     {
     vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast(
       this->NeedleTransformSelector->GetSelected() );
-    
+    this->ProcedureNode->SetAndObserveNeedleTransformNodeID( node->GetID() );
     }
   
   else if (    this->LoadButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast( caller )
@@ -474,7 +512,7 @@ vtkPerkProcedureEvaluatorGUI
   this->BuildGUIForInputFrame();
   this->BuildGUIForPlaybackFrame();
   this->BuildGUIForNotesList();
-  
+  this->BuildGUIForResultsFrame();
 }
 
 
@@ -502,10 +540,10 @@ vtkPerkProcedureEvaluatorGUI
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("PerkProcedureEvaluator");
   
   
-  vtkSlicerModuleCollapsibleFrame *inputFrame = vtkSlicerModuleCollapsibleFrame::New();
-  inputFrame->SetParent( page );
-  inputFrame->Create();
-  inputFrame->SetLabelText( "Input" );
+  vtkSmartPointer< vtkSlicerModuleCollapsibleFrame > inputFrame = vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();
+    inputFrame->SetParent( page );
+    inputFrame->Create();
+    inputFrame->SetLabelText( "Input" );
   app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                inputFrame->GetWidgetName(), page->GetWidgetName() );
   
@@ -548,10 +586,23 @@ vtkPerkProcedureEvaluatorGUI
     this->CalibrationSelector->SetLabelText( "Calibration transform" );
     }
   
-  this->Script( "pack %s %s %s -side top -fill x -padx 2 -pady 2", 
+  if ( ! this->NeedleTransformSelector )
+    {
+    this->NeedleTransformSelector = vtkSlicerNodeSelectorWidget::New();
+    this->NeedleTransformSelector->SetNodeClass( "vtkMRMLTransformNode", NULL, NULL, "Needle tip transform" );
+    this->NeedleTransformSelector->SetParent( inputFrame->GetFrame() );
+    this->NeedleTransformSelector->Create();
+    this->NeedleTransformSelector->NoneEnabledOn();
+    this->NeedleTransformSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
+    this->NeedleTransformSelector->UpdateMenu();
+    this->NeedleTransformSelector->SetLabelText( "Needle tip transform" );
+    }
+  
+  this->Script( "pack %s %s %s %s -side top -fill x -padx 2 -pady 2", 
                 this->PerkProcedureSelector->GetWidgetName(),
                 this->PlanningVolumeSelector->GetWidgetName(),
-                this->CalibrationSelector->GetWidgetName() );
+                this->CalibrationSelector->GetWidgetName(),
+                this->NeedleTransformSelector->GetWidgetName() );
   
   
   if ( ! this->LoadButton )
@@ -565,8 +616,6 @@ vtkPerkProcedureEvaluatorGUI
   this->Script( "pack %s -side top -fill x -padx 2 -pady 2", 
                 this->LoadButton->GetWidgetName() );
   
-  
-  inputFrame->Delete();
 }
 
 
@@ -692,44 +741,58 @@ vtkPerkProcedureEvaluatorGUI
 
 void
 vtkPerkProcedureEvaluatorGUI
+::BuildGUIForResultsFrame()
+{
+  
+}
+
+
+
+void
+vtkPerkProcedureEvaluatorGUI
 ::UpdateAll()
 {
   vtkMRMLPerkProcedureNode* procedure = this->GetProcedureNode();
   if ( ! procedure ) return;
   
   
-  if ( this->NotesList == NULL || this->NotesList->GetWidget() == NULL ) return;
+    // Update list of procedure notes.
   
-  
-  int numNotes = procedure->GetNumberOfNotes();
-  
-  bool deleteFlag = true;
-  if ( numNotes != this->NotesList->GetWidget()->GetNumberOfRows() )
+  if (    this->NotesList != NULL
+       && this->NotesList->GetWidget() != NULL )
     {
-    this->NotesList->GetWidget()->DeleteAllRows();
-    }
-  else
-    {
-    deleteFlag = false;
-    }
-  
-  
-  const int PRECISION_DIGITS = 1;
-  
-  for ( int row = 0; row < numNotes; ++ row )
-    {
-    PerkNote* note = procedure->GetNoteAtIndex( row );
+    int numNotes = procedure->GetNumberOfNotes();
     
-    if ( deleteFlag )
+    bool deleteFlag = true;
+    if ( numNotes != this->NotesList->GetWidget()->GetNumberOfRows() )
       {
-      this->NotesList->GetWidget()->AddRow();
+      this->NotesList->GetWidget()->DeleteAllRows();
+      }
+    else
+      {
+      deleteFlag = false;
       }
     
-    vtkKWMultiColumnList* colList = this->NotesList->GetWidget();
-    
-    colList->SetCellText( row, NOTES_COL_TIME, DoubleToStr( note->Time ).c_str() );
-    colList->SetCellText( row, NOTES_COL_MESSAGE, note->Message.c_str() );
+    for ( int row = 0; row < numNotes; ++ row )
+      {
+      PerkNote* note = procedure->GetNoteAtIndex( row );
+      
+      if ( deleteFlag )
+        {
+        this->NotesList->GetWidget()->AddRow();
+        }
+      
+      vtkKWMultiColumnList* colList = this->NotesList->GetWidget();
+      
+      colList->SetCellText( row, NOTES_COL_TIME, DoubleToStr( note->Time ).c_str() );
+      colList->SetCellText( row, NOTES_COL_MESSAGE, note->Message.c_str() );
+      }
     }
+  
+  
+    // Playback.
+  
+  this->EntrySec->SetValueAsDouble( procedure->GetTimeAtTransformIndex( procedure->GetTransformIndex() ) );
 }
 
 
@@ -782,5 +845,7 @@ vtkPerkProcedureEvaluatorGUI
   
   int rowIndex = this->NotesList->GetWidget()->GetIndexOfFirstSelectedRow();
   procedure->SetNoteIndex( rowIndex );
+  
+  this->UpdateAll();
 }
 
