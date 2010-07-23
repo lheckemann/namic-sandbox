@@ -120,6 +120,7 @@ vtkPerkProcedureEvaluatorGUI
   this->PerkProcedureSelector = NULL;
   this->PlanningVolumeSelector = NULL;
   this->CalibrationSelector = NULL;
+  this->NeedleTransformSelector = NULL;
   
   this->LoadButton = NULL;
   
@@ -171,6 +172,7 @@ vtkPerkProcedureEvaluatorGUI
   DELETE_WITH_SETPARENT_NULL( this->PerkProcedureSelector );
   DELETE_WITH_SETPARENT_NULL( this->PlanningVolumeSelector );
   DELETE_WITH_SETPARENT_NULL( this->CalibrationSelector );
+  DELETE_WITH_SETPARENT_NULL( this->NeedleTransformSelector );
   
   DELETE_WITH_SETPARENT_NULL( this->LoadButton );
   
@@ -263,6 +265,7 @@ vtkPerkProcedureEvaluatorGUI
   REMOVE_OBSERVERS( this->PerkProcedureSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->PlanningVolumeSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->CalibrationSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  REMOVE_OBSERVERS( this->NeedleTransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
   REMOVE_OBSERVERS( this->LoadButton, vtkKWPushButton::InvokedEvent );
   
@@ -306,6 +309,7 @@ vtkPerkProcedureEvaluatorGUI
   ADD_OBSERVER( this->PerkProcedureSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   ADD_OBSERVER( this->PlanningVolumeSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   ADD_OBSERVER( this->CalibrationSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  ADD_OBSERVER( this->NeedleTransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
   ADD_OBSERVER( this->LoadButton->GetLoadSaveDialog(), vtkKWTopLevel::WithdrawEvent );
   
@@ -378,6 +382,14 @@ vtkPerkProcedureEvaluatorGUI
     this->ProcessProcedureSelected();
     }
   
+  else if (    this->NeedleTransformSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
+            && (    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
+                 || event == vtkSlicerNodeSelectorWidget::NewNodeEvent ) )
+    {
+    vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast(
+      this->NeedleTransformSelector->GetSelected() );
+    
+    }
   
   else if (    this->LoadButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast( caller )
             && event == vtkKWTopLevel::WithdrawEvent )
