@@ -85,11 +85,17 @@ public:
   }
   
   PerkNote* GetNoteAtIndex( int index );
+  double GetTimeAtTransformIndex( int index );
   
   
   vtkGetStringMacro( ObservedTransformNodeID );
   vtkMRMLLinearTransformNode* GetObservedTransformNode();
   void SetAndObserveObservedTransformNodeID( const char *TransformNodeRef );
+  
+  vtkGetStringMacro( NeedleTransformNodeID );
+  vtkMRMLLinearTransformNode* GetNeedleTransformNode();
+  void SetAndObserveNeedleTransformNodeID( const char *TransformNodeRef );
+  
   
   void SetNoteIndex( int ind );
   vtkGetMacro( NoteIndex, int );
@@ -125,12 +131,16 @@ private:
   //ETX
   
   
-    // Transform Needle tip to RAS.
+    // Transform: Needle tip to Calibration.
   
   char* ObservedTransformNodeID;
   vtkSetReferenceStringMacro( ObservedTransformNodeID );
   vtkMRMLLinearTransformNode* ObservedTransformNode;
   
+    // Transform: Needle tip to World (RAS).
+  char* NeedleTransformNodeID;
+  vtkSetReferenceStringMacro( NeedleTransformNodeID );
+  vtkMRMLLinearTransformNode* NeedleTransformNode;
 };
 
 

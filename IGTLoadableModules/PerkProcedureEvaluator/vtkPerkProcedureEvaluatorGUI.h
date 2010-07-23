@@ -98,11 +98,12 @@ public:
   //----------------------------------------------------------------
   // Build Frames
   
-  virtual void BuildGUI ( );
+  virtual void BuildGUI();
   void BuildGUIForHelpFrame();
   void BuildGUIForInputFrame();
   void BuildGUIForNotesList();
   void BuildGUIForPlaybackFrame();
+  void BuildGUIForResultsFrame();
   
   
   //----------------------------------------------------------------
@@ -145,6 +146,17 @@ protected:
   vtkKWPushButton* ButtonGo;
   
   vtkKWLabel* PositionLabel;
+  
+    // Results frame.
+  
+  vtkKWLabel*      LabelBegin;
+  vtkKWLabel*      LabelEnd;
+  vtkKWPushButton* ButtonMeasureBegin;
+  vtkKWPushButton* ButtonMeasureEnd;
+  vtkKWPushButton* ButtonMeasure;
+  vtkKWLabel*      LabelTotalTime;
+  vtkKWLabel*      LabelPathInside;
+  vtkKWLabel*      LabelTimeInside;
   
   
   //----------------------------------------------------------------

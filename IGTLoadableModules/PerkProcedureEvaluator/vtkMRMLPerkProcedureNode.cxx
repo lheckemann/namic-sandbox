@@ -29,7 +29,7 @@ StrToTransform( std::string str )
   double e20; ss >> e20; double e21; ss >> e21; double e22; ss >> e22; double e23; ss >> e23;
   double e30; ss >> e30; double e31; ss >> e31; double e32; ss >> e32; double e33; ss >> e33;
   
-  vtkTransform* tr = vtkTransform::New();
+  vtkTransform* tr = vtkTransform::New(); // Needs to be deleted after using return data.
   tr->Identity();
   
   tr->GetMatrix()->SetElement( 0, 0, e00 );
@@ -166,7 +166,7 @@ vtkMRMLPerkProcedureNode
     
     if ( strcmp( type, "message" ) == 0 )
       {
-      PerkNote* note = new PerkNote;
+      PerkNote* note = new PerkNote; // Deleted in NoteList destructor.
       note->Time = time;
       note->Event = PerkNote::NoEvent;
       note->Message = std::string( noteElement->GetAttribute( "message" ) );
@@ -209,6 +209,17 @@ vtkMRMLPerkProcedureNode
 
 
 
+double
+vtkMRMLPerkProcedureNode
+::GetTimeAtTransformIndex( int index )
+{
+    // Index validity checked in TransformTimeSeries.
+  
+  return this->TransformTimeSeries->GetTimeAtIndex( index );
+}
+
+
+
 vtkMRMLLinearTransformNode*
 vtkMRMLPerkProcedureNode
 ::GetObservedTransformNode()
@@ -235,6 +246,37 @@ vtkMRMLPerkProcedureNode
   if ( tnode )
     {
     tnode->AddObserver( vtkMRMLLinearTransformNode::TransformModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand );
+    }
+}
+
+
+
+vtkMRMLLinearTransformNode*
+vtkMRMLPerkProcedureNode
+::GetNeedleTransformNode()
+{
+  vtkMRMLLinearTransformNode* node = NULL;
+  if ( this->GetScene() && this->NeedleTransformNodeID != NULL )
+    {
+    vtkMRMLNode* cnode = this->GetScene()->GetNodeByID( this->NeedleTransformNodeID );
+    node = vtkMRMLLinearTransformNode::SafeDownCast( cnode );
+    }
+  return node;
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::SetAndObserveNeedleTransformNodeID( const char *TransformNodeRef )
+{
+  vtkSetAndObserveMRMLObjectMacro( this->NeedleTransformNode, NULL );
+  this->SetNeedleTransformNodeID( TransformNodeRef );
+  vtkMRMLLinearTransformNode* cnode = this->GetNeedleTransformNode();
+  vtkSetAndObserveMRMLObjectMacro( this->NeedleTransformNode, cnode );
+  if ( cnode )
+    {
+    cnode->AddObserver( vtkMRMLLinearTransformNode::TransformModifiedEvent, (vtkCommand*)(this->MRMLCallbackCommand) );
     }
 }
 
@@ -273,19 +315,22 @@ vtkMRMLPerkProcedureNode
     }
   
   if ( index < numRecords ) this->TransformIndex = index;
+  else this->TransformIndex = numRecords - 1;
   
   
     // Update transform.
   
-  vtkTransform* transform = this->TransformTimeSeries->GetTransformAtIndex( this->TransformIndex );
-  
-  vtkMatrix4x4* obsMtx = this->ObservedTransformNode->GetMatrixTransformToParent();
-  
-  for ( int i = 0; i < 4; i ++ ) 
+  if ( this->NeedleTransformNode )
     {
-    for ( int j = 0; j < 4; j ++ )
+    vtkTransform* transform = this->TransformTimeSeries->GetTransformAtIndex( this->TransformIndex );
+    vtkMatrix4x4* needleMtx = this->NeedleTransformNode->GetMatrixTransformToParent();
+    
+    for ( int i = 0; i < 4; i ++ ) 
       {
-      obsMtx->SetElement( i, j, ( transform->GetMatrix()->GetElement( i, j ) ) );
+      for ( int j = 0; j < 4; j ++ )
+        {
+        needleMtx->SetElement( i, j, ( transform->GetMatrix()->GetElement( i, j ) ) );
+        }
       }
     }
 }
@@ -301,6 +346,9 @@ vtkMRMLPerkProcedureNode
   this->TransformTimeSeries = vtkTransformTimeSeries::New();
   
   this->ObservedTransformNode = NULL;
+  this->ObservedTransformNodeID = NULL;
+  this->NeedleTransformNode = NULL;
+  this->NeedleTransformNodeID = NULL;
   
   this->NoteIndex = -1;
   this->TransformIndex = -1;
@@ -317,7 +365,9 @@ vtkMRMLPerkProcedureNode
   this->TransformTimeSeries = NULL;
   
   this->RemoveMRMLObservers();
+  
   this->SetAndObserveObservedTransformNodeID( NULL );
+  this->SetAndObserveNeedleTransformNodeID( NULL );
 }
 
 
@@ -326,6 +376,12 @@ void
 vtkMRMLPerkProcedureNode
 ::RemoveMRMLObservers()
 {
+  if (    this->NeedleTransformNode
+       && this->NeedleTransformNode->HasObserver( vtkMRMLLinearTransformNode::TransformModifiedEvent ) )
+    {
+    this->NeedleTransformNode->RemoveObservers( vtkMRMLLinearTransformNode::TransformModifiedEvent );
+    }
+  
   if (    this->ObservedTransformNode
        && this->ObservedTransformNode->HasObserver( vtkMRMLTransformNode::TransformModifiedEvent ) )
     {
