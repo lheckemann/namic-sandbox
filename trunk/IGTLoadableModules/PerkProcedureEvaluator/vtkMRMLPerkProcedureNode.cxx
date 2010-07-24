@@ -298,6 +298,24 @@ vtkMRMLPerkProcedureNode
 
 void
 vtkMRMLPerkProcedureNode
+::MarkIndexBegin()
+{
+  this->IndexBegin = this->TransformIndex;
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::MarkIndexEnd()
+{
+  this->IndexEnd = this->TransformIndex;
+}
+  
+
+
+void
+vtkMRMLPerkProcedureNode
 ::UpdateTransformIndex()
 {
   PerkNote* note = this->GetNoteAtIndex( this->NoteIndex );
@@ -337,6 +355,20 @@ vtkMRMLPerkProcedureNode
 
 
 
+void
+vtkMRMLPerkProcedureNode
+::UpdateMeasurements()
+{
+  if ( this->IndexBegin < 0  ||  this->IndexEnd < 0 )
+    {
+    return;
+    }
+  
+  this->TotalTime = this->GetTimeAtTransformIndex( this->IndexEnd ) - this->GetTimeAtTransformIndex( this->IndexBegin );
+}
+
+
+
 vtkMRMLPerkProcedureNode
 ::vtkMRMLPerkProcedureNode()
 {
@@ -352,6 +384,14 @@ vtkMRMLPerkProcedureNode
   
   this->NoteIndex = -1;
   this->TransformIndex = -1;
+  this->IndexBegin = -1;
+  this->IndexEnd = -1;
+  
+    // Measurements.
+  
+  TotalTime = 0.0;
+  PathInside = 0.0;
+  TimeInside = 0.0;
 }
 
 

@@ -55,12 +55,6 @@ protected:
   virtual ~vtkPerkProcedureEvaluatorGUI ( );
 
 
-private:
-  
-  vtkPerkProcedureEvaluatorGUI ( const vtkPerkProcedureEvaluatorGUI& ); // Not implemented.
-  void operator = ( const vtkPerkProcedureEvaluatorGUI& ); //Not implemented.
-
-
 public:
   
   
@@ -168,7 +162,10 @@ protected:
 
 
 private:
-  
+
+  vtkPerkProcedureEvaluatorGUI ( const vtkPerkProcedureEvaluatorGUI& ); // Not implemented.
+  void operator = ( const vtkPerkProcedureEvaluatorGUI& ); //Not implemented.
+
   void ProcessLoadButton();
   void ProcessProcedureSelected();
   
