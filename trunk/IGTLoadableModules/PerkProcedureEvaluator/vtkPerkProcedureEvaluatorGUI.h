@@ -120,7 +120,7 @@ protected:
   
   vtkSlicerNodeSelectorWidget* PerkProcedureSelector;
   vtkSlicerNodeSelectorWidget* PlanningVolumeSelector;
-  vtkSlicerNodeSelectorWidget* CalibrationSelector;
+  vtkSlicerNodeSelectorWidget* BoxFiducialsSelector;
   vtkSlicerNodeSelectorWidget* NeedleTransformSelector;
   vtkKWLoadSaveButton* LoadButton;
   

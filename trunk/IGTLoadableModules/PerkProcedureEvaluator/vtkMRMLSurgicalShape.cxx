@@ -52,3 +52,21 @@ vtkMRMLSurgicalShape
 {
   Superclass::PrintSelf(os,indent);
 }
+
+
+
+bool
+vtkMRMLSurgicalShape
+::IsInside( double r, double a, double s )
+{
+  return false;
+}
+
+
+
+bool
+vtkMRMLSurgicalShape
+::IsInside( const double* point )
+{
+  return false;
+}
