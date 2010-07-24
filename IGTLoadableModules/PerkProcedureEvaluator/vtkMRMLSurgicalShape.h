@@ -4,6 +4,12 @@
 
 
 #include "vtkMRMLNode.h"
+#include "vtkMRMLScene.h"
+
+
+class vtkMRMLFiducialListNode;
+class vtkMRMLModelNode;
+class vtkPolyData;
 
 
 /**
@@ -37,15 +43,27 @@ public:
   
   virtual bool IsInside( double r, double a, double s );
   virtual bool IsInside( const double* point );
+  virtual void Initialize( vtkMRMLFiducialListNode* fiducials ) = 0;
   
   
 protected:
-
+  
+  virtual void AddModelNode( const char* nodeName, double r, double g, double b ) = 0;
+  
   vtkMRMLSurgicalShape();
   ~vtkMRMLSurgicalShape();
   vtkMRMLSurgicalShape( const vtkMRMLSurgicalShape& );
   void operator=( const vtkMRMLSurgicalShape& );
   
+  
+    // MRML Model.
+  
+  vtkGetStringMacro( ModelNodeRef );
+  vtkSetReferenceStringMacro( ModelNodeRef );
+  vtkMRMLModelNode* GetModelNode();
+  
+  vtkPolyData*  ModelPolyData;
+  char*         ModelNodeRef;  // Store in the scene.
 };
 
 #endif

@@ -2,11 +2,18 @@
 #include "vtkMRMLSurgicalShape.h"
 
 
+#include "vtkPolyData.h"
+
+#include "vtkMRMLFiducialListNode.h"
+#include "vtkMRMLModelNode.h"
+
+
 
 vtkMRMLSurgicalShape
 ::vtkMRMLSurgicalShape()
 {
-  
+  this->ModelPolyData = vtkPolyData::New();
+  this->ModelNodeRef = NULL;
 }
 
 
@@ -14,7 +21,13 @@ vtkMRMLSurgicalShape
 vtkMRMLSurgicalShape
 ::~vtkMRMLSurgicalShape()
 {
+  this->SetModelNodeRef( NULL );
   
+  if ( this->ModelPolyData )
+    {
+    this->ModelPolyData->Delete();
+    this->ModelPolyData = NULL;
+    }
 }
 
 
@@ -69,4 +82,18 @@ vtkMRMLSurgicalShape
 ::IsInside( const double* point )
 {
   return false;
+}
+
+
+
+vtkMRMLModelNode*
+vtkMRMLSurgicalShape
+::GetModelNode()
+{
+  if ( this->GetScene()  &&  this->ModelNodeRef != NULL )
+    {
+    return vtkMRMLModelNode::SafeDownCast( this->GetScene()->GetNodeByID( this->ModelNodeRef ) );
+    }
+  
+  return NULL;
 }
