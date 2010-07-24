@@ -32,6 +32,13 @@ public:
      Superclass::UpdateScene( scene );
   };
   
+  
+    // Specific functions.
+  
+  virtual bool IsInside( double r, double a, double s );
+  virtual bool IsInside( const double* point );
+  
+  
 protected:
 
   vtkMRMLSurgicalShape();

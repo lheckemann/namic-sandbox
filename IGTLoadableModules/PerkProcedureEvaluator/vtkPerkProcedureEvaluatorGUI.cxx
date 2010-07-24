@@ -119,7 +119,7 @@ vtkPerkProcedureEvaluatorGUI
   
   this->PerkProcedureSelector = NULL;
   this->PlanningVolumeSelector = NULL;
-  this->CalibrationSelector = NULL;
+  this->BoxFiducialsSelector = NULL;
   this->NeedleTransformSelector = NULL;
   
   this->LoadButton = NULL;
@@ -182,7 +182,7 @@ vtkPerkProcedureEvaluatorGUI
 
   DELETE_WITH_SETPARENT_NULL( this->PerkProcedureSelector );
   DELETE_WITH_SETPARENT_NULL( this->PlanningVolumeSelector );
-  DELETE_WITH_SETPARENT_NULL( this->CalibrationSelector );
+  DELETE_WITH_SETPARENT_NULL( this->BoxFiducialsSelector );
   DELETE_WITH_SETPARENT_NULL( this->NeedleTransformSelector );
   DELETE_WITH_SETPARENT_NULL( this->LoadButton );
   
@@ -286,7 +286,7 @@ vtkPerkProcedureEvaluatorGUI
   
   REMOVE_OBSERVERS( this->PerkProcedureSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->PlanningVolumeSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
-  REMOVE_OBSERVERS( this->CalibrationSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  REMOVE_OBSERVERS( this->BoxFiducialsSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->NeedleTransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
   REMOVE_OBSERVERS( this->LoadButton, vtkKWPushButton::InvokedEvent );
@@ -338,7 +338,7 @@ vtkPerkProcedureEvaluatorGUI
   
   ADD_OBSERVER( this->PerkProcedureSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   ADD_OBSERVER( this->PlanningVolumeSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
-  ADD_OBSERVER( this->CalibrationSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  ADD_OBSERVER( this->BoxFiducialsSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   ADD_OBSERVER( this->NeedleTransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
   ADD_OBSERVER( this->LoadButton->GetLoadSaveDialog(), vtkKWTopLevel::WithdrawEvent );
@@ -595,16 +595,16 @@ vtkPerkProcedureEvaluatorGUI
     this->PlanningVolumeSelector->SetLabelText( "Planning image" );
     }
   
-  if ( ! this->CalibrationSelector )
+  if ( ! this->BoxFiducialsSelector )
     {
-    this->CalibrationSelector = vtkSlicerNodeSelectorWidget::New();
-    this->CalibrationSelector->SetNodeClass( "vtkMRMLTransformNode", NULL, NULL, "Calibration transform" );
-    this->CalibrationSelector->SetParent( inputFrame->GetFrame() );
-    this->CalibrationSelector->Create();
-    this->CalibrationSelector->NoneEnabledOn();
-    this->CalibrationSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
-    this->CalibrationSelector->UpdateMenu();
-    this->CalibrationSelector->SetLabelText( "Calibration transform" );
+    this->BoxFiducialsSelector = vtkSlicerNodeSelectorWidget::New();
+    this->BoxFiducialsSelector->SetNodeClass( "vtkMRMLFiducialListNode", NULL, NULL, "Box fiducials list" );
+    this->BoxFiducialsSelector->SetParent( inputFrame->GetFrame() );
+    this->BoxFiducialsSelector->Create();
+    this->BoxFiducialsSelector->NoneEnabledOn();
+    this->BoxFiducialsSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
+    this->BoxFiducialsSelector->UpdateMenu();
+    this->BoxFiducialsSelector->SetLabelText( "Box fiducials list" );
     }
   
   if ( ! this->NeedleTransformSelector )
@@ -622,7 +622,7 @@ vtkPerkProcedureEvaluatorGUI
   this->Script( "pack %s %s %s %s -side top -fill x -padx 2 -pady 2", 
                 this->PerkProcedureSelector->GetWidgetName(),
                 this->PlanningVolumeSelector->GetWidgetName(),
-                this->CalibrationSelector->GetWidgetName(),
+                this->BoxFiducialsSelector->GetWidgetName(),
                 this->NeedleTransformSelector->GetWidgetName() );
   
   
@@ -967,7 +967,7 @@ vtkPerkProcedureEvaluatorGUI
   
   if ( procedure->GetIndexBegin() >= 0 && procedure->GetIndexEnd() >= 0 )
     {
-    this->LabelTotalTime->SetText( DoubleToStr( procedure->GetTotalTime() );
+    this->LabelTotalTime->SetText( DoubleToStr( procedure->GetTotalTime() ).c_str() );
     }
 }
 
