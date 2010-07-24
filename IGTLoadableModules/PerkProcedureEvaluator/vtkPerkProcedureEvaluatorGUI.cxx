@@ -294,9 +294,9 @@ vtkPerkProcedureEvaluatorGUI
   
     // Results frame.
   
-  REMOVE_OBSERVERS( this->ButtonMeasure, vtkKWPushButton::InvokedEvent );
   REMOVE_OBSERVERS( this->ButtonMeasureBegin, vtkKWPushButton::InvokedEvent );
   REMOVE_OBSERVERS( this->ButtonMeasureEnd, vtkKWPushButton::InvokedEvent );
+  REMOVE_OBSERVERS( this->ButtonMeasure, vtkKWPushButton::InvokedEvent );
   
   
   if ( this->NotesList )
@@ -346,9 +346,9 @@ vtkPerkProcedureEvaluatorGUI
   
     // Results frame.
   
-  ADD_OBSERVER( this->ButtonMeasure, vtkKWPushButton::InvokedEvent );
   ADD_OBSERVER( this->ButtonMeasureBegin, vtkKWPushButton::InvokedEvent );
   ADD_OBSERVER( this->ButtonMeasureEnd, vtkKWPushButton::InvokedEvent );
+  ADD_OBSERVER( this->ButtonMeasure, vtkKWPushButton::InvokedEvent );
   
   
   if ( this->NotesList )
@@ -411,7 +411,7 @@ vtkPerkProcedureEvaluatorGUI
     HandleMouseEvent(style);
     return;
     }
-
+  
   
   if (    this->PerkProcedureSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller ) 
        && (    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
@@ -433,6 +433,27 @@ vtkPerkProcedureEvaluatorGUI
             && event == vtkKWTopLevel::WithdrawEvent )
     {
     this->ProcessLoadButton();
+    }
+  
+  else if (    this->ButtonMeasureBegin == vtkKWPushButton::SafeDownCast( caller )
+            && event == vtkKWPushButton::InvokedEvent )
+    {
+    this->ProcedureNode->MarkIndexBegin();
+    this->UpdateAll();
+    }
+  
+  else if (    this->ButtonMeasureEnd == vtkKWPushButton::SafeDownCast( caller )
+            && event == vtkKWPushButton::InvokedEvent )
+    {
+    this->ProcedureNode->MarkIndexEnd();
+    this->UpdateAll();
+    }
+  
+  else if (    this->ButtonMeasure == vtkKWPushButton::SafeDownCast( caller )
+            && event == vtkKWPushButton::InvokedEvent )
+    {
+    this->ProcedureNode->UpdateMeasurements();
+    this->UpdateAll();
     }
 } 
 
@@ -743,7 +764,144 @@ void
 vtkPerkProcedureEvaluatorGUI
 ::BuildGUIForResultsFrame()
 {
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "PerkProcedureEvaluator" );
+  vtkSlicerApplication *app = (vtkSlicerApplication*)this->GetApplication();
   
+  
+  vtkSmartPointer< vtkSlicerModuleCollapsibleFrame > resultsFrame = vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();
+  resultsFrame->SetParent( page );
+  resultsFrame->Create();
+  resultsFrame->SetLabelText( "Measurement Results" );
+  app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               resultsFrame->GetWidgetName(), page->GetWidgetName() );
+  
+  
+    // Label begin.
+  
+  vtkSmartPointer< vtkKWLabel > labelBegin = vtkSmartPointer< vtkKWLabel >::New();
+    labelBegin->SetParent( resultsFrame->GetFrame() );
+    labelBegin->Create();
+    labelBegin->SetText( "Begin of measurement" );
+    
+  if ( ! this->LabelBegin )
+    {
+    this->LabelBegin = vtkKWLabel::New();
+    this->LabelBegin->SetParent( resultsFrame->GetFrame() );
+    this->LabelBegin->Create();
+    this->LabelBegin->SetText( "-" );
+    this->LabelBegin->SetWidth( 10 );
+    }
+  
+  if ( ! this->ButtonMeasureBegin )
+    {
+    this->ButtonMeasureBegin = vtkKWPushButton::New();
+    this->ButtonMeasureBegin->SetParent( resultsFrame->GetFrame() );
+    this->ButtonMeasureBegin->Create();
+    this->ButtonMeasureBegin->SetText( "Mark Begin" );
+    }
+  
+  this->Script( "grid %s -column 0 -row 0 -sticky w -padx 4 -pady 1", labelBegin->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 0 -sticky w -padx 4 -pady 1", this->LabelBegin->GetWidgetName() );
+  this->Script( "grid %s -column 2 -row 0 -sticky w -padx 4 -pady 1", this->ButtonMeasureBegin->GetWidgetName() );
+  
+  
+    // Label end.
+  
+  vtkSmartPointer< vtkKWLabel > labelEnd = vtkSmartPointer< vtkKWLabel >::New();
+    labelEnd->SetParent( resultsFrame->GetFrame() );
+    labelEnd->Create();
+    labelEnd->SetText( "End of measurement" );
+  
+  if ( ! this->LabelEnd )
+    {
+    this->LabelEnd = vtkKWLabel::New();
+    this->LabelEnd->SetParent( resultsFrame->GetFrame() );
+    this->LabelEnd->Create();
+    this->LabelEnd->SetText( "-" );
+    this->LabelEnd->SetWidth( 10 );
+    }
+  
+  if ( ! this->ButtonMeasureEnd )
+    {
+    this->ButtonMeasureEnd = vtkKWPushButton::New();
+    this->ButtonMeasureEnd->SetParent( resultsFrame->GetFrame() );
+    this->ButtonMeasureEnd->Create();
+    this->ButtonMeasureEnd->SetText( "Mark End" );
+    }
+  
+  this->Script( "grid %s -column 0 -row 1 -sticky w -padx 4 -pady 1", labelEnd->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 1 -sticky w -padx 4 -pady 1", this->LabelEnd->GetWidgetName() );
+  this->Script( "grid %s -column 2 -row 1 -sticky w -padx 4 -pady 1", this->ButtonMeasureEnd->GetWidgetName() );
+  
+  
+    // Measure button.
+  
+  if ( ! this->ButtonMeasure )
+    {
+    this->ButtonMeasure = vtkKWPushButton::New();
+    this->ButtonMeasure->SetParent( resultsFrame->GetFrame() );
+    this->ButtonMeasure->Create();
+    this->ButtonMeasure->SetText( "Perform Measurements" );
+    }
+  
+  this->Script( "grid %s -column 2 -row 2 -sticky w -padx 4 -pady 1", this->ButtonMeasure->GetWidgetName() );
+  
+  
+    // Total time.
+  
+  vtkSmartPointer< vtkKWLabel > labelTotalTime = vtkSmartPointer< vtkKWLabel >::New();
+    labelTotalTime->SetParent( resultsFrame->GetFrame() );
+    labelTotalTime->Create();
+    labelTotalTime->SetText( "Total procedure time (sec): " );
+  
+  if ( ! this->LabelTotalTime )
+    {
+    this->LabelTotalTime = vtkKWLabel::New();
+    this->LabelTotalTime->SetParent( resultsFrame->GetFrame() );
+    this->LabelTotalTime->Create();
+    this->LabelTotalTime->SetText( " - " );
+    }
+  
+  this->Script( "grid %s -column 0 -row 3 -sticky w -padx 4 -pady 1", labelTotalTime->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 3 -sticky w -padx 4 -pady 1", this->LabelTotalTime->GetWidgetName() );
+  
+  
+    // Label path inside.
+  
+  vtkSmartPointer< vtkKWLabel > labelPathInside = vtkSmartPointer< vtkKWLabel >::New();
+    labelPathInside->SetParent( resultsFrame->GetFrame() );
+    labelPathInside->Create();
+    labelPathInside->SetText( "Path inside body (mm): " );
+  
+  if ( ! this->LabelPathInside )
+    {
+    this->LabelPathInside = vtkKWLabel::New();
+    this->LabelPathInside->SetParent( resultsFrame->GetFrame() );
+    this->LabelPathInside->Create();
+    this->LabelPathInside->SetText( " - " );
+    }
+  
+  this->Script( "grid %s -column 0 -row 4 -sticky w -padx 4 -pady 1", labelPathInside->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 4 -sticky w -padx 4 -pady 1", this->LabelPathInside->GetWidgetName() );
+  
+  
+    // Label time inside.
+  
+  vtkSmartPointer< vtkKWLabel > labelTimeInside = vtkSmartPointer< vtkKWLabel >::New();
+    labelTimeInside->SetParent( resultsFrame->GetFrame() );
+    labelTimeInside->Create();
+    labelTimeInside->SetText( "Time inside body (sec): " );
+  
+  if ( ! this->LabelTimeInside )
+    {
+    this->LabelTimeInside = vtkKWLabel::New();
+    this->LabelTimeInside->SetParent( resultsFrame->GetFrame() );
+    this->LabelTimeInside->Create();
+    this->LabelTimeInside->SetText( " - " );
+    }
+  
+  this->Script( "grid %s -column 0 -row 5 -sticky w -padx 4 -pady 1", labelTimeInside->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 5 -sticky w -padx 4 -pady 1", this->LabelTimeInside->GetWidgetName() );
 }
 
 
@@ -793,6 +951,24 @@ vtkPerkProcedureEvaluatorGUI
     // Playback.
   
   this->EntrySec->SetValueAsDouble( procedure->GetTimeAtTransformIndex( procedure->GetTransformIndex() ) );
+  
+  
+    // Measurement results.
+  
+  if ( procedure->GetIndexBegin() >= 0 )
+    {
+    this->LabelBegin->SetText( DoubleToStr( procedure->GetTimeAtTransformIndex( procedure->GetIndexBegin() ) ).c_str() );
+    }
+  
+  if ( procedure->GetIndexEnd() >= 0 )
+    {
+    this->LabelEnd->SetText( DoubleToStr( procedure->GetTimeAtTransformIndex( procedure->GetIndexEnd() ) ).c_str() );
+    }
+  
+  if ( procedure->GetIndexBegin() >= 0 && procedure->GetIndexEnd() >= 0 )
+    {
+    this->LabelTotalTime->SetText( DoubleToStr( procedure->GetTotalTime() );
+    }
 }
 
 

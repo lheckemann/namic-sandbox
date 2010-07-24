@@ -15,6 +15,7 @@
 
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
+#include "vtkMRMLSurgicalShape.h"
 
 #include "vtkTransformTimeSeries.h"
 
@@ -103,7 +104,18 @@ public:
   vtkSetMacro( TransformIndex, int );
   vtkGetMacro( TransformIndex, int );
   
+  void MarkIndexBegin();
+  void MarkIndexEnd();
+  vtkGetMacro( IndexBegin, int );
+  vtkGetMacro( IndexEnd, int );
+  
+  vtkGetMacro( TotalTime, double );
+  vtkGetMacro( PathInside, double );
+  vtkGetMacro( TimeInside, double );
+  
+  
   void UpdateTransformIndex();
+  void UpdateMeasurements();
   
 
 protected:
@@ -141,6 +153,18 @@ private:
   char* NeedleTransformNodeID;
   vtkSetReferenceStringMacro( NeedleTransformNodeID );
   vtkMRMLLinearTransformNode* NeedleTransformNode;
+  
+  
+    // For measurements.
+  
+  int IndexBegin;
+  int IndexEnd;
+  
+    // Measurements.
+  
+  double TotalTime;
+  double PathInside;
+  double TimeInside;
 };
 
 
