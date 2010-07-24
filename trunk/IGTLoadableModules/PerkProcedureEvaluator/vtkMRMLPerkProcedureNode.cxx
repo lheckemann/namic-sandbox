@@ -2,6 +2,7 @@
 #include "vtkMRMLPerkProcedureNode.h"
 
 
+#include <cmath>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -17,6 +18,14 @@
 
 
 // =============================================================
+
+
+#define DISTANCE( p1, p2 ) \
+  std::sqrt( \
+      ( p1[ 0 ] - p2[ 0 ] ) * ( p1[ 0 ] - p2[ 0 ] ) \
+    + ( p1[ 1 ] - p2[ 1 ] ) * ( p1[ 1 ] - p2[ 1 ] ) \
+    + ( p1[ 2 ] - p2[ 2 ] ) * ( p1[ 2 ] - p2[ 2 ] ) \
+    )
 
 
 vtkTransform*
@@ -282,6 +291,48 @@ vtkMRMLPerkProcedureNode
 
 
 
+vtkMRMLBoxShape*
+vtkMRMLPerkProcedureNode
+::GetBoxShapeNode()
+{
+  vtkMRMLBoxShape* node = NULL;
+  if ( this->GetScene() && this->NeedleTransformNodeID != NULL )
+    {
+    vtkMRMLNode* cnode = this->GetScene()->GetNodeByID( this->BoxShapeID );
+    node = vtkMRMLBoxShape::SafeDownCast( cnode );
+    }
+  return node;
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::SetAndObserveBoxShapeID( const char* boxShapeRef )
+{
+  vtkSetAndObserveMRMLObjectMacro( this->BoxShape, NULL );
+  this->SetBoxShapeID( boxShapeRef );
+  vtkMRMLBoxShape* node = this->GetBoxShapeNode();
+  vtkSetAndObserveMRMLObjectMacro( this->BoxShape, node );
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::BoxShapeFromFiducials( vtkMRMLFiducialListNode* fiducials )
+{
+  if ( ! this->BoxShape )
+    {
+    this->BoxShape = vtkMRMLBoxShape::New();
+    this->BoxShape->SetScene( this->GetScene() );
+    }
+  
+  this->BoxShape->Initialize( fiducials );
+}
+
+
+
 void
 vtkMRMLPerkProcedureNode
 ::SetNoteIndex( int ind )
@@ -335,9 +386,69 @@ vtkMRMLPerkProcedureNode
   if ( index < numRecords ) this->TransformIndex = index;
   else this->TransformIndex = numRecords - 1;
   
+  this->UpdateTransform();
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::UpdateMeasurements()
+{
+  if ( this->IndexBegin < 0  ||  this->IndexEnd < 0 )
+    {
+    return;
+    }
   
-    // Update transform.
+  this->TotalTime = this->GetTimeAtTransformIndex( this->IndexEnd )
+                                                   - this->GetTimeAtTransformIndex( this->IndexBegin );
   
+  
+    // Analyze transforms from begin to end.
+  
+  double pathInside = 0.0;
+  double timeInside = 0.0;
+  
+  double ltime = this->TransformTimeSeries->GetTimeAtIndex( this->IndexBegin );
+  vtkTransform* tr = this->TransformTimeSeries->GetTransformAtIndex( this->IndexBegin );
+  double lpos[ 3 ] = { 0, 0, 0 };   // last position
+    lpos[ 0 ] = tr->GetMatrix()->GetElement( 0, 3 );
+    lpos[ 1 ] = tr->GetMatrix()->GetElement( 1, 3 );
+    lpos[ 2 ] = tr->GetMatrix()->GetElement( 2, 3 );
+  
+  for ( int index = this->IndexBegin; index <= this->IndexEnd; ++ index )
+    {
+    double ctime = this->TransformTimeSeries->GetTimeAtIndex( index );
+    vtkTransform* ctr = this->TransformTimeSeries->GetTransformAtIndex( index );
+    
+    double cpos[ 3 ] = { ctr->GetMatrix()->GetElement( 0, 3 ),
+                         ctr->GetMatrix()->GetElement( 1, 3 ),
+                         ctr->GetMatrix()->GetElement( 2, 3 ) };
+    
+    bool inside = this->BoxShape->IsInside( cpos[ 0 ], cpos[ 1 ], cpos[ 2 ] );
+    double d = DISTANCE( lpos, cpos );
+    double dt = ctime - ltime;
+    
+    if ( inside )
+      {
+      pathInside += d;
+      timeInside += dt;
+      }
+    
+    ltime = ctime;
+    for ( int i = 0; i < 3; ++ i ) lpos[ i ] = cpos[ i ];
+    }
+  
+  this->TimeInside = timeInside;
+  this->PathInside = pathInside;
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::UpdateTransform()
+{
   if ( this->NeedleTransformNode )
     {
     vtkTransform* transform = this->TransformTimeSeries->GetTransformAtIndex( this->TransformIndex );
@@ -355,20 +466,6 @@ vtkMRMLPerkProcedureNode
 
 
 
-void
-vtkMRMLPerkProcedureNode
-::UpdateMeasurements()
-{
-  if ( this->IndexBegin < 0  ||  this->IndexEnd < 0 )
-    {
-    return;
-    }
-  
-  this->TotalTime = this->GetTimeAtTransformIndex( this->IndexEnd ) - this->GetTimeAtTransformIndex( this->IndexBegin );
-}
-
-
-
 vtkMRMLPerkProcedureNode
 ::vtkMRMLPerkProcedureNode()
 {
@@ -381,6 +478,9 @@ vtkMRMLPerkProcedureNode
   this->ObservedTransformNodeID = NULL;
   this->NeedleTransformNode = NULL;
   this->NeedleTransformNodeID = NULL;
+  this->BoxShape = NULL;
+  this->BoxShapeID = NULL;
+  
   
   this->NoteIndex = -1;
   this->TransformIndex = -1;
@@ -408,6 +508,7 @@ vtkMRMLPerkProcedureNode
   
   this->SetAndObserveObservedTransformNodeID( NULL );
   this->SetAndObserveNeedleTransformNodeID( NULL );
+  this->SetAndObserveBoxShapeID( NULL );
 }
 
 

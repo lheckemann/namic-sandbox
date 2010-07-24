@@ -49,6 +49,7 @@ install(FILES
 set(PerkProcedureEvaluator_SRCS 
   vtkPerkProcedureEvaluatorLogic.cxx
   vtkPerkProcedureEvaluatorGUI.cxx
+  vtkMRMLBoxShape.cxx
   vtkMRMLPerkProcedureNode.cxx
   vtkMRMLSurgicalShape.cxx
   vtkTransformTimeSeries.cxx

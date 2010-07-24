@@ -292,6 +292,16 @@ vtkPerkProcedureEvaluatorGUI
   REMOVE_OBSERVERS( this->LoadButton, vtkKWPushButton::InvokedEvent );
   
   
+    // Playback.
+  
+  REMOVE_OBSERVERS( this->ButtonBegin, vtkKWPushButton::InvokedEvent );
+  REMOVE_OBSERVERS( this->ButtonEnd, vtkKWPushButton::InvokedEvent );
+  REMOVE_OBSERVERS( this->ButtonNext, vtkKWPushButton::InvokedEvent );
+  REMOVE_OBSERVERS( this->ButtonPrevious, vtkKWPushButton::InvokedEvent );
+  REMOVE_OBSERVERS( this->ButtonPlay, vtkKWPushButton::InvokedEvent );
+  REMOVE_OBSERVERS( this->ButtonStop, vtkKWPushButton::InvokedEvent );
+  
+  
     // Results frame.
   
   REMOVE_OBSERVERS( this->ButtonMeasureBegin, vtkKWPushButton::InvokedEvent );
@@ -342,6 +352,16 @@ vtkPerkProcedureEvaluatorGUI
   ADD_OBSERVER( this->NeedleTransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
   ADD_OBSERVER( this->LoadButton->GetLoadSaveDialog(), vtkKWTopLevel::WithdrawEvent );
+  
+  
+    // Playback.
+  
+  ADD_OBSERVER( this->ButtonBegin, vtkKWPushButton::InvokedEvent );
+  ADD_OBSERVER( this->ButtonEnd, vtkKWPushButton::InvokedEvent );
+  ADD_OBSERVER( this->ButtonNext, vtkKWPushButton::InvokedEvent );
+  ADD_OBSERVER( this->ButtonPrevious, vtkKWPushButton::InvokedEvent );
+  ADD_OBSERVER( this->ButtonPlay, vtkKWPushButton::InvokedEvent );
+  ADD_OBSERVER( this->ButtonStop, vtkKWPushButton::InvokedEvent );
   
   
     // Results frame.
@@ -419,6 +439,14 @@ vtkPerkProcedureEvaluatorGUI
     {
     this->ProcessProcedureSelected();
     }
+    
+  else if (    this->BoxFiducialsSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
+            && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent )
+    {
+    vtkMRMLFiducialListNode* fiducials = vtkMRMLFiducialListNode::SafeDownCast(
+      this->BoxFiducialsSelector->GetSelected() );
+    this->ProcedureNode->BoxShapeFromFiducials( fiducials );
+    }
   
   else if (    this->NeedleTransformSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
             && (    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
@@ -434,6 +462,40 @@ vtkPerkProcedureEvaluatorGUI
     {
     this->ProcessLoadButton();
     }
+  
+  
+    // Playback.
+  
+  else if (    this->ButtonBegin == vtkKWPushButton::SafeDownCast( caller )
+            && event == vtkKWPushButton::InvokedEvent )
+    {
+    this->ProcedureNode->SetTransformIndex( 0 );
+    this->UpdateAll();
+    }
+  
+  else if (    this->ButtonEnd == vtkKWPushButton::SafeDownCast( caller )
+            && event == vtkKWPushButton::InvokedEvent )
+    {
+    this->ProcedureNode->SetTransformIndex( this->ProcedureNode->GetNumberOfTransforms() );
+    this->UpdateAll();
+    }
+  
+  else if (    this->ButtonNext == vtkKWPushButton::SafeDownCast( caller )
+            && event == vtkKWPushButton::InvokedEvent )
+    {
+    this->ProcedureNode->SetTransformIndex( this->ProcedureNode->GetTransformIndex() + 5 );
+    this->UpdateAll();
+    }
+  
+  else if (    this->ButtonPrevious == vtkKWPushButton::SafeDownCast( caller )
+            && event == vtkKWPushButton::InvokedEvent )
+    {
+    this->ProcedureNode->SetTransformIndex( this->ProcedureNode->GetTransformIndex() - 5 );
+    this->UpdateAll();
+    }
+  
+  
+    // Measure results.
   
   else if (    this->ButtonMeasureBegin == vtkKWPushButton::SafeDownCast( caller )
             && event == vtkKWPushButton::InvokedEvent )
@@ -968,6 +1030,8 @@ vtkPerkProcedureEvaluatorGUI
   if ( procedure->GetIndexBegin() >= 0 && procedure->GetIndexEnd() >= 0 )
     {
     this->LabelTotalTime->SetText( DoubleToStr( procedure->GetTotalTime() ).c_str() );
+    this->LabelPathInside->SetText( DoubleToStr( procedure->GetPathInside() ).c_str() );
+    this->LabelTimeInside->SetText( DoubleToStr( procedure->GetTimeInside() ).c_str() );
     }
 }
 

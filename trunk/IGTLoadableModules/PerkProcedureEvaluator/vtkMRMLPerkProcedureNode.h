@@ -15,7 +15,7 @@
 
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
-#include "vtkMRMLSurgicalShape.h"
+#include "vtkMRMLBoxShape.h"
 
 #include "vtkTransformTimeSeries.h"
 
@@ -85,6 +85,10 @@ public:
     return this->NoteList.size();
   }
   
+  int GetNumberOfTransforms() {
+    return this->TransformTimeSeries->GetNumberOfRecords();
+  }
+  
   PerkNote* GetNoteAtIndex( int index );
   double GetTimeAtTransformIndex( int index );
   
@@ -97,11 +101,27 @@ public:
   vtkMRMLLinearTransformNode* GetNeedleTransformNode();
   void SetAndObserveNeedleTransformNodeID( const char *TransformNodeRef );
   
+    
+    // Models.
+  
+  vtkGetStringMacro( BoxShapeID );
+  vtkMRMLBoxShape* GetBoxShapeNode();
+  void SetAndObserveBoxShapeID( const char* boxShapeRef );
+  void BoxShapeFromFiducials( vtkMRMLFiducialListNode* fiducials );
+  
+  
   
   void SetNoteIndex( int ind );
   vtkGetMacro( NoteIndex, int );
   
-  vtkSetMacro( TransformIndex, int );
+  void SetTransformIndex( int ind ) {
+    if ( ind >= 0 && ind < this->TransformTimeSeries->GetNumberOfRecords() )
+      {
+      this->TransformIndex = ind;
+      }
+    this->UpdateTransform();
+  }
+  
   vtkGetMacro( TransformIndex, int );
   
   void MarkIndexBegin();
@@ -116,6 +136,7 @@ public:
   
   void UpdateTransformIndex();
   void UpdateMeasurements();
+  void UpdateTransform();
   
 
 protected:
@@ -153,6 +174,13 @@ private:
   char* NeedleTransformNodeID;
   vtkSetReferenceStringMacro( NeedleTransformNodeID );
   vtkMRMLLinearTransformNode* NeedleTransformNode;
+  
+  
+    // Models.
+  
+  char* BoxShapeID;
+  vtkSetReferenceStringMacro( BoxShapeID );
+  vtkMRMLBoxShape* BoxShape;
   
   
     // For measurements.
