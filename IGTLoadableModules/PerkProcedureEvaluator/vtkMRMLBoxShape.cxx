@@ -186,7 +186,7 @@ vtkMRMLBoxShape
     if ( p[ 2 ] < MinS ) MinS = p[ 2 ]; else if ( p[ 2 ] > MaxS ) MaxS = p[ 2 ];
     }
   
-  this->AddModelNode( "BoxShape", 1.0, 0.8, 0.1 );
+  this->AddModelNode( "BoxShape", 1.0, 0.8, 0.1 ); // _*_ 
   
   this->Initialized = true;
 }
