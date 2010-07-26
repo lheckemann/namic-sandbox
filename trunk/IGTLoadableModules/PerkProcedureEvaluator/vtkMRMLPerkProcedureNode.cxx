@@ -229,6 +229,15 @@ vtkMRMLPerkProcedureNode
 
 
 
+vtkTransform*
+vtkMRMLPerkProcedureNode
+::GetTransformAtTransformIndex( int index )
+{
+  return this->TransformTimeSeries->GetTransformAtIndex( index );
+}
+
+
+
 vtkMRMLLinearTransformNode*
 vtkMRMLPerkProcedureNode
 ::GetObservedTransformNode()
@@ -302,6 +311,21 @@ vtkMRMLPerkProcedureNode
     node = vtkMRMLBoxShape::SafeDownCast( cnode );
     }
   return node;
+}
+
+
+
+bool
+vtkMRMLPerkProcedureNode
+::IsNeedleInsideBody()
+{
+  vtkTransform* ctr = this->TransformTimeSeries->GetTransformAtIndex( this->TransformIndex );
+  
+  double cpos[ 3 ] = { ctr->GetMatrix()->GetElement( 0, 3 ),
+                       ctr->GetMatrix()->GetElement( 1, 3 ),
+                       ctr->GetMatrix()->GetElement( 2, 3 ) };
+  
+  return this->BoxShape->IsInside( cpos[ 0 ], cpos[ 1 ], cpos[ 2 ] );
 }
 
 
