@@ -516,6 +516,7 @@ vtkPerkProcedureEvaluatorGUI
     {
     if ( this->AutoPlayOn ) this->AutoPlayOn = false;
     this->TimerLog->StopTimer();
+    this->TimerEventProcessing = false;
     }
   
   
@@ -1090,6 +1091,8 @@ vtkPerkProcedureEvaluatorGUI
   if ( then < now )
     {
     this->AutoPlayOn = false;
+    this->TimerLog->StopTimer();
+    this->TimerEventProcessing = false;
     return;
     }
   
