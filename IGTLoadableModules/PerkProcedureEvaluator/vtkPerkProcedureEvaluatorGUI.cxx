@@ -8,6 +8,7 @@
 #include "vtkCornerAnnotation.h"
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
+#include "vtkTimerLog.h"
 
 #include "vtkKWEvent.h"
 #include "vtkKWFrameWithLabel.h"
@@ -153,11 +154,11 @@ vtkPerkProcedureEvaluatorGUI
   this->LabelTimeInside = NULL;
   
   
-  // Locator  (MRML)
-  
   this->TimerFlag = 0;
-  
   this->ProcedureNode = NULL;
+  this->AutoPlayOn = false;
+  this->TimerLog = vtkTimerLog::New();
+  this->TimerEventProcessing = false;
 }
 
 
@@ -223,6 +224,13 @@ vtkPerkProcedureEvaluatorGUI
   if ( this->ProcedureNode )
     {
     vtkSetMRMLNodeMacro( this->ProcedureNode, NULL );
+    }
+  
+  
+  if ( this->TimerLog )
+    {
+    this->TimerLog->Delete();
+    this->TimerLog = NULL;
     }
 }
 
@@ -494,6 +502,22 @@ vtkPerkProcedureEvaluatorGUI
     this->UpdateAll();
     }
   
+  else if (    this->ButtonPlay == vtkKWPushButton::SafeDownCast( caller )
+            && event == vtkKWPushButton::InvokedEvent )
+    {
+    if ( ! this->AutoPlayOn ) this->AutoPlayOn = true;
+    
+    this->TimerLog->StartTimer();
+    vtkKWTkUtilities::CreateTimerHandler( this->GetApplication(), 0, this, "TimerHandler" );
+    }
+  
+  else if (    this->ButtonStop == vtkKWPushButton::SafeDownCast( caller )
+            && event == vtkKWPushButton::InvokedEvent )
+    {
+    if ( this->AutoPlayOn ) this->AutoPlayOn = false;
+    this->TimerLog->StopTimer();
+    }
+  
   
     // Measure results.
   
@@ -576,6 +600,8 @@ vtkPerkProcedureEvaluatorGUI
                                          this->TimerInterval,
                                          this, "ProcessTimerEvents");        
     }
+  
+  this->TimerHandler();
 }
 
 
@@ -1014,6 +1040,16 @@ vtkPerkProcedureEvaluatorGUI
   
   this->EntrySec->SetValueAsDouble( procedure->GetTimeAtTransformIndex( procedure->GetTransformIndex() ) );
   
+  vtkTransform* txform = procedure->GetTransformAtTransformIndex( procedure->GetTransformIndex() );
+  if ( txform )
+    {
+    vtkMatrix4x4* mtx = txform->GetMatrix();
+    std::stringstream ss;
+    ss << mtx->GetElement( 0, 3 ) << " " << mtx->GetElement( 1, 3 ) << " " << mtx->GetElement( 2, 3 );
+    if ( procedure->IsNeedleInsideBody() ) ss << " (inside body)";
+    else ss << " (outside body)";
+    this->PositionLabel->SetText( ss.str().c_str() );
+    }
   
     // Measurement results.
   
@@ -1033,6 +1069,44 @@ vtkPerkProcedureEvaluatorGUI
     this->LabelPathInside->SetText( DoubleToStr( procedure->GetPathInside() ).c_str() );
     this->LabelTimeInside->SetText( DoubleToStr( procedure->GetTimeInside() ).c_str() );
     }
+}
+
+
+
+void
+vtkPerkProcedureEvaluatorGUI
+::TimerHandler()
+{
+  if ( ! this->AutoPlayOn ) return;
+  
+  if ( this->TimerEventProcessing ) return;
+  this->TimerEventProcessing = true;
+  
+  
+  int index = this->ProcedureNode->GetTransformIndex();
+  double now = this->ProcedureNode->GetTimeAtTransformIndex( index );
+  double then = this->ProcedureNode->GetTimeAtTransformIndex( index + 1 );
+  
+  if ( then < now )
+    {
+    this->AutoPlayOn = false;
+    return;
+    }
+  
+  this->TimerLog->StopTimer();
+  double elapsed = this->TimerLog->GetElapsedTime();
+  this->TimerLog->StartTimer();
+  
+  double delay = then - now - elapsed;
+  if ( delay < 0.0 ) delay = 0.0;
+  
+  vtkKWTkUtilities::CreateTimerHandler( this->GetApplication(), delay, this, "TimerHandler" );
+  
+  this->ProcedureNode->SetTransformIndex( this->ProcedureNode->GetTransformIndex() + 1 );
+  this->UpdateAll();
+  
+  
+  this->TimerEventProcessing = false;
 }
 
 

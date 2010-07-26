@@ -6,8 +6,8 @@
 #include "vtkPerkProcedureEvaluatorWin32Header.h"
 #endif
 
-#include "vtkSlicerModuleGUI.h"
 #include "vtkCallbackCommand.h"
+#include "vtkSlicerModuleGUI.h"
 #include "vtkSlicerInteractorStyle.h"
 
 #include "vtkPerkProcedureEvaluatorLogic.h"
@@ -19,6 +19,7 @@ class vtkKWPushButton;
 class vtkKWLoadSaveButton;
 class vtkKWMultiColumnListWithScrollbars;
 class vtkSlicerNodeSelectorWidget;
+class vtkTimerLog;
 
 
 class
@@ -159,7 +160,9 @@ protected:
   vtkPerkProcedureEvaluatorLogic* Logic;
   vtkCallbackCommand*             DataCallbackCommand;
   int                             CloseScene;
-
+  
+  void TimerHandler();
+  
 
 private:
 
@@ -172,6 +175,10 @@ private:
   
   vtkMRMLPerkProcedureNode* ProcedureNode;
   char*                     ProcedureNodeID;
+  
+  bool AutoPlayOn;
+  vtkTimerLog* TimerLog;
+  bool TimerEventProcessing;
 };
 
 

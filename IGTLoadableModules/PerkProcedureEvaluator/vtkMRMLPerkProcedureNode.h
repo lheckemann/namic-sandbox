@@ -91,7 +91,7 @@ public:
   
   PerkNote* GetNoteAtIndex( int index );
   double GetTimeAtTransformIndex( int index );
-  
+  vtkTransform* GetTransformAtTransformIndex( int index );
   
   vtkGetStringMacro( ObservedTransformNodeID );
   vtkMRMLLinearTransformNode* GetObservedTransformNode();
@@ -100,6 +100,8 @@ public:
   vtkGetStringMacro( NeedleTransformNodeID );
   vtkMRMLLinearTransformNode* GetNeedleTransformNode();
   void SetAndObserveNeedleTransformNodeID( const char *TransformNodeRef );
+  
+  bool IsNeedleInsideBody();
   
     
     // Models.
