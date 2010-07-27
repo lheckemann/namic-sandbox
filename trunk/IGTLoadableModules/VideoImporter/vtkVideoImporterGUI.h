@@ -122,7 +122,7 @@ class VTK_VideoImporter_EXPORT vtkVideoImporterGUI : public vtkSlicerModuleGUI
 
   int ViewerBackgroundOn(vtkSlicerViewerWidget* vwidget, vtkImageData* imageData);
   int ViewerBackgroundOff(vtkSlicerViewerWidget* vwidget);
-  int StartCamera(int channel);
+  int StartCamera(int channel, const char* path);
   int StopCamera();
   int CameraHandler();
   int ProcessMotion(CvPoint2D32f* vector, CvPoint2D32f* position, int n);
