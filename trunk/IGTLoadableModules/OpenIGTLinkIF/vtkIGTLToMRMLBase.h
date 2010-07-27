@@ -64,7 +64,6 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLBase : public vtkObject
   // GetNodeEvents() returns a list of events, which an IGTLConnector should react to.
   // The first element should be an event to export data, although multiple events can be defined.
   virtual vtkIntArray* GetNodeEvents()    { return NULL; };
-
   virtual vtkMRMLNode* CreateNewNode(vtkMRMLScene* vtkNotUsed(scene), const char* vtkNotUsed(name))
     { return NULL; };
 
