@@ -271,7 +271,7 @@ void vtkVideoImporterGUI::AddGUIObservers ( )
   vtkIntArray* events = vtkIntArray::New();
   //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-  events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
+  events->InsertNextValue(vtkMRMLScene::SceneClosedEvent);
   
   if (this->GetMRMLScene() != NULL)
     {
@@ -402,23 +402,23 @@ void vtkVideoImporterGUI::ProcessGUIEvents(vtkObject *caller,
   //  }
   //else
 
-  
-
   if (this->VideoSourceButtonSet->GetWidget(0)
       == vtkKWRadioButton::SafeDownCast(caller)
       && event == vtkKWRadioButton::SelectedStateChangedEvent
       && this->VideoSourceButtonSet->GetWidget(0)->GetSelectedState() == 1)
     {
-    // Enable video source entry
-    // Disable File Selection interface
+    this->CameraChannelEntry->EnabledOn();
+    this->VideoFileSelectButton->EnabledOff();
+    this->VideoFileEntry->EnabledOff();
     }
-  else if (this->VideoSourceButtonSet->GetWidget(0)
+  else if (this->VideoSourceButtonSet->GetWidget(1)
            == vtkKWRadioButton::SafeDownCast(caller)
            && event == vtkKWRadioButton::SelectedStateChangedEvent
-           && this->VideoSourceButtonSet->GetWidget(0)->GetSelectedState() == 1)
+           && this->VideoSourceButtonSet->GetWidget(1)->GetSelectedState() == 1)
     {
-    // Disable video source entry
-    // Enable File Selection interface
+    this->CameraChannelEntry->EnabledOff();
+    this->VideoFileSelectButton->EnabledOn();
+    this->VideoFileEntry->EnabledOn();
     }
   else if (this->VideoFileSelectButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
@@ -465,17 +465,22 @@ void vtkVideoImporterGUI::ProcessGUIEvents(vtkObject *caller,
     if (this->VideoSourceButtonSet->GetWidget(0)->GetSelectedState())
       { // Camera is used as a video source
       int channel = this->CameraChannelEntry->GetValueAsInt();
-      if (this->StartCamera(channel))
+      if (this->StartCamera(channel, NULL))
         { // Success
         this->StartCaptureButton->EnabledOff();
         this->StopCaptureButton->EnabledOn();
         }
       else
-        { // Failed to start camera
+        {
         }
       }
     else
       { // File is used as a video source
+      if (this->StartCamera(-1, this->VideoFileEntry->GetValue()))
+        {
+        this->StartCaptureButton->EnabledOff();
+        this->StopCaptureButton->EnabledOn();
+        }
       }
     }
   else if (this->StopCaptureButton == vtkKWPushButton::SafeDownCast(caller)
@@ -533,7 +538,7 @@ void vtkVideoImporterGUI::ProcessMRMLEvents ( vtkObject *caller,
 {
   // Fill in
 
-  if (event == vtkMRMLScene::SceneCloseEvent)
+  if (event == vtkMRMLScene::SceneClosedEvent)
     {
     }
 }
@@ -905,6 +910,14 @@ int vtkVideoImporterGUI::ViewerBackgroundOn(vtkSlicerViewerWidget* vwidget, vtkI
       camera->SetViewAngle(90.0);
       camera->SetPosition(x, y, y); 
 
+      // The following code fixes a issue that
+      // video doesn't show up on the viewer.
+      vtkCamera* fcamera = rwidget->GetNthRenderer(0)->GetActiveCamera();
+      if (fcamera)
+        {
+        fcamera->Modified();
+        }
+
       return 1;
       }
     }
@@ -940,8 +953,9 @@ int vtkVideoImporterGUI::ViewerBackgroundOff(vtkSlicerViewerWidget* vwidget)
 
 
 //----------------------------------------------------------------------------
-// Launch Camera thread
-int vtkVideoImporterGUI::StartCamera(int channel)
+// Start Camera
+// if channel = -1, OpenCV will read image from the video file specified by path
+int vtkVideoImporterGUI::StartCamera(int channel, const char* path)
 {
 
   this->capture      = NULL;
@@ -953,44 +967,20 @@ int vtkVideoImporterGUI::StartCamera(int channel)
 
   vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
 
-  //**************************************************************************
-  //   getting camera image initially
-  //**************************************************************************
-  // 5/15/2010 ayamada
-  // for videoOverlay
-  // Camera initialization
-
-  /*
-  int i = 0;
-
-  while (i<=10)
-    {// 5/16/2010 ayamada
-    if (NULL==(this->capture = cvCaptureFromCAM(i)))  // 10.01.25 ayamada
-      {
-      fprintf(stdout, "\n\nCouldn't find a camera\n\n");// 10.01.25 ayamada
-      i++;                
-      }
-    else
-      {
-      // 5/16/2010 ayamada
-      //sprintf(bufCamera, "Connected camera device No: %d", i);
-      //pGUI->textActorCamera->SetInput(bufCamera);
-      break;
-      }
-    }
-
-  if (i >= 11)
+  if (channel < 0 && path != NULL)
     {
-    //sprintf(bufCamera, "Couldn't find camera device!!");
-    //pGUI->textActorCamera->SetInput(bufCamera);
-    return 0;
+    this->capture = cvCaptureFromAVI( path );
     }
-  */
+  else 
+    {
+    this->capture = cvCaptureFromCAM(channel);
+    }
 
-  if (NULL==(this->capture = cvCaptureFromCAM(channel)))
+  if (this->capture == NULL)
     {
     return 0;
     }
+
 
   this->CameraActiveFlag = 1;
 
@@ -1010,6 +1000,7 @@ int vtkVideoImporterGUI::StartCamera(int channel)
 
   return 1;
 } 
+
 
 //----------------------------------------------------------------------------
 // Stop Camera thread
@@ -1036,7 +1027,7 @@ int vtkVideoImporterGUI::CameraHandler()
 {
   IplImage* captureImageTmp = NULL;
   CvSize   newImageSize;
-  
+
   if (this->capture)
     {
     // 5/15/2010 ayamada
@@ -1069,7 +1060,6 @@ int vtkVideoImporterGUI::CameraHandler()
       vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
       ViewerBackgroundOff(vwidget);
       ViewerBackgroundOn(vwidget, this->VideoImageData);
-
 
       // for optical flow
       this->Pyramid       = cvCreateImage( this->imageSize , IPL_DEPTH_8U, 1 );
