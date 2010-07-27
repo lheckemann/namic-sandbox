@@ -153,7 +153,7 @@ vtkMRMLBoxShape
     modelNode->SetHideFromEditors( 0 );
     modelNode->SetAndObserveDisplayNodeID( dispNode->GetID() );
     modelNode->SetAndObservePolyData( this->ModelPolyData );
-  this->Scene->AddNode( modelNode );
+  this->Scene->AddNode( modelNode ); // _*_ 
   
   this->ModelNodeRef = modelNode->GetID();
 }
@@ -186,7 +186,7 @@ vtkMRMLBoxShape
     if ( p[ 2 ] < MinS ) MinS = p[ 2 ]; else if ( p[ 2 ] > MaxS ) MaxS = p[ 2 ];
     }
   
-  this->AddModelNode( "BoxShape", 1.0, 0.8, 0.1 ); // _*_ 
+  this->AddModelNode( "BoxShapeModel", 1.0, 0.8, 0.1 );
   
   this->Initialized = true;
 }

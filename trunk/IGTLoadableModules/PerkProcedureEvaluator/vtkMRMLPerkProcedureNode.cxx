@@ -573,5 +573,19 @@ vtkMRMLPerkProcedureNode
     }
   
   this->NoteList.clear();
+  this->NoteIndex = -1;
+  
+  this->TransformTimeSeries->Clear();
+  this->TransformIndex = -1;
+  
+  this->IndexBegin = -1;
+  this->IndexEnd = -1;
+  
+  
+    // Measurements.
+  
+  this->TotalTime = 0.0;
+  this->PathInside = 0.0;
+  this->TimeInside = 0.0;
 }
 
