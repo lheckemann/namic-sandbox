@@ -117,6 +117,9 @@ vtkTransformTimeSeries
     }
   
   this->Data.clear();
+  
+  this->MinTime = 0;
+  this->MaxTime = 0;
 }
 
 
