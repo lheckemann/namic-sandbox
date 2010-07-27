@@ -31,6 +31,10 @@
 #include "vtkMRMLSliceNode.h"
 
 class vtkIGTLConnector;
+class vtkMatrix3x3;
+class vtkMatrix4x4;
+class vtkCollection;
+class vtkVector3d;
 
 class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeLogic : public vtkSlicerModuleLogic 
 {
@@ -48,6 +52,8 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeLogic : public vtkSlicerMod
   
   vtkTypeRevisionMacro(vtkCaptureBetaProbeLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
+
+  void PivotCalibration(vtkCollection* PivotingMatrix, double AveragePcal[3]);
 
  protected:
   
