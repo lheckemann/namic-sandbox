@@ -38,6 +38,7 @@ class vtkKWFileBrowserDialog;
 //class vtkMRMLUDPServerNode;
 class vtkMRMLLinearTransformNode;
 class vtkMatrix4x4;
+class vtkCollection;
 
 class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModuleGUI
 {
@@ -58,7 +59,11 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   void SetContinuousMode(bool val){this->continuous_mode = val;};
   bool GetContinuousMode(){return this->continuous_mode;};
 
+  vtkGetMacro(PivotCalibrationRunning,bool);
+  vtkSetMacro(PivotCalibrationRunning,bool);
+
   void Capture_Data();
+  void Capture_Tracker_Position();
 
  protected:
   //----------------------------------------------------------------
@@ -110,6 +115,7 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
+  void BuildGUIForPivotCalibration();
   void BuildGUIForCapturingDataFromBetaProbe();
 
   //----------------------------------------------------------------
@@ -152,6 +158,14 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   vtkMRMLLinearTransformNode* Probe_Position;
   vtkMatrix4x4* Probe_Matrix;
 
+
+
+
+  vtkKWPushButton* StartPivotCalibration;
+  vtkKWPushButton* StopPivotCalibration;
+
+  vtkCollection* PivotingMatrix;
+
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
@@ -161,7 +175,7 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   int                        CloseScene;
 
   bool continuous_mode;
-
+  bool PivotCalibrationRunning;
 };
 
 

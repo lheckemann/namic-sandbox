@@ -41,6 +41,8 @@
 
 #include "vtkCornerAnnotation.h"
 
+#include "vtkCollection.h"
+
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkCaptureBetaProbeGUI );
@@ -74,7 +76,13 @@ vtkCaptureBetaProbeGUI::vtkCaptureBetaProbeGUI ( )
   this->Counts = NULL;
   this->Probe_Position = NULL;
   this->Probe_Matrix = NULL;
+
+
+  this->StartPivotCalibration = NULL;
+  this->StopPivotCalibration = NULL;
+  this->PivotCalibrationRunning = false;
   
+  this->PivotingMatrix = vtkCollection::New();
   //----------------------------------------------------------------
   // Locator  (MRML)
   this->TimerFlag = 0;
@@ -179,6 +187,26 @@ vtkCaptureBetaProbeGUI::~vtkCaptureBetaProbeGUI ( )
     {
     this->Probe_Matrix->Delete();
     }
+
+
+
+  if(this->StartPivotCalibration)
+    {
+    this->StartPivotCalibration->SetParent(NULL);
+    this->StartPivotCalibration->Delete();
+    }
+
+  if(this->StopPivotCalibration)
+    {
+    this->StopPivotCalibration->SetParent(NULL);
+    this->StopPivotCalibration->Delete();
+    }
+
+  if(this->PivotingMatrix)
+    {
+    this->PivotingMatrix->Delete();
+    }
+
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -283,6 +311,21 @@ void vtkCaptureBetaProbeGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+
+
+  if (this->StartPivotCalibration)
+    {
+    this->StartPivotCalibration
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->StopPivotCalibration)
+    {
+    this->StopPivotCalibration
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  
+
   this->RemoveLogicObservers();
 
 }
@@ -313,50 +356,64 @@ void vtkCaptureBetaProbeGUI::AddGUIObservers ( )
   // GUI Observers
   if(this->Capture)
     {
-  this->Capture
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->Capture
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->Start_Button)
     {
-  this->Start_Button
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->Start_Button
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->Stop_Button)
     {
-  this->Stop_Button
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->Stop_Button
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }    
 
   if(this->CounterNode)
     {
-this->CounterNode
-    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->CounterNode
+      ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->TrackerNode)
     {
-  this->TrackerNode
-    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->TrackerNode
+      ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->FileSelector)
     {
-  this->FileSelector
-    ->AddObserver(vtkKWFileBrowserDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->FileSelector
+      ->AddObserver(vtkKWFileBrowserDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->SelectFile)
     {
-this->SelectFile
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->SelectFile
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->CloseFile)
     {
-this->CloseFile
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->CloseFile
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
+
+
+  if(this->StartPivotCalibration)
+    {
+    this->StartPivotCalibration
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->StopPivotCalibration)
+    {
+    this->StopPivotCalibration
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   this->AddLogicObservers();
@@ -467,6 +524,10 @@ void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
     if (this->FileSelector->GetStatus()==vtkKWDialog::StatusOK)
       {
       std::string filename = this->FileSelector->GetFileName();
+      if(this->BetaProbeCountsWithTimestamp.is_open())
+     {
+       this->BetaProbeCountsWithTimestamp.close();
+     }
       this->BetaProbeCountsWithTimestamp.open(filename.c_str());
       if(this->BetaProbeCountsWithTimestamp.is_open())
      {
@@ -519,6 +580,54 @@ void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
       this->Capture_status->SetText(tracker_selected.str().c_str());
       } 
     }
+
+
+  // ******** PIVOT CALIBRATION *********
+  else if (this->StartPivotCalibration == vtkKWPushButton::SafeDownCast(caller) 
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+      if(this->PivotingMatrix)
+     {
+     this->PivotingMatrix->RemoveAllItems();
+        
+        if(this->Probe_Position && (this->GetPivotCalibrationRunning()==false))
+       {
+       this->StartPivotCalibration->SetState(0);
+       this->StopPivotCalibration->SetState(1);
+       this->SetPivotCalibrationRunning(true);
+          }
+     }
+    }
+  else if (this->StopPivotCalibration == vtkKWPushButton::SafeDownCast(caller) 
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    if(this->GetPivotCalibrationRunning())
+      {
+      this->StartPivotCalibration->SetState(1);
+      this->StopPivotCalibration->SetState(0);
+      this->SetPivotCalibrationRunning(false);
+      // Start Pivot Calibration Here
+      if(this->PivotingMatrix)
+     {
+       // Get the Average Pcal vector
+     double pcal[3];
+     this->GetLogic()->PivotCalibration(this->PivotingMatrix,pcal);
+
+        std::cout << "Pcal : (" << pcal[0] << "," << pcal[1] << "," << pcal[2] << ")" << std::endl; 
+     }
+
+      // Deleting all matrixes in the vtkCollection and all references to these matrixes
+      for(int i=0; i<this->PivotingMatrix->GetNumberOfItems();i++)
+     {
+     this->PivotingMatrix->GetItemAsObject(i)->Delete();
+     }
+      this->PivotingMatrix->RemoveAllItems();
+ 
+      // To avoid a double free when the destructor is called
+      this->Probe_Matrix = NULL;
+      }
+    }
+
 
 } 
 
@@ -574,6 +683,20 @@ void vtkCaptureBetaProbeGUI::ProcessTimerEvents()
     {
       this->Capture_Data();
     }
+
+  if(this->GetPivotCalibrationRunning())
+    {
+    if(this->PivotingMatrix && this->Probe_Position)
+      {
+      this->Capture_Tracker_Position();
+
+      /*
+      vtkMatrix4x4* display = vtkMatrix4x4::SafeDownCast(this->PivotingMatrix->GetItemAsObject(this->PivotingMatrix->GetNumberOfItems()-1));
+
+      std::cout << display->GetElement(0,3) << "," << display->GetElement(1,3) << "," << display->GetElement(2,3) << std::endl;
+      */
+      }
+    }
   
 }
 
@@ -588,6 +711,7 @@ void vtkCaptureBetaProbeGUI::BuildGUI ( )
   this->UIPanel->AddPage ( "CaptureBetaProbe", "CaptureBetaProbe", NULL );
 
   BuildGUIForHelpFrame();
+  BuildGUIForPivotCalibration();
   BuildGUIForCapturingDataFromBetaProbe();
   //  BuildGUIForTestFrame2();
 
@@ -609,6 +733,88 @@ void vtkCaptureBetaProbeGUI::BuildGUIForHelpFrame ()
 
 
 //---------------------------------------------------------------------------
+void vtkCaptureBetaProbeGUI::BuildGUIForPivotCalibration()
+{
+ vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("CaptureBetaProbe");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Pivot Calibration");
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+  // -----------------------------------------
+  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
+  frame->SetParent(conBrowsFrame->GetFrame());
+  frame->Create();
+  frame->SetLabelText ("Pivoting Calibration");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 frame->GetWidgetName() );
+
+  vtkKWFrame *frame1 = vtkKWFrame::New();
+  frame1->SetParent(frame->GetFrame());
+  frame1->Create();
+  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+       frame1->GetWidgetName() );
+
+
+  this->TrackerNode = vtkSlicerNodeSelectorWidget::New();
+  this->TrackerNode->SetParent(frame1);
+  this->TrackerNode->Create();
+  this->TrackerNode->SetWidth(30);
+  this->TrackerNode->SetNewNodeEnabled(0);
+  this->TrackerNode->SetNodeClass("vtkMRMLLinearTransformNode",NULL,NULL,NULL);
+  this->TrackerNode->SetMRMLScene(this->Logic->GetMRMLScene());
+  this->TrackerNode->UpdateMenu();
+
+  vtkKWLabel *trackerLabel = vtkKWLabel::New();
+  trackerLabel->SetParent(frame1);
+  trackerLabel->Create();
+  trackerLabel->SetText("Tracker Node:");
+  trackerLabel->SetAnchorToWest();
+
+  app->Script("pack %s %s -fill x -side top -padx 2 -pady 2",
+           trackerLabel->GetWidgetName(), 
+               this->TrackerNode->GetWidgetName());
+
+  trackerLabel->Delete();
+
+  vtkKWFrame *frame2 = vtkKWFrame::New();
+  frame2->SetParent(frame->GetFrame());
+  frame2->Create();
+  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+       frame2->GetWidgetName() );
+
+  this->StartPivotCalibration = vtkKWPushButton::New();
+  this->StartPivotCalibration->SetParent(frame2);
+  this->StartPivotCalibration->Create();
+  this->StartPivotCalibration->SetText("Start Pivot Calibration");
+  this->StartPivotCalibration->SetWidth(29);  
+
+  this->StopPivotCalibration = vtkKWPushButton::New();
+  this->StopPivotCalibration->SetParent(frame2);
+  this->StopPivotCalibration->Create();
+  this->StopPivotCalibration->SetText("Stop Pivot Calibration");
+  this->StopPivotCalibration->SetWidth(29);  
+  this->StopPivotCalibration->SetState(0);
+
+  app->Script("pack %s %s -fill x -side left -padx 2 -pady 2", 
+               this->StartPivotCalibration->GetWidgetName(),
+               this->StopPivotCalibration->GetWidgetName());
+
+
+  frame1->Delete();
+  frame2->Delete();
+  frame->Delete();
+  conBrowsFrame->Delete();
+  
+
+}
+
+//---------------------------------------------------------------------------
 void vtkCaptureBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
 {
 
@@ -625,7 +831,6 @@ void vtkCaptureBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Test child frame
 
   vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
   frame->SetParent(conBrowsFrame->GetFrame());
@@ -640,7 +845,6 @@ void vtkCaptureBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
   app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
        frame4->GetWidgetName() );
 
-
   this->CounterNode = vtkSlicerNodeSelectorWidget::New();
   this->CounterNode->SetParent(frame4);
   this->CounterNode->Create();
@@ -650,18 +854,17 @@ void vtkCaptureBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
   this->CounterNode->SetMRMLScene(this->Logic->GetMRMLScene());
   this->CounterNode->UpdateMenu();
 
-  this->TrackerNode = vtkSlicerNodeSelectorWidget::New();
-  this->TrackerNode->SetParent(frame4);
-  this->TrackerNode->Create();
-  this->TrackerNode->SetWidth(30);
-  this->TrackerNode->SetNewNodeEnabled(0);
-  this->TrackerNode->SetNodeClass("vtkMRMLLinearTransformNode",NULL,NULL,NULL);
-  this->TrackerNode->SetMRMLScene(this->Logic->GetMRMLScene());
-  this->TrackerNode->UpdateMenu();
+  vtkKWLabel *counterLabel = vtkKWLabel::New();
+  counterLabel->SetParent(frame4);
+  counterLabel->Create();
+  counterLabel->SetText("Counter Node:");
+  counterLabel->SetAnchorToWest();
 
-  app->Script("pack %s %s -fill x -side top -padx 2 -pady 2", 
-               this->TrackerNode->GetWidgetName(),
-               this->CounterNode->GetWidgetName());
+  app->Script("pack %s %s -fill x -side top -padx 2 -pady 2",
+           counterLabel->GetWidgetName(), 
+              this->CounterNode->GetWidgetName());
+
+  counterLabel->Delete();
 
   vtkKWFrame *frame5 = vtkKWFrame::New();
   frame5->SetParent(frame->GetFrame());
@@ -758,7 +961,7 @@ void vtkCaptureBetaProbeGUI::Capture_Data()
     sprintf(mytime, "%.2d:%.2d:%.2d", current->tm_hour, current->tm_min, current->tm_sec);
 
     this->Probe_Position->GetMatrixTransformToWorld(this->Probe_Matrix);                 
-    this->BetaProbeCountsWithTimestamp << this->Counts->GetSmoothedCounts()   << "\t\t"          
+    this->BetaProbeCountsWithTimestamp << this->Counts->GetSmoothedCounts()   << "\t\t"           
                            << this->Counts->GetBetaCounts()       << "\t\t"          
                            << this->Counts->GetGammaCounts()      << "\t\t"          
                            << this->Probe_Matrix->GetElement(0,3) << "\t\t"          
@@ -770,13 +973,25 @@ void vtkCaptureBetaProbeGUI::Capture_Data()
     this->Probe_Matrix->Delete();                                
     this->Probe_Matrix = NULL;     
 
-    this->Capture_status->SetText("Data captured");                                              }
+    this->Capture_status->SetText("Data captured");
+    }
   else
     {
     this->Capture_status->SetText("Select a file first");
     }
 }
 
+void vtkCaptureBetaProbeGUI::Capture_Tracker_Position()
+{
+
+  this->Probe_Matrix = vtkMatrix4x4::New();                                                                                             
+  this->Probe_Position->GetMatrixTransformToWorld(this->Probe_Matrix);                   
+
+  this->PivotingMatrix->AddItem(this->Probe_Matrix);
+
+  std::cout << "Number of Matrix4x4: " << this->PivotingMatrix->GetNumberOfItems() << std::endl;
+
+}
 
 
 
