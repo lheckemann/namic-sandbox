@@ -100,6 +100,8 @@ public:
   void BuildGUIForPlaybackFrame();
   void BuildGUIForResultsFrame();
   
+  virtual void TearDownGUI();
+  
   
   //----------------------------------------------------------------
   // Update routines

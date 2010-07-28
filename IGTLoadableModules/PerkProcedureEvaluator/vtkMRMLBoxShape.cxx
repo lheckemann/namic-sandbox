@@ -164,6 +164,7 @@ void
 vtkMRMLBoxShape
 ::Initialize( vtkMRMLFiducialListNode* fiducials )
 {
+  if ( ! fiducials ) return;
   int num = fiducials->GetNumberOfFiducials();
   if ( num < 2 ) return;
   

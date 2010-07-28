@@ -166,6 +166,13 @@ vtkPerkProcedureEvaluatorGUI
 vtkPerkProcedureEvaluatorGUI
 ::~vtkPerkProcedureEvaluatorGUI()
 {
+  
+  if ( this->ProcedureNode )
+    {
+    vtkSetMRMLNodeMacro( this->ProcedureNode, NULL );
+    }
+  
+  
   // Remove Callbacks
 
   if (this->DataCallbackCommand)
@@ -173,10 +180,6 @@ vtkPerkProcedureEvaluatorGUI
     this->DataCallbackCommand->Delete();
     }
   
-  
-    // Remove Observers
-  
-  this->RemoveGUIObservers();
   
   
     // Remove GUI widgets
@@ -218,13 +221,6 @@ vtkPerkProcedureEvaluatorGUI
 
   this->SetModuleLogic ( NULL );
   
-  
-    // MRML
-  
-  if ( this->ProcedureNode )
-    {
-    vtkSetMRMLNodeMacro( this->ProcedureNode, NULL );
-    }
   
   
   if ( this->TimerLog )
@@ -991,6 +987,22 @@ vtkPerkProcedureEvaluatorGUI
   
   this->Script( "grid %s -column 0 -row 5 -sticky w -padx 4 -pady 1", labelTimeInside->GetWidgetName() );
   this->Script( "grid %s -column 1 -row 5 -sticky w -padx 4 -pady 1", this->LabelTimeInside->GetWidgetName() );
+}
+
+
+
+void
+vtkPerkProcedureEvaluatorGUI
+::TearDownGUI()
+{
+    // Remove Observers
+  
+  this->RemoveGUIObservers();
+  
+  if ( this->ProcedureNode )
+    {
+    vtkSetAndObserveMRMLNodeMacro( this->ProcedureNode, NULL );
+    }
 }
 
 
