@@ -83,7 +83,32 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLBase : public vtkObject
   // Functions to generate an OpenIGTLink message
   // If mrmlNode is QueryNode, the function will generate query node. (event is not used.)
   virtual int          MRMLToIGTL(unsigned long vtkNotUsed(event), vtkMRMLNode* vtkNotUsed(mrmlNode),
-                                  int* vtkNotUsed(size), void** vtkNotUsed(igtlMsg)){ return 0; };
+                                  int* vtkNotUsed(size), void** vtkNotUsed(igtlMsg)) { return 0; };
+  
+  // Description:
+  // Functions to process GET query and return a serialized message that should be returned.
+  //BTX
+  virtual int          ProcessGetQuery(igtl::MessageBase::Pointer vtkNotUsed(buffer),
+                                       vtkMRMLScene* scene,
+                                       int* vtkNotUsed(size), void** vtkNotUsed(igtlMsg)) { return 0; };
+  //ETX
+
+  // Description:
+  // Functions to process START query and return a serialized message that should be returned.
+  //BTX
+  virtual int          ProcessStartQuery(igtl::MessageBase::Pointer vtkNotUsed(buffer),
+                                         vtkMRMLScene* scene,
+                                         int* vtkNotUsed(size), void** vtkNotUsed(igtlMsg)) { return 0; };
+  //ETX
+  
+  // Description:
+  // Functions to process STOP query and return a serialized message that should be returned.
+  //BTX
+  virtual int          ProcessStopQuery(igtl::MessageBase::Pointer vtkNotUsed(buffer),
+                                        vtkMRMLScene* scene,
+                                        int* vtkNotUsed(size), void** vtkNotUsed(igtlMsg)) { return 0; };
+  //ETX
+  
 
   // Check query que (called periodically by timer)
   // (implemeted only if ncessary)

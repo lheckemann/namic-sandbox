@@ -6,68 +6,58 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkIGTLToMRMLImageMetaList.h $
+  Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkIGTLToMRMLPoint.h $
   Date:      $Date: 2009-08-12 21:30:38 -0400 (Wed, 12 Aug 2009) $
   Version:   $Revision: 10236 $
 
 ==========================================================================*/
 
-#ifndef __vtkIGTLToMRMLImageMetaList_h
-#define __vtkIGTLToMRMLImageMetaList_h
+#ifndef __vtkIGTLToMRMLPoint_h
+#define __vtkIGTLToMRMLPoint_h
 
 #include "vtkObject.h"
 #include "vtkOpenIGTLinkIFWin32Header.h" 
 #include "vtkMRMLNode.h"
 #include "vtkIGTLToMRMLBase.h"
 
-#include "igtlImageMetaMessage.h"
+#include "igtlPointMessage.h"
 
 class vtkMRMLVolumeNode;
 
-class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLImageMetaList : public vtkIGTLToMRMLBase
+class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLPoint : public vtkIGTLToMRMLBase
 {
  public:
 
-  static vtkIGTLToMRMLImageMetaList *New();
-  vtkTypeRevisionMacro(vtkIGTLToMRMLImageMetaList,vtkObject);
+  static vtkIGTLToMRMLPoint *New();
+  vtkTypeRevisionMacro(vtkIGTLToMRMLPoint,vtkObject);
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual const char*  GetIGTLName() { return "IMGMETA"; };
-  virtual const char*  GetMRMLName() { return "ImageMetaList"; };
+  virtual const char*  GetIGTLName() { return "TDATA"; };
+  virtual const char*  GetMRMLName() { return "IGTLPointSplitter"; };
 
-  virtual const char*  GetIGTLGetQueryName() { return "GET_IMGMETA"; };
-  
   virtual vtkIntArray* GetNodeEvents();
   virtual vtkMRMLNode* CreateNewNode(vtkMRMLScene* scene, const char* name);
 
   //BTX
   virtual int          IGTLToMRML(igtl::MessageBase::Pointer buffer, vtkMRMLNode* node);
   //ETX
-  //BTX
   virtual int          MRMLToIGTL(unsigned long event, vtkMRMLNode* mrmlNode, int* size, void** igtlMsg);
-  //ETX
 
-  //BTX
-  virtual int          ProcessGetQuery(igtl::MessageBase::Pointer vtkNotUsed(buffer),
-                                       vtkMRMLScene* scene,
-                                       int* vtkNotUsed(size), void** vtkNotUsed(igtlMsg));
-  //ETX
 
  protected:
-  vtkIGTLToMRMLImageMetaList();
-  ~vtkIGTLToMRMLImageMetaList();
+  vtkIGTLToMRMLPoint();
+  ~vtkIGTLToMRMLPoint();
 
   void CenterImage(vtkMRMLVolumeNode *volumeNode);
 
  protected:
   //BTX
   //igtl::TransformMessage::Pointer OutTransformMsg;
-  igtl::ImageMetaMessage::Pointer OutImageMetaMessage;
-  igtl::GetImageMetaMessage::Pointer GetImageMetaMessage;
+  igtl::PointMessage::Pointer      OutPointMsg;
   //ETX
   
 };
 
 
-#endif //__vtkIGTLToMRMLImageMetaList_h
+#endif //__vtkIGTLToMRMLPoint_h

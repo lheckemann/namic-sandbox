@@ -199,8 +199,31 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
 
   // Description:
   // Import received data from the circular buffer to the MRML scne.
+  // This function calls one of ImportNormalMessage(), ImportGetQueryMessage(), 
+  // ImportStartQueryMessage(), ImportStopQueryMessage() and ImportStatusMessage().
   // This is currently called by vtkOpenIGTLinkIFLogic class.
   void ImportDataFromCircularBuffer();
+
+  //BTX
+  // Description:
+  // Import received normal message from the circular buffer to the MRML scne.
+  void ImportNormalMessage(vtkIGTLToMRMLBase* converter, igtl::MessageBase::Pointer& buffer);
+
+  // Description:
+  // Import GET query message from the circular buffer to the MRML scne.
+  void ImportGetQueryMessage(vtkIGTLToMRMLBase* converter, igtl::MessageBase::Pointer& buffer);
+
+  // Description:
+  // Import START query message from the circular buffer to the MRML scne.
+  void ImportStartQueryMessage(vtkIGTLToMRMLBase* converter, igtl::MessageBase::Pointer& buffer);
+
+  // Description:
+  // Import STOP query message from the circular buffer to the MRML scne.
+  void ImportStopQueryMessage(vtkIGTLToMRMLBase* converter, igtl::MessageBase::Pointer& buffer);
+
+  // Description:
+  // Import STATUS query message from the circular buffer to the MRML scne.
+  void ImportStatusQueryMessage(vtkIGTLToMRMLBase* converter, igtl::MessageBase::Pointer& buffer);
 
   // Description:
   // Import events from the event buffer to the MRML scene.
@@ -339,6 +362,10 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
   // Message converter (IGTLToMRML)
   MessageConverterListType MessageConverterList;
   MessageConverterMapType  IGTLNameToConverterMap;
+  MessageConverterMapType  IGTLStartQueryNameToConverterMap;
+  MessageConverterMapType  IGTLStopQueryNameToConverterMap;
+  MessageConverterMapType  IGTLGetQueryNameToConverterMap;
+  MessageConverterMapType  IGTLStatusNameToConverterMap;
   MessageConverterMapType  MRMLIDToConverterMap;
 
   // List of nodes that this connector node is observing.
