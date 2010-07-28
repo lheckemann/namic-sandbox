@@ -21,7 +21,7 @@ vtkMRMLSurgicalShape
 vtkMRMLSurgicalShape
 ::~vtkMRMLSurgicalShape()
 {
-  this->SetModelNodeRef( NULL );
+  // this->SetModelNodeRef( NULL );
   
   if ( this->ModelPolyData )
     {
