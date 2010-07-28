@@ -199,6 +199,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     # tractography...
     ff = init(S, seeds, u, b, param)
     pp = []
+
     t1 = time.time()
     for i in xrange(0,len(ff)):
         print '[%3.0f%%]p (%7d - %7d)' % (100.0*i/len(ff), i, len(ff))
@@ -216,21 +217,38 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     # build polydata
     pts = slicer.vtkPoints()
     lines = slicer.vtkCellArray()
-    fas = slicer.vtkFloatArray()
-    fas.SetName('FA')
-    fas.SetNumberOfComponents(1)
+    values = slicer.vtkFloatArray()
+    params = slicer.vtkFloatArray()
+    cov = slicer.vtkFloatArray()
+    values.SetName('values')
+    num_params = 10
+    num_cov_comp = (num_params * (num_params + 1)) / 2
+    num_comp = 4 + num_cov_comp
+    values.SetNumberOfComponents(num_comp)
     cell_id = 0
+
     for i in xrange(0,len(ff)):
         f = ff[i]
         lines.InsertNextCell(len(f))
         for j in xrange(0,len(f)):
             lines.InsertCellPoint(cell_id)
             cell_id += 1
-            x = f[j]
+            x = f[j][0]
             x = x[::-1] # HACK
             x_ = np.array(transform(i2r, x)).ravel() # HACK
             pts.InsertNextPoint(x_[0],x_[1],x_[2])
-            fas.InsertNextValue(255 * np.random.rand()) # push random values for now
+
+            # assign the values
+            X = f[j][1]
+            for k in xrange(4):
+              # What about orientation?
+              values.InsertNextValue(X[k, 0])
+
+            P = f[j][2]
+            for k in xrange(num_params):
+              for l in xrange(k, num_params):
+                values.InsertNextValue(P[k, l])
+                #values.InsertNextValue(255 * np.random.rand()) # push random values for now
  
 
     # setup output fibers
@@ -244,7 +262,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
         pd = slicer.vtkPolyData() # create if necessary
         ff_node.SetAndObservePolyData(pd)
     pd.SetPoints(pts)
-    pd.GetPointData().SetScalars(fas)
+    pd.GetPointData().SetScalars(values)
     pd.SetLines(lines)
     pd.Update()
     ff_node.Modified()
@@ -295,7 +313,7 @@ def curve_radius(ff):
    if len(ff) < 3:
        return 1
 
-   a,b,c = ff[-1],ff[-2],ff[-3]
+   a,b,c = ff[-1][0],ff[-2][0],ff[-3][0]
 
    v1,v2 = b-c,a-b
 
@@ -317,7 +335,8 @@ def norm(a):
 def follow(S,u,b,mask,fiber,param,is_branching):
     # unpack and initialize tract
     x,X,P = fiber[0],fiber[1],fiber[2]
-    ff,pp = [np.array(x)],[]
+
+    ff,pp = [(np.array(x), np.vstack((X[3:5], X[8:10])), P)],[]
 
     # initialize filter
     f_fn,h_fn = model_2tensor(u,b)
@@ -337,7 +356,7 @@ def follow(S,u,b,mask,fiber,param,is_branching):
         fiber = step(fiber, S, est, param)
 
         # unpack
-        x,X,fa = fiber[0],fiber[1],fiber[4]
+        x,X,P,m,fa = fiber
 
         # terminate if off brain or in CSF
         is_brain = interp3scalar(mask,x,v) > .1
@@ -352,11 +371,11 @@ def follow(S,u,b,mask,fiber,param,is_branching):
         # record roughly once per voxel
         if ct == round(1.0/param['dt']):
             ct = 0
-            ff.append(x)
+
+            ff.append((x, np.vstack((X[3:5], X[8:10])), P))
 
             # record branch if necessar
             if is_branching:
-                P,m = fiber[2],fiber[3]
                 m1,l1,m2,l2 = state2tensor2(X,m)
                 is_two = l1[0] > l1[1] and l2[0] > l2[1] # non-planar
                 fa = param['FA_min']
@@ -371,8 +390,8 @@ def follow(S,u,b,mask,fiber,param,is_branching):
                         P_ = P.copy()
                         P_[:5,:5] = P[5:,5:]
                         P_[5:,5:] = P[:5,:5] # swap covariance
-                    assert X.shape[0] == 10 and X.shape[1] == 1
-                    pp.append((x,X,P_,m))
+                        assert X.shape[0] == 10 and X.shape[1] == 1
+                        pp.append((x,X,P_,m))
         else:
             ct += 1
 
