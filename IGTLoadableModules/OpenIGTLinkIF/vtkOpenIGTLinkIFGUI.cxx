@@ -1500,7 +1500,6 @@ void vtkOpenIGTLinkIFGUI::ProcessTimerEvents()
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFGUI::Enter()
 {
-  std::cerr << "void vtkOpenIGTLinkIFGUI::Enter() begin" << std::endl;
   // Fill in
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
@@ -1519,8 +1518,6 @@ void vtkOpenIGTLinkIFGUI::Enter()
   this->GetLogic()->Initialize();
   this->UpdateConnectorList(UPDATE_ALL);
 
-
-  std::cerr << "void vtkOpenIGTLinkIFGUI::Enter() end" << std::endl;
 }
 
 
@@ -2265,8 +2262,6 @@ void vtkOpenIGTLinkIFGUI::AddIOConfigContextMenuItem(int type, const char* conID
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFGUI::OpenRemoteDataListWindow(const char* conID)
 {
-  std::cerr << "Opening DataListWindow...." << std::endl;
-
   if (this->RemoteDataWindow)
     {
     vtkMRMLScene* scene = this->GetMRMLScene();
@@ -2288,8 +2283,6 @@ void vtkOpenIGTLinkIFGUI::OpenRemoteDataListWindow(const char* conID)
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFGUI::OpenTrackingDataControllerWindow(const char* conID)
 {
-  std::cerr << "Opening TrackingDataControllerWindow...." << std::endl;
-
   if (this->TrackingDataControllerWindow)
     {
     vtkMRMLScene* scene = this->GetMRMLScene();
