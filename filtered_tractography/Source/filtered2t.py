@@ -28,9 +28,33 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
       <name>ff_node</name> <longflag>ff_node</longflag> <channel>output</channel>
       <label>Output fiber paths</label>
     </geometry>
+
+    <boolean>
+      <name>record_state</name> <longflag>record_state</longflag> <channel>input</channel>
+      <label>Record state</label>
+      <default>true</default>
+    </boolean>
+    <boolean>
+      <name>record_fa</name> <longflag>record_fa</longflag> <channel>input</channel>
+      <label>Record FA</label>
+      <default>false</default>
+    </boolean>
+    <boolean>
+      <name>record_avg_fa</name> <longflag>record_avg_fa</longflag> <channel>input</channel>
+      <label>Record average FA</label>
+      <default>false</default>
+    </boolean>
+    <boolean>
+      <name>record_ra</name> <longflag>record_ra</longflag> <channel>input</channel>
+      <label>Record relative anisotropy</label>
+      <default>false</default>
+    </boolean>
+    <boolean>
+      <name>record_trace</name> <longflag>record_trace</longflag> <channel>input</channel>
+      <label>Record trace</label>
+      <default>false</default>
+    </boolean>
   </parameters>
-
-
 
   <parameters>
     <label>Settings</label>
@@ -122,7 +146,7 @@ param = dict({'FA_min': .15,  # FA stopping threshold
 # param['P0'][0:5,0:5] = P0
 # param['P0'][5:10,5:10] = P0
 
-def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, labels, Qm, Ql, Rs, theta_max):
+def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, labels, Qm, Ql, Rs, theta_max, record_state = True, record_fa = False, record_avg_fa = False, record_ra = False, record_trace = False ):
     for i in xrange(10) : print ''
 
     theta_min = 5  # angle which triggers branch
@@ -217,19 +241,20 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     # build polydata
     num_points = 0
     for fiber in ff:
-      num_points += len(fiber)
+        num_points += len(fiber)
 
     pts = slicer.vtkPoints()
     pts.SetNumberOfPoints(num_points)
 
     lines = slicer.vtkCellArray()
 
-    state = slicer.vtkFloatArray()
-    state.SetName('state')
-    num_params = 10
-    state.SetNumberOfComponents(num_params)
-    state.SetNumberOfTuples(num_points)
-    state_array = state.ToArray()
+    if record_state:
+        state = slicer.vtkFloatArray()
+        state.SetName('state')
+        num_params = 10
+        state.SetNumberOfComponents(num_params)
+        state.SetNumberOfTuples(num_points)
+        state_array = state.ToArray()
 
     norm = slicer.vtkFloatArray()
     norm.SetName('norm')
@@ -237,29 +262,33 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     norm.SetNumberOfTuples(num_points)
     norm_array = norm.ToArray()
 
-    fa = slicer.vtkFloatArray()
-    fa.SetName('fa')
-    fa.SetNumberOfComponents(1)
-    fa.SetNumberOfTuples(num_points)
-    fa_array = fa.ToArray()
+    if record_fa:
+        fa = slicer.vtkFloatArray()
+        fa.SetName('fa')
+        fa.SetNumberOfComponents(1)
+        fa.SetNumberOfTuples(num_points)
+        fa_array = fa.ToArray()
 
-    ra = slicer.vtkFloatArray()
-    ra.SetName('ra')
-    ra.SetNumberOfComponents(1)
-    ra.SetNumberOfTuples(num_points)
-    ra_array = ra.ToArray()
+    if record_avg_fa:
+        avg_fa = slicer.vtkFloatArray()
+        avg_fa.SetName('avg_fa')
+        avg_fa.SetNumberOfComponents(1)
+        avg_fa.SetNumberOfTuples(num_points)
+        avg_fa_array = avg_fa.ToArray()
 
-    tr = slicer.vtkFloatArray()
-    tr.SetName('trace')
-    tr.SetNumberOfComponents(1)
-    tr.SetNumberOfTuples(num_points)
-    tr_array = tr.ToArray()
+    if record_ra:
+        ra = slicer.vtkFloatArray()
+        ra.SetName('ra')
+        ra.SetNumberOfComponents(1)
+        ra.SetNumberOfTuples(num_points)
+        ra_array = ra.ToArray()
 
-    avg_fa = slicer.vtkFloatArray()
-    avg_fa.SetName('avg_fa')
-    avg_fa.SetNumberOfComponents(1)
-    avg_fa.SetNumberOfTuples(num_points)
-    avg_fa_array = avg_fa.ToArray()
+    if record_trace:
+        tr = slicer.vtkFloatArray()
+        tr.SetName('trace')
+        tr.SetNumberOfComponents(1)
+        tr.SetNumberOfTuples(num_points)
+        tr_array = tr.ToArray()
 
     #cov = slicer.vtkFloatArray()
     #cov.SetName('covariance')
@@ -284,22 +313,27 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
             pts.SetPoint(point_id, x_[0],x_[1],x_[2])
 
             # State
-            state_array[point_id, :] = np.transpose(X)
+            if record_state:
+                state_array[point_id, :] = np.transpose(X)
 
             # Frobenius-norm of covariance matrix
             norm_array[point_id, 0] = np.linalg.norm(P)
 
             # FA
-            fa_array[point_id, :] = l2fa((X[3,0], X[4,0]))
-
-            # Relative anisotropy
-            ra_array[point_id, :] = rel_anisotropy((X[3,0], X[4,0], X[4,0]))
-
-            # Trace
-            tr_array[point_id, :] = trace((X[3,0], X[4,0], X[4,0]))
+            if record_fa:
+                fa_array[point_id, :] = l2fa((X[3,0], X[4,0]))
 
             # Average FA
-            avg_fa_array[point_id, :] = 0.5 * (l2fa((X[3,0], X[4,0])) + l2fa((X[8,0], X[9,0])))
+            if record_avg_fa:
+                avg_fa_array[point_id, :] = 0.5 * (l2fa((X[3,0], X[4,0])) + l2fa((X[8,0], X[9,0])))
+
+            # Relative anisotropy
+            if record_ra:
+                ra_array[point_id, :] = rel_anisotropy((X[3,0], X[4,0], X[4,0]))
+
+            # Trace
+            if record_trace:
+                tr_array[point_id, :] = trace((X[3,0], X[4,0], X[4,0]))
 
             # Covariance matrix
             #cov_array[point_id, :] = P[upper_half_coordinates]
@@ -318,13 +352,30 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
         pd = slicer.vtkPolyData() # create if necessary
         ff_node.SetAndObservePolyData(pd)
     pd.SetPoints(pts)
+
+    if record_state:
+        pd.GetPointData().AddArray(state)
+    else:
+        pd.GetPointData().RemoveArray('state')
     pd.GetPointData().AddArray(norm)
-    pd.GetPointData().AddArray(state)
-    pd.GetPointData().AddArray(fa)
-    pd.GetPointData().AddArray(ra)
-    pd.GetPointData().AddArray(tr)
-    pd.GetPointData().AddArray(avg_fa)
+    if record_fa:
+        pd.GetPointData().AddArray(fa)
+    else:
+        pd.GetPointData().RemoveArray('fa')
+    if record_avg_fa:
+        pd.GetPointData().AddArray(avg_fa)
+    else:
+        pd.GetPointData().RemoveArray('avg_fa')
+    if record_ra:
+        pd.GetPointData().AddArray(ra)
+    else:
+        pd.GetPointData().RemoveArray('ra')
+    if record_trace:
+        pd.GetPointData().AddArray(tr)
+    else:
+        pd.GetPointData().RemoveArray('trace')
     #pd.GetPointData().AddArray(cov)
+
     pd.SetLines(lines)
     pd.Update()
     ff_node.Modified()
