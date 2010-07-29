@@ -42,7 +42,7 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
     <boolean>
       <name>record_cov</name> <longflag>record_cov</longflag> <channel>input</channel>
       <label>Record covariance</label>
-      <decovult>false</decovult>
+      <default>false</default>
     </boolean>
   </parameters>
 
@@ -514,6 +514,7 @@ def filter_ukf(f_fn,h_fn,Q,R):
     w,w_ = np.mat(w),np.mat(w_)
 
     def sigma_points(x,P,scale):
+        print P
         M = scale * np.linalg.cholesky(P); # faster than mroot since symmetric pos def
         X = np.tile(x,len(x));
         X = np.hstack((x,X+M, X-M))
