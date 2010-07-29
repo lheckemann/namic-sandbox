@@ -215,41 +215,97 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
     print 'Secondary time: ', time.time() - t2
 
     # build polydata
-    pts = slicer.vtkPoints()
-    lines = slicer.vtkCellArray()
-    values = slicer.vtkFloatArray()
-    params = slicer.vtkFloatArray()
-    cov = slicer.vtkFloatArray()
-    values.SetName('values')
-    num_params = 10
-    num_cov_comp = (num_params * (num_params + 1)) / 2
-    num_comp = 4 + num_cov_comp
-    values.SetNumberOfComponents(num_comp)
-    cell_id = 0
+    num_points = 0
+    for fiber in ff:
+      num_points += len(fiber)
 
-    for i in xrange(0,len(ff)):
-        f = ff[i]
-        lines.InsertNextCell(len(f))
-        for j in xrange(0,len(f)):
-            lines.InsertCellPoint(cell_id)
-            cell_id += 1
-            x = f[j][0]
+    pts = slicer.vtkPoints()
+    pts.SetNumberOfPoints(num_points)
+
+    lines = slicer.vtkCellArray()
+
+    state = slicer.vtkFloatArray()
+    state.SetName('state')
+    num_params = 10
+    state.SetNumberOfComponents(num_params)
+    state.SetNumberOfTuples(num_points)
+    state_array = state.ToArray()
+
+    norm = slicer.vtkFloatArray()
+    norm.SetName('norm')
+    norm.SetNumberOfComponents(1)
+    norm.SetNumberOfTuples(num_points)
+    norm_array = norm.ToArray()
+
+    fa = slicer.vtkFloatArray()
+    fa.SetName('fa')
+    fa.SetNumberOfComponents(1)
+    fa.SetNumberOfTuples(num_points)
+    fa_array = fa.ToArray()
+
+    ra = slicer.vtkFloatArray()
+    ra.SetName('ra')
+    ra.SetNumberOfComponents(1)
+    ra.SetNumberOfTuples(num_points)
+    ra_array = ra.ToArray()
+
+    tr = slicer.vtkFloatArray()
+    tr.SetName('trace')
+    tr.SetNumberOfComponents(1)
+    tr.SetNumberOfTuples(num_points)
+    tr_array = tr.ToArray()
+
+    avg_fa = slicer.vtkFloatArray()
+    avg_fa.SetName('avg_fa')
+    avg_fa.SetNumberOfComponents(1)
+    avg_fa.SetNumberOfTuples(num_points)
+    avg_fa_array = avg_fa.ToArray()
+
+    #cov = slicer.vtkFloatArray()
+    #cov.SetName('covariance')
+    #num_cov_comp = (num_params * (num_params + 1)) / 2
+    #cov.SetNumberOfComponents(num_cov_comp)
+    #cov.SetNumberOfTuples(num_points)
+    #cov_array = cov.ToArray()
+    #upper_half_coordinates = tuple(np.transpose([(i,j) for i in xrange(num_params) for j in xrange(i, num_params)]))
+
+    point_id = 0
+    for fiber in ff:
+        lines.InsertNextCell(len(fiber))
+        for point in fiber:
+            lines.InsertCellPoint(point_id)
+            x = point[0]
+            X = point[1]
+            P = point[2]
+
+            # Position
             x = x[::-1] # HACK
             x_ = np.array(transform(i2r, x)).ravel() # HACK
-            pts.InsertNextPoint(x_[0],x_[1],x_[2])
+            pts.SetPoint(point_id, x_[0],x_[1],x_[2])
 
-            # assign the values
-            X = f[j][1]
-            for k in xrange(4):
-              # What about orientation?
-              values.InsertNextValue(X[k, 0])
+            # State
+            state_array[point_id, :] = np.transpose(X)
 
-            P = f[j][2]
-            for k in xrange(num_params):
-              for l in xrange(k, num_params):
-                values.InsertNextValue(P[k, l])
-                #values.InsertNextValue(255 * np.random.rand()) # push random values for now
- 
+            # Frobenius-norm of covariance matrix
+            norm_array[point_id, 0] = np.linalg.norm(P)
+
+            # FA
+            fa_array[point_id, :] = l2fa((X[3,0], X[4,0]))
+
+            # Relative anisotropy
+            ra_array[point_id, :] = rel_anisotropy((X[3,0], X[4,0], X[4,0]))
+
+            # Trace
+            tr_array[point_id, :] = trace((X[3,0], X[4,0], X[4,0]))
+
+            # Average FA
+            avg_fa_array[point_id, :] = 0.5 * (l2fa((X[3,0], X[4,0])) + l2fa((X[8,0], X[9,0])))
+
+            # Covariance matrix
+            #cov_array[point_id, :] = P[upper_half_coordinates]
+
+            point_id += 1
+
 
     # setup output fibers
     dnode = ff_node.GetDisplayNode()
@@ -262,7 +318,13 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
         pd = slicer.vtkPolyData() # create if necessary
         ff_node.SetAndObservePolyData(pd)
     pd.SetPoints(pts)
-    pd.GetPointData().SetScalars(values)
+    pd.GetPointData().AddArray(norm)
+    pd.GetPointData().AddArray(state)
+    pd.GetPointData().AddArray(fa)
+    pd.GetPointData().AddArray(ra)
+    pd.GetPointData().AddArray(tr)
+    pd.GetPointData().AddArray(avg_fa)
+    #pd.GetPointData().AddArray(cov)
     pd.SetLines(lines)
     pd.Update()
     ff_node.Modified()
@@ -301,7 +363,7 @@ def step(p, S, est, param):
     dx = m / v
     x = x + param['dt'] * dx[::-1]  # HACK volume dimensions are reversed
     # repack
-    return x,X,P,m,fa
+    return x,X,P,m,fa, (m1,l1,m2,l2)
 
 def tensor2fa(T):
     T_ = np.trace(T)/3
@@ -334,9 +396,10 @@ def norm(a):
 
 def follow(S,u,b,mask,fiber,param,is_branching):
     # unpack and initialize tract
-    x,X,P = fiber[0],fiber[1],fiber[2]
+    x,X,P,m = fiber[0],fiber[1],fiber[2],fiber[3]
+    X_improved = state2tensor2(X,m)
 
-    ff,pp = [(np.array(x), np.vstack((X[3:5], X[8:10])), P)],[]
+    ff,pp = [(np.array(x), np.vstack(X_improved), P)],[]
 
     # initialize filter
     f_fn,h_fn = model_2tensor(u,b)
@@ -356,7 +419,7 @@ def follow(S,u,b,mask,fiber,param,is_branching):
         fiber = step(fiber, S, est, param)
 
         # unpack
-        x,X,P,m,fa = fiber
+        x,X,P,m,fa,X_improved = fiber
 
         # terminate if off brain or in CSF
         is_brain = interp3scalar(mask,x,v) > .1
@@ -372,11 +435,11 @@ def follow(S,u,b,mask,fiber,param,is_branching):
         if ct == round(1.0/param['dt']):
             ct = 0
 
-            ff.append((x, np.vstack((X[3:5], X[8:10])), P))
+            ff.append((x, np.vstack(X_improved), P))
 
             # record branch if necessar
             if is_branching:
-                m1,l1,m2,l2 = state2tensor2(X,m)
+                m1,l1,m2,l2 = X_improved
                 is_two = l1[0] > l1[1] and l2[0] > l2[1] # non-planar
                 fa = param['FA_min']
                 is_two = is_two and l2fa(l1) > fa and l2fa(l2) > fa
@@ -388,8 +451,10 @@ def follow(S,u,b,mask,fiber,param,is_branching):
                         X = np.vstack((m2,l2,m1,l1))
                         m = m2
                         P_ = P.copy()
-                        P_[:5,:5] = P[5:,5:]
-                        P_[5:,5:] = P[:5,:5] # swap covariance
+                        P_[:5,:5] = P[5:,5:] # swap covariance
+                        P_[5:,5:] = P[:5,:5]
+                        P_[5:,:5] = P[:5,5:] # swap the remaining to parts to avoid numerical instabilities
+                        P_[:5,5:] = P[5:,:5]
                         assert X.shape[0] == 10 and X.shape[1] == 1
                         pp.append((x,X,P_,m))
         else:
@@ -544,8 +609,6 @@ def state2tensor2(X, y=np.zeros(3)):
     return m1,(l11,l12), m2,(l21,l22)
 
 
-
-
 def l2fa((a,b)):
     return abs(a-b)/np.sqrt(a*a + 2*b*b)
 
@@ -579,3 +642,9 @@ def interp3scalar(M, p, v):
 def iff(test, true, false):
     if test:  return true
     else:     return false
+
+def rel_anisotropy((l1, l2, l3)):
+    return (np.sqrt(2) / 2) * np.sqrt((l1 - l2) * (l1 - l2) + (l1 - l3) * (l1 - l3) + (l2 - l3) * (l2 - l3)) / (l1 + l2 + l3)
+
+def trace((l1, l2, l3)):
+    return sum((l1, l2, l3)) / 3.0
