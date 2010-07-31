@@ -109,6 +109,9 @@ void JPEG2000ImageIO::ReadImageInformation()
     itkExceptionMacro("ERROR -> failed to open for reading");
     }
 
+  /* set decoding parameters to default values */
+  opj_set_default_decoder_parameters( &m_DecompressionParameters );
+
   opj_stream_t * cio = NULL;
 
   cio = opj_stream_create_default_file_stream( l_file,true);
@@ -167,7 +170,6 @@ void JPEG2000ImageIO::ReadImageInformation()
       return;
     }
   /* catch events using our callbacks and give a local context */
-
   /* setup the decoder decoding parameters using user parameters */
   /* No reading of image information done */
   opj_setup_decoder( this->m_Dinfo, &m_DecompressionParameters);
@@ -182,6 +184,8 @@ void JPEG2000ImageIO::ReadImageInformation()
   OPJ_UINT32 l_nb_tiles_x;
   OPJ_UINT32 l_nb_tiles_y;
 
+  std::cout << "Trying to read header now..." << std::endl;
+
   bool bResult = opj_read_header(
     this->m_Dinfo,
     & l_image,
@@ -192,7 +196,6 @@ void JPEG2000ImageIO::ReadImageInformation()
     &l_nb_tiles_x,
     &l_nb_tiles_y,
     cio);
-
 
   if ( !bResult )
     {
@@ -683,6 +686,13 @@ JPEG2000ImageIO
 #endif
     /* <<UniPG */
     }
+
+  if ( this->m_TileWidth > 0 )
+  {
+    parameters.cp_tdx = this->m_TileWidth;
+    parameters.cp_tdy = this->m_TileHeight;
+    parameters.tile_size_on = true;
+  }
 
 //--------------------------------------------------------
   // Copy the contents into the image structure

@@ -26,7 +26,7 @@
 
 #define USE_OPJ_DEPRECATED
 
-extern "C" 
+extern "C"
 {
   #include "openjpeg.h"
   #include "j2k.h"
@@ -96,6 +96,12 @@ public:
   /** Method required by the base class StreamingImageIOBase */
   virtual SizeType GetHeaderSize(void ) const;
 
+  void SetTileSize( int x, int y )
+  {
+    m_TileWidth = x;
+    m_TileHeight = y;
+  }
+
 protected:
   JPEG2000ImageIO();
   ~JPEG2000ImageIO();
@@ -108,7 +114,7 @@ private:
   void operator=(const Self&); //purposely not implemented
 
 
-  typedef enum 
+  typedef enum
     {
     J2K_CFMT = 0,
     JP2_CFMT = 1,
@@ -116,13 +122,13 @@ private:
     MJ2_CFMT = 3
     } DecodingFormatType;
 
-  typedef enum 
+  typedef enum
     {
     PXM_DFMT = 0,
     PGX_DFMT = 1,
     BMP_DFMT = 2,
     YUV_DFMT = 3
-    } DFMFormatType; 
+    } DFMFormatType;
 
   opj_codec_t *     m_Dinfo;
 
@@ -138,7 +144,7 @@ private:
   typedef ImageIORegion::SizeValueType    SizeValueType;
   typedef ImageIORegion::IndexValueType   IndexValueType;
 
-  void ComputeRegionInTileBoundaries( unsigned int dimension, 
+  void ComputeRegionInTileBoundaries( unsigned int dimension,
     SizeValueType tileSize, ImageIORegion & streamableRegion ) const;
 
 };
