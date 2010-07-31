@@ -891,7 +891,7 @@ JPEG2000ImageIO
     {
     //
     // Compute the required set of tiles that fully contain the requested region
-    //
+    // TODO: Not larger than image size
     streamableRegion = requestedRegion;
 
     this->ComputeRegionInTileBoundaries( 0, this->m_TileWidth, streamableRegion );
@@ -923,6 +923,13 @@ JPEG2000ImageIO
     {
     sizeQuantizedInTileSize += tileSize - tileRemanent;
     }
+
+  IndexValueType endQuantizedInTileSize = startQuantizedInTileSize + sizeQuantizedInTileSize - 1;
+
+  if ( endQuantizedInTileSize > this->GetDimensions( dimension ) )
+  {
+    sizeQuantizedInTileSize = this->GetDimensions( dimension ) - startQuantizedInTileSize;
+  }
 
   streamableRegion.SetSize(  dimension, sizeQuantizedInTileSize );
   streamableRegion.SetIndex( dimension, startQuantizedInTileSize );
