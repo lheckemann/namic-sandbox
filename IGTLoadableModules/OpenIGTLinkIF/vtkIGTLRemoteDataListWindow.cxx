@@ -416,11 +416,11 @@ void vtkIGTLRemoteDataListWindow::CreateWidget()
   this->RemoteDataList->GetWidget()->MovableColumnsOff();
 
   const char* labels[] =
-    { "IGTL NAME", "Patient ID", "Patient Name", "Modality", "Date", "Status", "Description"};
+    { "IGTL NAME", "Patient ID", "Patient Name", "Modality", "Date", "Time"};
   const int widths[] = 
-    { 12, 20, 20, 20, 10, 10, 30};
+    { 12, 20, 20, 10, 10, 10};
 
-  for (int col = 0; col < 7; col ++)
+  for (int col = 0; col < 6; col ++)
     {
     this->RemoteDataList->GetWidget()->AddColumn(labels[col]);
     this->RemoteDataList->GetWidget()->SetColumnWidth(col, widths[col]);
@@ -528,12 +528,26 @@ void vtkIGTLRemoteDataListWindow::UpdateRemoteDataList()
       {
       vtkMRMLImageMetaListNode::ImageMetaElement element;
       node->GetImageMetaElement(i, &element);
+
+      // Get time stamp
+      // Get date -- TODO: this will be implemented in OpenIGTLink library ??
+      time_t sec = (time_t) ((int) element.TimeStamp);
+      struct tm* ptm;
+      ptm = localtime(&sec);
+      
+      char datestr[64];
+      char timestr[64];
+      strftime (datestr, sizeof(datestr), "%Y-%m-%d", ptm);
+      strftime (timestr, sizeof(timestr), "%H:%M:%S", ptm);
+                
       this->RemoteDataList->GetWidget()->SetCellText(i, 0, element.DeviceName.c_str());
       this->RemoteDataList->GetWidget()->SetCellText(i, 1, element.PatientID.c_str());
-      this->RemoteDataList->GetWidget()->SetCellText(i, 2, element.Modality.c_str());
-      this->RemoteDataList->GetWidget()->SetCellText(i, 3, "--"); // Date
-      this->RemoteDataList->GetWidget()->SetCellText(i, 4, "--"); // Status
-      this->RemoteDataList->GetWidget()->SetCellText(i, 5, "--"); // Description
+      this->RemoteDataList->GetWidget()->SetCellText(i, 2, element.PatientName.c_str());
+      this->RemoteDataList->GetWidget()->SetCellText(i, 3, element.Modality.c_str());
+      this->RemoteDataList->GetWidget()->SetCellText(i, 4, datestr);  // Date
+      this->RemoteDataList->GetWidget()->SetCellText(i, 5, timestr);  // Time
+      //this->RemoteDataList->GetWidget()->SetCellText(i, 6, "--");     // Status
+      //this->RemoteDataList->GetWidget()->SetCellText(i, 7, "--");     // Description
       }
     }
   

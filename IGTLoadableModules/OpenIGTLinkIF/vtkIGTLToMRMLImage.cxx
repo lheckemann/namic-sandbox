@@ -572,3 +572,30 @@ void vtkIGTLToMRMLImage::CenterImage(vtkMRMLVolumeNode *volumeNode)
         }
       }
 }
+
+
+//---------------------------------------------------------------------------
+int vtkIGTLToMRMLImage::ProcessGetQuery(igtl::MessageBase::Pointer buffer,
+                                                vtkMRMLScene* scene, int* size, void** igtlMsg)
+{
+  // When a GET query message is received, ImageMetaList converter creates
+  // a ImageMeta message that contains a list of images available in the MRML Scene.
+
+  vtkCollection* collection = scene->GetNodesByClassByName("vtkMRMLScalarVolumeNode", buffer->GetDeviceName());
+  int nCol = collection->GetNumberOfItems();
+  if (nCol == 0)
+    {
+    // TODO: return error message
+    *size = 0;
+    return 0;
+    }
+  else
+    {
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(0));
+    MRMLToIGTL(vtkMRMLVolumeNode::ImageDataModifiedEvent, node, size, igtlMsg);
+    return 1;
+    }
+  
+}
+
+

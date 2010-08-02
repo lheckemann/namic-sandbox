@@ -35,7 +35,6 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLImageMetaList : public vtkIGTLToMRML
 
   virtual const char*  GetIGTLName() { return "IMGMETA"; };
   virtual const char*  GetMRMLName() { return "ImageMetaList"; };
-
   virtual const char*  GetIGTLGetQueryName() { return "GET_IMGMETA"; };
   
   virtual vtkIntArray* GetNodeEvents();
@@ -44,9 +43,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLImageMetaList : public vtkIGTLToMRML
   //BTX
   virtual int          IGTLToMRML(igtl::MessageBase::Pointer buffer, vtkMRMLNode* node);
   //ETX
-  //BTX
   virtual int          MRMLToIGTL(unsigned long event, vtkMRMLNode* mrmlNode, int* size, void** igtlMsg);
-  //ETX
 
   //BTX
   virtual int          ProcessGetQuery(igtl::MessageBase::Pointer vtkNotUsed(buffer),
