@@ -148,3 +148,18 @@ For smallest spacing, set the \sigma_{i} = 0.5, and compute the remaining sigma'
 
 5. Store the state and covariance at each point along the tract. (This could be use to compute FA, Trace etc) and
    return them to Slicer space for future access.
+
+
+
+
+Annoying how things can end up with one dimension and then cause trouble in assignments:
+
+ss_st_arr[cell_id,:].shape == "(5,)"
+f_st[j].shape == "(5, 1)"
+
+Yet...
+Traceback (most recent call last):
+  File "<string>", line 95, in <module>
+  File "/Users/malcolm/src/filtered_tractography/Source/filtered.py", line 290, in Execute
+    ss_st_arr[cell_id,:] = f_st[j]
+ValueError: array dimensions are not compatible for copy
