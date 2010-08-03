@@ -229,7 +229,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
         # store extras
         if record_fa:    ff_fa.append(extra[0])
         if record_state: ff_st.append(extra[1])
-        if record_cov:   ff_co.append(extra[2])
+        ff_co.append(extra[2])
 
     t2 = time.time()
     print 'Time: ', t2 - t1, 'sec'
@@ -242,7 +242,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
             # store extras
             if record_fa:    ff_fa.append(extra[0])
             if record_state: ff_st.append(extra[1])
-            if record_cov:   ff_co.append(extra[2])
+            ff_co.append(extra[2])
         print 'Time: ', time.time() - t2, 'sec'
 
     # build polydata
@@ -274,8 +274,11 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
         ss_st_arr = ss_st.ToArray()
 
     if record_cov:
+        upper_half_coordinates = tuple(np.transpose([(i,j) \
+            for i in xrange(state_dim) \
+            for j in xrange(i, state_dim)]))
         ss_co = slicer.vtkFloatArray()
-        ss_co.SetNumberOfComponents(state_dim**2)
+        ss_co.SetNumberOfComponents(state_dim * (state_dim + 1) / 2)
         ss_co.SetNumberOfTuples(num_points)
         ss_co.SetName('covariance')
         ss_co_arr = ss_co.ToArray()
@@ -285,7 +288,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
         f = ff1[i]
         if record_fa:    f_fa = ff_fa[i]
         if record_state: f_st = ff_st[i]
-        if record_cov:   f_co = ff_co[i]
+        f_co = ff_co[i]
         lines.InsertNextCell(len(f))
 
         for j in xrange(0,len(f)):
@@ -295,10 +298,10 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
             x_ = np.array(transform(i2r, x)).ravel() # HACK
             ss_x.SetPoint(point_id, x_[0], x_[1], x_[2])
 
-            print f_st[j]
-            if record_fa:     ss_fa_arr[point_id, :] = 255 * f_fa[j]
+            ss_norm_arr[point_id, 0] = np.linalg.norm(f_co[j])
+            if record_fa:     ss_fa_arr[point_id, 0] = 255 * f_fa[j]
             if record_state:  ss_st_arr[point_id, :] = f_st[j].ravel()
-            if record_cov:    ss_co_arr[point_id, :] = f_co[j]
+            if record_cov:    ss_co_arr[point_id, :] = f_co[j][upper_half_coordinates]
 
             point_id += 1
  
@@ -314,6 +317,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
         pd = slicer.vtkPolyData() # create if necessary
         ff_node.SetAndObservePolyData(pd)
     pd.SetPoints(ss_x)
+    pd.GetPointData().AddArray(ss_norm)
     if record_fa:     pd.GetPointData().AddArray(ss_fa)
     else:             pd.GetPointData().RemoveArray('FA')
     if record_state:  pd.GetPointData().AddArray(ss_st)
@@ -451,7 +455,7 @@ def follow1t(S,u,b,mask,fiber,param,is_branching):
             ff.append(x)
             if param['record_fa'] : ff_fa.append(fa)
             if param['record_st'] : ff_st.append(X)
-            if param['record_co'] : ff_co.append(P)
+            ff_co.append(P)
         else:
             ct += 1
 
@@ -503,7 +507,7 @@ def follow2t(S,u,b,mask,fiber,param,is_branching):
             ff.append(x)
             if param['record_fa'] : ff_fa.append(fa)
             if param['record_st'] : ff_st.append(np.vstack(X_imp))
-            if param['record_co'] : ff_co.append(P)
+            ff_co.append(P)
 
             # record branch if necessary
             if is_branching:
