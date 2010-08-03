@@ -126,7 +126,7 @@ import filtered_ext as flt
 import time
 
 def Execute(dwi_node, seeds_node, mask_node, ff_node, \
-            record_fa = False, record_state = False, record_cov = False, \
+            record_fa = False, record_state = True, record_cov = False, \
             model="two-tensor", FA_min=.15, GA_min=.10,
             seeds=1, labels=[1],
             Qm=.0030, Ql=100, Rs=.015, theta_max=45):
@@ -250,7 +250,14 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
     for f in ff1:
         num_points += len(f)
     ss_x = slicer.vtkPoints()
+    ss_x.SetNumberOfPoints(num_points)
     lines = slicer.vtkCellArray()
+
+    ss_norm = slicer.vtkFloatArray()
+    ss_norm.SetName('norm')
+    ss_norm.SetNumberOfComponents(1)
+    ss_norm.SetNumberOfTuples(num_points)
+    ss_norm_arr = ss_norm.ToArray()
 
     if record_fa:
         ss_fa = slicer.vtkFloatArray()
@@ -273,7 +280,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
         ss_co.SetName('covariance')
         ss_co_arr = ss_co.ToArray()
 
-    cell_id = 0
+    point_id = 0
     for i in xrange(0,len(ff1)):
         f = ff1[i]
         if record_fa:    f_fa = ff_fa[i]
@@ -282,16 +289,18 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
         lines.InsertNextCell(len(f))
 
         for j in xrange(0,len(f)):
-            lines.InsertCellPoint(cell_id)
+            lines.InsertCellPoint(point_id)
             x = f[j]
             x = x[::-1] # HACK
             x_ = np.array(transform(i2r, x)).ravel() # HACK
-            ss_x.InsertNextPoint(x_[0],x_[1],x_[2])
-            if record_fa:     ss_fa_arr[cell_id,:] = 255 * f_fa[j]
-            if record_state:  ss_st_arr[cell_id,:] = f_st[j].ravel()
-            if record_cov:    ss_co_arr[cell_id,:] = f_co[j].ravel()
+            ss_x.SetPoint(point_id, x_[0], x_[1], x_[2])
 
-            cell_id += 1
+            print f_st[j]
+            if record_fa:     ss_fa_arr[point_id, :] = 255 * f_fa[j]
+            if record_state:  ss_st_arr[point_id, :] = f_st[j].ravel()
+            if record_cov:    ss_co_arr[point_id, :] = f_co[j]
+
+            point_id += 1
  
 
     # setup output fibers
@@ -306,8 +315,11 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
         ff_node.SetAndObservePolyData(pd)
     pd.SetPoints(ss_x)
     if record_fa:     pd.GetPointData().AddArray(ss_fa)
+    else:             pd.GetPointData().RemoveArray('FA')
     if record_state:  pd.GetPointData().AddArray(ss_st)
+    else:             pd.GetPointData().RemoveArray('state')
     if record_cov:    pd.GetPointData().AddArray(ss_co)
+    else:             pd.GetPointData().RemoveArray('covariance')
     pd.SetLines(lines)
     pd.Update()
     ff_node.Modified()
@@ -351,7 +363,7 @@ def step2t(p, S, est, param):
     dx = m / v
     x = x + param['dt'] * dx[::-1]  # HACK volume dimensions are reversed
     # repack
-    return x,X,P,m,fa
+    return x,X,P,m,fa,(m1,l1,m2,l2)
 
 
 
@@ -451,7 +463,8 @@ def follow1t(S,u,b,mask,fiber,param,is_branching):
 def follow2t(S,u,b,mask,fiber,param,is_branching):
     # unpack and initialize tract
     x,X,P,m,fa = fiber
-    ff,ff_fa,ff_st,ff_co = [np.array(x)],[fa],[X],[P]
+    X_imp = state2tensor2(X,m)
+    ff,ff_fa,ff_st,ff_co = [np.array(x)],[fa],[np.vstack(X_imp)],[P]
     pp = [] # branches if any
 
     # initialize filter
@@ -472,7 +485,7 @@ def follow2t(S,u,b,mask,fiber,param,is_branching):
         fiber = step2t(fiber, S, est, param)
 
         # unpack
-        x,X,P,m,fa = fiber
+        x,X,P,m,fa,X_imp = fiber
 
         # terminate if off brain or in CSF
         is_brain = interp3scalar(mask,x,v) > .1
@@ -489,12 +502,12 @@ def follow2t(S,u,b,mask,fiber,param,is_branching):
             ct = 0
             ff.append(x)
             if param['record_fa'] : ff_fa.append(fa)
-            if param['record_st'] : ff_fa.append(X)
-            if param['record_co'] : ff_fa.append(P)
+            if param['record_st'] : ff_st.append(np.vstack(X_imp))
+            if param['record_co'] : ff_co.append(P)
 
             # record branch if necessary
             if is_branching:
-                m1,l1,m2,l2 = state2tensor2(X,m)
+                m1,l1,m2,l2 = X_imp
                 is_two = l1[0] > l1[1] and l2[0] > l2[1] # non-planar
                 fa = param['FA_min']
                 is_two = is_two and l2fa(l1) > fa and l2fa(l2) > fa
@@ -506,8 +519,10 @@ def follow2t(S,u,b,mask,fiber,param,is_branching):
                         X = np.vstack((m2,l2,m1,l1))
                         m = m2
                         P_ = P.copy()
-                        P_[:5,:5] = P[5:,5:]
-                        P_[5:,5:] = P[:5,:5] # swap covariance
+                        P_[:5,:5] = P[5:,5:] # swap covariance
+                        P_[5:,5:] = P[:5,:5] 
+                        P_[5:,:5] = P[:5,5:] 
+                        P_[:5,5:] = P[5:,:5]
                     assert X.shape[0] == 10 and X.shape[1] == 1
                     pp.append((x,X,P_,m,fa))
         else:
