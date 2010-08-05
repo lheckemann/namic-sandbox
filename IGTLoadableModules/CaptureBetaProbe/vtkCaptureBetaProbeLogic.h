@@ -53,7 +53,13 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeLogic : public vtkSlicerMod
   vtkTypeRevisionMacro(vtkCaptureBetaProbeLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
 
+  vtkGetObjectMacro(Offset, vtkMatrix4x4);
+
   void PivotCalibration(vtkCollection* PivotingMatrix, double AveragePcal[3]);
+
+  void ManualTipToTipCalibration(vtkMatrix4x4* Tracker, vtkMatrix4x4* BetaProbe, vtkMatrix4x4* ProbeOffset);
+
+  void ProbeToProbeRegistration(vtkMatrix4x4* Tracker, vtkMatrix4x4* BetaProbe, vtkMatrix4x4* ProbeOffset);
 
  protected:
   
@@ -67,6 +73,7 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeLogic : public vtkSlicerMod
   void UpdateAll();
 
   vtkCallbackCommand *DataCallbackCommand;
+  vtkMatrix4x4* Offset;
 
  private:
 
