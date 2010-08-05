@@ -43,6 +43,7 @@ vtkCaptureBetaProbeLogic::vtkCaptureBetaProbeLogic()
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkCaptureBetaProbeLogic::DataCallback);
 
+  this->Offset = NULL;
 }
 
 
@@ -53,6 +54,11 @@ vtkCaptureBetaProbeLogic::~vtkCaptureBetaProbeLogic()
   if (this->DataCallbackCommand)
     {
     this->DataCallbackCommand->Delete();
+    }
+
+  if (this->Offset)
+    {
+    this->Offset->Delete();
     }
 
 }
@@ -103,6 +109,8 @@ void vtkCaptureBetaProbeLogic::PivotCalibration(vtkCollection* PivotingMatrix, d
       vtkMatrix3x3* MatrixDifference = vtkMatrix3x3::New();
       double TranslationDifference[3] = {0,0,0};
 
+
+      
 
       // Rotation matrix1
       rotation1->SetElement(0,0,matrix1->GetElement(0,0));
@@ -157,14 +165,14 @@ void vtkCaptureBetaProbeLogic::PivotCalibration(vtkCollection* PivotingMatrix, d
       MatrixDifference->SetElement(2,1,rotation1->GetElement(2,1) - rotation2->GetElement(2,1));
       MatrixDifference->SetElement(2,2,rotation1->GetElement(2,2) - rotation2->GetElement(2,2));
 
-
-      std::cout 
- << MatrixDifference->GetElement(0,0) << " " << MatrixDifference->GetElement(0,1) << " " << MatrixDifference->GetElement(0,2) << " "<< MatrixDifference->GetElement(0,3) << std::endl
- << MatrixDifference->GetElement(1,0) << " " << MatrixDifference->GetElement(1,1) << " " << MatrixDifference->GetElement(1,2) << " "<< MatrixDifference->GetElement(1,3) << std::endl
- << MatrixDifference->GetElement(2,0) << " " << MatrixDifference->GetElement(2,1) << " " << MatrixDifference->GetElement(2,2) << " "<< MatrixDifference->GetElement(2,3) << std::endl
- << MatrixDifference->GetElement(3,0) << " " << MatrixDifference->GetElement(3,1) << " " << MatrixDifference->GetElement(3,2) << " "<< MatrixDifference->GetElement(3,3) << std::endl
+      
+      std::cout
+ << "Before Inverse:" << std::endl 
+ << MatrixDifference->GetElement(0,0) << "\t" << MatrixDifference->GetElement(0,1) << "\t" << MatrixDifference->GetElement(0,2) << std::endl
+ << MatrixDifference->GetElement(1,0) << "\t" << MatrixDifference->GetElement(1,1) << "\t" << MatrixDifference->GetElement(1,2) << std::endl
+ << MatrixDifference->GetElement(2,0) << "\t" << MatrixDifference->GetElement(2,1) << "\t" << MatrixDifference->GetElement(2,2) << std::endl
  << std::endl;
-
+      
 
 
 
@@ -176,42 +184,47 @@ void vtkCaptureBetaProbeLogic::PivotCalibration(vtkCollection* PivotingMatrix, d
 
       // Inverse matrix ( [R1-R2]^-1 )
       vtkMatrix3x3* calculated_matrix = vtkMatrix3x3::New();
+      for(int i = 0; i < 3; i++)
+     {
+        for(int j = 0; j < 3; j++)
+       {
+         calculated_matrix->SetElement(i,j,0);
+       }
+     }
       MatrixDifference->Invert(MatrixDifference, calculated_matrix);
 
-      /*
+            
       std::cout 
- << calculated_matrix->GetElement(0,0) << " " << calculated_matrix->GetElement(0,1) << " " << calculated_matrix->GetElement(0,2) << " "<< calculated_matrix->GetElement(0,3) << std::endl
- << calculated_matrix->GetElement(1,0) << " " << calculated_matrix->GetElement(1,1) << " " << calculated_matrix->GetElement(1,2) << " "<< calculated_matrix->GetElement(1,3) << std::endl
- << calculated_matrix->GetElement(2,0) << " " << calculated_matrix->GetElement(2,1) << " " << calculated_matrix->GetElement(2,2) << " "<< calculated_matrix->GetElement(2,3) << std::endl
- << calculated_matrix->GetElement(3,0) << " " << calculated_matrix->GetElement(3,1) << " " << calculated_matrix->GetElement(3,2) << " "<< calculated_matrix->GetElement(3,3) << std::endl
+ << "After Inverse: " << std::endl
+ << calculated_matrix->GetElement(0,0) << "\t" << calculated_matrix->GetElement(0,1) << "\t" << calculated_matrix->GetElement(0,2) << std::endl
+ << calculated_matrix->GetElement(1,0) << "\t" << calculated_matrix->GetElement(1,1) << "\t" << calculated_matrix->GetElement(1,2) << std::endl
+ << calculated_matrix->GetElement(2,0) << "\t" << calculated_matrix->GetElement(2,1) << "\t" << calculated_matrix->GetElement(2,2) << std::endl
  << std::endl;
-      */
+      
       
 
       // Multiply Rotation and Translation ( [R1-R2]^-1 * [P1-P2] )
-      MatrixDifference->MultiplyPoint(TranslationDifference, pcal);
-      
+      calculated_matrix->MultiplyPoint(TranslationDifference, pcal);
+    
       // Change sign ( Pcal = - [R1-R2]^-1 * [P1-P2] ) and add to previous results to average
-      pcal[0] += -pcal[0];
-      pcal[1] += -pcal[1];
-      pcal[2] += -pcal[2];
-
-      std::cout << pcal[0] << "-" << pcal[1] << "-" << pcal[2] << std::endl;
+      AveragePcal[0] += -pcal[0];
+      AveragePcal[1] += -pcal[1];
+      AveragePcal[2] += -pcal[2];
 
       ElementsUsed += 2;
 
-      std::cout << CurrentElement << "/" << ElementsUsed << std::endl;
+      // std::cout << CurrentElement << "/" << ElementsUsed << std::endl;
 
       calculated_matrix->Delete();
       MatrixDifference->Delete();
     }
 
   // Average pcal
-  AveragePcal[0] = pcal[0] / ElementsUsed;
-  AveragePcal[1] = pcal[1] / ElementsUsed;
-  AveragePcal[2] = pcal[2] / ElementsUsed;
+  AveragePcal[0] = AveragePcal[0] / ElementsUsed;
+  AveragePcal[1] = AveragePcal[1] / ElementsUsed;
+  AveragePcal[2] = AveragePcal[2] / ElementsUsed;
 
-  std::cout << "AvPcal: " << AveragePcal[0] << ":" << AveragePcal[1] << ":" << AveragePcal[2] << std::endl;
+  // std::cout << "AvPcal: " << AveragePcal[0] << ":" << AveragePcal[1] << ":" << AveragePcal[2] << std::endl;
 
   /* 
   out->SetElement(0,3,pcal[0]);
@@ -222,3 +235,32 @@ void vtkCaptureBetaProbeLogic::PivotCalibration(vtkCollection* PivotingMatrix, d
   rotation1->Delete();
   rotation2->Delete();
 }
+
+void vtkCaptureBetaProbeLogic::ProbeToProbeRegistration(vtkMatrix4x4* Tracker, vtkMatrix4x4* BetaProbe, vtkMatrix4x4* ProbeOffset)
+{
+  ProbeOffset->SetElement(0,3,Tracker->GetElement(0,3)-BetaProbe->GetElement(0,3));
+  ProbeOffset->SetElement(1,3,Tracker->GetElement(1,3)-BetaProbe->GetElement(1,3));
+  ProbeOffset->SetElement(2,3,Tracker->GetElement(2,3)-BetaProbe->GetElement(2,3));
+}
+
+
+void vtkCaptureBetaProbeLogic::ManualTipToTipCalibration(vtkMatrix4x4* Tracker, vtkMatrix4x4* BetaProbe, vtkMatrix4x4* ProbeOffset)
+{
+  this->Offset = vtkMatrix4x4::New();
+  this->Offset->Zero();   
+
+  this->Offset->SetElement(0,3,Tracker->GetElement(0,3)-BetaProbe->GetElement(0,3)-ProbeOffset->GetElement(0,3));
+  this->Offset->SetElement(1,3,Tracker->GetElement(1,3)-BetaProbe->GetElement(1,3)-ProbeOffset->GetElement(1,3));
+  this->Offset->SetElement(2,3,Tracker->GetElement(2,3)-BetaProbe->GetElement(2,3)-ProbeOffset->GetElement(2,3));
+
+  std::cout << "Tracker: (" << Tracker->GetElement(0,3) << "," << Tracker->GetElement(1,3) << "," << Tracker->GetElement(2,3) << ")" << std::endl;
+
+  std::cout << "Tracker: (" << BetaProbe->GetElement(0,3) << "," << BetaProbe->GetElement(1,3) << "," << BetaProbe->GetElement(2,3) << ")" << std::endl;
+
+  std::cout << "Offset x: " << this->Offset->GetElement(0,3) << std::endl;
+  std::cout << "Offset y: " << this->Offset->GetElement(1,3) << std::endl;
+  std::cout << "Offset z: " << this->Offset->GetElement(2,3) << std::endl;
+
+  
+}
+

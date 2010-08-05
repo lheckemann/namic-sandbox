@@ -38,6 +38,7 @@ class vtkKWFileBrowserDialog;
 //class vtkMRMLUDPServerNode;
 class vtkMRMLLinearTransformNode;
 class vtkMatrix4x4;
+class vtkMatrix3x3;
 class vtkCollection;
 
 class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModuleGUI
@@ -64,6 +65,7 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
 
   void Capture_Data();
   void Capture_Tracker_Position();
+  void ExtractRotationMatrix(vtkMatrix4x4* in, vtkMatrix3x3* out);
 
  protected:
   //----------------------------------------------------------------
@@ -117,13 +119,12 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   void BuildGUIForHelpFrame();
   void BuildGUIForPivotCalibration();
   void BuildGUIForCapturingDataFromBetaProbe();
-
+  void BuildGUIForManualCalibration();
   //----------------------------------------------------------------
   // Update routines
   //----------------------------------------------------------------
 
   void UpdateAll();
-
 
  protected:
   
@@ -165,6 +166,20 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   vtkKWPushButton* StopPivotCalibration;
 
   vtkCollection* PivotingMatrix;
+
+
+  
+  vtkSlicerNodeSelectorWidget* TipToTipTrackerNode;
+  vtkSlicerNodeSelectorWidget* TipToTipBetaProbeNode;
+  vtkKWPushButton* ManualCalibrationButton;
+  vtkKWPushButton* RegisterProbeButton;
+
+  vtkMatrix4x4* ProbeToProbeRegistration;
+  vtkMatrix4x4* OriginalOrientation;  
+
+  vtkMRMLLinearTransformNode* VirtualCenterProbeNode;
+
+  vtkMRMLLinearTransformNode* BetaProbeTransform;
 
   //----------------------------------------------------------------
   // Logic Values
