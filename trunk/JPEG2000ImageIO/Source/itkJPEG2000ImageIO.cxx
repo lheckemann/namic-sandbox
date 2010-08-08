@@ -889,9 +889,7 @@ JPEG2000ImageIO
     }
   else
     {
-    //
     // Compute the required set of tiles that fully contain the requested region
-    // TODO: Not larger than image size
     streamableRegion = requestedRegion;
 
     this->ComputeRegionInTileBoundaries( 0, this->m_TileWidth, streamableRegion );
