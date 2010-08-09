@@ -35,6 +35,7 @@
 
 #include "vtkKWPushButton.h"
 #include "vtkSlicerNodeSelectorWidget.h"
+#include "vtkKWEntryWithLabel.h"
 
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMatrix4x4.h"
@@ -43,6 +44,8 @@
 #include "vtkCornerAnnotation.h"
 
 #include "vtkCollection.h"
+
+#define PI 3.14159265
 
 
 //---------------------------------------------------------------------------
@@ -88,22 +91,20 @@ vtkCaptureBetaProbeGUI::vtkCaptureBetaProbeGUI ( )
 
 
 
-  this->TipToTipTrackerNode = NULL;
-  this->TipToTipBetaProbeNode = NULL;
-  this->ManualCalibrationButton = NULL;
-  this->RegisterProbeButton = NULL;
+  this->BetaProbe = NULL;
+  this->ProbeRadius = NULL;
+  this->Phi0 = NULL;
+  this->UsePhi0 = NULL;
+  this->Phi0Angle = 0;
+  this->BetaProbeRadiusValue = 0;
+  this->PhiAngleRad = 0;
 
-  this->ProbeToProbeRegistration = vtkMatrix4x4::New();
-  this->OriginalOrientation = vtkMatrix4x4::New();
-
-  this->VirtualCenterProbeNode = NULL;
-
-  this->BetaProbeTransform = NULL;
   //----------------------------------------------------------------
   // Locator  (MRML)
   this->TimerFlag = 0;
 
   this->SetContinuousMode(false);
+  this->SetCalibrated(false);
 
   //----------------------------------------------------------------
   // File
@@ -166,13 +167,13 @@ vtkCaptureBetaProbeGUI::~vtkCaptureBetaProbeGUI ( )
     this->Capture_status->SetParent(NULL);
     this->Capture_status->Delete();
     }
-
+ 
   if (this->FileSelector)
     {
     this->FileSelector->SetParent(NULL);
     this->FileSelector->Delete();
     }
-
+ 
   if (this->SelectFile)
     {
     this->SelectFile->SetParent(NULL);
@@ -225,50 +226,28 @@ vtkCaptureBetaProbeGUI::~vtkCaptureBetaProbeGUI ( )
 
 
 
-  if(this->TipToTipTrackerNode)
-    { 
-    this->TipToTipTrackerNode->SetParent(NULL);
-    this->TipToTipTrackerNode->Delete();
-    }
-
-  if(this->TipToTipBetaProbeNode)
-    { 
-    this->TipToTipBetaProbeNode->SetParent(NULL);
-    this->TipToTipBetaProbeNode->Delete();
-    }
-
-   if(this->ManualCalibrationButton)
-    { 
-    this->ManualCalibrationButton->SetParent(NULL);
-    this->ManualCalibrationButton->Delete();
-    }
-
-   if(this->RegisterProbeButton)
-    { 
-    this->RegisterProbeButton->SetParent(NULL);
-    this->RegisterProbeButton->Delete();
-    }
-
-  if(this->ProbeToProbeRegistration)
+  if(this->BetaProbe)
     {
-    this->ProbeToProbeRegistration->Delete();
+    this->BetaProbe->SetParent(NULL);
+    this->BetaProbe->Delete();
     }
 
-  if(this->OriginalOrientation)
+  if(this->ProbeRadius)
     {
-    this->OriginalOrientation->Delete();
+    this->ProbeRadius->SetParent(NULL);
+    this->ProbeRadius->Delete();
     }
 
-
-  if(this->VirtualCenterProbeNode)
+  if(this->Phi0)
     {
-    this->VirtualCenterProbeNode->Delete();
+    this->Phi0->SetParent(NULL);
+    this->Phi0->Delete();
     }
 
-
-  if(this->BetaProbeTransform)
+  if(this->UsePhi0)
     {
-    this->BetaProbeTransform->Delete();
+    this->UsePhi0->SetParent(NULL);
+    this->UsePhi0->Delete();
     }
 
   //----------------------------------------------------------------
@@ -298,7 +277,7 @@ void vtkCaptureBetaProbeGUI::Enter()
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
-    this->TimerInterval = 100;  // 100 ms
+    this->TimerInterval = 1000;  // 100 ms
     ProcessTimerEvents();
     }
 
@@ -389,15 +368,11 @@ void vtkCaptureBetaProbeGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->ManualCalibrationButton)
-    {
-    this->ManualCalibrationButton
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
 
-  if (this->RegisterProbeButton)
+
+  if (this->UsePhi0)
     {
-    this->RegisterProbeButton
+    this->UsePhi0
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   
@@ -492,15 +467,10 @@ void vtkCaptureBetaProbeGUI::AddGUIObservers ( )
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
-  if(this->ManualCalibrationButton)
-    {
-    this->ManualCalibrationButton
-      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
 
-  if(this->RegisterProbeButton)
+  if(this->UsePhi0)
     {
-    this->RegisterProbeButton
+    this->UsePhi0
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
@@ -613,24 +583,23 @@ void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
 
     if (this->FileSelector->GetStatus()==vtkKWDialog::StatusOK)
       {
-      std::string filename = this->FileSelector->GetFileName();
+        std::string filename = this->FileSelector->GetFileName();
       if(this->BetaProbeCountsWithTimestamp.is_open())
-     {
-       this->BetaProbeCountsWithTimestamp.close();
-     }
+        {
+        this->BetaProbeCountsWithTimestamp.close();
+        }
       this->BetaProbeCountsWithTimestamp.open(filename.c_str());
       if(this->BetaProbeCountsWithTimestamp.is_open())
-     {
-     std::stringstream open_file_succeed;
-     open_file_succeed << "File opened [" << filename.c_str() << "]";
-     this->Capture_status->SetText(open_file_succeed.str().c_str());
-     }
+        {
+        std::stringstream open_file_succeed;
+        open_file_succeed << "File opened [" << filename.c_str() << "]";
+        this->Capture_status->SetText(open_file_succeed.str().c_str());
+        }
       else
-     {
-     this->Capture_status->SetText("Failed to open file");
-     }
+        {
+        this->Capture_status->SetText("Failed to open file");
+        }
       }
-
     }
   else if (this->CloseFile == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent)
@@ -719,90 +688,21 @@ void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
     }
 
 
-  // ******** TIP-TO-TIP CALIBRATION (to clean)*********
-  else if(this->RegisterProbeButton == vtkKWPushButton::SafeDownCast(caller)
-       && event == vtkKWPushButton::InvokedEvent)
+  // ******** CENTER CALIBRATION *********
+  else if (this->UsePhi0 == vtkKWPushButton::SafeDownCast(caller)
+        && event == vtkKWPushButton::InvokedEvent)
     {
-      if(this->TipToTipTrackerNode && this->TipToTipBetaProbeNode)
+      if(this->Phi0 && this->ProbeRadius)
      {
-       if(this->TipToTipTrackerNode->GetSelected() && this->TipToTipBetaProbeNode->GetSelected() && this->ProbeToProbeRegistration)
+       if(this->Phi0->GetWidget()->GetValueAsDouble() && this->ProbeRadius->GetWidget()->GetValueAsDouble())
          {
-              vtkMRMLLinearTransformNode* TrackerTransform = vtkMRMLLinearTransformNode::SafeDownCast(this->TipToTipTrackerNode->GetSelected());
-
-           vtkMRMLLinearTransformNode* BetaProbeTransform = vtkMRMLLinearTransformNode::SafeDownCast(this->TipToTipBetaProbeNode->GetSelected());
-
-              vtkMatrix4x4* TrackerMatrix = vtkMatrix4x4::New();
-              TrackerTransform->GetMatrixTransformToWorld(TrackerMatrix);
-
-              vtkMatrix4x4* BetaProbeMatrix = vtkMatrix4x4::New();
-              BetaProbeTransform->GetMatrixTransformToWorld(BetaProbeMatrix);          
-
-              vtkMatrix4x4* CenterMatrix = vtkMatrix4x4::New();
-          
-           /* 
-              CenterMatrix->SetElement(0,3,(TrackerMatrix->GetElement(0,3)-BetaProbeMatrix->GetElement(0,3))/2);
-              CenterMatrix->SetElement(1,3,(TrackerMatrix->GetElement(1,3)-BetaProbeMatrix->GetElement(1,3))/2);
-              CenterMatrix->SetElement(2,3,(TrackerMatrix->GetElement(2,3)-BetaProbeMatrix->GetElement(2,3))/2);
-           std::cout << "Center: (" << CenterMatrix->GetElement(0,3) << "," << CenterMatrix->GetElement(1,3) << "," << CenterMatrix->GetElement(2,3)-(-266.504) << ")" << std::endl;
-           */
-              double reference[3] = {TrackerMatrix->GetElement(0,3)-90.272, TrackerMatrix->GetElement(1,3)-(-47.872), TrackerMatrix->GetElement(2,3)-(-266.504)};
-              double beta[3] = {BetaProbeMatrix->GetElement(0,3)-97.36, BetaProbeMatrix->GetElement(1,3)-(-49.32), BetaProbeMatrix->GetElement(2,3)-(-266.3)};
-
-              double center[3] = {((reference[0]-beta[0])/2)+90.272,((reference[1]-beta[1])/2)-47.872,((reference[2]-beta[2])/2)-266.504};
-
-           std::cout << "Center: (" << center[0] << "," << center[1] << "," << center[2] << ")" << std::endl;
-
-              /*
-           std::cout << "Reference: (" << TrackerMatrix->GetElement(0,3)-90.272 << "," << TrackerMatrix->GetElement(1,3)-(-47.872) << "," << TrackerMatrix->GetElement(2,3)-(-266.504) << ")" << std::endl;
-           std::cout << "Beta: (" << BetaProbeMatrix->GetElement(0,3)-97.36 << "," << BetaProbeMatrix->GetElement(1,3)-(-49.32) << "," << BetaProbeMatrix->GetElement(2,3)-(-266.3) << ")" << std::endl;
-           */
-
-              CenterMatrix->Delete();
-
-
-           //this->GetLogic()->ProbeToProbeRegistration(TrackerMatrix, BetaProbeMatrix, this->ProbeToProbeRegistration);
-
-              this->ManualCalibrationButton->SetState(1);
-
-              TrackerMatrix->Delete();
-              BetaProbeMatrix->Delete();
-         }
+         this->Phi0Angle = this->Phi0->GetWidget()->GetValueAsDouble();
+         this->BetaProbeRadiusValue = this->ProbeRadius->GetWidget()->GetValueAsDouble();
+            this->SetCalibrated(true);
+            }
      }
+ 
     }
-  else if(this->ManualCalibrationButton == vtkKWPushButton::SafeDownCast(caller)
-       && event == vtkKWPushButton::InvokedEvent)
-    {
-      if(this->TipToTipTrackerNode && this->TipToTipBetaProbeNode)
-     {
-       if(this->TipToTipTrackerNode->GetSelected() && this->TipToTipBetaProbeNode->GetSelected() && this->OriginalOrientation)
-         {
-            this->VirtualCenterProbeNode = vtkMRMLLinearTransformNode::New();
-            if(this->GetMRMLScene())
-           {
-           this->GetMRMLScene()->AddNode(this->VirtualCenterProbeNode);
-              this->VirtualCenterProbeNode->SetName("VirtualTracker");
-           this->GetMRMLScene()->Modified();
-           }
-
-           vtkMRMLLinearTransformNode* TrackerTransform = vtkMRMLLinearTransformNode::SafeDownCast(this->TipToTipTrackerNode->GetSelected());
-
-           // vtkMRMLLinearTransformNode* BetaProbeTransform = vtkMRMLLinearTransformNode::SafeDownCast(this->TipToTipBetaProbeNode->GetSelected());
-
-              this->BetaProbeTransform = vtkMRMLLinearTransformNode::SafeDownCast(this->TipToTipBetaProbeNode->GetSelected());
-
-              vtkMatrix4x4* TrackerMatrix = vtkMatrix4x4::New();
-              TrackerTransform->GetMatrixTransformToWorld(TrackerMatrix);
-
-              this->BetaProbeTransform->GetMatrixTransformToWorld(this->OriginalOrientation);
-
-           this->GetLogic()->ManualTipToTipCalibration(TrackerMatrix, this->OriginalOrientation, this->ProbeToProbeRegistration);
-
-           //         BetaProbeMatrix->Delete();
-              TrackerMatrix->Delete();
-         }
-     }
-    }
-
 
 } 
 
@@ -866,47 +766,28 @@ void vtkCaptureBetaProbeGUI::ProcessTimerEvents()
       this->Capture_Tracker_Position();
       }
     }
-  
-  if(this->VirtualCenterProbeNode && this->BetaProbeTransform && this->GetLogic()->GetOffset() && this->OriginalOrientation)
+
+  if(this->BetaProbe->GetSelected())
     {
-    vtkMatrix4x4* BetaMatrix = vtkMatrix4x4::New();
-    vtkMatrix4x4* virtualMatrix = this->VirtualCenterProbeNode->GetMatrixTransformToParent();
+     vtkMRMLLinearTransformNode* BetaTransform = vtkMRMLLinearTransformNode::SafeDownCast(this->BetaProbe->GetSelected());
 
-    this->BetaProbeTransform->GetMatrixTransformToWorld(BetaMatrix);
-    virtualMatrix->DeepCopy(BetaMatrix);
+     vtkMatrix4x4* BetaMatrix = vtkMatrix4x4::New();
+     BetaTransform->GetMatrixTransformToWorld(BetaMatrix);     
 
-    // Calcul offset in the new frame
-
-    vtkMatrix3x3* Mcal = vtkMatrix3x3::New();
-    vtkMatrix3x3* Mrot = vtkMatrix3x3::New();
-    vtkMatrix3x3* Mcur = vtkMatrix3x3::New();
-    
-    this->ExtractRotationMatrix(this->OriginalOrientation, Mcal);
-    this->ExtractRotationMatrix(virtualMatrix, Mcur);
-    
-    vtkMatrix3x3* Mcurinv = vtkMatrix3x3::New();
-    Mcurinv->Invert(Mcur,Mcurinv);
-
-    Mrot->Multiply3x3(Mcal,Mcurinv,Mrot);
-
-    //double offset[3] = {this->GetLogic()->GetOffset()->GetElement(0,3),this->GetLogic()->GetOffset()->GetElement(1,3),this->GetLogic()->GetOffset()->GetElement(2,3)};
-    double offset[3] = {1,1,1};
-
-    double new_offset[3];
-    Mrot->MultiplyPoint(offset, new_offset);
-
-    std::cout << "New offset: (" << new_offset[0] << "," << new_offset[1] << "," << new_offset[2] << ")" << std::endl;
-
-    virtualMatrix->SetElement(0,3,BetaMatrix->GetElement(0,3)-new_offset[0]);
-    virtualMatrix->SetElement(1,3,BetaMatrix->GetElement(1,3)-new_offset[1]);
-    virtualMatrix->SetElement(2,3,BetaMatrix->GetElement(2,3)-new_offset[2]);
- 
-
-    Mcal->Delete();
-    Mrot->Delete();
-    Mcur->Delete();
-    Mcurinv->Delete();
-    BetaMatrix->Delete();
+     // TODO: To check
+     if(BetaMatrix->GetElement(1,0)>0)
+       {
+       this->PhiAngleRad = PI-asin(BetaMatrix->GetElement(2,0));  
+       }
+     else
+       {
+       this->PhiAngleRad = asin(BetaMatrix->GetElement(2,0));  
+       }
+  
+     double PhiAngleDeg = this->PhiAngleRad*180/PI;
+     this->Phi0->GetWidget()->SetValueAsDouble(PhiAngleDeg);
+      
+     BetaMatrix->Delete();
     }
  
 }
@@ -924,7 +805,7 @@ void vtkCaptureBetaProbeGUI::BuildGUI ( )
   BuildGUIForHelpFrame();
   BuildGUIForPivotCalibration();
   BuildGUIForCapturingDataFromBetaProbe();
-  BuildGUIForManualCalibration();
+  BuildGUIForCenterCalibration();
 }
 
 
@@ -1154,10 +1035,10 @@ void vtkCaptureBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
   frame5->Delete();
 }
 
-//---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::BuildGUIForManualCalibration()
-{
 
+//----------------------------------------------------------------------------
+void vtkCaptureBetaProbeGUI::BuildGUIForCenterCalibration()
+{
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("CaptureBetaProbe");
   
@@ -1165,45 +1046,72 @@ void vtkCaptureBetaProbeGUI::BuildGUIForManualCalibration()
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Tip To Tip Calibration");
+  conBrowsFrame->SetLabelText("Capturing Data from Beta Probe");
   //conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
+
   vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
   frame->SetParent(conBrowsFrame->GetFrame());
   frame->Create();
-  frame->SetLabelText ("Manual Calibration");
+  frame->SetLabelText ("Center Calibration");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  frame->GetWidgetName() );
+
+  vtkKWFrame *frame1 = vtkKWFrame::New();
+  frame1->SetParent(frame->GetFrame());
+  frame1->Create();
+  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+       frame1->GetWidgetName() );
+
+  vtkKWLabel* BetaProbeLabel = vtkKWLabel::New();
+  BetaProbeLabel->SetParent(frame1);
+  BetaProbeLabel->Create();
+  BetaProbeLabel->SetText("Beta Probe Sensor:");
+  BetaProbeLabel->SetAnchorToWest();
+
+  this->BetaProbe = vtkSlicerNodeSelectorWidget::New();
+  this->BetaProbe->SetParent(frame1);
+  this->BetaProbe->Create();
+  this->BetaProbe->SetWidth(30);
+  this->BetaProbe->SetNewNodeEnabled(0);
+  this->BetaProbe->SetNodeClass("vtkMRMLLinearTransformNode",NULL,NULL,NULL);
+  this->BetaProbe->SetMRMLScene(this->Logic->GetMRMLScene());
+  this->BetaProbe->UpdateMenu();
+
+ app->Script("pack %s %s -fill x -side top -padx 2 -pady 2", 
+            BetaProbeLabel->GetWidgetName(),
+            this->BetaProbe->GetWidgetName());
+
+ BetaProbeLabel->Delete();
 
   vtkKWFrame *frame2 = vtkKWFrame::New();
   frame2->SetParent(frame->GetFrame());
   frame2->Create();
   app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
        frame2->GetWidgetName() );
+  
+  this->ProbeRadius = vtkKWEntryWithLabel::New();
+  this->ProbeRadius->SetParent(frame2);
+  this->ProbeRadius->Create();
+  this->ProbeRadius->SetLabelText("Radius of the probe (mm):");
+  this->ProbeRadius->GetLabel()->SetAnchorToNorthWest();
+  this->ProbeRadius->GetWidget()->SetWidth(5);
+  this->ProbeRadius->GetWidget()->SetRestrictValueToDouble();
 
-  this->TipToTipTrackerNode = vtkSlicerNodeSelectorWidget::New();
-  this->TipToTipTrackerNode->SetParent(frame2);
-  this->TipToTipTrackerNode->Create();
-  this->TipToTipTrackerNode->SetWidth(30);
-  this->TipToTipTrackerNode->SetNewNodeEnabled(0);
-  this->TipToTipTrackerNode->SetNodeClass("vtkMRMLLinearTransformNode",NULL,NULL,NULL);
-  this->TipToTipTrackerNode->SetMRMLScene(this->Logic->GetMRMLScene());
-  this->TipToTipTrackerNode->UpdateMenu();
+  this->Phi0 = vtkKWEntryWithLabel::New();
+  this->Phi0->SetParent(frame2);
+  this->Phi0->Create();
+  this->Phi0->SetLabelText("Angle of the probe (Phi):");
+  this->Phi0->GetLabel()->SetAnchorToNorthWest();
+  this->Phi0->GetWidget()->SetWidth(10);
 
-  vtkKWLabel *labelTracker = vtkKWLabel::New();
-  labelTracker->SetParent(frame2);
-  labelTracker->Create();
-  labelTracker->SetText("Tracker Node:");
-  labelTracker->SetAnchorToWest();
 
-  app->Script("pack %s %s -fill x -side top -padx 2 -pady 2", 
-               labelTracker->GetWidgetName(),
-            this->TipToTipTrackerNode->GetWidgetName());
-
-  labelTracker->Delete();
+ app->Script("pack %s %s -fill x -side left -padx 2 -pady 2", 
+            this->ProbeRadius->GetWidgetName(),
+            this->Phi0->GetWidgetName());
 
   vtkKWFrame *frame3 = vtkKWFrame::New();
   frame3->SetParent(frame->GetFrame());
@@ -1211,54 +1119,18 @@ void vtkCaptureBetaProbeGUI::BuildGUIForManualCalibration()
   app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
        frame3->GetWidgetName() );
 
-  this->TipToTipBetaProbeNode = vtkSlicerNodeSelectorWidget::New();
-  this->TipToTipBetaProbeNode->SetParent(frame3);
-  this->TipToTipBetaProbeNode->Create();
-  this->TipToTipBetaProbeNode->SetWidth(30);
-  this->TipToTipBetaProbeNode->SetNewNodeEnabled(0);
-  this->TipToTipBetaProbeNode->SetNodeClass("vtkMRMLLinearTransformNode",NULL,NULL,NULL);
-  this->TipToTipBetaProbeNode->SetMRMLScene(this->Logic->GetMRMLScene());
-  this->TipToTipBetaProbeNode->UpdateMenu();
+  this->UsePhi0 = vtkKWPushButton::New();
+  this->UsePhi0->SetParent(frame3);
+  this->UsePhi0->Create();
+  this->UsePhi0->SetText("Use Phi as Phi0");
 
-  vtkKWLabel *labelBetaProbe = vtkKWLabel::New();
-  labelBetaProbe->SetParent(frame3);
-  labelBetaProbe->Create();
-  labelBetaProbe->SetText("BetaProbe Node:");
-  labelBetaProbe->SetAnchorToWest();
+  app->Script("pack %s -fill x -side top -padx 2 -pady 2", 
+            this->UsePhi0->GetWidgetName());
 
-  app->Script("pack %s %s -fill x -side top -padx 2 -pady 2", 
-               labelBetaProbe->GetWidgetName(),
-            this->TipToTipBetaProbeNode->GetWidgetName());
-
-  labelBetaProbe->Delete();
-
-  vtkKWFrame *frame4 = vtkKWFrame::New();
-  frame4->SetParent(frame->GetFrame());
-  frame4->Create();
-  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-       frame4->GetWidgetName() );
-
-  this->RegisterProbeButton = vtkKWPushButton::New();
-  this->RegisterProbeButton->SetParent(frame4);
-  this->RegisterProbeButton->Create();
-  this->RegisterProbeButton->SetText("Probe To Probe Registration");
-  this->RegisterProbeButton->SetState(1);
-
-  this->ManualCalibrationButton = vtkKWPushButton::New();
-  this->ManualCalibrationButton->SetParent(frame4);
-  this->ManualCalibrationButton->Create();
-  this->ManualCalibrationButton->SetText("Manual Calibration");
-  this->ManualCalibrationButton->SetState(0);
-
-  app->Script("pack %s %s -fill x -side top -padx 2 -pady 2",
-              this->RegisterProbeButton->GetWidgetName(), 
-              this->ManualCalibrationButton->GetWidgetName());
-
-
-  frame->Delete();
-  frame2->Delete();
   frame3->Delete();
-  frame4->Delete();
+  frame2->Delete();
+  frame1->Delete(); 
+  frame->Delete();
   conBrowsFrame->Delete();
 }
 
@@ -1279,15 +1151,72 @@ void vtkCaptureBetaProbeGUI::Capture_Data()
     sprintf(mytime, "%.2d:%.2d:%.2d", current->tm_hour, current->tm_min, current->tm_sec);
 
     this->Probe_Position->GetMatrixTransformToWorld(this->Probe_Matrix);                 
-    this->BetaProbeCountsWithTimestamp << this->Counts->GetSmoothedCounts()   << "\t\t"           
-                           << this->Counts->GetBetaCounts()       << "\t\t"          
-                           << this->Counts->GetGammaCounts()      << "\t\t"          
-                           << this->Probe_Matrix->GetElement(0,3) << "\t\t"          
-                           << this->Probe_Matrix->GetElement(1,3) << "\t\t"          
-                           << this->Probe_Matrix->GetElement(2,3) << "\t\t"          
-                                       << mytime                              
-                                       << std::endl;
-  
+    this->BetaProbeCountsWithTimestamp << this->Counts->GetSmoothedCounts()   << " "           
+                           << this->Counts->GetBetaCounts()       << " "          
+                           << this->Counts->GetGammaCounts()      << " "          
+                           << this->Probe_Matrix->GetElement(0,3) << " "          
+                           << this->Probe_Matrix->GetElement(1,3) << " "          
+                           << this->Probe_Matrix->GetElement(2,3) << " "          
+                                       << mytime << " ";
+
+    if(this->BetaProbe->GetSelected() && this->Phi0 && this->GetCalibrated())
+      {
+      vtkMRMLLinearTransformNode* BetaTransform = vtkMRMLLinearTransformNode::SafeDownCast(this->BetaProbe->GetSelected());
+
+      vtkMatrix4x4* BetaMatrix = vtkMatrix4x4::New();
+      BetaTransform->GetMatrixTransformToWorld(BetaMatrix);     
+
+      double PhiAngleDeg = this->PhiAngleRad*180/PI;
+      this->Phi0->GetWidget()->SetValueAsDouble(PhiAngleDeg);
+
+
+      if(this->Phi0Angle && this->BetaProbeRadiusValue)
+        {
+        double Phi0Rad = this->Phi0Angle*PI/180;
+
+        int cossign = 1;
+        if(cos(this->PhiAngleRad) < 0 && (PhiAngleDeg-this->Phi0Angle)<90)
+       {
+       cossign = -1;
+       }
+     else
+       {
+          cossign = 1;
+       }
+
+        double offset[2] = {this->BetaProbeRadiusValue*cossign*cos(this->PhiAngleRad-Phi0Rad), this->BetaProbeRadiusValue*sin(this->PhiAngleRad-Phi0Rad)};
+
+     vtkMatrix4x4* VirtualBetaProbe = vtkMatrix4x4::New();
+     VirtualBetaProbe->DeepCopy(BetaMatrix);
+
+     /*
+        double y = BetaMatrix->GetElement(1,3);
+        double z = BetaMatrix->GetElement(2,3);
+     */
+        VirtualBetaProbe->SetElement(1,3,BetaMatrix->GetElement(1,3)+offset[0]);
+        VirtualBetaProbe->SetElement(2,3,BetaMatrix->GetElement(2,3)-offset[1]);
+
+
+        this->BetaProbeCountsWithTimestamp << BetaMatrix->GetElement(2,0) << " "
+                                           << PhiAngleDeg << " "
+                                           << this->Phi0Angle << " "
+                                           << sin(this->PhiAngleRad) << " "
+                                           << sin(this->PhiAngleRad-Phi0Rad) << " "
+                                           << cos(this->PhiAngleRad) << " "
+                                           << cos(this->PhiAngleRad-Phi0Rad);
+                                          
+                                           
+
+
+        VirtualBetaProbe->Delete();
+     }
+      
+      BetaMatrix->Delete();
+      } 
+
+    this->BetaProbeCountsWithTimestamp << std::endl;  
+
+
     this->Probe_Matrix->Delete();                                
     this->Probe_Matrix = NULL;     
 

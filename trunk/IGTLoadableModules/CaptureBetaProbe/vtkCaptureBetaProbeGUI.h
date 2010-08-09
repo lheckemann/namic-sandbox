@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <math.h>
 
 #include "vtkSlicerModuleGUI.h"
 #include "vtkCallbackCommand.h"
@@ -40,6 +41,8 @@ class vtkMRMLLinearTransformNode;
 class vtkMatrix4x4;
 class vtkMatrix3x3;
 class vtkCollection;
+
+class vtkKWEntryWithLabel;
 
 class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModuleGUI
 {
@@ -62,6 +65,8 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
 
   vtkGetMacro(PivotCalibrationRunning,bool);
   vtkSetMacro(PivotCalibrationRunning,bool);
+  vtkGetMacro(Calibrated,bool);
+  vtkSetMacro(Calibrated,bool);
 
   void Capture_Data();
   void Capture_Tracker_Position();
@@ -119,7 +124,7 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   void BuildGUIForHelpFrame();
   void BuildGUIForPivotCalibration();
   void BuildGUIForCapturingDataFromBetaProbe();
-  void BuildGUIForManualCalibration();
+  void BuildGUIForCenterCalibration();
   //----------------------------------------------------------------
   // Update routines
   //----------------------------------------------------------------
@@ -168,18 +173,16 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   vtkCollection* PivotingMatrix;
 
 
-  
-  vtkSlicerNodeSelectorWidget* TipToTipTrackerNode;
-  vtkSlicerNodeSelectorWidget* TipToTipBetaProbeNode;
-  vtkKWPushButton* ManualCalibrationButton;
-  vtkKWPushButton* RegisterProbeButton;
 
-  vtkMatrix4x4* ProbeToProbeRegistration;
-  vtkMatrix4x4* OriginalOrientation;  
+  vtkSlicerNodeSelectorWidget* BetaProbe;
 
-  vtkMRMLLinearTransformNode* VirtualCenterProbeNode;
+  vtkKWEntryWithLabel* ProbeRadius;
+  vtkKWEntryWithLabel* Phi0;
+  vtkKWPushButton* UsePhi0;
 
-  vtkMRMLLinearTransformNode* BetaProbeTransform;
+  double Phi0Angle;
+  double BetaProbeRadiusValue;
+  double PhiAngleRad;
 
   //----------------------------------------------------------------
   // Logic Values
@@ -191,6 +194,7 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
 
   bool continuous_mode;
   bool PivotCalibrationRunning;
+  bool Calibrated;
 };
 
 
