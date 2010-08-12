@@ -750,33 +750,9 @@ int vtkNeuroNavLogic::GetLabelNumber(const char *id, vtkMRMLScalarVolumeNode* La
   // Get Transformation Matrix
   vtkMRMLLinearTransformNode* transformationNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(id));
   transformationNode->GetMatrixTransformToWorld(transformationMatrix);
-
-  double PointRAS[4];
-  if(this->UpdatedTrackerNode)
-    {
-    vtkMatrix4x4* RegisteredProbe = vtkMatrix4x4::New();
-    vtkMatrix4x4* UpdatedTrackerMatrix = vtkMatrix4x4::New();
- 
-    this->UpdatedTrackerNode->GetMatrixTransformToWorld(UpdatedTrackerMatrix);
-    RegisteredProbe->Multiply4x4(UpdatedTrackerMatrix,transformationMatrix,RegisteredProbe);
-    PointRAS[0] = RegisteredProbe->GetElement(0,3);
-    PointRAS[1] = RegisteredProbe->GetElement(1,3);
-    PointRAS[2] = RegisteredProbe->GetElement(2,3);
-    PointRAS[3] = 1;
-
-    RegisteredProbe->Delete();
-    }
-  else
-    {
-    PointRAS[0] = transformationMatrix->GetElement(0,3);
-    PointRAS[1] = transformationMatrix->GetElement(1,3);
-    PointRAS[2] = transformationMatrix->GetElement(2,3);
-    PointRAS[3] = 1;
-    }
-
-
+  
   // Preparing for Multiplication matrix
-  // double PointRAS[4] = {transformationMatrix->GetElement(0,3),transformationMatrix->GetElement(1,3),transformationMatrix->GetElement(2,3),1};
+  double PointRAS[4] = {transformationMatrix->GetElement(0,3),transformationMatrix->GetElement(1,3),transformationMatrix->GetElement(2,3),1};
   double PointIJK[4];
  
   // Convert RAS Point To IJK Point
