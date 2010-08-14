@@ -119,7 +119,7 @@ vtkPerkProcedureEvaluatorGUI
   // GUI widgets
   
   this->PerkProcedureSelector = NULL;
-  this->PlanningVolumeSelector = NULL;
+  this->PlanFiducialsSelector = NULL;
   this->BoxFiducialsSelector = NULL;
   this->NeedleTransformSelector = NULL;
   
@@ -152,6 +152,8 @@ vtkPerkProcedureEvaluatorGUI
   this->LabelTotalTime = NULL;
   this->LabelPathInside = NULL;
   this->LabelTimeInside = NULL;
+  this->LabelAngleFromAxial = NULL;
+  this->LabelAngleInAxial = NULL;
   
   
   this->TimerFlag = 0;
@@ -185,7 +187,7 @@ vtkPerkProcedureEvaluatorGUI
     // Remove GUI widgets
 
   DELETE_WITH_SETPARENT_NULL( this->PerkProcedureSelector );
-  DELETE_WITH_SETPARENT_NULL( this->PlanningVolumeSelector );
+  DELETE_WITH_SETPARENT_NULL( this->PlanFiducialsSelector );
   DELETE_WITH_SETPARENT_NULL( this->BoxFiducialsSelector );
   DELETE_WITH_SETPARENT_NULL( this->NeedleTransformSelector );
   DELETE_WITH_SETPARENT_NULL( this->LoadButton );
@@ -215,6 +217,8 @@ vtkPerkProcedureEvaluatorGUI
   DELETE_WITH_SETPARENT_NULL( this->LabelTotalTime );
   DELETE_WITH_SETPARENT_NULL( this->LabelPathInside );
   DELETE_WITH_SETPARENT_NULL( this->LabelTimeInside );
+  DELETE_WITH_SETPARENT_NULL( this->LabelAngleFromAxial );
+  DELETE_WITH_SETPARENT_NULL( this->LabelAngleInAxial );
   
   
     // Unregister Logic class
@@ -289,7 +293,7 @@ vtkPerkProcedureEvaluatorGUI
   
   
   REMOVE_OBSERVERS( this->PerkProcedureSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
-  REMOVE_OBSERVERS( this->PlanningVolumeSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  REMOVE_OBSERVERS( this->PlanFiducialsSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->BoxFiducialsSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->NeedleTransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
@@ -351,7 +355,7 @@ vtkPerkProcedureEvaluatorGUI
     // GUI Observers.
   
   ADD_OBSERVER( this->PerkProcedureSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
-  ADD_OBSERVER( this->PlanningVolumeSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  ADD_OBSERVER( this->PlanFiducialsSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   ADD_OBSERVER( this->BoxFiducialsSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   ADD_OBSERVER( this->NeedleTransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
@@ -447,18 +451,24 @@ vtkPerkProcedureEvaluatorGUI
   else if (    this->BoxFiducialsSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
             && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent )
     {
-    vtkMRMLFiducialListNode* fiducials = vtkMRMLFiducialListNode::SafeDownCast(
-      this->BoxFiducialsSelector->GetSelected() );
-    this->ProcedureNode->BoxShapeFromFiducials( fiducials );
+    if ( this->ProcedureNode )
+      {
+      vtkMRMLFiducialListNode* fiducials = vtkMRMLFiducialListNode::SafeDownCast(
+        this->BoxFiducialsSelector->GetSelected() );
+      this->ProcedureNode->BoxShapeFromFiducials( fiducials );
+      }
     }
   
   else if (    this->NeedleTransformSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
             && (    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
                  || event == vtkSlicerNodeSelectorWidget::NewNodeEvent ) )
     {
-    vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast(
-      this->NeedleTransformSelector->GetSelected() );
-    this->ProcedureNode->SetAndObserveNeedleTransformNodeID( node->GetID() );
+    if ( this->ProcedureNode )
+      {
+      vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast(
+        this->NeedleTransformSelector->GetSelected() );
+      this->ProcedureNode->SetAndObserveNeedleTransformNodeID( node->GetID() );
+      }
     }
   
   else if (    this->LoadButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast( caller )
@@ -668,28 +678,28 @@ vtkPerkProcedureEvaluatorGUI
     this->PerkProcedureSelector->SetSelectedNew( "vtkMRMLPerkProcedureNode" );
     }
   
-  if ( ! this->PlanningVolumeSelector )
+  if ( ! this->PlanFiducialsSelector )
     {
-    this->PlanningVolumeSelector = vtkSlicerNodeSelectorWidget::New();
-    this->PlanningVolumeSelector->SetNodeClass( "vtkMRMLScalarVolumeNode", NULL, NULL, "Planning volume" );
-    this->PlanningVolumeSelector->SetParent( inputFrame->GetFrame() );
-    this->PlanningVolumeSelector->Create();
-    this->PlanningVolumeSelector->NoneEnabledOn();
-    this->PlanningVolumeSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
-    this->PlanningVolumeSelector->UpdateMenu();
-    this->PlanningVolumeSelector->SetLabelText( "Planning image" );
+    this->PlanFiducialsSelector = vtkSlicerNodeSelectorWidget::New();
+    this->PlanFiducialsSelector->SetNodeClass( "vtkMRMLFiducialListNode", NULL, NULL, "Plan fiducial list" );
+    this->PlanFiducialsSelector->SetParent( inputFrame->GetFrame() );
+    this->PlanFiducialsSelector->Create();
+    this->PlanFiducialsSelector->NoneEnabledOn();
+    this->PlanFiducialsSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
+    this->PlanFiducialsSelector->UpdateMenu();
+    this->PlanFiducialsSelector->SetLabelText( "Plan fiducial list" );
     }
   
   if ( ! this->BoxFiducialsSelector )
     {
     this->BoxFiducialsSelector = vtkSlicerNodeSelectorWidget::New();
-    this->BoxFiducialsSelector->SetNodeClass( "vtkMRMLFiducialListNode", NULL, NULL, "Box fiducials list" );
+    this->BoxFiducialsSelector->SetNodeClass( "vtkMRMLFiducialListNode", NULL, NULL, "Box fiducial list" );
     this->BoxFiducialsSelector->SetParent( inputFrame->GetFrame() );
     this->BoxFiducialsSelector->Create();
     this->BoxFiducialsSelector->NoneEnabledOn();
     this->BoxFiducialsSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
     this->BoxFiducialsSelector->UpdateMenu();
-    this->BoxFiducialsSelector->SetLabelText( "Box fiducials list" );
+    this->BoxFiducialsSelector->SetLabelText( "Box fiducial list" );
     }
   
   if ( ! this->NeedleTransformSelector )
@@ -706,7 +716,7 @@ vtkPerkProcedureEvaluatorGUI
   
   this->Script( "pack %s %s %s %s -side top -fill x -padx 2 -pady 2", 
                 this->PerkProcedureSelector->GetWidgetName(),
-                this->PlanningVolumeSelector->GetWidgetName(),
+                this->PlanFiducialsSelector->GetWidgetName(),
                 this->BoxFiducialsSelector->GetWidgetName(),
                 this->NeedleTransformSelector->GetWidgetName() );
   
@@ -982,11 +992,45 @@ vtkPerkProcedureEvaluatorGUI
     this->LabelTimeInside = vtkKWLabel::New();
     this->LabelTimeInside->SetParent( resultsFrame->GetFrame() );
     this->LabelTimeInside->Create();
-    this->LabelTimeInside->SetText( " - " );
     }
   
   this->Script( "grid %s -column 0 -row 5 -sticky w -padx 4 -pady 1", labelTimeInside->GetWidgetName() );
   this->Script( "grid %s -column 1 -row 5 -sticky w -padx 4 -pady 1", this->LabelTimeInside->GetWidgetName() );
+  
+  
+    // Label angle deviations.
+  
+  vtkSmartPointer< vtkKWLabel > labelAngleFromAxial = vtkSmartPointer< vtkKWLabel >::New();
+    labelAngleFromAxial->SetParent( resultsFrame->GetFrame() );
+    labelAngleFromAxial->Create();
+    labelAngleFromAxial->SetText( "Deviation from axial plane (deg): " );
+  
+  if ( ! this->LabelAngleFromAxial )
+    {
+    this->LabelAngleFromAxial = vtkKWLabel::New();
+    this->LabelAngleFromAxial->SetParent( resultsFrame->GetFrame() );
+    this->LabelAngleFromAxial->Create();
+    }
+  
+  this->Script( "grid %s -column 0 -row 6 -sticky w -padx 4 -pady 1", labelAngleFromAxial->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 6 -sticky w -padx 4 -pady 1", this->LabelAngleFromAxial->GetWidgetName() );
+  
+  
+  vtkSmartPointer< vtkKWLabel > labelAngleInAxial = vtkSmartPointer< vtkKWLabel >::New();
+    labelAngleInAxial->SetParent( resultsFrame->GetFrame() );
+    labelAngleInAxial->Create();
+    labelAngleInAxial->SetText( "Deviation in axial plane (deg): " );
+  
+  if ( ! this->LabelAngleInAxial )
+    {
+    this->LabelAngleInAxial = vtkKWLabel::New();
+    this->LabelAngleInAxial->SetParent( resultsFrame->GetFrame() );
+    this->LabelAngleInAxial->Create();
+    }
+  
+  this->Script( "grid %s -column 0 -row 7 -sticky w -padx 4 -pady 1", labelAngleInAxial->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 7 -sticky w -padx 4 -pady 1", this->LabelAngleInAxial->GetWidgetName() );
+  
 }
 
 
@@ -1081,6 +1125,8 @@ vtkPerkProcedureEvaluatorGUI
     this->LabelTotalTime->SetText( DoubleToStr( procedure->GetTotalTime() ).c_str() );
     this->LabelPathInside->SetText( DoubleToStr( procedure->GetPathInside() ).c_str() );
     this->LabelTimeInside->SetText( DoubleToStr( procedure->GetTimeInside() ).c_str() );
+    this->LabelAngleFromAxial->SetText( DoubleToStr( procedure->GetAngleFromAxial() ).c_str() );
+    this->LabelAngleInAxial->SetText( DoubleToStr( procedure->GetAngleInAxial() ).c_str() );
     }
 }
 

@@ -465,6 +465,20 @@ vtkMRMLPerkProcedureNode
   
   this->TimeInside = timeInside;
   this->PathInside = pathInside;
+  
+  
+  // Create a superior oriented unit vector, transform by tr, compare angle with axial.
+  
+  double inferiorDirection[ 4 ] = { 0, 0, - 1, 1 };
+  double needleDirection[ 4 ] = { 0, 0, 0, 1 };
+  tr->MultiplyPoint( inferiorDirection, needleDirection );
+  
+  double cosinus = lpos[ 1 ] - needleDirection[ 1 ];
+  double sinus = lpos[ 2 ] - needleDirection[ 2 ];
+  double tangent = sinus / cosinus;
+  this->AngleFromAxial = std::atan( tangent ) * 180 / 3.141592;
+  
+  // Compute plan angle in axial plane.
 }
 
 
@@ -513,9 +527,11 @@ vtkMRMLPerkProcedureNode
   
     // Measurements.
   
-  TotalTime = 0.0;
-  PathInside = 0.0;
-  TimeInside = 0.0;
+  this->TotalTime = 0.0;
+  this->PathInside = 0.0;
+  this->TimeInside = 0.0;
+  this->AngleFromAxial = 0.0;
+  this->AngleInAxial = 0.0;
 }
 
 
