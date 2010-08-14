@@ -134,6 +134,8 @@ public:
   vtkGetMacro( TotalTime, double );
   vtkGetMacro( PathInside, double );
   vtkGetMacro( TimeInside, double );
+  vtkGetMacro( AngleFromAxial, double );
+  vtkGetMacro( AngleInAxial, double );
   
   
   void UpdateTransformIndex();
@@ -195,6 +197,8 @@ private:
   double TotalTime;
   double PathInside;
   double TimeInside;
+  double AngleFromAxial;
+  double AngleInAxial;
 };
 
 

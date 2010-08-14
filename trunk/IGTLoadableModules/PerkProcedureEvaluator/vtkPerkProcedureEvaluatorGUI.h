@@ -122,7 +122,7 @@ protected:
   // GUI widgets
   
   vtkSlicerNodeSelectorWidget* PerkProcedureSelector;
-  vtkSlicerNodeSelectorWidget* PlanningVolumeSelector;
+  vtkSlicerNodeSelectorWidget* PlanFiducialsSelector;
   vtkSlicerNodeSelectorWidget* BoxFiducialsSelector;
   vtkSlicerNodeSelectorWidget* NeedleTransformSelector;
   vtkKWLoadSaveButton* LoadButton;
@@ -154,6 +154,8 @@ protected:
   vtkKWLabel*      LabelTotalTime;
   vtkKWLabel*      LabelPathInside;
   vtkKWLabel*      LabelTimeInside;
+  vtkKWLabel*      LabelAngleFromAxial; // Deviation from axial plane.
+  vtkKWLabel*      LabelAngleInAxial;   // Deviation from plan in axial plane.
   
   
   //----------------------------------------------------------------
