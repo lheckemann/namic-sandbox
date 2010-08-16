@@ -126,10 +126,16 @@ public:
   
   vtkGetMacro( TransformIndex, int );
   
+  
+    // For measurements.
+  
   void MarkIndexBegin();
   void MarkIndexEnd();
   vtkGetMacro( IndexBegin, int );
   vtkGetMacro( IndexEnd, int );
+  
+  void SetPlan( vtkMRMLFiducialListNode* fiducials );
+  
   
   vtkGetMacro( TotalTime, double );
   vtkGetMacro( PathInside, double );
@@ -191,6 +197,9 @@ private:
   
   int IndexBegin;
   int IndexEnd;
+  
+  double PlanEntryPoint[ 4 ];
+  double PlanTargetPoint[ 4 ];
   
     // Measurements.
   

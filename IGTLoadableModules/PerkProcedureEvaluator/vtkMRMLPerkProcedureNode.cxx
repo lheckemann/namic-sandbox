@@ -391,6 +391,32 @@ vtkMRMLPerkProcedureNode
 
 void
 vtkMRMLPerkProcedureNode
+::SetPlan( vtkMRMLFiducialListNode* fiducials )
+{
+  if (    ! fiducials
+       || ( fiducials->GetNumberOfFiducials() < 2 ) )
+    {
+    this->PlanEntryPoint[ 3 ] = 0;
+    this->PlanTargetPoint[ 3 ] = 0;
+    return;
+    }
+  
+  float* c1 = fiducials->GetNthFiducialXYZ( 0 );
+  float* c2 = fiducials->GetNthFiducialXYZ( 1 );
+  
+  for ( int i = 0; i < 3; ++ i )
+    {
+    this->PlanEntryPoint[ i ] = c1[ i ];
+    this->PlanTargetPoint[ i ] = c2[ i ];
+    }
+  this->PlanEntryPoint[ 3 ] = 1;
+  this->PlanTargetPoint[ 3 ] = 1;
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
 ::UpdateTransformIndex()
 {
   PerkNote* note = this->GetNoteAtIndex( this->NoteIndex );
@@ -443,11 +469,11 @@ vtkMRMLPerkProcedureNode
   for ( int index = this->IndexBegin; index <= this->IndexEnd; ++ index )
     {
     double ctime = this->TransformTimeSeries->GetTimeAtIndex( index );
-    vtkTransform* ctr = this->TransformTimeSeries->GetTransformAtIndex( index );
+    tr = this->TransformTimeSeries->GetTransformAtIndex( index );
     
-    double cpos[ 3 ] = { ctr->GetMatrix()->GetElement( 0, 3 ),
-                         ctr->GetMatrix()->GetElement( 1, 3 ),
-                         ctr->GetMatrix()->GetElement( 2, 3 ) };
+    double cpos[ 3 ] = { tr->GetMatrix()->GetElement( 0, 3 ),
+                         tr->GetMatrix()->GetElement( 1, 3 ),
+                         tr->GetMatrix()->GetElement( 2, 3 ) };
     
     bool inside = this->BoxShape->IsInside( cpos[ 0 ], cpos[ 1 ], cpos[ 2 ] );
     double d = DISTANCE( lpos, cpos );
@@ -467,7 +493,14 @@ vtkMRMLPerkProcedureNode
   this->PathInside = pathInside;
   
   
-  // Create a superior oriented unit vector, transform by tr, compare angle with axial.
+  // debug
+  double origin[ 4 ] = { 0, 0, 0, 1 };
+  double tipAtEnd[ 4 ] = { 0, 0, 0, 1 };
+  tr->MultiplyPoint( origin, tipAtEnd );
+  vtkMatrix4x4* mtx = tr->GetMatrix();
+  
+  
+    // Create a superior oriented unit vector, transform by tr, compare angle with axial.
   
   double inferiorDirection[ 4 ] = { 0, 0, - 1, 1 };
   double needleDirection[ 4 ] = { 0, 0, 0, 1 };
@@ -475,10 +508,24 @@ vtkMRMLPerkProcedureNode
   
   double cosinus = lpos[ 1 ] - needleDirection[ 1 ];
   double sinus = lpos[ 2 ] - needleDirection[ 2 ];
-  double tangent = sinus / cosinus;
-  this->AngleFromAxial = std::atan( tangent ) * 180 / 3.141592;
+  this->AngleFromAxial = std::atan( sinus / cosinus ) * 180 / 3.141592;
   
-  // Compute plan angle in axial plane.
+  
+    // Compute plan angle in axial plane.
+  
+  sinus = this->PlanTargetPoint[ 0 ] - this->PlanEntryPoint[ 0 ];
+  cosinus = this->PlanTargetPoint[ 1 ] - this->PlanEntryPoint[ 1 ];
+  double planAngleInAxial = std::atan( sinus / cosinus ) * 180 / 3.141592;
+  
+    // Compute needle angle in axial plane.
+  
+  sinus = lpos[ 0 ] - needleDirection[ 0 ];
+  cosinus = lpos[ 1 ] - needleDirection[ 1 ];
+  double angleInAxial = std::atan( sinus / cosinus ) * 180 / 3.141592;
+  
+    // Angle deviation in the axial plane.
+  
+  this->AngleInAxial = planAngleInAxial - angleInAxial;
 }
 
 
@@ -522,8 +569,19 @@ vtkMRMLPerkProcedureNode
   
   this->NoteIndex = -1;
   this->TransformIndex = -1;
+  
+  
+    // For measurements.
+  
   this->IndexBegin = -1;
   this->IndexEnd = -1;
+  
+  for ( int i = 0; i < 4; ++ i )
+    {
+    this->PlanEntryPoint[ i ] = 0;
+    this->PlanTargetPoint[ i ] = 0;
+    }
+  
   
     // Measurements.
   

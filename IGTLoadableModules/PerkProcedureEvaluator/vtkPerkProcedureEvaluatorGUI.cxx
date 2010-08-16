@@ -447,7 +447,15 @@ vtkPerkProcedureEvaluatorGUI
     {
     this->ProcessProcedureSelected();
     }
-    
+  
+  else if (    this->PlanFiducialsSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
+            && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent )
+    {
+    vtkMRMLFiducialListNode* fids = vtkMRMLFiducialListNode::SafeDownCast(
+      this->PlanFiducialsSelector->GetSelected() );
+    this->ProcedureNode->SetPlan( fids );
+    }
+  
   else if (    this->BoxFiducialsSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
             && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent )
     {
