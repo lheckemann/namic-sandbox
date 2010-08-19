@@ -1394,14 +1394,21 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateRobotModelAxes()
   double needle2[3];
   for (int i=0; i<3; i++)
   {
-    needle1[i]=this->CalibrationData.I2[i]-100*this->CalibrationData.v2[i];
-    needle2[i]=this->CalibrationData.I2[i]+200*this->CalibrationData.v2[i];
+    needle1[i]=this->CalibrationData.I2[i]-200*this->CalibrationData.v2[i];
+    needle2[i]=this->CalibrationData.I2[i]+100*this->CalibrationData.v2[i];
   }
 
   axis1Line->SetPoint1(needle1);
   axis1Line->SetPoint2(needle2);
 
-  appender->AddInputConnection(axis1Line->GetOutputPort());
+  vtkSmartPointer<vtkTubeFilter> axis1Tube=vtkSmartPointer<vtkTubeFilter>::New();
+  axis1Tube->SetInputConnection(axis1Line->GetOutputPort());
+  axis1Tube->SetRadius(this->MarkerRadiusMm);
+  axis1Tube->SetNumberOfSides(16);
+  axis1Tube->CappingOn();
+
+  appender->AddInputConnection(axis1Tube->GetOutputPort());
+  //appender->AddInputConnection(axis1Line->GetOutputPort());
 
   // 2nd axis line
 
@@ -1415,13 +1422,20 @@ void vtkMRMLTransRectalProstateRobotNode::UpdateRobotModelAxes()
   for (int i=0; i<3; i++)
   {
     robotaxis1[i]=this->CalibrationData.I1[i]-100*this->CalibrationData.v1[i];
-    robotaxis2[i]=this->CalibrationData.I1[i]+200*this->CalibrationData.v1[i];
+    robotaxis2[i]=this->CalibrationData.I1[i]+100*this->CalibrationData.v1[i];
   }
 
   axis2Line->SetPoint1(robotaxis1);
   axis2Line->SetPoint2(robotaxis2);
 
-  appender->AddInputConnection(axis2Line->GetOutputPort());
+  vtkSmartPointer<vtkTubeFilter> axis2Tube=vtkSmartPointer<vtkTubeFilter>::New();
+  axis2Tube->SetInputConnection(axis2Line->GetOutputPort());  
+  axis2Tube->SetRadius(this->MarkerRadiusMm);
+  axis2Tube->SetNumberOfSides(16);
+  axis2Tube->CappingOn();
+
+  appender->AddInputConnection(axis2Tube->GetOutputPort());
+  //appender->AddInputConnection(axis2Line->GetOutputPort());
 
   appender->Update();
   this->ModelAxes->DeepCopy(appender->GetOutput());
