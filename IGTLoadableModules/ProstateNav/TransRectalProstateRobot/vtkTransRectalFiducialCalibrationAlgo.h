@@ -132,7 +132,7 @@ protected:
   // thresh: 0..100, binary threshold value (0 corresponds to min voxel value; 100 corresponds to max voxel value in the image)
   bool SegmentCircle(double markerCenterGuessRas[3],const double normalRas[3],  double thresh, const double fidDimsMm[3], double radius, vtkMatrix4x4 *ijkToRAS, vtkImageData *calibVol, std::vector<PointType> &CoordinatesVector, vtkImageData *preprocOutput=NULL);
   //ETX
-  bool CalculateCircleCenter(vtkImageData *inData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadius, double &gx, double &gy, int nVotedNeeded, bool lDebug);  
+  bool CalculateCircleCenter(vtkImageData *inData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadius, double &gx, double &gy, bool lDebug);  
   bool CalculateCircleCenterMean(vtkImageData *inData, double nRadius, double threshold, double &gx, double &gy);  
   //BTX
   void RemoveOutliners(double P_[3], double v_[3], const double def1[3], const double def2[3], std::vector<PointType> &CoordinatesVector);

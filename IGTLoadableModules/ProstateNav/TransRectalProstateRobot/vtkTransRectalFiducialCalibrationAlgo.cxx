@@ -13,14 +13,14 @@
 =========================================================================auto=*/
 
 // true=mean detection algo; false=circle detection algo
-static const bool USE_MARKER_MEAN_DETECTION=true;
+bool USE_MARKER_MEAN_DETECTION=false;
 // true: report error if marker is not found; false: if a marker is not found then just use the initial guess
-static bool REQUIRE_MARKER_DETECTION=true;
+bool REQUIRE_MARKER_DETECTION=true;
 // completely ignore all voxels that are farther from the initial guess line than radius*MAX_RADIUS_TOLERANCE
-const double MAX_RADIUS_TOLERANCE=1.8;
+double MAX_RADIUS_TOLERANCE=1.8;
 
 // circle detection algo params
-static const int CIRCLE_VOTE_NEEDED=18;
+double CIRCLE_VOTE_NEEDED_RATIO=0.60; // minimum ratio of successful detected circle points to accept the circle
 
 // mean detection algo params
 static const int MIN_CIRCLE_PIXEL_COUNT=5;
@@ -428,7 +428,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
 
     // Create slicer extractor
     vtkSmartPointer<vtkImageReslice> imageReslicer = vtkSmartPointer<vtkImageReslice>::New();    
-    imageReslicer->SetInput(binaryVOI);
+    imageReslicer->SetInputConnection(medianFilter->GetOutputPort());
     imageReslicer->SetOutputDimensionality(2);
 
     double planeX_IJK[4]={0,0,0,1};
@@ -441,9 +441,11 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
 
     // Output parameters
     // Gobbi: I _always_ call SetOutputOrigin, SetOutputExtent, and SetOutputSpacing
-    imageReslicer->SetOutputSpacing(1,1,1); // 1mm if the spacing of the input is correctly set
-    int dispsize = 2*16; /// \todo - make the "16" a variable!
-    imageReslicer->SetOutputOrigin(-(dispsize/2), -(dispsize/2), 0);
+    double intraSliceSpacing=0.2; //mm
+    double interSliceSpacing=1.0; //mm - if it is changed, then other parts of this method might have to be changed, too
+    imageReslicer->SetOutputSpacing(intraSliceSpacing,intraSliceSpacing,interSliceSpacing);
+    int dispsize = 7.0*radiusMm/intraSliceSpacing; // have a bit more then the diameter of the fiducial in both directions (diam=2r; diam + 2r left margin + 2r right margin = 6r)
+    imageReslicer->SetOutputOrigin(-(double(dispsize)*intraSliceSpacing/2.0), -(double(dispsize)*intraSliceSpacing/2.0), 0);
     imageReslicer->SetOutputExtent(0,dispsize,0,dispsize,0,0);
     imageReslicer->SetBackgroundColor( range[0], range[0], range[0], range[0] );
     imageReslicer->SetInterpolationModeToCubic();
@@ -520,7 +522,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
       bool lCircleFound;
       double ix, iy;
       double *minMax=planeImageData->GetScalarRange();
-      double binaryImageThreshold=minMax[0]+1; // set the threshold to slightly above the minimum value
+      double binaryImageThreshold=nThreshold; // set the threshold to slightly above the minimum value
       if (USE_MARKER_MEAN_DETECTION)
       {
         
@@ -528,7 +530,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
       }
       else
       {
-        lCircleFound = CalculateCircleCenter(planeImageData, tempStorage, tempStorageSize,  binaryImageThreshold, 2*radiusMm/10.0, ix, iy, CIRCLE_VOTE_NEEDED, true);
+        lCircleFound = CalculateCircleCenter(planeImageData, tempStorage, tempStorageSize,  binaryImageThreshold, radiusMm, ix, iy, true);
       }
 
       if (lCircleFound) 
@@ -583,25 +585,28 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
 /// \brief Calculates the circle center.
 /// Assumes spacingX == spacingY (for the circle)
 /// Assumes 2D planeImageData
-bool vtkTransRectalFiducialCalibrationAlgo::CalculateCircleCenter(vtkImageData *planeImageData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadiusMm, double &gx, double &gy, int nVotedNeeded, bool lDebug)
+bool vtkTransRectalFiducialCalibrationAlgo::CalculateCircleCenter(vtkImageData *planeImageData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadiusMm, double &gx, double &gy, bool lDebug)
 {/// \todo Make all calculations floating point!
     
     // "0" the Temporal data storage
     memset(tempStorage, 0, tempStorageSize*sizeof(unsigned int)); // tCircleAccumulate = int 
     
     // spacing should not be 0!
-    double spacing[3];
-    planeImageData->GetSpacing(spacing);
+    double spacingXYZ[3];
+    planeImageData->GetSpacing(spacingXYZ);
 
-    if ( this->DoubleEqual(spacing[0],0.0) || this->DoubleEqual(spacing[1],0.0) || this->DoubleEqual(spacing[2],0.0) )  {
+    if ( this->DoubleEqual(spacingXYZ[0],0.0) || this->DoubleEqual(spacingXYZ[1],0.0) || this->DoubleEqual(spacingXYZ[2],0.0) )  {
         return false;
     }
 
     // assume spacingY==spacingY -  depends on vtkImageReslicer settings!
-    
+    double spacing=fabs(spacingXYZ[0]);   
 
     // convert mm to pixel
-    double r = nRadiusMm/fabs(spacing[0]);
+    double r = nRadiusMm/spacing;
+
+    int expectedNumberOfCirclePoints=(vtkMath::Round(r)*2+1)*2+2.0; // for one point we generate two 2r+1 length arcs and 2 side points
+    int minRequiredNumberOfCirclePoints=CIRCLE_VOTE_NEEDED_RATIO*expectedNumberOfCirclePoints;
 
     // Calculate width & height
     int *extent = planeImageData->GetWholeExtent();
@@ -721,6 +726,9 @@ bool vtkTransRectalFiducialCalibrationAlgo::CalculateCircleCenter(vtkImageData *
     gx-=( (width-1)  /2.0 );
     gy-=( (height-1) /2.0 ); 
 
+    gx*=spacing;
+    gy*=spacing;
+
     // debug
     x=y=0;
     if (lDebug) {
@@ -760,7 +768,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::CalculateCircleCenter(vtkImageData *
         f << std::endl;
     } // debug
 */
-    if ((int)max<nVotedNeeded) 
+    if ((int)max<minRequiredNumberOfCirclePoints) 
         return false;
 
     return true;
