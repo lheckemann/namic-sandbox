@@ -1226,10 +1226,10 @@ vtkPerkProcedureEvaluatorGUI
     if ( snode )
       {
       snode->SetScene( this->GetMRMLScene() );
-      snode->SetHideFromEditors( 0 );
-      snode->SetSaveWithScene( 1 );
+      // snode->SetHideFromEditors( 0 );
+      // snode->SetSaveWithScene( 1 );
       snode->SetFileName( "PerkProcedure.xml" );
-      snode->SetSelectable( 1 );
+      // snode->SetSelectable( 1 );
       this->GetMRMLScene()->AddNode( snode );
       
       storableNode->SetAndObserveStorageNodeID( snode->GetID() );

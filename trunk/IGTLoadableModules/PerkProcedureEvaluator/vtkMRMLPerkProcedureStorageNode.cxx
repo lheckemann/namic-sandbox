@@ -242,6 +242,46 @@ vtkMRMLPerkProcedureStorageNode
     }
   
   
+  of << "<PerkProcedure>" << std::endl;
+  
+  // e.g. <log time="6824.48" type="message" message="Operator does alignment outside." />
+  
+    // Notes.
+  
+  for ( int i = 0; i < perkNode->GetNumberOfNotes(); ++ i )
+    {
+    PerkNote* note = perkNode->GetNoteAtIndex( i );
+    of << "<log time=\"" << note->Time << "\" type=\"message\" ";
+    of << "message=\"" << note->Message << "\" />" << std::endl;
+    }
+  
+  // e.g. <log time="14040.5" type="transform"
+  //       transform="-0.120413 0.328934 -0.992316 -114.316
+  //                   0.982893 -0.304633 -0.220249 -107.265
+  //                  -0.356106 -0.952045 -0.272373 172.544
+  //                   0 0 0 1 " />
+  
+    // Transforms.
+  
+  for ( int index = 0; index < perkNode->GetNumberOfTransforms(); ++ index )
+    {
+    vtkTransform* transform = perkNode->GetTransformAtTransformIndex( index );
+    double time = perkNode->GetTimeAtTransformIndex( index );
+    of << "<log time=\"" << time << "\" type=\"transform\" ";
+    of << "transform=\"";
+    for ( int row = 0; row < 4; ++ row )
+      {
+      for ( int col = 0; col < 4; ++ col )
+        {
+        of << transform->GetMatrix()->GetElement( row, col ) << " ";
+        }
+      }
+    of << "\" />" << std::endl;
+    }
+  
+  
+  
+  of << "</PerkProcedure>" << std::endl;
   
   
   of.close();
