@@ -13,6 +13,11 @@
 
 
 
+/**
+ * Reads and writes external xml files to store data for perk procedures.
+ * Only stores series of transforms and notes. Other data, e.g. measurement parameters
+ * are stored in the scene xml file.
+ */
 class
 VTK_PerkProcedureEvaluator_EXPORT
 vtkMRMLPerkProcedureStorageNode
