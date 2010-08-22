@@ -13,9 +13,12 @@
 
 #include "vtkSmartPointer.h"
 
+#include "vtkMRMLBoxShape.h"
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
-#include "vtkMRMLBoxShape.h"
+#include "vtkMRMLStorableNode.h"
+
+#include "vtkMRMLPerkProcedureStorageNode.h"
 
 #include "vtkTransformTimeSeries.h"
 
@@ -59,18 +62,30 @@ public:
 class
 VTK_PerkProcedureEvaluator_EXPORT
 vtkMRMLPerkProcedureNode
-: public vtkMRMLNode
+: public vtkMRMLStorableNode
 {
 
 public:
 
   static vtkMRMLPerkProcedureNode* New();
-  vtkTypeMacro( vtkMRMLPerkProcedureNode, vtkMRMLNode );
+  vtkTypeMacro( vtkMRMLPerkProcedureNode, vtkMRMLStorableNode );
   void PrintSelf( ostream& os, vtkIndent indent );
   virtual vtkMRMLNode* CreateNodeInstance();
   
+  
+    // transform utility functions
+  
+  virtual bool CanApplyNonLinearTransforms() { return true; }
+  virtual void ApplyTransform(vtkMatrix4x4* transformMatrix) {}
+  virtual void ApplyTransform(vtkAbstractTransform* transform) {}
+  
+  
+  vtkSetStringMacro( FileName );
+  vtkGetStringMacro( FileName );
+  
   virtual void ReadXMLAttributes( const char** atts );
   virtual void WriteXML( ostream& of, int indent );
+  
   
   void ImportFromFile( const char* fileName );
   
@@ -100,6 +115,20 @@ public:
   vtkGetStringMacro( NeedleTransformNodeID );
   vtkMRMLLinearTransformNode* GetNeedleTransformNode();
   void SetAndObserveNeedleTransformNodeID( const char *TransformNodeRef );
+  
+  
+    // Storage.
+  
+  virtual vtkMRMLStorageNode* CreateDefaultStorageNode()
+    {
+    return vtkMRMLPerkProcedureStorageNode::New();
+    };
+  
+  virtual const char* GetDefaultWriteFileExtension()
+    {
+    return "xml";
+    };
+  
   
   bool IsNeedleInsideBody();
   
@@ -164,6 +193,7 @@ private:
   
   void ClearData();
   
+  char* FileName;
   
   //BTX
   std::vector< PerkNote* > NoteList;

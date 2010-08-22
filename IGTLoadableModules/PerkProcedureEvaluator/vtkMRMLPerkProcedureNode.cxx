@@ -137,10 +137,13 @@ vtkMRMLPerkProcedureNode
   
   vtkIndent vindent( indent );
   
+  
   if ( this->ObservedTransformNodeID != NULL )
     {
     of << vindent << " ObservedTransformNodeID=\"" << this->ObservedTransformNodeID << "\"";
     }
+  
+  
 }
 
 
@@ -556,6 +559,7 @@ vtkMRMLPerkProcedureNode
 {
   this->HideFromEditorsOff();
   this->SetSaveWithScene( true );
+  
   
   this->TransformTimeSeries = vtkTransformTimeSeries::New();
   

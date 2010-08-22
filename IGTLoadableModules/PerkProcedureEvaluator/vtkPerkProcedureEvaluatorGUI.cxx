@@ -22,6 +22,10 @@
 #include "vtkKWWidget.h"
 
 #include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLStorableNode.h"
+#include "vtkMRMLStorageNode.h"
+
+#include "vtkMRMLPerkProcedureStorageNode.h"
 
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerColor.h"
@@ -626,6 +630,7 @@ vtkPerkProcedureEvaluatorGUI
 ::BuildGUI()
 {
   this->Logic->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLPerkProcedureNode >::New() );
+  this->Logic->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLPerkProcedureStorageNode >::New() );
   
   // ---
   // MODULE GUI FRAME 
@@ -1209,6 +1214,32 @@ vtkPerkProcedureEvaluatorGUI
 ::ProcessProcedureSelected()
 {
   vtkMRMLPerkProcedureNode* node = vtkMRMLPerkProcedureNode::SafeDownCast( this->PerkProcedureSelector->GetSelected() );
+  
+  
+    // Why is this becoming NULL?
+  vtkMRMLStorableNode* storableNode = vtkMRMLStorableNode::SafeDownCast( node );
+  
+  
+  if ( node )
+    {
+    vtkMRMLStorageNode *snode = node->CreateDefaultStorageNode();
+    if ( snode )
+      {
+      snode->SetScene( this->GetMRMLScene() );
+      snode->SetHideFromEditors( 0 );
+      snode->SetSaveWithScene( 1 );
+      snode->SetFileName( "PerkProcedure.xml" );
+      snode->SetSelectable( 1 );
+      this->GetMRMLScene()->AddNode( snode );
+      
+      storableNode->SetAndObserveStorageNodeID( snode->GetID() );
+      storableNode->ModifiedSinceReadOn();
+      
+      snode->Delete();
+      }
+    }
+  
+  
   this->SetProcedureNode( node );
   vtkSetAndObserveMRMLNodeMacro( this->ProcedureNode, node );
   

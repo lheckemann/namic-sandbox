@@ -51,6 +51,7 @@ set(PerkProcedureEvaluator_SRCS
   vtkPerkProcedureEvaluatorGUI.cxx
   vtkMRMLBoxShape.cxx
   vtkMRMLPerkProcedureNode.cxx
+  vtkMRMLPerkProcedureStorageNode.cxx
   vtkMRMLSurgicalShape.cxx
   vtkTransformTimeSeries.cxx
 )
