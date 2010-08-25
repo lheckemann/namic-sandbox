@@ -153,7 +153,8 @@ deformation field produced by the registration.  The deformation field can be ge
 from any kind of transform or the deformable registration. The deformation field
 is stored as a mesh with vector values associated with each vertex. For example, 
 the vector values are displacements for
- points on fixed mesh in QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration[1]. 
+ points on fixed mesh in QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration
+~\cite{MeshDemonsRegistrationIJ2009}. 
 The filter takes three inputs in total. 
 
 Input 0: input fixed mesh.
@@ -164,11 +165,12 @@ Input 2: deformation field.
 
 The deformation field and the input fixed mesh should have one to one point correspondence.
 
-In QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration, deformation field keeps the
-information of distance from the points on fixed mesh to the final destination. And the registered
-mesh could be the copy of the fixed mesh but with resampled scalar values, so the output of
-this filter is a copy of the input fixed mesh with resampled scalar values from the reference moving
-mesh by interpolation.
+In QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration
+~\cite{MeshDemonsRegistrationIJ2009}, 
+deformation field keeps the information of distance from the points on fixed mesh to the 
+final destination. And the registered mesh could be the copy of the fixed mesh but with 
+resampled scalar values, so the output of this filter is a copy of the input fixed mesh with 
+resampled scalar values from the reference moving mesh by interpolation.
 
 \section{How to Build}
 
@@ -239,15 +241,15 @@ entire set of files from the Insight Journal web site.
 
 It is assumed that the input fixed mesh and the deformation field have one to one correspondence. 
 An interpolator is needed to apply scalar values interpolation from the input moving mesh. 
-It is set to be itk::LinearInterpolateMeshFunction by default. 
+It is set to be itk::LinearInterpolateMeshFunction~\cite{MeshRigidRegistrationIJ2009} by default. 
 The source code presented in this section can be found in the \code{Testing} directory under the filename.
 
 \begin{itemize}
 \item itkWarpQuadEdgeMeshFilterTest
 \end{itemize}
 
-In order to use this filter we should include the header for the Warp Mesh filter, the reader and writer
-types and the interpolator.
+In order to use this filter we should include the header files for the Warp Mesh filter, 
+the reader and writer types and the interpolator.
 
 \begin{center}
 \lstinputlisting[linerange={21-27}]{../../Testing/itkWarpQuadEdgeMeshFilterTest.cxx}
@@ -271,13 +273,13 @@ In order to read the input meshes you must declare reader types for all of the i
 and the deformation field. Next, create an instance for each reader.
 
 \begin{center}
-\lstinputlisting[linerange={55-57}]{../../Testing/itkWarpQuadEdgeMeshFilterTest.cxx}
+\lstinputlisting[linerange={55-62}]{../../Testing/itkWarpQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
 You declare the type of the warp mesh filter and instantiate it.
 
 \begin{center}
-\lstinputlisting[linerange={72-74}]{../../Testing//itkWarpQuadEdgeMeshFilterTest.cxx}
+\lstinputlisting[linerange={72-75}]{../../Testing//itkWarpQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
 You declare the type of the interpolator and instantiate it.
@@ -286,28 +288,28 @@ You declare the type of the interpolator and instantiate it.
 \lstinputlisting[linerange={68-70}]{../../Testing//itkWarpQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
-The output of the readers is passed as input to the warp mesh filter.
+The outputs of the readers are passed as inputs to the warp mesh filter.
 
 \begin{center}
-\lstinputlisting[linerange={78-82}]{../../Testing/itkWarpQuadEdgeMeshFilterTest.cxx}
+\lstinputlisting[linerange={79-83}]{../../Testing/itkWarpQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
 And the interpolator is appointed to the warp mesh filter.
 
 \begin{center}
-\lstinputlisting[linerange={76-76}]{../../Testing/itkWarpQuadEdgeMeshFilterTest.cxx}
+\lstinputlisting[linerange={77-77}]{../../Testing/itkWarpQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
 The execution of the filter can be triggered by calling the \code{Update()} method.
 
 \begin{center}
-\lstinputlisting[linerange={84-84}]{../../Testing/itkWarpQuadEdgeMeshFilterTest.cxx}
+\lstinputlisting[linerange={85-85}]{../../Testing/itkWarpQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
 The output of the filter can be passed to a writer. 
 
 \begin{center}
-\lstinputlisting[linerange={86-91}]{../../Testing/itkWarpQuadEdgeMeshFilterTest.cxx}
+\lstinputlisting[linerange={87-92}]{../../Testing/itkWarpQuadEdgeMeshFilterTest.cxx}
 \end{center}
 
 The results in the following section were generated with calls similar to

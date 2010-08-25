@@ -6,9 +6,7 @@ IF(NOT PDFLATEX_COMPILER)
   MESSAGE("pdflatex compiler was not found. Please pass to advanced mode and provide its full path")
 ELSE(NOT PDFLATEX_COMPILER)
 
-
 FIND_PROGRAM(FIG2DEV_EXECUTABLE NAMES fig2dev)
-
 
 #
 # These are source files needed for the report generation.
@@ -98,11 +96,18 @@ ADD_CUSTOM_TARGET(Report001IJ ALL
    COMMAND ${PDFLATEX_COMPILER} 
         ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration.tex 
         -output-directory ${THIS_BINARY_DIR}
+
+   COMMAND ${BIBTEX_COMPILER} ${THIS_BINARY_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration
+
    COMMAND ${PDFLATEX_COMPILER} 
-        ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration.tex 
+${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration.tex 
         -output-directory ${THIS_BINARY_DIR}
    DEPENDS ${COPY_RESULTS} ${REPORT_ELEMENTS} 
    WORKING_DIRECTORY ${THIS_BINARY_DIR}
+   COMMAND ${PDFLATEX_COMPILER} 
+        ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration.tex 
+        -output-directory ${THIS_BINARY_DIR}
+
    )
  
 ENDIF(NOT PDFLATEX_COMPILER)

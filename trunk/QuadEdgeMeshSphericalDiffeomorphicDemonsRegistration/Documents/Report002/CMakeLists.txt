@@ -97,11 +97,16 @@ ADD_CUSTOM_TARGET(Report002IJ ALL
    COMMAND ${PDFLATEX_COMPILER} 
         ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration2.tex 
         -output-directory ${THIS_BINARY_DIR}
+   COMMAND ${BIBTEX_COMPILER} ${THIS_BINARY_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration2
    COMMAND ${PDFLATEX_COMPILER} 
         ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration2.tex 
         -output-directory ${THIS_BINARY_DIR}
    DEPENDS ${COPY_RESULTS} ${REPORT_ELEMENTS} 
    WORKING_DIRECTORY ${THIS_BINARY_DIR}
+
+   COMMAND ${PDFLATEX_COMPILER} 
+${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration2.tex 
+        -output-directory ${THIS_BINARY_DIR}
    )
  
 ENDIF(NOT PDFLATEX_COMPILER)
