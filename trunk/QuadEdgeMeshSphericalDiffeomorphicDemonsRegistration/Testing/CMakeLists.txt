@@ -513,8 +513,8 @@ IF(USE_VTK)
       
     ADD_TEST(ScalarRenderTest4
       ${CXX_TEST_PATH}/ScalarMeshRender
-      ${TEMP}/meshWithoutScalarsIC4.vtk
-      ${TEMP}/meshWithoutScalarsIC4.png
+      ${TEMP}/fixedMesh01.vtk
+      ${TEMP}/fixedMesh01.png
       )
       
     ADD_TEST(ScalarRenderTest5
