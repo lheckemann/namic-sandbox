@@ -26,10 +26,11 @@ SET(REPORT001_SRCS
   InsightJournal.sty
   times.sty
   picins.sty
-
-  ../../Examples/ScalarQuadEdgeMeshHistogram.cxx
   )
 
+SET(REPORT_SRCS
+  ../../Examples/QuadEdgeMeshSimilarityCalculator.cxx
+  )
 
 SET(THIS_BINARY_DIR 
   ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport006_BINARY_DIR} )
@@ -37,11 +38,25 @@ SET(THIS_BINARY_DIR
 SET(THIS_SOURCE_DIR 
   ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport006_SOURCE_DIR} )
 
+SET(REPORT001_SOURCE_DIR 
+  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport006_SOURCE_DIR}/../Report001/ )
+
 #
-# This adds a custom command for each source file in REPORT006_SRCS
+# This adds a custom command for each source file in REPORT_SRCS
 # that copies the file from the source directory to the binary
 # directory where the pdf will be generated.
 #
+FOREACH(SOURCE_FILE ${REPORT_SRCS})
+   ADD_CUSTOM_COMMAND(
+     OUTPUT   ${THIS_BINARY_DIR}/${SOURCE_FILE}
+     DEPENDS  ${THIS_SOURCE_DIR}/${SOURCE_FILE}
+     COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+        ${THIS_SOURCE_DIR}/${SOURCE_FILE} 
+        ${THIS_BINARY_DIR}/${SOURCE_FILE}
+    )
+   SET(COPY_RESULTS ${COPY_RESULTS} ${THIS_BINARY_DIR}/${SOURCE_FILE})
+ENDFOREACH(SOURCE_FILE ${REPORT_SRCS})
+
 FOREACH(SOURCE_FILE ${REPORT001_SRCS})
    ADD_CUSTOM_COMMAND(
      OUTPUT   ${THIS_BINARY_DIR}/${SOURCE_FILE}
@@ -52,7 +67,6 @@ FOREACH(SOURCE_FILE ${REPORT001_SRCS})
     )
    SET(COPY_RESULTS ${COPY_RESULTS} ${THIS_BINARY_DIR}/${SOURCE_FILE})
 ENDFOREACH(SOURCE_FILE ${REPORT001_SRCS})
-
 
 FILE(GLOB XFIG_FIGURES *.fig)
 
@@ -117,11 +131,16 @@ ADD_CUSTOM_TARGET(Report006IJ ALL
    COMMAND ${PDFLATEX_COMPILER} 
         ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration6.tex 
         -output-directory ${THIS_BINARY_DIR}
+   COMMAND ${BIBTEX_COMPILER} ${THIS_BINARY_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration6
+
    COMMAND ${PDFLATEX_COMPILER} 
         ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration6.tex 
         -output-directory ${THIS_BINARY_DIR}
    DEPENDS ${COPY_RESULTS} ${REPORT_ELEMENTS} 
    WORKING_DIRECTORY ${THIS_BINARY_DIR}
+   COMMAND ${PDFLATEX_COMPILER} 
+        ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration6.tex 
+        -output-directory ${THIS_BINARY_DIR}
    )
    
 ENDIF(NOT PDFLATEX_COMPILER)

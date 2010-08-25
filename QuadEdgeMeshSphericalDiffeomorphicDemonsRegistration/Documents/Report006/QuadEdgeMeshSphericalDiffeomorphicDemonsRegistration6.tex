@@ -130,8 +130,8 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 This documents is about the filter itk::ScalarQuadEdgeMeshToListAdpator. It takes 
 the input mesh and generates a list of measurement vectors according to 
 the scalars of the mesh. The list can be fed into 
-\code{itk::Statistics::SampleToHistogramFilter} to generate a histogram
-about the scalars on the input mesh.
+\code{itk::Statistics::SampleToHistogramFilter}~\cite{ITKSoftwareGuide,ITKSoftwareGuideSecondEdition}
+ to generate a histogram about the scalars on the input mesh.
 
 This paper is accompanied with the source code, input data, parameters and
 output data that we used for validating the algorithm described in this paper.
@@ -281,7 +281,7 @@ of \code{ListSampleType} and \code{HistogramType} are declared. The instance of
 \end{center}
 
 The use of \code{itk::Statistics::SampleToHistogramFilter} can be refered to itk documentations
-for help.
+~\cite{ITKSoftwareGuide,ITKSoftwareGuideSecondEdition} for help.
 
 \begin{center}
 \lstinputlisting[linerange={82-111}]{../../Examples/ScalarQuadEdgeMeshHistogram.cxx}

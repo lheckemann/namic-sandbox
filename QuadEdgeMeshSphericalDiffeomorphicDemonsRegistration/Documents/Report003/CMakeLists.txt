@@ -26,9 +26,11 @@ SET(REPORT001_SRCS
   InsightJournal.sty
   times.sty
   picins.sty
-  ../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx
   )
 
+SET(REPORT_SRCS
+  ../../Testing/itkAssignScalarValuesQuadEdgeMeshFilterTest1.cxx
+  )
 
 SET(THIS_BINARY_DIR 
   ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport003_BINARY_DIR} )
@@ -36,11 +38,25 @@ SET(THIS_BINARY_DIR
 SET(THIS_SOURCE_DIR 
   ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport003_SOURCE_DIR} )
 
+SET(REPORT001_SOURCE_DIR 
+  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport003_SOURCE_DIR}/../Report001/ )
+
 #
-# This adds a custom command for each source file in REPORT003_SRCS
+# This adds a custom command for each source file in REPORT_SRCS
 # that copies the file from the source directory to the binary
 # directory where the pdf will be generated.
 #
+FOREACH(SOURCE_FILE ${REPORT_SRCS})
+   ADD_CUSTOM_COMMAND(
+     OUTPUT   ${THIS_BINARY_DIR}/${SOURCE_FILE}
+     DEPENDS  ${THIS_SOURCE_DIR}/${SOURCE_FILE}
+     COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+        ${THIS_SOURCE_DIR}/${SOURCE_FILE} 
+        ${THIS_BINARY_DIR}/${SOURCE_FILE}
+    )
+   SET(COPY_RESULTS ${COPY_RESULTS} ${THIS_BINARY_DIR}/${SOURCE_FILE})
+ENDFOREACH(SOURCE_FILE ${REPORT_SRCS})
+
 FOREACH(SOURCE_FILE ${REPORT001_SRCS})
    ADD_CUSTOM_COMMAND(
      OUTPUT   ${THIS_BINARY_DIR}/${SOURCE_FILE}
@@ -98,11 +114,16 @@ ADD_CUSTOM_TARGET(Report003IJ ALL
    COMMAND ${PDFLATEX_COMPILER} 
         ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration3.tex 
         -output-directory ${THIS_BINARY_DIR}
+   COMMAND ${BIBTEX_COMPILER} ${THIS_BINARY_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration3
+
    COMMAND ${PDFLATEX_COMPILER} 
         ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration3.tex 
         -output-directory ${THIS_BINARY_DIR}
    DEPENDS ${COPY_RESULTS} ${REPORT_ELEMENTS} 
    WORKING_DIRECTORY ${THIS_BINARY_DIR}
+   COMMAND ${PDFLATEX_COMPILER} 
+        ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration3.tex 
+        -output-directory ${THIS_BINARY_DIR}
    )
    
 ENDIF(NOT PDFLATEX_COMPILER)

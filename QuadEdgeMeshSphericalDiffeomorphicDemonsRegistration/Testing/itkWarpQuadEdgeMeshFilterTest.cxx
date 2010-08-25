@@ -57,19 +57,20 @@ int main( int argc, char * argv [] )
   typedef itk::QuadEdgeMeshVTKPolyDataReader< ReferenceMeshType >     ReferenceReaderType;
 
   InputReaderType::Pointer inputMeshReader = InputReaderType::New();
-  inputMeshReader->SetFileName( argv[1] );
-
   ReferenceReaderType::Pointer referenceMeshReader = ReferenceReaderType::New();
-  referenceMeshReader->SetFileName( argv[2] );
+  DeformationFieldReaderType::Pointer deformationFieldReader 
+      = DeformationFieldReaderType::New();
 
-  DeformationFieldReaderType::Pointer deformationFieldReader = DeformationFieldReaderType::New();
+  inputMeshReader->SetFileName( argv[1] );
+  referenceMeshReader->SetFileName( argv[2] );
   deformationFieldReader->SetFileName( argv[3] );
 
   typedef itk::LinearInterpolateMeshFunction< ReferenceMeshType > InterpolatorType;
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
-  typedef itk::WarpQuadEdgeMeshFilter<InputMeshType, ReferenceMeshType, MeshWithVectorsType> WarpFilterType;
+  typedef itk::WarpQuadEdgeMeshFilter<
+      InputMeshType, ReferenceMeshType, MeshWithVectorsType> WarpFilterType;
 
   WarpFilterType::Pointer warpFilter = WarpFilterType::New();
 
