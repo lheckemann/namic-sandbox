@@ -28,6 +28,78 @@
     )
 
 
+void
+StringToBool( std::string str, bool& var )
+{
+  std::stringstream ss( str );
+  ss >> var;
+}
+
+bool
+StringToBool( std::string str )
+{
+  bool var;
+  std::stringstream ss( str );
+  ss >> var;
+  return var;
+}
+
+
+void
+StringToInt( std::string str, int& var )
+{
+  std::stringstream ss( str );
+  ss >> var;
+}
+
+void
+StringToInt( std::string str, unsigned int& var )
+{
+  std::stringstream ss( str );
+  ss >> var;
+}
+
+int
+StringToInt( std::string str )
+{
+  int var;
+  std::stringstream ss( str );
+  ss >> var;
+  return var;
+}
+
+
+void
+StringToDouble( std::string str, double& var )
+{
+  std::stringstream ss( str );
+  ss >> var;
+}
+
+double
+StringToDouble( std::string str )
+{
+  double var;
+  std::stringstream ss( str );
+  ss >> var;
+  return var;
+}
+
+
+void
+StringToDoubleVector( std::string str, double* var, int n )
+{
+  std::stringstream ss( str );
+  for ( int i = 0; i < n; ++ i )
+    ss >> var[ i ];
+}
+
+
+
+// ==============================================================
+
+
+
 vtkTransform*
 StrToTransform( std::string str )
 {
@@ -119,10 +191,51 @@ vtkMRMLPerkProcedureNode
     attName = *(atts++);
     attValue = *(atts++);
     
+    if ( ! strcmp( attName, "FileName" ) )
+      {
+      this->SetFileName( attValue );
+      }
+    
     if ( ! strcmp( attName, "ObservedTransformNodeID" ) )
       {
       this->SetAndObserveObservedTransformNodeID( NULL );
       this->SetObservedTransformNodeID( attValue );
+      }
+    
+    if ( ! strcmp( attName, "NeedleTransformNodeID" ) )
+      {
+      this->SetAndObserveNeedleTransformNodeID( NULL );
+      this->SetAndObserveNeedleTransformNodeID( attValue );
+      }
+    
+    if ( ! strcmp( attName, "BoxShapeID" ) )
+      {
+      this->SetAndObserveBoxShapeID( NULL );
+      this->SetAndObserveBoxShapeID( attValue );
+      }
+    
+    if ( ! strcmp( attName, "IndexBegin" ) )
+      {
+      this->IndexBegin = StringToInt( std::string( attValue ) );
+      }
+    
+    if ( ! strcmp( attName, "IndexEnd" ) )
+      {
+      this->IndexEnd = StringToInt( std::string( attValue ) );
+      }
+    
+    if ( ! strcmp( attName, "PlanEntryPoint" ) )
+      {
+      double point[ 4 ];
+      StringToDoubleVector( std::string( attValue ), point, 4 );
+      for ( int i = 0; i < 4; ++ i ) this->PlanEntryPoint[ i ] = point[ i ];
+      }
+    
+    if ( ! strcmp( attName, "PlanTargetPoint" ) )
+      {
+      double point[ 4 ];
+      StringToDoubleVector( std::string( attValue ), point, 4 );
+      for ( int i = 0; i < 4; ++ i ) this->PlanTargetPoint[ i ] = point[ i ];
       }
     }
 }
@@ -138,11 +251,45 @@ vtkMRMLPerkProcedureNode
   vtkIndent vindent( indent );
   
   
-  if ( this->ObservedTransformNodeID != NULL )
+  if ( this->FileName != NULL )
     {
-    of << vindent << " ObservedTransformNodeID=\"" << this->ObservedTransformNodeID << "\"";
+    of << vindent << " FileName=\"" << this->FileName << "\"" << std::endl;
     }
   
+  if ( this->ObservedTransformNodeID != NULL )
+    {
+    of << vindent << " ObservedTransformNodeID=\"" << this->ObservedTransformNodeID << "\"" << std::endl;
+    }
+  
+  if ( this->NeedleTransformNodeID != NULL )
+    {
+    of << vindent << " NeedleTransformNodeID=\"" << this->NeedleTransformNodeID << "\"" << std::endl;
+    }
+  
+  if ( this->BoxShapeID != NULL )
+    {
+    of << vindent << " BoxShapeID=\"" << this->BoxShapeID << "\"" << std::endl;
+    }
+  
+  
+  of << vindent << " IndexBegin=\"" << this->IndexBegin << "\"" << std::endl;
+  of << vindent << " IndexEnd=\"" << this->IndexEnd << "\"" << std::endl;
+  
+  
+  of << vindent << " PlanEntryPoint=\"";
+  for ( int i = 0; i < 4; ++ i )
+    {
+    of << this->PlanEntryPoint[ i ] << " ";
+    }
+  of << vindent << "\"" << std::endl;
+  
+  
+  of << vindent << " PlanTargetPoint=\"";
+  for ( int i = 0; i < 4; ++ i )
+    {
+    of << this->PlanTargetPoint[ i ] << " ";
+    }
+  of << vindent << "\"" << std::endl;
   
 }
 
@@ -155,6 +302,9 @@ vtkMRMLPerkProcedureNode
   std::ifstream input( fileName );
   if ( ! input.is_open() ) return;
   input.close();
+  
+  
+  this->SetFileName( fileName );
   
   
   this->ClearData();
@@ -203,6 +353,21 @@ vtkMRMLPerkProcedureNode
 {
   Superclass::Copy( node );
   vtkMRMLPerkProcedureNode* perkNode = ( vtkMRMLPerkProcedureNode* )node;
+  
+  this->IndexBegin = perkNode->GetIndexBegin();
+  this->IndexEnd = perkNode->GetIndexEnd();
+  
+  this->FileName = perkNode->GetFileName();
+  
+  if ( perkNode->GetObservedTransformNodeID() != NULL )
+    {
+    this->SetObservedTransformNodeID( perkNode->GetObservedTransformNodeID() );
+    }
+  
+  if ( perkNode->GetBoxShapeID() != NULL )
+    {
+    this->SetAndObserveBoxShapeID( perkNode->GetBoxShapeID() );
+    }
 }
 
 
@@ -328,7 +493,14 @@ vtkMRMLPerkProcedureNode
                        ctr->GetMatrix()->GetElement( 1, 3 ),
                        ctr->GetMatrix()->GetElement( 2, 3 ) };
   
-  return this->BoxShape->IsInside( cpos[ 0 ], cpos[ 1 ], cpos[ 2 ] );
+  if ( this->BoxShape != NULL )
+    {
+    return this->BoxShape->IsInside( cpos[ 0 ], cpos[ 1 ], cpos[ 2 ] );
+    }
+  else
+    {
+    return false;
+    }
 }
 
 
@@ -353,6 +525,10 @@ vtkMRMLPerkProcedureNode
     {
     this->BoxShape = vtkMRMLBoxShape::New();
     this->BoxShape->SetScene( this->GetScene() );
+    this->BoxShape->SetHideFromEditors( 0 );
+    this->BoxShape->SetSaveWithScene( 1 );
+    this->SetBoxShapeID( this->BoxShape->GetID() );
+    this->GetScene()->AddNode( this->BoxShape );
     }
   
   this->BoxShape->Initialize( fiducials );
@@ -571,6 +747,7 @@ vtkMRMLPerkProcedureNode
   this->BoxShapeID = NULL;
   
   
+  this->FileName = NULL;
   this->NoteIndex = -1;
   this->TransformIndex = -1;
   

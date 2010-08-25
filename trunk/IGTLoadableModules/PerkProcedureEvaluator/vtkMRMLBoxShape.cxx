@@ -2,6 +2,9 @@
 #include "vtkMRMLBoxShape.h"
 
 
+#include <string>
+#include <sstream>
+
 #include "vtkCubeSource.h"
 #include "vtkPolyData.h"
 #include "vtkSmartPointer.h"
@@ -10,6 +13,30 @@
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLModelDisplayNode.h"
 #include "vtkMRMLModelNode.h"
+
+
+
+// ===============================================================
+
+void
+StringToBool( std::string str, bool& var );
+/*
+{
+  std::stringstream ss( str );
+  ss >> var;
+}
+*/
+
+void
+StringToDouble( std::string str, double& var );
+/*
+{
+  std::stringstream ss( str );
+  ss >> var;
+}
+*/
+
+// ===============================================================
 
 
 
@@ -66,6 +93,14 @@ vtkMRMLBoxShape
     if ( ! strcmp( attName, "ObservedTransformNodeID" ) )
       {
       }
+    
+    else if ( ! strcmp( attName, "MinR" ) ) StringToDouble( std::string( attValue ), this->MinR );
+    else if ( ! strcmp( attName, "MaxR" ) ) StringToDouble( std::string( attValue ), this->MaxR );
+    else if ( ! strcmp( attName, "MinA" ) ) StringToDouble( std::string( attValue ), this->MinA );
+    else if ( ! strcmp( attName, "MaxA" ) ) StringToDouble( std::string( attValue ), this->MaxA );
+    else if ( ! strcmp( attName, "MinS" ) ) StringToDouble( std::string( attValue ), this->MinS );
+    else if ( ! strcmp( attName, "MaxS" ) ) StringToDouble( std::string( attValue ), this->MaxS );
+    else if ( ! strcmp( attName, "Initialized" ) ) StringToBool( std::string( attValue ), this->Initialized );
     }
 }
 
@@ -78,6 +113,14 @@ vtkMRMLBoxShape
   Superclass::WriteXML( of, indent );
   
   vtkIndent vindent( indent );
+  
+  of << " MinR=\"" << this->MinR << "\"";
+  of << " MaxR=\"" << this->MaxR << "\"";
+  of << " MinA=\"" << this->MinA << "\"";
+  of << " MaxA=\"" << this->MaxA << "\"";
+  of << " MinS=\"" << this->MinS << "\"";
+  of << " MaxS=\"" << this->MaxS << "\"";
+  of << " Initialized=\"" << this->Initialized << "\"" << std::endl;
   
   /*
   if ( this->ObservedTransformNodeID != NULL )

@@ -168,8 +168,8 @@ vtkMRMLPerkProcedureStorageNode
   
   if ( fstr.is_open() )
     {
-    
     fstr.close();
+    perkNode->ImportFromFile( fullName.c_str() );
     }
   else
     {
@@ -184,6 +184,7 @@ vtkMRMLPerkProcedureStorageNode
     // make sure that the list node points to this storage node
   
   perkNode->SetAndObserveStorageNodeID( this->GetID() );
+  perkNode->Modified();
   
   return 1;
 }
