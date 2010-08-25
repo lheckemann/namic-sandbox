@@ -458,6 +458,7 @@ vtkPerkProcedureEvaluatorGUI
     vtkMRMLFiducialListNode* fids = vtkMRMLFiducialListNode::SafeDownCast(
       this->PlanFiducialsSelector->GetSelected() );
     this->ProcedureNode->SetPlan( fids );
+    this->UpdateAll();
     }
   
   else if (    this->BoxFiducialsSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
@@ -599,6 +600,12 @@ vtkPerkProcedureEvaluatorGUI
   vtkMRMLScalarVolumeDisplayNode* volumeNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast( caller );
   
   
+  if ( procedureNode != NULL && this->ProcedureNode != NULL )
+    {
+    this->UpdateAll();
+    }
+  
+  
   // Fill in
 
   if (event == vtkMRMLScene::SceneCloseEvent)
@@ -629,8 +636,10 @@ void
 vtkPerkProcedureEvaluatorGUI
 ::BuildGUI()
 {
+  this->Logic->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLBoxShape >::New() );
   this->Logic->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLPerkProcedureNode >::New() );
   this->Logic->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLPerkProcedureStorageNode >::New() );
+  // this->Logic->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLSurgicalShape >::New() );
   
   // ---
   // MODULE GUI FRAME 
@@ -1072,6 +1081,7 @@ vtkPerkProcedureEvaluatorGUI
   if ( ! procedure ) return;
   
   
+  
     // Update list of procedure notes.
   
   if (    this->NotesList != NULL
@@ -1122,6 +1132,12 @@ vtkPerkProcedureEvaluatorGUI
     }
   
     // Measurement results.
+  
+  
+  // debug
+  int ib = procedure->GetIndexBegin();
+  int ie = procedure->GetIndexEnd();
+  
   
   if ( procedure->GetIndexBegin() >= 0 )
     {
@@ -1220,16 +1236,14 @@ vtkPerkProcedureEvaluatorGUI
   vtkMRMLStorableNode* storableNode = vtkMRMLStorableNode::SafeDownCast( node );
   
   
-  if ( node )
+  if (    node
+       && node->GetStorageNode() == NULL )
     {
     vtkMRMLStorageNode *snode = node->CreateDefaultStorageNode();
     if ( snode )
       {
       snode->SetScene( this->GetMRMLScene() );
-      // snode->SetHideFromEditors( 0 );
-      // snode->SetSaveWithScene( 1 );
       snode->SetFileName( "PerkProcedure.xml" );
-      // snode->SetSelectable( 1 );
       this->GetMRMLScene()->AddNode( snode );
       
       storableNode->SetAndObserveStorageNodeID( snode->GetID() );
