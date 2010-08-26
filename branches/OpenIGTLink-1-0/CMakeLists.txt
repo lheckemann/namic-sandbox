@@ -46,6 +46,8 @@ MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 SET(OpenIGTLink_LIBRARY_PATH "${LIBRARY_OUTPUT_PATH}")
 SET(OpenIGTLink_EXECUTABLE_PATH "${EXECUTABLE_OUTPUT_PATH}")
 
+SET(OpenIGTLink_CMAKE_DIR "${OpenIGTLink_SOURCE_DIR}/CMake")
+SET(CMAKE_MODULE_PATH "${OpenIGTLink_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
 
 #-----------------------------------------------------------------------------
 # Installation vars.
@@ -161,6 +163,12 @@ IF(CMAKE_USE_PTHREADS)
     ENDIF(CMAKE_COMPILER_IS_GNUCXX)
   ENDIF(CMAKE_SYSTEM MATCHES "SunOS.*")
 ENDIF(CMAKE_USE_PTHREADS)
+
+#-----------------------------------------------------------------------------
+# Platform configuration tests.
+
+# Socket tests etc.
+INCLUDE(${OpenIGTLink_CMAKE_DIR}/OpenIGTLinkCMakeTests.cmake)
 
 
 #-----------------------------------------------------------------------------
