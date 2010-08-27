@@ -878,8 +878,6 @@ ComputeShortestEdgeLength()
     itkExceptionMacro("The shortest edge length is too close to zero = " << shortestLength );
     }
     
-  m_Epsilon = 1.0 / ( 8.0 * m_ShortestEdgeLength * m_ShortestEdgeLength );
-  m_SigmaX = 1.0 / vcl_sqrt(m_Epsilon);
 }
 
 
