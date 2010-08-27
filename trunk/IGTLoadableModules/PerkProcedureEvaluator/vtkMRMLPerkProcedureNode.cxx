@@ -590,6 +590,8 @@ vtkMRMLPerkProcedureNode
     }
   this->PlanEntryPoint[ 3 ] = 1;
   this->PlanTargetPoint[ 3 ] = 1;
+  
+  this->PlanReady = true;
 }
 
 
@@ -692,19 +694,34 @@ vtkMRMLPerkProcedureNode
   
     // Compute plan angle in axial plane.
   
-  sinus = this->PlanTargetPoint[ 0 ] - this->PlanEntryPoint[ 0 ];
-  cosinus = this->PlanTargetPoint[ 1 ] - this->PlanEntryPoint[ 1 ];
-  double planAngleInAxial = std::atan( sinus / cosinus ) * 180 / 3.141592;
+  this->AngleInAxial = -1; // In case there is no plan.
   
-    // Compute needle angle in axial plane.
+  if ( this->PlanReady )
+    {
+    sinus = this->PlanTargetPoint[ 0 ] - this->PlanEntryPoint[ 0 ];
+    cosinus = this->PlanTargetPoint[ 1 ] - this->PlanEntryPoint[ 1 ];
+    double planAngleInAxial = 90.0;
+    if ( cosinus != 0.0 && sinus != 0.0 )
+      {
+      planAngleInAxial = std::atan( sinus / cosinus ) * 180 / 3.141592;
+      }
+    
+    
+      // Compute needle angle in axial plane.
+    
+    sinus = lpos[ 0 ] - needleDirection[ 0 ];
+    cosinus = lpos[ 1 ] - needleDirection[ 1 ];
+    double angleInAxial = 90.0;
+    if ( cosinus != 0.0 && sinus != 0.0 )
+      {
+      angleInAxial = std::atan( sinus / cosinus ) * 180 / 3.141592;
+      }
+    
+      // Angle deviation in the axial plane.
+    
+    this->AngleInAxial = planAngleInAxial - angleInAxial;
+    }
   
-  sinus = lpos[ 0 ] - needleDirection[ 0 ];
-  cosinus = lpos[ 1 ] - needleDirection[ 1 ];
-  double angleInAxial = std::atan( sinus / cosinus ) * 180 / 3.141592;
-  
-    // Angle deviation in the axial plane.
-  
-  this->AngleInAxial = planAngleInAxial - angleInAxial;
 }
 
 
@@ -762,6 +779,7 @@ vtkMRMLPerkProcedureNode
     this->PlanEntryPoint[ i ] = 0;
     this->PlanTargetPoint[ i ] = 0;
     }
+  this->PlanReady = false;
   
   
     // Measurements.
@@ -833,8 +851,8 @@ vtkMRMLPerkProcedureNode
   this->TransformTimeSeries->Clear();
   this->TransformIndex = -1;
   
-  this->IndexBegin = -1;
-  this->IndexEnd = -1;
+  // this->IndexBegin = -1;
+  // this->IndexEnd = -1;
   
   
     // Measurements.

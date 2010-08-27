@@ -230,6 +230,7 @@ private:
   
   double PlanEntryPoint[ 4 ];
   double PlanTargetPoint[ 4 ];
+  bool PlanReady;
   
     // Measurements.
   

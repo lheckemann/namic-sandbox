@@ -1081,6 +1081,12 @@ vtkPerkProcedureEvaluatorGUI
   if ( ! procedure ) return;
   
   
+  // debug
+  int ib = procedure->GetIndexBegin();
+  int ie = procedure->GetIndexEnd();
+  const char* pID = procedure->GetID();
+  
+  
   
     // Update list of procedure notes.
   
@@ -1099,19 +1105,19 @@ vtkPerkProcedureEvaluatorGUI
       deleteFlag = false;
       }
     
-    for ( int row = 0; row < numNotes; ++ row )
+    if ( deleteFlag )
       {
-      PerkNote* note = procedure->GetNoteAtIndex( row );
-      
-      if ( deleteFlag )
+      for ( int row = 0; row < numNotes; ++ row )
         {
+        PerkNote* note = procedure->GetNoteAtIndex( row );
+        
         this->NotesList->GetWidget()->AddRow();
+        
+        vtkKWMultiColumnList* colList = this->NotesList->GetWidget();
+        
+        colList->SetCellText( row, NOTES_COL_TIME, DoubleToStr( note->Time ).c_str() );
+        colList->SetCellText( row, NOTES_COL_MESSAGE, note->Message.c_str() );
         }
-      
-      vtkKWMultiColumnList* colList = this->NotesList->GetWidget();
-      
-      colList->SetCellText( row, NOTES_COL_TIME, DoubleToStr( note->Time ).c_str() );
-      colList->SetCellText( row, NOTES_COL_MESSAGE, note->Message.c_str() );
       }
     }
   
@@ -1134,10 +1140,6 @@ vtkPerkProcedureEvaluatorGUI
     // Measurement results.
   
   
-  // debug
-  int ib = procedure->GetIndexBegin();
-  int ie = procedure->GetIndexEnd();
-  
   
   if ( procedure->GetIndexBegin() >= 0 )
     {
@@ -1155,7 +1157,15 @@ vtkPerkProcedureEvaluatorGUI
     this->LabelPathInside->SetText( DoubleToStr( procedure->GetPathInside() ).c_str() );
     this->LabelTimeInside->SetText( DoubleToStr( procedure->GetTimeInside() ).c_str() );
     this->LabelAngleFromAxial->SetText( DoubleToStr( procedure->GetAngleFromAxial() ).c_str() );
-    this->LabelAngleInAxial->SetText( DoubleToStr( procedure->GetAngleInAxial() ).c_str() );
+    
+    if ( procedure->GetAngleInAxial() < 0.0 )
+      {
+      this->LabelAngleInAxial->SetText( "N/A" );
+      }
+    else
+      {
+      this->LabelAngleInAxial->SetText( DoubleToStr( procedure->GetAngleInAxial() ).c_str() );
+      }
     }
 }
 
@@ -1183,6 +1193,13 @@ vtkPerkProcedureEvaluatorGUI
     return;
     }
   
+  
+    // Do the changes.
+  
+  this->ProcedureNode->SetTransformIndex( this->ProcedureNode->GetTransformIndex() + 1 );
+  this->UpdateAll();
+  
+  
   this->TimerLog->StopTimer();
   double elapsed = this->TimerLog->GetElapsedTime();
   this->TimerLog->StartTimer();
@@ -1190,10 +1207,13 @@ vtkPerkProcedureEvaluatorGUI
   double delay = then - now - elapsed;
   if ( delay < 0.0 ) delay = 0.0;
   
+  
+  this->GetApplicationGUI()->GetActiveRenderWindowInteractor()->Render();
+  
+  
   vtkKWTkUtilities::CreateTimerHandler( this->GetApplication(), delay, this, "TimerHandler" );
   
-  this->ProcedureNode->SetTransformIndex( this->ProcedureNode->GetTransformIndex() + 1 );
-  this->UpdateAll();
+  
   
   
   this->TimerEventProcessing = false;
