@@ -107,6 +107,7 @@ public:
   // Update routines
   
   void UpdateAll();
+  void UpdatePlayback();
   
 
 protected:
