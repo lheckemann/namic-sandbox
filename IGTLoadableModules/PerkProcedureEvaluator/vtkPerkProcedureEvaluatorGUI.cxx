@@ -693,7 +693,7 @@ vtkPerkProcedureEvaluatorGUI
     this->PerkProcedureSelector->SetParent( inputFrame->GetFrame() );
     this->PerkProcedureSelector->Create();
     this->PerkProcedureSelector->SetNewNodeEnabled( 1 );
-    this->PerkProcedureSelector->NoneEnabledOff();
+    // this->PerkProcedureSelector->NoneEnabledOff();
     this->PerkProcedureSelector->SetMRMLScene( this->Logic->GetMRMLScene() );
     this->PerkProcedureSelector->UpdateMenu();
     this->PerkProcedureSelector->SetLabelText( "Perk procedure" );
@@ -1123,19 +1123,8 @@ vtkPerkProcedureEvaluatorGUI
   
   
     // Playback.
+  this->UpdatePlayback();
   
-  this->EntrySec->SetValueAsDouble( procedure->GetTimeAtTransformIndex( procedure->GetTransformIndex() ) );
-  
-  vtkTransform* txform = procedure->GetTransformAtTransformIndex( procedure->GetTransformIndex() );
-  if ( txform )
-    {
-    vtkMatrix4x4* mtx = txform->GetMatrix();
-    std::stringstream ss;
-    ss << mtx->GetElement( 0, 3 ) << " " << mtx->GetElement( 1, 3 ) << " " << mtx->GetElement( 2, 3 );
-    if ( procedure->IsNeedleInsideBody() ) ss << " (inside body)";
-    else ss << " (outside body)";
-    this->PositionLabel->SetText( ss.str().c_str() );
-    }
   
     // Measurement results.
   
@@ -1173,6 +1162,29 @@ vtkPerkProcedureEvaluatorGUI
 
 void
 vtkPerkProcedureEvaluatorGUI
+::UpdatePlayback()
+{
+  vtkMRMLPerkProcedureNode* procedure = this->GetProcedureNode();
+  if ( ! procedure ) return;
+  
+  this->EntrySec->SetValueAsDouble( procedure->GetTimeAtTransformIndex( procedure->GetTransformIndex() ) );
+  
+  vtkTransform* txform = procedure->GetTransformAtTransformIndex( procedure->GetTransformIndex() );
+  if ( txform )
+    {
+    vtkMatrix4x4* mtx = txform->GetMatrix();
+    std::stringstream ss;
+    ss << mtx->GetElement( 0, 3 ) << " " << mtx->GetElement( 1, 3 ) << " " << mtx->GetElement( 2, 3 );
+    if ( procedure->IsNeedleInsideBody() ) ss << " (inside body)";
+    else ss << " (outside body)";
+    this->PositionLabel->SetText( ss.str().c_str() );
+    }
+}
+
+
+
+void
+vtkPerkProcedureEvaluatorGUI
 ::TimerHandler()
 {
   if ( ! this->AutoPlayOn ) return;
@@ -1197,7 +1209,14 @@ vtkPerkProcedureEvaluatorGUI
     // Do the changes.
   
   this->ProcedureNode->SetTransformIndex( this->ProcedureNode->GetTransformIndex() + 1 );
-  this->UpdateAll();
+  this->UpdatePlayback();
+  this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+  // this->GetApplicationGUI()->UpdateMain3DViewers();
+  
+  this->EntrySec->SetValueAsDouble( this->ProcedureNode->GetTimeAtTransformIndex( this->ProcedureNode->GetTransformIndex() ) );
+  // vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  // vtkKWWidget *page = this->UIPanel->GetPageWidget ("PerkProcedureEvaluator");
+  
   
   
   this->TimerLog->StopTimer();
@@ -1205,16 +1224,10 @@ vtkPerkProcedureEvaluatorGUI
   this->TimerLog->StartTimer();
   
   double delay = then - now - elapsed;
-  if ( delay < 0.0 ) delay = 0.0;
-  
-  
-  this->GetApplicationGUI()->GetActiveRenderWindowInteractor()->Render();
+  if ( delay < 0.0 ) delay = 5.0;
   
   
   vtkKWTkUtilities::CreateTimerHandler( this->GetApplication(), delay, this, "TimerHandler" );
-  
-  
-  
   
   this->TimerEventProcessing = false;
 }
