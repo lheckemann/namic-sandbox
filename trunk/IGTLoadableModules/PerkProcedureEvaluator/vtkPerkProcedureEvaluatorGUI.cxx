@@ -1210,10 +1210,10 @@ vtkPerkProcedureEvaluatorGUI
   
   this->ProcedureNode->SetTransformIndex( this->ProcedureNode->GetTransformIndex() + 1 );
   this->UpdatePlayback();
-  this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+  // this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
   // this->GetApplicationGUI()->UpdateMain3DViewers();
   
-  this->EntrySec->SetValueAsDouble( this->ProcedureNode->GetTimeAtTransformIndex( this->ProcedureNode->GetTransformIndex() ) );
+  // this->EntrySec->SetValueAsDouble( this->ProcedureNode->GetTimeAtTransformIndex( this->ProcedureNode->GetTransformIndex() ) );
   // vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   // vtkKWWidget *page = this->UIPanel->GetPageWidget ("PerkProcedureEvaluator");
   
@@ -1224,10 +1224,14 @@ vtkPerkProcedureEvaluatorGUI
   this->TimerLog->StartTimer();
   
   double delay = then - now - elapsed;
-  if ( delay < 0.0 ) delay = 5.0;
+  if ( delay < 0.0 ) delay = 0.0;
+  std::stringstream ss;
+  ss << ( (int)( delay ) );
   
-  
-  vtkKWTkUtilities::CreateTimerHandler( this->GetApplication(), delay, this, "TimerHandler" );
+  this->Script ( "update idletasks" );
+  // this->Script ( "after 10 \"%s TimerHandler \"",  this->GetTclName() );
+  this->Script ( "after %d \"%s TimerHandler \"", (int)delay, this->GetTclName() );
+  // vtkKWTkUtilities::CreateTimerHandler( this->GetApplication(), delay, this, "TimerHandler" );
   
   this->TimerEventProcessing = false;
 }
