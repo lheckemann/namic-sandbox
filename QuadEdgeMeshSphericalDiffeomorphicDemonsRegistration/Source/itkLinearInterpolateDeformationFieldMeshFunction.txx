@@ -114,7 +114,7 @@ LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsCont
   const RealType & weight2 = this->GetInterpolationWeight(1);
 
   outputPoint.SetToBarycentricCombination( point1, point2, point3, weight1, weight2 );
-
+  
   return true;
 }
 
