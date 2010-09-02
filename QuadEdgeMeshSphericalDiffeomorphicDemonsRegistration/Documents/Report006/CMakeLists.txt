@@ -29,7 +29,7 @@ SET(REPORT001_SRCS
   )
 
 SET(REPORT_SRCS
-  ../../Examples/QuadEdgeMeshSimilarityCalculator.cxx
+  ../../Examples/ScalarQuadEdgeMeshHistogram.cxx
   )
 
 SET(THIS_BINARY_DIR 
