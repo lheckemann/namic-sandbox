@@ -511,7 +511,7 @@ RunIterations()
     this->ComputeGradientsOfMappedMovingValueAtEveryNode();
     this->m_Chronometer.Stop("ComputeGradientsOfMappedMovingValueAtEveryNode");
 
-    std::cout<<"Iteration: "<<i<<std::endl;
+    //std::cout<<"Iteration: "<<i<<std::endl;
     this->m_Chronometer.Start("ComputeSelfRegulatedVelocityField");
     this->ComputeSelfRegulatedVelocityField();
     this->m_Chronometer.Stop("ComputeSelfRegulatedVelocityField");
@@ -871,7 +871,7 @@ ComputeShortestEdgeLength()
     }
 
   this->m_ShortestEdgeLength = shortestLength;
-  std::cout << "m_ShortestEdgeLength = " << this->m_ShortestEdgeLength << std::endl;
+  //std::cout << "m_ShortestEdgeLength = " << this->m_ShortestEdgeLength << std::endl;
 
   if( this->m_ShortestEdgeLength < vnl_math::eps )
     {

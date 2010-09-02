@@ -29,7 +29,6 @@
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 #include "itkQuadEdgeMeshVectorDataVTKPolyDataWriter.h"
 #include "itkDeformationFieldFromTransformMeshFilter.h"
-#include "itkResampleDestinationPointsQuadEdgeMeshFilter.h"
 #include "itkQuadEdgeMeshGenerateDeformationFieldFilter.h"
 #include "itkIdentityTransform.h"
 #include "itkReplaceDestinationPointsQuadEdgeMeshFilter.h"

@@ -123,7 +123,7 @@ int main( int argc, char *argv[] )
   WriterType::Pointer writer = WriterType::New();
 
   writer->SetFileName( argv[3] );
-  writer->SetInput( demonsFilter->GetOutput() );
+  writer->SetInput( demonsFilter->GetDeformedFixedMesh() );
 
   try
     {
@@ -171,6 +171,9 @@ int main( int argc, char *argv[] )
   upsampleDestinationPoints->SetReferenceMesh( referenceReader->GetOutput() );
   upsampleDestinationPoints->SetTransform( itk::IdentityTransform<double>::New() );
 
+  upsampleDestinationPoints->SetSphereCenter( center0 );
+  upsampleDestinationPoints->SetSphereRadius( 100.0 );
+  
   try
     {
 std::cout << "BEFORE upsampleDestinationPoints Update()" << std::endl;

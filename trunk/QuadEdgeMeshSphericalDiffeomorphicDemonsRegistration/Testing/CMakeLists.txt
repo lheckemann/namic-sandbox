@@ -67,6 +67,9 @@ TARGET_LINK_LIBRARIES(itkScalarQuadEdgeMeshToListAdaptorTest1 ITKQuadEdgeMesh IT
 ADD_EXECUTABLE(itkResampleDestinationPointsQuadEdgeMeshFilterTest1 itkResampleDestinationPointsQuadEdgeMeshFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkResampleDestinationPointsQuadEdgeMeshFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkDeformQuadEdgeMeshFilterTest1 itkDeformQuadEdgeMeshFilterTest1.cxx )
+TARGET_LINK_LIBRARIES(itkDeformQuadEdgeMeshFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkNormalizeScalarsQuadEdgeMeshFilterTest1 itkNormalizeScalarsQuadEdgeMeshFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkNormalizeScalarsQuadEdgeMeshFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
@@ -308,18 +311,32 @@ ADD_TEST(DemonsFilterTest6
 
 ADD_TEST(ResampleDestinationFilterTest1
   ${CXX_TEST_PATH}/itkResampleDestinationPointsQuadEdgeMeshFilterTest1
-  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
-  ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk
-  ${TEMP}/movingMeshWithScalarsIC1registeredToFixedMeshWithScalarsIC1InResamplingTest.vtk
+  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC3.vtk
+  ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC3.vtk
+  ${TEMP}/deformedFixedMeshWithScalarsIC3InResamplingTest.vtk
   ${TEMP}/meshWithScalarsIC4.vtk
-  ${TEMP}/movingMeshWithScalarsIC1registeredToFixedMeshWithScalarsIC1ResampledToIC4.vtk
+  ${TEMP}/deformedFixedMeshWithScalarsIC3ResampledToIC4.vtk
   1.0    # Epsilon
   1.0    # SigmaX
   1.0    # Lambda
   1      # Smoothing Iterations
   5      # maximum number of iterations
   )
-
+  
+ADD_TEST(DeformFilterTest1
+  ${CXX_TEST_PATH}/itkDeformQuadEdgeMeshFilterTest1
+  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC3.vtk
+  ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC3.vtk
+  ${TEMP}/deformedFixedMeshWithScalarsIC3.vtk
+  ${TEMP}/meshWithScalarsIC4.vtk
+  ${TEMP}/deformedFixedMeshWithScalarsIC4.vtk
+  1.0    # Epsilon
+  1.0    # SigmaX
+  1.0    # Lambda
+  1      # Smoothing Iterations
+  5      # maximum number of iterations
+  )
+  
 ADD_TEST(ComputeDeformationFieldMeshTest1
   ${CXX_TEST_PATH}/itkQuadEdgeMeshGenerateDeformationFieldFilterTest1
   ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk
