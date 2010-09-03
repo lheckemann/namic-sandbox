@@ -740,14 +740,6 @@ vtkPerkStationCalibrateStep
       case 'g' : rotation += ( stepSize / 3.0 ); break;
       case 'h' : rotation -= ( stepSize / 3.0 ); break;
       }
-    /*
-    if ( ! strcmp( key, "a" ) ) translation[ 1 ] -= stepSize;
-    if ( ! strcmp( key, "z" ) ) translation[ 1 ] += stepSize;
-    if ( ! strcmp( key, "q" ) ) translation[ 0 ] -= ( stepSize * hFlip );
-    if ( ! strcmp( key, "w" ) ) translation[ 0 ] += ( stepSize * hFlip );
-    if ( ! strcmp( key, "g" ) ) rotation += ( stepSize / 3.0 );
-    if ( ! strcmp( key, "h" ) ) rotation -= ( stepSize / 3.0 );
-    */
     }
   
   this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation( translation );

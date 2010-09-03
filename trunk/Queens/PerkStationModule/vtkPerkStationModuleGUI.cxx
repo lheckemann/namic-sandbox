@@ -143,6 +143,8 @@ vtkPerkStationModuleGUI
   this->SliceOffset = 0;
   this->ObserverCount = 0;
   this->TimerLog = NULL;
+  this->CurrentWindow = 0.0;
+  this->CurrentLevel = 0.0;
 }
 
 
@@ -624,6 +626,13 @@ vtkPerkStationModuleGUI
       {
       double window = volume->GetScalarVolumeDisplayNode()->GetWindow();
       double level = volume->GetScalarVolumeDisplayNode()->GetLevel();
+      if ( window != this->CurrentWindow  ||  level != this->CurrentLevel )
+        {
+        this->CurrentLevel = level;
+        this->CurrentWindow = window;
+        this->SecondaryMonitor->UpdateImageDisplay();
+        }
+      
       
       std::string str( anno->GetText( 1 ) );
       

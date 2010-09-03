@@ -186,6 +186,8 @@ private:
   double SliceOffset;
   int ObserverCount;
   int State;  // Calibration, planning, insertion and validation.
+  double CurrentWindow;
+  double CurrentLevel;
   
   
     // Time spent by calibration, planning, insertion and validation.
