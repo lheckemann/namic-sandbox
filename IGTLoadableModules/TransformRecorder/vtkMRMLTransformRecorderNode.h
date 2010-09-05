@@ -1,5 +1,8 @@
 
 #include <iostream>
+#include <utility>
+#include <vector>
+
 
 #include "vtkMRMLNode.h"
 // #include "vtkMRMLStorageNode.h"
@@ -55,6 +58,9 @@ public:
   void CustomMessage( std::string message );
   //ETX
   
+  void UpdateFileFromBuffer();
+  
+  
 protected:
 
   // Constructor/desctructor
@@ -77,6 +83,8 @@ protected:
   
   //BTX
   std::string LogFileName;
+  std::vector< std::pair< double, std::string > > TransformsBuffer;
+  std::vector< std::pair< double, std::string > > MessagesBuffer;
   //ETX
   
   bool Recording;
