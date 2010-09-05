@@ -37,18 +37,7 @@ PerkNote
 {
 public:
   
-  enum EventType
-    {
-    NoEvent = 0,
-    PierceSkin,
-    MoveForward,
-    Retract,
-    AdjustAngle,
-    PullOut
-    };
-  
   double Time;
-  EventType Event;
   std::string Message;
 };
 //ETX

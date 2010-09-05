@@ -330,7 +330,6 @@ vtkMRMLPerkProcedureNode
       {
       PerkNote* note = new PerkNote; // Deleted in NoteList destructor.
       note->Time = time;
-      note->Event = PerkNote::NoEvent;
       note->Message = std::string( noteElement->GetAttribute( "message" ) );
       this->NoteList.push_back( note );
       }
