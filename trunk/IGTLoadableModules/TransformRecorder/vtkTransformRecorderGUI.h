@@ -175,15 +175,16 @@ public:
   // GUI widgets
   //----------------------------------------------------------------
     
-  vtkSlicerNodeSelectorWidget* ModuleNodeSelector;
-  vtkSlicerNodeSelectorWidget* TransformSelector;
+  vtkSlicerNodeSelectorWidget*  ModuleNodeSelector;
+  vtkSlicerNodeSelectorWidget*  TransformSelector;
   vtkKWLoadSaveButtonWithLabel* FileSelectButton;
-  vtkKWLabel* LogFileLabel;
+  vtkKWLabel*                   LogFileLabel;
+  vtkKWPushButton*              SaveButton;
   
-  vtkKWPushButton* StartButton;
-  vtkKWPushButton* StopButton;
-  vtkKWEntry* CustomEntry;
-  vtkKWPushButton* CustomButton;
+  vtkKWPushButton*  StartButton;
+  vtkKWPushButton*  StopButton;
+  vtkKWEntry*       CustomEntry;
+  vtkKWPushButton*  CustomButton;
   
   //BTX
   std::vector< vtkKWPushButton* > MessageButtons;

@@ -57,6 +57,15 @@ vtkMRMLTransformRecorderNode
 
 
 
+void
+vtkMRMLTransformRecorderNode
+::UpdateFileFromBuffer()
+{
+  
+}
+
+
+
 vtkMRMLTransformRecorderNode
 ::vtkMRMLTransformRecorderNode()
 {
@@ -75,14 +84,15 @@ vtkMRMLTransformRecorderNode
 
 
 
-vtkMRMLTransformRecorderNode::~vtkMRMLTransformRecorderNode()
+vtkMRMLTransformRecorderNode
+::~vtkMRMLTransformRecorderNode()
 {
   this->RemoveMRMLObservers();
   this->SetAndObserveObservedTransformNodeID( NULL );
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkMRMLTransformRecorderNode
 ::WriteXML( ostream& of, int nIndent )
@@ -101,8 +111,11 @@ vtkMRMLTransformRecorderNode
   of << indent << " LogFileName=\"" << this->LogFileName << "\"";
 }
 
-//----------------------------------------------------------------------------
-void vtkMRMLTransformRecorderNode::ReadXMLAttributes(const char** atts)
+
+
+void
+vtkMRMLTransformRecorderNode
+::ReadXMLAttributes( const char** atts )
 {
   Superclass::ReadXMLAttributes(atts);
 
@@ -254,6 +267,7 @@ vtkMRMLTransformRecorderNode
 }
 
 
+
 void
 vtkMRMLTransformRecorderNode
 ::RemoveMRMLObservers()
@@ -265,12 +279,14 @@ vtkMRMLTransformRecorderNode
 }
 
 
+
 void
 vtkMRMLTransformRecorderNode
 ::SetLogFileName( std::string fileName )
 {
   this->LogFileName = fileName;
 }
+
 
 
 std::string
@@ -281,6 +297,7 @@ vtkMRMLTransformRecorderNode
 }
 
 
+
 void
 vtkMRMLTransformRecorderNode
 ::WriteLog()
@@ -289,25 +306,32 @@ vtkMRMLTransformRecorderNode
   
   vtkMatrix4x4* matrix = vtkMatrix4x4::New();
     matrix->Identity();
+  
   this->ObservedTransformNode->GetMatrixTransformToWorld( matrix );
   
   std::stringstream ss;
-  ss << "<log ";
-  ss << "time=\"" << seconds << "\" type=\"transform\" transform=\"";
+  // ss << "<log ";
+  // ss << "time=\"" << seconds << "\" type=\"transform\" transform=\"";
   ss << matrix->GetElement( 0, 0 ) << " " << matrix->GetElement( 0, 1 ) << " " << matrix->GetElement( 0, 2 ) << " " << matrix->GetElement( 0, 3 ) << " ";
   ss << matrix->GetElement( 1, 0 ) << " " << matrix->GetElement( 1, 1 ) << " " << matrix->GetElement( 1, 2 ) << " " << matrix->GetElement( 1, 3 ) << " ";
   ss << matrix->GetElement( 2, 0 ) << " " << matrix->GetElement( 2, 1 ) << " " << matrix->GetElement( 2, 2 ) << " " << matrix->GetElement( 2, 3 ) << " ";
   ss << matrix->GetElement( 3, 0 ) << " " << matrix->GetElement( 3, 1 ) << " " << matrix->GetElement( 3, 2 ) << " " << matrix->GetElement( 3, 3 ) << " ";
-  ss << "\"";
-  ss << " />";
+  // ss << "\"";
+  // ss << " />";
   
-  const char* cs = ss.str().c_str();
+  this->TransformsBuffer.push_back( std::pair< double, std::string >( seconds, ss.str() ) );
   
+  /*
   std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
+  std::stringstream output;
   output << ss.str();
   output << std::endl;
   output.close();
+  */
+  
+  
 }
+
 
 
 void
@@ -316,13 +340,18 @@ vtkMRMLTransformRecorderNode
 {
   double seconds = clock() * 1.0 / CLOCKS_PER_SEC;
   
+  /*
   std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
   output << "<log ";
   output << "time=\"" << seconds << "\" type=\"message\" message=\"" << message;
   output << "\" >";
   output << std::endl;
   output.close();
+  */
+  
+  this->MessagesBuffer.push_back( std::pair< double, std::string>( seconds, message ) );
 }
+
 
 
 void

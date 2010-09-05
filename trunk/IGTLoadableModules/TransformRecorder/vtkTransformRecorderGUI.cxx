@@ -63,8 +63,9 @@ vtkCxxRevisionMacro ( vtkTransformRecorderGUI, "$Revision: 1.0 $");
 //---------------------------------------------------------------------------
 
 
-//---------------------------------------------------------------------------
-vtkTransformRecorderGUI::vtkTransformRecorderGUI ( )
+
+vtkTransformRecorderGUI
+::vtkTransformRecorderGUI()
 {
   //----------------------------------------------------------------
   // Logic values
@@ -81,6 +82,7 @@ vtkTransformRecorderGUI::vtkTransformRecorderGUI ( )
   this->TransformSelector = NULL;
   this->FileSelectButton = NULL;
   this->LogFileLabel = NULL;
+  this->SaveButton = NULL;
   
   this->StartButton = NULL;
   this->StopButton = NULL;
@@ -106,8 +108,10 @@ vtkTransformRecorderGUI::vtkTransformRecorderGUI ( )
   this->ModuleNode = NULL;
 }
 
-//---------------------------------------------------------------------------
-vtkTransformRecorderGUI::~vtkTransformRecorderGUI ( )
+
+
+vtkTransformRecorderGUI
+::~vtkTransformRecorderGUI()
 {
 
   //----------------------------------------------------------------
@@ -130,6 +134,7 @@ vtkTransformRecorderGUI::~vtkTransformRecorderGUI ( )
   DESTRUCT( this->TransformSelector );
   DESTRUCT( this->FileSelectButton );
   DESTRUCT( this->LogFileLabel );
+  DESTRUCT( this->SaveButton );
   
   DESTRUCT( this->StartButton );
   DESTRUCT( this->StopButton );
@@ -153,16 +158,20 @@ vtkTransformRecorderGUI::~vtkTransformRecorderGUI ( )
 }
 
 
-//---------------------------------------------------------------------------
-void vtkTransformRecorderGUI::Init()
+
+void
+vtkTransformRecorderGUI
+::Init()
 {
   this->GetMRMLScene()->RegisterNodeClass(
     vtkSmartPointer< vtkMRMLTransformRecorderNode >::New() );
 }
 
 
-//---------------------------------------------------------------------------
-void vtkTransformRecorderGUI::Enter()
+
+void
+vtkTransformRecorderGUI
+::Enter()
 {
   // Fill in
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
@@ -191,15 +200,19 @@ void vtkTransformRecorderGUI::Enter()
 }
 
 
-//---------------------------------------------------------------------------
-void vtkTransformRecorderGUI::Exit ( )
+
+void
+vtkTransformRecorderGUI
+::Exit()
 {
   // Fill in
 }
 
 
-//---------------------------------------------------------------------------
-void vtkTransformRecorderGUI::PrintSelf ( ostream& os, vtkIndent indent )
+
+void
+vtkTransformRecorderGUI
+::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->vtkObject::PrintSelf ( os, indent );
 
@@ -208,14 +221,19 @@ void vtkTransformRecorderGUI::PrintSelf ( ostream& os, vtkIndent indent )
 }
 
 
-//---------------------------------------------------------------------------
-void vtkTransformRecorderGUI::RemoveGUIObservers ( )
+
+void
+vtkTransformRecorderGUI
+::RemoveGUIObservers()
 {
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
   REMOVE_OBSERVERS( this->ModuleNodeSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->TransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->FileSelectButton->GetWidget(), vtkKWLoadSaveDialog::WithdrawEvent );
+  
+  REMOVE_OBSERVER( this->SaveButton );
+  
   
   REMOVE_OBSERVER( this->StartButton );
   REMOVE_OBSERVER( this->StopButton );
@@ -230,8 +248,10 @@ void vtkTransformRecorderGUI::RemoveGUIObservers ( )
 }
 
 
-//---------------------------------------------------------------------------
-void vtkTransformRecorderGUI::AddGUIObservers ( )
+
+void
+vtkTransformRecorderGUI
+::AddGUIObservers()
 {
   this->RemoveGUIObservers();
 
@@ -266,6 +286,8 @@ void vtkTransformRecorderGUI::AddGUIObservers ( )
   
   this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->AddObserver(
     vtkKWLoadSaveDialog::WithdrawEvent, (vtkCommand*)( this->GUICallbackCommand ) );
+  
+  ADD_BUTTONINVOKED_OBSERVER( this->SaveButton );
   
   
   for ( int i = 0; i < BUTTON_COUNT; ++ i )
@@ -376,6 +398,16 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
       this->SelectLogFile();
       }
     }
+  
+  
+  if (    this->SaveButton == vtkKWPushButton::SafeDownCast( caller )
+       && event == vtkKWPushButton::InvokedEvent )
+    {
+    this->ModuleNode->UpdateFileFromBuffer();
+    }
+  
+  
+  // Controls panel -----------------------------------------------------------
   
   
   if (    this->StartButton == vtkKWPushButton::SafeDownCast( caller )
@@ -621,6 +653,14 @@ vtkTransformRecorderGUI
   this->LogFileLabel->SetText( "No log file specified." );
   
   // app->Script( "pack %s -side left -anchor nw -fill x -padx 2 -pady 2", this->LogFileLabel->GetWidgetName() );
+  
+  this->SaveButton = vtkKWPushButton::New();
+  this->SaveButton->SetParent( fileSelectFrame );
+  this->SaveButton->Create();
+  this->SaveButton->SetText( "Save" );
+  
+  app->Script( "pack %s -side right -anchor ne -fill x -padx 2 -pady 2",
+               this->SaveButton->GetWidgetName() );
   
 }
 
