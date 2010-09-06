@@ -61,7 +61,46 @@ void
 vtkMRMLTransformRecorderNode
 ::UpdateFileFromBuffer()
 {
+  // std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
+  std::ofstream output( this->LogFileName.c_str() );
   
+  if ( ! output.is_open() )
+    {
+    vtkErrorMacro( "Could not open xml file." );
+    return;
+    }
+  
+  output << "<PerkProcedure>" << std::endl;
+  
+  
+  int numMessages = this->MessagesBuffer.size();
+  
+  for ( int i = 0; i < numMessages; ++ i )
+    {
+    output << "<log";
+    output << " time=\"" << this->MessagesBuffer[ i ].first << "\""
+           << " type=\"message\" message=\"" << this->MessagesBuffer[ i ].second << "\"";
+    output << " />";
+    output << std::endl;
+    }
+  
+  
+  int numTransforms = this->TransformsBuffer.size();
+  
+  for ( int i = 0; i < numTransforms; ++ i )
+    {
+    std::stringstream ss;
+    ss << "<log ";
+    ss << " time=\"" << this->TransformsBuffer[ i ].first << "\" type=\"transform\" transform=\"";
+    ss << this->TransformsBuffer[ i ].second << "\"";
+    ss << " />";
+    
+    output << ss.str() << std::endl;
+    }
+  
+  
+  output << "</PerkProcedure>" << std::endl;
+  output.close();
 }
 
 
