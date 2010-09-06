@@ -659,8 +659,7 @@ vtkTransformRecorderGUI
   this->SaveButton->Create();
   this->SaveButton->SetText( "Save" );
   
-  app->Script( "pack %s -side right -anchor ne -fill x -padx 2 -pady 2",
-               this->SaveButton->GetWidgetName() );
+  app->Script( "pack %s -side right -anchor ne -fill x -padx 2 -pady 2", this->SaveButton->GetWidgetName() );
   
 }
 
