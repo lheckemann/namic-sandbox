@@ -73,8 +73,12 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_ScalingAndSquaringNumberOfIterations = 2;
 
   this->m_MetricValue = 0.0;
+  this->m_MetricChange = 0.0;
+  this->m_MetricSignificance = 1.0; //1% change
 
   this->m_SelfRegulatedMode = true;
+  
+  this->m_SelfStopMode = false;
 
   this->m_FixedMeshAtInitialDestinationPoints = FixedMeshType::New();
 }
@@ -501,6 +505,8 @@ RunIterations()
   // Report the progress
   ProgressReporter progress( this, 0, this->m_MaximumNumberOfIterations );
 
+  double pre_Metric = 0.0; //to save the metric value of previous iteration
+
   for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
     {
     this->m_Chronometer.Start("ComputeMappedMovingValueAtEveryNode");
@@ -515,6 +521,21 @@ RunIterations()
     this->m_Chronometer.Start("ComputeSelfRegulatedVelocityField");
     this->ComputeSelfRegulatedVelocityField();
     this->m_Chronometer.Stop("ComputeSelfRegulatedVelocityField");
+    
+    //metric calculation
+    if ( m_SelfStopMode )
+      {
+      if ( i > 0 && pre_Metric != 0.0 )
+        {
+        m_MetricChange = abs( this->GetMetricValue() - pre_Metric ) 
+                           / pre_Metric * 100.0;
+        if ( m_MetricChange < m_MetricSignificance )
+          {
+          break;
+          }
+        }
+      pre_Metric = this->GetMetricValue();
+      }
 
     this->m_Chronometer.Start("ComputeScalingAndSquaringNumberOfIterations");
     this->ComputeScalingAndSquaringNumberOfIterations();

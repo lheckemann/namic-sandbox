@@ -1,9 +1,9 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx,v $
+  Module:    $RCSfile: QuadEdgeMeshSphericalDiffeomorphicDemonsFilter3.cxx,v $
   Language:  C++
-  Date:      $Date: 2008-03-10 19:46:31 $
+  Date:      $Date: 2010-09-06 11:46:31 $
   Version:   $Revision: 1.37 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
@@ -42,7 +42,8 @@ int main( int argc, char *argv[] )
     std::cerr << " outputDeformedFixedMeshfile ";
     std::cerr << " sphereRadius epsilon sigmaX ";
     std::cerr << " lambda smoothingIterations ";
-    std::cerr << " numberOfIterations" << std::endl;
+    std::cerr << " numberOfIterations ";
+    std::cerr << " MetricSignificance" << std::endl;
     return EXIT_FAILURE;
     }
   
@@ -95,6 +96,7 @@ int main( int argc, char *argv[] )
   const double lambda = atof( argv[8] );
   const unsigned int maximumNumberOfSmoothingIterations = atoi( argv[9] );
   const unsigned int maximumNumberOfIterations = atoi( argv[10] );
+  const double metricSignificance = atof( argv[11] );
 
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
@@ -106,6 +108,9 @@ int main( int argc, char *argv[] )
 
   demonsFilter->SetLambda( lambda );
   demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
+
+  demonsFilter->SelfStopModeOn();
+  demonsFilter->SetMetricSignificance( metricSignificance );
 
 #ifdef USE_VTK
   typedef DemonsFilterType::DestinationPointSetType    DestinationPointSetType;
