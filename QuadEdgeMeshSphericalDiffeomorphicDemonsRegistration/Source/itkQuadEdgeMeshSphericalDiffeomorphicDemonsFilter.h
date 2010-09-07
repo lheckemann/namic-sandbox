@@ -190,6 +190,13 @@ public:
   itkGetConstMacro( SelfRegulatedMode, bool );
   itkBooleanMacro( SelfRegulatedMode );
 
+  /** Variable that defines whether the filter will stop the iterations 
+  by checking the change of metric between the previous and current
+  iterations.*/
+  itkSetMacro( SelfStopMode, bool );
+  itkGetConstMacro( SelfStopMode, bool );
+  itkBooleanMacro( SelfStopMode );
+
   /** Set/Get the container of sigma values to be associated with each node of
    * the fixed mesh. This sigma value represents the expected variability of
    * scalar values at this node of the mesh. */
@@ -237,6 +244,18 @@ public:
    * compute it as a way of providing feedback on the progress of the
    * registration. */
   itkGetConstMacro( MetricValue, double );
+
+  /** m_MetricChange = 
+  100 * (m_MetricValue(n) - m_MetricValue(n-1))/m_MetricValue(n-1)
+  n: current iteration; n-1: previous iteration*/
+  itkGetConstMacro( MetricChange, double );
+
+  /** The significant difference between current iteration and the previous iteration.
+  If m_MetricChange is bigger than it, iterations keep going until it hits the 
+  m_MaximumNumberOfIterations. If m_MetricChange is smaller than it, registration
+  stops.*/
+  itkSetMacro( MetricSignificance, double );
+  itkGetConstMacro( MetricSignificance, double );
 
   /**  Create the Output of the proper type for that output number */
   DataObject::Pointer MakeOutput(unsigned int idx);
@@ -422,11 +441,27 @@ private:
    * registration. */
   double        m_MetricValue;
 
+  /** m_MetricChange = 
+  100 * (m_MetricValue(n) - m_MetricValue(n-1))/m_MetricValue(n-1)
+  n: current iteration; n-1: previous iteration*/
+  double        m_MetricChange;
+
+  /** The significant difference between current iteration and the previous iteration.
+  If m_MetricChange is bigger than it, iterations keep going until it hits the 
+  m_MaximumNumberOfIterations. If m_MetricChange is smaller than it, registration
+  stops.*/
+  double        m_MetricSignificance;
+
   /** Variable that defines whether the filter will self-adjust the values of
    * SigmaX and Epsilon in order to get closer to the ratio of
    * largestVelocityMagnitude being similar to the value of the shortest edge
    * length. */
   bool          m_SelfRegulatedMode;
+
+  /** Variable that defines whether the filter will stop the iterations 
+  by checking the change of metric between the previous and current
+  iterations.*/
+  bool          m_SelfStopMode;
 
   /** largest ratio of velocity versus shortest edge length of the
    * corresponding node. */ 

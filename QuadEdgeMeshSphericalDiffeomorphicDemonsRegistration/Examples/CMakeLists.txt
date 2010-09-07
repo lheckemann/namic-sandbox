@@ -41,6 +41,20 @@ ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter2
 TARGET_LINK_LIBRARIES(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter2
  ITKQuadEdgeMesh ITKNumerics ITKIO) 
 
+IF(USE_VTK)
+  ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter3
+   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter3.cxx
+   ${QuadEdgeMeshRigidRegistration}/Testing/RegistrationMonitor.cxx)
+  TARGET_LINK_LIBRARIES(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter3
+   ITKQuadEdgeMesh ITKNumerics ITKIO
+   vtkRendering vtkFiltering vtkIO vtkHybrid)
+ELSE(USE_VTK)
+  ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter3
+   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter3.cxx)
+  TARGET_LINK_LIBRARIES(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter3
+   ITKQuadEdgeMesh ITKNumerics ITKIO)
+ENDIF(USE_VTK)
+
 ADD_EXECUTABLE(ReadFreesurferBinarySurfaceWriteVTKMesh
  ReadFreesurferBinarySurfaceWriteVTKMesh.cxx) 
 TARGET_LINK_LIBRARIES(ReadFreesurferBinarySurfaceWriteVTKMesh
@@ -536,7 +550,51 @@ ADD_TEST(DemonsExample7
   30     # maximum number of iterations
   )
 
-
+ADD_TEST(DemonsExample8
+  ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter3
+  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC3.vtk
+  ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC3.vtk
+  ${TEMP}/MeshDemonsFilter1_ResampledMovingMesh_IC3.vtk
+  ${TEMP}/MeshDemonsFilter1_DeformedFixedMesh_IC3.vtk
+  100.0  # Sphere radius
+  0.002  # Epsilon equal to 1/(SigmaX^2)
+  22.5   # SigmaX  proportional to sqrt(shortest edge). In this mesh short edge is 19.6034
+  1.0    # Lambda
+   3     # Smoothing Iterations
+  50     # maximum number of iterations
+  3.0    # Metric Significance
+  )
+  
+ADD_TEST(DemonsExample9
+  ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter3
+  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC4.vtk
+  ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC4.vtk
+  ${TEMP}/MeshDemonsFilter1_ResampledMovingMesh_IC4.vtk
+  ${TEMP}/MeshDemonsFilter1_DeformedFixedMesh_IC4.vtk
+  100.0  # Sphere radius
+  0.004  # Epsilon equal to 1/(SigmaX^2)
+  16.0   # SigmaX  proportional to sqrt(shortest edge). In this mesh short edge is 9.81344
+  1.0    # Lambda
+   3     # Smoothing Iterations
+  50     # maximum number of iterations
+  2.0    # Metric Significance
+  )
+ 
+ADD_TEST(DemonsExample10
+  ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter3
+  ${TEST_DATA_ROOT}/Input/SimpleSurface1Small.vtk
+  ${TEST_DATA_ROOT}/Input/RigidRegistrationSimpleSurface2to1Small.vtk
+  ${TEMP}/MeshDemonsFilterSimpleSurface2to1Small_ResampledMovingMesh.vtk
+  ${TEMP}/MeshDemonsFilterSimpleSurface2to1Small_DeformedFixedMesh.vtk
+  1.0    # Sphere radius
+  0.5    # Epsilon
+  0.5    # SigmaX
+  1.0    # Lambda
+  10     # Smoothing Iterations
+  30     # maximum number of iterations
+  0.01    # Metric Significance
+  ) 
+  
 #
 # REGISTER( lh 01  15 )
 #

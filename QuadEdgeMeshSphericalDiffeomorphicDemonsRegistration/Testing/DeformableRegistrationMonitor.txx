@@ -105,7 +105,6 @@ DeformableRegistrationMonitor<TDeformationFilter,TPointSet>
   this->MarkFixedSurfaceAsModified();
 }
 
-
 /** Print out iteration information */
 template <class TDeformationFilter, class TPointSet>
 void
