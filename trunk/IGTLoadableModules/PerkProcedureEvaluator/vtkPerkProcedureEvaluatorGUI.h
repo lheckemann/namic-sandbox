@@ -155,6 +155,7 @@ protected:
   vtkKWLabel*      LabelTotalTime;
   vtkKWLabel*      LabelPathInside;
   vtkKWLabel*      LabelTimeInside;
+  vtkKWLabel*      LabelSurfaceInside;
   vtkKWLabel*      LabelAngleFromAxial; // Deviation from axial plane.
   vtkKWLabel*      LabelAngleInAxial;   // Deviation from plan in axial plane.
   

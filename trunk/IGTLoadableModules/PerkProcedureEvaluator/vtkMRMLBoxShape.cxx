@@ -157,11 +157,69 @@ vtkMRMLBoxShape
 
 
 
+/**
+ * @returns true if 'point' is inside this box.
+ */
 bool
 vtkMRMLBoxShape
 ::IsInside( const double* point )
 {
   return this->IsInside( point[ 0 ], point[ 1 ], point[ 2 ] );
+}
+
+
+
+/**
+ * Computes the intersection of the needle line, described by transform 'tr'
+ * with the top (most anterior plane) of this box. Returns result in 'entry'.
+ * @returns true if entry point exists, false otherwise.
+ */
+bool
+vtkMRMLBoxShape
+::GetEntryPoint( vtkTransform* tr, double* entry )
+{
+  if ( tr == NULL )
+    {
+    vtkErrorMacro( "Calculation with NULL transform." );
+    return false;
+    }
+  
+  
+    // Point a and b will be on the line of the needle.
+  
+  const double a[ 4 ] = { 0, 0, 0, 1 };
+  const double b[ 4 ] = { 0, 0, 1, 1 };
+  
+    // Transform the points.
+  
+  double tooltip[ 4 ] = { 0, 0, 0, 1 };
+  double toolmid[ 4 ] = { 0, 0, 0, 1 };
+  
+  tr->MultiplyPoint( a, tooltip );
+  tr->MultiplyPoint( b, toolmid );
+  
+    // Determine a vector parallel to the needle.
+  
+  double direction[ 4 ] = { 0, 0, 0, 1 }; // From tip to midpoint.
+  for ( int i = 0; i < 4; ++ i ) direction[ i ] = toolmid[ i ] - tooltip[ i ];
+  
+  if ( direction[ 2 ] == 0.0 )
+    {
+    vtkErrorMacro( "Needle is horizontal. No entry point on box surface." );
+    return false;
+    }
+  
+    // Determine the intersection of the line and the top plane of the box.
+  
+    // tip + direction * x = entry point.
+    // x = ( entry point - tip ) / direction.
+  
+  double x = ( this->MaxA - tooltip[ 1 ] ) / direction[ 1 ];
+  
+    // Entry = tip + direction * x.
+  
+  for ( int i = 0; i < 4; ++ i ) entry[ i ] = direction[ i ] * x + tooltip[ i ];
+  return true;
 }
 
 

@@ -6,6 +6,8 @@
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLSurgicalShape.h"
 
+#include "vtkTransform.h"
+
 
 /**
  * Brick shape determined by two fiducials (min and max coordinates).
@@ -42,6 +44,11 @@ public:
   virtual bool IsInside( const double* point );
   
   virtual void Initialize( vtkMRMLFiducialListNode* fiducials );
+  
+  
+    // Own functions.
+  
+  bool GetEntryPoint( vtkTransform* tr, double* entry );
   
   
 protected:

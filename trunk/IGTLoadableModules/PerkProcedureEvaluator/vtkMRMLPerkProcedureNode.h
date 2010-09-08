@@ -158,6 +158,7 @@ public:
   vtkGetMacro( TotalTime, double );
   vtkGetMacro( PathInside, double );
   vtkGetMacro( TimeInside, double );
+  vtkGetMacro( SurfaceInside, double );
   vtkGetMacro( AngleFromAxial, double );
   vtkGetMacro( AngleInAxial, double );
   
@@ -181,6 +182,8 @@ private:
   void operator=( const vtkMRMLPerkProcedureNode& );
   
   void ClearData();
+  
+  double ApproximateSurface( double* e1, double* e2, double* t1, double* t2 );
   
   char* FileName;
   
@@ -226,6 +229,7 @@ private:
   double TotalTime;
   double PathInside;
   double TimeInside;
+  double SurfaceInside;
   double AngleFromAxial;
   double AngleInAxial;
 };

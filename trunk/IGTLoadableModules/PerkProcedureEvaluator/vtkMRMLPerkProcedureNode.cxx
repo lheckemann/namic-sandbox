@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "vtkMath.h"
 #include "vtkSmartPointer.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
@@ -634,43 +635,63 @@ vtkMRMLPerkProcedureNode
                                                    - this->GetTimeAtTransformIndex( this->IndexBegin );
   
   
-    // Analyze transforms from begin to end.
+    // Metrics to be measured from user difined begin to end.
   
   double pathInside = 0.0;
   double timeInside = 0.0;
+  double surfInside = 0.0; // Surface touched by needle inside.
   
-  double ltime = this->TransformTimeSeries->GetTimeAtIndex( this->IndexBegin );
+  
+  double lastTime = this->TransformTimeSeries->GetTimeAtIndex( this->IndexBegin );
   vtkTransform* tr = this->TransformTimeSeries->GetTransformAtIndex( this->IndexBegin );
-  double lpos[ 3 ] = { 0, 0, 0 };   // last position
-    lpos[ 0 ] = tr->GetMatrix()->GetElement( 0, 3 );
-    lpos[ 1 ] = tr->GetMatrix()->GetElement( 1, 3 );
-    lpos[ 2 ] = tr->GetMatrix()->GetElement( 2, 3 );
+  
+  double lastEpos[ 4 ] = { 0, 0, 0, 1 }; // Last entry point of needle into the phantom.
+  double lastTpos[ 4 ] = { 0, 0, 0, 1 }; // Last position of the needle tip.
+    lastTpos[ 0 ] = tr->GetMatrix()->GetElement( 0, 3 );
+    lastTpos[ 1 ] = tr->GetMatrix()->GetElement( 1, 3 );
+    lastTpos[ 2 ] = tr->GetMatrix()->GetElement( 2, 3 );
+    
+  
+    // Loop over recorded transforms.
   
   for ( int index = this->IndexBegin; index <= this->IndexEnd; ++ index )
     {
     double ctime = this->TransformTimeSeries->GetTimeAtIndex( index );
     tr = this->TransformTimeSeries->GetTransformAtIndex( index );
     
-    double cpos[ 3 ] = { tr->GetMatrix()->GetElement( 0, 3 ),
+    double cpos[ 4 ] = { tr->GetMatrix()->GetElement( 0, 3 ),
                          tr->GetMatrix()->GetElement( 1, 3 ),
-                         tr->GetMatrix()->GetElement( 2, 3 ) };
+                         tr->GetMatrix()->GetElement( 2, 3 ), 1 };
     
     bool inside = this->BoxShape->IsInside( cpos[ 0 ], cpos[ 1 ], cpos[ 2 ] );
-    double d = DISTANCE( lpos, cpos );
-    double dt = ctime - ltime;
+    double d = DISTANCE( lastTpos, cpos );
+    double dt = ctime - lastTime;
     
     if ( inside )
       {
       pathInside += d;
       timeInside += dt;
+      
+      double currEpos[ 4 ] = { 0, 0, 0, 1 };
+      bool valid = this->BoxShape->GetEntryPoint( tr, currEpos );
+      
+        // If "inside surface covered" can be computed.
+        
+      if ( valid  &&  index > this->IndexBegin )
+        {
+        double dSurface = this->ApproximateSurface( lastEpos, currEpos, lastTpos, cpos );
+        surfInside += dSurface;
+        for ( int i = 0; i < 4; ++ i ) lastEpos[ i ] = currEpos[ i ];
+        }
       }
     
-    ltime = ctime;
-    for ( int i = 0; i < 3; ++ i ) lpos[ i ] = cpos[ i ];
+    lastTime = ctime;
+    for ( int i = 0; i < 4; ++ i ) lastTpos[ i ] = cpos[ i ];
     }
   
   this->TimeInside = timeInside;
   this->PathInside = pathInside;
+  this->SurfaceInside = surfInside;
   
   
   // debug
@@ -686,8 +707,8 @@ vtkMRMLPerkProcedureNode
   double needleDirection[ 4 ] = { 0, 0, 0, 1 };
   tr->MultiplyPoint( inferiorDirection, needleDirection );
   
-  double cosinus = lpos[ 1 ] - needleDirection[ 1 ];
-  double sinus = lpos[ 2 ] - needleDirection[ 2 ];
+  double cosinus = lastTpos[ 1 ] - needleDirection[ 1 ];
+  double sinus = lastTpos[ 2 ] - needleDirection[ 2 ];
   this->AngleFromAxial = std::atan( sinus / cosinus ) * 180 / 3.141592;
   
   
@@ -708,8 +729,8 @@ vtkMRMLPerkProcedureNode
     
       // Compute needle angle in axial plane.
     
-    sinus = lpos[ 0 ] - needleDirection[ 0 ];
-    cosinus = lpos[ 1 ] - needleDirection[ 1 ];
+    sinus = lastTpos[ 0 ] - needleDirection[ 0 ];
+    cosinus = lastTpos[ 1 ] - needleDirection[ 1 ];
     double angleInAxial = 90.0;
     if ( cosinus != 0.0 && sinus != 0.0 )
       {
@@ -786,6 +807,7 @@ vtkMRMLPerkProcedureNode
   this->TotalTime = 0.0;
   this->PathInside = 0.0;
   this->TimeInside = 0.0;
+  this->SurfaceInside = 0.0;
   this->AngleFromAxial = 0.0;
   this->AngleInAxial = 0.0;
 }
@@ -859,5 +881,49 @@ vtkMRMLPerkProcedureNode
   this->TotalTime = 0.0;
   this->PathInside = 0.0;
   this->TimeInside = 0.0;
+  this->SurfaceInside = 0.0;
 }
 
+
+
+/**
+ * Calculate the approximate surface touched by a needle, that moves from
+ * tip pont t1 to t2 and entry point e1 to e2.
+ */
+double
+vtkMRMLPerkProcedureNode
+::ApproximateSurface( double* e1, double* e2, double* t1, double* t2 )
+{
+    // Approximation: summed area of two triangles, (e1,t1,e2) and (t1,e2,t2).
+    // Area of a triangle: cross-product of two edge vectors.  
+  
+    // First triangle: v = e2 - e1; w = t1 = e1;
+  
+  double v[ 3 ] = { 0, 0, 0 };
+  double w[ 3 ] = { 0, 0, 0 };
+  
+  for ( int i = 0; i < 3; ++ i )
+    {
+    v[ i ] = e2[ i ] - e1[ i ];
+    w[ i ] = t1[ i ] - e1[ i ];
+    }
+  
+  double cprod[ 3 ] = { 0, 0, 0 };
+  vtkMath::Cross( v, w, cprod );
+  double area1 = std::sqrt( cprod[ 0 ] * cprod[ 0 ] + cprod[ 1 ] * cprod[ 1 ]
+    + cprod[ 2 ] * cprod[ 2 ] );
+  
+    // Second triangle: v = e2 - t1; w = t2 - t1;
+  
+  for ( int i = 0; i < 3; ++ i )
+    {
+    v[ i ] = e2[ i ] - t1[ i ];
+    w[ i ] = t2[ i ] - t1[ i ];
+    }
+  
+  vtkMath::Cross( v, w, cprod );
+  double area2 = std::sqrt( cprod[ 0 ] * cprod[ 0 ] + cprod[ 1 ] * cprod[ 1 ]
+    + cprod[ 2 ] * cprod[ 2 ] );
+  
+  return ( area1 + area2 );
+}
