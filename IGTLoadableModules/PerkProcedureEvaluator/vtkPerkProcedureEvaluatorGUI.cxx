@@ -156,6 +156,7 @@ vtkPerkProcedureEvaluatorGUI
   this->LabelTotalTime = NULL;
   this->LabelPathInside = NULL;
   this->LabelTimeInside = NULL;
+  this->LabelSurfaceInside = NULL;
   this->LabelAngleFromAxial = NULL;
   this->LabelAngleInAxial = NULL;
   
@@ -221,6 +222,7 @@ vtkPerkProcedureEvaluatorGUI
   DELETE_WITH_SETPARENT_NULL( this->LabelTotalTime );
   DELETE_WITH_SETPARENT_NULL( this->LabelPathInside );
   DELETE_WITH_SETPARENT_NULL( this->LabelTimeInside );
+  DELETE_WITH_SETPARENT_NULL( this->LabelSurfaceInside );
   DELETE_WITH_SETPARENT_NULL( this->LabelAngleFromAxial );
   DELETE_WITH_SETPARENT_NULL( this->LabelAngleInAxial );
   
@@ -1020,6 +1022,27 @@ vtkPerkProcedureEvaluatorGUI
   this->Script( "grid %s -column 1 -row 5 -sticky w -padx 4 -pady 1", this->LabelTimeInside->GetWidgetName() );
   
   
+    // Label surface inside.
+  
+  
+  vtkSmartPointer< vtkKWLabel > labelSurfaceInside = vtkSmartPointer< vtkKWLabel >::New();
+    labelSurfaceInside->SetParent( resultsFrame->GetFrame() );
+    labelSurfaceInside->Create();
+    labelSurfaceInside->SetText( "Tissue surface covered (mm2): " );
+  
+  if ( ! this->LabelSurfaceInside )
+    {
+    this->LabelSurfaceInside = vtkKWLabel::New();
+    this->LabelSurfaceInside->SetParent( resultsFrame->GetFrame() );
+    this->LabelSurfaceInside->Create();
+    }
+  
+  this->Script( "grid %s -column 0 -row 5 -sticky w -padx 4 -pady 1",
+                labelSurfaceInside->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 5 -sticky w -padx 4 -pady 1",
+                this->LabelSurfaceInside->GetWidgetName() );
+  
+  
     // Label angle deviations.
   
   vtkSmartPointer< vtkKWLabel > labelAngleFromAxial = vtkSmartPointer< vtkKWLabel >::New();
@@ -1145,6 +1168,7 @@ vtkPerkProcedureEvaluatorGUI
     this->LabelTotalTime->SetText( DoubleToStr( procedure->GetTotalTime() ).c_str() );
     this->LabelPathInside->SetText( DoubleToStr( procedure->GetPathInside() ).c_str() );
     this->LabelTimeInside->SetText( DoubleToStr( procedure->GetTimeInside() ).c_str() );
+    this->LabelSurfaceInside->SetText( DoubleToStr( procedure->GetSurfaceInside() ).c_str() );
     this->LabelAngleFromAxial->SetText( DoubleToStr( procedure->GetAngleFromAxial() ).c_str() );
     
     if ( procedure->GetAngleInAxial() < 0.0 )
