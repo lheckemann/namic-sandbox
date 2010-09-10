@@ -1,5 +1,11 @@
+#import sys
+#sys.path.insert(0,'/home/stefalie/proj/numpy-build/lib64/python2.6/site-packages')
+#sys.path.insert(0,'/home/stefalie/proj/weave-build/lib/python2.6/site-packages')
+
 import numpy as np
-from scipy.weave import ext_tools as et
+#from scipy.weave import ext_tools as et
+from weave import ext_tools as et
+
 
 def add_model_1tensor_f(mod):
     # example data for type definitions
@@ -30,6 +36,107 @@ def add_model_1tensor_f(mod):
     mod.add_function(fn)
 
 
+def add_model_1tensor_full_f(mod):
+    X = np.empty((6,1), dtype='float64', order='F')
+    m = X.shape[1]
+
+    code = """
+    for (int i = 0; i < m; ++i) {
+        // lambda (clamped)
+        X[3] = max(X[3], 100);
+        X[4] = max(X[4], 100);
+        X[5] = max(X[5], 100);
+
+        // prepare for next
+        X += 6;
+    }
+    """
+    fn = et.ext_function('c_model_1tensor_full_f', code, ['X', 'm'])
+    mod.add_function(fn)
+
+
+def add_model_1tensor_h(mod):
+    # typedefs
+    X = np.empty((5,1), dtype='float64', order='F')
+    u = np.empty((102,3), dtype='float64', order='F')
+    b = 900.0
+
+    n = u.shape[0]
+    m = X.shape[1]
+    s = np.empty((n,m), order='F')
+
+    code = """
+    for (int i = 0; i < m; ++i) {
+        // unpack and normalize orientations
+        vec_t m1 = make_vec(X[0], X[1], X[2]); m1 /= norm(m1);
+        double l11 = X[3], l12 = X[4];
+
+        // ensure: lambda >= L
+        double L = 100;
+        if (l11 < L)   l11 = L;
+        if (l12 < L)   l12 = L;
+
+        // flip if necessary
+        if (m1._[0] < 0)   m1 = -m1;
+
+        // calculate diffusion matrix
+        mat_t D = diffusion(m1, l11, l12);
+
+        // reconstruct signal
+        for (int i = 0; i < n; ++i, ++s) {
+            vec_t u_ = make_vec(u[3*i], u[3*i+1], u[3*i+2]);
+            *s = exp(-b*dot(u_,D*u_));
+        }
+
+        // prepare for next
+        X += 5;
+    }
+    """
+
+    fn = et.ext_function('c_model_1tensor_h', code, ['s', 'X', 'u', 'b', 'n', 'm'])
+    mod.add_function(fn)
+
+
+# Computes the signal from a given state.
+def add_model_1tensor_full_h(mod):
+    # typedefs
+    X = np.empty((6, 1), dtype='float64', order='F')
+    u = np.empty((102, 3), dtype='float64', order='F')
+    b = 900.0
+
+    n = u.shape[0]
+    m = X.shape[1]
+    s = np.empty((n, m), order='F')
+
+    code = """
+    for (int i = 0; i < m; ++i) {
+        // unpack
+        double theta = X[0], phi = X[1], psi = X[2];
+        double l11 = X[3], l12 = X[4], l13 = X[5];
+
+        // ensure: lambda >= L
+        double L = 100;
+        if (l11 < L)   l11 = L;
+        if (l12 < L)   l12 = L;
+        if (l13 < L)   l13 = L;
+
+        // calculate diffusion matrix
+        mat_t D = diffusion_euler(theta, phi, psi, l11, l12, l13);
+
+        // reconstruct signal
+        for (int i = 0; i < n; ++i, ++s) {
+            vec_t u_ = make_vec(u[3 * i], u[3 * i + 1], u[3 * i + 2]);
+            *s = exp(-b * dot(u_, D * u_));
+        }
+
+        // prepare for next
+        X += 6;
+    }
+    """
+
+    fn = et.ext_function('c_model_1tensor_full_h', code, ['s', 'X', 'u', 'b', 'n', 'm'])
+    mod.add_function(fn)
+
 
 def add_state2tensor1(mod):
     # example data for type definitions
@@ -58,11 +165,202 @@ def add_state2tensor1(mod):
     *l1 = max(X[3], 100);
     *l2 = max(X[4], 100);
     """
+
     m = np.empty((3,1))
     l1 = np.empty(1);
     l2 = np.empty(1);
 
     fn = et.ext_function('c_state2tensor1', code, ['X', 'y', 'm', 'l1', 'l2'])
+    mod.add_function(fn)
+
+
+# Get's main direction and the Eigenvalues from the state.
+def add_state2tensor1_full(mod):
+    X = np.empty((6,1), dtype='float64', order='F')
+    y = np.empty(3)
+
+    code = """
+    double theta = X[0], phi = X[1], psi = X[2];
+    mat_t Q = rotation(theta, phi, psi);
+
+    m[0] = Q._[0];
+    m[1] = Q._[3];
+    m[2] = Q._[6];
+
+    // Flip orientation if necessary.
+    //if (m[0] * y[0] + m[1] * y[1] + m[2] * y[2] < 0) {
+    //    for (int i = 0; i < 3; ++i)
+    //        m[i] = -m[i];
+    //}
+
+    // Clamp lambdas.
+    *l1 = max(X[3], 100);
+    *l2 = max(X[4], 100);
+    *l3 = max(X[5], 100);
+    """
+
+    m = np.empty((3,1))
+    l1 = np.empty(1);
+    l2 = np.empty(1);
+    l3 = np.empty(1);
+
+    fn = et.ext_function('c_state2tensor1_full', code, ['X', 'y', 'm', 'l1', 'l2', 'l3'])
+    mod.add_function(fn)
+
+
+def add_model_2tensor_f(mod):
+    X = np.empty((10, 1), dtype='float64', order='F')
+    m = X.shape[1]
+
+    code = """
+    for (int i = 0; i < m; ++i) {
+        double *o1 = X, *o2 = X + 5;
+
+        // unpack and normalize orientations
+        vec_t m1 = make_vec(o1[0], o1[1], o1[2]); m1 = m1 / norm(m1);
+        vec_t m2 = make_vec(o2[0], o2[1], o2[2]); m2 = m2 / norm(m2);
+        double l11 = o1[3], l12 = o1[4];
+        double l21 = o2[3], l22 = o2[4];
+    
+        // ensure: lambda >= L
+        double L = 100;
+        if (l11 < L)   l11 = L;
+        if (l12 < L)   l12 = L;
+        if (l21 < L)   l21 = L;
+        if (l22 < L)   l22 = L;
+
+        // write back
+        vec2mem(m1, o1);  vec2mem(m2, o2);
+        o1[3] = l11; o2[3] = l21;
+        o1[4] = l12; o2[4] = l22;
+
+        // Prepare for next.
+        X += 10;
+    }
+    """
+
+    fn = et.ext_function('c_model_2tensor_f', code, ['X', 'm'])
+    mod.add_function(fn)
+
+
+def add_model_2tensor_full_f(mod):
+    X = np.empty((12, 1), dtype='float64', order='F')
+    m = X.shape[1]
+
+    code = """
+    for (int i = 0; i < m; ++i) {
+        // Clamp lambdas.
+        double *o = X;
+        o[3] = max(o[3], 100);
+        o[4] = max(o[4], 100);
+        o[5] = max(o[5], 100);
+
+        o[9] = max(o[9], 100);
+        o[10] = max(o[10], 100);
+        o[11] = max(o[11], 100);
+
+        // Prepare for next.
+        X += 12;
+    }
+    """
+
+    fn = et.ext_function('c_model_2tensor_full_f', code, ['X', 'm'])
+    mod.add_function(fn)
+
+
+def add_model_2tensor_h(mod):
+    # typedefs
+    X = np.empty((10, 1), dtype='float64', order='F')
+    u = np.empty((102, 3), dtype='float64', order='F')
+    b = 900.0
+
+    n = u.shape[0]
+    m = X.shape[1]
+    s = np.empty((n, m), order='F')
+
+    code = """
+    for (int i = 0; i < m; ++i) {
+        double *o1 = X, *o2 = X + 5;
+        // unpack and normalize orientations
+        vec_t m1 = make_vec(o1[0], o1[1], o1[2]); m1 /= norm(m1);
+        double l11 = o1[3], l12 = o1[4];
+        vec_t m2 = make_vec(o2[0], o2[1], o2[2]); m2 /= norm(m2);
+        double l21 = o2[3], l22 = o2[4];
+
+        // ensure: lambda >= L
+        double L = 100;
+        if (l11 < L)   l11 = L;
+        if (l12 < L)   l12 = L;
+        if (l21 < L)   l21 = L;
+        if (l22 < L)   l22 = L;
+
+        // flip if necessary
+        if (m1._[0] < 0)   m1 = -m1;
+        if (m2._[0] < 0)   m2 = -m2;
+
+        // calculate diffusion matrix
+        mat_t D1 = diffusion(m1, l11, l12);
+        mat_t D2 = diffusion(m2, l21, l22);
+
+        // reconstruct signal
+        for (int i = 0; i < n; ++i, ++s) {
+            vec_t u_ = make_vec(u[3*i], u[3*i+1], u[3*i+2]);
+            *s = (exp(-b*dot(u_,D1*u_)) + exp(-b*dot(u_,D2*u_)))/2;
+        }
+
+        // prepare for next
+        X += 10;
+    }
+    """
+
+    fn = et.ext_function('c_model_2tensor_h', code, ['s', 'X', 'u', 'b', 'n', 'm'])
+    mod.add_function(fn)
+
+
+def add_model_2tensor_full_h(mod):
+    # typedefs
+    X = np.empty((12, 1), dtype='float64', order='F')
+    u = np.empty((102, 3), dtype='float64', order='F')
+    b = 900.0
+
+    n = u.shape[0]
+    m = X.shape[1]
+    s = np.empty((n, m), order='F')
+
+    code = """
+    for (int i = 0; i < m; ++i) {
+        // Unpack the data.
+        double *o1 = X, *o2 = X + 6;
+        double theta1 = o1[0], phi1 = o1[1], psi1 = o1[2];
+        double theta2 = o2[0], phi2 = o2[1], psi2 = o2[2];
+        double l11 = o1[3], l12 = o1[4], l13 = o1[5];
+        double l21 = o2[3], l22 = o2[4], l23 = o2[5];
+
+        // Ensure: lambda >= L.
+        double L = 100;
+        if (l11 < L)   l11 = L;
+        if (l12 < L)   l12 = L;
+        if (l13 < L)   l13 = L;
+
+        if (l21 < L)   l21 = L;
+        if (l22 < L)   l22 = L;
+        if (l23 < L)   l23 = L;
+
+        // Calculate diffusion matrix.
+        mat_t D1 = diffusion_euler(theta1, phi1, psi1, l11, l12, l13);
+        mat_t D2 = diffusion_euler(theta2, phi2, psi2, l21, l22, l23);
+
+        // Reconstruct signal.
+        for (int i = 0; i < n; ++i, ++s) {
+            vec_t u_ = make_vec(u[3 * i], u[3 * i + 1], u[3 * i + 2]);
+            *s = (exp(-b * dot(u_, D1 * u_)) + exp(-b * dot(u_, D2 * u_))) / 2.0;
+        }
+
+        // Prepare for next.
+        X += 12;
+    }
+    """
+    fn = et.ext_function('c_model_2tensor_full_h', code, ['s', 'X', 'u', 'b', 'n', 'm'])
     mod.add_function(fn)
 
 
@@ -129,133 +427,61 @@ def add_state2tensor2(mod):
     mod.add_function(fn)
 
 
-
-
-def add_model_1tensor_h(mod):
-    # typedefs
-    X = np.empty((5,1), dtype='float64', order='F')
-    u = np.empty((102,3), dtype='float64', order='F')
-    b = 900.0
-
-    n = u.shape[0]
-    m = X.shape[1]
-    s = np.empty((n,m), order='F')
+def add_state2tensor2_full(mod):
+    # example data for type definitions
+    X = np.empty((6, 1), dtype='float64', order='F')
+    y = np.empty(3)
 
     code = """
-    for (int i = 0; i < m; ++i) {
-        // unpack and normalize orientations
-        vec_t m1 = make_vec(X[0], X[1], X[2]); m1 /= norm(m1);
-        double l11 = X[3], l12 = X[4];
+    // First orientation.
+    double theta = X[0], phi = X[1], psi = X[2];
+    mat_t Q = rotation(theta, phi, psi);
 
-        // ensure: lambda >= L
-        double L = 100;
-        if (l11 < L)   l11 = L;
-        if (l12 < L)   l12 = L;
+    m1[0] = Q._[0];
+    m1[1] = Q._[3];
+    m1[2] = Q._[6];
 
-        // flip if necessary
-        if (m1._[0] < 0)   m1 = -m1;
-
-        // calculate diffusion matrix
-        mat_t D = diffusion(m1, l11, l12);
-
-        // reconstruct signal
-        for (int i = 0; i < n; ++i, ++s) {
-            vec_t u_ = make_vec(u[3*i], u[3*i+1], u[3*i+2]);
-            *s = exp(-b*dot(u_,D*u_));
-        }
-
-        // prepare for next
-        X += 5;
+    // Flip orientation if necessary.
+    if (m1[0] * y[0] + m1[1] * y[1] + m1[2] * y[2] < 0) {
+        for (int i = 0; i < 3; ++i)
+            m1[i] = -m1[i];
     }
+
+    // Clamp lambdas.
+    *l11 = max(X[3], 100);
+    *l12 = max(X[4], 100);
+    *l13 = max(X[5], 100);
+
+    // Second Orientation.
+    X += 6;
+    theta = X[0];
+    phi = X[1];
+    psi = X[2];
+    Q = rotation(theta, phi, psi);
+
+    m2[0] = Q._[0];
+    m2[1] = Q._[3];
+    m2[2] = Q._[6];
+
+    // Flip orientation if necessary.
+    if (m2[0] * y[0] + m2[1] * y[1] + m2[2] * y[2] < 0) {
+        for (int i = 0; i < 3; ++i)
+            m2[i] = -m2[i];
+    }
+
+    // Clamp lambdas.
+    *l21 = max(X[3], 100);
+    *l22 = max(X[4], 100);
+    *l23 = max(X[5], 100);
     """
 
-    fn = et.ext_function('c_model_1tensor_h', code, ['s', 'X', 'u', 'b', 'n', 'm'])
+    m1 = np.empty((3,1))
+    m2 = np.empty((3,1))
+    l11, l12, l13 = np.empty(1), np.empty(1), np.empty(1);
+    l21, l22, l23 = np.empty(1), np.empty(1), np.empty(1);
+
+    fn = et.ext_function('c_state2tensor2_full', code, ['X', 'y', 'm1', 'l11', 'l12', 'l13', 'm2', 'l21', 'l22', 'l23'])
     mod.add_function(fn)
-
-
-def add_model_2tensor_h(mod):
-    # typedefs
-    X = np.empty((10,1), dtype='float64', order='F')
-    u = np.empty((102,3), dtype='float64', order='F')
-    b = 900.0
-
-    n = u.shape[0]
-    m = X.shape[1]
-    s = np.empty((n,m), order='F')
-
-    code = """
-    for (int i = 0; i < m; ++i) {
-        double *o1 = X, *o2 = X + 5;
-        // unpack and normalize orientations
-        vec_t m1 = make_vec(o1[0], o1[1], o1[2]); m1 /= norm(m1);
-        double l11 = o1[3], l12 = o1[4];
-        vec_t m2 = make_vec(o2[0], o2[1], o2[2]); m2 /= norm(m2);
-        double l21 = o2[3], l22 = o2[4];
-
-        // ensure: lambda >= L
-        double L = 100;
-        if (l11 < L)   l11 = L;
-        if (l12 < L)   l12 = L;
-        if (l21 < L)   l21 = L;
-        if (l22 < L)   l22 = L;
-
-        // flip if necessary
-        if (m1._[0] < 0)   m1 = -m1;
-        if (m2._[0] < 0)   m2 = -m2;
-
-        // calculate diffusion matrix
-        mat_t D1 = diffusion(m1, l11, l12);
-        mat_t D2 = diffusion(m2, l21, l22);
-
-        // reconstruct signal
-        for (int i = 0; i < n; ++i, ++s) {
-            vec_t u_ = make_vec(u[3*i], u[3*i+1], u[3*i+2]);
-            *s = (exp(-b*dot(u_,D1*u_)) + exp(-b*dot(u_,D2*u_)))/2;
-        }
-
-        // prepare for next
-        X += 10;
-    }
-    """
-    fn = et.ext_function('c_model_2tensor_h', code, ['s', 'X', 'u', 'b', 'n', 'm'])
-    mod.add_function(fn)
-
-def add_model_2tensor_f(mod):
-    # typedefs
-    X = np.empty((10,1), dtype='float64', order='F')
-    m = X.shape[1]
-
-    code = """
-    for (int i = 0; i < m; ++i) {
-        double *o1 = X, *o2 = X + 5;
-
-        // unpack and normalize orientations
-        vec_t m1 = make_vec(o1[0], o1[1], o1[2]); m1 = m1 / norm(m1);
-        vec_t m2 = make_vec(o2[0], o2[1], o2[2]); m2 = m2 / norm(m2);
-        double l11 = o1[3], l12 = o1[4];
-        double l21 = o2[3], l22 = o2[4];
-    
-        // ensure: lambda >= L
-        double L = 100;
-        if (l11 < L)   l11 = L;
-        if (l12 < L)   l12 = L;
-        if (l21 < L)   l21 = L;
-        if (l22 < L)   l22 = L;
-
-        // write back
-        vec2mem(m1, o1);  vec2mem(m2, o2);
-        o1[3] = l11; o2[3] = l21;
-        o1[4] = l12; o2[4] = l22;
-
-        // prepare for next
-        X += 10;
-    }
-    """
-
-    fn = et.ext_function('c_model_2tensor_f', code, ['X', 'm'])
-    mod.add_function(fn)
-
-
 
 
 def add_s2ga(mod):
@@ -358,8 +584,11 @@ def add_interp3scalar(mod):
                        double dx = (x - px)*vx, dxx = dx*dx;
 
                        float w = exp( -(dxx + dyy + dzz)/sigma );
-                       float d = M[nz*ny*x + nz*y + z];
-                       s     += w * d;
+                       if (M[nz*ny*x + nz*y + z]) {
+                         s += w;
+                       }
+                       //float d = M[nz*ny*x + nz*y + z];
+                       //s     += w * d;
                        w_sum += w;
                    }
                }
@@ -575,6 +804,39 @@ matrix_code = """
                            z,  y*z/(1+x),    z*z/(1+x)-1);
         return R * diag(l1,l2,l2) * t(R) * 1e-6;
     }
+
+    inline mat_t rotation(double theta, double phi, double psi)
+    {
+        double c_th = cos(theta);
+        double s_th = sin(theta);
+        double c_ph = cos(phi);
+        double s_ph = sin(phi);
+        double c_ps = cos(psi);
+        double s_ps = sin(psi);
+
+        double q11 = c_th * c_ph * c_ps - s_ph * s_ps;
+        double q21 = c_th * c_ps * s_ph + c_ph * s_ps;
+        double q31 = -c_ps * s_th;
+        double q12 = -c_ps * s_ph - c_th * c_ph * s_ps;
+        double q22 = c_ph * c_ps - c_th * s_ph * s_ps;
+        double q32 = s_th * s_ps;
+        double q13 = c_ph * s_th;
+        double q23 = s_th * s_ph;
+        double q33 = c_th;
+
+        mat_t Q = make_mat(q11, q12, q13,
+                           q21, q22, q23,
+                           q31, q32, q33);
+        return Q;
+    }
+
+    // Calculates a rotation matrix from euler angles.
+    inline mat_t diffusion_euler(double theta, double phi, double psi,
+                                 double l1, double l2, double l3)
+    {
+        mat_t Q = rotation(theta, phi, psi);
+        return Q * diag(l1,l2,l3) * t(Q) * 1e-6;
+    }
     """
 
 
@@ -586,13 +848,19 @@ def build():
 
     # single-tensor
     add_model_1tensor_f(mod)
+    add_model_1tensor_full_f(mod)
     add_model_1tensor_h(mod)
+    add_model_1tensor_full_h(mod)
     add_state2tensor1(mod)
+    add_state2tensor1_full(mod)
 
     # two-tensor
     add_model_2tensor_f(mod)
+    add_model_2tensor_full_f(mod)
     add_model_2tensor_h(mod)
+    add_model_2tensor_full_h(mod)
     add_state2tensor2(mod)
+    add_state2tensor2_full(mod)
 
     # utility
     add_interp3signal(mod)
