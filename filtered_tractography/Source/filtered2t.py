@@ -248,10 +248,10 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
 
     lines = slicer.vtkCellArray()
 
+    num_params = 10
     if record_state:
         state = slicer.vtkFloatArray()
         state.SetName('state')
-        num_params = 10
         state.SetNumberOfComponents(num_params)
         state.SetNumberOfTuples(num_points)
         state_array = state.ToArray()
@@ -290,13 +290,13 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
         tr.SetNumberOfTuples(num_points)
         tr_array = tr.ToArray()
 
-    #cov = slicer.vtkFloatArray()
-    #cov.SetName('covariance')
-    #num_cov_comp = (num_params * (num_params + 1)) / 2
-    #cov.SetNumberOfComponents(num_cov_comp)
-    #cov.SetNumberOfTuples(num_points)
-    #cov_array = cov.ToArray()
-    #upper_half_coordinates = tuple(np.transpose([(i,j) for i in xrange(num_params) for j in xrange(i, num_params)]))
+    cov = slicer.vtkFloatArray()
+    cov.SetName('covariance')
+    num_cov_comp = (num_params * (num_params + 1)) / 2
+    cov.SetNumberOfComponents(num_cov_comp)
+    cov.SetNumberOfTuples(num_points)
+    cov_array = cov.ToArray()
+    upper_half_coordinates = tuple(np.transpose([(i,j) for i in xrange(num_params) for j in xrange(i, num_params)]))
 
     point_id = 0
     for fiber in ff:
@@ -336,7 +336,8 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
                 tr_array[point_id, :] = trace((X[3,0], X[4,0], X[4,0]))
 
             # Covariance matrix
-            #cov_array[point_id, :] = P[upper_half_coordinates]
+            print P.shape
+            cov_array[point_id, :] = P[upper_half_coordinates]
 
             point_id += 1
 
@@ -374,7 +375,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
         pd.GetPointData().AddArray(tr)
     else:
         pd.GetPointData().RemoveArray('trace')
-    #pd.GetPointData().AddArray(cov)
+    pd.GetPointData().AddArray(cov)
 
     pd.SetLines(lines)
     pd.Update()
