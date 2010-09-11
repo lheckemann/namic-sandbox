@@ -1037,9 +1037,9 @@ vtkPerkProcedureEvaluatorGUI
     this->LabelSurfaceInside->Create();
     }
   
-  this->Script( "grid %s -column 0 -row 5 -sticky w -padx 4 -pady 1",
+  this->Script( "grid %s -column 0 -row 6 -sticky w -padx 4 -pady 1",
                 labelSurfaceInside->GetWidgetName() );
-  this->Script( "grid %s -column 1 -row 5 -sticky w -padx 4 -pady 1",
+  this->Script( "grid %s -column 1 -row 6 -sticky w -padx 4 -pady 1",
                 this->LabelSurfaceInside->GetWidgetName() );
   
   
@@ -1057,8 +1057,8 @@ vtkPerkProcedureEvaluatorGUI
     this->LabelAngleFromAxial->Create();
     }
   
-  this->Script( "grid %s -column 0 -row 6 -sticky w -padx 4 -pady 1", labelAngleFromAxial->GetWidgetName() );
-  this->Script( "grid %s -column 1 -row 6 -sticky w -padx 4 -pady 1", this->LabelAngleFromAxial->GetWidgetName() );
+  this->Script( "grid %s -column 0 -row 7 -sticky w -padx 4 -pady 1", labelAngleFromAxial->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 7 -sticky w -padx 4 -pady 1", this->LabelAngleFromAxial->GetWidgetName() );
   
   
   vtkSmartPointer< vtkKWLabel > labelAngleInAxial = vtkSmartPointer< vtkKWLabel >::New();
@@ -1073,8 +1073,8 @@ vtkPerkProcedureEvaluatorGUI
     this->LabelAngleInAxial->Create();
     }
   
-  this->Script( "grid %s -column 0 -row 7 -sticky w -padx 4 -pady 1", labelAngleInAxial->GetWidgetName() );
-  this->Script( "grid %s -column 1 -row 7 -sticky w -padx 4 -pady 1", this->LabelAngleInAxial->GetWidgetName() );
+  this->Script( "grid %s -column 0 -row 8 -sticky w -padx 4 -pady 1", labelAngleInAxial->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 8 -sticky w -padx 4 -pady 1", this->LabelAngleInAxial->GetWidgetName() );
   
 }
 

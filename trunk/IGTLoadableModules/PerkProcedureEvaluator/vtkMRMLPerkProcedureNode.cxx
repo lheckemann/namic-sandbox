@@ -750,17 +750,18 @@ void
 vtkMRMLPerkProcedureNode
 ::UpdateTransform()
 {
-  if ( this->NeedleTransformNode )
-    {
-    vtkTransform* transform = this->TransformTimeSeries->GetTransformAtIndex( this->TransformIndex );
-    vtkMatrix4x4* needleMtx = this->NeedleTransformNode->GetMatrixTransformToParent();
+  if ( ! this->NeedleTransformNode ) return;
+  
+  vtkTransform* transform = this->TransformTimeSeries->GetTransformAtIndex( this->TransformIndex );
+  if ( transform == NULL ) return;
     
-    for ( int i = 0; i < 4; i ++ ) 
+  vtkMatrix4x4* needleMtx = this->NeedleTransformNode->GetMatrixTransformToParent();
+  
+  for ( int i = 0; i < 4; i ++ ) 
+    {
+    for ( int j = 0; j < 4; j ++ )
       {
-      for ( int j = 0; j < 4; j ++ )
-        {
-        needleMtx->SetElement( i, j, ( transform->GetMatrix()->GetElement( i, j ) ) );
-        }
+      needleMtx->SetElement( i, j, ( transform->GetMatrix()->GetElement( i, j ) ) );
       }
     }
 }
