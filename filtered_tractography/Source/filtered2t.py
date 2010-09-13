@@ -336,7 +336,6 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, FA_min, GA_min, seeds, lab
                 tr_array[point_id, :] = trace((X[3,0], X[4,0], X[4,0]))
 
             # Covariance matrix
-            print P.shape
             cov_array[point_id, :] = P[upper_half_coordinates]
 
             point_id += 1
