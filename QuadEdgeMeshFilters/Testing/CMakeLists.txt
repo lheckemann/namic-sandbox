@@ -30,9 +30,9 @@ TARGET_LINK_LIBRARIES(itkWindowScalarsQuadEdgeMeshFilterTest ITKQuadEdgeMesh ITK
 ADD_TEST(itkShiftScalarsQuadEdgeMeshFilterTest
   ${CXX_TEST_PATH}/itkShiftScalarsQuadEdgeMeshFilterTest
   ${TEST_DATA_ROOT}/SimpleSurface1.vtk 
+  ${TEMP}/SimpleSurface1_ScalarShifted.vtk
   $1.0 #shift
   $2.0 #scale
-  ${TEMP}/SimpleSurface1_ScalarShifted.vtk
  )
  
 ADD_TEST(itkWindowScalarsQuadEdgeMeshFilterTest
