@@ -1,0 +1,195 @@
+\documentclass{InsightArticle}
+
+\usepackage[dvips]{graphicx}
+\usepackage{color}
+\usepackage{listings}
+
+\definecolor{listcomment}{rgb}{0.0,0.5,0.0}
+\definecolor{listkeyword}{rgb}{0.0,0.0,0.5}
+\definecolor{listnumbers}{gray}{0.65}
+\definecolor{listlightgray}{gray}{0.955}
+\definecolor{listwhite}{gray}{1.0}
+
+\makeatletter
+\newcommand\ackname{Acknowledgements}
+\if@titlepage
+  \newenvironment{acknowledgements}{%
+      \titlepage
+      \null\vfil
+      \@beginparpenalty\@lowpenalty
+      \begin{center}%
+        \bfseries \ackname
+        \@endparpenalty\@M
+      \end{center}}%
+     {\par\vfil\null\endtitlepage}
+\else
+  \newenvironment{acknowledgements}{%
+      \if@twocolumn
+        \section*{\abstractname}%
+      \else
+        \small
+        \begin{center}%
+          {\bfseries \ackname\vspace{-.5em}\vspace{\z@}}%
+        \end{center}%
+        \quotation
+      \fi}
+      {\if@twocolumn\else\endquotation\fi}
+\fi
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  hyperref should be the last package to be loaded.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[dvips,
+bookmarks,
+bookmarksopen,
+backref,
+colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
+]{hyperref}
+
+
+\title{QuadEdgeMesh Shift and Window Scalars Filters}
+
+
+% 
+% NOTE: This is the last number of the "handle" URL that 
+% The Insight Journal assigns to your paper as part of the
+% submission process. Please replace the number "1338" with
+% the actual handle number that you get assigned.
+%
+\newcommand{\IJhandlerIDnumber}{1338}
+
+
+\release{1.00}
+
+\author{Wen Li$^{1,2}$, Vincent A. Magnotta$^{1,2,3}$}
+\authoraddress{$^{1}$Department of Radiology, The University of Iowa, Iowa City, IA 52242\\
+                          $^{2}$Department of Biomedical Engineering, The University of Iowa, Iowa City, IA 52242\\
+                          $^{3}$Department of Psychiatry, The University of Iowa, Iowa City, IA 52242}
+
+\begin{document}
+
+
+%
+% Add hyperlink to the web location and license of the paper.
+% The argument of this command is the handler identifier given
+% by the Insight Journal to this paper.
+% 
+\IJhandlefooter{\IJhandlerIDnumber}
+
+
+\ifpdf
+\else
+   %
+   % Commands for including Graphics when using latex
+   % 
+   \DeclareGraphicsExtensions{.eps,.jpg,.gif,.tiff,.bmp,.png}
+   \DeclareGraphicsRule{.jpg}{eps}{.jpg.bb}{`convert #1 eps:-}
+   \DeclareGraphicsRule{.gif}{eps}{.gif.bb}{`convert #1 eps:-}
+   \DeclareGraphicsRule{.tiff}{eps}{.tiff.bb}{`convert #1 eps:-}
+   \DeclareGraphicsRule{.bmp}{eps}{.bmp.bb}{`convert #1 eps:-}
+   \DeclareGraphicsRule{.png}{eps}{.png.bb}{`convert #1 eps:-}
+\fi
+
+
+\maketitle
+
+
+\ifhtml
+\chapter*{Front Matter\label{front}}
+\fi
+
+
+\begin{abstract}
+\noindent
+This document describes a couple of QuadEdgeMesh Scalar Filters which can
+shift and window the scalar values on input mesh by linear transformations.
+
+This paper is accompanied with the source code, input data, parameters and
+output data that we used for validating the algorithm described in this paper.
+This adheres to the fundamental principle that scientific publications must
+facilitate \textbf{reproducibility} of the reported results.
+\end{abstract}
+
+\begin{acknowledgements}
+This work was funded in part by NIH/NINDS award NS050568.
+\end{acknowledgements}
+
+\tableofcontents
+
+\section{Introduction}
+
+itkShiftScalarsQuadEdgeMeshFilter:
+
+Each point's scalar value is shifted by $m_Shift$ and scaled by $m_Scale$.
+
+If the scalar values are moved out of the range of OutputPixelType,
+they are set to be NonpositiveMin and Max of the pixel type.
+
+itkWindowScalarsQuadEdgeMeshFilter:
+
+Scalar values inside of $[m_WindowMinimum, m_WindowMaximum]$ are mapped into
+$[m_OutputMinimum, m_OutputMaximum]$. Scalar values lower than $m_WindowMinimum$ 
+are set to be equal to $m_WindowMinimum$ and scalar values higher than $m_WindowMaximum$
+are set to be equal to $m_WindowMaximum$ before scale mapping.
+
+
+\section{How to Build}
+
+This contribution includes
+
+\begin{itemize}
+\item QuadEdgeMesh Shift Scalar Filter and Window Scalar Filter
+\item Tests for the filters
+\item All the LaTeX source files of this paper
+\end{itemize}
+
+The testing code is in Testing directory as
+
+\begin{itemize}
+\item itkShiftScalarQuadEdgeMeshFilterTest.cxx
+\item itkWindowScalarQuadEdgeMeshFilterTest.cxx
+\end{itemize}
+
+\subsection{Building Executables and Tests}
+
+In order to build the whole, it is enough to configure the directory with
+CMake. As usual, an out-of-source build is the recommended method.
+
+In a Linux environment it should be enough to do the following:
+
+\begin{itemize}
+\item \code{ccmake  SOURCE\_DIRECTORY}
+\item \code{make}
+\item \code{ctest}
+\end{itemize}
+
+Where SOURCE\_DIRECTORY is the directory where you have expanded the source
+code that accompanies this paper.
+
+This will configure the project, build the executables, and run the tests and
+examples. 
+
+
+\subsection{Building this Report}
+
+In order to build this report you can do
+
+\begin{itemize}
+\item \code{ccmake SOURCE\_DIRECTORY}
+\item Turn ON the CMake variable
+\begin{itemize}
+\item \code{BUILD\_REPORTS}
+\end{itemize}
+\item \code{make}
+\end{itemize}
+
+This should produce a PDF file in the binary directory, under the subdirectory
+\code{Documents/Report01}.
+
+\section{How to Use the Filter}
+
+\end{document}
+
