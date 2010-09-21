@@ -720,7 +720,7 @@ vtkMRMLPerkProcedureNode
     {
     sinus = this->PlanTargetPoint[ 0 ] - this->PlanEntryPoint[ 0 ];
     cosinus = this->PlanTargetPoint[ 1 ] - this->PlanEntryPoint[ 1 ];
-    double planAngleInAxial = 90.0;
+    double planAngleInAxial = 361.0;
     if ( cosinus != 0.0 && sinus != 0.0 )
       {
       planAngleInAxial = std::atan( sinus / cosinus ) * 180 / 3.141592;
@@ -731,7 +731,7 @@ vtkMRMLPerkProcedureNode
     
     sinus = lastTpos[ 0 ] - needleDirection[ 0 ];
     cosinus = lastTpos[ 1 ] - needleDirection[ 1 ];
-    double angleInAxial = 90.0;
+    double angleInAxial = 361.0;
     if ( cosinus != 0.0 && sinus != 0.0 )
       {
       angleInAxial = std::atan( sinus / cosinus ) * 180 / 3.141592;
@@ -739,7 +739,15 @@ vtkMRMLPerkProcedureNode
     
       // Angle deviation in the axial plane.
     
-    this->AngleInAxial = planAngleInAxial - angleInAxial;
+    if ( planAngleInAxial < 360 && angleInAxial < 360 )
+      {
+      this->AngleInAxial = planAngleInAxial - angleInAxial;
+      if ( this->AngleInAxial < 0.0 ) this->AngleInAxial *= -1;
+      }
+    else
+      {
+      this->AngleInAxial = -1.0;
+      }
     }
   
 }
