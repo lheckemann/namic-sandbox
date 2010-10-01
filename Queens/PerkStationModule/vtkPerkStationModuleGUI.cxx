@@ -142,7 +142,7 @@ vtkPerkStationModuleGUI
   this->Built = false;
   this->SliceOffset = 0;
   this->ObserverCount = 0;
-  this->TimerLog = NULL;
+  this->TimerLog = vtkTimerLog::New();
   this->CurrentWindow = 0.0;
   this->CurrentLevel = 0.0;
 }
@@ -187,6 +187,8 @@ vtkPerkStationModuleGUI
   DELETE_IF_NOT_NULL( this->PlanStep );
   DELETE_IF_NOT_NULL( this->InsertStep );
   DELETE_IF_NOT_NULL( this->ValidateStep );
+  
+  DELETE_IF_NOT_NULL( this->TimerLog );
 }
 
 
@@ -963,7 +965,8 @@ void
 vtkPerkStationModuleGUI
 ::TimerHandler()
 {
-  if ( ! this->TimerOn )
+  if (    ! this->TimerOn
+       || this->GetMRMLNode() == NULL )
     {
     return;
     }
