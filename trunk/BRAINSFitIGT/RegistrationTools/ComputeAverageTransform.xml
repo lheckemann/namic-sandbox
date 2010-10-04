@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Registration.ExplorationTools</category>
+  <title>Compute Average Transform</title>
+  <description>This tool generates a set of transformations perturbed around the initial transformation supplied by the user. This process is parameterized by the number of the desired perturbed transformations, and the range of the sampled space for translation and rotation.</description>
+  <version>0.1.0.$Revision: 2104 $(alpha)</version>
+  <documentation-url></documentation-url>
+  <license></license>
+  <contributor>Andrey Fedorov, BWH</contributor>
+<acknowledgements>
+This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
+</acknowledgements>
+
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+   
+    <string>
+      <name>InputPrefix</name>
+      <label>Input Prefix</label>
+      <longflag>--prefix</longflag>
+    </string>
+
+    <string>
+      <name>InputSuffix</name>
+      <label>Input Suffix</label>
+      <longflag>--suffix</longflag>
+    </string>
+
+    <integer>
+      <name>TfmCount</name>
+      <label>Number of transforms</label>
+      <longflag>--count</longflag>
+    </integer>
+
+    <string>
+      <name>OutputPrefix</name>
+      <label>Output prefix</label>
+      <longflag>--output</longflag>
+    </string>
+
+  </parameters>
+
+</executable>
