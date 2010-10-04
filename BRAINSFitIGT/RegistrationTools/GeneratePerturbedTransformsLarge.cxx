@@ -80,7 +80,7 @@ int main( int argc, char * argv[] )
   double X, Y, Z, S; // versor axis sampling
   double Tx, Ty, Tz; // translation variation
 
-  for(int i=0;i<100;i++){
+  for(int i=0;i<1000;i++){
     VersorTransformType::VersorType newVersor;
     VersorTransformType::Pointer newVersorTransform = VersorTransformType::New();
 //    newVersorTransform->SetParameters(inputTransform->GetParameters());
@@ -105,14 +105,14 @@ int main( int argc, char * argv[] )
     newAxis[2] = Z;
 
 //    std::cout << "axis: " << newAxis << std::endl;
-    if(newAxis*inputVersor.GetAxis() < cos(vnl_math::pi/90.)){
+    if(newAxis*inputVersor.GetAxis() < cos(vnl_math::pi/18.)){
         i--;
         continue;
     }
     
-    Tx = itk::Statistics::MersenneTwisterRandomVariateGenerator::GetInstance()->GetUniformVariate(-3.,3.);
-    Ty = itk::Statistics::MersenneTwisterRandomVariateGenerator::GetInstance()->GetUniformVariate(-3.,3.);
-    Tz = itk::Statistics::MersenneTwisterRandomVariateGenerator::GetInstance()->GetUniformVariate(-3.,3.);
+    Tx = itk::Statistics::MersenneTwisterRandomVariateGenerator::GetInstance()->GetUniformVariate(-15.,15.);
+    Ty = itk::Statistics::MersenneTwisterRandomVariateGenerator::GetInstance()->GetUniformVariate(-15.,15.);
+    Tz = itk::Statistics::MersenneTwisterRandomVariateGenerator::GetInstance()->GetUniformVariate(-15.,15.);
 
     // get the translation component
     VersorTransformType::ParametersType inputParameters = inputTransform->GetParameters();
