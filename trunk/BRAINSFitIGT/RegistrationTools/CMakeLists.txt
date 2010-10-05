@@ -27,6 +27,9 @@ target_link_libraries(${CLP} ITKIO ITKCommon ITKNumerics)
 add_executable(VersorTest VersorTest.cxx)
 target_link_libraries(VersorTest ITKIO ITKCommon)
 
+add_executable(FindTransformDifference FindTransformDifference.cxx)
+target_link_libraries(FindTransformDifference ITKIO ITKCommon)
+
 set(CLP GeneratePerturbedTransformsLarge)
 set(${CLP}_SOURCE ${CLP}.cxx)
 generateclp(${CLP}_SOURCE ${CLP}.xml)
