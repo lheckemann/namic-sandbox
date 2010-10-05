@@ -127,7 +127,7 @@ import itertools
 
 def Execute(dwi_node, seeds_node, mask_node, ff_node, \
             record_fa = False, record_state = True, record_cov = False, \
-            model="two-tensor", tensor_model="full", FA_min=.15, GA_min=.10,
+            model="two-tensor", tensor_model="Full", FA_min=.15, GA_min=.10,
             seeds=1, labels=[1],
             Qm=.0030, Ql=100, Rs=.015, theta_max=0):
     for i in xrange(10) : print ''
