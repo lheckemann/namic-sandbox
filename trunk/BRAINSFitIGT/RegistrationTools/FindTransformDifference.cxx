@@ -40,10 +40,11 @@ int main( int argc, char * argv[] )
   // convert to euler3d transforms
   // compute difference in translation and rotation
   // report the difference 
+  for(int i=2;i<argc;i++){
   TransformReaderType::Pointer tfmReader1 = TransformReaderType::New();
   tfmReader1->SetFileName( argv[1] );
   TransformReaderType::Pointer tfmReader2 = TransformReaderType::New();
-  tfmReader2->SetFileName( argv[2] );
+  tfmReader2->SetFileName( argv[i] );
 
   try 
     {
@@ -91,6 +92,7 @@ int main( int argc, char * argv[] )
     (eulerTransform1->GetAngleX()-eulerTransform2->GetAngleX())*(180./vnl_math::pi) << ", " << 
     (eulerTransform1->GetAngleY()-eulerTransform2->GetAngleY())*(180./vnl_math::pi) << ", " <<
     (eulerTransform1->GetAngleZ()-eulerTransform2->GetAngleZ())*(180./vnl_math::pi) << std::endl;
+  }
 
   return EXIT_SUCCESS;
 }
