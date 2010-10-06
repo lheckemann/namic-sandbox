@@ -142,8 +142,8 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
 
     dt = iff(is_2t, 0.2,    0.3)
     #Qm = iff(is_2t, 0.0015, 0.0015)
-    Ql = iff(is_2t, 100,    25)
-    Rs = iff(is_2t, 0.015, 0.020)
+    #Ql = iff(is_2t, 100,    25)
+    #Rs = iff(is_2t, 0.015, 0.020)
 
     theta_min = 5  # angle which triggers branch
     param = dict({'FA_min': FA_min, # fractional anisotropy stopping threshold
