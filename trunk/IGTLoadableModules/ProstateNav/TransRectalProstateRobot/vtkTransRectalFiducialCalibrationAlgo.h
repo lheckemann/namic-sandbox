@@ -52,10 +52,10 @@ struct TRProstateBiopsyCalibrationData
   double AxesDistance;
   double RobotRegistrationAngleDegrees; // registration angle in degrees
   double AxesAngleDegrees; // angle alpha between two axes in degrees
-  double I1[3];
-  double I2[3]; 
-  double v1[3];
-  double v2[3];
+  double I1[3]; // A point along the probe axis (this point is the one that is closest to the needle axis)
+  double I2[3]; // A point along the needle axis (this point is the one that is closest to the probe axis)
+  double v1[3]; // Direction of the probe axis
+  double v2[3]; // Direction of the needle axis
   std::string FoR; // frame of reference UID
 };
 
