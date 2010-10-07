@@ -1,6 +1,8 @@
 import sys
-sys.path.insert(0,'/home/stefalie/proj/numpy-build/lib64/python2.6/site-packages')
-sys.path.insert(0,'/home/stefalie/proj/weave-build/lib/python2.6/site-packages')
+#sys.path.insert(0, '/home/stefalie/proj/numpy-build/lib64/python2.6/site-packages')
+#sys.path.insert(0, '/home/stefalie/proj/weave-build/lib/python2.6/site-packages')
+#sys.path.insert(0, '/projects/schiz/software/LabPython/lib/python2.6/site-packages')
+sys.path.insert(0, '/projects/lmi/people/stefalie/slicer/svn/Slicer3-lib/python-build/lib/python2.6/site-packages')
 
 import numpy as np
 #from scipy.weave import ext_tools as et
@@ -36,8 +38,6 @@ def add_model_1tensor_f(mod):
     mod.add_function(fn)
 
 
-# TODO this only clamps the Eigenvalues, we might probably as well do
-# this in Python.
 def add_model_1tensor_full_f(mod):
     X = np.empty((6,1), dtype='float64', order='F')
     m = X.shape[1]
