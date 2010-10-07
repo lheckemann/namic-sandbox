@@ -105,13 +105,22 @@ const double vtkProstateNavGUI::POSITION_PRECISION_TOLERANCE=0.1/2.0;
 // In this case the description is written to the registry. Once the description is written
 // to the registry, it can be customized by editing the registry.
 //
+// Needle parameters document mapping:
+//  TipLength = i
+//  Throw = j
+//  TargetLength = k
+//  TargetBase = l (l>0 for biopsy, l<0 for seed)
+//
+// See gauge-mm conversion in ProstateNavTargetDescriptor.h
+//
 static const char DEFAULT_NEEDLE_DESCRIPTION[]=
-  "<NeedleList DefaultNeedle=\"BIOP_TSK_14G_000\"> \
+  "<NeedleList DefaultNeedle=\"BIOP_TSK_14G_001\"> \
   <Needle ID=\"GEN_000\" TargetNamePrefix=\"T\" Description=\"Generic\" Length=\"150\" TipLength=\"0\" Throw=\"0\" TargetLength=\"0\" TargetBase=\"0\" LastTargetIndex=\"0\" /> \
   <Needle ID=\"BIOP_TSK_14G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy TSK 14G (NIH)\" Length=\"150\" TipLength=\"4\" Throw=\"23\" TargetLength=\"16\" TargetBase=\"1.5\" Diameter=\"2.108\" LastTargetIndex=\"0\" /> \
   <Needle ID=\"SEED_DAUM_14G_000\" TargetNamePrefix=\"S\" Description=\"Seed Daum 14G (NIH)\" Length=\"150\" TipLength=\"0\" Throw=\"0\" TargetLength=\"3\" TargetBase=\"-1.5\" Diameter=\"2.108\" LastTargetIndex=\"0\" /> \
   <Needle ID=\"BIOP_TSK_18G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy TSK 18G (JHH)\" Length=\"150\" TipLength=\"1.5\" Throw=\"22\" TargetLength=\"16\" TargetBase=\"2\" Diameter=\"1.270\" LastTargetIndex=\"0\" /> \
-  <Needle ID=\"BIOP_TSK_22G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy unknown 22G (JHH)\" Length=\"150\" TipLength=\"0\" Throw=\"0\" TargetLength=\"0\" TargetBase=\"0\" Diameter=\"0.711\" LastTargetIndex=\"0\" /> \
+  <Needle ID=\"BIOP_TSK_14G_001\" TargetNamePrefix=\"B\" Description=\"Biopsy TSK 14G (JHH)\" Length=\"150\" TipLength=\"4.5\" Throw=\"22\" TargetLength=\"16\" TargetBase=\"1\" Diameter=\"2.108\" LastTargetIndex=\"0\" /> \
+  <Needle ID=\"SEED_EZEM_22G_000\" TargetNamePrefix=\"S\" Description=\"Seed E-Z-EM 22G (JHH)\" Length=\"150\" TipLength=\"0\" Throw=\"0\" TargetLength=\"3\" TargetBase=\"-1.5\" Diameter=\"0.711\" LastTargetIndex=\"0\" /> \
   <Needle ID=\"BIOP_EZEM_18G_000\" TargetNamePrefix=\"B\" Description=\"Biopsy E-Z-EM 18G (BWH)\" Length=\"150\" TipLength=\"1.5\" Throw=\"24\" TargetLength=\"16\" TargetBase=\"3\" Diameter=\"1.270\" LastTargetIndex=\"0\" /> \
   </NeedleList>";
 //---------------------------------------------------------------------------
@@ -1877,19 +1886,17 @@ void vtkProstateNavGUI::SetAndObserveProstateNavManagerNodeID(const char *nodeID
   if (this->ProstateNavManagerNode != NULL)
     {
     const char regSectionName[]="ProstateNav";
-    const char regDefaultNeedleListKeyName[]="ProstateNav";      
+    const char regDefaultNeedleListKeyName[]="DefaultNeedleList";      
 
     if (this->GetApplication()->HasRegistryValue (2, regSectionName, regDefaultNeedleListKeyName))
       {
-      char *defNeedleDesc=NULL;
+      char defNeedleDesc[vtkKWRegistryHelper::RegistryKeyValueSizeMax];
       this->GetApplication()->GetRegistryValue(2, regSectionName, regDefaultNeedleListKeyName, defNeedleDesc);
       this->ProstateNavManagerNode->Init(defNeedleDesc);
-      delete[] defNeedleDesc;
-      defNeedleDesc=NULL;
       }
     else
       {      
-      this->GetApplication()->SetRegistryValue(2,"ProstateNav","DefaultNeedleList","%s",DEFAULT_NEEDLE_DESCRIPTION);
+      this->GetApplication()->SetRegistryValue(2,regSectionName,regDefaultNeedleListKeyName,"%s",DEFAULT_NEEDLE_DESCRIPTION);
       this->ProstateNavManagerNode->Init(DEFAULT_NEEDLE_DESCRIPTION);          
       }
 
