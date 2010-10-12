@@ -53,8 +53,8 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
       <name>tensor_model</name>
       <longflag>tensor_model</longflag>
       <channel>input</channel>
-      <description>Tensor model</description>
-      <label>The simple tensor model assumes that the 2nd and 3rd eigenvalues are identical whereas in the full model the 3rd eigenvalue can differ from the 2nd.</label>
+      <description>The simple tensor model assumes that the 2nd and 3rd eigenvalues are identical whereas in the full model the 3rd eigenvalue can differ from the 2nd.</description>
+      <label>Tensor model</label>
       <element>Full</element>
       <element>Simple</element>
       <default>Full</default>
