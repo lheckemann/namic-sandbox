@@ -1,8 +1,8 @@
 XML = """<?xml version="1.0" encoding="utf-8"?>
 <executable>
-  <category>Tractography</category>
+  <category>Diffusion.Tractography</category>
   <title>UKF Tractography</title>
-  <description>Filtered tractography with either one-tensor or equal-weight two-tensor model.</description>
+  <description>Filtered tractography with either one-tensor or equal-weight two-tensor model. The module also lets you switch between a simple tensor representation where the 2nd and 3rd eigenvalues are assumed to be the same and a full representation where the 2nd and 3rd eigenvalues can be different.</description>
   <parameters>
     <label>IO</label>
     <description>Input/output parameters</description>
@@ -54,7 +54,7 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
       <longflag>tensor_model</longflag>
       <channel>input</channel>
       <description>Tensor model</description>
-      <label>Which tensor model to use</label>
+      <label>The simple tensor model assumes that the 2nd and 3rd eigenvalues are identical whereas in the full model the 3rd eigenvalue can differ from the 2nd.</label>
       <element>Full</element>
       <element>Simple</element>
       <default>Full</default>
