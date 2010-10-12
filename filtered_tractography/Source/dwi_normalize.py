@@ -72,7 +72,5 @@ def Execute(in_node, out_node) :
 
     out_node.Modified()
 
-    #print S[28,72,72,8]  # 258
-    #print b0[28,72,72]   # 929.875
-    #print S_[28,72,72,0] # 0.277457
-    asdf
+    # Flush output HACK
+    #asdf
