@@ -1,16 +1,11 @@
 XML = """<?xml version="1.0" encoding="utf-8"?>
 <executable>
-
   <category>Tractography</category>
-  <title>Filtered Multi-Tensor</title>
+  <title>UKF Tractography</title>
   <description>Filtered tractography with either one-tensor or equal-weight two-tensor model.</description>
-
-
-
   <parameters>
     <label>IO</label>
     <description>Input/output parameters</description>
-
     <image type="diffusion-weighted">
       <name>dwi_node</name> <longflag>dwi_node</longflag> <channel>input</channel>
       <label>Input diffusion signal</label>
@@ -23,12 +18,10 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
       <name>mask_node</name> <longflag>mask_node</longflag> <channel>input</channel>
       <label>Input brain mask</label>
     </image>
-
     <geometry>
       <name>ff_node</name> <longflag>ff_node</longflag> <channel>output</channel>
       <label>Output fiber paths</label>
     </geometry>
-
     <boolean>
       <name>record_fa</name> <longflag>record_fa</longflag> <channel>input</channel>
       <label>Record FA</label>
@@ -45,22 +38,27 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
       <default>false</default>
     </boolean>
   </parameters>
-
-
-
   <parameters>
     <label>Settings</label>
     <description>Settings effecting fiber tracing</description>
-
     <string-enumeration>
-      <name>model</name> <longflag>model</longflag> <channel>input</channel>
+      <name>model</name><longflag>model</longflag> <channel>input</channel>
       <description>Model</description>
       <label>Which voxel model to use</label>
       <element>one-tensor</element>
       <element>two-tensor</element>
       <default>two-tensor</default>
     </string-enumeration>
-
+    <string-enumeration>
+      <name>tensor_model</name>
+      <longflag>tensor_model</longflag>
+      <channel>input</channel>
+      <description>Tensor model</description>
+      <label>Which tensor model to use</label>
+      <element>Full</element>
+      <element>Simple</element>
+      <default>Full</default>
+    </string-enumeration>
     <float>
       <name>FA_min</name> <longflag>FA_min</longflag> <channel>input</channel>
       <label>Fractional anisotropy minimum</label>
@@ -124,11 +122,12 @@ import numpy as np
 import warnings
 import filtered_ext as flt
 import time
+import math
 import itertools
 
 def Execute(dwi_node, seeds_node, mask_node, ff_node, \
             record_fa = False, record_state = True, record_cov = False, \
-            model="two-tensor", FA_min=.15, GA_min=.10,
+            model="two-tensor", tensor_model="Full", FA_min=.15, GA_min=.10,
             seeds=1, labels=[1],
             Qm=.0030, Ql=100, Rs=.015, theta_max=0):
     for i in xrange(10) : print ''
@@ -136,13 +135,15 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
     is_2t = (model == "two-tensor")
     follow = iff(is_2t, follow2t, follow1t)
 
-    state_dim = iff(is_2t, 10, 5)  # dimension of state space
+    is_model_full = (tensor_model == "Full")
 
-    print 'HACK  hard code filter parameters'
+    # Dimension of state space.
+    state_dim = iff(is_model_full, iff(is_2t, 12, 6), iff(is_2t, 10, 5))
+
     dt = iff(is_2t, 0.2,    0.3)
-    Qm = iff(is_2t, 0.0030, 0.0015)
-    Ql = iff(is_2t, 100,    25)
-    Rs = iff(is_2t, 0.015, 0.020)
+    #Qm = iff(is_2t, 0.0015, 0.0015)
+    #Ql = iff(is_2t, 100,    25)
+    #Rs = iff(is_2t, 0.015, 0.020)
 
     theta_min = 5  # angle which triggers branch
     param = dict({'FA_min': FA_min, # fractional anisotropy stopping threshold
@@ -178,12 +179,14 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
         Slicer.tk.eval('tk_messageBox -message "Use the \'Normalize Signal\' module to prepare the DWI data"')
         return
     b = bb.mean()
+
     S = dwi_node.GetImageData().ToArray()
     u = dwi_node.GetDiffusionGradients().ToArray()
     i2r = vtk2mat(dwi_node.GetIJKToRASMatrix,         slicer)
     r2i = vtk2mat(dwi_node.GetRASToIJKMatrix,         slicer)
     mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
     voxel = np.mat(dwi_node.GetSpacing()).reshape(3,1)
+
     voxel = voxel[::-1]  # HACK Numpy has [z y x]
 
     # generalized loading...
@@ -196,7 +199,8 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
     u = u / np.sqrt(np.power(u,2).sum(1))
     u = np.vstack((u,-u)) # duplicate signal
 
-    param['voxel'] = voxel
+    param['voxel'] = np.array(voxel)
+    #param['voxel'] = voxel
     mask  = mask_node.GetImageData().ToArray().astype('uint16')
 
     # pull all seeds
@@ -205,6 +209,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
     for lbl in labels:
         seeds |= (seeds_ == lbl)
     seeds = zip(*seeds.nonzero())
+
 
     # ensure seeds
     if len(seeds) == 0:
@@ -220,7 +225,8 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
     is_branching = is_2t and param['theta_max'] < 1
 
     # tractography...
-    ff1 = init(S, seeds, u, b, param, is_2t)
+    ff1 = init(S, seeds, u, b, param, is_2t, is_model_full)
+
     ff2,ff_fa,ff_st,ff_co = [],[],[],[]
     t1 = time.time()
     for i in xrange(0,len(ff1)):
@@ -305,7 +311,6 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
             if record_cov:    ss_co_arr[point_id, :] = f_co[j][upper_half_coordinates]
 
             point_id += 1
- 
 
     # setup output fibers
     dnode = ff_node.GetDisplayNode()
@@ -332,9 +337,6 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
     asdf # HACK flush stdio
 
 
-
-
-
 def vtk2mat(vtk_fn, sl):
     # get data from slicer
     v = sl.vtkMatrix4x4()
@@ -352,62 +354,68 @@ def transform(M, v):
     return v_ + M[0:3,-1]
 
 
+def swap_state(X, P):
+    dim = len(X) / 2
+    P_ = P.copy()
+    P_[:dim, :dim] = P[dim:, dim:] # Swap covariance.
+    P_[dim:, dim:] = P[:dim, :dim] 
+    P_[dim:, :dim] = P[:dim, dim:] 
+    P_[:dim, dim:] = P[dim:, :dim]
+    P = P_
+    X = np.vstack((X[dim:2 * dim], X[:dim]))
+    return X, P
 
 def step2t(p, S, est, param):
     v = param['voxel']
-    # unpack
-    x,X,P,m = p[0],p[1],p[2],p[3]  # ignore FA
-    # estimate
-    X,P = est(X,P,interp3signal(S,x,v))
-    m1,l1,m2,l2 = state2tensor2(X,m)
-    # pick most consistent direction
-    #if dot(m1,m) >= dot(m2,m):   m = m1; l = l1;
-    if dot(m1, m) >= dot(m2, m):
-        m = m1
-        l = l1
-        rec = (m1, l1, m2, l2)
-    #else:                        m = m2; l = l2;
-    else:
-        m = m2
-        l = l2
-        P_ = P.copy()
-        P_[:5,:5] = P[5:,5:] # swap covariance
-        P_[5:,5:] = P[:5,:5] 
-        P_[5:,:5] = P[:5,5:] 
-        P_[:5,5:] = P[5:,:5]
-        P = P_
-        rec = (m2, l2, m1, l1)
-        X = np.vstack((X[5:10], X[:5]))
-        #X = np.vstack(rec)
-    fa = iff(l[0] < l[1], 0, l2fa(l))  # ensure eliptic
-    # move
-    dx = m / v
-    x = x + param['dt'] * dx[::-1]  # HACK volume dimensions are reversed
-    # repack
-    #return x,X,P,m,fa,(m1,l1,m2,l2)
-    return x,X,P,m,fa,rec
+    x, X, P, m = p[0], p[1], p[2], p[3]
 
+    # Get new State.
+    X, P = est(X, P, interp3signal(S, x, v))
+    m1, l1, m2, l2 = state2tensor(X, m)
+
+    # Pick most consistent direction.
+    if dot(m1, m) >= dot(m2, m):
+        dirs = (m1, l1, m2, l2)
+        m = m1
+    else:
+        dirs = (m2, l2, m1, l1)
+        m = m2
+        X, P = swap_state(X, P)
+    if len(X) == 12:
+        fa = iff(dirs[1][0] < dirs[1][1] or dirs[1][0] < dirs[1][2], \
+                 0, l2fa(dirs[1])) # Ensure eliptic.
+    else: # len(X) == 10
+        fa = iff(dirs[1][0] < dirs[1][1], 0, l2fa(dirs[1])) # Ensure eliptic.
+
+    # Move along the found direction
+    dx = dirs[0] / v
+    x = x + param['dt'] * dx[::-1]  # HACK volume dimensions are reversed
+    return x, X, P, m, fa, dirs
 
 
 def step1t(p, S, est, param):
     v = param['voxel']
-    # unpack
     x,X,P = p[0],p[1],p[2]
-    # estimate
+    # Get new state.
+
     X,P = est(X,P,interp3signal(S,x,v))
-    m,l = state2tensor1(X)
-    fa = iff(l[0] < l[1], 0, l2fa(l))  # ensure eliptic
-    # move
+
+    m, l = state2tensor(X)
+    if len(X) == 6:
+        fa = iff(l[0] < l[1] or l[0] < l[2], 0, l2fa(l)) # Ensure eliptic.
+    else: # len(X) == 5
+        fa = iff(l[0] < l[1], 0, l2fa(l)) # Ensure eliptic.
+    # Move along the found direction
     dx = m / v
     x = x + param['dt'] * dx[::-1]  # HACK volume dimensions are reversed
-    # repack
     return x,X,P,m,fa
 
 
-def tensor2fa(T):
-    T_ = np.trace(T)/3
-    I = np.eye(3,3)
-    return np.sqrt(1.5) * np.linalg.norm(T - T_*I,2) / np.linalg.norm(T,2)
+# TODO: not used?
+#def tensor2fa(T):
+#    T_ = np.trace(T)/3
+#    I = np.eye(3,3)
+#    return np.sqrt(1.5) * np.linalg.norm(T - T_*I,2) / np.linalg.norm(T,2)
 
 
 def curve_radius(ff):
@@ -418,39 +426,45 @@ def curve_radius(ff):
 
    v1,v2 = b-c,a-b
 
-   v1_ = norm(v1)
-   v2_ = norm(v2)
+   v1_ = np.linalg.norm(v1)
+   v2_ = np.linalg.norm(v2)
    u1 = v1/v1_
    u2 = v2/v2_
 
-   curv = norm(2 * (u2-u1)/(v2_ + v1_))
+   curv = np.linalg.norm(2 * (u2-u1)/(v2_ + v1_))
    if np.isnan(curv):
        return 1
 
    return 1/curv
 
-def norm(a):
-    return np.linalg.norm(a)
-
 
 def follow1t(S,u,b,mask,fiber,param,is_branching):
     x,X,P,fa = fiber
     ff,ff_fa,ff_st,ff_co = [np.array(x)],[fa],[X],[P]
-    pp = [] # HACK
+    pp = []
+
+    if len(X) == 6:
+        num_ev = 3
+    else:
+        num_ev = 2
 
     # initialize filter
-    f_fn,h_fn = model_1tensor(u,b)
+    f_fn, h_fn = model_tensor(u, b)
     Qm = param['Qm']*np.eye(3,3)
-    Ql = param['Ql']*np.eye(2,2)
+    Ql = param['Ql']*np.eye(num_ev,num_ev)
     Rs = param['Rs']*np.eye(u.shape[0],u.shape[0])
-    Q = np.zeros((5,5))
-    Q[0:3,0:3],Q[3:5,3:5] = Qm,Ql
+    Q = np.zeros((3 + num_ev,3 + num_ev))
+    Q[0:3,0:3],Q[3:3 + num_ev,3:3 + num_ev] = Qm,Ql
     est = filter_ukf(f_fn,h_fn,Q,Rs)
+
+    stepnr = 0
 
     # main loop
     ct = 0
     v = param['voxel']
     while True :
+        stepnr += 1
+
         # estimate
         fiber = step1t(fiber, S, est, param)
 
@@ -478,38 +492,41 @@ def follow1t(S,u,b,mask,fiber,param,is_branching):
             ct += 1
 
 
-
-
-
-
 def follow2t(S,u,b,mask,fiber,param,is_branching):
     # unpack and initialize tract
-    x,X,P,m,fa = fiber
-    X_imp = state2tensor2(X, m)
-    ff,ff_fa,ff_st,ff_co = [np.array(x)],[fa],[np.vstack(X_imp)],[P]
+    x, X, P, m, fa = fiber
+    ff, ff_fa, ff_st, ff_co = [np.array(x)], [fa], [np.vstack(X)], [P]
     pp = [] # branches if any
 
+    if len(X) == 12:
+        ne = 3
+    else:
+        ne = 2
+    hd = 3 + ne
+
     # initialize filter
-    f_fn,h_fn = model_2tensor(u,b)
-    Qm = param['Qm']*np.eye(3,3)
-    Ql = param['Ql']*np.eye(2,2)
-    Rs = param['Rs']*np.eye(u.shape[0],u.shape[0])
-    Q = np.zeros((10,10))
-    Q[0:3,0:3],Q[3:5,3:5] = Qm,Ql
-    Q[5:8,5:8],Q[8:10,8:10] = Qm,Ql
-    est = filter_ukf(f_fn,h_fn,Q,Rs)
+    f_fn, h_fn = model_tensor(u, b)
+    Qm = param['Qm'] * np.eye(3, 3)
+    Ql = param['Ql'] * np.eye(ne, ne)
+    Rs = param['Rs'] * np.eye(u.shape[0], u.shape[0])
+    Q = np.zeros((2 * hd, 2 * hd))
+    Q[0:3, 0:3], Q[3:hd, 3:hd] = Qm, Ql
+    Q[hd:(hd + 3), hd:(hd + 3)], Q[(hd + 3):(2 * hd), (hd + 3):(2 * hd)] = Qm, Ql
+    est = filter_ukf(f_fn, h_fn, Q, Rs)
+
+    stepnr = 0
 
     # main loop
     ct = 0
     v = param['voxel']
     while True:
+        stepnr += 1
+
         # estimate
         fiber = step2t(fiber, S, est, param)
+        x, X, P, m, fa, dirs = fiber
 
-        # unpack
-        x,X,P,m,fa,X_imp = fiber
-
-        # terminate if off brain or in CSF
+        # Terminate if off brain or in CSF.
         is_brain = interp3scalar(mask,x,v) > .1
         ga = s2ga(h_fn(X))
         is_csf = ga < param['GA_min'] or fa < param['FA_min']
@@ -519,40 +536,37 @@ def follow2t(S,u,b,mask,fiber,param,is_branching):
             if len(ff) > param['max_len'] : warnings.warn('wild fiber')
             return ff,pp,(ff_fa,ff_st,ff_co)
 
-        # record roughly once per voxel
+        # Record roughly once per voxel.
         if ct == round(1.0/param['dt']):
             ct = 0
             ff.append(x)
             if param['record_fa'] : ff_fa.append(fa)
-            if param['record_st'] : ff_st.append(np.vstack(X_imp))
+            if param['record_st'] : ff_st.append(np.vstack(X))
             ff_co.append(P)
 
-            # record branch if necessary
+            # Record branch if necessary.
             if is_branching:
-                m1,l1,m2,l2 = X_imp
-                is_two = l1[0] > l1[1] and l2[0] > l2[1] # non-planar
+                m1, l1, m2, l2 = dirs
                 fa = param['FA_min']
+                if len(X) == 12:
+                    is_two = l1[0] > l1[1] and l1[0] > l1[2] and \
+                             l2[0] > l2[1] and l2[0] > l2[2]
+                else: # len(X) == 10
+                    is_two = l1[0] > l1[1] and l2[0] > l2[1] # non-planar
                 is_two = is_two and l2fa(l1) > fa and l2fa(l2) > fa
-                th = dot(m1,m2)
+                th = dot(m1, m2)
                 is_branch = th < param['theta_min'] and th > param['theta_max']
                 if is_two and is_branch:
-                    # need to swap orientations?
-                    if dot(m,m1) > dot(m,m2):
-                        X = np.vstack((X[5:10], X[:5]))
-                        #X = np.vstack((m2,l2,m1,l1))
-                        m = m2
-                        P_ = P.copy()
-                        P_[:5,:5] = P[5:,5:] # swap covariance
-                        P_[5:,5:] = P[:5,:5] 
-                        P_[5:,:5] = P[:5,5:] 
-                        P_[:5,5:] = P[5:,:5]
-                    assert X.shape[0] == 10 and X.shape[1] == 1
-                    pp.append((x,X,P_,m,fa))
+                    # Swap orientations.
+                    X, P = swap_state(X, P)
+                    #pp.append((x, X, P, m2, fa))
+                    pp.append((x, X, P, m2, l2fa(l2)))
         else:
             ct += 1
 
 
-def init(S, seeds, u, b, param, is_2t):
+
+def init(S, seeds, u, b, param, is_2t, is_model_full):
     u = np.array(u)
     print 'initial seed voxels: %d' % len(seeds)
 
@@ -565,9 +579,6 @@ def init(S, seeds, u, b, param, is_2t):
     pp = []
     map(lambda p : map(lambda e : pp.append(p+e), list(E.T)), seeds)
 
-#     print 'HACK initialize with voxel x=(27,69,72)'
-#     pp = [np.array((27.0,69.0,72.0))] # HACK
-
     print 'initial seed upper limit: %d' % (2*len(pp))
     # indices -> signals -> tensors
     v = param['voxel']
@@ -575,7 +586,6 @@ def init(S, seeds, u, b, param, is_2t):
 
     # Filter out negative signal values and the corresponding points.
     bitset = map(lambda s: not any(itertools.imap(lambda x: x < 1e-06, s)) , ss)
-    #ss, pp = filter(lambda s, p: not len(filter(lambda x: x < 1e-06, s)), ss, pp)
     ss_tmp = []
     pp_tmp = []
     for i in xrange(len(bitset)):
@@ -585,35 +595,53 @@ def init(S, seeds, u, b, param, is_2t):
     ss = ss_tmp
     pp = pp_tmp
 
+    # Map signal to tensor.
     dd = map(direct(u,b), ss)
 
-    # {position, direction, lambda, covariance, FA}
     mmll = map(unpack_tensor, dd)
     P0 = np.mat(param['P0'])
-    ff = map(lambda p,(m,l) : (p,m,l,P0,iff(l[0]>=l[1],l2fa(l),0)), pp, mmll)
+    if is_model_full:
+        ff = map(lambda p, (m, angles, l) : (p, m, angles, l, P0, \
+                                             l2fa(l)), pp, mmll)
+    else:
+        # Reduce the state to just two eigenvalues.
+        ev2 = lambda x : (x[0], (x[1] + x[2]) / 2.)
+        ff = map(lambda p, (m, angles, l) : (p, m, angles, ev2(l), P0, \
+                                             l2fa(ev2(l))), pp, mmll)
 
     # Filter out only high-FA tensors.
     fa_min = param['FA_min']
-    ff = filter(lambda f : f[4] > fa_min, ff)
+    ff = filter(lambda f : f[5] > fa_min, ff)
 
-    # add in all opposite directions
-    ff.extend(map(lambda f : (f[0],-f[1],f[2],f[3],f[4]), ff))
+    # Add in all opposite directions.
+    switch_angles = lambda x: (x[0], x[1], \
+                               iff(x[2] < 0, x[2] + math.pi, x[2] - math.pi))
+    ff.extend(map(lambda f : (f[0], -f[1], switch_angles(f[2]), f[3], f[4], \
+                              f[5]), ff))
 
-    # package state and fiber for chosen model
+    # Package state.
+    ev2 = lambda x : (x[0], (x[1] + x[2]) / 2.)
     if is_2t:
-        state = lambda x : np.mat(np.hstack((x[1],x[2],x[1],x[2]))).reshape(10,1)
+        if not is_model_full:
+            state = lambda x : np.mat(np.hstack( \
+                    (x[1], x[3], x[1], x[3]))).reshape(10, 1)
+        else:
+            state = lambda x : np.mat(np.hstack( \
+                    (x[2], x[3], x[2], x[3]))).reshape(12, 1)
         fiber = lambda x : (np.mat(x[0]).T, # position
                             state(x),       # state
-                            x[3],           # cov
+                            x[4],           # cov
                             x[1],           # direction
-                            x[4])           # FA
+                            x[5])           # FA
     else:
-        state = lambda x : np.mat(np.hstack((x[1],x[2]))).reshape(5,1)
+        if not is_model_full:
+            state = lambda x : np.mat(np.hstack((x[1], x[3]))).reshape(5, 1)
+        else:
+            state = lambda x : np.mat(np.hstack((x[2], x[3]))).reshape(6, 1)
         fiber = lambda x : (np.mat(x[0]).T, # position
                             state(x),       # state
-                            x[3],           # cov
-                            x[4])           # FA
-
+                            x[4],           # cov
+                            x[5])           # FA
     return map(fiber, ff)
 
 
@@ -627,23 +655,32 @@ def direct(u, b):
     # closure
     def est(s):
         d,_,_,_ = np.linalg.lstsq(B, np.log(s))
-        assert not np.isnan(d[0])
         return d
 
     return est
 
 
-# calculate the principal direction and eigenvalues from 6 coeff
+# Get direction, eigenvalues and euler angles from the tensor.
 def unpack_tensor(d):
     D = d[[0, 1, 2, 1, 3, 4, 2, 4, 5]].reshape(3,3)
-    U,s,_ = np.linalg.svd(D)
-    assert s[0] > s[1] and s[1] > s[2]
+    Q,s,_ = np.linalg.svd(D)
+    if np.linalg.det(Q) < 0:
+        Q = -Q
+    assert np.linalg.det(Q) > 0
+    theta = math.acos(Q[2,2])
 
-    m = U[:,0]
+    # Extract the Euler Angles from the rotation matrix
+    epsilon = 1e-10
+    if abs(theta) > epsilon:
+        phi = math.atan2(Q[1,2], Q[0,2])
+        psi = math.atan2(Q[2,1], -Q[2,0])
+    else:
+        phi = math.atan2(-Q[0,1], Q[1,1])
+        psi = 0
+
+    m = Q[:,0]
     s *= 1e6
-    l = s[0], (s[1]+s[2])/2    # average two minor eigenvalues
-    return m,l
-
+    return m, (theta, phi, psi), s
 
 
 def filter_ukf(f_fn,h_fn,Q,R):
@@ -691,73 +728,82 @@ def filter_ukf(f_fn,h_fn,Q,R):
     return filter
 
 
-
-def model_2tensor(u,b):
-    f_fn = model_2tensor_f   # identity, but fix up state
-    h_fn = lambda X : model_2tensor_h(X,u,b)
-    return f_fn,h_fn
-def model_1tensor(u,b):
-    f_fn = model_1tensor_f   # identity, but fix up state
-    h_fn = lambda X : model_1tensor_h(X,u,b)
-    return f_fn,h_fn
-
-
-
-def model_2tensor_f(X):
-    assert X.shape[0] == 10 and X.dtype == 'float64'
+def f(X):
+    assert X.dtype == 'float64'
     m = X.shape[1]
     X = np.copy(X)
-    flt.c_model_2tensor_f(X, m)
-    return X
-def model_1tensor_f(X):
-    assert X.shape[0] == 5 and X.dtype == 'float64'
-    m = X.shape[1]
-    X = np.copy(X)
-    flt.c_model_1tensor_f(X, m)
+    if X.shape[0] == 6:
+        fn = flt.c_model_1tensor_full_f
+    elif X.shape[0] == 12:
+        fn = flt.c_model_2tensor_full_f
+    elif X.shape[0] == 5:
+        fn = flt.c_model_1tensor_f
+    else: # X.shape[0] == 10
+        fn = flt.c_model_2tensor_f
+    fn(X, m)
     return X
 
 
-def model_2tensor_h(X,u,b):
-    assert X.shape[0] == 10 and X.dtype == 'float64' and u.dtype == 'float64'
+def h(X, u, b):
+    assert X.dtype == 'float64' and u.dtype == 'float64'
     n = u.shape[0]
     m = X.shape[1]
-    s = np.empty((n,m), order='F') # preallocate output
-    flt.c_model_2tensor_h(s, X, u, b, n, m)
+    s = np.empty((n, m), order='F') # preallocate output
+    if X.shape[0] == 6:
+        fn = flt.c_model_1tensor_full_h
+    elif X.shape[0] == 12:
+        fn = flt.c_model_2tensor_full_h
+    elif X.shape[0] == 5:
+        fn = flt.c_model_1tensor_h
+    else: # X.shape[0] == 10
+        fn = flt.c_model_2tensor_h
+    fn(s, X, u, b, n, m)
     return s
-def model_1tensor_h(X,u,b):
-    assert X.shape[0] == 5 and X.dtype == 'float64' and u.dtype == 'float64'
-    n = u.shape[0]
-    m = X.shape[1]
-    s = np.empty((n,m), order='F') # preallocate output
-    flt.c_model_1tensor_h(s, X, u, b, n, m)
-    return s
 
 
+def state2tensor(X, y=np.zeros(3)):
+    assert X.shape[1] == 1 and X.dtype == 'float64'
+    m1 = np.empty((3, 1))
+    l11, l12 = np.empty(1), np.empty(1);
+    if len(X) == 6:
+        l13 = np.empty(1);
+        flt.c_state2tensor1_full(X, y, m1, l11, l12, l13)
+        return m1, (l11, l12, l13)
+    elif len(X) == 12:
+        m2 = np.empty((3, 1))
+        l13 = np.empty(1)
+        l21, l22, l23 = np.empty(1), np.empty(1), np.empty(1);
+        flt.c_state2tensor2_full(X, y, m1, l11, l12, l13, m2, l21, l22, l23)
+        return m1, (l11, l12, l13), m2, (l21, l22, l23)
+    elif len(X) == 5:
+        flt.c_state2tensor1(X, y, m1, l11, l12)
+        return m1, (l11, l12)
+    else: # len(X) == 10
+        m2 = np.empty((3, 1))
+        l21, l22 = np.empty(1), np.empty(1);
+        flt.c_state2tensor2(X, y, m1, l11, l12, m2, l21, l22)
+        return m1, (l11, l12), m2, (l21, l22)
 
-def state2tensor1(X, y=np.zeros(3)):
-    assert X.shape[0] == 5 and X.shape[1] == 1 and X.dtype == 'float64'
-    m = np.empty((3,1))
-    l1 = np.empty(1);
-    l2 = np.empty(1);
-    flt.c_state2tensor1(X, y, m,l1,l2)
-    return m,(l1,l2)
-def state2tensor2(X, y=np.zeros(3)):
-    assert X.shape[0] == 10 and X.shape[1] == 1 and X.dtype == 'float64'
-    m1,m2 = np.empty((3,1)),np.empty((3,1))
-    l11,l12 = np.empty(1),np.empty(1);
-    l21,l22 = np.empty(1),np.empty(1);
-    flt.c_state2tensor2(X, y, m1,l11,l12, m2,l21,l22)
-    return m1,(l11,l12), m2,(l21,l22)
+
+def model_tensor(u, b):
+    f_fn = f # Identity, but fix up state.
+    h_fn = lambda X : h(X, u, b)
+    return f_fn, h_fn
 
 
+def l2fa(l):
+   if len(l) == 2:
+        return abs(l[0] - l[1]) / np.sqrt(l[0] * l[0] + 2 * l[1] * l[1])
+   else:
+        s = sum(l) / 3
+        return np.sqrt(.5 * ((l[0] - s) * (l[0] - s) + \
+                             (l[1] - s) * (l[1] - s) + \
+                             (l[2] - s) * (l[2] - s)) / \
+                       (l[0] * l[0] + l[1] * l[1] + l[2] * l[2]))
 
-
-def l2fa((a,b)):
-    return abs(a-b)/np.sqrt(a*a + 2*b*b)
 
 def dot(a,b):
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]
-
 
 
 def s2ga(s):
@@ -769,21 +815,20 @@ def s2ga(s):
 def interp3signal(S, p, v):
     assert S.ndim == 4 and S.dtype == 'float32'
     nx,ny,nz,n = S.shape
-    #sigma = 1.66*1.66*1.66
-    sigma = 1.0
+    sigma = 1.0 #1.66*1.66*1.66
     s = np.zeros((2*n,), dtype='float32')  # preallocate output (doubled)
-    flt.c_interp3signal(s, S, p, v, sigma, nx, ny, nz, n)
+    flt.c_interp3signal(s, S, p, np.array(v), sigma, nx, ny, nz, n)
     return s
 
 
 def interp3scalar(M, p, v):
     assert M.ndim == 3 and M.dtype == 'uint16'
     nx,ny,nz = M.shape
-    #sigma = 1.66*1.66*1.66
-    sigma = 1.0
-    return flt.c_interp3scalar(M, p, v, sigma, nx, ny, nz)
+    sigma = 1.0#1.66*1.66*1.66
+    return flt.c_interp3scalar(M, p, np.array(v), sigma, nx, ny, nz)
 
-# ternary operator (no short circuit)
+
+# Ternary operator (no short circuit).
 def iff(test, true, false):
     if test:  return true
     else:     return false
