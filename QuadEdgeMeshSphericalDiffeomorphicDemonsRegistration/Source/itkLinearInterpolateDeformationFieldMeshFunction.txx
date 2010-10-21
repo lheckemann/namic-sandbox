@@ -92,11 +92,13 @@ LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsCont
 
       this->Search( point, numberOfNeighbors, closestPointIds );
    
-      PixelType pixelValue0 = itk::NumericTraits< PixelType >::Zero;
+      //PixelType pixelValue0 = itk::NumericTraits< PixelType >::Zero;
 
-      this->GetPointData( pointIds[0], &pixelValue0 ); 
+      //this->GetPointData( pointIds[0], &pixelValue0 ); 
 
-      return pixelValue0;
+      //return pixelValue0;
+      
+      outputPoint = field->ElementAt( closestPointIds[0] );
 
       return true;
       }
