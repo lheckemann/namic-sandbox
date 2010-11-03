@@ -2,7 +2,7 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
 <executable>
   <category>Diffusion.Tractography</category>
   <title>UKF Tractography</title>
-  <description>Filtered tractography with either one-tensor or equal-weight two-tensor model. The module also lets you switch between a simple tensor representation where the 2nd and 3rd eigenvalues are assumed to be the same and a full representation where the 2nd and 3rd eigenvalues can be different.</description>
+  <description>Filtered tractography with either one-tensor or equal-weight two-tensor model. The module also lets you switch between a simple tensor representation where the 2nd and 3rd eigenvalues are assumed to be the same and a full representation where the 2nd and 3rd eigenvalues can be different. The parameters Qm, Ql and Rs allow to change the behavior of the filter. Qm and determine how much variance is allowed in the model. Rs governs how much variance is expected in the measurment: Higher values mean we expect high variance and hence trust our measurment less. We found that Qm = 0.003, Ql = 100, Rs = 0.015 works well for the simple tensor representation, and Qm = 0.002, Ql = 200, Rs = 0.01 works best for the full tensor representation. The default values are currently set to the opitmal values for the simple tensor representation. The record check button allow to store additional data together with the VTK object. The data will be written the the .vtk file as point data.</description> 
   <parameters>
     <label>IO</label>
     <description>Input/output parameters</description>
