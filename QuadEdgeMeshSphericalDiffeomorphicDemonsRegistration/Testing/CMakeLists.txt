@@ -397,8 +397,8 @@ ADD_TEST(RescaleScalarsQuadEdgeMeshFilterTest
   ${CXX_TEST_PATH}/itkRescaleScalarsQuadEdgeMeshFilterTest
   ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk
   ${TEMP}/rescaledmeshWithScalarsGaussianIC4.vtk
-  0.0 # min
-  0.5 # max
+  0.5 # min
+  1.0 # max
   )
 
 ADD_TEST(HistogramMatchingQuadEdgeMeshFilterTest

@@ -60,7 +60,7 @@ int main( int argc, char * argv [] )
 
   FilterType::Pointer   filter  = FilterType::New();
   
-  filter->SetInput(srcReader->GetOutput());
+  filter->SetSourceMesh(srcReader->GetOutput());
   filter->SetReferenceMesh(refReader->GetOutput());
   filter->SetNumberOfHistogramLevels( atoi(argv[4]) );
   filter->SetNumberOfMatchPoints( atoi(argv[5]) );
