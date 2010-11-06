@@ -101,6 +101,18 @@ vtkMRMLTransformRecorderNode
   
   output << "</PerkProcedure>" << std::endl;
   output.close();
+  
+  
+  this->ClearBuffer();
+}
+
+
+void
+vtkMRMLTransformRecorderNode
+::ClearBuffer()
+{
+  this->TransformsBuffer.clear();
+  this->MessagesBuffer.clear();
 }
 
 

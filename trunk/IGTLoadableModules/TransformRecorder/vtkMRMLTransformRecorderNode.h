@@ -59,6 +59,7 @@ public:
   //ETX
   
   void UpdateFileFromBuffer();
+  void ClearBuffer();
   
   
 protected:

@@ -82,6 +82,7 @@ vtkTransformRecorderGUI
   this->TransformSelector = NULL;
   this->FileSelectButton = NULL;
   this->LogFileLabel = NULL;
+  this->ClearBufferButton = NULL;
   this->SaveButton = NULL;
   
   this->StartButton = NULL;
@@ -134,6 +135,7 @@ vtkTransformRecorderGUI
   DESTRUCT( this->TransformSelector );
   DESTRUCT( this->FileSelectButton );
   DESTRUCT( this->LogFileLabel );
+  DESTRUCT( this->ClearBufferButton );
   DESTRUCT( this->SaveButton );
   
   DESTRUCT( this->StartButton );
@@ -400,6 +402,14 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
     }
   
   
+  
+  if (    this->ClearBufferButton == vtkKWPushButton::SafeDownCast( caller )
+       && event == vtkKWPushButton::InvokedEvent )
+    {
+    this->ModuleNode->ClearBuffer();
+    }
+  
+  
   if (    this->SaveButton == vtkKWPushButton::SafeDownCast( caller )
        && event == vtkKWPushButton::InvokedEvent )
     {
@@ -654,12 +664,20 @@ vtkTransformRecorderGUI
   
   // app->Script( "pack %s -side left -anchor nw -fill x -padx 2 -pady 2", this->LogFileLabel->GetWidgetName() );
   
+  
   this->SaveButton = vtkKWPushButton::New();
   this->SaveButton->SetParent( fileSelectFrame );
   this->SaveButton->Create();
   this->SaveButton->SetText( "Save" );
   
   app->Script( "pack %s -side right -anchor ne -fill x -padx 2 -pady 2", this->SaveButton->GetWidgetName() );
+  
+  this->ClearBufferButton = vtkKWPushButton::New();
+  this->ClearBufferButton->SetParent( fileSelectFrame );
+  this->ClearBufferButton->Create();
+  this->ClearBufferButton->SetText( "Clear buffer" );
+  
+  app->Script( "pack %s -side right -anchor ne -fill x -padx 2 -pady 2", this->ClearBufferButton->GetWidgetName() );
   
 }
 
