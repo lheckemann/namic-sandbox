@@ -41,14 +41,12 @@ class vtkKWLabel;
 
 // Quick message buttons. -----------------------------------------------------
 
-static const int BUTTON_COUNT = 8;
+static const int BUTTON_COUNT = 6;
 static const char* BUTTON_TEXTS[ BUTTON_COUNT ] =
   {
   "Alignment outside",
   "Pierce skin",
-  "Move forward inside",
   "Pause motion",
-  "Retract inside",
   "Adjust angle inside",
   "Take out",
   "Needle placed"
@@ -57,9 +55,7 @@ static const char* BUTTON_MESSAGES[ BUTTON_COUNT ] =
   {
   "Alignment outside",
   "Pierce skin",
-  "Move forward inside",
   "Pause motion",
-  "Retract inside",
   "Adjust angle inside",
   "Take out",
   "Needle placed"
@@ -179,6 +175,7 @@ public:
   vtkSlicerNodeSelectorWidget*  TransformSelector;
   vtkKWLoadSaveButtonWithLabel* FileSelectButton;
   vtkKWLabel*                   LogFileLabel;
+  vtkKWPushButton*              ClearBufferButton;
   vtkKWPushButton*              SaveButton;
   
   vtkKWPushButton*  StartButton;
