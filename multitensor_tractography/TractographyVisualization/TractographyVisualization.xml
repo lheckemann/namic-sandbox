@@ -1,0 +1,6 @@
+<Name>TractographyVisualization</Name>
+<GuiName>Tractography Visualization</GuiName>
+<Description>Visualization of mulit tensor tractography<Description>
+<HomePage>http://na-mic.org/Wiki/index.php/Slicer3:Build/Modules</HomePage>
+<Version>1.0</Version>
+<Author>Stefan Lienhard</Author>
