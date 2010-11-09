@@ -1119,14 +1119,14 @@ vtkPerkProcedureEvaluatorGUI
     int numNotes = procedure->GetNumberOfNotes();
     
     bool deleteFlag = true;
-    if ( numNotes != this->NotesList->GetWidget()->GetNumberOfRows() )
-      {
+    //if ( numNotes != this->NotesList->GetWidget()->GetNumberOfRows() )
+    //  {
       this->NotesList->GetWidget()->DeleteAllRows();
-      }
-    else
-      {
-      deleteFlag = false;
-      }
+    //  }
+    //else
+    //  {
+    //  deleteFlag = false;
+    //  }
     
     if ( deleteFlag )
       {
