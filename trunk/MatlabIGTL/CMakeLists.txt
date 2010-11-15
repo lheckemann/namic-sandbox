@@ -47,26 +47,30 @@ if(CMAKE_SYSTEM_NAME MATCHES "SunOS")
 endif(CMAKE_SYSTEM_NAME MATCHES "SunOS")
 
 
-set(OpenIGTLinkMex_SOURCES
-  igtlMexClientSocket.cpp
-  igtlMexServerSocket.cpp
-  igtlMexSocket.cpp
-)
+# not used.
+#set(OpenIGTLinkMex_SOURCES
+#  igtlMexClientSocket.cpp
+#  igtlMexServerSocket.cpp
+#  igtlMexSocket.cpp
+#)
 
-add_library(OpenIGTLinkMex
-  ${OpenIGTLinkMex_SOURCES}
-)
+# not used.
+#add_library(OpenIGTLinkMex
+#  ${OpenIGTLinkMex_SOURCES}
+#)
 
-set(LIBS
-  ${MATLAB_LIBRARIES}
-  OpenIGTLink
-  OpenIGTLinkMex
-)  
+# not used.
+#set(LIBS
+#  ${MATLAB_LIBRARIES}
+#  OpenIGTLink
+#  OpenIGTLinkMex
+#)  
 
 
 set(INCDIR
   -I${OpenIGTLink_SOURCE_DIR}/Source
   -I${OpenIGTLink_DIR}
+  -I${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 set(LIBDIR
@@ -76,58 +80,83 @@ set(LIBDIR
 
 set(LIB
   -lOpenIGTLink
-  -lOpenIGTLinkMex
+  #-lOpenIGTLinkMex
   ${LINK_LIBS}
 )
 
-
+add_custom_target ( igtlMexClientSocket ALL )
+add_custom_target ( igtlMexServerSocket ALL )
+add_custom_target ( igtlMexSocket ALL )
 add_custom_target ( igtlopen ALL )
 add_custom_target ( igtlclose ALL )
 add_custom_target ( igtlsend ALL )
 add_custom_target ( igtlreceive ALL )
 add_custom_target ( igtlwaitcon ALL )
 
+
+add_custom_command (
+  TARGET igtlMexClientSocket
+  PRE_BUILD
+  COMMAND ${MEX_COMPILER}
+  ARGS    ${MEX_OPTION} ${INCDIR} -c ${CMAKE_CURRENT_SOURCE_DIR}/igtlMexClientSocket.cpp
+)
+
+add_custom_command (
+  TARGET igtlMexServerSocket
+  PRE_BUILD
+  COMMAND ${MEX_COMPILER}
+  ARGS    ${MEX_OPTION} ${INCDIR} -c ${CMAKE_CURRENT_SOURCE_DIR}/igtlMexServerSocket.cpp
+)
+
+add_custom_command (
+  TARGET igtlMexSocket
+  PRE_BUILD
+  COMMAND ${MEX_COMPILER}
+  ARGS    ${MEX_OPTION} ${INCDIR} -c ${CMAKE_CURRENT_SOURCE_DIR}/igtlMexSocket.cpp
+)
+
 add_custom_command (
   TARGET  igtlopen
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
-  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlopen.cpp
+  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlopen.cpp igtlMexClientSocket.o igtlMexServerSocket.o igtlMexSocket.o
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlopen.cpp 
 )
-add_dependencies(igtlopen OpenIGTLinkMex)
+add_dependencies(igtlopen igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
 
 add_custom_command (
   TARGET  igtlclose
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
-  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlclose.cpp
+  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlclose.cpp igtlMexClientSocket.o igtlMexServerSocket.o igtlMexSocket.o
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlclose.cpp
 )
-add_dependencies(igtlclose OpenIGTLinkMex)
+add_dependencies(igtlopen igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
 
 add_custom_command (
   TARGET  igtlsend
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
-  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlsend.cpp
+  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlsend.cpp igtlMexClientSocket.o igtlMexServerSocket.o igtlMexSocket.o
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtsend.cpp
 )
-add_dependencies(igtlsend OpenIGTLinkMex)
+add_dependencies(igtlopen igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
 
 add_custom_command (
   TARGET  igtlreceive
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
-  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlreceive.cpp
+  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlreceive.cpp igtlMexClientSocket.o igtlMexServerSocket.o igtlMexSocket.o
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlreceive.cpp
 )
-add_dependencies(igtlreceive OpenIGTLinkMex)
+add_dependencies(igtlopen igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
 
 add_custom_command (
   TARGET  igtlwaitcon
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
-  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlwaitcon.cpp
+  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlwaitcon.cpp igtlMexClientSocket.o igtlMexServerSocket.o igtlMexSocket.o
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlreceive.cpp
 )
-add_dependencies(igtlwaitcon OpenIGTLinkMex)
+add_dependencies(igtlopen igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
+
