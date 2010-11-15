@@ -42,25 +42,25 @@ CONFIGURE_FILE(${OpenIGTLink_SOURCE_DIR}/OpenIGTLinkConfig.cmake.in
 # Settings specific to the install tree.
 
 # The library dependencies file.
-SET(OpenIGTLink_LIBRARY_DEPENDS_FILE "\${OpenIGTLink_INSTALL_PREFIX}${OpenIGTLink_INSTALL_PACKAGE_DIR}/OpenIGTLinkLibraryDepends.cmake")
+SET(OpenIGTLink_LIBRARY_DEPENDS_FILE "\${OpenIGTLink_INSTALL_PREFIX}/${OpenIGTLink_INSTALL_PACKAGE_DIR}/OpenIGTLinkLibraryDepends.cmake")
 
 # The "use" file.
-SET(OpenIGTLink_USE_FILE \${OpenIGTLink_INSTALL_PREFIX}${OpenIGTLink_INSTALL_PACKAGE_DIR}/UseOpenIGTLink.cmake)
+SET(OpenIGTLink_USE_FILE \${OpenIGTLink_INSTALL_PREFIX}/${OpenIGTLink_INSTALL_PACKAGE_DIR}/UseOpenIGTLink.cmake)
 
 # The build settings file.
-SET(OpenIGTLink_BUILD_SETTINGS_FILE \${OpenIGTLink_INSTALL_PREFIX}${OpenIGTLink_INSTALL_PACKAGE_DIR}/OpenIGTLinkBuildSettings.cmake)
+SET(OpenIGTLink_BUILD_SETTINGS_FILE \${OpenIGTLink_INSTALL_PREFIX}/${OpenIGTLink_INSTALL_PACKAGE_DIR}/OpenIGTLinkBuildSettings.cmake)
 
 # Include directories.
-SET(OpenIGTLink_INCLUDE_DIRS_CONFIG \${OpenIGTLink_INSTALL_PREFIX}${OpenIGTLink_INSTALL_INCLUDE_DIR})
+SET(OpenIGTLink_INCLUDE_DIRS_CONFIG \${OpenIGTLink_INSTALL_PREFIX}/${OpenIGTLink_INSTALL_INCLUDE_DIR})
 FOREACH(DIR ${OpenIGTLink_INCLUDE_RELATIVE_DIRS})
-  LIST(APPEND OpenIGTLink_INCLUDE_DIRS_CONFIG \${OpenIGTLink_INSTALL_PREFIX}${OpenIGTLink_INSTALL_INCLUDE_DIR}/${DIR})
+  LIST(APPEND OpenIGTLink_INCLUDE_DIRS_CONFIG \${OpenIGTLink_INSTALL_PREFIX}/${OpenIGTLink_INSTALL_INCLUDE_DIR}/${DIR})
 ENDFOREACH(DIR)
 IF(OpenIGTLink_INCLUDE_DIRS_SYSTEM)
   LIST(APPEND OpenIGTLink_INCLUDE_DIRS_CONFIG ${OpenIGTLink_INCLUDE_DIRS_SYSTEM})
 ENDIF(OpenIGTLink_INCLUDE_DIRS_SYSTEM)
 
 # Link directories.
-SET(OpenIGTLink_LIBRARY_DIRS_CONFIG "\${OpenIGTLink_INSTALL_PREFIX}${OpenIGTLink_INSTALL_LIB_DIR}")
+SET(OpenIGTLink_LIBRARY_DIRS_CONFIG "\${OpenIGTLink_INSTALL_PREFIX}/${OpenIGTLink_INSTALL_LIB_DIR}")
 
 #-----------------------------------------------------------------------------
 # Configure OpenIGTLinkConfig.cmake for the install tree.

@@ -65,23 +65,31 @@ SET(OpenIGTLink_INCLUDE_FILES
   igtlutil/igtl_util.h
   igtlClientSocket.h
   igtlConditionVariable.h
+  igtlCreateObjectFunction.h
   igtlFastMutexLock.h
   igtlImageMessage.h
   igtlLightObject.h
+  igtlMacro.h
   igtlMath.h
   igtlMessageBase.h
+  igtlMessageHeader.h
   igtlMultiThreader.h
   igtlMutexLock.h
+  igtlObjectFactory.h
   igtlOSUtil.h
   igtlObject.h
   igtlObjectFactoryBase.h
   igtlPositionMessage.h
   igtlServerSocket.h
   igtlSimpleFastMutexLock.h
+  igtlSmartPointer.h
   igtlSocket.h
   igtlStatusMessage.h
   igtlTimeStamp.h
   igtlTransformMessage.h
+  igtlTypes.h
+  igtlWin32Header.h
+  igtlWindows.h
 )
 
 
