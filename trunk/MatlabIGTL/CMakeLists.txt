@@ -1,39 +1,66 @@
-project(MatlabIGTL)
+PROJECT(MatlabIGTL)
 
-cmake_minimum_required(VERSION 2.4)
-if(COMMAND cmake_policy)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+IF(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
-endif(COMMAND cmake_policy)
+ENDIF(COMMAND cmake_policy)
 
-find_package(OpenIGTLink REQUIRED)
+## find the OpenIGTLink
+FIND_PACKAGE(OpenIGTLink REQUIRED)
+INCLUDE(${OpenIGTLink_USE_FILE})
 
-include(${OpenIGTLink_USE_FILE})
+##FIND_PACKAGE(Matlab REQUIRED) 
+# this should be implemented in the future.
+# However, this is needs to be combined with FindOctave.cmake.
 
-find_program(MEX_COMPILER mex)
+## Find the mex program.  
+IF(WIN32) #miktex has a mex program, so set the WIN32 to mex.bat.
+    FIND_PROGRAM( MEX_COMPILER mex.bat )
+ELSE()
+    FIND_PROGRAM( MEX_COMPILER mex )
+ENDIF()
 
+### MEX compile only extensions are different.
+# need to confirm this for all compiler versions.
+IF (MSVC)
+    SET(OBJ_EXT "obj")
+ELSE()
+    SET(OBJ_EXT "o")
+ENDIF()
 
 ### Compiler (Matlab or Octave)
 # if MEX_COMPILER is mkoctfile (for Octave)
-if (MEX_COMPILER MATCHES mkoctfile$)
-  set(MEX_OPTION --mex -g)
-endif (MEX_COMPILER MATCHES mkoctfile$)
-
+IF (MEX_COMPILER MATCHES mkoctfile$)
+    SET(MEX_OPTION --mex -g)
+    SET(MEX_EXT "oct")
+ELSE(MEX_COMPILER MATCHES mkoctfile$)
+    # get the mex file extension, i.e. *.mexw32
+    IF( WIN32)
+        FIND_PROGRAM( MEX_EXT_EXE mexext.bat )
+    ELSE(WIN32)
+        FIND_PROGRAM( MEX_EXT_EXE mexext )
+    ENDIF(WIN32)
+    #Run mexext to get the extension for this platform.
+    EXECUTE_PROCESS(COMMAND ${MEX_EXT_EXE}
+        OUTPUT_VARIABLE MEX_EXT
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+ENDIF (MEX_COMPILER MATCHES mkoctfile$)
 
 ### Platform specific option
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+IF(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   SET(LINK_LIBS
     -lws2_32
     -lwsock32
   )
-endif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+ENDIF(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+IF(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+ENDIF(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
-if(CMAKE_SYSTEM_NAME MATCHES "SunOS")
+IF(CMAKE_SYSTEM_NAME MATCHES "SunOS")
   SET(LINK_LIBS
     -lrt
     -lnsl
@@ -44,82 +71,59 @@ if(CMAKE_SYSTEM_NAME MATCHES "SunOS")
        -lstdc++
      )
   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
-endif(CMAKE_SYSTEM_NAME MATCHES "SunOS")
+ENDIF(CMAKE_SYSTEM_NAME MATCHES "SunOS")
 
-
-# not used.
-#set(OpenIGTLinkMex_SOURCES
-#  igtlMexClientSocket.cpp
-#  igtlMexServerSocket.cpp
-#  igtlMexSocket.cpp
-#)
-
-# not used.
-#add_library(OpenIGTLinkMex
-#  ${OpenIGTLinkMex_SOURCES}
-#)
-
-# not used.
-#set(LIBS
-#  ${MATLAB_LIBRARIES}
-#  OpenIGTLink
-#  OpenIGTLinkMex
-#)  
-
-
-set(INCDIR
-  -I${OpenIGTLink_SOURCE_DIR}/Source
-  -I${OpenIGTLink_DIR}
+SET(INCDIR
+  -I${OpenIGTLink_INCLUDE_DIRS}
   -I${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-set(LIBDIR
-  -L${OpenIGTLink_LIBRARY_DIRS}/${CMAKE_CFG_INTDIR}
-  -L${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}
+SET(LIBDIR
+  -L${OpenIGTLink_LIBRARY_DIRS}
+  -L${CMAKE_CURRENT_BINARY_DIR}
 )
 
-set(LIB
+SET(LIB
   -lOpenIGTLink
-  #-lOpenIGTLinkMex
   ${LINK_LIBS}
 )
 
-add_custom_target ( igtlMexClientSocket ALL )
-add_custom_target ( igtlMexServerSocket ALL )
-add_custom_target ( igtlMexSocket ALL )
-add_custom_target ( igtlopen ALL )
-add_custom_target ( igtlclose ALL )
-add_custom_target ( igtlsend ALL )
-add_custom_target ( igtlreceive ALL )
-add_custom_target ( igtlwaitcon ALL )
+ADD_CUSTOM_TARGET ( igtlMexClientSocket ALL )
+ADD_CUSTOM_TARGET ( igtlMexServerSocket ALL )
+ADD_CUSTOM_TARGET ( igtlMexSocket ALL )
+ADD_CUSTOM_TARGET ( igtlopen ALL )
+ADD_CUSTOM_TARGET ( igtlclose ALL )
+ADD_CUSTOM_TARGET ( igtlsend ALL )
+ADD_CUSTOM_TARGET ( igtlreceive ALL )
+ADD_CUSTOM_TARGET ( igtlwaitcon ALL )
 
 
-add_custom_command (
+ADD_CUSTOM_COMMAND (
   TARGET igtlMexClientSocket
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
   ARGS    ${MEX_OPTION} ${INCDIR} -c ${CMAKE_CURRENT_SOURCE_DIR}/igtlMexClientSocket.cpp
 )
 
-add_custom_command (
+ADD_CUSTOM_COMMAND (
   TARGET igtlMexServerSocket
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
   ARGS    ${MEX_OPTION} ${INCDIR} -c ${CMAKE_CURRENT_SOURCE_DIR}/igtlMexServerSocket.cpp
 )
 
-add_custom_command (
+ADD_CUSTOM_COMMAND (
   TARGET igtlMexSocket
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
   ARGS    ${MEX_OPTION} ${INCDIR} -c ${CMAKE_CURRENT_SOURCE_DIR}/igtlMexSocket.cpp
 )
 
-add_custom_command (
+ADD_CUSTOM_COMMAND (
   TARGET  igtlopen
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
-  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlopen.cpp igtlMexClientSocket.o igtlMexServerSocket.o igtlMexSocket.o
+  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlopen.cpp igtlMexClientSocket.${OBJ_EXT} igtlMexServerSocket.${OBJ_EXT} igtlMexSocket.${OBJ_EXT}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlopen.cpp 
 )
 add_dependencies(igtlopen igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
@@ -128,35 +132,41 @@ add_custom_command (
   TARGET  igtlclose
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
-  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlclose.cpp igtlMexClientSocket.o igtlMexServerSocket.o igtlMexSocket.o
+  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlclose.cpp igtlMexClientSocket.${OBJ_EXT} igtlMexServerSocket.${OBJ_EXT} igtlMexSocket.${OBJ_EXT}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlclose.cpp
 )
-add_dependencies(igtlopen igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
+add_dependencies(igtlclose igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
 
 add_custom_command (
   TARGET  igtlsend
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
-  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlsend.cpp igtlMexClientSocket.o igtlMexServerSocket.o igtlMexSocket.o
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtsend.cpp
+  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlsend.cpp igtlMexClientSocket.${OBJ_EXT} igtlMexServerSocket.${OBJ_EXT} igtlMexSocket.${OBJ_EXT}
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlsend.cpp
 )
-add_dependencies(igtlopen igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
+add_dependencies(igtlsend igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
 
 add_custom_command (
   TARGET  igtlreceive
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
-  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlreceive.cpp igtlMexClientSocket.o igtlMexServerSocket.o igtlMexSocket.o
+  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlreceive.cpp igtlMexClientSocket.${OBJ_EXT} igtlMexServerSocket.${OBJ_EXT} igtlMexSocket.${OBJ_EXT}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlreceive.cpp
 )
-add_dependencies(igtlopen igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
+add_dependencies(igtlreceive igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
 
 add_custom_command (
   TARGET  igtlwaitcon
   PRE_BUILD
   COMMAND ${MEX_COMPILER}
-  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlwaitcon.cpp igtlMexClientSocket.o igtlMexServerSocket.o igtlMexSocket.o
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlreceive.cpp
+  ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlwaitcon.cpp igtlMexClientSocket.${OBJ_EXT} igtlMexServerSocket.${OBJ_EXT} igtlMexSocket.${OBJ_EXT}
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlwaitcon.cpp
 )
-add_dependencies(igtlopen igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
+add_dependencies(igtlwaitcon igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
 
+# INSTALL
+INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/igtlopen.${MEX_EXT} DESTINATION lib )
+INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/igtlclose.${MEX_EXT} DESTINATION lib )
+INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/igtlsend.${MEX_EXT} DESTINATION lib )
+INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/igtlreceive.${MEX_EXT} DESTINATION lib )
+INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/igtlwaitcon.${MEX_EXT} DESTINATION lib )
