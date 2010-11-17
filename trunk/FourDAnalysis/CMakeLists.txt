@@ -41,7 +41,9 @@ include_directories(
   ${vtkSlicerVolumesModuleLogic_SOURCE_DIR}
   ${vtkSlicerVolumesModuleLogic_BINARY_DIR}
   ${Volumes_SOURCE_DIR}
+  ${Volumes_SOURCE_DIR}/Logic
   ${Volumes_BINARY_DIR}
+  ${Volumes_BINARY_DIR}/Logic
   ${PYTHON_INCLUDE_PATH}
   )
 
@@ -141,6 +143,11 @@ if ( ${VolumesLib} MATCHES "NOTFOUND" )
    set ( VolumesLib Volumes )
 endif ( ${VolumesLib} MATCHES "NOTFOUND" )
 
+find_library( VolumesLogicLib vtkSlicerVolumesModuleLogic ${Slicer3_DIR}/${Slicer3_INSTALL_MODULES_BIN_DIR} )
+if ( ${VolumesLogicLib} MATCHES "NOTFOUND" )
+   set ( VolumesLogicLib vtkSlicerVolumesModuleLogic )
+endif ( ${VolumesLogicLib} MATCHES "NOTFOUND" )
+
 find_library( FourDImageLib FourDImage ${Slicer3_DIR}/${Slicer3_INSTALL_MODULES_BIN_DIR} )
 if ( ${FourDImageLib} MATCHES "NOTFOUND" )
    set ( FourDImageLib FourDImage )
@@ -155,8 +162,8 @@ target_link_libraries(${lib_name}
   ${CommandLineModuleLib}
   ${ITK_LIBRARIES}
   ${CLP_MODULE}
-  vtkSlicerVolumesModuleLogic
   ${VolumesLib}
+  ${VolumesLogicLib}
   ${FourDImageLib}
   ${PYTHON_LIBRARIES}
   )
