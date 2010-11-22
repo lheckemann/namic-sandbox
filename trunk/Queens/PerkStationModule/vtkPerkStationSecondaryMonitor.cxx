@@ -109,6 +109,7 @@ vtkPerkStationSecondaryMonitor
   this->RenderWindow->AddRenderer( this->Renderer );
   this->RenderWindow->SetBorders( 0 );
   
+  
   vtkCamera *camera = vtkCamera::New();
   camera->SetParallelProjection( 1 );
   this->Renderer->SetActiveCamera(camera);
@@ -186,7 +187,7 @@ vtkPerkStationSecondaryMonitor
   this->SecMonTranslateTransform = vtkSmartPointer< vtkTransform >::New();
   
   this->ResliceFilter = vtkSmartPointer< vtkImageReslice >::New();
-    this->ResliceFilter->SetBackgroundColor( 0, 0, 0, 0 );
+    // this->ResliceFilter->SetBackgroundColor( 0, 0, 0, 1 );
     this->ResliceFilter->SetOutputDimensionality( 2 );
     this->ResliceFilter->SetInterpolationModeToLinear();
   
@@ -328,6 +329,9 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->MapToWindowLevelColors->SetWindow( this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
   this->MapToWindowLevelColors->SetLevel( this->VolumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
   this->MapToWindowLevelColors->SetInput( this->ResliceFilter->GetOutput() );
+    // Making the background black.
+  this->ResliceFilter->SetBackgroundLevel( this->VolumeNode->GetScalarVolumeDisplayNode()->GetLevel() -
+                                           this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow() / 2 );
   
   this->ImageMapper->SetInput( this->MapToWindowLevelColors->GetOutput() );
   
@@ -388,6 +392,7 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   
   this->Renderer->AddActor( this->MeasureDigitsActor );
   this->Renderer->AddActor( this->TablePositionActor );
+  this->Renderer->SetBackground( 0, 0, 0 );
 }
 
 
@@ -746,6 +751,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
   this->ResliceFilter->SetOutputOrigin( 0.0, 0.0, 0.0 );
   this->ResliceFilter->SetInput( this->ImageData );
   this->ResliceFilter->SetResliceTransform( this->ResliceTransform );
+  
   
     // Adjust color window / level.
   
