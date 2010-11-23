@@ -38,15 +38,15 @@ extern "C" {
  */
 
 typedef struct {
-  igtl_int8    name[64];          /* Name or description of the trajectory */
-  igtl_int8    group_name[32];    /* Can be "Trajectory",  ... */
+  char         name[64];          /* Name or description of the trajectory */
+  char         group_name[32];    /* Can be "Trajectory",  ... */
   igtl_int8    type;              /* Trajectory type (see IGTL_TRAJECTORY_TYPE_* macros) */
   igtl_int8    reserved;
   igtl_int8    rgba[4];           /* Color in R/G/B/A */
   igtl_float32 entry_pos[3];      /* Coordinate of the entry point */
   igtl_float32 target_pos[3];     /* Coordinate of the target point */
   igtl_float32 radius;            /* Radius of the trajectory. Can be 0. */
-  igtl_int8    owner_name[20];    /* Device name of the ower image */
+  char         owner_name[20];    /* Device name of the ower image */
 } igtl_trajectory_element;
 
 #pragma pack()

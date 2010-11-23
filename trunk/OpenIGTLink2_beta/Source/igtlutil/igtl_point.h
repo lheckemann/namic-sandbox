@@ -38,12 +38,12 @@ extern "C" {
  */
 
 typedef struct {
-  igtl_int8    name[IGTL_POINT_LEN_NAME]; /* Name or description of the point */
-  igtl_int8    group_name[IGTL_POINT_LEN_GROUP_NAME]; /* Can be "Labeled Point", "Landmark", Fiducial", ... */
+  char         name[IGTL_POINT_LEN_NAME]; /* Name or description of the point */
+  char         group_name[IGTL_POINT_LEN_GROUP_NAME]; /* Can be "Labeled Point", "Landmark", Fiducial", ... */
   igtl_uint8   rgba[4]; /* Color in R/G/B/A */
   igtl_float32 position[3]; /* Coordinate of the point */
   igtl_float32 radius; /* Radius of the point. Can be 0. */
-  igtl_int8    owner[IGTL_POINT_LEN_OWNER];/* Device name of the ower image */
+  char         owner[IGTL_POINT_LEN_OWNER];/* Device name of the ower image */
 } igtl_point_element;
 
 #pragma pack()
