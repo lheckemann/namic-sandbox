@@ -17,10 +17,13 @@ SET(OpenIGTLink_REQUIRED_C_FLAGS "@OpenIGTLink_REQUIRED_C_FLAGS@")
 SET(OpenIGTLink_REQUIRED_CXX_FLAGS "@OpenIGTLink_REQUIRED_CXX_FLAGS@")
 SET(OpenIGTLink_REQUIRED_LINK_FLAGS "@OpenIGTLink_REQUIRED_LINK_FLAGS@")
 
-# The OpenIGTLink version number
+# The OpenIGTLink Library version number
 SET(OpenIGTLink_VERSION_MAJOR "@OpenIGTLink_VERSION_MAJOR@")
 SET(OpenIGTLink_VERSION_MINOR "@OpenIGTLink_VERSION_MINOR@")
 SET(OpenIGTLink_VERSION_PATCH "@OpenIGTLink_VERSION_PATCH@")
+
+# The OpenIGTLink Protocol version number
+SET(OpenIGTLink_PROTOCOL_VERSION "@OpenIGTLink_PROTOCOL_VERSION@")
 
 # The location of the UseOpenIGTLink.cmake file.
 SET(OpenIGTLink_USE_FILE "@OpenIGTLink_USE_FILE@")
