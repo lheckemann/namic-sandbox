@@ -71,6 +71,11 @@ public:
   };
 
   enum {
+    DTYPE_SCALAR = 1,
+    DTYPE_VECTOR = 3
+  };
+
+  enum {
     TYPE_INT8    = 2,
     TYPE_UINT8   = 3,
     TYPE_INT16   = 4,

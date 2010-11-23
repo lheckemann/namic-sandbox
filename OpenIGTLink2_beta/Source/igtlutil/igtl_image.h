@@ -25,6 +25,10 @@
 #define IGTL_IMAGE_HEADER_VERSION       1
 #define IGTL_IMAGE_HEADER_SIZE          72
 
+/* Data type */
+#define IGTL_IMAGE_DTYPE_SCALAR         1
+#define IGTL_IMAGE_DTYPE_VECTOR         3
+
 /* Scalar type */
 #define IGTL_IMAGE_STYPE_TYPE_INT8      2
 #define IGTL_IMAGE_STYPE_TYPE_UINT8     3
