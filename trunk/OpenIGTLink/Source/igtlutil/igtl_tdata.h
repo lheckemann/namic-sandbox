@@ -47,8 +47,8 @@ extern "C" {
 
 typedef struct {
   igtl_int8    name[IGTL_TDATA_LEN_NAME];  /* Name of instrument / tracker */
-  igtl_int8    type;           /* Tracking data type (1-4) */
-  igtl_int8    reserved;       /* Reserved byte */
+  igtl_uint8   type;           /* Tracking data type (1-4) */
+  igtl_uint8   reserved;       /* Reserved byte */
   igtl_float32 transform[12];  /* same as TRANSFORM */
 } igtl_tdata_element;
 
