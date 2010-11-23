@@ -46,7 +46,7 @@ extern "C" {
  */
 
 typedef struct {
-  igtl_int8    name[IGTL_TDATA_LEN_NAME];  /* Name of instrument / tracker */
+  char         name[IGTL_TDATA_LEN_NAME];  /* Name of instrument / tracker */
   igtl_uint8   type;           /* Tracking data type (1-4) */
   igtl_uint8   reserved;       /* Reserved byte */
   igtl_float32 transform[12];  /* same as TRANSFORM */
@@ -56,7 +56,7 @@ typedef struct {
 typedef struct {
   igtl_int32   resolution;     /* Minimum time between two frames. Use 0 for as fast as possible. */
                                /* If e.g. 50 ms is specified, the maximum update rate will be 20 Hz. */
-  igtl_int8    coord_name[IGTL_STT_TDATA_LEN_COORDNAME]; /* Name of the coordinate system */
+  char         coord_name[IGTL_STT_TDATA_LEN_COORDNAME]; /* Name of the coordinate system */
 } igtl_stt_tdata;
 
 typedef struct {

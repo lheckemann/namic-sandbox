@@ -60,11 +60,11 @@ extern "C" {
  */
 
 typedef struct {
-  igtl_uint8     name[IGTL_IMGMETA_LEN_NAME];                 /* name / description */
-  igtl_uint8     device_name[IGTL_IMGMETA_LEN_DEVICE_NAME];   /* device name to query the IMAGE and COLORT */
-  igtl_uint8     modality[IGTL_IMGMETA_LEN_MODALITY];         /* modality name */
-  igtl_uint8     patient_name[IGTL_IMGMETA_LEN_PATIENT_NAME]; /* patient name */ 
-  igtl_uint8     patient_id[IGTL_IMGMETA_LEN_PATIENT_ID];     /* patient ID (MRN etc.) */  
+  char           name[IGTL_IMGMETA_LEN_NAME];                 /* name / description */
+  char           device_name[IGTL_IMGMETA_LEN_DEVICE_NAME];   /* device name to query the IMAGE and COLORT */
+  char           modality[IGTL_IMGMETA_LEN_MODALITY];         /* modality name */
+  char           patient_name[IGTL_IMGMETA_LEN_PATIENT_NAME]; /* patient name */ 
+  char           patient_id[IGTL_IMGMETA_LEN_PATIENT_ID];     /* patient ID (MRN etc.) */  
   igtl_uint64    timestamp;        /* scan time */
   igtl_uint16    size[3];          /* entire image volume size */ 
   igtl_uint8     scalar_type;      /* scalar type. see scalar_type in IMAGE message */
