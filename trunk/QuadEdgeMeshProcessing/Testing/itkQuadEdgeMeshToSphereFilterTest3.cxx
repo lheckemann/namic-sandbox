@@ -19,6 +19,9 @@
 #endif
 
 #include "itkQuadEdgeMesh.h"
+#include "itkTransformMeshFilter.h"
+#include "itkVersorTransform.h"
+
 #include "itkVTKPolyDataReader.h"
 #include "itkVTKPolyDataWriter.h"
 
@@ -26,16 +29,16 @@
 #include "itkQuadEdgeMeshParamMatrixCoefficients.h"
 
 #include "itkQuadEdgeMeshToSphereFilter.h"
-
+#include "itkVector.h"
 
 int main( int argc, char** argv )
 {
-  if( argc != 4 )
+  if( argc != 5 )
     {
     std::cout <<"It requires 3 arguments" <<std::endl;
     std::cout <<"1-Input FileName" <<std::endl;
     std::cout <<"1-Output FileName" <<std::endl;
-    std::cout <<"axis" <<std::endl;
+    std::cout <<"axis radius" <<std::endl;
     return EXIT_FAILURE;
     }
     // ** TYPEDEF **
@@ -64,26 +67,35 @@ int main( int argc, char** argv )
   MeshPointer mesh = reader->GetOutput();
 
   //choose the seeds along the shortest axis
-  unsigned short axis = atoi(argv[3]);
+  unsigned short ax = atoi(argv[3]);
 
   //walk through all of the points 
   //get the one with max and min in axis direction.
   float minAxis = 1000000.0;
   float maxAxis = -1000000.0;
+
+  //float maxZ = 0.0;
+  //float pi = 3.14159;
+  MeshType::PointType sphereCenter;
+  sphereCenter.Fill(0.0);
  
   MeshType::PointsContainerConstPointer points = mesh->GetPoints();
   typedef MeshType::PointsContainerConstIterator PointsContainerConstIterator;
   PointsContainerConstIterator p_It = points->begin();
   typedef MeshType::QEPrimal QEPrimal;
-  typedef MeshType::CellIdentifier CellIdentifier;
 
+  typedef MeshType::CellIdentifier CellIdentifier;
   CellIdentifier backCell,frontCell;
+
+  typedef MeshType::PointIdentifier PointIdentifier;
+  //PointIdentifier maxZId,maxAxisId = 0;
 
   while (p_It != points->end())
   {
     MeshType::PointType p = p_It.Value();
 
-    if (p[axis] < minAxis)
+    //look for seedFace at minAxis
+    if (p[ax] < minAxis)
     {
       if ( p.GetEdge() != (QEPrimal*)0 )
       {
@@ -91,12 +103,14 @@ int main( int argc, char** argv )
              if (e->GetLeft() != mesh->m_NoFace)
              {
                backCell = e->GetLeft();
-               minAxis = p[axis];
+               minAxis = p[ax];
              }
        }
-      }
+    }
 
-      if (p[axis] > maxAxis)
+    //look for seedFace at maxAxis
+    //also remember the poindId at maxAxis
+    if (p[ax] > maxAxis)
       {
          if (p.GetEdge() != (QEPrimal*)0)
          {
@@ -104,13 +118,15 @@ int main( int argc, char** argv )
              if (e->GetLeft() != mesh->m_NoFace)
              {
                frontCell = e->GetLeft();
-               maxAxis = p[axis];
+               maxAxis = p[ax];
              }
          }
        }
 
-       p_It++;
+     p_It++;
   }
+
+  //std::cout<<"north polar point Id is: "<<maxZId<<std::endl;
 
   std::vector <CellIdentifier> seedList;
   seedList.push_back(backCell);
@@ -126,6 +142,7 @@ int main( int argc, char** argv )
   FilterType::Pointer filter = FilterType::New();
   filter->SetInput( mesh );
   filter->SetCoefficientsMethod( &coeff0 );
+  filter->SetRadius(atof(argv[4]));
   filter->SetSeedFaces(seedList);
   filter->Update();
 
