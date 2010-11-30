@@ -75,8 +75,9 @@ void mexFunction (int nlhs, mxArray *plhs[],
   // Set header variables
   int  sd;
   int  timeOut;
+  /* currently not used.
   char type[MAX_STRING_LEN];
-  char name[MAX_STRING_LEN];
+  char name[MAX_STRING_LEN]; */
 
   sd = (int)*mxGetPr(prhs[ARG_ID_SD]);
   timeOut = (int)*mxGetPr(prhs[ARG_ID_TIMEOUT]);

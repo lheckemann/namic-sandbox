@@ -46,6 +46,8 @@
 #include "igtlImageMessage.h"
 #include "igtlTransformMessage.h"
 #include "igtlPositionMessage.h"
+#include "igtlTrackingDataMessage.h"
+#include "igtlPointMessage.h"
 #include "igtlMexClientSocket.h"
 #include "igtlTimeStamp.h"
 
@@ -76,6 +78,14 @@ int receiveTransform(igtl::MexClientSocket::Pointer& socket,
 int receivePosition(igtl::MexClientSocket::Pointer& socket,
                          igtl::MessageHeader::Pointer& headerMsg,
                          mxArray *plhs[]);
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
+int receiveTData( igtl::MexClientSocket::Pointer& socket,
+              igtl::MessageHeader::Pointer& headerMsg,
+              mxArray *plhs[] );
+int receivePoint( igtl::MexClientSocket::Pointer& socket,
+              igtl::MessageHeader::Pointer& headerMsg,
+              mxArray *plhs[] );
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 //int procTransformData(int sd, const char* name, const mxArray *ptr);
 //int procImageData(int sd, const char* name, const mxArray *ptr);
@@ -190,7 +200,7 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
 
   if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
     {
-    printf("procReceiveTransform(socket, headerMsg, plhs);\n");
+    printf("ReceiveTransform(socket, headerMsg, plhs);\n");
     receiveTransform(socket, headerMsg, plhs);
     }
   //else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
@@ -199,15 +209,29 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
   //  }
   else if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
     {
-    printf("procReceivePosition(socket, headerMsg)\n");
+    printf("ReceivePosition(socket, headerMsg)\n");
     receivePosition(socket, headerMsg, plhs);
   }
   //else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
   //  {
   //  procReceiveStatus(socket, headerMsg);
   //  }
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
+  else if (strcmp(headerMsg->GetDeviceType(), "TDATA") == 0)
+  {
+    printf("ReceiveTData(socket, headerMsg)\n");
+    receiveTData(socket, headerMsg, plhs);
+  }
+  else if (strcmp(headerMsg->GetDeviceType(), "POINT") == 0)
+  {
+    printf("ReceivePoint(socket, headerMsg)\n");
+    receivePoint(socket, headerMsg, plhs);
+  }
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2
   else
     {
+      std::cerr << " Message type " << headerMsg->GetDeviceType() 
+        << " is not defined in MatlabIGTLink." << std::endl;
     socket->Skip(headerMsg->GetBodySizeToRead(), 0);
     }
   return 1;
@@ -350,6 +374,194 @@ int receivePosition(igtl::MexClientSocket::Pointer& socket,
     }
 
 }
+
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
+int receiveTData( igtl::MexClientSocket::Pointer& socket,
+                 igtl::MessageHeader::Pointer& headerMsg,
+                 mxArray *plhs[] )
+{
+  std::cerr << "Receiving TDATA data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::TrackingDataMessage::Pointer trackingMsg;
+  trackingMsg = igtl::TrackingDataMessage::New();
+  trackingMsg->SetMessageHeader(headerMsg);
+  trackingMsg->AllocatePack();
+
+  // Receive transform data from the socket
+  socket->Receive(trackingMsg->GetPackBodyPointer(), trackingMsg->GetPackBodySize());
+
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = trackingMsg->Unpack(1);
+
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+  {
+    // Retrive the transform data
+    igtl::TimeStamp::Pointer ts;
+    ts = igtl::TimeStamp::New();
+    trackingMsg->GetTimeStamp(ts);
+
+    // Get strcutre for returned value
+    const char* fnames [] = { "Type", "Name", "TimeStamp", "Data" };
+    const char* datanames [] = { "Name", "Type", "XfrmMatrix" };
+    
+    plhs[0] = mxCreateStructMatrix(1, 1, 4, fnames);
+
+    // Set type string
+    mxArray* typeString = mxCreateString("TDATA");
+    mxSetField(plhs[0], 0, "Type", typeString);
+
+    // Set device name string
+    mxArray* nameString = mxCreateString(trackingMsg->GetDeviceName());
+    mxSetField(plhs[0], 0, "Name", nameString);
+
+    // set the time stamp.
+    mxArray* timeMatrix = mxCreateDoubleScalar(ts->GetTimeStamp());
+    mxSetField(plhs[0], 0, "TimeStamp", timeMatrix);
+
+    // number of transforms.
+    int nXfrms = trackingMsg->GetNumberOfTrackingDataElement();
+
+    // set the data structure.
+    mxArray* dataStruct = mxCreateStructMatrix(1, nXfrms, 3, datanames);    
+
+    igtl::TrackingDataElement::Pointer elem;
+    for( int i=0; i < nXfrms; i++ )
+    {
+      trackingMsg->GetTrackingDataElement(i, elem);
+      // name
+      mxArray* toolNameString = mxCreateString(elem->GetName());
+      mxSetField( dataStruct, i, "Name", toolNameString);
+      
+      // type
+      mxArray* toolType = mxCreateDoubleScalar( (int)elem->GetType() );
+      mxSetField( dataStruct, i, "Type", toolType );
+      
+      // matrix
+      igtl::Matrix4x4 mat;
+      elem->GetMatrix(mat);
+      mxArray* transMatrix = mxCreateDoubleMatrix(4, 4, mxREAL);
+      double*  trans       = mxGetPr(transMatrix);
+      trans[0] = mat[0][0];  trans[4] = mat[0][1];  trans[8]  = mat[0][2]; trans[12] = mat[0][3];
+      trans[1] = mat[1][0];  trans[5] = mat[1][1];  trans[9]  = mat[1][2]; trans[13] = mat[1][3];
+      trans[2] = mat[2][0];  trans[6] = mat[2][1];  trans[10] = mat[2][2]; trans[14] = mat[2][3];
+      trans[3] = mat[3][0];  trans[7] = mat[3][1];  trans[11] = mat[3][2]; trans[15] = mat[3][3];
+      mxSetField( dataStruct, i, "XfrmMatrix", transMatrix );
+    }
+
+    // set the data struct into the main struct.
+    mxSetField(plhs[0], 0, "Data", dataStruct);
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
+int receivePoint( igtl::MexClientSocket::Pointer& socket,
+                 igtl::MessageHeader::Pointer& headerMsg,
+                 mxArray *plhs[] )
+{
+  // to be implemented.
+  std::cerr << "Receiving POINT data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::PointMessage::Pointer pointMsg;
+  pointMsg = igtl::PointMessage::New();
+  pointMsg->SetMessageHeader(headerMsg);
+  pointMsg->AllocatePack();
+
+  // Receive transform data from the socket
+  socket->Receive(pointMsg->GetPackBodyPointer(), pointMsg->GetPackBodySize());
+
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = pointMsg->Unpack(1);
+
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+  {
+    igtl::TimeStamp::Pointer ts;
+    ts = igtl::TimeStamp::New();
+    pointMsg->GetTimeStamp(ts);
+
+    // Get strcutre for returned value
+    const char* fnames [] = { "Type", "Name", "TimeStamp", "Data" };
+    const char* datanames [] = { "Name", "Group", "RGBA", "Position", "Radius", "Owner" };
+    
+    plhs[0] = mxCreateStructMatrix(1, 1, 4, fnames);
+
+    // Set type string
+    mxArray* typeString = mxCreateString("Point");
+    mxSetField(plhs[0], 0, "Type", typeString);
+
+    // Set device name string
+    mxArray* nameString = mxCreateString(pointMsg->GetDeviceName());
+    mxSetField(plhs[0], 0, "Name", nameString);
+
+    // set the time stamp.
+    mxArray* timeMatrix = mxCreateDoubleScalar(ts->GetTimeStamp());
+    mxSetField(plhs[0], 0, "TimeStamp", timeMatrix);
+
+    int nElements = pointMsg->GetNumberOfPointElement();
+
+    // set the data structure.
+    mxArray* dataStruct = mxCreateStructMatrix(1, nElements, 6, datanames);    
+
+    for (int i = 0; i < nElements; i ++)
+    {
+      igtl::PointElement::Pointer pointElement;
+      pointMsg->GetPointElement(i, pointElement);
+
+      // name
+      mxArray* pointNameString = mxCreateString(pointElement->GetName());
+      mxSetField( dataStruct, i, "Name", pointNameString);
+
+      // group name
+      mxArray* groupNameString = mxCreateString(pointElement->GetGroupName());
+      mxSetField( dataStruct, i, "Name", groupNameString);
+
+      // colour
+      mxArray* rgbaMatrix = mxCreateDoubleMatrix(1, 4, mxREAL);
+      double*  rgbaMatrixPointer = mxGetPr(rgbaMatrix);
+      igtlUint8 rgba[4];
+      pointElement->GetRGBA(rgba);
+      rgbaMatrixPointer[0,0] = rgba[0];
+      rgbaMatrixPointer[0,1] = rgba[1];
+      rgbaMatrixPointer[0,2] = rgba[2];
+      rgbaMatrixPointer[0,3] = rgba[3];
+      mxSetField( dataStruct, i, "RGBA", rgbaMatrix);
+
+      // position
+      mxArray* posMatrix = mxCreateDoubleMatrix(1, 3, mxREAL);
+      double*  posMatrixPointer = mxGetPr(posMatrix);
+      igtlFloat32 pos[3];
+      pointElement->GetPosition(pos);
+      posMatrixPointer[0, 0] = pos[0];
+      posMatrixPointer[0, 1] = pos[1];
+      posMatrixPointer[0, 2] = pos[2];
+      mxSetField( dataStruct, i, "Position", posMatrix);
+
+      // radius
+      mxArray* radiusScalar = mxCreateDoubleScalar( pointElement->GetRadius() );
+      mxSetField( dataStruct, i, "Radius", radiusScalar);
+
+      // owner
+      mxArray* ownerString = mxCreateString(pointElement->GetOwner());
+      mxSetField( dataStruct, i, "Owner", ownerString);
+    }
+    // set the data struct into the main struct.
+    mxSetField(plhs[0], 0, "Data", dataStruct);
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 
 int procTransformData(int sd, const char* name, const mxArray *ptr)
