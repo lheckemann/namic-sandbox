@@ -5,6 +5,16 @@ IF(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
 ENDIF(COMMAND cmake_policy)
 
+## build for OpenIGTLink Version 2 (TDATA, POINT, BIND, etc.)
+option(OpenIGTLink_PROTOCOL_VERSION_2 "Build Library for Protocol Version 2" OFF)
+
+IF(OpenIGTLink_PROTOCOL_VERSION_2)
+  SET(OpenIGTLink_PROTOCOL_VERSION "2")
+ELSE(OpenIGTLink_PROTOCOL_VERSION_2)
+  SET(OpenIGTLink_PROTOCOL_VERSION "1")
+ENDIF(OpenIGTLink_PROTOCOL_VERSION_2)
+
+
 ## find the OpenIGTLink
 FIND_PACKAGE(OpenIGTLink REQUIRED)
 INCLUDE(${OpenIGTLink_USE_FILE})
@@ -88,14 +98,14 @@ SET(LIB
   ${LINK_LIBS}
 )
 
-ADD_CUSTOM_TARGET ( igtlMexClientSocket ALL )
-ADD_CUSTOM_TARGET ( igtlMexServerSocket ALL )
-ADD_CUSTOM_TARGET ( igtlMexSocket ALL )
-ADD_CUSTOM_TARGET ( igtlopen ALL )
-ADD_CUSTOM_TARGET ( igtlclose ALL )
-ADD_CUSTOM_TARGET ( igtlsend ALL )
-ADD_CUSTOM_TARGET ( igtlreceive ALL )
-ADD_CUSTOM_TARGET ( igtlwaitcon ALL )
+ADD_CUSTOM_TARGET ( igtlMexClientSocket ALL SOURCES igtlMexClientSocket.cpp igtlMexClientSocket.h)
+ADD_CUSTOM_TARGET ( igtlMexServerSocket ALL SOURCES igtlMexServerSocket.cpp igtlMexServerSocket.h)
+ADD_CUSTOM_TARGET ( igtlMexSocket ALL SOURCES igtlMexSocket.cpp igtlMexSocket.h)
+ADD_CUSTOM_TARGET ( igtlopen ALL SOURCES igtlopen.cpp)
+ADD_CUSTOM_TARGET ( igtlclose ALL SOURCES igtlclose.cpp)
+ADD_CUSTOM_TARGET ( igtlsend ALL SOURCES igtlsend.cpp)
+ADD_CUSTOM_TARGET ( igtlreceive ALL SOURCES igtlreceive.cpp)
+ADD_CUSTOM_TARGET ( igtlwaitcon ALL SOURCES igtlwaitcon.cpp)
 
 
 ADD_CUSTOM_COMMAND (

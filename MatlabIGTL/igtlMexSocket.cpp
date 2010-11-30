@@ -96,8 +96,9 @@ int MexSocket::CreateSocket()
 #if defined(_WIN32) && !defined(__CYGWIN__)
   // Declare variables
   WSADATA wsaData;
+  /* currently not used.
   SOCKET ListenSocket;
-  sockaddr_in service;
+  sockaddr_in service; */
 
   //---------------------------------------
   // Initialize Winsock
