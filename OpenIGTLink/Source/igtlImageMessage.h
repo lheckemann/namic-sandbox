@@ -72,7 +72,7 @@ public:
 
   enum {
     DTYPE_SCALAR = 1,
-    DTYPE_VECTOR = 2
+    DTYPE_VECTOR = 3
   };
 
   enum {
