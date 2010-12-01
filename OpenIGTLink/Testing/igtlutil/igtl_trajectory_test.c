@@ -109,7 +109,7 @@ int main( int argc, char * argv [] )
 
   /* Create OpenIGTLink header */
   message.header.version = 1;
-  strncpy( (char*)&(message.header.name), "TRAJECTORY", 12 );
+  strncpy( (char*)&(message.header.name), "TRAJ", 12 );
   strncpy( (char*)&(message.header.device_name), "DeviceName", 20 );
   message.header.timestamp = 1234567890;
   message.header.body_size = IGTL_TRAJECTORY_ELEMENT_SIZE*TEST_TRAJECTORY_NUM;
