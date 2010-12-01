@@ -26,7 +26,7 @@
 #define  IGTL_RTS_TDATA_SIZE               1
 
 #define  IGTL_TDATA_LEN_NAME               20  /* Maximum length of tracking instrument name */
-#define  IGTL_STT_TDATA_LEN_COORDNAME      20  /* Maximum length of coordinate system name */
+#define  IGTL_STT_TDATA_LEN_COORDNAME      32  /* Maximum length of coordinate system name */
 
 #define  IGTL_TDATA_TYPE_TRACKER           1  /* Tracker */
 #define  IGTL_TDATA_TYPE_6D                2  /* 6D instrument (regular instrument) */
