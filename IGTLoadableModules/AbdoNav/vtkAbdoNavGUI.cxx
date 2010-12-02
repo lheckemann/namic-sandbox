@@ -17,6 +17,11 @@
 #include "vtkKWTkUtilities.h"
 #include "vtkSlicerApplication.h"
 
+/* VTK includes */
+#include "vtkKWFrameWithLabel.h"
+#include "vtkKWSeparator.h"
+#include "vtkSlicerNodeSelectorWidget.h"
+
 //---------------------------------------------------------------------------
 vtkStandardNewMacro(vtkAbdoNavGUI);
 vtkCxxRevisionMacro(vtkAbdoNavGUI, "$Revision: $");
@@ -32,6 +37,14 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Locator  (MRML)
   this->TimerFlag = 0;
+
+  //----------------------------------------------------------------
+  // Connection frame
+  this->GuidanceNeedleSelectorWidget = NULL;
+  this->CryoprobeSelectorWidget = NULL;
+  this->ConfigurePushButton = NULL;
+  this->ResetPushButton = NULL;
+  this->SeparatorBeforeButtons = NULL;
 }
 
 
@@ -51,6 +64,34 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     }
 
   this->SetModuleLogic(NULL);
+
+  //----------------------------------------------------------------
+  // Connection frame
+  if (this->GuidanceNeedleSelectorWidget)
+    {
+    this->GuidanceNeedleSelectorWidget->SetParent(NULL);
+    this->GuidanceNeedleSelectorWidget->Delete();
+    }
+  if (this->CryoprobeSelectorWidget)
+    {
+    this->CryoprobeSelectorWidget->SetParent(NULL);
+    this->CryoprobeSelectorWidget->Delete();
+    }
+  if (this->ConfigurePushButton)
+    {
+    this->ConfigurePushButton->SetParent(NULL);
+    this->ConfigurePushButton->Delete();
+    }
+  if (this->ResetPushButton)
+    {
+    this->ResetPushButton->SetParent(NULL);
+    this->ResetPushButton->Delete();
+    }
+  if (this->SeparatorBeforeButtons)
+    {
+    this->SeparatorBeforeButtons->SetParent(NULL);
+    this->SeparatorBeforeButtons->Delete();
+    }
 }
 
 
@@ -311,7 +352,87 @@ void vtkAbdoNavGUI::BuildGUI()
   // create a page
   this->UIPanel->AddPage("AbdoNav", "AbdoNav", NULL);
 
+  // build the distinct GUI frames
   BuildGUIHelpFrame();
+  BuildGUIConnectionFrame();
+}
+
+
+void vtkAbdoNavGUI::BuildGUIConnectionFrame()
+{
+  //----------------------------------------------------------------
+  // Build the GUI's connection frame.
+  //----------------------------------------------------------------
+  vtkKWWidget *page = this->UIPanel->GetPageWidget("AbdoNav");
+
+  // create a collapsible connection frame
+  vtkSlicerModuleCollapsibleFrame *connectionFrame = vtkSlicerModuleCollapsibleFrame::New();
+  connectionFrame->SetParent(page);
+  connectionFrame->Create();
+  connectionFrame->SetLabelText("Connection");
+  connectionFrame->CollapseFrame();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", connectionFrame->GetWidgetName(), page->GetWidgetName());
+
+  // create a guidance needle transform selector widget
+  this->GuidanceNeedleSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
+  this->GuidanceNeedleSelectorWidget->SetParent(connectionFrame->GetFrame());
+  this->GuidanceNeedleSelectorWidget->Create();
+  this->GuidanceNeedleSelectorWidget->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
+  // explicitly indicate that the user is not allowed to create a new linear transform node
+  this->GuidanceNeedleSelectorWidget->SetNewNodeEnabled(0);
+  this->GuidanceNeedleSelectorWidget->SetMRMLScene(this->GetMRMLScene());
+  this->GuidanceNeedleSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+  this->GuidanceNeedleSelectorWidget->SetLabelText("Guidance needle transform:\t\t");
+  this->GuidanceNeedleSelectorWidget->SetBalloonHelpString("Select the tracker transform node corresponding to the guidance needle.");
+
+  // add guidance needle transform selector widget
+  this->Script("pack %s -side top -anchor e -fill x -padx 2 -pady 2", this->GuidanceNeedleSelectorWidget->GetWidgetName());
+
+  // create a cryoprobe transform selector widget
+  this->CryoprobeSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
+  this->CryoprobeSelectorWidget->SetParent(connectionFrame->GetFrame());
+  this->CryoprobeSelectorWidget->Create();
+  this->CryoprobeSelectorWidget->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
+  // explicitly indicate that the user is not allowed to create a new linear transform node
+  this->CryoprobeSelectorWidget->SetNewNodeEnabled(0);
+  this->CryoprobeSelectorWidget->SetMRMLScene(this->GetMRMLScene());
+  this->CryoprobeSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+  this->CryoprobeSelectorWidget->SetLabelText("Cryoprobe(s) transform:\t\t");
+  this->CryoprobeSelectorWidget->SetBalloonHelpString("Select the tracker transform node corresponding to the cryoprobes.");
+
+  // add cryoprobe transform selector widget
+  this->Script("pack %s -side top -anchor e -fill x -padx 2 -pady 2", this->CryoprobeSelectorWidget->GetWidgetName());
+
+  // add a separator between selector widgets and buttons
+  this->SeparatorBeforeButtons = vtkKWSeparator::New();
+  this->SeparatorBeforeButtons->SetParent(connectionFrame->GetFrame());
+  this->SeparatorBeforeButtons->Create();
+
+  // add separator
+  this->Script("pack %s -side top -fill x -pady {20 2} -after %s", this->SeparatorBeforeButtons->GetWidgetName(), CryoprobeSelectorWidget->GetWidgetName());
+  //"pack %s -side top -fill x -pady 2 -after %s",
+    //               this->SeparatorBeforeButtons->GetWidgetName(),
+      //             this->LayoutFrame->GetWidgetName());
+
+  // create a configure button
+  this->ConfigurePushButton = vtkKWPushButton::New();
+  this->ConfigurePushButton->SetParent(connectionFrame->GetFrame());
+  this->ConfigurePushButton->Create();
+  this->ConfigurePushButton->SetText("Configure Connection");
+  this->ConfigurePushButton->SetBalloonHelpString("Configure connection based on chosen tracker transforms.");
+
+  // create a reset button
+  this->ResetPushButton = vtkKWPushButton::New();
+  this->ResetPushButton->SetParent(connectionFrame->GetFrame());
+  this->ResetPushButton->Create();
+  this->ResetPushButton->SetText("Reset Connection");
+  this->ResetPushButton->SetBalloonHelpString("Reset currently stored tracker transforms.");
+
+  // add configure and reset button
+  this->Script("pack %s %s -side right -anchor e -padx 2 -pady 2", this->ConfigurePushButton->GetWidgetName(), this->ResetPushButton->GetWidgetName());
+
+  // clean up
+  connectionFrame->Delete();
 }
 
 
@@ -336,8 +457,8 @@ void vtkAbdoNavGUI::BuildGUIHelpFrame()
     "The **AbdoNav** module was contributed by Christoph Ammann (Karlsruhe Institute of Technology, KIT) "
     "and Nobuhiko Hata, PhD (Surgical Navigation and Robotics Laboratory, SNR).";
 
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("AbdoNav");
-  this->BuildHelpAndAboutFrame (page, help, about);
+  vtkKWWidget *page = this->UIPanel->GetPageWidget("AbdoNav");
+  this->BuildHelpAndAboutFrame(page, help, about);
 }
 
 
