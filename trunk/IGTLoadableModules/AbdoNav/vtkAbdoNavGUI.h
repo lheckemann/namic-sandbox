@@ -26,6 +26,10 @@
 
 #include "vtkSlicerModuleGUI.h"
 
+class vtkKWPushButton;
+class vtkSlicerNodeSelectorWidget;
+class vtkKWSeparator;
+
 class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 {
  public:
@@ -56,7 +60,10 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   virtual void BuildGUI ( );
 
  private:
+  // the usual help and acknowledgement frame
   void BuildGUIHelpFrame();
+  // the frame to setup the connection via OpenIGTLinkIF
+  void BuildGUIConnectionFrame();
 
  public:
   // Description:
@@ -97,7 +104,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 
  private:
   vtkAbdoNavGUI(const vtkAbdoNavGUI&); // Not implemented.
-  void operator=(const vtkAbdoNavGUI&); //Not implemented.
+  void operator=(const vtkAbdoNavGUI&); // Not implemented.
 
  private:
   //----------------------------------------------------------------
@@ -108,6 +115,12 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 
   vtkAbdoNavLogic* Logic;
   vtkCallbackCommand* DataCallbackCommand;
+
+  vtkSlicerNodeSelectorWidget* GuidanceNeedleSelectorWidget;
+  vtkSlicerNodeSelectorWidget* CryoprobeSelectorWidget;
+  vtkKWPushButton* ConfigurePushButton;
+  vtkKWPushButton* ResetPushButton;
+  vtkKWSeparator* SeparatorBeforeButtons;
 };
 
 #endif // __vtkAbdoNavGUI_h
