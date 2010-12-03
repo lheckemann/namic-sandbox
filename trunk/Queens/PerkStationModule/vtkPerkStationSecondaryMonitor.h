@@ -183,19 +183,17 @@ protected:
   vtkSmartPointer< vtkTextActorFlippable > CalibrationControlsActor;
   
   vtkSmartPointer< vtkTextActorFlippable > TablePositionActor;
+  vtkSmartPointer< vtkTextActorFlippable > CalibrationNameActor;
   
     // Left/Right side letters.
   vtkSmartPointer< vtkTextActorFlippable > LeftSideActor;
   vtkSmartPointer< vtkTextActorFlippable > RightSideActor;
   
-  //ETX
   // --------------------------------------------------------------------------
   
-  //BTX
   vtkSmartPointer< vtkImageMapToWindowLevelColors > MapToWindowLevelColors;
   
     // Transformations (matrices).
-  
   vtkSmartPointer< vtkMatrix4x4 > SystemStateXYToIJK;
   vtkSmartPointer< vtkMatrix4x4 > SystemStateResliceMatrix;
   //ETX

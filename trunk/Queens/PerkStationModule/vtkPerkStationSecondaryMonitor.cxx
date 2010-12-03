@@ -174,6 +174,12 @@ vtkPerkStationSecondaryMonitor
     this->TablePositionActor->GetTextProperty()->SetColor( 1.0, 1.0, 0.0 );
     this->TablePositionActor->SetTextScaleModeToNone();
   
+  this->CalibrationNameActor = vtkSmartPointer< vtkTextActorFlippable >::New();
+    this->CalibrationNameActor->GetTextProperty()->SetFontSize( 28 );
+    this->CalibrationNameActor->GetTextProperty()->BoldOn();
+    this->CalibrationNameActor->GetTextProperty()->SetColor( 1.0, 0.9, 0.0 );
+    this->CalibrationNameActor->SetTextScaleModeToNone();
+  
   
   this->UpdateCornerPositions();
   
@@ -392,6 +398,7 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   
   this->Renderer->AddActor( this->MeasureDigitsActor );
   this->Renderer->AddActor( this->TablePositionActor );
+  this->Renderer->AddActor( this->CalibrationNameActor );
   this->Renderer->SetBackground( 0, 0, 0 );
 }
 
@@ -654,10 +661,18 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
       << this->GetGUI()->GetMRMLNode()->GetCurrentTablePosition() << " mm";
    this->TablePositionActor->SetInput( ss.str().c_str() );
    this->TablePositionActor->SetVisibility( 1 );
+   
+   this->CalibrationNameActor->SetDisplayPosition( this->ScreenSize[ 0 ] / 2.0 - 150, this->ScreenSize[ 1 ] - 80 );
+   ss.str( "" );
+   ss << "Calibration: ";
+   ss << this->GetGUI()->GetMRMLNode()->GetCalibrationAtIndex( this->GetGUI()->GetMRMLNode()->GetCurrentCalibration() )->Name;
+   this->CalibrationNameActor->SetInput( ss.str().c_str() );
+   this->CalibrationNameActor->SetVisibility( 1 );
    }
  else
    {
    this->TablePositionActor->SetVisibility( 0 );
+   this->CalibrationNameActor->SetVisibility( 0 );
    }
  
  
@@ -694,6 +709,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     this->RightSideActor->FlipAroundY( true );
     this->CalibrationControlsActor->FlipAroundY( true );
     this->TablePositionActor->FlipAroundY( true );
+    this->CalibrationNameActor->FlipAroundY( true );
     }
   else
     {
@@ -701,6 +717,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     this->RightSideActor->FlipAroundY( false );
     this->CalibrationControlsActor->FlipAroundY( false );
     this->TablePositionActor->FlipAroundY( false );
+    this->CalibrationNameActor->FlipAroundY( false );
     }
 
   if (    this->PSNode->GetFinalVerticalFlip() )
@@ -711,6 +728,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     this->RightSideActor->FlipAroundX( true );
     this->CalibrationControlsActor->FlipAroundX( true );
     this->TablePositionActor->FlipAroundX( true );
+    this->CalibrationNameActor->FlipAroundX( true );
     }
   else
     {
@@ -718,6 +736,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     this->RightSideActor->FlipAroundX( false );
     this->CalibrationControlsActor->FlipAroundX( false );
     this->TablePositionActor->FlipAroundX( false );
+    this->CalibrationNameActor->FlipAroundX( false );
     }
   
   
