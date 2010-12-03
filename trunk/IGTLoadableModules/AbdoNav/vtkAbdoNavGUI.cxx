@@ -348,7 +348,7 @@ void vtkAbdoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavGUI::DataCallback(vtkObject *vtkNotUsed(caller), unsigned long vtkNotUsed(eid), void *clientData, void *vtkNotUsed(callData))
+void vtkAbdoNavGUI::DataCallback(vtkObject *vtkNotUsed(caller), unsigned long vtkNotUsed(eventid), void *clientData, void *vtkNotUsed(callData))
 {
   //----------------------------------------------------------------
   // Not used (UpdateAll() isn't implemented).

@@ -37,28 +37,27 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 {
  public:
   //----------------------------------------------------------------
-   // Usual VTK class functions.
+  // Usual VTK class functions.
   static vtkAbdoNavGUI *New();
   vtkTypeRevisionMacro(vtkAbdoNavGUI, vtkSlicerModuleGUI);
   void PrintSelf(ostream& os, vtkIndent indent);
   // Get the module's category
   const char *GetCategory() const { return "IGT"; }
-
-  // Get methods on class members (no Set methods required)
-  vtkGetObjectMacro(Logic, vtkAbdoNavLogic);
-
-  // API for setting VolumeNode, VolumeLogic and
-  // for both setting and observing them.
+  // Set the module logic.
   void SetModuleLogic(vtkSlicerLogic *logic) { this->SetLogic(vtkObjectPointer(&this->Logic), logic); }
 
-  // Build the GUI.
-  virtual void BuildGUI();
+  //----------------------------------------------------------------
+  // Get/Set methods for class members.
+  vtkGetObjectMacro(Logic, vtkAbdoNavLogic);
 
   //----------------------------------------------------------------
   // Define behavior at module initialization, startup and exit.
   virtual void Init();  // called upon Slicer startup; not implemented
   virtual void Enter(); // called upon entering the module
   virtual void Exit();  // called upon exiting the module; not implemented
+
+  // Build the GUI.
+  virtual void BuildGUI();
 
   //----------------------------------------------------------------
   // Add/Remove observers, event handlers, etc.
@@ -77,10 +76,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
   void ProcessTimerEvents();
   void HandleMouseEvent(vtkSlicerInteractorStyle *style);
-  //BTX
-  static void  DataCallback(vtkObject *caller, unsigned long eid, void *clientData, void *callData);
-  //ETX
-  void UpdateAll();
+  static void  DataCallback(vtkObject *caller, unsigned long eventid, void *clientData, void *callData);
+  void UpdateAll(); // not implemented
 
  protected:
   //----------------------------------------------------------------
