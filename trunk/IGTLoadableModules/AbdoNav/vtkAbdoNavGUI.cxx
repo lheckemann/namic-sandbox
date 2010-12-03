@@ -87,6 +87,11 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->ResetPushButton->SetParent(NULL);
     this->ResetPushButton->Delete();
     }
+  if (this->PausePushButton)
+    {
+    this->PausePushButton->SetParent(NULL);
+    this->PausePushButton->Delete();
+    }
   if (this->SeparatorBeforeButtons)
     {
     this->SeparatorBeforeButtons->SetParent(NULL);
@@ -363,6 +368,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   //----------------------------------------------------------------
   // Build the GUI's connection frame.
   //----------------------------------------------------------------
+
   vtkKWWidget *page = this->UIPanel->GetPageWidget("AbdoNav");
 
   // create a collapsible connection frame
@@ -373,34 +379,36 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   connectionFrame->CollapseFrame();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", connectionFrame->GetWidgetName(), page->GetWidgetName());
 
-  // create a guidance needle transform selector widget
+  // create a guidance needle tracker selector widget
   this->GuidanceNeedleSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
   this->GuidanceNeedleSelectorWidget->SetParent(connectionFrame->GetFrame());
   this->GuidanceNeedleSelectorWidget->Create();
   this->GuidanceNeedleSelectorWidget->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
   // explicitly indicate that the user is not allowed to create a new linear transform node
   this->GuidanceNeedleSelectorWidget->SetNewNodeEnabled(0);
+  this->GuidanceNeedleSelectorWidget->SetDefaultEnabled(0);
   this->GuidanceNeedleSelectorWidget->SetMRMLScene(this->GetMRMLScene());
   this->GuidanceNeedleSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
-  this->GuidanceNeedleSelectorWidget->SetLabelText("Guidance needle transform:\t\t");
+  this->GuidanceNeedleSelectorWidget->SetLabelText("Guidance needle tracker:\t\t");
   this->GuidanceNeedleSelectorWidget->SetBalloonHelpString("Select the tracker transform node corresponding to the guidance needle.");
 
-  // add guidance needle transform selector widget
+  // add guidance needle tracker selector widget
   this->Script("pack %s -side top -anchor e -fill x -padx 2 -pady 2", this->GuidanceNeedleSelectorWidget->GetWidgetName());
 
-  // create a cryoprobe transform selector widget
+  // create a cryoprobe tracker selector widget
   this->CryoprobeSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
   this->CryoprobeSelectorWidget->SetParent(connectionFrame->GetFrame());
   this->CryoprobeSelectorWidget->Create();
   this->CryoprobeSelectorWidget->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
   // explicitly indicate that the user is not allowed to create a new linear transform node
   this->CryoprobeSelectorWidget->SetNewNodeEnabled(0);
+  this->CryoprobeSelectorWidget->SetDefaultEnabled(0);
   this->CryoprobeSelectorWidget->SetMRMLScene(this->GetMRMLScene());
   this->CryoprobeSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
-  this->CryoprobeSelectorWidget->SetLabelText("Cryoprobe(s) transform:\t\t");
+  this->CryoprobeSelectorWidget->SetLabelText("Cryoprobe(s) tracker:\t\t");
   this->CryoprobeSelectorWidget->SetBalloonHelpString("Select the tracker transform node corresponding to the cryoprobes.");
 
-  // add cryoprobe transform selector widget
+  // add cryoprobe tracker selector widget
   this->Script("pack %s -side top -anchor e -fill x -padx 2 -pady 2", this->CryoprobeSelectorWidget->GetWidgetName());
 
   // add a separator between selector widgets and buttons
@@ -410,9 +418,6 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 
   // add separator
   this->Script("pack %s -side top -fill x -pady {20 2} -after %s", this->SeparatorBeforeButtons->GetWidgetName(), CryoprobeSelectorWidget->GetWidgetName());
-  //"pack %s -side top -fill x -pady 2 -after %s",
-    //               this->SeparatorBeforeButtons->GetWidgetName(),
-      //             this->LayoutFrame->GetWidgetName());
 
   // create a configure button
   this->ConfigurePushButton = vtkKWPushButton::New();
@@ -421,6 +426,9 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->ConfigurePushButton->SetText("Configure Connection");
   this->ConfigurePushButton->SetBalloonHelpString("Configure connection based on chosen tracker transforms.");
 
+  // add configure button
+  this->Script("pack %s -side right -anchor e -padx 2 -pady 2", this->ConfigurePushButton->GetWidgetName());
+
   // create a reset button
   this->ResetPushButton = vtkKWPushButton::New();
   this->ResetPushButton->SetParent(connectionFrame->GetFrame());
@@ -428,8 +436,15 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->ResetPushButton->SetText("Reset Connection");
   this->ResetPushButton->SetBalloonHelpString("Reset currently stored tracker transforms.");
 
-  // add configure and reset button
-  this->Script("pack %s %s -side right -anchor e -padx 2 -pady 2", this->ConfigurePushButton->GetWidgetName(), this->ResetPushButton->GetWidgetName());
+  // create a pause button
+  this->PausePushButton = vtkKWPushButton::New();
+  this->PausePushButton->SetParent(connectionFrame->GetFrame());
+  this->PausePushButton->Create();
+  this->PausePushButton->SetText("Pause Connection");
+  this->PausePushButton->SetBalloonHelpString("Pause reception from currently stored tracker transforms.");
+
+  // add pause and reset button
+  this->Script("pack %s %s -side left -anchor w -padx 2 -pady 2", this->PausePushButton->GetWidgetName(), this->ResetPushButton->GetWidgetName());
 
   // clean up
   connectionFrame->Delete();
@@ -443,7 +458,7 @@ void vtkAbdoNavGUI::BuildGUIHelpFrame()
   // Build the GUI's help frame.
   //----------------------------------------------------------------
 
-  // Help text.
+  // help text
   const char *help =
     "The **AbdoNav** module is tailored to abdominal cryosurgeries for liver and kidney tumor treatment. "
     "The module helps you to set up a connection to the tracking device via the OpenIGTLinkIF module, to "
@@ -452,7 +467,7 @@ void vtkAbdoNavGUI::BuildGUIHelpFrame()
     "\n"
     "See <a>http://www.slicer.org/slicerWiki/index.php/Modules:AbdoNav-Documentation-3.6</a> for details "
     "about the module.";
-  // About text.
+  // about text
   const char *about =
     "The **AbdoNav** module was contributed by Christoph Ammann (Karlsruhe Institute of Technology, KIT) "
     "and Nobuhiko Hata, PhD (Surgical Navigation and Robotics Laboratory, SNR).";

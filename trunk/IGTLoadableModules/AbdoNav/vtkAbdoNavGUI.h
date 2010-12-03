@@ -120,6 +120,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkSlicerNodeSelectorWidget* CryoprobeSelectorWidget;
   vtkKWPushButton* ConfigurePushButton;
   vtkKWPushButton* ResetPushButton;
+  vtkKWPushButton* PausePushButton;
   vtkKWSeparator* SeparatorBeforeButtons;
 };
 
