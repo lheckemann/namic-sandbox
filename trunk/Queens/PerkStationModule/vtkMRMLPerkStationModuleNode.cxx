@@ -305,7 +305,7 @@ vtkMRMLPerkStationModuleNode
   this->TiltAngle = 0;
   this->SliceToRAS = vtkSmartPointer< vtkMatrix4x4 >::New();
   this->PlanList.clear();
-  this->PlanUID = 0;
+  this->PlanUID = 1;
   this->CurrentPlanIndex = -1;
   
     // Insertion parameters ---------------------------------------------------
@@ -318,22 +318,22 @@ vtkMRMLPerkStationModuleNode
   this->ToolTipOffset[ 2 ] = 0.0;
   
   this->ReferenceBodyToolPort = 0;
-  this->NeedleToolPort = 1;
+  this->NeedleToolPort        = 1;
   
   
     // Common parameters ------------------------------------------------------
   
-  this->PlanningVolumeRef = NULL;
+  this->PlanningVolumeRef   = NULL;
   this->ValidationVolumeRef = NULL;
-  this->VolumeInUse = NULL;
+  this->VolumeInUse         = NULL;
   
-  PlanningVolumeNode = NULL;
-  ValidationVolumeNode = NULL;
+  PlanningVolumeNode        = NULL;
+  ValidationVolumeNode      = NULL;
   
   this->TimeOnCalibrateStep = 0.0;
-  this->TimeOnPlanStep = 0.0;
-  this->TimeOnInsertStep = 0.0;
-  this->TimeOnValidateStep = 0.0;
+  this->TimeOnPlanStep      = 0.0;
+  this->TimeOnInsertStep    = 0.0;
+  this->TimeOnValidateStep  = 0.0;
   
   
   this->InitializeFiducialListNode();
@@ -347,7 +347,7 @@ vtkMRMLPerkStationModuleNode
     this->StepList->InsertNextValue( "Insertion" );
     this->StepList->InsertNextValue( "Validation" );
   
-  this->CurrentStep = 0;
+  this->CurrentStep  = 0;
   this->PreviousStep = WORKPHASE_CALIBRATION;
 }
 
@@ -356,9 +356,6 @@ vtkMRMLPerkStationModuleNode
 vtkMRMLPerkStationModuleNode
 ::~vtkMRMLPerkStationModuleNode()
 {
-  // LOG_TO_FILE( "node destructor" );
-  
-  
   if ( this->PlanningVolumeNode )
     {
     vtkSetMRMLNodeMacro( this->PlanningVolumeNode, NULL );
