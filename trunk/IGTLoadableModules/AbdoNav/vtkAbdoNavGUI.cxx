@@ -12,15 +12,17 @@
 
 ==========================================================================*/
 
+/* AbdoNav includes*/
 #include "vtkAbdoNavGUI.h"
 
-#include "vtkKWTkUtilities.h"
+/* Slicer includes*/
 #include "vtkSlicerApplication.h"
+#include "vtkSlicerNodeSelectorWidget.h"
 
 /* VTK includes */
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWSeparator.h"
-#include "vtkSlicerNodeSelectorWidget.h"
+#include "vtkKWTkUtilities.h"
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro(vtkAbdoNavGUI);
@@ -110,62 +112,34 @@ void vtkAbdoNavGUI::PrintSelf(ostream& os, vtkIndent indent)
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavGUI::RemoveGUIObservers()
+void vtkAbdoNavGUI::Init()
 {
-  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-
-  if ( appGUI && appGUI->GetMainSliceGUI("Red") )
-    {
-    appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()
-      ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  if ( appGUI && appGUI->GetMainSliceGUI("Yellow") )
-    {
-    appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()
-      ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  if ( appGUI && appGUI->GetMainSliceGUI("Yellow") )
-    {
-    appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()
-      ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-  // Fill in.
-
-  this->RemoveLogicObservers();
-}
-
-
-//---------------------------------------------------------------------------
-void vtkAbdoNavGUI::RemoveLogicObservers()
-{
-  if (this->GetLogic())
-    {
-    this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand *)this->LogicCallbackCommand);
-    }
-}
-
-
-//---------------------------------------------------------------------------
-void vtkAbdoNavGUI::AddMRMLObservers()
-{
-  //std::cout << "Enter: AddMRMLObservers()"  << std::endl;
   //----------------------------------------------------------------
-  // MRML
-
-  vtkIntArray* events = vtkIntArray::New();
-  events->InsertNextValue(vtkMRMLScene::NewSceneEvent);
-  events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
-  events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-  events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
-
-  if (this->GetMRMLScene() != NULL)
-    {
-    this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
-    }
-  events->Delete();
-
+  // Not implemented.
+  //----------------------------------------------------------------
 }
+
+
+//---------------------------------------------------------------------------
+void vtkAbdoNavGUI::Enter()
+{
+  if (this->TimerFlag == 0)
+    {
+    this->TimerFlag = 1;
+    this->TimerInterval = 50; // 50 ms
+    ProcessTimerEvents();
+    }
+}
+
+
+//---------------------------------------------------------------------------
+void vtkAbdoNavGUI::Exit()
+{
+  //----------------------------------------------------------------
+  // Not implemented.
+  //----------------------------------------------------------------
+}
+
 
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::AddGUIObservers()
@@ -204,6 +178,33 @@ void vtkAbdoNavGUI::AddGUIObservers()
 
 
 //---------------------------------------------------------------------------
+void vtkAbdoNavGUI::RemoveGUIObservers()
+{
+  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+
+  if ( appGUI && appGUI->GetMainSliceGUI("Red") )
+    {
+    appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()
+      ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if ( appGUI && appGUI->GetMainSliceGUI("Yellow") )
+    {
+    appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()
+      ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if ( appGUI && appGUI->GetMainSliceGUI("Yellow") )
+    {
+    appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()
+      ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  // Fill in.
+
+  this->RemoveLogicObservers();
+}
+
+
+//---------------------------------------------------------------------------
 void vtkAbdoNavGUI::AddLogicObservers()
 {
   this->RemoveLogicObservers();
@@ -215,34 +216,36 @@ void vtkAbdoNavGUI::AddLogicObservers()
     }
 }
 
+
 //---------------------------------------------------------------------------
-void vtkAbdoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
+void vtkAbdoNavGUI::RemoveLogicObservers()
 {
-  //----------------------------------------------------------------
-  // React to mouse events observed in one of the slice views. Currently not used.
-  //----------------------------------------------------------------
+  if (this->GetLogic())
+    {
+    this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand *)this->LogicCallbackCommand);
+    }
+}
 
-  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Red")
-      ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle *istyle1 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Yellow")
-      ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle *istyle2 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Green")
-      ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
 
-  vtkCornerAnnotation *anno = NULL;
-  if (style == istyle0)
+//---------------------------------------------------------------------------
+void vtkAbdoNavGUI::AddMRMLObservers()
+{
+  //std::cout << "Enter: AddMRMLObservers()"  << std::endl;
+  //----------------------------------------------------------------
+  // MRML
+
+  vtkIntArray* events = vtkIntArray::New();
+  events->InsertNextValue(vtkMRMLScene::NewSceneEvent);
+  events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+  events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
+  events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
+
+  if (this->GetMRMLScene() != NULL)
     {
-    anno = appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
+    this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
     }
-  else if (style == istyle1)
-    {
-    anno = appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
-    }
-  else if (style == istyle2)
-    {
-    anno = appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
-    }
+  events->Delete();
+
 }
 
 
@@ -262,19 +265,6 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject *caller, unsigned long event, voi
     return;
     }
 
-}
-
-
-//---------------------------------------------------------------------------
-void vtkAbdoNavGUI::DataCallback(vtkObject *vtkNotUsed(caller), unsigned long vtkNotUsed(eid), void *clientData, void *vtkNotUsed(callData))
-{
-  //----------------------------------------------------------------
-  // Not used (UpdateAll() isn't implemented).
-  //----------------------------------------------------------------
-
-  vtkAbdoNavGUI *self = reinterpret_cast<vtkAbdoNavGUI *>(clientData);
-  vtkDebugWithObjectMacro(self, "In vtkAbdoNavGUI DataCallback");
-  self->UpdateAll();
 }
 
 
@@ -327,19 +317,51 @@ void vtkAbdoNavGUI::ProcessTimerEvents()
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavGUI::Enter()
+void vtkAbdoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 {
-  if (this->TimerFlag == 0)
+  //----------------------------------------------------------------
+  // React to mouse events observed in one of the slice views. Currently not used.
+  //----------------------------------------------------------------
+
+  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Red")
+      ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  vtkSlicerInteractorStyle *istyle1 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Yellow")
+      ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  vtkSlicerInteractorStyle *istyle2 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Green")
+      ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+
+  vtkCornerAnnotation *anno = NULL;
+  if (style == istyle0)
     {
-    this->TimerFlag = 1;
-    this->TimerInterval = 50; // 50 ms
-    ProcessTimerEvents();
+    anno = appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
+    }
+  else if (style == istyle1)
+    {
+    anno = appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
+    }
+  else if (style == istyle2)
+    {
+    anno = appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
     }
 }
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavGUI::Exit()
+void vtkAbdoNavGUI::DataCallback(vtkObject *vtkNotUsed(caller), unsigned long vtkNotUsed(eid), void *clientData, void *vtkNotUsed(callData))
+{
+  //----------------------------------------------------------------
+  // Not used (UpdateAll() isn't implemented).
+  //----------------------------------------------------------------
+
+  vtkAbdoNavGUI *self = reinterpret_cast<vtkAbdoNavGUI *>(clientData);
+  vtkDebugWithObjectMacro(self, "In vtkAbdoNavGUI DataCallback");
+  self->UpdateAll();
+}
+
+
+//----------------------------------------------------------------------------
+void vtkAbdoNavGUI::UpdateAll()
 {
   //----------------------------------------------------------------
   // Not implemented.
@@ -357,9 +379,35 @@ void vtkAbdoNavGUI::BuildGUI()
   // create a page
   this->UIPanel->AddPage("AbdoNav", "AbdoNav", NULL);
 
-  // build the distinct GUI frames
+  // build the different GUI frames
   BuildGUIHelpFrame();
   BuildGUIConnectionFrame();
+}
+
+
+//----------------------------------------------------------------------------
+void vtkAbdoNavGUI::BuildGUIHelpFrame()
+{
+  //----------------------------------------------------------------
+  // Build the GUI's help frame.
+  //----------------------------------------------------------------
+
+  // help text
+  const char *help =
+    "The **AbdoNav** module is tailored to abdominal cryosurgeries for liver and kidney tumor treatment. "
+    "The module helps you to set up a connection to the tracking device via the OpenIGTLinkIF module, to "
+    "plan cryoprobe insertion using the Measurements module, to register tracking and scanner coordinate "
+    "systems and visualizes the current cryoprobe to be inserted."
+    "\n"
+    "See <a>http://www.slicer.org/slicerWiki/index.php/Modules:AbdoNav-Documentation-3.6</a> for details "
+    "about the module.";
+  // about text
+  const char *about =
+    "The **AbdoNav** module was contributed by Christoph Ammann (Karlsruhe Institute of Technology, KIT) "
+    "and Nobuhiko Hata, PhD (Surgical Navigation and Robotics Laboratory, SNR).";
+
+  vtkKWWidget *page = this->UIPanel->GetPageWidget("AbdoNav");
+  this->BuildHelpAndAboutFrame(page, help, about);
 }
 
 
@@ -448,39 +496,4 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 
   // clean up
   connectionFrame->Delete();
-}
-
-
-//----------------------------------------------------------------------------
-void vtkAbdoNavGUI::BuildGUIHelpFrame()
-{
-  //----------------------------------------------------------------
-  // Build the GUI's help frame.
-  //----------------------------------------------------------------
-
-  // help text
-  const char *help =
-    "The **AbdoNav** module is tailored to abdominal cryosurgeries for liver and kidney tumor treatment. "
-    "The module helps you to set up a connection to the tracking device via the OpenIGTLinkIF module, to "
-    "plan cryoprobe insertion using the Measurements module, to register tracking and scanner coordinate "
-    "systems and visualizes the current cryoprobe to be inserted."
-    "\n"
-    "See <a>http://www.slicer.org/slicerWiki/index.php/Modules:AbdoNav-Documentation-3.6</a> for details "
-    "about the module.";
-  // about text
-  const char *about =
-    "The **AbdoNav** module was contributed by Christoph Ammann (Karlsruhe Institute of Technology, KIT) "
-    "and Nobuhiko Hata, PhD (Surgical Navigation and Robotics Laboratory, SNR).";
-
-  vtkKWWidget *page = this->UIPanel->GetPageWidget("AbdoNav");
-  this->BuildHelpAndAboutFrame(page, help, about);
-}
-
-
-//----------------------------------------------------------------------------
-void vtkAbdoNavGUI::UpdateAll()
-{
-  //----------------------------------------------------------------
-  // Not implemented.
-  //----------------------------------------------------------------
 }
