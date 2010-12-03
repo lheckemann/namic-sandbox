@@ -149,7 +149,7 @@ void vtkAbdoNavGUI::RemoveLogicObservers()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::AddMRMLObservers()
 {
-  std::cout << "Enter: AddMRMLObservers()"  << std::endl;
+  //std::cout << "Enter: AddMRMLObservers()"  << std::endl;
   //----------------------------------------------------------------
   // MRML
 
@@ -170,7 +170,7 @@ void vtkAbdoNavGUI::AddMRMLObservers()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::AddGUIObservers()
 {
-  std::cout << "Enter: AddGUIObservers()"  << std::endl;
+  //std::cout << "Enter: AddGUIObservers()"  << std::endl;
   //----------------------------------------------------------------
   // Register this class as an observer this module's GUI widgets.
   //----------------------------------------------------------------
@@ -319,8 +319,8 @@ void vtkAbdoNavGUI::ProcessTimerEvents()
   if (this->TimerFlag)
     {
     // Fill in.
-    std::cout << "TimerFlag:     " << this->TimerFlag << std::endl;
-    std::cout << "TimerInterval: " << this->TimerInterval << std::endl;
+    //std::cout << "TimerFlag:     " << this->TimerFlag << std::endl;
+    //std::cout << "TimerInterval: " << this->TimerInterval << std::endl;
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), this->TimerInterval, this, "ProcessTimerEvents");
     }
 }
@@ -393,7 +393,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->GuidanceNeedleSelectorWidget->SetBalloonHelpString("Select the tracker transform node corresponding to the guidance needle.");
 
   // add guidance needle tracker selector widget
-  this->Script("pack %s -side top -anchor e -fill x -padx 2 -pady 2", this->GuidanceNeedleSelectorWidget->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->GuidanceNeedleSelectorWidget->GetWidgetName());
 
   // create a cryoprobe tracker selector widget
   this->CryoprobeSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
@@ -409,15 +409,15 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->CryoprobeSelectorWidget->SetBalloonHelpString("Select the tracker transform node corresponding to the cryoprobes.");
 
   // add cryoprobe tracker selector widget
-  this->Script("pack %s -side top -anchor e -fill x -padx 2 -pady 2", this->CryoprobeSelectorWidget->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->CryoprobeSelectorWidget->GetWidgetName());
 
-  // add a separator between selector widgets and buttons
+  // create a separator between selector widgets and buttons
   this->SeparatorBeforeButtons = vtkKWSeparator::New();
   this->SeparatorBeforeButtons->SetParent(connectionFrame->GetFrame());
   this->SeparatorBeforeButtons->Create();
 
   // add separator
-  this->Script("pack %s -side top -fill x -pady {20 2} -after %s", this->SeparatorBeforeButtons->GetWidgetName(), CryoprobeSelectorWidget->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -fill x -pady {20 2}", this->SeparatorBeforeButtons->GetWidgetName());
 
   // create a configure button
   this->ConfigurePushButton = vtkKWPushButton::New();
@@ -427,7 +427,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->ConfigurePushButton->SetBalloonHelpString("Configure connection based on chosen tracker transforms.");
 
   // add configure button
-  this->Script("pack %s -side right -anchor e -padx 2 -pady 2", this->ConfigurePushButton->GetWidgetName());
+  this->Script("pack %s -side right -anchor ne -padx 2 -pady 2", this->ConfigurePushButton->GetWidgetName());
 
   // create a reset button
   this->ResetPushButton = vtkKWPushButton::New();
@@ -444,7 +444,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->PausePushButton->SetBalloonHelpString("Pause reception from currently stored tracker transforms.");
 
   // add pause and reset button
-  this->Script("pack %s %s -side left -anchor w -padx 2 -pady 2", this->PausePushButton->GetWidgetName(), this->ResetPushButton->GetWidgetName());
+  this->Script("pack %s %s -side left -anchor nw -padx 2 -pady 2", this->PausePushButton->GetWidgetName(), this->ResetPushButton->GetWidgetName());
 
   // clean up
   connectionFrame->Delete();
