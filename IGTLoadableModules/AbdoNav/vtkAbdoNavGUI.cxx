@@ -32,21 +32,22 @@ vtkCxxRevisionMacro(vtkAbdoNavGUI, "$Revision: $");
 //---------------------------------------------------------------------------
 vtkAbdoNavGUI::vtkAbdoNavGUI()
 {
+  //----------------------------------------------------------------
+  // Initialize logic values.
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData(reinterpret_cast<void *> (this));
   this->DataCallbackCommand->SetCallback(vtkAbdoNavGUI::DataCallback);
 
-  //----------------------------------------------------------------
-  // Locator  (MRML)
   this->TimerFlag = 0;
 
   //----------------------------------------------------------------
-  // Connection frame
+  // Connection frame.
   this->GuidanceNeedleSelectorWidget = NULL;
   this->CryoprobeSelectorWidget = NULL;
-  this->ConfigurePushButton = NULL;
-  this->ResetPushButton = NULL;
   this->SeparatorBeforeButtons = NULL;
+  this->PausePushButton = NULL;
+  this->ResetPushButton = NULL;
+  this->ConfigurePushButton = NULL;
 }
 
 
@@ -58,8 +59,8 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->DataCallbackCommand->Delete();
     }
 
-  // If Logic is NULL, then we only instatiated the class and never used
-  // it, e.g. --ignore_module
+  // if Logic is NULL, the class was only instatiated but never used,
+  // e.g. Slicer was launched with option --ignore_module set to AbdoNav
   if (this->Logic)
     {
     this->RemoveGUIObservers();
@@ -68,7 +69,7 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
   this->SetModuleLogic(NULL);
 
   //----------------------------------------------------------------
-  // Connection frame
+  // Connection frame.
   if (this->GuidanceNeedleSelectorWidget)
     {
     this->GuidanceNeedleSelectorWidget->SetParent(NULL);
@@ -79,25 +80,25 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->CryoprobeSelectorWidget->SetParent(NULL);
     this->CryoprobeSelectorWidget->Delete();
     }
-  if (this->ConfigurePushButton)
+  if (this->SeparatorBeforeButtons)
     {
-    this->ConfigurePushButton->SetParent(NULL);
-    this->ConfigurePushButton->Delete();
-    }
-  if (this->ResetPushButton)
-    {
-    this->ResetPushButton->SetParent(NULL);
-    this->ResetPushButton->Delete();
+    this->SeparatorBeforeButtons->SetParent(NULL);
+    this->SeparatorBeforeButtons->Delete();
     }
   if (this->PausePushButton)
     {
     this->PausePushButton->SetParent(NULL);
     this->PausePushButton->Delete();
     }
-  if (this->SeparatorBeforeButtons)
+  if (this->ResetPushButton)
     {
-    this->SeparatorBeforeButtons->SetParent(NULL);
-    this->SeparatorBeforeButtons->Delete();
+    this->ResetPushButton->SetParent(NULL);
+    this->ResetPushButton->Delete();
+    }
+  if (this->ConfigurePushButton)
+    {
+    this->ConfigurePushButton->SetParent(NULL);
+    this->ConfigurePushButton->Delete();
     }
 }
 
@@ -105,6 +106,10 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::PrintSelf(ostream& os, vtkIndent indent)
 {
+  //----------------------------------------------------------------
+  // Print all publicly accessible instance variables.
+  //----------------------------------------------------------------
+
   this->vtkObject::PrintSelf(os, indent);
   os << indent << "AbdoNavGUI: " << this->GetClassName() << "\n";
   os << indent << "Logic: " << this->GetLogic() << "\n";
@@ -123,6 +128,10 @@ void vtkAbdoNavGUI::Init()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::Enter()
 {
+  //----------------------------------------------------------------
+  // Define behavior at module startup.
+  //----------------------------------------------------------------
+
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
@@ -144,22 +153,15 @@ void vtkAbdoNavGUI::Exit()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::AddGUIObservers()
 {
-  //std::cout << "Enter: AddGUIObservers()"  << std::endl;
   //----------------------------------------------------------------
-  // Register this class as an observer this module's GUI widgets.
+  // Set observers on widgets and GUI classes.
   //----------------------------------------------------------------
 
   this->RemoveGUIObservers();
 
-  // make a user interactor style to process our events
-  // look at the InteractorStyle to get our events
-
-  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-
-
-
   //----------------------------------------------------------------
-  // Main Slice GUI
+  // Set observers on slice views.
+  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
   appGUI->GetMainSliceGUI("Red")
     ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()
@@ -171,7 +173,7 @@ void vtkAbdoNavGUI::AddGUIObservers()
     ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()
     ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
 
-  // Fill in.
+  // fill in
 
   this->AddLogicObservers();
 }
@@ -180,25 +182,31 @@ void vtkAbdoNavGUI::AddGUIObservers()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::RemoveGUIObservers()
 {
+  //----------------------------------------------------------------
+  // Remove GUI observers.
+  //----------------------------------------------------------------
+
+  //----------------------------------------------------------------
+  // Remove observers from slice views.
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
-  if ( appGUI && appGUI->GetMainSliceGUI("Red") )
+  if (appGUI && appGUI->GetMainSliceGUI("Red"))
     {
-    appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()
-      ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()
+      ->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-  if ( appGUI && appGUI->GetMainSliceGUI("Yellow") )
+  if (appGUI && appGUI->GetMainSliceGUI("Yellow"))
     {
-    appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()
-      ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()
+      ->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-  if ( appGUI && appGUI->GetMainSliceGUI("Yellow") )
+  if (appGUI && appGUI->GetMainSliceGUI("Yellow"))
     {
-    appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()
-      ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()
+      ->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  // Fill in.
+  // fill in
 
   this->RemoveLogicObservers();
 }
@@ -207,12 +215,16 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::AddLogicObservers()
 {
+  //----------------------------------------------------------------
+  // Set observers on AbdoNavLogic's different event types.
+  //----------------------------------------------------------------
+
   this->RemoveLogicObservers();
 
   if (this->GetLogic())
     {
-    this->GetLogic()->AddObserver(vtkAbdoNavLogic::StatusUpdateEvent,
-                                  (vtkCommand *)this->LogicCallbackCommand);
+    this->GetLogic()->AddObserver(vtkAbdoNavLogic::StatusUpdateEvent, (vtkCommand *)this->LogicCallbackCommand);
+    // fill in
     }
 }
 
@@ -220,6 +232,10 @@ void vtkAbdoNavGUI::AddLogicObservers()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::RemoveLogicObservers()
 {
+  //----------------------------------------------------------------
+  // Remove logic observers.
+  //----------------------------------------------------------------
+
   if (this->GetLogic())
     {
     this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand *)this->LogicCallbackCommand);
@@ -230,9 +246,9 @@ void vtkAbdoNavGUI::RemoveLogicObservers()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::AddMRMLObservers()
 {
-  //std::cout << "Enter: AddMRMLObservers()"  << std::endl;
   //----------------------------------------------------------------
-  // MRML
+  // Set observers on MRML nodes and the scene.
+  //----------------------------------------------------------------
 
   vtkIntArray* events = vtkIntArray::New();
   events->InsertNextValue(vtkMRMLScene::NewSceneEvent);
@@ -245,7 +261,6 @@ void vtkAbdoNavGUI::AddMRMLObservers()
     this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
     }
   events->Delete();
-
 }
 
 
@@ -256,7 +271,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject *caller, unsigned long event, voi
   // React to GUI events.
   //----------------------------------------------------------------
 
-  // React to mouse events observed in one of the slice views.
+  // react to mouse events observed in one of the slice views
   const char *eventName = vtkCommand::GetStringFromEventId(event);
   if (strcmp(eventName, "LeftButtonPressEvent") == 0)
     {
@@ -265,6 +280,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject *caller, unsigned long event, voi
     return;
     }
 
+  // fill in
 }
 
 
@@ -279,7 +295,7 @@ void vtkAbdoNavGUI::ProcessLogicEvents(vtkObject *caller, unsigned long event, v
     {
     if (event == vtkAbdoNavLogic::StatusUpdateEvent)
       {
-      // Fill in.
+      // fill in
       }
     }
 }
@@ -294,7 +310,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject *caller, unsigned long event, vo
 
   if (event == vtkMRMLScene::SceneCloseEvent)
     {
-    // Fill in.
+    // fill in
     }
 }
 
@@ -308,8 +324,9 @@ void vtkAbdoNavGUI::ProcessTimerEvents()
 
   if (this->TimerFlag)
     {
-    // Fill in.
-    //std::cout << "TimerFlag:     " << this->TimerFlag << std::endl;
+    // fill in
+
+    //std::cout << "TimerFlag:     " << this->TimerFlag     << std::endl;
     //std::cout << "TimerInterval: " << this->TimerInterval << std::endl;
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), this->TimerInterval, this, "ProcessTimerEvents");
     }
@@ -344,6 +361,8 @@ void vtkAbdoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
     {
     anno = appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
     }
+
+  // change slice sliew corner annotation here
 }
 
 
@@ -398,7 +417,7 @@ void vtkAbdoNavGUI::BuildGUIHelpFrame()
     "The module helps you to set up a connection to the tracking device via the OpenIGTLinkIF module, to "
     "plan cryoprobe insertion using the Measurements module, to register tracking and scanner coordinate "
     "systems and visualizes the current cryoprobe to be inserted."
-    "\n"
+    "\n\n"
     "See <a>http://www.slicer.org/slicerWiki/index.php/Modules:AbdoNav-Documentation-3.6</a> for details "
     "about the module.";
   // about text
@@ -467,6 +486,23 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   // add separator
   this->Script("pack %s -side top -anchor nw -fill x -pady {20 2}", this->SeparatorBeforeButtons->GetWidgetName());
 
+  // create a pause button
+  this->PausePushButton = vtkKWPushButton::New();
+  this->PausePushButton->SetParent(connectionFrame->GetFrame());
+  this->PausePushButton->Create();
+  this->PausePushButton->SetText("Pause Connection");
+  this->PausePushButton->SetBalloonHelpString("Pause reception from currently stored tracker transforms.");
+
+  // create a reset button
+  this->ResetPushButton = vtkKWPushButton::New();
+  this->ResetPushButton->SetParent(connectionFrame->GetFrame());
+  this->ResetPushButton->Create();
+  this->ResetPushButton->SetText("Reset Connection");
+  this->ResetPushButton->SetBalloonHelpString("Reset currently stored tracker transforms.");
+
+  // add pause and reset button
+  this->Script("pack %s %s -side left -anchor nw -padx 2 -pady 2", this->PausePushButton->GetWidgetName(), this->ResetPushButton->GetWidgetName());
+
   // create a configure button
   this->ConfigurePushButton = vtkKWPushButton::New();
   this->ConfigurePushButton->SetParent(connectionFrame->GetFrame());
@@ -476,23 +512,6 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 
   // add configure button
   this->Script("pack %s -side right -anchor ne -padx 2 -pady 2", this->ConfigurePushButton->GetWidgetName());
-
-  // create a reset button
-  this->ResetPushButton = vtkKWPushButton::New();
-  this->ResetPushButton->SetParent(connectionFrame->GetFrame());
-  this->ResetPushButton->Create();
-  this->ResetPushButton->SetText("Reset Connection");
-  this->ResetPushButton->SetBalloonHelpString("Reset currently stored tracker transforms.");
-
-  // create a pause button
-  this->PausePushButton = vtkKWPushButton::New();
-  this->PausePushButton->SetParent(connectionFrame->GetFrame());
-  this->PausePushButton->Create();
-  this->PausePushButton->SetText("Pause Connection");
-  this->PausePushButton->SetBalloonHelpString("Pause reception from currently stored tracker transforms.");
-
-  // add pause and reset button
-  this->Script("pack %s %s -side left -anchor nw -padx 2 -pady 2", this->PausePushButton->GetWidgetName(), this->ResetPushButton->GetWidgetName());
 
   // clean up
   connectionFrame->Delete();

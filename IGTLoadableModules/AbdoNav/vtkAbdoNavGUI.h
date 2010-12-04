@@ -43,7 +43,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   void PrintSelf(ostream& os, vtkIndent indent);
   // Get the module's category
   const char *GetCategory() const { return "IGT"; }
-  // Set the module logic.
+  // Set the module logic
   void SetModuleLogic(vtkSlicerLogic *logic) { this->SetLogic(vtkObjectPointer(&this->Logic), logic); }
 
   //----------------------------------------------------------------
@@ -56,6 +56,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   virtual void Enter(); // called upon entering the module
   virtual void Exit();  // called upon exiting the module; not implemented
 
+  //----------------------------------------------------------------
   // Build the GUI.
   virtual void BuildGUI();
 
@@ -70,7 +71,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 
   //----------------------------------------------------------------
   // Mediator methods for processing events invoked by logic, GUI,
-  // MRML, timer or mouse
+  // MRML, timer or mouse.
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
   virtual void ProcessLogicEvents(vtkObject *caller, unsigned long event, void *callData);
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
@@ -94,9 +95,9 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // Logic values.
   vtkAbdoNavLogic* Logic;
+  vtkCallbackCommand* DataCallbackCommand;
   int TimerFlag;
   int TimerInterval;
-  vtkCallbackCommand* DataCallbackCommand;
 
   //----------------------------------------------------------------
   // Helper functions to build the different GUI frames.
@@ -108,9 +109,10 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkSlicerNodeSelectorWidget* GuidanceNeedleSelectorWidget;
   vtkSlicerNodeSelectorWidget* CryoprobeSelectorWidget;
   vtkKWSeparator* SeparatorBeforeButtons;
-  vtkKWPushButton* ConfigurePushButton;
-  vtkKWPushButton* ResetPushButton;
   vtkKWPushButton* PausePushButton;
+  vtkKWPushButton* ResetPushButton;
+  vtkKWPushButton* ConfigurePushButton;
+
 };
 
 #endif // __vtkAbdoNavGUI_h
