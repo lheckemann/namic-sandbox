@@ -19,15 +19,21 @@
 #ifndef __vtkAbdoNavLogic_h
 #define __vtkAbdoNavLogic_h
 
+/* AbdoNav includes */
 #include "vtkAbdoNavWin32Header.h"
-#include "vtkCallbackCommand.h"
+
+/* Slicer includes */
 #include "vtkSlicerModuleLogic.h"
+
+/* VTK includes */
+#include "vtkCallbackCommand.h"
 
 class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
 {
  public:
+  //----------------------------------------------------------------
+  // Events to be passed to and processed by the GUI.
   //BTX
-  /// Events to be passed to and processed by the GUI (currently not used).
   enum {
     StatusUpdateEvent = 50001,
     //AnotherEvent    = 50002
@@ -35,39 +41,32 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   //ETX
 
   //----------------------------------------------------------------
-  // Usual vtk class declarations.
-  //----------------------------------------------------------------
+  // Usual VTK class functions.
   static vtkAbdoNavLogic *New();
-  vtkTypeRevisionMacro(vtkAbdoNavLogic, vtkObject);
+  vtkTypeRevisionMacro(vtkAbdoNavLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   //----------------------------------------------------------------
-  // Mediator method for processing events invoked by MRML
-  //----------------------------------------------------------------
+  // Mediator method for processing events invoked by MRML.
   void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
+  static void DataCallback(vtkObject *caller, unsigned long eventid, void *clientData, void *callData);
+  void UpdateAll(); // not implemented
 
  protected:
-   //----------------------------------------------------------------
-   // Usual vtk class declarations.
-   //----------------------------------------------------------------
+  //----------------------------------------------------------------
+  // Usual VTK class functions.
   vtkAbdoNavLogic();
-  ~vtkAbdoNavLogic();
-
-  //----------------------------------------------------------------
-  // Currently not used.
-  //----------------------------------------------------------------
-  static void DataCallback(vtkObject *caller, unsigned long eventid, void *clientData, void *callData);
-  vtkCallbackCommand *DataCallbackCommand;
-  void UpdateAll();
+  virtual ~vtkAbdoNavLogic();
 
  private:
-   //----------------------------------------------------------------
-   // Usual vtk class declarations.
-   //----------------------------------------------------------------
-   /// Not implemented, thus private.
-   vtkAbdoNavLogic(const vtkAbdoNavLogic&);
-   /// Not implemented, thus private.
-   void operator=(const vtkAbdoNavLogic&);
+  //----------------------------------------------------------------
+  // Usual VTK class functions.
+  vtkAbdoNavLogic(const vtkAbdoNavLogic&); // not implemented
+  void operator=(const vtkAbdoNavLogic&);  // not implemented
+
+  //----------------------------------------------------------------
+  // Logic values.
+  vtkCallbackCommand *DataCallbackCommand;
 
 };
 
