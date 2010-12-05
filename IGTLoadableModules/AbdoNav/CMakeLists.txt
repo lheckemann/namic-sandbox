@@ -49,6 +49,7 @@ install(FILES
 set(AbdoNav_SRCS
   vtkAbdoNavLogic.cxx
   vtkAbdoNavGUI.cxx
+  vtkMRMLAbdoNavNode.cxx
   )
 
 # --------------------------------------------------------------------------
