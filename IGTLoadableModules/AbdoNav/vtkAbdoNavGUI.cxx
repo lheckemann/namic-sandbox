@@ -25,8 +25,8 @@
 #include "vtkKWTkUtilities.h"
 
 //---------------------------------------------------------------------------
-vtkStandardNewMacro(vtkAbdoNavGUI);
 vtkCxxRevisionMacro(vtkAbdoNavGUI, "$Revision: $");
+vtkStandardNewMacro(vtkAbdoNavGUI);
 
 
 //---------------------------------------------------------------------------
