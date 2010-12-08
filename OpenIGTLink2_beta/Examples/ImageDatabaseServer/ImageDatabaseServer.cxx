@@ -97,22 +97,23 @@ int main(int argc, char* argv[])
         // Deserialize the header
         headerMsg->Unpack();
 
+        std::cerr << "Receiving a message: " << std::endl;
+        std::cerr << "    Device Type: \"" << headerMsg->GetDeviceType() << "\"" << std::endl;
+        std::cerr << "    Device Name: \"" << headerMsg->GetDeviceName() << "\"" << std::endl;
+
         // Check data type and receive data body
         if (strcmp(headerMsg->GetDeviceType(), "GET_IMGMETA") == 0)
           {
-          std::cerr << "Received a GET_IMGMETA message." << std::endl;
           //socket->Skip(headerMsg->GetBodySizeToRead(), 0);
           SendImageMeta(socket, headerMsg->GetDeviceName());
           }
         else if (strcmp(headerMsg->GetDeviceType(), "GET_IMAGE") == 0)
           {
-          std::cerr << "Received a GET_IMGMETA message." << std::endl;
           SendImage(socket, headerMsg->GetDeviceName(), filedir);
           }
         else
           {
           // if the data type is unknown, skip reading.
-          std::cerr << "Receiving : " << headerMsg->GetDeviceType() << std::endl;
           socket->Skip(headerMsg->GetBodySizeToRead(), 0);
           }
         }
