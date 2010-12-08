@@ -97,22 +97,23 @@ int main(int argc, char* argv[])
         // Deserialize the header
         headerMsg->Unpack();
 
+        std::cerr << "Receiving a message: " << std::endl;
+        std::cerr << "    Device Type: \"" << headerMsg->GetDeviceType() << "\"" << std::endl;
+        std::cerr << "    Device Name: \"" << headerMsg->GetDeviceName() << "\"" << std::endl;
+
         // Check data type and receive data body
         if (strcmp(headerMsg->GetDeviceType(), "GET_IMGMETA") == 0)
           {
-          std::cerr << "Received a GET_IMGMETA message." << std::endl;
           //socket->Skip(headerMsg->GetBodySizeToRead(), 0);
           SendImageMeta(socket, headerMsg->GetDeviceName());
           }
         else if (strcmp(headerMsg->GetDeviceType(), "GET_IMAGE") == 0)
           {
-          std::cerr << "Received a GET_IMGMETA message." << std::endl;
           SendImage(socket, headerMsg->GetDeviceName(), filedir);
           }
         else
           {
           // if the data type is unknown, skip reading.
-          std::cerr << "Receiving : " << headerMsg->GetDeviceType() << std::endl;
           socket->Skip(headerMsg->GetBodySizeToRead(), 0);
           }
         }
@@ -150,7 +151,7 @@ int SendImageMeta(igtl::Socket::Pointer& socket, const char* name)
   
   igtl::TimeStamp::Pointer ts0;
   ts0 = igtl::TimeStamp::New();
-  ts0->SetTime(1.2345);
+  ts0->SetTime(1291739370.2345);
 
   imgMeta0->SetTimeStamp(ts0);
   imgMeta0->SetSize(512, 512, 64);
@@ -168,7 +169,7 @@ int SendImageMeta(igtl::Socket::Pointer& socket, const char* name)
   
   igtl::TimeStamp::Pointer ts1;
   ts1 = igtl::TimeStamp::New();
-  ts1->SetTime(2.3456);
+  ts1->SetTime(1291739380.3456);
 
   imgMeta1->SetTimeStamp(ts1);
   imgMeta1->SetSize(256, 128, 32);
@@ -186,7 +187,7 @@ int SendImageMeta(igtl::Socket::Pointer& socket, const char* name)
   
   igtl::TimeStamp::Pointer ts2;
   ts2 = igtl::TimeStamp::New();
-  ts2->SetTime(3.4567);
+  ts2->SetTime(1291739390.4567);
 
   imgMeta2->SetTimeStamp(ts2);
   imgMeta2->SetSize(256, 256, 32);
