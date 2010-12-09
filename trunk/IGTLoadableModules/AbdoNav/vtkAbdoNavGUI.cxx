@@ -19,7 +19,7 @@
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerNodeSelectorWidget.h"
 
-/* VTK includes */
+/* KWWidgets includes */
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWSeparator.h"
 #include "vtkKWTkUtilities.h"

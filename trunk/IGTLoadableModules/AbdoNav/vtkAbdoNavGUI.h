@@ -29,7 +29,7 @@
 /* Slicer forward declarations */
 class vtkSlicerNodeSelectorWidget;
 
-/* VTK forward declarations */
+/* KWWidgets forward declarations */
 class vtkKWPushButton;
 class vtkKWSeparator;
 

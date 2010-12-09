@@ -22,7 +22,7 @@
 /* AbdoNav includes */
 #include "vtkAbdoNavWin32Header.h"
 
-/* VTK includes */
+/* MRML includes */
 #include "vtkMRMLNode.h"
 
 class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
