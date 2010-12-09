@@ -58,7 +58,7 @@ vtkMRMLAbdoNavNode::~vtkMRMLAbdoNavNode()
 //---------------------------------------------------------------------------
 void vtkMRMLAbdoNavNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkMRMLNode::PrintSelf(os,indent);
+  vtkMRMLNode::PrintSelf(os, indent);
 
   // fill in
   // os << indent << "SomeValue: "     << this->SomeValue << "\n";
