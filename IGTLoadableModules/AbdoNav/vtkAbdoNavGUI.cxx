@@ -492,7 +492,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", connectionFrame->GetWidgetName(), page->GetWidgetName());
 
   // create a tracker transform node selector widget
-  this->TrackerNodeSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
+  this->TrackerNodeSelectorWidget = vtkSlicerNodeSelectorWidget::New();
   this->TrackerNodeSelectorWidget->SetParent(connectionFrame->GetFrame());
   this->TrackerNodeSelectorWidget->Create();
   this->TrackerNodeSelectorWidget->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
