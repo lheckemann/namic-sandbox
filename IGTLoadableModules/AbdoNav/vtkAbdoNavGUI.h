@@ -106,10 +106,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 
   //----------------------------------------------------------------
   // Widgets of the connection frame.
-  vtkSlicerNodeSelectorWidget* GuidanceNeedleSelectorWidget;
-  vtkSlicerNodeSelectorWidget* CryoprobeSelectorWidget;
+  vtkSlicerNodeSelectorWidget* TrackerNodeSelectorWidget;
   vtkKWSeparator* SeparatorBeforeButtons;
-  vtkKWPushButton* PausePushButton;
   vtkKWPushButton* ResetPushButton;
   vtkKWPushButton* ConfigurePushButton;
 
