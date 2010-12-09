@@ -535,6 +535,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->TrackerComboxBox->GetWidget()->ReadOnlyOn();
   this->TrackerComboxBox->GetWidget()->AddValue("NDI Aurora");
   this->TrackerComboxBox->GetWidget()->AddValue("NDI Polaris Vicra");
+  this->TrackerComboxBox->SetBalloonHelpString("Select the tracking system being used in order to compensate for different coordinate system definitions.");
 
   // add tracking system combo box
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerComboxBox->GetWidgetName());
