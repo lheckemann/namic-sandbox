@@ -12,10 +12,10 @@
 
 ==========================================================================*/
 
-/* AbdoNav includes*/
+/* AbdoNav includes */
 #include "vtkAbdoNavGUI.h"
 
-/* Slicer includes*/
+/* Slicer includes */
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerNodeSelectorWidget.h"
 
