@@ -122,10 +122,10 @@ void vtkMRMLAbdoNavNode::WriteXML(ostream& os, int nIndent)
 
 
 //---------------------------------------------------------------------------
-void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode *anode)
+void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode* anode)
 {
   Superclass::Copy(anode);
-  vtkMRMLAbdoNavNode *node = (vtkMRMLAbdoNavNode *)anode;
+  vtkMRMLAbdoNavNode* node = (vtkMRMLAbdoNavNode*)anode;
 
   // fill in
   // this->SetSomeValue(node->SomeValue);
@@ -134,7 +134,7 @@ void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode *anode)
 
 
 //---------------------------------------------------------------------------
-void vtkMRMLAbdoNavNode::UpdateReferenceID(const char *oldID, const char *newID)
+void vtkMRMLAbdoNavNode::UpdateReferenceID(const char* oldID, const char* newID)
 {
   // fill in
   // if (!strcmp(oldID, this->SomeVolumeRef)) // zero value indicates that both strings are equal

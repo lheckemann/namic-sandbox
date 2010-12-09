@@ -35,7 +35,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Initialize logic values.
   this->DataCallbackCommand = vtkCallbackCommand::New();
-  this->DataCallbackCommand->SetClientData(reinterpret_cast<void *> (this));
+  this->DataCallbackCommand->SetClientData(reinterpret_cast<void*> (this));
   this->DataCallbackCommand->SetCallback(vtkAbdoNavGUI::DataCallback);
 
   this->TimerFlag = 0;
@@ -161,17 +161,17 @@ void vtkAbdoNavGUI::AddGUIObservers()
 
   //----------------------------------------------------------------
   // Set observers on slice views.
-  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+  vtkSlicerApplicationGUI* appGUI = this->GetApplicationGUI();
 
   appGUI->GetMainSliceGUI("Red")
     ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()
-    ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+    ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand*)this->GUICallbackCommand);
   appGUI->GetMainSliceGUI("Yellow")
     ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()
-    ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+    ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand*)this->GUICallbackCommand);
   appGUI->GetMainSliceGUI("Green")
     ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()
-    ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+    ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand*)this->GUICallbackCommand);
 
   // fill in
 
@@ -188,22 +188,22 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
 
   //----------------------------------------------------------------
   // Remove observers from slice views.
-  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+  vtkSlicerApplicationGUI* appGUI = this->GetApplicationGUI();
 
   if (appGUI && appGUI->GetMainSliceGUI("Red"))
     {
     appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()
-      ->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+      ->GetInteractorStyle()->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
   if (appGUI && appGUI->GetMainSliceGUI("Yellow"))
     {
     appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()
-      ->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+      ->GetInteractorStyle()->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
   if (appGUI && appGUI->GetMainSliceGUI("Yellow"))
     {
     appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()
-      ->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+      ->GetInteractorStyle()->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
   // fill in
@@ -223,7 +223,7 @@ void vtkAbdoNavGUI::AddLogicObservers()
 
   if (this->GetLogic())
     {
-    this->GetLogic()->AddObserver(vtkAbdoNavLogic::StatusUpdateEvent, (vtkCommand *)this->LogicCallbackCommand);
+    this->GetLogic()->AddObserver(vtkAbdoNavLogic::StatusUpdateEvent, (vtkCommand*)this->LogicCallbackCommand);
     // fill in
     }
 }
@@ -238,7 +238,7 @@ void vtkAbdoNavGUI::RemoveLogicObservers()
 
   if (this->GetLogic())
     {
-    this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand *)this->LogicCallbackCommand);
+    this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand*)this->LogicCallbackCommand);
     }
 }
 
@@ -265,17 +265,17 @@ void vtkAbdoNavGUI::AddMRMLObservers()
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
+void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, void* callData)
 {
   //----------------------------------------------------------------
   // React to GUI events.
   //----------------------------------------------------------------
 
   // react to mouse events observed in one of the slice views
-  const char *eventName = vtkCommand::GetStringFromEventId(event);
+  const char* eventName = vtkCommand::GetStringFromEventId(event);
   if (strcmp(eventName, "LeftButtonPressEvent") == 0)
     {
-    vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast(caller);
+    vtkSlicerInteractorStyle* style = vtkSlicerInteractorStyle::SafeDownCast(caller);
     HandleMouseEvent(style);
     return;
     }
@@ -285,7 +285,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject *caller, unsigned long event, voi
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavGUI::ProcessLogicEvents(vtkObject *caller, unsigned long event, void *vtkNotUsed(callData))
+void vtkAbdoNavGUI::ProcessLogicEvents(vtkObject* caller, unsigned long event, void* vtkNotUsed(callData))
 {
   //----------------------------------------------------------------
   // React to logic events.
@@ -302,7 +302,7 @@ void vtkAbdoNavGUI::ProcessLogicEvents(vtkObject *caller, unsigned long event, v
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData)
+void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData)
 {
   //----------------------------------------------------------------
   // React to MRML events.
@@ -334,21 +334,21 @@ void vtkAbdoNavGUI::ProcessTimerEvents()
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
+void vtkAbdoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle* style)
 {
   //----------------------------------------------------------------
   // React to mouse events observed in one of the slice views. Currently not used.
   //----------------------------------------------------------------
 
-  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Red")
+  vtkSlicerApplicationGUI* appGUI = this->GetApplicationGUI();
+  vtkSlicerInteractorStyle* istyle0 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Red")
       ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle *istyle1 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Yellow")
+  vtkSlicerInteractorStyle* istyle1 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Yellow")
       ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle *istyle2 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Green")
+  vtkSlicerInteractorStyle* istyle2 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Green")
       ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
 
-  vtkCornerAnnotation *anno = NULL;
+  vtkCornerAnnotation* anno = NULL;
   if (style == istyle0)
     {
     anno = appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
@@ -367,13 +367,13 @@ void vtkAbdoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavGUI::DataCallback(vtkObject *vtkNotUsed(caller), unsigned long vtkNotUsed(eventid), void *clientData, void *vtkNotUsed(callData))
+void vtkAbdoNavGUI::DataCallback(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eventid), void* clientData, void* vtkNotUsed(callData))
 {
   //----------------------------------------------------------------
   // Not used (UpdateAll() isn't implemented).
   //----------------------------------------------------------------
 
-  vtkAbdoNavGUI *self = reinterpret_cast<vtkAbdoNavGUI *>(clientData);
+  vtkAbdoNavGUI* self = reinterpret_cast<vtkAbdoNavGUI*>(clientData);
   vtkDebugWithObjectMacro(self, "In vtkAbdoNavGUI DataCallback");
   self->UpdateAll();
 }
@@ -412,7 +412,7 @@ void vtkAbdoNavGUI::BuildGUIHelpFrame()
   //----------------------------------------------------------------
 
   // help text
-  const char *help =
+  const char* help =
     "The **AbdoNav** module is tailored to abdominal cryosurgeries for liver and kidney tumor treatment. "
     "The module helps you to set up a connection to the tracking device via the OpenIGTLinkIF module, to "
     "plan cryoprobe insertion using the Measurements module, to register tracking and scanner coordinate "
@@ -421,11 +421,11 @@ void vtkAbdoNavGUI::BuildGUIHelpFrame()
     "See <a>http://www.slicer.org/slicerWiki/index.php/Modules:AbdoNav-Documentation-3.6</a> for details "
     "about the module.";
   // about text
-  const char *about =
+  const char* about =
     "The **AbdoNav** module was contributed by Christoph Ammann (Karlsruhe Institute of Technology, KIT) "
     "and Nobuhiko Hata, PhD (Surgical Navigation and Robotics Laboratory, SNR).";
 
-  vtkKWWidget *page = this->UIPanel->GetPageWidget("AbdoNav");
+  vtkKWWidget* page = this->UIPanel->GetPageWidget("AbdoNav");
   this->BuildHelpAndAboutFrame(page, help, about);
 }
 
@@ -436,10 +436,10 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   // Build the GUI's connection frame.
   //----------------------------------------------------------------
 
-  vtkKWWidget *page = this->UIPanel->GetPageWidget("AbdoNav");
+  vtkKWWidget* page = this->UIPanel->GetPageWidget("AbdoNav");
 
   // create a collapsible connection frame
-  vtkSlicerModuleCollapsibleFrame *connectionFrame = vtkSlicerModuleCollapsibleFrame::New();
+  vtkSlicerModuleCollapsibleFrame* connectionFrame = vtkSlicerModuleCollapsibleFrame::New();
   connectionFrame->SetParent(page);
   connectionFrame->Create();
   connectionFrame->SetLabelText("Connection");

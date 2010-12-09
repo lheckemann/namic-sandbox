@@ -30,7 +30,7 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
  public:
   //----------------------------------------------------------------
   // Usual VTK class functions.
-  static vtkMRMLAbdoNavNode *New();
+  static vtkMRMLAbdoNavNode* New();
   vtkTypeRevisionMacro(vtkMRMLAbdoNavNode, vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -44,13 +44,13 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   virtual void WriteXML(ostream& os, int indent);
 
   // Copy parameters (not including ID and Scene) from another node of the same type
-  virtual void Copy(vtkMRMLNode *node);
+  virtual void Copy(vtkMRMLNode* node);
 
   // Get unique node XML tag name (like Volume, Model, etc.)
   virtual const char* GetNodeTagName() { return "AbdoNavParameters"; }
 
   // Update the IDs of stored references
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
+  virtual void UpdateReferenceID(const char* oldID, const char* newID);
 
   //----------------------------------------------------------------
   // Getters and Setters for the references and data stored in this node.

@@ -29,7 +29,7 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
   //----------------------------------------------------------------
   // Initialize logic values.
   this->DataCallbackCommand = vtkCallbackCommand::New();
-  this->DataCallbackCommand->SetClientData(reinterpret_cast<void *>(this));
+  this->DataCallbackCommand->SetClientData(reinterpret_cast<void*>(this));
   this->DataCallbackCommand->SetCallback(vtkAbdoNavLogic::DataCallback);
 }
 
@@ -73,13 +73,13 @@ void vtkAbdoNavLogic::ProcessMRMLEvents(vtkObject* caller, unsigned long event, 
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavLogic::DataCallback(vtkObject *vtkNotUsed(caller), unsigned long vtkNotUsed(eventid), void *clientData, void *vtkNotUsed(callData))
+void vtkAbdoNavLogic::DataCallback(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eventid), void* clientData, void* vtkNotUsed(callData))
 {
   //----------------------------------------------------------------
   // Not used (UpdateAll() isn't implemented).
   //----------------------------------------------------------------
 
-  vtkAbdoNavLogic *self = reinterpret_cast<vtkAbdoNavLogic *>(clientData);
+  vtkAbdoNavLogic* self = reinterpret_cast<vtkAbdoNavLogic*>(clientData);
   vtkDebugWithObjectMacro(self, "In vtkAbdoNavLogic DataCallback");
   self->UpdateAll();
 }

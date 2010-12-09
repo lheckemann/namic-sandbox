@@ -42,14 +42,14 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
 
   //----------------------------------------------------------------
   // Usual VTK class functions.
-  static vtkAbdoNavLogic *New();
+  static vtkAbdoNavLogic* New();
   vtkTypeRevisionMacro(vtkAbdoNavLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   //----------------------------------------------------------------
   // Mediator method for processing events invoked by MRML.
   void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
-  static void DataCallback(vtkObject *caller, unsigned long eventid, void *clientData, void *callData);
+  static void DataCallback(vtkObject* caller, unsigned long eventid, void* clientData, void* callData);
   void UpdateAll(); // not implemented
 
  protected:
@@ -66,7 +66,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
 
   //----------------------------------------------------------------
   // Logic values.
-  vtkCallbackCommand *DataCallbackCommand;
+  vtkCallbackCommand* DataCallbackCommand;
 
 };
 
