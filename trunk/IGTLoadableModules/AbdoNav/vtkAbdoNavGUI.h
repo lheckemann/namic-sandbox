@@ -111,8 +111,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkKWFrameWithLabel* TrackerFrame;
   vtkSlicerNodeSelectorWidget* TrackerNodeSelectorWidget;
   vtkKWComboBoxWithLabel* TrackerComboxBox;
-  vtkKWPushButton* ResetPushButton;
-  vtkKWPushButton* ConfigurePushButton;
+  vtkKWPushButton* ResetConnectionPushButton;
+  vtkKWPushButton* ConfigureConnectionPushButton;
 
   //----------------------------------------------------------------
   // Widgets of the registration frame.
