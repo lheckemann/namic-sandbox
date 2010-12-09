@@ -46,8 +46,8 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   // Connection frame.
   this->TrackerNodeSelectorWidget = NULL;
   this->TrackerComboxBox = NULL;
-  this->ResetPushButton = NULL;
-  this->ConfigurePushButton = NULL;
+  this->ResetConnectionPushButton = NULL;
+  this->ConfigureConnectionPushButton = NULL;
 
   //----------------------------------------------------------------
   // Registration frame.
@@ -93,15 +93,15 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->TrackerComboxBox->SetParent(NULL);
     this->TrackerComboxBox->Delete();
     }
-  if (this->ResetPushButton)
+  if (this->ResetConnectionPushButton)
     {
-    this->ResetPushButton->SetParent(NULL);
-    this->ResetPushButton->Delete();
+    this->ResetConnectionPushButton->SetParent(NULL);
+    this->ResetConnectionPushButton->Delete();
     }
-  if (this->ConfigurePushButton)
+  if (this->ConfigureConnectionPushButton)
     {
-    this->ConfigurePushButton->SetParent(NULL);
-    this->ConfigurePushButton->Delete();
+    this->ConfigureConnectionPushButton->SetParent(NULL);
+    this->ConfigureConnectionPushButton->Delete();
     }
 
   //----------------------------------------------------------------
@@ -541,24 +541,24 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerComboxBox->GetWidgetName());
 
   // create a reset button
-  this->ResetPushButton = vtkKWPushButton::New();
-  this->ResetPushButton->SetParent(connectionFrame->GetFrame());
-  this->ResetPushButton->Create();
-  this->ResetPushButton->SetText("Reset Connection");
-  this->ResetPushButton->SetBalloonHelpString("Reset currently selected tracker transform node.");
+  this->ResetConnectionPushButton = vtkKWPushButton::New();
+  this->ResetConnectionPushButton->SetParent(connectionFrame->GetFrame());
+  this->ResetConnectionPushButton->Create();
+  this->ResetConnectionPushButton->SetText("Reset Connection");
+  this->ResetConnectionPushButton->SetBalloonHelpString("Reset currently selected tracker transform node.");
 
   // add reset button
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", this->ResetPushButton->GetWidgetName());
+  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", this->ResetConnectionPushButton->GetWidgetName());
 
   // create a configure button
-  this->ConfigurePushButton = vtkKWPushButton::New();
-  this->ConfigurePushButton->SetParent(connectionFrame->GetFrame());
-  this->ConfigurePushButton->Create();
-  this->ConfigurePushButton->SetText("Configure Connection");
-  this->ConfigurePushButton->SetBalloonHelpString("Set currently selected tracker transform node.");
+  this->ConfigureConnectionPushButton = vtkKWPushButton::New();
+  this->ConfigureConnectionPushButton->SetParent(connectionFrame->GetFrame());
+  this->ConfigureConnectionPushButton->Create();
+  this->ConfigureConnectionPushButton->SetText("Configure Connection");
+  this->ConfigureConnectionPushButton->SetBalloonHelpString("Set currently selected tracker transform node.");
 
   // add configure button
-  this->Script("pack %s -side right -anchor ne -padx 2 -pady 2", this->ConfigurePushButton->GetWidgetName());
+  this->Script("pack %s -side right -anchor ne -padx 2 -pady 2", this->ConfigureConnectionPushButton->GetWidgetName());
 
   // clean up
   connectionFrame->Delete();
