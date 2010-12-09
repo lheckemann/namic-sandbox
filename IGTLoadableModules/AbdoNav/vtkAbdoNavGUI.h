@@ -30,6 +30,7 @@
 class vtkSlicerNodeSelectorWidget;
 
 /* KWWidgets forward declarations */
+class vtkKWComboBoxWithLabel;
 class vtkKWFrameWithLabel;
 class vtkKWPushButton;
 class vtkKWSeparator;
@@ -109,6 +110,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // Widgets of the connection frame.
   vtkSlicerNodeSelectorWidget* TrackerNodeSelectorWidget;
+  vtkKWComboBoxWithLabel* TrackerComboxBox;
   vtkKWSeparator* SeparatorBeforeButtons;
   vtkKWPushButton* ResetPushButton;
   vtkKWPushButton* ConfigurePushButton;

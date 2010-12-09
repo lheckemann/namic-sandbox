@@ -20,6 +20,8 @@
 #include "vtkSlicerNodeSelectorWidget.h"
 
 /* KWWidgets includes */
+#include "vtkKWComboBox.h"
+#include "vtkKWComboBoxWithLabel.h"
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWRadioButton.h"
 #include "vtkKWSeparator.h"
@@ -44,6 +46,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Connection frame.
   this->TrackerNodeSelectorWidget = NULL;
+  this->TrackerComboxBox = NULL;
   this->SeparatorBeforeButtons = NULL;
   this->ResetPushButton = NULL;
   this->ConfigurePushButton = NULL;
@@ -86,6 +89,11 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     {
     this->TrackerNodeSelectorWidget->SetParent(NULL);
     this->TrackerNodeSelectorWidget->Delete();
+    }
+  if (this->TrackerComboxBox)
+    {
+    this->TrackerComboxBox->SetParent(NULL);
+    this->TrackerComboxBox->Delete();
     }
   if (this->SeparatorBeforeButtons)
     {
@@ -518,6 +526,18 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 
   // add tracker transform node selector widget
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerNodeSelectorWidget->GetWidgetName());
+
+  // create a combo box to specify the tracking system being used
+  this->TrackerComboxBox = vtkKWComboBoxWithLabel::New();
+  this->TrackerComboxBox->SetParent(connectionFrame->GetFrame());
+  this->TrackerComboxBox->Create();
+  this->TrackerComboxBox->SetLabelText("Tracking system used:\t\t");
+  this->TrackerComboxBox->GetWidget()->ReadOnlyOn();
+  this->TrackerComboxBox->GetWidget()->AddValue("NDI Aurora");
+  this->TrackerComboxBox->GetWidget()->AddValue("NDI Polaris Vicra");
+
+  // add tracking system combo box
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerComboxBox->GetWidgetName());
 
   // create a separator between selector widget and buttons
   this->SeparatorBeforeButtons = vtkKWSeparator::New();
