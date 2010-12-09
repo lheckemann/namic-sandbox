@@ -58,6 +58,8 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   this->Point2XEntry = NULL;
   this->Point2YEntry = NULL;
   this->Point2ZEntry = NULL;
+  this->ResetRegistrationPushButton = NULL;
+  this->PerformRegistrationPushButton = NULL;
 }
 
 
@@ -142,6 +144,16 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     {
     this->Point2ZEntry->SetParent(NULL);
     this->Point2ZEntry->Delete();
+    }
+  if (this->ResetRegistrationPushButton)
+    {
+    this->ResetRegistrationPushButton->SetParent(NULL);
+    this->ResetRegistrationPushButton->Delete();
+    }
+  if (this->PerformRegistrationPushButton)
+    {
+    this->PerformRegistrationPushButton->SetParent(NULL);
+    this->PerformRegistrationPushButton->Delete();
     }
 }
 
@@ -557,9 +569,16 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   registrationFrame->CollapseFrame();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", registrationFrame->GetWidgetName(), page->GetWidgetName());
 
+  // create a labelled frame to to hold the GUI elements of both, the guidance needle tip and the the second point on the guidance needle
+  vtkKWFrameWithLabel* bothPointsFrame = vtkKWFrameWithLabel::New();
+  bothPointsFrame->SetParent(registrationFrame->GetFrame());
+  bothPointsFrame->SetLabelText("Identify guidance needle");
+  bothPointsFrame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", bothPointsFrame->GetWidgetName());
+
   // create a frame to hold the guidance needle tip radio button and tip position entries
   vtkKWFrame* point1Frame = vtkKWFrame::New();
-  point1Frame->SetParent(registrationFrame->GetFrame());
+  point1Frame->SetParent(bothPointsFrame->GetFrame());
   point1Frame->Create();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point1Frame->GetWidgetName());
   // create a radio button for the guidance needle tip
@@ -598,7 +617,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
 
   // create a frame to hold the radio button and position entries for the second point on the guidance needle
   vtkKWFrame* point2Frame = vtkKWFrame::New();
-  point2Frame->SetParent(registrationFrame->GetFrame());
+  point2Frame->SetParent(bothPointsFrame->GetFrame());
   point2Frame->Create();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point2Frame->GetWidgetName());
   // create a radio button for the second point on the guidance needle
@@ -635,8 +654,29 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
                  this->Point2YEntry->GetWidgetName(),
                  this->Point2ZEntry->GetWidgetName());
 
+  // create a reset registration button
+  this->ResetRegistrationPushButton = vtkKWPushButton::New();
+  this->ResetRegistrationPushButton->SetParent(registrationFrame->GetFrame());
+  this->ResetRegistrationPushButton->Create();
+  this->ResetRegistrationPushButton->SetText("Reset Registration");
+  this->ResetRegistrationPushButton->SetBalloonHelpString("Redo identification of guidance needle.");
+
+  // add reset registration button
+  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", this->ResetRegistrationPushButton->GetWidgetName());
+
+  // create a perform registration button
+  this->PerformRegistrationPushButton = vtkKWPushButton::New();
+  this->PerformRegistrationPushButton->SetParent(registrationFrame->GetFrame());
+  this->PerformRegistrationPushButton->Create();
+  this->PerformRegistrationPushButton->SetText("Perform Registration");
+  this->PerformRegistrationPushButton->SetBalloonHelpString("Perform registration based on current identification of guidance needle.");
+
+  // add perform registration button
+  this->Script("pack %s -side right -anchor ne -padx 2 -pady 2", this->PerformRegistrationPushButton->GetWidgetName());
+
   // clean up
   registrationFrame->Delete();
+  bothPointsFrame->Delete();
   point1Frame->Delete();
   point2Frame->Delete();
 }

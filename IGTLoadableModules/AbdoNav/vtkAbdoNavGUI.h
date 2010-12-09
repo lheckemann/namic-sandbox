@@ -30,6 +30,7 @@
 class vtkSlicerNodeSelectorWidget;
 
 /* KWWidgets forward declarations */
+class vtkKWFrameWithLabel;
 class vtkKWPushButton;
 class vtkKWSeparator;
 
@@ -114,6 +115,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 
   //----------------------------------------------------------------
   // Widgets of the registration frame.
+  vtkKWFrameWithLabel* bothPointsFrame;
   vtkKWFrame* point1Frame;
   vtkKWRadioButton* Point1RadioButton;
   vtkKWEntry* Point1XEntry;
@@ -124,6 +126,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkKWEntry* Point2XEntry;
   vtkKWEntry* Point2YEntry;
   vtkKWEntry* Point2ZEntry;
+  vtkKWPushButton* ResetRegistrationPushButton;
+  vtkKWPushButton* PerformRegistrationPushButton;
 
 };
 
