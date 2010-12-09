@@ -473,7 +473,7 @@ void vtkAbdoNavGUI::BuildGUIHelpFrame()
     "The module helps you to set up a connection to the tracking device via the OpenIGTLinkIF module, to "
     "plan cryoprobe insertion using the Measurements module, to register tracking and scanner coordinate "
     "systems and visualizes the current cryoprobe to be inserted."
-    "\n\n"
+    "\n"
     "See <a>http://www.slicer.org/slicerWiki/index.php/Modules:AbdoNav-Documentation-3.6</a> for details "
     "about the module.";
   // about text
