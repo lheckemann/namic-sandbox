@@ -103,6 +103,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   // Helper functions to build the different GUI frames.
   void BuildGUIHelpFrame();
   void BuildGUIConnectionFrame();
+  void BuildGUIRegistrationFrame();
 
   //----------------------------------------------------------------
   // Widgets of the connection frame.
@@ -110,6 +111,19 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkKWSeparator* SeparatorBeforeButtons;
   vtkKWPushButton* ResetPushButton;
   vtkKWPushButton* ConfigurePushButton;
+
+  //----------------------------------------------------------------
+  // Widgets of the registration frame.
+  vtkKWFrame* point1Frame;
+  vtkKWRadioButton* Point1RadioButton;
+  vtkKWEntry* Point1XEntry;
+  vtkKWEntry* Point1YEntry;
+  vtkKWEntry* Point1ZEntry;
+  vtkKWFrame* point2Frame;
+  vtkKWRadioButton* Point2RadioButton;
+  vtkKWEntry* Point2XEntry;
+  vtkKWEntry* Point2YEntry;
+  vtkKWEntry* Point2ZEntry;
 
 };
 
