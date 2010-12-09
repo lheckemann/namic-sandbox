@@ -24,7 +24,6 @@
 #include "vtkKWComboBoxWithLabel.h"
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWRadioButton.h"
-#include "vtkKWSeparator.h"
 #include "vtkKWTkUtilities.h"
 
 //---------------------------------------------------------------------------
@@ -47,7 +46,6 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   // Connection frame.
   this->TrackerNodeSelectorWidget = NULL;
   this->TrackerComboxBox = NULL;
-  this->SeparatorBeforeButtons = NULL;
   this->ResetPushButton = NULL;
   this->ConfigurePushButton = NULL;
 
@@ -94,11 +92,6 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     {
     this->TrackerComboxBox->SetParent(NULL);
     this->TrackerComboxBox->Delete();
-    }
-  if (this->SeparatorBeforeButtons)
-    {
-    this->SeparatorBeforeButtons->SetParent(NULL);
-    this->SeparatorBeforeButtons->Delete();
     }
   if (this->ResetPushButton)
     {
@@ -511,9 +504,16 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   connectionFrame->CollapseFrame();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", connectionFrame->GetWidgetName(), page->GetWidgetName());
 
+  // create a labelled frame to to hold the tracker transform node and the tracking system combo box
+  vtkKWFrameWithLabel* TrackerFrame = vtkKWFrameWithLabel::New();
+  TrackerFrame->SetParent(connectionFrame->GetFrame());
+  TrackerFrame->SetLabelText("Specify tracking information");
+  TrackerFrame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", TrackerFrame->GetWidgetName());
+
   // create a tracker transform node selector widget
   this->TrackerNodeSelectorWidget = vtkSlicerNodeSelectorWidget::New();
-  this->TrackerNodeSelectorWidget->SetParent(connectionFrame->GetFrame());
+  this->TrackerNodeSelectorWidget->SetParent(TrackerFrame->GetFrame());
   this->TrackerNodeSelectorWidget->Create();
   this->TrackerNodeSelectorWidget->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
   // explicitly indicate that the user is not allowed to create a new linear transform node
@@ -529,7 +529,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 
   // create a combo box to specify the tracking system being used
   this->TrackerComboxBox = vtkKWComboBoxWithLabel::New();
-  this->TrackerComboxBox->SetParent(connectionFrame->GetFrame());
+  this->TrackerComboxBox->SetParent(TrackerFrame->GetFrame());
   this->TrackerComboxBox->Create();
   this->TrackerComboxBox->SetLabelText("Tracking system used:\t\t");
   this->TrackerComboxBox->GetWidget()->ReadOnlyOn();
@@ -539,14 +539,6 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 
   // add tracking system combo box
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerComboxBox->GetWidgetName());
-
-  // create a separator between selector widget and buttons
-  this->SeparatorBeforeButtons = vtkKWSeparator::New();
-  this->SeparatorBeforeButtons->SetParent(connectionFrame->GetFrame());
-  this->SeparatorBeforeButtons->Create();
-
-  // add separator
-  this->Script("pack %s -side top -anchor nw -fill x -pady {20 2}", this->SeparatorBeforeButtons->GetWidgetName());
 
   // create a reset button
   this->ResetPushButton = vtkKWPushButton::New();
@@ -570,6 +562,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 
   // clean up
   connectionFrame->Delete();
+  TrackerFrame->Delete();
 }
 
 
