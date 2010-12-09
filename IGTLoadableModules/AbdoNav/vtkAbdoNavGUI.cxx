@@ -418,6 +418,7 @@ void vtkAbdoNavGUI::BuildGUIHelpFrame()
 }
 
 
+//---------------------------------------------------------------------------
 void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 {
   //----------------------------------------------------------------
