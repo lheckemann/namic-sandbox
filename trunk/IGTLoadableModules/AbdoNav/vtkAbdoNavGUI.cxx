@@ -42,10 +42,8 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
 
   //----------------------------------------------------------------
   // Connection frame.
-  this->GuidanceNeedleSelectorWidget = NULL;
-  this->CryoprobeSelectorWidget = NULL;
+  this->TrackerNodeSelectorWidget = NULL;
   this->SeparatorBeforeButtons = NULL;
-  this->PausePushButton = NULL;
   this->ResetPushButton = NULL;
   this->ConfigurePushButton = NULL;
 }
@@ -70,25 +68,15 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
 
   //----------------------------------------------------------------
   // Connection frame.
-  if (this->GuidanceNeedleSelectorWidget)
+  if (this->TrackerNodeSelectorWidget)
     {
-    this->GuidanceNeedleSelectorWidget->SetParent(NULL);
-    this->GuidanceNeedleSelectorWidget->Delete();
-    }
-  if (this->CryoprobeSelectorWidget)
-    {
-    this->CryoprobeSelectorWidget->SetParent(NULL);
-    this->CryoprobeSelectorWidget->Delete();
+    this->TrackerNodeSelectorWidget->SetParent(NULL);
+    this->TrackerNodeSelectorWidget->Delete();
     }
   if (this->SeparatorBeforeButtons)
     {
     this->SeparatorBeforeButtons->SetParent(NULL);
     this->SeparatorBeforeButtons->Delete();
-    }
-  if (this->PausePushButton)
-    {
-    this->PausePushButton->SetParent(NULL);
-    this->PausePushButton->Delete();
     }
   if (this->ResetPushButton)
     {
@@ -446,39 +434,23 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   connectionFrame->CollapseFrame();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", connectionFrame->GetWidgetName(), page->GetWidgetName());
 
-  // create a guidance needle tracker selector widget
-  this->GuidanceNeedleSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
-  this->GuidanceNeedleSelectorWidget->SetParent(connectionFrame->GetFrame());
-  this->GuidanceNeedleSelectorWidget->Create();
-  this->GuidanceNeedleSelectorWidget->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
+  // create a tracker transform node selector widget
+  this->TrackerNodeSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
+  this->TrackerNodeSelectorWidget->SetParent(connectionFrame->GetFrame());
+  this->TrackerNodeSelectorWidget->Create();
+  this->TrackerNodeSelectorWidget->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
   // explicitly indicate that the user is not allowed to create a new linear transform node
-  this->GuidanceNeedleSelectorWidget->SetNewNodeEnabled(0);
-  this->GuidanceNeedleSelectorWidget->SetDefaultEnabled(0);
-  this->GuidanceNeedleSelectorWidget->SetMRMLScene(this->GetMRMLScene());
-  this->GuidanceNeedleSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
-  this->GuidanceNeedleSelectorWidget->SetLabelText("Guidance needle tracker:\t\t");
-  this->GuidanceNeedleSelectorWidget->SetBalloonHelpString("Select the tracker transform node corresponding to the guidance needle.");
+  this->TrackerNodeSelectorWidget->SetNewNodeEnabled(0);
+  this->TrackerNodeSelectorWidget->SetDefaultEnabled(0);
+  this->TrackerNodeSelectorWidget->SetMRMLScene(this->GetMRMLScene());
+  this->TrackerNodeSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+  this->TrackerNodeSelectorWidget->SetLabelText("Tracker transform node:\t\t");
+  this->TrackerNodeSelectorWidget->SetBalloonHelpString("Select the transform node created by OpenIGTLinkIF that holds the tracking data of the current cryoprobe relative to the guidance needle.");
 
-  // add guidance needle tracker selector widget
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->GuidanceNeedleSelectorWidget->GetWidgetName());
+  // add tracker transform node selector widget
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerNodeSelectorWidget->GetWidgetName());
 
-  // create a cryoprobe tracker selector widget
-  this->CryoprobeSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
-  this->CryoprobeSelectorWidget->SetParent(connectionFrame->GetFrame());
-  this->CryoprobeSelectorWidget->Create();
-  this->CryoprobeSelectorWidget->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
-  // explicitly indicate that the user is not allowed to create a new linear transform node
-  this->CryoprobeSelectorWidget->SetNewNodeEnabled(0);
-  this->CryoprobeSelectorWidget->SetDefaultEnabled(0);
-  this->CryoprobeSelectorWidget->SetMRMLScene(this->GetMRMLScene());
-  this->CryoprobeSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
-  this->CryoprobeSelectorWidget->SetLabelText("Cryoprobe(s) tracker:\t\t");
-  this->CryoprobeSelectorWidget->SetBalloonHelpString("Select the tracker transform node corresponding to the cryoprobes.");
-
-  // add cryoprobe tracker selector widget
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->CryoprobeSelectorWidget->GetWidgetName());
-
-  // create a separator between selector widgets and buttons
+  // create a separator between selector widget and buttons
   this->SeparatorBeforeButtons = vtkKWSeparator::New();
   this->SeparatorBeforeButtons->SetParent(connectionFrame->GetFrame());
   this->SeparatorBeforeButtons->Create();
@@ -486,29 +458,22 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   // add separator
   this->Script("pack %s -side top -anchor nw -fill x -pady {20 2}", this->SeparatorBeforeButtons->GetWidgetName());
 
-  // create a pause button
-  this->PausePushButton = vtkKWPushButton::New();
-  this->PausePushButton->SetParent(connectionFrame->GetFrame());
-  this->PausePushButton->Create();
-  this->PausePushButton->SetText("Pause Connection");
-  this->PausePushButton->SetBalloonHelpString("Pause reception from currently stored tracker transforms.");
-
   // create a reset button
   this->ResetPushButton = vtkKWPushButton::New();
   this->ResetPushButton->SetParent(connectionFrame->GetFrame());
   this->ResetPushButton->Create();
   this->ResetPushButton->SetText("Reset Connection");
-  this->ResetPushButton->SetBalloonHelpString("Reset currently stored tracker transforms.");
+  this->ResetPushButton->SetBalloonHelpString("Reset currently selected tracker transform node.");
 
-  // add pause and reset button
-  this->Script("pack %s %s -side left -anchor nw -padx 2 -pady 2", this->PausePushButton->GetWidgetName(), this->ResetPushButton->GetWidgetName());
+  // add reset button
+  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", this->ResetPushButton->GetWidgetName());
 
   // create a configure button
   this->ConfigurePushButton = vtkKWPushButton::New();
   this->ConfigurePushButton->SetParent(connectionFrame->GetFrame());
   this->ConfigurePushButton->Create();
   this->ConfigurePushButton->SetText("Configure Connection");
-  this->ConfigurePushButton->SetBalloonHelpString("Configure connection based on chosen tracker transforms.");
+  this->ConfigurePushButton->SetBalloonHelpString("Set currently selected tracker transform node.");
 
   // add configure button
   this->Script("pack %s -side right -anchor ne -padx 2 -pady 2", this->ConfigurePushButton->GetWidgetName());
