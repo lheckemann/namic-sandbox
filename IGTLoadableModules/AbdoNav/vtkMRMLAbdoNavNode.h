@@ -54,12 +54,14 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
 
   //----------------------------------------------------------------
   // Getters and Setters for the references and data stored in this node.
-
-  // fill in
-  // vtkGetMacro(SomeValue, int);
-  // vtkSetMacro(SomeValue, int);
-  // vtkGetStringMacro(SomeVolumeRef);
-  // vtkSetStringMacro(SomeVolumeRef);
+  vtkGetStringMacro(TrackerTransformNodeID);
+  vtkSetStringMacro(TrackerTransformNodeID);
+  vtkGetStringMacro(TrackingSystemUsed);
+  vtkSetStringMacro(TrackingSystemUsed);
+  vtkGetVector3Macro(GuidanceNeedleTip, double);
+  vtkSetVector3Macro(GuidanceNeedleTip, double);
+  vtkGetVector3Macro(GuidanceNeedleSecond, double);
+  vtkSetVector3Macro(GuidanceNeedleSecond, double);
 
  protected:
   //----------------------------------------------------------------
@@ -75,10 +77,10 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
 
   //----------------------------------------------------------------
   // The specific references and data stored in this MRML node.
-
-  // fill in
-  // int SomeValue;
-  // char* SomeVolumeRef;
+  char* TrackerTransformNodeID;
+  char* TrackingSystemUsed;
+  double GuidanceNeedleTip[3];
+  double GuidanceNeedleSecond[3];
 
 };
 
