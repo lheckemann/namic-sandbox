@@ -116,13 +116,13 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 
   //----------------------------------------------------------------
   // Widgets of the registration frame.
-  vtkKWFrameWithLabel* bothPointsFrame;
-  vtkKWFrame* point1Frame;
+  vtkKWFrameWithLabel* GuidanceNeedleFrame;
+  vtkKWFrame* Point1Frame;
   vtkKWRadioButton* Point1RadioButton;
   vtkKWEntry* Point1XEntry;
   vtkKWEntry* Point1YEntry;
   vtkKWEntry* Point1ZEntry;
-  vtkKWFrame* point2Frame;
+  vtkKWFrame* Point2Frame;
   vtkKWRadioButton* Point2RadioButton;
   vtkKWEntry* Point2XEntry;
   vtkKWEntry* Point2YEntry;
