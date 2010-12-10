@@ -445,6 +445,33 @@ void vtkAbdoNavGUI::UpdateAll()
 
 
 //---------------------------------------------------------------------------
+void vtkAbdoNavGUI::UpdateMRML()
+{
+  vtkMRMLAbdoNavNode* node = this->AbdoNavNode;
+  if (node == NULL)
+    {
+    // no AbdoNav node present yet, thus create a new one
+    node = vtkMRMLAbdoNavNode::New();
+    // set an observe new node in Logic
+    this->Logic->SetAndObserveAbdoNavNode(node);
+    vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node);
+   }
+
+  // save node parameters for Undo
+  this->GetLogic()->GetMRMLScene()->SaveStateForUndo(node);
+
+  // set node parameters from GUI widgets
+  // TODO: fill in
+}
+
+
+//---------------------------------------------------------------------------
+void vtkAbdoNavGUI::UpdateGUI()
+{
+}
+
+
+//---------------------------------------------------------------------------
 void vtkAbdoNavGUI::BuildGUI()
 {
   //----------------------------------------------------------------

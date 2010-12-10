@@ -21,6 +21,7 @@
 
 /* AbdoNav includes */
 #include "vtkAbdoNavWin32Header.h"
+#include "vtkMRMLAbdoNavNode.h"
 
 /* Slicer includes */
 #include "vtkSlicerModuleLogic.h"
@@ -52,6 +53,9 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   static void DataCallback(vtkObject* caller, unsigned long eventid, void* clientData, void* callData);
   void UpdateAll(); // not implemented
 
+  vtkGetObjectMacro(AbdoNavNode, vtkMRMLAbdoNavNode);
+  void SetAndObserveAbdoNavNode(vtkMRMLAbdoNavNode* node) { vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node); }
+
  protected:
   //----------------------------------------------------------------
   // Usual VTK class functions.
@@ -66,6 +70,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
 
   //----------------------------------------------------------------
   // Logic values.
+  vtkMRMLAbdoNavNode* AbdoNavNode;
   vtkCallbackCommand* DataCallbackCommand;
 
 };
