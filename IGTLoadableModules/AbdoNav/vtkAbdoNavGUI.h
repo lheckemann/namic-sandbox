@@ -81,6 +81,9 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   static void  DataCallback(vtkObject* caller, unsigned long eventid, void* clientData, void* callData);
   void UpdateAll(); // not implemented
 
+  void UpdateMRML();
+  void UpdateGUI();
+
  protected:
   //----------------------------------------------------------------
   // Usual VTK class functions.
@@ -96,6 +99,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // Logic values.
   vtkAbdoNavLogic* Logic;
+  vtkMRMLAbdoNavNode* AbdoNavNode;
   vtkCallbackCommand* DataCallbackCommand;
   int TimerFlag;
   int TimerInterval;
