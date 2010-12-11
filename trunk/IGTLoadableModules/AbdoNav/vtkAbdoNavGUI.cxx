@@ -36,10 +36,11 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
 {
   //----------------------------------------------------------------
   // Initialize logic values.
+  this->Logic = NULL;
+  this->AbdoNavNode = NULL;
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData(reinterpret_cast<void*> (this));
   this->DataCallbackCommand->SetCallback(vtkAbdoNavGUI::DataCallback);
-
   this->TimerFlag = 0;
 
   //----------------------------------------------------------------
@@ -67,11 +68,6 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
 //---------------------------------------------------------------------------
 vtkAbdoNavGUI::~vtkAbdoNavGUI()
 {
-  if (this->DataCallbackCommand)
-    {
-    this->DataCallbackCommand->Delete();
-    }
-
   // if Logic is NULL, the class was only instatiated but never used,
   // e.g. Slicer was launched with option --ignore_module set to AbdoNav
   if (this->Logic)
@@ -80,6 +76,13 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     }
 
   this->SetModuleLogic(NULL);
+
+  vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
+
+  if (this->DataCallbackCommand)
+    {
+    this->DataCallbackCommand->Delete();
+    }
 
   //----------------------------------------------------------------
   // Connection frame.
