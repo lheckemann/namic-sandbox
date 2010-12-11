@@ -232,7 +232,10 @@ void vtkAbdoNavGUI::AddGUIObservers()
     ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()
     ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand*)this->GUICallbackCommand);
 
-  // fill in
+  //----------------------------------------------------------------
+  // Connection frame.
+  this->ResetConnectionPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->ConfigureConnectionPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
 
   this->AddLogicObservers();
 }
@@ -265,7 +268,16 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
       ->GetInteractorStyle()->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
-  // fill in
+  //----------------------------------------------------------------
+  // Connection frame.
+  if (this->ResetConnectionPushButton)
+    {
+    this->ResetConnectionPushButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->ConfigureConnectionPushButton)
+    {
+    this->ConfigureConnectionPushButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
 
   this->RemoveLogicObservers();
 }
@@ -339,7 +351,20 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     return;
     }
 
-  // fill in
+  //----------------------------------------------------------------
+  // Connection frame.
+  else if (this->ResetConnectionPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
+    {
+    this->TrackerNodeSelectorWidget->SetSelected(NULL);
+    this->TrackerNodeSelectorWidget->SetEnabled(true);
+    this->TrackerComboxBox->GetWidget()->SetValue("");
+    this->TrackerComboxBox->SetEnabled(true);
+    this->UpdateMRML();
+    }
+  else if (this->ConfigureConnectionPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
+    {
+    this->UpdateMRML();
+    }
 }
 
 
@@ -455,9 +480,12 @@ void vtkAbdoNavGUI::UpdateMRML()
     {
     // no AbdoNav node present yet, thus create a new one
     node = vtkMRMLAbdoNavNode::New();
+    this->GetMRMLScene()->AddNode(node);
     // set an observe new node in Logic
     this->Logic->SetAndObserveAbdoNavNode(node);
     vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node);
+    // TODO: should this be moved to vtkAbdoNavGUI::~vtkAbdoNavGUI() ?
+    node->Delete();
    }
 
   // save node parameters for Undo
