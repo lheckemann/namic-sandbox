@@ -28,6 +28,7 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
 {
   //----------------------------------------------------------------
   // Initialize logic values.
+  this->AbdoNavNode = NULL;
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData(reinterpret_cast<void*>(this));
   this->DataCallbackCommand->SetCallback(vtkAbdoNavLogic::DataCallback);
@@ -37,6 +38,8 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
 //---------------------------------------------------------------------------
 vtkAbdoNavLogic::~vtkAbdoNavLogic()
 {
+  vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
+
   if (this->DataCallbackCommand)
     {
     this->DataCallbackCommand->Delete();
