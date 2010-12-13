@@ -237,6 +237,11 @@ void vtkAbdoNavGUI::AddGUIObservers()
   this->ResetConnectionPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->ConfigureConnectionPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
 
+  //----------------------------------------------------------------
+  // Registration frame.
+  this->Point1RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->Point2RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+
   this->AddLogicObservers();
 }
 
@@ -277,6 +282,17 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
   if (this->ConfigureConnectionPushButton)
     {
     this->ConfigureConnectionPushButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+
+  //----------------------------------------------------------------
+  // Registration frame.
+  if (this->Point1RadioButton)
+    {
+    this->Point1RadioButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->Point2RadioButton)
+    {
+    this->Point2RadioButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
   this->RemoveLogicObservers();
@@ -364,6 +380,25 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   else if (this->ConfigureConnectionPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
     this->UpdateMRML();
+    }
+
+  //----------------------------------------------------------------
+  // Registration frame.
+  else if (this->Point1RadioButton == vtkKWRadioButton::SafeDownCast(caller) && event == vtkKWRadioButton::SelectedStateChangedEvent)
+    {
+    // only one radio button allowed to be selected at a time
+    if (this->Point1RadioButton->GetSelectedState() && this->Point2RadioButton->GetSelectedState())
+      {
+      this->Point2RadioButton->SelectedStateOff();
+      }
+    }
+  else if (this->Point2RadioButton == vtkKWRadioButton::SafeDownCast(caller) && event == vtkKWRadioButton::SelectedStateChangedEvent)
+    {
+    // only one radio button allowed to be selected at a time
+    if (this->Point1RadioButton->GetSelectedState() && this->Point2RadioButton->GetSelectedState())
+      {
+      this->Point1RadioButton->SelectedStateOff();
+      }
     }
 }
 
