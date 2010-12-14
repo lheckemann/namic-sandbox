@@ -53,13 +53,13 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Registration frame.
   this->Point1RadioButton = NULL;
-  this->Point1XEntry = NULL;
-  this->Point1YEntry = NULL;
-  this->Point1ZEntry = NULL;
+  this->Point1REntry = NULL;
+  this->Point1AEntry = NULL;
+  this->Point1SEntry = NULL;
   this->Point2RadioButton = NULL;
-  this->Point2XEntry = NULL;
-  this->Point2YEntry = NULL;
-  this->Point2ZEntry = NULL;
+  this->Point2REntry = NULL;
+  this->Point2AEntry = NULL;
+  this->Point2SEntry = NULL;
   this->ResetRegistrationPushButton = NULL;
   this->PerformRegistrationPushButton = NULL;
 }
@@ -114,40 +114,40 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->Point1RadioButton->SetParent(NULL);
     this->Point1RadioButton->Delete();
     }
-  if (this->Point1XEntry)
+  if (this->Point1REntry)
     {
-    this->Point1XEntry->SetParent(NULL);
-    this->Point1XEntry->Delete();
+    this->Point1REntry->SetParent(NULL);
+    this->Point1REntry->Delete();
     }
-  if (this->Point1YEntry)
+  if (this->Point1AEntry)
     {
-    this->Point1YEntry->SetParent(NULL);
-    this->Point1YEntry->Delete();
+    this->Point1AEntry->SetParent(NULL);
+    this->Point1AEntry->Delete();
     }
-  if (this->Point1ZEntry)
+  if (this->Point1SEntry)
     {
-    this->Point1ZEntry->SetParent(NULL);
-    this->Point1ZEntry->Delete();
+    this->Point1SEntry->SetParent(NULL);
+    this->Point1SEntry->Delete();
     }
   if (this->Point2RadioButton)
     {
     this->Point2RadioButton->SetParent(NULL);
     this->Point2RadioButton->Delete();
     }
-  if (this->Point2XEntry)
+  if (this->Point2REntry)
     {
-    this->Point2XEntry->SetParent(NULL);
-    this->Point2XEntry->Delete();
+    this->Point2REntry->SetParent(NULL);
+    this->Point2REntry->Delete();
     }
-  if (this->Point2YEntry)
+  if (this->Point2AEntry)
     {
-    this->Point2YEntry->SetParent(NULL);
-    this->Point2YEntry->Delete();
+    this->Point2AEntry->SetParent(NULL);
+    this->Point2AEntry->Delete();
     }
-  if (this->Point2ZEntry)
+  if (this->Point2SEntry)
     {
-    this->Point2ZEntry->SetParent(NULL);
-    this->Point2ZEntry->Delete();
+    this->Point2SEntry->SetParent(NULL);
+    this->Point2SEntry->Delete();
     }
   if (this->ResetRegistrationPushButton)
     {
@@ -389,15 +389,15 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
 
     if (this->Point1RadioButton->GetSelectedState())
       {
-      Point1XEntry->SetValueAsDouble(rasVec[0]);
-      Point1YEntry->SetValueAsDouble(rasVec[1]);
-      Point1ZEntry->SetValueAsDouble(rasVec[2]);
+      Point1REntry->SetValueAsDouble(rasVec[0]);
+      Point1AEntry->SetValueAsDouble(rasVec[1]);
+      Point1SEntry->SetValueAsDouble(rasVec[2]);
       }
     else if (this->Point2RadioButton->GetSelectedState())
       {
-      Point2XEntry->SetValueAsDouble(rasVec[0]);
-      Point2YEntry->SetValueAsDouble(rasVec[1]);
-      Point2ZEntry->SetValueAsDouble(rasVec[2]);
+      Point2REntry->SetValueAsDouble(rasVec[0]);
+      Point2AEntry->SetValueAsDouble(rasVec[1]);
+      Point2SEntry->SetValueAsDouble(rasVec[2]);
       }
 
     return;
@@ -730,33 +730,33 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point1RadioButton->Create();
   this->Point1RadioButton->SetText("Identify guidance needle tip:\t\t");
   // create an entry for the X position of the guidance needle tip
-  this->Point1XEntry = vtkKWEntry::New();
-  this->Point1XEntry->SetParent(Point1Frame);
-  this->Point1XEntry->Create();
-  this->Point1XEntry->SetWidth(8);
-  this->Point1XEntry->SetRestrictValueToDouble();
-  this->Point1XEntry->SetBalloonHelpString("Guidance needle tip, X position.");
+  this->Point1REntry = vtkKWEntry::New();
+  this->Point1REntry->SetParent(Point1Frame);
+  this->Point1REntry->Create();
+  this->Point1REntry->SetWidth(8);
+  this->Point1REntry->SetRestrictValueToDouble();
+  this->Point1REntry->SetBalloonHelpString("Guidance needle tip, X position.");
   // create an entry for the Y position of the guidance needle tip
-  this->Point1YEntry = vtkKWEntry::New();
-  this->Point1YEntry->SetParent(Point1Frame);
-  this->Point1YEntry->Create();
-  this->Point1YEntry->SetWidth(8);
-  this->Point1YEntry->SetRestrictValueToDouble();
-  this->Point1YEntry->SetBalloonHelpString("Guidance needle tip, Y position.");
+  this->Point1AEntry = vtkKWEntry::New();
+  this->Point1AEntry->SetParent(Point1Frame);
+  this->Point1AEntry->Create();
+  this->Point1AEntry->SetWidth(8);
+  this->Point1AEntry->SetRestrictValueToDouble();
+  this->Point1AEntry->SetBalloonHelpString("Guidance needle tip, Y position.");
   // create an entry for the Z position of the guidance needle tip
-  this->Point1ZEntry = vtkKWEntry::New();
-  this->Point1ZEntry->SetParent(Point1Frame);
-  this->Point1ZEntry->Create();
-  this->Point1ZEntry->SetWidth(8);
-  this->Point1ZEntry->SetRestrictValueToDouble();
-  this->Point1ZEntry->SetBalloonHelpString("Guidance needle tip, Z position.");
+  this->Point1SEntry = vtkKWEntry::New();
+  this->Point1SEntry->SetParent(Point1Frame);
+  this->Point1SEntry->Create();
+  this->Point1SEntry->SetWidth(8);
+  this->Point1SEntry->SetRestrictValueToDouble();
+  this->Point1SEntry->SetBalloonHelpString("Guidance needle tip, Z position.");
   // add guidance needle radio button
   this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point1RadioButton->GetWidgetName());
   // add guidance needle tip position entries
   this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
-                 this->Point1ZEntry->GetWidgetName(),
-                 this->Point1YEntry->GetWidgetName(),
-                 this->Point1XEntry->GetWidgetName());
+                 this->Point1SEntry->GetWidgetName(),
+                 this->Point1AEntry->GetWidgetName(),
+                 this->Point1REntry->GetWidgetName());
 
   // create a frame to hold the radio button and position entries for the second point on the guidance needle
   vtkKWFrame* Point2Frame = vtkKWFrame::New();
@@ -769,33 +769,33 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2RadioButton->Create();
   this->Point2RadioButton->SetText("Identify second point on needle:\t");
   // create an entry for the X position of the second point
-  this->Point2XEntry = vtkKWEntry::New();
-  this->Point2XEntry->SetParent(Point2Frame);
-  this->Point2XEntry->Create();
-  this->Point2XEntry->SetWidth(8);
-  this->Point2XEntry->SetRestrictValueToDouble();
-  this->Point2XEntry->SetBalloonHelpString("Second point on guidance needle, X position.");
+  this->Point2REntry = vtkKWEntry::New();
+  this->Point2REntry->SetParent(Point2Frame);
+  this->Point2REntry->Create();
+  this->Point2REntry->SetWidth(8);
+  this->Point2REntry->SetRestrictValueToDouble();
+  this->Point2REntry->SetBalloonHelpString("Second point on guidance needle, X position.");
   // create an entry for the Y position of the second point
-  this->Point2YEntry = vtkKWEntry::New();
-  this->Point2YEntry->SetParent(Point2Frame);
-  this->Point2YEntry->Create();
-  this->Point2YEntry->SetWidth(8);
-  this->Point2YEntry->SetRestrictValueToDouble();
-  this->Point2YEntry->SetBalloonHelpString("Second point on guidance needle, Y position.");
+  this->Point2AEntry = vtkKWEntry::New();
+  this->Point2AEntry->SetParent(Point2Frame);
+  this->Point2AEntry->Create();
+  this->Point2AEntry->SetWidth(8);
+  this->Point2AEntry->SetRestrictValueToDouble();
+  this->Point2AEntry->SetBalloonHelpString("Second point on guidance needle, Y position.");
   // create an entry for the Z position of the second point
-  this->Point2ZEntry = vtkKWEntry::New();
-  this->Point2ZEntry->SetParent(Point2Frame);
-  this->Point2ZEntry->Create();
-  this->Point2ZEntry->SetWidth(8);
-  this->Point2ZEntry->SetRestrictValueToDouble();
-  this->Point2ZEntry->SetBalloonHelpString("Second point on guidance needle, Z position.");
+  this->Point2SEntry = vtkKWEntry::New();
+  this->Point2SEntry->SetParent(Point2Frame);
+  this->Point2SEntry->Create();
+  this->Point2SEntry->SetWidth(8);
+  this->Point2SEntry->SetRestrictValueToDouble();
+  this->Point2SEntry->SetBalloonHelpString("Second point on guidance needle, Z position.");
   // add second point radio button
   this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point2RadioButton->GetWidgetName());
   // add second point position entries
   this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
-                 this->Point2ZEntry->GetWidgetName(),
-                 this->Point2YEntry->GetWidgetName(),
-                 this->Point2XEntry->GetWidgetName());
+                 this->Point2SEntry->GetWidgetName(),
+                 this->Point2AEntry->GetWidgetName(),
+                 this->Point2REntry->GetWidgetName());
 
   // create a reset registration button
   this->ResetRegistrationPushButton = vtkKWPushButton::New();
