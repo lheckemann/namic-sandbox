@@ -619,6 +619,7 @@ vtkPerkStationValidateStep
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->SetSliceOffset(
     moduleNode->GetCurrentSliceOffset() );
   
+  this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 0 );
   this->ClickNumber = 0;
   
   this->UpdateGUI();
@@ -656,6 +657,12 @@ vtkPerkStationValidateStep
     // reset local member variables to defaults
   this->ClickNumber = 0;
   this->ProcessingCallback = false;
+    // TODO: Would be better to put the fiducials in the corner of the image
+    //       where no mouse clicks are ever expected.
+  this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 0 );
+  this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 0, 0, 0, 0 );
+  this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 1, 0, 0, 0 );
+  this->GetGUI()->GetMRMLNode()->SetValidated( false );
 }
 
 
@@ -798,27 +805,24 @@ vtkPerkStationValidateStep
   
     // Fiducials on first monitor. --------------------------------------------
   
-  mrmlNode->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
   this->RemoveValidationNeedleAxis();
   
   if ( this->ClickNumber > 0  ||  mrmlNode->GetValidated() )
     {
     double point[ 3 ];
     mrmlNode->GetValidationEntryPoint( point );
-    int index = mrmlNode->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ( point[ 0 ], point[ 1 ], point[ 2 ], 0 );
-    mrmlNode->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText( index, "Entry" );
+    this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 0, point[ 0 ], point[ 1 ], point[ 2 ] );
+    this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 0, 1 );
     }
   
   if ( this->ClickNumber > 1  ||  mrmlNode->GetValidated() )
     {
     double point[ 3 ];
     mrmlNode->GetValidationTargetPoint( point );
-    int index = mrmlNode->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ( point[ 0 ], point[ 1 ], point[ 2 ], 0 );
-    mrmlNode->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText( index, "Target" );
+    this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 1, point[ 0 ], point[ 1 ], point[ 2 ] );
+    this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 1, 1 );
     this->OverlayValidationNeedleAxis();
     }
-  
-  mrmlNode->GetPlanMRMLFiducialListNode()->SetAllFiducialsVisibility( 1 );
 }
 
 

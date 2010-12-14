@@ -17,6 +17,7 @@ class vtkPerkStationSecondaryMonitor;
 
 #include "PerkStationCommon.h"
 
+#include "vtkSmartPointer.h"
 
 class vtkKWFrame;
 class vtkKWFrameWithLabel;
@@ -96,7 +97,11 @@ public:
   
   void TimerHandler();
   
-
+  //BTX
+  vtkSmartPointer< vtkMRMLFiducialListNode > TwoFiducials;
+  //ETX
+  
+  
 protected:
   
   vtkPerkStationModuleGUI();

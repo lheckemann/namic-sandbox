@@ -538,7 +538,7 @@ vtkPerkStationPlanStep
   if ( this->NumPointsSelected == 3 ) // Starting a new plan.
     {
     this->NumPointsSelected = 1;
-    this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
+    this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 0 );
     this->RemoveOverlayNeedleGuide();
     }
   
@@ -568,27 +568,16 @@ vtkPerkStationPlanStep
     {
       // record value in mrml node
     this->GetGUI()->GetMRMLNode()->SetPlanEntryPoint( ras );
-
-      // record value in mrml fiducial list node          
-    int index = this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
-                AddFiducialWithXYZ( ras[ 0 ], ras[ 1 ], ras[ 2 ], false );
-    
-    this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
-      SetNthFiducialLabelText( index, "Entry" );
+    this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 0, ras[ 0 ], ras[ 1 ], ras[ 2 ] );
+    this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 0, 1 );
     }
   else if ( this->NumPointsSelected == targetClick )
     {
       // record value in the MRML node
     this->GetGUI()->GetMRMLNode()->SetPlanTargetPoint( ras );
-  
-      // record value in mrml fiducial list node      
-    int index = this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
-      AddFiducialWithXYZ( ras[0], ras[1], ras[2], false );
-    
-    this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
-      SetNthFiducialLabelText( index, "Target" );
+    this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 1, ras[ 0 ], ras[ 1 ], ras[ 2 ] );
+    this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 1, 1 );
     }
-  
   
   
   if ( this->NumPointsSelected == 2 ) // Needle guide ready.
@@ -745,24 +734,22 @@ vtkPerkStationPlanStep
   
   
   this->NumPointsSelected = 2;
-  moduleNode->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
   this->RemoveOverlayNeedleGuide();
   
   double point[ 3 ];
   
   plan->GetEntryPointRAS( point );
-  int ind = moduleNode->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ( point[ 0 ], point[ 1 ], point[ 2 ], 0 );
-  moduleNode->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText( ind, "Entry" );
+  this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 0, point[ 0 ], point[ 1 ], point[ 2 ] );
   moduleNode->SetPlanEntryPoint( point );
   
   plan->GetTargetPointRAS( point );
-  ind = moduleNode->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ( point[ 0 ], point[ 1 ], point[ 2 ], 0 );
-  moduleNode->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText( ind, "Target" );
+  this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 1, point[ 0 ], point[ 1 ], point[ 2 ] );
   moduleNode->SetPlanTargetPoint( point );
   
+  this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 1 );
+  
   moduleNode->SetCurrentSliceOffset( point[ 2 ] );
-  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->SetSliceOffset(
-    moduleNode->GetCurrentSliceOffset() );
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->SetSliceOffset( moduleNode->GetCurrentSliceOffset() );
   this->OverlayNeedleGuide();
 }
 
@@ -938,9 +925,8 @@ vtkPerkStationPlanStep
   
     // set tilt angle back to zero
   mrmlNode->SetTiltAngle( 0 );
-    // the fiducial list node
-  mrmlNode->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
   
+  this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 0 );
   
   // reset local member variables to defaults
   this->WCEntryPoint[0] = 0.0;
@@ -1013,7 +999,7 @@ vtkPerkStationPlanStep
     if ( plan != NULL )
       {
       mrmlNode->RemovePlanAtIndex( mrmlNode->GetCurrentPlanIndex() );
-      mrmlNode->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
+      this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 0 );
       this->RemoveOverlayNeedleGuide();
       mrmlNode->SetCurrentPlanIndex( - 1 );
       this->UpdateGUI();
