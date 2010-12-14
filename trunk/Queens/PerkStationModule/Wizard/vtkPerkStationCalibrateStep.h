@@ -86,9 +86,7 @@ protected:
                                  void *clientData, void *callData );
   
   void InstallCallbacks();
-  void PopulateControls();
-  void PopulateControlsOnLoadCalibration();
-
+  
   void EnableDisableFlipComponents( bool enable );
   void EnableDisableScaleComponents( bool enable );
   

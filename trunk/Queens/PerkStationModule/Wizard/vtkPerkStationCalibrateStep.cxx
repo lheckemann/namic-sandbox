@@ -540,84 +540,17 @@ vtkPerkStationCalibrateStep
   
   this->Script( "pack %s -side top -anchor ne -padx 2 -pady 4", 
                 this->HardwareUpdateButton->GetWidgetName() );
-  
-  
-  this->PopulateControls();
 }
 
-//----------------------------------------------------------------------------
+
+
 void vtkPerkStationCalibrateStep::InstallCallbacks()
 {
   this->AddGUIObservers();
 }
 
 
-/**
- * Update UI fields with data from the MRML node.
- * Also resets the timer.
- */
-void
-vtkPerkStationCalibrateStep
-::PopulateControls()
-{
-  if (    ( ! this->GetGUI()->GetMRMLNode() )
-       || ( ! this->GetGUI()->GetSecondaryMonitor() ) )
-    {
-    PERKLOG_ERROR( "PerkStation MRML Node or SecondaryMonitor not created." );
-    return;
-    }
-  
-  
-  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
-  int ni = node->GetHardwareIndex();
-  OverlayHardware hardware = node->GetHardwareList()[ node->GetHardwareIndex() ];
-  
-    // Update UI fields.
-  
-  this->TableOverlayEntry->SetValueAsDouble( node->GetTableAtOverlay() );
-  
-  this->HardwareMenu->GetWidget()->SetValue( hardware.Name.c_str() );
-  
-  
-  // double monPhySize[ 2 ];
-  // this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize(
-  //   monPhySize[ 0 ], monPhySize[ 1 ] );
-  
-  this->MonPhySize->GetWidget( 0 )->SetValueAsDouble( hardware.SizeX );
-  this->MonPhySize->GetWidget( 1 )->SetValueAsDouble( hardware.SizeY );
-  
-  double monPixRes[ 2 ];
-  this->GetGUI()->GetSecondaryMonitor()->GetPixelResolution(
-    monPixRes[ 0 ], monPixRes[ 1 ] );
-  this->MonPixRes->GetWidget( 0 )->SetValueAsDouble( monPixRes[ 0 ] );
-  this->MonPixRes->GetWidget( 1 )->SetValueAsDouble( monPixRes[ 1 ] );
-  
-  this->GetGUI()->GetWizardWidget()->SetErrorText( "" );
-  this->GetGUI()->GetWizardWidget()->Update();
-  
-  
-  // Q: do we want to reset timer on reset of calibration?
-  this->LogTimer->StartTimer();
-}
 
-
-//----------------------------------------------------------------------------
-void
-vtkPerkStationCalibrateStep
-::PopulateControlsOnLoadCalibration()
-{
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if ( ! mrmlNode )
-    {
-    PERKLOG_ERROR( "PerkStation MRML Node not created." );
-    return;
-    }
-  
-  this->PopulateControls();
-}
-
-
-//----------------------------------------------------------------------------
 void
 vtkPerkStationCalibrateStep
 ::HorizontalFlipCallback( bool value )
@@ -631,7 +564,7 @@ vtkPerkStationCalibrateStep
 }
 
 
-//----------------------------------------------------------------------------
+
 void vtkPerkStationCalibrateStep
 ::VerticalFlipCallback( bool value )
 {
@@ -762,7 +695,7 @@ void vtkPerkStationCalibrateStep::Reset()
   this->GetGUI()->GetMRMLNode()->SetTableAtOverlay( 0.0 );
   this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation( tx );
   this->GetGUI()->GetMRMLNode()->SetSecondMonitorRotation( 0.0 );
-  this->PopulateControls();
+  this->UpdateGUI();
   
   vtkMRMLScalarVolumeNode *inVolume = mrmlNode->GetPlanningVolumeNode();
   if ( ! inVolume )
@@ -970,7 +903,6 @@ vtkPerkStationCalibrateStep
        && event == vtkKWMenu::MenuItemInvokedEvent )
     {
     this->HardwareSelected( this->HardwareMenu->GetWidget()->GetMenu()->GetIndexOfSelectedItem() );
-    
     this->HardwareMenu->SetWidth( 200 );
     }
   
@@ -1057,10 +989,7 @@ vtkPerkStationCalibrateStep
     }
   
   
-    // Update screen.
-  
   this->UpdateGUI();
-  this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
   
   this->ProcessingCallback = false;
 }
@@ -1122,17 +1051,13 @@ vtkPerkStationCalibrateStep
 }
 
 
-/**
- * Currently, hardware parameters are hardcoded into this function.
- * TODO: Read hardware parameters from an xml file.
- */
+
 void
 vtkPerkStationCalibrateStep
 ::HardwareSelected( int index )
 {
   this->SecondMonitor = index;
   this->GetGUI()->GetMRMLNode()->SetHardwareIndex( index );
-  this->PopulateControls();
 }
 
 
@@ -1148,15 +1073,9 @@ vtkPerkStationCalibrateStep
   if ( node == NULL ) return; // No MRML node, no GUI update.
   
   
-  
-  this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
-  
-  
     // Hardware calibration.
   
-  this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState( node->GetSecondMonitorHorizontalFlip() );
-  this->VerticalFlipCheckButton->GetWidget()->SetSelectedState( node->GetSecondMonitorVerticalFlip() );
-  
+  this->TableOverlayEntry->SetValueAsDouble( node->GetTableAtOverlay() );
   
   
     // Update hardware list, only if it changed.
@@ -1164,8 +1083,7 @@ vtkPerkStationCalibrateStep
   this->HardwareMenu->GetWidget()->GetMenu()->DeleteAllItems();
   std::vector< OverlayHardware > list = node->GetHardwareList();
   bool listChanged = false;
-  if ( list.size() != this->HardwareMenu->GetWidget()->GetMenu()->
-                      GetNumberOfItems() )
+  if ( list.size() != this->HardwareMenu->GetWidget()->GetMenu()->GetNumberOfItems() )
     {
     listChanged = true;
     }
@@ -1173,8 +1091,7 @@ vtkPerkStationCalibrateStep
     {
     for ( unsigned int i = 0; i < list.size(); ++ i )
       {
-      if ( strcmp( this->HardwareMenu->GetWidget()->GetMenu()->GetItemLabel( i ),
-                   list[ i ].Name.c_str() ) != 0 )
+      if ( strcmp( this->HardwareMenu->GetWidget()->GetMenu()->GetItemLabel( i ), list[ i ].Name.c_str() ) != 0 )
         {
         listChanged = true;
         }
@@ -1188,6 +1105,28 @@ vtkPerkStationCalibrateStep
       this->HardwareMenu->GetWidget()->GetMenu()->AddRadioButton( list[ i ].Name.c_str() );
       }
     }
+  
+  
+    // Update hadware calibration fields.
+  
+  OverlayHardware hardware = node->GetHardwareList()[ node->GetHardwareIndex() ];
+  
+  this->HardwareMenu->GetWidget()->SetValue( hardware.Name.c_str() );
+  
+  this->MonPhySize->GetWidget( 0 )->SetValueAsDouble( hardware.SizeX );
+  this->MonPhySize->GetWidget( 1 )->SetValueAsDouble( hardware.SizeY );
+  
+  double monPixRes[ 2 ];
+  this->GetGUI()->GetSecondaryMonitor()->GetPixelResolution( monPixRes[ 0 ], monPixRes[ 1 ] );
+  this->MonPixRes->GetWidget( 0 )->SetValueAsDouble( monPixRes[ 0 ] );
+  this->MonPixRes->GetWidget( 1 )->SetValueAsDouble( monPixRes[ 1 ] );
+  
+    // This relates to the calibration, and not the hardware.
+    // Flipping of hardwares is read-only.
+  
+  this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState( node->GetSecondMonitorHorizontalFlip() );
+  this->VerticalFlipCheckButton->GetWidget()->SetSelectedState( node->GetSecondMonitorVerticalFlip() );
+  
   
     // Update calibration list.
   
@@ -1240,11 +1179,14 @@ vtkPerkStationCalibrateStep
       colList->SetCellText( row, CALIBRATION_COL_RO, DoubleToString( cal->SecondMonitorRotation ).c_str() );
       colList->SetCellText( row, CALIBRATION_COL_FV, BoolToString( cal->SecondMonitorVerticalFlip ).c_str() );
       colList->SetCellText( row, CALIBRATION_COL_FH, BoolToString( cal->SecondMonitorHorizontalFlip ).c_str() );
-      } // for ( int row = 0; row < numPlans; ++ row )
+      }  // for ( int row = 0; row < numPlans; ++ row )
     
     this->CalibrationList->GetWidget()->SelectRow( node->GetCurrentCalibration() );
     }
   
-  this->PopulateControls();
+  this->GetGUI()->GetWizardWidget()->SetErrorText( "" );
+  this->GetGUI()->GetWizardWidget()->Update();
+  
+  this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
 }
 
