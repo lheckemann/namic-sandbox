@@ -424,11 +424,10 @@ vtkMRMLPerkStationModuleNode
     of << this->CalibrationList[ calInd ]->SecondMonitorRotationCenter[ 0 ] << " ";
     of << this->CalibrationList[ calInd ]->SecondMonitorRotationCenter[ 1 ] << "\"";
     of << std::endl;
-    
-    of << indent << "Calibration" << calInd << "_TableAtOverlay=\""
-       << this->TableAtOverlay << "\"" << std::endl;
     }
   
+  of << indent << "TableAtOverlay=\"" << this->TableAtOverlay << "\"" << std::endl;
+    
     // Plan list.
   
   of << indent << "CurrentPlanIndex=\"" << this->CurrentPlanIndex << "\"" << std::endl;
@@ -531,10 +530,12 @@ vtkMRMLPerkStationModuleNode
         calib->SecondMonitorRotationCenter[ 0 ] = rc[ 0 ];
         calib->SecondMonitorRotationCenter[ 1 ] = rc[ 1 ];
         }
-      else if ( ! sectionName.compare( "TableAtOverlay" ) ) {
-        this->TableAtOverlay = StringToDouble( std::string( attValue ) );
-        }
       }
+    
+    if ( ! strcmp( attName, "TableAtOverlay" ) ) {
+      StringToDouble( std::string( attValue ), this->TableAtOverlay );
+      }
+    
     
       // Plan list.
     
