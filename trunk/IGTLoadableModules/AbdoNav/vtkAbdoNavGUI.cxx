@@ -754,9 +754,9 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point1RadioButton->GetWidgetName());
   // add guidance needle tip position entries
   this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
-                 this->Point1XEntry->GetWidgetName(),
+                 this->Point1ZEntry->GetWidgetName(),
                  this->Point1YEntry->GetWidgetName(),
-                 this->Point1ZEntry->GetWidgetName());
+                 this->Point1XEntry->GetWidgetName());
 
   // create a frame to hold the radio button and position entries for the second point on the guidance needle
   vtkKWFrame* Point2Frame = vtkKWFrame::New();
@@ -793,9 +793,9 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point2RadioButton->GetWidgetName());
   // add second point position entries
   this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
-                 this->Point2XEntry->GetWidgetName(),
+                 this->Point2ZEntry->GetWidgetName(),
                  this->Point2YEntry->GetWidgetName(),
-                 this->Point2ZEntry->GetWidgetName());
+                 this->Point2XEntry->GetWidgetName());
 
   // create a reset registration button
   this->ResetRegistrationPushButton = vtkKWPushButton::New();
