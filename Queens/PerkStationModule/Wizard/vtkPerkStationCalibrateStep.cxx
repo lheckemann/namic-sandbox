@@ -501,6 +501,7 @@ vtkPerkStationCalibrateStep
     this->MonPixRes->SetPackHorizontally( 1 );
     this->MonPixRes->SetWidgetsInternalPadX( 2 );  
     this->MonPixRes->SetMaximumNumberOfWidgetsInPackingDirection( 2 );
+    this->MonPixRes->SetEnabled( false );
     
     for ( int id = 0; id < 2; id++ ) // two entries of monitor size (x, y)
       {
@@ -529,12 +530,14 @@ vtkPerkStationCalibrateStep
                 this->MonPhySizeLabel->GetWidgetName() );
   this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
                 this->MonPhySize->GetWidgetName() );
+  
   this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                 this->MonPixResFrame->GetWidgetName() );
   this->Script( "pack %s -side left -anchor nw -padx 6 -pady 2", 
                 this->MonPixResLabel->GetWidgetName() );
   this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
                 this->MonPixRes->GetWidgetName() );
+  
   this->Script( "pack %s -side top -anchor ne -padx 2 -pady 4", 
                 this->HardwareUpdateButton->GetWidgetName() );
   
@@ -649,36 +652,29 @@ void vtkPerkStationCalibrateStep
 void vtkPerkStationCalibrateStep::UpdateAutoScaleCallback()
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if ( ! mrmlNode ) return;
   
   vtkMRMLScalarVolumeNode *inVolume = mrmlNode->GetPlanningVolumeNode();
   if ( ! inVolume )
     {
-    // TO DO: what to do on failure
+    vtkErrorMacro( "Cannot do calibration without a planning volume." );
     return;
     }
-   
+  
+  
   
   double mmX = this->MonPhySize->GetWidget( 0 )->GetValueAsDouble();
   double mmY = this->MonPhySize->GetWidget( 1 )->GetValueAsDouble();
-
+  mrmlNode->UpdateHardwareCalibration( mmX, mmY );
+  
   double pixX = this->MonPixRes->GetWidget( 0 )->GetValueAsDouble();
   double pixY = this->MonPixRes->GetWidget( 1 )->GetValueAsDouble();
-
+  // TODO: Use these values, instead of the ones read from system.
+  
     // set the values in secondary monitor
-  this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize( mmX, mmY );
   this->GetGUI()->GetSecondaryMonitor()->SetPixelResolution( pixX, pixY );
   
   
-  // calculate new scaling
-  // note updating monitor physical size in previous lines of code,
-  // will automatically update correct monitor spacing
-  
-  double monSpacing[ 2 ];
-  this->GetGUI()->GetSecondaryMonitor()->GetMonitorSpacing(
-    monSpacing[ 0 ], monSpacing[ 1 ] );
-    
-  double imgSpacing[ 3 ];
-  inVolume->GetSpacing( imgSpacing );
 }
 
 
@@ -980,6 +976,7 @@ vtkPerkStationCalibrateStep
     this->HardwareSelected( this->HardwareMenu->GetWidget()->GetMenu()->GetIndexOfSelectedItem() );
     
     this->HardwareMenu->SetWidth( 200 );
+    this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
     }
   
   
@@ -990,6 +987,7 @@ vtkPerkStationCalibrateStep
        && ( event == vtkKWPushButton::InvokedEvent ) )
     {
     this->UpdateAutoScaleCallback();
+    this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
     }
   
   
@@ -1136,14 +1134,7 @@ vtkPerkStationCalibrateStep
 ::HardwareSelected( int index )
 {
   this->SecondMonitor = index;
-  
   this->GetGUI()->GetMRMLNode()->SetHardwareIndex( index );
-  
-  this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize(
-          this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].SizeX,
-          this->GetGUI()->GetMRMLNode()->GetHardwareList()[ index ].SizeY );
-  
-  
   this->PopulateControls();
 }
 

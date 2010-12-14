@@ -76,8 +76,8 @@ public:
   
   
   void GetMonitorSpacing( double & xSpacing, double & ySpacing ) {
-    xSpacing = this->MonitorPhysicalSizeMM[ 0 ] / this->MonitorPixelResolution[ 0 ];
-    ySpacing = this->MonitorPhysicalSizeMM[ 1 ] / this->MonitorPixelResolution[ 1 ];
+    xSpacing = this->Scale[ 0 ];
+    ySpacing = this->Scale[ 1 ];
   };
   
   
@@ -89,18 +89,6 @@ public:
   void SetVirtualScreenCoord( int left, int top ) {
     this->VirtualScreenCoord[ 0 ] = left;
     this->VirtualScreenCoord[ 1 ] = top;
-  };
-  
-  
-  void GetPhysicalSize( double & mmX, double & mmY ) {
-    mmX = this->MonitorPhysicalSizeMM[ 0 ];
-    mmY = this->MonitorPhysicalSizeMM[ 1 ];
-  };
-  
-  void SetPhysicalSize( double mmX, double mmY ) {
-    this->MonitorPhysicalSizeMM[ 0 ] = mmX;
-    this->MonitorPhysicalSizeMM[ 1 ] = mmY;
-    this->UpdateImageDisplay();
   };
   
   
@@ -212,8 +200,7 @@ protected:
   bool DeviceActive;
   bool DisplayInitialized;
   
-  double MonitorPixelResolution[ 2 ];
-  double MonitorPhysicalSizeMM[ 2 ];  
+  double MonitorPixelResolution[ 2 ]; 
   int VirtualScreenCoord[ 2 ];
   int ScreenSize[ 3 ]; // Number of pixels on the monitor.
   int ImageSize[ 3 ]; // Number of pixels on image slices, num of slices.
@@ -242,8 +229,6 @@ private:
   
     // Image geometry.
 
-private:
-  
   //BTX
   vtkSmartPointer< vtkTransform > XYToRAS();
   vtkSmartPointer< vtkTransform > XYToIJK();

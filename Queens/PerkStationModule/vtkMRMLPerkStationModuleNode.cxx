@@ -850,6 +850,26 @@ vtkMRMLPerkStationModuleNode
 
 
 
+void
+vtkMRMLPerkStationModuleNode
+::UpdateHardwareCalibration( double mmX, double mmY )
+{
+  this->HardwareList[ this->HardwareIndex ].SizeX = mmX;
+  this->HardwareList[ this->HardwareIndex ].SizeY = mmY;
+}
+
+
+
+void
+vtkMRMLPerkStationModuleNode
+::GetSecondMonitorPhysicalSize( double* mm ) const
+{
+  mm[ 0 ] = this->HardwareList[ this->HardwareIndex ].SizeX;
+  mm[ 1 ] = this->HardwareList[ this->HardwareIndex ].SizeY;
+}
+
+
+
 unsigned int
 vtkMRMLPerkStationModuleNode
 ::AddCalibration( OverlayCalibration* newCalibration )
