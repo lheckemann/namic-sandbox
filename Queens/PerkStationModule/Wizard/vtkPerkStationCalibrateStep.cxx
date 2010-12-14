@@ -626,9 +626,7 @@ vtkPerkStationCalibrateStep
 
   if ( mrmlNode && this->GetGUI()->GetSecondaryMonitor() )
     {
-    this->GetGUI()->GetMRMLNode()->SetSecondMonitorHorizontalFlip( (bool)value );
-    this->UpdateGUI();
-    this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
+    mrmlNode->SetSecondMonitorHorizontalFlip( (bool)value );
     }
 }
 
@@ -642,8 +640,6 @@ void vtkPerkStationCalibrateStep
   if ( mrmlNode && this->GetGUI()->GetSecondaryMonitor() )
     {
     this->GetGUI()->GetMRMLNode()->SetSecondMonitorVerticalFlip( (bool)value );
-    this->UpdateGUI();
-    this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
     }
 }
 
@@ -976,7 +972,6 @@ vtkPerkStationCalibrateStep
     this->HardwareSelected( this->HardwareMenu->GetWidget()->GetMenu()->GetIndexOfSelectedItem() );
     
     this->HardwareMenu->SetWidth( 200 );
-    this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
     }
   
   
@@ -987,7 +982,6 @@ vtkPerkStationCalibrateStep
        && ( event == vtkKWPushButton::InvokedEvent ) )
     {
     this->UpdateAutoScaleCallback();
-    this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
     }
   
   
@@ -1014,7 +1008,6 @@ vtkPerkStationCalibrateStep
       newCal->Name = ss.str();
     int index = mrmlNode->AddCalibration( newCal );
     mrmlNode->SetCurrentCalibrationIndex( index );
-    this->UpdateGUI();
     }
   
   if (    this->DeleteButton == vtkKWPushButton::SafeDownCast( caller )
@@ -1032,7 +1025,6 @@ vtkPerkStationCalibrateStep
         {
         mrmlNode->SetCurrentCalibrationIndex( -1 );
         }
-      this->UpdateGUI();
       }
     }
   
@@ -1063,7 +1055,12 @@ vtkPerkStationCalibrateStep
     {
     this->HorizontalFlipCallback( bool( this->HorizontalFlipCheckButton->GetWidget()->GetSelectedState() ) );
     }
-
+  
+  
+    // Update screen.
+  
+  this->UpdateGUI();
+  this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
   
   this->ProcessingCallback = false;
 }
