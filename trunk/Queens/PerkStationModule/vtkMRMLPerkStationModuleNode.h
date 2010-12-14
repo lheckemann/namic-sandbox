@@ -153,6 +153,9 @@ public:
   vtkGetMacro( HardwareIndex, int );
   vtkSetMacro( HardwareIndex, int );
   
+  void UpdateHardwareCalibration( double mmX, double mmY );
+  void GetSecondMonitorPhysicalSize( double* mm ) const;
+  
     // Calibration list management.
   
   unsigned int AddCalibration( OverlayCalibration* newCalibration );
@@ -341,14 +344,16 @@ protected:
   // void InitializeFiducialListNode();
   
   
-  // Calibration parameters ---------------------------------------------------
+    // Calibration parameters -------------------------------------------------
   
   std::vector< OverlayCalibration* > CalibrationList;
   int CurrentCalibration; // If <0, no calibration is selected.
   unsigned int CalibrationUID;
   
-  int HardwareIndex;
   double TableAtOverlay;
+  
+  std::vector< OverlayHardware > HardwareList;
+  int HardwareIndex;
   
   
     // Plan parameters --------------------------------------------------------
@@ -396,8 +401,6 @@ protected:
   
   int CurrentStep;
   int PreviousStep;
-  
-  std::vector< OverlayHardware > HardwareList;
   
   
     // keep track of all the volumes that were opened, maintain a list

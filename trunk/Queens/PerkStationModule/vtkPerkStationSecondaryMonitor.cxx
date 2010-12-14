@@ -78,12 +78,6 @@ vtkPerkStationSecondaryMonitor
   this->DepthLinesInitialized = false;
   this->NumOfDepthPerceptionLines = 0;
   
-    // these values should be read in from a config file
-    // the values below have been measure for 
-    // Viewsonic monitor VA503b
-  this->MonitorPhysicalSizeMM[ 0 ] = 304.8;
-  this->MonitorPhysicalSizeMM[ 1 ] = 228.6;
-
   this->MonitorPixelResolution[ 0 ] = 1024;
   this->MonitorPixelResolution[ 1 ] = 768;
 
@@ -386,9 +380,13 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   double spacing[ 3 ];
   this->VolumeNode->GetSpacing( spacing ); // mm between pixels
   
+  double MonitorPhysicalSizeMM[ 2 ];
+  mrmlNode->GetSecondMonitorPhysicalSize( MonitorPhysicalSizeMM );
+  
     // pixel / mm.
-  double s0 = this->MonitorPhysicalSizeMM[ 0 ] / this->ScreenSize[ 0 ];
-  double s1 = this->MonitorPhysicalSizeMM[ 1 ] / this->ScreenSize[ 1 ];
+  double s0 = MonitorPhysicalSizeMM[ 0 ] / this->ScreenSize[ 0 ];
+  double s1 = MonitorPhysicalSizeMM[ 1 ] / this->ScreenSize[ 1 ];
+  
     // These values will be placed in the reslice transform matrix.
   this->Scale[ 0 ] = s0;
   this->Scale[ 1 ] = s1;
@@ -882,8 +880,6 @@ void vtkPerkStationSecondaryMonitor::Initialize()
   
   if ( this->NumberOfMonitors != 2 )
     {
-    // this->MonitorPhysicalSizeMM[ 0 ] = 160;
-    // this->MonitorPhysicalSizeMM[ 1 ] = 120;
     this->MonitorPixelResolution[ 0 ] = 1024;
     this->MonitorPixelResolution[ 1 ] = 768;
     this->DeviceActive = true;
@@ -918,13 +914,12 @@ void vtkPerkStationSecondaryMonitor::Initialize()
           // information about the monitor
         double width_mm = GetDeviceCaps( hdc, HORZSIZE );
         double height_mm = GetDeviceCaps( hdc, VERTSIZE );
+          // TODO: Compare physical size with calibration, maybe give warning on difference.
         double width_pix = GetDeviceCaps( hdc, HORZRES );
         double height_pix = GetDeviceCaps( hdc, VERTRES );
         
         if ( ! ( lpDisplayDevice.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE ) )
           {
-          this->MonitorPhysicalSizeMM[ 0 ] = width_mm;
-          this->MonitorPhysicalSizeMM[ 1 ] = height_mm;
           this->MonitorPixelResolution[ 0 ] = width_pix;
           this->MonitorPixelResolution[ 1 ] = height_pix;
           this->DeviceActive = true;
