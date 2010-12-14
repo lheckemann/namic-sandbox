@@ -359,11 +359,47 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   //----------------------------------------------------------------
 
   // react to mouse events observed in one of the slice views
-  const char* eventName = vtkCommand::GetStringFromEventId(event);
-  if (strcmp(eventName, "LeftButtonPressEvent") == 0)
+  vtkSlicerInteractorStyle* style = vtkSlicerInteractorStyle::SafeDownCast(caller);
+  if (style != NULL && event == vtkCommand::LeftButtonPressEvent)
     {
-    vtkSlicerInteractorStyle* style = vtkSlicerInteractorStyle::SafeDownCast(caller);
-    HandleMouseEvent(style);
+    vtkSlicerSliceGUI* sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI("Red");
+    vtkRenderWindowInteractor* rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
+
+    int index = 0;
+    while (style != rwi->GetInteractorStyle() && index < 2)
+      {
+      index++;
+      if (index == 1)
+        {
+        sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI("Yellow");
+        }
+      else
+        {
+        sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI("Green");
+        }
+      rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
+      }
+
+    int xyPos[2];
+    rwi->GetLastEventPosition(xyPos);
+    double xyVec[4] = {xyPos[0], xyPos[1], 0, 1};
+    double rasVec[4];
+    vtkMatrix4x4* matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+    matrix->MultiplyPoint(xyVec, rasVec);
+
+    if (this->Point1RadioButton->GetSelectedState())
+      {
+      Point1XEntry->SetValueAsDouble(rasVec[0]);
+      Point1YEntry->SetValueAsDouble(rasVec[1]);
+      Point1ZEntry->SetValueAsDouble(rasVec[2]);
+      }
+    else if (this->Point2RadioButton->GetSelectedState())
+      {
+      Point2XEntry->SetValueAsDouble(rasVec[0]);
+      Point2YEntry->SetValueAsDouble(rasVec[1]);
+      Point2ZEntry->SetValueAsDouble(rasVec[2]);
+      }
+
     return;
     }
 
