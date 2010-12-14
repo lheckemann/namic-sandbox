@@ -227,19 +227,17 @@ vtkPerkStationInsertStep
   moduleNode->SetCurrentPlanIndex( rowIndex );
   
   
-  moduleNode->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
-  
   double point[ 3 ];
   
   plan->GetEntryPointRAS( point );
-  int ind = moduleNode->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ( point[ 0 ], point[ 1 ], point[ 2 ], 0 );
-  moduleNode->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText( ind, "Entry" );
   moduleNode->SetPlanEntryPoint( point );
+  this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 0, point[ 0 ], point[ 1 ], point[ 2 ] );
+  this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 0, 1 );
   
   plan->GetTargetPointRAS( point );
-  ind = moduleNode->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ( point[ 0 ], point[ 1 ], point[ 2 ], 0 );
-  moduleNode->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText( ind, "Target" );
   moduleNode->SetPlanTargetPoint( point );
+  this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 1, point[ 0 ], point[ 1 ], point[ 2 ] );
+  this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 1, 1 );
   
   moduleNode->SetCurrentSliceOffset( point[ 2 ] );
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->SetSliceOffset(

@@ -285,11 +285,11 @@ public:
   
   
     // Non loadable parameters.
-  
+  /*
   vtkMRMLFiducialListNode* GetPlanMRMLFiducialListNode() {
     return this->PlanMRMLFiducialListNode.GetPointer();
   }
-  
+  */
   
   vtkMRMLScalarVolumeNode* GetActiveVolumeNode();
   
@@ -338,7 +338,7 @@ protected:
   vtkMRMLPerkStationModuleNode( const vtkMRMLPerkStationModuleNode& );
   void operator=( const vtkMRMLPerkStationModuleNode& );
   
-  void InitializeFiducialListNode();
+  // void InitializeFiducialListNode();
   
   
   // Calibration parameters ---------------------------------------------------
@@ -390,7 +390,7 @@ protected:
   double TimeOnInsertStep;
   double TimeOnValidateStep;
   
-  vtkSmartPointer< vtkMRMLFiducialListNode > PlanMRMLFiducialListNode;
+  // vtkSmartPointer< vtkMRMLFiducialListNode > PlanMRMLFiducialListNode;
   
   vtkSmartPointer< vtkStringArray > StepList;
   

@@ -336,7 +336,7 @@ vtkMRMLPerkStationModuleNode
   this->TimeOnValidateStep  = 0.0;
   
   
-  this->InitializeFiducialListNode();
+  // this->InitializeFiducialListNode();
   
     
     // Synchronize it with enum WORKPHASE...
@@ -806,12 +806,11 @@ void vtkMRMLPerkStationModuleNode::UpdateReferenceID( const char *oldID, const c
 }
 
 
-
+/*
 void
 vtkMRMLPerkStationModuleNode
 ::InitializeFiducialListNode()
 {
-  // vtkMRMLScene* scene = th
   this->PlanMRMLFiducialListNode = vtkSmartPointer< vtkMRMLFiducialListNode >::New();
   
   this->PlanMRMLFiducialListNode->SetName( "PerkStationFiducialList" );
@@ -825,7 +824,7 @@ vtkMRMLPerkStationModuleNode
   this->PlanMRMLFiducialListNode->SetTextScale( 8 );
   this->PlanMRMLFiducialListNode->SetSaveWithScene( 0 );
 }
-
+*/
 
 
 vtkMRMLScalarVolumeNode*

@@ -135,6 +135,20 @@ vtkPerkStationModuleGUI
   this->SecondaryMonitor->Initialize();
   
   
+    // Fiducial list, which always has two fiducials. Used by multiple steps.
+  
+  this->TwoFiducials = vtkSmartPointer< vtkMRMLFiducialListNode >::New();
+  this->TwoFiducials->SetName( "PerkStationFiducialList" );
+  this->TwoFiducials->SetDescription( "Created by PERK Station Module" );
+  this->TwoFiducials->SetColor( 0.5, 1, 0.5 );
+  this->TwoFiducials->SetGlyphType( vtkMRMLFiducialListNode::Diamond3D );
+  this->TwoFiducials->SetOpacity( 0.7 );
+  this->TwoFiducials->SetAllFiducialsVisibility( true );
+  this->TwoFiducials->SetSymbolScale( 6 );
+  this->TwoFiducials->SetTextScale( 8 );
+  this->TwoFiducials->SetSaveWithScene( 0 );
+  
+  
     // Initial state.
   
   this->State = vtkPerkStationModuleGUI::Calibrate;  
@@ -262,6 +276,8 @@ vtkPerkStationModuleGUI
   
   this->AddGUIObservers();
   this->AddMRMLObservers();
+  
+  
   this->UpdateGUI();
 }
 
@@ -510,7 +526,7 @@ vtkPerkStationModuleGUI
     this->SetMRMLNode( node );
     this->Logic->SetAndObservePerkStationModuleNode( node );
     this->SecondaryMonitor->SetPSNode( node );
-    this->GetLogic()->GetMRMLScene()->AddNode( this->MRMLNode->GetPlanMRMLFiducialListNode() );
+    this->GetLogic()->GetMRMLScene()->AddNode( this->TwoFiducials );
     this->UpdateGUI();
     
     return;
@@ -775,7 +791,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
     // add MRMLFiducialListNode to the scene
     
     this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
-    this->GetLogic()->GetMRMLScene()->AddNode( this->MRMLNode->GetPlanMRMLFiducialListNode() );
+    // this->GetLogic()->GetMRMLScene()->AddNode( this->MRMLNode->GetPlanMRMLFiducialListNode() );
     
     
     // add listener to the slice logic, so that any time user makes change
@@ -1649,6 +1665,19 @@ int
 vtkPerkStationModuleGUI
 ::ChangeWorkphase( int phase )
 {
+  
+  int nf = this->TwoFiducials->GetNumberOfFiducials();
+  if ( nf != 2 )
+    {
+    this->TwoFiducials->RemoveAllFiducials();
+    this->TwoFiducials->AddFiducialWithXYZ( 0, 0, 0, 0 );
+    this->TwoFiducials->AddFiducialWithXYZ( 0, 0, 0, 0 );
+    this->TwoFiducials->SetNthFiducialLabelText( 0, "Entry" );
+    this->TwoFiducials->SetNthFiducialLabelText( 1, "Target" );
+    }
+  this->TwoFiducials->SetAllFiducialsVisibility( 0 );
+  
+  
   if ( ! this->MRMLNode->SwitchStep( phase ) ) // Set next phase
     {
     cerr << "ChangeWorkphase: Cannot transition!" << endl;
@@ -1730,7 +1759,7 @@ vtkPerkStationModuleGUI
   
   if ( phase == this->Calibrate )
     {
-    this->MRMLNode->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
+    this->TwoFiducials->SetAllFiducialsVisibility( 0 );
     }
     
   
