@@ -583,10 +583,14 @@ vtkPerkStationSecondaryMonitor
 
 
 
-void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
+/**
+ * This function controls what appears on the sencond monitor screen.
+ */
+void
+vtkPerkStationSecondaryMonitor
+::UpdateImageDisplay()
 {
   if ( ! this->GetGUI()->GetMRMLNode() ) return;
-  
   if ( ! this->DisplayInitialized ) return;
   
   
@@ -633,10 +637,8 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     this->ShowDepthPerceptionLines( true );
     this->MeasureDigitsActor->SetVisibility( 1 );
     
-    if ( this->PSNode->GetFinalHorizontalFlip() )
-      this->MeasureDigitsActor->FlipAroundY( true );
-    else
-      this->MeasureDigitsActor->FlipAroundY( false );
+    if ( this->PSNode->GetFinalHorizontalFlip() ) this->MeasureDigitsActor->FlipAroundY( true );
+    else this->MeasureDigitsActor->FlipAroundY( false );
     }
   else
     {
@@ -720,8 +722,6 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
 
   if (    this->PSNode->GetFinalVerticalFlip() )
     {
-    Lup = ! Lup;
-    Rup = ! Lup;
     this->LeftSideActor->FlipAroundX( true );
     this->RightSideActor->FlipAroundX( true );
     this->CalibrationControlsActor->FlipAroundX( true );
@@ -741,16 +741,15 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
     // Position the actors.
   
   this->LeftSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ], this->UpperLeftCorner[ 1 ] );
-  if ( ! Lleft && Lup )
-    this->LeftSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ], this->UpperRightCorner[ 1 ] );
-  if ( Lleft && ! Lup )
-    this->LeftSideActor->SetDisplayPosition( this->LowerLeftCorner[ 0 ], this->LowerLeftCorner[ 1 ] );
+  if ( ! Lleft && Lup ) this->LeftSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ], this->UpperRightCorner[ 1 ] );
+  if ( ! Lleft && ! Lup ) this->LeftSideActor->SetDisplayPosition( this->LowerRightCorner[ 0 ], this->LowerRightCorner[ 1 ] );
+  if ( Lleft && ! Lup ) this->LeftSideActor->SetDisplayPosition( this->LowerLeftCorner[ 0 ], this->LowerLeftCorner[ 1 ] );
+  
   
   this->RightSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ], this->UpperLeftCorner[ 1 ] );
-  if ( ! Rleft && Rup )
-    this->RightSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ], this->UpperRightCorner[ 1 ] );
-  if ( Rleft && ! Rup )
-    this->RightSideActor->SetDisplayPosition( this->LowerLeftCorner[ 0 ], this->LowerLeftCorner[ 1 ] );
+  if ( ! Rleft && Rup ) this->RightSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ], this->UpperRightCorner[ 1 ] );
+  if ( ! Rleft && ! Rup ) this->RightSideActor->SetDisplayPosition( this->LowerRightCorner[ 0 ], this->LowerRightCorner[ 1 ] );
+  if ( Rleft && ! Rup ) this->RightSideActor->SetDisplayPosition( this->LowerLeftCorner[ 0 ], this->LowerLeftCorner[ 1 ] );
   
   
     // Extract slice from the image volume. -------------------------------
@@ -1566,6 +1565,12 @@ vtkPerkStationSecondaryMonitor
   
   this->UpperRightCorner[ 0 ] = this->ScreenSize[ 0 ] - 50;
   this->UpperRightCorner[ 1 ] = this->ScreenSize[ 1 ] - 50;
+  
+  this->LowerLeftCorner[ 0 ] = 40;
+  this->LowerLeftCorner[ 1 ] = 50;
+  
+  this->LowerRightCorner[ 0 ] = this->ScreenSize[ 0 ] - 50;
+  this->LowerRightCorner[ 1 ] = 50;
 }
 
 
