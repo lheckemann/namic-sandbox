@@ -552,39 +552,6 @@ void vtkAbdoNavGUI::ProcessTimerEvents()
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle* style)
-{
-  //----------------------------------------------------------------
-  // React to mouse events observed in one of the slice views. Currently not used.
-  //----------------------------------------------------------------
-
-  vtkSlicerApplicationGUI* appGUI = this->GetApplicationGUI();
-  vtkSlicerInteractorStyle* istyle0 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Red")
-      ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle* istyle1 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Yellow")
-      ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle* istyle2 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Green")
-      ->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-
-  vtkCornerAnnotation* anno = NULL;
-  if (style == istyle0)
-    {
-    anno = appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
-    }
-  else if (style == istyle1)
-    {
-    anno = appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
-    }
-  else if (style == istyle2)
-    {
-    anno = appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
-    }
-
-  // change slice sliew corner annotation here
-}
-
-
-//---------------------------------------------------------------------------
 void vtkAbdoNavGUI::DataCallback(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eventid), void* clientData, void* vtkNotUsed(callData))
 {
   //----------------------------------------------------------------
