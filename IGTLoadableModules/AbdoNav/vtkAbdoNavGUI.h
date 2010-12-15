@@ -78,7 +78,6 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   virtual void ProcessLogicEvents(vtkObject* caller, unsigned long event, void* callData);
   virtual void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
   void ProcessTimerEvents();
-  void HandleMouseEvent(vtkSlicerInteractorStyle* style);
   static void  DataCallback(vtkObject* caller, unsigned long eventid, void* clientData, void* callData);
   void UpdateAll(); // not implemented
 
