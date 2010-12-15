@@ -82,8 +82,8 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   //----------------------------------------------------------------
   // Usual VTK class functions.
   //----------------------------------------------------------------
-  vtkMRMLAbdoNavNode(const vtkMRMLAbdoNavNode&);
-  void operator=(const vtkMRMLAbdoNavNode&);
+  vtkMRMLAbdoNavNode(const vtkMRMLAbdoNavNode&); // not implemented
+  void operator=(const vtkMRMLAbdoNavNode&);     // not implemented
 
   //----------------------------------------------------------------
   // The specific references and data stored in this MRML node.
