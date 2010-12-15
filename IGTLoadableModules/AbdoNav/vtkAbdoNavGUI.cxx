@@ -39,6 +39,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
 {
   //----------------------------------------------------------------
   // Initialize logic values.
+  //----------------------------------------------------------------
   this->Logic = NULL;
   this->AbdoNavNode = NULL;
   this->DataCallbackCommand = vtkCallbackCommand::New();
@@ -48,6 +49,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
 
   //----------------------------------------------------------------
   // Connection frame.
+  //----------------------------------------------------------------
   this->TrackerNodeSelectorWidget = NULL;
   this->TrackerComboxBox = NULL;
   this->ResetConnectionPushButton = NULL;
@@ -55,6 +57,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
 
   //----------------------------------------------------------------
   // Registration frame.
+  //----------------------------------------------------------------
   this->Point1RadioButton = NULL;
   this->Point1REntry = NULL;
   this->Point1AEntry = NULL;
@@ -68,6 +71,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
 
   //----------------------------------------------------------------
   // Navigation frame.
+  //----------------------------------------------------------------
   this->ShowLocatorCheckButton = NULL;
   this->FreezeLocatorCheckButton = NULL;
   this->ShowCrosshairCheckButton = NULL;
@@ -83,13 +87,15 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
 //---------------------------------------------------------------------------
 vtkAbdoNavGUI::~vtkAbdoNavGUI()
 {
-  // if Logic is NULL, the class was only instatiated but never used,
+  //----------------------------------------------------------------
+  // Cleanup logic values.
+  //----------------------------------------------------------------
+  // if Logic is NULL, the class was only instantiated but never used,
   // e.g. Slicer was launched with option --ignore_module set to AbdoNav
   if (this->Logic)
     {
     this->RemoveGUIObservers();
     }
-
   this->SetModuleLogic(NULL);
 
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
@@ -101,6 +107,7 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
 
   //----------------------------------------------------------------
   // Connection frame.
+  //----------------------------------------------------------------
   if (this->TrackerNodeSelectorWidget)
     {
     this->TrackerNodeSelectorWidget->SetParent(NULL);
@@ -124,6 +131,7 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
 
   //----------------------------------------------------------------
   // Registration frame.
+  //----------------------------------------------------------------
   if (this->Point1RadioButton)
     {
     this->Point1RadioButton->SetParent(NULL);
@@ -177,6 +185,7 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
 
   //----------------------------------------------------------------
   // Navigation frame.
+  //----------------------------------------------------------------
   if (this->ShowLocatorCheckButton)
     {
     this->ShowLocatorCheckButton->SetParent(NULL);
@@ -228,32 +237,24 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::PrintSelf(ostream& os, vtkIndent indent)
 {
-  //----------------------------------------------------------------
-  // Print all publicly accessible instance variables.
-  //----------------------------------------------------------------
-
   this->vtkObject::PrintSelf(os, indent);
   os << indent << "AbdoNavGUI: " << this->GetClassName() << "\n";
   os << indent << "Logic: " << this->GetLogic() << "\n";
+
+  // TODO: print AbdoNavNode, TimerFlag and TimerInterval
 }
 
 
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::Init()
 {
-  //----------------------------------------------------------------
-  // Not implemented.
-  //----------------------------------------------------------------
+  // TODO: implement or delete!
 }
 
 
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::Enter()
 {
-  //----------------------------------------------------------------
-  // Define behavior at module startup.
-  //----------------------------------------------------------------
-
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
@@ -266,23 +267,18 @@ void vtkAbdoNavGUI::Enter()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::Exit()
 {
-  //----------------------------------------------------------------
-  // Not implemented.
-  //----------------------------------------------------------------
+  // TODO: implement or delete!
 }
 
 
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::AddGUIObservers()
 {
-  //----------------------------------------------------------------
-  // Set observers on widgets and GUI classes.
-  //----------------------------------------------------------------
-
   this->RemoveGUIObservers();
 
   //----------------------------------------------------------------
   // Set observers on slice views.
+  //----------------------------------------------------------------
   vtkSlicerApplicationGUI* appGUI = this->GetApplicationGUI();
 
   appGUI->GetMainSliceGUI("Red")
@@ -297,11 +293,13 @@ void vtkAbdoNavGUI::AddGUIObservers()
 
   //----------------------------------------------------------------
   // Connection frame.
+  //----------------------------------------------------------------
   this->ResetConnectionPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->ConfigureConnectionPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
 
   //----------------------------------------------------------------
   // Registration frame.
+  //----------------------------------------------------------------
   this->Point1RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point2RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
 
@@ -313,11 +311,8 @@ void vtkAbdoNavGUI::AddGUIObservers()
 void vtkAbdoNavGUI::RemoveGUIObservers()
 {
   //----------------------------------------------------------------
-  // Remove GUI observers.
-  //----------------------------------------------------------------
-
-  //----------------------------------------------------------------
   // Remove observers from slice views.
+  //----------------------------------------------------------------
   vtkSlicerApplicationGUI* appGUI = this->GetApplicationGUI();
 
   if (appGUI && appGUI->GetMainSliceGUI("Red"))
@@ -338,6 +333,7 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
 
   //----------------------------------------------------------------
   // Connection frame.
+  //----------------------------------------------------------------
   if (this->ResetConnectionPushButton)
     {
     this->ResetConnectionPushButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
@@ -349,6 +345,7 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
 
   //----------------------------------------------------------------
   // Registration frame.
+  //----------------------------------------------------------------
   if (this->Point1RadioButton)
     {
     this->Point1RadioButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
@@ -365,16 +362,12 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::AddLogicObservers()
 {
-  //----------------------------------------------------------------
-  // Set observers on AbdoNavLogic's different event types.
-  //----------------------------------------------------------------
-
   this->RemoveLogicObservers();
 
   if (this->GetLogic())
     {
     this->GetLogic()->AddObserver(vtkAbdoNavLogic::StatusUpdateEvent, (vtkCommand*)this->LogicCallbackCommand);
-    // fill in
+    // TODO: fill in or delete!
     }
 }
 
@@ -382,10 +375,6 @@ void vtkAbdoNavGUI::AddLogicObservers()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::RemoveLogicObservers()
 {
-  //----------------------------------------------------------------
-  // Remove logic observers.
-  //----------------------------------------------------------------
-
   if (this->GetLogic())
     {
     this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand*)this->LogicCallbackCommand);
@@ -396,9 +385,7 @@ void vtkAbdoNavGUI::RemoveLogicObservers()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::AddMRMLObservers()
 {
-  //----------------------------------------------------------------
-  // Set observers on MRML nodes and the scene.
-  //----------------------------------------------------------------
+  // TODO: implement RemoveMRMLObservers and process MRML events or delete!
 
   vtkIntArray* events = vtkIntArray::New();
   events->InsertNextValue(vtkMRMLScene::NewSceneEvent);
@@ -418,13 +405,15 @@ void vtkAbdoNavGUI::AddMRMLObservers()
 void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, void* callData)
 {
   //----------------------------------------------------------------
-  // React to GUI events.
+  // Main slice views.
+  //
+  // If the user clicked in one of the slice views, transform xy
+  // mouse coordinates into RAS coordinates.
   //----------------------------------------------------------------
-
-  // react to mouse events observed in one of the slice views
   vtkSlicerInteractorStyle* style = vtkSlicerInteractorStyle::SafeDownCast(caller);
   if (style != NULL && event == vtkCommand::LeftButtonPressEvent)
     {
+    // first, find out in which slice view the user clicked
     vtkSlicerSliceGUI* sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI("Red");
     vtkRenderWindowInteractor* rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
 
@@ -443,6 +432,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
       }
 
+    // second, transform xy mouse coordinates into RAS coordinates
     int xyPos[2];
     rwi->GetLastEventPosition(xyPos);
     double xyVec[4] = {xyPos[0], xyPos[1], 0, 1};
@@ -450,6 +440,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     vtkMatrix4x4* matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
     matrix->MultiplyPoint(xyVec, rasVec);
 
+    // third, display RAS coordinates in the GUI
     if (this->Point1RadioButton->GetSelectedState())
       {
       Point1REntry->SetValueAsDouble(rasVec[0]);
@@ -463,11 +454,13 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       Point2SEntry->SetValueAsDouble(rasVec[2]);
       }
 
+    // TODO: delete return statement
     return;
     }
 
   //----------------------------------------------------------------
   // Connection frame.
+  //----------------------------------------------------------------
   else if (this->ResetConnectionPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
     this->TrackerNodeSelectorWidget->SetSelected(NULL);
@@ -483,9 +476,10 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
 
   //----------------------------------------------------------------
   // Registration frame.
+  //----------------------------------------------------------------
   else if (this->Point1RadioButton == vtkKWRadioButton::SafeDownCast(caller) && event == vtkKWRadioButton::SelectedStateChangedEvent)
     {
-    // only one radio button allowed to be selected at a time
+    // mimic radio button set behavior, i.e. only one radio button allowed to be selected at a time
     if (this->Point1RadioButton->GetSelectedState() && this->Point2RadioButton->GetSelectedState())
       {
       this->Point2RadioButton->SelectedStateOff();
@@ -493,7 +487,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     }
   else if (this->Point2RadioButton == vtkKWRadioButton::SafeDownCast(caller) && event == vtkKWRadioButton::SelectedStateChangedEvent)
     {
-    // only one radio button allowed to be selected at a time
+    // mimic radio button set behavior, i.e. only one radio button allowed to be selected at a time
     if (this->Point1RadioButton->GetSelectedState() && this->Point2RadioButton->GetSelectedState())
       {
       this->Point1RadioButton->SelectedStateOff();
@@ -505,15 +499,11 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::ProcessLogicEvents(vtkObject* caller, unsigned long event, void* vtkNotUsed(callData))
 {
-  //----------------------------------------------------------------
-  // React to logic events.
-  //----------------------------------------------------------------
-
   if (this->GetLogic() == vtkAbdoNavLogic::SafeDownCast(caller))
     {
     if (event == vtkAbdoNavLogic::StatusUpdateEvent)
       {
-      // fill in
+      // TODO: fill in or delete!
       }
     }
 }
@@ -522,13 +512,9 @@ void vtkAbdoNavGUI::ProcessLogicEvents(vtkObject* caller, unsigned long event, v
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData)
 {
-  //----------------------------------------------------------------
-  // React to MRML events.
-  //----------------------------------------------------------------
-
   if (event == vtkMRMLScene::SceneCloseEvent)
     {
-    // fill in
+    // TODO: fill in or delete!
     }
 }
 
@@ -536,16 +522,11 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::ProcessTimerEvents()
 {
-  //----------------------------------------------------------------
-  // React to timer events.
-  //----------------------------------------------------------------
-
   if (this->TimerFlag)
     {
-    // fill in
+    // TODO: fill in!
 
-    //std::cout << "TimerFlag:     " << this->TimerFlag     << std::endl;
-    //std::cout << "TimerInterval: " << this->TimerInterval << std::endl;
+    // calls ProcessTimerEvents() at regular intervals (specified by TimerInterval)
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), this->TimerInterval, this, "ProcessTimerEvents");
     }
 }
@@ -554,9 +535,7 @@ void vtkAbdoNavGUI::ProcessTimerEvents()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::DataCallback(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eventid), void* clientData, void* vtkNotUsed(callData))
 {
-  //----------------------------------------------------------------
-  // Not used (UpdateAll() isn't implemented).
-  //----------------------------------------------------------------
+  // TODO: use (UpdateAll() isn't implemented) or delete!
 
   vtkAbdoNavGUI* self = reinterpret_cast<vtkAbdoNavGUI*>(clientData);
   vtkDebugWithObjectMacro(self, "In vtkAbdoNavGUI DataCallback");
@@ -567,9 +546,7 @@ void vtkAbdoNavGUI::DataCallback(vtkObject* vtkNotUsed(caller), unsigned long vt
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::UpdateAll()
 {
-  //----------------------------------------------------------------
-  // Not implemented.
-  //----------------------------------------------------------------
+  // TODO: implement or delete!
 }
 
 
@@ -581,35 +558,33 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
     {
     // no AbdoNav node present yet, thus create a new one
     node = vtkMRMLAbdoNavNode::New();
+    // add the new node to this MRML scene
     this->GetMRMLScene()->AddNode(node);
-    // set an observe new node in Logic
+    // set and observe the new node in Logic
     this->Logic->SetAndObserveAbdoNavNode(node);
     vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node);
     // TODO: should this be moved to vtkAbdoNavGUI::~vtkAbdoNavGUI() ?
     node->Delete();
    }
 
-  // save node parameters for Undo
+  // save old node parameters for undo mechanism
   this->GetLogic()->GetMRMLScene()->SaveStateForUndo(node);
 
-  // set node parameters from GUI widgets
-  // TODO: fill in
+  // set new node parameters from GUI widgets
+  // TODO: fill in!
 }
 
 
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::UpdateGUIFromMRML()
 {
+  // TODO: fill in!
 }
 
 
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::BuildGUI()
 {
-  //----------------------------------------------------------------
-  // Build the GUI.
-  //----------------------------------------------------------------
-
   // create a page
   this->UIPanel->AddPage("AbdoNav", "AbdoNav", NULL);
 
@@ -624,10 +599,6 @@ void vtkAbdoNavGUI::BuildGUI()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::BuildGUIHelpFrame()
 {
-  //----------------------------------------------------------------
-  // Build the GUI's help frame.
-  //----------------------------------------------------------------
-
   // help text
   const char* help =
     "The **AbdoNav** module is tailored to abdominal cryosurgeries for liver and kidney tumor treatment. "
@@ -650,10 +621,6 @@ void vtkAbdoNavGUI::BuildGUIHelpFrame()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 {
-  //----------------------------------------------------------------
-  // Build the GUI's connection frame.
-  //----------------------------------------------------------------
-
   vtkKWWidget* page = this->UIPanel->GetPageWidget("AbdoNav");
 
   // create a collapsible connection frame
@@ -729,10 +696,6 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
 {
-  //----------------------------------------------------------------
-  // Build the GUI's registration frame.
-  //----------------------------------------------------------------
-
   vtkKWWidget* page = this->UIPanel->GetPageWidget("AbdoNav");
 
   // create a collapsible registration frame
@@ -859,10 +822,6 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::BuildGUINavigationFrame()
 {
-  //----------------------------------------------------------------
-  // Build the GUI's navigation frame.
-  //----------------------------------------------------------------
-
   vtkKWWidget* page = this->UIPanel->GetPageWidget("AbdoNav");
 
   // create a collapsible navigation frame
