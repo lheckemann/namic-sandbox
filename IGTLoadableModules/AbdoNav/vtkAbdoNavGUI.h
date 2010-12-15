@@ -32,6 +32,7 @@ class vtkSlicerNodeSelectorWidget;
 /* KWWidgets forward declarations */
 class vtkKWComboBoxWithLabel;
 class vtkKWFrameWithLabel;
+class vtkKWMenuButton;
 class vtkKWPushButton;
 
 class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
@@ -109,6 +110,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   void BuildGUIHelpFrame();
   void BuildGUIConnectionFrame();
   void BuildGUIRegistrationFrame();
+  void BuildGUINavigationFrame();
 
   //----------------------------------------------------------------
   // Widgets of the connection frame.
@@ -133,6 +135,20 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkKWEntry* Point2SEntry;
   vtkKWPushButton* ResetRegistrationPushButton;
   vtkKWPushButton* PerformRegistrationPushButton;
+
+  //----------------------------------------------------------------
+  // Widgets of the navigation frame.
+  vtkKWFrameWithLabel* LocatorDisplayFrame;
+  vtkKWCheckButton* ShowLocatorCheckButton;
+  vtkKWCheckButton* FreezeLocatorCheckButton;
+  vtkKWCheckButton* ShowCrosshairCheckButton;
+  vtkKWFrameWithLabel* SliceDriverFrame;
+  vtkKWMenuButton* RedSliceMenuButton;
+  vtkKWMenuButton* YellowSliceMenuButton;
+  vtkKWMenuButton* GreenSliceMenuButton;
+  vtkKWPushButton* SetLocatorAllPushButton;
+  vtkKWPushButton* SetUserAllPushButton;
+  vtkKWCheckButton* FreezeSliceCheckButton;
 
 };
 
