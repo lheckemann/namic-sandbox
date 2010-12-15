@@ -474,11 +474,11 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     this->TrackerNodeSelectorWidget->SetEnabled(true);
     this->TrackerComboxBox->GetWidget()->SetValue("");
     this->TrackerComboxBox->SetEnabled(true);
-    this->UpdateMRML();
+    this->UpdateMRMLFromGUI();
     }
   else if (this->ConfigureConnectionPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
-    this->UpdateMRML();
+    this->UpdateMRMLFromGUI();
     }
 
   //----------------------------------------------------------------
@@ -574,7 +574,7 @@ void vtkAbdoNavGUI::UpdateAll()
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavGUI::UpdateMRML()
+void vtkAbdoNavGUI::UpdateMRMLFromGUI()
 {
   vtkMRMLAbdoNavNode* node = this->AbdoNavNode;
   if (node == NULL)
@@ -598,7 +598,7 @@ void vtkAbdoNavGUI::UpdateMRML()
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavGUI::UpdateGUI()
+void vtkAbdoNavGUI::UpdateGUIFromMRML()
 {
 }
 

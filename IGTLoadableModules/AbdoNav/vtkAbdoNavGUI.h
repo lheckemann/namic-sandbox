@@ -92,9 +92,9 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   /// TODO: insert missing comment!
   void UpdateAll();
   /// Update this module's MRML parameter node based on the values specified in the GUI.
-  void UpdateMRML();
+  void UpdateMRMLFromGUI();
   /// Update the GUI based on the values stored in this module's MRML parameter node.
-  void UpdateGUI();
+  void UpdateGUIFromMRML();
 
  protected:
   //----------------------------------------------------------------
