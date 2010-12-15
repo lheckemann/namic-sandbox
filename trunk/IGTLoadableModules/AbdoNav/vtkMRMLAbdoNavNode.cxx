@@ -29,13 +29,13 @@ vtkStandardNewMacro(vtkMRMLAbdoNavNode);
 //---------------------------------------------------------------------------
 vtkMRMLNode* vtkMRMLAbdoNavNode::CreateNodeInstance()
 {
-  // First try to create the object from the vtkObjectFactory
+  // first try to create the object from the vtkObjectFactory
   vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLAbdoNavNode");
   if(ret)
     {
       return (vtkMRMLAbdoNavNode*)ret;
     }
-  // If the factory was unable to create the object, then create it here
+  // if the factory was unable to create the object, then create it here
   return new vtkMRMLAbdoNavNode;
 }
 
@@ -127,9 +127,7 @@ void vtkMRMLAbdoNavNode::WriteXML(ostream& os, int nIndent)
   Superclass::WriteXML(os, nIndent);
 
   // Write all MRML node attributes into output stream
-
   vtkIndent indent(nIndent);
-
   {
     std::stringstream ss;
     if (this->TrackerTransformNodeID)
@@ -167,7 +165,7 @@ void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode* anode)
 //---------------------------------------------------------------------------
 void vtkMRMLAbdoNavNode::UpdateReferenceID(const char* oldID, const char* newID)
 {
-  if (!strcmp(oldID, this->TrackerTransformNodeID)) // zero value indicates that both strings are equal
+  if (!strcmp(oldID, this->TrackerTransformNodeID))
     {
     this->SetTrackerTransformNodeID(newID);
     }
