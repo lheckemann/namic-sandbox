@@ -114,7 +114,6 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 
   //----------------------------------------------------------------
   // Widgets of the connection frame.
-  vtkKWFrameWithLabel* TrackerFrame;
   vtkSlicerNodeSelectorWidget* TrackerNodeSelectorWidget;
   vtkKWComboBoxWithLabel* TrackerComboxBox;
   vtkKWPushButton* ResetConnectionPushButton;
@@ -122,13 +121,10 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 
   //----------------------------------------------------------------
   // Widgets of the registration frame.
-  vtkKWFrameWithLabel* GuidanceNeedleFrame;
-  vtkKWFrame* Point1Frame;
   vtkKWRadioButton* Point1RadioButton;
   vtkKWEntry* Point1REntry;
   vtkKWEntry* Point1AEntry;
   vtkKWEntry* Point1SEntry;
-  vtkKWFrame* Point2Frame;
   vtkKWRadioButton* Point2RadioButton;
   vtkKWEntry* Point2REntry;
   vtkKWEntry* Point2AEntry;
@@ -138,11 +134,9 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 
   //----------------------------------------------------------------
   // Widgets of the navigation frame.
-  vtkKWFrameWithLabel* LocatorDisplayFrame;
   vtkKWCheckButton* ShowLocatorCheckButton;
   vtkKWCheckButton* FreezeLocatorCheckButton;
   vtkKWCheckButton* ShowCrosshairCheckButton;
-  vtkKWFrameWithLabel* SliceDriverFrame;
   vtkKWMenuButton* RedSliceMenuButton;
   vtkKWMenuButton* YellowSliceMenuButton;
   vtkKWMenuButton* GreenSliceMenuButton;
