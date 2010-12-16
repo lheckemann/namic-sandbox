@@ -7,7 +7,7 @@
     Prostate Segmentation
   </title>
   <description>
-    This filter creates a binary image that separates the prostate from other tissues on MRI images.
+    This filter creates a binary image that separates the prostate from other tissues on MRI images. Seed image is a label volume with non-prostate voxels set to 1, prostate voxels set to 2 (other, unknown voxels that might be either prostate or not shall be set to 0).
   </description>
   <version>1.0</version>
   <documentation-url>

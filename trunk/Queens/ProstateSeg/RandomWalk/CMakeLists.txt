@@ -24,8 +24,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
 
 #########################################################
-OPTION(BUILD_SLICER_MODULE "Build Slicer CLI module."
-       ${VTK_BUILD_SHARED_LIBS} OFF)
+OPTION(BUILD_SLICER_MODULE "Build Slicer CLI module." OFF)
 
 IF(BUILD_SLICER_MODULE)
   
@@ -38,6 +37,10 @@ IF(BUILD_SLICER_MODULE)
     ${ProstateSeg_SRCS}
     ProstateSegModule.cxx
     )
+
+  #ADD_LIBRARY(${PROJECT_NAME}Module SHARED ${ProstateSeg_SRCS})
+  #set_target_properties (${PROJECT_NAME}Module PROPERTIES
+  #  COMPILE_FLAGS "-Dmain=ModuleEntryPoint")
     
   TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${ProstateSeg_LIBS})
 
@@ -47,22 +50,10 @@ IF(BUILD_SLICER_MODULE)
     slicer3_install_plugins(${TARGETS})
   endif (Slicer3_SOURCE_DIR)
 
-  #ADD_LIBRARY(${PROJECT_NAME}Module SHARED ${ProstateSeg_SRCS})
-  #slicer3_set_plugins_output_path(${PROJECT_NAME}Module)
-  #set_target_properties (${PROJECT_NAME}Module PROPERTIES
-  #  COMPILE_FLAGS "-Dmain=ModuleEntryPoint")
-  #TARGET_LINK_LIBRARIES(${PROJECT_NAME}Module ${ProstateSeg_LIBS})  
-
-  if (Slicer3_SOURCE_DIR)
-    #set(TARGETS ${PROJECT_NAME}Module ${PROJECT_NAME})
-    #slicer3_install_plugins(${TARGETS})
-  endif (Slicer3_SOURCE_DIR)
-
 ENDIF(BUILD_SLICER_MODULE)
 
 #########################################################
-OPTION(BUILD_TEST "Build test executable."
-       ${VTK_BUILD_TEST} ON)
+OPTION(BUILD_TEST "Build test executable." ${VTK_BUILD_TEST} ON)
 
 IF(BUILD_TEST)
 
