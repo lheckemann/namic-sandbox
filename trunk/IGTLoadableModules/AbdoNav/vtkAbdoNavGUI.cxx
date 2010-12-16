@@ -629,15 +629,15 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", connectionFrame->GetWidgetName(), page->GetWidgetName());
 
   // create a labelled frame to to hold the tracker transform node and the tracking system combo box
-  vtkKWFrameWithLabel* TrackerFrame = vtkKWFrameWithLabel::New();
-  TrackerFrame->SetParent(connectionFrame->GetFrame());
-  TrackerFrame->SetLabelText("Specify tracking information");
-  TrackerFrame->Create();
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", TrackerFrame->GetWidgetName());
+  vtkKWFrameWithLabel* trackerFrame = vtkKWFrameWithLabel::New();
+  trackerFrame->SetParent(connectionFrame->GetFrame());
+  trackerFrame->SetLabelText("Specify tracking information");
+  trackerFrame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", trackerFrame->GetWidgetName());
 
   // create a tracker transform node selector widget
   this->TrackerNodeSelectorWidget = vtkSlicerNodeSelectorWidget::New();
-  this->TrackerNodeSelectorWidget->SetParent(TrackerFrame->GetFrame());
+  this->TrackerNodeSelectorWidget->SetParent(trackerFrame->GetFrame());
   this->TrackerNodeSelectorWidget->Create();
   this->TrackerNodeSelectorWidget->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
   // explicitly indicate that the user is not allowed to create a new linear transform node
@@ -653,7 +653,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 
   // create a combo box to specify the tracking system being used
   this->TrackerComboxBox = vtkKWComboBoxWithLabel::New();
-  this->TrackerComboxBox->SetParent(TrackerFrame->GetFrame());
+  this->TrackerComboxBox->SetParent(trackerFrame->GetFrame());
   this->TrackerComboxBox->Create();
   this->TrackerComboxBox->SetLabelText("Tracking system used:\t\t");
   this->TrackerComboxBox->GetWidget()->ReadOnlyOn();
@@ -686,7 +686,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 
   // clean up
   connectionFrame->Delete();
-  TrackerFrame->Delete();
+  trackerFrame->Delete();
 }
 
 
@@ -704,39 +704,39 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", registrationFrame->GetWidgetName(), page->GetWidgetName());
 
   // create a labelled frame to to hold the GUI elements of both, the guidance needle tip and the the second point on the guidance needle
-  vtkKWFrameWithLabel* GuidanceNeedleFrame = vtkKWFrameWithLabel::New();
-  GuidanceNeedleFrame->SetParent(registrationFrame->GetFrame());
-  GuidanceNeedleFrame->SetLabelText("Identify guidance needle");
-  GuidanceNeedleFrame->Create();
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", GuidanceNeedleFrame->GetWidgetName());
+  vtkKWFrameWithLabel* guidanceNeedleFrame = vtkKWFrameWithLabel::New();
+  guidanceNeedleFrame->SetParent(registrationFrame->GetFrame());
+  guidanceNeedleFrame->SetLabelText("Identify guidance needle");
+  guidanceNeedleFrame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", guidanceNeedleFrame->GetWidgetName());
 
   // create a frame to hold the guidance needle tip radio button and tip position entries
-  vtkKWFrame* Point1Frame = vtkKWFrame::New();
-  Point1Frame->SetParent(GuidanceNeedleFrame->GetFrame());
-  Point1Frame->Create();
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", Point1Frame->GetWidgetName());
+  vtkKWFrame* point1Frame = vtkKWFrame::New();
+  point1Frame->SetParent(guidanceNeedleFrame->GetFrame());
+  point1Frame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point1Frame->GetWidgetName());
   // create a radio button for the guidance needle tip
   this->Point1RadioButton = vtkKWRadioButton::New();
-  this->Point1RadioButton->SetParent(Point1Frame);
+  this->Point1RadioButton->SetParent(point1Frame);
   this->Point1RadioButton->Create();
   this->Point1RadioButton->SetText("Identify guidance needle tip:\t\t");
   // create an entry for the R coordinate of the guidance needle tip
   this->Point1REntry = vtkKWEntry::New();
-  this->Point1REntry->SetParent(Point1Frame);
+  this->Point1REntry->SetParent(point1Frame);
   this->Point1REntry->Create();
   this->Point1REntry->SetWidth(8);
   this->Point1REntry->SetRestrictValueToDouble();
   this->Point1REntry->SetBalloonHelpString("Guidance needle tip, R coordinate.");
   // create an entry for the A coordinate of the guidance needle tip
   this->Point1AEntry = vtkKWEntry::New();
-  this->Point1AEntry->SetParent(Point1Frame);
+  this->Point1AEntry->SetParent(point1Frame);
   this->Point1AEntry->Create();
   this->Point1AEntry->SetWidth(8);
   this->Point1AEntry->SetRestrictValueToDouble();
   this->Point1AEntry->SetBalloonHelpString("Guidance needle tip, A coordinate.");
   // create an entry for the S coordinate of the guidance needle tip
   this->Point1SEntry = vtkKWEntry::New();
-  this->Point1SEntry->SetParent(Point1Frame);
+  this->Point1SEntry->SetParent(point1Frame);
   this->Point1SEntry->Create();
   this->Point1SEntry->SetWidth(8);
   this->Point1SEntry->SetRestrictValueToDouble();
@@ -750,32 +750,32 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
                  this->Point1REntry->GetWidgetName());
 
   // create a frame to hold the radio button and position entries for the second point on the guidance needle
-  vtkKWFrame* Point2Frame = vtkKWFrame::New();
-  Point2Frame->SetParent(GuidanceNeedleFrame->GetFrame());
-  Point2Frame->Create();
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", Point2Frame->GetWidgetName());
+  vtkKWFrame* point2Frame = vtkKWFrame::New();
+  point2Frame->SetParent(guidanceNeedleFrame->GetFrame());
+  point2Frame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point2Frame->GetWidgetName());
   // create a radio button for the second point on the guidance needle
   this->Point2RadioButton = vtkKWRadioButton::New();
-  this->Point2RadioButton->SetParent(Point2Frame);
+  this->Point2RadioButton->SetParent(point2Frame);
   this->Point2RadioButton->Create();
   this->Point2RadioButton->SetText("Identify second point on needle:\t");
   // create an entry for the R coordinate of the second point
   this->Point2REntry = vtkKWEntry::New();
-  this->Point2REntry->SetParent(Point2Frame);
+  this->Point2REntry->SetParent(point2Frame);
   this->Point2REntry->Create();
   this->Point2REntry->SetWidth(8);
   this->Point2REntry->SetRestrictValueToDouble();
   this->Point2REntry->SetBalloonHelpString("Second point on guidance needle, R coordinate.");
   // create an entry for the A coordinate of the second point
   this->Point2AEntry = vtkKWEntry::New();
-  this->Point2AEntry->SetParent(Point2Frame);
+  this->Point2AEntry->SetParent(point2Frame);
   this->Point2AEntry->Create();
   this->Point2AEntry->SetWidth(8);
   this->Point2AEntry->SetRestrictValueToDouble();
   this->Point2AEntry->SetBalloonHelpString("Second point on guidance needle, A coordinate.");
   // create an entry for the S coordinate of the second point
   this->Point2SEntry = vtkKWEntry::New();
-  this->Point2SEntry->SetParent(Point2Frame);
+  this->Point2SEntry->SetParent(point2Frame);
   this->Point2SEntry->Create();
   this->Point2SEntry->SetWidth(8);
   this->Point2SEntry->SetRestrictValueToDouble();
@@ -810,9 +810,9 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
 
   // clean up
   registrationFrame->Delete();
-  GuidanceNeedleFrame->Delete();
-  Point1Frame->Delete();
-  Point2Frame->Delete();
+  guidanceNeedleFrame->Delete();
+  point1Frame->Delete();
+  point2Frame->Delete();
 }
 
 
@@ -830,35 +830,35 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", navigationFrame->GetWidgetName(), page->GetWidgetName());
 
   // create a labelled frame for the locator display options
-  vtkKWFrameWithLabel* LocatorDisplayFrame = vtkKWFrameWithLabel::New();
-  LocatorDisplayFrame->SetParent(navigationFrame->GetFrame());
-  LocatorDisplayFrame->SetLabelText("Locator Display Options");
-  LocatorDisplayFrame->Create();
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", LocatorDisplayFrame->GetWidgetName());
+  vtkKWFrameWithLabel* locatorDisplayFrame = vtkKWFrameWithLabel::New();
+  locatorDisplayFrame->SetParent(navigationFrame->GetFrame());
+  locatorDisplayFrame->SetLabelText("Locator Display Options");
+  locatorDisplayFrame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", locatorDisplayFrame->GetWidgetName());
 
   // create a frame to hold the locator mode check buttons
-  vtkKWFrame* LocatorModeFrame = vtkKWFrame::New();
-  LocatorModeFrame->SetParent(LocatorDisplayFrame->GetFrame());
-  LocatorModeFrame->Create();
-  this->Script("pack %s -side top -anchor c -padx 2 -pady 2", LocatorModeFrame->GetWidgetName());
+  vtkKWFrame* locatorModeFrame = vtkKWFrame::New();
+  locatorModeFrame->SetParent(locatorDisplayFrame->GetFrame());
+  locatorModeFrame->Create();
+  this->Script("pack %s -side top -anchor c -padx 2 -pady 2", locatorModeFrame->GetWidgetName());
 
   // create a check button to show/hide the locator model
   this->ShowLocatorCheckButton = vtkKWCheckButton::New();
-  this->ShowLocatorCheckButton->SetParent(LocatorModeFrame);
+  this->ShowLocatorCheckButton->SetParent(locatorModeFrame);
   this->ShowLocatorCheckButton->Create();
   this->ShowLocatorCheckButton->SelectedStateOff();
   this->ShowLocatorCheckButton->SetText("Show Locator");
 
   // create a check button to freeze/unfreeze the locator model
   this->FreezeLocatorCheckButton = vtkKWCheckButton::New();
-  this->FreezeLocatorCheckButton->SetParent(LocatorModeFrame);
+  this->FreezeLocatorCheckButton->SetParent(locatorModeFrame);
   this->FreezeLocatorCheckButton->Create();
   this->FreezeLocatorCheckButton->SelectedStateOff();
   this->FreezeLocatorCheckButton->SetText("Freeze Locator");
 
   // create a check button to show/hide a crosshair in the slice views corresponding to the locator's tip position
   this->ShowCrosshairCheckButton = vtkKWCheckButton::New();
-  this->ShowCrosshairCheckButton->SetParent(LocatorModeFrame);
+  this->ShowCrosshairCheckButton->SetParent(locatorModeFrame);
   this->ShowCrosshairCheckButton->Create();
   this->ShowCrosshairCheckButton->SelectedStateOff();
   this->ShowCrosshairCheckButton->SetText("Show Crosshair");
@@ -870,23 +870,23 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
                 ShowCrosshairCheckButton->GetWidgetName());
 
   // create a labelled frame for the slice driver options
-  vtkKWFrameWithLabel* SliceDriverFrame = vtkKWFrameWithLabel::New();
-  SliceDriverFrame->SetParent(navigationFrame->GetFrame());
-  SliceDriverFrame->SetLabelText("Slice Driver");
-  SliceDriverFrame->Create();
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", SliceDriverFrame->GetWidgetName());
+  vtkKWFrameWithLabel* sliceDriverFrame = vtkKWFrameWithLabel::New();
+  sliceDriverFrame->SetParent(navigationFrame->GetFrame());
+  sliceDriverFrame->SetLabelText("Slice Driver");
+  sliceDriverFrame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", sliceDriverFrame->GetWidgetName());
 
   // create a frame to hold the slice view menu buttons
-  vtkKWFrame* SliceFrame = vtkKWFrame::New();
-  SliceFrame->SetParent(SliceDriverFrame->GetFrame());
-  SliceFrame->Create();
-  this->Script("pack %s -side top -anchor c -padx 2 -pady 2", SliceFrame->GetWidgetName());
+  vtkKWFrame* sliceFrame = vtkKWFrame::New();
+  sliceFrame->SetParent(sliceDriverFrame->GetFrame());
+  sliceFrame->Create();
+  this->Script("pack %s -side top -anchor c -padx 2 -pady 2", sliceFrame->GetWidgetName());
 
   // get slice view colors red, green and yellow
   vtkSlicerColor* color = ((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors();
   // create a red slice view (axial) menu button
   this->RedSliceMenuButton = vtkKWMenuButton::New();
-  this->RedSliceMenuButton->SetParent(SliceFrame);
+  this->RedSliceMenuButton->SetParent(sliceFrame);
   this->RedSliceMenuButton->Create();
   this->RedSliceMenuButton->SetWidth(13);
   this->RedSliceMenuButton->SetBackgroundColor(color->SliceGUIRed);
@@ -896,7 +896,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->RedSliceMenuButton->SetValue("User");
   // create a yellow slice view (sagittal) menu button
   this->YellowSliceMenuButton = vtkKWMenuButton::New();
-  this->YellowSliceMenuButton->SetParent(SliceFrame);
+  this->YellowSliceMenuButton->SetParent(sliceFrame);
   this->YellowSliceMenuButton->Create();
   this->YellowSliceMenuButton->SetWidth(13);
   this->YellowSliceMenuButton->SetBackgroundColor(color->SliceGUIYellow);
@@ -906,7 +906,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->YellowSliceMenuButton->SetValue("User");
   // create a green slice view (coronal) menu button
   this->GreenSliceMenuButton = vtkKWMenuButton::New();
-  this->GreenSliceMenuButton->SetParent(SliceFrame);
+  this->GreenSliceMenuButton->SetParent(sliceFrame);
   this->GreenSliceMenuButton->Create();
   this->GreenSliceMenuButton->SetWidth(13);
   this->GreenSliceMenuButton->SetBackgroundColor(color->SliceGUIGreen);
@@ -922,26 +922,26 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
                 GreenSliceMenuButton->GetWidgetName());
 
   // create a frame to hold the buttons for the different slice view modes
-  vtkKWFrame* SliceModeFrame = vtkKWFrame::New();
-  SliceModeFrame->SetParent(SliceDriverFrame->GetFrame());
-  SliceModeFrame->Create();
-  this->Script("pack %s -side top -anchor c -padx 2 -pady 2", SliceModeFrame->GetWidgetName());
+  vtkKWFrame* sliceModeFrame = vtkKWFrame::New();
+  sliceModeFrame->SetParent(sliceDriverFrame->GetFrame());
+  sliceModeFrame->Create();
+  this->Script("pack %s -side top -anchor c -padx 2 -pady 2", sliceModeFrame->GetWidgetName());
 
   // create a drive all slice views by locator push button
   this->SetLocatorAllPushButton = vtkKWPushButton::New();
-  this->SetLocatorAllPushButton->SetParent(SliceModeFrame);
+  this->SetLocatorAllPushButton->SetParent(sliceModeFrame);
   this->SetLocatorAllPushButton->Create();
   this->SetLocatorAllPushButton->SetText("Locator All");
   this->SetLocatorAllPushButton->SetWidth(12);
   // create a drive all slice views by user push button
   this->SetUserAllPushButton = vtkKWPushButton::New();
-  this->SetUserAllPushButton->SetParent(SliceModeFrame);
+  this->SetUserAllPushButton->SetParent(sliceModeFrame);
   this->SetUserAllPushButton->Create();
   this->SetUserAllPushButton->SetText("User All");
   this->SetUserAllPushButton->SetWidth(12);
   // create a freeze slice views check button
   this->FreezeSliceCheckButton = vtkKWCheckButton::New();
-  this->FreezeSliceCheckButton->SetParent(SliceModeFrame);
+  this->FreezeSliceCheckButton->SetParent(sliceModeFrame);
   this->FreezeSliceCheckButton->Create();
   this->FreezeSliceCheckButton->SetText("Freeze");
   this->FreezeSliceCheckButton->SelectedStateOff();
@@ -954,9 +954,9 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
 
   // clean up
   navigationFrame->Delete();
-  LocatorDisplayFrame->Delete();
-  LocatorModeFrame->Delete();
-  SliceDriverFrame->Delete();
-  SliceFrame->Delete();
-  SliceModeFrame->Delete();
+  locatorDisplayFrame->Delete();
+  locatorModeFrame->Delete();
+  sliceDriverFrame->Delete();
+  sliceFrame->Delete();
+  sliceModeFrame->Delete();
 }
