@@ -15,6 +15,9 @@
 /* AbdoNav includes */
 #include "vtkAbdoNavGUI.h"
 
+/* MRML includes */
+#include "vtkMRMLLinearTransformNode.h"
+
 /* Slicer includes */
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerColor.h"
@@ -248,7 +251,11 @@ void vtkAbdoNavGUI::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::Init()
 {
-  // TODO: implement or delete!
+  // this is necessary so that an AbdoNavNode can be created from its class name,
+  // e.g. when a previously saved scene (containing an AbdoNavNode) is (re-)loaded
+  vtkMRMLAbdoNavNode* node = vtkMRMLAbdoNavNode::New();
+  this->Logic->GetMRMLScene()->RegisterNodeClass(node);
+  node->Delete();
 }
 
 
@@ -303,7 +310,7 @@ void vtkAbdoNavGUI::AddGUIObservers()
   this->Point1RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point2RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
 
-  this->AddLogicObservers();
+  this->AddMRMLObservers();
 }
 
 
@@ -453,6 +460,9 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       Point2AEntry->SetValueAsDouble(rasVec[1]);
       Point2SEntry->SetValueAsDouble(rasVec[2]);
       }
+
+    // fourth (and last), update MRML node
+    this->UpdateMRMLFromGUI();
     }
 
   //----------------------------------------------------------------
@@ -509,9 +519,23 @@ void vtkAbdoNavGUI::ProcessLogicEvents(vtkObject* caller, unsigned long event, v
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData)
 {
-  if (event == vtkMRMLScene::SceneCloseEvent)
+  // if an AbdoNavNode was added, then update the GUI; an AbdoNavNode is only added
+  // when the user loads a previously saved scene that contains an AbdoNavNode
+  if (event == vtkMRMLScene::NodeAddedEvent)
     {
-    // TODO: fill in or delete!
+    vtkMRMLAbdoNavNode* node = reinterpret_cast<vtkMRMLAbdoNavNode*>(callData);
+    if (node && node->IsA("vtkMRMLAbdoNavNode"))
+      {
+      // a new AbdoNavNode was created and added
+      if (this->AbdoNavNode == NULL)
+        {
+        // set and observe the new node in Logic
+        this->Logic->SetAndObserveAbdoNavNode(node);
+        // set and observe the new node in GUI
+        vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node);
+        }
+      this->UpdateGUIFromMRML();
+      }
     }
 }
 
@@ -559,6 +583,7 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
     this->GetMRMLScene()->AddNode(node);
     // set and observe the new node in Logic
     this->Logic->SetAndObserveAbdoNavNode(node);
+    // set and observe the new node in GUI
     vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node);
     // TODO: should this be moved to vtkAbdoNavGUI::~vtkAbdoNavGUI() ?
     node->Delete();
@@ -568,14 +593,38 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
   this->GetLogic()->GetMRMLScene()->SaveStateForUndo(node);
 
   // set new node parameters from GUI widgets
-  // TODO: fill in!
+  node->SetTrackerTransformNodeID((vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNodeSelectorWidget->GetSelected()))->GetID());
+  node->SetTrackingSystemUsed(this->TrackerComboxBox->GetWidget()->GetValueFromIndex(0));
+  node->SetGuidanceNeedleTip(Point1REntry->GetValueAsDouble(),
+                             Point1AEntry->GetValueAsDouble(),
+                             Point1SEntry->GetValueAsDouble());
+  node->SetGuidanceNeedleSecond(Point2REntry->GetValueAsDouble(),
+                                Point2AEntry->GetValueAsDouble(),
+                                Point2SEntry->GetValueAsDouble());
 }
 
 
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::UpdateGUIFromMRML()
 {
-  // TODO: fill in!
+  vtkMRMLAbdoNavNode* node = this->AbdoNavNode;
+  if (node != NULL)
+    {
+    // set GUI widgets from AbdoNav parameter node
+    vtkMRMLNode* tnode = this->GetMRMLScene()->GetNodeByID(node->GetTrackerTransformNodeID());
+    this->TrackerNodeSelectorWidget->SetSelected(tnode);
+    this->TrackerComboxBox->GetWidget()->SetValue(node->GetTrackingSystemUsed());
+
+    double* guidanceTip = node->GetGuidanceNeedleTip();
+    this->Point1REntry->SetValueAsDouble(guidanceTip[0]);
+    this->Point1AEntry->SetValueAsDouble(guidanceTip[1]);
+    this->Point1SEntry->SetValueAsDouble(guidanceTip[2]);
+
+    double* guidanceSecond = node->GetGuidanceNeedleSecond();
+    this->Point2REntry->SetValueAsDouble(guidanceSecond[0]);
+    this->Point2AEntry->SetValueAsDouble(guidanceSecond[1]);
+    this->Point2SEntry->SetValueAsDouble(guidanceSecond[2]);
+    }
 }
 
 
