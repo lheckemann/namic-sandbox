@@ -453,9 +453,6 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       Point2AEntry->SetValueAsDouble(rasVec[1]);
       Point2SEntry->SetValueAsDouble(rasVec[2]);
       }
-
-    // TODO: delete return statement
-    return;
     }
 
   //----------------------------------------------------------------
