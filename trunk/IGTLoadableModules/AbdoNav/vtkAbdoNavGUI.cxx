@@ -242,9 +242,11 @@ void vtkAbdoNavGUI::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->vtkObject::PrintSelf(os, indent);
   os << indent << "AbdoNavGUI: " << this->GetClassName() << "\n";
-  os << indent << "Logic: " << this->GetLogic() << "\n";
-
-  // TODO: print AbdoNavNode, TimerFlag and TimerInterval
+  os << indent << "AbdoNavLogic: " << this->GetLogic() << "\n";
+  os << indent << "AbdoNavNode: " << this->AbdoNavNode << "\n";
+  os << indent << "DataCallbackCommand: " << this->DataCallbackCommand << "\n";
+  os << indent << "TimerFlag: " << this->TimerFlag << "\n";
+  os << indent << "TimerInterval: " << this->TimerInterval << "\n";
 }
 
 
