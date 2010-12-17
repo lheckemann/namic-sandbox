@@ -69,12 +69,12 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // Addition and removal of observers.
   //----------------------------------------------------------------
-  virtual void AddGUIObservers();
-  virtual void RemoveGUIObservers();
-  void         AddLogicObservers();
-  void         RemoveLogicObservers();
-  void         AddMRMLObservers();
-  void         RemoveMRMLObservers();
+  virtual void AddGUIObservers();      // called automatically
+  virtual void RemoveGUIObservers();   // called automatically
+  void         AddLogicObservers();    // must be called manually
+  void         RemoveLogicObservers(); // must be called manually
+  void         AddMRMLObservers();     // must be called manually
+  void         RemoveMRMLObservers();  // must be called manually
 
   //----------------------------------------------------------------
   // Mediator methods for event processing and GUI/MRML updating.

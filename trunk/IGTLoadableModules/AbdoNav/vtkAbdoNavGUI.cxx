@@ -312,6 +312,7 @@ void vtkAbdoNavGUI::AddGUIObservers()
   this->Point1RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point2RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
 
+  // must be called manually!
   this->AddMRMLObservers();
 }
 
@@ -364,6 +365,7 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
     this->Point2RadioButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
+  // must be called manually!
   this->RemoveLogicObservers();
 }
 
@@ -376,7 +378,7 @@ void vtkAbdoNavGUI::AddLogicObservers()
   if (this->GetLogic())
     {
     this->GetLogic()->AddObserver(vtkAbdoNavLogic::StatusUpdateEvent, (vtkCommand*)this->LogicCallbackCommand);
-    // TODO: fill in or delete!
+    // TODO: fill in or delete (don't forget to delete RemoveLogicObservers())!
     }
 }
 
