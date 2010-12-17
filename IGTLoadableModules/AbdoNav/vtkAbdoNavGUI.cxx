@@ -54,7 +54,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   // Connection frame.
   //----------------------------------------------------------------
   this->TrackerNodeSelectorWidget = NULL;
-  this->TrackerComboxBox = NULL;
+  this->TrackerComboBox = NULL;
   this->ResetConnectionPushButton = NULL;
   this->ConfigureConnectionPushButton = NULL;
 
@@ -116,10 +116,10 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->TrackerNodeSelectorWidget->SetParent(NULL);
     this->TrackerNodeSelectorWidget->Delete();
     }
-  if (this->TrackerComboxBox)
+  if (this->TrackerComboBox)
     {
-    this->TrackerComboxBox->SetParent(NULL);
-    this->TrackerComboxBox->Delete();
+    this->TrackerComboBox->SetParent(NULL);
+    this->TrackerComboBox->Delete();
     }
   if (this->ResetConnectionPushButton)
     {
@@ -476,8 +476,8 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     {
     this->TrackerNodeSelectorWidget->SetSelected(NULL);
     this->TrackerNodeSelectorWidget->SetEnabled(true);
-    this->TrackerComboxBox->GetWidget()->SetValue("");
-    this->TrackerComboxBox->SetEnabled(true);
+    this->TrackerComboBox->GetWidget()->SetValue("");
+    this->TrackerComboBox->SetEnabled(true);
     this->UpdateMRMLFromGUI();
     }
   else if (this->ConfigureConnectionPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
@@ -598,7 +598,7 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
 
   // set new node parameters from GUI widgets
   node->SetTrackerTransformNodeID((vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNodeSelectorWidget->GetSelected()))->GetID());
-  node->SetTrackingSystemUsed(this->TrackerComboxBox->GetWidget()->GetValueFromIndex(0));
+  node->SetTrackingSystemUsed(this->TrackerComboBox->GetWidget()->GetValueFromIndex(0));
   node->SetGuidanceNeedleTip(Point1REntry->GetValueAsDouble(),
                              Point1AEntry->GetValueAsDouble(),
                              Point1SEntry->GetValueAsDouble());
@@ -617,7 +617,7 @@ void vtkAbdoNavGUI::UpdateGUIFromMRML()
     // set GUI widgets from AbdoNav parameter node
     vtkMRMLNode* tnode = this->GetMRMLScene()->GetNodeByID(node->GetTrackerTransformNodeID());
     this->TrackerNodeSelectorWidget->SetSelected(tnode);
-    this->TrackerComboxBox->GetWidget()->SetValue(node->GetTrackingSystemUsed());
+    this->TrackerComboBox->GetWidget()->SetValue(node->GetTrackingSystemUsed());
 
     double* guidanceTip = node->GetGuidanceNeedleTip();
     this->Point1REntry->SetValueAsDouble(guidanceTip[0]);
@@ -705,17 +705,17 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerNodeSelectorWidget->GetWidgetName());
 
   // create a combo box to specify the tracking system being used
-  this->TrackerComboxBox = vtkKWComboBoxWithLabel::New();
-  this->TrackerComboxBox->SetParent(trackerFrame->GetFrame());
-  this->TrackerComboxBox->Create();
-  this->TrackerComboxBox->SetLabelText("Tracking system used:\t\t");
-  this->TrackerComboxBox->GetWidget()->ReadOnlyOn();
-  this->TrackerComboxBox->GetWidget()->AddValue("NDI Aurora");
-  this->TrackerComboxBox->GetWidget()->AddValue("NDI Polaris Vicra");
-  this->TrackerComboxBox->SetBalloonHelpString("Select the tracking system being used in order to compensate for different coordinate system definitions.");
+  this->TrackerComboBox = vtkKWComboBoxWithLabel::New();
+  this->TrackerComboBox->SetParent(trackerFrame->GetFrame());
+  this->TrackerComboBox->Create();
+  this->TrackerComboBox->SetLabelText("Tracking system used:\t\t");
+  this->TrackerComboBox->GetWidget()->ReadOnlyOn();
+  this->TrackerComboBox->GetWidget()->AddValue("NDI Aurora");
+  this->TrackerComboBox->GetWidget()->AddValue("NDI Polaris Vicra");
+  this->TrackerComboBox->SetBalloonHelpString("Select the tracking system being used in order to compensate for different coordinate system definitions.");
 
   // add tracking system combo box
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerComboxBox->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerComboBox->GetWidgetName());
 
   // create a reset button
   this->ResetConnectionPushButton = vtkKWPushButton::New();
