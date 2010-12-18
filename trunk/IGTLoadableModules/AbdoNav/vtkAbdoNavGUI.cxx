@@ -602,7 +602,7 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
     {
     node->SetTrackerTransformNodeID(tnode->GetID());
     }
-  node->SetTrackingSystemUsed(this->TrackerComboBox->GetWidget()->GetValueFromIndex(0));
+  node->SetTrackingSystemUsed(this->TrackerComboBox->GetWidget()->GetValue());
   node->SetGuidanceNeedleTip(Point1REntry->GetValueAsDouble(),
                              Point1AEntry->GetValueAsDouble(),
                              Point1SEntry->GetValueAsDouble());
