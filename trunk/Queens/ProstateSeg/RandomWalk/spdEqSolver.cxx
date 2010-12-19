@@ -3,6 +3,7 @@
 #include <float.h>  // for DBL_MIN
 
 #include <iostream>
+#include <stdlib.h>
 
 
 SpdEqSolver::SpdEqSolver()
