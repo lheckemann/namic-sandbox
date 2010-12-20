@@ -527,7 +527,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
   // when the user loads a previously saved scene that contains an AbdoNavNode
   if (event == vtkMRMLScene::NodeAddedEvent)
     {
-    vtkMRMLAbdoNavNode* node = reinterpret_cast<vtkMRMLAbdoNavNode*>(callData);
+    vtkMRMLAbdoNavNode* node = vtkMRMLAbdoNavNode::SafeDownCast((vtkObject*)callData);
     if (node && node->IsA("vtkMRMLAbdoNavNode"))
       {
       // a new AbdoNavNode was created and added
@@ -538,6 +538,15 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
         // set and observe the new node in GUI
         vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node);
         }
+      this->UpdateGUIFromMRML();
+      }
+    }
+  // existing node has been modified
+  else if (event == vtkCommand::ModifiedEvent)
+    {
+    vtkMRMLAbdoNavNode* node = vtkMRMLAbdoNavNode::SafeDownCast(caller);
+    if (node)
+      {
       this->UpdateGUIFromMRML();
       }
     }
@@ -583,8 +592,11 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
     {
     // no AbdoNav node present yet, thus create a new one
     node = vtkMRMLAbdoNavNode::New();
-    // add the new node to this MRML scene
-    this->GetMRMLScene()->AddNode(node);
+    // add the new node to this MRML scene but don't notify:
+    // this way, it is known that a node added event is only
+    // invoked when the user loads a previously saved scene
+    // containing an AbdoNavNode
+    this->GetMRMLScene()->AddNodeNoNotify(node);
     // set and observe the new node in Logic
     this->Logic->SetAndObserveAbdoNavNode(node);
     // set and observe the new node in GUI
