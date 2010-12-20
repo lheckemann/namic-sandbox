@@ -596,7 +596,10 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
   // save old node parameters for undo mechanism
   this->GetLogic()->GetMRMLScene()->SaveStateForUndo(node);
 
-  // set new node parameters from GUI widgets
+  // set new node parameters from GUI widgets:
+  // make sure that only ONE modified event is invoked (if
+  // at all) instead of one modified event per changed value
+  int modifiedFlag = node->StartModify();
   vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNodeSelectorWidget->GetSelected());
   if (tnode != NULL)
     {
@@ -609,6 +612,7 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
   node->SetGuidanceNeedleSecond(Point2REntry->GetValueAsDouble(),
                                 Point2AEntry->GetValueAsDouble(),
                                 Point2SEntry->GetValueAsDouble());
+  node->EndModify(modifiedFlag);
 }
 
 
