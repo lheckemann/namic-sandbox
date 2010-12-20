@@ -24,6 +24,9 @@
 #include "vtkSlicerNodeSelectorWidget.h"
 #include "vtkSlicerTheme.h"
 
+/* STL includes */
+#include <limits>
+
 /* KWWidgets includes */
 #include "vtkKWComboBox.h"
 #include "vtkKWComboBoxWithLabel.h"
@@ -846,6 +849,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point1REntry->Create();
   this->Point1REntry->SetWidth(8);
   this->Point1REntry->SetRestrictValueToDouble();
+  this->Point1REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
   this->Point1REntry->SetBalloonHelpString("Guidance needle tip, R coordinate.");
   // create an entry for the A coordinate of the guidance needle tip
   this->Point1AEntry = vtkKWEntry::New();
@@ -853,6 +857,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point1AEntry->Create();
   this->Point1AEntry->SetWidth(8);
   this->Point1AEntry->SetRestrictValueToDouble();
+  this->Point1AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
   this->Point1AEntry->SetBalloonHelpString("Guidance needle tip, A coordinate.");
   // create an entry for the S coordinate of the guidance needle tip
   this->Point1SEntry = vtkKWEntry::New();
@@ -860,6 +865,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point1SEntry->Create();
   this->Point1SEntry->SetWidth(8);
   this->Point1SEntry->SetRestrictValueToDouble();
+  this->Point1SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
   this->Point1SEntry->SetBalloonHelpString("Guidance needle tip, S coordinate.");
   // add guidance needle radio button
   this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point1RadioButton->GetWidgetName());
@@ -885,6 +891,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2REntry->Create();
   this->Point2REntry->SetWidth(8);
   this->Point2REntry->SetRestrictValueToDouble();
+  this->Point2REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
   this->Point2REntry->SetBalloonHelpString("Second point on guidance needle, R coordinate.");
   // create an entry for the A coordinate of the second point
   this->Point2AEntry = vtkKWEntry::New();
@@ -892,6 +899,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2AEntry->Create();
   this->Point2AEntry->SetWidth(8);
   this->Point2AEntry->SetRestrictValueToDouble();
+  this->Point2AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
   this->Point2AEntry->SetBalloonHelpString("Second point on guidance needle, A coordinate.");
   // create an entry for the S coordinate of the second point
   this->Point2SEntry = vtkKWEntry::New();
@@ -899,6 +907,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2SEntry->Create();
   this->Point2SEntry->SetWidth(8);
   this->Point2SEntry->SetRestrictValueToDouble();
+  this->Point2SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
   this->Point2SEntry->SetBalloonHelpString("Second point on guidance needle, S coordinate.");
   // add second point radio button
   this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point2RadioButton->GetWidgetName());

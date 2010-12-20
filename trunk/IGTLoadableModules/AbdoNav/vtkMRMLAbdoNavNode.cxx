@@ -19,6 +19,7 @@
 #include "vtkMRMLScene.h"
 
 /* STL includes */
+#include <limits>
 #include <sstream>
 
 //---------------------------------------------------------------------------
@@ -45,8 +46,12 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
 {
   this->TrackerTransformNodeID = NULL;
   this->TrackingSystemUsed = NULL;
-  this->SetGuidanceNeedleTip(0.0, 0.0, 0.0);
-  this->SetGuidanceNeedleSecond(0.0, 0.0, 0.0);
+  this->SetGuidanceNeedleTip(std::numeric_limits<double>::quiet_NaN(),
+                             std::numeric_limits<double>::quiet_NaN(),
+                             std::numeric_limits<double>::quiet_NaN());
+  this->SetGuidanceNeedleSecond(std::numeric_limits<double>::quiet_NaN(),
+                                std::numeric_limits<double>::quiet_NaN(),
+                                std::numeric_limits<double>::quiet_NaN());
 
   this->HideFromEditors = true;
 }
@@ -57,8 +62,12 @@ vtkMRMLAbdoNavNode::~vtkMRMLAbdoNavNode()
 {
   this->TrackerTransformNodeID = NULL;
   this->TrackingSystemUsed = NULL;
-  this->SetGuidanceNeedleTip(0.0, 0.0, 0.0);
-  this->SetGuidanceNeedleSecond(0.0, 0.0, 0.0);
+  this->SetGuidanceNeedleTip(std::numeric_limits<double>::quiet_NaN(),
+                             std::numeric_limits<double>::quiet_NaN(),
+                             std::numeric_limits<double>::quiet_NaN());
+  this->SetGuidanceNeedleSecond(std::numeric_limits<double>::quiet_NaN(),
+                                std::numeric_limits<double>::quiet_NaN(),
+                                std::numeric_limits<double>::quiet_NaN());
 }
 
 
