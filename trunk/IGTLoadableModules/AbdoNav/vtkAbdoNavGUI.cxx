@@ -29,6 +29,7 @@
 #include "vtkKWComboBoxWithLabel.h"
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWMenuButton.h"
+#include "vtkKWMessageDialog.h"
 #include "vtkKWRadioButton.h"
 #include "vtkKWTkUtilities.h"
 
@@ -478,11 +479,57 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     this->TrackerNodeSelectorWidget->SetEnabled(true);
     this->TrackerComboBox->GetWidget()->SetValue("");
     this->TrackerComboBox->SetEnabled(true);
+    this->ConfigureConnectionPushButton->SetEnabled(true);
     this->UpdateMRMLFromGUI();
     }
   else if (this->ConfigureConnectionPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
-    this->UpdateMRMLFromGUI();
+    bool updateMRML = false;
+    vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNodeSelectorWidget->GetSelected());
+
+    // check tracker transform node selection
+    if (tnode != NULL && tnode->GetDescription() != NULL)
+      {
+      // only update MRML node if transform node was created by OpenIGTLinkIF
+      if (strcmp(tnode->GetDescription(), "Received by OpenIGTLink") == 0)
+        {
+        updateMRML = true;
+        }
+      }
+    else
+      {
+      updateMRML = false;
+      vtkKWMessageDialog::PopupMessage(this->GetApplication(),
+                                       this->GetApplicationGUI()->GetMainSlicerWindow(),
+                                       "AbdoNav",
+                                       "No OpenIGTLinkIF tracker transform node selected!",
+                                       vtkKWMessageDialog::ErrorIcon);
+      }
+
+    // check tracking system selection
+    if (strcmp(this->TrackerComboBox->GetWidget()->GetValue(), "") != 0)
+      {
+      updateMRML = updateMRML && true;
+      }
+    else
+      {
+      updateMRML = false;
+      vtkKWMessageDialog::PopupMessage(this->GetApplication(),
+                                       this->GetApplicationGUI()->GetMainSlicerWindow(),
+                                       "AbdoNav",
+                                       "No tracking system selected!",
+                                       vtkKWMessageDialog::ErrorIcon);
+      }
+
+    // update MRML node
+    if (updateMRML == true)
+      {
+      std::cout << "updating MRML ..." << std::endl;
+      this->TrackerNodeSelectorWidget->SetEnabled(false);
+      this->TrackerComboBox->SetEnabled(false);
+      this->ConfigureConnectionPushButton->SetEnabled(false);
+      this->UpdateMRMLFromGUI();
+      }
     }
 
   //----------------------------------------------------------------
