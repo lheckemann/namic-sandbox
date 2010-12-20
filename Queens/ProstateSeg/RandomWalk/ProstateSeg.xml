@@ -69,7 +69,7 @@
       <index>1</index>
       <description>Seed image that contains seed and background voxels</description>
     </image>
-    <image>
+    <image type="label">
       <name>segmentedImageFileName</name>
       <label>Output Volume</label>
       <channel>output</channel>
