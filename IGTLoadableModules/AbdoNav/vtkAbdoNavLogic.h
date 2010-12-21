@@ -34,6 +34,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
  public:
   //----------------------------------------------------------------
   // Events to be passed to and processed by the GUI.
+  //----------------------------------------------------------------
   //BTX
   enum {
     StatusUpdateEvent = 50001,
@@ -43,34 +44,42 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
 
   //----------------------------------------------------------------
   // Usual VTK class functions.
+  //----------------------------------------------------------------
   static vtkAbdoNavLogic* New();
   vtkTypeRevisionMacro(vtkAbdoNavLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
+  /// Set and observe the parameter node.
+  void SetAndObserveAbdoNavNode(vtkMRMLAbdoNavNode* node) { vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node); }
+  /// Get the parameter node.
+  vtkGetObjectMacro(AbdoNavNode, vtkMRMLAbdoNavNode);
 
   //----------------------------------------------------------------
   // Mediator method for processing events invoked by MRML.
+  //----------------------------------------------------------------
   void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
   static void DataCallback(vtkObject* caller, unsigned long eventid, void* clientData, void* callData);
   void UpdateAll(); // not implemented
 
-  vtkGetObjectMacro(AbdoNavNode, vtkMRMLAbdoNavNode);
-  void SetAndObserveAbdoNavNode(vtkMRMLAbdoNavNode* node) { vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node); }
-
  protected:
   //----------------------------------------------------------------
   // Usual VTK class functions.
+  //----------------------------------------------------------------
   vtkAbdoNavLogic();
   virtual ~vtkAbdoNavLogic();
 
  private:
   //----------------------------------------------------------------
   // Usual VTK class functions.
+  //----------------------------------------------------------------
   vtkAbdoNavLogic(const vtkAbdoNavLogic&); // not implemented
   void operator=(const vtkAbdoNavLogic&);  // not implemented
 
   //----------------------------------------------------------------
   // Logic values.
+  //----------------------------------------------------------------
+  /// Parameter node associated with this module.
   vtkMRMLAbdoNavNode* AbdoNavNode;
+  /// TODO: insert missing comment!
   vtkCallbackCommand* DataCallbackCommand;
 
 };
