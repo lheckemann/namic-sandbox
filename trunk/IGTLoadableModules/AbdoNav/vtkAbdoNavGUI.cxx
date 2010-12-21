@@ -26,6 +26,7 @@
 
 /* STL includes */
 #include <limits>
+#include <math.h>
 
 /* KWWidgets includes */
 #include "vtkKWComboBox.h"
@@ -315,6 +316,8 @@ void vtkAbdoNavGUI::AddGUIObservers()
   //----------------------------------------------------------------
   this->Point1RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point2RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->ResetRegistrationPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->PerformRegistrationPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
 
   // must be called manually!
   this->AddMRMLObservers();
@@ -367,6 +370,14 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
   if (this->Point2RadioButton)
     {
     this->Point2RadioButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->ResetRegistrationPushButton)
+    {
+    this->ResetRegistrationPushButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->PerformRegistrationPushButton)
+    {
+    this->PerformRegistrationPushButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
   // must be called manually!
@@ -552,6 +563,37 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     if (this->Point1RadioButton->GetSelectedState() && this->Point2RadioButton->GetSelectedState())
       {
       this->Point1RadioButton->SelectedStateOff();
+      }
+    }
+  else if (this->ResetRegistrationPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
+    {
+    this->Point1RadioButton->SetEnabled(true);
+    this->Point1RadioButton->SelectedStateOff();
+    this->Point1REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+    this->Point1AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+    this->Point1SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+    this->Point2RadioButton->SetEnabled(true);
+    this->Point2RadioButton->SelectedStateOff();
+    this->Point2REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+    this->Point2AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+    this->Point2SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+    this->PerformRegistrationPushButton->SetEnabled(true);
+    }
+  else if (this->PerformRegistrationPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
+    {
+    if(isnan(this->Point1REntry->GetValueAsDouble()) || isnan(this->Point2REntry->GetValueAsDouble()))
+      {
+      vtkKWMessageDialog::PopupMessage(this->GetApplication(),
+                                       this->GetApplicationGUI()->GetMainSlicerWindow(),
+                                       "AbdoNav",
+                                       "RAS coordinates of guidance needle contain illegal characters!",
+                                       vtkKWMessageDialog::ErrorIcon);
+      }
+    else
+      {
+      this->Point1RadioButton->SetEnabled(false);
+      this->Point2RadioButton->SetEnabled(false);
+      this->PerformRegistrationPushButton->SetEnabled(false);
       }
     }
 }
@@ -848,6 +890,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point1REntry->SetParent(point1Frame);
   this->Point1REntry->Create();
   this->Point1REntry->SetWidth(8);
+  this->Point1REntry->SetReadOnly(1);
   this->Point1REntry->SetRestrictValueToDouble();
   this->Point1REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
   this->Point1REntry->SetBalloonHelpString("Guidance needle tip, R coordinate.");
@@ -856,6 +899,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point1AEntry->SetParent(point1Frame);
   this->Point1AEntry->Create();
   this->Point1AEntry->SetWidth(8);
+  this->Point1AEntry->SetReadOnly(1);
   this->Point1AEntry->SetRestrictValueToDouble();
   this->Point1AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
   this->Point1AEntry->SetBalloonHelpString("Guidance needle tip, A coordinate.");
@@ -864,6 +908,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point1SEntry->SetParent(point1Frame);
   this->Point1SEntry->Create();
   this->Point1SEntry->SetWidth(8);
+  this->Point1SEntry->SetReadOnly(1);
   this->Point1SEntry->SetRestrictValueToDouble();
   this->Point1SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
   this->Point1SEntry->SetBalloonHelpString("Guidance needle tip, S coordinate.");
@@ -890,6 +935,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2REntry->SetParent(point2Frame);
   this->Point2REntry->Create();
   this->Point2REntry->SetWidth(8);
+  this->Point2REntry->SetReadOnly(1);
   this->Point2REntry->SetRestrictValueToDouble();
   this->Point2REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
   this->Point2REntry->SetBalloonHelpString("Second point on guidance needle, R coordinate.");
@@ -898,6 +944,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2AEntry->SetParent(point2Frame);
   this->Point2AEntry->Create();
   this->Point2AEntry->SetWidth(8);
+  this->Point2AEntry->SetReadOnly(1);
   this->Point2AEntry->SetRestrictValueToDouble();
   this->Point2AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
   this->Point2AEntry->SetBalloonHelpString("Second point on guidance needle, A coordinate.");
@@ -906,6 +953,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2SEntry->SetParent(point2Frame);
   this->Point2SEntry->Create();
   this->Point2SEntry->SetWidth(8);
+  this->Point2SEntry->SetReadOnly(1);
   this->Point2SEntry->SetRestrictValueToDouble();
   this->Point2SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
   this->Point2SEntry->SetBalloonHelpString("Second point on guidance needle, S coordinate.");
