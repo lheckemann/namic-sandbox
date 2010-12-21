@@ -84,3 +84,10 @@ void vtkAbdoNavLogic::UpdateAll()
 {
   // TODO: implement or delete!
 }
+
+
+//---------------------------------------------------------------------------
+int vtkAbdoNavLogic::EnableLocatorDriver(int on)
+{
+  return 1;
+}

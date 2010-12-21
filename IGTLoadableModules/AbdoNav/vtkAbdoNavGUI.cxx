@@ -660,6 +660,15 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       this->PerformRegistrationPushButton->SetEnabled(false);
       }
     }
+
+  //----------------------------------------------------------------
+  // Navigation frame.
+  //----------------------------------------------------------------
+  else if (this->ShowLocatorCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
+    {
+    int checked = this->ShowLocatorCheckButton->GetSelectedState();
+    this->GetLogic()->EnableLocatorDriver(checked);
+    }
 }
 
 
