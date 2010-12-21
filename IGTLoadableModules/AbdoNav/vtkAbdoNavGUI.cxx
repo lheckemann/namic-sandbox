@@ -89,6 +89,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   this->SetLocatorAllPushButton = NULL;
   this->SetUserAllPushButton = NULL;
   this->FreezeSliceCheckButton = NULL;
+  this->ObliqueCheckButton = NULL;
 }
 
 
@@ -238,6 +239,11 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     {
     this->FreezeSliceCheckButton->SetParent(NULL);
     this->FreezeSliceCheckButton->Delete();
+    }
+  if (this->ObliqueCheckButton)
+    {
+    this->ObliqueCheckButton->SetParent(NULL);
+    this->ObliqueCheckButton->Delete();
     }
 }
 
@@ -1122,12 +1128,19 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->FreezeSliceCheckButton->Create();
   this->FreezeSliceCheckButton->SetText("Freeze");
   this->FreezeSliceCheckButton->SelectedStateOff();
+  // create an oblique check button
+  this->ObliqueCheckButton = vtkKWCheckButton::New();
+  this->ObliqueCheckButton->SetParent(sliceModeFrame);
+  this->ObliqueCheckButton->Create();
+  this->ObliqueCheckButton->SetText("Oblique");
+  this->ObliqueCheckButton->SelectedStateOff();
 
-  // add drive all slice views by locator or user push buttons and freeze all slice views check button
-  this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+  // add drive all slice views by locator/user push buttons, freeze all slice views and oblique check buttons
+  this->Script("pack %s %s %s %s -side left -anchor w -fill x -padx 2 -pady 2",
                 SetLocatorAllPushButton->GetWidgetName(),
                 SetUserAllPushButton->GetWidgetName(),
-                FreezeSliceCheckButton->GetWidgetName());
+                FreezeSliceCheckButton->GetWidgetName(),
+                ObliqueCheckButton->GetWidgetName());
 
   // clean up
   navigationFrame->Delete();

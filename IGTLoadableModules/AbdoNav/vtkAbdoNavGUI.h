@@ -166,6 +166,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkKWPushButton* SetLocatorAllPushButton;
   vtkKWPushButton* SetUserAllPushButton;
   vtkKWCheckButton* FreezeSliceCheckButton;
+  vtkKWCheckButton* ObliqueCheckButton;
 
 };
 
