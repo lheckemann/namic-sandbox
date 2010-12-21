@@ -52,7 +52,10 @@ vtkAbdoNavLogic::~vtkAbdoNavLogic()
 void vtkAbdoNavLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->vtkObject::PrintSelf(os, indent);
+
   os << indent << "vtkAbdoNavLogic: " << this->GetClassName() << "\n";
+  os << indent << "vtkAbdoNavNode: " << this->AbdoNavNode << "\n";
+  os << indent << "DataCallbackCommand: " << this->DataCallbackCommand << "\n";
 }
 
 
@@ -90,4 +93,18 @@ void vtkAbdoNavLogic::UpdateAll()
 int vtkAbdoNavLogic::EnableLocatorDriver(int on)
 {
   return 1;
+}
+
+
+//---------------------------------------------------------------------------
+vtkMRMLModelNode* SetVisibilityOfLocatorModel(const char* nodeName, int vis)
+{
+  return NULL;
+}
+
+
+//---------------------------------------------------------------------------
+vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b)
+{
+  return NULL;
 }
