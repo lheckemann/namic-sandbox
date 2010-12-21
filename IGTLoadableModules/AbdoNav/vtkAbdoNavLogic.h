@@ -62,6 +62,10 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
 
   /// Make the locator model appear and observe the selected tracker transform node.
   int EnableLocatorDriver(int on);
+  /// Show or hide locator model.
+  vtkMRMLModelNode* SetVisibilityOfLocatorModel(const char* nodeName, int vis);
+  /// Create a locator model.
+  vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
 
  protected:
   //----------------------------------------------------------------
