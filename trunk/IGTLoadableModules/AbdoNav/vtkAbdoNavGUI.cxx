@@ -325,6 +325,20 @@ void vtkAbdoNavGUI::AddGUIObservers()
   this->ResetRegistrationPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->PerformRegistrationPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
 
+  //----------------------------------------------------------------
+  // Navigation frame.
+  //----------------------------------------------------------------
+  this->ShowLocatorCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->FreezeLocatorCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->ShowCrosshairCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->RedSliceMenuButton->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->YellowSliceMenuButton->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->GreenSliceMenuButton->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->SetLocatorAllPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->SetUserAllPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->FreezeSliceCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->ObliqueCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+
   // must be called manually!
   this->AddMRMLObservers();
 }
@@ -384,6 +398,50 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
   if (this->PerformRegistrationPushButton)
     {
     this->PerformRegistrationPushButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+
+  //----------------------------------------------------------------
+  // Navigation frame.
+  //----------------------------------------------------------------
+  if (this->ShowLocatorCheckButton)
+    {
+    this->ShowLocatorCheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->FreezeLocatorCheckButton)
+    {
+    this->FreezeLocatorCheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->ShowCrosshairCheckButton)
+    {
+    this->ShowCrosshairCheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->RedSliceMenuButton)
+    {
+    this->RedSliceMenuButton->GetMenu()->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->YellowSliceMenuButton)
+    {
+    this->YellowSliceMenuButton->GetMenu()->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->GreenSliceMenuButton)
+    {
+    this->GreenSliceMenuButton->GetMenu()->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->SetLocatorAllPushButton)
+    {
+    this->SetLocatorAllPushButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->SetUserAllPushButton)
+    {
+    this->SetUserAllPushButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->FreezeSliceCheckButton)
+    {
+    this->FreezeSliceCheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->ObliqueCheckButton)
+    {
+    this->ObliqueCheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
   // must be called manually!
