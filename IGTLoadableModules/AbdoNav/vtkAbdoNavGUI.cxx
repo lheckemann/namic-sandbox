@@ -793,7 +793,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   connectionFrame->CollapseFrame();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", connectionFrame->GetWidgetName(), page->GetWidgetName());
 
-  // create a labelled frame to to hold the tracker transform node and the tracking system combo box
+  // create a labelled frame to hold the tracker transform node and the tracking system combo box
   vtkKWFrameWithLabel* trackerFrame = vtkKWFrameWithLabel::New();
   trackerFrame->SetParent(connectionFrame->GetFrame());
   trackerFrame->SetLabelText("Specify tracking information");
@@ -868,7 +868,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   registrationFrame->CollapseFrame();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", registrationFrame->GetWidgetName(), page->GetWidgetName());
 
-  // create a labelled frame to to hold the GUI elements of both, the guidance needle tip and the the second point on the guidance needle
+  // create a labelled frame to hold the GUI elements of both, the guidance needle tip and the the second point on the guidance needle
   vtkKWFrameWithLabel* guidanceNeedleFrame = vtkKWFrameWithLabel::New();
   guidanceNeedleFrame->SetParent(registrationFrame->GetFrame());
   guidanceNeedleFrame->SetLabelText("Identify guidance needle");
