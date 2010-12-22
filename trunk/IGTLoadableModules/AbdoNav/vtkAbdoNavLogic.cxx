@@ -97,14 +97,14 @@ int vtkAbdoNavLogic::EnableLocatorDriver(int on)
 
 
 //---------------------------------------------------------------------------
-vtkMRMLModelNode* SetVisibilityOfLocatorModel(const char* nodeName, int vis)
+vtkMRMLModelNode* vtkAbdoNavLogic::SetVisibilityOfLocatorModel(const char* nodeName, int vis)
 {
   return NULL;
 }
 
 
 //---------------------------------------------------------------------------
-vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b)
+vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double r, double g, double b)
 {
   return NULL;
 }
