@@ -1365,6 +1365,57 @@ vtkMRMLPerkStationModuleNode
 
 
 
+double
+vtkMRMLPerkStationModuleNode
+::GetTargetPointErrorR( int index )
+{
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
+  
+  double plan[ 3 ];
+  this->GetPlanTargetPoint( plan, index );
+  
+  double validation[ 3 ];
+  this->GetValidationTargetPoint( validation, index );
+  
+  return ( validation[ 0 ] - plan[ 0 ] );
+}
+
+
+
+double
+vtkMRMLPerkStationModuleNode
+::GetTargetPointErrorA( int index )
+{
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
+  
+  double plan[ 3 ];
+  this->GetPlanTargetPoint( plan, index );
+  
+  double validation[ 3 ];
+  this->GetValidationTargetPoint( validation, index );
+  
+  return ( validation[ 1 ] - plan[ 1 ] );
+}
+
+
+
+double
+vtkMRMLPerkStationModuleNode
+::GetTargetPointErrorS( int index )
+{
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
+  
+  double plan[ 3 ];
+  this->GetPlanTargetPoint( plan, index );
+  
+  double validation[ 3 ];
+  this->GetValidationTargetPoint( validation, index );
+  
+  return ( validation[ 2 ] - plan[ 2 ] );
+}
+
+
+
 /**
  * Angle definition:
  * - : 0   degrees

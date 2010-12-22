@@ -877,6 +877,10 @@ vtkPerkStationValidateStep
     colList->SetCellText( validationRow, VALIDATION_COL_ENTRY_R, DoubleToString( mrmlNode->GetEntryPointErrorR( row ), VPRECISION ).c_str() );
     colList->SetCellText( validationRow, VALIDATION_COL_ENTRY_A, DoubleToString( mrmlNode->GetEntryPointErrorA( row ), VPRECISION ).c_str() );
     colList->SetCellText( validationRow, VALIDATION_COL_ENTRY_S, DoubleToString( mrmlNode->GetEntryPointErrorS( row ), VPRECISION ).c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_TARGET, DoubleToString( mrmlNode->GetTargetPointError( row ), VPRECISION ).c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_TARGET_R, DoubleToString( mrmlNode->GetTargetPointErrorR( row ), VPRECISION ).c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_TARGET_A, DoubleToString( mrmlNode->GetTargetPointErrorA( row ), VPRECISION ).c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_TARGET_S, DoubleToString( mrmlNode->GetTargetPointErrorS( row ), VPRECISION ).c_str() );
     
     validationRow ++;
     }

@@ -325,6 +325,9 @@ public:
   double GetEntryPointErrorA( int index = -1 );
   double GetEntryPointErrorS( int index = -1 );
   double GetTargetPointError( int index = -1 );
+  double GetTargetPointErrorR( int index = -1 );
+  double GetTargetPointErrorA( int index = -1 );
+  double GetTargetPointErrorS( int index = -1 );
   
   double GetActualPlanInsertionAngle( int index = -1 );
   double GetActualPlanInsertionDepth( int index = -1 );
