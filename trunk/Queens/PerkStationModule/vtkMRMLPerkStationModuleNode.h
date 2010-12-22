@@ -169,10 +169,10 @@ public:
   // Plan parameters ----------------------------------------------------------
   
   
-  void GetPlanEntryPoint( double* point ) const;
+  void GetPlanEntryPoint( double* point, int index = -1 ) const;
   void SetPlanEntryPoint( const double* point );
   
-  void GetPlanTargetPoint( double* point ) const;
+  void GetPlanTargetPoint( double* point, int index = -1 ) const;
   void SetPlanTargetPoint( const double* point );
   
   
@@ -194,7 +194,7 @@ public:
   unsigned int AddPlan( vtkPerkStationPlan* newPlan );
   int RemovePlanAtIndex( unsigned int index );
   vtkPerkStationPlan *GetPlanAtIndex( unsigned int index );
-  int GetNumberOfPlans() { return this->PlanList.size(); };
+  int GetNumberOfPlans() const { return this->PlanList.size(); };
   vtkGetMacro( CurrentPlanIndex, int );
   int SetCurrentPlanIndex( int index );
   
@@ -246,11 +246,12 @@ public:
   
   bool GetValidated() const;
   void SetValidated( const bool validated );
+  int GetNumberOfValidations();
   
-  void GetValidationEntryPoint( double* point ) const;
+  void GetValidationEntryPoint( double* point, int index = -1 ) const;
   void SetValidationEntryPoint( const double* point );
   
-  void GetValidationTargetPoint( double* point ) const;
+  void GetValidationTargetPoint( double* point, int index = -1 ) const;
   void SetValidationTargetPoint( const double* point );
   
   
@@ -319,17 +320,20 @@ public:
   bool GetFinalHorizontalFlip();
   bool GetFinalVerticalFlip();
   
-  double GetEntryPointError();
-  double GetTargetPointError();
+  double GetEntryPointError( int index = -1 );
+  double GetEntryPointErrorR( int index = -1 );
+  double GetEntryPointErrorA( int index = -1 );
+  double GetEntryPointErrorS( int index = -1 );
+  double GetTargetPointError( int index = -1 );
   
-  double GetActualPlanInsertionAngle();
-  double GetActualPlanInsertionDepth();
+  double GetActualPlanInsertionAngle( int index = -1 );
+  double GetActualPlanInsertionDepth( int index = -1 );
   
-  double GetValidationAngle();
-  double GetValidationDepth();
+  double GetValidationAngle( int index = -1 );
+  double GetValidationDepth( int index = -1 );
   
-  double GetDepthError();
-  double GetAngleError();
+  double GetDepthError( int index = -1 );
+  double GetAngleError( int index = -1 );
   
   
 protected:
