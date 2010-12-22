@@ -936,13 +936,14 @@ vtkMRMLPerkStationModuleNode
 
 void
 vtkMRMLPerkStationModuleNode
-::GetPlanEntryPoint( double* point ) const
+::GetPlanEntryPoint( double* point, int index ) const
 {
-  if ( this->CurrentPlanIndex < 0 )
-    {
-    return;
-    }
-  this->PlanList[ this->CurrentPlanIndex ]->GetEntryPointRAS( point );
+  if ( index == -1 ) index = this->CurrentPlanIndex;
+  
+  int nPlans = this->GetNumberOfPlans();
+  if ( index < 0 || index >= nPlans ) return;
+  
+  this->PlanList[ index ]->GetEntryPointRAS( point );
 }
 
 
@@ -960,13 +961,16 @@ vtkMRMLPerkStationModuleNode
 
 void
 vtkMRMLPerkStationModuleNode
-::GetPlanTargetPoint( double* point ) const
+::GetPlanTargetPoint( double* point, int index ) const
 {
-  if ( this->CurrentPlanIndex < 0 )
+  if ( index == -1 ) index = this->CurrentPlanIndex;
+  
+  if ( index < 0 || index >= ( this->GetNumberOfPlans() ) )
     {
     return;
     }
-  this->PlanList[ this->CurrentPlanIndex ]->GetTargetPointRAS( point );
+  
+  this->PlanList[ index ]->GetTargetPointRAS( point );
 }
 
 
@@ -1259,13 +1263,15 @@ vtkMRMLPerkStationModuleNode
  */
 double
 vtkMRMLPerkStationModuleNode
-::GetEntryPointError()
+::GetEntryPointError( int index )
 {
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
+  
   double planEntry[ 3 ];
-  this->GetPlanEntryPoint( planEntry );
+  this->GetPlanEntryPoint( planEntry, index );
   
   double validationEntry[ 3 ];
-  this->GetValidationEntryPoint( validationEntry );
+  this->GetValidationEntryPoint( validationEntry, index );
   
   double sum = 0.0;
   
@@ -1279,18 +1285,72 @@ vtkMRMLPerkStationModuleNode
 }
 
 
+
+double
+vtkMRMLPerkStationModuleNode
+::GetEntryPointErrorR( int index )
+{
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
+  
+  double planEntry[ 3 ];
+  this->GetPlanEntryPoint( planEntry, index );
+  
+  double validationEntry[ 3 ];
+  this->GetValidationEntryPoint( validationEntry, index );
+  
+  return ( validationEntry[ 0 ] - planEntry[ 0 ] );
+}
+
+
+
+double
+vtkMRMLPerkStationModuleNode
+::GetEntryPointErrorA( int index )
+{
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
+  
+  double planEntry[ 3 ];
+  this->GetPlanEntryPoint( planEntry, index );
+  
+  double validationEntry[ 3 ];
+  this->GetValidationEntryPoint( validationEntry, index );
+  
+  return ( validationEntry[ 1 ] - planEntry[ 1 ] );
+}
+
+
+
+double
+vtkMRMLPerkStationModuleNode
+::GetEntryPointErrorS( int index )
+{
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
+  
+  double planEntry[ 3 ];
+  this->GetPlanEntryPoint( planEntry, index );
+  
+  double validationEntry[ 3 ];
+  this->GetValidationEntryPoint( validationEntry, index );
+  
+  return ( validationEntry[ 2 ] - planEntry[ 2 ] );
+}
+
+
+
 /**
  * @returns Euclidean distance between plan and validation target points.
  */
 double
 vtkMRMLPerkStationModuleNode
-::GetTargetPointError()
+::GetTargetPointError( int index )
 {
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
+  
   double planTarget[ 3 ];
-  this->GetPlanTargetPoint( planTarget );
+  this->GetPlanTargetPoint( planTarget, index );
   
   double validationTarget[ 3 ];
-  this->GetValidationTargetPoint( validationTarget );
+  this->GetValidationTargetPoint( validationTarget, index );
   
   double sum = 0.0;
   
@@ -1316,13 +1376,15 @@ vtkMRMLPerkStationModuleNode
  */
 double
 vtkMRMLPerkStationModuleNode
-::GetActualPlanInsertionAngle()
+::GetActualPlanInsertionAngle( int index )
 {
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
+  
   double planEntry[ 3 ];
   double planTarget[ 3 ];
   
-  this->GetPlanEntryPoint( planEntry );
-  this->GetPlanTargetPoint( planTarget );
+  this->GetPlanEntryPoint( planEntry, index );
+  this->GetPlanTargetPoint( planTarget, index );
   
   double tangent = ( planEntry[ 0 ] - planTarget[ 0 ] ) / ( planEntry[ 1 ] - planTarget[ 1 ] );
   double angle = - ( 180.0 / vtkMath::Pi() ) * atan( tangent );
@@ -1338,12 +1400,17 @@ vtkMRMLPerkStationModuleNode
  */
 double
 vtkMRMLPerkStationModuleNode
-::GetActualPlanInsertionDepth()
+::GetActualPlanInsertionDepth( int index )
 {
+  if ( index == -1 )
+    {
+    index = this->GetCurrentPlanIndex();
+    }
+  
   double planEntry[ 3 ];
-  this->GetPlanEntryPoint( planEntry );
+  this->GetPlanEntryPoint( planEntry, index );
   double planTarget[ 3 ];
-  this->GetPlanTargetPoint( planTarget );
+  this->GetPlanTargetPoint( planTarget, index );
   
   double insDepth = sqrt( vtkMath::Distance2BetweenPoints( planTarget, planEntry ) );
   return insDepth;
@@ -1353,13 +1420,18 @@ vtkMRMLPerkStationModuleNode
 
 double
 vtkMRMLPerkStationModuleNode
-::GetValidationAngle()
+::GetValidationAngle( int index )
 {
+  if ( index == -1 )
+    {
+    index = this->GetCurrentPlanIndex();
+    }
+  
   double entry[ 3 ];
   double target[ 3 ];
   
-  this->GetValidationEntryPoint( entry );
-  this->GetValidationTargetPoint( target );
+  this->GetValidationEntryPoint( entry, index );
+  this->GetValidationTargetPoint( target, index );
   
   double tangent = ( entry[ 0 ] - target[ 0 ] ) / ( entry[ 1 ] - target[ 1 ] );
   double angle = - ( 180.0 / vtkMath::Pi() ) * atan( tangent );
@@ -1375,13 +1447,18 @@ vtkMRMLPerkStationModuleNode
  */
 double
 vtkMRMLPerkStationModuleNode
-::GetValidationDepth()
+::GetValidationDepth( int index )
 {
+  if ( index == -1 )
+    {
+    index = this->GetCurrentPlanIndex();
+    }
+  
   double entry[ 3 ];
   double target[ 3 ];
   
-  this->GetValidationEntryPoint( entry );
-  this->GetValidationTargetPoint( target );
+  this->GetValidationEntryPoint( entry, index );
+  this->GetValidationTargetPoint( target, index );
   
   double insDepth = sqrt( vtkMath::Distance2BetweenPoints( target, entry ) );
   
@@ -1392,10 +1469,15 @@ vtkMRMLPerkStationModuleNode
 
 double
 vtkMRMLPerkStationModuleNode
-::GetDepthError()
+::GetDepthError( int index )
 {
-  double val = GetValidationDepth();
-  double plan = GetActualPlanInsertionDepth();
+  if ( index == -1 )
+    {
+    index = this->GetCurrentPlanIndex();
+    }
+  
+  double val = GetValidationDepth( index );
+  double plan = GetActualPlanInsertionDepth( index );
   
   double diff = val - plan;
   if ( diff >= 0 ) return diff;
@@ -1406,10 +1488,15 @@ vtkMRMLPerkStationModuleNode
 
 double
 vtkMRMLPerkStationModuleNode
-::GetAngleError()
+::GetAngleError( int index )
 {
-  double val = this->GetValidationAngle();
-  double plan = this->GetActualPlanInsertionAngle();
+  if ( index == -1 )
+    {
+    index = this->GetCurrentPlanIndex();
+    }
+  
+  double val = this->GetValidationAngle( index );
+  double plan = this->GetActualPlanInsertionAngle( index );
   
   double diff = val - plan;
   if ( diff >= 0 ) return diff;
@@ -1508,16 +1595,33 @@ vtkMRMLPerkStationModuleNode
 
 
 
+int
+vtkMRMLPerkStationModuleNode
+::GetNumberOfValidations()
+{
+  int ret = 0;
+  for ( int i = 0; i < this->GetNumberOfPlans(); ++ i )
+    {
+    if ( this->PlanList[ i ]->GetValidated() ) ++ ret;
+    }
+  return ret;
+}
+
+
+
 void
 vtkMRMLPerkStationModuleNode
-::GetValidationEntryPoint( double* point ) const
+::GetValidationEntryPoint( double* point, int index ) const
 {
-  if ( this->CurrentPlanIndex < 0 )
+  if ( index == -1 ) index = this->CurrentPlanIndex;
+  
+  if ( index < 0 || index > ( this->GetNumberOfPlans() - 1 ) )
     {
     point = NULL;
     return;
     }
-  this->PlanList[ this->CurrentPlanIndex ]->GetValidationEntryPointRAS( point );
+  
+  this->PlanList[ index ]->GetValidationEntryPointRAS( point );
 }
 
 
@@ -1535,14 +1639,17 @@ vtkMRMLPerkStationModuleNode
 
 void
 vtkMRMLPerkStationModuleNode
-::GetValidationTargetPoint( double* point ) const
+::GetValidationTargetPoint( double* point, int index ) const
 {
-  if ( this->CurrentPlanIndex < 0 )
+  if ( index == -1 ) index = this->CurrentPlanIndex;
+  
+  if ( index < 0 || index > ( this->GetNumberOfPlans() - 1 ) )
     {
     point = NULL;
     return;
     }
-  this->PlanList[ this->CurrentPlanIndex ]->GetValidationTargetPointRAS( point );
+  
+  this->PlanList[ index ]->GetValidationTargetPointRAS( point );
 }
 
 

@@ -29,6 +29,7 @@ public:
   
   virtual void ShowUserInterface();
   virtual void ShowPlanListFrame();
+  virtual void ShowValidationListFrame();
 
   void ProcessImageClickEvents( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessGUIEvents( vtkObject *caller, unsigned long event, void *callData );
@@ -63,15 +64,18 @@ protected:
   void PresentValidationErrors();
 
   
-    // GUI widgets.
+    // GUI widgets. -----------------------------------------------------------
+  
   
     // Plan list.
+  
   vtkKWFrame*                          PlanListFrame;
   vtkKWLabel*                          PlanListLabel;
   vtkKWMultiColumnListWithScrollbars*  PlanList;
   
   
     // reset push button
+  
   vtkKWFrame*       ResetFrame;
   vtkKWPushButton*  ResetValidationButton;
   
@@ -82,6 +86,10 @@ protected:
 
 
     // for insertion/validation
+  
+  vtkKWFrame*                          ValidationListFrame;
+  vtkKWLabel*                          ValidationListLabel;
+  vtkKWMultiColumnListWithScrollbars*  ValidationList;
   
   vtkKWFrameWithLabel* ValidationErrorsFrame;
   vtkKWEntryWithLabel* EntryPointError;

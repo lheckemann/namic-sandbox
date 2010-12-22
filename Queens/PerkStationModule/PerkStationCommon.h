@@ -4,6 +4,7 @@
 
 
 #include <fstream>
+#include <iomanip>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -113,6 +114,47 @@ static const char* PLAN_COL_LABELS[ PLAN_COL_COUNT ] = { "Name", "ER", "EA", "ES
 static const int PLAN_COL_WIDTHS[ PLAN_COL_COUNT ] = { 10, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 };
 
 
+  // Validation list columns.
+
+enum
+  {
+  VALIDATION_COL_NAME = 0,
+  VALIDATION_COL_ENTRY,
+  VALIDATION_COL_ENTRY_R,
+  VALIDATION_COL_ENTRY_A,
+  VALIDATION_COL_ENTRY_S,
+  VALIDATION_COL_TARGET,
+  VALIDATION_COL_TARGET_R,
+  VALIDATION_COL_TARGET_A,
+  VALIDATION_COL_TARGET_S,
+  VALIDATION_COL_ANGLE,
+  VALIDATION_COL_ANGLE_AXIAL,
+  VALIDATION_COL_ANGLE_SAGITTAL,
+  VALIDATION_COL_ABS_DEPTH,
+  VALIDATION_COL_DEPTH_ERROR,
+  VALIDATION_COL_COUNT
+  };
+static const char* VALIDATION_COL_LABELS[ VALIDATION_COL_COUNT ] =
+  {
+  "Name",
+  "Entry",
+  "Ent R",
+  "Ent A",
+  "Ent S",
+  "Target",
+  "Tar R",
+  "Tar A",
+  "Tar S",
+  "Angle",
+  "Ang Ax",
+  "Ang Sa",
+  "Depth",
+  "Depth Err"
+  };
+static const int VALIDATION_COL_WIDTHS[ VALIDATION_COL_COUNT ] = {
+  10, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 };
+
+
 // --------------------------------------------------------------
 
 
@@ -169,10 +211,10 @@ static std::vector< double > CharToDoubleVector( char* cstr )
 }
 
 
-static std::string DoubleToString( double d )
+static std::string DoubleToString( double d, int precision = 2 )
 {
   std::stringstream ss;
-  ss << d;
+  ss << std::setiosflags( ios::fixed | ios::showpoint ) << std::setprecision( precision ) << d;
   return ss.str();
 }
 

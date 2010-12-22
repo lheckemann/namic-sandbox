@@ -81,7 +81,11 @@ vtkPerkStationValidateStep
   
   
   this->InsertionDepth = NULL;
-
+  
+  this->ValidationListFrame = NULL;
+  this->ValidationListLabel = NULL;
+  this->ValidationList = NULL;
+  
   this->ValidationErrorsFrame = NULL;
   this->EntryPointError = NULL;
   this->TargetPointError = NULL; 
@@ -112,6 +116,11 @@ vtkPerkStationValidateStep
   
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionDepth );
   
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ValidationListFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ValidationListLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ValidationList );
+  
+  // tbdel
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ValidationErrorsFrame );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPointError );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPointError );
@@ -184,6 +193,9 @@ vtkPerkStationValidateStep
   
   this->SetDescription( "Mark actual entry point and target hit" );  
 
+  
+  this->ShowValidationListFrame();
+  
   
   // Create the individual components
 
@@ -357,6 +369,59 @@ vtkPerkStationValidateStep
   
   this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
                 this->PlanList->GetWidgetName() );
+}
+
+
+
+void
+vtkPerkStationValidateStep
+::ShowValidationListFrame()
+{
+  vtkKWWizardWidget* wizard_widget = this->GetGUI()->GetWizardWidget();
+  vtkKWWidget* parent = wizard_widget->GetClientArea();
+  
+  if ( ! this->ValidationListFrame )
+    {
+    this->ValidationListFrame = vtkKWFrame::New();
+    this->ValidationListLabel = vtkKWLabel::New();
+    }
+  if ( ! this->ValidationListFrame->IsCreated() )
+    {
+    this->ValidationListFrame->SetParent( parent );
+    this->ValidationListFrame->Create();
+    
+    this->ValidationListLabel->SetParent( this->ValidationListFrame );
+    this->ValidationListLabel->Create();
+    this->ValidationListLabel->SetText( "Validation results" );
+    }
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                this->ValidationListFrame->GetWidgetName() );
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                this->ValidationListLabel->GetWidgetName() );
+  
+    // Create the list.
+  
+  if ( ! this->ValidationList )
+    {
+    this->ValidationList = vtkKWMultiColumnListWithScrollbars::New();
+    this->ValidationList->SetParent( this->ValidationListFrame );
+    this->ValidationList->Create();
+    this->ValidationList->SetHeight( 1 );
+    this->ValidationList->GetWidget()->SetSelectionTypeToRow();
+    this->ValidationList->GetWidget()->SetSelectionBackgroundColor( 1, 1, 1 );
+    
+      // Create the columns.
+    
+    for ( int col = 0; col < VALIDATION_COL_COUNT; ++ col )
+      {
+      this->ValidationList->GetWidget()->AddColumn( VALIDATION_COL_LABELS[ col ] );
+      this->ValidationList->GetWidget()->SetColumnWidth( col, VALIDATION_COL_WIDTHS[ col ] );
+      this->ValidationList->GetWidget()->SetColumnAlignmentToLeft( col );
+      }
+    }
+  
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                this->ValidationList->GetWidgetName() );
 }
 
 
@@ -774,6 +839,48 @@ vtkPerkStationValidateStep
 
   
     // Update error metric values. --------------------------------------------
+  
+  const int VPRECISION = 2;
+  
+  if ( this->ValidationList == NULL || this->ValidationList->GetWidget() == NULL ) return;
+  
+  int numValidations = mrmlNode->GetNumberOfValidations();
+  int numRows = this->ValidationList->GetWidget()->GetNumberOfRows();
+  
+  bool deleteValidations = true;
+  if ( numValidations != numRows )
+    {
+    this->ValidationList->GetWidget()->DeleteAllRows();
+    }
+  else
+    {
+    deleteValidations = false;
+    }
+  
+  
+  int validationRow = 0;
+  for ( int row = 0; row < numPlans; ++ row )
+    {
+    vtkPerkStationPlan* plan = mrmlNode->GetPlanAtIndex( row );
+    
+    if ( plan->GetValidated() == false ) continue;
+    
+    if ( deleteValidations )
+      {
+      this->ValidationList->GetWidget()->AddRow();
+      }
+    
+    vtkKWMultiColumnList* colList = this->ValidationList->GetWidget();
+    
+    colList->SetCellText( validationRow, VALIDATION_COL_NAME, plan->GetName().c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_ENTRY, DoubleToString( mrmlNode->GetEntryPointError( row ), VPRECISION ).c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_ENTRY_R, DoubleToString( mrmlNode->GetEntryPointErrorR( row ), VPRECISION ).c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_ENTRY_A, DoubleToString( mrmlNode->GetEntryPointErrorA( row ), VPRECISION ).c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_ENTRY_S, DoubleToString( mrmlNode->GetEntryPointErrorS( row ), VPRECISION ).c_str() );
+    
+    validationRow ++;
+    }
+  
   
   if ( mrmlNode->GetValidated() )
     {
