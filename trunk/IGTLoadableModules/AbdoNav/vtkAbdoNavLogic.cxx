@@ -16,7 +16,15 @@
 #include "vtkAbdoNavLogic.h"
 
 /* VTK includes */
+#include "vtkAppendPolyData.h"
 #include "vtkCallbackCommand.h"
+#include "vtkConeSource.h"
+#include "vtkCylinderSource.h"
+#include "vtkRegularPolygonSource.h"
+#include "vtkRotationalExtrusionFilter.h"
+#include "vtkSmartPointer.h"
+#include "vtkTransform.h"
+#include "vtkTransformPolyDataFilter.h"
 
 //---------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkAbdoNavLogic, "$Revision: $");
@@ -92,6 +100,7 @@ void vtkAbdoNavLogic::UpdateAll()
 //---------------------------------------------------------------------------
 int vtkAbdoNavLogic::EnableLocatorDriver(int on)
 {
+  this->SetVisibilityOfLocatorModel("AbdoNav-Locator", 1);
   return 1;
 }
 
@@ -99,6 +108,7 @@ int vtkAbdoNavLogic::EnableLocatorDriver(int on)
 //---------------------------------------------------------------------------
 vtkMRMLModelNode* vtkAbdoNavLogic::SetVisibilityOfLocatorModel(const char* nodeName, int vis)
 {
+  this->AddLocatorModel("AbdoNav-Locator", 0.0, 1.0, 1.0);
   return NULL;
 }
 
@@ -106,5 +116,159 @@ vtkMRMLModelNode* vtkAbdoNavLogic::SetVisibilityOfLocatorModel(const char* nodeN
 //---------------------------------------------------------------------------
 vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double r, double g, double b)
 {
-  return NULL;
+  // TODO: all Update() calls within the scope of this function seem to be unnecessary --> remove?
+
+  vtkSmartPointer<vtkMRMLModelNode> locatorModel = vtkSmartPointer<vtkMRMLModelNode>::New();
+  vtkSmartPointer<vtkMRMLModelDisplayNode> locatorDisplay = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  vtkSmartPointer<vtkAppendPolyData> locatorPolyData = vtkSmartPointer<vtkAppendPolyData>::New();
+
+  // cylinder resolution
+  int numberOfSides = 16;
+  // measured handle diameter = 6 mm --> radius = 3 mm
+  double radiusHandle = 3.0;
+  // TODO: vendor claims needle diameter = 17 gauge ~ 1.15 mm --> radius ~ 0.575 mm; however, measured needle diameter = 1.5 mm --> radius = 0.75 mm
+  double radiusNeedle = 0.575;
+
+  //----------------------------------------------------------------
+  // Create needle tip.
+  //----------------------------------------------------------------
+  // create needle tip from a cone
+  vtkSmartPointer<vtkConeSource> tip = vtkSmartPointer<vtkConeSource>::New();
+  tip->SetResolution(numberOfSides);
+  tip->SetRadius(radiusNeedle);
+  tip->SetHeight(3.0); // 3 mm
+  tip->SetCenter(0.0, 0.0, -(3.0/2));
+  tip->SetDirection(0.0, 0.0, 1.0);
+  tip->Update();
+  // add
+  locatorPolyData->AddInput(tip->GetOutput());
+
+  //----------------------------------------------------------------
+  // Create needle shaft.
+  //----------------------------------------------------------------
+  // create needle shaft from a cylinder
+  vtkSmartPointer<vtkCylinderSource> shaft = vtkSmartPointer<vtkCylinderSource>::New();
+  shaft->SetResolution(numberOfSides);
+  shaft->SetRadius(radiusNeedle);
+  shaft->SetHeight(172.0);  // 172 mm (--> 175 mm in total due to tip)
+  shaft->SetCenter(0.0, 0.0, 0.0);
+  shaft->Update();
+  // rotate and translate needle shaft
+  vtkSmartPointer<vtkTransformPolyDataFilter> tfilterShaft = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransform> transShaft = vtkSmartPointer<vtkTransform>::New();
+  transShaft->RotateX(90.0);
+  transShaft->Translate(0.0, -(3.0 + 172.0/2), 0.0);
+  transShaft->Update();
+  tfilterShaft->SetInput(shaft->GetOutput());
+  tfilterShaft->SetTransform(transShaft);
+  tfilterShaft->Update();
+  // add
+  locatorPolyData->AddInput(tfilterShaft->GetOutput());
+
+  //----------------------------------------------------------------
+  // Create first part of the needle handle.
+  //----------------------------------------------------------------
+  // create first part of the needle handle from a cylinder
+  vtkSmartPointer<vtkCylinderSource> handle1 = vtkSmartPointer<vtkCylinderSource>::New();
+  handle1->SetResolution(numberOfSides);
+  handle1->SetRadius(radiusHandle);
+  handle1->SetHeight(20.0);
+  handle1->SetCenter(0.0, 0.0, 0.0);
+  handle1->Update();
+  // rotate and translate first part of the needle handle
+  vtkSmartPointer<vtkTransformPolyDataFilter> tfilterHandle1 = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransform> transHandle1 = vtkSmartPointer<vtkTransform>::New();
+  transHandle1->RotateX(90.0);
+  transHandle1->Translate(0.0, -(3.0 + 172.0 + 20.0/2), 0.0);
+  transHandle1->Update();
+  tfilterHandle1->SetInput(handle1->GetOutput());
+  tfilterHandle1->SetTransform(transHandle1);
+  tfilterHandle1->Update();
+  // add
+  locatorPolyData->AddInput(tfilterHandle1->GetOutput());
+
+  //----------------------------------------------------------------
+  // Create right angle of the needle handle by extruding a circle.
+  //----------------------------------------------------------------
+  // create a circle from a regular polygon
+  vtkSmartPointer<vtkRegularPolygonSource> angle = vtkSmartPointer<vtkRegularPolygonSource>::New();
+  angle->SetNumberOfSides(numberOfSides);
+  angle->SetRadius(radiusHandle);
+  angle->SetCenter(10.0, 0.0, 0.0);
+  angle->Update();
+  // rotate circle so that the rotational extrusion filter yields the desired effect
+  vtkSmartPointer<vtkTransformPolyDataFilter> tfilterAngle1 = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransform> transAngle1 = vtkSmartPointer<vtkTransform>::New();
+  transAngle1->RotateX(-90.0);
+  transAngle1->Update();
+  tfilterAngle1->SetInput(angle->GetOutput());
+  tfilterAngle1->SetTransform(transAngle1);
+  tfilterAngle1->Update();
+  // extrude the circle: this yields a cylinder bended by 90 degrees
+  vtkSmartPointer<vtkRotationalExtrusionFilter> efilterAngle = vtkSmartPointer<vtkRotationalExtrusionFilter>::New();
+  efilterAngle->SetInput(tfilterAngle1->GetOutput());
+  efilterAngle->SetAngle(90.0);
+  efilterAngle->CappingOff();
+  efilterAngle->Update();
+  // rotate and translate again
+  vtkSmartPointer<vtkTransformPolyDataFilter> tfilterAngle2 = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransform> transAngle2 = vtkSmartPointer<vtkTransform>::New();
+  transAngle2->RotateX(-90.0);
+  transAngle2->Translate(-10.0, +(3.0 + 172.0 + 20.0), 0.0);
+  transAngle2->Update();
+  tfilterAngle2->SetInput(efilterAngle->GetOutput());
+  tfilterAngle2->SetTransform(transAngle2);
+  tfilterAngle2->Update();
+  // add
+  locatorPolyData->AddInput(tfilterAngle2->GetOutput());
+
+  //----------------------------------------------------------------
+  // Create second part of the needle handle.
+  //----------------------------------------------------------------
+  // create second part of the needle handle from a cylinder
+  vtkSmartPointer<vtkCylinderSource> handle2 = vtkSmartPointer<vtkCylinderSource>::New();
+  handle2->SetResolution(numberOfSides);
+  handle2->SetRadius(radiusHandle);
+  handle2->SetHeight(50.0);
+  handle2->SetCenter(0.0, 0.0, 0.0);
+  handle2->Update();
+  // rotate and translate second part of the needle handle
+  vtkSmartPointer<vtkTransformPolyDataFilter> tfilterHandle2 = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransform> transHandle2 = vtkSmartPointer<vtkTransform>::New();
+  transHandle2->RotateZ(90.0);
+  transHandle2->Translate(0.0, +(10.0 + 50.0/2), -(3.0 + 172.0 + 20.0 + 10.0));
+  transHandle2->Update();
+  tfilterHandle2->SetInput(handle2->GetOutput());
+  tfilterHandle2->SetTransform(transHandle2);
+  tfilterHandle2->Update();
+  // add
+  locatorPolyData->AddInput(tfilterHandle2->GetOutput());
+
+  //----------------------------------------------------------------
+  // Add cryoprobe model to the scene.
+  //----------------------------------------------------------------
+  // prepare model node
+  locatorPolyData->Update();
+  locatorModel->SetAndObservePolyData(locatorPolyData->GetOutput());
+  locatorModel->SetName(nodeName);
+  locatorModel->SetHideFromEditors(0);
+  // prepare model display node
+  double color[3] = {r, g, b};
+  locatorDisplay->SetPolyData(locatorModel->GetPolyData());
+  locatorDisplay->SetColor(color);
+  // add both nodes to the scene
+  this->GetMRMLScene()->SaveStateForUndo();
+  locatorDisplay = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(locatorDisplay));
+  locatorModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(locatorModel));
+  if (locatorDisplay && locatorModel)
+    {
+    locatorModel->SetAndObserveDisplayNodeID(locatorDisplay->GetID());
+    }
+  else
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::AddLocator(...): "
+                  "Adding locator model node and/or locator model display node failed!");
+    }
+
+  return locatorModel;
 }
