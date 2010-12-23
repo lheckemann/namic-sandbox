@@ -1473,10 +1473,7 @@ double
 vtkMRMLPerkStationModuleNode
 ::GetValidationAngle( int index )
 {
-  if ( index == -1 )
-    {
-    index = this->GetCurrentPlanIndex();
-    }
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
   
   double entry[ 3 ];
   double target[ 3 ];
@@ -1522,10 +1519,7 @@ double
 vtkMRMLPerkStationModuleNode
 ::GetDepthError( int index )
 {
-  if ( index == -1 )
-    {
-    index = this->GetCurrentPlanIndex();
-    }
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
   
   double val = GetValidationDepth( index );
   double plan = GetActualPlanInsertionDepth( index );
@@ -1541,17 +1535,79 @@ double
 vtkMRMLPerkStationModuleNode
 ::GetAngleError( int index )
 {
-  if ( index == -1 )
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
+  
+  double ep[ 3 ];  // Entry point in plan.
+  double tp[ 3 ];  // Target point in plan.
+  double ev[ 3 ];  // Entry point in validation.
+  double tv[ 3 ];  // Target point in validation.
+  
+  this->GetPlanEntryPoint( ep, index );
+  this->GetPlanTargetPoint( tp, index );
+  this->GetValidationEntryPoint( ev, index );
+  this->GetValidationTargetPoint( tv, index );
+  
+    // Bring the two lines' entry point to common origin, to get two vectors.
+  
+  double p[ 3 ];  // Plan.
+  double v[ 3 ];  // Validation.
+  
+  for ( int i = 0; i < 3; ++ i )
     {
-    index = this->GetCurrentPlanIndex();
+    p[ i ] = tp[ i ] - ep[ i ];
+    v[ i ] = tv[ i ] - ev[ i ];
     }
+  
+    // Calculate the angle.
+  
+  double dotp = vtkMath::Dot( p, v );
+  
+  double lp = std::sqrt( p[0]*p[0] + p[1]*p[1] + p[2]*p[2] );
+  double lv = std::sqrt( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
+  
+  double angle = std::acos( dotp / lp / lv ) * 180 / 3.1415926;
+  
+  return angle;
+}
+
+
+
+double
+vtkMRMLPerkStationModuleNode
+::GetAngleErrorAxial( int index )
+{
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
   
   double val = this->GetValidationAngle( index );
   double plan = this->GetActualPlanInsertionAngle( index );
   
   double diff = val - plan;
-  if ( diff >= 0 ) return diff;
-  else return - diff;
+  return diff;
+}
+
+
+
+double
+vtkMRMLPerkStationModuleNode
+::GetAngleErrorSagittal( int index )
+{
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
+  
+  double ep[ 3 ];  // Entry point in plan.
+  double tp[ 3 ];  // Target point in plan.
+  double ev[ 3 ];  // Entry point in validation.
+  double tv[ 3 ];  // Target point in validation.
+  
+  this->GetPlanEntryPoint( ep, index );
+  this->GetPlanTargetPoint( tp, index );
+  this->GetValidationEntryPoint( ev, index );
+  this->GetValidationTargetPoint( tv, index );
+  
+    // Calculate sagittal angle.
+  
+  // double tangente = 
+  
+  return -1;
 }
 
 
