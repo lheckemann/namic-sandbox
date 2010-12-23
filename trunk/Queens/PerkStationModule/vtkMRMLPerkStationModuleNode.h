@@ -337,6 +337,8 @@ public:
   
   double GetDepthError( int index = -1 );
   double GetAngleError( int index = -1 );
+  double GetAngleErrorAxial( int index = -1 );
+  double GetAngleErrorSagittal( int index = -1 );
   
   
 protected:
