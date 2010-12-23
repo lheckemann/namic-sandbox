@@ -15,6 +15,9 @@
 /* AbdoNav includes */
 #include "vtkAbdoNavLogic.h"
 
+/* MRML includes */
+#include "vtkMRMLLinearTransformNode.h"
+
 /* VTK includes */
 #include "vtkAppendPolyData.h"
 #include "vtkCallbackCommand.h"
@@ -98,18 +101,58 @@ void vtkAbdoNavLogic::UpdateAll()
 
 
 //---------------------------------------------------------------------------
-int vtkAbdoNavLogic::EnableLocatorDriver(int on)
+vtkMRMLModelNode* vtkAbdoNavLogic::EnableLocatorDriver(const char* locatorName)
 {
-  this->SetVisibilityOfLocatorModel("AbdoNav-Locator", 1);
-  return 1;
+  // create the locator model
+  vtkMRMLModelNode* locatorModel = this->AddLocatorModel(locatorName, 0.0, 1.0, 1.0);
+  // get the tracker transform node
+  vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackerTransformNodeID()));
+  // make locator model observe the tracker transform node
+  if (locatorModel && tnode)
+    {
+    locatorModel->SetAndObserveTransformNodeID(tnode->GetID());
+    locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+    }
+  else
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::EnableLocatorDriver(...): "
+                  "Enabling locator model failed!");
+    }
+
+  return locatorModel;
 }
 
 
 //---------------------------------------------------------------------------
-vtkMRMLModelNode* vtkAbdoNavLogic::SetVisibilityOfLocatorModel(const char* nodeName, int vis)
+void vtkAbdoNavLogic::ToggleLocatorVisibility(int vis)
 {
-  this->AddLocatorModel("AbdoNav-Locator", 0.0, 1.0, 1.0);
-  return NULL;
+  const char* locatorName = "AbdoNav-Locator";
+  vtkMRMLModelNode* locatorModel;
+  vtkMRMLDisplayNode* locatorDisplay;
+
+  // check if locator already exists
+  vtkCollection* collection = this->GetMRMLScene()->GetNodesByName(locatorName);
+  if (collection != NULL && collection->GetNumberOfItems() == 0)
+    {
+    // locator doesn't exist yet, thus create it
+    locatorModel = this->EnableLocatorDriver(locatorName);
+    }
+  else if (collection != NULL && collection->GetNumberOfItems() != 0)
+    {
+    // locator exists
+    locatorModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+    }
+  // cleanup
+  collection->Delete();
+
+  // toggle visibility
+  if (locatorModel)
+    {
+    locatorDisplay = locatorModel->GetDisplayNode();
+    locatorDisplay->SetVisibility(vis);
+    locatorModel->Modified();
+    this->GetMRMLScene()->Modified();
+    }
 }
 
 
