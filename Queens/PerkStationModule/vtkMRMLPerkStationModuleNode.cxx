@@ -1605,7 +1605,7 @@ vtkMRMLPerkStationModuleNode
   
     // Calculate sagittal angle.
   
-  // double tangente = 
+  double tangentPlan = ( ep[ 1 ] - tp[ 1 ] ) / ( ep[ 2 ] - tp[ 2 ] );
   
   return -1;
 }
