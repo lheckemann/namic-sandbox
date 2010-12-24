@@ -9,6 +9,7 @@ class vtkKWFrame;
 class vtkKWLabel;
 class vtkKWEntryWithLabel;
 class vtkKWEntrySet;
+class vtkKWLoadSaveButton;
 class vtkKWMultiColumnList;
 class vtkKWMultiColumnListWithScrollbars;
 class vtkKWPushButton;
@@ -80,22 +81,12 @@ protected:
   vtkKWPushButton*  ResetValidationButton;
   
   
-    // validation points
-  
-  vtkKWEntryWithLabel* InsertionDepth;
-
-
     // for insertion/validation
   
   vtkKWFrame*                          ValidationListFrame;
   vtkKWLabel*                          ValidationListLabel;
   vtkKWMultiColumnListWithScrollbars*  ValidationList;
-  
-  vtkKWFrameWithLabel* ValidationErrorsFrame;
-  vtkKWEntryWithLabel* EntryPointError;
-  vtkKWEntryWithLabel* TargetPointError;
-  vtkKWEntryWithLabel* InsertionAngleError;
-  vtkKWEntryWithLabel* InsertionDepthError;
+  vtkKWLoadSaveButton*                 ValidationExportButton;
   
   
     // On second monitor.
@@ -107,6 +98,7 @@ protected:
     // Helper functions.
   
   void RasToWorld( const double ras[ 3 ], double wc[ 3 ] );
+  void ExportResultsToFile( const char* fileName );
   
   
 private:

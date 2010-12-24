@@ -1130,6 +1130,11 @@ vtkPerkStationCalibrateStep
   
     // Update calibration list.
   
+  if ( node->GetNumberOfCalibrations() > 0 && node->GetCurrentCalibration() < 0 )
+    {
+    node->SetCurrentCalibrationIndex( 0 );
+    }
+  
   bool updateCalibrationList = true;
   if ( this->CalibrationList == NULL || this->CalibrationList->GetWidget() == NULL )
     {

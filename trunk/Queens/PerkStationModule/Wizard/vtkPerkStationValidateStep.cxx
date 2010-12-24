@@ -1,4 +1,10 @@
+
 #include "vtkPerkStationValidateStep.h"
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 #include "PerkStationCommon.h"
 #include "vtkPerkStationModuleGUI.h"
@@ -10,6 +16,8 @@
 #include "vtkKWEntry.h"
 #include "vtkKWEntryWithLabel.h"
 #include "vtkKWEntrySet.h"
+#include "vtkKWLoadSaveButton.h"
+#include "vtkKWLoadSaveDialog.h"
 #include "vtkKWMultiColumnList.h"
 #include "vtkKWMultiColumnListWithScrollbars.h"
 #include "vtkKWFrameWithLabel.h"
@@ -47,6 +55,12 @@ vtkPerkStationValidateStep
     this->ResetValidationButton->AddObserver( vtkKWPushButton::InvokedEvent,
                                               (vtkCommand *)this->WizardGUICallbackCommand );
     }
+  
+  if ( this->ValidationExportButton )
+    {
+    this->ValidationExportButton->GetLoadSaveDialog()->AddObserver(
+      vtkKWLoadSaveDialog::WithdrawEvent, (vtkCommand*)this->WizardGUICallbackCommand );
+    }
 }
 
 
@@ -75,22 +89,13 @@ vtkPerkStationValidateStep
   this->PlanListLabel = NULL;
   this->PlanList = NULL;
   
-  
   this->ResetFrame = NULL;
   this->ResetValidationButton = NULL;
-  
-  
-  this->InsertionDepth = NULL;
   
   this->ValidationListFrame = NULL;
   this->ValidationListLabel = NULL;
   this->ValidationList = NULL;
-  
-  this->ValidationErrorsFrame = NULL;
-  this->EntryPointError = NULL;
-  this->TargetPointError = NULL; 
-  this->InsertionAngleError = NULL;
-  this->InsertionDepthError = NULL;
+  this->ValidationExportButton = NULL;
   
   
   this->ValidationNeedleActor = vtkActor::New();
@@ -99,7 +104,6 @@ vtkPerkStationValidateStep
   
   this->ClickNumber = 0;
   this->ProcessingCallback = false;
-
 }
 
 
@@ -114,18 +118,10 @@ vtkPerkStationValidateStep
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ResetFrame );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ResetValidationButton );
   
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionDepth );
-  
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ValidationListFrame );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ValidationListLabel );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ValidationList );
-  
-  // tbdel
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ValidationErrorsFrame );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->EntryPointError );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TargetPointError );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionAngleError );
-  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->InsertionDepthError );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ValidationExportButton );
   
   DELETE_IF_NOT_NULL( this->ValidationNeedleActor );
   DELETE_IF_NOT_NULL( this->PlanActor );
@@ -191,121 +187,11 @@ vtkPerkStationValidateStep
   this->Script( "pack %s -side top -padx 2 -pady 4", this->ResetValidationButton->GetWidgetName() );
      
   
-  this->SetDescription( "Mark actual entry point and target hit" );  
-
-  
   this->ShowValidationListFrame();
   
   
-  // Create the individual components
+  this->SetDescription( "Mark actual entry point and target hit" );  
 
-
-   // insertion depth  
-  if ( ! this->InsertionDepth )
-    {
-    this->InsertionDepth =  vtkKWEntryWithLabel::New(); 
-    }
-  if ( ! this->InsertionDepth->IsCreated() )
-    {
-    this->InsertionDepth->SetParent( parent );
-    this->InsertionDepth->Create();
-    this->InsertionDepth->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionDepth->SetLabelText( "Planned insertion depth (mm):" );
-    }
-  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", this->InsertionDepth->GetWidgetName() );
-  
-  
-  if ( ! this->ValidationErrorsFrame )
-    {
-    this->ValidationErrorsFrame = vtkKWFrameWithLabel::New();
-    }
-  if ( ! this->ValidationErrorsFrame->IsCreated() )
-    {
-    this->ValidationErrorsFrame->SetParent( parent );
-    this->ValidationErrorsFrame->Create();
-    this->ValidationErrorsFrame->SetLabelText( "Evaluation" );
-    this->ValidationErrorsFrame->SetBalloonHelpString( "" );
-    }
-  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->ValidationErrorsFrame->GetWidgetName() );
-
-
-
-  // entry point error
-  if ( ! this->EntryPointError )
-    {
-    this->EntryPointError =  vtkKWEntryWithLabel::New();  
-    }
-  if ( ! this->EntryPointError->IsCreated() )
-    {
-    this->EntryPointError->SetParent( this->ValidationErrorsFrame->GetFrame() );
-    this->EntryPointError->Create();
-    this->EntryPointError->GetWidget()->SetRestrictValueToDouble();
-    this->EntryPointError->SetLabelText( "Error in entry point (mm):" );
-    this->EntryPointError->SetWidth(7);
-    this->EntryPointError->GetWidget()->ReadOnlyOn();
-    }
-
-  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->EntryPointError->GetWidgetName() );
-
-
-    // target point error
-  
-  if ( ! this->TargetPointError )
-    {
-    this->TargetPointError =  vtkKWEntryWithLabel::New();  
-    }
-  if ( ! this->TargetPointError->IsCreated() )
-    {
-    this->TargetPointError->SetParent( this->ValidationErrorsFrame->GetFrame() );
-    this->TargetPointError->Create();
-    this->TargetPointError->GetWidget()->SetRestrictValueToDouble();
-    this->TargetPointError->SetLabelText( "Error in target point (mm):" );
-    this->TargetPointError->SetWidth( 7 );
-    this->TargetPointError->GetWidget()->ReadOnlyOn();
-    }
-  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", this->TargetPointError->GetWidgetName() );
-
- 
-
-    // entry point error
-  
-  if ( ! this->InsertionDepthError )
-    {
-    this->InsertionDepthError =  vtkKWEntryWithLabel::New();  
-    }
-  if ( ! this->InsertionDepthError->IsCreated() )
-    {
-    this->InsertionDepthError->SetParent( this->ValidationErrorsFrame->GetFrame() );
-    this->InsertionDepthError->Create();
-    this->InsertionDepthError->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionDepthError->SetLabelText( "Error in insertion depth (mm):" );
-    this->InsertionDepthError->SetWidth( 7 );
-    this->InsertionDepthError->GetWidget()->ReadOnlyOn();
-    }
-  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", this->InsertionDepthError->GetWidgetName() );
-
-
-    // target point error
-  
-  if ( ! this->InsertionAngleError )
-    {
-    this->InsertionAngleError =  vtkKWEntryWithLabel::New();  
-    }
-  if ( ! this->InsertionAngleError->IsCreated() )
-    {
-    this->InsertionAngleError->SetParent(this->ValidationErrorsFrame->GetFrame());
-    this->InsertionAngleError->Create();
-    this->InsertionAngleError->GetWidget()->SetRestrictValueToDouble();
-    this->InsertionAngleError->SetLabelText( "Error in-plane angle (degrees):" );
-    this->InsertionAngleError->SetWidth( 7 );
-    this->InsertionAngleError->GetWidget()->ReadOnlyOn();
-    }
-  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", this->InsertionAngleError->GetWidgetName() );
-  
-  
-  // TO DO: install callbacks
   this->InstallCallbacks();
   
   this->UpdateGUI();
@@ -422,6 +308,19 @@ vtkPerkStationValidateStep
   
   this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
                 this->ValidationList->GetWidgetName() );
+  
+  if ( ! this->ValidationExportButton )
+    {
+    this->ValidationExportButton = vtkKWLoadSaveButton::New();
+    this->ValidationExportButton->SetParent( this->ValidationListFrame );
+    this->ValidationExportButton->Create();
+    this->ValidationExportButton->GetLoadSaveDialog()->SetSaveDialog( 1 );
+    this->ValidationExportButton->SetInitialFileName( "results.csv" );
+    this->ValidationExportButton->SetText( "Export validation results" );
+    }
+  
+  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
+                this->ValidationExportButton->GetWidgetName() );
 }
 
 
@@ -448,6 +347,12 @@ vtkPerkStationValidateStep
     {
     this->ResetValidationButton->RemoveObservers( vtkKWPushButton::InvokedEvent,
                                                   (vtkCommand *)this->WizardGUICallbackCommand );
+    }
+  
+  if ( this->ValidationExportButton )
+    {
+    this->ValidationExportButton->GetLoadSaveDialog()->RemoveObservers(
+      vtkKWLoadSaveDialog::WithdrawEvent, (vtkCommand*)this->WizardGUICallbackCommand );
     }
 }
 
@@ -519,8 +424,6 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(
       moduleNode->SetValidated( true );
       
       this->OverlayValidationNeedleAxis();
-      
-      this->InsertionDepth->GetWidget()->SetValueAsDouble( moduleNode->GetValidationDepth() );
       }
     
     this->UpdateGUI();
@@ -826,18 +729,6 @@ vtkPerkStationValidateStep
   this->PlanList->GetWidget()->SelectRow( mrmlNode->GetCurrentPlanIndex() );
   
   
-    // Plan depth.
- 
-  if ( mrmlNode->GetCurrentPlanIndex() >= 0 )
-    {
-    this->InsertionDepth->GetWidget()->SetValueAsDouble( mrmlNode->GetActualPlanInsertionDepth() );
-    }
-  else
-    {
-    this->InsertionDepth->GetWidget()->SetValue( "" );
-    }
-
-  
     // Update error metric values. --------------------------------------------
   
   const int VPRECISION = 2;
@@ -882,24 +773,12 @@ vtkPerkStationValidateStep
     colList->SetCellText( validationRow, VALIDATION_COL_TARGET_A, DoubleToString( mrmlNode->GetTargetPointErrorA( row ), VPRECISION ).c_str() );
     colList->SetCellText( validationRow, VALIDATION_COL_TARGET_S, DoubleToString( mrmlNode->GetTargetPointErrorS( row ), VPRECISION ).c_str() );
     colList->SetCellText( validationRow, VALIDATION_COL_ANGLE, DoubleToString( mrmlNode->GetAngleError( row ), VPRECISION ).c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_ANGLE_AXIAL, DoubleToString( mrmlNode->GetAngleErrorAxial( row ), VPRECISION ).c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_ANGLE_SAGITTAL, DoubleToString( mrmlNode->GetAngleErrorSagittal( row ), VPRECISION ).c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_ABS_DEPTH, DoubleToString( mrmlNode->GetPlanDepth( row ), VPRECISION ).c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_DEPTH_ERROR, DoubleToString( mrmlNode->GetDepthError( row ), VPRECISION ).c_str() );
     
     validationRow ++;
-    }
-  
-  
-  if ( mrmlNode->GetValidated() )
-    {
-    this->EntryPointError->GetWidget()->SetValueAsDouble( mrmlNode->GetEntryPointError() );
-    this->TargetPointError->GetWidget()->SetValueAsDouble( mrmlNode->GetTargetPointError() );
-    this->InsertionDepthError->GetWidget()->SetValueAsDouble( mrmlNode->GetDepthError() );
-    this->InsertionAngleError->GetWidget()->SetValueAsDouble( mrmlNode->GetAngleError() );
-    }
-  else
-    {
-    this->EntryPointError->GetWidget()->SetValue( "" );
-    this->TargetPointError->GetWidget()->SetValue( "" );
-    this->InsertionDepthError->GetWidget()->SetValue( "" );
-    this->InsertionAngleError->GetWidget()->SetValue( "" );
     }
   
   
@@ -987,6 +866,22 @@ vtkPerkStationValidateStep
     }
   
   
+    // Export results.
+  
+  if (    this->ValidationExportButton
+       && this->ValidationExportButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast( caller ) )
+    {
+    if ( this->ValidationExportButton->GetLoadSaveDialog()->GetStatus() == vtkKWDialog::StatusOK )
+      {
+      const char* fileName = this->ValidationExportButton->GetLoadSaveDialog()->GetFileName();
+  
+      if ( fileName )
+        {
+        this->ExportResultsToFile( fileName );
+        }
+      }
+    }
+  
   this->UpdateGUI();
   
   this->ProcessingCallback = false;
@@ -1016,4 +911,66 @@ vtkPerkStationValidateStep
   renderer->GetWorldPoint( wc4 );
   
   for ( int i = 0; i < 3; ++ i ) wc[ i ] = wc4[ i ];
+}
+
+
+
+void
+vtkPerkStationValidateStep
+::ExportResultsToFile( const char* fileName )
+{
+  vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetMRMLNode();
+  if ( ! mrmlNode ) return;
+  
+  ofstream output( fileName );
+  if ( ! output.is_open() )
+    {
+    vtkErrorMacro( "Save file couldn't be opened." );
+    return;
+    }
+  
+  
+    // First row contains column names.
+  
+  for ( int i = 0; i < VALIDATION_COL_COUNT; ++ i )
+    {
+    output << VALIDATION_COL_LABELS[ i ] << ", ";
+    }
+  output << std::endl;
+  
+  
+    // Rows containing results.
+  
+  const int VPRECISION = 2;
+  
+  int numValidations = mrmlNode->GetNumberOfValidations();
+  int numPlans = mrmlNode->GetNumberOfPlans();
+  
+  int validationRow = 0;
+  for ( int row = 0; row < numPlans; ++ row )
+    {
+    vtkPerkStationPlan* plan = mrmlNode->GetPlanAtIndex( row );
+    
+    if ( plan->GetValidated() == false ) continue;
+    
+    output << plan->GetName().c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetEntryPointError( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetEntryPointErrorR( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetEntryPointErrorA( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetEntryPointErrorS( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetTargetPointError( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetTargetPointErrorR( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetTargetPointErrorA( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetTargetPointErrorS( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetAngleError( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetAngleErrorAxial( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetAngleErrorSagittal( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetPlanDepth( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetDepthError( row ), VPRECISION ).c_str() << ", ";
+    output << std::endl;
+    
+    validationRow ++;
+    }
+  
+  output.close();
 }
