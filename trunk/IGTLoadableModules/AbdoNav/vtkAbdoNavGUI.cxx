@@ -500,6 +500,8 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   //
   // If the user clicked in one of the slice views, transform xy
   // mouse coordinates into RAS coordinates.
+  //
+  // TODO: move to logic class and update MRML node from there?
   //----------------------------------------------------------------
   vtkSlicerInteractorStyle* style = vtkSlicerInteractorStyle::SafeDownCast(caller);
   if (style != NULL && event == vtkCommand::LeftButtonPressEvent)
