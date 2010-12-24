@@ -1471,6 +1471,15 @@ vtkMRMLPerkStationModuleNode
 
 double
 vtkMRMLPerkStationModuleNode
+::GetPlanDepth( int index )
+{
+  return GetActualPlanInsertionDepth( index );
+}
+
+
+
+double
+vtkMRMLPerkStationModuleNode
 ::GetValidationAngle( int index )
 {
   if ( index == -1 ) index = this->GetCurrentPlanIndex();
@@ -1606,8 +1615,11 @@ vtkMRMLPerkStationModuleNode
     // Calculate sagittal angle.
   
   double tangentPlan = ( ep[ 1 ] - tp[ 1 ] ) / ( ep[ 2 ] - tp[ 2 ] );
+  double anglePlan = std::atan( tangentPlan );
+  double tangentValidation = ( ev[ 1 ] - tv[ 1 ] ) / ( ev[ 2 ] - tv[ 2 ] );
+  double angleValidation = std::atan( tangentValidation );
   
-  return -1;
+  return ( angleValidation - anglePlan );
 }
 
 
@@ -1617,7 +1629,6 @@ vtkMRMLPerkStationModuleNode
 ::AddPlan( vtkPerkStationPlan* newPlan )
 {
   unsigned int index = this->PlanList.size();
-  // newPlan->Register( this ); // Not for smart pointers.
   this->PlanList.push_back( newPlan );
   return index;
 }
