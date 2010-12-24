@@ -44,17 +44,26 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData(reinterpret_cast<void*>(this));
   this->DataCallbackCommand->SetCallback(vtkAbdoNavLogic::DataCallback);
+  this->LocatorFreezePosition = NULL;
 }
 
 
 //---------------------------------------------------------------------------
 vtkAbdoNavLogic::~vtkAbdoNavLogic()
 {
+  //----------------------------------------------------------------
+  // Cleanup logic values.
+  //----------------------------------------------------------------
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
 
   if (this->DataCallbackCommand)
     {
     this->DataCallbackCommand->Delete();
+    }
+
+  if (this->LocatorFreezePosition)
+    {
+    this->LocatorFreezePosition->Delete();
     }
 }
 
@@ -103,6 +112,8 @@ void vtkAbdoNavLogic::UpdateAll()
 //---------------------------------------------------------------------------
 vtkMRMLModelNode* vtkAbdoNavLogic::EnableLocatorDriver(const char* locatorName)
 {
+  // TODO: all TransformModifiedEvents within the scope of this function seem to be unnecessary --> remove?
+
   // create the locator model
   vtkMRMLModelNode* locatorModel = this->AddLocatorModel(locatorName, 0.0, 1.0, 1.0);
   // get the tracker transform node
@@ -153,6 +164,58 @@ void vtkAbdoNavLogic::ToggleLocatorVisibility(int vis)
     locatorModel->Modified();
     this->GetMRMLScene()->Modified();
     }
+}
+
+
+//---------------------------------------------------------------------------
+void vtkAbdoNavLogic::ToggleLocatorUpdate(int freeze)
+{
+  // TODO: all TransformModifiedEvents within the scope of this function seem to be unnecessary --> remove?
+
+  const char* locatorName = "AbdoNav-Locator";
+  vtkMRMLModelNode* locatorModel;
+
+  // check if locator already exists
+  vtkCollection* collection = this->GetMRMLScene()->GetNodesByName(locatorName);
+  if (collection != NULL && collection->GetNumberOfItems() == 0)
+    {
+    // locator doesn't exist, thus nothing to do
+    return;
+    }
+  else if (collection != NULL && collection->GetNumberOfItems() != 0)
+    {
+    // locator exists
+    locatorModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+    if (freeze == 1 && locatorModel)
+      {
+      // freeze locator model
+      locatorModel->SetAndObserveTransformNodeID(NULL);
+      // need to retrieve, store and apply current transformation matrix:
+      // otherwise, the locator model wouldn't be displayed at its current
+      // position but would instead be reset to its initial position
+      if (LocatorFreezePosition == NULL)
+        {
+        // LocatorFreezePosition is deleted in the destructor
+        LocatorFreezePosition = vtkMatrix4x4::New();
+        }
+      // retrieve and store current transformation matrix
+      LocatorFreezePosition->DeepCopy(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackerTransformNodeID()))->GetMatrixTransformToParent());
+      // apply current transformation matrix
+      locatorModel->ApplyTransform(LocatorFreezePosition);
+      locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+      }
+    else
+      {
+      // need to apply the inverse transformation matrix so as to obtain the identity matrix
+      vtkMatrix4x4::Invert(LocatorFreezePosition, LocatorFreezePosition);
+      locatorModel->ApplyTransform(LocatorFreezePosition);
+      // unfreeze locator model
+      locatorModel->SetAndObserveTransformNodeID(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackerTransformNodeID()))->GetID());
+      locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+      }
+    }
+  // cleanup
+  collection->Delete();
 }
 
 

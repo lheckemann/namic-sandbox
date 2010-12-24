@@ -64,6 +64,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkMRMLModelNode* EnableLocatorDriver(const char* locatorName);
   /// Show or hide locator model.
   void ToggleLocatorVisibility(int vis);
+  /// Freeze or unfreeze locator model.
+  void ToggleLocatorUpdate(int freeze);
   /// Create a locator model.
   vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
 
@@ -88,6 +90,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkMRMLAbdoNavNode* AbdoNavNode;
   /// TODO: insert missing comment!
   vtkCallbackCommand* DataCallbackCommand;
+  /// Matrix holding the position at which the locator model was frozen.
+  vtkMatrix4x4* LocatorFreezePosition;
 
 };
 
