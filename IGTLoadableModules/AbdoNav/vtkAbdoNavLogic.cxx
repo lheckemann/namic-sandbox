@@ -429,7 +429,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* locatorName, doub
   // prepare model node
   locatorPolyData->Update();
   locatorModel->SetAndObservePolyData(locatorPolyData->GetOutput());
-  locatorModel->SetName(nodeName);
+  locatorModel->SetName(locatorName);
   locatorModel->SetHideFromEditors(0);
   // prepare model display node
   double color[3] = {r, g, b};
