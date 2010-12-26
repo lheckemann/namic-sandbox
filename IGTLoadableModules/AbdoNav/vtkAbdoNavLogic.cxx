@@ -151,7 +151,7 @@ void vtkAbdoNavLogic::PerformRegistration()
     }
 
   double* guidanceNeedleTip = this->AbdoNavNode->GetGuidanceNeedleTipRAS();
-  double* guidanceNeedleSecond = this->AbdoNavNode->GetGuidanceNeedleSecond();
+  double* guidanceNeedleSecond = this->AbdoNavNode->GetGuidanceNeedleSecondRAS();
 
   // translational component of the registration matrix is given by the tip of the guidance needle
   RegistrationMatrix->SetElement(0, 3, guidanceNeedleTip[0]);
