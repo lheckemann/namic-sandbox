@@ -792,9 +792,9 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
     node->SetOriginalTrackerTransformID(tnode->GetID());
     }
   node->SetTrackingSystemUsed(this->TrackerComboBox->GetWidget()->GetValue());
-  node->SetGuidanceNeedleTip(Point1REntry->GetValueAsDouble(),
-                             Point1AEntry->GetValueAsDouble(),
-                             Point1SEntry->GetValueAsDouble());
+  node->SetGuidanceNeedleTipRAS(Point1REntry->GetValueAsDouble(),
+                                Point1AEntry->GetValueAsDouble(),
+                                Point1SEntry->GetValueAsDouble());
   node->SetGuidanceNeedleSecond(Point2REntry->GetValueAsDouble(),
                                 Point2AEntry->GetValueAsDouble(),
                                 Point2SEntry->GetValueAsDouble());
@@ -813,7 +813,7 @@ void vtkAbdoNavGUI::UpdateGUIFromMRML()
     this->TrackerNodeSelectorWidget->SetSelected(tnode);
     this->TrackerComboBox->GetWidget()->SetValue(node->GetTrackingSystemUsed());
 
-    double* guidanceTip = node->GetGuidanceNeedleTip();
+    double* guidanceTip = node->GetGuidanceNeedleTipRAS();
     this->Point1REntry->SetValueAsDouble(guidanceTip[0]);
     this->Point1AEntry->SetValueAsDouble(guidanceTip[1]);
     this->Point1SEntry->SetValueAsDouble(guidanceTip[2]);
