@@ -58,6 +58,10 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   vtkGetStringMacro(OriginalTrackerTransformID);
   /// Set the identifier of the original tracker transform.
   vtkSetStringMacro(OriginalTrackerTransformID);
+  /// Get the identifier of the registered tracker transform.
+  vtkGetStringMacro(RegisteredTrackerTransformID);
+  /// Set the identifier of the registered tracker transform.
+  vtkSetStringMacro(RegisteredTrackerTransformID);
   /// Get the identifier of the tracking system being used.
   vtkGetStringMacro(TrackingSystemUsed);
   /// Set the identifier of the tracking system being used.
@@ -90,6 +94,8 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   //----------------------------------------------------------------
   /// Identifier of the original tracker transform.
   char* OriginalTrackerTransformID;
+  /// Identifier of the registered tracker transform.
+  char* RegisteredTrackerTransformID;
   /// Identifier of the tracking system being used.
   char* TrackingSystemUsed;
   /// RAS coordinates of the guidance needle tip.
