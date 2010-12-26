@@ -91,7 +91,7 @@ void vtkMRMLAbdoNavNode::ReadXMLAttributes(const char** atts)
 {
   vtkMRMLNode::ReadXMLAttributes(atts);
 
-  // Read all MRML node attributes from two arrays of names and values
+  // read all MRML node attributes from two arrays of names and values
   const char* attName;
   const char* attValue;
   while (*atts != NULL)
@@ -143,7 +143,7 @@ void vtkMRMLAbdoNavNode::WriteXML(ostream& os, int nIndent)
 {
   Superclass::WriteXML(os, nIndent);
 
-  // Write all MRML node attributes into output stream
+  // write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
   {
     std::stringstream ss;
