@@ -661,6 +661,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       this->Point1RadioButton->SetEnabled(false);
       this->Point2RadioButton->SetEnabled(false);
       this->PerformRegistrationPushButton->SetEnabled(false);
+      this->GetLogic()->PerformRegistration();
       }
     }
 

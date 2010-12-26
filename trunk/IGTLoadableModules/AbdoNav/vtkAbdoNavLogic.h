@@ -60,6 +60,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   static void DataCallback(vtkObject* caller, unsigned long eventid, void* clientData, void* callData);
   void UpdateAll(); // not implemented
 
+  /// Calculate registration matrix based on two identified points on the guidance needle.
+  void PerformRegistration();
   /// Create locator model and make it observe the selected tracker transform node.
   vtkMRMLModelNode* EnableLocatorDriver(const char* locatorName);
   /// Show or hide locator model.
@@ -92,6 +94,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkCallbackCommand* DataCallbackCommand;
   /// Matrix holding the position at which the locator model was frozen.
   vtkMatrix4x4* LocatorFreezePosition;
+  /// Matrix holding the transformation between image and tracking coordinates.
+  vtkMatrix4x4* RegistrationMatrix;
 
 };
 

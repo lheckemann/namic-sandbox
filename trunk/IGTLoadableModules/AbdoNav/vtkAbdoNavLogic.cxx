@@ -23,6 +23,7 @@
 #include "vtkCallbackCommand.h"
 #include "vtkConeSource.h"
 #include "vtkCylinderSource.h"
+#include "vtkMath.h"
 #include "vtkRegularPolygonSource.h"
 #include "vtkRotationalExtrusionFilter.h"
 #include "vtkSmartPointer.h"
@@ -45,6 +46,7 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
   this->DataCallbackCommand->SetClientData(reinterpret_cast<void*>(this));
   this->DataCallbackCommand->SetCallback(vtkAbdoNavLogic::DataCallback);
   this->LocatorFreezePosition = NULL;
+  this->RegistrationMatrix = NULL;
 }
 
 
@@ -64,6 +66,11 @@ vtkAbdoNavLogic::~vtkAbdoNavLogic()
   if (this->LocatorFreezePosition)
     {
     this->LocatorFreezePosition->Delete();
+    }
+
+  if (this->RegistrationMatrix)
+    {
+    this->RegistrationMatrix->Delete();
     }
 }
 
@@ -106,6 +113,73 @@ void vtkAbdoNavLogic::DataCallback(vtkObject* vtkNotUsed(caller), unsigned long 
 void vtkAbdoNavLogic::UpdateAll()
 {
   // TODO: implement or delete!
+}
+
+
+//---------------------------------------------------------------------------
+void vtkAbdoNavLogic::PerformRegistration()
+{
+  //----------------------------------------------------------------
+  // Given the RAS coordinates of the guidance needle tip and a second
+  // point on the guidance needle, the registration matrix is calculated
+  // as follows:
+  //
+  // - The translational component of the registration matrix is given
+  //   by the tip of the guidance needle.
+  // - The rotational component of the registration matrix is given by:
+  //    - The first vector, which is the direction vector of the guidance
+  //      needle (i.e. subtracting the second point on the guidance needle
+  //      from its tip).
+  //    - The second vector, which is perpendicular to the first vector.
+  //      Since there's an infinite number of vectors perpendicular to
+  //      the first, the second vector must be chosen arbitrarily.
+  //    - The third vector, which is perpendicular to the first and
+  //      second vector and thus given by the cross product of these
+  //      vectors.
+  //
+  // NOTE: The second vector must be chosen arbitrarily since we can't
+  //       retrieve the orientation of the guidance needle around its
+  //       long axis. However, since the needles are rotation symmetric,
+  //       loosing this information is considered negligible.
+  //----------------------------------------------------------------
+
+  if (RegistrationMatrix == NULL)
+    {
+    // RegistrationMatrix is deleted in the destructor
+    RegistrationMatrix = vtkMatrix4x4::New();
+    RegistrationMatrix->Identity();
+    }
+
+  double* guidanceNeedleTip = this->AbdoNavNode->GetGuidanceNeedleTip();
+  double* guidanceNeedleSecond = this->AbdoNavNode->GetGuidanceNeedleSecond();
+
+  // translational component of the registration matrix is given by the tip of the guidance needle
+  RegistrationMatrix->SetElement(0, 3, guidanceNeedleTip[0]);
+  RegistrationMatrix->SetElement(1, 3, guidanceNeedleTip[0]);
+  RegistrationMatrix->SetElement(2, 3, guidanceNeedleTip[0]);
+
+  // calculation of the rotational component of the registration matrix
+  double firstRotVec[3], secondRotVec[3], thirdRotVec[3];
+
+  // calculate and normalize first vector, which is given by the direction vector of the guidance needle
+  firstRotVec[0] = guidanceNeedleTip[0] - guidanceNeedleSecond[0];
+  firstRotVec[1] = guidanceNeedleTip[1] - guidanceNeedleSecond[1];
+  firstRotVec[2] = guidanceNeedleTip[2] - guidanceNeedleSecond[2];
+  vtkMath::Normalize(firstRotVec);
+
+  // since the second vector must be chosen arbitrarily anyway, use VTK to calculate the two missing normalized vectors
+  vtkMath::Perpendiculars(firstRotVec, secondRotVec, thirdRotVec, NULL);
+
+  // set rotational components of the registration matrix
+  RegistrationMatrix->SetElement(0, 0, firstRotVec[0]);
+  RegistrationMatrix->SetElement(1, 0, firstRotVec[1]);
+  RegistrationMatrix->SetElement(2, 0, firstRotVec[2]);
+  RegistrationMatrix->SetElement(0, 1, secondRotVec[0]);
+  RegistrationMatrix->SetElement(1, 1, secondRotVec[1]);
+  RegistrationMatrix->SetElement(2, 1, secondRotVec[2]);
+  RegistrationMatrix->SetElement(0, 2, thirdRotVec[0]);
+  RegistrationMatrix->SetElement(1, 2, thirdRotVec[1]);
+  RegistrationMatrix->SetElement(2, 2, thirdRotVec[2]);
 }
 
 
