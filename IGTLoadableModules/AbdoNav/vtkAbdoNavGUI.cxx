@@ -789,7 +789,7 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
   vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNodeSelectorWidget->GetSelected());
   if (tnode != NULL)
     {
-    node->SetTrackerTransformNodeID(tnode->GetID());
+    node->SetOriginalTrackerTransformID(tnode->GetID());
     }
   node->SetTrackingSystemUsed(this->TrackerComboBox->GetWidget()->GetValue());
   node->SetGuidanceNeedleTip(Point1REntry->GetValueAsDouble(),
@@ -809,7 +809,7 @@ void vtkAbdoNavGUI::UpdateGUIFromMRML()
   if (node != NULL)
     {
     // set GUI widgets from AbdoNav parameter node
-    vtkMRMLNode* tnode = this->GetMRMLScene()->GetNodeByID(node->GetTrackerTransformNodeID());
+    vtkMRMLNode* tnode = this->GetMRMLScene()->GetNodeByID(node->GetOriginalTrackerTransformID());
     this->TrackerNodeSelectorWidget->SetSelected(tnode);
     this->TrackerComboBox->GetWidget()->SetValue(node->GetTrackingSystemUsed());
 

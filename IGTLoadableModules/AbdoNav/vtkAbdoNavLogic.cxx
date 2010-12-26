@@ -191,7 +191,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::EnableLocatorDriver(const char* locatorName)
   // create the locator model
   vtkMRMLModelNode* locatorModel = this->AddLocatorModel(locatorName, 0.0, 1.0, 1.0);
   // get the tracker transform node
-  vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackerTransformNodeID()));
+  vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetOriginalTrackerTransformID()));
   // make locator model observe the tracker transform node
   if (locatorModel && tnode)
     {
@@ -273,7 +273,7 @@ void vtkAbdoNavLogic::ToggleLocatorUpdate(int freeze)
         LocatorFreezePosition = vtkMatrix4x4::New();
         }
       // retrieve and store current transformation matrix
-      LocatorFreezePosition->DeepCopy(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackerTransformNodeID()))->GetMatrixTransformToParent());
+      LocatorFreezePosition->DeepCopy(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetOriginalTrackerTransformID()))->GetMatrixTransformToParent());
       // apply current transformation matrix
       locatorModel->ApplyTransform(LocatorFreezePosition);
       locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
@@ -284,7 +284,7 @@ void vtkAbdoNavLogic::ToggleLocatorUpdate(int freeze)
       vtkMatrix4x4::Invert(LocatorFreezePosition, LocatorFreezePosition);
       locatorModel->ApplyTransform(LocatorFreezePosition);
       // unfreeze locator model
-      locatorModel->SetAndObserveTransformNodeID(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackerTransformNodeID()))->GetID());
+      locatorModel->SetAndObserveTransformNodeID(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetOriginalTrackerTransformID()))->GetID());
       locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
       }
     }
