@@ -21,6 +21,8 @@
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWMessageDialog.h"
 #include "vtkKWRadioButton.h"
+#include "vtkKWScale.h"
+#include "vtkKWScaleWithEntry.h"
 #include "vtkKWTkUtilities.h"
 
 /* MRML includes */
@@ -78,6 +80,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   // Navigation frame.
   //----------------------------------------------------------------
   this->ShowLocatorCheckButton = NULL;
+  this->ProjectionLengthScale = NULL;
   this->FreezeLocatorCheckButton = NULL;
   this->ShowCrosshairCheckButton = NULL;
   this->RedSliceMenuButton = NULL;
@@ -198,6 +201,11 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     {
     this->ShowLocatorCheckButton->SetParent(NULL);
     this->ShowLocatorCheckButton->Delete();
+    }
+  if (this->ProjectionLengthScale)
+    {
+    this->ProjectionLengthScale->SetParent(NULL);
+    this->ProjectionLengthScale->Delete();
     }
   if (this->FreezeLocatorCheckButton)
     {
@@ -329,6 +337,7 @@ void vtkAbdoNavGUI::AddGUIObservers()
   // Navigation frame.
   //----------------------------------------------------------------
   this->ShowLocatorCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->ProjectionLengthScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->FreezeLocatorCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->ShowCrosshairCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->RedSliceMenuButton->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
@@ -406,6 +415,10 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
   if (this->ShowLocatorCheckButton)
     {
     this->ShowLocatorCheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->ProjectionLengthScale)
+    {
+    this->ProjectionLengthScale->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
   if (this->FreezeLocatorCheckButton)
     {
@@ -1094,36 +1107,48 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   locatorDisplayFrame->Create();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", locatorDisplayFrame->GetWidgetName());
 
-  // create a frame to hold the locator mode check buttons
-  vtkKWFrame* locatorModeFrame = vtkKWFrame::New();
-  locatorModeFrame->SetParent(locatorDisplayFrame->GetFrame());
-  locatorModeFrame->Create();
-  this->Script("pack %s -side top -anchor c -padx 2 -pady 2", locatorModeFrame->GetWidgetName());
-
   // create a check button to show/hide the locator model
   this->ShowLocatorCheckButton = vtkKWCheckButton::New();
-  this->ShowLocatorCheckButton->SetParent(locatorModeFrame);
+  this->ShowLocatorCheckButton->SetParent(locatorDisplayFrame->GetFrame());
   this->ShowLocatorCheckButton->Create();
   this->ShowLocatorCheckButton->SelectedStateOff();
   this->ShowLocatorCheckButton->SetText("Show Locator");
 
+  // add show locator check button
+  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", ShowLocatorCheckButton->GetWidgetName());
+
+  // create a scale to set the locator projection length
+  this->ProjectionLengthScale = vtkKWScaleWithEntry::New();
+  this->ProjectionLengthScale->SetParent(locatorDisplayFrame->GetFrame());
+  this->ProjectionLengthScale->Create();
+  this->ProjectionLengthScale->SetLabelText("Projection length (cm):\t\t");
+  // indentation: match scale text label with check button text labels
+  this->ProjectionLengthScale->GetLabel()->SetPadX(16);
+  this->ProjectionLengthScale->GetEntry()->SetWidth(8);
+  this->ProjectionLengthScale->GetEntry()->SetReadOnly(1);
+  this->ProjectionLengthScale->SetRange(0.0, 50.0);
+  this->ProjectionLengthScale->SetResolution(0.5);
+  this->ProjectionLengthScale->SetValue(0.0);
+
+  // add projection length scale
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", ProjectionLengthScale->GetWidgetName());
+
   // create a check button to freeze/unfreeze the locator model
   this->FreezeLocatorCheckButton = vtkKWCheckButton::New();
-  this->FreezeLocatorCheckButton->SetParent(locatorModeFrame);
+  this->FreezeLocatorCheckButton->SetParent(locatorDisplayFrame->GetFrame());
   this->FreezeLocatorCheckButton->Create();
   this->FreezeLocatorCheckButton->SelectedStateOff();
   this->FreezeLocatorCheckButton->SetText("Freeze Locator");
 
   // create a check button to show/hide a crosshair in the slice views corresponding to the locator's tip position
   this->ShowCrosshairCheckButton = vtkKWCheckButton::New();
-  this->ShowCrosshairCheckButton->SetParent(locatorModeFrame);
+  this->ShowCrosshairCheckButton->SetParent(locatorDisplayFrame->GetFrame());
   this->ShowCrosshairCheckButton->Create();
   this->ShowCrosshairCheckButton->SelectedStateOff();
   this->ShowCrosshairCheckButton->SetText("Show Crosshair");
 
-  // add show locator, freeze locator and show crosshair check buttons
-  this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2",
-                ShowLocatorCheckButton->GetWidgetName(),
+  // add freeze locator and show crosshair check buttons
+  this->Script("pack %s %s -side top -anchor nw -padx 2 -pady 2",
                 FreezeLocatorCheckButton->GetWidgetName(),
                 ShowCrosshairCheckButton->GetWidgetName());
 
@@ -1220,7 +1245,6 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   // clean up
   navigationFrame->Delete();
   locatorDisplayFrame->Delete();
-  locatorModeFrame->Delete();
   sliceDriverFrame->Delete();
   sliceFrame->Delete();
   sliceModeFrame->Delete();
