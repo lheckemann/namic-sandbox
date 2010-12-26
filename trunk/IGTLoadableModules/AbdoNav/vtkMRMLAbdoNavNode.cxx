@@ -45,6 +45,7 @@ vtkMRMLNode* vtkMRMLAbdoNavNode::CreateNodeInstance()
 vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
 {
   this->OriginalTrackerTransformID = NULL;
+  this->RegisteredTrackerTransformID = NULL;
   this->TrackingSystemUsed = NULL;
   this->SetGuidanceNeedleTip(std::numeric_limits<double>::quiet_NaN(),
                              std::numeric_limits<double>::quiet_NaN(),
@@ -61,6 +62,7 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
 vtkMRMLAbdoNavNode::~vtkMRMLAbdoNavNode()
 {
   this->OriginalTrackerTransformID = NULL;
+  this->RegisteredTrackerTransformID = NULL;
   this->TrackingSystemUsed = NULL;
   this->SetGuidanceNeedleTip(std::numeric_limits<double>::quiet_NaN(),
                              std::numeric_limits<double>::quiet_NaN(),
@@ -77,6 +79,7 @@ void vtkMRMLAbdoNavNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLNode::PrintSelf(os, indent);
 
   os << indent << "OriginalTrackerTransformID: " << (this->OriginalTrackerTransformID ? this->OriginalTrackerTransformID : "(none)") << "\n";
+  os << indent << "RegisteredTrackerTransformID: " << (this->RegisteredTrackerTransformID ? this->RegisteredTrackerTransformID : "(none)") << "\n";
   os << indent << "TrackingSystemUsed: " << (this->TrackingSystemUsed ? this->TrackingSystemUsed : "(none)") << "\n";
   os << indent << "GuidanceNeedleTip: " << this->GuidanceNeedleTip[0] << " " << this->GuidanceNeedleTip[1] << " " << this->GuidanceNeedleTip[2] << "\n";
   os << indent << "GuidanceNeedleSecond: " << this->GuidanceNeedleSecond[0] << " " << this->GuidanceNeedleSecond[1] << " " << this->GuidanceNeedleSecond[2] << "\n";
@@ -99,6 +102,11 @@ void vtkMRMLAbdoNavNode::ReadXMLAttributes(const char** atts)
       {
       this->SetOriginalTrackerTransformID(attValue);
       this->Scene->AddReferencedNodeID(this->OriginalTrackerTransformID, this);
+      }
+    else if (!strcmp(attName, "RegisteredTrackerTransformID"))
+      {
+      this->SetRegisteredTrackerTransformID(attValue);
+      this->Scene->AddReferencedNodeID(this->RegisteredTrackerTransformID, this);
       }
     else if (!strcmp(attName, "TrackingSystemUsed"))
       {
@@ -147,6 +155,14 @@ void vtkMRMLAbdoNavNode::WriteXML(ostream& os, int nIndent)
   }
   {
     std::stringstream ss;
+    if (this->RegisteredTrackerTransformID)
+      {
+      ss << this->RegisteredTrackerTransformID;
+      os << indent << " RegisteredTrackerTransformID=\"" << ss.str() << "\"";
+      }
+  }
+  {
+    std::stringstream ss;
     if (this->TrackingSystemUsed)
       {
       ss << this->TrackingSystemUsed;
@@ -165,6 +181,7 @@ void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode* anode)
   vtkMRMLAbdoNavNode* node = (vtkMRMLAbdoNavNode*)anode;
 
   this->SetOriginalTrackerTransformID(node->GetOriginalTrackerTransformID());
+  this->SetRegisteredTrackerTransformID(node->GetRegisteredTrackerTransformID());
   this->SetTrackingSystemUsed(node->GetTrackingSystemUsed());
   this->SetGuidanceNeedleTip(node->GetGuidanceNeedleTip());
   this->SetGuidanceNeedleSecond(node->GetGuidanceNeedleSecond());
@@ -177,5 +194,9 @@ void vtkMRMLAbdoNavNode::UpdateReferenceID(const char* oldID, const char* newID)
   if (!strcmp(oldID, this->OriginalTrackerTransformID))
     {
     this->SetOriginalTrackerTransformID(newID);
+    }
+  else if (!strcmp(oldID, this->RegisteredTrackerTransformID))
+    {
+    this->SetRegisteredTrackerTransformID(newID);
     }
 }
