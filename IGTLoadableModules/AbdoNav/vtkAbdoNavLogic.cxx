@@ -304,7 +304,8 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double 
   int numberOfSides = 16;
   // measured handle diameter = 6 mm --> radius = 3 mm
   double radiusHandle = 3.0;
-  // TODO: vendor claims needle diameter = 17 gauge ~ 1.15 mm --> radius ~ 0.575 mm; however, measured needle diameter = 1.5 mm --> radius = 0.75 mm
+  // measured needle diameter = 1.5 mm --> radius = 0.75 mm
+  // vendor (Galil Medical) brochure states: needle diameter = 17 gauge, 1.47 mm --> radius = 0.735 mm (weird because e.g. Wikipedia states that: 17 gauge ~ 1.150 mm  --> radius ~ 0.575 mm)
   double radiusNeedle = 0.575;
 
   //----------------------------------------------------------------
@@ -318,7 +319,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double 
   tip->SetCenter(0.0, 0.0, -(3.0/2));
   tip->SetDirection(0.0, 0.0, 1.0);
   tip->Update();
-  // add
+  // add needle tip
   locatorPolyData->AddInput(tip->GetOutput());
 
   //----------------------------------------------------------------
@@ -328,10 +329,10 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double 
   vtkSmartPointer<vtkCylinderSource> shaft = vtkSmartPointer<vtkCylinderSource>::New();
   shaft->SetResolution(numberOfSides);
   shaft->SetRadius(radiusNeedle);
-  shaft->SetHeight(172.0);  // 172 mm (--> 175 mm in total due to tip)
+  shaft->SetHeight(172.0);  // 172 mm (--> needle tip and shaft total 175 mm)
   shaft->SetCenter(0.0, 0.0, 0.0);
   shaft->Update();
-  // rotate and translate needle shaft
+  // move needle shaft to designated location
   vtkSmartPointer<vtkTransformPolyDataFilter> tfilterShaft = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   vtkSmartPointer<vtkTransform> transShaft = vtkSmartPointer<vtkTransform>::New();
   transShaft->RotateX(90.0);
@@ -340,7 +341,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double 
   tfilterShaft->SetInput(shaft->GetOutput());
   tfilterShaft->SetTransform(transShaft);
   tfilterShaft->Update();
-  // add
+  // add needle shaft
   locatorPolyData->AddInput(tfilterShaft->GetOutput());
 
   //----------------------------------------------------------------
@@ -353,7 +354,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double 
   handle1->SetHeight(20.0);
   handle1->SetCenter(0.0, 0.0, 0.0);
   handle1->Update();
-  // rotate and translate first part of the needle handle
+  // move first part of the needle handle to designated location
   vtkSmartPointer<vtkTransformPolyDataFilter> tfilterHandle1 = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   vtkSmartPointer<vtkTransform> transHandle1 = vtkSmartPointer<vtkTransform>::New();
   transHandle1->RotateX(90.0);
@@ -362,7 +363,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double 
   tfilterHandle1->SetInput(handle1->GetOutput());
   tfilterHandle1->SetTransform(transHandle1);
   tfilterHandle1->Update();
-  // add
+  // add first part of the needle handle
   locatorPolyData->AddInput(tfilterHandle1->GetOutput());
 
   //----------------------------------------------------------------
@@ -388,7 +389,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double 
   efilterAngle->SetAngle(90.0);
   efilterAngle->CappingOff();
   efilterAngle->Update();
-  // rotate and translate again
+  // move right angle of the needle handle to designated location
   vtkSmartPointer<vtkTransformPolyDataFilter> tfilterAngle2 = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   vtkSmartPointer<vtkTransform> transAngle2 = vtkSmartPointer<vtkTransform>::New();
   transAngle2->RotateX(-90.0);
@@ -397,7 +398,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double 
   tfilterAngle2->SetInput(efilterAngle->GetOutput());
   tfilterAngle2->SetTransform(transAngle2);
   tfilterAngle2->Update();
-  // add
+  // add right angle of the needle handle
   locatorPolyData->AddInput(tfilterAngle2->GetOutput());
 
   //----------------------------------------------------------------
@@ -410,7 +411,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double 
   handle2->SetHeight(50.0);
   handle2->SetCenter(0.0, 0.0, 0.0);
   handle2->Update();
-  // rotate and translate second part of the needle handle
+  // move second part of the needle handle to designated location
   vtkSmartPointer<vtkTransformPolyDataFilter> tfilterHandle2 = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   vtkSmartPointer<vtkTransform> transHandle2 = vtkSmartPointer<vtkTransform>::New();
   transHandle2->RotateZ(90.0);
@@ -419,7 +420,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double 
   tfilterHandle2->SetInput(handle2->GetOutput());
   tfilterHandle2->SetTransform(transHandle2);
   tfilterHandle2->Update();
-  // add
+  // add second part of the needle handle
   locatorPolyData->AddInput(tfilterHandle2->GetOutput());
 
   //----------------------------------------------------------------
