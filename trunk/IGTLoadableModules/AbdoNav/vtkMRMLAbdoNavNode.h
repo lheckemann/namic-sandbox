@@ -67,9 +67,9 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   /// Set the identifier of the tracking system being used.
   vtkSetStringMacro(TrackingSystemUsed);
   /// Get the RAS coordinates of the guidance needle tip.
-  vtkGetVector3Macro(GuidanceNeedleTip, double);
+  vtkGetVector3Macro(GuidanceNeedleTipRAS, double);
   /// Set the RAS coordinates of the guidance needle tip.
-  vtkSetVector3Macro(GuidanceNeedleTip, double);
+  vtkSetVector3Macro(GuidanceNeedleTipRAS, double);
   /// Get the RAS coordinates of the second point on the guidance needle.
   vtkGetVector3Macro(GuidanceNeedleSecond, double);
   /// Set the RAS coordinates of the second point on the guidance needle.
@@ -99,7 +99,7 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   /// Identifier of the tracking system being used.
   char* TrackingSystemUsed;
   /// RAS coordinates of the guidance needle tip.
-  double GuidanceNeedleTip[3];
+  double GuidanceNeedleTipRAS[3];
   /// RAS coordinates of a second point on the guidance needle.
   double GuidanceNeedleSecond[3];
 

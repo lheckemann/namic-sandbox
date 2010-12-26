@@ -47,9 +47,9 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
   this->OriginalTrackerTransformID = NULL;
   this->RegisteredTrackerTransformID = NULL;
   this->TrackingSystemUsed = NULL;
-  this->SetGuidanceNeedleTip(std::numeric_limits<double>::quiet_NaN(),
-                             std::numeric_limits<double>::quiet_NaN(),
-                             std::numeric_limits<double>::quiet_NaN());
+  this->SetGuidanceNeedleTipRAS(std::numeric_limits<double>::quiet_NaN(),
+                                std::numeric_limits<double>::quiet_NaN(),
+                                std::numeric_limits<double>::quiet_NaN());
   this->SetGuidanceNeedleSecond(std::numeric_limits<double>::quiet_NaN(),
                                 std::numeric_limits<double>::quiet_NaN(),
                                 std::numeric_limits<double>::quiet_NaN());
@@ -64,9 +64,9 @@ vtkMRMLAbdoNavNode::~vtkMRMLAbdoNavNode()
   this->OriginalTrackerTransformID = NULL;
   this->RegisteredTrackerTransformID = NULL;
   this->TrackingSystemUsed = NULL;
-  this->SetGuidanceNeedleTip(std::numeric_limits<double>::quiet_NaN(),
-                             std::numeric_limits<double>::quiet_NaN(),
-                             std::numeric_limits<double>::quiet_NaN());
+  this->SetGuidanceNeedleTipRAS(std::numeric_limits<double>::quiet_NaN(),
+                                std::numeric_limits<double>::quiet_NaN(),
+                                std::numeric_limits<double>::quiet_NaN());
   this->SetGuidanceNeedleSecond(std::numeric_limits<double>::quiet_NaN(),
                                 std::numeric_limits<double>::quiet_NaN(),
                                 std::numeric_limits<double>::quiet_NaN());
@@ -81,7 +81,7 @@ void vtkMRMLAbdoNavNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "OriginalTrackerTransformID: " << (this->OriginalTrackerTransformID ? this->OriginalTrackerTransformID : "(none)") << "\n";
   os << indent << "RegisteredTrackerTransformID: " << (this->RegisteredTrackerTransformID ? this->RegisteredTrackerTransformID : "(none)") << "\n";
   os << indent << "TrackingSystemUsed: " << (this->TrackingSystemUsed ? this->TrackingSystemUsed : "(none)") << "\n";
-  os << indent << "GuidanceNeedleTip: " << this->GuidanceNeedleTip[0] << " " << this->GuidanceNeedleTip[1] << " " << this->GuidanceNeedleTip[2] << "\n";
+  os << indent << "GuidanceNeedleTipRAS: " << this->GuidanceNeedleTipRAS[0] << " " << this->GuidanceNeedleTipRAS[1] << " " << this->GuidanceNeedleTipRAS[2] << "\n";
   os << indent << "GuidanceNeedleSecond: " << this->GuidanceNeedleSecond[0] << " " << this->GuidanceNeedleSecond[1] << " " << this->GuidanceNeedleSecond[2] << "\n";
 }
 
@@ -112,7 +112,7 @@ void vtkMRMLAbdoNavNode::ReadXMLAttributes(const char** atts)
       {
       this->SetTrackingSystemUsed(attValue);
       }
-    else if (!strcmp(attName, "GuidanceNeedleTip"))
+    else if (!strcmp(attName, "GuidanceNeedleTipRAS"))
       {
       std::stringstream ss;
       double val;
@@ -120,7 +120,7 @@ void vtkMRMLAbdoNavNode::ReadXMLAttributes(const char** atts)
       for (int i = 0; i < 3; i++)
         {
         ss >> val;
-        this->GuidanceNeedleTip[i] = val;
+        this->GuidanceNeedleTipRAS[i] = val;
         }
       }
     else if (!strcmp(attName, "GuidanceNeedleSecond"))
@@ -169,7 +169,7 @@ void vtkMRMLAbdoNavNode::WriteXML(ostream& os, int nIndent)
       os << indent << " TrackingSystemUsed=\"" << ss.str() << "\"";
       }
   }
-  os << indent << " GuidanceNeedleTip=\"" << this->GuidanceNeedleTip[0] << " " << this->GuidanceNeedleTip[1] << " " << this->GuidanceNeedleTip[2] << "\"";
+  os << indent << " GuidanceNeedleTipRAS=\"" << this->GuidanceNeedleTipRAS[0] << " " << this->GuidanceNeedleTipRAS[1] << " " << this->GuidanceNeedleTipRAS[2] << "\"";
   os << indent << " GuidanceNeedleSecond=\"" << this->GuidanceNeedleSecond[0] << " " << this->GuidanceNeedleSecond[1] << " " << this->GuidanceNeedleSecond[2] << "\"";
 }
 
@@ -183,7 +183,7 @@ void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode* anode)
   this->SetOriginalTrackerTransformID(node->GetOriginalTrackerTransformID());
   this->SetRegisteredTrackerTransformID(node->GetRegisteredTrackerTransformID());
   this->SetTrackingSystemUsed(node->GetTrackingSystemUsed());
-  this->SetGuidanceNeedleTip(node->GetGuidanceNeedleTip());
+  this->SetGuidanceNeedleTipRAS(node->GetGuidanceNeedleTipRAS());
   this->SetGuidanceNeedleSecond(node->GetGuidanceNeedleSecond());
 }
 
