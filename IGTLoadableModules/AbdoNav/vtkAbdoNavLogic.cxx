@@ -292,7 +292,7 @@ void vtkAbdoNavLogic::ToggleLocatorUpdate(int freeze)
 
 
 //---------------------------------------------------------------------------
-vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double r, double g, double b)
+vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* locatorName, double r, double g, double b)
 {
   // TODO: all Update() calls within the scope of this function seem to be unnecessary --> remove?
 
@@ -348,23 +348,23 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double 
   // Create first part of the needle handle.
   //----------------------------------------------------------------
   // create first part of the needle handle from a cylinder
-  vtkSmartPointer<vtkCylinderSource> handle1 = vtkSmartPointer<vtkCylinderSource>::New();
-  handle1->SetResolution(numberOfSides);
-  handle1->SetRadius(radiusHandle);
-  handle1->SetHeight(20.0);
-  handle1->SetCenter(0.0, 0.0, 0.0);
-  handle1->Update();
+  vtkSmartPointer<vtkCylinderSource> fstHandle = vtkSmartPointer<vtkCylinderSource>::New();
+  fstHandle->SetResolution(numberOfSides);
+  fstHandle->SetRadius(radiusHandle);
+  fstHandle->SetHeight(20.0);
+  fstHandle->SetCenter(0.0, 0.0, 0.0);
+  fstHandle->Update();
   // move first part of the needle handle to designated location
-  vtkSmartPointer<vtkTransformPolyDataFilter> tfilterHandle1 = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  vtkSmartPointer<vtkTransform> transHandle1 = vtkSmartPointer<vtkTransform>::New();
-  transHandle1->RotateX(90.0);
-  transHandle1->Translate(0.0, -(3.0 + 172.0 + 20.0/2), 0.0);
-  transHandle1->Update();
-  tfilterHandle1->SetInput(handle1->GetOutput());
-  tfilterHandle1->SetTransform(transHandle1);
-  tfilterHandle1->Update();
+  vtkSmartPointer<vtkTransformPolyDataFilter> tfilterFstHandle = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransform> transFstHandle = vtkSmartPointer<vtkTransform>::New();
+  transFstHandle->RotateX(90.0);
+  transFstHandle->Translate(0.0, -(3.0 + 172.0 + 20.0/2), 0.0);
+  transFstHandle->Update();
+  tfilterFstHandle->SetInput(fstHandle->GetOutput());
+  tfilterFstHandle->SetTransform(transFstHandle);
+  tfilterFstHandle->Update();
   // add first part of the needle handle
-  locatorPolyData->AddInput(tfilterHandle1->GetOutput());
+  locatorPolyData->AddInput(tfilterFstHandle->GetOutput());
 
   //----------------------------------------------------------------
   // Create right angle of the needle handle by extruding a circle.
@@ -405,23 +405,23 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* nodeName, double 
   // Create second part of the needle handle.
   //----------------------------------------------------------------
   // create second part of the needle handle from a cylinder
-  vtkSmartPointer<vtkCylinderSource> handle2 = vtkSmartPointer<vtkCylinderSource>::New();
-  handle2->SetResolution(numberOfSides);
-  handle2->SetRadius(radiusHandle);
-  handle2->SetHeight(50.0);
-  handle2->SetCenter(0.0, 0.0, 0.0);
-  handle2->Update();
+  vtkSmartPointer<vtkCylinderSource> sndHandle = vtkSmartPointer<vtkCylinderSource>::New();
+  sndHandle->SetResolution(numberOfSides);
+  sndHandle->SetRadius(radiusHandle);
+  sndHandle->SetHeight(50.0);
+  sndHandle->SetCenter(0.0, 0.0, 0.0);
+  sndHandle->Update();
   // move second part of the needle handle to designated location
-  vtkSmartPointer<vtkTransformPolyDataFilter> tfilterHandle2 = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  vtkSmartPointer<vtkTransform> transHandle2 = vtkSmartPointer<vtkTransform>::New();
-  transHandle2->RotateZ(90.0);
-  transHandle2->Translate(0.0, +(10.0 + 50.0/2), -(3.0 + 172.0 + 20.0 + 10.0));
-  transHandle2->Update();
-  tfilterHandle2->SetInput(handle2->GetOutput());
-  tfilterHandle2->SetTransform(transHandle2);
-  tfilterHandle2->Update();
+  vtkSmartPointer<vtkTransformPolyDataFilter> tfilterSndHandle = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransform> transSndHandle = vtkSmartPointer<vtkTransform>::New();
+  transSndHandle->RotateZ(90.0);
+  transSndHandle->Translate(0.0, +(10.0 + 50.0/2), -(3.0 + 172.0 + 20.0 + 10.0));
+  transSndHandle->Update();
+  tfilterSndHandle->SetInput(sndHandle->GetOutput());
+  tfilterSndHandle->SetTransform(transSndHandle);
+  tfilterSndHandle->Update();
   // add second part of the needle handle
-  locatorPolyData->AddInput(tfilterHandle2->GetOutput());
+  locatorPolyData->AddInput(tfilterSndHandle->GetOutput());
 
   //----------------------------------------------------------------
   // Add cryoprobe model to the scene.
