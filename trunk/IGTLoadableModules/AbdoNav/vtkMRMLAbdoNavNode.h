@@ -54,9 +54,9 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   //----------------------------------------------------------------
   // Getters and Setters for the references and data stored in this node.
   //----------------------------------------------------------------
-  /// Get the identifier of the tracker transform.
+  /// Get the identifier of the original tracker transform.
   vtkGetStringMacro(OriginalTrackerTransformID);
-  /// Set the identifier of the tracker transform.
+  /// Set the identifier of the original tracker transform.
   vtkSetStringMacro(OriginalTrackerTransformID);
   /// Get the identifier of the tracking system being used.
   vtkGetStringMacro(TrackingSystemUsed);
@@ -88,7 +88,7 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   //----------------------------------------------------------------
   // The specific references and data stored in this MRML node.
   //----------------------------------------------------------------
-  /// Identifier of the tracker transform.
+  /// Identifier of the original tracker transform.
   char* OriginalTrackerTransformID;
   /// Identifier of the tracking system being used.
   char* TrackingSystemUsed;
