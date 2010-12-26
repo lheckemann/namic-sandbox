@@ -44,6 +44,8 @@ vtkMRMLNode* vtkMRMLAbdoNavNode::CreateNodeInstance()
 //---------------------------------------------------------------------------
 vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
 {
+  this->HideFromEditors = true;
+
   this->OriginalTrackerTransformID = NULL;
   this->RegisteredTrackerTransformID = NULL;
   this->TrackingSystemUsed = NULL;
@@ -53,8 +55,6 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
   this->SetGuidanceNeedleSecondRAS(std::numeric_limits<double>::quiet_NaN(),
                                    std::numeric_limits<double>::quiet_NaN(),
                                    std::numeric_limits<double>::quiet_NaN());
-
-  this->HideFromEditors = true;
 }
 
 
