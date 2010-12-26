@@ -66,7 +66,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   /// Freeze or unfreeze locator model.
   void ToggleLocatorUpdate(int freeze);
   /// Create a locator model.
-  vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
+  vtkMRMLModelNode* AddLocatorModel(const char* locatorName, double r, double g, double b);
 
  protected:
   //----------------------------------------------------------------
