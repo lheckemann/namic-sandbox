@@ -20,14 +20,12 @@
 
 /* VTK includes */
 #include "vtkAppendPolyData.h"
-#include "vtkCallbackCommand.h"
 #include "vtkConeSource.h"
 #include "vtkCylinderSource.h"
 #include "vtkMath.h"
 #include "vtkRegularPolygonSource.h"
 #include "vtkRotationalExtrusionFilter.h"
 #include "vtkSmartPointer.h"
-#include "vtkTransform.h"
 #include "vtkTransformPolyDataFilter.h"
 
 //---------------------------------------------------------------------------

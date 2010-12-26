@@ -20,19 +20,16 @@
 
 /* Slicer includes */
 #include "vtkSlicerApplication.h"
-#include "vtkSlicerColor.h"
 #include "vtkSlicerNodeSelectorWidget.h"
 #include "vtkSlicerTheme.h"
 
 /* STL includes */
 #include <limits>
-#include <math.h>
 
 /* KWWidgets includes */
 #include "vtkKWComboBox.h"
 #include "vtkKWComboBoxWithLabel.h"
 #include "vtkKWFrameWithLabel.h"
-#include "vtkKWMenuButton.h"
 #include "vtkKWMessageDialog.h"
 #include "vtkKWRadioButton.h"
 #include "vtkKWTkUtilities.h"
