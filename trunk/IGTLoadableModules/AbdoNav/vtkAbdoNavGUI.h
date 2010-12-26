@@ -23,14 +23,14 @@
 #include "vtkAbdoNavLogic.h"
 #include "vtkAbdoNavWin32Header.h"
 
+/* KWWidgets forward declarations */
+class vtkKWComboBoxWithLabel;
+
 /* Slicer includes */
 #include "vtkSlicerModuleGUI.h"
 
 /* Slicer forward declarations */
 class vtkSlicerNodeSelectorWidget;
-
-/* KWWidgets forward declarations */
-class vtkKWComboBoxWithLabel;
 
 class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 {

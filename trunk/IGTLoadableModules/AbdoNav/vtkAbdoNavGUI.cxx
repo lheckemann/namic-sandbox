@@ -15,6 +15,14 @@
 /* AbdoNav includes */
 #include "vtkAbdoNavGUI.h"
 
+/* KWWidgets includes */
+#include "vtkKWComboBox.h"
+#include "vtkKWComboBoxWithLabel.h"
+#include "vtkKWFrameWithLabel.h"
+#include "vtkKWMessageDialog.h"
+#include "vtkKWRadioButton.h"
+#include "vtkKWTkUtilities.h"
+
 /* MRML includes */
 #include "vtkMRMLLinearTransformNode.h"
 
@@ -25,14 +33,6 @@
 
 /* STL includes */
 #include <limits>
-
-/* KWWidgets includes */
-#include "vtkKWComboBox.h"
-#include "vtkKWComboBoxWithLabel.h"
-#include "vtkKWFrameWithLabel.h"
-#include "vtkKWMessageDialog.h"
-#include "vtkKWRadioButton.h"
-#include "vtkKWTkUtilities.h"
 
 //---------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkAbdoNavGUI, "$Revision: $");
