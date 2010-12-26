@@ -26,9 +26,6 @@
 /* Slicer includes */
 #include "vtkSlicerModuleLogic.h"
 
-/* VTK includes */
-#include "vtkCallbackCommand.h"
-
 class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
 {
  public:

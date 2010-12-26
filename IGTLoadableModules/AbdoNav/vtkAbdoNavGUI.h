@@ -31,9 +31,6 @@ class vtkSlicerNodeSelectorWidget;
 
 /* KWWidgets forward declarations */
 class vtkKWComboBoxWithLabel;
-class vtkKWFrameWithLabel;
-class vtkKWMenuButton;
-class vtkKWPushButton;
 
 class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 {
