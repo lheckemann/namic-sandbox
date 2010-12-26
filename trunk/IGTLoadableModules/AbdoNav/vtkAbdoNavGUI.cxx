@@ -795,9 +795,9 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
   node->SetGuidanceNeedleTipRAS(Point1REntry->GetValueAsDouble(),
                                 Point1AEntry->GetValueAsDouble(),
                                 Point1SEntry->GetValueAsDouble());
-  node->SetGuidanceNeedleSecond(Point2REntry->GetValueAsDouble(),
-                                Point2AEntry->GetValueAsDouble(),
-                                Point2SEntry->GetValueAsDouble());
+  node->SetGuidanceNeedleSecondRAS(Point2REntry->GetValueAsDouble(),
+                                   Point2AEntry->GetValueAsDouble(),
+                                   Point2SEntry->GetValueAsDouble());
   node->EndModify(modifiedFlag);
 }
 
@@ -818,7 +818,7 @@ void vtkAbdoNavGUI::UpdateGUIFromMRML()
     this->Point1AEntry->SetValueAsDouble(guidanceTip[1]);
     this->Point1SEntry->SetValueAsDouble(guidanceTip[2]);
 
-    double* guidanceSecond = node->GetGuidanceNeedleSecond();
+    double* guidanceSecond = node->GetGuidanceNeedleSecondRAS();
     this->Point2REntry->SetValueAsDouble(guidanceSecond[0]);
     this->Point2AEntry->SetValueAsDouble(guidanceSecond[1]);
     this->Point2SEntry->SetValueAsDouble(guidanceSecond[2]);

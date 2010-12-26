@@ -50,9 +50,9 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
   this->SetGuidanceNeedleTipRAS(std::numeric_limits<double>::quiet_NaN(),
                                 std::numeric_limits<double>::quiet_NaN(),
                                 std::numeric_limits<double>::quiet_NaN());
-  this->SetGuidanceNeedleSecond(std::numeric_limits<double>::quiet_NaN(),
-                                std::numeric_limits<double>::quiet_NaN(),
-                                std::numeric_limits<double>::quiet_NaN());
+  this->SetGuidanceNeedleSecondRAS(std::numeric_limits<double>::quiet_NaN(),
+                                   std::numeric_limits<double>::quiet_NaN(),
+                                   std::numeric_limits<double>::quiet_NaN());
 
   this->HideFromEditors = true;
 }
@@ -67,9 +67,9 @@ vtkMRMLAbdoNavNode::~vtkMRMLAbdoNavNode()
   this->SetGuidanceNeedleTipRAS(std::numeric_limits<double>::quiet_NaN(),
                                 std::numeric_limits<double>::quiet_NaN(),
                                 std::numeric_limits<double>::quiet_NaN());
-  this->SetGuidanceNeedleSecond(std::numeric_limits<double>::quiet_NaN(),
-                                std::numeric_limits<double>::quiet_NaN(),
-                                std::numeric_limits<double>::quiet_NaN());
+  this->SetGuidanceNeedleSecondRAS(std::numeric_limits<double>::quiet_NaN(),
+                                   std::numeric_limits<double>::quiet_NaN(),
+                                   std::numeric_limits<double>::quiet_NaN());
 }
 
 
@@ -82,7 +82,7 @@ void vtkMRMLAbdoNavNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "RegisteredTrackerTransformID: " << (this->RegisteredTrackerTransformID ? this->RegisteredTrackerTransformID : "(none)") << "\n";
   os << indent << "TrackingSystemUsed: " << (this->TrackingSystemUsed ? this->TrackingSystemUsed : "(none)") << "\n";
   os << indent << "GuidanceNeedleTipRAS: " << this->GuidanceNeedleTipRAS[0] << " " << this->GuidanceNeedleTipRAS[1] << " " << this->GuidanceNeedleTipRAS[2] << "\n";
-  os << indent << "GuidanceNeedleSecond: " << this->GuidanceNeedleSecond[0] << " " << this->GuidanceNeedleSecond[1] << " " << this->GuidanceNeedleSecond[2] << "\n";
+  os << indent << "GuidanceNeedleSecondRAS: " << this->GuidanceNeedleSecondRAS[0] << " " << this->GuidanceNeedleSecondRAS[1] << " " << this->GuidanceNeedleSecondRAS[2] << "\n";
 }
 
 
@@ -123,7 +123,7 @@ void vtkMRMLAbdoNavNode::ReadXMLAttributes(const char** atts)
         this->GuidanceNeedleTipRAS[i] = val;
         }
       }
-    else if (!strcmp(attName, "GuidanceNeedleSecond"))
+    else if (!strcmp(attName, "GuidanceNeedleSecondRAS"))
       {
       std::stringstream ss;
       double val;
@@ -131,7 +131,7 @@ void vtkMRMLAbdoNavNode::ReadXMLAttributes(const char** atts)
       for (int i = 0; i < 3; i++)
         {
         ss >> val;
-        this->GuidanceNeedleSecond[i] = val;
+        this->GuidanceNeedleSecondRAS[i] = val;
         }
       }
     }
@@ -170,7 +170,7 @@ void vtkMRMLAbdoNavNode::WriteXML(ostream& os, int nIndent)
       }
   }
   os << indent << " GuidanceNeedleTipRAS=\"" << this->GuidanceNeedleTipRAS[0] << " " << this->GuidanceNeedleTipRAS[1] << " " << this->GuidanceNeedleTipRAS[2] << "\"";
-  os << indent << " GuidanceNeedleSecond=\"" << this->GuidanceNeedleSecond[0] << " " << this->GuidanceNeedleSecond[1] << " " << this->GuidanceNeedleSecond[2] << "\"";
+  os << indent << " GuidanceNeedleSecondRAS=\"" << this->GuidanceNeedleSecondRAS[0] << " " << this->GuidanceNeedleSecondRAS[1] << " " << this->GuidanceNeedleSecondRAS[2] << "\"";
 }
 
 
@@ -184,7 +184,7 @@ void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode* anode)
   this->SetRegisteredTrackerTransformID(node->GetRegisteredTrackerTransformID());
   this->SetTrackingSystemUsed(node->GetTrackingSystemUsed());
   this->SetGuidanceNeedleTipRAS(node->GetGuidanceNeedleTipRAS());
-  this->SetGuidanceNeedleSecond(node->GetGuidanceNeedleSecond());
+  this->SetGuidanceNeedleSecondRAS(node->GetGuidanceNeedleSecondRAS());
 }
 
 
