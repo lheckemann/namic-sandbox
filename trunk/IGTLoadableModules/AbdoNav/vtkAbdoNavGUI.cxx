@@ -111,6 +111,8 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->DataCallbackCommand->Delete();
     }
 
+  // TODO: all of the following Delete() calls could probably be avoided by using VTK's smart pointers
+
   //----------------------------------------------------------------
   // Connection frame.
   //----------------------------------------------------------------
