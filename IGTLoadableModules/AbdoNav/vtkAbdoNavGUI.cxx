@@ -903,12 +903,11 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->TrackerTransformSelector->Create();
   this->TrackerTransformSelector->SetLabelText("Tracker transform node:\t\t");
   this->TrackerTransformSelector->SetBalloonHelpString("Select the transform node created by OpenIGTLinkIF that holds the tracking data of the current cryoprobe relative to the guidance needle.");
-  this->TrackerTransformSelector->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
+  this->TrackerTransformSelector->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform"); // filter: only show vtkMRMLLinearTransformNodes
   this->TrackerTransformSelector->SetMRMLScene(this->GetMRMLScene());
-  // explicitly turn off user option to create new linear transform nodes
-  this->TrackerTransformSelector->SetNewNodeEnabled(0);
-  this->TrackerTransformSelector->SetDefaultEnabled(0);
-  this->TrackerTransformSelector->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+  this->TrackerTransformSelector->SetNewNodeEnabled(0); // turn off user option to create new linear transform nodes
+  this->TrackerTransformSelector->SetDefaultEnabled(0); // turn off autoselecting nodes
+  this->TrackerTransformSelector->GetWidget()->GetWidget()->IndicatorVisibilityOff(); // don't show indicator
 
   // add tracker transform node selector widget
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerTransformSelector->GetWidgetName());
@@ -934,7 +933,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->ResetConnectionPushButton->SetParent(connectionFrame->GetFrame());
   this->ResetConnectionPushButton->Create();
   this->ResetConnectionPushButton->SetText("Reset Connection");
-  this->ResetConnectionPushButton->SetBalloonHelpString("Reset currently selected tracker transform node.");
+  this->ResetConnectionPushButton->SetBalloonHelpString("Reset tracking information.");
 
   // add reset connection button
   this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", this->ResetConnectionPushButton->GetWidgetName());
@@ -944,7 +943,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->ConfigureConnectionPushButton->SetParent(connectionFrame->GetFrame());
   this->ConfigureConnectionPushButton->Create();
   this->ConfigureConnectionPushButton->SetText("Configure Connection");
-  this->ConfigureConnectionPushButton->SetBalloonHelpString("Set currently selected tracker transform node.");
+  this->ConfigureConnectionPushButton->SetBalloonHelpString("Set specified tracking information.");
 
   // add configure connection button
   this->Script("pack %s -side right -anchor ne -padx 2 -pady 2", this->ConfigureConnectionPushButton->GetWidgetName());
