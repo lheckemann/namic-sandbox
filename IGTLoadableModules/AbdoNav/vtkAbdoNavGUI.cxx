@@ -57,8 +57,8 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Connection frame.
   //----------------------------------------------------------------
-  this->TrackerNodeSelectorWidget = NULL;
-  this->TrackerComboBox = NULL;
+  this->TrackerTransformSelector = NULL;
+  this->TrackingSystemComboBox = NULL;
   this->ResetConnectionPushButton = NULL;
   this->ConfigureConnectionPushButton = NULL;
 
@@ -119,15 +119,15 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Connection frame.
   //----------------------------------------------------------------
-  if (this->TrackerNodeSelectorWidget)
+  if (this->TrackerTransformSelector)
     {
-    this->TrackerNodeSelectorWidget->SetParent(NULL);
-    this->TrackerNodeSelectorWidget->Delete();
+    this->TrackerTransformSelector->SetParent(NULL);
+    this->TrackerTransformSelector->Delete();
     }
-  if (this->TrackerComboBox)
+  if (this->TrackingSystemComboBox)
     {
-    this->TrackerComboBox->SetParent(NULL);
-    this->TrackerComboBox->Delete();
+    this->TrackingSystemComboBox->SetParent(NULL);
+    this->TrackingSystemComboBox->Delete();
     }
   if (this->ResetConnectionPushButton)
     {
@@ -568,17 +568,17 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   //----------------------------------------------------------------
   else if (this->ResetConnectionPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
-    this->TrackerNodeSelectorWidget->SetSelected(NULL);
-    this->TrackerNodeSelectorWidget->SetEnabled(true);
-    this->TrackerComboBox->GetWidget()->SetValue("");
-    this->TrackerComboBox->SetEnabled(true);
+    this->TrackerTransformSelector->SetSelected(NULL);
+    this->TrackerTransformSelector->SetEnabled(true);
+    this->TrackingSystemComboBox->GetWidget()->SetValue("");
+    this->TrackingSystemComboBox->SetEnabled(true);
     this->ConfigureConnectionPushButton->SetEnabled(true);
     this->UpdateMRMLFromGUI();
     }
   else if (this->ConfigureConnectionPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
     bool updateMRML = false;
-    vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNodeSelectorWidget->GetSelected());
+    vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerTransformSelector->GetSelected());
 
     // check tracker transform node selection
     if (tnode != NULL && tnode->GetDescription() != NULL)
@@ -600,7 +600,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       }
 
     // check tracking system selection
-    if (strcmp(this->TrackerComboBox->GetWidget()->GetValue(), "") != 0)
+    if (strcmp(this->TrackingSystemComboBox->GetWidget()->GetValue(), "") != 0)
       {
       updateMRML = updateMRML && true;
       }
@@ -618,8 +618,8 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     if (updateMRML == true)
       {
       std::cout << "updating MRML ..." << std::endl;
-      this->TrackerNodeSelectorWidget->SetEnabled(false);
-      this->TrackerComboBox->SetEnabled(false);
+      this->TrackerTransformSelector->SetEnabled(false);
+      this->TrackingSystemComboBox->SetEnabled(false);
       this->ConfigureConnectionPushButton->SetEnabled(false);
       this->UpdateMRMLFromGUI();
       }
@@ -798,12 +798,12 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
   // make sure that only ONE modified event is invoked (if
   // at all) instead of one modified event per changed value
   int modifiedFlag = node->StartModify();
-  vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNodeSelectorWidget->GetSelected());
+  vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerTransformSelector->GetSelected());
   if (tnode != NULL)
     {
     node->SetOriginalTrackerTransformID(tnode->GetID());
     }
-  node->SetTrackingSystemUsed(this->TrackerComboBox->GetWidget()->GetValue());
+  node->SetTrackingSystemUsed(this->TrackingSystemComboBox->GetWidget()->GetValue());
   node->SetGuidanceNeedleTipRAS(Point1REntry->GetValueAsDouble(),
                                 Point1AEntry->GetValueAsDouble(),
                                 Point1SEntry->GetValueAsDouble());
@@ -822,8 +822,8 @@ void vtkAbdoNavGUI::UpdateGUIFromMRML()
     {
     // set GUI widgets from AbdoNav parameter node
     vtkMRMLNode* tnode = this->GetMRMLScene()->GetNodeByID(node->GetOriginalTrackerTransformID());
-    this->TrackerNodeSelectorWidget->SetSelected(tnode);
-    this->TrackerComboBox->GetWidget()->SetValue(node->GetTrackingSystemUsed());
+    this->TrackerTransformSelector->SetSelected(tnode);
+    this->TrackingSystemComboBox->GetWidget()->SetValue(node->GetTrackingSystemUsed());
 
     double* guidanceTip = node->GetGuidanceNeedleTipRAS();
     this->Point1REntry->SetValueAsDouble(guidanceTip[0]);
@@ -879,7 +879,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 {
   vtkKWWidget* page = this->UIPanel->GetPageWidget("AbdoNav");
 
-  // create a collapsible connection frame
+  // create collapsible connection frame
   vtkSlicerModuleCollapsibleFrame* connectionFrame = vtkSlicerModuleCollapsibleFrame::New();
   connectionFrame->SetParent(page);
   connectionFrame->Create();
@@ -887,60 +887,66 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   connectionFrame->CollapseFrame();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", connectionFrame->GetWidgetName(), page->GetWidgetName());
 
-  // create a labelled frame to hold the tracker transform node and the tracking system combo box
+  // create labelled frame to hold the tracker transform node selector widget and the tracking system combo box
   vtkKWFrameWithLabel* trackerFrame = vtkKWFrameWithLabel::New();
   trackerFrame->SetParent(connectionFrame->GetFrame());
-  trackerFrame->SetLabelText("Specify tracking information");
   trackerFrame->Create();
+  trackerFrame->SetLabelText("Specify tracking information");
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", trackerFrame->GetWidgetName());
 
-  // create a tracker transform node selector widget
-  this->TrackerNodeSelectorWidget = vtkSlicerNodeSelectorWidget::New();
-  this->TrackerNodeSelectorWidget->SetParent(trackerFrame->GetFrame());
-  this->TrackerNodeSelectorWidget->Create();
-  this->TrackerNodeSelectorWidget->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
-  // explicitly indicate that the user is not allowed to create a new linear transform node
-  this->TrackerNodeSelectorWidget->SetNewNodeEnabled(0);
-  this->TrackerNodeSelectorWidget->SetDefaultEnabled(0);
-  this->TrackerNodeSelectorWidget->SetMRMLScene(this->GetMRMLScene());
-  this->TrackerNodeSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
-  this->TrackerNodeSelectorWidget->SetLabelText("Tracker transform node:\t\t");
-  this->TrackerNodeSelectorWidget->SetBalloonHelpString("Select the transform node created by OpenIGTLinkIF that holds the tracking data of the current cryoprobe relative to the guidance needle.");
+  //----------------------------------------------------------------
+  // Create tracker transform node selector widget and tracking system combo box.
+  //----------------------------------------------------------------
+  // create selector widget to specify the input tracker transform node
+  this->TrackerTransformSelector = vtkSlicerNodeSelectorWidget::New();
+  this->TrackerTransformSelector->SetParent(trackerFrame->GetFrame());
+  this->TrackerTransformSelector->Create();
+  this->TrackerTransformSelector->SetLabelText("Tracker transform node:\t\t");
+  this->TrackerTransformSelector->SetBalloonHelpString("Select the transform node created by OpenIGTLinkIF that holds the tracking data of the current cryoprobe relative to the guidance needle.");
+  this->TrackerTransformSelector->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform");
+  this->TrackerTransformSelector->SetMRMLScene(this->GetMRMLScene());
+  // explicitly turn off user option to create new linear transform nodes
+  this->TrackerTransformSelector->SetNewNodeEnabled(0);
+  this->TrackerTransformSelector->SetDefaultEnabled(0);
+  this->TrackerTransformSelector->GetWidget()->GetWidget()->IndicatorVisibilityOff();
 
   // add tracker transform node selector widget
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerNodeSelectorWidget->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerTransformSelector->GetWidgetName());
 
-  // create a combo box to specify the tracking system being used
-  this->TrackerComboBox = vtkKWComboBoxWithLabel::New();
-  this->TrackerComboBox->SetParent(trackerFrame->GetFrame());
-  this->TrackerComboBox->Create();
-  this->TrackerComboBox->SetLabelText("Tracking system used:\t\t");
-  this->TrackerComboBox->GetWidget()->ReadOnlyOn();
-  this->TrackerComboBox->GetWidget()->AddValue("NDI Aurora");
-  this->TrackerComboBox->GetWidget()->AddValue("NDI Polaris Vicra");
-  this->TrackerComboBox->SetBalloonHelpString("Select the tracking system being used in order to compensate for different coordinate system definitions.");
+  // create combo box to specify the tracking system being used
+  this->TrackingSystemComboBox = vtkKWComboBoxWithLabel::New();
+  this->TrackingSystemComboBox->SetParent(trackerFrame->GetFrame());
+  this->TrackingSystemComboBox->Create();
+  this->TrackingSystemComboBox->SetLabelText("Tracking system used:\t\t");
+  this->TrackingSystemComboBox->SetBalloonHelpString("Select the tracking system being used in order to compensate for different coordinate system definitions.");
+  this->TrackingSystemComboBox->GetWidget()->ReadOnlyOn();
+  this->TrackingSystemComboBox->GetWidget()->AddValue("NDI Aurora");
+  this->TrackingSystemComboBox->GetWidget()->AddValue("NDI Polaris Vicra");
 
   // add tracking system combo box
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerComboBox->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackingSystemComboBox->GetWidgetName());
 
-  // create a reset button
+  //----------------------------------------------------------------
+  // Create reset connection and configure connection buttons.
+  //----------------------------------------------------------------
+  // create button to reset the connection
   this->ResetConnectionPushButton = vtkKWPushButton::New();
   this->ResetConnectionPushButton->SetParent(connectionFrame->GetFrame());
   this->ResetConnectionPushButton->Create();
   this->ResetConnectionPushButton->SetText("Reset Connection");
   this->ResetConnectionPushButton->SetBalloonHelpString("Reset currently selected tracker transform node.");
 
-  // add reset button
+  // add reset connection button
   this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", this->ResetConnectionPushButton->GetWidgetName());
 
-  // create a configure button
+  // create button to configure the connection
   this->ConfigureConnectionPushButton = vtkKWPushButton::New();
   this->ConfigureConnectionPushButton->SetParent(connectionFrame->GetFrame());
   this->ConfigureConnectionPushButton->Create();
   this->ConfigureConnectionPushButton->SetText("Configure Connection");
   this->ConfigureConnectionPushButton->SetBalloonHelpString("Set currently selected tracker transform node.");
 
-  // add configure button
+  // add configure connection button
   this->Script("pack %s -side right -anchor ne -padx 2 -pady 2", this->ConfigureConnectionPushButton->GetWidgetName());
 
   // clean up
@@ -954,7 +960,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
 {
   vtkKWWidget* page = this->UIPanel->GetPageWidget("AbdoNav");
 
-  // create a collapsible registration frame
+  // create collapsible registration frame
   vtkSlicerModuleCollapsibleFrame* registrationFrame = vtkSlicerModuleCollapsibleFrame::New();
   registrationFrame->SetParent(page);
   registrationFrame->Create();
@@ -962,104 +968,115 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   registrationFrame->CollapseFrame();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", registrationFrame->GetWidgetName(), page->GetWidgetName());
 
-  // create a labelled frame to hold the GUI elements of both, the guidance needle tip and the the second point on the guidance needle
+  // create labelled frame to hold the RAS coordinates of the guidance needle tip and the second point on the guidance needle
   vtkKWFrameWithLabel* guidanceNeedleFrame = vtkKWFrameWithLabel::New();
   guidanceNeedleFrame->SetParent(registrationFrame->GetFrame());
-  guidanceNeedleFrame->SetLabelText("Identify guidance needle");
   guidanceNeedleFrame->Create();
+  guidanceNeedleFrame->SetLabelText("Identify guidance needle");
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", guidanceNeedleFrame->GetWidgetName());
 
-  // create a frame to hold the guidance needle tip radio button and tip position entries
+  //----------------------------------------------------------------
+  // Create entries to hold the RAS coordinates of the guidance needle tip.
+  //----------------------------------------------------------------
+  // create frame to hold the radio button and RAS coordinate entries of the guidance needle tip
   vtkKWFrame* point1Frame = vtkKWFrame::New();
   point1Frame->SetParent(guidanceNeedleFrame->GetFrame());
   point1Frame->Create();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point1Frame->GetWidgetName());
-  // create a radio button for the guidance needle tip
+  // create radio button to select the guidance needle tip
   this->Point1RadioButton = vtkKWRadioButton::New();
   this->Point1RadioButton->SetParent(point1Frame);
   this->Point1RadioButton->Create();
-  this->Point1RadioButton->SetText("Identify guidance needle tip:\t\t");
-  // create an entry for the R coordinate of the guidance needle tip
+  this->Point1RadioButton->SetText("Identify guidance needle tip (RAS):\t");
+  // create entry to hold the R coordinate of the guidance needle tip
   this->Point1REntry = vtkKWEntry::New();
   this->Point1REntry->SetParent(point1Frame);
   this->Point1REntry->Create();
+  this->Point1REntry->SetBalloonHelpString("Guidance needle tip, R coordinate.");
   this->Point1REntry->SetWidth(8);
   this->Point1REntry->SetReadOnly(1);
   this->Point1REntry->SetRestrictValueToDouble();
   this->Point1REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-  this->Point1REntry->SetBalloonHelpString("Guidance needle tip, R coordinate.");
-  // create an entry for the A coordinate of the guidance needle tip
+  // create entry to hold the A coordinate of the guidance needle tip
   this->Point1AEntry = vtkKWEntry::New();
   this->Point1AEntry->SetParent(point1Frame);
   this->Point1AEntry->Create();
+  this->Point1AEntry->SetBalloonHelpString("Guidance needle tip, A coordinate.");
   this->Point1AEntry->SetWidth(8);
   this->Point1AEntry->SetReadOnly(1);
   this->Point1AEntry->SetRestrictValueToDouble();
   this->Point1AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-  this->Point1AEntry->SetBalloonHelpString("Guidance needle tip, A coordinate.");
-  // create an entry for the S coordinate of the guidance needle tip
+  // create entry to hold the S coordinate of the guidance needle tip
   this->Point1SEntry = vtkKWEntry::New();
   this->Point1SEntry->SetParent(point1Frame);
   this->Point1SEntry->Create();
+  this->Point1SEntry->SetBalloonHelpString("Guidance needle tip, S coordinate.");
   this->Point1SEntry->SetWidth(8);
   this->Point1SEntry->SetReadOnly(1);
   this->Point1SEntry->SetRestrictValueToDouble();
   this->Point1SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-  this->Point1SEntry->SetBalloonHelpString("Guidance needle tip, S coordinate.");
-  // add guidance needle radio button
+
+  // add guidance needle tip radio button
   this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point1RadioButton->GetWidgetName());
-  // add guidance needle tip position entries
+  // add guidance needle tip RAS coordinate entries
   this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
                  this->Point1SEntry->GetWidgetName(),
                  this->Point1AEntry->GetWidgetName(),
                  this->Point1REntry->GetWidgetName());
 
-  // create a frame to hold the radio button and position entries for the second point on the guidance needle
+  //----------------------------------------------------------------
+  // Create entries to hold the RAS coordinates of the second point on the guidance needle.
+  //----------------------------------------------------------------
+  // create frame to hold the radio button and RAS coordinate entries of the second point on the guidance needle
   vtkKWFrame* point2Frame = vtkKWFrame::New();
   point2Frame->SetParent(guidanceNeedleFrame->GetFrame());
   point2Frame->Create();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point2Frame->GetWidgetName());
-  // create a radio button for the second point on the guidance needle
+  // create radio button to select the second point on the guidance needle
   this->Point2RadioButton = vtkKWRadioButton::New();
   this->Point2RadioButton->SetParent(point2Frame);
   this->Point2RadioButton->Create();
-  this->Point2RadioButton->SetText("Identify second point on needle:\t");
-  // create an entry for the R coordinate of the second point
+  this->Point2RadioButton->SetText("Identify second point (RAS):\t\t");
+  // create entry to hold the R coordinate of the second point on the guidance needle
   this->Point2REntry = vtkKWEntry::New();
   this->Point2REntry->SetParent(point2Frame);
   this->Point2REntry->Create();
+  this->Point2REntry->SetBalloonHelpString("Second point on guidance needle, R coordinate.");
   this->Point2REntry->SetWidth(8);
   this->Point2REntry->SetReadOnly(1);
   this->Point2REntry->SetRestrictValueToDouble();
   this->Point2REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-  this->Point2REntry->SetBalloonHelpString("Second point on guidance needle, R coordinate.");
-  // create an entry for the A coordinate of the second point
+  // create entry to hold the R coordinate of the second point on the guidance needle
   this->Point2AEntry = vtkKWEntry::New();
   this->Point2AEntry->SetParent(point2Frame);
   this->Point2AEntry->Create();
+  this->Point2AEntry->SetBalloonHelpString("Second point on guidance needle, A coordinate.");
   this->Point2AEntry->SetWidth(8);
   this->Point2AEntry->SetReadOnly(1);
   this->Point2AEntry->SetRestrictValueToDouble();
   this->Point2AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-  this->Point2AEntry->SetBalloonHelpString("Second point on guidance needle, A coordinate.");
-  // create an entry for the S coordinate of the second point
+  // create entry to hold the R coordinate of the second point on the guidance needle
   this->Point2SEntry = vtkKWEntry::New();
   this->Point2SEntry->SetParent(point2Frame);
   this->Point2SEntry->Create();
+  this->Point2SEntry->SetBalloonHelpString("Second point on guidance needle, S coordinate.");
   this->Point2SEntry->SetWidth(8);
   this->Point2SEntry->SetReadOnly(1);
   this->Point2SEntry->SetRestrictValueToDouble();
   this->Point2SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-  this->Point2SEntry->SetBalloonHelpString("Second point on guidance needle, S coordinate.");
-  // add second point radio button
+
+  // add second point on guidance needle radio button
   this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point2RadioButton->GetWidgetName());
-  // add second point position entries
+  // add second point on guidance needle RAS coordinate entries
   this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
                  this->Point2SEntry->GetWidgetName(),
                  this->Point2AEntry->GetWidgetName(),
                  this->Point2REntry->GetWidgetName());
 
-  // create a reset registration button
+  //----------------------------------------------------------------
+  // Create reset registration and perform registration buttons.
+  //----------------------------------------------------------------
+  // create button to reset the registration
   this->ResetRegistrationPushButton = vtkKWPushButton::New();
   this->ResetRegistrationPushButton->SetParent(registrationFrame->GetFrame());
   this->ResetRegistrationPushButton->Create();
@@ -1069,7 +1086,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   // add reset registration button
   this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", this->ResetRegistrationPushButton->GetWidgetName());
 
-  // create a perform registration button
+  // create button to perform the registration
   this->PerformRegistrationPushButton = vtkKWPushButton::New();
   this->PerformRegistrationPushButton->SetParent(registrationFrame->GetFrame());
   this->PerformRegistrationPushButton->Create();
