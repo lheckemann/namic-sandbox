@@ -237,7 +237,7 @@ void vtkAbdoNavLogic::ToggleLocatorVisibility(int vis)
   vtkMRMLModelNode* locatorModel;
   vtkMRMLDisplayNode* locatorDisplay;
 
-  // get locator model if it already exists
+  // get locator if it exists
   locatorModel = this->FindLocator(locatorName);
 
   if (locatorModel != NULL)
@@ -250,9 +250,11 @@ void vtkAbdoNavLogic::ToggleLocatorVisibility(int vis)
     }
   else if (locatorModel == NULL && vis == 1)
     {
-    // locator doesn't exist yet but visibility is set to one, thus create it (nothing to do if visibility is set to zero)
+    // locator doesn't exist yet but visibility is set to one, thus create it
     this->EnableLocatorDriver(locatorName);
     }
+
+  // nothing to do if locatorModel == NULL && vis == 0
 }
 
 
@@ -264,47 +266,38 @@ void vtkAbdoNavLogic::ToggleLocatorFreeze(int freeze)
   const char* locatorName = "AbdoNav-Locator";
   vtkMRMLModelNode* locatorModel;
 
-  // check if locator already exists
-  vtkCollection* collection = this->GetMRMLScene()->GetNodesByName(locatorName);
-  if (collection != NULL && collection->GetNumberOfItems() == 0)
+  // get locator if it exists
+  locatorModel = this->FindLocator(locatorName);
+
+  if (locatorModel != NULL && freeze == 1)
     {
-    // locator doesn't exist, thus nothing to do
-    return;
+    // freeze locator model
+    locatorModel->SetAndObserveTransformNodeID(NULL);
+    // need to retrieve, store and apply current transformation matrix:
+    // otherwise, the locator model wouldn't be displayed at its current
+    // position but would instead be reset to its initial position
+    if (LocatorFreezePosition == NULL)
+      {
+      // LocatorFreezePosition is deleted in the destructor
+      LocatorFreezePosition = vtkMatrix4x4::New();
+      }
+    // retrieve and store current transformation matrix
+    LocatorFreezePosition->DeepCopy(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetOriginalTrackerTransformID()))->GetMatrixTransformToParent());
+    // apply current transformation matrix
+    locatorModel->ApplyTransform(LocatorFreezePosition);
+    locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
     }
-  else if (collection != NULL && collection->GetNumberOfItems() != 0)
+  else if (locatorModel != NULL && freeze == 0)
     {
-    // locator exists
-    locatorModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
-    if (freeze == 1 && locatorModel)
-      {
-      // freeze locator model
-      locatorModel->SetAndObserveTransformNodeID(NULL);
-      // need to retrieve, store and apply current transformation matrix:
-      // otherwise, the locator model wouldn't be displayed at its current
-      // position but would instead be reset to its initial position
-      if (LocatorFreezePosition == NULL)
-        {
-        // LocatorFreezePosition is deleted in the destructor
-        LocatorFreezePosition = vtkMatrix4x4::New();
-        }
-      // retrieve and store current transformation matrix
-      LocatorFreezePosition->DeepCopy(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetOriginalTrackerTransformID()))->GetMatrixTransformToParent());
-      // apply current transformation matrix
-      locatorModel->ApplyTransform(LocatorFreezePosition);
-      locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-      }
-    else
-      {
-      // need to apply the inverse transformation matrix so as to obtain the identity matrix
-      vtkMatrix4x4::Invert(LocatorFreezePosition, LocatorFreezePosition);
-      locatorModel->ApplyTransform(LocatorFreezePosition);
-      // unfreeze locator model
-      locatorModel->SetAndObserveTransformNodeID(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetOriginalTrackerTransformID()))->GetID());
-      locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-      }
+    // need to apply the inverse transformation matrix so as to obtain the identity matrix
+    vtkMatrix4x4::Invert(LocatorFreezePosition, LocatorFreezePosition);
+    locatorModel->ApplyTransform(LocatorFreezePosition);
+    // unfreeze locator model
+    locatorModel->SetAndObserveTransformNodeID(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetOriginalTrackerTransformID()))->GetID());
+    locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
     }
-  // cleanup
-  collection->Delete();
+
+  // nothing to do if locatorModel == NULL
 }
 
 
