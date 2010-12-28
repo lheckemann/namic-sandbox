@@ -885,7 +885,9 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   connectionFrame->Create();
   connectionFrame->SetLabelText("Connection");
   connectionFrame->CollapseFrame();
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", connectionFrame->GetWidgetName(), page->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+                connectionFrame->GetWidgetName(),
+                page->GetWidgetName());
 
   // create labelled frame to hold widgets for specifying the tracking information
   vtkKWFrameWithLabel* trackerFrame = vtkKWFrameWithLabel::New();
@@ -965,7 +967,9 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   registrationFrame->Create();
   registrationFrame->SetLabelText("Registration");
   registrationFrame->CollapseFrame();
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", registrationFrame->GetWidgetName(), page->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+                registrationFrame->GetWidgetName(),
+                page->GetWidgetName());
 
   // create labelled frame to hold widgets for identifying the guidance needle
   vtkKWFrameWithLabel* guidanceNeedleFrame = vtkKWFrameWithLabel::New();
@@ -1118,7 +1122,9 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   navigationFrame->Create();
   navigationFrame->SetLabelText("Navigation");
   navigationFrame->CollapseFrame();
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", navigationFrame->GetWidgetName(), page->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+                navigationFrame->GetWidgetName(),
+                page->GetWidgetName());
 
   // create labelled frame to hold widgets for setting the locator display options
   vtkKWFrameWithLabel* locatorOptionsFrame = vtkKWFrameWithLabel::New();
@@ -1231,7 +1237,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->GreenSliceMenuButton->SetValue("User");
 
   // add red, green and yellow slice orientation slice driver menu buttons
-  this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+  this->Script("pack %s %s %s -side left -anchor nw -fill x -padx 2 -pady 2",
                 RedSliceMenuButton->GetWidgetName(),
                 YellowSliceMenuButton->GetWidgetName(),
                 GreenSliceMenuButton->GetWidgetName());
@@ -1275,7 +1281,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->ObliqueCheckButton->SelectedStateOff();
 
   // add drive all slice orientations by locator/user buttons, freeze reslicing and oblique reslicing check buttons
-  this->Script("pack %s %s %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+  this->Script("pack %s %s %s %s -side left -anchor nw -fill x -padx 2 -pady 2",
                 SetLocatorAllPushButton->GetWidgetName(),
                 SetUserAllPushButton->GetWidgetName(),
                 FreezeSliceCheckButton->GetWidgetName(),
