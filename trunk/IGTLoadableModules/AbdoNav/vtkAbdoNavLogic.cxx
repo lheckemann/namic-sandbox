@@ -182,6 +182,30 @@ void vtkAbdoNavLogic::PerformRegistration()
 
 
 //---------------------------------------------------------------------------
+vtkMRMLModelNode* vtkAbdoNavLogic::FindLocator(const char* locatorName)
+{
+  vtkMRMLModelNode* locatorModel;
+
+  // check if locator exists
+  vtkCollection* collection = this->GetMRMLScene()->GetNodesByName(locatorName);
+  if (collection != NULL && collection->GetNumberOfItems() == 0)
+    {
+    // locator doesn't exist
+    locatorModel = NULL;
+    }
+  else if (collection != NULL && collection->GetNumberOfItems() != 0)
+    {
+    // locator exists
+    locatorModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+    }
+  // cleanup
+  collection->Delete();
+
+  return locatorModel;
+}
+
+
+//---------------------------------------------------------------------------
 vtkMRMLModelNode* vtkAbdoNavLogic::EnableLocatorDriver(const char* locatorName)
 {
   // TODO: all TransformModifiedEvents within the scope of this function seem to be unnecessary --> remove?
