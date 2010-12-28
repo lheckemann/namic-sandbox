@@ -250,14 +250,14 @@ void vtkAbdoNavLogic::ToggleLocatorVisibility(int vis)
     }
   else if (locatorModel == NULL && vis == 1)
     {
-    // locator doesn't exist yet but visibility is set to one, thus create it
+    // locator doesn't exist yet but visibility is set to one, thus create it (nothing to do if visibility is set to zero)
     this->EnableLocatorDriver(locatorName);
     }
 }
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavLogic::ToggleLocatorUpdate(int freeze)
+void vtkAbdoNavLogic::ToggleLocatorFreeze(int freeze)
 {
   // TODO: all TransformModifiedEvents within the scope of this function seem to be unnecessary --> remove?
 

@@ -688,7 +688,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   else if (this->FreezeLocatorCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
     int checked = this->FreezeLocatorCheckButton->GetSelectedState();
-    this->GetLogic()->ToggleLocatorUpdate(checked);
+    this->GetLogic()->ToggleLocatorFreeze(checked);
     }
 }
 
