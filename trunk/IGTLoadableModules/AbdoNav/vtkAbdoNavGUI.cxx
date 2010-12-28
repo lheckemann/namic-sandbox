@@ -982,6 +982,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   point1Frame->SetParent(guidanceNeedleFrame->GetFrame());
   point1Frame->Create();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point1Frame->GetWidgetName());
+
   // create radio button to select the guidance needle tip
   this->Point1RadioButton = vtkKWRadioButton::New();
   this->Point1RadioButton->SetParent(point1Frame);
@@ -1032,6 +1033,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   point2Frame->SetParent(guidanceNeedleFrame->GetFrame());
   point2Frame->Create();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point2Frame->GetWidgetName());
+
   // create radio button to select the second point on the guidance needle
   this->Point2RadioButton = vtkKWRadioButton::New();
   this->Point2RadioButton->SetParent(point2Frame);
@@ -1118,7 +1120,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   navigationFrame->CollapseFrame();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", navigationFrame->GetWidgetName(), page->GetWidgetName());
 
-  // create labelled frame to hold the locator display options
+  // create labelled frame to hold widgets for setting the locator display options
   vtkKWFrameWithLabel* locatorOptionsFrame = vtkKWFrameWithLabel::New();
   locatorOptionsFrame->SetParent(navigationFrame->GetFrame());
   locatorOptionsFrame->Create();
@@ -1126,8 +1128,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", locatorOptionsFrame->GetWidgetName());
 
   //----------------------------------------------------------------
-  // Create check buttons and scale to show/hide the locator and crosshair, to
-  // freeze/unfreeze the locator and to set the projection length of the locator tip.
+  // Create widgets to set the locator display options.
   //----------------------------------------------------------------
   // create check button to show/hide the locator
   this->ShowLocatorCheckButton = vtkKWCheckButton::New();
@@ -1177,22 +1178,22 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
                 FreezeLocatorCheckButton->GetWidgetName(),
                 ShowCrosshairCheckButton->GetWidgetName());
 
-  // create labelled frame to hold the slice driver options
+  // create labelled frame to hold widgets for setting the slice driver options
   vtkKWFrameWithLabel* sliceDriverFrame = vtkKWFrameWithLabel::New();
   sliceDriverFrame->SetParent(navigationFrame->GetFrame());
   sliceDriverFrame->Create();
   sliceDriverFrame->SetLabelText("Slice driver options");
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", sliceDriverFrame->GetWidgetName());
 
-  // create centered frame to hold the menu buttons for the three slice orientations
+  //----------------------------------------------------------------
+  // Create menu buttons to set the slice driver for each slice orientation separately.
+  //----------------------------------------------------------------
+  // create frame required to center the menu buttons
   vtkKWFrame* sliceOrientationFrame = vtkKWFrame::New();
   sliceOrientationFrame->SetParent(sliceDriverFrame->GetFrame());
   sliceOrientationFrame->Create();
   this->Script("pack %s -side top -anchor c -padx 2 -pady 2", sliceOrientationFrame->GetWidgetName());
 
-  //----------------------------------------------------------------
-  // Create menu buttons to set the slice driver for each slice orientation separately.
-  //----------------------------------------------------------------
   // get slice orientation colors red, green and yellow
   vtkSlicerColor* color = ((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors();
   // create menu button to set the driver for the red (axial) slice orientation
@@ -1235,7 +1236,10 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
                 YellowSliceMenuButton->GetWidgetName(),
                 GreenSliceMenuButton->GetWidgetName());
 
-  // create centered frame to hold the reslicing options
+  //----------------------------------------------------------------
+  // Create widgets to set the slice driver for all slice orientations at once and to set the reslicing options.
+  //----------------------------------------------------------------
+  // create frame required to center the widgets
   vtkKWFrame* sliceOptionsFrame = vtkKWFrame::New();
   sliceOptionsFrame->SetParent(sliceDriverFrame->GetFrame());
   sliceOptionsFrame->Create();
