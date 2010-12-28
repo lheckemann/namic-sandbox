@@ -1534,8 +1534,7 @@ vtkMRMLPerkStationModuleNode
   double plan = GetActualPlanInsertionDepth( index );
   
   double diff = val - plan;
-  if ( diff >= 0 ) return diff;
-  else return - diff;
+  return diff;
 }
 
 
