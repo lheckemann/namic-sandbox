@@ -1416,32 +1416,11 @@ vtkMRMLPerkStationModuleNode
 
 
 
-/**
- * Angle definition:
- * - : 0   degrees
- * / : 60  degrees
- * | : 90  degrees
- * \ : 120 degrees
- *
- * @returns Insertion angle in degrees, between anteroposterior line and plan.
- */
 double
 vtkMRMLPerkStationModuleNode
 ::GetActualPlanInsertionAngle( int index )
 {
-  if ( index == -1 ) index = this->GetCurrentPlanIndex();
-  
-  double planEntry[ 3 ];
-  double planTarget[ 3 ];
-  
-  this->GetPlanEntryPoint( planEntry, index );
-  this->GetPlanTargetPoint( planTarget, index );
-  
-  double tangent = ( planEntry[ 0 ] - planTarget[ 0 ] ) / ( planEntry[ 1 ] - planTarget[ 1 ] );
-  double angle = - ( 180.0 / vtkMath::Pi() ) * atan( tangent );
-  angle = angle + 90.0;
-  
-  return angle;
+  return this->GetPlanAngleAxial( index );
 }
 
 
@@ -1465,6 +1444,68 @@ vtkMRMLPerkStationModuleNode
   
   double insDepth = sqrt( vtkMath::Distance2BetweenPoints( planTarget, planEntry ) );
   return insDepth;
+}
+
+
+
+/**
+ * Angle definition: Zero is the antero-posterior axis, when entry point is to the posterior.
+ * Positive when entry is more to the right of the patient than target.
+ *
+ * @returns Insertion angle in degrees, between anteroposterior line and plan projected to the axial plane.
+ */
+double
+vtkMRMLPerkStationModuleNode
+::GetPlanAngleAxial( int index )
+{
+ if ( index == -1 ) index = this->GetCurrentPlanIndex();
+  
+  double entry[ 3 ];
+  double target[ 3 ];
+  
+  this->GetPlanEntryPoint( entry, index );
+  this->GetPlanTargetPoint( target, index );
+  
+  
+    // entry[ 0 ] - target[ 0 ] is positive when entry is to the right.
+    // target[ 1 ] - entry[ 1 ] is positive when entry is to the posterior.
+    // atan( tangent ) is positive when tangent is positive.
+  
+  double tangent = ( entry[ 0 ] - target[ 0 ] ) / ( target[ 1 ] - entry[ 1 ] );
+  double angle = 180.0 / vtkMath::Pi() * atan( tangent );
+  
+  return angle;
+}
+
+
+
+/**
+ * Angle definition: Zero is the antero-posterior axis, when entry point is to the posterior.
+ * Positive when entry is more to the superior of the patient than target.
+ *
+ * @returns Insertion angle in degrees, between anteroposterior line and plan projected to the axial plane.
+ */
+double
+vtkMRMLPerkStationModuleNode
+::GetPlanAngleSagittal( int index )
+{
+  if ( index == -1 ) index = this->GetCurrentPlanIndex();
+  
+  double entry[ 3 ];
+  double target[ 3 ];
+  
+  this->GetPlanEntryPoint( entry, index );
+  this->GetPlanTargetPoint( target, index );
+  
+  
+    // entry[ 2 ] - target[ 2 ] is positive when entry is to the superior.
+    // target[ 1 ] - entry[ 1 ] is positive when entry is to the posterior.
+    // atan( tangent ) is positive when tangent is positive.
+  
+  double tangent = ( entry[ 2 ] - target[ 2 ] ) / ( target[ 1 ] - entry[ 1 ] );
+  double angle = 180.0 / vtkMath::Pi() * atan( tangent );
+  
+  return angle;
 }
 
 

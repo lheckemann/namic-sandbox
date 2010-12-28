@@ -127,6 +127,8 @@ enum
   VALIDATION_COL_TARGET_R,
   VALIDATION_COL_TARGET_A,
   VALIDATION_COL_TARGET_S,
+  VALIDATION_COL_ABS_ANGLE_AXIAL,
+  VALIDATION_COL_ABS_ANGLE_SAGITTAL,
   VALIDATION_COL_ANGLE,
   VALIDATION_COL_ANGLE_AXIAL,
   VALIDATION_COL_ANGLE_SAGITTAL,
@@ -137,22 +139,24 @@ enum
 static const char* VALIDATION_COL_LABELS[ VALIDATION_COL_COUNT ] =
   {
   "Name",
-  "Entry",
+  "Ent Er",
   "Ent R",
   "Ent A",
   "Ent S",
-  "Target",
+  "Tar Er",
   "Tar R",
   "Tar A",
   "Tar S",
-  "Angle",
   "Ang Ax",
   "Ang Sa",
-  "Depth",
-  "Depth Err"
+  "Ang Er",
+  "Ang Er Ax",
+  "Ang Er Sa",
+  "Dept",
+  "Dept Er"
   };
 static const int VALIDATION_COL_WIDTHS[ VALIDATION_COL_COUNT ] = {
-  10, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 };
+  10, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 8, 8, 5, 6 };
 
 
 // --------------------------------------------------------------
