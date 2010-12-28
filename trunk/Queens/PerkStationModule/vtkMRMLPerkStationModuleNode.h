@@ -331,6 +331,8 @@ public:
   
   double GetActualPlanInsertionAngle( int index = -1 );
   double GetActualPlanInsertionDepth( int index = -1 );
+  double GetPlanAngleAxial( int index = -1 );
+  double GetPlanAngleSagittal( int index = -1 );
   
   double GetPlanDepth( int index = -1 );
   double GetValidationAngle( int index = -1 );

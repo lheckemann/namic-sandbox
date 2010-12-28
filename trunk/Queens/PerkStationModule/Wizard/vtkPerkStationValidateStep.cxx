@@ -772,6 +772,10 @@ vtkPerkStationValidateStep
     colList->SetCellText( validationRow, VALIDATION_COL_TARGET_R, DoubleToString( mrmlNode->GetTargetPointErrorR( row ), VPRECISION ).c_str() );
     colList->SetCellText( validationRow, VALIDATION_COL_TARGET_A, DoubleToString( mrmlNode->GetTargetPointErrorA( row ), VPRECISION ).c_str() );
     colList->SetCellText( validationRow, VALIDATION_COL_TARGET_S, DoubleToString( mrmlNode->GetTargetPointErrorS( row ), VPRECISION ).c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_ABS_ANGLE_AXIAL,
+                          DoubleToString( mrmlNode->GetPlanAngleAxial( row ), VPRECISION ).c_str() );
+    colList->SetCellText( validationRow, VALIDATION_COL_ABS_ANGLE_SAGITTAL,
+                          DoubleToString( mrmlNode->GetPlanAngleSagittal( row ), VPRECISION ).c_str() );
     colList->SetCellText( validationRow, VALIDATION_COL_ANGLE, DoubleToString( mrmlNode->GetAngleError( row ), VPRECISION ).c_str() );
     colList->SetCellText( validationRow, VALIDATION_COL_ANGLE_AXIAL, DoubleToString( mrmlNode->GetAngleErrorAxial( row ), VPRECISION ).c_str() );
     colList->SetCellText( validationRow, VALIDATION_COL_ANGLE_SAGITTAL, DoubleToString( mrmlNode->GetAngleErrorSagittal( row ), VPRECISION ).c_str() );
@@ -962,6 +966,8 @@ vtkPerkStationValidateStep
     output << DoubleToString( mrmlNode->GetTargetPointErrorR( row ), VPRECISION ).c_str() << ", ";
     output << DoubleToString( mrmlNode->GetTargetPointErrorA( row ), VPRECISION ).c_str() << ", ";
     output << DoubleToString( mrmlNode->GetTargetPointErrorS( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetPlanAngleAxial( row ), VPRECISION ).c_str() << ", ";
+    output << DoubleToString( mrmlNode->GetPlanAngleSagittal( row ), VPRECISION ).c_str() << ", ";
     output << DoubleToString( mrmlNode->GetAngleError( row ), VPRECISION ).c_str() << ", ";
     output << DoubleToString( mrmlNode->GetAngleErrorAxial( row ), VPRECISION ).c_str() << ", ";
     output << DoubleToString( mrmlNode->GetAngleErrorSagittal( row ), VPRECISION ).c_str() << ", ";
