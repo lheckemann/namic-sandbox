@@ -190,12 +190,12 @@ vtkMRMLModelNode* vtkAbdoNavLogic::FindLocator(const char* locatorName)
   vtkCollection* collection = this->GetMRMLScene()->GetNodesByName(locatorName);
   if (collection != NULL && collection->GetNumberOfItems() == 0)
     {
-    // locator doesn't exist
+    // locator doesn't exist yet
     locatorModel = NULL;
     }
   else if (collection != NULL && collection->GetNumberOfItems() != 0)
     {
-    // locator exists
+    // locator already exists
     locatorModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
     }
   // cleanup
@@ -237,28 +237,21 @@ void vtkAbdoNavLogic::ToggleLocatorVisibility(int vis)
   vtkMRMLModelNode* locatorModel;
   vtkMRMLDisplayNode* locatorDisplay;
 
-  // check if locator already exists
-  vtkCollection* collection = this->GetMRMLScene()->GetNodesByName(locatorName);
-  if (collection != NULL && collection->GetNumberOfItems() == 0)
-    {
-    // locator doesn't exist yet, thus create it
-    locatorModel = this->EnableLocatorDriver(locatorName);
-    }
-  else if (collection != NULL && collection->GetNumberOfItems() != 0)
-    {
-    // locator exists
-    locatorModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
-    }
-  // cleanup
-  collection->Delete();
+  // get locator model if it already exists
+  locatorModel = this->FindLocator(locatorName);
 
-  // toggle visibility
-  if (locatorModel)
+  if (locatorModel != NULL)
     {
+    // locator already exists, thus toggle visibility
     locatorDisplay = locatorModel->GetDisplayNode();
     locatorDisplay->SetVisibility(vis);
     locatorModel->Modified();
     this->GetMRMLScene()->Modified();
+    }
+  else if (locatorModel == NULL && vis == 1)
+    {
+    // locator doesn't exist yet but visibility is set to one, thus create it
+    this->EnableLocatorDriver(locatorName);
     }
 }
 
