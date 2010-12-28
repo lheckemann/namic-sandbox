@@ -987,6 +987,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point1RadioButton->SetParent(point1Frame);
   this->Point1RadioButton->Create();
   this->Point1RadioButton->SetText("Identify guidance needle tip (RAS):\t");
+  this->Point1RadioButton->SetBalloonHelpString("Identify the tip of the guidance needle in the CT/MR image.");
   // create entry to hold the R coordinate of the guidance needle tip
   this->Point1REntry = vtkKWEntry::New();
   this->Point1REntry->SetParent(point1Frame);
@@ -1036,6 +1037,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2RadioButton->SetParent(point2Frame);
   this->Point2RadioButton->Create();
   this->Point2RadioButton->SetText("Identify second point (RAS):\t\t");
+  this->Point2RadioButton->SetBalloonHelpString("Identify a second point on the guidance needle in the CT/MR image.");
   // create entry to hold the R coordinate of the second point on the guidance needle
   this->Point2REntry = vtkKWEntry::New();
   this->Point2REntry->SetParent(point2Frame);
@@ -1108,7 +1110,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
 {
   vtkKWWidget* page = this->UIPanel->GetPageWidget("AbdoNav");
 
-  // create a collapsible navigation frame
+  // create collapsible navigation frame
   vtkSlicerModuleCollapsibleFrame* navigationFrame = vtkSlicerModuleCollapsibleFrame::New();
   navigationFrame->SetParent(page);
   navigationFrame->Create();
@@ -1116,30 +1118,35 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   navigationFrame->CollapseFrame();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", navigationFrame->GetWidgetName(), page->GetWidgetName());
 
-  // create a labelled frame for the locator display options
-  vtkKWFrameWithLabel* locatorDisplayFrame = vtkKWFrameWithLabel::New();
-  locatorDisplayFrame->SetParent(navigationFrame->GetFrame());
-  locatorDisplayFrame->SetLabelText("Locator Display Options");
-  locatorDisplayFrame->Create();
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", locatorDisplayFrame->GetWidgetName());
+  // create labelled frame to hold the locator display options
+  vtkKWFrameWithLabel* locatorOptionsFrame = vtkKWFrameWithLabel::New();
+  locatorOptionsFrame->SetParent(navigationFrame->GetFrame());
+  locatorOptionsFrame->Create();
+  locatorOptionsFrame->SetLabelText("Locator display options");
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", locatorOptionsFrame->GetWidgetName());
 
-  // create a check button to show/hide the locator model
+  //----------------------------------------------------------------
+  // Create check buttons and scale to show/hide the locator and crosshair, to
+  // freeze/unfreeze the locator and to set the projection length of the locator tip.
+  //----------------------------------------------------------------
+  // create check button to show/hide the locator
   this->ShowLocatorCheckButton = vtkKWCheckButton::New();
-  this->ShowLocatorCheckButton->SetParent(locatorDisplayFrame->GetFrame());
+  this->ShowLocatorCheckButton->SetParent(locatorOptionsFrame->GetFrame());
   this->ShowLocatorCheckButton->Create();
+  this->ShowLocatorCheckButton->SetText("Show locator");
+  this->ShowLocatorCheckButton->SetBalloonHelpString("Show/hide the locator.");
   this->ShowLocatorCheckButton->SelectedStateOff();
-  this->ShowLocatorCheckButton->SetText("Show Locator");
 
   // add show locator check button
   this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", ShowLocatorCheckButton->GetWidgetName());
 
-  // create a scale to set the locator projection length
+  // create scale to set the locator projection length
   this->ProjectionLengthScale = vtkKWScaleWithEntry::New();
-  this->ProjectionLengthScale->SetParent(locatorDisplayFrame->GetFrame());
+  this->ProjectionLengthScale->SetParent(locatorOptionsFrame->GetFrame());
   this->ProjectionLengthScale->Create();
   this->ProjectionLengthScale->SetLabelText("Projection length (cm):\t\t");
-  // indentation: match scale text label with check button text labels
-  this->ProjectionLengthScale->GetLabel()->SetPadX(16);
+  this->ProjectionLengthScale->SetBalloonHelpString("Set the projection length of the locator tip (unit: cm, resolution: 0.5 cm). Set to zero to turn projection off.");
+  this->ProjectionLengthScale->GetLabel()->SetPadX(16); // indentation: align scale text label with check button text labels
   this->ProjectionLengthScale->GetEntry()->SetWidth(8);
   this->ProjectionLengthScale->GetEntry()->SetReadOnly(1);
   this->ProjectionLengthScale->SetRange(0.0, 50.0);
@@ -1149,64 +1156,72 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   // add projection length scale
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", ProjectionLengthScale->GetWidgetName());
 
-  // create a check button to freeze/unfreeze the locator model
+  // create check button to freeze/unfreeze the locator
   this->FreezeLocatorCheckButton = vtkKWCheckButton::New();
-  this->FreezeLocatorCheckButton->SetParent(locatorDisplayFrame->GetFrame());
+  this->FreezeLocatorCheckButton->SetParent(locatorOptionsFrame->GetFrame());
   this->FreezeLocatorCheckButton->Create();
+  this->FreezeLocatorCheckButton->SetText("Freeze locator");
+  this->FreezeLocatorCheckButton->SetBalloonHelpString("Freeze/unfreeze the locator.");
   this->FreezeLocatorCheckButton->SelectedStateOff();
-  this->FreezeLocatorCheckButton->SetText("Freeze Locator");
 
-  // create a check button to show/hide a crosshair in the slice views corresponding to the locator's tip position
+  // create check button to show/hide the crosshair in the slice views (corresponding to the locator's tip position)
   this->ShowCrosshairCheckButton = vtkKWCheckButton::New();
-  this->ShowCrosshairCheckButton->SetParent(locatorDisplayFrame->GetFrame());
+  this->ShowCrosshairCheckButton->SetParent(locatorOptionsFrame->GetFrame());
   this->ShowCrosshairCheckButton->Create();
+  this->ShowCrosshairCheckButton->SetText("Show crosshair");
+  this->ShowCrosshairCheckButton->SetBalloonHelpString("Show/hide the crosshair.");
   this->ShowCrosshairCheckButton->SelectedStateOff();
-  this->ShowCrosshairCheckButton->SetText("Show Crosshair");
 
   // add freeze locator and show crosshair check buttons
   this->Script("pack %s %s -side top -anchor nw -padx 2 -pady 2",
                 FreezeLocatorCheckButton->GetWidgetName(),
                 ShowCrosshairCheckButton->GetWidgetName());
 
-  // create a labelled frame for the slice driver options
+  // create labelled frame to hold the slice driver options
   vtkKWFrameWithLabel* sliceDriverFrame = vtkKWFrameWithLabel::New();
   sliceDriverFrame->SetParent(navigationFrame->GetFrame());
-  sliceDriverFrame->SetLabelText("Slice Driver");
   sliceDriverFrame->Create();
+  sliceDriverFrame->SetLabelText("Slice driver options");
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", sliceDriverFrame->GetWidgetName());
 
-  // create a frame to hold the slice view menu buttons
-  vtkKWFrame* sliceFrame = vtkKWFrame::New();
-  sliceFrame->SetParent(sliceDriverFrame->GetFrame());
-  sliceFrame->Create();
-  this->Script("pack %s -side top -anchor c -padx 2 -pady 2", sliceFrame->GetWidgetName());
+  // create centered frame to hold the menu buttons for the three slice orientations
+  vtkKWFrame* sliceOrientationFrame = vtkKWFrame::New();
+  sliceOrientationFrame->SetParent(sliceDriverFrame->GetFrame());
+  sliceOrientationFrame->Create();
+  this->Script("pack %s -side top -anchor c -padx 2 -pady 2", sliceOrientationFrame->GetWidgetName());
 
-  // get slice view colors red, green and yellow
+  //----------------------------------------------------------------
+  // Create menu buttons to set the slice driver for each slice orientation separately.
+  //----------------------------------------------------------------
+  // get slice orientation colors red, green and yellow
   vtkSlicerColor* color = ((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors();
-  // create a red slice view (axial) menu button
+  // create menu button to set the driver for the red (axial) slice orientation
   this->RedSliceMenuButton = vtkKWMenuButton::New();
-  this->RedSliceMenuButton->SetParent(sliceFrame);
+  this->RedSliceMenuButton->SetParent(sliceOrientationFrame);
   this->RedSliceMenuButton->Create();
+  this->RedSliceMenuButton->SetBalloonHelpString("Set driver for the axial slice orientation.");
   this->RedSliceMenuButton->SetWidth(13);
   this->RedSliceMenuButton->SetBackgroundColor(color->SliceGUIRed);
   this->RedSliceMenuButton->SetActiveBackgroundColor(color->SliceGUIRed);
   this->RedSliceMenuButton->GetMenu()->AddRadioButton("User");
   this->RedSliceMenuButton->GetMenu()->AddRadioButton("Locator");
   this->RedSliceMenuButton->SetValue("User");
-  // create a yellow slice view (sagittal) menu button
+  // create menu button to set the driver for the yellow (sagittal) slice orientation
   this->YellowSliceMenuButton = vtkKWMenuButton::New();
-  this->YellowSliceMenuButton->SetParent(sliceFrame);
+  this->YellowSliceMenuButton->SetParent(sliceOrientationFrame);
   this->YellowSliceMenuButton->Create();
+  this->YellowSliceMenuButton->SetBalloonHelpString("Set driver for the sagittal slice orientation.");
   this->YellowSliceMenuButton->SetWidth(13);
   this->YellowSliceMenuButton->SetBackgroundColor(color->SliceGUIYellow);
   this->YellowSliceMenuButton->SetActiveBackgroundColor(color->SliceGUIYellow);
   this->YellowSliceMenuButton->GetMenu()->AddRadioButton("User");
   this->YellowSliceMenuButton->GetMenu()->AddRadioButton("Locator");
   this->YellowSliceMenuButton->SetValue("User");
-  // create a green slice view (coronal) menu button
+  // create menu button to set the driver for the green (coronal) slice orientation
   this->GreenSliceMenuButton = vtkKWMenuButton::New();
-  this->GreenSliceMenuButton->SetParent(sliceFrame);
+  this->GreenSliceMenuButton->SetParent(sliceOrientationFrame);
   this->GreenSliceMenuButton->Create();
+  this->GreenSliceMenuButton->SetBalloonHelpString("Set driver for the coronal slice orientation.");
   this->GreenSliceMenuButton->SetWidth(13);
   this->GreenSliceMenuButton->SetBackgroundColor(color->SliceGUIGreen);
   this->GreenSliceMenuButton->SetActiveBackgroundColor(color->SliceGUIGreen);
@@ -1214,44 +1229,48 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->GreenSliceMenuButton->GetMenu()->AddRadioButton("Locator");
   this->GreenSliceMenuButton->SetValue("User");
 
-  // add red, green and yellow menu buttons
+  // add red, green and yellow slice orientation slice driver menu buttons
   this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2",
                 RedSliceMenuButton->GetWidgetName(),
                 YellowSliceMenuButton->GetWidgetName(),
                 GreenSliceMenuButton->GetWidgetName());
 
-  // create a frame to hold the buttons for the different slice view modes
-  vtkKWFrame* sliceModeFrame = vtkKWFrame::New();
-  sliceModeFrame->SetParent(sliceDriverFrame->GetFrame());
-  sliceModeFrame->Create();
-  this->Script("pack %s -side top -anchor c -padx 2 -pady 2", sliceModeFrame->GetWidgetName());
+  // create centered frame to hold the reslicing options
+  vtkKWFrame* sliceOptionsFrame = vtkKWFrame::New();
+  sliceOptionsFrame->SetParent(sliceDriverFrame->GetFrame());
+  sliceOptionsFrame->Create();
+  this->Script("pack %s -side top -anchor c -padx 2 -pady 2", sliceOptionsFrame->GetWidgetName());
 
-  // create a drive all slice views by locator push button
+  // create button to drive all slice orientations by the locator
   this->SetLocatorAllPushButton = vtkKWPushButton::New();
-  this->SetLocatorAllPushButton->SetParent(sliceModeFrame);
+  this->SetLocatorAllPushButton->SetParent(sliceOptionsFrame);
   this->SetLocatorAllPushButton->Create();
-  this->SetLocatorAllPushButton->SetText("Locator All");
+  this->SetLocatorAllPushButton->SetText("Locator all");
+  this->SetLocatorAllPushButton->SetBalloonHelpString("Drive all slice orientations by the locator.");
   this->SetLocatorAllPushButton->SetWidth(12);
-  // create a drive all slice views by user push button
+  // create button to drive all slice orientations by the user
   this->SetUserAllPushButton = vtkKWPushButton::New();
-  this->SetUserAllPushButton->SetParent(sliceModeFrame);
+  this->SetUserAllPushButton->SetParent(sliceOptionsFrame);
   this->SetUserAllPushButton->Create();
-  this->SetUserAllPushButton->SetText("User All");
+  this->SetUserAllPushButton->SetText("User all");
+  this->SetUserAllPushButton->SetBalloonHelpString("Drive all slice orientations by the user.");
   this->SetUserAllPushButton->SetWidth(12);
-  // create a freeze slice views check button
+  // create check button to freeze/unfreeze reslicing if driven by the locator
   this->FreezeSliceCheckButton = vtkKWCheckButton::New();
-  this->FreezeSliceCheckButton->SetParent(sliceModeFrame);
+  this->FreezeSliceCheckButton->SetParent(sliceOptionsFrame);
   this->FreezeSliceCheckButton->Create();
   this->FreezeSliceCheckButton->SetText("Freeze");
+  this->FreezeSliceCheckButton->SetBalloonHelpString("Freeze/unfreeze reslicing if driven by the locator.");
   this->FreezeSliceCheckButton->SelectedStateOff();
-  // create an oblique check button
+  // create check button to enable/disable oblique reslicing if driven by the locator
   this->ObliqueCheckButton = vtkKWCheckButton::New();
-  this->ObliqueCheckButton->SetParent(sliceModeFrame);
+  this->ObliqueCheckButton->SetParent(sliceOptionsFrame);
   this->ObliqueCheckButton->Create();
   this->ObliqueCheckButton->SetText("Oblique");
+  this->ObliqueCheckButton->SetBalloonHelpString("Enable/disable oblique reslicing if driven by the locator.");
   this->ObliqueCheckButton->SelectedStateOff();
 
-  // add drive all slice views by locator/user push buttons, freeze all slice views and oblique check buttons
+  // add drive all slice orientations by locator/user buttons, freeze reslicing and oblique reslicing check buttons
   this->Script("pack %s %s %s %s -side left -anchor w -fill x -padx 2 -pady 2",
                 SetLocatorAllPushButton->GetWidgetName(),
                 SetUserAllPushButton->GetWidgetName(),
@@ -1260,8 +1279,8 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
 
   // clean up
   navigationFrame->Delete();
-  locatorDisplayFrame->Delete();
+  locatorOptionsFrame->Delete();
   sliceDriverFrame->Delete();
-  sliceFrame->Delete();
-  sliceModeFrame->Delete();
+  sliceOrientationFrame->Delete();
+  sliceOptionsFrame->Delete();
 }
