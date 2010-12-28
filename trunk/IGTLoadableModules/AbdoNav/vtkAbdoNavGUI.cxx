@@ -887,7 +887,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   connectionFrame->CollapseFrame();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", connectionFrame->GetWidgetName(), page->GetWidgetName());
 
-  // create labelled frame to hold the tracker transform node selector widget and the tracking system combo box
+  // create labelled frame to hold widgets for specifying the tracking information
   vtkKWFrameWithLabel* trackerFrame = vtkKWFrameWithLabel::New();
   trackerFrame->SetParent(connectionFrame->GetFrame());
   trackerFrame->Create();
@@ -895,9 +895,9 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", trackerFrame->GetWidgetName());
 
   //----------------------------------------------------------------
-  // Create tracker transform node selector widget and tracking system combo box.
+  // Create widgets to specify the tracking information.
   //----------------------------------------------------------------
-  // create selector widget to specify the input tracker transform node
+  // create selector to specify the input tracker transform node
   this->TrackerTransformSelector = vtkSlicerNodeSelectorWidget::New();
   this->TrackerTransformSelector->SetParent(trackerFrame->GetFrame());
   this->TrackerTransformSelector->Create();
@@ -909,7 +909,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->TrackerTransformSelector->SetDefaultEnabled(0); // turn off autoselecting nodes
   this->TrackerTransformSelector->GetWidget()->GetWidget()->IndicatorVisibilityOff(); // don't show indicator
 
-  // add tracker transform node selector widget
+  // add tracker transform selector
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerTransformSelector->GetWidgetName());
 
   // create combo box to specify the tracking system being used
@@ -926,7 +926,7 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackingSystemComboBox->GetWidgetName());
 
   //----------------------------------------------------------------
-  // Create reset connection and configure connection buttons.
+  // Create buttons to reset and configure the connection.
   //----------------------------------------------------------------
   // create button to reset the connection
   this->ResetConnectionPushButton = vtkKWPushButton::New();
@@ -967,7 +967,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   registrationFrame->CollapseFrame();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", registrationFrame->GetWidgetName(), page->GetWidgetName());
 
-  // create labelled frame to hold the RAS coordinates of the guidance needle tip and the second point on the guidance needle
+  // create labelled frame to hold widgets for identifying the guidance needle
   vtkKWFrameWithLabel* guidanceNeedleFrame = vtkKWFrameWithLabel::New();
   guidanceNeedleFrame->SetParent(registrationFrame->GetFrame());
   guidanceNeedleFrame->Create();
@@ -975,9 +975,9 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", guidanceNeedleFrame->GetWidgetName());
 
   //----------------------------------------------------------------
-  // Create entries to hold the RAS coordinates of the guidance needle tip.
+  // Create widgets to identify the guidance needle tip.
   //----------------------------------------------------------------
-  // create frame to hold the radio button and RAS coordinate entries of the guidance needle tip
+  // create frame required to display the radio button and RAS coordinate entries on the left and right side respectively
   vtkKWFrame* point1Frame = vtkKWFrame::New();
   point1Frame->SetParent(guidanceNeedleFrame->GetFrame());
   point1Frame->Create();
@@ -1016,18 +1016,18 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point1SEntry->SetRestrictValueToDouble();
   this->Point1SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
 
-  // add guidance needle tip radio button
+  // add radio button for the guidance needle tip
   this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point1RadioButton->GetWidgetName());
-  // add guidance needle tip RAS coordinate entries
+  // add RAS coordinate entries for the guidance needle tip
   this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
                  this->Point1SEntry->GetWidgetName(),
                  this->Point1AEntry->GetWidgetName(),
                  this->Point1REntry->GetWidgetName());
 
   //----------------------------------------------------------------
-  // Create entries to hold the RAS coordinates of the second point on the guidance needle.
+  // Create widgets to identify the second point on the guidance needle.
   //----------------------------------------------------------------
-  // create frame to hold the radio button and RAS coordinate entries of the second point on the guidance needle
+  // create frame required to display the radio button and RAS coordinate entries on the left and right side respectively
   vtkKWFrame* point2Frame = vtkKWFrame::New();
   point2Frame->SetParent(guidanceNeedleFrame->GetFrame());
   point2Frame->Create();
@@ -1047,7 +1047,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2REntry->SetReadOnly(1);
   this->Point2REntry->SetRestrictValueToDouble();
   this->Point2REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-  // create entry to hold the R coordinate of the second point on the guidance needle
+  // create entry to hold the A coordinate of the second point on the guidance needle
   this->Point2AEntry = vtkKWEntry::New();
   this->Point2AEntry->SetParent(point2Frame);
   this->Point2AEntry->Create();
@@ -1056,7 +1056,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2AEntry->SetReadOnly(1);
   this->Point2AEntry->SetRestrictValueToDouble();
   this->Point2AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-  // create entry to hold the R coordinate of the second point on the guidance needle
+  // create entry to hold the S coordinate of the second point on the guidance needle
   this->Point2SEntry = vtkKWEntry::New();
   this->Point2SEntry->SetParent(point2Frame);
   this->Point2SEntry->Create();
@@ -1066,16 +1066,16 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2SEntry->SetRestrictValueToDouble();
   this->Point2SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
 
-  // add second point on guidance needle radio button
+  // add radio button for the second point on the guidance needle
   this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point2RadioButton->GetWidgetName());
-  // add second point on guidance needle RAS coordinate entries
+  // add RAS coordinate entries for the second point on the guidance needle
   this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
                  this->Point2SEntry->GetWidgetName(),
                  this->Point2AEntry->GetWidgetName(),
                  this->Point2REntry->GetWidgetName());
 
   //----------------------------------------------------------------
-  // Create reset registration and perform registration buttons.
+  // Create buttons to reset and perform the registration.
   //----------------------------------------------------------------
   // create button to reset the registration
   this->ResetRegistrationPushButton = vtkKWPushButton::New();
