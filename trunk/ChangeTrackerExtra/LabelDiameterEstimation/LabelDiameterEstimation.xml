@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
   <category>
-  Statistics
+  Quantification
   </category>
   <title>Label Diameter Estimation</title>
   <description>Estimates the largest diameter of a label, saved as a list of endpoint fiducials in a file.</description>
