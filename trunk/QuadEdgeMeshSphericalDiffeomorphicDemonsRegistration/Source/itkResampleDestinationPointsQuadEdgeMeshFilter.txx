@@ -195,8 +195,6 @@ ResampleDestinationPointsQuadEdgeMeshFilter< TInputMesh, TFixedMesh, TReferenceM
 
   OutputPointType  resultingPoint;
 
-  //for debug
-  unsigned int count = 0;
   while( referenceItr != referenceEnd )
     {
     inputPoint.CastFrom( referenceItr.Value() );
@@ -215,8 +213,6 @@ ResampleDestinationPointsQuadEdgeMeshFilter< TInputMesh, TFixedMesh, TReferenceM
 
     ++outputPointItr;
     ++referenceItr;
-    //for debug
-    ++count;
     }
 }
 
