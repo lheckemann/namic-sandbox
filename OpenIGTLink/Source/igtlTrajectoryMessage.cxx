@@ -35,13 +35,17 @@ TrajectoryElement::TrajectoryElement() : Object()
 {
   this->m_Name        = "";
   this->m_GroupName   = "";
+  this->m_Type        = TYPE_TARGET_ONLY;
   this->m_RGBA[0]     = 0;
   this->m_RGBA[1]     = 0;
   this->m_RGBA[2]     = 0;
   this->m_RGBA[3]     = 0;
-  this->m_Position[0] = 0.0;
-  this->m_Position[1] = 0.0;
-  this->m_Position[2] = 0.0;
+  this->m_EntryPosition[0] = 0.0;
+  this->m_EntryPosition[1] = 0.0;
+  this->m_EntryPosition[2] = 0.0;
+  this->m_TargetPosition[0] = 0.0;
+  this->m_TargetPosition[1] = 0.0;
+  this->m_TargetPosition[2] = 0.0;
   this->m_Radius      = 0.0;
   this->m_Owner       = "";
 }
@@ -225,14 +229,14 @@ TrajectoryMessage::~TrajectoryMessage()
 }
 
 
-int TrajectoryMessage::AddTrajectoryElement(TrajectoryElement::Trajectoryer& elem)
+int TrajectoryMessage::AddTrajectoryElement(TrajectoryElement::Pointer& elem)
 {
   this->m_TrajectoryList.push_back(elem);
   return this->m_TrajectoryList.size();
 }
 
 
-int TrajectoryMessage::ClearTrajectoryElement(TrajectoryElement::Trajectoryer& elem)
+void TrajectoryMessage::ClearTrajectoryElement(TrajectoryElement::Pointer& elem)
 {
   this->m_TrajectoryList.clear();
 }
@@ -244,9 +248,9 @@ int TrajectoryMessage::GetNumberOfTrajectoryElement()
 }
 
 
-void TrajectoryMessage::GetTrajectoryElement(int index, TrajectoryElement::Trajectoryer& elem)
+void TrajectoryMessage::GetTrajectoryElement(int index, TrajectoryElement::Pointer& elem)
 {
-  if (index >= 0 && index < this->m_TrajectoryList.size())
+  if (index >= 0 && index < (int)this->m_TrajectoryList.size())
     {
     elem = this->m_TrajectoryList[index];
     }
@@ -269,7 +273,7 @@ int TrajectoryMessage::PackBody()
 
   element = (igtl_trajectory_element*)this->m_Body;
 
-  std::vector<TrajectoryElement::Trajectoryer>::iterator iter;
+  std::vector<TrajectoryElement::Pointer>::iterator iter;
   for (iter = this->m_TrajectoryList.begin(); iter != this->m_TrajectoryList.end(); iter ++)
     {
     strncpy((char*)element->name,       (*iter)->GetName(),      IGTL_TRAJECTORY_LEN_NAME);
@@ -297,7 +301,7 @@ int TrajectoryMessage::PackBody()
 
     element->radius = (*iter)->GetRadius();
 
-    strncpy((char*)element->owner,  (*iter)->GetOwner(), IGTL_TRAJECTORY_LEN_OWNER);
+    strncpy((char*)element->owner_name,  (*iter)->GetOwner(), IGTL_TRAJECTORY_LEN_OWNER);
     
     element ++;
     }
@@ -321,7 +325,7 @@ int TrajectoryMessage::UnpackBody()
   char strbuf[128];
   for (int i = 0; i < nElement; i ++)
     {
-    TrajectoryElement::Trajectoryer elemClass = TrajectoryElement::New();
+    TrajectoryElement::Pointer elemClass = TrajectoryElement::New();
 
     // Add '\n' at the end of each string
     // (neccesary for a case, where a string reaches the maximum length.)
@@ -341,7 +345,7 @@ int TrajectoryMessage::UnpackBody()
     elemClass->SetRadius(element->radius);
 
     strbuf[IGTL_TRAJECTORY_LEN_OWNER] = '\n';
-    strncpy(strbuf, (char*)element->owner, IGTL_TRAJECTORY_LEN_OWNER);
+    strncpy(strbuf, (char*)element->owner_name, IGTL_TRAJECTORY_LEN_OWNER);
     elemClass->SetOwner(strbuf);
 
     this->m_TrajectoryList.push_back(elemClass);

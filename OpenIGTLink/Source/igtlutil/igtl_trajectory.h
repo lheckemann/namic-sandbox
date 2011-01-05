@@ -21,7 +21,10 @@
 #include "igtl_util.h"
 #include "igtl_types.h"
 
-#define  IGTL_TRAJECTORY_ELEMENT_SIZE           150
+#define IGTL_TRAJECTORY_ELEMENT_SIZE           150
+#define IGTL_TRAJECTORY_LEN_NAME                64
+#define IGTL_TRAJECTORY_LEN_GROUP_NAME          32
+#define IGTL_TRAJECTORY_LEN_OWNER               20
 
 #define IGTL_TRAJECTORY_TYPE_ENTRY_ONLY          1
 #define IGTL_TRAJECTORY_TYPE_TARGET_ONLY         2
@@ -38,15 +41,15 @@ extern "C" {
  */
 
 typedef struct {
-  char         name[64];          /* Name or description of the trajectory */
-  char         group_name[32];    /* Can be "Trajectory",  ... */
+  char         name[IGTL_TRAJECTORY_LEN_NAME];          /* Name or description of the trajectory */
+  char         group_name[IGTL_TRAJECTORY_LEN_GROUP_NAME];    /* Can be "Trajectory",  ... */
   igtl_int8    type;              /* Trajectory type (see IGTL_TRAJECTORY_TYPE_* macros) */
   igtl_int8    reserved;
-  igtl_int8    rgba[4];           /* Color in R/G/B/A */
+  igtl_uint8   rgba[4];           /* Color in R/G/B/A */
   igtl_float32 entry_pos[3];      /* Coordinate of the entry point */
   igtl_float32 target_pos[3];     /* Coordinate of the target point */
   igtl_float32 radius;            /* Radius of the trajectory. Can be 0. */
-  char         owner_name[20];    /* Device name of the ower image */
+  char         owner_name[IGTL_TRAJECTORY_LEN_OWNER];    /* Device name of the ower image */
 } igtl_trajectory_element;
 
 #pragma pack()
