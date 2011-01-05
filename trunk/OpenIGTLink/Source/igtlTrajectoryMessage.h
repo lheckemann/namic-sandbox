@@ -36,8 +36,8 @@ class IGTLCommon_EXPORT TrajectoryElement: public Object
 public:
   typedef TrajectoryElement                   Self;
   typedef Object                         Superclass;
-  typedef SmartTrajectoryer<Self>             Trajectoryer;
-  typedef SmartTrajectoryer<const Self>       ConstTrajectoryer;
+  typedef SmartPointer<Self>             Pointer;
+  typedef SmartPointer<const Self>       ConstPointer;
 
   igtlTypeMacro(igtl::TrajectoryElement, igtl::Object);
   igtlNewMacro(igtl::TrajectoryElement);
@@ -101,8 +101,8 @@ class IGTLCommon_EXPORT GetTrajectoryMessage: public MessageBase
 public:
   typedef GetTrajectoryMessage            Self;
   typedef MessageBase                    Superclass;
-  typedef SmartTrajectoryer<Self>             Trajectoryer;
-  typedef SmartTrajectoryer<const Self>       ConstTrajectoryer;
+  typedef SmartPointer<Self>             Pointer;
+  typedef SmartPointer<const Self>       ConstPointer;
 
   igtlTypeMacro(igtl::GetTrajectoryMessage, igtl::MessageBase);
   igtlNewMacro(igtl::GetTrajectoryMessage);
@@ -122,18 +122,18 @@ class IGTLCommon_EXPORT TrajectoryMessage: public MessageBase
 public:
   typedef TrajectoryMessage               Self;
   typedef MessageBase                    Superclass;
-  typedef SmartTrajectoryer<Self>             Trajectoryer;
-  typedef SmartTrajectoryer<const Self>       ConstTrajectoryer;
+  typedef SmartPointer<Self>             Pointer;
+  typedef SmartPointer<const Self>       ConstPointer;
 
   igtlTypeMacro(igtl::TrajectoryMessage, igtl::MessageBase);
   igtlNewMacro(igtl::TrajectoryMessage);
 
 public:
-  int  AddTrajectoryElement(TrajectoryElement::Trajectoryer& elem);
-  int  ClearTrajectoryElement(TrajectoryElement::Trajectoryer& elem);
+  int  AddTrajectoryElement(TrajectoryElement::Pointer& elem);
+  void ClearTrajectoryElement(TrajectoryElement::Pointer& elem);
 
   int  GetNumberOfTrajectoryElement();
-  void GetTrajectoryElement(int index, TrajectoryElement::Trajectoryer& elem);
+  void GetTrajectoryElement(int index, TrajectoryElement::Pointer& elem);
 
 
 protected:
@@ -146,7 +146,7 @@ protected:
   virtual int  PackBody();
   virtual int  UnpackBody();
   
-  std::vector<TrajectoryElement::Trajectoryer> m_TrajectoryList;
+  std::vector<TrajectoryElement::Pointer> m_TrajectoryList;
   
 };
 

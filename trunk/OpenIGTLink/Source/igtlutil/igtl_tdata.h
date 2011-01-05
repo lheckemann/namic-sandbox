@@ -22,7 +22,7 @@
 #include "igtl_types.h"
 
 #define  IGTL_TDATA_ELEMENT_SIZE           70
-#define  IGTL_STT_TDATA_SIZE               24
+#define  IGTL_STT_TDATA_SIZE               36
 #define  IGTL_RTS_TDATA_SIZE               1
 
 #define  IGTL_TDATA_LEN_NAME               20  /* Maximum length of tracking instrument name */
@@ -88,7 +88,7 @@ typedef struct {
 
 void igtl_export igtl_tdata_convert_byte_order(igtl_tdata_element* tdatalist, int nelem);
 void igtl_export igtl_stt_tdata_convert_byte_order(igtl_stt_tdata* stt_tdata);
-void igtl_export igtl_rts_tdata_convert_byte_order(igtl_stt_tdata* stt_tdata);
+void igtl_export igtl_rts_tdata_convert_byte_order(igtl_rts_tdata* rts_tdata);
 
 
 /*

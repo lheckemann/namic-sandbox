@@ -409,7 +409,7 @@ int ImageMessage::UnpackBody()
       // Image format version 1
       this->dataType         = image_header->data_type;
       this->scalarType       = image_header->scalar_type;
-      this->endian           = image_header->endian;
+      this->endian           = image_header->endian==1?ENDIAN_BIG:ENDIAN_LITTLE;
       this->coordinate       = image_header->coord;
       this->dimensions[0]    = image_header->size[0];
       this->dimensions[1]    = image_header->size[1];
