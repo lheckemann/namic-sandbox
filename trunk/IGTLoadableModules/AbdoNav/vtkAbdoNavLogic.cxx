@@ -306,9 +306,9 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* locatorName, doub
 {
   // TODO: all Update() calls within the scope of this function seem to be unnecessary --> remove?
 
+  vtkSmartPointer<vtkAppendPolyData> locatorPolyData = vtkSmartPointer<vtkAppendPolyData>::New();
   vtkSmartPointer<vtkMRMLModelNode> locatorModel = vtkSmartPointer<vtkMRMLModelNode>::New();
   vtkSmartPointer<vtkMRMLModelDisplayNode> locatorDisplay = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  vtkSmartPointer<vtkAppendPolyData> locatorPolyData = vtkSmartPointer<vtkAppendPolyData>::New();
 
   // cylinder resolution
   int numberOfSides = 16;
@@ -448,9 +448,9 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* locatorName, doub
   locatorDisplay->SetVisibility(1);
   // add both nodes to the scene
   this->GetMRMLScene()->SaveStateForUndo();
-  locatorDisplay = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(locatorDisplay));
   locatorModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(locatorModel));
-  if (locatorDisplay && locatorModel)
+  locatorDisplay = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(locatorDisplay));
+  if (locatorModel && locatorDisplay)
     {
     locatorModel->SetAndObserveDisplayNodeID(locatorDisplay->GetID());
     }
