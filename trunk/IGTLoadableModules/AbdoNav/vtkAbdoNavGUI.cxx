@@ -337,7 +337,7 @@ void vtkAbdoNavGUI::AddGUIObservers()
   // Navigation frame.
   //----------------------------------------------------------------
   this->ShowLocatorCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
-  this->ProjectionLengthScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->ProjectionLengthScale->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->FreezeLocatorCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->ShowCrosshairCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->RedSliceMenuButton->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
@@ -418,7 +418,7 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
     }
   if (this->ProjectionLengthScale)
     {
-    this->ProjectionLengthScale->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->ProjectionLengthScale->GetWidget()->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
   if (this->FreezeLocatorCheckButton)
     {
