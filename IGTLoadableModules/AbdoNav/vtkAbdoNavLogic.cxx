@@ -434,7 +434,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* locatorName, doub
   locatorPolyData->AddInput(tfilterSndHandle->GetOutput());
 
   //----------------------------------------------------------------
-  // Add cryoprobe model to the scene.
+  // Add locator model to the scene.
   //----------------------------------------------------------------
   // prepare model node
   locatorPolyData->Update();
@@ -445,6 +445,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* locatorName, doub
   double color[3] = {r, g, b};
   locatorDisplay->SetPolyData(locatorModel->GetPolyData());
   locatorDisplay->SetColor(color);
+  locatorDisplay->SetVisibility(1);
   // add both nodes to the scene
   this->GetMRMLScene()->SaveStateForUndo();
   locatorDisplay = vtkMRMLModelDisplayNode::SafeDownCast(this->GetMRMLScene()->AddNode(locatorDisplay));
