@@ -49,9 +49,6 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   this->Logic = NULL;
   this->AbdoNavNode = NULL;
-  this->DataCallbackCommand = vtkCallbackCommand::New();
-  this->DataCallbackCommand->SetClientData(reinterpret_cast<void*> (this));
-  this->DataCallbackCommand->SetCallback(vtkAbdoNavGUI::DataCallback);
   this->TimerFlag = 0;
 
   //----------------------------------------------------------------
@@ -108,11 +105,6 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
   this->SetModuleLogic(NULL);
 
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
-
-  if (this->DataCallbackCommand)
-    {
-    this->DataCallbackCommand->Delete();
-    }
 
   // TODO: all of the following Delete() calls could probably be avoided by using VTK's smart pointers
 
@@ -263,7 +255,6 @@ void vtkAbdoNavGUI::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "vtkAbdoNavGUI: " << this->GetClassName() << "\n";
   os << indent << "vtkAbdoNavLogic: " << this->GetLogic() << "\n";
   os << indent << "vtkAbdoNavNode: " << this->AbdoNavNode << "\n";
-  os << indent << "DataCallbackCommand: " << this->DataCallbackCommand << "\n";
   os << indent << "TimerFlag: " << this->TimerFlag << "\n";
   os << indent << "TimerInterval: " << this->TimerInterval << "\n";
 }
@@ -749,24 +740,6 @@ void vtkAbdoNavGUI::ProcessTimerEvents()
     // calls ProcessTimerEvents() at regular intervals (specified by TimerInterval)
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), this->TimerInterval, this, "ProcessTimerEvents");
     }
-}
-
-
-//---------------------------------------------------------------------------
-void vtkAbdoNavGUI::DataCallback(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eventid), void* clientData, void* vtkNotUsed(callData))
-{
-  // TODO: use (UpdateAll() isn't implemented) or delete!
-
-  vtkAbdoNavGUI* self = reinterpret_cast<vtkAbdoNavGUI*>(clientData);
-  vtkDebugWithObjectMacro(self, "In vtkAbdoNavGUI DataCallback");
-  self->UpdateAll();
-}
-
-
-//---------------------------------------------------------------------------
-void vtkAbdoNavGUI::UpdateAll()
-{
-  // TODO: implement or delete!
 }
 
 
