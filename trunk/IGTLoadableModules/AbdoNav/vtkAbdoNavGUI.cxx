@@ -47,7 +47,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Initialize logic values.
   //----------------------------------------------------------------
-  this->Logic = NULL;
+  this->AbdoNavLogic = NULL;
   this->AbdoNavNode = NULL;
   this->TimerFlag = 0;
 
@@ -98,7 +98,7 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // if Logic is NULL, the class was only instantiated but never used,
   // e.g. Slicer was launched with option --ignore_module set to AbdoNav
-  if (this->Logic)
+  if (this->AbdoNavLogic)
     {
     this->RemoveGUIObservers();
     }
@@ -253,7 +253,7 @@ void vtkAbdoNavGUI::PrintSelf(ostream& os, vtkIndent indent)
   this->vtkObject::PrintSelf(os, indent);
 
   os << indent << "vtkAbdoNavGUI: " << this->GetClassName() << "\n";
-  os << indent << "vtkAbdoNavLogic: " << this->GetLogic() << "\n";
+  os << indent << "vtkAbdoNavLogic: " << this->AbdoNavLogic << "\n";
   os << indent << "vtkAbdoNavNode: " << this->AbdoNavNode << "\n";
   os << indent << "TimerFlag: " << this->TimerFlag << "\n";
   os << indent << "TimerInterval: " << this->TimerInterval << "\n";
@@ -266,7 +266,7 @@ void vtkAbdoNavGUI::Init()
   // this is necessary so that an AbdoNavNode can be created from its class name,
   // e.g. when a previously saved scene (containing an AbdoNavNode) is (re-)loaded
   vtkMRMLAbdoNavNode* node = vtkMRMLAbdoNavNode::New();
-  this->Logic->GetMRMLScene()->RegisterNodeClass(node);
+  this->AbdoNavLogic->GetMRMLScene()->RegisterNodeClass(node);
   node->Delete();
 }
 
@@ -458,9 +458,9 @@ void vtkAbdoNavGUI::AddLogicObservers()
 {
   this->RemoveLogicObservers();
 
-  if (this->GetLogic())
+  if (this->AbdoNavLogic)
     {
-    this->GetLogic()->AddObserver(vtkAbdoNavLogic::StatusUpdateEvent, (vtkCommand*)this->LogicCallbackCommand);
+    this->AbdoNavLogic->AddObserver(vtkAbdoNavLogic::StatusUpdateEvent, (vtkCommand*)this->LogicCallbackCommand);
     // TODO: fill in or delete (don't forget to delete RemoveLogicObservers())!
     }
 }
@@ -469,9 +469,9 @@ void vtkAbdoNavGUI::AddLogicObservers()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::RemoveLogicObservers()
 {
-  if (this->GetLogic())
+  if (this->AbdoNavLogic)
     {
-    this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand*)this->LogicCallbackCommand);
+    this->AbdoNavLogic->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand*)this->LogicCallbackCommand);
     }
 }
 
@@ -664,7 +664,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       this->Point1RadioButton->SetEnabled(false);
       this->Point2RadioButton->SetEnabled(false);
       this->PerformRegistrationPushButton->SetEnabled(false);
-      this->GetLogic()->PerformRegistration();
+      this->AbdoNavLogic->PerformRegistration();
       }
     }
 
@@ -674,12 +674,12 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   else if (this->ShowLocatorCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
     int checked = this->ShowLocatorCheckButton->GetSelectedState();
-    this->GetLogic()->ToggleLocatorVisibility(checked);
+    this->AbdoNavLogic->ToggleLocatorVisibility(checked);
     }
   else if (this->FreezeLocatorCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
     int checked = this->FreezeLocatorCheckButton->GetSelectedState();
-    this->GetLogic()->ToggleLocatorFreeze(checked);
+    this->AbdoNavLogic->ToggleLocatorFreeze(checked);
     }
 }
 
@@ -687,7 +687,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::ProcessLogicEvents(vtkObject* caller, unsigned long event, void* vtkNotUsed(callData))
 {
-  if (this->GetLogic() == vtkAbdoNavLogic::SafeDownCast(caller))
+  if (this->AbdoNavLogic == vtkAbdoNavLogic::SafeDownCast(caller))
     {
     if (event == vtkAbdoNavLogic::StatusUpdateEvent)
       {
@@ -711,7 +711,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
       if (this->AbdoNavNode == NULL)
         {
         // set and observe the new node in Logic
-        this->Logic->SetAndObserveAbdoNavNode(node);
+        this->AbdoNavLogic->SetAndObserveAbdoNavNode(node);
         // set and observe the new node in GUI
         vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node);
         }
@@ -757,7 +757,7 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
     // containing an AbdoNavNode
     this->GetMRMLScene()->AddNodeNoNotify(node);
     // set and observe the new node in Logic
-    this->Logic->SetAndObserveAbdoNavNode(node);
+    this->AbdoNavLogic->SetAndObserveAbdoNavNode(node);
     // set and observe the new node in GUI
     vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node);
     // TODO: should this be moved to vtkAbdoNavGUI::~vtkAbdoNavGUI() ?
@@ -765,7 +765,7 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
    }
 
   // save old node parameters for undo mechanism
-  this->GetLogic()->GetMRMLScene()->SaveStateForUndo(node);
+  this->AbdoNavLogic->GetMRMLScene()->SaveStateForUndo(node);
 
   // set new node parameters from GUI widgets:
   // make sure that only ONE modified event is invoked (if
