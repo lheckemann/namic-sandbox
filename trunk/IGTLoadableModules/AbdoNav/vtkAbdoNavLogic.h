@@ -54,8 +54,6 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   // Mediator method for processing events invoked by MRML.
   //----------------------------------------------------------------
   void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
-  static void DataCallback(vtkObject* caller, unsigned long eventid, void* clientData, void* callData);
-  void UpdateAll(); // not implemented
 
   /// Calculate registration matrix based on two identified points on the guidance needle.
   void PerformRegistration();
@@ -89,8 +87,6 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   //----------------------------------------------------------------
   /// Parameter node associated with this module.
   vtkMRMLAbdoNavNode* AbdoNavNode;
-  /// TODO: insert missing comment!
-  vtkCallbackCommand* DataCallbackCommand;
   /// Matrix holding the position at which the locator model was frozen.
   vtkMatrix4x4* LocatorFreezePosition;
   /// Matrix holding the transformation between image and tracking coordinates.
