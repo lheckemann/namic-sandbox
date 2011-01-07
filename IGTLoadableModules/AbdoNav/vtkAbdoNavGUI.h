@@ -44,12 +44,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   /// Get the module's category.
   const char* GetCategory() const { return "IGT"; }
   /// Set the module logic.
-  void SetModuleLogic(vtkSlicerLogic* logic) { this->SetLogic(vtkObjectPointer(&this->Logic), logic); }
-
-  //----------------------------------------------------------------
-  // Getters and Setters for class members.
-  //----------------------------------------------------------------
-  vtkGetObjectMacro(Logic, vtkAbdoNavLogic);
+  void SetModuleLogic(vtkSlicerLogic* logic) { this->SetLogic(vtkObjectPointer(&this->AbdoNavLogic), logic); }
 
   //----------------------------------------------------------------
   // Define behavior at module initialization, startup and exit.
@@ -107,7 +102,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   // Logic values.
   //----------------------------------------------------------------
   /// Logic class associated with this module.
-  vtkAbdoNavLogic* Logic;
+  vtkAbdoNavLogic* AbdoNavLogic;
   /// Parameter node associated with this module.
   vtkMRMLAbdoNavNode* AbdoNavNode;
   /// Indicator whether or not timer events should be processed.
