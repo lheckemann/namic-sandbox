@@ -40,9 +40,6 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
   // Initialize logic values.
   //----------------------------------------------------------------
   this->AbdoNavNode = NULL;
-  this->DataCallbackCommand = vtkCallbackCommand::New();
-  this->DataCallbackCommand->SetClientData(reinterpret_cast<void*>(this));
-  this->DataCallbackCommand->SetCallback(vtkAbdoNavLogic::DataCallback);
   this->LocatorFreezePosition = NULL;
   this->RegistrationMatrix = NULL;
 }
@@ -55,11 +52,6 @@ vtkAbdoNavLogic::~vtkAbdoNavLogic()
   // Cleanup logic values.
   //----------------------------------------------------------------
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
-
-  if (this->DataCallbackCommand)
-    {
-    this->DataCallbackCommand->Delete();
-    }
 
   if (this->LocatorFreezePosition)
     {
@@ -80,7 +72,6 @@ void vtkAbdoNavLogic::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "vtkAbdoNavLogic: " << this->GetClassName() << "\n";
   os << indent << "vtkAbdoNavNode: " << this->AbdoNavNode << "\n";
-  os << indent << "DataCallbackCommand: " << this->DataCallbackCommand << "\n";
 }
 
 
@@ -93,24 +84,6 @@ void vtkAbdoNavLogic::ProcessMRMLEvents(vtkObject* caller, unsigned long event, 
 
     // TODO: fill in or delete!
     }
-}
-
-
-//---------------------------------------------------------------------------
-void vtkAbdoNavLogic::DataCallback(vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(eventid), void* clientData, void* vtkNotUsed(callData))
-{
-  // TODO: use (UpdateAll() isn't implemented) or delete!
-
-  vtkAbdoNavLogic* self = reinterpret_cast<vtkAbdoNavLogic*>(clientData);
-  vtkDebugWithObjectMacro(self, "In vtkAbdoNavLogic DataCallback");
-  self->UpdateAll();
-}
-
-
-//---------------------------------------------------------------------------
-void vtkAbdoNavLogic::UpdateAll()
-{
-  // TODO: implement or delete!
 }
 
 
