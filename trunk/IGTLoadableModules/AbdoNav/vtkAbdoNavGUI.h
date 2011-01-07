@@ -84,10 +84,6 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   virtual void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
   /// Manages processing of tracking data at regular intervals (specified by TimerInterval).
   void ProcessTimerEvents();
-  /// TODO: insert missing comment!
-  static void  DataCallback(vtkObject* caller, unsigned long eventid, void* clientData, void* callData);
-  /// TODO: insert missing comment!
-  void UpdateAll();
   /// Update this module's MRML parameter node based on the values specified in the GUI.
   void UpdateMRMLFromGUI();
   /// Update the GUI based on the values stored in this module's MRML parameter node.
@@ -114,8 +110,6 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkAbdoNavLogic* Logic;
   /// Parameter node associated with this module.
   vtkMRMLAbdoNavNode* AbdoNavNode;
-  /// TODO: insert missing comment!
-  vtkCallbackCommand* DataCallbackCommand;
   /// Indicator whether or not timer events should be processed.
   int TimerFlag;
   /// Interval (in milliseconds) at which ProcessTimerEvents() is called.
