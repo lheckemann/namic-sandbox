@@ -126,8 +126,8 @@ void vtkAbdoNavLogic::PerformRegistration()
 
   // translational component of the registration matrix is given by the tip of the guidance needle
   RegistrationMatrix->SetElement(0, 3, guidanceNeedleTip[0]);
-  RegistrationMatrix->SetElement(1, 3, guidanceNeedleTip[0]);
-  RegistrationMatrix->SetElement(2, 3, guidanceNeedleTip[0]);
+  RegistrationMatrix->SetElement(1, 3, guidanceNeedleTip[1]);
+  RegistrationMatrix->SetElement(2, 3, guidanceNeedleTip[2]);
 
   // calculation of the rotational component of the registration matrix
   double firstRotVec[3], secondRotVec[3], thirdRotVec[3];
