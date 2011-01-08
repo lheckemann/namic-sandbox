@@ -87,10 +87,10 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   //----------------------------------------------------------------
   /// Parameter node associated with this module.
   vtkMRMLAbdoNavNode* AbdoNavNode;
+  /// Transform node holding the static registration matrix.
+  vtkMRMLLinearTransformNode* RegistrationTransform;
   /// Matrix holding the position at which the locator model was frozen.
   vtkMatrix4x4* LocatorFreezePosition;
-  /// Matrix holding the transformation between image and tracking coordinates.
-  vtkMatrix4x4* RegistrationMatrix;
 
 };
 
