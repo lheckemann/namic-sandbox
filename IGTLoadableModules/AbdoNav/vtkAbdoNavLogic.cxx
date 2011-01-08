@@ -279,8 +279,12 @@ void vtkAbdoNavLogic::ToggleLocatorFreeze(int freeze)
       // LocatorFreezePosition is deleted in the destructor
       LocatorFreezePosition = vtkMatrix4x4::New();
       }
-    // retrieve and store current transformation matrix
-    LocatorFreezePosition->DeepCopy(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetOriginalTrackerTransformID()))->GetMatrixTransformToParent());
+    // retrieve and store transform to world (transform to parent isn't sufficient since
+    // the original tracker transform node observes AbdoNav's registration transform node)
+    vtkMatrix4x4* tfmToWorld = vtkMatrix4x4::New();
+    vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetOriginalTrackerTransformID()))->GetMatrixTransformToWorld(tfmToWorld);
+    LocatorFreezePosition->DeepCopy(tfmToWorld);
+    tfmToWorld->Delete();
     // apply current transformation matrix
     locatorModel->ApplyTransform(LocatorFreezePosition);
     locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
