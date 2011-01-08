@@ -41,7 +41,7 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
   //----------------------------------------------------------------
   this->AbdoNavNode = NULL;
   this->LocatorFreezePosition = NULL;
-  this->RegistrationMatrix = NULL;
+  this->RegistrationTransform = NULL;
 }
 
 
@@ -53,14 +53,13 @@ vtkAbdoNavLogic::~vtkAbdoNavLogic()
   //----------------------------------------------------------------
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
 
+  if (this->RegistrationTransform)
+    {
+    this->RegistrationTransform->Delete();
+    }
   if (this->LocatorFreezePosition)
     {
     this->LocatorFreezePosition->Delete();
-    }
-
-  if (this->RegistrationMatrix)
-    {
-    this->RegistrationMatrix->Delete();
     }
 }
 
@@ -114,20 +113,39 @@ void vtkAbdoNavLogic::PerformRegistration()
   //       loosing this information is considered negligible.
   //----------------------------------------------------------------
 
-  if (RegistrationMatrix == NULL)
+  if (this->RegistrationTransform == NULL)
     {
-    // RegistrationMatrix is deleted in the destructor
-    RegistrationMatrix = vtkMatrix4x4::New();
-    RegistrationMatrix->Identity();
+    // create a new registration transform node and add it to the scene
+    this->RegistrationTransform = vtkMRMLLinearTransformNode::New(); // deleted in destructor
+    this->RegistrationTransform->SetName("AbdoNav-RegistrationTransform");
+    this->RegistrationTransform->SetDescription("Created by AbdoNav");
+    this->GetMRMLScene()->AddNode(this->RegistrationTransform);
+    // set registration transform node ID in AbdoNavNode
+    this->AbdoNavNode->SetRegistrationTransformID(this->RegistrationTransform->GetID());
+    // get original tracker transform node and make it observe the registration transform node
+    if (this->AbdoNavNode->GetOriginalTrackerTransformID() != NULL)
+      {
+      vtkMRMLLinearTransformNode* originalTrackerTransform = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetOriginalTrackerTransformID()));
+      originalTrackerTransform->SetAndObserveTransformNodeID(this->RegistrationTransform->GetID());
+      }
+    else
+      {
+      vtkErrorMacro("in vtkAbdoNavLogic::PerformRegistration(): "
+                    "Couldn't move original tracker transform node below registration transform node "
+                    "because vtkMRMLAbdoNavNode::GetOriginalTrackerTransformID() returned NULL!");
+      }
     }
+
+  vtkMatrix4x4* registrationMatrix = vtkMatrix4x4::New();
+  registrationMatrix->Identity();
 
   double* guidanceNeedleTip = this->AbdoNavNode->GetGuidanceNeedleTipRAS();
   double* guidanceNeedleSecond = this->AbdoNavNode->GetGuidanceNeedleSecondRAS();
 
   // translational component of the registration matrix is given by the tip of the guidance needle
-  RegistrationMatrix->SetElement(0, 3, guidanceNeedleTip[0]);
-  RegistrationMatrix->SetElement(1, 3, guidanceNeedleTip[1]);
-  RegistrationMatrix->SetElement(2, 3, guidanceNeedleTip[2]);
+  registrationMatrix->SetElement(0, 3, guidanceNeedleTip[0]);
+  registrationMatrix->SetElement(1, 3, guidanceNeedleTip[1]);
+  registrationMatrix->SetElement(2, 3, guidanceNeedleTip[2]);
 
   // calculation of the rotational component of the registration matrix
   double firstRotVec[3], secondRotVec[3], thirdRotVec[3];
@@ -142,15 +160,22 @@ void vtkAbdoNavLogic::PerformRegistration()
   vtkMath::Perpendiculars(firstRotVec, secondRotVec, thirdRotVec, NULL);
 
   // set rotational components of the registration matrix
-  RegistrationMatrix->SetElement(0, 0, firstRotVec[0]);
-  RegistrationMatrix->SetElement(1, 0, firstRotVec[1]);
-  RegistrationMatrix->SetElement(2, 0, firstRotVec[2]);
-  RegistrationMatrix->SetElement(0, 1, secondRotVec[0]);
-  RegistrationMatrix->SetElement(1, 1, secondRotVec[1]);
-  RegistrationMatrix->SetElement(2, 1, secondRotVec[2]);
-  RegistrationMatrix->SetElement(0, 2, thirdRotVec[0]);
-  RegistrationMatrix->SetElement(1, 2, thirdRotVec[1]);
-  RegistrationMatrix->SetElement(2, 2, thirdRotVec[2]);
+  registrationMatrix->SetElement(0, 0, firstRotVec[0]);
+  registrationMatrix->SetElement(1, 0, firstRotVec[1]);
+  registrationMatrix->SetElement(2, 0, firstRotVec[2]);
+  registrationMatrix->SetElement(0, 1, secondRotVec[0]);
+  registrationMatrix->SetElement(1, 1, secondRotVec[1]);
+  registrationMatrix->SetElement(2, 1, secondRotVec[2]);
+  registrationMatrix->SetElement(0, 2, thirdRotVec[0]);
+  registrationMatrix->SetElement(1, 2, thirdRotVec[1]);
+  registrationMatrix->SetElement(2, 2, thirdRotVec[2]);
+
+  // copy registration matrix into registration transform node
+  this->RegistrationTransform->GetMatrixTransformToParent()->DeepCopy(registrationMatrix);
+  this->RegistrationTransform->Modified();
+
+  // cleanup
+  registrationMatrix->Delete();
 }
 
 
