@@ -26,6 +26,27 @@
 namespace igtl
 {
 
+class IGTLCommon_EXPORT GetColorTableMessage: public MessageBase
+{
+public:
+  typedef GetColorTableMessage           Self;
+  typedef MessageBase                    Superclass;
+  typedef SmartPointer<Self>             Pointer;
+  typedef SmartPointer<const Self>       ConstPointer;
+
+  igtlTypeMacro(igtl::GetColorTableMessage, igtl::MessageBase);
+  igtlNewMacro(igtl::GetColorTableMessage);
+
+protected:
+  GetColorTableMessage() : MessageBase() { this->m_DefaultBodyType  = "GET_COLORT"; };
+  ~GetColorTableMessage() {};
+protected:
+  virtual int  GetBodyPackSize() { return 0; };
+  virtual int  PackBody()        { AllocatePack(); return 1; };
+  virtual int  UnpackBody()      { return 1; };
+};
+
+
 class IGTLCommon_EXPORT ColorTableMessage: public MessageBase
 {
 public:

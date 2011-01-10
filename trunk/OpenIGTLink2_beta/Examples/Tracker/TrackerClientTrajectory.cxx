@@ -85,12 +85,13 @@ void ReadFiducials(const char* filename, PointListType& flist)
 #define h11(t) ((t)**3 -   (t)**2)
 
 int step(int segment, float& t, float& dl, float& remainder,
-         std::vector<float> p;
+         std::vector< std::vector<float> > p,
          PointListType& traj, PointListType& fm, PointListType& m)
 {
   // Take a step of dl and return the path point and new t, return:
-  //   t = new parametric coordinate after step 
-  //   p = point after step
+  //   t  = new parametric coordinate after step 
+  //   dl = desired world space step size (in mm)
+  //   p  = point after step
   //   remainder = if step results in parametic coordinate > 1.0, then
   //     this is the amount of world space not covered by step
 
@@ -98,6 +99,8 @@ int step(int segment, float& t, float& dl, float& remainder,
   remainder = 0;
   float ratio = 100.0;
   int count = 0;
+  float dt = dl; // current guess of parametric stepsize
+  float t1 = 0.0;
   while (fabs(1.0 - ratio) > 0.05)
     {
     t1 = t + dt;
