@@ -1,0 +1,19 @@
+* Define char (externalimagetype) and other common image types in DefRegEval.h and reuse them in all the other files (even better: create templated filters for all processing), remove InternalImageReaderType?
+
+* Move #pragma warning ( disable : 4786 ) to DefRegEval.h
+
+* Remove all sprintf
+
+* Clean up GetDeformedImage (probably we don't need a stencil, we can just apply the deformation field to the original image)
+
+* Add nightly tests (Febio, tetgen, basic deformations, etc.)
+
+* Remove hardcoded material model from FEBioWriter
+
+* Make force constraints more generic in CreateFemModel
+
+* Remove netgen mesh reader?
+
+* Update examples/tests (have a few surface and image based registration tests)
+
+* Configure FEBio make to allow use of PARDISO solver (through intel MKL or directly the PARDISO library)
