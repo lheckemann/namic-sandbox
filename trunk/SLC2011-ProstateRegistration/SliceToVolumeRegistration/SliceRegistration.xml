@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Registration.SliceRegistration</category>
+  <title>Slice to Volume registration</title>
+  <description>Try to align an axial slice with the 3d volume.</description>
+  <version>0.1.0.$Revision: 2104 $(alpha)</version>
+  <documentation-url></documentation-url>
+  <license></license>
+  <contributor>Andrey Fedorov, BWH</contributor>
+<acknowledgements>
+This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
+</acknowledgements>
+
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+
+     <image>
+      <name>sliceImageName</name>
+      <label>Slice Image (fixed)</label>
+      <channel>input</channel>
+      <longflag>--sliceImage</longflag>
+      <description>The slice image</description>
+    </image>
+
+    <image>
+      <name>volumeImageName</name>
+      <label>Volume Image (moving)</label>
+      <channel>input</channel>
+      <longflag>--volumeImage</longflag>
+      <description>The volume image</description>
+    </image>
+
+    <image>
+      <name>volumeMaskImageName</name>
+      <label>Volume Image mask</label>
+      <channel>input</channel>
+      <longflag>--volumeImageMask</longflag>
+      <description>The volume image mask</description>
+    </image>
+
+    <transform fileExtensions=".txt">
+      <name>resultTransformName</name>
+      <label>Output Transform</label>
+      <channel>output</channel>
+      <longflag>--transform</longflag>
+      <description>The resulting transform</description>
+    </transform>
+
+  </parameters>
+
+</executable>
