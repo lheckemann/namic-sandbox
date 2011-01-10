@@ -1,0 +1,21 @@
+@ECHO off
+SET PATH=${VTK_DIR}/bin/Release;${ITK_DIR}/bin/Release;%PATH%
+
+REM TODO: These two lines are for SVN. DefRegEval is hosted on git, so it would need to be updated
+SET PATH=c:/cygwin/bin;%PATH%
+SET SVNCOMMAND=svn.exe
+
+if "%1" == "" goto experimental
+if "%1" == "-E" goto experimental
+if "%1" == "-N" goto nightly
+
+:experimental
+"${CMAKE_CTEST_COMMAND}" -D Experimental
+goto END
+
+:nightly
+"${CMAKE_CTEST_COMMAND}" -D Nightly
+goto END
+
+:END
+ECHO DONE
