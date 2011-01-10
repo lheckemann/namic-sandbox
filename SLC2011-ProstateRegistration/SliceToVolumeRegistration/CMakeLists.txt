@@ -32,7 +32,7 @@ ENDIF(GenerateCLP_DIR)
 GENERATECLP(SliceRegistration SliceRegistration.xml)
 ADD_EXECUTABLE(SliceRegistration SliceRegistration.cxx)
 slicer3_set_plugins_output_path(SliceRegistration)
-TARGET_LINK_LIBRARIES(SliceRegistration ITKIO ITKStatistics)
+TARGET_LINK_LIBRARIES(SliceRegistration ITKIO ITKStatistics ITKNumerics)
 
 IF(BUILD_AGAINST_SLICER3)
   slicer3_install_plugins(SliceRegistration)

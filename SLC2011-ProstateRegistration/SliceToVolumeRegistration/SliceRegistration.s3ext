@@ -1,7 +1,6 @@
 
 scm       svn
-svnpath
-http://svn.na-mic.org/NAMICSandBox/trunk/SLC2011-SliceToVolumeRegistration
+svnpath http://svn.na-mic.org/NAMICSandBox/trunk/SLC2011-ProstateRegistration/SliceToVolumeRegistration
 name     SliceToVolumeRegistration
 cmakeproject      SliceToVolumeRegistration
 svnusername slicerbot
