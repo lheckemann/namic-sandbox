@@ -227,6 +227,38 @@ int StartTrackingDataMessage::UnpackBody()
 }
 
 
+int  RTSTrackingDataMessage::GetBodyPackSize()
+{ 
+  return IGTL_RTS_TDATA_SIZE; 
+}
+
+int  RTSTrackingDataMessage::PackBody()
+{
+  AllocatePack(); 
+
+  igtl_rts_tdata* rts_tdata = (igtl_rts_tdata*)this->m_Body;
+
+  rts_tdata->status = this->m_Status;
+
+  igtl_rts_tdata_convert_byte_order(rts_tdata);
+
+  return 1; 
+}
+
+
+int  RTSTrackingDataMessage::UnpackBody()
+{ 
+  igtl_rts_tdata* rts_tdata = (igtl_rts_tdata*)this->m_Body;
+  
+  igtl_rts_tdata_convert_byte_order(rts_tdata);
+
+  this->m_Status= rts_tdata->status;
+
+  return 1; 
+}
+
+
+
 //----------------------------------------------------------------------
 // igtl::TrackingDataMessage class
 

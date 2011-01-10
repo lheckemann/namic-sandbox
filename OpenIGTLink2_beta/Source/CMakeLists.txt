@@ -103,10 +103,12 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtlutil/igtl_trajectory.c
     igtlutil/igtl_tdata.c
     igtlColorTableMessage.cxx
+    igtlLabelMetaMessage.cxx
     igtlImageMetaMessage.cxx
     igtlLabelMetaMessage.cxx
     igtlPointMessage.cxx
     igtlTrackingDataMessage.cxx
+    igtlTrajectoryMessage.cxx
     )
   SET(OpenIGTLink_INCLUDE_FILES
     ${OpenIGTLink_INCLUDE_FILES}
@@ -116,10 +118,13 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtlutil/igtl_point.h
     igtlutil/igtl_tdata.h
     igtlutil/igtl_trajectory.h
+    igtlColorTableMessage.h
+    igtlLabelMetaMessage.h
     igtlImageMetaMessage.h
     igtlLabelMetaMessage.h
     igtlPointMessage.h
     igtlTrackingDataMessage.h
+    igtlTrajectoryMessage.h
     )
 endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
 

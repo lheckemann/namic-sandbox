@@ -137,6 +137,42 @@ protected:
 };
 
 
+class IGTLCommon_EXPORT RTSTrackingDataMessage: public MessageBase
+{
+public:
+  typedef RTSTrackingDataMessage         Self;
+  typedef MessageBase                    Superclass;
+  typedef SmartPointer<Self>             Pointer;
+  typedef SmartPointer<const Self>       ConstPointer;
+
+  // Status type
+  enum {
+    STATUS_SUCCESS = 0,
+    STATUS_ERROR = 1
+  };
+
+
+  igtlTypeMacro(igtl::RTSTrackingDataMessage, igtl::MessageBase);
+  igtlNewMacro(igtl::RTSTrackingDataMessage);
+
+  void          SetStatus(igtlUint8 status){ this->m_Status = status; }
+  igtlUint8     GetStatus()                { return this->m_Status; };
+
+protected:
+  RTSTrackingDataMessage() : MessageBase(), m_Status(0) { this->m_DefaultBodyType  = "RTS_TDATA"; };
+  ~RTSTrackingDataMessage() {};
+
+  igtlUint8 m_Status;
+
+protected:
+  virtual int  GetBodyPackSize();
+  virtual int  PackBody();
+  virtual int  UnpackBody();
+
+};
+
+
+
 class IGTLCommon_EXPORT TrackingDataMessage: public MessageBase
 {
 public:
