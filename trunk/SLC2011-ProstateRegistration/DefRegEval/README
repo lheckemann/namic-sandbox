@@ -15,3 +15,5 @@ assumed to be LPS)
 
 It is recommended to use the precompiled solver in tools\febio\Release\FEBio.exe instead of the one that
 is compiled from the source, because the precompiled version contains the more efficient pardiso solver.
+
+On Linux, tetgen segfaults if compiled in the Release mode.
