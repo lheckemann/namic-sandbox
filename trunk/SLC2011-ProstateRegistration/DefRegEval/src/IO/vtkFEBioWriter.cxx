@@ -35,11 +35,14 @@
 vtkCxxRevisionMacro(vtkFEBioWriter, "$Revision: 1.43 $");
 vtkStandardNewMacro(vtkFEBioWriter);
 
+static const double END_TIME=1.0;
+static const double UNIT_LOAD=1.0;
+
+
 vtkFEBioWriter::vtkFEBioWriter() 
 {
   this->Title=NULL;
   SetTitle("untitled");
-  this->StepSize=0.2;
   this->MaxRefs=15;
   this->MaxUps=10;
   this->DTol=0.001;
@@ -47,7 +50,7 @@ vtkFEBioWriter::vtkFEBioWriter()
   this->RTol=0;
   this->LsTol=0.9;
   this->PressureStiffness=1;
-  this->NumberOfTimeSteps=10;
+  this->NumberOfTimeSteps=5;
   this->DtMin=0.01;
   this->TMax=1.0;
   this->MaxRetries=5;
@@ -123,7 +126,7 @@ bool vtkFEBioWriter::WriteControl(ostream* fp)
   *fp << "<Control>" << vtkstd::endl;  
   *fp << "  <title>" << this->Title << "</title>" << vtkstd::endl;  
   *fp << "  <time_steps>"<<this->NumberOfTimeSteps<<"</time_steps>" << vtkstd::endl;  
-  *fp << "  <step_size>"<<this->StepSize<<"</step_size>" << vtkstd::endl;  
+  *fp << "  <step_size>"<<END_TIME/this->NumberOfTimeSteps<<"</step_size>" << vtkstd::endl;  
   *fp << "  <max_refs>"<<this->MaxRefs<<"</max_refs>" << vtkstd::endl;  
   *fp << "  <max_ups>"<<this->MaxUps<<"</max_ups>" << vtkstd::endl;  
   *fp << "  <dtol>"<<this->DTol<<"</dtol>" << vtkstd::endl;  
@@ -370,7 +373,7 @@ bool vtkFEBioWriter::WriteLoadData(ostream* fp)
     case BoundaryCondition::FORCE:
       *fp << "<loadcurve id=\""<<loadCurveId+1<<"\">" << vtkstd::endl;
       *fp << "<loadpoint>0,0</loadpoint>" << vtkstd::endl;
-      *fp << "<loadpoint>1,1</loadpoint>" << vtkstd::endl;
+      *fp << "<loadpoint>" << END_TIME <<"," << UNIT_LOAD << "</loadpoint>" << vtkstd::endl;
       *fp << "</loadcurve>" << vtkstd::endl;  
       loadCurveId++;
       break;

@@ -112,7 +112,6 @@ protected:
   bool WriteLoadData(ostream* fp);
 
   char* Title;
-  double StepSize;
   double MaxRefs;
   double MaxUps;
   double DTol;
