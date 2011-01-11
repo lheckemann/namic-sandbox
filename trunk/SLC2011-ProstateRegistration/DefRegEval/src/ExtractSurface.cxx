@@ -40,7 +40,9 @@ void SetMaterial(vtkPolyData *poly, int materialId)
 
 int main(int argc, char *argv[])
 {
+#if defined(_WIN32)
   VTK_LOG_TO_CONSOLE;
+#endif
 
   std::string outputCombinedSurfaceMeshFilename;
   std::string inputImageFilename;

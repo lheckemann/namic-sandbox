@@ -58,7 +58,11 @@ void vtkSMeshWriter::WriteData()
       {
       vtkErrorMacro("Ran out of disk space; deleting file: "<< this->FileName);
       this->CloseVTKFile(fp);
+#if defined(_WIN32)
       _unlink(this->FileName);
+#else
+      unlink(this->FileName);
+#endif
       }
     return;
     }

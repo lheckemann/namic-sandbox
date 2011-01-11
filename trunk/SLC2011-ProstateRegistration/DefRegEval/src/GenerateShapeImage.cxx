@@ -132,7 +132,12 @@ int main(int argc, char *argv[])
   //generate n random organ contours
   vtkSmartPointer<vtkMinimalStandardRandomSequence> random = vtkSmartPointer<vtkMinimalStandardRandomSequence>::New();
 
-  typedef itk::UnaryFunctorImageFilter<InternalImageType,OutputImageType,ContourOfSignedDistanceMapFunctor<typename InternalImageType::PixelType> > ContourExtractorType;
+#if defined(_WIN32)
+  typedef itk::UnaryFunctorImageFilter<typename InternalImageType,OutputImageType,ContourOfSignedDistanceMapFunctor<InternalImageType::PixelType> > ContourExtractorType;
+#else
+  typedef itk::UnaryFunctorImageFilter<InternalImageType,OutputImageType,ContourOfSignedDistanceMapFunctor<InternalImageType::PixelType> > ContourExtractorType;
+#endif
+
   ContourExtractorType::Pointer contourExtractor = ContourExtractorType::New();
 
   //randomize PCA weights

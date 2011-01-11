@@ -149,9 +149,16 @@ int main(int argc, char *argv[])
   std::cout<<"generating contour of mean shape"<<std::endl;
   //this is still signed distance map, need a contour
 
+#if defined(_WIN32)
   typedef itk::UnaryFunctorImageFilter<
     InternalImageType,OutputImageType,
     ContourOfSignedDistanceMapFunctor<typename InternalImageType::PixelType> > ContourExtractorType;
+#else
+  typedef itk::UnaryFunctorImageFilter<
+    InternalImageType,OutputImageType,
+    ContourOfSignedDistanceMapFunctor<InternalImageType::PixelType> > ContourExtractorType;
+#endif
+
   ContourExtractorType::Pointer contourExtractor = ContourExtractorType::New();
   contourExtractor->SetInput(meanShape);
   contourExtractor->Update();
