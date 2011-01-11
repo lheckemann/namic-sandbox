@@ -52,9 +52,8 @@ ADD_TEST(DeformImageTest1-CreateFemModel
   --ProbePosition1 -12 -120 80
   --ProbePosition2 -12 -120 200
   --ProbeRadius=10
-#  --ProbeForce 10 40 2
-  --ProbeForce 5 20 2
-  --SolverTimeSteps=10
+  --ProbeForce 10 40 2
+  --SolverTimeSteps=5
   )
 
 # Test computation of deformation using the FEM model
