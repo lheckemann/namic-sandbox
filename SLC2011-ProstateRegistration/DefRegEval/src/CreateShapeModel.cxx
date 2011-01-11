@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
   std::cout<<"storing eigenvalues"<<std::endl<<std::endl;
   std::string eigenValueFilePath = outputShapeModelDir;
   eigenValueFilePath.append("\\eigenValues.txt");
-  std::ofstream eigenValueFile(eigenValueFilePath.c_str());
+  std::ofstream eigenValueFile(eigenValueFilePath.c_str(), std::ios_base::binary | std::ios_base::out ); // binary, to force LF line ending (otherwise file compare would fail during testing)
   if (!eigenValueFile.is_open())
   {
     std::cerr << "Fatal Error: Could not store eigenvalues" << std::endl;
