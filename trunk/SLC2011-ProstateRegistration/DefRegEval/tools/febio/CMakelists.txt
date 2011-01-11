@@ -1,0 +1,21 @@
+PROJECT (febio)
+
+# There is nothing to build, just copy a precompiled release.
+# The febio solver is open source and can quite simply built using CMake.
+# However, to build a release that runs efficiently the Pardiso solver
+# has to be obtained and build, too. So, it is easier to just download the
+# release from http://mrl.sci.utah.edu/software/febio
+
+IF(WIN32)
+  CONFIGURE_FILE(${febio_SOURCE_DIR}/Release-Win32/FEBio.exe
+    ${EXECUTABLE_OUTPUT_PATH}/Release/FEBio.exe COPYONLY)    
+  CONFIGURE_FILE(${febio_SOURCE_DIR}/Release-Win32/febio.xml
+    ${EXECUTABLE_OUTPUT_PATH}/Release/febio.xml COPYONLY)
+ELSEIF(LINUX)
+  CONFIGURE_FILE(${febio_SOURCE_DIR}/Release-Linux32/febio.lnx32
+    ${EXECUTABLE_OUTPUT_PATH}/Release/febio COPYONLY)    
+  CONFIGURE_FILE(${febio_SOURCE_DIR}/Release-Linux32/febio.xml
+    ${EXECUTABLE_OUTPUT_PATH}/Release/febio.xml COPYONLY)
+ELSE()
+  MESSAGE(WARNING "FEBio is not available for your platform. Download it from http://mrl.sci.utah.edu/software/febio and copy the executable and configuration file to ${EXECUTABLE_OUTPUT_PATH}/Release.")
+ENDIF()
