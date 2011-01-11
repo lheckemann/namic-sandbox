@@ -33,10 +33,10 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
 
     <image>
       <name>volumeMaskImageName</name>
-      <label>Volume Image mask</label>
+      <label>Fixed Image mask</label>
       <channel>input</channel>
       <longflag>--volumeImageMask</longflag>
-      <description>The volume image mask</description>
+      <description>The fixed image mask</description>
     </image>
 
     <transform fileExtensions=".txt">
