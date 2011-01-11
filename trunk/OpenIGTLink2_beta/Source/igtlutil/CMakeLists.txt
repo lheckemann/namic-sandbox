@@ -38,6 +38,8 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtl_point.h
     igtl_tdata.h
     igtl_trajectory.h
+    igtl_unit.h
+    igtl_sensor.h
     )
   SET(igtlutil_SOURCES
     ${igtlutil_SOURCES}
@@ -47,6 +49,8 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtl_point.c
     igtl_tdata.c
     igtl_trajectory.c
+    igtl_unit.c
+    igtl_sensor.c
     )
 endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
 

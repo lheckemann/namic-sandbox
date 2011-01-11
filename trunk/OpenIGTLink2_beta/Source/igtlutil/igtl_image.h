@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   OpenIGTLink Library
-  Module:    $RCSfile$
+  Module:    $HeadURL$
   Language:  C
   Date:      $Date$
   Version:   $Revision$
