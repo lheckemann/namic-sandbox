@@ -1,6 +1,8 @@
 SET( TestSrcDataDir ${DefRegEval_SOURCE_DIR}/data )
 SET( TestDstDataDir ${CXX_TEST_PATH}/Testing )
- 
+
+MAKE_DIRECTORY(${TestDstDataDir})
+
 # Test shape model learning
 ADD_TEST(CreateShapeModelTest1
   ${EXECUTABLE_OUTPUT_PATH}/CreateShapeModel
@@ -25,7 +27,7 @@ FOREACH(file ${CreateShapeModelTestResultFiles})
     )
 ENDFOREACH(file)
 
-# Test surface extraction and smoothing (generation of organ and support surface model from a segmented image)
+# Test surface extraction and smoothing (generation of organ and support surface model from a segmented image) coords in LPS
 ADD_TEST(DeformImageTest1-ExtractSurface
   ${EXECUTABLE_OUTPUT_PATH}/ExtractSurface
   --OrganImageInputFn=${TestSrcDataDir}/Images/Prostate/B2_PreOpSeg.mha

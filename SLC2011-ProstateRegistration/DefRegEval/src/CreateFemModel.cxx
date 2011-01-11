@@ -208,7 +208,9 @@ static const char* ARRAY_NAME_MATERIAL="material";
 
 int main(int argc, char *argv[])
 {
+#if defined(_WIN32)
   VTK_LOG_TO_CONSOLE;
+#endif 
 
   std::string inputObjectFilename = "object-volumemesh.vol";
   std::string inputSupportFilename = "support-volumemesh.vol";
