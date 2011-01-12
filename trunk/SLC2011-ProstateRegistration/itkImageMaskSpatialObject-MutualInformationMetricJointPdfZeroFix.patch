@@ -1,0 +1,17 @@
+64c64
+<   IndexType index;
+---
+>   typename InterpolatorType::ContinuousIndexType index;  
+67c67
+<     index[i] = static_cast<int>( p[i] );
+---
+>     index[i] = p[i];
+77,78c77,81
+<   const bool insideMask = (this->GetImage()->GetPixel(index) != NumericTraits<PixelType>::Zero);
+< 
+---
+>   typedef typename InterpolatorType::OutputType InterpolatorOutputType;
+>   const bool insideMask = (
+>   DefaultConvertPixelTraits<InterpolatorOutputType>::GetScalarValue(m_Interpolator->EvaluateAtContinuousIndex(index))
+> 		 != NumericTraits<PixelType>::Zero);
+>   
