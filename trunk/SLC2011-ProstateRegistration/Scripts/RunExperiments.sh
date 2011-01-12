@@ -9,9 +9,12 @@ do
   for LABEL in 'A' 'AC' 'ACS'
   do
     cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --volumeImageMask '${DATA_ROOT}'/'${SLICE}'-label-'${LABEL}'.nrrd --transform '${VOLUME}'-'${SLICE}'-'${LABEL}'-SliceRegistration.tfm'
-    echo $cmd
+    $cmd
   done
+  cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --transform '${VOLUME}'-'${SLICE}'-VolumeRegistration.tfm'
+  $cmd
 done
+
 
 VOLUME=TR02_series10-T2Ax.nrrd
 echo
@@ -21,8 +24,10 @@ do
   for LABEL in 'A' 'AC' 'ACS'
   do
     cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --volumeImageMask '${DATA_ROOT}'/'${SLICE}'-label-'${LABEL}'.nrrd --transform '${VOLUME}'-'${SLICE}'-'${LABEL}'-SliceRegistration.tfm'
-    echo $cmd
+    $cmd
   done
+  cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --transform '${VOLUME}'-'${SLICE}'-VolumeRegistration.tfm'
+  $cmd
 done
 
 VOLUME=TR01_series10-T2BC.nrrd
@@ -33,8 +38,10 @@ do
   for LABEL in 'A' 'AC' 'ACS'
   do
     cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --volumeImageMask '${DATA_ROOT}'/'${SLICE}'-label-'${LABEL}'.nrrd --transform '${VOLUME}'-'${SLICE}'-'${LABEL}'-SliceRegistration.tfm'
-    echo $cmd
+    $cmd
   done
+  cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --transform '${VOLUME}'-'${SLICE}'-VolumeRegistration.tfm'
+  $cmd
 done
 
 VOLUME=TP9_series3.nrrd
@@ -45,8 +52,10 @@ do
   for LABEL in 'A' 'AC' 'ACS'
   do
     cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --volumeImageMask '${DATA_ROOT}'/'${SLICE}'-label-'${LABEL}'.nrrd --transform '${VOLUME}'-'${SLICE}'-'${LABEL}'-SliceRegistration.tfm'
-    echo $cmd
-  done
+    $cmd
+  done 
+  cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --transform '${VOLUME}'-'${SLICE}'-VolumeRegistration.tfm'
+  $cmd
 done
 
 VOLUME=TP11_series3.nrrd
@@ -57,8 +66,10 @@ do
   for LABEL in 'A' 'AC' 'ACS'
   do
     cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --volumeImageMask '${DATA_ROOT}'/'${SLICE}'-label-'${LABEL}'.nrrd --transform '${VOLUME}'-'${SLICE}'-'${LABEL}'-SliceRegistration.tfm'
-    echo $cmd
-  done
+    $cmd
+  done 
+  cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --transform '${VOLUME}'-'${SLICE}'-VolumeRegistration.tfm'
+  $cmd
 done
 
 VOLUME=TP10_series3.nrrd
@@ -69,7 +80,9 @@ do
   for LABEL in 'A' 'AC' 'ACS'
   do
     cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --volumeImageMask '${DATA_ROOT}'/'${SLICE}'-label-'${LABEL}'.nrrd --transform '${VOLUME}'-'${SLICE}'-'${LABEL}'-SliceRegistration.tfm'
-    echo $cmd
+    $cmd
   done
+  cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --transform '${VOLUME}'-'${SLICE}'-VolumeRegistration.tfm'
+  $cmd
 done
 
