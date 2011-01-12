@@ -327,11 +327,14 @@ int main( int argc, char *argv[] )
   TransformType::MatrixType matrix = transform->GetRotationMatrix();
   TransformType::OffsetType offset = transform->GetOffset();
 
-  typedef itk::TransformFileWriter TransformWriter;
-  TransformWriter::Pointer tfmWriter = TransformWriter::New();
-  tfmWriter->SetInput(transform);
-  tfmWriter->SetFileName( resultTransformName.c_str() );
-  tfmWriter->Update();
+  if (resultTransformName != "")
+    {
+    typedef itk::TransformFileWriter TransformWriter;
+    TransformWriter::Pointer tfmWriter = TransformWriter::New();
+    tfmWriter->SetInput(transform);
+    tfmWriter->SetFileName( resultTransformName.c_str() );
+    tfmWriter->Update();
+    }
 
 #if 0 // calculation of the error over the mask region
   typedef itk::ResampleImageFilter< 
