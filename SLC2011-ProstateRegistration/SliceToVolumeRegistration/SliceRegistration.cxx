@@ -47,6 +47,12 @@
 
 #include "SliceRegistrationCLP.h"
 
+#include "itkTimeProbesCollectorBase.h"
+#include "itkPluginFilterWatcher.h"
+
+
+#include "itkLBFGSBOptimizer.h"
+
 //  The following section of code implements a Command observer
 //  that will monitor the evolution of the registration process.
 //
@@ -83,11 +89,61 @@ public:
     }
 };
 
+class DefCommandIterationUpdate : public itk::Command 
+{
+public:
+  typedef  DefCommandIterationUpdate   Self;
+  typedef  itk::Command             Superclass;
+  typedef itk::SmartPointer<Self>  Pointer;
+  itkNewMacro( Self );
+  typedef itk::SingleValuedCostFunction CostFunctionType;
+  void SetRegistration (itk::ProcessObject * obj)
+    {
+    m_Registration = obj; 
+    }
+  void SetCostFunction(CostFunctionType* fn)
+    {
+      m_CostFunction = fn;
+    }
+protected:
+  DefCommandIterationUpdate() {};
+  itk::ProcessObject::Pointer m_Registration;
+  CostFunctionType::Pointer m_CostFunction;
+public:
+  typedef itk::LBFGSBOptimizer  OptimizerType;
+  typedef OptimizerType   *OptimizerPointer;
+
+  void Execute(itk::Object *caller, const itk::EventObject & event)
+    {
+      Execute( (const itk::Object *)caller, event);
+    }
+
+  void Execute(const itk::Object * object, const itk::EventObject & event)
+    {
+      OptimizerPointer optimizer = 
+        dynamic_cast< OptimizerPointer >( const_cast<itk::Object *>(object) );
+      if( !(itk::IterationEvent().CheckEvent( &event )) )
+        {
+        return;
+        }
+      
+      if (m_Registration)
+        {
+        m_Registration->UpdateProgress( 
+          static_cast<double>(optimizer->GetCurrentIteration()) /
+          static_cast<double>(optimizer->GetMaximumNumberOfIterations()));
+        }
+    }
+};
+
 
 int main( int argc, char *argv[] )
 {
   PARSE_ARGS;
-  
+
+  // Add a time probe
+  itk::TimeProbesCollectorBase collector;
+
   const    unsigned int    Dimension = 3;
   typedef  float           PixelType;
 
@@ -154,13 +210,20 @@ int main( int argc, char *argv[] )
 
   fixedImageReader->SetFileName( sliceImageName.c_str() );
   movingImageReader->SetFileName( volumeImageName.c_str() );
-  maskImageReader->SetFileName( volumeMaskImageName.c_str() );
-  maskImageReader->Update();
-
-  typedef itk::ImageMaskSpatialObject<3> MaskObjectType;
-  MaskObjectType::Pointer maskObject = MaskObjectType::New();
-  maskObject->SetImage(maskImageReader->GetOutput());
-  metric->SetFixedImageMask(maskObject);
+  if (!volumeMaskImageName.empty())
+  {
+    std::cout << "Mask is used" << std::endl;
+    maskImageReader->SetFileName( volumeMaskImageName.c_str() );
+    maskImageReader->Update();
+    typedef itk::ImageMaskSpatialObject<3> MaskObjectType;
+    MaskObjectType::Pointer maskObject = MaskObjectType::New();
+    maskObject->SetImage(maskImageReader->GetOutput());
+    metric->SetFixedImageMask(maskObject);
+  }
+  else
+  {
+    std::cout << "Mask is not used" << std::endl;
+  }
 
   registration->SetFixedImage(    fixedImageReader->GetOutput()    );
 
@@ -337,6 +400,240 @@ int main( int argc, char *argv[] )
   std::cout << "Average magnitude: " << avDist/cnt << std::endl;
   std::cout << "Max magnitude: " << maxDist << std::endl;
 #endif
+
+
+  if (!EnableDeformable)
+  {
+    std::cout << "Deformable registration was not enabled." << std::endl;
+    return EXIT_SUCCESS;
+  }
+
+
+
+  const unsigned int SplineOrder = 3;
+  typedef double CoordinateRepType;
+  typedef itk::ContinuousIndex<CoordinateRepType, Dimension> ContinuousIndexType;
+
+  typedef itk::ResampleImageFilter< 
+                            MovingImageType, 
+                            FixedImageType>    ResampleFilterType;
+
+  typedef itk::BSplineDeformableTransform<
+                            CoordinateRepType,
+                            Dimension,
+                              SplineOrder >     DefTransformType;
+
+  typedef itk::LBFGSBOptimizer       DefOptimizerType;
+
+  DefOptimizerType::Pointer      defOptimizer     = DefOptimizerType::New();
+  DefTransformType::Pointer      defTransform     = DefTransformType::New();
+  RegistrationType::Pointer   defRegistration  = RegistrationType::New();
+
+  typedef DefTransformType::RegionType RegionType;
+  typedef DefTransformType::SpacingType SpacingType;
+  typedef DefTransformType::OriginType OriginType;
+  typedef DefTransformType::ParametersType     ParametersType;  
+
+  // Setup BSpline deformation
+  //
+  //  Note that the B-spline computation requires a finite support
+  //  region ( 1 grid node at the lower borders and 2 grid nodes at
+  //  upper borders).
+  RegionType bsplineRegion;
+  RegionType::SizeType   gridSizeOnImage;
+  RegionType::SizeType   gridBorderSize;
+  RegionType::SizeType   totalGridSize;
+
+  gridSizeOnImage.SetElement(0, fixedImage->GetBufferedRegion().GetSize()[0]*fixedImage->GetSpacing()[0]/GridSpacing);
+  gridSizeOnImage.SetElement(1, fixedImage->GetBufferedRegion().GetSize()[1]*fixedImage->GetSpacing()[1]/GridSpacing);
+  gridSizeOnImage.SetElement(2, fixedImage->GetBufferedRegion().GetSize()[2]*fixedImage->GetSpacing()[2]/GridSpacing);
+
+  std::cout << "BSpline grid size: " << gridSizeOnImage << std::endl;
+
+  //gridSizeOnImage.Fill( GridSize );
+  gridBorderSize.Fill( 3 );    // Border for spline order = 3 ( 1 lower, 2 upper )
+  totalGridSize = gridSizeOnImage + gridBorderSize;
+
+  bsplineRegion.SetSize( totalGridSize );
+
+  SpacingType spacing = fixedImage->GetSpacing();
+  OriginType origin = fixedImage->GetOrigin();;
+  FixedImageType::DirectionType direction = fixedImage->GetDirection(); // :TODO: check if it is the fixed image and not the moving
+
+  FixedImageType::RegionType fixedRegion = fixedImage->GetLargestPossibleRegion();
+  FixedImageType::SizeType fixedImageSize = fixedRegion.GetSize();
+
+  for(unsigned int r=0; r<Dimension; r++)
+    {
+    double spacingMultiplier=floor( static_cast<double>(fixedImageSize[r] - 1)  / 
+                static_cast<double>(gridSizeOnImage[r] - 1) );
+    if (spacingMultiplier<1)
+      {
+      std::cout << "Image size along dimension " << r << " is smaller than requested grid size " << GridSpacing << std::endl;
+      spacingMultiplier=1; // grid spacing should not be smaller than the pixel spacing (it would prevent deformation of first and last slices)
+      }
+    spacing[r] *= spacingMultiplier;
+    for(unsigned int s=0; s<Dimension; s++)
+      {
+      origin[s]  -=  spacing[r]*direction[s][r]; // or [s][r]
+      } 
+    }
+
+  defTransform->SetGridSpacing ( spacing );
+  defTransform->SetGridOrigin  ( origin );
+  defTransform->SetGridRegion  ( bsplineRegion );
+  defTransform->SetGridDirection ( direction );
+
+  const unsigned int numberOfParameters =
+               defTransform->GetNumberOfParameters();
+  
+  ParametersType parameters( numberOfParameters );
+  parameters.Fill( 0.0 );
+
+  defTransform->SetParameters  ( parameters );
+
+  defTransform->SetBulkTransform( transform );
+  
+  // Setup optimizer
+  //
+  //
+  DefOptimizerType::BoundSelectionType boundSelect( defTransform->GetNumberOfParameters() );
+  DefOptimizerType::BoundValueType upperBound( defTransform->GetNumberOfParameters() );
+  DefOptimizerType::BoundValueType lowerBound( defTransform->GetNumberOfParameters() );  
+  bool ConstrainDeformation=true;
+  if (ConstrainDeformation)
+    {
+    boundSelect.Fill( 2 );
+    upperBound.Fill(  MaximumDeformation );
+    lowerBound.Fill( -MaximumDeformation );
+    }
+  else
+    {
+    boundSelect.Fill( 0 );
+    upperBound.Fill( 0.0 );
+    lowerBound.Fill( 0.0 );
+    }
+
+  defOptimizer->SetBoundSelection( boundSelect );
+  defOptimizer->SetUpperBound    ( upperBound );
+  defOptimizer->SetLowerBound    ( lowerBound );
+
+  const int Iterations=300;
+  defOptimizer->SetCostFunctionConvergenceFactor ( 1e+1 );
+  defOptimizer->SetProjectedGradientTolerance    ( 1e-7 );
+  defOptimizer->SetMaximumNumberOfIterations     ( Iterations );
+  defOptimizer->SetMaximumNumberOfEvaluations    ( 500 );
+  defOptimizer->SetMaximumNumberOfCorrections    ( 12 );
+
+  
+  // Create the Command observer and register it with the optimizer.
+  //
+  DefCommandIterationUpdate::Pointer defObserver = DefCommandIterationUpdate::New();
+  defObserver->SetRegistration ( defRegistration );
+  defObserver->SetCostFunction( metric );
+
+  defOptimizer->AddObserver( itk::IterationEvent(), defObserver );
+
+  std::cout << std::endl << "Starting Registration" << std::endl;
+
+  // Registration
+  //
+  //
+  defRegistration->SetFixedImage  ( fixedImage  );
+  defRegistration->SetMovingImage ( movingImage );
+  defRegistration->SetMetric      ( metric       );
+  defRegistration->SetOptimizer   ( defOptimizer    );
+  defRegistration->SetInterpolator( interpolator );
+  defRegistration->SetTransform   ( defTransform    );
+  defRegistration->SetInitialTransformParameters( defTransform->GetParameters() );
+
+  try 
+    { 
+    itk::PluginFilterWatcher watchRegistration(defRegistration,
+                                               "Deformable registration",
+                                               CLPProcessInformation,
+                                               1.0/3.0, 2.0/3.0); 
+    collector.Start( "Registration" );
+    defRegistration->Update();
+    collector.Stop( "Registration" );
+    } 
+  catch( itk::ExceptionObject & err ) 
+    { 
+    std::cerr << "ExceptionObject caught !" << std::endl; 
+    std::cerr << err << std::endl; 
+    return EXIT_FAILURE;
+    } 
+  
+  DefOptimizerType::ParametersType defFinalParameters = 
+    defRegistration->GetLastTransformParameters();
+  std::cout << "Final parameters: " << defFinalParameters[50] << std::endl;
+  defTransform->SetParameters      ( defFinalParameters );
+
+  if (defResultTransformName != "")
+    {
+    typedef itk::TransformFileWriter TransformWriterType;
+    TransformWriterType::Pointer outputTransformWriter;
+
+    outputTransformWriter= TransformWriterType::New();
+    outputTransformWriter->SetFileName( defResultTransformName );
+    outputTransformWriter->SetInput( defTransform );
+    outputTransformWriter->AddTransform( defTransform->GetBulkTransform() );
+    try
+      {
+      outputTransformWriter->Update();
+      }
+    catch (itk::ExceptionObject &err)
+      {
+      std::cerr << err << std::endl;
+      return EXIT_FAILURE ;
+      }
+    }
+
+  // Resample to the original coordinate frame (not the reoriented
+  // axial coordinate frame) of the fixed image
+  //
+  if (ResampledImageFileName != "")
+    {
+    ResampleFilterType::Pointer resample = ResampleFilterType::New();
+    
+    itk::PluginFilterWatcher watcher(
+      resample,
+      "Resample",
+      CLPProcessInformation,
+      1.0/3.0, 2.0/3.0);
+
+    const double DefaultPixelValue=0;
+    resample->SetTransform        ( defTransform );
+    resample->SetInput            ( movingImage );    
+    resample->SetDefaultPixelValue( DefaultPixelValue );
+    resample->SetOutputParametersFromImage ( fixedImage );
+
+    collector.Start( "Resample" );
+    resample->Update();
+    collector.Stop( "Resample" );
+
+    typedef itk::ImageFileWriter< FixedImageType >  WriterType;
+    WriterType::Pointer      writer =  WriterType::New();
+    writer->SetFileName( ResampledImageFileName.c_str() );
+    writer->SetInput( resample->GetOutput()   );
+    writer->SetUseCompression(0); // to allow loading into ParaView
+
+    try
+      {
+      collector.Start( "Write resampled volume" );
+      writer->Update();
+      collector.Stop( "Write resampled volume" );
+      }
+    catch( itk::ExceptionObject & err ) 
+      { 
+      std::cerr << "ExceptionObject caught !" << std::endl; 
+      std::cerr << err << std::endl; 
+      return EXIT_FAILURE;
+      }
+    }
+
+  // Report the time taken by the registration
+  collector.Report();
 
   return EXIT_SUCCESS;
 }

@@ -39,7 +39,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <description>The fixed image mask</description>
     </image>
 
-    <transform fileExtensions=".txt" reference="volumeImageName">
+    <transform fileExtensions=".txt">
       <name>resultTransformName</name>
       <label>Output Transform</label>
       <channel>output</channel>
@@ -48,5 +48,63 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
     </transform>
 
   </parameters>
+
+  <parameters>
+    <label>Deformable registration</label>
+    <description>Parameters used for deformable registration</description>
+
+    <boolean>
+      <name>EnableDeformable</name>
+      <longflag>--deformable</longflag>
+      <label>Enable deformable registration</label>
+      <description>Perform a deformable registration after the rigid registration is completed.</description>
+      <default>false</default>
+    </boolean>
+
+    <double>
+      <name>GridSpacing</name>
+      <longflag>gridspacing</longflag>
+      <label>Grid spacing (mm)</label>
+      <description>Distance between grid points of the deformable mesh.</description>
+      <default>30</default>
+      <constraints>
+        <minimum>0.0</minimum>
+        <maximum>100.0</maximum>
+        <step>0.1</step>
+      </constraints>
+    </double>
+
+    <double>
+      <name>MaximumDeformation</name>
+      <longflag>maxdeformation</longflag>
+      <flag>d</flag>
+      <description>Maximum allowed deformation in mm.</description>
+      <label>Maximum deformation</label>
+      <default>5.0</default>
+      <constraints>
+        <minimum>0.0</minimum>
+        <maximum>20.0</maximum>
+        <step>0.1</step>
+      </constraints>
+    </double>
+
+    <transform fileExtensions=".txt" type="bspline">
+      <name>defResultTransformName</name>
+      <label>Deformable Output Transform</label>
+      <channel>output</channel>
+      <longflag>--defTransform</longflag>
+      <description>Transform calculated that aligns the fixed and moving image. Maps positions from the fixed coordinate frame to the moving coordinate frame. Optional (specify an output transform or an output volume or both).</description>
+    </transform>
+    
+    <image>
+      <name>ResampledImageFileName</name>
+      <longflag>resampledmovingfilename</longflag>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <description>Resampled moving image to fixed image coordinate frame. Optional (specify an output transform or an output volume or both).</description>
+    </image>
+
+  </parameters>
+
 
 </executable>
