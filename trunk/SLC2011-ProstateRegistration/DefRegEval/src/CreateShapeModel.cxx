@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
   //output distance map of mean shape
   InternalImageType::Pointer meanShape = shapeEstimator->GetOutput(0);
   std::string meanShapeDistanceMapFile = outputShapeModelDir;
-  meanShapeDistanceMapFile.append("\\MeanShape_DMap.mha");
+  meanShapeDistanceMapFile.append("/MeanShape_DMap.mha");
   writer->SetFileName(meanShapeDistanceMapFile.c_str());  
   writer->SetInput(meanShape);
   writer->Update();
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
   BinaryWriterType::Pointer binaryWriter = BinaryWriterType::New();
   binaryWriter->SetUseCompression(true);
   std::string meanShapeFile = outputShapeModelDir;
-  meanShapeFile.append("\\MeanShape.mha");
+  meanShapeFile.append("/MeanShape.mha");
   binaryWriter->SetFileName(meanShapeFile.c_str());
   binaryWriter->SetInput(MeanImageContour);
   binaryWriter->Update();
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
     //form the file name
     sprintf(Suffix, "%02d.mha", mode);
     std::string variationModeFile = outputShapeModelDir;
-    variationModeFile.append("\\VariationMode_");
+    variationModeFile.append("/VariationMode_");
     variationModeFile.append(Suffix);
     writer->SetFileName(variationModeFile.c_str());
     writer->SetInput(shapeEstimator->GetOutput(mode));
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
   eigenValues = shapeEstimator->GetEigenValues();
   std::cout<<"storing eigenvalues"<<std::endl<<std::endl;
   std::string eigenValueFilePath = outputShapeModelDir;
-  eigenValueFilePath.append("\\eigenValues.txt");
+  eigenValueFilePath.append("/eigenValues.txt");
   std::ofstream eigenValueFile(eigenValueFilePath.c_str(), std::ios_base::binary | std::ios_base::out ); // binary, to force LF line ending (otherwise file compare would fail during testing)
   if (!eigenValueFile.is_open())
   {
