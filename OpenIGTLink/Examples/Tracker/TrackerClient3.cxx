@@ -107,6 +107,11 @@ int main(int argc, char* argv[])
       ts->GetTime();
       transMsg->SetTimeStamp(ts);
       transMsg->Pack();
+
+      igtlUint32 sec;
+      igtlUint32 nsec;
+      ts->GetTimeStamp(&sec, &nsec);
+      std::cerr << "Time Stamp: sec = " << sec << ", nsec = " << nsec << std::endl;
       socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
       phi[i]   = phi[i] + 0.2*incr[i];
       theta[i] = theta[i] + 0.1*incr[i];
