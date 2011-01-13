@@ -22,6 +22,10 @@
 #include "igtlObjectFactory.h"
 #include "igtlTypes.h"
 
+#if defined(WIN32) || defined(_WIN32)
+#include <ctime>
+#endif
+
 namespace igtl
 {
 
@@ -75,7 +79,12 @@ private:
 
   FrequencyType   m_WinFrequency;
   TimeStampType   m_WinDifference;
-  TimeStampType   m_WinOrigin;
+  //TimeStampType   m_WinOrigin;
+
+  time_t  m_WinTimeOrigin;
+  clock_t m_WinClockOrigin;
+  
+
 #endif
 
 };
