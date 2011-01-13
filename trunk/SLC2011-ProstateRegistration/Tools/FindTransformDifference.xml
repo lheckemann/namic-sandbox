@@ -27,6 +27,12 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <index>1</index>
     </transform>
 
+    <image>
+      <name>MaskImageName</name>
+      <label>Mask image</label>
+      <longflag>--mask</longflag>
+    </image>
+
   </parameters>
 
 </executable>
