@@ -1,6 +1,11 @@
+#Andriy
 DATA_ROOT=~/SLC2011/SLC2011-ProstateRegistration/TestData
 EXE_ROOT=~/Slicer/Slicer-3-6/Slicer3-build/lib/Slicer3/Plugins
 
+#Andras
+#DATA_ROOT=c:/Users/andras/devel/SLC2011-Data
+#EXE_ROOT=c:/Users/andras/devel/Slicer-3.6/Slicer3-ext/SliceToVolumeRegistration-build/lib/Slicer3/Plugins/Release 
+ 
 VOLUME=TR03_series10-T2Ax.nrrd
 echo
 echo Running case $VOLUME
