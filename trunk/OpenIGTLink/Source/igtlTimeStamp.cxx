@@ -85,8 +85,14 @@ TimeStamp::TimeStamp(): Object()
   LARGE_INTEGER ui1;
   LARGE_INTEGER ui2;
 
-  memcpy( &ui1, &ft1, sizeof( ui1 ) );
-  memcpy( &ui2, &ft2, sizeof( ui2 ) );
+  // The following code didn't work on Win64 due to the difference
+  // of memory boundary
+  //memcpy( &ui1, &ft1, sizeof( ui1 ) );
+  //memcpy( &ui2, &ft2, sizeof( ui2 ) );
+  ui1.LowPart  = ft1.dwLowDateTime;
+  ui1.HighPart = ft1.dwHighDateTime;
+  ui2.LowPart  = ft2.dwLowDateTime;
+  ui2.HighPart = ft2.dwHighDateTime;
   
   this->m_WinDifference = 
     static_cast< TimeStampType >( ui2.QuadPart - ui1.QuadPart) / 
@@ -99,7 +105,9 @@ TimeStamp::TimeStamp(): Object()
   ::GetSystemTimeAsFileTime( &currentTime );
   ::QueryPerformanceCounter( &tick );
 
-  memcpy( &intTime, &currentTime, sizeof( intTime ) );
+  //memcpy( &intTime, &currentTime, sizeof( intTime ) );
+  intTime.LowPart  = currentTime.dwLowDateTime;
+  intTime.HighPart = currentTime.dwHighDateTime;
 
   this->m_WinOrigin = 
     static_cast< TimeStampType >( intTime.QuadPart ) / 
