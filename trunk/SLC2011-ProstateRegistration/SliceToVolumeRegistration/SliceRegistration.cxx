@@ -209,12 +209,43 @@ int main( int argc, char *argv[] )
   MaskReaderType::Pointer maskImageReader = MaskReaderType::New();
 
   fixedImageReader->SetFileName( sliceImageName.c_str() );
+  try
+  {
+    fixedImageReader->Update();
+  }
+  catch( itk::ExceptionObject & excp )
+  {
+    std::cerr << "Exception thrown " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+  } 
+
   movingImageReader->SetFileName( volumeImageName.c_str() );
+  try
+  {
+    movingImageReader->Update();
+  }
+  catch( itk::ExceptionObject & excp )
+  {
+    std::cerr << "Exception thrown " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+  } 
+
   if (!volumeMaskImageName.empty())
   {
     std::cout << "Mask is used" << std::endl;
     maskImageReader->SetFileName( volumeMaskImageName.c_str() );
-    maskImageReader->Update();
+    try
+    {
+      maskImageReader->Update();
+    }
+    catch( itk::ExceptionObject & excp )
+    {
+      std::cerr << "Exception thrown " << std::endl;
+      std::cerr << excp << std::endl;
+      return EXIT_FAILURE;
+    }
     typedef itk::ImageMaskSpatialObject<3> MaskObjectType;
     MaskObjectType::Pointer maskObject = MaskObjectType::New();
     maskObject->SetImage(maskImageReader->GetOutput());
@@ -236,7 +267,6 @@ int main( int argc, char *argv[] )
   FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
 
   registration->SetMovingImage(   blur->GetOutput()   );
-  fixedImageReader->Update();
 
   registration->SetFixedImageRegion( 
      fixedImageReader->GetOutput()->GetBufferedRegion() );
@@ -328,13 +358,22 @@ int main( int argc, char *argv[] )
   TransformType::OffsetType offset = transform->GetOffset();
 
   if (resultTransformName != "")
-    {
+  {
     typedef itk::TransformFileWriter TransformWriter;
     TransformWriter::Pointer tfmWriter = TransformWriter::New();
     tfmWriter->SetInput(transform);
     tfmWriter->SetFileName( resultTransformName.c_str() );
-    tfmWriter->Update();
+    try
+    {
+      tfmWriter->Update();
     }
+    catch( itk::ExceptionObject & excp )
+    {
+      std::cerr << "Exception thrown " << std::endl;
+      std::cerr << excp << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
 
 #if 0 // calculation of the error over the mask region
   typedef itk::ResampleImageFilter< 
