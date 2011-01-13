@@ -35,17 +35,17 @@ do
   $cmd
 done
 
-VOLUME=TR01_series10-T2BC.nrrd
+VOLUME=TR01_series10-T2BC.nii
 echo
 echo Running case $VOLUME
-for SLICE in 'TR01_series13-NeedleBC' 'TR01_series19_NeedleBC'
+for SLICE in 'TR01_series13-NeedleBC' 'TR01_series19-NeedleBC'
 do
   for LABEL in 'A' 'AC' 'ACS'
   do
-    cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --volumeImageMask '${DATA_ROOT}'/'${SLICE}'-label-'${LABEL}'.nrrd --transform '${VOLUME}'-'${SLICE}'-'${LABEL}'-SliceRegistration.tfm'
+    cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nii --volumeImage '${DATA_ROOT}'/'${VOLUME}' --volumeImageMask '${DATA_ROOT}'/'${SLICE}'-label-'${LABEL}'.nrrd --transform '${VOLUME}'-'${SLICE}'-'${LABEL}'-SliceRegistration.tfm'
     $cmd
   done
-  cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nrrd --volumeImage '${DATA_ROOT}'/'${VOLUME}' --transform '${VOLUME}'-'${SLICE}'-VolumeRegistration.tfm'
+  cmd=${EXE_ROOT}'/SliceRegistration --sliceImage '${DATA_ROOT}'/'${SLICE}'.nii --volumeImage '${DATA_ROOT}'/'${VOLUME}' --transform '${VOLUME}'-'${SLICE}'-VolumeRegistration.tfm'
   $cmd
 done
 
