@@ -22,7 +22,7 @@
 #include "igtl_types.h"
 #include "igtl_win32header.h"
 
-#define IGTL_STRING_HEADER_SIZE          10
+#define IGTL_STRING_HEADER_SIZE          4
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,17 +45,18 @@ typedef struct {
  * transferred with the specified header.
  */
 
-igtl_uint32 igtl_export igtl_string_get_data_size(igtl_string_header * header);
+igtl_uint32 igtl_export igtl_string_get_string_length(igtl_string_header * header);
 
 /*
  * Byte order conversion
  *
  * This function converts endianness from host byte order to network byte order,
  * or vice versa.
+ * NOTE: It is developer's responsibility to have the string body with BOM
+ * (byte order mark) or in big endian ordrer.
  */
 
-void igtl_export igtl_string_convert_byte_order(igtl_string_header * header, void* data);
-
+void igtl_export igtl_string_convert_byte_order(igtl_string_header * header);
 
 /*
  * CRC calculation
@@ -65,7 +66,7 @@ void igtl_export igtl_string_convert_byte_order(igtl_string_header * header, voi
  *
  */
 
-igtl_uint64 igtl_export igtl_string_get_crc(igtl_string_header * header, void* data);
+igtl_uint64 igtl_export igtl_string_get_crc(igtl_string_header * header, void* string);
 
 #ifdef __cplusplus
 }
