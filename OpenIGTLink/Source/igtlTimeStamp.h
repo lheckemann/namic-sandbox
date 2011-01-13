@@ -22,7 +22,7 @@
 #include "igtlObjectFactory.h"
 #include "igtlTypes.h"
 
-#if defined(WIN32) || defined(_WIN32)
+#if defined(_WIN64)
 #include <ctime>
 #endif
 
@@ -73,17 +73,18 @@ private:
   igtlInt32       m_Nanosecond;  /* Nano-second part of -- */
 
 
-#if defined(WIN32) || defined(_WIN32)
+#if defined(WIN32)
   typedef double        TimeStampType;
   typedef double        FrequencyType;
 
+#if defined(_WIN32)
   FrequencyType   m_WinFrequency;
   TimeStampType   m_WinDifference;
-  //TimeStampType   m_WinOrigin;
-
+  TimeStampType   m_WinOrigin;
+#else // defined(_WIN64)
   time_t  m_WinTimeOrigin;
   clock_t m_WinClockOrigin;
-  
+#endif
 
 #endif
 
