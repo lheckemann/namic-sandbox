@@ -1,7 +1,11 @@
-
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
 #include "itkVersorRigid3DTransform.h"
+#include "itkImage.h"
+#include "itkImageFileReader.h"
+//#include "itkResampleImageFilter.h"
+#include "itkImageRegionConstIteratorWithIndex.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
 
 #include <iostream>
 
@@ -11,9 +15,12 @@
 #define DEG(x) ((x)*180./vnl_math::pi)
 
 typedef itk::TransformFileReader TransformReaderType;
-
 typedef itk::VersorRigid3DTransform<double> VersorTransformType;
-
+typedef itk::Image<unsigned char,3> MaskImageType;
+typedef itk::ImageFileReader<MaskImageType> ReaderType;
+//typedef itk::ResampleImageFilter<MaskImageType,MaskImageType> ResamplerType;
+typedef itk::NearestNeighborInterpolateImageFunction<MaskImageType, double> NNInterpolatorType;
+typedef itk::ImageRegionConstIteratorWithIndex<MaskImageType> IteratorType;
 
 // input: average rigid transform, case id, experiment id
 // output: for each case: initial misalignment transform parameters, final
@@ -77,5 +84,47 @@ int main( int argc, char * argv[] )
   std::cout << "dR = " << dR << " dA = " << dA << " dS = " << dS <<
     " dRoll = " << dRoll << " dPitch = " << dPitch << " dYaw = " << dYaw << std::endl;
 
+  if(MaskImageName != ""){
+    try{
+      std::cout << "Computing the error over the segmented region" << std::endl;
+      ReaderType::Pointer maskReader = ReaderType::New();
+      maskReader->SetFileName(MaskImageName.c_str());
+      maskReader->Update();
+
+      /*
+      ReaderType::Pointer refReader = ReaderType::New();
+      refReader->SetFileName(RefImageName.c_str());
+      refReader->Update();
+
+      MaskImageType::Pointer ref = refReafer->GetOutput();
+      */
+
+      MaskImageType::Pointer mask = maskReader->GetOutput();
+      double meanDist = 0, maxDist = -1, minDist = 1000, count = 0;
+      IteratorType maskIt(mask, mask->GetBufferedRegion());
+      for(maskIt.GoToBegin();!maskIt.IsAtEnd();++maskIt){
+        MaskImageType::PointType pt, pt0, pt1, dpt;
+        MaskImageType::IndexType id;
+        id = maskIt.GetIndex();
+        mask->TransformIndexToPhysicalPoint(id, pt);
+        pt0 = tfm1->TransformPoint(pt);
+        pt1 = tfm2->TransformPoint(pt);
+        
+        double dist = sqrt( (pt0[0]-pt1[0])*(pt0[0]-pt1[0])+
+                          (pt0[1]-pt1[1])*(pt0[1]-pt1[1])+
+                          (pt0[2]-pt1[2])*(pt0[2]-pt1[2]) );
+        meanDist += dist;
+        maxDist = dist>maxDist ? dist : maxDist;
+        minDist = dist<minDist ? dist : minDist;
+        count ++;
+        //dpt = pt1-pt2;
+      }
+      meanDist /= double(count);
+      std::cout << "Mean: " << meanDist << " Max: " << maxDist << " Min: " << minDist << std::endl;
+
+    } catch (itk::ExceptionObject& e){
+      std::cerr << "Failed to read input images" << std::endl;
+    }
+  }
   return EXIT_SUCCESS;
 }
