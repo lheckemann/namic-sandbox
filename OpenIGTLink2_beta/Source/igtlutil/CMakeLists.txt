@@ -41,6 +41,7 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtl_unit.h
     igtl_sensor.h
     igtl_string.h
+    igtl_ndarray.h
     )
   SET(igtlutil_SOURCES
     ${igtlutil_SOURCES}
@@ -53,6 +54,7 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtl_unit.c
     igtl_sensor.c
     igtl_string.c
+    igtl_ndarray.c
     )
 endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
 
