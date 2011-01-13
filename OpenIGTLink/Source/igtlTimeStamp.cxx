@@ -125,7 +125,7 @@ TimeStamp::TimeStamp(): Object()
   //this->m_Frequency = static_cast<igtlInt32>( m_WinFrequency );
 
   this->m_WinTimeOrigin = time( NULL );
-  this->m_WinOrigin = clock();
+  this->m_WinClockOrigin = clock();
   this->m_Frequency = 1000000; // fake
 
 
