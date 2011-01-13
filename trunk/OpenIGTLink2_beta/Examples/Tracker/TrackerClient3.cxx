@@ -91,8 +91,11 @@ int main(int argc, char* argv[])
     incr[i]  = 0.5*(float)(i+1);
     }
 
+
   //------------------------------------------------------------
   // loop
+  igtl::TimeStamp::Pointer ts = igtl::TimeStamp::New();
+
   while (1)
     {
     for (int i = 0; i < numdev; i ++)
@@ -101,7 +104,14 @@ int main(int argc, char* argv[])
       igtl::Matrix4x4 matrix;
       GetRandomTestMatrix(matrix, phi[i], theta[i]);
       transMsg->SetMatrix(matrix);
+      ts->GetTime();
+      transMsg->SetTimeStamp(ts);
       transMsg->Pack();
+
+      igtlUint32 sec;
+      igtlUint32 nsec;
+      ts->GetTimeStamp(&sec, &nsec);
+      std::cerr << "Time Stamp: sec = " << sec << ", nsec = " << nsec << std::endl;
       socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
       phi[i]   = phi[i] + 0.2*incr[i];
       theta[i] = theta[i] + 0.1*incr[i];
