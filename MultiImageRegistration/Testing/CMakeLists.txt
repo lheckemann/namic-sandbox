@@ -43,6 +43,11 @@ GENERATECLP(SpatialPriorGenerator.cxx SpatialPriorGenerator.xml)
 ADD_EXECUTABLE(PriorGen SpatialPriorGenerator.cxx)
 TARGET_LINK_LIBRARIES(PriorGen ITKCommon ITKIO)
 
+INSTALL(TARGETS  TransformImage ComputeDice CompareDeformationFields ComputeOutputs CreateImageSetAffine CreateImageSetBspline ComputeJacobianField ComputeDeformationFields PriorGen
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    )
 
 SET_TARGET_PROPERTIES(TransformImage ComputeDice CompareDeformationFields ComputeOutputs
        LibTest CreateImageSetAffine CreateImageSetBspline ComputeJacobianField ComputeDeformationFields PriorGen

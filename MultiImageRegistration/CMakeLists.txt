@@ -57,11 +57,6 @@ macro(ADDFIRSTSLICEREXECUTIONMODEL LOCAL_PROJECT_NAMESPACE)
     find_package(GenerateCLP NO_MODULE QUIET)
   endif(NOT BUILDSEMFROM${LOCAL_PROJECT_NAMESPACE})
 
-  if( BUILDSEMFROM${LOCAL_PROJECT_NAMESPACE} OR NOT GenerateCLP_DIR )
-    set(BUILDSEMFROM${LOCAL_PROJECT_NAMESPACE} ON CACHE BOOL "FLAG FOR BUILD SlicerExectionModel building to prevent recursion.")
-    add_subdirectory(SlicerExecutionModel)
-  endif( BUILDSEMFROM${LOCAL_PROJECT_NAMESPACE} OR NOT GenerateCLP_DIR )
-
   find_package(GenerateCLP NO_MODULE REQUIRED)
   if(GenerateCLP_DIR)
     include(${GenerateCLP_USE_FILE})
