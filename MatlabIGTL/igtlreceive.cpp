@@ -46,8 +46,10 @@
 #include "igtlImageMessage.h"
 #include "igtlTransformMessage.h"
 #include "igtlPositionMessage.h"
+#if OpenIGTLink_PROTOCOL_VERSION >= 2
 #include "igtlTrackingDataMessage.h"
 #include "igtlPointMessage.h"
+#endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 #include "igtlMexClientSocket.h"
 #include "igtlTimeStamp.h"
 
