@@ -14,15 +14,15 @@
 
 =========================================================================*/
 
-#ifndef __IGTL_SENSOR_H
-#define __IGTL_SENSOR_H
+#ifndef __IGTL_STRING_H
+#define __IGTL_STRING_H
 
 #include "igtl_win32header.h"
 #include "igtl_util.h"
 #include "igtl_types.h"
 #include "igtl_win32header.h"
 
-#define IGTL_SENSOR_HEADER_SIZE          10
+#define IGTL_STRING_HEADER_SIZE          10
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,21 +31,21 @@ extern "C" {
 #pragma pack(1)     /* For 1-byte boundary in memroy */
 
 typedef struct {
-  igtl_uint8     larray;           /* Length of array (0-255) */
-  igtl_uint8     status;           /* (reserved) sensor status */
-  igtl_uint64    unit;             /* Unit */
-} igtl_sensor_header;
+  igtl_uint16    encoding;         /* Character encoding type as MIBenum value (defined by IANA). Default=3. */
+                                   /* Please refer http://www.iana.org/assignments/character-sets for detail */
+  igtl_uint16    length;           /* Length of string */
+} igtl_string_header;
 
 #pragma pack()
 
 /*
- * Sensor data size
+ * String data size
  *
  * This function calculates size of the pixel array, which will be
  * transferred with the specified header.
  */
 
-igtl_uint32 igtl_export igtl_sensor_get_data_size(igtl_sensor_header * header);
+igtl_uint32 igtl_export igtl_string_get_data_size(igtl_string_header * header);
 
 /*
  * Byte order conversion
@@ -54,7 +54,7 @@ igtl_uint32 igtl_export igtl_sensor_get_data_size(igtl_sensor_header * header);
  * or vice versa.
  */
 
-void igtl_export igtl_sensor_convert_byte_order(igtl_sensor_header * header, igtl_float64* data);
+void igtl_export igtl_string_convert_byte_order(igtl_string_header * header, void* data);
 
 
 /*
@@ -65,10 +65,12 @@ void igtl_export igtl_sensor_convert_byte_order(igtl_sensor_header * header, igt
  *
  */
 
-igtl_uint64 igtl_export igtl_sensor_get_crc(igtl_sensor_header * header, igtl_float64* data);
+igtl_uint64 igtl_export igtl_string_get_crc(igtl_string_header * header, void* data);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __IGTL_SENSOR_H */
+#endif /* __IGTL_STRING_H */
+
+
