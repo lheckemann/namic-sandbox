@@ -55,79 +55,83 @@ namespace igtl
 
 TimeStamp::TimeStamp(): Object()
 {
-#if defined(WIN32) || defined(_WIN32)
+#if defined(WIN32)
+#if defined(_WIN32)
 
-  //// The following code is deactiveted tempolorary due to unexpected behavior
-  //// on 64-bit platform
+  //// The following code is deactiveted for 64-bit platform
+  // tempolorary due to unexpected behavior 
 
-  //LARGE_INTEGER frequency;
-  //::QueryPerformanceFrequency(&frequency);
-  //
-  //this->m_WinFrequency = 
-  //  static_cast< FrequencyType >( (__int64)frequency.QuadPart );
-  //
-  //SYSTEMTIME st1;
-  //SYSTEMTIME st2;
-  //FILETIME ft1;
-  //FILETIME ft2;
-  //
-  //::memset( &st1, 0, sizeof( st1 ) );
-  //::memset( &st2, 0, sizeof( st2 ) );
-  //
-  //st1.wYear = 1601;
-  //st1.wMonth = 1;
-  //st1.wDay = 1;
-  //
-  //st2.wYear = 1970;
-  //st2.wMonth = 1;
-  //st2.wDay = 1;
-  //
-  //::SystemTimeToFileTime(&st1, &ft1);
-  //::SystemTimeToFileTime(&st2, &ft2);
-  //
-  //LARGE_INTEGER ui1;
-  //LARGE_INTEGER ui2;
-  //
-  //// The following code didn't work on Win64 due to the difference
-  //// of memory boundary
-  ////memcpy( &ui1, &ft1, sizeof( ui1 ) );
-  ////memcpy( &ui2, &ft2, sizeof( ui2 ) );
-  //ui1.LowPart  = ft1.dwLowDateTime;
-  //ui1.HighPart = ft1.dwHighDateTime;
-  //ui2.LowPart  = ft2.dwLowDateTime;
-  //ui2.HighPart = ft2.dwHighDateTime;
-  //
-  //this->m_WinDifference = 
-  //  static_cast< TimeStampType >( ui2.QuadPart - ui1.QuadPart) / 
-  //  static_cast< TimeStampType >( 1e7 );
-  //
-  //FILETIME currentTime;
-  //LARGE_INTEGER intTime;
-  //LARGE_INTEGER tick;
-  //
-  //::GetSystemTimeAsFileTime( &currentTime );
-  //::QueryPerformanceCounter( &tick );
-  //
-  ////memcpy( &intTime, &currentTime, sizeof( intTime ) );
-  //intTime.LowPart  = currentTime.dwLowDateTime;
-  //intTime.HighPart = currentTime.dwHighDateTime;
-  //
-  //this->m_WinOrigin = 
-  //  static_cast< TimeStampType >( intTime.QuadPart ) / 
-  //  static_cast< TimeStampType >( 1e7 );
-  //
-  //this->m_WinOrigin -= 
-  //  static_cast< TimeStampType >( (__int64)tick.QuadPart ) / 
-  //  this->m_WinFrequency;
-  //  
-  //this->m_WinOrigin +=  this->m_WinDifference;
-  //
-  //this->m_Frequency = static_cast<igtlInt32>( m_WinFrequency );
+  LARGE_INTEGER frequency;
+  ::QueryPerformanceFrequency(&frequency);
+  
+  this->m_WinFrequency = 
+    static_cast< FrequencyType >( (__int64)frequency.QuadPart );
+  
+  SYSTEMTIME st1;
+  SYSTEMTIME st2;
+  FILETIME ft1;
+  FILETIME ft2;
+  
+  ::memset( &st1, 0, sizeof( st1 ) );
+  ::memset( &st2, 0, sizeof( st2 ) );
+  
+  st1.wYear = 1601;
+  st1.wMonth = 1;
+  st1.wDay = 1;
+  
+  st2.wYear = 1970;
+  st2.wMonth = 1;
+  st2.wDay = 1;
+  
+  ::SystemTimeToFileTime(&st1, &ft1);
+  ::SystemTimeToFileTime(&st2, &ft2);
+  
+  LARGE_INTEGER ui1;
+  LARGE_INTEGER ui2;
+  
+  // The following code didn't work on Win64 due to the difference
+  // of memory boundary
+  //memcpy( &ui1, &ft1, sizeof( ui1 ) );
+  //memcpy( &ui2, &ft2, sizeof( ui2 ) );
+  ui1.LowPart  = ft1.dwLowDateTime;
+  ui1.HighPart = ft1.dwHighDateTime;
+  ui2.LowPart  = ft2.dwLowDateTime;
+  ui2.HighPart = ft2.dwHighDateTime;
+  
+  this->m_WinDifference = 
+    static_cast< TimeStampType >( ui2.QuadPart - ui1.QuadPart) / 
+    static_cast< TimeStampType >( 1e7 );
+  
+  FILETIME currentTime;
+  LARGE_INTEGER intTime;
+  LARGE_INTEGER tick;
+  
+  ::GetSystemTimeAsFileTime( &currentTime );
+  ::QueryPerformanceCounter( &tick );
+  
+  //memcpy( &intTime, &currentTime, sizeof( intTime ) );
+  intTime.LowPart  = currentTime.dwLowDateTime;
+  intTime.HighPart = currentTime.dwHighDateTime;
+  
+  this->m_WinOrigin = 
+    static_cast< TimeStampType >( intTime.QuadPart ) / 
+    static_cast< TimeStampType >( 1e7 );
+  
+  this->m_WinOrigin -= 
+    static_cast< TimeStampType >( (__int64)tick.QuadPart ) / 
+    this->m_WinFrequency;
+    
+  this->m_WinOrigin +=  this->m_WinDifference;
+  
+  this->m_Frequency = static_cast<igtlInt32>( m_WinFrequency );
+
+#else // defined(_WIN32) -> _WIN64
 
   this->m_WinTimeOrigin = time( NULL );
   this->m_WinClockOrigin = clock();
   this->m_Frequency = 1000000; // fake
 
+#endif // else defined(_WIN32)
 
 #else
 
@@ -144,30 +148,33 @@ TimeStamp::~TimeStamp()
 
 void TimeStamp::GetTime()
 {
-#if defined(WIN32) || defined(_WIN32)
+#if defined(WIN32)
+#if defined(_WIN32)
 
-  //// The following code is deactiveted tempolorary due to unexpected behavior
-  //// on 64-bit platform
+  // The following code is deactiveted tempolorary due to unexpected behavior
+  // on 64-bit platform
 
-  //LARGE_INTEGER tick;
-  //
-  //::QueryPerformanceCounter( &tick );
-  //
-  //TimeStampType value = 
-  //    static_cast< TimeStampType >( (__int64)tick.QuadPart ) / 
-  //    this->m_WinFrequency;
-  //
-  //value += this->m_WinOrigin;
-  //
-  //double second = floor(value);
-  //this->m_Second = static_cast<igtlInt32>(second);
-  //this->m_Nanosecond = static_cast<igtlInt32>((value - second)*1e9);
+  LARGE_INTEGER tick;
+  
+  ::QueryPerformanceCounter( &tick );
+  
+  TimeStampType value = 
+      static_cast< TimeStampType >( (__int64)tick.QuadPart ) / 
+      this->m_WinFrequency;
+  
+  value += this->m_WinOrigin;
+  
+  double second = floor(value);
+  this->m_Second = static_cast<igtlInt32>(second);
+  this->m_Nanosecond = static_cast<igtlInt32>((value - second)*1e9);
+
+#else //  defined(_WIN32) -> _WIN64
 
   clock_t c1 = clock();
   this->m_Second     = static_cast<igtlInt32>(this->m_WinTimeOrigin + ( c1 - this->m_WinClockOrigin ) / CLOCKS_PER_SEC);
   this->m_Nanosecond = static_cast<igtlInt32>((c1 - this->m_WinClockOrigin ) % CLOCKS_PER_SEC * ( 1e9 / CLOCKS_PER_SEC ));
-
-#else
+#endif
+#else // defined(WIN32)
 
   struct timeval tval;
 
