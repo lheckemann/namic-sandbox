@@ -35,33 +35,10 @@
 
 #include "vtkMRMLTransformRecorderNode.h"
 
+
 class vtkKWLoadSaveButtonWithLabel;
 class vtkKWLabel;
-
-
-// Quick message buttons. -----------------------------------------------------
-
-static const int BUTTON_COUNT = 6;
-static const char* BUTTON_TEXTS[ BUTTON_COUNT ] =
-  {
-  "Alignment outside",
-  "Pierce skin",
-  "Pause motion",
-  "Adjust angle inside",
-  "Take out",
-  "Needle placed"
-  };
-static const char* BUTTON_MESSAGES[ BUTTON_COUNT ] =
-  {
-  "Alignment outside",
-  "Pierce skin",
-  "Pause motion",
-  "Adjust angle inside",
-  "Take out",
-  "Needle placed"
-  };
-
-// ----------------------------------------------------------------------------
+class vtkKWMultiColumnListWithScrollbars;
 
 
 
@@ -73,7 +50,6 @@ class VTK_TransformRecorder_EXPORT vtkTransformRecorderGUI : public vtkSlicerMod
 
   //----------------------------------------------------------------
   // Set/Get Methods
-  //----------------------------------------------------------------
 
   vtkGetObjectMacro ( Logic, vtkTransformRecorderLogic );
   void SetModuleLogic ( vtkSlicerLogic *logic )
@@ -84,7 +60,39 @@ class VTK_TransformRecorder_EXPORT vtkTransformRecorderGUI : public vtkSlicerMod
   
   vtkSetObjectMacro( ModuleNode, vtkMRMLTransformRecorderNode );
   
+  vtkSetMacro( AnnotationsNumber, int );
   
+  
+  //----------------------------------------------------------------
+  // New method, Initialization etc.
+
+  static vtkTransformRecorderGUI* New ();
+  void Init();
+  virtual void Enter ( );
+  virtual void Exit ( );
+  void PrintSelf (ostream& os, vtkIndent indent );
+  
+  
+  //----------------------------------------------------------------
+  // Observer Management
+
+  virtual void AddGUIObservers ( );
+  virtual void RemoveGUIObservers ( );
+  void AddLogicObservers ( );
+  void RemoveLogicObservers ( );
+  void RemoveMRMLObservers();
+
+  //----------------------------------------------------------------
+  // Event Handlers
+  
+  virtual void ProcessLogicEvents ( vtkObject *caller, unsigned long event, void *callData );
+  virtual void ProcessGUIEvents ( vtkObject *caller, unsigned long event, void *callData );
+  virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
+  void ProcessTimerEvents();
+  void HandleMouseEvent(vtkSlicerInteractorStyle *style);
+  static void DataCallback(vtkObject *caller, 
+                           unsigned long eid, void *clientData, void *callData);
+
  protected:
   //----------------------------------------------------------------
   // Constructor / Destructor (proctected/private) 
@@ -99,46 +107,14 @@ class VTK_TransformRecorder_EXPORT vtkTransformRecorderGUI : public vtkSlicerMod
   vtkTransformRecorderGUI ( const vtkTransformRecorderGUI& ); // Not implemented.
   void operator = ( const vtkTransformRecorderGUI& ); //Not implemented.
 
- public:
-  //----------------------------------------------------------------
-  // New method, Initialization etc.
-  //----------------------------------------------------------------
-
-  static vtkTransformRecorderGUI* New ();
-  void Init();
-  virtual void Enter ( );
-  virtual void Exit ( );
-  void PrintSelf (ostream& os, vtkIndent indent );
-  
-  
-  //----------------------------------------------------------------
-  // Observer Management
-  //----------------------------------------------------------------
-
-  virtual void AddGUIObservers ( );
-  virtual void RemoveGUIObservers ( );
-  void AddLogicObservers ( );
-  void RemoveLogicObservers ( );
-  void RemoveMRMLObservers();
-
-  //----------------------------------------------------------------
-  // Event Handlers
-  //----------------------------------------------------------------
-  
-  virtual void ProcessLogicEvents ( vtkObject *caller, unsigned long event, void *callData );
-  virtual void ProcessGUIEvents ( vtkObject *caller, unsigned long event, void *callData );
-  virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
-  void ProcessTimerEvents();
-  void HandleMouseEvent(vtkSlicerInteractorStyle *style);
-  static void DataCallback(vtkObject *caller, 
-                           unsigned long eid, void *clientData, void *callData);
 
 protected:
   
   void SelectLogFile();
   
 
-public:  
+public:
+  
   //----------------------------------------------------------------
   // Build Frames
   //----------------------------------------------------------------
@@ -148,13 +124,15 @@ public:
   
   void BuildGUIForIOFrame();
   void BuildGUIForControlsFrame();
-  void BuildGUIForMonitorFrame();
+  void BuildGUIForAnnotationsFrame();
   
 
   //----------------------------------------------------------------
   // Update routines
   //----------------------------------------------------------------
-
+  
+  void OnTransformsListUpdate(int row, int col, char * str);
+  
   void UpdateAll();
 
 
@@ -170,18 +148,33 @@ public:
   //----------------------------------------------------------------
   // GUI widgets
   //----------------------------------------------------------------
-    
+  
   vtkSlicerNodeSelectorWidget*  ModuleNodeSelector;
-  vtkSlicerNodeSelectorWidget*  TransformSelector;
+  vtkSlicerNodeSelectorWidget*  TransformSelector; // Not used.
+  vtkSlicerNodeSelectorWidget*  ConnectionSelector;
+  
+  vtkKWMultiColumnListWithScrollbars* TransformsList;
+  
   vtkKWLoadSaveButtonWithLabel* FileSelectButton;
   vtkKWLabel*                   LogFileLabel;
   vtkKWPushButton*              ClearBufferButton;
   vtkKWPushButton*              SaveButton;
   
-  vtkKWPushButton*  StartButton;
-  vtkKWPushButton*  StopButton;
-  vtkKWEntry*       CustomEntry;
-  vtkKWPushButton*  CustomButton;
+  vtkKWPushButton*              StartButton;
+  vtkKWPushButton*              StopButton;
+  
+  vtkSlicerModuleCollapsibleFrame* AnnotFrame;
+  vtkKWFrame*                     QuickFrame;
+  vtkKWEntry*                     AnnotationsNumberEntry;
+  vtkKWPushButton*                AnnotationsUpdateButton;
+  //BTX
+  std::vector< vtkKWEntry* >      AnnotationEntryVector;
+  std::vector< vtkKWPushButton* > AnnotationButtonVector;
+  //ETX
+  vtkKWEntry*                     CustomEntry;
+  vtkKWPushButton*                CustomButton;
+  
+  
   
   //BTX
   std::vector< vtkKWPushButton* > MessageButtons;
@@ -195,8 +188,8 @@ public:
   // Logic Values
   //----------------------------------------------------------------
 
-  vtkTransformRecorderLogic *Logic;
-  vtkCallbackCommand *DataCallbackCommand;
+  vtkTransformRecorderLogic* Logic;
+  vtkCallbackCommand*        DataCallbackCommand;
   int                        CloseScene;
 
 
@@ -208,7 +201,8 @@ private:
   vtkSetStringMacro( ModuleNodeID );
   char* ModuleNodeID;
   vtkMRMLTransformRecorderNode* ModuleNode;
-
+  
+  int AnnotationsNumber;
 };
 
 

@@ -1,6 +1,7 @@
 
 #include "vtkTransformRecorderGUI.h"
 
+#include <fstream>
 #include <sstream>
 #include <string>
 
@@ -24,7 +25,12 @@
 #include "vtkKWFrame.h"
 #include "vtkKWLabel.h"
 #include "vtkKWLoadSaveButtonWithLabel.h"
+#include "vtkKWMultiColumnList.h"
+#include "vtkKWMultiColumnListWithScrollbars.h"
 #include "vtkKWEvent.h"
+
+#include "vtkMRMLIGTLConnectorNode.h"
+#include "vtkMRMLLinearTransformNode.h"
 
 #include "vtkKWPushButton.h"
 
@@ -80,6 +86,9 @@ vtkTransformRecorderGUI
   
   this->ModuleNodeSelector = NULL;
   this->TransformSelector = NULL;
+  this->ConnectionSelector = NULL;
+  
+  this->TransformsList = NULL;
   this->FileSelectButton = NULL;
   this->LogFileLabel = NULL;
   this->ClearBufferButton = NULL;
@@ -87,17 +96,16 @@ vtkTransformRecorderGUI
   
   this->StartButton = NULL;
   this->StopButton = NULL;
+  
+  this->AnnotFrame = NULL;
+  this->QuickFrame = NULL;
+  this->AnnotationsNumberEntry = NULL;
+  this->AnnotationsUpdateButton = NULL;
   this->CustomEntry = NULL;
   this->CustomButton = NULL;
   
   this->StatusLabel = NULL;
   this->TranslationLabel = NULL;
-  
-  for ( int i = 0; i < BUTTON_COUNT; ++ i )
-    {
-    vtkKWPushButton* button = NULL;
-    this->MessageButtons.push_back( button );
-    }
   
   
   //----------------------------------------------------------------
@@ -107,6 +115,9 @@ vtkTransformRecorderGUI
   
   this->ModuleNodeID = NULL;
   this->ModuleNode = NULL;
+  
+  
+  this->AnnotationsNumber = 2;
 }
 
 
@@ -128,11 +139,14 @@ vtkTransformRecorderGUI
 
   this->RemoveGUIObservers();
 
+
   //----------------------------------------------------------------
   // Remove GUI widgets
 
   DESTRUCT( this->ModuleNodeSelector );
   DESTRUCT( this->TransformSelector );
+  DESTRUCT( this->ConnectionSelector );
+  
   DESTRUCT( this->FileSelectButton );
   DESTRUCT( this->LogFileLabel );
   DESTRUCT( this->ClearBufferButton );
@@ -140,16 +154,16 @@ vtkTransformRecorderGUI
   
   DESTRUCT( this->StartButton );
   DESTRUCT( this->StopButton );
+  
+  DESTRUCT( this->AnnotFrame );
+  DESTRUCT( this->QuickFrame );
+  DESTRUCT( this->AnnotationsNumberEntry );
+  DESTRUCT( this->AnnotationsUpdateButton );
   DESTRUCT( this->CustomEntry );
   DESTRUCT( this->CustomButton );
   
   DESTRUCT( this->StatusLabel );
   DESTRUCT( this->TranslationLabel );
-  
-  for ( int i = 0; i < BUTTON_COUNT; ++ i )
-    {
-    DESTRUCT( this->MessageButtons[ i ] );
-    }
   
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -199,6 +213,8 @@ vtkTransformRecorderGUI
     vtkSetAndObserveMRMLNodeMacro( this->ModuleNode, node );
     // this->GetMRMLScene()->AddNode( this->ModuleNode );
     }
+  
+  this->UpdateGUI();
 }
 
 
@@ -232,6 +248,8 @@ vtkTransformRecorderGUI
 
   REMOVE_OBSERVERS( this->ModuleNodeSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->TransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  REMOVE_OBSERVERS( this->ConnectionSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  
   REMOVE_OBSERVERS( this->FileSelectButton->GetWidget(), vtkKWLoadSaveDialog::WithdrawEvent );
   
   REMOVE_OBSERVER( this->SaveButton );
@@ -239,11 +257,7 @@ vtkTransformRecorderGUI
   
   REMOVE_OBSERVER( this->StartButton );
   REMOVE_OBSERVER( this->StopButton );
-  
-  for ( int i = 0; i < BUTTON_COUNT; ++ i )
-    {
-    REMOVE_OBSERVER( this->MessageButtons[ i ] );
-    }
+  REMOVE_OBSERVER( this->ClearBufferButton );
   
   this->RemoveLogicObservers();
   this->RemoveMRMLObservers();
@@ -285,6 +299,16 @@ vtkTransformRecorderGUI
     ->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
                    (vtkCommand *)this->GUICallbackCommand );
   
+  this->ConnectionSelector
+    ->AddObserver( vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
+                   (vtkCommand *)this->GUICallbackCommand );
+  
+  
+  if ( this->TransformsList )
+    {
+    this->TransformsList->GetWidget()->SetCellUpdatedCommand( this, "OnTransformsListUpdate" );    
+    }
+  
   
   this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->AddObserver(
     vtkKWLoadSaveDialog::WithdrawEvent, (vtkCommand*)( this->GUICallbackCommand ) );
@@ -292,14 +316,11 @@ vtkTransformRecorderGUI
   ADD_BUTTONINVOKED_OBSERVER( this->SaveButton );
   
   
-  for ( int i = 0; i < BUTTON_COUNT; ++ i )
-    {
-    ADD_BUTTONINVOKED_OBSERVER( this->MessageButtons[ i ] );
-    }
-  
-  
   ADD_BUTTONINVOKED_OBSERVER( this->StartButton );
   ADD_BUTTONINVOKED_OBSERVER( this->StopButton );
+  ADD_BUTTONINVOKED_OBSERVER( this->ClearBufferButton );
+  
+  ADD_BUTTONINVOKED_OBSERVER( this->AnnotationsUpdateButton );
   ADD_BUTTONINVOKED_OBSERVER( this->CustomButton );
   
   
@@ -307,7 +328,7 @@ vtkTransformRecorderGUI
 }
 
 
-//---------------------------------------------------------------------------
+
 void vtkTransformRecorderGUI::RemoveLogicObservers ( )
 {
   if (this->GetLogic())
@@ -319,8 +340,6 @@ void vtkTransformRecorderGUI::RemoveLogicObservers ( )
 
 
 
-
-//---------------------------------------------------------------------------
 void vtkTransformRecorderGUI::AddLogicObservers ( )
 {
   this->RemoveLogicObservers();  
@@ -354,6 +373,8 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
     }
 
   
+    // Change the module node (TransformRecorder).
+  
   if ( this->ModuleNodeSelector ==
        vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
        && ( event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
@@ -368,30 +389,39 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
       selectedNodeID = selectedNode->GetID();
       this->SetAndObserveModuleNodeID( selectedNodeID );
       this->SetModuleNode( selectedNode );
+      
+      this->ModuleNode->AddObserver( vtkMRMLTransformRecorderNode::TransformChangedEvent,
+                                       (vtkCommand*)this->MRMLCallbackCommand );
+      this->ModuleNode->AddObserver( vtkMRMLTransformRecorderNode::RecordingStartEvent,
+                                      (vtkCommand*)this->MRMLCallbackCommand );
+      this->ModuleNode->AddObserver( vtkMRMLTransformRecorderNode::RecordingStopEvent,
+                                       (vtkCommand*)this->MRMLCallbackCommand );
       }
     }
   
   
+    // A new IGTL connector node was selected. Update observers.
+  
   if (    this->ModuleNode
-       && this->TransformSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
+       && this->ConnectionSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
        && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent )
     {
     char* selectedNodeID = NULL;
-    vtkMRMLTransformNode* selectedNode = vtkMRMLTransformNode::SafeDownCast(
-      this->TransformSelector->GetSelected() );
+    vtkMRMLIGTLConnectorNode* selectedNode = vtkMRMLIGTLConnectorNode::SafeDownCast(
+        this->ConnectionSelector->GetSelected() );
+    
     if ( selectedNode != NULL )
       {
       selectedNodeID = selectedNode->GetID();
       }
-    this->ModuleNode->SetAndObserveObservedTransformNodeID( selectedNodeID );
-    this->ModuleNode->AddObserver( vtkMRMLTransformRecorderNode::TransformChangedEvent,
-                                   (vtkCommand*)this->MRMLCallbackCommand );
-    this->ModuleNode->AddObserver( vtkMRMLTransformRecorderNode::RecordingStartEvent,
-                                   (vtkCommand*)this->MRMLCallbackCommand );
-    this->ModuleNode->AddObserver( vtkMRMLTransformRecorderNode::RecordingStopEvent,
-                                   (vtkCommand*)this->MRMLCallbackCommand );
+    
+    this->ModuleNode->SetAndObserveObservedConnectorNodeID( selectedNodeID );
+    
+    
     }
   
+  
+    // Save into file.
   
   if ( this->FileSelectButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast( caller ) )
     {
@@ -402,6 +432,7 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
     }
   
   
+    // Clear buffer button pressed.
   
   if (    this->ClearBufferButton == vtkKWPushButton::SafeDownCast( caller )
        && event == vtkKWPushButton::InvokedEvent )
@@ -409,6 +440,8 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
     this->ModuleNode->ClearBuffer();
     }
   
+  
+    // Save button pressed.
   
   if (    this->SaveButton == vtkKWPushButton::SafeDownCast( caller )
        && event == vtkKWPushButton::InvokedEvent )
@@ -434,20 +467,32 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
     }
   
   
-  for ( int i = 0; i < BUTTON_COUNT; ++ i )
+  for ( int i = 0; i < this->AnnotationButtonVector.size(); ++ i )
     {
-    if ( this->MessageButtons[ i ] == vtkKWPushButton::SafeDownCast( caller )
+    if ( this->AnnotationButtonVector[ i ] == vtkKWPushButton::SafeDownCast( caller )
          && event == vtkKWPushButton::InvokedEvent )
       {
-      this->ModuleNode->CustomMessage( std::string( BUTTON_MESSAGES[ i ] ) );
+      this->ModuleNode->CustomMessage(
+        std::string( this->AnnotationEntryVector[ i ]->GetValue() ) );
       }
     }
   
+  
+    // Annotations panel
+  
+  if ( this->AnnotationsUpdateButton == vtkKWPushButton::SafeDownCast( caller ) && event == vtkKWPushButton::InvokedEvent )
+    {
+    int anum = this->AnnotationsNumberEntry->GetValueAsInt();
+    this->SetAnnotationsNumber( anum );
+    }
   
   if ( this->CustomButton == vtkKWPushButton::SafeDownCast( caller ) && event == vtkKWPushButton::InvokedEvent )
     {
     this->ModuleNode->CustomMessage( std::string( this->CustomEntry->GetValue() ) );
     }
+  
+  
+  this->UpdateGUI();
 } 
 
 
@@ -485,29 +530,11 @@ void vtkTransformRecorderGUI::ProcessLogicEvents ( vtkObject *caller,
 }
 
 
-//---------------------------------------------------------------------------
-void vtkTransformRecorderGUI::ProcessMRMLEvents ( vtkObject *caller,
-                                            unsigned long event, void *callData )
+
+void
+vtkTransformRecorderGUI
+::ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData )
 {
-  // Fill in
-  
-  if (    this->ModuleNode
-       && this->ModuleNode == vtkMRMLTransformRecorderNode::SafeDownCast( caller )
-       && event == vtkMRMLTransformRecorderNode::TransformChangedEvent )
-    {
-    vtkMRMLTransformNode* transform = this->ModuleNode->GetObservedTransformNode();
-    vtkMatrix4x4* matrix = vtkMatrix4x4::New();
-    matrix->Identity();
-    
-    transform->GetMatrixTransformToWorld( matrix );
-    
-    std::stringstream ss;
-    ss << matrix->GetElement( 0, 3 ) << " " << matrix->GetElement( 1, 3 )
-       << " " << matrix->GetElement( 2, 3 );
-    this->TranslationLabel->SetText( ss.str().c_str() );
-    matrix->Delete();
-    }
-  
   if (    this->ModuleNode
        && this->ModuleNode == vtkMRMLTransformRecorderNode::SafeDownCast( caller )
        && event == vtkMRMLTransformRecorderNode::RecordingStartEvent )
@@ -522,13 +549,17 @@ void vtkTransformRecorderGUI::ProcessMRMLEvents ( vtkObject *caller,
     this->StatusLabel->SetText( "Waiting" );
     }
   
+  
   if (event == vtkMRMLScene::SceneCloseEvent)
     {
     }
+  
+  
+  this->UpdateGUI();
 }
 
 
-//---------------------------------------------------------------------------
+
 void vtkTransformRecorderGUI::ProcessTimerEvents()
 {
   if (this->TimerFlag)
@@ -541,6 +572,7 @@ void vtkTransformRecorderGUI::ProcessTimerEvents()
 }
 
 
+
 void
 vtkTransformRecorderGUI
 ::SelectLogFile()
@@ -550,12 +582,12 @@ vtkTransformRecorderGUI
   if ( fileName )
     {
     this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->SaveLastPathToRegistry( "TransformRecorderLogFile" );
-    this->ModuleNode->SetLogFileName( std::string( fileName ) );
+    this->ModuleNode->SaveIntoFile( std::string( fileName ) );
     }
 }
 
 
-//---------------------------------------------------------------------------
+
 void
 vtkTransformRecorderGUI
 ::BuildGUI ( )
@@ -570,7 +602,7 @@ vtkTransformRecorderGUI
   
   this->BuildGUIForIOFrame();
   this->BuildGUIForControlsFrame();
-  this->BuildGUIForMonitorFrame();
+  this->BuildGUIForAnnotationsFrame();
 }
 
 
@@ -601,7 +633,7 @@ vtkTransformRecorderGUI
       vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();
     inputFrame->SetParent( page );
     inputFrame->Create();
-    inputFrame->SetLabelText( "Input / Output" );
+    inputFrame->SetLabelText( "Input" );
   
   app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                inputFrame->GetWidgetName(), page->GetWidgetName() );
@@ -620,7 +652,6 @@ vtkTransformRecorderGUI
   app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
                this->ModuleNodeSelector->GetWidgetName() );
   
-  
   this->TransformSelector = vtkSlicerNodeSelectorWidget::New();
   this->TransformSelector->SetParent( inputFrame->GetFrame() );
   this->TransformSelector->Create();
@@ -629,16 +660,65 @@ vtkTransformRecorderGUI
   this->TransformSelector->SetMRMLScene( this->GetMRMLScene() );
   this->TransformSelector->SetLabelText( "Transform to track: " );
   
+  /*
   app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
                this->TransformSelector->GetWidgetName() );
+  */
   
   
-  vtkSmartPointer< vtkKWFrame > fileSelectFrame
-      = vtkSmartPointer< vtkKWFrame >::New();
-    fileSelectFrame->SetParent( inputFrame->GetFrame() );
-    fileSelectFrame->Create();
+  this->ConnectionSelector = vtkSlicerNodeSelectorWidget::New();
+  this->ConnectionSelector->SetParent( inputFrame->GetFrame() );
+  this->ConnectionSelector->Create();
+  this->ConnectionSelector->NoneEnabledOn();
+  this->ConnectionSelector->SetNodeClass( "vtkMRMLIGTLConnectorNode", NULL, NULL, "Connector" );
+  this->ConnectionSelector->SetMRMLScene( this->GetMRMLScene() );
+  this->ConnectionSelector->SetLabelText( "IGT Connector: " );
   
   app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
+               this->ConnectionSelector->GetWidgetName() );
+  
+  
+  // Just try how this widget works.
+  this->TransformsList = vtkKWMultiColumnListWithScrollbars::New();
+  this->TransformsList->SetParent( inputFrame->GetFrame() );
+  this->TransformsList->Create();
+  this->TransformsList->GetWidget()->SetHeight( 3 );
+  this->TransformsList->GetWidget()->SetSelectionTypeToRow();
+  this->TransformsList->GetWidget()->MovableRowsOff();
+  this->TransformsList->GetWidget()->MovableColumnsOff();
+  this->TransformsList->GetWidget()->AddColumn( "Record" );
+  this->TransformsList->GetWidget()->SetColumnEditable( 0, 1 );
+  this->TransformsList->GetWidget()->SetColumnEditWindowToCheckButton( 0 );
+  this->TransformsList->GetWidget()->AddColumn( "Transform" );
+  this->TransformsList->GetWidget()->SetColumnEditable( 1, 0 );
+  this->TransformsList->GetWidget()->SetColumnEditWindowToEntry( 1 );
+  this->TransformsList->GetWidget()->SetColumnWidth( 1, 35 );
+  
+  app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
+               this->TransformsList->GetWidgetName() );
+  
+  
+  
+  
+  
+  // Output ---------------------------------------------------------------------
+  
+  
+  vtkSmartPointer< vtkSlicerModuleCollapsibleFrame > outputFrame =
+      vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();
+    outputFrame->SetParent( page );
+    outputFrame->Create();
+    outputFrame->SetLabelText( "Output" );
+  
+  app->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               outputFrame->GetWidgetName(), page->GetWidgetName() );
+  
+  
+  vtkSmartPointer< vtkKWFrame > fileSelectFrame = vtkSmartPointer< vtkKWFrame >::New();
+    fileSelectFrame->SetParent( outputFrame->GetFrame() );
+    fileSelectFrame->Create();
+  
+  app->Script( "pack %s -side left -anchor nw -fill x -padx 2 -pady 2",
                fileSelectFrame->GetWidgetName() );
   
   
@@ -648,8 +728,8 @@ vtkTransformRecorderGUI
   this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOn();
   this->FileSelectButton->SetLabelText( "Tracking record file: " );
   this->FileSelectButton->GetWidget()->SetText( "Select log file" );
-  this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->RetrieveLastPathFromRegistry(
-    "TransformRecorderLogFile" );
+  this->FileSelectButton->GetWidget()->GetLoadSaveDialog()
+      ->RetrieveLastPathFromRegistry( "TransformRecorderLogFile" );
   this->FileSelectButton->GetWidget()->TrimPathFromFileNameOff();
   // this->FileSelectButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes( "{{TXT File} {.txt}}" );
   
@@ -670,16 +750,10 @@ vtkTransformRecorderGUI
   this->SaveButton->Create();
   this->SaveButton->SetText( "Save" );
   
-  app->Script( "pack %s -side right -anchor ne -fill x -padx 2 -pady 2", this->SaveButton->GetWidgetName() );
-  
-  this->ClearBufferButton = vtkKWPushButton::New();
-  this->ClearBufferButton->SetParent( fileSelectFrame );
-  this->ClearBufferButton->Create();
-  this->ClearBufferButton->SetText( "Clear buffer" );
-  
-  app->Script( "pack %s -side right -anchor ne -fill x -padx 2 -pady 2", this->ClearBufferButton->GetWidgetName() );
+  // app->Script( "pack %s -side right -anchor ne -fill x -padx 2 -pady 2", this->SaveButton->GetWidgetName() );
   
 }
+
 
 
 void
@@ -706,45 +780,129 @@ vtkTransformRecorderGUI
   this->StartButton = vtkKWPushButton::New();
   this->StartButton->SetParent( startFrame );
   this->StartButton->Create();
-  this->StartButton->SetBackgroundColor( 0.5, 1.0, 0.5 );
+  this->StartButton->SetBackgroundColor( 0.7, 1.0, 0.7 );
   this->StartButton->SetWidth( 10 );
   this->StartButton->SetText( "Start" );
   
   this->StopButton = vtkKWPushButton::New();
   this->StopButton->SetParent( startFrame );
   this->StopButton->Create();
-  this->StopButton->SetBackgroundColor( 1.0, 0.5, 0.5 );
+  this->StopButton->SetBackgroundColor( 1.0, 0.7, 0.7 );
   this->StopButton->SetWidth( 10 );
   this->StopButton->SetText( "Stop" );
   
+  this->ClearBufferButton = vtkKWPushButton::New();
+  this->ClearBufferButton->SetParent( startFrame );
+  this->ClearBufferButton->Create();
+  this->ClearBufferButton->SetBackgroundColor( 1.0,0.9, 0.7 );
+  this->ClearBufferButton->SetWidth( 10 );
+  this->ClearBufferButton->SetText( "Clear buffer" );
+  
   this->Script( "pack %s -side top -anchor w -padx 0 -pady 0", startFrame->GetWidgetName() );
-  this->Script( "pack %s -side left -anchor w -padx 2 -pady 2", this->StopButton->GetWidgetName() );
   this->Script( "pack %s -side left -anchor w -padx 2 -pady 2", this->StartButton->GetWidgetName() );
+  this->Script( "pack %s -side left -anchor w -padx 2 -pady 2", this->StopButton->GetWidgetName() );
+  this->Script( "pack %s -side left -anchor w -padx 2 -pady 2", this->ClearBufferButton->GetWidgetName() );
   
   
-    // Message buttons.
+    // Monitor frame.
   
-  vtkSmartPointer< vtkKWFrame > messagesFrame = vtkSmartPointer< vtkKWFrame >::New();\
-    messagesFrame->SetParent( controlsFrame->GetFrame() );
-    messagesFrame->Create();
-  this->Script( "pack %s -side top -anchor w -padx 0 -pady 0", messagesFrame->GetWidgetName() );
-  
-  for ( int i = 0; i < BUTTON_COUNT; ++ i )
-    {
-    this->MessageButtons[ i ] = vtkKWPushButton::New();
-    this->MessageButtons[ i ]->SetParent( messagesFrame );
-    this->MessageButtons[ i ]->Create();
-    this->MessageButtons[ i ]->SetText( BUTTON_TEXTS[ i ] );
-    this->MessageButtons[ i ]->SetBackgroundColor( 0.9, 0.9, 0.9 );
-    this->MessageButtons[ i ]->SetWidth( 20 );
-    this->Script( "pack %s -side top -anchor w -padx 2 -pady 2",
-                  this->MessageButtons[ i ]->GetWidgetName() );
-    }
+  vtkSmartPointer< vtkKWFrame > monitorFrame = vtkSmartPointer< vtkKWFrame >::New();
+    monitorFrame->SetParent( controlsFrame->GetFrame() );
+    monitorFrame->Create();
+    
+  this->Script( "pack %s -side top -anchor w -padx 0 -pady 0", monitorFrame->GetWidgetName() );
   
   
+  vtkSmartPointer< vtkKWLabel > decStatusLabel = vtkSmartPointer< vtkKWLabel >::New();
+    decStatusLabel->SetParent( monitorFrame );
+    decStatusLabel->Create();
+    decStatusLabel->SetText( "Status: " );
+  
+  this->StatusLabel = vtkKWLabel::New();
+  this->StatusLabel->SetParent( monitorFrame );
+  this->StatusLabel->Create();
+  this->StatusLabel->SetText( "Waiting." );
+  
+  vtkSmartPointer< vtkKWLabel > decTranslationLabel = vtkSmartPointer< vtkKWLabel >::New();
+    decTranslationLabel->SetParent( monitorFrame );
+    decTranslationLabel->Create();
+    decTranslationLabel->SetText( "Number of records: " );
+  
+  this->TranslationLabel = vtkKWLabel::New();
+  this->TranslationLabel->SetParent( monitorFrame );
+  this->TranslationLabel->Create();
+  this->TranslationLabel->SetText( " - " );
+  
+  
+  this->Script( "grid %s -column 0 -row 0 -sticky w -padx 2 -pady 2", decStatusLabel->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 0 -sticky w -padx 2 -pady 2", this->StatusLabel->GetWidgetName() );
+  this->Script( "grid %s -column 0 -row 1 -sticky w -padx 2 -pady 2", decTranslationLabel->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 1 -sticky w -padx 2 -pady 2", this->TranslationLabel->GetWidgetName() );
+  
+  this->Script( "grid columnconfigure %s 0 -weight 1", monitorFrame->GetWidgetName() );
+  this->Script( "grid columnconfigure %s 1 -weight 100", monitorFrame->GetWidgetName() );
+}
+
+
+
+void
+vtkTransformRecorderGUI
+::BuildGUIForAnnotationsFrame()
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget( "TransformRecorder" );
+  
+  
+  this->AnnotFrame = vtkSlicerModuleCollapsibleFrame::New();
+    this->AnnotFrame->SetParent( page );
+    this->AnnotFrame->Create();
+    this->AnnotFrame->SetLabelText( "Annotations" );
+  
+  app->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+                this->AnnotFrame->GetWidgetName(), page->GetWidgetName() );
+  
+  
+  vtkSmartPointer< vtkKWFrame > topRow = vtkSmartPointer< vtkKWFrame >::New();
+    topRow->SetParent( this->AnnotFrame->GetFrame() );
+    topRow->Create();
+  this->Script( "pack %s -side top -anchor w -padx 0 -pady 0", topRow->GetWidgetName() );
+  
+  
+  vtkSmartPointer< vtkKWLabel > numLabel = vtkSmartPointer< vtkKWLabel >::New();
+    numLabel->SetParent( topRow );
+    numLabel->Create();
+    numLabel->SetText( "Number of quick annotations: " );
+  this->Script( "pack %s -side left -anchor w -padx 2 -pady 2", numLabel->GetWidgetName() );
+  
+  this->AnnotationsNumberEntry = vtkKWEntry::New();
+    this->AnnotationsNumberEntry->SetParent( topRow );
+    this->AnnotationsNumberEntry->Create();
+    this->AnnotationsNumberEntry->SetWidth( 3 );
+  this->Script( "pack %s -side left -anchor w -padx 2 -pady 2",
+                this->AnnotationsNumberEntry->GetWidgetName() );
+  
+  this->AnnotationsUpdateButton = vtkKWPushButton::New();
+    this->AnnotationsUpdateButton->SetParent( topRow );
+    this->AnnotationsUpdateButton->Create();
+    this->AnnotationsUpdateButton->SetText( "Update" );
+  this->Script( "pack %s -side left -anchor w -padx 2 -pady 2",
+                this->AnnotationsUpdateButton->GetWidgetName() );
+  
+  
+    // Quick annotations.
+  
+  this->QuickFrame = vtkKWFrame::New();
+    this->QuickFrame->SetParent( this->AnnotFrame->GetFrame() );
+    this->QuickFrame->Create();
+  this->Script( "pack %s -side top -anchor w -padx 0 -pady 0", this->QuickFrame->GetWidgetName() );
+  
+  // This frame is filled with widgets in the UpdateGUI function.
+  
+  
+    // Custom annotation.
   
   vtkSmartPointer< vtkKWFrame > customFrame = vtkSmartPointer< vtkKWFrame >::New();
-    customFrame->SetParent( controlsFrame->GetFrame() );
+    customFrame->SetParent( this->AnnotFrame->GetFrame() );
     customFrame->Create();
   
   vtkSmartPointer< vtkKWLabel > customLabel = vtkSmartPointer< vtkKWLabel >::New();
@@ -769,56 +927,32 @@ vtkTransformRecorderGUI
 }
 
 
+
 void
 vtkTransformRecorderGUI
-::BuildGUIForMonitorFrame()
+::OnTransformsListUpdate( int row, int col, char * str )
 {
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget( "TransformRecorder" );
+    // Communicate to the MRML node, which transforms should be saved.
   
-  vtkSmartPointer< vtkSlicerModuleCollapsibleFrame > monitorFrame =
-      vtkSmartPointer< vtkSlicerModuleCollapsibleFrame >::New();
-    monitorFrame->SetParent( page );
-    monitorFrame->Create();
-    monitorFrame->SetLabelText( "Monitor" );
+  std::vector< int > transformSelections;
+  for ( int row = 0; row < this->TransformsList->GetWidget()->GetNumberOfRows(); ++ row )
+    {
+    transformSelections.push_back( this->TransformsList->GetWidget()->GetCellTextAsInt( row, 0 ) );
+    }
+  this->ModuleNode->SetTransformSelections( transformSelections );
   
-  app->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-                monitorFrame->GetWidgetName(), page->GetWidgetName() );
   
-  vtkSmartPointer< vtkKWLabel > decStatusLabel = vtkSmartPointer< vtkKWLabel >::New();
-    decStatusLabel->SetParent( monitorFrame->GetFrame() );
-    decStatusLabel->Create();
-    decStatusLabel->SetText( "Status: " );
-  
-  this->StatusLabel = vtkKWLabel::New();
-  this->StatusLabel->SetParent( monitorFrame->GetFrame() );
-  this->StatusLabel->Create();
-  this->StatusLabel->SetText( "Waiting." );
-  
-  vtkSmartPointer< vtkKWLabel > decTranslationLabel = vtkSmartPointer< vtkKWLabel >::New();
-    decTranslationLabel->SetParent( monitorFrame->GetFrame() );
-    decTranslationLabel->Create();
-    decTranslationLabel->SetText( "Translation: " );
-  
-  this->TranslationLabel = vtkKWLabel::New();
-  this->TranslationLabel->SetParent( monitorFrame->GetFrame() );
-  this->TranslationLabel->Create();
-  this->TranslationLabel->SetText( " - " );
-  
-  this->Script( "grid %s -column 0 -row 0 -sticky w -padx 2 -pady 2", decStatusLabel->GetWidgetName() );
-  this->Script( "grid %s -column 1 -row 0 -sticky w -padx 2 -pady 2", this->StatusLabel->GetWidgetName() );
-  this->Script( "grid %s -column 0 -row 1 -sticky w -padx 2 -pady 2", decTranslationLabel->GetWidgetName() );
-  this->Script( "grid %s -column 1 -row 1 -sticky w -padx 2 -pady 2", this->TranslationLabel->GetWidgetName() );
-  
-  this->Script( "grid columnconfigure %s 0 -weight 1", monitorFrame->GetFrame()->GetWidgetName() );
-  this->Script( "grid columnconfigure %s 1 -weight 100", monitorFrame->GetFrame()->GetWidgetName() );
+  this->UpdateGUI();
 }
 
 
-//----------------------------------------------------------------------------
-void vtkTransformRecorderGUI::UpdateAll()
+
+void
+vtkTransformRecorderGUI
+::UpdateAll()
 {
 }
+
 
 
 void
@@ -857,7 +991,124 @@ void
 vtkTransformRecorderGUI
 ::UpdateGUI()
 {
+  vtkMRMLTransformRecorderNode* moduleNode = this->GetModuleNode();
+  if ( moduleNode == NULL )
+    {
+    return;
+    }
   
+  vtkMRMLScene* scene = this->GetLogic()->GetApplicationLogic()->GetMRMLScene();
+  
+  std::list< std::string > classesList = scene->GetNodeClassesList();
+  
+  
+    // Update status monitor.
+  
+  if ( moduleNode->GetRecording() )
+    {
+    this->StatusLabel->SetText( "Recording" );
+    }
+  else
+    {
+    this->StatusLabel->SetText( "Waiting" );
+    }
+  
+  int numRec = moduleNode->GetTransformsBufferSize() + moduleNode->GetMessagesBufferSize();
+  std::stringstream ss;
+  ss << numRec;
+  this->TranslationLabel->SetText( ss.str().c_str() );
+  
+  
+    // Update annotations.
+  
+    // If the number of quick annotations changed, delete the old ones.
+  
+  if ( this->AnnotationsNumber != this->AnnotationButtonVector.size() )
+    {
+    for ( unsigned int i = 0; i < this->AnnotationButtonVector.size(); ++ i )
+      {
+      this->Script( "grid forget %s", this->AnnotationButtonVector[ i ]->GetWidgetName() );
+      this->Script( "grid forget %s", this->AnnotationEntryVector[ i ]->GetWidgetName() );
+      REMOVE_OBSERVER( this->AnnotationButtonVector[ i ] );
+      }
+    this->AnnotationEntryVector.clear();
+    this->AnnotationButtonVector.clear();
+    
+    
+      // Create new widgets.
+    
+    for ( int i = 0; i < this->AnnotationsNumber; ++ i )
+      {
+      vtkSmartPointer< vtkKWEntry > entry = vtkSmartPointer< vtkKWEntry >::New();
+        entry->SetParent( this->QuickFrame );
+        entry->Create();
+        entry->SetWidth( 35 );
+      this->Script( "grid %s -column 0 -row %i -sticky w -padx 2 -pady 2",
+                    entry->GetWidgetName(), i );
+      this->AnnotationEntryVector.push_back( entry );
+      
+      vtkSmartPointer< vtkKWPushButton > button = vtkSmartPointer< vtkKWPushButton >::New();
+        button->SetParent( this->QuickFrame );
+        button->Create();
+        button->SetText( "Record" );
+      this->Script( "grid %s -column 1 -row %i -sticky w -padx 2 -pady 2",
+                    button->GetWidgetName(), i );
+      this->AnnotationButtonVector.push_back( button );
+      ADD_BUTTONINVOKED_OBSERVER( this->AnnotationButtonVector[ i ] );
+      }
+    }
+  
+  
+    // Get the transform nodes and fill the list with them.
+    // Proceed only with valid Connector Node.
+    
+  vtkMRMLIGTLConnectorNode* connectorNode = this->ModuleNode->GetObservedConnectorNode();
+  if ( connectorNode == NULL )
+    {
+    return;
+    }
+  
+  int numOutNodes = connectorNode->GetNumberOfIncomingMRMLNodes();
+  
+  
+  std::vector< vtkMRMLLinearTransformNode* > txformNodes;
+  for ( int i = 0; i < numOutNodes; ++ i )
+    {
+    vtkMRMLNode* node = connectorNode->GetIncomingMRMLNode( i );
+    vtkMRMLLinearTransformNode* txformNode = vtkMRMLLinearTransformNode::SafeDownCast( node );
+    if ( txformNode != NULL )
+      {
+      txformNodes.push_back( txformNode );
+      }
+    }
+  
+  
+  /*
+  // debug
+  // Get all transforms from the scene.
+  std::vector< vtkMRMLNode* > transformNodes;
+  scene->GetNodesByClass( "vtkMRMLLinearTransformNode", transformNodes );
+  */
+  
+  
+  int numTransforms = txformNodes.size();
+  
+  bool delRows = false;
+  if ( numTransforms != this->TransformsList->GetWidget()->GetNumberOfRows() )
+    {
+    delRows = true;
+    }
+  
+  for ( int row = 0; row < numTransforms; ++ row )
+    {
+    if ( delRows )
+      {
+      this->TransformsList->GetWidget()->AddRow();
+      this->TransformsList->GetWidget()->SetCellWindowCommandToCheckButton( row, 0 );
+      }
+    
+    this->TransformsList->GetWidget()->SetCellText( row, 1, txformNodes[ row ]->GetName() );
+    }
 }
 
 
