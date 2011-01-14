@@ -23,6 +23,8 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
   ${Slicer3_Libs_INCLUDE_DIRS}
   ${Slicer3_Base_INCLUDE_DIRS}
+  ${OpenIGTLinkIF_SOURCE_DIR}
+  ${OpenIGTLinkIF_BINARY_DIR}
   )
 
 #
@@ -81,6 +83,7 @@ target_link_libraries(${lib_name}
   ${Slicer3_Libs_LIBRARIES}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES}
+  OpenIGTLinkIF
   )
 
 install(TARGETS ${lib_name}

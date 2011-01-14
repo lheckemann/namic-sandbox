@@ -1,12 +1,19 @@
 
 #include "vtkMRMLTransformRecorderNode.h"
 
-#include <ctime>
+
+#include <cmath>
 #include <fstream>
 #include <sstream>
+#include <string>
 
 #include "vtkIntArray.h"
+#include "vtkMatrix4x4.h"
 #include "vtkSmartPointer.h"
+
+#include "vtkMRMLIGTLConnectorNode.h"
+#include "vtkMRMLLinearTransformNode.h"
+
 
 
 // Helper functions.
@@ -61,47 +68,46 @@ void
 vtkMRMLTransformRecorderNode
 ::UpdateFileFromBuffer()
 {
-  // std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
   std::ofstream output( this->LogFileName.c_str() );
   
   if ( ! output.is_open() )
     {
-    vtkErrorMacro( "Could not open xml file." );
+    vtkErrorMacro( "Record file could not be opened!" );
     return;
     }
   
-  output << "<PerkProcedure>" << std::endl;
+  output << "<TransformRecorderLog>" << std::endl;
   
   
-  int numMessages = this->MessagesBuffer.size();
+    // Save transforms.
   
-  for ( int i = 0; i < numMessages; ++ i )
+  for ( unsigned int i = 0; i < this->TransformsBuffer.size(); ++ i )
     {
-    output << "<log";
-    output << " time=\"" << this->MessagesBuffer[ i ].first << "\""
-           << " type=\"message\" message=\"" << this->MessagesBuffer[ i ].second << "\"";
-    output << " />";
-    output << std::endl;
+    output << "  <log";
+    output << " TimeStampSec=\"" << this->TransformsBuffer[ i ].TimeStampSec << "\"";
+    output << " TimeStampNSec=\"" << this->TransformsBuffer[ i ].TimeStampNSec << "\"";
+    output << " type=\"transform\"";
+    output << " DeviceName=\"" << this->TransformsBuffer[ i ].DeviceName << "\"";
+    output << " transform=\"" << this->TransformsBuffer[ i ].Transform << "\"";
+    output << " />" << std::endl;
     }
   
   
-  int numTransforms = this->TransformsBuffer.size();
+    // Save messages.
   
-  for ( int i = 0; i < numTransforms; ++ i )
+  for ( unsigned int i = 0; i < this->MessagesBuffer.size(); ++ i )
     {
-    std::stringstream ss;
-    ss << "<log ";
-    ss << " time=\"" << this->TransformsBuffer[ i ].first << "\" type=\"transform\" transform=\"";
-    ss << this->TransformsBuffer[ i ].second << "\"";
-    ss << " />";
-    
-    output << ss.str() << std::endl;
+    output << "  <log";
+    output << " TimeStampSec=\"" << this->MessagesBuffer[ i ].TimeStampSec << "\"";
+    output << " TimeStampNSec=\"" << this->MessagesBuffer[ i ].TimeStampNSec << "\"";
+    output << " type=\"message\"";
+    output << " message=\"" << this->MessagesBuffer[ i ].Message << "\"";
+    output << " />" << std::endl;
     }
   
   
-  output << "</PerkProcedure>" << std::endl;
+  output << "</TransformRecorderLog>" << std::endl;
   output.close();
-  
   
   this->ClearBuffer();
 }
@@ -122,7 +128,10 @@ vtkMRMLTransformRecorderNode
 {
   this->SetHideFromEditors( false );
   this->ObservedTransformNodeID = NULL;
-  this->ObservedTransformNode = NULL;
+  this->ObservedTransformNode   = NULL;
+  
+  this->ObservedConnectorNodeID = NULL;
+  this->ObservedConnectorNode   = NULL;
   
   this->Recording = false;
   
@@ -131,6 +140,10 @@ vtkMRMLTransformRecorderNode
   this->SetSaveWithScene( true );
   // this->SetAddToScene( true );
   this->SetModifiedSinceRead( true );
+  
+  // Initialize zero time point.
+  this->Clock0 = clock();
+  this->Time0  = time( NULL );
 }
 
 
@@ -139,7 +152,13 @@ vtkMRMLTransformRecorderNode
 ::~vtkMRMLTransformRecorderNode()
 {
   this->RemoveMRMLObservers();
-  this->SetAndObserveObservedTransformNodeID( NULL );
+  
+  this->SetAndObserveObservedConnectorNodeID( NULL );
+  
+  for ( int i = 0; i < this->ObservedTransformNodes.size(); ++ i )
+    {
+    vtkSetAndObserveMRMLObjectMacro( this->ObservedTransformNodes[ i ], NULL );
+    }
 }
 
 
@@ -178,14 +197,8 @@ vtkMRMLTransformRecorderNode
     {
     attName  = *(atts++);
     attValue = *(atts++);
-
-    if ( ! strcmp( attName, "ObservedTransformNodeRef" ) ) 
-      {
-      this->SetAndObserveObservedTransformNodeID( NULL ); // clear any previous observers
-      // do not add observers yet because updates may be wrong before reading all the xml attributes
-      // observers will be added when all the attributes are read and UpdateScene is called
-      this->SetObservedTransformNodeID( attValue );
-      }
+    
+    // todo: Handle observed transform nodes and connector node.
     
     if ( ! strcmp( attName, "Recording" ) )
       {
@@ -206,9 +219,14 @@ void vtkMRMLTransformRecorderNode::Copy( vtkMRMLNode *anode )
   Superclass::Copy( anode );
   vtkMRMLTransformRecorderNode *node = ( vtkMRMLTransformRecorderNode* ) anode;
 
-  // Observers must be removed here, otherwise MRML updates would activate nodes on the undo stack
-  this->SetAndObserveObservedTransformNodeID( NULL );
-  this->SetObservedTransformNodeID( node->ObservedTransformNodeID );
+    // Observers must be removed here, otherwise MRML updates would activate nodes on the undo stack
+  
+  for ( unsigned int i = 0; i < this->ObservedTransformNodes.size(); ++ i )
+    {
+    this->ObservedTransformNodes[ i ]->RemoveObservers(
+        vtkMRMLTransformNode::TransformModifiedEvent );
+    }
+  
   this->SetRecording( node->GetRecording() );
   this->SetLogFileName( node->GetLogFileName() );
 }
@@ -218,43 +236,44 @@ void vtkMRMLTransformRecorderNode::Copy( vtkMRMLNode *anode )
 void vtkMRMLTransformRecorderNode::UpdateReferences()
 {
   Superclass::UpdateReferences();
-
-  if (    this->ObservedTransformNodeID != NULL
-       && this->Scene->GetNodeByID( this->ObservedTransformNodeID ) == NULL )
-    {
-    this->SetAndObserveObservedTransformNodeID( NULL );
-    }
+  
+    // MRML node ID's should be checked. If Scene->GetNodeByID( id ) returns NULL,
+    // the reference should be deleted (set to NULL).
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkMRMLTransformRecorderNode
 ::UpdateReferenceID( const char *oldID, const char *newID )
 {
   Superclass::UpdateReferenceID( oldID, newID );
   
+  /*
   if (    this->ObservedTransformNodeID
        && ! strcmp( oldID, this->ObservedTransformNodeID ) )
     {
     this->SetAndObserveObservedTransformNodeID( newID );
     }
+  */
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkMRMLTransformRecorderNode
 ::UpdateScene( vtkMRMLScene *scene )
 {
    Superclass::UpdateScene( scene );
    
-   this->SetAndObserveObservedTransformNodeID( this->ObservedTransformNodeID );
+   // this->SetAndObserveObservedTransformNodeID( this->ObservedTransformNodeID );
 }
 
 
-//----------------------------------------------------------------------------
-void vtkMRMLTransformRecorderNode::PrintSelf( ostream& os, vtkIndent indent )
+
+void
+vtkMRMLTransformRecorderNode
+::PrintSelf( ostream& os, vtkIndent indent )
 {
   vtkMRMLNode::PrintSelf(os,indent);
 
@@ -264,56 +283,176 @@ void vtkMRMLTransformRecorderNode::PrintSelf( ostream& os, vtkIndent indent )
 }
 
 
-//----------------------------------------------------------------------------
+
 void
 vtkMRMLTransformRecorderNode
-::SetAndObserveObservedTransformNodeID( const char *nodeID )
+::SetAndObserveObservedConnectorNodeID( const char* ConnectorNodeRef )
 {
-  vtkSetAndObserveMRMLObjectMacro( this->ObservedTransformNode, NULL );
-  this->SetObservedTransformNodeID( nodeID );
-  vtkMRMLTransformNode *tnode = this->GetObservedTransformNode();
-  vtkSetAndObserveMRMLObjectMacro(this->ObservedTransformNode, tnode);
-  if ( tnode )
+  vtkSetAndObserveMRMLObjectMacro( this->ObservedConnectorNode, NULL );
+  this->SetObservedConnectorNodeID( ConnectorNodeRef );
+  vtkMRMLIGTLConnectorNode* cnode = this->GetObservedConnectorNode();
+  vtkSetAndObserveMRMLObjectMacro( this->ObservedConnectorNode, cnode );
+  if ( cnode )
     {
-    tnode->AddObserver( vtkMRMLTransformNode::TransformModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand );
+    cnode->AddObserver( vtkMRMLIGTLConnectorNode::ReceiveEvent, (vtkCommand*)this->MRMLCallbackCommand );
     }
 }
 
 
-//----------------------------------------------------------------------------
-vtkMRMLTransformNode*
+
+vtkMRMLIGTLConnectorNode*
 vtkMRMLTransformRecorderNode
-::GetObservedTransformNode()
+::GetObservedConnectorNode()
 {
-  vtkMRMLTransformNode* node = NULL;
-  if (   this->GetScene()
-      && this->ObservedTransformNodeID != NULL )
+  vtkMRMLIGTLConnectorNode* node = NULL;
+  if (    this->GetScene()
+       && this->ObservedConnectorNodeID != NULL )
     {
-    vtkMRMLNode* snode = this->GetScene()->GetNodeByID(
-                            this->ObservedTransformNodeID );
-    node = vtkMRMLTransformNode::SafeDownCast( snode );
+    vtkMRMLNode* snode = this->GetScene()->GetNodeByID( this->ObservedConnectorNodeID );
+    node = vtkMRMLIGTLConnectorNode::SafeDownCast( snode );
     }
   return node;
 }
+
 
 
 void
 vtkMRMLTransformRecorderNode
 ::ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData )
 {
-  if (
-       this->ObservedTransformNode == vtkMRMLTransformNode::SafeDownCast( caller )
-       && event == vtkMRMLTransformNode::TransformModifiedEvent
-     )
+  
+  
+    // Handle IGT Connector events. ----------------------------------------
+  
+  if ( this->ObservedConnectorNode == vtkMRMLIGTLConnectorNode::SafeDownCast( caller )
+       && event == vtkMRMLIGTLConnectorNode::ReceiveEvent )
     {
-    vtkMatrix4x4* mtr = vtkMatrix4x4::New();
-    this->ObservedTransformNode->GetMatrixTransformToWorld( mtr );
-    mtr->Delete();
-    if ( this->Recording && this->LogFileName.size() > 1 )
+    int numIncomingNodes = this->ObservedConnectorNode->GetNumberOfIncomingMRMLNodes();
+    std::vector< vtkMRMLLinearTransformNode* > transformNodes;
+    for ( int nodeIndex = 0; nodeIndex < numIncomingNodes; ++ nodeIndex )
       {
-      this->WriteLog();
+      vtkMRMLNode* node = this->ObservedConnectorNode->GetIncomingMRMLNode( nodeIndex );
+      vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast( node );
+      if ( transformNode != NULL )
+        {
+        transformNodes.push_back( transformNode );
+        }
       }
-    this->InvokeEvent( this->TransformChangedEvent, NULL );
+    
+      // Update the vector of observed transform nodes.
+    
+    bool updateTransforms = false;
+    if ( this->ObservedTransformNodes.size() != transformNodes.size() )
+      {
+      updateTransforms = true;
+      }
+    else
+      {
+      for ( unsigned int i = 0; i < transformNodes.size(); ++ i )
+        {
+        if ( strcmp( transformNodes[ i ]->GetID(), this->ObservedTransformNodes[ i ]->GetID() ) != 0 )
+          {
+          updateTransforms = true;
+          }
+        }
+      }
+    
+        // Remove existing observers.
+        // Add new observers.
+      
+    if ( updateTransforms )
+      {
+      
+      for ( unsigned int i = 0; i < this->ObservedTransformNodes.size(); ++ i )
+        {
+        this->ObservedTransformNodes[ i ]->RemoveObservers(
+            vtkMRMLTransformNode::TransformModifiedEvent );
+        vtkSetAndObserveMRMLObjectMacro( this->ObservedTransformNodes[ i ], NULL );
+        }
+      
+      this->ObservedTransformNodes.clear();
+      
+      for ( unsigned int i = 0; i < transformNodes.size(); ++ i )
+        {
+        this->ObservedTransformNodes.push_back( NULL );
+        vtkSetAndObserveMRMLObjectMacro( this->ObservedTransformNodes[ i ], transformNodes[ i ] );
+        this->ObservedTransformNodes[ i ]->AddObserver( vtkMRMLTransformNode::TransformModifiedEvent,
+                                                        (vtkCommand*)this->MRMLCallbackCommand );
+        }
+      }
+    }
+  
+    // -----------------------------------------------------------------------
+  
+  
+    // Check if we have a valid list of which transform should be recorded.
+    // If we don't, record every transform.
+  
+  bool recordAll = false;
+  if ( this->TransformSelections.size() != this->ObservedTransformNodes.size() )
+    {
+    recordAll = true;
+    }
+  
+  
+    // Handle modified event of any observed transform node. ------------------------
+  
+  for ( unsigned int tIndex = 0; tIndex < this->ObservedTransformNodes.size(); ++ tIndex )
+    {
+    if ( this->ObservedTransformNodes[ tIndex ] == vtkMRMLTransformNode::SafeDownCast( caller )
+         && event == vtkMRMLTransformNode::TransformModifiedEvent )
+      {
+      int sec = 0;
+      int nsec = 0;
+      vtkSmartPointer< vtkMatrix4x4 > m = vtkSmartPointer< vtkMatrix4x4 >::New();
+      std::string deviceName;
+      
+      this->ObservedConnectorNode->LockIncomingMRMLNode( this->ObservedTransformNodes[ tIndex ] );
+      this->ObservedConnectorNode->GetIGTLTimeStamp( this->ObservedTransformNodes[ tIndex ], sec, nsec );
+      vtkMRMLLinearTransformNode* ltn = vtkMRMLLinearTransformNode::SafeDownCast(
+        this->ObservedTransformNodes[ tIndex ] );
+      if ( ltn != NULL )
+        {
+        m->DeepCopy( ltn->GetMatrixTransformToParent() );
+        }
+      else
+        {
+        vtkErrorMacro( "Non linear transform received from IGT connector!" );
+        }
+      deviceName = std::string( this->ObservedTransformNodes[ tIndex ]->GetName() );
+      this->ObservedConnectorNode->UnlockIncomingMRMLNode( this->ObservedTransformNodes[ tIndex ] );
+      
+      int record = 1;
+      if ( ! recordAll )
+        {
+        record = this->TransformSelections[ tIndex ];
+        }
+      
+      if ( record )
+        {
+        std::stringstream mss;
+        for ( int row = 0; row < 4; ++ row )
+          {
+          for ( int col = 0; col < 4; ++ col )
+            {
+            mss << m->GetElement( row, col ) << " ";
+            }
+          }
+        
+        TransformRecord rec;
+          rec.DeviceName = deviceName;
+          rec.TimeStampSec = sec;
+          rec.TimeStampNSec = nsec;
+          rec.Transform = mss.str();
+        
+        if ( this->Recording )
+          {
+          this->TransformsBuffer.push_back( rec );
+          this->InvokeEvent( this->TransformChangedEvent, NULL );
+          }
+        
+        } // if ( record )
+      }
     }
 }
 
@@ -327,6 +466,36 @@ vtkMRMLTransformRecorderNode
     {
     this->ObservedTransformNode->RemoveObservers( vtkMRMLTransformNode::TransformModifiedEvent );
     }
+  
+  if ( this->ObservedConnectorNode )
+    {
+    this->ObservedConnectorNode->RemoveObservers( vtkMRMLIGTLConnectorNode::ReceiveEvent );
+    }
+  
+  
+  for ( int i = 0; i < this->ObservedTransformNodes.size(); ++ i )
+    {
+    this->ObservedTransformNodes[ i ]->RemoveObservers( vtkMRMLTransformNode::TransformModifiedEvent );
+    }
+}
+
+
+
+/**
+ * @param selections Should contain as many elements as the number of incoming
+ *        transforms throught the active connector. Order follows the order in
+ *        the connector node. 0 means transform is not tracked, 1 means it's tracked.
+ */
+void
+vtkMRMLTransformRecorderNode
+::SetTransformSelections( std::vector< int > selections )
+{
+  this->TransformSelections.clear();
+  
+  for ( int i = 0; i < selections.size(); ++ i )
+    {
+    this->TransformSelections.push_back( selections[ i ] );
+    }
 }
 
 
@@ -336,6 +505,16 @@ vtkMRMLTransformRecorderNode
 ::SetLogFileName( std::string fileName )
 {
   this->LogFileName = fileName;
+}
+
+
+
+void
+vtkMRMLTransformRecorderNode
+::SaveIntoFile( std::string fileName )
+{
+  this->LogFileName = fileName;
+  this->UpdateFileFromBuffer();
 }
 
 
@@ -351,56 +530,38 @@ vtkMRMLTransformRecorderNode
 
 void
 vtkMRMLTransformRecorderNode
-::WriteLog()
+::CustomMessage( std::string message )
 {
-  double seconds = clock() * 1.0 / CLOCKS_PER_SEC;
+  clock_t clock1 = clock();
+  double seconds = this->Time0 + double( clock1 - this->Clock0 ) / CLOCKS_PER_SEC;
   
-  vtkMatrix4x4* matrix = vtkMatrix4x4::New();
-    matrix->Identity();
+  long int sec = floor( seconds );
+  int nsec = ( seconds - sec ) * 1e9;
   
-  this->ObservedTransformNode->GetMatrixTransformToWorld( matrix );
+  MessageRecord rec;
+    rec.Message = message;
+    rec.TimeStampSec = sec;
+    rec.TimeStampNSec = nsec;
   
-  std::stringstream ss;
-  // ss << "<log ";
-  // ss << "time=\"" << seconds << "\" type=\"transform\" transform=\"";
-  ss << matrix->GetElement( 0, 0 ) << " " << matrix->GetElement( 0, 1 ) << " " << matrix->GetElement( 0, 2 ) << " " << matrix->GetElement( 0, 3 ) << " ";
-  ss << matrix->GetElement( 1, 0 ) << " " << matrix->GetElement( 1, 1 ) << " " << matrix->GetElement( 1, 2 ) << " " << matrix->GetElement( 1, 3 ) << " ";
-  ss << matrix->GetElement( 2, 0 ) << " " << matrix->GetElement( 2, 1 ) << " " << matrix->GetElement( 2, 2 ) << " " << matrix->GetElement( 2, 3 ) << " ";
-  ss << matrix->GetElement( 3, 0 ) << " " << matrix->GetElement( 3, 1 ) << " " << matrix->GetElement( 3, 2 ) << " " << matrix->GetElement( 3, 3 ) << " ";
-  // ss << "\"";
-  // ss << " />";
-  
-  this->TransformsBuffer.push_back( std::pair< double, std::string >( seconds, ss.str() ) );
-  
-  /*
-  std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
-  std::stringstream output;
-  output << ss.str();
-  output << std::endl;
-  output.close();
-  */
-  
-  
+  this->MessagesBuffer.push_back( rec );
 }
 
 
 
-void
+unsigned int
 vtkMRMLTransformRecorderNode
-::CustomMessage( std::string message )
+::GetTransformsBufferSize()
 {
-  double seconds = clock() * 1.0 / CLOCKS_PER_SEC;
-  
-  /*
-  std::ofstream output( this->LogFileName.c_str(), std::ios_base::app );
-  output << "<log ";
-  output << "time=\"" << seconds << "\" type=\"message\" message=\"" << message;
-  output << "\" >";
-  output << std::endl;
-  output.close();
-  */
-  
-  this->MessagesBuffer.push_back( std::pair< double, std::string>( seconds, message ) );
+  return this->TransformsBuffer.size();
+}
+
+
+
+unsigned int
+vtkMRMLTransformRecorderNode
+::GetMessagesBufferSize()
+{
+  return this->MessagesBuffer.size();
 }
 
 
