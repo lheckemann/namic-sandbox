@@ -101,8 +101,6 @@ vtkTransformRecorderGUI
   this->QuickFrame = NULL;
   this->AnnotationsNumberEntry = NULL;
   this->AnnotationsUpdateButton = NULL;
-  this->CustomEntry = NULL;
-  this->CustomButton = NULL;
   
   this->StatusLabel = NULL;
   this->TranslationLabel = NULL;
@@ -159,8 +157,6 @@ vtkTransformRecorderGUI
   DESTRUCT( this->QuickFrame );
   DESTRUCT( this->AnnotationsNumberEntry );
   DESTRUCT( this->AnnotationsUpdateButton );
-  DESTRUCT( this->CustomEntry );
-  DESTRUCT( this->CustomButton );
   
   DESTRUCT( this->StatusLabel );
   DESTRUCT( this->TranslationLabel );
@@ -321,7 +317,6 @@ vtkTransformRecorderGUI
   ADD_BUTTONINVOKED_OBSERVER( this->ClearBufferButton );
   
   ADD_BUTTONINVOKED_OBSERVER( this->AnnotationsUpdateButton );
-  ADD_BUTTONINVOKED_OBSERVER( this->CustomButton );
   
   
   this->AddLogicObservers();
@@ -467,7 +462,7 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
     }
   
   
-  for ( int i = 0; i < this->AnnotationButtonVector.size(); ++ i )
+  for ( unsigned int i = 0; i < this->AnnotationButtonVector.size(); ++ i )
     {
     if ( this->AnnotationButtonVector[ i ] == vtkKWPushButton::SafeDownCast( caller )
          && event == vtkKWPushButton::InvokedEvent )
@@ -484,11 +479,6 @@ void vtkTransformRecorderGUI::ProcessGUIEvents(vtkObject *caller,
     {
     int anum = this->AnnotationsNumberEntry->GetValueAsInt();
     this->SetAnnotationsNumber( anum );
-    }
-  
-  if ( this->CustomButton == vtkKWPushButton::SafeDownCast( caller ) && event == vtkKWPushButton::InvokedEvent )
-    {
-    this->ModuleNode->CustomMessage( std::string( this->CustomEntry->GetValue() ) );
     }
   
   
@@ -895,35 +885,7 @@ vtkTransformRecorderGUI
     this->QuickFrame->SetParent( this->AnnotFrame->GetFrame() );
     this->QuickFrame->Create();
   this->Script( "pack %s -side top -anchor w -padx 0 -pady 0", this->QuickFrame->GetWidgetName() );
-  
   // This frame is filled with widgets in the UpdateGUI function.
-  
-  
-    // Custom annotation.
-  
-  vtkSmartPointer< vtkKWFrame > customFrame = vtkSmartPointer< vtkKWFrame >::New();
-    customFrame->SetParent( this->AnnotFrame->GetFrame() );
-    customFrame->Create();
-  
-  vtkSmartPointer< vtkKWLabel > customLabel = vtkSmartPointer< vtkKWLabel >::New();
-    customLabel->SetParent( customFrame );
-    customLabel->Create();
-    customLabel->SetText( "Custom message: " );
-  
-  this->CustomEntry = vtkKWEntry::New();
-  this->CustomEntry->SetParent( customFrame );
-  this->CustomEntry->Create();
-  
-  this->CustomButton = vtkKWPushButton::New();
-  this->CustomButton->SetParent( customFrame );
-  this->CustomButton->Create();
-  this->CustomButton->SetBackgroundColor( 0.9, 0.9, 0.9 );
-  this->CustomButton->SetText( "Record" );
-  
-  this->Script( "pack %s -side top -anchor w -padx 0 -pady 0", customFrame->GetWidgetName() );
-  this->Script( "pack %s -side left -anchor w -padx 2 -pady 2", customLabel->GetWidgetName() );
-  this->Script( "pack %s -side left -anchor w -fill x -padx 2 -pady 2", this->CustomEntry->GetWidgetName() );
-  this->Script( "pack %s -side left -anchor w -padx 2 -pady 2", this->CustomButton->GetWidgetName() );
 }
 
 
@@ -1050,7 +1012,7 @@ vtkTransformRecorderGUI
       vtkSmartPointer< vtkKWPushButton > button = vtkSmartPointer< vtkKWPushButton >::New();
         button->SetParent( this->QuickFrame );
         button->Create();
-        button->SetText( "Record" );
+        button->SetText( "Insert" );
       this->Script( "grid %s -column 1 -row %i -sticky w -padx 2 -pady 2",
                     button->GetWidgetName(), i );
       this->AnnotationButtonVector.push_back( button );
