@@ -171,9 +171,6 @@ public:
   std::vector< vtkKWEntry* >      AnnotationEntryVector;
   std::vector< vtkKWPushButton* > AnnotationButtonVector;
   //ETX
-  vtkKWEntry*                     CustomEntry;
-  vtkKWPushButton*                CustomButton;
-  
   
   
   //BTX
