@@ -21,9 +21,23 @@
 #include "igtl_util.h"
 
 
-igtl_uint64 igtl_export igtl_unit_pack(igtl_unit_data* data)
+void igtl_export igtl_unit_init(igtl_unit_data* data)
 {
-  igtl_uint64 pack;
+  int i;
+
+  data->prefix = 0;
+  for (i = 0; i < 6; i ++)
+    {
+    data->unit[i] = 0;
+    data->exp[i] = 0;
+    }
+
+}
+
+
+igtl_unit igtl_export igtl_unit_pack(igtl_unit_data* data)
+{
+  igtl_unit pack;
   igtl_uint8  exp;
   int i;
 
@@ -48,26 +62,14 @@ igtl_uint64 igtl_export igtl_unit_pack(igtl_unit_data* data)
     pack |= ((igtl_uint64)exp) << (10*(5-i));
     }
   
-  // Change byte-order (if necessary)
-  if (igtl_is_little_endian())
-    {
-    pack = BYTE_SWAP_INT64(pack);
-    }
-  
   return pack;
 }
 
 
-int igtl_export igtl_unit_unpack(igtl_uint64 pack, igtl_unit_data* data)
+int igtl_export igtl_unit_unpack(igtl_unit pack, igtl_unit_data* data)
 {
   int i;
   igtl_int8  exp;
-
-  // Change byte-order (if necessary)
-  if (igtl_is_little_endian())
-    {
-    pack = BYTE_SWAP_INT64(pack);
-  }
 
   /* Prefix */
   data->prefix = (igtl_uint8) (pack >>  60);
