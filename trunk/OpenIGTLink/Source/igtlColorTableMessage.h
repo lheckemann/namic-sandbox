@@ -80,7 +80,7 @@ public:
   void SetMapType(int t)       { mapType = t; };
   void SetMapTypeToUint8()     { mapType = MAP_UINT8; };
   void SetMapTypeToUint16()    { mapType = MAP_UINT16; };
-  int  GetMapType()            { return indexType; };
+  int  GetMapType()            { return mapType; };
 
   // Should returned value be 64-bit integer?
   int   GetColorTableSize();
