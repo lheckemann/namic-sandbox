@@ -36,8 +36,8 @@ void igtl_export igtl_string_convert_byte_order(igtl_string_header* header)
 
   if (igtl_is_little_endian()) 
     {
-    header->encoding = BYTE_SWAP_INT64(header->encoding);
-    header->length   = BYTE_SWAP_INT64(header->length);
+    header->encoding = BYTE_SWAP_INT16(header->encoding);
+    header->length   = BYTE_SWAP_INT16(header->length);
     }
 }
 
@@ -47,7 +47,10 @@ igtl_uint64 igtl_export igtl_string_get_crc(igtl_string_header * header, void* s
   igtl_uint64   crc;
   igtl_uint64   string_length;
 
+  /* convert byte order to get string length */
+  igtl_string_convert_byte_order(header);
   string_length = (igtl_uint32)(header->length);
+  igtl_string_convert_byte_order(header);
 
   crc = crc64(0, 0, 0);
   crc = crc64((unsigned char*) header, IGTL_STRING_HEADER_SIZE, crc);

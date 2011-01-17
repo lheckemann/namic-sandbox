@@ -19,6 +19,8 @@
 
 #include "igtl_types.h"
 #include "igtl_win32header.h"
+#include "igtl_unit.h"
+
 
 /* PREFIX */
 #define IGTL_UNIT_PREFIX_NONE   0x0 /* None */
@@ -68,6 +70,9 @@
 #define IGTL_UNIT_SI_DERIVED_GRAY      0x1A  /* gray       meter^2/second^2 */
 #define IGTL_UNIT_SI_DERIVED_SIEVERT   0x1B  /* sievert    meter^2/second^2 */
 
+typedef igtl_uint64 igtl_unit;
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -78,8 +83,9 @@ typedef struct {
   igtl_int8      exp[6];            /* Must be within [-7, 7] */
 } igtl_unit_data;
 
-igtl_uint64 igtl_export igtl_unit_pack(igtl_unit_data* data);
-int igtl_export igtl_unit_unpack(igtl_uint64 pack, igtl_unit_data* data);
+void igtl_export igtl_unit_init(igtl_unit_data* data);
+igtl_unit igtl_export igtl_unit_pack(igtl_unit_data* data);
+int igtl_export igtl_unit_unpack(igtl_unit pack, igtl_unit_data* data);
 
 #ifdef __cplusplus
 }

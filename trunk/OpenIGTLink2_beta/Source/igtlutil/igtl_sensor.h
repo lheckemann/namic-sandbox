@@ -20,6 +20,7 @@
 #include "igtl_win32header.h"
 #include "igtl_util.h"
 #include "igtl_types.h"
+#include "igtl_unit.h"
 #include "igtl_win32header.h"
 
 #define IGTL_SENSOR_HEADER_SIZE          10
@@ -33,7 +34,7 @@ extern "C" {
 typedef struct {
   igtl_uint8     larray;           /* Length of array (0-255) */
   igtl_uint8     status;           /* (reserved) sensor status */
-  igtl_uint64    unit;             /* Unit */
+  igtl_unit      unit;             /* Unit */
 } igtl_sensor_header;
 
 #pragma pack()
