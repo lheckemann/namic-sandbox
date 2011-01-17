@@ -39,7 +39,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <description>The fixed image mask</description>
     </image>
 
-    <transform fileExtensions=".txt">
+    <transform fileExtensions=".txt" reference="volumeImageName">
       <name>resultTransformName</name>
       <label>Output Transform</label>
       <channel>output</channel>
