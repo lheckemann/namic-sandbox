@@ -35,14 +35,6 @@ class vtkSlicerNodeSelectorWidget;
 class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
 {
  public:
-  //BTX
-  enum {
-    SLICE_PLANE_RED     = 0,
-    SLICE_PLANCE_YELLOW = 1,
-    SLICE_PLANCE_GREEN  = 2
-  };
-  //ETX
-
   //----------------------------------------------------------------
   // Usual VTK class functions.
   //----------------------------------------------------------------
