@@ -272,17 +272,44 @@ void vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavLogic::UpdateSlicePlanes()
+void vtkAbdoNavLogic::UpdateAll()
 {
-  static int counter = 0;
-
-  if (this->FreezeReslicing == true)
+  if (this->FreezeReslicing == false)
     {
-    return;
-    }
+    // get registered tracking data for reslicing
+    vtkMatrix4x4* registeredTracker = vtkMatrix4x4::New();
+    vtkMRMLLinearTransformNode* originalTracker = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetOriginalTrackerTransformID()));
+    if (originalTracker != NULL)
+      {
+      originalTracker->GetMatrixTransformToWorld(registeredTracker);
+      }
+    else
+      {
+      return;
+      }
 
-  counter++;
-  std::cout << "updating slice planes: " << counter << std::endl;
+    // update each slice that is driven by the locator
+    for (int i = 0; i < 3; i++)
+      {
+      // driven by locator
+      if (this->SliceDriver[i] == 1)
+        {
+        if (registeredTracker != NULL)
+          {
+          this->UpdateSliceNode(i, registeredTracker);
+          }
+        }
+      }
+    // cleanup
+    registeredTracker->Delete();
+    }
+}
+
+
+//---------------------------------------------------------------------------
+void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* registeredTracker)
+{
+
 }
 
 

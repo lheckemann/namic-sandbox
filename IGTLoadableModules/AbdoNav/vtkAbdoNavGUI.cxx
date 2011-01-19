@@ -782,7 +782,7 @@ void vtkAbdoNavGUI::ProcessTimerEvents()
     {
     if (this->AbdoNavLogic->GetRegistrationPerformed() == true)
       {
-      this->AbdoNavLogic->UpdateSlicePlanes();
+      this->AbdoNavLogic->UpdateAll();
       }
 
     // calls ProcessTimerEvents() at regular intervals (specified by TimerInterval)

@@ -60,8 +60,10 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   /// Set the slice driver (User == 0, Locator == 1) for each slice orientation (Red == 0,
   /// Yellow == 1, Green == 2).
   void SetSliceDriver(int sliceIndex, const char* driver);
-  /// Perform reslicing and update the crosshair.
-  void UpdateSlicePlanes();
+  /// Convenience function that calls UpdateSlicePlane(...) on each slice orientation driven by the locator.
+  void UpdateAll();
+  /// Perform reslicing and update the crosshair of a slice node () given the registered tracking data.
+  void UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* registeredTracker);
   /// Set pointers to access the three different slice orientations.
   void CheckSliceNode();
   /// Find and return the locator. Return NULL if not found.
