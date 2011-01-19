@@ -472,11 +472,23 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* locatorName, doub
   locatorPolyData->AddInput(tfilterSndHandle->GetOutput());
 
   //----------------------------------------------------------------
+  // Compensate for different coordinate system definitions in Slicer3
+  // and the NDI Polaris Vicra.
+  //----------------------------------------------------------------
+  locatorPolyData->Update();
+  vtkSmartPointer<vtkTransformPolyDataFilter> tfilterVicra = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransform> transVicra = vtkSmartPointer<vtkTransform>::New();
+  transVicra->RotateX(180.0);
+  transVicra->Update();
+  tfilterVicra->SetInput(locatorPolyData->GetOutput());
+  tfilterVicra->SetTransform(transVicra);
+  tfilterVicra->Update();
+
+  //----------------------------------------------------------------
   // Add locator model to the scene.
   //----------------------------------------------------------------
   // prepare model node
-  locatorPolyData->Update();
-  locatorModel->SetAndObservePolyData(locatorPolyData->GetOutput());
+  locatorModel->SetAndObservePolyData(tfilterVicra->GetOutput());
   locatorModel->SetName(locatorName);
   locatorModel->SetHideFromEditors(0);
   // prepare model display node
