@@ -23,6 +23,9 @@
 #include "vtkAbdoNavWin32Header.h"
 #include "vtkMRMLAbdoNavNode.h"
 
+/* MRML includes */
+#include "vtkMRMLCrosshairNode.h"
+
 /* Slicer includes */
 #include "vtkSlicerModuleLogic.h"
 
@@ -82,6 +85,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   // accessed from the GUI class.
   //----------------------------------------------------------------
   vtkGetMacro(RegistrationPerformed, bool);
+  vtkSetObjectMacro(Crosshair, vtkMRMLCrosshairNode);
   vtkSetMacro(ShowCrosshair, bool);
   vtkSetMacro(FreezeReslicing, bool);
   vtkSetMacro(ObliqueReslicing, bool);
@@ -109,6 +113,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkMRMLLinearTransformNode* RegistrationTransform;
   /// Matrix holding the position at which the locator model was frozen.
   vtkMatrix4x4* LocatorFreezePosition;
+  /// Pointer to access the crosshair node.
+  vtkMRMLCrosshairNode* Crosshair;
   /// Pointers to access the three different slice orientations.
   vtkMRMLSliceNode* SliceNode[3];
   /// Holds the slice driver (User == 0, Locator == 1) for each slice orientation (Red == 0,
