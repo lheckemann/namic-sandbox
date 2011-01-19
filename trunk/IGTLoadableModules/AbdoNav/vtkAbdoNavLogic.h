@@ -57,6 +57,9 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
 
   /// Calculate registration matrix based on two identified points on the guidance needle.
   void PerformRegistration();
+  /// Set the slice driver (user == 0, locator == 1) for each slice orientation (Red == 0,
+  /// Yellow == 1, Green == 2).
+  void SetSliceDriver(int sliceIndex, int driverValue);
   /// Perform reslicing and update the crosshair.
   void UpdateSlicePlanes();
   /// Find and return the locator. Return NULL if not found.
@@ -102,6 +105,9 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkMRMLLinearTransformNode* RegistrationTransform;
   /// Matrix holding the position at which the locator model was frozen.
   vtkMatrix4x4* LocatorFreezePosition;
+  /// Holds the slice driver (user == 0, locator == 1) for each slice orientation (Red == 0,
+  /// Yellow == 1, Green == 2).
+  int SliceDriver[3];
   /// Flag indicating whether or not registration has been performed yet.
   bool RegistrationPerformed;
   /// Flag indicating whether or not to show a crosshair corresponding to the locator's tip position.
