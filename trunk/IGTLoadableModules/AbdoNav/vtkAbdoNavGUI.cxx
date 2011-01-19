@@ -686,6 +686,16 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     int checked = this->ShowCrosshairCheckButton->GetSelectedState();
     this->AbdoNavLogic->SetShowCrosshair(checked);
     }
+  else if (this->FreezeSliceCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
+    {
+    int checked = this->FreezeSliceCheckButton->GetSelectedState();
+    this->AbdoNavLogic->SetFreezeReslicing(checked);
+    }
+  else if (this->ObliqueCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
+    {
+    int checked = this->ObliqueCheckButton->GetSelectedState();
+    this->AbdoNavLogic->SetObliqueReslicing(checked);
+    }
 }
 
 
