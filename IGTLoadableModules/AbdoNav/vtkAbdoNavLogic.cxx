@@ -46,6 +46,7 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
       {
       this->SliceNode[i] = NULL;
       }
+  this->Crosshair = NULL;
   // initialize each slice orientation (Red == 0, Yellow == 1, Green == 2) to be driven by the user (== 0)
   for (int i = 0; i < 3; i++)
     {
@@ -73,6 +74,10 @@ vtkAbdoNavLogic::~vtkAbdoNavLogic()
   if (this->LocatorFreezePosition)
     {
     this->LocatorFreezePosition->Delete();
+    }
+  if (this->Crosshair)
+    {
+    this->Crosshair->Delete();
     }
 }
 
@@ -302,6 +307,20 @@ void vtkAbdoNavLogic::UpdateAll()
           }
         }
       }
+
+    // update the crosshair
+    if (this->Crosshair != NULL && this->ShowCrosshair == 1)
+      {
+      if (registeredTracker != NULL)
+        {
+        float px = registeredTracker->Element[0][3];
+        float py = registeredTracker->Element[1][3];
+        float pz = registeredTracker->Element[2][3];
+
+        this->Crosshair->SetCrosshairRAS(px, py, pz);
+        }
+      }
+
     // cleanup
     registeredTracker->Delete();
     }

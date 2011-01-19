@@ -31,6 +31,7 @@
 /* Slicer includes */
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerNodeSelectorWidget.h"
+#include "vtkSlicerSlicesControlGUI.h"
 #include "vtkSlicerTheme.h"
 
 /* STL includes */
@@ -684,7 +685,20 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   else if (this->ShowCrosshairCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
     int checked = this->ShowCrosshairCheckButton->GetSelectedState();
-    this->AbdoNavLogic->SetShowCrosshair(checked);
+    if (checked)
+      {
+      vtkMRMLCrosshairNode* crosshair = this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode();
+      if (crosshair)
+        {
+        crosshair->SetCrosshairName("AbdoNav-Crosshair");
+        crosshair->SetCrosshairBehavior(vtkMRMLCrosshairNode::Normal);
+        crosshair->SetCrosshairThickness(vtkMRMLCrosshairNode::Fine);
+        crosshair->SetNavigation(1);
+        crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::ShowAll);
+        this->AbdoNavLogic->SetCrosshair(crosshair);
+        this->AbdoNavLogic->SetShowCrosshair(checked);
+        }
+      }
     }
   else if (this->RedSliceMenuButton->GetMenu() == vtkKWMenu::SafeDownCast(caller) && event == vtkKWMenu::MenuItemInvokedEvent)
     {
