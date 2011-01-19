@@ -227,8 +227,12 @@ void vtkAbdoNavLogic::PerformRegistration()
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavLogic::SetSliceDriver(int index, int driver)
+void vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
 {
+  static int counter = 0;
+  counter++;
+
+  std::cout << "counter: " << counter << "     " << "sliceIndex: " << sliceIndex << "     " << "driver: " << driver << std::endl;
 
 }
 

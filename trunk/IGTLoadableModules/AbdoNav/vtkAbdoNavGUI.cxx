@@ -688,7 +688,33 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     }
   else if (this->RedSliceMenuButton->GetMenu() == vtkKWMenu::SafeDownCast(caller) && event == vtkKWMenu::MenuItemInvokedEvent)
     {
-    std::cout << "red button changed" << std::endl;
+    this->AbdoNavLogic->SetSliceDriver(0, this->RedSliceMenuButton->GetValue());
+    }
+  else if (this->YellowSliceMenuButton->GetMenu() == vtkKWMenu::SafeDownCast(caller) && event == vtkKWMenu::MenuItemInvokedEvent)
+    {
+    this->AbdoNavLogic->SetSliceDriver(1, this->YellowSliceMenuButton->GetValue());
+    }
+  else if (this->GreenSliceMenuButton->GetMenu() == vtkKWMenu::SafeDownCast(caller) && event == vtkKWMenu::MenuItemInvokedEvent)
+    {
+    this->AbdoNavLogic->SetSliceDriver(2, this->GreenSliceMenuButton->GetValue());
+    }
+  else if (this->SetLocatorAllPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
+    {
+    this->AbdoNavLogic->SetSliceDriver(0, "Locator");
+    this->AbdoNavLogic->SetSliceDriver(1, "Locator");
+    this->AbdoNavLogic->SetSliceDriver(2, "Locator");
+    this->RedSliceMenuButton->SetValue("Locator");
+    this->YellowSliceMenuButton->SetValue("Locator");
+    this->GreenSliceMenuButton->SetValue("Locator");
+    }
+  else if (this->SetUserAllPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
+    {
+    this->AbdoNavLogic->SetSliceDriver(0, "User");
+    this->AbdoNavLogic->SetSliceDriver(1, "User");
+    this->AbdoNavLogic->SetSliceDriver(2, "User");
+    this->RedSliceMenuButton->SetValue("User");
+    this->YellowSliceMenuButton->SetValue("User");
+    this->GreenSliceMenuButton->SetValue("User");
     }
   else if (this->FreezeSliceCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
