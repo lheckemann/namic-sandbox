@@ -288,6 +288,8 @@ void vtkAbdoNavLogic::UpdateAll()
       return;
       }
 
+    this->CheckSliceNode();
+
     // update each slice that is driven by the locator
     for (int i = 0; i < 3; i++)
       {
@@ -309,7 +311,51 @@ void vtkAbdoNavLogic::UpdateAll()
 //---------------------------------------------------------------------------
 void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* registeredTracker)
 {
+  float tx = registeredTracker->Element[0][0]; float nx = registeredTracker->Element[0][2]; float px = registeredTracker->Element[0][3];
+  float ty = registeredTracker->Element[1][0]; float ny = registeredTracker->Element[1][2]; float py = registeredTracker->Element[1][3];
+  float tz = registeredTracker->Element[2][0]; float nz = registeredTracker->Element[2][2]; float pz = registeredTracker->Element[2][3];
 
+  if (strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Axial") == 0)
+    {
+    if (this->ObliqueReslicing) // perpendicular
+      {
+      //this->SliceOrientation[sliceNodeIndex] = SLICE_RTIMAGE_PERP;
+      this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
+      }
+    else
+      {
+      this->SliceNode[sliceNodeIndex]->SetOrientationToAxial();
+      this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
+      }
+    }
+  else if (strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Sagittal") == 0)
+    {
+    if (this->ObliqueReslicing) // in-plane
+      {
+      //this->SliceOrientation[sliceNodeIndex] = SLICE_RTIMAGE_INPLANE;
+      this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
+      }
+    else
+      {
+      this->SliceNode[sliceNodeIndex]->SetOrientationToSagittal();
+      this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
+      }
+    }
+  else if (strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Coronal") == 0)
+    {
+    if (this->ObliqueReslicing)  // in-plane 90
+      {
+       //this->SliceOrientation[sliceNodeIndex] = SLICE_RTIMAGE_INPLANE90;
+      this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
+      }
+    else
+      {
+      this->SliceNode[sliceNodeIndex]->SetOrientationToCoronal();
+      this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
+      }
+    }
+
+  this->SliceNode[sliceNodeIndex]->UpdateMatrices();
 }
 
 
