@@ -42,6 +42,10 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
   this->AbdoNavNode = NULL;
   this->RegistrationTransform = NULL;
   this->LocatorFreezePosition = NULL;
+  for (int i = 0; i < 3; i++)
+      {
+      this->SliceNode[i] = NULL;
+      }
   // initialize each slice orientation (Red == 0, Yellow == 1, Green == 2) to be driven by the user (== 0)
   for (int i = 0; i < 3; i++)
     {
@@ -229,11 +233,41 @@ void vtkAbdoNavLogic::PerformRegistration()
 //---------------------------------------------------------------------------
 void vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
 {
-  static int counter = 0;
-  counter++;
+  if (sliceIndex < 0 || sliceIndex >= 3)
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::SetSliceDriver(...): "
+                  "Index out of range!");
+    return;
+    }
 
-  std::cout << "counter: " << counter << "     " << "sliceIndex: " << sliceIndex << "     " << "driver: " << driver << std::endl;
+  this->CheckSliceNode();
 
+  if (strcmp(driver, "User") == 0)
+    {
+    switch (sliceIndex) {
+      case 0:
+        this->SliceNode[sliceIndex]->SetOrientationToAxial();
+        break;
+      case 1:
+        this->SliceNode[sliceIndex]->SetOrientationToSagittal();
+        break;
+      case 2:
+        this->SliceNode[sliceIndex]->SetOrientationToCoronal();
+        break;
+      default:
+        break;
+    }
+    this->SliceDriver[sliceIndex] = 0;
+    }
+  else if (strcmp(driver, "Locator") == 0)
+    {
+    this->SliceDriver[sliceIndex] = 1;
+    }
+  else
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::SetSliceDriver(...): "
+                  "Unknown slice driver specifier!");
+    }
 }
 
 
@@ -249,6 +283,24 @@ void vtkAbdoNavLogic::UpdateSlicePlanes()
 
   counter++;
   std::cout << "updating slice planes: " << counter << std::endl;
+}
+
+
+//---------------------------------------------------------------------------
+void vtkAbdoNavLogic::CheckSliceNode()
+{
+  if (this->SliceNode[0] == NULL)
+    {
+    this->SliceNode[0] = this->GetApplicationLogic()->GetSliceLogic("Red")->GetSliceNode();
+    }
+  if (this->SliceNode[1] == NULL)
+    {
+    this->SliceNode[1] = this->GetApplicationLogic()->GetSliceLogic("Yellow")->GetSliceNode();
+    }
+  if (this->SliceNode[2] == NULL)
+    {
+    this->SliceNode[2] = this->GetApplicationLogic()->GetSliceLogic("Green")->GetSliceNode();
+    }
 }
 
 

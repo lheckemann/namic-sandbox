@@ -62,6 +62,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   void SetSliceDriver(int sliceIndex, const char* driver);
   /// Perform reslicing and update the crosshair.
   void UpdateSlicePlanes();
+  /// Set pointers to access the three different slice orientations.
+  void CheckSliceNode();
   /// Find and return the locator. Return NULL if not found.
   vtkMRMLModelNode* FindLocator(const char* locatorName);
   /// Create locator model and make it observe the selected tracker transform node.
@@ -105,6 +107,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkMRMLLinearTransformNode* RegistrationTransform;
   /// Matrix holding the position at which the locator model was frozen.
   vtkMatrix4x4* LocatorFreezePosition;
+  /// Pointers to access the three different slice orientations.
+  vtkMRMLSliceNode* SliceNode[3];
   /// Holds the slice driver (User == 0, Locator == 1) for each slice orientation (Red == 0,
   /// Yellow == 1, Green == 2).
   int SliceDriver[3];
