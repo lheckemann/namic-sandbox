@@ -220,6 +220,21 @@ void vtkAbdoNavLogic::PerformRegistration()
 
 
 //---------------------------------------------------------------------------
+void vtkAbdoNavLogic::UpdateSlicePlanes()
+{
+  static int counter = 0;
+
+  if (this->FreezeReslicing == true)
+    {
+    return;
+    }
+
+  counter++;
+  std::cout << "updating slice planes: " << counter << std::endl;
+}
+
+
+//---------------------------------------------------------------------------
 vtkMRMLModelNode* vtkAbdoNavLogic::FindLocator(const char* locatorName)
 {
   vtkMRMLModelNode* locatorModel;
