@@ -57,6 +57,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
 
   /// Calculate registration matrix based on two identified points on the guidance needle.
   void PerformRegistration();
+  /// Perform reslicing and update the crosshair.
+  void UpdateSlicePlanes();
   /// Find and return the locator. Return NULL if not found.
   vtkMRMLModelNode* FindLocator(const char* locatorName);
   /// Create locator model and make it observe the selected tracker transform node.

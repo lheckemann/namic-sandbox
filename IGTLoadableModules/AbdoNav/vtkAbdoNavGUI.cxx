@@ -686,6 +686,10 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     int checked = this->ShowCrosshairCheckButton->GetSelectedState();
     this->AbdoNavLogic->SetShowCrosshair(checked);
     }
+  else if (this->RedSliceMenuButton->GetMenu() == vtkKWMenu::SafeDownCast(caller) && event == vtkKWMenu::MenuItemInvokedEvent)
+    {
+    std::cout << "red button changed" << std::endl;
+    }
   else if (this->FreezeSliceCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
     int checked = this->FreezeSliceCheckButton->GetSelectedState();
@@ -750,7 +754,10 @@ void vtkAbdoNavGUI::ProcessTimerEvents()
 {
   if (this->TimerFlag)
     {
-    // TODO: fill in!
+    if (this->AbdoNavLogic->GetRegistrationPerformed() == true)
+      {
+      this->AbdoNavLogic->UpdateSlicePlanes();
+      }
 
     // calls ProcessTimerEvents() at regular intervals (specified by TimerInterval)
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), this->TimerInterval, this, "ProcessTimerEvents");
