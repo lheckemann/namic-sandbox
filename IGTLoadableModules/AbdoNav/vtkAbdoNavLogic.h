@@ -74,6 +74,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   //----------------------------------------------------------------
   vtkGetMacro(RegistrationPerformed, bool);
   vtkSetMacro(ShowCrosshair, bool);
+  vtkSetMacro(FreezeReslicing, bool);
+  vtkSetMacro(ObliqueReslicing, bool);
 
  protected:
   //----------------------------------------------------------------
@@ -102,6 +104,10 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   bool RegistrationPerformed;
   /// Flag indicating whether or not to show a crosshair corresponding to the locator's tip position.
   bool ShowCrosshair;
+  /// Flag indicating whether or not to freeze reslicing.
+  bool FreezeReslicing;
+  /// Flag indicating whether or not position and orientation of the tracked tool should be used for reslicing.
+  bool ObliqueReslicing;
 
 };
 
