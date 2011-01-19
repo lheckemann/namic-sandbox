@@ -40,8 +40,10 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
   // Initialize logic values.
   //----------------------------------------------------------------
   this->AbdoNavNode = NULL;
-  this->LocatorFreezePosition = NULL;
   this->RegistrationTransform = NULL;
+  this->LocatorFreezePosition = NULL;
+  this->RegistrationPerformed = 0;
+  this->ShowCrosshair = 0;
 }
 
 
@@ -209,6 +211,8 @@ void vtkAbdoNavLogic::PerformRegistration()
   // copy registration matrix into registration transform node
   this->RegistrationTransform->GetMatrixTransformToParent()->DeepCopy(registrationMatrix);
   this->RegistrationTransform->Modified();
+  // indicate that registration has been performed
+  this->RegistrationPerformed = 1;
 
   // cleanup
   registrationMatrix->Delete();

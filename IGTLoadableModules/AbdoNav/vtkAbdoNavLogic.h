@@ -68,6 +68,13 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   /// Create a locator model.
   vtkMRMLModelNode* AddLocatorModel(const char* locatorName, double r, double g, double b);
 
+  //----------------------------------------------------------------
+  // Getters and Setters for (private) logic values that need  to be
+  // accessed from the GUI class.
+  //----------------------------------------------------------------
+  vtkGetMacro(RegistrationPerformed, bool);
+  vtkSetMacro(ShowCrosshair, bool);
+
  protected:
   //----------------------------------------------------------------
   // Usual VTK class functions.
@@ -91,6 +98,10 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkMRMLLinearTransformNode* RegistrationTransform;
   /// Matrix holding the position at which the locator model was frozen.
   vtkMatrix4x4* LocatorFreezePosition;
+  /// Flag indicating whether or not registration has been performed yet.
+  bool RegistrationPerformed;
+  /// Flag indicating whether or not to show a crosshair corresponding to the locator's tip position.
+  bool ShowCrosshair;
 
 };
 
