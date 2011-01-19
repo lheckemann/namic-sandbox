@@ -44,6 +44,8 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
   this->LocatorFreezePosition = NULL;
   this->RegistrationPerformed = 0;
   this->ShowCrosshair = 0;
+  this->FreezeReslicing = 0;
+  this->ObliqueReslicing = 0;
 }
 
 
