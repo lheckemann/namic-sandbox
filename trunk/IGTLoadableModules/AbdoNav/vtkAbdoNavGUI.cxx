@@ -681,6 +681,11 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     int checked = this->FreezeLocatorCheckButton->GetSelectedState();
     this->AbdoNavLogic->ToggleLocatorFreeze(checked);
     }
+  else if (this->ShowCrosshairCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
+    {
+    int checked = this->ShowCrosshairCheckButton->GetSelectedState();
+    this->AbdoNavLogic->SetShowCrosshair(checked);
+    }
 }
 
 
