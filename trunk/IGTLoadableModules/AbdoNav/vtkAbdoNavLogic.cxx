@@ -336,9 +336,10 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
 
   if (strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Axial") == 0)
     {
-    if (this->ObliqueReslicing) // perpendicular
+    if (this->ObliqueReslicing)
       {
-      //this->SliceOrientation[sliceNodeIndex] = SLICE_RTIMAGE_PERP;
+      // store orientation of this slice view
+      this->SliceOrientation[sliceNodeIndex] = SLICE_ORIENT_AXIAL;
       this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
       }
     else
@@ -349,9 +350,10 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
     }
   else if (strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Sagittal") == 0)
     {
-    if (this->ObliqueReslicing) // in-plane
+    if (this->ObliqueReslicing)
       {
-      //this->SliceOrientation[sliceNodeIndex] = SLICE_RTIMAGE_INPLANE;
+      // store orientation of this slice view
+      this->SliceOrientation[sliceNodeIndex] = SLICE_ORIENT_SAGITTAL;
       this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
       }
     else
@@ -362,14 +364,39 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
     }
   else if (strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Coronal") == 0)
     {
-    if (this->ObliqueReslicing)  // in-plane 90
+    if (this->ObliqueReslicing)
       {
-       //this->SliceOrientation[sliceNodeIndex] = SLICE_RTIMAGE_INPLANE90;
+      // store orientation of this slice view
+      this->SliceOrientation[sliceNodeIndex] = SLICE_ORIENT_CORONAL;
       this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
       }
     else
       {
       this->SliceNode[sliceNodeIndex]->SetOrientationToCoronal();
+      this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
+      }
+    }
+  else if (strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Reformat") == 0)
+    {
+    if (this->ObliqueReslicing)
+      {
+      this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
+      }
+    else
+      {
+      if (this->SliceOrientation[sliceNodeIndex] == SLICE_ORIENT_AXIAL)
+        {
+        this->SliceNode[sliceNodeIndex]->SetOrientationToAxial();
+        }
+      else if (this->SliceOrientation[sliceNodeIndex] == SLICE_ORIENT_SAGITTAL)
+        {
+        this->SliceNode[sliceNodeIndex]->SetOrientationToSagittal();
+        }
+      else if (this->SliceOrientation[sliceNodeIndex] == SLICE_ORIENT_CORONAL)
+        {
+        this->SliceNode[sliceNodeIndex]->SetOrientationToCoronal();
+        }
+
       this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
       }
     }

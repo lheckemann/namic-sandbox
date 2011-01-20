@@ -32,13 +32,19 @@
 class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
 {
  public:
+  //BTX
   //----------------------------------------------------------------
   // Events to be passed to and processed by the GUI.
   //----------------------------------------------------------------
-  //BTX
-  enum {
+  enum LogicEvents {
     StatusUpdateEvent = 50001,
     //AnotherEvent    = 50002
+  };
+
+  enum SliceOrientation {
+    SLICE_ORIENT_AXIAL    = 0,
+    SLICE_ORIENT_SAGITTAL = 1,
+    SLICE_ORIENT_CORONAL  = 2
   };
   //ETX
 
@@ -120,6 +126,9 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   /// Holds the slice driver (User == 0, Locator == 1) for each slice orientation (Red == 0,
   /// Yellow == 1, Green == 2).
   int SliceDriver[3];
+  /// Holds the slice orientation (Axial == 0, Sagittal == 1, Coronal == 2) for each slice view
+  /// (Red == 0, Yellow == 1, Green == 2)
+  int SliceOrientation[3];
   /// Flag indicating whether or not registration has been performed yet.
   bool RegistrationPerformed;
   /// Flag indicating whether or not to show a crosshair corresponding to the locator's tip position.
