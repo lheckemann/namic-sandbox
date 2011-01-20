@@ -325,6 +325,8 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
       // Clipping Slicer Model
       if(this->ModelToCutSelector && this->CuttingPlane)
      {  
+
+          // Clip Model
        vtkClipPolyData* clipper = vtkClipPolyData::New();
           vtkMRMLModelNode* modOut = vtkMRMLModelNode::New();
           vtkMRMLModelDisplayNode* dnode = vtkMRMLModelDisplayNode::New();
@@ -350,11 +352,38 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
           dnode->SetColor(model->GetDisplayNode()->GetColor());
           this->GetMRMLScene()->AddNode(dnode);
           
+
+          // Check if a previous clipping has been made
+          vtkCollection* clippedmodel = this->GetMRMLScene()->GetNodesByName("OsteoPlanClippedModel");
+          if(clippedmodel->GetNumberOfItems())
+         {
+           for(int i= 0; i < (clippedmodel->GetNumberOfItems()); i++)
+          {
+            vtkMRMLNode* nodetodelete = reinterpret_cast<vtkMRMLNode*>(clippedmodel->GetItemAsObject(i));
+                  this->GetMRMLScene()->RemoveNode(nodetodelete);
+                  //nodetodelete->Delete();
+          }
+         }
+       // clippedmodel->RemoveAllItems();          
+          clippedmodel->Delete();
+
+          // Add clipped model to Slicer scene
           modOut->SetAndObservePolyData(poly);
           modOut->SetAndObserveDisplayNodeID(dnode->GetID());
-          modOut->SetName("ClippedModel");
+          modOut->SetName("OsteoPlanClippedModel");
           this->GetMRMLScene()->AddNode(modOut);
 
+          // Update Selector Widget to be ready for a new clipping
+          clippedmodel = this->GetMRMLScene()->GetNodesByName("OsteoPlanClippedModel");
+          if((clippedmodel->GetNumberOfItems() == 1) && this->ModelToCutSelector)
+         {
+            this->ModelToCutSelector->SetSelected(modOut);
+            this->ModelToCutSelector->UpdateMenu();
+         }
+       //            alreadyclippedmodel->RemoveAllItems();
+          clippedmodel->Delete();
+
+          // Delete
           cpoly->Delete();
           dnode->Delete();
           clipper->Delete();

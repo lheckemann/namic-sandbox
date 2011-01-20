@@ -70,6 +70,11 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   virtual void Exit ( );
   void PrintSelf (ostream& os, vtkIndent indent );
 
+  // Description: 
+  // Get the categorization of the module.
+  const char *GetCategory() const { return "IGT"; }
+
+
   //----------------------------------------------------------------
   // Observer Management
   //----------------------------------------------------------------
