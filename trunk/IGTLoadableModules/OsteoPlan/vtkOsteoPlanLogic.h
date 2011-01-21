@@ -31,6 +31,8 @@
 #include "vtkMRMLSliceNode.h"
 
 class vtkIGTLConnector;
+class vtkMRMLModelNode;
+class vtkBoxWidget;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanLogic : public vtkSlicerModuleLogic 
 {
@@ -48,6 +50,8 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanLogic : public vtkSlicerModuleLogic
   
   vtkTypeRevisionMacro(vtkOsteoPlanLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
+
+  void ClipModelWithBox(vtkMRMLModelNode*, vtkBoxWidget*);
 
  protected:
   
