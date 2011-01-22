@@ -1,0 +1,75 @@
+//====================================================================
+//
+// MRI guided robot control system
+//
+// Copyright (C) 2003-2005 by The University of Tokyo,
+// All Right Reserved.
+//
+//====================================================================
+// $RCSfile: main.cpp,v $
+// $Revision: 1.3 $ 
+// $Author: junichi $
+// $Date: 2005/01/24 12:07:28 $
+//====================================================================
+
+
+//====================================================================
+// Description: 
+//    Main routin for MRI guided robot control system.
+//====================================================================
+
+#include <iostream>
+#include <stdio.h>
+#include <unistd.h>
+#include "MrsvrMessageServer.h"
+#include "MrsvrMainWindow.h"
+#include "MrsvrLocatorClient.h"
+
+#ifdef ENABLE_MRTS_CONNECTION
+  #include "MrsvrMrtsCon.h"
+#endif //ENABLE_MRTS_CONNECTION
+
+//#include "MrsvrMonitor.h"
+
+int main (int argc, char* argv[]) 
+{
+  MrsvrMessageServer* mms;
+  MrsvrLocatorClient* mlc;
+#ifdef ENABLE_MRTS_CONNECTION
+  MrsvrMrtsCon*       mmc;
+#endif //ENABLE_MRTS_CONNECTION
+  MrsvrMainWindow*    mmw;
+
+  mms  = new MrsvrMessageServer(10005);
+  mlc  = new MrsvrLocatorClient();
+#ifdef ENABLE_MRTS_CONNECTION
+  mmc  = new MrsvrMrtsCon();
+#endif //ENABLE_MRTS_CONNECTION
+
+  // Make application
+  FXApp application("MR Servo Robot Monitor","ATRE Lab. The Univ. of Tokyo");
+  
+  // Open display
+  application.init(argc,argv);
+
+  // Make window
+  int w = application.getRootWindow()->getDefaultWidth();
+  int h = application.getRootWindow()->getDefaultHeight();
+  fprintf(stderr, "w = %d, h = %d\n", w, h);
+  mmw = new MrsvrMainWindow(&application, w, h);
+
+  // register messaging server
+  mmw->setExtMsgSvr(mms);
+  mmw->setLocClient(mlc);
+#ifdef ENABLE_MRTS_CONNECTION
+  // register MRTS Connection
+  mmw->setMrtsCon(mmc);
+#endif //ENABLE_MRTS_CONNECTION
+
+
+  // Create app
+  application.create();
+
+  // Run
+  application.run();
+}
