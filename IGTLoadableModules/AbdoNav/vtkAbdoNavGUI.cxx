@@ -23,7 +23,6 @@
 #include "vtkKWRadioButton.h"
 #include "vtkKWScale.h"
 #include "vtkKWScaleWithEntry.h"
-#include "vtkKWTkUtilities.h"
 
 /* MRML includes */
 #include "vtkMRMLLinearTransformNode.h"
@@ -50,7 +49,6 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   this->AbdoNavLogic = NULL;
   this->AbdoNavNode = NULL;
-  this->TimerFlag = 0;
 
   //----------------------------------------------------------------
   // Connection frame.
@@ -256,8 +254,6 @@ void vtkAbdoNavGUI::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "vtkAbdoNavGUI: " << this->GetClassName() << "\n";
   os << indent << "vtkAbdoNavLogic: " << this->AbdoNavLogic << "\n";
   os << indent << "vtkAbdoNavNode: " << this->AbdoNavNode << "\n";
-  os << indent << "TimerFlag: " << this->TimerFlag << "\n";
-  os << indent << "TimerInterval: " << this->TimerInterval << "\n";
 }
 
 
@@ -275,12 +271,7 @@ void vtkAbdoNavGUI::Init()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::Enter()
 {
-  if (this->TimerFlag == 0)
-    {
-    this->TimerFlag = 1;
-    this->TimerInterval = 50; // 50 ms
-    ProcessTimerEvents();
-    }
+  // TODO: implement or delete!
 }
 
 
@@ -785,22 +776,6 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
       {
       this->UpdateGUIFromMRML();
       }
-    }
-}
-
-
-//---------------------------------------------------------------------------
-void vtkAbdoNavGUI::ProcessTimerEvents()
-{
-  if (this->TimerFlag)
-    {
-    if (this->AbdoNavLogic->GetRegistrationPerformed() == true)
-      {
-      this->AbdoNavLogic->UpdateAll();
-      }
-
-    // calls ProcessTimerEvents() at regular intervals (specified by TimerInterval)
-    vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), this->TimerInterval, this, "ProcessTimerEvents");
     }
 }
 

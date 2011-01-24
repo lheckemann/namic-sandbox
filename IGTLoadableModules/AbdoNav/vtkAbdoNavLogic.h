@@ -117,6 +117,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkMRMLAbdoNavNode* AbdoNavNode;
   /// Transform node holding the static registration matrix.
   vtkMRMLLinearTransformNode* RegistrationTransform;
+  /// The original tracker transform node created by OpenIGTLinkIF.
+  vtkMRMLLinearTransformNode* OriginalTrackerTransform;
   /// Matrix holding the position at which the locator model was frozen.
   vtkMatrix4x4* LocatorFreezePosition;
   /// Pointer to access the crosshair node.
