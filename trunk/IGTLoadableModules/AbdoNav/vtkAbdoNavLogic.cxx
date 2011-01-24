@@ -41,6 +41,7 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
   //----------------------------------------------------------------
   this->AbdoNavNode = NULL;
   this->RegistrationTransform = NULL;
+  this->OriginalTrackerTransform = NULL;
   this->LocatorFreezePosition = NULL;
   for (int i = 0; i < 3; i++)
       {
@@ -71,6 +72,10 @@ vtkAbdoNavLogic::~vtkAbdoNavLogic()
     {
     this->RegistrationTransform->Delete();
     }
+  if (this->OriginalTrackerTransform)
+    {
+    this->OriginalTrackerTransform->Delete();
+    }
   if (this->LocatorFreezePosition)
     {
     this->LocatorFreezePosition->Delete();
@@ -95,11 +100,16 @@ void vtkAbdoNavLogic::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 void vtkAbdoNavLogic::ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData)
 {
-  if (caller != NULL)
+  vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+  if (node != NULL && this->AbdoNavNode != NULL &&
+      strcmp(node->GetID(), this->AbdoNavNode->GetOriginalTrackerTransformID()) == 0)
     {
-    // vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
 
-    // TODO: fill in or delete!
+    if (this->RegistrationPerformed == true)
+      {
+      this->UpdateAll();
+      }
+
     }
 }
 
@@ -267,6 +277,15 @@ void vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
   else if (strcmp(driver, "Locator") == 0)
     {
     this->SliceDriver[sliceIndex] = 1;
+    vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetOriginalTrackerTransformID()));
+    if (tnode)
+      {
+      vtkIntArray* nodeEvents = vtkIntArray::New();
+      nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+      vtkSetAndObserveMRMLNodeEventsMacro(this->OriginalTrackerTransform, tnode, nodeEvents);
+      nodeEvents->Delete();
+      tnode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+      }
     }
   else
     {
