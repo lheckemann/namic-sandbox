@@ -23,18 +23,13 @@
 CXX       = /usr/bin/c++
 CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
 LINKFLAGS =
-DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL  -DUSE_ART -DFULLSCREEN #-DDEBUG -DENABLE_MRTS_CONNECTION
+DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL  -DUSE_ART -DFULLSCREEN
 INCDIR    = -I. -I/home/atre/program/mri_servo2/common -I/usr/local/include/fox-1.2 -I/home/atre/opt/include/igtl 
 LIBDIR    = -L/usr/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L/home/atre/opt/lib/igtl
 COMLIBS   = -lm
 IFLIBS    = -lFOX-1.2 -lXext -lX11 -lm -lGLU -lGL -lXmu -lXi -ltiff -lpthread -lg2c -lOpenIGTLink
 CTRLLIBS  = -lgpg2000 -lgpg3300 -lgpg6204 -lg2c
 ARTLIB    = /usr/lib/art_syscalls.o
-
-# MRTrackingClient libraries
-MRTCOBJ   = /home/atre/program/mri_tracking/client/MRTrackingClient.o
-INCDIR2   = ${INCDIR} ${MRTCINC}
-
 
 ## for Linux x86-64
 ## If you compile this program without driver libraries for IO Board,
@@ -45,7 +40,7 @@ INCDIR2   = ${INCDIR} ${MRTCINC}
 #CXX       = c++
 #CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
 #LINKFLAGS =
-#DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL -DENABLE_MRTS_CONNECTION  -D_USE_FBISIM -DWITHOUT_ART #-DDEBUG #-DFULLSCREEN
+#DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL -D_USE_FBISIM -DWITHOUT_ART #-DDEBUG #-DFULLSCREEN
 #INCDIR    = -I. -I../common -I../fbisim -I/home/junichi/work/include/fox-1.2 -I/home/junichi/work/include/octave-2.1.57
 #LIBDIR    = -L/home/junichi/work/lib64 -L/usr/lib64  -L/usr/X11R6/lib64 -L. -L/home/junichi/work/lib64/octave-2.1.57 -L../fbisim
 #COMLIBS   = -lm
@@ -53,13 +48,6 @@ INCDIR2   = ${INCDIR} ${MRTCINC}
 ##CTRLLIBS  = -lgpg2000 -lgpg3300 -lgpg6204 -loctave -lcruft -lfftw3 -lg2c
 #CTRLLIBS  =  -lgfortran -loctave -lcruft -lgpg2000_sim -lgpg3300_sim -lgpg6204_sim  #-lgpg2000 -lgpg3300 -lgpg6204
 ##ARTLIB    = /usr/lib/art_syscalls.o
-#
-## MRTrackingClient libraries
-#MRTCOBJ   = /home/junichi/program/mri_tracking/client/MRTrackingClient.o
-#MRTCINC   = -I/home/junichi/program/mri_tracking/client -I/home/junichi/program/mri_tracking/common -I../locator_server
-#INCDIR2   = ${INCDIR} ${MRTCINC}
-
-
 
 
 # for MacOS X
@@ -72,17 +60,13 @@ INCDIR2   = ${INCDIR} ${MRTCINC}
 #CXX       = g++
 #CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
 #LINKFLAGS = 
-#DEFS      = -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL -DWITHOUT_ART -D_USE_FBISIM #-DENABLE_MRTS_CONNECTION #-DDEBUG #-DFULLSCREEN 
+#DEFS      = -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL -DWITHOUT_ART -D_USE_FBISIM #-DDEBUG #-DFULLSCREEN 
 #INCDIR    = -I. -I/opt/local/include/fox-1.6 -I../fbisim
 #LIBDIR    = -L/opt/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L./fbisim
 #COMLIBS   = -lm
 #IFLIBS    = -lFOX-1.6 -lXext -lX11 -lGLU -lGL -lXmu -lXi -ltiff -lpthread -ldl -lz -lSM -lICE -lXcursor #-lm 
 #CTRLLIBS  = -lgpg2000_sim -lgpg3300_sim -lgpg6204_sim  #-lgpg2000 -lgpg3300 -lgpg6204
 #ARTLIB    = #/usr/lib/art_syscalls.o
-## MRTrackingClient libraries
-##MRTCOBJ   = /Users/junichi/program/mri_tracking/client/MRTrackingClient.o
-#MRTCINC   = -I/Users/junichi/program/mri_tracking/client -I/Users/junichi/program/mri_tracking/common -I../locator_server
-#
 #INCDIR2   = ${INCDIR} ${MRTCINC}
 
 
@@ -116,15 +100,14 @@ CTRLOBJS  = mainController.o MrsvrDev.o MrsvrTransform.o
 
 all: ${MRSVRIF} ${MRSVRCTRL}
 
-${MRSVRIF}: ${IFOBJS} ${COMOBJS} ${MRTCOBJ} ${ARTLIB}
+${MRSVRIF}: ${IFOBJS} ${COMOBJS} ${ARTLIB}
 	${CXX} ${LINKFLAGS} ${LIBDIR}  -o $@ $? ${IFLIBS} ${COMLIBS}
 
 ${MRSVRCTRL}: ${CTRLOBJS} ${COMOBJS} ${ARTLIB}
 	${CXX} ${LINKFLAGS} ${LIBDIR}  -o $@ $? ${CTRLLIBS} ${COMLIBS} 
 
 .cpp.o: 
-#	${CXX} ${CXXFLAGS} ${DEFS} ${INCDIR} -c $<
-	${CXX} ${CXXFLAGS} ${DEFS} ${INCDIR2} -g -c $<
+	${CXX} ${CXXFLAGS} ${DEFS} ${INCDIR} -c $<
 
 .c.o:
 	${CXX} ${CXXFLAGS} ${DEFS} ${INCDIR2} -g -c $<

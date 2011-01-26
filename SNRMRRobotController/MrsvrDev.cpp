@@ -243,7 +243,7 @@ int MrsvrDev::initDa()
   daConfs        = new DASMPLCHREQ[NUM_ACTUATORS];
   for (i = 0; i < NUM_ACTUATORS; i ++) {
     //daOutValues[i]     = 0x0000;
-    (unsigned short) ((float) daFullRange * (0+5.0)/ (MAX_ACTUATOR_VOLTAGE*2));
+    //(unsigned short) ((float) daFullRange * (0+5.0)/ (MAX_ACTUATOR_VOLTAGE*2));
     daConfs[i].ulChNo  = daOutVelCh[i];
     daConfs[i].ulRange = DA_5V;
     actuatorVol[i]     = 0.0;
