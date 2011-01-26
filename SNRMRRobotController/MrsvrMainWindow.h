@@ -49,12 +49,6 @@
 #include "MrsvrMessageServer.h"
 #include "shmKeys.h"
 
-//#include "MrsvrLocatorClient.h"
-#ifdef ENABLE_MRTS_CONNECTION
-  #include "MrsvrMrtsCon.h"
-#endif //ENABLE_MRTS_CONNECTION
-
-
 //--------------------------------------------------------------------
 // Macros
 //--------------------------------------------------------------------
@@ -337,9 +331,6 @@ private:
   MrsvrLogReader*         robotLog;
   MrsvrMessageServer*     extMsgSvr;
   //MrsvrLocatorClient*     locClient;
-#ifdef ENABLE_MRTS_CONNECTION
-  MrsvrMrtsCon*           mrtsConnection;
-#endif //ENABLE_MRTS_CONNECTION
   MrsvrTransform*         transform;
   
   int                     prevSvrStatus; 
@@ -608,12 +599,6 @@ public:
   //inline void  setLocClient(MrsvrLocatorClient* p) {
   //  locClient = p;
   //}
-#ifdef ENABLE_MRTS_CONNECTION
-  inline void  setMrtsCon(MrsvrMrtsCon* p) {
-    mrtsConnection = p;
-  };
-#endif //ENABLE_MRTS_CONNECTION
-
 
 //------------------------ Event Handlers --------------------------//
 public:
