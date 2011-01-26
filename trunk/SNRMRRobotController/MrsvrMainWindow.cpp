@@ -1180,7 +1180,7 @@ int MrsvrMainWindow::buildSystemControlPanel(FXComposite* comp)
                ID_SHUTDOWN_MRSVR_BTN,
                FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-
+  return 1;
 }
 
 
@@ -1675,7 +1675,7 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
   plotBShiftDial->setNotchOffset(0);
 
 
-  onMiniPlotUpdate(NULL, NULL, NULL);
+  onMiniPlotUpdate(NULL, (FXSelector) NULL, NULL);
 
   FXTabItem* tabCustom = new FXTabItem(mainTab, 
                                     "Customize\tCustomize\tCustomize the software",
@@ -2267,11 +2267,11 @@ void MrsvrMainWindow::storeRegistry()
 void MrsvrMainWindow::setDataTargets()
 {
   // Status bar: progress meter
-  dtStatusProg = new FXDataTarget(valStatusProg, this, NULL);
+  dtStatusProg = new FXDataTarget(valStatusProg, this, (FXSelector)NULL);
 
   // Communication -> Server Thread configuration
-  dtConPortNo  = new FXDataTarget(valConPortNo, this, NULL);
-  dtConStatus  = new FXDataTarget(valConStatus, this, NULL);
+  dtConPortNo  = new FXDataTarget(valConPortNo, this, (FXSelector)NULL);
+  dtConStatus  = new FXDataTarget(valConStatus, this, (FXSelector)NULL);
   dtLocServPortNo = 
     new FXDataTarget(valLocServPortNo, this, ID_UPDATE_PARAMETER);
   dtLocServHostName =
@@ -3332,6 +3332,7 @@ long MrsvrMainWindow::onCmdLocServDiscon(FXObject*, FXSelector, void*)
   //consolePrint(1, true, "Disconnecting from Locator Server.\n");
   //
   //locClient->disconnect();
+  return 1;
 }
 
 

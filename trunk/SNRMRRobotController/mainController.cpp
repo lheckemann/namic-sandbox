@@ -1037,7 +1037,7 @@ int main(int argc, char* argv[])
               ctm.tm_year+1900, ctm.tm_mon+1, ctm.tm_mday, 
               ctm.tm_hour, ctm.tm_min, ctm.tm_sec);
       fprintf(logfp, " Interval:\n"); 
-      fprintf(logfp, "   %d us.\n", interval);
+      fprintf(logfp, "   %d us.\n", (int) interval);
       fprintf(logfp, "=======================================\n");      
       fclose(logfp);
     } else {

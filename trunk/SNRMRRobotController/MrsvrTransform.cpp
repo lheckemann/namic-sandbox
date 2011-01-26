@@ -192,8 +192,6 @@ int MrsvrTransform::calibrate()
 
 void MrsvrTransform::transform(MrsvrVector y, MrsvrVector x)
 {
-  int i;
-
 //  ColumnVector ptImg(3);
 //  ColumnVector ptRbt(3);
 //
