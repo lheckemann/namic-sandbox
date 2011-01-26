@@ -1985,11 +1985,7 @@ int MrsvrMainWindow::updateTcpInfoTbl()
   if (extMsgSvr && 
       extMsgSvr->getSvrStatus() != prevSvrStatus) {
     prevSvrStatus = extMsgSvr->getSvrStatus();
-    valRemoteSoftware   = extMsgSvr->getRemoteSoftware();
-    valRemoteOS         = extMsgSvr->getRemoteOS();
-    valRemoteHostName   = extMsgSvr->getRemoteHost();
-    valRemoteIpAddr     = extMsgSvr->getRemoteIP();
-    valRemotePortNumber.format("%d", extMsgSvr->getRemotePort());
+    //valRemotePortNumber.format("%d", extMsgSvr->getRemotePort());
     
   }
 
@@ -2011,7 +2007,7 @@ int MrsvrMainWindow::initSharedInfo()
   robotCommand = new MrsvrCommandWriter(SHM_COMMAND);
   robotLog     = new MrsvrLogReader(SHM_LOG);
   robotCommand->setMode(MrsvrStatus::STOP);
-
+  
   for (int i = 0; i < 3; i ++) {
     robotCommand->setTipOffset(i, 0);
   }
@@ -2074,15 +2070,15 @@ void MrsvrMainWindow::loadRegistry()
     = getApp()->reg().readIntEntry("COMMUNICATION", "REMOTE_CONTROL_SERVER_PORT",
                                    DEFAULT_SVR_PORT);
 
-  valDefLocServPortNo
-    = getApp()->reg().readIntEntry("COMMUNICATION", "LOCATOR_SERVER_PORT",
-                                   DEFAULT_LSERVER_PORT);
-  valDefLocServHostName
-    = getApp()->reg().readStringEntry("COMMUNICATION", "LOCATOR_SERVER_HOST",
-                                      DEFAULT_LSERVER_HOST);
-  valDefLocServInterval
-    = getApp()->reg().readIntEntry("COMMUNICATION", "LOCATOR_SERVER_INTERVAL",
-                                   DEFAULT_LSERVER_INTERVAL_MS);
+//  valDefLocServPortNo
+//    = getApp()->reg().readIntEntry("COMMUNICATION", "LOCATOR_SERVER_PORT",
+//                                   0);
+//  valDefLocServHostName
+//    = getApp()->reg().readStringEntry("COMMUNICATION", "LOCATOR_SERVER_HOST",
+//                                      DEFAULT_LSERVER_HOST);
+//  valDefLocServInterval
+//    = getApp()->reg().readIntEntry("COMMUNICATION", "LOCATOR_SERVER_INTERVAL",
+//                                   DEFAULT_LSERVER_INTERVAL_MS);
 
 #ifdef ENABLE_MRTS_CONNECTION
   valDefMrtsPortNo
@@ -2890,14 +2886,14 @@ long MrsvrMainWindow::onUpdateTimer(FXObject*, FXSelector,void*)
       float angles[2];
       float nx, ny, nz;
       prevSetAngleReadyIndex = index;
-      int locStatus = locClient->getLatestPos(pos);
-      if (locStatus != MrsvrLocatorClient::LOCATOR_SENSOR_OK) {
-        // write error handler for locator trouble in automatic registration
-        consolePrint(0, true, "Failed to get locator values in AUTO CALIB.\n");
-        robotCommand->setMode(MrsvrStatus::STOP);
-        screenMode = SCR_NORMAL;
-        break;
-      }
+      //int locStatus = locClient->getLatestPos(pos);
+      //if (locStatus != MrsvrLocatorClient::LOCATOR_SENSOR_OK) {
+      //  // write error handler for locator trouble in automatic registration
+      //  consolePrint(0, true, "Failed to get locator values in AUTO CALIB.\n");
+      //  robotCommand->setMode(MrsvrStatus::STOP);
+      //  screenMode = SCR_NORMAL;
+      //  break;
+      //}
       nx = pos[3];
       ny = pos[4];
       nz = pos[5];
@@ -2915,14 +2911,14 @@ long MrsvrMainWindow::onUpdateTimer(FXObject*, FXSelector,void*)
         float pos[9];
         float robotCord[3];
         float locCord[3];
-        int locStatus = locClient->getLatestPos(pos);
-        if (locStatus != MrsvrLocatorClient::LOCATOR_SENSOR_OK) {
-          // write error handler for locator trouble in automatic registration
-          consolePrint(0, true, "Failed to get locator values in AUTO CALIB.\n");
-          robotCommand->setMode(MrsvrStatus::STOP);
-          screenMode = SCR_NORMAL;
-          break;
-        }
+        //int locStatus = locClient->getLatestPos(pos);
+        //if (locStatus != MrsvrLocatorClient::LOCATOR_SENSOR_OK) {
+        //  // write error handler for locator trouble in automatic registration
+        //  consolePrint(0, true, "Failed to get locator values in AUTO CALIB.\n");
+        //  robotCommand->setMode(MrsvrStatus::STOP);
+        //  screenMode = SCR_NORMAL;
+        //  break;
+        //}
         for (int i = 0; i < 3; i ++) {
           locCord[i]   = pos[i];
           //robotCord[i] = valPosition[i];
@@ -3112,14 +3108,14 @@ long MrsvrMainWindow::onUpdateTimer(FXObject*, FXSelector,void*)
     updateTcpInfoTbl();
   }
 
-  // update Locator Server Connection status
-  if (locClient != NULL) {
-    if (locClient->getStatus() == MrsvrLocatorClient::LOCATOR_CONNECTED) {
-      valLocServStatus = "Connected";
-    } else {
-      valLocServStatus = "Disconnected";
-    }
-  }
+  //// update Locator Server Connection status
+  //if (locClient != NULL) {
+  //  if (locClient->getStatus() == MrsvrLocatorClient::LOCATOR_CONNECTED) {
+  //    valLocServStatus = "Connected";
+  //  } else {
+  //    valLocServStatus = "Disconnected";
+  //  }
+  //}
 
 #ifdef ENABLE_MRTS_CONNECTION
   // update MRTS server status
@@ -3129,27 +3125,27 @@ long MrsvrMainWindow::onUpdateTimer(FXObject*, FXSelector,void*)
 #endif //ENABLE_MRTS_CONNECTION
 
   // update Locator Server information
-  if (locClient != NULL &&
-      locClient->getStatus() == MrsvrLocatorClient::LOCATOR_CONNECTED) {
-    float pos[9];
-    int r = locClient->getLatestPos(pos);
-    valLocServPX = pos[0];
-    valLocServPY = pos[1];
-    valLocServPZ = pos[2];
-    valLocServNX = pos[3];
-    valLocServNY = pos[4];
-    valLocServNZ = pos[5];
-    valLocServTX = pos[6];
-    valLocServTY = pos[7];
-    valLocServTZ = pos[8];
-    if (r == MrsvrLocatorClient::LOCATOR_SENSOR_OK) {
-      valLocServSenseStatus = "Active";
-    } else {
-      valLocServSenseStatus = "Blocked";
-    }
-  } else {
-    valLocServSenseStatus = "Offline";
-  }
+  //if (locClient != NULL &&
+  //    locClient->getStatus() == MrsvrLocatorClient::LOCATOR_CONNECTED) {
+  //  float pos[9];
+  //  int r = locClient->getLatestPos(pos);
+  //  valLocServPX = pos[0];
+  //  valLocServPY = pos[1];
+  //  valLocServPZ = pos[2];
+  //  valLocServNX = pos[3];
+  //  valLocServNY = pos[4];
+  //  valLocServNZ = pos[5];
+  //  valLocServTX = pos[6];
+  //  valLocServTY = pos[7];
+  //  valLocServTZ = pos[8];
+  //  if (r == MrsvrLocatorClient::LOCATOR_SENSOR_OK) {
+  //    valLocServSenseStatus = "Active";
+  //  } else {
+  //    valLocServSenseStatus = "Blocked";
+  //  }
+  //} else {
+  //  valLocServSenseStatus = "Offline";
+  //}
 
 
   // update plot canvas
@@ -3306,36 +3302,36 @@ long MrsvrMainWindow::onCmdStopCom(FXObject*, FXSelector, void*)
 
 long MrsvrMainWindow::onCmdLocServCon(FXObject*, FXSelector, void*)
 {
-  DBG_MMW_PRINT("onCmdLocServCon()\n");
-  consolePrint(1, true, "Connecting to Locator Server on host: %s port: %d...",
-               valLocServHostName.text(), valLocServPortNo);
-
-  if (locClient) {
-    locClient->setServer(valLocServHostName.text(), valLocServPortNo);
-    locClient->setIntervalMs(valLocServInterval);
-    if (locClient->connectToServer() == MrsvrLocatorClient::FAILURE) {
-      DBG_MMW_PRINT("onCmdLocServCon(): connection failed\n");
-      consolePrint(1, true, "failed\n");
-      //textStatusProg->setText("Connot connect to Locator Server.\n");
-    } else {
-      consolePrint(1, true, "connected\n");
-      locClient->run();
-    }
-  } else {
-    DBG_MMW_PRINT("onCmdLocServCon(): Locator Client module is not active.\n");
-    consolePrint(0, true, "\nLocator Server is not active.\n",
-                 valLocServHostName.text(), valLocServPortNo);
-  }
+  //DBG_MMW_PRINT("onCmdLocServCon()\n");
+  //consolePrint(1, true, "Connecting to Locator Server on host: %s port: %d...",
+  //             valLocServHostName.text(), valLocServPortNo);
+  //
+  //if (locClient) {
+  //  locClient->setServer(valLocServHostName.text(), valLocServPortNo);
+  //  locClient->setIntervalMs(valLocServInterval);
+  //  //if (locClient->connectToServer() == MrsvrLocatorClient::FAILURE) {
+  //  //  DBG_MMW_PRINT("onCmdLocServCon(): connection failed\n");
+  //  //  consolePrint(1, true, "failed\n");
+  //  //  //textStatusProg->setText("Connot connect to Locator Server.\n");
+  //  //} else {
+  //  //  consolePrint(1, true, "connected\n");
+  //  //  locClient->run();
+  //  //}
+  //} else {
+  //  DBG_MMW_PRINT("onCmdLocServCon(): Locator Client module is not active.\n");
+  //  consolePrint(0, true, "\nLocator Server is not active.\n",
+  //               valLocServHostName.text(), valLocServPortNo);
+  //}
   return 1;
 }
 
 
 long MrsvrMainWindow::onCmdLocServDiscon(FXObject*, FXSelector, void*)
 {
-  DBG_MMW_PRINT("onCmdLocServDiscon()\n");
-  consolePrint(1, true, "Disconnecting from Locator Server.\n");
-
-  locClient->disconnect();
+  //DBG_MMW_PRINT("onCmdLocServDiscon()\n");
+  //consolePrint(1, true, "Disconnecting from Locator Server.\n");
+  //
+  //locClient->disconnect();
 }
 
 
