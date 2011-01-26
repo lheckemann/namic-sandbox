@@ -76,7 +76,7 @@ CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
 LINKFLAGS = 
 DEFS      = -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL -DWITHOUT_ART -D_USE_FBISIM #-DENABLE_MRTS_CONNECTION #-DDEBUG #-DFULLSCREEN 
 INCDIR    = -I. -I/opt/local/include/fox-1.6 -I../fbisim
-LIBDIR    = -L/opt/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L../fbisim
+LIBDIR    = -L/opt/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L./fbisim
 COMLIBS   = -lm
 IFLIBS    = -lFOX-1.6 -lXext -lX11 -lGLU -lGL -lXmu -lXi -ltiff -lpthread -ldl -lz -lSM -lICE -lXcursor #-lm 
 CTRLLIBS  = -lgpg2000_sim -lgpg3300_sim -lgpg6204_sim  #-lgpg2000 -lgpg3300 -lgpg6204
