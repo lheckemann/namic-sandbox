@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include "MrsvrMessageServer.h"
 #include "MrsvrMainWindow.h"
-#include "MrsvrLocatorClient.h"
+//#include "MrsvrLocatorClient.h"
 
 #ifdef ENABLE_MRTS_CONNECTION
   #include "MrsvrMrtsCon.h"
@@ -34,14 +34,14 @@
 int main (int argc, char* argv[]) 
 {
   MrsvrMessageServer* mms;
-  MrsvrLocatorClient* mlc;
+  //  MrsvrLocatorClient* mlc;
 #ifdef ENABLE_MRTS_CONNECTION
   MrsvrMrtsCon*       mmc;
 #endif //ENABLE_MRTS_CONNECTION
   MrsvrMainWindow*    mmw;
 
   mms  = new MrsvrMessageServer(10005);
-  mlc  = new MrsvrLocatorClient();
+  //  mlc  = new MrsvrLocatorClient();
 #ifdef ENABLE_MRTS_CONNECTION
   mmc  = new MrsvrMrtsCon();
 #endif //ENABLE_MRTS_CONNECTION
@@ -60,7 +60,7 @@ int main (int argc, char* argv[])
 
   // register messaging server
   mmw->setExtMsgSvr(mms);
-  mmw->setLocClient(mlc);
+  //mmw->setLocClient(mlc);
 #ifdef ENABLE_MRTS_CONNECTION
   // register MRTS Connection
   mmw->setMrtsCon(mmc);

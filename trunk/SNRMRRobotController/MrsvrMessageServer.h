@@ -50,15 +50,16 @@
 
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <sys/errno.h>
-#include <netdb.h>
 
 #include "MrsvrThread.h"
 #include "MrsvMessage.h"
 #include "MrsvrStatus.h"
+
+#include "igtlOSUtil.h"
+#include "igtlMessageHeader.h"
+#include "igtlTransformMessage.h"
+#include "igtlServerSocket.h"
 
 /*
 #include "MrsvrLogicalPosition.h"
@@ -68,9 +69,6 @@
 #include "shmKeys.h"
 #include "MrsvrRAS.h"
 
-#include "sockutil.h"
-        
-  
 class MrsvrMessageServer : public MrsvrThread {
   
  private:
@@ -94,23 +92,15 @@ class MrsvrMessageServer : public MrsvrThread {
  private:
   int                port;
   int                sv;
-  int                serverSockFD;
-  int                masterSockFD;
-  // Save socket file descriptor for master client. 
-  // Only master client can send control command to this module.
-  struct sockaddr_in serverAddr;
-  int                serverLen;
+  int                connectionStatus;
+  int                fRunServer;
 
   char               remoteOS[MESSAGE_MAX_INFO_STR];
   char               remoteSoftware[MESSAGE_MAX_INFO_STR];
-  struct hostent*    peer_host; 
-  struct sockaddr_in peer_sin;
   time_t             startTime;
 
   // Function permission table. (See permissioin masks defiend above.)
   short permissions[MSG_NUM];
-
-  Sbfd               *masterBufferedFD;
 
  private:
   MrsvMsgMode*           msgMode;
@@ -118,21 +108,12 @@ class MrsvrMessageServer : public MrsvrThread {
   MrsvMsgPosition*       sndMsgPos;
   MrsvMsgPosition*       rcvMsgPos;
 
-  // position parameters shared with main controller process
-  /*
-  MrsvrLogicalPosition*  currentLogPos;
-  MrsvrPhysicalPosition* currentPhysPos;
-  MrsvrLogicalPosition*  targetLogPos;
-  MrsvrPhysicalPosition* targetPhysPos;
-  */
-
   MrsvrRASWriter*    currentPos;
   MrsvrRASWriter*    setPoint;
   MrsvrStatusReader* robotStatus;  // Status reader for the MRI robot.
 
   unsigned char      rcvBuf[MESSAGE_BUFFER_SIZE];
-  int                onRcvMsgMaster(Sbfd* bfd);
-  int                onRcvMsg(int);
+  int                onRcvMsgMaster(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
   msgType            sendMsgType(int, msgType);
   msgType            sendMsgPosition(int, MrsvMsgPosition*);
 
@@ -154,11 +135,6 @@ class MrsvrMessageServer : public MrsvrThread {
   int         getSvrStatus();
   const char* getSvrStatusStr();
   long        getConnectionTime();
-  const char* getRemoteOS();
-  const char* getRemoteSoftware();
-  const char* getRemoteHost(); 
-  const char* getRemoteIP();
-  int         getRemotePort();
 
   bool        getTarget(double*);
   //bool        getStop();

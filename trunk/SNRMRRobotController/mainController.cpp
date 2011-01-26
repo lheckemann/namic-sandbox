@@ -654,7 +654,8 @@ inline int procManual()
 
 inline int procRcm()
 {
-  static MrsvrVector spim, sprb;
+  //static MrsvrVector spim, sprb;
+  static MrsvrVector spim;
   int i;
   //  static float dv;
 
@@ -774,8 +775,8 @@ void getTipPosition(MrsvrVector& tipPoint)
 {
   float a, b, c;
   //  MrsvrVector offset;
-  float naori_a, naori_b, naori_c;
-  float oa, ob, oc;
+  //float naori_a, naori_b, naori_c;
+  //float oa, ob, oc;
   float theta, phi;
 
   theta = curPos[3];

@@ -49,7 +49,7 @@
 #include "MrsvrMessageServer.h"
 #include "shmKeys.h"
 
-#include "MrsvrLocatorClient.h"
+//#include "MrsvrLocatorClient.h"
 #ifdef ENABLE_MRTS_CONNECTION
   #include "MrsvrMrtsCon.h"
 #endif //ENABLE_MRTS_CONNECTION
@@ -336,7 +336,7 @@ private:
   MrsvrCommandWriter*     robotCommand; 
   MrsvrLogReader*         robotLog;
   MrsvrMessageServer*     extMsgSvr;
-  MrsvrLocatorClient*     locClient;
+  //MrsvrLocatorClient*     locClient;
 #ifdef ENABLE_MRTS_CONNECTION
   MrsvrMrtsCon*           mrtsConnection;
 #endif //ENABLE_MRTS_CONNECTION
@@ -605,9 +605,9 @@ public:
   inline void  setExtMsgSvr(MrsvrMessageServer* p) {
     extMsgSvr = p; prevSvrStatus = -1;
   };
-  inline void  setLocClient(MrsvrLocatorClient* p) {
-    locClient = p;
-  }
+  //inline void  setLocClient(MrsvrLocatorClient* p) {
+  //  locClient = p;
+  //}
 #ifdef ENABLE_MRTS_CONNECTION
   inline void  setMrtsCon(MrsvrMrtsCon* p) {
     mrtsConnection = p;

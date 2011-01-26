@@ -24,16 +24,15 @@ CXX       = /usr/bin/c++
 CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
 LINKFLAGS =
 DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL  -DUSE_ART -DFULLSCREEN #-DDEBUG -DENABLE_MRTS_CONNECTION
-INCDIR    = -I. -I/home/atre/program/mri_servo2/common -I/usr/local/include/fox-1.2
-LIBDIR    = -L/usr/local/lib -L/usr/lib  -L/usr/X11R6/lib -L.
+INCDIR    = -I. -I/home/atre/program/mri_servo2/common -I/usr/local/include/fox-1.2 -I/home/atre/opt/include/igtl 
+LIBDIR    = -L/usr/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L/home/atre/opt/lib/igtl
 COMLIBS   = -lm
-IFLIBS    = -lFOX-1.2 -lXext -lX11 -lm -lGLU -lGL -lXmu -lXi -ltiff -lpthread -lg2c
+IFLIBS    = -lFOX-1.2 -lXext -lX11 -lm -lGLU -lGL -lXmu -lXi -ltiff -lpthread -lg2c -lOpenIGTLink
 CTRLLIBS  = -lgpg2000 -lgpg3300 -lgpg6204 -lg2c
 ARTLIB    = /usr/lib/art_syscalls.o
 
 # MRTrackingClient libraries
 MRTCOBJ   = /home/atre/program/mri_tracking/client/MRTrackingClient.o
-MRTCINC   = -I/home/atre/program/mri_tracking/client -I/home/atre/program/mri_tracking/common -I/home/atre/program/mri_servo2/locator_server
 INCDIR2   = ${INCDIR} ${MRTCINC}
 
 
@@ -110,7 +109,7 @@ INCDIR2   = ${INCDIR} ${MRTCINC}
 MRSVRIF   = main
 MRSVRCTRL = mainController 
 COMOBJS   = MrsvrSharedData.o MrsvrStatus.o MrsvrCommand.o MrsvrLog.o MrsvrRAS.o
-IFOBJS    = main.o MrsvrMessageServer.o MrsvrThread.o MrsvrMainWindow.o MrsvrPlotCanvas.o MrsvrLocatorClient.o  MrsvrTransform.o sockutil.o #MrsvrMrtsCon.o 
+IFOBJS    = main.o MrsvrMessageServer.o MrsvrThread.o MrsvrMainWindow.o MrsvrPlotCanvas.o MrsvrTransform.o 
 CTRLOBJS  = mainController.o MrsvrDev.o MrsvrTransform.o
 
 .SUFFIXES:	.cpp
