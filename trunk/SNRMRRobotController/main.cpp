@@ -23,28 +23,15 @@
 #include <unistd.h>
 #include "MrsvrMessageServer.h"
 #include "MrsvrMainWindow.h"
-//#include "MrsvrLocatorClient.h"
-
-#ifdef ENABLE_MRTS_CONNECTION
-  #include "MrsvrMrtsCon.h"
-#endif //ENABLE_MRTS_CONNECTION
-
-//#include "MrsvrMonitor.h"
 
 int main (int argc, char* argv[]) 
 {
   MrsvrMessageServer* mms;
   //  MrsvrLocatorClient* mlc;
-#ifdef ENABLE_MRTS_CONNECTION
-  MrsvrMrtsCon*       mmc;
-#endif //ENABLE_MRTS_CONNECTION
   MrsvrMainWindow*    mmw;
 
   mms  = new MrsvrMessageServer(10005);
   //  mlc  = new MrsvrLocatorClient();
-#ifdef ENABLE_MRTS_CONNECTION
-  mmc  = new MrsvrMrtsCon();
-#endif //ENABLE_MRTS_CONNECTION
 
   // Make application
   FXApp application("MR Servo Robot Monitor","ATRE Lab. The Univ. of Tokyo");
