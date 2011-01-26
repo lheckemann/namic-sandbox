@@ -22,16 +22,16 @@
 #ifndef _INC_SHM_KEYS
 #define _INC_SHM_KEYS
 
-#define SHM_TARGET_LOG_POS      (key_t)20534
-#define SHM_TARGET_PHYS_POS     (key_t)20535
-#define SHM_CURRENT_LOG_POS     (key_t)20536
-#define SHM_CURRENT_PHYS_POS    (key_t)20537
+#define SHM_TARGET_LOG_POS      (key_t)30534
+#define SHM_TARGET_PHYS_POS     (key_t)30535
+#define SHM_CURRENT_LOG_POS     (key_t)30536
+#define SHM_CURRENT_PHYS_POS    (key_t)30537
 
-#define SHM_STATUS              (key_t)20545
-#define SHM_COMMAND             (key_t)20541
-#define SHM_LOG                 (key_t)20542
-#define SHM_RAS_CURRENT         (key_t)20543
-#define SHM_RAS_SETPOINT        (key_t)20544
+#define SHM_STATUS              (key_t)30545
+#define SHM_COMMAND             (key_t)30541
+#define SHM_LOG                 (key_t)30542
+#define SHM_RAS_CURRENT         (key_t)30543
+#define SHM_RAS_SETPOINT        (key_t)30544
 
 
 #endif //_INC_SHM_KEYS

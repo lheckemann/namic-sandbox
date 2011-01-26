@@ -29,6 +29,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h> 
+
 #ifdef __LINUX__
   #include <sys/io.h>
 #endif

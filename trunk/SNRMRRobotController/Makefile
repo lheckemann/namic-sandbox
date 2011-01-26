@@ -19,22 +19,21 @@
 #====================================================================
 
 
-##### for Linux
-#CXX       = /usr/bin/c++
-#CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
-#LINKFLAGS =
-#DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL  -DUSE_ART #-DFULLSCREEN #-DDEBUG -DENABLE_MRTS_CONNECTION
-#INCDIR    = -I. -I../common -I/usr/local/include/fox-1.2 -I/usr/local/octave
-#LIBDIR    = -L/usr/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L/usr/local/lib/octave-2.0.17
-#COMLIBS   = -lm
-#IFLIBS    = -lFOX-1.2 -lXext -lX11 -lm -lGLU -lGL -lXmu -lXi -ltiff -lpthread -loctave -lcruft -lfftw3 -lg2c
-#CTRLLIBS  = -lgpg2000 -lgpg3300 -lgpg6204 -loctave -lcruft -lfftw3 -lg2c
-#ARTLIB    = /usr/lib/art_syscalls.o
+#### for Linux
+CXX       = /usr/bin/c++
+CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
+LINKFLAGS =
+DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL  -DUSE_ART -DFULLSCREEN #-DDEBUG -DENABLE_MRTS_CONNECTION
+INCDIR    = -I. -I/home/atre/program/mri_servo2/common -I/usr/local/include/fox-1.2
+LIBDIR    = -L/usr/local/lib -L/usr/lib  -L/usr/X11R6/lib -L.
+COMLIBS   = -lm
+IFLIBS    = -lFOX-1.2 -lXext -lX11 -lm -lGLU -lGL -lXmu -lXi -ltiff -lpthread -lg2c
+CTRLLIBS  = -lgpg2000 -lgpg3300 -lgpg6204 -lg2c
+ARTLIB    = /usr/lib/art_syscalls.o
 
 # MRTrackingClient libraries
-#MRTCOBJ   = /home/atre/program/mri_tracking/client/MRTrackingClient.o
-#MRTCINC   = -I/home/atre/program/mri_tracking/client -I/home/atre/program/mri_tracking/common -I../locator_server
-MRTCINC   = -I../locator_server
+MRTCOBJ   = /home/atre/program/mri_tracking/client/MRTrackingClient.o
+MRTCINC   = -I/home/atre/program/mri_tracking/client -I/home/atre/program/mri_tracking/common -I/home/atre/program/mri_servo2/locator_server
 INCDIR2   = ${INCDIR} ${MRTCINC}
 
 
@@ -71,21 +70,21 @@ INCDIR2   = ${INCDIR} ${MRTCINC}
 # "-lgpg2000 -lgpg3300 -lgpg6204"
 # You need to remove -DUSE_ART option in the case of using MacOS X.
 
-CXX       = g++
-CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
-LINKFLAGS = 
-DEFS      = -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL -DWITHOUT_ART -D_USE_FBISIM #-DENABLE_MRTS_CONNECTION #-DDEBUG #-DFULLSCREEN 
-INCDIR    = -I. -I/opt/local/include/fox-1.6 -I../fbisim
-LIBDIR    = -L/opt/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L./fbisim
-COMLIBS   = -lm
-IFLIBS    = -lFOX-1.6 -lXext -lX11 -lGLU -lGL -lXmu -lXi -ltiff -lpthread -ldl -lz -lSM -lICE -lXcursor #-lm 
-CTRLLIBS  = -lgpg2000_sim -lgpg3300_sim -lgpg6204_sim  #-lgpg2000 -lgpg3300 -lgpg6204
-ARTLIB    = #/usr/lib/art_syscalls.o
-# MRTrackingClient libraries
-#MRTCOBJ   = /Users/junichi/program/mri_tracking/client/MRTrackingClient.o
-MRTCINC   = -I/Users/junichi/program/mri_tracking/client -I/Users/junichi/program/mri_tracking/common -I../locator_server
-
-INCDIR2   = ${INCDIR} ${MRTCINC}
+#CXX       = g++
+#CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
+#LINKFLAGS = 
+#DEFS      = -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL -DWITHOUT_ART -D_USE_FBISIM #-DENABLE_MRTS_CONNECTION #-DDEBUG #-DFULLSCREEN 
+#INCDIR    = -I. -I/opt/local/include/fox-1.6 -I../fbisim
+#LIBDIR    = -L/opt/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L./fbisim
+#COMLIBS   = -lm
+#IFLIBS    = -lFOX-1.6 -lXext -lX11 -lGLU -lGL -lXmu -lXi -ltiff -lpthread -ldl -lz -lSM -lICE -lXcursor #-lm 
+#CTRLLIBS  = -lgpg2000_sim -lgpg3300_sim -lgpg6204_sim  #-lgpg2000 -lgpg3300 -lgpg6204
+#ARTLIB    = #/usr/lib/art_syscalls.o
+## MRTrackingClient libraries
+##MRTCOBJ   = /Users/junichi/program/mri_tracking/client/MRTrackingClient.o
+#MRTCINC   = -I/Users/junichi/program/mri_tracking/client -I/Users/junichi/program/mri_tracking/common -I../locator_server
+#
+#INCDIR2   = ${INCDIR} ${MRTCINC}
 
 
 ## for Cygwin
