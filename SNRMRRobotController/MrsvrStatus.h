@@ -100,7 +100,7 @@ class MrsvrStatus : public MrsvrSharedData {
     MOVE_TO,
     PAUSE,
     MANUAL,
-    RCM,
+    REMOTE,
     RESET,
   };
 
