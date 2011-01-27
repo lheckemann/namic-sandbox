@@ -41,7 +41,7 @@ const char* MrsvrMessageServer::robotModeStr[] = {
   "MOVETO",
   "PAUSE",
   "MANUAL",
-  "RCM",
+  "REMOTE",
   "RESET",
 };
 

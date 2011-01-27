@@ -190,24 +190,6 @@ int MrsvrTransform::calibrate()
 }
 
 
-void MrsvrTransform::transform(MrsvrVector y, MrsvrVector x)
-{
-//  ColumnVector ptImg(3);
-//  ColumnVector ptRbt(3);
-//
-//  for (i = 0; i < 3; i ++) {
-//    ptImg(i) = x[i];
-//  }
-//
-//  ptRbt = rotMat*ptImg + baseOffset;
-//
-//  for (i = 0; i < 3; i ++) {
-//    y[i] = (float) ptRbt(i);
-//  }
-
-}
-
-
 void MrsvrTransform::setCalibrationMatrix(float* m)
 {
   for (int i = 0; i < 4; i ++) {
@@ -217,23 +199,22 @@ void MrsvrTransform::setCalibrationMatrix(float* m)
   }
 }
 
+
+void MrsvrTransform::transform(MrsvrVector y, MrsvrVector x)
+{
+  // not implemented.
+  for (int i = 0; i < 3; i ++) {
+    y[i] = x[i];
+  }
+}
+
+
 void MrsvrTransform::invTransform(MrsvrVector x, MrsvrVector y) 
 {
-//  int i;
-//
-//  ColumnVector ptImg(3);
-//  ColumnVector ptRbt(3);
-//
-//  for (i = 0; i < 3; i ++) {
-//    ptRbt(i) =  y[i];
-//  }
-//  
-//  ptImg = invRotMat * (ptRbt - baseOffset);
-//
-//  for (i = 0; i < 3; i ++) {
-//    x[i] = ptImg(i);
-//  }
-
+  // not implemented.
+  for (int i = 0; i < 3; i ++) {
+    x[i] = y[i];
+  }
 } 
 
 

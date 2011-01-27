@@ -23,7 +23,7 @@
 
 #include "MrsvrMainWindow.h"
 #include "MrsvrTransform.h"
-v
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,7 +51,7 @@ FXDEFMAP(MrsvrMainWindow) MrsvrMainWindowMap[] = {
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_MOVETO,      MrsvrMainWindow::onCmdMoveTo),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_PAUSE,       MrsvrMainWindow::onCmdPause),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_MANUAL,      MrsvrMainWindow::onCmdManual),
-  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_RCM,       MrsvrMainWindow::onCmdRcm),
+  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_REMOTE,      MrsvrMainWindow::onCmdRemote),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_EMERGENCY,   MrsvrMainWindow::onCmdEmergency),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_CALIBRATE,   MrsvrMainWindow::onCmdCalibrate),  
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_START_COM,   MrsvrMainWindow::onCmdStartCom),
@@ -146,8 +146,7 @@ const char* MrsvrMainWindow::quickPanelString[] = {
   "PAUSE",
   "MOVE TO TARGET",
   "MANUAL \nCONTROL",
-  //"RCM MODE",
-  "RCM CONTROL",
+  "Remote",
   "EMERGENCY"
 };
 
@@ -176,8 +175,7 @@ const char* MrsvrMainWindow::infoModeText[] = {
   "MOVE TO",
   "PAUSE",
   "MANUAL",
-  //"RCM",
-  "RCM CTRL",
+  "REMOTE",
   "RESET",
 };
 
@@ -2544,8 +2542,8 @@ void MrsvrMainWindow::create()
   infoWarnTextY[WARNID_LOCK]  = (int)(h*INFCNV_WARN_LOCK_Y);
   infoWarnTextX[WARNID_OUTOFRANGE]  = (int)(w*INFCNV_WARN_OUTOFRANGE_X);
   infoWarnTextY[WARNID_OUTOFRANGE]  = (int)(h*INFCNV_WARN_OUTOFRANGE_Y);
-  infoWarnTextX[WARNID_NOLOCSVR]  = (int)(w*INFCNV_WARN_NOLOCSVR_X);
-  infoWarnTextY[WARNID_NOLOCSVR]  = (int)(h*INFCNV_WARN_NOLOCSVR_Y);
+  //infoWarnTextX[WARNID_NOLOCSVR]  = (int)(w*INFCNV_WARN_NOLOCSVR_X);
+  //infoWarnTextY[WARNID_NOLOCSVR]  = (int)(h*INFCNV_WARN_NOLOCSVR_Y);
 
   //  infoCnvRTimeX   = (int)(w*INFCNV_RTIME_X);
 
@@ -2603,11 +2601,11 @@ long MrsvrMainWindow::onCanvasRepaint(FXObject*, FXSelector,void* ptr)
       // current position
       dc.setForeground(FXRGB(150,150,150));
       dc.drawText(infoCnvTargetX, infoCnvValue1Y, 
-                  "R:", 3);
+                  "R:", 2);
       dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W, 
-                  infoCnvValue1Y, "A:", 3);
+                  infoCnvValue1Y, "A:", 2);
       dc.drawText(infoCnvTargetX+(INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W)*2, 
-                  infoCnvValue1Y, "S:", 3);
+                  infoCnvValue1Y, "S:", 2);
       dc.setForeground(FXRGB(150,150,0));
       dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W,
                   infoCnvValue1Y, infoCurrentX, strlen(infoCurrentX));
@@ -2903,12 +2901,6 @@ long MrsvrMainWindow::onUpdateTimer(FXObject*, FXSelector,void*)
   }
   */
 
-  /*
-  static float ptr=5.0, pta=5.0, pts=5.0; // previous target
-  static float pcr=5.0, pca=5.0, pcs=5.0; // previous current point
-  float tr, ta, ts;
-  float cr, ca, cs;
-  */
   static float ptp[3] = {5.0, 5.0, 5.0};   // previous target position
   static float pcp[3] = {5.0, 5.0, 5.0};   // previous current position
   float  tp[3];
@@ -3159,12 +3151,12 @@ long MrsvrMainWindow::onCmdManual(FXObject*, FXSelector,void*)
 }
 
 
-long MrsvrMainWindow::onCmdRcm(FXObject*, FXSelector,void*)
+long MrsvrMainWindow::onCmdRemote(FXObject*, FXSelector,void*)
 {
-  DBG_MMW_PRINT("onCmdRcml()\n");
-  consolePrint(1, true, "RCM command received.\n");
+  DBG_MMW_PRINT("onCmdRemote()\n");
+  consolePrint(1, true, "REMOTE command received.\n");
 
-  robotCommand->setMode(MrsvrStatus::RCM);
+  robotCommand->setMode(MrsvrStatus::REMOTE);
   return 1;
 }
 

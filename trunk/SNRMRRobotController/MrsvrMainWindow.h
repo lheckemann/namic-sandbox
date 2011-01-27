@@ -113,8 +113,9 @@
 
 #define WARNID_LOCK          0
 #define WARNID_OUTOFRANGE    1
-#define WARNID_NOLOCSVR      2
-#define NUM_WARNID           3
+#define NUM_WARNID           2
+//#define WARNID_NOLOCSVR      2
+
 
 //--------------------------------------------------------------------
 // Needle info structure (for list)
@@ -162,7 +163,7 @@ public:
     ID_CMD_PAUSE,           // Do not change this order
     ID_CMD_MOVETO,          // Do not change this order
     ID_CMD_MANUAL,          // Do not change this order
-    ID_CMD_RCM,             // Do not change this order
+    ID_CMD_REMOTE,          // Do not change this order
     ID_CMD_EMERGENCY,       // Do not change this order
     ID_CMD_CALIBRATE,
     ID_CMD_START_COM,
@@ -623,7 +624,7 @@ public:
   long onCmdPause(FXObject*, FXSelector, void*);
   long onCmdMoveTo(FXObject*, FXSelector, void*);
   long onCmdManual(FXObject*, FXSelector, void*);
-  long onCmdRcm(FXObject*, FXSelector, void*);
+  long onCmdRemote(FXObject*, FXSelector, void*);
   long onCmdEmergency(FXObject*, FXSelector, void*);
   long onCmdCalibrate(FXObject*, FXSelector, void*);
   long onCmdStartCom(FXObject*, FXSelector, void*);

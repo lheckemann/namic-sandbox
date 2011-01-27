@@ -169,7 +169,7 @@ static int   fOutOfRange[NUM_ENCODERS];
 inline int procStop();
 int  trapCtrl(MrsvrVector, float);
 int  trapCtrl2(MrsvrVector, float);
-int  rcmCtrl(MrsvrVector, float);
+int  remoteCtrl(MrsvrVector, float);
 void getActuatorTarget(MrsvrVector& target, MrsvrVector setPoint,
                        float theta, float phi);
 
@@ -650,15 +650,15 @@ inline int procManual()
 }
 
 
-inline int procRcm()
+inline int procRemote()
 {
   //static MrsvrVector spim, sprb;
   static MrsvrVector spim;
   int i;
   //  static float dv;
 
-  if (status->getMode() != MrsvrStatus::RCM) {
-    status->setMode(MrsvrStatus::RCM);
+  if (status->getMode() != MrsvrStatus::REMOTE) {
+    status->setMode(MrsvrStatus::REMOTE);
   }
   /*
   spim[0] = setPoint->getPR();
@@ -670,7 +670,7 @@ inline int procRcm()
   }
   //trans->transform(sprb, spim);
   //rcmCtrl(sprb, dev->getVmax(0));
-  rcmCtrl(spim, dev->getVmax(0));
+  remoteCtrl(spim, dev->getVmax(0));
   return 1;
 }
 
@@ -864,11 +864,11 @@ int trapCtrl2(MrsvrVector setPoint, float vmax)
 }
 
 
-// control sequence in RCM mode.
-#define RCM_CTRL_KP 0.09
-#define RCM_CTRL_KD 1.5
+// control sequence in REMOTE mode.
+#define REMOTE_CTRL_KP 0.09
+#define REMOTE_CTRL_KD 1.5
 #define FSIGN(v)    ((v < 0.0) ? -1.0 : 1.0)
-int rcmCtrl(MrsvrVector setPoint, float vmax)
+int remoteCtrl(MrsvrVector setPoint, float vmax)
 {
   static float asp[NUM_ACTUATORS];  // actuator set points
   float pasp[NUM_ACTUATORS];        // previous actuator set points
@@ -897,8 +897,8 @@ int rcmCtrl(MrsvrVector setPoint, float vmax)
     int limit = fOutOfRange[i];
 
     float cv   = dev->getSetVelocity(i);  // current set velocity
-    float nv   = RCM_CTRL_KD* (asp[i] - pasp[i]) / intervalf + 
-      RCM_CTRL_KP * (asp[i] - curPos[i]) / intervalf;
+    float nv   = REMOTE_CTRL_KD* (asp[i] - pasp[i]) / intervalf + 
+      REMOTE_CTRL_KP * (asp[i] - curPos[i]) / intervalf;
     float a    = (nv - cv) / intervalf;
     float sa   = FSIGN(a);
     float snv  = FSIGN(nv);
@@ -1120,8 +1120,8 @@ int main(int argc, char* argv[])
       case MrsvrStatus::MANUAL:
         CONSOLE_PRINT("Entering MANUAL mode...\n");
         break;
-      case MrsvrStatus::RCM:
-        CONSOLE_PRINT("Entering RCM mode...\n");
+      case MrsvrStatus::REMOTE:
+        CONSOLE_PRINT("Entering REMOTE mode...\n");
         break;
       case MrsvrStatus::RESET:
         CONSOLE_PRINT("Entering RESET mode...\n");
@@ -1132,7 +1132,7 @@ int main(int argc, char* argv[])
     }
 
     if (logmode) {
-      if (m == MrsvrStatus::RCM) {
+      if (m == MrsvrStatus::REMOTE) {
         if (!logging) {
           if ((logfp = fopen(logfilename, "a")) == NULL) {
             cout << "Connot open log file. " << endl;
@@ -1181,8 +1181,8 @@ int main(int argc, char* argv[])
     case MrsvrStatus::MANUAL:
       procManual();
       break;
-    case MrsvrStatus::RCM:
-      procRcm();
+    case MrsvrStatus::REMOTE:
+      procRemote();
       break;
     case MrsvrStatus::RESET:
       procReset();
