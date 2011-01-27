@@ -80,7 +80,8 @@ void MrsvrMessageServer::init()
   remoteSoftware[0] = '\0';
 
   //masterBufferedFD = NULL;
-  fSetTarget = false;
+  fSetTargetMatrix      = false;
+  fSetCalibrationMatrix = false;
   nextRobotMode    = -1;
 
   this->connectionStatus =  SVR_STOP;
@@ -235,22 +236,16 @@ int MrsvrMessageServer::onRcvMsgMaster(igtl::Socket::Pointer& socket, igtl::Mess
     // Retrive the transform data
     igtl::Matrix4x4 matrix;
     transMsg->GetMatrix(matrix);
-    igtl::PrintMatrix(matrix);
-
-    double target[3];
-    target[0] = matrix[0][3];
-    target[1] = matrix[1][3];
-    target[2] = matrix[2][3];
-
-    int result = setTarget(target);
-
-    if (result == TARGET_ACCEPTED) {
-      /*buf = "TARGET ACCEPTED";*/
-      //strcpy(buf, "TARGET ACCEPTED");
-    } else if (result == TARGET_OUT_OF_RANGE) {
-      /*buf = "TARGET OUT_OF_RANGE";*/
-      //strcpy(buf, "TARGET OUT_OF_RANGE");
+    // Check the device name in the OpenIGTLink header
+    if (strcmp(transMsg->GetDeviceName(), "TARGET") == 0){
+      setTargetMatrix(matrix);
+      //if (result == TARGET_ACCEPTED) {
+      //} else if (result == TARGET_OUT_OF_RANGE) {
+      //}
+    } else if (strcmp(transMsg->GetDeviceName(), "CALIBRATION") == 0){
+      setCalibrationMatrix(matrix);
     }
+
     
     return 1;
   }
@@ -271,16 +266,36 @@ const char* MrsvrMessageServer::getSvrStatusStr()
 }
 
 
-bool MrsvrMessageServer::getTarget(double* target)
+bool MrsvrMessageServer::getTargetMatrix(Matrix4x4& matrix)
 {
   pthread_mutex_lock(&mtxCommand);  
-  if (fSetTarget == false) {
+  if (fSetTargetMatrix == false) {
     pthread_mutex_unlock(&mtxCommand);  
     return false;
   }
-  fSetTarget = false;
-  for (int i = 0; i < 3; i ++) {
-    target[i] = targetPosition[i];
+  fSetTargetMatrix = false;
+  for (int i = 0; i < 4; i ++) {
+    for (int j = 0; j < 4; j ++) { 
+      matrix[i][j] = targetMatrix[i][j];
+    }
+  }
+  pthread_mutex_unlock(&mtxCommand);  
+  return true;
+}
+
+
+bool MrsvrMessageServer::getCalibrationMatrix(Matrix4x4& matrix)
+{
+  pthread_mutex_lock(&mtxCommand);  
+  if (fSetCalibrationMatrix == false) {
+    pthread_mutex_unlock(&mtxCommand);  
+    return false;
+  }
+  fSetCalibrationMatrix = false;
+  for (int i = 0; i < 4; i ++) {
+    for (int j = 0; j < 4; j ++) { 
+      matrix[i][j] = calibrationMatrix[i][j];
+    }
   }
   pthread_mutex_unlock(&mtxCommand);  
   return true;
@@ -304,13 +319,33 @@ bool MrsvrMessageServer::getMode(int* next)
 
 
 
-int MrsvrMessageServer::setTarget(double* target)
+int MrsvrMessageServer::setTargetMatrix(igtl::Matrix4x4& matrix)
 {
   pthread_mutex_lock(&mtxCommand);  
-  for (int i = 0; i < 3; i ++)  {
-    targetPosition[i] = target[i];
+  for (int j = 0; j < 4; j ++) {
+    for (int i = 0; i < 4; i ++) {
+      targetMatrix[i][j] = matrix[i][j];
+    }
   }
-  fSetTarget = true;
+  fSetTargetMatrix = true;
+  pthread_mutex_unlock(&mtxCommand);
+  //
+  // The received target should be validated based on
+  // physical condition. This will be implemented in future.
+  //
+  return TARGET_ACCEPTED;
+}
+
+
+int MrsvrMessageServer::setCalibrationMatrix(igtl::Matrix4x4& matrix)
+{
+  pthread_mutex_lock(&mtxCommand);  
+  for (int i = 0; i < 4; i ++) {
+    for (int j = 0; j < 4; j ++) {
+      calibrationMatrix[i][j] = matrix[i][j];
+    }
+  }
+  fSetCalibrationMatrix = true;
   pthread_mutex_unlock(&mtxCommand);
   //
   // The received target should be validated based on

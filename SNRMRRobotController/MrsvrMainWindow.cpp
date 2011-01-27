@@ -23,7 +23,7 @@
 
 #include "MrsvrMainWindow.h"
 #include "MrsvrTransform.h"
-
+v
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -471,129 +471,6 @@ int MrsvrMainWindow::buildCommunicationControlPanel(FXComposite* comp)
   new FXButton(mtSvr2, "Stop", NULL, this, 
                ID_CMD_STOP_COM,FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-
-  //---------- Locator Server Connection Group ---------- 
-  
-  FXGroupBox* gpLocServ = 
-    new FXGroupBox(comp, "Locator Server Connection",
-                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-  gpLocServ->setBackColor(getApp()->getShadowColor());
-  FXVerticalFrame* frLocServ = 
-    new FXVerticalFrame(gpLocServ,
-                        LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                        LAYOUT_TOP|LAYOUT_CENTER_X, 0, 0, 0, 0, 0, 0, 0, 0);
-  frLocServ->setBackColor(getApp()->getShadowColor());
-  FXMatrix* mtLocServ = 
-    new FXMatrix(frLocServ,2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
-                 LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-  mtLocServ->setBackColor(getApp()->getShadowColor());
-  lb = new FXLabel(mtLocServ, "Status:");
-  lb->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtLocServ,12,dtLocServStatus,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_READONLY|JUSTIFY_CENTER_X|FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-
-  lb = new FXLabel(mtLocServ, "Host:");
-  lb->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtLocServ,12,dtLocServHostName,
-                  FXDataTarget::ID_VALUE,
-                  JUSTIFY_LEFT|FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-
-  lb = new FXLabel(mtLocServ, "Port #:");
-  lb->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtLocServ,10,dtLocServPortNo,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_INTEGER|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-
-  lb = new FXLabel(mtLocServ, "Intv(ms):");
-  lb->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtLocServ,10,dtLocServInterval,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_INTEGER|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-
-  FXMatrix* mtLocServ2 = 
-    new FXMatrix(frLocServ,2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_CENTER_X|
-                 LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-  mtLocServ2->setBackColor(getApp()->getShadowColor());
-  new FXButton(mtLocServ2, "Connect", NULL, this, 
-               ID_CMD_LOCSERV_CON,FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-  new FXButton(mtLocServ2, "Disconnect", NULL, this, 
-               ID_CMD_LOCSERV_DISCON,FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-
-
-#ifdef ENABLE_MRTS_CONNECTION
-  //---------- MR Tracking Server Connection Group ---------- 
-
-  FXGroupBox* gpMrts = 
-    new FXGroupBox(comp, "MRTS Connection",
-                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-  gpMrts->setBackColor(getApp()->getShadowColor());
-  FXVerticalFrame* frMrts = 
-    new FXVerticalFrame(gpMrts,
-                        LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                        LAYOUT_TOP|LAYOUT_CENTER_X, 0, 0, 0, 0, 0, 0, 0, 0);
-  frMrts->setBackColor(getApp()->getShadowColor());
-  FXMatrix* mtMrts = 
-    new FXMatrix(frMrts,2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
-                 LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-  mtMrts->setBackColor(getApp()->getShadowColor());
-  lb = new FXLabel(mtMrts, "Status:");
-  lb->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtMrts,12,dtMrtsStatus,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_READONLY|JUSTIFY_CENTER_X|FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-
-  lb = new FXLabel(mtMrts, "Host:");
-  lb->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtMrts,12,dtMrtsHostName,
-                  FXDataTarget::ID_VALUE,
-                  JUSTIFY_LEFT|FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-
-  lb = new FXLabel(mtMrts, "Port #:");
-  lb->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtMrts,10,dtMrtsPortNo,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_INTEGER|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-
-  lb = new FXLabel(mtMrts, "Intv(ms):");
-  lb->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtMrts,10,dtMrtsInterval,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_INTEGER|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-
-  FXMatrix* mtMrts2 = 
-    new FXMatrix(frMrts,2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_CENTER_X|
-                 LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-  mtMrts2->setBackColor(getApp()->getShadowColor());
-  new FXButton(mtMrts2, "Connect", NULL, this, 
-               ID_CMD_MRTS_CON,FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-  new FXButton(mtMrts2, "Disconnect", NULL, this, 
-               ID_CMD_MRTS_DISCON,FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-#endif //ENABLE_MRTS_CONNECTION
 
   return 1;
 }
@@ -1405,107 +1282,145 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                   TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN,
                   0, 0, 50, 15);
 
+  //// Calibration Information
 
-  // Locator Server Info.
-  FXGroupBox* gpLocServInfo  = 
-    new FXGroupBox(frMonitorLo, "Locator Server Info.",
+  FXGroupBox* gpCalibration  = 
+    new FXGroupBox(frMonitorLo, "Calibration Info.",
                    FRAME_RIDGE|LAYOUT_FILL_Y|
                    LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_TOP);
-
-  FXVerticalFrame* frLocServInfo =
-    new FXVerticalFrame(gpLocServInfo,
+  
+  FXVerticalFrame* frCalibrationInfo =
+    new FXVerticalFrame(gpCalibration,
                         LAYOUT_FILL_Y|LAYOUT_FILL_X|
                             LAYOUT_TOP|LAYOUT_LEFT);
-
-
-  FXMatrix* mtLocServInfoStatus =  
-    new FXMatrix(frLocServInfo,2,
+  
+  FXMatrix* mtCalibrationInfo =  
+    new FXMatrix(frCalibrationInfo,2,
                  MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
                  LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
                  LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-
-  new FXLabel(mtLocServInfoStatus, "Connection:");
-  new FXTextField(mtLocServInfoStatus,12,dtLocServStatus,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|FRAME_SUNKEN,
-                  0, 0, 50, 15);
-  new FXLabel(mtLocServInfoStatus, "Status:");
-  new FXTextField(mtLocServInfoStatus,12,dtLocServSenseStatus,
+  
+  new FXLabel(mtCalibrationInfo, "Status:");
+  new FXTextField(mtCalibrationInfo,12,dtCalibrationStatus,
                   FXDataTarget::ID_VALUE,
                   TEXTFIELD_REAL|TEXTFIELD_READONLY|FRAME_SUNKEN,
                   0, 0, 50, 15);
 
-  // Locator Server Info.
-  FXGroupBox* gpLocServInfoPosition  = 
-    new FXGroupBox(frLocServInfo, "Position & Orientation",
+  FXGroupBox* gpCalibrationMatrix  = 
+    new FXGroupBox(frCalibrationInfo, "Calibration Matrix",
                    FRAME_GROOVE|LAYOUT_FILL_Y|
                    LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_TOP);
 
-  FXMatrix* mtLocServInfoPosition =  
-    new FXMatrix(gpLocServInfoPosition,4,
+  FXMatrix* mtCalibrationMatrix =  
+    new FXMatrix(gpCalibrationMatrix,4,
                  MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
                  LAYOUT_FILL_X|LAYOUT_TOP|
                  LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
 
-  new FXLabel(mtLocServInfoPosition, " ", 0, LAYOUT_CENTER_X);
-  new FXLabel(mtLocServInfoPosition, "MX", 0, LAYOUT_CENTER_X);
-  new FXLabel(mtLocServInfoPosition, "MY", 0, LAYOUT_CENTER_X);
-  new FXLabel(mtLocServInfoPosition, "MZ", 0, LAYOUT_CENTER_X);
-
-  new FXLabel(mtLocServInfoPosition, "N");
-  new FXTextField(mtLocServInfoPosition,8,dtLocServNX,
+  for (int i = 0; i < 16; i ++) {
+    new FXTextField(mtCalibrationMatrix,8,dtCalibrationMatrix[i],
                   FXDataTarget::ID_VALUE,
                   TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
                   0, 0, 20, 15);
-  new FXTextField(mtLocServInfoPosition,8,dtLocServNY,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-                  0, 0, 20, 15);
-  new FXTextField(mtLocServInfoPosition,8,dtLocServNZ,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-                  0, 0, 20, 15);
-
-  new FXLabel(mtLocServInfoPosition, "T");
-  new FXTextField(mtLocServInfoPosition,8,dtLocServTX,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-                  0, 0, 20, 15);
-  new FXTextField(mtLocServInfoPosition,8,dtLocServTY,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-                  0, 0, 20, 15);
-  new FXTextField(mtLocServInfoPosition,8,dtLocServTZ,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-                  0, 0, 20, 15);
-
-  new FXLabel(mtLocServInfoPosition, "P");
-  new FXTextField(mtLocServInfoPosition,8,dtLocServPX,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-                  0, 0, 20, 15);
-  new FXTextField(mtLocServInfoPosition,8,dtLocServPY,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-                  0, 0, 20, 15);
-  new FXTextField(mtLocServInfoPosition,8,dtLocServPZ,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-                  0, 0, 20, 15);
-
+  }
+  
   updateTcpInfoTbl();
+
+  //// Locator Server Info.
+  //FXGroupBox* gpLocServInfo  = 
+  //  new FXGroupBox(frMonitorLo, "Locator Server Info.",
+  //                 FRAME_RIDGE|LAYOUT_FILL_Y|
+  //                 LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_TOP);
+  //
+  //FXVerticalFrame* frLocServInfo =
+  //  new FXVerticalFrame(gpLocServInfo,
+  //                      LAYOUT_FILL_Y|LAYOUT_FILL_X|
+  //                          LAYOUT_TOP|LAYOUT_LEFT);
+  //
+  //
+  //FXMatrix* mtLocServInfoStatus =  
+  //  new FXMatrix(frLocServInfo,2,
+  //               MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
+  //               LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
+  //               LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
+  //
+  //new FXLabel(mtLocServInfoStatus, "Connection:");
+  //new FXTextField(mtLocServInfoStatus,12,dtLocServStatus,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|FRAME_SUNKEN,
+  //                0, 0, 50, 15);
+  //new FXLabel(mtLocServInfoStatus, "Status:");
+  //new FXTextField(mtLocServInfoStatus,12,dtLocServSenseStatus,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|FRAME_SUNKEN,
+  //                0, 0, 50, 15);
+  //
+  //// Locator Server Info.
+  //FXGroupBox* gpLocServInfoPosition  = 
+  //  new FXGroupBox(frLocServInfo, "Position & Orientation",
+  //                 FRAME_GROOVE|LAYOUT_FILL_Y|
+  //                 LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_TOP);
+  //
+  //FXMatrix* mtLocServInfoPosition =  
+  //  new FXMatrix(gpLocServInfoPosition,4,
+  //               MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
+  //               LAYOUT_FILL_X|LAYOUT_TOP|
+  //               LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
+  //
+  //new FXLabel(mtLocServInfoPosition, " ", 0, LAYOUT_CENTER_X);
+  //new FXLabel(mtLocServInfoPosition, "MX", 0, LAYOUT_CENTER_X);
+  //new FXLabel(mtLocServInfoPosition, "MY", 0, LAYOUT_CENTER_X);
+  //new FXLabel(mtLocServInfoPosition, "MZ", 0, LAYOUT_CENTER_X);
+  //
+  //new FXLabel(mtLocServInfoPosition, "N");
+  //new FXTextField(mtLocServInfoPosition,8,dtLocServNX,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
+  //                0, 0, 20, 15);
+  //new FXTextField(mtLocServInfoPosition,8,dtLocServNY,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
+  //                0, 0, 20, 15);
+  //new FXTextField(mtLocServInfoPosition,8,dtLocServNZ,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
+  //                0, 0, 20, 15);
+  //
+  //new FXLabel(mtLocServInfoPosition, "T");
+  //new FXTextField(mtLocServInfoPosition,8,dtLocServTX,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
+  //                0, 0, 20, 15);
+  //new FXTextField(mtLocServInfoPosition,8,dtLocServTY,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
+  //                0, 0, 20, 15);
+  //new FXTextField(mtLocServInfoPosition,8,dtLocServTZ,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
+  //                0, 0, 20, 15);
+  //
+  //new FXLabel(mtLocServInfoPosition, "P");
+  //new FXTextField(mtLocServInfoPosition,8,dtLocServPX,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
+  //                0, 0, 20, 15);
+  //new FXTextField(mtLocServInfoPosition,8,dtLocServPY,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
+  //                0, 0, 20, 15);
+  //new FXTextField(mtLocServInfoPosition,8,dtLocServPZ,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
+  //                0, 0, 20, 15);
+  //
+  //updateTcpInfoTbl();
 
 
   FXTabItem* tabRtcpLog = new FXTabItem(mainTab, 
                                     "RTCP Log\tRTCP Log\tReal-time Control Process Message",
                                     0,
                                     LAYOUT_FILL_X|LAYOUT_FILL_Y|LAYOUT_TOP|LAYOUT_LEFT);
-//  FXMatrix* mtLog = 
-//    new FXMatrix(mainTab,2,
-//                 FRAME_RAISED|MATRIX_BY_COLUMNS|
-//                 LAYOUT_FILL_Y|LAYOUT_FILL_X|
-//                 LAYOUT_TOP|LAYOUT_LEFT);
   FXHorizontalFrame* frLog = 
     new FXHorizontalFrame(mainTab,
                           FRAME_RAISED|LAYOUT_FILL_X|LAYOUT_FILL_Y|
@@ -1521,11 +1436,6 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                                     "Interface Log\tInterface Log\tInterface Log massages",
                                     0,
                                     LAYOUT_FILL_X|LAYOUT_FILL_Y|LAYOUT_TOP|LAYOUT_LEFT);
-//  FXMatrix* mtLog = 
-//    new FXMatrix(mainTab,2,
-//                 FRAME_RAISED|MATRIX_BY_COLUMNS|
-//                 LAYOUT_FILL_Y|LAYOUT_FILL_X|
-//                 LAYOUT_TOP|LAYOUT_LEFT);
   FXHorizontalFrame* frIfLog = 
     new FXHorizontalFrame(mainTab,
                           FRAME_RAISED|LAYOUT_FILL_X|LAYOUT_FILL_Y|
@@ -2272,15 +2182,24 @@ void MrsvrMainWindow::setDataTargets()
   // Communication -> Server Thread configuration
   dtConPortNo  = new FXDataTarget(valConPortNo, this, (FXSelector)NULL);
   dtConStatus  = new FXDataTarget(valConStatus, this, (FXSelector)NULL);
-  dtLocServPortNo = 
-    new FXDataTarget(valLocServPortNo, this, ID_UPDATE_PARAMETER);
-  dtLocServHostName =
-    new FXDataTarget(valLocServHostName, this, ID_UPDATE_PARAMETER);
-  dtLocServStatus =
-    new FXDataTarget(valLocServStatus, this, ID_UPDATE_PARAMETER);
-  dtLocServInterval =
-    new FXDataTarget(valLocServInterval, this, ID_UPDATE_PARAMETER);
+  //dtLocServPortNo = 
+  //  new FXDataTarget(valLocServPortNo, this, ID_UPDATE_PARAMETER);
+  //dtLocServHostName =
+  //  new FXDataTarget(valLocServHostName, this, ID_UPDATE_PARAMETER);
+  //dtLocServStatus =
+  //  new FXDataTarget(valLocServStatus, this, ID_UPDATE_PARAMETER);
+  //dtLocServInterval =
+  //  new FXDataTarget(valLocServInterval, this, ID_UPDATE_PARAMETER);
 
+  dtCalibrationStatus = 
+    new FXDataTarget(valCalibrationStatus, this, ID_UPDATE_PARAMETER);
+
+  for (int i = 0; i < 16; i ++) {
+    dtCalibrationMatrix[i] = 
+      new FXDataTarget(valCalibrationMatrix[i], this, ID_UPDATE_PARAMETER);
+  }
+
+  
 #ifdef ENABLE_MRTS_CONNECTION
   // Communication -> MRTS Connection
   dtMrtsStatus    = new FXDataTarget(valMrtsStatus, this, ID_UPDATE_PARAMETER);
@@ -2459,10 +2378,10 @@ void MrsvrMainWindow::setDefaultParameters()
   valConPortNo = valDefConPortNo;
   valConStatus = "Launching";
 
-  valLocServPortNo   = valDefLocServPortNo;
-  valLocServHostName = valDefLocServHostName;
-  valLocServInterval = valDefLocServInterval;
-  valLocServStatus   = "Disconnected";
+  //valLocServPortNo   = valDefLocServPortNo;
+  //valLocServHostName = valDefLocServHostName;
+  //valLocServInterval = valDefLocServInterval;
+  //valLocServStatus   = "Disconnected";
 
 #ifdef ENABLE_MRTS_CONNECTION
   // Communication -> MRTS Connection
@@ -2517,16 +2436,26 @@ void MrsvrMainWindow::updateParameters()
 void MrsvrMainWindow::updateExternalCommands()
 {
   if (extMsgSvr != NULL) {  // Message Server
-    double target[3];
-    if (extMsgSvr->getTarget(target)) {
+    MrsvrMessageServer::Matrix4x4 target;
+    if (extMsgSvr->getTargetMatrix(target)) {
       for (int i = 0; i < 3; i ++) {
-        valTargetPosition[i] = target[i];
+        valTargetPosition[i] = target[i][3];
       }
       setTargetPositionXYZ(valTargetPosition);
     }
+
     int mode;
     if (extMsgSvr->getMode(&mode)) {
       robotCommand->setMode(mode);
+    }
+
+    MrsvrMessageServer::Matrix4x4 calibration;
+    if (extMsgSvr->getCalibrationMatrix(calibration)){
+      for (int i = 0; i < 4; i ++) {
+        for (int j = 0; j < 4; j ++) {
+          valCalibrationMatrix[i*4+j] = calibration[i][j];
+        }
+      }
     }
   }
 }
@@ -2543,9 +2472,9 @@ void MrsvrMainWindow::setTargetPositionXYZ(float pos[3])
 }
 
 
-void MrsvrMainWindow::setTargetPositionRAS(float pos[3])
+void MrsvrMainWindow::setCalibrationMatrix(float* matrix)
 {
-  
+  transform->setCalibrationMatrix(matrix);
 }
 
 
@@ -2674,11 +2603,11 @@ long MrsvrMainWindow::onCanvasRepaint(FXObject*, FXSelector,void* ptr)
       // current position
       dc.setForeground(FXRGB(150,150,150));
       dc.drawText(infoCnvTargetX, infoCnvValue1Y, 
-                  "MX:", 3);
+                  "R:", 3);
       dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W, 
-                  infoCnvValue1Y, "MY:", 3);
+                  infoCnvValue1Y, "A:", 3);
       dc.drawText(infoCnvTargetX+(INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W)*2, 
-                  infoCnvValue1Y, "MZ:", 3);
+                  infoCnvValue1Y, "S:", 3);
       dc.setForeground(FXRGB(150,150,0));
       dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W,
                   infoCnvValue1Y, infoCurrentX, strlen(infoCurrentX));
@@ -2690,11 +2619,11 @@ long MrsvrMainWindow::onCanvasRepaint(FXObject*, FXSelector,void* ptr)
       // target position
       dc.setForeground(FXRGB(150,150,150));
       dc.drawText(infoCnvTargetX, infoCnvValue2Y, 
-                  "MX:", 2);
+                  "R:", 2);
       dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W, 
-                  infoCnvValue2Y, "MY:", 2);
+                  infoCnvValue2Y, "A:", 2);
       dc.drawText(infoCnvTargetX+(INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W)*2, 
-                  infoCnvValue2Y, "MZ:", 2);
+                  infoCnvValue2Y, "S:", 2);
       dc.setForeground(FXRGB(0, 150,150));
       dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W,
                   infoCnvValue2Y, infoTargetR, strlen(infoTargetR));

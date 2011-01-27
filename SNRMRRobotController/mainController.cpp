@@ -60,9 +60,7 @@ using namespace std;
 #endif
 
 #define SOFTWARE_NAME "Real-time Control Process (RTCP) for ATRE MR-Servo Robot."
-#define COPYRIGHT_STR "Copyright (c) 2003-2005,  by ATRE Lab. The University of Tokyo. All Rights Reserved." 
-
-
+#define COPYRIGHT_STR "Copyright (C) 2003-2005, ATRE Lab. The University of Tokyo. All Rights Reserved.\nCopyright (C) 2005-2011, Shiga University of Medical Science. All Right Reserved.\nCopyrigth (C) 2006-2011, Surgical Navigation and Robotics Lab., Brigham and Women's Hospital."
 
 // Macro to output debug strings
 // NOTE: DBG_PRINT can be use only when 'MrsvrLogWriter' 

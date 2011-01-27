@@ -23,7 +23,7 @@
 CXX       = /usr/bin/c++
 CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
 LINKFLAGS =
-DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL  -DUSE_ART -DFULLSCREEN
+DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL  -DUSE_ART #-DFULLSCREEN
 INCDIR    = -I. -I/home/atre/program/mri_servo2/common -I/usr/local/include/fox-1.2 -I/home/atre/opt/include/igtl 
 LIBDIR    = -L/usr/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L/home/atre/opt/lib/igtl
 COMLIBS   = -lm

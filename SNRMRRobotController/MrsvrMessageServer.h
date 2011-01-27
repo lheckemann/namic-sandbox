@@ -71,6 +71,9 @@
 
 class MrsvrMessageServer : public MrsvrThread {
   
+ public:
+  typedef float Matrix4x4[4][4];
+
  private:
   static const char* svrStatusStr[];
   static const char* robotModeStr[];
@@ -117,8 +120,12 @@ class MrsvrMessageServer : public MrsvrThread {
   msgType            sendMsgType(int, msgType);
   msgType            sendMsgPosition(int, MrsvMsgPosition*);
 
-  bool               fSetTarget;
-  double             targetPosition[3];
+  bool               fSetTargetMatrix;
+  bool               fSetCalibrationMatrix;
+
+  Matrix4x4          targetMatrix;
+  Matrix4x4          calibrationMatrix;
+  //double             targetPosition[3];
   //bool               fStop;
   int                nextRobotMode;   // default -1;
 
@@ -136,12 +143,14 @@ class MrsvrMessageServer : public MrsvrThread {
   const char* getSvrStatusStr();
   long        getConnectionTime();
 
-  bool        getTarget(double*);
+  bool        getTargetMatrix(Matrix4x4& matrix);
+  bool        getCalibrationMatrix(Matrix4x4& matrix);
   //bool        getStop();
   bool        getMode(int*);
 
  private:
-  int         setTarget(double*);
+  int         setTargetMatrix(igtl::Matrix4x4& matrix);
+  int         setCalibrationMatrix(igtl::Matrix4x4& matrix);
   //void        setStop();
   int         setMode(const char*);
   void        getRobotStatus(int* mode, int* outrange, int* lock);
