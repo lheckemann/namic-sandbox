@@ -208,6 +208,15 @@ void MrsvrTransform::transform(MrsvrVector y, MrsvrVector x)
 }
 
 
+void MrsvrTransform::setCalibrationMatrix(float* m)
+{
+  for (int i = 0; i < 4; i ++) {
+    for (int j = 0; j < 4; j ++) {
+      this->matrix[i][j] = m[i*4+j];
+    }
+  }
+}
+
 void MrsvrTransform::invTransform(MrsvrVector x, MrsvrVector y) 
 {
 //  int i;

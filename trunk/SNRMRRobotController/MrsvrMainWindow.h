@@ -330,7 +330,6 @@ private:
   MrsvrCommandWriter*     robotCommand; 
   MrsvrLogReader*         robotLog;
   MrsvrMessageServer*     extMsgSvr;
-  //MrsvrLocatorClient*     locClient;
   MrsvrTransform*         transform;
   
   int                     prevSvrStatus; 
@@ -380,14 +379,21 @@ private:
   FXString           valConStatus;
 
   // -- Locator server
-  FXDataTarget*      dtLocServPortNo;
-  FXDataTarget*      dtLocServHostName;
-  FXDataTarget*      dtLocServStatus;
-  FXDataTarget*      dtLocServInterval;
-  int                valLocServPortNo;
-  FXString           valLocServHostName;
-  FXString           valLocServStatus;
-  int                valLocServInterval;  // (ms)
+  //FXDataTarget*      dtLocServPortNo;
+  //FXDataTarget*      dtLocServHostName;
+  //FXDataTarget*      dtLocServStatus;
+  //FXDataTarget*      dtLocServInterval;
+  //int                valLocServPortNo;
+  //FXString           valLocServHostName;
+  //FXString           valLocServStatus;
+  //int                valLocServInterval;  // (ms)
+
+  // Calibration information
+  FXDataTarget*      dtCalibrationStatus;
+  FXDataTarget*      dtCalibrationMatrix[16];
+
+  FXString           valCalibrationStatus;
+  double             valCalibrationMatrix[16];
 
 #ifdef ENABLE_MRTS_CONNECTION
   // -- MRTS
@@ -588,7 +594,7 @@ private:
   void   updateExternalCommands();
   void   consolePrint(int, bool, const char*,...);
   void   setTargetPositionXYZ(float[3]);
-  void   setTargetPositionRAS(float[3]);
+  void   setCalibrationMatrix(float[16]);
 
 //----------------------- Public functions -------------------------//
 public:

@@ -44,12 +44,6 @@ class MrsvrTransform {
   // where x is a position vector in image space, y is a position vector 
   // in robot space, R is a rotation matrix, and t is a translation vector.
   
-  //Matrix          rotMat;            // transformation matrix : R
-  //Matrix          invRotMat;         // inverse of transformation matrix  :R^(-1)
-  //ColumnVector    baseOffset;        // offset                : t
-  //ColumnVector    tipOffset;       // offset from the joint center to the needle tip 
-  //float           tipOffset;       // offset from the joint center to the needle tip 
-
   const static int MAX_NFDIP = 10;
   MrsvrVector     fidpRbt[MAX_NFDIP];  // fiducial point in robot cordinate 
   MrsvrVector     fidpImg[MAX_NFDIP];  // fiducial point in MRI cordinate  
@@ -59,16 +53,18 @@ class MrsvrTransform {
  public:
   MrsvrTransform();
   ~MrsvrTransform();
-  //void setTipOffset(float x, float y, float z);
-  //void setTipOffset(float l);
 
   void initFiducialPoints();
   int addFiducialPoints(MrsvrVector, MrsvrVector);
   //int addFiducialPoints(MrsvrVector, MrsvrVector, MrsvrVector);
   int calibrate();
-  
+
+  void setCalibrationMatrix(float* m);
   void transform(MrsvrVector, MrsvrVector);
   void invTransform(MrsvrVector, MrsvrVector);
+
+  float matrix[4][4];
+
 };
 
 #endif //_INC_MRSVR_TRANSFORM
