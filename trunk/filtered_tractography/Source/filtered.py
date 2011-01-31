@@ -186,12 +186,10 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
     r2i = vtk2mat(dwi_node.GetRASToIJKMatrix,         slicer)
     mf  = vtk2mat(dwi_node.GetMeasurementFrameMatrix, slicer)
     voxel = np.mat(dwi_node.GetSpacing()).reshape(3,1)
-
-    voxel = voxel[::-1]  # HACK Numpy has [z y x]
-
-    # generalized loading...
-    R = r2i[0:3,0:3] / voxel.T  # normalize each column
+     # generalized loading...
+    R = i2r[0:3,0:3] / voxel.T  # normalize each column
     M = mf[0:3,0:3]
+    voxel = voxel[::-1]  # HACK Numpy has [z y x]
 
     # transform gradients
     u = dwi_node.GetDiffusionGradients().ToArray()
@@ -388,7 +386,7 @@ def step2t(p, S, est, param):
         fa = iff(dirs[1][0] < dirs[1][1], 0, l2fa(dirs[1])) # Ensure eliptic.
 
     # Move along the found direction
-    dx = dirs[0] / v
+    dx = dirs[0] / v[::-1]
     x = x + param['dt'] * dx[::-1]  # HACK volume dimensions are reversed
     return x, X, P, m, fa, dirs
 
@@ -397,16 +395,15 @@ def step1t(p, S, est, param):
     v = param['voxel']
     x,X,P = p[0],p[1],p[2]
     # Get new state.
-
     X,P = est(X,P,interp3signal(S,x,v))
-
     m, l = state2tensor(X)
+
     if len(X) == 6:
         fa = iff(l[0] < l[1] or l[0] < l[2], 0, l2fa(l)) # Ensure eliptic.
     else: # len(X) == 5
         fa = iff(l[0] < l[1], 0, l2fa(l)) # Ensure eliptic.
     # Move along the found direction
-    dx = m / v
+    dx = m / v[::-1]
     x = x + param['dt'] * dx[::-1]  # HACK volume dimensions are reversed
     return x,X,P,m,fa
 
