@@ -23,6 +23,7 @@
 #ifndef _INC_MRSVR_STATUS
 #define _INC_MRSVR_STATUS
 
+#include <string.h>
 #include "MrsvrSharedData.h"
 #include "MrsvrDev.h"
 

@@ -19,17 +19,29 @@
 #====================================================================
 
 
-#### for Linux
+#### for ART Linux
+#CXX       = /usr/bin/c++
+#CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
+#LINKFLAGS =
+#DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL  -DUSE_ART -#DFULLSCREEN
+#INCDIR    = -I. -I/home/atre/program/mri_servo2/common -I/usr/local/include/fox-1.2 -I/home/atre/opt/include/igtl 
+#LIBDIR    = -L/usr/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L/home/atre/opt/lib/igtl
+#COMLIBS   = -lm
+#IFLIBS    = -lFOX-1.2 -lXext -lX11 -lm -lGLU -lGL -lXmu -lXi -ltiff -lpthread -lg2c -lOpenIGTLink
+#CTRLLIBS  = -lgpg2000 -lgpg3300 -lgpg6204 -lg2c
+#ARTLIB    = /usr/lib/art_syscalls.o
+
+### for Linux
 CXX       = /usr/bin/c++
 CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
 LINKFLAGS =
-DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL  -DUSE_ART -DFULLSCREEN
-INCDIR    = -I. -I/home/atre/program/mri_servo2/common -I/usr/local/include/fox-1.2 -I/home/atre/opt/include/igtl 
-LIBDIR    = -L/usr/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L/home/atre/opt/lib/igtl
+DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL -DWITHOUT_ART  -D_USE_FBISIM -DFULLSCREEN
+INCDIR    = -I/usr/local/include/fox-1.6 -I/home/thomas/opt/include/igtl -I./fbisim
+LIBDIR    = -L/usr/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L/home/thomas/opt/lib/igtl -L./fbisim
 COMLIBS   = -lm
-IFLIBS    = -lFOX-1.2 -lXext -lX11 -lm -lGLU -lGL -lXmu -lXi -ltiff -lpthread -lg2c -lOpenIGTLink
-CTRLLIBS  = -lgpg2000 -lgpg3300 -lgpg6204 -lg2c
-ARTLIB    = /usr/lib/art_syscalls.o
+IFLIBS    = -lFOX-1.6 -lXext -lX11 -lm -lGLU -lGL -lXmu -lXi -ltiff -lpthread -lOpenIGTLink
+CTRLLIBS  = -lgpg2000_sim -lgpg3300_sim -lgpg6204_sim  #-lgpg2000 -lgpg3300 -lgpg6204
+
 
 ## for Linux x86-64
 ## If you compile this program without driver libraries for IO Board,
