@@ -33,6 +33,7 @@ class vtkTransform;
 class vtkMRMLLinearTransformNode;
 class vtkLineSource;
 class vtkKWRange;
+class vtkKWEntryWithLabel;
 
 class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
 {
@@ -108,7 +109,6 @@ class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
 
   void UpdateAll();
 
-
  protected:
   
   //----------------------------------------------------------------
@@ -133,6 +133,8 @@ class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
   vtkLineSource* lineBetweenFiducials;
   vtkKWRange* lineRange;
 
+  vtkKWEntryWithLabel* WholeRangeWidget;
+  vtkKWPushButton* UpdateWholeRangeButton;
   // Distance between the two fiducials
   double lineLength;
   

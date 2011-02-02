@@ -12,6 +12,8 @@
 
 ==========================================================================*/
 
+#include <cmath>
+
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
 
@@ -45,6 +47,7 @@
 #include "vtkMatrix4x4.h"
 #include "vtkKWRange.h"
 #include "vtkMath.h"
+#include "vtkKWEntryWithLabel.h"
 
 #include "vtkCornerAnnotation.h"
 
@@ -78,6 +81,9 @@ vtkLineMotionGUI::vtkLineMotionGUI ( )
   this->transformNode = NULL;
   this->lineBetweenFiducials = NULL;
   this->lineRange = NULL;
+
+  this->WholeRangeWidget = NULL;
+  this->UpdateWholeRangeButton = NULL;
 
   this->lineLength = 0;
 
@@ -151,6 +157,18 @@ vtkLineMotionGUI::~vtkLineMotionGUI ( )
     {
     this->lineRange->SetParent(NULL);
     this->lineRange->Delete();
+    }
+
+  if (this->WholeRangeWidget)
+    {
+    this->WholeRangeWidget->SetParent(NULL);
+    this->WholeRangeWidget->Delete();
+    }
+
+  if (this->UpdateWholeRangeButton)
+    {
+    this->UpdateWholeRangeButton->SetParent(NULL);
+    this->UpdateWholeRangeButton->Delete();
     }
 
   if (this->transformNode)
@@ -239,6 +257,13 @@ void vtkLineMotionGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->UpdateWholeRangeButton)
+    {
+    this->UpdateWholeRangeButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+
   this->RemoveLogicObservers();
 
 }
@@ -278,6 +303,8 @@ this->translation
 this->lineRange
   ->AddObserver(vtkKWRange::RangeValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
 
+this->UpdateWholeRangeButton
+  ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->AddLogicObservers();
 
@@ -377,7 +404,7 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
       lineactor->SetMapper(mapper);
      
       this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(lineactor);
-      this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->Render();
+      this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
       
       mapper->Delete();
       lineactor->Delete();
@@ -405,14 +432,17 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
       // Set vtkKWRange widget
       vtkMath* DistanceBetweenPoint = vtkMath::New();
       
-        // Square root has been forgotten on Distance2BetweenPoints
+        // Square root is missing on Distance2BetweenPoints
       this->lineLength = sqrt( DistanceBetweenPoint->Distance2BetweenPoints(dpoint1,dpoint2) );
-      this->lineRange->SetWholeRange((-this->lineLength/2)-100,(this->lineLength/2)+100);
+      this->lineRange->SetWholeRange((-this->lineLength/2)-200,(this->lineLength/2)+200);
       this->lineRange->SetRange(-this->lineLength/2,this->lineLength/2);
-      this->lineRange->SliderCanPushOn();
       this->lineRange->Modified();
 
       DistanceBetweenPoint->Delete();
+
+      // Set Default Whole Range value
+      this->WholeRangeWidget->GetWidget()->SetValueAsDouble(this->lineLength/2+200);
+
       }
    }
 
@@ -430,20 +460,52 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
        this->lineRange->GetEntry2()->SetValueAsDouble(this->lineLength/2);
      }
      
-      double point1[3] = { dpoint1[0] - ((abs(this->lineRange->GetEntry1()->GetValueAsDouble())-(this->lineLength/2))*this->vector_normalized[0]),
-                  dpoint1[1] - ((abs(this->lineRange->GetEntry1()->GetValueAsDouble())-(this->lineLength/2))*this->vector_normalized[1]),
-                  dpoint1[2] - ((abs(this->lineRange->GetEntry1()->GetValueAsDouble())-(this->lineLength/2))*this->vector_normalized[2])};
+      // Update Line
+         // Orientation of the normalized vector
+      int xsign = 1;
+      int ysign = 1;
+      int zsign = 1;
+
+      if(dpoint2[0] > dpoint1[0]) { xsign = -1; } 
+      if(dpoint2[1] > dpoint1[1]) { ysign = -1; }
+      if(dpoint2[2] > dpoint1[2]) { zsign = -1; } 
+     
+      double point1[3] = { dpoint1[0] + xsign*((std::abs(this->lineRange->GetEntry1()->GetValueAsDouble())-(this->lineLength/2))*std::abs(this->vector_normalized[0])),
+                  dpoint1[1] + ysign*((std::abs(this->lineRange->GetEntry1()->GetValueAsDouble())-(this->lineLength/2))*std::abs(this->vector_normalized[1])),
+                  dpoint1[2] + zsign*((std::abs(this->lineRange->GetEntry1()->GetValueAsDouble())-(this->lineLength/2))*std::abs(this->vector_normalized[2]))};
       this->lineBetweenFiducials->SetPoint1(point1);
 
-      double point2[3] = { dpoint2[0] + ((abs(this->lineRange->GetEntry2()->GetValueAsDouble())-(this->lineLength/2))*this->vector_normalized[0]),
-                           dpoint2[1] + ((abs(this->lineRange->GetEntry2()->GetValueAsDouble())-(this->lineLength/2))*this->vector_normalized[1]),
-                           dpoint2[2] + ((abs(this->lineRange->GetEntry2()->GetValueAsDouble())-(this->lineLength/2))*this->vector_normalized[2])};
+      double point2[3] = { dpoint2[0] - xsign*((std::abs(this->lineRange->GetEntry2()->GetValueAsDouble())-(this->lineLength/2))*std::abs(this->vector_normalized[0])),
+                           dpoint2[1] - ysign*((std::abs(this->lineRange->GetEntry2()->GetValueAsDouble())-(this->lineLength/2))*std::abs(this->vector_normalized[1])),
+                           dpoint2[2] - zsign*((std::abs(this->lineRange->GetEntry2()->GetValueAsDouble())-(this->lineLength/2))*std::abs(this->vector_normalized[2]))};
       this->lineBetweenFiducials->SetPoint2(point2);
 
       this->lineBetweenFiducials->Update();
-      this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->Render();
+      this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
 
     }
+
+  // Update Range Button Pressed
+  if(this->UpdateWholeRangeButton == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+      if(this->WholeRangeWidget)
+     {
+          double WholeRangeValue = std::abs(this->WholeRangeWidget->GetWidget()->GetValueAsDouble());
+       if(WholeRangeValue > this->lineLength/2)
+         {
+           this->lineRange->SetWholeRange(-WholeRangeValue,WholeRangeValue);
+              this->lineRange->Modified();
+         }
+       else
+         {
+           this->lineRange->SetWholeRange(-this->lineLength/2,this->lineLength/2);
+              this->lineRange->Modified();
+         }
+     }
+
+    }
+
 
 } 
 
@@ -541,7 +603,7 @@ void vtkLineMotionGUI::BuildGUIForLineMotion()
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Test child frame
+  // Fiducial frame
 
   vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
   frame->SetParent(conBrowsFrame->GetFrame());
@@ -551,7 +613,7 @@ void vtkLineMotionGUI::BuildGUIForLineMotion()
                  frame->GetWidgetName() );
   
   // -----------------------------------------
-  // Test push button
+  // Node Selector (vtkMRMLFiducialListNode)
 
   this->fiducialListWidget = vtkSlicerNodeSelectorWidget::New ( );
   this->fiducialListWidget->SetParent ( frame->GetFrame() );
@@ -561,6 +623,9 @@ void vtkLineMotionGUI::BuildGUIForLineMotion()
   this->fiducialListWidget->SetNewNodeEnabled(0);
   this->fiducialListWidget->SetMRMLScene(this->GetMRMLScene());
   this->fiducialListWidget->UpdateMenu();
+
+  // -----------------------------------------
+  // Draw line button
 
   this->drawline = vtkKWPushButton::New();
   this->drawline->SetParent ( frame->GetFrame() );
@@ -573,7 +638,7 @@ void vtkLineMotionGUI::BuildGUIForLineMotion()
 
 
   // -----------------------------------------
-  // Test child frame
+  // Motion frame
 
   vtkKWFrameWithLabel *frame2 = vtkKWFrameWithLabel::New();
   frame2->SetParent(conBrowsFrame->GetFrame());
@@ -583,6 +648,16 @@ void vtkLineMotionGUI::BuildGUIForLineMotion()
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  frame2->GetWidgetName() );
   
+  this->WholeRangeWidget = vtkKWEntryWithLabel::New();
+  this->WholeRangeWidget->SetParent(frame2->GetFrame());
+  this->WholeRangeWidget->Create();
+  this->WholeRangeWidget->SetLabelText("Set Range Value (range between -x and x)");
+ 
+  this->UpdateWholeRangeButton = vtkKWPushButton::New();
+  this->UpdateWholeRangeButton->SetParent(frame2->GetFrame());
+  this->UpdateWholeRangeButton->Create();
+  this->UpdateWholeRangeButton->SetText("Update range"); 
+
   this->lineRange = vtkKWRange::New();
   this->lineRange->SetParent(frame2->GetFrame());
   this->lineRange->Create();
@@ -597,7 +672,9 @@ void vtkLineMotionGUI::BuildGUIForLineMotion()
   this->translation->SetLabelText("Translation");
   this->translation->SetRange(-100,100);
 
-  this->Script("pack %s %s -side top -fill x -padx 2 -pady 2", 
+  this->Script("pack %s %s %s %s -side top -fill x -padx 2 -pady 2",
+               this->WholeRangeWidget->GetWidgetName(),
+               this->UpdateWholeRangeButton->GetWidgetName(), 
                this->lineRange->GetWidgetName(),
                this->translation->GetWidgetName());
 
@@ -614,4 +691,3 @@ void vtkLineMotionGUI::BuildGUIForLineMotion()
 void vtkLineMotionGUI::UpdateAll()
 {
 }
-
