@@ -48,6 +48,7 @@
 #include "vtkKWRange.h"
 #include "vtkMath.h"
 #include "vtkKWEntryWithLabel.h"
+#include "vtkSphereSource.h"
 
 #include "vtkCornerAnnotation.h"
 
@@ -85,11 +86,37 @@ vtkLineMotionGUI::vtkLineMotionGUI ( )
   this->WholeRangeWidget = NULL;
   this->UpdateWholeRangeButton = NULL;
 
-  this->lineLength = 0;
+  this->sphereCenterPlane = NULL;
 
-  this->vector_normalized[0] = 0;
-  this->vector_normalized[1] = 0;
-  this->vector_normalized[2] = 0;
+  this->lineCenter[0] = 0;
+  this->lineCenter[1] = 0;
+  this->lineCenter[2] = 0;  
+
+  this->P1Vector[0] = 0;
+  this->P1Vector[1] = 0;
+  this->P1Vector[2] = 0;  
+
+  this->P2Vector[0] = 0;
+  this->P2Vector[1] = 0;
+  this->P2Vector[2] = 0;  
+
+  this->P1VectorNormalized[0] = 0;
+  this->P1VectorNormalized[1] = 0;
+  this->P1VectorNormalized[2] = 0;  
+
+  this->P2VectorNormalized[0] = 0;
+  this->P2VectorNormalized[1] = 0;
+  this->P2VectorNormalized[2] = 0;  
+
+  this->PVectorLength = 0;
+ 
+  this->lineTip1[0] = 0;
+  this->lineTip1[1] = 0;
+  this->lineTip1[2] = 0;
+
+  this->lineTip2[0] = 0;
+  this->lineTip2[1] = 0;
+  this->lineTip2[2] = 0;
 
   this->dpoint1[0] = 0;
   this->dpoint1[1] = 0;
@@ -169,6 +196,11 @@ vtkLineMotionGUI::~vtkLineMotionGUI ( )
     {
     this->UpdateWholeRangeButton->SetParent(NULL);
     this->UpdateWholeRangeButton->Delete();
+    }
+
+  if (this->sphereCenterPlane)
+    {
+    this->sphereCenterPlane->Delete();
     }
 
   if (this->transformNode)
@@ -393,12 +425,12 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
         this->lineBetweenFiducials = vtkLineSource::New();
         }
          
-      lineBetweenFiducials->SetPoint1(dpoint1);
-      lineBetweenFiducials->SetPoint2(dpoint2);
-      lineBetweenFiducials->Update();
+      this->lineBetweenFiducials->SetPoint1(dpoint1);
+      this->lineBetweenFiducials->SetPoint2(dpoint2);
+      this->lineBetweenFiducials->Update();
      
       vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
-      mapper->SetInput(lineBetweenFiducials->GetOutput());
+      mapper->SetInput(this->lineBetweenFiducials->GetOutput());
      
       vtkActor* lineactor = vtkActor::New();
       lineactor->SetMapper(mapper);
@@ -418,30 +450,80 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
         this->GetMRMLScene()->AddNode(this->transformNode);
         }
      
-      // Create normalized vector representing direction of the line
-      double vector[3] = {dpoint1[0]-dpoint2[0], dpoint1[1]-dpoint2[1], dpoint1[2]-dpoint2[2]};
-      double normalization = vector[0]+vector[1]+vector[2];
-      this->vector_normalized[0] = vector[0]/normalization;
-      this->vector_normalized[1] = vector[1]/normalization;
-      this->vector_normalized[2] = vector[2]/normalization;
-
       // Enable Controllers 
       this->lineRange->SetEnabled(1);
       this->translation->SetEnabled(1);
-
-      // Set vtkKWRange widget
-      vtkMath* DistanceBetweenPoint = vtkMath::New();
       
-        // Square root is missing on Distance2BetweenPoints
-      this->lineLength = sqrt( DistanceBetweenPoint->Distance2BetweenPoints(dpoint1,dpoint2) );
-      this->lineRange->SetWholeRange((-this->lineLength/2)-200,(this->lineLength/2)+200);
-      this->lineRange->SetRange(-this->lineLength/2,this->lineLength/2);
-      this->lineRange->Modified();
+      // Calculate line center
+      this->lineCenter[0] = (dpoint1[0] + dpoint2[0])/2;
+      this->lineCenter[1] = (dpoint1[1] + dpoint2[1])/2;
+      this->lineCenter[2] = (dpoint1[2] + dpoint2[2])/2;
 
-      DistanceBetweenPoint->Delete();
+      // Calculate vectors from center to P1 and P2
+      this->P1Vector[0] = dpoint1[0] - this->lineCenter[0];
+      this->P1Vector[1] = dpoint1[1] - this->lineCenter[1];
+      this->P1Vector[2] = dpoint1[2] - this->lineCenter[2];
+
+      this->P2Vector[0] = dpoint2[0] - this->lineCenter[0];
+      this->P2Vector[1] = dpoint2[1] - this->lineCenter[1];
+      this->P2Vector[2] = dpoint2[2] - this->lineCenter[2];
+      
+      // Normalize vectors
+      // -- Calculate vector length (add sqrt because of missing in Distance2BetweenPoints in vtkMath)
+      vtkMath* VectorLength = vtkMath::New();
+
+      // Length is the same from P1 to center or P2 to center       
+      this->PVectorLength = sqrt(VectorLength->Distance2BetweenPoints(dpoint1,this->lineCenter));
+
+      VectorLength->Delete();
+      
+      // -- Normalize
+      this->P1VectorNormalized[0] = this->P1Vector[0]/this->PVectorLength;
+      this->P1VectorNormalized[1] = this->P1Vector[1]/this->PVectorLength;
+      this->P1VectorNormalized[2] = this->P1Vector[2]/this->PVectorLength;
+ 
+      this->P2VectorNormalized[0] = this->P2Vector[0]/this->PVectorLength;
+      this->P2VectorNormalized[1] = this->P2Vector[1]/this->PVectorLength;
+      this->P2VectorNormalized[2] = this->P2Vector[2]/this->PVectorLength;
+
+      // Update Slider Range
+      this->lineRange->SetWholeRange(-this->PVectorLength-200, this->PVectorLength+200);
+      this->lineRange->SetRange(-this->PVectorLength, this->PVectorLength);
+      this->Modified();
+
+      // Add Sphere in the center
+      if(!this->sphereCenterPlane)
+        {
+        this->sphereCenterPlane = vtkSphereSource::New();
+        }
+ 
+      if(this->sphereCenterPlane && this->lineCenter)
+     {        
+        this->sphereCenterPlane->SetRadius(5);
+        this->sphereCenterPlane->SetCenter(this->lineCenter[0],this->lineCenter[1],this->lineCenter[2]);
+        this->sphereCenterPlane->Update();
+     }
+     
+      vtkPolyDataMapper* mapperSphere = vtkPolyDataMapper::New();
+      mapperSphere->SetInput(this->sphereCenterPlane->GetOutput());
+     
+      vtkActor* sphereactor = vtkActor::New();
+      sphereactor->SetMapper(mapperSphere);
+     
+      this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(sphereactor);
+      this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+      
+      mapperSphere->Delete();
+      sphereactor->Delete();
+
+      // Reset Scale
+      if(this->translation)
+       {
+      this->translation->SetValue(0);
+       }
 
       // Set Default Whole Range value
-      this->WholeRangeWidget->GetWidget()->SetValueAsDouble(this->lineLength/2+200);
+      this->WholeRangeWidget->GetWidget()->SetValueAsDouble(this->PVectorLength+200);
 
       }
    }
@@ -450,39 +532,82 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
   if(this->lineRange == vtkKWRange::SafeDownCast(caller)
       && event == vtkKWRange::RangeValueChangingEvent)
     {
-      // Minimum size
-      if(this->lineRange->GetEntry1()->GetValueAsDouble() > (-this->lineLength/2))
+      // Set Tips of the line
+      if(this->dpoint1[0] > this->dpoint2[0])
      {
-       this->lineRange->GetEntry1()->SetValueAsDouble(-this->lineLength/2);
+          // Tip 1
+          double Slider1 = this->lineRange->GetEntry1()->GetValueAsDouble();
+       if(std::abs(Slider1) > this->PVectorLength)
+         {
+           this->lineTip1[0] = this->lineCenter[0] + Slider1*this->P1VectorNormalized[0];
+              this->lineTip1[1] = this->lineCenter[1] + Slider1*this->P1VectorNormalized[1];
+              this->lineTip1[2] = this->lineCenter[2] + Slider1*this->P1VectorNormalized[2];
+         } 
+       else
+         {
+              this->lineTip1[0] = this->dpoint1[0];
+              this->lineTip1[1] = this->dpoint1[1];
+              this->lineTip1[2] = this->dpoint1[2];
+         }
+
+       // Tip 2
+       double Slider2 = this->lineRange->GetEntry2()->GetValueAsDouble();
+       if(std::abs(Slider2) > this->PVectorLength)
+         {
+           this->lineTip2[0] = this->lineCenter[0] + Slider2*this->P2VectorNormalized[0];
+              this->lineTip2[1] = this->lineCenter[1] + Slider2*this->P2VectorNormalized[1];
+              this->lineTip2[2] = this->lineCenter[2] + Slider2*this->P2VectorNormalized[2];
+         }
+       else
+         {
+           this->lineTip2[0] = this->dpoint2[0];
+              this->lineTip2[1] = this->dpoint2[1];
+              this->lineTip2[2] = this->dpoint2[2];
+         }
+
      }
-      if(this->lineRange->GetEntry2()->GetValueAsDouble() < (this->lineLength/2))
+      else
      {
-       this->lineRange->GetEntry2()->SetValueAsDouble(this->lineLength/2);
+          // Tip 1
+          double Slider1 = this->lineRange->GetEntry1()->GetValueAsDouble();
+       if(std::abs(Slider1) > this->PVectorLength)
+         {
+           this->lineTip1[0] = this->lineCenter[0] - Slider1*this->P2VectorNormalized[0];
+              this->lineTip1[1] = this->lineCenter[1] - Slider1*this->P2VectorNormalized[1];
+              this->lineTip1[2] = this->lineCenter[2] - Slider1*this->P2VectorNormalized[2];
+         } 
+       else
+         {
+              this->lineTip1[0] = this->dpoint2[0];
+              this->lineTip1[1] = this->dpoint2[1];
+              this->lineTip1[2] = this->dpoint2[2];
+         }
+
+       // Tip 2
+       double Slider2 = this->lineRange->GetEntry2()->GetValueAsDouble();
+       if(std::abs(Slider2) > this->PVectorLength)
+         {
+           this->lineTip2[0] = this->lineCenter[0] + Slider2*this->P1VectorNormalized[0];
+              this->lineTip2[1] = this->lineCenter[1] + Slider2*this->P1VectorNormalized[1];
+              this->lineTip2[2] = this->lineCenter[2] + Slider2*this->P1VectorNormalized[2];
+         }
+       else
+         {
+           this->lineTip2[0] = this->dpoint1[0];
+              this->lineTip2[1] = this->dpoint1[1];
+              this->lineTip2[2] = this->dpoint1[2];
+         }
+
      }
-     
-      // Update Line
-         // Orientation of the normalized vector
-      int xsign = 1;
-      int ysign = 1;
-      int zsign = 1;
 
-      if(dpoint2[0] > dpoint1[0]) { xsign = -1; } 
-      if(dpoint2[1] > dpoint1[1]) { ysign = -1; }
-      if(dpoint2[2] > dpoint1[2]) { zsign = -1; } 
-     
-      double point1[3] = { dpoint1[0] + xsign*((std::abs(this->lineRange->GetEntry1()->GetValueAsDouble())-(this->lineLength/2))*std::abs(this->vector_normalized[0])),
-                  dpoint1[1] + ysign*((std::abs(this->lineRange->GetEntry1()->GetValueAsDouble())-(this->lineLength/2))*std::abs(this->vector_normalized[1])),
-                  dpoint1[2] + zsign*((std::abs(this->lineRange->GetEntry1()->GetValueAsDouble())-(this->lineLength/2))*std::abs(this->vector_normalized[2]))};
-      this->lineBetweenFiducials->SetPoint1(point1);
-
-      double point2[3] = { dpoint2[0] - xsign*((std::abs(this->lineRange->GetEntry2()->GetValueAsDouble())-(this->lineLength/2))*std::abs(this->vector_normalized[0])),
-                           dpoint2[1] - ysign*((std::abs(this->lineRange->GetEntry2()->GetValueAsDouble())-(this->lineLength/2))*std::abs(this->vector_normalized[1])),
-                           dpoint2[2] - zsign*((std::abs(this->lineRange->GetEntry2()->GetValueAsDouble())-(this->lineLength/2))*std::abs(this->vector_normalized[2]))};
-      this->lineBetweenFiducials->SetPoint2(point2);
-
+      this->lineBetweenFiducials->SetPoint1(lineTip1);
+      this->lineBetweenFiducials->SetPoint2(lineTip2);
       this->lineBetweenFiducials->Update();
-      this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
 
+      // Update Scale
+      this->translation->SetRange(this->lineRange->GetEntry1()->GetValueAsDouble(),this->lineRange->GetEntry2()->GetValueAsDouble());
+
+      this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
     }
 
   // Update Range Button Pressed
@@ -492,16 +617,45 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
       if(this->WholeRangeWidget)
      {
           double WholeRangeValue = std::abs(this->WholeRangeWidget->GetWidget()->GetValueAsDouble());
-       if(WholeRangeValue > this->lineLength/2)
+       if(WholeRangeValue > this->PVectorLength)
          {
            this->lineRange->SetWholeRange(-WholeRangeValue,WholeRangeValue);
               this->lineRange->Modified();
          }
        else
          {
-           this->lineRange->SetWholeRange(-this->lineLength/2,this->lineLength/2);
+           this->lineRange->SetWholeRange(-this->PVectorLength,this->PVectorLength);
               this->lineRange->Modified();
          }
+     }
+
+    }
+
+
+  if(this->translation == vtkKWScale::SafeDownCast(caller)
+     && event == vtkKWScale::ScaleValueChangingEvent)
+    {
+      if(this->translation && this->sphereCenterPlane)
+     { 
+          double sphereCenter[3] = {this->lineCenter[0],this->lineCenter[1],this->lineCenter[2]};
+
+          if(this->dpoint1[0] > this->dpoint2[0])
+         {
+           sphereCenter[0] = this->lineCenter[0] - this->translation->GetValue()*this->P1VectorNormalized[0];
+           sphereCenter[1] = this->lineCenter[1] - this->translation->GetValue()*this->P1VectorNormalized[1];
+              sphereCenter[2] = this->lineCenter[2] - this->translation->GetValue()*this->P1VectorNormalized[2];
+            
+         }
+       else
+         {
+           sphereCenter[0] = this->lineCenter[0] - this->translation->GetValue()*this->P2VectorNormalized[0];
+              sphereCenter[1] = this->lineCenter[1] - this->translation->GetValue()*this->P2VectorNormalized[1];
+              sphereCenter[2] = this->lineCenter[2] - this->translation->GetValue()*this->P2VectorNormalized[2];
+         }
+       this->sphereCenterPlane->SetCenter(sphereCenter[0],sphereCenter[1],sphereCenter[2]);
+          this->sphereCenterPlane->Update();
+
+          this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
      }
 
     }
@@ -667,6 +821,7 @@ void vtkLineMotionGUI::BuildGUIForLineMotion()
 
   this->translation = vtkKWScale::New();
   this->translation->SetParent(frame2->GetFrame());
+  this->translation->SetResolution(0.1);
   this->translation->Create();
   this->translation->SetEnabled(0);
   this->translation->SetLabelText("Translation");

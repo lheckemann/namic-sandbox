@@ -34,6 +34,7 @@ class vtkMRMLLinearTransformNode;
 class vtkLineSource;
 class vtkKWRange;
 class vtkKWEntryWithLabel;
+class vtkSphereSource;
 
 class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
 {
@@ -135,15 +136,31 @@ class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
 
   vtkKWEntryWithLabel* WholeRangeWidget;
   vtkKWPushButton* UpdateWholeRangeButton;
-  // Distance between the two fiducials
-  double lineLength;
-  
+
+  vtkSphereSource* sphereCenterPlane;
+
   // Fiducial Positions
   double dpoint1[3];
   double dpoint2[3];
 
-  // Direction of the axis
-  double vector_normalized[3];
+  // Center of the line between fiducials
+  double lineCenter[3];
+
+  // Vectors from P1 and P2 to the center
+  double P1Vector[3];
+  double P2Vector[3];
+
+  // Length of these vector (same distance between P1 and center and P2 and center)
+  double PVectorLength;
+
+  // Normalized vector 
+  double P1VectorNormalized[3];
+  double P2VectorNormalized[3];
+
+  // New point of the line after sliding
+  double lineTip1[3];
+  double lineTip2[3];
+
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
