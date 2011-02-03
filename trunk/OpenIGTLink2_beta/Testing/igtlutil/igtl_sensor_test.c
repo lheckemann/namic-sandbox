@@ -52,7 +52,7 @@ int main( int argc, char * argv [] )
   // Test structure size
   if (sizeof(message) != IGTL_HEADER_SIZE+IGTL_SENSOR_HEADER_SIZE+sizeof(igtl_float64)*6)
     {
-    fprintf(stdout, "Invalid size of image message structure.\n");
+    fprintf(stdout, "Invalid size of sensor message structure.\n");
     return EXIT_FAILURE;
     }
 
