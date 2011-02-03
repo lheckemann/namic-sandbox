@@ -25,7 +25,6 @@
 #include "igtlMath.h"
 #include "igtlMessageBase.h"
 #include "igtlTypes.h"
-#include "igtlImageMessage.h"
 
 
 namespace igtl
