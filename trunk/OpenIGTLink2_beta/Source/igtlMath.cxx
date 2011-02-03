@@ -31,6 +31,26 @@ void IGTLCommon_EXPORT PrintMatrix(igtl::Matrix4x4 &matrix)
   std::cout << "=============" << std::endl;
 }
 
+void IGTLCommon_EXPORT PrintVector3(float v[3])
+{
+  std::cout << v[0] << ", " << v[1] << ", " << v[2] << std::endl;
+}
+
+void IGTLCommon_EXPORT PrintVector3(float x, float y, float z)
+{
+  std::cout << x << ", " << y << ", " << z << std::endl;
+}
+
+void IGTLCommon_EXPORT PrintVector4(float v[4])
+{
+  std::cout << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << std::endl;
+}
+
+void IGTLCommon_EXPORT PrintVector4(float x, float y, float z, float w)
+{
+  std::cout << x << ", " << y << ", " << z << ", " << w << std::endl;
+}
+
 void IGTLCommon_EXPORT QuaternionToMatrix(float* q, Matrix4x4& m)
 {
 
