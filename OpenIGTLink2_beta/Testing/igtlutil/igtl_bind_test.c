@@ -15,10 +15,11 @@
 =========================================================================*/
 
 
-
 #include "igtl_types.h"
 #include "igtl_header.h"
+#include "igtl_image.h"
 #include "igtl_sensor.h"
+#include "igtl_bind.h"
 #include "igtl_util.h"
 #include <string.h>
 #include <stdio.h>
@@ -29,7 +30,7 @@
 
 /* Include serialized test data (gold standard) */
 #include "igtl_test_data_bind.h"
-#include "iglt_test_data_transform.h"
+#include "igtl_test_data_transform.h"
 #include "igtl_test_data_image.h"
 #include "igtl_test_data_status.h"
 
@@ -50,14 +51,14 @@ typedef struct {
 
 typedef struct {
   transform_message_body transform;
-  image_message_body     message;
+  image_message_body     image;
   sensor_message_body    sensor;
 } child_message_body;
 
 #pragma pack()
 
 
-void generate_transform_body(struct transform_message_body * body)
+void generate_transform_body(transform_message_body * body)
 {
   body->transform[0] = -0.954892f;
   body->transform[1] = 0.196632f;
@@ -76,7 +77,7 @@ void generate_transform_body(struct transform_message_body * body)
 }
 
 
-igtl_uint64 generate_image_body(struct image_message_body * body)
+igtl_uint64 generate_image_body(image_message_body * body)
 {
   igtl_uint64 image_size;
 
@@ -119,7 +120,7 @@ igtl_uint64 generate_image_body(struct image_message_body * body)
 }
 
 
-unsigned int generate_image_body(struct image_message_body * body)
+unsigned int generate_sensor_body(sensor_message_body * body)
 {
   igtl_unit_data unit_data;
 
@@ -127,13 +128,6 @@ unsigned int generate_image_body(struct image_message_body * body)
   unsigned int value_size;
   int r;
   int s;
-
-  // Test structure size
-  if (sizeof(message) != IGTL_HEADER_SIZE+IGTL_SENSOR_HEADER_SIZE+sizeof(igtl_float64)*6)
-    {
-    fprintf(stdout, "Invalid size of sensor message structure.\n");
-    return EXIT_FAILURE;
-    }
 
   /* Create unit (m/s^2) */
   igtl_unit_init(&unit_data);
@@ -161,6 +155,7 @@ unsigned int generate_image_body(struct image_message_body * body)
   return value_size;
 }
 
+
 int main( int argc, char * argv [] )
 {
   /* Message structures and byte array */
@@ -175,7 +170,9 @@ int main( int argc, char * argv [] )
   int rb; /* Comparison result for BIND header section*/
   int rc; /* Comparison result for child body section */
 
-  igtl_bind_info_init(&bind_info);
+  int s;
+
+  igtl_bind_init_info(&bind_info);
   
   /* Generate transform message */
   generate_transform_body(&(child_body.transform));
@@ -187,7 +184,7 @@ int main( int argc, char * argv [] )
   generate_sensor_body(&(child_body.sensor));
 
   /* Set up BIND info structure */
-  if (igtl_bind_alloc_info(bind_info, 3) == 0)
+  if (igtl_bind_alloc_info(&bind_info, 3) == 0)
     {
     return EXIT_FAILURE;
     }
@@ -195,28 +192,28 @@ int main( int argc, char * argv [] )
   strncpy(bind_info.child_info_array[0].type, "TRANSFORM", IGTL_HEADER_TYPE_SIZE);
   strncpy(bind_info.child_info_array[0].name, "ChildTrans", IGTL_HEADER_NAME_SIZE);
   bind_info.child_info_array[0].size = sizeof(transform_message_body);
-  bind_info.child_info_array[0].ptr = (void*)&transform_body;
+  bind_info.child_info_array[0].ptr = (void*)&child_body.transform;
 
   strncpy(bind_info.child_info_array[1].type, "IMAGE", IGTL_HEADER_TYPE_SIZE);
   strncpy(bind_info.child_info_array[1].name, "ChildImage", IGTL_HEADER_NAME_SIZE);
   bind_info.child_info_array[1].size = sizeof(image_message_body);
-  bind_info.child_info_array[1].ptr = (void*)&image_body;
+  bind_info.child_info_array[1].ptr = (void*)&child_body.image;
 
   strncpy(bind_info.child_info_array[2].type, "SENSOR", IGTL_HEADER_TYPE_SIZE);
   strncpy(bind_info.child_info_array[2].name, "ChildSensor", IGTL_HEADER_NAME_SIZE);
   bind_info.child_info_array[2].size = sizeof(sensor_message_body);
-  bind_info.child_info_array[2].ptr = (void*)&sensor_body;
+  bind_info.child_info_array[2].ptr = (void*)&child_body.sensor;
 
-  bind_size = igtl_bind_get_size(bind_info);
+  bind_size = igtl_bind_get_size(&bind_info);
   bind_header = malloc(bind_size);
   
   if (bind_header == NULL)
     {
-    igtl_bind_free_info(bind_info);
+    igtl_bind_free_info(&bind_info);
     return EXIT_FAILURE;
     }
 
-  igtl_bind_pack(info, bind_header);
+  igtl_bind_pack(&bind_info, bind_header);
 
   child_body_size = 
     bind_info.child_info_array[0].size +
@@ -225,11 +222,11 @@ int main( int argc, char * argv [] )
 
   /* Set header */
   header.version = 1;
-  strncpy( (char*)&(header.name), "SENSOR", 12 );
+  strncpy( (char*)&(header.name), "BIND", 12 );
   strncpy( (char*)&(header.device_name), "DeviceName", 20 );
   header.timestamp = 1234567890;
   header.body_size = bind_size + sizeof(child_message_body);
-  header.crc = igtl_bind_get_crc(info, bind_header);
+  header.crc = igtl_bind_get_crc(&bind_info, bind_header);
   igtl_header_convert_byte_order( &(header) );
 
 
@@ -244,10 +241,10 @@ int main( int argc, char * argv [] )
 
   /* Compare the serialized byte array with the gold standard */ 
   rh = memcmp((const void*)&header, (const void*)test_bind_message_header, IGTL_HEADER_SIZE);
-  rb = memcmp((const void*)&bind_header, (const void*)test_bind_message_bind_header, bind_size);
+  rb = memcmp((const void*)bind_header, (const void*)test_bind_message_bind_header, bind_size);
   rc = memcmp((const void*)&child_body, (const void*)test_bind_message_bind_body, child_body_size);
 
-  igtl_bind_free_info(bind_info);
+  igtl_bind_free_info(&bind_info);
   free(bind_header);
 
   if (rh == 0 && rb == 0 && rc == 0)
@@ -257,14 +254,14 @@ int main( int argc, char * argv [] )
   else
     {
     /* Print first 256 bytes as HEX values in STDERR for debug */
-    s = IGTL_HEADER_SIZE+IGTL_SENSOR_HEADER_SIZE+value_size;
+    s = IGTL_HEADER_SIZE+bind_size+child_body_size;
     if (s > 256)
       {
       s = 256;
       }
 
     fprintf(stdout, "\n===== First %d bytes of the test message =====\n", s);
-    igtl_message_dump_hex(stdout, (const void*)&message, s);
+    igtl_message_dump_hex(stdout, (const void*)&header, s);
 
     return EXIT_FAILURE;
     }

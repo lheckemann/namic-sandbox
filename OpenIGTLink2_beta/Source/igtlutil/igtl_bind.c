@@ -192,6 +192,7 @@ int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array)
   void * ptr;
   igtl_uint32 i;
   igtl_uint32 nc;
+  igtl_uint16 * nts;
   size_t wb;
   size_t len;
 
@@ -234,6 +235,9 @@ int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array)
     }
   
   /* Name table section */
+  nts = ptr; /* save address for name table size field */
+  ptr += sizeof(igtl_uint16);
+  
   wb = 0;
   for (i = 0; i < nc; i ++)
     {
@@ -253,6 +257,14 @@ int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array)
     {
     *((igtl_uint8*)ptr) = 0;
     ptr ++;
+    wb ++;
+    }
+
+  /* Substitute name table size */
+  *nts = (igtl_uint16) wb;
+  if (igtl_is_little_endian())
+    {
+    *nts = BYTE_SWAP_INT16(*nts);
     }
 
   return 1;
@@ -274,6 +286,9 @@ igtl_uint32 igtl_export igtl_bind_get_size(igtl_bind_info * info)
 
   /* Add size of BIND header section */
   size += (IGTL_HEADER_TYPE_SIZE+sizeof(igtl_uint64)) * nc;
+
+  /* Add size of table size field*/
+  size += sizeof(igtl_uint16);
 
   /* Calculate size of name table */
   ntable_size = 0;
