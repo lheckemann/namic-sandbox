@@ -25,6 +25,10 @@ namespace igtl
 typedef float  Matrix4x4[4][4];
 
 void IGTLCommon_EXPORT PrintMatrix(igtl::Matrix4x4 &matrix);
+void IGTLCommon_EXPORT PrintVector3(float v[3]);
+void IGTLCommon_EXPORT PrintVector3(float x, float y, float z);
+void IGTLCommon_EXPORT PrintVector4(float v[4]);
+void IGTLCommon_EXPORT PrintVector4(float x, float y, float z, float w);
 void IGTLCommon_EXPORT QuaternionToMatrix(float* q, Matrix4x4& m);
 void IGTLCommon_EXPORT MatrixToQuaternion(Matrix4x4& m, float* q);
 void IGTLCommon_EXPORT Cross(float *a, float *b, float *c);
