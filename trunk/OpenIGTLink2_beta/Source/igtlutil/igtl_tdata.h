@@ -70,7 +70,7 @@ typedef struct {
  *
  * igtl_tdata_get_data_size(n) calculates the size of body based on the number
  * of tdatas. The size of body is used in the message header.
- * igtl_tdata_get_data_n(size) calculates the number of images in the body, based on
+ * igtl_tdata_get_data_n(size) calculates the number of tdatas in the body, based on
  * the body size. This function may be used when a client program parses a TDATA message.
  *
  */
@@ -79,10 +79,10 @@ typedef struct {
 #define igtl_tdata_get_data_n(size)  ((size) / IGTL_TDATA_ELEMENT_SIZE)
 
 /*
- * Byte order conversion for an array of TDATA and STT_TDATA data structure
+ * Byte order conversion for an array of TDATA, STT_TDATA and RTS_TDATA data structure
  *
  * This function converts endianness of each element in an array of
- * igtl_igtl_tdata_element from host byte order to network byte order,
+ * igtl_tdata_element from host byte order to network byte order,
  * or vice versa.
  */
 
@@ -94,7 +94,7 @@ void igtl_export igtl_rts_tdata_convert_byte_order(igtl_rts_tdata* rts_tdata);
 /*
  * CRC calculation
  *
- * This function calculates CRC of TDATA and STT_TDATA message
+ * These functions calculate CRC of TDATA, STT_TDATA and RTS_TDATA messages
  *
  */
 

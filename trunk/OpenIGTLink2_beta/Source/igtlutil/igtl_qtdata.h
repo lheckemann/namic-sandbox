@@ -80,7 +80,7 @@ typedef struct {
 #define igtl_qtdata_get_data_n(size)  ((size) / IGTL_QTDATA_ELEMENT_SIZE)
 
 /*
- * Byte order conversion for an array of QTDATA and STT_QTDATA data structure
+ * Byte order conversion for an array of QTDATA, STT_QTDATA and RTS_QTDATA data structure
  *
  * This function converts endianness of each element in an array of
  * igtl_qtdata_element from host byte order to network byte order,
@@ -95,7 +95,7 @@ void igtl_export igtl_rts_qtdata_convert_byte_order(igtl_rts_qtdata* rts_qtdata)
 /*
  * CRC calculation
  *
- * This function calculates CRC of QTDATA and STT_QTDATA message
+ * These functions calculate CRC of QTDATA, STT_QTDATA and RTS_QTDATA messages
  *
  */
 
