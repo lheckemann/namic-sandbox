@@ -255,13 +255,6 @@ int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array)
     ptr ++;
     }
 
-  /* Copy child message body */
-  for (i = 0; i < nc; i ++)
-    {
-    memcpy(ptr, info->child_info_array[i].ptr, info->child_info_array[i].size);
-    ptr += info->child_info_array[i].size;
-    }
-
   return 1;
 
 }
@@ -295,12 +288,6 @@ igtl_uint32 igtl_export igtl_bind_get_size(igtl_bind_info * info)
     }
   size += ntable_size;
 
-  /* Body size */
-  for (i = 0; i < nc; i ++)
-    {
-    size += info->child_info_array[i].size;
-    }
-
   return size;
 
 }
@@ -310,11 +297,19 @@ igtl_uint64 igtl_export igtl_bind_get_crc(igtl_bind_info * info, void* bind_mess
 {
   igtl_uint64   crc;
   igtl_uint64   bind_length;
+  igtl_uint16   i;
+  igtl_uint16   nc;
 
   bind_length = (igtl_uint32)igtl_bind_get_size(info);
   
   crc = crc64(0, 0, 0);
   crc = crc64((unsigned char*) bind_message, (int)bind_length, crc);
+  
+  nc = info->ncmessages;
+  for (i = 0; i < nc; i ++)
+    {
+    crc = crc64((unsigned char*) info->child_info_array[i].ptr, (int)info->child_info_array[i].size, crc);
+    }
 
   return crc;
 }

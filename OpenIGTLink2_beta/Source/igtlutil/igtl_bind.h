@@ -94,8 +94,9 @@ int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array);
 /*
  * Bind data size
  *
- * igtl_bind_get_size() calculates the size of the bind message
- * (including the bind header) based on a igtl_bind_header.
+ * igtl_bind_get_size() calculates the size of bind header, consisting of
+ * BIND hearder section (including number of child messages) and
+ * name table section based on a igtl_bind_header.
  */
 
 igtl_uint32 igtl_export igtl_bind_get_size(igtl_bind_info * info);
