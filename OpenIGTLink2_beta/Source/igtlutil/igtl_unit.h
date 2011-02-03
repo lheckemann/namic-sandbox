@@ -40,6 +40,7 @@
 #define IGTL_UNIT_PREFIX_FEMTO  0xF /* femto (1e-15) */
 
 /* SI Base Units */
+#define IGTL_UNIT_SI_BASE_NONE    0x00
 #define IGTL_UNIT_SI_BASE_METER   0x01 /* meter */
 #define IGTL_UNIT_SI_BASE_GRAM    0x02 /* gram */
 #define IGTL_UNIT_SI_BASE_SECOND  0x03 /* second */

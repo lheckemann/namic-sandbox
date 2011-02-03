@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Open IGT Link Library
-  Module:    $HeadURL: http://svn.na-mic.org/NAMICSandBox/trunk/OpenIGTLink2_beta/Source/igtlSensorDataMessage.h $
+  Module:    $HeadURL: http://svn.na-mic.org/NAMICSandBox/trunk/OpenIGTLink2_beta/Source/igtlStringMessage.h $
   Language:  C++
   Date:      $Date: 2009-12-16 23:58:02 -0500 (Wed, 16 Dec 2009) $
   Version:   $Revision: 5466 $
@@ -14,8 +14,8 @@
 
 =========================================================================*/
 
-#ifndef __igtlSensorDataMessage_h
-#define __igtlSensorDataMessage_h
+#ifndef __igtlStringMessage_h
+#define __igtlStringMessage_h
 
 #include <string>
 
@@ -29,29 +29,29 @@
 namespace igtl
 {
 
-class IGTLCommon_EXPORT SensorDataMessage: public MessageBase
+class IGTLCommon_EXPORT StringMessage: public MessageBase
 {
 public:
-  typedef SensorDataMessage                  Self;
+  typedef StringMessage                  Self;
   typedef MessageBase                    Superclass;
   typedef SmartPointer<Self>             Pointer;
   typedef SmartPointer<const Self>       ConstPointer;
 
-  igtlTypeMacro(igtl::SensorDataMessage, igtl::MessageBase);
-  igtlNewMacro(igtl::SensorDataMessage);
+  igtlTypeMacro(igtl::StringMessage, igtl::MessageBase);
+  igtlNewMacro(igtl::StringMessage);
 
 public:
 
-  int        SetSensorData(const char* string);
-  int        SetSensorData(std::string & string);
+  int        SetString(const char* string);
+  int        SetString(std::string & string);
   int        SetEncoding(igtlUint16 enc);
 
-  const char* GetSensorData();
+  const char* GetString();
   igtlUint16  GetEncoding();
 
 protected:
-  SensorDataMessage();
-  ~SensorDataMessage();
+  StringMessage();
+  ~StringMessage();
   
 protected:
 
@@ -62,7 +62,7 @@ protected:
   igtlUint16   m_Encoding;
   
   //BTX
-  std::string  m_SensorData;
+  std::string  m_String;
   //ETX
 
 };
@@ -70,6 +70,7 @@ protected:
 
 } // namespace igtl
 
-#endif // _igtlSensorDataMessage_h
+#endif // _igtlStringMessage_h
+
 
 
