@@ -87,12 +87,12 @@ igtl_uint64 igtl_export igtl_stt_tdata_get_crc(igtl_stt_tdata* stt_tdata)
 }
 
 
-igtl_uint64 igtl_export igtl_rts_tdata_get_crc(igtl_stt_tdata* stt_tdata)
+igtl_uint64 igtl_export igtl_rts_tdata_get_crc(igtl_rts_tdata* rts_tdata)
 {
   igtl_uint64  crc;
 
   crc = crc64(0, 0, 0);
-  crc = crc64((unsigned char*) stt_tdata, IGTL_RTS_TDATA_SIZE, crc);
+  crc = crc64((unsigned char*) rts_tdata, IGTL_RTS_TDATA_SIZE, crc);
   return crc;
 }
 

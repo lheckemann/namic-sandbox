@@ -100,7 +100,7 @@ void igtl_export igtl_rts_tdata_convert_byte_order(igtl_rts_tdata* rts_tdata);
 
 igtl_uint64 igtl_export igtl_tdata_get_crc(igtl_tdata_element* tdatalist, int nelem);
 igtl_uint64 igtl_export igtl_stt_tdata_get_crc(igtl_stt_tdata* stt_tdata);
-igtl_uint64 igtl_export igtl_rts_tdata_get_crc(igtl_stt_tdata* stt_tdata);
+igtl_uint64 igtl_export igtl_rts_tdata_get_crc(igtl_rts_tdata* rts_tdata);
 
 #ifdef __cplusplus
 }
