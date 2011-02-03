@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Program:   Open IGT Link Library
+  Program:   OpenIGTLink Library
   Module:    $HeadURL: http://svn.na-mic.org/NAMICSandBox/trunk/OpenIGTLink2_beta/Source/igtlMath.h $
   Language:  C++
   Date:      $Date: 2008-12-22 19:05:42 -0500 (Mon, 22 Dec 2008) $
@@ -23,10 +23,6 @@
 #include "igtlObject.h"
 #include "igtlObjectFactory.h"
 #include "igtlTypes.h"
-
-#if defined(WIN32) || defined(_WIN32)
-#include <ctime>
-#endif
 
 namespace igtl
 {

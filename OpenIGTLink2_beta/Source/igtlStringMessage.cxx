@@ -116,7 +116,7 @@ int StringMessage::UnpackBody()
   char * string;
 
   string_header = (igtl_string_header*) this->m_Body;
-  string        = (char*) this->m_Body + sizeof(igtlUint16)*2;
+  string        = (char*) (this->m_Body + sizeof(igtlUint16)*2);
 
   // Convert byte order from network to host
   igtl_string_convert_byte_order(string_header);

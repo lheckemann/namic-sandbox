@@ -117,6 +117,7 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtlTrajectoryMessage.cxx
     igtlStringMessage.cxx
     igtlUnit.cxx
+    igtlSensorMessage.cxx
     )
   SET(OpenIGTLink_INCLUDE_FILES
     ${OpenIGTLink_INCLUDE_FILES}
@@ -141,6 +142,7 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtlTrajectoryMessage.h
     igtlStringMessage.h
     igtlUnit.h
+    igtlSensorMessage.h
     )
 endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
 
