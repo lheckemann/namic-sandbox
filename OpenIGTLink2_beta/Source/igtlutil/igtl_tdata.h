@@ -106,6 +106,6 @@ igtl_uint64 igtl_export igtl_rts_tdata_get_crc(igtl_rts_tdata* rts_tdata);
 }
 #endif
 
-#endif /* __IGTL_POSITION_H */
+#endif /* __IGTL_TDATA_H */
 
 
