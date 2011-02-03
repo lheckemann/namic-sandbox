@@ -108,7 +108,6 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtlutil/igtl_string.c
     igtlutil/igtl_ndarray.c
     igtlColorTableMessage.cxx
-    igtlLabelMetaMessage.cxx
     igtlImageMetaMessage.cxx
     igtlLabelMetaMessage.cxx
     igtlPointMessage.cxx
@@ -129,7 +128,6 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtlutil/igtl_string.h
     igtlutil/igtl_ndarray.h
     igtlColorTableMessage.h
-    igtlLabelMetaMessage.h
     igtlImageMetaMessage.h
     igtlLabelMetaMessage.h
     igtlPointMessage.h
