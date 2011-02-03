@@ -85,6 +85,7 @@ int igtl_export igtl_unit_unpack(igtl_unit pack, igtl_unit_data* data)
       data->exp[i] |= 0xF0;
       }
     }
+  return 1;
 }
 
 

@@ -115,6 +115,8 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtlTrackingDataMessage.cxx
     igtlQuaternionTrackingDataMessage.cxx
     igtlTrajectoryMessage.cxx
+    igtlStringMessage.cxx
+    igtlUnit.cxx
     )
   SET(OpenIGTLink_INCLUDE_FILES
     ${OpenIGTLink_INCLUDE_FILES}
@@ -137,6 +139,8 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtlTrackingDataMessage.h
     igtlQuaternionTrackingDataMessage.h
     igtlTrajectoryMessage.h
+    igtlStringMessage.h
+    igtlUnit.h
     )
 endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
 
