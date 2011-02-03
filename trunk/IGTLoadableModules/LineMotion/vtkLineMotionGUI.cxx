@@ -49,6 +49,7 @@
 #include "vtkMath.h"
 #include "vtkKWEntryWithLabel.h"
 #include "vtkSphereSource.h"
+#include "vtkPlaneSource.h"
 
 #include "vtkCornerAnnotation.h"
 
@@ -88,6 +89,9 @@ vtkLineMotionGUI::vtkLineMotionGUI ( )
 
   this->sphereCenterPlane = NULL;
 
+  this->AxisPlane = NULL;
+  this->PlaneRotation = NULL;
+
   this->lineCenter[0] = 0;
   this->lineCenter[1] = 0;
   this->lineCenter[2] = 0;  
@@ -125,6 +129,10 @@ vtkLineMotionGUI::vtkLineMotionGUI ( )
   this->dpoint2[0] = 0;
   this->dpoint2[1] = 0;
   this->dpoint2[2] = 0;
+
+  this->normalVector[0] = 0;
+  this->normalVector[1] = 0;
+  this->normalVector[2] = 0;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -201,6 +209,16 @@ vtkLineMotionGUI::~vtkLineMotionGUI ( )
   if (this->sphereCenterPlane)
     {
     this->sphereCenterPlane->Delete();
+    }
+
+  if (this->AxisPlane)
+    {
+    this->AxisPlane->Delete();
+    }
+
+  if (this->PlaneRotation)
+    {
+    this->PlaneRotation->Delete();
     }
 
   if (this->transformNode)
@@ -295,6 +313,11 @@ void vtkLineMotionGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->PlaneRotation)
+    {
+    this->PlaneRotation
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
 
   this->RemoveLogicObservers();
 
@@ -337,6 +360,9 @@ this->lineRange
 
 this->UpdateWholeRangeButton
   ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+this->PlaneRotation
+  ->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->AddLogicObservers();
 
@@ -453,6 +479,7 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
       // Enable Controllers 
       this->lineRange->SetEnabled(1);
       this->translation->SetEnabled(1);
+      this->PlaneRotation->SetEnabled(1);
       
       // Calculate line center
       this->lineCenter[0] = (dpoint1[0] + dpoint2[0])/2;
@@ -516,6 +543,41 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
       mapperSphere->Delete();
       sphereactor->Delete();
 
+      // Add Plane in the center
+      // -- Calculate normal vector
+      vtkMath* findNormalVector = vtkMath::New();
+      findNormalVector->Perpendiculars(this->P1Vector, this->normalVector, NULL, 0);
+
+      findNormalVector->Delete();
+      
+      // -- Build vtkPlaneSource
+      if(!this->AxisPlane)
+        {
+        this->AxisPlane = vtkPlaneSource::New();
+        }
+ 
+      // FIXME: Orientation of the plane (How to place point 1 and point 2 to have a plane in direction of the vector ?)
+      if(this->AxisPlane && this->lineCenter)
+     {        
+        this->AxisPlane->SetPoint1(this->lineCenter[0]-50,this->lineCenter[1]-50,this->lineCenter[2]-50);
+        this->AxisPlane->SetPoint2(this->lineCenter[0]+50,this->lineCenter[1]+50,this->lineCenter[2]+50);
+        this->AxisPlane->SetCenter(this->lineCenter[0],this->lineCenter[1],this->lineCenter[2]);
+        this->AxisPlane->SetNormal(this->normalVector);
+        this->AxisPlane->Update();
+     }
+     
+      vtkPolyDataMapper* mapperPlane = vtkPolyDataMapper::New();
+      mapperPlane->SetInput(this->AxisPlane->GetOutput());
+     
+      vtkActor* planeactor = vtkActor::New();
+      planeactor->SetMapper(mapperPlane);
+     
+      this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(planeactor);
+      this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+      
+      mapperPlane->Delete();
+      planeactor->Delete();   
+  
       // Reset Scale
       if(this->translation)
        {
@@ -655,11 +717,35 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
        this->sphereCenterPlane->SetCenter(sphereCenter[0],sphereCenter[1],sphereCenter[2]);
           this->sphereCenterPlane->Update();
 
+          // Update Plane
+          this->AxisPlane->SetCenter(sphereCenter[0],sphereCenter[1],sphereCenter[2]);
+          this->AxisPlane->Update();
+
           this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
      }
 
     }
 
+
+
+  if(this->PlaneRotation == vtkKWScale::SafeDownCast(caller)
+     && event == vtkKWScale::ScaleValueChangingEvent)
+    {
+      if(this->AxisPlane && this->P1Vector)
+     {
+       vtkMath* NormalVectorMath = vtkMath::New();
+          double normalVector[3] = {0,0,0};
+   
+          NormalVectorMath->Perpendiculars(this->P1Vector, normalVector, NULL, NormalVectorMath->RadiansFromDegrees(this->PlaneRotation->GetValue()));
+          this->AxisPlane->SetNormal(normalVector);
+          this->AxisPlane->Update();
+
+          this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
+          NormalVectorMath->Delete();
+     }
+
+    }
 
 } 
 
@@ -827,11 +913,18 @@ void vtkLineMotionGUI::BuildGUIForLineMotion()
   this->translation->SetLabelText("Translation");
   this->translation->SetRange(-100,100);
 
-  this->Script("pack %s %s %s %s -side top -fill x -padx 2 -pady 2",
+  this->PlaneRotation = vtkKWScale::New();
+  this->PlaneRotation->SetParent(frame2->GetFrame());
+  this->PlaneRotation->Create();
+  this->PlaneRotation->SetEnabled(0);
+  this->PlaneRotation->SetRange(0,180);
+
+  this->Script("pack %s %s %s %s %s -side top -fill x -padx 2 -pady 2",
                this->WholeRangeWidget->GetWidgetName(),
                this->UpdateWholeRangeButton->GetWidgetName(), 
                this->lineRange->GetWidgetName(),
-               this->translation->GetWidgetName());
+               this->translation->GetWidgetName(),
+               this->PlaneRotation->GetWidgetName());
 
 
   conBrowsFrame->Delete();
