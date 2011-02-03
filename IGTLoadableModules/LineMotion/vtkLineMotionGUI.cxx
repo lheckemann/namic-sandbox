@@ -594,82 +594,90 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
   if(this->lineRange == vtkKWRange::SafeDownCast(caller)
       && event == vtkKWRange::RangeValueChangingEvent)
     {
-      // Set Tips of the line
-      if(this->dpoint1[0] > this->dpoint2[0])
+      // FIXME: Find a better way to round PVectorLength to second decimal
+      if((std::abs(this->lineRange->GetEntry1()->GetValueAsDouble())) >= std::floor(this->PVectorLength*100)/100 && (std::abs(this->lineRange->GetEntry2()->GetValueAsDouble())) >= std::floor(this->PVectorLength*100)/100)
      {
-          // Tip 1
-          double Slider1 = this->lineRange->GetEntry1()->GetValueAsDouble();
-       if(std::abs(Slider1) > this->PVectorLength)
-         {
-           this->lineTip1[0] = this->lineCenter[0] + Slider1*this->P1VectorNormalized[0];
-              this->lineTip1[1] = this->lineCenter[1] + Slider1*this->P1VectorNormalized[1];
-              this->lineTip1[2] = this->lineCenter[2] + Slider1*this->P1VectorNormalized[2];
-         } 
-       else
-         {
-              this->lineTip1[0] = this->dpoint1[0];
-              this->lineTip1[1] = this->dpoint1[1];
-              this->lineTip1[2] = this->dpoint1[2];
-         }
-
-       // Tip 2
-       double Slider2 = this->lineRange->GetEntry2()->GetValueAsDouble();
-       if(std::abs(Slider2) > this->PVectorLength)
-         {
-           this->lineTip2[0] = this->lineCenter[0] + Slider2*this->P2VectorNormalized[0];
-              this->lineTip2[1] = this->lineCenter[1] + Slider2*this->P2VectorNormalized[1];
-              this->lineTip2[2] = this->lineCenter[2] + Slider2*this->P2VectorNormalized[2];
-         }
-       else
-         {
-           this->lineTip2[0] = this->dpoint2[0];
-              this->lineTip2[1] = this->dpoint2[1];
-              this->lineTip2[2] = this->dpoint2[2];
-         }
-
+        // Set Tips of the line
+        if(this->dpoint1[0] > this->dpoint2[0])
+            {
+            // Tip 1
+            double Slider1 = this->lineRange->GetEntry1()->GetValueAsDouble();
+              if(std::abs(Slider1) > this->PVectorLength)
+                {
+                  this->lineTip1[0] = this->lineCenter[0] + Slider1*this->P1VectorNormalized[0];
+                this->lineTip1[1] = this->lineCenter[1] + Slider1*this->P1VectorNormalized[1];
+                this->lineTip1[2] = this->lineCenter[2] + Slider1*this->P1VectorNormalized[2];
+                } 
+              else
+                {
+                this->lineTip1[0] = this->dpoint1[0];
+                this->lineTip1[1] = this->dpoint1[1];
+                this->lineTip1[2] = this->dpoint1[2];
+                }
+       
+              // Tip 2
+              double Slider2 = this->lineRange->GetEntry2()->GetValueAsDouble();
+              if(std::abs(Slider2) > this->PVectorLength)
+                {
+                  this->lineTip2[0] = this->lineCenter[0] + Slider2*this->P2VectorNormalized[0];
+                this->lineTip2[1] = this->lineCenter[1] + Slider2*this->P2VectorNormalized[1];
+                this->lineTip2[2] = this->lineCenter[2] + Slider2*this->P2VectorNormalized[2];
+                }
+              else
+                {
+                  this->lineTip2[0] = this->dpoint2[0];
+                this->lineTip2[1] = this->dpoint2[1];
+                this->lineTip2[2] = this->dpoint2[2];
+                }
+       
+            }
+        else
+            {
+            // Tip 1
+            double Slider1 = this->lineRange->GetEntry1()->GetValueAsDouble();
+              if(std::abs(Slider1) > this->PVectorLength)
+                {
+                  this->lineTip1[0] = this->lineCenter[0] - Slider1*this->P2VectorNormalized[0];
+                this->lineTip1[1] = this->lineCenter[1] - Slider1*this->P2VectorNormalized[1];
+                this->lineTip1[2] = this->lineCenter[2] - Slider1*this->P2VectorNormalized[2];
+                } 
+              else
+                {
+                this->lineTip1[0] = this->dpoint2[0];
+                this->lineTip1[1] = this->dpoint2[1];
+                this->lineTip1[2] = this->dpoint2[2];
+                }
+       
+              // Tip 2
+              double Slider2 = this->lineRange->GetEntry2()->GetValueAsDouble();
+              if(std::abs(Slider2) > this->PVectorLength)
+                {
+                  this->lineTip2[0] = this->lineCenter[0] + Slider2*this->P1VectorNormalized[0];
+                this->lineTip2[1] = this->lineCenter[1] + Slider2*this->P1VectorNormalized[1];
+                this->lineTip2[2] = this->lineCenter[2] + Slider2*this->P1VectorNormalized[2];
+                }
+              else
+                {
+                  this->lineTip2[0] = this->dpoint1[0];
+                this->lineTip2[1] = this->dpoint1[1];
+                this->lineTip2[2] = this->dpoint1[2];
+                }
+       
+            }
+       
+        this->lineBetweenFiducials->SetPoint1(lineTip1);
+        this->lineBetweenFiducials->SetPoint2(lineTip2);
+        this->lineBetweenFiducials->Update();
+       
+        // Update Scale
+        this->translation->SetRange(this->lineRange->GetEntry1()->GetValueAsDouble(),this->lineRange->GetEntry2()->GetValueAsDouble());
+       
+        this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
      }
       else
      {
-          // Tip 1
-          double Slider1 = this->lineRange->GetEntry1()->GetValueAsDouble();
-       if(std::abs(Slider1) > this->PVectorLength)
-         {
-           this->lineTip1[0] = this->lineCenter[0] - Slider1*this->P2VectorNormalized[0];
-              this->lineTip1[1] = this->lineCenter[1] - Slider1*this->P2VectorNormalized[1];
-              this->lineTip1[2] = this->lineCenter[2] - Slider1*this->P2VectorNormalized[2];
-         } 
-       else
-         {
-              this->lineTip1[0] = this->dpoint2[0];
-              this->lineTip1[1] = this->dpoint2[1];
-              this->lineTip1[2] = this->dpoint2[2];
-         }
-
-       // Tip 2
-       double Slider2 = this->lineRange->GetEntry2()->GetValueAsDouble();
-       if(std::abs(Slider2) > this->PVectorLength)
-         {
-           this->lineTip2[0] = this->lineCenter[0] + Slider2*this->P1VectorNormalized[0];
-              this->lineTip2[1] = this->lineCenter[1] + Slider2*this->P1VectorNormalized[1];
-              this->lineTip2[2] = this->lineCenter[2] + Slider2*this->P1VectorNormalized[2];
-         }
-       else
-         {
-           this->lineTip2[0] = this->dpoint1[0];
-              this->lineTip2[1] = this->dpoint1[1];
-              this->lineTip2[2] = this->dpoint1[2];
-         }
-
+        this->lineRange->SetRange(-this->PVectorLength, this->PVectorLength);
      }
-
-      this->lineBetweenFiducials->SetPoint1(lineTip1);
-      this->lineBetweenFiducials->SetPoint2(lineTip2);
-      this->lineBetweenFiducials->Update();
-
-      // Update Scale
-      this->translation->SetRange(this->lineRange->GetEntry1()->GetValueAsDouble(),this->lineRange->GetEntry2()->GetValueAsDouble());
-
-      this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
     }
 
   // Update Range Button Pressed
