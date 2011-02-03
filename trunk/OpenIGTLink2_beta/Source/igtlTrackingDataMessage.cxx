@@ -158,6 +158,7 @@ void TrackingDataElement::GetMatrix(Matrix4x4& mat)
 
 //----------------------------------------------------------------------
 // igtl::StartTrackingDataMessage class
+
 StartTrackingDataMessage::StartTrackingDataMessage():
   MessageBase()
 {
@@ -226,6 +227,9 @@ int StartTrackingDataMessage::UnpackBody()
 
 }
 
+
+//----------------------------------------------------------------------
+// igtl::RTSTrackingDataMessage class
 
 int  RTSTrackingDataMessage::GetBodyPackSize()
 { 

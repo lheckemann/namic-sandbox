@@ -154,6 +154,7 @@ void QuaternionTrackingDataElement::GetQuaternion(float* qx, float* qy, float* q
 
 //----------------------------------------------------------------------
 // igtl::StartQuaternionTrackingDataMessage class
+
 StartQuaternionTrackingDataMessage::StartQuaternionTrackingDataMessage():
   MessageBase()
 {
@@ -222,6 +223,9 @@ int StartQuaternionTrackingDataMessage::UnpackBody()
 
 }
 
+
+//----------------------------------------------------------------------
+// igtl::RTSQuaternionTrackingDataMessage class
 
 int  RTSQuaternionTrackingDataMessage::GetBodyPackSize()
 { 
