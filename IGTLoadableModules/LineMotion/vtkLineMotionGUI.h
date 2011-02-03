@@ -35,6 +35,7 @@ class vtkLineSource;
 class vtkKWRange;
 class vtkKWEntryWithLabel;
 class vtkSphereSource;
+class vtkPlaneSource;
 
 class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
 {
@@ -128,6 +129,7 @@ class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
   vtkKWPushButton* drawline;
 
   vtkKWScale* translation;
+  vtkKWScale* PlaneRotation;
 
   vtkTransform* transformation;
   vtkMRMLLinearTransformNode* transformNode;
@@ -138,6 +140,8 @@ class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
   vtkKWPushButton* UpdateWholeRangeButton;
 
   vtkSphereSource* sphereCenterPlane;
+  vtkPlaneSource* AxisPlane;
+
 
   // Fiducial Positions
   double dpoint1[3];
@@ -160,6 +164,9 @@ class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
   // New point of the line after sliding
   double lineTip1[3];
   double lineTip2[3];
+
+  // Normal vector to the line
+  double normalVector[3];
 
   //----------------------------------------------------------------
   // Logic Values
