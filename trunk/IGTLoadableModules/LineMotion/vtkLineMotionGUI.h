@@ -29,13 +29,14 @@ class vtkKWPushButton;
 class vtkSlicerNodeSelectorWidget;
 class vtkMRMLFiducialListNode;
 class vtkKWScale;
-class vtkTransform;
 class vtkMRMLLinearTransformNode;
 class vtkLineSource;
 class vtkKWRange;
 class vtkKWEntryWithLabel;
-class vtkSphereSource;
 class vtkPlaneSource;
+class vtkKWCheckButtonWithLabel;
+class vtkActor;
+class vtkMatrix4x4;
 
 class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
 {
@@ -131,7 +132,6 @@ class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
   vtkKWScale* translation;
   vtkKWScale* PlaneRotation;
 
-  vtkTransform* transformation;
   vtkMRMLLinearTransformNode* transformNode;
   vtkLineSource* lineBetweenFiducials;
   vtkKWRange* lineRange;
@@ -139,10 +139,12 @@ class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
   vtkKWEntryWithLabel* WholeRangeWidget;
   vtkKWPushButton* UpdateWholeRangeButton;
 
-  vtkSphereSource* sphereCenterPlane;
   vtkPlaneSource* AxisPlane;
+  vtkActor* planeActor;
 
+  vtkKWCheckButtonWithLabel* togglePlaneVisibility;
 
+  vtkMatrix4x4* transformMatrix;
   // Fiducial Positions
   double dpoint1[3];
   double dpoint2[3];

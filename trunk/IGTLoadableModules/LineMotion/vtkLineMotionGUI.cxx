@@ -48,8 +48,8 @@
 #include "vtkKWRange.h"
 #include "vtkMath.h"
 #include "vtkKWEntryWithLabel.h"
-#include "vtkSphereSource.h"
 #include "vtkPlaneSource.h"
+#include "vtkKWCheckButtonWithLabel.h"
 
 #include "vtkCornerAnnotation.h"
 
@@ -79,18 +79,19 @@ vtkLineMotionGUI::vtkLineMotionGUI ( )
   this->drawline = NULL;
 
   this->translation = NULL;
-  this->transformation = NULL;
   this->transformNode = NULL;
+  this->transformMatrix = NULL;
   this->lineBetweenFiducials = NULL;
   this->lineRange = NULL;
 
   this->WholeRangeWidget = NULL;
   this->UpdateWholeRangeButton = NULL;
 
-  this->sphereCenterPlane = NULL;
-
   this->AxisPlane = NULL;
   this->PlaneRotation = NULL;
+
+  this->togglePlaneVisibility = NULL;
+  this->planeActor = NULL;
 
   this->lineCenter[0] = 0;
   this->lineCenter[1] = 0;
@@ -178,11 +179,6 @@ vtkLineMotionGUI::~vtkLineMotionGUI ( )
     this->translation->Delete();
     }
 
-  if (this->transformation)
-    {
-    this->transformation->Delete();
-    }
-
   if (this->lineBetweenFiducials)
     {
     this->lineBetweenFiducials->Delete();
@@ -206,9 +202,10 @@ vtkLineMotionGUI::~vtkLineMotionGUI ( )
     this->UpdateWholeRangeButton->Delete();
     }
 
-  if (this->sphereCenterPlane)
+  if (this->togglePlaneVisibility)
     {
-    this->sphereCenterPlane->Delete();
+    this->togglePlaneVisibility->SetParent(NULL);
+    this->togglePlaneVisibility->Delete();
     }
 
   if (this->AxisPlane)
@@ -225,6 +222,17 @@ vtkLineMotionGUI::~vtkLineMotionGUI ( )
     {
     this->transformNode->Delete();
     }
+
+ if (this->planeActor)
+    {
+    this->planeActor->Delete();
+    }
+
+ if (this->transformMatrix)
+    {
+    this->transformMatrix->Delete();
+    }
+
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -319,6 +327,12 @@ void vtkLineMotionGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->togglePlaneVisibility)
+    {
+    this->togglePlaneVisibility
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   this->RemoveLogicObservers();
 
 }
@@ -363,6 +377,9 @@ this->UpdateWholeRangeButton
 
 this->PlaneRotation
   ->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
+
+this->togglePlaneVisibility->GetWidget()
+  ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->AddLogicObservers();
 
@@ -466,20 +483,12 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
       
       mapper->Delete();
       lineactor->Delete();
-      
-      // Create a transform node if not already existing
-      if(!this->transformation && !this->transformNode)
-        {
-        this->transformation = vtkTransform::New();
-        this->transformNode = vtkMRMLLinearTransformNode::New();
-        this->transformNode->SetScene(this->GetMRMLScene());
-        this->GetMRMLScene()->AddNode(this->transformNode);
-        }
-     
+           
       // Enable Controllers 
       this->lineRange->SetEnabled(1);
       this->translation->SetEnabled(1);
       this->PlaneRotation->SetEnabled(1);
+      this->togglePlaneVisibility->SetEnabled(1);
       
       // Calculate line center
       this->lineCenter[0] = (dpoint1[0] + dpoint2[0])/2;
@@ -518,39 +527,7 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
       this->lineRange->SetRange(-this->PVectorLength, this->PVectorLength);
       this->Modified();
 
-      // Add Sphere in the center
-      if(!this->sphereCenterPlane)
-        {
-        this->sphereCenterPlane = vtkSphereSource::New();
-        }
- 
-      if(this->sphereCenterPlane && this->lineCenter)
-     {        
-        this->sphereCenterPlane->SetRadius(5);
-        this->sphereCenterPlane->SetCenter(this->lineCenter[0],this->lineCenter[1],this->lineCenter[2]);
-        this->sphereCenterPlane->Update();
-     }
-     
-      vtkPolyDataMapper* mapperSphere = vtkPolyDataMapper::New();
-      mapperSphere->SetInput(this->sphereCenterPlane->GetOutput());
-     
-      vtkActor* sphereactor = vtkActor::New();
-      sphereactor->SetMapper(mapperSphere);
-     
-      this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(sphereactor);
-      this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
-      
-      mapperSphere->Delete();
-      sphereactor->Delete();
-
       // Add Plane in the center
-      // -- Calculate normal vector
-      vtkMath* findNormalVector = vtkMath::New();
-      findNormalVector->Perpendiculars(this->P1Vector, this->normalVector, NULL, 0);
-
-      findNormalVector->Delete();
-      
-      // -- Build vtkPlaneSource
       if(!this->AxisPlane)
         {
         this->AxisPlane = vtkPlaneSource::New();
@@ -559,30 +536,47 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
       // FIXME: Orientation of the plane (How to place point 1 and point 2 to have a plane in direction of the vector ?)
       if(this->AxisPlane && this->lineCenter)
      {        
-        this->AxisPlane->SetPoint1(this->lineCenter[0]-50,this->lineCenter[1]-50,this->lineCenter[2]-50);
-        this->AxisPlane->SetPoint2(this->lineCenter[0]+50,this->lineCenter[1]+50,this->lineCenter[2]+50);
+        this->AxisPlane->SetPoint1(this->lineCenter[0]+50*this->P1VectorNormalized[0],this->lineCenter[1]+50*this->P1VectorNormalized[1],this->lineCenter[2]+50*this->P1VectorNormalized[2]);
+        this->AxisPlane->SetPoint2(this->lineCenter[0]-50*this->P1VectorNormalized[0],this->lineCenter[1]-50*this->P1VectorNormalized[1],this->lineCenter[2]-50*this->P1VectorNormalized[2]);
         this->AxisPlane->SetCenter(this->lineCenter[0],this->lineCenter[1],this->lineCenter[2]);
-        this->AxisPlane->SetNormal(this->normalVector);
+        this->AxisPlane->SetNormal(this->P1Vector);
         this->AxisPlane->Update();
      }
      
       vtkPolyDataMapper* mapperPlane = vtkPolyDataMapper::New();
       mapperPlane->SetInput(this->AxisPlane->GetOutput());
      
-      vtkActor* planeactor = vtkActor::New();
-      planeactor->SetMapper(mapperPlane);
+      this->planeActor = vtkActor::New();
+      this->planeActor->SetMapper(mapperPlane);
      
-      this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(planeactor);
+      this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(this->planeActor);
       this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
       
       mapperPlane->Delete();
-      planeactor->Delete();   
   
+      this->togglePlaneVisibility->GetWidget()->SetSelectedState(1);
+      
       // Reset Scale
       if(this->translation)
        {
       this->translation->SetValue(0);
        }
+
+      // Create a transform node if not already existing
+      if(!this->transformNode)
+        {
+        this->transformNode = vtkMRMLLinearTransformNode::New();
+        this->transformNode->SetScene(this->GetMRMLScene()); 
+        this->GetMRMLScene()->AddNode(this->transformNode);
+        this->GetMRMLScene()->Modified();
+
+        this->transformMatrix = vtkMatrix4x4::New();
+        vtkMatrix4x4* tempMatrix = this->transformNode->GetMatrixTransformToParent();        
+        this->transformMatrix->Identity();
+
+        tempMatrix->DeepCopy(this->transformMatrix);
+        this->transformNode->Modified(); 
+        }
 
       // Set Default Whole Range value
       this->WholeRangeWidget->GetWidget()->SetValueAsDouble(this->PVectorLength+200);
@@ -705,7 +699,7 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
   if(this->translation == vtkKWScale::SafeDownCast(caller)
      && event == vtkKWScale::ScaleValueChangingEvent)
     {
-      if(this->translation && this->sphereCenterPlane)
+      if(this->translation)
      { 
           double sphereCenter[3] = {this->lineCenter[0],this->lineCenter[1],this->lineCenter[2]};
 
@@ -722,14 +716,25 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
               sphereCenter[1] = this->lineCenter[1] - this->translation->GetValue()*this->P2VectorNormalized[1];
               sphereCenter[2] = this->lineCenter[2] - this->translation->GetValue()*this->P2VectorNormalized[2];
          }
-       this->sphereCenterPlane->SetCenter(sphereCenter[0],sphereCenter[1],sphereCenter[2]);
-          this->sphereCenterPlane->Update();
 
           // Update Plane
           this->AxisPlane->SetCenter(sphereCenter[0],sphereCenter[1],sphereCenter[2]);
           this->AxisPlane->Update();
 
           this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
+       // Update vtkMRMLLinearTransformNode
+          if(this->transformMatrix && this->transformNode)
+         {
+           vtkMatrix4x4* tempMatrix = this->transformNode->GetMatrixTransformToParent();
+              this->transformMatrix->Identity();
+              this->transformMatrix->SetElement(0,3,sphereCenter[0]-this->lineCenter[0]);
+              this->transformMatrix->SetElement(1,3,sphereCenter[1]-this->lineCenter[1]);
+              this->transformMatrix->SetElement(2,3,sphereCenter[2]-this->lineCenter[2]);
+
+              tempMatrix->DeepCopy(this->transformMatrix);
+              this->transformNode->Modified();
+         } 
      }
 
     }
@@ -741,20 +746,31 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
     {
       if(this->AxisPlane && this->P1Vector)
      {
+       /*
        vtkMath* NormalVectorMath = vtkMath::New();
           double normalVector[3] = {0,0,0};
    
           NormalVectorMath->Perpendiculars(this->P1Vector, normalVector, NULL, NormalVectorMath->RadiansFromDegrees(this->PlaneRotation->GetValue()));
-          this->AxisPlane->SetNormal(normalVector);
+          this->AxisPlane->SetNormal(this->P1Vector);
           this->AxisPlane->Update();
 
           this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
 
           NormalVectorMath->Delete();
+       */
      }
 
     }
 
+  if(this->togglePlaneVisibility->GetWidget() == vtkKWCheckButton::SafeDownCast(caller)
+     && event == vtkKWCheckButton::SelectedStateChangedEvent)
+    {
+      if(this->AxisPlane)
+     {
+        this->planeActor->SetVisibility(this->togglePlaneVisibility->GetWidget()->GetSelectedState());
+        this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+     }
+    }
 } 
 
 
@@ -927,12 +943,20 @@ void vtkLineMotionGUI::BuildGUIForLineMotion()
   this->PlaneRotation->SetEnabled(0);
   this->PlaneRotation->SetRange(0,180);
 
-  this->Script("pack %s %s %s %s %s -side top -fill x -padx 2 -pady 2",
+  this->togglePlaneVisibility = vtkKWCheckButtonWithLabel::New();
+  this->togglePlaneVisibility->SetParent(frame2->GetFrame());
+  this->togglePlaneVisibility->Create();
+  this->togglePlaneVisibility->SetLabelText("Show plane");
+  this->togglePlaneVisibility->GetWidget()->SetSelectedState(0);
+  this->togglePlaneVisibility->SetEnabled(0);
+
+  this->Script("pack %s %s %s %s %s %s -side top -fill x -padx 2 -pady 2",
                this->WholeRangeWidget->GetWidgetName(),
                this->UpdateWholeRangeButton->GetWidgetName(), 
                this->lineRange->GetWidgetName(),
                this->translation->GetWidgetName(),
-               this->PlaneRotation->GetWidgetName());
+               this->PlaneRotation->GetWidgetName(),
+               this->togglePlaneVisibility->GetWidgetName());
 
 
   conBrowsFrame->Delete();
