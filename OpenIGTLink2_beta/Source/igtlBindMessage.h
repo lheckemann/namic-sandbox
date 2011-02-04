@@ -45,12 +45,11 @@ public:
   int         SetNumberOfChildMessages(unsigned int n);
   int         GetNumberOfChildMessages();
 
-  int         AppendChildMessage(igtl::MessageBase::Pointer & child);
-  int         SetChildMessage(unsigned int i, igtl::MessageBase::Pointer & child);
-  int         GetChildMessage(unsigned int i, igtl::MessageBase::Pointer & ptr);
+  int         AppendChildMessage(igtl::MessageBase * child);
+  int         SetChildMessage(unsigned int i, igtl::MessageBase * child);
+  int         GetChildMessage(unsigned int i, igtl::MessageBase * ptr);
 
   const char* GetBind();
-  igtlUint16  GetEncoding();
 
 protected:
   BindMessage();
