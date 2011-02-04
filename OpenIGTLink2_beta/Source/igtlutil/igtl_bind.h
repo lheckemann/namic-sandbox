@@ -41,8 +41,8 @@ extern "C" {
  */
 
 typedef struct {
-  char             type[IGTL_HEADER_TYPE_SIZE+1];  /* Data type (OpenIGTLink Device Type string) */
-  char             name[IGTL_HEADER_NAME_SIZE+1];   /* Device name */
+  char             type[IGTL_HEADER_TYPE_SIZE+1]; /* Data type (OpenIGTLink Device Type string) */
+  char             name[IGTL_HEADER_NAME_SIZE+1]; /* Device name */
   igtl_uint64      size;                          /* Data size */
   void*            ptr;                           /* Pointer to the child message */
 } igtl_bind_child_info;
