@@ -29,6 +29,7 @@
 
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
 #include "igtlPointMessage.h"
+#include "igtlStringMessage.h"
 #endif // OpenIGTLink_PROTOCOL_VERSION >= 2
 
 int ReceiveTransform(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
@@ -38,6 +39,7 @@ int ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Poin
 
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
   int ReceivePoint(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+  int ReceiveString(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 int main(int argc, char* argv[])
@@ -120,6 +122,10 @@ int main(int argc, char* argv[])
       else if (strcmp(headerMsg->GetDeviceType(), "POINT") == 0)
         {
         ReceivePoint(socket, headerMsg);
+        }
+      else if (strcmp(headerMsg->GetDeviceType(), "STRING") == 0)
+        {
+        ReceiveString(socket, headerMsg);
         }
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
       else
@@ -326,6 +332,33 @@ int ReceivePoint(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Point
       std::cerr << " Owner     : " << pointElement->GetOwner() << std::endl;
       std::cerr << "================================" << std::endl;
       }
+    }
+
+  return 1;
+}
+
+int ReceiveString(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+
+  std::cerr << "Receiving STRING data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::StringMessage::Pointer stringMsg;
+  stringMsg = igtl::StringMessage::New();
+  stringMsg->SetMessageHeader(header);
+  stringMsg->AllocatePack();
+
+  // Receive transform data from the socket
+  socket->Receive(stringMsg->GetPackBodyPointer(), stringMsg->GetPackBodySize());
+
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = stringMsg->Unpack(1);
+
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    std::cerr << "Encoding: " << stringMsg->GetEncoding() << "; "
+              << "String: " << stringMsg->GetString() << std::endl;
     }
 
   return 1;

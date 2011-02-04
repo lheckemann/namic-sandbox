@@ -21,6 +21,7 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     TrackingData
     QuaternionTrackingData
     ImageDatabaseServer
+    String
     )
 endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
 
