@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Program:   Open IGT Link Library
+  Program:   The OpenIGTLink Library
   Module:    $HeadURL: http://svn.na-mic.org/NAMICSandBox/trunk/OpenIGTLink2_beta/Source/igtlStringMessage.cxx $
   Language:  C++
   Date:      $Date: 2010-01-17 13:04:20 -0500 (Sun, 17 Jan 2010) $
@@ -29,6 +29,7 @@ namespace igtl {
 StringMessage::StringMessage():
   MessageBase()
 {
+  this->m_DefaultBodyType = "STRING";
   this->m_Encoding = IGTL_STRING_MESSAGE_DEFAULT_ENCODING;
   this->m_String.clear();
 }

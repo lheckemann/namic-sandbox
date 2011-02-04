@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   The OpenIGTLink Library
-  Module:    $HeadURL: http://svn.na-mic.org/NAMICSandBox/trunk/OpenIGTLink2_beta/Source/igtlStringMessage.h $
+  Module:    $HeadURL: http://svn.na-mic.org/NAMICSandBox/trunk/OpenIGTLink2_beta/Source/igtlBindMessage.h $
   Language:  C++
   Date:      $Date: 2009-12-16 23:58:02 -0500 (Wed, 16 Dec 2009) $
   Version:   $Revision: 5466 $
@@ -14,8 +14,8 @@
 
 =========================================================================*/
 
-#ifndef __igtlStringMessage_h
-#define __igtlStringMessage_h
+#ifndef __igtlBindMessage_h
+#define __igtlBindMessage_h
 
 #include <string>
 
@@ -24,53 +24,52 @@
 #include "igtlMessageBase.h"
 #include "igtlTypes.h"
 
-#define IGTL_STRING_MESSAGE_DEFAULT_ENCODING 3 /* Default encoding -- ANSI-X3.5-1968 */
-
 namespace igtl
 {
 
-class IGTLCommon_EXPORT StringMessage: public MessageBase
+class IGTLCommon_EXPORT BindMessage: public MessageBase
 {
 public:
-  typedef StringMessage                  Self;
+  typedef BindMessage                    Self;
   typedef MessageBase                    Superclass;
   typedef SmartPointer<Self>             Pointer;
   typedef SmartPointer<const Self>       ConstPointer;
 
-  igtlTypeMacro(igtl::StringMessage, igtl::MessageBase);
-  igtlNewMacro(igtl::StringMessage);
+  igtlTypeMacro(igtl::BindMessage, igtl::MessageBase);
+  igtlNewMacro(igtl::BindMessage);
 
 public:
+  
+  void        Init();
 
-  int        SetString(const char* string);
-  int        SetString(std::string & string);
-  int        SetEncoding(igtlUint16 enc);
+  int         SetNumberOfChildMessages(unsigned int n);
+  int         GetNumberOfChildMessages();
 
-  const char* GetString();
+  int         AppendChildMessage(igtl::MessageBase::Pointer & child);
+  int         SetChildMessage(unsigned int i, igtl::MessageBase::Pointer & child);
+  int         GetChildMessage(unsigned int i, igtl::MessageBase::Pointer & ptr);
+
+  const char* GetBind();
   igtlUint16  GetEncoding();
 
 protected:
-  StringMessage();
-  ~StringMessage();
+  BindMessage();
+  ~BindMessage();
   
 protected:
 
   virtual int  GetBodyPackSize();
   virtual int  PackBody();
   virtual int  UnpackBody();
-  
-  igtlUint16   m_Encoding;
-  
-  //BTX
-  std::string  m_String;
-  //ETX
 
+  std::vector<igtl::MessageBase::Pointer> m_ChildMessages;
+  
 };
 
 
 } // namespace igtl
 
-#endif // _igtlStringMessage_h
+#endif // _igtlBindMessage_h
 
 
 
