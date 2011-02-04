@@ -30,6 +30,7 @@
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
 #include "igtlPointMessage.h"
 #include "igtlStringMessage.h"
+#include "igtlBindMessage.h"
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 
@@ -41,6 +42,7 @@ int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& h
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
 int ReceivePoint(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveString(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+int ReceiveBind(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 int main(int argc, char* argv[])
@@ -129,6 +131,10 @@ int main(int argc, char* argv[])
         else if (strcmp(headerMsg->GetDeviceType(), "STRING") == 0)
           {
           ReceiveString(socket, headerMsg);
+          }
+        else if (strcmp(headerMsg->GetDeviceType(), "BIND") == 0)
+          {
+          ReceiveBind(socket, headerMsg);
           }
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
         else
@@ -369,6 +375,45 @@ int ReceiveString(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& h
     {
     std::cerr << "Encoding: " << stringMsg->GetEncoding() << "; "
               << "String: " << stringMsg->GetString() << std::endl;
+    }
+
+  return 1;
+}
+
+
+int ReceiveBind(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+
+  std::cerr << "Receiving BIND data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::BindMessage::Pointer bindMsg;
+  bindMsg = igtl::BindMessage::New();
+  bindMsg->SetMessageHeader(header);
+  bindMsg->AllocatePack();
+
+  // Receive transform data from the socket
+  socket->Receive(bindMsg->GetPackBodyPointer(), bindMsg->GetPackBodySize());
+  int n = bindMsg->GetNumberOfChildMessages();
+
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = bindMsg->Unpack(1);
+
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    // Create a message buffer to receive header
+    igtl::MessageBase::Pointer msg;
+    msg = igtl::MessageBase::New();
+    
+    for (int i = 0; i < n; i ++)
+      {
+      bindMsg->GetChildMessage(i, msg);
+      if (strcmp(msg->GetDeviceType(), "STRING") == 0)
+        {
+        }
+      
+      }
     }
 
   return 1;

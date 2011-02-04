@@ -17,7 +17,7 @@
 #include "igtlBindMessage.h"
 
 #include "igtl_header.h"
-#include "igtl_string.h"
+#include "igtl_bind.h"
 
 #include <string.h>
 
@@ -55,17 +55,17 @@ int BindMessage::GetNumberOfChildMessages()
 }
 
 
-int BindMessage::AppendChildMessage(igtl::MessageBase::Pointer & child)
+int BindMessage::AppendChildMessage(igtl::MessageBase * child)
 {
   if (this->m_ChildMessages.size() < 0xFFFF)
     {
-    this->m_ChildMessages.append(child);
+    this->m_ChildMessages.push_back(child);
     }
   return this->m_ChildMessages.size();
 }
 
 
-int BindMessage::SetChildMessage(unsigned int i, igtl::MessageBase::Pointer & child)
+int BindMessage::SetChildMessage(unsigned int i, igtl::MessageBase * child)
 {
   if (i < this->m_ChildMessages.size())
     {
@@ -79,7 +79,7 @@ int BindMessage::SetChildMessage(unsigned int i, igtl::MessageBase::Pointer & ch
 }
 
 
-int BindMessage::GetChildMessage(unsigned int i, igtl::MessageBase::Pointer & ptr)
+int BindMessage::GetChildMessage(unsigned int i, igtl::MessageBase * ptr)
 {
   if (i < this->m_ChildMessages.size())
     {
@@ -105,7 +105,7 @@ int BindMessage::GetBodyPackSize()
     {
     size += strlen((*iter)->GetDeviceName()); // Device name length
     size += 1; // NULL separator
-    size += (*iter)->GetBodyPackSize();
+    size += (*iter)->GetPackBodySize();
     }
 
   // Body pack size is the sum of ENCODING, LENGTH and STRING fields
@@ -131,7 +131,7 @@ int BindMessage::PackBody()
     {
     strncpy(bind_info.child_info_array[i].type, (*iter)->GetDeviceType(), IGTL_HEADER_TYPE_SIZE);
     strncpy(bind_info.child_info_array[i].name, (*iter)->GetDeviceName(), IGTL_HEADER_NAME_SIZE);
-    bind_info.child_info_array[i].size = (*iter)->GetBodyPackSize();
+    bind_info.child_info_array[i].size = (*iter)->GetPackBodySize();
     bind_info.child_info_array[i].ptr = (*iter)->GetPackBodyPointer();
     i ++;
     }
@@ -152,7 +152,7 @@ int BindMessage::UnpackBody()
     return 0;
     }
 
-  int n = bind_info->ncmessages;
+  int n = bind_info.ncmessages;
 
   Init();
 
@@ -163,25 +163,27 @@ int BindMessage::UnpackBody()
 
     msgHeader->InitPack();
     
-    igtl_header * header = msgHeader->GetPackPointer();
+    igtl_header * header = (igtl_header *) msgHeader->GetPackPointer();
     header->version = 1;
     strncpy( header->name, bind_info.child_info_array[i].type,  IGTL_HEADER_TYPE_SIZE);
     strncpy( header->device_name, bind_info.child_info_array[i].name, IGTL_HEADER_NAME_SIZE);
     header->timestamp = 0;
     header->body_size = bind_info.child_info_array[i].size;
-    header.crc = 0;
+    header->crc = 0;
     msgHeader->Unpack();
 
     igtl::MessageBase::Pointer msg;
-    transMsg = igtl::TransformMessage::New();
-    transMsg->SetMessageHeader(msgHeader);
-    transMsg->AllocatePack();
+    msg = igtl::MessageBase::New();
+    msg->SetMessageHeader(msgHeader);
+    msg->AllocatePack();
 
     // TODO: Is there any way to avoid this memory copy?
-    memcpy(transMsg->GetPackBodyPointer(), bind_info.child_info_array[i].ptr,
+    memcpy(msg->GetPackBodyPointer(), bind_info.child_info_array[i].ptr,
            bind_info.child_info_array[i].size);
 
-    this->ChildMessages.append(msg);
+    msg->Unpack();
+    
+    this->m_ChildMessages.push_back(msg);
     }
 
   return 1;

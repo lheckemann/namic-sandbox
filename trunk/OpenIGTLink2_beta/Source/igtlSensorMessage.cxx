@@ -65,7 +65,7 @@ int SensorMessage::SetUnit(igtlUnit unit)
 }
 
 
-int SensorMessage::SetUnit(igtl::Unit::Pointer & unit)
+int SensorMessage::SetUnit(igtl::Unit * unit)
 {
   this->m_Unit = unit->Pack();
 }
@@ -77,7 +77,7 @@ igtlUnit SensorMessage::GetUnit()
 }
 
 
-int SensorMessage::GetUnit(igtl::Unit::Pointer & unit)
+int SensorMessage::GetUnit(igtl::Unit * unit)
 {
   return unit->Unpack(this->m_Unit);
 }

@@ -118,6 +118,7 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtlStringMessage.cxx
     igtlUnit.cxx
     igtlSensorMessage.cxx
+    igtlBindMessage.cxx
     )
   SET(OpenIGTLink_INCLUDE_FILES
     ${OpenIGTLink_INCLUDE_FILES}
@@ -143,6 +144,7 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtlStringMessage.h
     igtlUnit.h
     igtlSensorMessage.h
+    igtlBindMessage.h
     )
 endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
 

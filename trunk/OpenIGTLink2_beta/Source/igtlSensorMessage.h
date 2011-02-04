@@ -47,9 +47,9 @@ public:
 
   //int        SetStatus(int i);
   int          SetUnit(igtlUnit unit);
-  int          SetUnit(igtl::Unit::Pointer & unit);
+  int          SetUnit(igtl::Unit * unit);
   igtlUnit     GetUnit();
-  int          GetUnit(igtl::Unit::Pointer & unit);
+  int          GetUnit(igtl::Unit * unit);
 
   int          SetValue(igtlFloat64 * data);       // Set sensor values from array of 64-bit floating data
   int          SetValue(unsigned int i, igtlFloat64 value); // Set i-th sensor value
