@@ -503,7 +503,7 @@ vtkPerkStationCalibrateStep
     this->MonPixRes->SetMaximumNumberOfWidgetsInPackingDirection( 2 );
     this->MonPixRes->SetEnabled( false );
     
-    for ( int id = 0; id < 2; id++ ) // two entries of monitor size (x, y)
+    for ( int id = 0; id < 2; id++ ) // two entries of monitor resolution (x, y)
       {
       vtkKWEntry *entry = this->MonPixRes->AddWidget( id );  
       entry->SetWidth( 7 );

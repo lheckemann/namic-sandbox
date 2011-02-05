@@ -426,6 +426,13 @@ protected:
   
   std::vector< VolumeInformationStruct > VolumesList;
   
+
+private:
+  
+  void UpdateHardwareListFile();
+  
+  std::string HardwareListFileName;
+  
   //ETX
 };
 
