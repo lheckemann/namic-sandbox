@@ -244,7 +244,10 @@ vtkMRMLPerkStationModuleNode
   
   
     // Hardware list.
-    // TODO: fill this list from a config file.
+  
+  this->HardwareListFileName = "OverlayHardwareList.xml";
+  this->UpdateHardwareListFile();
+  
   
   this->HardwareList.clear();
   
@@ -1819,4 +1822,13 @@ vtkMRMLPerkStationModuleNode
   if ( this->CurrentPlanIndex < 0 ) return;
   this->PlanList[ this->CurrentPlanIndex ]->SetValidationTargetPointRAS(
     point[ 0 ], point[ 1 ], point[ 2 ] );
+}
+
+
+
+void
+vtkMRMLPerkStationModuleNode
+::UpdateHardwareListFile()
+{
+  
 }
