@@ -286,13 +286,13 @@ int TrackingDataMessage::AddTrackingDataElement(TrackingDataElement::Pointer& el
 }
 
 
-void TrackingDataMessage::ClearTrackingDataElement()
+void TrackingDataMessage::ClearTrackingDataElements()
 {
   this->m_TrackingDataList.clear();
 }
 
 
-int TrackingDataMessage::GetNumberOfTrackingDataElement()
+int TrackingDataMessage::GetNumberOfTrackingDataElements()
 {
   return this->m_TrackingDataList.size();
 }

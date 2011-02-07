@@ -189,9 +189,9 @@ public:
 
 public:
   int  AddQuaternionTrackingDataElement(QuaternionTrackingDataElement::Pointer& elem);
-  void ClearQuaternionTrackingDataElement();
+  void ClearQuaternionTrackingDataElements();
 
-  int  GetNumberOfQuaternionTrackingDataElement();
+  int  GetNumberOfQuaternionTrackingDataElements();
   void GetQuaternionTrackingDataElement(int index, QuaternionTrackingDataElement::Pointer& elem);
 
 

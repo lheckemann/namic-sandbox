@@ -140,7 +140,7 @@ int ReceiveQuaternionTrackingData(igtl::ClientSocket::Pointer& socket, igtl::Mes
 
   if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
     {
-    int nElements = quaternionTrackingData->GetNumberOfQuaternionTrackingDataElement();
+    int nElements = quaternionTrackingData->GetNumberOfQuaternionTrackingDataElements();
     for (int i = 0; i < nElements; i ++)
       {
       igtl::QuaternionTrackingDataElement::Pointer quaternionTrackingElement;

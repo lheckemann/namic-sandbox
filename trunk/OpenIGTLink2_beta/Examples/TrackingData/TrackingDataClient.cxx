@@ -140,7 +140,7 @@ int ReceiveTrackingData(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader
 
   if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
     {
-    int nElements = trackingData->GetNumberOfTrackingDataElement();
+    int nElements = trackingData->GetNumberOfTrackingDataElements();
     for (int i = 0; i < nElements; i ++)
       {
       igtl::TrackingDataElement::Pointer trackingElement;
