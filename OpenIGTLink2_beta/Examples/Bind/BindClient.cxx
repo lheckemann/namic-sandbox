@@ -85,10 +85,6 @@ int main(int argc, char* argv[])
   igtl::BindMessage::Pointer bindMsg;
   bindMsg = igtl::BindMessage::New();
   bindMsg->SetDeviceName("BindMessage");
-  bindMsg->Init();
-
-  bindMsg->AppendChildMessage(stringMsg);
-  bindMsg->AppendChildMessage(transMsg);
   
   //------------------------------------------------------------
   // loop
@@ -103,8 +99,11 @@ int main(int argc, char* argv[])
     transMsg->SetMatrix(matrix);
     transMsg->Pack();
 
+    bindMsg->Init();
+    bindMsg->AppendChildMessage(stringMsg);
+    bindMsg->AppendChildMessage(transMsg);
     bindMsg->Pack();
-
+    
     socket->Send(bindMsg->GetPackPointer(), bindMsg->GetPackSize());
     igtl::Sleep(interval); // wait
     }
