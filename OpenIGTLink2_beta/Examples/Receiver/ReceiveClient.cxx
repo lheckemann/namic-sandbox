@@ -32,14 +32,14 @@
 #include "igtlStringMessage.h"
 #endif // OpenIGTLink_PROTOCOL_VERSION >= 2
 
-int ReceiveTransform(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-int ReceivePosition(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-int ReceiveImage(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-int ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+int ReceiveTransform(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
+int ReceivePosition(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
+int ReceiveImage(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
+int ReceiveStatus(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
 
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
-  int ReceivePoint(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-  int ReceiveString(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+  int ReceivePoint(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
+  int ReceiveString(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 int main(int argc, char* argv[])
@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
 }
 
 
-int ReceiveTransform(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceiveTransform(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
 {
   std::cerr << "Receiving TRANSFORM data type." << std::endl;
   
@@ -173,7 +173,7 @@ int ReceiveTransform(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::P
   return 0;
 }
 
-int ReceivePosition(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceivePosition(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
 {
   std::cerr << "Receiving POSITION data type." << std::endl;
   
@@ -209,7 +209,7 @@ int ReceivePosition(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Po
   return 0;
 }
 
-int ReceiveImage(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceiveImage(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
 {
   std::cerr << "Receiving IMAGE data type." << std::endl;
 
@@ -258,7 +258,7 @@ int ReceiveImage(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Point
 }
 
 
-int ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceiveStatus(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
 {
 
   std::cerr << "Receiving STATUS data type." << std::endl;
@@ -291,7 +291,7 @@ int ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Poin
 }
 
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
-int ReceivePoint(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceivePoint(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
 {
 
   std::cerr << "Receiving POINT data type." << std::endl;
@@ -337,7 +337,7 @@ int ReceivePoint(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Point
   return 1;
 }
 
-int ReceiveString(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceiveString(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
 {
 
   std::cerr << "Receiving STRING data type." << std::endl;
