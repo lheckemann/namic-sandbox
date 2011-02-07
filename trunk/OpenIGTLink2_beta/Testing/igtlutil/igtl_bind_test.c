@@ -231,12 +231,14 @@ int main( int argc, char * argv [] )
 
 
   /* Dumping data -- for testing */
+  /*
   FILE *fp;
   fp = fopen("bind.bin", "w");
   fwrite(&(header), IGTL_HEADER_SIZE, 1, fp);
   fwrite(bind_header, bind_size, 1, fp);
   fwrite(&(child_body), child_body_size, 1, fp);
   fclose(fp);
+  */
 
 
   /* Compare the serialized byte array with the gold standard */ 

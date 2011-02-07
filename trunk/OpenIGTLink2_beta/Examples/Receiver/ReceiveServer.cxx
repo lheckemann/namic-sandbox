@@ -395,9 +395,6 @@ int ReceiveBind(igtl::Socket * socket, igtl::MessageHeader * header)
 
   // Receive transform data from the socket
   socket->Receive(bindMsg->GetPackBodyPointer(), bindMsg->GetPackBodySize());
-  int n = bindMsg->GetNumberOfChildMessages();
-
-  std::cerr << "Number of child messages:" << n << std::endl;
 
   // Deserialize the transform data
   // If you want to skip CRC check, call Unpack() without argument.
@@ -405,7 +402,8 @@ int ReceiveBind(igtl::Socket * socket, igtl::MessageHeader * header)
 
   if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
     {
-    std::cerr << "Unpack successfully." << std::endl;
+    int n = bindMsg->GetNumberOfChildMessages();
+
     for (int i = 0; i < n; i ++)
       {
       if (strcmp(bindMsg->GetChildMessageType(i), "STRING") == 0)
@@ -413,18 +411,18 @@ int ReceiveBind(igtl::Socket * socket, igtl::MessageHeader * header)
         igtl::StringMessage::Pointer stringMsg;
         stringMsg = igtl::StringMessage::New();
         bindMsg->GetChildMessage(i, stringMsg);
-        bindMsg->Unpack(0);
+        stringMsg->Unpack(0);
         std::cerr << "Message type: STRING" << std::endl;
         std::cerr << "Message name: " << stringMsg->GetDeviceName() << std::endl;
         std::cerr << "Encoding: " << stringMsg->GetEncoding() << "; "
                   << "String: " << stringMsg->GetString() << std::endl;
         }
-      if (strcmp(bindMsg->GetChildMessageType(i), "TRANSFORM") == 0)
+      else if (strcmp(bindMsg->GetChildMessageType(i), "TRANSFORM") == 0)
         {
         igtl::TransformMessage::Pointer transMsg;
         transMsg = igtl::TransformMessage::New();
         bindMsg->GetChildMessage(i, transMsg);
-        bindMsg->Unpack(0);
+        transMsg->Unpack(0);
         std::cerr << "Message type: TRANSFORM" << std::endl;
         std::cerr << "Message name: " << transMsg->GetDeviceName() << std::endl;
         igtl::Matrix4x4 matrix;

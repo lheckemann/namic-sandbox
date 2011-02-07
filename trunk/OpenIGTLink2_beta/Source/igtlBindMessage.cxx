@@ -91,7 +91,7 @@ const char* BindMessage::GetChildMessageType(unsigned int i)
 {
   if (i < this->m_ChildMessages.size())
     {
-    this->m_ChildMessages[i].type.c_str();
+    return this->m_ChildMessages[i].type.c_str();
     }
   else
     {
@@ -104,6 +104,7 @@ int BindMessage::GetChildMessage(unsigned int i, igtl::MessageBase * child)
 {
   if (i < this->m_ChildMessages.size())
     {
+    child->InitPack();
     igtl_header * header = (igtl_header *) child->GetPackPointer();
     header->version = 1;
     strncpy( header->name, this->m_ChildMessages[i].type.c_str(),  IGTL_HEADER_TYPE_SIZE);
@@ -116,8 +117,13 @@ int BindMessage::GetChildMessage(unsigned int i, igtl::MessageBase * child)
     header->body_size = this->m_ChildMessages[i].size;
     header->crc = 0;
 
+    // Convert to network byte order
+    igtl_header_convert_byte_order(header);
+
     child->Unpack();
     child->AllocatePack();
+
+    // TODO: Is there any way to avoid this memory copy?
     memcpy(child->GetPackBodyPointer(),
            this->m_ChildMessages[i].ptr, this->m_ChildMessages[i].size);
 
@@ -159,7 +165,6 @@ int BindMessage::PackBody()
   igtl_bind_info bind_info;
   igtl_bind_init_info(&bind_info);
   
-  std::cerr << "BIND message size = " << this->m_ChildMessages.size() << std::endl;
   if (igtl_bind_alloc_info(&bind_info, this->m_ChildMessages.size()))
     {
     // TODO: using c library causes additional data copy (C++ member variable to c-structure,
@@ -173,10 +178,21 @@ int BindMessage::PackBody()
       strncpy(bind_info.child_info_array[i].name, (*iter).name.c_str(), IGTL_HEADER_NAME_SIZE);
       bind_info.child_info_array[i].size = (*iter).size;
       bind_info.child_info_array[i].ptr = (*iter).ptr;
+
       i ++;
       }
     
     igtl_bind_pack(&bind_info, this->m_Body);
+    int nc = this->m_ChildMessages.size();
+    size_t bind_size = (size_t) igtl_bind_get_size(&bind_info);
+    char * ptr = (char *)this->m_Body;
+    ptr = ptr + bind_size;
+    for (int i = 0; i < nc; i ++)
+      {
+      memcpy((void*)ptr, bind_info.child_info_array[i].ptr, bind_info.child_info_array[i].size);
+      ptr = ptr + bind_info.child_info_array[i].size;
+      }
+    
     igtl_bind_free_info(&bind_info);   // TODO: calling igtl_bind_free_info() after igtl_bind_pack() causes 
                                        // this causes segmentation fault on Linux... why?
     return 1;
@@ -186,6 +202,7 @@ int BindMessage::PackBody()
     return 0;
     }
 }
+
 
 int BindMessage::UnpackBody()
 {
@@ -211,6 +228,7 @@ int BindMessage::UnpackBody()
     info.ptr  = bind_info.child_info_array[i].ptr;
 
     this->m_ChildMessages.push_back(info);
+
     }
 
   return 1;

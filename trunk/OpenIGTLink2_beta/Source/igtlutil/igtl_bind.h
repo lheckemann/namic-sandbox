@@ -23,9 +23,6 @@
 #include "igtl_types.h"
 #include "igtl_win32header.h"
 
-#define IGTL_BIND_HEADER_SIZE          1
-#define IGTL_BIND_HEADER_ELEMENT_SIZE  20
-
 #define IGTL_BIND_HOST_TO_NETWORK      0
 #define IGTL_BIND_NETWORK_TO_HOST      1
 

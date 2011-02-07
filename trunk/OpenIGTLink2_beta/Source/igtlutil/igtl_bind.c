@@ -85,12 +85,12 @@ int igtl_export igtl_bind_unpack(void * byte_array, igtl_bind_info * info)
   size_t      namelen;
   void * ptr;
   void * ptr2;
-
+  
   if (byte_array == NULL || info == NULL)
     {
     return 0;
     }
-
+  
   /* Number of child messages */
   ptr = (void *) byte_array;
   if (igtl_is_little_endian())
@@ -101,7 +101,7 @@ int igtl_export igtl_bind_unpack(void * byte_array, igtl_bind_info * info)
     {
     ncmessages = *((igtl_uint16*)ptr);
     }
-      
+  
   /* Allocate an array of bind_info, if neccessary */
   if (ncmessages != info->ncmessages)
     {
@@ -110,17 +110,17 @@ int igtl_export igtl_bind_unpack(void * byte_array, igtl_bind_info * info)
       return 0;
       }
     }
-
+  
   /* Pointer to the first element in the BIND header section */
   ptr += sizeof(igtl_uint16);
-
+  
   /* Extract types and body sizes from the BIND header section */
   for (i = 0; i < ncmessages; i ++)
     {
     /* Type of child message */
     strncpy(info->child_info_array[i].type, (char*)ptr, IGTL_HEADER_TYPE_SIZE);
     info->child_info_array[i].type[IGTL_HEADER_TYPE_SIZE] = '\0';
-
+    
     /* Body size of child message */
     ptr += IGTL_HEADER_TYPE_SIZE;
     if (igtl_is_little_endian())
@@ -153,7 +153,7 @@ int igtl_export igtl_bind_unpack(void * byte_array, igtl_bind_info * info)
     {
     return 0;
     }
-
+  
   ptr += sizeof(igtl_uint16);
   ptr2 = ptr;
 
@@ -171,16 +171,13 @@ int igtl_export igtl_bind_unpack(void * byte_array, igtl_bind_info * info)
 
   ptr = ptr2 + nametable_size;
 
-  /* Move the pointer to the first device name in the table */
-  ptr += sizeof(igtl_uint16);
-
   /* Set pointers to the child message bodies */
   for (i = 0; i < ncmessages; i ++)
     {
     info->child_info_array[i].ptr = ptr;
     ptr += info->child_info_array[i].size;
     }
-
+    
   /** TODO: check the total size of the message? **/
 
   return 1;
@@ -217,6 +214,7 @@ int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array)
     }
   ptr += sizeof(igtl_uint16);
 
+
   /* BIND header section */
   for (i = 0; i < nc; i ++)
     {
@@ -234,11 +232,12 @@ int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array)
       }
     ptr += sizeof(igtl_uint64);
     }
-  
+
+
   /* Name table section */
   nts = ptr; /* save address for name table size field */
   ptr += sizeof(igtl_uint16);
-  
+
   wb = 0;
   for (i = 0; i < nc; i ++)
     {
