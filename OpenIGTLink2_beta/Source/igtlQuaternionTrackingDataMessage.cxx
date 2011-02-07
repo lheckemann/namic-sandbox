@@ -282,13 +282,13 @@ int QuaternionTrackingDataMessage::AddQuaternionTrackingDataElement(QuaternionTr
 }
 
 
-void QuaternionTrackingDataMessage::ClearQuaternionTrackingDataElement()
+void QuaternionTrackingDataMessage::ClearQuaternionTrackingDataElements()
 {
   this->m_QuaternionTrackingDataList.clear();
 }
 
 
-int QuaternionTrackingDataMessage::GetNumberOfQuaternionTrackingDataElement()
+int QuaternionTrackingDataMessage::GetNumberOfQuaternionTrackingDataElements()
 {
   return this->m_QuaternionTrackingDataList.size();
 }
