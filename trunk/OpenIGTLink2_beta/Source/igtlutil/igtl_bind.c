@@ -188,6 +188,7 @@ int igtl_export igtl_bind_unpack(void * byte_array, igtl_bind_info * info)
 
 
 int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array)
+
 {
   void * ptr;
   igtl_uint32 i;

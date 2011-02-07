@@ -397,12 +397,15 @@ int ReceiveBind(igtl::Socket * socket, igtl::MessageHeader * header)
   socket->Receive(bindMsg->GetPackBodyPointer(), bindMsg->GetPackBodySize());
   int n = bindMsg->GetNumberOfChildMessages();
 
+  std::cerr << "Number of child messages:" << n << std::endl;
+
   // Deserialize the transform data
   // If you want to skip CRC check, call Unpack() without argument.
   int c = bindMsg->Unpack(1);
 
   if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
     {
+    std::cerr << "Unpack successfully." << std::endl;
     for (int i = 0; i < n; i ++)
       {
       if (strcmp(bindMsg->GetChildMessageType(i), "STRING") == 0)

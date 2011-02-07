@@ -158,26 +158,33 @@ int BindMessage::PackBody()
 
   igtl_bind_info bind_info;
   igtl_bind_init_info(&bind_info);
-  igtl_bind_alloc_info(&bind_info, this->m_ChildMessages.size());
-
-  // TODO: using c library causes additional data copy (C++ member variable to c-structure,
-  // then to pack byte array). Probably, it's good idea to implement PackBody() without
-  // using c APIs.
-  int i = 0;
-  std::vector<ChildMessageInfo>::iterator iter;
-  for (iter = this->m_ChildMessages.begin(); iter != this->m_ChildMessages.end(); iter ++)
+  
+  std::cerr << "BIND message size = " << this->m_ChildMessages.size() << std::endl;
+  if (igtl_bind_alloc_info(&bind_info, this->m_ChildMessages.size()))
     {
-    strncpy(bind_info.child_info_array[i].type, (*iter).type.c_str(), IGTL_HEADER_TYPE_SIZE);
-    strncpy(bind_info.child_info_array[i].name, (*iter).name.c_str(), IGTL_HEADER_NAME_SIZE);
-    bind_info.child_info_array[i].size = (*iter).size;
-    bind_info.child_info_array[i].ptr = (*iter).ptr;
-    i ++;
+    // TODO: using c library causes additional data copy (C++ member variable to c-structure,
+    // then to pack byte array). Probably, it's good idea to implement PackBody() without
+    // using c APIs.
+    int i = 0;
+    std::vector<ChildMessageInfo>::iterator iter;
+    for (iter = this->m_ChildMessages.begin(); iter != this->m_ChildMessages.end(); iter ++)
+      {
+      strncpy(bind_info.child_info_array[i].type, (*iter).type.c_str(), IGTL_HEADER_TYPE_SIZE);
+      strncpy(bind_info.child_info_array[i].name, (*iter).name.c_str(), IGTL_HEADER_NAME_SIZE);
+      bind_info.child_info_array[i].size = (*iter).size;
+      bind_info.child_info_array[i].ptr = (*iter).ptr;
+      i ++;
+      }
+    
+    igtl_bind_pack(&bind_info, this->m_Body);
+    igtl_bind_free_info(&bind_info);   // TODO: calling igtl_bind_free_info() after igtl_bind_pack() causes 
+                                       // this causes segmentation fault on Linux... why?
+    return 1;
     }
-
-  igtl_bind_pack(&bind_info, this->m_Body);
-  igtl_bind_free_info(&bind_info);
-
-  return 1;
+  else
+    {
+    return 0;
+    }
 }
 
 int BindMessage::UnpackBody()
