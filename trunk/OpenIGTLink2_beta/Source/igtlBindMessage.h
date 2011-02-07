@@ -47,7 +47,9 @@ public:
 
   int         AppendChildMessage(igtl::MessageBase * child);
   int         SetChildMessage(unsigned int i, igtl::MessageBase * child);
-  int         GetChildMessage(unsigned int i, igtl::MessageBase * ptr);
+
+  const char* GetChildMessageType(unsigned int i);
+  int         GetChildMessage(unsigned int i, igtl::MessageBase * child);
 
   const char* GetBind();
 
@@ -57,11 +59,19 @@ protected:
   
 protected:
 
+  typedef struct {
+    std::string  type;
+    std::string  name;
+    igtlUint64   size;
+    void *       ptr;
+  } ChildMessageInfo;
+    
   virtual int  GetBodyPackSize();
   virtual int  PackBody();
   virtual int  UnpackBody();
 
-  std::vector<igtl::MessageBase::Pointer> m_ChildMessages;
+  //std::vector<igtl::MessageBase::Pointer> m_ChildMessages;
+  std::vector<ChildMessageInfo> m_ChildMessages;
   
 };
 
