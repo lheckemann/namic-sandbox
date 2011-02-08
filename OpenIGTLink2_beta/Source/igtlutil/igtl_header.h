@@ -23,6 +23,10 @@
 #define IGTL_HEADER_TYPE_SIZE  12
 #define IGTL_HEADER_NAME_SIZE   20
 
+/* Following macros will be obsolete. Included for old programs*/
+#define IGTL_HEADER_TYPESIZE  IGTL_HEADER_TYPE_SIZE
+#define IGTL_HEADER_NAMESIZE  IGTL_HEADER_NAME_SIZE
+
 #include "igtl_types.h"
 #include "igtl_win32header.h"
 
