@@ -249,8 +249,7 @@ protected:
   FXStatusBar*       statusbar;
   FXTabBook*         mainTab;
 
-  FXCanvas*          infoCanvas;         // main information display
-                                         // on the top of the main window
+  FXCanvas*          infoCanvas;         // main information display // on the top of the main window                  
   FXImage*           infoOffs;           // offscreen buffer
   // font for information display 
   FXFont*            infoFont0;          // for small
@@ -279,6 +278,7 @@ protected:
 
   // for Configuration panel
   FXListBox*         lbEndEffectorName;
+ 
 
 
 //----------------------- Private variables ------------------------//
@@ -320,7 +320,7 @@ private:
 
   static const char* quickPanelString[]; 
   static const char* quickPanelGIF[]; 
-  static const int   nQuickPanelItems = 6;
+  static const int   nQuickPanelItems = 4;  //Maier removed Button "Move to Target" and "Pause"
 
 
 //---------------------------- Modules -----------------------------//
@@ -554,6 +554,12 @@ private:
   FXDataTarget*      dtNeedleConfName;
   FXDataTarget*      dtDefNeedleOffset[3];
   FXDataTarget*      dtDefNeedleOrientation[3];
+
+  //Robo Plate Maier
+  FXDataTarget* dtPlateR;
+  float valPlateR;
+  //Maier End
+
 
 
   // -- Manual
