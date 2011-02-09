@@ -143,8 +143,8 @@ FXIMPLEMENT(MrsvrMainWindow, FXMainWindow,
 
 const char* MrsvrMainWindow::quickPanelString[] = {
   "STOP",
-  "PAUSE",
-  "MOVE TO TARGET",
+  //"PAUSE",
+  //"MOVE TO TARGET",
   "MANUAL \nCONTROL",
   "Remote",
   "EMERGENCY"
@@ -152,8 +152,8 @@ const char* MrsvrMainWindow::quickPanelString[] = {
 
 const char* MrsvrMainWindow::quickPanelGIF[] = {
   "icon/stop100x100.gif",
-  "icon/pause100x100.gif",
-  "icon/start100x100.gif",
+  //"icon/pause100x100.gif",
+  //"icon/start100x100.gif",
   "icon/manual100x100.gif",
   "icon/auto100x100.gif",
   "icon/emergency100x100.gif"
@@ -1589,6 +1589,8 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                                     "Customize\tCustomize\tCustomize the software",
                                     0,
                                     LAYOUT_FILL_X|LAYOUT_FILL_Y|LAYOUT_TOP|LAYOUT_LEFT);
+
+
 //  FXMatrix* mtLog = 
 //    new FXMatrix(mainTab,2,
 //                 FRAME_RAISED|MATRIX_BY_COLUMNS|
@@ -1832,6 +1834,114 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
 
+//Tab Robo Plate Maier 1
+FXTabItem* platePlot=new FXTabItem(mainTab,
+
+                         "Robo Plate\tRobo Plate\tActuator Robo Plate",0,
+                        LAYOUT_FILL_X|LAYOUT_FILL_Y|LAYOUT_TOP|LAYOUT_LEFT);
+
+FXHorizontalFrame* frplPl = 
+    new FXHorizontalFrame(mainTab,
+                          FRAME_RAISED|LAYOUT_FILL_X|LAYOUT_FILL_Y|
+                          LAYOUT_TOP|LAYOUT_LEFT);
+
+FXMatrix* matrix_main=new FXMatrix(frplPl,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
+
+FXMatrix* matrix_upperleft=new FXMatrix(matrix_main,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y); 
+
+FXGroupBox* gbRegDist = 
+    new FXGroupBox(matrix_main, "Z-Frame Points for Registration",
+                   FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
+                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
+
+FXMatrix* matrix_upperright_main=new FXMatrix(gbRegDist,1,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X);
+
+FXMatrix* matrix_upperright=new FXMatrix(matrix_upperright_main,5,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X);
+
+//First row
+new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+new FXLabel(matrix_upperright,"#4",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
+//Second row
+new FXLabel(matrix_upperright,"#3",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+new FXTextField(matrix_upperright,10,NULL,NULL);
+new FXTextField(matrix_upperright,10,NULL,NULL);
+new FXTextField(matrix_upperright,10,NULL,NULL);
+new FXLabel(matrix_upperright,"#5",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
+//Third row
+new FXLabel(matrix_upperright,"#2",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+new FXTextField(matrix_upperright,10,NULL,NULL);
+new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+new FXTextField(matrix_upperright,10,NULL,NULL);
+new FXLabel(matrix_upperright,"#6",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
+//Fourth row
+new FXLabel(matrix_upperright,"#1",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+new FXTextField(matrix_upperright,10,NULL,NULL);
+new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+new FXTextField(matrix_upperright,10,NULL,NULL);
+new FXLabel(matrix_upperright,"#7",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
+//Z_Frame sample image
+
+char buf[73728];
+    FILE* fp = fopen("icon/Z_Frame.gif", "rb");
+    fread(buf, 1, 73728, fp);
+    fclose(fp);
+
+new FXButton(matrix_upperright_main, "",
+                 new FXGIFIcon(this->getApp(), (void*)buf),NULL,NULL,BUTTON_TOOLBAR|
+                 LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+
+
+//Canvas RA-Position  Maier 2
+FXGroupBox* gpRAPos = 
+   new FXGroupBox(matrix_upperleft, "RA-Position",
+                   FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
+                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
+
+FXCanvas* canvas= new FXCanvas(gpRAPos,this,FRAME_SUNKEN|FRAME_THICK|LAYOUT_FILL_X|
+                          LAYOUT_FILL_Y|LAYOUT_FILL_ROW|LAYOUT_FILL_COLUMN);
+
+/*FXDCWindow dc(canvas);
+dc.setBackground(FXRGB(255,0,0));
+dc.fillRectangle(0,0,canvas->getWidth(),canvas->getHeight());*/
+
+
+//RA-Position Sliders Maier 
+FXGroupBox* gbPlateA = 
+    new FXGroupBox(matrix_upperleft, "A-Axis",
+           FRAME_RIDGE|LAYOUT_RIGHT|LAYOUT_FILL_Y);
+
+
+FXGroupBox* gbPlateR =
+   new FXGroupBox(matrix_upperleft, "R-Axis",
+                FRAME_RIDGE|LAYOUT_BOTTOM|LAYOUT_FILL_X);
+
+new FXButton(matrix_upperleft, "Home",
+                NULL,NULL,NULL,BUTTON_NORMAL|LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X|LAYOUT_FILL_Y);
+
+
+FXSlider* slider=new FXSlider(gbPlateR,NULL,FXDataTarget::ID_VALUE,
+                               LAYOUT_LEFT|LAYOUT_FIX_HEIGHT|LAYOUT_FIX_WIDTH|
+                               SLIDER_HORIZONTAL|SLIDER_INSIDE_BAR|SLIDER_TICKS_BOTTOM,
+                               0,0,200,20);//(??,??,X,Y)
+                slider->setRange(0,MANUAL_VOL_STEPS-1);
+
+FXSlider* slider2=new FXSlider(gbPlateA,NULL,FXDataTarget::ID_VALUE,
+                                  LAYOUT_TOP|LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT|
+                                  SLIDER_VERTICAL|SLIDER_INSIDE_BAR|SLIDER_TICKS_RIGHT,
+                                  0,0,20,200);
+                slider2->setRange(0,MANUAL_VOL_STEPS-1);
+
+
+
+//End Maier
+
   // set main tab orientation
   /*
   mainTab->setTabStyle(TABBOOK_BOTTOMTABS);
@@ -1844,6 +1954,7 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
   tabInterfaceLog->setTabOrientation(TAB_TOP);
   tabPlot->setTabOrientation(TAB_TOP);
   tabCustom->setTabOrientation(TAB_TOP);
+  platePlot->setTabOrientation(TAB_TOP);  //Maier
 
   return 1;
 }
@@ -2363,9 +2474,13 @@ void MrsvrMainWindow::setDataTargets()
                        ID_UPDATE_PARAMETER);
   }
 
-  dtTipApprOffset = 
+            dtTipApprOffset = 
     //new FXDataTarget(valTipApprOffset, this, ID_UPDATE_PARAMETER);
     new FXDataTarget(valTipApprOffset, this, ID_UPDATE_NEEDLE_APPR_OFFSET);
+
+//Robot Plate //Maier
+  dtPlateR = 
+    new FXDataTarget(valPlateR, this, ID_UPDATE_PARAMETER);
 
 }
 
@@ -2406,6 +2521,7 @@ void MrsvrMainWindow::setDefaultParameters()
   }
   */
   valTipApprOffset = 0.0;
+ 
 }
 
 
@@ -2524,6 +2640,7 @@ void MrsvrMainWindow::create()
   plotCanvasB->create();
   infoCanvas->create();
 
+
   infoCnvH        = infoCanvas->getHeight();
   infoCnvW        = infoCanvas->getWidth();
   float w         = (float)infoCnvW;
@@ -2548,6 +2665,7 @@ void MrsvrMainWindow::create()
   //  infoCnvRTimeX   = (int)(w*INFCNV_RTIME_X);
 
   infoCanvas->update();
+
   plotCanvasA->update();
   plotCanvasB->update();
 }
@@ -3146,6 +3264,10 @@ long MrsvrMainWindow::onCmdManual(FXObject*, FXSelector,void*)
   if (shtControlPanel->getCurrent() != CTRL_PNL_MANUAL) {
     shtControlPanel->onOpenItem(siControlPanel[CTRL_PNL_MANUAL], SEL_COMMAND, NULL);
     //shtControlPanel->setCurrent(CTRL_PNL_MANUAL);
+
+
+
+
   }
   return 1;
 }
@@ -3165,7 +3287,7 @@ long MrsvrMainWindow::onCmdEmergency(FXObject*, FXSelector,void*)
 {
   DBG_MMW_PRINT("onCmdEmergency()\n");
   consolePrint(1, true, "EMERGENCY command received.\n");
-
+  
   //robotStatus->setMode(MrsvrStatus::RESET);
   return 1;
 }
