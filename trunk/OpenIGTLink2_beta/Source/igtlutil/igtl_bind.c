@@ -184,6 +184,22 @@ int igtl_export igtl_bind_unpack(void * byte_array, igtl_bind_info * info)
 }
 
 
+int igtl_export igtl_get_bind_unpack(void * byte_array, igtl_bind_info * info)
+{
+  
+}
+
+
+int igtl_export igtl_stt_bind_unpack(void * byte_array, igtl_bind_info * info)
+{
+}
+
+
+int igtl_export igtl_rts_bind_unpack(int * status, void * byte_array)
+{
+}
+
+
 int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array)
 
 {
@@ -305,6 +321,21 @@ igtl_uint32 igtl_export igtl_bind_get_size(igtl_bind_info * info)
 
   return size;
 
+}
+
+
+int igtl_export igtl_get_bind_pack(igtl_bind_info * info, void * byte_array)
+{
+}
+
+
+int igtl_export igtl_stt_bind_pack(igtl_bind_info * info, void * byte_array)
+{
+}
+
+
+int igtl_export igtl_rts_bind_pack(int status, void * byte_array)
+{
 }
 
 
