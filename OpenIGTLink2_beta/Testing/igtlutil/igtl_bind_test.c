@@ -204,7 +204,7 @@ int main( int argc, char * argv [] )
   bind_info.child_info_array[2].size = sizeof(sensor_message_body);
   bind_info.child_info_array[2].ptr = (void*)&child_body.sensor;
 
-  bind_size = igtl_bind_get_size(&bind_info);
+  bind_size = igtl_bind_get_size(&bind_info, IGTL_TYPE_PREFIX_NONE);
   bind_header = malloc(bind_size);
   
   if (bind_header == NULL)
@@ -213,7 +213,7 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
-  igtl_bind_pack(&bind_info, bind_header);
+  igtl_bind_pack(&bind_info, bind_header, IGTL_TYPE_PREFIX_NONE);
 
   child_body_size = 
     bind_info.child_info_array[0].size +
@@ -226,7 +226,7 @@ int main( int argc, char * argv [] )
   strncpy( (char*)&(header.device_name), "DeviceName", 20 );
   header.timestamp = 1234567890;
   header.body_size = bind_size + sizeof(child_message_body);
-  header.crc = igtl_bind_get_crc(&bind_info, bind_header);
+  header.crc = igtl_bind_get_crc(&bind_info, IGTL_TYPE_PREFIX_NONE, bind_header);
   igtl_header_convert_byte_order( &(header) );
 
 
