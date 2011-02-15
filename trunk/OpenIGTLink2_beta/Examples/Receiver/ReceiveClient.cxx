@@ -30,6 +30,8 @@
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
 #include "igtlPointMessage.h"
 #include "igtlStringMessage.h"
+#include "igtlTrackingDataMessage.h"
+#include "igtlQuaternionTrackingDataMessage.h"
 #endif // OpenIGTLink_PROTOCOL_VERSION >= 2
 
 int ReceiveTransform(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
@@ -40,6 +42,8 @@ int ReceiveStatus(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
   int ReceivePoint(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
   int ReceiveString(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
+  int ReceiveTrackingData(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+  int ReceiveQuaternionTrackingData(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 int main(int argc, char* argv[])
@@ -362,6 +366,89 @@ int ReceiveString(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
     }
 
   return 1;
+}
+
+int ReceiveTrackingData(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+  std::cerr << "Receiving TDATA data type." << std::endl;
+  
+  // Create a message buffer to receive transform data
+  igtl::TrackingDataMessage::Pointer trackingData;
+  trackingData = igtl::TrackingDataMessage::New();
+  trackingData->SetMessageHeader(header);
+  trackingData->AllocatePack();
+
+  // Receive body from the socket
+  socket->Receive(trackingData->GetPackBodyPointer(), trackingData->GetPackBodySize());
+
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = trackingData->Unpack(1);
+
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    int nElements = trackingData->GetNumberOfTrackingDataElements();
+    for (int i = 0; i < nElements; i ++)
+      {
+      igtl::TrackingDataElement::Pointer trackingElement;
+      trackingData->GetTrackingDataElement(i, trackingElement);
+
+      igtl::Matrix4x4 matrix;
+      trackingElement->GetMatrix(matrix);
+
+
+      std::cerr << "========== Element #" << i << " ==========" << std::endl;
+      std::cerr << " Name       : " << trackingElement->GetName() << std::endl;
+      std::cerr << " Type       : " << (int) trackingElement->GetType() << std::endl;
+      std::cerr << " Matrix : " << std::endl;
+      igtl::PrintMatrix(matrix);
+      std::cerr << "================================" << std::endl;
+      }
+    return 1;
+    }
+  return 0;
+}
+
+int ReceiveQuaternionTrackingData(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+  std::cerr << "Receiving QTDATA data type." << std::endl;
+  
+  // Create a message buffer to receive transform data
+  igtl::QuaternionTrackingDataMessage::Pointer quaternionTrackingData;
+  quaternionTrackingData = igtl::QuaternionTrackingDataMessage::New();
+  quaternionTrackingData->SetMessageHeader(header);
+  quaternionTrackingData->AllocatePack();
+
+  // Receive body from the socket
+  socket->Receive(quaternionTrackingData->GetPackBodyPointer(), quaternionTrackingData->GetPackBodySize());
+
+  // Deserialize position and quaternion (orientation) data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = quaternionTrackingData->Unpack(1);
+
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    int nElements = quaternionTrackingData->GetNumberOfQuaternionTrackingDataElements();
+    for (int i = 0; i < nElements; i ++)
+      {
+      igtl::QuaternionTrackingDataElement::Pointer quaternionTrackingElement;
+      quaternionTrackingData->GetQuaternionTrackingDataElement(i, quaternionTrackingElement);
+
+      float position[3];
+      float quaternion[4];
+      quaternionTrackingElement->GetPosition(position);
+      quaternionTrackingElement->GetQuaternion(quaternion);
+
+      std::cerr << "========== Element #" << i << " ==========" << std::endl;
+      std::cerr << " Name       : " << quaternionTrackingElement->GetName() << std::endl;
+      std::cerr << " Type       : " << (int) quaternionTrackingElement->GetType() << std::endl;
+      std::cerr << " Position   : "; igtl::PrintVector3(position);
+      std::cerr << " Quaternion : "; igtl::PrintVector4(quaternion);
+      std::cerr << "================================" << std::endl;
+      }
+    return 1;
+    }
+  return 0;
 }
 
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
