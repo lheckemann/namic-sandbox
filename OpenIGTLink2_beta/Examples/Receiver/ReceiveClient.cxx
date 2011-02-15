@@ -131,6 +131,14 @@ int main(int argc, char* argv[])
         {
         ReceiveString(socket, headerMsg);
         }
+      else if (strcmp(headerMsg->GetDeviceType(), "TDATA") == 0)
+        {
+        ReceiveTrackingData(socket, headerMsg);
+        }
+      else if (strcmp(headerMsg->GetDeviceType(), "QTDATA") == 0)
+        {
+        ReceiveQuaternionTrackingData(socket, headerMsg);
+        }
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
       else
         {
