@@ -161,7 +161,7 @@ public:
     ID_STOP_UPDATE,
     ID_CMD_STOP,            // Do not change this order
     ID_CMD_PAUSE,           // Do not change this order
-    ID_CMD_MOVETO,          // Do not change this order
+    ID_CMD_MOVETO,        // Do not change this order
     ID_CMD_MANUAL,          // Do not change this order
     ID_CMD_REMOTE,          // Do not change this order
     ID_CMD_EMERGENCY,       // Do not change this order
@@ -214,6 +214,8 @@ public:
     ID_MANUAL_PW_ON_3,  //reserved
     ID_MANUAL_PW_OFF_4, //reserved
     ID_MANUAL_PW_ON_4,  //reserved
+
+    ID_SHOWDIALOG, //Maier 3 Navigation without Slicer
 
 
     ID_LAST
@@ -679,8 +681,25 @@ public:
 
   long onCmdManualPowerSw(FXObject*, FXSelector, void*);
   long onUpdateManualPowerSw(FXObject*, FXSelector, void*);
+
+  long onCmdShowDialog(FXObject*,FXSelector,void*); //Maier
   
 };
+
+class FXTestDialog : public FXDialogBox {
+  FXDECLARE(FXTestDialog)
+protected:
+  //FXHorizontalFrame* contents;
+  FXHorizontalFrame* frplPl;
+  //FXMenuPane*        menu;
+  //FXMenuPane*        submenu;
+  //FXPopup*           pane;
+private:
+  FXTestDialog(){}
+public:
+  FXTestDialog(FXWindow* owner);
+  virtual ~FXTestDialog();
+  };
 
 
 #endif // _INC_MRSVR_MAIN_WINDOW
