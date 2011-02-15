@@ -115,8 +115,6 @@ protected:
   /** destructor */
   virtual ~Unit();
 
-  /** Print the object information in a stream. */
-  virtual void PrintSelf( std::ostream& os) const;
 
 private:
 

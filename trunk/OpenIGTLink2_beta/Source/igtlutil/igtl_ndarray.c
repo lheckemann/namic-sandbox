@@ -127,7 +127,7 @@ void igtl_export igtl_ndarray_convert_byte_order(igtl_ndarray_header* header, vo
         p8e = p8 + nelements;
         while (p8 < p8e)
           {
-          *p8 = BYTE_SWAP_INT8(*p8);
+          *p8 = *p8;
           p8 ++;
           }
         break;
