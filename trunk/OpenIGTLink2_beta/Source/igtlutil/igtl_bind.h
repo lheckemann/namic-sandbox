@@ -26,6 +26,14 @@
 #define IGTL_BIND_HOST_TO_NETWORK      0
 #define IGTL_BIND_NETWORK_TO_HOST      1
 
+// TODO: The following definition will be moved to igtl_header.h
+#define IGTL_TYPE_PREFIX_NONE     0
+#define IGTL_TYPE_PREFIX_GET      1
+#define IGTL_TYPE_PREFIX_STT      2
+#define IGTL_TYPE_PREFIX_STP      3
+#define IGTL_TYPE_PREFIX_RTS      4
+#define IGTL_NUM_TYPE_PREFIX      5
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,6 +55,10 @@ typedef struct {
 typedef struct {
   igtl_uint16             ncmessages;             /* Number of child message */
   igtl_bind_child_info *  child_info_array;       /* Array of igtl_bind_child_info */
+  igtl_uint64             resol;                  /* Time resolution (used for STT_BIND) */
+  igtl_uint8              request_all;            /* Flag to request all available data
+                                                     (used for GET_BIND and STT_BIND) */
+  igtl_uint8              status;                 /* Status for RTS message */
 } igtl_bind_info;
 
 
@@ -69,27 +81,24 @@ int igtl_export igtl_bind_free_info(igtl_bind_info * bind_info);
  * Unpack BIND message
  *
  * Extract information about child messages in a byte array of BIND messages and store
- * it in a igtl_bind_info structure. Returns 1 if success, otherwise 0.
+ * it in a igtl_bind_info structure. 'type' argument specifies a message type prefix
+ * (none, GET_, STT_, STP_ and RTS_) by IGTL_TYPE_PREFIX_* macro.
+ * Returns 1 if success, otherwise 0.
  */
 
-int igtl_export igtl_bind_unpack(void * byte_array, igtl_bind_info * info);
-int igtl_export igtl_get_bind_unpack(void * byte_array, igtl_bind_info * info);
-int igtl_export igtl_stt_bind_unpack(void * byte_array, igtl_bind_info * info);
-int igtl_export igtl_rts_bind_unpack(int * status, void * byte_array);
+int igtl_export igtl_bind_unpack(int type, void * byte_array, igtl_bind_info * info, igtl_uint64 size);
 
 /*
  * Pack BIND message
  *
  * Convert an igtl_bind_info structure to a byte array. 
  * 'byte_array' should be allocated prior to calling igtl_bind_pack() with memory size
- * calculated by igtl_bind_get_size().
+ * calculated by igtl_bind_get_size(). 'type' argument specifies a message type prefix
+ * (none, GET_, STT_, STP_ and RTS_) by IGTL_TYPE_PREFIX_* macro.
  * Returns 1 if success, otherwise 0.
  */
 
-int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array);
-int igtl_export igtl_get_bind_pack(igtl_bind_info * info, void * byte_array);
-int igtl_export igtl_stt_bind_pack(igtl_bind_info * info, void * byte_array);
-int igtl_export igtl_rts_bind_pack(int status, void * byte_array);
+int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array, int type);
 
 /*
  * Bind data size
@@ -97,9 +106,12 @@ int igtl_export igtl_rts_bind_pack(int status, void * byte_array);
  * igtl_bind_get_size() calculates the size of bind header, consisting of
  * BIND hearder section (including number of child messages) and
  * name table section based on a igtl_bind_header.
+ * The size returned from this function does not include size of child message data.
+ * 'type' argument specifies a message type prefix
+ * (none, GET_, STT_, STP_ and RTS_) by IGTL_TYPE_PREFIX_* macro.
  */
 
-igtl_uint32 igtl_export igtl_bind_get_size(igtl_bind_info * info);
+igtl_uint64 igtl_export igtl_bind_get_size(igtl_bind_info * info, int type);
 
 
 /*
@@ -110,7 +122,7 @@ igtl_uint32 igtl_export igtl_bind_get_size(igtl_bind_info * info);
  *
  */
 
-igtl_uint64 igtl_export igtl_bind_get_crc(igtl_bind_info * info, void* bind_message);
+igtl_uint64 igtl_export igtl_bind_get_crc(igtl_bind_info * info, int type, void* bind_message);
 
 #ifdef __cplusplus
 }

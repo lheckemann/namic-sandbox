@@ -182,9 +182,9 @@ int BindMessage::PackBody()
       i ++;
       }
     
-    igtl_bind_pack(&bind_info, this->m_Body);
+    igtl_bind_pack(&bind_info, this->m_Body, IGTL_TYPE_PREFIX_NONE);
     int nc = this->m_ChildMessages.size();
-    size_t bind_size = (size_t) igtl_bind_get_size(&bind_info);
+    size_t bind_size = (size_t) igtl_bind_get_size(&bind_info, IGTL_TYPE_PREFIX_NONE);
     char * ptr = (char *)this->m_Body;
     ptr = ptr + bind_size;
     for (int i = 0; i < nc; i ++)
@@ -209,7 +209,7 @@ int BindMessage::UnpackBody()
 
   igtl_bind_info bind_info;
 
-  if (igtl_bind_unpack((void*)this->m_Body, &bind_info) == 0)
+  if (igtl_bind_unpack(IGTL_TYPE_PREFIX_NONE, (void*)this->m_Body, &bind_info, this->GetPackBodySize()) == 0)
     {
     return 0;
     }
