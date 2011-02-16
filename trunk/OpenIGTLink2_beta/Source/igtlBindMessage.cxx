@@ -23,61 +23,70 @@
 
 namespace igtl {
 
-BindMessage::BindMessage():
+
+
+BindMessageBase::BindMessageBase():
   MessageBase()
 {
-  this->m_DefaultBodyType = "BIND";
-
   Init();
 }
 
 
-BindMessage::~BindMessage()
+BindMessageBase::~BindMessageBase()
 {
 }
 
-void BindMessage::Init()
+void BindMessageBase::Init()
 {
   this->m_ChildMessages.clear();
 }
 
 
-int BindMessage::SetNumberOfChildMessages(unsigned int n)
+int BindMessageBase::SetNumberOfChildMessages(unsigned int n)
 {
   this->m_ChildMessages.resize(n);
   return this->m_ChildMessages.size();
 }
 
 
-int BindMessage::GetNumberOfChildMessages()
+int BindMessageBase::GetNumberOfChildMessages()
 {
   return this->m_ChildMessages.size();
 }
 
 
-int BindMessage::AppendChildMessage(igtl::MessageBase * child)
+int BindMessageBase::AppendChildMessage(igtl::MessageBase * child)
 {
   if (this->m_ChildMessages.size() < 0xFFFF)
     {
     ChildMessageInfo info;
     info.type = child->GetDeviceType();
     info.name = child->GetDeviceName();
-    info.size = child->GetPackBodySize();
-    info.ptr  = child->GetPackBodyPointer();
+
+    // If the class instance is BindMessage.
+    if (strncmp(this->m_DefaultBodyType.c_str(), "BIND", 4) == 0)
+      {
+      info.size = child->GetPackBodySize();
+      info.ptr  = child->GetPackBodyPointer();
+      }
     this->m_ChildMessages.push_back(info);
     }
   return this->m_ChildMessages.size();
 }
 
 
-int BindMessage::SetChildMessage(unsigned int i, igtl::MessageBase * child)
+int BindMessageBase::SetChildMessage(unsigned int i, igtl::MessageBase * child)
 {
   if (i < this->m_ChildMessages.size())
     {
     this->m_ChildMessages[i].type = child->GetDeviceType();
     this->m_ChildMessages[i].name = child->GetDeviceName();
-    this->m_ChildMessages[i].size = child->GetPackBodySize();
-    this->m_ChildMessages[i].ptr  = child->GetPackBodyPointer();
+    // If the class instance is BindMessage.
+    if (strncmp(this->m_DefaultBodyType.c_str(), "BIND", 4) == 0)
+      {
+      this->m_ChildMessages[i].size = child->GetPackBodySize();
+      this->m_ChildMessages[i].ptr  = child->GetPackBodyPointer();
+      }
     return 1;
     }
   else
@@ -87,7 +96,7 @@ int BindMessage::SetChildMessage(unsigned int i, igtl::MessageBase * child)
 }
 
 
-const char* BindMessage::GetChildMessageType(unsigned int i)
+const char* BindMessageBase::GetChildMessageType(unsigned int i)
 {
   if (i < this->m_ChildMessages.size())
     {
@@ -97,6 +106,19 @@ const char* BindMessage::GetChildMessageType(unsigned int i)
     {
     return NULL;
     }
+}
+
+
+
+BindMessage::BindMessage():
+  BindMessageBase()
+{
+  this->m_DefaultBodyType = "BIND";
+}
+
+
+BindMessage::~BindMessage()
+{
 }
 
 
@@ -233,6 +255,26 @@ int BindMessage::UnpackBody()
 
   return 1;
 }
+
+
+/*
+int GetBindMessage::AppendChildMessage(const char * type, const char * name);
+{
+  if (strlen(type) < IGTL_HEADER_TYPE_SIZE &&
+      strlen(name) < IGTL_HEADER_NAME_SIZE)
+    {
+    BindMessage::ChildMessageInfo info;
+    info.type = type;
+    info.name = name;
+    this->m_ChildMessages.push_back(info);
+    }
+  return this->m_ChildMessages.size();
+}
+*/
+
+
+
+
 
 } // namespace igtl
 
