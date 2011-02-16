@@ -26,17 +26,19 @@
 
 namespace igtl
 {
-
-class IGTLCommon_EXPORT BindMessage: public MessageBase
+//
+// Base class for BindMessage, GetBindMessage and StartBindMessage
+//
+class IGTLCommon_EXPORT BindMessageBase: public MessageBase
 {
 public:
-  typedef BindMessage                    Self;
+  typedef BindMessageBase                Self;
   typedef MessageBase                    Superclass;
   typedef SmartPointer<Self>             Pointer;
   typedef SmartPointer<const Self>       ConstPointer;
 
-  igtlTypeMacro(igtl::BindMessage, igtl::MessageBase);
-  igtlNewMacro(igtl::BindMessage);
+  igtlTypeMacro(igtl::BindMessageBase, igtl::MessageBase);
+  igtlNewMacro(igtl::BindMessageBase);
 
 public:
   
@@ -49,13 +51,11 @@ public:
   int         SetChildMessage(unsigned int i, igtl::MessageBase * child);
 
   const char* GetChildMessageType(unsigned int i);
-  int         GetChildMessage(unsigned int i, igtl::MessageBase * child);
-
-  const char* GetBind();
 
 protected:
-  BindMessage();
-  ~BindMessage();
+
+  BindMessageBase();
+  ~BindMessageBase();
   
 protected:
 
@@ -65,15 +65,71 @@ protected:
     igtlUint64   size;
     void *       ptr;
   } ChildMessageInfo;
-    
+
+  std::vector<ChildMessageInfo> m_ChildMessages;
+  
+};
+
+
+class IGTLCommon_EXPORT BindMessage: public BindMessageBase
+{
+public:
+  typedef BindMessage                    Self;
+  typedef BindMessageBase                Superclass;
+  typedef SmartPointer<Self>             Pointer;
+  typedef SmartPointer<const Self>       ConstPointer;
+
+  igtlTypeMacro(igtl::BindMessage, igtl::BindMessageBase);
+  igtlNewMacro(igtl::BindMessage);
+
+public:
+  
+  int         GetChildMessage(unsigned int i, igtl::MessageBase * child);
+
+protected:
+  BindMessage();
+  ~BindMessage();
+  
+protected:
+
   virtual int  GetBodyPackSize();
   virtual int  PackBody();
   virtual int  UnpackBody();
 
-  //std::vector<igtl::MessageBase::Pointer> m_ChildMessages;
-  std::vector<ChildMessageInfo> m_ChildMessages;
-  
 };
+
+
+
+// Base class for GET_BIND and STT_BIND
+/*
+class IGTLCommon_EXPORT BindRequestMessageBase: public MessageBase
+{
+public:
+  typedef BindMessage                    Self;
+  typedef MessageBase                    Superclass;
+  typedef SmartPointer<Self>             Pointer;
+  typedef SmartPointer<const Self>       ConstPointer;
+
+  igtlTypeMacro(igtl::BindMessage, igtl::MessageBase);
+  igtlNewMacro(igtl::BindMessage);
+
+public:
+  
+  int         AppendChildMessage(const char * type, const char * name);
+  const char* GetChildMessageType(unsigned int i);
+
+protected:
+  BindMessage();
+  ~BindMessage();
+  
+protected:
+
+  virtual int  GetBodyPackSize();
+  virtual int  PackBody();
+  virtual int  UnpackBody();
+
+};
+*/
 
 
 } // namespace igtl
