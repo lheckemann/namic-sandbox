@@ -169,7 +169,7 @@ int igtl_bind_unpack_normal(void * byte_array, igtl_bind_info * info)
     for (i = 0; i < ncmessages; i ++)
       {
       strncpy(info->child_info_array[i].name, ptr, IGTL_HEADER_NAME_SIZE);
-      info->child_info_array[i].name[IGTL_HEADER_NAME_SIZE] = '\n';
+      info->child_info_array[i].name[IGTL_HEADER_NAME_SIZE] = '\0';
       namelen = strlen(info->child_info_array[i].name);
       ptr += namelen + 1;
       }
@@ -275,7 +275,7 @@ int igtl_bind_unpack_request(void * byte_array, igtl_bind_info * info, igtl_uint
     for (i = 0; i < ncmessages; i ++)
       {
       strncpy(info->child_info_array[i].name, ptr, IGTL_HEADER_NAME_SIZE);
-      info->child_info_array[i].name[IGTL_HEADER_NAME_SIZE] = '\n';
+      info->child_info_array[i].name[IGTL_HEADER_NAME_SIZE] = '\0';
       namelen = strlen(info->child_info_array[i].name);
       ptr += namelen + 1;
       }
@@ -390,6 +390,7 @@ int igtl_bind_pack_normal(igtl_bind_info * info, void * byte_array)
     }
 
 
+
   /* Name table section */
   nts = ptr; /* save address for name table size field */
   ptr += sizeof(igtl_uint16);
@@ -403,7 +404,7 @@ int igtl_bind_pack_normal(igtl_bind_info * info, void * byte_array)
       return 0;
       }
     /* copy string + NULL-terminator */
-    strncpy(ptr, info->child_info_array[i].name, IGTL_HEADER_NAME_SIZE);
+    strncpy(ptr, info->child_info_array[i].name, len+1);
     ptr += (len + 1);
     wb += len + 1;
     }
@@ -470,7 +471,7 @@ int igtl_bind_pack_request(igtl_bind_info * info, void * byte_array)
   /* BIND header section */
   for (i = 0; i < nc; i ++)
     {
-    memset(ptr, 0, IGTL_HEADER_TYPE_SIZE); /* Fill with 0 */
+    /*memset(ptr, 0, IGTL_HEADER_TYPE_SIZE); */ /* Fill with 0 */
     strncpy((char*)ptr, info->child_info_array[i].type, IGTL_HEADER_TYPE_SIZE);
     ptr += IGTL_HEADER_TYPE_SIZE;
     }
@@ -488,7 +489,7 @@ int igtl_bind_pack_request(igtl_bind_info * info, void * byte_array)
       return 0;
       }
     /* copy string + NULL-terminator */
-    strncpy(ptr, info->child_info_array[i].name, IGTL_HEADER_NAME_SIZE);
+    strncpy(ptr, info->child_info_array[i].name, len+1);
     ptr += (len + 1);
     wb += len + 1;
     }

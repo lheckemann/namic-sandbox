@@ -206,6 +206,8 @@ int main( int argc, char * argv [] )
 
   bind_size = igtl_bind_get_size(&bind_info, IGTL_TYPE_PREFIX_NONE);
   bind_header = malloc(bind_size);
+
+
   
   if (bind_header == NULL)
     {
@@ -219,6 +221,7 @@ int main( int argc, char * argv [] )
     bind_info.child_info_array[0].size +
     bind_info.child_info_array[1].size +
     bind_info.child_info_array[2].size;
+
 
   /* Set header */
   header.version = 1;
