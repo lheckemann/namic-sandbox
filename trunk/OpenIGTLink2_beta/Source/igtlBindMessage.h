@@ -103,20 +103,51 @@ class IGTLCommon_EXPORT GetBindMessage: public BindMessageBase
 {
 public:
   typedef GetBindMessage               Self;
-  typedef BindMessageBase                Superclass;
-  typedef SmartPointer<Self>             Pointer;
-  typedef SmartPointer<const Self>       ConstPointer;
+  typedef BindMessageBase              Superclass;
+  typedef SmartPointer<Self>           Pointer;
+  typedef SmartPointer<const Self>     ConstPointer;
 
   igtlTypeMacro(igtl::GetBindMessage, igtl::BindMessageBase);
   igtlNewMacro(igtl::GetBindMessage);
 
 public:
   
-  int         AppendChildMessage(const char * type, const char * name);
+  int          AppendChildMessage(const char * type, const char * name);
 
 protected:
   GetBindMessage();
   ~GetBindMessage();
+  
+protected:
+  
+  virtual int  GetBodyPackSize();
+  virtual int  PackBody();
+  virtual int  UnpackBody();
+
+};
+
+
+class IGTLCommon_EXPORT StartBindMessage: public GetBindMessage
+{
+public:
+  typedef StartBindMessage             Self;
+  typedef GetBindMessage               Superclass;
+  typedef SmartPointer<Self>           Pointer;
+  typedef SmartPointer<const Self>     ConstPointer;
+
+  igtlTypeMacro(igtl::StartBindMessage, igtl::GetBindMessage);
+  igtlNewMacro(igtl::StartBindMessage);
+
+public:
+
+  // Set/get time resolution. The time resolution is specified
+  // as a 64-bit fixed-point used in OpenIGTLink time stamp.
+  void        SetResolution(igtlUint64 res);
+  igtlUint64  GetResolution();
+
+protected:
+  StartBindMessage();
+  ~StartBindMessage();
   
 protected:
 
@@ -124,7 +155,68 @@ protected:
   virtual int  PackBody();
   virtual int  UnpackBody();
 
+  igtlUint64   m_Resolution;
+
 };
+
+
+class IGTLCommon_EXPORT StopBindMessage: public MessageBase
+{
+public:
+  typedef StopBindMessage                Self;
+  typedef MessageBase                    Superclass;
+  typedef SmartPointer<Self>             Pointer;
+  typedef SmartPointer<const Self>       ConstPointer;
+
+  igtlTypeMacro(igtl::StopBindMessage, igtl::MessageBase);
+  igtlNewMacro(igtl::StopBindMessage);
+
+protected:
+  StopBindMessage() : MessageBase() { this->m_DefaultBodyType  = "STP_BIND"; };
+  ~StopBindMessage() {};
+
+protected:
+  virtual int  GetBodyPackSize() { return 0; };
+  virtual int  PackBody()        { AllocatePack(); return 1; };
+  virtual int  UnpackBody()      { return 1; };
+
+};
+
+
+class IGTLCommon_EXPORT RTSBindMessage: public MessageBase
+{
+public:
+  typedef RTSBindMessage         Self;
+  typedef MessageBase                    Superclass;
+  typedef SmartPointer<Self>             Pointer;
+  typedef SmartPointer<const Self>       ConstPointer;
+
+  // Status type
+  enum {
+    STATUS_SUCCESS = 0,
+    STATUS_ERROR = 1
+  };
+
+
+  igtlTypeMacro(igtl::RTSBindMessage, igtl::MessageBase);
+  igtlNewMacro(igtl::RTSBindMessage);
+
+  void          SetStatus(igtlUint8 status){ this->m_Status = status; }
+  igtlUint8     GetStatus()                { return this->m_Status; };
+
+protected:
+  RTSBindMessage() : MessageBase(), m_Status(0) { this->m_DefaultBodyType  = "RTS_BIND"; };
+  ~RTSBindMessage() {};
+
+  igtlUint8 m_Status;
+
+protected:
+  virtual int  GetBodyPackSize();
+  virtual int  PackBody();
+  virtual int  UnpackBody();
+
+};
+
 
 
 } // namespace igtl
