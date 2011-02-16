@@ -66,6 +66,9 @@ igtl_uint32 igtl_export igtl_ndarray_get_data_size(igtl_ndarray_header * header,
     case IGTL_NDARRAY_STYPE_TYPE_FLOAT64:
       data_size *= 8;
       break;
+    case IGTL_NDARRAY_STYPE_TYPE_COMPLEX:
+      data_size *= 16;
+      break;
     default:
       data_size *= 0;
       break;
@@ -118,7 +121,7 @@ void igtl_export igtl_ndarray_convert_byte_order(igtl_ndarray_header* header, vo
       }
 
     /* convert the byte order of the N-D array */
-    /* check the data type (TYPE field does not endian-dependent) */
+    /* check the data type (TYPE field is not endian-dependent) */
     switch (header->type)
       {
       case IGTL_NDARRAY_STYPE_TYPE_INT8:
@@ -161,6 +164,15 @@ void igtl_export igtl_ndarray_convert_byte_order(igtl_ndarray_header* header, vo
           p64 ++;
           }
         break;
+      case IGTL_NDARRAY_STYPE_TYPE_COMPLEX:
+        p64 = (igtl_uint64*) data;
+        p64e = p64 + nelements * 2;
+        while (p64 < p64e)
+          {
+          *p64 = BYTE_SWAP_INT64(*p64);
+          p64 ++;
+          }
+        break;
       default:
         break;
       }
@@ -178,7 +190,7 @@ igtl_uint64 igtl_export igtl_ndarray_get_crc(igtl_ndarray_header * header, void*
 
   /* calculate the size of N-D array data (size table + body) */ 
   size = (igtl_uint16*) data;
-  /* convert byte order (since it is already in network byte order) */
+  /* convert byte order (since the data is already in network byte order) */
   if (igtl_is_little_endian()) 
     {
     for (i = 0; i < header->dim; i ++)
