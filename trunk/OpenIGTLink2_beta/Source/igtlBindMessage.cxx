@@ -157,6 +157,7 @@ int BindMessage::GetChildMessage(unsigned int i, igtl::MessageBase * child)
     }
 }
 
+
 int BindMessage::GetBodyPackSize()
 {
   int size;
@@ -171,10 +172,9 @@ int BindMessage::GetBodyPackSize()
     //size += strlen((*iter)->GetDeviceName()); // Device name length
     size += (*iter).name.length();
     size += 1; // NULL separator
-    size += (*iter).size;
+    size += (*iter).size + ((*iter).size%2); // child message body + padding (if applicable)
     }
 
-  // Body pack size is the sum of ENCODING, LENGTH and STRING fields
   return size;
 }
 
@@ -212,7 +212,14 @@ int BindMessage::PackBody()
     for (int i = 0; i < nc; i ++)
       {
       memcpy((void*)ptr, bind_info.child_info_array[i].ptr, bind_info.child_info_array[i].size);
-      ptr = ptr + bind_info.child_info_array[i].size;
+      ptr += bind_info.child_info_array[i].size;
+      /* Note: a padding byte is added, if the size of the child message body
+         is odd. */
+      if (bind_info.child_info_array[i].size % 2)
+        {
+        *ptr = '\0';
+        ptr ++;
+        }
       }
     
     igtl_bind_free_info(&bind_info);   // TODO: calling igtl_bind_free_info() after igtl_bind_pack() causes 
@@ -257,21 +264,118 @@ int BindMessage::UnpackBody()
 }
 
 
-/*
-int GetBindMessage::AppendChildMessage(const char * type, const char * name);
+
+GetBindMessage::GetBindMessage():
+  BindMessageBase()
+{
+  this->m_DefaultBodyType = "GET_BIND";
+}
+
+
+GetBindMessage::~GetBindMessage()
+{
+}
+
+
+int GetBindMessage::AppendChildMessage(const char * type, const char * name)
 {
   if (strlen(type) < IGTL_HEADER_TYPE_SIZE &&
       strlen(name) < IGTL_HEADER_NAME_SIZE)
     {
-    BindMessage::ChildMessageInfo info;
+    BindMessageBase::ChildMessageInfo info;
     info.type = type;
     info.name = name;
     this->m_ChildMessages.push_back(info);
     }
   return this->m_ChildMessages.size();
 }
-*/
 
+
+int GetBindMessage::GetBodyPackSize()
+{
+  int size;
+
+  size = sizeof(igtlUint16)  // Number of child messages section
+    + IGTL_HEADER_TYPE_SIZE * this->m_ChildMessages.size() // BIND header
+    + sizeof (igtlUint16);   // Size of name table section
+
+  std::vector<ChildMessageInfo>::iterator iter;
+  for (iter = this->m_ChildMessages.begin(); iter != this->m_ChildMessages.end(); iter ++)
+    {
+    size += (*iter).name.length();
+    size += 1; // NULL separator
+    }
+
+  // Body pack size is the sum of ENCODING, LENGTH and STRING fields
+  return size;
+}
+
+
+int GetBindMessage::PackBody()
+{
+  // Allocate pack
+  AllocatePack();
+
+  igtl_bind_info bind_info;
+  igtl_bind_init_info(&bind_info);
+  
+  if (igtl_bind_alloc_info(&bind_info, this->m_ChildMessages.size()))
+    {
+    // TODO: using c library causes additional data copy (C++ member variable to c-structure,
+    // then to pack byte array). Probably, it's good idea to implement PackBody() without
+    // using c APIs.
+    int i = 0;
+    std::vector<ChildMessageInfo>::iterator iter;
+    for (iter = this->m_ChildMessages.begin(); iter != this->m_ChildMessages.end(); iter ++)
+      {
+      strncpy(bind_info.child_info_array[i].type, (*iter).type.c_str(), IGTL_HEADER_TYPE_SIZE);
+      strncpy(bind_info.child_info_array[i].name, (*iter).name.c_str(), IGTL_HEADER_NAME_SIZE);
+      bind_info.child_info_array[i].size = 0;
+      bind_info.child_info_array[i].ptr = NULL;
+      i ++;
+      }
+    
+    igtl_bind_pack(&bind_info, this->m_Body, IGTL_TYPE_PREFIX_GET);
+    igtl_bind_free_info(&bind_info);
+
+    return 1;
+    }
+  else
+    {
+    return 0;
+    }
+}
+
+
+int GetBindMessage::UnpackBody()
+{
+
+  igtl_bind_info bind_info;
+
+  if (igtl_bind_unpack(IGTL_TYPE_PREFIX_NONE, (void*)this->m_Body, &bind_info, this->GetPackBodySize()) == 0)
+    {
+    return 0;
+    }
+
+  int n = bind_info.ncmessages;
+
+  Init();
+
+  for (int i = 0; i < n; i ++)
+    {
+    ChildMessageInfo info;
+
+    info.type = bind_info.child_info_array[i].type;
+    info.name = bind_info.child_info_array[i].name;
+    info.size = 0;
+    info.ptr  = NULL;
+
+    this->m_ChildMessages.push_back(info);
+
+    }
+
+  return 1;
+}
 
 
 

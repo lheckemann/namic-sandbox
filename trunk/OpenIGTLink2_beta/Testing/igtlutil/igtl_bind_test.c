@@ -35,6 +35,16 @@
 #include "igtl_test_data_status.h"
 
 #pragma pack(1)
+
+/*
+ * Structure for byte array of test message body.
+ * Since sizes of all child messages in this test program are even,
+ * there is no padding inserted at the end of each child message.
+ * In general, a padding byte is added to the end of each message body,
+ * if the message body size is odd.
+ *
+ */
+
 typedef struct {
   igtl_float32     transform[12];
 } transform_message_body;
@@ -217,11 +227,11 @@ int main( int argc, char * argv [] )
 
   igtl_bind_pack(&bind_info, bind_header, IGTL_TYPE_PREFIX_NONE);
 
+  /* Calculate the sum of child body size and paddings (0 in this test program) */
   child_body_size = 
     bind_info.child_info_array[0].size +
     bind_info.child_info_array[1].size +
     bind_info.child_info_array[2].size;
-
 
   /* Set header */
   header.version = 1;
