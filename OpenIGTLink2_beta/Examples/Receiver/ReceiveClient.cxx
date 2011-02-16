@@ -179,6 +179,7 @@ int ReceiveTransform(igtl::Socket * socket, igtl::MessageHeader::Pointer& header
     igtl::Matrix4x4 matrix;
     transMsg->GetMatrix(matrix);
     igtl::PrintMatrix(matrix);
+    std::cerr << std::endl;
     return 1;
     }
 
@@ -261,7 +262,7 @@ int ReceiveImage(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
     std::cerr << "Sub-Volume dimensions : ("
               << svsize[0] << ", " << svsize[1] << ", " << svsize[2] << ")" << std::endl;
     std::cerr << "Sub-Volume offset     : ("
-              << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl;
+              << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl << std::endl;
     return 1;
     }
 
@@ -295,7 +296,7 @@ int ReceiveStatus(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
     std::cerr << " SubCode   : " << statusMsg->GetSubCode() << std::endl;
     std::cerr << " Error Name: " << statusMsg->GetErrorName() << std::endl;
     std::cerr << " Status    : " << statusMsg->GetStatusString() << std::endl;
-    std::cerr << "============================" << std::endl;
+    std::cerr << "============================" << std::endl << std::endl;
     }
 
   return 0;
@@ -342,7 +343,7 @@ int ReceivePoint(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
       std::cerr << " Position  : ( " << std::fixed << pos[0] << ", " << pos[1] << ", " << pos[2] << " )" << std::endl;
       std::cerr << " Radius    : " << std::fixed << pointElement->GetRadius() << std::endl;
       std::cerr << " Owner     : " << pointElement->GetOwner() << std::endl;
-      std::cerr << "================================" << std::endl;
+      std::cerr << "================================" << std::endl << std::endl;
       }
     }
 
@@ -370,7 +371,7 @@ int ReceiveString(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
   if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
     {
     std::cerr << "Encoding: " << stringMsg->GetEncoding() << "; "
-              << "String: " << stringMsg->GetString() << std::endl;
+              << "String: " << stringMsg->GetString() << std::endl << std::endl;
     }
 
   return 1;
@@ -410,7 +411,7 @@ int ReceiveTrackingData(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader
       std::cerr << " Type       : " << (int) trackingElement->GetType() << std::endl;
       std::cerr << " Matrix : " << std::endl;
       igtl::PrintMatrix(matrix);
-      std::cerr << "================================" << std::endl;
+      std::cerr << "================================" << std::endl << std::endl;
       }
     return 1;
     }
@@ -452,7 +453,7 @@ int ReceiveQuaternionTrackingData(igtl::ClientSocket::Pointer& socket, igtl::Mes
       std::cerr << " Type       : " << (int) quaternionTrackingElement->GetType() << std::endl;
       std::cerr << " Position   : "; igtl::PrintVector3(position);
       std::cerr << " Quaternion : "; igtl::PrintVector4(quaternion);
-      std::cerr << "================================" << std::endl;
+      std::cerr << "================================" << std::endl << std::endl;
       }
     return 1;
     }
