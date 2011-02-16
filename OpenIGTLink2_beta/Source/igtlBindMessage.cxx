@@ -306,7 +306,6 @@ int GetBindMessage::GetBodyPackSize()
     size += 1; // NULL separator
     }
 
-  // Body pack size is the sum of ENCODING, LENGTH and STRING fields
   return size;
 }
 
@@ -315,7 +314,6 @@ int GetBindMessage::PackBody()
 {
   // Allocate pack
   AllocatePack();
-
   igtl_bind_info bind_info;
   igtl_bind_init_info(&bind_info);
   
@@ -376,6 +374,146 @@ int GetBindMessage::UnpackBody()
 
   return 1;
 }
+
+
+StartBindMessage::StartBindMessage():
+  GetBindMessage()
+{
+  this->m_DefaultBodyType = "STT_BIND";
+}
+
+
+StartBindMessage::~StartBindMessage()
+{
+}
+
+
+void StartBindMessage::SetResolution(igtlUint64 res)
+{
+  this->m_Resolution = res; 
+}
+
+
+igtlUint64 StartBindMessage::GetResolution()
+{
+  return this->m_Resolution;
+}
+
+
+int StartBindMessage::GetBodyPackSize()
+{
+  int size;
+
+  if (this->m_ChildMessages.size() == 0)
+    {
+    // Only a time stamp field is in the message
+    return sizeof(igtlUint64);
+    }
+
+  return Superclass::GetBodyPackSize() + sizeof(igtlUint64);
+}
+
+
+int StartBindMessage::PackBody()
+{
+  // Allocate pack
+  AllocatePack();
+  
+  igtl_bind_info bind_info;
+  igtl_bind_init_info(&bind_info);
+
+  // If there is no child message information in the class instance,
+  // the message request any available messages
+  if (this->m_ChildMessages.size() == 0)
+    {
+    bind_info.request_all = 1;
+    }
+  
+  if (igtl_bind_alloc_info(&bind_info, this->m_ChildMessages.size()))
+    {
+    // TODO: using c library causes additional data copy (C++ member variable to c-structure,
+    // then to pack byte array). Probably, it's good idea to implement PackBody() without
+    // using c APIs.
+    int i = 0;
+    std::vector<ChildMessageInfo>::iterator iter;
+    for (iter = this->m_ChildMessages.begin(); iter != this->m_ChildMessages.end(); iter ++)
+      {
+      strncpy(bind_info.child_info_array[i].type, (*iter).type.c_str(), IGTL_HEADER_TYPE_SIZE);
+      strncpy(bind_info.child_info_array[i].name, (*iter).name.c_str(), IGTL_HEADER_NAME_SIZE);
+      bind_info.child_info_array[i].size = 0;
+      bind_info.child_info_array[i].ptr = NULL;
+      i ++;
+      }
+    
+    bind_info.resol = this->m_Resolution;
+
+    igtl_bind_pack(&bind_info, this->m_Body, IGTL_TYPE_PREFIX_STT);
+    igtl_bind_free_info(&bind_info);
+
+    return 1;
+    }
+  else
+    {
+    return 0;
+    }
+}
+
+
+int StartBindMessage::UnpackBody()
+{
+
+  igtl_bind_info bind_info;
+
+  if (igtl_bind_unpack(IGTL_TYPE_PREFIX_NONE, (void*)this->m_Body, &bind_info, this->GetPackBodySize()) == 0)
+    {
+    return 0;
+    }
+
+  int n = bind_info.ncmessages;
+
+  this->m_Resolution = bind_info.resol;
+
+  Init();
+
+  for (int i = 0; i < n; i ++)
+    {
+    ChildMessageInfo info;
+
+    info.type = bind_info.child_info_array[i].type;
+    info.name = bind_info.child_info_array[i].name;
+    info.size = 0;
+    info.ptr  = NULL;
+
+    this->m_ChildMessages.push_back(info);
+
+    }
+
+  return 1;
+}
+
+
+int  RTSBindMessage::GetBodyPackSize()
+{ 
+  return sizeof (igtlUint8);
+}
+
+int  RTSBindMessage::PackBody()
+{
+  AllocatePack(); 
+
+  * (igtlUint8 * )this->m_Body = this->m_Status;
+
+  return 1; 
+}
+
+
+int  RTSBindMessage::UnpackBody()
+{ 
+  this->m_Status = * (igtlUint8 * )this->m_Body;
+
+  return 1; 
+}
+
 
 
 
