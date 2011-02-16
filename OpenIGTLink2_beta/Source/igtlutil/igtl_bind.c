@@ -181,7 +181,9 @@ int igtl_bind_unpack_normal(void * byte_array, igtl_bind_info * info)
   for (i = 0; i < ncmessages; i ++)
     {
     info->child_info_array[i].ptr = ptr;
-    ptr += info->child_info_array[i].size;
+    /* Note: a padding byte is added, if the size of the child message body
+       is odd. */
+    ptr += info->child_info_array[i].size + (info->child_info_array[i].size % 2);
     }
     
   /** TODO: check the total size of the message? **/
@@ -390,7 +392,6 @@ int igtl_bind_pack_normal(igtl_bind_info * info, void * byte_array)
     }
 
 
-
   /* Name table section */
   nts = ptr; /* save address for name table size field */
   ptr += sizeof(igtl_uint16);
@@ -494,14 +495,6 @@ int igtl_bind_pack_request(igtl_bind_info * info, void * byte_array)
     wb += len + 1;
     }
 
-  /* Add padding if the size of the name table section is not even */
-  if (wb % 2 > 0)
-    {
-    *((igtl_uint8*)ptr) = 0;
-    ptr ++;
-    wb ++;
-    }
-
   /* Substitute name table size */
   *nts = (igtl_uint16) wb;
   if (igtl_is_little_endian())
@@ -567,7 +560,7 @@ int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array, int typ
 
 
 /*
- * Function to calculate size of BIND message
+ * Function to calculate size of BIND message header
  */
 igtl_uint64 igtl_bind_get_size_normal(igtl_bind_info * info)
 {
@@ -632,11 +625,6 @@ igtl_uint64 igtl_bind_get_size_request(igtl_bind_info * info)
     /* string length + NULL separator */
     ntable_size += strlen(info->child_info_array[i].name) + 1;
     }
-  if (ntable_size %2 > 0)
-    {
-    ntable_size += 1;
-    }
-  size += ntable_size;
 
   return size;
 

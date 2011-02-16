@@ -99,28 +99,24 @@ protected:
 };
 
 
-
-// Base class for GET_BIND and STT_BIND
-/*
-class IGTLCommon_EXPORT BindRequestMessageBase: public MessageBase
+class IGTLCommon_EXPORT GetBindMessage: public BindMessageBase
 {
 public:
-  typedef BindMessage                    Self;
-  typedef MessageBase                    Superclass;
+  typedef GetBindMessage               Self;
+  typedef BindMessageBase                Superclass;
   typedef SmartPointer<Self>             Pointer;
   typedef SmartPointer<const Self>       ConstPointer;
 
-  igtlTypeMacro(igtl::BindMessage, igtl::MessageBase);
-  igtlNewMacro(igtl::BindMessage);
+  igtlTypeMacro(igtl::GetBindMessage, igtl::BindMessageBase);
+  igtlNewMacro(igtl::GetBindMessage);
 
 public:
   
   int         AppendChildMessage(const char * type, const char * name);
-  const char* GetChildMessageType(unsigned int i);
 
 protected:
-  BindMessage();
-  ~BindMessage();
+  GetBindMessage();
+  ~GetBindMessage();
   
 protected:
 
@@ -129,7 +125,6 @@ protected:
   virtual int  UnpackBody();
 
 };
-*/
 
 
 } // namespace igtl
