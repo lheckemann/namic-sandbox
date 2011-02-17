@@ -175,7 +175,6 @@ protected:
 };
 
 
-
 class IGTLCommon_EXPORT QuaternionTrackingDataMessage: public MessageBase
 {
 public:
