@@ -31,6 +31,9 @@
 #include "vtkMRMLSliceNode.h"
 
 class vtkIGTLConnector;
+class vtkMRMLFiducialListNode;
+class vtkSlicerApplicationGUI;
+class vtkActorCollection;
 
 class VTK_LineMotion_EXPORT vtkLineMotionLogic : public vtkSlicerModuleLogic 
 {
@@ -49,6 +52,8 @@ class VTK_LineMotion_EXPORT vtkLineMotionLogic : public vtkSlicerModuleLogic
   vtkTypeRevisionMacro(vtkLineMotionLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
 
+  void RefreshLines(vtkMRMLFiducialListNode* , vtkActorCollection* , vtkSlicerApplicationGUI*);
+
  protected:
   
   vtkLineMotionLogic();
@@ -63,7 +68,6 @@ class VTK_LineMotion_EXPORT vtkLineMotionLogic : public vtkSlicerModuleLogic
   vtkCallbackCommand *DataCallbackCommand;
 
  private:
-
 
 };
 

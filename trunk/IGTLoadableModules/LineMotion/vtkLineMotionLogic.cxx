@@ -18,6 +18,14 @@
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerApplicationGUI.h"
 
+#include "vtkLineSource.h"
+#include "vtkMRMLFiducialListNode.h"
+#include "vtkSlicerApplicationGUI.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkActor.h"
+#include "vtkRenderer.h"
+#include "vtkActorCollection.h"
+
 #include "vtkLineMotionLogic.h"
 
 vtkCxxRevisionMacro(vtkLineMotionLogic, "$Revision: 1.9.12.1 $");
@@ -73,7 +81,36 @@ void vtkLineMotionLogic::UpdateAll()
 
 }
 
-
+void vtkLineMotionLogic::RefreshLines(vtkMRMLFiducialListNode* fiducialListNode, vtkActorCollection* actorCollection, vtkSlicerApplicationGUI* slicerGUI)
+{
+  if(fiducialListNode && slicerGUI && actorCollection)
+    {
+      if(fiducialListNode->GetNumberOfFiducials() == 2)
+        {
+          vtkLineSource* lineFiducials = vtkLineSource::New();
+          float* p1 = fiducialListNode->GetNthFiducialXYZ(0);
+          float* p2 = fiducialListNode->GetNthFiducialXYZ(1);
+      
+          lineFiducials->SetPoint1(p1[0],p1[1],p1[2]);
+          lineFiducials->SetPoint2(p2[0],p2[1],p2[2]);
+          lineFiducials->Update();
+      
+          vtkPolyDataMapper* lineMapper = vtkPolyDataMapper::New();
+          lineMapper->SetInputConnection(lineFiducials->GetOutputPort());
+      
+          vtkActor* lineActor = vtkActor::New();
+          lineActor->SetMapper(lineMapper);
+      
+          actorCollection->AddItem(lineActor);
+      
+          slicerGUI->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(lineActor);
+      
+          lineActor->Delete();
+          lineMapper->Delete();
+          lineFiducials->Delete();
+        }
+    }
+}
 
 
 
