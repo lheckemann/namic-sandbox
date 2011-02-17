@@ -686,18 +686,40 @@ public:
   
 };
 
+//Class Maier Dialog Box
 class FXTestDialog : public FXDialogBox {
   FXDECLARE(FXTestDialog)
 protected:
-  //FXHorizontalFrame* contents;
   FXHorizontalFrame* frplPl;
-  //FXMenuPane*        menu;
-  //FXMenuPane*        submenu;
-  //FXPopup*           pane;
+
 private:
   FXTestDialog(){}
+  
+  FXDataTarget *dtTarget[3];
+  float valTarget[3];
 public:
   FXTestDialog(FXWindow* owner);
+  long onCmdClear();
+  long onPaintTarget();
+public:  
+  //Message Handler
+  long onPaint(FXObject*,FXSelector,void*);
+  //long onCmdClear(FXObject*, FXSelector,void*);
+  //long onPaintTarget(FXObject*, FXSelector,void*);
+  long onCmdTimer(FXObject*, FXSelector,void*);
+private: 
+   FXCanvas *canvas;
+
+public: //Messages
+  enum{
+   ID_CANVAS2=FXDialogBox::ID_LAST,
+   ID_MOVETO_TARGET,
+   ID_PAINT_TARGET,
+   ID_UPDATE_PARAMETER,
+   ID_TIMER,
+   ID_LAST
+   };
+
   virtual ~FXTestDialog();
   };
 
