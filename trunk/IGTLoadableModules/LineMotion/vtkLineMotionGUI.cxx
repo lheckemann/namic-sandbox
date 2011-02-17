@@ -323,12 +323,6 @@ void vtkLineMotionGUI::RemoveGUIObservers ( )
     this->fiducialListWidget
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
-  if (this->fiducialListNode)
-    {
-    this->fiducialListNode
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
  
   if (this->drawline)
     {
@@ -376,6 +370,12 @@ void vtkLineMotionGUI::RemoveGUIObservers ( )
     {
     this->togglePlaneVisibility
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->GetMRMLScene())
+    {
+      this->GetMRMLScene()
+        ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
   this->RemoveLogicObservers();
@@ -434,6 +434,9 @@ this->PlaneRotation
 
 this->togglePlaneVisibility->GetWidget()
   ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+ this->GetMRMLScene()
+   ->AddObserver(vtkMRMLScene::NodeRemovedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->AddLogicObservers();
 
@@ -910,8 +913,28 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
     }
 
 
+  if(this->GetMRMLScene() == vtkMRMLScene::SafeDownCast(caller)
+     && event == vtkMRMLScene::NodeRemovedEvent)
+    {
+      vtkMRMLFiducialListNode* removedNode = reinterpret_cast<vtkMRMLFiducialListNode*>(callData);
+      if(this->fiducialLists && this->lineActors)
+     {
+          int item_present = this->fiducialLists->IsItemPresent(removedNode);
+       if(item_present > 0)
+         {
+              // Remove actor in the renderer
+              vtkActor* removedActor = reinterpret_cast<vtkActor*>(this->lineActors->GetItemAsObject(item_present-1));
+              this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->RemoveActor(removedActor);
 
+              // Remove node from the fiducial list
+              this->fiducialLists->RemoveItem(removedNode);                            
 
+              // Remove Actor from the list
+           this->lineActors->RemoveItem(item_present-1);
+         }
+     }
+
+    }
 
 } 
 
