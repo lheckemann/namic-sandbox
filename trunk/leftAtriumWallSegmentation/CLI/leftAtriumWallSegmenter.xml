@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>
+    Segmentation
+  </category>
+  <title>
+    Left Atrium Cardiac Wall Segmentation
+  </title>
+  <description>
+    Segmentation of left atrium cardiac wall
+  </description>
+  <version>1.0</version>
+  <documentation-url>
+    http://wiki.na-mic.org/Wiki/index.php
+  </documentation-url>
+  <license></license>
+  <contributor>
+    Yi Gao, Behnood Gholami, Allen Tannenbaum
+  </contributor>
+  <acknowledgements>
+    This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health
+  </acknowledgements>
+
+  <parameters>
+    <label>Parameters</label>
+    <description>Input/output parameters</description>
+    <image>
+      <name>originalImageFileName</name>
+      <longflag>originalImageFileName</longflag> 
+      <label>Original Image</label>
+      <channel>input</channel>
+      <description>Original image to be segmented</description>
+    </image>
+
+    <image>
+      <name>labelImageFileName</name>
+      <label>Endo-cardiac Label Image</label>
+      <channel>input</channel>
+      <index>1</index>
+      <description>Label image for blood pool</description>
+    </image>
+
+    <image type="label">
+      <name>segmentedImageFileName</name>
+      <longflag>segmentedImageFileName</longflag> 
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <description>Segmented image</description>
+    </image>
+  </parameters>
+
+</executable>
