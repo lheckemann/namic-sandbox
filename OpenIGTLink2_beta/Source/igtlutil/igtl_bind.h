@@ -23,10 +23,6 @@
 #include "igtl_types.h"
 #include "igtl_win32header.h"
 
-#define IGTL_BIND_HOST_TO_NETWORK      0
-#define IGTL_BIND_NETWORK_TO_HOST      1
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
