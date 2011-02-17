@@ -87,7 +87,7 @@ int igtl_export igtl_ndarray_alloc_info(igtl_ndarray_info * info, const igtl_uin
     
     info->array = malloc(igtl_ndarray_get_nbyte(info->type) * len);
 
-    if (info->array)
+    if (info->array == NULL)
       {
       free(info->size);
       return 0;
@@ -156,6 +156,7 @@ int igtl_export igtl_ndarray_unpack(int type, void * byte_array, igtl_ndarray_in
 
   /*** Size array field ***/
   size = (igtl_uint16 *) ptr;
+  dim  = info->dim;
   if (igtl_is_little_endian())
     {
     /* Change byte order -- this overwrites memory area for the pack !!*/
@@ -197,7 +198,7 @@ int igtl_export igtl_ndarray_unpack(int type, void * byte_array, igtl_ndarray_in
   else if (igtl_ndarray_get_nbyte(info->type) == 2) /* 16-bit */
     {
     ptr16_src = (igtl_uint16 *) ptr;
-    ptr16_src_end += len;
+    ptr16_src_end = ptr16_src + len;
     ptr16_dst = (igtl_uint16 *) info->array;
     while (ptr16_src < ptr16_src_end)
       {
@@ -209,7 +210,7 @@ int igtl_export igtl_ndarray_unpack(int type, void * byte_array, igtl_ndarray_in
   else if (igtl_ndarray_get_nbyte(info->type) == 4) /* 32-bit */
     {
     ptr32_src = (igtl_uint32 *) ptr;
-    ptr32_src_end += len;
+    ptr32_src_end = ptr32_src + len;
     ptr32_dst = (igtl_uint32 *) info->array;
     while (ptr32_src < ptr32_src_end)
       {
@@ -222,7 +223,7 @@ int igtl_export igtl_ndarray_unpack(int type, void * byte_array, igtl_ndarray_in
     {
     ptr64_src = (igtl_uint64 *) ptr;
     /* Adding number of elements to the pointer -- 64-bit: len * 1; Complex: len * 2*/
-    ptr64_src_end += len * igtl_ndarray_get_nbyte(info->type)/8;
+    ptr64_src_end = ptr64_src + len * igtl_ndarray_get_nbyte(info->type)/8;
     ptr64_dst = (igtl_uint64 *) info->array;
     while (ptr64_src < ptr64_src_end)
       {
@@ -289,6 +290,7 @@ int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, i
     memcpy(ptr, info->size, sizeof(igtl_uint16) * info->dim);
     }
 
+  dim = info->dim;
   ptr += sizeof(igtl_uint16) * dim;
 
   /*** N-D array field ***/
@@ -309,7 +311,7 @@ int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, i
   else if (igtl_ndarray_get_nbyte(info->type) == 2) /* 16-bit */
     {
     ptr16_src = (igtl_uint16 *) info->array;
-    ptr16_src_end += len;
+    ptr16_src_end = ptr16_src + len;
     ptr16_dst = (igtl_uint16 *) ptr;
     while (ptr16_src < ptr16_src_end)
       {
@@ -321,7 +323,7 @@ int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, i
   else if (igtl_ndarray_get_nbyte(info->type) == 4) /* 32-bit */
     {
     ptr32_src = (igtl_uint32 *) info->array;
-    ptr32_src_end += len;
+    ptr32_src_end = ptr32_src + len;
     ptr32_dst = (igtl_uint32 *) ptr;
     while (ptr32_src < ptr32_src_end)
       {
@@ -334,7 +336,7 @@ int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, i
     {
     ptr64_src = (igtl_uint64 *) info->array;
     /* Adding number of elements to the pointer -- 64-bit: len * 1; Complex: len * 2*/
-    ptr64_src_end += len * igtl_ndarray_get_nbyte(info->type)/8;
+    ptr64_src_end = ptr64_src + len * igtl_ndarray_get_nbyte(info->type)/8;
     ptr64_dst = (igtl_uint64 *) ptr;
     while (ptr64_src < ptr64_src_end)
       {
@@ -349,7 +351,7 @@ int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, i
 }
 
 
-igtl_uint64 igtl_export igtl_ndarray_get_size(igtl_ndarray_info * info)
+igtl_uint64 igtl_export igtl_ndarray_get_size(igtl_ndarray_info * info, int type)
 {
   igtl_uint64 len;
   igtl_uint64 data_size;
@@ -371,13 +373,13 @@ igtl_uint64 igtl_export igtl_ndarray_get_size(igtl_ndarray_info * info)
 }
 
 
-igtl_uint64 igtl_export igtl_ndarray_get_crc(igtl_ndarray_info * info, void* data)
+igtl_uint64 igtl_export igtl_ndarray_get_crc(igtl_ndarray_info * info, int type, void* data)
 {
   int i;
   igtl_uint64   crc;
   igtl_uint64   data_size;
   
-  data_size = igtl_ndarray_get_size(info);
+  data_size = igtl_ndarray_get_size(info, type);
 
   crc = crc64(0, 0, 0);
   crc = crc64((unsigned char*) data, data_size, crc);
