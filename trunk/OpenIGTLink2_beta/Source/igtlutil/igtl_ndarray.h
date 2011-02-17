@@ -106,18 +106,7 @@ int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, i
  * size table (defined by UINT16[dim]) and array data.
  */
 
-igtl_uint64 igtl_export igtl_ndarray_get_size(igtl_ndarray_header * header, int type);
-
-/*
- * Byte order conversion
- *
- * This function converts endianness from host byte order to network byte order,
- * or vice versa. Direction of conversion (IGTL_NDARRAY_HOST_TO_NETWORK or
- * IGTL_NDARRAY_NETWORK_TO_HOST) must be specified in 'dir' when the function is called.
- */
-
-void igtl_export igtl_ndarray_convert_byte_order(igtl_ndarray_header * header, void* body, int dir);
-
+igtl_uint64 igtl_export igtl_ndarray_get_size(igtl_ndarray_info * info);
 
 /*
  * CRC calculation
@@ -127,7 +116,8 @@ void igtl_export igtl_ndarray_convert_byte_order(igtl_ndarray_header * header, v
  *
  */
 
-igtl_uint64 igtl_export igtl_ndarray_get_crc(igtl_ndarray_header * header, void* byte_array);
+igtl_uint64 igtl_export igtl_ndarray_get_crc(igtl_ndarray_info * info, void* byte_array);
+
 
 #ifdef __cplusplus
 }

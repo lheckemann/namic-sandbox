@@ -14,8 +14,8 @@
 
 =========================================================================*/
 
+#include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "igtl_ndarray.h"
 #include "igtl_util.h"
@@ -72,7 +72,7 @@ int igtl_export igtl_ndarray_alloc_info(igtl_ndarray_info * info, const igtl_uin
 
   if (info->size == NULL && info->array == NULL)
     {
-    info->size = malloc(sizeof(igtl_uint16) * (igtl_uint16) igtl_uint8);
+    info->size = malloc(sizeof(igtl_uint16) * (igtl_uint16) info->dim);
     if (info->size == NULL)
       {
       return 0;
@@ -147,11 +147,11 @@ int igtl_export igtl_ndarray_unpack(int type, void * byte_array, igtl_ndarray_in
   ptr = byte_array;
 
   /*** Type field ***/
-  info->type = *ptr;
+  info->type = * (igtl_uint8 *) ptr;
   ptr ++;
 
   /*** Dimension field ***/
-  info->dim  = *ptr;
+  info->dim  = * (igtl_uint8 *) ptr;
   ptr ++;
 
   /*** Size array field ***/
@@ -167,7 +167,7 @@ int igtl_export igtl_ndarray_unpack(int type, void * byte_array, igtl_ndarray_in
 
   igtl_ndarray_alloc_info(info, size);
 
-  memcpy(info->size, size, 1, sizeof(igtl_uint16) * dim);
+  memcpy(info->size, size, sizeof(igtl_uint16) * dim);
   if (igtl_is_little_endian())
     {
     /* Resotore the overwritten memory area */
@@ -192,7 +192,7 @@ int igtl_export igtl_ndarray_unpack(int type, void * byte_array, igtl_ndarray_in
     {
     /* If single-byte data type is used or the program runs on a big-endian machine,
        just copy the array from the pack to the strucutre */
-    memcpy(info->array, ptr, 1, len * igtl_ndarray_get_nbyte(info->type));
+    memcpy(info->array, ptr, len * igtl_ndarray_get_nbyte(info->type));
     }
   else if (igtl_ndarray_get_nbyte(info->type) == 2) /* 16-bit */
     {
@@ -268,11 +268,11 @@ int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, i
   ptr = byte_array;
 
   /*** Type field ***/
-  *ptr = info->type;
+  * (igtl_uint8 *) ptr = info->type;
   ptr ++;
 
   /*** Dimension field ***/
-  *ptr = info->dim;
+  *  (igtl_uint8 *) ptr = info->dim;
   ptr ++;
 
   /*** Size array field ***/
@@ -286,7 +286,7 @@ int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, i
     }
   else
     {
-    memcpy(ptr, info->size, 1, sizeof(igtl_uint16) * info->dim);
+    memcpy(ptr, info->size, sizeof(igtl_uint16) * info->dim);
     }
 
   ptr += sizeof(igtl_uint16) * dim;
@@ -304,7 +304,7 @@ int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, i
     {
     /* If single-byte data type is used or the program runs on a big-endian machine,
        just copy the array from the pack to the strucutre */
-    memcpy(ptr, info->array, 1, len * igtl_ndarray_get_nbyte(info->type));
+    memcpy(ptr, info->array, len * igtl_ndarray_get_nbyte(info->type));
     }
   else if (igtl_ndarray_get_nbyte(info->type) == 2) /* 16-bit */
     {
@@ -349,157 +349,38 @@ int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, i
 }
 
 
-igtl_uint32 igtl_export igtl_ndarray_get_data_size(igtl_ndarray_header * header, igtl_uint16 * size)
+igtl_uint64 igtl_export igtl_ndarray_get_size(igtl_ndarray_info * info)
 {
-
-  int i;
-  int dim;     /* number of dimensions */
-  igtl_uint32 data_size;
-
-  dim = header->dim;
-  data_size = igtl_ndarray_calculate_nelement(size, dim);
-
-  /* multiply number of bytes per element */
-  data_size *= igtl_ndarray_get_nbyte(header->type)
-
+  igtl_uint64 len;
+  igtl_uint64 data_size;
+  igtl_uint16 i;
+  igtl_uint16 dim;
   
-  /* adding the size of size table */
-  data_size += (igtl_uint32) (dim * sizeof(igtl_uint16));
+  dim = info->dim;
+  len = 1;
+  for (i = 0; i < dim; i ++)
+    {
+    len *= (igtl_uint64)info->size[i];
+    }
+
+  data_size = sizeof(igtl_uint8) * 2 + sizeof(igtl_uint16) * (igtl_uint64) dim
+    + len * igtl_ndarray_get_nbyte(info->type);
 
   return data_size;
+
 }
 
 
-void igtl_export igtl_ndarray_convert_byte_order(igtl_ndarray_header* header, void* data, int dir)
-{
-
-  int i;
-  int dim;
-  int nbyte;  /* bytes per element (either 1, 2, 4, 8) */
-  int nelements;
-  igtl_uint16* size;
-  igtl_uint8*  p8, p8e;
-  igtl_uint16* p16, p16e;
-  igtl_uint32* p32, p32e;
-  igtl_uint64* p64, p64e;
-
-  if (igtl_is_little_endian()) 
-    {
-    dim = (int) header->dim;
-    size = (igtl_uint16*) data;
-
-    /* if the function is called to convert from the host byte order to the network byte order,
-       first calculate the number of elements in the N-D array data */
-    if (dir == IGTL_NDARRAY_HOST_TO_NETWORK)
-      {
-      nelements = igtl_ndarray_calculate_nelement(size, dim);
-      /* convert the byte order of the size table */
-      for (i = 0; i < header->dim; i ++)
-        {
-        size[i] = BYTE_SWAP_INT16(size[i]);
-        }
-      }
-    else /* if (dir == IGTL_NDARRAY_HOST_TO_NETWORK) */
-      {
-      /* convert the byte order of the size table */
-      for (i = 0; i < header->dim; i ++)
-        {
-        size[i] = BYTE_SWAP_INT16(size[i]);
-        }
-      nelements = igtl_ndarray_calculate_nelement(size, dim);
-      }
-
-    /* convert the byte order of the N-D array */
-    /* check the data type (TYPE field is not endian-dependent) */
-    switch (header->type)
-      {
-      case IGTL_NDARRAY_STYPE_TYPE_INT8:
-      case IGTL_NDARRAY_STYPE_TYPE_UINT8:
-        p8 = (igtl_uint8*) data;
-        p8e = p8 + nelements;
-        while (p8 < p8e)
-          {
-          *p8 = *p8;
-          p8 ++;
-          }
-        break;
-      case IGTL_NDARRAY_STYPE_TYPE_INT16:
-      case IGTL_NDARRAY_STYPE_TYPE_UINT16:
-        p16 = (igtl_uint16*) data;
-        p16e = p16 + nelements;
-        while (p16 < p16e)
-          {
-          *p16 = BYTE_SWAP_INT16(*p16);
-          p16 ++;
-          }
-        break;
-      case IGTL_NDARRAY_STYPE_TYPE_INT32:
-      case IGTL_NDARRAY_STYPE_TYPE_UINT32:
-      case IGTL_NDARRAY_STYPE_TYPE_FLOAT32:
-        p32 = (igtl_uint32*) data;
-        p32e = p32 + nelements;
-        while (p32 < p32e)
-          {
-          *p32 = BYTE_SWAP_INT32(*p32);
-          p32 ++;
-          }
-        break;
-      case IGTL_NDARRAY_STYPE_TYPE_FLOAT64:
-        p64 = (igtl_uint64*) data;
-        p64e = p64 + nelements;
-        while (p64 < p64e)
-          {
-          *p64 = BYTE_SWAP_INT64(*p64);
-          p64 ++;
-          }
-        break;
-      case IGTL_NDARRAY_STYPE_TYPE_COMPLEX:
-        p64 = (igtl_uint64*) data;
-        p64e = p64 + nelements * 2;
-        while (p64 < p64e)
-          {
-          *p64 = BYTE_SWAP_INT64(*p64);
-          p64 ++;
-          }
-        break;
-      default:
-        break;
-      }
-    }
-  
-}
-
-
-igtl_uint64 igtl_export igtl_ndarray_get_crc(igtl_ndarray_header * header, void* data)
+igtl_uint64 igtl_export igtl_ndarray_get_crc(igtl_ndarray_info * info, void* data)
 {
   int i;
   igtl_uint64   crc;
-  int           data_size;
-  igtl_uint16*  size;
-
-  /* calculate the size of N-D array data (size table + body) */ 
-  size = (igtl_uint16*) data;
-  /* convert byte order (since the data is already in network byte order) */
-  if (igtl_is_little_endian()) 
-    {
-    for (i = 0; i < header->dim; i ++)
-      {
-      size[i] = BYTE_SWAP_INT16(size[i]);
-      }
-    }
-  data_size = (int) igtl_ndarray_get_data_size(header, size);
-  /* convert byte order to the original */
-  if (igtl_is_little_endian()) 
-    {
-    for (i = 0; i < header->dim; i ++)
-      {
-      size[i] = BYTE_SWAP_INT16(size[i]);
-      }
-    }
+  igtl_uint64   data_size;
+  
+  data_size = igtl_ndarray_get_size(info);
 
   crc = crc64(0, 0, 0);
-  crc = crc64((unsigned char*) header, IGTL_NDARRAY_HEADER_SIZE, crc);
-  crc = crc64((unsigned char*) data, (int)data_size, crc);
+  crc = crc64((unsigned char*) data, data_size, crc);
 
   return crc;
 }
