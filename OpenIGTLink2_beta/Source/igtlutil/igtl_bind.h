@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Program:   OpenIGTLink Library
+  Program:   The OpenIGTLink Library
   Module:    $HeadURL: $
   Language:  C
   Date:      $Date: 2010-11-23 14:47:40 -0500 (Tue, 23 Nov 2010) $
@@ -25,14 +25,6 @@
 
 #define IGTL_BIND_HOST_TO_NETWORK      0
 #define IGTL_BIND_NETWORK_TO_HOST      1
-
-// TODO: The following definition will be moved to igtl_header.h
-#define IGTL_TYPE_PREFIX_NONE     0
-#define IGTL_TYPE_PREFIX_GET      1
-#define IGTL_TYPE_PREFIX_STT      2
-#define IGTL_TYPE_PREFIX_STP      3
-#define IGTL_TYPE_PREFIX_RTS      4
-#define IGTL_NUM_TYPE_PREFIX      5
 
 
 #ifdef __cplusplus
@@ -82,7 +74,7 @@ int igtl_export igtl_bind_free_info(igtl_bind_info * bind_info);
  *
  * Extract information about child messages in a byte array of BIND messages and store
  * it in a igtl_bind_info structure. 'type' argument specifies a message type prefix
- * (none, GET_, STT_, STP_ and RTS_) by IGTL_TYPE_PREFIX_* macro.
+ * (none, GET_, STT_, STP_ or RTS_) by IGTL_TYPE_PREFIX_* macro.
  * Returns 1 if success, otherwise 0.
  */
 
@@ -94,7 +86,7 @@ int igtl_export igtl_bind_unpack(int type, void * byte_array, igtl_bind_info * i
  * Convert an igtl_bind_info structure to a byte array. 
  * 'byte_array' should be allocated prior to calling igtl_bind_pack() with memory size
  * calculated by igtl_bind_get_size(). 'type' argument specifies a message type prefix
- * (none, GET_, STT_, STP_ and RTS_) by IGTL_TYPE_PREFIX_* macro.
+ * (none, GET_, STT_, STP_ or RTS_) by IGTL_TYPE_PREFIX_* macro.
  * Returns 1 if success, otherwise 0.
  */
 
@@ -108,7 +100,7 @@ int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array, int typ
  * name table section based on a igtl_bind_header.
  * The size returned from this function does not include size of child message data.
  * 'type' argument specifies a message type prefix
- * (none, GET_, STT_, STP_ and RTS_) by IGTL_TYPE_PREFIX_* macro.
+ * (none, GET_, STT_, STP_ or RTS_) by IGTL_TYPE_PREFIX_* macro.
  */
 
 igtl_uint64 igtl_export igtl_bind_get_size(igtl_bind_info * info, int type);
