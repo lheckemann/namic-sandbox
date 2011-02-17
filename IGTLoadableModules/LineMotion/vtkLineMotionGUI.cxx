@@ -50,6 +50,7 @@
 #include "vtkKWEntryWithLabel.h"
 #include "vtkPlaneSource.h"
 #include "vtkKWCheckButtonWithLabel.h"
+#include "vtkCollection.h"
 
 #include "vtkCornerAnnotation.h"
 
@@ -77,21 +78,26 @@ vtkLineMotionGUI::vtkLineMotionGUI ( )
   this->fiducialListWidget = NULL;
   this->fiducialListNode = NULL;
   this->drawline = NULL;
+  this->keepLine = NULL;
+  this->removeLine = NULL;
+
+  this->fiducialLists = vtkCollection::New();
+  this->lineActors = vtkActorCollection::New();
 
   this->translation = NULL;
-  this->transformNode = NULL;
-  this->transformMatrix = NULL;
-  this->lineBetweenFiducials = NULL;
+  this->transformNode = vtkMRMLLinearTransformNode::New();
+  this->transformMatrix = vtkMatrix4x4::New();
+  this->lineBetweenFiducials = vtkLineSource::New();
   this->lineRange = NULL;
 
   this->WholeRangeWidget = NULL;
   this->UpdateWholeRangeButton = NULL;
 
-  this->AxisPlane = NULL;
+  this->AxisPlane = vtkPlaneSource::New();
   this->PlaneRotation = NULL;
 
   this->togglePlaneVisibility = NULL;
-  this->planeActor = NULL;
+  this->planeActor = vtkActor::New();
 
   this->lineCenter[0] = 0;
   this->lineCenter[1] = 0;
@@ -131,9 +137,14 @@ vtkLineMotionGUI::vtkLineMotionGUI ( )
   this->dpoint2[1] = 0;
   this->dpoint2[2] = 0;
 
-  this->normalVector[0] = 0;
-  this->normalVector[1] = 0;
-  this->normalVector[2] = 0;
+  this->normalVector1[0] = 0;
+  this->normalVector1[1] = 0;
+  this->normalVector1[2] = 0;
+
+  this->normalVector2[0] = 0;
+  this->normalVector2[1] = 0;
+  this->normalVector2[2] = 0;
+
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -171,6 +182,28 @@ vtkLineMotionGUI::~vtkLineMotionGUI ( )
     {
     this->drawline->SetParent(NULL);
     this->drawline->Delete();
+    }
+
+  if (this->keepLine)
+    {
+    this->keepLine->SetParent(NULL);
+    this->keepLine->Delete();
+    }
+
+  if (this->removeLine)
+    {
+    this->removeLine->SetParent(NULL);
+    this->removeLine->Delete();
+    }
+
+  if (this->fiducialLists)
+    {
+    this->fiducialLists->Delete();
+    }
+
+  if (this->lineActors)
+    {
+    this->lineActors->Delete();
     }
 
   if (this->translation)
@@ -303,6 +336,18 @@ void vtkLineMotionGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->keepLine)
+    {
+    this->keepLine
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->removeLine)
+    {
+    this->removeLine
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->translation)
     {
     this->translation
@@ -360,10 +405,19 @@ void vtkLineMotionGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // GUI Observers
 
- this->fiducialListWidget
+this->fiducialListWidget
    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
 
- this->drawline
+this->fiducialListWidget
+   ->AddObserver(vtkSlicerNodeSelectorWidget::NewNodeEvent, (vtkCommand *)this->GUICallbackCommand);
+
+this->drawline
+   ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand); 
+
+this->keepLine
+   ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand); 
+
+this->removeLine
    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand); 
 
 this->translation
@@ -437,16 +491,32 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
     if(this->fiducialListWidget->GetSelected())
       {
      this->fiducialListNode = reinterpret_cast<vtkMRMLFiducialListNode*>(this->fiducialListWidget->GetSelected());
-        this->fiducialListNode->SetName("LineMotionFiducialList");
+        //this->fiducialListNode->SetName("LineMotionFiducialList");
+        if(this->fiducialListNode)
+       {
+         this->ApplicationLogic->GetSelectionNode()->SetActiveFiducialListID(this->fiducialListNode->GetID());
+       }
         this->fiducialListWidget->UpdateMenu();
       }
     
+    }
+
+  if (this->fiducialListWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+    if(this->fiducialListWidget->GetSelected())
+      {
+      this->fiducialListNode = reinterpret_cast<vtkMRMLFiducialListNode*>(this->fiducialListWidget->GetSelected());
+      this->fiducialListNode->Modified();
+      this->fiducialListWidget->UpdateMenu();
+      }
     }
 
   // DrawLine Button Pressed
   if(this->drawline == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
+      
     if(this->fiducialListNode && (this->fiducialListNode->GetNumberOfFiducials() == 2))
       {
       // Get Fiducials from the list
@@ -461,19 +531,17 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
       this->dpoint2[0] = point2[0];
       this->dpoint2[1] = point2[1];
       this->dpoint2[2] = point2[2];
-     
-      // Create a line if not already existing
-      if(!this->lineBetweenFiducials)
-        {
-        this->lineBetweenFiducials = vtkLineSource::New();
-        }
-         
-      this->lineBetweenFiducials->SetPoint1(dpoint1);
-      this->lineBetweenFiducials->SetPoint2(dpoint2);
-      this->lineBetweenFiducials->Update();
-     
+      
+      // Create a line
+      if(this->lineBetweenFiducials)
+     {         
+        this->lineBetweenFiducials->SetPoint1(dpoint1);
+        this->lineBetweenFiducials->SetPoint2(dpoint2);
+        this->lineBetweenFiducials->Update();
+     }
+
       vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
-      mapper->SetInput(this->lineBetweenFiducials->GetOutput());
+      mapper->SetInputConnection(this->lineBetweenFiducials->GetOutputPort());
      
       vtkActor* lineactor = vtkActor::New();
       lineactor->SetMapper(mapper);
@@ -527,33 +595,41 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
       this->lineRange->SetRange(-this->PVectorLength, this->PVectorLength);
       this->Modified();
 
-      // Add Plane in the center
-      if(!this->AxisPlane)
-        {
-        this->AxisPlane = vtkPlaneSource::New();
-        }
+      // Create perpendiculars vector
+      vtkMath* perpendicularVectors = vtkMath::New();
+      perpendicularVectors->Perpendiculars(this->P1VectorNormalized,this->normalVector1,this->normalVector2,0);
+      perpendicularVectors->Delete();
  
-      // FIXME: Orientation of the plane (How to place point 1 and point 2 to have a plane in direction of the vector ?)
+      // Create perpendicular plane
       if(this->AxisPlane && this->lineCenter)
-     {        
-        this->AxisPlane->SetPoint1(this->lineCenter[0]+50*this->P1VectorNormalized[0],this->lineCenter[1]+50*this->P1VectorNormalized[1],this->lineCenter[2]+50*this->P1VectorNormalized[2]);
-        this->AxisPlane->SetPoint2(this->lineCenter[0]-50*this->P1VectorNormalized[0],this->lineCenter[1]-50*this->P1VectorNormalized[1],this->lineCenter[2]-50*this->P1VectorNormalized[2]);
-        this->AxisPlane->SetCenter(this->lineCenter[0],this->lineCenter[1],this->lineCenter[2]);
-        this->AxisPlane->SetNormal(this->P1Vector);
+     {
+      double Point1XYZ[3] = {50*this->normalVector1[0],
+                               50*this->normalVector1[1],
+                               50*this->normalVector1[2]};
+
+      double Point2XYZ[3] = {50*this->normalVector2[0],
+                               50*this->normalVector2[1],
+                               50*this->normalVector2[2]};
+
+
+        this->AxisPlane->SetOrigin(this->lineCenter[0],this->lineCenter[1],this->lineCenter[2]);  
+        this->AxisPlane->SetPoint1(this->lineCenter[0]+Point1XYZ[0],this->lineCenter[1]+Point1XYZ[1],this->lineCenter[2]+Point1XYZ[2]);
+        this->AxisPlane->SetPoint2(this->lineCenter[0]+Point2XYZ[0],this->lineCenter[1]+Point2XYZ[1],this->lineCenter[2]+Point2XYZ[2]);
+     this->AxisPlane->SetCenter(this->lineCenter[0],this->lineCenter[1],this->lineCenter[2]);
         this->AxisPlane->Update();
+
      }
      
       vtkPolyDataMapper* mapperPlane = vtkPolyDataMapper::New();
       mapperPlane->SetInput(this->AxisPlane->GetOutput());
      
-      this->planeActor = vtkActor::New();
       this->planeActor->SetMapper(mapperPlane);
      
       this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(this->planeActor);
       this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
       
       mapperPlane->Delete();
-  
+ 
       this->togglePlaneVisibility->GetWidget()->SetSelectedState(1);
       
       // Reset Scale
@@ -561,27 +637,25 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
        {
       this->translation->SetValue(0);
        }
-
-      // Create a transform node if not already existing
-      if(!this->transformNode)
+      
+      // Create a transform node if not already existing  
+      if(this->transformNode && this->transformMatrix)
         {
-        this->transformNode = vtkMRMLLinearTransformNode::New();
-        this->transformNode->SetScene(this->GetMRMLScene()); 
         this->GetMRMLScene()->AddNode(this->transformNode);
         this->GetMRMLScene()->Modified();
 
-        this->transformMatrix = vtkMatrix4x4::New();
         vtkMatrix4x4* tempMatrix = this->transformNode->GetMatrixTransformToParent();        
         this->transformMatrix->Identity();
 
         tempMatrix->DeepCopy(this->transformMatrix);
         this->transformNode->Modified(); 
         }
-
+      
       // Set Default Whole Range value
       this->WholeRangeWidget->GetWidget()->SetValueAsDouble(this->PVectorLength+200);
 
       }
+      
    }
 
   // lineRange Changed
@@ -771,6 +845,74 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
         this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
      }
     }
+
+
+  if(this->keepLine == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+      bool already_inside = false;
+      if(this->fiducialLists && this->fiducialListNode)
+     {
+       for(int i=0;i<this->fiducialLists->GetNumberOfItems();i++)
+         {
+           vtkMRMLFiducialListNode* tempFiducialListNode = reinterpret_cast<vtkMRMLFiducialListNode*>(this->fiducialLists->GetItemAsObject(i));
+              if(tempFiducialListNode->GetID() == this->fiducialListNode->GetID())
+          {
+            already_inside = true;
+          }
+         }
+           
+          if(!already_inside)
+         {
+              this->fiducialLists->AddItem(this->fiducialListNode);
+              this->GetLogic()->RefreshLines(this->fiducialListNode,this->lineActors, this->GetApplicationGUI());
+              this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+         }
+
+     }
+
+    }
+
+
+  if(this->removeLine == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+      bool already_inside = false;
+      if(this->fiducialLists && this->fiducialListNode)
+     {
+       for(int i=0;i<this->fiducialLists->GetNumberOfItems();i++)
+         {
+           vtkMRMLFiducialListNode* tempFiducialListNode = reinterpret_cast<vtkMRMLFiducialListNode*>(this->fiducialLists->GetItemAsObject(i));
+              if(tempFiducialListNode->GetID() == this->fiducialListNode->GetID())
+          {
+            already_inside = true;
+          }
+         }
+           
+          if(already_inside)
+         {
+           int item_present = this->fiducialLists->IsItemPresent(this->fiducialListNode);
+ 
+           if(item_present > 0)
+          {
+            int item_number = item_present - 1;
+                  this->fiducialLists->RemoveItem(this->fiducialListNode);
+                  vtkActor* ItemToRemove = reinterpret_cast<vtkActor*>(this->lineActors->GetItemAsObject(item_number)); 
+                  this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->RemoveActor(ItemToRemove);
+                  this->lineActors->RemoveItem(ItemToRemove);
+
+                 this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+          }
+         }
+
+     }
+
+    }
+
+
+
+
+
 } 
 
 
@@ -875,16 +1017,24 @@ void vtkLineMotionGUI::BuildGUIForLineMotion()
   frame->SetLabelText ("Select Fiducial List");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  frame->GetWidgetName() );
+
+
+  vtkKWFrame *frame4 = vtkKWFrame::New();
+  frame4->SetParent(frame->GetFrame());
+  frame4->Create();
+  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 frame4->GetWidgetName() );
+  
   
   // -----------------------------------------
   // Node Selector (vtkMRMLFiducialListNode)
 
   this->fiducialListWidget = vtkSlicerNodeSelectorWidget::New ( );
-  this->fiducialListWidget->SetParent ( frame->GetFrame() );
+  this->fiducialListWidget->SetParent ( frame4 );
   this->fiducialListWidget->Create ( );
   this->fiducialListWidget->SetNodeClass("vtkMRMLFiducialListNode",NULL,NULL,NULL);
-  this->fiducialListWidget->SetWidth(30);
-  this->fiducialListWidget->SetNewNodeEnabled(0);
+  //this->fiducialListWidget->SetWidth(30);
+  this->fiducialListWidget->SetNewNodeEnabled(1);
   this->fiducialListWidget->SetMRMLScene(this->GetMRMLScene());
   this->fiducialListWidget->UpdateMenu();
 
@@ -892,14 +1042,39 @@ void vtkLineMotionGUI::BuildGUIForLineMotion()
   // Draw line button
 
   this->drawline = vtkKWPushButton::New();
-  this->drawline->SetParent ( frame->GetFrame() );
+  this->drawline->SetParent ( frame4 );
   this->drawline->Create();
   this->drawline->SetText("Draw Line");
 
-  this->Script("pack %s %s -side top -fill x -padx 2 -pady 2", 
-               this->fiducialListWidget->GetWidgetName(),
+
+  app->Script("pack %s %s -fill x -side top -expand y -padx 2 -pady 2",
+               this->fiducialListWidget->GetWidgetName(), 
                this->drawline->GetWidgetName());
 
+
+  // -----------------------------------------
+  // Keep and remove line buttons
+
+  vtkKWFrame *frame3 = vtkKWFrame::New();
+  frame3->SetParent(frame->GetFrame());
+  frame3->Create();
+  app->Script ( "pack %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+                 frame3->GetWidgetName() );
+  
+  this->keepLine = vtkKWPushButton::New();
+  this->keepLine->SetParent ( frame3 );
+  this->keepLine->Create();
+  this->keepLine->SetText("Keep Line");
+ 
+  this->removeLine = vtkKWPushButton::New();
+  this->removeLine->SetParent ( frame3 );
+  this->removeLine->Create();
+  this->removeLine->SetText("Remove Line");
+
+  app->Script("pack %s %s -side left -fill x -expand y -padx 2 -pady 2", 
+               this->keepLine->GetWidgetName(),
+               this->removeLine->GetWidgetName());
+ 
 
   // -----------------------------------------
   // Motion frame
@@ -962,8 +1137,8 @@ void vtkLineMotionGUI::BuildGUIForLineMotion()
   conBrowsFrame->Delete();
   frame->Delete();
   frame2->Delete();
-
-
+  frame3->Delete();
+  frame4->Delete();
 }
 
 

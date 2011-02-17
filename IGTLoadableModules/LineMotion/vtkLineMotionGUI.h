@@ -37,6 +37,8 @@ class vtkPlaneSource;
 class vtkKWCheckButtonWithLabel;
 class vtkActor;
 class vtkMatrix4x4;
+class vtkCollection;
+class vtkActorCollection;
 
 class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
 {
@@ -128,6 +130,11 @@ class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
   vtkSlicerNodeSelectorWidget* fiducialListWidget;
   vtkMRMLFiducialListNode* fiducialListNode;
   vtkKWPushButton* drawline;
+  vtkKWPushButton* keepLine;
+  vtkKWPushButton* removeLine;
+
+  vtkCollection* fiducialLists;
+  vtkActorCollection* lineActors;
 
   vtkKWScale* translation;
   vtkKWScale* PlaneRotation;
@@ -168,7 +175,8 @@ class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
   double lineTip2[3];
 
   // Normal vector to the line
-  double normalVector[3];
+  double normalVector1[3];
+  double normalVector2[3];
 
   //----------------------------------------------------------------
   // Logic Values
