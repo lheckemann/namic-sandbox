@@ -106,7 +106,7 @@ int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, i
  * size table (defined by UINT16[dim]) and array data.
  */
 
-igtl_uint64 igtl_export igtl_ndarray_get_size(igtl_ndarray_info * info);
+  igtl_uint64 igtl_export igtl_ndarray_get_size(igtl_ndarray_info * info, int type);
 
 /*
  * CRC calculation
@@ -116,7 +116,7 @@ igtl_uint64 igtl_export igtl_ndarray_get_size(igtl_ndarray_info * info);
  *
  */
 
-igtl_uint64 igtl_export igtl_ndarray_get_crc(igtl_ndarray_info * info, void* byte_array);
+igtl_uint64 igtl_export igtl_ndarray_get_crc(igtl_ndarray_info * info, int type, void* byte_array);
 
 
 #ifdef __cplusplus
