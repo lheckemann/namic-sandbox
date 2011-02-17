@@ -27,6 +27,15 @@
 #define IGTL_HEADER_TYPESIZE  IGTL_HEADER_TYPE_SIZE
 #define IGTL_HEADER_NAMESIZE  IGTL_HEADER_NAME_SIZE
 
+// Device name prefix macro
+#define IGTL_TYPE_PREFIX_NONE     0
+#define IGTL_TYPE_PREFIX_GET      1
+#define IGTL_TYPE_PREFIX_STT      2
+#define IGTL_TYPE_PREFIX_STP      3
+#define IGTL_TYPE_PREFIX_RTS      4
+#define IGTL_NUM_TYPE_PREFIX      5
+
+
 #include "igtl_types.h"
 #include "igtl_win32header.h"
 
