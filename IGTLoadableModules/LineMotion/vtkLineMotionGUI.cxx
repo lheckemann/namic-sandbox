@@ -83,6 +83,7 @@ vtkLineMotionGUI::vtkLineMotionGUI ( )
 
   this->fiducialLists = vtkCollection::New();
   this->lineActors = vtkActorCollection::New();
+  this->colorActors = vtkCollection::New();
 
   this->translation = NULL;
   this->transformNode = vtkMRMLLinearTransformNode::New();
@@ -204,6 +205,11 @@ vtkLineMotionGUI::~vtkLineMotionGUI ( )
   if (this->lineActors)
     {
     this->lineActors->Delete();
+    }
+
+  if (this->colorActors)
+    {
+    this->colorActors->Delete();
     }
 
   if (this->translation)
@@ -868,7 +874,7 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
           if(!already_inside)
          {
               this->fiducialLists->AddItem(this->fiducialListNode);
-              this->GetLogic()->RefreshLines(this->fiducialListNode,this->lineActors, this->GetApplicationGUI());
+              this->GetLogic()->RefreshLines(this->fiducialListNode,this->lineActors, this->colorActors , this->GetApplicationGUI());
               this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
          }
 
@@ -903,6 +909,7 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
                   vtkActor* ItemToRemove = reinterpret_cast<vtkActor*>(this->lineActors->GetItemAsObject(item_number)); 
                   this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->RemoveActor(ItemToRemove);
                   this->lineActors->RemoveItem(ItemToRemove);
+                  this->colorActors->RemoveItem(ItemToRemove);
 
                  this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
           }

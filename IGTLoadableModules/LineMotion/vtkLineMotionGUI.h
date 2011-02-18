@@ -135,6 +135,7 @@ class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
 
   vtkCollection* fiducialLists;
   vtkActorCollection* lineActors;
+  vtkCollection* colorActors;
 
   vtkKWScale* translation;
   vtkKWScale* PlaneRotation;
@@ -170,7 +171,7 @@ class VTK_LineMotion_EXPORT vtkLineMotionGUI : public vtkSlicerModuleGUI
   double P1VectorNormalized[3];
   double P2VectorNormalized[3];
 
-  // New point of the line after sliding
+ // New point of the line after sliding
   double lineTip1[3];
   double lineTip2[3];
 
