@@ -25,6 +25,8 @@
 #include "vtkActor.h"
 #include "vtkRenderer.h"
 #include "vtkActorCollection.h"
+#include "vtkProperty.h"
+#include "vtkColor.h"
 
 #include "vtkLineMotionLogic.h"
 
@@ -81,9 +83,9 @@ void vtkLineMotionLogic::UpdateAll()
 
 }
 
-void vtkLineMotionLogic::RefreshLines(vtkMRMLFiducialListNode* fiducialListNode, vtkActorCollection* actorCollection, vtkSlicerApplicationGUI* slicerGUI)
+void vtkLineMotionLogic::RefreshLines(vtkMRMLFiducialListNode* fiducialListNode, vtkActorCollection* actorCollection, vtkCollection* color, vtkSlicerApplicationGUI* slicerGUI)
 {
-  if(fiducialListNode && slicerGUI && actorCollection)
+  if(fiducialListNode && slicerGUI && actorCollection && color)
     {
       if(fiducialListNode->GetNumberOfFiducials() == 2)
         {
@@ -100,7 +102,38 @@ void vtkLineMotionLogic::RefreshLines(vtkMRMLFiducialListNode* fiducialListNode,
       
           vtkActor* lineActor = vtkActor::New();
           lineActor->SetMapper(lineMapper);
-      
+          lineActor->GetProperty()->SetColor((double)rand()/RAND_MAX,(double)rand()/RAND_MAX,(double)rand()/RAND_MAX);         
+ 
+
+          // FIXME: Be sure color is not already existing         
+       
+           // // Generate random color and make sure not already generated
+       //   bool color_existing = false;  // To avoid compilation warning, shouldn't be defined on loop 
+          //   double col[3] = {0,0,0};    // Idem
+ 
+          //   do
+       //     {
+       //       col[0] = (double)(rand()/RAND_MAX);
+          //       col[1] = (double)(rand()/RAND_MAX);
+          //       col[2] = (double)(rand()/RAND_MAX);
+ 
+          //       bool color_existing = false;
+          //       for(int i=0; i<color->GetNumberOfItems();i++)
+       //         {
+       //          double* assigned_color = reinterpret_cast<double*>(color->GetItemAsObject(i));
+          //           if(assigned_color[0] == col[0] && assigned_color[1] == col[1] && assigned_color[2] == col[2])
+       //            {
+       //              color_existing = true;
+       //            }
+       //         }        
+
+       //     }
+       //   while(color_existing);
+
+        
+          // lineActor->GetProperty()->SetColor(col[0],col[1],col[2]);
+
+          // color->AddItem((vtkObject*)(col));
           actorCollection->AddItem(lineActor);
       
           slicerGUI->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(lineActor);

@@ -52,7 +52,7 @@ class VTK_LineMotion_EXPORT vtkLineMotionLogic : public vtkSlicerModuleLogic
   vtkTypeRevisionMacro(vtkLineMotionLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
 
-  void RefreshLines(vtkMRMLFiducialListNode* , vtkActorCollection* , vtkSlicerApplicationGUI*);
+  void RefreshLines(vtkMRMLFiducialListNode* , vtkActorCollection* , vtkCollection*, vtkSlicerApplicationGUI*);
 
  protected:
   
