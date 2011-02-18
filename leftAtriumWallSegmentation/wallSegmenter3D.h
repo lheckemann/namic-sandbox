@@ -1,7 +1,7 @@
 #ifndef wallSegmenter3D_h_
 #define wallSegmenter3D_h_
 
-#include "sfls/SFLSSegmentor3D.h"
+#include "SFLSSegmentor3D.h"
 
 #include <list>
 

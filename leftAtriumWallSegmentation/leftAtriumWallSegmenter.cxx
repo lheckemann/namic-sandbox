@@ -9,8 +9,8 @@
 #include <string>
 
 
-#include "../localChanVeseWallSegmenter3D.h"
-#include "../utilities.hxx"
+#include "localChanVeseWallSegmenter3D.h"
+#include "utilities.hxx"
 
 
 //itk
