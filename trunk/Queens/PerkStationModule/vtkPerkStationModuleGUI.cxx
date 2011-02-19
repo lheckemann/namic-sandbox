@@ -92,14 +92,16 @@ vtkPerkStationModuleGUI
 
 void
 vtkPerkStationModuleGUI
-::SetEntryPosition( double x, double y )
+::SetEntryPosition( double* ras )
 {
+  double wc[ 3 ] = { 0, 0, 0 };
+  this->PointRASToRedSlice( ras, wc );
   vtkSmartPointer< vtkSphereSource > eSource = vtkSmartPointer< vtkSphereSource >::New();
     eSource->SetRadius( 0.5 );
   vtkSmartPointer< vtkTransform > eTransform = vtkSmartPointer< vtkTransform >::New();
     eTransform->PostMultiply();
     eTransform->Identity();
-    eTransform->Translate( x, y, 0 );
+    eTransform->Translate( wc[ 0 ], wc[ 1 ], 0 );
   vtkSmartPointer< vtkTransformPolyDataFilter > eTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
     eTransformFilter->SetTransform( eTransform );
     eTransformFilter->Update();
@@ -115,14 +117,16 @@ vtkPerkStationModuleGUI
 
 void
 vtkPerkStationModuleGUI
-::SetTargetPosition( double x, double y )
+::SetTargetPosition( double* ras )
 {
+  double wc[ 3 ] = { 0, 0, 0 };
+  this->PointRASToRedSlice( ras, wc );
   vtkSmartPointer< vtkSphereSource > source = vtkSmartPointer< vtkSphereSource >::New();
     source->SetRadius( 0.5 );
   vtkSmartPointer< vtkTransform > transform = vtkSmartPointer< vtkTransform >::New();
     transform->PostMultiply();
     transform->Identity();
-    transform->Translate( x, y, 0 );
+    transform->Translate( wc[ 0 ], wc[ 1 ], 0 );
   vtkSmartPointer< vtkTransformPolyDataFilter > transformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
     transformFilter->SetTransform( transform );
     transformFilter->Update();
@@ -132,6 +136,38 @@ vtkPerkStationModuleGUI
   this->TargetActor->SetMapper( mapper );
   this->TargetActor->SetVisibility( 0 );
   this->TargetActor->GetProperty()->SetColor( 1.0, 0.8, 0.3 );
+}
+
+
+
+void
+vtkPerkStationModuleGUI
+::PointRASToRedSlice( double* ras, double* red )
+{
+  vtkRenderer *renderer = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->
+                          GetRenderWidget()->GetOverlayRenderer();
+  
+  vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->
+                                GetApplicationGUI() )->GetMainSliceGUI( "Red" );
+  
+  vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+  vtkSmartPointer< vtkMatrix4x4 > rasToXY = vtkSmartPointer< vtkMatrix4x4 >::New();
+  
+  vtkMatrix4x4::Invert( xyToRAS, rasToXY );
+  
+  double worldCoordinate[ 4 ];
+  
+  double ras4[ 4 ] = { ras[ 0 ], ras[ 1 ], ras[ 2 ], 1.0 };
+  double xy[ 4 ];
+  rasToXY->MultiplyPoint( ras4, xy );
+  
+  renderer->SetDisplayPoint( xy[ 0 ], xy[ 1 ], 0 );
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint( worldCoordinate );
+  
+  red[ 0 ] = worldCoordinate[ 0 ];
+  red[ 1 ] = worldCoordinate[ 1 ];
+  red[ 2 ] = worldCoordinate[ 2 ];
 }
 
 

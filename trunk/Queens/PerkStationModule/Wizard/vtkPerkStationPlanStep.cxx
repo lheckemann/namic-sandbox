@@ -572,6 +572,9 @@ vtkPerkStationPlanStep
     this->GetGUI()->GetMRMLNode()->SetPlanEntryPoint( ras );
     this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 0, ras[ 0 ], ras[ 1 ], ras[ 2 ] );
     this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 0, 1 );
+    
+    this->GetGUI()->SetEntryPosition( ras );
+    this->GetGUI()->EntryActor->SetVisibility( 1 );
     }
   else if ( this->NumPointsSelected == targetClick )
     {
@@ -579,6 +582,9 @@ vtkPerkStationPlanStep
     this->GetGUI()->GetMRMLNode()->SetPlanTargetPoint( ras );
     this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 1, ras[ 0 ], ras[ 1 ], ras[ 2 ] );
     this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 1, 1 );
+    
+    this->GetGUI()->SetTargetPosition( ras );
+    this->GetGUI()->TargetActor->SetVisibility( 1 );
     }
   
   
@@ -739,18 +745,23 @@ vtkPerkStationPlanStep
   this->RemoveOverlayNeedleGuide();
   
   double point[ 3 ];
+  double wcPoint[ 3 ];
   
   plan->GetEntryPointRAS( point );
+  this->GetGUI()->PointRASToRedSlice( point, wcPoint );
   this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 0, point[ 0 ], point[ 1 ], point[ 2 ] );
   moduleNode->SetPlanEntryPoint( point );
-  // this->GetGUI()->SetEntryPosition( point[ 0 ], point[ 1 ] );
-  // this->GetGUI()->EntryActor->SetVisibility( 1 );
+  
+  this->GetGUI()->SetEntryPosition( point );
+  this->GetGUI()->EntryActor->SetVisibility( 1 );
   
   plan->GetTargetPointRAS( point );
+  this->GetGUI()->PointRASToRedSlice( point, wcPoint );
   this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 1, point[ 0 ], point[ 1 ], point[ 2 ] );
   moduleNode->SetPlanTargetPoint( point );
-  // this->GetGUI()->SetTargetPosition( point[ 0 ], point[ 1 ] );
-  // this->GetGUI()->TargetActor->SetVisibility( 1 );
+  
+  this->GetGUI()->SetTargetPosition( point );
+  this->GetGUI()->TargetActor->SetVisibility( 1 );
   
   this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 1 );
   
@@ -793,15 +804,6 @@ vtkPerkStationPlanStep
 {
   vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->
     GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
-
-  
-    // get the world coordinates of Entry and Target points.
-  
-  vtkSlicerSliceGUI *sliceGUI =
-    vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
-  vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
-  vtkSmartPointer< vtkMatrix4x4 > rasToXY = vtkSmartPointer< vtkMatrix4x4 >::New();
-  vtkMatrix4x4::Invert( xyToRAS, rasToXY );
   
   int entryPointXY[ 2 ];
   int targetPointXY[ 2 ];
@@ -815,33 +817,13 @@ vtkPerkStationPlanStep
   
   double rasEntry[ 3 ];
   moduleNode->GetPlanEntryPoint( rasEntry );
-  double inPt[ 4 ] = { rasEntry[ 0 ], rasEntry[ 1 ], rasEntry[ 2 ], 1.0 };
-  double outPt[ 4 ];  
-  rasToXY->MultiplyPoint( inPt, outPt );
-  entryPointXY[ 0 ] = outPt[ 0 ];
-  entryPointXY[ 1 ] = outPt[ 1 ];
   
-  renderer->SetDisplayPoint( entryPointXY[ 0 ], entryPointXY[ 1 ], 0 );
-  renderer->DisplayToWorld();
-  renderer->GetWorldPoint( worldCoordinate );
-  this->WCEntryPoint[ 0 ] = worldCoordinate[ 0 ];
-  this->WCEntryPoint[ 1 ] = worldCoordinate[ 1 ];
-  this->WCEntryPoint[ 2 ] = worldCoordinate[ 2 ];
+  this->GetGUI()->PointRASToRedSlice( rasEntry, this->WCEntryPoint );
   
   double rasTarget[ 3 ];
   moduleNode->GetPlanTargetPoint( rasTarget );
-  inPt[ 0 ] = rasTarget[ 0 ];
-  inPt[ 1 ] = rasTarget[ 1 ];
-  inPt[ 2 ] = rasTarget[ 2 ];
-  rasToXY->MultiplyPoint( inPt, outPt );
-  targetPointXY[ 0 ] = outPt[ 0 ];
-  targetPointXY[ 1 ] = outPt[ 1 ];
-  renderer->SetDisplayPoint( targetPointXY[ 0 ], targetPointXY[ 1 ], 0 );
-  renderer->DisplayToWorld();
-  renderer->GetWorldPoint( worldCoordinate );
-  this->WCTargetPoint[ 0 ] = worldCoordinate[ 0 ];
-  this->WCTargetPoint[ 1 ] = worldCoordinate[ 1 ];
-  this->WCTargetPoint[ 2 ] = worldCoordinate[ 2 ];
+  
+  this->GetGUI()->PointRASToRedSlice( rasTarget, this->WCTargetPoint );
   
   
     // steps
@@ -892,10 +874,19 @@ vtkPerkStationPlanStep
   
   this->NeedleActor->SetMapper( needleMapper );  
   this->NeedleActor->GetProperty()->SetOpacity( 0.3 );
+  this->NeedleActor->SetVisibility( 1 );
   
-  // add to renderer of the Axial slice viewer
-  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
-    GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->AddActor( this->NeedleActor );
+  
+  vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->
+      GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
+      GetOverlayRenderer()->GetActors();
+  
+  if ( ! collection->IsItemPresent( this->NeedleActor ) )
+    {
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
+              GetOverlayRenderer()->AddActor( this->NeedleActor );
+    }
+  
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->RequestRender(); 
 }
 
@@ -961,8 +952,9 @@ vtkPerkStationPlanStep
   
   if ( collection->IsItemPresent( this->NeedleActor ) )
     {
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
-          GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->RemoveActor( this->NeedleActor );
+    // this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->
+    //       GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->RemoveActor( this->NeedleActor );
+    this->NeedleActor->SetVisibility( 0 );
     this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->RequestRender();
     }
 }
