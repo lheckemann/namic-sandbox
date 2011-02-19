@@ -107,8 +107,10 @@ public:
   vtkActor* EntryActor;
   vtkActor* TargetActor;
   
-  void SetEntryPosition( double x, double y );
-  void SetTargetPosition( double x, double y );
+  void SetEntryPosition( double* ras );
+  void SetTargetPosition( double* ras );
+  
+  void PointRASToRedSlice( double* ras, double* red );
   
   
 protected:
