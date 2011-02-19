@@ -539,6 +539,8 @@ vtkPerkStationPlanStep
     {
     this->NumPointsSelected = 1;
     this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 0 );
+    this->GetGUI()->EntryActor->SetVisibility( 0 );
+    this->GetGUI()->TargetActor->SetVisibility( 1 );
     this->RemoveOverlayNeedleGuide();
     }
   
@@ -741,12 +743,17 @@ vtkPerkStationPlanStep
   plan->GetEntryPointRAS( point );
   this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 0, point[ 0 ], point[ 1 ], point[ 2 ] );
   moduleNode->SetPlanEntryPoint( point );
+  // this->GetGUI()->SetEntryPosition( point[ 0 ], point[ 1 ] );
+  // this->GetGUI()->EntryActor->SetVisibility( 1 );
   
   plan->GetTargetPointRAS( point );
   this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 1, point[ 0 ], point[ 1 ], point[ 2 ] );
   moduleNode->SetPlanTargetPoint( point );
+  // this->GetGUI()->SetTargetPosition( point[ 0 ], point[ 1 ] );
+  // this->GetGUI()->TargetActor->SetVisibility( 1 );
   
   this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 1 );
+  
   
   moduleNode->SetCurrentSliceOffset( point[ 2 ] );
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->SetSliceOffset( moduleNode->GetCurrentSliceOffset() );
@@ -844,8 +851,7 @@ vtkPerkStationPlanStep
     // i.e. using the insertion angle
     // add it to slice viewer's renderer
   
-  vtkSmartPointer< vtkCylinderSource > needleGuide =
-    vtkSmartPointer< vtkCylinderSource >::New();
+  vtkSmartPointer< vtkCylinderSource > needleGuide = vtkSmartPointer< vtkCylinderSource >::New();
   
   // TO DO: how to relate this to actual depth???
   
@@ -928,6 +934,9 @@ vtkPerkStationPlanStep
   
   this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 0 );
   
+  this->GetGUI()->EntryActor->SetVisibility( 0 );
+  this->GetGUI()->TargetActor->SetVisibility( 0 );
+  
   // reset local member variables to defaults
   this->WCEntryPoint[0] = 0.0;
   this->WCEntryPoint[1] = 0.0;
@@ -1000,6 +1009,10 @@ vtkPerkStationPlanStep
       {
       mrmlNode->RemovePlanAtIndex( mrmlNode->GetCurrentPlanIndex() );
       this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 0 );
+      
+      this->GetGUI()->EntryActor->SetVisibility( 0 );
+      this->GetGUI()->TargetActor->SetVisibility( 0 );
+      
       this->RemoveOverlayNeedleGuide();
       mrmlNode->SetCurrentPlanIndex( - 1 );
       this->UpdateGUI();

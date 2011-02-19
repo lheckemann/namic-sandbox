@@ -11,6 +11,7 @@
 #include "itkMetaDataObject.h"
 #include "itkGDCMImageIO.h"
 
+#include "vtkActor.h"
 #include "vtkCommand.h"
 #include "vtkCornerAnnotation.h"
 #include "vtkDICOMImageReader.h"
@@ -19,8 +20,15 @@
 #include "vtkImageReslice.h"
 #include "vtkMatrixToHomogeneousTransform.h"
 #include "vtkObjectFactory.h"
+#include "vtkPolyData.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkProperty.h"
 #include "vtkProperty2D.h"
 #include "vtkRenderer.h"
+#include "vtkSmartPointer.h"
+#include "vtkSphereSource.h"
+#include "vtkTransform.h"
+#include "vtkTransformPolyDataFilter.h"
 #include "vtkWin32OpenGLRenderWindow.h"
 
 #include "vtkKWApplication.h"
@@ -79,6 +87,53 @@ vtkPerkStationModuleGUI
     // If the factory was unable to create the object, then create it here.
   return new vtkPerkStationModuleGUI;
 }
+
+
+
+void
+vtkPerkStationModuleGUI
+::SetEntryPosition( double x, double y )
+{
+  vtkSmartPointer< vtkSphereSource > eSource = vtkSmartPointer< vtkSphereSource >::New();
+    eSource->SetRadius( 0.5 );
+  vtkSmartPointer< vtkTransform > eTransform = vtkSmartPointer< vtkTransform >::New();
+    eTransform->PostMultiply();
+    eTransform->Identity();
+    eTransform->Translate( x, y, 0 );
+  vtkSmartPointer< vtkTransformPolyDataFilter > eTransformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+    eTransformFilter->SetTransform( eTransform );
+    eTransformFilter->Update();
+  vtkSmartPointer< vtkPolyDataMapper > eMapper = vtkSmartPointer< vtkPolyDataMapper >::New();
+    eMapper->SetInput( eTransformFilter->GetOutput() );
+    eMapper->Update();
+  this->EntryActor->SetMapper( eMapper );
+  this->EntryActor->SetVisibility( 0 );
+  this->EntryActor->GetProperty()->SetColor( 0.9, 1.0, 0.3 ); 
+}
+
+
+
+void
+vtkPerkStationModuleGUI
+::SetTargetPosition( double x, double y )
+{
+  vtkSmartPointer< vtkSphereSource > source = vtkSmartPointer< vtkSphereSource >::New();
+    source->SetRadius( 0.5 );
+  vtkSmartPointer< vtkTransform > transform = vtkSmartPointer< vtkTransform >::New();
+    transform->PostMultiply();
+    transform->Identity();
+    transform->Translate( x, y, 0 );
+  vtkSmartPointer< vtkTransformPolyDataFilter > transformFilter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+    transformFilter->SetTransform( transform );
+    transformFilter->Update();
+  vtkSmartPointer< vtkPolyDataMapper > mapper = vtkSmartPointer< vtkPolyDataMapper >::New();
+    mapper->SetInput( transformFilter->GetOutput() );
+    mapper->Update();
+  this->TargetActor->SetMapper( mapper );
+  this->TargetActor->SetVisibility( 0 );
+  this->TargetActor->GetProperty()->SetColor( 1.0, 0.8, 0.3 );
+}
+
 
 
 /**
@@ -148,6 +203,26 @@ vtkPerkStationModuleGUI
   this->TwoFiducials->SetTextScale( 8 );
   this->TwoFiducials->SetSaveWithScene( 0 );
   
+  vtkSmartPointer< vtkSphereSource > eSource = vtkSmartPointer< vtkSphereSource >::New();
+    eSource->SetRadius( 0.5 );
+  vtkSmartPointer< vtkPolyDataMapper > eMapper = vtkSmartPointer< vtkPolyDataMapper >::New();
+    eMapper->SetInput( eSource->GetOutput() );
+    eMapper->Update();
+  this->EntryActor = vtkActor::New();
+    this->EntryActor->SetMapper( eMapper );
+    this->EntryActor->SetVisibility( 0 );
+    this->EntryActor->GetProperty()->SetColor( 1.0, 1.0, 0.0 );
+  
+  vtkSmartPointer< vtkSphereSource > tSource = vtkSmartPointer< vtkSphereSource >::New();
+    tSource->SetRadius( 0.5 );
+  vtkSmartPointer< vtkPolyDataMapper > tMapper = vtkSmartPointer< vtkPolyDataMapper >::New();
+    tMapper->SetInput( tSource->GetOutput() );
+    tMapper->Update();
+  this->TargetActor = vtkActor::New();
+    this->TargetActor->SetMapper( tMapper );
+    this->TargetActor->SetVisibility( 0 );
+    this->TargetActor->GetProperty()->SetColor( 1.0, 0.7, 0.0 );
+  
   
     // Initial state.
   
@@ -203,6 +278,9 @@ vtkPerkStationModuleGUI
   DELETE_IF_NOT_NULL( this->ValidateStep );
   
   DELETE_IF_NOT_NULL( this->TimerLog );
+  
+  DELETE_IF_NOT_NULL( this->EntryActor );
+  DELETE_IF_NOT_NULL( this->TargetActor );
 }
 
 
@@ -1197,6 +1275,13 @@ vtkPerkStationModuleGUI
   this->BuildGUIForExperimentFrame();
   this->BuildGUIForWorkphases();
   
+  
+  this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
+        GetOverlayRenderer()->AddActor( this->EntryActor );
+  this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
+        GetOverlayRenderer()->AddActor( this->TargetActor );
+  
+  
   this->Built = true;
 }
 
@@ -1677,6 +1762,9 @@ vtkPerkStationModuleGUI
     }
   this->TwoFiducials->SetAllFiducialsVisibility( 0 );
   
+  this->EntryActor->SetVisibility( 0 );
+  this->TargetActor->SetVisibility( 0 );
+  
   
   if ( ! this->MRMLNode->SwitchStep( phase ) ) // Set next phase
     {
@@ -1760,6 +1848,9 @@ vtkPerkStationModuleGUI
   if ( phase == this->Calibrate )
     {
     this->TwoFiducials->SetAllFiducialsVisibility( 0 );
+    
+    this->EntryActor->SetVisibility( 0 );
+    this->TargetActor->SetVisibility( 0 );
     }
     
   

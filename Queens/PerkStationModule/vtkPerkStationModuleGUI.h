@@ -19,6 +19,9 @@ class vtkPerkStationSecondaryMonitor;
 
 #include "vtkSmartPointer.h"
 
+
+class vtkActor;
+
 class vtkKWFrame;
 class vtkKWFrameWithLabel;
 class vtkKWPushButton;
@@ -101,8 +104,15 @@ public:
   vtkSmartPointer< vtkMRMLFiducialListNode > TwoFiducials;
   //ETX
   
+  vtkActor* EntryActor;
+  vtkActor* TargetActor;
+  
+  void SetEntryPosition( double x, double y );
+  void SetTargetPosition( double x, double y );
+  
   
 protected:
+  
   
   vtkPerkStationModuleGUI();
   virtual ~vtkPerkStationModuleGUI();
