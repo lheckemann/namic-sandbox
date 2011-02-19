@@ -90,7 +90,7 @@ protected:
   bool DoubleEqual( double val1, double val2 );
   
 
-  // GUI widgets --------------------------------------------------------------
+    // GUI widgets ------------------------------------------------------------
   
   vtkKWFrame* TargetFirstFrame;
   vtkKWCheckButtonWithLabel* TargetFirstCheck;
@@ -109,6 +109,7 @@ protected:
   //ETX
   
     // World coordinates for display.
+  
   double WCEntryPoint[ 3 ];
   double WCTargetPoint[ 3 ];
 
