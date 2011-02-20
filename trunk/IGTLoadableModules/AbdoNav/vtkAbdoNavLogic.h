@@ -27,6 +27,7 @@
 #include "vtkMRMLCrosshairNode.h"
 
 /* Slicer includes */
+#include "vtkSlicerApplicationGUI.h"
 #include "vtkSlicerModuleLogic.h"
 
 class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
@@ -93,6 +94,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkGetMacro(RegistrationPerformed, bool);
   vtkSetObjectMacro(Crosshair, vtkMRMLCrosshairNode);
   vtkSetMacro(ShowCrosshair, bool);
+  vtkSetObjectMacro(AppGUI, vtkSlicerApplicationGUI);
+  vtkSetMacro(DrawNeedleProjection, bool);
   vtkSetMacro(FreezeReslicing, bool);
   vtkSetMacro(ObliqueReslicing, bool);
 
@@ -123,6 +126,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkMatrix4x4* LocatorFreezePosition;
   /// Pointer to access the crosshair node.
   vtkMRMLCrosshairNode* Crosshair;
+  /// Pointer to access the Slicer GUI.
+  vtkSlicerApplicationGUI* AppGUI;
   /// Pointers to access the three different slice orientations.
   vtkMRMLSliceNode* SliceNode[3];
   /// Holds the slice driver (User == 0, Locator == 1) for each slice orientation (Red == 0,
@@ -135,6 +140,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   bool RegistrationPerformed;
   /// Flag indicating whether or not to show the crosshair in the slice views.
   bool ShowCrosshair;
+  /// Flag indicating whether or not to draw the needle projection in the slice views.
+  bool DrawNeedleProjection;
   /// Flag indicating whether or not to freeze reslicing.
   bool FreezeReslicing;
   /// Flag indicating whether or not position and orientation of the tracked tool should be used for reslicing.
