@@ -83,7 +83,9 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   /// the physician to decide whether or not the needle is in-plane. Therefore, the projected
   /// line consists of a green and a red part with the red part indicating the off-plane angle.
   /// That is, the line is completely green when the needle is in-plane and is almost comple-
-  /// tely red when the needle is close to being perpendicular to the slice plane.
+  /// tely red when the needle is close to being perpendicular to the slice plane. Depending on
+  /// whether the needle is in front of the slice plane or behind it, the line is either solid
+  /// or dashed respectively.
   void UpdateNeedleProjection(vtkMatrix4x4* registeredTracker);
   /// Set pointers to access the three different slice orientations.
   void CheckSliceNode();
