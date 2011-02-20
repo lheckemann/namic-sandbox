@@ -72,7 +72,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   void SetSliceDriver(int sliceIndex, const char* driver);
   /// Convenience function that calls UpdateSlicePlane(...) on each slice node driven
   /// by the locator, updates the crosshair in each slice view (if selected by user)
-  /// and calls DrawNeedleProjection(...) on each slice view (if selected by user).
+  /// and calls UpdateNeedleProjection(...) on each slice view (if selected by user).
   void UpdateAll();
   /// Perform reslicing in the specified slice node given the registered tracking data.
   void UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* registeredTracker);
