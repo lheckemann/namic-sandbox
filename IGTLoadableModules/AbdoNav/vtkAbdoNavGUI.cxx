@@ -702,6 +702,12 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
         }
       }
     }
+  else if (this->DrawNeedleProjectionCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
+    {
+    int checked = this->DrawNeedleProjectionCheckButton->GetSelectedState();
+    this->AbdoNavLogic->SetDrawNeedleProjection(checked);
+    this->AbdoNavLogic->SetAppGUI(this->GetApplicationGUI());
+    }
   else if (this->RedSliceMenuButton->GetMenu() == vtkKWMenu::SafeDownCast(caller) && event == vtkKWMenu::MenuItemInvokedEvent)
     {
     this->AbdoNavLogic->SetSliceDriver(0, this->RedSliceMenuButton->GetValue());
