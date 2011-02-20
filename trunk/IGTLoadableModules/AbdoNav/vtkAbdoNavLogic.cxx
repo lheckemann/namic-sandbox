@@ -48,6 +48,7 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
       this->SliceNode[i] = NULL;
       }
   this->Crosshair = NULL;
+  this->AppGUI = NULL;
   // initialize each slice orientation (Red == 0, Yellow == 1, Green == 2) to be driven by the user (== 0)
   for (int i = 0; i < 3; i++)
     {
@@ -55,6 +56,7 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
     }
   this->RegistrationPerformed = 0;
   this->ShowCrosshair = 0;
+  this->DrawNeedleProjection = 0;
   this->FreezeReslicing = 0;
   this->ObliqueReslicing = 0;
 }
