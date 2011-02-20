@@ -133,7 +133,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   int SliceOrientation[3];
   /// Flag indicating whether or not registration has been performed yet.
   bool RegistrationPerformed;
-  /// Flag indicating whether or not to show a crosshair corresponding to the locator's tip position.
+  /// Flag indicating whether or not to show the crosshair in the slice views.
   bool ShowCrosshair;
   /// Flag indicating whether or not to freeze reslicing.
   bool FreezeReslicing;
