@@ -76,6 +76,15 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   void UpdateAll();
   /// Perform reslicing in the specified slice node given the registered tracking data.
   void UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* registeredTracker);
+  /// Update the needle projection in the specified slice view. Due to being a projection of
+  /// the procedure needle's direction vector, the line being drawn grows and shrinks. That
+  /// is, the line has maximum length when the needle is in-plane and is invisible when the
+  /// needle is perpendicular to the slice plane. Due to this behavior, it's impossible for
+  /// the physician to decide whether or not the needle is in-plane. Therefore, the projected
+  /// line consists of a green and a red part with the red part indicating the off-plane angle.
+  /// That is, the line is completely green when the needle is in-plane and is almost comple-
+  /// tely red when the needle is close to being perpendicular to the slice plane.
+  void UpdateNeedleProjection(vtkMatrix4x4* registeredTracker);
   /// Set pointers to access the three different slice orientations.
   void CheckSliceNode();
   /// Find and return the locator. Return NULL if not found.
@@ -130,6 +139,10 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkMRMLCrosshairNode* Crosshair;
   /// Pointer to access the Slicer GUI.
   vtkSlicerApplicationGUI* AppGUI;
+  /// Actor used to draw the green part of the needle projection.
+  vtkActor2D* Actor2DGreen;
+  /// Actor used to draw the red part of the needle projection.
+  vtkActor2D* Actor2DRed;
   /// Pointers to access the three different slice orientations.
   vtkMRMLSliceNode* SliceNode[3];
   /// Holds the slice driver (User == 0, Locator == 1) for each slice orientation (Red == 0,

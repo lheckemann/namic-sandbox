@@ -49,6 +49,8 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
       }
   this->Crosshair = NULL;
   this->AppGUI = NULL;
+  this->Actor2DGreen = NULL;
+  this->Actor2DRed = NULL;
   // initialize each slice orientation (Red == 0, Yellow == 1, Green == 2) to be driven by the user (== 0)
   for (int i = 0; i < 3; i++)
     {
@@ -85,6 +87,14 @@ vtkAbdoNavLogic::~vtkAbdoNavLogic()
   if (this->Crosshair)
     {
     this->Crosshair->Delete();
+    }
+  if (this->Actor2DGreen)
+    {
+    this->Actor2DGreen->Delete();
+    }
+  if (this->Actor2DRed)
+    {
+    this->Actor2DRed->Delete();
     }
 }
 
@@ -343,6 +353,18 @@ void vtkAbdoNavLogic::UpdateAll()
         }
       }
 
+    // update the needle projection
+    //
+    // the check for this->AppGUI != NULL is necessary because
+    // the event triggering this->UpdateAll() (and thereby also
+    // triggering this->UpdateNeedleProjection(...) which reads
+    // this->AppGUI) might occur before this->AppGUI is set via
+    // vtkAbdoNavGUI
+    if (this->AppGUI != NULL)
+      {
+      this->UpdateNeedleProjection(registeredTracker);
+      }
+
     // cleanup
     registeredTracker->Delete();
     }
@@ -424,6 +446,13 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
     }
 
   this->SliceNode[sliceNodeIndex]->UpdateMatrices();
+}
+
+
+//---------------------------------------------------------------------------
+void vtkAbdoNavLogic::UpdateNeedleProjection(vtkMatrix4x4* registeredTracker)
+{
+
 }
 
 
