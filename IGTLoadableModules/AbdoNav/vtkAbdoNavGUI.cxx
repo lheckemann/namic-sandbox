@@ -79,6 +79,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   this->ProjectionLengthScale = NULL;
   this->FreezeLocatorCheckButton = NULL;
   this->ShowCrosshairCheckButton = NULL;
+  this->DrawNeedleCheckButton = NULL;
   this->RedSliceMenuButton = NULL;
   this->YellowSliceMenuButton = NULL;
   this->GreenSliceMenuButton = NULL;
@@ -208,6 +209,11 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->ShowCrosshairCheckButton->SetParent(NULL);
     this->ShowCrosshairCheckButton->Delete();
     }
+  if (this->DrawNeedleCheckButton)
+    {
+    this->DrawNeedleCheckButton->SetParent(NULL);
+    this->DrawNeedleCheckButton->Delete();
+    }
   if (this->RedSliceMenuButton)
     {
     this->RedSliceMenuButton->SetParent(NULL);
@@ -323,6 +329,7 @@ void vtkAbdoNavGUI::AddGUIObservers()
   this->ProjectionLengthScale->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->FreezeLocatorCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->ShowCrosshairCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->DrawNeedleCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->RedSliceMenuButton->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->YellowSliceMenuButton->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->GreenSliceMenuButton->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
@@ -410,6 +417,10 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
   if (this->ShowCrosshairCheckButton)
     {
     this->ShowCrosshairCheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->DrawNeedleCheckButton)
+    {
+    this->DrawNeedleCheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
   if (this->RedSliceMenuButton)
     {
@@ -1189,10 +1200,19 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->ShowCrosshairCheckButton->SetBalloonHelpString("Show/hide the crosshair.");
   this->ShowCrosshairCheckButton->SelectedStateOff();
 
+  // create check button to draw/hide the needle projection in the slice views
+  this->DrawNeedleCheckButton = vtkKWCheckButton::New();
+  this->DrawNeedleCheckButton->SetParent(locatorOptionsFrame->GetFrame());
+  this->DrawNeedleCheckButton->Create();
+  this->DrawNeedleCheckButton->SetText("Draw needle projection");
+  this->DrawNeedleCheckButton->SetBalloonHelpString("Draw/hide the needle projection.");
+  this->DrawNeedleCheckButton->SelectedStateOff();
+
   // add freeze locator and show crosshair check buttons
-  this->Script("pack %s %s -side top -anchor nw -padx 2 -pady 2",
+  this->Script("pack %s %s %s -side top -anchor nw -padx 2 -pady 2",
                 FreezeLocatorCheckButton->GetWidgetName(),
-                ShowCrosshairCheckButton->GetWidgetName());
+                ShowCrosshairCheckButton->GetWidgetName(),
+                DrawNeedleCheckButton->GetWidgetName());
 
   // create labelled frame to hold widgets for setting the slice driver options
   vtkKWFrameWithLabel* sliceDriverFrame = vtkKWFrameWithLabel::New();

@@ -141,6 +141,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkKWScaleWithEntry* ProjectionLengthScale;
   vtkKWCheckButton* FreezeLocatorCheckButton;
   vtkKWCheckButton* ShowCrosshairCheckButton;
+  vtkKWCheckButton* DrawNeedleCheckButton;
   vtkKWMenuButton* RedSliceMenuButton;
   vtkKWMenuButton* YellowSliceMenuButton;
   vtkKWMenuButton* GreenSliceMenuButton;
