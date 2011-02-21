@@ -198,7 +198,6 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
     u = np.vstack((u,-u)) # duplicate signal
 
     param['voxel'] = np.array(voxel)
-    #param['voxel'] = voxel
     mask  = mask_node.GetImageData().ToArray().astype('uint16')
 
     # pull all seeds
@@ -225,6 +224,8 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
     # tractography...
     ff1 = init(S, seeds, u, b, param, is_2t, is_model_full)
 
+
+    num_primary_fibers = len(ff1)
     ff2,ff_fa,ff_st,ff_co = [],[],[],[]
     t1 = time.time()
     for i in xrange(0,len(ff1)):
@@ -239,6 +240,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
     t2 = time.time()
     print 'Time: ', t2 - t1, 'sec'
 
+    num_branches = len(ff2)
     if is_branching:
         for i in xrange(0,len(ff2)):
             print '[%3.0f%%]s (%7d - %7d)' % (100.0*i/len(ff2), i, len(ff2))
@@ -288,8 +290,51 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
         ss_co.SetName('covariance')
         ss_co_arr = ss_co.ToArray()
 
+    # combine both sides of each primary fiber into vtk cells
     point_id = 0
-    for i in xrange(0,len(ff1)):
+
+    for i in xrange(0, num_primary_fibers / 2):
+        idx = i + num_primary_fibers / 2
+        f = ff1[idx]
+        if record_fa:    f_fa = ff_fa[idx]
+        if record_state: f_st = ff_st[idx]
+        f_co = ff_co[idx]
+        lines.InsertNextCell(len(f) + len(ff1[i]))
+
+        for j in xrange(len(f) - 1, -1, -1):
+            lines.InsertCellPoint(point_id)
+            x = f[j]
+            x = x[::-1] # HACK
+            x_ = np.array(transform(i2r, x)).ravel() # HACK
+            ss_x.SetPoint(point_id, x_[0], x_[1], x_[2])
+
+            ss_norm_arr[point_id, 0] = np.linalg.norm(f_co[j])
+            if record_fa:     ss_fa_arr[point_id, 0] = 255 * f_fa[j]
+            if record_state:  ss_st_arr[point_id, :] = f_st[j].ravel()
+            if record_cov:    ss_co_arr[point_id, :] = f_co[j][upper_half_coordinates]
+            point_id += 1
+
+        f = ff1[i]
+        if record_fa:    f_fa = ff_fa[i]
+        if record_state: f_st = ff_st[i]
+        f_co = ff_co[i]
+        #lines.InsertNextCell(len(f))
+
+        for j in xrange(0, len(f)):
+            lines.InsertCellPoint(point_id)
+            x = f[j]
+            x = x[::-1] # HACK
+            x_ = np.array(transform(i2r, x)).ravel() # HACK
+            ss_x.SetPoint(point_id, x_[0], x_[1], x_[2])
+
+            ss_norm_arr[point_id, 0] = np.linalg.norm(f_co[j])
+            if record_fa:     ss_fa_arr[point_id, 0] = 255 * f_fa[j]
+            if record_state:  ss_st_arr[point_id, :] = f_st[j].ravel()
+            if record_cov:    ss_co_arr[point_id, :] = f_co[j][upper_half_coordinates]
+            point_id += 1
+
+    # add the secondary fibers
+    for i in xrange(num_primary_fibers, num_primary_fibers + num_branches):
         f = ff1[i]
         if record_fa:    f_fa = ff_fa[i]
         if record_state: f_st = ff_st[i]
@@ -309,6 +354,7 @@ def Execute(dwi_node, seeds_node, mask_node, ff_node, \
             if record_cov:    ss_co_arr[point_id, :] = f_co[j][upper_half_coordinates]
 
             point_id += 1
+
 
     # setup output fibers
     dnode = ff_node.GetDisplayNode()
