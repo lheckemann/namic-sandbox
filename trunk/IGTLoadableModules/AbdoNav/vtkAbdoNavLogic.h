@@ -108,6 +108,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkGetObjectMacro(Crosshair, vtkMRMLCrosshairNode);
   vtkSetObjectMacro(Crosshair, vtkMRMLCrosshairNode);
   vtkSetMacro(ShowCrosshair, bool);
+  vtkGetObjectMacro(AppGUI, vtkSlicerApplicationGUI);
   vtkSetObjectMacro(AppGUI, vtkSlicerApplicationGUI);
   vtkSetMacro(DrawNeedleProjection, bool);
   vtkSetMacro(FreezeReslicing, bool);
