@@ -105,6 +105,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   // accessed from the GUI class.
   //----------------------------------------------------------------
   vtkGetMacro(RegistrationPerformed, bool);
+  vtkGetObjectMacro(Crosshair, vtkMRMLCrosshairNode);
   vtkSetObjectMacro(Crosshair, vtkMRMLCrosshairNode);
   vtkSetMacro(ShowCrosshair, bool);
   vtkSetObjectMacro(AppGUI, vtkSlicerApplicationGUI);

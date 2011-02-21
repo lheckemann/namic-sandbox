@@ -353,8 +353,13 @@ void vtkAbdoNavLogic::UpdateAll()
         float py = registeredTracker->Element[1][3];
         float pz = registeredTracker->Element[2][3];
 
+        this->Crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::ShowAll);
         this->Crosshair->SetCrosshairRAS(px, py, pz);
         }
+      }
+    else if (this->Crosshair != NULL && this->ShowCrosshair == 0)
+      {
+      this->Crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::NoCrosshair);
       }
 
     // update the needle projection
