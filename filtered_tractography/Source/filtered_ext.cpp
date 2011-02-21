@@ -400,12 +400,9 @@ file_handler x__file_handler = file_handler();
         x__file_handler.py_to_file(py_obj,name)
 
 
-               PyObject* file_to_py(FILE* file, const char* name,
-                                    const char* mode)
+               PyObject* file_to_py(FILE* file, char* name, char* mode)
                {
-                   return (PyObject*) PyFile_FromFile(file,
-                     const_cast<char*>(name),
-                     const_cast<char*>(mode), fclose);
+                   return (PyObject*) PyFile_FromFile(file, name, mode, fclose);
                }
                
 class instance_handler
@@ -853,13 +850,13 @@ static PyObject* c_model_1tensor_f(PyObject*self, PyObject* args, PyObject* kywd
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"X","m","local_dict", NULL};
+    static char *kwlist[] = {"X","m","local_dict", NULL};
     PyObject *py_X, *py_m;
     int X_used, m_used;
     py_X = py_m = NULL;
     X_used= m_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OO|O:c_model_1tensor_f",const_cast<char**>(kwlist),&py_X, &py_m, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OO|O:c_model_1tensor_f",kwlist,&py_X, &py_m, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -931,13 +928,13 @@ static PyObject* c_model_1tensor_full_f(PyObject*self, PyObject* args, PyObject*
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"X","m","local_dict", NULL};
+    static char *kwlist[] = {"X","m","local_dict", NULL};
     PyObject *py_X, *py_m;
     int X_used, m_used;
     py_X = py_m = NULL;
     X_used= m_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OO|O:c_model_1tensor_full_f",const_cast<char**>(kwlist),&py_X, &py_m, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OO|O:c_model_1tensor_full_f",kwlist,&py_X, &py_m, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -1000,13 +997,13 @@ static PyObject* c_model_1tensor_h(PyObject*self, PyObject* args, PyObject* kywd
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"s","X","u","b","n","m","local_dict", NULL};
+    static char *kwlist[] = {"s","X","u","b","n","m","local_dict", NULL};
     PyObject *py_s, *py_X, *py_u, *py_b, *py_n, *py_m;
     int s_used, X_used, u_used, b_used, n_used, m_used;
     py_s = py_X = py_u = py_b = py_n = py_m = NULL;
     s_used= X_used= u_used= b_used= n_used= m_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOO|O:c_model_1tensor_h",const_cast<char**>(kwlist),&py_s, &py_X, &py_u, &py_b, &py_n, &py_m, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOO|O:c_model_1tensor_h",kwlist,&py_s, &py_X, &py_u, &py_b, &py_n, &py_m, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -1131,13 +1128,13 @@ static PyObject* c_model_1tensor_full_h(PyObject*self, PyObject* args, PyObject*
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"s","X","u","b","n","m","local_dict", NULL};
+    static char *kwlist[] = {"s","X","u","b","n","m","local_dict", NULL};
     PyObject *py_s, *py_X, *py_u, *py_b, *py_n, *py_m;
     int s_used, X_used, u_used, b_used, n_used, m_used;
     py_s = py_X = py_u = py_b = py_n = py_m = NULL;
     s_used= X_used= u_used= b_used= n_used= m_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOO|O:c_model_1tensor_full_h",const_cast<char**>(kwlist),&py_s, &py_X, &py_u, &py_b, &py_n, &py_m, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOO|O:c_model_1tensor_full_h",kwlist,&py_s, &py_X, &py_u, &py_b, &py_n, &py_m, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -1260,13 +1257,13 @@ static PyObject* c_state2tensor1(PyObject*self, PyObject* args, PyObject* kywds)
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"X","y","m","l1","l2","local_dict", NULL};
+    static char *kwlist[] = {"X","y","m","l1","l2","local_dict", NULL};
     PyObject *py_X, *py_y, *py_m, *py_l1, *py_l2;
     int X_used, y_used, m_used, l1_used, l2_used;
     py_X = py_y = py_m = py_l1 = py_l2 = NULL;
     X_used= y_used= m_used= l1_used= l2_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOO|O:c_state2tensor1",const_cast<char**>(kwlist),&py_X, &py_y, &py_m, &py_l1, &py_l2, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOO|O:c_state2tensor1",kwlist,&py_X, &py_y, &py_m, &py_l1, &py_l2, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -1417,13 +1414,13 @@ static PyObject* c_state2tensor1_full(PyObject*self, PyObject* args, PyObject* k
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"X","y","m","l1","l2","l3","local_dict", NULL};
+    static char *kwlist[] = {"X","y","m","l1","l2","l3","local_dict", NULL};
     PyObject *py_X, *py_y, *py_m, *py_l1, *py_l2, *py_l3;
     int X_used, y_used, m_used, l1_used, l2_used, l3_used;
     py_X = py_y = py_m = py_l1 = py_l2 = py_l3 = NULL;
     X_used= y_used= m_used= l1_used= l2_used= l3_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOO|O:c_state2tensor1_full",const_cast<char**>(kwlist),&py_X, &py_y, &py_m, &py_l1, &py_l2, &py_l3, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOO|O:c_state2tensor1_full",kwlist,&py_X, &py_y, &py_m, &py_l1, &py_l2, &py_l3, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -1591,13 +1588,13 @@ static PyObject* c_model_2tensor_f(PyObject*self, PyObject* args, PyObject* kywd
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"X","m","local_dict", NULL};
+    static char *kwlist[] = {"X","m","local_dict", NULL};
     PyObject *py_X, *py_m;
     int X_used, m_used;
     py_X = py_m = NULL;
     X_used= m_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OO|O:c_model_2tensor_f",const_cast<char**>(kwlist),&py_X, &py_m, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OO|O:c_model_2tensor_f",kwlist,&py_X, &py_m, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -1675,13 +1672,13 @@ static PyObject* c_model_2tensor_full_f(PyObject*self, PyObject* args, PyObject*
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"X","m","local_dict", NULL};
+    static char *kwlist[] = {"X","m","local_dict", NULL};
     PyObject *py_X, *py_m;
     int X_used, m_used;
     py_X = py_m = NULL;
     X_used= m_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OO|O:c_model_2tensor_full_f",const_cast<char**>(kwlist),&py_X, &py_m, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OO|O:c_model_2tensor_full_f",kwlist,&py_X, &py_m, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -1749,13 +1746,13 @@ static PyObject* c_model_2tensor_h(PyObject*self, PyObject* args, PyObject* kywd
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"s","X","u","b","n","m","local_dict", NULL};
+    static char *kwlist[] = {"s","X","u","b","n","m","local_dict", NULL};
     PyObject *py_s, *py_X, *py_u, *py_b, *py_n, *py_m;
     int s_used, X_used, u_used, b_used, n_used, m_used;
     py_s = py_X = py_u = py_b = py_n = py_m = NULL;
     s_used= X_used= u_used= b_used= n_used= m_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOO|O:c_model_2tensor_h",const_cast<char**>(kwlist),&py_s, &py_X, &py_u, &py_b, &py_n, &py_m, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOO|O:c_model_2tensor_h",kwlist,&py_s, &py_X, &py_u, &py_b, &py_n, &py_m, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -1887,13 +1884,13 @@ static PyObject* c_model_2tensor_full_h(PyObject*self, PyObject* args, PyObject*
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"s","X","u","b","n","m","local_dict", NULL};
+    static char *kwlist[] = {"s","X","u","b","n","m","local_dict", NULL};
     PyObject *py_s, *py_X, *py_u, *py_b, *py_n, *py_m;
     int s_used, X_used, u_used, b_used, n_used, m_used;
     py_s = py_X = py_u = py_b = py_n = py_m = NULL;
     s_used= X_used= u_used= b_used= n_used= m_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOO|O:c_model_2tensor_full_h",const_cast<char**>(kwlist),&py_s, &py_X, &py_u, &py_b, &py_n, &py_m, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOO|O:c_model_2tensor_full_h",kwlist,&py_s, &py_X, &py_u, &py_b, &py_n, &py_m, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -2024,13 +2021,13 @@ static PyObject* c_state2tensor2(PyObject*self, PyObject* args, PyObject* kywds)
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"X","y","m1","l11","l12","m2","l21","l22","local_dict", NULL};
+    static char *kwlist[] = {"X","y","m1","l11","l12","m2","l21","l22","local_dict", NULL};
     PyObject *py_X, *py_y, *py_m1, *py_l11, *py_l12, *py_m2, *py_l21, *py_l22;
     int X_used, y_used, m1_used, l11_used, l12_used, m2_used, l21_used, l22_used;
     py_X = py_y = py_m1 = py_l11 = py_l12 = py_m2 = py_l21 = py_l22 = NULL;
     X_used= y_used= m1_used= l11_used= l12_used= m2_used= l21_used= l22_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOOOO|O:c_state2tensor2",const_cast<char**>(kwlist),&py_X, &py_y, &py_m1, &py_l11, &py_l12, &py_m2, &py_l21, &py_l22, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOOOO|O:c_state2tensor2",kwlist,&py_X, &py_y, &py_m1, &py_l11, &py_l12, &py_m2, &py_l21, &py_l22, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -2268,13 +2265,13 @@ static PyObject* c_state2tensor2_full(PyObject*self, PyObject* args, PyObject* k
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"X","y","m1","l11","l12","l13","m2","l21","l22","l23","local_dict", NULL};
+    static char *kwlist[] = {"X","y","m1","l11","l12","l13","m2","l21","l22","l23","local_dict", NULL};
     PyObject *py_X, *py_y, *py_m1, *py_l11, *py_l12, *py_l13, *py_m2, *py_l21, *py_l22, *py_l23;
     int X_used, y_used, m1_used, l11_used, l12_used, l13_used, m2_used, l21_used, l22_used, l23_used;
     py_X = py_y = py_m1 = py_l11 = py_l12 = py_l13 = py_m2 = py_l21 = py_l22 = py_l23 = NULL;
     X_used= y_used= m1_used= l11_used= l12_used= l13_used= m2_used= l21_used= l22_used= l23_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOOOOOO|O:c_state2tensor2_full",const_cast<char**>(kwlist),&py_X, &py_y, &py_m1, &py_l11, &py_l12, &py_l13, &py_m2, &py_l21, &py_l22, &py_l23, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOOOOOO|O:c_state2tensor2_full",kwlist,&py_X, &py_y, &py_m1, &py_l11, &py_l12, &py_l13, &py_m2, &py_l21, &py_l22, &py_l23, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -2545,13 +2542,13 @@ static PyObject* c_interp3signal(PyObject*self, PyObject* args, PyObject* kywds)
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"s","S","p","v","sigma","nx","ny","nz","n","local_dict", NULL};
+    static char *kwlist[] = {"s","S","p","v","sigma","nx","ny","nz","n","local_dict", NULL};
     PyObject *py_s, *py_S, *py_p, *py_v, *py_sigma, *py_nx, *py_ny, *py_nz, *py_n;
     int s_used, S_used, p_used, v_used, sigma_used, nx_used, ny_used, nz_used, n_used;
     py_s = py_S = py_p = py_v = py_sigma = py_nx = py_ny = py_nz = py_n = NULL;
     s_used= S_used= p_used= v_used= sigma_used= nx_used= ny_used= nz_used= n_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOOOOO|O:c_interp3signal",const_cast<char**>(kwlist),&py_s, &py_S, &py_p, &py_v, &py_sigma, &py_nx, &py_ny, &py_nz, &py_n, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOOOOO|O:c_interp3signal",kwlist,&py_s, &py_S, &py_p, &py_v, &py_sigma, &py_nx, &py_ny, &py_nz, &py_n, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -2715,13 +2712,13 @@ static PyObject* c_interp3scalar(PyObject*self, PyObject* args, PyObject* kywds)
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"M","p","v","sigma","nx","ny","nz","local_dict", NULL};
+    static char *kwlist[] = {"M","p","v","sigma","nx","ny","nz","local_dict", NULL};
     PyObject *py_M, *py_p, *py_v, *py_sigma, *py_nx, *py_ny, *py_nz;
     int M_used, p_used, v_used, sigma_used, nx_used, ny_used, nz_used;
     py_M = py_p = py_v = py_sigma = py_nx = py_ny = py_nz = NULL;
     M_used= p_used= v_used= sigma_used= nx_used= ny_used= nz_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOOO|O:c_interp3scalar",const_cast<char**>(kwlist),&py_M, &py_p, &py_v, &py_sigma, &py_nx, &py_ny, &py_nz, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OOOOOOO|O:c_interp3scalar",kwlist,&py_M, &py_p, &py_v, &py_sigma, &py_nx, &py_ny, &py_nz, &py_local_dict))
        return NULL;
     try                              
     {                                
@@ -2855,13 +2852,13 @@ static PyObject* c_s2ga(PyObject*self, PyObject* args, PyObject* kywds)
     py::object return_val;
     int exception_occured = 0;
     PyObject *py_local_dict = NULL;
-    static const char *kwlist[] = {"s","n","local_dict", NULL};
+    static char *kwlist[] = {"s","n","local_dict", NULL};
     PyObject *py_s, *py_n;
     int s_used, n_used;
     py_s = py_n = NULL;
     s_used= n_used = 0;
     
-    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OO|O:c_s2ga",const_cast<char**>(kwlist),&py_s, &py_n, &py_local_dict))
+    if(!PyArg_ParseTupleAndKeywords(args,kywds,"OO|O:c_s2ga",kwlist,&py_s, &py_n, &py_local_dict))
        return NULL;
     try                              
     {                                
