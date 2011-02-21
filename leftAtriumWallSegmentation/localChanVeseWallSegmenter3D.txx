@@ -137,11 +137,11 @@ CLocalChanVeseWallSegmenter3D< TPixel >
   double* GACForce = new double[ n ];
   double* CVForce = new double[ n ];
 
-  //tst
-#ifndef NDEBUG
-  extern std::ofstream leftAtriumWallSegmentGlobalOutputFile;
-#endif
-  //tst//
+//   //tst
+// #ifndef NDEBUG
+//   extern std::ofstream leftAtriumWallSegmentGlobalOutputFile;
+// #endif
+//   //tst//
 
   {
     long i = 0;
@@ -171,11 +171,11 @@ CLocalChanVeseWallSegmenter3D< TPixel >
 
         //double externalValue = (1.0 - m_GACWeight)*cvTerm + m_GACWeight*distanceGACTerm;
 
-        //tst
-#ifndef NDEBUG
-        leftAtriumWallSegmentGlobalOutputFile<<cvTerm<<'\t'<<distanceGACTerm<<'\n';
-#endif
-        //tst//
+//         //tst
+// #ifndef NDEBUG
+//         leftAtriumWallSegmentGlobalOutputFile<<cvTerm<<'\t'<<distanceGACTerm<<'\n';
+// #endif
+//         //tst//
 
         //fmax = fabs(externalValue)>fmax?fabs(externalValue):fmax;
         

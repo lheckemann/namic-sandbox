@@ -18,12 +18,12 @@
 #include "itkImageFileWriter.h"
 
 
-//tst
-#ifndef NDEBUG
-#include <fstream>
-std::ofstream leftAtriumWallSegmentGlobalOutputFile("leftAtriumWallSegmentGlobalOutputFile.txt");
-#endif
-//tst//
+// //tst
+// #ifndef NDEBUG
+// #include <fstream>
+// std::ofstream leftAtriumWallSegmentGlobalOutputFile("leftAtriumWallSegmentGlobalOutputFile.txt");
+// #endif
+// //tst//
 
 
 int main(int argc, char** argv)
@@ -74,16 +74,16 @@ int main(int argc, char** argv)
   writeImage<segmenter_t::MaskImageType>(cv.getWallMask(), segmentedImageFileName.c_str());
 
 
-  //tst
-#ifndef NDEBUG
-  writeImage<segmenter_t::floatImage_t>(cv.mp_metricFromDistanceMapOfInterior, "mp_metricFromDistanceMapOfInterior.nrrd");
-  writeImage<segmenter_t::MaskImageType>(cv.mp_maskOfInterior, "mp_maskOfInterior.nrrd");
-  writeImage<segmenter_t::MaskImageType>(cv.mp_mask, "mp_mask.nrrd");
-  writeImage<segmenter_t::floatImage_t>(cv.mp_distanceMapOfInterior, "mp_distanceMapOfInterior.nrrd");
+//   //tst
+// #ifndef NDEBUG
+//   writeImage<segmenter_t::floatImage_t>(cv.mp_metricFromDistanceMapOfInterior, "mp_metricFromDistanceMapOfInterior.nrrd");
+//   writeImage<segmenter_t::MaskImageType>(cv.mp_maskOfInterior, "mp_maskOfInterior.nrrd");
+//   writeImage<segmenter_t::MaskImageType>(cv.mp_mask, "mp_mask.nrrd");
+//   writeImage<segmenter_t::floatImage_t>(cv.mp_distanceMapOfInterior, "mp_distanceMapOfInterior.nrrd");
 
-  leftAtriumWallSegmentGlobalOutputFile.close();
-#endif
-  //tst//
+//   leftAtriumWallSegmentGlobalOutputFile.close();
+// #endif
+//   //tst//
 
 
   
