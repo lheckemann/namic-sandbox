@@ -215,7 +215,7 @@ public:
     ID_MANUAL_PW_OFF_4, //reserved
     ID_MANUAL_PW_ON_4,  //reserved
 
-    ID_SHOWDIALOG, //Maier 3 Navigation without Slicer
+    ID_SHOWDIALOG, //Maier Navigation without Slicer
 
 
     ID_LAST
@@ -557,11 +557,6 @@ private:
   FXDataTarget*      dtDefNeedleOffset[3];
   FXDataTarget*      dtDefNeedleOrientation[3];
 
-  //Robo Plate Maier
-  FXDataTarget* dtPlateR;
-  float valPlateR;
-  //Maier End
-
 
 
   // -- Manual
@@ -682,7 +677,7 @@ public:
   long onCmdManualPowerSw(FXObject*, FXSelector, void*);
   long onUpdateManualPowerSw(FXObject*, FXSelector, void*);
 
-  long onCmdShowDialog(FXObject*,FXSelector,void*); //Maier
+  long onCmdShowDialog(FXObject*,FXSelector,void*); //Maier 
   
 };
 
@@ -692,11 +687,25 @@ class FXTestDialog : public FXDialogBox {
 protected:
   FXHorizontalFrame* frplPl;
 
+
 private:
   FXTestDialog(){}
   
-  FXDataTarget *dtTarget[3];
-  float valTarget[3];
+  FXDataTarget *dtNewTarget[3];
+  float valNewTarget[3];
+
+  FXDataTarget *dtOldTarget[3];
+  float valOldTarget[3];
+
+  FXDataTarget *dtDeltaTarget[3];
+  float valDeltaTarget[3];
+
+  FXDataTarget *dtTemp[3];
+  float valTemp[3];
+
+  //Font for Canvas Text
+  FXFont *canvasFont0;
+  
 public:
   FXTestDialog(FXWindow* owner);
   long onCmdClear();
@@ -704,8 +713,6 @@ public:
 public:  
   //Message Handler
   long onPaint(FXObject*,FXSelector,void*);
-  //long onCmdClear(FXObject*, FXSelector,void*);
-  //long onPaintTarget(FXObject*, FXSelector,void*);
   long onCmdTimer(FXObject*, FXSelector,void*);
 private: 
    FXCanvas *canvas;

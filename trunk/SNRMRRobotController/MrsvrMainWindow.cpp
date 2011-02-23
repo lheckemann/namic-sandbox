@@ -135,7 +135,8 @@ FXDEFMAP(MrsvrMainWindow) MrsvrMainWindowMap[] = {
   
   //FXMAPFUNC(SEL_PAINT,     MrsvrMainWindow::ID_IMAGEWINDOW,  MrsvrMainWindow::onImageRepaint)
 
-  FXMAPFUNC(SEL_LEFTBUTTONRELEASE,  MrsvrMainWindow::ID_SHOWDIALOG,      MrsvrMainWindow::onCmdShowDialog), //Maier
+  //Maier Show Dialog
+  FXMAPFUNC(SEL_LEFTBUTTONRELEASE,  MrsvrMainWindow::ID_SHOWDIALOG,      MrsvrMainWindow::onCmdShowDialog), 
 };
 
 // Object implementation
@@ -145,8 +146,7 @@ FXIMPLEMENT(MrsvrMainWindow, FXMainWindow,
 //Maier Message Map
 FXDEFMAP(FXTestDialog) FXTestDialogMap[]={
 //_____________Message_Type_________________ID_________________Messgae Handler
-FXMAPFUNC(SEL_PAINT,  FXTestDialog::ID_CANVAS2,      FXTestDialog::onPaint),
-//FXMAPFUNC(SEL_COMMAND,  FXTestDialog::ID_PAINT_TARGET,      FXTestDialog::onPaintTarget),
+FXMAPFUNC(SEL_PAINT,  FXTestDialog::ID_CANVAS2,              FXTestDialog::onPaint),
 FXMAPFUNC(SEL_TIMEOUT,  FXTestDialog::ID_TIMER,              FXTestDialog::onCmdTimer),
 };
  
@@ -154,8 +154,8 @@ FXMAPFUNC(SEL_TIMEOUT,  FXTestDialog::ID_TIMER,              FXTestDialog::onCmd
 
 const char* MrsvrMainWindow::quickPanelString[] = {
   "STOP",
-  //"PAUSE",
-  //"MOVE TO TARGET",
+  //"PAUSE",            //hide Buttons Maier
+  //"MOVE TO TARGET",   //hide Buttons Maier
   "MANUAL \nCONTROL",
   "Remote",
   "EMERGENCY"
@@ -163,10 +163,10 @@ const char* MrsvrMainWindow::quickPanelString[] = {
 
 const char* MrsvrMainWindow::quickPanelGIF[] = {
   "icon/stop100x100.gif",
-  //"icon/pause100x100.gif",
-  //"icon/start100x100.gif",
+  //"icon/pause100x100.gif",  //hide Buttons Maier
+  //"icon/start100x100.gif",  //hide Buttons Maier
   "icon/manual100x100.gif",
-  "icon/auto100x100.gif",
+  "icon/auto100x100.gif",   
   "icon/emergency100x100.gif"
 };
 
@@ -1066,17 +1066,19 @@ int MrsvrMainWindow::buildSystemControlPanel(FXComposite* comp)
                ID_SHUTDOWN_MRSVR_BTN,
                BUTTON_NORMAL|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-//Maier 3
-FXGroupBox* gpNoSlicer = 
+
+
+//Maier Button to startup Nav without Slicer
+    FXGroupBox* gpNoSlicer = 
     new FXGroupBox(comp, "Nav without Slicer",
                    LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X|
                    LAYOUT_CENTER_X);
-  gpNoSlicer->setBackColor(getApp()->getShadowColor());
-  new FXButton(gpNoSlicer, "Nav without Slicer", NULL, this,
+    gpNoSlicer->setBackColor(getApp()->getShadowColor());
+    new FXButton(gpNoSlicer, "Nav without Slicer", NULL, this,
                ID_SHOWDIALOG,
                BUTTON_NORMAL|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-//End Maier 3
+//End Maier
   return 1;
 }
 
@@ -2384,10 +2386,6 @@ void MrsvrMainWindow::setDataTargets()
             dtTipApprOffset = 
     //new FXDataTarget(valTipApprOffset, this, ID_UPDATE_PARAMETER);
     new FXDataTarget(valTipApprOffset, this, ID_UPDATE_NEEDLE_APPR_OFFSET);
-
-//Robot Plate //Maier
-  dtPlateR = 
-    new FXDataTarget(valPlateR, this, ID_UPDATE_PARAMETER);
 
 }
 
@@ -3844,247 +3842,366 @@ FXIMPLEMENT(FXTestDialog,FXDialogBox,FXTestDialogMap,ARRAYNUMBER(FXTestDialogMap
 
 // Construct a dialog box
 FXTestDialog::FXTestDialog(FXWindow* owner):
-  FXDialogBox(owner,"Plate robot without slicer",DECOR_MINIMIZE|DECOR_MENU){
+  FXDialogBox(owner,"Robot without slicer",DECOR_MINIMIZE|DECOR_MENU){
 
-//Data initial
-
-  for (int i = 0; i < 3; i ++) {
+      //Data initial
     
-      valTarget[i]=0;
-      dtTarget[i] = 
-      new FXDataTarget(valTarget[i], this, ID_UPDATE_PARAMETER);
-  }
+      //Fill with test Data, must be connected to Slicer and Manual Reg
+      valOldTarget[0]=65.9;
+      valOldTarget[1]=178.2;
+      valOldTarget[2]=228.7;
+      for (int i = 0; i < 3; i ++) {
+         dtOldTarget[i] = 
+         new FXDataTarget(valOldTarget[i], this, ID_UPDATE_PARAMETER);
+
+         valDeltaTarget[i]=0;
+         dtDeltaTarget[i] = 
+         new FXDataTarget(valDeltaTarget[i], this, ID_UPDATE_PARAMETER);
+
+         valNewTarget[i]=valOldTarget[i]-valDeltaTarget[i];
+         dtNewTarget[i] = 
+         new FXDataTarget(valNewTarget[i], this, ID_UPDATE_PARAMETER);
+
+         valTemp[i]=0;
+         dtTemp[i] = 
+         new FXDataTarget(valTemp[i], this, ID_UPDATE_PARAMETER);
+      }
 
 
+// +--------------------------------matrix-------------------------------------------------------+
+// |                                                                                             |                   
+// | +---------matrix_main----------------------------+--------------------------------------+   |
+// | |                                                |                                      |   |                     
+// | |   +------------matrix_upperleft------------+   | +--------------------gbRegDist----+  |   |
+// | |   |                     |                  |   | |                                 |  |   |                         
+// | |   |  +--gpRAPos--+      | +--gbPlateA--+   |   | | +---matrix_upperright_main---+  |  |   |
+// | |   |  |           |      | |            |   |   | | |                            |  |  |   |                         
+// | |   |  |           |      | |            |   |   | | |  +--matrix_upperright---+  |  |  |   |
+// | |   |  |   CANVAS  |      | | Slider A   |   |   | | |  |                      |  |  |  |   |                  
+// | |   |  |           |      | |            |   |   | | |  | #3      #4      #5   |  |  |  |   |                       
+// | |   |  |           |      | |            |   |   | | |  |                      |  |  |  |   |                   
+// | |   |  +-----------+      | +------------+   |   | | |  | #2              #6   |  |  |  |   |
+// | |   +---------------------+------------------+   | | |  |                      |  |  |  |   |
+// | |   |  gbPlateR--------+  |                  |   | | |  | #1              #7   |  |  |  |   |                      
+// | |   |  |               |  |                  |   | | |  |                      |  |  |  |   |                    
+// | |   |  |  Slider R     |  |     Home         |   | | |  +----------------------+  |  |  |   |   
+// | |   |  |               |  |                  |   | | +----------------------------+  |  |   |         
+// | |   |  +---------------+  |                  |   | | |        Z-Frame_image       |  |  |   |
+// | |   +---------------------+------------------+   | | +----------------------------+  |  |   |                  
+// | |                                                | +---------------------------------+  |   |
+// | +------------------------------------------------+--------------------------------------+   |
+// |                                                                                             |
+// +---------------------------------------------------------------------------------------------+  
+// |                                                                                             |
+// | +------------------------------------------matrix_main2---------------------------------+   |
+// | |   +----------------mtrix_lowerleft----------------------------+                       |   |
+// | |   |                                                           |                       |   |                    
+// | |   |                                                           |                       |   |                    
+// | |   |                                                           |                       |   |                    
+// | |   |  OldTarget +  DeltaValues = NewTarget                     |                       |   |                    
+// | |   |                                                           |                       |   |                   
+// | |   |                                                           |                       |   |
+// | |   +-----------------------------------------------------------+                       |   |
+// | +---------------------------------------------------------------------------------------+   |
+// |                                                                                             |
+// +---------------------------------------------------------------------------------------------+
 
 
+      // Main Frame
+      frplPl=new FXHorizontalFrame(this,LAYOUT_SIDE_BOTTOM|FRAME_NONE|LAYOUT_FILL_X|PACK_UNIFORM_WIDTH,0,0,0,0,40,40,20,20);
+      
+      //frplPl->matrix
+      FXMatrix* matrix=new FXMatrix(frplPl,1,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
 
-  // Bottom buttons
-frplPl=new FXHorizontalFrame(this,LAYOUT_SIDE_BOTTOM|FRAME_NONE|LAYOUT_FILL_X|PACK_UNIFORM_WIDTH,0,0,0,0,40,40,20,20);
+      //matrix->matrix_main 
+      FXMatrix* matrix_main=new FXMatrix(matrix,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
+      
+      //matrix_main->matrix_upperleft
+      FXMatrix* matrix_upperleft=new FXMatrix(matrix_main,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y); 
 
-FXMatrix* matrix=new FXMatrix(frplPl,1,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
-
-FXMatrix* matrix_main=new FXMatrix(matrix,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
-
-FXMatrix* matrix_upperleft=new FXMatrix(matrix_main,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y); 
-
-FXGroupBox* gbRegDist = 
-    new FXGroupBox(matrix_main, "Z-Frame Points for Registration",
+      //matrix_main->gbRegDist
+      FXGroupBox* gbRegDist = 
+      new FXGroupBox(matrix_main, "Z-Frame Points for Registration",
                    FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
                    LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
 
-FXMatrix* matrix_upperright_main=new FXMatrix(gbRegDist,1,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X);
+      FXMatrix* matrix_upperright_main=new FXMatrix(gbRegDist,1,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X);
+      FXMatrix* matrix_upperright=new FXMatrix(matrix_upperright_main,5,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X);
 
-FXMatrix* matrix_upperright=new FXMatrix(matrix_upperright_main,5,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X);
+      //First row
+      new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXLabel(matrix_upperright,"#4",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
 
-//First row
-new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXLabel(matrix_upperright,"#4",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      //Second row
+      new FXLabel(matrix_upperright,"#3",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXTextField(matrix_upperright,10,NULL,NULL);
+      new FXTextField(matrix_upperright,10,NULL,NULL);
+      new FXTextField(matrix_upperright,10,NULL,NULL);
+      new FXLabel(matrix_upperright,"#5",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
 
-//Second row
-new FXLabel(matrix_upperright,"#3",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXTextField(matrix_upperright,10,NULL,NULL);
-new FXTextField(matrix_upperright,10,NULL,NULL);
-new FXTextField(matrix_upperright,10,NULL,NULL);
-new FXLabel(matrix_upperright,"#5",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      //Third row
+      new FXLabel(matrix_upperright,"#2",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXTextField(matrix_upperright,10,NULL,NULL);
+      new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXTextField(matrix_upperright,10,NULL,NULL);
+      new FXLabel(matrix_upperright,"#6",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
 
-//Third row
-new FXLabel(matrix_upperright,"#2",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXTextField(matrix_upperright,10,NULL,NULL);
-new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXTextField(matrix_upperright,10,NULL,NULL);
-new FXLabel(matrix_upperright,"#6",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      //Fourth row
+      new FXLabel(matrix_upperright,"#1",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXTextField(matrix_upperright,10,NULL,NULL);
+      new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXTextField(matrix_upperright,10,NULL,NULL);
+      new FXLabel(matrix_upperright,"#7",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
 
-//Fourth row
-new FXLabel(matrix_upperright,"#1",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXTextField(matrix_upperright,10,NULL,NULL);
-new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXTextField(matrix_upperright,10,NULL,NULL);
-new FXLabel(matrix_upperright,"#7",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      //Z_Frame sample image
+      char buf[73728];
+      FILE* fp = fopen("icon/Z_Frame.gif", "rb");
+      fread(buf, 1, 73728, fp);
+      fclose(fp);
 
-//Z_Frame sample image
-
-char buf[73728];
-    FILE* fp = fopen("icon/Z_Frame.gif", "rb");
-    fread(buf, 1, 73728, fp);
-    fclose(fp);
-
-new FXButton(matrix_upperright_main, "",
+      new FXButton(matrix_upperright_main, "",
                  new FXGIFIcon(this->getApp(), (void*)buf),NULL,NULL,BUTTON_TOOLBAR|
                  LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X);
 
 
-//Canvas RA-Position  Maier 2
-FXGroupBox* gpRAPos = 
-   new FXGroupBox(matrix_upperleft, "RA-Position",
+      //Canvas RA-Position
+      FXGroupBox* gpRAPos = 
+      new FXGroupBox(matrix_upperleft, "RA-Position",
                    FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
                    LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
 
-canvas=new FXCanvas(gpRAPos,this,ID_CANVAS2,
+      canvas=new FXCanvas(gpRAPos,this,ID_CANVAS2,
                           FRAME_SUNKEN|FRAME_THICK|LAYOUT_FILL_X|
                           LAYOUT_FILL_Y|LAYOUT_FILL_ROW,LAYOUT_FILL_COLUMN);
 
+      //Font for canvas
+      canvasFont0 = new FXFont(getApp(),"helvetica", 9);
+      canvasFont0->create();
 
-//RA-Position Sliders Maier 
-FXGroupBox* gbPlateA = 
-    new FXGroupBox(matrix_upperleft, "A-Axis",
+      //RA-Position Sliders 
+      FXGroupBox* gbPlateA = 
+      new FXGroupBox(matrix_upperleft, "A-Axis",
            FRAME_RIDGE|LAYOUT_RIGHT|LAYOUT_FILL_Y);
 
 
-FXGroupBox* gbPlateR =
-   new FXGroupBox(matrix_upperleft, "R-Axis",
+      FXGroupBox* gbPlateR =
+      new FXGroupBox(matrix_upperleft, "R-Axis",
                 FRAME_RIDGE|LAYOUT_BOTTOM|LAYOUT_FILL_X);
 
-new FXButton(matrix_upperleft, "Home",
+      new FXButton(matrix_upperleft, "Home",
                 NULL,this,ID_PAINT_TARGET,BUTTON_NORMAL|LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X|LAYOUT_FILL_Y);
 
 
-FXSlider* slider=new FXSlider(gbPlateR,dtTarget[0],FXDataTarget::ID_VALUE,
+      FXRealSlider* slider=new FXRealSlider(gbPlateR,dtDeltaTarget[0],FXDataTarget::ID_VALUE,
                                LAYOUT_LEFT|LAYOUT_FIX_HEIGHT|LAYOUT_FIX_WIDTH|
                                SLIDER_HORIZONTAL|SLIDER_INSIDE_BAR,
                                0,0,200,20);//(??,??,X,Y)
-                slider->setRange(0,200);
-
-FXSlider* slider2=new FXSlider(gbPlateA,dtTarget[1],FXDataTarget::ID_VALUE,
+                slider->setRange(-valOldTarget[0],200.0-valOldTarget[0]);
+      FXRealSlider* slider2=new FXRealSlider(gbPlateA,dtDeltaTarget[1],FXDataTarget::ID_VALUE,
                                   LAYOUT_TOP|LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT|
                                   SLIDER_VERTICAL|SLIDER_INSIDE_BAR,
                                   0,0,20,200);
-                slider2->setRange(0,200);
+                slider2->setRange(-valOldTarget[1],200.0-valOldTarget[1]);
+                slider2->setIncrement(0.01);
 
-FXMatrix* matrix_main2=new FXMatrix(matrix,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
+      FXMatrix* matrix_main2=new FXMatrix(matrix,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
 
-FXMatrix* matrix_lowerleft=new FXMatrix(matrix_main2,5,MATRIX_BY_COLUMNS|LAYOUT_SIDE_BOTTOM|LAYOUT_FILL_X|LAYOUT_FILL_Y);
+      FXMatrix* matrix_lowerleft=new FXMatrix(matrix_main2,5,MATRIX_BY_COLUMNS|
+                                     LAYOUT_SIDE_BOTTOM|LAYOUT_FILL_X|LAYOUT_FILL_Y);
 
-FXGroupBox* gbSlPos = 
-    new FXGroupBox(matrix_lowerleft, "Target Coodinates",
+      FXGroupBox* gbSlPos = 
+      new FXGroupBox(matrix_lowerleft, "Old Target",
                    FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
                    LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
 
-FXMatrix* matrix_lowerleft_target=new FXMatrix(gbSlPos,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
+      FXMatrix* matrix_lowerleft_target=new FXMatrix(gbSlPos,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|
+                                                     LAYOUT_FILL_X|LAYOUT_FILL_Y);
 
-new FXLabel(matrix_lowerleft_target,"R",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXLabel(matrix_lowerleft_target,"R",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
 
-new FXTextField(matrix_lowerleft_target,10,NULL,NULL);
-
-new FXLabel(matrix_lowerleft_target,"A",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-
-new FXTextField(matrix_lowerleft_target,10,NULL,NULL);
-
-new FXLabel(matrix_lowerleft_target,"S",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXTextField(matrix_lowerleft_target,10,NULL,NULL);
-
-new FXLabel(matrix_lowerleft,"+",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-
-FXGroupBox* gbDeltaTarget = 
-    new FXGroupBox(matrix_lowerleft, "Delta Values",
-                   FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
-
-FXMatrix* matrix_lowerleft_delta=new FXMatrix(gbDeltaTarget,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
-
-new FXLabel(matrix_lowerleft_delta,"R",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXTextField(matrix_lowerleft_delta,10,NULL,NULL);
-new FXLabel(matrix_lowerleft_delta,"A",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXTextField(matrix_lowerleft_delta,10,NULL,NULL);
-new FXLabel(matrix_lowerleft_delta,"S",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXTextField(matrix_lowerleft_delta,10,NULL,NULL);
-
-new FXLabel(matrix_lowerleft,"=",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-
-FXGroupBox* gbSumTarget = 
-    new FXGroupBox(matrix_lowerleft, "Used Target Coodinates",
-                   FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
-
-FXMatrix* matrix_lowerleft_sum=new FXMatrix(gbSumTarget,3,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
-
-new FXLabel(matrix_lowerleft_sum,"R",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-
-new FXTextField(matrix_lowerleft_sum,10,dtTarget[0],
+      new FXTextField(matrix_lowerleft_target,10,dtOldTarget[0],
                   FXDataTarget::ID_VALUE,
                   TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
                   FRAME_SUNKEN, 
                   0, 0, 50, 15);
 
-new FXLabel(matrix_lowerleft_sum,"",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXLabel(matrix_lowerleft_sum,"A",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXLabel(matrix_lowerleft_target,"A",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
 
-new FXTextField(matrix_lowerleft_sum,10,dtTarget[1],
+      new FXTextField(matrix_lowerleft_target,10,dtOldTarget[1],
                   FXDataTarget::ID_VALUE,
                   TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
                   FRAME_SUNKEN, 
                   0, 0, 50, 15);
 
-new FXButton(matrix_lowerleft_sum,"&Move to Target",NULL,this,ID_MOVETO_TARGET,FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-new FXLabel(matrix_lowerleft_sum,"S",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-new FXTextField(matrix_lowerleft_sum,10,NULL,NULL);
-new FXLabel(matrix_lowerleft_sum,"",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXLabel(matrix_lowerleft_target,"S",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
 
-  // Quit
-FXGroupBox* gbQuit = 
-    new FXGroupBox(matrix_main2, "Close Window",
+      new FXTextField(matrix_lowerleft_target,10,dtOldTarget[2],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN, 
+                  0, 0, 50, 15);
+
+      new FXLabel(matrix_lowerleft,"+",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
+      FXGroupBox* gbDeltaTarget = 
+      new FXGroupBox(matrix_lowerleft, "Delta Values",
+                   FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
+                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
+
+      FXMatrix* matrix_lowerleft_delta=new FXMatrix(gbDeltaTarget,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|
+                                                    LAYOUT_FILL_X|LAYOUT_FILL_Y);
+
+      new FXLabel(matrix_lowerleft_delta,"R",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXTextField(matrix_lowerleft_delta,10,dtDeltaTarget[0],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN, 
+                  0, 0, 50, 15);
+      new FXLabel(matrix_lowerleft_delta,"A",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
+      new FXTextField(matrix_lowerleft_delta,10,dtDeltaTarget[1],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN, 
+                  0, 0, 50, 15);
+
+      new FXLabel(matrix_lowerleft_delta,"S",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
+      new FXTextField(matrix_lowerleft_delta,10,dtDeltaTarget[2],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN, 
+                  0, 0, 50, 15);
+
+      new FXLabel(matrix_lowerleft,"=",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
+      FXGroupBox* gbSumTarget = 
+                   new FXGroupBox(matrix_lowerleft, "New Target",
+                   FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
+                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
+
+      FXMatrix* matrix_lowerleft_sum=new FXMatrix(gbSumTarget,3,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|
+                                                  LAYOUT_FILL_X|LAYOUT_FILL_Y);
+
+      new FXLabel(matrix_lowerleft_sum,"R",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
+      new FXTextField(matrix_lowerleft_sum,10,dtNewTarget[0],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN, 
+                  0, 0, 50, 15);
+
+      new FXLabel(matrix_lowerleft_sum,"",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+      new FXLabel(matrix_lowerleft_sum,"A",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
+      new FXTextField(matrix_lowerleft_sum,10,dtNewTarget[1],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN, 
+                  0, 0, 50, 15);
+
+      new FXButton(matrix_lowerleft_sum,"&Move to Target",NULL,this,ID_MOVETO_TARGET,FRAME_RAISED|
+                   FRAME_THICK| LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+      new FXLabel(matrix_lowerleft_sum,"S",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
+      new FXTextField(matrix_lowerleft_sum,10,dtNewTarget[2],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN, 
+                  0, 0, 50, 15);
+
+      new FXLabel(matrix_lowerleft_sum,"",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
+      // Quit
+      FXGroupBox* gbQuit = 
+      new FXGroupBox(matrix_main2, "Close Window",
                    FRAME_RIDGE|LAYOUT_FILL_Y|
                    LAYOUT_TOP|LAYOUT_RIGHT|LAYOUT_SIDE_RIGHT);
 
-new FXButton(gbQuit,"&Quit",NULL,this,ID_CANCEL,FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+      new FXButton(gbQuit,"&Quit",NULL,this,ID_CANCEL,FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+                  LAYOUT_CENTER_Y|LAYOUT_FILL_X);
 
+      //Timer for OnCmdTimer, paint all new
+      getApp()->addTimeout(this,ID_TIMER,80);
 
-getApp()->addTimeout(this,ID_TIMER,80);
-
-  }
+      }
 
 
 // Destructor
 FXTestDialog::~FXTestDialog(){
 
-   getApp()->removeTimeout(this,ID_TIMER);
+      getApp()->removeTimeout(this,ID_TIMER);
 
-  }
+}
 
+//Create new dc
 long FXTestDialog::onPaint(FXObject*,FXSelector,void* ptr){
 
-  FXEvent *ev=(FXEvent*)ptr;
-  FXDCWindow dc(canvas,ev);
-  dc.setForeground(FXRGB(255,255,255));
-  dc.setBackground(FXRGB(255,255,255));
-  //dc.setForeground(canvas->getBackColor());
-  dc.fillRectangle(0,0,40,50);
-  dc.fillRectangle(ev->rect.x,ev->rect.y,ev->rect.w,ev->rect.h);
-  return 1;
-  }
+      FXEvent *ev=(FXEvent*)ptr;
+      FXDCWindow dc(canvas,ev);
+      dc.setForeground(FXRGB(255,255,255));
+      dc.fillRectangle(ev->rect.x,ev->rect.y,ev->rect.w,ev->rect.h);
+      return 1;
+}
 
+//Clear Canvas
 long FXTestDialog::onCmdClear(){
-  FXDCWindow dc(canvas);
-  dc.setForeground(FXRGB(255,255,255));
-  dc.fillRectangle(0,0,200,200);
-  return 1;
-  }
+      FXDCWindow dc(canvas);
+      dc.setForeground(FXRGB(255,255,255));
+      dc.fillRectangle(0,0,200,200);
+      return 1;
+}
 
 long FXTestDialog::onPaintTarget(){
-  FXDCWindow dc(canvas);
-  //Draw Target Nullposition=(-5,-5)
-  dc.setForeground(FXRGB(255,0,0));
-  dc.drawEllipse((valTarget[0]-5),(200-valTarget[1]-5),10,10);
-  return 1;
-  }
-
-long MrsvrMainWindow::onCmdShowDialog(FXObject*,FXSelector,void*){
-  FXTestDialog modaldialog(this);
-  modaldialog.execute(PLACEMENT_OWNER);
-  return 1;
-  }
-
-long FXTestDialog::onCmdTimer(FXObject*,FXSelector,void*){
-
-  getApp()->addTimeout(this,ID_TIMER,80);
+      FXDCWindow dc(canvas);
+      //Draw New Target [Zeroposition=(-5,-5)]
+      dc.setForeground(FXRGB(255,0,0));
+      dc.drawEllipse((valNewTarget[0]-5),(200-valNewTarget[1]-5),10,10);
+      //Draw Old Target
+      dc.setForeground(FXRGB(0,0,255));
+      dc.drawEllipse((valOldTarget[0]-5),(200-valOldTarget[1]-5),11,11);
   
-  FXTestDialog::onCmdClear();
-  FXTestDialog::onPaintTarget();
+      //New Function necessary for this kind of calculations//////
+      for (int i = 0; i < 3; i ++) {                       //////
+      valNewTarget[i]=(valDeltaTarget[i]+valOldTarget[i]); /////
+      }                                                    ////
+      ////////////////////////////////////////////////////////
 
-  return 1;
+      //draw Text NewTarget
+      dc.setForeground(FXRGB(255,0,0));
+      dc.setFont(canvasFont0);
+      dc.drawText(valNewTarget[0]-25, 200-valNewTarget[1]-5,"NewTarget", 9);
+    
+      //draw Text OldTarget
+      dc.setForeground(FXRGB(0,0,255));
+      dc.setFont(canvasFont0);
+      dc.drawText(valOldTarget[0]-25, 200-valOldTarget[1]+15,"OldTarget", 9);
+
+      return 1;
+}
+
+//Shows new Dialog Box
+long MrsvrMainWindow::onCmdShowDialog(FXObject*,FXSelector,void*){
+      FXTestDialog modaldialog(this);
+      modaldialog.execute(PLACEMENT_OWNER);
+      return 1;
+}
+
+//Timed function for deleting and repainting canvas
+long FXTestDialog::onCmdTimer(FXObject*,FXSelector,void*){
+  
+      //Next call this Funktion in 80ms
+      getApp()->addTimeout(this,ID_TIMER,80);
+  
+      //Delete old canvas
+      FXTestDialog::onCmdClear();
+      //Paint new canvas
+      FXTestDialog::onPaintTarget();
+  
+      return 1;
 
 }
 
