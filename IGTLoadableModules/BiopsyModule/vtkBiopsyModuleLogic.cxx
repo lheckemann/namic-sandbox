@@ -43,6 +43,11 @@ vtkBiopsyModuleLogic::vtkBiopsyModuleLogic()
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkBiopsyModuleLogic::DataCallback);
 
+  this->SliceNode[0] = NULL;
+  this->SliceNode[1] = NULL;
+  this->SliceNode[2] = NULL;
+
+
 }
 
 
@@ -83,69 +88,44 @@ void vtkBiopsyModuleLogic::UpdateAll()
 
 }
 
-void vtkBiopsyModuleLogic::RefreshLines(vtkMRMLFiducialListNode* fiducialListNode, vtkActorCollection* actorCollection, vtkCollection* color, vtkSlicerApplicationGUI* slicerGUI)
+//---------------------------------------------------------------------------
+void vtkBiopsyModuleLogic::CheckSliceNode()
 {
-  if(fiducialListNode && slicerGUI && actorCollection && color)
+  
+  if (this->SliceNode[0] == NULL)
     {
-      if(fiducialListNode->GetNumberOfFiducials() == 2)
-        {
-          vtkLineSource* lineFiducials = vtkLineSource::New();
-          float* p1 = fiducialListNode->GetNthFiducialXYZ(0);
-          float* p2 = fiducialListNode->GetNthFiducialXYZ(1);
-      
-          lineFiducials->SetPoint1(p1[0],p1[1],p1[2]);
-          lineFiducials->SetPoint2(p2[0],p2[1],p2[2]);
-          lineFiducials->Update();
-      
-          vtkPolyDataMapper* lineMapper = vtkPolyDataMapper::New();
-          lineMapper->SetInputConnection(lineFiducials->GetOutputPort());
-      
-          vtkActor* lineActor = vtkActor::New();
-          lineActor->SetMapper(lineMapper);
-          lineActor->GetProperty()->SetColor((double)rand()/RAND_MAX,(double)rand()/RAND_MAX,(double)rand()/RAND_MAX);         
- 
-
-          // FIXME: Be sure color is not already existing         
-       
-           // // Generate random color and make sure not already generated
-       //   bool color_existing = false;  // To avoid compilation warning, shouldn't be defined on loop 
-          //   double col[3] = {0,0,0};    // Idem
- 
-          //   do
-       //     {
-       //       col[0] = (double)(rand()/RAND_MAX);
-          //       col[1] = (double)(rand()/RAND_MAX);
-          //       col[2] = (double)(rand()/RAND_MAX);
- 
-          //       bool color_existing = false;
-          //       for(int i=0; i<color->GetNumberOfItems();i++)
-       //         {
-       //          double* assigned_color = reinterpret_cast<double*>(color->GetItemAsObject(i));
-          //           if(assigned_color[0] == col[0] && assigned_color[1] == col[1] && assigned_color[2] == col[2])
-       //            {
-       //              color_existing = true;
-       //            }
-       //         }        
-
-       //     }
-       //   while(color_existing);
-
-        
-          // lineActor->GetProperty()->SetColor(col[0],col[1],col[2]);
-
-          // color->AddItem((vtkObject*)(col));
-          actorCollection->AddItem(lineActor);
-      
-          slicerGUI->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(lineActor);
-      
-          lineActor->Delete();
-          lineMapper->Delete();
-          lineFiducials->Delete();
-        }
+    this->SliceNode[0] = this->GetApplicationLogic()
+      ->GetSliceLogic("Red")->GetSliceNode();
+    }
+  if (this->SliceNode[1] == NULL)
+    {
+    this->SliceNode[1] = this->GetApplicationLogic()
+      ->GetSliceLogic("Yellow")->GetSliceNode();
+    }
+  if (this->SliceNode[2] == NULL)
+    {
+    this->SliceNode[2] = this->GetApplicationLogic()
+      ->GetSliceLogic("Green")->GetSliceNode();
     }
 }
 
+//---------------------------------------------------------------------------
+void vtkBiopsyModuleLogic::UpdateSliceNode(double* direction, double* transverse, double* position, int SliceNodeNumber)
+{
+  CheckSliceNode();
+  
+  float tx = direction[0];
+  float ty = direction[1];
+  float tz = direction[2];
+  
+  float nx = transverse[0];
+  float ny = transverse[1];
+  float nz = transverse[2];
 
+  float px = position[0];
+  float py = position[1];
+  float pz = position[2];
 
+  this->SliceNode[SliceNodeNumber]->SetSliceToRASByNTP(tx,ty,tz,nx,ny,nz,px,py,pz,SliceNodeNumber);
 
-
+}
