@@ -681,9 +681,9 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
             double Slider1 = this->lineRange->GetEntry1()->GetValueAsDouble();
               if(std::abs(Slider1) > this->PVectorLength)
                 {
-                  this->lineTip1[0] = this->lineCenter[0] + Slider1*this->P1VectorNormalized[0];
-                this->lineTip1[1] = this->lineCenter[1] + Slider1*this->P1VectorNormalized[1];
-                this->lineTip1[2] = this->lineCenter[2] + Slider1*this->P1VectorNormalized[2];
+                  this->lineTip1[0] = this->lineCenter[0] + std::abs(Slider1)*this->P1VectorNormalized[0];
+           this->lineTip1[1] = this->lineCenter[1] + std::abs(Slider1)*this->P1VectorNormalized[1];
+           this->lineTip1[2] = this->lineCenter[2] + std::abs(Slider1)*this->P1VectorNormalized[2];
                 } 
               else
                 {
@@ -696,9 +696,9 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
               double Slider2 = this->lineRange->GetEntry2()->GetValueAsDouble();
               if(std::abs(Slider2) > this->PVectorLength)
                 {
-                  this->lineTip2[0] = this->lineCenter[0] + Slider2*this->P2VectorNormalized[0];
-                this->lineTip2[1] = this->lineCenter[1] + Slider2*this->P2VectorNormalized[1];
-                this->lineTip2[2] = this->lineCenter[2] + Slider2*this->P2VectorNormalized[2];
+                  this->lineTip2[0] = this->lineCenter[0] + std::abs(Slider2)*this->P2VectorNormalized[0];
+           this->lineTip2[1] = this->lineCenter[1] + std::abs(Slider2)*this->P2VectorNormalized[1];
+           this->lineTip2[2] = this->lineCenter[2] + std::abs(Slider2)*this->P2VectorNormalized[2];
                 }
               else
                 {
@@ -714,9 +714,9 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
             double Slider1 = this->lineRange->GetEntry1()->GetValueAsDouble();
               if(std::abs(Slider1) > this->PVectorLength)
                 {
-                  this->lineTip1[0] = this->lineCenter[0] - Slider1*this->P2VectorNormalized[0];
-                this->lineTip1[1] = this->lineCenter[1] - Slider1*this->P2VectorNormalized[1];
-                this->lineTip1[2] = this->lineCenter[2] - Slider1*this->P2VectorNormalized[2];
+                  this->lineTip1[0] = this->lineCenter[0] + std::abs(Slider1)*this->P2VectorNormalized[0];
+           this->lineTip1[1] = this->lineCenter[1] + std::abs(Slider1)*this->P2VectorNormalized[1];
+           this->lineTip1[2] = this->lineCenter[2] + std::abs(Slider1)*this->P2VectorNormalized[2];
                 } 
               else
                 {
@@ -729,9 +729,9 @@ void vtkLineMotionGUI::ProcessGUIEvents(vtkObject *caller,
               double Slider2 = this->lineRange->GetEntry2()->GetValueAsDouble();
               if(std::abs(Slider2) > this->PVectorLength)
                 {
-                  this->lineTip2[0] = this->lineCenter[0] + Slider2*this->P1VectorNormalized[0];
-                this->lineTip2[1] = this->lineCenter[1] + Slider2*this->P1VectorNormalized[1];
-                this->lineTip2[2] = this->lineCenter[2] + Slider2*this->P1VectorNormalized[2];
+                  this->lineTip2[0] = this->lineCenter[0] + std::abs(Slider2)*this->P1VectorNormalized[0];
+           this->lineTip2[1] = this->lineCenter[1] + std::abs(Slider2)*this->P1VectorNormalized[1];
+           this->lineTip2[2] = this->lineCenter[2] + std::abs(Slider2)*this->P1VectorNormalized[2];
                 }
               else
                 {
