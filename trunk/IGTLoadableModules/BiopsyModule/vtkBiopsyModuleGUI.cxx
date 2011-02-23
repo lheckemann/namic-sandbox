@@ -51,6 +51,7 @@
 #include "vtkPlaneSource.h"
 #include "vtkKWCheckButtonWithLabel.h"
 #include "vtkCollection.h"
+#include "vtkProperty.h"
 
 #include "vtkCornerAnnotation.h"
 
@@ -98,6 +99,7 @@ vtkBiopsyModuleGUI::vtkBiopsyModuleGUI ( )
   this->PlaneRotation = NULL;
 
   this->togglePlaneVisibility = NULL;
+  this->toggleReslicing = NULL;
   this->planeActor = vtkActor::New();
   this->plane0Actor = vtkActor::New();
   this->plane90Actor = vtkActor::New();
@@ -241,6 +243,12 @@ vtkBiopsyModuleGUI::~vtkBiopsyModuleGUI ( )
     this->togglePlaneVisibility->Delete();
     }
 
+  if (this->toggleReslicing)
+    {
+    this->toggleReslicing->SetParent(NULL);
+    this->toggleReslicing->Delete();
+    }
+
   if (this->PerpendicularPlane)
     {
     this->PerpendicularPlane->Delete();
@@ -380,6 +388,12 @@ void vtkBiopsyModuleGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->toggleReslicing)
+    {
+    this->toggleReslicing
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   if(this->GetMRMLScene())
     {
       this->GetMRMLScene()
@@ -435,6 +449,9 @@ this->PlaneRotation
   ->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
 
 this->togglePlaneVisibility->GetWidget()
+  ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+this->toggleReslicing->GetWidget()
   ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
 
  this->GetMRMLScene()
@@ -562,7 +579,8 @@ void vtkBiopsyModuleGUI::ProcessGUIEvents(vtkObject *caller,
       this->translation->SetEnabled(1);
       this->PlaneRotation->SetEnabled(1);
       this->togglePlaneVisibility->SetEnabled(1);
-      
+      this->toggleReslicing->SetEnabled(1);      
+
       // Calculate line center
       this->lineCenter[0] = (dpoint1[0] + dpoint2[0])/2;
       this->lineCenter[1] = (dpoint1[1] + dpoint2[1])/2;
@@ -616,7 +634,9 @@ void vtkBiopsyModuleGUI::ProcessGUIEvents(vtkObject *caller,
       mapperPlaneP->SetInput(this->PerpendicularPlane->GetOutput());
      
       this->planeActor->SetMapper(mapperPlaneP);
-     
+      this->planeActor->GetProperty()->SetColor(0,1,0);
+      this->planeActor->GetProperty()->SetOpacity(0.5);
+
       this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(this->planeActor);
       this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
       
@@ -627,7 +647,9 @@ void vtkBiopsyModuleGUI::ProcessGUIEvents(vtkObject *caller,
       mapperPlane0->SetInput(this->Plane0->GetOutput());
      
       this->plane0Actor->SetMapper(mapperPlane0);
-     
+      this->plane0Actor->GetProperty()->SetColor(1,0,0);     
+      this->plane0Actor->GetProperty()->SetOpacity(0.5);
+
       this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(this->plane0Actor);
       this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
       
@@ -638,6 +660,8 @@ void vtkBiopsyModuleGUI::ProcessGUIEvents(vtkObject *caller,
       mapperPlane90->SetInput(this->Plane90->GetOutput());
      
       this->plane90Actor->SetMapper(mapperPlane90);
+      this->plane90Actor->GetProperty()->SetColor(1,1,0);
+      this->plane90Actor->GetProperty()->SetOpacity(0.5);
      
       this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(this->plane90Actor);
       this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
@@ -668,9 +692,7 @@ void vtkBiopsyModuleGUI::ProcessGUIEvents(vtkObject *caller,
       
       // Set Default Whole Range value
       this->WholeRangeWidget->GetWidget()->SetValueAsDouble(this->PVectorLength+200);
-
       }
-      
    }
 
   // lineRange Changed
@@ -687,9 +709,9 @@ void vtkBiopsyModuleGUI::ProcessGUIEvents(vtkObject *caller,
             double Slider1 = this->lineRange->GetEntry1()->GetValueAsDouble();
               if(std::abs(Slider1) > this->PVectorLength)
                 {
-                  this->lineTip1[0] = this->lineCenter[0] + Slider1*this->P1VectorNormalized[0];
-                this->lineTip1[1] = this->lineCenter[1] + Slider1*this->P1VectorNormalized[1];
-                this->lineTip1[2] = this->lineCenter[2] + Slider1*this->P1VectorNormalized[2];
+           this->lineTip1[0] = this->lineCenter[0] + std::abs(Slider1)*this->P1VectorNormalized[0];
+           this->lineTip1[1] = this->lineCenter[1] + std::abs(Slider1)*this->P1VectorNormalized[1];
+           this->lineTip1[2] = this->lineCenter[2] + std::abs(Slider1)*this->P1VectorNormalized[2];
                 } 
               else
                 {
@@ -702,9 +724,9 @@ void vtkBiopsyModuleGUI::ProcessGUIEvents(vtkObject *caller,
               double Slider2 = this->lineRange->GetEntry2()->GetValueAsDouble();
               if(std::abs(Slider2) > this->PVectorLength)
                 {
-                  this->lineTip2[0] = this->lineCenter[0] + Slider2*this->P2VectorNormalized[0];
-                this->lineTip2[1] = this->lineCenter[1] + Slider2*this->P2VectorNormalized[1];
-                this->lineTip2[2] = this->lineCenter[2] + Slider2*this->P2VectorNormalized[2];
+                  this->lineTip2[0] = this->lineCenter[0] + std::abs(Slider2)*this->P2VectorNormalized[0];
+           this->lineTip2[1] = this->lineCenter[1] + std::abs(Slider2)*this->P2VectorNormalized[1];
+           this->lineTip2[2] = this->lineCenter[2] + std::abs(Slider2)*this->P2VectorNormalized[2];
                 }
               else
                 {
@@ -720,9 +742,9 @@ void vtkBiopsyModuleGUI::ProcessGUIEvents(vtkObject *caller,
             double Slider1 = this->lineRange->GetEntry1()->GetValueAsDouble();
               if(std::abs(Slider1) > this->PVectorLength)
                 {
-                  this->lineTip1[0] = this->lineCenter[0] - Slider1*this->P2VectorNormalized[0];
-                this->lineTip1[1] = this->lineCenter[1] - Slider1*this->P2VectorNormalized[1];
-                this->lineTip1[2] = this->lineCenter[2] - Slider1*this->P2VectorNormalized[2];
+                  this->lineTip1[0] = this->lineCenter[0] + std::abs(Slider1)*this->P2VectorNormalized[0];
+           this->lineTip1[1] = this->lineCenter[1] + std::abs(Slider1)*this->P2VectorNormalized[1];
+           this->lineTip1[2] = this->lineCenter[2] + std::abs(Slider1)*this->P2VectorNormalized[2];
                 } 
               else
                 {
@@ -735,9 +757,9 @@ void vtkBiopsyModuleGUI::ProcessGUIEvents(vtkObject *caller,
               double Slider2 = this->lineRange->GetEntry2()->GetValueAsDouble();
               if(std::abs(Slider2) > this->PVectorLength)
                 {
-                  this->lineTip2[0] = this->lineCenter[0] + Slider2*this->P1VectorNormalized[0];
-                this->lineTip2[1] = this->lineCenter[1] + Slider2*this->P1VectorNormalized[1];
-                this->lineTip2[2] = this->lineCenter[2] + Slider2*this->P1VectorNormalized[2];
+                  this->lineTip2[0] = this->lineCenter[0] + std::abs(Slider2)*this->P1VectorNormalized[0];
+           this->lineTip2[1] = this->lineCenter[1] + std::abs(Slider2)*this->P1VectorNormalized[1];
+           this->lineTip2[2] = this->lineCenter[2] + std::abs(Slider2)*this->P1VectorNormalized[2];
                 }
               else
                 {
@@ -817,8 +839,6 @@ void vtkBiopsyModuleGUI::ProcessGUIEvents(vtkObject *caller,
           this->Plane90->SetCenter(this->sphereCenter[0],this->sphereCenter[1],this->sphereCenter[2]);
           this->Plane90->Update();
 
-          this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
-
        // Update vtkMRMLLinearTransformNode
           if(this->transformMatrix && this->transformNode)
          {
@@ -830,7 +850,21 @@ void vtkBiopsyModuleGUI::ProcessGUIEvents(vtkObject *caller,
 
               tempMatrix->DeepCopy(this->transformMatrix);
               this->transformNode->Modified();
-         } 
+         }
+
+       // Reslicing
+       // Update Render if slices not present
+       if( !this->toggleReslicing->GetWidget()->GetSelectedState() )
+        {
+           this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+        }
+      else
+        {
+           // FIXME: flip vectors ?
+        this->GetLogic()->UpdateSliceNode(this->normalVector1, this->P1VectorNormalized,this->sphereCenter,0);
+           this->GetLogic()->UpdateSliceNode(this->P1VectorNormalized,this->normalVector2,this->sphereCenter,1);
+           this->GetLogic()->UpdateSliceNode(this->normalVector1,this->normalVector2,this->sphereCenter,2);
+        }
      }
 
     }
@@ -843,7 +877,18 @@ void vtkBiopsyModuleGUI::ProcessGUIEvents(vtkObject *caller,
       if(this->PerpendicularPlane && this->P1Vector)
      {
           DrawPlanes(this->PlaneRotation->GetValue(), this->sphereCenter);
-          this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
+         // Update Render if slices are not present
+       if( !this->toggleReslicing->GetWidget()->GetSelectedState() )
+        {
+           this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+        }
+      else
+        {
+           this->GetLogic()->UpdateSliceNode(this->normalVector1, this->P1VectorNormalized,this->sphereCenter,0);
+           this->GetLogic()->UpdateSliceNode(this->P1VectorNormalized,this->normalVector2,this->sphereCenter,1);
+           this->GetLogic()->UpdateSliceNode(this->normalVector1,this->normalVector2,this->sphereCenter,2);
+        }
      }
 
     }
@@ -851,13 +896,24 @@ void vtkBiopsyModuleGUI::ProcessGUIEvents(vtkObject *caller,
   if(this->togglePlaneVisibility->GetWidget() == vtkKWCheckButton::SafeDownCast(caller)
      && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
-      if(this->PerpendicularPlane)
-     {
-        this->planeActor->SetVisibility(this->togglePlaneVisibility->GetWidget()->GetSelectedState());
-        this->plane0Actor->SetVisibility(this->togglePlaneVisibility->GetWidget()->GetSelectedState());
-        this->plane90Actor->SetVisibility(this->togglePlaneVisibility->GetWidget()->GetSelectedState());
-        this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
-     }
+    if(this->planeActor && this->plane0Actor && this->plane90Actor)
+      {
+      this->planeActor->SetVisibility(this->togglePlaneVisibility->GetWidget()->GetSelectedState());
+      this->plane0Actor->SetVisibility(this->togglePlaneVisibility->GetWidget()->GetSelectedState());
+      this->plane90Actor->SetVisibility(this->togglePlaneVisibility->GetWidget()->GetSelectedState());
+      this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+      }
+    }
+
+  if(this->toggleReslicing->GetWidget() == vtkKWCheckButton::SafeDownCast(caller)
+     && event == vtkKWCheckButton::SelectedStateChangedEvent)
+    {
+    if(this->planeActor && this->plane0Actor && this->plane90Actor)
+      {
+      this->GetLogic()->UpdateSliceNode(this->normalVector1, this->P1VectorNormalized,this->sphereCenter,0);
+      this->GetLogic()->UpdateSliceNode(this->P1VectorNormalized,this->normalVector2,this->sphereCenter,1);
+      this->GetLogic()->UpdateSliceNode(this->normalVector1,this->normalVector2,this->sphereCenter,2);
+      }
     }
 
 
@@ -1082,13 +1138,22 @@ void vtkBiopsyModuleGUI::BuildGUIForBiopsyModule()
   this->togglePlaneVisibility->GetWidget()->SetSelectedState(0);
   this->togglePlaneVisibility->SetEnabled(0);
 
-  this->Script("pack %s %s %s %s %s %s -side top -fill x -padx 2 -pady 2",
+  this->toggleReslicing = vtkKWCheckButtonWithLabel::New();
+  this->toggleReslicing->SetParent(frame2->GetFrame());
+  this->toggleReslicing->Create();
+  this->toggleReslicing->SetLabelText("Reslicing");
+  this->toggleReslicing->GetWidget()->SetSelectedState(0);
+  this->toggleReslicing->SetEnabled(0);
+
+
+  this->Script("pack %s %s %s %s %s %s %s -side top -fill x -padx 2 -pady 2",
                this->WholeRangeWidget->GetWidgetName(),
                this->UpdateWholeRangeButton->GetWidgetName(), 
                this->lineRange->GetWidgetName(),
                this->translation->GetWidgetName(),
                this->PlaneRotation->GetWidgetName(),
-               this->togglePlaneVisibility->GetWidgetName());
+               this->togglePlaneVisibility->GetWidgetName(),
+               this->toggleReslicing->GetWidgetName());
 
 
   conBrowsFrame->Delete();

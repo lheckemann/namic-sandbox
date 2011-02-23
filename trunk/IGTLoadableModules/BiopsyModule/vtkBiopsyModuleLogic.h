@@ -45,6 +45,7 @@ class VTK_BiopsyModule_EXPORT vtkBiopsyModuleLogic : public vtkSlicerModuleLogic
   };
   //ETX
 
+
  public:
   
   static vtkBiopsyModuleLogic *New();
@@ -52,7 +53,11 @@ class VTK_BiopsyModule_EXPORT vtkBiopsyModuleLogic : public vtkSlicerModuleLogic
   vtkTypeRevisionMacro(vtkBiopsyModuleLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
 
-  void RefreshLines(vtkMRMLFiducialListNode* , vtkActorCollection* , vtkCollection*, vtkSlicerApplicationGUI*);
+  void CheckSliceNode();
+  void UpdateSliceNode(double*, double*, double*, int);
+
+  vtkMRMLSliceNode* SliceNode[3];
+
 
  protected:
   

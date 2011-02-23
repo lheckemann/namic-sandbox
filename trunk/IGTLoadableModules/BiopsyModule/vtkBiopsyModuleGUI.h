@@ -161,6 +161,7 @@ class VTK_BiopsyModule_EXPORT vtkBiopsyModuleGUI : public vtkSlicerModuleGUI
   vtkActor* plane90Actor;
 
   vtkKWCheckButtonWithLabel* togglePlaneVisibility;
+  vtkKWCheckButtonWithLabel* toggleReslicing;
 
   vtkMatrix4x4* transformMatrix;
   // Fiducial Positions
