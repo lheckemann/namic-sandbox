@@ -39,7 +39,7 @@ public:
    * map filter does NOT consider the spacing. This could be a
    * problem, but let's see.
    */
-  void setMask(typename MaskImageType::Pointer mask);
+  //void setMask(typename MaskImageType::Pointer mask);
 
 
   /** Output final mask corresponding to the wall */
@@ -56,13 +56,15 @@ public:
 protected:
   void computeMetricFromDistanceMap();
 
-
   typename MaskImageType::Pointer mp_maskOfWall; // 1 for mask of wall, 0 for background
   
   double m_sigmoidAlpha;
   double m_sigmoidBeta;
 
   double m_meanWallThickness;
+
+private:
+  void buildDistanceMapFromInterior();
 
 };
 

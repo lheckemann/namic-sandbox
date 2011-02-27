@@ -261,6 +261,9 @@ void
 CLocalChanVeseWallSegmenter3D< TPixel >
 ::doSegmenation()
 {
+  this->resampleMaskImage();
+  this->computeMetricFromDistanceMap();
+
   /*============================================================
    * From the initial mask, generate: 1. SFLS, 2. mp_label and
    * 3. mp_phi.      

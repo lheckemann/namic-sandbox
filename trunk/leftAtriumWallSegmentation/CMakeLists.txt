@@ -47,3 +47,13 @@ slicer3_set_plugins_output_path(${targ})
 endforeach(targ ${TARGETS})
 slicer3_install_plugins(${TARGETS})
 
+##
+# build corresponding console exe for debug
+option(build_leftAtriumWallSegmenterConsole "build leftAtriumWallSegmenterConsole?" ON)
+if (build_leftAtriumWallSegmenterConsole)
+    set(cexx leftAtriumWallSegmenterConsole)
+    add_executable(${cexx} ${cexx}.cxx)
+    target_link_libraries(${cexx}  ITKCommon ITKNumerics ITKBasicFilters ITKIO ITKStatistics itkvnl)
+endif (build_leftAtriumWallSegmenterConsole)
+
+

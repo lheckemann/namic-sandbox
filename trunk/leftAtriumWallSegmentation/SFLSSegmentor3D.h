@@ -145,6 +145,9 @@ protected:
   void updateInsideVoxelCount();
 
 
+  void resampleMaskImage();
+
+
   inline bool doubleEqual(double a, double b, double eps = 1e-10)
   {
     return (a-b < eps && b-a < eps);

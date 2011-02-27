@@ -12,8 +12,16 @@
 
 #include "itkImageRegionIteratorWithIndex.h"
 
+#include "itkAffineTransform.h"
+#include "itkResampleImageFilter.h"
+
+
 //douher for test
 //#include "imageProcessing/imageIO.hxx"
+
+//tst
+#include "utilities.hxx"
+//tst//
 
 
 template< typename TPixel >
@@ -90,22 +98,23 @@ CSFLSSegmentor3D< TPixel >
 
   TSize size = img->GetLargestPossibleRegion().GetSize();
 
-  if (m_nx + m_ny + m_nz == 0)
-    {
-      m_nx = size[0];
-      m_ny = size[1];
-      m_nz = size[2];
+  m_nx = size[0];
+  m_ny = size[1];
+  m_nz = size[2];
 
-      typename ImageType::SpacingType spc = img->GetSpacing();      
-      m_dx = spc[0];
-      m_dy = spc[1];
-      m_dz = spc[2];
-    }
-  else if ( m_nx != (long)size[0] || m_ny != (long)size[1] || m_nz != (long)size[2] )
-    {
-      std::cerr<<"image sizes do not match. abort\n";
-      raise(SIGABRT);
-    }
+  typename ImageType::SpacingType spc = img->GetSpacing();      
+  m_dx = spc[0];
+  m_dy = spc[1];
+  m_dz = spc[2];
+
+//   if (m_nx + m_ny + m_nz == 0)
+//     {
+//     }
+//   else if ( m_nx != (long)size[0] || m_ny != (long)size[1] || m_nz != (long)size[2] )
+//     {
+//       std::cerr<<"image sizes do not match. abort\n";
+//       raise(SIGABRT);
+//     }
 
   return;
 }
@@ -192,20 +201,68 @@ CSFLSSegmentor3D< TPixel >
     }
 
 
-  if (m_nx + m_ny + m_nz == 0)
-    {
-      m_nx = size[0];
-      m_ny = size[1];
-      m_nz = size[2];
-    }
-  else if ( m_nx != (long)size[0] || m_ny != (long)size[1] || m_nz != (long)size[2] )
-    {
-      std::cerr<<"image sizes do not match. abort\n";
-      raise(SIGABRT);
-    }
+//   if (m_nx + m_ny + m_nz == 0)
+//     {
+//       m_nx = size[0];
+//       m_ny = size[1];
+//       m_nz = size[2];
+//     }
+//   else if ( m_nx != (long)size[0] || m_ny != (long)size[1] || m_nz != (long)size[2] )
+//     {
+//       std::cerr<<"image sizes do not match. abort\n";
+//       raise(SIGABRT);
+//     }
 
   return;
 }
+
+/**
+ * Resample the mask image s.t. it's on the same grid/region of the
+ * the input image.
+ */
+template< typename TPixel >
+void
+CSFLSSegmentor3D< TPixel >
+::resampleMaskImage()
+{
+  if (mp_img->GetLargestPossibleRegion() == mp_mask->GetLargestPossibleRegion())
+    {
+      return;
+    }
+
+  typedef itk::ResampleImageFilter< MaskImageType, MaskImageType >    ResampleFilterType;
+  typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+  
+  typedef itk::AffineTransform< double, MaskImageType::ImageDimension >  TransformType;
+  typename TransformType::Pointer identityTransform = TransformType::New();
+  identityTransform->SetIdentity();
+
+  resampler->SetTransform( identityTransform );
+  resampler->SetInput( mp_mask );
+
+  resampler->SetSize( mp_img->GetLargestPossibleRegion().GetSize() );
+  resampler->SetOutputOrigin(  mp_img->GetOrigin() );
+  resampler->SetOutputSpacing( mp_img->GetSpacing() );
+  resampler->SetOutputDirection( mp_img->GetDirection() );
+  resampler->SetDefaultPixelValue( 0 );
+  resampler->Update();
+  
+  mp_mask = resampler->GetOutput();
+
+
+
+
+  //tst
+    writeImage<MaskImageType>(mp_mask, "resampledMask.nrrd");
+
+  //tst//
+
+
+
+
+  return;
+}
+
 
 
 
