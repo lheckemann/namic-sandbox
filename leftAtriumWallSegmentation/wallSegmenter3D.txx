@@ -33,14 +33,11 @@ CWallSegmenter3D< TPixel >
 }  
 
 
-
 template< typename TPixel >
 void
 CWallSegmenter3D< TPixel >
-::setMask(typename MaskImageType::Pointer mask)
+::buildDistanceMapFromInterior()
 {
-  SuperClassType::setMask(mask);
-  
   /**
    * Duplicate the mask
    *
@@ -64,13 +61,9 @@ CWallSegmenter3D< TPixel >
 
   mp_distanceMapOfInterior = filter->GetOutput();
 
-
-  computeMetricFromDistanceMap();
-
-
-
   return;
 }
+
 
 template< typename TPixel >
 typename itk::Image<unsigned char, 3>::Pointer
@@ -118,10 +111,12 @@ void
 CWallSegmenter3D< TPixel >
 ::computeMetricFromDistanceMap()
 {
+  buildDistanceMapFromInterior();
+
+
   /**
    * From distance map to compute the conformal metric
    */
-
   mp_metricFromDistanceMapOfInterior = floatImage_t::New();
   mp_metricFromDistanceMapOfInterior->SetRegions(mp_distanceMapOfInterior->GetLargestPossibleRegion());
   mp_metricFromDistanceMapOfInterior->Allocate();
