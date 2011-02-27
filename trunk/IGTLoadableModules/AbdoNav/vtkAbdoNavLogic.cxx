@@ -613,6 +613,10 @@ void vtkAbdoNavLogic::UpdateNeedleProjection(vtkMatrix4x4* registeredTracker)
       this->Actor2DRed->GetProperty()->SetLineStippleRepeatFactor(1);
       }
 
+    // TODO: both Modified() calls seem to be unnecessary --> remove?
+    this->Actor2DGreen->Modified();
+    this->Actor2DRed->Modified();
+
     // cleanup
     pointsGreen->Delete();
     cellsGreen->Delete();
