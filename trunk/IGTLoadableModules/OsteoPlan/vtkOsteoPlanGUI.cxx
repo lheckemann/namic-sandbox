@@ -38,8 +38,10 @@
 #include "vtkProperty.h"
 #include "vtkSlicerNodeSelectorWidget.h"
 #include "vtkCollection.h"
-#include "vtkBoxWidget.h"
+#include "vtkBoxWidget2.h"
+#include "vtkBoxRepresentation.h"
 
+#include "vtkKWMenuButtonWithLabel.h"
 #include "vtkCornerAnnotation.h"
 
 //---------------------------------------------------------------------------
@@ -65,10 +67,22 @@ vtkOsteoPlanGUI::vtkOsteoPlanGUI ( )
   
   //----------------------------------------------------------------
   // Plane widgets
-  //  this->CuttingPlane = NULL;
-  this->CuttingPlane = vtkBoxWidget::New();
+  this->CuttingPlane = vtkBoxWidget2::New();
+  this->boxRepresentation = vtkBoxRepresentation::New();
+  
+  this->widgetPosition[0] = -50;
+  this->widgetPosition[1] = 50;
+  this->widgetPosition[2] = -50;
+  this->widgetPosition[3] = 50;
+  this->widgetPosition[4] = -2.5;
+  this->widgetPosition[5] = 2.5;
+
+
   this->ModelToCutSelector = NULL;
   this->PerformCutButton = NULL;
+  this->cutterThicknessSelector = NULL;
+  this->cutterThickness = 5;
+
   //----------------------------------------------------------------
   // Locator  (MRML)
   this->TimerFlag = 0;
@@ -108,6 +122,12 @@ vtkOsteoPlanGUI::~vtkOsteoPlanGUI ( )
     this->CuttingPlane->Delete();
     }
 
+  if (this->boxRepresentation)
+    {
+      //this->CuttingPlane->SetParent(NULL);
+    this->boxRepresentation->Delete();
+    }
+
   if (this->ModelToCutSelector)
     {
     this->ModelToCutSelector->SetParent(NULL);
@@ -120,6 +140,11 @@ vtkOsteoPlanGUI::~vtkOsteoPlanGUI ( )
     this->PerformCutButton->Delete();
     }
 
+  if(this->cutterThicknessSelector)
+    {
+    this->cutterThicknessSelector->SetParent(NULL);
+    this->cutterThicknessSelector->Delete();
+    }
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -190,7 +215,14 @@ void vtkOsteoPlanGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  this->RemoveLogicObservers();
+  if(this->cutterThicknessSelector->GetWidget()->GetMenu())
+    {
+      this->cutterThicknessSelector->GetWidget()->GetMenu()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+
+   this->RemoveLogicObservers();
 
 }
 
@@ -225,11 +257,13 @@ void vtkOsteoPlanGUI::AddGUIObservers ( )
   this->ModelToCutSelector->GetWidget()
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
 
-
   this->PerformCutButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
-  this->AddLogicObservers();
+  this->cutterThicknessSelector->GetWidget()->GetMenu()
+    ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+   this->AddLogicObservers();
 
 }
 
@@ -287,7 +321,6 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
       if(this->EnableCutter->GetWidget()->GetSelectedState() == 1)
      {
         // State Enabled -- Draw Plane
-        
         vtkSlicerApplicationGUI *appGUI = vtkSlicerApplicationGUI::SafeDownCast (this->GetApplicationGUI() );      
         if (!appGUI)
           {
@@ -297,16 +330,33 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
 
      
         // Initial Position
-        double widgetPosition[6] = {-50,50,-50,50,-10,10};       
-        this->CuttingPlane->SetInteractor(appGUI->GetActiveRenderWindowInteractor());
-        this->CuttingPlane->PlaceWidget(widgetPosition);
-        this->CuttingPlane->On();
+        if(this->boxRepresentation && this->CuttingPlane)
+       {
+          this->boxRepresentation->GetFaceProperty()->SetRepresentationToSurface();
+          this->boxRepresentation->GetSelectedHandleProperty()->SetColor(0,0,1);
+       this->boxRepresentation->BuildRepresentation();
+ 
+          this->CuttingPlane->SetRepresentation(this->boxRepresentation);      
+
+          this->CuttingPlane->SetDefaultRenderer(this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer());
+          this->CuttingPlane->SetCurrentRenderer(this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer());
+          this->CuttingPlane->SetInteractor(appGUI->GetActiveRenderWindowInteractor());
+        
+       // ????????????????
+          // keep cutter in the same position when re-enabled ?
+          this->CuttingPlane->GetRepresentation()->PlaceWidget(this->widgetPosition);
+
+          this->CuttingPlane->On();
+       }
         }
       else
      {
         // State Disabled -- Hide Plane
         this->CuttingPlane->Off();   
      }
+  
+      this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
     }
 
 
@@ -321,7 +371,7 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
           // Data to clip
           vtkMRMLModelNode* model = reinterpret_cast<vtkMRMLModelNode*>(this->ModelToCutSelector->GetSelected());
 
-          this->GetLogic()->ClipModelWithBox(model, this->CuttingPlane);
+          this->GetLogic()->ClipModelWithBox(model, this->CuttingPlane, this->GetApplicationGUI());
 
        // Select base if existing to prepare for next clipping and Hide original model
 
@@ -335,7 +385,7 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
               this->ModelToCutSelector->SetSelected(basemodel);
          } 
 
-       /*       
+       /*
           // [] FIXME: Use to move model, but without without axis + Segfault   
         vtkInteractorStyleTrackballActor* movingaxes = vtkInteractorStyleTrackballActor::New();
           movingaxes->SetDefaultRenderer(this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer());
@@ -344,14 +394,51 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
           this->GetApplicationGUI()->GetActiveRenderWindowInteractor()->SetInteractorStyle(movingaxes);
        */
 
-          // Delete ******************** 
+          // Delete
           listmodel2->Delete();
      }  
        
     }
-     
 
+  if(this->cutterThicknessSelector->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast(caller)
+     && event == vtkKWMenu::MenuItemInvokedEvent)
+    {
+      int selected_index = this->cutterThicknessSelector->GetWidget()->GetMenu()->GetIndexOfSelectedItem();
+      if(!strcmp(this->cutterThicknessSelector->GetWidget()->GetMenu()->GetItemSelectedValue(selected_index),"5 mm"))
+     {
 
+          this->widgetPosition[4] = -2.5;
+          this->widgetPosition[5] = 2.5;
+
+          vtkTransform* boxTransform = vtkTransform::New();
+          this->boxRepresentation->GetTransform(boxTransform);
+          this->boxRepresentation->PlaceWidget(this->widgetPosition);
+          this->boxRepresentation->SetTransform(boxTransform);
+
+          this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
+          boxTransform->Delete();
+
+     }
+      if(!strcmp(this->cutterThicknessSelector->GetWidget()->GetMenu()->GetItemSelectedValue(selected_index),"10 mm"))
+     {
+ 
+          this->widgetPosition[4] = -5;
+          this->widgetPosition[5] = 5;
+
+          vtkTransform* boxTransform = vtkTransform::New();
+          this->boxRepresentation->GetTransform(boxTransform);
+          this->boxRepresentation->PlaceWidget(this->widgetPosition); 
+          this->boxRepresentation->SetTransform(boxTransform);
+
+          this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
+          boxTransform->Delete();
+     }
+
+    }
+
+    
 } 
 
 
@@ -506,9 +593,27 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   app->Script("pack %s -fill x -side top -padx 2 -pady 2",
               this->PerformCutButton->GetWidgetName());
 
+  vtkKWFrame *frame3 = vtkKWFrame::New();
+  frame3->SetParent(frame->GetFrame());
+  frame3->Create();
+  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",       frame3->GetWidgetName() );
+  
+  // Cutter thickness
+  this->cutterThicknessSelector = vtkKWMenuButtonWithLabel::New();
+  this->cutterThicknessSelector->SetParent(frame3);
+  this->cutterThicknessSelector->Create();
+  this->cutterThicknessSelector->SetLabelText("Cutter thickness:");
+  this->cutterThicknessSelector->GetWidget()->GetMenu()->AddRadioButton("5 mm");
+  this->cutterThicknessSelector->GetWidget()->GetMenu()->AddRadioButton("10 mm");
+  this->cutterThicknessSelector->GetWidget()->GetMenu()->SelectItem(0);
+
+  app->Script("pack %s -fill x -side top -padx 2 -pady 2",
+              this->cutterThicknessSelector->GetWidgetName());
+
 
   ModelToCutLabel->Delete();
 
+  frame3->Delete();
   frame2->Delete();
   conBrowsFrame->Delete();
   frame->Delete();

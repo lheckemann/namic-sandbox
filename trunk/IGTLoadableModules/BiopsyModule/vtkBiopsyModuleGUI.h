@@ -119,6 +119,7 @@ class VTK_BiopsyModule_EXPORT vtkBiopsyModuleGUI : public vtkSlicerModuleGUI
 
   void UpdateAll();
   void DrawPlanes(double angle_in_deg, double* center);
+  void CreateMapperAndActorPlanes();
 
  protected:
   
