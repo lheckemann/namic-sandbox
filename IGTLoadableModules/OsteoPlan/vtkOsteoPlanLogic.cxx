@@ -22,7 +22,7 @@
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLModelDisplayNode.h"
 
-#include "vtkBoxWidget.h"
+#include "vtkBoxWidget2.h"
 #include "vtkBoxRepresentation.h"
 #include "vtkProperty.h"
 
@@ -32,9 +32,23 @@
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
 #include "vtkRenderer.h"
+#include "vtkImplicitBoolean.h"
+#include "vtkImplicitDataSet.h"
+#include "vtkExtractPolyDataGeometry.h"
+#include "vtkDataSetMapper.h"
+#include "vtkDelaunay3D.h"
+#include "vtkElevationFilter.h"
+#include "vtkClipClosedSurface.h"
+#include "vtkPlaneCollection.h"
+#include "vtkPolyDataConnectivityFilter.h"
 
 #include "vtkInteractorStyleTrackballActor.h"
 #include "vtkAxesActor.h"
+
+#include "vtk3DWidget.h"
+#include "vtkAxesActor.h"
+#include "vtkAssembly.h"
+#include "vtkOsteoPlanGUI.h"
 
 #include "vtkOsteoPlanLogic.h"
 
@@ -51,6 +65,9 @@ vtkOsteoPlanLogic::vtkOsteoPlanLogic()
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkOsteoPlanLogic::DataCallback);
 
+  this->part1 = NULL;
+  this->part2 = NULL;
+
 }
 
 
@@ -62,6 +79,17 @@ vtkOsteoPlanLogic::~vtkOsteoPlanLogic()
     {
     this->DataCallbackCommand->Delete();
     }
+
+  if (this->part1)
+    {
+      this->part1->Delete();
+    }
+
+  if (this->part2)
+    {
+      this->part2->Delete();
+    }
+
 
 }
 
@@ -92,105 +120,240 @@ void vtkOsteoPlanLogic::UpdateAll()
 }
 
 
-void vtkOsteoPlanLogic::ClipModelWithBox(vtkMRMLModelNode* model, vtkBoxWidget* cuttingBox)
+void vtkOsteoPlanLogic::ClipModelWithBox(vtkMRMLModelNode* model, vtkBoxWidget2* cuttingBox, vtkSlicerApplicationGUI* slicerGUI)
 {
-          // Get Planes from vtkBoxWidget  
-          vtkPlanes* planes = vtkPlanes::New();
-          cuttingBox->GetPlanes(planes);
-       
-          // Set Clipper 1
-          vtkClipPolyData* clipper = vtkClipPolyData::New();
-          clipper->SetInput(model->GetPolyData());
-          clipper->SetClipFunction(planes);
-          clipper->GenerateClipScalarsOn();
-          clipper->GenerateClippedOutputOn();
-          clipper->InsideOutOn();
-      
-          // Set Clipper 2
-          vtkClipPolyData* clipper2 = vtkClipPolyData::New();
-          clipper2->SetInput(model->GetPolyData());
-          clipper2->SetClipFunction(planes);
-          clipper2->GenerateClipScalarsOn();
-          clipper2->GenerateClippedOutputOn();
-          clipper2->InsideOutOff();
-          
-          // Set Mapper 1     
-          vtkPolyDataMapper* clipMapper = vtkPolyDataMapper::New();
-          clipMapper->SetInputConnection(clipper->GetOutputPort());
-          clipMapper->ScalarVisibilityOff();
-          
-          // Set Mapper 2
-          vtkPolyDataMapper* clipMapper2 = vtkPolyDataMapper::New();
-          clipMapper2->SetInputConnection(clipper2->GetOutputPort());
-          clipMapper2->ScalarVisibilityOff();
-          
-          // Set Actor 1
-          vtkActor* clipActor = vtkActor::New();
-          clipActor->SetMapper(clipMapper);
-          clipActor->GetProperty()->SetColor(1,0,0);
 
-       // Set Actor 2
-          vtkActor* clipActor2 = vtkActor::New();
-          clipActor2->SetMapper(clipMapper2);
-          clipActor2->GetProperty()->SetColor(0,0,1);
+//------------------------------------------------------------
+// Extract Geometry Operation
+//------------------------------------------------------------ 
+#if 0
+  // Get Planes from vtkBoxWidget  
+  vtkPlanes* planes = vtkPlanes::New();
+  vtkBoxRepresentation* boxRepresentation = reinterpret_cast<vtkBoxRepresentation*>(cuttingBox->GetRepresentation());
+  boxRepresentation->GetPlanes(planes);
+  
+  vtkDelaunay3D* delaunay = vtkDelaunay3D::New();
+  delaunay->SetInput(model->GetPolyData());
+  delaunay->BoundingTriangulationOff();
 
-          // Add to MRML Scene
-          vtkMRMLModelNode* part1 = vtkMRMLModelNode::New();
-          vtkMRMLModelNode* part2 = vtkMRMLModelNode::New();
-          vtkMRMLModelDisplayNode* dnode1 = vtkMRMLModelDisplayNode::New();
-          vtkMRMLModelDisplayNode* dnode2 = vtkMRMLModelDisplayNode::New();      
+  vtkElevationFilter* elev = vtkElevationFilter::New();
+  elev->SetInputConnection(delaunay->GetOutputPort());
 
-          // - Model 1
-          dnode1->SetColor(clipActor->GetProperty()->GetColor());
-          this->GetMRMLScene()->AddNode(dnode1);
-          part1->SetAndObservePolyData(clipper->GetOutput());
-          part1->SetAndObserveDisplayNodeID(dnode1->GetID());
-          this->GetMRMLScene()->AddNode(part1);
+  vtkImplicitDataSet* coneData = vtkImplicitDataSet::New();
+  coneData->SetDataSet(elev->GetOutput());
 
-          // - Base
-          // -- Check Base does not exist
-          vtkCollection* listmodel2 = this->GetMRMLScene()->GetNodesByName("Base");
-          if(listmodel2->GetNumberOfItems() > 0)
-         {
-           // --- Delete All "Base" Model
-           for(int i=0; i < listmodel2->GetNumberOfItems(); i++)
-          {
-            vtkMRMLNode* basemodel = reinterpret_cast<vtkMRMLNode*>(listmodel2->GetItemAsObject(i));
-                  this->GetMRMLScene()->RemoveNode(basemodel);
-          }
-         }
-          listmodel2->Delete();
+  vtkImplicitBoolean* dataUnion = vtkImplicitBoolean::New();
+  dataUnion->AddFunction(coneData);
+  dataUnion->AddFunction(planes);
+  dataUnion->SetOperationTypeToDifference();
 
-       // -- Draw (or redraw if deleted) "Base" Model
-          dnode2->SetColor(clipActor2->GetProperty()->GetColor());
-          this->GetMRMLScene()->AddNode(dnode2);
-          part2->SetAndObservePolyData(clipper2->GetOutput());         
-          part2->SetAndObserveDisplayNodeID(dnode2->GetID());
-          part2->SetName("Base");
-          this->GetMRMLScene()->AddNode(part2);
+  vtkExtractPolyDataGeometry* extract = vtkExtractPolyDataGeometry::New();
+  extract->SetImplicitFunction(dataUnion);
+  extract->SetInput(model->GetPolyData());
 
-       /*
-          // [] FIXME: Use to move model, but without without axis + Segfault   
-        vtkInteractorStyleTrackballActor* movingaxes = vtkInteractorStyleTrackballActor::New();
-          movingaxes->SetDefaultRenderer(this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer());
-          movingaxes->SetEnabled(1); 
-        
-          this->GetApplicationGUI()->GetActiveRenderWindowInteractor()->SetInteractorStyle(movingaxes);
-       */
+  vtkDataSetMapper* dataMapper = vtkDataSetMapper::New();
+  dataMapper->SetInputConnection(extract->GetOutputPort());
 
-          // Delete ******************** 
-          planes->Delete();
-          clipper->Delete();
-          clipper2->Delete();
-          clipMapper->Delete();
-          clipMapper2->Delete();
-          clipActor->Delete();
-          clipActor2->Delete();
-          dnode1->Delete();
-          dnode2->Delete();
-          part1->Delete();
-          part2->Delete();
+  vtkActor* dataActor = vtkActor::New();
+  dataActor->SetMapper(dataMapper);
 
+  slicerGUI->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(dataActor);
+
+
+  // Add to MRML Scene
+  //  vtkMRMLModelNode* part1 = vtkMRMLModelNode::New();
+  //  vtkMRMLModelNode* part2 = vtkMRMLModelNode::New();
+
+  this->part1 = vtkMRMLModelNode::New();
+  vtkMRMLModelDisplayNode* dnode1 = vtkMRMLModelDisplayNode::New();
+  
+  // - Model 1
+  dnode1->SetColor(0,0,1);
+  dnode1->SetBackfaceCulling(1);
+  this->GetMRMLScene()->AddNode(dnode1);
+  part1->SetAndObservePolyData(extract->GetOutput());
+  part1->SetAndObserveDisplayNodeID(dnode1->GetID());
+  this->GetMRMLScene()->AddNode(part1);
+
+  slicerGUI->GetActiveViewerWidget()->Render();
+
+#endif
+
+//------------------------------------------------------------
+// Clipping Operation
+//------------------------------------------------------------ 
+#if 1
+  // Get Planes from vtkBoxWidget  
+  vtkPlanes* planes = vtkPlanes::New();
+  vtkBoxRepresentation* boxRepresentation = reinterpret_cast<vtkBoxRepresentation*>(cuttingBox->GetRepresentation());
+  boxRepresentation->GetPlanes(planes);
+
+  // Set Clipper 1
+  vtkClipPolyData* clipper = vtkClipPolyData::New();
+  clipper->SetInput(model->GetPolyData());
+  clipper->SetClipFunction(planes);
+  clipper->InsideOutOn();
+  
+  // Set Clipper 2
+  vtkClipPolyData* clipper2 = vtkClipPolyData::New();
+  clipper2->SetInput(model->GetPolyData());
+  clipper2->SetClipFunction(planes);
+  clipper2->InsideOutOff();
+
+  vtkPolyData* polyDataModel1 = vtkPolyData::New();
+  vtkPolyData* polyDataModel2 = vtkPolyData::New();
+
+  this->part1 = vtkMRMLModelNode::New();
+  this->part2 = vtkMRMLModelNode::New();
+  vtkMRMLModelDisplayNode* dnode1 = vtkMRMLModelDisplayNode::New();
+  vtkMRMLModelDisplayNode* dnode2 = vtkMRMLModelDisplayNode::New();      
+  
+  // Model 1
+  this->part1->SetScene(this->GetMRMLScene());
+  dnode1->SetScene(this->GetMRMLScene());
+
+  this->GetMRMLScene()->AddNode(dnode1);
+  this->GetMRMLScene()->AddNode(part1);
+
+  part1->SetAndObservePolyData(polyDataModel1);
+  part1->SetAndObserveDisplayNodeID(dnode1->GetID());
+
+  dnode1->SetPolyData(clipper->GetOutput());
+  dnode1->SetVisibility(0);
+
+  polyDataModel1->Delete();
+
+  // Base
+  vtkCollection* listmodel2 = this->GetMRMLScene()->GetNodesByName("Base");
+
+  // Check Base does not exist
+  if(listmodel2->GetNumberOfItems() > 0)
+    {
+ 
+    // Delete All "Base" Model already existing
+    for(int i=0; i < listmodel2->GetNumberOfItems(); i++)
+      {
+      vtkMRMLNode* basemodel = reinterpret_cast<vtkMRMLNode*>(listmodel2->GetItemAsObject(i));
+      this->GetMRMLScene()->RemoveNode(basemodel);
+      }
+    }
+  listmodel2->Delete();
+  
+  // Model 2 ("Base" Model)
+  this->part2->SetScene(this->GetMRMLScene());
+  dnode2->SetScene(this->GetMRMLScene());
+
+  this->GetMRMLScene()->AddNode(dnode2);
+  this->GetMRMLScene()->AddNode(part2);
+ 
+  part2->SetAndObservePolyData(polyDataModel2);         
+  part2->SetAndObserveDisplayNodeID(dnode2->GetID());
+  part2->SetName("Base");
+
+  dnode2->SetPolyData(clipper2->GetOutput());
+  dnode2->SetVisibility(1);
+
+  polyDataModel2->Delete();
+
+
+  // Create a model from the largest part of the model   
+  vtkPolyDataConnectivityFilter* connectivityFilter = vtkPolyDataConnectivityFilter::New();
+  connectivityFilter->SetInput(part2->GetModelDisplayNode()->GetPolyData());
+  connectivityFilter->SetExtractionModeToSecondLargestRegion();
+  connectivityFilter->ColorRegionsOn();
+  connectivityFilter->Update();
+
+  vtkPolyData* ConnectivityModel = vtkPolyData::New(); 
+  vtkMRMLModelNode* model1 = vtkMRMLModelNode::New();
+  vtkMRMLModelDisplayNode* dnode3 = vtkMRMLModelDisplayNode::New();
+  
+  model1->SetScene(this->GetMRMLScene());
+  dnode3->SetScene(this->GetMRMLScene());
+
+  this->GetMRMLScene()->AddNode(model1);
+  this->GetMRMLScene()->AddNode(dnode3);
+
+  model1->SetAndObservePolyData(ConnectivityModel);
+  model1->SetAndObserveDisplayNodeID(dnode3->GetID());
+
+  dnode3->SetPolyData(connectivityFilter->GetOutput());
+  dnode3->SetVisibility(1);  
+
+  
+  // Delete ******************** 
+  
+  planes->Delete();
+  clipper->Delete();
+  clipper2->Delete();
+  dnode1->Delete();
+  dnode2->Delete();
+  ConnectivityModel->Delete();
+  model1->Delete();
+  dnode3->Delete();
+  connectivityFilter->Delete();
+  
+#endif  
+
+//------------------------------------------------------------
+// ClipClosedSurface Operation
+//------------------------------------------------------------ 
+#if 0
+  // Get Planes from vtkBoxWidget  
+  vtkPlanes* planes = vtkPlanes::New();
+  vtkBoxRepresentation* boxRepresentation = reinterpret_cast<vtkBoxRepresentation*>(cuttingBox->GetRepresentation());
+  boxRepresentation->GetPlanes(planes);
+
+  // Create vtkPlaneCollection
+  vtkPlaneCollection* collectionPlane = vtkPlaneCollection::New();
+  for(int i=0;i < planes->GetNumberOfPlanes(); i++)
+    {
+      collectionPlane->AddItem(planes->GetPlane(i));
+    } 
+
+  // Set Clipper 1
+  vtkClipClosedSurface* clipper = vtkClipClosedSurface::New();
+  clipper->SetInput(model->GetPolyData());
+  clipper->SetClippingPlanes(collectionPlane);
+  clipper->GenerateFacesOn();
+  clipper->SetBaseColor(1,0,0);
+  clipper->SetClipColor(0,0,1);  
+
+  // Set Mapper 1     
+  vtkPolyDataMapper* clipMapper = vtkPolyDataMapper::New();
+  clipMapper->SetInputConnection(clipper->GetOutputPort());
+  
+  /*
+  // Set Mapper 2
+  vtkPolyDataMapper* clipMapper2 = vtkPolyDataMapper::New();
+  clipMapper2->SetInputConnection(clipper->GetClippedOutputPort());
+  // clipMapper2->ScalarVisibilityOff();
+  */
+  
+  // Set Actor 1
+  vtkActor* clipActor = vtkActor::New();
+  clipActor->SetMapper(clipMapper);
+  clipActor->GetProperty()->SetColor(1,0,0);
+  
+  /*
+  // Set Actor 2
+  vtkActor* clipActor2 = vtkActor::New();
+  clipActor2->SetMapper(clipMapper2);
+  clipActor2->GetProperty()->SetColor(0,0,1);
+  */
+
+  slicerGUI->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(clipActor);
+  // slicerGUI->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(clipActor2);
+
+  slicerGUI->GetActiveViewerWidget()->Render();
+
+  planes->Delete();
+  collectionPlane->Delete();  
+  clipper->Delete();
+  clipMapper->Delete();
+  clipActor->Delete();
+
+#endif
+ 
 }
                                   
 

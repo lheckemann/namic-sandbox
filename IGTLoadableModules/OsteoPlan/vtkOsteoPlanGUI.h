@@ -29,7 +29,9 @@ class vtkKWPushButton;
 class vtkKWCheckButtonWithLabel;
 class vtkSlicerNodeSelectorWidget;
 class vtkKWPushButton;
-class vtkBoxWidget;
+class vtkBoxWidget2;
+class vtkKWMenuButtonWithLabel;
+class vtkBoxRepresentation;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
 {
@@ -133,10 +135,14 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   // Plane widgets
   //----------------------------------------------------------------
  
-  vtkBoxWidget* CuttingPlane;
+  vtkBoxWidget2* CuttingPlane;
+  vtkBoxRepresentation* boxRepresentation;
+  double widgetPosition[6];
   vtkSlicerNodeSelectorWidget* ModelToCutSelector;
   vtkKWPushButton* PerformCutButton;
+  vtkKWMenuButtonWithLabel* cutterThicknessSelector;
 
+  int cutterThickness; 
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
