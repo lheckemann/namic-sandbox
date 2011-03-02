@@ -700,19 +700,10 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     {
     this->Point1RadioButton->SetEnabled(true);
     this->Point1RadioButton->SelectedStateOff();
-    this->Point1REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-    this->Point1AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-    this->Point1SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
     this->Point2RadioButton->SetEnabled(true);
     this->Point2RadioButton->SelectedStateOff();
-    this->Point2REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-    this->Point2AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-    this->Point2SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
     this->Point3RadioButton->SetEnabled(true);
     this->Point3RadioButton->SelectedStateOff();
-    this->Point3REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-    this->Point3AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-    this->Point3SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
     this->PerformRegistrationPushButton->SetEnabled(true);
     }
   else if (this->PerformRegistrationPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
