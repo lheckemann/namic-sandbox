@@ -74,6 +74,10 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   vtkGetVector3Macro(GuidanceNeedleSecondRAS, double);
   /// Set the RAS coordinates of the second point on the guidance needle.
   vtkSetVector3Macro(GuidanceNeedleSecondRAS, double);
+  /// Get the RAS coordinates of the marker center.
+  vtkGetVector3Macro(MarkerCenterRAS, double);
+  /// Set the RAS coordinates of the marker center.
+  vtkSetVector3Macro(MarkerCenterRAS, double);
 
  protected:
   //----------------------------------------------------------------
@@ -102,6 +106,8 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   double GuidanceNeedleTipRAS[3];
   /// RAS coordinates of a second point on the guidance needle.
   double GuidanceNeedleSecondRAS[3];
+  /// RAS coordinates of the marker center.
+  double MarkerCenterRAS[3];
 
 };
 
