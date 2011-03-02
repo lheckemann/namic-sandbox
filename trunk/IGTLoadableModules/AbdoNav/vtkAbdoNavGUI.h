@@ -131,6 +131,10 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkKWEntry* Point2REntry;
   vtkKWEntry* Point2AEntry;
   vtkKWEntry* Point2SEntry;
+  vtkKWRadioButton* Point3RadioButton;
+  vtkKWEntry* Point3REntry;
+  vtkKWEntry* Point3AEntry;
+  vtkKWEntry* Point3SEntry;
   vtkKWPushButton* ResetRegistrationPushButton;
   vtkKWPushButton* PerformRegistrationPushButton;
 

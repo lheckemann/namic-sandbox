@@ -69,6 +69,10 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   this->Point2REntry = NULL;
   this->Point2AEntry = NULL;
   this->Point2SEntry = NULL;
+  this->Point3RadioButton = NULL;
+  this->Point3REntry = NULL;
+  this->Point3AEntry = NULL;
+  this->Point3SEntry = NULL;
   this->ResetRegistrationPushButton = NULL;
   this->PerformRegistrationPushButton = NULL;
 
@@ -174,6 +178,26 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     {
     this->Point2SEntry->SetParent(NULL);
     this->Point2SEntry->Delete();
+    }
+  if (this->Point3RadioButton)
+    {
+    this->Point3RadioButton->SetParent(NULL);
+    this->Point3RadioButton->Delete();
+    }
+  if (this->Point3REntry)
+    {
+    this->Point3REntry->SetParent(NULL);
+    this->Point3REntry->Delete();
+    }
+  if (this->Point3AEntry)
+    {
+    this->Point3AEntry->SetParent(NULL);
+    this->Point3AEntry->Delete();
+    }
+  if (this->Point3SEntry)
+    {
+    this->Point3SEntry->SetParent(NULL);
+    this->Point3SEntry->Delete();
     }
   if (this->ResetRegistrationPushButton)
     {
@@ -319,6 +343,7 @@ void vtkAbdoNavGUI::AddGUIObservers()
   //----------------------------------------------------------------
   this->Point1RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point2RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->Point3RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->ResetRegistrationPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->PerformRegistrationPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
 
@@ -389,6 +414,10 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
   if (this->Point2RadioButton)
     {
     this->Point2RadioButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->Point3RadioButton)
+    {
+    this->Point3RadioButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
   if (this->ResetRegistrationPushButton)
     {
@@ -1112,6 +1141,57 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
                  this->Point2SEntry->GetWidgetName(),
                  this->Point2AEntry->GetWidgetName(),
                  this->Point2REntry->GetWidgetName());
+
+  //----------------------------------------------------------------
+  // Create widgets to identify the marker center.
+  //----------------------------------------------------------------
+  // create frame required to display the radio button and RAS coordinate entries on the left and right side respectively
+  vtkKWFrame* point3Frame = vtkKWFrame::New();
+  point3Frame->SetParent(guidanceNeedleFrame->GetFrame());
+  point3Frame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point3Frame->GetWidgetName());
+
+  // create radio button to select the marker center
+  this->Point3RadioButton = vtkKWRadioButton::New();
+  this->Point3RadioButton->SetParent(point3Frame);
+  this->Point3RadioButton->Create();
+  this->Point3RadioButton->SetText("Identify marker center (RAS):\t\t");
+  this->Point3RadioButton->SetBalloonHelpString("Identify the marker center in the CT/MR image.");
+  // create entry to hold the R coordinate of the marker center
+  this->Point3REntry = vtkKWEntry::New();
+  this->Point3REntry->SetParent(point3Frame);
+  this->Point3REntry->Create();
+  this->Point3REntry->SetBalloonHelpString("Marker center, R coordinate.");
+  this->Point3REntry->SetWidth(8);
+  this->Point3REntry->SetReadOnly(1);
+  this->Point3REntry->SetRestrictValueToDouble();
+  this->Point3REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+  // create entry to hold the A coordinate of the marker center
+  this->Point3AEntry = vtkKWEntry::New();
+  this->Point3AEntry->SetParent(point3Frame);
+  this->Point3AEntry->Create();
+  this->Point3AEntry->SetBalloonHelpString("Marker center, A coordinate.");
+  this->Point3AEntry->SetWidth(8);
+  this->Point3AEntry->SetReadOnly(1);
+  this->Point3AEntry->SetRestrictValueToDouble();
+  this->Point3AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+  // create entry to hold the S coordinate of the marker center
+  this->Point3SEntry = vtkKWEntry::New();
+  this->Point3SEntry->SetParent(point3Frame);
+  this->Point3SEntry->Create();
+  this->Point3SEntry->SetBalloonHelpString("Marker center, S coordinate.");
+  this->Point3SEntry->SetWidth(8);
+  this->Point3SEntry->SetReadOnly(1);
+  this->Point3SEntry->SetRestrictValueToDouble();
+  this->Point3SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+
+  // add radio button for the marker center
+  this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point3RadioButton->GetWidgetName());
+  // add RAS coordinate entries for the marker center
+  this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
+                 this->Point3SEntry->GetWidgetName(),
+                 this->Point3AEntry->GetWidgetName(),
+                 this->Point3REntry->GetWidgetName());
 
   //----------------------------------------------------------------
   // Create buttons to reset and perform the registration.
