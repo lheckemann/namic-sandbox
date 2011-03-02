@@ -219,7 +219,7 @@ vtkPerkStationInsertStep
   
   if ( numRows != 1 ) return;
   
-  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetPerkStationModuleNode();
   
   int rowIndex = this->PlanList->GetWidget()->GetIndexOfFirstSelectedRow();
   vtkPerkStationPlan* plan = moduleNode->GetPlanAtIndex( rowIndex );
@@ -231,13 +231,14 @@ vtkPerkStationInsertStep
   
   plan->GetEntryPointRAS( point );
   moduleNode->SetPlanEntryPoint( point );
-  this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 0, point[ 0 ], point[ 1 ], point[ 2 ] );
-  this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 0, 1 );
+  vtkMRMLFiducialListNode* planNode = moduleNode->GetPlanFiducialsNode();
+    planNode->SetNthFiducialXYZ( 0, point[ 0 ], point[ 1 ], point[ 2 ] );
+    planNode->SetNthFiducialVisibility( 0, 1 );
   
   plan->GetTargetPointRAS( point );
   moduleNode->SetPlanTargetPoint( point );
-  this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 1, point[ 0 ], point[ 1 ], point[ 2 ] );
-  this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 1, 1 );
+  planNode->SetNthFiducialXYZ( 1, point[ 0 ], point[ 1 ], point[ 2 ] );
+  planNode->SetNthFiducialVisibility( 1, 1 );
   
   moduleNode->SetCurrentSliceOffset( point[ 2 ] );
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->SetSliceOffset(
@@ -256,7 +257,7 @@ vtkPerkStationInsertStep
   
   if ( numRows != 1 ) return;
   
-  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetPerkStationModuleNode();
   
   int rowIndex = this->CalibrationList->GetWidget()->GetIndexOfFirstSelectedRow();
   OverlayCalibration* cal = moduleNode->GetCalibrationAtIndex( rowIndex );
@@ -292,7 +293,7 @@ void
 vtkPerkStationInsertStep
 ::ProcessGUIEvents( vtkObject *caller, unsigned long event, void *callData )
 {
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
 
   if(!mrmlNode)
       return;
@@ -317,7 +318,7 @@ void
 vtkPerkStationInsertStep
 ::UpdateGUI()
 {
-  vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
   
   if ( ! mrmlNode ) return;
   

@@ -18,6 +18,7 @@
 #include "vtkProperty2D.h"
 #include "vtkRenderer.h"
 #include "vtkSlicerApplication.h"
+#include "vtkSlicerApplicationGUI.h"
 #include "vtkTextProperty.h"
 #include "vtkTextActor.h"
 #include "vtkTextActorFlippable.h"
@@ -57,12 +58,9 @@ vtkPerkStationSecondaryMonitor
 vtkPerkStationSecondaryMonitor
 ::vtkPerkStationSecondaryMonitor()
 {
-  this->GUI = NULL;
-  this->PSNode = NULL;
+    // monitor info related
   
   this->NumberOfMonitors = 0;
-  
-  // monitor info related
   this->DeviceActive = false; 
   this->DisplayInitialized = false;  
   this->VirtualScreenCoord[ 0 ] = 0;
@@ -70,11 +68,7 @@ vtkPerkStationSecondaryMonitor
   this->ScreenSize[ 0 ] = 1024;
   this->ScreenSize[ 1 ] = 768;
   this->ScreenSize[ 2 ] = 1;
-  this->CurrentRotation = 0.0;
-  this->CurrentTranslation[ 0 ] = 0.0;
-  this->CurrentTranslation[ 1 ] = 0.0;
-  this->CalibrationFromFileLoaded = false;
-
+  
   this->DepthLinesInitialized = false;
   this->NumOfDepthPerceptionLines = 0;
   
@@ -83,17 +77,13 @@ vtkPerkStationSecondaryMonitor
 
   this->MeasureNeedleLengthInWorldCoordinates = 0;
   
-    // display/view related
-  this->ImageData = NULL;
-  this->VolumeNode = NULL;
+  
+    // References to other objects.
+  
+  this->PerkStationModuleGUI = NULL;
+  this->PerkStationModuleNodeID = NULL;
   
   
-    // matrices
-  this->SystemStateResliceMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  this->SystemStateXYToIJK = vtkSmartPointer< vtkMatrix4x4 >::New();
-  
-  
- 
     // set up render window, renderer, actor, mapper
  
   this->Renderer = vtkSmartPointer< vtkRenderer >::New();
@@ -108,7 +98,7 @@ vtkPerkStationSecondaryMonitor
   camera->SetParallelProjection( 1 );
   this->Renderer->SetActiveCamera(camera);
   camera->Delete();
-
+  
   this->Interactor = vtkSmartPointer< vtkRenderWindowInteractor >::New();
    this->Interactor->SetRenderWindow( this->RenderWindow );
 
@@ -174,12 +164,12 @@ vtkPerkStationSecondaryMonitor
     this->CalibrationNameActor->GetTextProperty()->SetColor( 1.0, 0.9, 0.0 );
     this->CalibrationNameActor->SetTextScaleModeToNone();
   
-  
   this->UpdateCornerPositions();
   
   
     // Image geometry.
   
+  this->ImageData = NULL;
   this->SliceOffsetRAS = 0.0;
   
   this->SecMonFlipTransform = vtkSmartPointer< vtkTransform >::New();
@@ -201,8 +191,6 @@ vtkPerkStationSecondaryMonitor
 vtkPerkStationSecondaryMonitor
 ::~vtkPerkStationSecondaryMonitor()
 {
-  this->SetGUI( NULL );
-
     // Release references of vtk rendering object to other object
   if ( this->RenderWindow )
     {
@@ -229,8 +217,6 @@ vtkPerkStationSecondaryMonitor
     // Deleted when MRML scene is deleted.
     this->ImageData = NULL;
     }
-  
-  this->VolumeNode = NULL;
   
   
   if ( this->DepthPerceptionLines )
@@ -293,17 +279,28 @@ void vtkPerkStationSecondaryMonitor::RemoveOverlayRealTimeNeedleTip()
 }
 
 
-//----------------------------------------------------------------------------
-void vtkPerkStationSecondaryMonitor::SetupImageData()
-{
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if ( ! mrmlNode || ! this->PSNode ) return;
-  
-  this->VolumeNode = mrmlNode->GetPlanningVolumeNode();
-  if ( ! this->VolumeNode ) return;
-  
 
-  this->ImageData = this->VolumeNode->GetImageData();
+void
+vtkPerkStationSecondaryMonitor
+::SetupImageData()
+{
+  this->ImageData = NULL;
+  
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetPerkStationModuleNode();
+  if ( moduleNode == NULL )
+    {
+    vtkErrorMacro( "Tried to set up working volume without a module node." );
+    return;
+    }
+  
+  vtkMRMLScalarVolumeNode* volumeNode = moduleNode->GetActiveVolumeNode();
+  if ( volumeNode == NULL )
+    {
+    vtkErrorMacro( "No active volume set in the module node." );
+    return;
+    }
+  
+  this->ImageData = volumeNode->GetImageData();
   
   int imageExtent[ 6 ];
   this->ImageData->GetExtent( imageExtent );
@@ -326,12 +323,12 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   
   this->RenderWindow->SetSize( this->ScreenSize[ 0 ], this->ScreenSize[ 1 ] );
   
-  this->MapToWindowLevelColors->SetWindow( this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
-  this->MapToWindowLevelColors->SetLevel( this->VolumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
+  this->MapToWindowLevelColors->SetWindow( volumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
+  this->MapToWindowLevelColors->SetLevel( volumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
   this->MapToWindowLevelColors->SetInput( this->ResliceFilter->GetOutput() );
     // Making the background black.
-  this->ResliceFilter->SetBackgroundLevel( this->VolumeNode->GetScalarVolumeDisplayNode()->GetLevel() -
-                                           this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow() / 2 );
+  this->ResliceFilter->SetBackgroundLevel( volumeNode->GetScalarVolumeDisplayNode()->GetLevel() -
+                                           volumeNode->GetScalarVolumeDisplayNode()->GetWindow() / 2 );
   
   this->ImageMapper->SetInput( this->MapToWindowLevelColors->GetOutput() );
   
@@ -353,13 +350,12 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->CalibrationControlsActor->SetTextScaleModeToNone();
   this->CalibrationControlsActor->GetTextProperty()->SetFontSize( 28 );
   this->CalibrationControlsActor->GetTextProperty()->BoldOn();
-  this->CalibrationControlsActor->SetDisplayPosition(
-          this->ScreenSize[ 0 ] / 2 - 370, this->ScreenSize[ 1 ] - 50 );
-  if ( this->PSNode->GetFinalHorizontalFlip() )
+  this->CalibrationControlsActor->SetDisplayPosition( this->ScreenSize[ 0 ] / 2 - 370, this->ScreenSize[ 1 ] - 50 );
+  if ( moduleNode->GetFinalHorizontalFlip() )
     {
     this->CalibrationControlsActor->FlipAroundY( true );
     }
-  if ( this->PSNode->GetFinalVerticalFlip() )
+  if ( moduleNode->GetFinalVerticalFlip() )
     {
     this->CalibrationControlsActor->FlipAroundX( true );
     }
@@ -370,7 +366,7 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
     // Set RASToIJK matrix, which only be updated at image load.
   
   vtkMatrix4x4* ijkToRAS = vtkMatrix4x4::New();
-  this->VolumeNode->GetIJKToRASMatrix( ijkToRAS );
+  volumeNode->GetIJKToRASMatrix( ijkToRAS );
   vtkMatrix4x4::Invert( ijkToRAS, this->RASToIJK->GetMatrix() );
   ijkToRAS->Delete();
     
@@ -378,10 +374,10 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   
   
   double spacing[ 3 ];
-  this->VolumeNode->GetSpacing( spacing ); // mm between pixels
+  volumeNode->GetSpacing( spacing ); // mm between pixels
   
   double MonitorPhysicalSizeMM[ 2 ];
-  mrmlNode->GetSecondMonitorPhysicalSize( MonitorPhysicalSizeMM );
+  moduleNode->GetSecondMonitorPhysicalSize( MonitorPhysicalSizeMM );
   
     // pixel / mm.
   double s0 = MonitorPhysicalSizeMM[ 0 ] / this->ScreenSize[ 0 ];
@@ -410,8 +406,22 @@ vtkPerkStationSecondaryMonitor
 {
   vtkSmartPointer< vtkTransform > ret = vtkSmartPointer< vtkTransform >::New();
   
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetPerkStationModuleNode();
+  if ( moduleNode == NULL )
+    {
+    vtkErrorMacro( "Module node not set!" );
+    return ret;
+    }
+  
+  vtkMRMLScalarVolumeNode* volumeNode = moduleNode->GetActiveVolumeNode();
+  if ( volumeNode == NULL )
+    {
+    vtkErrorMacro( "Active volume not found." );
+    return ret;
+    }
+  
   vtkSmartPointer< vtkMatrix4x4 > ijkToRASMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  this->VolumeNode->GetIJKToRASMatrix( ijkToRASMatrix );
+  volumeNode->GetIJKToRASMatrix( ijkToRASMatrix );
   
   vtkSmartPointer< vtkMatrix4x4 > xyToRASMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   vtkMatrix4x4::Multiply4x4( ijkToRASMatrix, this->XYToIJK()->GetMatrix(), xyToRASMatrix );
@@ -458,7 +468,12 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   
     // Compute slice to IJK matrix.
   
-  vtkMRMLSliceNode* sliceNode = this->GetGUI()->GetLogic()->
+  if ( this->PerkStationModuleGUI == NULL )
+    {
+    return ret;
+    }
+  
+  vtkMRMLSliceNode* sliceNode = this->PerkStationModuleGUI->GetLogic()->
     GetApplicationLogic()->GetSliceLogic( "Red" )->GetSliceNode();
   
   vtkSmartPointer< vtkMatrix4x4 > sliceToRAS = sliceNode->GetSliceToRAS();
@@ -475,7 +490,15 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   
   
   vtkSmartPointer< vtkMatrix4x4 > rasToIJK = vtkSmartPointer< vtkMatrix4x4 >::New();
-  this->VolumeNode->GetRASToIJKMatrix( rasToIJK );
+  vtkMRMLScalarVolumeNode* volumeNode = this->GetActiveVolumeNode();
+  if ( volumeNode != NULL )
+    {
+    volumeNode->GetRASToIJKMatrix( rasToIJK );
+    }
+  else
+    {
+    return ret;
+    }
   
   vtkSmartPointer< vtkMatrix4x4 > sliceToIJK = vtkSmartPointer< vtkMatrix4x4 >::New();
   vtkMatrix4x4::Multiply4x4( rasToIJK, sliceToRAS, sliceToIJK );
@@ -516,20 +539,22 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   
   double hFlipFactor = 1.0;
   double vFlipFactor = 1.0;
-  if ( this->PSNode->GetFinalHorizontalFlip() ) hFlipFactor = - 1.0;
-  if ( this->PSNode->GetFinalVerticalFlip() ) vFlipFactor = - 1.0;
+  if ( this->GetPerkStationModuleNode()->GetFinalHorizontalFlip() ) hFlipFactor = - 1.0;
+  if ( this->GetPerkStationModuleNode()->GetFinalVerticalFlip() ) vFlipFactor = - 1.0;
   
   
     // We are in pre-multiply mode, so write transforms in reverse order.
   
   double translation[ 2 ];
-  this->PSNode->GetSecondMonitorTranslation( translation );
+  this->GetPerkStationModuleNode()->GetSecondMonitorTranslation( translation );
   ret->Translate( translation[ 0 ], translation[ 1 ], 0.0 );
   
-  ret->RotateZ( this->PSNode->GetSecondMonitorRotation() );
+  ret->RotateZ( this->GetPerkStationModuleNode()->GetSecondMonitorRotation() );
   
-  double s0 = this->PSNode->GetHardwareList()[ this->PSNode->GetHardwareIndex() ].SizeX / this->ScreenSize[ 0 ];
-  double s1 = this->PSNode->GetHardwareList()[ this->PSNode->GetHardwareIndex() ].SizeY / this->ScreenSize[ 1 ];
+  double s0 = this->GetPerkStationModuleNode()->
+    GetHardwareList()[ this->GetPerkStationModuleNode()->GetHardwareIndex() ].SizeX / this->ScreenSize[ 0 ];
+  double s1 = this->GetPerkStationModuleNode()->
+    GetHardwareList()[ this->GetPerkStationModuleNode()->GetHardwareIndex() ].SizeY / this->ScreenSize[ 1 ];
   
   ret->Scale( s0 * hFlipFactor, s1 * vFlipFactor, 1.0 );
   
@@ -540,10 +565,64 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
 
 
 
+void
+vtkPerkStationSecondaryMonitor
+::SetPerkStationModuleGUI( vtkPerkStationModuleGUI* gui )
+{
+  this->PerkStationModuleGUI = gui;
+}
+
+
+/*
+vtkMRMLScalarVolumeNode*
+vtkPerkStationSecondaryMonitor
+::GetVolumeNode()
+{
+  vtkMRMLScalarVolumeNode* node = NULL;
+  if ( this->PerkStationModuleGUI->GetMRMLScene() && this->VolumeNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->PerkStationModuleGUI->GetMRMLScene()->GetNodeByID( this->VolumeNodeID );
+    node = vtkMRMLScalarVolumeNode::SafeDownCast( snode );
+    }
+  return node;
+}
+*/
+
+
+vtkMRMLPerkStationModuleNode*
+vtkPerkStationSecondaryMonitor
+::GetPerkStationModuleNode()
+{
+  vtkMRMLPerkStationModuleNode* node = NULL;
+  if ( this->PerkStationModuleGUI->GetMRMLScene() && this->PerkStationModuleNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->PerkStationModuleGUI->GetMRMLScene()->GetNodeByID( this->PerkStationModuleNodeID );
+    node = vtkMRMLPerkStationModuleNode::SafeDownCast( snode );
+    }
+  return node;
+}
+
+
+
+vtkMRMLScalarVolumeNode*
+vtkPerkStationSecondaryMonitor
+::GetActiveVolumeNode()
+{
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetPerkStationModuleNode();
+  if ( moduleNode == NULL )
+    {
+    return NULL;
+    }
+  vtkMRMLScalarVolumeNode* volumeNode = moduleNode->GetActiveVolumeNode();
+  return volumeNode;
+}
+
+
+
+/*
 vtkMatrix4x4*
 vtkPerkStationSecondaryMonitor
-::GetFlipMatrixFromDirectionCosines ( vtkMatrix4x4 *directionMatrix,
-                                      bool & verticalFlip, bool & horizontalFlip )
+::GetFlipMatrixFromDirectionCosines ( vtkMatrix4x4 *directionMatrix, bool & verticalFlip, bool & horizontalFlip )
 {
   vtkSmartPointer< vtkMatrix4x4 > flipMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   flipMatrix->Identity();
@@ -580,7 +659,7 @@ vtkPerkStationSecondaryMonitor
 
   return flipMatrix;
 }
-
+*/
 
 
 /**
@@ -590,13 +669,26 @@ void
 vtkPerkStationSecondaryMonitor
 ::UpdateImageDisplay()
 {
-  if ( ! this->GetGUI()->GetMRMLNode() ) return;
+  bool displayEmpty = false;
+  if ( ! this->PerkStationModuleGUI->GetPerkStationModuleNode() ) return;
   if ( ! this->DisplayInitialized ) return;
+  if ( this->GetPerkStationModuleNode() == NULL ) displayEmpty = true;
+  
+  if ( displayEmpty )
+    {
+    vtkSmartPointer< vtkImageData > image = vtkSmartPointer< vtkImageData >::New();
+      image->SetExtent( 0, this->ScreenSize[ 0 ] - 1, 0, this->ScreenSize[ 1 ] - 1, 0, 0 );
+      image->SetSpacing( 1.0, 1.0, 1.0 );
+      image->SetOrigin( 0, 0, 0 );
+      image->AllocateScalars();
+    this->ImageMapper->SetInput( image );
+    return;
+    }
   
   
     // Update the current slice offset value.
   
-  this->SliceOffsetRAS = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->GetSliceOffset();
+  this->SliceOffsetRAS = this->PerkStationModuleGUI->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->GetSliceOffset();
   
   
     // Switch visibility of needle guide and depth perception lines.
@@ -604,8 +696,8 @@ vtkPerkStationSecondaryMonitor
   double entry[ 3 ] = { 0, 0, -100000 };
   double target[ 3 ] = { 0, 0, -100000 };
   
-  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( entry );
-  this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( target );
+  this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetPlanEntryPoint( entry );
+  this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetPlanTargetPoint( target );
   
   double minOffset = -100000;
   double maxOffset = -100000;
@@ -626,7 +718,7 @@ vtkPerkStationSecondaryMonitor
   if (
           ( this->SliceOffsetRAS < maxOffset )
        && ( this->SliceOffsetRAS >= minOffset )
-       && ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 )
+       && ( this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentStep() == 2 )
        )
     {
       // Recompute the position of the needle guide, and depth guides.
@@ -637,7 +729,7 @@ vtkPerkStationSecondaryMonitor
     this->ShowDepthPerceptionLines( true );
     this->MeasureDigitsActor->SetVisibility( 1 );
     
-    if ( this->PSNode->GetFinalHorizontalFlip() ) this->MeasureDigitsActor->FlipAroundY( true );
+    if ( this->GetPerkStationModuleNode()->GetFinalHorizontalFlip() ) this->MeasureDigitsActor->FlipAroundY( true );
     else this->MeasureDigitsActor->FlipAroundY( false );
     }
   else
@@ -652,20 +744,20 @@ vtkPerkStationSecondaryMonitor
    
    // Always show it when workphase is Insertion.
  
- if ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 ) // Insertion.
+ if ( this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentStep() == 2 ) // Insertion.
    {
    this->TablePositionActor->SetDisplayPosition( this->ScreenSize[ 0 ] / 2.0 - 150, this->ScreenSize[ 1 ] - 50 );
    std::stringstream ss;
    ss.setf( std::ios::fixed );
    ss << "Table position: " << std::setprecision( 1 )
-      << this->GetGUI()->GetMRMLNode()->GetCurrentTablePosition() << " mm";
+      << this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentTablePosition() << " mm";
    this->TablePositionActor->SetInput( ss.str().c_str() );
    this->TablePositionActor->SetVisibility( 1 );
    
    this->CalibrationNameActor->SetDisplayPosition( this->ScreenSize[ 0 ] / 2.0 - 150, this->ScreenSize[ 1 ] - 80 );
    ss.str( "" );
    ss << "Calibration: ";
-   ss << this->GetGUI()->GetMRMLNode()->GetCalibrationAtIndex( this->GetGUI()->GetMRMLNode()->GetCurrentCalibration() )->Name;
+   ss << this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCalibrationAtIndex( this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentCalibration() )->Name;
    this->CalibrationNameActor->SetInput( ss.str().c_str() );
    this->CalibrationNameActor->SetVisibility( 1 );
    }
@@ -686,7 +778,7 @@ vtkPerkStationSecondaryMonitor
  
    // Take patient position into account.
  
- switch ( this->GetGUI()->GetMRMLNode()->GetPatientPosition() )
+ switch ( this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetPatientPosition() )
    {
    case HFP :  Lleft = true;  Lup = true;  Rleft = false; Rup = true;   break;
    case HFS :  Lleft = false; Lup = true;  Rleft = true;  Rup = true;   break;
@@ -701,7 +793,7 @@ vtkPerkStationSecondaryMonitor
  
     // Take hardware into account.
   
-  if ( this->PSNode->GetFinalHorizontalFlip() )
+  if ( this->GetPerkStationModuleNode()->GetFinalHorizontalFlip() )
     {
     Lleft = ! Lleft;
     Rleft = ! Rleft;
@@ -720,7 +812,7 @@ vtkPerkStationSecondaryMonitor
     this->CalibrationNameActor->FlipAroundY( false );
     }
 
-  if (    this->PSNode->GetFinalVerticalFlip() )
+  if (    this->GetPerkStationModuleNode()->GetFinalVerticalFlip() )
     {
     this->LeftSideActor->FlipAroundX( true );
     this->RightSideActor->FlipAroundX( true );
@@ -771,10 +863,13 @@ vtkPerkStationSecondaryMonitor
   
     // Adjust color window / level.
   
-  this->MapToWindowLevelColors->SetWindow( this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
-  this->MapToWindowLevelColors->SetLevel( this->VolumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
-  this->MapToWindowLevelColors->SetInput( this->ResliceFilter->GetOutput() );
-  this->MapToWindowLevelColors->Update();
+  if ( this->GetActiveVolumeNode() != NULL )
+    {
+    this->MapToWindowLevelColors->SetWindow( this->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->GetWindow() );
+    this->MapToWindowLevelColors->SetLevel( this->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->GetLevel() );
+    this->MapToWindowLevelColors->SetInput( this->ResliceFilter->GetOutput() );
+    this->MapToWindowLevelColors->Update();
+    }
   
   
   if ( this->DeviceActive )
@@ -791,7 +886,7 @@ vtkPerkStationSecondaryMonitor
 {
   this->SliceOffsetRAS = rasOffset;
   
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->PerkStationModuleGUI->GetPerkStationModuleNode();
   if (!mrmlNode)
     {
     // TO DO: what to do on failure
@@ -843,28 +938,36 @@ MyInfoEnumProc( HMONITOR hMonitor, HDC hdc, LPRECT prc, LPARAM dwData )
 }
 
 
+/*
 vtkPerkStationModuleGUI*
 vtkPerkStationSecondaryMonitor
 ::GetGUI()
 {
     return this->GUI;
 }
+*/
 
 
+/*
 void
 vtkPerkStationSecondaryMonitor
 ::SetGUI( vtkPerkStationModuleGUI* gui )
 {
   this->GUI = gui;
 };
+*/
 
 
+
+/*
 void
 vtkPerkStationSecondaryMonitor
 ::SetPSNode( vtkMRMLPerkStationModuleNode* node )
 {
-  this->PSNode = node;
+  this->GetPerkStationModuleNode() = node;
 }
+*/
+
 
 
 //----------------------------------------------------------------------------
@@ -1054,19 +1157,19 @@ vtkPerkStationSecondaryMonitor
 
   // text actors for needle tip S, and target location    
   double rasTarget[ 3 ];
-  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( rasTarget );
+  this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetPlanEntryPoint( rasTarget );
   char text[ 50 ];
   sprintf(text,"Needle Tip Z:  %.2f\nTarget Z:     %.2f",tipRAS[2], rasTarget[2]);      
   this->NeedleTipZLocationText->SetInput( text );
   this->NeedleTipZLocationText->SetTextScaleModeToNone();
   this->NeedleTipZLocationText->GetTextProperty()->SetFontSize( 25 );
   this->NeedleTipZLocationText->SetDisplayPosition( this->MonitorPixelResolution[ 0 ] - 250, 100 );
-  if ( this->PSNode->GetFinalHorizontalFlip() )
+  if ( this->GetPerkStationModuleNode()->GetFinalHorizontalFlip() )
     { 
     this->NeedleTipZLocationText->GetTextProperty()->SetJustificationToCentered();
     this->NeedleTipZLocationText->SetOrientation( 180 );
     }
-  else if ( this->PSNode->GetFinalVerticalFlip() )
+  else if ( this->GetPerkStationModuleNode()->GetFinalVerticalFlip() )
     {
     this->NeedleTipZLocationText->GetTextProperty()->SetVerticalJustificationToTop();
     this->NeedleTipZLocationText->SetOrientation( 180 );
@@ -1108,7 +1211,7 @@ vtkPerkStationSecondaryMonitor
     // Convert entry point position from RAS to XY coordinates.
   
   double rasEntry[ 3 ];
-  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( rasEntry );
+  this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetPlanEntryPoint( rasEntry );
   double inPt[ 4 ] = { rasEntry[ 0 ], rasEntry[ 1 ], rasEntry[ 2 ], 1 };
   double outPt[ 4 ];  
   rasToXY->MultiplyPoint( inPt, outPt );
@@ -1128,7 +1231,7 @@ vtkPerkStationSecondaryMonitor
   
   
   double rasTarget[3];
-  this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint(rasTarget);
+  this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetPlanTargetPoint(rasTarget);
   inPt[ 0 ] = rasTarget[ 0 ];
   inPt[ 1 ] = rasTarget[ 1 ];
   inPt[ 2 ] = rasTarget[ 2 ];
@@ -1203,7 +1306,7 @@ void
 vtkPerkStationSecondaryMonitor
 ::SetDepthPerceptionLines()
 {
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->PerkStationModuleGUI->GetPerkStationModuleNode();
   
   if ( ! mrmlNode ) return;
   
@@ -1338,8 +1441,8 @@ vtkPerkStationSecondaryMonitor
         textActor->SetTextScaleModeToNone();
         textActor->GetTextProperty()->SetFontSize( 28 );
         textActor->GetTextProperty()->BoldOn();
-      if ( this->PSNode->GetFinalHorizontalFlip() ) textActor->FlipAroundY( true );
-      if ( this->PSNode->GetFinalVerticalFlip() ) textActor->FlipAroundX( true );
+      if ( this->GetPerkStationModuleNode()->GetFinalHorizontalFlip() ) textActor->FlipAroundY( true );
+      if ( this->GetPerkStationModuleNode()->GetFinalVerticalFlip() ) textActor->FlipAroundX( true );
       
       
       if ( denom >= 0 )
@@ -1354,7 +1457,7 @@ vtkPerkStationSecondaryMonitor
       
       
       // flip vertically the text actor
-      if ( this->PSNode->GetSecondMonitorVerticalFlip() )
+      if ( this->GetPerkStationModuleNode()->GetSecondMonitorVerticalFlip() )
         {
         textActor->GetTextProperty()->SetVerticalJustificationToTop();
         }

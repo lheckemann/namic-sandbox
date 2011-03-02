@@ -15,8 +15,7 @@
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkTextActorFlippable.h"
 
-  // for getting display device information
-#include "Windows.h"
+#include "Windows.h"  // for getting display device information
 
 #include <vector>
 
@@ -30,12 +29,14 @@ class vtkImageReslice;
 class vtkLineSource;
 class vtkMatrix4x4;
 class vtkMRMLScalarVolumeNode;
+class vtkSlicerApplicationGUI;
 class vtkSlicerSliceViewer;
 class vtkTransform;
 class vtkTransformFilter;
 class vtkKWFrame;
 class vtkTextActor;
 class vtkKWRenderWidget;
+
 
 
 /**
@@ -60,90 +61,83 @@ public:
   vtkTypeMacro( vtkPerkStationSecondaryMonitor, vtkObject );
   
   
-  vtkPerkStationModuleGUI* GetGUI();
-  virtual void SetGUI( vtkPerkStationModuleGUI* gui );
-  virtual void SetPSNode( vtkMRMLPerkStationModuleNode* node );
+  bool IsSecondaryMonitorActive() { return this->DeviceActive; };
+  
+  void Initialize();     // Detect the secondary monitor, gather information about it.
+  
+  void SetupImageData(); // set up image data, once the volume has been loaded inside slicer
   
   
-    // See if the secondary monitor is attached or not
-  bool IsSecondaryMonitorActive() {
-   return this->DeviceActive;
-  };
-  
-  
-    // Detect the secondary monitor attached to the system, gather information about it.
-  void Initialize();
-  
+    // Get/Set methods about display geometry. --------------------------------
   
   void GetMonitorSpacing( double & xSpacing, double & ySpacing ) {
-    xSpacing = this->Scale[ 0 ];
-    ySpacing = this->Scale[ 1 ];
-  };
-  
+    xSpacing = this->Scale[ 0 ];  ySpacing = this->Scale[ 1 ];  };
   
   void GetVirtualScreenCoord( int & left, int & top ) {
-    left = this->VirtualScreenCoord[ 0 ];
-    top = this->VirtualScreenCoord[ 1 ];
-  };
+    left = this->VirtualScreenCoord[ 0 ];  top = this->VirtualScreenCoord[ 1 ];  };
   
   void SetVirtualScreenCoord( int left, int top ) {
-    this->VirtualScreenCoord[ 0 ] = left;
-    this->VirtualScreenCoord[ 1 ] = top;
-  };
-  
+    this->VirtualScreenCoord[ 0 ] = left;  this->VirtualScreenCoord[ 1 ] = top;  };
   
   void GetPixelResolution( double & pixX, double & pixY ) {
-    pixX = this->MonitorPixelResolution[ 0 ];
-    pixY = this->MonitorPixelResolution[ 1 ];
-  };
+    pixX = this->MonitorPixelResolution[ 0 ];   pixY = this->MonitorPixelResolution[ 1 ];  };
   
   void SetPixelResolution( double pixX, double pixY ) {
-    this->MonitorPixelResolution[ 0 ] = pixX;
-    this->MonitorPixelResolution[ 1 ] = pixY;
-    this->UpdateCornerPositions();
-  };
-  
+    this->MonitorPixelResolution[ 0 ] = pixX;   this->MonitorPixelResolution[ 1 ] = pixY;  this->UpdateCornerPositions(); };
   
   void GetScreenDimensions( unsigned int & sizeX, unsigned int & sizeY ) {
-    sizeX = this->ScreenSize[ 0 ];
-    sizeY = this->ScreenSize[ 1 ];
-  };
+    sizeX = this->ScreenSize[ 0 ];   sizeY = this->ScreenSize[ 1 ]; };
   
   
-    // set up image data, once the volume has been loaded inside slicer
-  void SetupImageData();
-  
+    // Show / hide visual guides on the second monitor. -----------------------
+    
+  void OverlayRealTimeNeedleTip( double tipRAS[3], vtkMatrix4x4 *tranformMatrix = NULL );
+  void SetRealTimeNeedleLineActorVisibility( bool v );
+  void RemoveOverlayRealTimeNeedleTip();
   
   void OverlayNeedleGuide();
-  void OverlayRealTimeNeedleTip( double tipRAS[3], vtkMatrix4x4 *tranformMatrix = NULL );
-  void RemoveOverlayRealTimeNeedleTip();
-
-  
   void RemoveOverlayNeedleGuide();
   
   void SetDepthPerceptionLines();  
   void RemoveDepthPerceptionLines();
-  void RemoveTextActors();
   
-  void UpdateImageDataOnSliceOffset( double sliceOffset = 0 );
-
-  void SetRealTimeNeedleLineActorVisibility( bool v );
-
-
-  void UpdateImageDisplay();
+  void RemoveTextActors();
   
   void ShowCalibrationControls( bool show );
   void ShowNeedleGuide( bool show );
   void ShowDepthPerceptionLines( bool show );
   
   
+    // Call these functions to update image on the second monitor. ------------
+  
+  void UpdateImageDataOnSliceOffset( double sliceOffset = 0 );
+  void UpdateImageDisplay();
+  
+  
+    // Reference to the module GUI. -------------------------------------------
+
+public:
+  void SetPerkStationModuleGUI( vtkPerkStationModuleGUI* gui );
+private:
+  vtkPerkStationModuleGUI* PerkStationModuleGUI;
+  
+  
+    // Reference to the module node. Not observed. ----------------------------
+    // Actual volume node shoudl be requested from this node.
+
+public:
+  vtkGetStringMacro( PerkStationModuleNodeID );
+  vtkSetStringMacro( PerkStationModuleNodeID );
+  vtkMRMLPerkStationModuleNode* GetPerkStationModuleNode();
+  vtkMRMLScalarVolumeNode* GetActiveVolumeNode();  // Convenience.
+private:
+  char* PerkStationModuleNodeID;  
+  
+  
 protected:
   
   vtkPerkStationSecondaryMonitor();
   ~vtkPerkStationSecondaryMonitor();  
-  
-  vtkPerkStationModuleGUI* GUI;
-  vtkMRMLPerkStationModuleNode* PSNode;
   
   
   // Visual components --------------------------------------------------------
@@ -154,7 +148,7 @@ protected:
   vtkSmartPointer< vtkRenderer >                Renderer;
   vtkSmartPointer< vtkRenderWindowInteractor >  Interactor;
   vtkSmartPointer< vtkImageMapper >             ImageMapper;
-  vtkActor2D*                 ImageActor;
+  vtkActor2D*                                   ImageActor;
   
     // Real time needle display.
   vtkSmartPointer< vtkActor >       NeedleGuideActor;
@@ -164,7 +158,7 @@ protected:
   
     // Collection of depth perception lines and needle measure.
   vtkSmartPointer< vtkActorCollection >    DepthPerceptionLines;  
-  vtkActor2DCollection*  TextActorsCollection;
+  vtkActor2DCollection*                    TextActorsCollection;
   vtkSmartPointer< vtkTextActorFlippable > MeasureDigitsActor;
   
     // Guide of keys for calibration.
@@ -181,38 +175,25 @@ protected:
   
   vtkSmartPointer< vtkImageMapToWindowLevelColors > MapToWindowLevelColors;
   
-    // Transformations (matrices).
-  vtkSmartPointer< vtkMatrix4x4 > SystemStateXYToIJK;
-  vtkSmartPointer< vtkMatrix4x4 > SystemStateResliceMatrix;
-  //ETX
   
-  
-    // the image data to be displayed
-  vtkMRMLScalarVolumeNode*  VolumeNode;
-  vtkImageData*             ImageData;
-  
-  
-  vtkMatrix4x4* GetFlipMatrixFromDirectionCosines (
-      vtkMatrix4x4* directionMatrix, bool& verticalFlip, bool& horizontalFlip );
+  // vtkMatrix4x4* GetFlipMatrixFromDirectionCosines ( vtkMatrix4x4* directionMatrix, bool& verticalFlip, bool& horizontalFlip );
  
   
-  // about the monitor
-  bool DeviceActive;
-  bool DisplayInitialized;
+    // Parameters for display on the second monitor. --------------------------
+  
+  bool   DeviceActive;
+  bool   DisplayInitialized;
   
   double MonitorPixelResolution[ 2 ]; 
-  int VirtualScreenCoord[ 2 ];
-  int ScreenSize[ 3 ]; // Number of pixels on the monitor.
-  int ImageSize[ 3 ]; // Number of pixels on image slices, num of slices.
+  int    VirtualScreenCoord[ 2 ];
+  int    ScreenSize[ 3 ]; // Number of pixels on the monitor.
+  int    ImageSize[ 3 ];  // Number of pixels on image slices, num of slices.
   
-  double MeasureNeedleLengthInWorldCoordinates;
-  unsigned int NumOfDepthPerceptionLines;
-  bool DepthLinesInitialized;
+  double        MeasureNeedleLengthInWorldCoordinates;
+  unsigned int  NumOfDepthPerceptionLines;
+  bool          DepthLinesInitialized;
 
-  double CurrentTranslation[2];
-  double CurrentRotation;
-  bool CalibrationFromFileLoaded;
-
+  
 private:
 
   vtkPerkStationSecondaryMonitor( const vtkPerkStationSecondaryMonitor& );
@@ -227,8 +208,10 @@ private:
   double LowerLeftCorner[ 2 ];
   
   
-    // Image geometry.
-
+    // Image geometry and display. --------------------------------------------
+  
+  vtkImageData* ImageData;
+  
   //BTX
   vtkSmartPointer< vtkTransform > XYToRAS();
   vtkSmartPointer< vtkTransform > XYToIJK();
@@ -238,7 +221,7 @@ private:
   
   //BTX
     // Extract the displayed image from the planning image volume. 
-  vtkSmartPointer< vtkTransform > ResliceTransform;
+  vtkSmartPointer< vtkTransform >    ResliceTransform;
   vtkSmartPointer< vtkImageReslice > ResliceFilter;
   
     // Calibration transforms.
@@ -246,15 +229,14 @@ private:
   vtkSmartPointer< vtkTransform > SecMonRotateTransform;
   vtkSmartPointer< vtkTransform > SecMonTranslateTransform;
   
-    // Coordinate transforms.  
   vtkSmartPointer< vtkTransform > RASToIJK;
   //ETX
   
-    // Calibration parameters.
-    // Most calibration parameters are read from PSNode.
-  double Scale[ 2 ];
+  double Scale[ 2 ];  // Scale used for display.
+  
   
     // Image slice position.
+    
   double SliceOffsetRAS;  // In RAS coordinates.
   double SliceOffsetIJK;  // In IJK coordinates.
 };

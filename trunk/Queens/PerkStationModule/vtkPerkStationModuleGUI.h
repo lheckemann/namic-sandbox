@@ -65,16 +65,15 @@ public:
   }
   
   
-  vtkGetObjectMacro( MRMLNode, vtkMRMLPerkStationModuleNode );
-  vtkSetObjectMacro( MRMLNode, vtkMRMLPerkStationModuleNode );
-  
-  
+  vtkMRMLPerkStationModuleNode*   GetPerkStationModuleNode();
   vtkPerkStationSecondaryMonitor* GetSecondaryMonitor();
-  vtkKWWizardWidget* GetWizardWidget();
+  vtkKWWizardWidget*              GetWizardWidget();
   
+  vtkMRMLFiducialListNode*        GetPlanFiducialsNode();
   
   virtual void BuildGUI();
   virtual void TearDownGUI();
+  void Init();
   
   virtual void AddGUIObservers();
   virtual void RemoveGUIObservers();
@@ -100,15 +99,15 @@ public:
   
   void TimerHandler();
   
-  //BTX
-  vtkSmartPointer< vtkMRMLFiducialListNode > TwoFiducials;
-  //ETX
   
   vtkActor* EntryActor;
   vtkActor* TargetActor;
   
   void SetEntryPosition( double* ras );
   void SetTargetPosition( double* ras );
+  
+  
+    // Helper functions.
   
   void PointRASToRedSlice( double* ras, double* red );
   
@@ -141,14 +140,12 @@ protected:
   
   
   void UpdateGUI();
-  void UpdateMRML();
   
   
   //BTX
     // Collaborator classes.
   
   vtkPerkStationModuleLogic*      Logic;
-  vtkMRMLPerkStationModuleNode*   MRMLNode;
   vtkPerkStationSecondaryMonitor* SecondaryMonitor;
   //ETX
   
@@ -166,6 +163,14 @@ private:
   void UpdateWorkphaseButtons();
   
   void UpdateTimerDisplay();
+  
+  
+    // Module node.
+  
+  void SetAndObservePerkStationModuleNodeID( const char* nodeID );
+  vtkSetStringMacro( PerkStationModuleNodeID );
+  char* PerkStationModuleNodeID;
+  vtkMRMLPerkStationModuleNode* PerkStationModuleNode;
   
   
   // GUI widgets ----------------------------------------------------

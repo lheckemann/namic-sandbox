@@ -90,6 +90,23 @@ vtkPerkStationModuleGUI
 
 
 
+vtkMRMLFiducialListNode*
+vtkPerkStationModuleGUI
+::GetPlanFiducialsNode()
+{
+  vtkMRMLFiducialListNode* fiducialsNode = NULL;
+  
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetPerkStationModuleNode();
+  if ( moduleNode != NULL )
+    {
+    fiducialsNode = moduleNode->GetPlanFiducialsNode();
+    }
+  
+  return fiducialsNode;
+}
+
+
+
 void
 vtkPerkStationModuleGUI
 ::SetEntryPosition( double* ras )
@@ -218,26 +235,19 @@ vtkPerkStationModuleGUI
     // Collaborator classes.
   
   this->Logic = NULL;
-  this->MRMLNode = NULL;
   
   this->SecondaryMonitor = NULL;
   this->SecondaryMonitor = vtkPerkStationSecondaryMonitor::New();
-  this->SecondaryMonitor->SetGUI( this );
+  this->SecondaryMonitor->SetPerkStationModuleGUI( this );
   this->SecondaryMonitor->Initialize();
   
   
-    // Fiducial list, which always has two fiducials. Used by multiple steps.
+    // Referenced MRML nodes.
   
-  this->TwoFiducials = vtkSmartPointer< vtkMRMLFiducialListNode >::New();
-  this->TwoFiducials->SetName( "PerkStationFiducialList" );
-  this->TwoFiducials->SetDescription( "Created by PERK Station Module" );
-  this->TwoFiducials->SetColor( 0.5, 1, 0.5 );
-  this->TwoFiducials->SetGlyphType( vtkMRMLFiducialListNode::Diamond3D );
-  this->TwoFiducials->SetOpacity( 0.7 );
-  this->TwoFiducials->SetAllFiducialsVisibility( true );
-  this->TwoFiducials->SetSymbolScale( 6 );
-  this->TwoFiducials->SetTextScale( 8 );
-  this->TwoFiducials->SetSaveWithScene( 0 );
+  this->PerkStationModuleNodeID = NULL;
+  this->PerkStationModuleNode = NULL;
+  
+    // Alternative entry and target visualization.
   
   vtkSmartPointer< vtkSphereSource > eSource = vtkSmartPointer< vtkSphereSource >::New();
     eSource->SetRadius( 0.5 );
@@ -279,11 +289,7 @@ vtkPerkStationModuleGUI
 {
   
   this->SetLogic( NULL );
-
-  if ( this->MRMLNode )
-    {
-    vtkSetMRMLNodeMacro( this->MRMLNode, NULL );
-    }
+  
   
   DELETE_IF_NOT_NULL( this->SecondaryMonitor );
   
@@ -317,6 +323,11 @@ vtkPerkStationModuleGUI
   
   DELETE_IF_NOT_NULL( this->EntryActor );
   DELETE_IF_NOT_NULL( this->TargetActor );
+  
+  
+    // Referenced MRML nodes.
+  
+  this->SetAndObservePerkStationModuleNodeID( NULL );
 }
 
 
@@ -365,14 +376,6 @@ vtkPerkStationModuleGUI
         step->ShowUserInterface();
         }
       }
-    }
-  
-  
-    // Set red slice only view.
-  if ( this->GetApplicationGUI() != NULL )
-    {
-    vtkSlicerApplicationGUI *p = vtkSlicerApplicationGUI::SafeDownCast( this->GetApplicationGUI ( ));
-    p->RepackMainViewer ( vtkMRMLLayoutNode::SlicerLayoutOneUpSliceView, "Red");       
     }
   
   
@@ -637,12 +640,18 @@ vtkPerkStationModuleGUI
     {
     vtkMRMLPerkStationModuleNode* node = vtkMRMLPerkStationModuleNode::SafeDownCast( this->PSNodeSelector->GetSelected() );
     
-    this->SetMRMLNode( node );
-    this->Logic->SetAndObservePerkStationModuleNode( node );
-    this->SecondaryMonitor->SetPSNode( node );
-    this->GetLogic()->GetMRMLScene()->AddNode( this->TwoFiducials );
-    this->UpdateGUI();
+    char* nodeID = NULL;
+    if ( node != NULL )
+      {
+      nodeID = node->GetID();
+      }
     
+    this->SetAndObservePerkStationModuleNodeID( nodeID );
+    
+    this->Logic->SetAndObservePerkStationModuleNode( node );
+    this->SecondaryMonitor->SetPerkStationModuleNodeID( nodeID );
+    
+    this->UpdateGUI();
     return;
     }
   
@@ -689,7 +698,7 @@ vtkPerkStationModuleGUI
   if ( vtkKWPushButton::SafeDownCast( caller ) == this->ResetTimerButton
        && event == vtkKWPushButton::InvokedEvent )
     {
-    int step = this->GetMRMLNode()->GetCurrentStep();
+    int step = this->GetPerkStationModuleNode()->GetCurrentStep();
     this->WorkingTimes[ step ] = 0.0;
     this->LastTime = this->TimerLog->GetElapsedTime();
     this->UpdateTimerDisplay();
@@ -698,7 +707,8 @@ vtkPerkStationModuleGUI
   
     // Workphase pushbutton set.
   
-  if ( event == vtkKWPushButton::InvokedEvent
+  if (    this->PerkStationModuleNode != NULL
+       && event == vtkKWPushButton::InvokedEvent
        && this->WorkphaseButtonSet != NULL )
     {
     for ( int i = 0; i < this->WorkphaseButtonSet->GetNumberOfWidgets(); ++ i )
@@ -733,10 +743,10 @@ vtkPerkStationModuleGUI
   
     // Mouse move in the planning phase.
   
-  if (    this->MRMLNode
+  if (    this->PerkStationModuleNode != NULL
        && strcmp( eventName, "MouseMoveEvent" ) == 0
        && this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->PlanStep
-       && strcmp( this->MRMLNode->GetVolumeInUse(), "Planning" ) == 0 )
+       && strcmp( this->GetPerkStationModuleNode()->GetVolumeInUse(), "Planning" ) == 0 )
     {
     this->PlanStep->ProcessMouseMoveEvent( caller, event, callData );
     }
@@ -744,14 +754,14 @@ vtkPerkStationModuleGUI
   
     // Update window/level display.
   
-  if (    this->MRMLNode
+  if (    this->PerkStationModuleNode != NULL
        && strcmp( eventName, "MouseMoveEvent" ) == 0 )
     {
     vtkSlicerSliceGUI* sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI( "Red" );
     
     vtkCornerAnnotation* anno = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
      
-    vtkMRMLScalarVolumeNode* volume = this->MRMLNode->GetActiveVolumeNode();
+    vtkMRMLScalarVolumeNode* volume = this->PerkStationModuleNode->GetActiveVolumeNode();
     
     if (    volume
          && volume->GetScalarVolumeDisplayNode() )
@@ -785,26 +795,32 @@ vtkPerkStationModuleGUI
   
     // Red slice is selected and slice offset is changed.
   
-  if (    this->MRMLNode
+  if (    this->PerkStationModuleNode
        && this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->GetSliceNode() == vtkMRMLSliceNode::SafeDownCast( caller )
        && event == vtkCommand::ModifiedEvent
        && ! vtkPerkStationModuleLogic::DoubleEqual( this->SliceOffset,
                  this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->GetSliceOffset() ) )
    {
    this->SliceOffset = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->GetSliceOffset();
-   this->MRMLNode->SetCurrentSliceOffset( this->SliceOffset );
+   this->PerkStationModuleNode->SetCurrentSliceOffset( this->SliceOffset );
    
-   if ( this->MRMLNode->GetCurrentStep() == this->Plan )
+   if ( this->PerkStationModuleNode->GetCurrentStep() == this->Plan )
      {
      this->PlanStep->OnSliceOffsetChanged( this->SliceOffset );
      }
    
-   if ( this->MRMLNode->GetCurrentStep() == this->Validate )
+   if ( this->PerkStationModuleNode->GetCurrentStep() == this->Validate )
      {
      this->ValidateStep->OnSliceOffsetChanged( this->SliceOffset );
      }
    
-   this->SecondaryMonitor->UpdateImageDataOnSliceOffset( this->SliceOffset );
+     // Second monitor is used in Calibration and Insertion steps.
+   
+   if (    this->PerkStationModuleNode->GetCurrentStep() == this->Insert
+        || this->PerkStationModuleNode->GetCurrentStep() == this->Calibrate )
+     {
+     this->SecondaryMonitor->UpdateImageDataOnSliceOffset( this->SliceOffset );
+     }
    }
    
   
@@ -816,22 +832,22 @@ vtkPerkStationModuleGUI
     if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->CalibrateStep )
       {
       this->State = vtkPerkStationModuleGUI::Calibrate;
-      this->MRMLNode->SwitchStep( 0 );
+      this->PerkStationModuleNode->SwitchStep( 0 );
       }
     else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->PlanStep )
       {
       this->State = vtkPerkStationModuleGUI::Plan;
-      this->MRMLNode->SwitchStep( 1 );
+      this->PerkStationModuleNode->SwitchStep( 1 );
       }
     else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->InsertStep )
       {
       this->State = vtkPerkStationModuleGUI::Insert;
-      this->MRMLNode->SwitchStep( 2 );
+      this->PerkStationModuleNode->SwitchStep( 2 );
       }
     else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->ValidateStep )
       {
       this->State = vtkPerkStationModuleGUI::Validate;
-      this->MRMLNode->SwitchStep( 3 );
+      this->PerkStationModuleNode->SwitchStep( 3 );
       }
     
     this->WizardWidget->GetWizardWorkflow()->GetStepFromState(
@@ -843,10 +859,10 @@ vtkPerkStationModuleGUI
   
     // Corner annotation.
   
-  if (    this->MRMLNode
-       && this->MRMLNode->GetPatientPosition() != PPNA )
+  if (    this->PerkStationModuleNode
+       && this->PerkStationModuleNode->GetPatientPosition() != PPNA )
     {
-    PatientPositionEnum pposition = this->MRMLNode->GetPatientPosition();
+    PatientPositionEnum pposition = this->PerkStationModuleNode->GetPatientPosition();
     std::string pptext = "PP: Unknown";
     switch ( pposition )
       {
@@ -884,10 +900,10 @@ vtkPerkStationModuleGUI
 
 /**
  * Updates parameter values in MRML node based on GUI widgets.
- */
+
 void vtkPerkStationModuleGUI::UpdateMRML ()
 {
-  vtkMRMLPerkStationModuleNode* n = this->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* n = this->GetPerkStationModuleNode();
   
   if ( n == NULL )
     {
@@ -900,6 +916,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
     // set an observe new node in Logic
     
     this->Logic->SetAndObservePerkStationModuleNode( n );
+    
     vtkSetAndObserveMRMLNodeMacro( this->MRMLNode, n );
 
     // add MRMLFiducialListNode to the scene
@@ -1088,6 +1105,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       }
     }
 }
+*/
 
 
 
@@ -1096,7 +1114,7 @@ vtkPerkStationModuleGUI
 ::TimerHandler()
 {
   if (    ! this->TimerOn
-       || this->GetMRMLNode() == NULL )
+       || this->GetPerkStationModuleNode() == NULL )
     {
     return;
     }
@@ -1105,7 +1123,7 @@ vtkPerkStationModuleGUI
   
   std::stringstream ss;
   
-  int step = this->GetMRMLNode()->GetCurrentStep();
+  int step = this->GetPerkStationModuleNode()->GetCurrentStep();
   this->TimerLog->StopTimer();
   double elapsed = this->TimerLog->GetElapsedTime();
   
@@ -1121,6 +1139,15 @@ vtkPerkStationModuleGUI
 
 void
 vtkPerkStationModuleGUI
+::Init()
+{
+  this->MRMLScene->RegisterNodeClass( vtkSmartPointer< vtkMRMLPerkStationModuleNode >::New() );
+}
+
+
+
+void
+vtkPerkStationModuleGUI
 ::PlanningVolumeChanged()
 {
   vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast( this->VolumeSelector->GetSelected() );
@@ -1128,11 +1155,11 @@ vtkPerkStationModuleGUI
   if ( ! volumeNode ) return;
   
     // Didn't actually change selection.
-  if ( volumeNode == this->MRMLNode->GetPlanningVolumeNode() ) return;
+  if ( volumeNode == this->PerkStationModuleNode->GetPlanningVolumeNode() ) return;
   
   
-  this->MRMLNode->SetVolumeInUse( "Planning" );
-  this->MRMLNode->SetPlanningVolumeNode( volumeNode );
+  this->PerkStationModuleNode->SetVolumeInUse( "Planning" );
+  this->PerkStationModuleNode->SetPlanningVolumeNode( volumeNode );
   
   this->SecondaryMonitor->SetupImageData();
   
@@ -1186,7 +1213,7 @@ vtkPerkStationModuleGUI
   
   if ( ! volumeNode ) return;
   
-  this->MRMLNode->SetValidationVolumeNode( volumeNode );
+  this->PerkStationModuleNode->SetValidationVolumeNode( volumeNode );
   
   this->Logic->AdjustSliceView();
 }
@@ -1197,7 +1224,7 @@ void
 vtkPerkStationModuleGUI
 ::UpdateGUI()
 {
-  vtkMRMLPerkStationModuleNode* n = this->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* n = this->GetPerkStationModuleNode();
   if ( n == NULL )
     {
     return;
@@ -1208,13 +1235,11 @@ vtkPerkStationModuleGUI
   
   if ( this->PSNodeSelector != NULL )
     {
-    vtkMRMLPerkStationModuleNode* moduleNode = vtkMRMLPerkStationModuleNode::SafeDownCast(
-      this->PSNodeSelector->GetSelected() );
-    if ( moduleNode != this->GetMRMLNode() )
+    vtkMRMLPerkStationModuleNode* selectedNode = vtkMRMLPerkStationModuleNode::SafeDownCast( this->PSNodeSelector->GetSelected() );
+    if ( selectedNode->GetID() != this->PerkStationModuleNodeID )
       {
-      this->PSNodeSelector->SetSelected( this->GetMRMLNode() );
-      this->SecondaryMonitor->SetPSNode( this->GetMRMLNode() );
-    
+      this->PSNodeSelector->SetSelected( this->GetPerkStationModuleNode() );
+      this->SecondaryMonitor->SetPerkStationModuleNodeID( this->GetPerkStationModuleNode()->GetID() );
       }
     }
   
@@ -1237,37 +1262,73 @@ vtkPerkStationModuleGUI
     // if parameter node has been changed externally,
     // update GUI widgets with new values
   
-  vtkMRMLPerkStationModuleNode* node = vtkMRMLPerkStationModuleNode::SafeDownCast( caller );
   vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast( caller );
   vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast( caller );
   
   
-  /*
-  if ( node != NULL )
-    {
-    std::cout << "module node" << std::endl;
-    }
-    
-  if ( transformNode != NULL )
-    {
-    std::cout << "transform node" << std::endl;
-    }
-  */
-  
-  
-  if ( node != NULL && this->GetMRMLNode() == node ) 
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetPerkStationModuleNode();
+  if ( moduleNode != NULL  &&  moduleNode == vtkMRMLPerkStationModuleNode::SafeDownCast( caller )) 
   {
     this->UpdateGUI();
   }
   
   
+    // A node has been deleted from the scene.
+  
+  if ( this->GetMRMLScene() != NULL  &&  vtkMRMLScene::SafeDownCast( caller ) == this->GetMRMLScene()
+       &&  event == vtkMRMLScene::NodeRemovedEvent )
+    {
+    if ( this->PerkStationModuleNodeID != NULL  &&  this->GetMRMLScene()->GetNodeByID( this->PerkStationModuleNodeID ) == NULL )
+      {
+      this->SetAndObservePerkStationModuleNodeID( NULL );
+      }
+    }
+  
+  
   if (    displayNode != NULL
-       && this->GetMRMLNode()->GetPlanningVolumeNode()
-       && this->GetMRMLNode()->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode() == displayNode
+       && this->GetPerkStationModuleNode()->GetPlanningVolumeNode()
+       && this->GetPerkStationModuleNode()->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode() == displayNode
        && event == vtkCommand::ModifiedEvent )
     {
     this->GetSecondaryMonitor()->UpdateImageDisplay();
     }
+  
+  
+    // Scene is closing.
+    // TODO: Why not true ever?
+  
+  if ( this->MRMLScene != NULL
+       &&  vtkMRMLScene::SafeDownCast( caller ) == this->MRMLScene
+       &&  event == vtkMRMLScene::NodeAboutToBeRemovedEvent )
+    {
+    if ( this->GetPerkStationModuleNode() != NULL
+         && callData == this->GetPerkStationModuleNode() )
+      {
+      this->ChangeWorkphase( 0 );
+      }
+    }
+  
+  if ( event == vtkMRMLScene::SceneCloseEvent )
+    {
+    this->SecondaryMonitor->SetPerkStationModuleNodeID( NULL );
+    this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->HideUserInterface();
+    this->SetAndObservePerkStationModuleNodeID( NULL );
+    }  
+}
+
+
+
+vtkMRMLPerkStationModuleNode*
+vtkPerkStationModuleGUI
+::GetPerkStationModuleNode()
+{
+  vtkMRMLPerkStationModuleNode* node = NULL;
+  if ( this->MRMLScene && this->PerkStationModuleNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->MRMLScene->GetNodeByID( this->PerkStationModuleNodeID );
+    node = vtkMRMLPerkStationModuleNode::SafeDownCast( snode );
+    }
+  return node;
 }
 
 
@@ -1300,7 +1361,6 @@ vtkPerkStationModuleGUI
   
     // Register MRML PS node, not create it.
   
-  this->Logic->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLPerkStationModuleNode >::New() );
   
   this->UIPanel->AddPage ( "PerkStationModule", "PerkStationModule", NULL );
   
@@ -1742,10 +1802,10 @@ vtkPerkStationModuleGUI
 ::UpdateTimerDisplay()
 {
     // TODO: This is double booking of times. Should be simplified.
-  this->GetMRMLNode()->SetTimeOnCalibrateStep( this->WorkingTimes[ 0 ] );
-  this->GetMRMLNode()->SetTimeOnPlanStep( this->WorkingTimes[ 1 ] );
-  this->GetMRMLNode()->SetTimeOnInsertStep( this->WorkingTimes[ 2 ] );
-  this->GetMRMLNode()->SetTimeOnValidateStep( this->WorkingTimes[ 3 ] );
+  this->GetPerkStationModuleNode()->SetTimeOnCalibrateStep( this->WorkingTimes[ 0 ] );
+  this->GetPerkStationModuleNode()->SetTimeOnPlanStep( this->WorkingTimes[ 1 ] );
+  this->GetPerkStationModuleNode()->SetTimeOnInsertStep( this->WorkingTimes[ 2 ] );
+  this->GetPerkStationModuleNode()->SetTimeOnValidateStep( this->WorkingTimes[ 3 ] );
   
 
   std::stringstream ss;
@@ -1786,29 +1846,34 @@ int
 vtkPerkStationModuleGUI
 ::ChangeWorkphase( int phase )
 {
+  vtkMRMLFiducialListNode* planNode = this->GetPlanFiducialsNode();
   
-  int nf = this->TwoFiducials->GetNumberOfFiducials();
-  if ( nf != 2 )
+  if ( planNode != NULL )
     {
-    this->TwoFiducials->RemoveAllFiducials();
-    this->TwoFiducials->AddFiducialWithXYZ( 0, 0, 0, 0 );
-    this->TwoFiducials->AddFiducialWithXYZ( 0, 0, 0, 0 );
-    this->TwoFiducials->SetNthFiducialLabelText( 0, "Entry" );
-    this->TwoFiducials->SetNthFiducialLabelText( 1, "Target" );
+    int nf = planNode->GetNumberOfFiducials();
+    if ( nf != 2 )
+      {
+      planNode->RemoveAllFiducials();
+      planNode->AddFiducialWithXYZ( 0, 0, 0, 0 );
+      planNode->AddFiducialWithXYZ( 0, 0, 0, 0 );
+      planNode->SetNthFiducialLabelText( 0, "Entry" );
+      planNode->SetNthFiducialLabelText( 1, "Target" );
+      }
+    planNode->SetAllFiducialsVisibility( 0 );
     }
-  this->TwoFiducials->SetAllFiducialsVisibility( 0 );
   
   this->EntryActor->SetVisibility( 0 );
   this->TargetActor->SetVisibility( 0 );
   
   
-  if ( ! this->MRMLNode->SwitchStep( phase ) ) // Set next phase
+  if ( this->PerkStationModuleNode
+       && ! this->PerkStationModuleNode->SwitchStep( phase ) ) // Set next phase
     {
     cerr << "ChangeWorkphase: Cannot transition!" << endl;
     return 0;
     }
   
-  int numSteps = this->MRMLNode->GetNumberOfSteps();
+  int numSteps = this->PerkStationModuleNode->GetNumberOfSteps();
   
   
     // Switch wizard frame.
@@ -1818,8 +1883,8 @@ vtkPerkStationModuleGUI
   int step_from;
   int step_to;
   
-  step_to = this->MRMLNode->GetCurrentStep();
-  step_from = this->MRMLNode->GetPreviousStep();
+  step_to = this->PerkStationModuleNode->GetCurrentStep();
+  step_from = this->PerkStationModuleNode->GetPreviousStep();
   
     // Walk from old step to new step.
   int steps =  step_to - step_from;
@@ -1881,9 +1946,10 @@ vtkPerkStationModuleGUI
     this->PlanStep->RemoveOverlayNeedleGuide();
     }
   
-  if ( phase == this->Calibrate )
+  if ( phase == this->Calibrate
+       && this->GetPlanFiducialsNode() != NULL )
     {
-    this->TwoFiducials->SetAllFiducialsVisibility( 0 );
+    this->GetPlanFiducialsNode()->SetAllFiducialsVisibility( 0 );
     
     this->EntryActor->SetVisibility( 0 );
     this->TargetActor->SetVisibility( 0 );
@@ -1895,14 +1961,14 @@ vtkPerkStationModuleGUI
   if ( phase == this->Validate && step_from != this->Validate )
     {
     this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID(
-      this->GetMRMLNode()->GetValidationVolumeNode()->GetID() );
+      this->GetPerkStationModuleNode()->GetValidationVolumeNode()->GetID() );
     this->GetApplicationLogic()->PropagateVolumeSelection();
     this->ValidateStep->UpdateGUI();
     }
   else if ( step_from == this->Validate )
     {
     this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID(
-      this->GetMRMLNode()->GetPlanningVolumeNode()->GetID() );
+      this->GetPerkStationModuleNode()->GetPlanningVolumeNode()->GetID() );
     this->GetApplicationLogic()->PropagateVolumeSelection();
     this->ValidateStep->HideOverlays();
     }
@@ -1919,7 +1985,7 @@ void
 vtkPerkStationModuleGUI
 ::UpdateWorkphaseButtons()
 {
-  int currentStep = this->MRMLNode->GetCurrentStep();
+  int currentStep = this->PerkStationModuleNode->GetCurrentStep();
   
   for ( int i = 0; i < this->WorkphaseButtonSet->GetNumberOfWidgets(); ++ i )
     {
@@ -1932,4 +1998,65 @@ vtkPerkStationModuleGUI
       this->WorkphaseButtonSet->GetWidget( i )->SetReliefToGroove();
       }
     }
+}
+
+
+
+void
+vtkPerkStationModuleGUI
+::SetAndObservePerkStationModuleNodeID( const char* nodeID )
+{
+  bool modified = false;
+  if ( nodeID != NULL  &&  this->PerkStationModuleNodeID != NULL )
+    {
+    if ( strcmp( nodeID, this->PerkStationModuleNodeID ) != 0 )
+      {
+      modified = true;
+      }
+    }
+  else if ( nodeID != this->PerkStationModuleNodeID )
+    {
+    modified = true;
+    }
+  
+  vtkSetAndObserveMRMLObjectMacro( this->PerkStationModuleNode, NULL );
+  this->SetPerkStationModuleNodeID( nodeID );
+  vtkMRMLPerkStationModuleNode* tnode = this->GetPerkStationModuleNode();
+  
+  vtkSmartPointer< vtkIntArray > events = vtkSmartPointer< vtkIntArray >::New();
+    events->InsertNextValue( vtkCommand::ModifiedEvent );
+  vtkSetAndObserveMRMLObjectEventsMacro( this->PerkStationModuleNode, tnode, events );
+  
+  
+  if ( ! modified )
+    {
+    return;
+    }
+  
+  
+    // Initialize module node.
+  
+  if ( this->PerkStationModuleNode != NULL )
+    {
+    this->PerkStationModuleNode->Init();
+    }
+  
+  
+  if ( this->WizardWidget != NULL )
+    {
+    for ( int i = 0; i < this->WizardWidget->GetWizardWorkflow()->GetNumberOfSteps(); ++ i )
+      {
+      vtkPerkStationStep* step = vtkPerkStationStep::SafeDownCast( this->WizardWidget->GetWizardWorkflow()->GetNthStep( i ) );
+      if ( step != NULL )
+        {
+        step->SetPerkStationModuleNode( this->PerkStationModuleNode );
+        }
+      else
+        {
+        vtkErrorMacro( "Invalid step page: " << i  );
+        }
+      }
+    }
+  
+  this->UpdateGUI();
 }
