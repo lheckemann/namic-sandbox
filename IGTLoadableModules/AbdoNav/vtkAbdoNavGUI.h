@@ -49,8 +49,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // Define behavior at module initialization, startup and exit.
   //----------------------------------------------------------------
-  virtual void Init();  // called upon Slicer startup; not implemented
-  virtual void Enter(); // called upon entering the module
+  virtual void Init();  // called upon Slicer startup
+  virtual void Enter(); // called upon entering the module; not implemented
   virtual void Exit();  // called upon exiting the module; not implemented
 
   //----------------------------------------------------------------
