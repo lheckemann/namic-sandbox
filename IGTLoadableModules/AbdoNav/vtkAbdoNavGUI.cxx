@@ -581,6 +581,12 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       Point2AEntry->SetValueAsDouble(rasVec[1]);
       Point2SEntry->SetValueAsDouble(rasVec[2]);
       }
+    else if (this->Point3RadioButton->GetSelectedState())
+      {
+      Point3REntry->SetValueAsDouble(rasVec[0]);
+      Point3AEntry->SetValueAsDouble(rasVec[1]);
+      Point3SEntry->SetValueAsDouble(rasVec[2]);
+      }
 
     // fourth (and last), update MRML node
     this->UpdateMRMLFromGUI();
@@ -654,17 +660,28 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   else if (this->Point1RadioButton == vtkKWRadioButton::SafeDownCast(caller) && event == vtkKWRadioButton::SelectedStateChangedEvent)
     {
     // mimic radio button set behavior, i.e. only one radio button allowed to be selected at a time
-    if (this->Point1RadioButton->GetSelectedState() && this->Point2RadioButton->GetSelectedState())
+    if (this->Point1RadioButton->GetSelectedState())
       {
       this->Point2RadioButton->SelectedStateOff();
+      this->Point3RadioButton->SelectedStateOff();
       }
     }
   else if (this->Point2RadioButton == vtkKWRadioButton::SafeDownCast(caller) && event == vtkKWRadioButton::SelectedStateChangedEvent)
     {
     // mimic radio button set behavior, i.e. only one radio button allowed to be selected at a time
-    if (this->Point1RadioButton->GetSelectedState() && this->Point2RadioButton->GetSelectedState())
+    if (this->Point2RadioButton->GetSelectedState())
       {
       this->Point1RadioButton->SelectedStateOff();
+      this->Point3RadioButton->SelectedStateOff();
+      }
+    }
+  else if (this->Point3RadioButton == vtkKWRadioButton::SafeDownCast(caller) && event == vtkKWRadioButton::SelectedStateChangedEvent)
+    {
+    // mimic radio button set behavior, i.e. only one radio button allowed to be selected at a time
+    if (this->Point3RadioButton->GetSelectedState())
+      {
+      this->Point1RadioButton->SelectedStateOff();
+      this->Point2RadioButton->SelectedStateOff();
       }
     }
   else if (this->ResetRegistrationPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
@@ -679,11 +696,18 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     this->Point2REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
     this->Point2AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
     this->Point2SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+    this->Point3RadioButton->SetEnabled(true);
+    this->Point3RadioButton->SelectedStateOff();
+    this->Point3REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+    this->Point3AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+    this->Point3SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
     this->PerformRegistrationPushButton->SetEnabled(true);
     }
   else if (this->PerformRegistrationPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
-    if(isnan(this->Point1REntry->GetValueAsDouble()) || isnan(this->Point2REntry->GetValueAsDouble()))
+    if(isnan(this->Point1REntry->GetValueAsDouble()) ||
+       isnan(this->Point2REntry->GetValueAsDouble()) ||
+       isnan(this->Point3REntry->GetValueAsDouble()))
       {
       vtkKWMessageDialog::PopupMessage(this->GetApplication(),
                                        this->GetApplicationGUI()->GetMainSlicerWindow(),
@@ -695,6 +719,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       {
       this->Point1RadioButton->SetEnabled(false);
       this->Point2RadioButton->SetEnabled(false);
+      this->Point3RadioButton->SetEnabled(false);
       this->PerformRegistrationPushButton->SetEnabled(false);
       this->AbdoNavLogic->PerformRegistration();
       }
@@ -872,6 +897,9 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
   node->SetGuidanceNeedleSecondRAS(Point2REntry->GetValueAsDouble(),
                                    Point2AEntry->GetValueAsDouble(),
                                    Point2SEntry->GetValueAsDouble());
+  node->SetMarkerCenterRAS(Point3REntry->GetValueAsDouble(),
+                           Point3AEntry->GetValueAsDouble(),
+                           Point3SEntry->GetValueAsDouble());
   node->EndModify(modifiedFlag);
 }
 
@@ -896,6 +924,11 @@ void vtkAbdoNavGUI::UpdateGUIFromMRML()
     this->Point2REntry->SetValueAsDouble(guidanceSecond[0]);
     this->Point2AEntry->SetValueAsDouble(guidanceSecond[1]);
     this->Point2SEntry->SetValueAsDouble(guidanceSecond[2]);
+
+    double* markerCenter = node->GetMarkerCenterRAS();
+    this->Point3REntry->SetValueAsDouble(markerCenter[0]);
+    this->Point3AEntry->SetValueAsDouble(markerCenter[1]);
+    this->Point3SEntry->SetValueAsDouble(markerCenter[2]);
     }
 }
 
