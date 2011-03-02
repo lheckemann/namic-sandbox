@@ -555,7 +555,7 @@ void
 vtkPerkStationCalibrateStep
 ::HorizontalFlipCallback( bool value )
 {
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
 
   if ( mrmlNode && this->GetGUI()->GetSecondaryMonitor() )
     {
@@ -568,11 +568,11 @@ vtkPerkStationCalibrateStep
 void vtkPerkStationCalibrateStep
 ::VerticalFlipCallback( bool value )
 {
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
   
   if ( mrmlNode && this->GetGUI()->GetSecondaryMonitor() )
     {
-    this->GetGUI()->GetMRMLNode()->SetSecondMonitorVerticalFlip( (bool)value );
+    this->GetGUI()->GetPerkStationModuleNode()->SetSecondMonitorVerticalFlip( (bool)value );
     }
 }
 
@@ -580,7 +580,7 @@ void vtkPerkStationCalibrateStep
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::UpdateAutoScaleCallback()
 {
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
   if ( ! mrmlNode ) return;
   
   vtkMRMLScalarVolumeNode *inVolume = mrmlNode->GetPlanningVolumeNode();
@@ -612,9 +612,9 @@ void
 vtkPerkStationCalibrateStep
 ::ProcessKeyboardEvents( vtkObject *caller, unsigned long event, void *callData )
 {
-  if (    ! this->GetGUI()->GetMRMLNode()
-       || ! this->GetGUI()->GetMRMLNode()->GetPlanningVolumeNode()
-       || strcmp( this->GetGUI()->GetMRMLNode()->GetVolumeInUse(),
+  if (    ! this->GetGUI()->GetPerkStationModuleNode()
+       || ! this->GetGUI()->GetPerkStationModuleNode()->GetPlanningVolumeNode()
+       || strcmp( this->GetGUI()->GetPerkStationModuleNode()->GetVolumeInUse(),
                   "Planning" ) != 0 )
     {
     return;
@@ -642,12 +642,12 @@ vtkPerkStationCalibrateStep
   double stepSize = 0.8;
   
   double translation[ 2 ];
-  double rotation = this->GetGUI()->GetMRMLNode()->GetSecondMonitorRotation();
-  this->GetGUI()->GetMRMLNode()->GetSecondMonitorTranslation( translation );
+  double rotation = this->GetGUI()->GetPerkStationModuleNode()->GetSecondMonitorRotation();
+  this->GetGUI()->GetPerkStationModuleNode()->GetSecondMonitorTranslation( translation );
   
   /*
   double hFlip = 1.0;
-  if ( this->GetGUI()->GetMRMLNode()->GetFinalHorizontalFlip() )
+  if ( this->GetGUI()->GetPerkStationModuleNode()->GetFinalHorizontalFlip() )
     {
     hFlip = - 1.0;
     }
@@ -667,8 +667,8 @@ vtkPerkStationCalibrateStep
       }
     }
   
-  this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation( translation );
-  this->GetGUI()->GetMRMLNode()->SetSecondMonitorRotation( rotation );
+  this->GetGUI()->GetPerkStationModuleNode()->SetSecondMonitorTranslation( translation );
+  this->GetGUI()->GetPerkStationModuleNode()->SetSecondMonitorRotation( rotation );
   
   this->UpdateGUI();
   
@@ -685,16 +685,16 @@ void vtkPerkStationCalibrateStep::SuggestFileName()
 
 void vtkPerkStationCalibrateStep::Reset()
 {
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
   if ( ! mrmlNode )
     {
     return;
     }
   
   double tx[ 2 ] = { 0.0, 0.0 };
-  this->GetGUI()->GetMRMLNode()->SetTableAtOverlay( 0.0 );
-  this->GetGUI()->GetMRMLNode()->SetSecondMonitorTranslation( tx );
-  this->GetGUI()->GetMRMLNode()->SetSecondMonitorRotation( 0.0 );
+  this->GetGUI()->GetPerkStationModuleNode()->SetTableAtOverlay( 0.0 );
+  this->GetGUI()->GetPerkStationModuleNode()->SetSecondMonitorTranslation( tx );
+  this->GetGUI()->GetPerkStationModuleNode()->SetSecondMonitorRotation( 0.0 );
   this->UpdateGUI();
   
   vtkMRMLScalarVolumeNode *inVolume = mrmlNode->GetPlanningVolumeNode();
@@ -868,7 +868,7 @@ vtkPerkStationCalibrateStep
   if ( this->ProcessingCallback ) return;
   this->ProcessingCallback = true;
   
-  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetPerkStationModuleNode();
   if ( node == NULL ) return;
   
   
@@ -917,7 +917,7 @@ vtkPerkStationCalibrateStep
     }
   
   
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
   
   if( ! mrmlNode )
     {
@@ -1021,7 +1021,7 @@ vtkPerkStationCalibrateStep
   
   if ( col == CALIBRATION_COL_NAME )
     {
-    OverlayCalibration* cal = this->GetGUI()->GetMRMLNode()->GetCalibrationAtIndex( row );
+    OverlayCalibration* cal = this->GetGUI()->GetPerkStationModuleNode()->GetCalibrationAtIndex( row );
     cal->Name = std::string( str );
     updated = true;
     }
@@ -1041,7 +1041,7 @@ vtkPerkStationCalibrateStep
   
   if ( numRows != 1 ) return;
   
-  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetPerkStationModuleNode();
   
   int rowIndex = this->CalibrationList->GetWidget()->GetIndexOfFirstSelectedRow();
   OverlayCalibration* cal = moduleNode->GetCalibrationAtIndex( rowIndex );
@@ -1057,7 +1057,7 @@ vtkPerkStationCalibrateStep
 ::HardwareSelected( int index )
 {
   this->SecondMonitor = index;
-  this->GetGUI()->GetMRMLNode()->SetHardwareIndex( index );
+  this->GetGUI()->GetPerkStationModuleNode()->SetHardwareIndex( index );
 }
 
 
@@ -1068,7 +1068,7 @@ void
 vtkPerkStationCalibrateStep
 ::UpdateGUI()
 {
-  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetPerkStationModuleNode();
   
   if ( node == NULL ) return; // No MRML node, no GUI update.
   

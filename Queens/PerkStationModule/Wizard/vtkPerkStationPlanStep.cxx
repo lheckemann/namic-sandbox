@@ -136,10 +136,21 @@ vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
     }
 }
 
-//----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::ShowUserInterface()
+
+
+void
+vtkPerkStationPlanStep
+::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
+  
+  
+    // Show slice intersections.
+  
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Green" )->GetLogic()->GetSliceCompositeNode()->SetSliceIntersectionVisibility( 1 );
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Yellow" )->GetLogic()->GetSliceCompositeNode()->SetSliceIntersectionVisibility( 1 );
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->GetSliceCompositeNode()->SetSliceIntersectionVisibility( 1 );
+  
   
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   wizard_widget->GetCancelButton()->SetEnabled(0);
@@ -164,7 +175,8 @@ void vtkPerkStationPlanStep::ShowUserInterface()
   this->ShowTargetFirstFrame();
   
   
-   //frame
+    // frame
+  
   if ( ! this->TiltInformationFrame )
     {
     this->TiltInformationFrame = vtkKWFrame::New();
@@ -175,8 +187,7 @@ void vtkPerkStationPlanStep::ShowUserInterface()
     this->TiltInformationFrame->Create();
     }
 
-  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->TiltInformationFrame->GetWidgetName() );
+  // this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", this->TiltInformationFrame->GetWidgetName() );
 
 
   // insertion depth  
@@ -193,8 +204,7 @@ void vtkPerkStationPlanStep::ShowUserInterface()
     this->SystemTiltAngle->SetLabelText( "System tilt angle (in degrees):   " );
     }
 
-  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->SystemTiltAngle->GetWidgetName() );
+  // this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", this->SystemTiltAngle->GetWidgetName() );
 
   
   this->ShowPlanListFrame();
@@ -331,7 +341,7 @@ void
 vtkPerkStationPlanStep
 ::UpdateGUI()
 {
-  vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
   
   if ( ! mrmlNode ) return;
   
@@ -492,15 +502,16 @@ vtkPerkStationPlanStep
   
   if (    ! wizard_widget
        || wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this
-       || ! this->GetGUI()->GetMRMLNode()
-       || strcmp( this->GetGUI()->GetMRMLNode()->GetVolumeInUse(),
+       || ! this->GetGUI()->GetPerkStationModuleNode()
+       || strcmp( this->GetGUI()->GetPerkStationModuleNode()->GetVolumeInUse(),
                   "Planning" )!= 0 )
     {
     return;
     }
   
   
-    // Planning has to happen on slicer laptop, not secondary monitor
+    // Planning has to happen on slicer laptop, not secondary monitor.
+    // If click comes from second monitor, do nothing.
   
   vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast( caller );
   vtkSlicerSliceGUI* sliceGUI = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red");
@@ -518,8 +529,7 @@ vtkPerkStationPlanStep
   
     // Get the RAS position of the image click.
   
-  vtkRenderWindowInteractor* rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->
-                                   GetRenderWindowInteractor();    
+  vtkRenderWindowInteractor* rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();    
   
   vtkMatrix4x4* matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
   
@@ -538,7 +548,7 @@ vtkPerkStationPlanStep
   if ( this->NumPointsSelected == 3 ) // Starting a new plan.
     {
     this->NumPointsSelected = 1;
-    this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 0 );
+    this->GetGUI()->GetPerkStationModuleNode()->GetPlanFiducialsNode()->SetAllFiducialsVisibility( 0 );
     this->GetGUI()->EntryActor->SetVisibility( 0 );
     this->GetGUI()->TargetActor->SetVisibility( 1 );
     this->RemoveOverlayNeedleGuide();
@@ -547,7 +557,7 @@ vtkPerkStationPlanStep
   
   if ( this->NumPointsSelected == 1 )  // On first click.
     {   
-    this->GetGUI()->GetMRMLNode()->AddNewPlan();
+    this->GetGUI()->GetPerkStationModuleNode()->AddNewPlan();
     this->TargetFirstCheck->GetWidget()->SetEnabled( 0 );
     }
   
@@ -569,9 +579,10 @@ vtkPerkStationPlanStep
   if ( this->NumPointsSelected == entryClick )
     {
       // record value in mrml node
-    this->GetGUI()->GetMRMLNode()->SetPlanEntryPoint( ras );
-    this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 0, ras[ 0 ], ras[ 1 ], ras[ 2 ] );
-    this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 0, 1 );
+    this->GetGUI()->GetPerkStationModuleNode()->SetPlanEntryPoint( ras );
+    vtkMRMLFiducialListNode* planNode = this->GetGUI()->GetPerkStationModuleNode()->GetPlanFiducialsNode();
+      planNode->SetNthFiducialXYZ( 0, ras[ 0 ], ras[ 1 ], ras[ 2 ] );
+      planNode->SetNthFiducialVisibility( 0, 1 );
     
     this->GetGUI()->SetEntryPosition( ras );
     this->GetGUI()->EntryActor->SetVisibility( 1 );
@@ -579,9 +590,10 @@ vtkPerkStationPlanStep
   else if ( this->NumPointsSelected == targetClick )
     {
       // record value in the MRML node
-    this->GetGUI()->GetMRMLNode()->SetPlanTargetPoint( ras );
-    this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 1, ras[ 0 ], ras[ 1 ], ras[ 2 ] );
-    this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 1, 1 );
+    this->GetGUI()->GetPerkStationModuleNode()->SetPlanTargetPoint( ras );
+    vtkMRMLFiducialListNode* planNode = this->GetGUI()->GetPerkStationModuleNode()->GetPlanFiducialsNode();
+      planNode->SetNthFiducialXYZ( 1, ras[ 0 ], ras[ 1 ], ras[ 2 ] );
+      planNode->SetNthFiducialVisibility( 1, 1 );
     
     this->GetGUI()->SetTargetPosition( ras );
     this->GetGUI()->TargetActor->SetVisibility( 1 );
@@ -591,7 +603,7 @@ vtkPerkStationPlanStep
   if ( this->NumPointsSelected == 2 ) // Needle guide ready.
     {
     this->OverlayNeedleGuide();
-    this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();  
+    // this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();  
     
     this->TargetFirstCheck->GetWidget()->SetEnabled( 1 );
     
@@ -646,11 +658,11 @@ vtkPerkStationPlanStep
   double rasEntry[ 3 ];
   if ( this->TargetFirstCheck->GetWidget()->GetSelectedState() != 0 )
     {
-    this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( rasEntry );
+    this->GetGUI()->GetPerkStationModuleNode()->GetPlanTargetPoint( rasEntry );
     }
   else
     {
-    this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( rasEntry );
+    this->GetGUI()->GetPerkStationModuleNode()->GetPlanEntryPoint( rasEntry );
     }
   // inPt[ 4 ] = { rasEntry[ 0 ], rasEntry[ 1 ], rasEntry[ 2 ], 1 };
   for ( int i = 0; i < 3; ++ i ) inPt[ i ] = rasEntry[ i ];
@@ -682,7 +694,11 @@ vtkPerkStationPlanStep
   
   this->PlanningLineActor->SetMapper( lineMapper );
   
+  vtkErrorMacro( "Render started" );
+  
   sliceGUI->GetSliceViewer()->RequestRender(); 
+  
+  vtkErrorMacro( "Render stopped" );
 }
 
 
@@ -713,7 +729,7 @@ vtkPerkStationPlanStep
   
   if ( col == PLAN_COL_NAME )
     {
-    vtkPerkStationPlan* plan = this->GetGUI()->GetMRMLNode()->GetPlanAtIndex( row );
+    vtkPerkStationPlan* plan = this->GetGUI()->GetPerkStationModuleNode()->GetPlanAtIndex( row );
     plan->SetName( std::string( str ) );
     updated = true;
     }
@@ -733,7 +749,7 @@ vtkPerkStationPlanStep
   
   if ( numRows != 1 ) return;
   
-  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetPerkStationModuleNode();
   
   int rowIndex = this->PlanList->GetWidget()->GetIndexOfFirstSelectedRow();
   vtkPerkStationPlan* plan = moduleNode->GetPlanAtIndex( rowIndex );
@@ -749,7 +765,7 @@ vtkPerkStationPlanStep
   
   plan->GetEntryPointRAS( point );
   this->GetGUI()->PointRASToRedSlice( point, wcPoint );
-  this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 0, point[ 0 ], point[ 1 ], point[ 2 ] );
+  moduleNode->GetPlanFiducialsNode()->SetNthFiducialXYZ( 0, point[ 0 ], point[ 1 ], point[ 2 ] );
   moduleNode->SetPlanEntryPoint( point );
   
   this->GetGUI()->SetEntryPosition( point );
@@ -757,13 +773,13 @@ vtkPerkStationPlanStep
   
   plan->GetTargetPointRAS( point );
   this->GetGUI()->PointRASToRedSlice( point, wcPoint );
-  this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 1, point[ 0 ], point[ 1 ], point[ 2 ] );
+  moduleNode->GetPlanFiducialsNode()->SetNthFiducialXYZ( 1, point[ 0 ], point[ 1 ], point[ 2 ] );
   moduleNode->SetPlanTargetPoint( point );
   
   this->GetGUI()->SetTargetPosition( point );
   this->GetGUI()->TargetActor->SetVisibility( 1 );
   
-  this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 1 );
+  moduleNode->GetPlanFiducialsNode()->SetAllFiducialsVisibility( 1 );
   
   
   moduleNode->SetCurrentSliceOffset( point[ 2 ] );
@@ -777,7 +793,7 @@ void
 vtkPerkStationPlanStep
 ::OnSliceOffsetChanged( double offset )
 {
-  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetPerkStationModuleNode();
   if ( node == NULL ) return;
   
   vtkPerkStationPlan* plan = node->GetPlanAtIndex( node->GetCurrentPlanIndex() );
@@ -802,27 +818,20 @@ void
 vtkPerkStationPlanStep
 ::OverlayNeedleGuide()
 {
-  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->
-    GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
+  vtkSlicerSliceGUI* redSlice = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" );
+  vtkRenderer *renderer = redSlice->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
   
-  int entryPointXY[ 2 ];
-  int targetPointXY[ 2 ];
-  double worldCoordinate[ 4 ];
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetPerkStationModuleNode();
   
   
-  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetMRMLNode();
-  
-  
-    // entry point
+    // Compute point positions in the red slice world coordinate system.
   
   double rasEntry[ 3 ];
   moduleNode->GetPlanEntryPoint( rasEntry );
-  
   this->GetGUI()->PointRASToRedSlice( rasEntry, this->WCEntryPoint );
   
   double rasTarget[ 3 ];
   moduleNode->GetPlanTargetPoint( rasTarget );
-  
   this->GetGUI()->PointRASToRedSlice( rasTarget, this->WCTargetPoint );
   
   
@@ -830,10 +839,9 @@ vtkPerkStationPlanStep
     // get the cylinder source, create the cylinder, whose height is equal to
     // calculated insertion depth apply transform on the cylinder to world 
     // coordinates, using the information of entry and target point
-    // i.e. using the insertion angle
-    // add it to slice viewer's renderer
+    // i.e. using the insertion angle add it to slice viewer's renderer
   
-  vtkSmartPointer< vtkCylinderSource > needleGuide = vtkSmartPointer< vtkCylinderSource >::New();
+  vtkSmartPointer< vtkCylinderSource > needleSource = vtkSmartPointer< vtkCylinderSource >::New();
   
   // TO DO: how to relate this to actual depth???
   
@@ -842,9 +850,9 @@ vtkPerkStationPlanStep
           ( this->WCTargetPoint[ 0 ] - this->WCEntryPoint[ 0 ] ) +
           ( this->WCTargetPoint[ 1 ] - this->WCEntryPoint[ 1 ] ) *
           ( this->WCTargetPoint[ 1 ] - this->WCEntryPoint[ 1 ] ) );
-  needleGuide->SetHeight( 2 * halfNeedleLength );
-  needleGuide->SetRadius( 0.009 );
-  needleGuide->SetResolution( 10 );
+  needleSource->SetHeight( 2 * halfNeedleLength );
+  needleSource->SetRadius( 0.009 );
+  needleSource->SetResolution( 10 );
   
     // because cylinder is positioned at the window center
   double needleCenter[ 3 ];
@@ -864,9 +872,8 @@ vtkPerkStationPlanStep
     transform->Translate( needleCenter[ 0 ], needleCenter[ 1 ], 0.0 );
     transform->RotateZ( angle );
   
-  vtkSmartPointer< vtkTransformPolyDataFilter > filter =
-      vtkSmartPointer< vtkTransformPolyDataFilter >::New();
-    filter->SetInputConnection( needleGuide->GetOutputPort() );
+  vtkSmartPointer< vtkTransformPolyDataFilter > filter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+    filter->SetInputConnection( needleSource->GetOutputPort() );
     filter->SetTransform( transform );
   
   vtkSmartPointer< vtkPolyDataMapper > needleMapper = vtkSmartPointer< vtkPolyDataMapper >::New();
@@ -877,17 +884,14 @@ vtkPerkStationPlanStep
   this->NeedleActor->SetVisibility( 1 );
   
   
-  vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->
-      GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
-      GetOverlayRenderer()->GetActors();
+  vtkActorCollection *collection = redSlice->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->GetActors();
   
   if ( ! collection->IsItemPresent( this->NeedleActor ) )
     {
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()->
-              GetOverlayRenderer()->AddActor( this->NeedleActor );
+    redSlice->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->AddActor( this->NeedleActor );
     }
   
-  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetSliceViewer()->RequestRender(); 
+  redSlice->GetSliceViewer()->RequestRender(); 
 }
 
 
@@ -897,13 +901,13 @@ vtkPerkStationPlanStep
 ::Reset()
 {
   // reset the overlay needle guide both in sliceviewer and in secondary monitor
-  this->GetGUI()->GetSecondaryMonitor()->RemoveOverlayNeedleGuide();
-  this->GetGUI()->GetSecondaryMonitor()->RemoveDepthPerceptionLines();
+  // this->GetGUI()->GetSecondaryMonitor()->RemoveOverlayNeedleGuide();
+  // this->GetGUI()->GetSecondaryMonitor()->RemoveDepthPerceptionLines();
   
   this->RemoveOverlayNeedleGuide();
   
   // reset parameters of mrml node
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
   if ( ! mrmlNode ) return;
   
   
@@ -923,7 +927,7 @@ vtkPerkStationPlanStep
     // set tilt angle back to zero
   mrmlNode->SetTiltAngle( 0 );
   
-  this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 0 );
+  mrmlNode->GetPlanFiducialsNode()->SetAllFiducialsVisibility( 0 );
   
   this->GetGUI()->EntryActor->SetVisibility( 0 );
   this->GetGUI()->TargetActor->SetVisibility( 0 );
@@ -975,7 +979,7 @@ void
 vtkPerkStationPlanStep
 ::ProcessGUIEvents( vtkObject* caller, unsigned long event, void* callData )
 {
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
 
   if(    ! mrmlNode
       || ! mrmlNode->GetPlanningVolumeNode()
@@ -1000,7 +1004,7 @@ vtkPerkStationPlanStep
     if ( plan != NULL )
       {
       mrmlNode->RemovePlanAtIndex( mrmlNode->GetCurrentPlanIndex() );
-      this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 0 );
+      mrmlNode->GetPlanFiducialsNode()->SetAllFiducialsVisibility( 0 );
       
       this->GetGUI()->EntryActor->SetVisibility( 0 );
       this->GetGUI()->TargetActor->SetVisibility( 0 );

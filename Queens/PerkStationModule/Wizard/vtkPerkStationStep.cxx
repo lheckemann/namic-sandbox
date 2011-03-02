@@ -18,6 +18,8 @@ vtkCxxSetObjectMacro( vtkPerkStationStep,GUI,vtkPerkStationModuleGUI );
 vtkPerkStationStep::vtkPerkStationStep()
 {
   this->GUI = NULL;
+  this->PerkStationModuleNode = NULL;
+  
   this->WizardGUICallbackCommand = vtkCallbackCommand::New();
   this->LogTimer = vtkTimerLog::New();
   this->WizardGUICallbackCommand->SetClientData(reinterpret_cast<void *>(this));

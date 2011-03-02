@@ -233,6 +233,33 @@ vtkMRMLPerkStationModuleNode
 
 
 
+vtkMRMLFiducialListNode*
+vtkMRMLPerkStationModuleNode
+::GetPlanFiducialsNode()
+{
+  vtkMRMLFiducialListNode* node = NULL;
+  if ( this->GetScene() && this->PlanFiducialsNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->GetScene()->GetNodeByID( this->PlanFiducialsNodeID );
+    node = vtkMRMLFiducialListNode::SafeDownCast( snode );
+    }
+  return node;
+}
+
+
+
+void
+vtkMRMLPerkStationModuleNode
+::SetAndObservePlanFiducialsNodeID( const char* planFiducialsNodeID )
+{
+  vtkSetAndObserveMRMLObjectMacro( this->PlanFiducialsNode, NULL );
+  this->SetPlanFiducialsNodeID( planFiducialsNodeID );
+  vtkMRMLFiducialListNode* tnode = this->GetPlanFiducialsNode();
+  vtkSetAndObserveMRMLObjectMacro( this->PlanFiducialsNode, tnode );
+}
+
+
+
 /**
  * Constructor.
  */
@@ -341,6 +368,9 @@ vtkMRMLPerkStationModuleNode
   
   // this->InitializeFiducialListNode();
   
+  this->PlanFiducialsNodeID = NULL;
+  this->PlanFiducialsNode = NULL;
+  
     
     // Synchronize it with enum WORKPHASE...
   
@@ -368,6 +398,8 @@ vtkMRMLPerkStationModuleNode
     {
     vtkSetMRMLNodeMacro( this->ValidationVolumeNode, NULL );
     }
+  
+  this->SetAndObservePlanFiducialsNodeID( NULL );
   
   
     // Calibration list.
@@ -470,6 +502,33 @@ vtkMRMLPerkStationModuleNode
   WriteDouble( of, indent, this->TimeOnPlanStep, "TimeOnPlanStep" );
   WriteDouble( of, indent, this->TimeOnInsertStep, "TimeOnInsertStep" );
   WriteDouble( of, indent, this->TimeOnValidateStep, "TimeOnValidateStep" );
+}
+
+
+
+void
+vtkMRMLPerkStationModuleNode
+::Init()
+{
+   
+    // Add plan fiducials list if not added yet.
+  
+  if ( this->GetPlanFiducialsNode() == NULL  &&  this->GetScene() != NULL )
+    {
+    vtkSmartPointer< vtkMRMLFiducialListNode > planFidList = vtkSmartPointer< vtkMRMLFiducialListNode >::New();
+      planFidList->SetLocked( true );
+      planFidList->SetName( "PerkPlan" );
+      planFidList->SetDescription( "PerkStationModule plan point list" );
+      planFidList->SetColor( 0.5, 1, 0.5 );
+      planFidList->SetGlyphType( vtkMRMLFiducialListNode::Diamond3D );
+      planFidList->SetOpacity( 0.7 );
+      planFidList->SetAllFiducialsVisibility( true );
+      planFidList->SetSymbolScale( 6 );
+      planFidList->SetTextScale( 8 );
+    this->GetScene()->AddNode( planFidList );
+    SetAndObservePlanFiducialsNodeID( planFidList->GetID() );
+    }
+  
 }
 
 

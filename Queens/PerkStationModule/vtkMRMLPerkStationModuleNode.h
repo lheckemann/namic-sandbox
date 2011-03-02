@@ -115,6 +115,9 @@ public:
 
   virtual vtkMRMLNode* CreateNodeInstance();
   
+  void Init();
+  
+  
   virtual void ReadXMLAttributes( const char** atts);
   virtual void WriteXML( ostream& of, int indent );
   
@@ -155,6 +158,7 @@ public:
   
   void UpdateHardwareCalibration( double mmX, double mmY );
   void GetSecondMonitorPhysicalSize( double* mm ) const;
+  
   
     // Calibration list management.
   
@@ -342,6 +346,18 @@ public:
   double GetAngleError( int index = -1 );
   double GetAngleErrorAxial( int index = -1 );
   double GetAngleErrorSagittal( int index = -1 );
+  
+  
+    // Fiducial list containing two fiducials: Entry point and Target point.
+  
+public:
+  vtkGetStringMacro( PlanFiducialsNodeID );
+  vtkMRMLFiducialListNode* GetPlanFiducialsNode();
+  void SetAndObservePlanFiducialsNodeID( const char* planFiducialsNodeID );
+private:  
+  vtkSetStringMacro( PlanFiducialsNodeID );
+  char* PlanFiducialsNodeID;
+  vtkMRMLFiducialListNode* PlanFiducialsNode;
   
   
 protected:

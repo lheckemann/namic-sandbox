@@ -365,14 +365,14 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(
   
   if (    ! wizard_widget
        || wizard_widget->GetWizardWorkflow()->GetCurrentStep() !=  this
-       || ! this->GetGUI()->GetMRMLNode()
-       || ! this->GetGUI()->GetMRMLNode()->GetValidationVolumeNode()
-       || strcmp( this->GetGUI()->GetMRMLNode()->GetVolumeInUse(),
+       || ! this->GetGUI()->GetPerkStationModuleNode()
+       || ! this->GetGUI()->GetPerkStationModuleNode()->GetValidationVolumeNode()
+       || strcmp( this->GetGUI()->GetPerkStationModuleNode()->GetVolumeInUse(),
                   "Validation" ) != 0 )
     {
     return;
     }
-  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetPerkStationModuleNode();
   
     
   if ( this->ClickNumber > 1 ) return;  // Don't do anything after two clicks.
@@ -444,10 +444,10 @@ vtkPerkStationValidateStep
     // get the world coordinates
   
   double rasEntry[ 3 ];
-  this->GetGUI()->GetMRMLNode()->GetValidationEntryPoint( rasEntry );
+  this->GetGUI()->GetPerkStationModuleNode()->GetValidationEntryPoint( rasEntry );
   
   double rasTarget[ 3 ];
-  this->GetGUI()->GetMRMLNode()->GetValidationTargetPoint( rasTarget );
+  this->GetGUI()->GetPerkStationModuleNode()->GetValidationTargetPoint( rasTarget );
   
   
   double wcEntry[ 3 ];
@@ -511,10 +511,10 @@ vtkPerkStationValidateStep
     // Compute world coordinates.
   
   double rasEntry[ 3 ];
-  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( rasEntry );
+  this->GetGUI()->GetPerkStationModuleNode()->GetPlanEntryPoint( rasEntry );
   
   double rasTarget[ 3 ];
-  this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( rasTarget );
+  this->GetGUI()->GetPerkStationModuleNode()->GetPlanTargetPoint( rasTarget );
   
   double wcEntry[ 3 ];
   this->RasToWorld( rasEntry, wcEntry );
@@ -574,7 +574,7 @@ vtkPerkStationValidateStep
   int numRows = this->PlanList->GetWidget()->GetNumberOfSelectedRows();
   if ( numRows != 1 ) return;
   
-  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetPerkStationModuleNode();
   
   int rowIndex = this->PlanList->GetWidget()->GetIndexOfFirstSelectedRow();
   moduleNode->SetCurrentPlanIndex( rowIndex );
@@ -587,7 +587,7 @@ vtkPerkStationValidateStep
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()->SetSliceOffset(
     moduleNode->GetCurrentSliceOffset() );
   
-  this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 0 );
+  moduleNode->GetPlanFiducialsNode()->SetAllFiducialsVisibility( 0 );
   this->ClickNumber = 0;
   
   this->UpdateGUI();
@@ -599,7 +599,7 @@ void
 vtkPerkStationValidateStep
 ::OnSliceOffsetChanged( double offset )
 {
-  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetPerkStationModuleNode();
   if ( ! node  ||  node->GetCurrentPlanIndex() < 0 ) return;
   
   
@@ -627,10 +627,14 @@ vtkPerkStationValidateStep
   this->ProcessingCallback = false;
     // TODO: Would be better to put the fiducials in the corner of the image
     //       where no mouse clicks are ever expected.
-  this->GetGUI()->TwoFiducials->SetAllFiducialsVisibility( 0 );
-  this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 0, 0, 0, 0 );
-  this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 1, 0, 0, 0 );
-  this->GetGUI()->GetMRMLNode()->SetValidated( false );
+  
+  vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetPerkStationModuleNode();
+  vtkMRMLFiducialListNode* planNode = moduleNode->GetPlanFiducialsNode();
+    planNode->SetAllFiducialsVisibility( 0 );
+    planNode->SetNthFiducialXYZ( 0, 0, 0, 0 );
+    planNode->SetNthFiducialXYZ( 1, 0, 0, 0 );
+  
+  this->GetGUI()->GetPerkStationModuleNode()->SetValidated( false );
 }
 
 
@@ -639,7 +643,7 @@ void
 vtkPerkStationValidateStep
 ::UpdateGUI()
 {
-  vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
   if ( ! mrmlNode ) return;
   
   
@@ -806,16 +810,18 @@ vtkPerkStationValidateStep
     {
     double point[ 3 ];
     mrmlNode->GetValidationEntryPoint( point );
-    this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 0, point[ 0 ], point[ 1 ], point[ 2 ] );
-    this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 0, 1 );
+    vtkMRMLFiducialListNode* planNode = mrmlNode->GetPlanFiducialsNode();
+      planNode->SetNthFiducialXYZ( 0, point[ 0 ], point[ 1 ], point[ 2 ] );
+      planNode->SetNthFiducialVisibility( 0, 1 );
     }
   
   if ( this->ClickNumber > 1  ||  mrmlNode->GetValidated() )
     {
     double point[ 3 ];
     mrmlNode->GetValidationTargetPoint( point );
-    this->GetGUI()->TwoFiducials->SetNthFiducialXYZ( 1, point[ 0 ], point[ 1 ], point[ 2 ] );
-    this->GetGUI()->TwoFiducials->SetNthFiducialVisibility( 1, 1 );
+    vtkMRMLFiducialListNode* planNode = mrmlNode->GetPlanFiducialsNode();
+      planNode->SetNthFiducialXYZ( 1, point[ 0 ], point[ 1 ], point[ 2 ] );
+      planNode->SetNthFiducialVisibility( 1, 1 );
     this->OverlayValidationNeedleAxis();
     }
 }
@@ -846,7 +852,7 @@ void
 vtkPerkStationValidateStep
 ::ProcessGUIEvents( vtkObject *caller, unsigned long event, void *callData )
 {
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
   
   if(    ! mrmlNode
       || ! mrmlNode->GetPlanningVolumeNode()
@@ -923,7 +929,7 @@ void
 vtkPerkStationValidateStep
 ::ExportResultsToFile( const char* fileName )
 {
-  vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetMRMLNode();
+  vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
   if ( ! mrmlNode ) return;
   
   ofstream output( fileName );
