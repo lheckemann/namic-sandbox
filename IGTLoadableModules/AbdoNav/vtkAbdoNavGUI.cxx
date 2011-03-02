@@ -571,21 +571,33 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     // third, display RAS coordinates in the GUI
     if (this->Point1RadioButton->GetSelectedState())
       {
-      Point1REntry->SetValueAsDouble(rasVec[0]);
-      Point1AEntry->SetValueAsDouble(rasVec[1]);
-      Point1SEntry->SetValueAsDouble(rasVec[2]);
+      if (this->Point1RadioButton->GetEnabled())
+        {
+        // only update if enabled
+        Point1REntry->SetValueAsDouble(rasVec[0]);
+        Point1AEntry->SetValueAsDouble(rasVec[1]);
+        Point1SEntry->SetValueAsDouble(rasVec[2]);
+        }
       }
     else if (this->Point2RadioButton->GetSelectedState())
       {
-      Point2REntry->SetValueAsDouble(rasVec[0]);
-      Point2AEntry->SetValueAsDouble(rasVec[1]);
-      Point2SEntry->SetValueAsDouble(rasVec[2]);
+      if (this->Point2RadioButton->GetEnabled())
+        {
+        // only update if enabled
+        Point2REntry->SetValueAsDouble(rasVec[0]);
+        Point2AEntry->SetValueAsDouble(rasVec[1]);
+        Point2SEntry->SetValueAsDouble(rasVec[2]);
+        }
       }
     else if (this->Point3RadioButton->GetSelectedState())
       {
-      Point3REntry->SetValueAsDouble(rasVec[0]);
-      Point3AEntry->SetValueAsDouble(rasVec[1]);
-      Point3SEntry->SetValueAsDouble(rasVec[2]);
+      if (this->Point3RadioButton->GetEnabled())
+        {
+        // only update if enabled
+        Point3REntry->SetValueAsDouble(rasVec[0]);
+        Point3AEntry->SetValueAsDouble(rasVec[1]);
+        Point3SEntry->SetValueAsDouble(rasVec[2]);
+        }
       }
 
     // fourth (and last), update MRML node
