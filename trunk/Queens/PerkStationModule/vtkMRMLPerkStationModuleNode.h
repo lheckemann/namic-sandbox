@@ -112,11 +112,13 @@ public:
   static vtkMRMLPerkStationModuleNode *New();
   vtkTypeMacro( vtkMRMLPerkStationModuleNode, vtkMRMLNode );
   void PrintSelf( ostream& os, vtkIndent indent );
-
+  
+  
+    // Standard MRML functions. -----------------------------------------------
+  
   virtual vtkMRMLNode* CreateNodeInstance();
   
   void Init();
-  
   
   virtual void ReadXMLAttributes( const char** atts);
   virtual void WriteXML( ostream& of, int indent );
@@ -128,6 +130,12 @@ public:
   virtual const char* GetNodeTagName() {
     return "PS";
   };
+  
+  virtual void UpdateScene( vtkMRMLScene* );
+  virtual void UpdateReferenceID( const char *oldID, const char *newID );
+  void UpdateReferences();
+  
+  virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
   
   
   // Calibration parameters ---------------------------------------------------
@@ -170,7 +178,7 @@ public:
   int SetCurrentCalibrationIndex( int index );
   
   
-  // Plan parameters ----------------------------------------------------------
+    // Plan parameters --------------------------------------------------------
   
   
   void GetPlanEntryPoint( double* point, int index = -1 ) const;
@@ -261,23 +269,8 @@ public:
   
     // Common parameters ------------------------------------------------------
   
-  vtkGetStringMacro( PlanningVolumeRef );
-  vtkSetStringMacro( PlanningVolumeRef );
-  
-  vtkGetStringMacro( ValidationVolumeRef );
-  vtkSetStringMacro( ValidationVolumeRef );
-  
   vtkGetStringMacro( VolumeInUse );
   vtkSetStringMacro( VolumeInUse );
-  
-  vtkMRMLScalarVolumeNode* GetPlanningVolumeNode();
-  
-  void SetPlanningVolumeNode( vtkMRMLScalarVolumeNode *planVolNode );
-  
-    // validation volume node
-  vtkMRMLScalarVolumeNode *GetValidationVolumeNode()
-    { return this->ValidationVolumeNode; };
-  void SetValidationVolumeNode( vtkMRMLScalarVolumeNode *validationVolNode );
   
   vtkSetMacro( TimeOnCalibrateStep, double );
   vtkGetMacro( TimeOnCalibrateStep, double );
@@ -292,17 +285,7 @@ public:
   vtkGetMacro( TimeOnValidateStep, double );
   
   
-    // Non loadable parameters.
-  /*
-  vtkMRMLFiducialListNode* GetPlanMRMLFiducialListNode() {
-    return this->PlanMRMLFiducialListNode.GetPointer();
-  }
-  */
-  
   vtkMRMLScalarVolumeNode* GetActiveVolumeNode();
-  
-    // Update the stored reference to another node in the scene
-  virtual void UpdateReferenceID( const char *oldID, const char *newID );
   
   int GetNumberOfSteps();
   int GetCurrentStep();
@@ -354,12 +337,33 @@ public:
   vtkGetStringMacro( PlanFiducialsNodeID );
   vtkMRMLFiducialListNode* GetPlanFiducialsNode();
   void SetAndObservePlanFiducialsNodeID( const char* planFiducialsNodeID );
-private:  
-  vtkSetStringMacro( PlanFiducialsNodeID );
+  void RecreateFiducialsNode();
+private:
+  vtkSetReferenceStringMacro( PlanFiducialsNodeID );
   char* PlanFiducialsNodeID;
   vtkMRMLFiducialListNode* PlanFiducialsNode;
   
   
+    // Reference to the planning volume.
+ 
+public:
+  vtkGetStringMacro( PlanningVolumeNodeID );
+  vtkSetReferenceStringMacro( PlanningVolumeNodeID );
+  vtkMRMLScalarVolumeNode* GetPlanningVolumeNode();
+private:
+  char* PlanningVolumeNodeID;
+  
+  
+    // Reference to the validation volume.
+
+public:
+  vtkGetStringMacro( ValidationVolumeNodeID );
+  vtkSetReferenceStringMacro( ValidationVolumeNodeID );
+  vtkMRMLScalarVolumeNode* GetValidationVolumeNode();
+private:
+  char* ValidationVolumeNodeID;
+ 
+ 
 protected:
   
   //BTX
@@ -368,8 +372,6 @@ protected:
   ~vtkMRMLPerkStationModuleNode();
   vtkMRMLPerkStationModuleNode( const vtkMRMLPerkStationModuleNode& );
   void operator=( const vtkMRMLPerkStationModuleNode& );
-  
-  // void InitializeFiducialListNode();
   
   
     // Calibration parameters -------------------------------------------------
@@ -408,12 +410,7 @@ protected:
  
     // Common parameters ------------------------------------------------------
   
-  char* PlanningVolumeRef;
-  char* ValidationVolumeRef;
-  char* VolumeInUse; 
-  
-  vtkMRMLScalarVolumeNode* PlanningVolumeNode;
-  vtkMRMLScalarVolumeNode* ValidationVolumeNode;
+  char* VolumeInUse;
   
   double CurrentSliceOffset;    // In RAS.
   PatientPositionEnum PatientPosition;
@@ -422,8 +419,6 @@ protected:
   double TimeOnPlanStep;
   double TimeOnInsertStep;
   double TimeOnValidateStep;
-  
-  // vtkSmartPointer< vtkMRMLFiducialListNode > PlanMRMLFiducialListNode;
   
   vtkSmartPointer< vtkStringArray > StepList;
   
@@ -448,6 +443,8 @@ private:
   void UpdateHardwareListFile();
   
   std::string HardwareListFileName;
+  
+  bool Initialized;
   
   //ETX
 };

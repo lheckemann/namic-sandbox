@@ -658,8 +658,7 @@ vtkPerkStationModuleGUI
   
     // Planning volume is changed.
   
-  if (    vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
-          == this->VolumeSelector
+  if (    vtkSlicerNodeSelectorWidget::SafeDownCast( caller ) == this->VolumeSelector
        && (    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
             || event == vtkSlicerNodeSelectorWidget::NewNodeEvent ) )
     {
@@ -1154,12 +1153,17 @@ vtkPerkStationModuleGUI
   
   if ( ! volumeNode ) return;
   
-    // Didn't actually change selection.
-  if ( volumeNode == this->PerkStationModuleNode->GetPlanningVolumeNode() ) return;
+  char* selectedID = volumeNode->GetID();
+  char* currentID = this->PerkStationModuleNode->GetPlanningVolumeNodeID();
   
+  if (    currentID != NULL
+       && strcmp( selectedID, currentID ) == 0 )
+    {
+    return;  // Volume didn't really change.
+    }
   
   this->PerkStationModuleNode->SetVolumeInUse( "Planning" );
-  this->PerkStationModuleNode->SetPlanningVolumeNode( volumeNode );
+  this->PerkStationModuleNode->SetPlanningVolumeNodeID( volumeNode->GetID() );
   
   this->SecondaryMonitor->SetupImageData();
   
@@ -1213,7 +1217,7 @@ vtkPerkStationModuleGUI
   
   if ( ! volumeNode ) return;
   
-  this->PerkStationModuleNode->SetValidationVolumeNode( volumeNode );
+  this->PerkStationModuleNode->SetValidationVolumeNodeID( volumeNode->GetID() );
   
   this->Logic->AdjustSliceView();
 }
@@ -1250,7 +1254,11 @@ vtkPerkStationModuleGUI
   this->WorkingTimes[ 3 ] = n->GetTimeOnValidateStep();
   this->UpdateTimerDisplay();
   
-  this->CalibrateStep->UpdateGUI();
+  
+    // Update active worflow step GUI.
+  
+  int step = n->GetCurrentStep();
+  if ( step == 0 ) this->CalibrateStep->UpdateGUI();
 }
 
 
@@ -1294,7 +1302,7 @@ vtkPerkStationModuleGUI
     }
   
   
-    // Scene is closing.
+    // Scene is about to close.
     // TODO: Why not true ever?
   
   if ( this->MRMLScene != NULL
@@ -1308,10 +1316,25 @@ vtkPerkStationModuleGUI
       }
     }
   
+  
+    // Scene is closing.
+  
   if ( event == vtkMRMLScene::SceneCloseEvent )
     {
+      // Remove visual guides.
+    
+    this->PlanStep->RemoveOverlayNeedleGuide();
+    
+      // Reset workflow wizard.
+    
+    this->RemoveGUIObservers();
+    this->DeleteGUIForWorkphases();
+    this->BuildGUIForWorkphases();
+    this->AddGUIObservers();
+    
+      // Reset references.
+    
     this->SecondaryMonitor->SetPerkStationModuleNodeID( NULL );
-    this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->HideUserInterface();
     this->SetAndObservePerkStationModuleNodeID( NULL );
     }  
 }
@@ -1714,6 +1737,28 @@ vtkPerkStationModuleGUI
 
 void
 vtkPerkStationModuleGUI
+::DeleteGUIForWorkphases()
+{
+  this->GetApplication()->Script( "pack forget %s", this->WizardWidget->GetWidgetName() );
+  this->GetApplication()->Script( "pack forget %s", this->WizardFrame->GetWidgetName() );
+  this->GetApplication()->Script( "pack forget %s", this->WorkphaseButtonSet->GetWidgetName() );
+  this->GetApplication()->Script( "pack forget %s", this->WorkphaseButtonFrame->GetWidgetName() );
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->WorkphaseButtonFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->WorkphaseButtonSet );
+  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->WizardFrame );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->WizardWidget );
+  DELETE_IF_NOT_NULL( this->CalibrateStep );
+  DELETE_IF_NOT_NULL( this->PlanStep );
+  DELETE_IF_NOT_NULL( this->InsertStep );
+  DELETE_IF_NOT_NULL( this->ValidateStep );
+}
+
+
+
+void
+vtkPerkStationModuleGUI
 ::TearDownGUI() 
 {
   this->RemoveMRMLObservers();
@@ -1846,45 +1891,49 @@ int
 vtkPerkStationModuleGUI
 ::ChangeWorkphase( int phase )
 {
-  vtkMRMLFiducialListNode* planNode = this->GetPlanFiducialsNode();
-  
-  if ( planNode != NULL )
-    {
-    int nf = planNode->GetNumberOfFiducials();
-    if ( nf != 2 )
-      {
-      planNode->RemoveAllFiducials();
-      planNode->AddFiducialWithXYZ( 0, 0, 0, 0 );
-      planNode->AddFiducialWithXYZ( 0, 0, 0, 0 );
-      planNode->SetNthFiducialLabelText( 0, "Entry" );
-      planNode->SetNthFiducialLabelText( 1, "Target" );
-      }
-    planNode->SetAllFiducialsVisibility( 0 );
-    }
-  
+    // Not yet used.
   this->EntryActor->SetVisibility( 0 );
   this->TargetActor->SetVisibility( 0 );
   
   
-  if ( this->PerkStationModuleNode
-       && ! this->PerkStationModuleNode->SwitchStep( phase ) ) // Set next phase
+  if ( this->PerkStationModuleNode && ! this->PerkStationModuleNode->SwitchStep( phase ) ) // Set next phase
     {
     cerr << "ChangeWorkphase: Cannot transition!" << endl;
     return 0;
     }
   
-  int numSteps = this->PerkStationModuleNode->GetNumberOfSteps();
+  
+  vtkKWWizardWorkflow *wizard = this->WizardWidget->GetWizardWorkflow();
+  int numSteps = wizard->GetNumberOfSteps();
+  
+  
+    // If the scene is closed, go to the initial step.
+  
+  if ( this->PerkStationModuleNode == NULL )
+    {
+    vtkKWWizardStep* initialStep = wizard->GetInitialStep();
+    
+    for ( int i = 0; i < 10; ++ i )
+      {
+      if ( wizard->GetCurrentStep() != initialStep ) break;
+      wizard->AttemptToGoToPreviousStep();
+      }
+    
+    return 1;  // Success.
+    }
+  
+  
+  // int numSteps = this->PerkStationModuleNode->GetNumberOfSteps();
   
   
     // Switch wizard frame.
   
-  vtkKWWizardWorkflow *wizard = this->WizardWidget->GetWizardWorkflow();
-  
   int step_from;
   int step_to;
   
-  step_to = this->PerkStationModuleNode->GetCurrentStep();
+  step_to = phase;
   step_from = this->PerkStationModuleNode->GetPreviousStep();
+  
   
     // Walk from old step to new step.
   int steps =  step_to - step_from;
@@ -1917,9 +1966,10 @@ vtkPerkStationModuleGUI
       }
     }
   
+  
     // Show new step UI.
-  vtkPerkStationStep* step =
-    vtkPerkStationStep::SafeDownCast( wizard->GetCurrentStep() );
+  
+  vtkPerkStationStep* step = vtkPerkStationStep::SafeDownCast( wizard->GetCurrentStep() );
   if ( step )
     {
     step->ShowUserInterface();
@@ -1931,12 +1981,10 @@ vtkPerkStationModuleGUI
   if ( phase == this->Calibrate )
     {
     this->SecondaryMonitor->ShowCalibrationControls( true );
-    this->SecondaryMonitor->UpdateImageDisplay();
     }
   else
     {
     this->SecondaryMonitor->ShowCalibrationControls( false );
-    this->SecondaryMonitor->UpdateImageDisplay();
     }
   
   
@@ -1946,15 +1994,6 @@ vtkPerkStationModuleGUI
     this->PlanStep->RemoveOverlayNeedleGuide();
     }
   
-  if ( phase == this->Calibrate
-       && this->GetPlanFiducialsNode() != NULL )
-    {
-    this->GetPlanFiducialsNode()->SetAllFiducialsVisibility( 0 );
-    
-    this->EntryActor->SetVisibility( 0 );
-    this->TargetActor->SetVisibility( 0 );
-    }
-    
   
     // Change working volume in validation phase.
   
@@ -1973,6 +2012,7 @@ vtkPerkStationModuleGUI
     this->ValidateStep->HideOverlays();
     }
   
+  // this->SecondaryMonitor->UpdateImageDisplay();
   
   return 1;  // Indicating success.
 }
@@ -2041,7 +2081,7 @@ vtkPerkStationModuleGUI
     this->PerkStationModuleNode->Init();
     }
   
-  
+  /*
   if ( this->WizardWidget != NULL )
     {
     for ( int i = 0; i < this->WizardWidget->GetWizardWorkflow()->GetNumberOfSteps(); ++ i )
@@ -2057,6 +2097,7 @@ vtkPerkStationModuleGUI
         }
       }
     }
+  */
   
   this->UpdateGUI();
 }

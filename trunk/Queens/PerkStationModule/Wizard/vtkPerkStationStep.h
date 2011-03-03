@@ -41,8 +41,8 @@ public:
   
     // Perk Station module node.
   
-  vtkSetObjectMacro( PerkStationModuleNode, vtkMRMLPerkStationModuleNode );
-  vtkGetObjectMacro( PerkStationModuleNode, vtkMRMLPerkStationModuleNode );
+  // vtkSetObjectMacro( PerkStationModuleNode, vtkMRMLPerkStationModuleNode );
+  // vtkGetObjectMacro( PerkStationModuleNode, vtkMRMLPerkStationModuleNode );
   
   
   // Description:
@@ -66,7 +66,7 @@ private:
   vtkPerkStationStep(const vtkPerkStationStep&);
   void operator=(const vtkPerkStationStep&);
   
-  vtkMRMLPerkStationModuleNode* PerkStationModuleNode;
+  // vtkMRMLPerkStationModuleNode* PerkStationModuleNode;
 };
 
 #endif
