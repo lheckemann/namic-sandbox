@@ -1151,14 +1151,15 @@ vtkPerkStationModuleGUI
 {
   vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast( this->VolumeSelector->GetSelected() );
   
-  if ( ! volumeNode ) return;
+  if ( ! volumeNode ) return;  // Nothing selected.
   
   char* selectedID = volumeNode->GetID();
   char* currentID = this->PerkStationModuleNode->GetPlanningVolumeNodeID();
   
-  if (    currentID != NULL
-       && strcmp( selectedID, currentID ) == 0 )
+  if ( currentID != NULL && strcmp( selectedID, currentID ) == 0 )
     {
+    this->PerkStationModuleNode->SetVolumeInUse( "Planning" );
+    this->SecondaryMonitor->SetupImageData();  // In case we are loading a scene.
     return;  // Volume didn't really change.
     }
   
@@ -1166,7 +1167,6 @@ vtkPerkStationModuleGUI
   this->PerkStationModuleNode->SetPlanningVolumeNodeID( volumeNode->GetID() );
   
   this->SecondaryMonitor->SetupImageData();
-  
   
     // Bring wizard to Calibration phase.
   
