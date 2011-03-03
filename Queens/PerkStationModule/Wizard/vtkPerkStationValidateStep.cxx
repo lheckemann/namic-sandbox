@@ -630,9 +630,12 @@ vtkPerkStationValidateStep
   
   vtkMRMLPerkStationModuleNode* moduleNode = this->GetGUI()->GetPerkStationModuleNode();
   vtkMRMLFiducialListNode* planNode = moduleNode->GetPlanFiducialsNode();
+  if ( planNode != NULL )
+    {
     planNode->SetAllFiducialsVisibility( 0 );
     planNode->SetNthFiducialXYZ( 0, 0, 0, 0 );
     planNode->SetNthFiducialXYZ( 1, 0, 0, 0 );
+    }
   
   this->GetGUI()->GetPerkStationModuleNode()->SetValidated( false );
 }

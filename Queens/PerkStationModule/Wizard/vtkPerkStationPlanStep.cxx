@@ -32,6 +32,28 @@
 #include "vtkSlicerApplication.h"
 
 
+
+// Profiling.
+#include <ctime>
+#include <fstream>
+#include <sstream>
+#include <string>
+std::string TimeString( char* msg )
+{
+  clock_t mytime = clock();
+  std::stringstream ss;
+  ss << double( mytime ) / CLOCKS_PER_SEC << "  " << msg;
+  /*
+  ofstream output;
+  output.open( "aatime.txt", std::ios_base::app );
+  output << ss.str() << std::endl;
+  output.close();
+  */
+  return ss.str();
+}
+
+
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPerkStationPlanStep);
 vtkCxxRevisionMacro(vtkPerkStationPlanStep, "$Revision: 1.1 $");
@@ -341,6 +363,8 @@ void
 vtkPerkStationPlanStep
 ::UpdateGUI()
 {
+  TimeString( "UpdateGUI started" );
+  
   vtkMRMLPerkStationModuleNode* mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
   
   if ( ! mrmlNode ) return;
@@ -370,6 +394,7 @@ vtkPerkStationPlanStep
   double validationEntry[ 3 ];
   double validationTarget[ 3 ];
   
+  TimeString( "Rebuilding plan list" );
   for ( int row = 0; row < numPlans; ++ row )
     {
     vtkPerkStationPlan* plan = mrmlNode->GetPlanAtIndex( row );
@@ -431,8 +456,12 @@ vtkPerkStationPlanStep
         }
       }
     } // for ( int row = 0; row < numPlans; ++ row )
-    
+  TimeString( "Rebuilding plan list -- ended" );
+  
+  
   this->PlanList->GetWidget()->SelectRow( mrmlNode->GetCurrentPlanIndex() );
+  
+  TimeString( "UpdateGUI end" );
 }
 
 
@@ -494,6 +523,7 @@ void
 vtkPerkStationPlanStep
 ::ProcessImageClickEvents( vtkObject *caller, unsigned long event, void *callData )
 {
+  TimeString( "click begin -------------" );
   
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   
@@ -573,6 +603,7 @@ vtkPerkStationPlanStep
     entryClick = 2;
     }
   
+  TimeString( "click points prepared" );
   
     // Process the new selected point.
   
@@ -580,12 +611,16 @@ vtkPerkStationPlanStep
     {
       // record value in mrml node
     this->GetGUI()->GetPerkStationModuleNode()->SetPlanEntryPoint( ras );
+    TimeString( "get fiducial node" );
     vtkMRMLFiducialListNode* planNode = this->GetGUI()->GetPerkStationModuleNode()->GetPlanFiducialsNode();
+    TimeString( "set fiducial xyz" );
       planNode->SetNthFiducialXYZ( 0, ras[ 0 ], ras[ 1 ], ras[ 2 ] );
+    TimeString( "set fiducial visibility" );
       planNode->SetNthFiducialVisibility( 0, 1 );
+    TimeString( "fiducials done" );
     
     this->GetGUI()->SetEntryPosition( ras );
-    this->GetGUI()->EntryActor->SetVisibility( 1 );
+    // this->GetGUI()->EntryActor->SetVisibility( 1 );
     }
   else if ( this->NumPointsSelected == targetClick )
     {
@@ -596,9 +631,10 @@ vtkPerkStationPlanStep
       planNode->SetNthFiducialVisibility( 1, 1 );
     
     this->GetGUI()->SetTargetPosition( ras );
-    this->GetGUI()->TargetActor->SetVisibility( 1 );
+    // this->GetGUI()->TargetActor->SetVisibility( 1 );
     }
   
+  TimeString( "fiducials changed, starting update" );
   
   if ( this->NumPointsSelected == 2 ) // Needle guide ready.
     {
@@ -614,6 +650,8 @@ vtkPerkStationPlanStep
     {
     this->PlanningLineActor->SetVisibility( 0 );
     }
+  
+  TimeString( "click end" );
 }
 
 
@@ -718,6 +756,8 @@ void
 vtkPerkStationPlanStep
 ::OnMultiColumnListUpdate(int row, int col, char * str)
 {
+  TimeString( "on list update" );
+  
     // Make sure the row and col exists.
   if (    ( row < 0 ) || ( row >= this->PlanList->GetWidget()->GetNumberOfRows() )
        || ( row < 0 ) || ( row >= this->PlanList->GetWidget()->GetNumberOfRows() ) )
@@ -745,6 +785,8 @@ void
 vtkPerkStationPlanStep
 ::OnMultiColumnListSelectionChanged()
 {
+  TimeString( "on list selection changed" );
+  
   int numRows = this->PlanList->GetWidget()->GetNumberOfSelectedRows();
   
   if ( numRows != 1 ) return;
@@ -755,6 +797,11 @@ vtkPerkStationPlanStep
   vtkPerkStationPlan* plan = moduleNode->GetPlanAtIndex( rowIndex );
   
   moduleNode->SetCurrentPlanIndex( rowIndex );
+  
+  
+  TimeString( "Recreate fiducials" );
+  this->GetGUI()->GetPerkStationModuleNode()->RecreateFiducialsNode();
+  TimeString( "Recreate fiducials -- ended" );
   
   
   this->NumPointsSelected = 2;
@@ -793,6 +840,8 @@ void
 vtkPerkStationPlanStep
 ::OnSliceOffsetChanged( double offset )
 {
+  TimeString( "on slice offset change" );
+  
   vtkMRMLPerkStationModuleNode* node = this->GetGUI()->GetPerkStationModuleNode();
   if ( node == NULL ) return;
   
@@ -891,7 +940,7 @@ vtkPerkStationPlanStep
     redSlice->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->AddActor( this->NeedleActor );
     }
   
-  redSlice->GetSliceViewer()->RequestRender(); 
+  redSlice->GetSliceViewer()->RequestRender();
 }
 
 
@@ -927,7 +976,10 @@ vtkPerkStationPlanStep
     // set tilt angle back to zero
   mrmlNode->SetTiltAngle( 0 );
   
-  mrmlNode->GetPlanFiducialsNode()->SetAllFiducialsVisibility( 0 );
+  if ( mrmlNode->GetPlanFiducialsNode() != NULL )
+    {
+    mrmlNode->GetPlanFiducialsNode()->SetAllFiducialsVisibility( 0 );
+    }
   
   this->GetGUI()->EntryActor->SetVisibility( 0 );
   this->GetGUI()->TargetActor->SetVisibility( 0 );
@@ -979,6 +1031,9 @@ void
 vtkPerkStationPlanStep
 ::ProcessGUIEvents( vtkObject* caller, unsigned long event, void* callData )
 {
+  TimeString( "gui events - 1" );
+  
+  
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
 
   if(    ! mrmlNode

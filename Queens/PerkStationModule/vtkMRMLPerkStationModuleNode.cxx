@@ -260,6 +260,73 @@ vtkMRMLPerkStationModuleNode
 
 
 
+void
+vtkMRMLPerkStationModuleNode
+::RecreateFiducialsNode()
+{
+  if (    this->GetPlanFiducialsNodeID() == NULL
+       || this->GetScene() == NULL )
+    {
+    return;
+    }
+  
+  this->GetScene()->RemoveNode( this->Scene->GetNodeByID( this->GetPlanFiducialsNodeID() ) );
+  this->SetAndObservePlanFiducialsNodeID( NULL );
+  
+  vtkSmartPointer< vtkMRMLFiducialListNode > planFidList = vtkSmartPointer< vtkMRMLFiducialListNode >::New();
+    planFidList->SetLocked( true );
+    planFidList->SetName( "PerkPlan" );
+    planFidList->SetDescription( "PerkStationModule plan point list" );
+    planFidList->SetColor( 0.5, 1, 0.5 );
+    planFidList->SetGlyphType( vtkMRMLFiducialListNode::Diamond3D );
+    planFidList->SetOpacity( 0.7 );
+    planFidList->SetAllFiducialsVisibility( true );
+    planFidList->SetSymbolScale( 6 );
+    planFidList->SetTextScale( 8 );
+  
+  this->GetScene()->AddNode( planFidList );
+  SetAndObservePlanFiducialsNodeID( planFidList->GetID() );
+  
+  
+  this->GetPlanFiducialsNode()->AddFiducialWithXYZ( 0, 0, 0, 0 );
+  this->GetPlanFiducialsNode()->AddFiducialWithXYZ( 0, 0, 0, 0 );
+  this->GetPlanFiducialsNode()->SetNthFiducialLabelText( 0, "Entry" );
+  this->GetPlanFiducialsNode()->SetNthFiducialLabelText( 1, "Target" );
+  this->GetPlanFiducialsNode()->SetAllFiducialsVisibility( 0 );
+}
+
+
+
+vtkMRMLScalarVolumeNode*
+vtkMRMLPerkStationModuleNode
+::GetPlanningVolumeNode()
+{
+  vtkMRMLScalarVolumeNode* node = NULL;
+  if ( this->GetScene()  &&  this->PlanningVolumeNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->GetScene()->GetNodeByID( this->PlanningVolumeNodeID );
+    node = vtkMRMLScalarVolumeNode::SafeDownCast( snode );
+    }
+  return node;
+}
+
+
+
+vtkMRMLScalarVolumeNode*
+vtkMRMLPerkStationModuleNode
+::GetValidationVolumeNode()
+{
+  vtkMRMLScalarVolumeNode* node = NULL;
+  if ( this->GetScene()  &&  this->ValidationVolumeNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->GetScene()->GetNodeByID( this->ValidationVolumeNodeID );
+    node = vtkMRMLScalarVolumeNode::SafeDownCast( snode );
+    }
+  return node;
+}
+
+
+
 /**
  * Constructor.
  */
@@ -353,23 +420,22 @@ vtkMRMLPerkStationModuleNode
   
     // Common parameters ------------------------------------------------------
   
-  this->PlanningVolumeRef   = NULL;
-  this->ValidationVolumeRef = NULL;
   this->VolumeInUse         = NULL;
-  
-  PlanningVolumeNode        = NULL;
-  ValidationVolumeNode      = NULL;
   
   this->TimeOnCalibrateStep = 0.0;
   this->TimeOnPlanStep      = 0.0;
   this->TimeOnInsertStep    = 0.0;
   this->TimeOnValidateStep  = 0.0;
   
+  this->Initialized = false;
   
-  // this->InitializeFiducialListNode();
+    // References to other MRML nodes.
   
   this->PlanFiducialsNodeID = NULL;
   this->PlanFiducialsNode = NULL;
+  
+  this->PlanningVolumeNodeID = NULL;
+  this->ValidationVolumeNodeID = NULL;
   
     
     // Synchronize it with enum WORKPHASE...
@@ -389,15 +455,8 @@ vtkMRMLPerkStationModuleNode
 vtkMRMLPerkStationModuleNode
 ::~vtkMRMLPerkStationModuleNode()
 {
-  if ( this->PlanningVolumeNode )
-    {
-    vtkSetMRMLNodeMacro( this->PlanningVolumeNode, NULL );
-    }
-  
-  if ( this->ValidationVolumeNode )
-    {
-    vtkSetMRMLNodeMacro( this->ValidationVolumeNode, NULL );
-    }
+  this->SetPlanningVolumeNodeID( NULL );
+  this->SetValidationVolumeNodeID( NULL );
   
   this->SetAndObservePlanFiducialsNodeID( NULL );
   
@@ -502,6 +561,24 @@ vtkMRMLPerkStationModuleNode
   WriteDouble( of, indent, this->TimeOnPlanStep, "TimeOnPlanStep" );
   WriteDouble( of, indent, this->TimeOnInsertStep, "TimeOnInsertStep" );
   WriteDouble( of, indent, this->TimeOnValidateStep, "TimeOnValidateStep" );
+  
+  
+    // Referenced MRML nodes.
+  
+  if ( this->PlanFiducialsNodeID != NULL )
+    {
+    of << indent << " PlanFiducialsNodeID=\"" << this->PlanFiducialsNodeID << "\"" << std::endl;
+    }
+  
+  if ( this->PlanningVolumeNodeID != NULL )
+    {
+    of << indent << " PlanningVolumeNodeID=\"" << this->PlanningVolumeNodeID << "\"" << std::endl;
+    }
+  
+  if ( this->ValidationVolumeNodeID != NULL )
+    {
+    of << indent << " ValidationVolumeNodeID=\"" << this->ValidationVolumeNodeID << "\"" << std::endl;
+    }
 }
 
 
@@ -510,7 +587,8 @@ void
 vtkMRMLPerkStationModuleNode
 ::Init()
 {
-   
+  if ( this->Initialized ) return;
+  
     // Add plan fiducials list if not added yet.
   
   if ( this->GetPlanFiducialsNode() == NULL  &&  this->GetScene() != NULL )
@@ -525,10 +603,18 @@ vtkMRMLPerkStationModuleNode
       planFidList->SetAllFiducialsVisibility( true );
       planFidList->SetSymbolScale( 6 );
       planFidList->SetTextScale( 8 );
+    
     this->GetScene()->AddNode( planFidList );
     SetAndObservePlanFiducialsNodeID( planFidList->GetID() );
+    
+    this->GetPlanFiducialsNode()->AddFiducialWithXYZ( 0, 0, 0, 0 );
+    this->GetPlanFiducialsNode()->AddFiducialWithXYZ( 0, 0, 0, 0 );
+    this->GetPlanFiducialsNode()->SetNthFiducialLabelText( 0, "Entry" );
+    this->GetPlanFiducialsNode()->SetNthFiducialLabelText( 1, "Target" );
+    this->GetPlanFiducialsNode()->SetAllFiducialsVisibility( 0 );
     }
   
+  this->Initialized = true;
 }
 
 
@@ -660,25 +746,34 @@ vtkMRMLPerkStationModuleNode
     else if ( ! strcmp( attName, "TimeOnValidateStep" ) ) {
       StringToDouble( std::string( attValue ), this->TimeOnValidateStep );
       }
+    else if ( ! strcmp( attName, "PlanFiducialsNodeID" ) ) {
+      this->SetAndObservePlanFiducialsNodeID( NULL );
+      this->SetPlanFiducialsNodeID( attValue );
+      }
+    else if ( ! strcmp( attName, "PlanningVolumeNodeID" ) ) {
+      this->SetPlanningVolumeNodeID( attValue );
+      }
+    else if ( ! strcmp( attName, "ValidationVolumeNodeID" ) ) {
+      this->SetValidationVolumeNodeID( attValue );
+      }
+    
     
     } // while ( *atts != NULL )
 }
 
 
 
-// Copy the node's attributes to this object.
-// Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLPerkStationModuleNode
 ::Copy( vtkMRMLNode *anode )
 {
   Superclass::Copy( anode );
   vtkMRMLPerkStationModuleNode *node = (vtkMRMLPerkStationModuleNode *) anode;
   
-  this->SetPlanningVolumeRef( node->PlanningVolumeRef );
-  this->SetValidationVolumeRef( node->ValidationVolumeRef );
-  this->SetPlanningVolumeNode( node->GetPlanningVolumeNode( ));
-  this->SetValidationVolumeNode( node->GetValidationVolumeNode() );
+  this->SetPlanningVolumeNodeID( node->GetPlanningVolumeNodeID() );
+  this->SetValidationVolumeNodeID( node->GetValidationVolumeNodeID() );
   
+  this->SetAndObservePlanFiducialsNodeID( NULL );
+  this->SetPlanFiducialsNodeID( node->GetPlanFiducialsNodeID() );
   
     // Work phases.
   
@@ -839,55 +934,85 @@ vtkMRMLPerkStationModuleNode
 {
   vtkMRMLNode::PrintSelf( os, indent );
 
-  os << indent << "PlanningVolumeRef: " << 
-   ( this->PlanningVolumeRef ? this->PlanningVolumeRef : "(none)" ) << "\n";
- 
+  os << indent << "PlanningVolumeNodeID: " << 
+   ( this->PlanningVolumeNodeID ? this->PlanningVolumeNodeID : "(none)" ) << std::endl;
+  
+  os << indent << "ValidationVolumeNodeID: " <<
+    ( this->ValidationVolumeNodeID ? this->ValidationVolumeNodeID : "(none)" ) << std::endl;
+  
+  os << indent << "PlanFiducialsNodeID: " <<
+    ( this->PlanFiducialsNodeID ? this->PlanFiducialsNodeID : "(none)" ) << std::endl;
 }
 
 
 
-void vtkMRMLPerkStationModuleNode::UpdateReferenceID( const char *oldID, const char *newID )
+void
+vtkMRMLPerkStationModuleNode
+::UpdateScene( vtkMRMLScene* scene )
+{
+  Superclass::UpdateScene( scene );
+  
+  this->SetAndObservePlanFiducialsNodeID( this->PlanFiducialsNodeID );
+}
+
+
+
+void
+vtkMRMLPerkStationModuleNode
+::UpdateReferenceID( const char *oldID, const char *newID )
 {
   Superclass::UpdateReferenceID( oldID, newID );
   
   
-  if ( this->PlanningVolumeRef && ! strcmp( oldID, this->PlanningVolumeRef ) )
+  if ( this->PlanningVolumeNodeID && ! strcmp( oldID, this->PlanningVolumeNodeID ) )
     {
-    this->SetPlanningVolumeRef( newID );
+    this->SetPlanningVolumeNodeID( newID );
     }
   
-  if ( this->ValidationVolumeRef && ! strcmp( oldID, this->ValidationVolumeRef ) )
+  if ( this->ValidationVolumeNodeID && ! strcmp( oldID, this->ValidationVolumeNodeID ) )
     {
-    this->SetValidationVolumeRef( newID );
+    this->SetValidationVolumeNodeID( newID );
     }
   
-  /*
-  if (!strcmp(oldID, this->InputVolumeRef))
+  if ( this->PlanFiducialsNodeID  &&  ! strcmp( oldID, this->PlanFiducialsNodeID ) )
     {
-    this->SetInputVolumeRef(newID);
-    }*/
+    this->SetAndObservePlanFiducialsNodeID( newID );
+    }
 }
 
 
-/*
+
 void
 vtkMRMLPerkStationModuleNode
-::InitializeFiducialListNode()
+::UpdateReferences()
 {
-  this->PlanMRMLFiducialListNode = vtkSmartPointer< vtkMRMLFiducialListNode >::New();
+  Superclass::UpdateReferences();
   
-  this->PlanMRMLFiducialListNode->SetName( "PerkStationFiducialList" );
-  this->PlanMRMLFiducialListNode->SetDescription(
-    "Created by PERK Station Module; marks entry point and target point" );
-  this->PlanMRMLFiducialListNode->SetColor( 0.5, 1, 0.5 );
-  this->PlanMRMLFiducialListNode->SetGlyphType( vtkMRMLFiducialListNode::Diamond3D );
-  this->PlanMRMLFiducialListNode->SetOpacity( 0.7 );
-  this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility( true );
-  this->PlanMRMLFiducialListNode->SetSymbolScale( 6 );
-  this->PlanMRMLFiducialListNode->SetTextScale( 8 );
-  this->PlanMRMLFiducialListNode->SetSaveWithScene( 0 );
+  if ( this->PlanFiducialsNodeID  &&  this->Scene->GetNodeByID( this->PlanFiducialsNodeID ) == NULL )
+    {
+    this->SetAndObservePlanFiducialsNodeID( NULL );
+    }
 }
-*/
+
+
+
+void
+vtkMRMLPerkStationModuleNode
+::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
+{
+  Superclass::ProcessMRMLEvents(caller, event, callData);
+
+  if ( this->PlanFiducialsNode
+       && this->PlanFiducialsNode == vtkMRMLFiducialListNode::SafeDownCast( caller )
+       && event == vtkCommand::ModifiedEvent)
+    {
+    
+    return;
+    }
+
+  return;
+}
+
 
 
 vtkMRMLScalarVolumeNode*
@@ -898,11 +1023,11 @@ vtkMRMLPerkStationModuleNode
   
   if ( strcmpi( this->VolumeInUse, "Planning" ) == 0 )
     {
-    return this->PlanningVolumeNode;
+    return this->GetPlanningVolumeNode();
     }
   else if ( strcmpi( this->VolumeInUse, "Validation" ) == 0 )
     {
-    return this->ValidationVolumeNode;
+    return this->GetValidationVolumeNode();
     }
   else
     {
@@ -1058,7 +1183,7 @@ vtkMRMLPerkStationModuleNode
   
   vtkSmartPointer< vtkPerkStationPlan > plan = vtkSmartPointer< vtkPerkStationPlan >::New();
     plan->SetName( ss.str() );
-    plan->SetPlanningVolumeRef( std::string( this->PlanningVolumeRef ) );
+    plan->SetPlanningVolumeRef( std::string( this->PlanningVolumeNodeID ) );
   
   unsigned int index = this->AddPlan( plan );
   this->SetCurrentPlanIndex( index );
@@ -1066,45 +1191,6 @@ vtkMRMLPerkStationModuleNode
 
 
 
-vtkMRMLScalarVolumeNode*
-vtkMRMLPerkStationModuleNode
-::GetPlanningVolumeNode()
-{
-  return this->PlanningVolumeNode;
-}
-
-  
-
-void
-vtkMRMLPerkStationModuleNode
-::SetPlanningVolumeNode( vtkMRMLScalarVolumeNode *planVolNode )
-{
-  if ( planVolNode != NULL )
-    {
-    vtkSetMRMLNodeMacro( this->PlanningVolumeNode, planVolNode );
-    // this->PlanningVolumeNode = planVolNode;
-    this->PlanningVolumeRef = this->PlanningVolumeNode->GetID();
-    }
-}
-
-
-
-void
-vtkMRMLPerkStationModuleNode
-::SetValidationVolumeNode( vtkMRMLScalarVolumeNode* validationVolNode )
-{
-  if ( validationVolNode != NULL )
-    {
-    vtkSetMRMLNodeMacro( this->ValidationVolumeNode, validationVolNode );
-    this->ValidationVolumeRef = this->ValidationVolumeNode->GetID();
-    }
-}
-
-
-
-/**
- * @returns Number of workphase steps.
- */
 int
 vtkMRMLPerkStationModuleNode
 ::GetNumberOfSteps()
@@ -1114,9 +1200,6 @@ vtkMRMLPerkStationModuleNode
 
 
 
-/**
- * @returns Current step ID.
- */
 int
 vtkMRMLPerkStationModuleNode
 ::GetCurrentStep()
@@ -1126,9 +1209,6 @@ vtkMRMLPerkStationModuleNode
 
 
 
-/**
- * @returns Previous step ID.
- */
 int
 vtkMRMLPerkStationModuleNode
 ::GetPreviousStep()
@@ -1152,14 +1232,14 @@ vtkMRMLPerkStationModuleNode
   
     // Don't allow planning without planning volume.
   if (    newStep == WORKPHASE_PLANNING
-       && this->PlanningVolumeNode == NULL )
+       && this->PlanningVolumeNodeID == NULL )
     {
     return 0;
     }
   
     // Don't allow validation without validation volume.
   if (    newStep == WORKPHASE_VALIDATION
-       && this->ValidationVolumeNode == NULL )
+       && this->ValidationVolumeNodeID == NULL )
     {
     return 0;
     }
@@ -1167,6 +1247,14 @@ vtkMRMLPerkStationModuleNode
   
   this->PreviousStep = this->CurrentStep;
   this->CurrentStep = newStep;
+  
+  
+    // Set plan fiducials visibility.
+  
+  if ( newStep == WORKPHASE_CALIBRATION && this->PlanFiducialsNodeID != NULL )
+    {
+    this->GetPlanFiducialsNode()->SetAllFiducialsVisibility( 0 );
+    }
   
   
     // Update active volume.
@@ -1177,7 +1265,7 @@ vtkMRMLPerkStationModuleNode
     }
   else
     {
-    if ( this->PlanningVolumeNode )
+    if ( this->PlanningVolumeNodeID )
       {
       this->SetVolumeInUse( "Planning" );
       }
@@ -1214,14 +1302,14 @@ PatientPositionEnum
 vtkMRMLPerkStationModuleNode
 ::GetPatientPosition()
 {  
-  if ( this->PlanningVolumeNode == NULL )
+  if ( this->GetPlanningVolumeNode() == NULL )
   {
     return PPNA;
   }
-
+  
+  
   // remaining information to be had from the meta data dictionary     
-  const itk::MetaDataDictionary &volDictionary =
-    this->PlanningVolumeNode->GetMetaDataDictionary();
+  const itk::MetaDataDictionary &volDictionary = this->GetPlanningVolumeNode()->GetMetaDataDictionary();
   std::string tagValue; 
 
   // patient position uid

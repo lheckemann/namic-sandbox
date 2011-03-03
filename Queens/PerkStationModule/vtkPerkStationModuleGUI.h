@@ -114,7 +114,6 @@ public:
   
 protected:
   
-  
   vtkPerkStationModuleGUI();
   virtual ~vtkPerkStationModuleGUI();
   vtkPerkStationModuleGUI( const vtkPerkStationModuleGUI& );
@@ -158,6 +157,7 @@ private:
   virtual void BuildGUIForHelpFrame();
   virtual void BuildGUIForExperimentFrame();
   virtual void BuildGUIForWorkphases();
+  void DeleteGUIForWorkphases();
   
   int ChangeWorkphase( int phase );
   void UpdateWorkphaseButtons();
