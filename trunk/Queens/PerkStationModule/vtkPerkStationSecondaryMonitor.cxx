@@ -115,9 +115,11 @@ vtkPerkStationSecondaryMonitor
 
   
   this->ImageActor = vtkActor2D::New();
-   this->ImageActor->SetMapper( this->ImageMapper );
-   this->ImageActor->GetProperty()->SetDisplayLocationToBackground();
+    this->ImageActor->SetMapper( this->ImageMapper );
+    this->ImageActor->GetProperty()->SetDisplayLocationToBackground();
 
+  this->EmptyImage = vtkSmartPointer< vtkImageData >::New();
+  
   this->NeedleGuideActor = vtkSmartPointer< vtkActor >::New();  
   this->NeedleTipActor = vtkSmartPointer< vtkActor >::New();
   this->RealTimeNeedleLineActor = vtkSmartPointer< vtkActor >::New();
@@ -155,15 +157,21 @@ vtkPerkStationSecondaryMonitor
   this->TablePositionActor = vtkSmartPointer< vtkTextActorFlippable >::New();
     this->TablePositionActor->GetTextProperty()->SetFontSize( 28 );
     this->TablePositionActor->GetTextProperty()->BoldOn();
-    this->TablePositionActor->GetTextProperty()->SetColor( 1.0, 1.0, 0.0 );
+    this->TablePositionActor->GetTextProperty()->SetColor( 1.0, 1.0, 0.2 );
     this->TablePositionActor->SetTextScaleModeToNone();
   
   this->CalibrationNameActor = vtkSmartPointer< vtkTextActorFlippable >::New();
-    this->CalibrationNameActor->GetTextProperty()->SetFontSize( 28 );
+    this->CalibrationNameActor->GetTextProperty()->SetFontSize( 24 );
     this->CalibrationNameActor->GetTextProperty()->BoldOn();
-    this->CalibrationNameActor->GetTextProperty()->SetColor( 1.0, 0.9, 0.0 );
+    this->CalibrationNameActor->GetTextProperty()->SetColor( 1.0, 0.9, 0.2 );
     this->CalibrationNameActor->SetTextScaleModeToNone();
   
+  this->PlanNameActor = vtkSmartPointer< vtkTextActorFlippable >::New();
+    this->PlanNameActor->GetTextProperty()->SetFontSize( 24 );
+    this->PlanNameActor->GetTextProperty()->BoldOn();
+    this->PlanNameActor->GetTextProperty()->SetColor( 1.0, 0.9, 0.2 );
+    this->PlanNameActor->SetTextScaleModeToNone();
+    
   this->UpdateCornerPositions();
   
   
@@ -310,6 +318,15 @@ vtkPerkStationSecondaryMonitor
   this->ImageSize[ 2 ] = 1;
   
   
+    // Create an empty image of the same size, for when second monitor is not used.
+  
+  this->EmptyImage->ReleaseData();
+  this->EmptyImage->SetExtent( this->ImageData->GetExtent() );
+  this->EmptyImage->SetOrigin( this->ImageData->GetOrigin() );
+  this->EmptyImage->SetSpacing( this->ImageData->GetSpacing() );
+  this->EmptyImage->AllocateScalars();
+  
+  
     // Position, size, intensity window of second monitor window.
   
   if ( this->NumberOfMonitors == 2 )
@@ -393,6 +410,7 @@ vtkPerkStationSecondaryMonitor
   this->Renderer->AddActor( this->MeasureDigitsActor );
   this->Renderer->AddActor( this->TablePositionActor );
   this->Renderer->AddActor( this->CalibrationNameActor );
+  this->Renderer->AddActor( this->PlanNameActor );
   this->Renderer->SetBackground( 0, 0, 0 );
 }
 
@@ -673,15 +691,16 @@ vtkPerkStationSecondaryMonitor
   if ( ! this->PerkStationModuleGUI->GetPerkStationModuleNode() ) return;
   if ( ! this->DisplayInitialized ) return;
   if ( this->GetPerkStationModuleNode() == NULL ) displayEmpty = true;
+  if ( this->GetPerkStationModuleNode()->GetCurrentStep() == 1 ) displayEmpty = true; // Planning.
+  if ( this->GetPerkStationModuleNode()->GetCurrentStep() == 3 ) displayEmpty = true; // Validation.
   
   if ( displayEmpty )
     {
-    vtkSmartPointer< vtkImageData > image = vtkSmartPointer< vtkImageData >::New();
-      image->SetExtent( 0, this->ScreenSize[ 0 ] - 1, 0, this->ScreenSize[ 1 ] - 1, 0, 0 );
-      image->SetSpacing( 1.0, 1.0, 1.0 );
-      image->SetOrigin( 0, 0, 0 );
-      image->AllocateScalars();
-    this->ImageMapper->SetInput( image );
+    this->ImageMapper->SetInput( this->EmptyImage );
+    if ( this->DeviceActive )
+      {
+      this->RenderWindow->Render();  
+      }
     return;
     }
   
@@ -746,7 +765,7 @@ vtkPerkStationSecondaryMonitor
  
  if ( this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentStep() == 2 ) // Insertion.
    {
-   this->TablePositionActor->SetDisplayPosition( this->ScreenSize[ 0 ] / 2.0 - 150, this->ScreenSize[ 1 ] - 50 );
+   this->TablePositionActor->SetDisplayPosition( this->ScreenSize[ 0 ] / 3.0 - 150, this->ScreenSize[ 1 ] - 50 );
    std::stringstream ss;
    ss.setf( std::ios::fixed );
    ss << "Table position: " << std::setprecision( 1 )
@@ -754,17 +773,30 @@ vtkPerkStationSecondaryMonitor
    this->TablePositionActor->SetInput( ss.str().c_str() );
    this->TablePositionActor->SetVisibility( 1 );
    
-   this->CalibrationNameActor->SetDisplayPosition( this->ScreenSize[ 0 ] / 2.0 - 150, this->ScreenSize[ 1 ] - 80 );
+   this->CalibrationNameActor->SetDisplayPosition( this->ScreenSize[ 0 ] / 3.0 - 150, this->ScreenSize[ 1 ] - 80 );
    ss.str( "" );
    ss << "Calibration: ";
-   ss << this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCalibrationAtIndex( this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentCalibration() )->Name;
+   ss << this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCalibrationAtIndex(
+     this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentCalibration() )->Name;
    this->CalibrationNameActor->SetInput( ss.str().c_str() );
    this->CalibrationNameActor->SetVisibility( 1 );
+   
+   int currentPlanIndex = this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentPlanIndex();
+   if ( currentPlanIndex >= 0 )
+     {
+     this->PlanNameActor->SetDisplayPosition( this->ScreenSize[ 0 ] / 3.0 - 150, this->ScreenSize[ 1 ] - 110 );
+     ss.str( "" );
+     ss << "Plan: ";
+     ss << this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetPlanAtIndex( currentPlanIndex )->GetName();
+     this->PlanNameActor->SetInput( ss.str().c_str() );
+     this->PlanNameActor->SetVisibility( 1 );
+     }
    }
  else
    {
    this->TablePositionActor->SetVisibility( 0 );
    this->CalibrationNameActor->SetVisibility( 0 );
+   this->PlanNameActor->SetVisibility( 0 );
    }
  
  
@@ -802,6 +834,7 @@ vtkPerkStationSecondaryMonitor
     this->CalibrationControlsActor->FlipAroundY( true );
     this->TablePositionActor->FlipAroundY( true );
     this->CalibrationNameActor->FlipAroundY( true );
+    this->PlanNameActor->FlipAroundY( true );
     }
   else
     {
@@ -810,6 +843,7 @@ vtkPerkStationSecondaryMonitor
     this->CalibrationControlsActor->FlipAroundY( false );
     this->TablePositionActor->FlipAroundY( false );
     this->CalibrationNameActor->FlipAroundY( false );
+    this->PlanNameActor->FlipAroundY( false );
     }
 
   if (    this->GetPerkStationModuleNode()->GetFinalVerticalFlip() )
@@ -819,6 +853,7 @@ vtkPerkStationSecondaryMonitor
     this->CalibrationControlsActor->FlipAroundX( true );
     this->TablePositionActor->FlipAroundX( true );
     this->CalibrationNameActor->FlipAroundX( true );
+    this->PlanNameActor->FlipAroundX( true );
     }
   else
     {
@@ -827,10 +862,11 @@ vtkPerkStationSecondaryMonitor
     this->CalibrationControlsActor->FlipAroundX( false );
     this->TablePositionActor->FlipAroundX( false );
     this->CalibrationNameActor->FlipAroundX( false );
+    this->PlanNameActor->FlipAroundX( false );
     }
   
   
-    // Position the actors.
+    // Position the L-R actors.
   
   this->LeftSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ], this->UpperLeftCorner[ 1 ] );
   if ( ! Lleft && Lup ) this->LeftSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ], this->UpperRightCorner[ 1 ] );
@@ -871,6 +907,8 @@ vtkPerkStationSecondaryMonitor
     this->MapToWindowLevelColors->Update();
     }
   
+  
+  this->ImageMapper->SetInput( this->MapToWindowLevelColors->GetOutput() );
   
   if ( this->DeviceActive )
     {
