@@ -1988,6 +1988,8 @@ vtkPerkStationModuleGUI
     }
   
   
+    // If moving out from planning phase, hide needle guide.
+  
   if (    phase != this->Plan
        && step_from == this->Plan )
     {
@@ -2012,7 +2014,8 @@ vtkPerkStationModuleGUI
     this->ValidateStep->HideOverlays();
     }
   
-  // this->SecondaryMonitor->UpdateImageDisplay();
+  
+  this->SecondaryMonitor->UpdateImageDisplay();
   
   return 1;  // Indicating success.
 }

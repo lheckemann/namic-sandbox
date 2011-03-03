@@ -69,8 +69,7 @@ vtkPerkStationCalibrateStep
   
   PERKLOG_ERROR( "calibration constructor" );
   
-  this->WizardGUICallbackCommand->SetCallback(
-    vtkPerkStationCalibrateStep::WizardGUICallback );
+  this->WizardGUICallbackCommand->SetCallback( vtkPerkStationCalibrateStep::WizardGUICallback );
   
   
     // Load, save, reset controls.
@@ -727,8 +726,7 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
   
   if ( this->TableOverlayEntry )
     {
-    this->TableOverlayEntry->AddObserver(
-      vtkKWEntry::EntryValueChangedEvent, ( vtkCommand* )( this->WizardGUICallbackCommand ) );
+    this->TableOverlayEntry->AddObserver( vtkKWEntry::EntryValueChangedEvent, ( vtkCommand* )( this->WizardGUICallbackCommand ) );
     }
   
   ADD_BUTTON_INVOKED_EVENT_WIZARD( this->TableUpdateButton );
@@ -785,8 +783,7 @@ vtkPerkStationCalibrateStep
   
   if ( this->TableOverlayEntry )
     {
-    this->TableOverlayEntry->RemoveObservers( vtkKWEntry::EntryValueChangedEvent,
-                                              ( vtkCommand* )( this->WizardGUICallbackCommand ) );
+    this->TableOverlayEntry->RemoveObservers( vtkKWEntry::EntryValueChangedEvent, ( vtkCommand* )( this->WizardGUICallbackCommand ) );
     }
   
   REMOVE_BUTTON_INVOKED_EVENT_WIZARD( this->TableUpdateButton );
@@ -818,14 +815,12 @@ vtkPerkStationCalibrateStep
   if ( this->VerticalFlipCheckButton )
     {
     this->VerticalFlipCheckButton->GetWidget()->RemoveObservers(
-      vtkKWCheckButton::SelectedStateChangedEvent,
-      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
+      vtkKWCheckButton::SelectedStateChangedEvent, ( vtkCommand* )( this->WizardGUICallbackCommand ) );
     }
   if ( this->HorizontalFlipCheckButton )
     {
     this->HorizontalFlipCheckButton->GetWidget()->RemoveObservers(
-      vtkKWCheckButton::SelectedStateChangedEvent,
-      ( vtkCommand* )( this->WizardGUICallbackCommand ) );
+      vtkKWCheckButton::SelectedStateChangedEvent, ( vtkCommand* )( this->WizardGUICallbackCommand ) );
     }
   
   
@@ -916,15 +911,6 @@ vtkPerkStationCalibrateStep
     this->UpdateAutoScaleCallback();
     }
   
-  
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetPerkStationModuleNode();
-  
-  if( ! mrmlNode )
-    {
-    this->ProcessingCallback = false;
-    return;
-    }
-  
     
     // Add and delete calibrations.
   
@@ -938,24 +924,24 @@ vtkPerkStationCalibrateStep
     this->CalibrationUID ++;
     OverlayCalibration* newCal = new OverlayCalibration; // Deleted by mrmlNode destructor.
       newCal->Name = ss.str();
-    int index = mrmlNode->AddCalibration( newCal );
-    mrmlNode->SetCurrentCalibrationIndex( index );
+    int index = node->AddCalibration( newCal );
+    node->SetCurrentCalibrationIndex( index );
     }
   
   if (    this->DeleteButton == vtkKWPushButton::SafeDownCast( caller )
        && ( event == vtkKWPushButton::InvokedEvent ) )
     {
-    OverlayCalibration* cal = mrmlNode->GetCalibrationAtIndex( mrmlNode->GetCurrentCalibration() );
+    OverlayCalibration* cal = node->GetCalibrationAtIndex( node->GetCurrentCalibration() );
     if ( cal != NULL )
       {
-      mrmlNode->RemoveCalibrationAtIndex( mrmlNode->GetCurrentCalibration() );
-      if ( mrmlNode->GetNumberOfCalibrations() > 0 )
+      node->RemoveCalibrationAtIndex( node->GetCurrentCalibration() );
+      if ( node->GetNumberOfCalibrations() > 0 )
         {
-        mrmlNode->SetCurrentCalibrationIndex( 0 );
+        node->SetCurrentCalibrationIndex( 0 );
         }
       else 
         {
-        mrmlNode->SetCurrentCalibrationIndex( -1 );
+        node->SetCurrentCalibrationIndex( -1 );
         }
       }
     }
@@ -963,8 +949,9 @@ vtkPerkStationCalibrateStep
   
     // Continue only with panning volume loaded.
   
-  if( ! mrmlNode->GetPlanningVolumeNode()
-      || strcmp( mrmlNode->GetVolumeInUse(), "Planning" ) != 0 )
+  if(    node->GetPlanningVolumeNode() == NULL
+      || node->GetVolumeInUse() == NULL
+      || strcmp( node->GetVolumeInUse(), "Planning" ) != 0 )
     {
     this->ProcessingCallback = false;
     return;

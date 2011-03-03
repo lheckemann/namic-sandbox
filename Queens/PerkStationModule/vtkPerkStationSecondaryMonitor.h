@@ -149,6 +149,7 @@ protected:
   vtkSmartPointer< vtkRenderWindowInteractor >  Interactor;
   vtkSmartPointer< vtkImageMapper >             ImageMapper;
   vtkActor2D*                                   ImageActor;
+  vtkSmartPointer< vtkImageData >               EmptyImage;
   
     // Real time needle display.
   vtkSmartPointer< vtkActor >       NeedleGuideActor;
@@ -164,8 +165,10 @@ protected:
     // Guide of keys for calibration.
   vtkSmartPointer< vtkTextActorFlippable > CalibrationControlsActor;
   
+    // Guides for insertion.
   vtkSmartPointer< vtkTextActorFlippable > TablePositionActor;
   vtkSmartPointer< vtkTextActorFlippable > CalibrationNameActor;
+  vtkSmartPointer< vtkTextActorFlippable > PlanNameActor;
   
     // Left/Right side letters.
   vtkSmartPointer< vtkTextActorFlippable > LeftSideActor;
