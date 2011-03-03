@@ -1630,7 +1630,7 @@ vtkPerkStationSecondaryMonitor
 
     if ( this->DeviceActive && this->DisplayInitialized )
       {   
-      this->RenderWindow->Render();
+      // this->RenderWindow->Render();
       }
   }
 }
@@ -1664,7 +1664,7 @@ vtkPerkStationSecondaryMonitor
   
   if ( this->DeviceActive && this->DisplayInitialized )
     {
-    this->RenderWindow->Render();
+    // this->RenderWindow->Render();
     }
 }
 
