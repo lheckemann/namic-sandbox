@@ -369,7 +369,7 @@ vtkPerkStationCalibrateStep
     
     this->TableOverlayLabel->SetParent( this->TableFrame->GetFrame() );
     this->TableOverlayLabel->Create();
-    this->TableOverlayLabel->SetText( "Patient at overlay laser (mm):" );
+    this->TableOverlayLabel->SetText( "Patient target at overlay laser (mm):" );
     
     this->TableOverlayEntry->SetParent( this->TableFrame->GetFrame() );
     this->TableOverlayEntry->Create();
@@ -595,13 +595,13 @@ void vtkPerkStationCalibrateStep::UpdateAutoScaleCallback()
   double mmY = this->MonPhySize->GetWidget( 1 )->GetValueAsDouble();
   mrmlNode->UpdateHardwareCalibration( mmX, mmY );
   
-  double pixX = this->MonPixRes->GetWidget( 0 )->GetValueAsDouble();
-  double pixY = this->MonPixRes->GetWidget( 1 )->GetValueAsDouble();
+  int secondMonitorSizePixel[ 2 ];
+  secondMonitorSizePixel[ 0 ] = this->MonPixRes->GetWidget( 0 )->GetValueAsInt();
+  secondMonitorSizePixel[ 1 ] = this->MonPixRes->GetWidget( 1 )->GetValueAsInt();
   // TODO: Use these values, instead of the ones read from system.
   
     // set the values in secondary monitor
-  this->GetGUI()->GetSecondaryMonitor()->SetPixelResolution( pixX, pixY );
-  
+  this->GetGUI()->GetSecondaryMonitor()->SetMonitorSizePixel( secondMonitorSizePixel );
   
 }
 
@@ -1103,10 +1103,10 @@ vtkPerkStationCalibrateStep
   this->MonPhySize->GetWidget( 0 )->SetValueAsDouble( hardware.SizeX );
   this->MonPhySize->GetWidget( 1 )->SetValueAsDouble( hardware.SizeY );
   
-  double monPixRes[ 2 ];
-  this->GetGUI()->GetSecondaryMonitor()->GetPixelResolution( monPixRes[ 0 ], monPixRes[ 1 ] );
-  this->MonPixRes->GetWidget( 0 )->SetValueAsDouble( monPixRes[ 0 ] );
-  this->MonPixRes->GetWidget( 1 )->SetValueAsDouble( monPixRes[ 1 ] );
+  int monPixRes[ 2 ];
+  this->GetGUI()->GetSecondaryMonitor()->GetMonitorSizePixel( monPixRes );
+  this->MonPixRes->GetWidget( 0 )->SetValueAsInt( monPixRes[ 0 ] );
+  this->MonPixRes->GetWidget( 1 )->SetValueAsInt( monPixRes[ 1 ] );
   
     // This relates to the calibration, and not the hardware.
     // Flipping of hardwares is read-only.
