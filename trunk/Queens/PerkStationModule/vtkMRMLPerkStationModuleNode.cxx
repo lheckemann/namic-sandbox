@@ -691,7 +691,7 @@ vtkMRMLPerkStationModuleNode
       {
       if ( sectionInd >= this->PlanList.size() ) {
         this->PlanList.resize( sectionInd + 1 );
-        this->PlanList[ sectionInd ] = vtkPerkStationPlan::New();
+        this->PlanList[ sectionInd ] = vtkSmartPointer< vtkPerkStationPlan >::New();
         }
       vtkPerkStationPlan* plan = this->PlanList[ sectionInd ];
       
