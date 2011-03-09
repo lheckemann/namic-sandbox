@@ -655,8 +655,11 @@ vtkPerkStationSecondaryMonitor
   this->CalibrationNameActor->SetDisplayPosition( this->MonitorSizePixel[ 0 ] / 3.0 - 150, this->MonitorSizePixel[ 1 ] - 80 );
   ss.str( "" );
   ss << "Calibration: ";
-  ss << this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCalibrationAtIndex(
-    this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentCalibration() )->Name;
+  int currentCalibration = this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentCalibration();
+  if ( currentCalibration >= 0 )
+    {
+    ss << this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCalibrationAtIndex( currentCalibration )->Name;
+    }
   this->CalibrationNameActor->SetInput( ss.str().c_str() );
   
   int currentPlanIndex = this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentPlanIndex();
