@@ -661,7 +661,7 @@ vtkPerkStationCalibrateStep
       case 'z' : translation[ 1 ] += stepSize; break;
       case 'q' : translation[ 0 ] += stepSize; break;
       case 'w' : translation[ 0 ] -= stepSize; break;
-      case 'g' : rotation += ( stepSize / 3.0 ); break;
+      case 'j' : rotation += ( stepSize / 3.0 ); break;
       case 'h' : rotation -= ( stepSize / 3.0 ); break;
       }
     }

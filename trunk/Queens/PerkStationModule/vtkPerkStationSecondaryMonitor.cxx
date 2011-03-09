@@ -326,7 +326,7 @@ vtkPerkStationSecondaryMonitor
   
     // Calibration controls.
   
-  this->CalibrationControlsActor->SetInput( "Up:[A]  Down:[Z]  Left:[Q]  Right:[W]   Rotatations:[G][H]" );
+  this->CalibrationControlsActor->SetInput( "Up:[A]  Down:[Z]  Left:[Q]  Right:[W]   Rotatations:[J][H]" );
   this->CalibrationControlsActor->GetTextProperty()->SetColor( 1, 1, 0 );
   this->CalibrationControlsActor->SetTextScaleModeToNone();
   this->CalibrationControlsActor->GetTextProperty()->SetFontSize( 28 );
