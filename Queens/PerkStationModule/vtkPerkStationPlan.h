@@ -57,7 +57,7 @@ public:
 protected:
   
   vtkPerkStationPlan( void );
-  
+  ~vtkPerkStationPlan();
   
   //BTX
   
