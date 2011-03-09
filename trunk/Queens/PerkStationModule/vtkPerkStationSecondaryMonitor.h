@@ -95,10 +95,8 @@ public:
   void RemoveOverlayRealTimeNeedleTip();
   
   void OverlayNeedleGuide();
-  void RemoveOverlayNeedleGuide();
   
   void ShowCalibrationControls( bool show );
-  void ShowNeedleGuide( bool show );
   void ShowDepthPerceptionLines( bool show );
   
   void CreateDepthPerceptionLines();  
