@@ -369,21 +369,21 @@ vtkMRMLPerkStationModuleNode
     perkdell.SizeY = 340.0;
   this->HardwareList.push_back( perkdell );
   
-  OverlayHardware acer;
-    acer.FlipHorizontal = false;
-    acer.FlipVertical = false;
-    acer.Name = "Acer desktop";
-    acer.SizeX = 433.0;
-    acer.SizeY = 270.9;
-  this->HardwareList.push_back( acer );
-  
   OverlayHardware dell;
     dell.FlipHorizontal = false;
     dell.FlipVertical = false;
-    dell.Name = "Dell desktop";
+    dell.Name = "Dell desktop 25''";
     dell.SizeX = 531.0;
     dell.SizeY = 299.0;
   this->HardwareList.push_back( dell );
+  
+  OverlayHardware acer;
+    acer.FlipHorizontal = false;
+    acer.FlipVertical = false;
+    acer.Name = "Testing with one monitor";
+    acer.SizeX = 340.0;
+    acer.SizeY = 256.0;
+  this->HardwareList.push_back( acer );
   
   this->HardwareIndex = 0;
   

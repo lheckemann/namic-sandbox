@@ -106,13 +106,16 @@ vtkPerkStationSecondaryMonitor
   this->ImageActor = vtkActor2D::New();
   this->EmptyImage = vtkSmartPointer< vtkImageData >::New();
   
-  this->NeedleGuideActor = vtkSmartPointer< vtkActor >::New();  
+  this->NeedleGuideActor = vtkSmartPointer< vtkActor >::New();
+  
   this->NeedleTipActor = vtkSmartPointer< vtkActor >::New();
   this->RealTimeNeedleLineActor = vtkSmartPointer< vtkActor >::New();
   this->NeedleTipZLocationText = vtkSmartPointer< vtkTextActor >::New();
 
   this->DepthMeasureLineActor = vtkSmartPointer< vtkActor >::New();
+    this->DepthMeasureLineActor->GetProperty()->SetColor( 0.9, 0.9, 1.0 );
   this->DepthMeasureTextActor = vtkSmartPointer< vtkTextActorFlippable >::New();
+    this->DepthMeasureTextActor->GetTextProperty()->SetColor( 0.9, 0.9, 1.0 );
     this->DepthMeasureTextActor->GetTextProperty()->SetFontSize( 24 );
     this->DepthMeasureTextActor->SetTextScaleModeToNone();
     this->DepthMeasureTextActor->GetTextProperty()->BoldOn();
@@ -221,21 +224,6 @@ vtkPerkStationSecondaryMonitor
   if ( this->DepthPerceptionTexts )
     {
     this->DepthPerceptionTexts->RemoveAllItems();
-    }
-}
-
-
-
-void
-vtkPerkStationSecondaryMonitor
-::RemoveOverlayNeedleGuide()
-{
-  if ( ! this->Initialized ) return;
-
-  vtkActorCollection *collection = this->Renderer->GetActors();
-  if ( collection->IsItemPresent( this->NeedleGuideActor ) )
-    {
-    this->Renderer->RemoveActor(this->NeedleGuideActor);
     }
 }
 
@@ -645,59 +633,42 @@ vtkPerkStationSecondaryMonitor
     {
     this->OverlayNeedleGuide();  // TODO: Need for recomputation should be checked!
     this->CreateDepthPerceptionLines();
-    this->ShowNeedleGuide( true );
     this->ShowDepthPerceptionLines( true );
     }
   else
     {
-    this->RemoveOverlayNeedleGuide();
+    this->NeedleGuideActor->SetVisibility( 0 );
     this->RemoveDepthPerceptionLines();
-    this->ShowNeedleGuide( false );
     this->ShowDepthPerceptionLines( false );
     }
  
  
-   // Switch visibility of table position guide. ------------------------
+    // Update value of table position, calibration name and plan name text actors.
    
-   // Always show it when workphase is Insertion.
- 
- if ( this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentStep() == 2 ) // Insertion.
-   {
-   this->TablePositionActor->SetDisplayPosition( this->MonitorSizePixel[ 0 ] / 3.0 - 150, this->MonitorSizePixel[ 1 ] - 50 );
-   std::stringstream ss;
-   ss.setf( std::ios::fixed );
-   ss << "Table position: " << std::setprecision( 1 )
-      << this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentTablePosition() << " mm";
-   this->TablePositionActor->SetInput( ss.str().c_str() );
-   this->TablePositionActor->SetVisibility( 1 );
-   
-   this->CalibrationNameActor->SetDisplayPosition( this->MonitorSizePixel[ 0 ] / 3.0 - 150, this->MonitorSizePixel[ 1 ] - 80 );
-   ss.str( "" );
-   ss << "Calibration: ";
-   ss << this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCalibrationAtIndex(
-     this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentCalibration() )->Name;
-   this->CalibrationNameActor->SetInput( ss.str().c_str() );
-   this->CalibrationNameActor->SetVisibility( 1 );
-   
-   int currentPlanIndex = this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentPlanIndex();
-   if ( currentPlanIndex >= 0 )
-     {
-     this->PlanNameActor->SetDisplayPosition( this->MonitorSizePixel[ 0 ] / 3.0 - 150, this->MonitorSizePixel[ 1 ] - 110 );
-     ss.str( "" );
-     ss << "Plan: ";
-     ss << this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetPlanAtIndex( currentPlanIndex )->GetName();
-     this->PlanNameActor->SetInput( ss.str().c_str() );
-     this->PlanNameActor->SetVisibility( 1 );
-     }
-   }
- else
-   {
-   this->TablePositionActor->SetVisibility( 0 );
-   this->CalibrationNameActor->SetVisibility( 0 );
-   this->PlanNameActor->SetVisibility( 0 );
-   }
- 
- 
+  this->TablePositionActor->SetDisplayPosition( this->MonitorSizePixel[ 0 ] / 3.0 - 150, this->MonitorSizePixel[ 1 ] - 50 );
+  std::stringstream ss;
+  ss.setf( std::ios::fixed );
+  ss << "Table position: " << std::setprecision( 1 )
+     << this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentTablePosition() << " mm";
+  this->TablePositionActor->SetInput( ss.str().c_str() );
+  
+  this->CalibrationNameActor->SetDisplayPosition( this->MonitorSizePixel[ 0 ] / 3.0 - 150, this->MonitorSizePixel[ 1 ] - 80 );
+  ss.str( "" );
+  ss << "Calibration: ";
+  ss << this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCalibrationAtIndex(
+    this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentCalibration() )->Name;
+  this->CalibrationNameActor->SetInput( ss.str().c_str() );
+  
+  int currentPlanIndex = this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetCurrentPlanIndex();
+  if ( currentPlanIndex >= 0 )
+    {
+    this->PlanNameActor->SetDisplayPosition( this->MonitorSizePixel[ 0 ] / 3.0 - 150, this->MonitorSizePixel[ 1 ] - 110 );
+    ss.str( "" );
+    ss << "Plan: ";
+    ss << this->PerkStationModuleGUI->GetPerkStationModuleNode()->GetPlanAtIndex( currentPlanIndex )->GetName();
+    this->PlanNameActor->SetInput( ss.str().c_str() );
+    }
+  
  
    // Position L/R side indicator and calibration guide texts. ----------------
  
@@ -811,6 +782,9 @@ vtkPerkStationSecondaryMonitor
   
   
   this->ImageMapper->SetInput( this->MapToWindowLevelColors->GetOutput() );
+  
+  
+    // Finally, render the window.
   
   if ( this->DeviceActive )
     {
@@ -1019,7 +993,6 @@ vtkPerkStationSecondaryMonitor
 { 
   if ( ! this->DeviceActive ) return;
   
-  this->RemoveOverlayNeedleGuide();
   
     // Create transform matrix for RAS to Overlay transform.
   
@@ -1053,18 +1026,13 @@ vtkPerkStationSecondaryMonitor
     needleSource->SetResolution( 10 );
 
 
-    // Position needle center at the entry point.
+    // Insertion angle as calculated from Overlay coordinates
   
-  double needleCenter[ 3 ] = { 0, 0, 0 };  
-  needleCenter[ 0 ] = entryRenderer[ 0 ];
-  needleCenter[ 1 ] = entryRenderer[ 1 ];
-  
-  // angle as calculated from xy coordinates
   double insAngle = - double( 180 / vtkMath::Pi() ) *
     atan( double( ( entryOverlay[ 1 ] - targetOverlay[ 1 ] ) / ( entryOverlay[ 0 ] - targetOverlay[ 0 ] ) ) );
   
   vtkSmartPointer< vtkTransform > needleTransform = vtkSmartPointer< vtkTransform >::New();
-    needleTransform->Translate( needleCenter[ 0 ], needleCenter[ 1 ], 0.0 );
+    // needleTransform->Translate( entryRenderer[ 0 ], entryRenderer[ 1 ], entryRenderer[ 2 ] );  // Center at enry point.
     needleTransform->RotateZ( 90.0 - insAngle );
   
   vtkSmartPointer< vtkTransformPolyDataFilter > filter = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
@@ -1072,10 +1040,15 @@ vtkPerkStationSecondaryMonitor
     filter->SetTransform( needleTransform );
 
   vtkSmartPointer< vtkPolyDataMapper > needleMapper = vtkSmartPointer< vtkPolyDataMapper >::New();
-    needleMapper->SetInputConnection( filter->GetOutputPort() );
+    // needleMapper->SetInput( filter->GetOutput() );
+    needleMapper->SetInput( needleSource->GetOutput() );
+    needleMapper->Update();
   
+  this->NeedleGuideActor->SetPosition( entryRenderer );
+  this->NeedleGuideActor->SetOrientation( 0, 0, 90.0 - insAngle );
   this->NeedleGuideActor->SetMapper( needleMapper );
   this->NeedleGuideActor->SetVisibility( 1 );
+  
 }
 
 
@@ -1253,7 +1226,7 @@ vtkPerkStationSecondaryMonitor
   
     // Set up the needle depth measure line.
   
-  double depthMeasureOverlay[ 4 ] = { 100, this->MonitorSizePixel[ 1 ] / 2.0, 0.0, 1.0 };
+  double depthMeasureOverlay[ 4 ] = { 100, this->MonitorSizePixel[ 1 ] * 0.67, 0.0, 1.0 };
   if ( edgePointOverlay[ 0 ] == 0.0 )
     {
     depthMeasureOverlay[ 0 ] = this->MonitorSizePixel[ 0 ] - 100;
@@ -1264,31 +1237,26 @@ vtkPerkStationSecondaryMonitor
   
     // Compute needle depth in Renderer coordinate system.
   
-  double depthOverlay[ 4 ] = { insertionDepth, 0, 0, 1 };
-  double depthRenderer[ 4 ] = { 0, 0, 0, 1 };
-  this->PointOverlayToRenderer( depthOverlay, depthRenderer );
-  
+  double sumsq = 0;
+  for ( int i = 0; i < 3; ++ i ) sumsq += ( ( targetRenderer[ i ] - entryRenderer[ i ] ) * ( targetRenderer[ i ] - entryRenderer[ i ] ) );
+  double depthRenderer = sqrt( sumsq );
   
     // Set up the needle measure.
   
   vtkSmartPointer< vtkCylinderSource > needleMeasure = vtkSmartPointer< vtkCylinderSource >::New();    
-    // needleMeasure->SetHeight( depthRenderer[ 0 ] ); 
-    needleMeasure->SetHeight( depthOverlay[ 0 ] ); 
-    needleMeasure->SetRadius( 0.005 );  
+    needleMeasure->SetHeight( depthRenderer ); 
+    needleMeasure->SetRadius( 0.008 );  
     needleMeasure->SetResolution( 10 );
 
   vtkSmartPointer< vtkPolyDataMapper > measureMapper = vtkSmartPointer< vtkPolyDataMapper >::New();  
     measureMapper->SetInputConnection( needleMeasure->GetOutputPort() );
 
   this->DepthMeasureLineActor->SetMapper( measureMapper );
-  // this->DepthMeasureLineActor->SetPosition( depthMeasureOverlay[ 0 ], depthMeasureOverlay[ 1 ], depthMeasureOverlay[ 2 ] );
-  this->DepthMeasureLineActor->SetPosition( depthMeasureOverlay[ 0 ], depthMeasureOverlay[ 1 ], 0 );
-  
+  this->DepthMeasureLineActor->SetPosition( depthMeasureRenderer[ 0 ], depthMeasureRenderer[ 1 ], depthMeasureRenderer[ 2 ] );
   
     // Measure with numbers.
   
-  // this->DepthMeasureTextActor->SetPosition( depthMeasureRenderer[ 0 ] + 10, depthMeasureRenderer[ 1 ] + 80 );
-  this->DepthMeasureTextActor->SetPosition( depthMeasureOverlay[ 0 ] + 10, depthMeasureOverlay[ 1 ] + 80 );
+  this->DepthMeasureTextActor->SetPosition( depthMeasureOverlay[ 0 ] + 10, depthMeasureOverlay[ 1 ] + 50 );
   std::stringstream ss1;
   ss1.setf( std::ios::fixed );
   ss1 << std::setprecision( 1 ) << insertionDepth << " mm";
@@ -1376,26 +1344,6 @@ vtkPerkStationSecondaryMonitor
 }
 
 
-/**
- * @param show True makes object visible, false hides it.
- */
-void
-vtkPerkStationSecondaryMonitor
-::ShowNeedleGuide( bool show )
-{
-  if ( ! this->Initialized ) return;
-  
-  if ( show )
-    {
-    this->NeedleGuideActor->SetVisibility( 1 );
-    }
-  else
-    {
-    this->NeedleGuideActor->SetVisibility( 0 );
-    }
-}
-
-
 
 /**
  * @param show True makes depth perception lines and texts visible, false hides them.
@@ -1431,36 +1379,51 @@ vtkPerkStationSecondaryMonitor
   
   if ( this->GetPerkStationModuleNode()->GetCurrentStep() == 0 ) // Calibration.
     {
+    this->ShowDepthPerceptionLines( false );
     displayEmpty = false;
     this->CalibrationControlsActor->SetVisibility( 1 );
+    this->CalibrationNameActor->SetVisibility( 0 );
     this->DepthMeasureLineActor->SetVisibility( 0 );
     this->DepthMeasureTextActor->SetVisibility( 0 );
     this->LeftSideActor->SetVisibility( 1 );
+    this->NeedleGuideActor->SetVisibility( 0 );
+    this->PlanNameActor->SetVisibility( 0 );
     this->RightSideActor->SetVisibility( 1 );
+    this->TablePositionActor->SetVisibility( 0 );
     this->WorkflowActor->SetInput( "" );
     this->WorkflowActor->SetVisibility( 0 );
     }
   
   else if ( this->GetPerkStationModuleNode()->GetCurrentStep() == 1 ) // Planning.
     {
+    this->ShowDepthPerceptionLines( false );
     displayEmpty = true;
     this->CalibrationControlsActor->SetVisibility( 0 );
+    this->CalibrationNameActor->SetVisibility( 0 );
     this->DepthMeasureLineActor->SetVisibility( 0 );
     this->DepthMeasureTextActor->SetVisibility( 0 );
     this->LeftSideActor->SetVisibility( 0 );
+    this->NeedleGuideActor->SetVisibility( 0 );
+    this->PlanNameActor->SetVisibility( 0 );
     this->RightSideActor->SetVisibility( 0 );
+    this->TablePositionActor->SetVisibility( 0 );
     this->WorkflowActor->SetInput( "Insertion planning in progress" );
     this->WorkflowActor->SetVisibility( 1 );
     }
   
   else if ( this->GetPerkStationModuleNode()->GetCurrentStep() == 2 ) // Insertion.
     {
+    this->ShowDepthPerceptionLines( true );
     displayEmpty = false;
     this->CalibrationControlsActor->SetVisibility( 0 );
+    this->CalibrationNameActor->SetVisibility( 1 );
     this->DepthMeasureLineActor->SetVisibility( 1 );
     this->DepthMeasureTextActor->SetVisibility( 1 );
     this->LeftSideActor->SetVisibility( 1 );
+    this->NeedleGuideActor->SetVisibility( 1 );
+    this->PlanNameActor->SetVisibility( 1 );
     this->RightSideActor->SetVisibility( 1 );
+    this->TablePositionActor->SetVisibility( 1 );
     this->WorkflowActor->SetInput( "" );
     this->WorkflowActor->SetVisibility( 0 );
   
@@ -1468,12 +1431,17 @@ vtkPerkStationSecondaryMonitor
   
   else if ( this->GetPerkStationModuleNode()->GetCurrentStep() == 3 ) // Validation.
     {
+    this->ShowDepthPerceptionLines( false );
     displayEmpty = true;
     this->CalibrationControlsActor->SetVisibility( 0 );
+    this->CalibrationNameActor->SetVisibility( 0 );
     this->DepthMeasureLineActor->SetVisibility( 0 );
     this->DepthMeasureTextActor->SetVisibility( 0 );
     this->LeftSideActor->SetVisibility( 0 );
+    this->NeedleGuideActor->SetVisibility( 0 );
+    this->PlanNameActor->SetVisibility( 0 );
     this->RightSideActor->SetVisibility( 0 );
+    this->TablePositionActor->SetVisibility( 0 );
     this->WorkflowActor->SetInput( "Insertion validation in progress" );
     this->WorkflowActor->SetVisibility( 1 );
     }
