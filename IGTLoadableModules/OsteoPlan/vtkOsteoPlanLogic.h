@@ -53,6 +53,7 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanLogic : public vtkSlicerModuleLogic
   void PrintSelf(ostream&, vtkIndent);
 
   void ClipModelWithBox(vtkMRMLModelNode*, vtkBoxWidget2*, vtkSlicerApplicationGUI*);
+  vtkGetObjectMacro(part2, vtkMRMLModelNode);
 
  protected:
   

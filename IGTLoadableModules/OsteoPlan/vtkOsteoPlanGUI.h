@@ -143,6 +143,10 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   vtkKWMenuButtonWithLabel* cutterThicknessSelector;
 
   int cutterThickness; 
+
+  vtkKWPushButton* StartSelectingModelParts;
+  vtkKWPushButton* StopSelectingModelParts;
+  bool SelectingModelParts;
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
