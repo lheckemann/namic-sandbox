@@ -41,6 +41,12 @@
 #include "vtkBoxWidget2.h"
 #include "vtkBoxRepresentation.h"
 
+#include "vtkCellPicker.h"
+#include "vtkPolyDataConnectivityFilter.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkActor.h"
+#include "vtkRenderer.h"
+
 #include "vtkKWMenuButtonWithLabel.h"
 #include "vtkCornerAnnotation.h"
 
@@ -83,6 +89,10 @@ vtkOsteoPlanGUI::vtkOsteoPlanGUI ( )
   this->cutterThicknessSelector = NULL;
   this->cutterThickness = 5;
 
+
+  this->StartSelectingModelParts = NULL;
+  this->StopSelectingModelParts = NULL;
+  this->SelectingModelParts = false;
   //----------------------------------------------------------------
   // Locator  (MRML)
   this->TimerFlag = 0;
@@ -145,6 +155,19 @@ vtkOsteoPlanGUI::~vtkOsteoPlanGUI ( )
     this->cutterThicknessSelector->SetParent(NULL);
     this->cutterThicknessSelector->Delete();
     }
+
+  if(this->StartSelectingModelParts)
+    {
+    this->StartSelectingModelParts->SetParent(NULL);
+    this->StartSelectingModelParts->Delete();
+    }
+
+  if(this->StopSelectingModelParts)
+    {
+    this->StopSelectingModelParts->SetParent(NULL);
+    this->StopSelectingModelParts->Delete();
+    }
+
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -221,6 +244,24 @@ void vtkOsteoPlanGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if(this->StartSelectingModelParts)
+    {
+      this->StartSelectingModelParts
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->StopSelectingModelParts)
+    {
+      this->StopSelectingModelParts
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->GetApplicationGUI()->GetActiveRenderWindowInteractor())
+    {
+      this->GetApplicationGUI()->GetActiveRenderWindowInteractor()
+     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
 
    this->RemoveLogicObservers();
 
@@ -263,6 +304,16 @@ void vtkOsteoPlanGUI::AddGUIObservers ( )
   this->cutterThicknessSelector->GetWidget()->GetMenu()
     ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
+  this->StartSelectingModelParts
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->StopSelectingModelParts
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);  
+
+  this->GetApplicationGUI()->GetActiveRenderWindowInteractor()
+    ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+
+
    this->AddLogicObservers();
 
 }
@@ -296,6 +347,57 @@ void vtkOsteoPlanGUI::AddLogicObservers ( )
 //---------------------------------------------------------------------------
 void vtkOsteoPlanGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 {
+  // FIXME: Not working anymore when loading scene, need to import scene instead
+  // -> TODO: Move AddObservers on start button event and removeObservers at the end of this function
+  //   -> Not working, create a segmentation fault
+
+  if(this->SelectingModelParts)
+    {
+      int* mousePosition = this->GetApplicationGUI()->GetActiveRenderWindowInteractor()->GetEventPosition();
+      
+      vtkCellPicker* cellPicker = vtkCellPicker::New();
+      cellPicker->Pick(mousePosition[0],mousePosition[1],0,this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer());
+      int cellIdPicked = cellPicker->GetCellId();  
+
+      vtkPolyDataConnectivityFilter* connectivityFilter = vtkPolyDataConnectivityFilter::New();
+      connectivityFilter->SetInput(this->GetLogic()->Getpart2()->GetModelDisplayNode()->GetPolyData());
+      connectivityFilter->SetExtractionModeToCellSeededRegions();
+      connectivityFilter->InitializeSeedList();
+      connectivityFilter->AddSeed(cellIdPicked);
+      connectivityFilter->Update();
+
+      // Create new polydata 
+      vtkPolyData* polyDataModel = vtkPolyData::New();
+ 
+      // Create New vtkMRMLNode
+      vtkMRMLModelNode* modelSelected = vtkMRMLModelNode::New();
+ 
+      // Create New vtkMRMLModelDisplayNode
+      vtkMRMLModelDisplayNode* dnodeS = vtkMRMLModelDisplayNode::New();
+ 
+      // Add them to the scene 
+      modelSelected->SetScene(this->GetMRMLScene());
+      dnodeS->SetScene(this->GetMRMLScene());
+ 
+      this->GetMRMLScene()->AddNode(dnodeS);
+      this->GetMRMLScene()->AddNode(modelSelected);
+ 
+      // Use new polydata model to be "ready" to receive data
+      modelSelected->SetAndObservePolyData(polyDataModel);
+      modelSelected->SetAndObserveDisplayNodeID(dnodeS->GetID());
+ 
+      // Copy polydata to the new polydata model
+      dnodeS->SetPolyData(connectivityFilter->GetOutput());
+ 
+      // Clean
+      polyDataModel->Delete();
+      modelSelected->Delete();
+      dnodeS->Delete();
+ 
+      connectivityFilter->Delete();
+      cellPicker->Delete();
+    }
+
 }
 
 
@@ -436,6 +538,18 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
           boxTransform->Delete();
      }
 
+    }
+
+  if(this->StartSelectingModelParts == vtkKWPushButton::SafeDownCast(caller)
+     && event == vtkKWPushButton::InvokedEvent)
+    {
+      this->SelectingModelParts = true;      
+    }
+
+  if(this->StopSelectingModelParts == vtkKWPushButton::SafeDownCast(caller)
+     && event == vtkKWPushButton::InvokedEvent)
+    {
+      this->SelectingModelParts = false;
     }
 
     
@@ -610,9 +724,29 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   app->Script("pack %s -fill x -side top -padx 2 -pady 2",
               this->cutterThicknessSelector->GetWidgetName());
 
+  vtkKWFrame *frame4 = vtkKWFrame::New();
+  frame4->SetParent(frame->GetFrame());
+  frame4->Create();
+  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",       frame4->GetWidgetName() );
+
+  this->StartSelectingModelParts = vtkKWPushButton::New();
+  this->StartSelectingModelParts->SetParent(frame4);
+  this->StartSelectingModelParts->Create();
+  this->StartSelectingModelParts->SetText("Start Selecting Parts");
+
+  this->StopSelectingModelParts = vtkKWPushButton::New();
+  this->StopSelectingModelParts->SetParent(frame4);
+  this->StopSelectingModelParts->Create();
+  this->StopSelectingModelParts->SetText("Stop Selecting Parts");
+
+  app->Script("pack %s %s -fill x -side left -expand y -padx 2 -pady 2",
+              this->StartSelectingModelParts->GetWidgetName(),
+              this->StopSelectingModelParts->GetWidgetName());
+  
 
   ModelToCutLabel->Delete();
 
+  frame4->Delete();
   frame3->Delete();
   frame2->Delete();
   conBrowsFrame->Delete();
