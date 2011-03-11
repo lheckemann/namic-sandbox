@@ -169,7 +169,7 @@ add_executable(main main.cpp)
 target_link_libraries(main
   MrsvrCom
   MrsvrIF
-  FOX
+  FOX-1.6
   OpenIGTLink
   newmat
   pthread
