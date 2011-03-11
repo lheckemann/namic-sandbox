@@ -63,10 +63,10 @@ option(BUILD_SHARED "Build Shared Libraries" OFF)
 
 # generate pisition independent code to link newmat static library
 # to shared object
-IF(CMAKE_COMPILER_IS_GNUCXX)
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+#IF(CMAKE_COMPILER_IS_GNUCXX)
+#  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+#ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 
 # --------------------------------------------------------------------------
@@ -156,9 +156,16 @@ add_library(MrsvrCom
 add_library(MrsvrIF
     ${IFOBJ_SOURCES}
 )
+target_link_libraries(MrsvrIF
+    MrsvrCom    
+)
 
 add_library(MrsvrCtrl
     ${CTRLOBJ_SOURCES}
+)
+
+target_link_libraries(MrsvrCtrl
+    MrsvrCom    
 )
 
 
@@ -169,7 +176,7 @@ add_executable(main main.cpp)
 target_link_libraries(main
   MrsvrCom
   MrsvrIF
-  FOX-1.6
+  FOX-1.2
   OpenIGTLink
   newmat
   pthread
