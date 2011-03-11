@@ -200,12 +200,12 @@
 #define ACTUATOR_VOLTAGE_OFFSET  1.0
 
 // Motion ranges
-#define MIN_POSITION_X       0.0            // mm
-#define MAX_POSITION_X       230.0          // mm
-#define MIN_POSITION_Y       0.0            // mm
-#define MAX_POSITION_Y       185.0          // mm
-#define MIN_POSITION_Z       0.0            // mm
-#define MAX_POSITION_Z       150.0          // mm
+#define MIN_POSITION_X       -70.0            // mm
+#define MAX_POSITION_X       70.0          // mm
+#define MIN_POSITION_Y       -100.0            // mm
+#define MAX_POSITION_Y       100.0          // mm
+#define MIN_POSITION_Z       -55.0            // mm
+#define MAX_POSITION_Z       55.0          // mm
 #define MIN_POSITION_THETA   -0.5*PI        // rad
 #define MAX_POSITION_THETA   0.5*PI         // rad
 #define MIN_POSITION_PHI     -0.5*PI        // rad
