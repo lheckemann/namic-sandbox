@@ -3145,7 +3145,7 @@ long MrsvrMainWindow::onCmdPause(FXObject*, FXSelector,void*)
 
 long MrsvrMainWindow::onCmdMoveTo(FXObject*, FXSelector,void*)
 {
-  DBG_MMW_PRINT("onCmdStop()\n");
+  DBG_MMW_PRINT("onCmdMoveTo()\n");
   consolePrint(1, true, "MOVE_TO command received.\n");
   
   robotCommand->setMode(MrsvrStatus::MOVE_TO);

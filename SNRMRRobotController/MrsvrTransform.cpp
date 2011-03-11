@@ -20,6 +20,143 @@
 
 
 #include "MrsvrTransform.h"
+#include <math.h>
+
+void PrintMatrix(MrsvrMatrix4x4 &matrix)
+{
+  std::cout << "=============" << std::endl;
+  std::cout << matrix[0][0] << ", " << matrix[0][1] << ", " << matrix[0][2] << ", " << matrix[0][3] << std::endl;
+  std::cout << matrix[1][0] << ", " << matrix[1][1] << ", " << matrix[1][2] << ", " << matrix[1][3] << std::endl;
+  std::cout << matrix[2][0] << ", " << matrix[2][1] << ", " << matrix[2][2] << ", " << matrix[2][3] << std::endl;
+  std::cout << matrix[3][0] << ", " << matrix[3][1] << ", " << matrix[3][2] << ", " << matrix[3][3] << std::endl;
+  std::cout << "=============" << std::endl;
+}
+
+void QuaternionToMatrix(float* q, MrsvrMatrix4x4& m)
+{
+
+  // normalize
+  float mod = sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3]);
+
+  // convert to the matrix
+  const float x = q[0] / mod;
+  const float y = q[1] / mod; 
+  const float z = q[2] / mod; 
+  const float w = q[3] / mod;
+  
+  const float xx = x * x * 2.0;
+  const float xy = x * y * 2.0;
+  const float xz = x * z * 2.0;
+  const float xw = x * w * 2.0;
+  const float yy = y * y * 2.0;
+  const float yz = y * z * 2.0;
+  const float yw = y * w * 2.0;
+  const float zz = z * z * 2.0;
+  const float zw = z * w * 2.0;
+  
+  m[0][0] = 1.0 - (yy + zz);
+  m[1][0] = xy + zw;
+  m[2][0] = xz - yw;
+  
+  m[0][1] = xy - zw;
+  m[1][1] = 1.0 - (xx + zz);
+  m[2][1] = yz + xw;
+  
+  m[0][2] = xz + yw;
+  m[1][2] = yz - xw;
+  m[2][2] = 1.0 - (xx + yy);
+
+  m[3][0] = 0.0;
+  m[3][1] = 0.0;
+  m[3][2] = 0.0;
+  m[3][3] = 1.0;
+
+  m[0][3] = 0.0;
+  m[1][3] = 0.0;
+  m[2][3] = 0.0;
+
+}
+
+
+void MatrixToQuaternion(MrsvrMatrix4x4& m, float* q)
+{
+  float trace = m[0][0] + m[1][1] + m[2][2];
+
+  if( trace > 0.0 ) {
+
+    float s = 0.5f / sqrt(trace + 1.0f);
+
+    q[3] = 0.25f / s;
+    q[0] = ( m[2][1] - m[1][2] ) * s;
+    q[1] = ( m[0][2] - m[2][0] ) * s;
+    q[2] = ( m[1][0] - m[0][1] ) * s;
+
+  } else {
+
+    if ( m[0][0] > m[1][1] && m[0][0] > m[2][2] ) {
+
+      float s = 2.0f * sqrt( 1.0f + m[0][0] - m[1][1] - m[2][2]);
+
+      q[3] = (m[2][1] - m[1][2] ) / s;
+      q[0] = 0.25f * s;
+      q[1] = (m[0][1] + m[1][0] ) / s;
+      q[2] = (m[0][2] + m[2][0] ) / s;
+
+    } else if (m[1][1] > m[2][2]) {
+
+      float s = 2.0f * sqrt( 1.0f + m[1][1] - m[0][0] - m[2][2]);
+
+      q[3] = (m[0][2] - m[2][0] ) / s;
+      q[0] = (m[0][1] + m[1][0] ) / s;
+      q[1] = 0.25f * s;
+      q[2] = (m[1][2] + m[2][1] ) / s;
+
+    } else {
+
+      float s = 2.0f * sqrt( 1.0f + m[2][2] - m[0][0] - m[1][1] );
+
+      q[3] = (m[1][0] - m[0][1] ) / s;
+      q[0] = (m[0][2] + m[2][0] ) / s;
+      q[1] = (m[1][2] + m[2][1] ) / s;
+      q[2] = 0.25f * s;
+
+    }
+  }
+}
+  
+
+  
+void Cross(float *a, float *b, float *c)
+{
+    a[0] = b[1]*c[2] - c[1]*b[2];
+    a[1] = c[0]*b[2] - b[0]*c[2];
+    a[2] = b[0]*c[1] - c[0]*b[1];
+}
+
+
+void IdentityMatrix(MrsvrMatrix4x4 &matrix)
+{
+  matrix[0][0] = 1.0;
+  matrix[1][0] = 0.0;
+  matrix[2][0] = 0.0;
+  matrix[3][0] = 0.0;
+
+  matrix[0][1] = 0.0;
+  matrix[1][1] = 1.0;
+  matrix[2][1] = 0.0;
+  matrix[3][1] = 0.0;
+
+  matrix[0][2] = 0.0;
+  matrix[1][2] = 0.0;
+  matrix[2][2] = 1.0;
+  matrix[3][2] = 0.0;
+
+  matrix[0][3] = 0.0;
+  matrix[1][3] = 0.0;
+  matrix[2][3] = 0.0;
+  matrix[3][3] = 1.0;
+}
+
 
 MrsvrTransform::MrsvrTransform()
 {
@@ -47,14 +184,6 @@ MrsvrTransform::~MrsvrTransform()
 }
 
 
-/*
-void MrsvrTransform::setTipOffset(float l)
-  // haven't  fully implemented yet. 
-{
-  tipOffset = l;
-}
-*/
-
 void MrsvrTransform::initFiducialPoints()
 {
   nFidp = 0;
@@ -79,112 +208,8 @@ int MrsvrTransform::addFiducialPoints(MrsvrVector x, MrsvrVector r)
 }
 
 
-/*
-int MrsvrTransform::addFiducialPoints(MrsvrVector x, MrsvrVector r, MrsvrVector dir)
-{
-  if (nFidp < MAX_NFDIP) {
-    for (int i = 0; i < 3; i ++) {
-      fidpRbt[nFidp][i] = x[i];
-      fidpImg[nFidp][i] = r[i] - dir[i]*tipOffset;
-    }
-    nFidp ++;
-    return nFidp;
-  } else {
-#ifdef DEBUG_MRSVR_TRANSFORM
-    cout << "MrsvrTransform::addFiducialPoints(): Number of iducial points reaches maximum.\n";
-#endif    
-    return 0;
-  }
-}
-*/
-
-
 int MrsvrTransform::calibrate()
 {
-  //#define DEBUG_MRSVR_TRANSFORM_calibrate
-
-//  if (nFidp < 3) {
-//#ifdef DEBUG_MRSVR_TRANSFORM
-//    cout << "MrsvrTransform::calibrate(): Number of iducial points is too small.\n";
-//#endif    
-//    return 0;
-//  }
-//
-//  ColumnVector crImg(3);
-//  ColumnVector crRbt(3);
-//  int i, j;
-//
-//  // Compute the centroid of the fiducial points in each space.
-//  Matrix fpImg(3, nFidp);
-//  Matrix fpRbt(3, nFidp);
-//  Matrix fpdImg(3, nFidp);
-//  Matrix fpdRbt(3, nFidp);
-//  for (i = 0; i < nFidp; i ++) {
-//    for (j = 0; j < 3; j ++) {
-//      fpImg(j, i) = fidpImg[i][j];
-//      fpRbt(j, i) = fidpRbt[i][j];
-//    }
-//  }
-//  crImg.fill(0.0);
-//  crRbt.fill(0.0);
-//  for (i = 0; i < nFidp; i ++) {
-//    crImg += fpImg.column(i);
-//    crRbt += fpRbt.column(i);
-//  }
-//  crImg = crImg/(double)nFidp;
-//  crRbt = crRbt/(double)nFidp;
-//
-//  // Compute the displacement from the centroid
-//  for (i = 0; i < nFidp; i ++) {
-//    fpdImg.insert((ColumnVector)(fpImg.column(i) - crImg), 0, i);
-//    fpdRbt.insert((ColumnVector)(fpRbt.column(i) - crRbt), 0, i);
-//  }
-//
-//#ifdef DEBUG_MRSVR_TRANSFORM_calibrate
-//  cout << "centroid  rbt" << endl << crRbt << endl;
-//  cout << "centroid  img" << endl << crImg << endl;
-//  cout << "displacement from centroid rbt" << endl << fpdRbt << endl;
-//  cout << "displacement from centroid img" << endl << fpdImg << endl;
-//#endif
-//
-//  // Compute the fiducial covariance matirx
-//  Matrix h(3, 3);
-//  h.fill(0.0);
-//  for (i = 0; i < nFidp; i ++) {
-//    h += fpdImg.column(i)*(fpdRbt.column(i).transpose());
-//  }
-//
-//  // Perform singular value decomposition (SVD)
-//  SVD svd(h);
-//  
-//  // Compute the rotation matrix
-//  Matrix dg(3,3);
-//  dg.fill(0.0);
-//  dg(0,0) = 1.0;
-//  dg(1,1) = 1.0;
-//  dg(2,2) = (svd.right_singular_matrix()*svd.left_singular_matrix())
-//    .determinant().value();
-//
-//  rotMat = svd.right_singular_matrix() * dg * 
-//    (svd.left_singular_matrix().transpose());
-//  invRotMat = rotMat.inverse();
-//
-//  // Compute offset
-//  baseOffset = crRbt - rotMat*crImg;
-//
-//  // Compute TRE
-//  ColumnVector vtre;
-//  float tresqr = 0;
-//  for (i = 0; i < nFidp; i ++) {
-//#ifdef DEBUG_MRSVR_TRANSFORM_calibrate
-//    cout << " T(x) = " << endl <<
-//      (ColumnVector)(rotMat*fpImg.column(i) + baseOffset) << endl <<
-//      " y    = " << endl << (ColumnVector)(fpRbt.column(i)) << endl;
-//#endif
-//    vtre = (rotMat*fpImg.column(i) + baseOffset - fpRbt.column(i));
-//    tresqr += (vtre*vtre.transpose())(0,0);
-//  }
-//  tre = sqrt(tresqr / (float)nFidp);
   return 1;
   
 }

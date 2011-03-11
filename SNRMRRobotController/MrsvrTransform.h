@@ -33,6 +33,14 @@
 #include  "MrsvrRAS.h"
 
 typedef float MrsvrVector[3];
+typedef float MrsvrMatrix4x4[4][4];
+
+
+void PrintMatrix(MrsvrMatrix4x4 &matrix);
+void QuaternionToMatrix(float* q, MrsvrMatrix4x4& m);
+void MatrixToQuaternion(MrsvrMatrix4x4& m, float* q);
+void Cross(float *a, float *b, float *c);
+void IdentityMatrix(MrsvrMatrix4x4 &matrix);
 
 
 class MrsvrTransform {
@@ -63,7 +71,9 @@ class MrsvrTransform {
   void transform(MrsvrVector, MrsvrVector);
   void invTransform(MrsvrVector, MrsvrVector);
 
-  float matrix[4][4];
+  //float matrix[4][4];
+  
+  MrsvrMatrix4x4 matrix;
 
 };
 
