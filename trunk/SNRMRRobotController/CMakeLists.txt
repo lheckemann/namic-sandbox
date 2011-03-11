@@ -38,10 +38,8 @@ find_path(FOX_LINK_DIR
    PATH  /opt/local/lib
 )
 
-
 # --------------------------------------------------------------------------
 # Include dirs
-
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/fbisim/
@@ -53,6 +51,7 @@ include_directories(
 # --------------------------------------------------------------------------
 # Link directory
 link_directories (
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${FOX_LINK_DIR}
 )
 
@@ -150,7 +149,6 @@ else(BUILD_SHARED)
   )
 endif(BUILD_SHARED)
 
-
 add_library(MrsvrCom
     ${COMOBJ_SOURCES}
 )
@@ -163,12 +161,6 @@ add_library(MrsvrCtrl
     ${CTRLOBJ_SOURCES}
 )
 
-set(LIBS
-  ${LIBS}
-  newmat
-  ${OpenIGTLink_LIBRARIES}
-)
-
 
 # --------------------------------------------------------------------------
 # Build
@@ -177,9 +169,9 @@ add_executable(main main.cpp)
 target_link_libraries(main
   MrsvrCom
   MrsvrIF
+  FOX
   OpenIGTLink
   newmat
-  FOX-1.6
   pthread
   m
   )
