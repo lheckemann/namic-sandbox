@@ -170,8 +170,7 @@ inline int procStop();
 int  trapCtrl(MrsvrVector, float);
 int  trapCtrl2(MrsvrVector, float);
 int  remoteCtrl(MrsvrVector, float);
-void getActuatorTarget(MrsvrVector& target, MrsvrVector setPoint,
-                       float theta, float phi);
+void getActuatorTarget(MrsvrVector& target, MrsvrVector setPoint);
 
 
 
@@ -539,33 +538,21 @@ inline int procMoveTo()
 
   if (status->getMode() != MrsvrStatus::MOVE_TO) {
     status->setMode(MrsvrStatus::MOVE_TO);
-    //    spim[0] = setPoint->getPR();
-    //    spim[1] = setPoint->getPA();
-    //    spim[2] = setPoint->getPS();
 
     spim[0] = command->getSetPoint(0);
     spim[1] = command->getSetPoint(1);
     spim[2] = command->getSetPoint(2);
 
-    //trans->transform(sprb, spim);
-    getActuatorTarget(sprb, spim, curPos[3], curPos[4]);    
+    getActuatorTarget(sprb, spim);
 
     t = 0.0;
-    //cerr << "x = " << spim[0] << ", y = " << spim[1]
-    //<< ", z = " << spim[2] << endl;
     status->setMode(MrsvrStatus::MOVE_TO);
   }
   if (trapCtrl(sprb, dev->getVmax(0)) <= 0) {
     //if (trapCtrl(spim, dev->getVmax(0)) <= 0) {
     status->setMode(MrsvrStatus::PAUSE);
   }
-  /*
-  for (int i = 0; i < NUM_ENCODERS; i ++) {
-    float sv;
-    sv = dev->getVoltage(i);
-    status->setVoltage(i, sv);
-  }
-  */
+
   return 1;
 }
 
@@ -728,93 +715,41 @@ int trapCtrl(MrsvrVector setPoint, float vmax)
 }
 
 
-// get actuator set point from needle tip target
-void getActuatorTarget(MrsvrVector& target, MrsvrVector setPoint,
-                       float theta, float phi)
+void getActuatorTarget(MrsvrVector& target, MrsvrVector setPoint)
+// Get actuator set point from needle tip target
+//   setPoint: target position in the robot coordinate system
+//   target:   actuator positions
 {
-  float a, b, c;
-  //  MrsvrVector offset;
-  float naori_a, naori_b, naori_c;
-  float oa, ob, oc;
-  
-  float naoffset = command->getTipApprOffset();
-  if (naoffset != 0.0) {
-    naori_a = command->getTipApprOrient(0);
-    naori_b = command->getTipApprOrient(1);
-    naori_c = command->getTipApprOrient(2);
-    if (fabs(naori_a*naori_a + naori_b*naori_b + naori_c*naori_c - 1.0) < 0.001) {
-      oa = naoffset * naori_a;
-      ob = naoffset * naori_b;
-      oc = naoffset * naori_c;
-    } else {
-      oa = ob = oc = 0.0;
-    }
-  } else {
-    oa = ob = oc = 0.0;
-  }
+  float a = command->getTipOffset(0);
+  float b = command->getTipOffset(1);
+  float c = command->getTipOffset(2);
 
-  a = command->getTipOffset(0) - oa;
-  b = command->getTipOffset(1) - ob;
-  c = command->getTipOffset(2) - oc;
-  
-  target[0] = setPoint[0] + a*cos(phi) + c*cos(theta)*sin(phi);
-  target[1] = setPoint[1] + b*cos(theta) - c*sin(theta);
-
-  target[2] = setPoint[2] + c*cos(theta)*cos(phi) +
-    b*sin(theta)*cos(phi) - a*sin(phi);
-//target[0] = setPoint[0] + a*cos(phi) + c*cos(theta)*sin(phi) - b*sin(theta);
-//  target[2] = setPoint[2] + c*cos(theta)*cos(phi) - 
-//    b*sin(theta)*cos(phi) - a*sin(phi);
-
+  target[0] = setPoint[0] + a;
+  target[1] = setPoint[1] + b;
+  target[2] = setPoint[2] + c;
 }
 
 
 void getTipPosition(MrsvrVector& tipPoint)
 {
-  float a, b, c;
-  //  MrsvrVector offset;
-  //float naori_a, naori_b, naori_c;
-  //float oa, ob, oc;
-  float theta, phi;
-
-  theta = curPos[3];
-  phi   = curPos[4];
+  float a = command->getTipOffset(0);
+  float b = command->getTipOffset(1);
+  float c = command->getTipOffset(2);
   
-  a = command->getTipOffset(0);
-  b = command->getTipOffset(1);
-  c = command->getTipOffset(2);
-  
-  tipPoint[0] = curPos[0] - (a*cos(phi) + c*cos(theta)*sin(phi));
-  tipPoint[1] = curPos[1] - (b*cos(theta) - c*sin(theta));
-
-  tipPoint[2] = curPos[2]  - (c*cos(theta)*cos(phi) +
-                              b*sin(theta)*cos(phi) - a*sin(phi));
-//target[0] = setPoint[0] + a*cos(phi) + c*cos(theta)*sin(phi) - b*sin(theta);
-//  target[2] = setPoint[2] + c*cos(theta)*cos(phi) - 
-//    b*sin(theta)*cos(phi) - a*sin(phi);
-
+  tipPoint[0] = curPos[0] + a;
+  tipPoint[1] = curPos[1] + b;
+  tipPoint[2] = curPos[2] + c;
 }
 
 
-
 // trapezoidal control
-//#define NEEDLE_LENGTH     150.0
 int trapCtrl2(MrsvrVector setPoint, float vmax)
 {
   MrsvrVector  asp;
   float newa, newv;
   int reach = 0;
 
-  // calcurate actuator set point
-  /*
-  theta = -curPos[3];
-  phi = -curPos[4];
-  asp[0] = setPoint[0] + NEEDLE_LENGTH * cos(phi) * sin(theta);
-  asp[1] = setPoint[1] + NEEDLE_LENGTH * sin(phi);
-  asp[2] = setPoint[2] - NEEDLE_LENGTH + NEEDLE_LENGTH*cos(phi)*cos(theta);
-  */
-
-  getActuatorTarget(asp, setPoint, curPos[3], curPos[4]);
+  getActuatorTarget(asp, setPoint);
 
   for (int i = 0; i < NUM_ACTUATORS; i ++) {
     float dist  = asp[i] - curPos[i];
@@ -836,21 +771,12 @@ int trapCtrl2(MrsvrVector setPoint, float vmax)
         if (dist < d1 - dmarg) {  // case 1
           newa = 0.5*cvel*cvel/dist;
           newv = cvs*cvel - newa*intervalf;
-          //newv = cvel - astd*intervalf;
-          //newv = cvel - astd*secDisplIntv/2;
         } else if (dist < vmax*vmax/astd - d1 - dmarg) { // case 2
           newv = cvs*cvel + astd*intervalf;
-          //newv = cvel + astd*secDisplIntv/2;
         } else { // case 3
           newv = cvs*cvel + astd*intervalf;
-          //newv = cvel + astd*secDisplIntv/2;
         }
-        /*
-      } else {   // if actuator is moving against the target
-        newv = cvs*cvel - astd*intervalf;
-        dir = cvs;
-      }
-        */
+
       if (newv < vmin) {
         newv = vmin;
       } else if (newv > vmax) {
@@ -880,15 +806,7 @@ int remoteCtrl(MrsvrVector setPoint, float vmax)
     pasp[i] = asp[i];
   }
   
-  // calcurate actuator set point
-  /*
-  theta = -curPos[3];
-  phi = -curPos[4];
-  asp[0] = setPoint[0] + NEEDLE_LENGTH * cos(phi) * sin(theta);
-  asp[1] = setPoint[1] + NEEDLE_LENGTH * sin(phi);
-  asp[2] = setPoint[2] - NEEDLE_LENGTH + NEEDLE_LENGTH*cos(phi)*cos(theta);
-  */
-  getActuatorTarget(asp, setPoint, curPos[3], curPos[4]);
+  getActuatorTarget(asp, setPoint);
 
 
   //cout << "======================" << endl;

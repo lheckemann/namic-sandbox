@@ -211,7 +211,6 @@ int MrsvrTransform::addFiducialPoints(MrsvrVector x, MrsvrVector r)
 int MrsvrTransform::calibrate()
 {
   return 1;
-  
 }
 
 
@@ -225,21 +224,55 @@ void MrsvrTransform::setCalibrationMatrix(float* m)
 }
 
 
+// Convert target position from the image coordinate system to the robot coordinate system
 void MrsvrTransform::transform(MrsvrVector y, MrsvrVector x)
 {
-  // not implemented.
-  for (int i = 0; i < 3; i ++) {
-    y[i] = x[i];
-  }
+  // Computer y = M * x
+
+  for (int i = 0; i < 3; i ++)
+    {
+    y[i] = this->matrix[i][0] * x[0] + this->matrix[i][1] * x[1] + this->matrix[i][2] * x[2];
+    }
 }
 
 
+// Convert target position from the robot coordinate system to the image coordinate system
 void MrsvrTransform::invTransform(MrsvrVector x, MrsvrVector y) 
 {
-  // not implemented.
-  for (int i = 0; i < 3; i ++) {
-    x[i] = y[i];
-  }
+
+  // x = My + t
+  // inv(M) (x - t) = y
+
+  MrsvrMatrix4x4 inv;
+
+  // Calculate inverse rotation matrix
+  float det = this->matrix[0][0]*this->matrix[1][1]*this->matrix[2][2]
+    + this->matrix[0][1]*this->matrix[1][2]*this->matrix[2][0] 
+    + this->matrix[0][2]*this->matrix[1][0]*this->matrix[2][1]
+    - this->matrix[0][0]*this->matrix[1][2]*this->matrix[2][1] 
+    - this->matrix[0][1]*this->matrix[1][0]*this->matrix[2][2]
+    - this->matrix[0][2]*this->matrix[1][1]*this->matrix[2][0];
+
+  inv[0][0] = (this->matrix[1][1]*this->matrix[2][2] - this->matrix[1][2]*this->matrix[2][1])/det;
+  inv[0][1] = (this->matrix[0][2]*this->matrix[2][1] - this->matrix[0][1]*this->matrix[2][2])/det;
+  inv[0][2] = (this->matrix[0][1]*this->matrix[1][2] - this->matrix[0][2]*this->matrix[1][1])/det;
+  inv[1][0] = (this->matrix[1][2]*this->matrix[2][0] - this->matrix[1][0]*this->matrix[2][2])/det;
+  inv[1][1] = (this->matrix[0][0]*this->matrix[2][2] - this->matrix[0][2]*this->matrix[2][0])/det;
+  inv[1][2] = (this->matrix[0][2]*this->matrix[1][0] - this->matrix[0][0]*this->matrix[1][2])/det;
+  inv[2][0] = (this->matrix[1][0]*this->matrix[2][1] - this->matrix[1][1]*this->matrix[2][0])/det;
+  inv[2][1] = (this->matrix[0][1]*this->matrix[2][0] - this->matrix[0][0]*this->matrix[2][1])/det;
+  inv[2][2] = (this->matrix[0][0]*this->matrix[1][1] - this->matrix[0][1]*this->matrix[1][0])/det;
+
+  for (int i = 0; i < 3; i ++)
+    {
+    x[i] = x[i] - this->matrix[3][i];
+    }
+
+  for (int i = 0; i < 3; i ++)
+    {
+    y[i] = inv[i][0] * x[0] + inv[i][1] * x[1] + inv[i][2] * x[2];
+    }
+
 } 
 
 
