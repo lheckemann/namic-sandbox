@@ -351,10 +351,13 @@ long FXNavigationDialog::onPaintTarget()
   FXDCWindow dc(canvas);
   //Draw New Target [Zeroposition=(-5,-5)]
   dc.setForeground(FXRGB(255,0,0));
-  dc.drawEllipse((valNewTarget[0]-5),(200-valNewTarget[1]-5),10,10);
+  //dc.drawEllipse((valNewTarget[0]-5),(200-valNewTarget[1]-5),10,10);
+  dc.drawPoint(valNewTarget[0]-5,200-valNewTarget[1]-5);
+
   //Draw Old Target
   dc.setForeground(FXRGB(0,0,255));
-  dc.drawEllipse((valOldTarget[0]-5),(200-valOldTarget[1]-5),11,11);
+  //dc.drawEllipse((valOldTarget[0]-5),(200-valOldTarget[1]-5),11,11);
+  dc.drawPoint(valOldTarget[0]-5,200-valOldTarget[1]-5);
   
   //New Function necessary for this kind of calculations//////
   for (int i = 0; i < 3; i ++) {                       //////
