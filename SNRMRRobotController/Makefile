@@ -31,16 +31,16 @@
 #CTRLLIBS  = -lgpg2000 -lgpg3300 -lgpg6204 -lg2c
 #ARTLIB    = /usr/lib/art_syscalls.o
 
-### for Linux
-CXX       = /usr/bin/c++
-CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
-LINKFLAGS =
-DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL -DWITHOUT_ART  -D_USE_FBISIM -DFULLSCREEN
-INCDIR    = -I/usr/local/include/fox-1.6 -I/home/thomas/opt/include/igtl -I./fbisim
-LIBDIR    = -L/usr/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L/home/thomas/opt/lib/igtl -L./fbisim
-COMLIBS   = -lm
-IFLIBS    = -lFOX-1.6 -lXext -lX11 -lm -lGLU -lGL -lXmu -lXi -ltiff -lpthread -lOpenIGTLink
-CTRLLIBS  = -lgpg2000_sim -lgpg3300_sim -lgpg6204_sim  #-lgpg2000 -lgpg3300 -lgpg6204
+#### for Linux
+#CXX       = /usr/bin/c++
+#CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
+#LINKFLAGS =
+#DEFS      = -D__LINUX__  -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL -DWITHOUT_ART  -D_USE_FBISIM -DFULLSCREEN
+#INCDIR    = -I/usr/local/include/fox-1.6 -I/home/thomas/opt/include/igtl -I./fbisim
+#LIBDIR    = -L/usr/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L/home/thomas/opt/lib/igtl -L./fbisim
+#COMLIBS   = -lm
+#IFLIBS    = -lFOX-1.6 -lXext -lX11 -lm -lGLU -lGL -lXmu -lXi -ltiff -lpthread -lOpenIGTLink
+#CTRLLIBS  = -lgpg2000_sim -lgpg3300_sim -lgpg6204_sim  #-lgpg2000 -lgpg3300 -lgpg6204
 
 
 ## for Linux x86-64
@@ -69,17 +69,17 @@ CTRLLIBS  = -lgpg2000_sim -lgpg3300_sim -lgpg6204_sim  #-lgpg2000 -lgpg3300 -lgp
 # "-lgpg2000 -lgpg3300 -lgpg6204"
 # You need to remove -DUSE_ART option in the case of using MacOS X.
 
-#CXX       = g++
-#CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
-#LINKFLAGS = 
-#DEFS      = -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL -DWITHOUT_ART -D_USE_FBISIM #-DDEBUG #-DFULLSCREEN 
-#INCDIR    = -I. -I/opt/local/include/fox-1.6 -I../fbisim
-#LIBDIR    = -L/opt/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L./fbisim
-#COMLIBS   = -lm
-#IFLIBS    = -lFOX-1.6 -lXext -lX11 -lGLU -lGL -lXmu -lXi -ltiff -lpthread -ldl -lz -lSM -lICE -lXcursor #-lm 
-#CTRLLIBS  = -lgpg2000_sim -lgpg3300_sim -lgpg6204_sim  #-lgpg2000 -lgpg3300 -lgpg6204
-#ARTLIB    = #/usr/lib/art_syscalls.o
-#INCDIR2   = ${INCDIR} ${MRTCINC}
+CXX       = g++
+CXXFLAGS  = -Wall -O2 #-march=pentium4 -msse2
+LINKFLAGS = 
+DEFS      = -DHAVE_JPEG_H=1 -DHAVE_PNG_H=1 -DHAVE_TIFF_H=1 -DHAVE_ZLIB_H=1 -DHAVE_OPENGL -DWITHOUT_ART -D_USE_FBISIM #-DDEBUG #-DFULLSCREEN 
+INCDIR    = -I. -I/opt/local/include/fox-1.6 -I./fbisim -I/Users/junichi/opt/include/igtl
+LIBDIR    = -L/opt/local/lib -L/usr/lib  -L/usr/X11R6/lib -L. -L./fbisim -L/Users/junichi/opt/lib/igtl
+COMLIBS   = -lm
+IFLIBS    = -lFOX-1.6 -lXext -lX11 -lGLU -lGL -lXmu -lXi -ltiff -lpthread -ldl -lz -lSM -lICE -lXcursor -lOpenIGTLink #-lm 
+CTRLLIBS  = -lgpg2000_sim -lgpg3300_sim -lgpg6204_sim  #-lgpg2000 -lgpg3300 -lgpg6204
+ARTLIB    = #/usr/lib/art_syscalls.o
+INCDIR2   = ${INCDIR} ${MRTCINC}
 
 
 ## for Cygwin
@@ -101,11 +101,10 @@ CTRLLIBS  = -lgpg2000_sim -lgpg3300_sim -lgpg6204_sim  #-lgpg2000 -lgpg3300 -lgp
 #COMLIBS   = -lm 
 #IFLIBS    = -lm -lpthread -lnsl -lsocket -lFOX -lXext -lX11 -lm -ltiff
 
-
 MRSVRIF   = main
 MRSVRCTRL = mainController 
 COMOBJS   = MrsvrSharedData.o MrsvrStatus.o MrsvrCommand.o MrsvrLog.o MrsvrRAS.o
-IFOBJS    = main.o MrsvrMessageServer.o MrsvrThread.o MrsvrMainWindow.o MrsvrPlotCanvas.o MrsvrTransform.o 
+IFOBJS    = main.o MrsvrMessageServer.o MrsvrThread.o MrsvrMainWindow.o MrsvrPlotCanvas.o MrsvrTransform.o MrsvrNavigationDialog.o
 CTRLOBJS  = mainController.o MrsvrDev.o MrsvrTransform.o
 
 .SUFFIXES:	.cpp

@@ -120,9 +120,9 @@ int DaOutputDO(int nDevice, unsigned long ulData)
   return 0;
 }
 
-int DaDataConv(unsigned long, void *, unsigned long,  PDASMPLREQ,
-               unsigned long, void*, unsigned long*, PDASMPLREQ,
-               unsigned long, unsigned long, PDACONVPROC)
+int DaDataConv(unsigned long p1, void *p2, unsigned long p3,  PDASMPLREQ p4,
+               unsigned long p5, void* p6, unsigned long* p7, PDASMPLREQ p8,
+               unsigned long p9, unsigned long p10, PDACONVPROC p11)
 {
   return 0;
 }
