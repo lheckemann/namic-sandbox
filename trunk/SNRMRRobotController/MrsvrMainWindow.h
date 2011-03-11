@@ -681,54 +681,5 @@ public:
   
 };
 
-//Class Maier Dialog Box
-class FXTestDialog : public FXDialogBox {
-  FXDECLARE(FXTestDialog)
-protected:
-  FXHorizontalFrame* frplPl;
-
-
-private:
-  FXTestDialog(){}
-  
-  FXDataTarget *dtNewTarget[3];
-  float valNewTarget[3];
-
-  FXDataTarget *dtOldTarget[3];
-  float valOldTarget[3];
-
-  FXDataTarget *dtDeltaTarget[3];
-  float valDeltaTarget[3];
-
-  FXDataTarget *dtTemp[3];
-  float valTemp[3];
-
-  //Font for Canvas Text
-  FXFont *canvasFont0;
-  
-public:
-  FXTestDialog(FXWindow* owner);
-  long onCmdClear();
-  long onPaintTarget();
-public:  
-  //Message Handler
-  long onPaint(FXObject*,FXSelector,void*);
-  long onCmdTimer(FXObject*, FXSelector,void*);
-private: 
-   FXCanvas *canvas;
-
-public: //Messages
-  enum{
-   ID_CANVAS2=FXDialogBox::ID_LAST,
-   ID_MOVETO_TARGET,
-   ID_PAINT_TARGET,
-   ID_UPDATE_PARAMETER,
-   ID_TIMER,
-   ID_LAST
-   };
-
-  virtual ~FXTestDialog();
-  };
-
 
 #endif // _INC_MRSVR_MAIN_WINDOW

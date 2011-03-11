@@ -25,8 +25,6 @@
 
 #include "MrsvrStatus.h"
 
-
-
 const char* MrsvrStatus::encoderName[] = {
   "X stage",
   "Y stage",
