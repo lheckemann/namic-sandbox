@@ -7,15 +7,30 @@ endif(COMMAND cmake_policy)
 
 INCLUDE (CheckIncludeFiles)
 
+# --------------------------------------------------------------------------
+# Build options
+
+option(BUILD_SHARED "Build Shared Libraries" OFF)
+option(USE_FBISIM   "Use FBISIM Libraries" ON)
+option(USE_ARTAPI   "Use ARTLinux API" ON)
+
 ADD_DEFINITIONS(-DHAVE_JPEG_H=1)
 ADD_DEFINITIONS(-DHAVE_PNG_H=1)
 ADD_DEFINITIONS(-DHAVE_TIFF_H=1)
 ADD_DEFINITIONS(-DHAVE_ZLIB_H=1)
 ADD_DEFINITIONS(-DHAVE_OPENGL)
-ADD_DEFINITIONS(-DWITHOUT_ART)
-ADD_DEFINITIONS(-D_USE_FBISIM)
+
+if(NOT USE_ARTAPI)
+  ADD_DEFINITIONS(-DWITHOUT_ART)
+endif(NOT USE_ARTAPI)
+
 #ADD_DEFINITIONS(-DDEBUG)
 #ADD_DEFINITIONS(-DFULLSCREEN)
+
+if(USE_FBISIM)
+  ADD_DEFINITIONS(-D_USE_FBISIM)
+endif(USE_FBISIM)
+
 
 # --------------------------------------------------------------------------
 # Find OpenIGTLink
@@ -38,15 +53,28 @@ find_path(FOX_LINK_DIR
    PATH  /opt/local/lib
 )
 
+
 # --------------------------------------------------------------------------
 # Include dirs
-include_directories(
+
+set(INC_DIR
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/fbisim/
   ${CMAKE_CURRENT_SOURCE_DIR}/newmat/
   ${OpenIGTLink_INCLUDE_DIRS}
   ${FOX_INCLUDE_DIR}
 )
+
+if(USE_FBISIM)
+  set(INC_DIR
+    ${INC_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/fbisim/
+  )  
+endif(USE_FBISIM)
+
+include_directories(
+  ${INC_DIR}
+)
+
 
 # --------------------------------------------------------------------------
 # Link directory
@@ -55,11 +83,6 @@ link_directories (
   ${FOX_LINK_DIR}
 )
 
-
-# --------------------------------------------------------------------------
-# Build options
-
-option(BUILD_SHARED "Build Shared Libraries" OFF)
 
 # generate pisition independent code to link newmat static library
 # to shared object
@@ -123,27 +146,32 @@ set(NEWMAT_SOURCES
   newmat/newmat8.cpp
 )
 
-set(FBISIM_SOURCES
-  fbisim/fbida_sim.c
-  fbisim/fbidio_sim.c
-  fbisim/fbipenc_sim.c
-)
-
+if(USE_FBISIM)
+  set(FBISIM_SOURCES
+    fbisim/fbida_sim.c
+    fbisim/fbidio_sim.c
+    fbisim/fbipenc_sim.c
+  )
+endif(USE_FBISIM)
 
 # --------------------------------------------------------------------------
 # Libaries
 
 if(BUILD_SHARED)
-  add_library(fbisim SHARED
-    ${FBISIM_SOURCES}
-  )
+  if(USE_FBISIM)
+    add_library(fbisim SHARED
+      ${FBISIM_SOURCES}
+    )
+  endif(USE_FBISIM)
   add_library(newmat SHARED
     ${NEWMAT_SOURCES}
   )
 else(BUILD_SHARED)
-  add_library(fbisim
-    ${FBISIM_SOURCES}
-  )
+  if(USE_FBISIM)
+    add_library(fbisim
+      ${FBISIM_SOURCES}
+    )
+  endif(USE_FBISIM)
   add_library(newmat
     ${NEWMAT_SOURCES}
   )
@@ -183,12 +211,38 @@ target_link_libraries(main
   m
   )
 
-add_executable(mainController mainController.cpp)
-target_link_libraries(mainController
+set (CTRL_LIBS
   MrsvrCom
   MrsvrCtrl
   fbisim
   m
+)  
+
+if (USE_FBISIM)
+  set (CTRL_LIBS
+    ${CTRL_LIBS}
+    fbisim
+  )
+else (USE_FBISIM)
+  set (CTRL_LIBS
+    ${CTRL_LIBS}
+    gpg2000
+    gpg3300
+    gpg6204
+    g2c
+  )
+endif (USE_FBISIM)
+
+if(USE_ARTAPI)
+  set (CTRL_LIBS
+    ${CTRL_LIBS}
+    /usr/lib/art_syscalls.o
+  )
+endif(USE_ARTAPI)
+
+add_executable(mainController mainController.cpp)
+target_link_libraries(mainController
+  ${CTRL_LIBS}
   )
 
 SET(EXECUTABLE_OUTPUT_PATH
