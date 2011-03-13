@@ -119,7 +119,8 @@ void vtkAbdoNavLogic::ProcessMRMLEvents(vtkObject* caller, unsigned long event, 
   vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
   if (node != NULL && this->AbdoNavNode != NULL &&
       this->AbdoNavNode->GetOriginalTrackerTransformID() != NULL &&
-      strcmp(node->GetID(), this->AbdoNavNode->GetOriginalTrackerTransformID()) == 0)
+      strcmp(node->GetID(), this->AbdoNavNode->GetOriginalTrackerTransformID()) == 0 &&
+      event == vtkMRMLTransformableNode::TransformModifiedEvent)
     {
 
     if (this->RegistrationPerformed == true)
