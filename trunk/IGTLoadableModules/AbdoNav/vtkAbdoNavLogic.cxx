@@ -135,59 +135,85 @@ void vtkAbdoNavLogic::ProcessMRMLEvents(vtkObject* caller, unsigned long event, 
 void vtkAbdoNavLogic::PerformRegistration()
 {
   //----------------------------------------------------------------
-  // Needle-based registration between tracking system coordinates and
-  // image coordinates:
+  // Needle-based registration between tracking system coordinates and image
+  // coordinates:
   //
-  // It is assumed that the guidance needle visible in the CT scan acts
-  // as a reference for the cryoprobe. That is, tracking information of
-  // the cryoprobe is always given relative to the reference (i.e. if
-  // the cryoprobe and the reference were perfectly aligned, the tracking
-  // data received from the cryoprobe would equal a 4x4 identity matrix).
+  // Registration is performed under the assumption that the guidance needle
+  // (whose needle artifact is visible in the MR image) acts as a reference
+  // for the actual procedure needle (e.g. a cryoprobe). Thus, tracking data
+  // of the procedure needle is always given relative to this reference. In
+  // other words: if guidance and procedure needle were perfectly aligned in
+  // physical space, the 4x4 transformation matrix describing the procedure
+  // needle's orientation relative to the guidance needle would equal a 4x4
+  // identity matrix.
+  // Further, it is assumed that the translatory offset between a needle's
+  // tip and its local coordinate system were determined. These offsets are
+  // determined by pivoting each needle and, figuratively speaking, translate
+  // a needle's local coordinate system from its original location to the
+  // needle tip.
   //
-  // Under this assumption, registration is simply the process of applying
-  // the position and orientation of the guidance needle tip in the CT scan
-  // to the cryoprobe. Hence, the registration matrix can be derived from a
-  // set of two points given in RAS coordinates of the CT scan: the tip of
-  // the guidance needle and a second point on the guidance needle.
+  // Under these assumptions, registration between tracking coordinate system
+  // and image coordinate system is performed by reconstructing the guidance
+  // needle's coordinate system in the RAS image coordinate system.
   //
-  // Calculation is performed as follows:
-  // - First, the direction vector V1 of the needle is calculated by sub-
-  //   tracting the second point on the guidance needle from its tip and
-  //   then normalizing it.
-  // - Second, a vector V2 perpendicular to the first is calculated. Since
-  //   there's an infinite number of vectors perpendicular to V1, an arbi-
-  //   trary choice must be made.
-  // - Third, the vector V3 perpendicular to vectors V1 and V2 is obtained
-  //   by calculating the cross product of these vectors.
+  //   | |x| |y| |z| |t| |
+  //   | |x| |y| |z| |t| |
+  //   | |x| |y| |z| |t| |
+  //   |  0   0   0   1  |
   //
-  // The second vector V2 must be chosen arbitrarily since the needle is
-  // rotation symmetric and thus, the orientation around its long axis
-  // cannot be reconstructed from a CT scan. For the same reason, however,
-  // orientation around the long axis is negligible.
+  // t:
+  // ==
+  // Since the guidance needle's local coordinate system is to be found at
+  // its tip (see description above), t is given by identifying the tip of
+  // the guidance needle artifact in the MR image.
   //
-  // The registration is then composed as follows:
-  // - The rotational components R1, R2 and R3 of the registration matrix
-  //   are given by the three vectors V1, V2 and V3 calculated as described
-  //   above. The correspondence between V1, V2, V3 and R1, R2, R3 is de-
-  //   fined by the coordinate definition of the sensor being used to track
-  //   the guidance needle. In case of the NDI Polaris Vicra Probe (NDI,
-  //   part number 8700340) for example, the Probe's +z-axis is given by
-  //   the inverted direction vector V1, the +x-axis corresponds to the vec-
-  //   tor V2 perpendicular to direction vector and the +y-axis corresponds
-  //   to V3. In case of the NDI Polaris Vicra Probe, vectors R1, R2 and R3
-  //   of the registration matrix hence correspond to V2, V3, -V1 respectively.
-  // - Finally, the translational component T of the registration matrix is
-  //   directly given by the RAS coordinates of the guidance needle tip.
+  // IMPORTANT NOTE:
+  // ===============
+  // The following description of reconstructing the x-, y- and z-axis of the
+  // guidance needle's local coordinate system refers to the specific optical
+  // marker attachment that was used during this project! In case your setup
+  // differs from the one used during this project, registration is likely
+  // to fail!
   //
-  //   | |R1| |R2| |R3| |T| |
-  //   | |R1| |R2| |R3| |T| |
-  //   | |R1| |R2| |R3| |T| |
-  //   |  0    0    0    1  |
+  // z:
+  // ==
+  // The z-axis of the guidance needle's local coordinate system and the
+  // guidance needle itself point in opposite directions. The z-axis can thus
+  // be reconstructed by selecting a second point on the guidance needle
+  // artifact, subtracting the previously selected tip from this second point
+  // (order is important! otherwise one would obtain -z instead of +z!) and
+  // normalizing the result.
   //
-  // Implementation specifics:
-  // vtkMath::Perpendiculars(const double x[3], double y[3], double z[3],
-  // double theta) is used to conveniently calculate vectors V2 and V3
-  // from vector V1.
+  // x:
+  // ==
+  // Due to rotational symmetry, a third point is required to determine the
+  // needle's x-axis (equivalent to determining the needle's roll angle). In
+  // the current setup, this point is given by the center of a marker which
+  // is located in the xz-plane of the guidance needle's local coordinate
+  // system. The x-axis is thus obtained by calculating the normalized vector
+  // perpendicular to the z-axis and passing through the marker center.
+  //
+  // Since x and z are perpendicular, the scalar product equals 0, i.e. one
+  // has to solve |x| * |z| = 0 for x. Let m denote the coordinates of the
+  // marker center and let further i denote the coordinates of the intersecting
+  // point of x and z. Then |x| = |m| - |i| (again, order is important!). Since
+  // i is a point on z, it can be rewritten as |i| = |tip| + |lambda * z| where
+  // tip denotes the known image coordinates of the previously selected guidance
+  // needle tip. Thus, one has to solve
+  //
+  //      |mR - (tipR + lambda * zR)|   |zR|
+  //      |mA - (tipA + lambda * zA)| * |zA| = 0
+  //      |mS - (tipS + lambda * zS)|   |zS|
+  //
+  // for lambda, which yields
+  //
+  //      lambda = [zR * (mR - tipR) + zA * (mA -tipA) + zS * (mS - tipS)] /
+  //               (zR^2 + zA^2 + zS^2)
+  //
+  // y:
+  // ==
+  // Calculating the normalized cross-product of the z- and x-axis (again,
+  // order is important!) finally yields the missing y-axis.
   //
   //----------------------------------------------------------------
 
@@ -219,37 +245,62 @@ void vtkAbdoNavLogic::PerformRegistration()
 
   double* guidanceNeedleTip = this->AbdoNavNode->GetGuidanceNeedleTipRAS();
   double* guidanceNeedleSecond = this->AbdoNavNode->GetGuidanceNeedleSecondRAS();
+  double* markerCenter = this->AbdoNavNode->GetMarkerCenterRAS();
 
   //----------------------------------------------------------------
-  // the translational component T of the registration matrix is
-  // directly given by the RAS coordinates of the guidance needle tip
+  // set translation t
   //----------------------------------------------------------------
   registrationMatrix->SetElement(0, 3, guidanceNeedleTip[0]);
   registrationMatrix->SetElement(1, 3, guidanceNeedleTip[1]);
   registrationMatrix->SetElement(2, 3, guidanceNeedleTip[2]);
 
+  double x[3], y[3], z[3];
+
   //----------------------------------------------------------------
-  // calculation of vectors V1, V2 and V3 as described in the comment
-  // above
+  // calculate z-axis
   //----------------------------------------------------------------
-  double v1[3], v2[3], v3[3];
+  // calculate the inverted direction vector of the guidance needle
+  // artifact (order is important!)
+  z[0] = guidanceNeedleSecond[0] - guidanceNeedleTip[0];
+  z[1] = guidanceNeedleSecond[1] - guidanceNeedleTip[1];
+  z[2] = guidanceNeedleSecond[2] - guidanceNeedleTip[2];
+  // normalize the inverted direction vector
+  vtkMath::Normalize(z);
 
-  // calculate and normalize the direction vector of the guidance needle
-  v1[0] = guidanceNeedleTip[0] - guidanceNeedleSecond[0];
-  v1[1] = guidanceNeedleTip[1] - guidanceNeedleSecond[1];
-  v1[2] = guidanceNeedleTip[2] - guidanceNeedleSecond[2];
-  vtkMath::Normalize(v1);
+  //----------------------------------------------------------------
+  // calculate x-axis
+  //----------------------------------------------------------------
+  // calculate lambda
+  double lambda = (z[0] * (markerCenter[0] - guidanceNeedleTip[0])  +
+                   z[1] * (markerCenter[1] - guidanceNeedleTip[1])  +
+                   z[2] * (markerCenter[2] - guidanceNeedleTip[2])) /
+                  (pow(z[0], 2) + pow(z[1], 2) + pow(z[2], 2));
+  // calculate intersecting point of x and z using lambda
+  double i[3];
+  i[0] = guidanceNeedleTip[0] + lambda * z[0];
+  i[1] = guidanceNeedleTip[1] + lambda * z[1];
+  i[2] = guidanceNeedleTip[2] + lambda * z[2];
+  // calculate direction vector of x (order is important!)
+  x[0] = markerCenter[0] - i[0];
+  x[1] = markerCenter[1] - i[1];
+  x[2] = markerCenter[2] - i[2];
+  // normalize x
+  vtkMath::Normalize(x);
 
-  // since the second vector must be chosen arbitrarily anyway, use
-  // VTK to conveniently calculate the two missing normalized vectors
-  // perpendicular to V1
-  vtkMath::Perpendiculars(v1, v3, v2, 0.0);
+  //----------------------------------------------------------------
+  // calculate y-axis
+  //----------------------------------------------------------------
+  // calculate cross-product of z and x (order is important!)
+  vtkMath::Cross(z, x, y);
+  // normalize the result
+  vtkMath::Normalize(y);
 
-  // set rotational components R1, R2 and R3 of the registration matrix
-  // according to the coordinate definition of the NDI Polaris Vicra Probe
-  registrationMatrix->SetElement(0, 0, v2[0]); registrationMatrix->SetElement(0, 1, v3[0]); registrationMatrix->SetElement(0, 2, -v1[0]);
-  registrationMatrix->SetElement(1, 0, v2[1]); registrationMatrix->SetElement(1, 1, v3[1]); registrationMatrix->SetElement(1, 2, -v1[1]);
-  registrationMatrix->SetElement(2, 0, v2[2]); registrationMatrix->SetElement(2, 1, v3[2]); registrationMatrix->SetElement(2, 2, -v1[2]);
+  //----------------------------------------------------------------
+  // set x-, y- and z-axis
+  //----------------------------------------------------------------
+  registrationMatrix->SetElement(0, 0, x[0]); registrationMatrix->SetElement(0, 1, y[0]); registrationMatrix->SetElement(0, 2, z[0]);
+  registrationMatrix->SetElement(1, 0, x[1]); registrationMatrix->SetElement(1, 1, y[1]); registrationMatrix->SetElement(1, 2, z[1]);
+  registrationMatrix->SetElement(2, 0, x[2]); registrationMatrix->SetElement(2, 1, y[2]); registrationMatrix->SetElement(2, 2, z[2]);
 
   // copy registration matrix into registration transform node
   this->RegistrationTransform->GetMatrixTransformToParent()->DeepCopy(registrationMatrix);
