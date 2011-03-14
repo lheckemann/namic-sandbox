@@ -150,6 +150,9 @@ public:
     ID_FILE_CLOSE,
     ID_ABOUT,
     ID_CANVAS,
+    ID_AXIAL_CANVAS,
+    ID_PAINT_TARGET,
+
     ID_RESTORE,
     ID_REPAINT_TRIGGER,
     ID_UPDATE_PARAMETER,
@@ -168,10 +171,6 @@ public:
     ID_CMD_CALIBRATE,
     ID_CMD_START_COM,
     ID_CMD_STOP_COM,
-#ifdef ENABLE_MRTS_CONNECTION
-    ID_CMD_MRTS_CON,
-    ID_CMD_MRTS_DISCON,
-#endif //ENABLE_MRTS_CONNECTION
     ID_CMD_SAVE_DEFAULT,
     ID_CMD_RESET_DEFAULT,
     ID_CMD_CHOOSE_NEEDLE_INFO,
@@ -250,6 +249,8 @@ protected:
   FXTabBook*         mainTab;
 
   FXCanvas*          infoCanvas;         // main information display // on the top of the main window                  
+  FXCanvas*          axialCanvas;        // display that shows the current actuator position
+
   FXImage*           infoOffs;           // offscreen buffer
   // font for information display 
   FXFont*            infoFont0;          // for small
@@ -396,17 +397,6 @@ private:
   FXString           valCalibrationStatus;
   double             valCalibrationMatrix[16];
 
-#ifdef ENABLE_MRTS_CONNECTION
-  // -- MRTS
-  FXDataTarget*      dtMrtsPortNo;
-  FXDataTarget*      dtMrtsHostName;
-  FXDataTarget*      dtMrtsStatus;
-  FXDataTarget*      dtMrtsInterval;
-  int                valMrtsPortNo;
-  FXString           valMrtsHostName;
-  FXString           valMrtsStatus;
-  int                valMrtsInterval;    // (ms)
-#endif //ENABLE_MRTS_CONNECTION
 
   // Control Panel -> Calibration
   FXDataTarget*      dtAutoCalibProcSelect[NUM_PROC_AUTOCALIB];
@@ -492,6 +482,17 @@ private:
   float              valLocServPY;
   float              valLocServPZ;
 
+  // Hardware monitor -> Manual Control
+  FXDataTarget *dtNewTarget[3];
+  float valNewTarget[3];
+
+  FXDataTarget *dtOldTarget[3];
+  float valOldTarget[3];
+
+  FXDataTarget *dtDeltaTarget[3];
+  float valDeltaTarget[3];
+
+
   // Plot
   FXDataTarget*      dtPlotAGain;
   FXDataTarget*      dtPlotAShift;
@@ -521,15 +522,6 @@ private:
   FXString           valDefLocServHostName;
   int                valDefLocServInterval;  // (ms)
 
-#ifdef ENABLE_MRTS_CONNECTION
-  FXDataTarget*      dtDefMrtsPortNo;
-  FXDataTarget*      dtDefMrtsHostName;
-  FXDataTarget*      dtDefMrtsInterval;
-  int                valDefMrtsPortNo;
-  FXString           valDefMrtsHostName;
-  int                valDefMrtsInterval;    // (ms)
-#endif //ENABLE_MRTS_CONNECTION
-
   // -- Calibration
   FXDataTarget*      dtDefAutoCalibProcSelect[NUM_PROC_AUTOCALIB];
   FXDataTarget*      dtDefAutoCalibPoints[NUM_CALIB_POINTS][3];
@@ -554,7 +546,6 @@ private:
   FXDataTarget*      dtNeedleConfName;
   FXDataTarget*      dtDefNeedleOffset[3];
   FXDataTarget*      dtDefNeedleOrientation[3];
-
 
 
   // -- Manual
@@ -583,6 +574,7 @@ private:
 
   int    buildSwPanel(FXComposite*);
   int    buildHardwareMonitor(FXComposite*);
+
   int    buildQuickPanel(FXComposite*);
   int    getObjectIndex(FXObject*, FXObject**, int);
   int    updateTcpInfoTbl();
@@ -616,6 +608,7 @@ public:
   //long onCmdFileClose(FXObject*, FXSelector, void*);
   long onCmdAbout(FXObject*, FXSelector, void*);
   long onCanvasRepaint(FXObject*, FXSelector,void*);
+
   long onUpdateActuatorVoltage(FXObject*, FXSelector,void*);
   long onMiniPlotUpdate(FXObject*, FXSelector,void*);
   long onStartUpdate(FXObject*, FXSelector,void*);
@@ -632,10 +625,6 @@ public:
   long onCmdStopCom(FXObject*, FXSelector, void*);
   long onCmdLocServCon(FXObject*, FXSelector, void*);
   long onCmdLocServDiscon(FXObject*, FXSelector, void*);
-#ifdef ENABLE_MRTS_CONNECTION
-  long onCmdMrtsCon(FXObject*, FXSelector, void*);
-  long onCmdMrtsDiscon(FXObject*, FXSelector, void*);
-#endif //ENABLE_MRTS_CONNECTION
   long onCmdSaveDefault(FXObject*, FXSelector, void*);
   long onCmdResetDefault(FXObject*, FXSelector, void*);
   long onCmdChooseNeedleInfo(FXObject*, FXSelector, void*);
@@ -676,6 +665,8 @@ public:
   long onUpdateManualPowerSw(FXObject*, FXSelector, void*);
 
   long onCmdShowDialog(FXObject*,FXSelector,void*); //Maier 
+
+  long setRegistrationMatrix(float matrix[16]);
   
 };
 

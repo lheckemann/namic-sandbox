@@ -23,7 +23,7 @@
 
 #include "MrsvrMainWindow.h"
 #include "MrsvrTransform.h"
-#include "MrsvrNavigationDialog.h"
+#include "MrsvrZFrameRegistrationDialog.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,10 +57,6 @@ FXDEFMAP(MrsvrMainWindow) MrsvrMainWindowMap[] = {
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_CALIBRATE,   MrsvrMainWindow::onCmdCalibrate),  
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_START_COM,   MrsvrMainWindow::onCmdStartCom),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_STOP_COM,    MrsvrMainWindow::onCmdStopCom),
-#ifdef ENABLE_MRTS_CONNECTION
-  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_MRTS_CON,    MrsvrMainWindow::onCmdMrtsCon),
-  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_MRTS_DISCON, MrsvrMainWindow::onCmdMrtsDiscon),
-#endif //ENABLE_MRTS_CONNECTION
 
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_SAVE_DEFAULT,MrsvrMainWindow::onCmdSaveDefault),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_RESET_DEFAULT,
@@ -527,15 +523,13 @@ int MrsvrMainWindow::buildCalibrationControlPanel(FXComposite* comp)
                  LAYOUT_TOP|LAYOUT_CENTER_X);
 
   mtZFrameMatrix->setBackColor(getApp()->getShadowColor());
-  for (int i = 0; i < 4; i ++) {
+
+  for (int i = 0; i < 16; i ++) {
     lb->setBackColor(getApp()->getShadowColor());
-    for (int j = 0; j < 4; j ++) {
-      new FXTextField(mtZFrameMatrix,4,dtAutoCalibPoints[i][j],
-                      FXDataTarget::ID_VALUE,
-                      TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                      FRAME_SUNKEN, 
-                      0, 0, 50, 15);
-    }
+    new FXTextField(mtZFrameMatrix,4,dtCalibrationMatrix[i],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
+                  0, 0, 20, 15);
   }
 
   new FXButton(frZFrameCalib, "Set", NULL, this, 
@@ -702,67 +696,6 @@ int MrsvrMainWindow::buildConfigurationControlPanel(FXComposite* comp)
                ID_CANCEL_ENDEFFECT_BTN,
                FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-
-  // Scanner configuration
-
-  FXGroupBox* gpScanner  = 
-    new FXGroupBox(comp, "Scanner/Robot",
-                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X|
-                   LAYOUT_CENTER_X);
-  gpScanner->setBackColor(getApp()->getShadowColor());
-
-  FXMatrix* mtScanner = 
-    new FXMatrix(gpScanner, 2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|LAYOUT_FILL_X);
-  mtScanner->setBackColor(getApp()->getShadowColor());
-
-  FXPopup* popup;
-  FXOptionMenu *options;
-
-  FXLabel* lb;
-
-  lb = new FXLabel(mtScanner, "Patient entry:");
-  lb->setBackColor(getApp()->getShadowColor());
-  popup = new FXPopup(this);
-  new FXOption(popup,"Foot first",NULL,dtPatientEntry,FXDataTarget::ID_OPTION+0,
-               JUSTIFY_HZ_APART|ICON_AFTER_TEXT);    
-  new FXOption(popup,"Head first",NULL,dtPatientEntry,FXDataTarget::ID_OPTION+1,
-               JUSTIFY_HZ_APART|ICON_AFTER_TEXT);
-  options = 
-    new FXOptionMenu(mtScanner,popup,
-                     LAYOUT_TOP|FRAME_RAISED|FRAME_THICK|JUSTIFY_HZ_APART|
-                     ICON_AFTER_TEXT);
-  options->setTarget(dtPatientEntry);
-  options->setSelector(FXDataTarget::ID_VALUE);
-
-
-  lb = new FXLabel(mtScanner, "Bed dock:");
-  lb->setBackColor(getApp()->getShadowColor());
-  popup = new FXPopup(this);
-  new FXOption(popup,"Front dock",NULL,dtBedDock,FXDataTarget::ID_OPTION+0,
-               JUSTIFY_HZ_APART|ICON_AFTER_TEXT);    
-  new FXOption(popup,"Side dock",NULL,dtBedDock,FXDataTarget::ID_OPTION+1,
-               JUSTIFY_HZ_APART|ICON_AFTER_TEXT);
-  options = 
-    new FXOptionMenu(mtScanner,popup,
-                     LAYOUT_TOP|FRAME_RAISED|FRAME_THICK|JUSTIFY_HZ_APART|
-                     ICON_AFTER_TEXT);
-  options->setTarget(dtBedDock);
-  options->setSelector(FXDataTarget::ID_VALUE);
-
-  lb = new FXLabel(mtScanner, "Robot dock:");
-  lb->setBackColor(getApp()->getShadowColor());
-  popup = new FXPopup(this);
-  new FXOption(popup,"Left dock",NULL,dtRobotDock,FXDataTarget::ID_OPTION+0,
-               JUSTIFY_HZ_APART|ICON_AFTER_TEXT);    
-  new FXOption(popup,"Right dock",NULL,dtRobotDock,FXDataTarget::ID_OPTION+1,
-               JUSTIFY_HZ_APART|ICON_AFTER_TEXT);
-  options = 
-    new FXOptionMenu(mtScanner,popup,
-                     LAYOUT_TOP|FRAME_RAISED|FRAME_THICK|JUSTIFY_HZ_APART|
-                     ICON_AFTER_TEXT);
-  options->setTarget(dtRobotDock);
-  options->setSelector(FXDataTarget::ID_VALUE);
 
   return 1;
 }
@@ -1043,10 +976,12 @@ int MrsvrMainWindow::buildSwPanel(FXComposite* comp)
 }
 
 
-
-
 int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
 {
+
+  //--------------------------------------------------------------------------------
+  // Hardware/Software Monitor
+
   mainTab= new FXTabBook(comp,NULL,0,
                          LAYOUT_FILL_X|LAYOUT_FILL_Y);
   FXTabItem* tabHardware = 
@@ -1060,21 +995,18 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                           FRAME_RAISED|LAYOUT_FILL_Y|LAYOUT_FILL_X|
                           LAYOUT_TOP|LAYOUT_LEFT, 0, 0, 0, 0, 0, 0, 0, 0);
 
-  FXHorizontalFrame* frMonitorUp = 
-    new FXHorizontalFrame(frMonitor, 
-                          //LAYOUT_FILL_Y|LAYOUT_FILL_X|
+  FXVerticalFrame* frMonitorUp = 
+    new FXVerticalFrame(frMonitor, 
                           LAYOUT_FILL_X|
                           LAYOUT_TOP|LAYOUT_LEFT);
 
-  
   FXGroupBox* gpActuators = 
     new FXGroupBox(frMonitorUp, "Actuators",
                    FRAME_RIDGE|LAYOUT_SIDE_LEFT|LAYOUT_FILL_Y);
-  
-  FXVerticalFrame* frActuators =
-    new FXVerticalFrame(gpActuators,
-                        LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                        LAYOUT_TOP|LAYOUT_LEFT);
+
+  FXHorizontalFrame* frActuators =
+    new FXHorizontalFrame(gpActuators,
+                        LAYOUT_FILL_Y|LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT);
 
   for (int i = 0; i < NUM_ACTUATORS; i ++) {
     char name[128];
@@ -1089,8 +1021,7 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
 
     FXVerticalFrame* frActuatorMeter =
       new FXVerticalFrame(frActuator,
-                          LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                          LAYOUT_TOP|LAYOUT_LEFT);
+                          LAYOUT_FILL_Y|LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT);
     
     new FXProgressBar(frActuatorMeter,dtPrActuatorVol[i],FXDataTarget::ID_VALUE,
                       PROGRESSBAR_PERCENTAGE|PROGRESSBAR_DIAL|
@@ -1100,19 +1031,17 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
     FXMatrix* mtActuator = 
       new FXMatrix(frActuator,2,
                    MATRIX_BY_COLUMNS|LAYOUT_FILL_Y);
-    new FXLabel(mtActuator, "Total Rev.:");
-    new FXTextField(mtActuator,18,dtTxActRev[i],
+    new FXLabel(mtActuator, "Cum. Rev:");
+    new FXTextField(mtActuator,16,dtTxActRev[i],
                     FXDataTarget::ID_VALUE,
                     TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN, 
                     0, 0, 50, 15);
 
     new FXLabel(mtActuator, "Status:");
-    new FXTextField(mtActuator,18,dtTxActStatus[i],
+    new FXTextField(mtActuator,16,dtTxActStatus[i],
                     FXDataTarget::ID_VALUE,
                     TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN, 
                     0, 0, 50, 15);
-
-
   }
 
   FXGroupBox* gpEncoders  = 
@@ -1125,62 +1054,44 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                             LAYOUT_FILL_Y|LAYOUT_FILL_X|
                             LAYOUT_TOP|LAYOUT_LEFT);
 
-  for (int j = 0; j < 2; j ++) {
-    FXVerticalFrame* frEncodersIn =
-      new FXVerticalFrame(frEncoders,
-                            LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                            LAYOUT_TOP|LAYOUT_LEFT);
-    for (int i = j; i < NUM_ENCODERS; i+=2) {
-      char name[128];
-      sprintf(name, "encoder #%d", i);
-      FXGroupBox* gpEncoder  = 
-        new FXGroupBox(frEncodersIn, name,
-                       LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-      FXMatrix* mtEncoder = 
-        new FXMatrix(gpEncoder,2,
-                     MATRIX_BY_ROWS|LAYOUT_FILL_Y|
-                     LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
-                     LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-      FXMatrix* mtEncoderBar = 
-        new FXMatrix(mtEncoder,4,
-                     MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                     LAYOUT_TOP|LAYOUT_LEFT|
-                     LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-      
-      new FXLabel(mtEncoderBar, "Position:");
-      new FXTextField(mtEncoderBar,6,dtTxPosition[i],
-                      FXDataTarget::ID_VALUE,
-                      TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN, 
-                      0, 0, 50, 15);
-      new FXLabel(mtEncoderBar, robotStatus->getPosUnitName(i));
-      new FXProgressBar(mtEncoderBar,dtPrPosition[i],FXDataTarget::ID_VALUE,
-                        LAYOUT_SIDE_BOTTOM|LAYOUT_FILL_X|FRAME_SUNKEN|
-                        LAYOUT_FIX_HEIGHT, 0, 0, 400, 15);
-
-      /*
-      new FXLabel(mtEncoderBar, "Set Point:");
-      new FXTextField(mtEncoderBar,6,dtTxSetPoint[i],
-                      FXDataTarget::ID_VALUE,
-                      TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-                      0, 0, 50, 15);
-      new FXLabel(mtEncoderBar, robotStatus->getPosUnitName(i));
-      new FXProgressBar(mtEncoderBar,dtPrSetPoint[i],FXDataTarget::ID_VALUE,
-                        LAYOUT_SIDE_BOTTOM|LAYOUT_FILL_X|FRAME_SUNKEN|
-                        LAYOUT_FIX_HEIGHT, 0, 0, 400, 15);
-      */
-
-      new FXLabel(mtEncoderBar, "Velocity:");
-      new FXTextField(mtEncoderBar,6,dtTxVelocity[i],
-                      FXDataTarget::ID_VALUE,
-                      TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-                      0, 0, 50, 15);
-      new FXLabel(mtEncoderBar, robotStatus->getVelUnitName(i));
-      new FXProgressBar(mtEncoderBar,dtPrVelocity[i],FXDataTarget::ID_VALUE,
-                        LAYOUT_SIDE_BOTTOM|LAYOUT_FILL_X|FRAME_SUNKEN|
-                        LAYOUT_FIX_HEIGHT, 0, 0, 400, 15);
-
-      //PROGRESSBAR_PERCENTAGE);
-    }
+  for (int i = 0; i < NUM_ENCODERS; i ++) {
+    char name[128];
+    sprintf(name, "encoder #%d", i);
+    FXGroupBox* gpEncoder  = 
+      new FXGroupBox(frEncoders, name,
+                     LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
+    FXMatrix* mtEncoder = 
+      new FXMatrix(gpEncoder,2,
+                   MATRIX_BY_ROWS|LAYOUT_FILL_Y|
+                   LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
+                   LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
+    FXMatrix* mtEncoderBar = 
+      new FXMatrix(mtEncoder,4,
+                   MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|LAYOUT_FILL_X|
+                   LAYOUT_TOP|LAYOUT_LEFT|
+                   LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
+    
+    new FXLabel(mtEncoderBar, "Position:");
+    new FXTextField(mtEncoderBar,6,dtTxPosition[i],
+                    FXDataTarget::ID_VALUE,
+                    TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN, 
+                    0, 0, 50, 15);
+    new FXLabel(mtEncoderBar, robotStatus->getPosUnitName(i));
+    new FXProgressBar(mtEncoderBar,dtPrPosition[i],FXDataTarget::ID_VALUE,
+                      LAYOUT_SIDE_BOTTOM|LAYOUT_FILL_X|FRAME_SUNKEN|
+                      LAYOUT_FIX_HEIGHT, 0, 0, 400, 15);
+    
+    new FXLabel(mtEncoderBar, "Velocity:");
+    new FXTextField(mtEncoderBar,6,dtTxVelocity[i],
+                    FXDataTarget::ID_VALUE,
+                    TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
+                    0, 0, 50, 15);
+    new FXLabel(mtEncoderBar, robotStatus->getVelUnitName(i));
+    new FXProgressBar(mtEncoderBar,dtPrVelocity[i],FXDataTarget::ID_VALUE,
+                      LAYOUT_SIDE_BOTTOM|LAYOUT_FILL_X|FRAME_SUNKEN|
+                      LAYOUT_FIX_HEIGHT, 0, 0, 400, 15);
+    
+    //PROGRESSBAR_PERCENTAGE);
   }
 
   FXHorizontalFrame* frMonitorLo =
@@ -1188,184 +1099,132 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                           LAYOUT_FILL_Y|LAYOUT_FILL_X|
                           LAYOUT_TOP|LAYOUT_LEFT);
 
-
-  // Remote Controller Info.
-  FXGroupBox* gpRemoteInfo  = 
-    new FXGroupBox(frMonitorLo, "Remote Controller Info.",
-                   FRAME_RIDGE|LAYOUT_FILL_Y|
-                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_TOP);
-
-  FXMatrix* mtRemoteInfo =  
-    new FXMatrix(gpRemoteInfo,2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
-                 LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-
-  new FXLabel(mtRemoteInfo, "Software:");
-  new FXTextField(mtRemoteInfo,18,dtRemoteSoftware,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN,
-                  0, 0, 50, 15);
-  new FXLabel(mtRemoteInfo, "OS:");
-  new FXTextField(mtRemoteInfo,18,dtRemoteOS,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN,
-                  0, 0, 50, 15);
-  new FXLabel(mtRemoteInfo, "Host name:");
-  new FXTextField(mtRemoteInfo,18,dtRemoteHostName,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN,
-                  0, 0, 50, 15);
-  new FXLabel(mtRemoteInfo, "IP address:");
-  new FXTextField(mtRemoteInfo,18,dtRemoteIpAddr,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN,
-                  0, 0, 50, 15);
-  new FXLabel(mtRemoteInfo, "Hostname:");
-  new FXTextField(mtRemoteInfo,18,dtRemoteHostName,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN,
-                  0, 0, 50, 15);
-  new FXLabel(mtRemoteInfo, "Port number:");
-  new FXTextField(mtRemoteInfo,18,dtRemotePortNumber,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN,
-                  0, 0, 50, 15);
-
-  //// Calibration Information
-
-  FXGroupBox* gpCalibration  = 
-    new FXGroupBox(frMonitorLo, "Calibration Info.",
-                   FRAME_RIDGE|LAYOUT_FILL_Y|
-                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_TOP);
-  
-  FXVerticalFrame* frCalibrationInfo =
-    new FXVerticalFrame(gpCalibration,
-                        LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                            LAYOUT_TOP|LAYOUT_LEFT);
-  
-  FXMatrix* mtCalibrationInfo =  
-    new FXMatrix(frCalibrationInfo,2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
-                 LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-  
-  new FXLabel(mtCalibrationInfo, "Status:");
-  new FXTextField(mtCalibrationInfo,12,dtCalibrationStatus,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|FRAME_SUNKEN,
-                  0, 0, 50, 15);
-
-  FXGroupBox* gpCalibrationMatrix  = 
-    new FXGroupBox(frCalibrationInfo, "Calibration Matrix",
-                   FRAME_GROOVE|LAYOUT_FILL_Y|
-                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_TOP);
-
-  FXMatrix* mtCalibrationMatrix =  
-    new FXMatrix(gpCalibrationMatrix,4,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_FILL_X|LAYOUT_TOP|
-                 LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-
-  for (int i = 0; i < 16; i ++) {
-    new FXTextField(mtCalibrationMatrix,8,dtCalibrationMatrix[i],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-                  0, 0, 20, 15);
-  }
-  
-  updateTcpInfoTbl();
-
-  //// Locator Server Info.
-  //FXGroupBox* gpLocServInfo  = 
-  //  new FXGroupBox(frMonitorLo, "Locator Server Info.",
+  //// Remote Controller Info.
+  //FXGroupBox* gpRemoteInfo  = 
+  //  new FXGroupBox(frMonitorLo, "Remote Controller Info.",
   //                 FRAME_RIDGE|LAYOUT_FILL_Y|
   //                 LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_TOP);
   //
-  //FXVerticalFrame* frLocServInfo =
-  //  new FXVerticalFrame(gpLocServInfo,
-  //                      LAYOUT_FILL_Y|LAYOUT_FILL_X|
-  //                          LAYOUT_TOP|LAYOUT_LEFT);
-  //
-  //
-  //FXMatrix* mtLocServInfoStatus =  
-  //  new FXMatrix(frLocServInfo,2,
+  //FXMatrix* mtRemoteInfo =  
+  //  new FXMatrix(gpRemoteInfo,2,
   //               MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
   //               LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
   //               LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
   //
-  //new FXLabel(mtLocServInfoStatus, "Connection:");
-  //new FXTextField(mtLocServInfoStatus,12,dtLocServStatus,
+  //new FXLabel(mtRemoteInfo, "Software:");
+  //new FXTextField(mtRemoteInfo,18,dtRemoteSoftware,
   //                FXDataTarget::ID_VALUE,
-  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|FRAME_SUNKEN,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN,
   //                0, 0, 50, 15);
-  //new FXLabel(mtLocServInfoStatus, "Status:");
-  //new FXTextField(mtLocServInfoStatus,12,dtLocServSenseStatus,
+  //new FXLabel(mtRemoteInfo, "OS:");
+  //new FXTextField(mtRemoteInfo,18,dtRemoteOS,
   //                FXDataTarget::ID_VALUE,
-  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|FRAME_SUNKEN,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN,
   //                0, 0, 50, 15);
-  //
-  //// Locator Server Info.
-  //FXGroupBox* gpLocServInfoPosition  = 
-  //  new FXGroupBox(frLocServInfo, "Position & Orientation",
-  //                 FRAME_GROOVE|LAYOUT_FILL_Y|
+  //new FXLabel(mtRemoteInfo, "Host name:");
+  //new FXTextField(mtRemoteInfo,18,dtRemoteHostName,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN,
+  //                0, 0, 50, 15);
+  //new FXLabel(mtRemoteInfo, "IP address:");
+  //new FXTextField(mtRemoteInfo,18,dtRemoteIpAddr,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN,
+  //                0, 0, 50, 15);
+  //new FXLabel(mtRemoteInfo, "Hostname:");
+  //new FXTextField(mtRemoteInfo,18,dtRemoteHostName,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN,
+  //                0, 0, 50, 15);
+  //new FXLabel(mtRemoteInfo, "Port number:");
+  //new FXTextField(mtRemoteInfo,18,dtRemotePortNumber,
+  //                FXDataTarget::ID_VALUE,
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_LEFT|FRAME_SUNKEN,
+  //                0, 0, 50, 15);
+
+  //// Calibration Information
+
+  //FXGroupBox* gpCalibration  = 
+  //  new FXGroupBox(frMonitorLo, "Calibration Info.",
+  //                 FRAME_RIDGE|LAYOUT_FILL_Y|
   //                 LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_TOP);
   //
-  //FXMatrix* mtLocServInfoPosition =  
-  //  new FXMatrix(gpLocServInfoPosition,4,
+  //FXVerticalFrame* frCalibrationInfo =
+  //  new FXVerticalFrame(gpCalibration,
+  //                      LAYOUT_FILL_Y|LAYOUT_FILL_X|
+  //                          LAYOUT_TOP|LAYOUT_LEFT);
+  //
+  //FXMatrix* mtCalibrationInfo =  
+  //  new FXMatrix(frCalibrationInfo,2,
   //               MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-  //               LAYOUT_FILL_X|LAYOUT_TOP|
+  //               LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
   //               LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
   //
-  //new FXLabel(mtLocServInfoPosition, " ", 0, LAYOUT_CENTER_X);
-  //new FXLabel(mtLocServInfoPosition, "MX", 0, LAYOUT_CENTER_X);
-  //new FXLabel(mtLocServInfoPosition, "MY", 0, LAYOUT_CENTER_X);
-  //new FXLabel(mtLocServInfoPosition, "MZ", 0, LAYOUT_CENTER_X);
-  //
-  //new FXLabel(mtLocServInfoPosition, "N");
-  //new FXTextField(mtLocServInfoPosition,8,dtLocServNX,
+  //new FXLabel(mtCalibrationInfo, "Status:");
+  //new FXTextField(mtCalibrationInfo,12,dtCalibrationStatus,
   //                FXDataTarget::ID_VALUE,
-  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-  //                0, 0, 20, 15);
-  //new FXTextField(mtLocServInfoPosition,8,dtLocServNY,
-  //                FXDataTarget::ID_VALUE,
-  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-  //                0, 0, 20, 15);
-  //new FXTextField(mtLocServInfoPosition,8,dtLocServNZ,
-  //                FXDataTarget::ID_VALUE,
-  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-  //                0, 0, 20, 15);
-  //
-  //new FXLabel(mtLocServInfoPosition, "T");
-  //new FXTextField(mtLocServInfoPosition,8,dtLocServTX,
-  //                FXDataTarget::ID_VALUE,
-  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-  //                0, 0, 20, 15);
-  //new FXTextField(mtLocServInfoPosition,8,dtLocServTY,
-  //                FXDataTarget::ID_VALUE,
-  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-  //                0, 0, 20, 15);
-  //new FXTextField(mtLocServInfoPosition,8,dtLocServTZ,
-  //                FXDataTarget::ID_VALUE,
-  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-  //                0, 0, 20, 15);
-  //
-  //new FXLabel(mtLocServInfoPosition, "P");
-  //new FXTextField(mtLocServInfoPosition,8,dtLocServPX,
-  //                FXDataTarget::ID_VALUE,
-  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-  //                0, 0, 20, 15);
-  //new FXTextField(mtLocServInfoPosition,8,dtLocServPY,
-  //                FXDataTarget::ID_VALUE,
-  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-  //                0, 0, 20, 15);
-  //new FXTextField(mtLocServInfoPosition,8,dtLocServPZ,
-  //                FXDataTarget::ID_VALUE,
-  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-  //                0, 0, 20, 15);
+  //                TEXTFIELD_REAL|TEXTFIELD_READONLY|FRAME_SUNKEN,
+  //                0, 0, 50, 15);
   //
   //updateTcpInfoTbl();
 
+  FXGroupBox* gpManualControl  = 
+    new FXGroupBox(frMonitorLo, "Manual Control",
+                   FRAME_RIDGE|LAYOUT_FILL_Y|
+                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_TOP);
+
+  FXVerticalFrame* frManualControl =
+    new FXVerticalFrame(gpManualControl,
+                        LAYOUT_FILL_Y|LAYOUT_FILL_X|
+                        LAYOUT_TOP|LAYOUT_LEFT);
+  
+
+  FXMatrix* mtxManualControl = new FXMatrix(frManualControl,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y); 
+
+  //Canvas RA-Position
+  FXGroupBox* gpRAPos = 
+    new FXGroupBox(mtxManualControl, "Position in Axial plane",
+                   FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
+                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
+  
+  axialCanvas = new FXCanvas(gpRAPos,this,ID_AXIAL_CANVAS,
+                             FRAME_SUNKEN|FRAME_THICK|LAYOUT_FILL_X|
+                             LAYOUT_FILL_Y|LAYOUT_FILL_ROW,LAYOUT_FILL_COLUMN);
+  
+  //RA-Position Sliders 
+  FXGroupBox* gbPlateA = 
+    new FXGroupBox(mtxManualControl, "A-P",
+                   FRAME_RIDGE|LAYOUT_RIGHT|LAYOUT_FILL_Y);
+  
+  FXGroupBox* gbPlateR =
+    new FXGroupBox(mtxManualControl, "R-A",
+                   FRAME_RIDGE|LAYOUT_BOTTOM|LAYOUT_FILL_X);
+  
+  new FXButton(mtxManualControl, "Home",
+               NULL,this,ID_PAINT_TARGET,BUTTON_NORMAL|LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X|LAYOUT_FILL_Y);
+  
+  
+  FXRealSlider* slider=new FXRealSlider(gbPlateR,dtDeltaTarget[0],FXDataTarget::ID_VALUE,
+                                        LAYOUT_LEFT|LAYOUT_FIX_HEIGHT|LAYOUT_FIX_WIDTH|
+                                        SLIDER_HORIZONTAL|SLIDER_INSIDE_BAR,
+                                        0,0,200,20);//(??,??,X,Y)
+
+  slider->setRange(-valOldTarget[0],200.0-valOldTarget[0]);
+  FXRealSlider* slider2=new FXRealSlider(gbPlateA,dtDeltaTarget[1],FXDataTarget::ID_VALUE,
+                                         LAYOUT_TOP|LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT|
+                                         SLIDER_VERTICAL|SLIDER_INSIDE_BAR,
+                                         0,0,20,200);
+  slider2->setRange(-valOldTarget[1],200.0-valOldTarget[1]);
+  slider2->setIncrement(0.01);
+  
+  //FXMatrix* matrix_main2=new FXMatrix(matrix,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
+  //
+  //FXMatrix* matrix_lowerleft=new FXMatrix(matrix_main2,5,MATRIX_BY_COLUMNS|
+  //                                        LAYOUT_SIDE_BOTTOM|LAYOUT_FILL_X|LAYOUT_FILL_Y);
+  
+
+  //--------------------------------------------------------------------------------
+  // RTCP Log Tab
 
   FXTabItem* tabRtcpLog = new FXTabItem(mainTab, 
                                     "RTCP Log\tRTCP Log\tReal-time Control Process Message",
@@ -1542,12 +1401,11 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                                     0,
                                     LAYOUT_FILL_X|LAYOUT_FILL_Y|LAYOUT_TOP|LAYOUT_LEFT);
 
-
-//  FXMatrix* mtLog = 
-//    new FXMatrix(mainTab,2,
-//                 FRAME_RAISED|MATRIX_BY_COLUMNS|
-//                 LAYOUT_FILL_Y|LAYOUT_FILL_X|
-//                 LAYOUT_TOP|LAYOUT_LEFT);
+  //  FXMatrix* mtLog = 
+  //    new FXMatrix(mainTab,2,
+  //                 FRAME_RAISED|MATRIX_BY_COLUMNS|
+  //                 LAYOUT_FILL_Y|LAYOUT_FILL_X|
+  //                 LAYOUT_TOP|LAYOUT_LEFT);
   FXHorizontalFrame* frCustom = 
     new FXHorizontalFrame(mainTab,
                           FRAME_RAISED|LAYOUT_FILL_X|LAYOUT_FILL_Y|
@@ -1587,25 +1445,6 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                   FXDataTarget::ID_VALUE,
                   TEXTFIELD_INTEGER|JUSTIFY_RIGHT|JUSTIFY_RIGHT,
                   0, 0, 50, 15);
-
-#ifdef ENABLE_MRTS_CONNECTION
-  new FXLabel(mtComParam, "MRTS host:");
-  new FXTextField(mtComParam,12,dtDefMrtsHostName,
-                  FXDataTarget::ID_VALUE,
-                  JUSTIFY_LEFT|FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-
-  new FXLabel(mtComParam, "MRTS port #:");
-  new FXTextField(mtComParam,12,dtDefMrtsPortNo,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_INTEGER|JUSTIFY_RIGHT|JUSTIFY_RIGHT,
-                  0, 0, 50, 15);
-  new FXLabel(mtComParam, "MRTS interval(ms):");
-  new FXTextField(mtComParam,12,dtDefMrtsInterval,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_INTEGER|JUSTIFY_RIGHT|JUSTIFY_RIGHT,
-                  0, 0, 50, 15);
-#endif ENABLE_MRTS_CONNECTION
 
   FXGroupBox* gpCalibParam  = 
     new FXGroupBox(frDefaults, "Calibration",
@@ -1714,11 +1553,6 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
   new FXTextField(mtEndEffector ,20, dtNeedleConfName,
                   FXDataTarget::ID_VALUE, JUSTIFY_LEFT|FRAME_SUNKEN,
                   0, 0, 100, 15);
-  /*
-  FXMatrix* mtEndEffector2 = 
-    new FXMatrix(frEndEffector,3,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y);
-  */
 
   new FXLabel(mtEndEffector, "Offset A (mm):");
   new FXTextField(mtEndEffector,5,dtDefNeedleOffset[0],
@@ -1936,18 +1770,6 @@ void MrsvrMainWindow::loadRegistry()
 //    = getApp()->reg().readIntEntry("COMMUNICATION", "LOCATOR_SERVER_INTERVAL",
 //                                   DEFAULT_LSERVER_INTERVAL_MS);
 
-#ifdef ENABLE_MRTS_CONNECTION
-  valDefMrtsPortNo
-    = getApp()->reg().readIntEntry("COMMUNICATION", "MRTS_PORT",
-                                   DEFAULT_MRTS_PORT);
-  valDefMrtsHostName
-    = getApp()->reg().readStringEntry("COMMUNICATION", "MRTS_HOST",
-                                      DEFAULT_MRTS_HOST);
-  valDefMrtsInterval
-    = getApp()->reg().readIntEntry("COMMUNICATION", "MRTS_INTERVAL",
-                                   DEFAULT_MRTS_INTERVAL/1000);
-#endif //ENABLE_MRTS_CONNECTION
-
   // Calibration
   char str[128];
   for (int i = 0; i < NUM_PROC_AUTOCALIB; i ++) {
@@ -2046,14 +1868,6 @@ void MrsvrMainWindow::storeRegistry()
                                    valDefLocServHostName.text());
   getApp()->reg().writeIntEntry("COMMUNICATION", "REMOTE_CONTROL_INTERVAL",
                                valDefLocServInterval);
-#ifdef ENABLE_MRTS_CONNECTION
-  getApp()->reg().readIntEntry("COMMUNICATION", "MRTS_PORT",
-                               valDefMrtsPortNo);
-  getApp()->reg().readStringEntry("COMMUNICATION", "MRTS_HOST",
-                                  valDefMrtsHostName.text());
-  getApp()->reg().readIntEntry("COMMUNICATION", "MRTS_INTERVAL",
-                               valDefMrtsInterval);
-#endif
 
   // Calibration
   for (int i = 0; i < NUM_PROC_AUTOCALIB; i ++) {
@@ -2146,14 +1960,6 @@ void MrsvrMainWindow::setDataTargets()
   }
 
   
-#ifdef ENABLE_MRTS_CONNECTION
-  // Communication -> MRTS Connection
-  dtMrtsStatus    = new FXDataTarget(valMrtsStatus, this, ID_UPDATE_PARAMETER);
-  dtMrtsHostName  = new FXDataTarget(valMrtsHostName, this, ID_UPDATE_PARAMETER);
-  dtMrtsPortNo    = new FXDataTarget(valMrtsPortNo, this, ID_UPDATE_PARAMETER);
-  dtMrtsInterval  = new FXDataTarget(valMrtsInterval, this, ID_UPDATE_PARAMETER);
-#endif //ENABLE_MRTS_CONNECTION
-
   // Calibration
   for (int i = 0; i < NUM_PROC_AUTOCALIB; i ++) {
     dtAutoCalibProcSelect[i] = new FXDataTarget(valAutoCalibProcSelect[i],
@@ -2260,15 +2066,6 @@ void MrsvrMainWindow::setDataTargets()
   dtDefLocServInterval =
     new FXDataTarget(valDefLocServInterval, this, ID_UPDATE_PARAMETER);
   
-#ifdef ENABLE_MRTS_CONNECTION
-  dtDefMrtsPortNo =
-    new FXDataTarget(valDefMrtsPortNo, this, ID_UPDATE_PARAMETER);
-  dtDefMrtsHostName =
-    new FXDataTarget(valDefMrtsHostName, this, ID_UPDATE_PARAMETER);
-  dtDefMrtsInterval =
-    new FXDataTarget(valDefMrtsInterval, this, ID_UPDATE_PARAMETER);
-#endif //ENABLE_MRTS_CONNECTION
-
   // -- Calibration
   for (int i = 0; i < NUM_PROC_AUTOCALIB; i ++) {
     dtDefAutoCalibProcSelect[i] = 
@@ -2323,19 +2120,6 @@ void MrsvrMainWindow::setDefaultParameters()
   // Communication -> Server Thread configuration
   valConPortNo = valDefConPortNo;
   valConStatus = "Launching";
-
-  //valLocServPortNo   = valDefLocServPortNo;
-  //valLocServHostName = valDefLocServHostName;
-  //valLocServInterval = valDefLocServInterval;
-  //valLocServStatus   = "Disconnected";
-
-#ifdef ENABLE_MRTS_CONNECTION
-  // Communication -> MRTS Connection
-  valMrtsHostName = valDefMrtsHostName;
-  valMrtsPortNo   = valDefMrtsPortNo;
-  valMrtsInterval = valDefMrtsInterval;
-  valMrtsStatus   = "Disconnected";
-#endif //ENABLE_MRTS_CONNECTION
 
   // Calibration
   for (int i = 0; i < NUM_PROC_AUTOCALIB; i ++) {
@@ -2636,6 +2420,7 @@ long MrsvrMainWindow::onCanvasRepaint(FXObject*, FXSelector,void* ptr)
 }
 
 
+
 long MrsvrMainWindow::onUpdateActuatorVoltage(FXObject* obj, FXSelector sel,void*)
 {
   int actuator = getObjectIndex(obj, (FXObject**)dtManualActuatorVol, NUM_ACTUATORS);
@@ -2818,7 +2603,7 @@ long MrsvrMainWindow::onUpdateTimer(FXObject*, FXSelector,void*)
   char *sit;
   static int pi = 0;
   int ci = robotStatus->getInfoTextIdx();
-  if (pi != ci) {
+  if (pi != ci && ci >= 0) {
     sit = robotStatus->getInfoText(ci);
     textStatusProg->setText(sit);
     valStatusProg = robotStatus->getProgress();
@@ -2980,46 +2765,6 @@ long MrsvrMainWindow::onUpdateTimer(FXObject*, FXSelector,void*)
     updateTcpInfoTbl();
   }
 
-  //// update Locator Server Connection status
-  //if (locClient != NULL) {
-  //  if (locClient->getStatus() == MrsvrLocatorClient::LOCATOR_CONNECTED) {
-  //    valLocServStatus = "Connected";
-  //  } else {
-  //    valLocServStatus = "Disconnected";
-  //  }
-  //}
-
-#ifdef ENABLE_MRTS_CONNECTION
-  // update MRTS server status
-  if (mrtsConnection != NULL) {
-    valMrtsStatus = mrtsConnection->getStatusStr();
-  }
-#endif //ENABLE_MRTS_CONNECTION
-
-  // update Locator Server information
-  //if (locClient != NULL &&
-  //    locClient->getStatus() == MrsvrLocatorClient::LOCATOR_CONNECTED) {
-  //  float pos[9];
-  //  int r = locClient->getLatestPos(pos);
-  //  valLocServPX = pos[0];
-  //  valLocServPY = pos[1];
-  //  valLocServPZ = pos[2];
-  //  valLocServNX = pos[3];
-  //  valLocServNY = pos[4];
-  //  valLocServNZ = pos[5];
-  //  valLocServTX = pos[6];
-  //  valLocServTY = pos[7];
-  //  valLocServTZ = pos[8];
-  //  if (r == MrsvrLocatorClient::LOCATOR_SENSOR_OK) {
-  //    valLocServSenseStatus = "Active";
-  //  } else {
-  //    valLocServSenseStatus = "Blocked";
-  //  }
-  //} else {
-  //  valLocServSenseStatus = "Offline";
-  //}
-
-
   // update plot canvas
   while (robotLog->next()) {
     for (int i = 0; i < NUM_ACTUATORS; i ++) {
@@ -3174,39 +2919,6 @@ long MrsvrMainWindow::onCmdStopCom(FXObject*, FXSelector, void*)
     return 0;
   }
 }
-
-
-#ifdef ENABLE_MRTS_CONNECTION
-long MrsvrMainWindow::onCmdMrtsCon(FXObject*, FXSelector, void*)
-{
-  DBG_MMW_PRINT("onCmdMrtsCon()\n");
-  consolePrint(1, true, "Connecting to MRTS on host: %s port: %d...",
-               valMrtsHostName.text(), valMrtsPortNo);
-
-  if (mrtsConnection) {
-    mrtsConnection->setHostname(valMrtsHostName.text());
-    mrtsConnection->setPortNo(valMrtsPortNo);
-    cout << "interval = " << valMrtsInterval << endl;
-    mrtsConnection->setInterval((long)valMrtsInterval*1000);
-    mrtsConnection->run();
-    return 1;
-  } else {
-    return 0;
-  }
-}
-#endif //ENABLE_MRTS_CONNECTION
-
-#ifdef ENABLE_MRTS_CONNECTION
-long MrsvrMainWindow::onCmdMrtsDiscon(FXObject*, FXSelector, void*)
-{
-  DBG_MMW_PRINT("onCmdMrtsDiscon()\n");
-  consolePrint(1, true, "Disconnecting MRTS.\n");
-
-  mrtsConnection->quitProcess();
-  //cout << "interval = " << valMrtsInterval << endl;
-  return 1;
-}
-#endif //ENABLE_MRTS_CONNECTION
 
 
 long MrsvrMainWindow::onCmdSaveDefault(FXObject*, FXSelector, void*)
@@ -3662,10 +3374,6 @@ long MrsvrMainWindow::onShutdownMrsvrBtnReleased(FXObject* obj, FXSelector sel, 
   DBG_MMW_PRINT("onShutdownMrsvrBtnReleased().\n");
   consolePrint(2, true, "Shutting down MRSVR....\n");
 
-#ifdef ENABLE_MRTS_CONNECTION
-  mrtsConnection->quitProcess();
-#endif//ENABLE_MRTS_CONNECTION
-
   robotCommand->setShutdown(true);
   
   for (int actuator = 0; actuator < NUM_ACTUATORS; actuator ++) {
@@ -3730,7 +3438,7 @@ long MrsvrMainWindow::onUpdateManualPowerSw(FXObject* obj, FXSelector sel, void*
 //Shows new Dialog Box
 long MrsvrMainWindow::onCmdShowDialog(FXObject*,FXSelector,void*)
 {
-  FXNavigationDialog modaldialog(this);
+  MrsvrZFrameRegistrationDialog modaldialog(this);
   modaldialog.execute(PLACEMENT_OWNER);
   return 1;
 }

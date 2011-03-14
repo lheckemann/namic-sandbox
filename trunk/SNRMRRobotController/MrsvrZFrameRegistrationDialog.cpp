@@ -16,23 +16,23 @@
 // $Date: 2006/01/20 03:15:47 $
 //====================================================================
 
-#include "MrsvrNavigationDialog.h"
+#include "MrsvrZFrameRegistrationDialog.h"
 
 using namespace std;
 
 //Maier Message Map
-FXDEFMAP(FXNavigationDialog) FXNavigationDialogMap[]={
+FXDEFMAP(MrsvrZFrameRegistrationDialog) MrsvrZFrameRegistrationDialogMap[]={
 //_____________Message_Type_________________ID_________________Messgae Handler
-FXMAPFUNC(SEL_PAINT,  FXNavigationDialog::ID_CANVAS2,              FXNavigationDialog::onPaint),
-FXMAPFUNC(SEL_TIMEOUT,  FXNavigationDialog::ID_TIMER,              FXNavigationDialog::onCmdTimer),
+FXMAPFUNC(SEL_PAINT,  MrsvrZFrameRegistrationDialog::ID_CANVAS2,              MrsvrZFrameRegistrationDialog::onPaint),
+FXMAPFUNC(SEL_TIMEOUT,  MrsvrZFrameRegistrationDialog::ID_TIMER,              MrsvrZFrameRegistrationDialog::onCmdTimer),
 };
  
 
-FXIMPLEMENT(FXNavigationDialog,FXDialogBox,FXNavigationDialogMap,ARRAYNUMBER(FXNavigationDialogMap))
+FXIMPLEMENT(MrsvrZFrameRegistrationDialog,FXDialogBox,MrsvrZFrameRegistrationDialogMap,ARRAYNUMBER(MrsvrZFrameRegistrationDialogMap))
 
 
 // Construct a dialog box
-FXNavigationDialog::FXNavigationDialog(FXWindow* owner):
+MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
   FXDialogBox(owner,"Robot without slicer",DECOR_TITLE|DECOR_MENU)
 {
 
@@ -322,13 +322,13 @@ FXNavigationDialog::FXNavigationDialog(FXWindow* owner):
 
 
 // Destructor
-FXNavigationDialog::~FXNavigationDialog()
+MrsvrZFrameRegistrationDialog::~MrsvrZFrameRegistrationDialog()
 {
   getApp()->removeTimeout(this,ID_TIMER);
 }
 
 //Create new dc
-long FXNavigationDialog::onPaint(FXObject*,FXSelector,void* ptr)
+long MrsvrZFrameRegistrationDialog::onPaint(FXObject*,FXSelector,void* ptr)
 {
   FXEvent *ev=(FXEvent*)ptr;
   FXDCWindow dc(canvas,ev);
@@ -338,7 +338,7 @@ long FXNavigationDialog::onPaint(FXObject*,FXSelector,void* ptr)
 }
 
 //Clear Canvas
-long FXNavigationDialog::onCmdClear()
+long MrsvrZFrameRegistrationDialog::onCmdClear()
 {
   FXDCWindow dc(canvas);
   dc.setForeground(FXRGB(255,255,255));
@@ -346,7 +346,7 @@ long FXNavigationDialog::onCmdClear()
   return 1;
 }
 
-long FXNavigationDialog::onPaintTarget()
+long MrsvrZFrameRegistrationDialog::onPaintTarget()
 {
   FXDCWindow dc(canvas);
   //Draw New Target [Zeroposition=(-5,-5)]
@@ -379,16 +379,16 @@ long FXNavigationDialog::onPaintTarget()
 }
 
 //Timed function for deleting and repainting canvas
-long FXNavigationDialog::onCmdTimer(FXObject*,FXSelector,void*)
+long MrsvrZFrameRegistrationDialog::onCmdTimer(FXObject*,FXSelector,void*)
 {
   
   //Next call this Funktion in 80ms
   getApp()->addTimeout(this,ID_TIMER,80);
   
   //Delete old canvas
-  FXNavigationDialog::onCmdClear();
+  MrsvrZFrameRegistrationDialog::onCmdClear();
   //Paint new canvas
-  FXNavigationDialog::onPaintTarget();
+  MrsvrZFrameRegistrationDialog::onPaintTarget();
   
   return 1;
   
