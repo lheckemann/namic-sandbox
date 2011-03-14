@@ -13,6 +13,8 @@ INCLUDE (CheckIncludeFiles)
 option(BUILD_SHARED "Build Shared Libraries" OFF)
 option(USE_FBISIM   "Use FBISIM Libraries" ON)
 option(USE_ARTAPI   "Use ARTLinux API" ON)
+SET(FOX_LIBNAME "FOX-1.2" CACHE STRING "FOX Toolkit library name")
+
 
 ADD_DEFINITIONS(-DHAVE_JPEG_H=1)
 ADD_DEFINITIONS(-DHAVE_PNG_H=1)
@@ -204,7 +206,7 @@ add_executable(main main.cpp)
 target_link_libraries(main
   MrsvrCom
   MrsvrIF
-  FOX-1.2
+  ${FOX_LIBNAME}
   OpenIGTLink
   newmat
   pthread
