@@ -666,7 +666,6 @@ public:
 
   long onCmdShowDialog(FXObject*,FXSelector,void*); //Maier 
 
-  long setRegistrationMatrix(float matrix[16]);
   
 };
 
