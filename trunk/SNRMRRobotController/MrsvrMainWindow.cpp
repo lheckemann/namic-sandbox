@@ -57,9 +57,6 @@ FXDEFMAP(MrsvrMainWindow) MrsvrMainWindowMap[] = {
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_CALIBRATE,   MrsvrMainWindow::onCmdCalibrate),  
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_START_COM,   MrsvrMainWindow::onCmdStartCom),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_STOP_COM,    MrsvrMainWindow::onCmdStopCom),
-  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_LOCSERV_CON, MrsvrMainWindow::onCmdLocServCon),
-  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_LOCSERV_DISCON, 
-                                                               MrsvrMainWindow::onCmdLocServDiscon),
 #ifdef ENABLE_MRTS_CONNECTION
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_MRTS_CON,    MrsvrMainWindow::onCmdMrtsCon),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_MRTS_DISCON, MrsvrMainWindow::onCmdMrtsDiscon),
@@ -120,17 +117,6 @@ FXDEFMAP(MrsvrMainWindow) MrsvrMainWindowMap[] = {
 
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_UPDATE_NEEDLE_APPR_OFFSET,
                                                                MrsvrMainWindow::onUpdateNeedleApprOffset),
-  /*
-  FXMAPFUNC(SEL_LEFTBUTTONPRESS,
-                          MrsvrMainWindow::ID_NEEDLE_APPR_BTN, MrsvrMainWindow::onNeedleApprBtnPressed),
-  FXMAPFUNC(SEL_LEFTBUTTONRELEASE,
-                          MrsvrMainWindow::ID_NEEDLE_APPR_BTN, MrsvrMainWindow::onNeedleApprBtnReleased),
-  FXMAPFUNC(SEL_LEFTBUTTONPRESS,
-                          MrsvrMainWindow::ID_NEEDLE_LEAVE_BTN, MrsvrMainWindow::onNeedleLeaveBtnPressed),
-  FXMAPFUNC(SEL_LEFTBUTTONRELEASE,
-                          MrsvrMainWindow::ID_NEEDLE_LEAVE_BTN, MrsvrMainWindow::onNeedleLeaveBtnReleased),
-  */
-
   FXMAPFUNC(SEL_LEFTBUTTONRELEASE,
                           MrsvrMainWindow::ID_SHUTDOWN_MRSVR_BTN,MrsvrMainWindow::onShutdownMrsvrBtnReleased),
   
@@ -166,8 +152,6 @@ const char* MrsvrMainWindow::quickPanelGIF[] = {
 
 const char* MrsvrMainWindow::autoCalibProcNameText[] = {
   "Home Position",
-  "Angle Calibration",
-  "Registration",
 };
 
 
@@ -385,7 +369,7 @@ int MrsvrMainWindow::buildControlPanel(FXComposite* comp)
   FXVerticalFrame* frControlPanel = 
     new FXVerticalFrame(comp, 
                         LAYOUT_FILL_Y|/*LAYOUT_FILL_X|*/LAYOUT_FIX_WIDTH|FRAME_RAISED|
-                        LAYOUT_TOP|LAYOUT_LEFT, 0, 0, 220, 0);
+                        LAYOUT_TOP|LAYOUT_LEFT, 0, 0, 260, 0);
   shtControlPanel = 
     new FXShutter(frControlPanel, NULL, 0, 
                   FRAME_SUNKEN|LAYOUT_FILL_Y|LAYOUT_FILL_X|
@@ -492,6 +476,7 @@ int MrsvrMainWindow::buildCalibrationControlPanel(FXComposite* comp)
   char name[128];
   FXLabel *lb;
 
+  //////// Automatic Calibration Section 
   FXGroupBox* gpAutoCalib  = 
     new FXGroupBox(comp, "Automatic Calibration",
                    LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
@@ -508,11 +493,6 @@ int MrsvrMainWindow::buildCalibrationControlPanel(FXComposite* comp)
   mtAutoCalibProcs->setBackColor(getApp()->getShadowColor());
 
   for (int i = 0; i < NUM_PROC_AUTOCALIB; i ++) {
-//    FXCheckButton* cb;
-//    cb =  new FXCheckButton(gpAutoCalib,autoCalibProcNameText[i],
-//                            dtAutoCalibProcSelect[i],0,
-//                            ICON_BEFORE_TEXT|LAYOUT_SIDE_TOP);
-//    cb->setBackColor(getApp()->getShadowColor());
     lb = new FXLabel(mtAutoCalibProcs, autoCalibProcNameText[i]);
     lb->setBackColor(getApp()->getShadowColor());
     FXPopup* popup = new FXPopup(this);
@@ -529,32 +509,28 @@ int MrsvrMainWindow::buildCalibrationControlPanel(FXComposite* comp)
     options->setSelector(FXDataTarget::ID_VALUE);
   }
 
-  FXGroupBox* gpAutoCalibPoints  = 
-    new FXGroupBox(frAutoCalib, "Calibration Points",
+
+  //////// Z-Frame Calibration
+  FXGroupBox* gpZFrameCalib  = 
+    new FXGroupBox(comp, "Z-Frame Calibration",
                    LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-  gpAutoCalibPoints->setBackColor(getApp()->getShadowColor());
-  FXMatrix* mtAutoCalibPoints  = 
-    new FXMatrix(gpAutoCalibPoints,4,
+  gpZFrameCalib->setBackColor(getApp()->getShadowColor());
+
+  FXVerticalFrame *frZFrameCalib = 
+    new FXVerticalFrame(gpZFrameCalib,
+                          LAYOUT_FILL_X|LAYOUT_FILL_Y);
+  frZFrameCalib->setBackColor(getApp()->getShadowColor());
+
+  FXMatrix* mtZFrameMatrix  = 
+    new FXMatrix(frZFrameCalib,4,
                  MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
                  LAYOUT_TOP|LAYOUT_CENTER_X);
 
-  lb = new FXLabel(mtAutoCalibPoints, " ");
-  lb->setBackColor(getApp()->getShadowColor());
-  lb = new FXLabel(mtAutoCalibPoints, "RX");
-  lb->setBackColor(getApp()->getShadowColor());
-  lb = new FXLabel(mtAutoCalibPoints, "RY");
-  lb->setBackColor(getApp()->getShadowColor());
-  lb = new FXLabel(mtAutoCalibPoints, "RZ");
-  lb->setBackColor(getApp()->getShadowColor());
-
-  mtAutoCalibPoints->setBackColor(getApp()->getShadowColor());
-  for (int i = 0; i < NUM_CALIB_POINTS; i ++) {
-    char str[16];
-    sprintf(str, "#%d", i);
-    lb = new FXLabel(mtAutoCalibPoints, str);
+  mtZFrameMatrix->setBackColor(getApp()->getShadowColor());
+  for (int i = 0; i < 4; i ++) {
     lb->setBackColor(getApp()->getShadowColor());
-    for (int j = 0; j < 3; j ++) {
-      new FXTextField(mtAutoCalibPoints,4,dtAutoCalibPoints[i][j],
+    for (int j = 0; j < 4; j ++) {
+      new FXTextField(mtZFrameMatrix,4,dtAutoCalibPoints[i][j],
                       FXDataTarget::ID_VALUE,
                       TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
                       FRAME_SUNKEN, 
@@ -562,10 +538,12 @@ int MrsvrMainWindow::buildCalibrationControlPanel(FXComposite* comp)
     }
   }
 
-  new FXButton(frAutoCalib, "Start", NULL, this, 
+  new FXButton(frZFrameCalib, "Set", NULL, this, 
                ID_CMD_CALIBRATE,FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
 
+
+  //////// Z-Frame Calibration
   FXGroupBox* gpManualCalib =
     new FXGroupBox(comp, "Manual Calibration",
                    LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
@@ -575,13 +553,8 @@ int MrsvrMainWindow::buildCalibrationControlPanel(FXComposite* comp)
                           LAYOUT_FILL_X|LAYOUT_FILL_Y);
   frManualCalib->setBackColor(getApp()->getShadowColor());
 
-  FXGroupBox* gpManualCalibAct =
-    new FXGroupBox(frManualCalib, "Actuators",
-                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-  gpManualCalibAct->setBackColor(getApp()->getShadowColor());
-
   FXMatrix* mtManualCalib = 
-    new FXMatrix(gpManualCalibAct,4,
+    new FXMatrix(frManualCalib,4,
                    MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
                    LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
                    LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
@@ -602,52 +575,6 @@ int MrsvrMainWindow::buildCalibrationControlPanel(FXComposite* comp)
                                   LAYOUT_CENTER_Y|LAYOUT_FILL_X);
   }
 
-  FXGroupBox* gpManualCalibEnc =
-    new FXGroupBox(frManualCalib, "Encoders",
-                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-  gpManualCalibEnc->setBackColor(getApp()->getShadowColor());
-
-  FXMatrix* mtManualCalibEnc = 
-    new FXMatrix(gpManualCalibEnc,2,
-                   MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                   LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
-                   LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-  mtManualCalibEnc->setBackColor(getApp()->getShadowColor());
-  
-  for (int i = NUM_ACTUATORS; i < NUM_ENCODERS; i ++) {
-    sprintf(name, "encoder #%d", i);
-    FXLabel* lb = new FXLabel(mtManualCalibEnc, name);
-    lb->setBackColor(getApp()->getShadowColor());
-    btCalibZero[i] = new FXButton(mtManualCalibEnc, "Set 0", NULL, this, ID_CALIB_ZERO_BTN,
-                               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-                               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-  }
-
-//  FXGroupBox* gpCalibVelocity =
-//    new FXGroupBox(comp, "Actuator Velocity",
-//                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-//  gpCalibVelocity->setBackColor(getApp()->getShadowColor());
-//  FXMatrix* mtCalibVelocity = 
-//    new FXMatrix(gpCalibVelocity,2,
-//                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-//                 LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT,
-//                 LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-//  mtCalibVelocity->setBackColor(getApp()->getShadowColor());
-//  for (int i = 0; i < NUM_ACTUATORS; i ++) {
-//    sprintf(name, "#%d", i);
-//    FXLabel* lb = new FXLabel(mtCalibVelocity, name);
-//    lb->setBackColor(getApp()->getShadowColor());
-//    FXSlider* slider=new FXSlider(mtCalibVelocity,dtManualActuatorVol[i],
-//                                  FXDataTarget::ID_VALUE,
-//                                  LAYOUT_TOP|LAYOUT_FIX_WIDTH|
-//                                  LAYOUT_FIX_HEIGHT|SLIDER_HORIZONTAL|
-//                                  SLIDER_INSIDE_BAR|SLIDER_TICKS_BOTTOM,
-//                                  0,0,120,20);
-//    slider->setBaseColor(getApp()->getShadowColor());
-//    slider->setBackColor(getApp()->getShadowColor());
-//    slider->setRange(0,MANUAL_VOL_STEPS-1);
-//  }
-//
 
   return 1;
 }
@@ -1090,7 +1017,7 @@ int MrsvrMainWindow::buildSwPanel(FXComposite* comp)
     new FXHorizontalFrame(comp,
                           LAYOUT_FILL_X|FRAME_RAISED|
                           LAYOUT_TOP|LAYOUT_LEFT|
-                          LAYOUT_FIX_WIDTH,  0, 0, 220, 0);
+                          LAYOUT_FIX_WIDTH,  0, 0, 260, 0);
   FXGroupBox* gpActuatorSw = 
     new FXGroupBox(frActuatorSw, "POWER",
                    LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X|
@@ -3246,42 +3173,6 @@ long MrsvrMainWindow::onCmdStopCom(FXObject*, FXSelector, void*)
   } else {
     return 0;
   }
-}
-
-
-long MrsvrMainWindow::onCmdLocServCon(FXObject*, FXSelector, void*)
-{
-  //DBG_MMW_PRINT("onCmdLocServCon()\n");
-  //consolePrint(1, true, "Connecting to Locator Server on host: %s port: %d...",
-  //             valLocServHostName.text(), valLocServPortNo);
-  //
-  //if (locClient) {
-  //  locClient->setServer(valLocServHostName.text(), valLocServPortNo);
-  //  locClient->setIntervalMs(valLocServInterval);
-  //  //if (locClient->connectToServer() == MrsvrLocatorClient::FAILURE) {
-  //  //  DBG_MMW_PRINT("onCmdLocServCon(): connection failed\n");
-  //  //  consolePrint(1, true, "failed\n");
-  //  //  //textStatusProg->setText("Connot connect to Locator Server.\n");
-  //  //} else {
-  //  //  consolePrint(1, true, "connected\n");
-  //  //  locClient->run();
-  //  //}
-  //} else {
-  //  DBG_MMW_PRINT("onCmdLocServCon(): Locator Client module is not active.\n");
-  //  consolePrint(0, true, "\nLocator Server is not active.\n",
-  //               valLocServHostName.text(), valLocServPortNo);
-  //}
-  return 1;
-}
-
-
-long MrsvrMainWindow::onCmdLocServDiscon(FXObject*, FXSelector, void*)
-{
-  //DBG_MMW_PRINT("onCmdLocServDiscon()\n");
-  //consolePrint(1, true, "Disconnecting from Locator Server.\n");
-  //
-  //locClient->disconnect();
-  return 1;
 }
 
 

@@ -42,9 +42,7 @@
 // Automatic Calibration Sequence
 
 #define AUTOCALIB_HOME_POSITION   0
-#define AUTOCALIB_ANGLE           1
-#define AUTOCALIB_REGISTRATION    2
-#define NUM_PROC_AUTOCALIB        3
+#define NUM_PROC_AUTOCALIB        1
 
 #define NUM_CALIB_POINTS          6
 
