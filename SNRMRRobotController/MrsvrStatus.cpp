@@ -51,7 +51,7 @@ const char* MrsvrStatus::posUnitName[] = {
 MrsvrStatus::MrsvrStatus(key_t shmkey)  :
   MrsvrSharedData(shmkey, SHARED_MEMORY_SIZE_STATUS)
 {
-  statusInfo = (MrsvrStatusInfo*)sharedMemory;
+  this->statusInfo = (MrsvrStatusInfo*)sharedMemory;
 }
 
 
@@ -72,6 +72,9 @@ MrsvrStatusReader::~MrsvrStatusReader()
 {
   
 }
+
+
+
 
 
 

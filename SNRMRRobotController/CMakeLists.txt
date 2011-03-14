@@ -62,6 +62,7 @@ find_path(FOX_LINK_DIR
 set(INC_DIR
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/newmat/
+  ${CMAKE_CURRENT_SOURCE_DIR}/ZFrame/
   ${OpenIGTLink_INCLUDE_DIRS}
   ${FOX_INCLUDE_DIR}
 )
@@ -111,7 +112,7 @@ set(IFOBJ_SOURCES
   MrsvrMainWindow.cpp
   MrsvrPlotCanvas.cpp
   MrsvrTransform.cpp
-  MrsvrNavigationDialog.cpp
+  MrsvrZFrameRegistrationDialog.cpp
 )
 
 set(CTRLOBJ_SOURCES
@@ -148,6 +149,10 @@ set(NEWMAT_SOURCES
   newmat/newmat8.cpp
 )
 
+set(ZFRAME_SOURCES
+  ZFrame/ZFrameCalibration.cxx
+)
+
 if(USE_FBISIM)
   set(FBISIM_SOURCES
     fbisim/fbida_sim.c
@@ -168,6 +173,9 @@ if(BUILD_SHARED)
   add_library(newmat SHARED
     ${NEWMAT_SOURCES}
   )
+  add_library(zframe SHARED
+    ${ZFRAME_SOURCES}
+  )
 else(BUILD_SHARED)
   if(USE_FBISIM)
     add_library(fbisim
@@ -177,7 +185,14 @@ else(BUILD_SHARED)
   add_library(newmat
     ${NEWMAT_SOURCES}
   )
+  add_library(zframe
+    ${ZFRAME_SOURCES}
+  )
 endif(BUILD_SHARED)
+
+target_link_libraries(zframe
+    newmat
+)
 
 add_library(MrsvrCom
     ${COMOBJ_SOURCES}
@@ -208,6 +223,7 @@ target_link_libraries(main
   MrsvrIF
   ${FOX_LIBNAME}
   OpenIGTLink
+  zframe
   newmat
   pthread
   m

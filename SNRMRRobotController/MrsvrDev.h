@@ -62,7 +62,7 @@
 #define DEV_ENC_COUNT    3
 
 #define NUM_ACTUATORS        3
-#define NUM_ENCODERS         5
+#define NUM_ENCODERS         3
 
 // Bit masks for digital Input masks
 // Note : Low   (ON)  -> 1 

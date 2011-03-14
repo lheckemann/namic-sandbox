@@ -155,7 +155,10 @@ class MrsvrStatusReader : public MrsvrStatus {
     { return statusInfo->lifetime[i];   };
   inline int   getActuatorExpiration(int i)
     { return statusInfo->expiration[i]; };
-  inline int   getInfoTextIdx()      { return statusInfo->infoTextIdx; };
+  inline int   getInfoTextIdx()      {
+    return (statusInfo->infoTextIdx < NUM_INFO_TEXT_BUFFER && 
+            statusInfo->infoTextIdx >= 0) ? statusInfo->infoTextIdx: -1; };
+
   inline char* getInfoText(int i)    { return statusInfo->infoText[i]; };
   inline char* getInfoTextLatest()
     { return statusInfo->infoText[statusInfo->infoTextIdx];  };

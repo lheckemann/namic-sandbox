@@ -24,14 +24,14 @@
 
 
 //Class Maier Dialog Box
-class FXNavigationDialog : public FXDialogBox {
-  FXDECLARE(FXNavigationDialog)
+class MrsvrZFrameRegistrationDialog : public FXDialogBox {
+  FXDECLARE(MrsvrZFrameRegistrationDialog)
 protected:
   FXHorizontalFrame* frplPl;
 
 
 private:
-  FXNavigationDialog(){}
+  MrsvrZFrameRegistrationDialog(){}
   
   FXDataTarget *dtNewTarget[3];
   float valNewTarget[3];
@@ -49,7 +49,7 @@ private:
   FXFont *canvasFont0;
   
 public:
-  FXNavigationDialog(FXWindow* owner);
+  MrsvrZFrameRegistrationDialog(FXWindow* owner);
   long onCmdClear();
   long onPaintTarget();
 public:  
@@ -69,7 +69,7 @@ public: //Messages
    ID_LAST
    };
 
-  virtual ~FXNavigationDialog();
+  virtual ~MrsvrZFrameRegistrationDialog();
 };
 
 
