@@ -47,15 +47,18 @@ private:
 
   //Font for Canvas Text
   FXFont *canvasFont0;
+
+  float registrationMatrix[16];
   
 public:
   MrsvrZFrameRegistrationDialog(FXWindow* owner);
   long onCmdClear();
   long onPaintTarget();
-public:  
-  //Message Handler
   long onPaint(FXObject*,FXSelector,void*);
   long onCmdTimer(FXObject*, FXSelector,void*);
+  long onCmdRunRegistration(FXObject*, FXSelector,void*);
+  void getRegistrationMatrix(float matrix[16]);
+
 private: 
    FXCanvas *canvas;
 
@@ -66,7 +69,8 @@ public: //Messages
    ID_PAINT_TARGET,
    ID_UPDATE_PARAMETER,
    ID_TIMER,
-   ID_LAST
+   ID_LAST,
+   ID_RUN_REGISTRATION,
    };
 
   virtual ~MrsvrZFrameRegistrationDialog();

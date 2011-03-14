@@ -23,8 +23,9 @@ using namespace std;
 //Maier Message Map
 FXDEFMAP(MrsvrZFrameRegistrationDialog) MrsvrZFrameRegistrationDialogMap[]={
 //_____________Message_Type_________________ID_________________Messgae Handler
-FXMAPFUNC(SEL_PAINT,  MrsvrZFrameRegistrationDialog::ID_CANVAS2,              MrsvrZFrameRegistrationDialog::onPaint),
-FXMAPFUNC(SEL_TIMEOUT,  MrsvrZFrameRegistrationDialog::ID_TIMER,              MrsvrZFrameRegistrationDialog::onCmdTimer),
+FXMAPFUNC(SEL_PAINT,    MrsvrZFrameRegistrationDialog::ID_CANVAS2,          MrsvrZFrameRegistrationDialog::onPaint),
+FXMAPFUNC(SEL_TIMEOUT,  MrsvrZFrameRegistrationDialog::ID_TIMER,            MrsvrZFrameRegistrationDialog::onCmdTimer),
+FXMAPFUNC(SEL_COMMAND,  MrsvrZFrameRegistrationDialog::ID_RUN_REGISTRATION, MrsvrZFrameRegistrationDialog::onCmdRunRegistration),
 };
  
 
@@ -33,10 +34,17 @@ FXIMPLEMENT(MrsvrZFrameRegistrationDialog,FXDialogBox,MrsvrZFrameRegistrationDia
 
 // Construct a dialog box
 MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
-  FXDialogBox(owner,"Robot without slicer",DECOR_TITLE|DECOR_MENU)
+  FXDialogBox(owner,"Z-Frame Registration ",DECOR_TITLE|DECOR_MENU)
 {
 
-  //Data initial
+  // Initialize registration matrix with identity matrix
+  for (int i = 0; i < 16; i ++) {
+    registrationMatrix[i] = 0.0;
+  }
+  registrationMatrix[4*0+0] = 1.0;
+  registrationMatrix[4*1+1] = 1.0;
+  registrationMatrix[4*2+2] = 1.0;
+  registrationMatrix[4*3+3] = 1.0;
   
   //Fill with test Data, must be connected to Slicer and Manual Reg
   valOldTarget[0]=65.9;
@@ -391,6 +399,20 @@ long MrsvrZFrameRegistrationDialog::onCmdTimer(FXObject*,FXSelector,void*)
   MrsvrZFrameRegistrationDialog::onPaintTarget();
   
   return 1;
+  
+}
+
+long MrsvrZFrameRegistrationDialog::onCmdRunRegistration(FXObject*,FXSelector,void*)
+{
+  return 1;
+}
+
+
+void MrsvrZFrameRegistrationDialog::getRegistrationMatrix(float matrix[16])
+{
+  for (int i = 0; i < 16; i ++) {
+    matrix[i] = registrationMatrix[i];
+  }
   
 }
 

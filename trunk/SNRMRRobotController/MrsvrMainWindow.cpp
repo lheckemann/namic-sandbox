@@ -532,6 +532,11 @@ int MrsvrMainWindow::buildCalibrationControlPanel(FXComposite* comp)
                   0, 0, 20, 15);
   }
 
+  new FXButton(frZFrameCalib, "Nav without Slicer", NULL, this,
+               ID_SHOWDIALOG,
+               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+  
   new FXButton(frZFrameCalib, "Set", NULL, this, 
                ID_CMD_CALIBRATE,FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
@@ -930,15 +935,15 @@ int MrsvrMainWindow::buildSystemControlPanel(FXComposite* comp)
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
 
 //Maier Button to startup Nav without Slicer
-    FXGroupBox* gpNoSlicer = 
-    new FXGroupBox(comp, "Nav without Slicer",
-                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X|
-                   LAYOUT_CENTER_X);
-    gpNoSlicer->setBackColor(getApp()->getShadowColor());
-    new FXButton(gpNoSlicer, "Nav without Slicer", NULL, this,
-               ID_SHOWDIALOG,
-               BUTTON_NORMAL|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+//    FXGroupBox* gpNoSlicer = 
+//    new FXGroupBox(comp, "Nav without Slicer",
+//                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X|
+//                   LAYOUT_CENTER_X);
+//    gpNoSlicer->setBackColor(getApp()->getShadowColor());
+//    new FXButton(gpNoSlicer, "Nav without Slicer", NULL, this,
+//               ID_SHOWDIALOG,
+//               BUTTON_NORMAL|LAYOUT_CENTER_X|
+//               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
 //End Maier
   return 1;
 }
@@ -2187,6 +2192,7 @@ void MrsvrMainWindow::updateExternalCommands()
           valCalibrationMatrix[i*4+j] = calibration[i][j];
         }
       }
+      transform->setCalibrationMatrix(valCalibrationMatrix);
     }
   }
 }
@@ -3438,10 +3444,21 @@ long MrsvrMainWindow::onUpdateManualPowerSw(FXObject* obj, FXSelector sel, void*
 //Shows new Dialog Box
 long MrsvrMainWindow::onCmdShowDialog(FXObject*,FXSelector,void*)
 {
-  MrsvrZFrameRegistrationDialog modaldialog(this);
-  modaldialog.execute(PLACEMENT_OWNER);
+  MrsvrZFrameRegistrationDialog* modaldialog = new MrsvrZFrameRegistrationDialog(this);
+  modaldialog->execute(PLACEMENT_OWNER);
+  
+  float matrix[16];
+  modaldialog->getRegistrationMatrix(matrix);
+  
+  for (int i = 0; i < 16; i ++) {
+    valCalibrationMatrix[i] = matrix[i];
+  }
+  transform->setCalibrationMatrix(matrix);
+
+  
+  delete modaldialog;
+  
   return 1;
 }
-
 
 

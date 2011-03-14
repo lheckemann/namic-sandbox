@@ -154,8 +154,6 @@ class MrsvrMessageServer : public MrsvrThread {
   //void        setStop();
   int         setMode(const char*);
   void        getRobotStatus(int* mode, int* outrange, int* lock);
-
-
   
 
 };
