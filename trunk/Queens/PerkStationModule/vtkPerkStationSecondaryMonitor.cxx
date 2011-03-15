@@ -708,6 +708,7 @@ vtkPerkStationSecondaryMonitor
     this->TablePositionActor->FlipAroundY( true );
     this->CalibrationNameActor->FlipAroundY( true );
     this->PlanNameActor->FlipAroundY( true );
+    this->DepthMeasureTextActor->FlipAroundY( true );
     }
   else
     {
@@ -718,6 +719,7 @@ vtkPerkStationSecondaryMonitor
     this->TablePositionActor->FlipAroundY( false );
     this->CalibrationNameActor->FlipAroundY( false );
     this->PlanNameActor->FlipAroundY( false );
+    this->DepthMeasureTextActor->FlipAroundY( false );
     }
 
   if (    this->GetPerkStationModuleNode()->GetFinalVerticalFlip() )
@@ -729,6 +731,7 @@ vtkPerkStationSecondaryMonitor
     this->TablePositionActor->FlipAroundX( true );
     this->CalibrationNameActor->FlipAroundX( true );
     this->PlanNameActor->FlipAroundX( true );
+    this->DepthMeasureTextActor->FlipAroundX( true );
     }
   else
     {
@@ -739,6 +742,7 @@ vtkPerkStationSecondaryMonitor
     this->TablePositionActor->FlipAroundX( false );
     this->CalibrationNameActor->FlipAroundX( false );
     this->PlanNameActor->FlipAroundX( false );
+    this->DepthMeasureTextActor->FlipAroundX( false );
     }
   
   
