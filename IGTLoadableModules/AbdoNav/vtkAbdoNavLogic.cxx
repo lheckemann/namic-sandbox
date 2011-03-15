@@ -76,10 +76,6 @@ vtkAbdoNavLogic::~vtkAbdoNavLogic()
   //----------------------------------------------------------------
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
 
-  if (this->RegistrationTransform)
-    {
-    this->RegistrationTransform->Delete();
-    }
   if (this->OriginalTrackerTransform)
     {
     this->OriginalTrackerTransform->Delete();
@@ -221,10 +217,11 @@ void vtkAbdoNavLogic::PerformRegistration()
   if (this->AbdoNavNode->GetRegistrationTransformID() == NULL)
     {
     // create a new registration transform node and add it to the scene
-    this->RegistrationTransform = vtkMRMLLinearTransformNode::New(); // deleted in destructor
+    this->RegistrationTransform = vtkMRMLLinearTransformNode::New();
     this->RegistrationTransform->SetName("AbdoNav-RegistrationTransform");
     this->RegistrationTransform->SetDescription("Created by AbdoNav");
     this->GetMRMLScene()->AddNode(this->RegistrationTransform);
+    this->RegistrationTransform->Delete();
     // set registration transform node ID in AbdoNavNode
     this->AbdoNavNode->SetRegistrationTransformID(this->RegistrationTransform->GetID());
     // get original tracker transform node and make it observe the registration transform node
