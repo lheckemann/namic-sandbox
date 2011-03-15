@@ -1275,9 +1275,11 @@ vtkPerkStationModuleGUI
   
   
   vtkMRMLPerkStationModuleNode* moduleNode = this->GetPerkStationModuleNode();
+  
   if ( moduleNode != NULL  &&  moduleNode == vtkMRMLPerkStationModuleNode::SafeDownCast( caller )) 
   {
-    this->UpdateGUI();
+    // No need to update anytime the module node is the caller.
+    // this->UpdateGUI();
   }
   
   
@@ -1298,7 +1300,8 @@ vtkPerkStationModuleGUI
        && this->GetPerkStationModuleNode()->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode() == displayNode
        && event == vtkCommand::ModifiedEvent )
     {
-    this->GetSecondaryMonitor()->UpdateImageDisplay();
+    // Timer always modifies the MRML node, and GUI update deletes entry fields.
+    // this->GetSecondaryMonitor()->UpdateImageDisplay();
     }
   
   
