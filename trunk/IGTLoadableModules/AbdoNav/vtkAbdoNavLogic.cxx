@@ -218,7 +218,7 @@ void vtkAbdoNavLogic::PerformRegistration()
   //
   //----------------------------------------------------------------
 
-  if (this->RegistrationTransform == NULL)
+  if (this->AbdoNavNode->GetRegistrationTransformID() == NULL)
     {
     // create a new registration transform node and add it to the scene
     this->RegistrationTransform = vtkMRMLLinearTransformNode::New(); // deleted in destructor
@@ -239,6 +239,10 @@ void vtkAbdoNavLogic::PerformRegistration()
                     "Couldn't move original tracker transform node below registration transform node "
                     "because vtkMRMLAbdoNavNode::GetOriginalTrackerTransformID() returned NULL!");
       }
+    }
+  else
+    {
+    this->RegistrationTransform = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationTransformID()));
     }
 
   vtkMatrix4x4* registrationMatrix = vtkMatrix4x4::New();
