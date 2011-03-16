@@ -72,6 +72,9 @@ typedef struct {
 
   float        lmtVoltage[NUM_ENCODERS];  // voltage limitter
 
+  // Commands for calibration
+  int          calibrationCommand;
+
   // for automatic calibration
   bool         autoCalibProcSwitch[NUM_AUTOCALIB_PROC];
   float        autoCalibPoints[NUM_CALIB_POINTS][3];
@@ -91,6 +94,12 @@ public:
     VOLTAGE,
     VELOCITY,
     POSITION,
+  };
+
+  enum {
+    CALIBRATION_STOP,
+    CALIBRATION_HOME,
+    CALIBRATION_MANUAL,
   };
 
 protected:  // shared data
@@ -144,6 +153,11 @@ public:
     return cmdInfo->actuatorActive[i];
   }
 
+  inline int getCalibrationCommand() {
+    return cmdInfo->calibrationCommand;
+  }
+    
+
 public:
   MrsvrCommandReader(key_t);
   ~MrsvrCommandReader();
@@ -184,6 +198,11 @@ public:
   inline void  setAutoCalibPoitns(int i, int d, float v) {
     cmdInfo->autoCalibPoints[i][d] = v;
   }
+
+  inline int setCalibrationCommand() {
+    return cmdInfo->calibrationCommand;
+  }
+
   inline void enableAutoCalibProc(int i) {
     cmdInfo->autoCalibProcSwitch[i] = true;
   }

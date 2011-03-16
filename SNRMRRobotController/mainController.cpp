@@ -121,6 +121,37 @@ using namespace std;
       slog->addLogText("=====================\n");}
 #endif
 
+// ==================================================
+//  State Transition Diagram
+// ==================================================
+//
+//  1. START_UP:     Boot-up sequence (Hardware / Software)
+//  2. CALIBRATION:  Cailbration mode
+//  3. STOP:         Hardware/software ready, no command accepted
+//  4. MANUAL:       Local control
+//  5. REMOTE:       Local control + Remote control
+//  6. EMERGENCY:    Halt system
+//  7. RESET:        Restart system
+//
+//  NOTE:
+//   The only difference betweeen MANUAL and REMOTE mode is whether the interface
+//   process accepts commands from remote software. In the control process,
+//   these two modes are handled in the same way.
+//
+//                                       +------+
+//  START_UP -> CALIBRATION <-> STOP <-> |MANUAL| ------> EMERGENCY 
+//      ^                         |      |   ^  |            |(Safety pause)
+//      |                         |      |   |  |            |
+//      |                         |      |   v  |            |
+//      |                         |      |REMOTE|            |
+//      |                         |      +------+            |
+//      |                         |          |               |
+//      |                         +--------+ |               |
+//      |                                  | |               |
+//      |                                  v v               |
+//      +-------------------------------- RESET <------------+
+//                               (Automatically transition to START_UP)
+
 
 // shared data
 MrsvrStatusWriter*            status;
@@ -192,7 +223,249 @@ inline void printDate()
 }
 
 
-int init()
+//#define WAIT_LOCATOR     5000000   // (us)
+//#define WAIT_ANGLE_SET   500000    // (us)
+//
+//inline int procAutoCalib(bool init)
+//{
+//  enum {
+//    CALIB_INTORANGE,
+//    CALIB_TOHOME,
+//    CALIB_SETANGLE,
+//    CALIB_REGISTRATION,
+//    CALIB_ADJUST,
+//  };
+//  
+//  static char strbuf[MAX_INFO_TEXT_SIZE];
+//  static int  calibStatus;
+//  static bool fUpdateCalibStatus; // True if calibStatus is updated.
+//  static bool calibProcSwitch[6];
+//  static int ls;
+//  static int actuator;
+//  //  static MrsvrVector angleSetPoint = { 0.0, 0.0, 0.0 };
+//  MrsvrVector angleSetPoint;
+//  static MrsvrVector calibPoint;
+//  // add variable to recode each RAS position
+//  static int calibPointIndex;
+//  static int waitAngleSet;
+//  static int waitLocator;
+//
+//  if (init) {
+//    printDate();
+//    CONSOLE_PRINT("Automatic calibration started.\n");
+//    CONSOLE_PRINT("  Preparing automatic calibration...\n");
+//    status->setInfoText("Start to calibrate actuators and sensors ...");
+//    calibStatus = CALIB_INTORANGE;
+//    actuator    = 0;
+//    status->setProgress(0);
+//    //sprintf(strbuf, "Moving actuator #%d to the home position...", actuator);
+//    //status->setInfoText(strbuf);
+//    //CONSOLE_PRINT(strbuf);
+//    status->setMode(MrsvrStatus::CALIBRATION);
+//    status->setCurrentCalibPointIndex(-1);
+//
+//    fUpdateCalibStatus = true;
+//
+//    // calibration process switch
+//    for (int i = 0; i < 6; i ++) {
+//      calibProcSwitch[i] = true;
+//    }
+//    if (!command->isAutoCalibProcEnable(AUTOCALIB_PROC_HOME)) {
+//      calibProcSwitch[CALIB_TOHOME] = false;
+//    }
+//    if (!command->isAutoCalibProcEnable(AUTOCALIB_PROC_ANGLE)) {
+//      calibProcSwitch[CALIB_SETANGLE] = false;
+//    }
+//    if (!command->isAutoCalibProcEnable(AUTOCALIB_PROC_REGISTRATION)) {
+//      calibProcSwitch[CALIB_REGISTRATION] = false;
+//    }
+//    status->setSetAngleReadyIndex(-1);
+//    status->setCalibReadyIndex(-1);
+//  }
+//
+//  switch (calibStatus) {
+//  case CALIB_INTORANGE:
+//    if (fUpdateCalibStatus) {
+//      actuator = 0;
+//      fUpdateCalibStatus = false;
+//      if (!calibProcSwitch[calibStatus]) {
+//        calibStatus ++;
+//      }
+//    }
+//
+//#ifdef _ENABLE_ACTUATOR_LOCK_DETECTION
+//    if (dev->isActuatorLocked(actuator)) {
+//      //printf("actuator #%d is locked.", actuator);
+//      ls = 0;
+//    } else 
+//#endif //_ENABLE_ACTUATOR_LOCK_DETECTION
+//    {
+//      ls = dev->getLimitSensorStatus(actuator);
+//    }
+//    if (ls > 0) {
+//      dev->setVoltage(actuator, -1.5);
+//      status->setVoltage(actuator, dev->getVoltage(actuator));
+//    } else if (ls < 0) {
+//      dev->setVoltage(actuator, 1.5);
+//      status->setVoltage(actuator, dev->getVoltage(actuator));
+//    } else {
+//      dev->setVoltage(actuator, 0.0);
+//      status->setVoltage(actuator, dev->getVoltage(actuator));
+//      actuator ++;
+//      if (actuator >= NUM_ACTUATORS) {
+//        calibStatus ++;
+//        fUpdateCalibStatus = true;
+//        sprintf(strbuf, "Moving actuator #%d into range...", actuator);
+//        status->setInfoText(strbuf);
+//      } else {
+//        sprintf(strbuf, "Moving actuator #%d into range...", actuator);
+//        status->setInfoText(strbuf);
+//      }
+//    }
+//    status->setProgress(10);
+//    break;
+//  case CALIB_TOHOME:
+//    if (fUpdateCalibStatus) {
+//      actuator = 0;
+//      fUpdateCalibStatus = false;
+//      if (!calibProcSwitch[calibStatus]) {
+//        calibStatus ++;
+//        printDate();
+//        CONSOLE_PRINT("Setting HOME POSITION skipped.\n");
+//      } else {
+//        sprintf(strbuf, "Moving actuator #%d to the home position...", actuator);
+//        status->setInfoText(strbuf);
+//      }
+//    }
+//#ifdef _ENABLE_ACTUATOR_LOCK_DETECTION
+//    if (dev->isActuatorLocked(actuator)) {
+//      //printf("actuator #%d is locked.", actuator);
+//      ls = -1;
+//    } else
+//#endif //_ENABLE_ACTUATOR_LOCK_DETECTION
+//    {
+//      ls = dev->getLimitSensorStatus(actuator);
+//    }
+//    if (ls == 0) {
+//      dev->setVoltage(actuator, -1.5);
+//      status->setVoltage(actuator, dev->getVoltage(actuator));
+//    } else {
+//      dev->setVoltage(actuator, 0.0);
+//      status->setVoltage(actuator, dev->getVoltage(actuator));
+//      dev->setZero(actuator);  // reset encoder to zero
+//      actuator ++;
+//      if (actuator >= NUM_ACTUATORS) {
+//        calibStatus ++;
+//        fUpdateCalibStatus = true;
+//      } else {
+//      }
+//    }
+//    status->setProgress(20);
+//    break;
+//  case CALIB_SETANGLE:
+//    if (fUpdateCalibStatus) {
+//      actuator = 0;
+//      fUpdateCalibStatus = false;
+//      waitLocator = WAIT_LOCATOR / interval;
+//      waitAngleSet = WAIT_ANGLE_SET / interval;
+//      status->setSetAngleReadyIndex(-1);
+//      if (!calibProcSwitch[calibStatus]) {
+//        calibStatus ++;
+//        printDate();
+//        CONSOLE_PRINT("Setting ANGLE skipped.\n");
+//      }
+//    }
+//    command->getAutoCalibPoint(0, angleSetPoint);
+//    if (trapCtrl(angleSetPoint, dev->getVmax(0)) <= 0) { 
+//      status->setInfoText("Reading locator information...");
+//      // when stage is arrive at the destination
+//      waitLocator --;
+//      if (waitLocator < 0) {
+//        // -- call flashpoint reading fucntion here !! --
+//        status->setSetAngleReadyIndex(0);
+//        if (command->getSetAngleDoneIndex() == 0) {
+//          float angles[2];
+//          status->setSetAngleReadyIndex(-1);
+//          command->getSetAngles(angles);
+//          CONSOLE_PRINT("Encoder #3: %f, Encoder #4: %f.\n", angles[0], angles[1]);
+//          dev->setPosition(NUM_ACTUATORS,   angles[0]);
+//          dev->setPosition(NUM_ACTUATORS+1, angles[1]);
+//
+//          calibStatus ++;
+//          fUpdateCalibStatus = true;
+//          status->setProgress(40);
+//        }
+//      }
+//    } else { 
+//      // while stage is moving to the destination
+//      status->setInfoText("Setting end effector angle...");
+//      status->setProgress(30);
+//    }
+//    break;
+//
+//  case CALIB_REGISTRATION:
+//    if (fUpdateCalibStatus) {
+//      actuator = 0;
+//      fUpdateCalibStatus = false;
+//      calibPointIndex = 0;
+//      waitLocator = WAIT_LOCATOR / interval;
+//      status->setCurrentCalibPointIndex(-1);
+//      status->setCalibReadyIndex(-1);
+//      if (!calibProcSwitch[calibStatus]) {
+//        calibStatus ++;
+//        printDate();
+//        CONSOLE_PRINT("REGISTRATION skipped.\n");
+//      }
+//    }
+//    if (calibPointIndex >= NUM_CALIB_POINTS) {
+//      calibStatus ++;
+//      fUpdateCalibStatus = true;
+//      status->setCurrentCalibPointIndex(-1);
+//    } else if (calibPointIndex == NUM_CALIB_POINTS) {
+//      // waiting for transform module to calicurate matrix.
+//      if (command->getCalibDoneIndex() == calibPointIndex) { 
+//        calibPointIndex ++;
+//      }
+//    } else {
+//      command->getAutoCalibPoint(calibPointIndex, calibPoint);
+//      status->setCurrentCalibPointIndex(calibPointIndex);
+//      if (trapCtrl(calibPoint, dev->getVmax(0)) <= 0) {
+//        sprintf(strbuf, "Setting fiducial point #%d...", calibPointIndex);
+//        status->setInfoText(strbuf);
+//        waitLocator --;
+//        if (waitLocator < 0) {
+//          // -- notify to IF that calibration is ready
+//          status->setCalibReadyIndex(calibPointIndex);
+//          if (command->getCalibDoneIndex() == calibPointIndex) { 
+//            // After reading locator information 
+//            waitLocator = WAIT_LOCATOR / interval;
+//            calibPointIndex ++;
+//          }
+//        }
+//      } else {
+//        sprintf(strbuf, "Moving to fiducial point #%d...", calibPointIndex);
+//        status->setInfoText(strbuf);
+//      }
+//    }
+//    break;
+//  default:
+//    if (fUpdateCalibStatus) {
+//      waitLocator = WAIT_LOCATOR / interval;
+//      fUpdateCalibStatus = false;
+//    }
+//    waitLocator --;
+//    status->setInfoText("Calibration completed.");
+//    status->setProgress(100);
+//    if (waitLocator < 0) {
+//      calibPointIndex = -1;
+//      status->setCalibReadyIndex(-1);
+//    }
+//    break;
+//  }
+//  return 1;
+//}
+
+int initLogInterface()
 {
   cout << "Starting log interface..." << endl;
   slog        = new MrsvrLogWriter(SHM_LOG);
@@ -200,12 +473,15 @@ int init()
   CONSOLE_PRINT("Logging shared memory interface have been attached.\n\n");
   CONSOLE_PRINT(SOFTWARE_NAME "\n");
   CONSOLE_PRINT(COPYRIGHT_STR "\n\n");
-  
+
 #ifdef USE_ART
   //cout << "Use ART Linux Real-time APIs." << endl;
   CONSOLE_PRINT("Use ART Linux Real-time APIs.\n");
 #endif  
+}
 
+int initHistory()
+{
   // initialize position history
   for (int i = 0; i < NUM_ENCODERS; i ++) { 
     for (int j = 0; j < NUM_POSITION_HISTORY; j ++) {
@@ -215,11 +491,14 @@ int init()
     fOutOfRange[i] = 0;
   }
   pPosHist = 0;
+}
 
+int initCommandInterface()
+{
   printDate();
-  CONSOLE_PRINT("Initializing hardwares...\n");
-  dev        = new MrsvrDev();
+  CONSOLE_PRINT("Initializing hardware interfaces...\n");
 
+  dev        = new MrsvrDev();
   printDate();
   CONSOLE_PRINT("Attaching shared information memory...\n");
   status     = new MrsvrStatusWriter(SHM_STATUS);
@@ -236,6 +515,88 @@ int init()
   // register the limit of motion to the shared memory
   status->setLimitPos((float*)dev->getLimitMins(), (float*)dev->getLimitMaxs());
   procStop();
+
+  return 1;
+}
+
+
+int procStartUp()
+{
+  if (status->getMode() != MrsvrStatus::START_UP) {
+    status->setMode(MrsvrStatus::START_UP);
+  }
+  status->setMode(MrsvrStatus::CALIBRATION);
+
+  return 1;
+}
+
+
+inline int procCalibration()
+{
+  if (status->getMode() != MrsvrStatus::CALIBRATION) {
+    status->setMode(MrsvrStatus::CALIBRATION);
+  }
+
+  int f = 0;
+  for (int i = 0; i < NUM_ENCODERS; i ++) {
+    if (command->getZeroFlag(i)) {
+      dev->setZero(i);
+      f = 1;
+    }
+  }
+  if (f) return 1;
+
+  switch (command->getCalibrationCommand()) {
+  case MrsvrCommand::CALIBRATION_STOP:
+    break;
+  case MrsvrCommand::CALIBRATION_HOME:
+    break;
+  case MrsvrCommand::CALIBRATION_MANUAL:
+    for (int i = 0; i < NUM_ACTUATORS; i ++) {
+      dev->setVoltage(i, command->getVoltage(i));
+      status->setVoltage(i, dev->getVoltage(i));
+      DBG_PRINT("setVoltage(%d, %f) \n", i, dev->getVoltage(i));
+    }
+    break;
+  }
+  //switch(command->getCommandBy()) {
+  //case MrsvrCommand::VOLTAGE:
+  //  swst = dev->getSwitchStatus();
+  //  for (int i = 0; i < NUM_ACTUATORS; i ++) {
+  //    //int limit = status->isOutOfRangePos(i);
+  //    int limit = fOutOfRange[i];
+  //    float cmd = 0;
+  //    float lmtv = command->getLmtVoltage(i);
+  //    if (dev->isFwSwitchOn(swst, i)) {
+  //      cmd += lmtv;
+  //    }
+  //    if (dev->isBwSwitchOn(swst, i)) {
+  //      cmd -= lmtv;
+  //    }
+  //    if (cmd == 0.0) {
+  //      cmd = command->getVoltage(i);
+  //    }
+  //  
+  //    if (limit == 0 ||
+  //        cmd * limit < 0) { // if the signs are different
+  //      dev->setVoltage(i, cmd);
+  //      status->setVoltage(i, dev->getVoltage(i));
+  //      DBG_PRINT("setVoltage(%d, %f) \n", i, dev->getVoltage(i));
+  //    } else {
+  //      dev->setVoltage(i, 0.0);
+  //      status->setVoltage(i, dev->getVoltage(i));
+  //      DBG_PRINT("setVoltage(%d, %f) \n", i, dev->getVoltage(i));
+  //    }
+  //  }
+  //  break;
+  //case MrsvrCommand::VELOCITY:
+  //  break;
+  //case MrsvrCommand::POSITION:
+  //  break;
+  //default:
+  //  break;
+  //}
+
   return 1;
 }
 
@@ -257,268 +618,44 @@ inline int procStop()
 }
 
 
-//
-// inline int procAutoCalib()
-// 
-// A subroutine for automatic calibration.
-// The calibration consists of two phases: reset encoder counters 
-// (CALIB_ZERO) and registration of robot coordinate system and image
-// coordinate system (CALIB_REGISTRATION).
-//
-// To reset encode counters at the position of zero limitter, this routine
-// performs following steps:
-//   1. Move an actuator into range of motion.
-//   2. Move the actuator to the zero limitter, and set encoder counter
-//      to zero.
-//
-
-#define WAIT_LOCATOR     5000000   // (us)
-#define WAIT_ANGLE_SET   500000    // (us)
-
-inline int procAutoCalib(bool init)
+inline int procManual()
 {
-  enum {
-    CALIB_INTORANGE,
-    CALIB_TOHOME,
-    CALIB_SETANGLE,
-    CALIB_REGISTRATION,
-    CALIB_ADJUST,
-  };
-  
-  static char strbuf[MAX_INFO_TEXT_SIZE];
-  static int  calibStatus;
-  static bool fUpdateCalibStatus; // True if calibStatus is updated.
-  static bool calibProcSwitch[6];
-  static int ls;
-  static int actuator;
-  //  static MrsvrVector angleSetPoint = { 0.0, 0.0, 0.0 };
-  MrsvrVector angleSetPoint;
-  static MrsvrVector calibPoint;
-  // add variable to recode each RAS position
-  static int calibPointIndex;
-  static int waitAngleSet;
-  static int waitLocator;
-
-  if (init) {
-    printDate();
-    CONSOLE_PRINT("Automatic calibration started.\n");
-    CONSOLE_PRINT("  Preparing automatic calibration...\n");
-    status->setInfoText("Start to calibrate actuators and sensors ...");
-    calibStatus = CALIB_INTORANGE;
-    actuator    = 0;
-    status->setProgress(0);
-    //sprintf(strbuf, "Moving actuator #%d to the home position...", actuator);
-    //status->setInfoText(strbuf);
-    //CONSOLE_PRINT(strbuf);
-    status->setMode(MrsvrStatus::AUTO_CALIB);
-    status->setCurrentCalibPointIndex(-1);
-
-    fUpdateCalibStatus = true;
-
-    // calibration process switch
-    for (int i = 0; i < 6; i ++) {
-      calibProcSwitch[i] = true;
-    }
-    if (!command->isAutoCalibProcEnable(AUTOCALIB_PROC_HOME)) {
-      calibProcSwitch[CALIB_TOHOME] = false;
-    }
-    if (!command->isAutoCalibProcEnable(AUTOCALIB_PROC_ANGLE)) {
-      calibProcSwitch[CALIB_SETANGLE] = false;
-    }
-    if (!command->isAutoCalibProcEnable(AUTOCALIB_PROC_REGISTRATION)) {
-      calibProcSwitch[CALIB_REGISTRATION] = false;
-    }
-    status->setSetAngleReadyIndex(-1);
-    status->setCalibReadyIndex(-1);
+  if (status->getMode() != command->getMode()) {
+    status->setMode(status->getMode());
   }
 
-  switch (calibStatus) {
-  case CALIB_INTORANGE:
-    if (fUpdateCalibStatus) {
-      actuator = 0;
-      fUpdateCalibStatus = false;
-      if (!calibProcSwitch[calibStatus]) {
-        calibStatus ++;
-      }
-    }
+  unsigned short swst;
+  switch(command->getCommandBy()) {
+  case MrsvrCommand::POSITION:
+    MrsvrVector spim, sprb;
+    spim[0] = command->getSetPoint(0);
+    spim[1] = command->getSetPoint(1);
+    spim[2] = command->getSetPoint(2);
+    
+    getActuatorTarget(sprb, spim);
 
-#ifdef _ENABLE_ACTUATOR_LOCK_DETECTION
-    if (dev->isActuatorLocked(actuator)) {
-      //printf("actuator #%d is locked.", actuator);
-      ls = 0;
-    } else 
-#endif //_ENABLE_ACTUATOR_LOCK_DETECTION
-    {
-      ls = dev->getLimitSensorStatus(actuator);
+    if (trapCtrl(sprb, dev->getVmax(0)) <= 0) {
+      //status->setMode(MrsvrStatus::MANUAL);
     }
-    if (ls > 0) {
-      dev->setVoltage(actuator, -1.5);
-      status->setVoltage(actuator, dev->getVoltage(actuator));
-    } else if (ls < 0) {
-      dev->setVoltage(actuator, 1.5);
-      status->setVoltage(actuator, dev->getVoltage(actuator));
-    } else {
-      dev->setVoltage(actuator, 0.0);
-      status->setVoltage(actuator, dev->getVoltage(actuator));
-      actuator ++;
-      if (actuator >= NUM_ACTUATORS) {
-        calibStatus ++;
-        fUpdateCalibStatus = true;
-        sprintf(strbuf, "Moving actuator #%d into range...", actuator);
-        status->setInfoText(strbuf);
-      } else {
-        sprintf(strbuf, "Moving actuator #%d into range...", actuator);
-        status->setInfoText(strbuf);
-      }
-    }
-    status->setProgress(10);
-    break;
-  case CALIB_TOHOME:
-    if (fUpdateCalibStatus) {
-      actuator = 0;
-      fUpdateCalibStatus = false;
-      if (!calibProcSwitch[calibStatus]) {
-        calibStatus ++;
-        printDate();
-        CONSOLE_PRINT("Setting HOME POSITION skipped.\n");
-      } else {
-        sprintf(strbuf, "Moving actuator #%d to the home position...", actuator);
-        status->setInfoText(strbuf);
-      }
-    }
-#ifdef _ENABLE_ACTUATOR_LOCK_DETECTION
-    if (dev->isActuatorLocked(actuator)) {
-      //printf("actuator #%d is locked.", actuator);
-      ls = -1;
-    } else
-#endif //_ENABLE_ACTUATOR_LOCK_DETECTION
-    {
-      ls = dev->getLimitSensorStatus(actuator);
-    }
-    if (ls == 0) {
-      dev->setVoltage(actuator, -1.5);
-      status->setVoltage(actuator, dev->getVoltage(actuator));
-    } else {
-      dev->setVoltage(actuator, 0.0);
-      status->setVoltage(actuator, dev->getVoltage(actuator));
-      dev->setZero(actuator);  // reset encoder to zero
-      actuator ++;
-      if (actuator >= NUM_ACTUATORS) {
-        calibStatus ++;
-        fUpdateCalibStatus = true;
-      } else {
-      }
-    }
-    status->setProgress(20);
-    break;
-  case CALIB_SETANGLE:
-    if (fUpdateCalibStatus) {
-      actuator = 0;
-      fUpdateCalibStatus = false;
-      waitLocator = WAIT_LOCATOR / interval;
-      waitAngleSet = WAIT_ANGLE_SET / interval;
-      status->setSetAngleReadyIndex(-1);
-      if (!calibProcSwitch[calibStatus]) {
-        calibStatus ++;
-        printDate();
-        CONSOLE_PRINT("Setting ANGLE skipped.\n");
-      }
-    }
-    command->getAutoCalibPoint(0, angleSetPoint);
-    if (trapCtrl(angleSetPoint, dev->getVmax(0)) <= 0) { 
-      status->setInfoText("Reading locator information...");
-      // when stage is arrive at the destination
-      waitLocator --;
-      if (waitLocator < 0) {
-        // -- call flashpoint reading fucntion here !! --
-        status->setSetAngleReadyIndex(0);
-        if (command->getSetAngleDoneIndex() == 0) {
-          float angles[2];
-          status->setSetAngleReadyIndex(-1);
-          command->getSetAngles(angles);
-          CONSOLE_PRINT("Encoder #3: %f, Encoder #4: %f.\n", angles[0], angles[1]);
-          dev->setPosition(NUM_ACTUATORS,   angles[0]);
-          dev->setPosition(NUM_ACTUATORS+1, angles[1]);
+  }
 
-          calibStatus ++;
-          fUpdateCalibStatus = true;
-          status->setProgress(40);
-        }
-      }
-    } else { 
-      // while stage is moving to the destination
-      status->setInfoText("Setting end effector angle...");
-      status->setProgress(30);
-    }
-    break;
+  return 1;
+}
 
-  case CALIB_REGISTRATION:
-    if (fUpdateCalibStatus) {
-      actuator = 0;
-      fUpdateCalibStatus = false;
-      calibPointIndex = 0;
-      waitLocator = WAIT_LOCATOR / interval;
-      status->setCurrentCalibPointIndex(-1);
-      status->setCalibReadyIndex(-1);
-      if (!calibProcSwitch[calibStatus]) {
-        calibStatus ++;
-        printDate();
-        CONSOLE_PRINT("REGISTRATION skipped.\n");
-      }
-    }
-    if (calibPointIndex >= NUM_CALIB_POINTS) {
-      calibStatus ++;
-      fUpdateCalibStatus = true;
-      status->setCurrentCalibPointIndex(-1);
-    } else if (calibPointIndex == NUM_CALIB_POINTS) {
-      // waiting for transform module to calicurate matrix.
-      if (command->getCalibDoneIndex() == calibPointIndex) { 
-        calibPointIndex ++;
-      }
-    } else {
-      command->getAutoCalibPoint(calibPointIndex, calibPoint);
-      status->setCurrentCalibPointIndex(calibPointIndex);
-      if (trapCtrl(calibPoint, dev->getVmax(0)) <= 0) {
-        sprintf(strbuf, "Setting fiducial point #%d...", calibPointIndex);
-        status->setInfoText(strbuf);
-        waitLocator --;
-        if (waitLocator < 0) {
-          // -- notify to IF that calibration is ready
-          status->setCalibReadyIndex(calibPointIndex);
-          if (command->getCalibDoneIndex() == calibPointIndex) { 
-            // After reading locator information 
-            waitLocator = WAIT_LOCATOR / interval;
-            calibPointIndex ++;
-          }
-        }
-      } else {
-        sprintf(strbuf, "Moving to fiducial point #%d...", calibPointIndex);
-        status->setInfoText(strbuf);
-      }
-    }
-    break;
-  default:
-    if (fUpdateCalibStatus) {
-      waitLocator = WAIT_LOCATOR / interval;
-      fUpdateCalibStatus = false;
-    }
-    waitLocator --;
-    status->setInfoText("Calibration completed.");
-    status->setProgress(100);
-    if (waitLocator < 0) {
-      calibPointIndex = -1;
-      status->setCalibReadyIndex(-1);
-    }
-    break;
+
+inline int procReset()
+{
+  if (status->getMode() != MrsvrStatus::RESET) {
+    status->setMode(MrsvrStatus::RESET);
   }
   return 1;
 }
 
 
-inline int procPause()
+inline int procEMERGENCY()
 {
-  if (status->getMode() != MrsvrStatus::PAUSE) {
-    status->setMode(MrsvrStatus::PAUSE);
+  if (status->getMode() != MrsvrStatus::EMERGENCY) {
+    status->setMode(MrsvrStatus::EMERGENCY);
   }
   // stop all actuators
   for (int i = 0; i < NUM_ACTUATORS; i ++) {
@@ -529,143 +666,6 @@ inline int procPause()
   return 1;
 }
 
-
-inline int procMoveTo()
-{
-  //  static int done = -1;
-  static MrsvrVector spim, sprb;
-  static float t;
-
-  if (status->getMode() != MrsvrStatus::MOVE_TO) {
-    status->setMode(MrsvrStatus::MOVE_TO);
-
-    spim[0] = command->getSetPoint(0);
-    spim[1] = command->getSetPoint(1);
-    spim[2] = command->getSetPoint(2);
-
-    getActuatorTarget(sprb, spim);
-
-    t = 0.0;
-    status->setMode(MrsvrStatus::MOVE_TO);
-  }
-  if (trapCtrl(sprb, dev->getVmax(0)) <= 0) {
-    //if (trapCtrl(spim, dev->getVmax(0)) <= 0) {
-    status->setMode(MrsvrStatus::PAUSE);
-  }
-
-  return 1;
-}
-
-
-inline int procManualCalib()
-{
-  if (status->getMode() != MrsvrStatus::MANUAL_CALIB) {
-    status->setMode(MrsvrStatus::MANUAL_CALIB);
-  }
-  int f = 0;
-  for (int i = 0; i < NUM_ENCODERS; i ++) {
-    if (command->getZeroFlag(i)) {
-      dev->setZero(i);
-      f = 1;
-    }
-  }
-  if (f) return 1;
-  switch(command->getCommandBy()) {
-  case MrsvrCommand::VOLTAGE:
-    for (int i = 0; i < NUM_ACTUATORS; i ++) {
-      dev->setVoltage(i, command->getVoltage(i));
-      status->setVoltage(i, dev->getVoltage(i));
-      DBG_PRINT("setVoltage(%d, %f) \n", i, dev->getVoltage(i));
-    }
-    break;
-  case MrsvrCommand::VELOCITY:
-    break;
-  case MrsvrCommand::POSITION:
-    break;
-  default:
-    break;
-  }
-
-  return 1;
-}
-
-inline int procManual()
-{
-  if (status->getMode() != MrsvrStatus::MANUAL) {
-    status->setMode(MrsvrStatus::MANUAL);
-  }
-  unsigned short swst;
-  switch(command->getCommandBy()) {
-  case MrsvrCommand::VOLTAGE:
-    swst = dev->getSwitchStatus();
-    for (int i = 0; i < NUM_ACTUATORS; i ++) {
-      //int limit = status->isOutOfRangePos(i);
-      int limit = fOutOfRange[i];
-      float cmd = 0;
-      float lmtv = command->getLmtVoltage(i);
-      if (dev->isFwSwitchOn(swst, i)) {
-        cmd += lmtv;
-      }
-      if (dev->isBwSwitchOn(swst, i)) {
-        cmd -= lmtv;
-      }
-      if (cmd == 0.0) {
-        cmd = command->getVoltage(i);
-      }
-
-      if (limit == 0 ||
-          cmd * limit < 0) { // if the signs are different
-        dev->setVoltage(i, cmd);
-        status->setVoltage(i, dev->getVoltage(i));
-        DBG_PRINT("setVoltage(%d, %f) \n", i, dev->getVoltage(i));
-      } else {
-        dev->setVoltage(i, 0.0);
-        status->setVoltage(i, dev->getVoltage(i));
-        DBG_PRINT("setVoltage(%d, %f) \n", i, dev->getVoltage(i));
-      }
-    }
-    break;
-  case MrsvrCommand::VELOCITY:
-    break;
-  case MrsvrCommand::POSITION:
-    break;
-  default:
-    break;
-  }
-
-  return 1;
-}
-
-
-inline int procRemote()
-{
-  //static MrsvrVector spim, sprb;
-  static MrsvrVector spim;
-  int i;
-  //  static float dv;
-
-  if (status->getMode() != MrsvrStatus::REMOTE) {
-    status->setMode(MrsvrStatus::REMOTE);
-  }
-  /*
-  spim[0] = setPoint->getPR();
-  spim[1] = setPoint->getPA();
-  spim[2] = setPoint->getPS();
-  */
-  for (i = 0; i < 3; i ++) {
-    spim[i] = command->getSetPoint(i);
-  }
-  //trans->transform(sprb, spim);
-  //rcmCtrl(sprb, dev->getVmax(0));
-  remoteCtrl(spim, dev->getVmax(0));
-  return 1;
-}
-
-
-inline int procReset()
-{
-  return 1;
-}
 
 #define TH_REACH_ERROR  0.05
 
@@ -966,9 +966,11 @@ int main(int argc, char* argv[])
     cout << "   intv: interval in micro second." << endl;
     exit(1);
   }
-  init();
-  slog->setInterval(interval);
 
+  initLogInterface();
+  initCommandInterface();
+  initHistory();
+  slog->setInterval(interval);
 
 #ifdef USE_ART
   if (art_enter(ART_PRIO_MAX, ART_TASK_PERIODIC, interval) == -1) {
@@ -1020,26 +1022,23 @@ int main(int argc, char* argv[])
     if (fModeChange) {
       printDate();
       switch(m) {
+      case MrsvrStatus::START_UP:
+        CONSOLE_PRINT("Entering START_UP mode...\n");
+        break;
+      case MrsvrStatus::CALIBRATION:
+        CONSOLE_PRINT("Entering CALIBRATION mode...\n");
+        break;
       case MrsvrStatus::STOP:
         CONSOLE_PRINT("Entering STOP mode...\n");
-        break;
-      case MrsvrStatus::MANUAL_CALIB:
-        CONSOLE_PRINT("Entering MANUAL CALIBRATION mode...\n");
-        break;
-      case MrsvrStatus::AUTO_CALIB:
-        CONSOLE_PRINT("Entering AUTO CALIBRATION mode...\n");
-        break;
-      case MrsvrStatus::PAUSE:
-        CONSOLE_PRINT("Entering PAUSE mode...\n");
-        break;
-      case MrsvrStatus::MOVE_TO:
-        CONSOLE_PRINT("Entering MOVE TO mode...\n");
         break;
       case MrsvrStatus::MANUAL:
         CONSOLE_PRINT("Entering MANUAL mode...\n");
         break;
       case MrsvrStatus::REMOTE:
         CONSOLE_PRINT("Entering REMOTE mode...\n");
+        break;
+      case MrsvrStatus::EMERGENCY:
+        CONSOLE_PRINT("Entering EMERGENCY mode...\n");
         break;
       case MrsvrStatus::RESET:
         CONSOLE_PRINT("Entering RESET mode...\n");
@@ -1077,36 +1076,27 @@ int main(int argc, char* argv[])
     }
 
     switch (m) {
-    case MrsvrStatus::STOP:
-      procStop();
-      break;
-    case MrsvrStatus::MANUAL_CALIB:
-      procManualCalib();
-      break;
-    case MrsvrStatus::AUTO_CALIB:
-      if (fModeChange) {
-        procAutoCalib(true);
-      } else {
-        procAutoCalib(false);
-      }
-      break;
-    case MrsvrStatus::PAUSE:
-      procPause();
-      break;
-    case MrsvrStatus::MOVE_TO:
-      procMoveTo();
-      break;
-    case MrsvrStatus::MANUAL:
-      procManual();
-      break;
-    case MrsvrStatus::REMOTE:
-      procRemote();
-      break;
-    case MrsvrStatus::RESET:
-      procReset();
-      break;
-    default:
-      break;
+      case MrsvrStatus::START_UP:
+        procStartUp();
+        break;
+      case MrsvrStatus::CALIBRATION:
+        procCalibration();
+        break;
+      case MrsvrStatus::STOP:
+        procStop();
+        break;
+      case MrsvrStatus::MANUAL:
+        procManual();
+        break;
+      case MrsvrStatus::REMOTE:
+        procManual();
+        break;
+      case MrsvrStatus::EMERGENCY:
+        break;
+      case MrsvrStatus::RESET:
+        break;
+      default:
+        break;
     }
 
 #ifdef _ENABLE_ACTUATOR_LOCK_DETECTION
