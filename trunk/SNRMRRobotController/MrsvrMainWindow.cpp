@@ -35,25 +35,24 @@ using namespace std;
 // Map
 FXDEFMAP(MrsvrMainWindow) MrsvrMainWindowMap[] = {
   //Message_Type___________ID_______________________________Message_Handler__________________
-  //FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_FILEDLG_OPEN,   MrsvrMainWindow::onCmdFileDlgOpen),
-  //FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_FILEDLG_SAVEAS, MrsvrMainWindow::onCmdFileDlgSaveAs),
-  //FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_FILE_CLOSE,     MrsvrMainWindow::onCmdFileClose),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_ABOUT,           MrsvrMainWindow::onCmdAbout),
-  //FXMAPFUNC(SEL_IO_READ,  MrsvrMainWindow::ID_REPAINT_TRIGGER,MrsvrMainWindow::onRepaintTrigger),
   FXMAPFUNC(SEL_PAINT,    MrsvrMainWindow::ID_CANVAS,          MrsvrMainWindow::onCanvasRepaint),
-  //FXMAPFUNC(SEL_COMMAND,   MrsvrMainWindow::ID_RESTORE,       MrsvrMainWindow::onCmdRestore),
+  FXMAPFUNC(SEL_PAINT,    MrsvrMainWindow::ID_AXIAL_CANVAS,    MrsvrMainWindow::onAxialCanvasRepaint),
+  FXMAPFUNC(SEL_PAINT,    MrsvrMainWindow::ID_NEEDLE_CANVAS,   MrsvrMainWindow::onNeedleCanvasRepaint),
+
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_UPDATE_ACTUATOR_VOLTAGE,
                                                                MrsvrMainWindow::onUpdateActuatorVoltage),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_UPDATE_MINI_PLOT,MrsvrMainWindow::onMiniPlotUpdate),
   FXMAPFUNC(SEL_TIMEOUT,  MrsvrMainWindow::ID_UPDATE_TIMER,    MrsvrMainWindow::onUpdateTimer),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_START_UPDATE,    MrsvrMainWindow::onStartUpdate),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_STOP_UPDATE,     MrsvrMainWindow::onStopUpdate),
+
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_STOP,        MrsvrMainWindow::onCmdStop),
-  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_MOVETO,      MrsvrMainWindow::onCmdMoveTo),
-  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_PAUSE,       MrsvrMainWindow::onCmdPause),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_MANUAL,      MrsvrMainWindow::onCmdManual),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_REMOTE,      MrsvrMainWindow::onCmdRemote),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_EMERGENCY,   MrsvrMainWindow::onCmdEmergency),
+  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_RESET,       MrsvrMainWindow::onCmdReset),
+
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_CALIBRATE,   MrsvrMainWindow::onCmdCalibrate),  
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_START_COM,   MrsvrMainWindow::onCmdStartCom),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_STOP_COM,    MrsvrMainWindow::onCmdStopCom),
@@ -154,12 +153,9 @@ const char* MrsvrMainWindow::autoCalibProcNameText[] = {
 // warning text -- corresponds to MrsvrStatus
 const char* MrsvrMainWindow::infoModeText[] = {
   "STOP",
-  "MANUAL CLB.",
-  "AUTO CLB.",
-  "MOVE TO",
-  "PAUSE",
   "MANUAL",
   "REMOTE",
+  "EMERGENCY",
   "RESET",
 };
 
@@ -222,6 +218,9 @@ MrsvrMainWindow::MrsvrMainWindow(FXApp* app, int w, int h)
   extMsgSvr = NULL;
   transform = NULL;
 
+  infoCanvas = NULL;
+  axialCanvas = NULL;
+  needleCanvas = NULL;
 
   // prepare to share control and status information
   cerr << "loading registory..." << endl;
@@ -283,6 +282,9 @@ MrsvrMainWindow::MrsvrMainWindow(FXApp* app, int w, int h)
   infoFont1 = new FXFont(this->getApp(), "helvetica", 20);
   infoFont2 = new FXFont(this->getApp(), "helvetica", 26);
   infoCurrentMode   = -1;
+
+  axialFont = new FXFont(this->getApp(), "helvetica", 9);
+
   //infoCurrentWarn   = -1;
   infoStartTime     = 0;
 
@@ -306,7 +308,7 @@ MrsvrMainWindow::MrsvrMainWindow(FXApp* app, int w, int h)
     new FXVerticalFrame(this, LAYOUT_SIDE_TOP|
                         LAYOUT_FILL_X|FRAME_RAISED|
                         LAYOUT_FIX_HEIGHT, 0, 0, 1000, INFCNV_H);
-
+  
   infoCanvas=new FXCanvas(frInfoDisplay,this,ID_CANVAS,
                           FRAME_SUNKEN|FRAME_THICK|LAYOUT_FILL_X|
                           LAYOUT_FILL_Y|LAYOUT_TOP|LAYOUT_LEFT, 0, 0, 
@@ -394,11 +396,11 @@ int MrsvrMainWindow::buildControlPanel(FXComposite* comp)
   buildConfigurationControlPanel(siControlPanel[CTRL_PNL_CONFIG]->getContent());
 
   
-  siControlPanel[CTRL_PNL_MANUAL] = 
-    new FXShutterItem(shtControlPanel, "Hardware Control", NULL, 
-                      LAYOUT_FILL_X|LAYOUT_FILL_Y|
-                      LAYOUT_TOP|LAYOUT_LEFT);
-  buildManualControlPanel(siControlPanel[CTRL_PNL_MANUAL]->getContent());
+  //siControlPanel[CTRL_PNL_MANUAL] = 
+  //  new FXShutterItem(shtControlPanel, "Hardware Control", NULL, 
+  //                    LAYOUT_FILL_X|LAYOUT_FILL_Y|
+  //                    LAYOUT_TOP|LAYOUT_LEFT);
+  //buildManualControlPanel(siControlPanel[CTRL_PNL_MANUAL]->getContent());
 
 
   siControlPanel[CTRL_PNL_SYSTEM] = 
@@ -706,89 +708,89 @@ int MrsvrMainWindow::buildConfigurationControlPanel(FXComposite* comp)
 }
 
 
-int MrsvrMainWindow::buildManualControlPanel(FXComposite* comp)
-{
-  for (int i = 0; i < NUM_ACTUATORS; i ++) {
-    char name[128];
-    sprintf(name, "actuator #%d", i);
-    FXGroupBox* gpTestActuator  = 
-      new FXGroupBox(comp, name,
-                     LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-    gpTestActuator->setBackColor(getApp()->getShadowColor());
-
-    FXVerticalFrame* frTestActuator = 
-      new FXVerticalFrame(gpTestActuator,
-                          LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                          LAYOUT_TOP|LAYOUT_LEFT, 0, 0, 0, 0, 0, 0, 0, 0);
-    frTestActuator->setBackColor(getApp()->getShadowColor());
-
-    FXMatrix* mtTestActuator = 
-      new FXMatrix(frTestActuator,2,
-                   MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                   LAYOUT_FILL_X|LAYOUT_LEFT|
-                   LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-    mtTestActuator->setBackColor(getApp()->getShadowColor());
-
-    /*
-    // actuator power switch
-    FXLabel* lb = new FXLabel(mtTestActuator, "POWER:");
-    lb->setBackColor(getApp()->getShadowColor());
-    //lb = new FXLabel(mtTestActuator, "[OFF]   [ON]");
-
-    FXMatrix *mtTestActuatorPw = 
-      new FXMatrix(mtTestActuator,3,FRAME_RIDGE|MATRIX_BY_COLUMNS|LAYOUT_FILL_X);
-    
-    new FXButton(mtTestActuatorPw,"OFF",NULL,this,ID_MANUAL_PW_OFF_0+i*2,
-                 BUTTON_TOOLBAR|JUSTIFY_CENTER_X|FRAME_RAISED|
-                 LAYOUT_FILL_X|LAYOUT_FILL_Y|LAYOUT_FILL_COLUMN);
-    new FXButton(mtTestActuatorPw,"ON",NULL,this,ID_MANUAL_PW_ON_0+i*2,
-                 BUTTON_TOOLBAR|JUSTIFY_CENTER_X|FRAME_RAISED|
-                 LAYOUT_FILL_X|LAYOUT_FILL_Y|LAYOUT_FILL_COLUMN);
-    */
-
-    // Voltage adjustor
-    FXLabel* lb = new FXLabel(mtTestActuator, "Vol:");
-    lb->setBackColor(getApp()->getShadowColor());
-
-    FXSlider* slider=new FXSlider(mtTestActuator,dtManualActuatorVol[i],FXDataTarget::ID_VALUE,
-                                  LAYOUT_TOP|LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT|
-                                  SLIDER_HORIZONTAL|SLIDER_INSIDE_BAR|SLIDER_TICKS_BOTTOM,
-                                  0,0,120,20);
-    slider->setBaseColor(getApp()->getShadowColor());
-    slider->setBackColor(getApp()->getShadowColor());
-    slider->setRange(0,MANUAL_VOL_STEPS-1);
-
-    // Move buttons
-    lb = new FXLabel(mtTestActuator, "Control:");
-    lb->setBackColor(getApp()->getShadowColor());
-
-    FXHorizontalFrame* frTestActuatorBt = 
-      new FXHorizontalFrame(mtTestActuator, 
-                          //LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                          LAYOUT_FILL_X|
-                          LAYOUT_TOP|LAYOUT_LEFT);
-    frTestActuatorBt->setBackColor(getApp()->getShadowColor());
-
-//    FXMatrix* mtTestActuatorBt = 
+//int MrsvrMainWindow::buildManualControlPanel(FXComposite* comp)
+//{
+//  for (int i = 0; i < NUM_ACTUATORS; i ++) {
+//    char name[128];
+//    sprintf(name, "actuator #%d", i);
+//    FXGroupBox* gpTestActuator  = 
+//      new FXGroupBox(comp, name,
+//                     LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
+//    gpTestActuator->setBackColor(getApp()->getShadowColor());
+//
+//    FXVerticalFrame* frTestActuator = 
+//      new FXVerticalFrame(gpTestActuator,
+//                          LAYOUT_FILL_Y|LAYOUT_FILL_X|
+//                          LAYOUT_TOP|LAYOUT_LEFT, 0, 0, 0, 0, 0, 0, 0, 0);
+//    frTestActuator->setBackColor(getApp()->getShadowColor());
+//
+//    FXMatrix* mtTestActuator = 
 //      new FXMatrix(frTestActuator,2,
 //                   MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-//                   LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT,
+//                   LAYOUT_FILL_X|LAYOUT_LEFT|
 //                   LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-//    mtTestActuatorBt->setBackColor(getApp()->getShadowColor());
+//    mtTestActuator->setBackColor(getApp()->getShadowColor());
 //
-    btManualLeft[i] = 
-      new FXButton(frTestActuatorBt, "  <<  ", NULL, this, ID_MANUAL_LEFT_BTN,
-                   FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-                   LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-    btManualRight[i] = 
-      new FXButton(frTestActuatorBt, "  >>  ", NULL,  this, ID_MANUAL_RIGHT_BTN,
-                   FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-                   LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-
-  }
-
-  return 1;
-}
+//    /*
+//    // actuator power switch
+//    FXLabel* lb = new FXLabel(mtTestActuator, "POWER:");
+//    lb->setBackColor(getApp()->getShadowColor());
+//    //lb = new FXLabel(mtTestActuator, "[OFF]   [ON]");
+//
+//    FXMatrix *mtTestActuatorPw = 
+//      new FXMatrix(mtTestActuator,3,FRAME_RIDGE|MATRIX_BY_COLUMNS|LAYOUT_FILL_X);
+//    
+//    new FXButton(mtTestActuatorPw,"OFF",NULL,this,ID_MANUAL_PW_OFF_0+i*2,
+//                 BUTTON_TOOLBAR|JUSTIFY_CENTER_X|FRAME_RAISED|
+//                 LAYOUT_FILL_X|LAYOUT_FILL_Y|LAYOUT_FILL_COLUMN);
+//    new FXButton(mtTestActuatorPw,"ON",NULL,this,ID_MANUAL_PW_ON_0+i*2,
+//                 BUTTON_TOOLBAR|JUSTIFY_CENTER_X|FRAME_RAISED|
+//                 LAYOUT_FILL_X|LAYOUT_FILL_Y|LAYOUT_FILL_COLUMN);
+//    */
+//
+//    // Voltage adjustor
+//    FXLabel* lb = new FXLabel(mtTestActuator, "Vol:");
+//    lb->setBackColor(getApp()->getShadowColor());
+//
+//    FXSlider* slider=new FXSlider(mtTestActuator,dtManualActuatorVol[i],FXDataTarget::ID_VALUE,
+//                                  LAYOUT_TOP|LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT|
+//                                  SLIDER_HORIZONTAL|SLIDER_INSIDE_BAR|SLIDER_TICKS_BOTTOM,
+//                                  0,0,120,20);
+//    slider->setBaseColor(getApp()->getShadowColor());
+//    slider->setBackColor(getApp()->getShadowColor());
+//    slider->setRange(0,MANUAL_VOL_STEPS-1);
+//
+//    // Move buttons
+//    lb = new FXLabel(mtTestActuator, "Control:");
+//    lb->setBackColor(getApp()->getShadowColor());
+//
+//    FXHorizontalFrame* frTestActuatorBt = 
+//      new FXHorizontalFrame(mtTestActuator, 
+//                          //LAYOUT_FILL_Y|LAYOUT_FILL_X|
+//                          LAYOUT_FILL_X|
+//                          LAYOUT_TOP|LAYOUT_LEFT);
+//    frTestActuatorBt->setBackColor(getApp()->getShadowColor());
+//
+////    FXMatrix* mtTestActuatorBt = 
+////      new FXMatrix(frTestActuator,2,
+////                   MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
+////                   LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT,
+////                   LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
+////    mtTestActuatorBt->setBackColor(getApp()->getShadowColor());
+////
+//    btManualLeft[i] = 
+//      new FXButton(frTestActuatorBt, "  <<  ", NULL, this, ID_MANUAL_LEFT_BTN,
+//                   FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+//                   LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+//    btManualRight[i] = 
+//      new FXButton(frTestActuatorBt, "  >>  ", NULL,  this, ID_MANUAL_RIGHT_BTN,
+//                   FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+//                   LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+//
+//  }
+//
+//  return 1;
+//}
 
 
 int MrsvrMainWindow::buildSystemControlPanel(FXComposite* comp)
@@ -1046,13 +1048,13 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
   //// Manual Control
   FXGroupBox* gpManualControl  = 
     new FXGroupBox(frMonitorLo, "Manual Control",
-                   FRAME_RIDGE|LAYOUT_FILL_Y|
+                   FRAME_RIDGE|LAYOUT_FILL_X|
                    LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_TOP);
 
-  FXVerticalFrame* frManualControl =
-    new FXVerticalFrame(gpManualControl,
-                        LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                        LAYOUT_TOP|LAYOUT_LEFT);
+  FXHorizontalFrame* frManualControl =
+    new FXHorizontalFrame(gpManualControl,
+                          LAYOUT_FILL_Y|LAYOUT_FILL_X|
+                          LAYOUT_TOP|LAYOUT_LEFT);
   
 
   FXMatrix* mtxManualControl = new FXMatrix(frManualControl,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y); 
@@ -1064,8 +1066,9 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                    LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
   
   axialCanvas = new FXCanvas(gpRAPos,this,ID_AXIAL_CANVAS,
-                             FRAME_SUNKEN|FRAME_THICK|LAYOUT_FILL_X|
-                             LAYOUT_FILL_Y|LAYOUT_FILL_ROW,LAYOUT_FILL_COLUMN);
+                             FRAME_SUNKEN|FRAME_THICK|LAYOUT_FIX_HEIGHT|LAYOUT_FIX_WIDTH|
+                             LAYOUT_FILL_ROW|LAYOUT_FILL_COLUMN,
+                             0,0,AXIALCNV_W,AXIALCNV_H);
   
   //RA-Position Sliders 
   FXGroupBox* gbPlateA = 
@@ -1083,29 +1086,28 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
   FXRealSlider* slider=new FXRealSlider(gbPlateR,dtDeltaPosition[0],FXDataTarget::ID_VALUE,
                                         LAYOUT_LEFT|LAYOUT_FIX_HEIGHT|LAYOUT_FIX_WIDTH|
                                         SLIDER_HORIZONTAL|SLIDER_INSIDE_BAR,
-                                        0,0,200,20);//(??,??,X,Y)
+                                        0,0,AXIALCNV_W,20);
 
   slider->setRange(-valCurrentPosition[0],200.0-valCurrentPosition[0]);
   FXRealSlider* slider2=new FXRealSlider(gbPlateA,dtDeltaPosition[1],FXDataTarget::ID_VALUE,
                                          LAYOUT_TOP|LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT|
                                          SLIDER_VERTICAL|SLIDER_INSIDE_BAR,
-                                         0,0,20,200);
+                                         0,0,20,AXIALCNV_H);
   slider2->setRange(-valCurrentPosition[1],200.0-valCurrentPosition[1]);
   slider2->setIncrement(0.01);
   
-  //FXMatrix* matrix_main2=new FXMatrix(matrix,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
-  //
-  //FXMatrix* matrix_lowerleft=new FXMatrix(matrix_main2,5,MATRIX_BY_COLUMNS|
-  //                                        LAYOUT_SIDE_BOTTOM|LAYOUT_FILL_X|LAYOUT_FILL_Y);
 
 
-  FXHorizontalFrame* frTarget =
-    new FXHorizontalFrame(frMonitorLo,
+
+  FXVerticalFrame* frManualControlRt =
+    new FXVerticalFrame(frManualControl,
                           LAYOUT_FILL_Y|LAYOUT_FILL_X|
                           LAYOUT_TOP|LAYOUT_LEFT);
 
-  //FXMatrix* mtxTarget=new FXMatrix(frMonitorLo,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
-  
+  FXHorizontalFrame* frTarget =
+    new FXHorizontalFrame(frManualControlRt,
+                          LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT);
+
   FXGroupBox* gbSlPos = 
     new FXGroupBox(frTarget, "Current",
                    FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
@@ -1205,6 +1207,8 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                   FRAME_SUNKEN, 
                   0, 0, 50, 15);
 
+  new FXLabel(frTarget," ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
   char buf[4096];
   FILE* fp = fopen("icon/start100x100.gif", "rb");
   fread(buf, 1, 4096, fp);
@@ -1214,6 +1218,12 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                new FXGIFIcon(this->getApp(), (void*)buf),this,MrsvrMainWindow::ID_SET_TARGET_BTN,
                FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+
+  needleCanvas = new FXCanvas(frManualControlRt,this,ID_NEEDLE_CANVAS,
+                              FRAME_SUNKEN|FRAME_THICK|LAYOUT_FIX_HEIGHT|LAYOUT_FIX_WIDTH|
+                              LAYOUT_FILL_ROW|LAYOUT_FILL_COLUMN,
+                              0,0,NEEDLE_CANVAS_W, NEEDLE_CANVAS_H);
+
   
   //new FXButton(frTarget,"&Move to Target",NULL,this,MrsvrMainWindow::ID_SET_TARGET_BTN,FRAME_RAISED|
   //             FRAME_THICK| LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X);
@@ -2230,7 +2240,10 @@ void MrsvrMainWindow::create()
   plotCanvasA->create();
   plotCanvasB->create();
   infoCanvas->create();
+  axialCanvas->create();
+  needleCanvas->create();
 
+  axialFont->create();
 
   infoCnvH        = infoCanvas->getHeight();
   infoCnvW        = infoCanvas->getWidth();
@@ -2394,6 +2407,67 @@ long MrsvrMainWindow::onCanvasRepaint(FXObject*, FXSelector,void* ptr)
 }
 
 
+long MrsvrMainWindow::onAxialCanvasRepaint(FXObject*, FXSelector, void* ptr)
+{
+
+  if (axialCanvas) {
+    FXDCWindow dc(axialCanvas);
+    dc.setForeground(FXRGB(255,255,255));
+
+    dc.fillRectangle(0, 0, AXIALCNV_W, AXIALCNV_H);
+    
+    //Draw New Target [Zeroposition=(-5,-5)]
+    dc.setForeground(FXRGB(255,0,0));
+    dc.drawPoint(valTargetPosition[0]-5,200-valTargetPosition[1]-5);
+    
+    //Draw Old Target
+    dc.setForeground(FXRGB(0,0,255));
+    dc.drawPoint(valCurrentPosition[0]-5,200-valCurrentPosition[1]-5);
+    
+    for (int i = 0; i < 3; i ++) { 
+      valTargetPosition[i]=(valDeltaPosition[i]+valCurrentPosition[i]);
+    }
+    
+    //draw Text NewTarget
+    dc.setForeground(FXRGB(255,0,0));
+    dc.setFont(axialFont);
+    dc.drawText(valTargetPosition[0]-25, 200-valTargetPosition[1]-5,"Current", 7);
+    
+    //draw Text OldTarget
+    dc.setForeground(FXRGB(0,0,255));
+    dc.setFont(axialFont);
+    dc.drawText(valCurrentPosition[0]-25, 200-valCurrentPosition[1]+15,"Target", 6);
+    
+  }
+  return 1;
+
+}
+
+
+long MrsvrMainWindow::onNeedleCanvasRepaint(FXObject*, FXSelector,void*)
+{
+  if (needleCanvas) {
+    FXDCWindow dc(needleCanvas);
+    dc.setForeground(FXRGB(0,0,0));
+
+    dc.fillRectangle(0, 0, NEEDLE_CANVAS_W, NEEDLE_CANVAS_H);
+    
+    ////draw Text NewTarget
+    //dc.setForeground(FXRGB(255,0,0));
+    //dc.setFont(axialFont);
+    //dc.drawText(valTargetPosition[0]-25, 200-valTargetPosition[1]-5,"Current", 7);
+    //
+    ////draw Text OldTarget
+    //dc.setForeground(FXRGB(0,0,255));
+    //dc.setFont(axialFont);
+    //dc.drawText(valCurrentPosition[0]-25, 200-valCurrentPosition[1]+15,"Target", 6);
+    
+  }
+  return 1;
+  
+}
+
+
 
 long MrsvrMainWindow::onUpdateActuatorVoltage(FXObject* obj, FXSelector sel,void*)
 {
@@ -2458,7 +2532,7 @@ long MrsvrMainWindow::onStopUpdate(FXObject*, FXSelector,void*)
 }
 
 
-long MrsvrMainWindow::onUpdateTimer(FXObject*, FXSelector,void*)
+long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
 {
   static int  prevInfoMode = -1;
   static int  prevMode     = -1;
@@ -2483,92 +2557,6 @@ long MrsvrMainWindow::onUpdateTimer(FXObject*, FXSelector,void*)
   // do mode specific processes
   switch(screenMode) {
   case SCR_CALIBRATION:
-    break;
-  default:
-    break;
-  }
-
-  int index;
-  switch (currentMode) {
-  case MrsvrStatus::AUTO_CALIB:
-    if (fModeUpdated) { // called when the mode switches to AUTO_CALIB
-      prevSetAngleReadyIndex = -1;
-      prevCalibReadyIndex = -1;
-      transform->initFiducialPoints();
-      robotCommand->setCalibDoneIndex(-1);
-      robotCommand->setSetAngleDoneIndex(-1);
-      for (int i = 0; i < NUM_CALIB_POINTS; i ++) {
-        float calibp[3];
-        calibp[0] = valAutoCalibPoints[i][0];
-        calibp[1] = valAutoCalibPoints[i][1];
-        calibp[2] = valAutoCalibPoints[i][2];
-        robotCommand->setAutoCalibPoints(i, calibp);
-      }
-
-
-      for (int i = 0; i < NUM_PROC_AUTOCALIB; i ++) {
-        // enable/disable calibration processes
-        if (valAutoCalibProcSelect[i] == 0) {
-          robotCommand->disableAutoCalibProc(i);
-          consolePrint(1, false, "    - %s disabled.\n", autoCalibProcNameText[i]);
-        } else {
-          robotCommand->enableAutoCalibProc(i);
-          consolePrint(1, false, "    - %s enabled.\n", autoCalibProcNameText[i]);
-        }
-      }
-    }
-    index = robotStatus->getSetAngleReadyIndex();
-    if (index >  prevSetAngleReadyIndex) {
-      float pos[9];
-      float angles[2];
-      float nx, ny, nz;
-      prevSetAngleReadyIndex = index;
-      //int locStatus = locClient->getLatestPos(pos);
-      //if (locStatus != MrsvrLocatorClient::LOCATOR_SENSOR_OK) {
-      //  // write error handler for locator trouble in automatic registration
-      //  consolePrint(0, true, "Failed to get locator values in AUTO CALIB.\n");
-      //  robotCommand->setMode(MrsvrStatus::STOP);
-      //  screenMode = SCR_NORMAL;
-      //  break;
-      //}
-      nx = pos[3];
-      ny = pos[4];
-      nz = pos[5];
-      printf("%f, %f, %f\n", nx, ny, nz);
-      angles[0] = (float)asin((double)nx);
-      angles[1] = -(float)asin(-(double)nz/ny);
-      robotCommand->setSetAngles(angles);
-      robotCommand->setSetAngleDoneIndex(0);
-    }
-    index = robotStatus->getCalibReadyIndex();
-    if (index != prevCalibReadyIndex) {
-      prevCalibReadyIndex = index;
-      if (index >= 0 &&  index < NUM_CALIB_POINTS) {
-        // -- call flashpoint reading fucntion here;
-        float pos[9];
-        float robotCord[3];
-        float locCord[3];
-        //int locStatus = locClient->getLatestPos(pos);
-        //if (locStatus != MrsvrLocatorClient::LOCATOR_SENSOR_OK) {
-        //  // write error handler for locator trouble in automatic registration
-        //  consolePrint(0, true, "Failed to get locator values in AUTO CALIB.\n");
-        //  robotCommand->setMode(MrsvrStatus::STOP);
-        //  screenMode = SCR_NORMAL;
-        //  break;
-        //}
-        for (int i = 0; i < 3; i ++) {
-          locCord[i]   = pos[i];
-          //robotCord[i] = valPosition[i];
-          robotCord[i]   = robotStatus->getPosition(i);
-        }
-        transform->addFiducialPoints(robotCord, locCord);
-        robotCommand->setCalibDoneIndex(index);
-        if (index == NUM_CALIB_POINTS-1) {
-          // -- call registration program
-          transform->calibrate();
-        }
-      }
-    }
     break;
   default:
     break;
@@ -2760,6 +2748,10 @@ long MrsvrMainWindow::onUpdateTimer(FXObject*, FXSelector,void*)
     textRtcpLog->makePositionVisible(textRtcpLog->getLength());
   }
 
+  // update axial canvas
+  onAxialCanvasRepaint(obj, sel, ptr);
+  onNeedleCanvasRepaint(obj, sel, ptr);
+
   // update timer
   application->addTimeout(this, 
         MrsvrMainWindow::ID_UPDATE_TIMER, updateInterval);
@@ -2779,26 +2771,6 @@ long MrsvrMainWindow::onCmdStop(FXObject*, FXSelector,void*)
 }
 
 
-long MrsvrMainWindow::onCmdPause(FXObject*, FXSelector,void*)
-{
-  DBG_MMW_PRINT("onCmdPause()\n");
-  consolePrint(1, true, "PAUSE command received.\n");
-
-  robotCommand->setMode(MrsvrStatus::PAUSE);
-  return 1;
-}
-
-
-long MrsvrMainWindow::onCmdMoveTo(FXObject*, FXSelector,void*)
-{
-  DBG_MMW_PRINT("onCmdMoveTo()\n");
-  consolePrint(1, true, "MOVE_TO command received.\n");
-  
-  robotCommand->setMode(MrsvrStatus::MOVE_TO);
-  return 1;
-}
-
-
 long MrsvrMainWindow::onCmdManual(FXObject*, FXSelector,void*)
 {
   DBG_MMW_PRINT("onCmdManual()\n");
@@ -2812,15 +2784,11 @@ long MrsvrMainWindow::onCmdManual(FXObject*, FXSelector,void*)
   robotCommand->setMode(MrsvrStatus::MANUAL);
   //robotStatus->setMode(MrsvrStatus::PAUSE);
 
-  // Open Manual Control Panel if it is closed .
-  if (shtControlPanel->getCurrent() != CTRL_PNL_MANUAL) {
-    shtControlPanel->onOpenItem(siControlPanel[CTRL_PNL_MANUAL], SEL_COMMAND, NULL);
-    //shtControlPanel->setCurrent(CTRL_PNL_MANUAL);
-
-
-
-
-  }
+  //// Open Manual Control Panel if it is closed .
+  //if (shtControlPanel->getCurrent() != CTRL_PNL_MANUAL) {
+  //  shtControlPanel->onOpenItem(siControlPanel[CTRL_PNL_MANUAL], SEL_COMMAND, NULL);
+  //  //shtControlPanel->setCurrent(CTRL_PNL_MANUAL);
+  //}
   return 1;
 }
 
@@ -2840,9 +2808,18 @@ long MrsvrMainWindow::onCmdEmergency(FXObject*, FXSelector,void*)
   DBG_MMW_PRINT("onCmdEmergency()\n");
   consolePrint(1, true, "EMERGENCY command received.\n");
   
-  //robotStatus->setMode(MrsvrStatus::RESET);
+  robotCommand->setMode(MrsvrStatus::EMERGENCY);
   return 1;
 }
+
+long MrsvrMainWindow::onCmdReset(FXObject*, FXSelector,void*)
+{
+  DBG_MMW_PRINT("onCmdReset()\n");
+  consolePrint(1, true, "RESET command received.\n");
+  robotCommand->setMode(MrsvrStatus::RESET);
+  return 1;
+}
+
 
 
 long MrsvrMainWindow::onCmdCalibrate(FXObject*, FXSelector, void*)
@@ -2852,10 +2829,10 @@ long MrsvrMainWindow::onCmdCalibrate(FXObject*, FXSelector, void*)
 
   //  progDlg->setMessage("Starting calibration....");
   //  progDlg->show(PLACEMENT_OWNER);
-  textStatusProg->setText("Starting automatic calibration...");
-  valStatusProg = 0;
-  robotCommand->setMode(MrsvrStatus::AUTO_CALIB);
-  screenMode =  SCR_CALIBRATION;
+  //textStatusProg->setText("Starting automatic calibration...");
+  //valStatusProg = 0;
+  //robotCommand->setMode(MrsvrStatus::AUTO_CALIB);
+  //screenMode =  SCR_CALIBRATION;
   return 1;
 }
 
@@ -3055,7 +3032,7 @@ long MrsvrMainWindow::onCalibLeftBtnPressed(FXObject* obj, FXSelector sel,void* 
   DBG_MMW_PRINT("onCalibLeftBtnPressed() for Actuator #%d.\n", actuator);
   consolePrint(2, true, "Moving actuator #%d in direction '-' for calibration.\n", actuator);
 
-  robotCommand->setMode(MrsvrStatus::MANUAL_CALIB);
+  robotCommand->setMode(MrsvrStatus::CALIBRATION);
   robotCommand->setCommandBy(MrsvrCommand::VOLTAGE);
   if (actuator >= 0 || actuator < NUM_ACTUATORS) {
     float vol;
@@ -3074,7 +3051,7 @@ long MrsvrMainWindow::onCalibRightBtnPressed(FXObject* obj, FXSelector sel,void*
   DBG_MMW_PRINT("onCalibRightBtnPressed() for Actuator #%d.\n", actuator);
   consolePrint(2, true, "Move actuator #%d in direction '+' for calibration.\n", actuator);
 
-  robotCommand->setMode(MrsvrStatus::MANUAL_CALIB);
+  robotCommand->setMode(MrsvrStatus::CALIBRATION);
   robotCommand->setCommandBy(MrsvrCommand::VOLTAGE);
   if (actuator >= 0 || actuator < NUM_ACTUATORS) {
     float vol;
@@ -3093,7 +3070,7 @@ long MrsvrMainWindow::onCalibLeftBtnReleased(FXObject* obj, FXSelector sel,void*
   DBG_MMW_PRINT("onCalibLeftBtnReleased() for Actuator #%d.\n", actuator);
   consolePrint(2, true, "Stop actuator #%d.\n", actuator);
 
-  robotCommand->setMode(MrsvrStatus::MANUAL_CALIB);
+  robotCommand->setMode(MrsvrStatus::CALIBRATION);
   robotCommand->setCommandBy(MrsvrCommand::VOLTAGE);
   if (actuator >= 0 || actuator < NUM_ACTUATORS) {
     robotCommand->setVoltage(actuator, 0.0);
@@ -3109,7 +3086,7 @@ long MrsvrMainWindow::onCalibRightBtnReleased(FXObject* obj, FXSelector sel,void
   DBG_MMW_PRINT("onCalibRightBtnReleased() for Actuator #%d.\n", actuator);
   consolePrint(2, true, "Stop actuator #%d.\n", actuator);
 
-  robotCommand->setMode(MrsvrStatus::MANUAL_CALIB);
+  robotCommand->setMode(MrsvrStatus::CALIBRATION);
   robotCommand->setCommandBy(MrsvrCommand::VOLTAGE);
   if (actuator >= 0 || actuator < NUM_ACTUATORS) {
     robotCommand->setVoltage(actuator, 0.0);
@@ -3127,7 +3104,7 @@ long MrsvrMainWindow::onCalibZeroBtnPressed(FXObject* obj, FXSelector sel,void* 
   consolePrint(2, true, "Set encoder #%d zero.\n", encoder);
 
   if (encoder >= 0 || encoder < NUM_ENCODERS) {
-    robotCommand->setMode(MrsvrStatus::MANUAL_CALIB);
+    robotCommand->setMode(MrsvrStatus::CALIBRATION);
     robotCommand->setZeroFlagOn(encoder);
   }
   return 0;
@@ -3141,7 +3118,7 @@ long MrsvrMainWindow::onCalibZeroBtnReleased(FXObject* obj, FXSelector sel,void*
   consolePrint(2, true, "Set encoder #%d zero.\n", encoder);
 
   if (encoder >= 0 || encoder < NUM_ENCODERS) {
-    robotCommand->setMode(MrsvrStatus::MANUAL_CALIB);
+    robotCommand->setMode(MrsvrStatus::CALIBRATION);
     robotCommand->setZeroFlagOff(encoder);
   }
   return 0;
@@ -3395,15 +3372,6 @@ long MrsvrMainWindow::onUpdateManualPowerSw(FXObject* obj, FXSelector sel, void*
     } else {
       obj->handle(this,FXSEL(SEL_COMMAND,ID_UNCHECK),NULL);
     }
-    /*
-    if (onoff > 0) {
-      robotCommand->activateActuator(actuator);
-      cerr << "activate #" << int(actuator) << endl;
-    } else {
-      robotCommand->deactivateActuator(actuator);
-      cerr << "deactivate #" << int(actuator) << endl;
-    }
-    */
   }
   return 1;
 }

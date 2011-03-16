@@ -67,9 +67,6 @@ typedef struct {
 
   float     tipPosition[3];          // tip position in 3D space
 
-  // shared information for automatic calibration
-  int       currentCalibPointIndex;
-
   // for progress dialog information
   int       infoTextIdx;
   char      infoText[NUM_INFO_TEXT_BUFFER][MAX_INFO_TEXT_SIZE];
@@ -93,13 +90,12 @@ class MrsvrStatus : public MrsvrSharedData {
 
  public:
   enum {
+    START_UP,
+    CALIBRATION,
     STOP,
-    MANUAL_CALIB,
-    AUTO_CALIB,
-    MOVE_TO,
-    PAUSE,
     MANUAL,
     REMOTE,
+    EMERGENCY,
     RESET,
   };
 
@@ -140,10 +136,6 @@ class MrsvrStatusReader : public MrsvrStatus {
   inline float getTipPosition(int i) { return statusInfo->tipPosition[i]; };
 
   inline int   getOutOfRange(int i)  { return statusInfo->fOutOfRange[i]; };
-
-  inline int   getCurrentCalibPointIndex() {
-    return statusInfo->currentCalibPointIndex;
-  };
 
   inline int   getProgress()         { return statusInfo->progress;    };
 
@@ -207,10 +199,6 @@ class MrsvrStatusWriter : public MrsvrStatusReader {
 
   inline void setOutOfRange(int i, int f) {
     statusInfo->fOutOfRange[i] = f;
-  };
-
-  inline void  setCurrentCalibPointIndex(int i) {
-    statusInfo->currentCalibPointIndex = i;
   };
 
   void         setInfoText(char* str);

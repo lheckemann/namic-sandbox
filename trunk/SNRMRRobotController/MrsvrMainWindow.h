@@ -111,6 +111,11 @@
 #define INFCNV_WARN_NOLOCSVR_X   0.60
 #define INFCNV_WARN_NOLOCSVR_Y   INFCNV_VALUE1_Y
 
+#define AXIALCNV_W           280
+#define AXIALCNV_H           280
+#define NEEDLE_CANVAS_W       580
+#define NEEDLE_CANVAS_H       240
+
 #define WARNID_LOCK          0
 #define WARNID_OUTOFRANGE    1
 #define NUM_WARNID           2
@@ -151,8 +156,9 @@ public:
     ID_ABOUT,
     ID_CANVAS,
     ID_AXIAL_CANVAS,
-    ID_PAINT_TARGET,
+    ID_NEEDLE_CANVAS,
 
+    ID_PAINT_TARGET,
     ID_RESTORE,
     ID_REPAINT_TRIGGER,
     ID_UPDATE_PARAMETER,
@@ -162,12 +168,12 @@ public:
     ID_UPDATE_TIMER,
     ID_START_UPDATE,
     ID_STOP_UPDATE,
+    ID_CMD_CALIBRATION,     // Do not change this order
     ID_CMD_STOP,            // Do not change this order
-    ID_CMD_PAUSE,           // Do not change this order
-    ID_CMD_MOVETO,        // Do not change this order
     ID_CMD_MANUAL,          // Do not change this order
     ID_CMD_REMOTE,          // Do not change this order
     ID_CMD_EMERGENCY,       // Do not change this order
+    ID_CMD_RESET,           // Do not change this order
     ID_CMD_CALIBRATE,
     ID_CMD_START_COM,
     ID_CMD_STOP_COM,
@@ -223,7 +229,7 @@ public:
     //    CTRL_PNL_PLOT,
     CTRL_PNL_CALIB,
     CTRL_PNL_CONFIG,
-    CTRL_PNL_MANUAL,
+    //CTRL_PNL_MANUAL,
     CTRL_PNL_SYSTEM,
     NUM_CTRL_PNL
   };
@@ -250,12 +256,16 @@ protected:
 
   FXCanvas*          infoCanvas;         // main information display // on the top of the main window                  
   FXCanvas*          axialCanvas;        // display that shows the current actuator position
+  FXCanvas*          needleCanvas;       // display needle information
 
   FXImage*           infoOffs;           // offscreen buffer
   // font for information display 
   FXFont*            infoFont0;          // for small
   FXFont*            infoFont1;          // for large
   FXFont*            infoFont2;          // for very large (for time)
+
+  FXFont*            axialFont;          // for axial canvas
+
 
   // Buttons for manual controlling test
   FXButton*          btCalibLeft[NUM_ACTUATORS];
@@ -569,6 +579,8 @@ public:
   //long onCmdFileClose(FXObject*, FXSelector, void*);
   long onCmdAbout(FXObject*, FXSelector, void*);
   long onCanvasRepaint(FXObject*, FXSelector,void*);
+  long onAxialCanvasRepaint(FXObject*, FXSelector,void*);
+  long onNeedleCanvasRepaint(FXObject*, FXSelector,void*);
 
   long onUpdateActuatorVoltage(FXObject*, FXSelector,void*);
   long onMiniPlotUpdate(FXObject*, FXSelector,void*);
@@ -576,12 +588,12 @@ public:
   long onStopUpdate(FXObject*, FXSelector, void*);
   long onUpdateTimer(FXObject*, FXSelector, void*);
   long onCmdStop(FXObject*, FXSelector, void*);
-  long onCmdPause(FXObject*, FXSelector, void*);
-  long onCmdMoveTo(FXObject*, FXSelector, void*);
   long onCmdManual(FXObject*, FXSelector, void*);
   long onCmdRemote(FXObject*, FXSelector, void*);
   long onCmdEmergency(FXObject*, FXSelector, void*);
+  long onCmdReset(FXObject*, FXSelector, void*);
   long onCmdCalibrate(FXObject*, FXSelector, void*);
+
   long onCmdStartCom(FXObject*, FXSelector, void*);
   long onCmdStopCom(FXObject*, FXSelector, void*);
   long onCmdLocServCon(FXObject*, FXSelector, void*);
@@ -624,8 +636,9 @@ public:
 
   long onCmdManualPowerSw(FXObject*, FXSelector, void*);
   long onUpdateManualPowerSw(FXObject*, FXSelector, void*);
-
   long onCmdShowDialog(FXObject*,FXSelector,void*); //Maier 
+
+  
 
   
 };
