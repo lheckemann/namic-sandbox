@@ -122,6 +122,23 @@
 //#define WARNID_NOLOCSVR      2
 
 
+// Parameters for axial canvas
+#define AXIALCNV_MARGIN           0.05
+
+// Parameters for needle canvas
+#define NEEDLECNV_DEPTH_LABEL_X   0.03
+#define NEEDLECNV_DEPTH_LABEL_Y   0.1
+
+#define NEEDLECNV_DEPTH_VALUE_X   0.03
+#define NEEDLECNV_DEPTH_VALUE_Y   0.3
+
+#define NEEDLECNV_DEPTH_UNIT_X    0.3
+#define NEEDLECNV_DEPTH_UNIT_Y    0.305
+
+#define NEEDLECNV_RANGE_X         200
+#define NEEDLECNV_RANGE_Y         200
+
+
 //--------------------------------------------------------------------
 // Needle info structure (for list)
 //--------------------------------------------------------------------

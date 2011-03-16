@@ -23,12 +23,10 @@
 #include <fx.h>
 
 
-//Class Maier Dialog Box
 class MrsvrZFrameRegistrationDialog : public FXDialogBox {
   FXDECLARE(MrsvrZFrameRegistrationDialog)
 protected:
   FXHorizontalFrame* frplPl;
-
 
 private:
   MrsvrZFrameRegistrationDialog(){}
@@ -57,10 +55,6 @@ private:
   
 public:
   MrsvrZFrameRegistrationDialog(FXWindow* owner);
-  long onCmdClear();
-  long onPaintTarget();
-  long onPaint(FXObject*,FXSelector,void*);
-  long onCmdTimer(FXObject*, FXSelector,void*);
   long onCmdRunRegistration(FXObject*, FXSelector,void*);
   void getRegistrationMatrix(float matrix[16]);
 
