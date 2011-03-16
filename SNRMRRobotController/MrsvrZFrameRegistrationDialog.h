@@ -49,6 +49,11 @@ private:
   FXFont *canvasFont0;
 
   float registrationMatrix[16];
+
+
+  FXString     valZFramePosition[7];
+  FXDataTarget *dtZFramePosition[7];
+
   
 public:
   MrsvrZFrameRegistrationDialog(FXWindow* owner);

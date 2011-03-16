@@ -16,7 +16,13 @@
 // $Date: 2006/01/20 03:15:47 $
 //====================================================================
 
+#include "ZLinAlg.h"
+#include "newmatap.h"
+#include "newmat.h"
+
 #include "MrsvrZFrameRegistrationDialog.h"
+
+#include "ZFrameCalibration.h"
 
 using namespace std;
 
@@ -37,6 +43,12 @@ MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
   FXDialogBox(owner,"Z-Frame Registration ",DECOR_TITLE|DECOR_MENU)
 {
 
+  for (int i = 0; i < 7; i ++) {
+    valZFramePosition[i] = "0.0, 0.0";
+    dtZFramePosition[i]  = new FXDataTarget(valZFramePosition[i], this, (FXSelector)NULL);  
+  }
+
+
   // Initialize registration matrix with identity matrix
   for (int i = 0; i < 16; i ++) {
     registrationMatrix[i] = 0.0;
@@ -46,6 +58,8 @@ MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
   registrationMatrix[4*2+2] = 1.0;
   registrationMatrix[4*3+3] = 1.0;
   
+
+
   //Fill with test Data, must be connected to Slicer and Manual Reg
   valOldTarget[0]=65.9;
   valOldTarget[1]=178.2;
@@ -124,36 +138,36 @@ MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
                    FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
                    LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
   
-  FXMatrix* matrix_upperright_main=new FXMatrix(gbRegDist,1,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X);
-  FXMatrix* matrix_upperright=new FXMatrix(matrix_upperright_main,5,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X);
+  FXMatrix* mtZFrameRegistration=new FXMatrix(gbRegDist,1,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X);
+  FXMatrix* mtZFramePosition=new FXMatrix(mtZFrameRegistration,5,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X);
   
   //First row
-  new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXLabel(matrix_upperright,"#4",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXLabel(mtZFramePosition,"#4",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
   
   //Second row
-  new FXLabel(matrix_upperright,"#3",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXTextField(matrix_upperright,10,NULL,NULL);
-  new FXTextField(matrix_upperright,10,NULL,NULL);
-  new FXTextField(matrix_upperright,10,NULL,NULL);
-  new FXLabel(matrix_upperright,"#5",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXLabel(mtZFramePosition,"#3",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXTextField(mtZFramePosition,10,dtZFramePosition[2],FXDataTarget::ID_VALUE);
+  new FXTextField(mtZFramePosition,10,dtZFramePosition[3],FXDataTarget::ID_VALUE);
+  new FXTextField(mtZFramePosition,10,dtZFramePosition[4],FXDataTarget::ID_VALUE);
+  new FXLabel(mtZFramePosition,"#5",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
   
   //Third row
-  new FXLabel(matrix_upperright,"#2",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXTextField(matrix_upperright,10,NULL,NULL);
-  new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXTextField(matrix_upperright,10,NULL,NULL);
-  new FXLabel(matrix_upperright,"#6",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXLabel(mtZFramePosition,"#2",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXTextField(mtZFramePosition,10,dtZFramePosition[1],FXDataTarget::ID_VALUE);
+  new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXTextField(mtZFramePosition,10,dtZFramePosition[5],FXDataTarget::ID_VALUE);
+  new FXLabel(mtZFramePosition,"#6",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
   
   //Fourth row
-  new FXLabel(matrix_upperright,"#1",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXTextField(matrix_upperright,10,NULL,NULL);
-  new FXLabel(matrix_upperright,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXTextField(matrix_upperright,10,NULL,NULL);
-  new FXLabel(matrix_upperright,"#7",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXLabel(mtZFramePosition,"#1",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXTextField(mtZFramePosition,10,dtZFramePosition[0],FXDataTarget::ID_VALUE);
+  new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXTextField(mtZFramePosition,10,dtZFramePosition[6],FXDataTarget::ID_VALUE);
+  new FXLabel(mtZFramePosition,"#7",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
   
   //Z_Frame sample image
   char buf[73728];
@@ -161,11 +175,16 @@ MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
   //fread(buf, 1, 73728, fp);
   //fclose(fp);
   
-  new FXButton(matrix_upperright_main, "",
+  new FXButton(mtZFrameRegistration, "",
                new FXGIFIcon(this->getApp(), (void*)buf),NULL,NULL,BUTTON_TOOLBAR|
                LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+
+  new FXButton(mtZFrameRegistration, "Manual Z-Frame Calibration", NULL, this,
+               ID_RUN_REGISTRATION,
+               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
   
-  
+
   //Canvas RA-Position
   FXGroupBox* gpRAPos = 
     new FXGroupBox(matrix_upperleft, "RA-Position",
@@ -404,6 +423,21 @@ long MrsvrZFrameRegistrationDialog::onCmdTimer(FXObject*,FXSelector,void*)
 
 long MrsvrZFrameRegistrationDialog::onCmdRunRegistration(FXObject*,FXSelector,void*)
 {
+  float Zcoordinate[7][2];
+  Column3Vector Zposition;
+  Quaternion Zorientation;
+    
+  for (int i = 0; i < 7; i ++) {
+    valZFramePosition[i].scan("%f, %f", &Zcoordinate[i][0], &Zcoordinate[i][1]);
+    printf ("Zcoord = %f, %f \n", Zcoordinate[i][0], Zcoordinate[i][1]);
+  }
+
+  zf::ZFrameCalibration * calibration;
+  calibration = new zf::ZFrameCalibration();
+  //calibration->SetOrientationBase(ZquaternionBase);
+  //int r = calibration->Register(range, Zposition, Zorientation);
+  //calibration->Localize()
+
   return 1;
 }
 
