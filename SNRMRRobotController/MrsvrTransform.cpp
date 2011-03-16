@@ -231,7 +231,7 @@ void MrsvrTransform::transform(MrsvrVector y, MrsvrVector x)
 
   for (int i = 0; i < 3; i ++)
     {
-    y[i] = this->matrix[i][0] * x[0] + this->matrix[i][1] * x[1] + this->matrix[i][2] * x[2];
+    y[i] = this->matrix[i][0] * x[0] + this->matrix[i][1] * x[1] + this->matrix[i][2] * x[2]+ this->matrix[i][3];
     }
 }
 
@@ -263,16 +263,14 @@ void MrsvrTransform::invTransform(MrsvrVector x, MrsvrVector y)
   inv[2][1] = (this->matrix[0][1]*this->matrix[2][0] - this->matrix[0][0]*this->matrix[2][1])/det;
   inv[2][2] = (this->matrix[0][0]*this->matrix[1][1] - this->matrix[0][1]*this->matrix[1][0])/det;
 
-  for (int i = 0; i < 3; i ++)
-    {
-    x[i] = x[i] - this->matrix[3][i];
-    }
+  for (int i = 0; i < 3; i ++) {
+    x[i] = x[i] - this->matrix[i][3];
+  }
 
-  for (int i = 0; i < 3; i ++)
-    {
+  for (int i = 0; i < 3; i ++) {
     y[i] = inv[i][0] * x[0] + inv[i][1] * x[1] + inv[i][2] * x[2];
-    }
-
+  }
+  
 } 
 
 
