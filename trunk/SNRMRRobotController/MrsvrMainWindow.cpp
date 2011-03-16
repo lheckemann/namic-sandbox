@@ -118,7 +118,7 @@ FXDEFMAP(MrsvrMainWindow) MrsvrMainWindowMap[] = {
   //FXMAPFUNC(SEL_PAINT,     MrsvrMainWindow::ID_IMAGEWINDOW,  MrsvrMainWindow::onImageRepaint)
 
   //Maier Show Dialog
-  FXMAPFUNC(SEL_LEFTBUTTONRELEASE,  MrsvrMainWindow::ID_SHOWDIALOG,      MrsvrMainWindow::onCmdShowDialog), 
+  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_SHOWDIALOG,      MrsvrMainWindow::onCmdShowDialog), 
 };
 
 // Object implementation
@@ -873,17 +873,17 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
 
   FXVerticalFrame* frMonitorUp = 
     new FXVerticalFrame(frMonitor, 
-                          LAYOUT_FILL_X|
-                          LAYOUT_TOP|LAYOUT_LEFT);
+                        LAYOUT_FILL_X|
+                        LAYOUT_TOP|LAYOUT_LEFT);
 
   FXGroupBox* gpActuatorsAndEncoders = 
-    new FXGroupBox(frMonitorUp, "Actuators/Encoders",
-                   FRAME_RIDGE|LAYOUT_SIDE_LEFT|LAYOUT_FILL_Y);
+  new FXGroupBox(frMonitorUp, "Actuators/Encoders",
+                 FRAME_RIDGE|LAYOUT_SIDE_LEFT|LAYOUT_FILL_Y);
 
   FXVerticalFrame* frActuatorsAndEncoders = 
     new FXVerticalFrame(gpActuatorsAndEncoders, 
-                          LAYOUT_FILL_X|
-                          LAYOUT_TOP|LAYOUT_LEFT);
+                        LAYOUT_FILL_X|
+                        LAYOUT_TOP|LAYOUT_LEFT);
 
   FXHorizontalFrame* frActuators =
     new FXHorizontalFrame(frActuatorsAndEncoders,
@@ -2412,31 +2412,51 @@ long MrsvrMainWindow::onAxialCanvasRepaint(FXObject*, FXSelector, void* ptr)
 
   if (axialCanvas) {
     FXDCWindow dc(axialCanvas);
-    dc.setForeground(FXRGB(255,255,255));
-
+    dc.setForeground(FXRGB(0,0,0));
     dc.fillRectangle(0, 0, AXIALCNV_W, AXIALCNV_H);
     
-    //Draw New Target [Zeroposition=(-5,-5)]
+    dc.setForeground(FXRGB(150,150,150));
+
+    // Draw a frame and directions
+    int margin = (int)((float)AXIALCNV_W*AXIALCNV_MARGIN);
+    dc.drawLine(margin, margin, AXIALCNV_W-margin, margin);
+    dc.drawLine(AXIALCNV_W-margin, margin, AXIALCNV_W-margin, AXIALCNV_H-margin);
+    dc.drawLine(AXIALCNV_W-margin, AXIALCNV_H-margin, margin, AXIALCNV_H-margin);
+    dc.drawLine(margin, AXIALCNV_H-margin, margin, margin);
+
+    dc.setFont(axialFont);
+    dc.drawText(AXIALCNV_W/2-4, margin-2, "A", 1);
+    dc.drawText(AXIALCNV_W/2-4, AXIALCNV_H-2, "P", 1);
+    dc.drawText(2, AXIALCNV_H/2+4, "R", 1);
+    dc.drawText(AXIALCNV_W-margin+2, AXIALCNV_H/2+4, "L", 1);
+
+    //Draw Target [Zeroposition=(-5,-5)]
+    int tx = (1.0-(float)valTargetPosition[0]/(float)NEEDLECNV_RANGE_X)*AXIALCNV_W+margin;
+    int ty = (1.0-(float)valTargetPosition[1]/(float)NEEDLECNV_RANGE_Y)*AXIALCNV_H+margin;
+
     dc.setForeground(FXRGB(255,0,0));
-    dc.drawPoint(valTargetPosition[0]-5,200-valTargetPosition[1]-5);
+    dc.drawPoint(tx, ty);
     
-    //Draw Old Target
+    //Draw Current position
+    int cx = (1.0-(float)valCurrentPosition[0]/(float)NEEDLECNV_RANGE_X)*AXIALCNV_W+margin;
+    int cy = (1.0-(float)valCurrentPosition[1]/(float)NEEDLECNV_RANGE_Y)*AXIALCNV_H+margin;
+
     dc.setForeground(FXRGB(0,0,255));
-    dc.drawPoint(valCurrentPosition[0]-5,200-valCurrentPosition[1]-5);
+    dc.drawPoint(cx, cy);
     
     for (int i = 0; i < 3; i ++) { 
       valTargetPosition[i]=(valDeltaPosition[i]+valCurrentPosition[i]);
     }
     
     //draw Text NewTarget
-    dc.setForeground(FXRGB(255,0,0));
-    dc.setFont(axialFont);
-    dc.drawText(valTargetPosition[0]-25, 200-valTargetPosition[1]-5,"Current", 7);
-    
-    //draw Text OldTarget
     dc.setForeground(FXRGB(0,0,255));
     dc.setFont(axialFont);
-    dc.drawText(valCurrentPosition[0]-25, 200-valCurrentPosition[1]+15,"Target", 6);
+    dc.drawText(cx+2, cy-2,"Current", 7);
+    
+    //draw Text OldTarget
+    dc.setForeground(FXRGB(255,0,0));
+    dc.setFont(axialFont);
+    dc.drawText(tx+2, ty-2,"Target", 6);
     
   }
   return 1;
@@ -2452,15 +2472,26 @@ long MrsvrMainWindow::onNeedleCanvasRepaint(FXObject*, FXSelector,void*)
 
     dc.fillRectangle(0, 0, NEEDLE_CANVAS_W, NEEDLE_CANVAS_H);
     
-    ////draw Text NewTarget
-    //dc.setForeground(FXRGB(255,0,0));
-    //dc.setFont(axialFont);
-    //dc.drawText(valTargetPosition[0]-25, 200-valTargetPosition[1]-5,"Current", 7);
-    //
-    ////draw Text OldTarget
-    //dc.setForeground(FXRGB(0,0,255));
-    //dc.setFont(axialFont);
-    //dc.drawText(valCurrentPosition[0]-25, 200-valCurrentPosition[1]+15,"Target", 6);
+  //draw Text NewTarget
+  dc.setForeground(FXRGB(255,255,255));
+  dc.setFont(infoFont0);
+  dc.drawText(((float)NEEDLE_CANVAS_W*NEEDLECNV_DEPTH_LABEL_X),
+              ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_LABEL_Y), "NEEDLE INSERNTION DEPTH:", 24);
+
+  dc.setForeground(FXRGB(255,255,0));
+  dc.setFont(infoFont2);
+  dc.drawText(((float)NEEDLE_CANVAS_W*NEEDLECNV_DEPTH_VALUE_X),
+              ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_VALUE_Y), "  128.00", 8);
+
+  dc.setForeground(FXRGB(150,150,150));
+  dc.setFont(infoFont1);
+  dc.drawText(((float)NEEDLE_CANVAS_W*NEEDLECNV_DEPTH_UNIT_X),
+              ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_UNIT_Y), "mm", 2);
+
+  ////draw Text OldTarget
+  //dc.setForeground(FXRGB(0,0,255));
+  //dc.setFont(axialFont);
+  //dc.drawText(valCurrentPosition[0]-25, 200-valCurrentPosition[1]+15,"Target", 6);
     
   }
   return 1;
