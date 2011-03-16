@@ -59,7 +59,6 @@ MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
   registrationMatrix[4*3+3] = 1.0;
   
 
-
   //Fill with test Data, must be connected to Slicer and Manual Reg
   valOldTarget[0]=65.9;
   valOldTarget[1]=178.2;

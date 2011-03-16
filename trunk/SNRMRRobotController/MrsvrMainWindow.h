@@ -418,6 +418,12 @@ private:
   FXDataTarget*      dtTargetPosition[3];
   float              valTargetPosition[3];
 
+  FXDataTarget*      dtCurrentPosition[3];
+  float              valCurrentPosition[3];
+
+  FXDataTarget*      dtDeltaPosition[3];
+  float              valDeltaPosition[3];
+
   FXDataTarget*      dtTipApprOffset;
   float              valTipApprOffset;
 
@@ -447,51 +453,6 @@ private:
   // for displaying encoder position value
   static const float positionOffsets[];
   static const float positionCoeffs[];
-
-  // Hardware monitor -> Remote Controller Info.
-  FXDataTarget*      dtRemoteSoftware;
-  FXDataTarget*      dtRemoteOS;
-  FXDataTarget*      dtRemoteHostName;
-  FXDataTarget*      dtRemoteIpAddr;
-  FXDataTarget*      dtRemotePortNumber;
-  FXString           valRemoteSoftware;
-  FXString           valRemoteOS;
-  FXString           valRemoteHostName;
-  FXString           valRemoteIpAddr;
-  FXString           valRemotePortNumber;
-
-  // Hardware monitor -> Locator Server Info.
-  FXDataTarget*      dtLocServSenseStatus;
-  FXDataTarget*      dtLocServNX;
-  FXDataTarget*      dtLocServNY;
-  FXDataTarget*      dtLocServNZ;
-  FXDataTarget*      dtLocServTX;
-  FXDataTarget*      dtLocServTY;
-  FXDataTarget*      dtLocServTZ;
-  FXDataTarget*      dtLocServPX;
-  FXDataTarget*      dtLocServPY;
-  FXDataTarget*      dtLocServPZ;
-  FXString           valLocServSenseStatus;
-  float              valLocServNX;
-  float              valLocServNY;
-  float              valLocServNZ;
-  float              valLocServTX;
-  float              valLocServTY;
-  float              valLocServTZ;
-  float              valLocServPX;
-  float              valLocServPY;
-  float              valLocServPZ;
-
-  // Hardware monitor -> Manual Control
-  FXDataTarget *dtNewTarget[3];
-  float valNewTarget[3];
-
-  FXDataTarget *dtOldTarget[3];
-  float valOldTarget[3];
-
-  FXDataTarget *dtDeltaTarget[3];
-  float valDeltaTarget[3];
-
 
   // Plot
   FXDataTarget*      dtPlotAGain;
@@ -587,7 +548,7 @@ private:
   void   updateParameters();
   void   updateExternalCommands();
   void   consolePrint(int, bool, const char*,...);
-  void   setTargetPositionXYZ(float[3]);
+  void   setTargetPositionRAS(float[3]);
   void   setCalibrationMatrix(float[16]);
 
 //----------------------- Public functions -------------------------//

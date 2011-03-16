@@ -787,137 +787,6 @@ int MrsvrMainWindow::buildManualControlPanel(FXComposite* comp)
 
   }
 
-  FXGroupBox* gpTargetPosition = 
-    new FXGroupBox(comp, "Target Position (X, Y, Z)",
-                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-  gpTargetPosition->setBackColor(getApp()->getShadowColor());
-  
-  FXVerticalFrame* frTargetPosition = 
-    new FXVerticalFrame(gpTargetPosition,
-                        LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                        LAYOUT_TOP|LAYOUT_LEFT, 0, 0, 0, 0, 0, 0, 0, 0);
-  frTargetPosition->setBackColor(getApp()->getShadowColor());
-  
-
-  FXMatrix* mtTargetPosition  = 
-    new FXMatrix(frTargetPosition,3,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_TOP|LAYOUT_CENTER_X);
-  mtTargetPosition->setBackColor(getApp()->getShadowColor());
-
-  FXLabel* lb = new FXLabel(mtTargetPosition, "X:");
-  lb->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtTargetPosition,8,dtTargetPosition[0],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-  lb = new FXLabel(mtTargetPosition, "mm");
-  lb->setBackColor(getApp()->getShadowColor());
-  
-  lb = new FXLabel(mtTargetPosition, "Y:");
-  lb->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtTargetPosition,8,dtTargetPosition[1],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-  lb = new FXLabel(mtTargetPosition, "mm");
-  lb->setBackColor(getApp()->getShadowColor());
-
-  lb = new FXLabel(mtTargetPosition, "Z:");
-  lb->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtTargetPosition,8,dtTargetPosition[2],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-  lb = new FXLabel(mtTargetPosition, "mm");
-  lb->setBackColor(getApp()->getShadowColor());
-
-  FXMatrix* mtTargetPositionBtn = 
-    new FXMatrix(frTargetPosition, 2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_CENTER_X);
-  mtTargetPositionBtn->setBackColor(getApp()->getShadowColor());
-
-  new FXButton(mtTargetPositionBtn, " Set ", NULL, this,
-               ID_SET_TARGET_BTN,
-               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-  
-  new FXButton(mtTargetPositionBtn, "Cancel", NULL, this,
-               ID_CANCEL_TARGET_BTN,
-               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-
-  FXGroupBox* gpNeedleApproach = 
-    new FXGroupBox(comp, "Needle Approach Control",
-                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-  gpNeedleApproach->setBackColor(getApp()->getShadowColor());
-
-  FXVerticalFrame* frNeedleApproach = 
-    new FXVerticalFrame(gpNeedleApproach,
-                        LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                        LAYOUT_TOP|LAYOUT_LEFT, 0, 0, 0, 0, 0, 0, 0, 0);
-  frNeedleApproach->setBackColor(getApp()->getShadowColor());
-
-  FXMatrix *mtNeedleApproach = 
-    new FXMatrix(frNeedleApproach,2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_FILL_X|LAYOUT_LEFT|
-                 LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-  mtNeedleApproach->setBackColor(getApp()->getShadowColor());
-
-  lb = new FXLabel(mtNeedleApproach, "Offset:");
-  lb->setBackColor(getApp()->getShadowColor());
-
-  FXHorizontalFrame* frNeedleApproachTxt = 
-      new FXHorizontalFrame(mtNeedleApproach, 
-                          //LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                          LAYOUT_FILL_X|
-                          LAYOUT_CENTER_Y|LAYOUT_LEFT);
-  frNeedleApproachTxt->setBackColor(getApp()->getShadowColor());
-
-  new FXTextField(frNeedleApproachTxt,5,dtTipApprOffset,
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-  lb = new FXLabel(frNeedleApproachTxt, "mm");
-  lb->setBackColor(getApp()->getShadowColor());
-  lb = new FXLabel(mtNeedleApproach, "");
-  lb->setBackColor(getApp()->getShadowColor());
-  FXSlider* slider=new FXSlider(mtNeedleApproach,dtTipApprOffset,
-                                FXDataTarget::ID_VALUE,
-                                LAYOUT_TOP|LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT|
-                                SLIDER_HORIZONTAL|SLIDER_INSIDE_BAR|SLIDER_TICKS_BOTTOM,
-                                0,0,120,20);
-  slider->setBaseColor(getApp()->getShadowColor());
-  slider->setBackColor(getApp()->getShadowColor());
-  slider->setRange(-150,150);
-  slider->setTickDelta(10);
-  lb = new FXLabel(mtNeedleApproach, "");
-  lb->setBackColor(getApp()->getShadowColor());
-
-  /*
-  FXMatrix* mtNeedleApproachBtn = 
-    new FXMatrix(frNeedleApproach, 2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_CENTER_X);
-  mtNeedleApproachBtn->setBackColor(getApp()->getShadowColor());
-
-  new FXButton(mtNeedleApproachBtn, "APPROACH", NULL, this,
-               ID_NEEDLE_APPR_BTN,
-               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-  
-  new FXButton(mtNeedleApproachBtn, " LEAVE ", NULL, this,
-               ID_NEEDLE_LEAVE_BTN,
-               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-  */
-
   return 1;
 }
 
@@ -1173,6 +1042,8 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
   //
   //updateTcpInfoTbl();
 
+
+  //// Manual Control
   FXGroupBox* gpManualControl  = 
     new FXGroupBox(frMonitorLo, "Manual Control",
                    FRAME_RIDGE|LAYOUT_FILL_Y|
@@ -1209,24 +1080,147 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                NULL,this,ID_PAINT_TARGET,BUTTON_NORMAL|LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X|LAYOUT_FILL_Y);
   
   
-  FXRealSlider* slider=new FXRealSlider(gbPlateR,dtDeltaTarget[0],FXDataTarget::ID_VALUE,
+  FXRealSlider* slider=new FXRealSlider(gbPlateR,dtDeltaPosition[0],FXDataTarget::ID_VALUE,
                                         LAYOUT_LEFT|LAYOUT_FIX_HEIGHT|LAYOUT_FIX_WIDTH|
                                         SLIDER_HORIZONTAL|SLIDER_INSIDE_BAR,
                                         0,0,200,20);//(??,??,X,Y)
 
-  slider->setRange(-valOldTarget[0],200.0-valOldTarget[0]);
-  FXRealSlider* slider2=new FXRealSlider(gbPlateA,dtDeltaTarget[1],FXDataTarget::ID_VALUE,
+  slider->setRange(-valCurrentPosition[0],200.0-valCurrentPosition[0]);
+  FXRealSlider* slider2=new FXRealSlider(gbPlateA,dtDeltaPosition[1],FXDataTarget::ID_VALUE,
                                          LAYOUT_TOP|LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT|
                                          SLIDER_VERTICAL|SLIDER_INSIDE_BAR,
                                          0,0,20,200);
-  slider2->setRange(-valOldTarget[1],200.0-valOldTarget[1]);
+  slider2->setRange(-valCurrentPosition[1],200.0-valCurrentPosition[1]);
   slider2->setIncrement(0.01);
   
   //FXMatrix* matrix_main2=new FXMatrix(matrix,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
   //
   //FXMatrix* matrix_lowerleft=new FXMatrix(matrix_main2,5,MATRIX_BY_COLUMNS|
   //                                        LAYOUT_SIDE_BOTTOM|LAYOUT_FILL_X|LAYOUT_FILL_Y);
+
+
+  FXHorizontalFrame* frTarget =
+    new FXHorizontalFrame(frMonitorLo,
+                          LAYOUT_FILL_Y|LAYOUT_FILL_X|
+                          LAYOUT_TOP|LAYOUT_LEFT);
+
+  //FXMatrix* mtxTarget=new FXMatrix(frMonitorLo,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X|LAYOUT_FILL_Y);
   
+  FXGroupBox* gbSlPos = 
+    new FXGroupBox(frTarget, "Current",
+                   FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
+                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
+  
+  FXMatrix* mtxCurrentTarget=new FXMatrix(gbSlPos,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|
+                                                 LAYOUT_FILL_X|LAYOUT_FILL_Y);
+  
+  new FXLabel(mtxCurrentTarget,"R",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  
+  new FXTextField(mtxCurrentTarget,10,dtCurrentPosition[0],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN|TEXTFIELD_READONLY, 
+                  0, 0, 50, 15);
+  
+  new FXLabel(mtxCurrentTarget,"A",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  
+  new FXTextField(mtxCurrentTarget,10,dtCurrentPosition[1],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN|TEXTFIELD_READONLY, 
+                  0, 0, 50, 15);
+  
+  new FXLabel(mtxCurrentTarget,"S",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  
+  new FXTextField(mtxCurrentTarget,10,dtCurrentPosition[2],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN|TEXTFIELD_READONLY, 
+                  0, 0, 50, 15);
+  
+  new FXLabel(frTarget,"+",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  
+  FXGroupBox* gbDeltaTarget = 
+    new FXGroupBox(frTarget, "Delta",
+                   FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
+                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
+  
+  FXMatrix* mtxTargetDelta=new FXMatrix(gbDeltaTarget,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|
+                                                LAYOUT_FILL_X|LAYOUT_FILL_Y);
+  
+  new FXLabel(mtxTargetDelta,"R",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXTextField(mtxTargetDelta,10,dtDeltaPosition[0],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN, 
+                  0, 0, 50, 15);
+  new FXLabel(mtxTargetDelta,"A",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  
+  new FXTextField(mtxTargetDelta,10,dtDeltaPosition[1],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN, 
+                  0, 0, 50, 15);
+  
+  new FXLabel(mtxTargetDelta,"S",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  
+  new FXTextField(mtxTargetDelta,10,dtDeltaPosition[2],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN, 
+                  0, 0, 50, 15);
+  
+  new FXLabel(frTarget,"=",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  
+  FXGroupBox* gbSumTarget = 
+    new FXGroupBox(frTarget, "New Target",
+                   FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
+                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
+  
+  FXMatrix* mtxNewTarget=new FXMatrix(gbSumTarget,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|
+                                              LAYOUT_FILL_X|LAYOUT_FILL_Y);
+
+  new FXLabel(mtxNewTarget,"R",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  
+  new FXTextField(mtxNewTarget,10,dtTargetPosition[0],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN, 
+                  0, 0, 50, 15);
+  
+  new FXLabel(mtxNewTarget,"A",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  
+  new FXTextField(mtxNewTarget,10,dtTargetPosition[1],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN, 
+                  0, 0, 50, 15);
+  
+
+  new FXLabel(mtxNewTarget,"S",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  
+  new FXTextField(mtxNewTarget,10,dtTargetPosition[2],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
+                  FRAME_SUNKEN, 
+                  0, 0, 50, 15);
+
+  char buf[4096];
+  FILE* fp = fopen("icon/start100x100.gif", "rb");
+  fread(buf, 1, 4096, fp);
+  fclose(fp);
+
+  new FXButton(frTarget, "Move to Target",
+               new FXGIFIcon(this->getApp(), (void*)buf),this,MrsvrMainWindow::ID_SET_TARGET_BTN,
+               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+  
+  //new FXButton(frTarget,"&Move to Target",NULL,this,MrsvrMainWindow::ID_SET_TARGET_BTN,FRAME_RAISED|
+  //             FRAME_THICK| LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+
+
+  
+
 
   //--------------------------------------------------------------------------------
   // RTCP Log Tab
@@ -1947,14 +1941,6 @@ void MrsvrMainWindow::setDataTargets()
   // Communication -> Server Thread configuration
   dtConPortNo  = new FXDataTarget(valConPortNo, this, (FXSelector)NULL);
   dtConStatus  = new FXDataTarget(valConStatus, this, (FXSelector)NULL);
-  //dtLocServPortNo = 
-  //  new FXDataTarget(valLocServPortNo, this, ID_UPDATE_PARAMETER);
-  //dtLocServHostName =
-  //  new FXDataTarget(valLocServHostName, this, ID_UPDATE_PARAMETER);
-  //dtLocServStatus =
-  //  new FXDataTarget(valLocServStatus, this, ID_UPDATE_PARAMETER);
-  //dtLocServInterval =
-  //  new FXDataTarget(valLocServInterval, this, ID_UPDATE_PARAMETER);
 
   dtCalibrationStatus = 
     new FXDataTarget(valCalibrationStatus, this, ID_UPDATE_PARAMETER);
@@ -2018,37 +2004,6 @@ void MrsvrMainWindow::setDataTargets()
     dtNeedleOrientation[i] = 
       new FXDataTarget(valNeedleOrientation[i], this, ID_UPDATE_PARAMETER);
   }
-  dtRemoteSoftware = 
-    new FXDataTarget(valRemoteSoftware, this, ID_UPDATE_PARAMETER);
-  dtRemoteOS = 
-    new FXDataTarget(valRemoteOS, this, ID_UPDATE_PARAMETER);
-  dtRemoteHostName = 
-    new FXDataTarget(valRemoteHostName, this, ID_UPDATE_PARAMETER);
-  dtRemoteIpAddr = 
-    new FXDataTarget(valRemoteIpAddr, this, ID_UPDATE_PARAMETER);
-  dtRemotePortNumber = 
-    new FXDataTarget(valRemotePortNumber, this, ID_UPDATE_PARAMETER);
-
-  dtLocServSenseStatus =
-    new FXDataTarget(valLocServSenseStatus, this, ID_UPDATE_PARAMETER);
-  dtLocServNX =
-    new FXDataTarget(valLocServNX, this, ID_UPDATE_PARAMETER);
-  dtLocServNY =
-    new FXDataTarget(valLocServNY, this, ID_UPDATE_PARAMETER);
-  dtLocServNZ =
-    new FXDataTarget(valLocServNZ, this, ID_UPDATE_PARAMETER);
-  dtLocServTX =
-    new FXDataTarget(valLocServTX, this, ID_UPDATE_PARAMETER);
-  dtLocServTY =
-    new FXDataTarget(valLocServTY, this, ID_UPDATE_PARAMETER);
-  dtLocServTZ =
-    new FXDataTarget(valLocServTZ, this, ID_UPDATE_PARAMETER);
-  dtLocServPX =
-    new FXDataTarget(valLocServPX, this, ID_UPDATE_PARAMETER);
-  dtLocServPY =
-    new FXDataTarget(valLocServPY, this, ID_UPDATE_PARAMETER);
-  dtLocServPZ =
-    new FXDataTarget(valLocServPZ, this, ID_UPDATE_PARAMETER);
 
   //plot
   dtPlotAGain = 
@@ -2108,12 +2063,23 @@ void MrsvrMainWindow::setDataTargets()
   
   // -- Hardware control
   for (int i = 0; i < 3; i ++) {
+    valTargetPosition[i]  = 0.0;
+    valCurrentPosition[i] = 0.0;
+    valDeltaPosition[i]   = 0.0;
+
     dtTargetPosition[i] =
       new FXDataTarget(valTargetPosition[i], this,
                        ID_UPDATE_PARAMETER);
+    dtCurrentPosition[i] =
+      new FXDataTarget(valCurrentPosition[i], this,
+                       ID_UPDATE_PARAMETER);
+    dtDeltaPosition[i] =
+      new FXDataTarget(valDeltaPosition[i], this,
+                       ID_UPDATE_PARAMETER);
+
   }
 
-            dtTipApprOffset = 
+  dtTipApprOffset = 
     //new FXDataTarget(valTipApprOffset, this, ID_UPDATE_PARAMETER);
     new FXDataTarget(valTipApprOffset, this, ID_UPDATE_NEEDLE_APPR_OFFSET);
 
@@ -2177,7 +2143,7 @@ void MrsvrMainWindow::updateExternalCommands()
       for (int i = 0; i < 3; i ++) {
         valTargetPosition[i] = target[i][3];
       }
-      setTargetPositionXYZ(valTargetPosition);
+      setTargetPositionRAS(valTargetPosition);
     }
 
     int mode;
@@ -2200,7 +2166,7 @@ void MrsvrMainWindow::updateExternalCommands()
 }
 
 
-void MrsvrMainWindow::setTargetPositionXYZ(float pos[3])
+void MrsvrMainWindow::setTargetPositionRAS(float pos[3])
 {
   float robotPos[3];
 
@@ -3319,7 +3285,7 @@ long MrsvrMainWindow::onSetTargetBtnReleased(FXObject* obj, FXSelector sel,void*
   DBG_MMW_PRINT("onSetTargetBtnReleased().\n");
   consolePrint(2, true, "Setting target position...\n");
 
-  setTargetPositionXYZ(valTargetPosition);
+  setTargetPositionRAS(valTargetPosition);
   return 0;
 }
 
