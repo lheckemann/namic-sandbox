@@ -147,6 +147,7 @@ set(NEWMAT_SOURCES
   newmat/newmat7.cpp
   newmat/newfft.cpp
   newmat/newmat8.cpp
+  newmat/ZLinAlg.cxx
 )
 
 set(ZFRAME_SOURCES
@@ -263,7 +264,7 @@ target_link_libraries(mainController
   ${CTRL_LIBS}
   )
 
-SET(EXECUTABLE_OUTPUT_PATH
-  bin
-)
+#SET(EXECUTABLE_OUTPUT_PATH
+#  bin
+#)
 

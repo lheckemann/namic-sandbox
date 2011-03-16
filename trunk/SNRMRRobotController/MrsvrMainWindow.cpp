@@ -532,7 +532,7 @@ int MrsvrMainWindow::buildCalibrationControlPanel(FXComposite* comp)
                   0, 0, 20, 15);
   }
 
-  new FXButton(frZFrameCalib, "Nav without Slicer", NULL, this,
+  new FXButton(frZFrameCalib, "Manual Z-Frame Calibration", NULL, this,
                ID_SHOWDIALOG,
                FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
@@ -1005,12 +1005,17 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                           LAYOUT_FILL_X|
                           LAYOUT_TOP|LAYOUT_LEFT);
 
-  FXGroupBox* gpActuators = 
-    new FXGroupBox(frMonitorUp, "Actuators",
+  FXGroupBox* gpActuatorsAndEncoders = 
+    new FXGroupBox(frMonitorUp, "Actuators/Encoders",
                    FRAME_RIDGE|LAYOUT_SIDE_LEFT|LAYOUT_FILL_Y);
 
+  FXVerticalFrame* frActuatorsAndEncoders = 
+    new FXVerticalFrame(gpActuatorsAndEncoders, 
+                          LAYOUT_FILL_X|
+                          LAYOUT_TOP|LAYOUT_LEFT);
+
   FXHorizontalFrame* frActuators =
-    new FXHorizontalFrame(gpActuators,
+    new FXHorizontalFrame(frActuatorsAndEncoders,
                         LAYOUT_FILL_Y|LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT);
 
   for (int i = 0; i < NUM_ACTUATORS; i ++) {
@@ -1049,13 +1054,8 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                     0, 0, 50, 15);
   }
 
-  FXGroupBox* gpEncoders  = 
-    new FXGroupBox(frMonitorUp, "Encoders",
-                   FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
-                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_TOP);
-
   FXHorizontalFrame* frEncoders =
-    new FXHorizontalFrame(gpEncoders,
+    new FXHorizontalFrame(frActuatorsAndEncoders,
                             LAYOUT_FILL_Y|LAYOUT_FILL_X|
                             LAYOUT_TOP|LAYOUT_LEFT);
 
@@ -2186,13 +2186,15 @@ void MrsvrMainWindow::updateExternalCommands()
     }
 
     MrsvrMessageServer::Matrix4x4 calibration;
+    float matrix[16];
     if (extMsgSvr->getCalibrationMatrix(calibration)){
       for (int i = 0; i < 4; i ++) {
         for (int j = 0; j < 4; j ++) {
           valCalibrationMatrix[i*4+j] = calibration[i][j];
+          matrix[i*4+j] = calibration[i][j];
         }
       }
-      transform->setCalibrationMatrix(valCalibrationMatrix);
+      transform->setCalibrationMatrix(matrix);
     }
   }
 }
@@ -3454,7 +3456,6 @@ long MrsvrMainWindow::onCmdShowDialog(FXObject*,FXSelector,void*)
     valCalibrationMatrix[i] = matrix[i];
   }
   transform->setCalibrationMatrix(matrix);
-
   
   delete modaldialog;
   
