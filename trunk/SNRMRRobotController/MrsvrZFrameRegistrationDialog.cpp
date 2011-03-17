@@ -132,15 +132,56 @@ long MrsvrZFrameRegistrationDialog::onCmdRunRegistration(FXObject*,FXSelector,vo
   float Zcoordinate[7][2];
   Column3Vector Zposition;
   Quaternion Zorientation;
-    
+  Quaternion ZorientationBase;
+
+  float ZquaternionBase[4];
+  
+  zf::Matrix4x4 ZmatrixBase;
+  zf::IdentityMatrix(ZmatrixBase);
+  zf::MatrixToQuaternion(ZmatrixBase, ZquaternionBase);
+
   for (int i = 0; i < 7; i ++) {
     valZFramePosition[i].scan("%f, %f", &Zcoordinate[i][0], &Zcoordinate[i][1]);
-    printf ("Zcoord = %f, %f \n", Zcoordinate[i][0], Zcoordinate[i][1]);
   }
 
   zf::ZFrameCalibration * calibration;
   calibration = new zf::ZFrameCalibration();
-  //calibration->SetOrientationBase(ZquaternionBase);
+  calibration->SetOrientationBase(ZquaternionBase);
+  calibration->LocalizeFrame(Zcoordinate, Zposition, Zorientation);
+
+  ZorientationBase.setX( ZquaternionBase[0] );
+  ZorientationBase.setY( ZquaternionBase[1] );
+  ZorientationBase.setZ( ZquaternionBase[2] );
+  ZorientationBase.setW( ZquaternionBase[3] );
+
+  Zorientation = Zorientation / ZorientationBase;
+
+  float quaternion[4];
+  quaternion[0] = Zorientation.getX();
+  quaternion[1] = Zorientation.getY();
+  quaternion[2] = Zorientation.getZ();
+  quaternion[3] = Zorientation.getW();
+
+  zf::Matrix4x4 Zmatrix;  
+  zf::QuaternionToMatrix(quaternion, Zmatrix);
+
+  registrationMatrix[0] = Zmatrix[0][0];
+  registrationMatrix[1] = Zmatrix[0][1];
+  registrationMatrix[2] = Zmatrix[0][2];
+  registrationMatrix[3] = Zposition.getX();
+  registrationMatrix[4] = Zmatrix[1][0];
+  registrationMatrix[5] = Zmatrix[1][1];
+  registrationMatrix[6] = Zmatrix[1][2];
+  registrationMatrix[7] = Zposition.getY();
+  registrationMatrix[8] = Zmatrix[2][0];
+  registrationMatrix[9] = Zmatrix[2][1];
+  registrationMatrix[10] = Zmatrix[2][2];
+  registrationMatrix[11] = Zposition.getZ();
+  registrationMatrix[12] = 0;
+  registrationMatrix[13] = 0;
+  registrationMatrix[14] = 0;
+  registrationMatrix[15] = 1;
+
   //int r = calibration->Register(range, Zposition, Zorientation);
   //calibration->Localize()
 
