@@ -159,7 +159,7 @@ using namespace std;
 // Global variables
 //===========================================================================
 
-// shared data
+// Shered data
 MrsvrStatusWriter*            status;
 MrsvrCommandReader*           command;
 MrsvrLogWriter*               slog;
@@ -172,6 +172,9 @@ MrsvrDev*                     dev;
 // Log mode  :  enabled when the log file name is specified in second argument
 int logmode;
 char* logfilename;
+
+int logging;
+FILE* logfp;
 
 // RAS-XYZ transformation 
 //MrsvrTransform*               trans;
@@ -554,20 +557,18 @@ int clear()
 
 inline int procStartUp()
 {
-  if (status->getMode() != MrsvrStatus::START_UP) {
-    status->setMode(MrsvrStatus::START_UP);
-  }
-  status->setMode(MrsvrStatus::CALIBRATION);
+  
+  //
+  // Put start-up procedure here.
+  //
 
+  status->setMode(MrsvrStatus::CALIBRATION);
   return 1;
 }
 
 
 inline int procCalibration()
 {
-  if (status->getMode() != MrsvrStatus::CALIBRATION) {
-    status->setMode(MrsvrStatus::CALIBRATION);
-  }
 
   int f = 0;
   for (int i = 0; i < NUM_ENCODERS; i ++) {
@@ -635,9 +636,7 @@ inline int procCalibration()
 
 inline int procStop()
 {
-  if (status->getMode() != MrsvrStatus::STOP) {
-    status->setMode(MrsvrStatus::STOP);
-  }
+
   for (int i = 0; i < NUM_ACTUATORS; i ++) {
     dev->setVoltage(i, 0.0);
     status->setVoltage(i, 0.0);
@@ -652,9 +651,6 @@ inline int procStop()
 
 inline int procManual()
 {
-  if (status->getMode() != command->getMode()) {
-    status->setMode(status->getMode());
-  }
 
   unsigned short swst;
   switch(command->getCommandBy()) {
@@ -677,18 +673,13 @@ inline int procManual()
 
 inline int procReset()
 {
-  if (status->getMode() != MrsvrStatus::RESET) {
-    status->setMode(MrsvrStatus::RESET);
-  }
+  status->setMode(MrsvrStatus::START_UP);
   return 1;
 }
 
 
 inline int procEmergency()
 {
-  if (status->getMode() != MrsvrStatus::EMERGENCY) {
-    status->setMode(MrsvrStatus::EMERGENCY);
-  }
   // stop all actuators
   for (int i = 0; i < NUM_ACTUATORS; i ++) {
     dev->setVoltage(i, 0.0);
@@ -979,12 +970,84 @@ inline int checkModeTransition(int currentMode, int newMode)
 }
 
 
+//===========================================================================
+// Print / Log
+//===========================================================================
+
 inline void writeLog()
 {
   slog->next();
   for (int i = 0; i < NUM_ENCODERS; i ++) {
     slog->addPosition(i, posHist[i][pPosHist]);
     slog->addSetPoint(i, 0.0);
+  }
+}
+
+inline void writeEncoderLog(int newMode)
+{
+  struct tm ctm;
+
+  if (newMode == MrsvrStatus::REMOTE) {
+    if (!logging) {
+      if ((logfp = fopen(logfilename, "a")) == NULL) {
+        cout << "Connot open log file. " << endl;
+        exit(1);
+      }
+      logging = 1;
+      time_t ct = 0;
+      time(&ct);
+      localtime_r(&ct, &ctm);
+      fprintf(logfp, "----%04d/%02d/%02d %02d:%02d:%02d----\n", 
+              ctm.tm_year+1900, ctm.tm_mon+1, ctm.tm_mday, 
+              ctm.tm_hour, ctm.tm_min, ctm.tm_sec);
+      dev->setLogTrigHigh();
+    }
+#if (NUM_ENCODERS==5)
+    fprintf(logfp, "%f,  %f, %f, %f, %f\n", 
+            curPos[0], curPos[1], curPos[2], curPos[3], curPos[4]);
+#endif
+  } else if (logging && logfp) {
+    dev->setLogTrigLow();
+    logging = 0;
+    fclose(logfp);
+  }
+}
+
+
+inline void printModeTransition(int newMode)
+{
+  printDate();
+  switch(newMode) {
+  case MrsvrStatus::START_UP:
+    status->setMode(MrsvrStatus::START_UP);
+    CONSOLE_PRINT("Entering START_UP mode...\n");
+    break;
+  case MrsvrStatus::CALIBRATION:
+    status->setMode(MrsvrStatus::CALIBRATION);
+    CONSOLE_PRINT("Entering CALIBRATION mode...\n");
+    break;
+  case MrsvrStatus::STOP:
+    status->setMode(MrsvrStatus::STOP);
+    CONSOLE_PRINT("Entering STOP mode...\n");
+    break;
+  case MrsvrStatus::MANUAL:
+    status->setMode(MrsvrStatus::MANUAL);
+    CONSOLE_PRINT("Entering MANUAL mode...\n");
+    break;
+  case MrsvrStatus::REMOTE:
+    status->setMode(MrsvrStatus::REMOTE);
+    CONSOLE_PRINT("Entering REMOTE mode...\n");
+    break;
+  case MrsvrStatus::EMERGENCY:
+    status->setMode(MrsvrStatus::EMERGENCY);
+    CONSOLE_PRINT("Entering EMERGENCY mode...\n");
+    break;
+  case MrsvrStatus::RESET:
+    status->setMode(MrsvrStatus::RESET);
+    CONSOLE_PRINT("Entering RESET mode...\n");
+    break;
+  default:
+    break;
   }
 }
 
@@ -995,13 +1058,12 @@ inline void writeLog()
 
 int main(int argc, char* argv[]) 
 {
-  FILE* logfp;
-  int logging = 0;
   //  static time_t ct = 0;
   struct tm ctm;
   static bool prevLockState[NUM_ACTUATORS];
   static bool prevActiveState[NUM_ACTUATORS];
 
+  logging = 0;
 
   cout << endl << SOFTWARE_NAME << endl;
   cout << COPYRIGHT_STR << endl;
@@ -1076,7 +1138,8 @@ int main(int argc, char* argv[])
     CONSOLE_PRINT("OK.\n");
   }
 
-  // main loooooooooooooooooooooooooooooooooop
+  //--------------------------------------------------
+  // main loop
   while(1) {
 
 #ifdef USE_ART    
@@ -1094,76 +1157,19 @@ int main(int argc, char* argv[])
     }
 
     getPositions();
-    int newMode = command->getMode();
+
+    int newMode = command->getNewMode(); // returns -1, if the new node is not requested
     int currentMode = status->getMode();
+    if (newMode > 0) {
+      if (checkModeTransition(currentMode, newMode) == 1) {
+        status->setMode(newMode);
+        currentMode = newMode;
+        printModeTransition(currentMode);
+      }
+    }
     
-    if (checkModeTransition(currentMode, newMode) == 1) {
-      fModeChange = true;
-    } else {
-      fModeChange = false;
-    }
-
-    if (fModeChange) {
-      printDate();
-      switch(newMode) {
-      case MrsvrStatus::START_UP:
-        status->setMode(MrsvrStatus::START_UP);
-        CONSOLE_PRINT("Entering START_UP mode...\n");
-        break;
-      case MrsvrStatus::CALIBRATION:
-        status->setMode(MrsvrStatus::CALIBRATION);
-        CONSOLE_PRINT("Entering CALIBRATION mode...\n");
-        break;
-      case MrsvrStatus::STOP:
-        status->setMode(MrsvrStatus::STOP);
-        CONSOLE_PRINT("Entering STOP mode...\n");
-        break;
-      case MrsvrStatus::MANUAL:
-        status->setMode(MrsvrStatus::MANUAL);
-        CONSOLE_PRINT("Entering MANUAL mode...\n");
-        break;
-      case MrsvrStatus::REMOTE:
-        status->setMode(MrsvrStatus::REMOTE);
-        CONSOLE_PRINT("Entering REMOTE mode...\n");
-        break;
-      case MrsvrStatus::EMERGENCY:
-        status->setMode(MrsvrStatus::EMERGENCY);
-        CONSOLE_PRINT("Entering EMERGENCY mode...\n");
-        break;
-      case MrsvrStatus::RESET:
-        status->setMode(MrsvrStatus::RESET);
-        CONSOLE_PRINT("Entering RESET mode...\n");
-        break;
-      default:
-        break;
-      }
-    }
-
     if (logmode) {
-      if (newMode == MrsvrStatus::REMOTE) {
-        if (!logging) {
-          if ((logfp = fopen(logfilename, "a")) == NULL) {
-            cout << "Connot open log file. " << endl;
-            exit(1);
-          }
-          logging = 1;
-          time_t ct = 0;
-          time(&ct);
-          localtime_r(&ct, &ctm);
-          fprintf(logfp, "----%04d/%02d/%02d %02d:%02d:%02d----\n", 
-                  ctm.tm_year+1900, ctm.tm_mon+1, ctm.tm_mday, 
-                  ctm.tm_hour, ctm.tm_min, ctm.tm_sec);
-          dev->setLogTrigHigh();
-        }
-#if (NUM_ENCODERS==5)
-        fprintf(logfp, "%f,  %f, %f, %f, %f\n", 
-                curPos[0], curPos[1], curPos[2], curPos[3], curPos[4]);
-#endif
-      } else if (logging && logfp) {
-        dev->setLogTrigLow();
-        logging = 0;
-        fclose(logfp);
-      }
+      writeEncoderLog(currentMode);
     }
 
     switch (status->getMode()) {

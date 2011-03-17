@@ -47,6 +47,7 @@ typedef struct {
   bool         shutdown;               // if 1,  mainController starts to shutdown.
 
   int          mode; 
+  int          modeRequestID;          // incremented when the new mode is requested
   int          commandBy;
   
   // actuator power switch
@@ -74,6 +75,7 @@ typedef struct {
 
   // Commands for calibration
   int          calibrationCommand;
+  int          calibrationCommandID;       // incremented when the calibrationCommand is updated.
 
   // for automatic calibration
   bool         autoCalibProcSwitch[NUM_AUTOCALIB_PROC];
@@ -117,6 +119,20 @@ class MrsvrCommandReader : public MrsvrCommand {
 public:
   inline bool  getShutdown()         { return cmdInfo->shutdown;   };
   inline int   getMode()             { return cmdInfo->mode;       };
+  inline int   getMode(int & id) {
+    id = cmdInfo->modeRequestID;
+    return cmdInfo->mode;       
+  }
+  inline int   getNewMode() {
+    int id = cmdInfo->modeRequestID;
+    if (id != prevModeRequestID) {
+      prevModeRequestID = id;
+      return cmdInfo->modeRequestID;
+    } else {
+      return -1;
+    }
+  }
+
   inline int   getCommandBy()        { return cmdInfo->commandBy;  };
   inline float getVoltage(int i)     { return cmdInfo->voltage[i];  };
   inline float getVelocity(int i)    { return cmdInfo->velocity[i]; };
@@ -156,7 +172,23 @@ public:
   inline int getCalibrationCommand() {
     return cmdInfo->calibrationCommand;
   }
-    
+  inline int getCalibrationCommand(int & id) {
+    id = cmdInfo->calibrationCommandID;
+    return cmdInfo->calibrationCommand;
+  }
+  inline int getNewCalibrationCommand() {
+    int id = cmdInfo->calibrationCommandID;
+    if (id != prevCalibrationCommandID) {
+      prevCalibrationCommandID = id;
+      return cmdInfo->calibrationCommandID;
+    } else {
+      return -1;
+    }
+  }
+
+private:  
+  int prevModeRequestID;
+  int prevCalibrationCommandID;
 
 public:
   MrsvrCommandReader(key_t);
@@ -169,7 +201,7 @@ class MrsvrCommandWriter : public MrsvrCommandReader {
 
 public:
   inline void  setShutdown(bool s)          { cmdInfo->shutdown = s;   };
-  inline void  setMode(int v)               { cmdInfo->mode =  v;      };
+  inline void  setMode(int v)               { cmdInfo->mode =  v; cmdInfo->modeRequestID ++; };
   inline void  setCommandBy(int v)          { cmdInfo->commandBy = v;  };
   inline void  setVoltage(int i, float v)   { cmdInfo->voltage[i] = v;  };
   inline void  setVelocity(int i, float v)  { cmdInfo->velocity[i] = v; };
@@ -199,8 +231,9 @@ public:
     cmdInfo->autoCalibPoints[i][d] = v;
   }
 
-  inline int setCalibrationCommand() {
-    return cmdInfo->calibrationCommand;
+  inline int setCalibrationCommand(int cmd) {
+    cmdInfo->calibrationCommand = cmd;
+    cmdInfo->calibrationCommandID ++;
   }
 
   inline void enableAutoCalibProc(int i) {
