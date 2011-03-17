@@ -38,6 +38,8 @@ MrsvrCommandReader::MrsvrCommandReader(key_t shmkey) :
   MrsvrCommand(shmkey)
 {
   cmdInfo->shutdown = 0;
+  prevModeRequestID = 0;
+  prevCalibrationCommandID = 0;
 }
 
 
@@ -68,6 +70,9 @@ MrsvrCommandWriter::MrsvrCommandWriter(key_t shmkey) :
     cmdInfo->tipApprOrient[i] = 0.0;
   }
   cmdInfo->tipApprOffset = 0.0;
+
+  cmdInfo->modeRequestID = 0;
+  cmdInfo->calibrationCommandID = 0;
 }
 
 
