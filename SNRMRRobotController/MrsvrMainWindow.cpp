@@ -474,79 +474,9 @@ int MrsvrMainWindow::buildCalibrationControlPanel(FXComposite* comp)
   char name[128];
   FXLabel *lb;
 
-  //////// Automatic Calibration Section 
-  FXGroupBox* gpAutoCalib  = 
-    new FXGroupBox(comp, "Automatic Calibration",
-                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-  gpAutoCalib->setBackColor(getApp()->getShadowColor());
-
-  FXVerticalFrame *frAutoCalib = 
-    new FXVerticalFrame(gpAutoCalib,
-                          LAYOUT_FILL_X|LAYOUT_FILL_Y);
-  frAutoCalib->setBackColor(getApp()->getShadowColor());
-
-  FXMatrix* mtAutoCalibProcs  = 
-    new FXMatrix(frAutoCalib,2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|LAYOUT_TOP);
-  mtAutoCalibProcs->setBackColor(getApp()->getShadowColor());
-
-  for (int i = 0; i < NUM_PROC_AUTOCALIB; i ++) {
-    lb = new FXLabel(mtAutoCalibProcs, autoCalibProcNameText[i]);
-    lb->setBackColor(getApp()->getShadowColor());
-    FXPopup* popup = new FXPopup(this);
-    new FXOption(popup,"Disable",NULL,dtAutoCalibProcSelect[i],
-                 FXDataTarget::ID_OPTION+0,
-                 JUSTIFY_HZ_APART|ICON_AFTER_TEXT);    
-    new FXOption(popup,"Enable",NULL,dtAutoCalibProcSelect[i],
-                 FXDataTarget::ID_OPTION+1,
-                 JUSTIFY_HZ_APART|ICON_AFTER_TEXT);
-    FXOptionMenu *options=new FXOptionMenu(mtAutoCalibProcs,popup,
-                                           LAYOUT_TOP|FRAME_RAISED|FRAME_THICK|JUSTIFY_HZ_APART|
-                                           ICON_AFTER_TEXT);
-    options->setTarget(dtAutoCalibProcSelect[i]);
-    options->setSelector(FXDataTarget::ID_VALUE);
-  }
-
-
-  //////// Z-Frame Calibration
-  FXGroupBox* gpZFrameCalib  = 
-    new FXGroupBox(comp, "Z-Frame Calibration",
-                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-  gpZFrameCalib->setBackColor(getApp()->getShadowColor());
-
-  FXVerticalFrame *frZFrameCalib = 
-    new FXVerticalFrame(gpZFrameCalib,
-                          LAYOUT_FILL_X|LAYOUT_FILL_Y);
-  frZFrameCalib->setBackColor(getApp()->getShadowColor());
-
-  FXMatrix* mtZFrameMatrix  = 
-    new FXMatrix(frZFrameCalib,4,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_TOP|LAYOUT_CENTER_X);
-
-  mtZFrameMatrix->setBackColor(getApp()->getShadowColor());
-
-  for (int i = 0; i < 16; i ++) {
-    lb->setBackColor(getApp()->getShadowColor());
-    new FXTextField(mtZFrameMatrix,4,dtCalibrationMatrix[i],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
-                  0, 0, 20, 15);
-  }
-
-  new FXButton(frZFrameCalib, "Manual Z-Frame Calibration", NULL, this,
-               ID_SHOWDIALOG,
-               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-  
-  new FXButton(frZFrameCalib, "Set", NULL, this, 
-               ID_CMD_CALIBRATE,FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-
-
-  //////// Z-Frame Calibration
+  //////// Homeing
   FXGroupBox* gpManualCalib =
-    new FXGroupBox(comp, "Manual Calibration",
+    new FXGroupBox(comp, "Homing",
                    LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
   gpManualCalib->setBackColor(getApp()->getShadowColor());
   FXVerticalFrame *frManualCalib = 
@@ -576,6 +506,41 @@ int MrsvrMainWindow::buildCalibrationControlPanel(FXComposite* comp)
                                   LAYOUT_CENTER_Y|LAYOUT_FILL_X);
   }
 
+  new FXButton(frManualCalib, "Automatic Hmeing", NULL, this, 
+               ID_CMD_CALIBRATE,FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+
+
+  //////// Z-Frame Calibration
+  FXGroupBox* gpZFrameCalib  = 
+    new FXGroupBox(comp, "Z-Frame Calibration",
+                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
+  gpZFrameCalib->setBackColor(getApp()->getShadowColor());
+
+  FXVerticalFrame *frZFrameCalib = 
+    new FXVerticalFrame(gpZFrameCalib,
+                          LAYOUT_FILL_X|LAYOUT_FILL_Y);
+  frZFrameCalib->setBackColor(getApp()->getShadowColor());
+
+  FXMatrix* mtZFrameMatrix  = 
+    new FXMatrix(frZFrameCalib,4,
+                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
+                 LAYOUT_TOP|LAYOUT_CENTER_X);
+
+  mtZFrameMatrix->setBackColor(getApp()->getShadowColor());
+
+  for (int i = 0; i < 16; i ++) {
+    new FXTextField(mtZFrameMatrix,4,dtCalibrationMatrix[i],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
+                  0, 0, 20, 15);
+  }
+
+  new FXButton(frZFrameCalib, "Manual Z-Frame Calibration", NULL, this,
+               ID_SHOWDIALOG,
+               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+  
 
   return 1;
 }
