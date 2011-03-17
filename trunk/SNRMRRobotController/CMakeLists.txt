@@ -218,8 +218,8 @@ target_link_libraries(MrsvrCtrl
 # --------------------------------------------------------------------------
 # Build
 
-add_executable(main main.cpp)
-target_link_libraries(main
+add_executable(interface interface.cpp)
+target_link_libraries(interface
   MrsvrCom
   MrsvrIF
   ${FOX_LIBNAME}
@@ -259,8 +259,8 @@ if(USE_ARTAPI)
   )
 endif(USE_ARTAPI)
 
-add_executable(mainController mainController.cpp)
-target_link_libraries(mainController
+add_executable(controller controller.cpp)
+target_link_libraries(controller
   ${CTRL_LIBS}
   )
 
