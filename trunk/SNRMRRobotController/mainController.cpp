@@ -18,7 +18,7 @@
 //====================================================================
 
 //====================================================================
-//  State Transition Diagram
+// Mode Transition Diagram
 //====================================================================
 //
 //  1. START_UP:     Boot-up sequence (Hardware / Software)
@@ -204,6 +204,12 @@ static int   fOutOfRange[NUM_ENCODERS];
 // Declarations of functions
 //===========================================================================
 
+int  procStartUp();
+int  procCalibration();
+int  procStop();
+int  procManual();
+int  procEmergency();
+int  procReset();
 int  trapCtrl(MrsvrVector, float);
 int  trapCtrl2(MrsvrVector, float);
 int  remoteCtrl(MrsvrVector, float);
@@ -525,6 +531,7 @@ int initCommandInterface()
   //trans  = new MrsvrTransform();
 
   // register the limit of motion to the shared memory
+  status->setMode(MrsvrStatus::START_UP);
   status->setLimitPos((float*)dev->getLimitMins(), (float*)dev->getLimitMaxs());
   procStop();
 
@@ -545,7 +552,7 @@ int clear()
 // Procedures for each mode
 //===========================================================================
 
-int procStartUp()
+inline int procStartUp()
 {
   if (status->getMode() != MrsvrStatus::START_UP) {
     status->setMode(MrsvrStatus::START_UP);
@@ -677,7 +684,7 @@ inline int procReset()
 }
 
 
-inline int procEMERGENCY()
+inline int procEmergency()
 {
   if (status->getMode() != MrsvrStatus::EMERGENCY) {
     status->setMode(MrsvrStatus::EMERGENCY);
@@ -923,6 +930,55 @@ inline void getPositions()
 }
 
 
+inline int checkModeTransition(int currentMode, int newMode)
+{
+  if (currentMode == newMode) {
+    return 0;
+  }
+
+  int fAccept = 0;
+
+  // Please refer "Mode Transition Diagram" at the top of this file
+  switch(currentMode) {
+  case MrsvrStatus::START_UP:
+    break;
+  case MrsvrStatus::CALIBRATION:
+    break;
+  case MrsvrStatus::STOP:
+    if (newMode == MrsvrStatus::MANUAL || newMode == MrsvrStatus::REMOTE) {
+      fAccept = 1;
+    }
+    break;
+  case MrsvrStatus::MANUAL:
+    if (newMode == MrsvrStatus::REMOTE ||
+        newMode == MrsvrStatus::STOP ||
+        newMode == MrsvrStatus::EMERGENCY ||
+        newMode == MrsvrStatus::RESET) {
+      fAccept = 1;
+    }
+    break;
+  case MrsvrStatus::REMOTE:
+    if (newMode == MrsvrStatus::MANUAL ||
+        newMode == MrsvrStatus::STOP ||
+        newMode == MrsvrStatus::EMERGENCY ||
+        newMode == MrsvrStatus::RESET) {
+      fAccept = 1;
+    }
+    break;
+  case MrsvrStatus::EMERGENCY:
+    if (newMode == MrsvrStatus::RESET) {
+      fAccept = 1;
+    }
+    break;
+  case MrsvrStatus::RESET:
+    break;
+  default:
+    break;
+  }
+  return fAccept;
+}
+
+
 inline void writeLog()
 {
   slog->next();
@@ -939,12 +995,10 @@ inline void writeLog()
 
 int main(int argc, char* argv[]) 
 {
-  int m;
   FILE* logfp;
   int logging = 0;
   //  static time_t ct = 0;
   struct tm ctm;
-  static int prevMode = -1;
   static bool prevLockState[NUM_ACTUATORS];
   static bool prevActiveState[NUM_ACTUATORS];
 
@@ -999,6 +1053,8 @@ int main(int argc, char* argv[])
   initLogInterface();
   initCommandInterface();
   initHistory();
+
+  CONSOLE_PRINT("Entering START_UP mode...\n");
   slog->setInterval(interval);
 
 #ifdef USE_ART
@@ -1038,38 +1094,44 @@ int main(int argc, char* argv[])
     }
 
     getPositions();
-    m = command->getMode();
+    int newMode = command->getMode();
+    int currentMode = status->getMode();
     
-    if (m != prevMode) {
+    if (checkModeTransition(currentMode, newMode) == 1) {
       fModeChange = true;
     } else {
       fModeChange = false;
     }
-    prevMode = m;
 
-    // print mode information
     if (fModeChange) {
       printDate();
-      switch(m) {
+      switch(newMode) {
       case MrsvrStatus::START_UP:
+        status->setMode(MrsvrStatus::START_UP);
         CONSOLE_PRINT("Entering START_UP mode...\n");
         break;
       case MrsvrStatus::CALIBRATION:
+        status->setMode(MrsvrStatus::CALIBRATION);
         CONSOLE_PRINT("Entering CALIBRATION mode...\n");
         break;
       case MrsvrStatus::STOP:
+        status->setMode(MrsvrStatus::STOP);
         CONSOLE_PRINT("Entering STOP mode...\n");
         break;
       case MrsvrStatus::MANUAL:
+        status->setMode(MrsvrStatus::MANUAL);
         CONSOLE_PRINT("Entering MANUAL mode...\n");
         break;
       case MrsvrStatus::REMOTE:
+        status->setMode(MrsvrStatus::REMOTE);
         CONSOLE_PRINT("Entering REMOTE mode...\n");
         break;
       case MrsvrStatus::EMERGENCY:
+        status->setMode(MrsvrStatus::EMERGENCY);
         CONSOLE_PRINT("Entering EMERGENCY mode...\n");
         break;
       case MrsvrStatus::RESET:
+        status->setMode(MrsvrStatus::RESET);
         CONSOLE_PRINT("Entering RESET mode...\n");
         break;
       default:
@@ -1078,7 +1140,7 @@ int main(int argc, char* argv[])
     }
 
     if (logmode) {
-      if (m == MrsvrStatus::REMOTE) {
+      if (newMode == MrsvrStatus::REMOTE) {
         if (!logging) {
           if ((logfp = fopen(logfilename, "a")) == NULL) {
             cout << "Connot open log file. " << endl;
@@ -1104,7 +1166,7 @@ int main(int argc, char* argv[])
       }
     }
 
-    switch (m) {
+    switch (status->getMode()) {
       case MrsvrStatus::START_UP:
         procStartUp();
         break;
@@ -1121,8 +1183,10 @@ int main(int argc, char* argv[])
         procManual();
         break;
       case MrsvrStatus::EMERGENCY:
+        procEmergency();
         break;
       case MrsvrStatus::RESET:
+        procReset();
         break;
       default:
         break;
