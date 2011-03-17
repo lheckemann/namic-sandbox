@@ -25,6 +25,7 @@
 #include "vtkKWScaleWithEntry.h"
 
 /* MRML includes */
+#include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 
 /* Slicer includes */
@@ -533,75 +534,133 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   //----------------------------------------------------------------
   // Main slice views.
   //
-  // If the user clicked in one of the slice views, transform xy
-  // mouse coordinates into RAS coordinates.
+  // If the user clicked in one of the slice views with one of the
+  // radio buttons associated with the RAS coordinates of
+  //  - the guidance needle tip
+  //  - a second point on the guidance needle
+  //  - the marker center
+  // being active at the same time, a fiducial is created unless
+  // there already exists a fiducial corresponding to the active
+  // radio button in AbdoNav's fiducial list.
   //
-  // TODO: move to logic class and update MRML node from there?
+  // The steps are:
+  // 1. determine which radio button is active (if there is an
+  //    active one at all)
+  // 2. if there is an active radio button, create/retrieve
+  //    AbdoNav's fiducial list
+  // 3. determine whether or not AbdoNav's fiducial list already
+  //    contains a fiducial corresponding to the active radio
+  //    button
+  // 4. if AbdoNav's fiducial list doesn't contain a corresponding
+  //    fiducial yet, transform XY mouse coordinates into RAS
+  //    coordinates and add them to the fiducial list
   //----------------------------------------------------------------
   vtkSlicerInteractorStyle* style = vtkSlicerInteractorStyle::SafeDownCast(caller);
   if (style != NULL && event == vtkCommand::LeftButtonPressEvent)
     {
-    // first, find out in which slice view the user clicked
-    vtkSlicerSliceGUI* sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI("Red");
-    vtkRenderWindowInteractor* rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
-
-    int index = 0;
-    while (style != rwi->GetInteractorStyle() && index < 2)
+    // determine which radio button is active
+    std::string activeRadioButton = "";
+    if (this->Point1RadioButton->GetSelectedState() && this->Point1RadioButton->GetEnabled())
       {
-      index++;
-      if (index == 1)
+      activeRadioButton = "tipRAS";
+      }
+    else if (this->Point2RadioButton->GetSelectedState() && this->Point2RadioButton->GetEnabled())
+      {
+      activeRadioButton = "2ndRAS";
+      }
+    else if (this->Point3RadioButton->GetSelectedState() && this->Point3RadioButton->GetEnabled())
+      {
+      activeRadioButton = "markerRAS";
+      }
+
+    // if there is an active radio button
+    if (strcmp(activeRadioButton.c_str(), ""))
+      {
+      // create/retrieve AbdoNav's fiducial list
+      vtkMRMLFiducialListNode* fiducialList;
+      if (this->AbdoNavNode == NULL)
         {
-        sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI("Yellow");
+        vtkKWMessageDialog::PopupMessage(this->GetApplication(),
+                                         this->GetApplicationGUI()->GetMainSlicerWindow(),
+                                         "AbdoNav",
+                                         "Configure connection first!",
+                                         vtkKWMessageDialog::ErrorIcon);
         }
       else
         {
-        sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI("Green");
+        if (this->AbdoNavNode->GetFiducialListID() == NULL)
+          {
+          // AbdoNav fiducial list doesn't exist yet, thus create it
+          fiducialList = vtkMRMLFiducialListNode::New();
+          fiducialList->SetName("AbdoNav-FiducialList");
+          fiducialList->SetDescription("Created by AbdoNav");
+          // change default look ("StarBurst2D", 5) since it doesn't really
+          // suit the purpose of needle identification; the user can always
+          // return to the default look using Slicer's Fiducials module
+          fiducialList->SetGlyphTypeFromString("Sphere3D");
+          fiducialList->SetSymbolScale(2); // called "Glyph scale" in the Fiducials module
+          this->GetMRMLScene()->AddNode(fiducialList);
+          fiducialList->Delete();
+          this->AbdoNavNode->SetFiducialListID(fiducialList->GetID());
+          // observe fiducial list in order to update the GUI whenever a fiducial is moved via drag & drop by the user
+          fiducialList->AddObserver(vtkMRMLFiducialListNode::FiducialModifiedEvent, (vtkCommand *)this->MRMLCallbackCommand);
+          }
+        else
+          {
+          // AbdoNav fiducial list already exists, thus retrieve it
+          fiducialList = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetFiducialListID()));
+          }
         }
-      rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
-      }
 
-    // second, transform xy mouse coordinates into RAS coordinates
-    int xyPos[2];
-    rwi->GetLastEventPosition(xyPos);
-    double xyVec[4] = {xyPos[0], xyPos[1], 0, 1};
-    double rasVec[4];
-    vtkMatrix4x4* matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
-    matrix->MultiplyPoint(xyVec, rasVec);
+      // exit this function if the fiducial corresponding to the active radio button already exists
+      for (int i = 0; i < fiducialList->GetNumberOfFiducials(); i++)
+        {
+        if (!strcmp(activeRadioButton.c_str(), fiducialList->GetNthFiducialLabelText(i)))
+          {
+          // corresponding fiducial already exists, thus exit
+          return;
+          }
+        }
 
-    // third, display RAS coordinates in the GUI
-    if (this->Point1RadioButton->GetSelectedState())
-      {
-      if (this->Point1RadioButton->GetEnabled())
-        {
-        // only update if enabled
-        Point1REntry->SetValueAsDouble(rasVec[0]);
-        Point1AEntry->SetValueAsDouble(rasVec[1]);
-        Point1SEntry->SetValueAsDouble(rasVec[2]);
-        }
-      }
-    else if (this->Point2RadioButton->GetSelectedState())
-      {
-      if (this->Point2RadioButton->GetEnabled())
-        {
-        // only update if enabled
-        Point2REntry->SetValueAsDouble(rasVec[0]);
-        Point2AEntry->SetValueAsDouble(rasVec[1]);
-        Point2SEntry->SetValueAsDouble(rasVec[2]);
-        }
-      }
-    else if (this->Point3RadioButton->GetSelectedState())
-      {
-      if (this->Point3RadioButton->GetEnabled())
-        {
-        // only update if enabled
-        Point3REntry->SetValueAsDouble(rasVec[0]);
-        Point3AEntry->SetValueAsDouble(rasVec[1]);
-        Point3SEntry->SetValueAsDouble(rasVec[2]);
-        }
-      }
+      // there's an active radio button but AbdoNav's fiducial list doesn't
+      // contain the corresponding fiducial yet; thus, transform XY mouse
+      // coordinates into RAS coordinates and add them to the fiducial list
+      //
+      // first, find out in which slice view the user clicked (necessary
+      // information for the XY to RAS conversion)
+      vtkSlicerSliceGUI* sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI("Red");
+      vtkRenderWindowInteractor* rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
 
-    // fourth (and last), update MRML node
-    this->UpdateMRMLFromGUI();
+      int index = 0;
+      while (style != rwi->GetInteractorStyle() && index < 2)
+        {
+        index++;
+        if (index == 1)
+          {
+          sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI("Yellow");
+          }
+        else
+          {
+          sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI("Green");
+          }
+        rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
+        }
+
+      // second, transform XY mouse coordinates into RAS coordinates
+      int xyPos[2];
+      rwi->GetLastEventPosition(xyPos);
+      double xyVec[4] = {xyPos[0], xyPos[1], 0, 1};
+      double rasVec[4];
+      vtkMatrix4x4* matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+      matrix->MultiplyPoint(xyVec, rasVec);
+
+      // third, add RAS coordinates to the fiducial list
+      fiducialList->AddFiducialWithLabelXYZSelectedVisibility(activeRadioButton.c_str(), rasVec[0], rasVec[1], rasVec[2], 1, 1);
+      fiducialList->Modified();
+
+      // fourth (and last), update the GUI
+      this->UpdateGUIFromMRML();
+      }
     }
 
   //----------------------------------------------------------------
@@ -844,6 +903,13 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
         this->AbdoNavLogic->SetAndObserveAbdoNavNode(node);
         // set and observe the new node in GUI
         vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node);
+        // if an AbdoNav fiducial list is part of the loaded scene, observe it in order
+        // to update the GUI whenever a fiducial is moved via drag & drop by the user
+        vtkMRMLFiducialListNode* fiducialList = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetFiducialListID()));
+        if (fiducialList != NULL)
+          {
+          fiducialList->AddObserver(vtkMRMLFiducialListNode::FiducialModifiedEvent, (vtkCommand *)this->MRMLCallbackCommand);
+          }
         }
       this->UpdateGUIFromMRML();
       }
@@ -855,6 +921,18 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
     if (node)
       {
       this->UpdateGUIFromMRML();
+      }
+    }
+  else if (event == vtkMRMLFiducialListNode::FiducialModifiedEvent)
+    {
+    vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(caller);
+    if (fnode != NULL && this->AbdoNavNode != NULL)
+      {
+      if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetFiducialListID()))
+        {
+        std::cout << "FiducialModifiedEvent observed" << std::endl;
+        this->UpdateGUIFromMRML();
+        }
       }
     }
 }
@@ -894,15 +972,6 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
     node->SetOriginalTrackerTransformID(tnode->GetID());
     }
   node->SetTrackingSystemUsed(this->TrackingSystemComboBox->GetWidget()->GetValue());
-  node->SetGuidanceNeedleTipRAS(Point1REntry->GetValueAsDouble(),
-                                Point1AEntry->GetValueAsDouble(),
-                                Point1SEntry->GetValueAsDouble());
-  node->SetGuidanceNeedleSecondRAS(Point2REntry->GetValueAsDouble(),
-                                   Point2AEntry->GetValueAsDouble(),
-                                   Point2SEntry->GetValueAsDouble());
-  node->SetMarkerCenterRAS(Point3REntry->GetValueAsDouble(),
-                           Point3AEntry->GetValueAsDouble(),
-                           Point3SEntry->GetValueAsDouble());
   node->EndModify(modifiedFlag);
 }
 
@@ -918,20 +987,34 @@ void vtkAbdoNavGUI::UpdateGUIFromMRML()
     this->TrackerTransformSelector->SetSelected(tnode);
     this->TrackingSystemComboBox->GetWidget()->SetValue(node->GetTrackingSystemUsed());
 
-    double* guidanceTip = node->GetGuidanceNeedleTipRAS();
-    this->Point1REntry->SetValueAsDouble(guidanceTip[0]);
-    this->Point1AEntry->SetValueAsDouble(guidanceTip[1]);
-    this->Point1SEntry->SetValueAsDouble(guidanceTip[2]);
-
-    double* guidanceSecond = node->GetGuidanceNeedleSecondRAS();
-    this->Point2REntry->SetValueAsDouble(guidanceSecond[0]);
-    this->Point2AEntry->SetValueAsDouble(guidanceSecond[1]);
-    this->Point2SEntry->SetValueAsDouble(guidanceSecond[2]);
-
-    double* markerCenter = node->GetMarkerCenterRAS();
-    this->Point3REntry->SetValueAsDouble(markerCenter[0]);
-    this->Point3AEntry->SetValueAsDouble(markerCenter[1]);
-    this->Point3SEntry->SetValueAsDouble(markerCenter[2]);
+    vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(node->GetFiducialListID()));
+    if (fnode != NULL)
+      {
+      for (int i = 0; i < fnode->GetNumberOfFiducials(); i++)
+        {
+        if (!strcmp("tipRAS", fnode->GetNthFiducialLabelText(i)))
+          {
+          float* guidanceTip = fnode->GetNthFiducialXYZ(i);
+          this->Point1REntry->SetValueAsDouble(guidanceTip[0]);
+          this->Point1AEntry->SetValueAsDouble(guidanceTip[1]);
+          this->Point1SEntry->SetValueAsDouble(guidanceTip[2]);
+          }
+        else if (!strcmp("2ndRAS", fnode->GetNthFiducialLabelText(i)))
+          {
+          float* guidanceSecond = fnode->GetNthFiducialXYZ(i);
+          this->Point2REntry->SetValueAsDouble(guidanceSecond[0]);
+          this->Point2AEntry->SetValueAsDouble(guidanceSecond[1]);
+          this->Point2SEntry->SetValueAsDouble(guidanceSecond[2]);
+          }
+        else if (!strcmp("markerRAS", fnode->GetNthFiducialLabelText(i)))
+          {
+          float* markerCenter = fnode->GetNthFiducialXYZ(i);
+          this->Point3REntry->SetValueAsDouble(markerCenter[0]);
+          this->Point3AEntry->SetValueAsDouble(markerCenter[1]);
+          this->Point3SEntry->SetValueAsDouble(markerCenter[2]);
+          }
+        }
+      }
     }
 }
 
