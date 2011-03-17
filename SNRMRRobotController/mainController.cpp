@@ -12,12 +12,47 @@
 // $Date: 2006/01/19 07:35:15 $
 //====================================================================
 
-
 //====================================================================
 // Description: 
 //    Main Controller for MRI guided robot control system.
 //====================================================================
 
+//====================================================================
+//  State Transition Diagram
+//====================================================================
+//
+//  1. START_UP:     Boot-up sequence (Hardware / Software)
+//  2. CALIBRATION:  Cailbration mode
+//  3. STOP:         Hardware/software ready, no command accepted
+//  4. MANUAL:       Local control
+//  5. REMOTE:       Local control + Remote control
+//  6. EMERGENCY:    Halt system
+//  7. RESET:        Restart system
+//
+//  NOTE:
+//   The only difference betweeen MANUAL and REMOTE mode is whether
+//   the interface process accepts commands from remote software.
+//   In the control process, these two modes are handled in the same way.
+//
+//                                       +------+
+//  START_UP -> CALIBRATION <-> STOP <-> |MANUAL| ------> EMERGENCY 
+//      ^                         |      |   ^  |            |(Safety pause)
+//      |                         |      |   |  |            |
+//      |                         |      |   v  |            |
+//      |                         |      |REMOTE|            |
+//      |                         |      +------+            |
+//      |                         |          |               |
+//      |                         +--------+ |               |
+//      |                                  | |               |
+//      |                                  v v               |
+//      +-------------------------------- RESET <------------+
+//                               (Automatically transition to START_UP)
+//
+
+
+//===========================================================================
+// Header files
+//===========================================================================
 
 // Flag to use real-time API of ART Linux
 #if !defined(WITHOUT_ART) && !defined(USE_ART)
@@ -93,8 +128,6 @@ using namespace std;
   #endif
 #endif
 
-
-
 #ifdef _USE_MRSVR_CONSOLE
   #define DUMP_POSITION(mp) {\
       printf("  nx  = %d\n", mp->getNX());\
@@ -121,37 +154,10 @@ using namespace std;
       slog->addLogText("=====================\n");}
 #endif
 
-// ==================================================
-//  State Transition Diagram
-// ==================================================
-//
-//  1. START_UP:     Boot-up sequence (Hardware / Software)
-//  2. CALIBRATION:  Cailbration mode
-//  3. STOP:         Hardware/software ready, no command accepted
-//  4. MANUAL:       Local control
-//  5. REMOTE:       Local control + Remote control
-//  6. EMERGENCY:    Halt system
-//  7. RESET:        Restart system
-//
-//  NOTE:
-//   The only difference betweeen MANUAL and REMOTE mode is whether the interface
-//   process accepts commands from remote software. In the control process,
-//   these two modes are handled in the same way.
-//
-//                                       +------+
-//  START_UP -> CALIBRATION <-> STOP <-> |MANUAL| ------> EMERGENCY 
-//      ^                         |      |   ^  |            |(Safety pause)
-//      |                         |      |   |  |            |
-//      |                         |      |   v  |            |
-//      |                         |      |REMOTE|            |
-//      |                         |      +------+            |
-//      |                         |          |               |
-//      |                         +--------+ |               |
-//      |                                  | |               |
-//      |                                  v v               |
-//      +-------------------------------- RESET <------------+
-//                               (Automatically transition to START_UP)
 
+//===========================================================================
+// Global variables
+//===========================================================================
 
 // shared data
 MrsvrStatusWriter*            status;
@@ -160,14 +166,12 @@ MrsvrLogWriter*               slog;
 MrsvrRASReader*               setPoint;
 MrsvrRASReader*               currentRAS;
 
-
 // control module
 MrsvrDev*                     dev;
 
 // Log mode  :  enabled when the log file name is specified in second argument
 int logmode;
 char* logfilename;
-
 
 // RAS-XYZ transformation 
 //MrsvrTransform*               trans;
@@ -193,16 +197,17 @@ static float curVel[NUM_ENCODERS];
 static int   fOutOfRange[NUM_ENCODERS]; 
                   // =0: in range, >0: greater than maximum, <0: less than minimum
 
-
 // Out of Range flag
 //static int   fOutOfRange[NUM_ENCODERS];
 
-inline int procStop();
+//===========================================================================
+// Declarations of functions
+//===========================================================================
+
 int  trapCtrl(MrsvrVector, float);
 int  trapCtrl2(MrsvrVector, float);
 int  remoteCtrl(MrsvrVector, float);
 void getActuatorTarget(MrsvrVector& target, MrsvrVector setPoint);
-
 
 
 inline void printDate()
@@ -465,6 +470,11 @@ inline void printDate()
 //  return 1;
 //}
 
+
+//===========================================================================
+// Initialization / finialization functions
+//===========================================================================
+
 int initLogInterface()
 {
   cout << "Starting log interface..." << endl;
@@ -480,6 +490,7 @@ int initLogInterface()
 #endif  
 }
 
+
 int initHistory()
 {
   // initialize position history
@@ -492,6 +503,7 @@ int initHistory()
   }
   pPosHist = 0;
 }
+
 
 int initCommandInterface()
 {
@@ -519,6 +531,19 @@ int initCommandInterface()
   return 1;
 }
 
+
+int clear()
+{
+  //delete targetLogPos;
+  delete status;
+  delete command;
+  return 1;
+}
+
+
+//===========================================================================
+// Procedures for each mode
+//===========================================================================
 
 int procStartUp()
 {
@@ -667,6 +692,11 @@ inline int procEMERGENCY()
 }
 
 
+
+//===========================================================================
+// Actuator control
+//===========================================================================
+
 #define TH_REACH_ERROR  0.05
 
 // trapezoidal control
@@ -714,6 +744,10 @@ int trapCtrl(MrsvrVector setPoint, float vmax)
   return (NUM_ACTUATORS - reach);
 }
 
+
+//===========================================================================
+// Sensor control
+//===========================================================================
 
 void getActuatorTarget(MrsvrVector& target, MrsvrVector setPoint)
 // Get actuator set point from needle tip target
@@ -790,74 +824,74 @@ int trapCtrl2(MrsvrVector setPoint, float vmax)
 }
 
 
-// control sequence in REMOTE mode.
-#define REMOTE_CTRL_KP 0.09
-#define REMOTE_CTRL_KD 1.5
-#define FSIGN(v)    ((v < 0.0) ? -1.0 : 1.0)
-int remoteCtrl(MrsvrVector setPoint, float vmax)
-{
-  static float asp[NUM_ACTUATORS];  // actuator set points
-  float pasp[NUM_ACTUATORS];        // previous actuator set points
-  int reach = 0;
-  int i;
-
-  // save previous setpoint;
-  for (i = 0; i < NUM_ACTUATORS; i ++) {
-    pasp[i] = asp[i];
-  }
-  
-  getActuatorTarget(asp, setPoint);
-
-
-  //cout << "======================" << endl;
-  for (i = 0; i < NUM_ACTUATORS; i ++) {
-    //int limit = status->isOutOfRangePos(i);
-    int limit = fOutOfRange[i];
-
-    float cv   = dev->getSetVelocity(i);  // current set velocity
-    float nv   = REMOTE_CTRL_KD* (asp[i] - pasp[i]) / intervalf + 
-      REMOTE_CTRL_KP * (asp[i] - curPos[i]) / intervalf;
-    float a    = (nv - cv) / intervalf;
-    float sa   = FSIGN(a);
-    float snv  = FSIGN(nv);
-    int zflag  = 0;
-    //cout << "act# " << i << ", cv=" << cv << ", nv=" << nv << ", a=" << a << endl;
-    if (sa*a > dev->getAmax(i)) { // if exceeds maximum accel.
-      //cout << "*************" << endl;
-      if (nv*cv >= 0.0) {
-        nv = cv + dev->getAmax(i) * sa * intervalf;
-      } else {
-        if (fabs(cv) <= dev->getVmin(i)) {
-          nv = 0.0;
-          zflag = 1;
-        } else {
-          nv = cv + dev->getAmax(i) * sa * intervalf;
-        }
-      }
-      snv = FSIGN(nv);
-    }
-    if (snv*nv > vmax) {   // if set velocity exceeds maximum speed.
-      nv = snv*vmax;
-    } else if (snv*nv < dev->getVmin(i) && !zflag) {
-      nv = snv*dev->getVmin(i);
-    }
-    if (fabs(asp[i] - curPos[i]) < TH_REACH_ERROR) {
-      nv = 0.0;
-      reach  ++;
-    }
-    //cout << "act# " << i << ", cv=" << cv << ", nv=" << nv << endl;
-    if (limit == 0 || nv*limit < 0) {  
-      // note: nv*limit<0 means that the signs of 'nv' and 'limit' are different.
-      float sv = dev->setVelocity(i, nv);
-      status->setVoltage(i, sv);
-    } else { // in the case of one of the actuators reaches stroke limit
-      float sv = dev->setVelocity(i, 0.0);
-      status->setVoltage(i, sv);
-    }
-  }
-
-  return (NUM_ACTUATORS - reach);
-}
+//// control sequence in REMOTE mode.
+//#define REMOTE_CTRL_KP 0.09
+//#define REMOTE_CTRL_KD 1.5
+//#define FSIGN(v)    ((v < 0.0) ? -1.0 : 1.0)
+//int remoteCtrl(MrsvrVector setPoint, float vmax)
+//{
+//  static float asp[NUM_ACTUATORS];  // actuator set points
+//  float pasp[NUM_ACTUATORS];        // previous actuator set points
+//  int reach = 0;
+//  int i;
+//
+//  // save previous setpoint;
+//  for (i = 0; i < NUM_ACTUATORS; i ++) {
+//    pasp[i] = asp[i];
+//  }
+//  
+//  getActuatorTarget(asp, setPoint);
+//
+//
+//  //cout << "======================" << endl;
+//  for (i = 0; i < NUM_ACTUATORS; i ++) {
+//    //int limit = status->isOutOfRangePos(i);
+//    int limit = fOutOfRange[i];
+//
+//    float cv   = dev->getSetVelocity(i);  // current set velocity
+//    float nv   = REMOTE_CTRL_KD* (asp[i] - pasp[i]) / intervalf + 
+//      REMOTE_CTRL_KP * (asp[i] - curPos[i]) / intervalf;
+//    float a    = (nv - cv) / intervalf;
+//    float sa   = FSIGN(a);
+//    float snv  = FSIGN(nv);
+//    int zflag  = 0;
+//    //cout << "act# " << i << ", cv=" << cv << ", nv=" << nv << ", a=" << a << endl;
+//    if (sa*a > dev->getAmax(i)) { // if exceeds maximum accel.
+//      //cout << "*************" << endl;
+//      if (nv*cv >= 0.0) {
+//        nv = cv + dev->getAmax(i) * sa * intervalf;
+//      } else {
+//        if (fabs(cv) <= dev->getVmin(i)) {
+//          nv = 0.0;
+//          zflag = 1;
+//        } else {
+//          nv = cv + dev->getAmax(i) * sa * intervalf;
+//        }
+//      }
+//      snv = FSIGN(nv);
+//    }
+//    if (snv*nv > vmax) {   // if set velocity exceeds maximum speed.
+//      nv = snv*vmax;
+//    } else if (snv*nv < dev->getVmin(i) && !zflag) {
+//      nv = snv*dev->getVmin(i);
+//    }
+//    if (fabs(asp[i] - curPos[i]) < TH_REACH_ERROR) {
+//      nv = 0.0;
+//      reach  ++;
+//    }
+//    //cout << "act# " << i << ", cv=" << cv << ", nv=" << nv << endl;
+//    if (limit == 0 || nv*limit < 0) {  
+//      // note: nv*limit<0 means that the signs of 'nv' and 'limit' are different.
+//      float sv = dev->setVelocity(i, nv);
+//      status->setVoltage(i, sv);
+//    } else { // in the case of one of the actuators reaches stroke limit
+//      float sv = dev->setVelocity(i, 0.0);
+//      status->setVoltage(i, sv);
+//    }
+//  }
+//
+//  return (NUM_ACTUATORS - reach);
+//}
 
 
 // Read encoders and calcurate velocities 
@@ -899,14 +933,9 @@ inline void writeLog()
 }
 
 
-int clear()
-{
-  //delete targetLogPos;
-  delete status;
-  delete command;
-  return 1;
-}
-
+//===========================================================================
+// Main
+//===========================================================================
 
 int main(int argc, char* argv[]) 
 {
