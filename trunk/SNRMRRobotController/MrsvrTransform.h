@@ -59,11 +59,6 @@ class MrsvrTransform {
   MrsvrTransform();
   ~MrsvrTransform();
 
-  void initFiducialPoints();
-  int addFiducialPoints(MrsvrVector, MrsvrVector);
-  //int addFiducialPoints(MrsvrVector, MrsvrVector, MrsvrVector);
-  int calibrate();
-
   void setCalibrationMatrix(float* m);
   void transform(MrsvrVector, MrsvrVector);
   void invTransform(MrsvrVector, MrsvrVector);

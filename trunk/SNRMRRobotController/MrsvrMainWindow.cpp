@@ -1698,12 +1698,11 @@ void MrsvrMainWindow::initParameters()
 
   // initialize transform matrix class
   transform = new MrsvrTransform();
-  float mat[16];
-  mat[0] = 1.0;  mat[1] = 0.0;  mat[2] = 0.0;  mat[3] = 0.0;
-  mat[0] = 0.0;  mat[1] = 1.0;  mat[2] = 0.0;  mat[3] = 0.0;
-  mat[0] = 0.0;  mat[1] = 0.0;  mat[2] = 1.0;  mat[3] = 0.0;
-  mat[0] = 0.0;  mat[1] = 0.0;  mat[2] = 0.0;  mat[3] = 1.0;
-  transform->setCalibrationMatrix(mat);
+  for (int i = 0; i < 16; i ++) {
+    valCalibrationMatrix[i] = (i%5 == 0) ? 1.0 : 0.0;
+  }
+
+  transform->setCalibrationMatrix(valCalibrationMatrix);
 
   // actuators' parameters
   for (i = 0; i < NUM_ACTUATORS; i ++) {
@@ -2071,8 +2070,8 @@ void MrsvrMainWindow::setDataTargets()
     dtNormCurrentPosition[i] = 
       new FXDataTarget(valNormCurrentPosition[i], this,
                        ID_UPDATE_PARAMETER);
-
   }
+  valNormTargetPosition[0] = 1.0;
 
   dtTipApprOffset = 
     //new FXDataTarget(valTipApprOffset, this, ID_UPDATE_PARAMETER);
