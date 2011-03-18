@@ -34,7 +34,7 @@
 #define AUTOCALIB_PROC_REGISTRATION 2
 #define NUM_AUTOCALIB_PROC          3
 
-#define NEEDLE_STOP       0
+#define NEEDLE_HOLD       0
 #define NEEDLE_APPROACH   1
 #define NEEDLE_LEAVE      -1
 
@@ -68,7 +68,7 @@ typedef struct {
   float        tipApprOffset;              // tip approaching Offset [mm]
   /*
   int          tipApprSw;                 // tip approaching switch
-                                          //  (NEEDLE_STOP, NEEDLE_APPROACH or NEEDLE_LEAVE)
+                                          //  (NEEDLE_HOLD, NEEDLE_APPROACH or NEEDLE_LEAVE)
   */
 
   float        lmtVoltage[NUM_ENCODERS];  // voltage limitter

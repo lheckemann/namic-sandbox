@@ -23,30 +23,21 @@
 //
 //  1. START_UP:     Boot-up sequence (Hardware / Software)
 //  2. CALIBRATION:  Cailbration mode
-//  3. STOP:         Hardware/software ready, no command accepted
-//  4. MANUAL:       Local control
-//  5. REMOTE:       Local control + Remote control
-//  6. EMERGENCY:    Halt system
-//  7. RESET:        Restart system
+//  3. HOLD:         Hardware/software ready, no command accepted
+//  4. ACTIVE:       Targeting
+//  5. EMERGENCY:    Halt system
+//  6. RESET:        Restart system
 //
-//  NOTE:
-//   The only difference betweeen MANUAL and REMOTE mode is whether
-//   the interface process accepts commands from remote software.
-//   In the control process, these two modes are handled in the same way.
-//
-//                                       +------+
-//  START_UP -> CALIBRATION <-> STOP <-> |MANUAL| ------> EMERGENCY 
-//      ^                         |      |   ^  |            |(Safety pause)
-//      |                         |      |   |  |            |
-//      |                         |      |   v  |            |
-//      |                         |      |REMOTE|            |
-//      |                         |      +------+            |
-//      |                         |          |               |
-//      |                         +--------+ |               |
-//      |                                  | |               |
-//      |                                  v v               |
-//      +-------------------------------- RESET <------------+
-//                               (Automatically transition to START_UP)
+//                                +--------------------+
+//                                |                    |
+//                                |                    v
+//  START_UP -> CALIBRATION <-> HOLD <-> ACTIVE -> EMERGENCY 
+//      ^                         |         |          |(Safety pause)
+//      |                         +-------+ |          |
+//      |                                 | |          |
+//      |                                 v v          |
+//      +------------------------------- RESET <-------+
+//             (Automatically transition to START_UP)
 //
 
 
@@ -209,13 +200,12 @@ static int   fOutOfRange[NUM_ENCODERS];
 
 int  procStartUp();
 int  procCalibration();
-int  procStop();
-int  procManual();
+int  procHold();
+int  procActive();
 int  procEmergency();
 int  procReset();
 int  trapCtrl(MrsvrVector, float);
 int  trapCtrl2(MrsvrVector, float);
-int  remoteCtrl(MrsvrVector, float);
 void getActuatorTarget(MrsvrVector& target, MrsvrVector setPoint);
 
 
@@ -536,7 +526,7 @@ int initCommandInterface()
   // register the limit of motion to the shared memory
   status->setMode(MrsvrStatus::START_UP);
   status->setLimitPos((float*)dev->getLimitMins(), (float*)dev->getLimitMaxs());
-  procStop();
+  procHold();
 
   return 1;
 }
@@ -639,7 +629,7 @@ inline int procCalibration()
 }
 
 
-inline int procStop()
+inline int procHold()
 {
 
   for (int i = 0; i < NUM_ACTUATORS; i ++) {
@@ -654,25 +644,23 @@ inline int procStop()
 }
 
 
-inline int procManual()
+inline int procActive()
 {
 
   unsigned short swst;
-  switch(command->getCommandBy()) {
-  case MrsvrCommand::POSITION:
-    MrsvrVector spim, sprb;
-    spim[0] = command->getSetPoint(0);
-    spim[1] = command->getSetPoint(1);
-    spim[2] = command->getSetPoint(2);
-    
-    getActuatorTarget(sprb, spim);
-
-    if (trapCtrl(sprb, dev->getVmax(0)) <= 0) {
-      //status->setMode(MrsvrStatus::MANUAL);
-    }
+  MrsvrVector spim, sprb;
+  spim[0] = command->getSetPoint(0);
+  spim[1] = command->getSetPoint(1);
+  spim[2] = command->getSetPoint(2);
+  
+  getActuatorTarget(sprb, spim);
+  
+  if (trapCtrl(sprb, dev->getVmax(0)) <= 0) {
+    //status->setMode(MrsvrStatus::MANUAL);
   }
 
   return 1;
+
 }
 
 
@@ -939,26 +927,17 @@ inline int checkModeTransition(int currentMode, int newMode)
   case MrsvrStatus::START_UP:
     break;
   case MrsvrStatus::CALIBRATION:
-    if (newMode == MrsvrStatus::STOP) {
+    if (newMode == MrsvrStatus::HOLD) {
       fAccept = 1;
     }
     break;
-  case MrsvrStatus::STOP:
-    if (newMode == MrsvrStatus::CALIBRATION || newMode == MrsvrStatus::MANUAL || newMode == MrsvrStatus::REMOTE) {
+  case MrsvrStatus::HOLD:
+    if (newMode == MrsvrStatus::CALIBRATION || newMode == MrsvrStatus::ACTIVE ) {
       fAccept = 1;
     }
     break;
-  case MrsvrStatus::MANUAL:
-    if (newMode == MrsvrStatus::REMOTE ||
-        newMode == MrsvrStatus::STOP ||
-        newMode == MrsvrStatus::EMERGENCY ||
-        newMode == MrsvrStatus::RESET) {
-      fAccept = 1;
-    }
-    break;
-  case MrsvrStatus::REMOTE:
-    if (newMode == MrsvrStatus::MANUAL ||
-        newMode == MrsvrStatus::STOP ||
+  case MrsvrStatus::ACTIVE:
+    if (newMode == MrsvrStatus::HOLD ||
         newMode == MrsvrStatus::EMERGENCY ||
         newMode == MrsvrStatus::RESET) {
       fAccept = 1;
@@ -995,7 +974,7 @@ inline void writeEncoderLog(int newMode)
 {
   struct tm ctm;
 
-  if (newMode == MrsvrStatus::REMOTE) {
+  if (newMode == MrsvrStatus::ACTIVE) {
     if (!logging) {
       if ((logfp = fopen(logfilename, "a")) == NULL) {
         cout << "Connot open log file. " << endl;
@@ -1032,14 +1011,11 @@ inline void printModeTransition(int newMode)
   case MrsvrStatus::CALIBRATION:
     CONSOLE_PRINT("Entering CALIBRATION mode...\n");
     break;
-  case MrsvrStatus::STOP:
-    CONSOLE_PRINT("Entering STOP mode...\n");
+  case MrsvrStatus::HOLD:
+    CONSOLE_PRINT("Entering HOLD mode...\n");
     break;
-  case MrsvrStatus::MANUAL:
-    CONSOLE_PRINT("Entering MANUAL mode...\n");
-    break;
-  case MrsvrStatus::REMOTE:
-    CONSOLE_PRINT("Entering REMOTE mode...\n");
+  case MrsvrStatus::ACTIVE:
+    CONSOLE_PRINT("Entering ACTIVE mode...\n");
     break;
   case MrsvrStatus::EMERGENCY:
     CONSOLE_PRINT("Entering EMERGENCY mode...\n");
@@ -1180,14 +1156,11 @@ int main(int argc, char* argv[])
       case MrsvrStatus::CALIBRATION:
         procCalibration();
         break;
-      case MrsvrStatus::STOP:
-        procStop();
+      case MrsvrStatus::HOLD:
+        procHold();
         break;
-      case MrsvrStatus::MANUAL:
-        procManual();
-        break;
-      case MrsvrStatus::REMOTE:
-        procManual();
+      case MrsvrStatus::ACTIVE:
+        procActive();
         break;
       case MrsvrStatus::EMERGENCY:
         procEmergency();

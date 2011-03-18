@@ -92,9 +92,8 @@ class MrsvrStatus : public MrsvrSharedData {
   enum {
     START_UP,
     CALIBRATION,
-    STOP,
-    MANUAL,
-    REMOTE,
+    HOLD,
+    ACTIVE,
     EMERGENCY,
     RESET,
   };

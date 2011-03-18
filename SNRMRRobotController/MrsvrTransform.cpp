@@ -66,14 +66,13 @@ void MrsvrTransform::setCalibrationMatrix(float* m)
   // Calculate robot to patient transform
   Trp = Tzp * Trz;
 
-  std::cout << Trp << std::endl;
-  std::cout << Tzp << std::endl;
-  std::cout << Trz << std::endl;
-
   // Calculate patient to robot transform
   Tpr = Trp.i();
 
-  std::cout << Tpr << std::endl;
+  //std::cout << Trp << std::endl;
+  //std::cout << Tzp << std::endl;
+  //std::cout << Trz << std::endl;
+  //std::cout << Tpr << std::endl;
 
 }
 
@@ -112,7 +111,7 @@ void MrsvrTransform::invTransform(MrsvrVector x, MrsvrVector y)
   vx.element(0, 0) = x[0];
   vx.element(1, 0) = x[1];
   vx.element(2, 0) = x[2];
-  vx.element(3, 0) = 0.0;
+  vx.element(3, 0) = 1.0;
 
   vy = Trp*vx;
 

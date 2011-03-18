@@ -186,9 +186,8 @@ public:
     ID_START_UPDATE,
     ID_STOP_UPDATE,
     ID_CMD_CALIBRATION,     // Do not change this order
-    ID_CMD_STOP,            // Do not change this order
-    ID_CMD_MANUAL,          // Do not change this order
-    ID_CMD_REMOTE,          // Do not change this order
+    ID_CMD_HOLD,            // Do not change this order
+    ID_CMD_ACTIVE,          // Do not change this order
     ID_CMD_EMERGENCY,       // Do not change this order
     ID_CMD_RESET,           // Do not change this order
     ID_CMD_CALIBRATE,
@@ -351,7 +350,7 @@ private:
 
   static const char* quickPanelString[]; 
   static const char* quickPanelGIF[]; 
-  static const int   nQuickPanelItems = 4;  //Maier removed Button "Move to Target" and "Pause"
+  static const int   nQuickPanelItems = 3;
 
 
 //---------------------------- Modules -----------------------------//
@@ -612,9 +611,8 @@ public:
   long onStartUpdate(FXObject*, FXSelector,void*);
   long onStopUpdate(FXObject*, FXSelector, void*);
   long onUpdateTimer(FXObject*, FXSelector, void*);
-  long onCmdStop(FXObject*, FXSelector, void*);
-  long onCmdManual(FXObject*, FXSelector, void*);
-  long onCmdRemote(FXObject*, FXSelector, void*);
+  long onCmdHold(FXObject*, FXSelector, void*);
+  long onCmdActive(FXObject*, FXSelector, void*);
   long onCmdEmergency(FXObject*, FXSelector, void*);
   long onCmdReset(FXObject*, FXSelector, void*);
   long onCmdCalibrate(FXObject*, FXSelector, void*);
