@@ -51,12 +51,8 @@ MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
 
   // Initialize registration matrix with identity matrix
   for (int i = 0; i < 16; i ++) {
-    registrationMatrix[i] = 0.0;
+    registrationMatrix[i] = (i%5 == 0) ? 1.0 : 0.0;
   }
-  registrationMatrix[4*0+0] = 1.0;
-  registrationMatrix[4*1+1] = 1.0;
-  registrationMatrix[4*2+2] = 1.0;
-  registrationMatrix[4*3+3] = 1.0;
 
   // Main Frame
   frplPl=new FXHorizontalFrame(this,LAYOUT_SIDE_BOTTOM|FRAME_NONE|LAYOUT_FILL_X|PACK_UNIFORM_WIDTH,0,0,0,0,40,40,20,20);

@@ -425,7 +425,7 @@ private:
   FXDataTarget*      dtCalibrationMatrix[16];
 
   FXString           valCalibrationStatus;
-  double             valCalibrationMatrix[16];
+  float              valCalibrationMatrix[16];
 
 
   // Control Panel -> Calibration
