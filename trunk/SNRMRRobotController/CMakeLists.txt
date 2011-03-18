@@ -13,6 +13,7 @@ INCLUDE (CheckIncludeFiles)
 option(BUILD_SHARED "Build Shared Libraries" OFF)
 option(USE_FBISIM   "Use FBISIM Libraries" ON)
 option(USE_ARTAPI   "Use ARTLinux API" ON)
+option(FULL_SCREEN  "Build for full screen program" OFF)
 SET(FOX_LIBNAME "FOX-1.2" CACHE STRING "FOX Toolkit library name")
 
 
@@ -26,8 +27,12 @@ if(NOT USE_ARTAPI)
   ADD_DEFINITIONS(-DWITHOUT_ART)
 endif(NOT USE_ARTAPI)
 
+if(FULL_SCREEN)
+  ADD_DEFINITIONS(-DFULLSCREEN)
+endif(FULL_SCREEN)
+
 #ADD_DEFINITIONS(-DDEBUG)
-#ADD_DEFINITIONS(-DFULLSCREEN)
+
 
 if(USE_FBISIM)
   ADD_DEFINITIONS(-D_USE_FBISIM)
@@ -89,10 +94,10 @@ link_directories (
 
 # generate pisition independent code to link newmat static library
 # to shared object
-#IF(CMAKE_COMPILER_IS_GNUCXX)
-#  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-#ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+IF(CMAKE_COMPILER_IS_GNUCXX)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 
 # --------------------------------------------------------------------------
@@ -111,13 +116,12 @@ set(IFOBJ_SOURCES
   MrsvrThread.cpp
   MrsvrMainWindow.cpp
   MrsvrPlotCanvas.cpp
-  MrsvrTransform.cpp
   MrsvrZFrameRegistrationDialog.cpp
+  MrsvrTransform.cpp
 )
 
 set(CTRLOBJ_SOURCES
   MrsvrDev.cpp
-  MrsvrTransform.cpp
 )
 
 set(NEWMAT_SOURCES
@@ -171,29 +175,29 @@ if(BUILD_SHARED)
       ${FBISIM_SOURCES}
     )
   endif(USE_FBISIM)
-  add_library(newmat SHARED
-    ${NEWMAT_SOURCES}
-  )
-  add_library(zframe SHARED
-    ${ZFRAME_SOURCES}
-  )
+#  add_library(newmat SHARED
+#    ${NEWMAT_SOURCES}
+#  )
+#  add_library(zframe SHARED
+#    ${ZFRAME_SOURCES}
+#  )
 else(BUILD_SHARED)
   if(USE_FBISIM)
     add_library(fbisim
       ${FBISIM_SOURCES}
     )
   endif(USE_FBISIM)
-  add_library(newmat
-    ${NEWMAT_SOURCES}
-  )
-  add_library(zframe
-    ${ZFRAME_SOURCES}
-  )
+#  add_library(newmat
+#    ${NEWMAT_SOURCES}
+#  )
+#  add_library(zframe
+#    ${ZFRAME_SOURCES}
+#  )
 endif(BUILD_SHARED)
 
-target_link_libraries(zframe
-    newmat
-)
+#target_link_libraries(zframe
+#    newmat
+#)
 
 add_library(MrsvrCom
     ${COMOBJ_SOURCES}
@@ -201,7 +205,10 @@ add_library(MrsvrCom
 
 add_library(MrsvrIF
     ${IFOBJ_SOURCES}
+    ${ZFRAME_SOURCES}
+    ${NEWMAT_SOURCES}
 )
+
 target_link_libraries(MrsvrIF
     MrsvrCom    
 )
@@ -224,8 +231,6 @@ target_link_libraries(interface
   MrsvrIF
   ${FOX_LIBNAME}
   OpenIGTLink
-  zframe
-  newmat
   pthread
   m
   )
@@ -233,7 +238,6 @@ target_link_libraries(interface
 set (CTRL_LIBS
   MrsvrCom
   MrsvrCtrl
-  fbisim
   m
 )  
 

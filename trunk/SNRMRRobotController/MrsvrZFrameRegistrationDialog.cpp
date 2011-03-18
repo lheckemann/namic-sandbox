@@ -36,9 +36,11 @@ FXMAPFUNC(SEL_COMMAND,  MrsvrZFrameRegistrationDialog::ID_RUN_REGISTRATION, Mrsv
 FXIMPLEMENT(MrsvrZFrameRegistrationDialog,FXDialogBox,MrsvrZFrameRegistrationDialogMap,ARRAYNUMBER(MrsvrZFrameRegistrationDialogMap))
 
 
+
+
 // Construct a dialog box
 MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
-  FXDialogBox(owner,"Z-Frame Registration ",DECOR_TITLE|DECOR_MENU|DECOR_CLOSE)
+  FXDialogBox(owner,"Z-Frame Registration ",DECOR_TITLE|DECOR_CLOSE|DECOR_BORDER)
 {
 
   for (int i = 0; i < 7; i ++) {
@@ -111,6 +113,11 @@ MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
 
   new FXButton(mtZFrameRegistration, "Manual Z-Frame Calibration", NULL, this,
                ID_RUN_REGISTRATION,
+               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+
+  new FXButton(mtZFrameRegistration, "Close", NULL, this,
+               ID_ACCEPT,
                FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
   
@@ -196,6 +203,7 @@ void MrsvrZFrameRegistrationDialog::getRegistrationMatrix(float matrix[16])
   }
   
 }
+
 
 /*******************************************************************************/// End Maier
 
