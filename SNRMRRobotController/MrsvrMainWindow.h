@@ -276,6 +276,9 @@ protected:
   FXCanvas*          needleCanvas;       // display needle information
 
   FXImage*           infoOffs;           // offscreen buffer
+  FXImage*           axialOffs;           // offscreen buffer
+  FXImage*           needleOffs;           // offscreen buffer
+
   // font for information display 
   FXFont*            infoFont0;          // for small
   FXFont*            infoFont1;          // for large
@@ -443,14 +446,19 @@ private:
   int                valManualActuatorVol[NUM_ACTUATORS]; 
 
   FXDataTarget*      dtTargetPosition[3];
-  float              valTargetPosition[3];
-
   FXDataTarget*      dtCurrentPosition[3];
-  float              valCurrentPosition[3];
-
   FXDataTarget*      dtDeltaPosition[3];
+
+  float              valTargetPosition[3];
+  float              valCurrentPosition[3];
   float              valDeltaPosition[3];
 
+  // Normalized current and target position for visualization
+  FXDataTarget*      dtNormTargetPosition[3];
+  FXDataTarget*      dtNormCurrentPosition[3];
+  float              valNormTargetPosition[3];  //  [0.0, 1.0]
+  float              valNormCurrentPosition[3]; //  [0.0, 1.0]
+  
   FXDataTarget*      dtTipApprOffset;
   float              valTipApprOffset;
 
@@ -654,6 +662,7 @@ public:
   long onCmdManualPowerSw(FXObject*, FXSelector, void*);
   long onUpdateManualPowerSw(FXObject*, FXSelector, void*);
   long onCmdShowDialog(FXObject*,FXSelector,void*); //Maier 
+
 
   
 

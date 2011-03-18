@@ -127,7 +127,7 @@ public:
     int id = cmdInfo->modeRequestID;
     if (id != prevModeRequestID) {
       prevModeRequestID = id;
-      return cmdInfo->modeRequestID;
+      return cmdInfo->mode;
     } else {
       return -1;
     }
@@ -180,7 +180,7 @@ public:
     int id = cmdInfo->calibrationCommandID;
     if (id != prevCalibrationCommandID) {
       prevCalibrationCommandID = id;
-      return cmdInfo->calibrationCommandID;
+      return cmdInfo->calibrationCommand;
     } else {
       return -1;
     }

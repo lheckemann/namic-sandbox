@@ -581,6 +581,11 @@ inline int procCalibration()
 
   switch (command->getCalibrationCommand()) {
   case MrsvrCommand::CALIBRATION_STOP:
+    for (int i = 0; i < NUM_ACTUATORS; i ++) {
+      dev->setVoltage(i, 0);
+      status->setVoltage(i, 0);
+      DBG_PRINT("setVoltage(%d, %f) \n", i, dev->getVoltage(i));
+    }
     break;
   case MrsvrCommand::CALIBRATION_HOME:
     break;
@@ -934,9 +939,12 @@ inline int checkModeTransition(int currentMode, int newMode)
   case MrsvrStatus::START_UP:
     break;
   case MrsvrStatus::CALIBRATION:
+    if (newMode == MrsvrStatus::STOP) {
+      fAccept = 1;
+    }
     break;
   case MrsvrStatus::STOP:
-    if (newMode == MrsvrStatus::MANUAL || newMode == MrsvrStatus::REMOTE) {
+    if (newMode == MrsvrStatus::CALIBRATION || newMode == MrsvrStatus::MANUAL || newMode == MrsvrStatus::REMOTE) {
       fAccept = 1;
     }
     break;
@@ -1019,31 +1027,24 @@ inline void printModeTransition(int newMode)
   printDate();
   switch(newMode) {
   case MrsvrStatus::START_UP:
-    status->setMode(MrsvrStatus::START_UP);
     CONSOLE_PRINT("Entering START_UP mode...\n");
     break;
   case MrsvrStatus::CALIBRATION:
-    status->setMode(MrsvrStatus::CALIBRATION);
     CONSOLE_PRINT("Entering CALIBRATION mode...\n");
     break;
   case MrsvrStatus::STOP:
-    status->setMode(MrsvrStatus::STOP);
     CONSOLE_PRINT("Entering STOP mode...\n");
     break;
   case MrsvrStatus::MANUAL:
-    status->setMode(MrsvrStatus::MANUAL);
     CONSOLE_PRINT("Entering MANUAL mode...\n");
     break;
   case MrsvrStatus::REMOTE:
-    status->setMode(MrsvrStatus::REMOTE);
     CONSOLE_PRINT("Entering REMOTE mode...\n");
     break;
   case MrsvrStatus::EMERGENCY:
-    status->setMode(MrsvrStatus::EMERGENCY);
     CONSOLE_PRINT("Entering EMERGENCY mode...\n");
     break;
   case MrsvrStatus::RESET:
-    status->setMode(MrsvrStatus::RESET);
     CONSOLE_PRINT("Entering RESET mode...\n");
     break;
   default:

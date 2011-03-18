@@ -152,11 +152,13 @@ const char* MrsvrMainWindow::autoCalibProcNameText[] = {
 
 // warning text -- corresponds to MrsvrStatus
 const char* MrsvrMainWindow::infoModeText[] = {
+  "START-UP",
+  "CALIBRATION",
   "STOP",
   "MANUAL",
   "REMOTE",
   "EMERGENCY",
-  "RESET",
+  "RESET"
 };
 
 const char* MrsvrMainWindow::actuatorStatusText[] = {
@@ -232,7 +234,7 @@ MrsvrMainWindow::MrsvrMainWindow(FXApp* app, int w, int h)
   cerr << "Setting data targets..." << endl;  
   setDataTargets();
   // initialize the timer parameter
-  updateInterval = 200;
+  updateInterval = 100;
 
 //  // Menu bar
 //  menubar  = new FXMenuBar(this, LAYOUT_SIDE_TOP|LAYOUT_FILL_X|FRAME_RAISED);
@@ -506,7 +508,7 @@ int MrsvrMainWindow::buildCalibrationControlPanel(FXComposite* comp)
                                   LAYOUT_CENTER_Y|LAYOUT_FILL_X);
   }
 
-  new FXButton(frManualCalib, "Automatic Hmeing", NULL, this, 
+  new FXButton(frManualCalib, "Automatic Homing", NULL, this, 
                ID_CMD_CALIBRATE,FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
 
@@ -1029,6 +1031,9 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
     new FXGroupBox(mtxManualControl, "Position in Axial plane",
                    FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
                    LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
+
+  axialOffs = new FXImage(this->getApp(), NULL, 
+                         IMAGE_SHMI|IMAGE_SHMP|IMAGE_KEEP, AXIALCNV_W, AXIALCNV_H);
   
   axialCanvas = new FXCanvas(gpRAPos,this,ID_AXIAL_CANVAS,
                              FRAME_SUNKEN|FRAME_THICK|LAYOUT_FIX_HEIGHT|LAYOUT_FIX_WIDTH|
@@ -1048,21 +1053,18 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                NULL,this,ID_PAINT_TARGET,BUTTON_NORMAL|LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X|LAYOUT_FILL_Y);
   
   
-  FXRealSlider* slider=new FXRealSlider(gbPlateR,dtDeltaPosition[0],FXDataTarget::ID_VALUE,
+  FXRealSlider* slider=new FXRealSlider(gbPlateR,dtNormTargetPosition[0],FXDataTarget::ID_VALUE,
                                         LAYOUT_LEFT|LAYOUT_FIX_HEIGHT|LAYOUT_FIX_WIDTH|
                                         SLIDER_HORIZONTAL|SLIDER_INSIDE_BAR,
                                         0,0,AXIALCNV_W,20);
 
-  slider->setRange(-valCurrentPosition[0],200.0-valCurrentPosition[0]);
-  FXRealSlider* slider2=new FXRealSlider(gbPlateA,dtDeltaPosition[1],FXDataTarget::ID_VALUE,
+  slider->setRange(0.0,1.0);
+  FXRealSlider* slider2=new FXRealSlider(gbPlateA,dtNormTargetPosition[1],FXDataTarget::ID_VALUE,
                                          LAYOUT_TOP|LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT|
                                          SLIDER_VERTICAL|SLIDER_INSIDE_BAR,
                                          0,0,20,AXIALCNV_H);
-  slider2->setRange(-valCurrentPosition[1],200.0-valCurrentPosition[1]);
-  slider2->setIncrement(0.01);
-  
-
-
+  slider2->setRange(0.0,1.0);
+  slider2->setIncrement(0.005);
 
   FXVerticalFrame* frManualControlRt =
     new FXVerticalFrame(frManualControl,
@@ -1183,6 +1185,9 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                new FXGIFIcon(this->getApp(), (void*)buf),this,MrsvrMainWindow::ID_SET_TARGET_BTN,
                FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+
+  needleOffs = new FXImage(this->getApp(), NULL, 
+                         IMAGE_SHMI|IMAGE_SHMP|IMAGE_KEEP, NEEDLE_CANVAS_W, NEEDLE_CANVAS_H);
 
   needleCanvas = new FXCanvas(frManualControlRt,this,ID_NEEDLE_CANVAS,
                               FRAME_SUNKEN|FRAME_THICK|LAYOUT_FIX_HEIGHT|LAYOUT_FIX_WIDTH|
@@ -1693,6 +1698,12 @@ void MrsvrMainWindow::initParameters()
 
   // initialize transform matrix class
   transform = new MrsvrTransform();
+  float mat[16];
+  mat[0] = 1.0;  mat[1] = 0.0;  mat[2] = 0.0;  mat[3] = 0.0;
+  mat[0] = 0.0;  mat[1] = 1.0;  mat[2] = 0.0;  mat[3] = 0.0;
+  mat[0] = 0.0;  mat[1] = 0.0;  mat[2] = 1.0;  mat[3] = 0.0;
+  mat[0] = 0.0;  mat[1] = 0.0;  mat[2] = 0.0;  mat[3] = 1.0;
+  transform->setCalibrationMatrix(mat);
 
   // actuators' parameters
   for (i = 0; i < NUM_ACTUATORS; i ++) {
@@ -2041,6 +2052,8 @@ void MrsvrMainWindow::setDataTargets()
     valTargetPosition[i]  = 0.0;
     valCurrentPosition[i] = 0.0;
     valDeltaPosition[i]   = 0.0;
+    valNormTargetPosition[i] = 0.0;
+    valNormCurrentPosition[i] = 0.0;
 
     dtTargetPosition[i] =
       new FXDataTarget(valTargetPosition[i], this,
@@ -2050,6 +2063,13 @@ void MrsvrMainWindow::setDataTargets()
                        ID_UPDATE_PARAMETER);
     dtDeltaPosition[i] =
       new FXDataTarget(valDeltaPosition[i], this,
+                       ID_UPDATE_PARAMETER);
+
+    dtNormTargetPosition[i] = 
+      new FXDataTarget(valNormTargetPosition[i], this,
+                       ID_UPDATE_PARAMETER);
+    dtNormCurrentPosition[i] = 
+      new FXDataTarget(valNormCurrentPosition[i], this,
                        ID_UPDATE_PARAMETER);
 
   }
@@ -2145,7 +2165,7 @@ void MrsvrMainWindow::setTargetPositionRAS(float pos[3])
 {
   float robotPos[3];
 
-  transform->transform(robotPos, pos);
+  transform->transform(pos, robotPos);
   for (int i = 0; i < 3; i ++) {
     robotCommand->setSetPoint(i, robotPos[i]);
   }
@@ -2205,10 +2225,15 @@ void MrsvrMainWindow::create()
   plotCanvasA->create();
   plotCanvasB->create();
   infoCanvas->create();
-  axialCanvas->create();
-  needleCanvas->create();
 
+  axialCanvas->create();
+  axialOffs->create();
   axialFont->create();
+
+  needleCanvas->create();
+  needleOffs->create();
+
+
 
   infoCnvH        = infoCanvas->getHeight();
   infoCnvW        = infoCanvas->getWidth();
@@ -2376,7 +2401,7 @@ long MrsvrMainWindow::onAxialCanvasRepaint(FXObject*, FXSelector, void* ptr)
 {
 
   if (axialCanvas) {
-    FXDCWindow dc(axialCanvas);
+    FXDCWindow dc(axialOffs);
     dc.setForeground(FXRGB(0,0,0));
     dc.fillRectangle(0, 0, AXIALCNV_W, AXIALCNV_H);
     
@@ -2396,23 +2421,23 @@ long MrsvrMainWindow::onAxialCanvasRepaint(FXObject*, FXSelector, void* ptr)
     dc.drawText(AXIALCNV_W-margin+2, AXIALCNV_H/2+4, "L", 1);
 
     //Draw Target [Zeroposition=(-5,-5)]
-    int tx = (1.0-(float)valTargetPosition[0]/(float)NEEDLECNV_RANGE_X)*AXIALCNV_W+margin;
-    int ty = (1.0-(float)valTargetPosition[1]/(float)NEEDLECNV_RANGE_Y)*AXIALCNV_H+margin;
+    int tx = (int)(valNormTargetPosition[0]*(float)(AXIALCNV_W-margin*2))+margin;
+    int ty = (int)((1.0-valNormTargetPosition[1])*(float)(AXIALCNV_W-margin*2))+margin;
 
     dc.setForeground(FXRGB(255,0,0));
     dc.drawPoint(tx, ty);
     
     //Draw Current position
-    int cx = (1.0-(float)valCurrentPosition[0]/(float)NEEDLECNV_RANGE_X)*AXIALCNV_W+margin;
-    int cy = (1.0-(float)valCurrentPosition[1]/(float)NEEDLECNV_RANGE_Y)*AXIALCNV_H+margin;
+    int cx = (int)(valNormCurrentPosition[0]*(float)(AXIALCNV_W-margin*2))+margin;
+    int cy = (int)((1.0-valNormCurrentPosition[1])*(float)(AXIALCNV_W-margin*2))+margin;
 
     dc.setForeground(FXRGB(0,0,255));
     dc.drawPoint(cx, cy);
     
-    for (int i = 0; i < 3; i ++) { 
-      valTargetPosition[i]=(valDeltaPosition[i]+valCurrentPosition[i]);
-    }
-    
+    //for (int i = 0; i < 3; i ++) { 
+    //  valTargetPosition[i]=(valDeltaPosition[i]+valCurrentPosition[i]);
+    //}
+
     //draw Text NewTarget
     dc.setForeground(FXRGB(0,0,255));
     dc.setFont(axialFont);
@@ -2422,7 +2447,11 @@ long MrsvrMainWindow::onAxialCanvasRepaint(FXObject*, FXSelector, void* ptr)
     dc.setForeground(FXRGB(255,0,0));
     dc.setFont(axialFont);
     dc.drawText(tx+2, ty-2,"Target", 6);
-    
+
+    // Now repaint the screen
+    FXDCWindow sdc(axialCanvas);
+    // Paint image
+    sdc.drawImage(axialOffs,0,0);
   }
   return 1;
 
@@ -2432,31 +2461,36 @@ long MrsvrMainWindow::onAxialCanvasRepaint(FXObject*, FXSelector, void* ptr)
 long MrsvrMainWindow::onNeedleCanvasRepaint(FXObject*, FXSelector,void*)
 {
   if (needleCanvas) {
-    FXDCWindow dc(needleCanvas);
+    FXDCWindow dc(needleOffs);
     dc.setForeground(FXRGB(0,0,0));
 
     dc.fillRectangle(0, 0, NEEDLE_CANVAS_W, NEEDLE_CANVAS_H);
     
-  //draw Text NewTarget
-  dc.setForeground(FXRGB(255,255,255));
-  dc.setFont(infoFont0);
-  dc.drawText(((float)NEEDLE_CANVAS_W*NEEDLECNV_DEPTH_LABEL_X),
-              ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_LABEL_Y), "NEEDLE INSERNTION DEPTH:", 24);
-
-  dc.setForeground(FXRGB(255,255,0));
-  dc.setFont(infoFont2);
-  dc.drawText(((float)NEEDLE_CANVAS_W*NEEDLECNV_DEPTH_VALUE_X),
-              ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_VALUE_Y), "  128.00", 8);
-
-  dc.setForeground(FXRGB(150,150,150));
-  dc.setFont(infoFont1);
-  dc.drawText(((float)NEEDLE_CANVAS_W*NEEDLECNV_DEPTH_UNIT_X),
-              ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_UNIT_Y), "mm", 2);
-
-  ////draw Text OldTarget
-  //dc.setForeground(FXRGB(0,0,255));
-  //dc.setFont(axialFont);
-  //dc.drawText(valCurrentPosition[0]-25, 200-valCurrentPosition[1]+15,"Target", 6);
+    //draw Text NewTarget
+    dc.setForeground(FXRGB(255,255,255));
+    dc.setFont(infoFont0);
+    dc.drawText(((float)NEEDLE_CANVAS_W*NEEDLECNV_DEPTH_LABEL_X),
+                ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_LABEL_Y), "NEEDLE INSERNTION DEPTH:", 24);
+    
+    dc.setForeground(FXRGB(255,255,0));
+    dc.setFont(infoFont2);
+    dc.drawText(((float)NEEDLE_CANVAS_W*NEEDLECNV_DEPTH_VALUE_X),
+                ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_VALUE_Y), "  128.00", 8);
+    
+    dc.setForeground(FXRGB(150,150,150));
+    dc.setFont(infoFont1);
+    dc.drawText(((float)NEEDLE_CANVAS_W*NEEDLECNV_DEPTH_UNIT_X),
+                ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_UNIT_Y), "mm", 2);
+    
+    ////draw Text OldTarget
+    //dc.setForeground(FXRGB(0,0,255));
+    //dc.setFont(axialFont);
+    //dc.drawText(valCurrentPosition[0]-25, 200-valCurrentPosition[1]+15,"Target", 6);
+    
+    // Now repaint the screen
+    FXDCWindow sdc(needleCanvas);
+    // Paint image
+    sdc.drawImage(needleOffs,0,0);
     
   }
   return 1;
@@ -2588,13 +2622,6 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
     if (infoWarning[WARNID_OUTOFRANGE]) fprintf(stderr, "\a");
  }
   
-  /*
-  if (infoCurrentWarn != prevInfoWarn) {
-    fUpdateInfoWarn = 1;
-    prevInfoWarn = infoCurrentWarn;
-  }
-  */
-
   static float ptp[3] = {5.0, 5.0, 5.0};   // previous target position
   static float pcp[3] = {5.0, 5.0, 5.0};   // previous current position
   float  tp[3];
@@ -2608,17 +2635,16 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
   for (i = 0; i < 3; i ++) {
     robotP[i] = robotCommand->getSetPoint(i);
   }
-  transform->invTransform(mrP, robotP);
+  transform->invTransform(robotP, mrP);
   for (i = 0; i < 3; i ++) {
     tp[i] = mrP[i];
   }
 
   // current position
   for (int i = 0; i < 3; i ++) {
-    //robotP[0] = robotStatus->getPosition(0);
     robotP[i] = robotStatus->getTipPosition(i);
   }
-  transform->invTransform(mrP, robotP);
+  transform->invTransform(robotP, mrP);
   for (i = 0; i < 3; i ++) {
     cp[i] = mrP[i];
   }
@@ -2744,10 +2770,22 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
     textRtcpLog->makePositionVisible(textRtcpLog->getLength());
   }
 
+  // update target values
+  float rtarget[3];  // Target in robot coordinate system
+  float ptarget[3];  // Target in patient coordinate system
+  rtarget[0] = (1.0-valNormTargetPosition[0]) * 75;
+  rtarget[1] = valNormTargetPosition[1] * 95;
+  rtarget[2] = valNormTargetPosition[2] * 180;
+  transform->invTransform(rtarget, ptarget);
+  for (int i = 0; i < 3; i ++) {
+    valTargetPosition[i] = ptarget[i];
+    valDeltaPosition[i] = valTargetPosition[i] - valCurrentPosition[i];
+  }
+
   // update axial canvas
   onAxialCanvasRepaint(obj, sel, ptr);
   onNeedleCanvasRepaint(obj, sel, ptr);
-
+  
   // update timer
   application->addTimeout(this, 
         MrsvrMainWindow::ID_UPDATE_TIMER, updateInterval);
@@ -3028,6 +3066,7 @@ long MrsvrMainWindow::onCalibLeftBtnPressed(FXObject* obj, FXSelector sel,void* 
   DBG_MMW_PRINT("onCalibLeftBtnPressed() for Actuator #%d.\n", actuator);
   consolePrint(2, true, "Moving actuator #%d in direction '-' for calibration.\n", actuator);
 
+  robotCommand->setCalibrationCommand(MrsvrCommand::CALIBRATION_MANUAL);
   robotCommand->setMode(MrsvrStatus::CALIBRATION);
   robotCommand->setCommandBy(MrsvrCommand::VOLTAGE);
   if (actuator >= 0 || actuator < NUM_ACTUATORS) {
@@ -3047,6 +3086,7 @@ long MrsvrMainWindow::onCalibRightBtnPressed(FXObject* obj, FXSelector sel,void*
   DBG_MMW_PRINT("onCalibRightBtnPressed() for Actuator #%d.\n", actuator);
   consolePrint(2, true, "Move actuator #%d in direction '+' for calibration.\n", actuator);
 
+  robotCommand->setCalibrationCommand(MrsvrCommand::CALIBRATION_MANUAL);
   robotCommand->setMode(MrsvrStatus::CALIBRATION);
   robotCommand->setCommandBy(MrsvrCommand::VOLTAGE);
   if (actuator >= 0 || actuator < NUM_ACTUATORS) {
@@ -3066,6 +3106,7 @@ long MrsvrMainWindow::onCalibLeftBtnReleased(FXObject* obj, FXSelector sel,void*
   DBG_MMW_PRINT("onCalibLeftBtnReleased() for Actuator #%d.\n", actuator);
   consolePrint(2, true, "Stop actuator #%d.\n", actuator);
 
+  robotCommand->setCalibrationCommand(MrsvrCommand::CALIBRATION_STOP);
   robotCommand->setMode(MrsvrStatus::CALIBRATION);
   robotCommand->setCommandBy(MrsvrCommand::VOLTAGE);
   if (actuator >= 0 || actuator < NUM_ACTUATORS) {
@@ -3082,6 +3123,7 @@ long MrsvrMainWindow::onCalibRightBtnReleased(FXObject* obj, FXSelector sel,void
   DBG_MMW_PRINT("onCalibRightBtnReleased() for Actuator #%d.\n", actuator);
   consolePrint(2, true, "Stop actuator #%d.\n", actuator);
 
+  robotCommand->setCalibrationCommand(MrsvrCommand::CALIBRATION_STOP);
   robotCommand->setMode(MrsvrStatus::CALIBRATION);
   robotCommand->setCommandBy(MrsvrCommand::VOLTAGE);
   if (actuator >= 0 || actuator < NUM_ACTUATORS) {
@@ -3376,6 +3418,8 @@ long MrsvrMainWindow::onUpdateManualPowerSw(FXObject* obj, FXSelector sel, void*
 //Shows new Dialog Box
 long MrsvrMainWindow::onCmdShowDialog(FXObject*,FXSelector,void*)
 {
+  robotCommand->setMode(MrsvrStatus::CALIBRATION);
+
   MrsvrZFrameRegistrationDialog* modaldialog = new MrsvrZFrameRegistrationDialog(this);
   modaldialog->execute(PLACEMENT_OWNER);
   
