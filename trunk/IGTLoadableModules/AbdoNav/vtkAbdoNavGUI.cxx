@@ -544,8 +544,11 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   // radio button in AbdoNav's fiducial list.
   //
   // The steps are:
-  // 1. determine which radio button is active (if there is an
-  //    active one at all)
+  // 0. determine whether or not AbdoNav is the selected module;
+  //    don't create a fiducial if AbdoNav isn't the selected
+  //    module
+  // 1. if AbdoNav is the selected module, determine which radio
+  //    button is active (if there is an active one at all)
   // 2. if there is an active radio button, create/retrieve
   //    AbdoNav's fiducial list
   // 3. determine whether or not AbdoNav's fiducial list already
@@ -558,6 +561,15 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   vtkSlicerInteractorStyle* style = vtkSlicerInteractorStyle::SafeDownCast(caller);
   if (style != NULL && event == vtkCommand::LeftButtonPressEvent)
     {
+    // exit this function if AbdoNav isn't the selected module (this->GetModuleName()
+    // returns NULL, thus use this->GetGUIName())
+    vtkMRMLLayoutNode* layout = vtkMRMLLayoutNode::SafeDownCast(this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLLayoutNode"));
+    if (layout && layout->GetSelectedModule() && strcmp(layout->GetSelectedModule(), this->GetGUIName()) != 0)
+      {
+      // another module is currently selected, thus exit
+      return;
+      }
+
     // determine which radio button is active
     std::string activeRadioButton = "";
     if (this->Point1RadioButton->GetSelectedState() && this->Point1RadioButton->GetEnabled())
