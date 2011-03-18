@@ -53,7 +53,7 @@ MrsvrCommandWriter::MrsvrCommandWriter(key_t shmkey) :
 {
   int i;
 
-  cmdInfo->mode      = MrsvrStatus::STOP;
+  cmdInfo->mode      = MrsvrStatus::HOLD;
   cmdInfo->commandBy = VOLTAGE;
   for (i = 0; i < NUM_ACTUATORS; i ++) {
     cmdInfo->actuatorActive[i] = false;

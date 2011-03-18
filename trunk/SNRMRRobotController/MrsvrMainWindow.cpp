@@ -47,9 +47,8 @@ FXDEFMAP(MrsvrMainWindow) MrsvrMainWindowMap[] = {
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_START_UPDATE,    MrsvrMainWindow::onStartUpdate),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_STOP_UPDATE,     MrsvrMainWindow::onStopUpdate),
 
-  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_STOP,        MrsvrMainWindow::onCmdStop),
-  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_MANUAL,      MrsvrMainWindow::onCmdManual),
-  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_REMOTE,      MrsvrMainWindow::onCmdRemote),
+  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_HOLD,        MrsvrMainWindow::onCmdHold),
+  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_ACTIVE,      MrsvrMainWindow::onCmdActive),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_EMERGENCY,   MrsvrMainWindow::onCmdEmergency),
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_RESET,       MrsvrMainWindow::onCmdReset),
 
@@ -127,11 +126,11 @@ FXIMPLEMENT(MrsvrMainWindow, FXMainWindow,
 
 
 const char* MrsvrMainWindow::quickPanelString[] = {
-  "STOP",
+  "HOLD",
   //"PAUSE",            //hide Buttons Maier
   //"MOVE TO TARGET",   //hide Buttons Maier
-  "MANUAL \nCONTROL",
-  "Remote",
+  //"ACTIVE \nCONTROL",
+  "ACTIVE",
   "EMERGENCY"
 };
 
@@ -139,7 +138,7 @@ const char* MrsvrMainWindow::quickPanelGIF[] = {
   "icon/stop100x100.gif",
   //"icon/pause100x100.gif",  //hide Buttons Maier
   //"icon/start100x100.gif",  //hide Buttons Maier
-  "icon/manual100x100.gif",
+  //"icon/manual100x100.gif",
   "icon/auto100x100.gif",   
   "icon/emergency100x100.gif"
 };
@@ -154,8 +153,8 @@ const char* MrsvrMainWindow::autoCalibProcNameText[] = {
 const char* MrsvrMainWindow::infoModeText[] = {
   "START-UP",
   "CALIBRATION",
-  "STOP",
-  "MANUAL",
+  "HOLD",
+  "ACTIVE",
   "REMOTE",
   "EMERGENCY",
   "RESET"
@@ -1617,18 +1616,49 @@ int MrsvrMainWindow::buildQuickPanel(FXComposite* comp)
                           LAYOUT_FILL_X|FRAME_RAISED|
                           LAYOUT_TOP|LAYOUT_LEFT);
   
-  int id = ID_CMD_STOP;
-  for (int i = 0; i < nQuickPanelItems; i ++) {
-    char buf[4096];
-    FILE* fp = fopen(quickPanelGIF[i], "rb");
-    fread(buf, 1, 4096, fp);
-    fclose(fp);
-    new FXButton(frQuickButton, quickPanelString[i],
-                 new FXGIFIcon(this->getApp(), (void*)buf),this,id,
-                 FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-                 LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-    id ++;
-  }
+  //int id = ID_CMD_HOLD;
+  //for (int i = 0; i < nQuickPanelItems; i ++) {
+  //  char buf[4096];
+  //  FILE* fp = fopen(quickPanelGIF[i], "rb");
+  //  fread(buf, 1, 4096, fp);
+  //  fclose(fp);
+  //  new FXButton(frQuickButton, quickPanelString[i],
+  //               new FXGIFIcon(this->getApp(), (void*)buf),this,id,
+  //               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+  //               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+  //  id ++;
+  //}
+  char buf[4096];
+
+  // HOLD
+  FILE* fp = fopen(quickPanelGIF[0], "rb");
+  fread(buf, 1, 4096, fp);
+  fclose(fp);
+  new FXButton(frQuickButton, quickPanelString[0],
+               new FXGIFIcon(this->getApp(), (void*)buf),this,ID_CMD_HOLD,
+               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+
+  // Active
+  fp = fopen(quickPanelGIF[1], "rb");
+  fread(buf, 1, 4096, fp);
+  fclose(fp);
+  new FXButton(frQuickButton, quickPanelString[1],
+               new FXGIFIcon(this->getApp(), (void*)buf),this,ID_CMD_ACTIVE,
+               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+
+  // Space
+  new FXLabel(frQuickButton, " ");
+
+  // Emergency
+  fp = fopen(quickPanelGIF[2], "rb");
+  fread(buf, 1, 4096, fp);
+  fclose(fp);
+  new FXButton(frQuickButton, quickPanelString[2],
+               new FXGIFIcon(this->getApp(), (void*)buf),this,ID_CMD_EMERGENCY,
+               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
   
   return 1;
 }
@@ -1675,7 +1705,7 @@ int MrsvrMainWindow::initSharedInfo()
   robotStatus  = new MrsvrStatusReader(SHM_STATUS);
   robotCommand = new MrsvrCommandWriter(SHM_COMMAND);
   robotLog     = new MrsvrLogReader(SHM_LOG);
-  robotCommand->setMode(MrsvrStatus::STOP);
+  robotCommand->setMode(MrsvrStatus::HOLD);
   
   for (int i = 0; i < 3; i ++) {
     robotCommand->setTipOffset(i, 0);
@@ -2051,8 +2081,8 @@ void MrsvrMainWindow::setDataTargets()
     valTargetPosition[i]  = 0.0;
     valCurrentPosition[i] = 0.0;
     valDeltaPosition[i]   = 0.0;
-    valNormTargetPosition[i] = 0.0;
-    valNormCurrentPosition[i] = 0.0;
+    valNormTargetPosition[i] = 0.5;
+    valNormCurrentPosition[i] = 0.5;
 
     dtTargetPosition[i] =
       new FXDataTarget(valTargetPosition[i], this,
@@ -2071,7 +2101,6 @@ void MrsvrMainWindow::setDataTargets()
       new FXDataTarget(valNormCurrentPosition[i], this,
                        ID_UPDATE_PARAMETER);
   }
-  valNormTargetPosition[0] = 1.0;
 
   dtTipApprOffset = 
     //new FXDataTarget(valTipApprOffset, this, ID_UPDATE_PARAMETER);
@@ -2769,6 +2798,7 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
     textRtcpLog->makePositionVisible(textRtcpLog->getLength());
   }
 
+  //--------------------------------------------------
   // update target values
   float rtarget[3];  // Target in robot coordinate system
   float ptarget[3];  // Target in patient coordinate system
@@ -2793,45 +2823,35 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
 }
 
 
-long MrsvrMainWindow::onCmdStop(FXObject*, FXSelector,void*)
+long MrsvrMainWindow::onCmdHold(FXObject*, FXSelector,void*)
 {
-  DBG_MMW_PRINT("onCmdStop()\n");
-  consolePrint(1, true, "STOP command received.\n");
+  DBG_MMW_PRINT("onCmdHold()\n");
+  consolePrint(1, true, "HOLD command received.\n");
 
-  robotCommand->setMode(MrsvrStatus::STOP);
+  robotCommand->setMode(MrsvrStatus::HOLD);
   screenMode = SCR_NORMAL;
   return 1;
 }
 
 
-long MrsvrMainWindow::onCmdManual(FXObject*, FXSelector,void*)
+long MrsvrMainWindow::onCmdActive(FXObject*, FXSelector,void*)
 {
-  DBG_MMW_PRINT("onCmdManual()\n");
-  consolePrint(1, true, "MANUAL command received.\n");
+  DBG_MMW_PRINT("onCmdActive()\n");
+  consolePrint(1, true, "ACTIVE command received.\n");
   
-  robotCommand->setMode(MrsvrStatus::STOP);
+  robotCommand->setMode(MrsvrStatus::HOLD);
   robotCommand->setCommandBy(MrsvrCommand::VOLTAGE);
   for (int i = 0; i < NUM_ACTUATORS; i ++) { // initialize voltage parameters.
     robotCommand->setVoltage(i, 0.0);
   }
-  robotCommand->setMode(MrsvrStatus::MANUAL);
+  robotCommand->setMode(MrsvrStatus::ACTIVE);
   //robotStatus->setMode(MrsvrStatus::PAUSE);
 
-  //// Open Manual Control Panel if it is closed .
-  //if (shtControlPanel->getCurrent() != CTRL_PNL_MANUAL) {
-  //  shtControlPanel->onOpenItem(siControlPanel[CTRL_PNL_MANUAL], SEL_COMMAND, NULL);
-  //  //shtControlPanel->setCurrent(CTRL_PNL_MANUAL);
+  //// Open Active Control Panel if it is closed .
+  //if (shtControlPanel->getCurrent() != CTRL_PNL_ACTIVE) {
+  //  shtControlPanel->onOpenItem(siControlPanel[CTRL_PNL_ACTIVE], SEL_COMMAND, NULL);
+  //  //shtControlPanel->setCurrent(CTRL_PNL_ACTIVE);
   //}
-  return 1;
-}
-
-
-long MrsvrMainWindow::onCmdRemote(FXObject*, FXSelector,void*)
-{
-  DBG_MMW_PRINT("onCmdRemote()\n");
-  consolePrint(1, true, "REMOTE command received.\n");
-
-  robotCommand->setMode(MrsvrStatus::REMOTE);
   return 1;
 }
 
