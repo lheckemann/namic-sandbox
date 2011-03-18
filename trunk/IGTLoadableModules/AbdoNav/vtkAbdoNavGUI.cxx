@@ -922,8 +922,8 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
           {
           fiducialList->AddObserver(vtkMRMLFiducialListNode::FiducialModifiedEvent, (vtkCommand *)this->MRMLCallbackCommand);
           }
+        this->UpdateGUIFromMRML();
         }
-      this->UpdateGUIFromMRML();
       }
     }
   // existing node has been modified
