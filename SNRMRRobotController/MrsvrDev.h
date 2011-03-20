@@ -99,6 +99,7 @@
 //#define ACTUATOR_Y_BW    0x0008
 //#define ACTUATOR_Z_FW    0x0010
 //#define ACTUATOR_Z_BW    0x0020
+
 #define ACTUATOR_X_FW    0x0004
 #define ACTUATOR_X_BW    0x0008
 #define ACTUATOR_Y_FW    0x0010
@@ -119,15 +120,11 @@
 #define ACTUATOR_Z_VEL   1
 
 // Encoder counter masks
-//#define ENC_CNT_X        0x0001 
-//#define ENC_CNT_Y        0x0002
-//#define ENC_CNT_Z        0x0004
-#define ENC_CNT_THETA    0x0008
-#define ENC_CNT_PHI      0x0010
-
 #define ENC_CNT_X        0x0002
 #define ENC_CNT_Y        0x0004
 #define ENC_CNT_Z        0x0001 
+#define ENC_CNT_THETA    0x0008
+#define ENC_CNT_PHI      0x0010
 
 #define ENC_CNT_ALL      (ENC_CNT_X|ENC_CNT_Y|ENC_CNT_Z|ENC_CNT_THETA|ENC_CNT_PHI)
 
