@@ -14,7 +14,6 @@
 // $Date: 2006/01/20 03:15:47 $
 //====================================================================
 
-
 //====================================================================
 // Description:
 //
@@ -113,8 +112,6 @@ FXDEFMAP(MrsvrMainWindow) MrsvrMainWindowMap[] = {
                                                                MrsvrMainWindow::onUpdateNeedleApprOffset),
   FXMAPFUNC(SEL_LEFTBUTTONRELEASE,
                           MrsvrMainWindow::ID_SHUTDOWN_MRSVR_BTN,MrsvrMainWindow::onShutdownMrsvrBtnReleased),
-  
-  //FXMAPFUNC(SEL_PAINT,     MrsvrMainWindow::ID_IMAGEWINDOW,  MrsvrMainWindow::onImageRepaint)
 
   //Maier Show Dialog
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_SHOWDIALOG,      MrsvrMainWindow::onCmdShowDialog), 
@@ -1120,14 +1117,14 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
   new FXTextField(mtxTargetDelta,10,dtDeltaPosition[0],
                   FXDataTarget::ID_VALUE,
                   TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
+                  FRAME_SUNKEN|TEXTFIELD_READONLY, 
                   0, 0, 50, 15);
   new FXLabel(mtxTargetDelta,"A",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
   
   new FXTextField(mtxTargetDelta,10,dtDeltaPosition[1],
                   FXDataTarget::ID_VALUE,
                   TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
+                  FRAME_SUNKEN|TEXTFIELD_READONLY, 
                   0, 0, 50, 15);
   
   new FXLabel(mtxTargetDelta,"S",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
@@ -1135,7 +1132,7 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
   new FXTextField(mtxTargetDelta,10,dtDeltaPosition[2],
                   FXDataTarget::ID_VALUE,
                   TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
+                  FRAME_SUNKEN|TEXTFIELD_READONLY, 
                   0, 0, 50, 15);
   
   new FXLabel(frTarget,"=",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
@@ -2106,6 +2103,10 @@ void MrsvrMainWindow::setDataTargets()
     //new FXDataTarget(valTipApprOffset, this, ID_UPDATE_PARAMETER);
     new FXDataTarget(valTipApprOffset, this, ID_UPDATE_NEEDLE_APPR_OFFSET);
 
+  valNeedleDepth = 0.0;
+  dtNeedleDepth = 
+    new FXDataTarget(valNeedleDepth, this, ID_UPDATE_PARAMETER);
+
 }
 
 
@@ -2194,9 +2195,11 @@ void MrsvrMainWindow::setTargetPositionRAS(float pos[3])
   float robotPos[3];
 
   transform->transform(pos, robotPos);
-  for (int i = 0; i < 3; i ++) {
-    robotCommand->setSetPoint(i, robotPos[i]);
-  }
+  robotCommand->setSetPoint(0, robotPos[0]);
+  robotCommand->setSetPoint(1, robotPos[1]);
+  //robotCommand->setSetPoint(2, robotPos[2]);
+
+  valNeedleDepth = robotPos[2];
 }
 
 
@@ -2503,7 +2506,7 @@ long MrsvrMainWindow::onNeedleCanvasRepaint(FXObject*, FXSelector,void*)
     dc.setForeground(FXRGB(255,255,0));
     dc.setFont(infoFont2);
     dc.drawText(((float)NEEDLE_CANVAS_W*NEEDLECNV_DEPTH_VALUE_X),
-                ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_VALUE_Y), "  128.00", 8);
+                ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_VALUE_Y), strNeedleDepth, strlen(strNeedleDepth));
     
     dc.setForeground(FXRGB(150,150,150));
     dc.setFont(infoFont1);
@@ -2599,6 +2602,7 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
   static bool prevActuatorActive[] = {true, true, true};
   static int  prevCalibReadyIndex;
   static int  prevSetAngleReadyIndex;
+  static float prevNeedleDepth = -1.0;
 
   bool   fModeUpdated = false;
 
@@ -2694,8 +2698,15 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
       pcp[i] = cp[i];
     }
     fUpdateInfoTarget = 1;
+
+    valNormCurrentPosition[0] = 1.0 - robotP[0] / 75.0;
+    valNormCurrentPosition[1] = robotP[1] / 95.0;
+
   }
 
+  if (valNeedleDepth != prevNeedleDepth) {
+    snprintf(strNeedleDepth, 16, "%6.1f", valNeedleDepth);
+  }
 
   static time_t pt = 0;
   static time_t ct = 0;
@@ -2800,21 +2811,69 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
 
   //--------------------------------------------------
   // update target values
-  float rtarget[3];  // Target in robot coordinate system
-  float ptarget[3];  // Target in patient coordinate system
-  rtarget[0] = (1.0-valNormTargetPosition[0]) * 75;
-  rtarget[1] = valNormTargetPosition[1] * 95;
-  rtarget[2] = valNormTargetPosition[2] * 180;
-  transform->invTransform(rtarget, ptarget);
-  for (int i = 0; i < 3; i ++) {
-    valTargetPosition[i] = ptarget[i];
-    valDeltaPosition[i] = valTargetPosition[i] - valCurrentPosition[i];
+  static float prevTargetPosition[] = {-1.0, -1.0, -1.0};
+  static float prevNormTargetPosition[] = {0.1, 0.1, 0.1};
+  static float prevNormCurrentPosition[] = {0.1, 0.1, 0.1};
+  int fAxialCanvasUpdate = 0;
+  
+  if (prevNormTargetPosition[0] != valNormTargetPosition[0] ||
+      prevNormTargetPosition[1] != valNormTargetPosition[1] ||
+      prevNormTargetPosition[2] != valNormTargetPosition[2]) {
+
+    float rtarget[3];  // Target in robot coordinate system
+    float ptarget[3];  // Target in patient coordinate system
+
+    rtarget[0] = (1.0-valNormTargetPosition[0]) * 75.0;
+    rtarget[1] = valNormTargetPosition[1] * 95.0;
+    //rtarget[2] = valNormTargetPosition[2] * 180.0;
+    rtarget[2] = valNeedleDepth;
+    transform->invTransform(rtarget, ptarget);
+
+    for (int i = 0; i < 3; i ++) {
+      valTargetPosition[i] = ptarget[i];
+      valDeltaPosition[i] = valTargetPosition[i] - valCurrentPosition[i];
+    }
+
+    prevNormTargetPosition[0] = valNormTargetPosition[0];
+    prevNormTargetPosition[1] = valNormTargetPosition[1];
+    prevNormTargetPosition[2] = valNormTargetPosition[2];
+    fAxialCanvasUpdate = 1;
+
+  } else if (prevTargetPosition[0] != valTargetPosition[0] ||
+             prevTargetPosition[1] != valTargetPosition[1] ||
+             prevTargetPosition[2] != valTargetPosition[2]) {
+
+    for (int i = 0; i < 3; i ++) {
+      valDeltaPosition[i] = valTargetPosition[i] - valCurrentPosition[i];
+    }
+
+    float rtarget[3];
+    transform->transform(valTargetPosition, rtarget);
+
+    valNormTargetPosition[0] = 1.0 - rtarget[0] / 75.0;
+    valNormTargetPosition[1] = rtarget[1] / 95.0;
+    //valNormTargetPosition[2] = rtarget[2] / 180.0;
+    valNeedleDepth = rtarget[2];
+
+    prevTargetPosition[0] = valTargetPosition[0];
+    prevTargetPosition[1] = valTargetPosition[1];
+    prevTargetPosition[2] = valTargetPosition[2];
+    fAxialCanvasUpdate = 1;
+
+  } else if (prevNormCurrentPosition[0] != valNormCurrentPosition[0] ||
+             prevNormCurrentPosition[1] != valNormCurrentPosition[1] ||
+             prevNormCurrentPosition[2] != valNormCurrentPosition[2]) {
+    fAxialCanvasUpdate = 1;
   }
 
-  // update axial canvas
-  onAxialCanvasRepaint(obj, sel, ptr);
-  onNeedleCanvasRepaint(obj, sel, ptr);
-  
+  // update axial and needle canvas
+  if (fAxialCanvasUpdate) {
+    onAxialCanvasRepaint(obj, sel, ptr);
+    onNeedleCanvasRepaint(obj, sel, ptr);
+  }
+
+
+
   // update timer
   application->addTimeout(this, 
         MrsvrMainWindow::ID_UPDATE_TIMER, updateInterval);

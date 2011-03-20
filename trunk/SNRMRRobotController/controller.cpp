@@ -649,13 +649,12 @@ inline int procActive()
 
   unsigned short swst;
   MrsvrVector spim, sprb;
-  spim[0] = command->getSetPoint(0);
-  spim[1] = command->getSetPoint(1);
-  spim[2] = command->getSetPoint(2);
-  
-  getActuatorTarget(sprb, spim);
-  
-  if (trapCtrl(sprb, dev->getVmax(0)) <= 0) {
+  for (int i = 0; i < NUM_ACTUATORS; i ++) {
+    spim[i] = command->getSetPoint(i);
+  }
+
+  //getActuatorTarget(sprb, spim);
+  if (trapCtrl(spim, dev->getVmax(0)) <= 0) {
     //status->setMode(MrsvrStatus::MANUAL);
   }
 
@@ -773,11 +772,8 @@ int trapCtrl2(MrsvrVector setPoint, float vmax)
   MrsvrVector  asp;
   float newa, newv;
   int reach = 0;
-
-  getActuatorTarget(asp, setPoint);
-
   for (int i = 0; i < NUM_ACTUATORS; i ++) {
-    float dist  = asp[i] - curPos[i];
+    float dist  = setPoint[i] - curPos[i];
     if (fabs(dist) < TH_REACH_ERROR)  {
       reach ++;
       dev->setVelocity(i, 0.0);

@@ -93,9 +93,9 @@ void MrsvrTransform::transform(MrsvrVector x, MrsvrVector y)
 
   vy = Tpr*vx;
 
-  std::cout << vy << std::endl;
-  std::cout << Tpr << std::endl;
-  std::cout << vx << std::endl;  
+  //std::cout << vy << std::endl;
+  //std::cout << Tpr << std::endl;
+  //std::cout << vx << std::endl;  
 
   y[0] = vy.element(0, 0);
   y[1] = vy.element(1, 0);

@@ -156,6 +156,11 @@
 #define ENC_DIR_THETA    0
 #define ENC_DIR_PHI      0
 
+// Flag to detect lock
+#define LOCK_DETECT_X    0
+#define LOCK_DETECT_Y    0
+#define LOCK_DETECT_Z    0
+
 // actuator property
 #define MAXRPS_X         1.75
 #define MAXRPS_Y         1.75
@@ -173,9 +178,14 @@
 //#define MAXRPSVOL_Y      1.6
 //#define MAXRPSVOL_Z      1.6
 
-#define MINRPSVOL_X      0.6
-#define MINRPSVOL_Y      0.6
-#define MINRPSVOL_Z      0.6 
+//#define MINRPSVOL_X      0.6
+//#define MINRPSVOL_Y      0.6
+//#define MINRPSVOL_Z      0.6 
+
+#define MINRPSVOL_X      0.75
+#define MINRPSVOL_Y      0.75
+#define MINRPSVOL_Z      0.75 
+
 
 #define ASTD_X           (MAXRPS_X * PITCH_X / 1.0)
 #define ASTD_Y           (MAXRPS_Y * PITCH_Y / 1.0)
@@ -221,12 +231,12 @@
 #define ACTUATOR_VOLTAGE_OFFSET  1.0
 
 // Motion ranges
-#define MIN_POSITION_X       -37.5            // mm
-#define MAX_POSITION_X       37.5             // mm
-#define MIN_POSITION_Y       -47.5            // mm
-#define MAX_POSITION_Y       47.5             // mm
-#define MIN_POSITION_Z       30               // mm
-#define MAX_POSITION_Z       180              // mm
+#define MIN_POSITION_X       0.0              // mm
+#define MAX_POSITION_X       75.0             // mm
+#define MIN_POSITION_Y       0.0              // mm
+#define MAX_POSITION_Y       95.0             // mm
+#define MIN_POSITION_Z       0.0              // mm
+#define MAX_POSITION_Z       180.0            // mm
 #define MIN_POSITION_THETA   -0.5*PI        // rad
 #define MAX_POSITION_THETA   0.5*PI         // rad
 #define MIN_POSITION_PHI     -0.5*PI        // rad
@@ -275,6 +285,8 @@ class MrsvrDev {
   static const float             encLimitMin[];  
   float                          actuatorVol[NUM_ACTUATORS];
   float                          actVolOff[NUM_ACTUATORS];
+  static const int               EnableLockDetect[NUM_ACTUATORS];
+
 
   //  int                            actuatorKill[NUM_ACTUATORS];
   bool                           actuatorActive[NUM_ACTUATORS];
@@ -365,17 +377,19 @@ class MrsvrDev {
 #ifdef _ENABLE_ACTUATOR_LOCK_DETECTION
   inline void detectActuatorLock() {
     for (int i = 0; i < NUM_ACTUATORS; i ++) {
-      if (isActive(i) && fabs(getVoltage(i)) > LOCK_DETECT_VOLTAGE) {
-        timeCounter[i] ++;
-        //printf("timeCounter[%d]  = %d\n", i, timeCounter[i]);
-        if (timeCounter[i] % LOCK_DETECT_COUNT == 0) {
-          //printf("judging lock \n");
-          if (fabs(getPosition(i) - startPosition[i]) < LOCK_DETECT_TH_POS_COUNT) {
-            lockDetect[i] = true;
-            //printf("lock detected\n");
+      if (EnableLockDetect[i]) {
+        if (isActive(i) && fabs(getVoltage(i)) > LOCK_DETECT_VOLTAGE) {
+          timeCounter[i] ++;
+          //printf("timeCounter[%d]  = %d\n", i, timeCounter[i]);
+          if (timeCounter[i] % LOCK_DETECT_COUNT == 0) {
+            //printf("judging lock \n");
+            if (fabs(getPosition(i) - startPosition[i]) < LOCK_DETECT_TH_POS_COUNT) {
+              lockDetect[i] = true;
+              //printf("lock detected\n");
+            }
+            timeCounter[i] = 0;
+            startPosition[i] = getPosition(i);
           }
-          timeCounter[i] = 0;
-          startPosition[i] = getPosition(i);
         }
       }
     }
