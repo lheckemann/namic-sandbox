@@ -21,6 +21,7 @@
 
 #include "MrsvrTransform.h"
 #include <math.h>
+#include <iostream>
 
 #include "newmatio.h"
 
@@ -88,9 +89,13 @@ void MrsvrTransform::transform(MrsvrVector x, MrsvrVector y)
   vx.element(0, 0) = x[0];
   vx.element(1, 0) = x[1];
   vx.element(2, 0) = x[2];
-  vx.element(3, 0) = 0.0;
+  vx.element(3, 0) = 1.0;
 
   vy = Tpr*vx;
+
+  std::cout << vy << std::endl;
+  std::cout << Tpr << std::endl;
+  std::cout << vx << std::endl;  
 
   y[0] = vy.element(0, 0);
   y[1] = vy.element(1, 0);

@@ -371,7 +371,7 @@ int MrsvrDev::getPositions(float* pos)
 
   PencGetCounterEx(DEV_ENC_COUNT, ENC_CNT_ALL, cnt);
   for (int i = 0; i < NUM_ENCODERS; i ++) {
-    pos[i] = ((float)((long)cnt[i]-(long)encZeroCnt[i]) * encRate[i]);
+    pos[i] = ((float)((long)cnt[encCh[i]-1]-(long)encZeroCnt[i]) * encRate[i]);
 #ifdef DEBUG_MRSVR_DEV
     printf("MrsvrDev::getPositions():  encoder = %d\n", cnt[i]);
 #endif //DEBUG_MRSVR_DEV
