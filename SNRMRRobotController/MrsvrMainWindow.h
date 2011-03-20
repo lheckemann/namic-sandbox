@@ -542,6 +542,10 @@ private:
   FXDataTarget*      dtDefNeedleOffset[3];
   FXDataTarget*      dtDefNeedleOrientation[3];
 
+  float              prevNeedleDepth;
+  float              valNeedleDepth;
+  FXDataTarget*      dtNeedleDepth;
+  char               strNeedleDepth[16];
 
   // -- Manual
   
