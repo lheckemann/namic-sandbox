@@ -174,14 +174,6 @@
 #define MAXRPSVOL_Y      2.0
 #define MAXRPSVOL_Z      2.0 
 
-//#define MAXRPSVOL_X      1.6
-//#define MAXRPSVOL_Y      1.6
-//#define MAXRPSVOL_Z      1.6
-
-//#define MINRPSVOL_X      0.6
-//#define MINRPSVOL_Y      0.6
-//#define MINRPSVOL_Z      0.6 
-
 #define MINRPSVOL_X      0.75
 #define MINRPSVOL_Y      0.75
 #define MINRPSVOL_Z      0.75 
