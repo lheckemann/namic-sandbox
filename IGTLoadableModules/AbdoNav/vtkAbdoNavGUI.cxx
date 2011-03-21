@@ -614,7 +614,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
           this->GetMRMLScene()->AddNode(fiducialList);
           fiducialList->Delete();
           this->AbdoNavNode->SetFiducialListID(fiducialList->GetID());
-          // observe fiducial list in order to update the GUI whenever a fiducial is moved via drag & drop or renamed via the Fiducials module
+          // observe fiducial list in order to update the GUI whenever a fiducial is moved via drag & drop or renamed or renumbered via the Fiducials module
           fiducialList->AddObserver(vtkMRMLFiducialListNode::FiducialModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand);
           // observe fiducial list in order to update the GUI whenever a fiducial is added externally via the Fiducials module
           fiducialList->AddObserver(vtkMRMLScene::NodeAddedEvent, (vtkCommand*)this->MRMLCallbackCommand);
@@ -622,6 +622,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
           fiducialList->AddObserver(vtkMRMLScene::NodeRemovedEvent, (vtkCommand*)this->MRMLCallbackCommand);
           // observe fiducial list in order to update the GUI whenever all fiducials are removed externally via the Fiducials module
           fiducialList->AddObserver(vtkCommand::ModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand);
+          // no need to observe vtkMRMLFiducialListNode::DisplayModifiedEvent or vtkMRMLFiducialListNode::FiducialIndexModifiedEvent
           }
         else
           {
@@ -925,7 +926,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
         vtkMRMLFiducialListNode* fiducialList = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetFiducialListID()));
         if (fiducialList != NULL)
           {
-          // observe fiducial list in order to update the GUI whenever a fiducial is moved via drag & drop or renamed via the Fiducials module
+          // observe fiducial list in order to update the GUI whenever a fiducial is moved via drag & drop or renamed or renumbered via the Fiducials module
           fiducialList->AddObserver(vtkMRMLFiducialListNode::FiducialModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand);
           // observe fiducial list in order to update the GUI whenever a fiducial is added externally via the Fiducials module
           fiducialList->AddObserver(vtkMRMLScene::NodeAddedEvent, (vtkCommand*)this->MRMLCallbackCommand);
@@ -933,6 +934,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
           fiducialList->AddObserver(vtkMRMLScene::NodeRemovedEvent, (vtkCommand*)this->MRMLCallbackCommand);
           // observe fiducial list in order to update the GUI whenever all fiducials are removed externally via the Fiducials module
           fiducialList->AddObserver(vtkCommand::ModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand);
+          // no need to observe vtkMRMLFiducialListNode::DisplayModifiedEvent or vtkMRMLFiducialListNode::FiducialIndexModifiedEvent
           }
         this->UpdateGUIFromMRML();
         }
@@ -987,7 +989,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
     }
   else if (event == vtkMRMLFiducialListNode::FiducialModifiedEvent)
     {
-    // update the GUI if a fiducial was moved via drag & drop or renamed via the Fiducials module
+    // update the GUI if a fiducial was moved via drag & drop or renamed or renumbered via the Fiducials module
     vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(caller);
     if (fnode != NULL && this->AbdoNavNode != NULL)
       {
