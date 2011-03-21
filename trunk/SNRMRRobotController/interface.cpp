@@ -38,6 +38,12 @@ int main (int argc, char* argv[])
   
   // Open display
   application.init(argc,argv);
+  application.setBaseColor(FXRGB(80,80,80));
+  application.setHiliteColor(FXRGB(120,120,120));
+  application.setShadowColor(FXRGB(60,60,60));
+  application.setBorderColor(FXRGB(0,0,0));
+  application.setBackColor(FXRGB(30,30,30));
+  application.setForeColor(FXRGB(240,240,240));
 
   // Make window
   int w = application.getRootWindow()->getDefaultWidth();
