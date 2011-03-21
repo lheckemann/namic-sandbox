@@ -44,7 +44,7 @@ MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
 {
 
   for (int i = 0; i < 7; i ++) {
-    valZFramePosition[i] = "0.0, 0.0";
+    valZFramePosition[i] = "0.0, 0.0, 0.0";
     dtZFramePosition[i]  = new FXDataTarget(valZFramePosition[i], this, (FXSelector)NULL);  
   }
 
@@ -87,8 +87,8 @@ MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
   
   // Third Row
   new FXLabel(mtZFramePosition,"#3",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXTextField(mtZFramePosition,10,dtZFramePosition[2],FXDataTarget::ID_VALUE);
   new FXTextField(mtZFramePosition,10,dtZFramePosition[3],FXDataTarget::ID_VALUE);
-  new FXTextField(mtZFramePosition,10,dtZFramePosition[4],FXDataTarget::ID_VALUE);
   new FXTextField(mtZFramePosition,10,dtZFramePosition[4],FXDataTarget::ID_VALUE);
   new FXLabel(mtZFramePosition,"#5",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
 
@@ -167,14 +167,20 @@ long MrsvrZFrameRegistrationDialog::onCmdRunRegistration(FXObject*,FXSelector,vo
   Quaternion ZorientationBase;
 
   float ZquaternionBase[4];
+  float imagePositionSI[7];
   
   zf::Matrix4x4 ZmatrixBase;
   zf::IdentityMatrix(ZmatrixBase);
+  ZmatrixBase[0][0] = -1.0;
+  ZmatrixBase[1][1] = -1.0;
+  ZmatrixBase[2][2] = 1.0;
   zf::MatrixToQuaternion(ZmatrixBase, ZquaternionBase);
 
   for (int i = 0; i < 7; i ++) {
-    valZFramePosition[i].scan("%f, %f", &Zcoordinate[i][0], &Zcoordinate[i][1]);
+    valZFramePosition[i].scan("%f, %f, %f", &Zcoordinate[i][0], &Zcoordinate[i][1], &imagePositionSI[i]);
   }
+
+  float imageSI = (imagePositionSI[0] + imagePositionSI[2] + imagePositionSI[4] + imagePositionSI[6]) / 5;
 
   zf::ZFrameCalibration * calibration;
   calibration = new zf::ZFrameCalibration();
@@ -208,7 +214,7 @@ long MrsvrZFrameRegistrationDialog::onCmdRunRegistration(FXObject*,FXSelector,vo
   registrationMatrix[8] = Zmatrix[2][0];
   registrationMatrix[9] = Zmatrix[2][1];
   registrationMatrix[10] = Zmatrix[2][2];
-  registrationMatrix[11] = Zposition.getZ();
+  registrationMatrix[11] = Zposition.getZ() + imageSI;
   registrationMatrix[12] = 0;
   registrationMatrix[13] = 0;
   registrationMatrix[14] = 0;
