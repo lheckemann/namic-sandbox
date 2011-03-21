@@ -907,20 +907,20 @@ void vtkAbdoNavGUI::ProcessLogicEvents(vtkObject* caller, unsigned long event, v
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData)
 {
-  // if an AbdoNavNode was added, then update the GUI; an AbdoNavNode is only added
-  // when the user loads a previously saved scene that contains an AbdoNavNode
   if (event == vtkMRMLScene::NodeAddedEvent)
     {
-    vtkMRMLAbdoNavNode* node = vtkMRMLAbdoNavNode::SafeDownCast((vtkObject*)callData);
-    if (node && node->IsA("vtkMRMLAbdoNavNode"))
+    // update the GUI if an AbdoNavNode was added; an AbdoNavNode is only added
+    // when the user loads a previously saved scene that contains an AbdoNavNode
+    vtkMRMLAbdoNavNode* anode = vtkMRMLAbdoNavNode::SafeDownCast((vtkObject*)callData);
+    if (anode != NULL)
       {
       // a new AbdoNavNode was created and added
       if (this->AbdoNavNode == NULL)
         {
         // set and observe the new node in Logic
-        this->AbdoNavLogic->SetAndObserveAbdoNavNode(node);
+        this->AbdoNavLogic->SetAndObserveAbdoNavNode(anode);
         // set and observe the new node in GUI
-        vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node);
+        vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, anode);
         // if an AbdoNav fiducial list is part of the loaded scene, observe it in order to update the GUI
         vtkMRMLFiducialListNode* fiducialList = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetFiducialListID()));
         if (fiducialList != NULL)
@@ -937,24 +937,63 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
         this->UpdateGUIFromMRML();
         }
       }
-    }
-  // existing node has been modified
-  else if (event == vtkCommand::ModifiedEvent)
-    {
-    vtkMRMLAbdoNavNode* node = vtkMRMLAbdoNavNode::SafeDownCast(caller);
-    if (node)
-      {
-      this->UpdateGUIFromMRML();
-      }
-    }
-  else if (event == vtkMRMLFiducialListNode::FiducialModifiedEvent)
-    {
+
+    // update the GUI if a fiducial was added externally via the Fiducials module
     vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(caller);
     if (fnode != NULL && this->AbdoNavNode != NULL)
       {
       if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetFiducialListID()))
         {
-        std::cout << "FiducialModifiedEvent observed" << std::endl;
+        std::cout << "fiducial added" << std::endl;
+        this->UpdateGUIFromMRML();
+        }
+      }
+    }
+  else if (event == vtkMRMLScene::NodeRemovedEvent)
+    {
+    // update the GUI if a fiducial was removed externally via the Fiducials module
+    vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(caller);
+    if (fnode != NULL && this->AbdoNavNode != NULL)
+      {
+      if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetFiducialListID()))
+        {
+        std::cout << "fiducial removed" << std::endl;
+        this->UpdateGUIFromMRML();
+        }
+      }
+    }
+  else if (event == vtkCommand::ModifiedEvent)
+    {
+    // update the GUI if an existing AbdoNavNode was modified
+    vtkMRMLAbdoNavNode* anode = vtkMRMLAbdoNavNode::SafeDownCast(caller);
+    if (anode != NULL && this->AbdoNavNode != NULL)
+      {
+      if (!strcmp(anode->GetID(), this->AbdoNavNode->GetID()))
+        {
+        this->UpdateGUIFromMRML();
+        }
+      }
+
+    // update the GUI if all fiducials were removed externally via the Fiducials module
+    vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(caller);
+    if (fnode != NULL && this->AbdoNavNode != NULL)
+      {
+      if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetFiducialListID()))
+        {
+        std::cout << "all fiducials removed" << std::endl;
+        this->UpdateGUIFromMRML();
+        }
+      }
+    }
+  else if (event == vtkMRMLFiducialListNode::FiducialModifiedEvent)
+    {
+    // update the GUI if a fiducial was moved via drag & drop or renamed via the Fiducials module
+    vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(caller);
+    if (fnode != NULL && this->AbdoNavNode != NULL)
+      {
+      if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetFiducialListID()))
+        {
+        std::cout << "fiducial moved or renamed" << std::endl;
         this->UpdateGUIFromMRML();
         }
       }
