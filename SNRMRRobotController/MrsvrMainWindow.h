@@ -145,10 +145,10 @@
 #define ICON_INDEX_EMERGENCY      2
 #define ICON_INDEX_MOVE           3
 
-#define ICON_PNG_HOLD           "icon/hold100x100.png"     
-#define ICON_PNG_ACTIVE         "icon/active100x100.png"   
-#define ICON_PNG_EMERGENCY      "icon/emergency100x100.png"
-#define ICON_PNG_MOVE           "icon/move100x100.png"     
+#define ICON_PNG_HOLD           "icon/hold100x100_black.png"     
+#define ICON_PNG_ACTIVE         "icon/active100x100_black.png"   
+#define ICON_PNG_EMERGENCY      "icon/emergency100x100_black.png"
+#define ICON_PNG_MOVE           "icon/move100x100_black.png"     
 
 
 

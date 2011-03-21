@@ -189,10 +189,9 @@ MrsvrMainWindow::MrsvrMainWindow(FXApp* app, int w, int h)
   : FXMainWindow(app, "MR Servo Robot Controller", NULL, NULL, DECOR_NONE, 0, 0,  w, h)
 #else
   //  : FXMainWindow(app, "MR Servo Robot Controller", NULL, NULL, DECOR_ALL, 0, 0,  w-20, h-20)
-  : FXMainWindow(app, "MR Servo Robot Controller", NULL, NULL, DECOR_ALL, 0, 0,  1260, 1004)
+    : FXMainWindow(app, "MR Servo Robot Controller", NULL, NULL, DECOR_ALL, 0, 0,  1260, 1004)
 #endif // FULLSCREEN
 {
-
   application = app;
 
   defNeedleInfo = NULL;
