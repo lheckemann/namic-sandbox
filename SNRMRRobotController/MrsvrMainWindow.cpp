@@ -141,7 +141,6 @@ const char* MrsvrMainWindow::infoModeText[] = {
   "CALIBRATION",
   "HOLD",
   "ACTIVE",
-  "REMOTE",
   "EMERGENCY",
   "RESET"
 };
@@ -3480,15 +3479,16 @@ long MrsvrMainWindow::onCmdShowDialog(FXObject*,FXSelector,void*)
   robotCommand->setMode(MrsvrStatus::CALIBRATION);
 
   MrsvrZFrameRegistrationDialog* modaldialog = new MrsvrZFrameRegistrationDialog(this);
-  modaldialog->execute(PLACEMENT_OWNER);
-  
-  float matrix[16];
-  modaldialog->getRegistrationMatrix(matrix);
-  
-  for (int i = 0; i < 16; i ++) {
-    valCalibrationMatrix[i] = matrix[i];
+  if (modaldialog->execute(PLACEMENT_OWNER == FXDialogBox::ID_ACCEPT)) {
+      
+    float matrix[16];
+    modaldialog->getRegistrationMatrix(matrix);
+    
+    for (int i = 0; i < 16; i ++) {
+      valCalibrationMatrix[i] = matrix[i];
+    }
+    transform->setCalibrationMatrix(matrix);
   }
-  transform->setCalibrationMatrix(matrix);
   
   delete modaldialog;
   
