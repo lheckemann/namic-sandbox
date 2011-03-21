@@ -783,6 +783,12 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     this->Point3RadioButton->SetEnabled(true);
     this->Point3RadioButton->SelectedStateOff();
     this->PerformRegistrationPushButton->SetEnabled(true);
+    // unlock fiducial list
+    vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetFiducialListID()));
+    if (fnode)
+      {
+      fnode->SetLocked(0);
+      }
     }
   else if (this->PerformRegistrationPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
@@ -793,16 +799,32 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       vtkKWMessageDialog::PopupMessage(this->GetApplication(),
                                        this->GetApplicationGUI()->GetMainSlicerWindow(),
                                        "AbdoNav",
-                                       "RAS coordinates of guidance needle contain illegal characters!",
+                                       "Invalid registration input parameters!",
                                        vtkKWMessageDialog::ErrorIcon);
       }
     else
       {
-      this->Point1RadioButton->SetEnabled(false);
-      this->Point2RadioButton->SetEnabled(false);
-      this->Point3RadioButton->SetEnabled(false);
-      this->PerformRegistrationPushButton->SetEnabled(false);
-      this->AbdoNavLogic->PerformRegistration();
+      if (this->AbdoNavLogic->PerformRegistration() == EXIT_SUCCESS)
+        {
+        this->Point1RadioButton->SetEnabled(false);
+        this->Point2RadioButton->SetEnabled(false);
+        this->Point3RadioButton->SetEnabled(false);
+        this->PerformRegistrationPushButton->SetEnabled(false);
+        // lock fiducial list
+        vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetFiducialListID()));
+        if (fnode)
+          {
+          fnode->SetLocked(1);
+          }
+        }
+      else
+        {
+        vtkKWMessageDialog::PopupMessage(this->GetApplication(),
+                                         this->GetApplicationGUI()->GetMainSlicerWindow(),
+                                         "AbdoNav",
+                                         "Registration failed, check input parameters!",
+                                         vtkKWMessageDialog::ErrorIcon);
+        }
       }
     }
 
