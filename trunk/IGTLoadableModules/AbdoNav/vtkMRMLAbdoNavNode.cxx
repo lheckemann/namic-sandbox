@@ -50,15 +50,6 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
   this->RegistrationTransformID = NULL;
   this->FiducialListID = NULL;
   this->TrackingSystemUsed = NULL;
-  this->SetGuidanceNeedleTipRAS(std::numeric_limits<double>::quiet_NaN(),
-                                std::numeric_limits<double>::quiet_NaN(),
-                                std::numeric_limits<double>::quiet_NaN());
-  this->SetGuidanceNeedleSecondRAS(std::numeric_limits<double>::quiet_NaN(),
-                                   std::numeric_limits<double>::quiet_NaN(),
-                                   std::numeric_limits<double>::quiet_NaN());
-  this->SetMarkerCenterRAS(std::numeric_limits<double>::quiet_NaN(),
-                           std::numeric_limits<double>::quiet_NaN(),
-                           std::numeric_limits<double>::quiet_NaN());
 }
 
 
@@ -69,15 +60,6 @@ vtkMRMLAbdoNavNode::~vtkMRMLAbdoNavNode()
   this->RegistrationTransformID = NULL;
   this->FiducialListID = NULL;
   this->TrackingSystemUsed = NULL;
-  this->SetGuidanceNeedleTipRAS(std::numeric_limits<double>::quiet_NaN(),
-                                std::numeric_limits<double>::quiet_NaN(),
-                                std::numeric_limits<double>::quiet_NaN());
-  this->SetGuidanceNeedleSecondRAS(std::numeric_limits<double>::quiet_NaN(),
-                                   std::numeric_limits<double>::quiet_NaN(),
-                                   std::numeric_limits<double>::quiet_NaN());
-  this->SetMarkerCenterRAS(std::numeric_limits<double>::quiet_NaN(),
-                           std::numeric_limits<double>::quiet_NaN(),
-                           std::numeric_limits<double>::quiet_NaN());
 }
 
 
@@ -90,9 +72,6 @@ void vtkMRMLAbdoNavNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "RegistrationTransformID: " << (this->RegistrationTransformID ? this->RegistrationTransformID : "(none)") << "\n";
   os << indent << "FiducialListID: " << (this->FiducialListID ? this->FiducialListID : "(none)") << "\n";
   os << indent << "TrackingSystemUsed: " << (this->TrackingSystemUsed ? this->TrackingSystemUsed : "(none)") << "\n";
-  os << indent << "GuidanceNeedleTipRAS: " << this->GuidanceNeedleTipRAS[0] << " " << this->GuidanceNeedleTipRAS[1] << " " << this->GuidanceNeedleTipRAS[2] << "\n";
-  os << indent << "GuidanceNeedleSecondRAS: " << this->GuidanceNeedleSecondRAS[0] << " " << this->GuidanceNeedleSecondRAS[1] << " " << this->GuidanceNeedleSecondRAS[2] << "\n";
-  os << indent << "MarkerCenterRAS: " << this->MarkerCenterRAS[0] << " " << this->MarkerCenterRAS[1] << " " << this->MarkerCenterRAS[2] << "\n";
 }
 
 
@@ -126,39 +105,6 @@ void vtkMRMLAbdoNavNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "TrackingSystemUsed"))
       {
       this->SetTrackingSystemUsed(attValue);
-      }
-    else if (!strcmp(attName, "GuidanceNeedleTipRAS"))
-      {
-      std::stringstream ss;
-      double val;
-      ss << attValue;
-      for (int i = 0; i < 3; i++)
-        {
-        ss >> val;
-        this->GuidanceNeedleTipRAS[i] = val;
-        }
-      }
-    else if (!strcmp(attName, "GuidanceNeedleSecondRAS"))
-      {
-      std::stringstream ss;
-      double val;
-      ss << attValue;
-      for (int i = 0; i < 3; i++)
-        {
-        ss >> val;
-        this->GuidanceNeedleSecondRAS[i] = val;
-        }
-      }
-    else if (!strcmp(attName, "MarkerCenterRAS"))
-      {
-      std::stringstream ss;
-      double val;
-      ss << attValue;
-      for (int i = 0; i < 3; i++)
-        {
-        ss >> val;
-        this->MarkerCenterRAS[i] = val;
-        }
       }
     }
 }
@@ -203,9 +149,6 @@ void vtkMRMLAbdoNavNode::WriteXML(ostream& os, int nIndent)
       os << indent << " TrackingSystemUsed=\"" << ss.str() << "\"";
       }
   }
-  os << indent << " GuidanceNeedleTipRAS=\"" << this->GuidanceNeedleTipRAS[0] << " " << this->GuidanceNeedleTipRAS[1] << " " << this->GuidanceNeedleTipRAS[2] << "\"";
-  os << indent << " GuidanceNeedleSecondRAS=\"" << this->GuidanceNeedleSecondRAS[0] << " " << this->GuidanceNeedleSecondRAS[1] << " " << this->GuidanceNeedleSecondRAS[2] << "\"";
-  os << indent << " MarkerCenterRAS=\"" << this->MarkerCenterRAS[0] << " " << this->MarkerCenterRAS[1] << " " << this->MarkerCenterRAS[2] << "\"";
 }
 
 
@@ -219,8 +162,6 @@ void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode* anode)
   this->SetRegistrationTransformID(node->GetRegistrationTransformID());
   this->SetFiducialListID(node->GetFiducialListID());
   this->SetTrackingSystemUsed(node->GetTrackingSystemUsed());
-  this->SetGuidanceNeedleTipRAS(node->GetGuidanceNeedleTipRAS());
-  this->SetGuidanceNeedleSecondRAS(node->GetGuidanceNeedleSecondRAS());
 }
 
 
