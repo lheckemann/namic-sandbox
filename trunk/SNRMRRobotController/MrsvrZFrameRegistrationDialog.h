@@ -46,7 +46,8 @@ private:
   //Font for Canvas Text
   FXFont *canvasFont0;
 
-  float registrationMatrix[16];
+  FXDataTarget* dtRegistrationMatrix[16];
+  float         registrationMatrix[16];
 
 
   FXString     valZFramePosition[7];

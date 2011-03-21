@@ -52,6 +52,8 @@ MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
   // Initialize registration matrix with identity matrix
   for (int i = 0; i < 16; i ++) {
     registrationMatrix[i] = (i%5 == 0) ? 1.0 : 0.0;
+    dtRegistrationMatrix[i] = 
+      new FXDataTarget(registrationMatrix[i], this, ID_UPDATE_PARAMETER);
   }
 
   // Main Frame
@@ -69,33 +71,33 @@ MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
   FXMatrix* mtZFrameRegistration=new FXMatrix(gbRegDist,1,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X);
   FXMatrix* mtZFramePosition=new FXMatrix(mtZFrameRegistration,5,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_FILL_X);
   
-  //First row
+  // First row
+  new FXLabel(mtZFramePosition,"#1",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXTextField(mtZFramePosition,10,dtZFramePosition[0],FXDataTarget::ID_VALUE);
   new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXLabel(mtZFramePosition,"#4",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXTextField(mtZFramePosition,10,dtZFramePosition[6],FXDataTarget::ID_VALUE);
+  new FXLabel(mtZFramePosition,"#7",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
   
-  //Second row
-  new FXLabel(mtZFramePosition,"#3",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXTextField(mtZFramePosition,10,dtZFramePosition[2],FXDataTarget::ID_VALUE);
-  new FXTextField(mtZFramePosition,10,dtZFramePosition[3],FXDataTarget::ID_VALUE);
-  new FXTextField(mtZFramePosition,10,dtZFramePosition[4],FXDataTarget::ID_VALUE);
-  new FXLabel(mtZFramePosition,"#5",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  
-  //Third row
+  // Second row
   new FXLabel(mtZFramePosition,"#2",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
   new FXTextField(mtZFramePosition,10,dtZFramePosition[1],FXDataTarget::ID_VALUE);
   new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
   new FXTextField(mtZFramePosition,10,dtZFramePosition[5],FXDataTarget::ID_VALUE);
   new FXLabel(mtZFramePosition,"#6",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
   
-  //Fourth row
-  new FXLabel(mtZFramePosition,"#1",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXTextField(mtZFramePosition,10,dtZFramePosition[0],FXDataTarget::ID_VALUE);
+  // Third Row
+  new FXLabel(mtZFramePosition,"#3",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXTextField(mtZFramePosition,10,dtZFramePosition[3],FXDataTarget::ID_VALUE);
+  new FXTextField(mtZFramePosition,10,dtZFramePosition[4],FXDataTarget::ID_VALUE);
+  new FXTextField(mtZFramePosition,10,dtZFramePosition[4],FXDataTarget::ID_VALUE);
+  new FXLabel(mtZFramePosition,"#5",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+
+  // Forth Row
   new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
-  new FXTextField(mtZFramePosition,10,dtZFramePosition[6],FXDataTarget::ID_VALUE);
-  new FXLabel(mtZFramePosition,"#7",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXLabel(mtZFramePosition,"#4",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
+  new FXLabel(mtZFramePosition,"  ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
   
   //Z_Frame sample image
   char buf[73728];
@@ -107,13 +109,40 @@ MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
                new FXGIFIcon(this->getApp(), (void*)buf),NULL,NULL,BUTTON_TOOLBAR|
                LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X);
 
-  new FXButton(mtZFrameRegistration, "Manual Z-Frame Calibration", NULL, this,
+  new FXButton(mtZFrameRegistration, "Calculate Transform Matrix", NULL, this,
                ID_RUN_REGISTRATION,
                FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
 
-  new FXButton(mtZFrameRegistration, "Close", NULL, this,
+  //matrix_main->gbRegDist
+  FXGroupBox* gpMatrix = 
+    new FXGroupBox(matrix, "Transform Matrix",
+                   FRAME_RIDGE|LAYOUT_FILL_Y|LAYOUT_FILL_X|
+                   LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_LEFT);
+
+  FXMatrix* mtMatrix  = 
+    new FXMatrix(gpMatrix,4,
+                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
+                 LAYOUT_TOP|LAYOUT_CENTER_X);
+
+  for (int i = 0; i < 16; i ++) {
+    new FXTextField(mtMatrix,4,dtRegistrationMatrix[i],
+                  FXDataTarget::ID_VALUE,
+                  TEXTFIELD_REAL|TEXTFIELD_READONLY|JUSTIFY_RIGHT|FRAME_SUNKEN,
+                  0, 0, 20, 15);
+  }
+
+
+  FXMatrix* mxButtons
+    = new FXMatrix(matrix,2,MATRIX_BY_COLUMNS|LAYOUT_SIDE_TOP|LAYOUT_SIDE_RIGHT|LAYOUT_FILL_X|LAYOUT_FILL_Y);
+
+  new FXButton(mxButtons, "Set", NULL, this,
                ID_ACCEPT,
+               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
+               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
+
+  new FXButton(mxButtons, "Cancel", NULL, this,
+               ID_CANCEL,
                FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
   
