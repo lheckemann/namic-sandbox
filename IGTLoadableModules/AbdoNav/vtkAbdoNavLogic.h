@@ -66,7 +66,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
 
   /// Calculate registration matrix based on two identified points on the guidance needle.
-  void PerformRegistration();
+  int PerformRegistration();
   /// Set the slice driver (User == 0, Locator == 1) for each slice orientation (Red == 0,
   /// Yellow == 1, Green == 2).
   void SetSliceDriver(int sliceIndex, const char* driver);

@@ -16,6 +16,7 @@
 #include "vtkAbdoNavLogic.h"
 
 /* MRML includes */
+#include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 
 /* VTK includes */
@@ -129,7 +130,7 @@ void vtkAbdoNavLogic::ProcessMRMLEvents(vtkObject* caller, unsigned long event, 
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavLogic::PerformRegistration()
+int vtkAbdoNavLogic::PerformRegistration()
 {
   //----------------------------------------------------------------
   // Needle-based registration between tracking system coordinates and image
@@ -214,6 +215,43 @@ void vtkAbdoNavLogic::PerformRegistration()
   //
   //----------------------------------------------------------------
 
+  // retrieve registration input parameters from the fiducial list
+  float* guidanceNeedleTip = NULL;
+  float* guidanceNeedleSecond = NULL;
+  float* markerCenter = NULL;
+
+  vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetFiducialListID()));
+  if (fnode != NULL)
+    {
+    for (int i = 0; i < fnode->GetNumberOfFiducials(); i++)
+      {
+      if (!strcmp("tipRAS", fnode->GetNthFiducialLabelText(i)))
+        {
+        guidanceNeedleTip = fnode->GetNthFiducialXYZ(i);
+        }
+      else if (!strcmp("2ndRAS", fnode->GetNthFiducialLabelText(i)))
+        {
+        guidanceNeedleSecond = fnode->GetNthFiducialXYZ(i);
+        }
+      else if (!strcmp("markerRAS", fnode->GetNthFiducialLabelText(i)))
+        {
+        markerCenter = fnode->GetNthFiducialXYZ(i);
+        }
+      }
+    }
+  else
+    {
+    return EXIT_FAILURE;
+    }
+
+  // validate registration input parameters
+  if (guidanceNeedleTip == NULL || guidanceNeedleSecond == NULL || markerCenter == NULL)
+    {
+    return EXIT_FAILURE;
+    }
+
+
+  // create/retrieve registration transform node
   if (this->AbdoNavNode->GetRegistrationTransformID() == NULL)
     {
     // create a new registration transform node and add it to the scene
@@ -244,10 +282,6 @@ void vtkAbdoNavLogic::PerformRegistration()
 
   vtkMatrix4x4* registrationMatrix = vtkMatrix4x4::New();
   registrationMatrix->Identity();
-
-  double* guidanceNeedleTip = this->AbdoNavNode->GetGuidanceNeedleTipRAS();
-  double* guidanceNeedleSecond = this->AbdoNavNode->GetGuidanceNeedleSecondRAS();
-  double* markerCenter = this->AbdoNavNode->GetMarkerCenterRAS();
 
   //----------------------------------------------------------------
   // set translation t
@@ -312,6 +346,8 @@ void vtkAbdoNavLogic::PerformRegistration()
 
   // cleanup
   registrationMatrix->Delete();
+
+  return EXIT_SUCCESS;
 }
 
 
