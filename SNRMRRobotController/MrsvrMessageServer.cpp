@@ -242,7 +242,7 @@ int MrsvrMessageServer::onRcvMsgMaster(igtl::Socket::Pointer& socket, igtl::Mess
       //if (result == TARGET_ACCEPTED) {
       //} else if (result == TARGET_OUT_OF_RANGE) {
       //}
-    } else if (strcmp(transMsg->GetDeviceName(), "CALIBRATION") == 0){
+    } else if (strcmp(transMsg->GetDeviceName(), "ZFrameTransform") == 0){
       setCalibrationMatrix(matrix);
     }
 

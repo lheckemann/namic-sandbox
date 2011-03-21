@@ -2147,7 +2147,7 @@ void MrsvrMainWindow::updateExternalCommands()
       for (int i = 0; i < 3; i ++) {
         valTargetPosition[i] = target[i][3];
       }
-      setTargetPositionRAS(valTargetPosition);
+      //setTargetPositionRAS(valTargetPosition);
     }
 
     int mode;
