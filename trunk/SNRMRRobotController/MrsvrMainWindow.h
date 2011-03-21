@@ -138,6 +138,19 @@
 #define NEEDLECNV_RANGE_X         200
 #define NEEDLECNV_RANGE_Y         200
 
+// ICONS
+#define NUM_ICONS                 4
+#define ICON_INDEX_HOLD           0
+#define ICON_INDEX_ACTIVE         1
+#define ICON_INDEX_EMERGENCY      2
+#define ICON_INDEX_MOVE           3
+
+#define ICON_PNG_HOLD           "icon/hold100x100.png"     
+#define ICON_PNG_ACTIVE         "icon/active100x100.png"   
+#define ICON_PNG_EMERGENCY      "icon/emergency100x100.png"
+#define ICON_PNG_MOVE           "icon/move100x100.png"     
+
+
 
 //--------------------------------------------------------------------
 // Needle info structure (for list)
@@ -348,10 +361,7 @@ private:
   static const char* actuatorStatusText[];
   static const char* infoWarnText[];   
 
-  static const char* quickPanelString[]; 
-  static const char* quickPanelGIF[]; 
-  static const int   nQuickPanelItems = 3;
-
+  static const char* iconPNGFile[];
 
 //---------------------------- Modules -----------------------------//
 private:
@@ -552,6 +562,9 @@ private:
   // -- System
 
 
+  // ICONS
+  FXIcon*            icons[NUM_ICONS];
+
 
 //------------------- Constructor & Destructor ---------------------//
 protected:
@@ -579,6 +592,7 @@ private:
   int    updateTcpInfoTbl();
   int    initSharedInfo();
   void   initParameters();
+  void   loadIcons();
   void   loadRegistry();
   void   storeRegistry();
   void   setDataTargets();
