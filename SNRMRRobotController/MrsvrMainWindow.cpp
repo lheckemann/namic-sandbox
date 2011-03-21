@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <FXPNGIcon.h>
 
 using namespace std;
 
@@ -122,24 +123,12 @@ FXIMPLEMENT(MrsvrMainWindow, FXMainWindow,
             MrsvrMainWindowMap, ARRAYNUMBER(MrsvrMainWindowMap));
 
 
-const char* MrsvrMainWindow::quickPanelString[] = {
-  "HOLD",
-  //"PAUSE",            //hide Buttons Maier
-  //"MOVE TO TARGET",   //hide Buttons Maier
-  //"ACTIVE \nCONTROL",
-  "ACTIVE",
-  "EMERGENCY"
+const char* MrsvrMainWindow::iconPNGFile[] = {
+  ICON_PNG_HOLD,
+  ICON_PNG_ACTIVE,
+  ICON_PNG_EMERGENCY,
+  ICON_PNG_MOVE
 };
-
-const char* MrsvrMainWindow::quickPanelGIF[] = {
-  "icon/stop100x100.gif",
-  //"icon/pause100x100.gif",  //hide Buttons Maier
-  //"icon/start100x100.gif",  //hide Buttons Maier
-  //"icon/manual100x100.gif",
-  "icon/auto100x100.gif",   
-  "icon/emergency100x100.gif"
-};
-
 
 const char* MrsvrMainWindow::autoCalibProcNameText[] = {
   "Home Position",
@@ -219,6 +208,9 @@ MrsvrMainWindow::MrsvrMainWindow(FXApp* app, int w, int h)
   infoCanvas = NULL;
   axialCanvas = NULL;
   needleCanvas = NULL;
+
+  // load icons
+  loadIcons();
 
   // prepare to share control and status information
   cerr << "loading registory..." << endl;
@@ -1172,13 +1164,8 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
 
   new FXLabel(frTarget," ",NULL,LAYOUT_CENTER_Y|LAYOUT_CENTER_X|JUSTIFY_RIGHT|LAYOUT_FILL_ROW);
 
-  char buf[4096];
-  FILE* fp = fopen("icon/start100x100.gif", "rb");
-  fread(buf, 1, 4096, fp);
-  fclose(fp);
-
-  new FXButton(frTarget, "Move to Target",
-               new FXGIFIcon(this->getApp(), (void*)buf),this,MrsvrMainWindow::ID_SET_TARGET_BTN,
+  new FXButton(frTarget, "",
+               icons[ICON_INDEX_MOVE],this,MrsvrMainWindow::ID_SET_TARGET_BTN,
                FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
 
@@ -1613,35 +1600,14 @@ int MrsvrMainWindow::buildQuickPanel(FXComposite* comp)
                           LAYOUT_FILL_X|FRAME_RAISED|
                           LAYOUT_TOP|LAYOUT_LEFT);
   
-  //int id = ID_CMD_HOLD;
-  //for (int i = 0; i < nQuickPanelItems; i ++) {
-  //  char buf[4096];
-  //  FILE* fp = fopen(quickPanelGIF[i], "rb");
-  //  fread(buf, 1, 4096, fp);
-  //  fclose(fp);
-  //  new FXButton(frQuickButton, quickPanelString[i],
-  //               new FXGIFIcon(this->getApp(), (void*)buf),this,id,
-  //               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-  //               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-  //  id ++;
-  //}
-  char buf[4096];
-
-  // HOLD
-  FILE* fp = fopen(quickPanelGIF[0], "rb");
-  fread(buf, 1, 4096, fp);
-  fclose(fp);
-  new FXButton(frQuickButton, quickPanelString[0],
-               new FXGIFIcon(this->getApp(), (void*)buf),this,ID_CMD_HOLD,
+  new FXButton(frQuickButton, "",
+               icons[ICON_INDEX_HOLD],this,ID_CMD_HOLD,
                FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
 
   // Active
-  fp = fopen(quickPanelGIF[1], "rb");
-  fread(buf, 1, 4096, fp);
-  fclose(fp);
-  new FXButton(frQuickButton, quickPanelString[1],
-               new FXGIFIcon(this->getApp(), (void*)buf),this,ID_CMD_ACTIVE,
+  new FXButton(frQuickButton, "",
+               icons[ICON_INDEX_ACTIVE],this,ID_CMD_ACTIVE,
                FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
 
@@ -1649,11 +1615,8 @@ int MrsvrMainWindow::buildQuickPanel(FXComposite* comp)
   new FXLabel(frQuickButton, " ");
 
   // Emergency
-  fp = fopen(quickPanelGIF[2], "rb");
-  fread(buf, 1, 4096, fp);
-  fclose(fp);
-  new FXButton(frQuickButton, quickPanelString[2],
-               new FXGIFIcon(this->getApp(), (void*)buf),this,ID_CMD_EMERGENCY,
+  new FXButton(frQuickButton, "",
+               icons[ICON_INDEX_EMERGENCY],this,ID_CMD_EMERGENCY,
                FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
                LAYOUT_CENTER_Y|LAYOUT_FILL_X);
   
@@ -1763,6 +1726,26 @@ void MrsvrMainWindow::initParameters()
 }
 
 
+void MrsvrMainWindow::loadIcons()
+{
+  char buf[102400];  // Max 100KB
+
+  // HOLD
+  for (int i = 0; i < NUM_ICONS; i ++) {
+    FILE* fp = fopen(iconPNGFile[i], "rb");
+ 
+    // obtain file size:
+    fseek (fp , 0 , SEEK_END);
+    long s = ftell (fp);
+    rewind (fp);
+ 
+    fread(buf, 1, s, fp);
+    fclose(fp);
+    icons[i] = new FXPNGIcon(this->getApp(), (void*)buf);
+  }
+}
+
+
 void MrsvrMainWindow::loadRegistry()
 {
   // load initial values from FOX registry
@@ -1863,7 +1846,6 @@ void MrsvrMainWindow::loadRegistry()
   p->next = NULL;
 
 }
-
 
 void MrsvrMainWindow::storeRegistry()
 {
