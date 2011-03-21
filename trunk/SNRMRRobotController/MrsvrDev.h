@@ -195,10 +195,14 @@
 #define AMAX_Y           (MAXRPS_Y * PITCH_Y / 0.2)
 #define AMAX_Z           (MAXRPS_Z * PITCH_Z / 0.2)
 
-// STAGE PITCH
-#define PITCH_X          20.0    // [mm]
-#define PITCH_Y          20.0    // [mm]
-#define PITCH_Z          20.0    // [mm]
+//// STAGE PITCH
+//#define PITCH_X          20.0    // [mm]
+//#define PITCH_Y          20.0    // [mm]
+//#define PITCH_Z          20.0    // [mm]
+
+#define PITCH_X          1.221    // [mm]
+#define PITCH_Y          1.221    // [mm]
+#define PITCH_Z          1.221    // [mm]
 
 // Pulses/revolution of encoder
 #define PULSES_REV_X     1000.0
