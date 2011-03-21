@@ -28,16 +28,17 @@
 //  5. EMERGENCY:    Halt system
 //  6. RESET:        Restart system
 //
-//                                +--------------------+
-//                                |                    |
-//                                |                    v
-//  START_UP -> CALIBRATION <-> HOLD <-> ACTIVE -> EMERGENCY 
-//      ^                         |         |          |(Safety pause)
-//      |                         +-------+ |          |
-//      |                                 | |          |
-//      |                                 v v          |
-//      +------------------------------- RESET <-------+
-//             (Automatically transition to START_UP)
+//                    +-------> ACTIVE ------+
+//                    |           ^          |
+//                    |           |          |
+//                    |           v          v      
+//  START_UP -> CALIBRATION <-> HOLD --> EMERGENCY 
+//      ^                         |          |(Safety pause)
+//      |                         +-------+  |
+//      |                                 |  |
+//      |                                 v  v
+//      +-------------------------------- RESET
+//       (Automatically transition to START_UP)
 //
 
 
@@ -923,7 +924,8 @@ inline int checkModeTransition(int currentMode, int newMode)
   case MrsvrStatus::START_UP:
     break;
   case MrsvrStatus::CALIBRATION:
-    if (newMode == MrsvrStatus::HOLD) {
+    if (newMode == MrsvrStatus::HOLD ||
+        newMode == MrsvrStatus::ACTIVE) {
       fAccept = 1;
     }
     break;
