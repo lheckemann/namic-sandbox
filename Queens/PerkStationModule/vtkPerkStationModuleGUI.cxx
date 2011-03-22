@@ -652,6 +652,7 @@ vtkPerkStationModuleGUI
     this->SecondaryMonitor->SetPerkStationModuleNodeID( nodeID );
     
     this->UpdateGUI();
+    this->SecondaryMonitor->UpdateImageDisplay();
     return;
     }
   
