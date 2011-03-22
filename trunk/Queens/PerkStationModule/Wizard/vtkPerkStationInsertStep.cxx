@@ -38,7 +38,9 @@ vtkPerkStationInsertStep
   
   this->WizardGUICallbackCommand->SetCallback(vtkPerkStationInsertStep::WizardGUICallback);
   
+  this->ParamsFrame = NULL;
   this->AngleInPlaneLabel = NULL;
+  this->TablePositionLabel = NULL;
   
   this->PlanList = NULL;
   this->PlanListFrame = NULL;
@@ -55,7 +57,9 @@ vtkPerkStationInsertStep
 vtkPerkStationInsertStep
 ::~vtkPerkStationInsertStep()
 {
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->ParamsFrame );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->AngleInPlaneLabel );
+  DELETE_IF_NULL_WITH_SETPARENT_NULL( this->TablePositionLabel );
   
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanList );
   DELETE_IF_NULL_WITH_SETPARENT_NULL( this->PlanListFrame );
@@ -81,8 +85,14 @@ void vtkPerkStationInsertStep::ShowUserInterface()
   vtkKWWidget *parent = wizard_widget->GetClientArea();
   
   
-    // Angle in plane.
+    // Insertion parameters.
   
+  if ( ! this->ParamsFrame )
+    {
+    this->ParamsFrame = vtkKWFrame::New();
+    this->ParamsFrame->SetParent( parent );
+    this->ParamsFrame->Create();
+    }
   
   if ( ! this->AngleInPlaneLabel )
     {
@@ -90,12 +100,27 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     }
   if ( ! this->AngleInPlaneLabel->IsCreated() )
     {
-    this->AngleInPlaneLabel->SetParent( parent );
+    this->AngleInPlaneLabel->SetParent( this->ParamsFrame );
     this->AngleInPlaneLabel->Create();
-    this->AngleInPlaneLabel->SetText( "In plane angle: " );
+    this->AngleInPlaneLabel->SetText( "In plane insertion angle: " );
     }
-  this->Script( "pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 2",
-                this->AngleInPlaneLabel->GetWidgetName() );
+  // this->Script( "pack %s -side top -anchor w -expand n -fill x -padx 2 -pady 1", this->AngleInPlaneLabel->GetWidgetName() );
+  
+  if ( ! this->TablePositionLabel )
+    {
+    this->TablePositionLabel = vtkKWLabel::New();
+    }
+  if ( ! this->TablePositionLabel->IsCreated() )
+    {
+    this->TablePositionLabel->SetParent( this->ParamsFrame );
+    this->TablePositionLabel->Create();
+    this->TablePositionLabel->SetText( "Table position (mm): " );
+    }
+  // this->Script( "pack %s -side top -anchor w -expand n -fill x -padx 2 -pady 1", this->TablePositionLabel->GetWidgetName() );
+  
+  this->Script( "pack %s -side top -anchor w -expand n -padx 2 -pady 1", this->ParamsFrame->GetWidgetName() );
+  this->Script( "grid %s -column 0 -row 0 -sticky w -padx 0 -pady 0", this->AngleInPlaneLabel->GetWidgetName() );
+  this->Script( "grid %s -column 0 -row 1 -sticky w -padx 0 -pady 0", this->TablePositionLabel->GetWidgetName() );
   
   
     // Plan list.
@@ -323,13 +348,20 @@ vtkPerkStationInsertStep
   if ( ! mrmlNode ) return;
   
   
-    // In plane angle.
+    // Insertion parameters.
   
-  double angle = mrmlNode->GetActualPlanInsertionAngle();
-  std::stringstream ss;
-  ss << "In plane insertion angle: " << angle;
-  this->AngleInPlaneLabel->SetText( ss.str().c_str() );
-  
+  if ( mrmlNode->GetCurrentPlanIndex() >= 0 )
+    {
+    double angle = mrmlNode->GetActualPlanInsertionAngle();
+    std::stringstream ss;
+    ss << "In plane insertion angle: " << std::fixed << setprecision( 2 ) << angle;
+    this->AngleInPlaneLabel->SetText( ss.str().c_str() );
+    
+    double tpos = mrmlNode->GetCurrentTablePosition();
+    std::stringstream sstp;
+    sstp << "Table position (mm): " << std::fixed << setprecision( 2 ) << tpos;
+    this->TablePositionLabel->SetText( sstp.str().c_str() );
+    }
   
   
     // Update plan list.

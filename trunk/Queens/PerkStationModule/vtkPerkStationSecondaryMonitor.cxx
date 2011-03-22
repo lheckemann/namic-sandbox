@@ -580,13 +580,12 @@ void
 vtkPerkStationSecondaryMonitor
 ::UpdateImageDisplay()
 {
+  bool displayEmpty = false;
+  this->UpdateVisibilities( displayEmpty );  // Updates the visibility of most actors.
+  
   if ( ! this->PerkStationModuleGUI->GetPerkStationModuleNode() ) return;
   if ( ! this->Initialized ) return;
   if ( ! this->ImageLoaded ) return;
-  
-  
-  bool displayEmpty = false;
-  this->UpdateVisibilities( displayEmpty );  // Updates the visibility of most actors.
   
   
   if ( displayEmpty )  // Nothing else to be displayed.
@@ -1233,10 +1232,10 @@ vtkPerkStationSecondaryMonitor
   
     // Set up the needle depth measure line.
   
-  double depthMeasureOverlay[ 4 ] = { 100, this->MonitorSizePixel[ 1 ] * 0.67, 0.0, 1.0 };
+  double depthMeasureOverlay[ 4 ] = { 130, this->MonitorSizePixel[ 1 ] * 0.75, 0.0, 1.0 };
   if ( edgePointOverlay[ 0 ] == 0.0 )
     {
-    depthMeasureOverlay[ 0 ] = this->MonitorSizePixel[ 0 ] - 100;
+    depthMeasureOverlay[ 0 ] = this->MonitorSizePixel[ 0 ] - 130;
     }
   double depthMeasureRenderer[ 4 ] = { 0, 0, 0, 1 };
   this->PointOverlayToRenderer( depthMeasureOverlay, depthMeasureRenderer );
@@ -1382,7 +1381,22 @@ vtkPerkStationSecondaryMonitor
 {
     // Controlling visibility of visual aids that only depend on workphase.
   
-    // Initial state for insertion.
+  if ( this->GetPerkStationModuleNode() == NULL )  // Initial state.
+    {
+    this->ShowDepthPerceptionLines( false );
+    displayEmpty = true;
+    this->CalibrationControlsActor->SetVisibility( 0 );
+    this->CalibrationNameActor->SetVisibility( 0 );
+    this->DepthMeasureLineActor->SetVisibility( 0 );
+    this->DepthMeasureTextActor->SetVisibility( 0 );
+    this->LeftSideActor->SetVisibility( 0 );
+    this->NeedleGuideActor->SetVisibility( 0 );
+    this->PlanNameActor->SetVisibility( 0 );
+    this->RightSideActor->SetVisibility( 0 );
+    this->TablePositionActor->SetVisibility( 0 );
+    this->WorkflowActor->SetInput( "" );
+    this->WorkflowActor->SetVisibility( 0 );
+    }
   
   if ( this->GetPerkStationModuleNode()->GetCurrentStep() == 0 ) // Calibration.
     {

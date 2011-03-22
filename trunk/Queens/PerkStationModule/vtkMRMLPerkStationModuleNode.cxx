@@ -446,7 +446,7 @@ vtkMRMLPerkStationModuleNode
     this->StepList->InsertNextValue( "Insertion" );
     this->StepList->InsertNextValue( "Validation" );
   
-  this->CurrentStep  = 0;
+  this->CurrentStep  = WORKPHASE_CALIBRATION;
   this->PreviousStep = WORKPHASE_CALIBRATION;
 }
 

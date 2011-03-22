@@ -61,7 +61,9 @@ protected:
   
     // GUI elements
   
+  vtkKWFrame* ParamsFrame;
   vtkKWLabel* AngleInPlaneLabel;
+  vtkKWLabel* TablePositionLabel;
   
   
     // Plan list.
