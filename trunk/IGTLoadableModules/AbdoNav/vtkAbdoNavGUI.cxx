@@ -539,24 +539,26 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   //  - the guidance needle tip
   //  - a second point on the guidance needle
   //  - the marker center
-  // being active at the same time, a fiducial is created unless
-  // there already exists a fiducial corresponding to the active
-  // radio button in AbdoNav's fiducial list.
+  // being active at the same time, the corresponding fiducial in
+  // AbdoNav's fiducial list is being updated. If there exists no
+  // corresponding fiducial in AbdoNav's fiducial list yet, a new
+  // fiducial is added.
   //
   // The steps are:
   // 0. determine whether or not AbdoNav is the selected module;
-  //    don't create a fiducial if AbdoNav isn't the selected
-  //    module
+  //    neither update nor create a fiducial if it isn't, thus
+  //    exit this function
   // 1. if AbdoNav is the selected module, determine which radio
   //    button is active (if there is an active one at all)
-  // 2. if there is an active radio button, create/retrieve
-  //    AbdoNav's fiducial list
-  // 3. determine whether or not AbdoNav's fiducial list already
-  //    contains a fiducial corresponding to the active radio
-  //    button
-  // 4. if AbdoNav's fiducial list doesn't contain a corresponding
-  //    fiducial yet, transform XY mouse coordinates into RAS
-  //    coordinates and add them to the fiducial list
+  // 2. if there is an active radio button:
+  //      2.0. create/retrieve AbdoNav's fiducial list
+  //      2.1. transform XY mouse coordinates into RAS coordinates
+  //      2.2. determine whether or not AbdoNav's fiducial list
+  //           already contains a fiducial corresponding to the
+  //           active radio button
+  //      2.3. if AbdoNav's fiducial list already contains a corres-
+  //           ponding fiducial, then update it; otherwise, add a new
+  //           fiducial
   //----------------------------------------------------------------
   vtkSlicerInteractorStyle* style = vtkSlicerInteractorStyle::SafeDownCast(caller);
   if (style != NULL && event == vtkCommand::LeftButtonPressEvent)
@@ -631,22 +633,10 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
           }
         }
 
-      // exit this function if the fiducial corresponding to the active radio button already exists
-      for (int i = 0; i < fiducialList->GetNumberOfFiducials(); i++)
-        {
-        if (!strcmp(activeRadioButton.c_str(), fiducialList->GetNthFiducialLabelText(i)))
-          {
-          // corresponding fiducial already exists, thus exit
-          return;
-          }
-        }
-
-      // there's an active radio button but AbdoNav's fiducial list doesn't
-      // contain the corresponding fiducial yet; thus, transform XY mouse
-      // coordinates into RAS coordinates and add them to the fiducial list
+      // transform XY mouse coordinates into RAS coordinates
       //
-      // first, find out in which slice view the user clicked (necessary
-      // information for the XY to RAS conversion)
+      // first, find out in which slice view the user clicked
+      // (necessary information for the XY to RAS conversion)
       vtkSlicerSliceGUI* sliceGUI = this->GetApplicationGUI()->GetMainSliceGUI("Red");
       vtkRenderWindowInteractor* rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
 
@@ -673,12 +663,30 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       vtkMatrix4x4* matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
       matrix->MultiplyPoint(xyVec, rasVec);
 
-      // third, add RAS coordinates to the fiducial list
-      fiducialList->AddFiducialWithLabelXYZSelectedVisibility(activeRadioButton.c_str(), rasVec[0], rasVec[1], rasVec[2], 1, 1);
-      fiducialList->Modified();
-
-      // fourth (and last), update the GUI
-      this->UpdateGUIFromMRML();
+      // determine whether or not AbdoNav's fiducial list
+      // already contains a fiducial corresponding to the
+      // active radio button
+      //
+      // if so, update it; otherwise, add a new fiducial
+      bool fiducialExists = false;
+      for (int i = 0; i < fiducialList->GetNumberOfFiducials(); i++)
+        {
+        if (!strcmp(activeRadioButton.c_str(), fiducialList->GetNthFiducialLabelText(i)))
+          {
+          // corresponding fiducial already exists, thus update it
+          // (fiducial list implementation will invoke proper event
+          // and thereby trigger vtkAbdoNavGUI::UpdateGUIFromMRML())
+          fiducialList->SetNthFiducialXYZ(i, rasVec[0], rasVec[1], rasVec[2]);
+          fiducialExists = true;
+          }
+        }
+      if (fiducialExists == false)
+        {
+        // corresponding fiducial doesn't exist yet, thus create it
+        // (fiducial list implementation will invoke proper event
+        // and thereby trigger vtkAbdoNavGUI::UpdateGUIFromMRML())
+        fiducialList->AddFiducialWithLabelXYZSelectedVisibility(activeRadioButton.c_str(), rasVec[0], rasVec[1], rasVec[2], 1, 1);
+        }
       }
     }
 
