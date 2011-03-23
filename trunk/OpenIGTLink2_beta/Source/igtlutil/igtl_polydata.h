@@ -61,6 +61,8 @@ typedef struct {
   igtl_uint32      ntriangle_strips;         /* Number of triangle strips */
   igtl_uint32      size_triangle_strips;     /* Size of triangle strips */
 
+  
+  
 } igtl_polydata_header;
 
 #pragma pack(0)
