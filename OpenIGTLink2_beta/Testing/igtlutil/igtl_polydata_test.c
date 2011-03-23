@@ -14,21 +14,18 @@
 
 =========================================================================*/
 
-
 #include "igtl_types.h"
 #include "igtl_header.h"
-#include "igtl_ndarray.h"
+#include "igtl_polydata.h"
 #include "igtl_util.h"
 #include <string.h>
 #include <stdio.h>
-
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
 
 /* Include serialized test data (gold standard) */
-#include "igtl_test_data_ndarray.h"
-
+#include "igtl_test_data_polydata.h"
 
 int main( int argc, char * argv [] )
 {
@@ -36,11 +33,12 @@ int main( int argc, char * argv [] )
   igtl_header header;
   void * body;
   
-  igtl_ndarray_info info;
-  size_t body_size;
-  igtl_uint16 size[3];
+  igtl_polydata_info info;
+  
 
-  int i, j, k;
+
+
+
   igtl_float64 * array;
 
   int rh; /* Comparison result for header */
@@ -48,16 +46,17 @@ int main( int argc, char * argv [] )
 
   int s;
 
+
   /*** Generate test data ***/
-  igtl_ndarray_init_info(&info);
-  info.type = IGTL_NDARRAY_STYPE_TYPE_FLOAT64;
+  igtl_polydata_init_info(&info);
+  info.type = IGTL_POLYDATA_STYPE_TYPE_FLOAT64;
   /* Array size is 5x4x3 */
   info.dim  = 3;
   size[0] = 5;
   size[1] = 4;
   size[2] = 3;
 
-  if (igtl_ndarray_alloc_info(&info, size) == 0)
+  if (igtl_polydata_alloc_info(&info, size) == 0)
     {
     return EXIT_FAILURE;
     }
@@ -76,39 +75,38 @@ int main( int argc, char * argv [] )
     }
 
   /** Allocate memory for pack **/
-  body_size = igtl_ndarray_get_size(&info, IGTL_TYPE_PREFIX_NONE);
+  body_size = igtl_polydata_get_size(&info, IGTL_TYPE_PREFIX_NONE);
   body = malloc(body_size);
 
   if (body == NULL)
     {
-    igtl_ndarray_free_info(&info);
+    igtl_polydata_free_info(&info);
     return EXIT_FAILURE;
     }
 
-  igtl_ndarray_pack(&info, body, IGTL_TYPE_PREFIX_NONE);
+  igtl_polydata_pack(&info, body, IGTL_TYPE_PREFIX_NONE);
 
   /*** Set OpenIGTLink header ***/
   header.version = 1;
-  strncpy( (char*)&(header.name), "NDARRAY", 12 );
+  strncpy( (char*)&(header.name), "POLYDATA", 12 );
   strncpy( (char*)&(header.device_name), "DeviceName", 20 );
   header.timestamp = 1234567890;
   header.body_size = body_size;
-  header.crc = igtl_ndarray_get_crc(&info, IGTL_TYPE_PREFIX_NONE, body);
+  header.crc = igtl_polydata_get_crc(&info, IGTL_TYPE_PREFIX_NONE, body);
   igtl_header_convert_byte_order( &(header) );
 
   /* Dumping data -- for testing */
-  /*
+
   FILE *fp;
-  fp = fopen("ndarray.bin", "w");
+  fp = fopen("polydata.bin", "w");
   fwrite(&(header), IGTL_HEADER_SIZE, 1, fp);
   fwrite(body, body_size, 1, fp);
   fclose(fp);
-  */
 
-  rh = memcmp((const void*)&header, (const void*)test_ndarray_message_header, IGTL_HEADER_SIZE);
-  rb = memcmp((const void*)body, (const void*)test_ndarray_message_body, body_size);
+  rh = memcmp((const void*)&header, (const void*)test_polydata_message_header, IGTL_HEADER_SIZE);
+  rb = memcmp((const void*)body, (const void*)test_polydata_message_body, body_size);
 
-  igtl_ndarray_free_info(&info);
+  igtl_polydata_free_info(&info);
   free(body);
 
   if (rh == 0 && rb == 0)
