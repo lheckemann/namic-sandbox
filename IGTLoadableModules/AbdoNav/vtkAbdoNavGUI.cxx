@@ -602,11 +602,11 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
         }
       else
         {
-        if (this->AbdoNavNode->GetFiducialListID() == NULL)
+        if (this->AbdoNavNode->GetRegistrationFiducialListID() == NULL)
           {
-          // AbdoNav fiducial list doesn't exist yet, thus create it
+          // AbdoNav registration fiducial list doesn't exist yet, thus create it
           fiducialList = vtkMRMLFiducialListNode::New();
-          fiducialList->SetName("AbdoNav-FiducialList");
+          fiducialList->SetName("AbdoNav-RegistrationFiducialList");
           fiducialList->SetDescription("Created by AbdoNav");
           // change default look ("StarBurst2D", 5) since it doesn't really
           // suit the purpose of needle identification; the user can always
@@ -615,7 +615,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
           fiducialList->SetSymbolScale(2); // called "Glyph scale" in the Fiducials module
           this->GetMRMLScene()->AddNode(fiducialList);
           fiducialList->Delete();
-          this->AbdoNavNode->SetFiducialListID(fiducialList->GetID());
+          this->AbdoNavNode->SetRegistrationFiducialListID(fiducialList->GetID());
           // observe fiducial list in order to update the GUI whenever a fiducial is moved via drag & drop or renamed or renumbered externally via the Fiducials module
           fiducialList->AddObserver(vtkMRMLFiducialListNode::FiducialModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand);
           // observe fiducial list in order to update the GUI whenever a fiducial is added externally via the Fiducials module
@@ -629,7 +629,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
         else
           {
           // AbdoNav fiducial list already exists, thus retrieve it
-          fiducialList = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetFiducialListID()));
+          fiducialList = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
           }
         }
 
@@ -792,7 +792,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     this->Point3RadioButton->SelectedStateOff();
     this->PerformRegistrationPushButton->SetEnabled(true);
     // unlock fiducial list
-    vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetFiducialListID()));
+    vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
     if (fnode)
       {
       fnode->SetLocked(0);
@@ -819,7 +819,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
         this->Point3RadioButton->SetEnabled(false);
         this->PerformRegistrationPushButton->SetEnabled(false);
         // lock fiducial list
-        vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetFiducialListID()));
+        vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
         if (fnode)
           {
           fnode->SetLocked(1);
@@ -953,7 +953,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
         // set and observe the new node in GUI
         vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, anode);
         // if an AbdoNav fiducial list is part of the loaded scene, observe it in order to update the GUI
-        vtkMRMLFiducialListNode* fiducialList = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetFiducialListID()));
+        vtkMRMLFiducialListNode* fiducialList = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
         if (fiducialList != NULL)
           {
           // observe fiducial list in order to update the GUI whenever a fiducial is moved via drag & drop or renamed or renumbered externally via the Fiducials module
@@ -974,7 +974,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
     vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(caller);
     if (fnode != NULL && this->AbdoNavNode != NULL)
       {
-      if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetFiducialListID()))
+      if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetRegistrationFiducialListID()))
         {
         std::cout << "fiducial added" << std::endl;
         this->UpdateGUIFromMRML();
@@ -987,7 +987,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
     vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(caller);
     if (fnode != NULL && this->AbdoNavNode != NULL)
       {
-      if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetFiducialListID()))
+      if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetRegistrationFiducialListID()))
         {
         std::cout << "fiducial removed" << std::endl;
         this->UpdateGUIFromMRML();
@@ -1010,7 +1010,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
     vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(caller);
     if (fnode != NULL && this->AbdoNavNode != NULL)
       {
-      if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetFiducialListID()))
+      if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetRegistrationFiducialListID()))
         {
         std::cout << "all fiducials removed" << std::endl;
         this->UpdateGUIFromMRML();
@@ -1023,7 +1023,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
     vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(caller);
     if (fnode != NULL && this->AbdoNavNode != NULL)
       {
-      if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetFiducialListID()))
+      if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetRegistrationFiducialListID()))
         {
         std::cout << "fiducial moved or renamed" << std::endl;
         this->UpdateGUIFromMRML();
@@ -1082,7 +1082,7 @@ void vtkAbdoNavGUI::UpdateGUIFromMRML()
     this->TrackerTransformSelector->SetSelected(tnode);
     this->TrackingSystemComboBox->GetWidget()->SetValue(node->GetTrackingSystemUsed());
 
-    vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(node->GetFiducialListID()));
+    vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(node->GetRegistrationFiducialListID()));
     if (fnode != NULL)
       {
       // need to set all values to NaN in case AbdoNav's fiducial list was modified,
