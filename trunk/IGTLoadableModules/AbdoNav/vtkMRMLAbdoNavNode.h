@@ -62,10 +62,10 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   vtkGetStringMacro(RegistrationTransformID);
   /// Set the identifier of the static registration transform.
   vtkSetStringMacro(RegistrationTransformID);
-  /// Get the identifier of the fiducial list.
-  vtkGetStringMacro(FiducialListID);
-  /// Set the identifier of the fiducial list.
-  vtkSetStringMacro(FiducialListID);
+  /// Get the identifier of the registration fiducial list.
+  vtkGetStringMacro(RegistrationFiducialListID);
+  /// Set the identifier of the registration fiducial list.
+  vtkSetStringMacro(RegistrationFiducialListID);
   /// Get the identifier of the tracking system being used.
   vtkGetStringMacro(TrackingSystemUsed);
   /// Set the identifier of the tracking system being used.
@@ -92,11 +92,12 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   char* RelativeTrackingTransformID;
   /// Identifier of the static registration transform.
   char* RegistrationTransformID;
-  /// Identifier of the fiducial list used to store the RAS coordinates of:
+  /// Identifier of the fiducial list holding the RAS coordinates of:
   ///  - the guidance needle tip
   ///  - a second point on the guidance needle
   ///  - the marker center
-  char* FiducialListID;
+  /// used for registration.
+  char* RegistrationFiducialListID;
   /// Identifier of the tracking system being used.
   char* TrackingSystemUsed;
 

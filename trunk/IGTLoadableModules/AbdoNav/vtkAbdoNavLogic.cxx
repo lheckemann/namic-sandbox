@@ -215,12 +215,12 @@ int vtkAbdoNavLogic::PerformRegistration()
   //
   //----------------------------------------------------------------
 
-  // retrieve registration input parameters from the fiducial list
+  // retrieve input parameters from the registration fiducial list
   float* guidanceNeedleTip = NULL;
   float* guidanceNeedleSecond = NULL;
   float* markerCenter = NULL;
 
-  vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetFiducialListID()));
+  vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
   if (fnode != NULL)
     {
     for (int i = 0; i < fnode->GetNumberOfFiducials(); i++)
