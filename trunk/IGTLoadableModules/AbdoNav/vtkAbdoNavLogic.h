@@ -65,7 +65,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   //----------------------------------------------------------------
   void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
 
-  /// Calculate registration matrix based on two identified points on the guidance needle.
+  /// Calculate registration matrix based on three identified points on the guidance needle.
   int PerformRegistration();
   /// Set the slice driver (User == 0, Locator == 1) for each slice orientation (Red == 0,
   /// Yellow == 1, Green == 2).
@@ -101,8 +101,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkMRMLModelNode* AddLocatorModel(const char* locatorName, double r, double g, double b);
 
   //----------------------------------------------------------------
-  // Getters and Setters for (private) logic values that need  to be
-  // accessed from the GUI class.
+  // Getters and Setters to access (private) logic values from the GUI.
   //----------------------------------------------------------------
   vtkGetMacro(RegistrationPerformed, bool);
   vtkGetObjectMacro(Crosshair, vtkMRMLCrosshairNode);
