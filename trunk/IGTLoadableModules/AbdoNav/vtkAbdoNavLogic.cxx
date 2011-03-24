@@ -75,6 +75,7 @@ vtkAbdoNavLogic::~vtkAbdoNavLogic()
   //----------------------------------------------------------------
   // Cleanup logic values.
   //----------------------------------------------------------------
+  // remove AbdoNavNode observers
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
 
   if (this->RelativeTrackingTransform)

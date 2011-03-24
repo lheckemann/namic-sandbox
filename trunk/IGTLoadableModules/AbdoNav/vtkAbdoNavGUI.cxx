@@ -109,6 +109,7 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     }
   this->SetModuleLogic(NULL);
 
+  // remove AbdoNavNode observers
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
 
   // TODO: all of the following Delete() calls could probably be avoided by using VTK's smart pointers
