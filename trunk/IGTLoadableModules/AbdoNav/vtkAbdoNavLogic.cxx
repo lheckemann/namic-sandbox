@@ -341,7 +341,8 @@ int vtkAbdoNavLogic::PerformRegistration()
 
   // copy registration matrix into registration transform node
   this->RegistrationTransform->GetMatrixTransformToParent()->DeepCopy(registrationMatrix);
-  this->RegistrationTransform->Modified();
+  // indicate that the Scene contains unsaved changes; make Slicer's save dialog list this transform as modified
+  this->RegistrationTransform->SetModifiedSinceRead(1);
   // indicate that registration has been performed
   this->RegistrationPerformed = 1;
 
