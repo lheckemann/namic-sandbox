@@ -365,6 +365,7 @@ void vtkAbdoNavGUI::AddGUIObservers()
   this->ObliqueCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
 
   // must be called manually!
+  this->AddLogicObservers();
   this->AddMRMLObservers();
 }
 
@@ -483,6 +484,7 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
 
   // must be called manually!
   this->RemoveLogicObservers();
+  this->RemoveMRMLObservers();
 }
 
 
@@ -525,6 +527,16 @@ void vtkAbdoNavGUI::AddMRMLObservers()
     this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
     }
   events->Delete();
+}
+
+
+//---------------------------------------------------------------------------
+void vtkAbdoNavGUI::RemoveMRMLObservers()
+{
+  if (this->GetMRMLScene() != NULL)
+    {
+    this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), NULL);
+    }
 }
 
 
