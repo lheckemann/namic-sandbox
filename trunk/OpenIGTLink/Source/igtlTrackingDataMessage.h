@@ -188,6 +188,7 @@ public:
   void ClearTrackingDataElements();
 
   int  GetNumberOfTrackingDataElements();
+  inline int  GetNumberOfTrackingDataElement() { return GetNumberOfTrackingDataElements(); }; // will be removed.
   void GetTrackingDataElement(int index, TrackingDataElement::Pointer& elem);
 
 
