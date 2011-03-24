@@ -533,9 +533,23 @@ void vtkAbdoNavGUI::AddMRMLObservers()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::RemoveMRMLObservers()
 {
+  // remove Scene observers
   if (this->GetMRMLScene() != NULL)
     {
     this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), NULL);
+    }
+
+  // remove registration fiducial list observers
+  if (this->AbdoNavNode != NULL)
+    {
+    vtkMRMLFiducialListNode* regFidList = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
+    if (regFidList != NULL)
+      {
+      regFidList->RemoveObservers(vtkMRMLFiducialListNode::FiducialModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand);
+      regFidList->RemoveObservers(vtkMRMLScene::NodeAddedEvent, (vtkCommand*)this->MRMLCallbackCommand);
+      regFidList->RemoveObservers(vtkMRMLScene::NodeRemovedEvent, (vtkCommand*)this->MRMLCallbackCommand);
+      regFidList->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand);
+      }
     }
 }
 
