@@ -29,16 +29,20 @@
 
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
 #include "igtlPointMessage.h"
+#include "igtlStringMessage.h"
+#include "igtlBindMessage.h"
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 
-int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-int ReceivePosition(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+int ReceiveTransform(igtl::Socket * socket, igtl::MessageHeader * header);
+int ReceivePosition(igtl::Socket * socket, igtl::MessageHeader * header);
+int ReceiveImage(igtl::Socket * socket, igtl::MessageHeader * header);
+int ReceiveStatus(igtl::Socket * socket, igtl::MessageHeader * header);
 
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
-int ReceivePoint(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+int ReceivePoint(igtl::Socket * socket, igtl::MessageHeader * header);
+int ReceiveString(igtl::Socket * socket, igtl::MessageHeader * header);
+int ReceiveBind(igtl::Socket * socket, igtl::MessageHeader * header);
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 int main(int argc, char* argv[])
@@ -124,6 +128,14 @@ int main(int argc, char* argv[])
           {
           ReceivePoint(socket, headerMsg);
           }
+        else if (strcmp(headerMsg->GetDeviceType(), "STRING") == 0)
+          {
+          ReceiveString(socket, headerMsg);
+          }
+        else if (strcmp(headerMsg->GetDeviceType(), "BIND") == 0)
+          {
+          ReceiveBind(socket, headerMsg);
+          }
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
         else
           {
@@ -143,7 +155,7 @@ int main(int argc, char* argv[])
 }
 
 
-int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceiveTransform(igtl::Socket * socket, igtl::MessageHeader * header)
 {
   std::cerr << "Receiving TRANSFORM data type." << std::endl;
   
@@ -174,7 +186,7 @@ int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer
 }
 
 
-int ReceivePosition(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceivePosition(igtl::Socket * socket, igtl::MessageHeader * header)
 {
   std::cerr << "Receiving POSITION data type." << std::endl;
   
@@ -212,7 +224,7 @@ int ReceivePosition(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer&
 }
 
 
-int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceiveImage(igtl::Socket * socket, igtl::MessageHeader * header)
 {
   std::cerr << "Receiving IMAGE data type." << std::endl;
 
@@ -261,7 +273,7 @@ int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& he
 }
 
 
-int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceiveStatus(igtl::Socket * socket, igtl::MessageHeader * header)
 {
 
   std::cerr << "Receiving STATUS data type." << std::endl;
@@ -295,7 +307,7 @@ int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& h
 
 
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
-int ReceivePoint(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceivePoint(igtl::Socket * socket, igtl::MessageHeader * header)
 {
 
   std::cerr << "Receiving POINT data type." << std::endl;
@@ -340,4 +352,87 @@ int ReceivePoint(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& he
 
   return 1;
 }
+
+
+int ReceiveString(igtl::Socket * socket, igtl::MessageHeader * header)
+{
+
+  std::cerr << "Receiving STRING data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::StringMessage::Pointer stringMsg;
+  stringMsg = igtl::StringMessage::New();
+  stringMsg->SetMessageHeader(header);
+  stringMsg->AllocatePack();
+
+  // Receive transform data from the socket
+  socket->Receive(stringMsg->GetPackBodyPointer(), stringMsg->GetPackBodySize());
+
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = stringMsg->Unpack(1);
+
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    std::cerr << "Encoding: " << stringMsg->GetEncoding() << "; "
+              << "String: " << stringMsg->GetString() << std::endl;
+    }
+
+  return 1;
+}
+
+
+int ReceiveBind(igtl::Socket * socket, igtl::MessageHeader * header)
+{
+
+  std::cerr << "Receiving BIND data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::BindMessage::Pointer bindMsg;
+  bindMsg = igtl::BindMessage::New();
+  bindMsg->SetMessageHeader(header);
+  bindMsg->AllocatePack();
+
+  // Receive transform data from the socket
+  socket->Receive(bindMsg->GetPackBodyPointer(), bindMsg->GetPackBodySize());
+
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = bindMsg->Unpack(1);
+
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    int n = bindMsg->GetNumberOfChildMessages();
+
+    for (int i = 0; i < n; i ++)
+      {
+      if (strcmp(bindMsg->GetChildMessageType(i), "STRING") == 0)
+        {
+        igtl::StringMessage::Pointer stringMsg;
+        stringMsg = igtl::StringMessage::New();
+        bindMsg->GetChildMessage(i, stringMsg);
+        stringMsg->Unpack(0);
+        std::cerr << "Message type: STRING" << std::endl;
+        std::cerr << "Message name: " << stringMsg->GetDeviceName() << std::endl;
+        std::cerr << "Encoding: " << stringMsg->GetEncoding() << "; "
+                  << "String: " << stringMsg->GetString() << std::endl;
+        }
+      else if (strcmp(bindMsg->GetChildMessageType(i), "TRANSFORM") == 0)
+        {
+        igtl::TransformMessage::Pointer transMsg;
+        transMsg = igtl::TransformMessage::New();
+        bindMsg->GetChildMessage(i, transMsg);
+        transMsg->Unpack(0);
+        std::cerr << "Message type: TRANSFORM" << std::endl;
+        std::cerr << "Message name: " << transMsg->GetDeviceName() << std::endl;
+        igtl::Matrix4x4 matrix;
+        transMsg->GetMatrix(matrix);
+        igtl::PrintMatrix(matrix);
+        }
+      }
+    }
+
+  return 1;
+}
+
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2

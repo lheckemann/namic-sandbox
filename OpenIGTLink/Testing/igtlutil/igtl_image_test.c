@@ -44,6 +44,7 @@ int main( int argc, char * argv [] )
   int r;
   igtl_uint64 image_size;
   int s;
+
   igtl_float32 spacing[] = {1.0f, 1.0f, 1.0f};
   igtl_float32 origin[]  = {46.0531f, 19.4709f, 46.0531f};
   igtl_float32 norm_i[]  = {-0.954892f, 0.196632f, -0.222525f};
@@ -59,7 +60,7 @@ int main( int argc, char * argv [] )
 
   /* Set data */
   message.iheader.version     = 1;
-  message.iheader.data_type   = 1; /* scalar */
+  message.iheader.num_components = 1; /* Scalar */
   message.iheader.scalar_type = 3; /* uint8 */
   message.iheader.endian      = 2; /* Little endian */
   message.iheader.coord       = 1; /* RAS */

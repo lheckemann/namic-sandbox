@@ -19,7 +19,10 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     ImageMeta
     Point
     TrackingData
+    QuaternionTrackingData
     ImageDatabaseServer
+    String
+    Bind
     )
 endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
 

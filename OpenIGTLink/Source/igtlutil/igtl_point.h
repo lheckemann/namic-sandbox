@@ -86,6 +86,6 @@ igtl_uint64 igtl_export igtl_point_get_crc(igtl_point_element* pointlist, int ne
 }
 #endif
 
-#endif /* __IGTL_POSITION_H */
+#endif /* __IGTL_POINT_H */
 
 

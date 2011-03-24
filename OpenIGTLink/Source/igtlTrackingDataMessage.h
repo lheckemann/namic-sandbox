@@ -25,7 +25,6 @@
 #include "igtlMath.h"
 #include "igtlMessageBase.h"
 #include "igtlTypes.h"
-#include "igtlImageMessage.h"
 
 
 namespace igtl
@@ -186,9 +185,9 @@ public:
 
 public:
   int  AddTrackingDataElement(TrackingDataElement::Pointer& elem);
-  void ClearTrackingDataElement();
+  void ClearTrackingDataElements();
 
-  int  GetNumberOfTrackingDataElement();
+  int  GetNumberOfTrackingDataElements();
   void GetTrackingDataElement(int index, TrackingDataElement::Pointer& elem);
 
 

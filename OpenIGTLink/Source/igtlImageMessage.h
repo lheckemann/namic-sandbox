@@ -123,6 +123,10 @@ public:
   void GetNormals(float o[3][3]);
   void GetNormals(float t[3], float s[3], float n[3]);
 
+  // Number of components
+  void SetNumComponents(int num);
+  int  GetNumComponents();
+
   // Origin/orientation matrix
   void SetMatrix(Matrix4x4& mat);
   void GetMatrix(Matrix4x4& mat);
@@ -146,12 +150,12 @@ public:
   // TBD: Should returned value be 64-bit integer?
   int  GetImageSize()
   {
-    return dimensions[0]*dimensions[1]*dimensions[2]*GetScalarSize();
+    return dimensions[0]*dimensions[1]*dimensions[2]*GetScalarSize()*numComponents;
   };
 
   int  GetSubVolumeImageSize()
   {
-    return subDimensions[0]*subDimensions[1]*subDimensions[2]*GetScalarSize();
+    return subDimensions[0]*subDimensions[1]*subDimensions[2]*GetScalarSize()*numComponents;
   };
 
   void  AllocateScalars();
@@ -176,6 +180,7 @@ protected:
 
   int    endian;
   int    dataType;
+  int    numComponents;
   int    scalarType;
   int    coordinate;
 
