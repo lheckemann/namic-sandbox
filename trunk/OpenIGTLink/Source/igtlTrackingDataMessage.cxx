@@ -158,6 +158,7 @@ void TrackingDataElement::GetMatrix(Matrix4x4& mat)
 
 //----------------------------------------------------------------------
 // igtl::StartTrackingDataMessage class
+
 StartTrackingDataMessage::StartTrackingDataMessage():
   MessageBase()
 {
@@ -227,6 +228,9 @@ int StartTrackingDataMessage::UnpackBody()
 }
 
 
+//----------------------------------------------------------------------
+// igtl::RTSTrackingDataMessage class
+
 int  RTSTrackingDataMessage::GetBodyPackSize()
 { 
   return IGTL_RTS_TDATA_SIZE; 
@@ -282,13 +286,13 @@ int TrackingDataMessage::AddTrackingDataElement(TrackingDataElement::Pointer& el
 }
 
 
-void TrackingDataMessage::ClearTrackingDataElement()
+void TrackingDataMessage::ClearTrackingDataElements()
 {
   this->m_TrackingDataList.clear();
 }
 
 
-int TrackingDataMessage::GetNumberOfTrackingDataElement()
+int TrackingDataMessage::GetNumberOfTrackingDataElements()
 {
   return this->m_TrackingDataList.size();
 }

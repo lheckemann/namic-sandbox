@@ -96,19 +96,30 @@ SET(OpenIGTLink_INCLUDE_FILES
 if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
   SET(OpenIGTLink_SOURCES
     ${OpenIGTLink_SOURCES}
-    igtlutil/igtl_imgmeta.c
-    igtlutil/igtl_point.c
     igtlutil/igtl_colortable.c
+    igtlutil/igtl_imgmeta.c
     igtlutil/igtl_lbmeta.c
-    igtlutil/igtl_trajectory.c
+    igtlutil/igtl_point.c
     igtlutil/igtl_tdata.c
+    igtlutil/igtl_qtdata.c
+    igtlutil/igtl_trajectory.c
+    igtlutil/igtl_unit.c
+    igtlutil/igtl_sensor.c
+    igtlutil/igtl_string.c
+    igtlutil/igtl_ndarray.c
+    igtlutil/igtl_bind.c
     igtlColorTableMessage.cxx
-    igtlLabelMetaMessage.cxx
     igtlImageMetaMessage.cxx
     igtlLabelMetaMessage.cxx
     igtlPointMessage.cxx
     igtlTrackingDataMessage.cxx
+    igtlQuaternionTrackingDataMessage.cxx
     igtlTrajectoryMessage.cxx
+    igtlStringMessage.cxx
+    igtlUnit.cxx
+    igtlSensorMessage.cxx
+    igtlBindMessage.cxx
+    igtlNDArrayMessage.cxx
     )
   SET(OpenIGTLink_INCLUDE_FILES
     ${OpenIGTLink_INCLUDE_FILES}
@@ -117,14 +128,25 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtlutil/igtl_lbmeta.h
     igtlutil/igtl_point.h
     igtlutil/igtl_tdata.h
+    igtlutil/igtl_qtdata.h
     igtlutil/igtl_trajectory.h
+    igtlutil/igtl_unit.h
+    igtlutil/igtl_sensor.h
+    igtlutil/igtl_string.h
+    igtlutil/igtl_ndarray.h
+    igtlutil/igtl_bind.h
     igtlColorTableMessage.h
-    igtlLabelMetaMessage.h
     igtlImageMetaMessage.h
     igtlLabelMetaMessage.h
     igtlPointMessage.h
     igtlTrackingDataMessage.h
+    igtlQuaternionTrackingDataMessage.h
     igtlTrajectoryMessage.h
+    igtlStringMessage.h
+    igtlUnit.h
+    igtlSensorMessage.h
+    igtlBindMessage.h
+    igtlNDArrayMessage.h
     )
 endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
 

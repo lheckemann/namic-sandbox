@@ -46,11 +46,11 @@ ImageMessage::ImageMessage():
   matrix[3][3] = 1.0;
 
   endian        = ENDIAN_BIG;
-  dataType      = DTYPE_SCALAR;
   coordinate    = COORDINATE_RAS;
   scalarType    = TYPE_UINT8;
   m_ImageHeader = NULL;
   m_Image       = NULL;
+  numComponents = 1;
 
   m_DefaultBodyType  = "IMAGE";
 
@@ -358,20 +358,20 @@ int ImageMessage::PackBody()
 {
   igtl_image_header* image_header = (igtl_image_header*)m_ImageHeader;
 
-  image_header->version     = IGTL_IMAGE_HEADER_VERSION;
-  image_header->data_type   = this->dataType;
-  image_header->scalar_type = this->scalarType;
-  image_header->endian      = this->endian;
-  image_header->coord       = this->coordinate;
-  image_header->size[0]     = this->dimensions[0];
-  image_header->size[1]     = this->dimensions[1];
-  image_header->size[2]     = this->dimensions[2];
-  image_header->subvol_offset[0] = this->subOffset[0];
-  image_header->subvol_offset[1] = this->subOffset[1];
-  image_header->subvol_offset[2] = this->subOffset[2];
-  image_header->subvol_size[0] = this->subDimensions[0];
-  image_header->subvol_size[1] = this->subDimensions[1];
-  image_header->subvol_size[2] = this->subDimensions[2];
+  image_header->version           = IGTL_IMAGE_HEADER_VERSION;
+  image_header->num_components    = this->numComponents;
+  image_header->scalar_type       = this->scalarType;
+  image_header->endian            = this->endian;
+  image_header->coord             = this->coordinate;
+  image_header->size[0]           = this->dimensions[0];
+  image_header->size[1]           = this->dimensions[1];
+  image_header->size[2]           = this->dimensions[2];
+  image_header->subvol_offset[0]  = this->subOffset[0];
+  image_header->subvol_offset[1]  = this->subOffset[1];
+  image_header->subvol_offset[2]  = this->subOffset[2];
+  image_header->subvol_size[0]    = this->subDimensions[0];
+  image_header->subvol_size[1]    = this->subDimensions[1];
+  image_header->subvol_size[2]    = this->subDimensions[2];
 
   float origin[3];
   float norm_i[3];
@@ -407,9 +407,9 @@ int ImageMessage::UnpackBody()
   if (image_header->version == IGTL_IMAGE_HEADER_VERSION)
     {
       // Image format version 1
-      this->dataType         = image_header->data_type;
       this->scalarType       = image_header->scalar_type;
-      this->endian           = image_header->endian==1?ENDIAN_BIG:ENDIAN_LITTLE;
+      this->numComponents    = image_header->num_components;
+      this->endian           = image_header->endian;
       this->coordinate       = image_header->coord;
       this->dimensions[0]    = image_header->size[0];
       this->dimensions[1]    = image_header->size[1];
@@ -455,6 +455,20 @@ int ImageMessage::UnpackBody()
       // Incompatible version. 
       return 0;
     }
+}
+
+
+void ImageMessage::SetNumComponents(int num)
+{
+  if (num > 0 && num < 255)
+    {
+    numComponents = num;
+    }
+}
+
+int ImageMessage::GetNumComponents()
+{
+  return numComponents;
 }
 
 

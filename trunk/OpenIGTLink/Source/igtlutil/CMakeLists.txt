@@ -37,7 +37,14 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtl_lbmeta.h
     igtl_point.h
     igtl_tdata.h
+    igtl_qtdata.h
     igtl_trajectory.h
+    igtl_unit.h
+    igtl_sensor.h
+    igtl_string.h
+    igtl_ndarray.h
+    igtl_bind.h
+#    igtl_polydata.h
     )
   SET(igtlutil_SOURCES
     ${igtlutil_SOURCES}
@@ -46,7 +53,14 @@ if (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
     igtl_lbmeta.c
     igtl_point.c
     igtl_tdata.c
+    igtl_qtdata.c
     igtl_trajectory.c
+    igtl_unit.c
+    igtl_sensor.c
+    igtl_string.c
+    igtl_ndarray.c
+    igtl_bind.c
+#    igtl_polydata.c
     )
 endif (${OpenIGTLink_PROTOCOL_VERSION} STREQUAL "2")
 

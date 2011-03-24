@@ -20,8 +20,21 @@
 #define IGTL_HEADER_VERSION   1
 #define IGTL_HEADER_SIZE      58
 
-#define IGTL_HEADER_NAMESIZE  12
-#define IGTL_HEADER_DEVSIZE   20
+#define IGTL_HEADER_TYPE_SIZE  12
+#define IGTL_HEADER_NAME_SIZE   20
+
+/* Following macros will be obsolete. Included for old programs*/
+#define IGTL_HEADER_TYPESIZE  IGTL_HEADER_TYPE_SIZE
+#define IGTL_HEADER_NAMESIZE  IGTL_HEADER_NAME_SIZE
+
+// Device name prefix macro
+#define IGTL_TYPE_PREFIX_NONE     0
+#define IGTL_TYPE_PREFIX_GET      1
+#define IGTL_TYPE_PREFIX_STT      2
+#define IGTL_TYPE_PREFIX_STP      3
+#define IGTL_TYPE_PREFIX_RTS      4
+#define IGTL_NUM_TYPE_PREFIX      5
+
 
 #include "igtl_types.h"
 #include "igtl_win32header.h"
@@ -43,8 +56,8 @@ extern "C" {
 
 typedef struct {
   igtl_uint16    version;          /* protocol version number */
-  char           name[IGTL_HEADER_NAMESIZE];       /* data type name          */
-  char           device_name[IGTL_HEADER_DEVSIZE]; /* device name             */
+  char           name[IGTL_HEADER_TYPE_SIZE];       /* data type name          */
+  char           device_name[IGTL_HEADER_NAME_SIZE]; /* device name             */
   igtl_uint64    timestamp;        /* time stamp message      */
   igtl_uint64    body_size;        /* size of the body        */
   igtl_uint64    crc;              /* CRC                     */

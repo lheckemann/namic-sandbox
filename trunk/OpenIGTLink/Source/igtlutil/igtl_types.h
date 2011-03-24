@@ -83,5 +83,12 @@
 # error "No native data type can represent a 64-bit floating point value."
 #endif
 
+/* 128-bit complex type (64-bit real + 64-bit imaginal)*/
+typedef double igtl_complex[2];
+
 
 #endif /* __IGTL_TYPES_H */
+
+
+
+

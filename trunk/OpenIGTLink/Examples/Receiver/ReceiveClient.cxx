@@ -29,15 +29,21 @@
 
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
 #include "igtlPointMessage.h"
+#include "igtlStringMessage.h"
+#include "igtlTrackingDataMessage.h"
+#include "igtlQuaternionTrackingDataMessage.h"
 #endif // OpenIGTLink_PROTOCOL_VERSION >= 2
 
-int ReceiveTransform(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-int ReceivePosition(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-int ReceiveImage(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-int ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+int ReceiveTransform(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
+int ReceivePosition(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
+int ReceiveImage(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
+int ReceiveStatus(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
 
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
-  int ReceivePoint(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+  int ReceivePoint(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
+  int ReceiveString(igtl::Socket * socket, igtl::MessageHeader::Pointer& header);
+  int ReceiveTrackingData(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+  int ReceiveQuaternionTrackingData(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
 
 int main(int argc, char* argv[])
@@ -121,6 +127,18 @@ int main(int argc, char* argv[])
         {
         ReceivePoint(socket, headerMsg);
         }
+      else if (strcmp(headerMsg->GetDeviceType(), "STRING") == 0)
+        {
+        ReceiveString(socket, headerMsg);
+        }
+      else if (strcmp(headerMsg->GetDeviceType(), "TDATA") == 0)
+        {
+        ReceiveTrackingData(socket, headerMsg);
+        }
+      else if (strcmp(headerMsg->GetDeviceType(), "QTDATA") == 0)
+        {
+        ReceiveQuaternionTrackingData(socket, headerMsg);
+        }
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
       else
         {
@@ -138,7 +156,7 @@ int main(int argc, char* argv[])
 }
 
 
-int ReceiveTransform(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceiveTransform(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
 {
   std::cerr << "Receiving TRANSFORM data type." << std::endl;
   
@@ -161,13 +179,14 @@ int ReceiveTransform(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::P
     igtl::Matrix4x4 matrix;
     transMsg->GetMatrix(matrix);
     igtl::PrintMatrix(matrix);
+    std::cerr << std::endl;
     return 1;
     }
 
   return 0;
 }
 
-int ReceivePosition(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceivePosition(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
 {
   std::cerr << "Receiving POSITION data type." << std::endl;
   
@@ -203,7 +222,7 @@ int ReceivePosition(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Po
   return 0;
 }
 
-int ReceiveImage(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceiveImage(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
 {
   std::cerr << "Receiving IMAGE data type." << std::endl;
 
@@ -243,7 +262,7 @@ int ReceiveImage(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Point
     std::cerr << "Sub-Volume dimensions : ("
               << svsize[0] << ", " << svsize[1] << ", " << svsize[2] << ")" << std::endl;
     std::cerr << "Sub-Volume offset     : ("
-              << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl;
+              << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl << std::endl;
     return 1;
     }
 
@@ -252,7 +271,7 @@ int ReceiveImage(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Point
 }
 
 
-int ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceiveStatus(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
 {
 
   std::cerr << "Receiving STATUS data type." << std::endl;
@@ -277,7 +296,7 @@ int ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Poin
     std::cerr << " SubCode   : " << statusMsg->GetSubCode() << std::endl;
     std::cerr << " Error Name: " << statusMsg->GetErrorName() << std::endl;
     std::cerr << " Status    : " << statusMsg->GetStatusString() << std::endl;
-    std::cerr << "============================" << std::endl;
+    std::cerr << "============================" << std::endl << std::endl;
     }
 
   return 0;
@@ -285,7 +304,7 @@ int ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Poin
 }
 
 #if OpenIGTLink_PROTOCOL_VERSION >= 2
-int ReceivePoint(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+int ReceivePoint(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
 {
 
   std::cerr << "Receiving POINT data type." << std::endl;
@@ -324,11 +343,121 @@ int ReceivePoint(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Point
       std::cerr << " Position  : ( " << std::fixed << pos[0] << ", " << pos[1] << ", " << pos[2] << " )" << std::endl;
       std::cerr << " Radius    : " << std::fixed << pointElement->GetRadius() << std::endl;
       std::cerr << " Owner     : " << pointElement->GetOwner() << std::endl;
-      std::cerr << "================================" << std::endl;
+      std::cerr << "================================" << std::endl << std::endl;
       }
     }
 
   return 1;
+}
+
+int ReceiveString(igtl::Socket * socket, igtl::MessageHeader::Pointer& header)
+{
+
+  std::cerr << "Receiving STRING data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::StringMessage::Pointer stringMsg;
+  stringMsg = igtl::StringMessage::New();
+  stringMsg->SetMessageHeader(header);
+  stringMsg->AllocatePack();
+
+  // Receive transform data from the socket
+  socket->Receive(stringMsg->GetPackBodyPointer(), stringMsg->GetPackBodySize());
+
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = stringMsg->Unpack(1);
+
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    std::cerr << "Encoding: " << stringMsg->GetEncoding() << "; "
+              << "String: " << stringMsg->GetString() << std::endl << std::endl;
+    }
+
+  return 1;
+}
+
+int ReceiveTrackingData(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+  std::cerr << "Receiving TDATA data type." << std::endl;
+  
+  // Create a message buffer to receive transform data
+  igtl::TrackingDataMessage::Pointer trackingData;
+  trackingData = igtl::TrackingDataMessage::New();
+  trackingData->SetMessageHeader(header);
+  trackingData->AllocatePack();
+
+  // Receive body from the socket
+  socket->Receive(trackingData->GetPackBodyPointer(), trackingData->GetPackBodySize());
+
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = trackingData->Unpack(1);
+
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    int nElements = trackingData->GetNumberOfTrackingDataElements();
+    for (int i = 0; i < nElements; i ++)
+      {
+      igtl::TrackingDataElement::Pointer trackingElement;
+      trackingData->GetTrackingDataElement(i, trackingElement);
+
+      igtl::Matrix4x4 matrix;
+      trackingElement->GetMatrix(matrix);
+
+
+      std::cerr << "========== Element #" << i << " ==========" << std::endl;
+      std::cerr << " Name       : " << trackingElement->GetName() << std::endl;
+      std::cerr << " Type       : " << (int) trackingElement->GetType() << std::endl;
+      std::cerr << " Matrix : " << std::endl;
+      igtl::PrintMatrix(matrix);
+      std::cerr << "================================" << std::endl << std::endl;
+      }
+    return 1;
+    }
+  return 0;
+}
+
+int ReceiveQuaternionTrackingData(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+  std::cerr << "Receiving QTDATA data type." << std::endl;
+  
+  // Create a message buffer to receive transform data
+  igtl::QuaternionTrackingDataMessage::Pointer quaternionTrackingData;
+  quaternionTrackingData = igtl::QuaternionTrackingDataMessage::New();
+  quaternionTrackingData->SetMessageHeader(header);
+  quaternionTrackingData->AllocatePack();
+
+  // Receive body from the socket
+  socket->Receive(quaternionTrackingData->GetPackBodyPointer(), quaternionTrackingData->GetPackBodySize());
+
+  // Deserialize position and quaternion (orientation) data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = quaternionTrackingData->Unpack(1);
+
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    int nElements = quaternionTrackingData->GetNumberOfQuaternionTrackingDataElements();
+    for (int i = 0; i < nElements; i ++)
+      {
+      igtl::QuaternionTrackingDataElement::Pointer quaternionTrackingElement;
+      quaternionTrackingData->GetQuaternionTrackingDataElement(i, quaternionTrackingElement);
+
+      float position[3];
+      float quaternion[4];
+      quaternionTrackingElement->GetPosition(position);
+      quaternionTrackingElement->GetQuaternion(quaternion);
+
+      std::cerr << "========== Element #" << i << " ==========" << std::endl;
+      std::cerr << " Name       : " << quaternionTrackingElement->GetName() << std::endl;
+      std::cerr << " Type       : " << (int) quaternionTrackingElement->GetType() << std::endl;
+      std::cerr << " Position   : "; igtl::PrintVector3(position);
+      std::cerr << " Quaternion : "; igtl::PrintVector4(quaternion);
+      std::cerr << "================================" << std::endl << std::endl;
+      }
+    return 1;
+    }
+  return 0;
 }
 
 #endif //OpenIGTLink_PROTOCOL_VERSION >= 2
