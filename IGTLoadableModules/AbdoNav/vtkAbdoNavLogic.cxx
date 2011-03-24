@@ -892,7 +892,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* locatorName, doub
   // measured handle diameter = 6 mm --> radius = 3 mm
   double radiusHandle = 3.0;
   // measured needle diameter = 1.5 mm --> radius = 0.75 mm
-  // vendor (Galil Medical) brochure states: needle diameter = 17 gauge, 1.47 mm --> radius = 0.735 mm (weird because e.g. Wikipedia states that: 17 gauge ~ 1.150 mm  --> radius ~ 0.575 mm)
+  // exact needle diameter = 17 gauge ~ 1.47 mm --> radius = 0.735 mm (according to vendor brochure (Galil Medical))
   double radiusNeedle = 0.75;
 
   //----------------------------------------------------------------
