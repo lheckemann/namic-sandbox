@@ -47,7 +47,7 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   /// Copy parameters (not including ID and Scene) from another node of the same type.
   virtual void Copy(vtkMRMLNode* node);
   /// Get unique node XML tag name (like Volume, Model, etc.).
-  virtual const char* GetNodeTagName() { return "AbdoNavParameters"; }
+  virtual const char* GetNodeTagName() { return "AbdoNav"; }
   /// Update the IDs of stored references.
   virtual void UpdateReferenceID(const char* oldID, const char* newID);
 
