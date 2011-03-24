@@ -23,12 +23,10 @@
 #define IGTL_HEADER_TYPE_SIZE  12
 #define IGTL_HEADER_NAME_SIZE  20
 
-#define IGTL_HEADER_NAMESIZE   12
-#define IGTL_HEADER_DEVSIZE    20
-
 /* Following macros will be obsolete. Included for old programs*/
 #define IGTL_HEADER_TYPESIZE  IGTL_HEADER_TYPE_SIZE
 #define IGTL_HEADER_NAMESIZE  IGTL_HEADER_NAME_SIZE
+#define IGTL_HEADER_DEVSIZE   IGTL_HEADER_NAME_SIZE
 
 // Device name prefix macro
 #define IGTL_TYPE_PREFIX_NONE     0
