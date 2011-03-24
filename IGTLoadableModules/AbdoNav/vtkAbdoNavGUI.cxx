@@ -504,7 +504,7 @@ void vtkAbdoNavGUI::RemoveLogicObservers()
 {
   if (this->AbdoNavLogic)
     {
-    this->AbdoNavLogic->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand*)this->LogicCallbackCommand);
+    this->AbdoNavLogic->RemoveObservers(vtkAbdoNavLogic::StatusUpdateEvent, (vtkCommand*)this->LogicCallbackCommand);
     }
 }
 
