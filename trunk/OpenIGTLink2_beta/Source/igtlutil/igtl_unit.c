@@ -69,7 +69,6 @@ igtl_unit igtl_export igtl_unit_pack(igtl_unit_data* data)
 int igtl_export igtl_unit_unpack(igtl_unit pack, igtl_unit_data* data)
 {
   int i;
-  igtl_int8  exp;
 
   /* Prefix */
   data->prefix = (igtl_uint8) (pack >>  60);
@@ -77,10 +76,10 @@ int igtl_export igtl_unit_unpack(igtl_unit pack, igtl_unit_data* data)
   /* Units */
   for (i = 0; i < 6; i ++)
     {
-    data->unit[i] = (igtl_uint8) (pack >> 10*(5-i) + 4) && 0x3F;
-    data->exp[i] = (igtl_uint8) (pack >> 10*(5-i)) && 0x0F;
+    data->unit[i] = (igtl_uint8) (pack >> (10*(5-i) + 4)) && 0x3F;
+    data->exp[i] = (igtl_uint8) (pack >> (10*(5-i))) && 0x0F;
     /* Convert signed value in exponent field from 4-bit to 8-bit */
-    if (exp & 0x08)
+    if (data->exp[i] & 0x08)
       {
       data->exp[i] |= 0xF0;
       }

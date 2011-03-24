@@ -62,12 +62,15 @@ unsigned int SensorMessage::GetLength()
 int SensorMessage::SetUnit(igtlUnit unit)
 {
   this->m_Unit = unit;
+  return 1;
 }
 
 
 int SensorMessage::SetUnit(igtl::Unit * unit)
 {
   this->m_Unit = unit->Pack();
+
+  return 1;
 }
 
 
@@ -89,6 +92,8 @@ int SensorMessage::SetValue(igtlFloat64 * data)
     {
     this->m_Array[i] = data[i];
     }
+
+  return 1;
 }
 
 

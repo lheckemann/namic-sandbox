@@ -85,7 +85,7 @@ int igtl_export igtl_ndarray_alloc_info(igtl_ndarray_info * info, const igtl_uin
       len *=  size[i];
       }
     
-    info->array = malloc(igtl_ndarray_get_nbyte(info->type) * len);
+    info->array = malloc((size_t)(igtl_ndarray_get_nbyte(info->type) * len));
 
     if (info->array == NULL)
       {
@@ -119,7 +119,7 @@ int igtl_export igtl_ndarray_free_info(igtl_ndarray_info * info)
 
 int igtl_export igtl_ndarray_unpack(int type, void * byte_array, igtl_ndarray_info * info, igtl_uint64 pack_size)
 {
-  void * ptr;
+  char * ptr;
   igtl_uint16 dim;
   igtl_uint16 * size;
   igtl_uint16 i;
@@ -144,7 +144,7 @@ int igtl_export igtl_ndarray_unpack(int type, void * byte_array, igtl_ndarray_in
     }
 
   igtl_ndarray_init_info(info);
-  ptr = byte_array;
+  ptr = (char *) byte_array;
 
   /*** Type field ***/
   info->type = * (igtl_uint8 *) ptr;
@@ -193,7 +193,7 @@ int igtl_export igtl_ndarray_unpack(int type, void * byte_array, igtl_ndarray_in
     {
     /* If single-byte data type is used or the program runs on a big-endian machine,
        just copy the array from the pack to the strucutre */
-    memcpy(info->array, ptr, len * igtl_ndarray_get_nbyte(info->type));
+    memcpy(info->array, ptr, (size_t)(len * igtl_ndarray_get_nbyte(info->type)));
     }
   else if (igtl_ndarray_get_nbyte(info->type) == 2) /* 16-bit */
     {
@@ -242,7 +242,7 @@ int igtl_export igtl_ndarray_unpack(int type, void * byte_array, igtl_ndarray_in
 
 int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, int type)
 {
-  void * ptr;
+  char * ptr;
   igtl_uint16 dim;
   igtl_uint16 * size;
   igtl_uint16 i;
@@ -266,7 +266,7 @@ int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, i
     return 0;
     }
 
-  ptr = byte_array;
+  ptr = (char *) byte_array;
 
   /*** Type field ***/
   * (igtl_uint8 *) ptr = info->type;
@@ -306,7 +306,7 @@ int igtl_export igtl_ndarray_pack(igtl_ndarray_info * info, void * byte_array, i
     {
     /* If single-byte data type is used or the program runs on a big-endian machine,
        just copy the array from the pack to the strucutre */
-    memcpy(ptr, info->array, len * igtl_ndarray_get_nbyte(info->type));
+    memcpy(ptr, info->array, (size_t) (len * igtl_ndarray_get_nbyte(info->type)));
     }
   else if (igtl_ndarray_get_nbyte(info->type) == 2) /* 16-bit */
     {
@@ -375,7 +375,6 @@ igtl_uint64 igtl_export igtl_ndarray_get_size(igtl_ndarray_info * info, int type
 
 igtl_uint64 igtl_export igtl_ndarray_get_crc(igtl_ndarray_info * info, int type, void* data)
 {
-  int i;
   igtl_uint64   crc;
   igtl_uint64   data_size;
   
