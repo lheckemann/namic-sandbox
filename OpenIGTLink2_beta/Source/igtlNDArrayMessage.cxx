@@ -122,7 +122,7 @@ igtlUint32 ArrayBase::Get1DIndex(IndexType index)
   p = 0;
   step = 1;
   IndexType::iterator iter;
-  for (igtlUint16 i = dim-1; i >= 0; i --)
+  for (int i = dim-1; i >= 0; i --)
     {
     p += index[i] * step;
     step *= this->m_Size[i];
