@@ -70,7 +70,7 @@ int igtl_export igtl_bind_free_info(igtl_bind_info * bind_info)
   
   if (bind_info->ncmessages == 0 || bind_info->child_info_array == NULL)
     {
-    bind_info->ncmessages == 0;
+    bind_info->ncmessages = 0;
     return 1;
     }
 
@@ -89,8 +89,8 @@ int igtl_bind_unpack_normal(void * byte_array, igtl_bind_info * info)
   igtl_uint16 ncmessages;
   igtl_uint16 nametable_size;
   size_t      namelen;
-  void * ptr;
-  void * ptr2;
+  char * ptr;
+  char * ptr2;
   
   if (byte_array == NULL || info == NULL)
     {
@@ -98,7 +98,7 @@ int igtl_bind_unpack_normal(void * byte_array, igtl_bind_info * info)
     }
   
   /* Number of child messages */
-  ptr = (void *) byte_array;
+  ptr = (char *) byte_array;
   if (igtl_is_little_endian())
     {
     ncmessages = BYTE_SWAP_INT16(*((igtl_uint16*)ptr));
@@ -201,8 +201,8 @@ int igtl_bind_unpack_request(void * byte_array, igtl_bind_info * info, igtl_uint
   igtl_uint16 ncmessages;
   igtl_uint16 nametable_size;
   size_t      namelen;
-  void * ptr;
-  void * ptr2;
+  char * ptr;
+  char * ptr2;
   
   if (size == 0)
     {
@@ -218,7 +218,7 @@ int igtl_bind_unpack_request(void * byte_array, igtl_bind_info * info, igtl_uint
     }
   
   /* Number of child messages */
-  ptr = (void *) byte_array;
+  ptr = (char *) byte_array;
   if (igtl_is_little_endian())
     {
     ncmessages = BYTE_SWAP_INT16(*((igtl_uint16*)ptr));
@@ -291,7 +291,7 @@ int igtl_bind_unpack_request(void * byte_array, igtl_bind_info * info, igtl_uint
 
 int igtl_export igtl_bind_unpack(int type, void * byte_array, igtl_bind_info * info, igtl_uint64 size)
 {
-  void * ptr;
+  char * ptr;
 
   switch (type)
     {
@@ -345,14 +345,14 @@ int igtl_export igtl_bind_unpack(int type, void * byte_array, igtl_bind_info * i
  */
 int igtl_bind_pack_normal(igtl_bind_info * info, void * byte_array)
 {
-  void * ptr;
+  char * ptr;
   igtl_uint32 i;
   igtl_uint32 nc;
   igtl_uint16 * nts;
   size_t wb;
   size_t len;
 
-  ptr = byte_array;
+  ptr = (char *) byte_array;
   nc = info->ncmessages;
 
   /* Validate info */
@@ -393,7 +393,7 @@ int igtl_bind_pack_normal(igtl_bind_info * info, void * byte_array)
 
 
   /* Name table section */
-  nts = ptr; /* save address for name table size field */
+  nts = (igtl_uint16 *) ptr; /* save address for name table size field */
   ptr += sizeof(igtl_uint16);
 
   wb = 0;
@@ -435,14 +435,14 @@ int igtl_bind_pack_normal(igtl_bind_info * info, void * byte_array)
  */
 int igtl_bind_pack_request(igtl_bind_info * info, void * byte_array)
 {
-  void * ptr;
+  char * ptr;
   igtl_uint32 i;
   igtl_uint32 nc;
   igtl_uint16 * nts;
   size_t wb;
   size_t len;
 
-  ptr = byte_array;
+  ptr = (char *) byte_array;
   nc = info->ncmessages;
 
   /* If requesting all available, no body is generated. */
@@ -478,7 +478,7 @@ int igtl_bind_pack_request(igtl_bind_info * info, void * byte_array)
     }
 
   /* Name table section */
-  nts = ptr; /* save address for name table size field */
+  nts = (igtl_uint16 *) ptr; /* save address for name table size field */
   ptr += sizeof(igtl_uint16);
 
   wb = 0;
@@ -509,7 +509,7 @@ int igtl_bind_pack_request(igtl_bind_info * info, void * byte_array)
 
 int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array, int type)
 {
-  void * ptr;
+  char * ptr;
 
   switch (type)
     {
@@ -518,7 +518,7 @@ int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array, int typ
       break;
 
     case IGTL_TYPE_PREFIX_GET:
-      return igtl_bind_pack_request(byte_array, info);
+      return igtl_bind_pack_request(info, byte_array);
       break;
 
     case IGTL_TYPE_PREFIX_STT:
@@ -526,7 +526,7 @@ int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array, int typ
        * STT_BIND message has the same format as GET_BIND, except that it
        * has the time resolution field.
        */
-      ptr = byte_array;
+      ptr = (char *) byte_array;
 
       /* Get time resolution */ 
       if (igtl_is_little_endian())
@@ -540,7 +540,7 @@ int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array, int typ
       ptr += sizeof(igtl_uint64);
 
       /* Generate rest of the message */
-      return igtl_bind_pack_request(ptr, info);
+      return igtl_bind_pack_request(info, ptr);
       break;
       
     case IGTL_TYPE_PREFIX_STP:
@@ -633,11 +633,8 @@ igtl_uint64 igtl_bind_get_size_request(igtl_bind_info * info)
 
 igtl_uint64 igtl_export igtl_bind_get_size(igtl_bind_info * info, int type)
 {
-  void * ptr;
-
   switch (type)
     {
-
     case IGTL_TYPE_PREFIX_NONE:
       return igtl_bind_get_size_normal(info);
       break;

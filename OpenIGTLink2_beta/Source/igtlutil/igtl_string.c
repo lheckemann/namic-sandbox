@@ -32,7 +32,6 @@ igtl_uint32 igtl_export igtl_string_get_string_length(igtl_string_header * heade
 
 void igtl_export igtl_string_convert_byte_order(igtl_string_header* header)
 {
-  int i;
 
   if (igtl_is_little_endian()) 
     {

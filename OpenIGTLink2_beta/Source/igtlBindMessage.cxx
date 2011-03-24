@@ -402,8 +402,6 @@ igtlUint64 StartBindMessage::GetResolution()
 
 int StartBindMessage::GetBodyPackSize()
 {
-  int size;
-
   if (this->m_ChildMessages.size() == 0)
     {
     // Only a time stamp field is in the message

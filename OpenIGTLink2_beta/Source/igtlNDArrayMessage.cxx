@@ -210,10 +210,19 @@ int NDArrayMessage::PackBody()
   info.type = this->m_Type;
 
   ArrayBase::IndexType size = this->m_Array->GetSize();
+
+#if defined(_WIN32)
+  igtl_uint16 * s = new igtl_uint16[info.dim];
+  for (int i = 0; i < info.dim; i ++)
+    {
+    s[i] = size[i];
+    }
+#else
   if (igtl_ndarray_alloc_info(&info, size.data()) == 0)
     {
     return 0;
     }
+#endif
 
   memcpy(info.array, this->m_Array->GetRawArray(), this->m_Array->GetRawArraySize());
   igtl_ndarray_pack(&info, this->m_Body, IGTL_TYPE_PREFIX_NONE);
