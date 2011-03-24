@@ -594,11 +594,13 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       vtkMRMLFiducialListNode* fiducialList;
       if (this->AbdoNavNode == NULL)
         {
+        // no AbdoNavNode present yet, thus display an error message and exit
         vtkKWMessageDialog::PopupMessage(this->GetApplication(),
                                          this->GetApplicationGUI()->GetMainSlicerWindow(),
                                          "AbdoNav",
                                          "Configure connection first!",
                                          vtkKWMessageDialog::ErrorIcon);
+        return;
         }
       else
         {
