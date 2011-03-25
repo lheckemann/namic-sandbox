@@ -20,7 +20,6 @@
 #include "vtkKWComboBoxWithLabel.h"
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWMessageDialog.h"
-#include "vtkKWRadioButton.h"
 #include "vtkKWScale.h"
 #include "vtkKWScaleWithEntry.h"
 
@@ -62,15 +61,15 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Registration frame.
   //----------------------------------------------------------------
-  this->Point1RadioButton = NULL;
+  this->Point1CheckButton = NULL;
   this->Point1REntry = NULL;
   this->Point1AEntry = NULL;
   this->Point1SEntry = NULL;
-  this->Point2RadioButton = NULL;
+  this->Point2CheckButton = NULL;
   this->Point2REntry = NULL;
   this->Point2AEntry = NULL;
   this->Point2SEntry = NULL;
-  this->Point3RadioButton = NULL;
+  this->Point3CheckButton = NULL;
   this->Point3REntry = NULL;
   this->Point3AEntry = NULL;
   this->Point3SEntry = NULL;
@@ -141,10 +140,10 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Registration frame.
   //----------------------------------------------------------------
-  if (this->Point1RadioButton)
+  if (this->Point1CheckButton)
     {
-    this->Point1RadioButton->SetParent(NULL);
-    this->Point1RadioButton->Delete();
+    this->Point1CheckButton->SetParent(NULL);
+    this->Point1CheckButton->Delete();
     }
   if (this->Point1REntry)
     {
@@ -161,10 +160,10 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->Point1SEntry->SetParent(NULL);
     this->Point1SEntry->Delete();
     }
-  if (this->Point2RadioButton)
+  if (this->Point2CheckButton)
     {
-    this->Point2RadioButton->SetParent(NULL);
-    this->Point2RadioButton->Delete();
+    this->Point2CheckButton->SetParent(NULL);
+    this->Point2CheckButton->Delete();
     }
   if (this->Point2REntry)
     {
@@ -181,10 +180,10 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->Point2SEntry->SetParent(NULL);
     this->Point2SEntry->Delete();
     }
-  if (this->Point3RadioButton)
+  if (this->Point3CheckButton)
     {
-    this->Point3RadioButton->SetParent(NULL);
-    this->Point3RadioButton->Delete();
+    this->Point3CheckButton->SetParent(NULL);
+    this->Point3CheckButton->Delete();
     }
   if (this->Point3REntry)
     {
@@ -343,9 +342,9 @@ void vtkAbdoNavGUI::AddGUIObservers()
   //----------------------------------------------------------------
   // Registration frame.
   //----------------------------------------------------------------
-  this->Point1RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
-  this->Point2RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
-  this->Point3RadioButton->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->Point1CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->Point2CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->Point3CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->ResetRegistrationPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->PerformRegistrationPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
 
@@ -410,17 +409,17 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
   //----------------------------------------------------------------
   // Registration frame.
   //----------------------------------------------------------------
-  if (this->Point1RadioButton)
+  if (this->Point1CheckButton)
     {
-    this->Point1RadioButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->Point1CheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
-  if (this->Point2RadioButton)
+  if (this->Point2CheckButton)
     {
-    this->Point2RadioButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->Point2CheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
-  if (this->Point3RadioButton)
+  if (this->Point3CheckButton)
     {
-    this->Point3RadioButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->Point3CheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
   if (this->ResetRegistrationPushButton)
     {
@@ -562,7 +561,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   // Main slice views.
   //
   // If the user clicked in one of the slice views with one of the
-  // radio buttons associated with the RAS coordinates of
+  // check buttons associated with the RAS coordinates of
   //  - the guidance needle tip
   //  - a second point on the guidance needle
   //  - the marker center
@@ -575,14 +574,14 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   // 0. determine whether or not AbdoNav is the selected module;
   //    neither update nor create a fiducial if it isn't, thus
   //    exit this function
-  // 1. if AbdoNav is the selected module, determine which radio
+  // 1. if AbdoNav is the selected module, determine which check
   //    button is active (if there is an active one at all)
-  // 2. if there is an active radio button:
+  // 2. if there is an active check button:
   //      2.0. create/retrieve AbdoNav's fiducial list
   //      2.1. transform XY mouse coordinates into RAS coordinates
   //      2.2. determine whether or not AbdoNav's fiducial list
   //           already contains a fiducial corresponding to the
-  //           active radio button
+  //           active check button
   //      2.3. if AbdoNav's fiducial list already contains a corres-
   //           ponding fiducial, then update it; otherwise, add a new
   //           fiducial
@@ -599,23 +598,23 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       return;
       }
 
-    // determine which radio button is active
-    std::string activeRadioButton = "";
-    if (this->Point1RadioButton->GetSelectedState() && this->Point1RadioButton->GetEnabled())
+    // determine which check button is active
+    std::string activeCheckButton = "";
+    if (this->Point1CheckButton->GetSelectedState() && this->Point1CheckButton->GetEnabled())
       {
-      activeRadioButton = "tipRAS";
+      activeCheckButton = "tipRAS";
       }
-    else if (this->Point2RadioButton->GetSelectedState() && this->Point2RadioButton->GetEnabled())
+    else if (this->Point2CheckButton->GetSelectedState() && this->Point2CheckButton->GetEnabled())
       {
-      activeRadioButton = "2ndRAS";
+      activeCheckButton = "2ndRAS";
       }
-    else if (this->Point3RadioButton->GetSelectedState() && this->Point3RadioButton->GetEnabled())
+    else if (this->Point3CheckButton->GetSelectedState() && this->Point3CheckButton->GetEnabled())
       {
-      activeRadioButton = "markerRAS";
+      activeCheckButton = "markerRAS";
       }
 
-    // if there is an active radio button
-    if (strcmp(activeRadioButton.c_str(), ""))
+    // if there is an active check button
+    if (strcmp(activeCheckButton.c_str(), ""))
       {
       // create an AbdoNavNode if none exists yet
       vtkMRMLAbdoNavNode* anode = this->CheckAndCreateAbdoNavNode();
@@ -684,13 +683,13 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
 
       // determine whether or not AbdoNav's fiducial list
       // already contains a fiducial corresponding to the
-      // active radio button
+      // active check button
       //
       // if so, update it; otherwise, add a new fiducial
       bool fiducialExists = false;
       for (int i = 0; i < fiducialList->GetNumberOfFiducials(); i++)
         {
-        if (!strcmp(activeRadioButton.c_str(), fiducialList->GetNthFiducialLabelText(i)))
+        if (!strcmp(activeCheckButton.c_str(), fiducialList->GetNthFiducialLabelText(i)))
           {
           // corresponding fiducial already exists, thus update it
           // (fiducial list implementation will invoke proper event
@@ -704,7 +703,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
         // corresponding fiducial doesn't exist yet, thus create it
         // (fiducial list implementation will invoke proper event
         // and thereby trigger vtkAbdoNavGUI::UpdateGUIFromMRML())
-        fiducialList->AddFiducialWithLabelXYZSelectedVisibility(activeRadioButton.c_str(), rasVec[0], rasVec[1], rasVec[2], 1, 1);
+        fiducialList->AddFiducialWithLabelXYZSelectedVisibility(activeCheckButton.c_str(), rasVec[0], rasVec[1], rasVec[2], 1, 1);
         }
       }
     }
@@ -774,41 +773,41 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   //----------------------------------------------------------------
   // Registration frame.
   //----------------------------------------------------------------
-  else if (this->Point1RadioButton == vtkKWRadioButton::SafeDownCast(caller) && event == vtkKWRadioButton::SelectedStateChangedEvent)
+  else if (this->Point1CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
-    // mimic radio button set behavior, i.e. only one radio button allowed to be selected at a time
-    if (this->Point1RadioButton->GetSelectedState())
+    // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
+    if (this->Point1CheckButton->GetSelectedState())
       {
-      this->Point2RadioButton->SelectedStateOff();
-      this->Point3RadioButton->SelectedStateOff();
+      this->Point2CheckButton->SelectedStateOff();
+      this->Point3CheckButton->SelectedStateOff();
       }
     }
-  else if (this->Point2RadioButton == vtkKWRadioButton::SafeDownCast(caller) && event == vtkKWRadioButton::SelectedStateChangedEvent)
+  else if (this->Point2CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
-    // mimic radio button set behavior, i.e. only one radio button allowed to be selected at a time
-    if (this->Point2RadioButton->GetSelectedState())
+    // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
+    if (this->Point2CheckButton->GetSelectedState())
       {
-      this->Point1RadioButton->SelectedStateOff();
-      this->Point3RadioButton->SelectedStateOff();
+      this->Point1CheckButton->SelectedStateOff();
+      this->Point3CheckButton->SelectedStateOff();
       }
     }
-  else if (this->Point3RadioButton == vtkKWRadioButton::SafeDownCast(caller) && event == vtkKWRadioButton::SelectedStateChangedEvent)
+  else if (this->Point3CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
-    // mimic radio button set behavior, i.e. only one radio button allowed to be selected at a time
-    if (this->Point3RadioButton->GetSelectedState())
+    // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
+    if (this->Point3CheckButton->GetSelectedState())
       {
-      this->Point1RadioButton->SelectedStateOff();
-      this->Point2RadioButton->SelectedStateOff();
+      this->Point1CheckButton->SelectedStateOff();
+      this->Point2CheckButton->SelectedStateOff();
       }
     }
   else if (this->ResetRegistrationPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
-    this->Point1RadioButton->SetEnabled(true);
-    this->Point1RadioButton->SelectedStateOff();
-    this->Point2RadioButton->SetEnabled(true);
-    this->Point2RadioButton->SelectedStateOff();
-    this->Point3RadioButton->SetEnabled(true);
-    this->Point3RadioButton->SelectedStateOff();
+    this->Point1CheckButton->SetEnabled(true);
+    this->Point1CheckButton->SelectedStateOff();
+    this->Point2CheckButton->SetEnabled(true);
+    this->Point2CheckButton->SelectedStateOff();
+    this->Point3CheckButton->SetEnabled(true);
+    this->Point3CheckButton->SelectedStateOff();
     this->PerformRegistrationPushButton->SetEnabled(true);
     // unlock fiducial list
     vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
@@ -833,9 +832,9 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       {
       if (this->AbdoNavLogic->PerformRegistration() == EXIT_SUCCESS)
         {
-        this->Point1RadioButton->SetEnabled(false);
-        this->Point2RadioButton->SetEnabled(false);
-        this->Point3RadioButton->SetEnabled(false);
+        this->Point1CheckButton->SetEnabled(false);
+        this->Point2CheckButton->SetEnabled(false);
+        this->Point3CheckButton->SetEnabled(false);
         this->PerformRegistrationPushButton->SetEnabled(false);
         // lock fiducial list
         vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
@@ -1297,18 +1296,18 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   //----------------------------------------------------------------
   // Create widgets to identify the guidance needle tip.
   //----------------------------------------------------------------
-  // create frame required to display the radio button and RAS coordinate entries on the left and right side respectively
+  // create frame required to display the check button and RAS coordinate entries on the left and right side respectively
   vtkKWFrame* point1Frame = vtkKWFrame::New();
   point1Frame->SetParent(guidanceNeedleFrame->GetFrame());
   point1Frame->Create();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point1Frame->GetWidgetName());
 
-  // create radio button to select the guidance needle tip
-  this->Point1RadioButton = vtkKWRadioButton::New();
-  this->Point1RadioButton->SetParent(point1Frame);
-  this->Point1RadioButton->Create();
-  this->Point1RadioButton->SetText("Identify guidance needle tip (RAS):\t");
-  this->Point1RadioButton->SetBalloonHelpString("Identify the tip of the guidance needle in the CT/MR image.");
+  // create check button to select the guidance needle tip
+  this->Point1CheckButton = vtkKWCheckButton::New();
+  this->Point1CheckButton->SetParent(point1Frame);
+  this->Point1CheckButton->Create();
+  this->Point1CheckButton->SetText("Identify guidance needle tip (RAS):\t");
+  this->Point1CheckButton->SetBalloonHelpString("Identify the tip of the guidance needle in the CT/MR image.");
   // create entry to hold the R coordinate of the guidance needle tip
   this->Point1REntry = vtkKWEntry::New();
   this->Point1REntry->SetParent(point1Frame);
@@ -1337,8 +1336,8 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point1SEntry->SetRestrictValueToDouble();
   this->Point1SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
 
-  // add radio button for the guidance needle tip
-  this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point1RadioButton->GetWidgetName());
+  // add check button for the guidance needle tip
+  this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point1CheckButton->GetWidgetName());
   // add RAS coordinate entries for the guidance needle tip
   this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
                  this->Point1SEntry->GetWidgetName(),
@@ -1348,18 +1347,18 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   //----------------------------------------------------------------
   // Create widgets to identify the second point on the guidance needle.
   //----------------------------------------------------------------
-  // create frame required to display the radio button and RAS coordinate entries on the left and right side respectively
+  // create frame required to display the check button and RAS coordinate entries on the left and right side respectively
   vtkKWFrame* point2Frame = vtkKWFrame::New();
   point2Frame->SetParent(guidanceNeedleFrame->GetFrame());
   point2Frame->Create();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point2Frame->GetWidgetName());
 
-  // create radio button to select the second point on the guidance needle
-  this->Point2RadioButton = vtkKWRadioButton::New();
-  this->Point2RadioButton->SetParent(point2Frame);
-  this->Point2RadioButton->Create();
-  this->Point2RadioButton->SetText("Identify second point (RAS):\t\t");
-  this->Point2RadioButton->SetBalloonHelpString("Identify a second point on the guidance needle in the CT/MR image.");
+  // create check button to select the second point on the guidance needle
+  this->Point2CheckButton = vtkKWCheckButton::New();
+  this->Point2CheckButton->SetParent(point2Frame);
+  this->Point2CheckButton->Create();
+  this->Point2CheckButton->SetText("Identify second point (RAS):\t\t");
+  this->Point2CheckButton->SetBalloonHelpString("Identify a second point on the guidance needle in the CT/MR image.");
   // create entry to hold the R coordinate of the second point on the guidance needle
   this->Point2REntry = vtkKWEntry::New();
   this->Point2REntry->SetParent(point2Frame);
@@ -1388,8 +1387,8 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2SEntry->SetRestrictValueToDouble();
   this->Point2SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
 
-  // add radio button for the second point on the guidance needle
-  this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point2RadioButton->GetWidgetName());
+  // add check button for the second point on the guidance needle
+  this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point2CheckButton->GetWidgetName());
   // add RAS coordinate entries for the second point on the guidance needle
   this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
                  this->Point2SEntry->GetWidgetName(),
@@ -1399,18 +1398,18 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   //----------------------------------------------------------------
   // Create widgets to identify the marker center.
   //----------------------------------------------------------------
-  // create frame required to display the radio button and RAS coordinate entries on the left and right side respectively
+  // create frame required to display the check button and RAS coordinate entries on the left and right side respectively
   vtkKWFrame* point3Frame = vtkKWFrame::New();
   point3Frame->SetParent(guidanceNeedleFrame->GetFrame());
   point3Frame->Create();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point3Frame->GetWidgetName());
 
-  // create radio button to select the marker center
-  this->Point3RadioButton = vtkKWRadioButton::New();
-  this->Point3RadioButton->SetParent(point3Frame);
-  this->Point3RadioButton->Create();
-  this->Point3RadioButton->SetText("Identify marker center (RAS):\t\t");
-  this->Point3RadioButton->SetBalloonHelpString("Identify the marker center in the CT/MR image.");
+  // create check button to select the marker center
+  this->Point3CheckButton = vtkKWCheckButton::New();
+  this->Point3CheckButton->SetParent(point3Frame);
+  this->Point3CheckButton->Create();
+  this->Point3CheckButton->SetText("Identify marker center (RAS):\t\t");
+  this->Point3CheckButton->SetBalloonHelpString("Identify the marker center in the CT/MR image.");
   // create entry to hold the R coordinate of the marker center
   this->Point3REntry = vtkKWEntry::New();
   this->Point3REntry->SetParent(point3Frame);
@@ -1439,8 +1438,8 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point3SEntry->SetRestrictValueToDouble();
   this->Point3SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
 
-  // add radio button for the marker center
-  this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point3RadioButton->GetWidgetName());
+  // add check button for the marker center
+  this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point3CheckButton->GetWidgetName());
   // add RAS coordinate entries for the marker center
   this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
                  this->Point3SEntry->GetWidgetName(),
