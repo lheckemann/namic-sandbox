@@ -123,7 +123,6 @@ vtkProstateNavStepTargetingTemplate::vtkProstateNavStepTargetingTemplate()
   this->NeedlePositionMatrix=NULL;
   //this->NeedleOrientationMatrix=NULL;
   this->MoveButton=NULL;
-  this->StopButton=NULL;
 
   this->Message=NULL;
 
@@ -168,7 +167,6 @@ vtkProstateNavStepTargetingTemplate::~vtkProstateNavStepTargetingTemplate()
   DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedlePositionMatrix);
   //DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleOrientationMatrix);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(MoveButton);
-  DELETE_IF_NULL_WITH_SETPARENT_NULL(StopButton);
 
   DELETE_IF_NULL_WITH_SETPARENT_NULL(Message);
 }
@@ -498,22 +496,12 @@ void vtkProstateNavStepTargetingTemplate::ShowTargetControlFrame()
     this->MoveButton = vtkKWPushButton::New();
     this->MoveButton->SetParent (this->TargetControlFrame);
     this->MoveButton->Create();
-    this->MoveButton->SetText("Move");
+    this->MoveButton->SetText("Set");
     this->MoveButton->SetBalloonHelpString("Move the robot to the position");
     }
 
-  if (!this->StopButton)
-    {
-    this->StopButton = vtkKWPushButton::New();
-    this->StopButton->SetParent (this->TargetControlFrame);
-    this->StopButton->Create();
-    this->StopButton->SetText("Stop");
-    this->StopButton->SetBalloonHelpString("Stop the robot");
-    }
-
-  this->Script("pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
-               this->MoveButton->GetWidgetName(),
-               this->StopButton->GetWidgetName());
+  this->Script("pack %s -side left -anchor nw -expand n -padx 2 -pady 2",
+               this->MoveButton->GetWidgetName());
 
 }
 
@@ -568,16 +556,6 @@ void vtkProstateNavStepTargetingTemplate::ProcessGUIEvents(vtkObject *caller,
       }
     }
 
-  // -----------------------------------------------------------------
-  // Stop Button Pressed
-
-  else if (this->StopButton == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-
-    }
-
-  /////////
 
   vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManagerNode();
 
@@ -1038,10 +1016,6 @@ void vtkProstateNavStepTargetingTemplate::AddGUIObservers()
     {
     this->MoveButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
-  if (this->StopButton)
-    {
-    this->StopButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
   if (this->TargetList)
     {
     this->TargetList->GetWidget()->SetCellUpdatedCommand(this, "OnMultiColumnListUpdate");
@@ -1090,10 +1064,6 @@ void vtkProstateNavStepTargetingTemplate::RemoveGUIObservers()
   if (this->MoveButton)
     {
     this->MoveButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->StopButton)
-    {
-    this->StopButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->TargetList)
     {
