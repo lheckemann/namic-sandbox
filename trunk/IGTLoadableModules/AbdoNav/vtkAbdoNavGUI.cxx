@@ -617,49 +617,39 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     // if there is an active radio button
     if (strcmp(activeRadioButton.c_str(), ""))
       {
+      // create an AbdoNavNode if none exists yet
+      vtkMRMLAbdoNavNode* anode = this->CheckAndCreateAbdoNavNode();
+
       // create/retrieve AbdoNav's fiducial list
       vtkMRMLFiducialListNode* fiducialList;
-      if (this->AbdoNavNode == NULL)
+      if (anode->GetRegistrationFiducialListID() == NULL)
         {
-        // no AbdoNavNode present yet, thus display an error message and exit
-        vtkKWMessageDialog::PopupMessage(this->GetApplication(),
-                                         this->GetApplicationGUI()->GetMainSlicerWindow(),
-                                         "AbdoNav",
-                                         "Configure connection first!",
-                                         vtkKWMessageDialog::ErrorIcon);
-        return;
+        // AbdoNav registration fiducial list doesn't exist yet, thus create it
+        fiducialList = vtkMRMLFiducialListNode::New();
+        fiducialList->SetName("AbdoNav-RegistrationFiducialList");
+        fiducialList->SetDescription("Created by AbdoNav");
+        // change default look ("StarBurst2D", 5) since it doesn't really
+        // suit the purpose of needle identification; the user can always
+        // return to the default look using Slicer's Fiducials module
+        fiducialList->SetGlyphTypeFromString("Sphere3D");
+        fiducialList->SetSymbolScale(2); // called "Glyph scale" in the Fiducials module
+        this->GetMRMLScene()->AddNode(fiducialList);
+        fiducialList->Delete();
+        anode->SetRegistrationFiducialListID(fiducialList->GetID());
+        // observe fiducial list in order to update the GUI whenever a fiducial is moved via drag & drop or renamed or renumbered externally via the Fiducials module
+        fiducialList->AddObserver(vtkMRMLFiducialListNode::FiducialModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand);
+        // observe fiducial list in order to update the GUI whenever a fiducial is added externally via the Fiducials module
+        fiducialList->AddObserver(vtkMRMLScene::NodeAddedEvent, (vtkCommand*)this->MRMLCallbackCommand);
+        // observe fiducial list in order to update the GUI whenever a fiducial is removed externally via the Fiducials module
+        fiducialList->AddObserver(vtkMRMLScene::NodeRemovedEvent, (vtkCommand*)this->MRMLCallbackCommand);
+        // observe fiducial list in order to update the GUI whenever all fiducials are removed externally via the Fiducials module
+        fiducialList->AddObserver(vtkCommand::ModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand);
+        // no need to observe vtkMRMLFiducialListNode::DisplayModifiedEvent or vtkMRMLFiducialListNode::FiducialIndexModifiedEvent
         }
       else
         {
-        if (this->AbdoNavNode->GetRegistrationFiducialListID() == NULL)
-          {
-          // AbdoNav registration fiducial list doesn't exist yet, thus create it
-          fiducialList = vtkMRMLFiducialListNode::New();
-          fiducialList->SetName("AbdoNav-RegistrationFiducialList");
-          fiducialList->SetDescription("Created by AbdoNav");
-          // change default look ("StarBurst2D", 5) since it doesn't really
-          // suit the purpose of needle identification; the user can always
-          // return to the default look using Slicer's Fiducials module
-          fiducialList->SetGlyphTypeFromString("Sphere3D");
-          fiducialList->SetSymbolScale(2); // called "Glyph scale" in the Fiducials module
-          this->GetMRMLScene()->AddNode(fiducialList);
-          fiducialList->Delete();
-          this->AbdoNavNode->SetRegistrationFiducialListID(fiducialList->GetID());
-          // observe fiducial list in order to update the GUI whenever a fiducial is moved via drag & drop or renamed or renumbered externally via the Fiducials module
-          fiducialList->AddObserver(vtkMRMLFiducialListNode::FiducialModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand);
-          // observe fiducial list in order to update the GUI whenever a fiducial is added externally via the Fiducials module
-          fiducialList->AddObserver(vtkMRMLScene::NodeAddedEvent, (vtkCommand*)this->MRMLCallbackCommand);
-          // observe fiducial list in order to update the GUI whenever a fiducial is removed externally via the Fiducials module
-          fiducialList->AddObserver(vtkMRMLScene::NodeRemovedEvent, (vtkCommand*)this->MRMLCallbackCommand);
-          // observe fiducial list in order to update the GUI whenever all fiducials are removed externally via the Fiducials module
-          fiducialList->AddObserver(vtkCommand::ModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand);
-          // no need to observe vtkMRMLFiducialListNode::DisplayModifiedEvent or vtkMRMLFiducialListNode::FiducialIndexModifiedEvent
-          }
-        else
-          {
-          // AbdoNav fiducial list already exists, thus retrieve it
-          fiducialList = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
-          }
+        // AbdoNav fiducial list already exists, thus retrieve it
+        fiducialList = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(anode->GetRegistrationFiducialListID()));
         }
 
       // transform XY mouse coordinates into RAS coordinates
