@@ -1065,23 +1065,8 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::UpdateMRMLFromGUI()
 {
-  vtkMRMLAbdoNavNode* node = this->AbdoNavNode;
-  if (node == NULL)
-    {
-    // no AbdoNav node present yet, thus create a new one
-    node = vtkMRMLAbdoNavNode::New();
-    // add the new node to this MRML scene but don't notify:
-    // this way, it is known that a node added event is only
-    // invoked when the user loads a previously saved scene
-    // containing an AbdoNavNode
-    this->GetMRMLScene()->AddNodeNoNotify(node);
-    // set and observe the new node in Logic
-    this->AbdoNavLogic->SetAndObserveAbdoNavNode(node);
-    // set and observe the new node in GUI
-    vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node);
-    // TODO: should this be moved to vtkAbdoNavGUI::~vtkAbdoNavGUI() ?
-    node->Delete();
-   }
+  // create an AbdoNavNode if none exists yet
+  vtkMRMLAbdoNavNode* node = this->CheckAndCreateAbdoNavNode();
 
   // save old node parameters for undo mechanism
   this->AbdoNavLogic->GetMRMLScene()->SaveStateForUndo(node);
@@ -1153,6 +1138,29 @@ void vtkAbdoNavGUI::UpdateGUIFromMRML()
         }
       }
     }
+}
+
+
+//---------------------------------------------------------------------------
+vtkMRMLAbdoNavNode* vtkAbdoNavGUI::CheckAndCreateAbdoNavNode()
+{
+  if (this->AbdoNavNode == NULL)
+    {
+    // no AbdoNav node present yet, thus create a new one
+    vtkMRMLAbdoNavNode* node = vtkMRMLAbdoNavNode::New();
+    // add the new node to this MRML scene but don't notify:
+    // this way, it is known that a node added event is only
+    // invoked when the user loads a previously saved scene
+    // containing an AbdoNavNode
+    this->GetMRMLScene()->AddNodeNoNotify(node);
+    // set and observe the new node in Logic
+    this->AbdoNavLogic->SetAndObserveAbdoNavNode(node);
+    // set and observe the new node in GUI
+    vtkSetAndObserveMRMLNodeMacro(this->AbdoNavNode, node);
+    node->Delete();
+   }
+
+  return this->AbdoNavNode;
 }
 
 
