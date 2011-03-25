@@ -105,6 +105,11 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkMRMLAbdoNavNode* AbdoNavNode;
 
   //----------------------------------------------------------------
+  // Helper function to create an AbdoNavNode if none exists yet.
+  //----------------------------------------------------------------
+  vtkMRMLAbdoNavNode* CheckAndCreateAbdoNavNode();
+
+  //----------------------------------------------------------------
   // Helper functions to build the different GUI frames.
   //----------------------------------------------------------------
   void BuildGUIHelpFrame();
