@@ -53,7 +53,6 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Connection frame.
   //----------------------------------------------------------------
-  this->TrackerTransformSelector = NULL;
   this->TrackingSystemComboBox = NULL;
   this->ResetConnectionPushButton = NULL;
   this->ConfigureConnectionPushButton = NULL;
@@ -61,6 +60,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Registration frame.
   //----------------------------------------------------------------
+  this->TrackerTransformSelector = NULL;
   this->Point1CheckButton = NULL;
   this->Point1REntry = NULL;
   this->Point1AEntry = NULL;
@@ -116,11 +116,6 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Connection frame.
   //----------------------------------------------------------------
-  if (this->TrackerTransformSelector)
-    {
-    this->TrackerTransformSelector->SetParent(NULL);
-    this->TrackerTransformSelector->Delete();
-    }
   if (this->TrackingSystemComboBox)
     {
     this->TrackingSystemComboBox->SetParent(NULL);
@@ -140,6 +135,11 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Registration frame.
   //----------------------------------------------------------------
+  if (this->TrackerTransformSelector)
+    {
+    this->TrackerTransformSelector->SetParent(NULL);
+    this->TrackerTransformSelector->Delete();
+    }
   if (this->Point1CheckButton)
     {
     this->Point1CheckButton->SetParent(NULL);
@@ -1204,34 +1204,9 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
                 connectionFrame->GetWidgetName(),
                 page->GetWidgetName());
 
-  // create labelled frame to hold widgets for specifying the tracking information
-  vtkKWFrameWithLabel* trackerFrame = vtkKWFrameWithLabel::New();
-  trackerFrame->SetParent(connectionFrame->GetFrame());
-  trackerFrame->Create();
-  trackerFrame->SetLabelText("Specify tracking information");
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", trackerFrame->GetWidgetName());
-
-  //----------------------------------------------------------------
-  // Create widgets to specify the tracking information.
-  //----------------------------------------------------------------
-  // create selector to specify the input tracker transform node
-  this->TrackerTransformSelector = vtkSlicerNodeSelectorWidget::New();
-  this->TrackerTransformSelector->SetParent(trackerFrame->GetFrame());
-  this->TrackerTransformSelector->Create();
-  this->TrackerTransformSelector->SetLabelText("Tracker transform node:\t\t");
-  this->TrackerTransformSelector->SetBalloonHelpString("Select the transform node created by OpenIGTLinkIF that holds the tracking data of the current cryoprobe relative to the guidance needle.");
-  this->TrackerTransformSelector->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform"); // filter: only show vtkMRMLLinearTransformNodes
-  this->TrackerTransformSelector->SetMRMLScene(this->GetMRMLScene());
-  this->TrackerTransformSelector->SetNewNodeEnabled(0); // turn off user option to create new linear transform nodes
-  this->TrackerTransformSelector->SetDefaultEnabled(0); // turn off autoselecting nodes
-  this->TrackerTransformSelector->GetWidget()->GetWidget()->IndicatorVisibilityOff(); // don't show indicator
-
-  // add tracker transform selector
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerTransformSelector->GetWidgetName());
-
   // create combo box to specify the tracking system being used
   this->TrackingSystemComboBox = vtkKWComboBoxWithLabel::New();
-  this->TrackingSystemComboBox->SetParent(trackerFrame->GetFrame());
+  this->TrackingSystemComboBox->SetParent(connectionFrame->GetFrame());
   this->TrackingSystemComboBox->Create();
   this->TrackingSystemComboBox->SetLabelText("Tracking system used:\t\t");
   this->TrackingSystemComboBox->SetBalloonHelpString("Select the tracking system being used in order to compensate for different coordinate system definitions.");
@@ -1267,7 +1242,6 @@ void vtkAbdoNavGUI::BuildGUIConnectionFrame()
 
   // clean up
   connectionFrame->Delete();
-  trackerFrame->Delete();
 }
 
 
@@ -1285,6 +1259,31 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                 registrationFrame->GetWidgetName(),
                 page->GetWidgetName());
+
+  // create labelled frame to hold widgets for specifying the tracking information
+  vtkKWFrameWithLabel* trackerFrame = vtkKWFrameWithLabel::New();
+  trackerFrame->SetParent(registrationFrame->GetFrame());
+  trackerFrame->Create();
+  trackerFrame->SetLabelText("Specify tracking information");
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", trackerFrame->GetWidgetName());
+
+  //----------------------------------------------------------------
+  // Create widgets to specify the tracking information.
+  //----------------------------------------------------------------
+  // create selector to specify the input tracker transform node
+  this->TrackerTransformSelector = vtkSlicerNodeSelectorWidget::New();
+  this->TrackerTransformSelector->SetParent(trackerFrame->GetFrame());
+  this->TrackerTransformSelector->Create();
+  this->TrackerTransformSelector->SetLabelText("Tracker transform node:\t\t");
+  this->TrackerTransformSelector->SetBalloonHelpString("Select the transform node created by OpenIGTLinkIF that holds the tracking data of the current cryoprobe relative to the guidance needle.");
+  this->TrackerTransformSelector->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, "LinearTransform"); // filter: only show vtkMRMLLinearTransformNodes
+  this->TrackerTransformSelector->SetMRMLScene(this->GetMRMLScene());
+  this->TrackerTransformSelector->SetNewNodeEnabled(0); // turn off user option to create new linear transform nodes
+  this->TrackerTransformSelector->SetDefaultEnabled(0); // turn off autoselecting nodes
+  this->TrackerTransformSelector->GetWidget()->GetWidget()->IndicatorVisibilityOff(); // don't show indicator
+
+  // add tracker transform selector
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerTransformSelector->GetWidgetName());
 
   // create labelled frame to hold widgets for identifying the guidance needle
   vtkKWFrameWithLabel* guidanceNeedleFrame = vtkKWFrameWithLabel::New();
@@ -1471,6 +1470,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
 
   // clean up
   registrationFrame->Delete();
+  trackerFrame->Delete();
   guidanceNeedleFrame->Delete();
   point1Frame->Delete();
   point2Frame->Delete();
