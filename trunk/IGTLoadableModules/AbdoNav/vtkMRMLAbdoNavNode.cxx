@@ -68,7 +68,7 @@ vtkMRMLAbdoNavNode::~vtkMRMLAbdoNavNode()
 //---------------------------------------------------------------------------
 void vtkMRMLAbdoNavNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  vtkMRMLNode::PrintSelf(os, indent);
+  Superclass::PrintSelf(os, indent);
 
   os << indent << "RelativeTrackingTransformID: " << (this->RelativeTrackingTransformID ? this->RelativeTrackingTransformID : "(none)") << "\n";
   os << indent << "RegistrationTransformID: " << (this->RegistrationTransformID ? this->RegistrationTransformID : "(none)") << "\n";
@@ -81,7 +81,7 @@ void vtkMRMLAbdoNavNode::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 void vtkMRMLAbdoNavNode::ReadXMLAttributes(const char** atts)
 {
-  vtkMRMLNode::ReadXMLAttributes(atts);
+  Superclass::ReadXMLAttributes(atts);
 
   // read all MRML node attributes from two arrays of names and values
   const char* attName;
