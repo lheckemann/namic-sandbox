@@ -100,7 +100,7 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   ///  - the guidance needle tip
   ///  - a second point on the guidance needle
   ///  - the marker center
-  /// used for registration.
+  /// used for needle-based registration.
   char* RegistrationFiducialListID;
   /// Identifier of the fiducial list holding the RAS coordinates of the targets.
   char* TargetFiducialListID;
