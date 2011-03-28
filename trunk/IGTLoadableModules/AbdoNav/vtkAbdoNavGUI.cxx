@@ -1474,6 +1474,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   guidanceNeedleFrame->Delete();
   point1Frame->Delete();
   point2Frame->Delete();
+  point3Frame->Delete();
 }
 
 
