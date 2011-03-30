@@ -1,12 +1,5 @@
-set DEFREGEVAL_BIN_DIR=c:/devel/DefRegEval-bin/bin/Release
-set SLICER_BIN_DIR=C:/devel/Slicer-3.6/Slicer3-build
-set INPUT_DATA_DIR=c:/MedicalImages/APT-MRI/20110330_SliceToVolSimulation/inputs
-set RESULT_DATA_DIR=c:\MedicalImages\APT-MRI\20110330_SliceToVolSimulation\results
-
 REM Remember the home directory to return there after script completion
 set HOME_DIR=%CD%
-REM Slicer paths define ITK and VTK paths. Add them to the system path only once (checked by verifying that the Slicer-added TCLLIBPATH variable is present alrady or not)  
-if not defined TCLLIBPATH call %SLICER_BIN_DIR%/bin/release/Slicer3SetupPaths.bat
 
 goto :case7
 
