@@ -123,8 +123,12 @@ INCLUDE_DIRECTORIES(
 INCLUDE (FindThreads)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-  SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -w")
-  SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -ftemplate-depth-50")
+
+  # '-fno-tree-vectorize' option is added to avoid segmentation fault that occurs in
+  # igtl_image_convert_byte_order() (Source/igtlutil/igtl_image.c) built with 'Release'
+  # option on 64-bit Linux. 
+  SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -w -fno-tree-vectorize")
+  SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -ftemplate-depth-50 -fno-tree-vectorize")
 
   # If the library is built as a static library, pass -fPIC option to the compiler
   IF(OpenIGTLink_BUILD_GENERATE_PIC)

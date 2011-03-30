@@ -140,6 +140,12 @@ void igtl_export igtl_image_convert_byte_order(igtl_image_header * header)
       }
 
     tmp = (igtl_uint32*)(header->matrix);
+
+    /* 
+     * TODO: The following loop may cause segmentation fault, when it is compiled
+     * with '-ftree-vectorize' optimization option on 64-bit Linux.
+     * ('-ftree-vectorize' becomes active, when '-O3' optimization is specified.)
+     */
     for (i = 0; i < 12; i ++) 
       {
       tmp[i] = BYTE_SWAP_INT32(tmp[i]);
