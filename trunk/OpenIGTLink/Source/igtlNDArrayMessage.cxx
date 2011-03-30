@@ -211,18 +211,24 @@ int NDArrayMessage::PackBody()
 
   ArrayBase::IndexType size = this->m_Array->GetSize();
 
-#if defined(_WIN32)
   igtl_uint16 * s = new igtl_uint16[info.dim];
   for (int i = 0; i < info.dim; i ++)
     {
     s[i] = size[i];
     }
-#else
-  if (igtl_ndarray_alloc_info(&info, size.data()) == 0)
+  int r = igtl_ndarray_alloc_info(&info, s);
+  delete s;
+
+  if (r == 0)
     {
     return 0;
     }
-#endif
+
+// size.data() doesn't work for some environtments (MacOS X 10.5 and Win32, as far as I know)
+//  if (igtl_ndarray_alloc_info(&info, size.data()) == 0)
+//    {
+//    return 0;
+//    }
 
   memcpy(info.array, this->m_Array->GetRawArray(), this->m_Array->GetRawArraySize());
   igtl_ndarray_pack(&info, this->m_Body, IGTL_TYPE_PREFIX_NONE);
