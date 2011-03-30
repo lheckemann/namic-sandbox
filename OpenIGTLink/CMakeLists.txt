@@ -127,8 +127,12 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   # '-fno-tree-vectorize' option is added to avoid segmentation fault that occurs in
   # igtl_image_convert_byte_order() (Source/igtlutil/igtl_image.c) built with 'Release'
   # option on 64-bit Linux. 
-  SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -w -fno-tree-vectorize")
-  SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -ftemplate-depth-50 -fno-tree-vectorize")
+  INCLUDE (CheckCXXCompilerFlag)
+  CHECK_CXX_COMPILER_FLAG("-fno-tree-vectorize" OpenIGTLink_GNUCXX_TREE_VECTORIZE_SUPPORT)
+  IF (OpenIGTLink_GNUCXX_TREE_VECTORIZE_SUPPORT)
+    SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -w -fno-tree-vectorize")
+    SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -ftemplate-depth-50 -fno-tree-vectorize")
+  ENDIF (OpenIGTLink_GNUCXX_TREE_VECTORIZE_SUPPORT)
 
   # If the library is built as a static library, pass -fPIC option to the compiler
   IF(OpenIGTLink_BUILD_GENERATE_PIC)
