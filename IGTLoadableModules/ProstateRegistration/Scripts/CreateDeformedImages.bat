@@ -1,9 +1,9 @@
 REM Remember the home directory to return there after script completion
 set HOME_DIR=%CD%
 
-goto :case7
+goto :case07
 
-:case1
+:case01
 REM ---------------------------------------------------------
 SET CASENO=01
 mkdir %RESULT_DATA_DIR%\%CASENO%
@@ -15,7 +15,7 @@ chdir /d %RESULT_DATA_DIR%\%CASENO%
 %DEFREGEVAL_BIN_DIR%/GetDeformedImage.exe --inputModel=DeformImage-FemDeform.plt --referenceImage=%INPUT_DATA_DIR%/DefRegEvalSampleData/B2_PreOp.mha --outputImage=DeformImage-B2_IntraOpSeg.mha --outputFullImage=DeformImage-B2_IntraOp.mha --outputDeformationFieldImage=DeformImage-B2_IntraOpDefField.mha --outputVolumeMesh=DeformImage-B2_IntraOpVolumeMesh.vtu
 REM ---------------------------------------------------------
 
-:case2
+:case02
 REM ---------------------------------------------------------
 SET CASENO=02
 mkdir %RESULT_DATA_DIR%\%CASENO%
@@ -27,7 +27,7 @@ chdir /d %RESULT_DATA_DIR%\%CASENO%
 %DEFREGEVAL_BIN_DIR%/GetDeformedImage.exe --inputModel=DeformImage-FemDeform.plt --referenceImage=%INPUT_DATA_DIR%/DefRegEvalSampleData/B2_PreOp.mha --outputImage=DeformImage-B2_IntraOpSeg.mha --outputFullImage=DeformImage-B2_IntraOp.mha --outputDeformationFieldImage=DeformImage-B2_IntraOpDefField.mha --outputVolumeMesh=DeformImage-B2_IntraOpVolumeMesh.vtu
 REM ---------------------------------------------------------
 
-:case3
+:case03
 REM ---------------------------------------------------------
 SET CASENO=03
 mkdir %RESULT_DATA_DIR%\%CASENO%
@@ -39,7 +39,7 @@ chdir /d %RESULT_DATA_DIR%\%CASENO%
 %DEFREGEVAL_BIN_DIR%/GetDeformedImage.exe --inputModel=DeformImage-FemDeform.plt --referenceImage=%INPUT_DATA_DIR%/DefRegEvalSampleData/B2_PreOp.mha --outputImage=DeformImage-B2_IntraOpSeg.mha --outputFullImage=DeformImage-B2_IntraOp.mha --outputDeformationFieldImage=DeformImage-B2_IntraOpDefField.mha --outputVolumeMesh=DeformImage-B2_IntraOpVolumeMesh.vtu
 REM ---------------------------------------------------------
 
-:case4
+:case04
 REM ---------------------------------------------------------
 SET CASENO=04
 mkdir %RESULT_DATA_DIR%\%CASENO%
@@ -51,7 +51,7 @@ chdir /d %RESULT_DATA_DIR%\%CASENO%
 %DEFREGEVAL_BIN_DIR%/GetDeformedImage.exe --inputModel=DeformImage-FemDeform.plt --referenceImage=%INPUT_DATA_DIR%/DefRegEvalSampleData/B2_PreOp.mha --outputImage=DeformImage-B2_IntraOpSeg.mha --outputFullImage=DeformImage-B2_IntraOp.mha --outputDeformationFieldImage=DeformImage-B2_IntraOpDefField.mha --outputVolumeMesh=DeformImage-B2_IntraOpVolumeMesh.vtu
 REM ---------------------------------------------------------
 
-:case5
+:case05
 REM ---------------------------------------------------------
 SET CASENO=05
 mkdir %RESULT_DATA_DIR%\%CASENO%
@@ -63,7 +63,7 @@ chdir /d %RESULT_DATA_DIR%\%CASENO%
 %DEFREGEVAL_BIN_DIR%/GetDeformedImage.exe --inputModel=DeformImage-FemDeform.plt --referenceImage=%INPUT_DATA_DIR%/DefRegEvalSampleData/B2_PreOp.mha --outputImage=DeformImage-B2_IntraOpSeg.mha --outputFullImage=DeformImage-B2_IntraOp.mha --outputDeformationFieldImage=DeformImage-B2_IntraOpDefField.mha --outputVolumeMesh=DeformImage-B2_IntraOpVolumeMesh.vtu
 REM ---------------------------------------------------------
 
-:case6
+:case06
 REM ---------------------------------------------------------
 SET CASENO=06
 mkdir %RESULT_DATA_DIR%\%CASENO%
@@ -77,7 +77,7 @@ REM ---------------------------------------------------------
 
 
 
-:case7
+:case07
 REM ---------------------------------------------------------
 SET CASENO=07
 mkdir %RESULT_DATA_DIR%\%CASENO%
@@ -89,7 +89,7 @@ chdir /d %RESULT_DATA_DIR%\%CASENO%
 %DEFREGEVAL_BIN_DIR%/GetDeformedImage.exe --inputModel=DeformImage-FemDeform.plt --referenceImage=%INPUT_DATA_DIR%/DefRegEvalSampleData/B2_PreOp.mha --outputImage=DeformImage-B2_IntraOpSeg.mha --outputFullImage=DeformImage-B2_IntraOp.mha --outputDeformationFieldImage=DeformImage-B2_IntraOpDefField.mha --outputVolumeMesh=DeformImage-B2_IntraOpVolumeMesh.vtu
 REM ---------------------------------------------------------
 
-:case8
+:case08
 REM ---------------------------------------------------------
 SET CASENO=08
 mkdir %RESULT_DATA_DIR%\%CASENO%
@@ -101,7 +101,7 @@ chdir /d %RESULT_DATA_DIR%\%CASENO%
 %DEFREGEVAL_BIN_DIR%/GetDeformedImage.exe --inputModel=DeformImage-FemDeform.plt --referenceImage=%INPUT_DATA_DIR%/DefRegEvalSampleData/B2_PreOp.mha --outputImage=DeformImage-B2_IntraOpSeg.mha --outputFullImage=DeformImage-B2_IntraOp.mha --outputDeformationFieldImage=DeformImage-B2_IntraOpDefField.mha --outputVolumeMesh=DeformImage-B2_IntraOpVolumeMesh.vtu
 REM ---------------------------------------------------------
 
-:case9
+:case09
 REM ---------------------------------------------------------
 SET CASENO=09
 mkdir %RESULT_DATA_DIR%\%CASENO%
