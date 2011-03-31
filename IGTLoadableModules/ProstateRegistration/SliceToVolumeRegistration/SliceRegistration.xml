@@ -40,7 +40,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
     </image>
 
     <image>
-      <name>ResampledRigidMovingImageFileName</name>
+      <name>ResampledRigidMovingImageFilename</name>
       <longflag>resampledRigidMovingImage</longflag>
       <label>Output rigid resampled volume</label>
       <channel>output</channel>
@@ -105,7 +105,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
     </double>
 
     <image>
-      <name>ResampledDefMovingImageFileName</name>
+      <name>ResampledDefMovingImageFilename</name>
       <longflag>resampledDefMovingImage</longflag>
       <label>Output deformable resampled volume</label>
       <channel>output</channel>
@@ -122,11 +122,81 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
     
     <image>
       <name>DefFieldImageFilename</name>
-      <longflag>defFieldImageFilename</longflag>
+      <longflag>defFieldImage</longflag>
       <label>Output deformable deformation field</label>
       <channel>output</channel>
       <description>Deformation field. Optional.</description>
     </image>
+
+  </parameters>
+
+  <parameters>
+    <label>Metric testing</label>
+    <description>Parameters used for metric testing</description>
+    
+    <boolean>
+      <name>EnableMetricTesting</name>
+      <longflag>metricTesting</longflag>
+      <label>Enable metric testing</label>
+      <description>Enable testing the metric by testing the effect of changing each parameter of the rigid transform and writing the metric result in a file.</description>
+      <default>false</default>
+    </boolean>
+
+    <double-vector>
+      <name>minimumStepLength</name>
+      <longflag deprecatedalias="minimumStepSize">minimumStepLength</longflag>
+      <label>Minimum Step Length</label>
+      <description>Each step in the optimization takes steps at least this big.  When none are possible, registration is complete.</description>
+      <default>0.005</default>
+    </double-vector>
+
+    <double-vector>
+      <name>MetricTestTranslationRange</name>
+      <longflag>metricTestTranslationRange</longflag>
+      <label>Translation range (mm)</label>
+      <description>The metric will be tested in the range x1, x2, y1, y2, z1, z2.</description>
+      <default>-20,20,-20,20,-20,20</default>
+    </double-vector>
+
+    <integer-vector>
+      <name>MetricTestTranslationResolution</name>
+      <longflag>metricTestTranslationResolution</longflag>
+      <description>Number of test samples taken along the translation range.</description>
+      <label>Translation range resolution</label>
+      <default>10,10,10</default>
+    </integer-vector>
+
+    <string>
+      <name>MetricTestOutputTranslationFilename</name>
+      <longflag>metricTestOutputTranslation</longflag>
+      <label>Output translation image filename</label>
+      <description>Name of the metric test output file for translation</description>
+      <default>MetricTestOutputTranslation.mha</default>
+    </string>
+
+    <double-vector>
+      <name>MetricTestRotationRange</name>
+      <longflag>metricTestRotationRange</longflag>
+      <label>Rotation range (deg)</label>
+      <description>The metric will be tested in the range rx1, rx2, ry1, ry2, rz1, rz2.</description>
+      <default>-10,10,-10,10,-10,10</default>
+    </double-vector>
+
+    <integer-vector>
+      <name>MetricTestRotationResolution</name>
+      <longflag>metricTestRotationResolution</longflag>
+      <description>Number of test samples taken along the translation range.</description>
+      <label>Rotation range resolution</label>
+      <default>10,10,10</default>
+    </integer-vector>
+  
+    <string>
+      <name>MetricTestOutputRotationFilename</name>
+      <longflag>metricTestOutputRotation</longflag>
+      <label>Output rotation image filename</label>
+      <description>Name of the metric test output file for rotation</description>
+      <default>MetricTestOutputRotation.mha</default>
+    </string>
 
   </parameters>
 

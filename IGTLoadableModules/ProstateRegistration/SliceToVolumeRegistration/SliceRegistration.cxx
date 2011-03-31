@@ -52,6 +52,8 @@
 
 #include "itkLBFGSBOptimizer.h"
 
+#include "ConvertToRigidAffine.h"
+
 /////////////////////////
 
 const unsigned int    ImageDimension = 3;
@@ -238,6 +240,194 @@ void WriteFieldImage(const char *fieldImageFilename, FixedImageType::Pointer fix
 }
 
 
+
+// Generate the explicit deformation field resulting from the registration.
+enum MetricTestEnum
+{
+  TRANSLATION,
+  ROTATION
+};
+template <typename metricType>
+void WriteMetricTestResult(const char *outputFilename, MetricTestEnum testType, metricType metric, TransformType::Pointer inputTransform, std::vector<double> &rangeExtent, std::vector<int> &rangeSize)
+{
+  const unsigned int MetricOutputImageDimension = 3;
+  typedef float MetricOutputImagePixelType;
+  typedef itk::Image<MetricOutputImagePixelType, MetricOutputImageDimension> MetricOutputImageType;
+
+  typedef itk::AffineTransform<double> MetricTestTransformType;
+  MetricTestTransformType::Pointer transform = MetricTestTransformType::New();
+  const TransformType::ConstPointer constInputTransform = dynamic_cast<TransformType const *const>(inputTransform.GetPointer());
+  AssignRigid::AssignConvertedTransform(transform, constInputTransform);
+  std::cout << "Center: " << transform->GetCenter() << std::endl;
+
+  // initialize the interpolator
+  metric->SetTransform( transform );
+  std::cout << "Before initialize metric" << std::endl;
+  try 
+  {
+    metric->Initialize();
+  }
+  catch( itk::ExceptionObject & excep )
+  {
+    std::cerr << "Exception catched !" << std::endl;
+    std::cerr << excep << std::endl;
+    exit (EXIT_FAILURE);
+  }
+  std::cout << "Done" << std::endl;
+
+  MetricTestTransformType::ParametersType parameters;
+  parameters = transform->GetParameters();
+  std::cout << "Translation: " << parameters[9] << ", " << parameters[10] << ", " << parameters[11] << std::endl;
+  std::cout << "Center: " << transform->GetCenter() << std::endl;
+
+/*  double transformRange[2]={-maxRange, maxRange};
+  double transformIncrement=(transformRange[1]-transformRange[0])/(numberOfSamples-1);
+
+  if (testType==TRANSLATION)
+  {
+    std::cout << "Translation range: " << transformRange[0] << " to " << transformRange[1] << " mm, increment " << transformIncrement << " mm" << std::endl;
+  } 
+  else
+  {
+    std::cout << "Rotation range: " << transformRange[0] << " to " << transformRange[1] << " deg, increment " << transformIncrement << " deg" << std::endl;
+  }
+  std::cout << "Number of samples along each dimension: " << numberOfSamples << std::endl;
+*/
+
+  // store the output of the metric test in 3D volumes (one for translation, one for rotation)
+  MetricOutputImageType::Pointer outputImage = MetricOutputImageType::New();  
+  MetricOutputImageType::RegionType outputImageRegion;
+  outputImageRegion.SetIndex(0,0);
+  outputImageRegion.SetIndex(1,0);
+  outputImageRegion.SetIndex(2,0);
+  MetricOutputImageType::SizeType outputImageSize;
+  outputImageSize[0]=rangeSize[0];
+  outputImageSize[1]=rangeSize[1];
+  outputImageSize[2]=rangeSize[2];
+  outputImageRegion.SetSize(outputImageSize);
+  outputImage->SetLargestPossibleRegion(outputImageRegion);
+  outputImage->SetBufferedRegion(outputImageRegion);
+  MetricOutputImageType::PointType outputImageOrigin;
+  outputImageOrigin[0]=rangeExtent[0];
+  outputImageOrigin[1]=rangeExtent[2];
+  outputImageOrigin[2]=rangeExtent[4];  
+  outputImage->SetOrigin(outputImageOrigin);
+  MetricOutputImageType::SpacingType outputImageSpacing;
+  outputImageSpacing[0]=1;
+  if (rangeSize[0]>1)
+  {
+    outputImageSpacing[0]=(rangeExtent[1]-rangeExtent[0])/(rangeSize[0]-1);
+  }
+  outputImageSpacing[1]=1;
+  if (rangeSize[1]>1)
+  {
+    outputImageSpacing[1]=(rangeExtent[3]-rangeExtent[2])/(rangeSize[1]-1);
+  }
+  outputImageSpacing[2]=1;
+  if (rangeSize[2]>1)
+  {
+    outputImageSpacing[2]=(rangeExtent[5]-rangeExtent[4])/(rangeSize[2]-1);
+  }
+  outputImage->SetSpacing(outputImageSpacing);
+  outputImage->Allocate();
+
+  MetricTestTransformType::Pointer tmpTransform = MetricTestTransformType::New();
+  MetricTestTransformType::ParametersType tmpParameters = tmpTransform->GetParameters();       
+  double d1=0;
+  double d2=0;
+  double d3=0;
+
+  typedef itk::ImageRegionIterator< MetricOutputImageType > MetricOutputImageIterator;
+
+  MetricOutputImageIterator outputImageIt( outputImage, outputImageRegion );
+  outputImageIt.GoToBegin();
+  MetricOutputImageType::IndexType tindex;
+  MetricOutputImageType::PointType tpoint;  
+  while( ! outputImageIt.IsAtEnd() )
+  {
+    tindex = outputImageIt.GetIndex();
+    outputImage->TransformIndexToPhysicalPoint( tindex, tpoint );
+
+    d1=tpoint[0];
+    d2=tpoint[1];
+    d3=tpoint[2];
+
+    for(int i=0;i<12;i++)
+    {
+      tmpParameters[i] = parameters[i];
+    }
+    tmpTransform->SetIdentity();
+    tmpTransform->SetCenter(transform->GetCenter());      
+    tmpTransform->SetParameters(tmpParameters); // initially the same parameters
+
+    if (testType==TRANSLATION)
+    {
+      tmpParameters[9] = parameters[9]+d1; 
+      tmpParameters[10] = parameters[10]+d2; 
+      tmpParameters[11] = parameters[11]+d3;  
+      tmpTransform->SetParameters(tmpParameters);
+    }
+    else
+    {
+      float a1 = d1*vnl_math::pi/180.0;
+      float a2 = d2*vnl_math::pi/180.0;
+      float a3 = d3*vnl_math::pi/180.0;
+      tmpTransform->Rotate(1, 2, a1);
+      tmpTransform->Rotate(0, 2, a2);
+      tmpTransform->Rotate(0, 1, a3);
+    }
+
+    tmpParameters = tmpTransform->GetParameters();       
+    double metricValue = 0;
+    try
+    {      
+      metricValue = -metric->GetValue( tmpParameters ); // invert it to make the optimum appear as a peak (it looks better when visualized as surface)
+    } 
+    catch(itk::ExceptionObject& e)
+    {
+      std::cout << "Exception caught while computing the metric: " << e << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    outputImageIt.Set(metricValue);
+    
+    if (testType==TRANSLATION)
+    {
+      std::cout << "translation " << d1 << " " << d2 << " " << d3 << " " << metricValue << std::endl;
+    }
+    else
+    {
+      std::cout << "rotation " << d1 << " " << d2 << " " << d3 << " " << metricValue << std::endl;
+    }
+
+    ++outputImageIt;
+  }  
+
+  typedef itk::ImageFileWriter< MetricOutputImageType >  WriterType;
+  WriterType::Pointer      writer =  WriterType::New();
+  writer->SetFileName( outputFilename );
+  writer->SetInput( outputImage );
+  writer->SetUseCompression(0); // to allow loading into ParaView
+
+  try
+  {
+    writer->Update();
+  }
+  catch( itk::ExceptionObject & err ) 
+  { 
+    std::cerr << "ExceptionObject caught !" << std::endl; 
+    std::cerr << err << std::endl; 
+    exit(EXIT_FAILURE);
+  }
+
+}
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main( int argc, char *argv[] )
 {
   PARSE_ARGS;
@@ -359,6 +549,8 @@ int main( int argc, char *argv[] )
 
   const double blurVariance=0.0; // it worked robustly with 2.0
 
+  std::cout << "Blur variance: " << blurVariance << std::endl;
+
   BlurType::Pointer blur = BlurType::New();
   blur->SetInput(movingImageReader->GetOutput());
   blur->SetVariance(blurVariance);
@@ -400,7 +592,7 @@ int main( int argc, char *argv[] )
   optimizer->SetMaximumStepLength( 0.2000  ); 
   optimizer->SetMinimumStepLength( 0.0001 );
 
-  optimizer->SetNumberOfIterations( 400 );
+  optimizer->SetNumberOfIterations( 200 );
 
 
   // Create the Command observer and register it with the optimizer.
@@ -480,11 +672,11 @@ int main( int argc, char *argv[] )
   }
 
   // Write deformed image
-  if (ResampledRigidMovingImageFileName != "")
+  if (ResampledRigidMovingImageFilename != "")
   {
     // movingImage it was blurred, so read it again to get the oriignal
     collector.Start( "Resample deformed moving image" );
-    WriteResampledImage(ResampledRigidMovingImageFileName.c_str(), fixedImage, movingImageReader->GetOutput(), transform, CLPProcessInformation);
+    WriteResampledImage(ResampledRigidMovingImageFilename.c_str(), fixedImage, movingImageReader->GetOutput(), transform, CLPProcessInformation);
     collector.Stop( "Resample deformed moving image" );
   }
   // Write deformation field
@@ -493,6 +685,13 @@ int main( int argc, char *argv[] )
     collector.Start( "Write deformation field" );    
     WriteFieldImage<TransformType::Pointer>(RigidFieldImageFilename.c_str(), fixedImage, transform);
     collector.Stop( "Write deformation field" );
+  }
+
+
+  if (EnableMetricTesting)
+  {
+    WriteMetricTestResult<MetricType::Pointer>(MetricTestOutputTranslationFilename.c_str(), TRANSLATION, metric, transform, MetricTestTranslationRange, MetricTestTranslationResolution);
+    WriteMetricTestResult<MetricType::Pointer>(MetricTestOutputRotationFilename.c_str(), ROTATION, metric, transform, MetricTestRotationRange, MetricTestRotationResolution);
   }
 
 
@@ -740,11 +939,11 @@ int main( int argc, char *argv[] )
     }
 
   // Write deformed image
-  if (ResampledDefMovingImageFileName != "")
+  if (ResampledDefMovingImageFilename != "")
   {
     // movingImage it was blurred, so read it again to get the oriignal
     collector.Start( "Resample deformed moving image" );
-    WriteResampledImage(ResampledDefMovingImageFileName.c_str(), fixedImage, movingImageReader->GetOutput(), defTransform, CLPProcessInformation);
+    WriteResampledImage(ResampledDefMovingImageFilename.c_str(), fixedImage, movingImageReader->GetOutput(), defTransform, CLPProcessInformation);
     collector.Stop( "Resample deformed moving image" );
   }
   // Write deformation field
