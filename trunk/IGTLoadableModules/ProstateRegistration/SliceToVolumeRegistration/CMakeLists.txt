@@ -2,11 +2,14 @@ cmake_minimum_required(VERSION 2.4)
 
 PROJECT( SliceToVolumeRegistration )
 
+SET(BUILD_AGAINST_SLICER3 ON) 
+
 #------------------Setup slicer builds.
 IF(BUILD_AGAINST_SLICER3)
+  MESSAGE("Build against Slicer3")
   FIND_PACKAGE(Slicer3 REQUIRED)
   IF (Slicer3_FOUND)
-    INCLUDE(${Slicer3_USE_FILE})
+    INCLUDE(${Slicer3_USE_FILE})    
   ELSE (Slicer3_FOUND)
     MESSAGE(FATAL_ERROR "Cannot build without a Slicer3 build tree or a Slicer3 installation. Please set Slicer3_DIR.")
   ENDIF (Slicer3_FOUND)

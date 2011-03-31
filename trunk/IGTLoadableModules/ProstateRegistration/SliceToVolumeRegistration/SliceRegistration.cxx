@@ -50,8 +50,22 @@
 #include "itkTimeProbesCollectorBase.h"
 #include "itkPluginFilterWatcher.h"
 
-
 #include "itkLBFGSBOptimizer.h"
+
+/////////////////////////
+
+const unsigned int    ImageDimension = 3;
+typedef float           PixelType;
+typedef itk::Vector<PixelType, ImageDimension> VectorPixelType;
+
+typedef itk::Image< PixelType, ImageDimension >  FixedImageType;
+typedef itk::Image< PixelType, ImageDimension >  MovingImageType;
+typedef itk::Image< unsigned char, ImageDimension >  MaskImageType;
+
+typedef itk::ResampleImageFilter<MovingImageType, FixedImageType>    ResampleFilterType;
+typedef itk::VersorRigid3DTransform< double > TransformType;
+
+////////////////////////
 
 //  The following section of code implements a Command observer
 //  that will monitor the evolution of the registration process.
@@ -136,6 +150,93 @@ public:
     }
 };
 
+// Resample to the original coordinate frame (not the reoriented
+// axial coordinate frame) of the fixed image
+// Generate the explicit deformation field resulting from the registration.
+template <typename transformType>
+void WriteResampledImage(const char *resampledImageFilename, FixedImageType::Pointer fixedImage, MovingImageType::Pointer movingImage, transformType transform, ModuleProcessInformation *CLPProcessInformation)
+{  
+  ResampleFilterType::Pointer resample = ResampleFilterType::New();        
+
+  const double DefaultPixelValue=0;
+  resample->SetTransform        ( transform );
+  
+  resample->SetInput            ( movingImage );    
+  resample->SetDefaultPixelValue( DefaultPixelValue );
+  resample->SetOutputParametersFromImage ( fixedImage );
+
+  itk::PluginFilterWatcher watcher(resample,"Resample",CLPProcessInformation,1.0/3.0, 2.0/3.0);
+  resample->Update();
+
+  typedef itk::ImageFileWriter< FixedImageType >  WriterType;
+  WriterType::Pointer      writer =  WriterType::New();
+  writer->SetFileName( resampledImageFilename );
+  writer->SetInput( resample->GetOutput()   );
+  writer->SetUseCompression(0); // to allow loading into ParaView
+
+  try
+  {
+    writer->Update();
+  }
+  catch( itk::ExceptionObject & err ) 
+  { 
+    std::cerr << "ExceptionObject caught !" << std::endl; 
+    std::cerr << err << std::endl; 
+    exit(EXIT_FAILURE);
+  }
+}
+
+// Generate the explicit deformation field resulting from the registration.
+template <typename transformType>
+void WriteFieldImage(const char *fieldImageFilename, FixedImageType::Pointer fixedImage, transformType transform)
+{  
+  typedef itk::Image<VectorPixelType,  ImageDimension> DeformationFieldType; 
+
+  DeformationFieldType::Pointer deformationField = DeformationFieldType::New();
+  deformationField->SetRegions( fixedImage->GetBufferedRegion() );
+  deformationField->SetOrigin( fixedImage->GetOrigin() );
+  deformationField->SetSpacing( fixedImage->GetSpacing() );
+  deformationField->SetDirection( fixedImage->GetDirection() );
+  deformationField->Allocate();
+
+  typedef itk::ImageRegionIterator< DeformationFieldType > FieldIterator;
+  FieldIterator fi( deformationField, fixedImage->GetBufferedRegion() );
+
+  fi.GoToBegin();
+
+  TransformType::InputPointType  fixedPoint;
+  TransformType::OutputPointType movingPoint;
+  DeformationFieldType::IndexType index;
+
+  VectorPixelType displacement;
+
+  while( ! fi.IsAtEnd() )
+  {
+    index = fi.GetIndex();
+    deformationField->TransformIndexToPhysicalPoint( index, fixedPoint );
+    movingPoint = transform->TransformPoint( fixedPoint );
+    displacement = movingPoint - fixedPoint;
+    fi.Set( displacement );
+    ++fi;
+  }
+
+  // Write to file
+  typedef itk::ImageFileWriter< DeformationFieldType >  FieldWriterType;
+  FieldWriterType::Pointer fieldWriter = FieldWriterType::New();
+  fieldWriter->SetInput( deformationField );
+  fieldWriter->SetFileName( fieldImageFilename );
+  try
+  {
+    fieldWriter->Update();
+  }
+  catch( itk::ExceptionObject & excp )
+  {
+    std::cerr << "Exception thrown " << std::endl;
+    std::cerr << excp << std::endl;
+    exit(EXIT_FAILURE);
+  }
+}
+
 
 int main( int argc, char *argv[] )
 {
@@ -144,14 +245,8 @@ int main( int argc, char *argv[] )
   // Add a time probe
   itk::TimeProbesCollectorBase collector;
 
-  const    unsigned int    Dimension = 3;
-  typedef  float           PixelType;
 
-  typedef itk::Image< PixelType, Dimension >  FixedImageType;
-  typedef itk::Image< PixelType, Dimension >  MovingImageType;
-  typedef itk::Image< unsigned char, Dimension >  MaskImageType;
 
-  typedef itk::VersorRigid3DTransform< double > TransformType;
 
   typedef itk::VersorRigid3DTransformOptimizer           OptimizerType;
 
@@ -208,7 +303,9 @@ int main( int argc, char *argv[] )
   MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
   MaskReaderType::Pointer maskImageReader = MaskReaderType::New();
 
-  fixedImageReader->SetFileName( sliceImageName.c_str() );
+  collector.Start( "Read input images" );
+
+  fixedImageReader->SetFileName( SliceImageFilename.c_str() );
   try
   {
     fixedImageReader->Update();
@@ -220,7 +317,7 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
   } 
 
-  movingImageReader->SetFileName( volumeImageName.c_str() );
+  movingImageReader->SetFileName( VolumeImageFilename.c_str() );
   try
   {
     movingImageReader->Update();
@@ -232,10 +329,10 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
   } 
 
-  if (!volumeMaskImageName.empty())
+  if (!VolumeMaskImageFilename.empty())
   {
     std::cout << "Mask is used" << std::endl;
-    maskImageReader->SetFileName( volumeMaskImageName.c_str() );
+    maskImageReader->SetFileName( VolumeMaskImageFilename.c_str() );
     try
     {
       maskImageReader->Update();
@@ -255,12 +352,16 @@ int main( int argc, char *argv[] )
   {
     std::cout << "Mask is not used" << std::endl;
   }
+  
+  collector.Stop( "Read input images" );
 
   registration->SetFixedImage(    fixedImageReader->GetOutput()    );
 
+  const double blurVariance=0.0; // it worked robustly with 2.0
+
   BlurType::Pointer blur = BlurType::New();
   blur->SetInput(movingImageReader->GetOutput());
-  blur->SetVariance(2.0);
+  blur->SetVariance(blurVariance);
   blur->Update();
 
   MovingImageType::Pointer movingImage = blur->GetOutput();
@@ -268,8 +369,7 @@ int main( int argc, char *argv[] )
 
   registration->SetMovingImage(   blur->GetOutput()   );
 
-  registration->SetFixedImageRegion( 
-     fixedImageReader->GetOutput()->GetBufferedRegion() );
+  registration->SetFixedImageRegion( fixedImageReader->GetOutput()->GetBufferedRegion() );
  
   transform->SetIdentity();
   registration->SetInitialTransformParameters( transform->GetParameters() );
@@ -311,10 +411,14 @@ int main( int argc, char *argv[] )
 
   try 
     { 
-    registration->StartRegistration(); 
+    collector.Start( "Rigid registration" );
+    registration->Update(); 
+    collector.Stop( "Rigid registration" );
+    
     std::cout << "Optimizer stop condition: "
               << registration->GetOptimizer()->GetStopConditionDescription()
               << std::endl;
+    
     } 
   catch( itk::ExceptionObject & err ) 
     { 
@@ -357,12 +461,12 @@ int main( int argc, char *argv[] )
   TransformType::MatrixType matrix = transform->GetRotationMatrix();
   TransformType::OffsetType offset = transform->GetOffset();
 
-  if (resultTransformName != "")
+  if (RigidTransformFilename != "")
   {
     typedef itk::TransformFileWriter TransformWriter;
     TransformWriter::Pointer tfmWriter = TransformWriter::New();
     tfmWriter->SetInput(transform);
-    tfmWriter->SetFileName( resultTransformName.c_str() );
+    tfmWriter->SetFileName( RigidTransformFilename.c_str() );
     try
     {
       tfmWriter->Update();
@@ -374,6 +478,23 @@ int main( int argc, char *argv[] )
       return EXIT_FAILURE;
     }
   }
+
+  // Write deformed image
+  if (ResampledRigidMovingImageFileName != "")
+  {
+    // movingImage it was blurred, so read it again to get the oriignal
+    collector.Start( "Resample deformed moving image" );
+    WriteResampledImage(ResampledRigidMovingImageFileName.c_str(), fixedImage, movingImageReader->GetOutput(), transform, CLPProcessInformation);
+    collector.Stop( "Resample deformed moving image" );
+  }
+  // Write deformation field
+  if (RigidFieldImageFilename != "")
+  {
+    collector.Start( "Write deformation field" );    
+    WriteFieldImage<TransformType::Pointer>(RigidFieldImageFilename.c_str(), fixedImage, transform);
+    collector.Stop( "Write deformation field" );
+  }
+
 
 #if 0 // calculation of the error over the mask region
   typedef itk::ResampleImageFilter< 
@@ -402,7 +523,7 @@ int main( int argc, char *argv[] )
   
   typedef  float  OutputPixelType;
 
-  typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
+  typedef itk::Image< OutputPixelType, ImageDimension > OutputImageType;
   
   typedef itk::CastImageFilter< 
                         FixedImageType,
@@ -451,21 +572,11 @@ int main( int argc, char *argv[] )
   }
 
 
-
   const unsigned int SplineOrder = 3;
   typedef double CoordinateRepType;
-  typedef itk::ContinuousIndex<CoordinateRepType, Dimension> ContinuousIndexType;
-
-  typedef itk::ResampleImageFilter< 
-                            MovingImageType, 
-                            FixedImageType>    ResampleFilterType;
-
-  typedef itk::BSplineDeformableTransform<
-                            CoordinateRepType,
-                            Dimension,
-                              SplineOrder >     DefTransformType;
-
-  typedef itk::LBFGSBOptimizer       DefOptimizerType;
+  typedef itk::BSplineDeformableTransform< CoordinateRepType, ImageDimension, SplineOrder >     DefTransformType;
+  typedef itk::ContinuousIndex<CoordinateRepType, ImageDimension> ContinuousIndexType;  
+  typedef itk::LBFGSBOptimizer       DefOptimizerType;  
 
   DefOptimizerType::Pointer      defOptimizer     = DefOptimizerType::New();
   DefTransformType::Pointer      defTransform     = DefTransformType::New();
@@ -505,7 +616,7 @@ int main( int argc, char *argv[] )
   FixedImageType::RegionType fixedRegion = fixedImage->GetLargestPossibleRegion();
   FixedImageType::SizeType fixedImageSize = fixedRegion.GetSize();
 
-  for(unsigned int r=0; r<Dimension; r++)
+  for(unsigned int r=0; r<ImageDimension; r++)
     {
     double spacingMultiplier=floor( static_cast<double>(fixedImageSize[r] - 1)  / 
                 static_cast<double>(gridSizeOnImage[r] - 1) );
@@ -515,7 +626,7 @@ int main( int argc, char *argv[] )
       spacingMultiplier=1; // grid spacing should not be smaller than the pixel spacing (it would prevent deformation of first and last slices)
       }
     spacing[r] *= spacingMultiplier;
-    for(unsigned int s=0; s<Dimension; s++)
+    for(unsigned int s=0; s<ImageDimension; s++)
       {
       origin[s]  -=  spacing[r]*direction[s][r]; // or [s][r]
       } 
@@ -546,8 +657,8 @@ int main( int argc, char *argv[] )
   if (ConstrainDeformation)
     {
     boundSelect.Fill( 2 );
-    upperBound.Fill(  MaximumDeformation );
-    lowerBound.Fill( -MaximumDeformation );
+    upperBound.Fill(  MaxDeformation );
+    lowerBound.Fill( -MaxDeformation );
     }
   else
     {
@@ -591,13 +702,10 @@ int main( int argc, char *argv[] )
 
   try 
     { 
-    itk::PluginFilterWatcher watchRegistration(defRegistration,
-                                               "Deformable registration",
-                                               CLPProcessInformation,
-                                               1.0/3.0, 2.0/3.0); 
-    collector.Start( "Registration" );
+    itk::PluginFilterWatcher watchRegistration(defRegistration,"Deformable registration",CLPProcessInformation,1.0/3.0, 2.0/3.0); 
+    collector.Start( "Deformable registration" );
     defRegistration->Update();
-    collector.Stop( "Registration" );
+    collector.Stop( "Deformable registration" );
     } 
   catch( itk::ExceptionObject & err ) 
     { 
@@ -611,13 +719,13 @@ int main( int argc, char *argv[] )
   std::cout << "Final parameters: " << defFinalParameters[50] << std::endl;
   defTransform->SetParameters      ( defFinalParameters );
 
-  if (defResultTransformName != "")
+  if (DefTransformFilename != "")
     {
     typedef itk::TransformFileWriter TransformWriterType;
     TransformWriterType::Pointer outputTransformWriter;
 
     outputTransformWriter= TransformWriterType::New();
-    outputTransformWriter->SetFileName( defResultTransformName );
+    outputTransformWriter->SetFileName( DefTransformFilename );
     outputTransformWriter->SetInput( defTransform );
     outputTransformWriter->AddTransform( defTransform->GetBulkTransform() );
     try
@@ -631,48 +739,21 @@ int main( int argc, char *argv[] )
       }
     }
 
-  // Resample to the original coordinate frame (not the reoriented
-  // axial coordinate frame) of the fixed image
-  //
-  if (ResampledImageFileName != "")
-    {
-    ResampleFilterType::Pointer resample = ResampleFilterType::New();
-    
-    itk::PluginFilterWatcher watcher(
-      resample,
-      "Resample",
-      CLPProcessInformation,
-      1.0/3.0, 2.0/3.0);
-
-    const double DefaultPixelValue=0;
-    resample->SetTransform        ( defTransform );
-    resample->SetInput            ( movingImage );    
-    resample->SetDefaultPixelValue( DefaultPixelValue );
-    resample->SetOutputParametersFromImage ( fixedImage );
-
-    collector.Start( "Resample" );
-    resample->Update();
-    collector.Stop( "Resample" );
-
-    typedef itk::ImageFileWriter< FixedImageType >  WriterType;
-    WriterType::Pointer      writer =  WriterType::New();
-    writer->SetFileName( ResampledImageFileName.c_str() );
-    writer->SetInput( resample->GetOutput()   );
-    writer->SetUseCompression(0); // to allow loading into ParaView
-
-    try
-      {
-      collector.Start( "Write resampled volume" );
-      writer->Update();
-      collector.Stop( "Write resampled volume" );
-      }
-    catch( itk::ExceptionObject & err ) 
-      { 
-      std::cerr << "ExceptionObject caught !" << std::endl; 
-      std::cerr << err << std::endl; 
-      return EXIT_FAILURE;
-      }
-    }
+  // Write deformed image
+  if (ResampledDefMovingImageFileName != "")
+  {
+    // movingImage it was blurred, so read it again to get the oriignal
+    collector.Start( "Resample deformed moving image" );
+    WriteResampledImage(ResampledDefMovingImageFileName.c_str(), fixedImage, movingImageReader->GetOutput(), defTransform, CLPProcessInformation);
+    collector.Stop( "Resample deformed moving image" );
+  }
+  // Write deformation field
+  if (DefFieldImageFilename != "")
+  {
+    collector.Start( "Write deformation field" );    
+    WriteFieldImage<DefTransformType::Pointer>(DefFieldImageFilename.c_str(), fixedImage, defTransform);
+    collector.Stop( "Write deformation field" );
+  }
 
   // Report the time taken by the registration
   collector.Report();

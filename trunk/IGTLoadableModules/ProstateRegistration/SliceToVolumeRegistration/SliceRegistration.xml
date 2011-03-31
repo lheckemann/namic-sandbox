@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
-  <category>Registration.SliceRegistration</category>
+  <category>Registration</category>
   <title>Slice to Volume registration</title>
   <description>Try to align an axial slice with the 3d volume.</description>
   <version>0.1.0.$Revision: 2104 $(alpha)</version>
   <documentation-url></documentation-url>
   <license></license>
-  <contributor>Andrey Fedorov, BWH</contributor>
+  <contributor>Andras Lasso (Queen's), Andrey Fedorov (BWH)</contributor>
 <acknowledgements>
 This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
 </acknowledgements>
@@ -16,36 +16,52 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
     <description>Input/output parameters</description>
 
      <image>
-      <name>sliceImageName</name>
-      <label>Slice Image (fixed)</label>
-      <channel>input</channel>
-      <longflag>--sliceImage</longflag>
+      <name>SliceImageFilename</name>
+      <longflag>sliceImage</longflag>
+      <label>Slice image (fixed)</label>
+      <channel>input</channel>      
       <description>The slice image</description>
     </image>
 
     <image>
-      <name>volumeImageName</name>
-      <label>Volume Image (moving)</label>
-      <channel>input</channel>
-      <longflag>--volumeImage</longflag>
+      <name>VolumeImageFilename</name>
+      <longflag>volumeImage</longflag>
+      <label>Volume image (moving)</label>
+      <channel>input</channel>      
       <description>The volume image</description>
     </image>
 
     <image>
-      <name>volumeMaskImageName</name>
+      <name>VolumeMaskImageFilename</name>
+      <longflag>volumeImageMask</longflag>
       <label>Fixed Image mask</label>
-      <channel>input</channel>
-      <longflag>--volumeImageMask</longflag>
+      <channel>input</channel>      
       <description>The fixed image mask</description>
     </image>
 
-    <transform fileExtensions=".txt" reference="volumeImageName">
-      <name>resultTransformName</name>
-      <label>Output Transform</label>
+    <image>
+      <name>ResampledRigidMovingImageFileName</name>
+      <longflag>resampledRigidMovingImage</longflag>
+      <label>Output rigid resampled volume</label>
       <channel>output</channel>
-      <longflag>--transform</longflag>
+      <description>Resampled moving image to fixed image coordinate frame. Optional (specify an output transform or an output volume or both).</description>
+    </image>
+
+    <transform fileExtensions=".txt" reference="volumeImageName">
+      <name>RigidTransformFilename</name>
+      <longflag>rigidTransform</longflag>
+      <label>Output rigid transform</label>
+      <channel>output</channel>      
       <description>The resulting transform</description>
     </transform>
+
+    <image>
+      <name>RigidFieldImageFilename</name>
+      <longflag>rigidFieldImage</longflag>
+      <label>Output rigid deformation field</label>
+      <channel>output</channel>
+      <description>Output of the deformation field after the rigid registration step. Optional.</description>
+    </image>
 
   </parameters>
 
@@ -55,7 +71,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
 
     <boolean>
       <name>EnableDeformable</name>
-      <longflag>--deformable</longflag>
+      <longflag>deformable</longflag>
       <label>Enable deformable registration</label>
       <description>Perform a deformable registration after the rigid registration is completed.</description>
       <default>false</default>
@@ -63,7 +79,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
 
     <double>
       <name>GridSpacing</name>
-      <longflag>gridspacing</longflag>
+      <longflag>gridSpacing</longflag>
       <label>Grid spacing (mm)</label>
       <description>Distance between grid points of the deformable mesh.</description>
       <default>30</default>
@@ -75,8 +91,8 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
     </double>
 
     <double>
-      <name>MaximumDeformation</name>
-      <longflag>maxdeformation</longflag>
+      <name>MaxDeformation</name>
+      <longflag>maxDeformation</longflag>
       <flag>d</flag>
       <description>Maximum allowed deformation in mm.</description>
       <label>Maximum deformation</label>
@@ -88,20 +104,28 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       </constraints>
     </double>
 
-    <transform fileExtensions=".txt" type="bspline">
-      <name>defResultTransformName</name>
-      <label>Deformable Output Transform</label>
+    <image>
+      <name>ResampledDefMovingImageFileName</name>
+      <longflag>resampledDefMovingImage</longflag>
+      <label>Output deformable resampled volume</label>
       <channel>output</channel>
-      <longflag>--defTransform</longflag>
+      <description>Resampled moving image to fixed image coordinate frame. Optional (specify an output transform or an output volume or both).</description>
+    </image>
+
+    <transform fileExtensions=".txt" type="bspline">
+      <name>DefTransformFilename</name>
+      <longflag>defTransform</longflag>
+      <label>Output deformable transform</label>
+      <channel>output</channel>      
       <description>Transform calculated that aligns the fixed and moving image. Maps positions from the fixed coordinate frame to the moving coordinate frame. Optional (specify an output transform or an output volume or both).</description>
     </transform>
     
     <image>
-      <name>ResampledImageFileName</name>
-      <longflag>resampledmovingfilename</longflag>
-      <label>Output Volume</label>
+      <name>DefFieldImageFilename</name>
+      <longflag>defFieldImageFilename</longflag>
+      <label>Output deformable deformation field</label>
       <channel>output</channel>
-      <description>Resampled moving image to fixed image coordinate frame. Optional (specify an output transform or an output volume or both).</description>
+      <description>Deformation field. Optional.</description>
     </image>
 
   </parameters>
