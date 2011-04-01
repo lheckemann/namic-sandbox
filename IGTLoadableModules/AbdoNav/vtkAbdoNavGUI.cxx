@@ -308,6 +308,7 @@ void vtkAbdoNavGUI::AddGUIObservers()
   //----------------------------------------------------------------
   // Registration frame.
   //----------------------------------------------------------------
+  this->TrackerTransformSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point1CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point2CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point3CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
@@ -363,6 +364,10 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
   //----------------------------------------------------------------
   // Registration frame.
   //----------------------------------------------------------------
+  if (this->TrackerTransformSelector)
+    {
+    this->TrackerTransformSelector->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
   if (this->Point1CheckButton)
     {
     this->Point1CheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
@@ -665,6 +670,25 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   //----------------------------------------------------------------
   // Registration frame.
   //----------------------------------------------------------------
+  else if (this->TrackerTransformSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+    vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerTransformSelector->GetSelected());
+
+    // only update MRML node if transform node was created by OpenIGTLinkIF
+    if (tnode != NULL && tnode->GetDescription() != NULL && strcmp(tnode->GetDescription(), "Received by OpenIGTLink") == 0)
+      {
+      this->UpdateMRMLFromGUI();
+      }
+    else
+      {
+      vtkKWMessageDialog::PopupMessage(this->GetApplication(),
+                                       this->GetApplicationGUI()->GetMainSlicerWindow(),
+                                       "AbdoNav",
+                                       "Selected transform node was not created by OpenIGTLinkIF!",
+                                       vtkKWMessageDialog::ErrorIcon);
+      this->TrackerTransformSelector->SetSelected(NULL);
+      }
+    }
   else if (this->Point1CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
     // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
