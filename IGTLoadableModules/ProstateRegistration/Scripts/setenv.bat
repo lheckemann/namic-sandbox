@@ -12,3 +12,4 @@ set PROSTATE_REG_BIN_DIR=c:/devel/ProstateRegistration-bin
 
 set SLICE_REG_EXE=%PROSTATE_REG_BIN_DIR%/SliceToVolumeRegistration-bin/lib/Slicer3/Plugins/Release\SliceRegistration.exe
 set EVAL_REG_ERROR_EXE=%DEFREGEVAL_BIN_DIR%/EvaluateRegistrationError.exe 
+set COMP_MULTI_IMAGE_STAT_EXE=%DEFREGEVAL_BIN_DIR%/ComputeMultiImageStatistics.exe
