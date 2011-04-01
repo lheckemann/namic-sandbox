@@ -593,6 +593,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
         fiducialList->SetSymbolScale(2); // called "Glyph scale" in the Fiducials module
         this->GetMRMLScene()->AddNode(fiducialList);
         fiducialList->Delete();
+        // update MRML node
         anode->SetRegistrationFiducialListID(fiducialList->GetID());
         // observe fiducial list in order to update the GUI whenever a fiducial is moved via drag & drop or renamed or renumbered externally via the Fiducials module
         fiducialList->AddObserver(vtkMRMLFiducialListNode::FiducialModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand);
