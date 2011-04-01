@@ -592,7 +592,7 @@ int main( int argc, char *argv[] )
   optimizer->SetMaximumStepLength( 0.2000  ); 
   optimizer->SetMinimumStepLength( 0.0001 );
 
-  optimizer->SetNumberOfIterations( 200 );
+  optimizer->SetNumberOfIterations( 400 );
 
 
   // Create the Command observer and register it with the optimizer.
