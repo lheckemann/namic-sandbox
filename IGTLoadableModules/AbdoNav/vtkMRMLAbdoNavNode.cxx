@@ -50,7 +50,6 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
   this->RegistrationTransformID = NULL;
   this->RegistrationFiducialListID = NULL;
   this->TargetFiducialListID = NULL;
-  this->TrackingSystemUsed = NULL;
 }
 
 
@@ -61,7 +60,6 @@ vtkMRMLAbdoNavNode::~vtkMRMLAbdoNavNode()
   this->RegistrationTransformID = NULL;
   this->RegistrationFiducialListID = NULL;
   this->TargetFiducialListID = NULL;
-  this->TrackingSystemUsed = NULL;
 }
 
 
@@ -74,7 +72,6 @@ void vtkMRMLAbdoNavNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "RegistrationTransformID: " << (this->RegistrationTransformID ? this->RegistrationTransformID : "(none)") << "\n";
   os << indent << "RegistrationFiducialListID: " << (this->RegistrationFiducialListID ? this->RegistrationFiducialListID : "(none)") << "\n";
   os << indent << "TargetFiducialListID: " << (this->TargetFiducialListID ? this->TargetFiducialListID : "(none)") << "\n";
-  os << indent << "TrackingSystemUsed: " << (this->TrackingSystemUsed ? this->TrackingSystemUsed : "(none)") << "\n";
 }
 
 
@@ -109,10 +106,6 @@ void vtkMRMLAbdoNavNode::ReadXMLAttributes(const char** atts)
       {
       this->SetTargetFiducialListID(attValue);
       this->Scene->AddReferencedNodeID(this->TargetFiducialListID, this);
-      }
-    else if (!strcmp(attName, "TrackingSystemUsed"))
-      {
-      this->SetTrackingSystemUsed(attValue);
       }
     }
 }
@@ -157,14 +150,6 @@ void vtkMRMLAbdoNavNode::WriteXML(ostream& os, int nIndent)
       os << indent << " TargetFiducialListID=\"" << ss.str() << "\"";
       }
   }
-  {
-    std::stringstream ss;
-    if (this->TrackingSystemUsed)
-      {
-      ss << this->TrackingSystemUsed;
-      os << indent << " TrackingSystemUsed=\"" << ss.str() << "\"";
-      }
-  }
 }
 
 
@@ -178,7 +163,6 @@ void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode* anode)
   this->SetRegistrationTransformID(node->GetRegistrationTransformID());
   this->SetRegistrationFiducialListID(node->GetRegistrationFiducialListID());
   this->SetTargetFiducialListID(node->GetTargetFiducialListID());
-  this->SetTrackingSystemUsed(node->GetTrackingSystemUsed());
 }
 
 
