@@ -70,10 +70,6 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   vtkGetStringMacro(TargetFiducialListID);
   /// Set the identifier of the target fiducial list.
   vtkSetStringMacro(TargetFiducialListID);
-  /// Get the identifier of the tracking system being used.
-  vtkGetStringMacro(TrackingSystemUsed);
-  /// Set the identifier of the tracking system being used.
-  vtkSetStringMacro(TrackingSystemUsed);
 
  protected:
   //----------------------------------------------------------------
@@ -104,8 +100,6 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   char* RegistrationFiducialListID;
   /// Identifier of the fiducial list holding the RAS coordinates of the targets.
   char* TargetFiducialListID;
-  /// Identifier of the tracking system being used.
-  char* TrackingSystemUsed;
 
 };
 
