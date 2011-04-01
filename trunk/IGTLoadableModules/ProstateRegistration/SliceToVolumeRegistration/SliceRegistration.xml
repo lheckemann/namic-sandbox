@@ -47,7 +47,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <description>Resampled moving image to fixed image coordinate frame. Optional (specify an output transform or an output volume or both).</description>
     </image>
 
-    <transform fileExtensions=".txt" reference="volumeImageName">
+    <transform fileExtensions=".txt" reference="VolumeImageFilename">
       <name>RigidTransformFilename</name>
       <longflag>rigidTransform</longflag>
       <label>Output rigid transform</label>
