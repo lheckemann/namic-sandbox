@@ -23,9 +23,6 @@
 #include "vtkAbdoNavLogic.h"
 #include "vtkAbdoNavWin32Header.h"
 
-/* KWWidgets forward declarations */
-class vtkKWComboBoxWithLabel;
-
 /* Slicer includes */
 #include "vtkSlicerModuleGUI.h"
 
@@ -113,16 +110,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   // Helper functions to build the different GUI frames.
   //----------------------------------------------------------------
   void BuildGUIHelpFrame();
-  void BuildGUIConnectionFrame();
   void BuildGUIRegistrationFrame();
   void BuildGUINavigationFrame();
-
-  //----------------------------------------------------------------
-  // Widgets of the connection frame.
-  //----------------------------------------------------------------
-  vtkKWComboBoxWithLabel* TrackingSystemComboBox;
-  vtkKWPushButton* ResetConnectionPushButton;
-  vtkKWPushButton* ConfigureConnectionPushButton;
 
   //----------------------------------------------------------------
   // Widgets of the registration frame.

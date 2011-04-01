@@ -16,8 +16,6 @@
 #include "vtkAbdoNavGUI.h"
 
 /* KWWidgets includes */
-#include "vtkKWComboBox.h"
-#include "vtkKWComboBoxWithLabel.h"
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWMessageDialog.h"
 #include "vtkKWScale.h"
@@ -49,13 +47,6 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   this->AbdoNavLogic = NULL;
   this->AbdoNavNode = NULL;
-
-  //----------------------------------------------------------------
-  // Connection frame.
-  //----------------------------------------------------------------
-  this->TrackingSystemComboBox = NULL;
-  this->ResetConnectionPushButton = NULL;
-  this->ConfigureConnectionPushButton = NULL;
 
   //----------------------------------------------------------------
   // Registration frame.
@@ -112,25 +103,6 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
 
   // TODO: all of the following Delete() calls could probably be avoided by using VTK's smart pointers
-
-  //----------------------------------------------------------------
-  // Connection frame.
-  //----------------------------------------------------------------
-  if (this->TrackingSystemComboBox)
-    {
-    this->TrackingSystemComboBox->SetParent(NULL);
-    this->TrackingSystemComboBox->Delete();
-    }
-  if (this->ResetConnectionPushButton)
-    {
-    this->ResetConnectionPushButton->SetParent(NULL);
-    this->ResetConnectionPushButton->Delete();
-    }
-  if (this->ConfigureConnectionPushButton)
-    {
-    this->ConfigureConnectionPushButton->SetParent(NULL);
-    this->ConfigureConnectionPushButton->Delete();
-    }
 
   //----------------------------------------------------------------
   // Registration frame.
@@ -334,12 +306,6 @@ void vtkAbdoNavGUI::AddGUIObservers()
     ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand*)this->GUICallbackCommand);
 
   //----------------------------------------------------------------
-  // Connection frame.
-  //----------------------------------------------------------------
-  this->ResetConnectionPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
-  this->ConfigureConnectionPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
-
-  //----------------------------------------------------------------
   // Registration frame.
   //----------------------------------------------------------------
   this->Point1CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
@@ -392,18 +358,6 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
     {
     appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()
       ->GetInteractorStyle()->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
-    }
-
-  //----------------------------------------------------------------
-  // Connection frame.
-  //----------------------------------------------------------------
-  if (this->ResetConnectionPushButton)
-    {
-    this->ResetConnectionPushButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
-    }
-  if (this->ConfigureConnectionPushButton)
-    {
-    this->ConfigureConnectionPushButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
   //----------------------------------------------------------------
@@ -709,68 +663,6 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     }
 
   //----------------------------------------------------------------
-  // Connection frame.
-  //----------------------------------------------------------------
-  else if (this->ResetConnectionPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
-    {
-    this->TrackerTransformSelector->SetSelected(NULL);
-    this->TrackerTransformSelector->SetEnabled(true);
-    this->TrackingSystemComboBox->GetWidget()->SetValue("");
-    this->TrackingSystemComboBox->SetEnabled(true);
-    this->ConfigureConnectionPushButton->SetEnabled(true);
-    this->UpdateMRMLFromGUI();
-    }
-  else if (this->ConfigureConnectionPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
-    {
-    bool updateMRML = false;
-    vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerTransformSelector->GetSelected());
-
-    // check tracker transform node selection
-    if (tnode != NULL && tnode->GetDescription() != NULL)
-      {
-      // only update MRML node if transform node was created by OpenIGTLinkIF
-      if (strcmp(tnode->GetDescription(), "Received by OpenIGTLink") == 0)
-        {
-        updateMRML = true;
-        }
-      }
-    else
-      {
-      updateMRML = false;
-      vtkKWMessageDialog::PopupMessage(this->GetApplication(),
-                                       this->GetApplicationGUI()->GetMainSlicerWindow(),
-                                       "AbdoNav",
-                                       "No OpenIGTLinkIF tracker transform node selected!",
-                                       vtkKWMessageDialog::ErrorIcon);
-      }
-
-    // check tracking system selection
-    if (strcmp(this->TrackingSystemComboBox->GetWidget()->GetValue(), "") != 0)
-      {
-      updateMRML = updateMRML && true;
-      }
-    else
-      {
-      updateMRML = false;
-      vtkKWMessageDialog::PopupMessage(this->GetApplication(),
-                                       this->GetApplicationGUI()->GetMainSlicerWindow(),
-                                       "AbdoNav",
-                                       "No tracking system selected!",
-                                       vtkKWMessageDialog::ErrorIcon);
-      }
-
-    // update MRML node
-    if (updateMRML == true)
-      {
-      std::cout << "updating MRML ..." << std::endl;
-      this->TrackerTransformSelector->SetEnabled(false);
-      this->TrackingSystemComboBox->SetEnabled(false);
-      this->ConfigureConnectionPushButton->SetEnabled(false);
-      this->UpdateMRMLFromGUI();
-      }
-    }
-
-  //----------------------------------------------------------------
   // Registration frame.
   //----------------------------------------------------------------
   else if (this->Point1CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
@@ -1069,7 +961,6 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
     {
     node->SetRelativeTrackingTransformID(tnode->GetID());
     }
-  node->SetTrackingSystemUsed(this->TrackingSystemComboBox->GetWidget()->GetValue());
   node->EndModify(modifiedFlag);
 }
 
@@ -1083,7 +974,6 @@ void vtkAbdoNavGUI::UpdateGUIFromMRML()
     // set GUI widgets from AbdoNav parameter node
     vtkMRMLNode* tnode = this->GetMRMLScene()->GetNodeByID(node->GetRelativeTrackingTransformID());
     this->TrackerTransformSelector->SetSelected(tnode);
-    this->TrackingSystemComboBox->GetWidget()->SetValue(node->GetTrackingSystemUsed());
 
     vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(node->GetRegistrationFiducialListID()));
     if (fnode != NULL)
@@ -1161,7 +1051,6 @@ void vtkAbdoNavGUI::BuildGUI()
 
   // build the different GUI frames
   BuildGUIHelpFrame();
-  BuildGUIConnectionFrame();
   BuildGUIRegistrationFrame();
   BuildGUINavigationFrame();
 }
@@ -1186,62 +1075,6 @@ void vtkAbdoNavGUI::BuildGUIHelpFrame()
 
   vtkKWWidget* page = this->UIPanel->GetPageWidget("AbdoNav");
   this->BuildHelpAndAboutFrame(page, help, about);
-}
-
-
-//---------------------------------------------------------------------------
-void vtkAbdoNavGUI::BuildGUIConnectionFrame()
-{
-  vtkKWWidget* page = this->UIPanel->GetPageWidget("AbdoNav");
-
-  // create collapsible connection frame
-  vtkSlicerModuleCollapsibleFrame* connectionFrame = vtkSlicerModuleCollapsibleFrame::New();
-  connectionFrame->SetParent(page);
-  connectionFrame->Create();
-  connectionFrame->SetLabelText("Connection");
-  connectionFrame->CollapseFrame();
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-                connectionFrame->GetWidgetName(),
-                page->GetWidgetName());
-
-  // create combo box to specify the tracking system being used
-  this->TrackingSystemComboBox = vtkKWComboBoxWithLabel::New();
-  this->TrackingSystemComboBox->SetParent(connectionFrame->GetFrame());
-  this->TrackingSystemComboBox->Create();
-  this->TrackingSystemComboBox->SetLabelText("Tracking system used:\t\t");
-  this->TrackingSystemComboBox->SetBalloonHelpString("Select the tracking system being used in order to compensate for different coordinate system definitions.");
-  this->TrackingSystemComboBox->GetWidget()->ReadOnlyOn();
-  this->TrackingSystemComboBox->GetWidget()->AddValue("NDI Aurora");
-  this->TrackingSystemComboBox->GetWidget()->AddValue("NDI Polaris Vicra");
-
-  // add tracking system combo box
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackingSystemComboBox->GetWidgetName());
-
-  //----------------------------------------------------------------
-  // Create buttons to reset and configure the connection.
-  //----------------------------------------------------------------
-  // create button to reset the connection
-  this->ResetConnectionPushButton = vtkKWPushButton::New();
-  this->ResetConnectionPushButton->SetParent(connectionFrame->GetFrame());
-  this->ResetConnectionPushButton->Create();
-  this->ResetConnectionPushButton->SetText("Reset Connection");
-  this->ResetConnectionPushButton->SetBalloonHelpString("Reset tracking information.");
-
-  // add reset connection button
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", this->ResetConnectionPushButton->GetWidgetName());
-
-  // create button to configure the connection
-  this->ConfigureConnectionPushButton = vtkKWPushButton::New();
-  this->ConfigureConnectionPushButton->SetParent(connectionFrame->GetFrame());
-  this->ConfigureConnectionPushButton->Create();
-  this->ConfigureConnectionPushButton->SetText("Configure Connection");
-  this->ConfigureConnectionPushButton->SetBalloonHelpString("Set specified tracking information.");
-
-  // add configure connection button
-  this->Script("pack %s -side right -anchor ne -padx 2 -pady 2", this->ConfigureConnectionPushButton->GetWidgetName());
-
-  // clean up
-  connectionFrame->Delete();
 }
 
 
