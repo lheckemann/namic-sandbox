@@ -89,7 +89,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
 vtkAbdoNavGUI::~vtkAbdoNavGUI()
 {
   //----------------------------------------------------------------
-  // Cleanup logic values.
+  // Clean up logic values.
   //----------------------------------------------------------------
   // if Logic is NULL, the class was only instantiated but never used,
   // e.g. Slicer was launched with option --ignore_module set to AbdoNav

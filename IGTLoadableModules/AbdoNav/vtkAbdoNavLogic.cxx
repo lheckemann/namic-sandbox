@@ -73,7 +73,7 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
 vtkAbdoNavLogic::~vtkAbdoNavLogic()
 {
   //----------------------------------------------------------------
-  // Cleanup logic values.
+  // Clean up logic values.
   //----------------------------------------------------------------
   // remove AbdoNavNode observers
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
@@ -346,7 +346,7 @@ int vtkAbdoNavLogic::PerformRegistration()
   // indicate that registration has been performed
   this->RegistrationPerformed = 1;
 
-  // cleanup
+  // clean up
   registrationMatrix->Delete();
 
   return EXIT_SUCCESS;
@@ -465,7 +465,7 @@ void vtkAbdoNavLogic::UpdateAll()
       this->UpdateNeedleProjection(registeredTracker);
       }
 
-    // cleanup
+    // clean up
     registeredTracker->Delete();
     }
 }
@@ -708,7 +708,7 @@ void vtkAbdoNavLogic::UpdateNeedleProjection(vtkMatrix4x4* registeredTracker)
     this->Actor2DGreen->Modified();
     this->Actor2DRed->Modified();
 
-    // cleanup
+    // clean up
     pointsGreen->Delete();
     cellsGreen->Delete();
     polyGreen->Delete();
@@ -731,7 +731,7 @@ void vtkAbdoNavLogic::UpdateNeedleProjection(vtkMatrix4x4* registeredTracker)
       }
     }
 
-  // cleanup
+  // clean up
   RASToXY->Delete();
   trackerXY->Delete();
 }
@@ -772,7 +772,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::FindLocator(const char* locatorName)
     // locator already exists
     locatorModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
     }
-  // cleanup
+  // clean up
   collection->Delete();
 
   return locatorModel;
