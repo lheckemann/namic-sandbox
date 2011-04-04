@@ -116,8 +116,8 @@ void vtkAbdoNavLogic::ProcessMRMLEvents(vtkObject* caller, unsigned long event, 
 {
   vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
   if (node != NULL && this->AbdoNavNode != NULL &&
-      this->AbdoNavNode->GetRelativeTrackingTransformID() != NULL &&
-      strcmp(node->GetID(), this->AbdoNavNode->GetRelativeTrackingTransformID()) == 0 &&
+      this->AbdoNavNode->GetTrackingTransformID() != NULL &&
+      strcmp(node->GetID(), this->AbdoNavNode->GetTrackingTransformID()) == 0 &&
       event == vtkMRMLTransformableNode::TransformModifiedEvent)
     {
 
@@ -264,16 +264,16 @@ int vtkAbdoNavLogic::PerformRegistration()
     // set registration transform node ID in AbdoNavNode
     this->AbdoNavNode->SetRegistrationTransformID(this->RegistrationTransform->GetID());
     // get relative tracking transform node and make it observe the registration transform node
-    if (this->AbdoNavNode->GetRelativeTrackingTransformID() != NULL)
+    if (this->AbdoNavNode->GetTrackingTransformID() != NULL)
       {
-      vtkMRMLLinearTransformNode* relativeTrackingTransform = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRelativeTrackingTransformID()));
+      vtkMRMLLinearTransformNode* relativeTrackingTransform = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()));
       relativeTrackingTransform->SetAndObserveTransformNodeID(this->RegistrationTransform->GetID());
       }
     else
       {
       vtkErrorMacro("in vtkAbdoNavLogic::PerformRegistration(): "
                     "Couldn't move relative tracking transform node below registration transform node "
-                    "because vtkMRMLAbdoNavNode::GetRelativeTrackingTransformID() returned NULL!");
+                    "because vtkMRMLAbdoNavNode::GetTrackingTransformID() returned NULL!");
       }
     }
   else
@@ -385,7 +385,7 @@ void vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
   else if (strcmp(driver, "Locator") == 0)
     {
     this->SliceDriver[sliceIndex] = 1;
-    vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRelativeTrackingTransformID()));
+    vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()));
     if (tnode)
       {
       vtkIntArray* nodeEvents = vtkIntArray::New();
@@ -410,7 +410,7 @@ void vtkAbdoNavLogic::UpdateAll()
     {
     // get registered tracking data for reslicing
     vtkMatrix4x4* registeredTracker = vtkMatrix4x4::New();
-    vtkMRMLLinearTransformNode* unregisteredTracker = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRelativeTrackingTransformID()));
+    vtkMRMLLinearTransformNode* unregisteredTracker = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()));
     if (unregisteredTracker != NULL)
       {
       unregisteredTracker->GetMatrixTransformToWorld(registeredTracker);
@@ -787,7 +787,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::EnableLocatorDriver(const char* locatorName)
   // create the locator model
   vtkMRMLModelNode* locatorModel = this->AddLocatorModel(locatorName, 0.0, 1.0, 1.0);
   // get the tracker transform node
-  vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRelativeTrackingTransformID()));
+  vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()));
   // make locator model observe the tracker transform node
   if (locatorModel && tnode)
     {
@@ -858,7 +858,7 @@ void vtkAbdoNavLogic::ToggleLocatorFreeze(int freeze)
     // retrieve and store transform to world (transform to parent isn't sufficient since
     // the relative tracking transform node observes AbdoNav's registration transform node)
     vtkMatrix4x4* tfmToWorld = vtkMatrix4x4::New();
-    vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRelativeTrackingTransformID()))->GetMatrixTransformToWorld(tfmToWorld);
+    vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()))->GetMatrixTransformToWorld(tfmToWorld);
     LocatorFreezePosition->DeepCopy(tfmToWorld);
     tfmToWorld->Delete();
     // apply current transformation matrix
@@ -871,7 +871,7 @@ void vtkAbdoNavLogic::ToggleLocatorFreeze(int freeze)
     vtkMatrix4x4::Invert(LocatorFreezePosition, LocatorFreezePosition);
     locatorModel->ApplyTransform(LocatorFreezePosition);
     // unfreeze locator model
-    locatorModel->SetAndObserveTransformNodeID(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRelativeTrackingTransformID()))->GetID());
+    locatorModel->SetAndObserveTransformNodeID(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()))->GetID());
     locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
     }
 

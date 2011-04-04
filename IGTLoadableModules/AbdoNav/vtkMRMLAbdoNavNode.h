@@ -55,9 +55,9 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   // Getters and Setters for the references and data stored in this node.
   //----------------------------------------------------------------
   /// Get the identifier of the relative tracking transform.
-  vtkGetStringMacro(RelativeTrackingTransformID);
+  vtkGetStringMacro(TrackingTransformID);
   /// Set the identifier of the relative tracking transform.
-  vtkSetStringMacro(RelativeTrackingTransformID);
+  vtkSetStringMacro(TrackingTransformID);
   /// Get the identifier of the static registration transform.
   vtkGetStringMacro(RegistrationTransformID);
   /// Set the identifier of the static registration transform.
@@ -89,7 +89,7 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   // The specific references and data stored in this MRML node.
   //----------------------------------------------------------------
   /// Identifier of the relative tracking transform.
-  char* RelativeTrackingTransformID;
+  char* TrackingTransformID;
   /// Identifier of the static registration transform.
   char* RegistrationTransformID;
   /// Identifier of the fiducial list holding the RAS coordinates of:
