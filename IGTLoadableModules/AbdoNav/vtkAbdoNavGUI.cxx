@@ -455,7 +455,6 @@ void vtkAbdoNavGUI::AddLogicObservers()
   if (this->AbdoNavLogic)
     {
     this->AbdoNavLogic->AddObserver(vtkAbdoNavLogic::StatusUpdateEvent, (vtkCommand*)this->LogicCallbackCommand);
-    // TODO: fill in or delete (don't forget to delete RemoveLogicObservers())!
     }
 }
 
@@ -473,8 +472,7 @@ void vtkAbdoNavGUI::RemoveLogicObservers()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::AddMRMLObservers()
 {
-  // TODO: implement RemoveMRMLObservers and process MRML events or delete!
-
+  // add scene observers
   vtkIntArray* events = vtkIntArray::New();
   events->InsertNextValue(vtkMRMLScene::NewSceneEvent);
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -492,7 +490,7 @@ void vtkAbdoNavGUI::AddMRMLObservers()
 //---------------------------------------------------------------------------
 void vtkAbdoNavGUI::RemoveMRMLObservers()
 {
-  // remove Scene observers
+  // remove scene observers
   if (this->GetMRMLScene() != NULL)
     {
     this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), NULL);
@@ -517,7 +515,7 @@ void vtkAbdoNavGUI::RemoveMRMLObservers()
 void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, void* callData)
 {
   //----------------------------------------------------------------
-  // Main slice views.
+  // Slice views.
   //
   // If the user clicked in one of the slice views with one of the
   // check buttons associated with the RAS coordinates of
@@ -864,7 +862,7 @@ void vtkAbdoNavGUI::ProcessLogicEvents(vtkObject* caller, unsigned long event, v
     {
     if (event == vtkAbdoNavLogic::StatusUpdateEvent)
       {
-      // TODO: fill in or delete!
+      // TODO: implement or delete (also delete AddLogicObservers() and RemoveLogicObservers())!
       }
     }
 }
