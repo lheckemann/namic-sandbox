@@ -92,13 +92,15 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   char* TrackingTransformID;
   /// Identifier of the static registration transform.
   char* RegistrationTransformID;
-  /// Identifier of the fiducial list holding the RAS coordinates of:
+  /// Identifier of the fiducial list holding the image coordinates
+  /// of the guidance needle, i.e.:
   ///  - the guidance needle tip
   ///  - a second point on the guidance needle
-  ///  - the marker center
-  /// used for needle-based registration.
+  ///  - the center of a designated marker
+  /// required for needle-based registration.
   char* RegistrationFiducialListID;
-  /// Identifier of the fiducial list holding the RAS coordinates of the targets.
+  /// Identifier of the fiducial list holding the image coordinates
+  /// of the targets.
   char* TargetFiducialListID;
 
 };
