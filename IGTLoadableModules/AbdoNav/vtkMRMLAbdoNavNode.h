@@ -93,7 +93,7 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   /// Identifier of the static registration transform.
   char* RegistrationTransformID;
   /// Identifier of the fiducial list holding the image coordinates
-  /// of the guidance needle, i.e.:
+  /// of the guidance needle artifact, i.e.:
   ///  - the guidance needle tip
   ///  - a second point on the guidance needle
   ///  - the center of a designated marker
