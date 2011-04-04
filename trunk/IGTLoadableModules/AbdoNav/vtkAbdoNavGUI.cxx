@@ -1100,9 +1100,9 @@ void vtkAbdoNavGUI::BuildGUI()
   this->UIPanel->AddPage("AbdoNav", "AbdoNav", NULL);
 
   // build the different GUI frames
-  BuildGUIHelpFrame();
-  BuildGUIRegistrationFrame();
-  BuildGUINavigationFrame();
+  this->BuildGUIHelpFrame();
+  this->BuildGUIRegistrationFrame();
+  this->BuildGUINavigationFrame();
 }
 
 
@@ -1395,7 +1395,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->ShowLocatorCheckButton->SelectedStateOff();
 
   // add show locator check button
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", ShowLocatorCheckButton->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", this->ShowLocatorCheckButton->GetWidgetName());
 
   // create scale to set the locator projection length
   this->ProjectionLengthScale = vtkKWScaleWithEntry::New();
@@ -1411,7 +1411,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->ProjectionLengthScale->SetValue(0.0);
 
   // add projection length scale
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", ProjectionLengthScale->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->ProjectionLengthScale->GetWidgetName());
 
   // create check button to freeze/unfreeze the locator
   this->FreezeLocatorCheckButton = vtkKWCheckButton::New();
@@ -1439,9 +1439,9 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
 
   // add freeze locator and show crosshair check buttons
   this->Script("pack %s %s %s -side top -anchor nw -padx 2 -pady 2",
-                FreezeLocatorCheckButton->GetWidgetName(),
-                ShowCrosshairCheckButton->GetWidgetName(),
-                DrawNeedleProjectionCheckButton->GetWidgetName());
+                this->FreezeLocatorCheckButton->GetWidgetName(),
+                this->ShowCrosshairCheckButton->GetWidgetName(),
+                this->DrawNeedleProjectionCheckButton->GetWidgetName());
 
   // create labelled frame to hold widgets for setting the slice driver options
   vtkKWFrameWithLabel* sliceDriverFrame = vtkKWFrameWithLabel::New();
@@ -1497,9 +1497,9 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
 
   // add red, green and yellow slice orientation slice driver menu buttons
   this->Script("pack %s %s %s -side left -anchor nw -fill x -padx 2 -pady 2",
-                RedSliceMenuButton->GetWidgetName(),
-                YellowSliceMenuButton->GetWidgetName(),
-                GreenSliceMenuButton->GetWidgetName());
+                this->RedSliceMenuButton->GetWidgetName(),
+                this->YellowSliceMenuButton->GetWidgetName(),
+                this->GreenSliceMenuButton->GetWidgetName());
 
   //----------------------------------------------------------------
   // Create widgets to set the slice driver for all slice orientations at once and to set the reslicing options.
@@ -1541,10 +1541,10 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
 
   // add drive all slice orientations by locator/user buttons, freeze reslicing and oblique reslicing check buttons
   this->Script("pack %s %s %s %s -side left -anchor nw -fill x -padx 2 -pady 2",
-                SetLocatorAllPushButton->GetWidgetName(),
-                SetUserAllPushButton->GetWidgetName(),
-                FreezeSliceCheckButton->GetWidgetName(),
-                ObliqueCheckButton->GetWidgetName());
+                this->SetLocatorAllPushButton->GetWidgetName(),
+                this->SetUserAllPushButton->GetWidgetName(),
+                this->FreezeSliceCheckButton->GetWidgetName(),
+                this->ObliqueCheckButton->GetWidgetName());
 
   // clean up
   navigationFrame->Delete();
