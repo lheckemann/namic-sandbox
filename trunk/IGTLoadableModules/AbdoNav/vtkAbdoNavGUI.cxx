@@ -102,7 +102,7 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
   // remove AbdoNavNode observers
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
 
-  // TODO: all of the following Delete() calls could probably be avoided by using VTK's smart pointers
+  // TODO: all of the following could probably be avoided by using VTK's smart pointers
 
   //----------------------------------------------------------------
   // Registration frame.

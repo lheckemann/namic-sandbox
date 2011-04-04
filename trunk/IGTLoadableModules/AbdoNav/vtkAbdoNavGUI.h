@@ -58,8 +58,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // Addition and removal of observers.
   //----------------------------------------------------------------
-  virtual void AddGUIObservers();      // called automatically
-  virtual void RemoveGUIObservers();   // called automatically
+  virtual void AddGUIObservers();      // automatically called by Slicer
+  virtual void RemoveGUIObservers();   // automatically called by Slicer
   void         AddLogicObservers();    // must be called manually
   void         RemoveLogicObservers(); // must be called manually
   void         AddMRMLObservers();     // must be called manually
