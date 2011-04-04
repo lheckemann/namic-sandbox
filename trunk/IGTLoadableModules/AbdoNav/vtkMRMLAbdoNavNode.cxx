@@ -46,7 +46,7 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
 {
   this->HideFromEditors = true;
 
-  this->RelativeTrackingTransformID = NULL;
+  this->TrackingTransformID = NULL;
   this->RegistrationTransformID = NULL;
   this->RegistrationFiducialListID = NULL;
   this->TargetFiducialListID = NULL;
@@ -56,7 +56,7 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
 //---------------------------------------------------------------------------
 vtkMRMLAbdoNavNode::~vtkMRMLAbdoNavNode()
 {
-  this->RelativeTrackingTransformID = NULL;
+  this->TrackingTransformID = NULL;
   this->RegistrationTransformID = NULL;
   this->RegistrationFiducialListID = NULL;
   this->TargetFiducialListID = NULL;
@@ -68,7 +68,7 @@ void vtkMRMLAbdoNavNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "RelativeTrackingTransformID: " << (this->RelativeTrackingTransformID ? this->RelativeTrackingTransformID : "(none)") << "\n";
+  os << indent << "TrackingTransformID: " << (this->TrackingTransformID ? this->TrackingTransformID : "(none)") << "\n";
   os << indent << "RegistrationTransformID: " << (this->RegistrationTransformID ? this->RegistrationTransformID : "(none)") << "\n";
   os << indent << "RegistrationFiducialListID: " << (this->RegistrationFiducialListID ? this->RegistrationFiducialListID : "(none)") << "\n";
   os << indent << "TargetFiducialListID: " << (this->TargetFiducialListID ? this->TargetFiducialListID : "(none)") << "\n";
@@ -87,10 +87,10 @@ void vtkMRMLAbdoNavNode::ReadXMLAttributes(const char** atts)
     {
     attName = *(atts++);
     attValue = *(atts++);
-    if (!strcmp(attName, "RelativeTrackingTransformID"))
+    if (!strcmp(attName, "TrackingTransformID"))
       {
-      this->SetRelativeTrackingTransformID(attValue);
-      this->Scene->AddReferencedNodeID(this->RelativeTrackingTransformID, this);
+      this->SetTrackingTransformID(attValue);
+      this->Scene->AddReferencedNodeID(this->TrackingTransformID, this);
       }
     else if (!strcmp(attName, "RegistrationTransformID"))
       {
@@ -120,10 +120,10 @@ void vtkMRMLAbdoNavNode::WriteXML(ostream& os, int nIndent)
   vtkIndent indent(nIndent);
   {
     std::stringstream ss;
-    if (this->RelativeTrackingTransformID)
+    if (this->TrackingTransformID)
       {
-      ss << this->RelativeTrackingTransformID;
-      os << indent << " RelativeTrackingTransformID=\"" << ss.str() << "\"";
+      ss << this->TrackingTransformID;
+      os << indent << " TrackingTransformID=\"" << ss.str() << "\"";
       }
   }
   {
@@ -159,7 +159,7 @@ void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode* anode)
   Superclass::Copy(anode);
   vtkMRMLAbdoNavNode* node = (vtkMRMLAbdoNavNode*)anode;
 
-  this->SetRelativeTrackingTransformID(node->GetRelativeTrackingTransformID());
+  this->SetTrackingTransformID(node->GetTrackingTransformID());
   this->SetRegistrationTransformID(node->GetRegistrationTransformID());
   this->SetRegistrationFiducialListID(node->GetRegistrationFiducialListID());
   this->SetTargetFiducialListID(node->GetTargetFiducialListID());
@@ -169,9 +169,9 @@ void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode* anode)
 //---------------------------------------------------------------------------
 void vtkMRMLAbdoNavNode::UpdateReferenceID(const char* oldID, const char* newID)
 {
-  if (!strcmp(oldID, this->RelativeTrackingTransformID))
+  if (!strcmp(oldID, this->TrackingTransformID))
     {
-    this->SetRelativeTrackingTransformID(newID);
+    this->SetTrackingTransformID(newID);
     }
   else if (!strcmp(oldID, this->RegistrationTransformID))
     {
