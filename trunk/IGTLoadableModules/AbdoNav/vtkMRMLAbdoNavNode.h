@@ -25,6 +25,14 @@
 /* MRML includes */
 #include "vtkMRMLNode.h"
 
+//----------------------------------------------------------------
+// Definition of string constants (expected labels of fiducials in
+// the registration fiducial list) used by both, GUI and Logic.
+//----------------------------------------------------------------
+const char* const    tipRAS =    "tipRAS";
+const char* const    sndRAS =    "2ndRAS";
+const char* const markerRAS = "markerRAS";
+
 class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
 {
  public:
