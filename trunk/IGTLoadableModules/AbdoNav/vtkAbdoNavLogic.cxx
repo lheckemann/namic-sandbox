@@ -850,26 +850,26 @@ void vtkAbdoNavLogic::ToggleLocatorFreeze(int freeze)
     // need to retrieve, store and apply current transformation matrix:
     // otherwise, the locator model wouldn't be displayed at its current
     // position but would instead be reset to its initial position
-    if (LocatorFreezePosition == NULL)
+    if (this->LocatorFreezePosition == NULL)
       {
       // LocatorFreezePosition is deleted in the destructor
-      LocatorFreezePosition = vtkMatrix4x4::New();
+      this->LocatorFreezePosition = vtkMatrix4x4::New();
       }
     // retrieve and store transform to world (transform to parent isn't sufficient since
     // the relative tracking transform node observes AbdoNav's registration transform node)
     vtkMatrix4x4* tfmToWorld = vtkMatrix4x4::New();
     vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()))->GetMatrixTransformToWorld(tfmToWorld);
-    LocatorFreezePosition->DeepCopy(tfmToWorld);
+    this->LocatorFreezePosition->DeepCopy(tfmToWorld);
     tfmToWorld->Delete();
     // apply current transformation matrix
-    locatorModel->ApplyTransform(LocatorFreezePosition);
+    locatorModel->ApplyTransform(this->LocatorFreezePosition);
     locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
     }
   else if (locatorModel != NULL && freeze == 0)
     {
     // need to apply the inverse transformation matrix so as to obtain the identity matrix
-    vtkMatrix4x4::Invert(LocatorFreezePosition, LocatorFreezePosition);
-    locatorModel->ApplyTransform(LocatorFreezePosition);
+    vtkMatrix4x4::Invert(this->LocatorFreezePosition, this->LocatorFreezePosition);
+    locatorModel->ApplyTransform(this->LocatorFreezePosition);
     // unfreeze locator model
     locatorModel->SetAndObserveTransformNodeID(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()))->GetID());
     locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
