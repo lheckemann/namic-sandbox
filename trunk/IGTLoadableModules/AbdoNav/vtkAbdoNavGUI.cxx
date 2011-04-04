@@ -111,76 +111,91 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     {
     this->TrackerTransformSelector->SetParent(NULL);
     this->TrackerTransformSelector->Delete();
+    this->TrackerTransformSelector = NULL;
     }
   if (this->Point1CheckButton)
     {
     this->Point1CheckButton->SetParent(NULL);
     this->Point1CheckButton->Delete();
+    this->Point1CheckButton = NULL;
     }
   if (this->Point1REntry)
     {
     this->Point1REntry->SetParent(NULL);
     this->Point1REntry->Delete();
+    this->Point1REntry = NULL;
     }
   if (this->Point1AEntry)
     {
     this->Point1AEntry->SetParent(NULL);
     this->Point1AEntry->Delete();
+    this->Point1AEntry = NULL;
     }
   if (this->Point1SEntry)
     {
     this->Point1SEntry->SetParent(NULL);
     this->Point1SEntry->Delete();
+    this->Point1SEntry = NULL;
     }
   if (this->Point2CheckButton)
     {
     this->Point2CheckButton->SetParent(NULL);
     this->Point2CheckButton->Delete();
+    this->Point2CheckButton = NULL;
     }
   if (this->Point2REntry)
     {
     this->Point2REntry->SetParent(NULL);
     this->Point2REntry->Delete();
+    this->Point2REntry = NULL;
     }
   if (this->Point2AEntry)
     {
     this->Point2AEntry->SetParent(NULL);
     this->Point2AEntry->Delete();
+    this->Point2AEntry = NULL;
     }
   if (this->Point2SEntry)
     {
     this->Point2SEntry->SetParent(NULL);
     this->Point2SEntry->Delete();
+    this->Point2SEntry = NULL;
     }
   if (this->Point3CheckButton)
     {
     this->Point3CheckButton->SetParent(NULL);
     this->Point3CheckButton->Delete();
+    this->Point3CheckButton = NULL;
     }
   if (this->Point3REntry)
     {
     this->Point3REntry->SetParent(NULL);
     this->Point3REntry->Delete();
+    this->Point3REntry = NULL;
     }
   if (this->Point3AEntry)
     {
     this->Point3AEntry->SetParent(NULL);
     this->Point3AEntry->Delete();
+    this->Point3AEntry = NULL;
     }
   if (this->Point3SEntry)
     {
     this->Point3SEntry->SetParent(NULL);
     this->Point3SEntry->Delete();
+    this->Point3SEntry = NULL;
     }
   if (this->ResetRegistrationPushButton)
     {
     this->ResetRegistrationPushButton->SetParent(NULL);
     this->ResetRegistrationPushButton->Delete();
+    this->ResetRegistrationPushButton = NULL;
     }
   if (this->PerformRegistrationPushButton)
     {
     this->PerformRegistrationPushButton->SetParent(NULL);
     this->PerformRegistrationPushButton->Delete();
+    this->PerformRegistrationPushButton = NULL;
     }
 
   //----------------------------------------------------------------
@@ -190,61 +205,73 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     {
     this->ShowLocatorCheckButton->SetParent(NULL);
     this->ShowLocatorCheckButton->Delete();
+    this->ShowLocatorCheckButton = NULL;
     }
   if (this->ProjectionLengthScale)
     {
     this->ProjectionLengthScale->SetParent(NULL);
     this->ProjectionLengthScale->Delete();
+    this->ProjectionLengthScale = NULL;
     }
   if (this->FreezeLocatorCheckButton)
     {
     this->FreezeLocatorCheckButton->SetParent(NULL);
     this->FreezeLocatorCheckButton->Delete();
+    this->FreezeLocatorCheckButton = NULL;
     }
   if (this->ShowCrosshairCheckButton)
     {
     this->ShowCrosshairCheckButton->SetParent(NULL);
     this->ShowCrosshairCheckButton->Delete();
+    this->ShowCrosshairCheckButton = NULL;
     }
   if (this->DrawNeedleProjectionCheckButton)
     {
     this->DrawNeedleProjectionCheckButton->SetParent(NULL);
     this->DrawNeedleProjectionCheckButton->Delete();
+    this->DrawNeedleProjectionCheckButton = NULL;
     }
   if (this->RedSliceMenuButton)
     {
     this->RedSliceMenuButton->SetParent(NULL);
     this->RedSliceMenuButton->Delete();
+    this->RedSliceMenuButton = NULL;
     }
   if (this->YellowSliceMenuButton)
     {
     this->YellowSliceMenuButton->SetParent(NULL);
     this->YellowSliceMenuButton->Delete();
+    this->YellowSliceMenuButton = NULL;
     }
   if (this->GreenSliceMenuButton)
     {
     this->GreenSliceMenuButton->SetParent(NULL);
     this->GreenSliceMenuButton->Delete();
+    this->GreenSliceMenuButton = NULL;
     }
   if (this->SetLocatorAllPushButton)
     {
     this->SetLocatorAllPushButton->SetParent(NULL);
     this->SetLocatorAllPushButton->Delete();
+    this->SetLocatorAllPushButton = NULL;
     }
   if (this->SetUserAllPushButton)
     {
     this->SetUserAllPushButton->SetParent(NULL);
     this->SetUserAllPushButton->Delete();
+    this->SetUserAllPushButton = NULL;
     }
   if (this->FreezeSliceCheckButton)
     {
     this->FreezeSliceCheckButton->SetParent(NULL);
     this->FreezeSliceCheckButton->Delete();
+    this->FreezeSliceCheckButton = NULL;
     }
   if (this->ObliqueCheckButton)
     {
     this->ObliqueCheckButton->SetParent(NULL);
     this->ObliqueCheckButton->Delete();
+    this->ObliqueCheckButton = NULL;
     }
 }
 
