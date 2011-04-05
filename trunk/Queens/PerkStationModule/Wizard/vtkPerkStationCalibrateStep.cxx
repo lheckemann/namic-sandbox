@@ -638,32 +638,34 @@ vtkPerkStationCalibrateStep
   
     // Image calibration on second monitor with focus on Red Slice.
   
-  double stepSize = 0.8;
+  double stepSize = 0.6;
   
   double translation[ 2 ];
   double rotation = this->GetGUI()->GetPerkStationModuleNode()->GetSecondMonitorRotation();
   this->GetGUI()->GetPerkStationModuleNode()->GetSecondMonitorTranslation( translation );
   
-  /*
-  double hFlip = 1.0;
-  if ( this->GetGUI()->GetPerkStationModuleNode()->GetFinalHorizontalFlip() )
-    {
-    hFlip = - 1.0;
-    }
-  */
   
   if ( event == vtkCommand::KeyPressEvent )
     {
+    double shiftFactor = 6.0;
+    
     char  *key = style->GetKeySym();
     switch ( *key )
       {
       case 'a' : translation[ 1 ] -= stepSize; break;
+      case 'A' : translation[ 1 ] -= stepSize * shiftFactor; break;
       case 'z' : translation[ 1 ] += stepSize; break;
+      case 'Z' : translation[ 1 ] += stepSize * shiftFactor; break;
       case 'q' : translation[ 0 ] += stepSize; break;
+      case 'Q' : translation[ 0 ] += stepSize * shiftFactor; break;
       case 'w' : translation[ 0 ] -= stepSize; break;
+      case 'W' : translation[ 0 ] -= stepSize * shiftFactor; break;
       case 'j' : rotation += ( stepSize / 3.0 ); break;
+      case 'J' : rotation += ( stepSize * shiftFactor / 3.0 ); break;
       case 'h' : rotation -= ( stepSize / 3.0 ); break;
+      case 'H' : rotation -= ( stepSize * shiftFactor / 3.0 ); break;
       }
+    
     }
   
   this->GetGUI()->GetPerkStationModuleNode()->SetSecondMonitorTranslation( translation );
