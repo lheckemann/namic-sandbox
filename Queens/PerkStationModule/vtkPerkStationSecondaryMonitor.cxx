@@ -326,12 +326,12 @@ vtkPerkStationSecondaryMonitor
   
     // Calibration controls.
   
-  this->CalibrationControlsActor->SetInput( "Up:[A]  Down:[Z]  Left:[Q]  Right:[W]   Rotatations:[J][H]" );
+  this->CalibrationControlsActor->SetInput( "Up:[A]  Down:[Z]  Left:[Q]  Right:[W]   Rotatations:[J][H]  Fast: +SHIFT" );
   this->CalibrationControlsActor->GetTextProperty()->SetColor( 1, 1, 0 );
   this->CalibrationControlsActor->SetTextScaleModeToNone();
   this->CalibrationControlsActor->GetTextProperty()->SetFontSize( 28 );
   this->CalibrationControlsActor->GetTextProperty()->BoldOn();
-  this->CalibrationControlsActor->SetDisplayPosition( this->MonitorSizePixel[ 0 ] / 2 - 370, this->MonitorSizePixel[ 1 ] - 50 );
+  this->CalibrationControlsActor->SetDisplayPosition( this->MonitorSizePixel[ 0 ] / 2 - 400, this->MonitorSizePixel[ 1 ] - 50 );
   if ( moduleNode->GetFinalHorizontalFlip() )
     {
     this->CalibrationControlsActor->FlipAroundY( true );
