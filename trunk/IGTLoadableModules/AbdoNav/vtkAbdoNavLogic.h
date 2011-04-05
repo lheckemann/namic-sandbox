@@ -42,6 +42,9 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
     //AnotherEvent    = 50002
   };
 
+  //----------------------------------------------------------------
+  // Identifiers for the three different slice orientations.
+  //----------------------------------------------------------------
   enum SliceOrientation {
     SLICE_ORIENT_AXIAL    = 0,
     SLICE_ORIENT_SAGITTAL = 1,
@@ -65,17 +68,16 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   //----------------------------------------------------------------
   void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
 
-  /// Calculate registration matrix based on three identified points on the guidance needle.
+  //----------------------------------------------------------------
+  // Calculate registration matrix based on three manually identified
+  // points on the guidance needle artifact.
+  // See implementation for a detailed comment.
+  //----------------------------------------------------------------
   int PerformRegistration();
-  /// Set the slice driver (User == 0, Locator == 1) for each slice orientation (Red == 0,
-  /// Yellow == 1, Green == 2).
-  void SetSliceDriver(int sliceIndex, const char* driver);
   /// Convenience function that calls UpdateSlicePlane(...) on each slice node driven
   /// by the locator, updates the crosshair in each slice view (if selected by user)
   /// and calls UpdateNeedleProjection(...) on each slice view (if selected by user).
   void UpdateAll();
-  /// Perform reslicing in the specified slice node given the registered tracking data.
-  void UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* registeredTracker);
   /// Update the needle projection in the specified slice view. Due to being a projection of
   /// the procedure needle's direction vector, the line being drawn grows and shrinks. That
   /// is, the line has maximum length when the needle is in-plane and is invisible when the
@@ -87,8 +89,6 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   /// whether the needle is in front of the slice plane or behind it, the line is either solid
   /// or dashed respectively.
   void UpdateNeedleProjection(vtkMatrix4x4* registeredTracker);
-  /// Set pointers to access the three different slice orientations.
-  void CheckSliceNode();
   /// Find and return the locator. Return NULL if not found.
   vtkMRMLModelNode* FindLocator(const char* locatorName);
   /// Create locator model and make it observe the selected tracker transform node.
@@ -99,6 +99,18 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   void ToggleLocatorFreeze(int freeze);
   /// Create a locator model.
   vtkMRMLModelNode* AddLocatorModel(const char* locatorName, double r, double g, double b);
+
+  //----------------------------------------------------------------
+  // Reslicing.
+  //----------------------------------------------------------------
+  /// Set pointers to access the three different slice nodes (Red, Yellow and Green).
+  void CheckSliceNode();
+  /// Set a slice node's (Red == 0, Yellow == 1, Green == 2) slice driver (User == 0,
+  /// Locator == 1).
+  void SetSliceDriver(int sliceIndex, const char* driver);
+  /// Reslice the specified slice node (Red == 0, Yellow == 1, Green == 2) given the
+  /// registered tracking data.
+  void UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* registeredTracker);
 
   //----------------------------------------------------------------
   // Getters and Setters to access (private) logic values from the GUI.
@@ -146,13 +158,14 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkActor2D* Actor2DGreen;
   /// Actor used to draw the red part of the needle projection.
   vtkActor2D* Actor2DRed;
-  /// Pointers to access the three different slice orientations.
+  /// Pointers to access the three different slice nodes (Red == 0, Yellow == 1, Green == 2).
   vtkMRMLSliceNode* SliceNode[3];
-  /// Holds the slice driver (User == 0, Locator == 1) for each slice orientation (Red == 0,
-  /// Yellow == 1, Green == 2).
+  /// Holds a slice node's (Red == 0, Yellow == 1, Green == 2) slice driver (User == 0,
+  /// Locator == 1).
   int SliceDriver[3];
-  /// Holds the slice orientation (Axial == 0, Sagittal == 1, Coronal == 2) for each slice view
-  /// (Red == 0, Yellow == 1, Green == 2)
+  /// Holds a slice node's (Red == 0, Yellow == 1, Green == 2) slice orientation
+  /// (Axial == 0, Sagittal == 1, Coronal == 2) before reslicing it obliquely (
+  /// oblique reslicing will set a slice node's orientation string to "Reformat").
   int SliceOrientation[3];
   /// Flag indicating whether or not registration has been performed yet.
   bool RegistrationPerformed;
