@@ -90,6 +90,10 @@ vtkAbdoNavLogic::~vtkAbdoNavLogic()
     {
     this->Crosshair->Delete();
     }
+  if (this->AppGUI)
+    {
+    this->AppGUI->Delete();
+    }
   if (this->Actor2DGreen)
     {
     this->Actor2DGreen->Delete();
