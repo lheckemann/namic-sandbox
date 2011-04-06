@@ -481,7 +481,7 @@ void vtkAbdoNavGUI::AddLogicObservers()
 
   if (this->AbdoNavLogic)
     {
-    this->AbdoNavLogic->AddObserver(vtkAbdoNavLogic::StatusUpdateEvent, (vtkCommand*)this->LogicCallbackCommand);
+    this->AbdoNavLogic->AddObserver(vtkAbdoNavLogic::RequestFitToBackground, (vtkCommand*)this->LogicCallbackCommand);
     }
 }
 
@@ -491,7 +491,7 @@ void vtkAbdoNavGUI::RemoveLogicObservers()
 {
   if (this->AbdoNavLogic)
     {
-    this->AbdoNavLogic->RemoveObservers(vtkAbdoNavLogic::StatusUpdateEvent, (vtkCommand*)this->LogicCallbackCommand);
+    this->AbdoNavLogic->RemoveObservers(vtkAbdoNavLogic::RequestFitToBackground, (vtkCommand*)this->LogicCallbackCommand);
     }
 }
 
@@ -887,9 +887,10 @@ void vtkAbdoNavGUI::ProcessLogicEvents(vtkObject* caller, unsigned long event, v
 {
   if (this->AbdoNavLogic == vtkAbdoNavLogic::SafeDownCast(caller))
     {
-    if (event == vtkAbdoNavLogic::StatusUpdateEvent)
+    if (event == vtkAbdoNavLogic::RequestFitToBackground)
       {
-      // TODO: implement or delete (also delete AddLogicObservers() and RemoveLogicObservers())!
+      // logic requested to fit image data back into slice views
+      this->GetApplicationGUI()->GetSlicesControlGUI()->FitSlicesToBackground();
       }
     }
 }

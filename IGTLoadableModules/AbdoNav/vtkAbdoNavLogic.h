@@ -38,8 +38,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   // Events to be passed to and processed by the GUI.
   //----------------------------------------------------------------
   enum LogicEvents {
-    StatusUpdateEvent = 50001,
-    //AnotherEvent    = 50002
+    RequestFitToBackground = 50001,
+    //AnotherEvent         = 50002
   };
 
   //----------------------------------------------------------------
