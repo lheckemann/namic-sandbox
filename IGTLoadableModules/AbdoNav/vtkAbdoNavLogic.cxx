@@ -1004,7 +1004,6 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
       }
     else
       {
-      this->SliceNode[sliceNodeIndex]->SetOrientationToAxial();
       this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
       }
     }
@@ -1018,7 +1017,6 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
       }
     else
       {
-      this->SliceNode[sliceNodeIndex]->SetOrientationToSagittal();
       this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
       }
     }
@@ -1032,7 +1030,6 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
       }
     else
       {
-      this->SliceNode[sliceNodeIndex]->SetOrientationToCoronal();
       this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
       }
     }
