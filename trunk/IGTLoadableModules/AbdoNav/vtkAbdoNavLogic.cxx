@@ -19,9 +19,6 @@
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 
-/* Slicer includes */
-#include "vtkSlicerSlicesControlGUI.h"
-
 /* VTK includes */
 #include "vtkAppendPolyData.h"
 #include "vtkCellArray.h"
@@ -1064,10 +1061,7 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
 
       this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
       // fit image data back into the slice viewers
-      if (this->AppGUI != NULL)
-        {
-        this->GetAppGUI()->GetSlicesControlGUI()->FitSlicesToBackground();
-        }
+      this->InvokeEvent(RequestFitToBackground);
       }
     }
 
