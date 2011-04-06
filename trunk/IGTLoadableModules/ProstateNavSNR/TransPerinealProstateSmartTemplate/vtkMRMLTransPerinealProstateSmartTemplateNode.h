@@ -11,8 +11,8 @@
   Version:   $Revision: 1.3 $
 
 =========================================================================auto=*/
-#ifndef __vtkMRMLTransPerinealProstateTemplateSNRNode_h
-#define __vtkMRMLTransPerinealProstateTemplateSNRNode_h
+#ifndef __vtkMRMLTransPerinealProstateSmartTemplateNode_h
+#define __vtkMRMLTransPerinealProstateSmartTemplateNode_h
 
 #include "vtkOpenIGTLinkIFWin32Header.h"
 #include "vtkMRML.h"
@@ -36,7 +36,7 @@ class vtkTransform;
 class vtkIGTLToMRMLCoordinate;
 class vtkSlicerApplication;
 
-class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateSNRNode : public vtkMRMLRobotNode
+class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateSmartTemplateNode : public vtkMRMLRobotNode
 {
 
  public:
@@ -45,12 +45,12 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateSNRNode : publi
   // Standard methods for MRML nodes
   //----------------------------------------------------------------
 
-  static vtkMRMLTransPerinealProstateTemplateSNRNode *New();
-  vtkTypeMacro(vtkMRMLTransPerinealProstateTemplateSNRNode,vtkMRMLRobotNode);  
+  static vtkMRMLTransPerinealProstateSmartTemplateNode *New();
+  vtkTypeMacro(vtkMRMLTransPerinealProstateSmartTemplateNode,vtkMRMLRobotNode);  
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual vtkMRMLTransPerinealProstateTemplateSNRNode* CreateNodeInstance();
+  virtual vtkMRMLTransPerinealProstateSmartTemplateNode* CreateNodeInstance();
 
   // Description:
   // Set node attributes
@@ -81,7 +81,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateSNRNode : publi
   // Description:
   // Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName()
-    {return "TransPerinealProstateTemplate";};
+    {return "TransPerinealProstateSmartTemplate";};
 
   // method to propagate events generated in mrml
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
@@ -169,10 +169,10 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateSNRNode : publi
 
  protected:
 
-  vtkMRMLTransPerinealProstateTemplateSNRNode();
-  virtual ~vtkMRMLTransPerinealProstateTemplateSNRNode();
-  vtkMRMLTransPerinealProstateTemplateSNRNode(const vtkMRMLTransPerinealProstateTemplateSNRNode&);
-  void operator=(const vtkMRMLTransPerinealProstateTemplateSNRNode&);
+  vtkMRMLTransPerinealProstateSmartTemplateNode();
+  virtual ~vtkMRMLTransPerinealProstateSmartTemplateNode();
+  vtkMRMLTransPerinealProstateSmartTemplateNode(const vtkMRMLTransPerinealProstateSmartTemplateNode&);
+  void operator=(const vtkMRMLTransPerinealProstateSmartTemplateNode&);
 
   ///////////
 
