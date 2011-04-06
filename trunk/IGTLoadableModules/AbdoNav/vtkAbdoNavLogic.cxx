@@ -1061,7 +1061,14 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
 
       this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
       // fit image data back into the slice viewers
-      this->InvokeEvent(RequestFitToBackground);
+      if (strcmp(this->SliceNode[0]->GetOrientationString(), "Reformat") != 0 &&
+          strcmp(this->SliceNode[1]->GetOrientationString(), "Reformat") != 0 &&
+          strcmp(this->SliceNode[2]->GetOrientationString(), "Reformat") != 0)
+        {
+        // initial orientation of all slice nodes was restored; thus, request
+        // GUI to fit all of them at once into their respective slice viewer
+        this->InvokeEvent(RequestFitToBackground);
+        }
       }
     }
 
