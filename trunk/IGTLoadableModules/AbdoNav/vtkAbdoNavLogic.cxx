@@ -998,7 +998,7 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
     {
     if (this->ObliqueReslicing)
       {
-      // store orientation of this slice view
+      // store orientation of this slice node
       this->SliceOrientation[sliceNodeIndex] = SLICE_ORIENT_AXIAL;
       this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
       }
@@ -1011,7 +1011,7 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
     {
     if (this->ObliqueReslicing)
       {
-      // store orientation of this slice view
+      // store orientation of this slice node
       this->SliceOrientation[sliceNodeIndex] = SLICE_ORIENT_SAGITTAL;
       this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
       }
@@ -1024,7 +1024,7 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
     {
     if (this->ObliqueReslicing)
       {
-      // store orientation of this slice view
+      // store orientation of this slice node
       this->SliceOrientation[sliceNodeIndex] = SLICE_ORIENT_CORONAL;
       this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
       }
