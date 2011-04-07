@@ -151,10 +151,10 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkActor2D* Actor2DRed;
   /// Pointers to access the three different slice nodes (Red == 0, Yellow == 1, Green == 2).
   vtkMRMLSliceNode* SliceNode[3];
-  /// Holds a slice node's (Red == 0, Yellow == 1, Green == 2) slice driver (User == 0,
-  /// Locator == 1).
-  int SliceDriver[3];
   //BTX
+  /// Holds a slice node's (Red == 0, Yellow == 1, Green == 2) slice driver
+  /// (User or Locator).
+  std::string SliceDriver[3];
   /// Holds a slice node's (Red == 0, Yellow == 1, Green == 2) slice orientation
   /// (Axial, Sagittal or Coronal).
   std::string SliceOrientation[3];

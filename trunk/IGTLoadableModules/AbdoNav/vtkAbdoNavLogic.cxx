@@ -56,10 +56,10 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
   this->AppGUI = NULL;
   this->Actor2DGreen = NULL;
   this->Actor2DRed = NULL;
-  // initialize each slice orientation (Red == 0, Yellow == 1, Green == 2) to be driven by the user (== 0)
+  // initialize each slice node (Red == 0, Yellow == 1, Green == 2) to be driven by the user
   for (int i = 0; i < 3; i++)
     {
-    this->SliceDriver[i] = 0;
+    this->SliceDriver[i] = "User";
     }
   this->RegistrationPerformed = 0;
   this->ShowCrosshair = 0;
@@ -380,7 +380,7 @@ void vtkAbdoNavLogic::UpdateAll()
     for (int i = 0; i < 3; i++)
       {
       // driven by locator
-      if (this->SliceDriver[i] == 1)
+      if (this->SliceDriver[i] == "Locator")
         {
         if (registeredTracker != NULL)
           {
@@ -957,11 +957,11 @@ void vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
       default:
         break;
     }
-    this->SliceDriver[sliceIndex] = 0;
+    this->SliceDriver[sliceIndex] = "User";
     }
   else if (strcmp(driver, "Locator") == 0)
     {
-    this->SliceDriver[sliceIndex] = 1;
+    this->SliceDriver[sliceIndex] = "Locator";
     vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()));
     if (tnode)
       {
