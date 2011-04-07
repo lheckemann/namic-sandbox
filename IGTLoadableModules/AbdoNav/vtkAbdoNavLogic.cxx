@@ -939,43 +939,54 @@ void vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
                   "Index out of range!");
     return;
     }
-
-  this->CheckSliceNode();
-
-  if (strcmp(driver, "User") == 0)
-    {
-    switch (sliceIndex) {
-      case 0:
-        this->SliceNode[sliceIndex]->SetOrientationToAxial();
-        break;
-      case 1:
-        this->SliceNode[sliceIndex]->SetOrientationToSagittal();
-        break;
-      case 2:
-        this->SliceNode[sliceIndex]->SetOrientationToCoronal();
-        break;
-      default:
-        break;
-    }
-    this->SliceDriver[sliceIndex] = "User";
-    }
-  else if (strcmp(driver, "Locator") == 0)
-    {
-    this->SliceDriver[sliceIndex] = "Locator";
-    vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()));
-    if (tnode)
-      {
-      vtkIntArray* nodeEvents = vtkIntArray::New();
-      nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-      vtkSetAndObserveMRMLNodeEventsMacro(this->RelativeTrackingTransform, tnode, nodeEvents);
-      nodeEvents->Delete();
-      tnode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-      }
-    }
-  else
+  else if (strcmp(driver, "User") != 0 && strcmp(driver, "Locator") != 0)
     {
     vtkErrorMacro("in vtkAbdoNavLogic::SetSliceDriver(...): "
                   "Unknown slice driver specifier!");
+    return;
+    }
+
+  // don't do anything unless the new slice driver is different
+  // from the current one (GUI doesn't keep track of the slice
+  // driver, i.e. the user might "change" the slice driver from
+  // User to User or Locator to Locator)
+  if (strcmp(driver, this->SliceDriver[sliceIndex].c_str()) != 0)
+    {
+    // if necessary, set pointers to access the three slice nodes
+    this->CheckSliceNode();
+
+    // set new slice driver
+    this->SliceDriver[sliceIndex] = driver;
+
+    if (strcmp(driver, "User") == 0)
+      {
+      switch (sliceIndex)
+        {
+        case 0:
+          this->SliceNode[sliceIndex]->SetOrientationToAxial();
+          break;
+        case 1:
+          this->SliceNode[sliceIndex]->SetOrientationToSagittal();
+          break;
+        case 2:
+          this->SliceNode[sliceIndex]->SetOrientationToCoronal();
+          break;
+        default:
+          break;
+        }
+      }
+    else if (strcmp(driver, "Locator") == 0)
+      {
+      vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()));
+      if (tnode)
+        {
+        vtkIntArray* nodeEvents = vtkIntArray::New();
+        nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+        vtkSetAndObserveMRMLNodeEventsMacro(this->RelativeTrackingTransform, tnode, nodeEvents);
+        nodeEvents->Delete();
+        tnode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+        }
+      }
     }
 }
 
