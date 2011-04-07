@@ -1003,7 +1003,7 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
     if (this->ObliqueReslicing)
       {
       // store orientation of this slice node
-      this->SliceOrientation[sliceNodeIndex] = SLICE_ORIENT_AXIAL;
+      this->SliceOrientation[sliceNodeIndex] = this->SliceNode[sliceNodeIndex]->GetOrientationString();
       this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
       }
     else
@@ -1016,7 +1016,7 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
     if (this->ObliqueReslicing)
       {
       // store orientation of this slice node
-      this->SliceOrientation[sliceNodeIndex] = SLICE_ORIENT_SAGITTAL;
+      this->SliceOrientation[sliceNodeIndex] = this->SliceNode[sliceNodeIndex]->GetOrientationString();
       this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
       }
     else
@@ -1029,7 +1029,7 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
     if (this->ObliqueReslicing)
       {
       // store orientation of this slice node
-      this->SliceOrientation[sliceNodeIndex] = SLICE_ORIENT_CORONAL;
+      this->SliceOrientation[sliceNodeIndex] = this->SliceNode[sliceNodeIndex]->GetOrientationString();
       this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
       }
     else
@@ -1046,15 +1046,15 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
     else
       {
       // oblique reslicing deselected, thus restore initial orientation
-      if (this->SliceOrientation[sliceNodeIndex] == SLICE_ORIENT_AXIAL)
+      if (strcmp(this->SliceOrientation[sliceNodeIndex].c_str(), "Axial") == 0)
         {
         this->SliceNode[sliceNodeIndex]->SetOrientationToAxial();
         }
-      else if (this->SliceOrientation[sliceNodeIndex] == SLICE_ORIENT_SAGITTAL)
+      else if (strcmp(this->SliceOrientation[sliceNodeIndex].c_str(), "Sagittal") == 0)
         {
         this->SliceNode[sliceNodeIndex]->SetOrientationToSagittal();
         }
-      else if (this->SliceOrientation[sliceNodeIndex] == SLICE_ORIENT_CORONAL)
+      else if (strcmp(this->SliceOrientation[sliceNodeIndex].c_str(), "Coronal") == 0)
         {
         this->SliceNode[sliceNodeIndex]->SetOrientationToCoronal();
         }

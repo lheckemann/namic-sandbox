@@ -41,15 +41,6 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
     RequestFitToBackground = 50001,
     //AnotherEvent         = 50002
   };
-
-  //----------------------------------------------------------------
-  // Identifiers for the three different slice orientations.
-  //----------------------------------------------------------------
-  enum SliceOrientation {
-    SLICE_ORIENT_AXIAL    = 0,
-    SLICE_ORIENT_SAGITTAL = 1,
-    SLICE_ORIENT_CORONAL  = 2
-  };
   //ETX
 
   //----------------------------------------------------------------
@@ -163,10 +154,11 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   /// Holds a slice node's (Red == 0, Yellow == 1, Green == 2) slice driver (User == 0,
   /// Locator == 1).
   int SliceDriver[3];
+  //BTX
   /// Holds a slice node's (Red == 0, Yellow == 1, Green == 2) slice orientation
-  /// (Axial == 0, Sagittal == 1, Coronal == 2) before reslicing it obliquely (
-  /// oblique reslicing will set a slice node's orientation string to "Reformat").
-  int SliceOrientation[3];
+  /// (Axial, Sagittal or Coronal).
+  std::string SliceOrientation[3];
+  //ETX
   /// Flag indicating whether or not registration has been performed yet.
   bool RegistrationPerformed;
   /// Flag indicating whether or not to show the crosshair in the slice views.
