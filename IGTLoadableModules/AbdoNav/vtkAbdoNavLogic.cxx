@@ -945,6 +945,12 @@ void vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
                   "Unknown slice driver specifier!");
     return;
     }
+  else if (this->AbdoNavNode == NULL)
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::SetSliceDriver(...): "
+                  "Couldn't retrieve AbdoNavNode!");
+    return;
+    }
 
   // don't do anything unless the new slice driver is different
   // from the current one (GUI doesn't keep track of the slice
@@ -985,6 +991,12 @@ void vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
         vtkSetAndObserveMRMLNodeEventsMacro(this->RelativeTrackingTransform, tnode, nodeEvents);
         nodeEvents->Delete();
         tnode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+        }
+      else
+        {
+        vtkErrorMacro("in vtkAbdoNavLogic::SetSliceDriver(...): "
+                      "Couldn't retrieve tracking transform node!");
+        return;
         }
       }
     }
