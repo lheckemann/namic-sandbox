@@ -1023,46 +1023,7 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
   float ty = registeredTracker->Element[1][0]; float ny = registeredTracker->Element[1][2]; float py = registeredTracker->Element[1][3];
   float tz = registeredTracker->Element[2][0]; float nz = registeredTracker->Element[2][2]; float pz = registeredTracker->Element[2][3];
 
-  if (strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Axial") == 0)
-    {
-    if (this->ObliqueReslicing)
-      {
-      // store orientation of this slice node
-      this->SliceOrientation[sliceNodeIndex] = this->SliceNode[sliceNodeIndex]->GetOrientationString();
-      this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
-      }
-    else
-      {
-      this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
-      }
-    }
-  else if (strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Sagittal") == 0)
-    {
-    if (this->ObliqueReslicing)
-      {
-      // store orientation of this slice node
-      this->SliceOrientation[sliceNodeIndex] = this->SliceNode[sliceNodeIndex]->GetOrientationString();
-      this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
-      }
-    else
-      {
-      this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
-      }
-    }
-  else if (strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Coronal") == 0)
-    {
-    if (this->ObliqueReslicing)
-      {
-      // store orientation of this slice node
-      this->SliceOrientation[sliceNodeIndex] = this->SliceNode[sliceNodeIndex]->GetOrientationString();
-      this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
-      }
-    else
-      {
-      this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
-      }
-    }
-  else if (strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Reformat") == 0)
+  if (strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Reformat") == 0)
     {
     if (this->ObliqueReslicing)
       {
@@ -1094,6 +1055,21 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
         // GUI to fit all of them at once into their respective slice viewer
         this->InvokeEvent(RequestFitToBackground);
         }
+      }
+    }
+  else if (strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Axial")    == 0 ||
+           strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Sagittal") == 0 ||
+           strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Coronal")  == 0)
+    {
+    // store orientation of this slice node
+    this->SliceOrientation[sliceNodeIndex] = this->SliceNode[sliceNodeIndex]->GetOrientationString();
+    if (this->ObliqueReslicing)
+      {
+      this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
+      }
+    else
+      {
+      this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
       }
     }
 
