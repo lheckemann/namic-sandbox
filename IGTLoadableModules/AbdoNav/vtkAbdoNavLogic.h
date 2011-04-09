@@ -98,7 +98,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   void CheckSliceNode();
   /// Set a slice node's (Red == 0, Yellow == 1, Green == 2) slice driver (User == 0,
   /// Locator == 1).
-  void SetSliceDriver(int sliceIndex, const char* driver);
+  int SetSliceDriver(int sliceIndex, const char* driver);
   /// Reslice the specified slice node (Red == 0, Yellow == 1, Green == 2) given the
   /// registered tracking data.
   void UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* registeredTracker);

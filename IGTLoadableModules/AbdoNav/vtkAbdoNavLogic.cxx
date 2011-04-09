@@ -931,25 +931,25 @@ void vtkAbdoNavLogic::CheckSliceNode()
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
+int vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
 {
   if (sliceIndex < 0 || sliceIndex >= 3)
     {
     vtkErrorMacro("in vtkAbdoNavLogic::SetSliceDriver(...): "
                   "Index out of range!");
-    return;
+    return EXIT_FAILURE;
     }
   else if (strcmp(driver, "User") != 0 && strcmp(driver, "Locator") != 0)
     {
     vtkErrorMacro("in vtkAbdoNavLogic::SetSliceDriver(...): "
                   "Unknown slice driver specifier!");
-    return;
+    return EXIT_FAILURE;
     }
   else if (this->AbdoNavNode == NULL)
     {
     vtkErrorMacro("in vtkAbdoNavLogic::SetSliceDriver(...): "
                   "Couldn't retrieve AbdoNavNode!");
-    return;
+    return EXIT_FAILURE;
     }
 
   // don't do anything unless the new slice driver is different
@@ -996,10 +996,12 @@ void vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
         {
         vtkErrorMacro("in vtkAbdoNavLogic::SetSliceDriver(...): "
                       "Couldn't retrieve tracking transform node!");
-        return;
+        return EXIT_FAILURE;
         }
       }
     }
+
+  return EXIT_SUCCESS;
 }
 
 
