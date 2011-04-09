@@ -966,19 +966,17 @@ int vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
 
     if (strcmp(driver, "User") == 0)
       {
-      switch (sliceIndex)
+      if (strcmp(this->SliceOrientation[sliceIndex].c_str(), "Axial") == 0)
         {
-        case 0:
-          this->SliceNode[sliceIndex]->SetOrientationToAxial();
-          break;
-        case 1:
-          this->SliceNode[sliceIndex]->SetOrientationToSagittal();
-          break;
-        case 2:
-          this->SliceNode[sliceIndex]->SetOrientationToCoronal();
-          break;
-        default:
-          break;
+        this->SliceNode[sliceIndex]->SetOrientationToAxial();
+        }
+      else if (strcmp(this->SliceOrientation[sliceIndex].c_str(), "Sagittal") == 0)
+        {
+        this->SliceNode[sliceIndex]->SetOrientationToSagittal();
+        }
+      else if (strcmp(this->SliceOrientation[sliceIndex].c_str(), "Coronal") == 0)
+        {
+        this->SliceNode[sliceIndex]->SetOrientationToCoronal();
         }
       }
     else if (strcmp(driver, "Locator") == 0)
