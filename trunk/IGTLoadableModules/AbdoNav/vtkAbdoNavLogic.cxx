@@ -48,19 +48,24 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
   this->RegistrationTransform = NULL;
   this->RelativeTrackingTransform = NULL;
   this->LocatorFreezePosition = NULL;
-  for (int i = 0; i < 3; i++)
-      {
-      this->SliceNode[i] = NULL;
-      }
   this->Crosshair = NULL;
   this->AppGUI = NULL;
   this->Actor2DGreen = NULL;
   this->Actor2DRed = NULL;
-  // initialize each slice node (Red == 0, Yellow == 1, Green == 2) to be driven by the user
+  for (int i = 0; i < 3; i++)
+    {
+    this->SliceNode[i] = NULL;
+    }
+  // initialize each slice node's (Red == 0, Yellow == 1, Green == 2) slice driver to "User"
   for (int i = 0; i < 3; i++)
     {
     this->SliceDriver[i] = "User";
     }
+  // initialize each slice node's (Red == 0, Yellow == 1, Green == 2) orientation with Slicer's
+  // default setting (Red == Axial, Yellow == Sagittal, Green == Coronal)
+  this->SliceOrientation[0] = "Axial";
+  this->SliceOrientation[1] = "Sagittal";
+  this->SliceOrientation[2] = "Coronal";
   this->RegistrationPerformed = 0;
   this->ShowCrosshair = 0;
   this->DrawNeedleProjection = 0;
