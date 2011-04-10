@@ -1079,11 +1079,11 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
            strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Sagittal") == 0 ||
            strcmp(this->SliceNode[sliceNodeIndex]->GetOrientationString(), "Coronal")  == 0)
     {
-    // store orientation of this slice node
-    this->SliceOrientation[sliceNodeIndex] = this->SliceNode[sliceNodeIndex]->GetOrientationString();
     if (this->ObliqueReslicing)
       {
-      // switch from non-oblique to oblique reslicing
+      // switch from non-oblique to oblique reslicing;
+      // store the slice node's initial orientation
+      this->SliceOrientation[sliceNodeIndex] = this->SliceNode[sliceNodeIndex]->GetOrientationString();
       this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
       }
     else
