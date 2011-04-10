@@ -79,6 +79,16 @@ vtkAbdoNavLogic::~vtkAbdoNavLogic()
 {
   //----------------------------------------------------------------
   // Clean up logic values.
+  //
+  // Must *NOT* delete the following:
+  //  - AbdoNavNode (handled by Slicer)
+  //  - RegistrationTransform (handled by Slicer)
+  //  - SliceNode[3] (handled by Slicer)
+  //
+  // Must delete the following (even though not created by AbdoNav):
+  //  - RelativeTrackingTransform (will cause leaks when Slicer gets
+  //    closed after loading a previously saved scene)
+  //  - Crosshair (will cause leaks when Slicer gets closed)
   //----------------------------------------------------------------
   // remove AbdoNavNode observers
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
