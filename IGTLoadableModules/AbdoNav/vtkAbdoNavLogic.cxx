@@ -374,7 +374,7 @@ void vtkAbdoNavLogic::UpdateAll()
       return;
       }
 
-    this->CheckSliceNode();
+    this->CheckSliceNodes();
 
     // update each slice node that is driven by the locator
     for (int i = 0; i < 3; i++)
@@ -913,7 +913,7 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* locatorName, doub
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavLogic::CheckSliceNode()
+void vtkAbdoNavLogic::CheckSliceNodes()
 {
   if (this->SliceNode[0] == NULL)
     {
@@ -959,7 +959,7 @@ int vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
   if (strcmp(driver, this->SliceDriver[sliceIndex].c_str()) != 0)
     {
     // if necessary, set pointers to access the three slice nodes
-    this->CheckSliceNode();
+    this->CheckSliceNodes();
 
     // set new slice driver
     this->SliceDriver[sliceIndex] = driver;
