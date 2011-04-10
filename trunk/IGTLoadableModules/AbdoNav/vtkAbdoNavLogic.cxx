@@ -936,7 +936,7 @@ int vtkAbdoNavLogic::SetSliceDriver(int sliceNode, const char* sliceDriver)
   if (sliceNode < 0 || sliceNode >= 3)
     {
     vtkErrorMacro("in vtkAbdoNavLogic::SetSliceDriver(...): "
-                  "Index out of range!");
+                  "Slice node index out of range!");
     return EXIT_FAILURE;
     }
   else if (strcmp(sliceDriver, "User") != 0 && strcmp(sliceDriver, "Locator") != 0)
@@ -958,7 +958,7 @@ int vtkAbdoNavLogic::SetSliceDriver(int sliceNode, const char* sliceDriver)
   // "User" to "User" or "Locator" to "Locator")
   if (strcmp(sliceDriver, this->SliceDriver[sliceNode].c_str()) != 0)
     {
-    // if necessary, set pointers to access the three slice nodes
+    // set pointers to the three slice nodes (if not already set)
     this->CheckSliceNodes();
 
     // set new slice driver
