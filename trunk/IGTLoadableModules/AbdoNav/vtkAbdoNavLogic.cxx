@@ -399,7 +399,7 @@ void vtkAbdoNavLogic::UpdateAll()
         {
         if (registeredTracker != NULL)
           {
-          this->UpdateSliceNode(i, registeredTracker);
+          this->ResliceNode(i, registeredTracker);
           }
         }
       }
@@ -988,7 +988,7 @@ int vtkAbdoNavLogic::SetSliceDriver(int sliceNode, const char* sliceDriver)
         {
         // switch from oblique reslicing to user mode;
         // restore the slice node's initial orientation
-        // (see UpdateSliceNode(...) for an explanation)
+        // (see ResliceNode(...) for an explanation)
         if (strcmp(this->SliceOrientation[sliceNode].c_str(), "Axial") == 0)
           {
           this->SliceNode[sliceNode]->SetOrientationToAxial();
@@ -1038,7 +1038,7 @@ int vtkAbdoNavLogic::SetSliceDriver(int sliceNode, const char* sliceDriver)
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavLogic::UpdateSliceNode(int sliceNode, vtkMatrix4x4* registeredTracker)
+void vtkAbdoNavLogic::ResliceNode(int sliceNode, vtkMatrix4x4* registeredTracker)
 {
   //----------------------------------------------------------------
   // NOTE: A slice node's orientation string is automatically set to
