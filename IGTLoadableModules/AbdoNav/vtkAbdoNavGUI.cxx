@@ -80,8 +80,8 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   this->GreenSliceMenuButton = NULL;
   this->SetLocatorAllPushButton = NULL;
   this->SetUserAllPushButton = NULL;
-  this->FreezeSliceCheckButton = NULL;
-  this->ObliqueCheckButton = NULL;
+  this->FreezeReslicingCheckButton = NULL;
+  this->ObliqueReslicingCheckButton = NULL;
 }
 
 
@@ -261,17 +261,17 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->SetUserAllPushButton->Delete();
     this->SetUserAllPushButton = NULL;
     }
-  if (this->FreezeSliceCheckButton)
+  if (this->FreezeReslicingCheckButton)
     {
-    this->FreezeSliceCheckButton->SetParent(NULL);
-    this->FreezeSliceCheckButton->Delete();
-    this->FreezeSliceCheckButton = NULL;
+    this->FreezeReslicingCheckButton->SetParent(NULL);
+    this->FreezeReslicingCheckButton->Delete();
+    this->FreezeReslicingCheckButton = NULL;
     }
-  if (this->ObliqueCheckButton)
+  if (this->ObliqueReslicingCheckButton)
     {
-    this->ObliqueCheckButton->SetParent(NULL);
-    this->ObliqueCheckButton->Delete();
-    this->ObliqueCheckButton = NULL;
+    this->ObliqueReslicingCheckButton->SetParent(NULL);
+    this->ObliqueReslicingCheckButton->Delete();
+    this->ObliqueReslicingCheckButton = NULL;
     }
 }
 
@@ -355,8 +355,8 @@ void vtkAbdoNavGUI::AddGUIObservers()
   this->GreenSliceMenuButton->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->SetLocatorAllPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->SetUserAllPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
-  this->FreezeSliceCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
-  this->ObliqueCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->FreezeReslicingCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->ObliqueReslicingCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
 
   // must be called manually!
   this->AddLogicObservers();
@@ -459,13 +459,13 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
     {
     this->SetUserAllPushButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
-  if (this->FreezeSliceCheckButton)
+  if (this->FreezeReslicingCheckButton)
     {
-    this->FreezeSliceCheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->FreezeReslicingCheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
-  if (this->ObliqueCheckButton)
+  if (this->ObliqueReslicingCheckButton)
     {
-    this->ObliqueCheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->ObliqueReslicingCheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
   // must be called manually!
@@ -875,14 +875,14 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     this->AbdoNavLogic->SetSliceDriver(1, "User");
     this->AbdoNavLogic->SetSliceDriver(2, "User");
     }
-  else if (this->FreezeSliceCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
+  else if (this->FreezeReslicingCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
-    int checked = this->FreezeSliceCheckButton->GetSelectedState();
+    int checked = this->FreezeReslicingCheckButton->GetSelectedState();
     this->AbdoNavLogic->SetFreezeReslicing(checked);
     }
-  else if (this->ObliqueCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
+  else if (this->ObliqueReslicingCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
-    int checked = this->ObliqueCheckButton->GetSelectedState();
+    int checked = this->ObliqueReslicingCheckButton->GetSelectedState();
     this->AbdoNavLogic->SetObliqueReslicing(checked);
     }
 }
@@ -1531,27 +1531,27 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->SetUserAllPushButton->SetText("User all");
   this->SetUserAllPushButton->SetBalloonHelpString("Drive all slice orientations by the user.");
   this->SetUserAllPushButton->SetWidth(12);
-  // create check button to freeze/unfreeze reslicing if driven by the locator
-  this->FreezeSliceCheckButton = vtkKWCheckButton::New();
-  this->FreezeSliceCheckButton->SetParent(sliceOptionsFrame);
-  this->FreezeSliceCheckButton->Create();
-  this->FreezeSliceCheckButton->SetText("Freeze");
-  this->FreezeSliceCheckButton->SetBalloonHelpString("Freeze/unfreeze reslicing if driven by the locator.");
-  this->FreezeSliceCheckButton->SelectedStateOff();
-  // create check button to enable/disable oblique reslicing if driven by the locator
-  this->ObliqueCheckButton = vtkKWCheckButton::New();
-  this->ObliqueCheckButton->SetParent(sliceOptionsFrame);
-  this->ObliqueCheckButton->Create();
-  this->ObliqueCheckButton->SetText("Oblique");
-  this->ObliqueCheckButton->SetBalloonHelpString("Enable/disable oblique reslicing if driven by the locator.");
-  this->ObliqueCheckButton->SelectedStateOff();
+  // create check button to freeze/unfreeze reslicing
+  this->FreezeReslicingCheckButton = vtkKWCheckButton::New();
+  this->FreezeReslicingCheckButton->SetParent(sliceOptionsFrame);
+  this->FreezeReslicingCheckButton->Create();
+  this->FreezeReslicingCheckButton->SetText("Freeze");
+  this->FreezeReslicingCheckButton->SetBalloonHelpString("Freeze/unfreeze reslicing.");
+  this->FreezeReslicingCheckButton->SelectedStateOff();
+  // create check button to enable/disable oblique reslicing
+  this->ObliqueReslicingCheckButton = vtkKWCheckButton::New();
+  this->ObliqueReslicingCheckButton->SetParent(sliceOptionsFrame);
+  this->ObliqueReslicingCheckButton->Create();
+  this->ObliqueReslicingCheckButton->SetText("Oblique");
+  this->ObliqueReslicingCheckButton->SetBalloonHelpString("Enable/disable oblique reslicing.");
+  this->ObliqueReslicingCheckButton->SelectedStateOff();
 
   // add drive all slice orientations by locator/user buttons, freeze reslicing and oblique reslicing check buttons
   this->Script("pack %s %s %s %s -side left -anchor nw -fill x -padx 2 -pady 2",
                 this->SetLocatorAllPushButton->GetWidgetName(),
                 this->SetUserAllPushButton->GetWidgetName(),
-                this->FreezeSliceCheckButton->GetWidgetName(),
-                this->ObliqueCheckButton->GetWidgetName());
+                this->FreezeReslicingCheckButton->GetWidgetName(),
+                this->ObliqueReslicingCheckButton->GetWidgetName());
 
   // clean up
   navigationFrame->Delete();

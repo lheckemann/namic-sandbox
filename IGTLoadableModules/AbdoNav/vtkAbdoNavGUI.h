@@ -145,8 +145,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkKWMenuButton* GreenSliceMenuButton;
   vtkKWPushButton* SetLocatorAllPushButton;
   vtkKWPushButton* SetUserAllPushButton;
-  vtkKWCheckButton* FreezeSliceCheckButton;
-  vtkKWCheckButton* ObliqueCheckButton;
+  vtkKWCheckButton* FreezeReslicingCheckButton;
+  vtkKWCheckButton* ObliqueReslicingCheckButton;
 
 };
 
