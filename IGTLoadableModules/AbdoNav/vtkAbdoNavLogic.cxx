@@ -1021,11 +1021,15 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
   // NOTE: A slice node's orientation string is automatically set to
   //       "Reformat" whenever SetSliceToRASByNTP(...) is called, i.e.
   //       when oblique reslicing is performed.
-  //       Once the oblique reslicing option is deselected by the user,
-  //       the slice node's "initial" orientation (i.e. the one before
-  //       the oblique reslicing) needs to be retrieved. This is why a
-  //       slice node's orientation is stored in SliceOrientation[3]
-  //       before calling SetSliceToRASByNTP(...).
+  //       Thus, a slice node's orientation string needs to be stored
+  //       in array SliceOrientation[3] in order to retrieve its "ini-
+  //       tial" orientation (i.e. the one before oblique reslicing)
+  //       once the user switches from oblique to non-oblique reslicing
+  //       or switches from oblique reslicing to user mode (the latter
+  //       of which is handled in SetSliceDriver(...)). In both cases,
+  //       the image data also needs to be fitted back into the slice
+  //       viewers once the initial orientation of all slice nodes was
+  //       restored.
   //----------------------------------------------------------------
 
   float tx = registeredTracker->Element[0][0]; float nx = registeredTracker->Element[0][2]; float px = registeredTracker->Element[0][3];
