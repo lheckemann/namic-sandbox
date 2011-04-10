@@ -69,6 +69,24 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   /// by the locator, updates the crosshair in each slice view (if selected by user)
   /// and calls UpdateNeedleProjection(...) on each slice view (if selected by user).
   void UpdateAll();
+
+  //----------------------------------------------------------------
+  // 3D visualization.
+  //----------------------------------------------------------------
+  /// Find and return the locator. Return NULL if not found.
+  vtkMRMLModelNode* FindLocator(const char* locatorName);
+  /// Create locator model and make it observe the selected tracker transform node.
+  int EnableLocatorDriver(const char* locatorName);
+  /// Show or hide locator model.
+  void ToggleLocatorVisibility(int vis);
+  /// Freeze or unfreeze locator model.
+  void ToggleLocatorFreeze(int freeze);
+  /// Create a locator model.
+  vtkMRMLModelNode* AddLocatorModel(const char* locatorName, double r, double g, double b);
+
+  //----------------------------------------------------------------
+  // 2D visualization.
+  //----------------------------------------------------------------
   /// Update the needle projection in the specified slice view. Due to being a projection of
   /// the procedure needle's direction vector, the line being drawn grows and shrinks. That
   /// is, the line has maximum length when the needle is in-plane and is invisible when the
@@ -80,16 +98,6 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   /// whether the needle is in front of the slice plane or behind it, the line is either solid
   /// or dashed respectively.
   void UpdateNeedleProjection(vtkMatrix4x4* registeredTracker);
-  /// Find and return the locator. Return NULL if not found.
-  vtkMRMLModelNode* FindLocator(const char* locatorName);
-  /// Create locator model and make it observe the selected tracker transform node.
-  int EnableLocatorDriver(const char* locatorName);
-  /// Show or hide locator model.
-  void ToggleLocatorVisibility(int vis);
-  /// Freeze or unfreeze locator model.
-  void ToggleLocatorFreeze(int freeze);
-  /// Create a locator model.
-  vtkMRMLModelNode* AddLocatorModel(const char* locatorName, double r, double g, double b);
 
   //----------------------------------------------------------------
   // Reslicing.

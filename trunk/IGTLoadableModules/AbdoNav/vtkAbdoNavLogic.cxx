@@ -453,177 +453,6 @@ void vtkAbdoNavLogic::UpdateAll()
 
 
 //---------------------------------------------------------------------------
-void vtkAbdoNavLogic::UpdateNeedleProjection(vtkMatrix4x4* registeredTracker)
-{
-  // calculate angle alpha between needle and slice plane according to the formula
-  // below where u denotes the direction vector of the needle and n denotes the
-  // normal vector of the slice plane:
-  //
-  // alpha = 90deg - radtodeg( arccos( |u * n| / |u| * |n| ) )
-  //       =         radtodeg( arcsin( |u * n| / |u| * |n| ) )
-  //
-  // last equation is true due to arccos( x ) = PI/2 - arcsin( x )
-
-  // direction vector of the needle in RAS coordinates
-  double needleDirec[3] = {registeredTracker->Element[0][2], registeredTracker->Element[1][2], registeredTracker->Element[2][2]};
-  // normal vector of the slice plane in RAS coordinates
-  double planeNormal[3] = {0, 0, 1};
-
-  // calculate angle alpha
-  double alpha;
-  int angle;
-  alpha = asin(fabs(vtkMath::Dot(needleDirec, planeNormal)) / (vtkMath::Norm(needleDirec) * vtkMath::Norm(planeNormal)));
-  // convert alpha from radians to degrees and round the result
-  alpha = vtkMath::DegreesFromRadians(alpha);
-  angle = vtkMath::Round(alpha);
-  std::cout << "off-plane-angle = " << angle << std::endl;
-
-  // get matrix that converts XY coordinates to RAS
-  vtkMatrix4x4* RASToXY = vtkMatrix4x4::New();
-  RASToXY->DeepCopy(this->GetApplicationLogic()->GetSliceLogic("Red")->GetSliceNode()->GetXYToRAS());
-  // invert it and convert registered tracking coordinates from RAS to XY
-  RASToXY->Invert();
-  vtkMatrix4x4* trackerXY = vtkMatrix4x4::New();
-  vtkMatrix4x4::Multiply4x4(RASToXY, registeredTracker, trackerXY);
-
-  vtkRenderer* renderer = this->AppGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderer();
-
-  // defines the end of the red part of the projected line which at the same time
-  // is the end of the projected line
-  int eor = 150;
-  // defines the end of the green part of the projected line which at the same time
-  // is the start of the red part of the projected line
-  double eog = eor - (angle * eor / 90);
-
-  // define the three points: start, endOfGreen, endOfRed
-  double      start[3] = {trackerXY->Element[0][3], trackerXY->Element[1][3], trackerXY->Element[2][3]};
-  double endofGreen[3] = {trackerXY->Element[0][3] + eog * trackerXY->Element[0][2],
-                          trackerXY->Element[1][3] + eog * trackerXY->Element[1][2],
-                          trackerXY->Element[2][3] + eog * trackerXY->Element[2][2]};
-  double   endOfRed[3] = {trackerXY->Element[0][3] + eor * trackerXY->Element[0][2],
-                          trackerXY->Element[1][3] + eor * trackerXY->Element[1][2],
-                          trackerXY->Element[2][3] + eor * trackerXY->Element[2][2]};
-
-  //----------------------------------------------------------------
-  // Define green part of the projected line.
-  //----------------------------------------------------------------
-  // start and end of the green part
-  vtkPoints* pointsGreen = vtkPoints::New();
-  pointsGreen->InsertNextPoint(start);
-  pointsGreen->InsertNextPoint(endofGreen);
-
-  // line representation
-  vtkCellArray* cellsGreen = vtkCellArray::New();
-  cellsGreen->InsertNextCell(2); // number of points to be added
-  cellsGreen->InsertCellPoint(0);
-  cellsGreen->InsertCellPoint(1);
-
-  // use points and lines as polydata input
-  vtkPolyData* polyGreen = vtkPolyData::New();
-  polyGreen->SetPoints(pointsGreen);
-  polyGreen->SetLines(cellsGreen);
-
-  // map polydata to 2d
-  // by default, the 3d data is transformed into 2d by ignoring the z-coordinate
-  // of the 3d points in vtkPolyData; see the vtkPolyDataMapper2D documentation
-  vtkPolyDataMapper2D* mapperGreen = vtkPolyDataMapper2D::New();
-  mapperGreen->SetInput(polyGreen);
-
-  if (this->Actor2DGreen == NULL)
-    {
-    // first time called --> create and define properties
-    this->Actor2DGreen = vtkActor2D::New();
-    this->Actor2DGreen->GetProperty()->SetColor(0, 1, 0); // green
-    this->Actor2DGreen->GetProperty()->SetLineWidth(1);
-
-    // add to renderer
-    renderer->AddActor2D(this->Actor2DGreen);
-    }
-
-  //----------------------------------------------------------------
-  // Define red part of the projected line.
-  //----------------------------------------------------------------
-  // start and end of the red part
-  vtkPoints* pointsRed = vtkPoints::New();
-  pointsRed->InsertNextPoint(endofGreen);
-  pointsRed->InsertNextPoint(endOfRed);
-
-  // line representation
-  vtkCellArray* cellsRed = vtkCellArray::New();
-  cellsRed->InsertNextCell(2); // number of points to be added
-  cellsRed->InsertCellPoint(0);
-  cellsRed->InsertCellPoint(1);
-
-  // use points and lines as polydata input
-  vtkPolyData* polyRed = vtkPolyData::New();
-  polyRed->SetPoints(pointsRed);
-  polyRed->SetLines(cellsRed);
-
-  // map polydata to 2d
-  // by default, the 3d data is transformed into 2d by ignoring the z-coordinate
-  // of the 3d points in vtkPolyData; see the vtkPolyDataMapper2D documentation
-  vtkPolyDataMapper2D* mapperRed = vtkPolyDataMapper2D::New();
-  mapperRed->SetInput(polyRed);
-
-  if (this->Actor2DRed == NULL)
-    {
-    // first time called --> create and define properties
-    this->Actor2DRed = vtkActor2D::New();
-    this->Actor2DRed->GetProperty()->SetColor(1, 0, 0); // red
-    this->Actor2DRed->GetProperty()->SetLineWidth(1);
-
-    // add to renderer
-    renderer->AddActor2D(this->Actor2DRed);
-    }
-
-  //----------------------------------------------------------------
-  // Update both actors.
-  //----------------------------------------------------------------
-  this->Actor2DGreen->SetMapper(mapperGreen);
-  this->Actor2DGreen->SetVisibility(1);
-
-  this->Actor2DRed->SetMapper(mapperRed);
-  this->Actor2DRed->SetVisibility(1);
-
-  // check if needle is in front of the slice plane or behind it; this is
-  // determined by checking the sign of the respective component of the
-  // needle direction vector
-  if (registeredTracker->Element[2][2] <= 0)
-    {
-    // needle is in front of the slice plane --> draw solid line(s)
-    this->Actor2DGreen->GetProperty()->SetLineStipplePattern(0xFFFF); // draw every pixel: 0xFFFF = 1111...
-    this->Actor2DGreen->GetProperty()->SetLineStippleRepeatFactor(1);
-    this->Actor2DRed->GetProperty()->SetLineStipplePattern(0xFFFF); // draw every pixel: 0xFFFF = 1111...
-    this->Actor2DRed->GetProperty()->SetLineStippleRepeatFactor(1);
-    }
-  else
-    {
-    // needle is behind the slice plane --> draw dashed line(s)
-    this->Actor2DGreen->GetProperty()->SetLineStipplePattern(0xAAAA); // draw every second pixel: 0xAAAA = 1010...
-    this->Actor2DGreen->GetProperty()->SetLineStippleRepeatFactor(1);
-    this->Actor2DRed->GetProperty()->SetLineStipplePattern(0xAAAA); // draw every second pixel: 0xAAAA = 1010...
-    this->Actor2DRed->GetProperty()->SetLineStippleRepeatFactor(1);
-    }
-
-  // TODO: both Modified() calls seem to be unnecessary --> remove?
-  this->Actor2DGreen->Modified();
-  this->Actor2DRed->Modified();
-
-  // clean up
-  RASToXY->Delete();
-  trackerXY->Delete();
-  pointsGreen->Delete();
-  cellsGreen->Delete();
-  polyGreen->Delete();
-  mapperGreen->Delete();
-  pointsRed->Delete();
-  cellsRed->Delete();
-  polyRed->Delete();
-  mapperRed->Delete();
-}
-
-
-//---------------------------------------------------------------------------
 vtkMRMLModelNode* vtkAbdoNavLogic::FindLocator(const char* locatorName)
 {
   vtkMRMLModelNode* locatorModel;
@@ -927,6 +756,177 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* locatorName, doub
     }
 
   return locatorModel;
+}
+
+
+//---------------------------------------------------------------------------
+void vtkAbdoNavLogic::UpdateNeedleProjection(vtkMatrix4x4* registeredTracker)
+{
+  // calculate angle alpha between needle and slice plane according to the formula
+  // below where u denotes the direction vector of the needle and n denotes the
+  // normal vector of the slice plane:
+  //
+  // alpha = 90deg - radtodeg( arccos( |u * n| / |u| * |n| ) )
+  //       =         radtodeg( arcsin( |u * n| / |u| * |n| ) )
+  //
+  // last equation is true due to arccos( x ) = PI/2 - arcsin( x )
+
+  // direction vector of the needle in RAS coordinates
+  double needleDirec[3] = {registeredTracker->Element[0][2], registeredTracker->Element[1][2], registeredTracker->Element[2][2]};
+  // normal vector of the slice plane in RAS coordinates
+  double planeNormal[3] = {0, 0, 1};
+
+  // calculate angle alpha
+  double alpha;
+  int angle;
+  alpha = asin(fabs(vtkMath::Dot(needleDirec, planeNormal)) / (vtkMath::Norm(needleDirec) * vtkMath::Norm(planeNormal)));
+  // convert alpha from radians to degrees and round the result
+  alpha = vtkMath::DegreesFromRadians(alpha);
+  angle = vtkMath::Round(alpha);
+  std::cout << "off-plane-angle = " << angle << std::endl;
+
+  // get matrix that converts XY coordinates to RAS
+  vtkMatrix4x4* RASToXY = vtkMatrix4x4::New();
+  RASToXY->DeepCopy(this->GetApplicationLogic()->GetSliceLogic("Red")->GetSliceNode()->GetXYToRAS());
+  // invert it and convert registered tracking coordinates from RAS to XY
+  RASToXY->Invert();
+  vtkMatrix4x4* trackerXY = vtkMatrix4x4::New();
+  vtkMatrix4x4::Multiply4x4(RASToXY, registeredTracker, trackerXY);
+
+  vtkRenderer* renderer = this->AppGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderer();
+
+  // defines the end of the red part of the projected line which at the same time
+  // is the end of the projected line
+  int eor = 150;
+  // defines the end of the green part of the projected line which at the same time
+  // is the start of the red part of the projected line
+  double eog = eor - (angle * eor / 90);
+
+  // define the three points: start, endOfGreen, endOfRed
+  double      start[3] = {trackerXY->Element[0][3], trackerXY->Element[1][3], trackerXY->Element[2][3]};
+  double endofGreen[3] = {trackerXY->Element[0][3] + eog * trackerXY->Element[0][2],
+                          trackerXY->Element[1][3] + eog * trackerXY->Element[1][2],
+                          trackerXY->Element[2][3] + eog * trackerXY->Element[2][2]};
+  double   endOfRed[3] = {trackerXY->Element[0][3] + eor * trackerXY->Element[0][2],
+                          trackerXY->Element[1][3] + eor * trackerXY->Element[1][2],
+                          trackerXY->Element[2][3] + eor * trackerXY->Element[2][2]};
+
+  //----------------------------------------------------------------
+  // Define green part of the projected line.
+  //----------------------------------------------------------------
+  // start and end of the green part
+  vtkPoints* pointsGreen = vtkPoints::New();
+  pointsGreen->InsertNextPoint(start);
+  pointsGreen->InsertNextPoint(endofGreen);
+
+  // line representation
+  vtkCellArray* cellsGreen = vtkCellArray::New();
+  cellsGreen->InsertNextCell(2); // number of points to be added
+  cellsGreen->InsertCellPoint(0);
+  cellsGreen->InsertCellPoint(1);
+
+  // use points and lines as polydata input
+  vtkPolyData* polyGreen = vtkPolyData::New();
+  polyGreen->SetPoints(pointsGreen);
+  polyGreen->SetLines(cellsGreen);
+
+  // map polydata to 2d
+  // by default, the 3d data is transformed into 2d by ignoring the z-coordinate
+  // of the 3d points in vtkPolyData; see the vtkPolyDataMapper2D documentation
+  vtkPolyDataMapper2D* mapperGreen = vtkPolyDataMapper2D::New();
+  mapperGreen->SetInput(polyGreen);
+
+  if (this->Actor2DGreen == NULL)
+    {
+    // first time called --> create and define properties
+    this->Actor2DGreen = vtkActor2D::New();
+    this->Actor2DGreen->GetProperty()->SetColor(0, 1, 0); // green
+    this->Actor2DGreen->GetProperty()->SetLineWidth(1);
+
+    // add to renderer
+    renderer->AddActor2D(this->Actor2DGreen);
+    }
+
+  //----------------------------------------------------------------
+  // Define red part of the projected line.
+  //----------------------------------------------------------------
+  // start and end of the red part
+  vtkPoints* pointsRed = vtkPoints::New();
+  pointsRed->InsertNextPoint(endofGreen);
+  pointsRed->InsertNextPoint(endOfRed);
+
+  // line representation
+  vtkCellArray* cellsRed = vtkCellArray::New();
+  cellsRed->InsertNextCell(2); // number of points to be added
+  cellsRed->InsertCellPoint(0);
+  cellsRed->InsertCellPoint(1);
+
+  // use points and lines as polydata input
+  vtkPolyData* polyRed = vtkPolyData::New();
+  polyRed->SetPoints(pointsRed);
+  polyRed->SetLines(cellsRed);
+
+  // map polydata to 2d
+  // by default, the 3d data is transformed into 2d by ignoring the z-coordinate
+  // of the 3d points in vtkPolyData; see the vtkPolyDataMapper2D documentation
+  vtkPolyDataMapper2D* mapperRed = vtkPolyDataMapper2D::New();
+  mapperRed->SetInput(polyRed);
+
+  if (this->Actor2DRed == NULL)
+    {
+    // first time called --> create and define properties
+    this->Actor2DRed = vtkActor2D::New();
+    this->Actor2DRed->GetProperty()->SetColor(1, 0, 0); // red
+    this->Actor2DRed->GetProperty()->SetLineWidth(1);
+
+    // add to renderer
+    renderer->AddActor2D(this->Actor2DRed);
+    }
+
+  //----------------------------------------------------------------
+  // Update both actors.
+  //----------------------------------------------------------------
+  this->Actor2DGreen->SetMapper(mapperGreen);
+  this->Actor2DGreen->SetVisibility(1);
+
+  this->Actor2DRed->SetMapper(mapperRed);
+  this->Actor2DRed->SetVisibility(1);
+
+  // check if needle is in front of the slice plane or behind it; this is
+  // determined by checking the sign of the respective component of the
+  // needle direction vector
+  if (registeredTracker->Element[2][2] <= 0)
+    {
+    // needle is in front of the slice plane --> draw solid line(s)
+    this->Actor2DGreen->GetProperty()->SetLineStipplePattern(0xFFFF); // draw every pixel: 0xFFFF = 1111...
+    this->Actor2DGreen->GetProperty()->SetLineStippleRepeatFactor(1);
+    this->Actor2DRed->GetProperty()->SetLineStipplePattern(0xFFFF); // draw every pixel: 0xFFFF = 1111...
+    this->Actor2DRed->GetProperty()->SetLineStippleRepeatFactor(1);
+    }
+  else
+    {
+    // needle is behind the slice plane --> draw dashed line(s)
+    this->Actor2DGreen->GetProperty()->SetLineStipplePattern(0xAAAA); // draw every second pixel: 0xAAAA = 1010...
+    this->Actor2DGreen->GetProperty()->SetLineStippleRepeatFactor(1);
+    this->Actor2DRed->GetProperty()->SetLineStipplePattern(0xAAAA); // draw every second pixel: 0xAAAA = 1010...
+    this->Actor2DRed->GetProperty()->SetLineStippleRepeatFactor(1);
+    }
+
+  // TODO: both Modified() calls seem to be unnecessary --> remove?
+  this->Actor2DGreen->Modified();
+  this->Actor2DRed->Modified();
+
+  // clean up
+  RASToXY->Delete();
+  trackerXY->Delete();
+  pointsGreen->Delete();
+  cellsGreen->Delete();
+  polyGreen->Delete();
+  mapperGreen->Delete();
+  pointsRed->Delete();
+  cellsRed->Delete();
+  polyRed->Delete();
+  mapperRed->Delete();
 }
 
 
