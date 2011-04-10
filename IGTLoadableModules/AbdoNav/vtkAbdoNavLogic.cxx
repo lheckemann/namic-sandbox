@@ -1040,11 +1040,13 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
     {
     if (this->ObliqueReslicing)
       {
+      // oblique reslicing
       this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
       }
     else
       {
-      // oblique reslicing deselected, thus restore initial orientation
+      // switch from oblique to non-oblique reslicing;
+      // restore the slice node's initial orientation
       if (strcmp(this->SliceOrientation[sliceNodeIndex].c_str(), "Axial") == 0)
         {
         this->SliceNode[sliceNodeIndex]->SetOrientationToAxial();
@@ -1059,6 +1061,7 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
         }
 
       this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
+
       // fit image data back into the slice viewers
       if (strcmp(this->SliceNode[0]->GetOrientationString(), "Reformat") != 0 &&
           strcmp(this->SliceNode[1]->GetOrientationString(), "Reformat") != 0 &&
@@ -1078,10 +1081,12 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
     this->SliceOrientation[sliceNodeIndex] = this->SliceNode[sliceNodeIndex]->GetOrientationString();
     if (this->ObliqueReslicing)
       {
+      // switch from non-oblique to oblique reslicing
       this->SliceNode[sliceNodeIndex]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeIndex);
       }
     else
       {
+      // non-oblique reslicing
       this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
       }
     }
