@@ -638,9 +638,16 @@ vtkMRMLModelNode* vtkAbdoNavLogic::FindLocator(const char* locatorName)
 
 
 //---------------------------------------------------------------------------
-vtkMRMLModelNode* vtkAbdoNavLogic::EnableLocatorDriver(const char* locatorName)
+int vtkAbdoNavLogic::EnableLocatorDriver(const char* locatorName)
 {
   // TODO: all TransformModifiedEvents within the scope of this function seem to be unnecessary --> remove?
+
+  if (this->AbdoNavNode == NULL)
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::EnableLocatorDriver(...): "
+                  "Couldn't retrieve AbdoNavNode!");
+    return EXIT_FAILURE;
+    }
 
   // create the locator model
   vtkMRMLModelNode* locatorModel = this->AddLocatorModel(locatorName, 0.0, 1.0, 1.0);
@@ -656,9 +663,10 @@ vtkMRMLModelNode* vtkAbdoNavLogic::EnableLocatorDriver(const char* locatorName)
     {
     vtkErrorMacro("in vtkAbdoNavLogic::EnableLocatorDriver(...): "
                   "Enabling locator model failed!");
+    return EXIT_FAILURE;
     }
 
-  return locatorModel;
+  return EXIT_SUCCESS;
 }
 
 

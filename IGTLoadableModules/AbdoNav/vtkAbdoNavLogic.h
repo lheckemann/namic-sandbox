@@ -83,7 +83,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   /// Find and return the locator. Return NULL if not found.
   vtkMRMLModelNode* FindLocator(const char* locatorName);
   /// Create locator model and make it observe the selected tracker transform node.
-  vtkMRMLModelNode* EnableLocatorDriver(const char* locatorName);
+  int EnableLocatorDriver(const char* locatorName);
   /// Show or hide locator model.
   void ToggleLocatorVisibility(int vis);
   /// Freeze or unfreeze locator model.
