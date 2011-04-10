@@ -189,9 +189,9 @@ int vtkAbdoNavLogic::PerformRegistration()
   // ===============
   // The following description of reconstructing the x-, y- and z-axis of the
   // guidance needle's local coordinate system refers to the specific optical
-  // marker attachment that was used during this project! In case your setup
-  // differs from the one used during this project, registration is likely
-  // to fail!
+  // marker attachment that was used during this project! Thus, be aware that
+  // registration will fail for any other optical marker attachment that does
+  // not comply with the geometric relationships described hereafter!
   //
   // z:
   // ==
