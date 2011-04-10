@@ -1095,6 +1095,4 @@ void vtkAbdoNavLogic::UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* register
       this->SliceNode[sliceNodeIndex]->JumpSlice(px, py, pz);
       }
     }
-
-  this->SliceNode[sliceNodeIndex]->UpdateMatrices();
 }
