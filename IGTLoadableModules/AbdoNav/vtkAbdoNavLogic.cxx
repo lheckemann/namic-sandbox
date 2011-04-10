@@ -955,7 +955,7 @@ int vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
   // don't do anything unless the new slice driver is different
   // from the current one (GUI doesn't keep track of the slice
   // driver, i.e. the user might "change" the slice driver from
-  // User to User or Locator to Locator)
+  // "User" to "User" or "Locator" to "Locator")
   if (strcmp(driver, this->SliceDriver[sliceIndex].c_str()) != 0)
     {
     // if necessary, set pointers to access the three slice nodes

@@ -94,13 +94,13 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   //----------------------------------------------------------------
   // Reslicing.
   //----------------------------------------------------------------
-  /// Set pointers to access the three different slice nodes (Red, Yellow and Green).
+  /// Set pointers to the three slice nodes (Red, Yellow, Green).
   void CheckSliceNode();
-  /// Set a slice node's (Red == 0, Yellow == 1, Green == 2) slice driver (User == 0,
-  /// Locator == 1).
+  /// Set a slice node's (Red == 0, Yellow == 1, Green == 2) slice
+  /// driver ("User" or "Locator").
   int SetSliceDriver(int sliceIndex, const char* driver);
-  /// Reslice the specified slice node (Red == 0, Yellow == 1, Green == 2) given the
-  /// registered tracking data.
+  /// Reslice the specified slice node (Red == 0, Yellow == 1, Green == 2)
+  /// given the registered tracking data.
   void UpdateSliceNode(int sliceNodeIndex, vtkMatrix4x4* registeredTracker);
 
   //----------------------------------------------------------------
@@ -149,11 +149,11 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   vtkActor2D* Actor2DGreen;
   /// Actor used to draw the red part of the needle projection.
   vtkActor2D* Actor2DRed;
-  /// Pointers to access the three different slice nodes (Red == 0, Yellow == 1, Green == 2).
+  /// Pointers to the three slice nodes (Red == 0, Yellow == 1, Green == 2).
   vtkMRMLSliceNode* SliceNode[3];
   //BTX
   /// Holds a slice node's (Red == 0, Yellow == 1, Green == 2) slice driver
-  /// (User or Locator).
+  /// ("User" or "Locator").
   std::string SliceDriver[3];
   /// Holds a slice node's (Red == 0, Yellow == 1, Green == 2) slice orientation
   /// (Axial, Sagittal or Coronal).
