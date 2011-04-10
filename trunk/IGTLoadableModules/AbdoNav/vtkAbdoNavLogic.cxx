@@ -799,7 +799,6 @@ void vtkAbdoNavLogic::UpdateNeedleProjection(vtkMatrix4x4* registeredTracker)
   // convert alpha from radians to degrees and round the result
   alpha = vtkMath::DegreesFromRadians(alpha);
   angle = vtkMath::Round(alpha);
-  std::cout << "off-plane-angle = " << angle << std::endl;
 
   // get matrix that converts XY coordinates to RAS
   vtkMatrix4x4* RASToXY = vtkMatrix4x4::New();
