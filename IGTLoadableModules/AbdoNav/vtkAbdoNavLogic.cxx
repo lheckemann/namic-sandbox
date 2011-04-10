@@ -968,6 +968,9 @@ int vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
       {
       if (this->ObliqueReslicing)
         {
+        // switch from oblique reslicing to user mode;
+        // restore the slice node's initial orientation
+        // (see UpdateSliceNode(...) for an explanation)
         if (strcmp(this->SliceOrientation[sliceIndex].c_str(), "Axial") == 0)
           {
           this->SliceNode[sliceIndex]->SetOrientationToAxial();
