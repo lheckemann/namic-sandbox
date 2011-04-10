@@ -87,16 +87,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   //----------------------------------------------------------------
   // 2D visualization.
   //----------------------------------------------------------------
-  /// Update the needle projection in the specified slice view. Due to being a projection of
-  /// the procedure needle's direction vector, the line being drawn grows and shrinks. That
-  /// is, the line has maximum length when the needle is in-plane and is invisible when the
-  /// needle is perpendicular to the slice plane. Due to this behavior, it's impossible for
-  /// the physician to decide whether or not the needle is in-plane. Therefore, the projected
-  /// line consists of a green and a red part with the red part indicating the off-plane angle.
-  /// That is, the line is completely green when the needle is in-plane and is almost comple-
-  /// tely red when the needle is close to being perpendicular to the slice plane. Depending on
-  /// whether the needle is in front of the slice plane or behind it, the line is either solid
-  /// or dashed respectively.
+  /// Update the projection of the procedure needle.
+  /// See implementation for a detailed comment.
   void UpdateNeedleProjection(vtkMatrix4x4* registeredTracker);
 
   //----------------------------------------------------------------

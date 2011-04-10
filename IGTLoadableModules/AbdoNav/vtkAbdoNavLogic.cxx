@@ -762,9 +762,25 @@ vtkMRMLModelNode* vtkAbdoNavLogic::AddLocatorModel(const char* locatorName, doub
 //---------------------------------------------------------------------------
 void vtkAbdoNavLogic::UpdateNeedleProjection(vtkMatrix4x4* registeredTracker)
 {
-  // calculate angle alpha between needle and slice plane according to the formula
-  // below where u denotes the direction vector of the needle and n denotes the
-  // normal vector of the slice plane:
+  //----------------------------------------------------------------
+  // Due to being a projection of the procedure needle's direction
+  // vector, the line being drawn grows and shrinks accordingly. That
+  // is, the line has maximum length when the needle is in-plane and
+  // is invisible when the needle is perpendicular to the slice plane.
+  // Since the physician has no means to determine whether or not the
+  // line has maximum length (and thus, is in-plane), the projected
+  // line consists of a green and a red part with the red part indica-
+  // ting the off-plane angle. That is, the line is completely green
+  // when the needle is in-plane and is almost completely red when the
+  // needle is close to being perpendicular to the slice plane. Depen-
+  // ding on whether the procedure needle is in front of the slice plane
+  // or behind it, the line is either solid or dashed respectively.
+  //----------------------------------------------------------------
+
+  // calculate angle alpha between the procedure needle and the slice
+  // plane according to the formula below, where u denotes the direction
+  // vector of the needle and n denotes the normal vector of the slice
+  // plane:
   //
   // alpha = 90deg - radtodeg( arccos( |u * n| / |u| * |n| ) )
   //       =         radtodeg( arcsin( |u * n| / |u| * |n| ) )
