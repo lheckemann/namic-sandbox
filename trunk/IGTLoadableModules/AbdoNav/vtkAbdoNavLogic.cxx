@@ -453,63 +453,6 @@ void vtkAbdoNavLogic::UpdateAll()
 
 
 //---------------------------------------------------------------------------
-vtkMRMLModelNode* vtkAbdoNavLogic::FindLocator(const char* locatorName)
-{
-  vtkMRMLModelNode* locatorModel;
-
-  // check if locator exists
-  vtkCollection* collection = this->GetMRMLScene()->GetNodesByName(locatorName);
-  if (collection != NULL && collection->GetNumberOfItems() == 0)
-    {
-    // locator doesn't exist yet
-    locatorModel = NULL;
-    }
-  else if (collection != NULL && collection->GetNumberOfItems() != 0)
-    {
-    // locator already exists
-    locatorModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
-    }
-  // clean up
-  collection->Delete();
-
-  return locatorModel;
-}
-
-
-//---------------------------------------------------------------------------
-int vtkAbdoNavLogic::EnableLocatorDriver(const char* locatorName)
-{
-  // TODO: all TransformModifiedEvents within the scope of this function seem to be unnecessary --> remove?
-
-  if (this->AbdoNavNode == NULL)
-    {
-    vtkErrorMacro("in vtkAbdoNavLogic::EnableLocatorDriver(...): "
-                  "Couldn't retrieve AbdoNavNode!");
-    return EXIT_FAILURE;
-    }
-
-  // create the locator model
-  vtkMRMLModelNode* locatorModel = this->AddLocatorModel(locatorName, 0.0, 1.0, 1.0);
-  // get the tracker transform node
-  vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()));
-  // make locator model observe the tracker transform node
-  if (locatorModel && tnode)
-    {
-    locatorModel->SetAndObserveTransformNodeID(tnode->GetID());
-    locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-    }
-  else
-    {
-    vtkErrorMacro("in vtkAbdoNavLogic::EnableLocatorDriver(...): "
-                  "Enabling locator model failed!");
-    return EXIT_FAILURE;
-    }
-
-  return EXIT_SUCCESS;
-}
-
-
-//---------------------------------------------------------------------------
 void vtkAbdoNavLogic::ToggleLocatorVisibility(int vis)
 {
   const char* locatorName = "AbdoNav-Locator";
@@ -581,6 +524,63 @@ void vtkAbdoNavLogic::ToggleLocatorFreeze(int freeze)
     }
 
   // nothing to do if locatorModel == NULL
+}
+
+
+//---------------------------------------------------------------------------
+vtkMRMLModelNode* vtkAbdoNavLogic::FindLocator(const char* locatorName)
+{
+  vtkMRMLModelNode* locatorModel;
+
+  // check if locator exists
+  vtkCollection* collection = this->GetMRMLScene()->GetNodesByName(locatorName);
+  if (collection != NULL && collection->GetNumberOfItems() == 0)
+    {
+    // locator doesn't exist yet
+    locatorModel = NULL;
+    }
+  else if (collection != NULL && collection->GetNumberOfItems() != 0)
+    {
+    // locator already exists
+    locatorModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+    }
+  // clean up
+  collection->Delete();
+
+  return locatorModel;
+}
+
+
+//---------------------------------------------------------------------------
+int vtkAbdoNavLogic::EnableLocatorDriver(const char* locatorName)
+{
+  // TODO: all TransformModifiedEvents within the scope of this function seem to be unnecessary --> remove?
+
+  if (this->AbdoNavNode == NULL)
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::EnableLocatorDriver(...): "
+                  "Couldn't retrieve AbdoNavNode!");
+    return EXIT_FAILURE;
+    }
+
+  // create the locator model
+  vtkMRMLModelNode* locatorModel = this->AddLocatorModel(locatorName, 0.0, 1.0, 1.0);
+  // get the tracker transform node
+  vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()));
+  // make locator model observe the tracker transform node
+  if (locatorModel && tnode)
+    {
+    locatorModel->SetAndObserveTransformNodeID(tnode->GetID());
+    locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+    }
+  else
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::EnableLocatorDriver(...): "
+                  "Enabling locator model failed!");
+    return EXIT_FAILURE;
+    }
+
+  return EXIT_SUCCESS;
 }
 
 
