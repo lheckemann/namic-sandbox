@@ -966,28 +966,30 @@ int vtkAbdoNavLogic::SetSliceDriver(int sliceIndex, const char* driver)
 
     if (strcmp(driver, "User") == 0)
       {
-      if (strcmp(this->SliceOrientation[sliceIndex].c_str(), "Axial") == 0)
+      if (this->ObliqueReslicing)
         {
-        this->SliceNode[sliceIndex]->SetOrientationToAxial();
-        }
-      else if (strcmp(this->SliceOrientation[sliceIndex].c_str(), "Sagittal") == 0)
-        {
-        this->SliceNode[sliceIndex]->SetOrientationToSagittal();
-        }
-      else if (strcmp(this->SliceOrientation[sliceIndex].c_str(), "Coronal") == 0)
-        {
-        this->SliceNode[sliceIndex]->SetOrientationToCoronal();
-        }
+        if (strcmp(this->SliceOrientation[sliceIndex].c_str(), "Axial") == 0)
+          {
+          this->SliceNode[sliceIndex]->SetOrientationToAxial();
+          }
+        else if (strcmp(this->SliceOrientation[sliceIndex].c_str(), "Sagittal") == 0)
+          {
+          this->SliceNode[sliceIndex]->SetOrientationToSagittal();
+          }
+        else if (strcmp(this->SliceOrientation[sliceIndex].c_str(), "Coronal") == 0)
+          {
+          this->SliceNode[sliceIndex]->SetOrientationToCoronal();
+          }
 
-      // fit image data back into the slice viewers
-      if (this->ObliqueReslicing == true &&
-          strcmp(this->SliceNode[0]->GetOrientationString(), "Reformat") != 0 &&
-          strcmp(this->SliceNode[1]->GetOrientationString(), "Reformat") != 0 &&
-          strcmp(this->SliceNode[2]->GetOrientationString(), "Reformat") != 0)
-        {
-        // initial orientation of all slice nodes was restored; thus, request
-        // GUI to fit all of them at once into their respective slice viewer
-        this->InvokeEvent(RequestFitToBackground);
+        // fit image data back into the slice viewers
+        if (strcmp(this->SliceNode[0]->GetOrientationString(), "Reformat") != 0 &&
+            strcmp(this->SliceNode[1]->GetOrientationString(), "Reformat") != 0 &&
+            strcmp(this->SliceNode[2]->GetOrientationString(), "Reformat") != 0)
+          {
+          // initial orientation of all slice nodes was restored; thus, request
+          // GUI to fit all of them at once into their respective slice viewer
+          this->InvokeEvent(RequestFitToBackground);
+          }
         }
       }
     else if (strcmp(driver, "Locator") == 0)
