@@ -1231,6 +1231,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point1CheckButton->Create();
   this->Point1CheckButton->SetText("Identify guidance needle tip (RAS):\t");
   this->Point1CheckButton->SetBalloonHelpString("Identify the tip of the guidance needle in the CT/MR image.");
+  this->Point1CheckButton->SetSelectedState(false);
   // create entry to hold the R coordinate of the guidance needle tip
   this->Point1REntry = vtkKWEntry::New();
   this->Point1REntry->SetParent(point1Frame);
@@ -1282,6 +1283,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2CheckButton->Create();
   this->Point2CheckButton->SetText("Identify second point (RAS):\t\t");
   this->Point2CheckButton->SetBalloonHelpString("Identify a second point on the guidance needle in the CT/MR image.");
+  this->Point2CheckButton->SetSelectedState(false);
   // create entry to hold the R coordinate of the second point on the guidance needle
   this->Point2REntry = vtkKWEntry::New();
   this->Point2REntry->SetParent(point2Frame);
@@ -1333,6 +1335,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point3CheckButton->Create();
   this->Point3CheckButton->SetText("Identify marker center (RAS):\t\t");
   this->Point3CheckButton->SetBalloonHelpString("Identify the marker center in the CT/MR image.");
+  this->Point3CheckButton->SetSelectedState(false);
   // create entry to hold the R coordinate of the marker center
   this->Point3REntry = vtkKWEntry::New();
   this->Point3REntry->SetParent(point3Frame);
@@ -1378,6 +1381,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->ResetRegistrationPushButton->Create();
   this->ResetRegistrationPushButton->SetText("Reset Registration");
   this->ResetRegistrationPushButton->SetBalloonHelpString("Redo identification of guidance needle.");
+  this->ResetRegistrationPushButton->SetEnabled(false);
 
   // add reset registration button
   this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", this->ResetRegistrationPushButton->GetWidgetName());
@@ -1433,7 +1437,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->ShowLocatorCheckButton->Create();
   this->ShowLocatorCheckButton->SetText("Show locator");
   this->ShowLocatorCheckButton->SetBalloonHelpString("Show/hide the locator.");
-  this->ShowLocatorCheckButton->SelectedStateOff();
+  this->ShowLocatorCheckButton->SetSelectedState(false);
 
   // add show locator check button
   this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", this->ShowLocatorCheckButton->GetWidgetName());
@@ -1460,7 +1464,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->FreezeLocatorCheckButton->Create();
   this->FreezeLocatorCheckButton->SetText("Freeze locator");
   this->FreezeLocatorCheckButton->SetBalloonHelpString("Freeze/unfreeze the locator.");
-  this->FreezeLocatorCheckButton->SelectedStateOff();
+  this->FreezeLocatorCheckButton->SetSelectedState(false);
 
   // create check button to show/hide the crosshair in the slice views (corresponding to the locator's tip position)
   this->ShowCrosshairCheckButton = vtkKWCheckButton::New();
@@ -1468,7 +1472,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->ShowCrosshairCheckButton->Create();
   this->ShowCrosshairCheckButton->SetText("Show crosshair");
   this->ShowCrosshairCheckButton->SetBalloonHelpString("Show/hide the crosshair.");
-  this->ShowCrosshairCheckButton->SelectedStateOff();
+  this->ShowCrosshairCheckButton->SetSelectedState(false);
 
   // create check button to draw/hide the needle projection in the slice views
   this->DrawNeedleProjectionCheckButton = vtkKWCheckButton::New();
@@ -1476,7 +1480,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->DrawNeedleProjectionCheckButton->Create();
   this->DrawNeedleProjectionCheckButton->SetText("Draw needle projection");
   this->DrawNeedleProjectionCheckButton->SetBalloonHelpString("Draw/hide the needle projection.");
-  this->DrawNeedleProjectionCheckButton->SelectedStateOff();
+  this->DrawNeedleProjectionCheckButton->SetSelectedState(false);
 
   // add freeze locator and show crosshair check buttons
   this->Script("pack %s %s %s -side top -anchor nw -padx 2 -pady 2",
@@ -1571,14 +1575,14 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->FreezeReslicingCheckButton->Create();
   this->FreezeReslicingCheckButton->SetText("Freeze");
   this->FreezeReslicingCheckButton->SetBalloonHelpString("Freeze/unfreeze reslicing.");
-  this->FreezeReslicingCheckButton->SelectedStateOff();
+  this->FreezeReslicingCheckButton->SetSelectedState(false);
   // create check button to enable/disable oblique reslicing
   this->ObliqueReslicingCheckButton = vtkKWCheckButton::New();
   this->ObliqueReslicingCheckButton->SetParent(sliceOptionsFrame);
   this->ObliqueReslicingCheckButton->Create();
   this->ObliqueReslicingCheckButton->SetText("Oblique");
   this->ObliqueReslicingCheckButton->SetBalloonHelpString("Enable/disable oblique reslicing.");
-  this->ObliqueReslicingCheckButton->SelectedStateOff();
+  this->ObliqueReslicingCheckButton->SetSelectedState(false);
 
   // add drive all slice orientations by locator/user buttons, freeze reslicing and oblique reslicing check buttons
   this->Script("pack %s %s %s %s -side left -anchor nw -fill x -padx 2 -pady 2",
