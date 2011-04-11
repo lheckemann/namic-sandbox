@@ -1118,10 +1118,8 @@ void vtkAbdoNavGUI::BuildGUIHelpFrame()
 {
   // help text
   const char* help =
-    "The **AbdoNav** module is tailored to abdominal cryosurgeries for liver and kidney tumor treatment. "
-    "The module helps you to set up a connection to the tracking device via the OpenIGTLinkIF module, to "
-    "plan cryoprobe insertion using the Measurements module, to register tracking and scanner coordinate "
-    "systems and visualizes the current cryoprobe to be inserted."
+    "The **AbdoNav** module is meant to be used in CT-guided abdominal interventions which make use of a "
+    "guidance needle (like e.g. cryosurgeries for liver and kidney tumor treatment)."
     "\n"
     "See <a>http://www.slicer.org/slicerWiki/index.php/Modules:AbdoNav-Documentation-3.6</a> for details "
     "about the module.";
