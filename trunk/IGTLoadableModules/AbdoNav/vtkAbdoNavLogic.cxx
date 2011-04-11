@@ -475,8 +475,6 @@ void vtkAbdoNavLogic::ToggleLocatorVisibility(int vis)
     // locator doesn't exist yet but visibility is set to one, thus create it
     this->EnableLocatorDriver(locatorName);
     }
-
-  // nothing to do if locatorModel == NULL && vis == 0
 }
 
 
@@ -522,8 +520,6 @@ void vtkAbdoNavLogic::ToggleLocatorFreeze(int freeze)
     locatorModel->SetAndObserveTransformNodeID(vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()))->GetID());
     locatorModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
     }
-
-  // nothing to do if locatorModel == NULL
 }
 
 
