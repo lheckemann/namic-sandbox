@@ -100,6 +100,10 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkAbdoNavLogic* AbdoNavLogic;
   /// Parameter node associated with this module.
   vtkMRMLAbdoNavNode* AbdoNavNode;
+  /// Timer to record the time it took to perform registration
+  /// (selecting one of the three check buttons will start the
+  /// timer, performing registration will stop the timer).
+  vtkTimerLog* TimerLog;
 
   //----------------------------------------------------------------
   // Helper function to create an AbdoNavNode if none exists yet.

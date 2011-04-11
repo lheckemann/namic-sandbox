@@ -47,6 +47,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   this->AbdoNavLogic = NULL;
   this->AbdoNavNode = NULL;
+  this->TimerLog = NULL;
 
   //----------------------------------------------------------------
   // Registration frame.
@@ -101,6 +102,12 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
 
   // remove AbdoNavNode observers
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
+
+  if (this->TimerLog)
+    {
+    this->TimerLog->Delete();
+    this->TimerLog = NULL;
+    }
 
   // TODO: all of the following could probably be avoided by using VTK's smart pointers
 
@@ -717,27 +724,45 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     }
   else if (this->Point1CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
-    // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
     if (this->Point1CheckButton->GetSelectedState())
       {
+      if (this->TimerLog == NULL)
+        {
+        // timer has not been started yet, thus start it now
+        this->TimerLog = vtkTimerLog::New();
+        this->TimerLog->StartTimer();
+        }
+      // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
       this->Point2CheckButton->SelectedStateOff();
       this->Point3CheckButton->SelectedStateOff();
       }
     }
   else if (this->Point2CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
-    // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
     if (this->Point2CheckButton->GetSelectedState())
       {
+      if (this->TimerLog == NULL)
+        {
+        // timer has not been started yet, thus start it now
+        this->TimerLog = vtkTimerLog::New();
+        this->TimerLog->StartTimer();
+        }
+      // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
       this->Point1CheckButton->SelectedStateOff();
       this->Point3CheckButton->SelectedStateOff();
       }
     }
   else if (this->Point3CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
-    // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
     if (this->Point3CheckButton->GetSelectedState())
       {
+      if (this->TimerLog == NULL)
+        {
+        // timer has not been started yet, thus start it now
+        this->TimerLog = vtkTimerLog::New();
+        this->TimerLog->StartTimer();
+        }
+      // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
       this->Point1CheckButton->SelectedStateOff();
       this->Point2CheckButton->SelectedStateOff();
       }
@@ -774,6 +799,17 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       {
       if (this->AbdoNavLogic->PerformRegistration() == EXIT_SUCCESS)
         {
+        if (this->TimerLog != NULL)
+          {
+          // stop timer, print time it took to perform the registration
+          // and delete timer (resetting the registration and selecting
+          // one of the three check buttons will create a new instance,
+          // thereby resetting the timer)
+          this->TimerLog->StopTimer();
+          std::cout << "performing registration took " << this->TimerLog->GetElapsedTime() << " [sec]" << std::endl;
+          this->TimerLog->Delete();
+          this->TimerLog = NULL;
+          }
         this->Point1CheckButton->SetEnabled(false);
         this->Point2CheckButton->SetEnabled(false);
         this->Point3CheckButton->SetEnabled(false);
