@@ -820,12 +820,6 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
           {
           fnode->SetLocked(1);
           }
-        // set Slicer GUI if not already set (required for
-        // drawing the needle projection and reslicing)
-        if (this->AbdoNavLogic->GetAppGUI() == NULL)
-          {
-          this->AbdoNavLogic->SetAppGUI(this->GetApplicationGUI());
-          }
         }
       else
         {
@@ -874,6 +868,11 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     {
     int checked = this->DrawNeedleProjectionCheckButton->GetSelectedState();
     this->AbdoNavLogic->SetDrawNeedleProjection(checked);
+    // set Slicer GUI if not already set
+    if (checked && this->AbdoNavLogic->GetAppGUI() == NULL)
+      {
+      this->AbdoNavLogic->SetAppGUI(this->GetApplicationGUI());
+      }
     }
   else if (this->RedSliceMenuButton->GetMenu() == vtkKWMenu::SafeDownCast(caller) && event == vtkKWMenu::MenuItemInvokedEvent)
     {
