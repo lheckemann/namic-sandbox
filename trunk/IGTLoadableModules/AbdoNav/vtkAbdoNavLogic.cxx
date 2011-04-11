@@ -195,28 +195,31 @@ int vtkAbdoNavLogic::PerformRegistration()
   //
   // z:
   // ==
-  // The direction vector of the guidance needle and the z-axis of the guidance
-  // needle's local coordinate system are aligned but point in opposite direc-
-  // tions. The z-axis can thus be reconstructed by selecting a second point on
-  // the guidance needle artifact, subtracting the previously selected tip from
-  // this second point (order is important! otherwise one would obviously obtain
-  // -z instead of +z!) and normalizing the result.
+  // In our current setup, the direction vector of the guidance needle artifact
+  // and the rigid body's +z-axis are parallel and point in opposite directions.
+  // As a result of the pivoting procedure, the direction vector of the guidance
+  // needle artifact and the +z-axis are actually aligned (and point in opposite
+  // directions). The +z-axis is thus reconstructed by calculating the direction
+  // vector of the guidance needle artifact, which is given by subtracting the
+  // previously selected tip from a second point on the guidance needle (order is
+  // important!) and normalizing the result.
   //
-  // x:
+  // y:
   // ==
   // In order to determine the needle's roll angle, a third point is required.
-  // In our current setup, this point is given by the center of a marker which
-  // is located on the x-axis of the rigid body that is attached to the guidance
-  // needle. The x-axis is thus obtained by calculating the normalized vector
-  // that is perpendicular to the z-axis and passes through the marker center.
+  // In our current setup, this point is given by the center of a marker which,
+  // together with the guidance needle's direction vector, defines a plane that
+  // is parallel to the rigid body's yz-plane. The +y-axis is thus obtained by
+  // calculating the normalized vector that is perpendicular to the previously
+  // determined +z-axis and passes through the marker center.
   //
-  // Since x and z are perpendicular, the scalar product equals 0, i.e. one
-  // has to solve |x| * |z| = 0 for x. Let m denote the coordinates of the
-  // marker center and let further i denote the coordinates of the intersecting
-  // point of x and z. Then |x| = |m| - |i| (again, order is important!). Since
-  // i is a point on z, it can be rewritten as |i| = |tip| + |lambda * z| where
-  // tip denotes the known image coordinates of the previously selected guidance
-  // needle tip. Thus, one has to solve
+  // Since y and z are perpendicular, the scalar product equals 0, i.e. one has
+  // to solve |y| * |z| = 0 for y. Let m denote the coordinates of the marker
+  // center and let further i denote the coordinates of the intersecting point
+  // of y and z. Then |y| = |m| - |i| (again, order is important!). Since i is
+  // a point on z, it can be rewritten as |i| = |tip| + |lambda * z| where tip
+  // denotes the known image coordinates of the guidance needle tip. Thus, one
+  // has to solve
   //
   //      |mR - (tipR + lambda * zR)|   |zR|
   //      |mA - (tipA + lambda * zA)| * |zA| = 0
@@ -227,10 +230,10 @@ int vtkAbdoNavLogic::PerformRegistration()
   //      lambda = [zR * (mR - tipR) + zA * (mA -tipA) + zS * (mS - tipS)] /
   //               (zR^2 + zA^2 + zS^2)
   //
-  // y:
+  // x:
   // ==
-  // Calculating the normalized cross-product of the z- and x-axis (again,
-  // order is important!) finally yields the missing y-axis.
+  // Calculating the normalized cross-product of the y- and z-axis (again,
+  // order is important!) finally yields the missing x-axis.
   //
   //----------------------------------------------------------------
 
@@ -323,32 +326,32 @@ int vtkAbdoNavLogic::PerformRegistration()
   vtkMath::Normalize(z);
 
   //----------------------------------------------------------------
-  // calculate x-axis
+  // calculate y-axis
   //----------------------------------------------------------------
   // calculate lambda
   double lambda = (z[0] * (markerCenter[0] - guidanceNeedleTip[0])  +
                    z[1] * (markerCenter[1] - guidanceNeedleTip[1])  +
                    z[2] * (markerCenter[2] - guidanceNeedleTip[2])) /
                   (pow(z[0], 2) + pow(z[1], 2) + pow(z[2], 2));
-  // calculate intersecting point of x and z using lambda
+  // calculate intersecting point of y and z using lambda
   double i[3];
   i[0] = guidanceNeedleTip[0] + lambda * z[0];
   i[1] = guidanceNeedleTip[1] + lambda * z[1];
   i[2] = guidanceNeedleTip[2] + lambda * z[2];
-  // calculate direction vector of x (order is important!)
-  x[0] = markerCenter[0] - i[0];
-  x[1] = markerCenter[1] - i[1];
-  x[2] = markerCenter[2] - i[2];
-  // normalize x
-  vtkMath::Normalize(x);
+  // calculate direction vector of y (order is important!)
+  y[0] = markerCenter[0] - i[0];
+  y[1] = markerCenter[1] - i[1];
+  y[2] = markerCenter[2] - i[2];
+  // normalize y
+  vtkMath::Normalize(y);
 
   //----------------------------------------------------------------
-  // calculate y-axis
+  // calculate x-axis
   //----------------------------------------------------------------
-  // calculate cross-product of z and x (order is important!)
-  vtkMath::Cross(z, x, y);
+  // calculate cross-product of y and z (order is important!)
+  vtkMath::Cross(y, z, x);
   // normalize the result
-  vtkMath::Normalize(y);
+  vtkMath::Normalize(x);
 
   //----------------------------------------------------------------
   // set x-, y- and z-axis
