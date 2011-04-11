@@ -195,21 +195,20 @@ int vtkAbdoNavLogic::PerformRegistration()
   //
   // z:
   // ==
-  // The z-axis of the guidance needle's local coordinate system and the
-  // guidance needle itself point in opposite directions. The z-axis can thus
-  // be reconstructed by selecting a second point on the guidance needle
-  // artifact, subtracting the previously selected tip from this second point
-  // (order is important! otherwise one would obtain -z instead of +z!) and
-  // normalizing the result.
+  // The direction vector of the guidance needle and the z-axis of the guidance
+  // needle's local coordinate system are aligned but point in opposite direc-
+  // tions. The z-axis can thus be reconstructed by selecting a second point on
+  // the guidance needle artifact, subtracting the previously selected tip from
+  // this second point (order is important! otherwise one would obviously obtain
+  // -z instead of +z!) and normalizing the result.
   //
   // x:
   // ==
-  // Due to rotational symmetry, a third point is required to determine the
-  // needle's x-axis (equivalent to determining the needle's roll angle). In
-  // the current setup, this point is given by the center of a marker which
-  // is located in the xz-plane of the guidance needle's local coordinate
-  // system. The x-axis is thus obtained by calculating the normalized vector
-  // perpendicular to the z-axis and passing through the marker center.
+  // In order to determine the needle's roll angle, a third point is required.
+  // In our current setup, this point is given by the center of a marker which
+  // is located on the x-axis of the rigid body that is attached to the guidance
+  // needle. The x-axis is thus obtained by calculating the normalized vector
+  // that is perpendicular to the z-axis and passes through the marker center.
   //
   // Since x and z are perpendicular, the scalar product equals 0, i.e. one
   // has to solve |x| * |z| = 0 for x. Let m denote the coordinates of the
