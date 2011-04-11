@@ -838,6 +838,18 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     {
     int checked = this->DrawNeedleProjectionCheckButton->GetSelectedState();
     this->AbdoNavLogic->SetDrawNeedleProjection(checked);
+
+    if (checked)
+      {
+      // activate non-oblique reslicing in red slice viewer
+      this->FreezeReslicingCheckButton->SetSelectedState(false);
+      this->ObliqueReslicingCheckButton->SetSelectedState(false);
+      this->RedSliceMenuButton->SetValue("Locator");
+      // setting a vtkKWMenuButton's value won't invoke
+      // a MenuItemInvokedEvent; therefore, need to call
+      // SetSliceDriver(...) manually
+      this->AbdoNavLogic->SetSliceDriver(0, "Locator");
+      }
     }
   else if (this->RedSliceMenuButton->GetMenu() == vtkKWMenu::SafeDownCast(caller) && event == vtkKWMenu::MenuItemInvokedEvent)
     {
