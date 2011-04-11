@@ -769,13 +769,12 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     }
   else if (this->ResetRegistrationPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
+    this->TrackerTransformSelector->SetEnabled(true);
     this->Point1CheckButton->SetEnabled(true);
-    this->Point1CheckButton->SelectedStateOff();
     this->Point2CheckButton->SetEnabled(true);
-    this->Point2CheckButton->SelectedStateOff();
     this->Point3CheckButton->SetEnabled(true);
-    this->Point3CheckButton->SelectedStateOff();
     this->PerformRegistrationPushButton->SetEnabled(true);
+    this->ResetRegistrationPushButton->SetEnabled(false);
     // unlock fiducial list
     vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
     if (fnode)
@@ -810,10 +809,15 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
           this->TimerLog->Delete();
           this->TimerLog = NULL;
           }
+        this->TrackerTransformSelector->SetEnabled(false);
         this->Point1CheckButton->SetEnabled(false);
+        this->Point1CheckButton->SetSelectedState(false);
         this->Point2CheckButton->SetEnabled(false);
+        this->Point2CheckButton->SetSelectedState(false);
         this->Point3CheckButton->SetEnabled(false);
+        this->Point3CheckButton->SetSelectedState(false);
         this->PerformRegistrationPushButton->SetEnabled(false);
+        this->ResetRegistrationPushButton->SetEnabled(true);
         // lock fiducial list
         vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
         if (fnode)
