@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
@@ -44,8 +44,16 @@
 #include "vtkCellPicker.h"
 #include "vtkPolyDataConnectivityFilter.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkMapper.h"
 #include "vtkActor.h"
 #include "vtkRenderer.h"
+
+#include "vtkAxesActor.h"
+#include "vtkOrientationMarkerWidget.h"
+
+#include "vtkAssembly.h"
+#include "vtkMRMLFiducialListNode.h"
+#include "vtkMRMLInteractionNode.h"
 
 #include "vtkKWMenuButtonWithLabel.h"
 #include "vtkCornerAnnotation.h"
@@ -72,7 +80,7 @@ vtkOsteoPlanGUI::vtkOsteoPlanGUI ( )
   this->EnableCutter = NULL;
   
   //----------------------------------------------------------------
-  // Plane widgets
+  // Clipping Part
   this->CuttingPlane = vtkBoxWidget2::New();
   this->boxRepresentation = vtkBoxRepresentation::New();
   
@@ -93,6 +101,20 @@ vtkOsteoPlanGUI::vtkOsteoPlanGUI ( )
   this->StartSelectingModelParts = NULL;
   this->StopSelectingModelParts = NULL;
   this->SelectingModelParts = false;
+
+  //----------------------------------------------------------------
+  // Moving Part
+
+  this->displayMoverButton = NULL;
+
+  //----------------------------------------------------------------
+  // Placing markers
+
+  this->modelSelector = NULL;
+  this->placeMarkersButton = NULL;
+
+  this->placeMarkerOn = false;
+
   //----------------------------------------------------------------
   // Locator  (MRML)
   this->TimerFlag = 0;
@@ -108,7 +130,7 @@ vtkOsteoPlanGUI::~vtkOsteoPlanGUI ( )
 
   if (this->DataCallbackCommand)
     {
-    this->DataCallbackCommand->Delete();
+      this->DataCallbackCommand->Delete();
     }
 
   //----------------------------------------------------------------
@@ -121,53 +143,67 @@ vtkOsteoPlanGUI::~vtkOsteoPlanGUI ( )
 
   if (this->EnableCutter)
     {
-    this->EnableCutter->SetParent(NULL);
-    this->EnableCutter->Delete();
+      this->EnableCutter->SetParent(NULL);
+      this->EnableCutter->Delete();
     }
-
 
   if (this->CuttingPlane)
     {
-      //this->CuttingPlane->SetParent(NULL);
-    this->CuttingPlane->Delete();
+      this->CuttingPlane->Delete();
     }
 
   if (this->boxRepresentation)
     {
-      //this->CuttingPlane->SetParent(NULL);
-    this->boxRepresentation->Delete();
+      this->boxRepresentation->Delete();
     }
 
   if (this->ModelToCutSelector)
     {
-    this->ModelToCutSelector->SetParent(NULL);
-    this->ModelToCutSelector->Delete();
+      this->ModelToCutSelector->SetParent(NULL);
+      this->ModelToCutSelector->Delete();
     }
 
   if(this->PerformCutButton)
     {
-    this->PerformCutButton->SetParent(NULL);
-    this->PerformCutButton->Delete();
+      this->PerformCutButton->SetParent(NULL);
+      this->PerformCutButton->Delete();
     }
 
   if(this->cutterThicknessSelector)
     {
-    this->cutterThicknessSelector->SetParent(NULL);
-    this->cutterThicknessSelector->Delete();
+      this->cutterThicknessSelector->SetParent(NULL);
+      this->cutterThicknessSelector->Delete();
     }
 
   if(this->StartSelectingModelParts)
     {
-    this->StartSelectingModelParts->SetParent(NULL);
-    this->StartSelectingModelParts->Delete();
+      this->StartSelectingModelParts->SetParent(NULL);
+      this->StartSelectingModelParts->Delete();
     }
 
   if(this->StopSelectingModelParts)
     {
-    this->StopSelectingModelParts->SetParent(NULL);
-    this->StopSelectingModelParts->Delete();
+      this->StopSelectingModelParts->SetParent(NULL);
+      this->StopSelectingModelParts->Delete();
     }
 
+  if(this->displayMoverButton)
+    {
+      this->displayMoverButton->SetParent(NULL);
+      this->displayMoverButton->Delete();
+    }
+
+  if(this->modelSelector)
+    {
+      this->modelSelector->SetParent(NULL);
+      this->modelSelector->Delete();
+    }
+
+  if(this->placeMarkersButton)
+    {
+      this->placeMarkersButton->SetParent(NULL);
+      this->placeMarkersButton->Delete();
+    }
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -190,9 +226,9 @@ void vtkOsteoPlanGUI::Enter()
   
   if (this->TimerFlag == 0)
     {
-    this->TimerFlag = 1;
-    this->TimerInterval = 100;  // 100 ms
-    ProcessTimerEvents();
+      this->TimerFlag = 1;
+      this->TimerInterval = 100;  // 100 ms
+      ProcessTimerEvents();
     }
 
 }
@@ -222,38 +258,38 @@ void vtkOsteoPlanGUI::RemoveGUIObservers ( )
 
   if (this->EnableCutter)
     {
-    this->EnableCutter
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+      this->EnableCutter
+     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
   if (this->ModelToCutSelector)
     {
-    this->ModelToCutSelector
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+      this->ModelToCutSelector
+     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->PerformCutButton)
     {
-    this->PerformCutButton
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+      this->PerformCutButton
+     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->cutterThicknessSelector->GetWidget()->GetMenu())
     {
       this->cutterThicknessSelector->GetWidget()->GetMenu()
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->StartSelectingModelParts)
     {
       this->StartSelectingModelParts
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->StopSelectingModelParts)
     {
       this->StopSelectingModelParts
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->GetApplicationGUI()->GetActiveRenderWindowInteractor())
@@ -262,8 +298,19 @@ void vtkOsteoPlanGUI::RemoveGUIObservers ( )
      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if(this->displayMoverButton)
+    {
+      this->displayMoverButton
+     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
 
-   this->RemoveLogicObservers();
+  if(this->placeMarkersButton)
+    {
+      this->placeMarkersButton
+     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  this->RemoveLogicObservers();
 
 }
 
@@ -285,7 +332,7 @@ void vtkOsteoPlanGUI::AddGUIObservers ( )
   
   if (this->GetMRMLScene() != NULL)
     {
-    this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
+      this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
     }
   events->Delete();
 
@@ -313,8 +360,13 @@ void vtkOsteoPlanGUI::AddGUIObservers ( )
   this->GetApplicationGUI()->GetActiveRenderWindowInteractor()
     ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
 
+  this->displayMoverButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);  
 
-   this->AddLogicObservers();
+  this->placeMarkersButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);  
+
+  this->AddLogicObservers();
 
 }
 
@@ -324,8 +376,8 @@ void vtkOsteoPlanGUI::RemoveLogicObservers ( )
 {
   if (this->GetLogic())
     {
-    this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent,
-                                      (vtkCommand *)this->LogicCallbackCommand);
+      this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent,
+                         (vtkCommand *)this->LogicCallbackCommand);
     }
 }
 
@@ -339,8 +391,8 @@ void vtkOsteoPlanGUI::AddLogicObservers ( )
 
   if (this->GetLogic())
     {
-    this->GetLogic()->AddObserver(vtkOsteoPlanLogic::StatusUpdateEvent,
-                                  (vtkCommand *)this->LogicCallbackCommand);
+      this->GetLogic()->AddObserver(vtkOsteoPlanLogic::StatusUpdateEvent,
+                        (vtkCommand *)this->LogicCallbackCommand);
     }
 }
 
@@ -358,43 +410,48 @@ void vtkOsteoPlanGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
       vtkCellPicker* cellPicker = vtkCellPicker::New();
       cellPicker->Pick(mousePosition[0],mousePosition[1],0,this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer());
       int cellIdPicked = cellPicker->GetCellId();  
+      if(cellIdPicked != -1)
+     {
+       vtkPolyDataConnectivityFilter* connectivityFilter = vtkPolyDataConnectivityFilter::New();
+       connectivityFilter->SetInput(this->GetLogic()->Getpart2()->GetModelDisplayNode()->GetPolyData());
+       connectivityFilter->SetExtractionModeToCellSeededRegions();
+       connectivityFilter->InitializeSeedList();
+       connectivityFilter->AddSeed(cellIdPicked);
+       connectivityFilter->Update();
 
-      vtkPolyDataConnectivityFilter* connectivityFilter = vtkPolyDataConnectivityFilter::New();
-      connectivityFilter->SetInput(this->GetLogic()->Getpart2()->GetModelDisplayNode()->GetPolyData());
-      connectivityFilter->SetExtractionModeToCellSeededRegions();
-      connectivityFilter->InitializeSeedList();
-      connectivityFilter->AddSeed(cellIdPicked);
-      connectivityFilter->Update();
+       // Create new polydata 
+       vtkPolyData* polyDataModel = vtkPolyData::New();
+       polyDataModel->CopyStructure(this->GetLogic()->Getpart2()->GetModelDisplayNode()->GetPolyData());
+ 
+       // Create New vtkMRMLNode
+       vtkMRMLModelNode* modelSelected = vtkMRMLModelNode::New();
+ 
+       // Create New vtkMRMLModelDisplayNode
+       vtkMRMLModelDisplayNode* dnodeS = vtkMRMLModelDisplayNode::New();
+ 
+       // Add them to the scene 
+       modelSelected->SetScene(this->GetMRMLScene());
+       dnodeS->SetScene(this->GetMRMLScene());
+ 
+       this->GetMRMLScene()->AddNode(dnodeS);
+       this->GetMRMLScene()->AddNode(modelSelected);
+ 
+       // Use new polydata model to be "ready" to receive data
+       modelSelected->SetAndObservePolyData(polyDataModel);
+       modelSelected->SetAndObserveDisplayNodeID(dnodeS->GetID());
+ 
+       // Copy polydata to the new polydata model
+       dnodeS->SetPolyData(connectivityFilter->GetOutput());
+ 
+       // Clean
+       polyDataModel->Delete();
+       modelSelected->Delete();
+       dnodeS->Delete();
+ 
+       connectivityFilter->Delete();
 
-      // Create new polydata 
-      vtkPolyData* polyDataModel = vtkPolyData::New();
- 
-      // Create New vtkMRMLNode
-      vtkMRMLModelNode* modelSelected = vtkMRMLModelNode::New();
- 
-      // Create New vtkMRMLModelDisplayNode
-      vtkMRMLModelDisplayNode* dnodeS = vtkMRMLModelDisplayNode::New();
- 
-      // Add them to the scene 
-      modelSelected->SetScene(this->GetMRMLScene());
-      dnodeS->SetScene(this->GetMRMLScene());
- 
-      this->GetMRMLScene()->AddNode(dnodeS);
-      this->GetMRMLScene()->AddNode(modelSelected);
- 
-      // Use new polydata model to be "ready" to receive data
-      modelSelected->SetAndObservePolyData(polyDataModel);
-      modelSelected->SetAndObserveDisplayNodeID(dnodeS->GetID());
- 
-      // Copy polydata to the new polydata model
-      dnodeS->SetPolyData(connectivityFilter->GetOutput());
- 
-      // Clean
-      polyDataModel->Delete();
-      modelSelected->Delete();
-      dnodeS->Delete();
- 
-      connectivityFilter->Delete();
+
+     }
       cellPicker->Delete();
     }
 
@@ -403,16 +460,16 @@ void vtkOsteoPlanGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 
 //---------------------------------------------------------------------------
 void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
-                                         unsigned long event, void *callData)
+                           unsigned long event, void *callData)
 {
 
   const char *eventName = vtkCommand::GetStringFromEventId(event);
 
   if (strcmp(eventName, "LeftButtonPressEvent") == 0)
     {
-    vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast(caller);
-    HandleMouseEvent(style);
-    return;
+      vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast(caller);
+      HandleMouseEvent(style);
+      return;
     }
 
   // EnableCutter State Changed  
@@ -422,39 +479,39 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
       
       if(this->EnableCutter->GetWidget()->GetSelectedState() == 1)
      {
-        // State Enabled -- Draw Plane
-        vtkSlicerApplicationGUI *appGUI = vtkSlicerApplicationGUI::SafeDownCast (this->GetApplicationGUI() );      
-        if (!appGUI)
-          {
-          vtkErrorMacro("ProcessGUIEvents: got Null SlicerApplicationGUI" );
-          return;
-          }
+       // State Enabled -- Draw Plane
+       vtkSlicerApplicationGUI *appGUI = vtkSlicerApplicationGUI::SafeDownCast (this->GetApplicationGUI() );      
+       if (!appGUI)
+         {
+           vtkErrorMacro("ProcessGUIEvents: got Null SlicerApplicationGUI" );
+           return;
+         }
 
      
-        // Initial Position
-        if(this->boxRepresentation && this->CuttingPlane)
-       {
-          this->boxRepresentation->GetFaceProperty()->SetRepresentationToSurface();
-          this->boxRepresentation->GetSelectedHandleProperty()->SetColor(0,0,1);
-       this->boxRepresentation->BuildRepresentation();
+       // Initial Position
+       if(this->boxRepresentation && this->CuttingPlane)
+         {
+           this->boxRepresentation->GetFaceProperty()->SetRepresentationToSurface();
+           this->boxRepresentation->GetSelectedHandleProperty()->SetColor(0,0,1);
+           this->boxRepresentation->BuildRepresentation();
  
-          this->CuttingPlane->SetRepresentation(this->boxRepresentation);      
+           this->CuttingPlane->SetRepresentation(this->boxRepresentation);      
 
-          this->CuttingPlane->SetDefaultRenderer(this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer());
-          this->CuttingPlane->SetCurrentRenderer(this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer());
-          this->CuttingPlane->SetInteractor(appGUI->GetActiveRenderWindowInteractor());
+           this->CuttingPlane->SetDefaultRenderer(this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer());
+           this->CuttingPlane->SetCurrentRenderer(this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer());
+           this->CuttingPlane->SetInteractor(appGUI->GetActiveRenderWindowInteractor());
         
-       // ????????????????
-          // keep cutter in the same position when re-enabled ?
-          this->CuttingPlane->GetRepresentation()->PlaceWidget(this->widgetPosition);
+           // ????????????????
+           // keep cutter in the same position when re-enabled ?
+           this->CuttingPlane->GetRepresentation()->PlaceWidget(this->widgetPosition);
 
-          this->CuttingPlane->On();
-       }
+           this->CuttingPlane->On();
+         }
         }
       else
      {
-        // State Disabled -- Hide Plane
-        this->CuttingPlane->Off();   
+       // State Disabled -- Hide Plane
+       this->CuttingPlane->Off();   
      }
   
       this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
@@ -469,35 +526,15 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
       // Clipping Slicer Model
       if(this->ModelToCutSelector && this->CuttingPlane)
      {
-
           // Data to clip
           vtkMRMLModelNode* model = reinterpret_cast<vtkMRMLModelNode*>(this->ModelToCutSelector->GetSelected());
-
-          this->GetLogic()->ClipModelWithBox(model, this->CuttingPlane, this->GetApplicationGUI());
-
-       // Select base if existing to prepare for next clipping and Hide original model
-
-
-          vtkCollection* listmodel2 = this->GetMRMLScene()->GetNodesByName("Base");
-          if(this->ModelToCutSelector && listmodel2->GetNumberOfItems() == 1)
+          if(model)
          {
-              vtkMRMLModelNode* basemodel = reinterpret_cast<vtkMRMLModelNode*>(listmodel2->GetItemAsObject(0));
-              vtkMRMLModelNode* originalmodel = reinterpret_cast<vtkMRMLModelNode*>(this->ModelToCutSelector->GetSelected());
-              originalmodel->GetModelDisplayNode()->SetVisibility(0); 
-              this->ModelToCutSelector->SetSelected(basemodel);
-         } 
-
-       /*
-          // [] FIXME: Use to move model, but without without axis + Segfault   
-        vtkInteractorStyleTrackballActor* movingaxes = vtkInteractorStyleTrackballActor::New();
-          movingaxes->SetDefaultRenderer(this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer());
-          movingaxes->SetEnabled(1); 
-        
-          this->GetApplicationGUI()->GetActiveRenderWindowInteractor()->SetInteractorStyle(movingaxes);
-       */
+           this->GetLogic()->ClipModelWithBox(model, this->CuttingPlane, this->GetApplicationGUI());
+         }
 
           // Delete
-          listmodel2->Delete();
+          // listmodel2->Delete();
      }  
        
     }
@@ -552,12 +589,56 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
       this->SelectingModelParts = false;
     }
 
-    
+   
+
+  if(this->displayMoverButton == vtkKWPushButton::SafeDownCast(caller)
+     && event == vtkKWPushButton::InvokedEvent)
+    {
+      // Display Mover here
+      vtkAssembly* modelMover = this->GetLogic()->CreateMover();
+
+      this->GetLogic()->GetXActor()->AddObserver(vtkCommand::LeftButtonPressEvent,(vtkCommand *)this->GUICallbackCommand);
+      this->GetLogic()->GetYActor()->AddObserver(vtkCommand::LeftButtonPressEvent,(vtkCommand *)this->GUICallbackCommand);
+      this->GetLogic()->GetZActor()->AddObserver(vtkCommand::LeftButtonPressEvent,(vtkCommand *)this->GUICallbackCommand);
+  
+      this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(modelMover);
+      this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
+      modelMover->Delete();
+    } 
+ 
+  if(this->placeMarkersButton == vtkKWPushButton::SafeDownCast(caller)
+     && event == vtkKWPushButton::InvokedEvent)
+    {
+      if(this->modelSelector && this->modelSelector->GetSelected())
+     {
+
+       this->placeMarkerOn = !this->placeMarkerOn;
+
+       if(this->placeMarkerOn == true)
+         {
+           this->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::Place);
+           this->GetApplicationLogic()->GetInteractionNode()->SetSelected(1);
+           this->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(1);
+
+           this->placeMarkersButton->SetText("Stop Placing Markers");
+           //TODO: Create (or edit) fiducial list (if not existing for the model) and set it active 
+         }
+       else
+         {
+           this->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::ViewTransform);
+           this->GetApplicationLogic()->GetInteractionNode()->SetSelected(0);
+           this->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(0);
+
+           this->placeMarkersButton->SetText("Start Placing Markers");
+         }
+     }
+    }
 } 
 
 
 void vtkOsteoPlanGUI::DataCallback(vtkObject *caller, 
-                                     unsigned long eid, void *clientData, void *callData)
+                       unsigned long eid, void *clientData, void *callData)
 {
   vtkOsteoPlanGUI *self = reinterpret_cast<vtkOsteoPlanGUI *>(clientData);
   vtkDebugWithObjectMacro(self, "In vtkOsteoPlanGUI DataCallback");
@@ -567,22 +648,21 @@ void vtkOsteoPlanGUI::DataCallback(vtkObject *caller,
 
 //---------------------------------------------------------------------------
 void vtkOsteoPlanGUI::ProcessLogicEvents ( vtkObject *caller,
-                                             unsigned long event, void *callData )
+                            unsigned long event, void *callData )
 {
-
   if (this->GetLogic() == vtkOsteoPlanLogic::SafeDownCast(caller))
     {
-    if (event == vtkOsteoPlanLogic::StatusUpdateEvent)
-      {
-      //this->UpdateDeviceStatus();
-      }
+      if (event == vtkOsteoPlanLogic::StatusUpdateEvent)
+     {
+       //this->UpdateDeviceStatus();
+     }
     }
 }
 
 
 //---------------------------------------------------------------------------
 void vtkOsteoPlanGUI::ProcessMRMLEvents ( vtkObject *caller,
-                                            unsigned long event, void *callData )
+                           unsigned long event, void *callData )
 {
   // Fill in
 
@@ -597,10 +677,10 @@ void vtkOsteoPlanGUI::ProcessTimerEvents()
 {
   if (this->TimerFlag)
     {
-    // update timer
-    vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
-                                         this->TimerInterval,
-                                         this, "ProcessTimerEvents");        
+      // update timer
+      vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
+                            this->TimerInterval,
+                            this, "ProcessTimerEvents");        
     }
 }
 
@@ -645,13 +725,13 @@ void vtkOsteoPlanGUI::BuildGUICutter()
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Cutter Frame");
+  conBrowsFrame->SetLabelText("Clipping Frame");
   //conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Test child frame
+  // Clipping frame
 
   vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
   frame->SetParent(conBrowsFrame->GetFrame());
@@ -670,6 +750,16 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   // -----------------------------------------
   // Cutter
 
+  // Cutter thickness
+  this->cutterThicknessSelector = vtkKWMenuButtonWithLabel::New();
+  this->cutterThicknessSelector->SetParent(frame2);
+  this->cutterThicknessSelector->Create();
+  this->cutterThicknessSelector->SetLabelText("Cutter thickness:");
+  this->cutterThicknessSelector->GetWidget()->GetMenu()->AddRadioButton("5 mm");
+  this->cutterThicknessSelector->GetWidget()->GetMenu()->AddRadioButton("10 mm");
+  this->cutterThicknessSelector->GetWidget()->GetMenu()->SelectItem(0);
+
+  // Enable / Disable
   this->EnableCutter = vtkKWCheckButtonWithLabel::New ( );
   this->EnableCutter->SetParent ( frame2 );
   this->EnableCutter->Create ( );
@@ -677,11 +767,21 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   this->EnableCutter->SetLabelPositionToRight();
   this->EnableCutter->GetLabel()->SetText ("Enable Cutter");
 
-  this->Script("pack %s -side top -padx 2 -pady 2", 
+  this->Script("pack %s %s -side left -padx 2 -pady 2", 
+               this->cutterThicknessSelector->GetWidgetName(),
                this->EnableCutter->GetWidgetName());
 
+
+  vtkKWFrameWithLabel* ModelToCutFrame = vtkKWFrameWithLabel::New();
+  ModelToCutFrame->SetParent(conBrowsFrame->GetFrame());
+  ModelToCutFrame->Create();
+  ModelToCutFrame->SetLabelText("Model to cut");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 ModelToCutFrame->GetWidgetName() );
+
+
   this->ModelToCutSelector = vtkSlicerNodeSelectorWidget::New();
-  this->ModelToCutSelector->SetParent(frame2);
+  this->ModelToCutSelector->SetParent(ModelToCutFrame->GetFrame());
   this->ModelToCutSelector->Create();
   this->ModelToCutSelector->SetWidth(30);
   this->ModelToCutSelector->SetNewNodeEnabled(0);
@@ -689,53 +789,30 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   this->ModelToCutSelector->SetMRMLScene(this->Logic->GetMRMLScene());
   this->ModelToCutSelector->UpdateMenu();
 
-  vtkKWLabel* ModelToCutLabel = vtkKWLabel::New();
-  ModelToCutLabel->SetParent(frame2);
-  ModelToCutLabel->Create();
-  ModelToCutLabel->SetText("Model to cut");
-  ModelToCutLabel->SetAnchorToWest();
-
-  app->Script("pack %s %s -fill x -side top -padx 2 -pady 2",
-               ModelToCutLabel->GetWidgetName(),
-               this->ModelToCutSelector->GetWidgetName());
+  app->Script("pack %s -fill x -side top -padx 2 -pady 2",
+           this->ModelToCutSelector->GetWidgetName());
 
   this->PerformCutButton = vtkKWPushButton::New();
-  this->PerformCutButton->SetParent(frame2);
+  this->PerformCutButton->SetParent(ModelToCutFrame->GetFrame());
   this->PerformCutButton->Create();
   this->PerformCutButton->SetText("Cut Model");
 
   app->Script("pack %s -fill x -side top -padx 2 -pady 2",
               this->PerformCutButton->GetWidgetName());
-
-  vtkKWFrame *frame3 = vtkKWFrame::New();
-  frame3->SetParent(frame->GetFrame());
-  frame3->Create();
-  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",       frame3->GetWidgetName() );
   
-  // Cutter thickness
-  this->cutterThicknessSelector = vtkKWMenuButtonWithLabel::New();
-  this->cutterThicknessSelector->SetParent(frame3);
-  this->cutterThicknessSelector->Create();
-  this->cutterThicknessSelector->SetLabelText("Cutter thickness:");
-  this->cutterThicknessSelector->GetWidget()->GetMenu()->AddRadioButton("5 mm");
-  this->cutterThicknessSelector->GetWidget()->GetMenu()->AddRadioButton("10 mm");
-  this->cutterThicknessSelector->GetWidget()->GetMenu()->SelectItem(0);
-
-  app->Script("pack %s -fill x -side top -padx 2 -pady 2",
-              this->cutterThicknessSelector->GetWidgetName());
-
-  vtkKWFrame *frame4 = vtkKWFrame::New();
-  frame4->SetParent(frame->GetFrame());
-  frame4->Create();
-  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",       frame4->GetWidgetName() );
+  vtkKWFrameWithLabel *ExtractingComponentsFrame = vtkKWFrameWithLabel::New();
+  ExtractingComponentsFrame->SetParent(conBrowsFrame->GetFrame());
+  ExtractingComponentsFrame->Create();
+  ExtractingComponentsFrame->SetLabelText("Extracting Components");
+  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",       ExtractingComponentsFrame->GetWidgetName() );
 
   this->StartSelectingModelParts = vtkKWPushButton::New();
-  this->StartSelectingModelParts->SetParent(frame4);
+  this->StartSelectingModelParts->SetParent(ExtractingComponentsFrame->GetFrame());
   this->StartSelectingModelParts->Create();
   this->StartSelectingModelParts->SetText("Start Selecting Parts");
 
   this->StopSelectingModelParts = vtkKWPushButton::New();
-  this->StopSelectingModelParts->SetParent(frame4);
+  this->StopSelectingModelParts->SetParent(ExtractingComponentsFrame->GetFrame());
   this->StopSelectingModelParts->Create();
   this->StopSelectingModelParts->SetText("Stop Selecting Parts");
 
@@ -744,14 +821,77 @@ void vtkOsteoPlanGUI::BuildGUICutter()
               this->StopSelectingModelParts->GetWidgetName());
   
 
-  ModelToCutLabel->Delete();
+  // -----------------------------------------
+  // Moving Models frame
 
-  frame4->Delete();
-  frame3->Delete();
+  vtkSlicerModuleCollapsibleFrame *moveModelsFrame = vtkSlicerModuleCollapsibleFrame::New();
+  moveModelsFrame->SetParent(page);
+  moveModelsFrame->Create();
+  moveModelsFrame->SetLabelText("Moving models Frame");
+  //moveModelsFrame->CollapseFrame();
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               moveModelsFrame->GetWidgetName(), page->GetWidgetName());
+
+  vtkKWFrameWithLabel *frame5 = vtkKWFrameWithLabel::New();
+  frame5->SetParent(moveModelsFrame->GetFrame());
+  frame5->Create();
+  frame5->SetLabelText ("Move models");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 frame5->GetWidgetName() );
+
+  this->displayMoverButton = vtkKWPushButton::New();
+  this->displayMoverButton->SetParent(frame5->GetFrame());
+  this->displayMoverButton->Create();
+  this->displayMoverButton->SetText("Display mover");
+
+  app->Script("pack %s -fill x -side left -expand y -padx 2 -pady 2",
+              this->displayMoverButton->GetWidgetName());
+
+  // -----------------------------------------
+  // Placing Markers Frame
+
+
+  vtkSlicerModuleCollapsibleFrame *placeMarkersFrame = vtkSlicerModuleCollapsibleFrame::New();
+  placeMarkersFrame->SetParent(page);
+  placeMarkersFrame->Create();
+  placeMarkersFrame->SetLabelText("Place Markers Frame");
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+            placeMarkersFrame->GetWidgetName(), page->GetWidgetName());
+
+
+  vtkKWFrameWithLabel *frame6 = vtkKWFrameWithLabel::New();
+  frame6->SetParent(placeMarkersFrame->GetFrame());
+  frame6->Create();
+  frame6->SetLabelText ("Place screws markers");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 frame6->GetWidgetName() );
+
+  this->modelSelector = vtkSlicerNodeSelectorWidget::New();
+  this->modelSelector->SetParent(frame6->GetFrame());
+  this->modelSelector->Create();
+  this->modelSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
+  this->modelSelector->SetNewNodeEnabled(0);  
+  this->modelSelector->SetMRMLScene(this->GetMRMLScene());
+  this->modelSelector->UpdateMenu();
+
+  this->placeMarkersButton = vtkKWPushButton::New();
+  this->placeMarkersButton->SetParent(frame6->GetFrame());
+  this->placeMarkersButton->Create();
+  this->placeMarkersButton->SetText("Start Placing Markers");
+
+  app->Script("pack %s %s -fill x -side top -expand y -padx 2 -pady 2",
+              this->modelSelector->GetWidgetName(),
+           this->placeMarkersButton->GetWidgetName());
+ 
+  frame6->Delete();
+  frame5->Delete();
   frame2->Delete();
-  conBrowsFrame->Delete();
   frame->Delete();
-
+  ModelToCutFrame->Delete();
+  ExtractingComponentsFrame->Delete();
+  moveModelsFrame->Delete();
+  conBrowsFrame->Delete();
+  placeMarkersFrame->Delete();
 }
 
 //----------------------------------------------------------------------------
