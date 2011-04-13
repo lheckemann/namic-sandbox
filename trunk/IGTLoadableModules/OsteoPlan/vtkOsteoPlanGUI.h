@@ -32,6 +32,7 @@ class vtkKWPushButton;
 class vtkBoxWidget2;
 class vtkKWMenuButtonWithLabel;
 class vtkBoxRepresentation;
+class vtkSlicerNodeSelectorWidget;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
 {
@@ -132,7 +133,7 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
 
 
   //----------------------------------------------------------------
-  // Plane widgets
+  // Clipping part
   //----------------------------------------------------------------
  
   vtkBoxWidget2* CuttingPlane;
@@ -147,6 +148,22 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   vtkKWPushButton* StartSelectingModelParts;
   vtkKWPushButton* StopSelectingModelParts;
   bool SelectingModelParts;
+
+  //----------------------------------------------------------------
+  // Moving part
+  //----------------------------------------------------------------
+
+  vtkKWPushButton* displayMoverButton;
+
+  //----------------------------------------------------------------
+  // Placing Markers
+  //----------------------------------------------------------------
+
+  vtkSlicerNodeSelectorWidget* modelSelector;
+  vtkKWPushButton* placeMarkersButton;
+
+  bool placeMarkerOn;
+
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------

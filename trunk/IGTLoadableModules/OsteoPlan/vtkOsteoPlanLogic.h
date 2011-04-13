@@ -34,6 +34,8 @@ class vtkIGTLConnector;
 class vtkMRMLModelNode;
 class vtkBoxWidget2;
 class vtkSlicerApplicationGUI; 
+class vtkAssembly;
+class vtkActor;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanLogic : public vtkSlicerModuleLogic 
 {
@@ -55,6 +57,12 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanLogic : public vtkSlicerModuleLogic
   void ClipModelWithBox(vtkMRMLModelNode*, vtkBoxWidget2*, vtkSlicerApplicationGUI*);
   vtkGetObjectMacro(part2, vtkMRMLModelNode);
 
+  vtkAssembly* CreateMover();
+  vtkGetObjectMacro(XActor, vtkActor);
+  vtkGetObjectMacro(YActor, vtkActor);
+  vtkGetObjectMacro(ZActor, vtkActor);
+
+
  protected:
   
   vtkOsteoPlanLogic();
@@ -72,6 +80,9 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanLogic : public vtkSlicerModuleLogic
   vtkMRMLModelNode* part1;
   vtkMRMLModelNode* part2;
 
+  vtkActor* XActor;
+  vtkActor* YActor;
+  vtkActor* ZActor;
 
 };
 
