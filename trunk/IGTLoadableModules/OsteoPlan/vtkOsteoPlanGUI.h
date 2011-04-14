@@ -62,6 +62,7 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   vtkOsteoPlanGUI ( const vtkOsteoPlanGUI& ); // Not implemented.
   void operator = ( const vtkOsteoPlanGUI& ); //Not implemented.
 
+  void AddPairModelFiducial();
  public:
   //----------------------------------------------------------------
   // New method, Initialization etc.
@@ -163,6 +164,9 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   vtkKWPushButton* placeMarkersButton;
 
   bool placeMarkerOn;
+  vtkCollection* ListOfModels;
+  vtkCollection* ListOfFiducialLists;
+  bool modelNodeInsideCollection;
 
   //----------------------------------------------------------------
   // Logic Values

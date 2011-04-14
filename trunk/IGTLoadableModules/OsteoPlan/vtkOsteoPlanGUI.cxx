@@ -114,6 +114,8 @@ vtkOsteoPlanGUI::vtkOsteoPlanGUI ( )
   this->placeMarkersButton = NULL;
 
   this->placeMarkerOn = false;
+  this->ListOfModels = vtkCollection::New();
+  this->ListOfFiducialLists = vtkCollection::New();
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -203,6 +205,16 @@ vtkOsteoPlanGUI::~vtkOsteoPlanGUI ( )
     {
       this->placeMarkersButton->SetParent(NULL);
       this->placeMarkersButton->Delete();
+    }
+
+  if(this->ListOfModels)
+    {
+      this->ListOfModels->Delete();
+    }
+ 
+  if(this->ListOfFiducialLists)
+    {
+      this->ListOfFiducialLists->Delete();
     }
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -310,6 +322,12 @@ void vtkOsteoPlanGUI::RemoveGUIObservers ( )
      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if(this->modelSelector)
+    {
+      this->modelSelector
+     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   this->RemoveLogicObservers();
 
 }
@@ -329,12 +347,14 @@ void vtkOsteoPlanGUI::AddGUIObservers ( )
   //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
-  
+  events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent); 
+ 
   if (this->GetMRMLScene() != NULL)
     {
       this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
     }
   events->Delete();
+
 
   //----------------------------------------------------------------
   // GUI Observers
@@ -366,6 +386,9 @@ void vtkOsteoPlanGUI::AddGUIObservers ( )
   this->placeMarkersButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);  
 
+  this->modelSelector
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+
   this->AddLogicObservers();
 
 }
@@ -395,6 +418,8 @@ void vtkOsteoPlanGUI::AddLogicObservers ( )
                         (vtkCommand *)this->LogicCallbackCommand);
     }
 }
+
+
 
 //---------------------------------------------------------------------------
 void vtkOsteoPlanGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
@@ -610,30 +635,31 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
   if(this->placeMarkersButton == vtkKWPushButton::SafeDownCast(caller)
      && event == vtkKWPushButton::InvokedEvent)
     {
-      if(this->modelSelector && this->modelSelector->GetSelected())
+      this->placeMarkerOn = !this->placeMarkerOn;
+      AddPairModelFiducial();
+    }
+
+  if (this->modelSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+      if (this->ListOfModels)
      {
-
-       this->placeMarkerOn = !this->placeMarkerOn;
-
-       if(this->placeMarkerOn == true)
+       for(int i = 0; i < this->ListOfModels->GetNumberOfItems(); i++)
          {
-           this->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::Place);
-           this->GetApplicationLogic()->GetInteractionNode()->SetSelected(1);
-           this->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(1);
-
-           this->placeMarkersButton->SetText("Stop Placing Markers");
-           //TODO: Create (or edit) fiducial list (if not existing for the model) and set it active 
+           if(this->modelSelector->GetSelected() == this->ListOfModels->GetItemAsObject(i))
+          {
+            vtkMRMLFiducialListNode* correspondingFiducialList = reinterpret_cast<vtkMRMLFiducialListNode*>(this->ListOfFiducialLists->GetItemAsObject(i));
+           this->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(correspondingFiducialList->GetID());
          }
        else
          {
-           this->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::ViewTransform);
-           this->GetApplicationLogic()->GetInteractionNode()->SetSelected(0);
-           this->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(0);
-
-           this->placeMarkersButton->SetText("Start Placing Markers");
+           AddPairModelFiducial();
          }
      }
     }
+}
+
+
 } 
 
 
@@ -668,6 +694,24 @@ void vtkOsteoPlanGUI::ProcessMRMLEvents ( vtkObject *caller,
 
   if (event == vtkMRMLScene::SceneCloseEvent)
     {
+    }
+
+  if(this->MRMLScene == vtkMRMLScene::SafeDownCast(caller) 
+     && event == vtkMRMLScene::NodeRemovedEvent)
+    {
+      // Check vtkCollections are still synchronized
+      if(this->ListOfModels->GetNumberOfItems() == this->ListOfFiducialLists->GetNumberOfItems())
+     {
+       for(int i = 0; i < this->ListOfModels->GetNumberOfItems(); i++)
+         {
+           // Check which node has been removed;
+           if(this->ListOfModels->GetItemAsObject(i) == callData || this->ListOfFiducialLists->GetItemAsObject(i) == callData)
+          {
+            this->ListOfModels->RemoveItem(i);
+            this->ListOfFiducialLists->RemoveItem(i);
+          }
+         }
+     }
     }
 }
 
@@ -728,7 +772,7 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   conBrowsFrame->SetLabelText("Clipping Frame");
   //conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+            conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
   // Clipping frame
@@ -738,7 +782,7 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   frame->Create();
   frame->SetLabelText ("Enable Cutter");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
+           frame->GetWidgetName() );
 
 
   vtkKWFrame *frame2 = vtkKWFrame::New();
@@ -768,8 +812,8 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   this->EnableCutter->GetLabel()->SetText ("Enable Cutter");
 
   this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->cutterThicknessSelector->GetWidgetName(),
-               this->EnableCutter->GetWidgetName());
+            this->cutterThicknessSelector->GetWidgetName(),
+            this->EnableCutter->GetWidgetName());
 
 
   vtkKWFrameWithLabel* ModelToCutFrame = vtkKWFrameWithLabel::New();
@@ -777,7 +821,7 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   ModelToCutFrame->Create();
   ModelToCutFrame->SetLabelText("Model to cut");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 ModelToCutFrame->GetWidgetName() );
+           ModelToCutFrame->GetWidgetName() );
 
 
   this->ModelToCutSelector = vtkSlicerNodeSelectorWidget::New();
@@ -798,7 +842,7 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   this->PerformCutButton->SetText("Cut Model");
 
   app->Script("pack %s -fill x -side top -padx 2 -pady 2",
-              this->PerformCutButton->GetWidgetName());
+           this->PerformCutButton->GetWidgetName());
   
   vtkKWFrameWithLabel *ExtractingComponentsFrame = vtkKWFrameWithLabel::New();
   ExtractingComponentsFrame->SetParent(conBrowsFrame->GetFrame());
@@ -817,8 +861,8 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   this->StopSelectingModelParts->SetText("Stop Selecting Parts");
 
   app->Script("pack %s %s -fill x -side left -expand y -padx 2 -pady 2",
-              this->StartSelectingModelParts->GetWidgetName(),
-              this->StopSelectingModelParts->GetWidgetName());
+           this->StartSelectingModelParts->GetWidgetName(),
+           this->StopSelectingModelParts->GetWidgetName());
   
 
   // -----------------------------------------
@@ -830,14 +874,14 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   moveModelsFrame->SetLabelText("Moving models Frame");
   //moveModelsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               moveModelsFrame->GetWidgetName(), page->GetWidgetName());
+            moveModelsFrame->GetWidgetName(), page->GetWidgetName());
 
   vtkKWFrameWithLabel *frame5 = vtkKWFrameWithLabel::New();
   frame5->SetParent(moveModelsFrame->GetFrame());
   frame5->Create();
   frame5->SetLabelText ("Move models");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame5->GetWidgetName() );
+           frame5->GetWidgetName() );
 
   this->displayMoverButton = vtkKWPushButton::New();
   this->displayMoverButton->SetParent(frame5->GetFrame());
@@ -845,7 +889,7 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   this->displayMoverButton->SetText("Display mover");
 
   app->Script("pack %s -fill x -side left -expand y -padx 2 -pady 2",
-              this->displayMoverButton->GetWidgetName());
+           this->displayMoverButton->GetWidgetName());
 
   // -----------------------------------------
   // Placing Markers Frame
@@ -864,7 +908,7 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   frame6->Create();
   frame6->SetLabelText ("Place screws markers");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame6->GetWidgetName() );
+           frame6->GetWidgetName() );
 
   this->modelSelector = vtkSlicerNodeSelectorWidget::New();
   this->modelSelector->SetParent(frame6->GetFrame());
@@ -880,7 +924,7 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   this->placeMarkersButton->SetText("Start Placing Markers");
 
   app->Script("pack %s %s -fill x -side top -expand y -padx 2 -pady 2",
-              this->modelSelector->GetWidgetName(),
+           this->modelSelector->GetWidgetName(),
            this->placeMarkersButton->GetWidgetName());
  
   frame6->Delete();
@@ -899,3 +943,68 @@ void vtkOsteoPlanGUI::UpdateAll()
 {
 }
 
+void vtkOsteoPlanGUI::AddPairModelFiducial()
+{
+  if(this->modelSelector && this->modelSelector->GetSelected())
+    {
+      if(this->placeMarkerOn == true)
+     {
+       this->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::Place);
+       this->GetApplicationLogic()->GetInteractionNode()->SetSelected(1);
+       this->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(1);
+
+       this->placeMarkersButton->SetText("Stop Placing Markers");
+
+       vtkMRMLModelNode* selectedModelNode = reinterpret_cast<vtkMRMLModelNode*>(this->modelSelector->GetSelected());
+       this->modelNodeInsideCollection = false;
+       int modelPosition = 0;
+
+       for(int i = 0; i < this->ListOfModels->GetNumberOfItems();i++)
+         {
+           vtkMRMLModelNode* listModel = reinterpret_cast<vtkMRMLModelNode*>(this->ListOfModels->GetItemAsObject(i));
+           if(!strcmp(selectedModelNode->GetID(),listModel->GetID()))
+          {
+            this->modelNodeInsideCollection = true;
+            modelPosition = i;
+          }
+         }
+
+       if(!this->modelNodeInsideCollection)
+         {
+           // Add Model to the List of models who have a fiducial list associated
+           this->ListOfModels->AddItem(selectedModelNode);
+
+           // Create the fiducial list with the name of the model
+           vtkMRMLFiducialListNode* fiducialListConnectedToModel = vtkMRMLFiducialListNode::New();
+           char fiducialListName[128];
+           sprintf(fiducialListName,"%s-fiducialList",selectedModelNode->GetName());
+           fiducialListConnectedToModel->SetName(fiducialListName);
+            
+           // Add Fiducial list to the list of fiducial list who have a model associated
+           this->ListOfFiducialLists->AddItem(fiducialListConnectedToModel);
+
+           // Add fiducial list to the scene and set it as active
+           this->GetMRMLScene()->AddNode(fiducialListConnectedToModel);
+           this->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(fiducialListConnectedToModel->GetID());
+           fiducialListConnectedToModel->Delete();
+         }
+       else
+         {
+           // Set fiducial list corresponding to the model as active
+           vtkMRMLFiducialListNode* fiducialListAlreadyConnectedToModel = reinterpret_cast<vtkMRMLFiducialListNode*>(this->ListOfFiducialLists->GetItemAsObject(modelPosition));
+           this->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(fiducialListAlreadyConnectedToModel->GetID());
+         }
+
+     }
+      else
+     {
+       this->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::ViewTransform);
+       this->GetApplicationLogic()->GetInteractionNode()->SetSelected(0);
+       this->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(0);
+
+       this->placeMarkersButton->SetText("Start Placing Markers");
+     }
+    }
+ 
+
+}
