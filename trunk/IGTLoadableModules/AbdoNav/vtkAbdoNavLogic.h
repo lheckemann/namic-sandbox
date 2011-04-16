@@ -69,6 +69,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   /// by the locator, updates the crosshair in each slice view (if selected by user)
   /// and calls UpdateNeedleProjection(...) on each slice view (if selected by user).
   void UpdateAll();
+  /// Helper function to observe the tracking transform node.
+  int ObserveTrackingTransformNode();
 
   //----------------------------------------------------------------
   // 3D visualization.
