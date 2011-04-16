@@ -455,6 +455,36 @@ void vtkAbdoNavLogic::UpdateAll()
 
 
 //---------------------------------------------------------------------------
+int vtkAbdoNavLogic::ObserveTrackingTransformNode()
+{
+  if (this->AbdoNavNode == NULL)
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::ObserveTrackingTransformNode(): "
+                  "Couldn't retrieve AbdoNavNode!");
+    return EXIT_FAILURE;
+    }
+
+  vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetTrackingTransformID()));
+  if (tnode)
+    {
+    vtkIntArray* nodeEvents = vtkIntArray::New();
+    nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+    vtkSetAndObserveMRMLNodeEventsMacro(this->RelativeTrackingTransform, tnode, nodeEvents);
+    nodeEvents->Delete();
+    tnode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+    }
+  else
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::ObserveTrackingTransformNode(): "
+                  "Couldn't retrieve tracking transform node!");
+    return EXIT_FAILURE;
+    }
+
+  return EXIT_SUCCESS;
+}
+
+
+//---------------------------------------------------------------------------
 void vtkAbdoNavLogic::ToggleLocatorVisibility(int vis)
 {
   const char* locatorName = "AbdoNav-Locator";
