@@ -216,14 +216,14 @@ int vtkAbdoNavLogic::PerformRegistration()
   // Since y and z are perpendicular, the scalar product equals 0, i.e. one has
   // to solve |y| * |z| = 0 for y. Let m denote the coordinates of the marker
   // center and let further i denote the coordinates of the intersecting point
-  // of y and z. Then |y| = |m| - |i| (again, order is important!). Since i is
+  // of y and z. Then |y| = |i| - |m| (again, order is important!). Since i is
   // a point on z, it can be rewritten as |i| = |tip| + |lambda * z| where tip
   // denotes the known image coordinates of the guidance needle tip. Thus, one
   // has to solve
   //
-  //      |mR - (tipR + lambda * zR)|   |zR|
-  //      |mA - (tipA + lambda * zA)| * |zA| = 0
-  //      |mS - (tipS + lambda * zS)|   |zS|
+  //      |(tipR + lambda * zR) - mR|   |zR|
+  //      |(tipA + lambda * zA) - mA| * |zA| = 0
+  //      |(tipS + lambda * zS) - mS|   |zS|
   //
   // for lambda, which yields
   //
@@ -339,9 +339,9 @@ int vtkAbdoNavLogic::PerformRegistration()
   i[1] = guidanceNeedleTip[1] + lambda * z[1];
   i[2] = guidanceNeedleTip[2] + lambda * z[2];
   // calculate direction vector of y (order is important!)
-  y[0] = markerCenter[0] - i[0];
-  y[1] = markerCenter[1] - i[1];
-  y[2] = markerCenter[2] - i[2];
+  y[0] = i[0] - markerCenter[0];
+  y[1] = i[1] - markerCenter[1];
+  y[2] = i[2] - markerCenter[2];
   // normalize y
   vtkMath::Normalize(y);
 
