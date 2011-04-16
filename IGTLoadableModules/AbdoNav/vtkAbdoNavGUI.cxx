@@ -501,6 +501,7 @@ void vtkAbdoNavGUI::AddLogicObservers()
   if (this->AbdoNavLogic)
     {
     this->AbdoNavLogic->AddObserver(vtkAbdoNavLogic::RequestFitToBackground, (vtkCommand*)this->LogicCallbackCommand);
+    this->AbdoNavLogic->AddObserver(vtkAbdoNavLogic::LocatorPositionRecorded, (vtkCommand*)this->LogicCallbackCommand);
     }
 }
 
@@ -511,6 +512,7 @@ void vtkAbdoNavGUI::RemoveLogicObservers()
   if (this->AbdoNavLogic)
     {
     this->AbdoNavLogic->RemoveObservers(vtkAbdoNavLogic::RequestFitToBackground, (vtkCommand*)this->LogicCallbackCommand);
+    this->AbdoNavLogic->RemoveObservers(vtkAbdoNavLogic::LocatorPositionRecorded, (vtkCommand*)this->LogicCallbackCommand);
     }
 }
 
@@ -864,6 +866,7 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       this->RecordLocatorPositionPushButton->SetEnabled(false);
       this->RecordLocatorPositionPushButton->SetBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIYellow);
       this->RecordLocatorPositionPushButton->SetActiveBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIYellow);
+      this->AbdoNavLogic->SetRecordLocatorPosition(true);
       }
     }
   else if (this->ShowLocatorCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
@@ -963,6 +966,13 @@ void vtkAbdoNavGUI::ProcessLogicEvents(vtkObject* caller, unsigned long event, v
       {
       // logic requested to fit image data back into slice views
       this->GetApplicationGUI()->GetSlicesControlGUI()->FitSlicesToBackground();
+      }
+    else if (event == vtkAbdoNavLogic::LocatorPositionRecorded)
+      {
+      // done recording locator position
+      this->RecordLocatorPositionPushButton->SetEnabled(true);
+      this->RecordLocatorPositionPushButton->SetBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIGreen);
+      this->RecordLocatorPositionPushButton->SetActiveBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIGreen);
       }
     }
 }
