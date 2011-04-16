@@ -38,8 +38,9 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   // Events to be passed to and processed by the GUI.
   //----------------------------------------------------------------
   enum LogicEvents {
-    RequestFitToBackground = 50001,
-    //AnotherEvent         = 50002
+    RequestFitToBackground  = 50001,
+    LocatorPositionRecorded = 50002,
+    //AnotherEvent          = 50003
   };
   //ETX
 
@@ -109,6 +110,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   // Getters and Setters to access (private) logic values from the GUI.
   //----------------------------------------------------------------
   vtkGetMacro(RegistrationPerformed, bool);
+  vtkSetMacro(RecordLocatorPosition, bool);
   vtkGetObjectMacro(Crosshair, vtkMRMLCrosshairNode);
   vtkSetObjectMacro(Crosshair, vtkMRMLCrosshairNode);
   vtkSetMacro(ShowCrosshair, bool);
@@ -163,6 +165,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   //ETX
   /// Flag indicating whether or not registration has been performed yet.
   bool RegistrationPerformed;
+  /// Flag indicating whether or not to record the locator position in image space.
+  bool RecordLocatorPosition;
   /// Flag indicating whether or not to show the crosshair in the slice views.
   bool ShowCrosshair;
   /// Flag indicating whether or not to draw the needle projection in the slice views.

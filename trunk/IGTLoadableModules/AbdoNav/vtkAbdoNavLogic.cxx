@@ -67,6 +67,7 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
   this->SliceOrientation[1] = "Sagittal";
   this->SliceOrientation[2] = "Coronal";
   this->RegistrationPerformed = 0;
+  this->RecordLocatorPosition = 0;
   this->ShowCrosshair = 0;
   this->DrawNeedleProjection = 0;
   this->FreezeReslicing = 0;
