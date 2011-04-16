@@ -71,6 +71,7 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Navigation frame.
   //----------------------------------------------------------------
+  this->RecordLocatorPositionPushButton = NULL;
   this->ShowLocatorCheckButton = NULL;
   this->ProjectionLengthScale = NULL;
   this->FreezeLocatorCheckButton = NULL;
@@ -208,6 +209,12 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
   //----------------------------------------------------------------
   // Navigation frame.
   //----------------------------------------------------------------
+  if (this->RecordLocatorPositionPushButton)
+    {
+    this->RecordLocatorPositionPushButton->SetParent(NULL);
+    this->RecordLocatorPositionPushButton->Delete();
+    this->RecordLocatorPositionPushButton = NULL;
+    }
   if (this->ShowLocatorCheckButton)
     {
     this->ShowLocatorCheckButton->SetParent(NULL);
@@ -352,6 +359,7 @@ void vtkAbdoNavGUI::AddGUIObservers()
   //----------------------------------------------------------------
   // Navigation frame.
   //----------------------------------------------------------------
+  this->RecordLocatorPositionPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->ShowLocatorCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->ProjectionLengthScale->GetWidget()->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->FreezeLocatorCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
@@ -426,6 +434,10 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
   //----------------------------------------------------------------
   // Navigation frame.
   //----------------------------------------------------------------
+  if (this->RecordLocatorPositionPushButton)
+    {
+    this->RecordLocatorPositionPushButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
   if (this->ShowLocatorCheckButton)
     {
     this->ShowLocatorCheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
@@ -1423,6 +1435,17 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                 navigationFrame->GetWidgetName(),
                 page->GetWidgetName());
+
+  // create button to record the current locator position
+  this->RecordLocatorPositionPushButton = vtkKWPushButton::New();
+  this->RecordLocatorPositionPushButton->SetParent(navigationFrame->GetFrame());
+  this->RecordLocatorPositionPushButton->Create();
+  this->RecordLocatorPositionPushButton->SetText("Record Locator Position");
+  this->RecordLocatorPositionPushButton->SetBalloonHelpString("Record the current locator position in image space.");
+  this->RecordLocatorPositionPushButton->SetBackgroundColor(1.0, 0.0, 0.0);
+
+  // add record locator position button
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->RecordLocatorPositionPushButton->GetWidgetName());
 
   // create labelled frame to hold widgets for setting the locator display options
   vtkKWFrameWithLabel* locatorOptionsFrame = vtkKWFrameWithLabel::New();
