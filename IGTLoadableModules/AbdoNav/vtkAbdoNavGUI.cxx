@@ -787,6 +787,9 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     this->Point3CheckButton->SetEnabled(true);
     this->PerformRegistrationPushButton->SetEnabled(true);
     this->ResetRegistrationPushButton->SetEnabled(false);
+    this->RecordLocatorPositionPushButton->SetEnabled(false);
+    this->RecordLocatorPositionPushButton->SetBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIRed);
+    this->RecordLocatorPositionPushButton->SetActiveBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIRed);
     // unlock fiducial list
     vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
     if (fnode)
@@ -830,6 +833,9 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
         this->Point3CheckButton->SetSelectedState(false);
         this->PerformRegistrationPushButton->SetEnabled(false);
         this->ResetRegistrationPushButton->SetEnabled(true);
+        this->RecordLocatorPositionPushButton->SetEnabled(true);
+        this->RecordLocatorPositionPushButton->SetBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIGreen);
+        this->RecordLocatorPositionPushButton->SetActiveBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIGreen);
         // lock fiducial list
         vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
         if (fnode)
@@ -851,6 +857,15 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   //----------------------------------------------------------------
   // Navigation frame.
   //----------------------------------------------------------------
+  else if (this->RecordLocatorPositionPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
+    {
+    if (this->RecordLocatorPositionPushButton->GetEnabled())
+      {
+      this->RecordLocatorPositionPushButton->SetEnabled(false);
+      this->RecordLocatorPositionPushButton->SetBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIYellow);
+      this->RecordLocatorPositionPushButton->SetActiveBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIYellow);
+      }
+    }
   else if (this->ShowLocatorCheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
     int checked = this->ShowLocatorCheckButton->GetSelectedState();
@@ -1436,13 +1451,22 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
                 navigationFrame->GetWidgetName(),
                 page->GetWidgetName());
 
+  // create labelled frame to hold widgets for the evaluation
+  vtkKWFrameWithLabel* evaluationFrame = vtkKWFrameWithLabel::New();
+  evaluationFrame->SetParent(navigationFrame->GetFrame());
+  evaluationFrame->Create();
+  evaluationFrame->SetLabelText("Evaluation");
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", evaluationFrame->GetWidgetName());
+
   // create button to record the current locator position
   this->RecordLocatorPositionPushButton = vtkKWPushButton::New();
-  this->RecordLocatorPositionPushButton->SetParent(navigationFrame->GetFrame());
+  this->RecordLocatorPositionPushButton->SetParent(evaluationFrame->GetFrame());
   this->RecordLocatorPositionPushButton->Create();
   this->RecordLocatorPositionPushButton->SetText("Record Locator Position");
   this->RecordLocatorPositionPushButton->SetBalloonHelpString("Record the current locator position in image space.");
-  this->RecordLocatorPositionPushButton->SetBackgroundColor(1.0, 0.0, 0.0);
+  this->RecordLocatorPositionPushButton->SetEnabled(false);
+  this->RecordLocatorPositionPushButton->SetBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIRed);
+  this->RecordLocatorPositionPushButton->SetActiveBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIRed);
 
   // add record locator position button
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->RecordLocatorPositionPushButton->GetWidgetName());
@@ -1619,6 +1643,7 @@ void vtkAbdoNavGUI::BuildGUINavigationFrame()
 
   // clean up
   navigationFrame->Delete();
+  evaluationFrame->Delete();
   locatorOptionsFrame->Delete();
   sliceDriverFrame->Delete();
   sliceOrientationFrame->Delete();
