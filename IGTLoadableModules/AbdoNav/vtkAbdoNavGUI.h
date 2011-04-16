@@ -139,6 +139,7 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // Widgets of the navigation frame.
   //----------------------------------------------------------------
+  vtkKWPushButton* RecordLocatorPositionPushButton;
   vtkKWCheckButton* ShowLocatorCheckButton;
   vtkKWScaleWithEntry* ProjectionLengthScale;
   vtkKWCheckButton* FreezeLocatorCheckButton;
