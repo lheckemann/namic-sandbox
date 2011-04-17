@@ -392,6 +392,50 @@ void vtkAbdoNavLogic::UpdateAll()
       return;
       }
 
+    if (this->RecordLocatorPosition == true)
+      {
+      // number of tracking data samples to be averaged
+      const static int MAX_SAMPLES = 5;
+      // array to store a number of (MAX_SAMPLES) 3 dimensional coordinates
+      static double samples[MAX_SAMPLES][3];
+      // index of current tracking data sample
+      static int currentSample = 0;
+
+      if (currentSample < MAX_SAMPLES)
+        {
+        if (currentSample == 0)
+          {
+          std::cout << "===========================================================================" << std::endl;
+          }
+        // store and print current tracking data sample
+        samples[currentSample][0] = registeredTracker->Element[0][3];;
+        samples[currentSample][1] = registeredTracker->Element[1][3];
+        samples[currentSample][2] = registeredTracker->Element[2][3];
+        std::cout << "sample " << currentSample << " = " << samples[currentSample][0] << ",," << samples[currentSample][1] << ",," << samples[currentSample][2] << " [R,,A,,S]" << std::endl;
+        currentSample++;
+        }
+      else if (currentSample == MAX_SAMPLES)
+        {
+        // average tracking data samples
+        double avg[3];
+        double sum;
+        for (int i = 0; i < 3; i++)
+          {
+          sum = 0;
+          for (int j = 0; j < MAX_SAMPLES; j++)
+            {
+            sum = sum + samples[j][i];
+            }
+          avg[i] = sum / MAX_SAMPLES;
+          }
+        std::cout << "averaged samples = " << avg[0] << ",," << avg[1] << ",," << avg[2] << " [R,,A,,S]" << std::endl;
+        std::cout << "===========================================================================" << std::endl;
+        this->RecordLocatorPosition = false;
+        currentSample = 0;
+        this->InvokeEvent(LocatorPositionRecorded);
+        }
+      }
+
     this->CheckSliceNodes();
 
     // update each slice node that is driven by the locator
