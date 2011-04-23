@@ -1,20 +1,41 @@
 #-----------------------------------------------------------------------------
 # Check platform and generate igtlConfigure.h
-# 
+#-----------------------------------------------------------------------------
 
+#
+# The platform is determined by CMAKE_SYSTEM_NAME variable.
+# CMake set CMAKE_SYSTEM_NAME based on "uname -s" on unix or just set "Windows"
+# on windows.
+# The list of "uname -s" is available in CMake/Modules/CMakeDetermineSystem.cmake
+#
+
+
+# Thread parameters
+# Use pthread in default except Windows
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  SET(OpenIGTLink_USE_WIN32_THREADS 1)
+else(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  SET(OpenIGTLink_USE_PTHREADS 1)  
+endif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+
+# Windows
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  SET(OpenIGTLink_PLATFORM_WIN32 1)
+endif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+
+# Mac OS X
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-  SET(OpenIGTLink_USE_PTHREADS 1)
   SET(OpenIGTLink_PLATFORM_MACOSX 1)
 endif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
+# Linux
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-  SET(OpenIGTLink_USE_PTHREADS 1)
   SET(OpenIGTLink_PLATFORM_LINUX 1)
 endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
+# Sun OS
 if(CMAKE_SYSTEM_NAME MATCHES "SunOS")
 #  SET(OpenIGTLink_USE_SPROC 1)
-  SET(OpenIGTLink_USE_PTHREADS 1)
   SET(OpenIGTLink_PLATFORM_SUNOS 1)
   # Set OpenIGTLink_STD_LINK_LIBRARIES 
 
@@ -47,14 +68,8 @@ if(CMAKE_SYSTEM_NAME MATCHES "SunOS")
   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_SYSTEM_NAME MATCHES "SunOS")
 
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  SET(OpenIGTLink_USE_WIN32_THREADS 1)
-  SET(OpenIGTLink_PLATFORM_WIN32 1)
-endif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-
+# QNX
 if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
-  SET(OpenIGTLink_USE_PTHREADS 1)
   SET(OpenIGTLink_PLATFORM_QNX 1)
 endif(CMAKE_SYSTEM_NAME STREQUAL "QNX")
 
