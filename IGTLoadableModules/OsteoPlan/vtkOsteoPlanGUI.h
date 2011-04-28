@@ -33,6 +33,8 @@ class vtkBoxWidget2;
 class vtkKWMenuButtonWithLabel;
 class vtkBoxRepresentation;
 class vtkSlicerNodeSelectorWidget;
+class vtkMRMLLinearTransformNode;
+class vtkMRMLModelNode;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
 {
@@ -63,6 +65,8 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   void operator = ( const vtkOsteoPlanGUI& ); //Not implemented.
 
   void AddPairModelFiducial();
+  void BackModelToOriginalPosition(vtkMRMLLinearTransformNode* ParentTransform, vtkMRMLModelNode* Model);
+
  public:
   //----------------------------------------------------------------
   // New method, Initialization etc.
@@ -167,6 +171,14 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   vtkCollection* ListOfModels;
   vtkCollection* ListOfFiducialLists;
   bool modelNodeInsideCollection;
+
+  //----------------------------------------------------------------
+  // back to Original Position
+  //----------------------------------------------------------------
+
+  vtkKWPushButton* backOriginalButton;
+  vtkSlicerNodeSelectorWidget* modelBackOSelector;
+  vtkMRMLLinearTransformNode* ParentTransformationNode;
 
   //----------------------------------------------------------------
   // Logic Values

@@ -54,6 +54,7 @@
 #include "vtkAssembly.h"
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLInteractionNode.h"
+#include "vtkMRMLLinearTransformNode.h"
 
 #include "vtkKWMenuButtonWithLabel.h"
 #include "vtkCornerAnnotation.h"
@@ -116,6 +117,13 @@ vtkOsteoPlanGUI::vtkOsteoPlanGUI ( )
   this->placeMarkerOn = false;
   this->ListOfModels = vtkCollection::New();
   this->ListOfFiducialLists = vtkCollection::New();
+
+  //----------------------------------------------------------------
+  // Back to Original Position
+
+  this->modelBackOSelector = NULL;
+  this->backOriginalButton = NULL;
+  this->ParentTransformationNode = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -216,6 +224,25 @@ vtkOsteoPlanGUI::~vtkOsteoPlanGUI ( )
     {
       this->ListOfFiducialLists->Delete();
     }
+
+  if(this->modelBackOSelector)
+    {
+      this->modelBackOSelector->SetParent(NULL);
+      this->modelBackOSelector->Delete();
+    }
+
+  if(this->backOriginalButton)
+    {
+      this->backOriginalButton->SetParent(NULL);
+      this->backOriginalButton->Delete();
+    }
+
+  // if(this->ParentTransformationNode)
+  //   {
+  //     this->ParentTransformationNode->Delete();
+  //   }
+
+
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -241,6 +268,12 @@ void vtkOsteoPlanGUI::Enter()
       this->TimerFlag = 1;
       this->TimerInterval = 100;  // 100 ms
       ProcessTimerEvents();
+    }
+
+  if(this->modelBackOSelector && this->modelBackOSelector->GetSelected())
+    {
+      // Refresh menu (in case node has been changed)
+      this->modelBackOSelector->InvokeEvent(vtkSlicerNodeSelectorWidget::NodeSelectedEvent);
     }
 
 }
@@ -328,6 +361,18 @@ void vtkOsteoPlanGUI::RemoveGUIObservers ( )
      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if(this->backOriginalButton)
+    {
+      this->backOriginalButton
+     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->modelBackOSelector)
+    {
+      this->modelBackOSelector
+     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   this->RemoveLogicObservers();
 
 }
@@ -387,6 +432,12 @@ void vtkOsteoPlanGUI::AddGUIObservers ( )
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);  
 
   this->modelSelector
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->backOriginalButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);  
+
+  this->modelBackOSelector
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->AddLogicObservers();
@@ -649,15 +700,46 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
            if(this->modelSelector->GetSelected() == this->ListOfModels->GetItemAsObject(i))
           {
             vtkMRMLFiducialListNode* correspondingFiducialList = reinterpret_cast<vtkMRMLFiducialListNode*>(this->ListOfFiducialLists->GetItemAsObject(i));
-           this->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(correspondingFiducialList->GetID());
-         }
-       else
-         {
-           AddPairModelFiducial();
+            this->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(correspondingFiducialList->GetID());
+          }
+           else
+          {
+            AddPairModelFiducial();
+          }
          }
      }
     }
-}
+
+
+  if(this->backOriginalButton == vtkKWPushButton::SafeDownCast(caller)
+     && event == vtkKWPushButton::InvokedEvent)
+    {
+      if(this->ParentTransformationNode && this->modelBackOSelector && this->modelBackOSelector->GetSelected())
+     {
+       vtkMRMLModelNode* BackOriginalModel = vtkMRMLModelNode::SafeDownCast(this->modelBackOSelector->GetSelected());
+       if(BackOriginalModel != NULL)
+         {
+           BackModelToOriginalPosition(this->ParentTransformationNode, BackOriginalModel);
+         }
+     }
+    }
+
+  if (this->modelBackOSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+      vtkMRMLModelNode* BackOriginalModel = vtkMRMLModelNode::SafeDownCast(this->modelBackOSelector->GetSelected());
+      if(BackOriginalModel != NULL)
+     {
+       // Check if parent transform is present
+       vtkMRMLTransformNode *transformationNode = BackOriginalModel->GetParentTransformNode();
+       if(transformationNode != NULL)
+         {
+           this->ParentTransformationNode = vtkMRMLLinearTransformNode::SafeDownCast(transformationNode);
+         }
+     }
+
+
+    }
 
 
 } 
@@ -894,7 +976,6 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   // -----------------------------------------
   // Placing Markers Frame
 
-
   vtkSlicerModuleCollapsibleFrame *placeMarkersFrame = vtkSlicerModuleCollapsibleFrame::New();
   placeMarkersFrame->SetParent(page);
   placeMarkersFrame->Create();
@@ -926,7 +1007,44 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   app->Script("pack %s %s -fill x -side top -expand y -padx 2 -pady 2",
            this->modelSelector->GetWidgetName(),
            this->placeMarkersButton->GetWidgetName());
- 
+
+  // -----------------------------------------
+  // Back to original position Frame
+
+  vtkSlicerModuleCollapsibleFrame *backOriginalFrame = vtkSlicerModuleCollapsibleFrame::New();
+  backOriginalFrame->SetParent(page);
+  backOriginalFrame->Create();
+  backOriginalFrame->SetLabelText("Back to Original Position Frame");
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+            backOriginalFrame->GetWidgetName(), page->GetWidgetName());
+
+
+  vtkKWFrameWithLabel *frame7 = vtkKWFrameWithLabel::New();
+  frame7->SetParent(backOriginalFrame->GetFrame());
+  frame7->Create();
+  frame7->SetLabelText ("Back to Original Position");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+           frame7->GetWidgetName() );
+
+  this->modelBackOSelector = vtkSlicerNodeSelectorWidget::New();
+  this->modelBackOSelector->SetParent(frame7->GetFrame());
+  this->modelBackOSelector->Create();
+  this->modelBackOSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
+  this->modelBackOSelector->SetNewNodeEnabled(0);  
+  this->modelBackOSelector->SetMRMLScene(this->GetMRMLScene());
+  this->modelBackOSelector->UpdateMenu();
+
+  this->backOriginalButton = vtkKWPushButton::New();
+  this->backOriginalButton->SetParent(frame7->GetFrame());
+  this->backOriginalButton->Create();
+  this->backOriginalButton->SetText("Back to Original Position");
+
+  app->Script("pack %s %s -fill x -side top -expand y -padx 2 -pady 2",
+           this->modelBackOSelector->GetWidgetName(),
+           this->backOriginalButton->GetWidgetName());
+
+
+  frame7->Delete(); 
   frame6->Delete();
   frame5->Delete();
   frame2->Delete();
@@ -936,6 +1054,7 @@ void vtkOsteoPlanGUI::BuildGUICutter()
   moveModelsFrame->Delete();
   conBrowsFrame->Delete();
   placeMarkersFrame->Delete();
+  backOriginalFrame->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -1007,4 +1126,68 @@ void vtkOsteoPlanGUI::AddPairModelFiducial()
     }
  
 
+}
+
+
+void vtkOsteoPlanGUI::BackModelToOriginalPosition(vtkMRMLLinearTransformNode *ParentTransform, vtkMRMLModelNode* Model)
+{
+  // Get Tranformation Matrix
+  vtkMatrix4x4* OriginalParentMatrix = ParentTransform->GetMatrixTransformToParent();
+  
+  // Create a Copy
+  vtkMatrix4x4* CopiedParentMatrix = vtkMatrix4x4::New();
+  CopiedParentMatrix->DeepCopy(OriginalParentMatrix);
+
+  // Set Original to Identity
+  OriginalParentMatrix->Identity();
+
+  // Update Transform
+  OriginalParentMatrix->Modified();
+
+  // Invert Copied Matrix
+  CopiedParentMatrix->Invert();
+
+  // Create new transformation node
+  vtkMRMLLinearTransformNode* FiducialTransform = vtkMRMLLinearTransformNode::New();
+  FiducialTransform->SetAndObserveMatrixTransformToParent(CopiedParentMatrix);
+
+  // Add it to the scene
+  this->GetMRMLScene()->AddNode(FiducialTransform);
+
+  // Update Transform Node
+  FiducialTransform->Modified();
+  
+  // Check if model is in the list with fudicuals
+  if(this->ListOfModels->GetNumberOfItems() == this->ListOfFiducialLists->GetNumberOfItems())
+    {
+      // Lists should be synchronized
+      for(int i = 0; i < this->ListOfModels->GetNumberOfItems();i++)
+     {
+       vtkMRMLModelNode* listModel = vtkMRMLModelNode::SafeDownCast(this->ListOfModels->GetItemAsObject(i));
+       if(listModel && listModel->GetID() == Model->GetID())
+         {
+           // The model is already in the list, which means fiducials should have been added on this model
+           // Select the corresponding fiducial list
+           vtkMRMLFiducialListNode* FiducialListModel = vtkMRMLFiducialListNode::SafeDownCast(this->ListOfFiducialLists->GetItemAsObject(i));
+           if(FiducialListModel)
+          {
+            // Fiducial List found
+            // Drop it under new transformation node (invert of the original)
+            FiducialListModel->SetAndObserveTransformNodeID(FiducialTransform->GetID());
+            FiducialListModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+            FiducialListModel->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
+          }
+         }                                          
+     }
+    } 
+   
+  // Drop Inverted transformation under original transformation (Identity)
+  FiducialTransform->SetAndObserveTransformNodeID(ParentTransform->GetID());
+
+  // Update scene by invoking event
+  FiducialTransform->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+  FiducialTransform->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
+
+  CopiedParentMatrix->Delete();
+  FiducialTransform->Delete();
 }

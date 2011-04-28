@@ -57,6 +57,11 @@
 #include "vtkAppendPolyData.h"
 #include "vtkProperty.h"
 
+#include "vtkTriangleFilter.h"
+#include "vtkButterflySubdivisionFilter.h"
+
+#include "vtkClipClosedSurface.h"
+
 #include "vtkOsteoPlanLogic.h"
 
 vtkCxxRevisionMacro(vtkOsteoPlanLogic, "$Revision: 1.9.12.1 $");
@@ -167,13 +172,41 @@ void vtkOsteoPlanLogic::ClipModelWithBox(vtkMRMLModelNode* model, vtkBoxWidget2*
   vtkBoxRepresentation* boxRepresentation = reinterpret_cast<vtkBoxRepresentation*>(cuttingBox->GetRepresentation());
   boxRepresentation->GetPlanes(planes);
 
+  vtkPlaneCollection* planeCollection = vtkPlaneCollection::New();
+  
+  for(int i = 0; i < planes->GetNumberOfPlanes(); i++)
+    {
+      planeCollection->AddItem(planes->GetPlane(i));
+    }
 
+
+  /*
+  vtkTriangleFilter* triangleFilter = vtkTriangleFilter::New();
+  triangleFilter->SetInput(model->GetPolyData());
+
+  vtkButterflySubdivisionFilter* subdivide = vtkButterflySubdivisionFilter::New();
+  subdivide->SetInput(triangleFilter->GetOutput());
+  subdivide->SetNumberOfSubdivisions(5);
+  */
+
+ 
+  vtkClipClosedSurface* clipper = vtkClipClosedSurface::New();
+  clipper->SetInput(model->GetPolyData());
+  clipper->SetClippingPlanes(planeCollection);
+  clipper->SetBaseColor(1,0,0);
+  clipper->SetClipColor(0,0,1);
+
+  planeCollection->Delete();
+
+  /*
   // Set Clipper 1
   vtkClipPolyData* clipper = vtkClipPolyData::New();
-  clipper->SetInput(model->GetPolyData());
+  //  clipper->SetInput(subdivide->GetOutput());
+  clipper->SetInput(model->GetPolyData()); 
   clipper->SetClipFunction(planes);
   clipper->InsideOutOn();
-  
+*/ 
+ 
   // Set Clipper 2
   vtkClipPolyData* clipper2 = vtkClipPolyData::New();
   clipper2->SetInput(model->GetPolyData());
@@ -237,7 +270,8 @@ void vtkOsteoPlanLogic::ClipModelWithBox(vtkMRMLModelNode* model, vtkBoxWidget2*
   clipper2->Delete();
   dnode1->Delete();
   dnode2->Delete();
-  
+  //triangleFilter->Delete();
+  //subdivide->Delete();  
 }
                                   
 
