@@ -91,6 +91,7 @@ int igtl_bind_unpack_normal(void * byte_array, igtl_bind_info * info)
   size_t      namelen;
   char * ptr;
   char * ptr2;
+  igtl_uint64 tmp64;
   
   if (byte_array == NULL || info == NULL)
     {
@@ -131,11 +132,12 @@ int igtl_bind_unpack_normal(void * byte_array, igtl_bind_info * info)
     ptr += IGTL_HEADER_TYPE_SIZE;
     if (igtl_is_little_endian())
       {
-      info->child_info_array[i].size = BYTE_SWAP_INT64(*((igtl_uint64 *) ptr));
+      memcpy(&tmp64, ptr, sizeof(igtl_uint64));
+      info->child_info_array[i].size = BYTE_SWAP_INT64(tmp64);
       }
     else
       {
-      info->child_info_array[i].size = *((igtl_uint64 *) ptr);
+      memcpy(&(info->child_info_array[i].size), ptr, sizeof(igtl_uint64));
       }
 
     ptr += sizeof(igtl_uint64);
@@ -292,6 +294,7 @@ int igtl_bind_unpack_request(void * byte_array, igtl_bind_info * info, igtl_uint
 int igtl_export igtl_bind_unpack(int type, void * byte_array, igtl_bind_info * info, igtl_uint64 size)
 {
   char * ptr;
+  igtl_uint64 tmp64;
 
   switch (type)
     {
@@ -313,11 +316,12 @@ int igtl_export igtl_bind_unpack(int type, void * byte_array, igtl_bind_info * i
       ptr = byte_array;
       if (igtl_is_little_endian())
         {
-        info->resol = BYTE_SWAP_INT64(*(igtl_uint64*)ptr);
+        memcpy(&(info->resol), ptr, sizeof(igtl_uint64));
+        info->resol = BYTE_SWAP_INT64(info->resol);
         }
       else
         {
-        info->resol = *(igtl_uint64*)ptr;
+        memcpy(&(info->resol), ptr, sizeof(igtl_uint64));
         }
       /* Unpack rest of the message */
       ptr += sizeof(igtl_uint64);
@@ -351,6 +355,7 @@ int igtl_bind_pack_normal(igtl_bind_info * info, void * byte_array)
   igtl_uint16 * nts;
   size_t wb;
   size_t len;
+  igtl_uint64 tmp64;
 
   ptr = (char *) byte_array;
   nc = info->ncmessages;
@@ -380,13 +385,22 @@ int igtl_bind_pack_normal(igtl_bind_info * info, void * byte_array)
     memset(ptr, 0, IGTL_HEADER_TYPE_SIZE);
     strncpy((char*)ptr, info->child_info_array[i].type, IGTL_HEADER_TYPE_SIZE);
     ptr += IGTL_HEADER_TYPE_SIZE;
+
+    /* 2011-04-29
+     * Since ptr is not alined to double-word order at this point, 
+     * "* ((igtl_uint64 *) ptr) = <value>" may fail in some archtecture.
+     * In the following section, memcpy() is called instaed of using * ((igtl_uint64 *) ptr)
+     * expression.
+     */
+
     if (igtl_is_little_endian())
       {
-      *((igtl_uint64 *) ptr) = BYTE_SWAP_INT64(info->child_info_array[i].size);
+      tmp64 = BYTE_SWAP_INT64(info->child_info_array[i].size);
+      memcpy(ptr, &tmp64, sizeof(igtl_uint64));
       }
     else
       {
-      *((igtl_uint64 *) ptr) = info->child_info_array[i].size;
+      memcpy(ptr, &(info->child_info_array[i].size), sizeof(igtl_uint64));
       }
     ptr += sizeof(igtl_uint64);
     }
@@ -510,6 +524,7 @@ int igtl_bind_pack_request(igtl_bind_info * info, void * byte_array)
 int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array, int type)
 {
   char * ptr;
+  igtl_uint64 tmp64;
 
   switch (type)
     {
@@ -531,11 +546,12 @@ int igtl_export igtl_bind_pack(igtl_bind_info * info, void * byte_array, int typ
       /* Get time resolution */ 
       if (igtl_is_little_endian())
         {
-        info->resol = BYTE_SWAP_INT64(*(igtl_uint64*)ptr);
+        memcpy(&tmp64, ptr, sizeof(igtl_uint64));
+        info->resol = BYTE_SWAP_INT64(tmp64);
         }
       else
         {
-        info->resol = *(igtl_uint64*)ptr;
+        memcpy(&(info->resol), ptr, sizeof(igtl_uint64));
         }
       ptr += sizeof(igtl_uint64);
 
