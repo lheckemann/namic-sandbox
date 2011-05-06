@@ -66,8 +66,8 @@ public:
   };
 
   enum {
-    ENDIAN_BIG,
-    ENDIAN_LITTLE
+    ENDIAN_BIG=1,
+    ENDIAN_LITTLE=2
   };
 
   enum {
