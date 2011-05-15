@@ -65,6 +65,14 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   this->Point3REntry = NULL;
   this->Point3AEntry = NULL;
   this->Point3SEntry = NULL;
+  this->Point4CheckButton = NULL;
+  this->Point4REntry = NULL;
+  this->Point4AEntry = NULL;
+  this->Point4SEntry = NULL;
+  this->Point5CheckButton = NULL;
+  this->Point5REntry = NULL;
+  this->Point5AEntry = NULL;
+  this->Point5SEntry = NULL;
   this->ResetRegistrationPushButton = NULL;
   this->PerformRegistrationPushButton = NULL;
 
@@ -192,6 +200,54 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->Point3SEntry->SetParent(NULL);
     this->Point3SEntry->Delete();
     this->Point3SEntry = NULL;
+    }
+  if (this->Point4CheckButton)
+    {
+    this->Point4CheckButton->SetParent(NULL);
+    this->Point4CheckButton->Delete();
+    this->Point4CheckButton = NULL;
+    }
+  if (this->Point4REntry)
+    {
+    this->Point4REntry->SetParent(NULL);
+    this->Point4REntry->Delete();
+    this->Point4REntry = NULL;
+    }
+  if (this->Point4AEntry)
+    {
+    this->Point4AEntry->SetParent(NULL);
+    this->Point4AEntry->Delete();
+    this->Point4AEntry = NULL;
+    }
+  if (this->Point4SEntry)
+    {
+    this->Point4SEntry->SetParent(NULL);
+    this->Point4SEntry->Delete();
+    this->Point4SEntry = NULL;
+    }
+  if (this->Point5CheckButton)
+    {
+    this->Point5CheckButton->SetParent(NULL);
+    this->Point5CheckButton->Delete();
+    this->Point5CheckButton = NULL;
+    }
+  if (this->Point5REntry)
+    {
+    this->Point5REntry->SetParent(NULL);
+    this->Point5REntry->Delete();
+    this->Point5REntry = NULL;
+    }
+  if (this->Point5AEntry)
+    {
+    this->Point5AEntry->SetParent(NULL);
+    this->Point5AEntry->Delete();
+    this->Point5AEntry = NULL;
+    }
+  if (this->Point5SEntry)
+    {
+    this->Point5SEntry->SetParent(NULL);
+    this->Point5SEntry->Delete();
+    this->Point5SEntry = NULL;
     }
   if (this->ResetRegistrationPushButton)
     {
@@ -353,6 +409,8 @@ void vtkAbdoNavGUI::AddGUIObservers()
   this->Point1CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point2CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point3CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->Point4CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->Point5CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->ResetRegistrationPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->PerformRegistrationPushButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
 
@@ -421,6 +479,14 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
   if (this->Point3CheckButton)
     {
     this->Point3CheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->Point4CheckButton)
+    {
+    this->Point4CheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->Point5CheckButton)
+    {
+    this->Point5CheckButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
   if (this->ResetRegistrationPushButton)
     {
@@ -1414,6 +1480,110 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
                  this->Point3SEntry->GetWidgetName(),
                  this->Point3AEntry->GetWidgetName(),
                  this->Point3REntry->GetWidgetName());
+
+  //----------------------------------------------------------------
+  // Create widgets to identify marker C's center.
+  //----------------------------------------------------------------
+  // create frame required to display the check button and RAS coordinate entries on the left and right side respectively
+  vtkKWFrame* point4Frame = vtkKWFrame::New();
+  point4Frame->SetParent(guidanceNeedleFrame->GetFrame());
+  point4Frame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point4Frame->GetWidgetName());
+
+  // create check button to select marker C's center
+  this->Point4CheckButton = vtkKWCheckButton::New();
+  this->Point4CheckButton->SetParent(point4Frame);
+  this->Point4CheckButton->Create();
+  this->Point4CheckButton->SetText("Identify marker C's center (RAS):\t\t");
+  this->Point4CheckButton->SetBalloonHelpString("Identify marker C's center in the CT/MR image.");
+  this->Point4CheckButton->SetSelectedState(false);
+  // create entry to hold the R coordinate of marker C's center
+  this->Point4REntry = vtkKWEntry::New();
+  this->Point4REntry->SetParent(point4Frame);
+  this->Point4REntry->Create();
+  this->Point4REntry->SetBalloonHelpString("Marker C's center, R coordinate.");
+  this->Point4REntry->SetWidth(8);
+  this->Point4REntry->SetReadOnly(1);
+  this->Point4REntry->SetRestrictValueToDouble();
+  this->Point4REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+  // create entry to hold the A coordinate of marker C's center
+  this->Point4AEntry = vtkKWEntry::New();
+  this->Point4AEntry->SetParent(point4Frame);
+  this->Point4AEntry->Create();
+  this->Point4AEntry->SetBalloonHelpString("Marker C's center, A coordinate.");
+  this->Point4AEntry->SetWidth(8);
+  this->Point4AEntry->SetReadOnly(1);
+  this->Point4AEntry->SetRestrictValueToDouble();
+  this->Point4AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+  // create entry to hold the S coordinate of marker C's center
+  this->Point4SEntry = vtkKWEntry::New();
+  this->Point4SEntry->SetParent(point4Frame);
+  this->Point4SEntry->Create();
+  this->Point4SEntry->SetBalloonHelpString("Marker C's center, S coordinate.");
+  this->Point4SEntry->SetWidth(8);
+  this->Point4SEntry->SetReadOnly(1);
+  this->Point4SEntry->SetRestrictValueToDouble();
+  this->Point4SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+
+  // add check button for marker C's center
+  this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point4CheckButton->GetWidgetName());
+  // add RAS coordinate entries for marker C's center
+  this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
+                 this->Point4SEntry->GetWidgetName(),
+                 this->Point4AEntry->GetWidgetName(),
+                 this->Point4REntry->GetWidgetName());
+
+  //----------------------------------------------------------------
+  // Create widgets to identify marker D's center.
+  //----------------------------------------------------------------
+  // create frame required to display the check button and RAS coordinate entries on the left and right side respectively
+  vtkKWFrame* point5Frame = vtkKWFrame::New();
+  point5Frame->SetParent(guidanceNeedleFrame->GetFrame());
+  point5Frame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point5Frame->GetWidgetName());
+
+  // create check button to select marker D's center
+  this->Point5CheckButton = vtkKWCheckButton::New();
+  this->Point5CheckButton->SetParent(point5Frame);
+  this->Point5CheckButton->Create();
+  this->Point5CheckButton->SetText("Identify marker D's center (RAS):\t\t");
+  this->Point5CheckButton->SetBalloonHelpString("Identify marker D's center in the CT/MR image.");
+  this->Point5CheckButton->SetSelectedState(false);
+  // create entry to hold the R coordinate of marker D's center
+  this->Point5REntry = vtkKWEntry::New();
+  this->Point5REntry->SetParent(point5Frame);
+  this->Point5REntry->Create();
+  this->Point5REntry->SetBalloonHelpString("Marker D's center, R coordinate.");
+  this->Point5REntry->SetWidth(8);
+  this->Point5REntry->SetReadOnly(1);
+  this->Point5REntry->SetRestrictValueToDouble();
+  this->Point5REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+  // create entry to hold the A coordinate of marker D's center
+  this->Point5AEntry = vtkKWEntry::New();
+  this->Point5AEntry->SetParent(point5Frame);
+  this->Point5AEntry->Create();
+  this->Point5AEntry->SetBalloonHelpString("Marker D's center, A coordinate.");
+  this->Point5AEntry->SetWidth(8);
+  this->Point5AEntry->SetReadOnly(1);
+  this->Point5AEntry->SetRestrictValueToDouble();
+  this->Point5AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+  // create entry to hold the S coordinate of marker D's center
+  this->Point5SEntry = vtkKWEntry::New();
+  this->Point5SEntry->SetParent(point5Frame);
+  this->Point5SEntry->Create();
+  this->Point5SEntry->SetBalloonHelpString("Marker D's center, S coordinate.");
+  this->Point5SEntry->SetWidth(8);
+  this->Point5SEntry->SetReadOnly(1);
+  this->Point5SEntry->SetRestrictValueToDouble();
+  this->Point5SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
+
+  // add check button for marker D's center
+  this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point5CheckButton->GetWidgetName());
+  // add RAS coordinate entries for marker D's center
+  this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
+                 this->Point5SEntry->GetWidgetName(),
+                 this->Point5AEntry->GetWidgetName(),
+                 this->Point5REntry->GetWidgetName());
 
   //----------------------------------------------------------------
   // Create buttons to reset and perform the registration.
