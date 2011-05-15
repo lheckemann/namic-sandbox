@@ -1338,7 +1338,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point1CheckButton = vtkKWCheckButton::New();
   this->Point1CheckButton->SetParent(point1Frame);
   this->Point1CheckButton->Create();
-  this->Point1CheckButton->SetText("Identify guidance needle tip (RAS):\t");
+  this->Point1CheckButton->SetText("Guidance needle tip (RAS):\t");
   this->Point1CheckButton->SetBalloonHelpString("Identify the tip of the guidance needle in the CT/MR image.");
   this->Point1CheckButton->SetSelectedState(false);
   // create entry to hold the R coordinate of the guidance needle tip
@@ -1390,7 +1390,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point2CheckButton = vtkKWCheckButton::New();
   this->Point2CheckButton->SetParent(point2Frame);
   this->Point2CheckButton->Create();
-  this->Point2CheckButton->SetText("Identify marker A's center (RAS):\t\t");
+  this->Point2CheckButton->SetText("Marker A's center (RAS):\t\t");
   this->Point2CheckButton->SetBalloonHelpString("Identify marker A's center in the CT/MR image.");
   this->Point2CheckButton->SetSelectedState(false);
   // create entry to hold the R coordinate of marker A's center
@@ -1442,7 +1442,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point3CheckButton = vtkKWCheckButton::New();
   this->Point3CheckButton->SetParent(point3Frame);
   this->Point3CheckButton->Create();
-  this->Point3CheckButton->SetText("Identify marker B's center (RAS):\t\t");
+  this->Point3CheckButton->SetText("Marker B's center (RAS):\t\t");
   this->Point3CheckButton->SetBalloonHelpString("Identify marker B's center in the CT/MR image.");
   this->Point3CheckButton->SetSelectedState(false);
   // create entry to hold the R coordinate of marker B's center
@@ -1494,7 +1494,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point4CheckButton = vtkKWCheckButton::New();
   this->Point4CheckButton->SetParent(point4Frame);
   this->Point4CheckButton->Create();
-  this->Point4CheckButton->SetText("Identify marker C's center (RAS):\t\t");
+  this->Point4CheckButton->SetText("Marker C's center (RAS):\t\t");
   this->Point4CheckButton->SetBalloonHelpString("Identify marker C's center in the CT/MR image.");
   this->Point4CheckButton->SetSelectedState(false);
   // create entry to hold the R coordinate of marker C's center
@@ -1546,7 +1546,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->Point5CheckButton = vtkKWCheckButton::New();
   this->Point5CheckButton->SetParent(point5Frame);
   this->Point5CheckButton->Create();
-  this->Point5CheckButton->SetText("Identify marker D's center (RAS):\t\t");
+  this->Point5CheckButton->SetText("Marker D's center (RAS):\t\t");
   this->Point5CheckButton->SetBalloonHelpString("Identify marker D's center in the CT/MR image.");
   this->Point5CheckButton->SetSelectedState(false);
   // create entry to hold the R coordinate of marker D's center
