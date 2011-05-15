@@ -1378,7 +1378,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
                  this->Point1REntry->GetWidgetName());
 
   //----------------------------------------------------------------
-  // Create widgets to identify the second point on the guidance needle.
+  // Create widgets to identify marker A's center.
   //----------------------------------------------------------------
   // create frame required to display the check button and RAS coordinate entries on the left and right side respectively
   vtkKWFrame* point2Frame = vtkKWFrame::New();
@@ -1386,51 +1386,51 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   point2Frame->Create();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point2Frame->GetWidgetName());
 
-  // create check button to select the second point on the guidance needle
+  // create check button to select marker A's center
   this->Point2CheckButton = vtkKWCheckButton::New();
   this->Point2CheckButton->SetParent(point2Frame);
   this->Point2CheckButton->Create();
-  this->Point2CheckButton->SetText("Identify second point (RAS):\t\t");
-  this->Point2CheckButton->SetBalloonHelpString("Identify a second point on the guidance needle in the CT/MR image.");
+  this->Point2CheckButton->SetText("Identify marker A's center (RAS):\t\t");
+  this->Point2CheckButton->SetBalloonHelpString("Identify marker A's center in the CT/MR image.");
   this->Point2CheckButton->SetSelectedState(false);
-  // create entry to hold the R coordinate of the second point on the guidance needle
+  // create entry to hold the R coordinate of marker A's center
   this->Point2REntry = vtkKWEntry::New();
   this->Point2REntry->SetParent(point2Frame);
   this->Point2REntry->Create();
-  this->Point2REntry->SetBalloonHelpString("Second point on guidance needle, R coordinate.");
+  this->Point2REntry->SetBalloonHelpString("Marker A's center, R coordinate.");
   this->Point2REntry->SetWidth(8);
   this->Point2REntry->SetReadOnly(1);
   this->Point2REntry->SetRestrictValueToDouble();
   this->Point2REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-  // create entry to hold the A coordinate of the second point on the guidance needle
+  // create entry to hold the A coordinate of marker A's center
   this->Point2AEntry = vtkKWEntry::New();
   this->Point2AEntry->SetParent(point2Frame);
   this->Point2AEntry->Create();
-  this->Point2AEntry->SetBalloonHelpString("Second point on guidance needle, A coordinate.");
+  this->Point2AEntry->SetBalloonHelpString("Marker A's center, A coordinate.");
   this->Point2AEntry->SetWidth(8);
   this->Point2AEntry->SetReadOnly(1);
   this->Point2AEntry->SetRestrictValueToDouble();
   this->Point2AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-  // create entry to hold the S coordinate of the second point on the guidance needle
+  // create entry to hold the S coordinate of marker A's center
   this->Point2SEntry = vtkKWEntry::New();
   this->Point2SEntry->SetParent(point2Frame);
   this->Point2SEntry->Create();
-  this->Point2SEntry->SetBalloonHelpString("Second point on guidance needle, S coordinate.");
+  this->Point2SEntry->SetBalloonHelpString("Marker A's center, S coordinate.");
   this->Point2SEntry->SetWidth(8);
   this->Point2SEntry->SetReadOnly(1);
   this->Point2SEntry->SetRestrictValueToDouble();
   this->Point2SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
 
-  // add check button for the second point on the guidance needle
+  // add check button for marker A's center
   this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point2CheckButton->GetWidgetName());
-  // add RAS coordinate entries for the second point on the guidance needle
+  // add RAS coordinate entries for marker A's center
   this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
                  this->Point2SEntry->GetWidgetName(),
                  this->Point2AEntry->GetWidgetName(),
                  this->Point2REntry->GetWidgetName());
 
   //----------------------------------------------------------------
-  // Create widgets to identify the marker center.
+  // Create widgets to identify marker B's center.
   //----------------------------------------------------------------
   // create frame required to display the check button and RAS coordinate entries on the left and right side respectively
   vtkKWFrame* point3Frame = vtkKWFrame::New();
@@ -1438,44 +1438,44 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   point3Frame->Create();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", point3Frame->GetWidgetName());
 
-  // create check button to select the marker center
+  // create check button to select marker B's center
   this->Point3CheckButton = vtkKWCheckButton::New();
   this->Point3CheckButton->SetParent(point3Frame);
   this->Point3CheckButton->Create();
-  this->Point3CheckButton->SetText("Identify marker center (RAS):\t\t");
-  this->Point3CheckButton->SetBalloonHelpString("Identify the marker center in the CT/MR image.");
+  this->Point3CheckButton->SetText("Identify marker B's center (RAS):\t\t");
+  this->Point3CheckButton->SetBalloonHelpString("Identify marker B's center in the CT/MR image.");
   this->Point3CheckButton->SetSelectedState(false);
-  // create entry to hold the R coordinate of the marker center
+  // create entry to hold the R coordinate of marker B's center
   this->Point3REntry = vtkKWEntry::New();
   this->Point3REntry->SetParent(point3Frame);
   this->Point3REntry->Create();
-  this->Point3REntry->SetBalloonHelpString("Marker center, R coordinate.");
+  this->Point3REntry->SetBalloonHelpString("Marker B's center, R coordinate.");
   this->Point3REntry->SetWidth(8);
   this->Point3REntry->SetReadOnly(1);
   this->Point3REntry->SetRestrictValueToDouble();
   this->Point3REntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-  // create entry to hold the A coordinate of the marker center
+  // create entry to hold the A coordinate of marker B's center
   this->Point3AEntry = vtkKWEntry::New();
   this->Point3AEntry->SetParent(point3Frame);
   this->Point3AEntry->Create();
-  this->Point3AEntry->SetBalloonHelpString("Marker center, A coordinate.");
+  this->Point3AEntry->SetBalloonHelpString("Marker B's center, A coordinate.");
   this->Point3AEntry->SetWidth(8);
   this->Point3AEntry->SetReadOnly(1);
   this->Point3AEntry->SetRestrictValueToDouble();
   this->Point3AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
-  // create entry to hold the S coordinate of the marker center
+  // create entry to hold the S coordinate of marker B's center
   this->Point3SEntry = vtkKWEntry::New();
   this->Point3SEntry->SetParent(point3Frame);
   this->Point3SEntry->Create();
-  this->Point3SEntry->SetBalloonHelpString("Marker center, S coordinate.");
+  this->Point3SEntry->SetBalloonHelpString("Marker B's center, S coordinate.");
   this->Point3SEntry->SetWidth(8);
   this->Point3SEntry->SetReadOnly(1);
   this->Point3SEntry->SetRestrictValueToDouble();
   this->Point3SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
 
-  // add check button for the marker center
+  // add check button for marker B's center
   this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->Point3CheckButton->GetWidgetName());
-  // add RAS coordinate entries for the marker center
+  // add RAS coordinate entries for marker B's center
   this->Script ("pack %s %s %s -side right -anchor ne -padx 2 -pady 2",
                  this->Point3SEntry->GetWidgetName(),
                  this->Point3AEntry->GetWidgetName(),
