@@ -607,15 +607,15 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     std::string activeCheckButton = "";
     if (this->Point1CheckButton->GetSelectedState() && this->Point1CheckButton->GetEnabled())
       {
-      activeCheckButton = tipRAS;
+      activeCheckButton = tip;
       }
     else if (this->Point2CheckButton->GetSelectedState() && this->Point2CheckButton->GetEnabled())
       {
-      activeCheckButton = sndRAS;
+      activeCheckButton = markerA;
       }
     else if (this->Point3CheckButton->GetSelectedState() && this->Point3CheckButton->GetEnabled())
       {
-      activeCheckButton = markerRAS;
+      activeCheckButton = markerB;
       }
 
     // if there is an active check button
@@ -1129,21 +1129,21 @@ void vtkAbdoNavGUI::UpdateGUIFromMRML()
 
       for (int i = 0; i < fnode->GetNumberOfFiducials(); i++)
         {
-        if (!strcmp(tipRAS, fnode->GetNthFiducialLabelText(i)))
+        if (!strcmp(tip, fnode->GetNthFiducialLabelText(i)))
           {
           float* guidanceTip = fnode->GetNthFiducialXYZ(i);
           this->Point1REntry->SetValueAsDouble(guidanceTip[0]);
           this->Point1AEntry->SetValueAsDouble(guidanceTip[1]);
           this->Point1SEntry->SetValueAsDouble(guidanceTip[2]);
           }
-        else if (!strcmp(sndRAS, fnode->GetNthFiducialLabelText(i)))
+        else if (!strcmp(markerA, fnode->GetNthFiducialLabelText(i)))
           {
           float* guidanceSecond = fnode->GetNthFiducialXYZ(i);
           this->Point2REntry->SetValueAsDouble(guidanceSecond[0]);
           this->Point2AEntry->SetValueAsDouble(guidanceSecond[1]);
           this->Point2SEntry->SetValueAsDouble(guidanceSecond[2]);
           }
-        else if (!strcmp(markerRAS, fnode->GetNthFiducialLabelText(i)))
+        else if (!strcmp(markerB, fnode->GetNthFiducialLabelText(i)))
           {
           float* markerCenter = fnode->GetNthFiducialXYZ(i);
           this->Point3REntry->SetValueAsDouble(markerCenter[0]);
