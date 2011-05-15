@@ -29,9 +29,11 @@
 // Definition of string constants (expected labels of fiducials in
 // the registration fiducial list) used by both, GUI and Logic.
 //----------------------------------------------------------------
-const char* const    tipRAS =    "tipRAS";
-const char* const    sndRAS =    "2ndRAS";
-const char* const markerRAS = "markerRAS";
+const char* const     tip = "tip";
+const char* const markerA = "markerA";
+const char* const markerB = "markerB";
+const char* const markerC = "markerC";
+const char* const markerD = "markerD";
 
 class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
 {
@@ -101,11 +103,13 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   /// Identifier of the static registration transform.
   char* RegistrationTransformID;
   /// Identifier of the fiducial list holding the image coordinates
-  /// of the guidance needle artifact, i.e.:
+  /// of the guidance needle artifact, i.e. at least three of:
   ///  - the guidance needle tip
-  ///  - a second point on the guidance needle
-  ///  - the center of a designated marker
-  /// required for needle-based registration.
+  ///  - the center of marker A
+  ///  - the center of marker B
+  ///  - the center of marker C
+  ///  - the center of marker D
+  /// required for registration.
   char* RegistrationFiducialListID;
   /// Identifier of the fiducial list holding the image coordinates
   /// of the targets.

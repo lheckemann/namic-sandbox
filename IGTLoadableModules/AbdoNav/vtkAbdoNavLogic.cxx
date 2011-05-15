@@ -248,15 +248,15 @@ int vtkAbdoNavLogic::PerformRegistration()
     {
     for (int i = 0; i < fnode->GetNumberOfFiducials(); i++)
       {
-      if (!strcmp(tipRAS, fnode->GetNthFiducialLabelText(i)))
+      if (!strcmp(tip, fnode->GetNthFiducialLabelText(i)))
         {
         guidanceNeedleTip = fnode->GetNthFiducialXYZ(i);
         }
-      else if (!strcmp(sndRAS, fnode->GetNthFiducialLabelText(i)))
+      else if (!strcmp(markerA, fnode->GetNthFiducialLabelText(i)))
         {
         guidanceNeedleSecond = fnode->GetNthFiducialXYZ(i);
         }
-      else if (!strcmp(markerRAS, fnode->GetNthFiducialLabelText(i)))
+      else if (!strcmp(markerB, fnode->GetNthFiducialLabelText(i)))
         {
         markerCenter = fnode->GetNthFiducialXYZ(i);
         }
