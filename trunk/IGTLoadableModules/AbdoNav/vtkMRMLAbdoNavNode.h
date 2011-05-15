@@ -103,13 +103,13 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   /// Identifier of the static registration transform.
   char* RegistrationTransformID;
   /// Identifier of the fiducial list holding the image coordinates
-  /// of the guidance needle artifact, i.e. at least three of:
-  ///  - the guidance needle tip
-  ///  - the center of marker A
-  ///  - the center of marker B
-  ///  - the center of marker C
-  ///  - the center of marker D
-  /// required for registration.
+  /// of the guidance needle artifact needed for registration. That
+  /// is, at least three of the following:
+  ///  - the guidance needle tip,
+  ///  - the center of marker A,
+  ///  - the center of marker B,
+  ///  - the center of marker C,
+  ///  - the center of marker D.
   char* RegistrationFiducialListID;
   /// Identifier of the fiducial list holding the image coordinates
   /// of the targets.
