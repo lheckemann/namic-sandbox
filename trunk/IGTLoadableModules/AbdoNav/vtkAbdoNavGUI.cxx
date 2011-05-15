@@ -1616,6 +1616,8 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   point1Frame->Delete();
   point2Frame->Delete();
   point3Frame->Delete();
+  point4Frame->Delete();
+  point5Frame->Delete();
 }
 
 
