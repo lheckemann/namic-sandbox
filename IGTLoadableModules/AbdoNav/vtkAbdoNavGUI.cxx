@@ -1193,28 +1193,43 @@ void vtkAbdoNavGUI::UpdateGUIFromMRML()
       this->Point3AEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
       this->Point3SEntry->SetValueAsDouble(std::numeric_limits<double>::quiet_NaN());
 
+      float* tmp = NULL;
       for (int i = 0; i < fnode->GetNumberOfFiducials(); i++)
         {
         if (!strcmp(tip, fnode->GetNthFiducialLabelText(i)))
           {
-          float* guidanceTip = fnode->GetNthFiducialXYZ(i);
-          this->Point1REntry->SetValueAsDouble(guidanceTip[0]);
-          this->Point1AEntry->SetValueAsDouble(guidanceTip[1]);
-          this->Point1SEntry->SetValueAsDouble(guidanceTip[2]);
+          tmp = fnode->GetNthFiducialXYZ(i);
+          this->Point1REntry->SetValueAsDouble(tmp[0]);
+          this->Point1AEntry->SetValueAsDouble(tmp[1]);
+          this->Point1SEntry->SetValueAsDouble(tmp[2]);
           }
         else if (!strcmp(markerA, fnode->GetNthFiducialLabelText(i)))
           {
-          float* guidanceSecond = fnode->GetNthFiducialXYZ(i);
-          this->Point2REntry->SetValueAsDouble(guidanceSecond[0]);
-          this->Point2AEntry->SetValueAsDouble(guidanceSecond[1]);
-          this->Point2SEntry->SetValueAsDouble(guidanceSecond[2]);
+          tmp = fnode->GetNthFiducialXYZ(i);
+          this->Point2REntry->SetValueAsDouble(tmp[0]);
+          this->Point2AEntry->SetValueAsDouble(tmp[1]);
+          this->Point2SEntry->SetValueAsDouble(tmp[2]);
           }
         else if (!strcmp(markerB, fnode->GetNthFiducialLabelText(i)))
           {
-          float* markerCenter = fnode->GetNthFiducialXYZ(i);
-          this->Point3REntry->SetValueAsDouble(markerCenter[0]);
-          this->Point3AEntry->SetValueAsDouble(markerCenter[1]);
-          this->Point3SEntry->SetValueAsDouble(markerCenter[2]);
+          tmp = fnode->GetNthFiducialXYZ(i);
+          this->Point3REntry->SetValueAsDouble(tmp[0]);
+          this->Point3AEntry->SetValueAsDouble(tmp[1]);
+          this->Point3SEntry->SetValueAsDouble(tmp[2]);
+          }
+        else if (!strcmp(markerC, fnode->GetNthFiducialLabelText(i)))
+          {
+          tmp = fnode->GetNthFiducialXYZ(i);
+          this->Point4REntry->SetValueAsDouble(tmp[0]);
+          this->Point4AEntry->SetValueAsDouble(tmp[1]);
+          this->Point4SEntry->SetValueAsDouble(tmp[2]);
+          }
+        else if (!strcmp(markerD, fnode->GetNthFiducialLabelText(i)))
+          {
+          tmp = fnode->GetNthFiducialXYZ(i);
+          this->Point5REntry->SetValueAsDouble(tmp[0]);
+          this->Point5AEntry->SetValueAsDouble(tmp[1]);
+          this->Point5SEntry->SetValueAsDouble(tmp[2]);
           }
         }
       }
