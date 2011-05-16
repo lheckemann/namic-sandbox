@@ -634,8 +634,10 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   // If the user clicked in one of the slice views with one of the
   // check buttons associated with the RAS coordinates of
   //  - the guidance needle tip
-  //  - a second point on the guidance needle
-  //  - the marker center
+  //  - the center of marker A
+  //  - the center of marker B
+  //  - the center of marker C
+  //  - the center of marker D
   // being active at the same time, the corresponding fiducial in
   // AbdoNav's fiducial list is being updated. If there exists no
   // corresponding fiducial in AbdoNav's fiducial list yet, a new
@@ -682,6 +684,14 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     else if (this->Point3CheckButton->GetSelectedState() && this->Point3CheckButton->GetEnabled())
       {
       activeCheckButton = markerB;
+      }
+    else if (this->Point4CheckButton->GetSelectedState() && this->Point4CheckButton->GetEnabled())
+      {
+      activeCheckButton = markerC;
+      }
+    else if (this->Point5CheckButton->GetSelectedState() && this->Point5CheckButton->GetEnabled())
+      {
+      activeCheckButton = markerD;
       }
 
     // if there is an active check button
@@ -815,6 +825,8 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
       this->Point2CheckButton->SelectedStateOff();
       this->Point3CheckButton->SelectedStateOff();
+      this->Point4CheckButton->SelectedStateOff();
+      this->Point5CheckButton->SelectedStateOff();
       }
     }
   else if (this->Point2CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
@@ -830,6 +842,8 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
       this->Point1CheckButton->SelectedStateOff();
       this->Point3CheckButton->SelectedStateOff();
+      this->Point4CheckButton->SelectedStateOff();
+      this->Point5CheckButton->SelectedStateOff();
       }
     }
   else if (this->Point3CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
@@ -845,6 +859,42 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
       this->Point1CheckButton->SelectedStateOff();
       this->Point2CheckButton->SelectedStateOff();
+      this->Point4CheckButton->SelectedStateOff();
+      this->Point5CheckButton->SelectedStateOff();
+      }
+    }
+  else if (this->Point4CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
+    {
+    if (this->Point4CheckButton->GetSelectedState())
+      {
+      if (this->TimerLog == NULL)
+        {
+        // timer has not been started yet, thus start it now
+        this->TimerLog = vtkTimerLog::New();
+        this->TimerLog->StartTimer();
+        }
+      // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
+      this->Point1CheckButton->SelectedStateOff();
+      this->Point2CheckButton->SelectedStateOff();
+      this->Point3CheckButton->SelectedStateOff();
+      this->Point5CheckButton->SelectedStateOff();
+      }
+    }
+  else if (this->Point5CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
+    {
+    if (this->Point5CheckButton->GetSelectedState())
+      {
+      if (this->TimerLog == NULL)
+        {
+        // timer has not been started yet, thus start it now
+        this->TimerLog = vtkTimerLog::New();
+        this->TimerLog->StartTimer();
+        }
+      // mimic check button set behavior, i.e. only one check button allowed to be selected at a time
+      this->Point1CheckButton->SelectedStateOff();
+      this->Point2CheckButton->SelectedStateOff();
+      this->Point3CheckButton->SelectedStateOff();
+      this->Point4CheckButton->SelectedStateOff();
       }
     }
   else if (this->ResetRegistrationPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
@@ -853,6 +903,8 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     this->Point1CheckButton->SetEnabled(true);
     this->Point2CheckButton->SetEnabled(true);
     this->Point3CheckButton->SetEnabled(true);
+    this->Point4CheckButton->SetEnabled(true);
+    this->Point5CheckButton->SetEnabled(true);
     this->PerformRegistrationPushButton->SetEnabled(true);
     this->ResetRegistrationPushButton->SetEnabled(false);
     this->RecordLocatorPositionPushButton->SetEnabled(false);
@@ -869,7 +921,9 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     {
     if(isnan(this->Point1REntry->GetValueAsDouble()) ||
        isnan(this->Point2REntry->GetValueAsDouble()) ||
-       isnan(this->Point3REntry->GetValueAsDouble()))
+       isnan(this->Point3REntry->GetValueAsDouble()) ||
+       isnan(this->Point4REntry->GetValueAsDouble()) ||
+       isnan(this->Point5REntry->GetValueAsDouble()))
       {
       vtkKWMessageDialog::PopupMessage(this->GetApplication(),
                                        this->GetApplicationGUI()->GetMainSlicerWindow(),
@@ -901,6 +955,10 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
         this->Point2CheckButton->SetSelectedState(false);
         this->Point3CheckButton->SetEnabled(false);
         this->Point3CheckButton->SetSelectedState(false);
+        this->Point4CheckButton->SetEnabled(false);
+        this->Point4CheckButton->SetSelectedState(false);
+        this->Point5CheckButton->SetEnabled(false);
+        this->Point5CheckButton->SetSelectedState(false);
         this->PerformRegistrationPushButton->SetEnabled(false);
         this->ResetRegistrationPushButton->SetEnabled(true);
         this->RecordLocatorPositionPushButton->SetEnabled(true);
