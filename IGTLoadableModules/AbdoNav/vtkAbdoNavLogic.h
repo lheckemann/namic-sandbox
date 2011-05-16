@@ -30,6 +30,23 @@
 #include "vtkSlicerApplicationGUI.h"
 #include "vtkSlicerModuleLogic.h"
 
+//----------------------------------------------------------------
+// Marker geometry definitions relative to a tool's local
+// coordinate system (see Polaris Vicra Tool Kit Guide).
+//----------------------------------------------------------------
+extern const float markerA_8700338[];
+extern const float markerB_8700338[];
+extern const float markerC_8700338[];
+extern const float markerD_8700338[];
+extern const float markerA_8700339[];
+extern const float markerB_8700339[];
+extern const float markerC_8700339[];
+extern const float markerD_8700339[];
+extern const float markerA_8700340[];
+extern const float markerB_8700340[];
+extern const float markerC_8700340[];
+extern const float markerD_8700340[];
+
 class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
 {
  public:

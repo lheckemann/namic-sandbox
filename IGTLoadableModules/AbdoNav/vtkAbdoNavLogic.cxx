@@ -33,6 +33,23 @@
 #include "vtkSmartPointer.h"
 #include "vtkTransformPolyDataFilter.h"
 
+//----------------------------------------------------------------
+// Marker geometry definitions relative to a tool's local
+// coordinate system (see Polaris Vicra Tool Kit Guide).
+//----------------------------------------------------------------
+const float markerA_8700338[] = {0.00,   0.00,   0.00};
+const float markerB_8700338[] = {0.00,  25.28,  16.15};
+const float markerC_8700338[] = {0.00,   0.00,  65.00};
+const float markerD_8700338[] = {0.00, -18.65,  29.61};
+const float markerA_8700339[] = {0.00,   0.00,   0.00};
+const float markerB_8700339[] = {0.00,  28.59,  41.02};
+const float markerC_8700339[] = {0.00,   0.00,  88.00};
+const float markerD_8700339[] = {0.00, -44.32,  40.45};
+const float markerA_8700340[] = {0.00,   0.00,   0.00};
+const float markerB_8700340[] = {0.00,   0.00,  50.00};
+const float markerC_8700340[] = {0.00,  25.00, 100.00};
+const float markerD_8700340[] = {0.00, -25.00, 135.00};
+
 //---------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkAbdoNavLogic, "$Revision: $");
 vtkStandardNewMacro(vtkAbdoNavLogic);
