@@ -53,6 +53,8 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   // Registration frame.
   //----------------------------------------------------------------
   this->TrackerTransformSelector = NULL;
+  this->GuidanceToolTypeLabel = NULL;
+  this->GuidanceToolTypeMenuButton = NULL;
   this->Point1CheckButton = NULL;
   this->Point1REntry = NULL;
   this->Point1AEntry = NULL;
@@ -128,6 +130,18 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->TrackerTransformSelector->SetParent(NULL);
     this->TrackerTransformSelector->Delete();
     this->TrackerTransformSelector = NULL;
+    }
+  if (this->GuidanceToolTypeLabel)
+    {
+    this->GuidanceToolTypeLabel->SetParent(NULL);
+    this->GuidanceToolTypeLabel->Delete();
+    this->GuidanceToolTypeLabel = NULL;
+    }
+  if (this->GuidanceToolTypeMenuButton)
+    {
+    this->GuidanceToolTypeMenuButton->SetParent(NULL);
+    this->GuidanceToolTypeMenuButton->Delete();
+    this->GuidanceToolTypeMenuButton = NULL;
     }
   if (this->Point1CheckButton)
     {
@@ -1391,6 +1405,35 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   // add tracker transform selector
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->TrackerTransformSelector->GetWidgetName());
 
+  // create frame required to display the label and tool type menu button on the left and right side respectively
+  vtkKWFrame* toolFrame = vtkKWFrame::New();
+  toolFrame->SetParent(trackerFrame->GetFrame());
+  toolFrame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", toolFrame->GetWidgetName());
+
+  // create label for the guidance tool type menu button
+  this->GuidanceToolTypeLabel = vtkKWLabel::New();
+  this->GuidanceToolTypeLabel->SetParent(toolFrame);
+  this->GuidanceToolTypeLabel->Create();
+  this->GuidanceToolTypeLabel->SetText("Guidance needle tool type:");
+
+  // add label for the guidance tool type menu button
+  this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->GuidanceToolTypeLabel->GetWidgetName());
+
+  // create menu button to set the guidance tool type being used
+  this->GuidanceToolTypeMenuButton = vtkKWMenuButton::New();
+  this->GuidanceToolTypeMenuButton->SetParent(toolFrame);
+  this->GuidanceToolTypeMenuButton->Create();
+  this->GuidanceToolTypeMenuButton->SetBalloonHelpString("Specify the guidance needle tool type being used.");
+  this->GuidanceToolTypeMenuButton->SetWidth(13);
+  this->GuidanceToolTypeMenuButton->GetMenu()->AddRadioButton("8700338");
+  this->GuidanceToolTypeMenuButton->GetMenu()->AddRadioButton("8700339");
+  this->GuidanceToolTypeMenuButton->GetMenu()->AddRadioButton("8700340");
+  this->GuidanceToolTypeMenuButton->SetValue("8700338");
+
+  // add guidance tool type menu button
+  this->Script ("pack %s -side right -anchor ne -padx 2 -pady 2", this->GuidanceToolTypeMenuButton->GetWidgetName());
+
   // create labelled frame to hold widgets for identifying the guidance needle
   vtkKWFrameWithLabel* guidanceNeedleFrame = vtkKWFrameWithLabel::New();
   guidanceNeedleFrame->SetParent(registrationFrame->GetFrame());
@@ -1685,6 +1728,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   // clean up
   registrationFrame->Delete();
   trackerFrame->Delete();
+  toolFrame->Delete();
   guidanceNeedleFrame->Delete();
   point1Frame->Delete();
   point2Frame->Delete();
