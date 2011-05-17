@@ -439,6 +439,14 @@ vtkMRMLTransformRecorderNode
             }
           }
         
+        if ( sec == 0 && nsec == 0 )
+          {
+          clock_t clock1 = clock();
+          double seconds = this->Time0 + double( clock1 - this->Clock0 ) / CLOCKS_PER_SEC;
+          sec = floor( seconds );
+          nsec = ( seconds - sec ) * 1e9;
+          }
+        
         TransformRecord rec;
           rec.DeviceName = deviceName;
           rec.TimeStampSec = sec;
