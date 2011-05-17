@@ -399,6 +399,26 @@ int vtkAbdoNavLogic::PerformRegistration()
 //---------------------------------------------------------------------------
 int vtkAbdoNavLogic::ParseToolBoxProperties()
 {
+  if (this->AbdoNavNode == NULL)
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::ParseToolBoxProperties(...): "
+                  "Couldn't retrieve AbdoNavNode!");
+    return EXIT_FAILURE;
+    }
+  else if (this->AbdoNavNode->GetGuidanceToolType() == NULL || (this->AbdoNavNode->GetGuidanceToolType() != NULL &&
+           !strcmp(this->AbdoNavNode->GetGuidanceToolType(), "")))
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::ParseToolBoxProperties(...): "
+                  "Guidance tool type not specified!");
+    return EXIT_FAILURE;
+    }
+  else if (this->AbdoNavNode->GetToolBoxPropertiesFile() == NULL)
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::ParseToolBoxProperties(...): "
+                  "Path to NDI ToolBox \".trackProperties\" file not specified!");
+    return EXIT_FAILURE;
+    }
+
   // length of the substrings indicating the x-, y- and z-offset
   int length = 33;
   // variable to temporarily store each line of the file
