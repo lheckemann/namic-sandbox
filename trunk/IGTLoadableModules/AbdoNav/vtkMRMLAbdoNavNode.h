@@ -88,6 +88,10 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   vtkGetStringMacro(ToolBoxPropertiesFile);
   /// Set the path to the NDI ToolBox ".trackProperties" file.
   vtkSetStringMacro(ToolBoxPropertiesFile);
+  /// Get the offset of the guidance needle.
+  vtkGetVector3Macro(GuidanceTipOffset, float);
+  /// Set the offset of the guidance needle.
+  vtkSetVector3Macro(GuidanceTipOffset, float);
 
  protected:
   //----------------------------------------------------------------
@@ -127,6 +131,9 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   char* GuidanceToolType;
   /// Path to the NDI ToolBox ".trackProperties" file.
   char* ToolBoxPropertiesFile;
+  /// Offset of the guidance needle in terms of the guidance needle's
+  /// local coordinate system.
+  float GuidanceTipOffset[3];
 
 };
 
