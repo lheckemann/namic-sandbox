@@ -55,6 +55,8 @@ vtkAbdoNavGUI::vtkAbdoNavGUI()
   this->TrackerTransformSelector = NULL;
   this->GuidanceToolTypeLabel = NULL;
   this->GuidanceToolTypeMenuButton = NULL;
+  this->ToolBoxFileLoadLabel = NULL;
+  this->ToolBoxFileLoadButton = NULL;
   this->Point1CheckButton = NULL;
   this->Point1REntry = NULL;
   this->Point1AEntry = NULL;
@@ -142,6 +144,18 @@ vtkAbdoNavGUI::~vtkAbdoNavGUI()
     this->GuidanceToolTypeMenuButton->SetParent(NULL);
     this->GuidanceToolTypeMenuButton->Delete();
     this->GuidanceToolTypeMenuButton = NULL;
+    }
+  if (this->ToolBoxFileLoadLabel)
+    {
+    this->ToolBoxFileLoadLabel->SetParent(NULL);
+    this->ToolBoxFileLoadLabel->Delete();
+    this->ToolBoxFileLoadLabel = NULL;
+    }
+  if (this->ToolBoxFileLoadButton)
+    {
+    this->ToolBoxFileLoadButton->SetParent(NULL);
+    this->ToolBoxFileLoadButton->Delete();
+    this->ToolBoxFileLoadButton = NULL;
     }
   if (this->Point1CheckButton)
     {
@@ -1449,6 +1463,32 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   // add guidance tool type menu button
   this->Script ("pack %s -side right -anchor ne -padx 2 -pady 2", this->GuidanceToolTypeMenuButton->GetWidgetName());
 
+  // create frame required to display the label and NDI ToolBox ".trackProperties" file load button on the left and right side respectively
+  vtkKWFrame* fileFrame = vtkKWFrame::New();
+  fileFrame->SetParent(trackerFrame->GetFrame());
+  fileFrame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", fileFrame->GetWidgetName());
+
+  // create label for the NDI ToolBox ".trackProperties" file load button
+  this->ToolBoxFileLoadLabel = vtkKWLabel::New();
+  this->ToolBoxFileLoadLabel->SetParent(fileFrame);
+  this->ToolBoxFileLoadLabel->Create();
+  this->ToolBoxFileLoadLabel->SetText("ToolBox properties file:");
+
+  // add label for the NDI ToolBox ".trackProperties" file load button
+  this->Script ("pack %s -side left -anchor nw  -padx 2 -pady 2", this->ToolBoxFileLoadLabel->GetWidgetName());
+
+  // create load button to specify the path to the NDI ToolBox ".trackProperties" file
+  this->ToolBoxFileLoadButton = vtkKWLoadSaveButton::New();
+  this->ToolBoxFileLoadButton->SetParent(fileFrame);
+  this->ToolBoxFileLoadButton->Create();
+  this->ToolBoxFileLoadButton->SetText("Browse ...");
+  this->ToolBoxFileLoadButton->GetLoadSaveDialog()->SetMasterWindow(this->GetApplicationGUI()->GetMainSlicerWindow());
+  this->ToolBoxFileLoadButton->GetLoadSaveDialog()->SetTitle("Open NDI ToolBox \".trackProperties\" file");
+
+  // add NDI ToolBox ".trackProperties" file load button
+  this->Script ("pack %s -side right -anchor ne -padx 2 -pady 2", this->ToolBoxFileLoadButton->GetWidgetName());
+
   // create labelled frame to hold widgets for identifying the guidance needle
   vtkKWFrameWithLabel* guidanceNeedleFrame = vtkKWFrameWithLabel::New();
   guidanceNeedleFrame->SetParent(registrationFrame->GetFrame());
@@ -1744,6 +1784,7 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   registrationFrame->Delete();
   trackerFrame->Delete();
   toolFrame->Delete();
+  fileFrame->Delete();
   guidanceNeedleFrame->Delete();
   point1Frame->Delete();
   point2Frame->Delete();
