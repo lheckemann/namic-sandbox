@@ -464,6 +464,9 @@ int vtkAbdoNavLogic::ParseToolBoxProperties()
     return EXIT_FAILURE;
     }
 
+  // save converted values to vtkMRMLAbdoNavNode
+  this->AbdoNavNode->SetGuidanceTipOffset(offset[0], offset[1], offset[2]);
+
   return EXIT_SUCCESS;
 }
 
