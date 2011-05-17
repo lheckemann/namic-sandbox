@@ -47,6 +47,7 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
   this->HideFromEditors = true;
 
   this->TrackingTransformID = NULL;
+  this->GuidanceToolType = NULL;
   this->RegistrationTransformID = NULL;
   this->RegistrationFiducialListID = NULL;
   this->TargetFiducialListID = NULL;
@@ -57,6 +58,7 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
 vtkMRMLAbdoNavNode::~vtkMRMLAbdoNavNode()
 {
   this->TrackingTransformID = NULL;
+  this->GuidanceToolType = NULL;
   this->RegistrationTransformID = NULL;
   this->RegistrationFiducialListID = NULL;
   this->TargetFiducialListID = NULL;
@@ -69,6 +71,7 @@ void vtkMRMLAbdoNavNode::PrintSelf(ostream& os, vtkIndent indent)
   Superclass::PrintSelf(os, indent);
 
   os << indent << "TrackingTransformID: " << (this->TrackingTransformID ? this->TrackingTransformID : "(none)") << "\n";
+  os << indent << "GuidanceToolType: " << (this->GuidanceToolType ? this->GuidanceToolType : "(none)") << "\n";
   os << indent << "RegistrationTransformID: " << (this->RegistrationTransformID ? this->RegistrationTransformID : "(none)") << "\n";
   os << indent << "RegistrationFiducialListID: " << (this->RegistrationFiducialListID ? this->RegistrationFiducialListID : "(none)") << "\n";
   os << indent << "TargetFiducialListID: " << (this->TargetFiducialListID ? this->TargetFiducialListID : "(none)") << "\n";
@@ -91,6 +94,10 @@ void vtkMRMLAbdoNavNode::ReadXMLAttributes(const char** atts)
       {
       this->SetTrackingTransformID(attValue);
       this->Scene->AddReferencedNodeID(this->TrackingTransformID, this);
+      }
+    else if (!strcmp(attName, "GuidanceToolType"))
+      {
+      this->SetGuidanceToolType(attValue);
       }
     else if (!strcmp(attName, "RegistrationTransformID"))
       {
@@ -128,6 +135,14 @@ void vtkMRMLAbdoNavNode::WriteXML(ostream& os, int nIndent)
   }
   {
     std::stringstream ss;
+    if (this->GuidanceToolType)
+      {
+      ss << this->GuidanceToolType;
+      os << indent << " GuidanceToolType=\"" << ss.str() << "\"";
+      }
+  }
+  {
+    std::stringstream ss;
     if (this->RegistrationTransformID)
       {
       ss << this->RegistrationTransformID;
@@ -160,6 +175,7 @@ void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode* anode)
   vtkMRMLAbdoNavNode* node = (vtkMRMLAbdoNavNode*)anode;
 
   this->SetTrackingTransformID(node->GetTrackingTransformID());
+  this->SetGuidanceToolType(node->GetGuidanceToolType());
   this->SetRegistrationTransformID(node->GetRegistrationTransformID());
   this->SetRegistrationFiducialListID(node->GetRegistrationFiducialListID());
   this->SetTargetFiducialListID(node->GetTargetFiducialListID());

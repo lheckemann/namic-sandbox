@@ -68,6 +68,10 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   vtkGetStringMacro(TrackingTransformID);
   /// Set the identifier of the relative tracking transform.
   vtkSetStringMacro(TrackingTransformID);
+  /// Get the identifier of the guidance needle tool type.
+  vtkGetStringMacro(GuidanceToolType);
+  /// Set the identifier of the guidance needle tool type.
+  vtkSetStringMacro(GuidanceToolType);
   /// Get the identifier of the static registration transform.
   vtkGetStringMacro(RegistrationTransformID);
   /// Set the identifier of the static registration transform.
@@ -100,6 +104,9 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   //----------------------------------------------------------------
   /// Identifier of the relative tracking transform.
   char* TrackingTransformID;
+  /// Identifier of the tool type used as/attached to the guidance
+  /// needle.
+  char* GuidanceToolType;
   /// Identifier of the static registration transform.
   char* RegistrationTransformID;
   /// Identifier of the fiducial list holding the image coordinates
