@@ -47,6 +47,14 @@ extern const float markerB_8700340[];
 extern const float markerC_8700340[];
 extern const float markerD_8700340[];
 
+//----------------------------------------------------------------
+// Definition of search patterns for the x-, y- and z-offset in the
+// NDI ToolBox ".trackProperties" file.
+//----------------------------------------------------------------
+const char* const tool_8700338 = "NDI\\:8700338\\:34801401.offset.t";
+const char* const tool_8700339 = "NDI\\:8700339\\:34801403.offset.t";
+const char* const tool_8700340 = "NDI\\:8700340\\:34802401.offset.t";
+
 class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
 {
  public:
