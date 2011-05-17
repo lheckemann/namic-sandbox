@@ -51,6 +51,7 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
   this->RegistrationFiducialListID = NULL;
   this->TargetFiducialListID = NULL;
   this->GuidanceToolType = NULL;
+  this->ToolBoxPropertiesFile = NULL;
 }
 
 
@@ -62,6 +63,7 @@ vtkMRMLAbdoNavNode::~vtkMRMLAbdoNavNode()
   this->RegistrationFiducialListID = NULL;
   this->TargetFiducialListID = NULL;
   this->GuidanceToolType = NULL;
+  this->ToolBoxPropertiesFile = NULL;
 }
 
 
@@ -75,6 +77,7 @@ void vtkMRMLAbdoNavNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "RegistrationFiducialListID: " << (this->RegistrationFiducialListID ? this->RegistrationFiducialListID : "(none)") << "\n";
   os << indent << "TargetFiducialListID: " << (this->TargetFiducialListID ? this->TargetFiducialListID : "(none)") << "\n";
   os << indent << "GuidanceToolType: " << (this->GuidanceToolType ? this->GuidanceToolType : "(none)") << "\n";
+  os << indent << "ToolBoxPropertiesFile: " << (this->ToolBoxPropertiesFile ? this->ToolBoxPropertiesFile : "(none)") << "\n";
 }
 
 
@@ -113,6 +116,10 @@ void vtkMRMLAbdoNavNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "GuidanceToolType"))
       {
       this->SetGuidanceToolType(attValue);
+      }
+    else if (!strcmp(attName, "ToolBoxPropertiesFile"))
+      {
+      this->SetToolBoxPropertiesFile(attValue);
       }
     }
 }
@@ -165,6 +172,14 @@ void vtkMRMLAbdoNavNode::WriteXML(ostream& os, int nIndent)
       os << indent << " GuidanceToolType=\"" << ss.str() << "\"";
       }
   }
+  {
+    std::stringstream ss;
+    if (this->ToolBoxPropertiesFile)
+      {
+      ss << this->ToolBoxPropertiesFile;
+      os << indent << " ToolBoxPropertiesFile=\"" << ss.str() << "\"";
+      }
+  }
 }
 
 
@@ -179,6 +194,7 @@ void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode* anode)
   this->SetRegistrationFiducialListID(node->GetRegistrationFiducialListID());
   this->SetTargetFiducialListID(node->GetTargetFiducialListID());
   this->SetGuidanceToolType(node->GetGuidanceToolType());
+  this->SetToolBoxPropertiesFile(node->GetToolBoxPropertiesFile());
 }
 
 
