@@ -1045,51 +1045,62 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
       }
     else
       {
-      if (this->AbdoNavLogic->PerformRegistration() == EXIT_SUCCESS)
+      if (this->AbdoNavLogic->ParseToolBoxProperties() == EXIT_SUCCESS)
         {
-        if (this->TimerLog != NULL)
+        if (this->AbdoNavLogic->PerformRegistration() == EXIT_SUCCESS)
           {
-          // stop timer, print time it took to perform the registration
-          // and delete timer (resetting the registration and selecting
-          // one of the three check buttons will create a new instance,
-          // thereby resetting the timer)
-          this->TimerLog->StopTimer();
-          std::cout << "===========================================================================" << std::endl;
-          std::cout << "performing registration took " << this->TimerLog->GetElapsedTime() << " [sec]" << std::endl;
-          std::cout << "===========================================================================" << std::endl;
-          this->TimerLog->Delete();
-          this->TimerLog = NULL;
+          if (this->TimerLog != NULL)
+            {
+            // stop timer, print time it took to perform the registration
+            // and delete timer (resetting the registration and selecting
+            // one of the three check buttons will create a new instance,
+            // thereby resetting the timer)
+            this->TimerLog->StopTimer();
+            std::cout << "===========================================================================" << std::endl;
+            std::cout << "performing registration took " << this->TimerLog->GetElapsedTime() << " [sec]" << std::endl;
+            std::cout << "===========================================================================" << std::endl;
+            this->TimerLog->Delete();
+            this->TimerLog = NULL;
+            }
+          this->TrackerTransformSelector->SetEnabled(false);
+          this->Point1CheckButton->SetEnabled(false);
+          this->Point1CheckButton->SetSelectedState(false);
+          this->Point2CheckButton->SetEnabled(false);
+          this->Point2CheckButton->SetSelectedState(false);
+          this->Point3CheckButton->SetEnabled(false);
+          this->Point3CheckButton->SetSelectedState(false);
+          this->Point4CheckButton->SetEnabled(false);
+          this->Point4CheckButton->SetSelectedState(false);
+          this->Point5CheckButton->SetEnabled(false);
+          this->Point5CheckButton->SetSelectedState(false);
+          this->PerformRegistrationPushButton->SetEnabled(false);
+          this->ResetRegistrationPushButton->SetEnabled(true);
+          this->RecordLocatorPositionPushButton->SetEnabled(true);
+          this->RecordLocatorPositionPushButton->SetBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIGreen);
+          this->RecordLocatorPositionPushButton->SetActiveBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIGreen);
+          // lock fiducial list
+          vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
+          if (fnode)
+            {
+            fnode->SetLocked(1);
+            }
+          this->AbdoNavLogic->ObserveTrackingTransformNode();
           }
-        this->TrackerTransformSelector->SetEnabled(false);
-        this->Point1CheckButton->SetEnabled(false);
-        this->Point1CheckButton->SetSelectedState(false);
-        this->Point2CheckButton->SetEnabled(false);
-        this->Point2CheckButton->SetSelectedState(false);
-        this->Point3CheckButton->SetEnabled(false);
-        this->Point3CheckButton->SetSelectedState(false);
-        this->Point4CheckButton->SetEnabled(false);
-        this->Point4CheckButton->SetSelectedState(false);
-        this->Point5CheckButton->SetEnabled(false);
-        this->Point5CheckButton->SetSelectedState(false);
-        this->PerformRegistrationPushButton->SetEnabled(false);
-        this->ResetRegistrationPushButton->SetEnabled(true);
-        this->RecordLocatorPositionPushButton->SetEnabled(true);
-        this->RecordLocatorPositionPushButton->SetBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIGreen);
-        this->RecordLocatorPositionPushButton->SetActiveBackgroundColor(((vtkSlicerApplication*)this->GetApplication())->GetSlicerTheme()->GetSlicerColors()->SliceGUIGreen);
-        // lock fiducial list
-        vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
-        if (fnode)
+        else
           {
-          fnode->SetLocked(1);
+          vtkKWMessageDialog::PopupMessage(this->GetApplication(),
+                                           this->GetApplicationGUI()->GetMainSlicerWindow(),
+                                           "AbdoNav",
+                                           "Registration failed, check input parameters!",
+                                           vtkKWMessageDialog::ErrorIcon);
           }
-        this->AbdoNavLogic->ObserveTrackingTransformNode();
         }
       else
         {
         vtkKWMessageDialog::PopupMessage(this->GetApplication(),
                                          this->GetApplicationGUI()->GetMainSlicerWindow(),
                                          "AbdoNav",
-                                         "Registration failed, check input parameters!",
+                                         "Parsing NDI ToolBox \".trackProperties\" file failed!",
                                          vtkKWMessageDialog::ErrorIcon);
         }
       }

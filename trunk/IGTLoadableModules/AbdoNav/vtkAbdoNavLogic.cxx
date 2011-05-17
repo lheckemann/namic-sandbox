@@ -19,6 +19,10 @@
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 
+/* STL includes */
+#include <limits>
+#include <string>
+
 /* VTK includes */
 #include "vtkAppendPolyData.h"
 #include "vtkCellArray.h"
@@ -387,6 +391,78 @@ int vtkAbdoNavLogic::PerformRegistration()
 
   // clean up
   registrationMatrix->Delete();
+
+  return EXIT_SUCCESS;
+}
+
+
+//---------------------------------------------------------------------------
+int vtkAbdoNavLogic::ParseToolBoxProperties()
+{
+  // length of the substrings indicating the x-, y- and z-offset
+  int length = 33;
+  // variable to temporarily store each line of the file
+  std::string line;
+  // array to temporarily store the x-, y- and z-offset
+  float offset[3];
+  offset[0] = offset[1] = offset[2] = std::numeric_limits<float>::quiet_NaN();
+
+  // open NDI ToolBox ".trackProperties" file
+  ifstream infile;
+  infile.open(this->AbdoNavNode->GetToolBoxPropertiesFile());
+
+  // if opening file successful & while not at the end of the file
+  while (infile.good())
+    {
+    // read each line
+    getline(infile, line);
+
+    if (line.find("NDI\\:8700338\\:34801401.offset.tx=") != std::string::npos)
+      {
+      // extract substring containing the x-offset
+      // (due to passing std::string::npos as second argument, the resulting
+      // substring contains all characters between the first position (length)
+      // and the end of the string)
+      std::cout << line.substr(length, std::string::npos) << std::endl;
+      // convert substring to double and save it
+      offset[0] = atof(line.substr(length, std::string::npos).c_str());
+      // print converted value
+      std::cout << offset[0] << std::endl;
+      }
+    else if (line.find("NDI\\:8700338\\:34801401.offset.ty=") != std::string::npos)
+      {
+      // extract substring containing the y-offset
+      // (due to passing std::string::npos as second argument, the resulting
+      // substring contains all characters between the first position (length)
+      // and the end of the string)
+      std::cout << line.substr(length, std::string::npos) << std::endl;
+      // convert substring to double and save it
+      offset[1] = atof(line.substr(length, std::string::npos).c_str());
+      // print converted value
+      std::cout << offset[1] << std::endl;
+      }
+    else if (line.find("NDI\\:8700338\\:34801401.offset.tz=") != std::string::npos)
+      {
+      // extract substring containing the z-offset
+      // (due to passing std::string::npos as second argument, the resulting
+      // substring contains all characters between the first position (length)
+      // and the end of the string)
+      std::cout << line.substr(length, std::string::npos) << std::endl;
+      // convert substring to double and save it
+      offset[2] = atof(line.substr(length, std::string::npos).c_str());
+      // print converted value
+      std::cout << offset[2] << std::endl;
+      }
+    }
+
+  // close NDI ToolBox ".trackProperties" file
+  infile.close();
+
+  // verify whether or not parsing was successful
+  if (isnanf(offset[0]) || isnanf(offset[1]) || isnanf(offset[2]))
+    {
+    return EXIT_FAILURE;
+    }
 
   return EXIT_SUCCESS;
 }
