@@ -419,13 +419,28 @@ int vtkAbdoNavLogic::ParseToolBoxProperties()
     return EXIT_FAILURE;
     }
 
-  // length of the substrings indicating the x-, y- and z-offset
-  int length = 33;
+  // start position of the x-, y- and z-offset
+  int spos = 33;
   // variable to temporarily store each line of the file
   std::string line;
   // array to temporarily store the x-, y- and z-offset
   float offset[3];
   offset[0] = offset[1] = offset[2] = std::numeric_limits<float>::quiet_NaN();
+
+  // get search pattern
+  std::string pattern;
+  if (!strcmp(this->AbdoNavNode->GetGuidanceToolType(), "8700338"))
+    {
+    pattern = tool_8700338;
+    }
+  else if (!strcmp(this->AbdoNavNode->GetGuidanceToolType(), "8700339"))
+    {
+    pattern = tool_8700339;
+    }
+  else if (!strcmp(this->AbdoNavNode->GetGuidanceToolType(), "8700340"))
+    {
+    pattern = tool_8700340;
+    }
 
   // open NDI ToolBox ".trackProperties" file
   ifstream infile;
@@ -437,39 +452,39 @@ int vtkAbdoNavLogic::ParseToolBoxProperties()
     // read each line
     getline(infile, line);
 
-    if (line.find("NDI\\:8700338\\:34801401.offset.tx=") != std::string::npos)
+    if (line.find(pattern + "x=") != std::string::npos)
       {
       // extract substring containing the x-offset
       // (due to passing std::string::npos as second argument, the resulting
-      // substring contains all characters between the first position (length)
+      // substring contains all characters between the start position (spos)
       // and the end of the string)
-      std::cout << line.substr(length, std::string::npos) << std::endl;
+      std::cout << line.substr(spos, std::string::npos) << std::endl;
       // convert substring to double and save it
-      offset[0] = atof(line.substr(length, std::string::npos).c_str());
+      offset[0] = atof(line.substr(spos, std::string::npos).c_str());
       // print converted value
       std::cout << offset[0] << std::endl;
       }
-    else if (line.find("NDI\\:8700338\\:34801401.offset.ty=") != std::string::npos)
+    else if (line.find(pattern + "y=") != std::string::npos)
       {
       // extract substring containing the y-offset
       // (due to passing std::string::npos as second argument, the resulting
-      // substring contains all characters between the first position (length)
+      // substring contains all characters between the start position (spos)
       // and the end of the string)
-      std::cout << line.substr(length, std::string::npos) << std::endl;
+      std::cout << line.substr(spos, std::string::npos) << std::endl;
       // convert substring to double and save it
-      offset[1] = atof(line.substr(length, std::string::npos).c_str());
+      offset[1] = atof(line.substr(spos, std::string::npos).c_str());
       // print converted value
       std::cout << offset[1] << std::endl;
       }
-    else if (line.find("NDI\\:8700338\\:34801401.offset.tz=") != std::string::npos)
+    else if (line.find(pattern + "z=") != std::string::npos)
       {
       // extract substring containing the z-offset
       // (due to passing std::string::npos as second argument, the resulting
-      // substring contains all characters between the first position (length)
+      // substring contains all characters between the start position (spos)
       // and the end of the string)
-      std::cout << line.substr(length, std::string::npos) << std::endl;
+      std::cout << line.substr(spos, std::string::npos) << std::endl;
       // convert substring to double and save it
-      offset[2] = atof(line.substr(length, std::string::npos).c_str());
+      offset[2] = atof(line.substr(spos, std::string::npos).c_str());
       // print converted value
       std::cout << offset[2] << std::endl;
       }
