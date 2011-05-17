@@ -123,6 +123,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavGUI : public vtkSlicerModuleGUI
   vtkSlicerNodeSelectorWidget* TrackerTransformSelector;
   vtkKWLabel* GuidanceToolTypeLabel;
   vtkKWMenuButton* GuidanceToolTypeMenuButton;
+  vtkKWLabel* ToolBoxFileLoadLabel;
+  vtkKWLoadSaveButton* ToolBoxFileLoadButton;
   vtkKWCheckButton* Point1CheckButton;
   vtkKWEntry* Point1REntry;
   vtkKWEntry* Point1AEntry;
