@@ -1005,16 +1005,42 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
     }
   else if (this->PerformRegistrationPushButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
     {
-    if(isnan(this->Point1REntry->GetValueAsDouble()) ||
-       isnan(this->Point2REntry->GetValueAsDouble()) ||
-       isnan(this->Point3REntry->GetValueAsDouble()) ||
-       isnan(this->Point4REntry->GetValueAsDouble()) ||
-       isnan(this->Point5REntry->GetValueAsDouble()))
+    // verify registration input parameters
+    this->CheckAndCreateAbdoNavNode();
+
+    if (this->AbdoNavNode->GetTrackingTransformID() == NULL)
       {
       vtkKWMessageDialog::PopupMessage(this->GetApplication(),
                                        this->GetApplicationGUI()->GetMainSlicerWindow(),
                                        "AbdoNav",
-                                       "Invalid registration input parameters!",
+                                       "Tracking transform node not specified!",
+                                       vtkKWMessageDialog::ErrorIcon);
+      }
+    // need to check for "" as well due to UpdateMRMLFromGUI()
+    else if (this->AbdoNavNode->GetGuidanceToolType() == NULL || (this->AbdoNavNode->GetGuidanceToolType() != NULL &&
+             !strcmp(this->AbdoNavNode->GetGuidanceToolType(), "")))
+      {
+      vtkKWMessageDialog::PopupMessage(this->GetApplication(),
+                                       this->GetApplicationGUI()->GetMainSlicerWindow(),
+                                       "AbdoNav",
+                                       "Guidance tool type not specified!",
+                                       vtkKWMessageDialog::ErrorIcon);
+      }
+    else if (this->AbdoNavNode->GetToolBoxPropertiesFile() == NULL)
+      {
+      vtkKWMessageDialog::PopupMessage(this->GetApplication(),
+                                       this->GetApplicationGUI()->GetMainSlicerWindow(),
+                                       "AbdoNav",
+                                       "Path to NDI ToolBox \".trackProperties\" file not specified!",
+                                       vtkKWMessageDialog::ErrorIcon);
+      }
+    else if (this->AbdoNavNode->GetRegistrationFiducialListID() == NULL || (this->AbdoNavNode->GetRegistrationFiducialListID() != NULL &&
+             vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()))->GetNumberOfFiducials() < 3))
+      {
+      vtkKWMessageDialog::PopupMessage(this->GetApplication(),
+                                       this->GetApplicationGUI()->GetMainSlicerWindow(),
+                                       "AbdoNav",
+                                       "Need to identify at least three fiducials in image space!",
                                        vtkKWMessageDialog::ErrorIcon);
       }
     else
