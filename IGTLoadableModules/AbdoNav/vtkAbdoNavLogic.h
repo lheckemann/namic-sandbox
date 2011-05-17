@@ -83,6 +83,8 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   // See implementation for a detailed comment.
   //----------------------------------------------------------------
   int PerformRegistration();
+  /// Parse NDI ToolBox ".trackProperties" file.
+  int ParseToolBoxProperties();
   /// Convenience function that calls UpdateSlicePlane(...) on each slice node driven
   /// by the locator, updates the crosshair in each slice view (if selected by user)
   /// and calls UpdateNeedleProjection(...) on each slice view (if selected by user).
