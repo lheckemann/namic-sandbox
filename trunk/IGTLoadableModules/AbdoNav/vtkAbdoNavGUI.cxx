@@ -435,6 +435,7 @@ void vtkAbdoNavGUI::AddGUIObservers()
   //----------------------------------------------------------------
   this->TrackerTransformSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->GuidanceToolTypeMenuButton->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->ToolBoxFileLoadButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point1CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point2CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point3CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
@@ -500,6 +501,10 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
   if (this->GuidanceToolTypeMenuButton)
     {
     this->GuidanceToolTypeMenuButton->GetMenu()->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->ToolBoxFileLoadButton)
+    {
+    this->ToolBoxFileLoadButton->GetLoadSaveDialog()->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
   if (this->Point1CheckButton)
     {
@@ -848,6 +853,50 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
   else if (this->GuidanceToolTypeMenuButton->GetMenu() == vtkKWMenu::SafeDownCast(caller) && event == vtkKWMenu::MenuItemInvokedEvent)
     {
     this->UpdateMRMLFromGUI();
+    }
+  else if (this->ToolBoxFileLoadButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && event == vtkKWTopLevel::WithdrawEvent)
+    {
+    // get path to selected file
+    const char* path = this->ToolBoxFileLoadButton->GetLoadSaveDialog()->GetFileName();
+    if (path)
+      {
+      // get filename (without the path)
+      const vtksys_stl::string fname(path);
+      vtksys_stl::string filename = vtksys::SystemTools::GetFilenameName(fname);
+
+      // check if NDI ToolBox ".trackProperties" file was selected
+      if (!strcmp(filename.c_str(), ".trackProperties"))
+        {
+        // set path
+        this->CheckAndCreateAbdoNavNode();
+        this->AbdoNavNode->SetToolBoxPropertiesFile(path);
+        }
+      else
+        {
+        // check if user previously provided the path to the NDI ToolBox ".trackProperties" file
+        this->CheckAndCreateAbdoNavNode();
+        if (this->AbdoNavNode->GetToolBoxPropertiesFile() != NULL)
+          {
+          // restore ToolBox file load button text and display an error message
+          this->ToolBoxFileLoadButton->GetLoadSaveDialog()->SetFileName(this->AbdoNavNode->GetToolBoxPropertiesFile());
+          vtkKWMessageDialog::PopupMessage(this->GetApplication(),
+                                           this->GetApplicationGUI()->GetMainSlicerWindow(),
+                                           "AbdoNav",
+                                           "Wrong file selected! Will keep previously provided path to the NDI ToolBox \".trackProperties\" file.",
+                                           vtkKWMessageDialog::ErrorIcon);
+          }
+        else
+          {
+          // reset ToolBox file load button text and display an error message
+          this->ToolBoxFileLoadButton->SetText("Browse ...");
+          vtkKWMessageDialog::PopupMessage(this->GetApplication(),
+                                           this->GetApplicationGUI()->GetMainSlicerWindow(),
+                                           "AbdoNav",
+                                           "Provide path to the NDI ToolBox \".trackProperties\" file!",
+                                           vtkKWMessageDialog::ErrorIcon);
+          }
+        }
+      }
     }
   else if (this->Point1CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
