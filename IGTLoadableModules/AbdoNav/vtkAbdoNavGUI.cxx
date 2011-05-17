@@ -420,6 +420,7 @@ void vtkAbdoNavGUI::AddGUIObservers()
   // Registration frame.
   //----------------------------------------------------------------
   this->TrackerTransformSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->GuidanceToolTypeMenuButton->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point1CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point2CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Point3CheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
@@ -481,6 +482,10 @@ void vtkAbdoNavGUI::RemoveGUIObservers()
   if (this->TrackerTransformSelector)
     {
     this->TrackerTransformSelector->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->GuidanceToolTypeMenuButton)
+    {
+    this->GuidanceToolTypeMenuButton->GetMenu()->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
   if (this->Point1CheckButton)
     {
@@ -825,6 +830,10 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
                                        vtkKWMessageDialog::ErrorIcon);
       this->TrackerTransformSelector->SetSelected(NULL);
       }
+    }
+  else if (this->GuidanceToolTypeMenuButton->GetMenu() == vtkKWMenu::SafeDownCast(caller) && event == vtkKWMenu::MenuItemInvokedEvent)
+    {
+    this->UpdateMRMLFromGUI();
     }
   else if (this->Point1CheckButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
@@ -1235,6 +1244,7 @@ void vtkAbdoNavGUI::UpdateMRMLFromGUI()
     {
     node->SetTrackingTransformID(tnode->GetID());
     }
+  node->SetGuidanceToolType(this->GuidanceToolTypeMenuButton->GetValue());
   node->EndModify(modifiedFlag);
 }
 
@@ -1429,7 +1439,12 @@ void vtkAbdoNavGUI::BuildGUIRegistrationFrame()
   this->GuidanceToolTypeMenuButton->GetMenu()->AddRadioButton("8700338");
   this->GuidanceToolTypeMenuButton->GetMenu()->AddRadioButton("8700339");
   this->GuidanceToolTypeMenuButton->GetMenu()->AddRadioButton("8700340");
-  this->GuidanceToolTypeMenuButton->SetValue("8700338");
+  // The following line could be deleted. Note, however, that the current implementation demands that the
+  // guidance tool type menu button *MUST NOT* be pre-initialized! If the user's choice matches the pre-
+  // initialized value (i.e. the user doesn't need to change it), the vtkMRMLAbdoNavNode's corresponding
+  // value won't be set. By not-pre-initializing the guidance tool type menu button, the user's forced to
+  // set a value which in turn will update the vtkMRMLAbdoNavNode.
+  this->GuidanceToolTypeMenuButton->SetValue("");
 
   // add guidance tool type menu button
   this->Script ("pack %s -side right -anchor ne -padx 2 -pady 2", this->GuidanceToolTypeMenuButton->GetWidgetName());
