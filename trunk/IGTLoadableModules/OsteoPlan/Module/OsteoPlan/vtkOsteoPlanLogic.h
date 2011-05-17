@@ -1,0 +1,92 @@
+/*==========================================================================
+
+  Portions (c) Copyright 2008 Brigham and Women's Hospital (BWH) All Rights Reserved.
+
+  See Doc/copyright/copyright.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Program:   3D Slicer
+  Module:    $HeadURL: $
+  Date:      $Date: $
+  Version:   $Revision: $
+
+==========================================================================*/
+
+// .NAME vtkOsteoPlanLogic - slicer logic class for Locator module 
+// .SECTION Description
+// This class manages the logic associated with tracking device for
+// IGT. 
+
+
+#ifndef __vtkOsteoPlanLogic_h
+#define __vtkOsteoPlanLogic_h
+
+#include "vtkOsteoPlanWin32Header.h"
+
+#include "vtkSlicerBaseLogic.h"
+#include "vtkSlicerModuleLogic.h"
+#include "vtkSlicerApplication.h"
+#include "vtkCallbackCommand.h"
+
+#include "vtkMRMLSliceNode.h"
+
+class vtkIGTLConnector;
+class vtkMRMLModelNode;
+class vtkBoxWidget2;
+class vtkSlicerApplicationGUI; 
+class vtkAssembly;
+class vtkActor;
+
+class VTK_OsteoPlan_EXPORT vtkOsteoPlanLogic : public vtkSlicerModuleLogic 
+{
+ public:
+  //BTX
+  enum {  // Events
+    //LocatorUpdateEvent      = 50000,
+    StatusUpdateEvent       = 50001,
+  };
+  //ETX
+
+ public:
+  
+  static vtkOsteoPlanLogic *New();
+  
+  vtkTypeRevisionMacro(vtkOsteoPlanLogic,vtkObject);
+  void PrintSelf(ostream&, vtkIndent);
+
+  void ClipModelWithBox(vtkMRMLModelNode*, vtkBoxWidget2*, vtkSlicerApplicationGUI*);
+  vtkGetObjectMacro(part2, vtkMRMLModelNode);
+
+  vtkAssembly* CreateMover();
+  vtkGetObjectMacro(XActor, vtkActor);
+  vtkGetObjectMacro(YActor, vtkActor);
+  vtkGetObjectMacro(ZActor, vtkActor);
+
+
+ protected:
+  
+  vtkOsteoPlanLogic();
+  ~vtkOsteoPlanLogic();
+
+  void operator=(const vtkOsteoPlanLogic&);
+  vtkOsteoPlanLogic(const vtkOsteoPlanLogic&);
+
+  static void DataCallback(vtkObject*, unsigned long, void *, void *);
+  void UpdateAll();
+
+  vtkCallbackCommand *DataCallbackCommand;
+
+ private:
+  vtkMRMLModelNode* part1;
+  vtkMRMLModelNode* part2;
+
+  vtkActor* XActor;
+  vtkActor* YActor;
+  vtkActor* ZActor;
+
+};
+
+#endif
+
+
+  
