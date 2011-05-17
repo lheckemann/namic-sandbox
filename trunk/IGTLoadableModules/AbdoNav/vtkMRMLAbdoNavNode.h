@@ -84,6 +84,10 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   vtkGetStringMacro(GuidanceToolType);
   /// Set the identifier of the guidance needle tool type.
   vtkSetStringMacro(GuidanceToolType);
+  /// Get the path to the NDI ToolBox ".trackProperties" file.
+  vtkGetStringMacro(ToolBoxPropertiesFile);
+  /// Set the path to the NDI ToolBox ".trackProperties" file.
+  vtkSetStringMacro(ToolBoxPropertiesFile);
 
  protected:
   //----------------------------------------------------------------
@@ -121,6 +125,8 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   /// Identifier of the tool type used as/attached to the guidance
   /// needle.
   char* GuidanceToolType;
+  /// Path to the NDI ToolBox ".trackProperties" file.
+  char* ToolBoxPropertiesFile;
 
 };
 
