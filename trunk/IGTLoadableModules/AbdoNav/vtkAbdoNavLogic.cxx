@@ -295,6 +295,8 @@ int vtkAbdoNavLogic::PerformRegistration()
   float* tmp = NULL;
   std::cout.setf(ios::scientific, ios::floatfield);
   std::cout.precision(8);
+  std::cout << "===========================================================================" << std::endl;
+  std::cout << "Registration input parameters:" << std::endl;
   for (int i = 0; i < fnode->GetNumberOfFiducials(); i++)
     {
     if (!strcmp(tip, fnode->GetNthFiducialLabelText(i)))
@@ -343,7 +345,6 @@ int vtkAbdoNavLogic::PerformRegistration()
       std::cout << markerD << ",," << tool[3][0]   << ",," << tool[3][1]   << ",," << tool[3][2]   << ",,[XYZ]" << std::endl;
       }
     }
-  std::cout << "===========================================================================" << std::endl;
 
   // calculate registration matrix
   int error = this->Pat2ImgReg->DoRegistration();
@@ -388,6 +389,7 @@ int vtkAbdoNavLogic::PerformRegistration()
     }
   sum = sum / fnode->GetNumberOfFiducials();
   this->AbdoNavNode->SetFRE(sum);
+  std::cout << "===========================================================================" << std::endl;
   std::cout << "FRE,," << this->AbdoNavNode->GetFRE() << std::endl;
   std::cout << "===========================================================================" << std::endl;
   std::cout << "Registration matrix *BEFORE* replacement:" << std::endl;
@@ -575,6 +577,15 @@ int vtkAbdoNavLogic::ParseToolBoxProperties()
 
   // save converted values to vtkMRMLAbdoNavNode
   this->AbdoNavNode->SetGuidanceTipOffset(offset[0], offset[1], offset[2]);
+
+  std::cout.setf(ios::scientific, ios::floatfield);
+  std::cout.precision(8);
+  std::cout << "===========================================================================" << std::endl;
+  std::cout << "toolType,," << this->AbdoNavNode->GetGuidanceToolType() << std::endl;
+  std::cout << "path,," << this->AbdoNavNode->GetToolBoxPropertiesFile() << std::endl;
+  std::cout << "tipOffset,," << offset[0]   << ",," << offset[1]   << ",," << offset[2]   << ",,[XYZ]" << std::endl;
+  std::cout.unsetf(ios::floatfield);
+  std::cout.precision(6);
 
   return EXIT_SUCCESS;
 }
