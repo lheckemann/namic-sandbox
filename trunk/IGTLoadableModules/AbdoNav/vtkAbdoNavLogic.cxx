@@ -645,7 +645,7 @@ void vtkAbdoNavLogic::UpdateAll()
           avg[i] = sum / MAX_SAMPLES;
           }
 
-        // store & print averaged position, indicate to GUI that recording locator position is done
+        // store & print averaged position
         this->RecordLocatorPosition = false;
         currentSample = 0;
         vtkMatrix4x4* avgM = vtkMatrix4x4::New();
@@ -661,6 +661,21 @@ void vtkAbdoNavLogic::UpdateAll()
         std::cout << "RecordedPosition,," << (recPos->GetNumberOfItems() - 1) << ",," << avg[0] << ",," << avg[1] << ",," << avg[2] << ",,[RAS]" << std::endl;
         std::cout.unsetf(ios::floatfield);
         std::cout.precision(6);
+
+        // create a transform node from the last sample
+        std::stringstream ss;
+        ss << "RecordedPosition_";
+        ss << (recPos->GetNumberOfItems() - 1);
+        vtkMRMLLinearTransformNode* stnode = vtkMRMLLinearTransformNode::New();
+        stnode->SetName(ss.str().c_str());
+        stnode->SetDescription("Created by AbdoNav");
+        stnode->GetMatrixTransformToParent()->DeepCopy(registeredTracker);
+        // indicate that the Scene contains unsaved changes; make Slicer's save dialog list this transform as modified
+        stnode->SetModifiedSinceRead(1);
+        this->GetMRMLScene()->AddNode(stnode);
+        stnode->Delete();
+
+        // indicate to GUI that recording locator position is done
         this->InvokeEvent(LocatorPositionRecorded);
         }
       }
