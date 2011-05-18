@@ -84,7 +84,7 @@ public:
   virtual void ProcessLogicEvents ( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessGUIEvents ( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
-  void ProcessTimerEvents();
+  // void ProcessTimerEvents();
   void HandleMouseEvent( vtkSlicerInteractorStyle *style );
   static void DataCallback( vtkObject *caller, unsigned long eid, void *clientData, void *callData );
   void OnNoteSelectionChanged();
@@ -166,8 +166,9 @@ protected:
   vtkPerkProcedureEvaluatorLogic* Logic;
   vtkCallbackCommand*             DataCallbackCommand;
   int                             CloseScene;
-  
-  void TimerHandler();
+
+public:
+  void PerkTimerHandler();
   
 
 private:
