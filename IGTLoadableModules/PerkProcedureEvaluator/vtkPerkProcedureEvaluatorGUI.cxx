@@ -261,7 +261,7 @@ vtkPerkProcedureEvaluatorGUI
     {
     this->TimerFlag = 1;
     this->TimerInterval = 100;  // 100 ms
-    ProcessTimerEvents();
+    // ProcessTimerEvents();
     }
   
   this->AddGUIObservers();
@@ -271,6 +271,9 @@ vtkPerkProcedureEvaluatorGUI
 //---------------------------------------------------------------------------
 void vtkPerkProcedureEvaluatorGUI::Exit ( )
 {
+  if ( this->AutoPlayOn ) this->AutoPlayOn = false;
+  this->TimerLog->StopTimer();
+  
   this->RemoveGUIObservers();
 }
 
@@ -529,7 +532,7 @@ vtkPerkProcedureEvaluatorGUI
     if ( ! this->AutoPlayOn ) this->AutoPlayOn = true;
     
     this->TimerLog->StartTimer();
-    vtkKWTkUtilities::CreateTimerHandler( this->GetApplication(), 0, this, "TimerHandler" );
+    vtkKWTkUtilities::CreateTimerHandler( this->GetApplication(), 10, this, "PerkTimerHandler" );
     }
   
   else if (    this->ButtonStop == vtkKWPushButton::SafeDownCast( caller )
@@ -537,7 +540,7 @@ vtkPerkProcedureEvaluatorGUI
     {
     if ( this->AutoPlayOn ) this->AutoPlayOn = false;
     this->TimerLog->StopTimer();
-    this->TimerEventProcessing = false;
+    // this->TimerEventProcessing = false;
     }
   
   
@@ -616,7 +619,7 @@ vtkPerkProcedureEvaluatorGUI
 }
 
 
-
+/*
 void
 vtkPerkProcedureEvaluatorGUI
 ::ProcessTimerEvents()
@@ -629,9 +632,9 @@ vtkPerkProcedureEvaluatorGUI
                                          this, "ProcessTimerEvents");        
     }
   
-  this->TimerHandler();
+//   this->TimerHandler();
 }
-
+*/
 
 
 void
@@ -1209,12 +1212,12 @@ vtkPerkProcedureEvaluatorGUI
 
 void
 vtkPerkProcedureEvaluatorGUI
-::TimerHandler()
+::PerkTimerHandler()
 {
   if ( ! this->AutoPlayOn ) return;
   
-  if ( this->TimerEventProcessing ) return;
-  this->TimerEventProcessing = true;
+  // if ( this->TimerEventProcessing ) return;
+  // this->TimerEventProcessing = true;
   
   
   int index = this->ProcedureNode->GetTransformIndex();
@@ -1225,7 +1228,7 @@ vtkPerkProcedureEvaluatorGUI
     {
     this->AutoPlayOn = false;
     this->TimerLog->StopTimer();
-    this->TimerEventProcessing = false;
+    // this->TimerEventProcessing = false;
     return;
     }
   
@@ -1235,7 +1238,6 @@ vtkPerkProcedureEvaluatorGUI
   this->ProcedureNode->SetTransformIndex( this->ProcedureNode->GetTransformIndex() + 1 );
   this->UpdatePlayback();
   // this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
-  // this->GetApplicationGUI()->UpdateMain3DViewers();
   
   // this->EntrySec->SetValueAsDouble( this->ProcedureNode->GetTimeAtTransformIndex( this->ProcedureNode->GetTransformIndex() ) );
   // vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
@@ -1248,16 +1250,15 @@ vtkPerkProcedureEvaluatorGUI
   this->TimerLog->StartTimer();
   
   double delay = then - now - elapsed;
-  if ( delay < 0.0 ) delay = 0.0;
+  if ( delay < 5 ) delay = 5;
   std::stringstream ss;
   ss << ( (int)( delay ) );
   
   this->Script ( "update idletasks" );
-  // this->Script ( "after 10 \"%s TimerHandler \"",  this->GetTclName() );
-  this->Script ( "after %d \"%s TimerHandler \"", (int)delay, this->GetTclName() );
-  // vtkKWTkUtilities::CreateTimerHandler( this->GetApplication(), delay, this, "TimerHandler" );
+  // this->Script ( "after 5 \"%s PerkTimerHandler \"",  this->GetTclName() );
+  this->Script ( "after %d \"%s PerkTimerHandler \"", (int)delay, this->GetTclName() );
   
-  this->TimerEventProcessing = false;
+  // this->TimerEventProcessing = false;
 }
 
 
