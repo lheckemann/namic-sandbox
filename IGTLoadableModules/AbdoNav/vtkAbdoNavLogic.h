@@ -23,6 +23,9 @@
 #include "vtkAbdoNavWin32Header.h"
 #include "vtkMRMLAbdoNavNode.h"
 
+/* IGT forward declarations */
+class vtkIGTPat2ImgRegistration;
+
 /* MRML includes */
 #include "vtkMRMLCrosshairNode.h"
 
@@ -166,6 +169,9 @@ class VTK_AbdoNav_EXPORT vtkAbdoNavLogic : public vtkSlicerModuleLogic
   //----------------------------------------------------------------
   /// Parameter node associated with this module.
   vtkMRMLAbdoNavNode* AbdoNavNode;
+  /// Implementation of Horn's closed-form solution to the least-squares
+  /// problem of absolute orientation.
+  vtkIGTPat2ImgRegistration* Pat2ImgReg;
   /// Transform node holding the static registration matrix.
   vtkMRMLLinearTransformNode* RegistrationTransform;
   /// The relative tracking transform node created by OpenIGTLinkIF.
