@@ -1274,7 +1274,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
       {
       if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetRegistrationFiducialListID()))
         {
-        std::cout << "fiducial added" << std::endl;
+        //std::cout << "fiducial added" << std::endl;
         this->UpdateGUIFromMRML();
         }
       }
@@ -1287,7 +1287,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
       {
       if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetRegistrationFiducialListID()))
         {
-        std::cout << "fiducial removed" << std::endl;
+        //std::cout << "fiducial removed" << std::endl;
         this->UpdateGUIFromMRML();
         }
       }
@@ -1310,7 +1310,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
       {
       if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetRegistrationFiducialListID()))
         {
-        std::cout << "all fiducials removed" << std::endl;
+        //std::cout << "all fiducials removed" << std::endl;
         this->UpdateGUIFromMRML();
         }
       }
@@ -1323,7 +1323,7 @@ void vtkAbdoNavGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, vo
       {
       if (!strcmp(fnode->GetID(), this->AbdoNavNode->GetRegistrationFiducialListID()))
         {
-        std::cout << "fiducial moved or renamed" << std::endl;
+        //std::cout << "fiducial moved or renamed" << std::endl;
         this->UpdateGUIFromMRML();
         }
       }
