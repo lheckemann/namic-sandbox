@@ -325,7 +325,35 @@ vtkMRMLPerkProcedureNode
     vtkXMLDataElement* noteElement = element->GetNestedElement( i );
     if ( strcmp( noteElement->GetName(), "log" ) != 0 ) continue;
     const char* type = noteElement->GetAttribute( "type" );
-    double time = atof( noteElement->GetAttribute( "time" ) );
+    
+    
+      // Check if time was coded according to the old or new fashion.
+    
+    int numAttribs = noteElement->GetNumberOfAttributes();
+    bool old_time_style = false;
+    for ( int j = 0; j < numAttribs; ++ j )
+      {
+      const char* attName = noteElement->GetAttributeName( j );
+      if ( !strcmp( attName, "time" ) )
+        {
+        old_time_style = true;
+        break;
+        }
+      }
+    
+    
+    double time = 0.0;
+    if ( old_time_style )
+      {
+      double time = atof( noteElement->GetAttribute( "time" ) );
+      }
+    else
+      {
+      double time_sec = atof( noteElement->GetAttribute( "TimeStampSec" ) );
+      double time_nsec = atof( noteElement->GetAttribute( "TimeStampNSec" ) );
+      time = time_sec + time_nsec * 1e-9;
+      }
+    
     
     if ( strcmp( type, "message" ) == 0 )
       {
