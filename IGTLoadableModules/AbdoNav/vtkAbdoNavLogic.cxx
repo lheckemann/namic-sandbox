@@ -388,7 +388,6 @@ int vtkAbdoNavLogic::PerformRegistration()
     }
   sum = sum / fnode->GetNumberOfFiducials();
   this->AbdoNavNode->SetFRE(sum);
-  std::cout << "===========================================================================" << std::endl;
   std::cout << "FRE,," << this->AbdoNavNode->GetFRE() << std::endl;
   std::cout << "===========================================================================" << std::endl;
   std::cout << "Registration matrix *BEFORE* replacement:" << std::endl;
@@ -423,7 +422,6 @@ int vtkAbdoNavLogic::PerformRegistration()
   std::cout << registrationMatrix->GetElement(1, 0) << ",," << registrationMatrix->GetElement(1, 1) << ",," << registrationMatrix->GetElement(1, 2) << ",," << registrationMatrix->GetElement(1, 3) << std::endl;
   std::cout << registrationMatrix->GetElement(2, 0) << ",," << registrationMatrix->GetElement(2, 1) << ",," << registrationMatrix->GetElement(2, 2) << ",," << registrationMatrix->GetElement(2, 3) << std::endl;
   std::cout << registrationMatrix->GetElement(3, 0) << ",," << registrationMatrix->GetElement(3, 1) << ",," << registrationMatrix->GetElement(3, 2) << ",," << registrationMatrix->GetElement(3, 3) << std::endl;
-  std::cout << "===========================================================================" << std::endl;
   std::cout.unsetf(ios::floatfield);
   std::cout.precision(6);
 
@@ -534,11 +532,11 @@ int vtkAbdoNavLogic::ParseToolBoxProperties()
       // (due to passing std::string::npos as second argument, the resulting
       // substring contains all characters between the start position (spos)
       // and the end of the string)
-      std::cout << line.substr(spos, std::string::npos) << std::endl;
+      //std::cout << line.substr(spos, std::string::npos) << std::endl;
       // convert substring to double and save it
       offset[0] = atof(line.substr(spos, std::string::npos).c_str());
       // print converted value
-      std::cout << offset[0] << std::endl;
+      //std::cout << offset[0] << std::endl;
       }
     else if (line.find(pattern + "y=") != std::string::npos)
       {
@@ -546,11 +544,11 @@ int vtkAbdoNavLogic::ParseToolBoxProperties()
       // (due to passing std::string::npos as second argument, the resulting
       // substring contains all characters between the start position (spos)
       // and the end of the string)
-      std::cout << line.substr(spos, std::string::npos) << std::endl;
+      //std::cout << line.substr(spos, std::string::npos) << std::endl;
       // convert substring to double and save it
       offset[1] = atof(line.substr(spos, std::string::npos).c_str());
       // print converted value
-      std::cout << offset[1] << std::endl;
+      //std::cout << offset[1] << std::endl;
       }
     else if (line.find(pattern + "z=") != std::string::npos)
       {
@@ -558,11 +556,11 @@ int vtkAbdoNavLogic::ParseToolBoxProperties()
       // (due to passing std::string::npos as second argument, the resulting
       // substring contains all characters between the start position (spos)
       // and the end of the string)
-      std::cout << line.substr(spos, std::string::npos) << std::endl;
+      //std::cout << line.substr(spos, std::string::npos) << std::endl;
       // convert substring to double and save it
       offset[2] = atof(line.substr(spos, std::string::npos).c_str());
       // print converted value
-      std::cout << offset[2] << std::endl;
+      //std::cout << offset[2] << std::endl;
       }
     }
 
