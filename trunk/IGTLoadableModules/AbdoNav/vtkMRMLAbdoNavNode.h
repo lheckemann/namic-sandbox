@@ -25,6 +25,9 @@
 /* MRML includes */
 #include "vtkMRMLNode.h"
 
+/* VTK includes */
+#include "vtkCollection.h"
+
 //----------------------------------------------------------------
 // Definition of string constants (expected labels of fiducials in
 // the registration fiducial list) used by both, GUI and Logic.
@@ -100,6 +103,10 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   vtkGetMacro(ElapsedTime, double);
   /// Set the time it took to perform registration.
   vtkSetMacro(ElapsedTime, double);
+  /// Get the recorded locator positions.
+  vtkGetObjectMacro(RecordedPositions, vtkCollection);
+  /// Set the recorded locator positions.
+  vtkSetObjectMacro(RecordedPositions, vtkCollection);
 
  protected:
   //----------------------------------------------------------------
@@ -150,6 +157,15 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   double FRE;
   /// Time it took to perform registration.
   double ElapsedTime;
+  /// Recorded locator positions (target positions in terms of the
+  /// evaluation).
+  /// TODO: This collection currently stores objects of type
+  ///       vtkMatrix4x4 which is obviously a very inefficient
+  ///       way to store a triple of double values for each
+  ///       position recorded.
+  ///       Also, vtkMRMLAbdoNavNode::Copy(...) currently does
+  ///       not take this class member into account.
+  vtkCollection* RecordedPositions;
 
 };
 

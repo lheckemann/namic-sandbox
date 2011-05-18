@@ -22,6 +22,9 @@
 #include <limits>
 #include <sstream>
 
+/* VTK includes */
+#include "vtkMatrix4x4.h"
+
 //---------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkMRMLAbdoNavNode, "$Revision: $");
 vtkStandardNewMacro(vtkMRMLAbdoNavNode);
@@ -55,6 +58,7 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
   this->GuidanceTipOffset[0] = this->GuidanceTipOffset[1] = this->GuidanceTipOffset[2] = std::numeric_limits<float>::quiet_NaN();
   this->FRE = std::numeric_limits<double>::quiet_NaN();
   this->ElapsedTime = std::numeric_limits<double>::quiet_NaN();
+  this->RecordedPositions = vtkCollection::New();
 }
 
 
@@ -70,6 +74,12 @@ vtkMRMLAbdoNavNode::~vtkMRMLAbdoNavNode()
   this->GuidanceTipOffset[0] = this->GuidanceTipOffset[1] = this->GuidanceTipOffset[2] = std::numeric_limits<float>::quiet_NaN();
   this->FRE = std::numeric_limits<double>::quiet_NaN();
   this->ElapsedTime = std::numeric_limits<double>::quiet_NaN();
+  if (this->RecordedPositions)
+    {
+    this->RecordedPositions->RemoveAllItems();
+    this->RecordedPositions->Delete();
+    this->RecordedPositions = NULL;
+    }
 }
 
 
@@ -87,6 +97,7 @@ void vtkMRMLAbdoNavNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "GuidanceTipOffset: " << this->GuidanceTipOffset[0] << " " << this->GuidanceTipOffset[1] << " " << this->GuidanceTipOffset[2] << "\n";
   os << indent << "FRE: " << this->FRE << "\n";
   os << indent << "ElapsedTime: " << this->ElapsedTime << "\n";
+  os << indent << "RecordedPositions: " << (this->RecordedPositions ? this->RecordedPositions->GetNumberOfItems() : 0) << "\n";
 }
 
 
@@ -220,6 +231,20 @@ void vtkMRMLAbdoNavNode::WriteXML(ostream& os, int nIndent)
     os << indent << " ElapsedTime=\"" << this->ElapsedTime << "\"";
     os.unsetf(ios::floatfield);
     os.precision(6);
+  }
+  {
+    if (this->RecordedPositions)
+      {
+      os.setf(ios::scientific, ios::floatfield);
+      os.precision(8);
+      for (int i = 0; i < this->RecordedPositions->GetNumberOfItems(); i++)
+        {
+        vtkMatrix4x4* recPos = vtkMatrix4x4::SafeDownCast(this->RecordedPositions->GetItemAsObject(i));
+        os << indent << " RecordedPosition" << i << "=\"" << recPos->Element[0][3] << ",," << recPos->Element[1][3] << ",," << recPos->Element[2][3] << "\"";
+        }
+      os.unsetf(ios::floatfield);
+      os.precision(6);
+      }
   }
 }
 
