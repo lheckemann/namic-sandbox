@@ -442,9 +442,14 @@ vtkMRMLTransformRecorderNode
         if ( sec == 0 && nsec == 0 )
           {
           clock_t clock1 = clock();
-          double seconds = this->Time0 + double( clock1 - this->Clock0 ) / CLOCKS_PER_SEC;
+          // double seconds = this->Time0 + double( clock1 - this->Clock0 ) / CLOCKS_PER_SEC;
+          double seconds = double( clock1 - this->Clock0 ) / CLOCKS_PER_SEC;
           sec = floor( seconds );
           nsec = ( seconds - sec ) * 1e9;
+          }
+        else if ( sec > this->Time0 )
+          {
+          sec -= this->Time0;
           }
         
         TransformRecord rec;
@@ -541,7 +546,8 @@ vtkMRMLTransformRecorderNode
 ::CustomMessage( std::string message )
 {
   clock_t clock1 = clock();
-  double seconds = this->Time0 + double( clock1 - this->Clock0 ) / CLOCKS_PER_SEC;
+  double seconds = double( clock1 - this->Clock0 ) / CLOCKS_PER_SEC;
+  // double seconds = this->Time0 + double( clock1 - this->Clock0 ) / CLOCKS_PER_SEC;
   
   long int sec = floor( seconds );
   int nsec = ( seconds - sec ) * 1e9;

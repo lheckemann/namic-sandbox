@@ -136,4 +136,5 @@ protected:
   
   double Time0;  // Seconds (UNIX)
   clock_t Clock0;
+  
 };
