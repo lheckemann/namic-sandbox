@@ -519,13 +519,13 @@ void vtkAbdoNavLogic::UpdateAll()
         {
         if (currentSample == 0)
           {
-          std::cout << "===========================================================================" << std::endl;
+          //std::cout << "===========================================================================" << std::endl;
           }
         // store and print current tracking data sample
         samples[currentSample][0] = registeredTracker->Element[0][3];;
         samples[currentSample][1] = registeredTracker->Element[1][3];
         samples[currentSample][2] = registeredTracker->Element[2][3];
-        std::cout << "sample " << currentSample << " = " << samples[currentSample][0] << ",," << samples[currentSample][1] << ",," << samples[currentSample][2] << " [R,,A,,S]" << std::endl;
+        //std::cout << "sample " << currentSample << " = " << samples[currentSample][0] << ",," << samples[currentSample][1] << ",," << samples[currentSample][2] << " [R,,A,,S]" << std::endl;
         currentSample++;
         }
       else if (currentSample == MAX_SAMPLES)
@@ -542,10 +542,22 @@ void vtkAbdoNavLogic::UpdateAll()
             }
           avg[i] = sum / MAX_SAMPLES;
           }
-        std::cout << "averaged samples = " << avg[0] << ",," << avg[1] << ",," << avg[2] << " [R,,A,,S]" << std::endl;
-        std::cout << "===========================================================================" << std::endl;
+
         this->RecordLocatorPosition = false;
         currentSample = 0;
+        vtkMatrix4x4* avgM = vtkMatrix4x4::New();
+        avgM->Identity();
+        avgM->Element[0][3] = avg[0];
+        avgM->Element[1][3] = avg[1];
+        avgM->Element[2][3] = avg[2];
+        vtkCollection* recPos = this->AbdoNavNode->GetRecordedPositions();
+        recPos->AddItem(avgM);
+        avgM->Delete();
+        std::cout.setf(ios::scientific, ios::floatfield);
+        std::cout.precision(8);
+        std::cout << "RecordedPosition,," << (recPos->GetNumberOfItems() - 1) << ",," << avg[0] << ",," << avg[1] << ",," << avg[2] << ",,[RAS]" << std::endl;
+        std::cout.unsetf(ios::floatfield);
+        std::cout.precision(6);
         this->InvokeEvent(LocatorPositionRecorded);
         }
       }
