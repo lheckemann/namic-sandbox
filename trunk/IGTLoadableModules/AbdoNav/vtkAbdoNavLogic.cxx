@@ -15,6 +15,9 @@
 /* AbdoNav includes */
 #include "vtkAbdoNavLogic.h"
 
+/* IGT includes */
+#include "vtkIGTPat2ImgRegistration.h"
+
 /* MRML includes */
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLLinearTransformNode.h"
@@ -66,6 +69,7 @@ vtkAbdoNavLogic::vtkAbdoNavLogic()
   // Initialize logic values.
   //----------------------------------------------------------------
   this->AbdoNavNode = NULL;
+  this->Pat2ImgReg = vtkIGTPat2ImgRegistration::New();
   this->RegistrationTransform = NULL;
   this->RelativeTrackingTransform = NULL;
   this->LocatorFreezePosition = NULL;
@@ -115,6 +119,10 @@ vtkAbdoNavLogic::~vtkAbdoNavLogic()
   // remove AbdoNavNode observers
   vtkSetMRMLNodeMacro(this->AbdoNavNode, NULL);
 
+  if (this->Pat2ImgReg)
+    {
+    this->Pat2ImgReg->Delete();
+    }
   if (this->RelativeTrackingTransform)
     {
     this->RelativeTrackingTransform->Delete();
@@ -174,126 +182,159 @@ void vtkAbdoNavLogic::ProcessMRMLEvents(vtkObject* caller, unsigned long event, 
 //---------------------------------------------------------------------------
 int vtkAbdoNavLogic::PerformRegistration()
 {
-  //----------------------------------------------------------------
-  // Needle-based registration between tracking system coordinates and image
-  // coordinates:
-  //
-  // Registration is performed under the assumption that the guidance needle
-  // (whose needle artifact is visible in the MR image) acts as a reference
-  // for the actual procedure needle (e.g. a cryoprobe). Thus, tracking data
-  // of the procedure needle is always given relative to this reference. In
-  // other words: if guidance and procedure needle were perfectly aligned in
-  // physical space, the 4x4 transformation matrix describing the procedure
-  // needle's orientation relative to the guidance needle would equal a 4x4
-  // identity matrix.
-  // Further, it is assumed that the translatory offset between a needle's
-  // tip and its local coordinate system were determined. These offsets are
-  // determined by pivoting each needle and, figuratively speaking, translate
-  // a needle's local coordinate system from its original location to the
-  // needle tip.
-  //
-  // Under these assumptions, registration between tracking coordinate system
-  // and image coordinate system is performed by reconstructing the guidance
-  // needle's coordinate system in the RAS image coordinate system.
-  //
-  //   | |x| |y| |z| |t| |
-  //   | |x| |y| |z| |t| |
-  //   | |x| |y| |z| |t| |
-  //   |  0   0   0   1  |
-  //
-  // t:
-  // ==
-  // Since the guidance needle's local coordinate system is to be found at
-  // its tip (see description above), t is given by identifying the tip of
-  // the guidance needle artifact in the MR image.
-  //
-  // IMPORTANT NOTE:
-  // ===============
-  // The following description of reconstructing the x-, y- and z-axis of the
-  // guidance needle's local coordinate system refers to the specific optical
-  // marker attachment that was used during this project! Thus, be aware that
-  // registration will fail for any other optical marker attachment that does
-  // not comply with the geometric relationships described hereafter!
-  //
-  // z:
-  // ==
-  // In our current setup, the direction vector of the guidance needle artifact
-  // and the rigid body's +z-axis are parallel and point in opposite directions.
-  // As a result of the pivoting procedure, the direction vector of the guidance
-  // needle artifact and the +z-axis are actually aligned (and point in opposite
-  // directions). The +z-axis is thus reconstructed by calculating the direction
-  // vector of the guidance needle artifact, which is given by subtracting the
-  // previously selected tip from a second point on the guidance needle (order is
-  // important!) and normalizing the result.
-  //
-  // y:
-  // ==
-  // In order to determine the needle's roll angle, a third point is required.
-  // In our current setup, this point is given by the center of a marker which,
-  // together with the guidance needle's direction vector, defines a plane that
-  // is parallel to the rigid body's yz-plane. The +y-axis is thus obtained by
-  // calculating the normalized vector that is perpendicular to the previously
-  // determined +z-axis and passes through the marker center.
-  //
-  // Since y and z are perpendicular, the scalar product equals 0, i.e. one has
-  // to solve |y| * |z| = 0 for y. Let m denote the coordinates of the marker
-  // center and let further i denote the coordinates of the intersecting point
-  // of y and z. Then |y| = |i| - |m| (again, order is important!). Since i is
-  // a point on z, it can be rewritten as |i| = |tip| + |lambda * z| where tip
-  // denotes the known image coordinates of the guidance needle tip. Thus, one
-  // has to solve
-  //
-  //      |(tipR + lambda * zR) - mR|   |zR|
-  //      |(tipA + lambda * zA) - mA| * |zA| = 0
-  //      |(tipS + lambda * zS) - mS|   |zS|
-  //
-  // for lambda, which yields
-  //
-  //      lambda = [zR * (mR - tipR) + zA * (mA -tipA) + zS * (mS - tipS)] /
-  //               (zR^2 + zA^2 + zS^2)
-  //
-  // x:
-  // ==
-  // Calculating the normalized cross-product of the y- and z-axis (again,
-  // order is important!) finally yields the missing x-axis.
-  //
-  //----------------------------------------------------------------
+  vtkMRMLFiducialListNode* fnode;
+  float* tipOffset = NULL;
 
-  // retrieve input parameters from the registration fiducial list
-  float* guidanceNeedleTip = NULL;
-  float* guidanceNeedleSecond = NULL;
-  float* markerCenter = NULL;
-
-  vtkMRMLFiducialListNode* fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
-  if (fnode != NULL)
+  if (this->AbdoNavNode == NULL)
     {
-    for (int i = 0; i < fnode->GetNumberOfFiducials(); i++)
-      {
-      if (!strcmp(tip, fnode->GetNthFiducialLabelText(i)))
-        {
-        guidanceNeedleTip = fnode->GetNthFiducialXYZ(i);
-        }
-      else if (!strcmp(markerA, fnode->GetNthFiducialLabelText(i)))
-        {
-        guidanceNeedleSecond = fnode->GetNthFiducialXYZ(i);
-        }
-      else if (!strcmp(markerB, fnode->GetNthFiducialLabelText(i)))
-        {
-        markerCenter = fnode->GetNthFiducialXYZ(i);
-        }
-      }
+    vtkErrorMacro("in vtkAbdoNavLogic::PerformRegistration(...): "
+                  "Couldn't retrieve AbdoNavNode!");
+    return EXIT_FAILURE;
+    }
+  else if (this->AbdoNavNode->GetGuidanceToolType() == NULL || (this->AbdoNavNode->GetGuidanceToolType() != NULL &&
+           !strcmp(this->AbdoNavNode->GetGuidanceToolType(), "")))
+    {
+    vtkErrorMacro("in vtkAbdoNavLogic::PerformRegistration(...): "
+                  "Guidance tool type not specified!");
+    return EXIT_FAILURE;
     }
   else
     {
-    return EXIT_FAILURE;
+    fnode = vtkMRMLFiducialListNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationFiducialListID()));
+    tipOffset = this->AbdoNavNode->GetGuidanceTipOffset();
+
+    if (fnode == NULL)
+      {
+      vtkErrorMacro("in vtkAbdoNavLogic::PerformRegistration(...): "
+                    "Couldn't retrieve registration fiducial list!");
+      return EXIT_FAILURE;
+      }
+    else if (fnode->GetNumberOfFiducials() < 3)
+      {
+      vtkErrorMacro("in vtkAbdoNavLogic::PerformRegistration(...): "
+                    "Need to identify at least three fiducials in image space!");
+      return EXIT_FAILURE;
+      }
+    else if (isnanf(tipOffset[0]))
+      {
+      vtkErrorMacro("in vtkAbdoNavLogic::PerformRegistration(...): "
+                    "Couldn't retrieve offset of the guidance needle!");
+      return EXIT_FAILURE;
+      }
     }
 
-  // validate registration input parameters
-  if (guidanceNeedleTip == NULL || guidanceNeedleSecond == NULL || markerCenter == NULL)
+  // initialize marker geometry definition depending on
+  // which guidance needle tool type is being used
+  float tool[4][3];
+  if (!strcmp(this->AbdoNavNode->GetGuidanceToolType(), "8700338"))
+    {
+    tool[0][0] = markerA_8700338[0];
+    tool[0][1] = markerA_8700338[1];
+    tool[0][2] = markerA_8700338[2];
+    tool[1][0] = markerB_8700338[0];
+    tool[1][1] = markerB_8700338[1];
+    tool[1][2] = markerB_8700338[2];
+    tool[2][0] = markerC_8700338[0];
+    tool[2][1] = markerC_8700338[1];
+    tool[2][2] = markerC_8700338[2];
+    tool[3][0] = markerD_8700338[0];
+    tool[3][1] = markerD_8700338[1];
+    tool[3][2] = markerD_8700338[2];
+    }
+  else if (!strcmp(this->AbdoNavNode->GetGuidanceToolType(), "8700339"))
+    {
+    tool[0][0] = markerA_8700339[0];
+    tool[0][1] = markerA_8700339[1];
+    tool[0][2] = markerA_8700339[2];
+    tool[1][0] = markerB_8700339[0];
+    tool[1][1] = markerB_8700339[1];
+    tool[1][2] = markerB_8700339[2];
+    tool[2][0] = markerC_8700339[0];
+    tool[2][1] = markerC_8700339[1];
+    tool[2][2] = markerC_8700339[2];
+    tool[3][0] = markerD_8700339[0];
+    tool[3][1] = markerD_8700339[1];
+    tool[3][2] = markerD_8700339[2];
+    }
+  else if (!strcmp(this->AbdoNavNode->GetGuidanceToolType(), "8700340"))
+    {
+    tool[0][0] = markerA_8700340[0];
+    tool[0][1] = markerA_8700340[1];
+    tool[0][2] = markerA_8700340[2];
+    tool[1][0] = markerB_8700340[0];
+    tool[1][1] = markerB_8700340[1];
+    tool[1][2] = markerB_8700340[2];
+    tool[2][0] = markerC_8700340[0];
+    tool[2][1] = markerC_8700340[1];
+    tool[2][2] = markerC_8700340[2];
+    tool[3][0] = markerD_8700340[0];
+    tool[3][1] = markerD_8700340[1];
+    tool[3][2] = markerD_8700340[2];
+    }
+
+  // initialize least-squares solver
+  this->Pat2ImgReg->SetNumberOfPoints(fnode->GetNumberOfFiducials());
+
+  // pass point-pairs to least-squares solver
+  float* tmp = NULL;
+  for (int i = 0; i < fnode->GetNumberOfFiducials(); i++)
+    {
+    if (!strcmp(tip, fnode->GetNthFiducialLabelText(i)))
+      {
+      tmp = fnode->GetNthFiducialXYZ(i);
+      this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tipOffset[0], tipOffset[1], tipOffset[2]);
+      }
+    else if (!strcmp(markerA, fnode->GetNthFiducialLabelText(i)))
+      {
+      tmp = fnode->GetNthFiducialXYZ(i);
+      this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tool[0][0], tool[0][1], tool[0][2]);
+      }
+    else if (!strcmp(markerB, fnode->GetNthFiducialLabelText(i)))
+      {
+      tmp = fnode->GetNthFiducialXYZ(i);
+      this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tool[1][0], tool[1][1], tool[1][2]);
+      }
+    else if (!strcmp(markerC, fnode->GetNthFiducialLabelText(i)))
+      {
+      tmp = fnode->GetNthFiducialXYZ(i);
+      this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tool[2][0], tool[2][1], tool[2][2]);
+      }
+    else if (!strcmp(markerD, fnode->GetNthFiducialLabelText(i)))
+      {
+      tmp = fnode->GetNthFiducialXYZ(i);
+      this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tool[3][0], tool[3][1], tool[3][2]);
+      }
+    }
+
+  // calculate registration matrix
+  int error = this->Pat2ImgReg->DoRegistration();
+  if (error)
     {
     return EXIT_FAILURE;
     }
 
+  // The calculated registration matrix describes the relationship between
+  // the image coordinate system and the guidance needle's local coordinate
+  // system at markerA. By performing the pivoting procedure, however, the
+  // guidance needle's local coordinate system is translated from markerA
+  // to the guidance needle's tip. Thus, the translatory component of the
+  // registration matrix needs to be replaced by the guidance needle's tip
+  // offset.
+
+  // get guidance needle's tip offset
+  for (int i = 0; i < fnode->GetNumberOfFiducials(); i++)
+    {
+    if (!strcmp(tip, fnode->GetNthFiducialLabelText(i)))
+      {
+      tmp = fnode->GetNthFiducialXYZ(i);
+      }
+    }
+  // replace translatory component
+  vtkMatrix4x4* registrationMatrix = vtkMatrix4x4::New();
+  registrationMatrix->DeepCopy(this->Pat2ImgReg->GetLandmarkTransformMatrix());
+  registrationMatrix->SetElement(0, 3, tmp[0]);
+  registrationMatrix->SetElement(1, 3, tmp[1]);
+  registrationMatrix->SetElement(2, 3, tmp[2]);
 
   // create/retrieve registration transform node
   if (this->AbdoNavNode->GetRegistrationTransformID() == NULL)
@@ -323,64 +364,6 @@ int vtkAbdoNavLogic::PerformRegistration()
     {
     this->RegistrationTransform = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->AbdoNavNode->GetRegistrationTransformID()));
     }
-
-  vtkMatrix4x4* registrationMatrix = vtkMatrix4x4::New();
-  registrationMatrix->Identity();
-
-  //----------------------------------------------------------------
-  // set translation t
-  //----------------------------------------------------------------
-  registrationMatrix->SetElement(0, 3, guidanceNeedleTip[0]);
-  registrationMatrix->SetElement(1, 3, guidanceNeedleTip[1]);
-  registrationMatrix->SetElement(2, 3, guidanceNeedleTip[2]);
-
-  double x[3], y[3], z[3];
-
-  //----------------------------------------------------------------
-  // calculate z-axis
-  //----------------------------------------------------------------
-  // calculate the inverted direction vector of the guidance needle
-  // artifact (order is important!)
-  z[0] = guidanceNeedleSecond[0] - guidanceNeedleTip[0];
-  z[1] = guidanceNeedleSecond[1] - guidanceNeedleTip[1];
-  z[2] = guidanceNeedleSecond[2] - guidanceNeedleTip[2];
-  // normalize the inverted direction vector
-  vtkMath::Normalize(z);
-
-  //----------------------------------------------------------------
-  // calculate y-axis
-  //----------------------------------------------------------------
-  // calculate lambda
-  double lambda = (z[0] * (markerCenter[0] - guidanceNeedleTip[0])  +
-                   z[1] * (markerCenter[1] - guidanceNeedleTip[1])  +
-                   z[2] * (markerCenter[2] - guidanceNeedleTip[2])) /
-                  (pow(z[0], 2) + pow(z[1], 2) + pow(z[2], 2));
-  // calculate intersecting point of y and z using lambda
-  double i[3];
-  i[0] = guidanceNeedleTip[0] + lambda * z[0];
-  i[1] = guidanceNeedleTip[1] + lambda * z[1];
-  i[2] = guidanceNeedleTip[2] + lambda * z[2];
-  // calculate direction vector of y (order is important!)
-  y[0] = i[0] - markerCenter[0];
-  y[1] = i[1] - markerCenter[1];
-  y[2] = i[2] - markerCenter[2];
-  // normalize y
-  vtkMath::Normalize(y);
-
-  //----------------------------------------------------------------
-  // calculate x-axis
-  //----------------------------------------------------------------
-  // calculate cross-product of y and z (order is important!)
-  vtkMath::Cross(y, z, x);
-  // normalize the result
-  vtkMath::Normalize(x);
-
-  //----------------------------------------------------------------
-  // set x-, y- and z-axis
-  //----------------------------------------------------------------
-  registrationMatrix->SetElement(0, 0, x[0]); registrationMatrix->SetElement(0, 1, y[0]); registrationMatrix->SetElement(0, 2, z[0]);
-  registrationMatrix->SetElement(1, 0, x[1]); registrationMatrix->SetElement(1, 1, y[1]); registrationMatrix->SetElement(1, 2, z[1]);
-  registrationMatrix->SetElement(2, 0, x[2]); registrationMatrix->SetElement(2, 1, y[2]); registrationMatrix->SetElement(2, 2, z[2]);
 
   // copy registration matrix into registration transform node
   this->RegistrationTransform->GetMatrixTransformToParent()->DeepCopy(registrationMatrix);
