@@ -53,6 +53,8 @@ vtkMRMLAbdoNavNode::vtkMRMLAbdoNavNode()
   this->GuidanceToolType = NULL;
   this->ToolBoxPropertiesFile = NULL;
   this->GuidanceTipOffset[0] = this->GuidanceTipOffset[1] = this->GuidanceTipOffset[2] = std::numeric_limits<float>::quiet_NaN();
+  this->FRE = std::numeric_limits<double>::quiet_NaN();
+  this->ElapsedTime = std::numeric_limits<double>::quiet_NaN();
 }
 
 
@@ -66,6 +68,8 @@ vtkMRMLAbdoNavNode::~vtkMRMLAbdoNavNode()
   this->GuidanceToolType = NULL;
   this->ToolBoxPropertiesFile = NULL;
   this->GuidanceTipOffset[0] = this->GuidanceTipOffset[1] = this->GuidanceTipOffset[2] = std::numeric_limits<float>::quiet_NaN();
+  this->FRE = std::numeric_limits<double>::quiet_NaN();
+  this->ElapsedTime = std::numeric_limits<double>::quiet_NaN();
 }
 
 
@@ -81,6 +85,8 @@ void vtkMRMLAbdoNavNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "GuidanceToolType: " << (this->GuidanceToolType ? this->GuidanceToolType : "(none)") << "\n";
   os << indent << "ToolBoxPropertiesFile: " << (this->ToolBoxPropertiesFile ? this->ToolBoxPropertiesFile : "(none)") << "\n";
   os << indent << "GuidanceTipOffset: " << this->GuidanceTipOffset[0] << " " << this->GuidanceTipOffset[1] << " " << this->GuidanceTipOffset[2] << "\n";
+  os << indent << "FRE: " << this->FRE << "\n";
+  os << indent << "ElapsedTime: " << this->ElapsedTime << "\n";
 }
 
 
@@ -194,7 +200,27 @@ void vtkMRMLAbdoNavNode::WriteXML(ostream& os, int nIndent)
       os << indent << " ToolBoxPropertiesFile=\"" << ss.str() << "\"";
       }
   }
-  os << indent << " GuidanceTipOffset=\"" << this->GuidanceTipOffset[0] << " " << this->GuidanceTipOffset[1] << " " << this->GuidanceTipOffset[2] << "\"";
+  {
+    os.setf(ios::scientific, ios::floatfield);
+    os.precision(8);
+    os << indent << " GuidanceTipOffset=\"" << this->GuidanceTipOffset[0] << " " << this->GuidanceTipOffset[1] << " " << this->GuidanceTipOffset[2] << "\"";
+    os.unsetf(ios::floatfield);
+    os.precision(6);
+  }
+  {
+    os.setf(ios::scientific, ios::floatfield);
+    os.precision(8);
+    os << indent << " FRE=\"" << this->FRE << "\"";
+    os.unsetf(ios::floatfield);
+    os.precision(6);
+  }
+  {
+    os.setf(ios::scientific, ios::floatfield);
+    os.precision(8);
+    os << indent << " ElapsedTime=\"" << this->ElapsedTime << "\"";
+    os.unsetf(ios::floatfield);
+    os.precision(6);
+  }
 }
 
 
@@ -211,6 +237,8 @@ void vtkMRMLAbdoNavNode::Copy(vtkMRMLNode* anode)
   this->SetGuidanceToolType(node->GetGuidanceToolType());
   this->SetToolBoxPropertiesFile(node->GetToolBoxPropertiesFile());
   this->SetGuidanceTipOffset(node->GetGuidanceTipOffset());
+  this->SetFRE(node->GetFRE());
+  this->SetElapsedTime(node->GetElapsedTime());
 }
 
 

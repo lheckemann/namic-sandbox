@@ -92,6 +92,14 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   vtkGetVector3Macro(GuidanceTipOffset, float);
   /// Set the offset of the guidance needle.
   vtkSetVector3Macro(GuidanceTipOffset, float);
+  /// Get the Fiducial Registration Error (FRE).
+  vtkGetMacro(FRE, double);
+  /// Set the Fiducial Registration Error (FRE).
+  vtkSetMacro(FRE, double);
+  /// Get the time it took to perform registration.
+  vtkGetMacro(ElapsedTime, double);
+  /// Set the time it took to perform registration.
+  vtkSetMacro(ElapsedTime, double);
 
  protected:
   //----------------------------------------------------------------
@@ -134,6 +142,14 @@ class VTK_AbdoNav_EXPORT vtkMRMLAbdoNavNode : public vtkMRMLNode
   /// Offset of the guidance needle in terms of the guidance needle's
   /// local coordinate system.
   float GuidanceTipOffset[3];
+
+  //----------------------------------------------------------------
+  // Evaluation data. Only written, never read.
+  //----------------------------------------------------------------
+  /// Fiducial Registration Error (FRE).
+  double FRE;
+  /// Time it took to perform registration.
+  double ElapsedTime;
 
 };
 
