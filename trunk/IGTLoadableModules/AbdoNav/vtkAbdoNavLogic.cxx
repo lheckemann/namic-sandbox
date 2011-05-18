@@ -272,6 +272,22 @@ int vtkAbdoNavLogic::PerformRegistration()
     tool[3][2] = markerD_8700340[2];
     }
 
+  // Temporarily store source and target landmarks in order
+  // to calculate the FRE (target == image cosy, source ==
+  // guidance cosy).
+  // TODO: It would be better to implement Getters in class
+  //       vtkIGTPat2ImgRegistration and even better if the
+  //       FRE were calculated in there since it is just a
+  //       wrapper for class vtkLandmarkTransform anyway.
+  //       Another option might be to use vtkLandmarkTransform
+  //       directly.
+  vtkPoints* targetLandmarks = vtkPoints::New();
+  targetLandmarks->SetDataTypeToFloat();
+  targetLandmarks->SetNumberOfPoints(fnode->GetNumberOfFiducials());
+  vtkPoints* sourceLandmarks = vtkPoints::New();
+  sourceLandmarks->SetDataTypeToFloat();
+  sourceLandmarks->SetNumberOfPoints(fnode->GetNumberOfFiducials());
+
   // initialize least-squares solver
   this->Pat2ImgReg->SetNumberOfPoints(fnode->GetNumberOfFiducials());
 
@@ -283,26 +299,36 @@ int vtkAbdoNavLogic::PerformRegistration()
       {
       tmp = fnode->GetNthFiducialXYZ(i);
       this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tipOffset[0], tipOffset[1], tipOffset[2]);
+      targetLandmarks->InsertPoint(i, tmp[0], tmp[1], tmp[2]);
+      sourceLandmarks->InsertPoint(i, tipOffset[0], tipOffset[1], tipOffset[2]);
       }
     else if (!strcmp(markerA, fnode->GetNthFiducialLabelText(i)))
       {
       tmp = fnode->GetNthFiducialXYZ(i);
       this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tool[0][0], tool[0][1], tool[0][2]);
+      targetLandmarks->InsertPoint(i, tmp[0], tmp[1], tmp[2]);
+      sourceLandmarks->InsertPoint(i, tool[0][0], tool[0][1], tool[0][2]);
       }
     else if (!strcmp(markerB, fnode->GetNthFiducialLabelText(i)))
       {
       tmp = fnode->GetNthFiducialXYZ(i);
       this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tool[1][0], tool[1][1], tool[1][2]);
+      targetLandmarks->InsertPoint(i, tmp[0], tmp[1], tmp[2]);
+      sourceLandmarks->InsertPoint(i, tool[1][0], tool[1][1], tool[1][2]);
       }
     else if (!strcmp(markerC, fnode->GetNthFiducialLabelText(i)))
       {
       tmp = fnode->GetNthFiducialXYZ(i);
       this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tool[2][0], tool[2][1], tool[2][2]);
+      targetLandmarks->InsertPoint(i, tmp[0], tmp[1], tmp[2]);
+      sourceLandmarks->InsertPoint(i, tool[2][0], tool[2][1], tool[2][2]);
       }
     else if (!strcmp(markerD, fnode->GetNthFiducialLabelText(i)))
       {
       tmp = fnode->GetNthFiducialXYZ(i);
       this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tool[3][0], tool[3][1], tool[3][2]);
+      targetLandmarks->InsertPoint(i, tmp[0], tmp[1], tmp[2]);
+      sourceLandmarks->InsertPoint(i, tool[3][0], tool[3][1], tool[3][2]);
       }
     }
 
@@ -335,6 +361,42 @@ int vtkAbdoNavLogic::PerformRegistration()
   registrationMatrix->SetElement(0, 3, tmp[0]);
   registrationMatrix->SetElement(1, 3, tmp[1]);
   registrationMatrix->SetElement(2, 3, tmp[2]);
+
+  //----------------------------------------------------------------
+  // Calculate FRE.
+  //----------------------------------------------------------------
+  // target == image cosy
+  double target[3];
+  // source == guidance cosy
+  double source3[3];
+  double source4[4];
+  double registeredSource4[4];
+
+  double sum = 0.0;
+
+  for (int r = 0; r < fnode->GetNumberOfFiducials(); r++)
+    {
+    targetLandmarks->GetPoint(r, target);
+    sourceLandmarks->GetPoint(r, source3);
+    source4[0] = source3[0];
+    source4[1] = source3[1];
+    source4[2] = source3[2];
+    source4[3] = 1;
+    registrationMatrix->MultiplyPoint(source4, registeredSource4);
+
+    sum = sum + sqrt(( registeredSource4[0] - target[0] ) * ( registeredSource4[0] - target[0] )
+                   + ( registeredSource4[1] - target[1] ) * ( registeredSource4[1] - target[1] )
+                   + ( registeredSource4[2] - target[2] ) * ( registeredSource4[2] - target[2] ));
+    }
+  sum = sum / fnode->GetNumberOfFiducials();
+  this->AbdoNavNode->SetFRE(sum);
+  std::cout << "===========================================================================" << std::endl;
+  std::cout.setf(ios::scientific, ios::floatfield);
+  std::cout.precision(8);
+  std::cout << "FRE,," << this->AbdoNavNode->GetFRE() << std::endl;
+  std::cout.unsetf(ios::floatfield);
+  std::cout.precision(6);
+  std::cout << "===========================================================================" << std::endl;
 
   // create/retrieve registration transform node
   if (this->AbdoNavNode->GetRegistrationTransformID() == NULL)
@@ -374,6 +436,8 @@ int vtkAbdoNavLogic::PerformRegistration()
 
   // clean up
   registrationMatrix->Delete();
+  targetLandmarks->Delete();
+  sourceLandmarks->Delete();
 
   return EXIT_SUCCESS;
 }
