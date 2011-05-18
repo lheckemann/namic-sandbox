@@ -1056,8 +1056,13 @@ void vtkAbdoNavGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, voi
             // one of the three check buttons will create a new instance,
             // thereby resetting the timer)
             this->TimerLog->StopTimer();
+            this->AbdoNavNode->SetElapsedTime(this->TimerLog->GetElapsedTime());
             std::cout << "===========================================================================" << std::endl;
-            std::cout << "performing registration took " << this->TimerLog->GetElapsedTime() << " [sec]" << std::endl;
+            std::cout.setf(ios::scientific, ios::floatfield);
+            std::cout.precision(8);
+            std::cout << "time,," << this->AbdoNavNode->GetElapsedTime() << ",,[sec]" << std::endl;
+            std::cout.unsetf(ios::floatfield);
+            std::cout.precision(6);
             std::cout << "===========================================================================" << std::endl;
             this->TimerLog->Delete();
             this->TimerLog = NULL;
