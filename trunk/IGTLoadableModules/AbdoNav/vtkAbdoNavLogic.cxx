@@ -339,31 +339,16 @@ int vtkAbdoNavLogic::PerformRegistration()
     return EXIT_FAILURE;
     }
 
-  // The calculated registration matrix describes the relationship between
-  // the image coordinate system and the guidance needle's local coordinate
-  // system at markerA. By performing the pivoting procedure, however, the
-  // guidance needle's local coordinate system is translated from markerA
-  // to the guidance needle's tip. Thus, the translatory component of the
-  // registration matrix needs to be replaced by the guidance needle's tip
-  // offset.
-
-  // get guidance needle's tip offset
-  for (int i = 0; i < fnode->GetNumberOfFiducials(); i++)
-    {
-    if (!strcmp(tip, fnode->GetNthFiducialLabelText(i)))
-      {
-      tmp = fnode->GetNthFiducialXYZ(i);
-      }
-    }
-  // replace translatory component
+  // get registration matrix
   vtkMatrix4x4* registrationMatrix = vtkMatrix4x4::New();
   registrationMatrix->DeepCopy(this->Pat2ImgReg->GetLandmarkTransformMatrix());
-  registrationMatrix->SetElement(0, 3, tmp[0]);
-  registrationMatrix->SetElement(1, 3, tmp[1]);
-  registrationMatrix->SetElement(2, 3, tmp[2]);
 
   //----------------------------------------------------------------
   // Calculate FRE.
+  //
+  // NOTE: FRE calculation *MUST* be performed before replacing the
+  //       translatory component of the registration matrix by the
+  //       guidance needle's tip offset!
   //----------------------------------------------------------------
   // target == image cosy
   double target[3];
@@ -397,6 +382,27 @@ int vtkAbdoNavLogic::PerformRegistration()
   std::cout.unsetf(ios::floatfield);
   std::cout.precision(6);
   std::cout << "===========================================================================" << std::endl;
+
+  // The calculated registration matrix describes the relationship between
+  // the image coordinate system and the guidance needle's local coordinate
+  // system at markerA. By performing the pivoting procedure, however, the
+  // guidance needle's local coordinate system is translated from markerA
+  // to the guidance needle's tip. Thus, the translatory component of the
+  // registration matrix needs to be replaced by the guidance needle's tip
+  // offset.
+
+  // get guidance needle's tip offset
+  for (int i = 0; i < fnode->GetNumberOfFiducials(); i++)
+    {
+    if (!strcmp(tip, fnode->GetNthFiducialLabelText(i)))
+      {
+      tmp = fnode->GetNthFiducialXYZ(i);
+      }
+    }
+  // replace translatory component
+  registrationMatrix->SetElement(0, 3, tmp[0]);
+  registrationMatrix->SetElement(1, 3, tmp[1]);
+  registrationMatrix->SetElement(2, 3, tmp[2]);
 
   // create/retrieve registration transform node
   if (this->AbdoNavNode->GetRegistrationTransformID() == NULL)
