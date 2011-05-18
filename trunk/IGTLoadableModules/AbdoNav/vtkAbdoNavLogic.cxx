@@ -543,6 +543,7 @@ void vtkAbdoNavLogic::UpdateAll()
           avg[i] = sum / MAX_SAMPLES;
           }
 
+        // store & print averaged position, indicate to GUI that recording locator position is done
         this->RecordLocatorPosition = false;
         currentSample = 0;
         vtkMatrix4x4* avgM = vtkMatrix4x4::New();
