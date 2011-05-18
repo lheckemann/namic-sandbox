@@ -293,6 +293,8 @@ int vtkAbdoNavLogic::PerformRegistration()
 
   // pass point-pairs to least-squares solver
   float* tmp = NULL;
+  std::cout.setf(ios::scientific, ios::floatfield);
+  std::cout.precision(8);
   for (int i = 0; i < fnode->GetNumberOfFiducials(); i++)
     {
     if (!strcmp(tip, fnode->GetNthFiducialLabelText(i)))
@@ -301,6 +303,8 @@ int vtkAbdoNavLogic::PerformRegistration()
       this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tipOffset[0], tipOffset[1], tipOffset[2]);
       targetLandmarks->InsertPoint(i, tmp[0], tmp[1], tmp[2]);
       sourceLandmarks->InsertPoint(i, tipOffset[0], tipOffset[1], tipOffset[2]);
+      std::cout << tip << ",," << tmp[0]       << ",," << tmp[1]       << ",," << tmp[2]       << ",,[RAS]" << std::endl;
+      std::cout << tip << ",," << tipOffset[0] << ",," << tipOffset[1] << ",," << tipOffset[2] << ",,[XYZ]" << std::endl;
       }
     else if (!strcmp(markerA, fnode->GetNthFiducialLabelText(i)))
       {
@@ -308,6 +312,8 @@ int vtkAbdoNavLogic::PerformRegistration()
       this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tool[0][0], tool[0][1], tool[0][2]);
       targetLandmarks->InsertPoint(i, tmp[0], tmp[1], tmp[2]);
       sourceLandmarks->InsertPoint(i, tool[0][0], tool[0][1], tool[0][2]);
+      std::cout << markerA << ",," << tmp[0]       << ",," << tmp[1]       << ",," << tmp[2]       << ",,[RAS]" << std::endl;
+      std::cout << markerA << ",," << tool[0][0]   << ",," << tool[0][1]   << ",," << tool[0][2]   << ",,[XYZ]" << std::endl;
       }
     else if (!strcmp(markerB, fnode->GetNthFiducialLabelText(i)))
       {
@@ -315,6 +321,8 @@ int vtkAbdoNavLogic::PerformRegistration()
       this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tool[1][0], tool[1][1], tool[1][2]);
       targetLandmarks->InsertPoint(i, tmp[0], tmp[1], tmp[2]);
       sourceLandmarks->InsertPoint(i, tool[1][0], tool[1][1], tool[1][2]);
+      std::cout << markerB << ",," << tmp[0]       << ",," << tmp[1]       << ",," << tmp[2]       << ",,[RAS]" << std::endl;
+      std::cout << markerB << ",," << tool[1][0]   << ",," << tool[1][1]   << ",," << tool[1][2]   << ",,[XYZ]" << std::endl;
       }
     else if (!strcmp(markerC, fnode->GetNthFiducialLabelText(i)))
       {
@@ -322,6 +330,8 @@ int vtkAbdoNavLogic::PerformRegistration()
       this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tool[2][0], tool[2][1], tool[2][2]);
       targetLandmarks->InsertPoint(i, tmp[0], tmp[1], tmp[2]);
       sourceLandmarks->InsertPoint(i, tool[2][0], tool[2][1], tool[2][2]);
+      std::cout << markerC << ",," << tmp[0]       << ",," << tmp[1]       << ",," << tmp[2]       << ",,[RAS]" << std::endl;
+      std::cout << markerC << ",," << tool[2][0]   << ",," << tool[2][1]   << ",," << tool[2][2]   << ",,[XYZ]" << std::endl;
       }
     else if (!strcmp(markerD, fnode->GetNthFiducialLabelText(i)))
       {
@@ -329,8 +339,11 @@ int vtkAbdoNavLogic::PerformRegistration()
       this->Pat2ImgReg->AddPoint(i, tmp[0], tmp[1], tmp[2], tool[3][0], tool[3][1], tool[3][2]);
       targetLandmarks->InsertPoint(i, tmp[0], tmp[1], tmp[2]);
       sourceLandmarks->InsertPoint(i, tool[3][0], tool[3][1], tool[3][2]);
+      std::cout << markerD << ",," << tmp[0]       << ",," << tmp[1]       << ",," << tmp[2]       << ",,[RAS]" << std::endl;
+      std::cout << markerD << ",," << tool[3][0]   << ",," << tool[3][1]   << ",," << tool[3][2]   << ",,[XYZ]" << std::endl;
       }
     }
+  std::cout << "===========================================================================" << std::endl;
 
   // calculate registration matrix
   int error = this->Pat2ImgReg->DoRegistration();
@@ -376,12 +389,13 @@ int vtkAbdoNavLogic::PerformRegistration()
   sum = sum / fnode->GetNumberOfFiducials();
   this->AbdoNavNode->SetFRE(sum);
   std::cout << "===========================================================================" << std::endl;
-  std::cout.setf(ios::scientific, ios::floatfield);
-  std::cout.precision(8);
   std::cout << "FRE,," << this->AbdoNavNode->GetFRE() << std::endl;
-  std::cout.unsetf(ios::floatfield);
-  std::cout.precision(6);
   std::cout << "===========================================================================" << std::endl;
+  std::cout << "Registration matrix *BEFORE* replacement:" << std::endl;
+  std::cout << registrationMatrix->GetElement(0, 0) << ",," << registrationMatrix->GetElement(0, 1) << ",," << registrationMatrix->GetElement(0, 2) << ",," << registrationMatrix->GetElement(0, 3) << std::endl;
+  std::cout << registrationMatrix->GetElement(1, 0) << ",," << registrationMatrix->GetElement(1, 1) << ",," << registrationMatrix->GetElement(1, 2) << ",," << registrationMatrix->GetElement(1, 3) << std::endl;
+  std::cout << registrationMatrix->GetElement(2, 0) << ",," << registrationMatrix->GetElement(2, 1) << ",," << registrationMatrix->GetElement(2, 2) << ",," << registrationMatrix->GetElement(2, 3) << std::endl;
+  std::cout << registrationMatrix->GetElement(3, 0) << ",," << registrationMatrix->GetElement(3, 1) << ",," << registrationMatrix->GetElement(3, 2) << ",," << registrationMatrix->GetElement(3, 3) << std::endl;
 
   // The calculated registration matrix describes the relationship between
   // the image coordinate system and the guidance needle's local coordinate
@@ -403,6 +417,15 @@ int vtkAbdoNavLogic::PerformRegistration()
   registrationMatrix->SetElement(0, 3, tmp[0]);
   registrationMatrix->SetElement(1, 3, tmp[1]);
   registrationMatrix->SetElement(2, 3, tmp[2]);
+  std::cout << "===========================================================================" << std::endl;
+  std::cout << "Registration matrix *AFTER* replacement:" << std::endl;
+  std::cout << registrationMatrix->GetElement(0, 0) << ",," << registrationMatrix->GetElement(0, 1) << ",," << registrationMatrix->GetElement(0, 2) << ",," << registrationMatrix->GetElement(0, 3) << std::endl;
+  std::cout << registrationMatrix->GetElement(1, 0) << ",," << registrationMatrix->GetElement(1, 1) << ",," << registrationMatrix->GetElement(1, 2) << ",," << registrationMatrix->GetElement(1, 3) << std::endl;
+  std::cout << registrationMatrix->GetElement(2, 0) << ",," << registrationMatrix->GetElement(2, 1) << ",," << registrationMatrix->GetElement(2, 2) << ",," << registrationMatrix->GetElement(2, 3) << std::endl;
+  std::cout << registrationMatrix->GetElement(3, 0) << ",," << registrationMatrix->GetElement(3, 1) << ",," << registrationMatrix->GetElement(3, 2) << ",," << registrationMatrix->GetElement(3, 3) << std::endl;
+  std::cout << "===========================================================================" << std::endl;
+  std::cout.unsetf(ios::floatfield);
+  std::cout.precision(6);
 
   // create/retrieve registration transform node
   if (this->AbdoNavNode->GetRegistrationTransformID() == NULL)
