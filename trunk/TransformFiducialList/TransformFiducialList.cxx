@@ -46,7 +46,6 @@ int main( int argc , char * argv[] )
   TransformReaderPointer transformFile = itk::TransformFileReader::New() ;
   transformFile->SetFileName(transformationFile.c_str()) ;
   transformFile->Update() ;
-  std::cerr << "Find "<< transformFile->GetTransformList() ->size() << " transforms from file" << std::endl;
   BSplineDeformableTransformType::Pointer BSplineTransform = BSplineDeformableTransformType::New();  
   AffineTransformType::Pointer affineTfm = AffineTransformType::New();
 
@@ -77,7 +76,6 @@ int main( int argc , char * argv[] )
     return EXIT_FAILURE;
     }
   BSplineTransform = dynamic_cast<BSplineDeformableTransformType* > ( transformFile->GetTransformList()->front().GetPointer());
-//  std::cerr << "Read BSpline transform successful." << std::endl;
   transformFile->GetTransformList()->pop_front();
   if(!dynamic_cast<AffineTransformType*>(transformFile->GetTransformList()->front().GetPointer()))
     {
@@ -99,6 +97,8 @@ int main( int argc , char * argv[] )
       ImageType::PointType pIn;
       char line[255];
       fIn.getline(line,255);
+      if(line[0] == '#')
+        continue;
       if(!strlen(line))
         break;
       char* item = strtok(line, ",");
@@ -127,7 +127,6 @@ int main( int argc , char * argv[] )
       pIn[1] = -1.*fiducials[i][1];
       pIn[2] = fiducials[i][2];
 
-      //std::cout << "Found point: " << pIn[0] << ", " << pIn[1] << ", " << pIn[2] << std::endl;
       inputFiducialList.push_back(pIn);
       outputFiducialList.push_back(pIn);
     }
@@ -135,7 +134,7 @@ int main( int argc , char * argv[] )
 
   nFiducials = inputFiducialList.size();
 
-  //std::cout << "Total fiducials: " << nFiducials << std::endl;
+  std::cout << "Total input fiducials: " << nFiducials << std::endl;
   for(i=0;i<nFiducials;++i){
     ImageType::PointType pIn;
     ImageType::IndexType idx;
@@ -146,7 +145,6 @@ int main( int argc , char * argv[] )
 
     int searchRadius = 3;
     mImage->TransformPhysicalPointToIndex(pIn, idx);
-    //std::cout << "Output index: " << idx[0] << ", " << idx[1] << ", " << idx[2] << std::endl;
     for(int ii=-searchRadius;ii<searchRadius+1;ii++){
       for(int jj=-searchRadius;jj<searchRadius+1;jj++){
         for(int kk=-searchRadius;kk<searchRadius;kk++){
@@ -187,9 +185,7 @@ int main( int argc , char * argv[] )
     // if a voxel is non-zero, find which of the input fiducials is closest to
     // it
     pPtMoving = BSplineTransform->TransformPoint(pPtFixed);
-    //std::cout << "Moving fiducial: " << pPtMoving << std::endl;
     for(i=0;i<nFiducials;i++){
-      //std::cout << "Input fiducial: " << inputFiducialList[i] << std::endl;
       double thisDistance = DistanceBwPoints(pPtMoving, inputFiducialList[i]);
       if(thisDistance<fiducialId2Distance[i]){
         outputFiducialList[i] = pPtFixed;
