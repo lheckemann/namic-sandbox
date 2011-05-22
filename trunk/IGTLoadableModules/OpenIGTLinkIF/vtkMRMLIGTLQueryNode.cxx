@@ -64,6 +64,7 @@ vtkMRMLIGTLQueryNode::vtkMRMLIGTLQueryNode()
   this->TimeStamp = 0.0;
   this->TimeOut   = 0.0;
 
+  this->NoNameQuery = 0;
   
 }
 

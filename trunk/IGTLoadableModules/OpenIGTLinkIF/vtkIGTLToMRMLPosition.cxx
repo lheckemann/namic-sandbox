@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkIGTLToMRMLPosition.cxx $
-  Date:      $Date: 2010-06-10 20:55:02 -0400 (Thu, 10 Jun 2010) $
-  Version:   $Revision: 13756 $
+  Date:      $Date: 2010-11-23 00:58:13 -0500 (Tue, 23 Nov 2010) $
+  Version:   $Revision: 15552 $
 
 ==========================================================================*/
 
@@ -23,7 +23,7 @@
 #include "igtlMath.h"
 
 vtkStandardNewMacro(vtkIGTLToMRMLPosition);
-vtkCxxRevisionMacro(vtkIGTLToMRMLPosition, "$Revision: 13756 $");
+vtkCxxRevisionMacro(vtkIGTLToMRMLPosition, "$Revision: 15552 $");
 
 
 //---------------------------------------------------------------------------
@@ -59,9 +59,10 @@ vtkMRMLNode* vtkIGTLToMRMLPosition::CreateNewNode(vtkMRMLScene* scene, const cha
   transformNode->ApplyTransform(transform);
   transform->Delete();
 
-  scene->AddNode(transformNode);  
+  vtkMRMLNode* n = scene->AddNode(transformNode);
+  transformNode->Delete();
 
-  return transformNode;
+  return n;
 }
 
 

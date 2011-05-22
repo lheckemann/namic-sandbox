@@ -302,3 +302,36 @@ void vtkMRMLIGTLTrackingDataBundleNode::UpdateTransformNode(const char* name, ig
 
 }
 
+
+int vtkMRMLIGTLTrackingDataBundleNode::GetNumberOfTransformNodes()
+{
+  return this->TrackingDataList.size();
+}
+
+
+vtkMRMLLinearTransformNode* vtkMRMLIGTLTrackingDataBundleNode::GetTransformNode(unsigned int id)
+{
+
+  if (id < 0 || id > this->TrackingDataList.size())
+    {
+    return NULL;
+    }
+
+  TrackingDataInfoMap::iterator iter;
+  iter = this->TrackingDataList.begin();
+  for (unsigned int i = 0; i < id; id ++)
+    {
+    iter ++;
+    }
+  if (iter != this->TrackingDataList.end())
+    {
+    return iter->second.node;
+    }
+  else
+    {
+    return NULL;
+    }
+}
+
+
+

@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkOpenIGTLinkIFGUI.h $
-  Date:      $Date: 2010-06-10 20:55:02 -0400 (Thu, 10 Jun 2010) $
-  Version:   $Revision: 13756 $
+  Date:      $Date: 2010-11-23 00:58:13 -0500 (Tue, 23 Nov 2010) $
+  Version:   $Revision: 15552 $
 
 ==========================================================================*/
 
@@ -23,12 +23,14 @@
 #include "vtkOpenIGTLinkIFLogic.h"
 #include "vtkMRMLIGTLConnectorNode.h"
 
-#include "vtkIGTLRemoteDataListWindow.h"
-#include "vtkIGTLTrackingDataControllerWindow.h"
-
+#ifdef OpenIGTLinkIF_USE_VERSION_2
+  #include "vtkIGTLRemoteDataListWindow.h"
+  #include "vtkIGTLTrackingDataControllerWindow.h"
+#endif //OpenIGTLinkIF_USE_VERSION_2
 
 #include "vtkIGTDataManager.h"
 #include "vtkIGTPat2ImgRegistration.h"
+
 #include "vtkCallbackCommand.h"
 #include "vtkSlicerInteractorStyle.h"
 
@@ -159,6 +161,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
 
   virtual void OpenRemoteDataListWindow(const char* conID);
   virtual void OpenTrackingDataControllerWindow(const char* conID);
+
   //virtual void AddNodeCallback(const char* conID, int io, const char* name, const char* type);
   virtual void AddNodeCallback(const char* conID, int io, const char* nodeID, const char* devType);
   virtual void ExportDataToIGTLCallback(const char* conID, const char* nodeID);
@@ -279,10 +282,13 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   bool              IsSliceOrientationAdded;
   // Module logic and mrml pointers
 
+#ifdef OpenIGTLinkIF_USE_VERSION_2
   //----------------------------------------------------------------
   // Remote Data List Window
   vtkIGTLRemoteDataListWindow* RemoteDataWindow;
   vtkIGTLTrackingDataControllerWindow* TrackingDataControllerWindow;
+#endif //OpenIGTLinkIF_USE_VERSION_2
+
 
   //----------------------------------------------------------------
   // Logic Values

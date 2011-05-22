@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkOpenIGTLinkIFLogic.h $
-  Date:      $Date: 2010-06-10 11:05:22 -0400 (Thu, 10 Jun 2010) $
-  Version:   $Revision: 13728 $
+  Date:      $Date: 2010-11-23 00:58:13 -0500 (Tue, 23 Nov 2010) $
+  Version:   $Revision: 15552 $
 
 ==========================================================================*/
 
@@ -42,8 +42,11 @@
 #include "vtkIGTLToMRMLLinearTransform.h"
 #include "vtkIGTLToMRMLImage.h"
 #include "vtkIGTLToMRMLPosition.h"
-#include "vtkIGTLToMRMLImageMetaList.h"
-#include "vtkIGTLToMRMLTrackingData.h"
+
+#ifdef OpenIGTLinkIF_USE_VERSION_2
+  #include "vtkIGTLToMRMLImageMetaList.h"
+  #include "vtkIGTLToMRMLTrackingData.h"
+#endif //OpenIGTLinkIF_USE_VERSION_2
 
 class vtkMRMLIGTLConnectorNode;
 
@@ -196,8 +199,10 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   vtkIGTLToMRMLLinearTransform* LinearTransformConverter;
   vtkIGTLToMRMLImage*           ImageConverter;
   vtkIGTLToMRMLPosition*        PositionConverter;
+#ifdef OpenIGTLinkIF_USE_VERSION_2
   vtkIGTLToMRMLImageMetaList*   ImageMetaListConverter;
   vtkIGTLToMRMLTrackingData*    TrackingDataConverter;
+#endif //OpenIGTLinkIF_USE_VERSION_2
 
   //----------------------------------------------------------------
   // Real-time image

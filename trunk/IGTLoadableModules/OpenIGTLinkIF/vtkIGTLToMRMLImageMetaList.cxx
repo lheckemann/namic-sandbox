@@ -161,9 +161,6 @@ int vtkIGTLToMRMLImageMetaList::IGTLToMRML(igtl::MessageBase::Pointer buffer, vt
 //---------------------------------------------------------------------------
 int vtkIGTLToMRMLImageMetaList::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrmlNode, int* size, void** igtlMsg)
 {
-
-  std::cerr << "vtkIGTLToMRMLImageMetaList::MRMLToIGTL()" << std::endl;
-
   if (!mrmlNode)
     {
     return 0;
@@ -183,7 +180,14 @@ int vtkIGTLToMRMLImageMetaList::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrm
           {
           this->GetImageMetaMessage = igtl::GetImageMetaMessage::New();
           }
-        this->GetImageMetaMessage->SetDeviceName(mrmlNode->GetName());
+        if (qnode->GetNoNameQuery())
+          {
+          this->GetImageMetaMessage->SetDeviceName("");
+          }
+        else
+          {
+          this->GetImageMetaMessage->SetDeviceName(mrmlNode->GetName());
+          }
         this->GetImageMetaMessage->Pack();
         *size = this->GetImageMetaMessage->GetPackSize();
         *igtlMsg = this->GetImageMetaMessage->GetPackPointer();
@@ -219,58 +223,5 @@ int vtkIGTLToMRMLImageMetaList::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrm
 
 }
 
-
-//---------------------------------------------------------------------------
-int vtkIGTLToMRMLImageMetaList::ProcessGetQuery(igtl::MessageBase::Pointer buffer,
-                                                vtkMRMLScene* scene, int* size, void** igtlMsg)
-{
-  // When a GET query message is received, ImageMetaList converter creates
-  // a ImageMeta message that contains a list of images available in the MRML Scene.
-
-  if (this->OutImageMetaMessage.IsNull())
-    {
-    this->OutImageMetaMessage = igtl::ImageMetaMessage::New();
-    this->OutImageMetaMessage->ClearImageMetaElement();
-    }
-
-  this->OutImageMetaMessage->SetDeviceName(buffer->GetDeviceName());
-
-  std::vector<vtkMRMLNode*> nodes;
-  scene->GetNodesByClass("vtkMRMLScalarVolumeNode", nodes);
-
-
-  std::vector<vtkMRMLNode*>::iterator iter;
-  for (iter = nodes.begin(); iter != nodes.end(); iter ++)
-    {
-    vtkMRMLScalarVolumeNode* vnode = vtkMRMLScalarVolumeNode::SafeDownCast(*iter);
-    if (vnode)
-      {
-      igtl::ImageMetaElement::Pointer imgMeta;
-      imgMeta = igtl::ImageMetaElement::New();
-      imgMeta->SetName(vnode->GetName());
-      imgMeta->SetDeviceName(vnode->GetName());
-      imgMeta->SetModality("Unknown");
-      imgMeta->SetPatientName("Anonymized");
-      imgMeta->SetPatientID("Anonymized");
-
-      igtl::TimeStamp::Pointer ts0;
-      ts0 = igtl::TimeStamp::New();
-      ts0->SetTime(1.2345);
-      
-      imgMeta->SetTimeStamp(ts0);
-      imgMeta->SetSize(512, 512, 64);
-      imgMeta->SetScalarType(igtl::ImageMessage::TYPE_UINT16);
-
-      this->OutImageMetaMessage->AddImageMetaElement(imgMeta);
-      }
-    }
-  this->OutImageMetaMessage->Pack();
-
-  *size = this->OutImageMetaMessage->GetPackSize();
-  *igtlMsg = (void*)this->OutImageMetaMessage->GetPackPointer();
-  
-  return 1;
-  
-}
 
 

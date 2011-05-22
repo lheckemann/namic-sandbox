@@ -27,6 +27,8 @@
 #include "vtkMRMLIGTLQueryNode.h"
 #include "vtkMRMLImageMetaListNode.h"
 
+#include <ctime>
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkIGTLRemoteDataListWindow);
 vtkCxxRevisionMacro(vtkIGTLRemoteDataListWindow, "$Revision: 1.0 $");
@@ -163,13 +165,13 @@ void vtkIGTLRemoteDataListWindow::ProcessGUIEvents(vtkObject *caller, unsigned l
   if (this->GetListButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
     {
-    std::cerr << "GetListButton is pressed. " << std::endl;
     if (this->MRMLScene && this->Connector)
       {
       if (this->ImageMetaListQueryNode == NULL)
         {
         this->ImageMetaListQueryNode = vtkMRMLIGTLQueryNode::New();
         this->ImageMetaListQueryNode->SetIGTLName("IMGMETA");
+        this->ImageMetaListQueryNode->SetNoNameQuery(1);
         //this->ImageMetaListQueryNode->SetIGTLName(igtl::ImageMetaMessage::GetDeviceType());
         this->MRMLScene->AddNode(this->ImageMetaListQueryNode);
         this->ImageMetaListQueryNode->AddObserver(vtkMRMLIGTLQueryNode::ResponseEvent,this->MRMLCallbackCommand);
@@ -182,7 +184,6 @@ void vtkIGTLRemoteDataListWindow::ProcessGUIEvents(vtkObject *caller, unsigned l
   else if (this->GetImageButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
     {
-    std::cerr << "GetImageButton is pressed. " << std::endl;
     if (this->RemoteDataList == NULL || this->ImageMetaListQueryNode ==NULL || this->MRMLScene ==NULL)
       {
       return;
@@ -214,7 +215,7 @@ void vtkIGTLRemoteDataListWindow::ProcessGUIEvents(vtkObject *caller, unsigned l
   else if (this->CloseButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
     {
-    std::cerr << "CloseButton is pressed. " << std::endl;
+    this->Withdraw();
     }
 
 }
@@ -416,9 +417,9 @@ void vtkIGTLRemoteDataListWindow::CreateWidget()
   this->RemoteDataList->GetWidget()->MovableColumnsOff();
 
   const char* labels[] =
-    { "IGTL NAME", "Patient ID", "Patient Name", "Modality", "Date", "Time"};
+    { "IGTL NAME", "Patient ID", "Patient Name", "Modality", "Date", "Description"};
   const int widths[] = 
-    { 12, 20, 20, 10, 10, 10};
+    { 12, 20, 20, 20, 10, 30};
 
   for (int col = 0; col < 6; col ++)
     {
@@ -527,27 +528,20 @@ void vtkIGTLRemoteDataListWindow::UpdateRemoteDataList()
     for (int i = 0; i < numImages; i ++)
       {
       vtkMRMLImageMetaListNode::ImageMetaElement element;
-      node->GetImageMetaElement(i, &element);
 
-      // Get time stamp
-      // Get date -- TODO: this will be implemented in OpenIGTLink library ??
-      time_t sec = (time_t) ((int) element.TimeStamp);
-      struct tm* ptm;
-      ptm = localtime(&sec);
-      
-      char datestr[64];
-      char timestr[64];
-      strftime (datestr, sizeof(datestr), "%Y-%m-%d", ptm);
-      strftime (timestr, sizeof(timestr), "%H:%M:%S", ptm);
-                
+      time_t timer = (time_t) element.TimeStamp;
+      struct tm *tst = localtime(&timer);
+      std::stringstream timess;
+      timess << tst->tm_year+1900 << "-" << tst->tm_mon+1 << "-" << tst->tm_mday << " "
+             << tst->tm_hour << ":" << tst->tm_min << ":" << tst->tm_sec;
+
+      node->GetImageMetaElement(i, &element);
       this->RemoteDataList->GetWidget()->SetCellText(i, 0, element.DeviceName.c_str());
       this->RemoteDataList->GetWidget()->SetCellText(i, 1, element.PatientID.c_str());
       this->RemoteDataList->GetWidget()->SetCellText(i, 2, element.PatientName.c_str());
       this->RemoteDataList->GetWidget()->SetCellText(i, 3, element.Modality.c_str());
-      this->RemoteDataList->GetWidget()->SetCellText(i, 4, datestr);  // Date
-      this->RemoteDataList->GetWidget()->SetCellText(i, 5, timestr);  // Time
-      //this->RemoteDataList->GetWidget()->SetCellText(i, 6, "--");     // Status
-      //this->RemoteDataList->GetWidget()->SetCellText(i, 7, "--");     // Description
+      this->RemoteDataList->GetWidget()->SetCellText(i, 4, timess.str().c_str());    // Date & Time
+      this->RemoteDataList->GetWidget()->SetCellText(i, 5, "--"); // Description
       }
     }
   

@@ -31,7 +31,9 @@
 #include "igtlServerSocket.h"
 #include "igtlClientSocket.h"
 
-#include "vtkMRMLIGTLQueryNode.h"
+#ifdef OpenIGTLinkIF_USE_VERSION_2
+  #include "vtkMRMLIGTLQueryNode.h"
+#endif //OpenIGTLinkIF_USE_VERSION_2
 
 class vtkMultiThreader;
 class vtkMutexLock;
@@ -84,11 +86,19 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
     //vtkMRMLNode*  node;
   } DeviceInfoType;
 
+  typedef struct {
+    vtkMRMLNode*  node;
+    int           lock;
+    int           second;
+    int           nanosecond;
+  } NodeInfoType;
+
   typedef std::map<int, DeviceInfoType>   DeviceInfoMapType;   // Device list:  index is referred as
                                                                // a device id in the connector.
   typedef std::set<int>                   DeviceIDSetType;
   typedef std::list<vtkIGTLToMRMLBase*>   MessageConverterListType;
   typedef std::vector<vtkMRMLNode*>       MRMLNodeListType;
+  typedef std::vector<NodeInfoType>       NodeInfoListType;
   typedef std::map<std::string, vtkIGTLToMRMLBase*> MessageConverterMapType;
   //ETX
 
@@ -199,31 +209,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
 
   // Description:
   // Import received data from the circular buffer to the MRML scne.
-  // This function calls one of ImportNormalMessage(), ImportGetQueryMessage(), 
-  // ImportStartQueryMessage(), ImportStopQueryMessage() and ImportStatusMessage().
   // This is currently called by vtkOpenIGTLinkIFLogic class.
   void ImportDataFromCircularBuffer();
-
-  //BTX
-  // Description:
-  // Import received normal message from the circular buffer to the MRML scne.
-  void ImportNormalMessage(vtkIGTLToMRMLBase* converter, igtl::MessageBase::Pointer& buffer);
-
-  // Description:
-  // Import GET query message from the circular buffer to the MRML scne.
-  void ImportGetQueryMessage(vtkIGTLToMRMLBase* converter, igtl::MessageBase::Pointer& buffer);
-
-  // Description:
-  // Import START query message from the circular buffer to the MRML scne.
-  void ImportStartQueryMessage(vtkIGTLToMRMLBase* converter, igtl::MessageBase::Pointer& buffer);
-
-  // Description:
-  // Import STOP query message from the circular buffer to the MRML scne.
-  void ImportStopQueryMessage(vtkIGTLToMRMLBase* converter, igtl::MessageBase::Pointer& buffer);
-
-  // Description:
-  // Import STATUS query message from the circular buffer to the MRML scne.
-  void ImportStatusQueryMessage(vtkIGTLToMRMLBase* converter, igtl::MessageBase::Pointer& buffer);
 
   // Description:
   // Import events from the event buffer to the MRML scene.
@@ -251,7 +238,9 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
 
   // Description:
   // Register MRML node for incoming data.
-  int RegisterIncomingMRMLNode(vtkMRMLNode* node);
+  // Returns a pointer to the node information in IncomingMRMLNodeInfoList
+  NodeInfoType* RegisterIncomingMRMLNode(vtkMRMLNode* node);
+
   // Description:
   // Unregister MRML node for incoming data.
   void UnregisterIncomingMRMLNode(vtkMRMLNode* node);
@@ -281,9 +270,31 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
   // (Usually, data stored in MRML scene are exported, when the registered events are invoked.)
   void PushNode(vtkMRMLNode* node);
 
+#ifdef OpenIGTLinkIF_USE_VERSION_2
   // Description:
   // Push query int the query list.
+  //BTX
   void PushQuery(vtkMRMLIGTLQueryNode* query);
+  //ETX
+#endif //OpenIGTLinkIF_USE_VERSION_2
+
+  //----------------------------------------------------------------
+  // For OpenIGTLink time stamp access
+  //----------------------------------------------------------------
+
+  // Description:
+  // Turn lock flag on to stop updating MRML node. Call this function before
+  // reading the content of the MRML node and the corresponding time stamp.
+  void LockIncomingMRMLNode(vtkMRMLNode* node);
+
+  // Description:
+  // Turn lock flag off to start updating MRML node. Make sure to call this function
+  // after reading the content / time stamp.
+  void UnlockIncomingMRMLNode(vtkMRMLNode* node);
+
+  // Description:
+  // Get OpenIGTLink's time stamp information. Returns 0, if it fails to obtain time stamp.
+  int GetIGTLTimeStamp(vtkMRMLNode* node, int& second, int& nanosecond);
 
 
  private:
@@ -344,7 +355,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
   vtkMutexLock* EventQueueMutex;
   //ETX
 
-  //BTX
+#ifdef OpenIGTLinkIF_USE_VERSION_2
   // Query queueing mechanism is needed to send all queries from the connector thread.
   // Queries can be pushed to the end of the QueryQueue by calling RequestInvoke from any thread,
   // and they will be Invoked in the main thread.
@@ -352,6 +363,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
   std::list<vtkMRMLIGTLQueryNode*> QueryWaitingQueue;
   vtkMutexLock* QueryQueueMutex;
   //ETX
+#endif //OpenIGTLinkIF_USE_VERSION_2
 
 
   // -- Device Name (same as MRML node) and data type (data type string defined in OpenIGTLink)
@@ -362,15 +374,11 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
   // Message converter (IGTLToMRML)
   MessageConverterListType MessageConverterList;
   MessageConverterMapType  IGTLNameToConverterMap;
-  MessageConverterMapType  IGTLStartQueryNameToConverterMap;
-  MessageConverterMapType  IGTLStopQueryNameToConverterMap;
-  MessageConverterMapType  IGTLGetQueryNameToConverterMap;
-  MessageConverterMapType  IGTLStatusNameToConverterMap;
   MessageConverterMapType  MRMLIDToConverterMap;
 
   // List of nodes that this connector node is observing.
   MRMLNodeListType         OutgoingMRMLNodeList;
-  MRMLNodeListType         IncomingMRMLNodeList;
+  NodeInfoListType         IncomingMRMLNodeInfoList;
   
   int CheckCRC;
   

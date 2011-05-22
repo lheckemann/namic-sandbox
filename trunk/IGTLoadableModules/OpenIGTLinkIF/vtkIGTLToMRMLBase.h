@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkIGTLToMRMLBase.h $
-  Date:      $Date: 2010-06-10 11:05:22 -0400 (Thu, 10 Jun 2010) $
-  Version:   $Revision: 13728 $
+  Date:      $Date: 2010-11-23 00:58:13 -0500 (Tue, 23 Nov 2010) $
+  Version:   $Revision: 15552 $
 
 ==========================================================================*/
 
@@ -23,7 +23,9 @@
 #include <vector>
 #include <string>
 
+#ifdef OpenIGTLinkIF_USE_VERSION_2
 class vtkMRMLIGTLQueryNode;
+#endif //OpenIGTLinkIF_USE_VERSION_2
 
 class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLBase : public vtkObject
 {
@@ -83,32 +85,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLBase : public vtkObject
   // Functions to generate an OpenIGTLink message
   // If mrmlNode is QueryNode, the function will generate query node. (event is not used.)
   virtual int          MRMLToIGTL(unsigned long vtkNotUsed(event), vtkMRMLNode* vtkNotUsed(mrmlNode),
-                                  int* vtkNotUsed(size), void** vtkNotUsed(igtlMsg)) { return 0; };
-  
-  // Description:
-  // Functions to process GET query and return a serialized message that should be returned.
-  //BTX
-  virtual int          ProcessGetQuery(igtl::MessageBase::Pointer vtkNotUsed(buffer),
-                                       vtkMRMLScene* scene,
-                                       int* vtkNotUsed(size), void** vtkNotUsed(igtlMsg)) { return 0; };
-  //ETX
-
-  // Description:
-  // Functions to process START query and return a serialized message that should be returned.
-  //BTX
-  virtual int          ProcessStartQuery(igtl::MessageBase::Pointer vtkNotUsed(buffer),
-                                         vtkMRMLScene* scene,
-                                         int* vtkNotUsed(size), void** vtkNotUsed(igtlMsg)) { return 0; };
-  //ETX
-  
-  // Description:
-  // Functions to process STOP query and return a serialized message that should be returned.
-  //BTX
-  virtual int          ProcessStopQuery(igtl::MessageBase::Pointer vtkNotUsed(buffer),
-                                        vtkMRMLScene* scene,
-                                        int* vtkNotUsed(size), void** vtkNotUsed(igtlMsg)) { return 0; };
-  //ETX
-  
+                                  int* vtkNotUsed(size), void** vtkNotUsed(igtlMsg)){ return 0; };
 
   // Check query que (called periodically by timer)
   // (implemeted only if ncessary)

@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkOpenIGTLinkIFGUI.cxx $
-  Date:      $Date: 2010-06-10 21:06:38 -0400 (Thu, 10 Jun 2010) $
-  Version:   $Revision: 13758 $
+  Date:      $Date: 2011-04-14 11:55:38 -0400 (Thu, 14 Apr 2011) $
+  Version:   $Revision: 16404 $
 
 ==========================================================================*/
 
@@ -76,10 +76,14 @@
 
 #include "vtkMRMLIGTLConnectorNode.h"
 
-#include "vtkMRMLIGTLQueryNode.h"
-#include "vtkMRMLImageMetaListNode.h"
-#include "vtkMRMLIGTLQueryNode.h"
-#include "vtkMRMLIGTLTrackingDataBundleNode.h"
+
+#ifdef OpenIGTLinkIF_USE_VERSION_2
+  #include "vtkMRMLIGTLQueryNode.h"
+  #include "vtkMRMLImageMetaListNode.h"
+  #include "vtkMRMLIGTLQueryNode.h"
+  #include "vtkMRMLIGTLTrackingDataBundleNode.h"
+#endif //OpenIGTLinkIF_USE_VERSION_2
+
 
 
 #include <vector>
@@ -87,7 +91,7 @@
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkOpenIGTLinkIFGUI );
-vtkCxxRevisionMacro ( vtkOpenIGTLinkIFGUI, "$Revision: 13758 $");
+vtkCxxRevisionMacro ( vtkOpenIGTLinkIFGUI, "$Revision: 16404 $");
 //---------------------------------------------------------------------------
 
 
@@ -115,7 +119,6 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
   // Logic values
   
   this->Logic = NULL;
-  this->DataManager = vtkIGTDataManager::New();
   
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
@@ -172,10 +175,12 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
   this->ImageSourceSelectorWidget   = NULL;
   this->ImagingMenu                 = NULL;
 
+#ifdef OpenIGTLinkIF_USE_VERSION_2
   //----------------------------------------------------------------
   // Remote Data List Window
   this->RemoteDataWindow  = NULL;
   this->TrackingDataControllerWindow  = NULL;
+#endif //OpenIGTLinkIF_USE_VERSION_2
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -194,13 +199,6 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
 vtkOpenIGTLinkIFGUI::~vtkOpenIGTLinkIFGUI ( )
 {
 
-  if (this->DataManager)
-    {
-    // If we don't set the scene to NULL for DataManager,
-    // Slicer will report a lot leak when it is closed.
-    this->DataManager->SetMRMLScene(NULL);
-    this->DataManager->Delete();
-    }
   if (this->DataCallbackCommand)
     {
     this->DataCallbackCommand->Delete();
@@ -374,6 +372,7 @@ vtkOpenIGTLinkIFGUI::~vtkOpenIGTLinkIFGUI ( )
     this->IOConfigTree->Delete();
     }
 
+#ifdef OpenIGTLinkIF_USE_VERSION_2
   //----------------------------------------------------------------
   // Remote Data List Window
   if (this->RemoteDataWindow)
@@ -393,6 +392,7 @@ vtkOpenIGTLinkIFGUI::~vtkOpenIGTLinkIFGUI ( )
     this->TrackingDataControllerWindow->Delete();
     this->TrackingDataControllerWindow = NULL;
     }
+#endif //OpenIGTLinkIF_USE_VERSION_2
 
 }
 
@@ -613,7 +613,7 @@ void vtkOpenIGTLinkIFGUI::AddGUIObservers ( )
   events->InsertNextValue(vtkMRMLScene::NewSceneEvent);
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-  events->InsertNextValue(vtkMRMLScene::SceneClosedEvent);
+  events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
   
   if (this->GetMRMLScene() != NULL)
     {
@@ -1164,11 +1164,6 @@ void vtkOpenIGTLinkIFGUI::Init()
 {
   
   //----------------------------------------------------------------
-  // Set MRML Scene to the data manager
-
-  this->DataManager->SetMRMLScene(this->GetMRMLScene());
-  
-  //----------------------------------------------------------------
   // Register MRML node
 
   vtkMRMLScene* scene = this->GetMRMLScene();
@@ -1177,6 +1172,7 @@ void vtkOpenIGTLinkIFGUI::Init()
   scene->RegisterNodeClass(connectorNode);
   connectorNode->Delete();
 
+#ifdef OpenIGTLinkIF_USE_VERSION_2
   vtkMRMLIGTLQueryNode* queryNode = vtkMRMLIGTLQueryNode::New();
   scene->RegisterNodeClass(queryNode);
   queryNode->Delete();
@@ -1188,6 +1184,7 @@ void vtkOpenIGTLinkIFGUI::Init()
   vtkMRMLIGTLTrackingDataBundleNode* tdataNode = vtkMRMLIGTLTrackingDataBundleNode::New();
   scene->RegisterNodeClass(tdataNode);
   tdataNode->Delete();
+#endif //OpenIGTLinkIF_USE_VERSION_2
     
 }
 
@@ -1432,7 +1429,7 @@ void vtkOpenIGTLinkIFGUI::ProcessMRMLEvents ( vtkObject *caller,
 
   // -----------------------------------------
   // Closing the scene
-  else if (event == vtkMRMLScene::SceneClosedEvent)
+  else if (event == vtkMRMLScene::SceneCloseEvent)
     {
     if (this->LocatorCheckButton != NULL && this->LocatorCheckButton->GetSelectedState())
       {
@@ -1510,7 +1507,6 @@ void vtkOpenIGTLinkIFGUI::Enter()
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
-    //this->TimerInterval = 100;  // 100 ms
     this->TimerInterval = 50;  // 50 ms
     ProcessTimerEvents();
     }
@@ -1542,6 +1538,7 @@ void vtkOpenIGTLinkIFGUI::BuildGUI ( )
   BuildGUIForIOConfig();
   BuildGUIForVisualizationControlFrame();
 
+#ifdef OpenIGTLinkIF_USE_VERSION_2
   //----------------------------------------------------------------
   // Remote Data List Window
   this->RemoteDataWindow = vtkIGTLRemoteDataListWindow::New();
@@ -1553,6 +1550,7 @@ void vtkOpenIGTLinkIFGUI::BuildGUI ( )
   this->TrackingDataControllerWindow = vtkIGTLTrackingDataControllerWindow::New(); 
   this->TrackingDataControllerWindow->SetApplication(this->GetApplication());
   this->TrackingDataControllerWindow->Create();
+#endif //OpenIGTLinkIF_USE_VERSION_2
 
   UpdateConnectorPropertyFrame(-1);
   UpdateIOConfigTree();
@@ -1572,13 +1570,22 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForHelpFrame ()
     "types of data between 3D Slicer and external software through a network using OpenIGTLink. "
     "OpenIGTLink is an open network protocol for device communication for image-guided therapy. "
     " See <a>http://www.slicer.org/slicerWiki/index.php/Modules:OpenIGTLinkIF-Documentation-3.6</a> for details about the module."
-    " Information about OpenIGTLink is also availble at <a>http://www.na-mic.org/Wiki/index.php/OpenIGTLink</a>";
-  const char *about =
-    "The module is designed and implemented by Junichi Tokuda from Brigham and Women's Hospital."
-    "This work is supported by NCIGT, NA-MIC and BRP \"Enabling Technologies for MRI-Guided Prostate Intervention\" project, funded by NIH.";
+    " Information about OpenIGTLink is also available at <a>http://www.na-mic.org/Wiki/index.php/OpenIGTLink</a>";
+
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+
+  std::stringstream aboutss;
+  if (app)
+    {
+    aboutss << "3D Slicer Revision: " << app->GetSvnRevision() << std::endl;
+    }
+  aboutss << "OpenIGTLink Library: " << OpenIGTLinkIF_LIBRARY_VERSION << std::endl;
+  aboutss << "The module is developed by Junichi Tokuda, Brigham and Women's Hospital.";
+  aboutss << "This project is supported by NCIGT, NA-MIC and R01CA111288 from NIH.";
+  aboutss << "The project is also supported by Intelligent Surgical Instrument Project from MITI, Japan." << std::endl;
 
   vtkKWWidget *page = this->UIPanel->GetPageWidget ( "OpenIGTLinkIF" );
-  this->BuildHelpAndAboutFrame (page, help, about);
+  this->BuildHelpAndAboutFrame (page, help, aboutss.str().c_str());
 
 }
 
@@ -2227,6 +2234,7 @@ void vtkOpenIGTLinkIFGUI::AddIOConfigContextMenuItem(int type, const char* conID
   char command[125];
   char label[125];
 
+#ifdef OpenIGTLinkIF_USE_VERSION_2
   if (type == NODE_CONNECTOR)
     {
     sprintf(command, "OpenRemoteDataListWindow %s", conID);
@@ -2235,6 +2243,9 @@ void vtkOpenIGTLinkIFGUI::AddIOConfigContextMenuItem(int type, const char* conID
     this->IOConfigContextMenu->AddCommand("Open tracking control window...", this, command);
     }
   else if (type == NODE_IO)
+#else
+  if (type == NODE_IO)
+#endif //OpenIGTLinkIF_USE_VERSION_2
     {
     this->GetLogic()->GetDeviceNamesFromMrml(this->CurrentNodeListAvailable);
     vtkOpenIGTLinkIFLogic::IGTLMrmlNodeListType::iterator iter;
@@ -2262,6 +2273,9 @@ void vtkOpenIGTLinkIFGUI::AddIOConfigContextMenuItem(int type, const char* conID
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFGUI::OpenRemoteDataListWindow(const char* conID)
 {
+#ifdef OpenIGTLinkIF_USE_VERSION_2
+  std::cerr << "Opening DataListWindow...." << std::endl;
+
   if (this->RemoteDataWindow)
     {
     vtkMRMLScene* scene = this->GetMRMLScene();
@@ -2277,12 +2291,16 @@ void vtkOpenIGTLinkIFGUI::OpenRemoteDataListWindow(const char* conID)
         }
       }
     }
+#endif //OpenIGTLinkIF_USE_VERSION_2
 }
 
 
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFGUI::OpenTrackingDataControllerWindow(const char* conID)
 {
+#ifdef OpenIGTLinkIF_USE_VERSION_2
+  std::cerr << "Opening TrackingDataControllerWindow...." << std::endl;
+
   if (this->TrackingDataControllerWindow)
     {
     vtkMRMLScene* scene = this->GetMRMLScene();
@@ -2298,7 +2316,9 @@ void vtkOpenIGTLinkIFGUI::OpenTrackingDataControllerWindow(const char* conID)
         }
       }
     }
+#endif //OpenIGTLinkIF_USE_VERSION_2
 }
+
 
 
 //---------------------------------------------------------------------------
@@ -2918,7 +2938,7 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     this->ConnectorAddressEntry->SetValue("--.--.--.--");
     this->ConnectorAddressEntry->EnabledOff();
     }
-  else
+  else if (connector->GetType() == vtkMRMLIGTLConnectorNode::TYPE_CLIENT)
     {
     this->ConnectorAddressEntry->SetValue(connector->GetServerHostname());
     if (activeFlag)
@@ -2930,17 +2950,29 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
       this->ConnectorAddressEntry->EnabledOn();
       }
     }
+  else  // connector->GetType() == vtkMRMLIGTLConnectorNode::TYPE_NOT_DEFINED
+    {
+    this->ConnectorAddressEntry->EnabledOff();
+    }
+
   this->ConnectorAddressEntry->UpdateEnableState();
 
   // Connection Port entry
   this->ConnectorPortEntry->SetValueAsInt(connector->GetServerPort());
-  if (activeFlag)
+  if (connector->GetType() == vtkMRMLIGTLConnectorNode::TYPE_NOT_DEFINED)
     {
     this->ConnectorPortEntry->EnabledOff();
     }
   else
     {
-    this->ConnectorPortEntry->EnabledOn();
+    if (activeFlag)
+      {
+      this->ConnectorPortEntry->EnabledOff();
+      }
+    else 
+      {
+      this->ConnectorPortEntry->EnabledOn();
+      }
     }
   this->ConnectorPortEntry->UpdateEnableState();
 

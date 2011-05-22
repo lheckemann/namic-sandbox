@@ -161,7 +161,15 @@ int vtkIGTLToMRMLTrackingData::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrml
           {
           this->StartTrackingDataMessage = igtl::StartTrackingDataMessage::New();
           }
-        this->StartTrackingDataMessage->SetDeviceName(mrmlNode->GetName());
+        //this->StartTrackingDataMessage->SetDeviceName(mrmlNode->GetName());
+        if (qnode->GetNoNameQuery())
+          {
+          this->StartTrackingDataMessage->SetDeviceName("");
+          }
+        else
+          {
+          this->StartTrackingDataMessage->SetDeviceName(mrmlNode->GetName());
+          }
         this->StartTrackingDataMessage->SetResolution(50);
         this->StartTrackingDataMessage->SetCoordinateName("");
         this->StartTrackingDataMessage->Pack();
@@ -175,7 +183,14 @@ int vtkIGTLToMRMLTrackingData::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrml
           {
           this->StopTrackingDataMessage = igtl::StopTrackingDataMessage::New();
           }
-        this->StopTrackingDataMessage->SetDeviceName(mrmlNode->GetName());
+        if (qnode->GetNoNameQuery())
+          {
+          this->StopTrackingDataMessage->SetDeviceName("");
+          }
+        else
+          {
+          this->StopTrackingDataMessage->SetDeviceName(mrmlNode->GetName());
+          }
         this->StopTrackingDataMessage->Pack();
         *size = this->StopTrackingDataMessage->GetPackSize();
         *igtlMsg = this->StopTrackingDataMessage->GetPackPointer();
