@@ -163,13 +163,13 @@ void vtkIGTLTrackingDataControllerWindow::ProcessGUIEvents(vtkObject *caller, un
   if (this->StartTrackingButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
     {
-    std::cerr << "StartTrackingButton is pressed. " << std::endl;
     if (this->MRMLScene && this->Connector)
       {
       if (this->TrackingDataQueryNode == NULL)
         {
         this->TrackingDataQueryNode = vtkMRMLIGTLQueryNode::New();
         this->TrackingDataQueryNode->SetIGTLName("TDATA");
+        this->TrackingDataQueryNode->SetNoNameQuery(1);
         //this->TrackingDataQueryNode->SetIGTLName(igtl::ImageMetaMessage::GetDeviceType());
         this->MRMLScene->AddNode(this->TrackingDataQueryNode);
         this->TrackingDataQueryNode->AddObserver(vtkMRMLIGTLQueryNode::ResponseEvent,this->MRMLCallbackCommand);
@@ -182,7 +182,6 @@ void vtkIGTLTrackingDataControllerWindow::ProcessGUIEvents(vtkObject *caller, un
   else if (this->StopTrackingButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
     {
-    std::cerr << "StopTrackingButton is pressed. " << std::endl;
 
     if (this->MRMLScene && this->Connector)
       {
@@ -190,6 +189,7 @@ void vtkIGTLTrackingDataControllerWindow::ProcessGUIEvents(vtkObject *caller, un
         {
         this->TrackingDataQueryNode = vtkMRMLIGTLQueryNode::New();
         this->TrackingDataQueryNode->SetIGTLName("TDATA");
+        this->TrackingDataQueryNode->SetNoNameQuery(1);
         //this->TrackingDataQueryNode->SetIGTLName(igtl::ImageMetaMessage::GetDeviceType());
         this->MRMLScene->AddNode(this->TrackingDataQueryNode);
         this->TrackingDataQueryNode->AddObserver(vtkMRMLIGTLQueryNode::ResponseEvent,this->MRMLCallbackCommand);
@@ -202,7 +202,7 @@ void vtkIGTLTrackingDataControllerWindow::ProcessGUIEvents(vtkObject *caller, un
   else if (this->CloseButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
     {
-    std::cerr << "CloseButton is pressed. " << std::endl;
+    this->Withdraw();
     }
 
 }

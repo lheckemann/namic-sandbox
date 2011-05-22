@@ -70,6 +70,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLQueryNode : public vtkMRMLNode
   vtkSetMacro( QueryStatus, int );
   vtkGetMacro( QueryType, int );
   vtkSetMacro( QueryType, int );
+  vtkGetMacro( NoNameQuery, int );
+  vtkSetMacro( NoNameQuery, int );
 
   //----------------------------------------------------------------
   // Standard methods for MRML nodes
@@ -143,6 +145,13 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLQueryNode : public vtkMRMLNode
   
   int QueryStatus;
   int QueryType;
+
+  // Description:
+  // Flag to indicate that the query doesn't specify a node name.
+  // In OpenIGLTLink communication, query without device name may be
+  // used as a 'wild card.' However, the MRML does not allow to set
+  // NULL string in the MRML node name (it will be replaced with the node ID).
+  int NoNameQuery;
 
   //BTX
   std::string ConnectorNodeID;

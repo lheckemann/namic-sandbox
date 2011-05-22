@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkIGTLToMRMLLinearTransform.cxx $
-  Date:      $Date: 2009-10-05 17:19:02 -0400 (Mon, 05 Oct 2009) $
-  Version:   $Revision: 10576 $
+  Date:      $Date: 2010-11-23 00:58:13 -0500 (Tue, 23 Nov 2010) $
+  Version:   $Revision: 15552 $
 
 ==========================================================================*/
 
@@ -21,7 +21,7 @@
 #include "igtlTransformMessage.h"
 
 vtkStandardNewMacro(vtkIGTLToMRMLLinearTransform);
-vtkCxxRevisionMacro(vtkIGTLToMRMLLinearTransform, "$Revision: 10576 $");
+vtkCxxRevisionMacro(vtkIGTLToMRMLLinearTransform, "$Revision: 15552 $");
 
 
 //---------------------------------------------------------------------------
@@ -57,9 +57,10 @@ vtkMRMLNode* vtkIGTLToMRMLLinearTransform::CreateNewNode(vtkMRMLScene* scene, co
   transformNode->ApplyTransform(transform);
   transform->Delete();
 
-  scene->AddNode(transformNode);  
+  vtkMRMLNode* n = scene->AddNode(transformNode);
+  transformNode->Delete();
 
-  return transformNode;
+  return n;
 }
 
 

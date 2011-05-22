@@ -20,7 +20,9 @@
 #include "vtkMRMLNode.h"
 #include "vtkIGTLToMRMLBase.h"
 
-#include "igtlTrackingDataMessage.h"
+#ifdef OpenIGTLinkIF_USE_VERSION_2
+  #include "igtlTrackingDataMessage.h"
+#endif // OpenIGTLinkIF_USE_VERSION_2
 
 class vtkMRMLVolumeNode;
 
@@ -52,12 +54,15 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLTrackingData : public vtkIGTLToMRMLB
   void CenterImage(vtkMRMLVolumeNode *volumeNode);
 
  protected:
+
+#ifdef OpenIGTLinkIF_USE_VERSION_2
   //BTX
   //igtl::TransformMessage::Pointer OutTransformMsg;
   igtl::TrackingDataMessage::Pointer      OutTrackingMetaMsg;
   igtl::StartTrackingDataMessage::Pointer StartTrackingDataMessage;
   igtl::StopTrackingDataMessage::Pointer  StopTrackingDataMessage;
   //ETX
+#endif // OpenIGTLinkIF_USE_VERSION_2
   
 };
 

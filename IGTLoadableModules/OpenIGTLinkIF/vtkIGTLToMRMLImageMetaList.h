@@ -20,7 +20,9 @@
 #include "vtkMRMLNode.h"
 #include "vtkIGTLToMRMLBase.h"
 
-#include "igtlImageMetaMessage.h"
+#ifdef OpenIGTLinkIF_USE_VERSION_2
+ #include "igtlImageMetaMessage.h"
+#endif // OpenIGTLinkIF_USE_VERSION_2
 
 class vtkMRMLVolumeNode;
 
@@ -35,8 +37,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLImageMetaList : public vtkIGTLToMRML
 
   virtual const char*  GetIGTLName() { return "IMGMETA"; };
   virtual const char*  GetMRMLName() { return "ImageMetaList"; };
-  virtual const char*  GetIGTLGetQueryName() { return "GET_IMGMETA"; };
-  
+
   virtual vtkIntArray* GetNodeEvents();
   virtual vtkMRMLNode* CreateNewNode(vtkMRMLScene* scene, const char* name);
 
@@ -45,11 +46,6 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLImageMetaList : public vtkIGTLToMRML
   //ETX
   virtual int          MRMLToIGTL(unsigned long event, vtkMRMLNode* mrmlNode, int* size, void** igtlMsg);
 
-  //BTX
-  virtual int          ProcessGetQuery(igtl::MessageBase::Pointer vtkNotUsed(buffer),
-                                       vtkMRMLScene* scene,
-                                       int* vtkNotUsed(size), void** vtkNotUsed(igtlMsg));
-  //ETX
 
  protected:
   vtkIGTLToMRMLImageMetaList();
@@ -58,11 +54,14 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLImageMetaList : public vtkIGTLToMRML
   void CenterImage(vtkMRMLVolumeNode *volumeNode);
 
  protected:
+
+#ifdef OpenIGTLinkIF_USE_VERSION_2
   //BTX
   //igtl::TransformMessage::Pointer OutTransformMsg;
-  igtl::ImageMetaMessage::Pointer OutImageMetaMessage;
+  igtl::ImageMetaMessage::Pointer OutImageMetaMsg;
   igtl::GetImageMetaMessage::Pointer GetImageMetaMessage;
   //ETX
+#endif // OpenIGTLinkIF_USE_VERSION_2
   
 };
 

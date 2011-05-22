@@ -7,8 +7,8 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkOpenIGTLinkIFLogic.cxx $
-  Date:      $Date: 2010-06-10 20:55:02 -0400 (Thu, 10 Jun 2010) $
-  Version:   $Revision: 13756 $
+  Date:      $Date: 2010-11-23 00:58:13 -0500 (Tue, 23 Nov 2010) $
+  Version:   $Revision: 15552 $
 
 ==========================================================================*/
 
@@ -36,7 +36,7 @@
 #include "vtkMRMLIGTLConnectorNode.h"
 #include "vtkIGTLCircularBuffer.h"
 
-vtkCxxRevisionMacro(vtkOpenIGTLinkIFLogic, "$Revision: 13756 $");
+vtkCxxRevisionMacro(vtkOpenIGTLinkIFLogic, "$Revision: 15552 $");
 vtkStandardNewMacro(vtkOpenIGTLinkIFLogic);
 
 //---------------------------------------------------------------------------
@@ -79,14 +79,19 @@ vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
   this->LinearTransformConverter = vtkIGTLToMRMLLinearTransform::New();
   this->ImageConverter           = vtkIGTLToMRMLImage::New();
   this->PositionConverter        = vtkIGTLToMRMLPosition::New();
+
+#ifdef OpenIGTLinkIF_USE_VERSION_2  
   this->ImageMetaListConverter   = vtkIGTLToMRMLImageMetaList::New();
   this->TrackingDataConverter    = vtkIGTLToMRMLTrackingData::New();
+#endif //OpenIGTLinkIF_USE_VERSION_2
 
   RegisterMessageConverter(this->LinearTransformConverter);
   RegisterMessageConverter(this->ImageConverter);
   RegisterMessageConverter(this->PositionConverter);
+#ifdef OpenIGTLinkIF_USE_VERSION_2  
   RegisterMessageConverter(this->ImageMetaListConverter);
   RegisterMessageConverter(this->TrackingDataConverter);
+#endif //OpenIGTLinkIF_USE_VERSION_2
 
   this->LocatorTransformNode = NULL;
 }
@@ -113,6 +118,7 @@ vtkOpenIGTLinkIFLogic::~vtkOpenIGTLinkIFLogic()
     this->PositionConverter->Delete();
     }
 
+#ifdef OpenIGTLinkIF_USE_VERSION_2
   if (this->ImageMetaListConverter)
     {
     UnregisterMessageConverter(this->ImageMetaListConverter);
@@ -123,16 +129,13 @@ vtkOpenIGTLinkIFLogic::~vtkOpenIGTLinkIFLogic()
     UnregisterMessageConverter(this->TrackingDataConverter);
     this->TrackingDataConverter->Delete();
     }
+#endif //OpenIGTLinkIF_USE_VERSION_2
 
   if (this->DataCallbackCommand)
     {
     this->DataCallbackCommand->Delete();
     }
 
-  if (this->LocatorTransformNode)
-    {
-    vtkSetAndObserveMRMLNodeMacro( this->LocatorTransformNode, NULL );
-    }
 }
 
 
@@ -159,7 +162,7 @@ int vtkOpenIGTLinkIFLogic::Initialize()
     vtkIntArray* events = vtkIntArray::New();
     //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
     //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-    //events->InsertNextValue(vtkMRMLScene::SceneClosedEvent);
+    //events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
     //events->InsertNextValue(vtkMRMLScene::Node
     if (this->GetMRMLScene() != NULL)
       {
@@ -216,8 +219,7 @@ void vtkOpenIGTLinkIFLogic::ImportFromCircularBuffers()
 {
   //ConnectorMapType::iterator cmiter;
   std::vector<vtkMRMLNode*> nodes;
-  const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
-  this->GetMRMLScene()->GetNodesByClass(className, nodes);
+  this->GetMRMLScene()->GetNodesByClass("vtkMRMLIGTLConnectorNode", nodes);
 
   std::vector<vtkMRMLNode*>::iterator iter;
   
@@ -239,8 +241,7 @@ void vtkOpenIGTLinkIFLogic::ImportEvents()
 {
   //ConnectorMapType::iterator cmiter;
   std::vector<vtkMRMLNode*> nodes;
-  const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
-  this->GetMRMLScene()->GetNodesByClass(className, nodes);
+  this->GetMRMLScene()->GetNodesByClass("vtkMRMLIGTLConnectorNode", nodes);
 
   std::vector<vtkMRMLNode*>::iterator iter;
   
@@ -297,9 +298,6 @@ int vtkOpenIGTLinkIFLogic::EnableLocatorDriver(int sw)
   else  // turn off
     {
     this->LocatorDriverFlag = 0;
-    //vtkMRMLModelNode* mnode = 
-    //  SetVisibilityOfLocatorModel("IGTLLocator", 0);
-    //mnode->SetAndObserveTransformNodeID(NULL);
     SetVisibilityOfLocatorModel("IGTLLocator", 0);
     }
   return 1;
@@ -378,8 +376,7 @@ int vtkOpenIGTLinkIFLogic::SetRestrictDeviceName(int f)
   this->RestrictDeviceName = f;
 
   std::vector<vtkMRMLNode*> nodes;
-  const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
-  this->GetMRMLScene()->GetNodesByClass(className, nodes);
+  this->GetMRMLScene()->GetNodesByClass("vtkMRMLIGTLConnectorNode", nodes);
 
   std::vector<vtkMRMLNode*>::iterator iter;
   
@@ -437,8 +434,7 @@ int vtkOpenIGTLinkIFLogic::RegisterMessageConverter(vtkIGTLToMRMLBase* converter
   if (this->GetMRMLScene())
     {
     std::vector<vtkMRMLNode*> nodes;
-    const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
-    this->GetMRMLScene()->GetNodesByClass(className, nodes);
+  this->GetMRMLScene()->GetNodesByClass("vtkMRMLIGTLConnectorNode", nodes);
     
     std::vector<vtkMRMLNode*>::iterator niter;
     for (niter = nodes.begin(); niter != nodes.end(); niter ++)
@@ -476,8 +472,7 @@ int vtkOpenIGTLinkIFLogic::UnregisterMessageConverter(vtkIGTLToMRMLBase* convert
     std::vector<vtkMRMLNode*> nodes;
     if (this->GetMRMLScene())
       {
-      const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
-      this->GetMRMLScene()->GetNodesByClass(className, nodes);
+      this->GetMRMLScene()->GetNodesByClass("vtkMRMLIGTLConnectorNode", nodes);
     
       std::vector<vtkMRMLNode*>::iterator iter;
       for (iter = nodes.begin(); iter != nodes.end(); iter ++)
@@ -892,6 +887,7 @@ vtkMRMLModelNode* vtkOpenIGTLinkIFLogic::SetVisibilityOfLocatorModel(const char*
     this->GetApplicationLogic()->GetMRMLScene()->Modified();
     }
 
+  //collection->Delete();
   return locatorModel;
 }
 
@@ -905,17 +901,6 @@ vtkMRMLModelNode* vtkOpenIGTLinkIFLogic::AddLocatorModel(const char* nodeName, d
 
   locatorModel = vtkMRMLModelNode::New();
   locatorDisp = vtkMRMLModelDisplayNode::New();
-  
-  GetMRMLScene()->SaveStateForUndo();
-  GetMRMLScene()->AddNode(locatorDisp);
-  GetMRMLScene()->AddNode(locatorModel);  
-  
-  locatorDisp->SetScene(this->GetMRMLScene());
-  
-  locatorModel->SetName(nodeName);
-  locatorModel->SetScene(this->GetMRMLScene());
-  locatorModel->SetAndObserveDisplayNodeID(locatorDisp->GetID());
-  locatorModel->SetHideFromEditors(0);
   
   // Cylinder represents the locator stick
   vtkCylinderSource *cylinder = vtkCylinderSource::New();
@@ -961,10 +946,20 @@ vtkMRMLModelNode* vtkOpenIGTLinkIFLogic::AddLocatorModel(const char* nodeName, d
   sphere->Delete();
   apd->Delete();
 
-  //locatorModel->Delete();
+  GetMRMLScene()->SaveStateForUndo();
+  GetMRMLScene()->AddNode(locatorDisp);
+  vtkMRMLNode* lm = GetMRMLScene()->AddNode(locatorModel);  
+  locatorDisp->SetScene(this->GetMRMLScene());
+  locatorModel->SetName(nodeName);
+  locatorModel->SetScene(this->GetMRMLScene());
+  locatorModel->SetAndObserveDisplayNodeID(locatorDisp->GetID());
+  locatorModel->SetHideFromEditors(0);
+
+  locatorModel->Delete();
   locatorDisp->Delete();
 
-  return locatorModel;
+  return vtkMRMLModelNode::SafeDownCast(lm);
+
 }
 
 

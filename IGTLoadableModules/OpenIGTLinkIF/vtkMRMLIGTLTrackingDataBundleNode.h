@@ -103,6 +103,14 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLTrackingDataBundleNode : public vtkMRM
   virtual void UpdateTransformNode(const char* name, igtl::Matrix4x4& matrix, int type = 1);
   //ETX
 
+  // Description:
+  // Get the number of linear transform nodes in the bundle
+  virtual int GetNumberOfTransformNodes();
+
+  // Description:
+  // Get the N-th linear transform node (id == N)
+  virtual vtkMRMLLinearTransformNode* GetTransformNode(unsigned int id);
+
 
  protected:
   //----------------------------------------------------------------
