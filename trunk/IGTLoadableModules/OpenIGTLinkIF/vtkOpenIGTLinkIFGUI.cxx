@@ -2204,8 +2204,8 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForTest()
   this->ConnectionTestButton = vtkKWPushButton::New();
   this->ConnectionTestButton->SetParent(connectionTestFrame->GetFrame());
   this->ConnectionTestButton->Create();
-  this->ConnectionTestButton->SetText( "Open Connection Test" );
-  this->ConnectionTestButton->SetWidth (21);
+  this->ConnectionTestButton->SetText( "Open Test Server" );
+  this->ConnectionTestButton->SetWidth (18);
 
   this->Script("pack %s -side left -anchor w -padx 2 -pady 2", 
                this->ConnectionTestButton->GetWidgetName());

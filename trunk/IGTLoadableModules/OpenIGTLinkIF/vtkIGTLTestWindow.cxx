@@ -18,18 +18,11 @@
 #include "vtkIGTLTestWindow.h"
 
 #include "vtkSlicerApplication.h"
-#include "vtkSlicerTheme.h"
-
-#include "vtkRenderer.h"
-
-#include "vtkCornerAnnotation.h"
 
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWRadioButton.h"
 #include "vtkKWRadioButtonSet.h"
-
-#include "vtkMRMLIGTLQueryNode.h"
-#include "vtkMRMLImageMetaListNode.h"
+#include "vtkKWPushButton.h"
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkIGTLTestWindow);
@@ -37,18 +30,23 @@ vtkCxxRevisionMacro(vtkIGTLTestWindow, "$Revision: 1.0 $");
 //----------------------------------------------------------------------------
 vtkIGTLTestWindow::vtkIGTLTestWindow()
 {
-  this->MainFrame = vtkKWFrame::New();
-  this->MultipleMonitorsAvailable = false; 
+  // Logic values
   this->WindowPosition[0]=0;
   this->WindowPosition[1]=0;
   this->WindowSize[0]=0;
   this->WindowSize[1]=0;
 
+  this->DefaultPort = 18944;
+  this->DefaultFrameRate = 5.0;
+
   // GUI widgets
+  this->MainFrame = vtkKWFrame::New();
+  this->MultipleMonitorsAvailable = false; 
+
   this->ModeButtonSet = NULL;
+  this->PortEntry = NULL;
+  this->FrameRateEntry = NULL;
 
-
-  this->RemoteDataList  = NULL;
   this->StartTrackingButton  = NULL;
   this->StopTrackingButton = NULL;
   this->CloseButton    = NULL;
@@ -57,23 +55,11 @@ vtkIGTLTestWindow::vtkIGTLTestWindow()
 
   // GUI callback command
   this->InGUICallbackFlag = 0;
-  this->InMRMLCallbackFlag = 0;
   this->IsObserverAddedFlag = 0;
 
   this->GUICallbackCommand = vtkCallbackCommand::New();
   this->GUICallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
   this->GUICallbackCommand->SetCallback(&vtkIGTLTestWindow::GUICallback);
-
-  this->MRMLObserverManager = vtkObserverManager::New();
-  this->MRMLObserverManager->GetCallbackCommand()->SetClientData( reinterpret_cast<void *> (this) );
-  this->MRMLObserverManager->GetCallbackCommand()->SetCallback(vtkIGTLTestWindow::MRMLCallback);
-  this->MRMLCallbackCommand = this->MRMLObserverManager->GetCallbackCommand();
-
-  this->ModuleGUI = NULL; 
-  this->MRMLScene = NULL;
-
-  this->Connector = NULL;
-  this->TrackingDataQueryNode = NULL;
 
 }
 
@@ -96,15 +82,18 @@ vtkIGTLTestWindow::~vtkIGTLTestWindow()
   if (this->ModeButtonSet)
     {
     this->ModeButtonSet->SetParent(NULL);
-    this->RemoteDataList->Delete();
+    this->ModeButtonSet->Delete();
     }
-
-  if (this->RemoteDataList)
+  if (PortEntry)
     {
-    this->RemoteDataList->SetParent(NULL);
-    this->RemoteDataList->Delete();
+    this->PortEntry->SetParent(NULL);
+    this->PortEntry->Delete();
     }
-
+  if (FrameRateEntry)
+    {
+    this->FrameRateEntry->SetParent(NULL);
+    this->FrameRateEntry->Delete();
+    }
   if (this->StartTrackingButton)
     {
     this->StartTrackingButton->SetParent(NULL);
@@ -121,11 +110,9 @@ vtkIGTLTestWindow::~vtkIGTLTestWindow()
     this->CloseButton->Delete();
     }
 
-  this->MRMLObserverManager->Delete();
   this->MainFrame->Delete();
   this->SetApplication(NULL);
 
-  this->ModuleGUI = NULL; 
 }
 
 
@@ -154,23 +141,6 @@ void vtkIGTLTestWindow::GUICallback( vtkObject *caller,
 }
 
 //----------------------------------------------------------------------------
-void vtkIGTLTestWindow::MRMLCallback(vtkObject *caller, 
-                                    unsigned long eid, void *clientData, void *callData)
-{
-  
-  vtkIGTLTestWindow *self = reinterpret_cast<vtkIGTLTestWindow *>(clientData);
-  
-  if (self->GetInMRMLCallbackFlag())
-    {
-    return;
-    }
-
-  self->SetInMRMLCallbackFlag(1);
-  self->ProcessMRMLEvents(caller, eid, callData);
-  self->SetInMRMLCallbackFlag(0);
-}
-
-
 void vtkIGTLTestWindow::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
 {
 
@@ -178,47 +148,24 @@ void vtkIGTLTestWindow::ProcessGUIEvents(vtkObject *caller, unsigned long event,
       && event == vtkKWRadioButton::SelectedStateChangedEvent
       && this->ModeButtonSet->GetWidget(0)->GetSelectedState() == 1)
     {
-    
     }
-
+  else if (this->PortEntry == vtkKWEntry::SafeDownCast(caller)
+           && event == vtkKWEntry::EntryValueChangedEvent)
+    {
+    }
+  else if (this->FrameRateEntry == vtkKWEntry::SafeDownCast(caller)
+           && event == vtkKWEntry::EntryValueChangedEvent)
+    {
+    }
   else if (this->StartTrackingButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
     {
-    if (this->MRMLScene && this->Connector)
-      {
-      if (this->TrackingDataQueryNode == NULL)
-        {
-        this->TrackingDataQueryNode = vtkMRMLIGTLQueryNode::New();
-        this->TrackingDataQueryNode->SetIGTLName("TDATA");
-        this->TrackingDataQueryNode->SetNoNameQuery(1);
-        //this->TrackingDataQueryNode->SetIGTLName(igtl::ImageMetaMessage::GetDeviceType());
-        this->MRMLScene->AddNode(this->TrackingDataQueryNode);
-        this->TrackingDataQueryNode->AddObserver(vtkMRMLIGTLQueryNode::ResponseEvent,this->MRMLCallbackCommand);
-        }
-      this->TrackingDataQueryNode->SetQueryStatus(vtkMRMLIGTLQueryNode::STATUS_PREPARED);
-      this->TrackingDataQueryNode->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_START);
-      this->Connector->PushQuery((vtkMRMLIGTLQueryNode*)this->TrackingDataQueryNode);
-      }
+    StartServer(1000, 10.0);
     }
   else if (this->StopTrackingButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
     {
-
-    if (this->MRMLScene && this->Connector)
-      {
-      if (this->TrackingDataQueryNode == NULL)
-        {
-        this->TrackingDataQueryNode = vtkMRMLIGTLQueryNode::New();
-        this->TrackingDataQueryNode->SetIGTLName("TDATA");
-        this->TrackingDataQueryNode->SetNoNameQuery(1);
-        //this->TrackingDataQueryNode->SetIGTLName(igtl::ImageMetaMessage::GetDeviceType());
-        this->MRMLScene->AddNode(this->TrackingDataQueryNode);
-        this->TrackingDataQueryNode->AddObserver(vtkMRMLIGTLQueryNode::ResponseEvent,this->MRMLCallbackCommand);
-        }
-      this->TrackingDataQueryNode->SetQueryStatus(vtkMRMLIGTLQueryNode::STATUS_PREPARED);
-      this->TrackingDataQueryNode->SetQueryType(vtkMRMLIGTLQueryNode::TYPE_STOP);
-      this->Connector->PushQuery((vtkMRMLIGTLQueryNode*)this->TrackingDataQueryNode);
-      }
+    StopServer();
     }
   else if (this->CloseButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
@@ -229,46 +176,7 @@ void vtkIGTLTestWindow::ProcessGUIEvents(vtkObject *caller, unsigned long event,
 }
 
 
-void vtkIGTLTestWindow::ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData)
-{
-  vtkMRMLIGTLQueryNode* qnode = vtkMRMLIGTLQueryNode::SafeDownCast(caller);
-  if (qnode)
-    {
-    if (qnode == this->TrackingDataQueryNode)
-      {
-      switch (event)
-        {
-        case vtkMRMLIGTLQueryNode::ResponseEvent:
-          //this->UpdateRemoteDataList();
-          break;
-        default:
-          break;
-        }
-      }
-    else if (event == vtkMRMLIGTLQueryNode::ResponseEvent &&
-             qnode->GetQueryStatus() == vtkMRMLIGTLQueryNode::STATUS_SUCCESS)
-      {
-      std::list<vtkMRMLIGTLQueryNode*>::iterator iter;
-      for (iter = this->ImageQueryNodeList.begin();
-           iter != this->ImageQueryNodeList.end();
-           iter ++)
-        {
-        if (qnode == *iter)
-          {
-          (*iter)->RemoveObserver(this->MRMLCallbackCommand);
-          if (this->MRMLScene)
-            {
-            this->MRMLScene->RemoveNode(*iter);
-            }
-          this->ImageQueryNodeList.remove(*iter);
-          break;
-          }
-        }
-      }
-    }
-}
-
-
+//----------------------------------------------------------------------------
 void vtkIGTLTestWindow::AddGUIObservers()
 {
   this->RemoveGUIObservers();
@@ -280,7 +188,16 @@ void vtkIGTLTestWindow::AddGUIObservers()
     this->ModeButtonSet->GetWidget(1)
       ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
-
+  if (this->PortEntry)
+    {
+    this->PortEntry
+      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);    
+    }
+  if (this->FrameRateEntry)
+    {
+    this->FrameRateEntry
+      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);    
+    }
   if (this->StartTrackingButton)
     {
     this->StartTrackingButton->AddObserver(vtkKWPushButton::InvokedEvent,(vtkCommand *)this->GUICallbackCommand);
@@ -299,6 +216,7 @@ void vtkIGTLTestWindow::AddGUIObservers()
 }
 
 
+//----------------------------------------------------------------------------
 void vtkIGTLTestWindow::RemoveGUIObservers()
 {
   if (this->ModeButtonSet)
@@ -307,6 +225,14 @@ void vtkIGTLTestWindow::RemoveGUIObservers()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     this->ModeButtonSet->GetWidget(1)
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->PortEntry)
+    {
+    this->PortEntry->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->FrameRateEntry)
+    {
+    this->FrameRateEntry->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->StartTrackingButton)
     {
@@ -358,17 +284,18 @@ void vtkIGTLTestWindow::CreateWidget()
   this->MainFrame->SetBorderWidth ( 1 );
   this->Script ( "pack %s -side top -anchor nw -fill both -expand 1 -padx 0 -pady 1", this->MainFrame->GetWidgetName() ); 
 
-  
-  // Connector Property -- Connector type (server or client)
-  vtkKWFrameWithLabel *modeFrame = vtkKWFrameWithLabel::New();
-  modeFrame->SetParent(this->MainFrame);
-  modeFrame->Create();
-  modeFrame->SetLabelText ("Tracking Test Data Source");
+
+  // --------------------------------------------------
+  // Tracking Test Data Source (Ramdom or File)
+  vtkKWFrameWithLabel *dataSourceFrame = vtkKWFrameWithLabel::New();
+  dataSourceFrame->SetParent(this->MainFrame);
+  dataSourceFrame->Create();
+  dataSourceFrame->SetLabelText ("Tracking Test Data Source");
   app->Script ( "pack %s -fill both -expand true",  
-                modeFrame->GetWidgetName());
+                dataSourceFrame->GetWidgetName());
 
   this->ModeButtonSet = vtkKWRadioButtonSet::New();
-  this->ModeButtonSet->SetParent(modeFrame->GetFrame());
+  this->ModeButtonSet->SetParent(dataSourceFrame->GetFrame());
   this->ModeButtonSet->Create();
   this->ModeButtonSet->PackHorizontallyOn();
   this->ModeButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(2);
@@ -380,8 +307,67 @@ void vtkIGTLTestWindow::CreateWidget()
   this->ModeButtonSet->AddWidget(1);
   this->ModeButtonSet->GetWidget(1)->SetText("From file");
 
+  this->ModeButtonSet->GetWidget(0)->SelectedStateOn();
+
   app->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2", 
               this->ModeButtonSet->GetWidgetName());
+
+
+  // --------------------------------------------------
+  // Connection Setting
+
+  vtkKWFrameWithLabel *connectionFrame = vtkKWFrameWithLabel::New();
+  connectionFrame->SetParent(this->MainFrame);
+  connectionFrame->Create();
+  connectionFrame->SetLabelText ("Connection Setting");
+  app->Script ( "pack %s -fill both -expand true",  
+                connectionFrame->GetWidgetName());
+
+  // --- Server port entry
+  vtkKWFrame *portFrame = vtkKWFrame::New();
+  portFrame->SetParent(connectionFrame->GetFrame());
+  portFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                portFrame->GetWidgetName());
+
+  vtkKWLabel *portLabel = vtkKWLabel::New();
+  portLabel->SetParent(portFrame);
+  portLabel->Create();
+  portLabel->SetWidth(8);
+  portLabel->SetText("Port: ");
+
+  this->PortEntry = vtkKWEntry::New();
+  this->PortEntry->SetParent(portFrame);
+  this->PortEntry->SetRestrictValueToInteger();
+  this->PortEntry->Create();
+  this->PortEntry->SetWidth(8);
+  this->PortEntry->SetValueAsInt(this->DefaultPort);
+
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              portLabel->GetWidgetName() , this->PortEntry->GetWidgetName());
+
+  // --- Frame rate
+  vtkKWFrame *frameRateFrame = vtkKWFrame::New();
+  frameRateFrame->SetParent(connectionFrame->GetFrame());
+  frameRateFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                frameRateFrame->GetWidgetName());
+
+  vtkKWLabel *frameRateLabel = vtkKWLabel::New();
+  frameRateLabel->SetParent(frameRateFrame);
+  frameRateLabel->Create();
+  frameRateLabel->SetWidth(8);
+  frameRateLabel->SetText("Rate (fps): ");
+
+  this->FrameRateEntry = vtkKWEntry::New();
+  this->FrameRateEntry->SetParent(frameRateFrame);
+  this->FrameRateEntry->SetRestrictValueToDouble();
+  this->FrameRateEntry->Create();
+  this->FrameRateEntry->SetWidth(8);
+  this->FrameRateEntry->SetValueAsDouble(this->DefaultFrameRate);
+
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              frameRateLabel->GetWidgetName() , this->FrameRateEntry->GetWidgetName());
 
 
   // Connector Property -- Connector type (server or client)
@@ -394,14 +380,15 @@ void vtkIGTLTestWindow::CreateWidget()
   this->StartTrackingButton = vtkKWPushButton::New();
   this->StartTrackingButton->SetParent(buttonFrame);
   this->StartTrackingButton->Create();
-  this->StartTrackingButton->SetText( "Start tracking" );
+  this->StartTrackingButton->SetText( "Start" );
   this->StartTrackingButton->SetWidth (10);
 
   this->StopTrackingButton = vtkKWPushButton::New();
   this->StopTrackingButton->SetParent(buttonFrame);
   this->StopTrackingButton->Create();
-  this->StopTrackingButton->SetText( "Stop tracking" );
+  this->StopTrackingButton->SetText( "Stop" );
   this->StopTrackingButton->SetWidth (10);
+  this->StopTrackingButton->SetEnabled(0);
 
   this->CloseButton = vtkKWPushButton::New();
   this->CloseButton->SetParent(buttonFrame);
@@ -427,13 +414,6 @@ void vtkIGTLTestWindow::DisplayOnWindow()
 
   this->SetPosition(this->WindowPosition[0], this->WindowPosition[1]);
   //this->SetSize(this->WindowSize[0], this->WindowSize[1]);
-
-  /*
-  if (this->MultipleMonitorsAvailable)
-  {
-    this->HideDecorationOn();
-  }
-  */
 
   if (!this->IsObserverAddedFlag)
     {
@@ -465,3 +445,35 @@ void vtkIGTLTestWindow::SwitchMode(int mode)
     }
 
 }
+
+//----------------------------------------------------------------------------
+void vtkIGTLTestWindow::StartServer(int port, float rate)
+{
+  // --------------------------------------------------
+  // Change GUI status
+  this->StartTrackingButton->SetEnabled(0);
+  this->StopTrackingButton->SetEnabled(1);
+  this->PortEntry->SetEnabled(0);
+  this->FrameRateEntry->SetEnabled(0);
+
+  // --------------------------------------------------
+  // Start Server
+  
+}
+
+//----------------------------------------------------------------------------
+void vtkIGTLTestWindow::StopServer()
+{
+  // --------------------------------------------------
+  // Change GUI status
+  this->StartTrackingButton->SetEnabled(1);
+  this->StopTrackingButton->SetEnabled(0);
+  this->PortEntry->SetEnabled(1);
+  this->FrameRateEntry->SetEnabled(1);
+
+  // --------------------------------------------------
+  // Stop Server
+  
+}
+
+
