@@ -147,6 +147,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   void BuildGUIForIOConfig();
   void BuildGUIForDeviceFrame();
   void BuildGUIForVisualizationControlFrame();
+  void BuildGUIForTest();
   
   //----------------------------------------------------------------
   // Event handlers
@@ -289,6 +290,10 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   vtkIGTLTrackingDataControllerWindow* TrackingDataControllerWindow;
 #endif //OpenIGTLinkIF_USE_VERSION_2
 
+  //----------------------------------------------------------------
+  // Connection Test Frame + Window
+
+  vtkKWPushButton*   ConnectionTestButton;
 
   //----------------------------------------------------------------
   // Logic Values
