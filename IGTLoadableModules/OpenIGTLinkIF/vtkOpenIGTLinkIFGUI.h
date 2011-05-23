@@ -28,6 +28,8 @@
   #include "vtkIGTLTrackingDataControllerWindow.h"
 #endif //OpenIGTLinkIF_USE_VERSION_2
 
+#include "vtkIGTLTestWindow.h"
+
 #include "vtkIGTDataManager.h"
 #include "vtkIGTPat2ImgRegistration.h"
 
@@ -160,8 +162,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   void         AddLogicObservers ( );
   void         RemoveLogicObservers ( );
 
-  virtual void OpenRemoteDataListWindow(const char* conID);
-  virtual void OpenTrackingDataControllerWindow(const char* conID);
+  void OpenRemoteDataListWindow(const char* conID);
+  void OpenTrackingDataControllerWindow(const char* conID);
 
   //virtual void AddNodeCallback(const char* conID, int io, const char* name, const char* type);
   virtual void AddNodeCallback(const char* conID, int io, const char* nodeID, const char* devType);
@@ -294,6 +296,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   // Connection Test Frame + Window
 
   vtkKWPushButton*   ConnectionTestButton;
+  vtkIGTLTestWindow* TestWindow;
 
   //----------------------------------------------------------------
   // Logic Values

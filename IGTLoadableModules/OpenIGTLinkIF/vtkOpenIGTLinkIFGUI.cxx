@@ -185,7 +185,7 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
   //----------------------------------------------------------------
   // Connection Test Frame
   this->ConnectionTestButton    = NULL;
-
+  this->TestWindow              = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -403,6 +403,14 @@ vtkOpenIGTLinkIFGUI::~vtkOpenIGTLinkIFGUI ( )
   // Connection Test Frame
   this->ConnectionTestButton->Delete();
   this->ConnectionTestButton = NULL;
+
+  if (this->TestWindow)
+    {
+    this->TestWindow->Withdraw();
+    this->TestWindow->SetApplication(NULL);
+    this->TestWindow->Delete();
+    this->TestWindow = NULL;
+    }
 
 }
 
@@ -1180,6 +1188,7 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->ConnectionTestButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
+    this->TestWindow->DisplayOnWindow();
     }
 
 
@@ -1584,8 +1593,11 @@ void vtkOpenIGTLinkIFGUI::BuildGUI ( )
 
 #endif //OpenIGTLinkIF_USE_VERSION_2
 
-  BuildGUIForTest();
+  this->TestWindow = vtkIGTLTestWindow::New(); 
+  this->TestWindow->SetApplication(this->GetApplication());
+  this->TestWindow->Create();
 
+  BuildGUIForTest();
 
   UpdateConnectorPropertyFrame(-1);
   UpdateIOConfigTree();
@@ -2391,6 +2403,9 @@ void vtkOpenIGTLinkIFGUI::OpenTrackingDataControllerWindow(const char* conID)
     }
 #endif //OpenIGTLinkIF_USE_VERSION_2
 }
+
+
+
 
 
 
