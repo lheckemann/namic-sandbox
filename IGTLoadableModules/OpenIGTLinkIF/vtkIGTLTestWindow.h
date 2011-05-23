@@ -26,11 +26,14 @@
 #include "vtkKWTopLevel.h"
 #include "vtkSmartPointer.h"
 
-class vtkOpenIGTLinkIFGUI;
+#include "igtlMath.h"
+
 class vtkKWRadioButtonSet;
 class vtkKWPushButton;
 class vtkKWEntry;
 class vtkKWFrame;
+
+class vtkMultiThreader;
 
 class VTK_OPENIGTLINKIF_EXPORT vtkIGTLTestWindow : public vtkKWTopLevel
 {
@@ -52,6 +55,7 @@ public:
     }
   vtkGetMacro(InGUICallbackFlag, int);
 
+  void ProcessTimerEvents();
   void DisplayOnWindow();
 
 protected:
@@ -65,13 +69,18 @@ protected:
   
   virtual void CreateWidget();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
+
   virtual void AddGUIObservers();
   virtual void RemoveGUIObservers();
   
   void SwitchMode(int mode);
   void StartServer(int port, float rate);
   void StopServer();
-  
+
+  static void* ServerThreadFunction(void * ptr);
+  //BTX
+  void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
+  //ETX
   
  protected:
   
@@ -96,13 +105,20 @@ protected:
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
+
+  vtkMultiThreader* Thread;
+  //vtkMutexLock*     Mutex;
+  int               ThreadID;
+  int               ServerStopFlag;
+
+
   bool   MultipleMonitorsAvailable; 
   int    WindowPosition[2]; // virtual screen position in pixels
   int    WindowSize[2]; // virtual screen size in pixels
   
   int    Mode;
-  int    DefaultPort;
-  double DefaultFrameRate;
+  int    Port;
+  double FrameRate;
 
  private:
   vtkIGTLTestWindow(const vtkIGTLTestWindow&);

@@ -1531,6 +1531,13 @@ void vtkOpenIGTLinkIFGUI::ProcessTimerEvents()
                                          newtimer,
                                          this, "ProcessTimerEvents");
     }
+
+  // -----------------------------------------
+  // Check and update Test Window
+  if (this->TestWindow)
+    {
+    this->TestWindow->ProcessTimerEvents();
+    }
 }
 
 

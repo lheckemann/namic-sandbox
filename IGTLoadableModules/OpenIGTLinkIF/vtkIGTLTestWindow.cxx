@@ -24,20 +24,34 @@
 #include "vtkKWRadioButtonSet.h"
 #include "vtkKWPushButton.h"
 
+#include "vtkMultiThreader.h"
+
+#include "igtlOSUtil.h"
+#include "igtlMath.h"
+#include "igtlTransformMessage.h"
+#include "igtlServerSocket.h"
+
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkIGTLTestWindow);
 vtkCxxRevisionMacro(vtkIGTLTestWindow, "$Revision: 1.0 $");
 //----------------------------------------------------------------------------
 vtkIGTLTestWindow::vtkIGTLTestWindow()
 {
+  
   // Logic values
   this->WindowPosition[0]=0;
   this->WindowPosition[1]=0;
   this->WindowSize[0]=0;
   this->WindowSize[1]=0;
 
-  this->DefaultPort = 18944;
-  this->DefaultFrameRate = 5.0;
+  this->Mode = MODE_RANDOM;
+  this->Port = 18944;
+  this->FrameRate = 5.0;
+
+  this->Thread = NULL;
+  this->ThreadID = -1;
+  this->ServerStopFlag = 1;
 
   // GUI widgets
   this->MainFrame = vtkKWFrame::New();
@@ -177,6 +191,16 @@ void vtkIGTLTestWindow::ProcessGUIEvents(vtkObject *caller, unsigned long event,
 
 
 //----------------------------------------------------------------------------
+void vtkIGTLTestWindow::ProcessTimerEvents()
+{
+  // NOTE: this function has to be called by an external timer event handler
+  // e.g. vtkOpenIGTLinkIFGUI::ProcessTimerEvents();
+  
+  
+}
+
+
+//----------------------------------------------------------------------------
 void vtkIGTLTestWindow::AddGUIObservers()
 {
   this->RemoveGUIObservers();
@@ -308,6 +332,7 @@ void vtkIGTLTestWindow::CreateWidget()
   this->ModeButtonSet->GetWidget(1)->SetText("From file");
 
   this->ModeButtonSet->GetWidget(0)->SelectedStateOn();
+  this->Mode = MODE_RANDOM;
 
   app->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2", 
               this->ModeButtonSet->GetWidgetName());
@@ -341,7 +366,7 @@ void vtkIGTLTestWindow::CreateWidget()
   this->PortEntry->SetRestrictValueToInteger();
   this->PortEntry->Create();
   this->PortEntry->SetWidth(8);
-  this->PortEntry->SetValueAsInt(this->DefaultPort);
+  this->PortEntry->SetValueAsInt(this->Port);
 
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               portLabel->GetWidgetName() , this->PortEntry->GetWidgetName());
@@ -364,7 +389,7 @@ void vtkIGTLTestWindow::CreateWidget()
   this->FrameRateEntry->SetRestrictValueToDouble();
   this->FrameRateEntry->Create();
   this->FrameRateEntry->SetWidth(8);
-  this->FrameRateEntry->SetValueAsDouble(this->DefaultFrameRate);
+  this->FrameRateEntry->SetValueAsDouble(this->FrameRate);
 
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               frameRateLabel->GetWidgetName() , this->FrameRateEntry->GetWidgetName());
@@ -394,7 +419,7 @@ void vtkIGTLTestWindow::CreateWidget()
   this->CloseButton->SetParent(buttonFrame);
   this->CloseButton->Create();
   this->CloseButton->SetText( "Close" );
-  this->CloseButton->SetWidth (6);
+  this->CloseButton->SetWidth (10);
 
   app->Script ( "pack %s %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
                 this->StartTrackingButton->GetWidgetName(),
@@ -458,8 +483,20 @@ void vtkIGTLTestWindow::StartServer(int port, float rate)
 
   // --------------------------------------------------
   // Start Server
-  
+
+  if (this->Thread == NULL)
+    {
+    this->Thread = vtkMultiThreader::New();
+    this->ThreadID = -1;
+    }
+  if (this->ThreadID < 0)
+    {
+    this->ServerStopFlag = 0;
+    this->ThreadID = this->Thread->SpawnThread((vtkThreadFunctionType) &vtkIGTLTestWindow::ServerThreadFunction, this);
+    }
+
 }
+
 
 //----------------------------------------------------------------------------
 void vtkIGTLTestWindow::StopServer()
@@ -473,7 +510,117 @@ void vtkIGTLTestWindow::StopServer()
 
   // --------------------------------------------------
   // Stop Server
+  this->ServerStopFlag = 1;
   
 }
+
+
+//----------------------------------------------------------------------------
+void* vtkIGTLTestWindow::ServerThreadFunction(void * ptr)
+{
+  vtkMultiThreader::ThreadInfo* vinfo = 
+    static_cast<vtkMultiThreader::ThreadInfo*>(ptr);
+  vtkIGTLTestWindow* testWin = static_cast<vtkIGTLTestWindow*>(vinfo->UserData);
+
+  int port = testWin->Port;
+  double fps = testWin->FrameRate;
+  int    interval = (int) (1000.0 / fps);
+
+  igtl::TransformMessage::Pointer transMsg;
+  transMsg = igtl::TransformMessage::New();
+  transMsg->SetDeviceName("TrackerTest");
+
+  igtl::ServerSocket::Pointer serverSocket;
+  serverSocket = igtl::ServerSocket::New();
+  int r = serverSocket->CreateServer(port);
+
+  if (r < 0)
+    {
+    std::cerr << "Cannot create a server socket." << std::endl;
+    testWin->ThreadID = -1;
+    return 0;
+    }
+
+  igtl::Socket::Pointer socket;
+  
+  while (!testWin->ServerStopFlag)
+    {
+    //------------------------------------------------------------
+    // Waiting for Connection
+    std::cerr << "Wainting for a connection." << std::endl;
+    socket = serverSocket->WaitForConnection(1000);
+    
+    if (socket.IsNotNull()) // if client connected
+      {
+      //------------------------------------------------------------
+      // loop
+      while (!testWin->ServerStopFlag)
+        {
+        std::cerr << "Sending ...." << std::endl;
+        igtl::Matrix4x4 matrix;
+        if (testWin->Mode == MODE_RANDOM)
+          {
+          testWin->GetRandomTestMatrix(matrix);
+          }
+        else
+          {
+          // Read tracking data from file
+          }
+        transMsg->SetMatrix(matrix);
+        transMsg->Pack();
+        if (!socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize()))
+          {
+          // Client disconnected?
+          socket->CloseSocket();
+          break;
+          }
+        igtl::Sleep(interval); // wait
+        }
+      }
+    }
+    
+  //------------------------------------------------------------
+  // Close connection (The example code never reachs to this section ...)
+
+  serverSocket->CloseSocket();
+  testWin->ThreadID = -1;
+
+  std::cerr << "Server stopped ...." << std::endl;  
+
+  return 0;
+}
+
+
+//----------------------------------------------------------------------------
+void vtkIGTLTestWindow::GetRandomTestMatrix(igtl::Matrix4x4& matrix)
+{
+  float position[3];
+  float orientation[4];
+
+  // random position
+  static float phi = 0.0;
+  position[0] = 50.0 * cos(phi);
+  position[1] = 50.0 * sin(phi);
+  position[2] = 50.0 * cos(phi);
+  phi = phi + 0.2;
+
+  // random orientation
+  static float theta = 0.0;
+  orientation[0]=0.0;
+  orientation[1]=0.6666666666*cos(theta);
+  orientation[2]=0.577350269189626;
+  orientation[3]=0.6666666666*sin(theta);
+  theta = theta + 0.1;
+
+  //igtl::Matrix4x4 matrix;
+  igtl::QuaternionToMatrix(orientation, matrix);
+
+  matrix[0][3] = position[0];
+  matrix[1][3] = position[1];
+  matrix[2][3] = position[2];
+  
+  igtl::PrintMatrix(matrix);
+}
+
 
 
