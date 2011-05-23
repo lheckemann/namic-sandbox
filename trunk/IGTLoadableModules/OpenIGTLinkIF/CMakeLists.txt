@@ -89,6 +89,7 @@ set(OpenIGTLinkIF_SRCS
   vtkIGTLToMRMLImage.cxx
   vtkIGTLToMRMLPosition.cxx
   vtkMRMLIGTLConnectorNode.cxx
+  vtkIGTLTestWindow.cxx
 )
 
 if (OpenIGTLink_PROTOCOL_VERSION EQUAL 2)
