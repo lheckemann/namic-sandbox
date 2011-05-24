@@ -20,6 +20,9 @@
 #include "Windows.h"
 #endif
 
+#include <queue>
+#include <vector>
+
 #include "vtkOpenIGTLinkIFWin32Header.h"
 
 #include "vtkSmartPointer.h"
@@ -29,11 +32,15 @@
 #include "igtlMath.h"
 
 class vtkKWRadioButtonSet;
+class vtkKWLoadSaveButtonWithLabel;
 class vtkKWPushButton;
 class vtkKWEntry;
 class vtkKWFrame;
 
 class vtkMultiThreader;
+class vtkMutexLock;
+class vtkKWText;
+class vtkKWTextWithScrollbars;
 
 class VTK_OPENIGTLINKIF_EXPORT vtkIGTLTestWindow : public vtkKWTopLevel
 {
@@ -81,6 +88,8 @@ protected:
   //BTX
   void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
   //ETX
+ 
+  int LoadCSVTrackingFile(const char * path);
   
  protected:
   
@@ -90,12 +99,16 @@ protected:
   vtkKWFrame* MainFrame;
   
   vtkKWRadioButtonSet* ModeButtonSet;
+  vtkKWLoadSaveButtonWithLabel* SelectTrackingFileButton;
+
   vtkKWEntry*          PortEntry;
   vtkKWEntry*          FrameRateEntry;
 
   vtkKWPushButton* StartTrackingButton;
   vtkKWPushButton* StopTrackingButton;
   vtkKWPushButton* CloseButton;
+
+  vtkKWTextWithScrollbars* StatusText;
 
   vtkCallbackCommand *GUICallbackCommand;
 
@@ -107,7 +120,7 @@ protected:
   //----------------------------------------------------------------
 
   vtkMultiThreader* Thread;
-  //vtkMutexLock*     Mutex;
+  vtkMutexLock*     Mutex;
   int               ThreadID;
   int               ServerStopFlag;
 
@@ -119,6 +132,12 @@ protected:
   int    Mode;
   int    Port;
   double FrameRate;
+
+  //BTX
+  std::queue< std::string > StatusMessageBuffer;
+  std::vector< std::vector<double> > TrackingData;
+  //ETX
+  int    TrackingDataIndex;
 
  private:
   vtkIGTLTestWindow(const vtkIGTLTestWindow&);

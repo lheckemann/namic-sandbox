@@ -392,7 +392,6 @@ void vtkIGTLRemoteDataListWindow::CreateWidget()
 
   //this->SetMasterWindow (this->GetServerMenuButton() );
   this->SetApplication ( app );
-  //this->Create();
   this->SetBorderWidth ( 1 );
   this->SetReliefToFlat();
 

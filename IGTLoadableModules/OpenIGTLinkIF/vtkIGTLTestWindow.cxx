@@ -23,8 +23,12 @@
 #include "vtkKWRadioButton.h"
 #include "vtkKWRadioButtonSet.h"
 #include "vtkKWPushButton.h"
+#include "vtkKWLoadSaveButtonWithLabel.h"
+#include "vtkKWText.h"
+#include "vtkKWTextWithScrollbars.h"
 
 #include "vtkMultiThreader.h"
+#include "vtkMutexLock.h"
 
 #include "igtlOSUtil.h"
 #include "igtlMath.h"
@@ -53,11 +57,17 @@ vtkIGTLTestWindow::vtkIGTLTestWindow()
   this->ThreadID = -1;
   this->ServerStopFlag = 1;
 
+  this->Mutex = vtkMutexLock::New();
+
+  this->TrackingData.clear();
+  this->TrackingDataIndex = 0;
+
   // GUI widgets
   this->MainFrame = vtkKWFrame::New();
   this->MultipleMonitorsAvailable = false; 
 
   this->ModeButtonSet = NULL;
+  this->SelectTrackingFileButton = NULL;
   this->PortEntry = NULL;
   this->FrameRateEntry = NULL;
 
@@ -81,11 +91,6 @@ vtkIGTLTestWindow::vtkIGTLTestWindow()
 //----------------------------------------------------------------------------
 vtkIGTLTestWindow::~vtkIGTLTestWindow()
 {
-  //if (this->CurrentTarget)
-  //{
-  //  this->CurrentTarget->UnRegister(this);
-  //  this->CurrentTarget=NULL;
-  //}
 
   if ( this->GUICallbackCommand != NULL )
     {
@@ -97,6 +102,11 @@ vtkIGTLTestWindow::~vtkIGTLTestWindow()
     {
     this->ModeButtonSet->SetParent(NULL);
     this->ModeButtonSet->Delete();
+    }
+  if (this->SelectTrackingFileButton)
+    {
+    this->SelectTrackingFileButton->SetParent(NULL);
+    this->SelectTrackingFileButton->Delete();
     }
   if (PortEntry)
     {
@@ -122,6 +132,11 @@ vtkIGTLTestWindow::~vtkIGTLTestWindow()
     {
     this->CloseButton->SetParent(NULL);
     this->CloseButton->Delete();
+    }
+
+  if (this->Mutex)
+    {
+    this->Mutex->Delete();
     }
 
   this->MainFrame->Delete();
@@ -159,17 +174,30 @@ void vtkIGTLTestWindow::ProcessGUIEvents(vtkObject *caller, unsigned long event,
 {
 
   if (this->ModeButtonSet->GetWidget(0) == vtkKWRadioButton::SafeDownCast(caller)
-      && event == vtkKWRadioButton::SelectedStateChangedEvent
-      && this->ModeButtonSet->GetWidget(0)->GetSelectedState() == 1)
+      && event == vtkKWRadioButton::SelectedStateChangedEvent)
     {
+    if (this->ModeButtonSet->GetWidget(0)->GetSelectedState() == 1)
+      {
+      SwitchMode(0);
+      }
+    }
+  else if (this->ModeButtonSet->GetWidget(1) == vtkKWRadioButton::SafeDownCast(caller)
+      && event == vtkKWRadioButton::SelectedStateChangedEvent)
+    {
+    if (this->ModeButtonSet->GetWidget(1)->GetSelectedState() == 1)
+      {
+      SwitchMode(1);
+      }
     }
   else if (this->PortEntry == vtkKWEntry::SafeDownCast(caller)
            && event == vtkKWEntry::EntryValueChangedEvent)
     {
+    this->Port = this->PortEntry->GetValueAsInt();
     }
   else if (this->FrameRateEntry == vtkKWEntry::SafeDownCast(caller)
            && event == vtkKWEntry::EntryValueChangedEvent)
     {
+    this->FrameRate = this->FrameRateEntry->GetValueAsDouble();
     }
   else if (this->StartTrackingButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
@@ -196,6 +224,23 @@ void vtkIGTLTestWindow::ProcessTimerEvents()
   // NOTE: this function has to be called by an external timer event handler
   // e.g. vtkOpenIGTLinkIFGUI::ProcessTimerEvents();
   
+  int loop = 1;
+
+  // Print messages from the thread
+  while (loop)
+    {
+    this->Mutex->Lock();
+    if (this->StatusMessageBuffer.empty())
+      {
+      this->Mutex->Unlock();
+      break;
+      }
+    std::string str = this->StatusMessageBuffer.front();
+    this->StatusMessageBuffer.pop();
+    this->Mutex->Unlock();
+    this->StatusText->GetWidget()->AppendText(str.c_str());
+    this->StatusText->GetWidget()->SeeEnd();
+    }
   
 }
 
@@ -289,21 +334,20 @@ void vtkIGTLTestWindow::CreateWidget()
     return;
   }
 
-  vtkKWTopLevel::CreateWidget();
 
-  //this->SetMasterWindow (this->GetServerMenuButton() );
+  vtkKWTopLevel::CreateWidget();
   this->SetApplication ( app );
-  //this->Create();
-  this->SetBorderWidth ( 1 );
-  this->SetReliefToFlat();
+  //this->SetBorderWidth ( 1 );
+  //this->SetReliefToFlat();
 
   //this->SetParent (this->GetApplicationGUI()->GetMainSlicerWindow());
 
-  this->SetTitle ("OpenIGTLink Test");
+  this->SetTitle ("OpenIGTLink Test Server");
   //this->SetSize (400, 100);
   this->Withdraw();
 
   this->MainFrame->SetParent ( this );
+
   this->MainFrame->Create();
   this->MainFrame->SetBorderWidth ( 1 );
   this->Script ( "pack %s -side top -anchor nw -fill both -expand 1 -padx 0 -pady 1", this->MainFrame->GetWidgetName() ); 
@@ -318,8 +362,14 @@ void vtkIGTLTestWindow::CreateWidget()
   app->Script ( "pack %s -fill both -expand true",  
                 dataSourceFrame->GetWidgetName());
 
+  vtkKWFrame *modeFrame = vtkKWFrame::New();
+  modeFrame->SetParent(dataSourceFrame->GetFrame());
+  modeFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                modeFrame->GetWidgetName());
+
   this->ModeButtonSet = vtkKWRadioButtonSet::New();
-  this->ModeButtonSet->SetParent(dataSourceFrame->GetFrame());
+  this->ModeButtonSet->SetParent(modeFrame);
   this->ModeButtonSet->Create();
   this->ModeButtonSet->PackHorizontallyOn();
   this->ModeButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(2);
@@ -336,6 +386,28 @@ void vtkIGTLTestWindow::CreateWidget()
 
   app->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2", 
               this->ModeButtonSet->GetWidgetName());
+
+  vtkKWFrame *trackingFileFrame = vtkKWFrame::New();
+  trackingFileFrame->SetParent(dataSourceFrame->GetFrame());
+  trackingFileFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                trackingFileFrame->GetWidgetName());
+
+  this->SelectTrackingFileButton = vtkKWLoadSaveButtonWithLabel::New();
+  this->SelectTrackingFileButton->SetParent(trackingFileFrame);
+  this->SelectTrackingFileButton->Create();
+  this->SelectTrackingFileButton->SetWidth(50);
+  this->SelectTrackingFileButton->GetWidget()->SetText ("Tracking File");
+  //this->SelectTrackingFileButton->GetWidget()->TrimPathFromFileNameOn();
+  //this->SelectTrackingFileButton->GetWidget()->GetLoadSaveDialog()->ChooseDirectoryOn();
+  this->SelectTrackingFileButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes("{ {OpenIGTLinkIF} {*.csv} }");
+  this->SelectTrackingFileButton->GetWidget()->GetLoadSaveDialog()
+    ->RetrieveLastPathFromRegistry("OpenPath");
+
+  this->SelectTrackingFileButton->SetEnabled(0);
+
+  this->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2", 
+               this->SelectTrackingFileButton->GetWidgetName());
 
 
   // --------------------------------------------------
@@ -394,8 +466,9 @@ void vtkIGTLTestWindow::CreateWidget()
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               frameRateLabel->GetWidgetName() , this->FrameRateEntry->GetWidgetName());
 
+  // --------------------------------------------------
+  // Control Buttons
 
-  // Connector Property -- Connector type (server or client)
   vtkKWFrame *buttonFrame = vtkKWFrame::New();
   buttonFrame->SetParent(this->MainFrame);
   buttonFrame->Create();
@@ -427,6 +500,25 @@ void vtkIGTLTestWindow::CreateWidget()
                 this->CloseButton->GetWidgetName());
 
   buttonFrame->Delete();
+
+  // --------------------------------------------------
+  // Status Frame
+  vtkKWFrameWithLabel *statusFrame = vtkKWFrameWithLabel::New();
+  statusFrame->SetParent(this->MainFrame);
+  statusFrame->SetLabelText ("Server Messages");
+  statusFrame->Create();
+  app->Script ( "pack %s -side top -fill both -expand true",  
+                statusFrame->GetWidgetName());
+
+  this->StatusText = vtkKWTextWithScrollbars::New();
+  this->StatusText->SetParent(statusFrame->GetFrame());
+  this->StatusText->HorizontalScrollbarVisibilityOff();
+  this->StatusText->GetWidget()->SetReadOnly(1);
+  this->StatusText->Create();
+  //this->StatusText->SetWidth(8);
+  app->Script("pack %s -side top -fill both -expand true", 
+              this->StatusText->GetWidgetName());
+
 }
 
 
@@ -462,18 +554,55 @@ void vtkIGTLTestWindow::SwitchMode(int mode)
     }
   else if (mode == MODE_RANDOM)
     {
+    this->Mode = MODE_RANDOM;
+    this->SelectTrackingFileButton->SetEnabled(0);
     // do something
     }
   else //if (mode == MODE_FILE)
     {
+    this->Mode = MODE_FILE;
+    this->SelectTrackingFileButton->SetEnabled(1);
     // do something
     }
 
 }
 
+
 //----------------------------------------------------------------------------
 void vtkIGTLTestWindow::StartServer(int port, float rate)
 {
+
+  // --------------------------------------------------
+  // Check if any tracking file is specified.
+  // If specified, load tracking data to the memory.
+  if (this->Mode == MODE_FILE)
+    {
+    if (!this->SelectTrackingFileButton)
+      {
+      this->StatusText->GetWidget()->AppendText("ERROR: No tracking file specified.\n");
+      this->StatusText->GetWidget()->SeeEnd();
+      return;
+      }
+    else
+      {
+      // Check if the file exists
+      const char * path = this->SelectTrackingFileButton->GetWidget()->GetFileName();
+      if (!path)
+        {
+        this->StatusText->GetWidget()->AppendText("ERROR: No tracking file found.\n");
+        this->StatusText->GetWidget()->SeeEnd();
+        return;
+        }
+      // Load File
+      if (!LoadCSVTrackingFile(path))
+        {
+        this->StatusText->GetWidget()->AppendText("ERROR: Failed to load tracking data.\n");
+        this->StatusText->GetWidget()->SeeEnd();
+        return;
+        }
+      }
+    }
+
   // --------------------------------------------------
   // Change GUI status
   this->StartTrackingButton->SetEnabled(0);
@@ -510,6 +639,8 @@ void vtkIGTLTestWindow::StopServer()
 
   // --------------------------------------------------
   // Stop Server
+  this->StatusText->GetWidget()->AppendText("Stopping server...\n");
+  this->StatusText->GetWidget()->SeeEnd();
   this->ServerStopFlag = 1;
   
 }
@@ -518,13 +649,32 @@ void vtkIGTLTestWindow::StopServer()
 //----------------------------------------------------------------------------
 void* vtkIGTLTestWindow::ServerThreadFunction(void * ptr)
 {
+
   vtkMultiThreader::ThreadInfo* vinfo = 
     static_cast<vtkMultiThreader::ThreadInfo*>(ptr);
   vtkIGTLTestWindow* testWin = static_cast<vtkIGTLTestWindow*>(vinfo->UserData);
 
+  testWin->Mutex->Lock();
+  testWin->StatusMessageBuffer.push("Starting server...\n");
+  if (testWin->Mode == MODE_RANDOM)
+    {
+    testWin->StatusMessageBuffer.push("  Mode: RANDOM\n");
+    }
+  else
+    {
+    testWin->StatusMessageBuffer.push("  Mode: FILE\n");
+    }
+  testWin->Mutex->Unlock();
+
   int port = testWin->Port;
   double fps = testWin->FrameRate;
   int    interval = (int) (1000.0 / fps);
+
+  char msg[256];
+  sprintf(msg, "  Port: %d\n  Rate: %.3f fps\n", port, fps);
+  testWin->Mutex->Lock();
+  testWin->StatusMessageBuffer.push(msg);
+  testWin->Mutex->Unlock();
 
   igtl::TransformMessage::Pointer transMsg;
   transMsg = igtl::TransformMessage::New();
@@ -536,27 +686,36 @@ void* vtkIGTLTestWindow::ServerThreadFunction(void * ptr)
 
   if (r < 0)
     {
-    std::cerr << "Cannot create a server socket." << std::endl;
+    testWin->Mutex->Lock();
+    testWin->StatusMessageBuffer.push("ERROR: Couldn't create a server socket.\n");
+    testWin->Mutex->Unlock();
     testWin->ThreadID = -1;
     return 0;
     }
 
   igtl::Socket::Pointer socket;
-  
+
+  testWin->Mutex->Lock();
+  testWin->StatusMessageBuffer.push("Waiting for a client...\n");
+  testWin->Mutex->Unlock();
+
   while (!testWin->ServerStopFlag)
     {
     //------------------------------------------------------------
     // Waiting for Connection
-    std::cerr << "Wainting for a connection." << std::endl;
     socket = serverSocket->WaitForConnection(1000);
     
     if (socket.IsNotNull()) // if client connected
       {
+      testWin->Mutex->Lock();
+      testWin->StatusMessageBuffer.push("Client connected.\n");
+      testWin->Mutex->Unlock();
+
       //------------------------------------------------------------
       // loop
       while (!testWin->ServerStopFlag)
         {
-        std::cerr << "Sending ...." << std::endl;
+        //std::cerr << "Sending ...." << std::endl;
         igtl::Matrix4x4 matrix;
         if (testWin->Mode == MODE_RANDOM)
           {
@@ -564,14 +723,42 @@ void* vtkIGTLTestWindow::ServerThreadFunction(void * ptr)
           }
         else
           {
-          // Read tracking data from file
+          testWin->Mutex->Lock();
+          if ((unsigned int)testWin->TrackingDataIndex >= testWin->TrackingData.size())
+            {
+            testWin->TrackingDataIndex ++;
+            }
+          std::vector<double> row = testWin->TrackingData[testWin->TrackingDataIndex];
+          testWin->TrackingDataIndex ++;
+          matrix[0][0] = row[0];
+          matrix[0][1] = row[1];
+          matrix[0][2] = row[2];
+          matrix[0][3] = row[3];
+          matrix[1][0] = row[4];
+          matrix[1][1] = row[5];
+          matrix[1][2] = row[6];
+          matrix[1][3] = row[7];
+          matrix[2][0] = row[8];
+          matrix[2][1] = row[9];
+          matrix[2][2] = row[10];
+          matrix[2][3] = row[11];
+          matrix[3][0] = row[12];
+          matrix[3][1] = row[13];
+          matrix[3][2] = row[14];
+          matrix[3][3] = row[15];
+          testWin->Mutex->Unlock();
           }
+
         transMsg->SetMatrix(matrix);
         transMsg->Pack();
+
         if (!socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize()))
           {
           // Client disconnected?
           socket->CloseSocket();
+          testWin->Mutex->Lock();
+          testWin->StatusMessageBuffer.push("Waiting for a client...\n");
+          testWin->Mutex->Unlock();
           break;
           }
         igtl::Sleep(interval); // wait
@@ -585,7 +772,9 @@ void* vtkIGTLTestWindow::ServerThreadFunction(void * ptr)
   serverSocket->CloseSocket();
   testWin->ThreadID = -1;
 
-  std::cerr << "Server stopped ...." << std::endl;  
+  testWin->Mutex->Lock();
+  testWin->StatusMessageBuffer.push("Server stopped.\n");
+  testWin->Mutex->Unlock();
 
   return 0;
 }
@@ -619,7 +808,58 @@ void vtkIGTLTestWindow::GetRandomTestMatrix(igtl::Matrix4x4& matrix)
   matrix[1][3] = position[1];
   matrix[2][3] = position[2];
   
-  igtl::PrintMatrix(matrix);
+  //igtl::PrintMatrix(matrix);
+}
+
+
+//----------------------------------------------------------------------------
+int vtkIGTLTestWindow::LoadCSVTrackingFile(const char * path)
+{
+
+  this->Mutex->Lock();
+  this->TrackingData.clear();
+
+  std::ifstream fin(path);
+  std::string sr;
+
+  if (!fin.is_open())
+    {
+    this->Mutex->Unlock();
+    return 0;
+    }
+
+  std::vector<double> row;
+  row.resize(16);
+  for (int i = 0; i < 16; i ++)
+    {
+    row[i] = 0.0;
+    }
+
+  while (std::getline(fin, sr))
+    {
+    std::stringstream ssr(sr);
+    std::string sc;
+    int i = 0;
+    while (std::getline(ssr, sc, ','))
+      {
+      std::stringstream ssc(sc);
+      double d;
+      ssc >> d;
+      if (i < 16)
+        {
+        row[i] = d;
+        //std::cerr << d << std::endl;
+        }
+      i ++;
+      }
+    this->TrackingData.push_back(row);
+    }
+
+  this->TrackingDataIndex = 0;
+  this->Mutex->Unlock();
+
+  return this->TrackingData.size();
+
 }
 
 
