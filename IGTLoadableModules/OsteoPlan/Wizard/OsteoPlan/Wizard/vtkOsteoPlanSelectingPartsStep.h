@@ -17,24 +17,13 @@
 
 #include "vtkOsteoPlanStep.h"
 
-class vtkKWEntry;
-class vtkKWEntrySet;
+class vtkSlicerInteractorStyle;
 class vtkKWEntryWithLabel;
 class vtkKWFrame;
-class vtkKWLabel;
-class vtkSlicerNodeSelectorWidget;
-class vtkKWMatrixWidgetWithLabel;
-class vtkKWMenuButton;
-class vtkKWMenuButtonWithLabel;
-class vtkKWMultiColumnList;
-class vtkKWMultiColumnListWithScrollbars;
+class vtkKWFrameWithLabel;
 class vtkKWPushButton;
-class vtkKWText;
-class vtkImageData;
-class vtkMRMLScalarVolumeNode;
-class vtkMRMLSelectionNode;
-class vtkMRMLFiducialListNode;
-class vtkKWCheckButton;
+class vtkSlicerNodeSelectorWidget;
+class vtkMRMLModelNode;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanSelectingPartsStep : public vtkOsteoPlanStep
 {
@@ -48,9 +37,11 @@ public:
   virtual void TearDownGUI();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
-
-  
+ 
   virtual void UpdateGUI();
+
+  void HandleMouseEvent(vtkSlicerInteractorStyle* style);
+  void SelectClickedPart(const char* modelName);
 
 protected:
   vtkOsteoPlanSelectingPartsStep();
@@ -61,11 +52,19 @@ protected:
 
   bool ProcessingCallback;
 
-  vtkKWFrame *MainFrame;
-  
+  vtkKWFrame* MainFrame;
+  vtkKWFrameWithLabel* SelectFrame;
+  vtkSlicerNodeSelectorWidget* InputModelSelector;
+  vtkMRMLModelNode* InputModel;
+  vtkKWEntryWithLabel* PartNameEntry;
+  vtkKWPushButton* SelectPartButton;
+
+  bool SelectingPart;
+
 private:
   vtkOsteoPlanSelectingPartsStep(const vtkOsteoPlanSelectingPartsStep&);
   void operator=(const vtkOsteoPlanSelectingPartsStep&);
+
 };
 
 #endif
