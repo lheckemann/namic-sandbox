@@ -66,6 +66,7 @@ protected:
   
   vtkBoxWidget2* CuttingPlane;
   vtkBoxRepresentation* CuttingPlaneRepresentation; 
+  bool CutterAlreadyCreatedOnce;
   bool NextDisplayCutterStatus;
 
   //---------------------------------------------------

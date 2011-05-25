@@ -452,7 +452,7 @@ void vtkOsteoPlanGUI::BuildGUIForWorkflowFrame()
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 1");
+  conBrowsFrame->SetLabelText("OsteoPlan");
   //conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
@@ -531,7 +531,7 @@ void vtkOsteoPlanGUI::BuildGUIForWizardFrame()
     {
       this->CuttingStep = vtkOsteoPlanCuttingModelStep::New();
       PrepareMyStep(this->CuttingStep); 
-      wizard_workflow->AddNextStep(this->CuttingStep);
+      wizard_workflow->AddStep(this->CuttingStep);
       UpdateWorkflowStepNames();
     }
 
@@ -550,6 +550,7 @@ void vtkOsteoPlanGUI::BuildGUIForWizardFrame()
 
   //==============================================
 
+  this->GetWizardWidget()->Update();
 
 
 }
@@ -577,7 +578,6 @@ void vtkOsteoPlanGUI::PrepareMyStep(vtkOsteoPlanStep* wStep)
       wStep->SetApplication(this->GetApplication());
       wStep->SetTotalSteps(numSteps+1);
       wStep->SetStepNumber(numSteps+1);
-      wStep->ShowUserInterface();
       }
   
     // Update GUI

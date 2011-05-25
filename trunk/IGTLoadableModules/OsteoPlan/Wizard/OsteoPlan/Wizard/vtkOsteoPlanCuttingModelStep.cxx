@@ -78,6 +78,7 @@ vtkOsteoPlanCuttingModelStep::vtkOsteoPlanCuttingModelStep()
 
   this->CuttingPlane = NULL;
   this->CuttingPlaneRepresentation = NULL;
+  this->CutterAlreadyCreatedOnce = false;
 
   this->NextDisplayCutterStatus = false;
 
@@ -219,8 +220,9 @@ void vtkOsteoPlanCuttingModelStep::ShowUserInterface()
 
   //-------------------------------------------------------
 
-
   CreateCutter();
+
+  this->CutterAlreadyCreatedOnce = true;
 
   this->AddGUIObservers();
   
@@ -370,7 +372,19 @@ void vtkOsteoPlanCuttingModelStep::HideUserInterface()
 
   if(this->CuttingPlane)
     {
-    this->CuttingPlane->Off();
+      // Hide cutter when leaving step
+      vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
+      vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
+
+      this->CuttingPlane->Off();
+      this->CuttingPlane->GetRepresentation()->SetVisibility(0);
+      this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
+      this->TogglePlaneButton->SetBackgroundColor(color->SliceGUIGreen);
+      this->TogglePlaneButton->SetActiveBackgroundColor(color->SliceGUIGreen);
+      this->TogglePlaneButton->SetText("Show cutter");
+
+      this->NextDisplayCutterStatus = false;
     }
 }
 
@@ -391,7 +405,7 @@ void vtkOsteoPlanCuttingModelStep::CreateCutter()
       }
     }
 
-  if(this->CuttingPlane && this->CuttingPlaneRepresentation)
+  if(this->CuttingPlane && this->CuttingPlaneRepresentation && !this->CutterAlreadyCreatedOnce)
     {
     this->CuttingPlaneRepresentation->GetFaceProperty()->SetRepresentationToSurface();
     this->CuttingPlaneRepresentation->GetSelectedHandleProperty()->SetColor(0,0,1);
