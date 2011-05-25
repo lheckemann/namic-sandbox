@@ -108,6 +108,7 @@ class VTK_HybridProbe_EXPORT vtkHybridProbeGUI : public vtkSlicerModuleGUI
 
   void UpdateAll();
   void RecordPoints();
+  void PerformRegistration();
 
  protected:
   
@@ -129,12 +130,16 @@ class VTK_HybridProbe_EXPORT vtkHybridProbeGUI : public vtkSlicerModuleGUI
   vtkMRMLLinearTransformNode* OptTransformNode;
 
   vtkKWPushButton* RecordPointButton;
+  vtkKWPushButton* PerformRegistrationButton;
 
   vtkMatrix4x4* EMTempMatrix;
   vtkMatrix4x4* OptTempMatrix;
   vtkMatrix4x4* EMPositions;
   vtkMatrix4x4* OptPositions;
   int numberOfPoints;
+  bool firstClick;
+
+  vtkMatrix4x4* EMOptRegMatrix;
 
   //----------------------------------------------------------------
   // Logic Values
