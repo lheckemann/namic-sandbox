@@ -25,6 +25,8 @@
 
 #include "vtkHybridProbeLogic.h"
 
+#define MAX_NUM_POINTS 3
+
 class vtkKWPushButton;
 class vtkSlicerNodeSelectorWidget;
 class vtkMRMLLinearTransformNode;

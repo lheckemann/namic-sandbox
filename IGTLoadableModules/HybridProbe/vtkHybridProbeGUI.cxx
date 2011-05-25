@@ -128,7 +128,7 @@ vtkHybridProbeGUI::~vtkHybridProbeGUI ( )
     this->PerformRegistrationButton->SetParent(NULL);
     this->PerformRegistrationButton->Delete();
     }
-
+  
   if (this->EMTempMatrix)
     {
     this->EMTempMatrix->Delete();
@@ -138,7 +138,7 @@ vtkHybridProbeGUI::~vtkHybridProbeGUI ( )
     {
     this->OptTempMatrix->Delete();
     }
-
+  
   if (this->EMPositions)
     {
     this->EMPositions->Delete();
@@ -149,12 +149,6 @@ vtkHybridProbeGUI::~vtkHybridProbeGUI ( )
     this->OptPositions->Delete();
     }
 
-/*
-  if (this->EMOptRegMatrix)
-    {
-    this->EMOptRegMatrix->Delete();
-    }
-*/
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -354,7 +348,7 @@ void vtkHybridProbeGUI::ProcessGUIEvents(vtkObject *caller,
           else
             {
 
-          if(this->numberOfPoints >=0 && this->numberOfPoints < 3)
+          if(this->numberOfPoints >=0 && this->numberOfPoints < MAX_NUM_POINTS)
             {
             RecordPoints();
 
@@ -369,7 +363,7 @@ void vtkHybridProbeGUI::ProcessGUIEvents(vtkObject *caller,
             this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
 
             }
-          else if(this->numberOfPoints == 3)
+          else if(this->numberOfPoints == MAX_NUM_POINTS)
             {
             RecordPoints();
 
@@ -676,9 +670,9 @@ void vtkHybridProbeGUI::PerformRegistration()
     int EMy = this->EMPositions->GetElement(1, i);
     int EMz = this->EMPositions->GetElement(2, i);
 
-    int Optx = this->EMPositions->GetElement(0, i);
-    int Opty = this->EMPositions->GetElement(1, i);
-    int Optz = this->EMPositions->GetElement(2, i);
+    int Optx = this->OptPositions->GetElement(0, i);
+    int Opty = this->OptPositions->GetElement(1, i);
+    int Optz = this->OptPositions->GetElement(2, i);
 
     EMOptReg->AddPoint(i, EMx, EMy, EMz, Optx, Opty, Optz);
     }
