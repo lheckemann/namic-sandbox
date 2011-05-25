@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
@@ -34,10 +34,10 @@
 #include "vtkKWFrame.h"
 #include "vtkKWLabel.h"
 #include "vtkKWEvent.h"
-
 #include "vtkKWPushButton.h"
-
 #include "vtkCornerAnnotation.h"
+
+#include "vtkIGTPat2ImgRegistration.h"
 
 
 //---------------------------------------------------------------------------
@@ -67,12 +67,17 @@ vtkHybridProbeGUI::vtkHybridProbeGUI ( )
   this->OptTransformNode = NULL;
 
   this->RecordPointButton = NULL;
+  this->PerformRegistrationButton = NULL;
   
   this->EMTempMatrix = vtkMatrix4x4::New();
   this->OptTempMatrix = vtkMatrix4x4::New();
   this->EMPositions = vtkMatrix4x4::New();
   this->OptPositions = vtkMatrix4x4::New();
-  this->numberOfPoints = -1;
+  this->numberOfPoints = 0;
+
+  this->firstClick = false;
+
+  this->EMOptRegMatrix = NULL;//vtkMatrix4x4::New();
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -118,6 +123,12 @@ vtkHybridProbeGUI::~vtkHybridProbeGUI ( )
     this->RecordPointButton->Delete();
     }
 
+  if(this->PerformRegistrationButton)
+    {
+    this->PerformRegistrationButton->SetParent(NULL);
+    this->PerformRegistrationButton->Delete();
+    }
+
   if (this->EMTempMatrix)
     {
     this->EMTempMatrix->Delete();
@@ -138,6 +149,12 @@ vtkHybridProbeGUI::~vtkHybridProbeGUI ( )
     this->OptPositions->Delete();
     }
 
+/*
+  if (this->EMOptRegMatrix)
+    {
+    this->EMOptRegMatrix->Delete();
+    }
+*/
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -208,6 +225,12 @@ void vtkHybridProbeGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->PerformRegistrationButton)
+    {
+    this->PerformRegistrationButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   this->RemoveLogicObservers();
 
 }
@@ -244,6 +267,9 @@ void vtkHybridProbeGUI::AddGUIObservers ( )
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->RecordPointButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->PerformRegistrationButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->AddLogicObservers();
@@ -300,118 +326,138 @@ void vtkHybridProbeGUI::ProcessGUIEvents(vtkObject *caller,
   if (this->RecordPointButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent)
     {
-      if(this->EMTransformNodeSelector && this->OptTransformNodeSelector)
-  {
-    this->EMTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->EMTransformNodeSelector->GetSelected());
-    this->OptTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->OptTransformNodeSelector->GetSelected());
-
-    if(this->EMTransformNode && this->OptTransformNode)
+    if(this->EMTransformNodeSelector && this->OptTransformNodeSelector)
       {
-        vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-        vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
+      this->EMTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->EMTransformNodeSelector->GetSelected());
+      this->OptTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->OptTransformNodeSelector->GetSelected());
 
-        if(this->numberOfPoints >=0 && this->numberOfPoints < 3)
-    {
-      RecordPoints();
+      if(this->EMTransformNode && this->OptTransformNode)
+        {
 
-      // Convert int to string
-      int numToDisplay = this->numberOfPoints+1;
-      std::ostringstream oss;
-      oss << numToDisplay;
-      std::string RecordText = "Record Position " + oss.str();
+          vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+          vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
 
-      this->RecordPointButton->SetText(RecordText.c_str());
-      this->RecordPointButton->SetBackgroundColor(color->SliceGUIYellow);
-      this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
+          if(!this->firstClick)
+            {
+            // Convert int to string
+            int numToDisplay = this->numberOfPoints+1;
+            std::ostringstream oss;
+            oss << numToDisplay;
+            std::string RecordText = "Record Position " + oss.str();
 
+            this->RecordPointButton->SetText(RecordText.c_str());
+            this->RecordPointButton->SetBackgroundColor(color->SliceGUIYellow);
+            this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
+
+            this->firstClick = true;
+            }
+          else
+            {
+
+          if(this->numberOfPoints >=0 && this->numberOfPoints < 3)
+            {
+            RecordPoints();
+
+            // Convert int to string
+            int numToDisplay = this->numberOfPoints+1;
+            std::ostringstream oss;
+            oss << numToDisplay;
+            std::string RecordText = "Record Position " + oss.str();
+
+            this->RecordPointButton->SetText(RecordText.c_str());
+            this->RecordPointButton->SetBackgroundColor(color->SliceGUIYellow);
+            this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
+
+            }
+          else if(this->numberOfPoints == 3)
+            {
+            RecordPoints();
+
+            // Convert int to string
+            int numToDisplay = this->numberOfPoints;
+            std::ostringstream oss;
+            oss << numToDisplay;
+            std::string RecordText = "Record Position " + oss.str();
+
+            this->RecordPointButton->SetText(RecordText.c_str());
+            this->RecordPointButton->SetBackgroundColor(color->White);
+            this->RecordPointButton->SetActiveBackgroundColor(color->White);
+
+            this->RecordPointButton->SetEnabled(0);
+
+            this->PerformRegistrationButton->SetBackgroundColor(color->SliceGUIGreen);
+            this->PerformRegistrationButton->SetActiveBackgroundColor(color->SliceGUIGreen);
+            this->PerformRegistrationButton->SetEnabled(1);
+
+            }
     }
-        else if(this->numberOfPoints == -1)
-    {
-      this->numberOfPoints++;
-
-      // Convert int to string
-      int numToDisplay = this->numberOfPoints+1;
-      std::ostringstream oss;
-      oss << numToDisplay;
-      std::string RecordText = "Record Position " + oss.str();
-
-      this->RecordPointButton->SetText(RecordText.c_str());
-      this->RecordPointButton->SetBackgroundColor(color->SliceGUIYellow);
-      this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
-    }
-        else if(this->numberOfPoints == 3)
-    {
-      RecordPoints();
-
-      // Convert int to string
-      int numToDisplay = this->numberOfPoints;
-      std::ostringstream oss;
-      oss << numToDisplay;
-      std::string RecordText = "Record Position " + oss.str();
-
-      this->RecordPointButton->SetText(RecordText.c_str());
-      this->RecordPointButton->SetBackgroundColor(color->White);
-      this->RecordPointButton->SetActiveBackgroundColor(color->White);
-
-      this->RecordPointButton->SetEnabled(0);
-    }
+        
+        }
       }
-  }
     }
 
   if(this->EMTransformNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
-      vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-      vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
+    vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+    vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
 
-      this->EMTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->EMTransformNodeSelector->GetSelected());
-      if(!this->OptTransformNode && this->EMTransformNode)
-  {
-    this->RecordPointButton->SetBackgroundColor(color->SliceGUIYellow);
-    this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
-    this->RecordPointButton->SetText("Please, select Optical Tracking System");
-  }
-      else if(!this->OptTransformNode && !this->EMTransformNode)
-  {
-    this->RecordPointButton->SetBackgroundColor(color->SliceGUIOrange);
-    this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIOrange);
-    this->RecordPointButton->SetText("Please, select Optical and EM Tracking Systems");
-  }
-      else if(this->OptTransformNode && this->EMTransformNode)
-  {
-    this->RecordPointButton->SetBackgroundColor(color->SliceGUIGreen);
-    this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIGreen);
-    this->RecordPointButton->SetText("Start Recording Points");
-  }
+    this->EMTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->EMTransformNodeSelector->GetSelected());
+    if(!this->OptTransformNode && this->EMTransformNode)
+      {
+      this->RecordPointButton->SetBackgroundColor(color->SliceGUIYellow);
+      this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
+      this->RecordPointButton->SetText("Please, select Optical Tracking System");
+      }
+    else if(!this->OptTransformNode && !this->EMTransformNode)
+      {
+      this->RecordPointButton->SetBackgroundColor(color->SliceGUIOrange);
+      this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIOrange);
+      this->RecordPointButton->SetText("Please, select Optical and EM Tracking Systems");
+      }
+    else if(this->OptTransformNode && this->EMTransformNode)
+      {
+      this->RecordPointButton->SetBackgroundColor(color->SliceGUIGreen);
+      this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIGreen);
+      this->RecordPointButton->SetText("Start Recording Points");
+      }
     }
 
 
   if(this->OptTransformNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
-      vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-      vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
+    vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+    vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
 
-      this->OptTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->OptTransformNodeSelector->GetSelected());
-      if(!this->EMTransformNode && this->OptTransformNode)
-  {
-    this->RecordPointButton->SetBackgroundColor(color->SliceGUIYellow);
-    this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
-    this->RecordPointButton->SetText("Please, select EM Tracking System");
-  }
-      else if(!this->EMTransformNode && !this->OptTransformNode)
-  {
-    this->RecordPointButton->SetBackgroundColor(color->SliceGUIOrange);
-    this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIOrange);
-    this->RecordPointButton->SetText("Please, select Optical and EM Tracking Systems");
-  }
-      else if(this->OptTransformNode && this->EMTransformNode)
-  {
-    this->RecordPointButton->SetBackgroundColor(color->SliceGUIGreen);
-    this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIGreen);
-    this->RecordPointButton->SetText("Start Recording Points");
-  }
+    this->OptTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->OptTransformNodeSelector->GetSelected());
+    if(!this->EMTransformNode && this->OptTransformNode)
+      {
+      this->RecordPointButton->SetBackgroundColor(color->SliceGUIYellow);
+      this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
+      this->RecordPointButton->SetText("Please, select EM Tracking System");
+      }
+    else if(!this->EMTransformNode && !this->OptTransformNode)
+      {
+      this->RecordPointButton->SetBackgroundColor(color->SliceGUIOrange);
+      this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIOrange);
+      this->RecordPointButton->SetText("Please, select Optical and EM Tracking Systems");
+      }
+    else if(this->OptTransformNode && this->EMTransformNode)
+      {
+      this->RecordPointButton->SetBackgroundColor(color->SliceGUIGreen);
+      this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIGreen);
+      this->RecordPointButton->SetText("Start Recording Points");
+      }
+    }
+
+  if (this->PerformRegistrationButton == vtkKWPushButton::SafeDownCast(caller) 
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    if(this->numberOfPoints == 4)
+      {
+      PerformRegistration();
+      }
     }
 
 } 
@@ -561,12 +607,21 @@ void vtkHybridProbeGUI::BuildGUIForSelectingProbes()
   this->RecordPointButton->SetBackgroundColor(color->SliceGUIOrange);
   this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIOrange);
 
-  this->Script("pack %s %s %s %s %s -side top -fill x -padx 2 -pady 2",
+  this->PerformRegistrationButton = vtkKWPushButton::New();
+  this->PerformRegistrationButton->SetParent( frame->GetFrame() );
+  this->PerformRegistrationButton->Create();
+  this->PerformRegistrationButton->SetText("Perform Registration");
+  this->PerformRegistrationButton->SetBackgroundColor(color->White);
+  this->PerformRegistrationButton->SetActiveBackgroundColor(color->White);
+  this->PerformRegistrationButton->SetEnabled(0);
+
+  this->Script("pack %s %s %s %s %s %s -side top -fill x -padx 2 -pady 2",
          EMTrackingLabel->GetWidgetName(),
          this->EMTransformNodeSelector->GetWidgetName(),
          OptTrackingLabel->GetWidgetName(),
          this->OptTransformNodeSelector->GetWidgetName(), 
-               this->RecordPointButton->GetWidgetName());
+               this->RecordPointButton->GetWidgetName(),
+               this->PerformRegistrationButton->GetWidgetName());
 
   conBrowsFrame->Delete();
   frame->Delete();
@@ -587,31 +642,60 @@ void vtkHybridProbeGUI::RecordPoints()
   if(this->EMTransformNode && this->EMTempMatrix && this->EMPositions
      && this->OptTransformNode && this->OptTempMatrix && this->OptPositions)
     {
-      std::cerr << "INSIDE: " << this->numberOfPoints << std::endl;
+    this->EMTempMatrix->Identity();
+    this->OptTempMatrix->Identity();
 
-      this->EMTempMatrix->Identity();
-      this->OptTempMatrix->Identity();
+    this->EMTransformNode->GetMatrixTransformToWorld(this->EMTempMatrix);
+    this->OptTransformNode->GetMatrixTransformToWorld(this->OptTempMatrix);
 
-      this->EMTransformNode->GetMatrixTransformToWorld(this->EMTempMatrix);
-      this->OptTransformNode->GetMatrixTransformToWorld(this->OptTempMatrix);
+    // Fill EM Matrix
+    this->EMPositions->SetElement(0, this->numberOfPoints, this->EMTempMatrix->GetElement(0,3));
+    this->EMPositions->SetElement(1, this->numberOfPoints, this->EMTempMatrix->GetElement(1,3));
+    this->EMPositions->SetElement(2, this->numberOfPoints, this->EMTempMatrix->GetElement(2,3));
+    this->EMPositions->SetElement(3, this->numberOfPoints, 1);
 
-      // Fill EM Matrix
-      this->EMPositions->SetElement(0, this->numberOfPoints, this->EMTempMatrix->GetElement(0,3));
-      this->EMPositions->SetElement(1, this->numberOfPoints, this->EMTempMatrix->GetElement(1,3));
-      this->EMPositions->SetElement(2, this->numberOfPoints, this->EMTempMatrix->GetElement(2,3));
-      this->EMPositions->SetElement(3, this->numberOfPoints, 1);
+    // Fill Optical Matrix
+    this->OptPositions->SetElement(0, this->numberOfPoints, this->OptTempMatrix->GetElement(0,3));
+    this->OptPositions->SetElement(1, this->numberOfPoints, this->OptTempMatrix->GetElement(1,3));
+    this->OptPositions->SetElement(2, this->numberOfPoints, this->OptTempMatrix->GetElement(2,3));
+    this->OptPositions->SetElement(3, this->numberOfPoints, 1);
 
-      // Fill Optical Matrix
-      this->OptPositions->SetElement(0, this->numberOfPoints, this->OptTempMatrix->GetElement(0,3));
-      this->OptPositions->SetElement(1, this->numberOfPoints, this->OptTempMatrix->GetElement(1,3));
-      this->OptPositions->SetElement(2, this->numberOfPoints, this->OptTempMatrix->GetElement(2,3));
-      this->OptPositions->SetElement(3, this->numberOfPoints, 1);
-
-      std::cerr << "INSIDE: " << this->EMPositions->GetElement(0, this->numberOfPoints) << ","
-    << this->EMPositions->GetElement(1, this->numberOfPoints) << ","
-    << this->EMPositions->GetElement(2, this->numberOfPoints) << ","
-    << this->EMPositions->GetElement(3, this->numberOfPoints) << std::endl;
-
-      this->numberOfPoints++;
+    this->numberOfPoints++;
     }
+}
+
+void vtkHybridProbeGUI::PerformRegistration()
+{
+  vtkIGTPat2ImgRegistration* EMOptReg = vtkIGTPat2ImgRegistration::New();
+
+  EMOptReg->SetNumberOfPoints(this->numberOfPoints);
+
+  for(int i=0; i < this->numberOfPoints; i++)
+    {
+    int EMx = this->EMPositions->GetElement(0, i);
+    int EMy = this->EMPositions->GetElement(1, i);
+    int EMz = this->EMPositions->GetElement(2, i);
+
+    int Optx = this->EMPositions->GetElement(0, i);
+    int Opty = this->EMPositions->GetElement(1, i);
+    int Optz = this->EMPositions->GetElement(2, i);
+
+    EMOptReg->AddPoint(i, EMx, EMy, EMz, Optx, Opty, Optz);
+    }
+
+  int error = EMOptReg->DoRegistration();
+
+  if(!error)
+    {
+//    this->EMOptRegMatrix->Zero();
+    this->EMOptRegMatrix = EMOptReg->GetLandmarkTransformMatrix();
+
+    vtkMRMLLinearTransformNode* tempTransform = vtkMRMLLinearTransformNode::New();
+    tempTransform->SetName("EMToOptRegistration");
+    tempTransform->ApplyTransform(this->EMOptRegMatrix);
+    this->GetLogic()->GetMRMLScene()->AddNode(tempTransform);
+    tempTransform->Delete();
+    }
+  EMOptReg->Delete();
+  
 }
