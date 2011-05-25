@@ -181,7 +181,15 @@ void vtkOsteoPlanSelectingPartsStep::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkOsteoPlanSelectingPartsStep::HandleMouseEvent(vtkSlicerInteractorStyle* style)
 {
-  std::cerr << "INSIDE: Selecting Step HandleMouseEvent" << std::endl;
+  if(this->SelectingPart)
+    {
+      if(strcmp(this->PartNameEntry->GetWidget()->GetValue(),""))
+  {
+    SelectClickedPart(this->PartNameEntry->GetWidget()->GetValue());
+    this->SelectingPart = false;
+  }
+    }
+
 }
 
 
@@ -189,21 +197,15 @@ void vtkOsteoPlanSelectingPartsStep::HandleMouseEvent(vtkSlicerInteractorStyle* 
 void vtkOsteoPlanSelectingPartsStep::ProcessGUIEvents(vtkObject *caller,
                                                       unsigned long event, void *callData)
 {
-  std::cerr << "INSIDE: EventNumber: " << event << std::endl;
-
-/*
   const char *eventName = vtkCommand::GetStringFromEventId(event);
-
-  std::cerr << "INSIDE: " << eventName << std::endl;
 
   if (strcmp(eventName, "LeftButtonPressEvent") == 0)
     {
     vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast(caller);
     HandleMouseEvent(style);
-    return;
     }
-*/
-
+  else
+    {
   if(this->InputModelSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
@@ -213,6 +215,7 @@ void vtkOsteoPlanSelectingPartsStep::ProcessGUIEvents(vtkObject *caller,
   if(this->PartNameEntry->GetWidget() == vtkKWEntry::SafeDownCast(caller)
      && event == vtkKWEntry::EntryValueChangedEvent)
     {
+      std::cerr << "INSIDE: TestMe" << std::endl;
     vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
     vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
 
@@ -255,7 +258,7 @@ void vtkOsteoPlanSelectingPartsStep::ProcessGUIEvents(vtkObject *caller,
       this->SelectingPart = true;
       }
     }
-
+    }
 }
 
 
@@ -269,15 +272,20 @@ void vtkOsteoPlanSelectingPartsStep::AddGUIObservers()
     this->InputModelSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
-  if(this->PartNameEntry)
+ if(this->PartNameEntry->GetWidget())
     {
-    this->PartNameEntry->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+      this->PartNameEntry->GetWidget()->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->SelectPartButton)
     {
     this->SelectPartButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
+
+  this->GetGUI()->GetApplicationGUI()->GetActiveRenderWindowInteractor()
+    ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+
+
 }
 //-----------------------------------------------------------------------------
 void vtkOsteoPlanSelectingPartsStep::RemoveGUIObservers()
@@ -287,15 +295,22 @@ void vtkOsteoPlanSelectingPartsStep::RemoveGUIObservers()
     this->InputModelSelector->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if(this->PartNameEntry)
+  if(this->PartNameEntry->GetWidget())
     {
-    this->PartNameEntry->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+      this->PartNameEntry->GetWidget()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->SelectPartButton)
     {
     this->SelectPartButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  /*
+  if(this->GetGUI()->GetApplicationGUI()->GetActiveRenderWindowInteractor())
+    {
+      this->GetGUI()->GetApplicationGUI()->GetActiveRenderWindowInteractor()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  */
 }
 
 //--------------------------------------------------------------------------------
@@ -348,8 +363,8 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart(const char* modelName)
  
     // Add them to the scene 
     modelSelected->SetScene(this->GetGUI()->GetMRMLScene());
-
-    // TODO: Set NAME 
+    modelSelected->SetName(modelName);
+    dnodeS->SetColor(0,0.85,0);
     dnodeS->SetScene(this->GetGUI()->GetMRMLScene());
  
     this->GetGUI()->GetMRMLScene()->AddNode(dnodeS);
