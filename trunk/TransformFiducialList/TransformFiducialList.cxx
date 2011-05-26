@@ -77,14 +77,12 @@ int main( int argc , char * argv[] )
     }
   BSplineTransform = dynamic_cast<BSplineDeformableTransformType* > ( transformFile->GetTransformList()->front().GetPointer());
   transformFile->GetTransformList()->pop_front();
-  if(!dynamic_cast<AffineTransformType*>(transformFile->GetTransformList()->front().GetPointer()))
-    {
-    std::cerr << "Error: the second transform is not affine" << std::endl;
-    return EXIT_FAILURE;
-    }
-  affineTfm = dynamic_cast<AffineTransformType*> (transformFile->GetTransformList()->front().GetPointer());
+  if(transformFile->GetTransformList()->size()){
+    affineTfm = dynamic_cast<AffineTransformType*>(transformFile->GetTransformList()->front().GetPointer());
+    if(affineTfm)
+      BSplineTransform->SetBulkTransform(affineTfm);
+  }
 
-  BSplineTransform->SetBulkTransform(affineTfm);
   std::vector<ImageType::PointType> inputFiducialList;
   std::vector<ImageType::PointType> outputFiducialList;
   std::map<int,double> fiducialId2Distance;
@@ -121,7 +119,6 @@ int main( int argc , char * argv[] )
     nFiducials = fiducials.size();
     for(i=0;i<nFiducials;++i){
       ImageType::PointType pIn;
-      ImageType::IndexType idx;
 
       pIn[0] = -1.*fiducials[i][0];
       pIn[1] = -1.*fiducials[i][1];
