@@ -30,6 +30,7 @@
 
 #include "vtkKWFrame.h"
 #include "vtkKWFrameWithLabel.h"
+#include "vtkKWLabel.h"
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
 #include "vtkKWPushButton.h"
@@ -60,7 +61,8 @@ vtkOsteoPlanSelectingPartsStep::vtkOsteoPlanSelectingPartsStep()
   this->SetDescription("Select different parts to create a new model for each part");
 
   this->MainFrame=NULL;
-  this->SelectFrame = NULL;  
+  this->SelectFrame = NULL;
+  this->InputModelLabel = NULL;  
   this->InputModelSelector = NULL;
   this->InputModel = NULL;
   this->PartNameEntry = NULL;
@@ -82,6 +84,7 @@ vtkOsteoPlanSelectingPartsStep::~vtkOsteoPlanSelectingPartsStep()
 
   DELETE_IF_NULL_WITH_SETPARENT_NULL(MainFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(SelectFrame);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(InputModelLabel);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(InputModelSelector);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(PartNameEntry);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(SelectPartButton);
@@ -111,11 +114,17 @@ void vtkOsteoPlanSelectingPartsStep::ShowUserInterface()
   this->Script("pack %s -side top -fill x -anchor nw -padx 0 -pady 2",
            this->SelectFrame->GetWidgetName());
 
-  vtkKWLabel* InputModelLabel = vtkKWLabel::New();
-  InputModelLabel->SetParent(this->SelectFrame->GetFrame());
-  InputModelLabel->Create();
-  InputModelLabel->SetText("Input Model:");
-  InputModelLabel->SetAnchorToWest();
+  if(!this->InputModelLabel)
+    {
+      this->InputModelLabel = vtkKWLabel::New();
+    }
+  if(!this->InputModelLabel->IsCreated())
+    {
+      this->InputModelLabel->SetParent(this->SelectFrame->GetFrame());
+      this->InputModelLabel->Create();
+      this->InputModelLabel->SetText("Input Model:");
+      this->InputModelLabel->SetAnchorToWest();
+    }
 
   if(!this->InputModelSelector)
     {
@@ -158,12 +167,11 @@ void vtkOsteoPlanSelectingPartsStep::ShowUserInterface()
     }
 
   this->Script("pack %s %s %s %s -side top -fill x -padx 0 -pady 2",
-         InputModelLabel->GetWidgetName(),
+         this->InputModelLabel->GetWidgetName(),
                this->InputModelSelector->GetWidgetName(),
                this->PartNameEntry->GetWidgetName(),
          this->SelectPartButton->GetWidgetName());
 
-  InputModelLabel->Delete();
   //-------------------------------------------------------
 
   this->AddGUIObservers();
@@ -215,7 +223,6 @@ void vtkOsteoPlanSelectingPartsStep::ProcessGUIEvents(vtkObject *caller,
   if(this->PartNameEntry->GetWidget() == vtkKWEntry::SafeDownCast(caller)
      && event == vtkKWEntry::EntryValueChangedEvent)
     {
-      std::cerr << "INSIDE: TestMe" << std::endl;
     vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
     vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
 
@@ -295,22 +302,16 @@ void vtkOsteoPlanSelectingPartsStep::RemoveGUIObservers()
     this->InputModelSelector->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if(this->PartNameEntry->GetWidget())
+  if(this->PartNameEntry)
     {
-      this->PartNameEntry->GetWidget()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+      this->PartNameEntry->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->SelectPartButton)
     {
     this->SelectPartButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-  /*
-  if(this->GetGUI()->GetApplicationGUI()->GetActiveRenderWindowInteractor())
-    {
-      this->GetGUI()->GetApplicationGUI()->GetActiveRenderWindowInteractor()
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  */
+
 }
 
 //--------------------------------------------------------------------------------

@@ -54,6 +54,8 @@ set(OsteoPlan_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanCuttingModelStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanSelectingPartsStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanMovingPartsStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanPlacingFiducialsStep.cxx
 )
 
 

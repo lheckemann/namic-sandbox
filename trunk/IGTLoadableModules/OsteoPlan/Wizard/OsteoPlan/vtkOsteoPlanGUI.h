@@ -30,9 +30,11 @@ class vtkKWPushButtonSet;
 class vtkKWWizardWidget;
 class vtkOsteoPlanStep;
 class vtkKWWizardStep;
+
 class vtkOsteoPlanCuttingModelStep;
 class vtkOsteoPlanSelectingPartsStep;
-
+class vtkOsteoPlanMovingPartsStep;
+class vtkOsteoPlanPlacingFiducialsStep;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
 {
@@ -154,6 +156,8 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
 
   vtkOsteoPlanCuttingModelStep* CuttingStep;
   vtkOsteoPlanSelectingPartsStep* SelectingStep;
+  vtkOsteoPlanMovingPartsStep* MovingStep;
+  vtkOsteoPlanPlacingFiducialsStep* PlacingStep;
 
   //----------------------------------------------------------------
   // Logic Values

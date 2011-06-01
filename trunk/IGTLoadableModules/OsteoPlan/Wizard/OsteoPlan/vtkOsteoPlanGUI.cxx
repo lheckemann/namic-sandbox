@@ -43,7 +43,8 @@
 #include "vtkOsteoPlanStep.h"
 #include "vtkOsteoPlanCuttingModelStep.h"
 #include "vtkOsteoPlanSelectingPartsStep.h"
-
+#include "vtkOsteoPlanMovingPartsStep.h"
+#include "vtkOsteoPlanPlacingFiducialsStep.h"
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkOsteoPlanGUI );
@@ -78,7 +79,8 @@ vtkOsteoPlanGUI::vtkOsteoPlanGUI ( )
 
   this->CuttingStep = NULL;
   this->SelectingStep = NULL;  
-
+  this->MovingStep = NULL;
+  this->PlacingStep = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -146,6 +148,18 @@ vtkOsteoPlanGUI::~vtkOsteoPlanGUI ( )
     {
     this->SelectingStep->Delete(); 
     this->SelectingStep = NULL;
+    }
+
+  if(this->MovingStep)
+    {
+    this->MovingStep->Delete(); 
+    this->MovingStep = NULL;
+    }
+
+  if(this->PlacingStep)
+    {
+    this->PlacingStep->Delete(); 
+    this->PlacingStep = NULL;
     }
 
   //----------------------------------------------------------------
@@ -452,7 +466,7 @@ void vtkOsteoPlanGUI::BuildGUIForWorkflowFrame()
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("OsteoPlan");
+  conBrowsFrame->SetLabelText("OsteoPlan Workflow");
   //conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
@@ -544,8 +558,25 @@ void vtkOsteoPlanGUI::BuildGUIForWizardFrame()
       UpdateWorkflowStepNames();
     }
 
+  // Third Step: Move parts of the model
+  if(!this->MovingStep)
+    {
+      this->MovingStep = vtkOsteoPlanMovingPartsStep::New();
+      PrepareMyStep(this->MovingStep);
+      wizard_workflow->AddNextStep(this->MovingStep);
+      UpdateWorkflowStepNames();
+    }
+
+  if(!this->PlacingStep)
+    {
+      this->PlacingStep = vtkOsteoPlanPlacingFiducialsStep::New();
+      PrepareMyStep(this->PlacingStep);
+      wizard_workflow->AddNextStep(this->PlacingStep);
+      UpdateWorkflowStepNames();
+    }
+
   // Start State Machine
-  wizard_workflow->SetFinishStep(this->SelectingStep);  
+  wizard_workflow->SetFinishStep(this->PlacingStep);  
   wizard_workflow->SetInitialStep(this->CuttingStep);
 
   //==============================================
