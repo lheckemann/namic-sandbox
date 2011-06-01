@@ -111,6 +111,7 @@ class VTK_HybridProbe_EXPORT vtkHybridProbeGUI : public vtkSlicerModuleGUI
   void UpdateAll();
   void RecordPoints();
   void PerformRegistration();
+  void Reset();
 
  protected:
   
@@ -131,6 +132,7 @@ class VTK_HybridProbe_EXPORT vtkHybridProbeGUI : public vtkSlicerModuleGUI
   vtkMRMLLinearTransformNode* EMTransformNode;
   vtkMRMLLinearTransformNode* OptTransformNode;
 
+  vtkKWPushButton* ResetButton;
   vtkKWPushButton* RecordPointButton;
   vtkKWPushButton* PerformRegistrationButton;
 
