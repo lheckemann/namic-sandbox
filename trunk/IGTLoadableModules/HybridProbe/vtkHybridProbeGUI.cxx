@@ -67,6 +67,7 @@ vtkHybridProbeGUI::vtkHybridProbeGUI ( )
   this->OptTransformNode = NULL;
 
   this->RecordPointButton = NULL;
+  this->ResetButton = NULL;
   this->PerformRegistrationButton = NULL;
   
   this->EMTempMatrix = vtkMatrix4x4::New();
@@ -115,6 +116,12 @@ vtkHybridProbeGUI::~vtkHybridProbeGUI ( )
     {
     this->OptTransformNodeSelector->SetParent(NULL);
     this->OptTransformNodeSelector->Delete();
+    }
+
+  if (this->ResetButton)
+    {
+    this->ResetButton->SetParent(NULL);
+    this->ResetButton->Delete();
     }
 
   if (this->RecordPointButton)
@@ -213,6 +220,12 @@ void vtkHybridProbeGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->ResetButton)
+    {
+    this->ResetButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->RecordPointButton)
     {
     this->RecordPointButton
@@ -259,6 +272,9 @@ void vtkHybridProbeGUI::AddGUIObservers ( )
 
   this->OptTransformNodeSelector
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->ResetButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->RecordPointButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -390,24 +406,32 @@ void vtkHybridProbeGUI::ProcessGUIEvents(vtkObject *caller,
       }
     }
 
+  if(this->ResetButton == vtkKWPushButton::SafeDownCast(caller)
+     && event == vtkKWPushButton::InvokedEvent)
+    {
+      Reset();
+    }
+
   if(this->EMTransformNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
     vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
     vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
 
+    Reset();
+
     this->EMTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->EMTransformNodeSelector->GetSelected());
     if(!this->OptTransformNode && this->EMTransformNode)
       {
       this->RecordPointButton->SetBackgroundColor(color->SliceGUIYellow);
       this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
-      this->RecordPointButton->SetText("Please, select Optical Tracking System");
+      this->RecordPointButton->SetText("Select Optical Tracking System");
       }
     else if(!this->OptTransformNode && !this->EMTransformNode)
       {
       this->RecordPointButton->SetBackgroundColor(color->SliceGUIOrange);
       this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIOrange);
-      this->RecordPointButton->SetText("Please, select Optical and EM Tracking Systems");
+      this->RecordPointButton->SetText("Select Optical and EM Tracking Systems");
       }
     else if(this->OptTransformNode && this->EMTransformNode)
       {
@@ -424,18 +448,20 @@ void vtkHybridProbeGUI::ProcessGUIEvents(vtkObject *caller,
     vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
     vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
 
+    Reset();
+
     this->OptTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->OptTransformNodeSelector->GetSelected());
     if(!this->EMTransformNode && this->OptTransformNode)
       {
       this->RecordPointButton->SetBackgroundColor(color->SliceGUIYellow);
       this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
-      this->RecordPointButton->SetText("Please, select EM Tracking System");
+      this->RecordPointButton->SetText("Select EM Tracking System");
       }
     else if(!this->EMTransformNode && !this->OptTransformNode)
       {
       this->RecordPointButton->SetBackgroundColor(color->SliceGUIOrange);
       this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIOrange);
-      this->RecordPointButton->SetText("Please, select Optical and EM Tracking Systems");
+      this->RecordPointButton->SetText("Select Optical and EM Tracking Systems");
       }
     else if(this->OptTransformNode && this->EMTransformNode)
       {
@@ -538,7 +564,6 @@ void vtkHybridProbeGUI::BuildGUIForHelpFrame ()
 //---------------------------------------------------------------------------
 void vtkHybridProbeGUI::BuildGUIForSelectingProbes()
 {
-
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("HybridProbe");
   vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
@@ -594,12 +619,29 @@ void vtkHybridProbeGUI::BuildGUIForSelectingProbes()
   this->OptTransformNodeSelector->SetMRMLScene(this->GetLogic()->GetMRMLScene());
   this->OptTransformNodeSelector->UpdateMenu();
 
+  vtkKWFrame* RegistrationButtonFrame = vtkKWFrame::New();
+  RegistrationButtonFrame->SetParent(frame->GetFrame());
+  RegistrationButtonFrame->Create();
+
   this->RecordPointButton = vtkKWPushButton::New ( );
-  this->RecordPointButton->SetParent ( frame->GetFrame() );
+  this->RecordPointButton->SetParent ( RegistrationButtonFrame );
   this->RecordPointButton->Create ( );
-  this->RecordPointButton->SetText ("Please, select Optical and EM Tracking Systems");
+  this->RecordPointButton->SetText ("Select Optical and EM Tracking Systems");
+  this->RecordPointButton->SetWidth(35);
   this->RecordPointButton->SetBackgroundColor(color->SliceGUIOrange);
   this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIOrange);
+
+  this->ResetButton = vtkKWPushButton::New();
+  this->ResetButton->SetParent( RegistrationButtonFrame );
+  this->ResetButton->Create();
+  this->ResetButton->SetText ("Reset");
+  this->ResetButton->SetWidth(15);
+  this->ResetButton->SetBackgroundColor(color->MediumGrey);
+  this->ResetButton->SetActiveBackgroundColor(color->MediumGrey);
+
+  this->Script("pack %s %s -side left -fill x -padx 2 -pady 2",
+         this->RecordPointButton->GetWidgetName(),
+         this->ResetButton->GetWidgetName());
 
   this->PerformRegistrationButton = vtkKWPushButton::New();
   this->PerformRegistrationButton->SetParent( frame->GetFrame() );
@@ -614,9 +656,10 @@ void vtkHybridProbeGUI::BuildGUIForSelectingProbes()
          this->EMTransformNodeSelector->GetWidgetName(),
          OptTrackingLabel->GetWidgetName(),
          this->OptTransformNodeSelector->GetWidgetName(), 
-               this->RecordPointButton->GetWidgetName(),
+               RegistrationButtonFrame->GetWidgetName(),
                this->PerformRegistrationButton->GetWidgetName());
 
+  RegistrationButtonFrame->Delete();
   conBrowsFrame->Delete();
   frame->Delete();
   EMTrackingLabel->Delete();
@@ -681,7 +724,6 @@ void vtkHybridProbeGUI::PerformRegistration()
 
   if(!error)
     {
-//    this->EMOptRegMatrix->Zero();
     this->EMOptRegMatrix = EMOptReg->GetLandmarkTransformMatrix();
 
     vtkMRMLLinearTransformNode* tempTransform = vtkMRMLLinearTransformNode::New();
@@ -692,4 +734,43 @@ void vtkHybridProbeGUI::PerformRegistration()
     }
   EMOptReg->Delete();
   
+}
+
+void vtkHybridProbeGUI::Reset()
+{
+  this->numberOfPoints = 0;
+  this->firstClick = false;
+
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
+
+  if(this->RecordPointButton)
+    {
+      if(!this->EMTransformNode && this->OptTransformNode)
+  {
+    this->RecordPointButton->SetBackgroundColor(color->SliceGUIYellow);
+    this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
+    this->RecordPointButton->SetText("Select EM Tracking System");
+  }
+      else if(!this->EMTransformNode && !this->OptTransformNode)
+  {
+    this->RecordPointButton->SetBackgroundColor(color->SliceGUIOrange);
+    this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIOrange);
+    this->RecordPointButton->SetText("Select Optical and EM Tracking Systems");
+  }
+      else if(this->OptTransformNode && this->EMTransformNode)
+  {
+    this->RecordPointButton->SetBackgroundColor(color->SliceGUIGreen);
+    this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIGreen);
+    this->RecordPointButton->SetText("Start Recording Points");
+    this->RecordPointButton->SetEnabled(1);
+  }
+    }
+
+  if(this->PerformRegistrationButton)
+    {
+      this->PerformRegistrationButton->SetBackgroundColor(color->White);
+      this->PerformRegistrationButton->SetActiveBackgroundColor(color->White);
+      this->PerformRegistrationButton->SetEnabled(0);
+    }
 }
