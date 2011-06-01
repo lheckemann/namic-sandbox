@@ -12,8 +12,8 @@
 
 ==========================================================================*/
 
-#ifndef __vtkOsteoPlanSelectingPartsStep_h
-#define __vtkOsteoPlanSelectingPartsStep_h
+#ifndef __vtkOsteoPlanPlacingFiducialsStep_h
+#define __vtkOsteoPlanPlacingFiducialsStep_h
 
 #include "vtkOsteoPlanStep.h"
 
@@ -25,28 +25,29 @@ class vtkKWLabel;
 class vtkKWPushButton;
 class vtkSlicerNodeSelectorWidget;
 class vtkMRMLModelNode;
+class vtkCollection;
 
-class VTK_OsteoPlan_EXPORT vtkOsteoPlanSelectingPartsStep : public vtkOsteoPlanStep
+class VTK_OsteoPlan_EXPORT vtkOsteoPlanPlacingFiducialsStep : public vtkOsteoPlanStep
 {
 public:
-  static vtkOsteoPlanSelectingPartsStep *New();
-  vtkTypeRevisionMacro(vtkOsteoPlanSelectingPartsStep,vtkOsteoPlanStep);
+  static vtkOsteoPlanPlacingFiducialsStep *New();
+  vtkTypeRevisionMacro(vtkOsteoPlanPlacingFiducialsStep,vtkOsteoPlanStep);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual void ShowUserInterface();
   virtual void HideUserInterface();
   virtual void TearDownGUI();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
-  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
+  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
  
   virtual void UpdateGUI();
 
   void HandleMouseEvent(vtkSlicerInteractorStyle* style);
-  void SelectClickedPart(const char* modelName);
+  void AddPairModelFiducial();
 
 protected:
-  vtkOsteoPlanSelectingPartsStep();
-  ~vtkOsteoPlanSelectingPartsStep();
+  vtkOsteoPlanPlacingFiducialsStep();
+  ~vtkOsteoPlanPlacingFiducialsStep();
 
   void AddGUIObservers();
   void RemoveGUIObservers();  
@@ -54,18 +55,17 @@ protected:
   bool ProcessingCallback;
 
   vtkKWFrame* MainFrame;
-  vtkKWFrameWithLabel* SelectFrame;
-  vtkKWLabel* InputModelLabel;
-  vtkSlicerNodeSelectorWidget* InputModelSelector;
-  vtkMRMLModelNode* InputModel;
-  vtkKWEntryWithLabel* PartNameEntry;
-  vtkKWPushButton* SelectPartButton;
-
-  bool SelectingPart;
+  vtkSlicerNodeSelectorWidget* FiducialOnModel;
+  vtkKWPushButton* StartPlacingFiducials;
+  vtkMRMLModelNode* SelectedModel;
+  bool bPlacingFiducials;
+  bool modelNodeInsideCollection;
+  vtkCollection* ListOfModels;
+  vtkCollection* ListOfFiducialLists;
 
 private:
-  vtkOsteoPlanSelectingPartsStep(const vtkOsteoPlanSelectingPartsStep&);
-  void operator=(const vtkOsteoPlanSelectingPartsStep&);
+  vtkOsteoPlanPlacingFiducialsStep(const vtkOsteoPlanPlacingFiducialsStep&);
+  void operator=(const vtkOsteoPlanPlacingFiducialsStep&);
 
 };
 
