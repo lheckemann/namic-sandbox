@@ -717,7 +717,9 @@ void vtkHybridProbeGUI::PerformRegistration()
     int Opty = this->OptPositions->GetElement(1, i);
     int Optz = this->OptPositions->GetElement(2, i);
 
-    EMOptReg->AddPoint(i, EMx, EMy, EMz, Optx, Opty, Optz);
+    // Need to invert X axis to register Aurora and Vicra
+
+    EMOptReg->AddPoint(i, Optx, Opty, Optz, -EMx, EMy, EMz);
     }
 
   int error = EMOptReg->DoRegistration();
