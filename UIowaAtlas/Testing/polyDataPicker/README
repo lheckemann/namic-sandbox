@@ -1,6 +1,0 @@
-Synopsis:
-  ./annotatePicker inputVTKPolyDataImage.vtp
-
-This program surface renders the inputted VTK image and returns the 
-world coordinates of locations that are selected with the "p" key.
-

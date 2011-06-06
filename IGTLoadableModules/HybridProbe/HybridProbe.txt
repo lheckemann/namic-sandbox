@@ -1,2 +1,0 @@
-Name: HybridProbe
-GUIName: HybridProbe

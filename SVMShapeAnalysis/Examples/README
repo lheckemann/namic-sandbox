@@ -1,6 +1,0 @@
-1) Before you run the examples, edit the
-SetExampleEnviornmentVariables.csh file to reflect your directory
-structure.
-
-2) You must run the 'train' example before you run the 'classify' or
-'discriminative direction' examples.

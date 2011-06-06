@@ -1,5 +1,0 @@
-#Insight Transform File V1.0
-# Transform 0
-Transform: VersorRigid3DTransform_double_3_3
-Parameters: -0.00220244 0.000951589 0.00207044 -0.447587 -1.5107 -1.17427
-FixedParameters: 0 0 0

@@ -1,6 +1,0 @@
-Synopsis:
-  ./contourFilterPolyDataWriter inputImageFileName.img outputPolyDataFileName.vtp
-
-This program uses ITK to read in an Analyze 7.5 image.  It then converts this to 
-a VTK image and uses a vtkContourFilter to create vtkPolyData, which is written
-to the user-specified .vtp file using a vtkPolyDataWriter.

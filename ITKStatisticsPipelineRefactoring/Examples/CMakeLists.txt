@@ -1,5 +1,0 @@
-PROJECT(StatisticsRefactoringExamples)
-
-ADD_EXECUTABLE(SampleToHistogramFilter SampleToHistogramFilter.cxx )
-TARGET_LINK_LIBRARIES(SampleToHistogramFilter ITKCommon ITKIO ITKStatistics ITKStatisticsNew)
-

@@ -1,5 +1,0 @@
-SUBDIRS (
-  vtkRobartsECG
-  vtkRobartsVideo
-  vtkRobartsUltrasound
-)

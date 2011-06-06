@@ -1,2 +1,0 @@
-Name: RealTimeNeedleDetection
-GUIName: RealTimeNeedleDetection

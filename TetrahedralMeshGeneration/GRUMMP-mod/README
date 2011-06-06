@@ -1,3 +1,0 @@
-After installing GRUMMP, please copy the file in this directory
-(user3d.template) to {GRUMMP_HOME}/src/IO_generator. After that, do "make" in
-GRUMMP home directory.

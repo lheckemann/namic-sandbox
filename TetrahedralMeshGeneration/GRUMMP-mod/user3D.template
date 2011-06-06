@@ -1,4 +1,0 @@
-newfile vmesh
-nverts ncells
-verts: coords
-cells: verts

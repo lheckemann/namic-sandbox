@@ -1,6 +1,0 @@
-Synopsis:
-  ./surfaceRenderVTKPolyData surfaceToRender.vt*
-
-This program reads in a vtkPolyData image and renders it in a vtkRenderWindow.
-Additionally, a vtkRenderWindowInteractor is implemented so that the data can
-be rotated, zoomed, and translated.

@@ -1,2 +1,0 @@
-from SlicerTwoTensorTractographyGUI import *
-

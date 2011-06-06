@@ -1,5 +1,0 @@
-
-ADD_SUBDIRECTORY( ContrastBrightness )
-ADD_SUBDIRECTORY( Convolution3x3 )
-ADD_SUBDIRECTORY( ImageRotate )
-ADD_SUBDIRECTORY( VectorAdd )

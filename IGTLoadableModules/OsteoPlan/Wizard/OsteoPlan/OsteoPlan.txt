@@ -1,2 +1,0 @@
-Name: OsteoPlan
-GUIName: OsteoPlan

@@ -1,5 +1,0 @@
-convergence-tolerance = 1e-10,
-max-iter 35,
-NumDrop(0.01, 4),
-print summary,
-initial-guess false

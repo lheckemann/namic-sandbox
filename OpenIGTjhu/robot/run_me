@@ -1,9 +1,0 @@
-#!/bin/bash
-
-clear
-#/pub/cisst-ire/rtai/examples/bin/BRPtprNavControl
-#/pub/cisst-ire/rtai/examples/bin/MRRobot_ControlThread
-#/sbin/load-rtai.sh
-. /pub/cisst-ire/rtai/cisstvars.sh
-cd /pub/cisst-ire/rtai/
-examples/bin/MRRobot_ControlThread

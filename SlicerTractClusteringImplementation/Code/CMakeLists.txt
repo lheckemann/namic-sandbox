@@ -1,4 +1,0 @@
-
-ADD_LIBRARY (SlicerClustering itkSpectralClustering.cxx)
-TARGET_LINK_LIBRARIES(SlicerClustering ITKAffinityClustering)
-

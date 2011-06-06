@@ -1,5 +1,0 @@
-FormTypeName = Array
-BinaryData = False
-Length = 240
-ElementType = MET_FLOAT
-ElementDataFile = svmRBF01_DD_ascii_2.mvd

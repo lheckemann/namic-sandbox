@@ -1,3 +1,0 @@
-Name: 4DUSEndoNav
-GUIName: 4DUSEndoNav
-Dependency: OpenIGTLinkIF

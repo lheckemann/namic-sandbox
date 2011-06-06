@@ -1,6 +1,0 @@
-Synopsis:
-  ./volumeRender inputFileName
-
-This program reads in an Analyze 7.5 image and renders it in a vtkRenderWindow
-as a volumetric image.  Additionally, a vtkRenderWindowInteractor is 
-implemented so that the data can be rotated, zoomed, and translated.
