@@ -1,0 +1,10 @@
+
+scm       svn
+svnpath   http://svn.na-mic.org/NAMICSandBox/trunk/ShapeBasedInterpolation
+name      ShapeBasedInterpolation
+cmakeproject      ShapeBasedInterpolation
+svnusername slicerbot
+svnpassword slicer
+category Filtering
+status development
+description Shape-based interpolation of the label images to improve smoothness and increase resolution for the volumes with thick slice acquisition
