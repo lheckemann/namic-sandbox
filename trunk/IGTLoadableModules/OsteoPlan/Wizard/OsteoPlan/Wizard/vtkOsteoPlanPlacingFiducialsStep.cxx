@@ -31,6 +31,7 @@
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLInteractionNode.h"
 
+#include "vtkMRMLOsteoPlanNode.h"
 
 #include "vtkKWFrame.h"
 #include "vtkKWFrameWithLabel.h"
@@ -67,12 +68,12 @@ vtkOsteoPlanPlacingFiducialsStep::vtkOsteoPlanPlacingFiducialsStep()
   this->bPlacingFiducials = false;
   this->modelNodeInsideCollection = false;
 
-  this->ListOfModels = vtkCollection::New();
-  this->ListOfFiducialLists = vtkCollection::New();
+  // this->ListOfModels = vtkCollection::New();
+  // this->ListOfFiducialLists = vtkCollection::New();
 
-  this->TitleBackgroundColor[0] = 0.8;
-  this->TitleBackgroundColor[1] = 0.8;
-  this->TitleBackgroundColor[2] = 0.8;
+  this->TitleBackgroundColor[0] = 1;
+  this->TitleBackgroundColor[1] = 0.98;
+  this->TitleBackgroundColor[2] = 0.74;
 
   this->ProcessingCallback = false;
 }
@@ -86,15 +87,15 @@ vtkOsteoPlanPlacingFiducialsStep::~vtkOsteoPlanPlacingFiducialsStep()
   DELETE_IF_NULL_WITH_SETPARENT_NULL(FiducialOnModel);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(StartPlacingFiducials);
 
-  if(this->ListOfModels)
-    {
-      this->ListOfModels->Delete();
-    }
+  // if(this->ListOfModels)
+  //   {
+  //   this->ListOfModels->Delete();
+  //   }
 
-  if(this->ListOfFiducialLists)
-    {
-      this->ListOfFiducialLists->Delete();
-    }
+  // if(this->ListOfFiducialLists)
+  //   {
+  //   this->ListOfFiducialLists->Delete();
+  //   }
 }
 
 //----------------------------------------------------------------------------
@@ -112,30 +113,30 @@ void vtkOsteoPlanPlacingFiducialsStep::ShowUserInterface()
 
   if(!this->FiducialOnModel)
     {
-      this->FiducialOnModel = vtkSlicerNodeSelectorWidget::New();
+    this->FiducialOnModel = vtkSlicerNodeSelectorWidget::New();
     }
   if(!this->FiducialOnModel->IsCreated())
     {
-      this->FiducialOnModel->SetParent(parent);
-      this->FiducialOnModel->Create();
-      this->FiducialOnModel->SetNewNodeEnabled(0);
-      this->FiducialOnModel->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
-      this->FiducialOnModel->SetMRMLScene(this->GetLogic()->GetMRMLScene());
-      this->FiducialOnModel->UpdateMenu();
+    this->FiducialOnModel->SetParent(parent);
+    this->FiducialOnModel->Create();
+    this->FiducialOnModel->SetNewNodeEnabled(0);
+    this->FiducialOnModel->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
+    this->FiducialOnModel->SetMRMLScene(this->GetLogic()->GetMRMLScene());
+    this->FiducialOnModel->UpdateMenu();
     }
 
   if(!this->StartPlacingFiducials)
     {
-      this->StartPlacingFiducials = vtkKWPushButton::New();
+    this->StartPlacingFiducials = vtkKWPushButton::New();
     }
   if(!this->StartPlacingFiducials->IsCreated())
     {
-      this->StartPlacingFiducials->SetParent(parent);
-      this->StartPlacingFiducials->Create();
-      this->StartPlacingFiducials->SetText("Select a model where to place fiducials");
-      this->StartPlacingFiducials->SetBackgroundColor(color->White);
-      this->StartPlacingFiducials->SetActiveBackgroundColor(color->White);
-      this->StartPlacingFiducials->SetEnabled(0);
+    this->StartPlacingFiducials->SetParent(parent);
+    this->StartPlacingFiducials->Create();
+    this->StartPlacingFiducials->SetText("Select a model where to place fiducials");
+    this->StartPlacingFiducials->SetBackgroundColor(color->White);
+    this->StartPlacingFiducials->SetActiveBackgroundColor(color->White);
+    this->StartPlacingFiducials->SetEnabled(0);
     }
 
   this->Script("pack %s %s -side top -fill x -padx 0 -pady 2",
@@ -164,7 +165,7 @@ void vtkOsteoPlanPlacingFiducialsStep::HandleMouseEvent(vtkSlicerInteractorStyle
 
 //---------------------------------------------------------------------------
 void vtkOsteoPlanPlacingFiducialsStep::ProcessMRMLEvents ( vtkObject *caller,
-            unsigned long event, void *callData )
+                                                           unsigned long event, void *callData )
 {
   // Fill in
   if (event == vtkMRMLScene::SceneCloseEvent)
@@ -175,15 +176,15 @@ void vtkOsteoPlanPlacingFiducialsStep::ProcessMRMLEvents ( vtkObject *caller,
      && event == vtkMRMLScene::NodeRemovedEvent)
     {
     // Check vtkCollections are still synchronized
-    if(this->ListOfModels->GetNumberOfItems() == this->ListOfFiducialLists->GetNumberOfItems())
+    if(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems() == this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->GetNumberOfItems())
       {
-      for(int i = 0; i < this->ListOfModels->GetNumberOfItems(); i++)
+      for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems(); i++)
         {
         // Check which node has been removed;
-        if(this->ListOfModels->GetItemAsObject(i) == callData || this->ListOfFiducialLists->GetItemAsObject(i) == callData)
+        if(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(i) == callData || this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->GetItemAsObject(i) == callData)
           {
-          this->ListOfModels->RemoveItem(i);
-          this->ListOfFiducialLists->RemoveItem(i);
+          this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->RemoveItem(i);
+          this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->RemoveItem(i);
           }
         }
       }
@@ -194,7 +195,7 @@ void vtkOsteoPlanPlacingFiducialsStep::ProcessMRMLEvents ( vtkObject *caller,
 
 //----------------------------------------------------------------------------
 void vtkOsteoPlanPlacingFiducialsStep::ProcessGUIEvents(vtkObject *caller,
-                                                      unsigned long event, void *callData)
+                                                        unsigned long event, void *callData)
 {
   const char *eventName = vtkCommand::GetStringFromEventId(event);
 
@@ -205,66 +206,66 @@ void vtkOsteoPlanPlacingFiducialsStep::ProcessGUIEvents(vtkObject *caller,
     }
   else
     {
-      if(this->FiducialOnModel == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
-   && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
-  {
-    this->SelectedModel = vtkMRMLModelNode::SafeDownCast(this->FiducialOnModel->GetSelected());
-    if(this->SelectedModel)
+    if(this->FiducialOnModel == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+       && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
       {
+      this->SelectedModel = vtkMRMLModelNode::SafeDownCast(this->FiducialOnModel->GetSelected());
+      if(this->SelectedModel)
+        {
         // Enable button
         if(this->StartPlacingFiducials)
-    {
-      vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
-      vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
+          {
+          vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
+          vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
     
-      this->StartPlacingFiducials->SetText("Start Placing Fiducials");
-      this->StartPlacingFiducials->SetBackgroundColor(color->SliceGUIGreen);
-      this->StartPlacingFiducials->SetActiveBackgroundColor(color->SliceGUIGreen);
-      this->StartPlacingFiducials->SetEnabled(1);
-    }
+          this->StartPlacingFiducials->SetText("Start Placing Fiducials");
+          this->StartPlacingFiducials->SetBackgroundColor(color->SliceGUIGreen);
+          this->StartPlacingFiducials->SetActiveBackgroundColor(color->SliceGUIGreen);
+          this->StartPlacingFiducials->SetEnabled(1);
+          }
 
         // Check model list
         /*
-        if (this->ListOfModels)
-    {
-      for(int i = 0; i < this->ListOfModels->GetNumberOfItems(); i++)
-        {
+          if (this->ListOfModels)
+          {
+          for(int i = 0; i < this->ListOfModels->GetNumberOfItems(); i++)
+          {
           if(this->SelectedModel == this->ListOfModels->GetItemAsObject(i))
-      {
-        vtkMRMLFiducialListNode* correspondingFiducialList = reinterpret_cast<vtkMRMLFiducialListNode*>(this->ListOfFiducialLists->GetItemAsObject(i));
-        this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(correspondingFiducialList->GetID());
-      }
+          {
+          vtkMRMLFiducialListNode* correspondingFiducialList = reinterpret_cast<vtkMRMLFiducialListNode*>(this->ListOfFiducialLists->GetItemAsObject(i));
+          this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(correspondingFiducialList->GetID());
+          }
           else
-      {
-        AddPairModelFiducial();
-      }
-        }
-    }
+          {
+          AddPairModelFiducial();
+          }
+          }
+          }
         */
 
-      }
-    else
-      {
+        }
+      else
+        {
         // Disable button
         if(this->StartPlacingFiducials)
-    {
-      vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
-      vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
+          {
+          vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
+          vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
       
-      this->StartPlacingFiducials->SetText("Select a model where to place fiducials");
-      this->StartPlacingFiducials->SetBackgroundColor(color->White);
-      this->StartPlacingFiducials->SetActiveBackgroundColor(color->White);
-      this->StartPlacingFiducials->SetEnabled(0);
-    }
+          this->StartPlacingFiducials->SetText("Select a model where to place fiducials");
+          this->StartPlacingFiducials->SetBackgroundColor(color->White);
+          this->StartPlacingFiducials->SetActiveBackgroundColor(color->White);
+          this->StartPlacingFiducials->SetEnabled(0);
+          }
 
+        }
       }
-  }
 
-      if(this->StartPlacingFiducials == vtkKWPushButton::SafeDownCast(caller)
-   && event == vtkKWPushButton::InvokedEvent)
-  {
-    if(!this->bPlacingFiducials)
+    if(this->StartPlacingFiducials == vtkKWPushButton::SafeDownCast(caller)
+       && event == vtkKWPushButton::InvokedEvent)
       {
+      if(!this->bPlacingFiducials)
+        {
         this->bPlacingFiducials = true;
 
         vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
@@ -276,9 +277,9 @@ void vtkOsteoPlanPlacingFiducialsStep::ProcessGUIEvents(vtkObject *caller,
 
         AddPairModelFiducial();
 
-      }
-    else
-      {
+        }
+      else
+        {
         this->bPlacingFiducials = false;
 
         vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
@@ -289,8 +290,8 @@ void vtkOsteoPlanPlacingFiducialsStep::ProcessGUIEvents(vtkObject *caller,
         this->StartPlacingFiducials->SetActiveBackgroundColor(color->SliceGUIGreen);
 
         AddPairModelFiducial();
+        }
       }
-  }
 
     }
 }
@@ -312,7 +313,7 @@ void vtkOsteoPlanPlacingFiducialsStep::AddGUIObservers()
  
   if (this->GetGUI()->GetMRMLScene() != NULL)
     {
-      this->GetGUI()->SetAndObserveMRMLSceneEvents(this->GetGUI()->GetMRMLScene(), events);
+    this->GetGUI()->SetAndObserveMRMLSceneEvents(this->GetGUI()->GetMRMLScene(), events);
     }
   events->Delete();
 
@@ -322,12 +323,12 @@ void vtkOsteoPlanPlacingFiducialsStep::AddGUIObservers()
 
   if(this->FiducialOnModel)
     {
-      this->FiducialOnModel->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
+    this->FiducialOnModel->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
 
   if(this->StartPlacingFiducials)
     {
-      this->StartPlacingFiducials->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+    this->StartPlacingFiducials->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
 
   this->GetGUI()->GetApplicationGUI()->GetActiveRenderWindowInteractor()
@@ -338,14 +339,14 @@ void vtkOsteoPlanPlacingFiducialsStep::AddGUIObservers()
 //-----------------------------------------------------------------------------
 void vtkOsteoPlanPlacingFiducialsStep::RemoveGUIObservers()
 {
-if(this->FiducialOnModel)
+  if(this->FiducialOnModel)
     {
-      this->FiducialOnModel->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->FiducialOnModel->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
   if(this->StartPlacingFiducials)
     {
-      this->StartPlacingFiducials->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->StartPlacingFiducials->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
   
 
@@ -377,19 +378,16 @@ void vtkOsteoPlanPlacingFiducialsStep::AddPairModelFiducial()
     {
     if(this->bPlacingFiducials == true)
       {
-  this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::Place);
+      this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::Place);
       this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetSelected(1);
       this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(1);
 
-      //      this->placeMarkersButton->SetText("Stop Placing Markers");
-
-      //vtkMRMLModelNode* selectedModelNode = reinterpret_cast<vtkMRMLModelNode*>(this->modelSelector->GetSelected());
       this->modelNodeInsideCollection = false;
       int modelPosition = 0;
 
-      for(int i = 0; i < this->ListOfModels->GetNumberOfItems();i++)
+      for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems();i++)
         {
-        vtkMRMLModelNode* listModel = reinterpret_cast<vtkMRMLModelNode*>(this->ListOfModels->GetItemAsObject(i));
+        vtkMRMLModelNode* listModel = reinterpret_cast<vtkMRMLModelNode*>(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(i));
         if(!strcmp(this->SelectedModel->GetID(),listModel->GetID()))
           {
           this->modelNodeInsideCollection = true;
@@ -397,21 +395,22 @@ void vtkOsteoPlanPlacingFiducialsStep::AddPairModelFiducial()
           }
         }
 
-      std::cerr << "INSIDE: " << this->modelNodeInsideCollection << std::endl;
-
       if(!this->modelNodeInsideCollection)
         {
         // Add Model to the List of models who have a fiducial list associated
-        this->ListOfModels->AddItem(this->SelectedModel);
+        this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->AddItem(this->SelectedModel);
 
         // Create the fiducial list with the name of the model
         vtkMRMLFiducialListNode* fiducialListConnectedToModel = vtkMRMLFiducialListNode::New();
         char fiducialListName[128];
         sprintf(fiducialListName,"%s-fiducialList",this->SelectedModel->GetName());
         fiducialListConnectedToModel->SetName(fiducialListName);
+        fiducialListConnectedToModel->SetGlyphTypeFromString("Sphere3D");
+        // TODO: Disable Backface culling ?
+
       
         // Add Fiducial list to the list of fiducial list who have a model associated
-        this->ListOfFiducialLists->AddItem(fiducialListConnectedToModel);
+        this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->AddItem(fiducialListConnectedToModel);
 
         // Add fiducial list to the scene and set it as active
         this->GetGUI()->GetMRMLScene()->AddNode(fiducialListConnectedToModel);
@@ -421,7 +420,7 @@ void vtkOsteoPlanPlacingFiducialsStep::AddPairModelFiducial()
       else
         {
         // Set fiducial list corresponding to the model as active
-        vtkMRMLFiducialListNode* fiducialListAlreadyConnectedToModel = reinterpret_cast<vtkMRMLFiducialListNode*>(this->ListOfFiducialLists->GetItemAsObject(modelPosition));
+        vtkMRMLFiducialListNode* fiducialListAlreadyConnectedToModel = reinterpret_cast<vtkMRMLFiducialListNode*>(this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->GetItemAsObject(modelPosition));
         this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(fiducialListAlreadyConnectedToModel->GetID());
         }
 

@@ -64,7 +64,6 @@ vtkOsteoPlanGUI::vtkOsteoPlanGUI ( )
   this->DataCallbackCommand->SetCallback(vtkOsteoPlanGUI::DataCallback);
   
   this->OsteoPlanNode = vtkMRMLOsteoPlanNode::New();
-
   //----------------------------------------------------------------
   // GUI widgets
 
@@ -136,10 +135,6 @@ vtkOsteoPlanGUI::~vtkOsteoPlanGUI ( )
     this->WizardWidget = NULL;
     }
 
-  if(this->OsteoPlanNode)
-    {
-      this->OsteoPlanNode->Delete();
-    }
 
   //----------------------------------------------------------------
   // Wizard Step
@@ -352,12 +347,12 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
      && event == vtkKWPushButton::InvokedEvent)
     {
       for(int i = 0; i < this->WorkflowButtonSet->GetNumberOfWidgets(); i++)
-  {
-    if(this->WorkflowButtonSet->GetWidget(i) == pushButtonCaller)
-      {
-        ChangeWorkphaseGUI(i);
-      }
-  }
+	{
+	  if(this->WorkflowButtonSet->GetWidget(i) == pushButtonCaller)
+	    {
+	      ChangeWorkphaseGUI(i);
+	    }
+	}
 
     }  
 } 
@@ -451,19 +446,19 @@ void vtkOsteoPlanGUI::TearDownGUI()
     {
 
       for(int i = 0; i < this->WizardWidget->GetWizardWorkflow()->GetNumberOfSteps(); i++)
-  {
-    vtkOsteoPlanStep* step = vtkOsteoPlanStep::SafeDownCast(this->WizardWidget->GetWizardWorkflow()->GetNthStep(i));
-    if(step!=NULL)
-      {
-        step->TearDownGUI();
-        step->SetGUI(NULL);
-        step->SetLogic(NULL);
-      }
-    else
-      {
-        vtkErrorMacro("Invalid step page: "<<i);
-      }
-  }
+	{
+	  vtkOsteoPlanStep* step = vtkOsteoPlanStep::SafeDownCast(this->WizardWidget->GetWizardWorkflow()->GetNthStep(i));
+	  if(step!=NULL)
+	    {
+	      step->TearDownGUI();
+	      step->SetGUI(NULL);
+	      step->SetLogic(NULL);
+	    }
+	  else
+	    {
+	      vtkErrorMacro("Invalid step page: "<<i);
+	    }
+	}
     }
 }
 
@@ -675,7 +670,7 @@ void vtkOsteoPlanGUI::ChangeWorkphaseGUI(int StepNumberToGo)
     if(wizard)
       {
       vtkKWWizardStep* currentStep = this->WizardWidget->GetWizardWorkflow()->GetCurrentStep();
-      int stepNumber = GetStepNumber(currentStep);    
+      int stepNumber = GetStepNumber(currentStep);	  
       if(stepNumber >= 0)
         {
         int difference = StepNumberToGo - stepNumber;
@@ -706,15 +701,15 @@ int vtkOsteoPlanGUI::GetStepNumber(vtkKWWizardStep* step)
     {
       vtkKWWizardWorkflow* wizard = this->WizardWidget->GetWizardWorkflow();
       if(wizard)
-  {
-    for(int i = 0; i < wizard->GetNumberOfSteps(); i++)
-      {
-        if(wizard->GetNthStep(i) == step)
-    {
-      return i;
-    }
-      }
-  }
+	{
+	  for(int i = 0; i < wizard->GetNumberOfSteps(); i++)
+	    {
+	      if(wizard->GetNthStep(i) == step)
+		{
+		  return i;
+		}
+	    }
+	}
     }
   return -1;
 }

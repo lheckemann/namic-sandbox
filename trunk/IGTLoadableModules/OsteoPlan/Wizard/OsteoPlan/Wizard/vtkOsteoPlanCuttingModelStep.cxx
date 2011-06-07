@@ -63,7 +63,7 @@ vtkOsteoPlanCuttingModelStep::vtkOsteoPlanCuttingModelStep()
 
   this->MainFrame=NULL;
   
-  this->TitleBackgroundColor[0] = 0.8;
+  this->TitleBackgroundColor[0] = 0.68;
   this->TitleBackgroundColor[1] = 0.8;
   this->TitleBackgroundColor[2] = 1;
 
@@ -251,8 +251,8 @@ void vtkOsteoPlanCuttingModelStep::ProcessGUIEvents(vtkObject *caller,
     if(!this->NextDisplayCutterStatus)
       {
       // Change button
-      this->TogglePlaneButton->SetBackgroundColor(color->SliceGUIRed);
-      this->TogglePlaneButton->SetActiveBackgroundColor(color->SliceGUIRed);
+      this->TogglePlaneButton->SetBackgroundColor(color->LightestRed);
+      this->TogglePlaneButton->SetActiveBackgroundColor(color->LightestRed);
       this->TogglePlaneButton->SetText("Hide cutter");
 
       // Show cutter
@@ -308,6 +308,14 @@ void vtkOsteoPlanCuttingModelStep::ProcessGUIEvents(vtkObject *caller,
       this->ApplyCutButton->SetText("Processing, please wait...");
       
       ClipModel(this->ModelToCut, this->CuttingPlane);
+
+      std::string name;
+      name = this->ModelToCut->GetName();
+      std::string buttonname = "Apply Cut to " + name;
+
+      this->ApplyCutButton->SetBackgroundColor(color->SliceGUIGreen);
+      this->ApplyCutButton->SetActiveBackgroundColor(color->SliceGUIGreen);
+      this->ApplyCutButton->SetText(buttonname.c_str());
 
       this->GetGUI()->GetWizardWidget()->GetWizardWorkflow()->AttemptToGoToNextStep();
       }

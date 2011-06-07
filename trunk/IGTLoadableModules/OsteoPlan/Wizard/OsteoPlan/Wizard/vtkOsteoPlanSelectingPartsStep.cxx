@@ -71,8 +71,8 @@ vtkOsteoPlanSelectingPartsStep::vtkOsteoPlanSelectingPartsStep()
   this->SelectingPart = false;
 
   this->TitleBackgroundColor[0] = 0.8;
-  this->TitleBackgroundColor[1] = 1;
-  this->TitleBackgroundColor[2] = 0.8;
+  this->TitleBackgroundColor[1] = 0.8;
+  this->TitleBackgroundColor[2] = 1;
 
   this->ProcessingCallback = false;
 }
