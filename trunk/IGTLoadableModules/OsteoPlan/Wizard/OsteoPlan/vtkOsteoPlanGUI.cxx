@@ -83,6 +83,7 @@ vtkOsteoPlanGUI::vtkOsteoPlanGUI ( )
   this->SelectingStep = NULL;  
   this->MovingStep = NULL;
   this->PlacingStep = NULL;
+  this->ReturningStep = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
