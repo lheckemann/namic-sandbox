@@ -75,8 +75,8 @@ vtkOsteoPlanMovingPartsStep::vtkOsteoPlanMovingPartsStep()
 
   this->TransformationEditor = NULL;
 
-  this->TitleBackgroundColor[0] = 1;
-  this->TitleBackgroundColor[1] = 0.8; 
+  this->TitleBackgroundColor[0] = 0.8;
+  this->TitleBackgroundColor[1] = 1; 
   this->TitleBackgroundColor[2] = 0.8;
 
   this->ProcessingCallback = false;

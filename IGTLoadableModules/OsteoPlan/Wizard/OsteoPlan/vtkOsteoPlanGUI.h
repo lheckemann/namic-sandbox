@@ -31,10 +31,13 @@ class vtkKWWizardWidget;
 class vtkOsteoPlanStep;
 class vtkKWWizardStep;
 
+class vtkMRMLOsteoPlanNode;
+
 class vtkOsteoPlanCuttingModelStep;
 class vtkOsteoPlanSelectingPartsStep;
 class vtkOsteoPlanMovingPartsStep;
 class vtkOsteoPlanPlacingFiducialsStep;
+class vtkOsteoPlanReturningOriginalPositionStep;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
 {
@@ -126,7 +129,7 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   // Description: 
   // Get wizard widget
   vtkGetObjectMacro(WizardWidget, vtkKWWizardWidget);
-
+  vtkGetObjectMacro(OsteoPlanNode, vtkMRMLOsteoPlanNode);
 
 
  protected:
@@ -137,6 +140,7 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   
   int TimerFlag;
   int TimerInterval;
+  vtkMRMLOsteoPlanNode* OsteoPlanNode;
 
   //----------------------------------------------------------------
   // GUI widgets
@@ -158,6 +162,7 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   vtkOsteoPlanSelectingPartsStep* SelectingStep;
   vtkOsteoPlanMovingPartsStep* MovingStep;
   vtkOsteoPlanPlacingFiducialsStep* PlacingStep;
+  vtkOsteoPlanReturningOriginalPositionStep* ReturningStep;
 
   //----------------------------------------------------------------
   // Logic Values

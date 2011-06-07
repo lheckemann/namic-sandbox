@@ -12,8 +12,8 @@
 
 ==========================================================================*/
 
-#ifndef __vtkOsteoPlanPlacingFiducialsStep_h
-#define __vtkOsteoPlanPlacingFiducialsStep_h
+#ifndef __vtkOsteoPlanReturningOriginalPositionStep_h
+#define __vtkOsteoPlanReturningOriginalPositionStep_h
 
 #include "vtkOsteoPlanStep.h"
 
@@ -25,29 +25,29 @@ class vtkKWLabel;
 class vtkKWPushButton;
 class vtkSlicerNodeSelectorWidget;
 class vtkMRMLModelNode;
-class vtkCollection;
+class vtkMRMLLinearTransformNode;
 
-class VTK_OsteoPlan_EXPORT vtkOsteoPlanPlacingFiducialsStep : public vtkOsteoPlanStep
+class VTK_OsteoPlan_EXPORT vtkOsteoPlanReturningOriginalPositionStep : public vtkOsteoPlanStep
 {
 public:
-  static vtkOsteoPlanPlacingFiducialsStep *New();
-  vtkTypeRevisionMacro(vtkOsteoPlanPlacingFiducialsStep,vtkOsteoPlanStep);
+  static vtkOsteoPlanReturningOriginalPositionStep *New();
+  vtkTypeRevisionMacro(vtkOsteoPlanReturningOriginalPositionStep,vtkOsteoPlanStep);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual void ShowUserInterface();
   virtual void HideUserInterface();
   virtual void TearDownGUI();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
-  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
+  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
  
   virtual void UpdateGUI();
 
   void HandleMouseEvent(vtkSlicerInteractorStyle* style);
-  void AddPairModelFiducial();
+  void BackModelToOriginalPosition(vtkMRMLLinearTransformNode *ParentTransform, vtkMRMLModelNode* Model);
 
 protected:
-  vtkOsteoPlanPlacingFiducialsStep();
-  ~vtkOsteoPlanPlacingFiducialsStep();
+  vtkOsteoPlanReturningOriginalPositionStep();
+  ~vtkOsteoPlanReturningOriginalPositionStep();
 
   void AddGUIObservers();
   void RemoveGUIObservers();  
@@ -55,17 +55,13 @@ protected:
   bool ProcessingCallback;
 
   vtkKWFrame* MainFrame;
-  vtkSlicerNodeSelectorWidget* FiducialOnModel;
-  vtkKWPushButton* StartPlacingFiducials;
+  vtkSlicerNodeSelectorWidget* modelSelector;
+  vtkKWPushButton* BackOriginalButton;
   vtkMRMLModelNode* SelectedModel;
-  bool bPlacingFiducials;
-  bool modelNodeInsideCollection;
-  /* vtkCollection* ListOfModels; */
-  /* vtkCollection* ListOfFiducialLists; */
 
 private:
-  vtkOsteoPlanPlacingFiducialsStep(const vtkOsteoPlanPlacingFiducialsStep&);
-  void operator=(const vtkOsteoPlanPlacingFiducialsStep&);
+  vtkOsteoPlanReturningOriginalPositionStep(const vtkOsteoPlanReturningOriginalPositionStep&);
+  void operator=(const vtkOsteoPlanReturningOriginalPositionStep&);
 
 };
 

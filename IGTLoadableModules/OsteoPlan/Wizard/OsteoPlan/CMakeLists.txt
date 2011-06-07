@@ -51,11 +51,13 @@ install(FILES
 set(OsteoPlan_SRCS 
   vtkOsteoPlanLogic.cxx
   vtkOsteoPlanGUI.cxx
+  vtkMRMLOsteoPlanNode.cxx  
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanCuttingModelStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanSelectingPartsStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanMovingPartsStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanPlacingFiducialsStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanReturningOriginalPositionStep.cxx
 )
 
 
