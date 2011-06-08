@@ -728,6 +728,10 @@ void vtkHybridProbeGUI::PerformRegistration()
     {
     this->EMOptRegMatrix = EMOptReg->GetLandmarkTransformMatrix();
 
+    // Invert Axis (Specific to NDI Aurora / NDI Polaris)
+    this->EMOptRegMatrix->SetElement(1,1,-this->EMOptRegMatrix->GetElement(1,1));
+    this->EMOptRegMatrix->SetElement(2,2,-this->EMOptRegMatrix->GetElement(2,2));
+
     vtkMRMLLinearTransformNode* tempTransform = vtkMRMLLinearTransformNode::New();
     tempTransform->SetName("EMToOptRegistration");
     tempTransform->ApplyTransform(this->EMOptRegMatrix);
