@@ -6,9 +6,6 @@ if(COMMAND cmake_policy)
      cmake_policy(SET CMP0003 NEW)
      endif(COMMAND cmake_policy)
 
-ENABLE_TESTING()
-INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
-
 #-----------------------------------------------------------------------------
 # OpenIGTlink version number.
 SET(OpenIGTLink_VERSION_MAJOR "1")
@@ -39,6 +36,12 @@ endif(NOT OpenIGTLink_BUILD_SHARED_LIBS)
 OPTION(BUILD_EXAMPLES "Build OpenIGTLink example programs." OFF)
 SET(OpenIGTLink_BUILD_EXAMPLES ${BUILD_EXAMPLES})
 
+OPTION(BUILD_TESTING "Build the testing tree." ON)
+SET(OpenIGTLink_BUILD_TESTING ${BUILD_TESTING})
+IF(OpenIGTLink_BUILD_TESTING)
+  ENABLE_TESTING()
+  INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
+ENDIF()
 
 #-----------------------------------------------------------------------------
 # Output directories.
@@ -266,9 +269,12 @@ SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${OpenIGTLink_REQUIR
 # Configure Subdirectories
 
 ADD_SUBDIRECTORY( Source    )
-ADD_SUBDIRECTORY( Testing   )
 ADD_SUBDIRECTORY( Tools     )
 #ADD_SUBDIRECTORY( Documents )
+
+IF(OpenIGTLink_BUILD_TESTING)
+  ADD_SUBDIRECTORY( Testing )
+ENDIF(OpenIGTLink_BUILD_TESTING)
 
 IF(OpenIGTLink_BUILD_EXAMPLES)
  ADD_SUBDIRECTORY( Examples )
