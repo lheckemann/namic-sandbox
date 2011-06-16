@@ -78,7 +78,7 @@ vtkHybridProbeGUI::vtkHybridProbeGUI ( )
 
   this->firstClick = false;
 
-  this->EMOptRegMatrix = NULL;//vtkMatrix4x4::New();
+  this->EMOptRegMatrix = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -727,11 +727,6 @@ void vtkHybridProbeGUI::PerformRegistration()
   if(!error)
     {
     this->EMOptRegMatrix = EMOptReg->GetLandmarkTransformMatrix();
-
-    // Invert Axis (Specific to NDI Aurora / NDI Polaris)
-    this->EMOptRegMatrix->SetElement(1,1,-this->EMOptRegMatrix->GetElement(1,1));
-    this->EMOptRegMatrix->SetElement(2,2,-this->EMOptRegMatrix->GetElement(2,2));
-
     vtkMRMLLinearTransformNode* tempTransform = vtkMRMLLinearTransformNode::New();
     tempTransform->SetName("EMToOptRegistration");
     tempTransform->ApplyTransform(this->EMOptRegMatrix);
@@ -758,13 +753,19 @@ void vtkHybridProbeGUI::Reset()
     this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
     this->RecordPointButton->SetText("Select EM Tracking System");
   }
+      else if(this->EMTransformNode && !this->OptTransformNode)
+  {
+    this->RecordPointButton->SetBackgroundColor(color->SliceGUIYellow);
+    this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIYellow);
+    this->RecordPointButton->SetText("Select Optical Tracking System");
+  }
       else if(!this->EMTransformNode && !this->OptTransformNode)
   {
     this->RecordPointButton->SetBackgroundColor(color->SliceGUIOrange);
     this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIOrange);
     this->RecordPointButton->SetText("Select Optical and EM Tracking Systems");
   }
-      else if(this->OptTransformNode && this->EMTransformNode)
+      else if(this->EMTransformNode && this->OptTransformNode)
   {
     this->RecordPointButton->SetBackgroundColor(color->SliceGUIGreen);
     this->RecordPointButton->SetActiveBackgroundColor(color->SliceGUIGreen);
