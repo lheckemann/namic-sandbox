@@ -181,6 +181,10 @@ vtkMotionTrackerGUI::vtkMotionTrackerGUI ( )
 // 6/17/2011 ayamada
 this->counterForShowImage = 0;
 
+// 6/20/2011 ayamada transform node selector widget
+this->TransformNodeSelectorForSendingData = NULL;
+
+
   //----------------------------------------------------------------
   // Logic values
   this->Logic = NULL;
