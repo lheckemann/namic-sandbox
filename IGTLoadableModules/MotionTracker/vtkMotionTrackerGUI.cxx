@@ -3264,8 +3264,6 @@ CvSize   newCaptureImageSize;
     newCaptureImageSize = cvGetSize( captureImageTmp );
     newImageSize = cvGetSize( captureImageTmp );
 
-
-　　　// for obtaining image from MRML
 vtkMRMLScalarVolumeNode *volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->AddFrameNodeSelector->GetSelected());
 vtkImageData* imageData = volumeNode->GetImageData();
 this->CaptureImageData = volumeNode->GetImageData();
