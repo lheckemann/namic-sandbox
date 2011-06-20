@@ -3271,15 +3271,15 @@ CvSize   newCaptureImageSize;
   vtkMRMLScalarVolumeNode *volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->AddFrameNodeSelector->GetSelected());
   vtkImageData* imageData = volumeNode->GetImageData();
   this->CaptureImageData = volumeNode->GetImageData();
-
-int vImageSize[3];
-
-// 5/6/2010 ayamada creating RGB image and capture image
-this->CaptureImageData->GetDimensions(vImageSize);
-imageData->GetDimensions(vImageSize);
-
-// check if the image size is differ from the initial one
-if (
+  
+  int vImageSize[3];
+  
+  // 5/6/2010 ayamada creating RGB image and capture image
+  this->CaptureImageData->GetDimensions(vImageSize);
+  imageData->GetDimensions(vImageSize);
+  
+  // check if the image size is differ from the initial one
+  if (
 
 vImageSize[0] != this->imageSize.width ||
 vImageSize[1] != this->imageSize.height
