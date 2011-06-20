@@ -365,7 +365,7 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart(const char* modelName)
     // Add them to the scene 
     modelSelected->SetScene(this->GetGUI()->GetMRMLScene());
     modelSelected->SetName(modelName);
-    dnodeS->SetColor(0,0.85,0);
+    dnodeS->SetColor(0,0.40,0.90);
     dnodeS->SetScene(this->GetGUI()->GetMRMLScene());
  
     this->GetGUI()->GetMRMLScene()->AddNode(dnodeS);
