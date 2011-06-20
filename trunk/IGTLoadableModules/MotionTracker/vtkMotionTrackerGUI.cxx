@@ -3250,8 +3250,10 @@ int vtkMotionTrackerGUI::StopCamera()
 int vtkMotionTrackerGUI::CameraHandler()
 {
   IplImage* captureImageTmp = NULL;
+  IplImage* contour_gray = NULL;
+  
   CvSize   newImageSize;
-CvSize   newCaptureImageSize;
+  CvSize   newCaptureImageSize;
 
 
   if (this->capture)
@@ -3317,6 +3319,9 @@ CvSize   newCaptureImageSize;
     this->RGBImage = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
     this->captureImageforHighGUI = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
     this->undistortionImage = cvCreateImage( this->imageSize, IPL_DEPTH_8U, 3);
+
+    contour_gray = cvCreateImage( this->imageSize, IPL_DEPTH_8U, 1);
+
     
     vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
     ViewerBackgroundOff(vwidget);
@@ -3335,7 +3340,19 @@ CvSize   newCaptureImageSize;
   int dsize = newImageSize.width*newImageSize.height*3;
   cvFlip(this->ImageFromScannerTmp, this->ImageFromScanner,-1);
   
-  cvSmooth(this->ImageFromScanner,this->RGBImage, CV_MEDIAN, 3,0,0,0);
+  
+  cvCvtColor(this->ImageFromScanner, contour_gray, CV_BGR2GRAY);
+//  cvAdaptiveThreshold (contour_gray, contour_gray, 255, 
+//                       CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, BlockSize, ContThre); 
+  cvAdaptiveThreshold (contour_gray, contour_gray, 255, 
+                       CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 11, 5.0); 
+  
+  //cvSmooth(this->ImageFromScanner,this->RGBImage, CV_MEDIAN, 3,0,0,0);
+  cvSmooth(contour_gray,contour_gray, CV_MEDIAN, 5);
+  //cvSmooth(this->ImageFromScanner,this->RGBImage, CV_MEDIAN, 3,0,0,0);
+  
+  cvCvtColor(contour_gray, this->ImageFromScanner, CV_GRAY2BGR);
+  
   
 //  memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->ImageFromScanner->imageData, 256*256*3);
   memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->RGBImage->imageData, 256*256*3);
