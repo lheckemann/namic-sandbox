@@ -3267,10 +3267,10 @@ CvSize   newCaptureImageSize;
     // 5/6/2010 ayamada creating RGB image and capture image
     newCaptureImageSize = cvGetSize( captureImageTmp );
     newImageSize = cvGetSize( captureImageTmp );
-
-vtkMRMLScalarVolumeNode *volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->AddFrameNodeSelector->GetSelected());
-vtkImageData* imageData = volumeNode->GetImageData();
-this->CaptureImageData = volumeNode->GetImageData();
+  
+  vtkMRMLScalarVolumeNode *volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->AddFrameNodeSelector->GetSelected());
+  vtkImageData* imageData = volumeNode->GetImageData();
+  this->CaptureImageData = volumeNode->GetImageData();
 
 int vImageSize[3];
 
