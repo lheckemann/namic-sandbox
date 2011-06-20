@@ -3335,7 +3335,7 @@ CvSize   newCaptureImageSize;
   int dsize = newImageSize.width*newImageSize.height*3;
   cvFlip(this->ImageFromScannerTmp, this->ImageFromScanner,-1);
   
-  cvSmooth(this->ImageFromScanner,this->RGBImage, CV_GAUSSIAN, 3,0,0,0);
+  cvSmooth(this->ImageFromScanner,this->RGBImage, CV_MEDIAN, 3,0,0,0);
   
 //  memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->ImageFromScanner->imageData, 256*256*3);
   memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->RGBImage->imageData, 256*256*3);
