@@ -2455,10 +2455,13 @@ void vtkMotionTrackerGUI::BuildGUIForFrameFrameEditor(int show)
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
   conBrowsFrame->SetLabelText("Editor");
+  // 6/20/2011 ayamada
+/*
   if (!show)
     {
     conBrowsFrame->CollapseFrame();
     }
+ */
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
