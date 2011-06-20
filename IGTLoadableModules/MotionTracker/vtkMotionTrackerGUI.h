@@ -59,6 +59,10 @@ class vtkKWCheckButtonWithLabel;
 class vtkKWRadioButtonSetWithLabel;
 class vtkKWMenuButtonWithLabel;
 
+// 6/20/2011 ayamada
+class vtkSlicerNodeSelectorWidget;
+class vtkSlicerTransformManagerWidget;
+
 class VTK_MotionTracker_EXPORT vtkMotionTrackerGUI : public vtkSlicerModuleGUI
 {
  public:
@@ -99,6 +103,8 @@ class VTK_MotionTracker_EXPORT vtkMotionTrackerGUI : public vtkSlicerModuleGUI
 
 // 6/17/2011 ayamada
 int counterForShowImage;
+
+
 
   static vtkMotionTrackerGUI* New ();
   void Init();
@@ -277,6 +283,12 @@ int makeImageFromScanner;
 
   vtkSlicerNodeSelectorWidget* TransformNodeSelector;
   vtkKWRadioButtonSet* OpticalFlowStatusButtonSet;
+
+
+ // 6/20/2011 ayamada
+ // for selecting transform node selector
+ vtkSlicerNodeSelectorWidget* TransformNodeSelectorForSendingData;
+
 
 
   // -----------------------------------------
