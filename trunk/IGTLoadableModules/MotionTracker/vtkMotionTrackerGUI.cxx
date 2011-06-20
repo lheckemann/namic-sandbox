@@ -3265,51 +3265,28 @@ CvSize   newCaptureImageSize;
     newImageSize = cvGetSize( captureImageTmp );
 
 
-// for obtaining image from MRML
-vtkMRMLScalarVolumeNode *volumeNode =
-vtkMRMLScalarVolumeNode::SafeDownCast(this->AddFrameNodeSelector->GetSelected());
+　　　// for obtaining image from MRML
+vtkMRMLScalarVolumeNode *volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->AddFrameNodeSelector->GetSelected());
 vtkImageData* imageData = volumeNode->GetImageData();
 this->CaptureImageData = volumeNode->GetImageData();
 
 int vImageSize[3];
 
-
 // 5/6/2010 ayamada creating RGB image and capture image
-    //newImageSize = cvGetSize( captureImageTmp );
-
-
-//this->CaptureImageData->GetDimensions(vImageSize);
 this->CaptureImageData->GetDimensions(vImageSize);
 imageData->GetDimensions(vImageSize);
-    //int dsize = this->imageSize.width*this->imageSize.height*3;
 
-
-    // check if the image size is differ from the initial one
-    if (
+// check if the image size is differ from the initial one
+if (
 
 vImageSize[0] != this->imageSize.width ||
-        vImageSize[1] != this->imageSize.height
-/*
-newImageSize.width != this->imageSize.width ||
-        newImageSize.height != this->imageSize.height
-*/
+vImageSize[1] != this->imageSize.height
 )
 {
-
 this->imageSize.width = 256;//newImageSize.width;
 this->imageSize.height = 256;//newImageSize.height;
 newImageSize.width = 256;
 newImageSize.height = 256;
-
-
-//this->imageSize.width = newImageSize.width;
-//this->imageSize.height = newImageSize.height;
-
-//this->ImageFromScannerTmp = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 1);
-//this->ImageFromScannerTmp = cvCreateImage(this->imageSize, IPL_DEPTH_16U, 1);
-//this->ImageFromScannerTmp = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
-//this->ImageFromScanner = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
-
 
 this->VideoImageData->SetDimensions(newImageSize.width, newImageSize.height, 1);
 this->VideoImageData->SetExtent(0, newImageSize.width-1, 0, newImageSize.height-1, 0, 0 );
@@ -3329,8 +3306,7 @@ this->CaptureImageData->SetScalarTypeToShort();
 this->CaptureImageData->AllocateScalars();
 this->CaptureImageData->Update();
 
-
-    // 6/19/2011 ayamada IplImage structure
+// 6/19/2011 ayamada IplImage structure
 this->ImageFromScannerTmp = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
 this->ImageFromScanner = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
 this->captureImage = cvCreateImage(this->imageSize, IPL_DEPTH_8U,3);
@@ -3338,7 +3314,6 @@ this->RGBImage = cvCreateImage(imageSize, IPL_DEPTH_8U, 3);
 this->captureImageforHighGUI = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
 this->undistortionImage = cvCreateImage( this->imageSize, IPL_DEPTH_8U, 3);
 //this->RGBImage = cvCreateImage(newCaptureImageSize, IPL_DEPTH_8U, 3);
-
 
 vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
 ViewerBackgroundOff(vwidget);
@@ -3357,38 +3332,22 @@ cvCvtColor( captureImageTmp, this->captureImageforHighGUI, CV_BGR2RGB);
 //unsigned char* pOut = (unsigned char*)resizeImageBMD->imageData;
 this->CaptureImageData = volumeNode->GetImageData();
 
+// convert coloer from Gray16 to BGR24
 unsigned char* pOut = (unsigned char*)this->ImageFromScannerTmp->imageData;
 unsigned short* pIn = (unsigned short*) imageData->GetScalarPointer();
-
-//unsigned short* pInB = (unsigned short*)this->CaptureImageData->GetScalarPointer();
-
-
-//this->Gray16toBGR24(pOut,(void*)this->VideoImageData->GetScalarPointer(),256,256);
 this->Gray16toBGR24(pOut,pIn,256,256);
-//this->Gray16toBGR24((unsigned char*)this->ImageFromScannerTmp->imageData,(short*)this->VideoImageData->GetScalarPointer(),256,256);
 
 int dsize = newImageSize.width*newImageSize.height*3;
-
-
 cvFlip(this->ImageFromScannerTmp, this->ImageFromScanner,-1);
 
-// 4/3/2011 ayamada
-    //memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->RGBImage->imageData, dsize);
-
-//memcpy((void*)this->ImageFromScannerTmp->imageData, (void*)this->ImageFromScannerTmp->GetScalarPointer(), 256*256);
-
-//memcpy((void*)this->ImageFromScannerTmp->imageData, this->CaptureImageData->GetScalarPointer(), 256*256*3);
-//cvCvtColor( this->ImageFromScannerTmp, this->ImageFromScanner, CV_BGR2RGB);       //comment not to undistort      at 10. 01. 07 - smkim
-//memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->ImageFromScannerTmp->imageData, 256*256);
-//memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->ImageFromScanner->imageData, 256*256*3);
 memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->ImageFromScanner->imageData, 256*256*3);
 
-//    if (this->VideoImageData && this->BackgroundRenderer)
-//{
-      //this->VideoImageData->Update();
+    if (this->VideoImageData && this->BackgroundRenderer)
+{
       this->VideoImageData->Modified();
       this->BackgroundRenderer->GetRenderWindow()->Render();
-//}
+
+}
 
 
 }
