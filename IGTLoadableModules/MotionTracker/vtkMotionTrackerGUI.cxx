@@ -3280,22 +3280,25 @@ CvSize   newCaptureImageSize;
   
   // check if the image size is differ from the initial one
   if (
-
-vImageSize[0] != this->imageSize.width ||
-vImageSize[1] != this->imageSize.height
-)
-{
-this->imageSize.width = 256;//newImageSize.width;
-this->imageSize.height = 256;//newImageSize.height;
-newImageSize.width = 256;
-newImageSize.height = 256;
-
-this->VideoImageData->SetDimensions(newImageSize.width, newImageSize.height, 1);
-this->VideoImageData->SetExtent(0, newImageSize.width-1, 0, newImageSize.height-1, 0, 0 );
-this->VideoImageData->SetNumberOfScalarComponents(3);
-this->VideoImageData->SetScalarTypeToUnsignedChar();
-this->VideoImageData->AllocateScalars();
-this->VideoImageData->Update();
+            
+      vImageSize[0] != this->imageSize.width ||
+      vImageSize[1] != this->imageSize.height
+      
+      )
+  
+  {
+    this->imageSize.width = 256;//newImageSize.width;
+    this->imageSize.height = 256;//newImageSize.height;
+    newImageSize.width = 256;
+    newImageSize.height = 256;
+    
+    
+    this->VideoImageData->SetDimensions(newImageSize.width, newImageSize.height, 1);
+    this->VideoImageData->SetExtent(0, newImageSize.width-1, 0, newImageSize.height-1, 0, 0 );
+    this->VideoImageData->SetNumberOfScalarComponents(3);
+    this->VideoImageData->SetScalarTypeToUnsignedChar();
+    this->VideoImageData->AllocateScalars();
+    this->VideoImageData->Update();
 
 // 6/17/2011 ayamada
 // for 16bit unsigned image
