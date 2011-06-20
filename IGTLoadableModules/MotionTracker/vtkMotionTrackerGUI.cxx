@@ -3299,31 +3299,32 @@ CvSize   newCaptureImageSize;
     this->VideoImageData->SetScalarTypeToUnsignedChar();
     this->VideoImageData->AllocateScalars();
     this->VideoImageData->Update();
-
-// 6/17/2011 ayamada
-// for 16bit unsigned image
-
-this->CaptureImageData->SetDimensions(newImageSize.width, newImageSize.height, 1);
-//this->CaptureImageData->SetExtent(0, newImageSize.width-1, 0, newImageSize.height-1, 0, 0 );
-this->CaptureImageData->SetNumberOfScalarComponents(1);
-// 6/19/2011 ayamada
-this->CaptureImageData->SetScalarTypeToShort();
-this->CaptureImageData->AllocateScalars();
-this->CaptureImageData->Update();
-
-// 6/19/2011 ayamada IplImage structure
-this->ImageFromScannerTmp = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
-this->ImageFromScanner = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
-this->captureImage = cvCreateImage(this->imageSize, IPL_DEPTH_8U,3);
-this->RGBImage = cvCreateImage(imageSize, IPL_DEPTH_8U, 3);
-this->captureImageforHighGUI = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
-this->undistortionImage = cvCreateImage( this->imageSize, IPL_DEPTH_8U, 3);
-//this->RGBImage = cvCreateImage(newCaptureImageSize, IPL_DEPTH_8U, 3);
-
-vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
-ViewerBackgroundOff(vwidget);
-//ViewerBackgroundOn(vwidget, this->VideoImageData);
-ViewerBackgroundOn(vwidget, this->VideoImageData);
+    
+    // 6/17/2011 ayamada
+    // for 16bit unsigned image
+    
+    
+    this->CaptureImageData->SetDimensions(newImageSize.width, newImageSize.height, 1);
+    //this->CaptureImageData->SetExtent(0, newImageSize.width-1, 0, newImageSize.height-1, 0, 0 );
+    this->CaptureImageData->SetNumberOfScalarComponents(1);
+    // 6/19/2011 ayamada
+    this->CaptureImageData->SetScalarTypeToShort();
+    this->CaptureImageData->AllocateScalars();
+    this->CaptureImageData->Update();
+    
+    // 6/19/2011 ayamada IplImage structure
+    this->ImageFromScannerTmp = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
+    this->ImageFromScanner = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
+    this->captureImage = cvCreateImage(this->imageSize, IPL_DEPTH_8U,3);
+    this->RGBImage = cvCreateImage(imageSize, IPL_DEPTH_8U, 3);
+    this->captureImageforHighGUI = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
+    this->undistortionImage = cvCreateImage( this->imageSize, IPL_DEPTH_8U, 3);
+    //this->RGBImage = cvCreateImage(newCaptureImageSize, IPL_DEPTH_8U, 3);
+    
+    vtkSlicerViewerWidget* vwidget = this->GetApplicationGUI()->GetNthViewerWidget(0);
+    ViewerBackgroundOff(vwidget);
+    //ViewerBackgroundOn(vwidget, this->VideoImageData);
+    ViewerBackgroundOn(vwidget, this->VideoImageData);
 
 }
   
