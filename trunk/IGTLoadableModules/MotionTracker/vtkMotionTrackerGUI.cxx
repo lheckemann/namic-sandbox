@@ -3302,7 +3302,6 @@ CvSize   newCaptureImageSize;
     
     // 6/17/2011 ayamada
     // for 16bit unsigned image
-    
     this->CaptureImageData->SetDimensions(newImageSize.width, newImageSize.height, 1);
     //this->CaptureImageData->SetExtent(0, newImageSize.width-1, 0, newImageSize.height-1, 0, 0 );
     this->CaptureImageData->SetNumberOfScalarComponents(1);
@@ -3315,7 +3314,7 @@ CvSize   newCaptureImageSize;
     this->ImageFromScannerTmp = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
     this->ImageFromScanner = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
     this->captureImage = cvCreateImage(this->imageSize, IPL_DEPTH_8U,3);
-    this->RGBImage = cvCreateImage(imageSize, IPL_DEPTH_8U, 3);
+    this->RGBImage = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
     this->captureImageforHighGUI = cvCreateImage(this->imageSize, IPL_DEPTH_8U, 3);
     this->undistortionImage = cvCreateImage( this->imageSize, IPL_DEPTH_8U, 3);
     
@@ -3336,7 +3335,10 @@ CvSize   newCaptureImageSize;
   int dsize = newImageSize.width*newImageSize.height*3;
   cvFlip(this->ImageFromScannerTmp, this->ImageFromScanner,-1);
   
-  memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->ImageFromScanner->imageData, 256*256*3);
+  cvSmooth(this->ImageFromScanner,this->RGBImage, CV_GAUSSIAN, 3,0,0,0);
+  
+//  memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->ImageFromScanner->imageData, 256*256*3);
+  memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->RGBImage->imageData, 256*256*3);
   
   if (this->VideoImageData && this->BackgroundRenderer)
   {
