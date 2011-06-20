@@ -3323,39 +3323,31 @@ ViewerBackgroundOff(vwidget);
 ViewerBackgroundOn(vwidget, this->VideoImageData);
 
 }
-
-// for test of OpenCV camera
-/*
-cvFlip(captureImageTmp, this->captureImage, 0);
-cvCvtColor( this->captureImage, this->RGBImage, CV_BGR2RGB);
-cvCvtColor( captureImageTmp, this->captureImageforHighGUI, CV_BGR2RGB);
-*/
-
-//unsigned char* pOut = (unsigned char*)resizeImageBMD->imageData;
-this->CaptureImageData = volumeNode->GetImageData();
-
-// convert coloer from Gray16 to BGR24
-unsigned char* pOut = (unsigned char*)this->ImageFromScannerTmp->imageData;
-unsigned short* pIn = (unsigned short*) imageData->GetScalarPointer();
-this->Gray16toBGR24(pOut,pIn,256,256);
-
-int dsize = newImageSize.width*newImageSize.height*3;
-cvFlip(this->ImageFromScannerTmp, this->ImageFromScanner,-1);
-
-memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->ImageFromScanner->imageData, 256*256*3);
-
-    if (this->VideoImageData && this->BackgroundRenderer)
-{
-      this->VideoImageData->Modified();
-      this->BackgroundRenderer->GetRenderWindow()->Render();
-
-}
-
+  
+  this->CaptureImageData = volumeNode->GetImageData();
+  
+  // convert coloer from Gray16 to BGR24
+  unsigned char* pOut = (unsigned char*)this->ImageFromScannerTmp->imageData;
+  unsigned short* pIn = (unsigned short*) imageData->GetScalarPointer();
+  this->Gray16toBGR24(pOut,pIn,256,256);
+  
+  
+  int dsize = newImageSize.width*newImageSize.height*3;
+  cvFlip(this->ImageFromScannerTmp, this->ImageFromScanner,-1);
+  
+  memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->ImageFromScanner->imageData, 256*256*3);
+  
+  if (this->VideoImageData && this->BackgroundRenderer)
+  {
+    this->VideoImageData->Modified();
+    this->BackgroundRenderer->GetRenderWindow()->Render();
+  
+  }
 
 }
   
   return 1;
-  
+
 }
 
 
