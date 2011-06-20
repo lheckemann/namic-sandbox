@@ -42,6 +42,8 @@
 #include "vtkClipPolyData.h"
 #include "vtkPolyData.h"
 #include "vtkCleanPolyData.h"
+#include "vtkTriangleFilter.h"
+#include "vtkLoopSubdivisionFilter.h"
 
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj)                                      \
@@ -436,14 +438,27 @@ void vtkOsteoPlanCuttingModelStep::CreateCutter()
 void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidget2* cuttingBox)
 {
 
- // Get Planes from vtkBoxWidget  
+  // Get Planes from vtkBoxWidget  
   vtkPlanes* planes = vtkPlanes::New();
   vtkBoxRepresentation* boxRepresentation = reinterpret_cast<vtkBoxRepresentation*>(cuttingBox->GetRepresentation());
   boxRepresentation->GetPlanes(planes);
 
+  // Increase polydata resolution to avoid clipping problem if thickness of cutter is smaller than triangle size
+  vtkTriangleFilter* triangleFilter = vtkTriangleFilter::New();
+  triangleFilter->SetInput(model->GetPolyData());
+  triangleFilter->PassVertsOn();
+  triangleFilter->PassLinesOn();
+
+  vtkLoopSubdivisionFilter* loopSub = vtkLoopSubdivisionFilter::New();
+  loopSub->SetInput(triangleFilter->GetOutput());
+
+  vtkLoopSubdivisionFilter* loopSub2 = vtkLoopSubdivisionFilter::New();
+  loopSub2->SetInput(loopSub->GetOutput());
+
   // Set Clipper 1
   vtkClipPolyData* clipper1 = vtkClipPolyData::New();
-  clipper1->SetInput(model->GetPolyData());
+  //clipper1->SetInput(model->GetPolyData());
+  clipper1->SetInput(loopSub2->GetOutput());
   clipper1->SetClipFunction(planes);
   clipper1->InsideOutOn();
 
@@ -502,6 +517,9 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   dnode2->SetColor(0,1,0);
 
   polyDataModel2->Delete();
+  triangleFilter->Delete();
+  loopSub->Delete();
+  loopSub2->Delete();
 
   // Hide original model
   model->GetModelDisplayNode()->SetVisibility(0);
