@@ -3352,14 +3352,14 @@ int vtkMotionTrackerGUI::CameraHandler()
   cvCvtColor((void*)this->ImageFromScanner, contour_gray, CV_RGB2GRAY);
 //  cvAdaptiveThreshold (contour_gray, contour_gray, 255, 
 //                       CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, BlockSize, ContThre); 
-///  cvAdaptiveThreshold (contour_gray, contour_gray, 255, 
-///                       CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 11, 5.0); 
+  cvAdaptiveThreshold (contour_gray, contour_gray, 255, 
+                       CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 11, 5.0); 
   
   //cvSmooth(this->ImageFromScanner,this->RGBImage, CV_MEDIAN, 3,0,0,0);
-  //cvSmooth(contour_gray,contour_gray, CV_MEDIAN, 5);
+  cvSmooth(contour_gray,contour_gray, CV_MEDIAN, 5);
   //cvSmooth(this->ImageFromScanner,this->RGBImage, CV_MEDIAN, 3,0,0,0);
   
-  //cvCvtColor(contour_gray, this->ImageFromScanner, CV_GRAY2BGR);
+  cvCvtColor(contour_gray, this->ImageFromScanner, CV_GRAY2RGB);
   
   
   memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->ImageFromScanner->imageData, 256*256*3);
@@ -3373,7 +3373,12 @@ int vtkMotionTrackerGUI::CameraHandler()
   
   }
 
+//  cvReleaseImage(&contour_gray);
+//  cvReleaseImage(&captureImageTmp);
+
+  
 }
+  
   
   return 1;
 
