@@ -182,7 +182,9 @@ vtkMotionTrackerGUI::vtkMotionTrackerGUI ( )
 this->counterForShowImage = 0;
 
 // 6/20/2011 ayamada transform node selector widget
-this->TransformNodeSelectorForSendingData = NULL;
+//this->TransformNodeSelectorForSendingData = NULL;
+this->TransformNodeNameEntry = NULL;
+this->TransformEditorWidget = NULL;
 
 
   //----------------------------------------------------------------
@@ -1752,6 +1754,8 @@ void vtkMotionTrackerGUI::BuildGUI ( )
 
 // 5/31/2011 ayamada
   BuildGUIForWindowConfigurationFrame();
+  BuildGUIForTransformation();
+  
   BuildGUIForOpticalFlowFrame();
 
 
@@ -1897,6 +1901,39 @@ cvframe->GetWidgetName() );
 
   this->StartCaptureButton->EnabledOn();
   this->StopCaptureButton->EnabledOff();
+  
+  
+  // -----------------------------------------
+  // Transform node name entry
+  // 5/6/2010 ayamada
+/*
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("MotionTracker");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+  
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Transforms");
+  conBrowsFrame->CollapseFrame(); // 100729-komura
+  this->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+  
+  this->TransformEditorWidget = vtkSlicerTransformEditorWidget::New ( );
+  this->TransformEditorWidget->SetAndObserveMRMLScene(this->GetMRMLScene() );
+  this->TransformEditorWidget->SetParent ( conBrowsFrame->GetFrame() );
+  this->TransformEditorWidget->Create ( );
+  this->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", this->TransformEditorWidget->GetWidgetName(), conBrowsFrame->GetFrame()->GetWidgetName());
+*/  
+/*  
+  this->TransformNodeNameEntry = vtkKWEntryWithLabel::New();
+  this->TransformNodeNameEntry->SetParent(cvframe);
+  this->TransformNodeNameEntry->Create();
+  this->TransformNodeNameEntry->SetWidth(40);
+  this->TransformNodeNameEntry->SetLabelWidth(30);
+  this->TransformNodeNameEntry->SetLabelText("Input (Transform) Node Name:");
+  this->TransformNodeNameEntry->GetWidget()->SetValue ( "Tracker" );
+  this->Script( "pack %s -side left -anchor nw -expand n -padx 2 -pady 2", this->TransformNodeNameEntry->GetWidgetName());
+*/
+  
 
   cvframe->Delete();
 
@@ -1942,6 +1979,34 @@ cvframe->GetWidgetName() );
   //switchframe->Delete();
 
 }
+
+void vtkMotionTrackerGUI::BuildGUIForTransformation()
+{
+  // 5/6/2010 ayamada
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("MotionTracker");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+  
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Transforms");
+  conBrowsFrame->CollapseFrame(); // 100729-komura
+  this->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+  
+  // -----------------------------------------
+  // Test child frame
+  
+  this->TransformEditorWidget = vtkSlicerTransformEditorWidget::New ( );
+  this->TransformEditorWidget->SetAndObserveMRMLScene(this->GetMRMLScene() );
+  this->TransformEditorWidget->SetParent ( conBrowsFrame->GetFrame() );
+  this->TransformEditorWidget->Create ( );
+  this->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s", this->TransformEditorWidget->GetWidgetName(), conBrowsFrame->GetFrame()->GetWidgetName());
+  
+  conBrowsFrame->Delete();
+  
+}
+
 
 
 //----------------------------------------------------------------------------
