@@ -45,6 +45,15 @@
 #include <cxcore.h>
 #include <highgui.h>
 
+
+// 6/20/2011 ayamada
+#include "vtkSlicerNodeSelectorWidget.h"
+#include "vtkSlicerTransformEditorWidget.h"
+
+#include "vtkMRMLTransformableNode.h"
+#include "vtkMRMLTransformNode.h"
+
+
 class vtkKWPushButton;
 class vtkKWMenuButton;
 class vtkKWSpinBox;
@@ -182,6 +191,9 @@ int counterForShowImage;
   void BuildGUIForWindowConfigurationFrame();
   void BuildGUIForOpticalFlowFrame();
 
+  // 6/21/2011 ayamada
+  void BuildGUIForTransformation();
+  
 
 // 6/17/2011 ayamada
   void Gray16toBGR24(unsigned char*& pBGR24,
@@ -287,7 +299,10 @@ int makeImageFromScanner;
 
  // 6/20/2011 ayamada
  // for selecting transform node selector
- vtkSlicerNodeSelectorWidget* TransformNodeSelectorForSendingData;
+// vtkSlicerNodeSelectorWidget* TransformNodeSelectorForSendingData;
+  vtkKWEntryWithLabel *TransformNodeNameEntry;
+  vtkSlicerTransformEditorWidget *TransformEditorWidget;
+  
 
 
 
