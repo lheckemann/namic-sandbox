@@ -43,7 +43,7 @@ class VTK_SLICER_LIVEULTRASOUND_MODULE_LOGIC_EXPORT vtkSlicerLiveUltrasoundLogic
 public:
   
   static vtkSlicerLiveUltrasoundLogic *New();
-  vtkTypeMacro(vtkSlicerLiveUltrasoundLogic,vtkSlicerModuleLogic);
+  vtkTypeMacro(vtkSlicerLiveUltrasoundLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
   /// Initialize listening to MRML events

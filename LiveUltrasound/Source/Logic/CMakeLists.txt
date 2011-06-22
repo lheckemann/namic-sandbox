@@ -1,4 +1,4 @@
-PROJECT(vtkSlicer${qt_module_name}ModuleLogic)
+PROJECT(vtkSlicer${EXTENSION_NAME}ModuleLogic)
 
 #
 # See CMake/SlicerMacroBuildModuleLogic.cmake for details
@@ -21,7 +21,10 @@ SET(module_logic_SRCS
 
 # Additional Target libraries
 SET(module_logic_target_libraries
+  ${CTK_LIBRARIES}
   ${ITK_LIBRARIES}
+  ${QT_LIBRARIES}
+  ${VTK_LIBRARIES}
   vtkSlicerLiveUltrasoundModuleMRML
   )
 
@@ -32,4 +35,5 @@ SlicerMacroBuildModuleLogic(
   INCLUDE_DIRECTORIES ${module_logic_include_directories}
   SRCS ${module_logic_SRCS}
   TARGET_LIBRARIES ${module_logic_target_libraries}
+  DISABLE_WRAP_PYTHON
   )
