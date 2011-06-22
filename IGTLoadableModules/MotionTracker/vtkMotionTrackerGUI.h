@@ -203,6 +203,7 @@ const unsigned int height);
 
   // 6/21/2011 ayamada
   vtkMRMLLinearTransformNode *OriginalTrackerNode;    // adding at 09. 9. 16 - smkim
+  vtkMatrix4x4* transformMatrix;    // adding at 09. 9. 16 - smkim
   
 
   //----------------------------------------------------------------
