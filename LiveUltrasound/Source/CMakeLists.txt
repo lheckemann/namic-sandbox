@@ -4,6 +4,7 @@ SET(qt_module_name "LiveUltrasound")
 SET(qt_module_title "Module Template")
 
 # Build module sub libraries
+ADD_SUBDIRECTORY(MRML)
 ADD_SUBDIRECTORY(Logic)
 
 SET(qt_module_export_directive "Q_SLICER_QTMODULES_LIVEULTRASOUND_EXPORT")
@@ -37,8 +38,9 @@ SET(qt_module_UI_SRCS
 
 # Additional Target libraries
 SET(qt_module_target_libraries
+  vtkSlicerLiveUltrasoundModuleMRML
   vtkSlicerLiveUltrasoundModuleLogic
-  )
+)
 
 # Resources
 SET(qt_module_resources

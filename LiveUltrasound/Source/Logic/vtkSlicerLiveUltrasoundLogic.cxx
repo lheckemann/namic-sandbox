@@ -22,6 +22,7 @@
 
 // VTK includes
 #include <vtkNew.h>
+#include "vtkSmartPointer.h"
 
 
 //----------------------------------------------------------------------------
@@ -30,11 +31,18 @@ vtkStandardNewMacro(vtkSlicerLiveUltrasoundLogic);
 //----------------------------------------------------------------------------
 vtkSlicerLiveUltrasoundLogic::vtkSlicerLiveUltrasoundLogic()
 {
+    this->LiveUltrasoundNode = NULL; 
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerLiveUltrasoundLogic::~vtkSlicerLiveUltrasoundLogic()
 {
+    vtkSetAndObserveMRMLNodeMacro(this->LiveUltrasoundNode, NULL);
+    if ( this->LiveUltrasoundNode != NULL )
+    {
+        this->LiveUltrasoundNode->Delete(); 
+        this->LiveUltrasoundNode = NULL; 
+    } 
 }
 
 //----------------------------------------------------------------------------
@@ -54,6 +62,19 @@ void vtkSlicerLiveUltrasoundLogic::InitializeEventListeners()
   this->SetAndObserveMRMLSceneEventsInternal(this->GetMRMLScene(), events.GetPointer());
 }
 
+//----------------------------------------------------------------------------
+void vtkSlicerLiveUltrasoundLogic::SetAndObserveLiveUltrasoundNode(vtkMRMLLiveUltrasoundNode *node)
+{
+  vtkSetAndObserveMRMLNodeMacro(this->LiveUltrasoundNode, node);
+
+   if (node)
+   {
+        //node->
+   }
+
+  //vtkSetAndObserveMRMLNodeMacro(this->DiffusionTensorVolumeNode, NULL);
+}
+
 //-----------------------------------------------------------------------------
 void vtkSlicerLiveUltrasoundLogic::ProcessMRMLEvents(
   vtkObject* vtkNotUsed(caller), unsigned long vtkNotUsed(event), void * vtkNotUsed(callData))
@@ -63,10 +84,12 @@ void vtkSlicerLiveUltrasoundLogic::ProcessMRMLEvents(
 //-----------------------------------------------------------------------------
 void vtkSlicerLiveUltrasoundLogic::RegisterNodes()
 {
-  if(!this->GetMRMLScene())
+ vtkMRMLScene* scene = this->GetMRMLScene(); 
+  if (!scene)
     {
     return;
     }
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLLiveUltrasoundNode>::New()); 
 
 }
 

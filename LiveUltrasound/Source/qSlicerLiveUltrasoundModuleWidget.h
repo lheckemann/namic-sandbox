@@ -25,6 +25,7 @@
 
 class qSlicerLiveUltrasoundModuleWidgetPrivate;
 class vtkMRMLNode;
+class vtkMRMLLiveUltrasoundNode; 
 
 /// \ingroup Slicer_QtModules_LiveUltrasound
 class Q_SLICER_QTMODULES_LIVEULTRASOUND_EXPORT qSlicerLiveUltrasoundModuleWidget :
@@ -40,15 +41,36 @@ public:
 
 public slots:
 
+    /// Set the current MRML scene to the widget
+    virtual void setMRMLScene(vtkMRMLScene*);
+
+    /// Set current live ultrasound data node
+    void setLiveUltrasoundDataNode(vtkMRMLNode *node); 
+    void setImageToProbeTransformNode(vtkMRMLNode *node);
+    void setProbeTransformNode(vtkMRMLNode *node);
+    void setModelToProbeTransformNode(vtkMRMLNode *node);
+
 
 protected:
   QScopedPointer<qSlicerLiveUltrasoundModuleWidgetPrivate> d_ptr;
   
   virtual void setup();
 
+
+  /// The enter and exit methods are called when the module panel changes.
+  /// These give the module a chance to do any setup or shutdown operations
+  /// as it becomes active and inactive.
+  virtual void enter();
+  virtual void exit();
+
+protected slots: 
+    void updateWidget();
+
 private:
   Q_DECLARE_PRIVATE(qSlicerLiveUltrasoundModuleWidget);
   Q_DISABLE_COPY(qSlicerLiveUltrasoundModuleWidget);
+
+  vtkMRMLLiveUltrasoundNode *liveUltrasoundNode;
 };
 
 #endif
