@@ -57,7 +57,7 @@ qSlicerLiveUltrasoundModule::qSlicerLiveUltrasoundModule(QObject* _parent)
 //-----------------------------------------------------------------------------
 QString qSlicerLiveUltrasoundModule::category()const
 {
-  return "Developer Tools";
+  return tr("Developer Tools");
 }
 
 //-----------------------------------------------------------------------------
@@ -68,19 +68,14 @@ qSlicerLiveUltrasoundModule::~qSlicerLiveUltrasoundModule()
 //-----------------------------------------------------------------------------
 QString qSlicerLiveUltrasoundModule::helpText()const
 {
-  QString help = 
-    "This template module is meant to be used with the"
-    "with the ModuleWizard.py script distributed with the"
-    "Slicer source code (starting with version 4)."
-    "Developers can generate their own source code using the"
-    "wizard and then customize it to fit their needs.";
+  QString help = tr("See <a>https://www.assembla.com/spaces/LiveUltrasound/wiki</a> for details (project members access only)."); 
   return help;
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerLiveUltrasoundModule::acknowledgementText()const
 {
-  return "This work was supported by NAMIC, NAC, and the Slicer Community...";
+  return tr("This work was supported by NAMIC.");
 }
 
 //-----------------------------------------------------------------------------

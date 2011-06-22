@@ -28,6 +28,7 @@
 #include "vtkSlicerModuleLogic.h"
 
 // MRML includes
+#include "vtkMRMLLiveUltrasoundNode.h" 
 
 // STD includes
 #include <cstdlib>
@@ -50,6 +51,8 @@ public:
   
   /// MRML events
   void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
+
+  void SetAndObserveLiveUltrasoundNode(vtkMRMLLiveUltrasoundNode *node); 
   
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
@@ -57,6 +60,8 @@ public:
 protected:
   vtkSlicerLiveUltrasoundLogic();
   virtual ~vtkSlicerLiveUltrasoundLogic();
+
+  vtkMRMLLiveUltrasoundNode* LiveUltrasoundNode; 
   
 private:
 
