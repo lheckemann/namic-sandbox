@@ -1318,14 +1318,20 @@ void vtkMotionTrackerGUI::ProcessGUIEvents(vtkObject *caller,
     {
 
   // 6/10/2011 ayamada
-this->switchImage = 1;
+  this->switchImage = 1;
 
       
       // 6/21/2011 ayamada
-      // to obtain 
+      // to obtain specified transform data 
       if (event == vtkMRMLLinearTransformNode::TransformModifiedEvent)
       {
         this->OriginalTrackerNode = vtkMRMLLinearTransformNode::SafeDownCast(this->TransformEditorWidget->GetTransformEditSelectorWidget()->GetSelected());
+
+        if (this->OriginalTrackerNode)
+        {
+          this->transformMatrix = this->OriginalTrackerNode->GetMatrixTransformToParent();
+        }
+        
         
       }
 
