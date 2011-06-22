@@ -256,6 +256,9 @@ this->TransformEditorWidget = NULL;
   //this->TimerFlag = 0;
 
 
+  this->TransformEditorWidget = NULL;
+  
+  
 // 5/31/2011 ayamada
 // for capture
 this->StartCaptureButton = NULL;
@@ -263,6 +266,7 @@ this->StartCaptureButton = NULL;
 
   this->TimerFlag = 0;
   this->CameraActiveFlag = 0;
+  this->editTransformMatrix = 0;
 
   this->CameraChannelLabel = NULL;
   this->CameraChannelEntry = NULL;
@@ -705,6 +709,14 @@ void vtkMotionTrackerGUI::RemoveGUIObservers ( )
 ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
 }
 
+  if (this->TransformEditorWidget)
+  {
+    this->TransformEditorWidget
+    ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+  }
+  
+  
+  
   if (this->StopCaptureButton)
 {
     this->StopCaptureButton
@@ -922,6 +934,11 @@ void vtkMotionTrackerGUI::AddGUIObservers ( )
     this->StartCaptureButton
 ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 }
+  if (this->TransformEditorWidget)
+  {
+    this->TransformEditorWidget
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  }  
   if (this->StopCaptureButton)
 {
     this->StopCaptureButton
@@ -1249,6 +1266,10 @@ void vtkMotionTrackerGUI::ProcessGUIEvents(vtkObject *caller,
     this->ThresholdLower  = thlow; 
     SetWindowLevelForCurrentFrame();
     }
+  
+  
+  
+  
 
   if (this->FrameMoveUpButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
@@ -1320,48 +1341,6 @@ void vtkMotionTrackerGUI::ProcessGUIEvents(vtkObject *caller,
   // 6/10/2011 ayamada
   this->switchImage = 1;
 
-      
-      // 6/21/2011 ayamada
-      // to obtain specified transform data 
-      if (event == vtkMRMLLinearTransformNode::TransformModifiedEvent)
-      {
-        this->OriginalTrackerNode = vtkMRMLLinearTransformNode::SafeDownCast(this->TransformEditorWidget->GetTransformEditSelectorWidget()->GetSelected());
-
-        if (this->OriginalTrackerNode)
-        {
-          this->transformMatrix = this->OriginalTrackerNode->GetMatrixTransformToParent();
-          
-          
-          if (transformMatrix)
-          {
-            // set volume orientation 
-            cameraMatrix[0] = transformMatrix->GetElement(0, 0);
-            cameraMatrix[1] = transformMatrix->GetElement(0, 1);
-            cameraMatrix[2] = transformMatrix->GetElement(0, 2);
-            cameraMatrix[3] = transformMatrix->GetElement(0, 3);
-            
-            cameraMatrix[4] = transformMatrix->GetElement(1, 0);
-            cameraMatrix[5] = transformMatrix->GetElement(1, 1);
-            cameraMatrix[6] = transformMatrix->GetElement(1, 2);
-            cameraMatrix[7] = transformMatrix->GetElement(1, 3);
-            
-            cameraMatrix[8] = transformMatrix->GetElement(2, 0);
-            cameraMatrix[9] = transformMatrix->GetElement(2, 1);
-            cameraMatrix[10] = transformMatrix->GetElement(2, 2);
-            cameraMatrix[11] = transformMatrix->GetElement(2, 3);
-            
-            cameraMatrix[12] = transformMatrix->GetElement(3, 0);
-            cameraMatrix[13] = transformMatrix->GetElement(3, 1);
-            cameraMatrix[14] = transformMatrix->GetElement(3, 2);
-            cameraMatrix[15] = transformMatrix->GetElement(3, 3);
-          }
-          
-        }
-        
-        
-      }
-
-      
 
     vtkMRMLTimeSeriesBundleNode *bundleNode = this->GetActiveTimeSeriesBundleNode();
     if (bundleNode == NULL)
@@ -1560,6 +1539,10 @@ void vtkMotionTrackerGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->StartCaptureButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
 {
+  
+  // 6/22/2011 ayamada
+  this->editTransformMatrix = 1;
+  
     if (this->VideoSourceButtonSet->GetWidget(0)->GetSelectedState())
 { // Camera is used as a video source
       int channel = this->CameraChannelEntry->GetValueAsInt();
@@ -1604,6 +1587,7 @@ void vtkMotionTrackerGUI::ProcessGUIEvents(vtkObject *caller,
 }
 
 
+  
 
 } 
 
@@ -1681,12 +1665,9 @@ void vtkMotionTrackerGUI::ProcessMRMLEvents ( vtkObject *vtkNotUsed(caller),
     {
     UpdateFrameList(NULL);
     }
-  /*
-  else if (event == vtkMRMLVolumeNode::ImageDataModifiedEvent)
-    {
-    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
-    }
-  */
+  
+  
+  
 }
 
 
@@ -1747,17 +1728,49 @@ void vtkMotionTrackerGUI::ProcessTimerEvents()
         }
       }
 
-  // 5/31/2011 ayamada
-if (this->CameraActiveFlag)
-{
-// 6/9/2011 ayamada
-//vtkMRMLScalarVolumeNode *volumeNode = 
-//vtkMRMLScalarVolumeNode::SafeDownCast(this->ActiveTimeSeriesBundleSelectorWidget->GetSelected());
-CameraHandler();
+   // 5/31/2011 ayamada
+   if (this->CameraActiveFlag)
+   {
+   // 6/9/2011 ayamada
+   //vtkMRMLScalarVolumeNode *volumeNode = 
+   //vtkMRMLScalarVolumeNode::SafeDownCast(this->ActiveTimeSeriesBundleSelectorWidget->GetSelected());
+   CameraHandler();
+   }
 
-}
+      
+      // 6/21/2011 ayamada
+      // to obtain specified transform data 
+      this->OriginalTrackerNode = vtkMRMLLinearTransformNode::SafeDownCast(this->TransformEditorWidget->GetTransformEditSelectorWidget()->GetSelected());    //adding at 09. 12. 24. - smkim
 
+      if (! this->OriginalTrackerNode)
+      {
+        //return;
+      }else{
 
+        vtkMatrix4x4* transform;
+        //transform = transformNode->GetMatrixTransformToParent();
+        transform = this->OriginalTrackerNode->GetMatrixTransformToParent();
+        
+        
+    
+        if (transform)
+        {
+          // set volume orientation
+          /*
+          cameraMatrix[1] = transform->GetElement(0, 0);
+          cameraMatrix[1] = transform->GetElement(0, 1);
+          cameraMatrix[2] = transform->GetElement(0, 2);
+          */
+          transform->SetElement(0, 0, 50);
+          transform->SetElement(0, 1, 50);
+          transform->SetElement(0, 2, 50);
+          transform->SetElement(0, 3, 50);
+                    
+ }
+        
+        
+      }
+      
 
     // update timer
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
