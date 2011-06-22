@@ -11,6 +11,9 @@ SET(module_logic_export_directive "VTK_SLICER_LIVEULTRASOUND_MODULE_LOGIC_EXPORT
 
 # Additional directories to include
 SET(module_logic_include_directories
+  ${vtkSlicerLiveUltrasoundModuleMRML_SOURCE_DIR}
+  ${vtkSlicerLiveUltrasoundModuleMRML_BINARY_DIR}
+  ${Slicer_ModuleLogic_INCLUDE_DIRS}
   )
 
 # Source files

@@ -1,3 +1,5 @@
+PROJECT(LiveUltrasound)
+
 #-----------------------------------------------------------------------------
 cmake_minimum_required(VERSION 2.8.2)
 #-----------------------------------------------------------------------------
@@ -13,7 +15,7 @@ if(POLICY CMP0017)
 endif()
 
 # Module name (usually identique to the directory name)
-SET(EXTENSION_NAME LiveUltrasound)
+SET(EXTENSION_NAME ${PROJECT_NAME})
 
 IF(NOT Slicer_SOURCE_DIR)
 
@@ -34,6 +36,15 @@ IF(NOT Slicer_SOURCE_DIR)
 
   INCLUDE(SlicerEnableExtensionTesting)
 
+  # ------------------------------------------------------------------------
+  # Find Plus use file
+  FIND_PACKAGE (OpenIGTLink REQUIRED PATHS "${OpenIGTLink_DIR}" NO_DEFAULT_PATH)
+  IF ( OpenIGTLink_FOUND)
+    INCLUDE( ${OpenIGTLink_USE_FILE} )
+  ELSE( OpenIGTLink_FOUND )
+    MESSAGE( FATAL_ERROR "This project requires Slicer with OpenIGTLink enabled. One of these components is missing. Please verify configuration")
+  ENDIF( OpenIGTLink_FOUND )
+
 ENDIF()
 
 # Build module sub libraries
@@ -46,6 +57,8 @@ SET(qt_module_export_directive "Q_SLICER_QTMODULES_LIVEULTRASOUND_EXPORT")
 SET(qt_module_include_directories
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
+  ${CMAKE_CURRENT_SOURCE_DIR}/MRML
+  ${CMAKE_CURRENT_BINARY_DIR}/MRML
   )
 
 # Source files

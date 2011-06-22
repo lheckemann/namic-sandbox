@@ -5,8 +5,9 @@
 #include "vtkMRML.h"
 #include "vtkMRMLNode.h"
 #include "vtkMRMLScene.h"
-#include "vtkSlicerLiveUltrasoundModuleMRMLExport.h"
 #include "vtkTransform.h"
+
+#include "vtkSlicerLiveUltrasoundModuleMRMLExport.h"
 
 class vtkActor;
 class vtkImageActor;
