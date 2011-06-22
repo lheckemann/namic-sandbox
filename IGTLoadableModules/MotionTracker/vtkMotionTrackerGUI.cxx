@@ -1330,6 +1330,32 @@ void vtkMotionTrackerGUI::ProcessGUIEvents(vtkObject *caller,
         if (this->OriginalTrackerNode)
         {
           this->transformMatrix = this->OriginalTrackerNode->GetMatrixTransformToParent();
+          
+          
+          if (transformMatrix)
+          {
+            // set volume orientation 
+            cameraMatrix[0] = transformMatrix->GetElement(0, 0);
+            cameraMatrix[1] = transformMatrix->GetElement(0, 1);
+            cameraMatrix[2] = transformMatrix->GetElement(0, 2);
+            cameraMatrix[3] = transformMatrix->GetElement(0, 3);
+            
+            cameraMatrix[4] = transformMatrix->GetElement(1, 0);
+            cameraMatrix[5] = transformMatrix->GetElement(1, 1);
+            cameraMatrix[6] = transformMatrix->GetElement(1, 2);
+            cameraMatrix[7] = transformMatrix->GetElement(1, 3);
+            
+            cameraMatrix[8] = transformMatrix->GetElement(2, 0);
+            cameraMatrix[9] = transformMatrix->GetElement(2, 1);
+            cameraMatrix[10] = transformMatrix->GetElement(2, 2);
+            cameraMatrix[11] = transformMatrix->GetElement(2, 3);
+            
+            cameraMatrix[12] = transformMatrix->GetElement(3, 0);
+            cameraMatrix[13] = transformMatrix->GetElement(3, 1);
+            cameraMatrix[14] = transformMatrix->GetElement(3, 2);
+            cameraMatrix[15] = transformMatrix->GetElement(3, 3);
+          }
+          
         }
         
         
