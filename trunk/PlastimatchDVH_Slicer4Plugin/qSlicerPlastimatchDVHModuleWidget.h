@@ -24,6 +24,9 @@
 #include "qSlicerPlastimatchDVHModuleExport.h"
 
 #include "ctkVTKChartView.h"
+#include "vtkMRMLVolumeNode.h"
+
+#include <vtkDenseArray.h>
 
 class qSlicerPlastimatchDVHModuleWidgetPrivate;
 class vtkMRMLNode;
@@ -43,6 +46,8 @@ public:
 protected slots:
     void OpenCSV();
     void SetShowLegend(bool show);
+    void RenderCharts();
+    void ApplySelectedVolume();
 
 public slots:
 
@@ -53,9 +58,13 @@ protected:
   virtual void setup();
 
   bool LoadCSV(QString fileName);
+  bool LoadSelectedVolume(vtkMRMLVolumeNode* node);
+  bool DisplayDVH();
 
 protected:
-  ctkVTKChartView* m_ChartView;
+  ctkVTKChartView*            m_ChartView;
+  vtkDenseArray<double>*    m_ValueMatrix; // First column of the table is the X Axis indices, the rest are the doses (columns are the structures)
+  QStringList*                m_StructureNames;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerPlastimatchDVHModuleWidget);

@@ -18,6 +18,7 @@
 // Qt includes
 #include <QDebug>
 #include <QFileDialog>
+#include <QTimer>
 
 // SlicerQt includes
 #include "qSlicerPlastimatchDVHModuleWidget.h"
@@ -28,9 +29,12 @@
 #include <vtkPlot.h>
 #include <vtkTable.h>
 #include <vtkFloatArray.h>
-#include <vtkDenseArray.h>
 #include <vtkAxis.h>
 #include <vtkRenderWindow.h>
+#include <vtkImageExport.h>
+#include <vtkImageFlip.h>
+
+#include <itkImage.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
@@ -56,12 +60,28 @@ qSlicerPlastimatchDVHModuleWidget::qSlicerPlastimatchDVHModuleWidget(QWidget* _p
   : Superclass( _parent )
   , d_ptr( new qSlicerPlastimatchDVHModuleWidgetPrivate )
   , m_ChartView( NULL )
+  , m_ValueMatrix( NULL )
+  , m_StructureNames( NULL )
 {
 }
 
 //-----------------------------------------------------------------------------
 qSlicerPlastimatchDVHModuleWidget::~qSlicerPlastimatchDVHModuleWidget()
 {
+  if (m_ValueMatrix != NULL) {
+    m_ValueMatrix->Delete();
+    m_ValueMatrix = NULL;
+  }
+
+  if (m_ChartView != NULL) {
+    delete m_ChartView;
+    m_ChartView = NULL;
+  }
+
+  if (m_StructureNames != NULL) {
+    delete m_StructureNames;
+    m_StructureNames = NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -71,6 +91,12 @@ void qSlicerPlastimatchDVHModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
+  // Make connections
+  connect( d->pushButton_LoadCSV, SIGNAL( pressed() ), this, SLOT( OpenCSV() ) );
+  connect( d->checkBox_ShowLegend, SIGNAL( toggled(bool) ), this, SLOT( SetShowLegend(bool) ) );
+  connect( d->pushButton_ApplyVolume, SIGNAL( pressed() ), this, SLOT( ApplySelectedVolume() ) );
+  //connect( d->MRMLNodeComboBox_SelectVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( ???(vtkMRMLNode*) ) );
+
   // Set up chart view
   m_ChartView = new ctkVTKChartView(d->widget_chartWidgetContainer);
 
@@ -79,9 +105,11 @@ void qSlicerPlastimatchDVHModuleWidget::setup()
   grid->addWidget(m_ChartView);
   d->widget_chartWidgetContainer->setLayout(grid);
 
-  // Make connections
-  connect( d->pushButton_LoadCSV, SIGNAL( pressed() ), this, SLOT( OpenCSV() ) );
-  connect( d->checkBox_ShowLegend, SIGNAL( toggled(bool) ), this, SLOT( SetShowLegend(bool) ) );
+  m_ChartView->chart()->AddPlot(vtkChart::LINE);
+  m_ChartView->chart()->SetTitle("Empty (select volume or load CSV file)");
+  m_ChartView->chart()->GetAxis(0)->SetTitle("Volume, %");
+  m_ChartView->chart()->GetAxis(1)->SetTitle("Dose, Gy");
+  QTimer::singleShot(100, this, SLOT(RenderCharts())); // Without this the chart is all black
 
   /*
   // Create test plot
@@ -157,21 +185,13 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadCSV(QString fileName)
     return false;
   }
 
-  vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
   QTextStream in(&file);
 
   // Read structure names
   QString line = in.readLine();
-  QStringList names(line.split(","));
+  m_StructureNames = new QStringList(line.split(","));
 
-  int numberOfColumns = 0;
-  QStringListIterator namesIterator(names);
-  while (namesIterator.hasNext()) {
-    vtkSmartPointer<vtkFloatArray> column = vtkSmartPointer<vtkFloatArray>::New();
-    column->SetName(namesIterator.next().toStdString().data());
-    table->AddColumn(column);
-    ++numberOfColumns;
-  }
+  int numberOfColumns = m_StructureNames->size();
 
   // Read lines and determine number of lines
   // Rows: values at a specific cGy (dose) ; Columns: structures
@@ -182,11 +202,14 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadCSV(QString fileName)
     valueLines.append(line);
     ++numberOfRows;
   }
-  table->SetNumberOfRows(numberOfRows);
 
-  // Read the values in a matrix
-  vtkSmartPointer<vtkDenseArray<double>> matrix = vtkSmartPointer<vtkDenseArray<double>>::New();
-  matrix->Resize(numberOfRows, numberOfColumns);
+  // Read the values in the values matrix
+  if (m_ValueMatrix != NULL) {
+    m_ValueMatrix->Delete();
+  }
+
+  m_ValueMatrix = vtkDenseArray<double>::New();
+  m_ValueMatrix->Resize(numberOfRows, numberOfColumns);
 
   int rowIndex = 0;
   QStringListIterator valueLinesIterator(valueLines);
@@ -201,7 +224,7 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadCSV(QString fileName)
       bool ok;
       double value = valueString.toDouble(&ok);
       if (ok) {
-        matrix->SetValue(rowIndex, columnIndex, value);
+        m_ValueMatrix->SetValue(rowIndex, columnIndex, value);
       }
 
       ++columnIndex;
@@ -210,9 +233,106 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadCSV(QString fileName)
     ++rowIndex;
   }
 
+  return DisplayDVH();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPlastimatchDVHModuleWidget::SetShowLegend(bool show)
+{
+  m_ChartView->chart()->SetShowLegend(show);
+  m_ChartView->GetRenderWindow()->Render();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPlastimatchDVHModuleWidget::RenderCharts()
+{
+  m_ChartView->GetRenderWindow()->Render();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPlastimatchDVHModuleWidget::ApplySelectedVolume()
+{
+  // The body of this function should be in the Logic class?
+
+  // Get the vtkImageData from selected MRML node
+  Q_D(qSlicerPlastimatchDVHModuleWidget);
+
+  vtkMRMLNode* node = d->MRMLNodeComboBox_SelectVolume->currentNode();
+  if (node == NULL) {
+    return;
+  }
+
+  vtkMRMLVolumeNode* volumeNode = dynamic_cast<vtkMRMLVolumeNode*>(node);
+  if (volumeNode == NULL) {
+    return;
+  }
+
+  LoadSelectedVolume(volumeNode);
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerPlastimatchDVHModuleWidget::LoadSelectedVolume(vtkMRMLVolumeNode* node)
+{
+  // Get vtkImageData from volume node
+  vtkSmartPointer<vtkImageData> imageData = node->GetImageData();
+  if (imageData == NULL) {
+    return false;
+  }
+
+  // Convert vtkImageData to itk Image
+  vtkSmartPointer<vtkImageFlip> imageFlipy = vtkSmartPointer<vtkImageFlip>::New(); 
+  imageFlipy->SetInput(imageData); 
+  imageFlipy->SetFilteredAxis(1); 
+  imageFlipy->Update(); 
+
+  vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
+  imageExport->ImageLowerLeftOff();
+  imageExport->SetInput(imageFlipy->GetOutput()); 
+  imageExport->Update(); 
+
+  int extent[6];
+  imageData->GetExtent(extent);
+  itk::Image<unsigned int, 3>* imageDataExported = itk::Image<unsigned int, 3>::New();
+  itk::Image<unsigned int, 3>::SizeType size = {extent[1] - extent[0], extent[3] - extent[2], extent[5] - extent[4]};
+  itk::Image<unsigned int, 3>::IndexType start = {0,0,0};
+  itk::Image<unsigned int, 3>::RegionType region;
+  region.SetSize(size);
+  region.SetIndex(start);
+  imageDataExported->SetRegions(region);
+  imageDataExported->Allocate();
+
+  memcpy(imageDataExported->GetBufferPointer() , imageExport->GetPointerToData(), imageExport->GetDataMemorySize());
+
+  // Pass the itk Image to DVH calculator
+  //TODO
+
+  // Display DVH
+  //TODO
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerPlastimatchDVHModuleWidget::DisplayDVH()
+{
+  int numberOfRows = m_ValueMatrix->GetExtents()[0].GetSize();
+  int numberOfColumns = m_ValueMatrix->GetExtents()[1].GetSize();
+
+  vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+
+  // Set the structure names
+  QStringListIterator namesIterator(*m_StructureNames);
+  while (namesIterator.hasNext()) {
+    vtkSmartPointer<vtkFloatArray> column = vtkSmartPointer<vtkFloatArray>::New();
+    column->SetName(namesIterator.next().toStdString().data());
+    table->AddColumn(column);
+  }
+
+  table->SetNumberOfRows(numberOfRows);
+
   // Fill in the X axis (column 0)
   for (int i=0; i<numberOfRows; ++i) {
-    table->SetValue(i, 0, matrix->GetValue(i, 0));
+    table->SetValue(i, 0, m_ValueMatrix->GetValue(i, 0));
   }
 
   // Calculate the integral of the values
@@ -222,7 +342,7 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadCSV(QString fileName)
     double actualSum = 0;
 
     for (int i=0; i<numberOfRows; ++i) {
-      actualSum += matrix->GetValue(i, j);
+      actualSum += m_ValueMatrix->GetValue(i, j);
       sumArray->SetValue(i, actualSum);
     }
 
@@ -233,8 +353,7 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadCSV(QString fileName)
 
   // Display plot
   m_ChartView->chart()->ClearPlots();
-  m_ChartView->chart()->GetAxis(0)->SetTitle("Volume, %");
-  m_ChartView->chart()->GetAxis(1)->SetTitle("Dose, Gy");
+  m_ChartView->chart()->SetTitle("DVH");
 
   vtkPlot *linePlot = m_ChartView->chart()->AddPlot(vtkChart::LINE);
   for (int i=1; i<numberOfColumns; ++i) {
@@ -244,11 +363,4 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadCSV(QString fileName)
   }
 
   return true;
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerPlastimatchDVHModuleWidget::SetShowLegend(bool show)
-{
-  m_ChartView->chart()->SetShowLegend(show);
-  m_ChartView->GetRenderWindow()->Render();
 }
