@@ -37,6 +37,18 @@ IF(NOT Slicer_SOURCE_DIR)
 ENDIF()
 
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../plastimatch)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/../../../)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../libs/bstrlib-05122010)
+
+LINK_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/../../../Debug)
+#TODO make it for the release somehow
+
+IF(BUILD_TESTING)
+  add_subdirectory(Testing)
+endif()
+
+
 # Add subdirectories
 ADD_SUBDIRECTORY(Logic)
 
@@ -84,27 +96,21 @@ slicerMacroBuildQtModule(
   SRCS ${qt_module_SRCS}
   MOC_SRCS ${qt_module_MOC_SRCS}
   UI_SRCS ${qt_module_UI_SRCS}
-  TARGET_LIBRARIES ${qt_module_target_libraries}
+  TARGET_LIBRARIES ${qt_module_target_libraries} plastimatch1 gpuit plmsys
   RESOURCES ${qt_module_resources}
   )
 
-
-IF(BUILD_TESTING)
-  add_subdirectory(Testing)
-endif()
-
 IF(NOT Slicer_SOURCE_DIR)
-# Without these, the build does not appear on CDash and in the package
-#  INCLUDE(SlicerFunctionGenerateExtensionDescription)
-#    slicerFunctionGenerateExtensionDescription(
-#    EXTENSION_NAME ${EXTENSION_NAME}
-#    EXTENSION_CATEGORY ${EXTENSION_CATEGORY} 
-#    EXTENSION_STATUS ${EXTENSION_STATUS}
-#    EXTENSION_HOMEPAGE ${EXTENSION_HOMEPAGE}
-#    EXTENSION_DESCRIPTION ${EXTENSION_DESCRIPTION}
-#    DESTINATION_DIR ${CMAKE_CURRENT_BINARY_DIR}
-#    SLICER_WC_REVISION ${Slicer_WC_REVISION}
-#    SLICER_WC_ROOT ${Slicer_WC_ROOT}
-#  )
-#  INCLUDE(${Slicer_EXTENSION_CPACK})
+ INCLUDE(SlicerFunctionGenerateExtensionDescription)
+   slicerFunctionGenerateExtensionDescription(
+   EXTENSION_NAME ${EXTENSION_NAME}
+   EXTENSION_CATEGORY ${EXTENSION_CATEGORY} 
+   EXTENSION_STATUS ${EXTENSION_STATUS}
+   EXTENSION_HOMEPAGE ${EXTENSION_HOMEPAGE}
+   EXTENSION_DESCRIPTION ${EXTENSION_DESCRIPTION}
+   DESTINATION_DIR ${CMAKE_CURRENT_BINARY_DIR}
+   SLICER_WC_REVISION ${Slicer_WC_REVISION}
+   SLICER_WC_ROOT ${Slicer_WC_ROOT}
+ )
+ INCLUDE(${Slicer_EXTENSION_CPACK})
 ENDIF()
