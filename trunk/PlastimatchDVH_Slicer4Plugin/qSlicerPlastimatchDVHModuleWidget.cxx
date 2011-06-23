@@ -257,59 +257,136 @@ void qSlicerPlastimatchDVHModuleWidget::ApplySelectedVolume()
   // Get the vtkImageData from selected MRML node
   Q_D(qSlicerPlastimatchDVHModuleWidget);
 
-  vtkMRMLNode* node = d->MRMLNodeComboBox_SelectVolume->currentNode();
-  if (node == NULL) {
+  // Get and parse the dose volume
+  vtkMRMLNode* doseNode = d->MRMLNodeComboBox_DoseVolume->currentNode();
+  if (doseNode == NULL) {
+    return; // TODO error report
+  }
+  vtkMRMLVolumeNode* doseVolumeNode = dynamic_cast<vtkMRMLVolumeNode*>(doseNode);
+  if (doseVolumeNode == NULL) {
     return;
   }
 
-  vtkMRMLVolumeNode* volumeNode = dynamic_cast<vtkMRMLVolumeNode*>(node);
-  if (volumeNode == NULL) {
+  // Get and parse the structure set
+  vtkMRMLNode* structureSetNode = d->MRMLNodeComboBox_StructureSet->currentNode();
+  if (structureSetNode == NULL) {
+    return;
+  }
+  vtkMRMLVolumeNode* structureSetVolumeNode = dynamic_cast<vtkMRMLVolumeNode*>(structureSetNode);
+  if (structureSetVolumeNode == NULL) {
     return;
   }
 
-  LoadSelectedVolume(volumeNode);
+  // Load volumes into Plastimatch and display DVH
+  LoadSelectedVolumes(doseVolumeNode, structureSetVolumeNode);
 }
 
 //-----------------------------------------------------------------------------
-bool qSlicerPlastimatchDVHModuleWidget::LoadSelectedVolume(vtkMRMLVolumeNode* node)
+bool qSlicerPlastimatchDVHModuleWidget::LoadSelectedVolumes(vtkMRMLVolumeNode* doseNode, vtkMRMLVolumeNode* structureSetNode)
 {
-  // Get vtkImageData from volume node
-  vtkSmartPointer<vtkImageData> imageData = node->GetImageData();
-  if (imageData == NULL) {
+  // Get vtkImageData from nodes
+  vtkSmartPointer<vtkImageData> doseImageData = doseNode->GetImageData();
+  if (doseImageData == NULL) {
+    return false;
+  }
+  vtkSmartPointer<vtkImageData> structureSetImageData = structureSetNode->GetImageData();
+  if (structureSetImageData == NULL) {
     return false;
   }
 
-  // Convert vtkImageData to itk Image
-  vtkSmartPointer<vtkImageFlip> imageFlipy = vtkSmartPointer<vtkImageFlip>::New(); 
-  imageFlipy->SetInput(imageData); 
-  imageFlipy->SetFilteredAxis(1); 
-  imageFlipy->Update(); 
-
-  vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
-  imageExport->ImageLowerLeftOff();
-  imageExport->SetInput(imageFlipy->GetOutput()); 
-  imageExport->Update(); 
-
+  typedef unsigned short ImageType;
   int extent[6];
-  imageData->GetExtent(extent);
-  itk::Image<unsigned int, 3>* imageDataExported = itk::Image<unsigned int, 3>::New();
-  itk::Image<unsigned int, 3>::SizeType size = {extent[1] - extent[0], extent[3] - extent[2], extent[5] - extent[4]};
-  itk::Image<unsigned int, 3>::IndexType start = {0,0,0};
-  itk::Image<unsigned int, 3>::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(start);
-  imageDataExported->SetRegions(region);
-  imageDataExported->Allocate();
 
-  memcpy(imageDataExported->GetBufferPointer() , imageExport->GetPointerToData(), imageExport->GetDataMemorySize());
+  // Convert dose vtkImageData to itk Image
+  vtkSmartPointer<vtkImageFlip> doseImageFlipy = vtkSmartPointer<vtkImageFlip>::New(); 
+  doseImageFlipy->SetInput(doseImageData); 
+  doseImageFlipy->SetFilteredAxis(1); 
+  doseImageFlipy->Update(); 
 
-  // Pass the itk Image to DVH calculator
-  //TODO
+  vtkSmartPointer<vtkImageExport> doseImageExport = vtkSmartPointer<vtkImageExport>::New(); 
+  doseImageExport->ImageLowerLeftOff();
+  doseImageExport->SetInput(doseImageFlipy->GetOutput()); 
+  doseImageExport->Update(); 
+
+  doseImageData->GetExtent(extent);
+  itk::Image<ImageType, 3>::Pointer doseImageDataExported = itk::Image<ImageType, 3>::New();
+  itk::Image<ImageType, 3>::SizeType doseSize = {extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1};
+  itk::Image<ImageType, 3>::IndexType doseStart = {0,0,0};
+  itk::Image<ImageType, 3>::RegionType doseRegion;
+  doseRegion.SetSize(doseSize);
+  doseRegion.SetIndex(doseStart);
+  doseImageDataExported->SetRegions(doseRegion);
+  doseImageDataExported->Allocate();
+
+  memcpy(doseImageDataExported->GetBufferPointer(), doseImageExport->GetPointerToData(), doseImageExport->GetDataMemorySize());
+
+  // Convert structure set vtkImageData to itk Image
+  vtkSmartPointer<vtkImageFlip> structureSetImageFlipy = vtkSmartPointer<vtkImageFlip>::New(); 
+  structureSetImageFlipy->SetInput(structureSetImageData); 
+  structureSetImageFlipy->SetFilteredAxis(1); 
+  structureSetImageFlipy->Update(); 
+
+  vtkSmartPointer<vtkImageExport> structureSetImageExport = vtkSmartPointer<vtkImageExport>::New(); 
+  structureSetImageExport->ImageLowerLeftOff();
+  structureSetImageExport->SetInput(structureSetImageFlipy->GetOutput()); 
+  structureSetImageExport->Update(); 
+
+  structureSetImageData->GetExtent(extent);
+  itk::Image<ImageType, 3>::Pointer structureSetImageDataExported = itk::Image<ImageType, 3>::New();
+  itk::Image<ImageType, 3>::SizeType structureSetSize = {extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1};
+  itk::Image<ImageType, 3>::IndexType structureSetStart = {0,0,0};
+  itk::Image<ImageType, 3>::RegionType structureSetRegion;
+  structureSetRegion.SetSize(structureSetSize);
+  structureSetRegion.SetIndex(structureSetStart);
+  structureSetImageDataExported->SetRegions(structureSetRegion);
+  structureSetImageDataExported->Allocate();
+
+  memcpy(structureSetImageDataExported->GetBufferPointer(), structureSetImageExport->GetPointerToData(), structureSetImageExport->GetDataMemorySize());
+
+  // Pass the itk Image to Plastimatch DVH calculator
+  std::string dvhStdString = ""; //TODO call the function: GetXY(doseImageDataExported, structureSetImageDataExported); which returns with the string
+
+  // Construct structure name list and value matrix
+  /*
+  QString dvhString = QString::fromStdString(dvhStdString);
+  m_StructureNames = new QStringList(dvhString.split(",")); //TODO just the structure names
+
+  int numberOfColumns = m_StructureNames->size();
+  int numberOfRows = -1; //TODO get from dvh string
+
+  if (m_ValueMatrix != NULL) {
+    m_ValueMatrix->Delete();
+  }
+
+  m_ValueMatrix = vtkDenseArray<double>::New();
+  m_ValueMatrix->Resize(numberOfRows, numberOfColumns);
+
+  int rowIndex = 0;
+  QStringListIterator valueLinesIterator(valueLines);
+  while (valueLinesIterator.hasNext()) {
+    QStringList values(valueLinesIterator.next().split(","));
+    QStringListIterator valuesIterator(values);
+
+    int columnIndex = 0;
+    while (valuesIterator.hasNext()) {
+      QString valueString(valuesIterator.next());
+
+      bool ok;
+      double value = valueString.toDouble(&ok);
+      if (ok) {
+        m_ValueMatrix->SetValue(rowIndex, columnIndex, value);
+      }
+
+      ++columnIndex;
+    }
+
+    ++rowIndex;
+  }
+  */
 
   // Display DVH
-  //TODO
-
-  return true;
+  //return DisplayDVH();
+  return false; //TODO uncomment line above
 }
 
 //-----------------------------------------------------------------------------

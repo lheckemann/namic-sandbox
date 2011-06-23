@@ -58,7 +58,7 @@ protected:
   virtual void setup();
 
   bool LoadCSV(QString fileName);
-  bool LoadSelectedVolume(vtkMRMLVolumeNode* node);
+  bool LoadSelectedVolumes(vtkMRMLVolumeNode* doseNode, vtkMRMLVolumeNode* structureSetNode);
   bool DisplayDVH();
 
 protected:
