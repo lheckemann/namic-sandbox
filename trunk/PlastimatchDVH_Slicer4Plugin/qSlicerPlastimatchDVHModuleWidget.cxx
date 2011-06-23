@@ -36,6 +36,8 @@
 
 #include <itkImage.h>
 
+#include "dvh.h"
+
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class qSlicerPlastimatchDVHModuleWidgetPrivate: public Ui_qSlicerPlastimatchDVHModule
@@ -168,7 +170,7 @@ void qSlicerPlastimatchDVHModuleWidget::OpenCSV()
   }
 
   // Load csv
-  if (LoadCSV(fileName)) {
+  if (LoadCSVFile(fileName)) {
     d->pushButton_LoadCSV->setText(fileName);
     d->pushButton_LoadCSV->setToolTip(fileName); 
   } else {
@@ -177,7 +179,54 @@ void qSlicerPlastimatchDVHModuleWidget::OpenCSV()
 }
 
 //-----------------------------------------------------------------------------
-bool qSlicerPlastimatchDVHModuleWidget::LoadCSV(QString fileName)
+bool qSlicerPlastimatchDVHModuleWidget::LoadCSV(QString csvString)
+{
+  QStringList lines(csvString.split("\n"));
+
+  m_StructureNames = new QStringList(lines.at(0).split(","));
+
+  int numberOfColumns = m_StructureNames->size();
+  int numberOfRows = lines.size() - 1; // the first line is the name of structures, the rest are the values
+
+  if (m_ValueMatrix != NULL) {
+    m_ValueMatrix->Delete();
+  }
+
+  m_ValueMatrix = vtkDenseArray<double>::New();
+  m_ValueMatrix->Resize(numberOfRows, numberOfColumns);
+
+  int rowIndex = 0;
+  QStringListIterator valueLinesIterator(lines);
+  while (valueLinesIterator.hasNext()) {
+    if (rowIndex == 0) {
+      ++rowIndex;
+      continue; // skip the first line (it contains the name of the structures)
+    }
+
+    QStringList values(valueLinesIterator.next().split(","));
+    QStringListIterator valuesIterator(values);
+
+    int columnIndex = 0;
+    while (valuesIterator.hasNext()) {
+      QString valueString(valuesIterator.next());
+
+      bool ok;
+      double value = valueString.toDouble(&ok);
+      if (ok) {
+        m_ValueMatrix->SetValue(rowIndex, columnIndex, value);
+      }
+
+      ++columnIndex;
+    }
+
+    ++rowIndex;
+  }
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerPlastimatchDVHModuleWidget::LoadCSVFile(QString fileName)
 {
   // Open file
   QFile file(fileName);
@@ -187,6 +236,7 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadCSV(QString fileName)
 
   QTextStream in(&file);
 
+  //TODO load the file as one long string (as dvh_execute gives us) and pass it to LoadCSV
   // Read structure names
   QString line = in.readLine();
   m_StructureNames = new QStringList(line.split(","));
@@ -344,49 +394,19 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadSelectedVolumes(vtkMRMLVolumeNode* d
   memcpy(structureSetImageDataExported->GetBufferPointer(), structureSetImageExport->GetPointerToData(), structureSetImageExport->GetDataMemorySize());
 
   // Pass the itk Image to Plastimatch DVH calculator
-  std::string dvhStdString = ""; //TODO call the function: GetXY(doseImageDataExported, structureSetImageDataExported); which returns with the string
+  Dvh_parms parms;
+  parms.cumulative = 0;
+  std::string dvhStdString = dvh_execute(structureSetImageDataExported, doseImageDataExported, &parms);
 
-  // Construct structure name list and value matrix
-  /*
+  // Load CSV data into the value matrix and the structure name list
   QString dvhString = QString::fromStdString(dvhStdString);
-  m_StructureNames = new QStringList(dvhString.split(",")); //TODO just the structure names
 
-  int numberOfColumns = m_StructureNames->size();
-  int numberOfRows = -1; //TODO get from dvh string
-
-  if (m_ValueMatrix != NULL) {
-    m_ValueMatrix->Delete();
+  if (! LoadCSV(dvhString)) {
+    return false;
   }
-
-  m_ValueMatrix = vtkDenseArray<double>::New();
-  m_ValueMatrix->Resize(numberOfRows, numberOfColumns);
-
-  int rowIndex = 0;
-  QStringListIterator valueLinesIterator(valueLines);
-  while (valueLinesIterator.hasNext()) {
-    QStringList values(valueLinesIterator.next().split(","));
-    QStringListIterator valuesIterator(values);
-
-    int columnIndex = 0;
-    while (valuesIterator.hasNext()) {
-      QString valueString(valuesIterator.next());
-
-      bool ok;
-      double value = valueString.toDouble(&ok);
-      if (ok) {
-        m_ValueMatrix->SetValue(rowIndex, columnIndex, value);
-      }
-
-      ++columnIndex;
-    }
-
-    ++rowIndex;
-  }
-  */
 
   // Display DVH
-  //return DisplayDVH();
-  return false; //TODO uncomment line above
+  return DisplayDVH();
 }
 
 //-----------------------------------------------------------------------------
