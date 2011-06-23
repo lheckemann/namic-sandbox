@@ -3380,14 +3380,14 @@ int vtkMotionTrackerGUI::CameraHandler()
 
 
   if (this->capture)
-{
+  {
 
     // 5/15/2010 ayamada
     if(NULL == (captureImageTmp = cvQueryFrame( capture )))
-{
+    {
       fprintf(stdout, "\n\nCouldn't take a picture\n\n");
       return 0;
-}
+    }
 
     // 5/6/2010 ayamada creating RGB image and capture image
     newCaptureImageSize = cvGetSize( captureImageTmp );
@@ -3412,6 +3412,7 @@ int vtkMotionTrackerGUI::CameraHandler()
       )
   
   {
+    
     this->imageSize.width = 256;//newImageSize.width;
     this->imageSize.height = 256;//newImageSize.height;
     newImageSize.width = 256;
@@ -3449,7 +3450,7 @@ int vtkMotionTrackerGUI::CameraHandler()
     ViewerBackgroundOff(vwidget);
     ViewerBackgroundOn(vwidget, this->VideoImageData);
 
-}
+  }
 
   
   // 6/20/2011 ayamada
@@ -3466,25 +3467,17 @@ int vtkMotionTrackerGUI::CameraHandler()
   int dsize = newImageSize.width*newImageSize.height*3;
   cvFlip(this->ImageFromScannerTmp, this->ImageFromScanner,-1);
   
-  
-  
-//  cvCvtColor((void*)this->ImageFromScanner, contour_gray, CV_RGB2BGR);
+  /*
   cvCvtColor((void*)this->ImageFromScanner, contour_gray, CV_RGB2GRAY);
-//  cvAdaptiveThreshold (contour_gray, contour_gray, 255, 
-//                       CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, BlockSize, ContThre); 
   cvAdaptiveThreshold (contour_gray, contour_gray, 255, 
                        CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 11, 5.0); 
   
-  //cvSmooth(this->ImageFromScanner,this->RGBImage, CV_MEDIAN, 3,0,0,0);
   cvSmooth(contour_gray,contour_gray, CV_MEDIAN, 5);
-  //cvSmooth(this->ImageFromScanner,this->RGBImage, CV_MEDIAN, 3,0,0,0);
   
   cvCvtColor(contour_gray, this->ImageFromScanner, CV_GRAY2RGB);
-  
+  */
   
   memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->ImageFromScanner->imageData, 256*256*3);
-///  memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->RGBImage->imageData, 256*256*3);
-//  memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->contour_gray->imageData, 256*256*3);
   
   if (this->VideoImageData && this->BackgroundRenderer)
   {
