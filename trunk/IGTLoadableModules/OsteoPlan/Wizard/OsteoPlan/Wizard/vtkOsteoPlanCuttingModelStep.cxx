@@ -39,11 +39,15 @@
 #include "vtkBoxRepresentation.h"
 #include "vtkProperty.h"
 #include "vtkPlanes.h"
+#include "vtkPlane.h"
 #include "vtkClipPolyData.h"
 #include "vtkPolyData.h"
 #include "vtkCleanPolyData.h"
-#include "vtkTriangleFilter.h"
-#include "vtkLoopSubdivisionFilter.h"
+#include "vtkRenderer.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkActor.h"
+#include "vtkCutter.h"
+#include "vtkAppendPolyData.h"
 
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj)                                      \
@@ -434,7 +438,7 @@ void vtkOsteoPlanCuttingModelStep::CreateCutter()
     }
 }
 
-
+/*
 void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidget2* cuttingBox)
 {
 
@@ -443,22 +447,9 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   vtkBoxRepresentation* boxRepresentation = reinterpret_cast<vtkBoxRepresentation*>(cuttingBox->GetRepresentation());
   boxRepresentation->GetPlanes(planes);
 
-  // Increase polydata resolution to avoid clipping problem if thickness of cutter is smaller than triangle size
-  vtkTriangleFilter* triangleFilter = vtkTriangleFilter::New();
-  triangleFilter->SetInput(model->GetPolyData());
-  triangleFilter->PassVertsOn();
-  triangleFilter->PassLinesOn();
-
-  vtkLoopSubdivisionFilter* loopSub = vtkLoopSubdivisionFilter::New();
-  loopSub->SetInput(triangleFilter->GetOutput());
-
-  vtkLoopSubdivisionFilter* loopSub2 = vtkLoopSubdivisionFilter::New();
-  loopSub2->SetInput(loopSub->GetOutput());
-
   // Set Clipper 1
   vtkClipPolyData* clipper1 = vtkClipPolyData::New();
-  //clipper1->SetInput(model->GetPolyData());
-  clipper1->SetInput(loopSub2->GetOutput());
+  clipper1->SetInput(model->GetPolyData());
   clipper1->SetClipFunction(planes);
   clipper1->InsideOutOn();
 
@@ -517,9 +508,6 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   dnode2->SetColor(0,1,0);
 
   polyDataModel2->Delete();
-  triangleFilter->Delete();
-  loopSub->Delete();
-  loopSub2->Delete();
 
   // Hide original model
   model->GetModelDisplayNode()->SetVisibility(0);
@@ -535,3 +523,95 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   part1->Delete();
   part2->Delete();
 }
+*/
+
+
+void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidget2* cuttingBox)
+{
+  // Get Planes from vtkBoxWidget  
+  vtkPlanes* planes = vtkPlanes::New();
+  vtkBoxRepresentation* boxRepresentation = reinterpret_cast<vtkBoxRepresentation*>(cuttingBox->GetRepresentation());
+  boxRepresentation->GetPlanes(planes);
+
+  vtkClipPolyData* polyCutter = vtkClipPolyData::New();
+  polyCutter->GenerateClippedOutputOn();
+  polyCutter->SetClipFunction(planes->GetPlane(2));
+  polyCutter->SetInput(model->GetPolyData());
+
+  vtkAppendPolyData* firstAppend = vtkAppendPolyData::New();
+  firstAppend->AddInput(polyCutter->GetOutput());
+  firstAppend->AddInput(polyCutter->GetClippedOutput());
+  
+  vtkClipPolyData* polyCutter2 = vtkClipPolyData::New();
+  polyCutter2->GenerateClippedOutputOn();
+  polyCutter2->SetClipFunction(planes->GetPlane(3));
+  polyCutter2->SetInput(firstAppend->GetOutput());
+  
+  vtkAppendPolyData* secondAppend = vtkAppendPolyData::New();
+  secondAppend->AddInput(polyCutter2->GetOutput());
+  secondAppend->AddInput(polyCutter2->GetClippedOutput());
+  
+  vtkClipPolyData* realCut = vtkClipPolyData::New();
+  realCut->GenerateClippedOutputOn();
+  realCut->SetClipFunction(planes);
+  realCut->SetInput(secondAppend->GetOutput());
+  
+  vtkPolyData* polyDataModel1 = vtkPolyData::New();
+  vtkPolyData* polyDataModel2 = vtkPolyData::New();
+  polyDataModel1->CopyStructure(model->GetPolyData());
+  polyDataModel2->CopyStructure(model->GetPolyData());
+
+  vtkMRMLModelNode* part1 = vtkMRMLModelNode::New();
+  vtkMRMLModelNode* part2 = vtkMRMLModelNode::New();
+  vtkMRMLModelDisplayNode* dnode1 = vtkMRMLModelDisplayNode::New();
+  vtkMRMLModelDisplayNode* dnode2 = vtkMRMLModelDisplayNode::New();      
+  
+  // Model 1
+  part1->SetScene(this->GetLogic()->GetMRMLScene());
+  dnode1->SetScene(this->GetLogic()->GetMRMLScene());
+
+  this->GetLogic()->GetMRMLScene()->AddNode(dnode1);
+  this->GetLogic()->GetMRMLScene()->AddNode(part1);
+
+  part1->SetAndObservePolyData(polyDataModel1);
+  part1->SetAndObserveDisplayNodeID(dnode1->GetID());
+
+  dnode1->SetPolyData(realCut->GetOutput());//realCut->GetOutput());
+  dnode1->SetVisibility(0);
+  dnode1->SetColor(1,0,0);
+
+  polyDataModel1->Delete();
+   
+  // Model 2
+  part2->SetScene(this->GetLogic()->GetMRMLScene());
+  dnode2->SetScene(this->GetLogic()->GetMRMLScene());
+
+  this->GetLogic()->GetMRMLScene()->AddNode(dnode2);
+  this->GetLogic()->GetMRMLScene()->AddNode(part2);
+  
+  part2->SetAndObservePolyData(polyDataModel2);         
+  part2->SetAndObserveDisplayNodeID(dnode2->GetID());
+  
+  dnode2->SetPolyData(polyCutter2->GetOutput());//realCut->GetClippedOutput());
+  dnode2->SetVisibility(1);
+  dnode2->SetColor(0,1,0);
+
+  polyDataModel2->Delete();
+
+  // Hide original model
+  model->GetModelDisplayNode()->SetVisibility(0);
+
+  // Delete
+  polyCutter->Delete();
+  polyCutter2->Delete();
+  firstAppend->Delete();
+  secondAppend->Delete();
+  realCut->Delete();
+  planes->Delete();
+  dnode1->Delete();
+  dnode2->Delete();
+  part1->Delete();
+  part2->Delete();
+
+}
+
