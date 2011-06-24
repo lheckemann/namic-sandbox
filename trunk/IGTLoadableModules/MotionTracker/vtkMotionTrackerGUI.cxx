@@ -3467,15 +3467,16 @@ int vtkMotionTrackerGUI::CameraHandler()
   int dsize = newImageSize.width*newImageSize.height*3;
   cvFlip(this->ImageFromScannerTmp, this->ImageFromScanner,-1);
   
-  /*
+  
   cvCvtColor((void*)this->ImageFromScanner, contour_gray, CV_RGB2GRAY);
+  //cvCanny((void*)this->ImageFromScanner, contour_gray,50,150);
   cvAdaptiveThreshold (contour_gray, contour_gray, 255, 
                        CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 11, 5.0); 
   
   cvSmooth(contour_gray,contour_gray, CV_MEDIAN, 5);
   
   cvCvtColor(contour_gray, this->ImageFromScanner, CV_GRAY2RGB);
-  */
+  
   
   memcpy((void*)this->VideoImageData->GetScalarPointer(), (void*)this->ImageFromScanner->imageData, 256*256*3);
   
@@ -3538,5 +3539,13 @@ vtkMRMLLinearTransformNode::SafeDownCast(this->TransformNodeSelector->GetSelecte
 
   return 1;
 }
+
+
+// 6/9/2011 ayamada
+// send image of MRML to OpenCV
+void vtkMotionTrackerGUI::UpdateDisplayBufferNodeForOpenCV(vtkMRMLTimeSeriesBundleNode* bundleNode, int index)
+{
+}
+
 
 
