@@ -1,5 +1,5 @@
 ##############################################################################
-# \file  GLISTRSlicerExtension.py
+# \file  GLISTR.py
 # \brief GLISTR slicer extension implemented as scripted Python module.
 #
 # Visit https://www.rad.upenn.edu/sbia/software/index.html#glistr for
