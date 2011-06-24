@@ -125,7 +125,7 @@ void igtl_export igtl_image_get_matrix(float spacing[3], float origin[3],
 void igtl_export igtl_image_convert_byte_order(igtl_image_header * header)
 {
   int i;
-  igtl_uint32* tmp;
+  igtl_uint32 tmp[12];
 
   if (igtl_is_little_endian()) 
     {
@@ -139,17 +139,19 @@ void igtl_export igtl_image_convert_byte_order(igtl_image_header * header)
       header->subvol_offset[i] = BYTE_SWAP_INT16(header->subvol_offset[i]);
       }
 
-    tmp = (igtl_uint32*)(header->matrix);
+    memcpy(tmp, header->matrix, sizeof(igtl_uint32)*12);
 
     /* 
      * TODO: The following loop may cause segmentation fault, when it is compiled
      * with '-ftree-vectorize' optimization option on 64-bit Linux.
      * ('-ftree-vectorize' becomes active, when '-O3' optimization is specified.)
+     * -- code has been updated on June 24 -- needs test
      */
     for (i = 0; i < 12; i ++) 
       {
-      tmp[i] = BYTE_SWAP_INT32(tmp[i]);
+      tmp[i] =  BYTE_SWAP_INT32(tmp[i]);
       }
+    memcpy(header->matrix, tmp, sizeof(igtl_uint32)*12);
 
   }
 }
