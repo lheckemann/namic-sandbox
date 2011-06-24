@@ -59,10 +59,30 @@ SET(qt_module_include_directories
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
   ${CMAKE_CURRENT_SOURCE_DIR}/MRML
   ${CMAKE_CURRENT_BINARY_DIR}/MRML
+  ${CMAKE_CURRENT_SOURCE_DIR}/MRMLDisplayableManager
+  ${CMAKE_CURRENT_BINARY_DIR}/MRMLDisplayableManager
   )
 
+  # Displayable manager sources
+SET(qt_module_displayable_manager_SRCS
+  MRMLDisplayableManager/vtkMRMLLiveUltrasoundDisplayableManager.cxx
+  MRMLDisplayableManager/vtkMRMLLiveUltrasoundDisplayableManager.h
+  )
+  
+# Create the instantiator for DisplayableManager classes.
+SET(VTK_USE_INSTANTIATOR_NEW 1)
+VTK_MAKE_INSTANTIATOR3("${PROJECT_NAME}Instantiator"
+  qt_module_displayable_manager_instantiator_SRCS
+  "${qt_module_displayable_manager_SRCS}"
+  "${qt_module_export_directive}"
+  ${CMAKE_CURRENT_BINARY_DIR}
+  "qSlicer${PROJECT_NAME}ModuleExport.h"
+  )
+  
 # Source files
 SET(qt_module_SRCS
+  ${qt_module_displayable_manager_SRCS}
+  ${qt_module_displayable_manager_instantiator_SRCS} 
   qSlicerLiveUltrasoundModule.cxx
   qSlicerLiveUltrasoundModule.h
   qSlicerLiveUltrasoundModuleWidget.cxx

@@ -20,6 +20,7 @@
 
 // LiveUltrasound Logic includes
 #include <vtkSlicerLiveUltrasoundLogic.h>
+#include <vtkMRMLThreeDViewDisplayableManagerFactory.h>
 
 // LiveUltrasound includes
 #include "qSlicerLiveUltrasoundModule.h"
@@ -88,6 +89,8 @@ QIcon qSlicerLiveUltrasoundModule::icon()const
 void qSlicerLiveUltrasoundModule::setup()
 {
   this->Superclass::setup();
+  vtkMRMLThreeDViewDisplayableManagerFactory::GetInstance()->
+    RegisterDisplayableManager("vtkMRMLLiveUltrasoundDisplayableManager");
 }
 
 //-----------------------------------------------------------------------------

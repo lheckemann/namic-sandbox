@@ -24,7 +24,6 @@
 #include <vtkNew.h>
 #include "vtkSmartPointer.h"
 
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerLiveUltrasoundLogic);
 
@@ -65,14 +64,10 @@ void vtkSlicerLiveUltrasoundLogic::InitializeEventListeners()
 //----------------------------------------------------------------------------
 void vtkSlicerLiveUltrasoundLogic::SetAndObserveLiveUltrasoundNode(vtkMRMLLiveUltrasoundNode *node)
 {
-  vtkSetAndObserveMRMLNodeMacro(this->LiveUltrasoundNode, node);
-
-   if (node)
-   {
-        //node->
-   }
-
-  //vtkSetAndObserveMRMLNodeMacro(this->DiffusionTensorVolumeNode, NULL);
+    if ( node ) 
+    {
+        vtkSetAndObserveMRMLNodeMacro(this->LiveUltrasoundNode, node);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -90,7 +85,4 @@ void vtkSlicerLiveUltrasoundLogic::RegisterNodes()
     return;
     }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLLiveUltrasoundNode>::New()); 
-
 }
-
-

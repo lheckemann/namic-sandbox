@@ -1,7 +1,6 @@
 #include "vtkMRMLLiveUltrasoundNode.h"
 
 #include "vtkActor.h"
-#include "vtkImageActor.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
@@ -12,6 +11,7 @@
 
 #include "vtkMRMLIGTLConnectorNode.h"
 #include "vtkMRMLLinearTransformNode.h"
+#include "vtkIGTLToMRMLImage.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLSliceNode.h"
@@ -85,39 +85,46 @@ vtkMRMLLiveUltrasoundNode::vtkMRMLLiveUltrasoundNode()
     this->SetModifiedSinceRead( true );
 
     this->ConnectorNodeID = NULL;
-    //this->ConnectorNode = NULL;
-
-    this->ProbeModelNodeID = NULL;
-
-    this->ProbeToTrackerTransform = vtkTransform::New(); 
-    this->ProbeToTrackerTransform->Identity(); 
-    this->ProbeToTrackerTransformNode = NULL; 
-    this->ProbeToTrackerNodeID = NULL;
-
-    this->ImageToProbeTransform = vtkTransform::New();
-    this->ImageToProbeTransform->Identity();
-    this->ImageToProbeTransformNode = NULL;
-    this->ImageToProbeTransformNodeID = NULL;
+    this->ConnectorNode = NULL;
 
     this->ModelToProbeTransform = vtkTransform::New();
     this->ModelToProbeTransform->Identity();
     this->ModelToProbeTransformNode = NULL;
     this->ModelToProbeTransformNodeID = NULL;
 
+    this->ProbeModelToTrackerTransform = vtkTransform::New(); 
+    this->ProbeModelToTrackerTransform->Identity(); 
+    this->ProbeModelToTrackerTransformNode = NULL; 
+    this->ProbeModelToTrackerNodeID = NULL;
+
+    this->ImageToProbeTransform = vtkTransform::New();
+    this->ImageToProbeTransform->Identity();
+    this->ImageToProbeTransformNode = NULL;
+    this->ImageToProbeTransformNodeID = NULL;
+
     this->LastTimeSec = 0;
     this->LastTimeNSec = 0;
 
-    this->ViewerRenderer = NULL;
+    this->ProbeToTrackerTransform = vtkTransform::New();
+    this->ProbeToTrackerTransform->Identity();
 
-    this->LastTrackerToProbeTransform = vtkTransform::New();
-    this->LastTrackerToProbeTransform->Identity();
+    // Create image to tracker transform
+    this->ImageToTrackerTransform = vtkTransform::New();
+    this->ImageToTrackerTransform->Identity(); 
+    this->ImageToTrackerTransform->Concatenate( this->ProbeToTrackerTransform ); 
+    this->ImageToTrackerTransform->Concatenate( this->ImageToProbeTransform ); 
+    this->ImageToTrackerTransform->Update(); 
 
     this->LastImageData = vtkImageData::New();
-
-    this->ProbeModel     = vtkPolyData::New();
-    this->ProbeActor     = vtkActor::New();
     
     this->LiveImageActor = vtkImageActor::New();
+    this->LiveImageActor->SetInput(this->LastImageData); 
+    this->LiveImageActor->SetScale( 0.2, 0.2, 1.0 );
+    this->LiveImageActor->Update(); 
+                        
+    // Apply probe to tracker transform to probe actor and image actor
+    this->LiveImageActor->SetUserTransform(this->ImageToTrackerTransform); 
+
 }
 
 //------------------------------------------------------------------------------
@@ -125,31 +132,20 @@ vtkMRMLLiveUltrasoundNode::~vtkMRMLLiveUltrasoundNode()
 {
     this->RemoveMRMLObservers();
 
-    this->SetProbeModelNodeID( NULL );
-    this->SetProbeToTrackerNodeID( NULL );
+    this->SetProbeModelToTrackerNodeID( NULL );
     this->SetModelToProbeTransformNodeID( NULL ); 
     this->SetConnectorNodeID( NULL ); 
 
     this->SetAndObserveConnectorNodeID( NULL );
     this->SetAndObserveImageToProbeTransformNodeID( NULL );
     this->SetAndObserveModelToProbeTransformNodeID( NULL );
-    this->SetAndObserveProbeToTrackerTransformNodeID( NULL ); 
+    this->SetAndObserveProbeModelToTrackerTransformNodeID( NULL ); 
 
     this->SetProbeToTrackerTransform( NULL ); 
+    this->SetProbeModelToTrackerTransform( NULL ); 
     this->SetModelToProbeTransform( NULL ); 
-    this->SetImageToProbeTransform( NULL ); 
-
-    if ( this->ViewerRenderer != NULL )
-    {
-        // this->ViewerRenderer->RemoveActor( this->ProbeActor );
-    }
-
-
-    if ( this->LastTrackerToProbeTransform != NULL )
-    {
-        this->LastTrackerToProbeTransform->Delete(); 
-        this->LastTrackerToProbeTransform = NULL; 
-    }
+    this->SetImageToProbeTransform( NULL );
+    this->SetImageToTrackerTransform( NULL ); 
 
     if ( this->LastImageData != NULL )
     {
@@ -157,49 +153,11 @@ vtkMRMLLiveUltrasoundNode::~vtkMRMLLiveUltrasoundNode()
         this->LastImageData = NULL; 
     }
 
-    if ( this->ProbeModel != NULL )
-    {
-        this->ProbeModel->Delete(); 
-        this->ProbeModel = NULL; 
-    }
-    
-    if ( this->ProbeActor != NULL )
-    {
-        this->ProbeActor->Delete(); 
-        this->ProbeActor = NULL; 
-    }
-
- 
-
     if ( this->LiveImageActor != NULL )
     {
         this->LiveImageActor->Delete(); 
         this->LiveImageActor = NULL; 
     }
-}
-
-//------------------------------------------------------------------------------
-void vtkMRMLLiveUltrasoundNode::Init()
-{
-    //qSlicerCoreApplication::
-
-    //vtkSlicerViewerWidget* viewer = this->SlicerApplication->GetApplicationGUI()->GetActiveViewerWidget();
-   // this->ViewerRenderer = viewer->GetMainViewer()->GetRenderer();
-
-    // Place live image actor in the viewer.
-    this->ViewerRenderer->AddActor( this->LiveImageActor );
-}
-
-//------------------------------------------------------------------------------
-void vtkMRMLLiveUltrasoundNode::StartReceiveServer()
-{
-
-}
-
-//------------------------------------------------------------------------------
-void vtkMRMLLiveUltrasoundNode::StopReceiveServer()
-{
-
 }
 
 //------------------------------------------------------------------------------
@@ -214,14 +172,9 @@ void vtkMRMLLiveUltrasoundNode::WriteXML( ostream& of, int nIndent )
         of << indent << " ConnectorNodeID=\"" << this->ConnectorNodeID << "\"\n";
     }*/
 
-    if ( this->ProbeModelNodeID != NULL )
+    if ( this->ProbeModelToTrackerNodeID != NULL )
     {
-        of << indent << " ProbeModelNodeID=\"" << this->ProbeModelNodeID << "\"\n";
-    }
-
-    if ( this->ProbeToTrackerNodeID != NULL )
-    {
-        of << indent << " ProbeToTrackerNodeID=\"" << this->ProbeToTrackerNodeID << "\"\n";
+        of << indent << " ProbeModelToTrackerNodeID=\"" << this->ProbeModelToTrackerNodeID << "\"\n";
     }
 
     if ( this->ImageToProbeTransformNodeID != NULL )
@@ -255,14 +208,9 @@ void vtkMRMLLiveUltrasoundNode::ReadXMLAttributes( const char** atts )
             this->SetConnectorNodeID( attValue );
         }
 
-        if ( !strcmp( attName, "ProbeModelNodeID" ) )
+        if ( !strcmp( attName, "ProbeModelToTrackerNodeID" ) )
         {
-            this->SetProbeModelNodeID( attValue );
-        }
-
-        if ( !strcmp( attName, "ProbeToTrackerNodeID" ) )
-        {
-            this->SetProbeToTrackerNodeID( attValue );
+            this->SetProbeModelToTrackerNodeID( attValue );
         }
 
         if ( !strcmp( attName, "ImageToProbeTransformNodeID" ) )
@@ -287,11 +235,9 @@ void vtkMRMLLiveUltrasoundNode::Copy( vtkMRMLNode *anode )
 
     //this->SetAndObserveConnectorNodeID( NULL );
     this->SetConnectorNodeID( node->ConnectorNodeID );
-
-    this->SetProbeModelNodeID( node->ProbeModelNodeID );
     
-    this->SetAndObserveProbeToTrackerTransformNodeID( NULL ); 
-    this->SetProbeToTrackerNodeID( node->ProbeToTrackerNodeID );
+    this->SetAndObserveProbeModelToTrackerTransformNodeID( NULL ); 
+    this->SetProbeModelToTrackerNodeID( node->ProbeModelToTrackerNodeID );
 
     this->SetAndObserveImageToProbeTransformNodeID( NULL );
     this->SetImageToProbeTransformNodeID( node->ImageToProbeTransformNodeID );
@@ -310,14 +256,9 @@ void vtkMRMLLiveUltrasoundNode::UpdateReferences()
         this->SetConnectorNodeID( NULL );
     }
 
-    if ( this->ProbeModelNodeID != NULL && this->Scene->GetNodeByID( this->ProbeModelNodeID ) == NULL )
+    if ( this->ProbeModelToTrackerNodeID != NULL && this->Scene->GetNodeByID( this->ProbeModelToTrackerNodeID ) == NULL )
     {
-        this->SetProbeModelNodeID( NULL );
-    }
-
-    if ( this->ProbeToTrackerNodeID != NULL && this->Scene->GetNodeByID( this->ProbeToTrackerNodeID ) == NULL )
-    {
-        this->SetProbeToTrackerNodeID( NULL );
+        this->SetProbeModelToTrackerNodeID( NULL );
     }
 
     if ( this->ImageToProbeTransformNodeID != NULL && this->Scene->GetNodeByID( this->ImageToProbeTransformNodeID ) == NULL )
@@ -341,14 +282,9 @@ void vtkMRMLLiveUltrasoundNode::UpdateReferenceID( const char *oldID, const char
         this->SetAndObserveConnectorNodeID( newID );
     }
 
-    if ( this->ProbeModelNodeID && !strcmp( oldID, this->ProbeModelNodeID ) )
+    if ( this->ProbeModelToTrackerNodeID && !strcmp( oldID, this->ProbeModelToTrackerNodeID ) )
     {
-        this->SetProbeModelNodeID( newID );
-    }
-
-    if ( this->ProbeToTrackerNodeID && !strcmp( oldID, this->ProbeToTrackerNodeID ) )
-    {
-        this->SetProbeToTrackerNodeID( newID );
+        this->SetProbeModelToTrackerNodeID( newID );
     }
 
     if ( this->ImageToProbeTransformNodeID && !strcmp( oldID, this->ImageToProbeTransformNodeID ) )
@@ -370,6 +306,7 @@ void vtkMRMLLiveUltrasoundNode::UpdateScene( vtkMRMLScene *scene )
     this->SetAndObserveConnectorNodeID( this->ConnectorNodeID );
     this->SetAndObserveImageToProbeTransformNodeID( this->ImageToProbeTransformNodeID );
     this->SetAndObserveModelToProbeTransformNodeID( this->ModelToProbeTransformNodeID );
+    this->SetAndObserveProbeModelToTrackerTransformNodeID( this->ProbeModelToTrackerNodeID ); 
 }
 
 //------------------------------------------------------------------------------
@@ -378,22 +315,53 @@ void vtkMRMLLiveUltrasoundNode::PrintSelf( ostream& os, vtkIndent indent )
     vtkMRMLNode::PrintSelf(os,indent);
 
     os << indent << "ConnectorNodeID: " << ( this->ConnectorNodeID ? this->ConnectorNodeID : "(none)" ) << "\n";
-    os << indent << "ProbeModelNodeID: " << ( this->ProbeModelNodeID ? this->ProbeModelNodeID : "(none)" ) << "\n";
-    os << indent << "ProbeToTrackerNodeID: " << (this->ProbeToTrackerNodeID ? this->ProbeToTrackerNodeID : "(none)" ) << "\n";
+    os << indent << "ProbeModelToTrackerNodeID: " << (this->ProbeModelToTrackerNodeID ? this->ProbeModelToTrackerNodeID : "(none)" ) << "\n";
     os << indent << "ImageToProbeTransformNodeID: " << (this->ImageToProbeTransformNodeID ? this->ImageToProbeTransformNodeID : "(none)") << "\n";
     os << indent << "ModelToProbeTransformNodeID: " << (this->ModelToProbeTransformNodeID ? this->ModelToProbeTransformNodeID : "(none)") << "\n";
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLModelNode* vtkMRMLLiveUltrasoundNode::GetProbeModelNode()
+void vtkMRMLLiveUltrasoundNode::StartOpenIGTLinkIFServer()
 {
-    vtkMRMLModelNode* node = NULL;
-    if ( this->GetScene() && this->ProbeModelNodeID != NULL )
+    if ( !this->GetConnectorNode() )
     {
-        vtkMRMLNode* snode = this->GetScene()->GetNodeByID( this->ProbeModelNodeID );
-        node = vtkMRMLModelNode::SafeDownCast( snode );
+        vtkMRMLIGTLConnectorNode* connector = vtkMRMLIGTLConnectorNode::New();
+        this->GetScene()->AddNode(connector);
+        this->SetAndObserveConnectorNodeID( connector->GetID() ); 
+        connector->Delete();
     }
-    return node;
+
+    vtkMRMLIGTLConnectorNode* connector = this->GetConnectorNode();
+    if ( connector && connector->GetState() == vtkMRMLIGTLConnectorNode::STATE_OFF )
+    {
+        vtkIGTLToMRMLImage* imageConverter = vtkIGTLToMRMLImage::New();
+        connector->RegisterMessageConverter(imageConverter); 
+        connector->SetType(vtkMRMLIGTLConnectorNode::TYPE_SERVER);
+        connector->Start();
+        connector->Modified();
+    }
+}
+
+
+//------------------------------------------------------------------------------
+void vtkMRMLLiveUltrasoundNode::StopOpenIGTLinkIFServer()
+{
+     vtkMRMLIGTLConnectorNode* connector = this->GetConnectorNode();
+    if ( connector && connector->GetState() != vtkMRMLIGTLConnectorNode::STATE_OFF )
+    {
+        connector->Stop();
+    }
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLLiveUltrasoundNode::CheckIncomingOpenIGTLinkData()
+{
+    vtkMRMLIGTLConnectorNode* cnode = this->GetConnectorNode(); 
+    if ( cnode )
+    {
+        cnode->ImportEventsFromEventBuffer();
+        cnode->ImportDataFromCircularBuffer(); 
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -407,7 +375,11 @@ void vtkMRMLLiveUltrasoundNode::SetAndObserveConnectorNodeID( const char* Connec
         vtkSetAndObserveMRMLObjectMacro( this->ConnectorNode, cnode );
         if ( cnode )
         {
+            cnode->AddObserver( vtkMRMLIGTLConnectorNode::ConnectedEvent, (vtkCommand*)this->MRMLCallbackCommand );
             cnode->AddObserver( vtkMRMLIGTLConnectorNode::ReceiveEvent, (vtkCommand*)this->MRMLCallbackCommand );
+            cnode->AddObserver( vtkMRMLIGTLConnectorNode::DisconnectedEvent, (vtkCommand*)this->MRMLCallbackCommand );
+            cnode->AddObserver( vtkMRMLIGTLConnectorNode::ActivatedEvent, (vtkCommand*)this->MRMLCallbackCommand );
+            cnode->AddObserver( vtkMRMLIGTLConnectorNode::DeactivatedEvent, (vtkCommand*)this->MRMLCallbackCommand );
         }
     }
 }
@@ -425,21 +397,18 @@ vtkMRMLIGTLConnectorNode* vtkMRMLLiveUltrasoundNode::GetConnectorNode()
     return node;
 }
 
-
-
 //------------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLLiveUltrasoundNode::GetProbeToTrackerTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLLiveUltrasoundNode::GetProbeModelToTrackerTransformNode()
 {
     vtkMRMLLinearTransformNode* node = NULL;
     if (    this->GetScene()
-        && this->ProbeToTrackerNodeID != NULL )
+        && this->ProbeModelToTrackerNodeID != NULL )
     {
-        vtkMRMLNode* snode = this->GetScene()->GetNodeByID( this->ProbeToTrackerNodeID);
+        vtkMRMLNode* snode = this->GetScene()->GetNodeByID( this->ProbeModelToTrackerNodeID);
         node = vtkMRMLLinearTransformNode::SafeDownCast( snode );
     }
     return node;
 }
-
 
 //------------------------------------------------------------------------------
 vtkMRMLLinearTransformNode* vtkMRMLLiveUltrasoundNode::GetImageToProbeTransformNode()
@@ -454,24 +423,23 @@ vtkMRMLLinearTransformNode* vtkMRMLLiveUltrasoundNode::GetImageToProbeTransformN
     return node;
 }
 
-
 //------------------------------------------------------------------------------
-void vtkMRMLLiveUltrasoundNode::SetAndObserveProbeToTrackerTransformNodeID( const char* transformNodeRef )
+void vtkMRMLLiveUltrasoundNode::SetAndObserveProbeModelToTrackerTransformNodeID( const char* transformNodeRef )
 {
-    vtkSetAndObserveMRMLObjectMacro( this->ProbeToTrackerTransformNode, NULL );
+    vtkSetAndObserveMRMLObjectMacro( this->ProbeModelToTrackerTransformNode, NULL );
     if ( transformNodeRef != NULL )
     {
-        this->SetProbeToTrackerNodeID( transformNodeRef );
-        vtkMRMLLinearTransformNode* tnode = this->GetProbeToTrackerTransformNode();
+        this->SetProbeModelToTrackerNodeID( transformNodeRef );
+        vtkMRMLLinearTransformNode* tnode = this->GetProbeModelToTrackerTransformNode();
 
         vtkSmartPointer< vtkIntArray > events = vtkSmartPointer< vtkIntArray >::New();
         events->InsertNextValue( vtkMRMLLinearTransformNode::TransformModifiedEvent );
-        vtkSetAndObserveMRMLObjectEventsMacro( this->ProbeToTrackerTransformNode, tnode, events );
+        vtkSetAndObserveMRMLObjectEventsMacro( this->ProbeModelToTrackerTransformNode, tnode, events );
 
         if ( tnode != NULL )
         {
-            this->ProbeToTrackerTransform->SetMatrix( tnode->GetMatrixTransformToParent() );
-            this->ProbeToTrackerTransform->Update();
+            this->ProbeModelToTrackerTransform->SetMatrix( tnode->GetMatrixTransformToParent() );
+            this->ProbeModelToTrackerTransform->Update();
         }
     }
 }
@@ -512,7 +480,7 @@ vtkMRMLLinearTransformNode* vtkMRMLLiveUltrasoundNode::GetModelToProbeTransformN
 }
 
 //------------------------------------------------------------------------------
-void vtkMRMLLiveUltrasoundNode ::SetAndObserveModelToProbeTransformNodeID( const char* transformNodeRef )
+void vtkMRMLLiveUltrasoundNode::SetAndObserveModelToProbeTransformNodeID( const char* transformNodeRef )
 {
     vtkSetAndObserveMRMLObjectMacro( this->ModelToProbeTransformNode, NULL );
     this->SetModelToProbeTransformNodeID( transformNodeRef );
@@ -534,36 +502,68 @@ void vtkMRMLLiveUltrasoundNode::ProcessMRMLEvents ( vtkObject *caller, unsigned 
 {
     Superclass::ProcessMRMLEvents( caller, event, callData );
 
-
     if (    this->ConnectorNode == vtkMRMLIGTLConnectorNode::SafeDownCast( caller )
+        && event == vtkMRMLIGTLConnectorNode::ConnectedEvent )
+    {
+        vtkDebugMacro ("**** OpenIGTLinkIF client connected...");
+
+    }
+    else if (    this->ConnectorNode == vtkMRMLIGTLConnectorNode::SafeDownCast( caller )
+        && event == vtkMRMLIGTLConnectorNode::DisconnectedEvent )
+    {
+        vtkDebugMacro ("**** OpenIGTLinkIF client disconnected...");
+
+    }
+    else if (    this->ConnectorNode == vtkMRMLIGTLConnectorNode::SafeDownCast( caller )
+        && event == vtkMRMLIGTLConnectorNode::ActivatedEvent )
+    {
+        vtkDebugMacro ("**** OpenIGTLinkIF server activated...");
+
+    } 
+    else if (    this->ConnectorNode == vtkMRMLIGTLConnectorNode::SafeDownCast( caller )
+        && event == vtkMRMLIGTLConnectorNode::DeactivatedEvent )
+    {
+        vtkDebugMacro ("**** OpenIGTLinkIF server deactivated...");
+
+    }
+    else if (    this->ConnectorNode == vtkMRMLIGTLConnectorNode::SafeDownCast( caller )
         && event == vtkMRMLIGTLConnectorNode::ReceiveEvent )
     {
+        vtkDebugMacro ("**** OpenIGTLinkIF image data received...");
+
         int numIncomingNodes = this->ConnectorNode->GetNumberOfIncomingMRMLNodes();
         for ( int nodeIndex = 0; nodeIndex < numIncomingNodes; ++ nodeIndex )
         {
-            int sec = -1;
-            int nsec = -1;
+            int sec(-1), nsec(-1);
 
             vtkMRMLNode* node = this->ConnectorNode->GetIncomingMRMLNode( nodeIndex );
 
             vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast( node );
-            if ( volumeNode != NULL )
+            if ( volumeNode )
             {
                 this->ConnectorNode->LockIncomingMRMLNode( node );
                 this->ConnectorNode->GetIGTLTimeStamp( node, sec, nsec );
                 this->ConnectorNode->UnlockIncomingMRMLNode( node );
 
-                if ( this->LastTimeSec != sec || this->LastTimeNSec != nsec )
+                if ( this->LastTimeSec != sec && this->LastTimeNSec != nsec )
                 {
                     vtkSmartPointer< vtkMatrix4x4 > mat = vtkSmartPointer< vtkMatrix4x4 >::New();
                     volumeNode->GetIJKToRASMatrix( mat );
-                    this->LastTrackerToProbeTransform->SetMatrix( mat );
-                    this->LastTrackerToProbeTransform->Update();
+                    this->ProbeToTrackerTransform->SetMatrix( mat ); 
+                    this->ProbeToTrackerTransform->Modified(); 
+
+                    this->ProbeModelToTrackerTransform->Identity(); 
+                    this->ProbeModelToTrackerTransform->Concatenate( this->ProbeToTrackerTransform ); 
+                    this->ProbeModelToTrackerTransform->Concatenate( this->ModelToProbeTransform ); 
+                    this->GetProbeModelToTrackerTransformNode()->GetMatrixTransformToParent()->DeepCopy( this->ProbeModelToTrackerTransform->GetMatrix() ); 
+                    this->GetProbeModelToTrackerTransformNode()->Modified();
 
                     this->LastTimeSec = sec;
                     this->LastTimeNSec = nsec;
                     this->LastImageData->DeepCopy( volumeNode->GetImageData() );
-                    this->UpdateLiveModels( volumeNode, mat );
+                    this->LastImageData->Modified(); 
+                    this->LiveImageActor->Update();
+                    this->InvokeEvent(NewFrameArrivedEvent); 
                 }
             }
 
@@ -576,23 +576,17 @@ void vtkMRMLLiveUltrasoundNode::ProcessMRMLEvents ( vtkObject *caller, unsigned 
             }
         }
     }
-    
-
-    if (    this->ModelToProbeTransformNode == vtkMRMLLinearTransformNode::SafeDownCast( caller )
+    else if (    this->ModelToProbeTransformNode == vtkMRMLLinearTransformNode::SafeDownCast( caller )
         && event == vtkMRMLLinearTransformNode::TransformModifiedEvent )
     {
         this->ModelToProbeTransform->SetMatrix( this->ModelToProbeTransformNode->GetMatrixTransformToParent() );
         this->ModelToProbeTransform->Update();
-        this->UpdateLiveModels( NULL, NULL );
     }
-
-
-    if (    this->ImageToProbeTransformNode == vtkMRMLLinearTransformNode::SafeDownCast( caller )
+    else if (    this->ImageToProbeTransformNode == vtkMRMLLinearTransformNode::SafeDownCast( caller )
         && event == vtkMRMLLinearTransformNode::TransformModifiedEvent )
     {
         this->ImageToProbeTransform->SetMatrix( this->ImageToProbeTransformNode->GetMatrixTransformToParent() );
         this->ImageToProbeTransform->Update();
-        this->UpdateLiveModels( NULL, NULL );
     }
 }
 
@@ -603,86 +597,5 @@ void vtkMRMLLiveUltrasoundNode::RemoveMRMLObservers()
     {
         this->ConnectorNode->RemoveObservers( vtkMRMLIGTLConnectorNode::ReceiveEvent );
     }
-}
-
-//------------------------------------------------------------------------------
-void vtkMRMLLiveUltrasoundNode::UpdateLiveModels( vtkMRMLVolumeNode* volumeNode, vtkMatrix4x4* mat )
-{
-    // Check input.
-    if ( this->ProbeModel == NULL ) 
-    {
-        return;
-    }
-
-    // Get probe polydata from selected probe model node.
-    vtkPolyData* probePolyData = NULL;
-    vtkMRMLModelNode* probeModelNode = this->GetProbeModelNode();
-    if ( probeModelNode != NULL )
-    {
-        probePolyData = probeModelNode->GetPolyData();
-    }
-
-    vtkSmartPointer< vtkTransform > tTrackerToProbe = vtkSmartPointer< vtkTransform >::New();
-    tTrackerToProbe->PostMultiply();
-
-
-    // TODO: If too much time has passed, hide models!
-
-
-    if ( mat == NULL )
-    {
-        tTrackerToProbe->SetMatrix( this->LastTrackerToProbeTransform->GetMatrix() );
-    }
-    else
-    {
-        tTrackerToProbe->SetMatrix( mat );
-    }
-
-    tTrackerToProbe->Update();
-
-
-    vtkSmartPointer< vtkTransform > tTrackerToModel = vtkSmartPointer< vtkTransform >::New();
-    tTrackerToModel->Identity();
-    tTrackerToModel->Concatenate( tTrackerToProbe );
-    tTrackerToModel->Concatenate( this->ModelToProbeTransform );
-    tTrackerToModel->Update();
-
-    vtkSmartPointer< vtkTransform > tTrackerToImage = vtkSmartPointer< vtkTransform >::New();
-    tTrackerToImage->Identity();
-    tTrackerToImage->Concatenate( tTrackerToProbe );
-    tTrackerToImage->Concatenate( this->ImageToProbeTransform );
-    tTrackerToImage->Update();
-
-
-    // Update observed tracker to probe-model tarnsform node.
-
-    if ( this->ProbeToTrackerNodeID != NULL )
-    {
-        vtkMatrix4x4* mTrackerToProbeInScene = this->GetProbeToTrackerTransformNode()->GetMatrixTransformToParent();
-        mTrackerToProbeInScene->DeepCopy( tTrackerToModel->GetMatrix() );
-        this->GetProbeToTrackerTransformNode()->Modified();
-    }
-
-
-    // Update the live image actor position.
-
-    vtkImageData* volume;
-
-    if (    volumeNode == NULL
-        || volumeNode->GetImageData() == NULL )
-    {
-        volume = this->LastImageData;
-    }
-    else
-    {
-        volume = volumeNode->GetImageData();
-    }
-
-    this->LiveImageActor->SetInput( volume );
-    // TODO: scaling should be defined in ImageToProbe transform 
-    this->LiveImageActor->SetScale( 0.2, 0.2, 1.0 );
-
-    this->LiveImageActor->SetUserTransform( tTrackerToImage );
-
 }
 
