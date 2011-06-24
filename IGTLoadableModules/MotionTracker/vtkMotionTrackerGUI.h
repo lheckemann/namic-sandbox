@@ -213,6 +213,10 @@ const unsigned int height);
   const char* GetActiveTimeSeriesBundleNodeID();
   vtkMRMLTimeSeriesBundleNode *GetActiveTimeSeriesBundleNode ();
 
+  // 6/23/2011 ayamada
+  void UpdateDisplayBufferNodeForOpenCV(vtkMRMLTimeSeriesBundleNode* bundleNode, int index);
+  
+  
  protected:
 
 // 5/31/2011 ayamada
