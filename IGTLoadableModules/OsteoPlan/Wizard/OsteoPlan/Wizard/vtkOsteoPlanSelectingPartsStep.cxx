@@ -41,6 +41,7 @@
 #include "vtkPolyData.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLModelDisplayNode.h"
+#include "vtkStringArray.h"
 
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj)                                      \
@@ -65,7 +66,6 @@ vtkOsteoPlanSelectingPartsStep::vtkOsteoPlanSelectingPartsStep()
   this->InputModelLabel = NULL;  
   this->InputModelSelector = NULL;
   this->InputModel = NULL;
-  this->PartNameEntry = NULL;
   this->SelectPartButton = NULL;
 
   this->SelectingPart = false;
@@ -75,6 +75,10 @@ vtkOsteoPlanSelectingPartsStep::vtkOsteoPlanSelectingPartsStep()
   this->TitleBackgroundColor[2] = 1;
 
   this->ProcessingCallback = false;
+
+  this->ColorName = NULL;
+
+  this->ColorNumber = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -86,8 +90,12 @@ vtkOsteoPlanSelectingPartsStep::~vtkOsteoPlanSelectingPartsStep()
   DELETE_IF_NULL_WITH_SETPARENT_NULL(SelectFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(InputModelLabel);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(InputModelSelector);
-  DELETE_IF_NULL_WITH_SETPARENT_NULL(PartNameEntry);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(SelectPartButton);
+
+  if(this->ColorName)
+    {
+      this->ColorName->Delete();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -140,18 +148,6 @@ void vtkOsteoPlanSelectingPartsStep::ShowUserInterface()
     this->InputModelSelector->UpdateMenu();
     }
 
-  if(!this->PartNameEntry)
-    {
-    this->PartNameEntry = vtkKWEntryWithLabel::New();
-    }
-  if(!this->PartNameEntry->IsCreated())
-    {
-    this->PartNameEntry->SetParent( this->SelectFrame->GetFrame() );
-    this->PartNameEntry->Create();
-    this->PartNameEntry->SetLabelText("Output Model Name:");
-    this->PartNameEntry->SetLabelPositionToTop();
-    }
-
   if(!this->SelectPartButton)
     {
     this->SelectPartButton = vtkKWPushButton::New();
@@ -160,17 +156,47 @@ void vtkOsteoPlanSelectingPartsStep::ShowUserInterface()
     {
     this->SelectPartButton->SetParent( this->SelectFrame->GetFrame() );
     this->SelectPartButton->Create();
-    this->SelectPartButton->SetBackgroundColor(color->White);
-    this->SelectPartButton->SetActiveBackgroundColor(color->White);
-    this->SelectPartButton->SetText("Please, enter a name (and press Enter)");
-    this->SelectPartButton->SetEnabled(0);
+
+    this->SelectPartButton->SetBackgroundColor(color->SliceGUIGreen);
+    this->SelectPartButton->SetActiveBackgroundColor(color->SliceGUIGreen);
+    this->SelectPartButton->SetText("Select Part");
+    this->SelectPartButton->SetEnabled(1);
     }
 
-  this->Script("pack %s %s %s %s -side top -fill x -padx 0 -pady 2",
-           this->InputModelLabel->GetWidgetName(),
+  this->Script("pack %s %s %s -side top -fill x -padx 0 -pady 2",
+         this->InputModelLabel->GetWidgetName(),
                this->InputModelSelector->GetWidgetName(),
-               this->PartNameEntry->GetWidgetName(),
-           this->SelectPartButton->GetWidgetName());
+         this->SelectPartButton->GetWidgetName());
+
+  //-------------------------------------------------------
+  // Show Original Model if existing
+
+  if(this->InputModel)
+    {
+      this->InputModel->GetModelDisplayNode()->SetVisibility(1);
+    }
+
+  //-------------------------------------------------------
+  // Colors
+  if(!this->ColorName)
+    {
+      this->ColorName = vtkStringArray::New();
+      this->ColorName->InsertNextValue("Blue");
+      this->ColorName->InsertNextValue("Brown");
+      this->ColorName->InsertNextValue("Green");
+      this->ColorName->InsertNextValue("Ochre");
+      this->ColorName->InsertNextValue("Orange");
+      this->ColorName->InsertNextValue("Red");
+      this->ColorName->InsertNextValue("Stone");
+
+      this->colorId[0] = color->LightBlue;
+      this->colorId[1] = color->LightBrown;
+      this->colorId[2] = color->LightGreen;
+      this->colorId[3] = color->LightOchre;
+      this->colorId[4] = color->LightOrange;
+      this->colorId[5] = color->LightRed;
+      this->colorId[6] = color->LightStone;
+    }
 
   //-------------------------------------------------------
 
@@ -191,11 +217,17 @@ void vtkOsteoPlanSelectingPartsStep::HandleMouseEvent(vtkSlicerInteractorStyle* 
 {
   if(this->SelectingPart)
     {
-      if(strcmp(this->PartNameEntry->GetWidget()->GetValue(),""))
-  {
-    SelectClickedPart(this->PartNameEntry->GetWidget()->GetValue());
-    this->SelectingPart = false;
-  }
+
+      SelectClickedPart();
+
+      vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
+      vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
+
+      this->SelectPartButton->SetBackgroundColor(color->SliceGUIGreen);
+      this->SelectPartButton->SetActiveBackgroundColor(color->SliceGUIGreen);
+      this->SelectPartButton->SetText("Select Part");
+      
+      this->SelectingPart = false;
     }
 
 }
@@ -218,36 +250,6 @@ void vtkOsteoPlanSelectingPartsStep::ProcessGUIEvents(vtkObject *caller,
      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
     this->InputModel = vtkMRMLModelNode::SafeDownCast(this->InputModelSelector->GetSelected());
-    }
-
-  if(this->PartNameEntry->GetWidget() == vtkKWEntry::SafeDownCast(caller)
-     && event == vtkKWEntry::EntryValueChangedEvent)
-    {
-    vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
-    vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
-
-    const char *modelName = this->PartNameEntry->GetWidget()->GetValue();
-      
-    if(!strcmp(modelName,""))
-      {
-      if(this->SelectPartButton && !this->SelectingPart)
-        {
-        this->SelectPartButton->SetBackgroundColor(color->White);
-        this->SelectPartButton->SetActiveBackgroundColor(color->White);
-        this->SelectPartButton->SetText("Please, enter a name (and press Enter)");
-        this->SelectPartButton->SetEnabled(0);
-        }
-      }
-    else
-      {
-      if(this->SelectPartButton && !this->SelectingPart)
-        {
-        this->SelectPartButton->SetBackgroundColor(color->SliceGUIGreen);
-        this->SelectPartButton->SetActiveBackgroundColor(color->SliceGUIGreen);
-        this->SelectPartButton->SetText("Select Part");
-        this->SelectPartButton->SetEnabled(1);
-        }
-      }
     }
 
   if(this->SelectPartButton == vtkKWPushButton::SafeDownCast(caller)
@@ -279,11 +281,6 @@ void vtkOsteoPlanSelectingPartsStep::AddGUIObservers()
     this->InputModelSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
- if(this->PartNameEntry->GetWidget())
-    {
-      this->PartNameEntry->GetWidget()->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
-
   if(this->SelectPartButton)
     {
     this->SelectPartButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -300,11 +297,6 @@ void vtkOsteoPlanSelectingPartsStep::RemoveGUIObservers()
   if(this->InputModelSelector)
     {
     this->InputModelSelector->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-  if(this->PartNameEntry)
-    {
-      this->PartNameEntry->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->SelectPartButton)
@@ -325,6 +317,12 @@ void vtkOsteoPlanSelectingPartsStep::HideUserInterface()
 {
   TearDownGUI(); // HideUserInterface deletes the reference to the scene, so TearDownGUI shall be done before calling HideUserInterface
   Superclass::HideUserInterface();
+
+  // Hide Original Model when leaving step
+  if(this->InputModel)
+    {
+      this->InputModel->GetModelDisplayNode()->SetVisibility(0);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -334,7 +332,7 @@ void vtkOsteoPlanSelectingPartsStep::TearDownGUI()
 }
 
 //----------------------------------------------------------------------------
-void vtkOsteoPlanSelectingPartsStep::SelectClickedPart(const char* modelName)
+void vtkOsteoPlanSelectingPartsStep::SelectClickedPart()
 {  
   int* mousePosition = this->GetGUI()->GetApplicationGUI()->GetActiveRenderWindowInteractor()->GetEventPosition();
       
@@ -344,7 +342,6 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart(const char* modelName)
   if(cellIdPicked != -1)
     {
     vtkPolyDataConnectivityFilter* connectivityFilter = vtkPolyDataConnectivityFilter::New();
-//    connectivityFilter->SetInput(this->GetLogic()->Getpart2()->GetModelDisplayNode()->GetPolyData());
     connectivityFilter->SetInput(this->InputModel->GetModelDisplayNode()->GetPolyData());
     connectivityFilter->SetExtractionModeToCellSeededRegions();
     connectivityFilter->InitializeSeedList();
@@ -353,7 +350,6 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart(const char* modelName)
 
     // Create new polydata 
     vtkPolyData* polyDataModel = vtkPolyData::New();
-//    polyDataModel->CopyStructure(this->GetLogic()->Getpart2()->GetModelDisplayNode()->GetPolyData());
     polyDataModel->CopyStructure(this->InputModel->GetModelDisplayNode()->GetPolyData());
 
     // Create New vtkMRMLNode
@@ -364,9 +360,12 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart(const char* modelName)
  
     // Add them to the scene 
     modelSelected->SetScene(this->GetGUI()->GetMRMLScene());
-    modelSelected->SetName(modelName);
-    dnodeS->SetColor(0,0.55,0.90);
+    modelSelected->SetName(this->ColorName->GetValue(this->ColorNumber%6).c_str());
+
+    dnodeS->SetColor(this->colorId[this->ColorNumber%6]);
     dnodeS->SetScene(this->GetGUI()->GetMRMLScene());
+
+    this->ColorNumber++;
  
     this->GetGUI()->GetMRMLScene()->AddNode(dnodeS);
     this->GetGUI()->GetMRMLScene()->AddNode(modelSelected);
@@ -384,7 +383,6 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart(const char* modelName)
     dnodeS->Delete();
  
     connectivityFilter->Delete();
-
 
     }
   cellPicker->Delete();

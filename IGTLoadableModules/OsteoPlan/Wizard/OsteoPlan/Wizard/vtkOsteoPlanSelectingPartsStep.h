@@ -25,6 +25,7 @@ class vtkKWLabel;
 class vtkKWPushButton;
 class vtkSlicerNodeSelectorWidget;
 class vtkMRMLModelNode;
+class vtkStringArray;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanSelectingPartsStep : public vtkOsteoPlanStep
 {
@@ -42,7 +43,7 @@ public:
   virtual void UpdateGUI();
 
   void HandleMouseEvent(vtkSlicerInteractorStyle* style);
-  void SelectClickedPart(const char* modelName);
+  void SelectClickedPart();
 
 protected:
   vtkOsteoPlanSelectingPartsStep();
@@ -62,6 +63,10 @@ protected:
   vtkKWPushButton* SelectPartButton;
 
   bool SelectingPart;
+
+  vtkStringArray* ColorName;
+  double* colorId[7];
+  int ColorNumber;
 
 private:
   vtkOsteoPlanSelectingPartsStep(const vtkOsteoPlanSelectingPartsStep&);
