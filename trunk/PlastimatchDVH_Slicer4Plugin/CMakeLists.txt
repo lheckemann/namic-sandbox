@@ -22,7 +22,7 @@ IF(NOT Slicer_SOURCE_DIR)
   SET(EXTENSION_STATUS "Beta")
   SET(EXTENSION_DESCRIPTION "This is an example of Qt loadable module built as an extension")
 
-  FIND_PACKAGE(Slicer REQUIRED)
+  ##FIND_PACKAGE(Slicer REQUIRED)
   
   SET(ADDITIONAL_C_FLAGS "" CACHE STRING "Additional ${EXTENSION_NAME} C Flags")
   SET(ADDITIONAL_CXX_FLAGS "" CACHE STRING "Additional ${EXTENSION_NAME} CXX Flags")
@@ -32,7 +32,7 @@ IF(NOT Slicer_SOURCE_DIR)
   SET(EXTENSION_LICENSE_FILE ${Slicer_LICENSE_FILE})
   SET(EXTENSION_README_FILE ${Slicer_README_FILE})
 
-  INCLUDE(SlicerEnableExtensionTesting)
+  #INCLUDE(SlicerEnableExtensionTesting)
 
 ENDIF()
 
@@ -89,6 +89,13 @@ SET(qt_module_resources
   Resources/qSlicerPlastimatchDVHModule.qrc
 )
 
+set (qt_module_target_libraries
+  ${qt_module_target_libraries}
+  plastimatch1
+  gpuit
+  plmsys
+  )
+
 slicerMacroBuildQtModule(
   NAME ${EXTENSION_NAME}
   EXPORT_DIRECTIVE ${qt_module_export_directive}
@@ -99,6 +106,11 @@ slicerMacroBuildQtModule(
   TARGET_LIBRARIES ${qt_module_target_libraries} plastimatch1 gpuit plmsys
   RESOURCES ${qt_module_resources}
   )
+
+
+#IF(BUILD_TESTING)
+#  add_subdirectory(Testing)
+#endif()
 
 IF(NOT Slicer_SOURCE_DIR)
  INCLUDE(SlicerFunctionGenerateExtensionDescription)
