@@ -167,10 +167,10 @@ void vtkOsteoPlanSelectingPartsStep::ShowUserInterface()
     }
 
   this->Script("pack %s %s %s %s -side top -fill x -padx 0 -pady 2",
-         this->InputModelLabel->GetWidgetName(),
+           this->InputModelLabel->GetWidgetName(),
                this->InputModelSelector->GetWidgetName(),
                this->PartNameEntry->GetWidgetName(),
-         this->SelectPartButton->GetWidgetName());
+           this->SelectPartButton->GetWidgetName());
 
   //-------------------------------------------------------
 
@@ -365,7 +365,7 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart(const char* modelName)
     // Add them to the scene 
     modelSelected->SetScene(this->GetGUI()->GetMRMLScene());
     modelSelected->SetName(modelName);
-    dnodeS->SetColor(0,0.40,0.90);
+    dnodeS->SetColor(0,0.55,0.90);
     dnodeS->SetScene(this->GetGUI()->GetMRMLScene());
  
     this->GetGUI()->GetMRMLScene()->AddNode(dnodeS);
