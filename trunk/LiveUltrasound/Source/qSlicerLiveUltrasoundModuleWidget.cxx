@@ -17,6 +17,7 @@
 
 // Qt includes
 #include <QDebug>
+#include <QTimer>
 
 // SlicerQt includes
 #include "qSlicerLiveUltrasoundModuleWidget.h"
@@ -114,13 +115,19 @@ void qSlicerLiveUltrasoundModuleWidget::setup()
   Q_D(qSlicerLiveUltrasoundModuleWidget);
   d->setupUi(this);
   this->Superclass::setup(); 
+  
+  // Check also the UI file for mrmlSceneChanged SLOTS
 
-  QObject::connect(this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->OpenIGTLinkNodeSelector, SLOT(setMRMLScene(vtkMRMLScene*)));
-  QObject::connect(this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->DataNodeSelector, SLOT(setMRMLScene(vtkMRMLScene*)));
-  QObject::connect(this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->ProbeTransformNodeSelector, SLOT(setMRMLScene(vtkMRMLScene*)));
-  QObject::connect(this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->ImageToProbeTransformNodeSelector, SLOT(setMRMLScene(vtkMRMLScene*)));
-  QObject::connect(this, SIGNAL(mrmlSceneChanged(vtkMRMLScene*)), d->ModelToProbeTransformNodeSelector, SLOT(setMRMLScene(vtkMRMLScene*)));
+  // Create timer event to update widgets
+  QTimer *timer = new QTimer(this);
+  QObject::connect(timer, SIGNAL(timeout()), this, SLOT(processTimerEvents()) );
+  timer->start(50);
 
+  QObject::connect(d->StartOpenIGTLinkIFServerButton, SIGNAL(clicked()), this, 
+                                             SLOT( startOpenIGTLinkIFServer() ) );
+
+  QObject::connect(d->StopOpenIGTLinkIFServerButton, SIGNAL(clicked()), this, 
+                                             SLOT( stopOpenIGTLinkIFServer() ) );
 
   QObject::connect(d->DataNodeSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, 
                                              SLOT( setLiveUltrasoundDataNode(vtkMRMLNode*) ) ); 
@@ -155,6 +162,33 @@ void qSlicerLiveUltrasoundModuleWidget::exit()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerLiveUltrasoundModuleWidget::processTimerEvents()
+{
+    if ( this->liveUltrasoundNode )
+    {
+        this->liveUltrasoundNode->CheckIncomingOpenIGTLinkData(); 
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerLiveUltrasoundModuleWidget::startOpenIGTLinkIFServer()
+{
+    if ( this->liveUltrasoundNode )
+    {
+        this->liveUltrasoundNode->StartOpenIGTLinkIFServer(); 
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerLiveUltrasoundModuleWidget::stopOpenIGTLinkIFServer()
+{
+    if ( this->liveUltrasoundNode )
+    {
+        this->liveUltrasoundNode->StopOpenIGTLinkIFServer(); 
+    }
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerLiveUltrasoundModuleWidget::updateWidget()
 {
     if( !this->liveUltrasoundNode )
@@ -180,9 +214,9 @@ void qSlicerLiveUltrasoundModuleWidget::updateWidget()
         d->ModelToProbeTransformNodeSelector->setCurrentNode((vtkMRMLNode*)n->GetModelToProbeTransformNode());
     }
 
-    if(d->ProbeTransformNodeSelector->currentNode() != (vtkMRMLNode*) n->GetProbeToTrackerTransformNode())
+    if(d->ProbeTransformNodeSelector->currentNode() != (vtkMRMLNode*) n->GetProbeModelToTrackerTransformNode())
     {
-        d->ProbeTransformNodeSelector->setCurrentNode((vtkMRMLNode*)n->GetProbeToTrackerTransformNode());
+        d->ProbeTransformNodeSelector->setCurrentNode((vtkMRMLNode*)n->GetProbeModelToTrackerTransformNode());
     }
 
 }
@@ -222,7 +256,7 @@ void qSlicerLiveUltrasoundModuleWidget::setProbeTransformNode(vtkMRMLNode *node)
 {
     if ( this->liveUltrasoundNode )
     {
-        this->liveUltrasoundNode->SetAndObserveProbeToTrackerTransformNodeID( node ? node->GetID() : NULL );
+        this->liveUltrasoundNode->SetAndObserveProbeModelToTrackerTransformNodeID( node ? node->GetID() : NULL );
     }
 }
 

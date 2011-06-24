@@ -15,11 +15,14 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="ctkCollapsibleButton" name="InputOutputCollapsibleButton" native="true">
-     <property name="text" stdset="0">
+    <widget class="ctkCollapsibleButton" name="InputOutputCollapsibleButton">
+     <property name="text">
       <string>Input / Output</string>
      </property>
      <layout class="QFormLayout" name="formLayout_2">
+      <property name="fieldGrowthPolicy">
+       <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+      </property>
       <item row="0" column="0">
        <widget class="QLabel" name="DataNodeLabel">
         <property name="text">
@@ -28,60 +31,50 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="qMRMLNodeComboBox" name="DataNodeSelector" native="true">
-        <property name="nodeTypes" stdset="0">
+       <widget class="qMRMLNodeComboBox" name="DataNodeSelector">
+        <property name="nodeTypes">
          <stringlist>
           <string>vtkMRMLLiveUltrasoundNode</string>
          </stringlist>
         </property>
-        <property name="showChildNodeTypes" stdset="0">
+        <property name="showChildNodeTypes">
          <bool>false</bool>
         </property>
-        <property name="addEnabled" stdset="0">
+        <property name="addEnabled">
          <bool>true</bool>
+        </property>
+        <property name="renameEnabled">
+         <bool>true</bool>
+        </property>
+        <property name="baseName">
+         <string>LiveUltrasound</string>
         </property>
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="OpenIGTLinkNodeLabel">
-        <property name="text">
-         <string>OpenIGTLink node:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="qMRMLNodeComboBox" name="OpenIGTLinkNodeSelector" native="true">
-        <property name="nodeTypes" stdset="0">
-         <stringlist>
-          <string>vtkMRMLIGTLConnectorNode</string>
-         </stringlist>
-        </property>
-        <property name="showChildNodeTypes" stdset="0">
-         <bool>false</bool>
-        </property>
-        <property name="addEnabled" stdset="0">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
        <widget class="QLabel" name="ProbeTransformLabel">
         <property name="text">
          <string>Probe transform:</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="qMRMLNodeComboBox" name="ProbeTransformNodeSelector" native="true">
-        <property name="nodeTypes" stdset="0">
+      <item row="1" column="1">
+       <widget class="qMRMLNodeComboBox" name="ProbeTransformNodeSelector">
+        <property name="nodeTypes">
          <stringlist>
           <string>vtkMRMLLinearTransformNode</string>
          </stringlist>
         </property>
-        <property name="showChildNodeTypes" stdset="0">
+        <property name="showChildNodeTypes">
          <bool>false</bool>
         </property>
-        <property name="addEnabled" stdset="0">
+        <property name="addEnabled">
+         <bool>true</bool>
+        </property>
+        <property name="editEnabled">
+         <bool>false</bool>
+        </property>
+        <property name="renameEnabled">
          <bool>true</bool>
         </property>
        </widget>
@@ -90,8 +83,86 @@
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CalibrationCollapsibleButton" native="true">
-     <property name="text" stdset="0">
+    <widget class="ctkCollapsibleButton" name="OpenIGTLinkIF">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>OpenIGTLinkIF</string>
+     </property>
+     <property name="contentsFrameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QPushButton" name="StartOpenIGTLinkIFServerButton">
+          <property name="text">
+           <string>Start OpenIGTLinkIF server</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="StopOpenIGTLinkIFServerButton">
+          <property name="text">
+           <string>Stop OpenIGTLinkIF server</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="OpenIGTLinkIFStatusLabel">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QFormLayout" name="formLayout_3">
+        <item row="0" column="0">
+         <widget class="QLabel" name="OpenIGTLinkNodeLabel">
+          <property name="text">
+           <string>OpenIGTLink node:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="qMRMLNodeComboBox" name="OpenIGTLinkNodeSelector">
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLIGTLConnectorNode</string>
+           </stringlist>
+          </property>
+          <property name="showChildNodeTypes">
+           <bool>false</bool>
+          </property>
+          <property name="addEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="editEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="renameEnabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="CalibrationCollapsibleButton">
+     <property name="text">
       <string>Calibration</string>
      </property>
      <layout class="QFormLayout" name="formLayout">
@@ -106,17 +177,23 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="qMRMLNodeComboBox" name="ImageToProbeTransformNodeSelector" native="true">
-        <property name="nodeTypes" stdset="0">
+       <widget class="qMRMLNodeComboBox" name="ImageToProbeTransformNodeSelector">
+        <property name="nodeTypes">
          <stringlist>
           <string>vtkMRMLLinearTransformNode</string>
          </stringlist>
         </property>
-        <property name="showChildNodeTypes" stdset="0">
+        <property name="showChildNodeTypes">
          <bool>false</bool>
         </property>
-        <property name="addEnabled" stdset="0">
-         <bool>false</bool>
+        <property name="addEnabled">
+         <bool>true</bool>
+        </property>
+        <property name="editEnabled">
+         <bool>true</bool>
+        </property>
+        <property name="renameEnabled">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -128,17 +205,23 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="qMRMLNodeComboBox" name="ModelToProbeTransformNodeSelector" native="true">
-        <property name="nodeTypes" stdset="0">
+       <widget class="qMRMLNodeComboBox" name="ModelToProbeTransformNodeSelector">
+        <property name="nodeTypes">
          <stringlist>
           <string>vtkMRMLLinearTransformNode</string>
          </stringlist>
         </property>
-        <property name="showChildNodeTypes" stdset="0">
+        <property name="showChildNodeTypes">
          <bool>false</bool>
         </property>
-        <property name="addEnabled" stdset="0">
-         <bool>false</bool>
+        <property name="addEnabled">
+         <bool>true</bool>
+        </property>
+        <property name="editEnabled">
+         <bool>true</bool>
+        </property>
+        <property name="renameEnabled">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -148,15 +231,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>ctkCollapsibleButton</class>
-   <extends>QWidget</extends>
-   <header>ctkCollapsibleButton.h</header>
-   <container>1</container>
-   <slots>
-    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   </slots>
-  </customwidget>
   <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
@@ -172,9 +246,99 @@
    <header>qSlicerWidget.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+   <slots>
+    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   </slots>
+  </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>qSlicerLiveUltrasoundModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>DataNodeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>488</x>
+     <y>4</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>451</x>
+     <y>41</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerLiveUltrasoundModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>OpenIGTLinkNodeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>356</x>
+     <y>4</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>367</x>
+     <y>172</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerLiveUltrasoundModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ProbeTransformNodeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>198</x>
+     <y>5</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>300</x>
+     <y>71</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerLiveUltrasoundModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ImageToProbeTransformNodeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>170</x>
+     <y>7</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>211</x>
+     <y>238</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerLiveUltrasoundModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>ModelToProbeTransformNodeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>229</x>
+     <y>570</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>296</x>
+     <y>271</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
  <slots>
   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
   <slot>setMRMLScene(vtkMRMLScene*)</slot>

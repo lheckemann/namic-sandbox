@@ -40,6 +40,9 @@ public:
   virtual ~qSlicerLiveUltrasoundModuleWidget();
 
 public slots:
+    virtual void processTimerEvents(); 
+    virtual void startOpenIGTLinkIFServer(); 
+    virtual void stopOpenIGTLinkIFServer(); 
 
     /// Set the current MRML scene to the widget
     virtual void setMRMLScene(vtkMRMLScene*);

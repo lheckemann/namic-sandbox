@@ -8,14 +8,7 @@
 #include "vtkTransform.h"
 
 #include "vtkSlicerLiveUltrasoundModuleMRMLExport.h"
-
-class vtkActor;
-class vtkImageActor;
-class vtkMatrix4x4;
-class vtkPolyData;
-class vtkRenderer;
-
-class vtkSlicerApplication;
+#include "vtkImageActor.h"
 
 class vtkMRMLIGTLConnectorNode;
 class vtkImageData;
@@ -33,10 +26,6 @@ public:
     vtkTypeMacro( vtkMRMLLiveUltrasoundNode, vtkMRMLNode );
     virtual vtkMRMLNode* CreateNodeInstance();
 
-    void Init();
-    void StartReceiveServer();
-    void StopReceiveServer();
-
     virtual const char* GetNodeTagName() { return "LiveUltrasound"; };
     void PrintSelf( ostream& os, vtkIndent indent );
 
@@ -48,11 +37,22 @@ public:
     virtual void UpdateReferenceID( const char *oldID, const char *newID );
     void UpdateReferences();
 
+    virtual void CheckIncomingOpenIGTLinkData(); 
+
+    virtual void StartOpenIGTLinkIFServer(); 
+    virtual void StopOpenIGTLinkIFServer(); 
 
     vtkSetObjectMacro(ProbeToTrackerTransform, vtkTransform); 
+    vtkSetObjectMacro(ProbeModelToTrackerTransform, vtkTransform); 
     vtkSetObjectMacro(ModelToProbeTransform, vtkTransform); 
     vtkSetObjectMacro(ImageToProbeTransform, vtkTransform); 
+    vtkSetObjectMacro(ImageToTrackerTransform, vtkTransform); 
+    
+    vtkGetObjectMacro(LiveImageActor, vtkImageActor); 
 
+    enum {
+        NewFrameArrivedEvent  = 228944
+    };
 
 
 protected:
@@ -79,29 +79,19 @@ protected:
     vtkMRMLIGTLConnectorNode* ConnectorNode;
 
 
-    // Reference to the probe model node.
 
+    // Reference to probe model to tracker transform that needs to be updated while tracking.
 public:
-    vtkGetStringMacro( ProbeModelNodeID );
-    vtkSetReferenceStringMacro( ProbeModelNodeID );
-    vtkMRMLModelNode* GetProbeModelNode();  
+    vtkGetStringMacro( ProbeModelToTrackerNodeID );
+    vtkMRMLLinearTransformNode* GetProbeModelToTrackerTransformNode();
+    vtkSetReferenceStringMacro( ProbeModelToTrackerNodeID );
+    void SetAndObserveProbeModelToTrackerTransformNodeID( const char* transformNodeRef );
 protected:
-    char* ProbeModelNodeID;
+    char* ProbeModelToTrackerNodeID;
+    vtkMRMLLinearTransformNode* ProbeModelToTrackerTransformNode;
 
 
-    // Reference to probe-to-tracker transform that needs to be updated while tracking.
-
-public:
-    vtkGetStringMacro( ProbeToTrackerNodeID );
-    vtkMRMLLinearTransformNode* GetProbeToTrackerTransformNode();
-    vtkSetReferenceStringMacro( ProbeToTrackerNodeID );
-    void SetAndObserveProbeToTrackerTransformNodeID( const char* transformNodeRef );
-protected:
-    char* ProbeToTrackerNodeID;
-    vtkMRMLLinearTransformNode* ProbeToTrackerTransformNode;
-
-
-    // References to calibration transform nodes.
+    // Reference to image to probe transform node.
 
 public:
     vtkGetStringMacro( ImageToProbeTransformNodeID );
@@ -112,6 +102,7 @@ protected:
     char* ImageToProbeTransformNodeID;
     vtkMRMLLinearTransformNode* ImageToProbeTransformNode;
 
+    // Reference to model to probe transform node.
 public:
     vtkGetStringMacro( ModelToProbeTransformNodeID );
     vtkMRMLLinearTransformNode* GetModelToProbeTransformNode();
@@ -122,33 +113,17 @@ protected:
     vtkMRMLLinearTransformNode* ModelToProbeTransformNode;
 
 
-private:
-
-    void UpdateLiveModels( vtkMRMLVolumeNode* volumeNode, vtkMatrix4x4* mat );
-
-
-    vtkSlicerApplication* SlicerApplication;
-
+protected:
     int LastTimeSec;
     int LastTimeNSec;
 
-
-    // Objects for the 3D renderer.
-    // Tracker gives: TrackerToProbeTransform.
-
-    vtkRenderer*   ViewerRenderer;
-
-    vtkTransform*  LastTrackerToProbeTransform;
     vtkImageData*  LastImageData;
-
-    vtkTransform*  ProbeToTrackerTransform;
-
-    vtkTransform*  ModelToProbeTransform;
-    vtkPolyData*   ProbeModel;
-    vtkActor*      ProbeActor;
-
-    vtkTransform*  ImageToProbeTransform;
     vtkImageActor* LiveImageActor;
+    vtkTransform*  ProbeToTrackerTransform;
+    vtkTransform*  ModelToProbeTransform;
+    vtkTransform*  ImageToProbeTransform;
+    vtkTransform*  ImageToTrackerTransform;
+    vtkTransform*  ProbeModelToTrackerTransform; 
 };
 
 #endif 
