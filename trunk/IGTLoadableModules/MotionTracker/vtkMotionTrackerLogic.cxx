@@ -945,15 +945,6 @@ void vtkMotionTrackerLogic::UpdateDisplayBufferNode(vtkMRMLTimeSeriesBundleNode*
   vtkMRMLScalarVolumeNode *firstFrameNode 
     = vtkMRMLScalarVolumeNode::SafeDownCast(bundleNode->GetFrameNode(0));
 
-
-// ---------------------------------------
-// 6/19/2011 ayamada
-// test
-// ---------------------------------------
-unsigned short* pIn = (unsigned short*)imageData->GetScalarPointer();
-void* pInVoid = imageData->GetScalarPointer();
-void* pInbundle = bundleNode->GetScalarPointer();
-
 // ---------------------------------------
 
   if (firstFrameNode && firstFrameNode->GetImageData())
@@ -995,10 +986,10 @@ volumeNode->SetName(nodeName);
 
 }
 
-/*
+
 // 6/9/2011 ayamada
 // send image of MRML to OpenCV
-void vtkMotionTrackerLogic::MRMLToOpenCV(vtkMRMLTimeSeriesBundleNode* bundleNode, int index)
+void vtkMotionTrackerLogic::UpdateDisplayBufferNodeForOpenCV(vtkMRMLTimeSeriesBundleNode* bundleNode, int index)
 {
   if (!bundleNode)
 {
@@ -1051,7 +1042,7 @@ void vtkMotionTrackerLogic::MRMLToOpenCV(vtkMRMLTimeSeriesBundleNode* bundleNode
 }
 
 }
-*/
+
 
 
 //---------------------------------------------------------------------------
