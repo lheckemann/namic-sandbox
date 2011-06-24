@@ -33,6 +33,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkImageExport.h>
 #include <vtkImageFlip.h>
+#include <vtkContextMouseEvent.h>
 
 #include <itkImage.h>
 
@@ -186,7 +187,7 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadCSV(QString csvString)
   m_StructureNames = new QStringList(lines.at(0).split(","));
 
   int numberOfColumns = m_StructureNames->size();
-  int numberOfRows = lines.size() - 1; // the first line is the name of structures, the rest are the values
+  int numberOfRows = lines.size() - 1 - (lines.last().isEmpty() ? 1 : 0); // the first line is the name of structures, the rest are the values. If the last line is empty (eol at the end of the file) then skip it too
 
   if (m_ValueMatrix != NULL) {
     m_ValueMatrix->Delete();
@@ -198,8 +199,8 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadCSV(QString csvString)
   int rowIndex = 0;
   QStringListIterator valueLinesIterator(lines);
   while (valueLinesIterator.hasNext()) {
-    if (rowIndex == 0) {
-      ++rowIndex;
+    if (! valueLinesIterator.hasPrevious()) {
+      valueLinesIterator.next();
       continue; // skip the first line (it contains the name of the structures)
     }
 
@@ -214,6 +215,8 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadCSV(QString csvString)
       double value = valueString.toDouble(&ok);
       if (ok) {
         m_ValueMatrix->SetValue(rowIndex, columnIndex, value);
+      } else {
+        m_ValueMatrix->SetValue(rowIndex, columnIndex, -1.0);
       }
 
       ++columnIndex;
@@ -236,51 +239,8 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadCSVFile(QString fileName)
 
   QTextStream in(&file);
 
-  //TODO load the file as one long string (as dvh_execute gives us) and pass it to LoadCSV
-  // Read structure names
-  QString line = in.readLine();
-  m_StructureNames = new QStringList(line.split(","));
-
-  int numberOfColumns = m_StructureNames->size();
-
-  // Read lines and determine number of lines
-  // Rows: values at a specific cGy (dose) ; Columns: structures
-  int numberOfRows = 0;
-  QStringList valueLines;
-  while (!in.atEnd()) {
-    QString line = in.readLine();
-    valueLines.append(line);
-    ++numberOfRows;
-  }
-
-  // Read the values in the values matrix
-  if (m_ValueMatrix != NULL) {
-    m_ValueMatrix->Delete();
-  }
-
-  m_ValueMatrix = vtkDenseArray<double>::New();
-  m_ValueMatrix->Resize(numberOfRows, numberOfColumns);
-
-  int rowIndex = 0;
-  QStringListIterator valueLinesIterator(valueLines);
-  while (valueLinesIterator.hasNext()) {
-    QStringList values(valueLinesIterator.next().split(","));
-    QStringListIterator valuesIterator(values);
-
-    int columnIndex = 0;
-    while (valuesIterator.hasNext()) {
-      QString valueString(valuesIterator.next());
-
-      bool ok;
-      double value = valueString.toDouble(&ok);
-      if (ok) {
-        m_ValueMatrix->SetValue(rowIndex, columnIndex, value);
-      }
-
-      ++columnIndex;
-    }
-
-    ++rowIndex;
+  if (! LoadCSV(in.readAll())) {
+    return false;
   }
 
   return DisplayDVH();
@@ -336,9 +296,11 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadSelectedVolumes(vtkMRMLVolumeNode* d
 {
   // Get vtkImageData from nodes
   vtkSmartPointer<vtkImageData> doseImageData = doseNode->GetImageData();
+
   if (doseImageData == NULL) {
     return false;
   }
+
   vtkSmartPointer<vtkImageData> structureSetImageData = structureSetNode->GetImageData();
   if (structureSetImageData == NULL) {
     return false;
@@ -367,6 +329,8 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadSelectedVolumes(vtkMRMLVolumeNode* d
   doseRegion.SetIndex(doseStart);
   doseImageDataExported->SetRegions(doseRegion);
   doseImageDataExported->Allocate();
+
+  /* GCS: The following call causes Slicer 4 to crash on linux */
 
   memcpy(doseImageDataExported->GetBufferPointer(), doseImageExport->GetPointerToData(), doseImageExport->GetDataMemorySize());
 
@@ -398,7 +362,6 @@ bool qSlicerPlastimatchDVHModuleWidget::LoadSelectedVolumes(vtkMRMLVolumeNode* d
   parms.cumulative = 0;
   std::string dvhStdString = dvh_execute(structureSetImageDataExported, doseImageDataExported, &parms);
 
-  // Load CSV data into the value matrix and the structure name list
   QString dvhString = QString::fromStdString(dvhStdString);
 
   if (! LoadCSV(dvhString)) {
@@ -458,6 +421,10 @@ bool qSlicerPlastimatchDVHModuleWidget::DisplayDVH()
     linePlot->SetWidth(2.0);
     linePlot = m_ChartView->chart()->AddPlot(vtkChart::LINE);
   }
+
+  // Set chart properties
+  m_ChartView->chart()->SetActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
+  m_ChartView->chart()->SetActionToButton(vtkChart::ZOOM, vtkContextMouseEvent::RIGHT_BUTTON);
 
   return true;
 }
