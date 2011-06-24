@@ -134,6 +134,10 @@ class VTK_MotionTracker_EXPORT vtkMotionTrackerLogic : public vtkSlicerModuleLog
   vtkMRMLScalarVolumeNode* AddDisplayBufferNode(vtkMRMLTimeSeriesBundleNode* bundleNode, 
                                                 int index);
   void UpdateDisplayBufferNode(vtkMRMLTimeSeriesBundleNode* bundleNode, int index);
+
+  // 6/23/2011 ayamada
+  void UpdateDisplayBufferNodeForOpenCV(vtkMRMLTimeSeriesBundleNode* bundleNode, int index);
+  
   int         GetNumberOfFrames();
   const char* GetFrameNodeID(int index);
   const char* GetRegisteredFrameNodeID(int index);
