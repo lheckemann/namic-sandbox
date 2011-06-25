@@ -1,6 +1,6 @@
 ##############################################################################
 # \file  GLISTR.py
-# \brief GLISTR slicer extension implemented as scripted Python module.
+# \brief Scripted Python module of GLISTR for Slicer4.
 #
 # Visit https://www.rad.upenn.edu/sbia/software/index.html#glistr for
 # information on how to obtain a copy of the GLISTR sources.
@@ -15,7 +15,7 @@
 # imports
 # ============================================================================
 
-from __main__ import slicer, qt
+from __main__ import slicer, qt, vtk
 import os, sys, subprocess
 
 # ============================================================================
@@ -28,11 +28,11 @@ import os, sys, subprocess
 # \todo
 def execCmd(cmdArray):
     cmd = [str (i) for i in cmdArray]
-    print cmd
-    p = subprocess.Popen (cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-    print p.stdout.read ()
-    if p.returncode != 0:
-        print p.stderr.read ()
+    print ' '.join (cmd)
+    p = subprocess.Popen (cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (out, err) = p.communicate ()
+    sys.stdout.write (out)
+    sys.stderr.write (err)
     return p.returncode
 
 # ============================================================================
@@ -40,7 +40,6 @@ def execCmd(cmdArray):
 # ============================================================================
 
 ## Provides the module description for Slicer
-#
 class GLISTR:
     
     # ************************************************************************
@@ -49,23 +48,84 @@ class GLISTR:
         parent.title               = "GLISTR"
         parent.category            = "Segmentation"
         parent.contributor         = "Ali Gooya, Andreas Schuh, Christos Davatzikos, Kilian Pohl"
-        parent.helpText            = """This is a help text"""
+        parent.helpText            = \
+"""
+The Glioma Image Segmentation and Registration (GLISTR) includes the following
+steps, some of which are optional.<br />
+
+<h4>Affine Registration of Patient Scans</h4>
+<p>
+  At first, the patient scans acquired with different MRI protocols have to be
+  registered affine to the used atlas. Further, the brain mask of the atlas is
+  applied to mask out the skull and background from the patient scans.
+</p>
+
+<h4>Manual Annotation of Tissues and Seed Point</h4>
+<p>
+  Open the Annotation module and set fiducial points inside the following tissues:
+  TUMOR, NCR, VEINS, CSF, GM, WM, EDEMA, and BG. The intensity values at these
+  fiducial points in the affine registered volumes are used as initial mean values
+  for the annotated tissue types.
+</p>
+<p>
+  <b>Note:</b> Some patients do not have both types of tumors. In those cases,
+  annotate only TUMOR and not NCR. Similarly, if no edema is observed, it does not
+  need to be annotated either in those cases.
+</p>
+
+<h4>Joint Segmentation &amp; Registration</h4>
+<p>
+  Once the different tissue types are annotated, the input text file of
+  initial mean values is generated. Using these mean values and the other
+  parameters, the joint segmentation &amp; registration is performed.
+  One of the results of this main step are the posterior maps, one for each
+  tissue type.
+</p>
+
+<h4>Transformation of Posteriors into Patient Space</h4>
+<p>
+  Optionally, the obtained posterior maps can be transformed back into the
+  patient space given that the pre-processing step has been executed before.
+  In particular, the inverse of the affine transformation applied in the
+  pre-processing step is applied to the posterior maps in order to transform
+  them into the original patient space.
+</p>
+
+<h4>Generation of Segmentation from Posteriors</h4>
+<p>
+  This final step generates a segmentation, i.e., a label image from the
+  posterior maps obtained by the joint segmentation &amp; registration.
+<p>
+"""
         parent.acknowledgementText = """The acknowledgements"""
         self.parent = parent
 
 # ============================================================================
-# class: GLISTRLogic - the logic
+# class: GLISTRLogic - interface to GLISTR itself
 # ============================================================================
 
 ## Implements the module's logic, i.e., wraps the calls to GLISTR.
-#
 class GLISTRLogic:
     
-    # ************************************************************************
+    # ------------------------------------------------------------------------
+    # construction
+    # ------------------------------------------------------------------------
+    
     ## Constructor.
-    #
     def __init__ (self):
-        self.__mrmlScene = None
+        self.__mrmlScene        = None # the MRML scene
+        self.__volumeNodes      = None # selected input volume nodes
+        self.__workingDirectory = '/tmp/glistr' # working directory
+        
+        # constants
+        self.__featuresListFile    = 'glistr_features.lst'      # generated features list file
+        self.__fixedImagesListFile = 'glistr_fixed_images.lst'  # generated fixed images list file
+        self.__initialMeansFile    = 'glistr_initial_means.txt' # generated initial means file
+        self.__tumorGrowthLength   = 120
+        
+        # tissue types/labels
+        self.__requiredTissueTypes = ['TUMOR', 'VEINS', 'CSF', 'GM', 'WM', 'BG']
+        self.__optionalTissueTypes = {'NCR': 'TUMOR', 'EDEMA': 'WM'}
         
         # \todo There should be a better way to connect to the GLISTR software
         #       itself. All three main executables which are required by this
@@ -73,7 +133,7 @@ class GLISTRLogic:
         #       should enable the direct import of these.
         self.__glistrPrefix = os.environ.get ('GLISTR_PREFIX')
         if self.__glistrPrefix:
-            self.__glistrBin    = os.path.join (self.__glistrPrefix, 'bin')
+            self.__glistrBin = os.path.join (self.__glistrPrefix, 'bin')
             # \todo The atlas directory should be selectable by the user with a
             #       preset as given here. The reference T1 scan of the atlas must
             #       then be identified as well as the list of moving images.
@@ -83,154 +143,360 @@ class GLISTRLogic:
             #       Alternatively, have the user select all the different atlas
             #       volumes. These could be default set to the default atlas
             #       volumes which are packaged with GLISTR.
-            self.__glistrAtlas   = os.path.join (self.__glistrPrefix, 'data/Atlas')
-            self.__refAtlasFile  = os.path.join (self.__glistrAtlas,  'jakob_stripped_with_cere_lps_256256128.hdr')
-            self.__brainMaskFile = os.path.join (self.__glistrAtlas,  'brain_mask.hdr')
+            self.__atlasDirectory       = os.path.join (self.__glistrPrefix,   'data/Atlas')
+            self.__refAtlasFile         = os.path.join (self.__atlasDirectory, 'jakob_stripped_with_cere_lps_256256128.hdr')
+            self.__brainMaskFile        = os.path.join (self.__atlasDirectory, 'brain_mask.hdr')
+            self.__movingImagesListFile = os.path.join (self.__atlasDirectory, 'moving_image_list64_LVN.txt')
         else:
-            print "GLISTR_PREFIX environment variable not set!\n"
+            sys.stderr.write ('GLISTR_PREFIX environment variable not set!\n')
+    
+    # ------------------------------------------------------------------------
+    # setter/getter
+    # ------------------------------------------------------------------------
     
     # ************************************************************************
     ## Set MRML scene.
-    #
     def setMRMLScene (self, mrmlScene):
         self.__mrmlScene = mrmlScene
-       
+    
     # ************************************************************************
-    ## Pre-process features, i.e., transform volumes into atlas space.
-    #
-    def preProcessFeatures (self, refVolumeNode, volumeNodes, outputDirectory):
-        fixedImagesListFile = outputDirectory + "/glistr_fixed_images.lst"
-        # save features and create features list file
-        featuresListFile = self.writeFeatures (volumeNodes, outputDirectory)
-        if featuresListFile == "":
+    ## Set MRML nodes of the input volumes.
+    def setVolumes (self, volumeNodes):
+        self.__volumeNodes = volumeNodes
+    
+    # ************************************************************************
+    ## Set working directory.
+    def setWorkingDirectory (self, directory):
+        self.__workingDirectory = directory
+    
+    # ************************************************************************
+    ## Set tumor growth length parameter value.
+    def setTumorGrowthLength (self, length):
+        self.__tumorGrowthLength = length
+    
+    # ************************************************************************
+    ## Get working directory.
+    def getWorkingDirectory (self):
+        return self.__workingDirectory
+    
+    # ************************************************************************
+    ## Get the MRML nodes of the input volumes.
+    def getVolumes (self):
+        return self.__volumeNodes
+    
+    # ************************************************************************
+    ## Get MRML scene.
+    def getMRMLScene (self):
+        return self.__mrmlScene
+    
+    # ************************************************************************
+    ## Get the tumor growth length parameter value.
+    def getTumorGrowthLength (self):
+        return self.__tumorGrowthLength
+    
+    # ------------------------------------------------------------------------
+    # workflow
+    # ------------------------------------------------------------------------
+    
+    # ************************************************************************
+    ## Pre-process volumes, i.e., transform them into atlas space.
+    def preProcessVolumes (self):
+        volumeNodes      = self.__volumeNodes
+        workingDirectory = self.__workingDirectory
+        inputListFile    = workingDirectory + '/' + self.__featuresListFile
+        outputListFile   = workingDirectory + '/' + self.__fixedImagesListFile
+        refAtlasFile     = self.__refAtlasFile
+        brainMaskFile    = self.__brainMaskFile
+        
+        # check arguments
+        if len (volumeNodes) == 0:
+            sys.stderr.write ("No volumes to pre-process!\n")
             return False
-        # save reference volume and append to features list
-        refVolumeFile = self.writeVolume (refVolumeNode, outputDirectory)
-        if refVolumeFile == "":
+        
+        # save input volumes and create corresponding list file
+        if not self.writeVolumes (inputListFile, volumeNodes):
             return False
-        fp = open (featuresListFile, 'a')
-        fp.write (refVolumeFile + '\n')
+        
+        # read file name of first volume to use it as reference (e.g., T1)
+        fp = open (inputListFile, 'r')
+        if not fp:
+            sys.stderr.write ("Failed to open file '" + inputListFile + "' for reading\n")
+            return False
+        refVolumeFile = fp.readline ().strip ()
         fp.close ()
         
+        # compose pre-processing command
+        cmd = []
+        if self.__glistrBin and self.__glistrBin != '':
+            cmd = cmd + [os.path.join (self.__glistrBin, 'PreProcessFeatures')]
+        else:
+            cmd = cmd + ['PreProcessFeatures']
+        cmd = cmd + ['-i', inputListFile,
+                     '-o', workingDirectory,
+                     '-T', refVolumeFile,
+                     '-A', refAtlasFile,
+                     '-p', outputListFile]
+        
+        if brainMaskFile and brainMaskFile != '':
+            cmd = cmd + ['-m', brainMaskFile]
+        
         # perform pre-processing
-        cmd = [os.path.join (self.__glistrBin, "PreProcessFeatures"),
-               "-i", featuresListFile,
-               "-o", outputDirectory,
-               "-T", refVolumeFile,
-               "-A", self.__refAtlasFile,
-               "-p", fixedImagesListFile,
-               "-m", self.__brainMaskFile]
+        if execCmd (cmd) != 0:
+            sys.stderr.write ("Failed to pre-process volumes\n")
+            return False
         
-        execCmd (cmd)
+        # unload volumes and load pre-processed ones instead
+        for volumeNode in volumeNodes:
+            slicer.mrmlScene.RemoveNode (volumeNode)
+        volumeNodes = self.loadVolumes (outputListFile)
+        if not volumeNodes or len (volumeNodes) == 0:
+            return False
+        self.__volumeNodes = volumeNodes
         
-        # load pre-processed volumes
-        volumeNodes = self.loadVolumes (fixedImagesListFile)
-        if len (volumeNodes) > 0:
-            self.selectVolume (volumeNodes [0].GetID ())
+        # select first volume
+        self.selectVolume (volumeNodes [0])
         
+        # done
         return True
     
     # ************************************************************************
-    ## Write volume to disk.
-    #
-    def writeVolume (self, volumeNode, outputDirectory):
-        storageNode = volumeNode.GetStorageNode ()
-        name = volumeNode.GetName ()
-        name.replace (".", "_")
-        storageNode.SetFileName (outputDirectory + "/glistr_" + name + ".nii")
-        if not storageNode.WriteData (volumeNode):
-            print "Failed to write volume '" \
-                  + volumeNode.GetName () + "' to file '" \
-                  + storageNode.GetFileName () + "'\n"
-            return ""
-        return storageNode.GetFileName ()
+    ## Perform joint segmentation & registration.
+    def segmentAndRegisterVolumes (self):
+        volumeNodes          = self.__volumeNodes
+        workingDirectory     = self.__workingDirectory
+        fixedImagesListFile  = workingDirectory + '/' + self.__fixedImagesListFile
+        movingImagesListFile = self.__movingImagesListFile
+        initialMeansFile     = workingDirectory + '/' + self.__initialMeansFile
+        tumorGrowthLength    = self.__tumorGrowthLength
+        
+        # write the initial means file
+        if not self.writeInitialMeans (initialMeansFile):
+            return False
+        
+        # get seed point
+        seed = self.getTumorSeed ()
+        if not seed:
+            return False
+        
+        # compose segmentation & registration command
+        cmd = []
+        if self.__glistrBin and self.__glistrBin != '':
+            cmd = cmd + [os.path.join (self.__glistrBin, 'glistr')]
+        else:
+            cmd = cmd + ['glistr']
+        cmd = cmd + ['-f', fixedImagesListFile,
+                     '-m', movingImagesListFile,
+                     '-I', initialMeansFile,
+                     '-x', seed [0],
+                     '-y', seed [1],
+                     '-z', seed [2],
+                     '-T', tumorGrowthLength]
+        
+        # perform joint segmentation & registration
+        if execCmd (cmd) != 0:
+            return False
+        
+        # done
+        return True
+    
+    # ------------------------------------------------------------------------
+    # helper
+    # ------------------------------------------------------------------------
     
     # ************************************************************************
-    ## Write feature volumes to disk and create input features list file.
-    #
-    def writeFeatures (self, volumeNodes, outputDirectory):
-        featuresList = "" # content of features list file
+    ##  Write the initial means file.
+    def writeInitialMeans (self, initialMeansFile):
+        mrmlScene           = self.__mrmlScene
+        volumeNodes         = self.__volumeNodes
+        requiredTissueTypes = self.__requiredTissueTypes
+        optionalTissueTypes = self.__optionalTissueTypes
         
-        # iterate over volumes, write them to disk and add entry to features list
-        for i in range (len (volumeNodes)):
-            storageNode = volumeNodes [i].GetStorageNode ()
-            name = volumeNodes [i].GetName ()
-            name.replace (".", "_")
-            storageNode.SetFileName (outputDirectory + "/glistr_" + name + ".nii")
-            if not storageNode.WriteData (volumeNodes [i]):
-                print "Failed to write volume '" \
-                      + volumeNodes [i].GetName () + "' to file '" \
-                      + storageNode.GetFileName () + "'\n"
-                return ""
-            featuresList = featuresList + storageNode.GetFileName () + '\n'
+        # get number of volumes, i.e., number of mean values per tissue type
+        if not volumeNodes or len (volumeNodes) == 0:
+            sys.stderr.write ("No volumes to process!\n")
+            return False
+        
+        # get coordinates of annotated fiducial points
+        fiducialCoords = {}
+        fiducialNodes = mrmlScene.GetNodesByClass ('vtkMRMLAnnotationFiducialNode')
+        if fiducialNodes.GetNumberOfItems () == 0:
+            sys.stderr.write ("No fiducial points given. Forgot to annotate the pre-processed volumes?\n")
+            return None
+        
+        fiducialNodes.InitTraversal ()
+        fiducialNode = fiducialNodes.GetNextItemAsObject ()
+        while fiducialNode:
+            coord = [0, 0, 0]
+            fiducialNode.GetFiducialCoordinates (coord)
+            fiducialText = fiducialNode.GetText (0)
+            if fiducialText in requiredTissueTypes or optionalTissueTypes.has_key (fiducialText):
+                fiducialCoords [fiducialText] = coord
+                fiducialNode = fiducialNodes.GetNextItemAsObject ()
+        
+        # verify that all required tissue types were annotated and set values
+        # of optional tissue types to the ones of the mapped tissues
+        for label in requiredTissueTypes:
+            if not fiducialCoords.has_key (label):
+                sys.stderr.write ("No fiducial point for " + label + " tissue type found. " \
+                                  "Forgot to set fiducial point or to set its text to " + label + "?\n")
+                return None
+        for label in optionalTissueTypes.keys ():
+            if not fiducialCoords.has_key (label):
+                fiducialCoords [label] = fiducialCoords [optionalTissueTypes [label]]
+        
+        # get intentensities at set fiducials from all volumes
+        initialMeans = {}
+        for label in fiducialCoords.keys ():
+            initialMeans [label] = []
+            for volumeNode in volumeNodes:
+                initialMeans [label].append (self.getIntensity (volumeNode, fiducialCoords [label]))
+        
+        # write mean values to file
+        fp = open (initialMeansFile, 'w')
+        if not fp:
+            sys.stderr.write ("Failed to open file " + initialMeansFile + " for writing\n")
+            return None
+        for label in initialMeans.keys ():
+            fp.write (label + "\n")
+            initialMeansStr = " ".join ([str (mean) for mean in initialMeans [label]])
+            fp.write (initialMeansStr + "\n")
+        fp.close ()
+        
+        return initialMeansFile
+    
+    # ************************************************************************
+    ## Get tumor seed.
+    def getTumorSeed (self):
+        seed = None
+        # get annotated fiducial points
+        fiducialNodes = mrmlScene.GetNodesByClass ('vtkMRMLAnnotationFiducialNode')
+        if fiducialNodes.GetNumberOfItems () == 0:
+            sys.stderr.write ("No fiducial points given. Forgot to annotate the pre-processed volumes?\n")
+            return None
+        # first consider fiducials which clearly related to "seed"
+        fiducialNodes.InitTraversal ()
+        fiducialNode = fiducialNodes.GetNextItemAsObject ()
+        while fiducialNode:
+            coord = [0, 0, 0]
+            fiducialNode.GetFiducialCoordinates (coord)
+            fiducialText = fiducialNode.GetText (0)
+            if fiducialText in ['SEED', 'TUMOR SEED']:
+                seed = coord
+                break
+            fiducialNode = fiducialNodes.GetNextItemAsObject ()
+        # then use fiducial labeled as 'TUMOR'
+        if not seed:
+            fiducialNodes.InitTraversal ()
+            fiducialNode = fiducialNodes.GetNextItemAsObject ()
+            while fiducialNode:
+                coord = [0, 0, 0]
+                fiducialNode.GetFiducialCoordinates (coord)
+                fiducialText = fiducialNode.GetText (0)
+                if fiducialText in ['TUMOR']:
+                    seed = coord
+                fiducialNode = fiducialNodes.GetNextItemAsObject ()
+        # any fiducial point found?
+        if not seed:
+            return None
+        # convert coordinates of seed point
+        # \todo
+        return seed
+    
+    # ************************************************************************
+    ## Write volume to disk.
+    def writeVolume (self, volumeNode):
+        outputDirectory = self.__workingDirectory
+        fileNameExt     = '.nii'
+        
+        storageNode = volumeNode.GetStorageNode ()
+        fileName = volumeNode.GetName ().replace ('.', '_')
+        fileName = 'glistr_' + fileName + fileNameExt
+        fileName = outputDirectory + '/' + fileName
+        storageNode.SetFileName (fileName)
+        if not storageNode.WriteData (volumeNode):
+            sys.stderr.write ("Failed to write volume '" \
+                + volumeNode.GetName () + "' to file '" + fileName + "'\n")
+            return ''
+        
+        return fileName
+    
+    # ************************************************************************
+    ## Write volumes to disk and create list file.
+    def writeVolumes (self, outputListFile, volumeNodes):
+        outputDirectory = self.__workingDirectory
+        fileNameExt     = '.nii'
+        outputList      = ''
+        
+        # iterate over volumes, write them to disk and add line to output list
+        for volumeNode in volumeNodes:
+            fileName = self.writeVolume (volumeNode)
+            if fileName == '':
+                return False
+            outputList = outputList + fileName + '\n'
         
         # write features list file
-        featuresListFile = outputDirectory + "/glistr_features.lst"
-        fp = open (featuresListFile, 'w')
+        fp = open (outputListFile, 'w')
         if not fp:
-            print "Failed to open file '" + featuresListFile + "' for writing\n"
-            return ""
-        fp.write (featuresList)
+            sys.stderr.write ("Failed to open file '" + outputListFile + "' for writing\n")
+            return False
+        fp.write (outputList)
+        fp.close ()
         
-        return featuresListFile
-    
+        return True
+       
     # ************************************************************************
-    ## Removes all loaded scalar volumes from the Slicer MRML scene.
-    #
-    # This method removes all nodes of type vtkMRMLScalarVolumeNode from the
-    # MRML scene of Slicer. Generally this is not quite nice, but the current
-    # workflow of the GLISTR module is implemented to process all loaded
-    # scalar volumes. When the user chose to pre-process these, they should
-    # live with these volumes being replaced by the pre-processed volumes.
-    #
-    # \noate THIS METHOD IS CURRENTLY NOT USED
-    #
-    # \note The only reason for doing so is that Slicer does not well
-    #       support the selection of multiple MRML nodes.
-    #       The qMRMLCheckableNodeComboBox did not seem to provide a working
-    #       method in Python to retrieve all checked nodes.
-    def unloadAllVolumes (self):
-        mrmlScene = self.__mrmlScene
-        nodes = mrmlScene.GetNodesByClass ("vtkMRMLScalarVolumeNode")
-        nodes.InitTraversal ()
-        node = nodes.GetNextItemAsObject ()
-        while node:
-            mrmlScene.RemoveNode (node)
-            node = nodes.GetNextItemAsObject ()
-    
-    # ************************************************************************
-    ## Load volume into Slicer.
-    #
+    ## Load volume.
     def loadVolume (self, fileName):
-        # add scalar volume to MRML scene
         volumesLogic = slicer.modules.volumes.logic ()
-        volumeName   = os.path.basename (fileName).split ('.',1) [0]
-        return volumesLogic.AddArchetypeScalarVolume (fileName, volumeName, 0)
+        nodeName     = os.path.basename (fileName).split ('.',1) [0]
+        return volumesLogic.AddArchetypeScalarVolume (fileName, nodeName, 0)
     
     # ************************************************************************
-    ## Select a given volume and make it visible in the viewers.
-    #
-    def selectVolume (self, nodeId):
+    ## Unload volume.
+    def unloadVolume (self, volumeNode):
+        slicer.mrmlScene.RemoveNode (volumeNode)
+    
+    # ************************************************************************
+    ## Load volumes specified by a list file.
+    def loadVolumes (self, listFile):
+        volumeNodes = []
+        fp = open (listFile, 'r')
+        if not fp:
+            sys.stderr.write ("Failed to open file '" + listFile + "' for reading\n")
+            return False
+        fileName = fp.readline ().strip ()
+        while fileName != '':
+            volumeNode = self.loadVolume (fileName)
+            if volumeNode:
+                volumeNodes.append (volumeNode)
+            else:
+                for volumeNode in volumeNodes:
+                    unloadVolume (volumeNode)
+                return None
+            fileName = fp.readline ().strip ()
+        return volumeNodes
+    
+    # ************************************************************************
+    ## Select a given volume to make it visible in the viewers.
+    def selectVolume (self, volumeNode):
         mrmlLogic = slicer.app.mrmlApplicationLogic ()
         selNode = mrmlLogic.GetSelectionNode ()
-        selNode.SetReferenceActiveVolumeID (nodeId)
+        selNode.SetReferenceActiveVolumeID (volumeNode.GetID ())
         mrmlLogic.PropagateVolumeSelection ()
     
     # ************************************************************************
-    ## Load volumes specified by a list file into the Slicer MRML scene.
-    def loadVolumes (self, listFile):
-        mrmlScene   = self.__mrmlScene
-        volumeNodes = []
-        # read list file line-by-line
-        fp = open (listFile, 'r')
-        if not fp:
-            print "Failed to open file '" + listFile + "' for reading\n"
-            return False
-        fileName = fp.readline ().strip ()
-        while fileName != "":
-            volumeNodes.append (self.loadVolume (fileName))
-            fileName = fp.readline ().strip ()
-        return volumeNodes
+    ## Get intensity value of scalar volume at given fiducial coordinates.
+    def getIntensity (self, volumeNode, fiducialCoords):
+        ras = fiducialCoords
+        if len (ras) < 4:
+            ras.append (1)
+        ras2ijk = vtk.vtkMatrix4x4 ()
+        volumeNode.GetRASToIJKMatrix (ras2ijk)
+        (i,j,k,w) = ras2ijk.MultiplyDoublePoint (ras)
+        i = int (round (i))
+        j = int (round (j))
+        k = int (round (k))
+        return volumeNode.GetImageData ().GetScalarComponentAsDouble (i, j, k, 0)
 
 # ============================================================================
 # class: GLISTRWidget - the widget
@@ -266,10 +532,7 @@ class GLISTRWidget:
             self.parent.show()
         
         # initialize members
-        self.__preOutputDirectoryDlg = None
-        
-        # register default slots
-        #self.parent.connect ('mrmlSceneChanged(vtkMRMLScene*)', self.onMRMLSceneChanged)
+        self.__workingDirectoryDlg = None
     
     # ************************************************************************
     ## Create widget.
@@ -278,196 +541,180 @@ class GLISTRWidget:
     # the events triggered by the user interacting with Slicer or the widget.
     def setup (self):
         
-        mrmlScene = slicer.mrmlScene
+        logic     = self.__logic
+        mrmlScene = logic.getMRMLScene ()
         
         # --------------------------------------------------------------------
-        # Pre-processing tab
-        preTab           = slicer.qMRMLCollapsibleButton ()
-        preTab.text      = "Step 1: Affine Transformation of Patient Scans into Atlas Space"
-        preTab.collapsed = False
+        # general
+        panel       = qt.QWidget ()
+        panelLayout = qt.QGridLayout (panel)
+        row         = 0 # row counter for grid layout
         
-        preTabLayout = qt.QGridLayout (preTab)
+        # working directory
+        workingDirectoryBtn          = qt.QPushButton ()
+        workingDirectoryBtn.text     = "..."
+        workingDirectoryBtn.setMaximumWidth (20)
         
-        row = 0 # row counter for grid layout
+        workingDirectoryBtn.connect ('clicked ()', self.showWorkingDirectoryDialog)
         
-        # selection of T1 patient scan
-        preRefVolumeSelector = slicer.qMRMLNodeComboBox ()
-        preRefVolumeSelector.toolTip       = "Select the T1 patient scan " \
-                                             "which is used to determine\nthe " \
-                                             "affine transformation which maps " \
-                                             "the (co-registered)\npatient scans " \
-                                             "into the atlas space"
-        preRefVolumeSelector.nodeTypes     = ['vtkMRMLScalarVolumeNode']
-        preRefVolumeSelector.noneEnabled   = False
-        preRefVolumeSelector.addEnabled    = False
-        preRefVolumeSelector.removeEnabled = False
+        workingDirectoryEdit         = qt.QLineEdit ()
+        workingDirectoryEdit.text    = logic.getWorkingDirectory ()
+        workingDirectoryEdit.toolTip = "Set the working directory"
+        workingDirectoryEdit.enabled = True
+        workingDirectoryEdit.sizeHint.setHeight (workingDirectoryBtn.height)
         
-        preRefVolumeSelector.setMRMLScene (mrmlScene)
+        workingDirectoryEdit.connect ('editingFinished ()', self.onWorkingDirectoryChanged)
         
-        preTabLayout.addWidget (qt.QLabel ("T1 Volume:"), row, 0, 1, 1)
-        preTabLayout.addWidget (preRefVolumeSelector,     row, 1, 1, 2)
+        panelLayout.addWidget (qt.QLabel ("Working Directory:"), row, 0, 1, 1)
+        panelLayout.addWidget (workingDirectoryEdit,             row, 1, 1, 1)
+        panelLayout.addWidget (workingDirectoryBtn,              row, 2, 1, 1)
         row = row + 1
         
-        # selection of other patient scans
-        preVolumeSelector        = []
-        preVolumeSelectorLabel   = []
-        preVolumeSelectorToolTip = []
+        self.__workingDirectoryEdit = workingDirectoryEdit
         
-        preVolumeSelectorLabel  .append ("T1-CE Volume:")
-        preVolumeSelectorToolTip.append ("Select T1-CE volume used as additional segmentation feature")
-        preVolumeSelectorLabel  .append ("T2 Volume:")
-        preVolumeSelectorToolTip.append ("Select T2 volume used as additional segmentation feature")
-        preVolumeSelectorLabel  .append ("FLAIR Volume:")
-        preVolumeSelectorToolTip.append ("Select FLAIR volume used as additional segmentation feature")
+        # selection of volumes
+        volumeSelector        = []
+        volumeSelectorLabel   = []
+        volumeSelectorToolTip = []
         
-        for i in range (len (preVolumeSelectorLabel)):
-            preVolumeSelector.append (slicer.qMRMLNodeComboBox ())
-            preVolumeSelector [i].toolTip       = preVolumeSelectorToolTip [i]
-            preVolumeSelector [i].nodeTypes     = ['vtkMRMLScalarVolumeNode']
-            preVolumeSelector [i].noneEnabled   = True
-            preVolumeSelector [i].addEnabled    = False
-            preVolumeSelector [i].removeEnabled = False
+        volumeSelectorLabel  .append ("T1 Volume:")
+        volumeSelectorToolTip.append ("Select affine registered T1 volume")
+        volumeSelectorLabel  .append ("T1-CE Volume:")
+        volumeSelectorToolTip.append ("Select affine registered T1-CE volume")
+        volumeSelectorLabel  .append ("T2 Volume:")
+        volumeSelectorToolTip.append ("Select affine registered T2 volume")
+        volumeSelectorLabel  .append ("FLAIR Volume:")
+        volumeSelectorToolTip.append ("Select affine registered FLAIR volume")
+        
+        for i in range (len (volumeSelectorLabel)):
+            volumeSelector.append (slicer.qMRMLNodeComboBox ())
+            volumeSelector [i].toolTip       = volumeSelectorToolTip [i]
+            volumeSelector [i].nodeTypes     = ['vtkMRMLScalarVolumeNode']
+            volumeSelector [i].noneEnabled   = True
+            volumeSelector [i].addEnabled    = False
+            volumeSelector [i].removeEnabled = False
             
-            preVolumeSelector [i].setMRMLScene (mrmlScene)
+            volumeSelector [i].setMRMLScene (mrmlScene)
             
-            preTabLayout.addWidget (qt.QLabel (preVolumeSelectorLabel [i]), row, 0, 1, 1)
-            preTabLayout.addWidget (preVolumeSelector [i],                  row, 1, 1, 2)
+            volumeSelector [i].connect ('currentNodeChanged (vtkMRMLNode*)', self.onCurrentVolumeChanged)
+            
+            panelLayout.addWidget (qt.QLabel (volumeSelectorLabel [i]), row, 0, 1, 1)
+            panelLayout.addWidget (volumeSelector [i],                  row, 1, 1, 2)
             row = row + 1
         
-        # output directory of pre-processed volumes
-        preOutputDirectoryBtn          = qt.QPushButton ()
-        preOutputDirectoryBtn.text     = "..."
-        preOutputDirectoryBtn.setMaximumWidth (20)
+        self.__volumeSelector = []
+        for widget in volumeSelector:
+            self.__volumeSelector.append (widget)
+
+        # parameters
+        tumorGrowthLengthEdit         = qt.QLineEdit ()
+        tumorGrowthLengthEdit.text    = str (logic.getTumorGrowthLength ())
+        tumorGrowthLengthEdit.toolTip = "The tumor growth length parameter"
+        tumorGrowthLengthEdit.enabled = True
         
-        preOutputDirectoryBtn.connect ('clicked ()', self.showPreOutputDirectoryDialog)
+        tumorGrowthLengthEdit.connect ('editingFinished ()', self.onTumorGrowthLengthChanged)
         
-        preOutputDirectoryEdit         = qt.QLineEdit ()
-        preOutputDirectoryEdit.toolTip = "Output directory for pre-processed " \
-                                         "patient scans, i.e.,\nthe patient " \
-                                         "scans affine transformed into the atlas space"
-        preOutputDirectoryEdit.enabled = True
-        preOutputDirectoryEdit.sizeHint.setHeight (preOutputDirectoryBtn.height)
-        
-        preTabLayout.addWidget (qt.QLabel ("Output Directory:"), row, 0, 1, 1)
-        preTabLayout.addWidget (preOutputDirectoryEdit,          row, 1, 1, 1)
-        preTabLayout.addWidget (preOutputDirectoryBtn,           row, 2, 1, 1)
+        panelLayout.addWidget (qt.QLabel ("Tumor Growth Length:"), row, 0, 1, 1)
+        panelLayout.addWidget (tumorGrowthLengthEdit,              row, 1, 1, 2)
         row = row + 1
         
-        # run button
-        preRunBtn = qt.QPushButton ()
-        preRunBtn.text = "Pre-process Features"
+        self.__tumorGrowthLengthEdit = tumorGrowthLengthEdit
         
-        preRunBtn.connect ('clicked ()', self.onPreProcessFeatures)
+        # execute buttons
+        preBtn       = qt.QPushButton ()
+        preBtn.text  = "Pre-process Volumes"
+        runBtn       = qt.QPushButton ()
+        runBtn.text  = "Jointly Segment && Register Volumes"
+        postBtn      = qt.QPushButton ()
+        postBtn.text = "Post-process Posteriors"
+        lblBtn       = qt.QPushButton ()
+        lblBtn.text  = "Make Segmentation"
         
-        preTabLayout.addWidget (preRunBtn, row, 0, 1, 3)
+        preBtn .connect ('clicked ()', self.onPreProcess)
+        runBtn .connect ('clicked ()', self.onSegmentAndRegister)
+        postBtn.connect ('clicked ()', self.onPostProcess)
+        lblBtn .connect ('clicked ()', self.onMakeSegmentation)
+        
+        panelLayout.addWidget (preBtn, row, 0, 1, 3)
+        row = row + 1
+        panelLayout.addWidget (runBtn, row, 0, 1, 3)
+        row = row + 1
+        panelLayout.addWidget (postBtn, row, 0, 1, 3)
+        row = row + 1
+        panelLayout.addWidget (lblBtn, row, 0, 1, 3)
         row = row + 1
         
-        # finalize tab and keep required references to widgets
-        self.__preRefVolumeSelector = preRefVolumeSelector
-        self.__preVolumeSelector = []
-        for i in range (len (preVolumeSelector)):
-            self.__preVolumeSelector.append (preVolumeSelector [i])
-        self.__preOutputDirectoryEdit = preOutputDirectoryEdit
-        
-        self.layout.addWidget (preTab)
-        
-        # --------------------------------------------------------------------
-        # Annotation tab
-        annoTab           = slicer.qMRMLCollapsibleButton ()
-        annoTab.text      = "Step 2: Annotate Pre-processed Patient Scans"
-        annoTab.collapsed = False
-        
-        annoTabLayout = qt.QGridLayout (annoTab)
-        
-        annoLabel1 = qt.QLabel ("Open the Annotation module and set fiducials "
-                                "inside the following tissues: TUMOR, NCR, VEINS, "
-                                "CSF, GM, WM, EDEMA, and BG.")
-        annoLabel2 = qt.QLabel ("Note:")
-        annoLabel3 = qt.QLabel ("Some patients do not have both types "
-                               "of tumors. In those cases, annotate only "
-                               "TUMOR and not NCR. Similarly, if no edema "
-                               " is observed, it may not need to be annotated"
-                               " either.")
-        annoLabel1.wordWrap = True
-        annoLabel2.wordWrap = True
-        annoLabel3.wordWrap = True
-        
-        annoLabel2.sizeHint.setWidth (20)
-        
-        annoTabLayout.addWidget (annoLabel1, 0, 0, 1, 2)
-        annoTabLayout.addWidget (annoLabel2, 1, 0, 1, 1)
-        annoTabLayout.addWidget (annoLabel3, 1, 1, 1, 1)
-        
-        # finalize tab
-        self.layout.addWidget (annoTab)
-        
-        # --------------------------------------------------------------------
-        # Joint segmentation & registration tab
-        mainTab           = slicer.qMRMLCollapsibleButton ()
-        mainTab.text      = "Step 3: Joint Segmentation && Registration"
-        mainTab.collapsed = False
-        
-        # finalize tab
-        self.layout.addWidget (mainTab)
-        
-        # --------------------------------------------------------------------
-        # Post-processing tab
-        postTab           = slicer.qMRMLCollapsibleButton ()
-        postTab.text      = "Step 4: Transform Results back into Patient Space"
-        postTab.collapsed = False
-        
-        # finalize tab
-        self.layout.addWidget (postTab)
-        
-        # --------------------------------------------------------------------
-        # Make segmentation tab
-        postTab           = slicer.qMRMLCollapsibleButton ()
-        postTab.text      = "Step 5: Make Segmentation from Posteriors"
-        postTab.collapsed = False
-        
-        # finalize tab
-        self.layout.addWidget (postTab)
+        # add panel
+        self.layout.addWidget (panel)
     
     # ************************************************************************
     ## Show output directory selection dialog for pre-processing.
-    #
-    def showPreOutputDirectoryDialog (self):
-        dlg = self.__preOutputDirectoryDlg
+    def showWorkingDirectoryDialog (self):
+        dlg = self.__workingDirectoryDlg
         if not dlg:
             dlg          = qt.QFileDialog ()
             dlg.fileMode = dlg.DirectoryOnly
-            dlg.connect ('fileSelected(QString)', self.onSelectedPreOutputDirectory)
-            self.__preOutputDirectoryDlg = dlg
-        directory = self.__preOutputDirectoryEdit.text
+            dlg.connect ('fileSelected (QString)', self.onSelectedWorkingDirectory)
+            self.__workingDirectoryDlg = dlg
+        directory = self.__workingDirectoryEdit.text
         if directory == '':
             directory = os.environ.get ('HOME')
-        dlg.setDirectory (directory)
+            if directory:
+                dlg.setDirectory (directory + "/")
         dlg.show ()
     
     # ************************************************************************
     ## Set output directory for pre-processing results.
-    #
-    def onSelectedPreOutputDirectory (self, directory):
-        self.__preOutputDirectoryEdit.text = directory
+    def onSelectedWorkingDirectory (self, directory):
+        self.__workingDirectoryEdit.text = directory
+        self.__logic.setWorkingDirectory (directory)
+    
+    # ************************************************************************
+    ## Handle change of working directory.
+    def onWorkingDirectoryChanged (self):
+        self.__logic.setWorkingDirectory (self.__workingDirectoryEdit.text)
+    
+    # ************************************************************************
+    ## Handle change of tumor growth length.
+    def onTumorGrowthLengthChanged (self):
+        self.__logic.setTumorGrowthLength (float (self.__tumorGrowthLengthEdit.text))
+    
+    # ************************************************************************
+    ## Handle change of selected volume.
+    def onCurrentVolumeChanged (self, volumeNode):
+        self.updateVolumes ()
+    
+    # ************************************************************************
+    ## Update list of selected volumes.
+    def updateVolumes (self):
+        volumeNodes = []
+        for widget in self.__volumeSelector:
+            volumeNode = widget.currentNode ()
+            if volumeNode:
+                volumeNodes.append (volumeNode)
+        self.__logic.setVolumes (volumeNodes)
     
     # ************************************************************************
     ## Pre-process the features, i.e., affine transform patient scans.
-    #
-    def onPreProcessFeatures (self):
-        
-        logic = self.__logic
-        
-        # get arguments
-        refVolumeNode = self.__preRefVolumeSelector.currentNode ()
-        volumeNodes = []
-        for i in range (len (self.__preVolumeSelector)):
-            volumeNode = self.__preVolumeSelector [i].currentNode ()
-            if volumeNode:
-                volumeNodes.append (volumeNode)
-        outputDirectory = self.__preOutputDirectoryEdit.text
-        
-        # pre-process features
-        logic.preProcessFeatures (refVolumeNode, volumeNodes, outputDirectory)
-        
-        # switch to main tab
-
+    def onPreProcess (self):
+        self.__logic.preProcessVolumes ()
+        volumeNodes = self.__logic.getVolumes ()
+        for i in range (len (self.__volumeSelector)):
+            if i > len (volumeNodes):
+                break
+            self.__volumeSelector [i].setCurrentNode (volumeNodes [i])
+    
+    # ************************************************************************
+    ## Perform joint segmentation & registration.
+    def onSegmentAndRegister (self):
+        self.__logic.segmentAndRegisterVolumes ()
+    
+    # ************************************************************************
+    ## Post-process posteriors.
+    def onPostProcess (self):
+        return False
+    
+    # ************************************************************************
+    ## Make segmentation from posteriors.
+    def onMakeSegmentation (self):
+        return False
