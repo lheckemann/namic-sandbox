@@ -406,8 +406,7 @@ void vtkOsteoPlanPlacingFiducialsStep::AddPairModelFiducial()
         sprintf(fiducialListName,"%s-fiducialList",this->SelectedModel->GetName());
         fiducialListConnectedToModel->SetName(fiducialListName);
         fiducialListConnectedToModel->SetGlyphTypeFromString("Sphere3D");
-        // TODO: Disable Backface culling ?
-
+  fiducialListConnectedToModel->SetTextScale(0);
       
         // Add Fiducial list to the list of fiducial list who have a model associated
         this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->AddItem(fiducialListConnectedToModel);

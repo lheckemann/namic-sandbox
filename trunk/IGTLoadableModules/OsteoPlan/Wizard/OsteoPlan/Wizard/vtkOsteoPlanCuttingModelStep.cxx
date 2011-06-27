@@ -45,6 +45,7 @@
 #include "vtkRenderer.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkAppendPolyData.h"
+#include "vtkLoopSubdivisionFilter.h"
 
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj)                                      \
@@ -459,12 +460,19 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   vtkAppendPolyData* secondAppend = vtkAppendPolyData::New();
   secondAppend->AddInput(polyCutter2->GetOutput());
   secondAppend->AddInput(polyCutter2->GetClippedOutput());
-  
+
+  vtkLoopSubdivisionFilter* subdividePolygons = vtkLoopSubdivisionFilter::New();
+  subdividePolygons->SetInput(secondAppend->GetOutput());
+  subdividePolygons->SetNumberOfSubdivisions(1);
+  subdividePolygons->GetOutput()->Squeeze();
+
   vtkClipPolyData* realCut = vtkClipPolyData::New();
   realCut->GenerateClippedOutputOn();
   realCut->SetClipFunction(planes);
-  realCut->SetInput(secondAppend->GetOutput());
-  
+  realCut->SetInput(subdividePolygons->GetOutput());
+
+  subdividePolygons->Delete();  
+
   vtkPolyData* polyDataModel1 = vtkPolyData::New();
   vtkPolyData* polyDataModel2 = vtkPolyData::New();
   polyDataModel1->CopyStructure(model->GetPolyData());
