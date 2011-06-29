@@ -37,6 +37,11 @@
 #include "vtkKWMenuButtonWithLabel.h"
 
 #include "vtkMRMLSliceNode.h"
+#include "vtkMRMLCrosshairNode.h"
+#include "vtkSlicerSlicesControlGUI.h"
+#include "vtkSlicerNodeSelectorWidget.h"
+#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMatrix4x4.h"
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkIGTViewGUI );
@@ -58,27 +63,14 @@ vtkIGTViewGUI::vtkIGTViewGUI ( )
   //----------------------------------------------------------------
   // GUI widgets
 
+  /*
   this->linkerCheck = NULL;
   this->DefaultViewButton = NULL;
-
-  //----------------------------------------------------------------
-  // Green Frame
+  */
 
   this->GreenViewerMenu = NULL;
-
-  //----------------------------------------------------------------
-  // Yellow Frame
-
   this->YellowViewerMenu = NULL;
-
-  //----------------------------------------------------------------
-  // Red Frame
-
   this->RedViewerMenu = NULL;
-
-  //----------------------------------------------------------------
-  // 3D Frame
-
   this->Viewer3DMenu = NULL;
 
   //----------------------------------------------------------------
@@ -87,6 +79,25 @@ vtkIGTViewGUI::vtkIGTViewGUI ( )
   this->SliceNodeRed = NULL;
   this->SliceNodeYellow = NULL;
   this->SliceNodeRed = NULL;
+
+  //----------------------------------------------------------------
+  // Overlay
+
+  this->crosshairButton = NULL;
+  this->transformNodeSelector = NULL;
+  this->Crosshair = NULL;
+  this->ShowCrosshair = false;
+  
+  this->RedObliqueReslicing = false;
+  this->YellowObliqueReslicing = false;
+  this->GreenObliqueReslicing = false;
+
+  this->RedReslicingType = "";
+  this->YellowReslicingType = "";
+  this->GreenReslicingType = "";
+
+  this->trajectoryButton = NULL;
+  this->trajectoryNodeSelector = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -113,7 +124,7 @@ vtkIGTViewGUI::~vtkIGTViewGUI ( )
 
   //----------------------------------------------------------------
   // Remove GUI widgets
-
+  /*
   if(this->linkerCheck)
     {
       this->linkerCheck->SetParent(NULL);
@@ -125,27 +136,10 @@ vtkIGTViewGUI::~vtkIGTViewGUI ( )
       this->DefaultViewButton->SetParent(NULL);
       this->DefaultViewButton->Delete();
     }
-
-  //----------------------------------------------------------------
-  // Green Frame
+  */
   
-  if(this->GreenViewerMenu)
-    {
-      this->GreenViewerMenu->SetParent(NULL);
-      this->GreenViewerMenu->Delete();
-    }
-
   //----------------------------------------------------------------
-  // Yellow Frame
-
-  if(this->YellowViewerMenu)
-    {
-      this->YellowViewerMenu->SetParent(NULL);
-      this->YellowViewerMenu->Delete();
-    }
-
-  //----------------------------------------------------------------
-  // Red Frame
+  // Viewers
 
   if(this->RedViewerMenu)
     {
@@ -153,8 +147,17 @@ vtkIGTViewGUI::~vtkIGTViewGUI ( )
       this->RedViewerMenu->Delete();
     }
 
-  //----------------------------------------------------------------
-  // 3D Frame
+  if(this->YellowViewerMenu)
+    {
+      this->YellowViewerMenu->SetParent(NULL);
+      this->YellowViewerMenu->Delete();
+    }
+
+  if(this->GreenViewerMenu)
+    {
+      this->GreenViewerMenu->SetParent(NULL);
+      this->GreenViewerMenu->Delete();
+    }
 
   if(this->Viewer3DMenu)
     {
@@ -162,6 +165,34 @@ vtkIGTViewGUI::~vtkIGTViewGUI ( )
       this->Viewer3DMenu->Delete();
     }
 
+
+  //----------------------------------------------------------------
+  // Overlay
+
+  if(this->crosshairButton)
+    {
+      this->crosshairButton->SetParent(NULL);
+      this->crosshairButton->Delete();
+    }
+
+  if(this->transformNodeSelector)
+    {
+      this->transformNodeSelector->SetParent(NULL);
+      this->transformNodeSelector->Delete();
+    }
+
+
+  if(this->trajectoryButton)
+    {
+      this->trajectoryButton->SetParent(NULL);
+      this->trajectoryButton->Delete();
+    }
+
+  if(this->trajectoryNodeSelector)
+    {
+      this->trajectoryNodeSelector->SetParent(NULL);
+      this->trajectoryNodeSelector->Delete();
+    }
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -219,7 +250,7 @@ void vtkIGTViewGUI::PrintSelf ( ostream& os, vtkIndent indent )
 //---------------------------------------------------------------------------
 void vtkIGTViewGUI::RemoveGUIObservers ( )
 {
-
+  /*
   if(this->linkerCheck)
     {
       this->linkerCheck->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
@@ -229,37 +260,54 @@ void vtkIGTViewGUI::RemoveGUIObservers ( )
     {
       this->DefaultViewButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
-
+  */
   //----------------------------------------------------------------
-  // Green Frame
+  // Viewers
   
-  if(this->GreenViewerMenu)
+  
+  if(this->RedViewerMenu)
     {
-      this->GreenViewerMenu->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+      this->RedViewerMenu->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
-
-  //----------------------------------------------------------------
-  // Yellow Frame
 
   if(this->YellowViewerMenu)
     {
       this->YellowViewerMenu->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
-  //----------------------------------------------------------------
-  // Red Frame
-
-  if(this->RedViewerMenu)
+  if(this->GreenViewerMenu)
     {
-      this->RedViewerMenu->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+      this->GreenViewerMenu->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
-
-  //----------------------------------------------------------------
-  // 3D Frame
 
   if(this->Viewer3DMenu)
     {
       this->Viewer3DMenu->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+
+  //----------------------------------------------------------------
+  // Overlay
+
+  if(this->crosshairButton)
+    {
+      this->crosshairButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+
+  if(this->transformNodeSelector)
+    {
+      this->transformNodeSelector->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+
+
+
+  if(this->trajectoryButton)
+    {
+      this->trajectoryButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+
+  if(this->trajectoryNodeSelector)
+    {
+      this->trajectoryNodeSelector->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
   this->RemoveLogicObservers();
@@ -286,30 +334,26 @@ void vtkIGTViewGUI::AddGUIObservers ( )
 
   //----------------------------------------------------------------
   // GUI Observers
-
+  /*
   this->linkerCheck->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->DefaultViewButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
-
+  */
   //----------------------------------------------------------------
-  // Green Frame
-
-  this->GreenViewerMenu->GetWidget()->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
-
-  //----------------------------------------------------------------
-  // Yellow Frame
-
-  this->YellowViewerMenu->GetWidget()->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
-
-  //----------------------------------------------------------------
-  // Red Frame
+  // Viewers
 
   this->RedViewerMenu->GetWidget()->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
-
-  //----------------------------------------------------------------
-  // 3D Frame
-
+  this->YellowViewerMenu->GetWidget()->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->GreenViewerMenu->GetWidget()->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->Viewer3DMenu->GetWidget()->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
 
+  //----------------------------------------------------------------
+  // Overlay
+
+  this->crosshairButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->transformNodeSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
+
+  this->trajectoryButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->trajectoryNodeSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
 
   this->AddLogicObservers();
 
@@ -362,66 +406,6 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
     return;
     }
 
-  else if(this->linkerCheck == vtkKWCheckButton::SafeDownCast(caller)
-     && event == vtkKWCheckButton::SelectedStateChangedEvent)
-    {
-      // Link 2D viewers
-      if(this->linkerCheck->GetSelectedState())
-  {
-    this->GetLogic()->SetLink2DViewers(true);
-    // Update slice if one is "locator"
-    if(this->RedViewerMenu && this->YellowViewerMenu && this->RedViewerMenu)
-      {
-        const char* rSelection = this->RedViewerMenu->GetWidget()->GetValue();
-        const char* ySelection = this->YellowViewerMenu->GetWidget()->GetValue();
-        const char* gSelection = this->GreenViewerMenu->GetWidget()->GetValue();
-
-        if(!strcmp(rSelection, "Locator") || !strcmp(ySelection, "Locator") || !strcmp(gSelection, "Locator"))
-    {
-      // TODO: All Locator
-      std::cerr << "INSIDE: All Locators (Linker)" << std::endl;
-    }
-      }
-  }
-      else
-  {
-    this->GetLogic()->SetLink2DViewers(false);
-  }
-    }
-  else if(this->DefaultViewButton == vtkKWPushButton::SafeDownCast(caller)
-    && event == vtkKWPushButton::InvokedEvent)
-    {
-      // Set values to default
-      if(this->SliceNodeRed && this->SliceNodeYellow && this->SliceNodeGreen)
-  {
-    if(this->RedViewerMenu->GetWidget())
-      {
-        this->RedViewerMenu->GetWidget()->SetValue("Axial");
-        this->SliceNodeRed->SetOrientationToAxial();
-      }
-    
-    if(this->YellowViewerMenu->GetWidget())
-      {
-        this->YellowViewerMenu->GetWidget()->SetValue("Sagittal");
-        this->SliceNodeYellow->SetOrientationToSagittal();
-      }
-    
-    if(this->GreenViewerMenu->GetWidget())
-      {
-        this->GreenViewerMenu->GetWidget()->SetValue("Coronal");
-        this->SliceNodeGreen->SetOrientationToCoronal();
-      }
-  }
-
-      if(this->Viewer3DMenu->GetWidget())
-  {
-    this->Viewer3DMenu->GetWidget()->SetValue("Not Available yet");
-  }
-
-
-    }
-
-
   //----------------------------------------------------------------
   // Red Frame
 
@@ -434,28 +418,33 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
     const char* redSelection = this->RedViewerMenu->GetWidget()->GetValue();
     if(!strcmp(redSelection, "Axial"))
       {
+        this->RedObliqueReslicing = false;
         this->SliceNodeRed->SetOrientationToAxial();
       }
     else if(!strcmp(redSelection, "Sagittal"))
       {
+        this->RedObliqueReslicing = false;
         this->SliceNodeRed->SetOrientationToSagittal();
       }
     else if(!strcmp(redSelection, "Coronal"))
       {
+        this->RedObliqueReslicing = false;
         this->SliceNodeRed->SetOrientationToCoronal();
       }
-    else if(!strcmp(redSelection, "Locator"))
+    else if(!strcmp(redSelection, "InPlane0"))
       {
-        if(this->GetLogic()->GetLink2DViewers())
-    {
-      // Set all viewers to locator
-      std::cerr << "INSIDE: All Locators" << std::endl;
-    }
-        else
-    {
-      // Just Red slice to locator
-      std::cerr << "INSIDE: Red Locator" << std::endl;
-    }
+        this->RedObliqueReslicing = true;
+        this->RedReslicingType = "Inplane0";
+      }
+    else if(!strcmp(redSelection, "InPlane90"))
+      {
+        this->RedObliqueReslicing = true;
+        this->RedReslicingType = "Inplane90";
+      }
+    else if(!strcmp(redSelection, "Probe's Eye"))
+      {
+        this->RedObliqueReslicing = true;
+        this->RedReslicingType = "Probe's Eye";
       }
   }
     }
@@ -473,29 +462,35 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
     const char* yellowSelection = this->YellowViewerMenu->GetWidget()->GetValue();
     if(!strcmp(yellowSelection, "Axial"))
       {
+        this->YellowObliqueReslicing = false;
         this->SliceNodeYellow->SetOrientationToAxial();
       }
     else if(!strcmp(yellowSelection, "Sagittal"))
       {
+        this->YellowObliqueReslicing = false;
         this->SliceNodeYellow->SetOrientationToSagittal();
       }
     else if(!strcmp(yellowSelection, "Coronal"))
       {
+        this->YellowObliqueReslicing = false;
         this->SliceNodeYellow->SetOrientationToCoronal();
       }
-    else if(!strcmp(yellowSelection, "Locator"))
+    else if(!strcmp(yellowSelection, "InPlane0"))
       {
-        if(this->GetLogic()->GetLink2DViewers())
-    {
-      // Set all viewers to locator
-      std::cerr << "INSIDE: All Locators" << std::endl;
-    }
-        else
-    {
-      // Just Yellow slice to locator
-      std::cerr << "INSIDE: Yellow Locator" << std::endl;
-    }
-      }
+        this->YellowObliqueReslicing = true;
+        this->YellowReslicingType = "Inplane0";
+      } 
+    else if(!strcmp(yellowSelection, "InPlane90"))
+      {
+        this->YellowObliqueReslicing = true;
+        this->YellowReslicingType = "Inplane90";
+      } 
+    else if(!strcmp(yellowSelection, "Probe's Eye"))
+      {
+        this->YellowObliqueReslicing = true;
+        this->YellowReslicingType = "Probe's Eye";
+      } 
+
   }
     }
 
@@ -511,29 +506,35 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
     const char* greenSelection = this->GreenViewerMenu->GetWidget()->GetValue();
     if(!strcmp(greenSelection, "Axial"))
       {
+        this->GreenObliqueReslicing = false;
         this->SliceNodeGreen->SetOrientationToAxial();
       }
     else if(!strcmp(greenSelection, "Sagittal"))
       {
+        this->GreenObliqueReslicing = false;
         this->SliceNodeGreen->SetOrientationToSagittal();
       }
     else if(!strcmp(greenSelection, "Coronal"))
       {
+        this->GreenObliqueReslicing = false;
         this->SliceNodeGreen->SetOrientationToCoronal();
       }
-    else if(!strcmp(greenSelection, "Locator"))
+    else if(!strcmp(greenSelection, "InPlane0"))
       {
-        if(this->GetLogic()->GetLink2DViewers())
-    {
-      // Set all viewers to locator
-      std::cerr << "INSIDE: All Locators" << std::endl;
-    }
-        else
-    {
-      // Just Green slice to locator
-      std::cerr << "INSIDE: Green Locator" << std::endl;
-    }
-      }
+        this->GreenObliqueReslicing = true;
+        this->GreenReslicingType = "Inplane0";
+      } 
+    else if(!strcmp(greenSelection, "InPlane90"))
+      {
+        this->GreenObliqueReslicing = true;
+        this->GreenReslicingType = "Inplane90";
+      } 
+    else if(!strcmp(greenSelection, "Probe's Eye"))
+      {
+        this->GreenObliqueReslicing = true;
+        this->GreenReslicingType = "Probe's Eye";
+      } 
+
   }
     }
 
@@ -547,6 +548,91 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
 
     }  
 
+  //----------------------------------------------------------------
+  // Overlay
+
+  else if (this->crosshairButton == vtkKWCheckButton::SafeDownCast(caller)
+     && event == vtkKWCheckButton::SelectedStateChangedEvent)
+    {
+      this->Crosshair = this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode();
+
+      if(this->crosshairButton->GetSelectedState())
+  {
+    if(this->Crosshair)
+      {
+        this->ShowCrosshair = true;
+      }
+
+    if(this->transformNodeSelector)
+      {
+        this->transformNodeSelector->SetEnabled(1);
+      }
+  }
+      else
+  {
+    if(this->Crosshair)
+      {
+        this->ShowCrosshair = false;
+        this->Crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::NoCrosshair);
+      }
+
+    if(this->transformNodeSelector)
+      {
+        this->transformNodeSelector->SetEnabled(0);
+      }
+
+    RemoveInplaneMenu();
+  }
+    } 
+
+  else if (this->transformNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+      if(this->Crosshair)
+  {
+    if(this->Crosshair->GetCrosshairMode() == vtkMRMLCrosshairNode::ShowAll)
+      {
+
+        vtkMRMLLinearTransformNode* SelectedNode = vtkMRMLLinearTransformNode::SafeDownCast(this->transformNodeSelector->GetSelected());
+        if(SelectedNode)
+    {
+      this->GetLogic()->SetTransformNodeSelected(true);
+      this->GetLogic()->SetlocatorTransformNode(SelectedNode);
+
+      // Update Menu
+      AddInplaneMenu();  
+    }
+      }
+  }
+    }
+
+
+
+  else if (this->trajectoryButton == vtkKWCheckButton::SafeDownCast(caller)
+     && event == vtkKWCheckButton::SelectedStateChangedEvent)
+    {
+      if(this->trajectoryButton->GetSelectedState())
+  {
+    if(this->trajectoryNodeSelector)
+      {
+        this->trajectoryNodeSelector->SetEnabled(1);
+      }
+  }
+      else
+  {
+    if(this->trajectoryNodeSelector)
+      {
+        this->trajectoryNodeSelector->SetEnabled(0);
+      }
+  }
+
+    } 
+
+  else if (this->trajectoryNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+
+    }
 } 
 
 
@@ -590,7 +676,31 @@ void vtkIGTViewGUI::ProcessMRMLEvents ( vtkObject *caller,
 //---------------------------------------------------------------------------
 void vtkIGTViewGUI::ProcessTimerEvents()
 {
-  if (this->TimerFlag)
+ 
+  if(this->ShowCrosshair)
+    {
+      if(this->SliceNodeRed && this->SliceNodeYellow && this->SliceNodeGreen)
+  {
+    this->GetLogic()->UpdateCrosshairAndReslice(this->Crosshair, this->SliceNodeRed, this->SliceNodeYellow, this->SliceNodeGreen);
+  }
+    }
+
+  if(this->RedObliqueReslicing)
+    {
+      this->GetLogic()->ObliqueOrientation(this->SliceNodeRed, this->RedReslicingType);
+    }
+
+  if(this->YellowObliqueReslicing)
+    {
+      this->GetLogic()->ObliqueOrientation(this->SliceNodeYellow, this->YellowReslicingType);
+    }
+
+  if(this->GreenObliqueReslicing)
+    {
+      this->GetLogic()->ObliqueOrientation(this->SliceNodeGreen, this->GreenReslicingType);
+    }
+
+ if (this->TimerFlag)
     {
     // update timer
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
@@ -611,6 +721,7 @@ void vtkIGTViewGUI::BuildGUI ( )
 
   BuildGUIForHelpFrame();
   BuildGUIForViewers();
+  BuildGUIForOverlay();
 
 }
 
@@ -636,31 +747,7 @@ void vtkIGTViewGUI::BuildGUIForViewers()
   vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("IGTView");
   vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
-
-  vtkSlicerModuleCollapsibleFrame *optionsFrame = vtkSlicerModuleCollapsibleFrame::New();
-  optionsFrame->SetParent(page);
-  optionsFrame->Create();
-  optionsFrame->SetLabelText("Options");
-  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               optionsFrame->GetWidgetName(), page->GetWidgetName());
-
-  this->linkerCheck = vtkKWCheckButton::New();
-  this->linkerCheck->SetParent(optionsFrame->GetFrame());
-  this->linkerCheck->Create();
-  this->linkerCheck->SetText("Link 2D Viewers");
-  this->linkerCheck->SelectedStateOff();
-
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2",
-         this->linkerCheck->GetWidgetName());
-
-  this->DefaultViewButton = vtkKWPushButton::New();
-  this->DefaultViewButton->SetParent(optionsFrame->GetFrame());
-  this->DefaultViewButton->Create();
-  this->DefaultViewButton->SetText("Default All Views");
-
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-         this->DefaultViewButton->GetWidgetName()); 
-
+ 
   vtkSlicerModuleCollapsibleFrame *driversFrame = vtkSlicerModuleCollapsibleFrame::New();
   driversFrame->SetParent(page);
   driversFrame->Create();
@@ -671,102 +758,221 @@ void vtkIGTViewGUI::BuildGUIForViewers()
   // -----------------------------------------
   // Viewer Frame
  
-  vtkKWFrameWithLabel *frameRed = vtkKWFrameWithLabel::New();
-  frameRed->SetParent(driversFrame->GetFrame());
-  frameRed->Create();
-  frameRed->SetLabelText ("Red");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frameRed->GetWidgetName() );
+  this->Viewer3DMenu = vtkKWMenuButtonWithLabel::New();
+  this->Viewer3DMenu->SetParent(driversFrame->GetFrame());
+  this->Viewer3DMenu->Create();
+  this->Viewer3DMenu->GetWidget()->SetBackgroundColor(color->White);
+  this->Viewer3DMenu->GetWidget()->SetActiveBackgroundColor(color->White);
+  this->Viewer3DMenu->GetWidget()->SetValue("3D View");
+ 
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
+         this->Viewer3DMenu->GetWidgetName());
 
   this->RedViewerMenu = vtkKWMenuButtonWithLabel::New();
-  this->RedViewerMenu->SetParent(frameRed->GetFrame());
+  this->RedViewerMenu->SetParent(driversFrame->GetFrame());
   this->RedViewerMenu->Create();
   this->RedViewerMenu->GetWidget()->SetBackgroundColor(color->SliceGUIRed);
   this->RedViewerMenu->GetWidget()->SetActiveBackgroundColor(color->SliceGUIRed);
   this->RedViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Axial");
   this->RedViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Sagittal");
   this->RedViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Coronal");
-  this->RedViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Locator");
   this->RedViewerMenu->GetWidget()->SetValue("Axial");
 
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-         this->RedViewerMenu->GetWidgetName());
-
-
-  vtkKWFrameWithLabel *frameYellow = vtkKWFrameWithLabel::New();
-  frameYellow->SetParent(driversFrame->GetFrame());
-  frameYellow->Create();
-  frameYellow->SetLabelText ("Yellow");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frameYellow->GetWidgetName() );
-
   this->YellowViewerMenu = vtkKWMenuButtonWithLabel::New();
-  this->YellowViewerMenu->SetParent(frameYellow->GetFrame());
+  this->YellowViewerMenu->SetParent(driversFrame->GetFrame());
   this->YellowViewerMenu->Create();
   this->YellowViewerMenu->GetWidget()->SetBackgroundColor(color->SliceGUIYellow);
   this->YellowViewerMenu->GetWidget()->SetActiveBackgroundColor(color->SliceGUIYellow);
   this->YellowViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Axial");
   this->YellowViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Sagittal");
   this->YellowViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Coronal");
-  this->YellowViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Locator");
   this->YellowViewerMenu->GetWidget()->SetValue("Sagittal");
 
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-         this->YellowViewerMenu->GetWidgetName());
- 
-
-  vtkKWFrameWithLabel *frameGreen = vtkKWFrameWithLabel::New();
-  frameGreen->SetParent(driversFrame->GetFrame());
-  frameGreen->Create();
-  frameGreen->SetLabelText ("Green");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frameGreen->GetWidgetName() );
-
   this->GreenViewerMenu = vtkKWMenuButtonWithLabel::New();
-  this->GreenViewerMenu->SetParent(frameGreen->GetFrame());
+  this->GreenViewerMenu->SetParent(driversFrame->GetFrame());
   this->GreenViewerMenu->Create();
   this->GreenViewerMenu->GetWidget()->SetBackgroundColor(color->SliceGUIGreen);
   this->GreenViewerMenu->GetWidget()->SetActiveBackgroundColor(color->SliceGUIGreen);
   this->GreenViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Axial");
   this->GreenViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Sagittal");
   this->GreenViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Coronal");
-  this->GreenViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Locator");
   this->GreenViewerMenu->GetWidget()->SetValue("Coronal");
-
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
+ 
+ this->Script("pack %s %s %s -side left -anchor nw -fill x -expand y -padx 2 -pady 2",
+         this->RedViewerMenu->GetWidgetName(),
+         this->YellowViewerMenu->GetWidgetName(),         
          this->GreenViewerMenu->GetWidgetName());
  
- 
-  vtkKWFrameWithLabel *frame3D = vtkKWFrameWithLabel::New();
-  frame3D->SetParent(driversFrame->GetFrame());
-  frame3D->Create();
-  frame3D->SetLabelText ("3D");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame3D->GetWidgetName() );
-
-  this->Viewer3DMenu = vtkKWMenuButtonWithLabel::New();
-  this->Viewer3DMenu->SetParent(frame3D->GetFrame());
-  this->Viewer3DMenu->Create();
-  this->Viewer3DMenu->GetWidget()->SetBackgroundColor(color->White);
-  this->Viewer3DMenu->GetWidget()->SetActiveBackgroundColor(color->White);
-  this->Viewer3DMenu->GetWidget()->SetValue("Not Available yet");
-
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-         this->Viewer3DMenu->GetWidgetName());
-
-
-  optionsFrame->Delete();
+ //  optionsFrame->Delete();
   driversFrame->Delete();
-  frame3D->Delete();
-  frameGreen->Delete();
-  frameYellow->Delete();
-  frameRed->Delete();
-  
 }
 
+//---------------------------------------------------------------------------
+void vtkIGTViewGUI::BuildGUIForOverlay()
+{
+
+  vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("IGTView");
+
+  vtkSlicerModuleCollapsibleFrame *overlayFrame = vtkSlicerModuleCollapsibleFrame::New();
+  overlayFrame->SetParent(page);
+  overlayFrame->Create();
+  overlayFrame->SetLabelText("Overlay");
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               overlayFrame->GetWidgetName(), page->GetWidgetName());
+
+  // Crosshair
+
+  this->crosshairButton = vtkKWCheckButton::New();
+  this->crosshairButton->SetParent(overlayFrame->GetFrame());
+  this->crosshairButton->Create();
+  this->crosshairButton->SetText("Crosshair");
+  this->crosshairButton->SelectedStateOff();
+
+  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2",
+         this->crosshairButton->GetWidgetName());
+
+  vtkKWFrame* locatorSourceFrame = vtkKWFrame::New();
+  locatorSourceFrame->SetParent(overlayFrame->GetFrame());
+  locatorSourceFrame->Create();
+
+  this->Script("pack %s -side top -anchor nw -fill x -padx 25 -pady 2",
+         locatorSourceFrame->GetWidgetName());
+
+  vtkKWLabel* locatorSource = vtkKWLabel::New();
+  locatorSource->SetParent(locatorSourceFrame);
+  locatorSource->Create();
+  locatorSource->SetText("Source: ");
+
+  this->Script("pack %s -side left -anchor nw -padx 0 -pady 2",
+         locatorSource->GetWidgetName());
+  
+  this->transformNodeSelector = vtkSlicerNodeSelectorWidget::New();
+  this->transformNodeSelector->SetParent(locatorSourceFrame);
+  this->transformNodeSelector->Create();
+  this->transformNodeSelector->SetNodeClass("vtkMRMLLinearTransformNode",NULL,NULL,NULL);
+  this->transformNodeSelector->SetMRMLScene(this->GetMRMLScene());
+  this->transformNodeSelector->SetNewNodeEnabled(1);
+  this->transformNodeSelector->SetEnabled(0);
+
+  this->Script("pack %s -side left -anchor nw -fill x -expand y -padx 0 -pady 2",
+         this->transformNodeSelector->GetWidgetName());
+
+
+  // Trajectory
+
+  this->trajectoryButton = vtkKWCheckButton::New();
+  this->trajectoryButton->SetParent(overlayFrame->GetFrame());
+  this->trajectoryButton->Create();
+  this->trajectoryButton->SetText("Trajectory");
+  this->trajectoryButton->SelectedStateOff();
+
+  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2",
+         this->trajectoryButton->GetWidgetName());
+
+
+  vtkKWFrame* trajectorySourceFrame = vtkKWFrame::New();
+  trajectorySourceFrame->SetParent(overlayFrame->GetFrame());
+  trajectorySourceFrame->Create();
+
+  this->Script("pack %s -side top -anchor nw -fill x -padx 25 -pady 2",
+         trajectorySourceFrame->GetWidgetName());
+
+  vtkKWLabel* trajectorySource = vtkKWLabel::New();
+  trajectorySource->SetParent(trajectorySourceFrame);
+  trajectorySource->Create();
+  trajectorySource->SetText("Source: ");
+
+  this->Script("pack %s -side left -anchor nw -padx 0 -pady 2",
+         trajectorySource->GetWidgetName());
+  
+  // !!                                      !!                          
+  // !   TODO: Create vtkMRMLTrajectoryNode   !
+  // !!                                      !!
+
+  this->trajectoryNodeSelector = vtkSlicerNodeSelectorWidget::New();
+  this->trajectoryNodeSelector->SetParent(trajectorySourceFrame);
+  this->trajectoryNodeSelector->Create();
+  this->trajectoryNodeSelector->SetNodeClass("vtkMRMLTrajectoryNode",NULL,NULL,NULL);
+  this->trajectoryNodeSelector->SetMRMLScene(this->GetMRMLScene());
+  this->trajectoryNodeSelector->SetNewNodeEnabled(1);
+  this->trajectoryNodeSelector->SetEnabled(0);
+
+  this->Script("pack %s -side left -anchor nw -fill x -expand y -padx 0 -pady 2",
+         this->trajectoryNodeSelector->GetWidgetName());
+
+
+  // Delete
+
+  locatorSourceFrame->Delete();
+  locatorSource->Delete();
+  trajectorySourceFrame->Delete();
+  trajectorySource->Delete();
+  overlayFrame->Delete();
+}
 
 //----------------------------------------------------------------------------
 void vtkIGTViewGUI::UpdateAll()
 {
 }
 
+void vtkIGTViewGUI::AddInplaneMenu()
+{
+  if(this->RedViewerMenu->GetWidget()->GetMenu()->GetIndexOfItemWithSelectedValue("InPlane0") == -1)
+    {
+      this->RedViewerMenu->GetWidget()->GetMenu()->AddRadioButton("InPlane0");
+      this->RedViewerMenu->GetWidget()->GetMenu()->AddRadioButton("InPlane90");
+      this->RedViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Probe's Eye");
+    }    
+  
+  if(this->YellowViewerMenu->GetWidget()->GetMenu()->GetIndexOfItemWithSelectedValue("InPlane0") == -1)
+    {
+      this->YellowViewerMenu->GetWidget()->GetMenu()->AddRadioButton("InPlane0");
+      this->YellowViewerMenu->GetWidget()->GetMenu()->AddRadioButton("InPlane90");
+      this->YellowViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Probe's Eye");
+    }
+  
+  if(this->GreenViewerMenu->GetWidget()->GetMenu()->GetIndexOfItemWithSelectedValue("InPlane0") == -1)
+    {
+      this->GreenViewerMenu->GetWidget()->GetMenu()->AddRadioButton("InPlane0");
+      this->GreenViewerMenu->GetWidget()->GetMenu()->AddRadioButton("InPlane90");
+      this->GreenViewerMenu->GetWidget()->GetMenu()->AddRadioButton("Probe's Eye");
+    }
+
+}
+
+void vtkIGTViewGUI::RemoveInplaneMenu()
+{
+  int RedInplane0 = this->RedViewerMenu->GetWidget()->GetMenu()->GetIndexOfItemWithSelectedValue("InPlane0");
+  int RedInplane90 = this->RedViewerMenu->GetWidget()->GetMenu()->GetIndexOfItemWithSelectedValue("InPlane90");
+  int RedPE = this->RedViewerMenu->GetWidget()->GetMenu()->GetIndexOfItemWithSelectedValue("Probe's Eye");
+
+ if(RedInplane0 != -1)
+    {
+      this->RedViewerMenu->GetWidget()->GetMenu()->DeleteItem(RedInplane0);
+      this->RedViewerMenu->GetWidget()->GetMenu()->DeleteItem(RedInplane90);
+      this->RedViewerMenu->GetWidget()->GetMenu()->DeleteItem(RedPE);
+    }    
+
+  int YellowInplane0 = this->YellowViewerMenu->GetWidget()->GetMenu()->GetIndexOfItemWithSelectedValue("InPlane0");
+  int YellowInplane90 = this->YellowViewerMenu->GetWidget()->GetMenu()->GetIndexOfItemWithSelectedValue("InPlane90");
+  int YellowPE = this->YellowViewerMenu->GetWidget()->GetMenu()->GetIndexOfItemWithSelectedValue("Probe's Eye");
+  
+  if(YellowInplane0 != -1)
+    {
+      this->YellowViewerMenu->GetWidget()->GetMenu()->DeleteItem(YellowInplane0);
+      this->YellowViewerMenu->GetWidget()->GetMenu()->DeleteItem(YellowInplane90);
+      this->YellowViewerMenu->GetWidget()->GetMenu()->DeleteItem(YellowPE);
+    }
+
+  int GreenInplane0 = this->GreenViewerMenu->GetWidget()->GetMenu()->GetIndexOfItemWithSelectedValue("InPlane0");
+  int GreenInplane90 = this->GreenViewerMenu->GetWidget()->GetMenu()->GetIndexOfItemWithSelectedValue("InPlane90");
+  int GreenPE = this->GreenViewerMenu->GetWidget()->GetMenu()->GetIndexOfItemWithSelectedValue("Probe's Eye");
+  
+  if(GreenInplane0 != -1)
+    {
+      this->GreenViewerMenu->GetWidget()->GetMenu()->DeleteItem(GreenInplane0);
+      this->GreenViewerMenu->GetWidget()->GetMenu()->DeleteItem(GreenInplane90);
+      this->GreenViewerMenu->GetWidget()->GetMenu()->DeleteItem(GreenPE);
+    }
+}

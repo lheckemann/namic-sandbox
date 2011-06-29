@@ -29,6 +29,8 @@ class vtkKWPushButton;
 class vtkKWCheckButton;
 class vtkKWMenuButtonWithLabel;
 class vtkMRMLSliceNode;
+class vtkSlicerNodeSelectorWidget;
+class vtkMRMLCrosshairNode;
 
 class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
 {
@@ -94,9 +96,10 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
   // Build Frames
   //----------------------------------------------------------------
 
-  virtual void BuildGUI ( );
+  virtual void BuildGUI();
   void BuildGUIForHelpFrame();
   void BuildGUIForViewers();
+  void BuildGUIForOverlay();
 
   //----------------------------------------------------------------
   // Update routines
@@ -104,6 +107,8 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
 
   void UpdateAll();
 
+  void AddInplaneMenu();
+  void RemoveInplaneMenu();
 
  protected:
   
@@ -118,8 +123,13 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
   // GUI widgets
   //----------------------------------------------------------------
 
+  //------------------------------------------
+  // Viewers
+
+  /*
   vtkKWCheckButton* linkerCheck;
   vtkKWPushButton* DefaultViewButton;
+  */
 
   vtkKWMenuButtonWithLabel* GreenViewerMenu;
   vtkKWMenuButtonWithLabel* YellowViewerMenu;
@@ -129,6 +139,28 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
   vtkMRMLSliceNode* SliceNodeRed;
   vtkMRMLSliceNode* SliceNodeYellow;
   vtkMRMLSliceNode* SliceNodeGreen;
+
+
+  //------------------------------------------
+  // Overlay
+
+  vtkKWCheckButton* crosshairButton;
+  vtkSlicerNodeSelectorWidget* transformNodeSelector;
+  bool ShowCrosshair;
+  vtkMRMLCrosshairNode* Crosshair;
+
+  bool RedObliqueReslicing;
+  bool YellowObliqueReslicing;
+  bool GreenObliqueReslicing;
+
+  const char* RedReslicingType;
+  const char* YellowReslicingType;
+  const char* GreenReslicingType;
+
+  vtkKWCheckButton* trajectoryButton;
+  vtkSlicerNodeSelectorWidget* trajectoryNodeSelector;
+ 
+
 
   //----------------------------------------------------------------
   // Logic Values

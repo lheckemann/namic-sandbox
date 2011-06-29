@@ -29,8 +29,13 @@
 #include "vtkCallbackCommand.h"
 
 #include "vtkMRMLSliceNode.h"
+#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLSliceNode.h"
 
 class vtkIGTLConnector;
+class vtkMRMLLinearTransformNode;
+class vtkMRMLCrosshairNode;
+class vtkMRMLSliceNode;
 
 class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic 
 {
@@ -49,8 +54,15 @@ class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic
   vtkTypeRevisionMacro(vtkIGTViewLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
 
-  vtkSetMacro(Link2DViewers, bool);
-  vtkGetMacro(Link2DViewers, bool);
+  void UpdateCrosshairAndReslice(vtkMRMLCrosshairNode* crosshair, vtkMRMLSliceNode* RedSlice, vtkMRMLSliceNode* YellowSlice, vtkMRMLSliceNode* GreenSlice);
+  void ObliqueOrientation(vtkMRMLSliceNode* slice, const char* ReslicingType);
+
+  vtkSetMacro(TransformNodeSelected, bool);
+  vtkGetMacro(TransformNodeSelected, bool);
+
+  vtkSetObjectMacro(locatorTransformNode, vtkMRMLLinearTransformNode);
+  vtkGetObjectMacro(locatorTransformNode, vtkMRMLLinearTransformNode);
+
 
  protected:
   
@@ -65,7 +77,8 @@ class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic
 
   vtkCallbackCommand *DataCallbackCommand;
 
-  bool Link2DViewers;
+  bool TransformNodeSelected;
+  vtkMRMLLinearTransformNode* locatorTransformNode;
 
  private:
 
