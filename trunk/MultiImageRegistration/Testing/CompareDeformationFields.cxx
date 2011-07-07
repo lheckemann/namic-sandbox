@@ -215,7 +215,7 @@ int main( int argc, char * argv[] )
   for(int i=0; i<N;i++)
   {
     syntheticTransformFileNames[i] = syntheticFolderName + "TransformFiles/" + fileNames[i];
-    syntheticTransformFileNames[i] = replaceExtension(syntheticTransformFileNames[i], "mat");
+    syntheticTransformFileNames[i] = replaceExtension(syntheticTransformFileNames[i], "txt");
   }
   
   // Generate the transform filenames
@@ -227,7 +227,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + "Affine/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "mat");
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt");
       }
     }
     else // generate bspline names
@@ -238,7 +238,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + bsplineFolderName.str() + "/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "mat");
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt");
       }
     }
 
