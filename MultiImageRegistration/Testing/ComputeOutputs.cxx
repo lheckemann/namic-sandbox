@@ -255,6 +255,14 @@ int main( int argc, char * argv[] )
     imageReaderArray[i]->Update();
   } 
   
+  //Get the file type extension
+  std::string extension = fileNames[0].substr(fileNames[0].rfind(".")+1);
+  if(!extension.compare("gz"))
+  {
+    std::string filename_wo_gz = fileNames[0].substr(0,fileNames[0].rfind(".")); 
+    extension = filename_wo_gz.substr(filename_wo_gz.rfind(".")+1) + ".gz";
+  }
+
   // Get the number of tranform levels
   int transformLevels;
   if( useBsplineHigh == "on")
@@ -281,7 +289,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + "Affine/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "mat");
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt");
       }
       transformNames[i] = "Affine";
     }
@@ -293,7 +301,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + bsplineFolderName.str() + "/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "mat");
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt");
 
       }
     }
@@ -609,9 +617,9 @@ int main( int argc, char * argv[] )
     
     if(write3DImages == "on")
     {
-      std::cout << "Writing " << (meanFolder+"Mean.hdr").c_str() << std::endl;
+      std::cout << "Writing " << (meanFolder+"Mean."+extension).c_str() << std::endl;
       writer->SetInput(naryMeanImageFilter->GetOutput());
-      writer->SetFileName((meanFolder+"Mean.hdr").c_str());
+      writer->SetFileName((meanFolder+"Mean."+extension).c_str());
       writer->SetImageIO(imageReaderArray[0]->GetImageIO());
       writer->Update();
     }

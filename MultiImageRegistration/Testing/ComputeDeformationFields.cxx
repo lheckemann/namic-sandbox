@@ -280,7 +280,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + "Affine/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "mat" );
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt" );
       }
       transformNames[i] = "Affine";
     }
@@ -292,7 +292,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + bsplineFolderName.str() + "/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "mat");
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt");
       }
     }
 
