@@ -198,7 +198,7 @@ int main( int argc, char * argv [] )
   optimizer->SetMaximumStepLength( 0.05 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.9 );
-  optimizer->SetNumberOfIterations( 100 );
+  optimizer->SetNumberOfIterations( 30 );
 
 
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
@@ -231,9 +231,10 @@ int main( int argc, char * argv [] )
 
   visualMonitor.Observe( optimizer.GetPointer() );
   visualMonitor.ObserveData( transform.GetPointer() );
-  // visualMonitor.SetScreenShotsBaseFileName("rigidRegistration");
+  visualMonitor.SetScreenShotsBaseFileName("rigidRegistration");
 
-  visualMonitor.SetVerbose( false );
+  //visualMonitor.SetVerbose( false );
+  visualMonitor.SetVerbose( true );
 
 
   try

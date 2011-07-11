@@ -34,7 +34,7 @@ LinearInterpolateMeshFunction<TInputMesh>
 {
   this->m_TriangleBasisSystemCalculator = TriangleBasisSystemCalculatorType::New(); 
   this->m_SphereCenter.Fill( 0.0 );
-  this->m_UseNearestNeighborInterpolationAsBackup = true;
+  this->m_UseNearestNeighborInterpolationAsBackup = false;
 }
 
 
@@ -185,7 +185,10 @@ LinearInterpolateMeshFunction<TInputMesh>
       }
     else
       {
-      itkExceptionMacro("Can not find a triangle for point " << point );
+      PixelType pixelValue100 = 100.0;
+      std::cout<<"100"<<std::endl;
+      return pixelValue100;
+      //itkExceptionMacro("Can not find a triangle for point " << point );
       }
     }
 
@@ -218,7 +221,7 @@ bool
 LinearInterpolateMeshFunction<TInputMesh>
 ::FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const
 {
-  const unsigned int numberOfNeighbors = 5;
+  const unsigned int numberOfNeighbors = 100;
 
   InstanceIdentifierVectorType closestPointIds(numberOfNeighbors);
 
@@ -364,11 +367,13 @@ LinearInterpolateMeshFunction<TInputMesh>
   // Compute components of the input point in the 2D
   // space defined by m_V12 and m_V32
   //
-  VectorType xo = inputPoint - pt2;
+  //VectorType xo = inputPoint - pt2;
+  VectorType xo = inputPoint - ppt2;
 
   const double u12p = xo * m_U12;
   const double u32p = xo * m_U32;
 
+  /* ---------------never used
   VectorType x12 = m_V12 * u12p;
   VectorType x32 = m_V32 * u32p;
 
@@ -376,9 +381,10 @@ LinearInterpolateMeshFunction<TInputMesh>
   // The projection of point X in the plane is cp
   //
   PointType cp = pt2 + x12 + x32;
-
+  -----------------never used */
+  
   //
-  // Compute barycentric coordinates in the Triangle
+  // Compute barycentric coordinates in the tangent Triangle
   //
   const double b1 = u12p;
   const double b2 = 1.0 - u12p - u32p;
