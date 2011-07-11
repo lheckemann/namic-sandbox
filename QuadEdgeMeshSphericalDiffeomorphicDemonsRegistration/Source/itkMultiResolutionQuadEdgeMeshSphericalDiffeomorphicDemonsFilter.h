@@ -141,6 +141,15 @@ public:
   itkSetMacro( SigmaXValues, DoubleArrayType );
   itkGetConstReferenceMacro( SigmaXValues, DoubleArrayType );
 
+  /** Schedule of metric changes to be used at every resolution level 
+   * to stop iterations when metric does not change enough*/
+  itkSetMacro( MetricSignificances, DoubleArrayType );
+  itkGetConstReferenceMacro( MetricSignificances, DoubleArrayType );
+
+  /** Get the metric changes at every resolution level in the last
+   * iterations.*/
+  itkGetConstReferenceMacro( MetricChanges, DoubleArrayType );
+
   /** Variable that defines whether the filter will self-adjust the values of
    * SigmaX and Epsilon in order to get closer to the ratio of
    * largestVelocityMagnitude being similar to the value of the shortest edge
@@ -148,6 +157,13 @@ public:
   itkSetMacro( SelfRegulatedMode, bool );
   itkGetConstMacro( SelfRegulatedMode, bool );
   itkBooleanMacro( SelfRegulatedMode );
+
+  /** Variable that defines whether the filter will stop the iterations 
+  by checking the change of metric between the previous and current
+  iterations.*/
+  itkSetMacro( SelfStopMode, bool );
+  itkGetConstMacro( SelfStopMode, bool );
+  itkBooleanMacro( SelfStopMode );
 
   /** Return the fixed mesh that is being used in the current resolution level.
    * This fixed mesh may have incorporated deformations resulting from previous
@@ -255,6 +271,8 @@ private:
 
   DoubleArrayType              m_EpsilonValues;
   DoubleArrayType              m_SigmaXValues;
+  DoubleArrayType              m_MetricChanges;
+  DoubleArrayType              m_MetricSignificances;
   DoubleArrayType              m_RigidRegistrationStepLength;
 
   RegistrationModeType         m_RegistrationMode;
@@ -265,6 +283,10 @@ private:
    * length. */
   bool          m_SelfRegulatedMode;
 
+  /** Variable that defines whether the filter will stop the iterations 
+  by checking the change of metric between the previous and current
+  iterations.*/
+  bool          m_SelfStopMode;
 
 #ifdef USE_VTK
   RegistrationMonitorType  *   m_RegistrationMonitor;

@@ -185,7 +185,7 @@ public:
   /** Variable that defines whether the filter will self-adjust the values of
    * SigmaX and Epsilon in order to get closer to the ratio of
    * largestVelocityMagnitude being similar to the value of the shortest edge
-   * length. */
+   * length. Default: false*/
   itkSetMacro( SelfRegulatedMode, bool );
   itkGetConstMacro( SelfRegulatedMode, bool );
   itkBooleanMacro( SelfRegulatedMode );

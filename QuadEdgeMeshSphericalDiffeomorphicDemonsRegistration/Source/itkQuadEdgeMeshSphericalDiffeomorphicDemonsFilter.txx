@@ -21,7 +21,9 @@
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 #include "itkLinearInterpolateMeshFunction.h"
 #include "itkProgressReporter.h"
-
+//#include <Iostream> // I/O
+//#include <Fstream> // file I/O
+//#include <Iomanip>  // format manipulation
 namespace itk
 {
 
@@ -53,10 +55,10 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
 
   this->m_ScalarInterpolator = ScalarInterpolatorType::New();
-  this->m_ScalarInterpolator->SetUseNearestNeighborInterpolationAsBackup(true);
+  this->m_ScalarInterpolator->SetUseNearestNeighborInterpolationAsBackup(false);
 
   this->m_DeformationInterpolator = DeformationInterpolatorType::New();
-  this->m_DeformationInterpolator->SetUseNearestNeighborInterpolationAsBackup(true);
+  this->m_DeformationInterpolator->SetUseNearestNeighborInterpolationAsBackup(false);
 
   this->m_MaximumNumberOfIterations = 50;
 
@@ -76,7 +78,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_MetricChange = 0.0;
   this->m_MetricSignificance = 1.0; //1% change
 
-  this->m_SelfRegulatedMode = true;
+  this->m_SelfRegulatedMode = false;
   
   this->m_SelfStopMode = false;
 
@@ -506,6 +508,9 @@ RunIterations()
   ProgressReporter progress( this, 0, this->m_MaximumNumberOfIterations );
 
   double pre_Metric = 0.0; //to save the metric value of previous iteration
+  
+  unsigned int count = 0;
+  bool timeOn = false;
 
   for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
     {
@@ -517,24 +522,43 @@ RunIterations()
     this->ComputeGradientsOfMappedMovingValueAtEveryNode();
     this->m_Chronometer.Stop("ComputeGradientsOfMappedMovingValueAtEveryNode");
 
-    //std::cout<<"Iteration: "<<i<<std::endl;
+    std::cout<<"Iteration: "<<i<<std::endl;
     this->m_Chronometer.Start("ComputeSelfRegulatedVelocityField");
     this->ComputeSelfRegulatedVelocityField();
     this->m_Chronometer.Stop("ComputeSelfRegulatedVelocityField");
+      
+    //std::ofstream metric_out;
+    //int iterationCounter = i + 1;
+    //metric_out.open("metric.txt",std::ofstream::app);
+    //metric_out<< iterationCounter << " ";
+    //metric_out<<this->GetMetricValue()<< std::endl;
+    //metric_out.close();
     
     //metric calculation
+    //iteration stops when there is no significant change in continuous 5 iterations
     if ( m_SelfStopMode )
       {
-      if ( i > 0 && pre_Metric != 0.0 )
+      if ( i > 15 && pre_Metric != 0.0 )
         {
         m_MetricChange = abs( this->GetMetricValue() - pre_Metric ) 
                            / pre_Metric * 100.0;
         if ( m_MetricChange < m_MetricSignificance )
           {
+          count += 1;
+          timeOn = true;
+          }
+        else
+          {
+          timeOn = false;
+          count = 0;
+          }
+        if (count==5)
+          {
           break;
           }
         }
       pre_Metric = this->GetMetricValue();
+      //std::cout<<count<<std::endl;
       }
 
     this->m_Chronometer.Start("ComputeScalingAndSquaringNumberOfIterations");
@@ -559,7 +583,7 @@ RunIterations()
 
     this->m_Chronometer.Start("ComputeSelfRegulatedSigmaXandEpsilon");
     this->ComputeSelfRegulatedSigmaXandEpsilon();
-    this->m_Chronometer.Stop("ComputeSelfRegulatedSigmaXandEpsilon");
+    this->m_Chronometer.Stop("ComputeSelfRegulatedSigmaXandEpsilon");    
 
     // Report progress via Events
     progress.CompletedPixel();
@@ -616,6 +640,9 @@ ComputeSelfRegulatedVelocityField()
       this->ComputeVelocityField();
       this->m_Chronometer.Stop("ComputeVelocityField");
       this->ComputeSelfRegulatedSigmaXandEpsilon();
+      std::cout<<this->ComputeLargestVelocityMagnitude()<<std::endl;
+      //std::cout<<this->m_Epsilon<<std::endl;
+      //std::cout<<this->m_SigmaX<<std::endl;
       } while ( ( this->m_LargestVelocityToEdgeLengthRatio > 1.5 ) && ( iterations++ < 10 ) );
     }
   else

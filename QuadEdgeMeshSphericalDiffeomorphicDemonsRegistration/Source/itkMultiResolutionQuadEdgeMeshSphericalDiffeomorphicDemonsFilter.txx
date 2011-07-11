@@ -71,6 +71,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_NumberOfResolutionLevels = 4;
 
   this->m_SelfRegulatedMode = false;
+  this->m_SelfStopMode = false;
 }
 
 
@@ -227,6 +228,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_DemonsRegistrationFilter->SetSigmaX( 8.0 );
 
   this->m_DemonsRegistrationFilter->SetLambda( 1.0 );
+  this->m_DemonsRegistrationFilter->SetMetricSignificance( 1.0 );
 
   if( this->m_SmoothingIterations.size() < this->m_NumberOfResolutionLevels )
     {
@@ -256,6 +258,14 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
       }
     }
   
+  if ( this->m_SelfStopMode )
+    {
+    this->m_DemonsRegistrationFilter->SelfStopModeOn();
+    }
+  else
+    {
+    this->m_DemonsRegistrationFilter->SelfStopModeOff();
+    }
 
   this->m_FinalDestinationPoints = DestinationPointSetType::New();
 }
@@ -321,8 +331,9 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
   this->m_RegistrationMonitor->SetResolutionLevel( this->m_CurrentResolutionLevel );
   this->m_RegistrationMonitor->Observe( this->GetRigidOptimizer() );
   this->m_RegistrationMonitor->ObserveData( this->GetRigidTransform(), this->m_CurrentLevelFixedMesh );
+  
 #endif
-
+  
   typedef MeshToMeshRegistrationMethod< MeshType, MeshType >    RegistrationType;
 
   typedef MeanSquaresMeshToMeshMetric< MeshType, MeshType >   MetricType;
@@ -368,6 +379,9 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     }
 
   ParametersType finalParameters = registration->GetLastTransformParameters();
+  
+  std::cout << "final parameters = " << finalParameters << std::endl;
+  std::cout << "final value      = " << m_RigidOptimizer->GetValue() << std::endl;
 
   this->m_RigidTransform->SetParameters( finalParameters );
 }
@@ -432,10 +446,16 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
 
   this->m_DemonsRegistrationFilter->SetEpsilon(
     this->m_EpsilonValues[this->m_CurrentResolutionLevel] );
+  std::cout<<"Epsilon: "<<this->m_EpsilonValues[this->m_CurrentResolutionLevel]<<std::endl;
 
   this->m_DemonsRegistrationFilter->SetSigmaX(
     this->m_SigmaXValues[this->m_CurrentResolutionLevel] );
-
+  std::cout<<"SigmaX: "<<this->m_SigmaXValues[this->m_CurrentResolutionLevel]<<std::endl;
+    
+  this->m_DemonsRegistrationFilter->SetMetricSignificance(
+    this->m_MetricSignificances[this->m_CurrentResolutionLevel] );
+  std::cout<<"Metric Significance: "<<this->m_MetricSignificances[this->m_CurrentResolutionLevel]<<std::endl;
+    
 #ifdef USE_VTK
   this->m_RegistrationMonitor->Observe( this->GetDemonsRegistrationFilter() );
   this->m_RegistrationMonitor->ObserveData( this->GetRigidTransform(), this->GetCurrentDestinationPoints() );
@@ -501,7 +521,7 @@ MultiResolutionQuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TMesh >
     std::cerr << excp << std::endl;
     throw excp;
     }
-
+  
   this->m_CurrentLevelDemonsMappedFixedMesh = deformFilter->GetOutput();
 
   this->m_CurrentLevelDemonsMappedFixedMesh->DisconnectPipeline();
