@@ -173,16 +173,6 @@ int main( int argc, char * argv [] )
 
   transform->SetIdentity();
 
-  TransformType :: AxisType axis;
-  TransformType :: AngleType angle;  
-  axis [0] = 0.0;
-  axis [1] = 0.0;
-  axis [2] = 1.0;
-
-  angle = -3.0;  // In Radians
-
-  transform ->SetRotation ( axis , angle );
-
   parameters = transform->GetParameters();
 
   registration->SetInitialTransformParameters( parameters );
@@ -205,10 +195,10 @@ int main( int argc, char * argv [] )
 
   optimizer->MinimizeOn();
   optimizer->SetGradientMagnitudeTolerance( 1e-6 );
-  optimizer->SetMaximumStepLength( 0.05 );
+  optimizer->SetMaximumStepLength( 0.01 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.9 );
-  optimizer->SetNumberOfIterations( 32 );
+  optimizer->SetNumberOfIterations( 30 );
 
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
   optimizer->AddObserver( itk::IterationEvent(), observer );
@@ -337,12 +327,11 @@ int main( int argc, char * argv [] )
 
   resampler->Update();
 
-  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MovingMeshType >  WriterType;
-  WriterType::Pointer writer = WriterType::New();
-  //writer->SetInput( meshFixed);
-  writer->SetInput( resampler->GetOutput());
-  writer->SetFileName(argv[6]);
-  writer->Update(); 
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MovingMeshType >  RigidWriterType;
+  RigidWriterType::Pointer rigidWriter = RigidWriterType::New();
+  rigidWriter->SetInput( resampler->GetOutput());
+  rigidWriter->SetFileName(argv[6]);
+  rigidWriter->Update(); 
   std::cout << "resampled mesh after rigid registration Saved" << std::endl;
 
   DemonsFilterType::Pointer demonsFilter = DemonsFilterType::New();
@@ -422,13 +411,14 @@ int main( int argc, char * argv [] )
 
   assignFilter->Update();
 
-  writer->SetFileName( argv[7] );
-  //writer->SetInput( demonsFilter->GetOutput() );
-  writer->SetInput( assignFilter->GetOutput() );
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MovingMeshType >  DemonsWriterType;
+  DemonsWriterType::Pointer demonsWriter = DemonsWriterType::New();
+  demonsWriter->SetFileName( argv[7] );
+  demonsWriter->SetInput( assignFilter->GetOutput() );
 
   try
     {
-    writer->Update();
+    demonsWriter->Update();
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -451,9 +441,9 @@ int main( int argc, char * argv [] )
   vectorMeshWriter->Update(); 
   std::cout << "Deformation Field Saved" << std::endl;
 
-  writer->SetInput( demonsFilter->GetDeformedFixedMesh() );
-  writer->SetFileName(argv[8]);
-  writer->Update(); 
+  demonsWriter->SetInput( demonsFilter->GetDeformedFixedMesh() );
+  demonsWriter->SetFileName(argv[8]);
+  demonsWriter->Update(); 
   std::cout << "Deformed Fixed Mesh  Saved" << std::endl;
 
   return EXIT_SUCCESS;
