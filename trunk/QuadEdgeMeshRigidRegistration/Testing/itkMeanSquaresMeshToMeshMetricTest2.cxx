@@ -189,7 +189,7 @@ int main( int, char * [] )
   optimizer->SetGradientMagnitudeTolerance( 1e-15 );
   optimizer->SetMaximumStepLength( 0.1745 ); // About 10 degrees
   optimizer->SetMinimumStepLength( 1e-9 );
-  optimizer->SetNumberOfIterations( 200 );
+  optimizer->SetNumberOfIterations( 30 );
 
   // Create the Command observer and register it with the optimizer.
   //

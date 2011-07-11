@@ -79,13 +79,12 @@ ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
   //
   // Visit all nodes of the Mesh 
   //
-  typedef typename OutputPointDataContainer::ConstIterator OutputPointDataIterator;
 
   OutputPointsContainerPointer points = outputMesh->GetPoints();
 
   if( points.IsNull() )
     {
-    itkExceptionMacro("Mesh has NULL PointData");
+    itkExceptionMacro("Mesh has NULL Points");
     }
 
   const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
