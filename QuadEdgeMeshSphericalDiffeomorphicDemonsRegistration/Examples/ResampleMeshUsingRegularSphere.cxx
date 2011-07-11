@@ -77,7 +77,8 @@ int main( int argc, char * argv [] )
   typedef itk::LinearInterpolateMeshFunction< MovingMeshType > InterpolatorType;
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
-
+  interpolator->SetUseNearestNeighborInterpolationAsBackup(false);
+  std::cout<<interpolator->GetUseNearestNeighborInterpolationAsBackup()<<std::endl;
 
   typedef itk::ResampleQuadEdgeMeshFilter< FixedMeshType, MovingMeshType >  ResamplingFilterType;
 

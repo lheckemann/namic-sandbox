@@ -41,9 +41,6 @@ WarpQuadEdgeMeshFilter< TInputMesh, TReferenceMesh, TDeformationField >
     
   m_Interpolator = 
     static_cast<InterpolatorType*>( interp.GetPointer() );
-    
-  //this->m_Interpolator->SetUseNearestNeighborInterpolationAsBackup(true);
-
 }
 
 

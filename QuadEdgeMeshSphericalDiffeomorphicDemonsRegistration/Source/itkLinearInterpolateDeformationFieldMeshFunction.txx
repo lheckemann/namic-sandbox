@@ -91,12 +91,6 @@ LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsCont
       InstanceIdentifierVectorType closestPointIds(numberOfNeighbors);
 
       this->Search( point, numberOfNeighbors, closestPointIds );
-   
-      //PixelType pixelValue0 = itk::NumericTraits< PixelType >::Zero;
-
-      //this->GetPointData( pointIds[0], &pixelValue0 ); 
-
-      //return pixelValue0;
       
       outputPoint = field->ElementAt( closestPointIds[0] );
 
@@ -104,6 +98,7 @@ LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsCont
       }
     else
       {
+      std::cout<<"no triangle is found in DF interpolation."<<std::endl;
       return false;
       }
     }
