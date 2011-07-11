@@ -110,7 +110,13 @@ AssignScalarValuesQuadEdgeMeshFilter< TInputMesh, TSourceMesh, TOutputMesh >
   const SourcePointDataContainer * sourcePointData = sourceMesh->GetPointData();
 
   OutputPointDataContainerPointer outputPointData = this->GetOutput()->GetPointData();
- 
+  
+  if( outputPointData.IsNull() )
+    {
+    outputPointData = OutputPointDataContainer::New();
+    this->GetOutput()->SetPointData( outputPointData );
+    }
+    
   const unsigned int numberOfNodes = sourceMesh->GetNumberOfPoints();
  
   outputPointData->Reserve( numberOfNodes );
