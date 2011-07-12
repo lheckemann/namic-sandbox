@@ -406,6 +406,7 @@ void vtkOsteoPlanPlacingFiducialsStep::AddPairModelFiducial()
         sprintf(fiducialListName,"%s-fiducialList",this->SelectedModel->GetName());
         fiducialListConnectedToModel->SetName(fiducialListName);
         fiducialListConnectedToModel->SetGlyphTypeFromString("Sphere3D");
+  fiducialListConnectedToModel->SetSymbolScale(2.0);
   fiducialListConnectedToModel->SetTextScale(0);
       
         // Add Fiducial list to the list of fiducial list who have a model associated

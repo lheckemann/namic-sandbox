@@ -42,6 +42,7 @@
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLModelDisplayNode.h"
 #include "vtkStringArray.h"
+#include "vtkDecimatePro.h"
 
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj)                                      \
@@ -218,6 +219,8 @@ void vtkOsteoPlanSelectingPartsStep::HandleMouseEvent(vtkSlicerInteractorStyle* 
   if(this->SelectingPart)
     {
 
+      //TODO: Refine model before (just once, use flag) ?
+
       SelectClickedPart();
 
       vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
@@ -348,40 +351,35 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart()
     connectivityFilter->AddSeed(cellIdPicked);
     connectivityFilter->Update();
 
-    // Create new polydata 
-    vtkPolyData* polyDataModel = vtkPolyData::New();
-    polyDataModel->CopyStructure(this->InputModel->GetModelDisplayNode()->GetPolyData());
+    // Reduce number of triangles (after inscreasing to cut) to increase Slicer speed
+    vtkDecimatePro* decimateMesh = vtkDecimatePro::New();
+    decimateMesh->SetInput((vtkDataObject*)connectivityFilter->GetOutput());
+    decimateMesh->PreserveTopologyOn();
+    decimateMesh->SetTargetReduction(0.4);
 
     // Create New vtkMRMLNode
     vtkMRMLModelNode* modelSelected = vtkMRMLModelNode::New();
+    modelSelected->SetScene(this->GetGUI()->GetMRMLScene());
+    modelSelected->SetName(this->ColorName->GetValue(this->ColorNumber%6).c_str());
+    modelSelected->SetAndObservePolyData(decimateMesh->GetOutput());
+    modelSelected->SetModifiedSinceRead(1);
+    this->GetGUI()->GetMRMLScene()->AddNode(modelSelected);
  
     // Create New vtkMRMLModelDisplayNode
     vtkMRMLModelDisplayNode* dnodeS = vtkMRMLModelDisplayNode::New();
- 
-    // Add them to the scene 
-    modelSelected->SetScene(this->GetGUI()->GetMRMLScene());
-    modelSelected->SetName(this->ColorName->GetValue(this->ColorNumber%6).c_str());
-
+    dnodeS->SetPolyData(modelSelected->GetPolyData());
     dnodeS->SetColor(this->colorId[this->ColorNumber%6]);
-    dnodeS->SetScene(this->GetGUI()->GetMRMLScene());
-
-    this->ColorNumber++;
- 
+    dnodeS->SetVisibility(1);
     this->GetGUI()->GetMRMLScene()->AddNode(dnodeS);
-    this->GetGUI()->GetMRMLScene()->AddNode(modelSelected);
- 
-    // Use new polydata model to be "ready" to receive data
-    modelSelected->SetAndObservePolyData(polyDataModel);
+
     modelSelected->SetAndObserveDisplayNodeID(dnodeS->GetID());
  
-    // Copy polydata to the new polydata model
-    dnodeS->SetPolyData(connectivityFilter->GetOutput());
- 
+    this->ColorNumber++;
+  
     // Clean
-    polyDataModel->Delete();
+    decimateMesh->Delete();
     modelSelected->Delete();
-    dnodeS->Delete();
- 
+    dnodeS->Delete(); 
     connectivityFilter->Delete();
 
     }
