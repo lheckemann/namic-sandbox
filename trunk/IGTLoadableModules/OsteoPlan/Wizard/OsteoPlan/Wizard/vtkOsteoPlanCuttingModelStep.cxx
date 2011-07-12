@@ -436,6 +436,22 @@ void vtkOsteoPlanCuttingModelStep::CreateCutter()
     }
 }
 
+
+
+
+// Note:
+// If not pre-clipping, polygons bigger than the box are not clipped
+
+// Method:
+// We first clip with the top plane to cut in two pieces (polygons intersecting with the planes are cutted)
+// Then we paste (append) these two parts to recreate the model (but with polygons cutted on the intersection line)
+// We do the same thing with second plane
+// We apply a subdivision filter to reduce polygons size
+// And we finally apply final cutting
+
+// Options:
+// firstAppend and secondAppend could be displayed to easily understand the process (switch for wireframe mode on Slicer once process is over)
+
 void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidget2* cuttingBox)
 {
   // Get Planes from vtkBoxWidget  
@@ -443,18 +459,17 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   vtkBoxRepresentation* boxRepresentation = reinterpret_cast<vtkBoxRepresentation*>(cuttingBox->GetRepresentation());
   boxRepresentation->GetPlanes(planes);
 
+  // Get Planes to pre-clip
   vtkPlane* bottomPlane = vtkPlane::New();
-  vtkPlane* topPlane = vtkPlane::New();
-
   planes->GetPlane(4, bottomPlane);
+  vtkPlane* topPlane = vtkPlane::New();
   planes->GetPlane(5, topPlane);
 
-  //  std::cerr << "INSIDE: Plane 4: " << planes->GetPlane(4) << std::endl << "INSIDE: Plane 2: " << planes->GetPlane(2) << std::endl;
-
+  // Pre-clip with the first plane
   vtkClipPolyData* polyCutter = vtkClipPolyData::New();
   polyCutter->GenerateClippedOutputOn();
   polyCutter->GenerateClipScalarsOn();
-  polyCutter->SetClipFunction(bottomPlane);//planes->GetPlane(4)); // Bottom plane
+  polyCutter->SetClipFunction(bottomPlane);
   polyCutter->SetInput(model->GetPolyData());
 
   vtkAppendPolyData* firstAppend = vtkAppendPolyData::New();
@@ -464,7 +479,7 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   vtkClipPolyData* polyCutter2 = vtkClipPolyData::New();
   polyCutter2->GenerateClippedOutputOn();
   polyCutter2->GenerateClipScalarsOn();
-  polyCutter2->SetClipFunction(topPlane);//planes->GetPlane(5)); // Top plane
+  polyCutter2->SetClipFunction(topPlane);
   polyCutter2->SetInput(firstAppend->GetOutput());
     
   vtkAppendPolyData* secondAppend = vtkAppendPolyData::New();
@@ -481,13 +496,12 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   realCut->SetClipFunction(planes);
   realCut->SetInput(subdividePolygons->GetOutput());
   
-  subdividePolygons->Delete();  
-
   // Model 1
   vtkMRMLModelNode* part1 = vtkMRMLModelNode::New();
   part1->SetScene(this->GetLogic()->GetMRMLScene());
-  part1->SetAndObservePolyData(realCut->GetOutput());
+  part1->SetAndObservePolyData(realCut->GetOutput());             // Replace realCut->GetOutput() by firstAppend->GetOutput() to visualize firstAppend
   part1->SetModifiedSinceRead(1);
+  part1->GetPolyData()->Squeeze();
   this->GetLogic()->GetMRMLScene()->AddNode(part1);
 
   vtkMRMLModelDisplayNode* dnode1 = vtkMRMLModelDisplayNode::New();
@@ -501,8 +515,9 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   // Model 2  
   vtkMRMLModelNode* part2 = vtkMRMLModelNode::New();
   part2->SetScene(this->GetLogic()->GetMRMLScene());
-  part2->SetAndObservePolyData(realCut->GetClippedOutput());         
+  part2->SetAndObservePolyData(realCut->GetClippedOutput());       // Replace realCut->GetClippedOutput() by secondAppend->GetOutput() to visualize secondAppend
   part2->SetModifiedSinceRead(1);
+  part2->GetPolyData()->Squeeze();
   this->GetLogic()->GetMRMLScene()->AddNode(part2);
 
   vtkMRMLModelDisplayNode* dnode2 = vtkMRMLModelDisplayNode::New();      
@@ -513,12 +528,11 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   
   part2->SetAndObserveDisplayNodeID(dnode2->GetID());
   
-
   // Hide original model
   model->GetModelDisplayNode()->SetVisibility(0);
 
-
   // Delete
+  subdividePolygons->Delete();  
   bottomPlane->Delete();
   topPlane->Delete();
   polyCutter->Delete();

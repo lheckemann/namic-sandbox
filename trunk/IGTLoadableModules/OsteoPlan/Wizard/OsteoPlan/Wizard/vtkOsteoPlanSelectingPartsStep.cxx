@@ -363,6 +363,7 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart()
     modelSelected->SetName(this->ColorName->GetValue(this->ColorNumber%6).c_str());
     modelSelected->SetAndObservePolyData(decimateMesh->GetOutput());
     modelSelected->SetModifiedSinceRead(1);
+    modelSelected->GetPolyData()->Squeeze();
     this->GetGUI()->GetMRMLScene()->AddNode(modelSelected);
  
     // Create New vtkMRMLModelDisplayNode
