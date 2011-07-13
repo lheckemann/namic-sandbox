@@ -160,6 +160,10 @@ vtkMRMLPerkProcedureNode
 ::PrintSelf( ostream& os, vtkIndent indent )
 {
   Superclass::PrintSelf( os, indent );
+  
+  os << indent << "NeedleCalibrationTransformNodeID: " <<
+    ( this->NeedleCalibrationTransformNodeID ? this->NeedleCalibrationTransformNodeID : "(none)" )
+    << "\n";
 }
 
 
@@ -197,10 +201,10 @@ vtkMRMLPerkProcedureNode
       this->SetFileName( attValue );
       }
     
-    if ( ! strcmp( attName, "ObservedTransformNodeID" ) )
+    if ( ! strcmp( attName, "NeedleCalibrationTransformNodeID" ) )
       {
-      this->SetAndObserveObservedTransformNodeID( NULL );
-      this->SetObservedTransformNodeID( attValue );
+      this->SetAndObserveNeedleCalibrationTransformNodeID( NULL );
+      this->SetNeedleCalibrationTransformNodeID( attValue );
       }
     
     if ( ! strcmp( attName, "NeedleTransformNodeID" ) )
@@ -257,9 +261,9 @@ vtkMRMLPerkProcedureNode
     of << vindent << " FileName=\"" << this->FileName << "\"" << std::endl;
     }
   
-  if ( this->ObservedTransformNodeID != NULL )
+  if ( this->NeedleCalibrationTransformNodeID != NULL )
     {
-    of << vindent << " ObservedTransformNodeID=\"" << this->ObservedTransformNodeID << "\"" << std::endl;
+    of << vindent << " NeedleCalibrationTransformNodeID=\"" << this->NeedleCalibrationTransformNodeID << "\"" << std::endl;
     }
   
   if ( this->NeedleTransformNodeID != NULL )
@@ -387,14 +391,74 @@ vtkMRMLPerkProcedureNode
   
   this->FileName = perkNode->GetFileName();
   
-  if ( perkNode->GetObservedTransformNodeID() != NULL )
+  this->SetAndObserveNeedleCalibrationTransformNodeID( NULL );
+  this->SetNeedleCalibrationTransformNodeID( perkNode->NeedleCalibrationTransformNodeID );
+  
+  this->SetAndObserveNeedleTransformNodeID( NULL );
+  this->SetNeedleTransformNodeID( perkNode->NeedleTransformNodeID );
+  
+  this->SetAndObserveBoxShapeID( NULL );
+  this->SetBoxShapeID( perkNode->BoxShapeID );
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::UpdateScene( vtkMRMLScene* scene )
+{
+  Superclass::UpdateScene( scene );
+  
+  this->SetAndObserveBoxShapeID( this->BoxShapeID );
+  this->SetAndObserveNeedleTransformNodeID( this->NeedleTransformNodeID );
+  this->SetAndObserveNeedleCalibrationTransformNodeID( this->NeedleCalibrationTransformNodeID );
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::UpdateReferenceID( const char* oldID, const char* newID )
+{
+  Superclass::UpdateReferenceID( oldID, newID );
+  
+  if ( this->BoxShapeID && ! strcmp( oldID, this->BoxShapeID ) )
     {
-    this->SetObservedTransformNodeID( perkNode->GetObservedTransformNodeID() );
+    this->SetAndObserveBoxShapeID( newID );
     }
   
-  if ( perkNode->GetBoxShapeID() != NULL )
+  if ( this->NeedleTransformNodeID && ! strcmp( oldID, this->NeedleTransformNodeID ) )
     {
-    this->SetAndObserveBoxShapeID( perkNode->GetBoxShapeID() );
+    this->SetAndObserveNeedleTransformNodeID( newID );
+    }
+  
+  if ( this->NeedleCalibrationTransformNodeID && ! strcmp( oldID, this->NeedleCalibrationTransformNodeID ) )
+    {
+    this->SetAndObserveNeedleCalibrationTransformNodeID( newID );
+    }
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::UpdateReferences()
+{
+  Superclass::UpdateReferences();
+  
+  if ( this->BoxShapeID != NULL && this->Scene->GetNodeByID( this->BoxShapeID ) == NULL )
+    {
+    this->SetAndObserveBoxShapeID( NULL );
+    }
+  
+  if ( this->NeedleTransformNodeID != NULL && this->Scene->GetNodeByID( this->NeedleTransformNodeID ) == NULL )
+    {
+    this->SetAndObserveNeedleTransformNodeID( NULL );
+    }
+  
+  if ( this->NeedleCalibrationTransformNodeID != NULL && this->Scene->GetNodeByID( this->NeedleCalibrationTransformNodeID ) == NULL )
+    {
+    this->SetAndObserveNeedleCalibrationTransformNodeID( NULL );
     }
 }
 
@@ -409,7 +473,8 @@ vtkMRMLPerkProcedureNode
     return this->NoteList[ index ];
     }
   else
-    return NULL;
+  
+  return NULL;
 }
 
 
@@ -436,12 +501,12 @@ vtkMRMLPerkProcedureNode
 
 vtkMRMLLinearTransformNode*
 vtkMRMLPerkProcedureNode
-::GetObservedTransformNode()
+::GetNeedleCalibrationTransformNode()
 {
   vtkMRMLLinearTransformNode* node = NULL;
-  if ( this->GetScene() && this->ObservedTransformNodeID != NULL )
+  if ( this->GetScene() && this->NeedleCalibrationTransformNodeID != NULL )
     {
-    vtkMRMLNode* snode = this->GetScene()->GetNodeByID( this->ObservedTransformNodeID );
+    vtkMRMLNode* snode = this->GetScene()->GetNodeByID( this->NeedleCalibrationTransformNodeID );
     node = vtkMRMLLinearTransformNode::SafeDownCast( snode );
     }
   return node;
@@ -451,16 +516,15 @@ vtkMRMLPerkProcedureNode
 
 void
 vtkMRMLPerkProcedureNode
-::SetAndObserveObservedTransformNodeID( const char *nodeID )
+::SetAndObserveNeedleCalibrationTransformNodeID( const char *nodeID )
 {
-  vtkSetAndObserveMRMLObjectMacro( this->ObservedTransformNode, NULL );
-  this->SetObservedTransformNodeID( nodeID );
-  vtkMRMLLinearTransformNode *tnode = this->GetObservedTransformNode();
-  vtkSetAndObserveMRMLObjectMacro(this->ObservedTransformNode, tnode);
-  if ( tnode )
-    {
-    tnode->AddObserver( vtkMRMLLinearTransformNode::TransformModifiedEvent, (vtkCommand*)this->MRMLCallbackCommand );
-    }
+  vtkSetAndObserveMRMLObjectMacro( this->NeedleCalibrationTransformNode, NULL );
+  this->SetNeedleCalibrationTransformNodeID( nodeID );
+  vtkMRMLLinearTransformNode *tnode = this->GetNeedleCalibrationTransformNode();
+  
+  vtkSmartPointer< vtkIntArray > events = vtkSmartPointer< vtkIntArray >::New();
+  events->InsertNextValue( vtkMRMLTransformNode::TransformModifiedEvent );
+  vtkSetAndObserveMRMLObjectEventsMacro( this->NeedleCalibrationTransformNode, tnode, events );
 }
 
 
@@ -515,7 +579,9 @@ bool
 vtkMRMLPerkProcedureNode
 ::IsNeedleInsideBody()
 {
-  vtkTransform* ctr = this->TransformTimeSeries->GetTransformAtIndex( this->TransformIndex );
+  vtkSmartPointer< vtkTransform > ctr = vtkSmartPointer< vtkTransform >::New();
+  this->NeedleTransformNode->GetMatrixTransformToWorld( ctr->GetMatrix() );
+  
   
   double cpos[ 3 ] = { ctr->GetMatrix()->GetElement( 0, 3 ),
                        ctr->GetMatrix()->GetElement( 1, 3 ),
@@ -574,6 +640,20 @@ vtkMRMLPerkProcedureNode
   this->NoteIndex = ind;
   
   this->UpdateTransformIndex();
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::SetTransformIndex( int ind )
+{
+  if ( ind >= 0 && ind < this->TransformTimeSeries->GetNumberOfRecords() )
+    {
+    this->TransformIndex = ind;
+    }
+  
+  this->UpdateTransform();
 }
 
 
@@ -654,13 +734,20 @@ void
 vtkMRMLPerkProcedureNode
 ::UpdateMeasurements()
 {
-  if ( this->IndexBegin < 0  ||  this->IndexEnd < 0 )
-    {
-    return;
-    }
+    // Check prerequisites for measurement.
   
-  this->TotalTime = this->GetTimeAtTransformIndex( this->IndexEnd )
-                                                   - this->GetTimeAtTransformIndex( this->IndexBegin );
+  if ( this->IndexBegin < 0  ||  this->IndexEnd < 0 ) return;
+  if ( this->NeedleTransformNode == NULL ) return;
+  
+  
+    // Save current needle transform.
+  
+  vtkSmartPointer< vtkMatrix4x4 > mNeedleOriginal = vtkSmartPointer< vtkMatrix4x4 >::New();
+  mNeedleOriginal->DeepCopy( this->NeedleTransformNode->GetMatrixTransformToParent() );
+  
+  
+  this->TotalTime =   this->GetTimeAtTransformIndex( this->IndexEnd )
+                    - this->GetTimeAtTransformIndex( this->IndexBegin );
   
   
     // Metrics to be measured from user difined begin to end.
@@ -671,7 +758,8 @@ vtkMRMLPerkProcedureNode
   
   
   double lastTime = this->TransformTimeSeries->GetTimeAtIndex( this->IndexBegin );
-  vtkTransform* tr = this->TransformTimeSeries->GetTransformAtIndex( this->IndexBegin );
+  vtkSmartPointer< vtkTransform > tr = vtkSmartPointer< vtkTransform >::New();
+  tr->DeepCopy( this->TransformTimeSeries->GetTransformAtIndex( this->IndexBegin ) );
   
   double lastEpos[ 4 ] = { 0, 0, 0, 1 }; // Last entry point of needle into the phantom.
   double lastTpos[ 4 ] = { 0, 0, 0, 1 }; // Last position of the needle tip.
@@ -685,7 +773,12 @@ vtkMRMLPerkProcedureNode
   for ( int index = this->IndexBegin; index <= this->IndexEnd; ++ index )
     {
     double ctime = this->TransformTimeSeries->GetTimeAtIndex( index );
-    tr = this->TransformTimeSeries->GetTransformAtIndex( index );
+    tr->DeepCopy( this->TransformTimeSeries->GetTransformAtIndex( index ) );
+    
+    this->NeedleTransformNode->GetMatrixTransformToParent()->DeepCopy( tr->GetMatrix() );
+    vtkSmartPointer< vtkMatrix4x4 > mWorld = vtkSmartPointer< vtkMatrix4x4 >::New();
+    this->NeedleTransformNode->GetMatrixTransformToWorld( mWorld );
+    tr->GetMatrix()->DeepCopy( mWorld );
     
     double cpos[ 4 ] = { tr->GetMatrix()->GetElement( 0, 3 ),
                          tr->GetMatrix()->GetElement( 1, 3 ),
@@ -778,6 +871,10 @@ vtkMRMLPerkProcedureNode
       }
     }
   
+  
+    // Restore original needle transform.
+  
+  this->NeedleTransformNode->GetMatrixTransformToParent()->DeepCopy( mNeedleOriginal );
 }
 
 
@@ -790,16 +887,42 @@ vtkMRMLPerkProcedureNode
   
   vtkTransform* transform = this->TransformTimeSeries->GetTransformAtIndex( this->TransformIndex );
   if ( transform == NULL ) return;
-    
-  vtkMatrix4x4* needleMtx = this->NeedleTransformNode->GetMatrixTransformToParent();
   
-  for ( int i = 0; i < 4; i ++ ) 
+  
+  //debug
+  double t1 = transform->GetMatrix()->GetElement( 0, 3 );
+  double t2 = transform->GetMatrix()->GetElement( 1, 3 );
+  double t3 = transform->GetMatrix()->GetElement( 2, 3 );
+  
+  
+  vtkSmartPointer< vtkMatrix4x4 > mCalibration = vtkSmartPointer< vtkMatrix4x4 >::New();
+  mCalibration->Identity();
+  
+  if ( this->NeedleCalibrationTransformNode != NULL )
     {
-    for ( int j = 0; j < 4; j ++ )
-      {
-      needleMtx->SetElement( i, j, ( transform->GetMatrix()->GetElement( i, j ) ) );
-      }
+    mCalibration->DeepCopy( this->NeedleCalibrationTransformNode->GetMatrixTransformToParent() );
     }
+  
+  vtkSmartPointer< vtkMatrix4x4 > mNeedle = vtkSmartPointer< vtkMatrix4x4 >::New();
+  
+  vtkMatrix4x4::Multiply4x4( transform->GetMatrix(), mCalibration, mNeedle );
+  
+  
+  //debug
+  double n1 = mNeedle->GetElement( 0, 3 );
+  double n2 = mNeedle->GetElement( 1, 3 );
+  double n3 = mNeedle->GetElement( 2, 3 );
+  
+  
+  this->NeedleTransformNode->GetMatrixTransformToParent()->DeepCopy( mNeedle );
+  
+  
+  //debug
+  vtkSmartPointer< vtkMatrix4x4 > md = vtkSmartPointer< vtkMatrix4x4 >::New();
+  this->NeedleTransformNode->GetMatrixTransformToWorld( md );
+  double a1 = md->GetElement( 0, 3 );
+  double a2 = md->GetElement( 1, 3 );
+  double a3 = md->GetElement( 2, 3 );
 }
 
 
@@ -807,14 +930,11 @@ vtkMRMLPerkProcedureNode
 vtkMRMLPerkProcedureNode
 ::vtkMRMLPerkProcedureNode()
 {
-  this->HideFromEditorsOff();
-  this->SetSaveWithScene( true );
-  
-  
   this->TransformTimeSeries = vtkTransformTimeSeries::New();
   
-  this->ObservedTransformNode = NULL;
-  this->ObservedTransformNodeID = NULL;
+  this->NeedleCalibrationTransformNode = NULL;
+  this->NeedleCalibrationTransformNodeID = NULL;
+  
   this->NeedleTransformNode = NULL;
   this->NeedleTransformNodeID = NULL;
   this->BoxShape = NULL;
@@ -847,6 +967,10 @@ vtkMRMLPerkProcedureNode
   this->SurfaceInside = 0.0;
   this->AngleFromAxial = 0.0;
   this->AngleInAxial = 0.0;
+  
+  
+  this->HideFromEditorsOff();
+  this->SetSaveWithScene( true );
 }
 
 
@@ -861,7 +985,8 @@ vtkMRMLPerkProcedureNode
   
   this->RemoveMRMLObservers();
   
-  this->SetAndObserveObservedTransformNodeID( NULL );
+  this->SetAndObserveNeedleCalibrationTransformNodeID( NULL );
+  
   this->SetAndObserveNeedleTransformNodeID( NULL );
   this->SetAndObserveBoxShapeID( NULL );
 }
@@ -878,10 +1003,10 @@ vtkMRMLPerkProcedureNode
     this->NeedleTransformNode->RemoveObservers( vtkMRMLLinearTransformNode::TransformModifiedEvent );
     }
   
-  if (    this->ObservedTransformNode
-       && this->ObservedTransformNode->HasObserver( vtkMRMLTransformNode::TransformModifiedEvent ) )
+  if (    this->NeedleCalibrationTransformNode
+       && this->NeedleCalibrationTransformNode->HasObserver( vtkMRMLTransformNode::TransformModifiedEvent ) )
     {
-    this->ObservedTransformNode->RemoveObservers( vtkMRMLTransformNode::TransformModifiedEvent );
+    this->NeedleCalibrationTransformNode->RemoveObservers( vtkMRMLTransformNode::TransformModifiedEvent );
     }
   
   if (    this->NeedleTransformNode

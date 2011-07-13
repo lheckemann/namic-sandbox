@@ -126,6 +126,7 @@ vtkPerkProcedureEvaluatorGUI
   this->PlanFiducialsSelector = NULL;
   this->BoxFiducialsSelector = NULL;
   this->NeedleTransformSelector = NULL;
+  this->NeedleCalibrationTransformSelector = NULL;
   
   this->LoadButton = NULL;
   
@@ -195,6 +196,7 @@ vtkPerkProcedureEvaluatorGUI
   DELETE_WITH_SETPARENT_NULL( this->PlanFiducialsSelector );
   DELETE_WITH_SETPARENT_NULL( this->BoxFiducialsSelector );
   DELETE_WITH_SETPARENT_NULL( this->NeedleTransformSelector );
+  DELETE_WITH_SETPARENT_NULL( this->NeedleCalibrationTransformSelector );
   DELETE_WITH_SETPARENT_NULL( this->LoadButton );
   
   DELETE_WITH_SETPARENT_NULL( this->NotesFrame );
@@ -305,6 +307,7 @@ vtkPerkProcedureEvaluatorGUI
   REMOVE_OBSERVERS( this->PlanFiducialsSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->BoxFiducialsSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   REMOVE_OBSERVERS( this->NeedleTransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  REMOVE_OBSERVERS( this->NeedleCalibrationTransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
   REMOVE_OBSERVERS( this->LoadButton, vtkKWPushButton::InvokedEvent );
   
@@ -367,6 +370,7 @@ vtkPerkProcedureEvaluatorGUI
   ADD_OBSERVER( this->PlanFiducialsSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   ADD_OBSERVER( this->BoxFiducialsSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   ADD_OBSERVER( this->NeedleTransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
+  ADD_OBSERVER( this->NeedleCalibrationTransformSelector, vtkSlicerNodeSelectorWidget::NodeSelectedEvent );
   
   ADD_OBSERVER( this->LoadButton->GetLoadSaveDialog(), vtkKWTopLevel::WithdrawEvent );
   
@@ -486,6 +490,25 @@ vtkPerkProcedureEvaluatorGUI
       vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast(
         this->NeedleTransformSelector->GetSelected() );
       this->ProcedureNode->SetAndObserveNeedleTransformNodeID( node->GetID() );
+      }
+    }
+  
+  else if (    this->NeedleCalibrationTransformSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
+            && (    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
+                 || event == vtkSlicerNodeSelectorWidget::NewNodeEvent ) )
+    {
+    if ( this->ProcedureNode )
+      {
+      vtkMRMLLinearTransformNode* node = vtkMRMLLinearTransformNode::SafeDownCast(
+        this->NeedleCalibrationTransformSelector->GetSelected() );
+      if ( node == NULL )
+        {
+        this->ProcedureNode->SetAndObserveNeedleCalibrationTransformNodeID( NULL );
+        }
+      else
+        {
+        this->ProcedureNode->SetAndObserveNeedleCalibrationTransformNodeID( node->GetID() );
+        }
       }
     }
   
@@ -741,11 +764,24 @@ vtkPerkProcedureEvaluatorGUI
     this->NeedleTransformSelector->SetLabelText( "Needle tip transform" );
     }
   
-  this->Script( "pack %s %s %s %s -side top -fill x -padx 2 -pady 2", 
+  if ( ! this->NeedleCalibrationTransformSelector )
+    {
+    this->NeedleCalibrationTransformSelector = vtkSlicerNodeSelectorWidget::New();
+    this->NeedleCalibrationTransformSelector->SetNodeClass( "vtkMRMLTransformNode", NULL, NULL, "Needle calibration" );
+    this->NeedleCalibrationTransformSelector->SetParent( inputFrame->GetFrame() );
+    this->NeedleCalibrationTransformSelector->Create();
+    this->NeedleCalibrationTransformSelector->NoneEnabledOn();
+    this->NeedleCalibrationTransformSelector->SetMRMLScene( this->GetMRMLScene() );
+    this->NeedleCalibrationTransformSelector->UpdateMenu();
+    this->NeedleCalibrationTransformSelector->SetLabelText( "Needle calibration" );
+    }
+  
+  this->Script( "pack %s %s %s %s %s -side top -fill x -padx 2 -pady 2", 
                 this->PerkProcedureSelector->GetWidgetName(),
                 this->PlanFiducialsSelector->GetWidgetName(),
                 this->BoxFiducialsSelector->GetWidgetName(),
-                this->NeedleTransformSelector->GetWidgetName() );
+                this->NeedleTransformSelector->GetWidgetName(),
+                this->NeedleCalibrationTransformSelector->GetWidgetName() );
   
   
   if ( ! this->LoadButton )
@@ -1154,8 +1190,6 @@ vtkPerkProcedureEvaluatorGUI
   
     // Measurement results.
   
-  
-  
   if ( procedure->GetIndexBegin() >= 0 )
     {
     this->LabelBegin->SetText( DoubleToStr( procedure->GetTimeAtTransformIndex( procedure->GetIndexBegin() ) ).c_str() );
@@ -1235,7 +1269,7 @@ vtkPerkProcedureEvaluatorGUI
   
     // Do the changes.
   
-  this->ProcedureNode->SetTransformIndex( this->ProcedureNode->GetTransformIndex() + 1 );
+  this->ProcedureNode->SetTransformIndex( index + 1 );
   this->UpdatePlayback();
   // this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
   
