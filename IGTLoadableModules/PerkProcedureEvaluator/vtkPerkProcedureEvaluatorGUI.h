@@ -126,7 +126,8 @@ protected:
   vtkSlicerNodeSelectorWidget* PlanFiducialsSelector;
   vtkSlicerNodeSelectorWidget* BoxFiducialsSelector;
   vtkSlicerNodeSelectorWidget* NeedleTransformSelector;
-  vtkKWLoadSaveButton* LoadButton;
+  vtkSlicerNodeSelectorWidget* NeedleCalibrationTransformSelector;
+  vtkKWLoadSaveButton*         LoadButton;
   
   vtkSlicerModuleCollapsibleFrame* NotesFrame;
   vtkKWMultiColumnListWithScrollbars* NotesList;

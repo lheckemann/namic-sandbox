@@ -36,7 +36,6 @@ VTK_PerkProcedureEvaluator_EXPORT
 PerkNote
 {
 public:
-  
   double Time;
   std::string Message;
 };
@@ -60,6 +59,20 @@ public:
   vtkTypeMacro( vtkMRMLPerkProcedureNode, vtkMRMLStorableNode );
   void PrintSelf( ostream& os, vtkIndent indent );
   virtual vtkMRMLNode* CreateNodeInstance();
+  virtual const char* GetNodeTagName() { return "PerkProcedureNode"; }
+  
+  virtual void ReadXMLAttributes( const char** atts );
+  virtual void WriteXML( ostream& of, int indent );
+  
+  virtual void Copy( vtkMRMLNode* node );
+  virtual void UpdateScene( vtkMRMLScene* );
+  virtual void UpdateReferenceID( const char* oldID, const char* newID );
+  void UpdateReferences();
+  
+  
+  vtkSetStringMacro( FileName );
+  vtkGetStringMacro( FileName );
+  void ImportFromFile( const char* fileName );
   
   
     // transform utility functions
@@ -69,52 +82,21 @@ public:
   virtual void ApplyTransform(vtkAbstractTransform* transform) {}
   
   
-  vtkSetStringMacro( FileName );
-  vtkGetStringMacro( FileName );
-  
-  virtual void ReadXMLAttributes( const char** atts );
-  virtual void WriteXML( ostream& of, int indent );
-  
-  
-  void ImportFromFile( const char* fileName );
-  
-  virtual void Copy( vtkMRMLNode* node );
-  
-  virtual const char* GetNodeTagName() {
-    return "PerkProcedureNode";
-  }
-  
-  
-  int GetNumberOfNotes() {
-    return this->NoteList.size();
-  }
-  
-  int GetNumberOfTransforms() {
-    return this->TransformTimeSeries->GetNumberOfRecords();
-  }
+  int GetNumberOfNotes() { return this->NoteList.size(); }
+  int GetNumberOfTransforms() { return this->TransformTimeSeries->GetNumberOfRecords(); }
   
   PerkNote* GetNoteAtIndex( int index );
   double GetTimeAtTransformIndex( int index );
   vtkTransform* GetTransformAtTransformIndex( int index );
   
-  vtkGetStringMacro( ObservedTransformNodeID );
-  vtkMRMLLinearTransformNode* GetObservedTransformNode();
-  void SetAndObserveObservedTransformNodeID( const char *TransformNodeRef );
-  
-  vtkGetStringMacro( NeedleTransformNodeID );
-  vtkMRMLLinearTransformNode* GetNeedleTransformNode();
-  void SetAndObserveNeedleTransformNodeID( const char *TransformNodeRef );
-  
   
     // Storage.
   
-  virtual vtkMRMLStorageNode* CreateDefaultStorageNode()
-    {
+  virtual vtkMRMLStorageNode* CreateDefaultStorageNode() {
     return vtkMRMLPerkProcedureStorageNode::New();
     };
   
-  virtual const char* GetDefaultWriteFileExtension()
-    {
+  virtual const char* GetDefaultWriteFileExtension() {
     return "xml";
     };
   
@@ -124,9 +106,6 @@ public:
     
     // Models.
   
-  vtkGetStringMacro( BoxShapeID );
-  vtkMRMLBoxShape* GetBoxShapeNode();
-  void SetAndObserveBoxShapeID( const char* boxShapeRef );
   void BoxShapeFromFiducials( vtkMRMLFiducialListNode* fiducials );
   
   
@@ -134,13 +113,7 @@ public:
   void SetNoteIndex( int ind );
   vtkGetMacro( NoteIndex, int );
   
-  void SetTransformIndex( int ind ) {
-    if ( ind >= 0 && ind < this->TransformTimeSeries->GetNumberOfRecords() )
-      {
-      this->TransformIndex = ind;
-      }
-    this->UpdateTransform();
-  }
+  void SetTransformIndex( int ind );
   
   vtkGetMacro( TransformIndex, int );
   
@@ -196,20 +169,39 @@ private:
   //ETX
   
   
-    // Transform: Needle tip to Calibration.
+    // Reference to the needle tip to calibration transform.
   
-  char* ObservedTransformNodeID;
-  vtkSetReferenceStringMacro( ObservedTransformNodeID );
-  vtkMRMLLinearTransformNode* ObservedTransformNode;
+public:
+  vtkGetStringMacro( NeedleCalibrationTransformNodeID );
+  vtkMRMLLinearTransformNode* GetNeedleCalibrationTransformNode();
+  void SetAndObserveNeedleCalibrationTransformNodeID( const char *TransformNodeRef );
+private:  
+  char* NeedleCalibrationTransformNodeID;
+  vtkSetReferenceStringMacro( NeedleCalibrationTransformNodeID );
+  vtkMRMLLinearTransformNode* NeedleCalibrationTransformNode;
   
-    // Transform: Needle tip to World (RAS).
+  
+    // Transform: Needle tip.
+    // It should either be given respective to World (RAS), or the NeedleCalibrationTransform
+    // has to be used to transform it to the World coordinate system.
+  
+public:
+  vtkGetStringMacro( NeedleTransformNodeID );
+  vtkMRMLLinearTransformNode* GetNeedleTransformNode();
+  void SetAndObserveNeedleTransformNodeID( const char *TransformNodeRef );
+private:
   char* NeedleTransformNodeID;
   vtkSetReferenceStringMacro( NeedleTransformNodeID );
   vtkMRMLLinearTransformNode* NeedleTransformNode;
   
   
-    // Models.
+    // Reference to the Box model.
   
+public:
+  vtkGetStringMacro( BoxShapeID );
+  vtkMRMLBoxShape* GetBoxShapeNode();
+  void SetAndObserveBoxShapeID( const char* boxShapeRef );
+private:
   char* BoxShapeID;
   vtkSetReferenceStringMacro( BoxShapeID );
   vtkMRMLBoxShape* BoxShape;
