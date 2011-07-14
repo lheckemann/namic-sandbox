@@ -120,7 +120,6 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   void UpdateAll();
 
 
-  void AddButtons();
   void PrepareMyStep(vtkOsteoPlanStep* wStep);
   void UpdateWorkflowStepNames();
   void ChangeWorkphaseGUI(int StepToGo);
