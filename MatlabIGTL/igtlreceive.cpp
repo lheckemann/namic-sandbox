@@ -301,7 +301,7 @@ int receiveImage(igtl::MexClientSocket::Pointer& socket,
     plhs[0] = mxCreateStructMatrix(1, 1, 4, fnames);
 
     // Set type string
-    mxArray* typeString = mxCreateString("TRANSFORM");
+    mxArray* typeString = mxCreateString("IMAGE");
     mxSetField(plhs[0], 0, "Type", typeString);
 
     // Set device name string
@@ -325,31 +325,22 @@ int receiveImage(igtl::MexClientSocket::Pointer& socket,
     dims[1] = size[1];
     dims[2] = size[2];
 
-    mxArray*    imageMatrix = mxCreateNumericArray(3, dims, mxDOUBLE_CLASS, mxREAL);
-    double*     rdata       = mxGetPr(imageMatrix);
-    
-    //int npixel = size[0]*size[1]*size[2];
+    printf("size[] = {%d, %d, %d} \n", dims[0], dims[1], dims[2]);    
+
+
+    //mxArray*    imageMatrix = mxCreateNumericArray(3, dims, mxDOUBLE_CLASS, mxREAL);
+    //double*     rdata       = (double*) mxGetData(imageMatrix);
+
+    mxArray* imageMatrix;
+
     int ni = size[0]; int nj = size[1]; int nk = size[2];
-    igtlUint16* dest = (igtlUint16*)imgMsg->GetScalarPointer();
-    for (int k = 0; k < nk; k ++)
+    if (scalarType == igtl::ImageMessage::TYPE_INT8)
       {
-      int koff = k*ni*nj;
-      for (int j = 0; j < nj; j ++)
-        {
-        for (int i = 0; i < ni; i ++)
-          {
-          dest[koff + j*ni + i] = (igtlUint16)rdata[koff + i*nj + j];
-          }
-        }
-      }
+      imageMatrix = mxCreateNumericArray(3, dims, mxINT8_CLASS, mxREAL);
+      igtlInt8* rdata       = (igtlInt8*) mxGetData(imageMatrix);
 
-    if (scalarType == igtl::ImageMessage::TYPE_UINT16)
-      {
-      igtlUint16* src = (igtlUint16*)imgMsg->GetScalarPointer();
-      //int npixel = size[0]*size[1]*size[2];
-
-      int ni = size[0]; int nj = size[1]; int nk = size[2];
-      igtlUint16* dest = (igtlUint16*)imgMsg->GetScalarPointer();
+      printf("scalarType = TYPE_INT8\n");
+      igtlInt8* src = (igtlInt8*)imgMsg->GetScalarPointer();
       for (int k = 0; k < nk; k ++)
         {
         int koff = k*ni*nj;
@@ -357,13 +348,145 @@ int receiveImage(igtl::MexClientSocket::Pointer& socket,
           {
           for (int i = 0; i < ni; i ++)
             {
-            rdata[koff + i*nj + j] = (double) src[koff + j*ni + i];
+            rdata[koff + i*nj + j] = src[koff + j*ni + i];
             }
           }
         }
       }
+    else if (scalarType == igtl::ImageMessage::TYPE_UINT8)
+      {
+      imageMatrix = mxCreateNumericArray(3, dims, mxUINT8_CLASS, mxREAL);
+      igtlUint8* rdata       = (igtlUint8*) mxGetData(imageMatrix);
 
-    mxSetField(plhs[0], 0, "Imaage", imageMatrix);
+      printf("scalarType = TYPE_UINT8\n");
+      igtlUint8* src = (igtlUint8*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] =  src[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    else if (scalarType == igtl::ImageMessage::TYPE_INT16)
+      {
+      imageMatrix = mxCreateNumericArray(3, dims, mxINT16_CLASS, mxREAL);
+      igtlInt16* rdata       = (igtlInt16*) mxGetData(imageMatrix);
+
+      printf("scalarType = TYPE_INT16\n");
+      igtlInt16* src = (igtlInt16*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] =  src[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    else if (scalarType == igtl::ImageMessage::TYPE_UINT16)
+      {
+      imageMatrix = mxCreateNumericArray(3, dims, mxUINT16_CLASS, mxREAL);
+      igtlUint16* rdata       = (igtlUint16*) mxGetData(imageMatrix);
+
+      printf("scalarType = TYPE_UINT16\n");
+      igtlUint16* src = (igtlUint16*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] =  src[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    else if (scalarType == igtl::ImageMessage::TYPE_INT32)
+      {
+      imageMatrix = mxCreateNumericArray(3, dims, mxINT32_CLASS, mxREAL);
+      igtlInt32* rdata       = (igtlInt32*) mxGetData(imageMatrix);
+
+      printf("scalarType = TYPE_INT32\n");
+      igtlInt32* src = (igtlInt32*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] =  src[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    else if (scalarType == igtl::ImageMessage::TYPE_UINT32)
+      {
+      imageMatrix = mxCreateNumericArray(3, dims, mxUINT32_CLASS, mxREAL);
+      igtlUint32* rdata       = (igtlUint32*) mxGetData(imageMatrix);
+
+      printf("scalarType = TYPE_UINT32\n");
+      igtlUint32* src = (igtlUint32*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] =  src[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    else if (scalarType == igtl::ImageMessage::TYPE_FLOAT32)
+      {
+      imageMatrix = mxCreateNumericArray(3, dims, mxSINGLE_CLASS, mxREAL);
+      igtlFloat32* rdata       = (igtlFloat32*) mxGetData(imageMatrix);
+
+      printf("scalarType = TYPE_FLOAT32\n");
+      igtlFloat32* src = (igtlFloat32*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] =  src[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    else if (scalarType == igtl::ImageMessage::TYPE_FLOAT64)
+      {
+      imageMatrix = mxCreateNumericArray(3, dims, mxDOUBLE_CLASS, mxREAL);
+      igtlFloat64* rdata       = (igtlFloat64*) mxGetData(imageMatrix);
+
+      printf("scalarType = TYPE_FLOAT64\n");
+      igtlFloat64* src = (igtlFloat64*)imgMsg->GetScalarPointer();
+      for (int k = 0; k < nk; k ++)
+        {
+        int koff = k*ni*nj;
+        for (int j = 0; j < nj; j ++)
+          {
+          for (int i = 0; i < ni; i ++)
+            {
+            rdata[koff + i*nj + j] =  src[koff + j*ni + i];
+            }
+          }
+        }
+      }
+    mxSetField(plhs[0], 0, "Image", imageMatrix);
 
     return 1;
     }
