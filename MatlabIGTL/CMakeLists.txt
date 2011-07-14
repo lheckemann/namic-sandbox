@@ -137,7 +137,7 @@ ADD_CUSTOM_COMMAND (
   ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlopen.cpp igtlMexClientSocket.${OBJ_EXT} igtlMexServerSocket.${OBJ_EXT} igtlMexSocket.${OBJ_EXT}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlopen.cpp 
 )
-add_dependencies(igtlopen igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
+add_dependencies(igtlopen igtlMexClientSocket igtlMexServerSocket igtlMexSocket OpenIGTLink)
 
 add_custom_command (
   TARGET  igtlclose
@@ -146,7 +146,7 @@ add_custom_command (
   ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlclose.cpp igtlMexClientSocket.${OBJ_EXT} igtlMexServerSocket.${OBJ_EXT} igtlMexSocket.${OBJ_EXT}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlclose.cpp
 )
-add_dependencies(igtlclose igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
+add_dependencies(igtlclose igtlMexClientSocket igtlMexServerSocket igtlMexSocket OpenIGTLink)
 
 add_custom_command (
   TARGET  igtlsend
@@ -155,7 +155,7 @@ add_custom_command (
   ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlsend.cpp igtlMexClientSocket.${OBJ_EXT} igtlMexServerSocket.${OBJ_EXT} igtlMexSocket.${OBJ_EXT}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlsend.cpp
 )
-add_dependencies(igtlsend igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
+add_dependencies(igtlsend igtlMexClientSocket igtlMexServerSocket igtlMexSocket OpenIGTLink)
 
 add_custom_command (
   TARGET  igtlreceive
@@ -164,7 +164,7 @@ add_custom_command (
   ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlreceive.cpp igtlMexClientSocket.${OBJ_EXT} igtlMexServerSocket.${OBJ_EXT} igtlMexSocket.${OBJ_EXT}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlreceive.cpp
 )
-add_dependencies(igtlreceive igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
+add_dependencies(igtlreceive igtlMexClientSocket igtlMexServerSocket igtlMexSocket OpenIGTLink)
 
 add_custom_command (
   TARGET  igtlwaitcon
@@ -173,7 +173,7 @@ add_custom_command (
   ARGS    ${MEX_OPTION} ${INCDIR} ${LIBDIR} ${LIB} ${CMAKE_CURRENT_SOURCE_DIR}/igtlwaitcon.cpp igtlMexClientSocket.${OBJ_EXT} igtlMexServerSocket.${OBJ_EXT} igtlMexSocket.${OBJ_EXT}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}igtlwaitcon.cpp
 )
-add_dependencies(igtlwaitcon igtlMexClientSocket igtlMexServerSocket igtlMexSocket)
+add_dependencies(igtlwaitcon igtlMexClientSocket igtlMexServerSocket igtlMexSocket OpenIGTLink)
 
 # INSTALL
 INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/igtlopen.${MEX_EXT} DESTINATION lib )
