@@ -501,9 +501,6 @@ void vtkOsteoPlanGUI::BuildGUIForWorkflowFrame()
   this->Script("pack %s -side left -padx 2 -pady 2", 
                this->WorkflowButtonSet->GetWidgetName());
 
-
-//  AddButtons();
-
   conBrowsFrame->Delete();
 
 }

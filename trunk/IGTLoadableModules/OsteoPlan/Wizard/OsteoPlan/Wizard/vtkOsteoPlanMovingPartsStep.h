@@ -45,7 +45,6 @@ public:
   virtual void UpdateGUI();
 
   void HandleMouseEvent(vtkSlicerInteractorStyle* style);
-  void SelectClickedPart(const char* modelName);
 
 protected:
   vtkOsteoPlanMovingPartsStep();
