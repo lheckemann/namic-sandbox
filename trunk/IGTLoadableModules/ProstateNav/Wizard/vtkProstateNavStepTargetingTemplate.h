@@ -124,6 +124,7 @@ protected:
   //vtkKWPushButton *MoveButton;
   //vtkKWPushButton *StopButton;
   vtkKWPushButton *GenerateListButton;
+  vtkKWPushButton *MoveButton;
 
   vtkKWText *Message;
 
