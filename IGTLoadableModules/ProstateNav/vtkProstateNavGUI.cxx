@@ -90,6 +90,7 @@
 #include "vtkMRMLTransRectalProstateRobotNode.h"
 #include "vtkMRMLTransPerinealProstateRobotNode.h"
 #include "vtkMRMLTransPerinealProstateTemplateNode.h"
+#include "vtkMRMLTransPerinealProstateSmartTemplateNode.h"
 #include "vtkSlicerSecondaryViewerWindow.h"
 #include "vtkSlicerViewerWidget.h"
 #include "vtkMRMLViewNode.h"
@@ -632,6 +633,7 @@ void vtkProstateNavGUI::Init()
     this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLTransRectalProstateRobotNode >::New() );
     this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLTransPerinealProstateRobotNode >::New() );    
     this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLTransPerinealProstateTemplateNode >::New() );    
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLTransPerinealProstateSmartTemplateNode >::New() );    
   }
 
 }
@@ -996,6 +998,7 @@ void vtkProstateNavGUI::BuildGUIForConfigurationFrame ()
   this->RobotSelectorWidget->Create(); 
   this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransPerinealProstateRobotNode", NULL, NULL, "Trans-perineal robot");
   this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransPerinealProstateTemplateNode", NULL, NULL, "Trans-perineal template");
+  this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransPerinealProstateSmartTemplateNode", NULL, NULL, "Trans-perineal smart template");
   this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransRectalProstateRobotNode", NULL, NULL, "Trans-rectal robot");
   this->RobotSelectorWidget->SetMRMLScene(this->GetMRMLScene());
   this->RobotSelectorWidget->SetBorderWidth(2);
