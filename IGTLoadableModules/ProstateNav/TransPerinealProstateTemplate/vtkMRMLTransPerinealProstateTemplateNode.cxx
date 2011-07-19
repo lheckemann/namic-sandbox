@@ -122,6 +122,11 @@ vtkMRMLTransPerinealProstateTemplateNode::vtkMRMLTransPerinealProstateTemplateNo
   this->ActiveNeedleTransformNodeID = NULL;
   this->ActiveNeedleTransformNode   = NULL;
 
+  // Real-time MRI
+  this->ImagingPlaneTransformNodeID = NULL;
+  this->ImagingPlaneTransformNode   = NULL;
+
+
   // Other
 
   this->ScreenMessage = NULL;
@@ -142,6 +147,10 @@ vtkMRMLTransPerinealProstateTemplateNode::vtkMRMLTransPerinealProstateTemplateNo
   this->TemplateOffset[0]    = TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_X;
   this->TemplateOffset[1]    = TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Y;
   this->TemplateOffset[2]    = TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Z;
+
+  // Needle information
+  this->FlagNeedleInfomation = 0;
+  this->NeedleDepth = 0.0;
 
 }
 
@@ -571,6 +580,23 @@ int vtkMRMLTransPerinealProstateTemplateNode::Init(vtkSlicerApplication* app, co
       SetAndObserveActiveNeedleModelNodeID(nodeID);
       }
   }
+
+  // For Real-time MRI
+  // Imaging plane
+  if (GetImagingPlaneTransformNodeID() == NULL)
+    {
+    vtkMRMLLinearTransformNode* itnode = vtkMRMLLinearTransformNode::New();
+    itnode->SetName("PLANE_0");
+    vtkMatrix4x4* transform = vtkMatrix4x4::New();
+    transform->Identity();
+    itnode->ApplyTransform(transform);
+    itnode->SetScene(this->Scene);
+    transform->Delete();
+    this->Scene->AddNode(itnode);
+    this->SetImagingPlaneTransformNodeID(itnode->GetID());
+    //SetAndObserveActiveNeedleTransformNodeID(itnode->GetID());
+    }
+
 
   return 1;
 }
@@ -1116,6 +1142,31 @@ int vtkMRMLTransPerinealProstateTemplateNode::MoveTo(const char *transformNodeId
     ss << "Error:  R=" << errorX  << ", A=" << errorY  << ", S=" << errorZ  << std::endl;
     SetScreenMessage(ss.str().c_str());
 
+    // Substitute hole information (for secondary display)
+    this->FlagNeedleInfomation = 1;
+    this->NeedleDepth  = depth;
+    this->GridIndex[0] = i;
+    this->GridIndex[1] = j;
+    this->TargetRAS[0] = targetX;
+    this->TargetRAS[1] = targetY;
+    this->TargetRAS[2] = targetZ;
+    this->ExpectedTargetError[0] = errorX;
+    this->ExpectedTargetError[1] = errorY;
+    this->ExpectedTargetError[2] = errorZ;
+
+    // For Real-time MRI
+    vtkMRMLLinearTransformNode* planeTransformNode = 
+      vtkMRMLLinearTransformNode::SafeDownCast(this->Scene->GetNodeByID(this->GetImagingPlaneTransformNodeID()));
+    
+    if (planeTransformNode != NULL)
+      {
+      vtkMatrix4x4* planeTransform = planeTransformNode->GetMatrixTransformToParent();    
+      planeTransform->SetElement(0, 3, needleTip[0]);
+      planeTransform->SetElement(1, 3, needleTip[1]);
+      planeTransform->SetElement(2, 3, needleTip[2]);
+      planeTransformNode->Modified();
+      }
+
     Modified();
     } 
 
@@ -1355,8 +1406,23 @@ vtkMRMLLinearTransformNode* vtkMRMLTransPerinealProstateTemplateNode::GetActiveN
 //----------------------------------------------------------------------------
 std::string vtkMRMLTransPerinealProstateTemplateNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
 {
+  std::ostrstream os;
+
+  if (this->FlagNeedleInfomation == 1)
+    {
+    //os << "TARGET NAME: " << <<std::endl;
+    os << "Grid:   (" << (char) ('A' + this->GridIndex[1]) << ", " << (this->GridIndex[0] - TEMPLATE_NUMBER_OF_GRIDS_X/2) << ")" << std::endl;
+    os << "Depth:  " << this->NeedleDepth << " mm" << std::endl;
+    os << "Target: R=" << this->TargetRAS[0] << ", A=" << this->TargetRAS[1] << ", S=" << this->TargetRAS[1] << std::endl;
+    os << "Error:  R=" << this->ExpectedTargetError[0]  << ", A=" << this->ExpectedTargetError[1]  << ", S=" << this->ExpectedTargetError[2]  << std::endl;
+    }
+
+  os << std::ends;
+  std::string result=os.str();
+  os.rdbuf()->freeze();
+      
   // :TODO: construct a string that contains useful information for the active target (reachable, etc.)
-  return "";
+  return result;
 }
 
 

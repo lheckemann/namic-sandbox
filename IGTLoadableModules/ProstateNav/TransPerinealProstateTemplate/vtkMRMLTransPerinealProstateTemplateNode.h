@@ -126,6 +126,11 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
   vtkMRMLLinearTransformNode* GetActiveNeedleTransformNode();
   void SetAndObserveActiveNeedleTransformNodeID(const char *nodeID);
 
+  // For Real-time MRI
+  vtkGetStringMacro(ImagingPlaneTransformNodeID);
+  //vtkMRMLLinearTransformNode* GetImagingPlaneTransformNode();
+  //void SetAndObserveImagingPlaneTransformNodeID(const char *nodeID);
+
   vtkGetStringMacro(ScreenMessage);
 
   virtual int  MoveTo(const char *transformNodeId);
@@ -232,6 +237,11 @@ private:
   char *ActiveNeedleTransformNodeID;
   vtkMRMLLinearTransformNode* ActiveNeedleTransformNode;
 
+  // For Real-time MRI
+  vtkSetReferenceStringMacro(ImagingPlaneTransformNodeID);
+  char *ImagingPlaneTransformNodeID;
+  vtkMRMLLinearTransformNode* ImagingPlaneTransformNode;
+
   // Screen message
   vtkSetReferenceStringMacro(ScreenMessage);
   char *ScreenMessage;
@@ -242,6 +252,16 @@ private:
 
   bool  Connection;  
   int   ScannerWorkPhase;
+
+  // Needle information
+  int    FlagNeedleInfomation;
+  //BTX
+  std::string TargetName;
+  //ETX
+  double NeedleDepth;
+  int    GridIndex[2];
+  double TargetRAS[3];
+  double ExpectedTargetError[3];
 
   // Template for needle guidance
   double TemplateGridPitch[2];   // Template pitch in mm (x and y in the figure bellow)
