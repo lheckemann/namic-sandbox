@@ -129,6 +129,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
   vtkGetStringMacro(ScreenMessage);
 
   virtual int  MoveTo(const char *transformNodeId);
+  const char* GetTargetReport(vtkProstateNavTargetDescriptor* targetDesc);
   
   virtual void SwitchStep(const char *stepName);
 

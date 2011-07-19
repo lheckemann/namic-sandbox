@@ -1124,6 +1124,42 @@ int vtkMRMLTransPerinealProstateTemplateNode::MoveTo(const char *transformNodeId
 
 
 //----------------------------------------------------------------------------
+const char* vtkMRMLTransPerinealProstateTemplateNode::GetTargetReport(vtkProstateNavTargetDescriptor* targetDesc)
+{
+  if (!targetDesc)
+    {
+      return NULL;
+    }
+  double* xyz=targetDesc->GetRASLocation();
+
+  double targetX = xyz[0];
+  double targetY = xyz[1];
+  double targetZ = xyz[2];
+  int i;
+  int j;
+  double depth;
+  double errorX;
+  double errorY;
+  double errorZ;
+
+  FindHole(targetX, targetY, targetZ, i, j, depth, errorX, errorY, errorZ);
+  vtkMatrix4x4* matrix = vtkMatrix4x4::New();
+  GetHoleTransform(i, j, matrix);
+  
+  std::ostringstream ss;
+  //ss << "Grid:   (" << i << ", " << (char) ('A' + j) << ")" << std::endl;
+  ss << "Name:   " << targetDesc->GetName() << std::endl;
+  ss << "Grid:   (" << (char) ('A' + j) << ", " << (i - TEMPLATE_NUMBER_OF_GRIDS_X/2) << ")" << std::endl;
+  ss << "Depth:  " << depth << " mm" << std::endl;
+  ss << "Target: R=" << targetX << ", A=" << targetY << ", S=" << targetZ << std::endl;
+  ss << "Error:  R=" << errorX  << ", A=" << errorY  << ", S=" << errorZ  << std::endl;
+  //SetScreenMessage(ss.str().c_str());
+  
+  return ss.str().c_str();
+}
+
+
+//----------------------------------------------------------------------------
 void vtkMRMLTransPerinealProstateTemplateNode::SwitchStep(const char *stepName)
 {
 }
