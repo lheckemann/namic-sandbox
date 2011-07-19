@@ -159,6 +159,10 @@ vtkMRMLTransPerinealProstateTemplateNode::vtkMRMLTransPerinealProstateTemplateNo
 vtkMRMLTransPerinealProstateTemplateNode::~vtkMRMLTransPerinealProstateTemplateNode()
 {
 
+  if (this->ImagingPlaneTransformNodeID) 
+    {
+    SetAndObserveImagingPlaneTransformNodeID(NULL);
+    }
   if (this->ScannerConnectorNodeID) 
     {
     SetAndObserveScannerConnectorNodeID(NULL);
@@ -293,6 +297,8 @@ void vtkMRMLTransPerinealProstateTemplateNode::Copy(vtkMRMLNode *anode)
   vtkMRMLTransPerinealProstateTemplateNode *node = vtkMRMLTransPerinealProstateTemplateNode::SafeDownCast(anode);
   if (node!=NULL)
   {
+    this->SetAndObserveImagingPlaneTransformNodeID(NULL); // remove observer
+    this->SetImagingPlaneTransformNodeID(node->ImagingPlaneTransformNodeID);
     this->SetAndObserveScannerConnectorNodeID(NULL); // remove observer
     this->SetScannerConnectorNodeID(node->ScannerConnectorNodeID);
     this->SetAndObserveZFrameModelNodeID(NULL); // remove observer
@@ -326,6 +332,10 @@ void vtkMRMLTransPerinealProstateTemplateNode::UpdateReferences()
 {
   Superclass::UpdateReferences();
 
+  if (this->ImagingPlaneTransformNodeID != NULL && this->Scene->GetNodeByID(this->ImagingPlaneTransformNodeID) == NULL)
+    {
+    this->SetAndObserveImagingPlaneTransformNodeID(NULL);
+    }
   if (this->ScannerConnectorNodeID != NULL && this->Scene->GetNodeByID(this->ScannerConnectorNodeID) == NULL)
     {
     this->SetAndObserveScannerConnectorNodeID(NULL);
@@ -355,13 +365,18 @@ void vtkMRMLTransPerinealProstateTemplateNode::UpdateReferences()
     this->SetAndObserveActiveNeedleTransformNodeID(NULL);
     }
 
-
 }
+
 
 //----------------------------------------------------------------------------
 void vtkMRMLTransPerinealProstateTemplateNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
   Superclass::UpdateReferenceID(oldID, newID);
+
+  if (this->ImagingPlaneTransformNodeID && !strcmp(oldID, this->ImagingPlaneTransformNodeID))
+    {
+    this->SetAndObserveImagingPlaneTransformNodeID(newID);
+    }
   if (this->ScannerConnectorNodeID && !strcmp(oldID, this->ScannerConnectorNodeID))
     {
     this->SetAndObserveScannerConnectorNodeID(newID);
@@ -398,6 +413,8 @@ void vtkMRMLTransPerinealProstateTemplateNode::UpdateReferenceID(const char *old
 void vtkMRMLTransPerinealProstateTemplateNode::UpdateScene(vtkMRMLScene *scene)
 {
    Superclass::UpdateScene(scene);
+
+   this->SetAndObserveImagingPlaneTransformNodeID(this->GetImagingPlaneTransformNodeID());
    this->SetAndObserveScannerConnectorNodeID(this->GetScannerConnectorNodeID());
    this->SetAndObserveZFrameModelNodeID(this->GetZFrameModelNodeID());
    this->SetAndObserveZFrameTransformNodeID(this->GetZFrameTransformNodeID());
@@ -1236,6 +1253,14 @@ void vtkMRMLTransPerinealProstateTemplateNode::SetAndObserveScannerConnectorNode
   events->InsertNextValue(vtkMRMLIGTLConnectorNode::ConnectedEvent);
   events->InsertNextValue(vtkMRMLIGTLConnectorNode::DisconnectedEvent);
   vtkSetAndObserveMRMLObjectEventsMacro(this->ScannerConnectorNode, tnode, events);
+
+  if (this->GetScannerConnectorNode())
+    {
+    this->GetScannerConnectorNode()->RegisterOutgoingMRMLNode(this->GetImagingPlaneTransformNode());
+    }
+
+  this->Modified();
+
 }
 
 
@@ -1394,6 +1419,18 @@ void vtkMRMLTransPerinealProstateTemplateNode::SetAndObserveActiveNeedleTransfor
 
 
 //----------------------------------------------------------------------------
+void vtkMRMLTransPerinealProstateTemplateNode::SetAndObserveImagingPlaneTransformNodeID(const char *nodeId)
+{
+  vtkSetAndObserveMRMLObjectMacro(this->ImagingPlaneTransformNode, NULL);
+  this->SetImagingPlaneTransformNodeID(nodeId);
+  vtkMRMLLinearTransformNode *tnode = this->GetImagingPlaneTransformNode();
+  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+  events->InsertNextValue(vtkCommand::ModifiedEvent);
+  vtkSetAndObserveMRMLObjectEventsMacro(this->ImagingPlaneTransformNode, tnode, events);
+}
+
+
+//----------------------------------------------------------------------------
 vtkMRMLLinearTransformNode* vtkMRMLTransPerinealProstateTemplateNode::GetActiveNeedleTransformNode()
 {
   if (this->GetScene() && this->ActiveNeedleTransformNodeID != NULL )
@@ -1402,6 +1439,18 @@ vtkMRMLLinearTransformNode* vtkMRMLTransPerinealProstateTemplateNode::GetActiveN
     }
   return NULL;
 }
+
+
+//----------------------------------------------------------------------------
+vtkMRMLLinearTransformNode* vtkMRMLTransPerinealProstateTemplateNode::GetImagingPlaneTransformNode()
+{
+  if (this->GetScene() && this->ImagingPlaneTransformNodeID != NULL )
+    {    
+    return vtkMRMLLinearTransformNode::SafeDownCast(this->GetScene()->GetNodeByID(this->ImagingPlaneTransformNodeID));
+    }
+  return NULL;
+}
+
 
 //----------------------------------------------------------------------------
 std::string vtkMRMLTransPerinealProstateTemplateNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)

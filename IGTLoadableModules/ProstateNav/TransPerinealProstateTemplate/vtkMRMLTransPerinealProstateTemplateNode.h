@@ -128,8 +128,8 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
 
   // For Real-time MRI
   vtkGetStringMacro(ImagingPlaneTransformNodeID);
-  //vtkMRMLLinearTransformNode* GetImagingPlaneTransformNode();
-  //void SetAndObserveImagingPlaneTransformNodeID(const char *nodeID);
+  vtkMRMLLinearTransformNode* GetImagingPlaneTransformNode();
+  void SetAndObserveImagingPlaneTransformNodeID(const char *nodeID);
 
   vtkGetStringMacro(ScreenMessage);
 
