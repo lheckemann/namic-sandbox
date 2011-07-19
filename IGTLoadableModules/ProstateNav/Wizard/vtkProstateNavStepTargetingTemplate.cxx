@@ -60,6 +60,8 @@
 
 #include "vtkMRMLTransPerinealProstateTemplateNode.h"
 
+#include "vtkProstateNavReportWindow.h"
+
 const char TARGET_INDEX_ATTR[]="TARGET_IND";
 
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
@@ -136,6 +138,8 @@ vtkProstateNavStepTargetingTemplate::vtkProstateNavStepTargetingTemplate()
   this->TargetPlanListNode=NULL;
 
   this->OptionFrame = NULL;
+
+  this->ReportWindow = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -171,6 +175,14 @@ vtkProstateNavStepTargetingTemplate::~vtkProstateNavStepTargetingTemplate()
   DELETE_IF_NULL_WITH_SETPARENT_NULL(MoveButton);
 
   DELETE_IF_NULL_WITH_SETPARENT_NULL(Message);
+
+  if (this->ReportWindow)
+    {
+    this->ReportWindow->Withdraw();
+    this->ReportWindow->SetApplication(NULL);
+    this->ReportWindow->Delete();
+    this->ReportWindow = NULL;
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -346,6 +358,14 @@ void vtkProstateNavStepTargetingTemplate::ShowTargetPlanningFrame()
   //this->Script("grid %s -row 1 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->NeedleTypeMenuList->GetWidgetName());
   //this->Script("grid %s -row 0 -column 0 -padx 2 -pady 2", this->AddTargetsOnClickButton->GetWidgetName());
   //this->Script("grid %s -row 0 -column 1 -padx 2 -pady 2", this->ShowWorkspaceButton->GetWidgetName());
+
+  if (!this->ReportWindow)
+    {
+    this->ReportWindow = vtkProstateNavReportWindow::New(); 
+    this->ReportWindow->SetApplication(this->GetApplication());
+    this->ReportWindow->Create();
+    }
+
 
 }
 
@@ -533,9 +553,11 @@ void vtkProstateNavStepTargetingTemplate::ProcessGUIEvents(vtkObject *caller,
 {
 
   // -----------------------------------------------------------------
+  // Manager node
+  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManagerNode();    
+
+  // -----------------------------------------------------------------
   // Move Button Pressed
-
-
   if (this->MoveButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
@@ -574,9 +596,13 @@ void vtkProstateNavStepTargetingTemplate::ProcessGUIEvents(vtkObject *caller,
   if (this->GenerateListButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
+    vtkMRMLTransPerinealProstateTemplateNode* robotNode = 
+      vtkMRMLTransPerinealProstateTemplateNode::SafeDownCast(this->GetProstateNavManager()->GetRobotNode());
+    vtkProstateNavTargetDescriptor* targetDesc=this->GetProstateNavManager()->GetTargetDescriptorAtIndex(mrmlNode->GetCurrentTargetIndex());
+    this->ReportWindow->GenerateReport(robotNode, targetDesc);
+    this->ReportWindow->DisplayOnWindow();
+    return;
     }
-
-  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManagerNode();
 
   if(!mrmlNode)
       return;

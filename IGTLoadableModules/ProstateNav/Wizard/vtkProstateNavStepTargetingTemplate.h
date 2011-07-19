@@ -36,6 +36,8 @@ class vtkMRMLSelectionNode;
 class vtkMRMLFiducialListNode;
 class vtkKWCheckButton;
 
+class vtkProstateNavReportWindow;
+
 class VTK_PROSTATENAV_EXPORT vtkProstateNavStepTargetingTemplate : public vtkProstateNavStep
 {
 public:
@@ -127,6 +129,9 @@ protected:
   vtkKWPushButton *MoveButton;
 
   vtkKWText *Message;
+
+  // Taret list report window
+  vtkProstateNavReportWindow* ReportWindow;
 
 private:
   vtkProstateNavStepTargetingTemplate(const vtkProstateNavStepTargetingTemplate&);
