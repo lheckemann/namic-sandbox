@@ -3,6 +3,7 @@
 
 
 #include <cmath>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -19,6 +20,9 @@
 
 
 // =============================================================
+
+
+#define DEBUG_PERKPROCEDURE
 
 
 #define DISTANCE( p1, p2 ) \
@@ -464,6 +468,9 @@ vtkMRMLPerkProcedureNode
 
 
 
+/**
+ * @returns NULL if index not exists.
+ */
 PerkNote*
 vtkMRMLPerkProcedureNode
 ::GetNoteAtIndex( int index )
@@ -479,6 +486,25 @@ vtkMRMLPerkProcedureNode
 
 
 
+/**
+ * @returns -1.0 if index not exists.
+ */
+double
+vtkMRMLPerkProcedureNode
+::GetRelativeTimeAtNoteIndex( int index )
+{
+  if ( index >= 0  &&  (unsigned int)index < this->NoteList.size() )
+    {
+    return ( this->NoteList[ index ]->Time - this->TransformTimeSeries->GetMinTime() );
+    }
+  else
+    {
+    return -1.0;
+    }
+}
+
+
+
 double
 vtkMRMLPerkProcedureNode
 ::GetTimeAtTransformIndex( int index )
@@ -490,12 +516,30 @@ vtkMRMLPerkProcedureNode
 
 
 
+double
+vtkMRMLPerkProcedureNode
+::GetRelativeTimeAtTransformIndex( int index )
+{
+  return ( this->TransformTimeSeries->GetTimeAtIndex( index ) - this->TransformTimeSeries->GetMinTime() );
+}
+
+
+
 vtkTransform*
 vtkMRMLPerkProcedureNode
 ::GetTransformAtTransformIndex( int index )
 {
   return this->TransformTimeSeries->GetTransformAtIndex( index );
 }
+
+
+
+vtkMRMLStorageNode*
+vtkMRMLPerkProcedureNode
+::CreateDefaultStorageNode()
+{
+  return vtkMRMLPerkProcedureStorageNode::New();
+};
 
 
 
@@ -758,31 +802,65 @@ vtkMRMLPerkProcedureNode
   
   
   double lastTime = this->TransformTimeSeries->GetTimeAtIndex( this->IndexBegin );
-  vtkSmartPointer< vtkTransform > tr = vtkSmartPointer< vtkTransform >::New();
-  tr->DeepCopy( this->TransformTimeSeries->GetTransformAtIndex( this->IndexBegin ) );
+  vtkSmartPointer< vtkTransform > tNeedletipToParent = vtkSmartPointer< vtkTransform >::New();
+  tNeedletipToParent->GetMatrix()->DeepCopy( this->TransformTimeSeries->GetTransformAtIndex( this->IndexBegin )->GetMatrix() );
+  tNeedletipToParent->Update();
+  // tNeedletipToParent->DeepCopy( this->TransformTimeSeries->GetTransformAtIndex( this->IndexBegin ) );
   
   double lastEpos[ 4 ] = { 0, 0, 0, 1 }; // Last entry point of needle into the phantom.
   double lastTpos[ 4 ] = { 0, 0, 0, 1 }; // Last position of the needle tip.
-    lastTpos[ 0 ] = tr->GetMatrix()->GetElement( 0, 3 );
-    lastTpos[ 1 ] = tr->GetMatrix()->GetElement( 1, 3 );
-    lastTpos[ 2 ] = tr->GetMatrix()->GetElement( 2, 3 );
+    lastTpos[ 0 ] = tNeedletipToParent->GetMatrix()->GetElement( 0, 3 );
+    lastTpos[ 1 ] = tNeedletipToParent->GetMatrix()->GetElement( 1, 3 );
+    lastTpos[ 2 ] = tNeedletipToParent->GetMatrix()->GetElement( 2, 3 );
     
   
     // Loop over recorded transforms.
   
+  vtkSmartPointer< vtkTransform > tNeedleToParent = vtkSmartPointer< vtkTransform >::New();
+  
   for ( int index = this->IndexBegin; index <= this->IndexEnd; ++ index )
     {
     double ctime = this->TransformTimeSeries->GetTimeAtIndex( index );
-    tr->DeepCopy( this->TransformTimeSeries->GetTransformAtIndex( index ) );
+    tNeedletipToParent->GetMatrix()->DeepCopy( this->TransformTimeSeries->GetTransformAtIndex( index )->GetMatrix() );
+    // tr->DeepCopy( this->TransformTimeSeries->GetTransformAtIndex( index ) );
     
-    this->NeedleTransformNode->GetMatrixTransformToParent()->DeepCopy( tr->GetMatrix() );
+      // Apply needle calibration if we have it.
+    
+    tNeedleToParent->Identity();
+    tNeedleToParent->Update();
+    tNeedleToParent->Concatenate( tNeedletipToParent );
+    if ( this->NeedleCalibrationTransformNode != NULL )
+      {
+      tNeedleToParent->GetMatrix()->DeepCopy( this->NeedleCalibrationTransformNode->GetMatrixTransformToParent() );
+      }
+    tNeedleToParent->Update();
+    
+    
+    this->NeedleTransformNode->GetMatrixTransformToParent()->DeepCopy( tNeedleToParent->GetMatrix() );
     vtkSmartPointer< vtkMatrix4x4 > mWorld = vtkSmartPointer< vtkMatrix4x4 >::New();
     this->NeedleTransformNode->GetMatrixTransformToWorld( mWorld );
-    tr->GetMatrix()->DeepCopy( mWorld );
     
-    double cpos[ 4 ] = { tr->GetMatrix()->GetElement( 0, 3 ),
-                         tr->GetMatrix()->GetElement( 1, 3 ),
-                         tr->GetMatrix()->GetElement( 2, 3 ), 1 };
+    vtkSmartPointer< vtkTransform > tNeedleToWorld = vtkSmartPointer< vtkTransform >::New();
+    tNeedleToWorld->GetMatrix()->DeepCopy( mWorld );
+    tNeedleToWorld->Update();
+
+    
+#ifdef DEBUG_PERKPROCEDURE
+    std::ofstream dout ( "_DebugPerkProcedureEvaluator.txt", std::ios_base::app );
+    dout << index << " ";
+    dout << "NeedletipToParent ";
+    for ( int i = 0; i < 3; ++ i ) dout << tNeedletipToParent->GetMatrix()->GetElement( i, 3 ) << " ";
+    dout << "NeedleToParent ";
+    for ( int i = 0; i < 3; ++ i ) dout << tNeedleToParent->GetMatrix()->GetElement( i, 3 ) << " ";
+    dout << "NeedleToWorld ";
+    for ( int i = 0; i < 3; ++ i ) dout << tNeedleToWorld->GetMatrix()->GetElement( i, 3 ) << " ";
+    dout.close();
+#endif
+
+    
+    double cpos[ 4 ] = { tNeedleToWorld->GetMatrix()->GetElement( 0, 3 ),
+                         tNeedleToWorld->GetMatrix()->GetElement( 1, 3 ),
+                         tNeedleToWorld->GetMatrix()->GetElement( 2, 3 ), 1 };
     
     bool inside = this->BoxShape->IsInside( cpos[ 0 ], cpos[ 1 ], cpos[ 2 ] );
     double d = DISTANCE( lastTpos, cpos );
@@ -794,7 +872,7 @@ vtkMRMLPerkProcedureNode
       timeInside += dt;
       
       double currEpos[ 4 ] = { 0, 0, 0, 1 };
-      bool valid = this->BoxShape->GetEntryPoint( tr, currEpos );
+      bool valid = this->BoxShape->GetEntryPoint( tNeedleToParent, currEpos );
       
         // If "inside surface covered" can be computed.
         
@@ -818,15 +896,15 @@ vtkMRMLPerkProcedureNode
   // debug
   double origin[ 4 ] = { 0, 0, 0, 1 };
   double tipAtEnd[ 4 ] = { 0, 0, 0, 1 };
-  tr->MultiplyPoint( origin, tipAtEnd );
-  vtkMatrix4x4* mtx = tr->GetMatrix();
+  tNeedleToParent->MultiplyPoint( origin, tipAtEnd );
+  vtkMatrix4x4* mtx = tNeedleToParent->GetMatrix();
   
   
     // Create a superior oriented unit vector, transform by tr, compare angle with axial.
   
   double inferiorDirection[ 4 ] = { 0, 0, - 1, 1 };
   double needleDirection[ 4 ] = { 0, 0, 0, 1 };
-  tr->MultiplyPoint( inferiorDirection, needleDirection );
+  tNeedleToParent->MultiplyPoint( inferiorDirection, needleDirection );
   
   double cosinus = lastTpos[ 1 ] - needleDirection[ 1 ];
   double sinus = lastTpos[ 2 ] - needleDirection[ 2 ];
