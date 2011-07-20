@@ -86,19 +86,18 @@ public:
   int GetNumberOfTransforms() { return this->TransformTimeSeries->GetNumberOfRecords(); }
   
   PerkNote* GetNoteAtIndex( int index );
+  double GetRelativeTimeAtNoteIndex( int index );
   double GetTimeAtTransformIndex( int index );
+  double GetRelativeTimeAtTransformIndex( int index );
   vtkTransform* GetTransformAtTransformIndex( int index );
   
   
     // Storage.
   
-  virtual vtkMRMLStorageNode* CreateDefaultStorageNode() {
-    return vtkMRMLPerkProcedureStorageNode::New();
-    };
+  virtual vtkMRMLStorageNode* CreateDefaultStorageNode();
   
-  virtual const char* GetDefaultWriteFileExtension() {
-    return "xml";
-    };
+  
+  virtual const char* GetDefaultWriteFileExtension() { return "xml"; };
   
   
   bool IsNeedleInsideBody();
@@ -116,6 +115,7 @@ public:
   void SetTransformIndex( int ind );
   
   vtkGetMacro( TransformIndex, int );
+  
   
   
     // For measurements.

@@ -36,6 +36,10 @@ public:
   void Clear();
   
   
+  vtkGetMacro( MinTime, double );
+  vtkGetMacro( MaxTime, double );
+  
+  
   //BTX
   typedef std::vector< std::pair< double, vtkTransform* > > DataType;
   typedef DataType::iterator DataIteratorType;

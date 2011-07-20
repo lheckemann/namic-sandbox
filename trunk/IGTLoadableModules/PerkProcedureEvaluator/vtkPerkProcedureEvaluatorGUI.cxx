@@ -2,6 +2,7 @@
 #include "vtkPerkProcedureEvaluatorGUI.h"
 
 
+#include <iomanip>
 #include <sstream>
 #include <string>
 
@@ -76,10 +77,10 @@
 
 
 std::string
-DoubleToStr( double d )
+DoubleToStr( double d, int digits = 2 )
 {
   std::stringstream ss;
-  ss << d;
+  ss << std::fixed << std::setprecision( digits ) << d;
   return ss.str();
 }
 
@@ -464,10 +465,17 @@ vtkPerkProcedureEvaluatorGUI
   else if (    this->PlanFiducialsSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
             && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent )
     {
-    vtkMRMLFiducialListNode* fids = vtkMRMLFiducialListNode::SafeDownCast(
-      this->PlanFiducialsSelector->GetSelected() );
-    this->ProcedureNode->SetPlan( fids );
-    this->UpdateAll();
+    vtkMRMLFiducialListNode* fids = vtkMRMLFiducialListNode::SafeDownCast( this->PlanFiducialsSelector->GetSelected() );
+    if ( this->ProcedureNode != NULL )
+      {
+      this->ProcedureNode->SetPlan( fids );
+      this->UpdateAll();
+      }
+    else
+      {
+      // TODO: Notify the user to select a procedure node first.
+      this->PlanFiducialsSelector->SetSelected( NULL );
+      }
     }
   
   else if (    this->BoxFiducialsSelector == vtkSlicerNodeSelectorWidget::SafeDownCast( caller )
@@ -1067,7 +1075,7 @@ vtkPerkProcedureEvaluatorGUI
   vtkSmartPointer< vtkKWLabel > labelSurfaceInside = vtkSmartPointer< vtkKWLabel >::New();
     labelSurfaceInside->SetParent( resultsFrame->GetFrame() );
     labelSurfaceInside->Create();
-    labelSurfaceInside->SetText( "Tissue surface covered (mm2): " );
+    labelSurfaceInside->SetText( "Tissue surface covered (cm2): " );
   
   if ( ! this->LabelSurfaceInside )
     {
@@ -1177,7 +1185,8 @@ vtkPerkProcedureEvaluatorGUI
         
         vtkKWMultiColumnList* colList = this->NotesList->GetWidget();
         
-        colList->SetCellText( row, NOTES_COL_TIME, DoubleToStr( note->Time ).c_str() );
+        // colList->SetCellText( row, NOTES_COL_TIME, DoubleToStr( note->Time ).c_str() );
+        colList->SetCellText( row, NOTES_COL_TIME, DoubleToStr( procedure->GetRelativeTimeAtNoteIndex( row ), 1 ).c_str() );
         colList->SetCellText( row, NOTES_COL_MESSAGE, note->Message.c_str() );
         }
       }
@@ -1192,12 +1201,12 @@ vtkPerkProcedureEvaluatorGUI
   
   if ( procedure->GetIndexBegin() >= 0 )
     {
-    this->LabelBegin->SetText( DoubleToStr( procedure->GetTimeAtTransformIndex( procedure->GetIndexBegin() ) ).c_str() );
+    this->LabelBegin->SetText( DoubleToStr( procedure->GetRelativeTimeAtTransformIndex( procedure->GetIndexBegin() ), 1 ).c_str() );
     }
   
   if ( procedure->GetIndexEnd() >= 0 )
     {
-    this->LabelEnd->SetText( DoubleToStr( procedure->GetTimeAtTransformIndex( procedure->GetIndexEnd() ) ).c_str() );
+    this->LabelEnd->SetText( DoubleToStr( procedure->GetRelativeTimeAtTransformIndex( procedure->GetIndexEnd() ), 1 ).c_str() );
     }
   
   if ( procedure->GetIndexBegin() >= 0 && procedure->GetIndexEnd() >= 0 )
@@ -1205,7 +1214,7 @@ vtkPerkProcedureEvaluatorGUI
     this->LabelTotalTime->SetText( DoubleToStr( procedure->GetTotalTime() ).c_str() );
     this->LabelPathInside->SetText( DoubleToStr( procedure->GetPathInside() ).c_str() );
     this->LabelTimeInside->SetText( DoubleToStr( procedure->GetTimeInside() ).c_str() );
-    this->LabelSurfaceInside->SetText( DoubleToStr( procedure->GetSurfaceInside() ).c_str() );
+    this->LabelSurfaceInside->SetText( DoubleToStr( procedure->GetSurfaceInside() / 100.0 ).c_str() );
     this->LabelAngleFromAxial->SetText( DoubleToStr( procedure->GetAngleFromAxial() ).c_str() );
     
     if ( procedure->GetAngleInAxial() < 0.0 )
@@ -1228,7 +1237,7 @@ vtkPerkProcedureEvaluatorGUI
   vtkMRMLPerkProcedureNode* procedure = this->GetProcedureNode();
   if ( ! procedure ) return;
   
-  this->EntrySec->SetValueAsDouble( procedure->GetTimeAtTransformIndex( procedure->GetTransformIndex() ) );
+  this->EntrySec->SetValueAsDouble( procedure->GetRelativeTimeAtTransformIndex( procedure->GetTransformIndex() ) );
   
   vtkTransform* txform = procedure->GetTransformAtTransformIndex( procedure->GetTransformIndex() );
   if ( txform )

@@ -2,6 +2,8 @@
 #include "vtkTransformTimeSeries.h"
 
 
+#include <limits>
+
 #include "vtkObjectFactory.h"
 
 
@@ -118,8 +120,8 @@ vtkTransformTimeSeries
   
   this->Data.clear();
   
-  this->MinTime = 0;
-  this->MaxTime = 0;
+  this->MinTime = std::numeric_limits< double >::max();
+  this->MaxTime = std::numeric_limits< double >::min();
 }
 
 
@@ -127,8 +129,8 @@ vtkTransformTimeSeries
 vtkTransformTimeSeries
 ::vtkTransformTimeSeries()
 {
-  this->MinTime = 0;
-  this->MaxTime = 0;
+  this->MinTime = std::numeric_limits< double >::max();
+  this->MaxTime = std::numeric_limits< double >::min();
 }
 
 
