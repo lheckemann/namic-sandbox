@@ -1,0 +1,10 @@
+# BRAINSCommonLib2D could be installed anywhere, so set all paths based on where 
+# this file was found (which should be the lib/BRAINSCommonLib2D directory of the 
+# installation)
+get_filename_component(BRAINSCommonLib2D_CONFIG_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+set(BRAINSCommonLib2D_INCLUDE_DIRS "${BRAINSCommonLib2D_CONFIG_DIR}/../../include/BRAINSCommonLib2D")
+set(BRAINSCommonLib2D_LIBRARY_DIRS "${BRAINSCommonLib2D_CONFIG_DIR}")
+set(BRAINSCommonLib2D_USE_FILE "${BRAINSCommonLib2D_CONFIG_DIR}/UseBRAINSCommonLib2D.cmake")
+set(ITK_DIR "@ITK_DIR@")
+
