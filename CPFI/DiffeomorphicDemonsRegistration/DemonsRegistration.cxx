@@ -51,7 +51,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkHistogramMatchingImageFilter.h"
-#include "DemonsRegistrationCLP.h"
+#include "DemonsRegistration2CLP.h"
 
 #include <iostream>
 
@@ -477,7 +477,7 @@ protected:
 
 
 template <unsigned int Dimension>
-void DoDemonsRegistration( arguments args )
+void DoDemonsRegistration2( arguments args )
 {
    // Declare the types of the images (other types forced to float on input)
    typedef float PixelType;
@@ -1022,7 +1022,7 @@ int main( int argc, char *argv[] )
       //DoDemonsRegistration<2>(args);
       //break;
    case 3:
-      DoDemonsRegistration<3>(args);
+      DoDemonsRegistration2<3>(args);
       break;
    default:
       std::cerr << "Unsuported dimension" << std::endl;
