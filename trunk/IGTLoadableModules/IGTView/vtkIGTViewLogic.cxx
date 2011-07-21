@@ -39,6 +39,9 @@ vtkIGTViewLogic::vtkIGTViewLogic()
 
   this->TransformNodeSelected = false;
   this->locatorTransformNode = NULL;
+  //this->locatorPosition = NULL;
+  this->Crosshair = NULL;
+  this->CrosshairEnabled = false;
 }
 
 
@@ -54,6 +57,11 @@ vtkIGTViewLogic::~vtkIGTViewLogic()
   if(this->locatorTransformNode)
     {
       this->locatorTransformNode->Delete();
+    }
+
+  if(this->Crosshair)
+    {
+      this->Crosshair->Delete();
     }
 
 }
@@ -84,30 +92,26 @@ void vtkIGTViewLogic::UpdateAll()
 
 }
 
-void vtkIGTViewLogic::UpdateCrosshairAndReslice(vtkMRMLCrosshairNode* crosshair, vtkMRMLSliceNode* RedSlice, vtkMRMLSliceNode* YellowSlice, vtkMRMLSliceNode* GreenSlice)
+void vtkIGTViewLogic::Reslice(vtkMRMLSliceNode* RedSlice, vtkMRMLSliceNode* YellowSlice, vtkMRMLSliceNode* GreenSlice)
 {
-  // Set Crosshair
-  crosshair->SetCrosshairName("Locator");
-  crosshair->SetCrosshairBehavior(vtkMRMLCrosshairNode::Normal);
-  crosshair->SetCrosshairThickness(vtkMRMLCrosshairNode::Fine);
-  crosshair->SetNavigation(1);
-  crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::ShowAll);
 
   if(this->TransformNodeSelected)
     {
       vtkMatrix4x4* locatorMatrix = vtkMatrix4x4::New();
       this->locatorTransformNode->GetMatrixTransformToWorld(locatorMatrix);
 
-      double locatorPosition[3] = {locatorMatrix->GetElement(0,3), locatorMatrix->GetElement(1,3), locatorMatrix->GetElement(2,3) };
-      crosshair->SetCrosshairRAS(locatorPosition);
+      this->locatorPosition[0] = locatorMatrix->GetElement(0,3);
+      this->locatorPosition[1] = locatorMatrix->GetElement(1,3);
+      this->locatorPosition[2] = locatorMatrix->GetElement(2,3);
 
       locatorMatrix->Delete();
 
       // Reslice
-      RedSlice->JumpSlice(locatorPosition[0],locatorPosition[1],locatorPosition[2]);
-      YellowSlice->JumpSlice(locatorPosition[0],locatorPosition[1],locatorPosition[2]);
-      GreenSlice->JumpSlice(locatorPosition[0],locatorPosition[1],locatorPosition[2]);
-      crosshair->SetCrosshairRAS(locatorPosition);
+      RedSlice->JumpSlice(this->locatorPosition[0],this->locatorPosition[1],this->locatorPosition[2]);
+      YellowSlice->JumpSlice(this->locatorPosition[0],this->locatorPosition[1],this->locatorPosition[2]);
+      GreenSlice->JumpSlice(this->locatorPosition[0],this->locatorPosition[1],this->locatorPosition[2]);
+
+      UpdateCrosshair();
     }
 }
 
@@ -118,7 +122,7 @@ void vtkIGTViewLogic::ObliqueOrientation(vtkMRMLSliceNode* slice, const char* Re
       vtkMatrix4x4* TransformationMatrix = vtkMatrix4x4::New();
       this->locatorTransformNode->GetMatrixTransformToWorld(TransformationMatrix);
 
-      /*
+      
       double tx = TransformationMatrix->GetElement(0,0);
       double ty = TransformationMatrix->GetElement(1,0);
       double tz = TransformationMatrix->GetElement(2,0);
@@ -134,43 +138,49 @@ void vtkIGTViewLogic::ObliqueOrientation(vtkMRMLSliceNode* slice, const char* Re
       double px = TransformationMatrix->GetElement(0,3);
       double py = TransformationMatrix->GetElement(1,3);
       double pz = TransformationMatrix->GetElement(2,3);
-      */      
-
-      double tx = TransformationMatrix->GetElement(0,0);
-      double ty = TransformationMatrix->GetElement(0,1);
-      double tz = TransformationMatrix->GetElement(0,2);
-
-      double mx = TransformationMatrix->GetElement(1,0);
-      double my = TransformationMatrix->GetElement(1,1);
-      double mz = TransformationMatrix->GetElement(1,2);
-
-      double nx = TransformationMatrix->GetElement(2,0);
-      double ny = TransformationMatrix->GetElement(2,1);
-      double nz = TransformationMatrix->GetElement(2,2);
-
-      double px = TransformationMatrix->GetElement(3,0);
-      double py = TransformationMatrix->GetElement(3,1);
-      double pz = TransformationMatrix->GetElement(3,2);
-
-
+            
       if(!strcmp(ReslicingType, "Inplane0"))
   {
-    slice->SetSliceToRASByNTP(nx,ny,nz,tx,ty,tz,px,py,pz,0);
+    slice->SetSliceToRASByNTP(-nx,-ny,-nz,-tx,-ty,-tz,px,py,pz,0);
   }
       else if (!strcmp(ReslicingType, "Inplane90"))
   {
-    slice->SetSliceToRASByNTP(tx,ty,tz,mx,my,mz,px,py,pz,0);
+    slice->SetSliceToRASByNTP(-tx,-ty,-tz,-mx,-my,-mz,px,py,pz,0);
   }
       else if (!strcmp(ReslicingType, "Probe's Eye"))
   {
-    slice->SetSliceToRASByNTP(mx,my,mz,tx,ty,tz,px,py,pz,0);
+    slice->SetSliceToRASByNTP(mx,my,mz,-tx,-ty,-tz,px,py,pz,0);
   }
       slice->UpdateMatrices();
+
+      // Update Crosshair position
+      this->locatorPosition[0] = px;
+      this->locatorPosition[1] = py;
+      this->locatorPosition[2] = pz;
+      UpdateCrosshair();
 
       TransformationMatrix->Delete();
     }
 }
 
+void vtkIGTViewLogic::UpdateCrosshair()
+{
+  if(this->Crosshair && this->CrosshairEnabled)
+    {
+      // Set Crosshair
+      this->Crosshair->SetCrosshairName("Locator");
+      this->Crosshair->SetCrosshairBehavior(vtkMRMLCrosshairNode::Normal);
+      this->Crosshair->SetCrosshairThickness(vtkMRMLCrosshairNode::Fine);
+      this->Crosshair->SetNavigation(1);
+      this->Crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::ShowAll);
+    }
+  
+  if(this->locatorPosition)
+    {
+      this->Crosshair->SetCrosshairRAS(this->locatorPosition[0], this->locatorPosition[1], this->locatorPosition[2]);
+    }
+
+}
 
 
 

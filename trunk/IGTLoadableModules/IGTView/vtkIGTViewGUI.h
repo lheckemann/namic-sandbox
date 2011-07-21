@@ -146,8 +146,8 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
 
   vtkKWCheckButton* crosshairButton;
   vtkSlicerNodeSelectorWidget* transformNodeSelector;
-  bool ShowCrosshair;
-  vtkMRMLCrosshairNode* Crosshair;
+  //bool ShowCrosshair;
+  //vtkMRMLCrosshairNode* Crosshair;
 
   bool RedObliqueReslicing;
   bool YellowObliqueReslicing;
