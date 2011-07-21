@@ -1,5 +1,5 @@
-#ifndef  __BRAINSFitHelperTemplate_h
-#define  __BRAINSFitHelperTemplate_h
+#ifndef  __BRAINSFit2DHelperTemplate_h
+#define  __BRAINSFit2DHelperTemplate_h
 
 /**
   * \author Hans J. Johnson
@@ -7,7 +7,7 @@
   * The intension of the BRIANSFitHelperTemplate is to provide a
   * class that can be used in other programs in a way that is very similar to
   * the command line version of the program from the SlicerExecutionModel
-  * version of the BRAINSFitPrimary program.
+  * version of the BRAINSFit2DPrimary program.
   *
   * Almost all the command line options are available in this version, but
   * there is no need to read or write files to disk in order to use this class.
@@ -60,11 +60,11 @@ namespace itk
 {
 
 template <class FixedImageType, class MovingImageType>
-class BRAINSFitHelperTemplate: public Object
+class BRAINSFit2DHelperTemplate: public Object
 {
 public:
   /** Standard class typedefs. */
-  typedef BRAINSFitHelperTemplate            Self;
+  typedef BRAINSFit2DHelperTemplate            Self;
   typedef ProcessObject              Superclass;
   typedef SmartPointer< Self >       Pointer;
   typedef SmartPointer< const Self > ConstPointer;
@@ -91,7 +91,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(BRAINSFitHelperTemplate, ProcessObject);
+  itkTypeMacro(BRAINSFit2DHelperTemplate, ProcessObject);
 
   /** Set/Get the Fixed image. */
   itkSetObjectMacro(FixedVolume, FixedImageType);
@@ -194,8 +194,8 @@ public:
   void StartRegistration(void);
 
 protected:
-  BRAINSFitHelperTemplate();
-  virtual ~BRAINSFitHelperTemplate() {}
+  BRAINSFit2DHelperTemplate();
+  virtual ~BRAINSFit2DHelperTemplate() {}
 
   void PrintSelf(std::ostream & os, Indent indent) const;
 
@@ -212,7 +212,7 @@ protected:
                        typename TransformType::Pointer &initialITKTransform);
 private:
 
-  BRAINSFitHelperTemplate(const Self &); // purposely not implemented
+  BRAINSFit2DHelperTemplate(const Self &); // purposely not implemented
   void operator=(const Self &);  // purposely not implemented
 
   FixedImagePointer  m_FixedVolume;
@@ -256,7 +256,7 @@ private:
   double                                       m_FinalMetricValue;
   bool                                         m_ObserveIterations;
   typename MetricType::Pointer                 m_CostMetricObject;
-};  // end BRAINSFitHelperTemplate class
+};  // end BRAINSFit2DHelperTemplate class
 }   // end namespace itk
 
 #include "BRAINSFit2DHelperTemplate.txx"

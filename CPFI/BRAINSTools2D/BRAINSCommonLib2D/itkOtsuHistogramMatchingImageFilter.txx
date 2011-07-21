@@ -423,7 +423,7 @@ OtsuHistogramMatchingImageFilter< TInputImage, TOutputImage, THistogramMeasureme
   // HACK:  This should really be an
  // itkSpatialObject, it is currently
  // hardcoded to itk::Image<unsigned char, 3>
- // Find similar conversion code in BRAINSFitHelper.cxx
+ // Find similar conversion code in BRAINSFit2DHelper.cxx
   OtsuHistogramType  *histogram,
   const THistogramMeasurement minValue,
   const THistogramMeasurement maxValue)
