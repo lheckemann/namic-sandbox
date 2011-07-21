@@ -17,7 +17,7 @@ else (Slicer3_SOURCE_DIR)
   generateclp(${CLP}_SOURCE ${CLP}.xml)
 endif (Slicer3_SOURCE_DIR)
 add_executable(${CLP} ${${CLP}_SOURCE})
-target_link_libraries (${CLP} ITKIO ITKBasicFilters)
+target_link_libraries (${CLP} ITKIO ITKBasicFilters ITKStatistics)
 
 if (Slicer3_SOURCE_DIR)
   slicer3_set_plugins_output_path(${CLP})
@@ -25,7 +25,7 @@ if (Slicer3_SOURCE_DIR)
   add_library(${CLP}Lib SHARED ${${CLP}_SOURCE})
   slicer3_set_plugins_output_path(${CLP}Lib)
   set_target_properties (${CLP}Lib PROPERTIES COMPILE_FLAGS "-Dmain=ModuleEntryPoint")
-  target_link_libraries (${CLP}Lib ITKIO ITKBasicFilters)
+  target_link_libraries (${CLP}Lib ITKIO ITKBasicFilters ITKStatistics)
 
   set(TARGETS ${CLP}Lib ${CLP})
   slicer3_install_plugins(${TARGETS})
@@ -83,6 +83,6 @@ endif (Slicer3_SOURCE_DIR)
 ##   ADD_TEST(DemonsRegistration2Test2 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CLP} -f ${CMAKE_SOURCE_DIR}/RatLungSlice1.mha -m ${CMAKE_SOURCE_DIR}/RatLungSlice2.mha -v -s2 -g1 -i 20x20x20) 
 ## ENDIF (WIN32)
 #
-## ADD_TEST(CompareImage ImageCompare ${CMAKE_SOURCE_DIR}/RatLungSlice2-Reg.mha output.mha)
+## Add_TEST(CompareImage ImageCompare ${CMAKE_SOURCE_DIR}/RatLungSlice2-Reg.mha output.mha)
 #
 ##Once you're done modifying this template, you should rename it to "CMakeLists.txt"
