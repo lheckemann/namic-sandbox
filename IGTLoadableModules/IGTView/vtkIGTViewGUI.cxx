@@ -85,8 +85,8 @@ vtkIGTViewGUI::vtkIGTViewGUI ( )
 
   this->crosshairButton = NULL;
   this->transformNodeSelector = NULL;
-  this->Crosshair = NULL;
-  this->ShowCrosshair = false;
+  //  this->Crosshair = NULL;
+  //this->ShowCrosshair = false;
   
   this->RedObliqueReslicing = false;
   this->YellowObliqueReslicing = false;
@@ -554,26 +554,31 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->crosshairButton == vtkKWCheckButton::SafeDownCast(caller)
      && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
-      this->Crosshair = this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode();
+      vtkMRMLCrosshairNode *Crosshair = this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode();
 
       if(this->crosshairButton->GetSelectedState())
   {
-    if(this->Crosshair)
+    if(Crosshair)
       {
-        this->ShowCrosshair = true;
+        this->GetLogic()->SetCrosshairEnabled(true);
+        this->GetLogic()->SetCrosshair(Crosshair);
+        this->GetLogic()->UpdateCrosshair();
       }
 
     if(this->transformNodeSelector)
       {
         this->transformNodeSelector->SetEnabled(1);
+        
+        // Trick to update slices menu, even if transform node is already selected in the list before activating crosshair 
+        this->transformNodeSelector->InvokeEvent(vtkSlicerNodeSelectorWidget::NodeSelectedEvent);
       }
   }
       else
   {
-    if(this->Crosshair)
+    if(Crosshair)
       {
-        this->ShowCrosshair = false;
-        this->Crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::NoCrosshair);
+        this->GetLogic()->SetCrosshairEnabled(false);
+        this->GetLogic()->GetCrosshair()->SetCrosshairMode(vtkMRMLCrosshairNode::NoCrosshair);
       }
 
     if(this->transformNodeSelector)
@@ -588,11 +593,10 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->transformNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
-      if(this->Crosshair)
+      if(this->GetLogic()->GetCrosshair())
   {
-    if(this->Crosshair->GetCrosshairMode() == vtkMRMLCrosshairNode::ShowAll)
+    if(this->GetLogic()->GetCrosshair()->GetCrosshairMode() == vtkMRMLCrosshairNode::ShowAll)
       {
-
         vtkMRMLLinearTransformNode* SelectedNode = vtkMRMLLinearTransformNode::SafeDownCast(this->transformNodeSelector->GetSelected());
         if(SelectedNode)
     {
@@ -677,11 +681,11 @@ void vtkIGTViewGUI::ProcessMRMLEvents ( vtkObject *caller,
 void vtkIGTViewGUI::ProcessTimerEvents()
 {
  
-  if(this->ShowCrosshair)
+  if(this->GetLogic()->GetCrosshairEnabled())
     {
       if(this->SliceNodeRed && this->SliceNodeYellow && this->SliceNodeGreen)
   {
-    this->GetLogic()->UpdateCrosshairAndReslice(this->Crosshair, this->SliceNodeRed, this->SliceNodeYellow, this->SliceNodeGreen);
+    this->GetLogic()->Reslice(this->SliceNodeRed, this->SliceNodeYellow, this->SliceNodeGreen);
   }
     }
 

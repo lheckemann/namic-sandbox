@@ -31,6 +31,7 @@
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLSliceNode.h"
+#include "vtkMRMLCrosshairNode.h"
 
 class vtkIGTLConnector;
 class vtkMRMLLinearTransformNode;
@@ -54,14 +55,18 @@ class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic
   vtkTypeRevisionMacro(vtkIGTViewLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
 
-  void UpdateCrosshairAndReslice(vtkMRMLCrosshairNode* crosshair, vtkMRMLSliceNode* RedSlice, vtkMRMLSliceNode* YellowSlice, vtkMRMLSliceNode* GreenSlice);
+  void Reslice(vtkMRMLSliceNode* RedSlice, vtkMRMLSliceNode* YellowSlice, vtkMRMLSliceNode* GreenSlice);
   void ObliqueOrientation(vtkMRMLSliceNode* slice, const char* ReslicingType);
+  void UpdateCrosshair();
 
   vtkSetMacro(TransformNodeSelected, bool);
   vtkGetMacro(TransformNodeSelected, bool);
-
   vtkSetObjectMacro(locatorTransformNode, vtkMRMLLinearTransformNode);
   vtkGetObjectMacro(locatorTransformNode, vtkMRMLLinearTransformNode);
+  vtkSetObjectMacro(Crosshair, vtkMRMLCrosshairNode);
+  vtkGetObjectMacro(Crosshair, vtkMRMLCrosshairNode);
+  vtkSetMacro(CrosshairEnabled, bool);
+  vtkGetMacro(CrosshairEnabled, bool);
 
 
  protected:
@@ -79,6 +84,9 @@ class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic
 
   bool TransformNodeSelected;
   vtkMRMLLinearTransformNode* locatorTransformNode;
+  double locatorPosition[3];
+  vtkMRMLCrosshairNode* Crosshair;
+  bool CrosshairEnabled;
 
  private:
 
