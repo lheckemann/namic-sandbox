@@ -1,6 +1,9 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataReader.h>
+#include <vtkImageData.h>
 #include <vtkImageReader.h>
+#include <vtkStructuredPointsReader.h>
+#include <vtkStructuredPoints.h>
 #include <vtkPoints.h>
 #include <vtkCellArray.h>
 #include <vtkDoubleArray.h>
@@ -32,9 +35,9 @@ int main (int c , char * argv[])
 
   int result = 1;
 
-  if (c < 0)
+  if (c < 3)
     {
-    std::cerr << "Usage: " << argv[0] << " <Surface File (*.vtk)> <Volume File (*.nrrd)>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <Surface File (*.vtk)> <Volume File (*.vtk)>" << std::endl;
     }
   
   const char* surfaceFile = argv[1];
@@ -60,8 +63,10 @@ int main (int c , char * argv[])
     exit (0);
     }
 
+  vtkSmartPointer<vtkPolyData> polyData = reader->GetOutput();
+
   // Load volume image
-  vtkSmartPointer<vtkImageReader> vreader = vtkSmartPointer<vtkImageReader>::New();
+  vtkSmartPointer<vtkStructuredPointsReader> vreader = vtkSmartPointer<vtkStructuredPointsReader>::New();
   vreader->SetFileName(volumeFile);
   vreader->Update();  
   if (vreader->GetOutput() == NULL)
@@ -73,8 +78,15 @@ int main (int c , char * argv[])
     {
     exit (0);
     }
-  
-  vtkSmartPointer<vtkPolyData> polyData = reader->GetOutput();
+
+  int dim[3];
+  vreader->GetOutput()->GetDimensions(dim);
+  std::cerr << "dimensions = ("
+            << dim[0] << ", "
+            << dim[1] << ", "
+            << dim[2] << ")" << std::endl;
+
+  vtkSmartPointer<vtkStructuredPoints> spoints = vreader->GetOUtput();
 
   int n = polyData->GetNumberOfPoints();
   vtkSmartPointer<vtkUnsignedCharArray> colors =
