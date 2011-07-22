@@ -1,5 +1,6 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataReader.h>
+#include <vtkImageReader.h>
 #include <vtkPoints.h>
 #include <vtkCellArray.h>
 #include <vtkDoubleArray.h>
@@ -33,20 +34,24 @@ int main (int c , char * argv[])
 
   if (c < 0)
     {
-    std::cerr << "Usage: " << argv[0] << " <File name (.vtk)>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <Surface File (*.vtk)> <Volume File (*.nrrd)>" << std::endl;
     }
+  
+  const char* surfaceFile = argv[1];
+  const char* volumeFile = argv[2];
 
+  // Load sufrace model
   vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
-  reader->SetFileName(argv[1]);
+  reader->SetFileName(surfaceFile);
   if (!reader->IsFilePolyData())
     {
-    std::cerr << "File " << argv[1] << " is not polydata, cannot be read with this reader" << std::endl;
+    std::cerr << "File " << surfaceFile << " is not polydata, cannot be read with this reader" << std::endl;
     result = 0;
     }
   reader->Update();
   if (reader->GetOutput() == NULL)
     {
-    std::cerr << "Unable to read file " << argv[1] << std::endl;
+    std::cerr << "Unable to read file " << surfaceFile << std::endl;
     result = 0;
     }
 
@@ -55,14 +60,48 @@ int main (int c , char * argv[])
     exit (0);
     }
 
+  // Load volume image
+  vtkSmartPointer<vtkImageReader> vreader = vtkSmartPointer<vtkImageReader>::New();
+  vreader->SetFileName(volumeFile);
+  vreader->Update();  
+  if (vreader->GetOutput() == NULL)
+    {
+    std::cerr << "Unable to read file " << volumeFile << std::endl;
+    result = 0;
+    }
+  if (result == 0)
+    {
+    exit (0);
+    }
   
   vtkSmartPointer<vtkPolyData> polyData = reader->GetOutput();
-  
 
+  int n = polyData->GetNumberOfPoints();
+  vtkSmartPointer<vtkUnsignedCharArray> colors =
+    vtkSmartPointer<vtkUnsignedCharArray>::New();
+  colors->SetName("Colors");
+  colors->SetNumberOfComponents(3);
+  colors->SetNumberOfTuples(n);
+
+  for (int i = 0; i < n; i ++)
+    {
+    double x[3];
+    polyData->GetPoint(i, x);
+    std::cerr << "Point [" << i << "] = (" << x[0] << ", " << x[1] << ", " << x[2] << ")" << std::endl;
+    }
+
+  for (int i = 0; i < n ;i++)
+    {
+    colors->InsertTuple3(i,
+                       int(255 * i/ (n - 1)),
+                       0,
+                       int(255 * (n - 1 - i)/(n - 1)) );
+    }
+
+  polyData->GetPointData()->AddArray(colors);
 
   //polyData->SetPoints(points);
   //polyData->SetLines(lines);
-
   // Varying tube radius using sine-function
   //vtkSmartPointer<vtkDoubleArray> tubeRadius =
   //  vtkSmartPointer<vtkDoubleArray>::New();
@@ -100,11 +139,10 @@ int main (int c , char * argv[])
 
   vtkSmartPointer<vtkPolyDataMapper> mapper =
     vtkSmartPointer<vtkPolyDataMapper>::New();
-  //mapper->SetInputConnection(tube->GetOutputPort());
-  mapper->SetInput(reader->GetOutput());
+  mapper->SetInput(polyData);
   mapper->ScalarVisibilityOn();
   mapper->SetScalarModeToUsePointFieldData();
-  //mapper->SelectColorArray("Colors");
+  mapper->SelectColorArray("Colors");
 
   vtkSmartPointer<vtkActor> actor =
     vtkSmartPointer<vtkActor>::New();
