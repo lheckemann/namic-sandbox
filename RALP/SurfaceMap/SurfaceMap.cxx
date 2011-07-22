@@ -86,7 +86,7 @@ int main (int c , char * argv[])
             << dim[1] << ", "
             << dim[2] << ")" << std::endl;
 
-  vtkSmartPointer<vtkStructuredPoints> spoints = vreader->GetOUtput();
+  vtkSmartPointer<vtkStructuredPoints> spoints = vreader->GetOutput();
 
   int n = polyData->GetNumberOfPoints();
   vtkSmartPointer<vtkUnsignedCharArray> colors =
@@ -95,19 +95,25 @@ int main (int c , char * argv[])
   colors->SetNumberOfComponents(3);
   colors->SetNumberOfTuples(n);
 
+
+  std::cerr << "Number of Points: " << spoints->GetNumberOfPoints() << std::endl;
+  std::cerr << "Number of Cells: "  << spoints->GetNumberOfCells() << std::endl;
+
   for (int i = 0; i < n; i ++)
     {
     double x[3];
     polyData->GetPoint(i, x);
-    std::cerr << "Point [" << i << "] = (" << x[0] << ", " << x[1] << ", " << x[2] << ")" << std::endl;
-    }
+    //std::cerr << "Point [" << i << "] = (" << x[0] << ", " << x[1] << ", " << x[2] << ")" << std::endl;
 
-  for (int i = 0; i < n ;i++)
-    {
+    int id = spoints->FindPoint(x[0], x[1], x[2]);
+    // GetCellNeighbors(id, vtkIDLists, vtkIDList.)
+
+    int t = spoints->GetScalarType();
+    //std::cerr << "scalr type = " << t << std::endl;
     colors->InsertTuple3(i,
-                       int(255 * i/ (n - 1)),
-                       0,
-                       int(255 * (n - 1 - i)/(n - 1)) );
+                         int(255 * i/ (n - 1)),
+                         0,
+                         int(255 * (n - 1 - i)/(n - 1)) );
     }
 
   polyData->GetPointData()->AddArray(colors);
