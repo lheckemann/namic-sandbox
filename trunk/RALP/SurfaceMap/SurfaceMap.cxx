@@ -119,6 +119,8 @@ int main (int c , char * argv[])
     ax[1] = 0.0;
     ax[2] = 0.0;
 
+    std::cerr << "# of points: " << m << ", cell type = " << polyData->GetCell(i)->GetCellType() << std::endl;
+
     for (int j = 0; j < m; j ++)
       {
       double x[3];
@@ -135,8 +137,8 @@ int main (int c , char * argv[])
     
     //int id = spoints->FindPoint(x[0], x[1], x[2]);
     int id = spoints->FindPoint(ax[0], ax[1], ax[2]);
-    std::cerr << "Point [" << id << "] = (" << ax[0] << ", " << ax[1] << ", " << ax[2] << ")" << std::endl;
-    double v = (double)pd->GetComponent(id, 0);
+    //std::cerr << "Point [" << id << "] = (" << ax[0] << ", " << ax[1] << ", " << ax[2] << ")" << std::endl;
+    int v = (int)pd->GetComponent(id, 0);
     
     // GetCellNeighbors(id, vtkIDLists, vtkIDList.)
     
@@ -149,7 +151,8 @@ int main (int c , char * argv[])
     }
 
   //polyData->GetPointData()->AddArray(colors);
-  polyData->GetCellData()->AddArray(colors);
+  //polyData->GetCellData()->AddArray(colors);
+  polyData->GetCellData()->SetScalars(colors);
 
   //polyData->SetPoints(points);
   //polyData->SetLines(lines);
