@@ -37,13 +37,13 @@ int main (int c , char * argv[])
 
   if (c < 5)
     {
-    std::cerr << "Usage: " << argv[0] << " <Surface File (*.vtk)> <Volume File (*.vtk)> W L" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <Surface File (*.vtk)> <Volume File (*.vtk)> <Window> <Level>" << std::endl;
     }
   
-  const char* surfaceFile = argv[1];
-  const char* volumeFile = argv[2];
-  const double   window = (double)atoi(argv[3]);
-  const double   level  = (double)atoi(argv[4]);
+  const char*  surfaceFile = argv[1];
+  const char*  volumeFile = argv[2];
+  const double window = (double)atoi(argv[3]);
+  const double level  = (double)atoi(argv[4]);
 
   // Load sufrace model
   vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
@@ -91,7 +91,7 @@ int main (int c , char * argv[])
             << dim[1] << ", "
             << dim[2] << ")" << std::endl;
 
-  int n = polyData->GetNumberOfPoints();
+  int n = polyData->GetNumberOfCells();
   vtkSmartPointer<vtkUnsignedCharArray> colors =
     vtkSmartPointer<vtkUnsignedCharArray>::New();
   colors->SetName("Colors");
@@ -99,30 +99,47 @@ int main (int c , char * argv[])
   colors->SetNumberOfTuples(n);
 
   vtkSmartPointer<vtkDataArray> pd = spoints->GetPointData()->GetScalars();
-
+  int t = spoints->GetScalarType();
+  std::cerr << "Scalr type: " << t << std::endl;
   std::cerr << "Number of Points: " << spoints->GetNumberOfPoints() << std::endl;
   std::cerr << "Number of Cells: "  << spoints->GetNumberOfCells() << std::endl;
 
   const double low   = level - window/2.0;
   const double scale = 255.0 / window;
 
+  vtkSmartPointer<vtkIdList> il = vtkSmartPointer<vtkIdList>::New();
+
   for (int i = 0; i < n; i ++)
     {
-    double x[3];
-    polyData->GetPoint(i, x);
+    polyData->GetCellPoints(i, il);
     //std::cerr << "Point [" << i << "] = (" << x[0] << ", " << x[1] << ", " << x[2] << ")" << std::endl;
+    int m = il->GetNumberOfIds();
+    double ax[3];
+    ax[0] = 0.0;
+    ax[1] = 0.0;
+    ax[2] = 0.0;
 
-    int id = spoints->FindPoint(x[0], x[1], x[2]);
-    double v = pd->GetComponent(id, 0);
+    for (int j = 0; j < m; j ++)
+      {
+      double x[3];
+      polyData->GetPoint(il->GetId(j), x);
+      //std::cerr << "Point [" << il->GetId(j) << "] = (" << x[0] << ", " << x[1] << ", " << x[2] << ")" << std::endl;
+      ax[0] += x[0];
+      ax[1] += x[1];
+      ax[2] += x[2];
+      }
+
+    ax[0] /= (double)m;
+    ax[1] /= (double)m;
+    ax[2] /= (double)m;
+    
+    //int id = spoints->FindPoint(x[0], x[1], x[2]);
+    int id = spoints->FindPoint(ax[0], ax[1], ax[2]);
+    std::cerr << "Point [" << id << "] = (" << ax[0] << ", " << ax[1] << ", " << ax[2] << ")" << std::endl;
+    double v = (double)pd->GetComponent(id, 0);
     
     // GetCellNeighbors(id, vtkIDLists, vtkIDList.)
-    int t = spoints->GetScalarType();
-    //std::cerr << "scalr type = " << t << std::endl;
     
-    //colors->InsertTuple3(i,
-    //                     int(255 * i/ (n - 1)),
-    //                     0,
-    //                     int(255 * (n - 1 - i)/(n - 1)) );
     double intensity = (v - low) * scale;
     if (intensity > 255.0) intensity = 255.0;
     unsigned char cv = (unsigned char) intensity;
@@ -131,7 +148,8 @@ int main (int c , char * argv[])
 
     }
 
-  polyData->GetPointData()->AddArray(colors);
+  //polyData->GetPointData()->AddArray(colors);
+  polyData->GetCellData()->AddArray(colors);
 
   //polyData->SetPoints(points);
   //polyData->SetLines(lines);
@@ -174,7 +192,7 @@ int main (int c , char * argv[])
     vtkSmartPointer<vtkPolyDataMapper>::New();
   mapper->SetInput(polyData);
   mapper->ScalarVisibilityOn();
-  mapper->SetScalarModeToUsePointFieldData();
+  mapper->SetScalarModeToUseCellFieldData();
   mapper->SelectColorArray("Colors");
 
   vtkSmartPointer<vtkActor> actor =
