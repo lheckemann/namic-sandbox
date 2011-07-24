@@ -35,13 +35,15 @@ int main (int c , char * argv[])
 
   int result = 1;
 
-  if (c < 3)
+  if (c < 5)
     {
-    std::cerr << "Usage: " << argv[0] << " <Surface File (*.vtk)> <Volume File (*.vtk)>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <Surface File (*.vtk)> <Volume File (*.vtk)> W L" << std::endl;
     }
   
   const char* surfaceFile = argv[1];
   const char* volumeFile = argv[2];
+  const double   window = (double)atoi(argv[3]);
+  const double   level  = (double)atoi(argv[4]);
 
   // Load sufrace model
   vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
@@ -80,13 +82,14 @@ int main (int c , char * argv[])
     }
 
   int dim[3];
-  vreader->GetOutput()->GetDimensions(dim);
+
+  vtkSmartPointer<vtkStructuredPoints> spoints = vreader->GetOutput();
+
+  spoints->GetDimensions(dim);
   std::cerr << "dimensions = ("
             << dim[0] << ", "
             << dim[1] << ", "
             << dim[2] << ")" << std::endl;
-
-  vtkSmartPointer<vtkStructuredPoints> spoints = vreader->GetOutput();
 
   int n = polyData->GetNumberOfPoints();
   vtkSmartPointer<vtkUnsignedCharArray> colors =
@@ -95,9 +98,13 @@ int main (int c , char * argv[])
   colors->SetNumberOfComponents(3);
   colors->SetNumberOfTuples(n);
 
+  vtkSmartPointer<vtkDataArray> pd = spoints->GetPointData()->GetScalars();
 
   std::cerr << "Number of Points: " << spoints->GetNumberOfPoints() << std::endl;
   std::cerr << "Number of Cells: "  << spoints->GetNumberOfCells() << std::endl;
+
+  const double low   = level - window/2.0;
+  const double scale = 255.0 / window;
 
   for (int i = 0; i < n; i ++)
     {
@@ -106,14 +113,22 @@ int main (int c , char * argv[])
     //std::cerr << "Point [" << i << "] = (" << x[0] << ", " << x[1] << ", " << x[2] << ")" << std::endl;
 
     int id = spoints->FindPoint(x[0], x[1], x[2]);
+    double v = pd->GetComponent(id, 0);
+    
     // GetCellNeighbors(id, vtkIDLists, vtkIDList.)
-
     int t = spoints->GetScalarType();
     //std::cerr << "scalr type = " << t << std::endl;
-    colors->InsertTuple3(i,
-                         int(255 * i/ (n - 1)),
-                         0,
-                         int(255 * (n - 1 - i)/(n - 1)) );
+    
+    //colors->InsertTuple3(i,
+    //                     int(255 * i/ (n - 1)),
+    //                     0,
+    //                     int(255 * (n - 1 - i)/(n - 1)) );
+    double intensity = (v - low) * scale;
+    if (intensity > 255.0) intensity = 255.0;
+    unsigned char cv = (unsigned char) intensity;
+
+    colors->InsertTuple3(i, cv, cv, cv);
+
     }
 
   polyData->GetPointData()->AddArray(colors);
