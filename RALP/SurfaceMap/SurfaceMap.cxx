@@ -32,6 +32,8 @@
 
 #include <vtkMath.h>
 
+double TrilinearInterpolation(vtkStructuredPoints * spoints, double x[3]);
+
 
 int main (int c , char * argv[])
 {
@@ -138,40 +140,7 @@ int main (int c , char * argv[])
     double x[3];
     polyData->GetPoint(i, x);
 
-    int id = spoints->FindPoint(x[0], x[1], x[2]);
-    int v = (int)pd->GetComponent(id, 0);
-
-    int    ijk[3];
-    double r[3];
-    if (spoints->ComputeStructuredCoordinates(x, ijk, r) == 0)
-      {
-      std::cerr << "Point (" << x[0] << ", " << x[1] << ", " << x[2]
-                << ") is outside of the volume." << std::endl;
-      continue;
-      }
-
-    int ii = ijk[0];    int jj = ijk[1];    int kk = ijk[2];
-    double v000 = (double)*((short*)spoints->GetScalarPointer(ii,   jj,   kk  ));
-    double v100 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj,   kk  ));
-    double v010 = (double)*((short*)spoints->GetScalarPointer(ii,   jj+1, kk  ));
-    double v110 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj+1, kk  ));
-    double v001 = (double)*((short*)spoints->GetScalarPointer(ii,   jj,   kk+1));
-    double v101 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj,   kk+1));
-    double v011 = (double)*((short*)spoints->GetScalarPointer(ii,   jj+1, kk+1));
-    double v111 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj+1, kk+1));
-    
-    double r0 = r[0]; double r1 = r[1]; double r2 = r[2];
-    double value =
-      v000 * (1-r0) * (1-r1) * (1-r2) +
-      v100 *    r0  * (1-r1) * (1-r2) +
-      v010 * (1-r0) *    r1  * (1-r2) +
-      v001 * (1-r0) * (1-r1) *    r2  +
-      v101 *    r0  * (1-r1) *    r2  +
-      v011 * (1-r0) *    r1  *    r2  +
-      v110 *    r0  *    r1  * (1-r2) +
-      v111 *    r0  *    r1  *    r2;
-
-    // GetCellNeighbors(id, vtkIDLists, vtkIDList.)
+    double value = TrilinearInterpolation(spoints, x);
     double intensity = (value - low) * scale;
     if (intensity > 255.0)
       {
@@ -231,5 +200,41 @@ int main (int c , char * argv[])
 
 
 
+double TrilinearInterpolation(vtkStructuredPoints * spoints, double x[3])
+{
+  int    ijk[3];
+  double r[3];
+  if (spoints->ComputeStructuredCoordinates(x, ijk, r) == 0)
+    {
+    std::cerr << "Point (" << x[0] << ", " << x[1] << ", " << x[2]
+              << ") is outside of the volume." << std::endl;
+    return 0.0;
+    }
+  
+  int ii = ijk[0];    int jj = ijk[1];    int kk = ijk[2];
+  double v000 = (double)*((short*)spoints->GetScalarPointer(ii,   jj,   kk  ));
+  double v100 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj,   kk  ));
+  double v010 = (double)*((short*)spoints->GetScalarPointer(ii,   jj+1, kk  ));
+  double v110 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj+1, kk  ));
+  double v001 = (double)*((short*)spoints->GetScalarPointer(ii,   jj,   kk+1));
+  double v101 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj,   kk+1));
+  double v011 = (double)*((short*)spoints->GetScalarPointer(ii,   jj+1, kk+1));
+  double v111 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj+1, kk+1));
+  
+  double r0 = r[0]; double r1 = r[1]; double r2 = r[2];
+  double value =
+    v000 * (1-r0) * (1-r1) * (1-r2) +
+    v100 *    r0  * (1-r1) * (1-r2) +
+    v010 * (1-r0) *    r1  * (1-r2) +
+    v001 * (1-r0) * (1-r1) *    r2  +
+    v101 *    r0  * (1-r1) *    r2  +
+    v011 * (1-r0) *    r1  *    r2  +
+    v110 *    r0  *    r1  * (1-r2) +
+    v111 *    r0  *    r1  *    r2;
+
+  return value;
+
+}
 
 
+  
