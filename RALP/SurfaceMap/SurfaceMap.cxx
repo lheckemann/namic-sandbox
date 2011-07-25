@@ -149,37 +149,44 @@ int main (int c , char * argv[])
                 << ") is outside of the volume." << std::endl;
       continue;
       }
-    
-    int ii = ijk[0];    int jj = ijk[1];    int kk = ijk[2];
-    double v0 = (double)*((short*)spoints->GetScalarPointer(ii,   jj,   kk  ));
-    double v1 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj,   kk  ));
-    double v2 = (double)*((short*)spoints->GetScalarPointer(ii,   jj+1, kk  ));
-    double v3 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj+1, kk  ));
-    double v4 = (double)*((short*)spoints->GetScalarPointer(ii,   jj,   kk+1));
-    double v5 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj,   kk+1));
-    double v6 = (double)*((short*)spoints->GetScalarPointer(ii,   jj+1, kk+1));
-    double v7 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj+1, kk+1));
 
+    int ii = ijk[0];    int jj = ijk[1];    int kk = ijk[2];
+    double v000 = (double)*((short*)spoints->GetScalarPointer(ii,   jj,   kk  ));
+    double v100 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj,   kk  ));
+    double v010 = (double)*((short*)spoints->GetScalarPointer(ii,   jj+1, kk  ));
+    double v110 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj+1, kk  ));
+    double v001 = (double)*((short*)spoints->GetScalarPointer(ii,   jj,   kk+1));
+    double v101 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj,   kk+1));
+    double v011 = (double)*((short*)spoints->GetScalarPointer(ii,   jj+1, kk+1));
+    double v111 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj+1, kk+1));
+    
     double r0 = r[0]; double r1 = r[1]; double r2 = r[2];
     double value =
-      v0 * (1-r0) * (1-r1) * (1-r2) +
-      v1 *    r0  * (1-r1) * (1-r2) +
-      v2 * (1-r0) *    r1  * (1-r2) +
-      v3 * (1-r0) * (1-r1) *    r2  +
-      v4 *    r0  * (1-r1) *    r2  +
-      v5 * (1-r0) *    r1  *    r2  +
-      v6 *    r0  *    r1  * (1-r2) +
-      v7 *    r0  *    r1  *    r2;
+      v000 * (1-r0) * (1-r1) * (1-r2) +
+      v100 *    r0  * (1-r1) * (1-r2) +
+      v010 * (1-r0) *    r1  * (1-r2) +
+      v001 * (1-r0) * (1-r1) *    r2  +
+      v101 *    r0  * (1-r1) *    r2  +
+      v011 * (1-r0) *    r1  *    r2  +
+      v110 *    r0  *    r1  * (1-r2) +
+      v111 *    r0  *    r1  *    r2;
 
     // GetCellNeighbors(id, vtkIDLists, vtkIDList.)
     double intensity = (value - low) * scale;
-    if (intensity > 255.0) intensity = 255.0;
+    if (intensity > 255.0)
+      {
+      intensity = 255.0;
+      }
+    else if (intensity < 0.0)
+      {
+      intensity = 0.0;
+      }
     unsigned char cv = (unsigned char) intensity;
 
     colors->InsertTuple3(i, cv, cv, cv);
 
     }
-
+  
   polyData->GetPointData()->SetScalars(colors);
 
   vtkSmartPointer<vtkPolyDataMapper> mapper =
