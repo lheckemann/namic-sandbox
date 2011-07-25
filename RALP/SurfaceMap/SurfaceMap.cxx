@@ -19,7 +19,8 @@
 #include <vtkTubeFilter.h>
 
 #include <vtkPolyDataNormals.h>
-#include <vtkDensifyPolyData.h>
+//#include <vtkDensifyPolyData.h>
+#include <vtkCleanPolyData.h>
 
 #include <vtkDataSetMapper.h>
 #include <vtkPolyDataMapper.h>
@@ -40,15 +41,18 @@ int main (int c , char * argv[])
 
   int result = 1;
 
-  if (c < 5)
+  if (c < 8)
     {
-    std::cerr << "Usage: " << argv[0] << " <Surface File (*.vtk)> <Volume File (*.vtk)> <Window> <Level>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <Surface File (*.vtk)> <Volume File (*.vtk)> <Lower> <Upper> <Step> <Window> <Level>" << std::endl;
     }
   
   const char*  surfaceFile = argv[1];
   const char*  volumeFile = argv[2];
-  const double window = (double)atoi(argv[3]);
-  const double level  = (double)atoi(argv[4]);
+  double lower  = (double)atof(argv[3]);
+  double upper  = (double)atof(argv[4]);
+  double step   = (double)atof(argv[5]);
+  double window = (double)atoi(argv[6]);
+  double level  = (double)atoi(argv[7]);
 
   // Load sufrace model
   vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
@@ -70,15 +74,21 @@ int main (int c , char * argv[])
     exit (0);
     }
 
-  // Split triangl strips into triangles
+  //// Clean duplicated points -- may not be neccessary.
+  //vtkSmartPointer<vtkCleanPolyData> cleaner
+  //  = vtkSmartPointer<vtkCleanPolyData>::New();
+  //cleaner->SetInputConnection(reader->GetOutputPort());
+  //cleaner->SetPointMerging(1);
+  //cleaner->SetTolerance(0.01);
+  //cleaner->Update();
+  //// Split triangl strips into triangles
+
+  // Calculate normals
   vtkSmartPointer<vtkPolyDataNormals> polyDataNormals 
     = vtkSmartPointer<vtkPolyDataNormals>::New();
-
-  polyDataNormals->SetInput(reader->GetOutput());
+  polyDataNormals->SetInputConnection(reader->GetOutputPort());
   polyDataNormals->SplittingOn();
-  //polyDataNormals->ComputePointNormalsOff();
-  //polyDataNormals->ComputeCellNormalsOff();
-  
+  polyDataNormals->SetFeatureAngle(170.0);  // Need to be examined
   polyDataNormals->Update();
 
   //// Densify the polygons
@@ -90,8 +100,6 @@ int main (int c , char * argv[])
   //polyDataDensified->Update();
 
   vtkSmartPointer<vtkPolyData> polyData = polyDataNormals->GetOutput();
-  //vtkSmartPointer<vtkPolyData> polyData = polyDataDensified->GetOutput();
-  //vtkSmartPointer<vtkPolyData> polyData = reader->GetOutput();
 
   // Load volume image
   vtkSmartPointer<vtkStructuredPointsReader> vreader = vtkSmartPointer<vtkStructuredPointsReader>::New();
@@ -107,10 +115,10 @@ int main (int c , char * argv[])
     exit (0);
     }
 
-  int dim[3];
 
   vtkSmartPointer<vtkStructuredPoints> spoints = vreader->GetOutput();
 
+  int dim[3];
   spoints->GetDimensions(dim);
   std::cerr << "dimensions = ("
             << dim[0] << ", "
@@ -133,14 +141,33 @@ int main (int c , char * argv[])
   const double low   = level - window/2.0;
   const double scale = 255.0 / window;
 
+  vtkSmartPointer<vtkDataArray> norms = polyData->GetPointData()->GetNormals();
   vtkSmartPointer<vtkIdList> il = vtkSmartPointer<vtkIdList>::New();
 
   for (int i = 0; i < n; i ++)
     {
+    // Get coordinate
     double x[3];
     polyData->GetPoint(i, x);
 
-    double value = TrilinearInterpolation(spoints, x);
+    // Get normal
+    double n[3];
+    norms->GetTuple(i, n);
+
+    // Calculate projection
+    double sum = 0;
+    int nstep = 0;
+    for (double d = lower; d <= upper; d += step)
+      {
+      double p[3];
+      p[0] = x[0] + n[0]*d;
+      p[1] = x[1] + n[1]*d;
+      p[2] = x[2] + n[2]*d;
+      sum += TrilinearInterpolation(spoints, p);
+      nstep ++;
+      }
+    double value = sum / (double)nstep;
+
     double intensity = (value - low) * scale;
     if (intensity > 255.0)
       {
@@ -153,7 +180,6 @@ int main (int c , char * argv[])
     unsigned char cv = (unsigned char) intensity;
 
     colors->InsertTuple3(i, cv, cv, cv);
-
     }
   
   polyData->GetPointData()->SetScalars(colors);
@@ -161,6 +187,7 @@ int main (int c , char * argv[])
   vtkSmartPointer<vtkPolyDataMapper> mapper =
     vtkSmartPointer<vtkPolyDataMapper>::New();
   mapper->SetInput(polyData);
+  //mapper->SetInputConnection(polyDataNormals->GetOutputPort());
   mapper->ScalarVisibilityOn();
   mapper->SetScalarModeToUsePointFieldData();
   mapper->SelectColorArray("Colors");
