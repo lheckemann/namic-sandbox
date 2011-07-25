@@ -48,9 +48,9 @@ int main (int c , char * argv[])
   
   const char*  surfaceFile = argv[1];
   const char*  volumeFile = argv[2];
-  double lower  = (double)atof(argv[3]);
-  double upper  = (double)atof(argv[4]);
-  double step   = (double)atof(argv[5]);
+  double lower  = atof(argv[3]);
+  double upper  = atof(argv[4]);
+  double step   = atof(argv[5]);
   double window = (double)atoi(argv[6]);
   double level  = (double)atoi(argv[7]);
 
@@ -149,6 +149,12 @@ int main (int c , char * argv[])
     // Get coordinate
     double x[3];
     polyData->GetPoint(i, x);
+
+    //std::cerr 
+    //  << "position = ("
+    //  << x[0] << ", "
+    //  << x[1] << ", "
+    //  << x[2] << ")" << std::endl;
 
     // Get normal
     double n[3];
