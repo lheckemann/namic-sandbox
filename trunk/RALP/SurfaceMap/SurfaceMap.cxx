@@ -115,7 +115,7 @@ int main (int c , char * argv[])
             << dim[1] << ", "
             << dim[2] << ")" << std::endl;
 
-  int n = polyData->GetNumberOfCells();
+  int n = polyData->GetNumberOfPoints();
   vtkSmartPointer<vtkUnsignedCharArray> colors =
     vtkSmartPointer<vtkUnsignedCharArray>::New();
   colors->SetName("Colors");
@@ -135,37 +135,13 @@ int main (int c , char * argv[])
 
   for (int i = 0; i < n; i ++)
     {
-    polyData->GetCellPoints(i, il);
-    //std::cerr << "Point [" << i << "] = (" << x[0] << ", " << x[1] << ", " << x[2] << ")" << std::endl;
-    int m = il->GetNumberOfIds();
-    double ax[3];
-    ax[0] = 0.0;
-    ax[1] = 0.0;
-    ax[2] = 0.0;
+    double x[3];
+    polyData->GetPoint(i, x);
 
-    //std::cerr << "# of points: " << m << ", cell type = " << polyData->GetCell(i)->GetCellType() << std::endl;
-
-    for (int j = 0; j < m; j ++)
-      {
-      double x[3];
-      polyData->GetPoint(il->GetId(j), x);
-      //std::cerr << "Point [" << il->GetId(j) << "] = (" << x[0] << ", " << x[1] << ", " << x[2] << ")" << std::endl;
-      ax[0] += x[0];
-      ax[1] += x[1];
-      ax[2] += x[2];
-      }
-
-    ax[0] /= (double)m;
-    ax[1] /= (double)m;
-    ax[2] /= (double)m;
-    
-    //int id = spoints->FindPoint(x[0], x[1], x[2]);
-    int id = spoints->FindPoint(ax[0], ax[1], ax[2]);
-    //std::cerr << "Point [" << id << "] = (" << ax[0] << ", " << ax[1] << ", " << ax[2] << ")" << std::endl;
+    int id = spoints->FindPoint(x[0], x[1], x[2]);
     int v = (int)pd->GetComponent(id, 0);
-    
+
     // GetCellNeighbors(id, vtkIDLists, vtkIDList.)
-    
     double intensity = (v - low) * scale;
     if (intensity > 255.0) intensity = 255.0;
     unsigned char cv = (unsigned char) intensity;
@@ -174,13 +150,13 @@ int main (int c , char * argv[])
 
     }
 
-  polyData->GetCellData()->SetScalars(colors);
+  polyData->GetPointData()->SetScalars(colors);
 
   vtkSmartPointer<vtkPolyDataMapper> mapper =
     vtkSmartPointer<vtkPolyDataMapper>::New();
   mapper->SetInput(polyData);
   mapper->ScalarVisibilityOn();
-  mapper->SetScalarModeToUseCellFieldData();
+  mapper->SetScalarModeToUsePointFieldData();
   mapper->SelectColorArray("Colors");
 
   vtkSmartPointer<vtkActor> actor =
