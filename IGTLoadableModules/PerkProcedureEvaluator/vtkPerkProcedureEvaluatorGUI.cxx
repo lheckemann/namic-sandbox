@@ -76,15 +76,6 @@
 
 
 
-std::string
-DoubleToStr( double d, int digits = 2 )
-{
-  std::stringstream ss;
-  ss << std::fixed << std::setprecision( digits ) << d;
-  return ss.str();
-}
-
-
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro (vtkPerkProcedureEvaluatorGUI );
@@ -485,7 +476,7 @@ vtkPerkProcedureEvaluatorGUI
       {
       vtkMRMLFiducialListNode* fiducials = vtkMRMLFiducialListNode::SafeDownCast(
         this->BoxFiducialsSelector->GetSelected() );
-      this->ProcedureNode->BoxShapeFromFiducials( fiducials );
+      this->ProcedureNode->PrismShapeFromFiducials( fiducials );
       }
     }
   

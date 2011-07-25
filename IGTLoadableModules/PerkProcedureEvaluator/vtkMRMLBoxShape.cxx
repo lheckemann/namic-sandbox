@@ -16,30 +16,6 @@
 
 
 
-// ===============================================================
-
-void
-StringToBool( std::string str, bool& var );
-/*
-{
-  std::stringstream ss( str );
-  ss >> var;
-}
-*/
-
-void
-StringToDouble( std::string str, double& var );
-/*
-{
-  std::stringstream ss( str );
-  ss >> var;
-}
-*/
-
-// ===============================================================
-
-
-
 vtkMRMLBoxShape*
 vtkMRMLBoxShape
 ::New()
@@ -171,7 +147,7 @@ vtkMRMLBoxShape
 
 /**
  * Computes the intersection of the needle line, described by transform 'tr'
- * with the top (most anterior plane) of this box. Returns result in 'entry'.
+ * with the wall of this box. Returns result in 'entry', 3 doubles (R,A,S).
  * @returns true if entry point exists, false otherwise.
  */
 bool

@@ -15,12 +15,14 @@
 
 #include "vtkMRMLBoxShape.h"
 #include "vtkMRMLNode.h"
+#include "vtkMRMLPrismShape.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLStorableNode.h"
 
+#include "PerkProcedureEvaluatorHelper.h"
 #include "vtkMRMLPerkProcedureStorageNode.h"
-
 #include "vtkTransformTimeSeries.h"
+
 
 
 class vtkMRMLLinearTransformNode;
@@ -105,7 +107,7 @@ public:
     
     // Models.
   
-  void BoxShapeFromFiducials( vtkMRMLFiducialListNode* fiducials );
+  void PrismShapeFromFiducials( vtkMRMLFiducialListNode* fiducials );
   
   
   
@@ -194,8 +196,10 @@ private:
   vtkSetReferenceStringMacro( NeedleTransformNodeID );
   vtkMRMLLinearTransformNode* NeedleTransformNode;
   
-  
+
+/*  
     // Reference to the Box model.
+    // TODO: Delete, replaced by Prism.
   
 public:
   vtkGetStringMacro( BoxShapeID );
@@ -205,6 +209,19 @@ private:
   char* BoxShapeID;
   vtkSetReferenceStringMacro( BoxShapeID );
   vtkMRMLBoxShape* BoxShape;
+*/
+    
+    
+    // Reference to Prism shape node.
+ 
+public:
+  vtkGetStringMacro( PrismShapeID );
+  vtkMRMLPrismShape* GetPrismShapeNode();
+  void SetAndObservePrismShapeID( const char* prismShapeRef );
+private:
+  char* PrismShapeID;
+  vtkSetReferenceStringMacro( PrismShapeID );
+  vtkMRMLPrismShape* PrismShape;
   
   
     // For measurements.

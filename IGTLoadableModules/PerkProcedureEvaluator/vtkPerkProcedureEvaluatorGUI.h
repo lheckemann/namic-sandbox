@@ -10,8 +10,8 @@
 #include "vtkSlicerModuleGUI.h"
 #include "vtkSlicerInteractorStyle.h"
 
+#include "PerkProcedureEvaluatorHelper.h"
 #include "vtkPerkProcedureEvaluatorLogic.h"
-
 #include "vtkMRMLPerkProcedureNode.h"
 
 
