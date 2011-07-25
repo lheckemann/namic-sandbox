@@ -18,6 +18,9 @@
 #include <vtkSmartPointer.h>
 #include <vtkTubeFilter.h>
 
+#include <vtkPolyDataNormals.h>
+#include <vtkDensifyPolyData.h>
+
 #include <vtkDataSetMapper.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
@@ -65,7 +68,28 @@ int main (int c , char * argv[])
     exit (0);
     }
 
-  vtkSmartPointer<vtkPolyData> polyData = reader->GetOutput();
+  // Split triangl strips into triangles
+  vtkSmartPointer<vtkPolyDataNormals> polyDataNormals 
+    = vtkSmartPointer<vtkPolyDataNormals>::New();
+
+  polyDataNormals->SetInput(reader->GetOutput());
+  polyDataNormals->SplittingOn();
+  //polyDataNormals->ComputePointNormalsOff();
+  //polyDataNormals->ComputeCellNormalsOff();
+  
+  polyDataNormals->Update();
+
+  //// Densify the polygons
+  //vtkSmartPointer<vtkDensifyPolyData> polyDataDensified
+  //  = vtkSmartPointer<vtkDensifyPolyData>::New();
+  //
+  //polyDataDensified->SetInput(polyDataNormals->GetOutput());
+  //polyDataDensified->SetNumberOfSubdivisions(1);
+  //polyDataDensified->Update();
+
+  vtkSmartPointer<vtkPolyData> polyData = polyDataNormals->GetOutput();
+  //vtkSmartPointer<vtkPolyData> polyData = polyDataDensified->GetOutput();
+  //vtkSmartPointer<vtkPolyData> polyData = reader->GetOutput();
 
   // Load volume image
   vtkSmartPointer<vtkStructuredPointsReader> vreader = vtkSmartPointer<vtkStructuredPointsReader>::New();
@@ -119,7 +143,7 @@ int main (int c , char * argv[])
     ax[1] = 0.0;
     ax[2] = 0.0;
 
-    std::cerr << "# of points: " << m << ", cell type = " << polyData->GetCell(i)->GetCellType() << std::endl;
+    //std::cerr << "# of points: " << m << ", cell type = " << polyData->GetCell(i)->GetCellType() << std::endl;
 
     for (int j = 0; j < m; j ++)
       {
@@ -150,46 +174,7 @@ int main (int c , char * argv[])
 
     }
 
-  //polyData->GetPointData()->AddArray(colors);
-  //polyData->GetCellData()->AddArray(colors);
   polyData->GetCellData()->SetScalars(colors);
-
-  //polyData->SetPoints(points);
-  //polyData->SetLines(lines);
-  // Varying tube radius using sine-function
-  //vtkSmartPointer<vtkDoubleArray> tubeRadius =
-  //  vtkSmartPointer<vtkDoubleArray>::New();
-  //tubeRadius->SetName("TubeRadius");
-  //tubeRadius->SetNumberOfTuples(nV);
-  //for (i=0 ;i<nV ; i++)
-  //  {
-  //  tubeRadius->SetTuple1(i,
-  //                        rT1 + (rT2 - rT1) * sin(vtkMath::Pi() * i / (nV - 1)));
-  //  }
-  //polyData->GetPointData()->AddArray(tubeRadius);
-  //polyData->GetPointData()->SetActiveScalars("TubeRadius");
-
-  // RBG array (could add Alpha channel too I guess...)
-  // Varying from blue to red
-  //vtkSmartPointer<vtkUnsignedCharArray> colors =
-  //  vtkSmartPointer<vtkUnsignedCharArray>::New();
-  //colors->SetName("Colors");
-  //colors->SetNumberOfComponents(3);
-  //colors->SetNumberOfTuples(nV);
-  //for (i = 0; i < nV ;i++)
-  //  {
-  //  colors->InsertTuple3(i,
-  //                     int(255 * i/ (nV - 1)),
-  //                     0,
-  //                     int(255 * (nV - 1 - i)/(nV - 1)) );
-  //  }
-  //polyData->GetPointData()->AddArray(colors);
-
-  //vtkSmartPointer<vtkTubeFilter> tube
-  //  = vtkSmartPointer<vtkTubeFilter>::New();
-  //tube->SetInput(polyData);
-  //tube->SetNumberOfSides(nTv);
-  //tube->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
 
   vtkSmartPointer<vtkPolyDataMapper> mapper =
     vtkSmartPointer<vtkPolyDataMapper>::New();
