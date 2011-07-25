@@ -141,8 +141,38 @@ int main (int c , char * argv[])
     int id = spoints->FindPoint(x[0], x[1], x[2]);
     int v = (int)pd->GetComponent(id, 0);
 
+    int    ijk[3];
+    double r[3];
+    if (spoints->ComputeStructuredCoordinates(x, ijk, r) == 0)
+      {
+      std::cerr << "Point (" << x[0] << ", " << x[1] << ", " << x[2]
+                << ") is outside of the volume." << std::endl;
+      continue;
+      }
+    
+    int ii = ijk[0];    int jj = ijk[1];    int kk = ijk[2];
+    double v0 = (double)*((short*)spoints->GetScalarPointer(ii,   jj,   kk  ));
+    double v1 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj,   kk  ));
+    double v2 = (double)*((short*)spoints->GetScalarPointer(ii,   jj+1, kk  ));
+    double v3 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj+1, kk  ));
+    double v4 = (double)*((short*)spoints->GetScalarPointer(ii,   jj,   kk+1));
+    double v5 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj,   kk+1));
+    double v6 = (double)*((short*)spoints->GetScalarPointer(ii,   jj+1, kk+1));
+    double v7 = (double)*((short*)spoints->GetScalarPointer(ii+1, jj+1, kk+1));
+
+    double r0 = r[0]; double r1 = r[1]; double r2 = r[2];
+    double value =
+      v0 * (1-r0) * (1-r1) * (1-r2) +
+      v1 *    r0  * (1-r1) * (1-r2) +
+      v2 * (1-r0) *    r1  * (1-r2) +
+      v3 * (1-r0) * (1-r1) *    r2  +
+      v4 *    r0  * (1-r1) *    r2  +
+      v5 * (1-r0) *    r1  *    r2  +
+      v6 *    r0  *    r1  * (1-r2) +
+      v7 *    r0  *    r1  *    r2;
+
     // GetCellNeighbors(id, vtkIDLists, vtkIDList.)
-    double intensity = (v - low) * scale;
+    double intensity = (value - low) * scale;
     if (intensity > 255.0) intensity = 255.0;
     unsigned char cv = (unsigned char) intensity;
 
