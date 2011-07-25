@@ -18,7 +18,6 @@
 #include "vtkMRMLLinearTransformNode.h"
 
 
-
 // =============================================================
 
 
@@ -33,72 +32,6 @@
     )
 
 
-void
-StringToBool( std::string str, bool& var )
-{
-  std::stringstream ss( str );
-  ss >> var;
-}
-
-bool
-StringToBool( std::string str )
-{
-  bool var;
-  std::stringstream ss( str );
-  ss >> var;
-  return var;
-}
-
-
-void
-StringToInt( std::string str, int& var )
-{
-  std::stringstream ss( str );
-  ss >> var;
-}
-
-void
-StringToInt( std::string str, unsigned int& var )
-{
-  std::stringstream ss( str );
-  ss >> var;
-}
-
-int
-StringToInt( std::string str )
-{
-  int var;
-  std::stringstream ss( str );
-  ss >> var;
-  return var;
-}
-
-
-void
-StringToDouble( std::string str, double& var )
-{
-  std::stringstream ss( str );
-  ss >> var;
-}
-
-double
-StringToDouble( std::string str )
-{
-  double var;
-  std::stringstream ss( str );
-  ss >> var;
-  return var;
-}
-
-
-void
-StringToDoubleVector( std::string str, double* var, int n )
-{
-  std::stringstream ss( str );
-  for ( int i = 0; i < n; ++ i )
-    ss >> var[ i ];
-}
-
 
 
 // ==============================================================
@@ -106,7 +39,7 @@ StringToDoubleVector( std::string str, double* var, int n )
 
 
 vtkTransform*
-StrToTransform( std::string str )
+StrToTransform( std::string str, vtkTransform* tr )
 {
   std::stringstream ss( str );
   
@@ -115,7 +48,6 @@ StrToTransform( std::string str )
   double e20; ss >> e20; double e21; ss >> e21; double e22; ss >> e22; double e23; ss >> e23;
   double e30; ss >> e30; double e31; ss >> e31; double e32; ss >> e32; double e33; ss >> e33;
   
-  vtkTransform* tr = vtkTransform::New(); // Needs to be deleted after using return data.
   tr->Identity();
   
   tr->GetMatrix()->SetElement( 0, 0, e00 );
@@ -216,11 +148,17 @@ vtkMRMLPerkProcedureNode
       this->SetAndObserveNeedleTransformNodeID( NULL );
       this->SetAndObserveNeedleTransformNodeID( attValue );
       }
-    
-    if ( ! strcmp( attName, "BoxShapeID" ) )
+    /*
+    if ( ! strcmp( attName, "PrismShapeID" ) )
       {
-      this->SetAndObserveBoxShapeID( NULL );
-      this->SetAndObserveBoxShapeID( attValue );
+      this->SetAndObservePrismShapeID( NULL );
+      this->SetAndObservePrismShapeID( attValue );
+      }
+    */
+    if ( ! strcmp( attName, "PrismShapeID" ) )
+      {
+      this->SetAndObservePrismShapeID( NULL );
+      this->SetAndObservePrismShapeID( attValue );
       }
     
     if ( ! strcmp( attName, "IndexBegin" ) )
@@ -274,12 +212,16 @@ vtkMRMLPerkProcedureNode
     {
     of << vindent << " NeedleTransformNodeID=\"" << this->NeedleTransformNodeID << "\"" << std::endl;
     }
-  
-  if ( this->BoxShapeID != NULL )
+  /*
+  if ( this->PrismShapeID != NULL )
     {
-    of << vindent << " BoxShapeID=\"" << this->BoxShapeID << "\"" << std::endl;
+    of << vindent << " PrismShapeID=\"" << this->PrismShapeID << "\"" << std::endl;
     }
-  
+  */
+  if ( this->PrismShapeID != NULL )
+    {
+    of << vindent << " PrismShapeID=\"" << this->PrismShapeID << "\"" << std::endl;
+    }
   
   of << vindent << " IndexBegin=\"" << this->IndexBegin << "\"" << std::endl;
   of << vindent << " IndexEnd=\"" << this->IndexEnd << "\"" << std::endl;
@@ -374,9 +316,9 @@ vtkMRMLPerkProcedureNode
     else if ( strcmp( type, "transform" ) == 0 )
       {
       const char* traC = noteElement->GetAttribute( "transform" );
-      vtkTransform* tr = StrToTransform( std::string( traC ) );
+      vtkSmartPointer< vtkTransform > tr = vtkSmartPointer< vtkTransform >::New();
+      StrToTransform( std::string( traC ), tr );
       this->TransformTimeSeries->AddRecord( time, tr );
-      tr->Delete();
       }
     }
 }
@@ -401,8 +343,10 @@ vtkMRMLPerkProcedureNode
   this->SetAndObserveNeedleTransformNodeID( NULL );
   this->SetNeedleTransformNodeID( perkNode->NeedleTransformNodeID );
   
-  this->SetAndObserveBoxShapeID( NULL );
-  this->SetBoxShapeID( perkNode->BoxShapeID );
+  // this->SetAndObservePrismShapeID( NULL );
+  this->SetAndObservePrismShapeID( NULL );
+  // this->SetPrismShapeID( perkNode->PrismShapeID );
+  this->SetPrismShapeID( perkNode->PrismShapeID );
 }
 
 
@@ -413,7 +357,7 @@ vtkMRMLPerkProcedureNode
 {
   Superclass::UpdateScene( scene );
   
-  this->SetAndObserveBoxShapeID( this->BoxShapeID );
+  this->SetAndObservePrismShapeID( this->PrismShapeID );
   this->SetAndObserveNeedleTransformNodeID( this->NeedleTransformNodeID );
   this->SetAndObserveNeedleCalibrationTransformNodeID( this->NeedleCalibrationTransformNodeID );
 }
@@ -426,9 +370,9 @@ vtkMRMLPerkProcedureNode
 {
   Superclass::UpdateReferenceID( oldID, newID );
   
-  if ( this->BoxShapeID && ! strcmp( oldID, this->BoxShapeID ) )
+  if ( this->PrismShapeID && ! strcmp( oldID, this->PrismShapeID ) )
     {
-    this->SetAndObserveBoxShapeID( newID );
+    this->SetAndObservePrismShapeID( newID );
     }
   
   if ( this->NeedleTransformNodeID && ! strcmp( oldID, this->NeedleTransformNodeID ) )
@@ -450,9 +394,9 @@ vtkMRMLPerkProcedureNode
 {
   Superclass::UpdateReferences();
   
-  if ( this->BoxShapeID != NULL && this->Scene->GetNodeByID( this->BoxShapeID ) == NULL )
+  if ( this->PrismShapeID != NULL && this->Scene->GetNodeByID( this->PrismShapeID ) == NULL )
     {
-    this->SetAndObserveBoxShapeID( NULL );
+    this->SetAndObservePrismShapeID( NULL );
     }
   
   if ( this->NeedleTransformNodeID != NULL && this->Scene->GetNodeByID( this->NeedleTransformNodeID ) == NULL )
@@ -604,15 +548,15 @@ vtkMRMLPerkProcedureNode
 
 
 
-vtkMRMLBoxShape*
+vtkMRMLPrismShape*
 vtkMRMLPerkProcedureNode
-::GetBoxShapeNode()
+::GetPrismShapeNode()
 {
-  vtkMRMLBoxShape* node = NULL;
+  vtkMRMLPrismShape* node = NULL;
   if ( this->GetScene() && this->NeedleTransformNodeID != NULL )
     {
-    vtkMRMLNode* cnode = this->GetScene()->GetNodeByID( this->BoxShapeID );
-    node = vtkMRMLBoxShape::SafeDownCast( cnode );
+    vtkMRMLNode* cnode = this->GetScene()->GetNodeByID( this->PrismShapeID );
+    node = vtkMRMLPrismShape::SafeDownCast( cnode );
     }
   return node;
 }
@@ -631,9 +575,9 @@ vtkMRMLPerkProcedureNode
                        ctr->GetMatrix()->GetElement( 1, 3 ),
                        ctr->GetMatrix()->GetElement( 2, 3 ) };
   
-  if ( this->BoxShape != NULL )
+  if ( this->PrismShape != NULL )
     {
-    return this->BoxShape->IsInside( cpos[ 0 ], cpos[ 1 ], cpos[ 2 ] );
+    return this->PrismShape->IsInside( cpos[ 0 ], cpos[ 1 ], cpos[ 2 ] );
     }
   else
     {
@@ -645,31 +589,31 @@ vtkMRMLPerkProcedureNode
 
 void
 vtkMRMLPerkProcedureNode
-::SetAndObserveBoxShapeID( const char* boxShapeRef )
+::SetAndObservePrismShapeID( const char* PrismShapeRef )
 {
-  vtkSetAndObserveMRMLObjectMacro( this->BoxShape, NULL );
-  this->SetBoxShapeID( boxShapeRef );
-  vtkMRMLBoxShape* node = this->GetBoxShapeNode();
-  vtkSetAndObserveMRMLObjectMacro( this->BoxShape, node );
+  vtkSetAndObserveMRMLObjectMacro( this->PrismShape, NULL );
+  this->SetPrismShapeID( PrismShapeRef );
+  vtkMRMLPrismShape* node = this->GetPrismShapeNode();
+  vtkSetAndObserveMRMLObjectMacro( this->PrismShape, node );
 }
 
 
 
 void
 vtkMRMLPerkProcedureNode
-::BoxShapeFromFiducials( vtkMRMLFiducialListNode* fiducials )
+::PrismShapeFromFiducials( vtkMRMLFiducialListNode* fiducials )
 {
-  if ( ! this->BoxShape )
+  if ( ! this->PrismShape )
     {
-    this->BoxShape = vtkMRMLBoxShape::New();
-    this->BoxShape->SetScene( this->GetScene() );
-    this->BoxShape->SetHideFromEditors( 0 );
-    this->BoxShape->SetSaveWithScene( 1 );
-    this->SetBoxShapeID( this->BoxShape->GetID() );
-    this->GetScene()->AddNode( this->BoxShape );
+    this->PrismShape = vtkMRMLPrismShape::New();
+    this->PrismShape->SetScene( this->GetScene() );
+    this->PrismShape->SetHideFromEditors( 0 );
+    this->PrismShape->SetSaveWithScene( 1 );
+    this->SetPrismShapeID( this->PrismShape->GetID() );
+    this->GetScene()->AddNode( this->PrismShape );
     }
   
-  this->BoxShape->Initialize( fiducials );
+  this->PrismShape->Initialize( fiducials );
 }
 
 
@@ -844,35 +788,23 @@ vtkMRMLPerkProcedureNode
     tNeedleToWorld->GetMatrix()->DeepCopy( mWorld );
     tNeedleToWorld->Update();
 
-    
-#ifdef DEBUG_PERKPROCEDURE
-    std::ofstream dout ( "_DebugPerkProcedureEvaluator.txt", std::ios_base::app );
-    dout << index << " ";
-    dout << "NeedletipToParent ";
-    for ( int i = 0; i < 3; ++ i ) dout << tNeedletipToParent->GetMatrix()->GetElement( i, 3 ) << " ";
-    dout << "NeedleToParent ";
-    for ( int i = 0; i < 3; ++ i ) dout << tNeedleToParent->GetMatrix()->GetElement( i, 3 ) << " ";
-    dout << "NeedleToWorld ";
-    for ( int i = 0; i < 3; ++ i ) dout << tNeedleToWorld->GetMatrix()->GetElement( i, 3 ) << " ";
-    dout.close();
-#endif
-
-    
+   
     double cpos[ 4 ] = { tNeedleToWorld->GetMatrix()->GetElement( 0, 3 ),
                          tNeedleToWorld->GetMatrix()->GetElement( 1, 3 ),
                          tNeedleToWorld->GetMatrix()->GetElement( 2, 3 ), 1 };
     
-    bool inside = this->BoxShape->IsInside( cpos[ 0 ], cpos[ 1 ], cpos[ 2 ] );
+    bool inside = this->PrismShape->IsInside( cpos[ 0 ], cpos[ 1 ], cpos[ 2 ] );
     double d = DISTANCE( lastTpos, cpos );
     double dt = ctime - lastTime;
+    
+    double currEpos[ 4 ] = { 0, 0, 0, 1 };
     
     if ( inside )
       {
       pathInside += d;
       timeInside += dt;
       
-      double currEpos[ 4 ] = { 0, 0, 0, 1 };
-      bool valid = this->BoxShape->GetEntryPoint( tNeedleToParent, currEpos );
+      bool valid = this->PrismShape->GetEntryPoint( tNeedleToParent, currEpos );
       
         // If "inside surface covered" can be computed.
         
@@ -886,6 +818,24 @@ vtkMRMLPerkProcedureNode
     
     lastTime = ctime;
     for ( int i = 0; i < 4; ++ i ) lastTpos[ i ] = cpos[ i ];
+    
+    
+#ifdef DEBUG_PERKPROCEDURE
+    std::ofstream dout ( "_DebugPerkProcedureEvaluator.txt", std::ios_base::app );
+    dout << index << " ";
+    dout << "NeedletipToParent ";
+    for ( int i = 0; i < 3; ++ i ) dout << tNeedletipToParent->GetMatrix()->GetElement( i, 3 ) << " ";
+    dout << "NeedleToWorld ";
+    for ( int i = 0; i < 3; ++ i ) dout << tNeedleToWorld->GetMatrix()->GetElement( i, 3 ) << " ";
+    if ( inside )
+      {
+      dout << "EntryPoint ";
+      for ( int i = 0; i < 3; ++ i ) dout << currEpos[ i ] << " ";
+      }
+    dout << std::endl;
+    dout.close();
+#endif
+    
     }
   
   this->TimeInside = timeInside;
@@ -1015,8 +965,8 @@ vtkMRMLPerkProcedureNode
   
   this->NeedleTransformNode = NULL;
   this->NeedleTransformNodeID = NULL;
-  this->BoxShape = NULL;
-  this->BoxShapeID = NULL;
+  this->PrismShape = NULL;
+  this->PrismShapeID = NULL;
   
   
   this->FileName = NULL;
@@ -1066,7 +1016,8 @@ vtkMRMLPerkProcedureNode
   this->SetAndObserveNeedleCalibrationTransformNodeID( NULL );
   
   this->SetAndObserveNeedleTransformNodeID( NULL );
-  this->SetAndObserveBoxShapeID( NULL );
+  // this->SetAndObservePrismShapeID( NULL );
+  this->SetAndObservePrismShapeID( NULL );
 }
 
 

@@ -46,12 +46,13 @@ install(FILES
 # --------------------------------------------------------------------------
 # Sources
 
-set(PerkProcedureEvaluator_SRCS 
+set( PerkProcedureEvaluator_SRCS 
   vtkPerkProcedureEvaluatorLogic.cxx
   vtkPerkProcedureEvaluatorGUI.cxx
   vtkMRMLBoxShape.cxx
   vtkMRMLPerkProcedureNode.cxx
   vtkMRMLPerkProcedureStorageNode.cxx
+  vtkMRMLPrismShape.cxx
   vtkMRMLSurgicalShape.cxx
   vtkTransformTimeSeries.cxx
 )
@@ -77,6 +78,7 @@ set(lib_name PerkProcedureEvaluator)
 add_library(${lib_name}
   ${PerkProcedureEvaluator_SRCS} 
   ${PerkProcedureEvaluator_TCL_SRCS}
+  PerkProcedureEvaluatorHelper.cxx
   )
 
 slicer3_set_modules_output_path(${lib_name})

@@ -1,6 +1,6 @@
 
-#ifndef VTKMRMLBOXSHAPE_H
-#define VTKMRMLBOXSHAPE_H
+#ifndef VTKMRMLPRISMSHAPE_H
+#define VTKMRMLPRISMSHAPE_H
 
 
 #include "vtkMRMLFiducialListNode.h"
@@ -15,13 +15,13 @@
  * Brick shape determined by two fiducials (min and max coordinates).
  */
 class
-vtkMRMLBoxShape
+vtkMRMLPrismShape
 : public vtkMRMLSurgicalShape
 {
 public:
   
-  static vtkMRMLBoxShape *New();
-  vtkTypeMacro( vtkMRMLBoxShape, vtkMRMLNode );
+  static vtkMRMLPrismShape *New();
+  vtkTypeMacro( vtkMRMLPrismShape, vtkMRMLNode );
   void PrintSelf( ostream& os, vtkIndent indent );
 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -32,7 +32,7 @@ public:
   virtual void Copy( vtkMRMLNode *node );
   
   virtual const char* GetNodeTagName() {
-    return "MRMLBoxShape";
+    return "MRMLPrismShape";
   }
   
   virtual void UpdateScene( vtkMRMLScene *scene ) {
@@ -57,19 +57,34 @@ protected:
   
   virtual void AddModelNode( const char* nodeName, double r, double g, double b );
   
-  vtkMRMLBoxShape();
-  vtkMRMLBoxShape( const vtkMRMLBoxShape& );
-  void operator=( const vtkMRMLBoxShape& );
+  vtkMRMLPrismShape();
+  vtkMRMLPrismShape( const vtkMRMLPrismShape& );
+  void operator=( const vtkMRMLPrismShape& );
 
 
 private:
   
-  double MinR;
-  double MaxR;
-  double MinA;
-  double MaxA;
-  double MinS;
-  double MaxS;
+  void ComputePlanes();
+  
+  
+    // These points determine the prism. 3 pairs (P0,P1), (P0,P2) and (P0,P3)
+    // determine the three primary planes. Normals of these planes point to the
+    // side where the prism is. Regardless of the order of the P points.
+  
+  double P0[ 3 ];
+  double P1[ 3 ];
+  double P2[ 3 ];
+  double P3[ 3 ];
+  
+  
+    // 6 planes of the prism are defined by plane equations:
+    // Ax + By + Cz + D = 0
+  
+  double A[ 3 ];
+  double B[ 3 ];
+  double C[ 3 ];
+  double D[ 6 ];
+  
   
   bool Initialized;
 };
