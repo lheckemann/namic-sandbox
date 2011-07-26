@@ -159,6 +159,11 @@ protected:
   vtkKWLabel*      LabelSurfaceInside;
   vtkKWLabel*      LabelAngleFromAxial; // Deviation from axial plane.
   vtkKWLabel*      LabelAngleInAxial;   // Deviation from plan in axial plane.
+  vtkKWLabel*      LabelAngleError;
+  vtkKWLabel*      LabelEntryError;
+  vtkKWLabel*      LabelTargetError;
+  
+  vtkKWEntry*      EntryResults;  // For copying the results on the clipboard.
   
   
   //----------------------------------------------------------------

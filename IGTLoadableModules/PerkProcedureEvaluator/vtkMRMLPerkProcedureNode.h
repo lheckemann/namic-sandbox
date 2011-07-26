@@ -136,6 +136,9 @@ public:
   vtkGetMacro( SurfaceInside, double );
   vtkGetMacro( AngleFromAxial, double );
   vtkGetMacro( AngleInAxial, double );
+  vtkGetMacro( AngleError, double );
+  vtkGetMacro( EntryError, double );
+  vtkGetMacro( TargetError, double );
   
   
   void UpdateTransformIndex();
@@ -158,7 +161,13 @@ private:
   
   void ClearData();
   
+  
+    // Helper functions for computations.
+  
   double ApproximateSurface( double* e1, double* e2, double* t1, double* t2 );
+  void GetNeedleToWorldTransformAtIndex( int index, vtkTransform* tNeedleToWorld );
+  double ComputeAngleError( double* ep, double* tp, double* ea, double* ta );
+  
   
   char* FileName;
   
@@ -241,6 +250,9 @@ private:
   double SurfaceInside;
   double AngleFromAxial;
   double AngleInAxial;
+  double AngleError;
+  double EntryError;
+  double TargetError;
 };
 
 
