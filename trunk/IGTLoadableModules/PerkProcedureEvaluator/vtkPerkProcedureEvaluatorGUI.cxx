@@ -152,6 +152,11 @@ vtkPerkProcedureEvaluatorGUI
   this->LabelSurfaceInside = NULL;
   this->LabelAngleFromAxial = NULL;
   this->LabelAngleInAxial = NULL;
+  this->LabelAngleError = NULL;
+  this->LabelEntryError = NULL;
+  this->LabelTargetError = NULL;
+  
+  this->EntryResults = NULL;
   
   
   this->TimerFlag = 0;
@@ -219,6 +224,11 @@ vtkPerkProcedureEvaluatorGUI
   DELETE_WITH_SETPARENT_NULL( this->LabelSurfaceInside );
   DELETE_WITH_SETPARENT_NULL( this->LabelAngleFromAxial );
   DELETE_WITH_SETPARENT_NULL( this->LabelAngleInAxial );
+  DELETE_WITH_SETPARENT_NULL( this->LabelAngleError );
+  DELETE_WITH_SETPARENT_NULL( this->LabelEntryError );
+  DELETE_WITH_SETPARENT_NULL( this->LabelTargetError );
+  
+  DELETE_WITH_SETPARENT_NULL( this->EntryResults );
   
   
     // Unregister Logic class
@@ -1062,7 +1072,6 @@ vtkPerkProcedureEvaluatorGUI
   
     // Label surface inside.
   
-  
   vtkSmartPointer< vtkKWLabel > labelSurfaceInside = vtkSmartPointer< vtkKWLabel >::New();
     labelSurfaceInside->SetParent( resultsFrame->GetFrame() );
     labelSurfaceInside->Create();
@@ -1095,8 +1104,8 @@ vtkPerkProcedureEvaluatorGUI
     this->LabelAngleFromAxial->Create();
     }
   
-  this->Script( "grid %s -column 0 -row 7 -sticky w -padx 4 -pady 1", labelAngleFromAxial->GetWidgetName() );
-  this->Script( "grid %s -column 1 -row 7 -sticky w -padx 4 -pady 1", this->LabelAngleFromAxial->GetWidgetName() );
+  // this->Script( "grid %s -column 0 -row 7 -sticky w -padx 4 -pady 1", labelAngleFromAxial->GetWidgetName() );
+  // this->Script( "grid %s -column 1 -row 7 -sticky w -padx 4 -pady 1", this->LabelAngleFromAxial->GetWidgetName() );
   
   
   vtkSmartPointer< vtkKWLabel > labelAngleInAxial = vtkSmartPointer< vtkKWLabel >::New();
@@ -1111,9 +1120,63 @@ vtkPerkProcedureEvaluatorGUI
     this->LabelAngleInAxial->Create();
     }
   
-  this->Script( "grid %s -column 0 -row 8 -sticky w -padx 4 -pady 1", labelAngleInAxial->GetWidgetName() );
-  this->Script( "grid %s -column 1 -row 8 -sticky w -padx 4 -pady 1", this->LabelAngleInAxial->GetWidgetName() );
+  // this->Script( "grid %s -column 0 -row 8 -sticky w -padx 4 -pady 1", labelAngleInAxial->GetWidgetName() );
+  // this->Script( "grid %s -column 1 -row 8 -sticky w -padx 4 -pady 1", this->LabelAngleInAxial->GetWidgetName() );
   
+  
+    // Errors compared to the planned needle position.
+  
+  vtkSmartPointer< vtkKWLabel > labelAngleError = vtkSmartPointer< vtkKWLabel >::New();
+    labelAngleError->SetParent( resultsFrame->GetFrame() );
+    labelAngleError->Create();
+    labelAngleError->SetText( "Angle deviation (deg): " );
+  if ( ! this->LabelAngleError )
+    {
+    this->LabelAngleError = vtkKWLabel::New();
+    this->LabelAngleError->SetParent( resultsFrame->GetFrame() );
+    this->LabelAngleError->Create();
+    }
+  this->Script( "grid %s -column 0 -row 7 -sticky w -padx 4 -pady 1", labelAngleError->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 7 -sticky w -padx 4 -pady 1", this->LabelAngleError->GetWidgetName() );
+  
+  vtkSmartPointer< vtkKWLabel > labelEntryError = vtkSmartPointer< vtkKWLabel >::New();
+    labelEntryError->SetParent( resultsFrame->GetFrame() );
+    labelEntryError->Create();
+    labelEntryError->SetText( "Entry point error (mm): " );
+  if ( ! this->LabelEntryError )
+    {
+    this->LabelEntryError = vtkKWLabel::New();
+    this->LabelEntryError->SetParent( resultsFrame->GetFrame() );
+    this->LabelEntryError->Create();
+    }
+  this->Script( "grid %s -column 0 -row 8 -sticky w -padx 4 -pady 1", labelEntryError->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 8 -sticky w -padx 4 -pady 1", this->LabelEntryError->GetWidgetName() );
+  
+  vtkSmartPointer< vtkKWLabel > labelTargetError = vtkSmartPointer< vtkKWLabel >::New();
+    labelTargetError->SetParent( resultsFrame->GetFrame() );
+    labelTargetError->Create();
+    labelTargetError->SetText( "Target point error (mm): " );
+  if ( ! this->LabelTargetError )
+    {
+    this->LabelTargetError = vtkKWLabel::New();
+    this->LabelTargetError->SetParent( resultsFrame->GetFrame() );
+    this->LabelTargetError->Create();
+    }
+  this->Script( "grid %s -column 0 -row 9 -sticky w -padx 4 -pady 1", labelTargetError->GetWidgetName() );
+  this->Script( "grid %s -column 1 -row 9 -sticky w -padx 4 -pady 1", this->LabelTargetError->GetWidgetName() );
+  
+  
+  
+    // Entry to copy results.
+  
+  if ( ! this->EntryResults )
+    {
+    this->EntryResults = vtkKWEntry::New();
+    this->EntryResults->SetParent( resultsFrame->GetFrame() );
+    this->EntryResults->Create();
+    }
+  
+  this->Script( "grid %s -column 0 -row 10 -sticky w -padx 4 -pady 1", this->EntryResults->GetWidgetName() );
 }
 
 
@@ -1190,6 +1253,8 @@ vtkPerkProcedureEvaluatorGUI
   
     // Measurement results.
   
+  std::stringstream ssResultLine;
+  
   if ( procedure->GetIndexBegin() >= 0 )
     {
     this->LabelBegin->SetText( DoubleToStr( procedure->GetRelativeTimeAtTransformIndex( procedure->GetIndexBegin() ), 1 ).c_str() );
@@ -1207,6 +1272,18 @@ vtkPerkProcedureEvaluatorGUI
     this->LabelTimeInside->SetText( DoubleToStr( procedure->GetTimeInside() ).c_str() );
     this->LabelSurfaceInside->SetText( DoubleToStr( procedure->GetSurfaceInside() / 100.0 ).c_str() );
     this->LabelAngleFromAxial->SetText( DoubleToStr( procedure->GetAngleFromAxial() ).c_str() );
+    this->LabelAngleError->SetText( DoubleToStr( procedure->GetAngleError() ).c_str() );
+    this->LabelEntryError->SetText( DoubleToStr( procedure->GetEntryError() ).c_str() );
+    this->LabelTargetError->SetText( DoubleToStr( procedure->GetTargetError() ).c_str() );
+    
+    ssResultLine << procedure->GetTotalTime() << " "
+                 << procedure->GetPathInside() << " "
+                 << procedure->GetTimeInside() << " "
+                 << ( procedure->GetSurfaceInside() / 100.0 ) << " "
+                 << procedure->GetAngleError() << " "
+                 << procedure->GetEntryError() << " "
+                 << procedure->GetTargetError() << " "
+                 ;
     
     if ( procedure->GetAngleInAxial() < 0.0 )
       {
@@ -1216,6 +1293,8 @@ vtkPerkProcedureEvaluatorGUI
       {
       this->LabelAngleInAxial->SetText( DoubleToStr( procedure->GetAngleInAxial() ).c_str() );
       }
+    
+     this->EntryResults->SetValue( ssResultLine.str().c_str() );
     }
 }
 

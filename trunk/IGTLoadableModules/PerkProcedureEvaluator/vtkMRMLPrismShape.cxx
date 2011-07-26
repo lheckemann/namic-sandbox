@@ -23,8 +23,8 @@
 #include "vtkMRMLModelNode.h"
 
 
-#define DEBUG_PRISMSHAPE
-
+// #define DEBUG_PRISMSHAPE
+int DebugPrismIndex = 0;
 
 
 vtkMRMLPrismShape*
@@ -210,9 +210,9 @@ vtkMRMLPrismShape
  */
 bool
 vtkMRMLPrismShape
-::GetEntryPoint( vtkTransform* tr, double* entry )
+::GetEntryPoint( vtkTransform* tNeedleToWorld, double* entry )
 {
-  if ( tr == NULL )
+  if ( tNeedleToWorld == NULL )
     {
     vtkErrorMacro( "Calculation with NULL transform." );
     return false;
@@ -221,11 +221,11 @@ vtkMRMLPrismShape
   double pOrigin[ 4 ] = { 0, 0, 0, 1 };
   double P[ 4 ] = { 0, 0, 0, 1 };  // Position of needle tip.
   
-  double vInit[ 4 ] = { 1, 0, 0, 0 };
+  double vInit[ 4 ] = { 0, 0, -1, 0 };
   double V[ 4 ] = { 0, 0, 0, 0 };  // Direction of needle.
   
-  tr->MultiplyPoint( pOrigin, P );
-  tr->MultiplyPoint( vInit, V );
+  tNeedleToWorld->MultiplyPoint( pOrigin, P );
+  tNeedleToWorld->MultiplyPoint( vInit, V );
   
   
   double t[ 6 ] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
@@ -236,12 +236,12 @@ vtkMRMLPrismShape
              / (          A[ i ] * V[ 0 ] + B[ i ] * V[ 1 ] + C[ i ] * V[ 2 ] );
     }
   
-  int minIndex = 0;
-  int minT = t[ 0 ];
+  int minIndex = -1;
+  int minT = 10000;
   
-  for ( int i = 1; i < 6; ++ i )
+  for ( int i = 0; i < 6; ++ i )
     {
-    if ( minT > t[ i ] )
+    if ( ( minT > t[ i ] ) && ( t[ i ] >= 0 ) )
       {
       minT = t[ i ];
       minIndex = i;
@@ -255,6 +255,28 @@ vtkMRMLPrismShape
     {
     entry[ i ] = P[ i ] + t[ minIndex ] * V[ i ]; 
     }
+  
+  
+#ifdef DEBUG_PRISMSHAPE
+  std::ofstream out( "_PrismShape.txt", std::ios_base::app );
+  out << DebugPrismIndex << std::endl;
+  ++ DebugPrismIndex;
+  out << "tNeedleToWorld: " << std::endl;
+  for ( int row = 0; row < 4; ++ row )
+    {
+    for ( int col = 0; col < 4; ++ col )
+      {
+      out << tNeedleToWorld->GetMatrix()->GetElement( row, col ) << "   ";
+      }
+    out << std::endl;
+    }
+  out << std::endl;
+  out << "V: "; for ( int i = 0; i < 3; ++ i ) out << V[ i ] << "  "; out << std::endl;
+  out << "t: "; for ( int i = 0; i < 6; ++ i ) out << t[ i ] << "  "; out << std::endl;
+  out << "Entry: " << entry[ 0 ] << "  " << entry[ 1 ] << "  " << entry[ 2 ] << std::endl;
+  out.close();
+#endif
+  
   
   return true;
 }
@@ -514,6 +536,7 @@ vtkMRMLPrismShape
     {
     out << A[i%3] << "  " << B[i%3] << "  " << C[i%3] << "  " << D[ i ] << std::endl;
     }
+  out.close();
 #endif
 
 }

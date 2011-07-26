@@ -21,7 +21,7 @@
 // =============================================================
 
 
-#define DEBUG_PERKPROCEDURE
+// #define DEBUG_PERKPROCEDURE
 
 
 #define DISTANCE( p1, p2 ) \
@@ -745,97 +745,87 @@ vtkMRMLPerkProcedureNode
   double surfInside = 0.0; // Surface touched by needle inside.
   
   
-  double lastTime = this->TransformTimeSeries->GetTimeAtIndex( this->IndexBegin );
-  vtkSmartPointer< vtkTransform > tNeedletipToParent = vtkSmartPointer< vtkTransform >::New();
-  tNeedletipToParent->GetMatrix()->DeepCopy( this->TransformTimeSeries->GetTransformAtIndex( this->IndexBegin )->GetMatrix() );
-  tNeedletipToParent->Update();
-  // tNeedletipToParent->DeepCopy( this->TransformTimeSeries->GetTransformAtIndex( this->IndexBegin ) );
+  vtkSmartPointer< vtkTransform > tNeedleToWorld = vtkSmartPointer< vtkTransform >::New();
+  GetNeedleToWorldTransformAtIndex( this->IndexBegin, tNeedleToWorld );
   
-  double lastEpos[ 4 ] = { 0, 0, 0, 1 }; // Last entry point of needle into the phantom.
-  double lastTpos[ 4 ] = { 0, 0, 0, 1 }; // Last position of the needle tip.
-    lastTpos[ 0 ] = tNeedletipToParent->GetMatrix()->GetElement( 0, 3 );
-    lastTpos[ 1 ] = tNeedletipToParent->GetMatrix()->GetElement( 1, 3 );
-    lastTpos[ 2 ] = tNeedletipToParent->GetMatrix()->GetElement( 2, 3 );
+  
+    // Parameters needed to calculate metrics.
+  
+  double lastTime      = this->TransformTimeSeries->GetTimeAtIndex( this->IndexBegin );
+  double lastEpos[ 4 ] = { 0, 0, 0, 1 };  // Last entry point of needle into the phantom.
+  double currEpos[ 4 ] = { 0, 0, 0, 1 };  // Current entry point of needle.
+  double lastTpos[ 4 ] = { 0, 0, 0, 1 };  // Last position of the needle tip.
+  double currTpos[ 4 ] = { 0, 0, 0, 1 };  // Current position of the needle tip.
+  
+  
+    // Make the current Target position the last one.
+  
+  lastTpos[ 0 ] = tNeedleToWorld->GetMatrix()->GetElement( 0, 3 );
+  lastTpos[ 1 ] = tNeedleToWorld->GetMatrix()->GetElement( 1, 3 );
+  lastTpos[ 2 ] = tNeedleToWorld->GetMatrix()->GetElement( 2, 3 );
     
   
     // Loop over recorded transforms.
   
-  vtkSmartPointer< vtkTransform > tNeedleToParent = vtkSmartPointer< vtkTransform >::New();
-  
   for ( int index = this->IndexBegin; index <= this->IndexEnd; ++ index )
     {
+    
+      // Update parameters for current state.
+    
     double ctime = this->TransformTimeSeries->GetTimeAtIndex( index );
-    tNeedletipToParent->GetMatrix()->DeepCopy( this->TransformTimeSeries->GetTransformAtIndex( index )->GetMatrix() );
-    // tr->DeepCopy( this->TransformTimeSeries->GetTransformAtIndex( index ) );
+    GetNeedleToWorldTransformAtIndex( index, tNeedleToWorld );
     
-      // Apply needle calibration if we have it.
-    
-    tNeedleToParent->Identity();
-    tNeedleToParent->Update();
-    tNeedleToParent->Concatenate( tNeedletipToParent );
-    if ( this->NeedleCalibrationTransformNode != NULL )
-      {
-      tNeedleToParent->GetMatrix()->DeepCopy( this->NeedleCalibrationTransformNode->GetMatrixTransformToParent() );
-      }
-    tNeedleToParent->Update();
+    for ( int i = 0; i < 3; ++ i ) currTpos[ i ] = tNeedleToWorld->GetMatrix()->GetElement( i, 3 );
     
     
-    this->NeedleTransformNode->GetMatrixTransformToParent()->DeepCopy( tNeedleToParent->GetMatrix() );
-    vtkSmartPointer< vtkMatrix4x4 > mWorld = vtkSmartPointer< vtkMatrix4x4 >::New();
-    this->NeedleTransformNode->GetMatrixTransformToWorld( mWorld );
-    
-    vtkSmartPointer< vtkTransform > tNeedleToWorld = vtkSmartPointer< vtkTransform >::New();
-    tNeedleToWorld->GetMatrix()->DeepCopy( mWorld );
-    tNeedleToWorld->Update();
-
-   
-    double cpos[ 4 ] = { tNeedleToWorld->GetMatrix()->GetElement( 0, 3 ),
-                         tNeedleToWorld->GetMatrix()->GetElement( 1, 3 ),
-                         tNeedleToWorld->GetMatrix()->GetElement( 2, 3 ), 1 };
-    
-    bool inside = this->PrismShape->IsInside( cpos[ 0 ], cpos[ 1 ], cpos[ 2 ] );
-    double d = DISTANCE( lastTpos, cpos );
+    bool inside = this->PrismShape->IsInside( currTpos[ 0 ], currTpos[ 1 ], currTpos[ 2 ] );
+    double d = DISTANCE( lastTpos, currTpos );
     double dt = ctime - lastTime;
     
-    double currEpos[ 4 ] = { 0, 0, 0, 1 };
+    
+      // Metrics only computed if needle is inside the target body.
     
     if ( inside )
       {
       pathInside += d;
       timeInside += dt;
       
-      bool valid = this->PrismShape->GetEntryPoint( tNeedleToParent, currEpos );
+      bool valid = this->PrismShape->GetEntryPoint( tNeedleToWorld, currEpos );
       
         // If "inside surface covered" can be computed.
         
       if ( valid  &&  index > this->IndexBegin )
         {
-        double dSurface = this->ApproximateSurface( lastEpos, currEpos, lastTpos, cpos );
+        double dSurface = this->ApproximateSurface( lastEpos, currEpos, lastTpos, currTpos );
         surfInside += dSurface;
         for ( int i = 0; i < 4; ++ i ) lastEpos[ i ] = currEpos[ i ];
         }
       }
     
+    
+      // Current parameters become last parameters for the next iteration.
+    
     lastTime = ctime;
-    for ( int i = 0; i < 4; ++ i ) lastTpos[ i ] = cpos[ i ];
+    for ( int i = 0; i < 4; ++ i ) lastTpos[ i ] = currTpos[ i ];
     
     
 #ifdef DEBUG_PERKPROCEDURE
     std::ofstream dout ( "_DebugPerkProcedureEvaluator.txt", std::ios_base::app );
-    dout << index << " ";
-    dout << "NeedletipToParent ";
-    for ( int i = 0; i < 3; ++ i ) dout << tNeedletipToParent->GetMatrix()->GetElement( i, 3 ) << " ";
-    dout << "NeedleToWorld ";
-    for ( int i = 0; i < 3; ++ i ) dout << tNeedleToWorld->GetMatrix()->GetElement( i, 3 ) << " ";
-    if ( inside )
+    dout << index << " " << std::endl;
+    dout << "Time: " << ctime << std::endl;
+    dout << "NeedleToWorld " << std::endl;
+    for ( int row = 0; row < 4; ++ row )
       {
-      dout << "EntryPoint ";
-      for ( int i = 0; i < 3; ++ i ) dout << currEpos[ i ] << " ";
+      for ( int col = 0; col < 4; ++ col )
+        {
+        dout << tNeedleToWorld->GetMatrix()->GetElement( row, col ) << " ";
+        }
+      dout << std::endl;
       }
     dout << std::endl;
+    
     dout.close();
 #endif
-    
     }
   
   this->TimeInside = timeInside;
@@ -843,18 +833,11 @@ vtkMRMLPerkProcedureNode
   this->SurfaceInside = surfInside;
   
   
-  // debug
-  double origin[ 4 ] = { 0, 0, 0, 1 };
-  double tipAtEnd[ 4 ] = { 0, 0, 0, 1 };
-  tNeedleToParent->MultiplyPoint( origin, tipAtEnd );
-  vtkMatrix4x4* mtx = tNeedleToParent->GetMatrix();
-  
-  
     // Create a superior oriented unit vector, transform by tr, compare angle with axial.
   
   double inferiorDirection[ 4 ] = { 0, 0, - 1, 1 };
   double needleDirection[ 4 ] = { 0, 0, 0, 1 };
-  tNeedleToParent->MultiplyPoint( inferiorDirection, needleDirection );
+  tNeedleToWorld->MultiplyPoint( inferiorDirection, needleDirection );
   
   double cosinus = lastTpos[ 1 ] - needleDirection[ 1 ];
   double sinus = lastTpos[ 2 ] - needleDirection[ 2 ];
@@ -867,6 +850,16 @@ vtkMRMLPerkProcedureNode
   
   if ( this->PlanReady )
     {
+    
+      // Errors compared to the planned needle position.
+    
+    this->AngleError = this->ComputeAngleError( PlanEntryPoint, PlanTargetPoint, currEpos, currTpos );
+    this->EntryError = DISTANCE( PlanEntryPoint, currEpos );
+    this->TargetError = DISTANCE( PlanTargetPoint, currTpos );
+    
+    
+      // Old metrics that shouldn't be used anymore...
+    
     sinus = this->PlanTargetPoint[ 0 ] - this->PlanEntryPoint[ 0 ];
     cosinus = this->PlanTargetPoint[ 1 ] - this->PlanEntryPoint[ 1 ];
     double planAngleInAxial = 361.0;
@@ -874,7 +867,6 @@ vtkMRMLPerkProcedureNode
       {
       planAngleInAxial = std::atan( sinus / cosinus ) * 180 / 3.141592;
       }
-    
     
       // Compute needle angle in axial plane.
     
@@ -995,6 +987,9 @@ vtkMRMLPerkProcedureNode
   this->SurfaceInside = 0.0;
   this->AngleFromAxial = 0.0;
   this->AngleInAxial = 0.0;
+  this->AngleError = 0.0;
+  this->EntryError = 0.0;
+  this->TargetError = 0.0;
   
   
   this->HideFromEditorsOff();
@@ -1117,4 +1112,71 @@ vtkMRMLPerkProcedureNode
     + cprod[ 2 ] * cprod[ 2 ] );
   
   return ( area1 + area2 );
+}
+
+
+
+void
+vtkMRMLPerkProcedureNode
+::GetNeedleToWorldTransformAtIndex( int index, vtkTransform* tNeedleToWorld )
+{
+  vtkSmartPointer< vtkTransform > tNeedletipToParent = vtkSmartPointer< vtkTransform >::New();
+  tNeedletipToParent->GetMatrix()->DeepCopy( this->TransformTimeSeries->GetTransformAtIndex( index )->GetMatrix() );
+  
+  
+    // Create a needle calibration (rotation) transform.
+  
+  vtkSmartPointer< vtkTransform > tNeedleToNeedletip = vtkSmartPointer< vtkTransform >::New();
+  tNeedleToNeedletip->Identity();
+  if ( this->NeedleCalibrationTransformNode != NULL )
+    {
+    tNeedleToNeedletip->GetMatrix()->DeepCopy( this->NeedleCalibrationTransformNode->GetMatrixTransformToParent() );
+    tNeedleToNeedletip->Update();
+    }
+  
+  
+    // Apply needle calibration.
+  
+  vtkSmartPointer< vtkTransform > tNeedleToParent = vtkSmartPointer< vtkTransform >::New();
+  tNeedleToParent->Identity();
+  tNeedleToParent->Update();
+  tNeedleToParent->Concatenate( tNeedletipToParent );
+  tNeedleToParent->Concatenate( tNeedleToNeedletip );
+  tNeedleToParent->Update();
+  
+  
+    // Apply fiducial registration transform to the NeedleToParent transform.
+  
+  vtkSmartPointer< vtkMatrix4x4 > mWorld = vtkSmartPointer< vtkMatrix4x4 >::New();
+  this->NeedleTransformNode->GetMatrixTransformToParent()->DeepCopy( tNeedleToParent->GetMatrix() );
+  this->NeedleTransformNode->GetMatrixTransformToWorld( mWorld );
+  tNeedleToWorld->GetMatrix()->DeepCopy( mWorld );
+  tNeedleToWorld->Update();
+}
+
+
+
+/**
+ * @param ep Planned Entry point.
+ * @param tp Planned Target point.
+ * @param ea Actual Entry point.
+ * @param ta Actual Target point.
+ */
+double
+vtkMRMLPerkProcedureNode
+::ComputeAngleError( double* ep, double* tp, double* ea, double* ta )
+{
+  double planEtoT[ 3 ] = { 0, 0, 0 };
+  double actualEtoT[ 3 ] = { 0, 0, 0 };
+  
+  vtkMath::Subtract( tp, ep, planEtoT );
+  vtkMath::Subtract( ta, ea, actualEtoT );
+  
+  vtkMath::Normalize( planEtoT );
+  vtkMath::Normalize( actualEtoT );
+  
+  double cosAngle = vtkMath::Dot( planEtoT, actualEtoT );
+  double angle = std::acos( cosAngle ) / 3.141592 * 180.0;
+  
+  return angle;
 }
