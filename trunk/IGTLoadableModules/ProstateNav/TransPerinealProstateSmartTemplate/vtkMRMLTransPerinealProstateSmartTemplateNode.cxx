@@ -123,9 +123,6 @@ vtkMRMLTransPerinealProstateSmartTemplateNode::vtkMRMLTransPerinealProstateSmart
   this->ActiveNeedleTransformNode   = NULL;
 
   // Other
-
-  this->ScreenMessage = NULL;
-
   this->ScannerWorkPhase     = -1;
   this->ScannerConnectedFlag = 0;
 
@@ -1128,14 +1125,6 @@ int vtkMRMLTransPerinealProstateSmartTemplateNode::MoveTo(const char *transformN
     needleTransform->SetElement(1, 3, needleTip[1]);
     needleTransform->SetElement(2, 3, needleTip[2]);
     needleTransformNode->Modified();
-
-    std::ostringstream ss;
-    //ss << "Grid:   (" << i << ", " << (char) ('A' + j) << ")" << std::endl;
-    ss << "Grid:   (" << (char) ('A' + j) << ", " << (i - TEMPLATE_NUMBER_OF_GRIDS_X/2) << ")" << std::endl;
-    ss << "Depth:  " << depth << " mm" << std::endl;
-    ss << "Target: R=" << targetX << ", A=" << targetY << ", S=" << targetZ << std::endl;
-    ss << "Error:  R=" << errorX  << ", A=" << errorY  << ", S=" << errorZ  << std::endl;
-    SetScreenMessage(ss.str().c_str());
 
     Modified();
     } 

@@ -599,7 +599,9 @@ void vtkProstateNavStepTargetingTemplate::ProcessGUIEvents(vtkObject *caller,
     vtkMRMLTransPerinealProstateTemplateNode* robotNode = 
       vtkMRMLTransPerinealProstateTemplateNode::SafeDownCast(this->GetProstateNavManager()->GetRobotNode());
     vtkProstateNavTargetDescriptor* targetDesc=this->GetProstateNavManager()->GetTargetDescriptorAtIndex(mrmlNode->GetCurrentTargetIndex());
-    this->ReportWindow->GenerateReport(robotNode, targetDesc);
+    NeedleDescriptorStruct *needle = mrmlNode->GetNeedle(targetDesc);     
+
+    this->ReportWindow->GenerateReport(robotNode, targetDesc, needle);
     this->ReportWindow->DisplayOnWindow();
     return;
     }
@@ -897,6 +899,7 @@ void vtkProstateNavStepTargetingTemplate::OnMultiColumnListSelectionChanged()
       vtkErrorMacro("Target descriptor not found");
       return;
     }
+
     // Copy the values to inputs
     vtkKWMatrixWidget* matrix = this->NeedlePositionMatrix->GetWidget();
     double* xyz=targetDesc->GetRASLocation();
@@ -904,15 +907,9 @@ void vtkProstateNavStepTargetingTemplate::OnMultiColumnListSelectionChanged()
     matrix->SetElementValueAsDouble(0, 1, xyz[1]);
     matrix->SetElementValueAsDouble(0, 2, xyz[2]);
 
-    //matrix = this->NeedleOrientationMatrix->GetWidget();
-    //double* wxyz=targetDesc->GetRASOrientation();
-    //matrix->SetElementValueAsDouble(0, 0, wxyz[0]);
-    //matrix->SetElementValueAsDouble(0, 1, wxyz[1]);
-    //matrix->SetElementValueAsDouble(0, 2, wxyz[2]);
-    //matrix->SetElementValueAsDouble(0, 3, wxyz[3]);
-          
-    this->GetProstateNavManager()->SetCurrentTargetIndex(targetIndex);
-
+    // The following code was inherited from the robot code.
+    // TODO: For Template-based biopsy, the GUI should be updated, while
+    // the ModifiedEvent of ProstateNavManager node is handled.
     if ( this->Logic )
       {
       vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()->GetMRMLScene()
@@ -937,6 +934,11 @@ void vtkProstateNavStepTargetingTemplate::OnMultiColumnListSelectionChanged()
       
         }
       }
+
+    // The following function should be called after calling MoveTo(),
+    // because it invokes Modified event that requires the RobotNode
+    // to update its target information to update GUI.
+    this->GetProstateNavManager()->SetCurrentTargetIndex(targetIndex);
     }
 }
 
@@ -1210,11 +1212,18 @@ void vtkProstateNavStepTargetingTemplate::UpdateGUI()
   */
     if (this->GetProstateNavManager()!=NULL && this->Message)
       {
+      vtkProstateNavTargetDescriptor *targetDesc = mrmlNode->GetTargetDescriptorAtIndex(mrmlNode->GetCurrentTargetIndex()); 
+      NeedleDescriptorStruct *needle = mrmlNode->GetNeedle(targetDesc); 
       vtkMRMLTransPerinealProstateTemplateNode* robot;
       robot = vtkMRMLTransPerinealProstateTemplateNode::SafeDownCast(this->GetProstateNavManager()->GetRobotNode());
-      if (robot)
+      if (targetDesc && robot)
         {
-        this->Message->SetText(robot->GetScreenMessage());
+        std::string info = robot->GetTargetInfoText(targetDesc, needle);
+        this->Message->SetText(info.c_str());
+        }
+      else
+        {
+        this->Message->SetText("");
         }
       }
   }

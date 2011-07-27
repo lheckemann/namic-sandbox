@@ -405,10 +405,10 @@ void vtkProstateNavReportWindow::DisplayOnWindow()
 }
 
 
-
 //----------------------------------------------------------------------------
 void vtkProstateNavReportWindow::GenerateReport(vtkMRMLTransPerinealProstateTemplateNode* robot,
-                                                vtkProstateNavTargetDescriptor* desc)
+                                                vtkProstateNavTargetDescriptor* desc,
+                                                NeedleDescriptorStruct* needle)
 {
   vtkKWText* text = this->ReportText->GetWidget();
   char buf[256];
@@ -454,7 +454,7 @@ void vtkProstateNavReportWindow::GenerateReport(vtkMRMLTransPerinealProstateTemp
   //  robot->SetTargetPosition(matrix);
   //  text->AppendText(robot->GetScreenMessage());
   //  }
-  text->AppendText(robot->GetTargetReport(desc));
+  text->AppendText(robot->GetTargetInfoText(desc, NULL).c_str());
 
 }
 

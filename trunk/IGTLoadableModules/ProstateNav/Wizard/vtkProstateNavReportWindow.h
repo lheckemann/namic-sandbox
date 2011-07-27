@@ -42,6 +42,8 @@ class vtkMRMLProstateNavManagerNode;
 class vtkMRMLTransPerinealProstateTemplateNode;
 class vtkProstateNavTargetDescriptor;
 
+struct NeedleDescriptorStruct;
+
 class VTK_PROSTATENAV_EXPORT vtkProstateNavReportWindow : public vtkKWTopLevel
 {
 public:
@@ -65,7 +67,9 @@ public:
   void ProcessTimerEvents();
   void DisplayOnWindow();
 
-  void GenerateReport(vtkMRMLTransPerinealProstateTemplateNode* robot, vtkProstateNavTargetDescriptor* desc);
+  void GenerateReport(vtkMRMLTransPerinealProstateTemplateNode* robot,
+                      vtkProstateNavTargetDescriptor* desc,
+                      NeedleDescriptorStruct* needle);
 
 protected:
 
