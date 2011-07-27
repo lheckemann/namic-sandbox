@@ -499,7 +499,8 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   // Model 1
   vtkMRMLModelNode* part1 = vtkMRMLModelNode::New();
   part1->SetScene(this->GetLogic()->GetMRMLScene());
-  part1->SetAndObservePolyData(realCut->GetOutput());             // Replace realCut->GetOutput() by firstAppend->GetOutput() to visualize firstAppend
+  part1->SetName("Inside");
+  part1->SetAndObservePolyData(realCut->GetClippedOutput());             // Replace realCut->GetClippedOutput() by firstAppend->GetOutput() to visualize firstAppend
   part1->SetModifiedSinceRead(1);
   part1->GetPolyData()->Squeeze();
   this->GetLogic()->GetMRMLScene()->AddNode(part1);
@@ -507,7 +508,8 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   vtkMRMLModelDisplayNode* dnode1 = vtkMRMLModelDisplayNode::New();
   dnode1->SetPolyData(part1->GetPolyData());
   dnode1->SetColor(0.85,0.85,0.85);
-  dnode1->SetVisibility(1);
+  dnode1->SetBackfaceCulling(1);
+  dnode1->SetVisibility(0);
   this->GetLogic()->GetMRMLScene()->AddNode(dnode1);
 
   part1->SetAndObserveDisplayNodeID(dnode1->GetID());
@@ -515,15 +517,17 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   // Model 2  
   vtkMRMLModelNode* part2 = vtkMRMLModelNode::New();
   part2->SetScene(this->GetLogic()->GetMRMLScene());
-  part2->SetAndObservePolyData(realCut->GetClippedOutput());       // Replace realCut->GetClippedOutput() by secondAppend->GetOutput() to visualize secondAppend
+  part2->SetName("Outside");
+  part2->SetAndObservePolyData(realCut->GetOutput());       // Replace realCut->GetClippedOutput() by secondAppend->GetOutput() to visualize secondAppend
   part2->SetModifiedSinceRead(1);
   part2->GetPolyData()->Squeeze();
   this->GetLogic()->GetMRMLScene()->AddNode(part2);
 
   vtkMRMLModelDisplayNode* dnode2 = vtkMRMLModelDisplayNode::New();      
-  dnode2->SetPolyData(realCut->GetClippedOutput());
+  dnode2->SetPolyData(part2->GetPolyData());
   dnode2->SetColor(0.15,0.15,0.15);
-  dnode2->SetVisibility(0);
+  dnode2->SetBackfaceCulling(1);
+  dnode2->SetVisibility(1);
   this->GetLogic()->GetMRMLScene()->AddNode(dnode2);
   
   part2->SetAndObserveDisplayNodeID(dnode2->GetID());
