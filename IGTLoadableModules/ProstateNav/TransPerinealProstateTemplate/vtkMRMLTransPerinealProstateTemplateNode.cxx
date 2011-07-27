@@ -128,9 +128,6 @@ vtkMRMLTransPerinealProstateTemplateNode::vtkMRMLTransPerinealProstateTemplateNo
 
 
   // Other
-
-  this->ScreenMessage = NULL;
-
   this->ScannerWorkPhase     = -1;
   this->ScannerConnectedFlag = 0;
 
@@ -1151,14 +1148,6 @@ int vtkMRMLTransPerinealProstateTemplateNode::MoveTo(const char *transformNodeId
     needleTransform->SetElement(2, 3, needleTip[2]);
     needleTransformNode->Modified();
 
-    std::ostringstream ss;
-    //ss << "Grid:   (" << i << ", " << (char) ('A' + j) << ")" << std::endl;
-    ss << "Grid:   (" << (char) ('A' + j) << ", " << (i - TEMPLATE_NUMBER_OF_GRIDS_X/2) << ")" << std::endl;
-    ss << "Depth:  " << depth << " mm" << std::endl;
-    ss << "Target: R=" << targetX << ", A=" << targetY << ", S=" << targetZ << std::endl;
-    ss << "Error:  R=" << errorX  << ", A=" << errorY  << ", S=" << errorZ  << std::endl;
-    SetScreenMessage(ss.str().c_str());
-
     // Substitute hole information (for secondary display)
     this->FlagNeedleInfomation = 1;
     this->NeedleDepth  = depth;
@@ -1455,18 +1444,30 @@ vtkMRMLLinearTransformNode* vtkMRMLTransPerinealProstateTemplateNode::GetImaging
 //----------------------------------------------------------------------------
 std::string vtkMRMLTransPerinealProstateTemplateNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc, NeedleDescriptorStruct *needle)
 {
-  std::ostrstream os;
-
-  if (this->FlagNeedleInfomation == 1)
+  if (!targetDesc)
     {
-    //os << "TARGET NAME: " << <<std::endl;
-    os << "Grid:   (" << (char) ('A' + this->GridIndex[1]) << ", " << (this->GridIndex[0] - TEMPLATE_NUMBER_OF_GRIDS_X/2) << ")" << std::endl;
-    os << "Depth:  " << this->NeedleDepth << " mm" << std::endl;
-    os << "Target: R=" << this->TargetRAS[0] << ", A=" << this->TargetRAS[1] << ", S=" << this->TargetRAS[1] << std::endl;
-    os << "Error:  R=" << this->ExpectedTargetError[0]  << ", A=" << this->ExpectedTargetError[1]  << ", S=" << this->ExpectedTargetError[2]  << std::endl;
+    return "";
     }
 
+  double* target = targetDesc->GetRASLocation();
+  int i;
+  int j;
+  double depth;
+  double errorX;
+  double errorY;
+  double errorZ;
+
+  FindHole(target[0], target[1], target[2], i, j, depth, errorX, errorY, errorZ);
+
+  std::ostrstream os;
+  os << "Target: " << targetDesc->GetName()<<std::endl;
+  os << "Grid:   (" << (char) ('A' + j) << ", " << (i - TEMPLATE_NUMBER_OF_GRIDS_X/2) << ")" << std::endl;
+  os << "Depth:  " << depth << " mm" << std::endl;
+  os << "Target: R=" << target[0] << ", A=" << target[1] << ", S=" << target[2] << std::endl;
+  os << "Error:  R=" << errorX  << ", A=" << errorY  << ", S=" << errorZ  << std::endl;
   os << std::ends;
+  //SetScreenMessage(ss.str().c_str());
+
   std::string result=os.str();
   os.rdbuf()->freeze();
       

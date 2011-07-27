@@ -38,7 +38,6 @@ class vtkSlicerApplication;
 
 class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public vtkMRMLRobotNode
 {
-
  public:
 
   //----------------------------------------------------------------
@@ -130,8 +129,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
   vtkGetStringMacro(ImagingPlaneTransformNodeID);
   vtkMRMLLinearTransformNode* GetImagingPlaneTransformNode();
   void SetAndObserveImagingPlaneTransformNodeID(const char *nodeID);
-
-  vtkGetStringMacro(ScreenMessage);
 
   virtual int  MoveTo(const char *transformNodeId);
   const char* GetTargetReport(vtkProstateNavTargetDescriptor* targetDesc);
@@ -241,10 +238,6 @@ private:
   vtkSetReferenceStringMacro(ImagingPlaneTransformNodeID);
   char *ImagingPlaneTransformNodeID;
   vtkMRMLLinearTransformNode* ImagingPlaneTransformNode;
-
-  // Screen message
-  vtkSetReferenceStringMacro(ScreenMessage);
-  char *ScreenMessage;
 
   // Other member variables
 
