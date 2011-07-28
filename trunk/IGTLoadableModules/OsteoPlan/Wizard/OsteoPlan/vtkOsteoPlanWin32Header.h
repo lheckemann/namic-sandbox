@@ -18,7 +18,7 @@ Version:   $Revision: $
 #include <vtkOsteoPlanConfigure.h>
 
 #if defined(WIN32) && !defined(VTKSLICER_STATIC)
-#if defined(OsteoPlam_EXPORTS)
+#if defined(OsteoPlan_EXPORTS)
 #define VTK_OsteoPlan_EXPORT __declspec( dllexport ) 
 #else
 #define VTK_OsteoPlan_EXPORT __declspec( dllimport ) 
