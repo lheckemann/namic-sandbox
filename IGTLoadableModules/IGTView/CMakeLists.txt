@@ -49,6 +49,7 @@ install(FILES
 set(IGTView_SRCS 
   vtkIGTViewLogic.cxx
   vtkIGTViewGUI.cxx
+  vtkMRMLTrajectoryNode.cxx
 )
 
 

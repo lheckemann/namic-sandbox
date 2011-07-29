@@ -99,7 +99,7 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
   virtual void BuildGUI();
   void BuildGUIForHelpFrame();
   void BuildGUIForViewers();
-  void BuildGUIForOverlay();
+  void BuildGUIFor2DOverlay();
 
   //----------------------------------------------------------------
   // Update routines

@@ -81,7 +81,7 @@ vtkIGTViewGUI::vtkIGTViewGUI ( )
   this->SliceNodeRed = NULL;
 
   //----------------------------------------------------------------
-  // Overlay
+  // 2D Overlay
 
   this->crosshairButton = NULL;
   this->transformNodeSelector = NULL;
@@ -167,7 +167,7 @@ vtkIGTViewGUI::~vtkIGTViewGUI ( )
 
 
   //----------------------------------------------------------------
-  // Overlay
+  // 2D Overlay
 
   if(this->crosshairButton)
     {
@@ -205,6 +205,12 @@ vtkIGTViewGUI::~vtkIGTViewGUI ( )
 //---------------------------------------------------------------------------
 void vtkIGTViewGUI::Init()
 {
+  //Register new node type to the scene
+  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLTrajectoryNode* sNode = vtkMRMLTrajectoryNode::New();
+  scene->RegisterNodeClass(sNode);
+  this->GetLogic()->SetTrajectoryNode(sNode);
+  sNode->Delete();
 }
 
 
@@ -213,7 +219,7 @@ void vtkIGTViewGUI::Enter()
 {
   // Fill in
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-  
+
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
@@ -226,7 +232,6 @@ void vtkIGTViewGUI::Enter()
   this->SliceNodeRed = appGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceNode();
   this->SliceNodeYellow = appGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceNode();
   this->SliceNodeGreen = appGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceNode();
-
 }
 
 
@@ -286,7 +291,7 @@ void vtkIGTViewGUI::RemoveGUIObservers ( )
     }
 
   //----------------------------------------------------------------
-  // Overlay
+  // 2D Overlay
 
   if(this->crosshairButton)
     {
@@ -347,7 +352,7 @@ void vtkIGTViewGUI::AddGUIObservers ( )
   this->Viewer3DMenu->GetWidget()->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
 
   //----------------------------------------------------------------
-  // Overlay
+  // 2D Overlay
 
   this->crosshairButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->transformNodeSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
@@ -549,7 +554,7 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
     }  
 
   //----------------------------------------------------------------
-  // Overlay
+  // 2D Overlay
 
   else if (this->crosshairButton == vtkKWCheckButton::SafeDownCast(caller)
      && event == vtkKWCheckButton::SelectedStateChangedEvent)
@@ -635,7 +640,11 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->trajectoryNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
-
+      vtkMRMLTrajectoryNode* sNode = vtkMRMLTrajectoryNode::SafeDownCast(this->trajectoryNodeSelector->GetSelected());
+      if(!sNode)
+  {
+    this->GetLogic()->SetTrajectoryNode(sNode);
+  }
     }
 } 
 
@@ -725,7 +734,7 @@ void vtkIGTViewGUI::BuildGUI ( )
 
   BuildGUIForHelpFrame();
   BuildGUIForViewers();
-  BuildGUIForOverlay();
+  BuildGUIFor2DOverlay();
 
 }
 
@@ -812,7 +821,7 @@ void vtkIGTViewGUI::BuildGUIForViewers()
 }
 
 //---------------------------------------------------------------------------
-void vtkIGTViewGUI::BuildGUIForOverlay()
+void vtkIGTViewGUI::BuildGUIFor2DOverlay()
 {
 
   vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
@@ -821,7 +830,7 @@ void vtkIGTViewGUI::BuildGUIForOverlay()
   vtkSlicerModuleCollapsibleFrame *overlayFrame = vtkSlicerModuleCollapsibleFrame::New();
   overlayFrame->SetParent(page);
   overlayFrame->Create();
-  overlayFrame->SetLabelText("Overlay");
+  overlayFrame->SetLabelText("2D Overlay");
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                overlayFrame->GetWidgetName(), page->GetWidgetName());
 

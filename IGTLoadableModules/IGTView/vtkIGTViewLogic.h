@@ -32,11 +32,13 @@
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLCrosshairNode.h"
+#include "vtkMRMLTrajectoryNode.h"
 
 class vtkIGTLConnector;
 class vtkMRMLLinearTransformNode;
 class vtkMRMLCrosshairNode;
 class vtkMRMLSliceNode;
+class vtkMRMLTrajectoryNode;
 
 class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic 
 {
@@ -67,7 +69,10 @@ class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic
   vtkGetObjectMacro(Crosshair, vtkMRMLCrosshairNode);
   vtkSetMacro(CrosshairEnabled, bool);
   vtkGetMacro(CrosshairEnabled, bool);
-
+  vtkGetObjectMacro(TrajectoryNode, vtkMRMLTrajectoryNode);
+  vtkSetObjectMacro(TrajectoryNode, vtkMRMLTrajectoryNode);
+  vtkGetMacro(TrajectoryEnabled, bool);
+  vtkSetMacro(TrajectoryEnabled, bool);
 
  protected:
   
@@ -87,6 +92,8 @@ class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic
   double locatorPosition[3];
   vtkMRMLCrosshairNode* Crosshair;
   bool CrosshairEnabled;
+  vtkMRMLTrajectoryNode* TrajectoryNode;
+  bool TrajectoryEnabled;
 
  private:
 
