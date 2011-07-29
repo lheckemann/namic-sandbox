@@ -406,6 +406,8 @@ void vtkOsteoPlanCuttingModelStep::TearDownGUI()
   RemoveGUIObservers();
 }
 
+
+
 void vtkOsteoPlanCuttingModelStep::CreateCutter()
 {
   if(!this->CuttingPlane)
@@ -432,7 +434,6 @@ void vtkOsteoPlanCuttingModelStep::CreateCutter()
     double PlanePosition[6] = {-50,50,-50,50,0,1};
     this->CuttingPlane->GetRepresentation()->PlaceWidget(PlanePosition);
     this->CuttingPlane->GetRepresentation()->SetVisibility(0);
-    this->CuttingPlane->On();
     }
 }
 
