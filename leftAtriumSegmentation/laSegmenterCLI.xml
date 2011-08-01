@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>
+    Segmentation
+  </category>
+  <title>
+    Left atrium segmentation
+  </title>
+  <description>
+    Left atrium segmentation using multi-atlas
+  </description>
+  <version>1.0</version>
+  <documentation-url>
+    http://wiki.na-mic.org/Wiki/index.php/RobustStatisticsSegmentation
+  </documentation-url>
+  <license></license>
+  <contributor>
+    Yi Gao, Allen Tannenbaum
+  </contributor>
+  <acknowledgements>
+    This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health
+  </acknowledgements>
+
+  <parameters>
+    <label>Segmentation Parameters</label>
+    <description>Parameters for left atrium segmentation</description>
+    <double>
+      <name>ratioOfSamples</name>
+      <longflag>ratioOfSamples</longflag>
+      <description>The number of samples is related to (the number of pixels in the target image)/ratioOfSamples. 10 results in good results but long running time. 30 is acceptable: 7~8 min for a 256*256*40 image.</description>
+      <label>Ratio Of Samples[10-100]</label>
+      <default>30.0</default>
+      <constraints>
+        <minimum>10.0</minimum>
+        <maximum>100.0</maximum>
+        <step>10.0</step>
+      </constraints>
+    </double>
+  </parameters>
+
+
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <image>
+      <name>originalImageFileName</name>
+      <label>Original Image</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Original image to be segmented</description>
+    </image>
+    <image>
+      <name>outputProbabilityImageName</name>
+      <label>Output Probability Image</label>
+      <channel>output</channel>
+      <index>2</index>
+      <description>Output Probability Image</description>
+    </image>
+  </parameters>
+
+</executable>
