@@ -29,11 +29,14 @@
 #include "igtlImageMessage.h"
 #include "igtlClientSocket.h"
 
-class vtkKWPushButton;
-class vtkKWTopLevel;
-class vtkKWFrame;
-class vtkKWFileBrowserDialog;
+#include "vtkSlicerNodeSelectorWidget.h"
+#include "vtkMRMLIGTLConnectorNode.h"
+
+class vtkKWLabel;
 class vtkMRMLIGTLConnectorNode;
+class vtkSliceNodeSelectorWidget;
+class vtkCollection;
+class vtkKWScaleWithLabel;
 
 class VTK_Ultrasound4D_EXPORT vtkUltrasound4DGUI : public vtkSlicerModuleGUI
 {
@@ -62,11 +65,6 @@ class VTK_Ultrasound4D_EXPORT vtkUltrasound4DGUI : public vtkSlicerModuleGUI
  private:
   vtkUltrasound4DGUI ( const vtkUltrasound4DGUI& ); // Not implemented.
   void operator = ( const vtkUltrasound4DGUI& ); //Not implemented.
-
-  //BTX
-  int GetTestImage(igtl::ImageMessage::Pointer& msg,  int i);
-  void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
-  //ETX
 
  public:
   //----------------------------------------------------------------
@@ -106,15 +104,7 @@ class VTK_Ultrasound4D_EXPORT vtkUltrasound4DGUI : public vtkSlicerModuleGUI
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
-  void BuildGUIForLoadingRAWFiles();
-  void CreateFileSelector();
-
-  //----------------------------------------------------------------
-  // OpenIGTLink Connection
-  //----------------------------------------------------------------
-
-  int CreateOpenIGTLinkServerNode();
-  int StartOpenIGTLinkClient();
+  void BuildGUIForSlidingData();
 
   //----------------------------------------------------------------
   // Update routines
@@ -135,21 +125,14 @@ class VTK_Ultrasound4D_EXPORT vtkUltrasound4DGUI : public vtkSlicerModuleGUI
   // GUI widgets
   //----------------------------------------------------------------
 
-  vtkKWPushButton* VolumeRenderingButton;
-  vtkKWPushButton* SelectDirectoryButton;
-  vtkKWPushButton* OpenIGTLinkConnectButton;
+  vtkSlicerNodeSelectorWidget* OpenIGTLinkNodeSelector;
+  vtkMRMLIGTLConnectorNode* OpenIGTLinkNode;
+  vtkCollection* OpenIGTLinkNodeCollection;
+  int NumberOfNodesReceived;
 
-  //----------------------------------------------------------------
-  // Directory Explorer widgets
-  //----------------------------------------------------------------
-
-  vtkKWFileBrowserDialog* fileSelector;
-
-  //----------------------------------------------------------------
-  // OpenIGTLink Connection
-  //----------------------------------------------------------------
-
-  vtkMRMLIGTLConnectorNode* OpenIGTLinkServerNode;  
+  vtkKWScaleWithLabel* SliderVolumeSelector;
+  vtkKWPushButton* PlayVolumeButton;
+  bool IsPlaying;
 
   //----------------------------------------------------------------
   // Logic Values
