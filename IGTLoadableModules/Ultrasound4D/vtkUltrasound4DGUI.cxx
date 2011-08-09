@@ -21,6 +21,7 @@
 #include "vtkSlicerSliceControllerWidget.h"
 #include "vtkSlicerSliceGUI.h"
 #include "vtkSlicerSlicesGUI.h"
+#include "vtkCollection.h"
 
 #include "vtkSlicerColor.h"
 #include "vtkSlicerTheme.h"
@@ -34,15 +35,19 @@
 #include "vtkKWEvent.h"
 #include "vtkKWFileBrowserDialog.h"
 #include "vtkKWPushButton.h"
+#include "vtkKWScaleWithLabel.h"
+#include "vtkKWScale.h"
 
 #include "vtkCornerAnnotation.h"
 
 #include "vtkMRMLIGTLConnectorNode.h"
+#include "vtkSlicerNodeSelectorWidget.h"
 
 #include <iostream>
 #include <math.h>
 #include <cstdlib>
 #include <cstdio>
+#include <sstream>
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkUltrasound4DGUI );
@@ -62,19 +67,16 @@ vtkUltrasound4DGUI::vtkUltrasound4DGUI ( )
   
   //----------------------------------------------------------------
   // GUI widgets
-  this->VolumeRenderingButton = NULL;
-  this->SelectDirectoryButton = NULL;
-  
-  //----------------------------------------------------------------
-  // File Selector widget
 
-  this->fileSelector = NULL;
+  this->OpenIGTLinkNodeSelector = NULL;
+  this->OpenIGTLinkNode = NULL;
+  this->OpenIGTLinkNodeCollection = vtkCollection::New();
+  this->NumberOfNodesReceived = 0;
 
-  //----------------------------------------------------------------
-  // OpenIGTLink Connection
+  this->SliderVolumeSelector = NULL;
+  this->PlayVolumeButton = NULL;
+  this->IsPlaying = false;
 
-  this->OpenIGTLinkConnectButton = NULL;
-  this->OpenIGTLinkServerNode = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -102,28 +104,35 @@ vtkUltrasound4DGUI::~vtkUltrasound4DGUI ( )
   //----------------------------------------------------------------
   // Remove GUI widgets
 
-  if (this->VolumeRenderingButton)
+  if(this->OpenIGTLinkNodeSelector)
     {
-      this->VolumeRenderingButton->SetParent(NULL);
-      this->VolumeRenderingButton->Delete();
+      this->OpenIGTLinkNodeSelector->SetParent(NULL);
+      this->OpenIGTLinkNodeSelector->Delete();
     }
 
-  if (this->SelectDirectoryButton)
+  if(this->OpenIGTLinkNodeCollection)
     {
-      this->SelectDirectoryButton->SetParent(NULL);
-      this->SelectDirectoryButton->Delete();
+      // Delete all nodes inside first
+      for(int i=0; i<this->OpenIGTLinkNodeCollection->GetNumberOfItems();i++)
+  {
+    this->OpenIGTLinkNodeCollection->GetItemAsObject(i)->Delete();
+  }
+
+      this->OpenIGTLinkNodeCollection->Delete();
     }
 
-  if (this->OpenIGTLinkConnectButton)
+  if(this->SliderVolumeSelector)
     {
-      this->OpenIGTLinkConnectButton->SetParent(NULL);
-      this->OpenIGTLinkConnectButton->Delete();
+      this->SliderVolumeSelector->SetParent(NULL);
+      this->SliderVolumeSelector->Delete();
     }
 
-  if (this->fileSelector)
+  if(this->PlayVolumeButton)
     {
-      this->fileSelector->Delete();
+      this->PlayVolumeButton->SetParent(NULL);
+      this->PlayVolumeButton->Delete();
     }
+
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -177,30 +186,29 @@ void vtkUltrasound4DGUI::RemoveGUIObservers ( )
 {
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
-  if (this->VolumeRenderingButton)
+  if(this->OpenIGTLinkNodeSelector)
     {
-      this->VolumeRenderingButton
-     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+      this->OpenIGTLinkNodeSelector
+  ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  
+  if(this->OpenIGTLinkNode)
+    {
+      this->OpenIGTLinkNode
+  ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  
+  if(this->SliderVolumeSelector)
+    {
+      this->SliderVolumeSelector
+  ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
-  if (this->SelectDirectoryButton)
+  if(this->PlayVolumeButton)
     {
-      this->SelectDirectoryButton
-     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+      this->PlayVolumeButton
+  ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
-
-  if (this->OpenIGTLinkConnectButton)
-    {
-      this->OpenIGTLinkConnectButton
-     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-  if (this->fileSelector)
-    {
-      this->fileSelector
-     ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
 
   this->RemoveLogicObservers();
 
@@ -231,18 +239,23 @@ void vtkUltrasound4DGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // GUI Observers
 
-  this->VolumeRenderingButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  if(this->OpenIGTLinkNodeSelector)
+    {
+      this->OpenIGTLinkNodeSelector
+  ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
 
-  this->SelectDirectoryButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  if(this->SliderVolumeSelector)
+    {
+      this->SliderVolumeSelector
+  ->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
 
-  this->OpenIGTLinkConnectButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-
-  this->fileSelector
-    ->AddObserver(vtkKWFileBrowserDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-
+  if(this->PlayVolumeButton)
+    {
+      this->PlayVolumeButton
+  ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
   this->AddLogicObservers();
 
 }
@@ -254,7 +267,7 @@ void vtkUltrasound4DGUI::RemoveLogicObservers ( )
   if (this->GetLogic())
     {
       this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent,
-                         (vtkCommand *)this->LogicCallbackCommand);
+          (vtkCommand *)this->LogicCallbackCommand);
     }
 }
 
@@ -269,7 +282,7 @@ void vtkUltrasound4DGUI::AddLogicObservers ( )
   if (this->GetLogic())
     {
       this->GetLogic()->AddObserver(vtkUltrasound4DLogic::StatusUpdateEvent,
-                        (vtkCommand *)this->LogicCallbackCommand);
+            (vtkCommand *)this->LogicCallbackCommand);
     }
 }
 
@@ -281,7 +294,7 @@ void vtkUltrasound4DGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 
 //---------------------------------------------------------------------------
 void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
-                           unsigned long event, void *callData)
+            unsigned long event, void *callData)
 {
 
   const char *eventName = vtkCommand::GetStringFromEventId(event);
@@ -293,58 +306,110 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
       return;
     }
 
-  
-  if (this->VolumeRenderingButton == vtkKWPushButton::SafeDownCast(caller) 
-      && event == vtkKWPushButton::InvokedEvent)
-    {    
-
-    }
-
-  if (this->OpenIGTLinkConnectButton == vtkKWPushButton::SafeDownCast(caller) 
-      && event == vtkKWPushButton::InvokedEvent)
-    {    
-      int server_started =  CreateOpenIGTLinkServerNode();
-
-      // Wait to be sure the server is well created 
-      igtl::Sleep(1000);
-  
-      if(server_started)
-     {
-       int client_started = StartOpenIGTLinkClient();
-     }
-
-    }
-
-
-  if (this->SelectDirectoryButton == vtkKWPushButton::SafeDownCast(caller) 
-      && event == vtkKWPushButton::InvokedEvent)
-    {    
-      // -----------------------------------------
-      // Open Dialog box to select raw data
-
-      this->fileSelector->Invoke();
-    }
-
-  if (this->fileSelector == vtkKWFileBrowserDialog::SafeDownCast(caller)
-      && event == vtkKWFileBrowserDialog::FileNameChangedEvent)
+  if(this->OpenIGTLinkNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
-      if (this->fileSelector->GetNumberOfFileNames() > 0)
-     {
-       this->SelectDirectoryButton->SetBackgroundColor(0,1,0);
-       this->OpenIGTLinkConnectButton->SetEnabled(1);
-     }
-      else
-     {
-       this->SelectDirectoryButton->SetBackgroundColor(1,0,0);
-       this->OpenIGTLinkConnectButton->SetEnabled(0);
-     }
+      vtkMRMLIGTLConnectorNode* getNode = vtkMRMLIGTLConnectorNode::SafeDownCast(this->OpenIGTLinkNodeSelector->GetSelected());
+  if(getNode)
+    {
+      this->OpenIGTLinkNode = getNode;
+      if(this->OpenIGTLinkNode)
+        {
+    this->OpenIGTLinkNode
+      ->AddObserver(vtkMRMLIGTLConnectorNode::ReceiveEvent, (vtkCommand*)this->GUICallbackCommand);
+        }
+    }
+    }
+
+  if(this->OpenIGTLinkNode == vtkMRMLIGTLConnectorNode::SafeDownCast(caller)
+     && event == vtkMRMLIGTLConnectorNode::ReceiveEvent)
+    {
+      this->NumberOfNodesReceived++;
+
+      if(this->OpenIGTLinkNode->GetNumberOfIncomingMRMLNodes())
+  {
+    // Update ImageData (before copying)
+    vtkMRMLScalarVolumeNode* currentData = vtkMRMLScalarVolumeNode::SafeDownCast(this->OpenIGTLinkNode->GetIncomingMRMLNode(0));
+    currentData->GetImageData()->Update();
+
+    // Copy ScalarVolumeNode to the new one
+    vtkMRMLScalarVolumeNode* newNode = vtkMRMLScalarVolumeNode::New();
+    newNode->Copy(currentData);
+        
+    // Copy Image Data to the new one
+    vtkImageData* newData = vtkImageData::New();
+    newData->DeepCopy(currentData->GetImageData());
+
+    // Link Image Data to the new ScalarVolume Node and add to scene
+    newNode->SetAndObserveImageData(newData);
+    this->GetMRMLScene()->AddNode(newNode);
+    this->GetMRMLScene()->Modified();
+    
+    // Add Node to the collection
+    this->OpenIGTLinkNodeCollection->AddItem(newNode);
+
+    // Delete Image Data (ScalarVolume Node is deleted with collection in destructor)
+    newData->Delete();
+  }
+      
+      if(this->SliderVolumeSelector)
+  {
+    std::stringstream out;
+    out << "/ " << this->NumberOfNodesReceived-1;
+    this->SliderVolumeSelector->SetLabelText(out.str().c_str());
+    this->SliderVolumeSelector->GetWidget()->SetRange(0,this->NumberOfNodesReceived-1);
+  }
+      
+    }
+
+  if(this->SliderVolumeSelector == vtkKWScaleWithLabel::SafeDownCast(caller)
+     && event == vtkKWScale::ScaleValueChangingEvent)
+    {
+      if(this->SliderVolumeSelector)
+  {
+    double NodeNumber = this->SliderVolumeSelector->GetWidget()->GetValue();
+    vtkMRMLScalarVolumeNode* selectedNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->OpenIGTLinkNodeCollection->GetItemAsObject(NodeNumber));
+
+    std::cerr << "INSIDE: " << selectedNode << std::endl;
+    // TODO: Send node to the volume rendering
+      }
+    }
+
+  if(this->PlayVolumeButton == vtkKWPushButton::SafeDownCast(caller)
+     && event == vtkKWPushButton::InvokedEvent)
+    {
+      if(this->PlayVolumeButton)
+  {
+    if(this->IsPlaying)
+      {
+        this->PlayVolumeButton->SetText("Play");
+        this->IsPlaying = false;
+
+        if(this->OpenIGTLinkNodeCollection && this->SliderVolumeSelector)
+    {
+      for(int i=0; i<this->OpenIGTLinkNodeCollection->GetNumberOfItems();i++)
+        {
+          this->SliderVolumeSelector->GetWidget()->SetValue(i);
+          // TODO: Refresh slider view
+          // TODO: Send all volume in the collection to the Volume Renderer in a loop (Thread ?)
+        }
+    }
+      }
+    else
+      {
+        this->PlayVolumeButton->SetText("Pause");        
+        this->IsPlaying = true;
+
+        // TODO: Stop the loop
+      }
+  }
     }
 
 } 
 
 
 void vtkUltrasound4DGUI::DataCallback(vtkObject *caller, 
-                          unsigned long eid, void *clientData, void *callData)
+              unsigned long eid, void *clientData, void *callData)
 {
   vtkUltrasound4DGUI *self = reinterpret_cast<vtkUltrasound4DGUI *>(clientData);
   vtkDebugWithObjectMacro(self, "In vtkUltrasound4DGUI DataCallback");
@@ -354,22 +419,22 @@ void vtkUltrasound4DGUI::DataCallback(vtkObject *caller,
 
 //---------------------------------------------------------------------------
 void vtkUltrasound4DGUI::ProcessLogicEvents ( vtkObject *caller,
-                               unsigned long event, void *callData )
+                unsigned long event, void *callData )
 {
 
   if (this->GetLogic() == vtkUltrasound4DLogic::SafeDownCast(caller))
     {
       if (event == vtkUltrasound4DLogic::StatusUpdateEvent)
-     {
-       //this->UpdateDeviceStatus();
-     }
+  {
+    //this->UpdateDeviceStatus();
+  }
     }
 }
 
 
 //---------------------------------------------------------------------------
 void vtkUltrasound4DGUI::ProcessMRMLEvents ( vtkObject *caller,
-                              unsigned long event, void *callData )
+               unsigned long event, void *callData )
 {
   // Fill in
 
@@ -386,8 +451,8 @@ void vtkUltrasound4DGUI::ProcessTimerEvents()
     {
       // update timer
       vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
-                            this->TimerInterval,
-                            this, "ProcessTimerEvents");        
+             this->TimerInterval,
+             this, "ProcessTimerEvents");        
     }
 }
 
@@ -402,8 +467,7 @@ void vtkUltrasound4DGUI::BuildGUI ( )
   this->UIPanel->AddPage ( "Ultrasound4D", "Ultrasound4D", NULL );
 
   BuildGUIForHelpFrame();
-  BuildGUIForLoadingRAWFiles();
-  CreateFileSelector();
+  BuildGUIForSlidingData();
 }
 
 
@@ -422,7 +486,7 @@ void vtkUltrasound4DGUI::BuildGUIForHelpFrame ()
 
 
 //---------------------------------------------------------------------------
-void vtkUltrasound4DGUI::BuildGUIForLoadingRAWFiles()
+void vtkUltrasound4DGUI::BuildGUIForSlidingData()
 {
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
@@ -436,242 +500,38 @@ void vtkUltrasound4DGUI::BuildGUIForLoadingRAWFiles()
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
-  // -----------------------------------------
-  // Loading NRRD Files frame
+  this->OpenIGTLinkNodeSelector = vtkSlicerNodeSelectorWidget::New();
+  this->OpenIGTLinkNodeSelector->SetParent(conBrowsFrame->GetFrame());
+  this->OpenIGTLinkNodeSelector->Create();
+  this->OpenIGTLinkNodeSelector->SetNewNodeEnabled(0);
+  this->OpenIGTLinkNodeSelector->SetNodeClass("vtkMRMLIGTLConnectorNode",NULL,NULL,NULL);
+  this->OpenIGTLinkNodeSelector->SetMRMLScene(this->GetLogic()->GetMRMLScene());
+  this->OpenIGTLinkNodeSelector->UpdateMenu();
 
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Load RAW Files");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
+  this->SliderVolumeSelector = vtkKWScaleWithLabel::New();
+  this->SliderVolumeSelector->SetParent(conBrowsFrame->GetFrame());
+  this->SliderVolumeSelector->Create();
+  this->SliderVolumeSelector->SetLabelPositionToRight();
+  this->SliderVolumeSelector->GetLabel()->SetText("/ 0");
+  this->SliderVolumeSelector->GetWidget()->SetSliderLength(20);
+  this->SliderVolumeSelector->GetWidget()->SetRange(0,0);
 
-  // -----------------------------------------
-  // Select Directory Button
+  this->PlayVolumeButton = vtkKWPushButton::New();
+  this->PlayVolumeButton->SetParent(conBrowsFrame->GetFrame());
+  this->PlayVolumeButton->Create();
+  this->PlayVolumeButton->SetText("Play");
 
-  vtkKWFrame* frame2 = vtkKWFrame::New();
-  frame2->SetParent(frame->GetFrame());
-  frame2->Create();
-  this->Script( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-          frame2->GetWidgetName() );
-
-  this->SelectDirectoryButton = vtkKWPushButton::New();
-  this->SelectDirectoryButton->SetParent(frame2);
-  this->SelectDirectoryButton->Create();
-  this->SelectDirectoryButton->SetText("Select RAW Files");
-  
-  this->Script("pack %s -side left -expand y -padx 2 -pady 2",
-            this->SelectDirectoryButton->GetWidgetName());
-
-  // -----------------------------------------
-  // OpenIGTLink Connect  button
-
-  vtkKWFrame* frame4 = vtkKWFrame::New();
-  frame4->SetParent(frame->GetFrame());
-  frame4->Create();
-  this->Script( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-          frame4->GetWidgetName() );
-
-  this->OpenIGTLinkConnectButton = vtkKWPushButton::New ( );
-  this->OpenIGTLinkConnectButton->SetParent ( frame4 );
-  this->OpenIGTLinkConnectButton->Create ( );
-  this->OpenIGTLinkConnectButton->SetText ("Connect OpenIGTLink");
-  this->OpenIGTLinkConnectButton->SetEnabled(0);
-
-  this->Script("pack %s -side left -expand y -padx 2 -pady 2", 
-               this->OpenIGTLinkConnectButton->GetWidgetName());
+  app->Script("pack %s %s %s -side top -anchor nw -fill x -padx 2 -pady 2",
+        this->OpenIGTLinkNodeSelector->GetWidgetName(),
+        this->SliderVolumeSelector->GetWidgetName(),
+        this->PlayVolumeButton->GetWidgetName());
 
 
-  // -----------------------------------------
-  // Volume Rendering button
-
-  vtkKWFrame* frame3 = vtkKWFrame::New();
-  frame3->SetParent(frame->GetFrame());
-  frame3->Create();
-  this->Script( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-          frame3->GetWidgetName() );
-
-  this->VolumeRenderingButton = vtkKWPushButton::New ( );
-  this->VolumeRenderingButton->SetParent ( frame3 );
-  this->VolumeRenderingButton->Create ( );
-  this->VolumeRenderingButton->SetText ("Volume Rendering");
-  this->VolumeRenderingButton->SetEnabled(0);
-
-  this->Script("pack %s -side left -expand y -padx 2 -pady 2", 
-               this->VolumeRenderingButton->GetWidgetName());
- 
   conBrowsFrame->Delete();
-  frame->Delete();
-  frame2->Delete();
-  frame3->Delete();
-  frame4->Delete();
 }
 
 //----------------------------------------------------------------------------
 void vtkUltrasound4DGUI::UpdateAll()
 {
-}
-
-void vtkUltrasound4DGUI::CreateFileSelector()
-{
-  if(!this->fileSelector)
-    {
-      this->fileSelector = vtkKWFileBrowserDialog::New();
-      this->fileSelector->SetApplication(this->GetApplication());
-      this->fileSelector->Create();       
-      this->fileSelector->ChooseDirectoryOff();
-      this->fileSelector->MultipleSelectionOn();  
-      this->fileSelector->SetFileTypes("{{RAW Data} {.raw}}");
-    }
-}
-
-int vtkUltrasound4DGUI::CreateOpenIGTLinkServerNode()
-{
-  int return_value = 0;
-
-  vtkMRMLIGTLConnectorNode* OpenIGTLinkServerNode = vtkMRMLIGTLConnectorNode::New();
-  OpenIGTLinkServerNode->SetServerHostname("localhost");
-  OpenIGTLinkServerNode->SetTypeServer(18944); 
-  OpenIGTLinkServerNode->Start();
-
-  this->GetMRMLScene()->AddNode(OpenIGTLinkServerNode);
-
-  if (OpenIGTLinkServerNode->GetState() == vtkMRMLIGTLConnectorNode::STATE_WAIT_CONNECTION
-      && this->OpenIGTLinkConnectButton)
-    {
-      this->OpenIGTLinkConnectButton->SetBackgroundColor(1,0.5,0);
-      return_value = 1;
-    }
-
-  OpenIGTLinkServerNode->Delete();
-
-  return return_value;
-}
-
-int vtkUltrasound4DGUI::StartOpenIGTLinkClient()
-{
-  //------------------------------------------------------------
-  // Establish Connection
-  igtl::ClientSocket::Pointer socket;
-  socket = igtl::ClientSocket::New();
-  int r = socket->ConnectToServer("localhost",18944);
-
-  if (r != 0)
-    {
-      std::cerr << "Cannot connect to the server." << std::endl;
-      return 0;
-    }
-
-  //------------------------------------------------------------
-  // loop
-  for (int i = 0; i < 300; i ++)
-    {
-
-      //------------------------------------------------------------
-      // size parameters
-      int   size[]     = {256, 256, 256};       // image dimension
-      float spacing[]  = {1, 1, 1};     // spacing (mm/pixel)
-      int   svsize[]   = {256, 256, 256};       // sub-volume size
-      int   svoffset[] = {0, 0, 0};           // sub-volume offset
-      int   scalarType = igtl::ImageMessage::TYPE_UINT16;// scalar type
-
-      //------------------------------------------------------------
-      // Create a new IMAGE type message
-      igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
-      imgMsg->SetDimensions(size);
-      imgMsg->SetSpacing(spacing);
-      imgMsg->SetScalarType(scalarType);
-      imgMsg->SetDeviceName("ImagerClient");
-      imgMsg->SetSubVolume(svsize, svoffset);
-      imgMsg->AllocateScalars();
-
-      //------------------------------------------------------------
-      // Set image data (See GetTestImage() bellow for the details)
-      if(this->fileSelector)
-     {
-       GetTestImage(imgMsg, i % this->fileSelector->GetNumberOfFileNames());
-     }
-
-      //------------------------------------------------------------
-      // Get random orientation matrix and set it.
-      igtl::Matrix4x4 matrix;
-      GetRandomTestMatrix(matrix);
-      imgMsg->SetMatrix(matrix);
-
-      //------------------------------------------------------------
-      // Pack (serialize) and send
-      imgMsg->Pack();
-      socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
-
-      if(this->fileSelector)
-     {
-       igtl::Sleep(1000/this->fileSelector->GetNumberOfFileNames()); // wait
-     }
-      else
-     {
-       igtl::Sleep(500);
-     }
-    }
-
-  //------------------------------------------------------------
-  // Close connection
-  socket->CloseSocket();
-  return 1;
-}
-
-//------------------------------------------------------------
-// Function to read test image data
-int vtkUltrasound4DGUI::GetTestImage(igtl::ImageMessage::Pointer& msg,  int i)
-{
-
-  //------------------------------------------------------------
-  // Check if image index is in the range
-  if(this->fileSelector)
-    {
-      if (i < 0 || i >= this->fileSelector->GetNumberOfFileNames()+1) 
-     {
-       std::cerr << "Image index is invalid." << std::endl;
-       return 0;
-     }
-    
-      //------------------------------------------------------------
-      // Generate path to the raw image file
-      char* filename = (char*)this->fileSelector->GetNthFileName(i);
-      std::cerr << "Reading " << filename << "...";
-
-      //------------------------------------------------------------
-      // Load raw data from the file
-      FILE *fp = fopen(filename, "rb");
-      if (fp == NULL)
-     {
-       std::cerr << "File opeining error: " << filename << std::endl;
-       return 0;
-     }
-      int fsize = msg->GetImageSize();
-      size_t b = fread(msg->GetScalarPointer(), 1, fsize, fp);
-
-      if (b <= 0)
-     {
-       std::cerr << "Error while reading file: " << filename << std::endl;
-       return 0;
-     }
-
-      fclose(fp);
-
-      std::cerr << "done." << std::endl;
-    }
-  return 1;
-}
-
-//------------------------------------------------------------
-// Function to generate random matrix.
-void vtkUltrasound4DGUI::GetRandomTestMatrix(igtl::Matrix4x4& matrix)
-{ 
-  matrix[0][0] = -1.0;  matrix[0][1] = 0.0;  matrix[0][2] = 0.0; matrix[0][3] = 0.0;
-  matrix[1][0] = 0.0; matrix[1][1] = -1.0;  matrix[1][2] = 0.0; matrix[1][3] = 0.0;
-  matrix[2][0] = 0.0;  matrix[2][1] = 0.0;  matrix[2][2] = 1.0; matrix[2][3] = 0.0;
-  matrix[3][0] = 0.0;  matrix[3][1] = 0.0;  matrix[3][2] = 0.0; matrix[3][3] = 1.0;
-  
-  igtl::PrintMatrix(matrix);
 }
 
