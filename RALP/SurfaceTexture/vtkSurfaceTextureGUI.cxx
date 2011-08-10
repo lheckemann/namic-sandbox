@@ -570,7 +570,7 @@ void vtkSurfaceTextureGUI::BuildGUIForTestFrame1()
   this->WindowLevelRange->SymmetricalInteractionOn();
   this->WindowLevelRange->EntriesVisibilityOn ();
   this->WindowLevelRange->SetCommand(this, "ProcessWindowLevelCommand");
-  this->WindowLevelRange->SetWholeRange(0, 5000);
+  this->WindowLevelRange->SetWholeRange(0, 65536/2);
   this->WindowLevelRange->SetRange(this->Level - this->Window/2, this->Level + this->Window/2);
   //this->WindowLevelRange->SetStartCommand(this, "ProcessWindowLevelStartCommand");
   //this->WindowLevelRange->SetEndCommand(this, "ProcessWindowLevelEndCommand");
@@ -755,6 +755,10 @@ void vtkSurfaceTextureGUI::UpdateTexture()
     this->PointValue->Reset();
     }
 
+  double min;
+  double max;
+  int init = 0;
+
   for (int i = 0; i < n; i ++)
     {
     if (this->NeedModelUpdate)
@@ -780,6 +784,20 @@ void vtkSurfaceTextureGUI::UpdateTexture()
         nstep ++;
         }
       double value = sum / (double)nstep;
+
+      if (init == 1)
+        {
+        min = max = this->PointValue->GetValue(0);
+        init = 0;
+        }
+      else if (value < min)
+        {
+        min = value;
+        }
+      else if (value > max)
+        {
+        max = value;
+        }
       this->PointValue->InsertValue(i, value);
       }
       
@@ -795,6 +813,11 @@ void vtkSurfaceTextureGUI::UpdateTexture()
     unsigned char cv = (unsigned char) intensity;
 
     colors->InsertTuple3(i, cv, cv, cv);
+    }
+
+  if (this->NeedModelUpdate)
+    {
+    this->WindowLevelRange->SetWholeRange(min, max);
     }
 
   this->NeedModelUpdate = 0;
@@ -870,12 +893,12 @@ double vtkSurfaceTextureGUI::TrilinearInterpolation(vtkMRMLVolumeNode * vnode, d
   r[2] = out[2] - (double)ijk[2];
 
   //if (spoints->ComputeStructuredCoordinates(x, ijk, r) == 0)
-  if (ijk[0] < 0 || ijk[0] >= dim[0] ||
-      ijk[1] < 0 || ijk[1] >= dim[1] ||
-      ijk[2] < 0 || ijk[2] >= dim[2])
+  if (ijk[0] < 0 || ijk[0] >= dim[0]-1 ||
+      ijk[1] < 0 || ijk[1] >= dim[1]-1 ||
+      ijk[2] < 0 || ijk[2] >= dim[2]-1)
     {
-    std::cerr << "Point (" << x[0] << ", " << x[1] << ", " << x[2]
-              << ") is outside of the volume." << std::endl;
+    //std::cerr << "Point (" << x[0] << ", " << x[1] << ", " << x[2]
+    //          << ") is outside of the volume." << std::endl;
     return 0.0;
     }
   
