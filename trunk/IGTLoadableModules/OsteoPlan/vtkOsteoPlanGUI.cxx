@@ -46,6 +46,10 @@
 #include "vtkOsteoPlanPlacingFiducialsStep.h"
 #include "vtkOsteoPlanReturningOriginalPositionStep.h"
 
+//#include "vtkCollisionDetectionFilter.h"
+
+
+
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkOsteoPlanGUI );
 vtkCxxRevisionMacro ( vtkOsteoPlanGUI, "$Revision: 1.0 $");

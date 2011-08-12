@@ -47,6 +47,12 @@
 #include "vtkAppendPolyData.h"
 #include "vtkLoopSubdivisionFilter.h"
 
+#include "vtkPolyDataMapper.h"
+#include "vtkActor.h"
+#include "vtkWidgetEvent.h"
+#include "vtkImplicitTextureCoords.h"
+#include "vtkDataSetMapper.h"
+
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj)                                      \
     {                                           \
@@ -98,6 +104,7 @@ vtkOsteoPlanCuttingModelStep::vtkOsteoPlanCuttingModelStep()
   this->ApplyCutButton = NULL;
 
   this->ModelSelected = false;
+
 }
 
 //----------------------------------------------------------------------------
@@ -136,7 +143,6 @@ vtkOsteoPlanCuttingModelStep::~vtkOsteoPlanCuttingModelStep()
 void vtkOsteoPlanCuttingModelStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
-
 
   vtkKWWidget* parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
   vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
@@ -324,8 +330,6 @@ void vtkOsteoPlanCuttingModelStep::ProcessGUIEvents(vtkObject *caller,
       this->GetGUI()->GetWizardWidget()->GetWizardWorkflow()->AttemptToGoToNextStep();
       }
     }
-
-
 }
 
 
@@ -368,6 +372,7 @@ void vtkOsteoPlanCuttingModelStep::RemoveGUIObservers()
     {
     this->ApplyCutButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+
 }
 
 //--------------------------------------------------------------------------------
@@ -413,11 +418,12 @@ void vtkOsteoPlanCuttingModelStep::CreateCutter()
   if(!this->CuttingPlane)
     {
     this->CuttingPlane = vtkBoxWidget2::New();
+
     if(!this->CuttingPlaneRepresentation)
       {
       this->CuttingPlaneRepresentation = vtkBoxRepresentation::New();
       }
-    }
+    }  
 
   if(this->CuttingPlane && this->CuttingPlaneRepresentation && !this->CutterAlreadyCreatedOnce)
     {
@@ -434,6 +440,7 @@ void vtkOsteoPlanCuttingModelStep::CreateCutter()
     double PlanePosition[6] = {-50,50,-50,50,0,1};
     this->CuttingPlane->GetRepresentation()->PlaceWidget(PlanePosition);
     this->CuttingPlane->GetRepresentation()->SetVisibility(0);
+
     }
 }
 
@@ -455,6 +462,7 @@ void vtkOsteoPlanCuttingModelStep::CreateCutter()
 
 void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidget2* cuttingBox)
 {
+  
   // Get Planes from vtkBoxWidget  
   vtkPlanes* planes = vtkPlanes::New();
   vtkBoxRepresentation* boxRepresentation = reinterpret_cast<vtkBoxRepresentation*>(cuttingBox->GetRepresentation());

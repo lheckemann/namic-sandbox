@@ -30,6 +30,8 @@ class vtkBoxRepresentation;
 class vtkSlicerNodeSelectorWidget;
 class vtkMRMLModelNode;
 
+class vtkCylinderWidget;
+
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanCuttingModelStep : public vtkOsteoPlanStep
 {
 public:
@@ -83,6 +85,7 @@ protected:
 
   bool ModelSelected;
 
+  vtkCylinderWidget* cyl;
   //---------------------------------------------------
 
 private:

@@ -23,9 +23,12 @@ class vtkKWFrame;
 class vtkKWFrameWithLabel;
 class vtkKWLabel;
 class vtkKWPushButton;
+class vtkKWScaleWithLabel;
 class vtkSlicerNodeSelectorWidget;
 class vtkMRMLModelNode;
 class vtkCollection;
+
+class vtkCylinderWidget;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanPlacingFiducialsStep : public vtkOsteoPlanStep
 {
@@ -44,6 +47,7 @@ public:
 
   void HandleMouseEvent(vtkSlicerInteractorStyle* style);
   void AddPairModelFiducial();
+  void MarkScrewPosition();
 
 protected:
   vtkOsteoPlanPlacingFiducialsStep();
@@ -60,8 +64,14 @@ protected:
   vtkMRMLModelNode* SelectedModel;
   bool bPlacingFiducials;
   bool modelNodeInsideCollection;
-  /* vtkCollection* ListOfModels; */
-  /* vtkCollection* ListOfFiducialLists; */
+
+  vtkKWScaleWithLabel* ScrewDiameterScale;
+  double ScrewDiameter;
+  vtkKWScaleWithLabel* ScrewHeightScale;
+  double ScrewHeight;
+  vtkCylinderWidget* ScrewCylinder;
+
+  vtkKWPushButton* ApplyScrewButton;
 
 private:
   vtkOsteoPlanPlacingFiducialsStep(const vtkOsteoPlanPlacingFiducialsStep&);
