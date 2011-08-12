@@ -14,7 +14,6 @@ if(NOT Slicer3_SOURCE_DIR)
   slicer3_set_default_install_prefix_for_external_projects()
 endif(NOT Slicer3_SOURCE_DIR)
 
-
 # --------------------------------------------------------------------------
 # Include dirs
 
@@ -24,6 +23,8 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard
   ${Slicer3_Libs_INCLUDE_DIRS}
   ${Slicer3_Base_INCLUDE_DIRS}
+#  ${VTK_CMAKE_DIR}/../../vtkBioeng
+  /projects/igtdev/lchauvin/Slicer3-lib/vtkBioeng
   )
 
 #
@@ -34,9 +35,12 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/vtkOsteoPlanConfigure.h
   )
 
+
 file(GLOB headers 
   "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Wizard/*.h"
+#  "${VTK_CMAKE_DIR}/../../vtkBioeng/*.h"
+  "/projects/igtdev/lchauvin/Slicer3-lib/vtkBioeng/*.h"
   )
 
 install(FILES 
@@ -89,6 +93,7 @@ target_link_libraries(${lib_name}
   ${Slicer3_Libs_LIBRARIES}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES}
+  vtkBioeng
   )
 
 install(TARGETS ${lib_name}

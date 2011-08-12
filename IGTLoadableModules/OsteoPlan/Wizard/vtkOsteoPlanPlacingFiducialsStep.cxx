@@ -39,7 +39,17 @@
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
 #include "vtkKWPushButton.h"
- 
+#include "vtkKWScaleWithLabel.h" 
+#include "vtkKWScale.h"
+
+#include "vtkCylinderWidget.h"
+#include "vtkCollisionDetectionFilter.h"
+#include "vtkRenderer.h"
+#include "vtkProperty.h"
+
+#include "vtkCylinder.h"
+#include "vtkClipPolyData.h"
+#include "vtkPlane.h"
 
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj)                                      \
@@ -76,6 +86,15 @@ vtkOsteoPlanPlacingFiducialsStep::vtkOsteoPlanPlacingFiducialsStep()
   this->TitleBackgroundColor[2] = 0.74;
 
   this->ProcessingCallback = false;
+
+  this->ScrewDiameterScale = NULL;
+  this->ScrewDiameter = 1;
+  this->ScrewHeightScale = NULL;
+  this->ScrewHeight = 20;
+  this->ScrewCylinder = NULL;
+
+  this->ApplyScrewButton = NULL;
+
 }
 
 //----------------------------------------------------------------------------
@@ -83,9 +102,9 @@ vtkOsteoPlanPlacingFiducialsStep::~vtkOsteoPlanPlacingFiducialsStep()
 {
   RemoveGUIObservers();
 
-  DELETE_IF_NULL_WITH_SETPARENT_NULL(MainFrame);
-  DELETE_IF_NULL_WITH_SETPARENT_NULL(FiducialOnModel);
-  DELETE_IF_NULL_WITH_SETPARENT_NULL(StartPlacingFiducials);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(this->MainFrame);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(this->FiducialOnModel);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(this->StartPlacingFiducials);
 
   // if(this->ListOfModels)
   //   {
@@ -96,6 +115,17 @@ vtkOsteoPlanPlacingFiducialsStep::~vtkOsteoPlanPlacingFiducialsStep()
   //   {
   //   this->ListOfFiducialLists->Delete();
   //   }
+
+
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(this->ScrewDiameterScale);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(this->ScrewHeightScale); 
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(this->ApplyScrewButton); 
+
+  if(this->ScrewCylinder)
+    {
+      this->ScrewCylinder->Delete();
+    }
+
 }
 
 //----------------------------------------------------------------------------
@@ -125,6 +155,32 @@ void vtkOsteoPlanPlacingFiducialsStep::ShowUserInterface()
     this->FiducialOnModel->UpdateMenu();
     }
 
+  if(!this->ScrewDiameterScale)
+    {
+    this->ScrewDiameterScale = vtkKWScaleWithLabel::New();
+    }
+  if(!this->ScrewDiameterScale->IsCreated())
+    {
+    this->ScrewDiameterScale->SetParent(parent);
+    this->ScrewDiameterScale->Create();
+    this->ScrewDiameterScale->SetLabelText("Screw Diameter");
+    this->ScrewDiameterScale->GetWidget()->SetRange(1,5);
+    }
+
+
+  if(!this->ScrewHeightScale)
+    {
+    this->ScrewHeightScale = vtkKWScaleWithLabel::New();
+    }
+  if(!this->ScrewHeightScale->IsCreated())
+    {
+    this->ScrewHeightScale->SetParent(parent);
+    this->ScrewHeightScale->Create();
+    this->ScrewHeightScale->SetLabelText("Screw Length");
+    this->ScrewHeightScale->GetWidget()->SetRange(1,40);
+    this->ScrewHeightScale->GetWidget()->SetValue(20);
+    }
+
   if(!this->StartPlacingFiducials)
     {
     this->StartPlacingFiducials = vtkKWPushButton::New();
@@ -139,9 +195,27 @@ void vtkOsteoPlanPlacingFiducialsStep::ShowUserInterface()
     this->StartPlacingFiducials->SetEnabled(0);
     }
 
-  this->Script("pack %s %s -side top -fill x -padx 0 -pady 2",
+  if(!this->ApplyScrewButton)
+    {
+    this->ApplyScrewButton = vtkKWPushButton::New();
+    }
+  if(!this->ApplyScrewButton->IsCreated())
+    {
+    this->ApplyScrewButton->SetParent(parent);
+    this->ApplyScrewButton->Create();
+    this->ApplyScrewButton->SetText("Apply Screw");
+    this->ApplyScrewButton->SetBackgroundColor(color->White);
+    this->ApplyScrewButton->SetActiveBackgroundColor(color->White);
+    this->ApplyScrewButton->SetEnabled(0);
+    }
+
+
+  this->Script("pack %s %s %s %s %s -side top -fill x -padx 0 -pady 2",
          this->FiducialOnModel->GetWidgetName(),
-         this->StartPlacingFiducials->GetWidgetName());
+         this->ScrewDiameterScale->GetWidgetName(),
+         this->ScrewHeightScale->GetWidgetName(),
+         this->StartPlacingFiducials->GetWidgetName(),
+         this->ApplyScrewButton->GetWidgetName());
   //-------------------------------------------------------
 
   this->AddGUIObservers();
@@ -218,7 +292,7 @@ void vtkOsteoPlanPlacingFiducialsStep::ProcessGUIEvents(vtkObject *caller,
           vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
           vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
     
-          this->StartPlacingFiducials->SetText("Start Placing Fiducials");
+          this->StartPlacingFiducials->SetText("Show Screw");
           this->StartPlacingFiducials->SetBackgroundColor(color->SliceGUIGreen);
           this->StartPlacingFiducials->SetActiveBackgroundColor(color->SliceGUIGreen);
           this->StartPlacingFiducials->SetEnabled(1);
@@ -271,11 +345,37 @@ void vtkOsteoPlanPlacingFiducialsStep::ProcessGUIEvents(vtkObject *caller,
         vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
         vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
       
-        this->StartPlacingFiducials->SetText("Stop Placing Fiducials");
+        this->StartPlacingFiducials->SetText("Hide Screw");
         this->StartPlacingFiducials->SetBackgroundColor(color->LightestRed);
         this->StartPlacingFiducials->SetActiveBackgroundColor(color->LightestRed);
 
-        AddPairModelFiducial();
+  this->ApplyScrewButton->SetBackgroundColor(color->SliceGUIGreen);
+  this->ApplyScrewButton->SetActiveBackgroundColor(color->SliceGUIGreen);
+  this->ApplyScrewButton->SetEnabled(1);
+
+    /////////
+    if(!this->ScrewCylinder)
+      {
+        this->ScrewCylinder = vtkCylinderWidget::New();
+        this->ScrewCylinder->SetDefaultRenderer(this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer());
+        this->ScrewCylinder->SetCurrentRenderer(this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer());
+        this->ScrewCylinder->SetInteractor(this->GetGUI()->GetApplicationGUI()->GetActiveRenderWindowInteractor());
+        this->ScrewCylinder->HandlesOn();
+        this->ScrewCylinder->SetScalingEnabled(0);
+        this->ScrewCylinder->PlaceWidget(0.0, 50.0 ,0.0 ,50.0 ,0.0 ,50.0);
+        this->ScrewCylinder->SetRadius(this->ScrewDiameter/2.0);
+        this->ScrewCylinder->SetHeight(this->ScrewHeight);
+        this->ScrewCylinder->PositionHandles();
+        this->ScrewCylinder->SetEnabled(1);
+      }
+    else
+      {
+        this->ScrewCylinder->SetEnabled(1);
+      }
+    this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+    /////////
+
+    //AddPairModelFiducial();
 
         }
       else
@@ -285,13 +385,59 @@ void vtkOsteoPlanPlacingFiducialsStep::ProcessGUIEvents(vtkObject *caller,
         vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
         vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
       
-        this->StartPlacingFiducials->SetText("Start Placing Fiducials");
+        this->StartPlacingFiducials->SetText("Show Screw");
         this->StartPlacingFiducials->SetBackgroundColor(color->SliceGUIGreen);
         this->StartPlacingFiducials->SetActiveBackgroundColor(color->SliceGUIGreen);
 
-        AddPairModelFiducial();
+  this->ApplyScrewButton->SetBackgroundColor(color->White);
+  this->ApplyScrewButton->SetActiveBackgroundColor(color->White);
+  this->ApplyScrewButton->SetEnabled(0);
+
+  /////////
+  if(this->ScrewCylinder)
+    {
+      this->ScrewCylinder->SetEnabled(0);
+    }
+    this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
+  ////////
+
+        //AddPairModelFiducial();
         }
       }
+
+
+    if(this->ScrewDiameterScale->GetWidget() == vtkKWScale::SafeDownCast(caller)
+       && event == vtkKWScale::ScaleValueChangingEvent)
+      {
+  this->ScrewDiameter = this->ScrewDiameterScale->GetWidget()->GetValue();
+  if(this->ScrewCylinder)
+    {
+      this->ScrewCylinder->SetRadius(this->ScrewDiameter/2.0);
+      this->ScrewCylinder->PositionHandles();
+      this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+    }
+      }
+
+
+    if(this->ScrewHeightScale->GetWidget() == vtkKWScale::SafeDownCast(caller)
+       && event == vtkKWScale::ScaleValueChangingEvent)
+      {
+  this->ScrewHeight = this->ScrewHeightScale->GetWidget()->GetValue();
+  if(this->ScrewCylinder)
+    {
+      this->ScrewCylinder->SetHeight(this->ScrewHeight);
+      this->ScrewCylinder->PositionHandles();
+      this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+    }
+      }
+
+    if(this->ApplyScrewButton == vtkKWPushButton::SafeDownCast(caller)
+       && event == vtkKWPushButton::InvokedEvent)
+      {
+  MarkScrewPosition();
+      }
+
 
     }
 }
@@ -334,6 +480,23 @@ void vtkOsteoPlanPlacingFiducialsStep::AddGUIObservers()
   this->GetGUI()->GetApplicationGUI()->GetActiveRenderWindowInteractor()
     ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
 
+  if(this->ScrewDiameterScale)
+    {
+      this->ScrewDiameterScale->GetWidget()
+  ->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
+
+  if(this->ScrewHeightScale)
+    {
+      this->ScrewHeightScale->GetWidget()
+  ->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
+
+  if(this->ApplyScrewButton)
+    {
+    this->ApplyScrewButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
+
 
 }
 //-----------------------------------------------------------------------------
@@ -349,7 +512,20 @@ void vtkOsteoPlanPlacingFiducialsStep::RemoveGUIObservers()
     this->StartPlacingFiducials->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
   
+  if(this->ScrewDiameterScale)
+    {
+      this->ScrewDiameterScale->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
 
+  if(this->ScrewHeightScale)
+    {
+      this->ScrewHeightScale->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+
+  if(this->ApplyScrewButton)
+    {
+    this->ApplyScrewButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
 }
 
 //--------------------------------------------------------------------------------
@@ -434,6 +610,97 @@ void vtkOsteoPlanPlacingFiducialsStep::AddPairModelFiducial()
       //      this->placeMarkersButton->SetText("Start Placing Markers");
       }
     }
- 
+
+}
+
+
+//----------------------------------------------------------------------------
+void vtkOsteoPlanPlacingFiducialsStep::MarkScrewPosition()
+{
+  //TODO: Use collision detection ? Clipping ?
+  /*
+  vtkPolyData* cylinderPolydata = vtkPolyData::New();
+  this->ScrewCylinder->GetPolyData(cylinderPolydata);
+
+  vtkMatrix4x4* matrix0 = vtkMatrix4x4::New();
+  vtkMatrix4x4* matrix1 = vtkMatrix4x4::New();
+
+  vtkCollisionDetectionFilter* ScrewMark = vtkCollisionDetectionFilter::New();
+  ScrewMark->SetInput(0,cylinderPolydata);
+  ScrewMark->SetMatrix(0,matrix0);
+  ScrewMark->SetInput(1,this->SelectedModel->GetPolyData());
+  ScrewMark->SetMatrix(1,matrix1);
+  ScrewMark->SetCollisionModeToAllContacts();
+
+  vtkPolyDataMapper* scMapper = vtkPolyDataMapper::New();
+  scMapper->SetInputConnection(ScrewMark->GetOutputPort(0));
+  //scMapper->SetInputConnection(ScrewMark->GetContactsOutputPort());
+  //scMapper->SetResolveCoincidentTopologyToPolygonOffset();
+
+  vtkActor* scActor = vtkActor::New();
+  scActor->SetMapper(scMapper);
+  (scActor->GetProperty())->SetColor(1.0 ,0.0 ,0.0);
+  (scActor->GetProperty())->SetLineWidth(3.0);
+  (scActor->GetProperty())->BackfaceCullingOn();
+
+  this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(scActor);
+  this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
+
+  scMapper->Delete();
+  scActor->Delete();
+  matrix0->Delete();
+  matrix1->Delete();
+  cylinderPolydata->Delete();
+  */
+
+
+  vtkCylinder* cylinderAlgo = vtkCylinder::New();
+  this->ScrewCylinder->GetCylinder(cylinderAlgo);
+
+  vtkPlane* plane1 = vtkPlane::New();
+  this->ScrewCylinder->GetPlane1(plane1);
+
+  vtkPlane* plane2 = vtkPlane::New();
+  this->ScrewCylinder->GetPlane2(plane2);
+
+  vtkClipPolyData* ScrewPlane1 = vtkClipPolyData::New();
+  ScrewPlane1->SetClipFunction(plane1);
+  ScrewPlane1->GenerateClippedOutputOn();
+  ScrewPlane1->SetInput(this->SelectedModel->GetPolyData());
+
+  vtkClipPolyData* ScrewPlane2 = vtkClipPolyData::New();
+  ScrewPlane2->SetClipFunction(plane2);
+  ScrewPlane2->GenerateClippedOutputOn();
+  ScrewPlane2->SetInput(ScrewPlane1->GetClippedOutput());
+
+  vtkClipPolyData* ScrewHole = vtkClipPolyData::New();
+  ScrewHole->SetClipFunction(cylinderAlgo);
+  ScrewHole->GenerateClippedOutputOn();
+  ScrewHole->GenerateClipScalarsOn();
+  ScrewHole->InsideOutOn();
+  ScrewHole->SetInput(ScrewPlane2->GetClippedOutput());
+
+  vtkPolyDataMapper* hMapper = vtkPolyDataMapper::New();
+  hMapper->SetInput(ScrewHole->GetOutput());
+
+  vtkActor* hActor = vtkActor::New();
+  hActor->SetMapper(hMapper);
+  hActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+  hActor->SetVisibility(1);
+
+  this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->GetRenderer()->AddActor(hActor);
+  this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
+
+  plane1->Delete();
+  plane2->Delete();
+  ScrewPlane1->Delete();
+  ScrewPlane2->Delete();
+  hActor->Delete();
+  hMapper->Delete();
+  ScrewHole->Delete();
+  cylinderAlgo->Delete();
+
 
 }
