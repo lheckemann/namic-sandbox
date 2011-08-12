@@ -10,7 +10,8 @@ MARK_AS_ADVANCED(CMAKE_BACKWARDS_COMPATIBILITY)
 # --------------------------------------------------------------------------
 # Option: use Scipy for curve fitting (SciPy must be installed)
 
-option(FourDAnalysis_USE_SCIPY "Use SciPy for curve fitting." OFF)
+#option(FourDAnalysis_USE_SCIPY "Use SciPy for curve fitting." ON)
+set(FourDAnalysis_USE_SCIPY 1)
 
 if (FourDAnalysis_USE_SCIPY)
   ADD_DEFINITIONS(-DFourDAnalysis_USE_SCIPY)

@@ -32,6 +32,8 @@ import copy
 
 import time
 
+from scipy.stats import chisquare
+
 # ----------------------------------------------------------------------
 # Base class for curve fitting algorithm classes
 # ----------------------------------------------------------------------
@@ -63,6 +65,11 @@ class CurveAnalysisBase(object):
 
     MethodName            = ''
     MethodDescription     = ''
+
+    # Enable model fitting
+    # self.fitting flag will be turned off, if the analysis does not
+    # rely on model fitting
+    Fitting = 1
 
     #def __init__(self):
         ## ParameterNameList and Initial Param should be set here
@@ -172,13 +179,32 @@ class CurveAnalysisBase(object):
 
     def GetOutputParamNameList(self):
         dict = self.CalcOutputParamDict(self.InitialParameter)
+
+        dict['CHISQ']   = 0.0
+        dict['CHISQ_P'] = 0.0
+
         list = []
         for key, value in dict.iteritems():
             list.append(key)
         return list
 
     def GetOutputParam(self):
-        return self.CalcOutputParamDict(self.Parameter)
+
+        #ddof = len(self.TargetCurve[:, 0])
+        ddof = len(self.InitialParameter)
+        dict = self.CalcOutputParamDict(self.Parameter)
+
+        # Goodness of fit by Chi-square and p-value
+        p_obs = self.TargetCurve[:, 1]
+        p_exp = self.GetFitCurve(self.TargetCurve[:, 0])
+
+        chisq, p_value = chisquare(p_obs, p_exp, ddof)
+        #print "sample's chi-square value =", chisq
+        #print "sample's p-value          =", p_value        
+        dict['CHISQ']   = chisq
+        dict['CHISQ_P'] = p_value
+
+        return dict
 
     # ------------------------------
     # Input curve
@@ -213,6 +239,7 @@ class CurveAnalysisBase(object):
     # Initialize parameters (called just before optimization)
 
     def Initialize(self):
+
         return 0
 
     # ------------------------------
@@ -222,50 +249,23 @@ class CurveAnalysisBase(object):
         
         self.Initialize()
 
-        x      = self.TargetCurve[:, 0]
-        y_meas = self.SignalToConcent(self.TargetCurve[:, 1])
+        if self.Fitting:
+            x      = self.TargetCurve[:, 0]
+            y_meas = self.SignalToConcent(self.TargetCurve[:, 1])
+            param0 = self.InitialParameter
 
-        param0 = self.InitialParameter
+            #######
+            ## following code uses scipy.optimize package
+            #
+            #bound = self.Constraint
+            if self.FunctionVectorInput == 0:
+                self.REBUF  = scipy.zeros(len(x))   # to reduce number of memory allocations
+                param_output = scipy.optimize.leastsq(self.ResidualError, param0, args=(y_meas, x),full_output=False,ftol=1e-04,xtol=1.49012e-04)
+            else:
+                param_output = scipy.optimize.leastsq(self.ResidualErrorVec, param0, args=(y_meas, x),full_output=False,ftol=1e-04,xtol=1.49012e-04)
 
-        #######
-        ## following code uses mpfit
-
-        #p0 = numpy.array(self.InitialParameter,dtype='float64')
-        #parinfo = []
-        #diag = []
-        #parbase={'value':0., 'fixed':0, 'limited':[0,0], 'limits':[0.,0.]}
-        #for i in range(0, len(param0)):
-        #    parinfo.append(copy.deepcopy(parbase))
-        #    parinfo[i]['value'] = p0[i]
-        #    if len(self.Constraints) > 0:
-        #        parinfo[i]['limited'] = [1, 1]
-        #        parinfo[i]['limits'] = [self.Constraints[i][0], self.Constraints[i][1]]
-        #        #diag = (self.Constraint[i][1] - self.Constraint[i][0])*10
-        #
-        #fa = {'x':x, 'y':y_meas}
-        ##output = mpfit(self.ResidualError, p0, parinfo=parinfo,functkw=fa,nprint=0,ftol=1.e-8,xtol=1.e-5,diag=diag)
-        #output = mpfit(self.ResidualError,p0, parinfo=parinfo,functkw=fa, nprint=1,ftol=1.e-5,xtol=1.e-5,diag=diag)
-        #self.Parameter = output.params
-
-        #######
-        ## following code uses scipy.optimize package
-        #
-        #bound = self.Constraint
-        if self.FunctionVectorInput == 0:
-            self.REBUF  = scipy.zeros(len(x))   # to reduce number of memory allocations
-            param_output = scipy.optimize.leastsq(self.ResidualError, param0, args=(y_meas, x),full_output=False,ftol=1e-04,xtol=1.49012e-04)
-            #param_output = scipy.optimize.fmin_cobyla(self.ResidualError, param0, cons=bound, args=(y_meas, x), maxfun=10000)
-            #param_output = scipy.optimize.fmin_tnc(self.ResidualError, param0, args=(y_meas, x), bounds=bound2, epsilon=1e-08, scale=[0.1, 0.1, 1], offset=None, messages=15, maxCGit=-1, maxfun=None, eta=-1, stepmx=0, accuracy=0, fmin=0, ftol=-1, xtol=-1, pgtol=-1, rescale=-1)
-        
-        else:
-            param_output = scipy.optimize.leastsq(self.ResidualErrorVec, param0, args=(y_meas, x),full_output=False,ftol=1e-04,xtol=1.49012e-04)
-            #param_output = scipy.optimize.fmin_cobyla(self.ResidualErrorVec, param0, cons=bound, args=(y_meas, x), maxfun=1000)
-            #param_output = scipy.optimize.fmin_tnc(self.ResidualErrorVec, param0, args=(y_meas, x), approx_grad=True, bounds=bound, epsilon=1e-04, scale=[1, 1, 10], offset=None, messages=0, maxCGit=-1, maxfun=None, eta=-1, stepmx=0, accuracy=0, fmin=0, ftol=-1, xtol=-1, pgtol=-1, rescale=-1)
-            #param_output = scipy.optimize.fmin_l_bfgs_b(self.ResidualErrorVec, param0, args=(y_meas, x), approx_grad=True, bounds=bound, m=10, factr=10000000.0, pgtol=1.0000000000000001e-05, epsilon=1e-08, iprint=0, maxfun=15000)
-            
-        self.Parameter        = param_output[0] # fitted parameters
-        self.CovarianceMatrix = param_output[1] # covariant matrix
-        #self.Parameter       = param_output # fitted parameters
+            self.Parameter        = param_output[0] # fitted parameters
+            self.CovarianceMatrix = param_output[1] # covariant matrix
 
         return 1        ## should return 0 if optimization fails
 
