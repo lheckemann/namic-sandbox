@@ -221,7 +221,12 @@ bool
 LinearInterpolateMeshFunction<TInputMesh>
 ::FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const
 {
-  const unsigned int numberOfNeighbors = 100;
+  unsigned int numberOfNeighbors = this->GetInputMesh()->GetNumberOfPoints();
+  
+  if ( numberOfNeighbors > 20 )
+  {
+      numberOfNeighbors = 20;
+  }
 
   InstanceIdentifierVectorType closestPointIds(numberOfNeighbors);
 
@@ -344,6 +349,14 @@ LinearInterpolateMeshFunction<TInputMesh>
   const double vv1 = V * v1;
   const double vv2 = V * v2;
   const double vv3 = V * v3;
+  
+  // if the angle between V and any of v1,v2,v3 is 
+  // bigger or equal to pi/2.
+  // inputPoint could never located within pt1,pt2,pt3
+  if (( vv1 <= 0.0 ) || ( vv2 <= 0.0 ) || ( vv3 <= 0.0 ))
+  {
+      return false;
+  }
 
   PointType ppt1 = this->m_SphereCenter + ( v1 * ( vv / vv1 ) );
   PointType ppt2 = this->m_SphereCenter + ( v2 * ( vv / vv2 ) );
