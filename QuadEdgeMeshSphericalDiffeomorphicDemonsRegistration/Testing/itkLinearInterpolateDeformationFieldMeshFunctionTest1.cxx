@@ -45,6 +45,8 @@ int main(int argc, char* argv[] )
 
   typedef MeshType::PointType   PointType;
 
+  typedef MeshType::PointsContainer InputPointsContainer;
+
   surfaceReader->SetFileName( argv[1] );
 
   try
@@ -84,7 +86,7 @@ int main(int argc, char* argv[] )
   //
   //  Exercise the Interpolation
   //
-  typedef itk::LinearInterpolateMeshFunction< MeshType >   InterpolatorType;
+  typedef itk::LinearInterpolateDeformationFieldMeshFunction< MeshType,InputPointsContainer >   InterpolatorType;
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
@@ -108,44 +110,58 @@ int main(int argc, char* argv[] )
 
   std::cout << interpolator->GetNameOfClass() << std::endl;
 
+  InputPointsContainer::Pointer inputPoints = mesh->GetPoints();
+
   PointType  point;
 
   mesh->GetPoint( 0, &point );
 
-  InterpolatorType::RealType interpolatedValue = interpolator->Evaluate( point );
+  InterpolatorType::PointType pointToEvaluate;
 
-  std::cout << "Value at " << point << " = " << interpolatedValue << std::endl;
+  pointToEvaluate.CastFrom(point);
 
-  PointType point1;
-  point1[0] = 100.0;
-  point1[1] =   0.0;
-  point1[2] =  10.7076;
+  InterpolatorType::PointType evaluatedPoint;
 
-  typedef InterpolatorType::InstanceIdentifierVectorType  InstanceIdentifierVectorType;
+  const bool evaluate = interpolator->Evaluate( inputPoints, point, evaluatedPoint );
 
-  InstanceIdentifierVectorType pointIds(3);
+  if ( !evaluate )
+  {
+      std::cout << "Couldn't evaluate point " << point << std::endl;
+      return EXIT_FAILURE;
+  }
 
-  const bool foundTriangle1 = interpolator->FindTriangle( point1, pointIds );
+  std::cout << "Value at " << point << " = " << evaluatedPoint << std::endl;
 
-  if( !foundTriangle1 )
-    {
-    std::cout << "Couldn't find triangle for point " << point1 << std::endl;
-    return EXIT_FAILURE;
-    }
+  //PointType point1;
+  //point1[0] = 100.0;
+  //point1[1] =   0.0;
+  //point1[2] =  10.7076;
+
+  //typedef InterpolatorSuperclassType::InstanceIdentifierVectorType  InstanceIdentifierVectorType;
+
+  //InstanceIdentifierVectorType pointIds(3);
+
+  //const bool foundTriangle1 = interpolator->FindTriangle( point1, pointIds );
+
+  //if( !foundTriangle1 )
+  //  {
+  //  std::cout << "Couldn't find triangle for point " << point1 << std::endl;
+  //  return EXIT_FAILURE;
+  //  }
 
 
-  PointType point2;
-  point2[0] =   0.0830543;
-  point2[1] =   0.0;
-  point2[2] = 100.0;
+  //PointType point2;
+  //point2[0] =   0.0830543;
+  //point2[1] =   0.0;
+  //point2[2] = 100.0;
 
-  const bool foundTriangle2 = interpolator->FindTriangle( point2, pointIds );
+  //const bool foundTriangle2 = interpolator->FindTriangle( point2, pointIds );
 
-  if( !foundTriangle2 )
-    {
-    std::cout << "Couldn't find triangle for point " << point2 << std::endl;
-    return EXIT_FAILURE;
-    }
+  //if( !foundTriangle2 )
+  //  {
+  //  std::cout << "Couldn't find triangle for point " << point2 << std::endl;
+  //  return EXIT_FAILURE;
+  //  }
 
 
   std::cout << "Test PASSED !"<< std::endl;
