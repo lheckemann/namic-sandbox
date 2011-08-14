@@ -37,7 +37,7 @@ ResampleDestinationPointsQuadEdgeMeshFilter< TInputMesh, TFixedMesh, TReferenceM
   this->SetNthOutput( 0, OutputPointSetType::New() );
 
   this->m_Interpolator = InterpolatorType::New();
-  this->m_Interpolator->SetUseNearestNeighborInterpolationAsBackup(true);
+  //this->m_Interpolator->SetUseNearestNeighborInterpolationAsBackup(true);
 
   this->m_Transform = itk::IdentityTransform<double>::New();
 
