@@ -52,7 +52,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
   this->m_NodeVectorJacobianCalculator = NodeVectorJacobianCalculatorType::New();
 
-  this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
+  //this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
 
   this->m_ScalarInterpolator = ScalarInterpolatorType::New();
   this->m_ScalarInterpolator->SetUseNearestNeighborInterpolationAsBackup(false);
