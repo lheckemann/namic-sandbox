@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #ifndef __vtkOsteoPlanCuttingModelStep_h
 #define __vtkOsteoPlanCuttingModelStep_h
@@ -34,7 +34,7 @@ class vtkCylinderWidget;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanCuttingModelStep : public vtkOsteoPlanStep
 {
-public:
+ public:
   static vtkOsteoPlanCuttingModelStep *New();
   vtkTypeRevisionMacro(vtkOsteoPlanCuttingModelStep,vtkOsteoPlanStep);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -42,34 +42,31 @@ public:
   virtual void ShowUserInterface();
   virtual void HideUserInterface();
   virtual void TearDownGUI();
-  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
+  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
-
-  
   virtual void UpdateGUI();
 
-
-protected:
+ protected:
   vtkOsteoPlanCuttingModelStep();
   ~vtkOsteoPlanCuttingModelStep();
 
   void AddGUIObservers();
-  void RemoveGUIObservers();  
+  void RemoveGUIObservers();
 
   bool ProcessingCallback;
 
-  vtkKWFrame* MainFrame;
+  vtkKWFrame *MainFrame;
 
   //--------------------------------------------------
   //        Display Frame
 
-  vtkKWFrameWithLabel* DisplayFrame;
-  vtkKWPushButton* TogglePlaneButton;
-  
-  vtkBoxWidget2* CuttingPlane;
-  vtkBoxRepresentation* CuttingPlaneRepresentation; 
-  bool CutterAlreadyCreatedOnce;
-  bool NextDisplayCutterStatus;
+  vtkKWFrameWithLabel  *DisplayFrame;
+  vtkKWPushButton      *TogglePlaneButton;
+
+  vtkBoxWidget2        *CuttingPlane;
+  vtkBoxRepresentation *CuttingPlaneRepresentation;
+  bool                  CutterAlreadyCreatedOnce;
+  bool                  NextDisplayCutterStatus;
 
   //---------------------------------------------------
 
@@ -77,18 +74,16 @@ protected:
   //---------------------------------------------------
   //            Cut Frame
 
-  vtkKWFrameWithLabel* CutFrame;
-  vtkKWPushButton* ApplyCutButton;
+  vtkKWFrameWithLabel          *CutFrame;
+  vtkKWPushButton              *ApplyCutButton;
 
-  vtkSlicerNodeSelectorWidget* ModelToCutSelector;
-  vtkMRMLModelNode* ModelToCut;
+  vtkSlicerNodeSelectorWidget  *ModelToCutSelector;
+  vtkMRMLModelNode             *ModelToCut;
+  bool                          ModelSelected;
 
-  bool ModelSelected;
-
-  vtkCylinderWidget* cyl;
   //---------------------------------------------------
 
-private:
+ private:
   vtkOsteoPlanCuttingModelStep(const vtkOsteoPlanCuttingModelStep&);
   void operator=(const vtkOsteoPlanCuttingModelStep&);
 
@@ -97,4 +92,4 @@ private:
 };
 
 #endif
- 
+

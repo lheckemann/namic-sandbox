@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #ifndef __vtkOsteoPlanReturningOriginalPositionStep_h
 #define __vtkOsteoPlanReturningOriginalPositionStep_h
@@ -29,7 +29,7 @@ class vtkMRMLLinearTransformNode;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanReturningOriginalPositionStep : public vtkOsteoPlanStep
 {
-public:
+ public:
   static vtkOsteoPlanReturningOriginalPositionStep *New();
   vtkTypeRevisionMacro(vtkOsteoPlanReturningOriginalPositionStep,vtkOsteoPlanStep);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -39,13 +39,13 @@ public:
   virtual void TearDownGUI();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
- 
   virtual void UpdateGUI();
 
   void HandleMouseEvent(vtkSlicerInteractorStyle* style);
-  void BackModelToOriginalPosition(vtkMRMLLinearTransformNode *ParentTransform, vtkMRMLModelNode* Model);
+  void BackModelToOriginalPosition(vtkMRMLModelNode* Model);
+  //  void BackModelToOriginalPosition(vtkMRMLLinearTransformNode *ParentTransform, vtkMRMLModelNode* Model);    // Old function
 
-protected:
+ protected:
   vtkOsteoPlanReturningOriginalPositionStep();
   ~vtkOsteoPlanReturningOriginalPositionStep();
 
@@ -54,12 +54,12 @@ protected:
 
   bool ProcessingCallback;
 
-  vtkKWFrame* MainFrame;
-  vtkSlicerNodeSelectorWidget* modelSelector;
-  vtkKWPushButton* BackOriginalButton;
-  vtkMRMLModelNode* SelectedModel;
+  vtkKWFrame                  *MainFrame;
+  vtkSlicerNodeSelectorWidget *modelSelector;
+  vtkKWPushButton             *BackOriginalButton;
+  vtkMRMLModelNode            *SelectedModel;
 
-private:
+ private:
   vtkOsteoPlanReturningOriginalPositionStep(const vtkOsteoPlanReturningOriginalPositionStep&);
   void operator=(const vtkOsteoPlanReturningOriginalPositionStep&);
 

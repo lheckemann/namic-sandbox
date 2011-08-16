@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #ifndef __vtkOsteoPlanSelectingPartsStep_h
 #define __vtkOsteoPlanSelectingPartsStep_h
@@ -29,7 +29,7 @@ class vtkStringArray;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanSelectingPartsStep : public vtkOsteoPlanStep
 {
-public:
+ public:
   static vtkOsteoPlanSelectingPartsStep *New();
   vtkTypeRevisionMacro(vtkOsteoPlanSelectingPartsStep,vtkOsteoPlanStep);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -37,42 +37,41 @@ public:
   virtual void ShowUserInterface();
   virtual void HideUserInterface();
   virtual void TearDownGUI();
-  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
+  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
- 
   virtual void UpdateGUI();
 
   void HandleMouseEvent(vtkSlicerInteractorStyle* style);
   void SelectClickedPart();
 
-protected:
+ protected:
   vtkOsteoPlanSelectingPartsStep();
   ~vtkOsteoPlanSelectingPartsStep();
 
   void AddGUIObservers();
-  void RemoveGUIObservers();  
+  void RemoveGUIObservers();
 
   bool ProcessingCallback;
 
-  vtkKWFrame* MainFrame;
-  vtkKWFrameWithLabel* SelectFrame;
-  vtkKWLabel* InputModelLabel;
-  vtkSlicerNodeSelectorWidget* InputModelSelector;
-  vtkMRMLModelNode* InputModel;
-  vtkKWEntryWithLabel* PartNameEntry;
-  vtkKWPushButton* SelectPartButton;
+  vtkKWFrame                     *MainFrame;
+  vtkKWFrameWithLabel            *SelectFrame;
+  vtkKWLabel                     *InputModelLabel;
+  vtkSlicerNodeSelectorWidget    *InputModelSelector;
+  vtkMRMLModelNode               *InputModel;
+  vtkKWEntryWithLabel            *PartNameEntry;
+  vtkKWPushButton                *SelectPartButton;
 
-  bool SelectingPart;
+  bool                            SelectingPart;
 
-  vtkStringArray* ColorName;
-  double* colorId[7];
-  int ColorNumber;
+  vtkStringArray*                 ColorName;
+  double                         *colorId[7];
+  int                             ColorNumber;
 
-private:
+ private:
   vtkOsteoPlanSelectingPartsStep(const vtkOsteoPlanSelectingPartsStep&);
   void operator=(const vtkOsteoPlanSelectingPartsStep&);
 
 };
 
 #endif
- 
+

@@ -10,7 +10,7 @@
   Date:      $Date: 2009/10/15 17:12:29 $
   Version:   $Revision: 1.3 $
 
-=========================================================================auto=*/
+  =========================================================================auto=*/
 
 #ifndef VTKMRMLOSTEOPLANNODE_H_
 #define VTKMRMLOSTEOPLANNODE_H_
@@ -26,7 +26,7 @@
 class VTK_OsteoPlan_EXPORT vtkMRMLOsteoPlanNode : public vtkMRMLNode
 {
 
-public:
+ public:
   //----------------------------------------------------------------
   // Standard methods for MRML nodes
   //----------------------------------------------------------------
@@ -48,11 +48,11 @@ public:
 
   // Get unique node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() {return "OsteoPlanNode";};
-  
+
   //Disactivate the possibility to apply non-linear transforms
   virtual bool CanApplyNonLinearTransforms() {return 0;};
 
-protected:
+ protected:
   //----------------------------------------------------------------
   // Constructor and destructor
   //----------------------------------------------------------------
@@ -61,19 +61,19 @@ protected:
   vtkMRMLOsteoPlanNode(const vtkMRMLOsteoPlanNode&);
   void operator=(const vtkMRMLOsteoPlanNode&);
 
-public:
+ public:
   //----------------------------------------------------------------
   // Variables
   //----------------------------------------------------------------
   vtkGetObjectMacro(ListOfModels, vtkCollection);
-  vtkGetObjectMacro(ListOfFiducialLists, vtkCollection);
+  vtkGetObjectMacro(ListOfTransforms, vtkCollection);
 
-  vtkCollection* ListOfModels;
-  vtkCollection* ListOfFiducialLists;
+  vtkCollection *ListOfModels;
+  vtkCollection *ListOfTransforms;
 
 
-private:
+ private:
 
 };
 
-#endif 
+#endif

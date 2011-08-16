@@ -40,6 +40,7 @@
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMatrix4x4.h"
+#include "vtkTransformPolyDataFilter.h"
 
 #include "vtkMRMLOsteoPlanNode.h"
 
@@ -61,10 +62,10 @@ vtkOsteoPlanReturningOriginalPositionStep::vtkOsteoPlanReturningOriginalPosition
   this->SetTitle("Back to Original");
   this->SetDescription("Return model to original position");
 
-  this->MainFrame=NULL;
-  this->modelSelector = NULL;
+  this->MainFrame          = NULL;
+  this->modelSelector      = NULL;
   this->BackOriginalButton = NULL;
-  this->SelectedModel = NULL;
+  this->SelectedModel      = NULL;
 
   this->TitleBackgroundColor[0] = 1;
   this->TitleBackgroundColor[1] = 0.8;
@@ -88,51 +89,49 @@ void vtkOsteoPlanReturningOriginalPositionStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
 
-  vtkKWWidget* parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
-  vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
-  vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
+  vtkKWWidget          *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
+  vtkSlicerApplication *app    = vtkSlicerApplication::SafeDownCast(this->GetApplication());
+  vtkSlicerColor       *color  = app->GetSlicerTheme()->GetSlicerColors();
 
   //-------------------------------------------------------
-  //-------------------------------------------------------
-  //          Return to Original Position Frame
-
+  // Return to Original Position Frame
 
   if(!this->modelSelector)
     {
-      this->modelSelector = vtkSlicerNodeSelectorWidget::New();
+    this->modelSelector = vtkSlicerNodeSelectorWidget::New();
     }
   if(!this->modelSelector->IsCreated())
     {
-      this->modelSelector->SetParent(parent);
-      this->modelSelector->Create();
-      this->modelSelector->SetNewNodeEnabled(0);
-      this->modelSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
-      this->modelSelector->SetMRMLScene(this->GetLogic()->GetMRMLScene());
-      this->modelSelector->UpdateMenu();
+    this->modelSelector->SetParent(parent);
+    this->modelSelector->Create();
+    this->modelSelector->SetNewNodeEnabled(0);
+    this->modelSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
+    this->modelSelector->SetMRMLScene(this->GetLogic()->GetMRMLScene());
+    this->modelSelector->UpdateMenu();
     }
 
   if(!this->BackOriginalButton)
     {
-      this->BackOriginalButton = vtkKWPushButton::New();
+    this->BackOriginalButton = vtkKWPushButton::New();
     }
   if(!this->BackOriginalButton->IsCreated())
     {
-      this->BackOriginalButton->SetParent(parent);
-      this->BackOriginalButton->Create();
-      this->BackOriginalButton->SetText("Select a model");
-      this->BackOriginalButton->SetBackgroundColor(color->White);
-      this->BackOriginalButton->SetActiveBackgroundColor(color->White);
-      this->BackOriginalButton->SetEnabled(0);
+    this->BackOriginalButton->SetParent(parent);
+    this->BackOriginalButton->Create();
+    this->BackOriginalButton->SetText("Select a model");
+    this->BackOriginalButton->SetBackgroundColor(color->White);
+    this->BackOriginalButton->SetActiveBackgroundColor(color->White);
+    this->BackOriginalButton->SetEnabled(0);
     }
 
   this->Script("pack %s %s -side top -fill x -padx 0 -pady 2",
-         this->modelSelector->GetWidgetName(),
-         this->BackOriginalButton->GetWidgetName());
+               this->modelSelector->GetWidgetName(),
+               this->BackOriginalButton->GetWidgetName());
 
   //-------------------------------------------------------
 
   this->AddGUIObservers();
-  
+
   UpdateGUI();
 }
 
@@ -146,13 +145,12 @@ void vtkOsteoPlanReturningOriginalPositionStep::PrintSelf(ostream& os, vtkIndent
 //----------------------------------------------------------------------------
 void vtkOsteoPlanReturningOriginalPositionStep::HandleMouseEvent(vtkSlicerInteractorStyle* style)
 {
-
 }
 
 
 //----------------------------------------------------------------------------
 void vtkOsteoPlanReturningOriginalPositionStep::ProcessGUIEvents(vtkObject *caller,
-                                                      unsigned long event, void *callData)
+                                                                 unsigned long event, void *callData)
 {
   const char *eventName = vtkCommand::GetStringFromEventId(event);
 
@@ -163,51 +161,47 @@ void vtkOsteoPlanReturningOriginalPositionStep::ProcessGUIEvents(vtkObject *call
     }
   else
     {
-      if(this->modelSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
-   && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
-  {
-    this->SelectedModel = vtkMRMLModelNode::SafeDownCast(this->modelSelector->GetSelected());
-    if(this->SelectedModel)
+
+    //--------------------------------------------------
+    // Model to replace selected
+
+    if(this->modelSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+       && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
       {
-        vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
-        vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
+      this->SelectedModel = vtkMRMLModelNode::SafeDownCast(this->modelSelector->GetSelected());
+      if(this->SelectedModel)
+        {
+        vtkSlicerApplication *app   = vtkSlicerApplication::SafeDownCast(this->GetApplication());
+        vtkSlicerColor       *color = app->GetSlicerTheme()->GetSlicerColors();
 
         this->BackOriginalButton->SetText("Back to Original Position");
         this->BackOriginalButton->SetBackgroundColor(color->SliceGUIGreen);
         this->BackOriginalButton->SetActiveBackgroundColor(color->SliceGUIGreen);
         this->BackOriginalButton->SetEnabled(1);
-
-
-
-      }
-    else
-      {
-        vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
-        vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
+        }
+      else
+        {
+        vtkSlicerApplication *app   = vtkSlicerApplication::SafeDownCast(this->GetApplication());
+        vtkSlicerColor       *color = app->GetSlicerTheme()->GetSlicerColors();
 
         this->BackOriginalButton->SetText("Select a model");
         this->BackOriginalButton->SetBackgroundColor(color->White);
         this->BackOriginalButton->SetActiveBackgroundColor(color->White);
         this->BackOriginalButton->SetEnabled(0);
-
+        }
       }
-  }
 
-      if(this->BackOriginalButton == vtkKWPushButton::SafeDownCast(caller)
-   && event == vtkKWPushButton::InvokedEvent)
-  {
-    if(this->SelectedModel)
+    //--------------------------------------------------
+    // Back to Original Position Button
+
+    if(this->BackOriginalButton == vtkKWPushButton::SafeDownCast(caller)
+       && event == vtkKWPushButton::InvokedEvent)
       {
-        // Get Parent Transform
-        vtkMRMLTransformNode* ModelTransform = this->SelectedModel->GetParentTransformNode();
-        if(ModelTransform)
-    {
-      vtkMRMLLinearTransformNode* ModelLinearTransform = vtkMRMLLinearTransformNode::SafeDownCast(ModelTransform);
-      BackModelToOriginalPosition(ModelLinearTransform, this->SelectedModel);
-    }
+      if(this->SelectedModel)
+        {
+        BackModelToOriginalPosition(this->SelectedModel);
+        }
       }
-  }
-
     }
 }
 
@@ -219,34 +213,33 @@ void vtkOsteoPlanReturningOriginalPositionStep::AddGUIObservers()
 
   if(this->modelSelector)
     {
-      this->modelSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
+    this->modelSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
 
   if(this->BackOriginalButton)
     {
-      this->BackOriginalButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+    this->BackOriginalButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
-  
+
 }
 //-----------------------------------------------------------------------------
 void vtkOsteoPlanReturningOriginalPositionStep::RemoveGUIObservers()
 {
   if(this->modelSelector)
     {
-      this->modelSelector->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->modelSelector->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
   if(this->BackOriginalButton)
     {
-      this->BackOriginalButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->BackOriginalButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
-  
+
 }
 
 //--------------------------------------------------------------------------------
 void vtkOsteoPlanReturningOriginalPositionStep::UpdateGUI()
 {
-
 }
 
 //----------------------------------------------------------------------------
@@ -258,16 +251,58 @@ void vtkOsteoPlanReturningOriginalPositionStep::HideUserInterface()
 
 //----------------------------------------------------------------------------
 void vtkOsteoPlanReturningOriginalPositionStep::TearDownGUI()
-{  
+{
   RemoveGUIObservers();
 }
 
 //----------------------------------------------------------------------------
-void vtkOsteoPlanReturningOriginalPositionStep::BackModelToOriginalPosition(vtkMRMLLinearTransformNode *ParentTransform, vtkMRMLModelNode* Model)
+// BackModelToOriginalPosition:
+//  - Check if the model is in the vtkCollection (has been moved)
+//    - If model just dropped under transform, "undrop" model
+//    - If transformation applied to polydata, apply inverted matrix
+void vtkOsteoPlanReturningOriginalPositionStep::BackModelToOriginalPosition(vtkMRMLModelNode* Model)
 {
+  for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems(); i++)
+    {
+    if(Model == vtkMRMLModelNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(i)))
+      {
+      // Check if model has parent transform with same name
+      vtkMRMLLinearTransformNode* tpNode = vtkMRMLLinearTransformNode::SafeDownCast(Model->GetParentTransformNode());
+      if(tpNode)
+        {
+        // Model not clipped
+        std::string modelName = Model->GetName();
+        std::string transformName = modelName + "-transform";
+        if(!strcmp(tpNode->GetName(), transformName.c_str()))
+          {
+          Model->SetAndObserveTransformNodeID(NULL);
+          Model->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+          this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
+          }
+        }
+      else
+        {
+        // Model clipped
+        vtkMRMLLinearTransformNode* transformationNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfTransforms()->GetItemAsObject(i));
+        vtkMatrix4x4* transformMatrix = transformationNode->GetMatrixTransformToParent();
+        transformMatrix->Invert();
+
+        Model->ApplyTransform(transformMatrix);
+        Model->GetPolyData()->ComputeBounds();
+        Model->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+        this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
+        }
+      }
+    }
+}
+
+//----------------------------------------------------------------------------
+/*
+  void vtkOsteoPlanReturningOriginalPositionStep::BackModelToOriginalPosition(vtkMRMLLinearTransformNode *ParentTransform, vtkMRMLModelNode* Model)
+  {
   // Get Tranformation Matrix
   vtkMatrix4x4* OriginalParentMatrix = ParentTransform->GetMatrixTransformToParent();
-  
+
   // Create a Copy
   vtkMatrix4x4* CopiedParentMatrix = vtkMatrix4x4::New();
   CopiedParentMatrix->DeepCopy(OriginalParentMatrix);
@@ -283,59 +318,62 @@ void vtkOsteoPlanReturningOriginalPositionStep::BackModelToOriginalPosition(vtkM
 
   // Check if model is in the list with fudicuals
   if(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems() == this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->GetNumberOfItems())
-    {
-    // Lists should be synchronized
-      for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems();i++)
-      {
+  {
+  // Lists should be synchronized
+  for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems();i++)
+  {
   vtkMRMLModelNode* listModel = vtkMRMLModelNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(i));
-      if(listModel && listModel->GetID() == Model->GetID())
-        {
-        // The model is already in the list, which means fiducials should have been added on this model
-        // Select the corresponding fiducial list
-    vtkMRMLFiducialListNode* FiducialListModel = vtkMRMLFiducialListNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->GetItemAsObject(i));
-        if(FiducialListModel)
-          {
-      if(FiducialListModel->GetParentTransformNode())
-        {
-    // Fiducial List have already a parent transformation
-    CopiedParentMatrix->Delete();
-    return;
-        }
-  
-   
-      // Create new transformation node
-      vtkMRMLLinearTransformNode* FiducialTransform = vtkMRMLLinearTransformNode::New();
-      FiducialTransform->SetAndObserveMatrixTransformToParent(CopiedParentMatrix);
-      
-      // Set Name
-      std::string mName = ParentTransform->GetName();
-      std::string tName = mName + "-Inverted";
-      FiducialTransform->SetName(tName.c_str());
-
-      // Add it to the scene
-      this->GetGUI()->GetMRMLScene()->AddNode(FiducialTransform);
-      
-      // Update Transform Node
-      FiducialTransform->Modified();
-  
-      // Fiducial List found
-      // Drop it under new transformation node (invert of the original)
-      FiducialListModel->SetAndObserveTransformNodeID(FiducialTransform->GetID());
-      FiducialListModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-      this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
-
-      // Drop Inverted transformation under original transformation (Identity)
-      FiducialTransform->SetAndObserveTransformNodeID(ParentTransform->GetID());
-
-      // Update scene by invoking event
-      FiducialTransform->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-      this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
-
-      FiducialTransform->Delete();
-          }
-        }                     
-      }
-    } 
-  
+  if(listModel && listModel->GetID() == Model->GetID())
+  {
+  // The model is already in the list, which means fiducials should have been added on this model
+  // Select the corresponding fiducial list
+  vtkMRMLFiducialListNode* FiducialListModel = vtkMRMLFiducialListNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->GetItemAsObject(i));
+  if(FiducialListModel)
+  {
+  if(FiducialListModel->GetParentTransformNode())
+  {
+  // Fiducial List have already a parent transformation
   CopiedParentMatrix->Delete();
-}
+  return;
+  }
+
+
+  // Create new transformation node
+  vtkMRMLLinearTransformNode* FiducialTransform = vtkMRMLLinearTransformNode::New();
+  FiducialTransform->SetAndObserveMatrixTransformToParent(CopiedParentMatrix);
+
+  // Set Name
+  std::string mName = ParentTransform->GetName();
+  std::string tName = mName + "-Inverted";
+  FiducialTransform->SetName(tName.c_str());
+
+  // Add it to the scene
+  this->GetGUI()->GetMRMLScene()->AddNode(FiducialTransform);
+
+  // Update Transform Node
+  FiducialTransform->Modified();
+
+  // Fiducial List found
+  // Drop it under new transformation node (invert of the original)
+  FiducialListModel->SetAndObserveTransformNodeID(FiducialTransform->GetID());
+  FiducialListModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+  this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
+
+  // Drop Inverted transformation under original transformation (Identity)
+  FiducialTransform->SetAndObserveTransformNodeID(ParentTransform->GetID());
+
+  // Update scene by invoking event
+  FiducialTransform->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+  this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
+
+  FiducialTransform->Delete();
+  }
+  }
+  }
+  }
+
+  CopiedParentMatrix->Delete();
+
+  }
+*/
+

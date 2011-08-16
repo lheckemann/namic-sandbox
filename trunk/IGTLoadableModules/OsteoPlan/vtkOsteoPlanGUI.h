@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #ifndef __vtkOsteoPlanGUI_h
 #define __vtkOsteoPlanGUI_h
@@ -51,13 +51,13 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
 
   vtkGetObjectMacro ( Logic, vtkOsteoPlanLogic );
   void SetModuleLogic ( vtkSlicerLogic *logic )
-  { 
+  {
     this->SetLogic ( vtkObjectPointer (&this->Logic), logic );
   }
 
  protected:
   //----------------------------------------------------------------
-  // Constructor / Destructor (proctected/private) 
+  // Constructor / Destructor (proctected/private)
   //----------------------------------------------------------------
 
   vtkOsteoPlanGUI ( );
@@ -78,7 +78,7 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   virtual void Exit ( );
   void PrintSelf (ostream& os, vtkIndent indent );
 
-  // Description: 
+  // Description:
   // Get the categorization of the module.
   const char *GetCategory() const { return "IGT"; }
 
@@ -102,9 +102,9 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   virtual void TearDownGUI();
   void ProcessTimerEvents();
   void HandleMouseEvent(vtkSlicerInteractorStyle *style);
-  static void DataCallback(vtkObject *caller, 
+  static void DataCallback(vtkObject *caller,
                            unsigned long eid, void *clientData, void *callData);
-  
+
   //----------------------------------------------------------------
   // Build Frames
   //----------------------------------------------------------------
@@ -125,18 +125,18 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   void ChangeWorkphaseGUI(int StepToGo);
   int GetStepNumber(vtkKWWizardStep* step);
 
-  // Description: 
+  // Description:
   // Get wizard widget
   vtkGetObjectMacro(WizardWidget, vtkKWWizardWidget);
   vtkGetObjectMacro(OsteoPlanNode, vtkMRMLOsteoPlanNode);
 
 
  protected:
-  
+
   //----------------------------------------------------------------
   // Timer
   //----------------------------------------------------------------
-  
+
   int TimerFlag;
   int TimerInterval;
   vtkMRMLOsteoPlanNode* OsteoPlanNode;
@@ -145,23 +145,23 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   // GUI widgets
   //----------------------------------------------------------------
 
-  vtkKWPushButtonSet* WorkflowButtonSet;
-  
+  vtkKWPushButtonSet *WorkflowButtonSet;
+
   //----------------------------------------------------------------
   // Wizard Frame
 
   vtkSlicerModuleCollapsibleFrame *WizardFrame;
-  vtkKWWizardWidget *WizardWidget;
+  vtkKWWizardWidget               *WizardWidget;
 
   //----------------------------------------------------------------
   // Wizard Steps
   //----------------------------------------------------------------
 
-  vtkOsteoPlanCuttingModelStep* CuttingStep;
-  vtkOsteoPlanSelectingPartsStep* SelectingStep;
-  vtkOsteoPlanMovingPartsStep* MovingStep;
-  vtkOsteoPlanPlacingFiducialsStep* PlacingStep;
-  vtkOsteoPlanReturningOriginalPositionStep* ReturningStep;
+  vtkOsteoPlanCuttingModelStep               *CuttingStep;
+  vtkOsteoPlanSelectingPartsStep             *SelectingStep;
+  vtkOsteoPlanMovingPartsStep                *MovingStep;
+  vtkOsteoPlanPlacingFiducialsStep           *PlacingStep;
+  vtkOsteoPlanReturningOriginalPositionStep  *ReturningStep;
 
   //----------------------------------------------------------------
   // Logic Values

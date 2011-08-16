@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #ifndef __vtkOsteoPlanPlacingFiducialsStep_h
 #define __vtkOsteoPlanPlacingFiducialsStep_h
@@ -32,7 +32,7 @@ class vtkCylinderWidget;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanPlacingFiducialsStep : public vtkOsteoPlanStep
 {
-public:
+ public:
   static vtkOsteoPlanPlacingFiducialsStep *New();
   vtkTypeRevisionMacro(vtkOsteoPlanPlacingFiducialsStep,vtkOsteoPlanStep);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -42,14 +42,13 @@ public:
   virtual void TearDownGUI();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
- 
   virtual void UpdateGUI();
 
   void HandleMouseEvent(vtkSlicerInteractorStyle* style);
-  void AddPairModelFiducial();
   void MarkScrewPosition();
+  //void AddPairModelFiducial(); // Old function
 
-protected:
+ protected:
   vtkOsteoPlanPlacingFiducialsStep();
   ~vtkOsteoPlanPlacingFiducialsStep();
 
@@ -58,22 +57,20 @@ protected:
 
   bool ProcessingCallback;
 
-  vtkKWFrame* MainFrame;
-  vtkSlicerNodeSelectorWidget* FiducialOnModel;
-  vtkKWPushButton* StartPlacingFiducials;
-  vtkMRMLModelNode* SelectedModel;
-  bool bPlacingFiducials;
-  bool modelNodeInsideCollection;
+  vtkKWFrame                  *MainFrame;
+  vtkSlicerNodeSelectorWidget *FiducialOnModel;
+  vtkKWPushButton             *StartPlacingFiducials;
+  vtkMRMLModelNode            *SelectedModel;
+  vtkKWScaleWithLabel         *ScrewDiameterScale;
+  vtkKWScaleWithLabel         *ScrewHeightScale;
+  vtkCylinderWidget           *ScrewCylinder;
+  vtkKWPushButton             *ApplyScrewButton;
+  double                       ScrewDiameter;
+  double                       ScrewHeight;
+  bool                         bPlacingFiducials;
+  //  bool                         bmodelNodeInsideCollection;
 
-  vtkKWScaleWithLabel* ScrewDiameterScale;
-  double ScrewDiameter;
-  vtkKWScaleWithLabel* ScrewHeightScale;
-  double ScrewHeight;
-  vtkCylinderWidget* ScrewCylinder;
-
-  vtkKWPushButton* ApplyScrewButton;
-
-private:
+ private:
   vtkOsteoPlanPlacingFiducialsStep(const vtkOsteoPlanPlacingFiducialsStep&);
   void operator=(const vtkOsteoPlanPlacingFiducialsStep&);
 

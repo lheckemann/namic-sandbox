@@ -10,12 +10,12 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
-// .NAME vtkOsteoPlanLogic - slicer logic class for Locator module 
+// .NAME vtkOsteoPlanLogic - slicer logic class for Locator module
 // .SECTION Description
 // This class manages the logic associated with tracking device for
-// IGT. 
+// IGT.
 
 
 #ifndef __vtkOsteoPlanLogic_h
@@ -32,34 +32,31 @@
 
 class vtkIGTLConnector;
 
-class VTK_OsteoPlan_EXPORT vtkOsteoPlanLogic : public vtkSlicerModuleLogic 
+class VTK_OsteoPlan_EXPORT vtkOsteoPlanLogic : public vtkSlicerModuleLogic
 {
  public:
+
   //BTX
-  enum {  // Events
-    //LocatorUpdateEvent      = 50000,
+  enum {
     StatusUpdateEvent       = 50001,
   };
   //ETX
 
  public:
-  
+
   static vtkOsteoPlanLogic *New();
-  
   vtkTypeRevisionMacro(vtkOsteoPlanLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
 
  protected:
-  
+
   vtkOsteoPlanLogic();
   ~vtkOsteoPlanLogic();
 
   void operator=(const vtkOsteoPlanLogic&);
   vtkOsteoPlanLogic(const vtkOsteoPlanLogic&);
-
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
   void UpdateAll();
-
   vtkCallbackCommand *DataCallbackCommand;
 
  private:
@@ -70,4 +67,4 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanLogic : public vtkSlicerModuleLogic
 #endif
 
 
-  
+
