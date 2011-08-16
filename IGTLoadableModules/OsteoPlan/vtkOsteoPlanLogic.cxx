@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 
 #include "vtkObjectFactory.h"
@@ -58,8 +58,8 @@ void vtkOsteoPlanLogic::PrintSelf(ostream& os, vtkIndent indent)
 
 
 //---------------------------------------------------------------------------
-void vtkOsteoPlanLogic::DataCallback(vtkObject *caller, 
-                                       unsigned long eid, void *clientData, void *callData)
+void vtkOsteoPlanLogic::DataCallback(vtkObject *caller,
+                                     unsigned long eid, void *clientData, void *callData)
 {
   vtkOsteoPlanLogic *self = reinterpret_cast<vtkOsteoPlanLogic *>(clientData);
   vtkDebugWithObjectMacro(self, "In vtkOsteoPlanLogic DataCallback");
@@ -70,7 +70,6 @@ void vtkOsteoPlanLogic::DataCallback(vtkObject *caller,
 //---------------------------------------------------------------------------
 void vtkOsteoPlanLogic::UpdateAll()
 {
-
 }
 
 

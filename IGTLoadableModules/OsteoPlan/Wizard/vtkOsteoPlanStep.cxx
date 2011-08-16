@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #include "vtkOsteoPlanStep.h"
 #include "vtkOsteoPlanGUI.h"
@@ -30,8 +30,8 @@ vtkCxxSetObjectMacro(vtkOsteoPlanStep,Logic,vtkOsteoPlanLogic);
 vtkOsteoPlanStep::vtkOsteoPlanStep()
 {
 
-  this->GUI = NULL;
-  this->Logic = NULL;
+  this->GUI       = NULL;
+  this->Logic     = NULL;
   this->MRMLScene = NULL;
 
   this->GUICallbackCommand = vtkCallbackCommand::New();
@@ -47,7 +47,7 @@ vtkOsteoPlanStep::vtkOsteoPlanStep()
   this->TitleBackgroundColor[1] = 0.8;
   this->TitleBackgroundColor[2] = 1.0;
 
-  this->InGUICallbackFlag = 0;
+  this->InGUICallbackFlag  = 0;
   this->InMRMLCallbackFlag = 0;
 }
 
@@ -58,7 +58,7 @@ vtkOsteoPlanStep::~vtkOsteoPlanStep()
     {
     this->MRMLObserverManager->RemoveAllObservers();
     this->MRMLObserverManager->Delete();
-    }    
+    }
 
   if ( this->GUICallbackCommand != NULL )
     {
@@ -88,15 +88,14 @@ void vtkOsteoPlanStep::HideUserInterface()
 //----------------------------------------------------------------------------
 void vtkOsteoPlanStep::Validate()
 {
-  
-  this->Superclass::Validate();
-  
-  vtkKWWizardWorkflow *wizardWorkflow = 
-    this->GetGUI()->GetWizardWidget()->GetWizardWorkflow();
 
+  this->Superclass::Validate();
+
+  vtkKWWizardWorkflow *wizardWorkflow =
+    this->GetGUI()->GetWizardWidget()->GetWizardWorkflow();
   wizardWorkflow->PushInput(vtkKWWizardStep::GetValidationSucceededInput());
   wizardWorkflow->ProcessInputs();
-  
+
 }
 
 
@@ -116,10 +115,9 @@ void vtkOsteoPlanStep::PrintSelf(ostream& os, vtkIndent indent)
 void vtkOsteoPlanStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
-  
+
   if (!this->MRMLScene)
     {
-      //this->SetAndObserveMRMLScene (this->GetGUI()->GetMRMLScene());
     }
 
   vtkKWWizardWidget *wizardWidget = this->GetGUI()->GetWizardWidget();
@@ -133,46 +131,34 @@ void vtkOsteoPlanStep::ShowUserInterface()
 
 //----------------------------------------------------------------------------
 void vtkOsteoPlanStep::GUICallback( vtkObject *caller,
-                           unsigned long eid, void *clientData, void *callData )
+                                    unsigned long eid, void *clientData, void *callData )
 {
 
   vtkOsteoPlanStep *self = reinterpret_cast<vtkOsteoPlanStep *>(clientData);
-  
+
   if (self->GetInGUICallbackFlag())
     {
     }
 
   vtkDebugWithObjectMacro(self, "In vtkOsteoPlanStep GUICallback");
-  
+
   self->SetInGUICallbackFlag(1);
   self->ProcessGUIEvents(caller, eid, callData);
   self->SetInGUICallbackFlag(0);
-  
+
 }
 
 
 //----------------------------------------------------------------------------
-void vtkOsteoPlanStep::MRMLCallback(vtkObject *caller, 
+void vtkOsteoPlanStep::MRMLCallback(vtkObject *caller,
                                     unsigned long eid, void *clientData, void *callData)
 {
-  /*
-  vtkOsteoPlanStep *self = reinterpret_cast<vtkOsteoPlanStep *>(clientData);
-  
-  if (self->GetInMRMLCallbackFlag())
-    {
-    return;
-    }
-
-  vtkDebugWithObjectMacro(self, "In vtkOsteoPlanStep MRMLCallback");
-  
-  self->SetInMRMLCallbackFlag(1);
-  self->ProcessMRMLEvents(caller, eid, callData);
-  self->SetInMRMLCallbackFlag(0);
-  */
 }
 
 
 //----------------------------------------------------------------------------
+// UpdateName:
+//   - Display number of the step and number of total steps (e.g. 1/3)
 void vtkOsteoPlanStep::UpdateName()
 {
   std::stringstream ss;
@@ -181,8 +167,9 @@ void vtkOsteoPlanStep::UpdateName()
   this->Modified();
 }
 
+//----------------------------------------------------------------------------
 void vtkOsteoPlanStep::TearDownGUI()
 {
-  // Override in child classes  
+  // Override in child classes
 }
 

@@ -1,16 +1,16 @@
 /*=auto=========================================================================
 
-Portions (c) Copyright 2009 Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Portions (c) Copyright 2009 Brigham and Women's Hospital (BWH) All Rights Reserved.
 
-See Doc/copyright/copyright.txt
-or http://www.slicer.org/copyright/copyright.txt for details.
+  See Doc/copyright/copyright.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
 
-Program:   3D Slicer
-Module:    $RCSfile: vtkMRMLOsteoPlanNode.cxx,v $
-Date:      $Date: 2006/03/17 15:10:10 $
-Version:   $Revision: 1.2 $
+  Program:   3D Slicer
+  Module:    $RCSfile: vtkMRMLOsteoPlanNode.cxx,v $
+  Date:      $Date: 2006/03/17 15:10:10 $
+  Version:   $Revision: 1.2 $
 
-=========================================================================auto=*/
+  =========================================================================auto=*/
 
 #include <string>
 #include <iostream>
@@ -33,7 +33,7 @@ vtkMRMLOsteoPlanNode* vtkMRMLOsteoPlanNode::New()
   vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLOsteoPlanNode");
   if(ret)
     {
-      return (vtkMRMLOsteoPlanNode*)ret;
+    return (vtkMRMLOsteoPlanNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
   return new vtkMRMLOsteoPlanNode;
@@ -47,7 +47,7 @@ vtkMRMLNode* vtkMRMLOsteoPlanNode::CreateNodeInstance()
   vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLOsteoPlanNode");
   if(ret)
     {
-      return (vtkMRMLOsteoPlanNode*)ret;
+    return (vtkMRMLOsteoPlanNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
   return new vtkMRMLOsteoPlanNode;
@@ -56,8 +56,8 @@ vtkMRMLNode* vtkMRMLOsteoPlanNode::CreateNodeInstance()
 //----------------------------------------------------------------------------
 vtkMRMLOsteoPlanNode::vtkMRMLOsteoPlanNode()
 {
-  this->ListOfModels = vtkCollection::New();
-  this->ListOfFiducialLists = vtkCollection::New();
+  this->ListOfModels     = vtkCollection::New();
+  this->ListOfTransforms = vtkCollection::New();
 }
 
 //----------------------------------------------------------------------------
@@ -65,25 +65,23 @@ vtkMRMLOsteoPlanNode::~vtkMRMLOsteoPlanNode()
 {
   if(this->ListOfModels)
     {
-      this->ListOfModels->Delete();
+    this->ListOfModels->Delete();
     }
 
-  if(this->ListOfFiducialLists)
+  if(this->ListOfTransforms)
     {
-      this->ListOfFiducialLists->Delete();
+    this->ListOfTransforms->Delete();
     }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLOsteoPlanNode::WriteXML(ostream& of, int nIndent)
 {
-
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLOsteoPlanNode::ReadXMLAttributes(const char** atts)
 {
-
 }
 
 //----------------------------------------------------------------------------
@@ -91,11 +89,9 @@ void vtkMRMLOsteoPlanNode::ReadXMLAttributes(const char** atts)
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLOsteoPlanNode::Copy(vtkMRMLNode *anode)
 {
-
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLOsteoPlanNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-
 }

@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #ifndef __vtkOsteoPlanMovingPartsStep_h
 #define __vtkOsteoPlanMovingPartsStep_h
@@ -31,7 +31,7 @@ class vtkSlicerTransformEditorWidget;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanMovingPartsStep : public vtkOsteoPlanStep
 {
-public:
+ public:
   static vtkOsteoPlanMovingPartsStep *New();
   vtkTypeRevisionMacro(vtkOsteoPlanMovingPartsStep,vtkOsteoPlanStep);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -39,55 +39,38 @@ public:
   virtual void ShowUserInterface();
   virtual void HideUserInterface();
   virtual void TearDownGUI();
-  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
-  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
- 
+  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
+  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
   virtual void UpdateGUI();
 
   void HandleMouseEvent(vtkSlicerInteractorStyle* style);
 
-protected:
+ protected:
   vtkOsteoPlanMovingPartsStep();
   ~vtkOsteoPlanMovingPartsStep();
 
   void AddGUIObservers();
-  void RemoveGUIObservers();  
+  void RemoveGUIObservers();
+  void MoveModel();
 
   bool ProcessingCallback;
- 
-  vtkKWFrame* MainFrame;
-  vtkKWFrameWithLabel* SelectingPartToMove;
-  vtkKWLabel* ModelToMoveLabel;
-  vtkSlicerNodeSelectorWidget* ModelToMoveSelector;
-  vtkMRMLModelNode* ModelToMove;
-  //  vtkKWEntryWithLabel* PartNameEntry;
-  vtkKWPushButton* StartMovingButton;
 
-  bool StartMoving;
+  vtkKWFrame                     *MainFrame;
+  vtkKWFrameWithLabel            *SelectingPartToMove;
+  vtkKWLabel                     *ModelToMoveLabel;
+  vtkSlicerNodeSelectorWidget     *ModelToMoveSelector;
+  vtkMRMLModelNode               *ModelToMove;
+  vtkKWPushButton                *StartMovingButton;
+  vtkKWFrameWithLabel            *MovingFrame;
+  vtkSlicerTransformEditorWidget *TransformationEditor;
+  vtkMRMLLinearTransformNode     *ParentTransformationNode;
+  bool                            StartMoving;
 
-  vtkKWFrameWithLabel* MovingFrame;
-  /*
-  vtkKWFrameWithLabel* TranslationFrame;
-  vtkKWFrameWithLabel* RotationFrame;
-
-  vtkKWScaleWithLabel* XTranslationScale; 
-  vtkKWScaleWithLabel* YTranslationScale;
-  vtkKWScaleWithLabel* ZTranslationScale;
-
-  vtkKWScaleWithLabel* XRotationScale;
-  vtkKWScaleWithLabel* YRotationScale;
-  vtkKWScaleWithLabel* ZRotationScale;
-  */
-  vtkSlicerTransformEditorWidget* TransformationEditor;
-
-  vtkMRMLLinearTransformNode* ParentTransformationNode;
-
-
-private:
+ private:
   vtkOsteoPlanMovingPartsStep(const vtkOsteoPlanMovingPartsStep&);
   void operator=(const vtkOsteoPlanMovingPartsStep&);
 
 };
 
 #endif
- 
+

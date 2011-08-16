@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #ifndef __vtkOsteoPlanStep_h
 #define __vtkOsteoPlanStep_h
@@ -35,7 +35,7 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanStep : public vtkKWWizardStep
   virtual void Register(vtkObject *o) { Superclass::Register(o); };
   virtual void UnRegister(vtkObject *o) { Superclass::UnRegister(o); };
 
-  // Description: 
+  // Description:
   // Get/Set GUI
   vtkGetObjectMacro(GUI, vtkOsteoPlanGUI);
   vtkGetObjectMacro(Logic, vtkOsteoPlanLogic);
@@ -52,12 +52,9 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanStep : public vtkKWWizardStep
   void SetTitle(const char* title) {
     this->Title = title;
   }
-
   const char* GetTitle() {
     return this->Title.c_str();
   }
-
-  void UpdateName();
 
   void SetInMRMLCallbackFlag (int flag) {
     this->InMRMLCallbackFlag = flag;
@@ -65,31 +62,9 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanStep : public vtkKWWizardStep
   vtkGetMacro(InMRMLCallbackFlag, int);
   void SetInGUICallbackFlag (int flag) {
     this->InGUICallbackFlag = flag;
-    }
+  }
   vtkGetMacro(InGUICallbackFlag, int);
 
-  /*
-  void SetAndObserveMRMLScene ( vtkMRMLScene *mrml )
-    {
-    vtkMRMLScene *oldValue = this->MRMLScene;
-    this->MRMLObserverManager->SetAndObserveObject ( vtkObjectPointer( &this->MRMLScene), (vtkObject*)mrml );
-    if ( oldValue != this->MRMLScene )
-      {
-      this->InvokeEvent (vtkCommand::ModifiedEvent);
-      }
-    }
-
-  void SetAndObserveMRMLSceneEvents ( vtkMRMLScene *mrml, vtkIntArray *events )
-    {
-    vtkObject *oldValue = this->MRMLScene;
-    this->MRMLObserverManager->SetAndObserveObjectEvents ( vtkObjectPointer( &this->MRMLScene), mrml, events );
-    if ( oldValue != this->MRMLScene )
-      {
-      this->InvokeEvent (vtkCommand::ModifiedEvent);
-      }
-    }
-
-  */
   void SetTitleBackgroundColor (double r, double g, double b) {
     this->TitleBackgroundColor[0] = r;
     this->TitleBackgroundColor[1] = g;
@@ -102,18 +77,20 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanStep : public vtkKWWizardStep
     *b = this->TitleBackgroundColor[2];
   };
 
+  void UpdateName();
+
   // Description:
   // Reimplement the superclass's method (see vtkKWWizardStep).
   virtual void HideUserInterface();
   virtual void Validate();
-  virtual int CanGoToSelf();
+  virtual int  CanGoToSelf();
   virtual void ShowUserInterface();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData) {};
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
 
   virtual void UpdateGUI() {};
 
-protected:
+ protected:
   vtkOsteoPlanStep();
   ~vtkOsteoPlanStep();
 
@@ -123,16 +100,16 @@ protected:
   static void MRMLCallback(vtkObject *caller,
                            unsigned long eid, void *clientData, void *callData );
 
-protected:
-  
+ protected:
+
   double TitleBackgroundColor[3];
 
   int InGUICallbackFlag;
   int InMRMLCallbackFlag;
 
-  vtkOsteoPlanGUI   *GUI;
-  vtkOsteoPlanLogic *Logic;
-  vtkMRMLScene        *MRMLScene;
+  vtkOsteoPlanGUI    *GUI;
+  vtkOsteoPlanLogic  *Logic;
+  vtkMRMLScene       *MRMLScene;
 
   vtkCallbackCommand *GUICallbackCommand;
   vtkCallbackCommand *MRMLCallbackCommand;
@@ -141,11 +118,11 @@ protected:
   //BTX
   std::string Title;
   //ETX
-  
+
   int TotalSteps;     // Total number of steps in the wizard
   int StepNumber;     // Step number for this step.
 
-private:
+ private:
   vtkOsteoPlanStep(const vtkOsteoPlanStep&);
   void operator=(const vtkOsteoPlanStep&);
 
