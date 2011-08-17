@@ -10,12 +10,12 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
-// .NAME vtkIGTViewLogic - slicer logic class for Locator module 
+// .NAME vtkIGTViewLogic - slicer logic class for Locator module
 // .SECTION Description
 // This class manages the logic associated with tracking device for
-// IGT. 
+// IGT.
 
 
 #ifndef __vtkIGTViewLogic_h
@@ -40,27 +40,26 @@ class vtkMRMLCrosshairNode;
 class vtkMRMLSliceNode;
 class vtkMRMLTrajectoryNode;
 
-class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic 
+class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic
 {
  public:
   //BTX
-  enum {  // Events
-    //LocatorUpdateEvent      = 50000,
+  enum {
     StatusUpdateEvent       = 50001,
   };
   //ETX
 
  public:
-  
+
   static vtkIGTViewLogic *New();
-  
+
   vtkTypeRevisionMacro(vtkIGTViewLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
 
-  void Reslice(vtkMRMLSliceNode* RedSlice, vtkMRMLSliceNode* YellowSlice, vtkMRMLSliceNode* GreenSlice);
-  void ObliqueOrientation(vtkMRMLSliceNode* slice, const char* ReslicingType);
-  void UpdateCrosshair();
-  void DisplayTrajectory();
+  void  Reslice(vtkMRMLSliceNode* RedSlice, vtkMRMLSliceNode* YellowSlice, vtkMRMLSliceNode* GreenSlice);
+  void  ObliqueOrientation(vtkMRMLSliceNode* slice, const char* ReslicingType);
+  void  UpdateCrosshair();
+  void  DisplayTrajectory();
 
   vtkSetMacro(TransformNodeSelected, bool);
   vtkGetMacro(TransformNodeSelected, bool);
@@ -76,7 +75,7 @@ class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic
   vtkSetMacro(TrajectoryEnabled, bool);
 
  protected:
-  
+
   vtkIGTViewLogic();
   ~vtkIGTViewLogic();
 
@@ -88,13 +87,13 @@ class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic
 
   vtkCallbackCommand *DataCallbackCommand;
 
-  bool TransformNodeSelected;
-  vtkMRMLLinearTransformNode* locatorTransformNode;
-  double locatorPosition[3];
-  vtkMRMLCrosshairNode* Crosshair;
-  bool CrosshairEnabled;
-  vtkMRMLTrajectoryNode* TrajectoryNode;
-  bool TrajectoryEnabled;
+  bool                          TransformNodeSelected;
+  vtkMRMLLinearTransformNode*   locatorTransformNode;
+  double                        locatorPosition[3];
+  vtkMRMLCrosshairNode*         Crosshair;
+  bool                          CrosshairEnabled;
+  vtkMRMLTrajectoryNode*        TrajectoryNode;
+  bool                          TrajectoryEnabled;
 
  private:
 
@@ -104,4 +103,4 @@ class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic
 #endif
 
 
-  
+

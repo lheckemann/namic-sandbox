@@ -95,9 +95,9 @@ vtkIGTViewGUI::vtkIGTViewGUI ( )
   this->YellowReslicingType    = "";
   this->GreenReslicingType     = "";
 
-
   //----------------------------------------------------------------
   // Locator  (MRML)
+
   this->TimerFlag = 0;
 
 }
@@ -201,9 +201,6 @@ void vtkIGTViewGUI::Init()
 //---------------------------------------------------------------------------
 void vtkIGTViewGUI::Enter()
 {
-  // Fill in
-  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
@@ -222,7 +219,6 @@ void vtkIGTViewGUI::Enter()
 //---------------------------------------------------------------------------
 void vtkIGTViewGUI::Exit ( )
 {
-  // Fill in
 }
 
 
@@ -275,8 +271,6 @@ void vtkIGTViewGUI::RemoveGUIObservers ( )
     {
     this->transformNodeSelector->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
-
-
 
   if(this->trajectoryButton)
     {
@@ -343,7 +337,6 @@ void vtkIGTViewGUI::RemoveLogicObservers ( )
     this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent,
                                       (vtkCommand *)this->LogicCallbackCommand);
     }
-
 }
 
 
@@ -382,12 +375,11 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
     }
 
   //----------------------------------------------------------------
-  // Red Frame
+  // Red Viewer
 
   else if (this->RedViewerMenu->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast(caller)
            && event == vtkKWMenu::MenuItemInvokedEvent)
     {
-    // Change red view
     if(this->SliceNodeRed)
       {
       const char* redSelection = this->RedViewerMenu->GetWidget()->GetValue();
@@ -425,13 +417,11 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
     }
 
   //----------------------------------------------------------------
-  // Yellow Frame
-
+  // Yellow Viewer
 
   else if (this->YellowViewerMenu->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast(caller)
            && event == vtkKWMenu::MenuItemInvokedEvent)
     {
-    // Change yellow view
     if(this->SliceNodeYellow)
       {
       const char* yellowSelection = this->YellowViewerMenu->GetWidget()->GetValue();
@@ -470,12 +460,11 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
     }
 
   //----------------------------------------------------------------
-  // Green Frame
+  // Green Viewer
 
   else if (this->GreenViewerMenu->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast(caller)
            && event == vtkKWMenu::MenuItemInvokedEvent)
     {
-    // Change green view
     if(this->SliceNodeGreen)
       {
       const char* greenSelection = this->GreenViewerMenu->GetWidget()->GetValue();
@@ -514,12 +503,11 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
     }
 
   //----------------------------------------------------------------
-  // 3D Frame
+  // 3D Viewer
 
   else if (this->Viewer3DMenu->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast(caller)
            && event == vtkKWMenu::MenuItemInvokedEvent)
     {
-    // Change 3D view
     const char* Selection3D = this->Viewer3DMenu->GetWidget()->GetValue();
     if(!strcmp(Selection3D, "Probe View"))
       {
@@ -553,7 +541,7 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
     }
 
   //----------------------------------------------------------------
-  // 2D Overlay
+  // Crosshair Checkbox
 
   else if (this->crosshairButton == vtkKWCheckButton::SafeDownCast(caller)
            && event == vtkKWCheckButton::SelectedStateChangedEvent)
@@ -576,9 +564,7 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
       if(this->transformNodeSelector)
         {
         this->transformNodeSelector->SetEnabled(1);
-
-        // Trick to update slices menu, even if transform node is already selected in the list before activating crosshair
-        this->transformNodeSelector->InvokeEvent(vtkSlicerNodeSelectorWidget::NodeSelectedEvent);
+        this->transformNodeSelector->InvokeEvent(vtkSlicerNodeSelectorWidget::NodeSelectedEvent);         // Trick to update slices menu, even if transform node is already selected in the list before activating crosshair
         }
       }
     else
@@ -593,10 +579,12 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
         {
         this->transformNodeSelector->SetEnabled(0);
         }
-
       RemoveInplaneMenu();
       }
     }
+
+  //----------------------------------------------------------------
+  // Transform Node Selector
 
   else if (this->transformNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
            && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
@@ -619,6 +607,8 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
     }
 
 
+  //----------------------------------------------------------------
+  // Trajectory Checkbox
 
   else if (this->trajectoryButton == vtkKWCheckButton::SafeDownCast(caller)
            && event == vtkKWCheckButton::SelectedStateChangedEvent)
@@ -637,8 +627,11 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
         this->trajectoryNodeSelector->SetEnabled(0);
         }
       }
-
     }
+
+
+  //----------------------------------------------------------------
+  // Trajectory Node Selector
 
   else if (this->trajectoryNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
            && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
@@ -653,6 +646,8 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
 }
 
 
+
+//---------------------------------------------------------------------------
 void vtkIGTViewGUI::DataCallback(vtkObject *caller,
                                  unsigned long eid, void *clientData, void *callData)
 {
@@ -730,19 +725,14 @@ void vtkIGTViewGUI::ProcessTimerEvents()
 //---------------------------------------------------------------------------
 void vtkIGTViewGUI::BuildGUI ( )
 {
-
-  // ---
-  // MODULE GUI FRAME
-  // create a page
   this->UIPanel->AddPage ( "IGTView", "IGTView", NULL );
 
   BuildGUIForHelpFrame();
   BuildGUIForViewers();
   BuildGUIFor2DOverlay();
-
 }
 
-
+//---------------------------------------------------------------------------
 void vtkIGTViewGUI::BuildGUIForHelpFrame ()
 {
   // Define your help text here.

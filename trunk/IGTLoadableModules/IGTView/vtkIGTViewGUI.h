@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #ifndef __vtkIGTViewGUI_h
 #define __vtkIGTViewGUI_h
@@ -46,13 +46,13 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
 
   vtkGetObjectMacro ( Logic, vtkIGTViewLogic );
   void SetModuleLogic ( vtkSlicerLogic *logic )
-  { 
+  {
     this->SetLogic ( vtkObjectPointer (&this->Logic), logic );
   }
 
  protected:
   //----------------------------------------------------------------
-  // Constructor / Destructor (proctected/private) 
+  // Constructor / Destructor (proctected/private)
   //----------------------------------------------------------------
 
   vtkIGTViewGUI ( );
@@ -68,10 +68,10 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
 
   static vtkIGTViewGUI* New ();
-  void Init();
-  virtual void Enter ( );
-  virtual void Exit ( );
-  void PrintSelf (ostream& os, vtkIndent indent );
+  void                  Init();
+  virtual void          Enter ( );
+  virtual void          Exit ( );
+  void                  PrintSelf (ostream& os, vtkIndent indent );
 
   //----------------------------------------------------------------
   // Observer Management
@@ -79,8 +79,8 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
 
   virtual void AddGUIObservers ( );
   virtual void RemoveGUIObservers ( );
-  void AddLogicObservers ( );
-  void RemoveLogicObservers ( );
+  void         AddLogicObservers ( );
+  void         RemoveLogicObservers ( );
 
   //----------------------------------------------------------------
   // Event Handlers
@@ -89,11 +89,10 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
   virtual void ProcessLogicEvents ( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessGUIEvents ( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
-  void ProcessTimerEvents();
-  void HandleMouseEvent(vtkSlicerInteractorStyle *style);
-  static void DataCallback(vtkObject *caller, 
-                           unsigned long eid, void *clientData, void *callData);
-  
+  void         ProcessTimerEvents();
+  void         HandleMouseEvent ( vtkSlicerInteractorStyle *style);
+  static void  DataCallback ( vtkObject *caller, unsigned long eid, void *clientData, void *callData);
+
   //----------------------------------------------------------------
   // Build Frames
   //----------------------------------------------------------------
@@ -113,11 +112,11 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
   void RemoveInplaneMenu();
 
  protected:
-  
+
   //----------------------------------------------------------------
   // Timer
   //----------------------------------------------------------------
-  
+
   int TimerFlag;
   int TimerInterval;
 
@@ -125,16 +124,11 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
   // GUI widgets
   //----------------------------------------------------------------
 
-  vtkMRMLCameraNode* SceneCamera;
+  vtkMRMLCameraNode*          SceneCamera;
   vtkMRMLLinearTransformNode* TransformationNode;
 
   //------------------------------------------
   // Viewers
-
-  /*
-  vtkKWCheckButton* linkerCheck;
-  vtkKWPushButton* DefaultViewButton;
-  */
 
   vtkKWMenuButtonWithLabel* GreenViewerMenu;
   vtkKWMenuButtonWithLabel* YellowViewerMenu;
@@ -149,10 +143,10 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
   //------------------------------------------
   // Overlay
 
-  vtkKWCheckButton* crosshairButton;
+  vtkKWCheckButton*            crosshairButton;
   vtkSlicerNodeSelectorWidget* transformNodeSelector;
-  //bool ShowCrosshair;
-  //vtkMRMLCrosshairNode* Crosshair;
+  vtkKWCheckButton*            trajectoryButton;
+  vtkSlicerNodeSelectorWidget* trajectoryNodeSelector;
 
   bool RedObliqueReslicing;
   bool YellowObliqueReslicing;
@@ -162,9 +156,7 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
   const char* YellowReslicingType;
   const char* GreenReslicingType;
 
-  vtkKWCheckButton* trajectoryButton;
-  vtkSlicerNodeSelectorWidget* trajectoryNodeSelector;
- 
+
 
 
   //----------------------------------------------------------------
