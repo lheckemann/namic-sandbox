@@ -31,6 +31,8 @@ class vtkKWMenuButtonWithLabel;
 class vtkMRMLSliceNode;
 class vtkSlicerNodeSelectorWidget;
 class vtkMRMLCrosshairNode;
+class vtkMRMLCameraNode;
+class vtkMRMLLinearTransformNode;
 
 class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
 {
@@ -122,6 +124,9 @@ class VTK_IGTView_EXPORT vtkIGTViewGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // GUI widgets
   //----------------------------------------------------------------
+
+  vtkMRMLCameraNode* SceneCamera;
+  vtkMRMLLinearTransformNode* TransformationNode;
 
   //------------------------------------------
   // Viewers

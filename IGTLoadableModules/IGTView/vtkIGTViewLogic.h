@@ -60,6 +60,7 @@ class VTK_IGTView_EXPORT vtkIGTViewLogic : public vtkSlicerModuleLogic
   void Reslice(vtkMRMLSliceNode* RedSlice, vtkMRMLSliceNode* YellowSlice, vtkMRMLSliceNode* GreenSlice);
   void ObliqueOrientation(vtkMRMLSliceNode* slice, const char* ReslicingType);
   void UpdateCrosshair();
+  void DisplayTrajectory();
 
   vtkSetMacro(TransformNodeSelected, bool);
   vtkGetMacro(TransformNodeSelected, bool);
