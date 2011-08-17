@@ -195,5 +195,9 @@ void vtkIGTViewLogic::UpdateCrosshair()
 }
 
 
+void vtkIGTViewLogic::DisplayTrajectory()
+{
+
+}
 
 
