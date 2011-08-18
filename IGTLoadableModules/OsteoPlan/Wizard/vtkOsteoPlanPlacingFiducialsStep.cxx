@@ -50,7 +50,6 @@
 #include "vtkClipPolyData.h"
 #include "vtkPlane.h"
 #include "vtkImplicitBoolean.h"
-#include "vtkTesselateBoundaryLoops.h"
 
 #include "vtkTransformPolyDataFilter.h"
 
