@@ -16,6 +16,7 @@
 #define VTKMRMLOSTEOPLANNODE_H_
 
 #include "vtkOsteoPlanWin32Header.h"
+
 #include "vtkMRML.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLStorageNode.h"
