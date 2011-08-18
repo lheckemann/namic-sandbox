@@ -77,6 +77,8 @@
 #ifndef __vtkCylinderWidget_h
 #define __vtkCylinderWidget_h
 
+#include "vtkOsteoPlanWin32Header.h"
+
 #include "vtkPolyDataSourceWidget.h"
 //#include "vtkBioengConfigure.h" // Include configuration header.
 #include "vtkConeSource.h"
@@ -100,7 +102,7 @@ class vtkPlane;
 class vtkConeSource;
 class vtkLineSource;
 
-class VTK_WIDGETS_EXPORT vtkCylinderWidget : public vtkPolyDataSourceWidget
+class VTK_OsteoPlan_EXPORT vtkCylinderWidget : public vtkPolyDataSourceWidget
 {
 public:
   // Description:
