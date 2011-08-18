@@ -37,7 +37,7 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanReturningOriginalPositionStep : public vt
   virtual void ShowUserInterface();
   virtual void HideUserInterface();
   virtual void TearDownGUI();
-  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
+  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
   virtual void UpdateGUI();
 
@@ -50,7 +50,7 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanReturningOriginalPositionStep : public vt
   ~vtkOsteoPlanReturningOriginalPositionStep();
 
   void AddGUIObservers();
-  void RemoveGUIObservers();  
+  void RemoveGUIObservers();
 
   bool ProcessingCallback;
 
@@ -66,4 +66,4 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanReturningOriginalPositionStep : public vt
 };
 
 #endif
- 
+

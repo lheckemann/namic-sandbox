@@ -21,10 +21,11 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard
+  ${CMAKE_CURRENT_SOURCE_DIR}/Widgets
   ${Slicer3_Libs_INCLUDE_DIRS}
   ${Slicer3_Base_INCLUDE_DIRS}
 #  ${VTK_CMAKE_DIR}/../../vtkBioeng
-  /projects/igtdev/lchauvin/Slicer3-lib/vtkBioeng
+#  /projects/igtdev/lchauvin/Slicer3-lib/vtkBioeng
   )
 
 #
@@ -39,8 +40,9 @@ configure_file(
 file(GLOB headers 
   "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Wizard/*.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Widgets/*.h"
 #  "${VTK_CMAKE_DIR}/../../vtkBioeng/*.h"
-  "/projects/igtdev/lchauvin/Slicer3-lib/vtkBioeng/*.h"
+#  "/projects/igtdev/lchauvin/Slicer3-lib/vtkBioeng/*.h"
   )
 
 install(FILES 
@@ -62,6 +64,7 @@ set(OsteoPlan_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanMovingPartsStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanPlacingFiducialsStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanReturningOriginalPositionStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/vtkCylinderWidget.cxx
 )
 
 
@@ -93,7 +96,7 @@ target_link_libraries(${lib_name}
   ${Slicer3_Libs_LIBRARIES}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES}
-  vtkBioeng
+ # vtkBioeng
   )
 
 install(TARGETS ${lib_name}
