@@ -38,10 +38,12 @@ class CurveFittingGammaVariateRCBV(CurveAnalysisBase):
     # Constructor -- Set initial parameters
     def __init__(self):
         self.ParameterNameList  = ['Sp', 'alpha', 'beta', 'Ta']
-        self.InitialParameter   = [200.0, 3.0,    1.0,    0.0] 
+        self.InitialParameter   = [1.0, 8.0, 1.0,  20.0] 
 
-        self.ConstantNameList   = ['TpcMax']
-        self.Constant           = [0.0]
+        # TpcMax: Maximum duration for Pre-contrast
+        # (used to calculate the initial signal internsity)
+        self.ConstantNameList   = ['TpcMax', 'BaseCBV']
+        self.Constant           = [10.0, 1.0]
 
         self.FunctionVectorInput = 1
 
@@ -50,7 +52,8 @@ class CurveFittingGammaVariateRCBV(CurveAnalysisBase):
 
         self.TargetCurve         = numpy.array([[0, 0]])
 
-        self.TpcMax              = 0.0
+        self.TpcMax              = 10.0
+        self.BaseCBV             = 1.0
         self.S0  = 10.0
 
 
@@ -79,6 +82,8 @@ class CurveFittingGammaVariateRCBV(CurveAnalysisBase):
         if name == 'TpcMax':
             # precontrast duration
             self.TpcMax = param
+        if name == 'BaseCBV':
+            self.BaseCBV = param
         return
 
     def CalcS0(self, Ta):
@@ -133,16 +138,10 @@ class CurveFittingGammaVariateRCBV(CurveAnalysisBase):
     def CalcOutputParamDict(self, param):
         Sp, alpha, beta, Ta = param
 
-        r = quad(lambda x: self.Function(x, param), 0.0, 1000.0)
-        rCBV = r[0]
-        S0 = self.CalcS0(Ta)
+        r = quad(lambda x: self.Function(x, param), 0.0, scipy.integrate.Inf)
+        rCBV = r[0] / self.BaseCBV
 
-        #sts = quad(lambda x: x*(self.Function(x, param) - S0), 0.0, 1000.0)
-        #ss  = quad(lambda x: self.Function(x, param) - S0, 0.0, 1000.0)
-        #if ss[0] <> 0.0:
-        #    MTT = sts[0] / ss[0]
-        #else:
-        #    MTT = 0.0
+        S0 = self.CalcS0(Ta)
 
         # Calculate analytical MTT
         MTT = beta * (alpha + 1)
@@ -156,6 +155,7 @@ class CurveFittingGammaVariateRCBV(CurveAnalysisBase):
         dict['Ta']    = Ta
         dict['S0']    = S0
         dict['TTP']   = alpha*beta + Ta
+
         # Calculate standard deviation of residual error
         if S0 == 0.0:
             dict['SDRE'] = 0.0
