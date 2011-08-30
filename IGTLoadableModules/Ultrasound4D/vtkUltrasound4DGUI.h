@@ -37,6 +37,9 @@ class vtkMRMLIGTLConnectorNode;
 class vtkSliceNodeSelectorWidget;
 class vtkCollection;
 class vtkKWScaleWithLabel;
+class vtkMRMLScalarVolumeNode;
+class vtkImageData;
+class vtkMRMLVolumeNode;
 
 class VTK_Ultrasound4D_EXPORT vtkUltrasound4DGUI : public vtkSlicerModuleGUI
 {
@@ -112,6 +115,12 @@ class VTK_Ultrasound4D_EXPORT vtkUltrasound4DGUI : public vtkSlicerModuleGUI
 
   void UpdateAll();
 
+  //----------------------------------------------------------------
+  // Custom
+  //----------------------------------------------------------------
+
+  void CenterImage(vtkMRMLVolumeNode *volumeNode);
+
  protected:
   
   //----------------------------------------------------------------
@@ -130,6 +139,8 @@ class VTK_Ultrasound4D_EXPORT vtkUltrasound4DGUI : public vtkSlicerModuleGUI
   vtkCollection* OpenIGTLinkNodeCollection;
   int NumberOfNodesReceived;
 
+  vtkMRMLScalarVolumeNode* DisplayableScalarVolumeNode;
+  vtkImageData* DisplayableImageData;
   vtkKWScaleWithLabel* SliderVolumeSelector;
   vtkKWPushButton* PlayVolumeButton;
   bool IsPlaying;

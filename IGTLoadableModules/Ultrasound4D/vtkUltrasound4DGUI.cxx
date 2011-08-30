@@ -21,7 +21,9 @@
 #include "vtkSlicerSliceControllerWidget.h"
 #include "vtkSlicerSliceGUI.h"
 #include "vtkSlicerSlicesGUI.h"
+#include "vtkSlicerColorLogic.h"
 #include "vtkCollection.h"
+#include "vtkImageData.h"
 
 #include "vtkSlicerColor.h"
 #include "vtkSlicerTheme.h"
@@ -64,7 +66,7 @@ vtkUltrasound4DGUI::vtkUltrasound4DGUI ( )
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkUltrasound4DGUI::DataCallback);
-  
+
   //----------------------------------------------------------------
   // GUI widgets
 
@@ -73,6 +75,8 @@ vtkUltrasound4DGUI::vtkUltrasound4DGUI ( )
   this->OpenIGTLinkNodeCollection = vtkCollection::New();
   this->NumberOfNodesReceived = 0;
 
+  this->DisplayableScalarVolumeNode = NULL;
+  this->DisplayableImageData = NULL;
   this->SliderVolumeSelector = NULL;
   this->PlayVolumeButton = NULL;
   this->IsPlaying = false;
@@ -93,7 +97,7 @@ vtkUltrasound4DGUI::~vtkUltrasound4DGUI ( )
 
   if (this->DataCallbackCommand)
     {
-      this->DataCallbackCommand->Delete();
+    this->DataCallbackCommand->Delete();
     }
 
   //----------------------------------------------------------------
@@ -106,31 +110,41 @@ vtkUltrasound4DGUI::~vtkUltrasound4DGUI ( )
 
   if(this->OpenIGTLinkNodeSelector)
     {
-      this->OpenIGTLinkNodeSelector->SetParent(NULL);
-      this->OpenIGTLinkNodeSelector->Delete();
+    this->OpenIGTLinkNodeSelector->SetParent(NULL);
+    this->OpenIGTLinkNodeSelector->Delete();
     }
 
   if(this->OpenIGTLinkNodeCollection)
     {
-      // Delete all nodes inside first
-      for(int i=0; i<this->OpenIGTLinkNodeCollection->GetNumberOfItems();i++)
-  {
-    this->OpenIGTLinkNodeCollection->GetItemAsObject(i)->Delete();
-  }
+    // Delete all nodes inside first
+    for(int i=0; i<this->OpenIGTLinkNodeCollection->GetNumberOfItems();i++)
+      {
+      this->OpenIGTLinkNodeCollection->GetItemAsObject(i)->Delete();
+      }
 
-      this->OpenIGTLinkNodeCollection->Delete();
+    this->OpenIGTLinkNodeCollection->Delete();
+    }
+
+  if(this->DisplayableScalarVolumeNode)
+    {
+    this->DisplayableScalarVolumeNode->Delete();
+    }
+
+  if(this->DisplayableImageData)
+    {
+    this->DisplayableImageData->Delete();
     }
 
   if(this->SliderVolumeSelector)
     {
-      this->SliderVolumeSelector->SetParent(NULL);
-      this->SliderVolumeSelector->Delete();
+    this->SliderVolumeSelector->SetParent(NULL);
+    this->SliderVolumeSelector->Delete();
     }
 
   if(this->PlayVolumeButton)
     {
-      this->PlayVolumeButton->SetParent(NULL);
-      this->PlayVolumeButton->Delete();
+    this->PlayVolumeButton->SetParent(NULL);
+    this->PlayVolumeButton->Delete();
     }
 
 
@@ -151,14 +165,61 @@ void vtkUltrasound4DGUI::Init()
 //---------------------------------------------------------------------------
 void vtkUltrasound4DGUI::Enter()
 {
-  // Fill in
-  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-  
+  vtkMRMLScalarVolumeDisplayNode *displayNode = NULL;
+
   if (this->TimerFlag == 0)
     {
-      this->TimerFlag = 1;
-      this->TimerInterval = 100;  // 100 ms
-      ProcessTimerEvents();
+    this->TimerFlag = 1;
+    this->TimerInterval = 100;  // 100 ms
+    ProcessTimerEvents();
+    }
+
+  // Create Displayable Scalar Volume Node
+  if(!this->DisplayableScalarVolumeNode)
+    {
+    this->DisplayableScalarVolumeNode = vtkMRMLScalarVolumeNode::New();
+    this->DisplayableScalarVolumeNode->SetName("4D Ultrasound");
+    this->DisplayableImageData = vtkImageData::New();
+
+    this->DisplayableImageData->SetDimensions(256,256,256);
+    this->DisplayableImageData->SetExtent(0, 255, 0, 255, 0, 255);
+    this->DisplayableImageData->SetSpacing(1.0, 1.0, 1.0);
+    this->DisplayableImageData->SetOrigin(0.0, 0.0, 0.0);
+    this->DisplayableImageData->SetNumberOfScalarComponents(1);
+    this->DisplayableImageData->SetScalarTypeToUnsignedShort();
+    this->DisplayableImageData->AllocateScalars();
+
+    unsigned short* dest = (unsigned short*) this->DisplayableImageData->GetScalarPointer();
+    if(dest)
+      {
+      memset(dest, 0x00, 256*256*256*sizeof(unsigned short));
+      this->DisplayableImageData->Update();
+      }
+    this->DisplayableScalarVolumeNode->SetAndObserveImageData(this->DisplayableImageData);
+
+    displayNode = vtkMRMLScalarVolumeDisplayNode::New();
+    displayNode->SetScene(this->GetMRMLScene());
+    double range[2] = {0.0, 256.0};
+
+    displayNode->SetLowerThreshold(range[0]);
+    displayNode->SetUpperThreshold(range[1]);
+    displayNode->SetWindow(range[1] - range[0]);
+    displayNode->SetLevel(0.5 * (range[1] + range[0]));
+    this->GetMRMLScene()->AddNode(displayNode);
+
+    vtkSlicerColorLogic *colorLogic = vtkSlicerColorLogic::New();
+    displayNode->SetAndObserveColorNodeID(colorLogic->GetDefaultVolumeColorNodeID());
+
+    this->DisplayableScalarVolumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+
+    this->GetMRMLScene()->AddNode(this->DisplayableScalarVolumeNode);
+    this->GetMRMLScene()->Modified();
+
+    // TODO: Center Image
+    //this->CenterImage(this->DisplayableScalarVolumeNode);
+
+    displayNode->Delete();
+    colorLogic->Delete();
     }
 
 }
@@ -188,26 +249,26 @@ void vtkUltrasound4DGUI::RemoveGUIObservers ( )
 
   if(this->OpenIGTLinkNodeSelector)
     {
-      this->OpenIGTLinkNodeSelector
-  ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->OpenIGTLinkNodeSelector
+      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
-  
+
   if(this->OpenIGTLinkNode)
     {
-      this->OpenIGTLinkNode
-  ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->OpenIGTLinkNode
+      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
-  
-  if(this->SliderVolumeSelector)
+
+  if(this->SliderVolumeSelector->GetWidget())
     {
-      this->SliderVolumeSelector
-  ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->SliderVolumeSelector->GetWidget()
+      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
   if(this->PlayVolumeButton)
     {
-      this->PlayVolumeButton
-  ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    this->PlayVolumeButton
+      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
   this->RemoveLogicObservers();
@@ -229,10 +290,10 @@ void vtkUltrasound4DGUI::AddGUIObservers ( )
   //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
-  
+
   if (this->GetMRMLScene() != NULL)
     {
-      this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
+    this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
     }
   events->Delete();
 
@@ -241,20 +302,20 @@ void vtkUltrasound4DGUI::AddGUIObservers ( )
 
   if(this->OpenIGTLinkNodeSelector)
     {
-      this->OpenIGTLinkNodeSelector
-  ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
+    this->OpenIGTLinkNodeSelector
+      ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
 
-  if(this->SliderVolumeSelector)
+  if(this->SliderVolumeSelector->GetWidget())
     {
-      this->SliderVolumeSelector
-  ->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand*)this->GUICallbackCommand);
+    this->SliderVolumeSelector->GetWidget()
+      ->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand*)this->GUICallbackCommand);
     }
 
   if(this->PlayVolumeButton)
     {
-      this->PlayVolumeButton
-  ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+    this->PlayVolumeButton
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
   this->AddLogicObservers();
 
@@ -266,8 +327,8 @@ void vtkUltrasound4DGUI::RemoveLogicObservers ( )
 {
   if (this->GetLogic())
     {
-      this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent,
-          (vtkCommand *)this->LogicCallbackCommand);
+    this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent,
+                                      (vtkCommand *)this->LogicCallbackCommand);
     }
 }
 
@@ -277,12 +338,12 @@ void vtkUltrasound4DGUI::RemoveLogicObservers ( )
 //---------------------------------------------------------------------------
 void vtkUltrasound4DGUI::AddLogicObservers ( )
 {
-  this->RemoveLogicObservers();  
+  this->RemoveLogicObservers();
 
   if (this->GetLogic())
     {
-      this->GetLogic()->AddObserver(vtkUltrasound4DLogic::StatusUpdateEvent,
-            (vtkCommand *)this->LogicCallbackCommand);
+    this->GetLogic()->AddObserver(vtkUltrasound4DLogic::StatusUpdateEvent,
+                                  (vtkCommand *)this->LogicCallbackCommand);
     }
 }
 
@@ -294,122 +355,139 @@ void vtkUltrasound4DGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 
 //---------------------------------------------------------------------------
 void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
-            unsigned long event, void *callData)
+                                          unsigned long event, void *callData)
 {
 
   const char *eventName = vtkCommand::GetStringFromEventId(event);
 
   if (strcmp(eventName, "LeftButtonPressEvent") == 0)
     {
-      vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast(caller);
-      HandleMouseEvent(style);
-      return;
+    vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast(caller);
+    HandleMouseEvent(style);
+    return;
     }
 
   if(this->OpenIGTLinkNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
-      vtkMRMLIGTLConnectorNode* getNode = vtkMRMLIGTLConnectorNode::SafeDownCast(this->OpenIGTLinkNodeSelector->GetSelected());
-  if(getNode)
-    {
+    vtkMRMLIGTLConnectorNode* getNode = vtkMRMLIGTLConnectorNode::SafeDownCast(this->OpenIGTLinkNodeSelector->GetSelected());
+    if(getNode)
+      {
       this->OpenIGTLinkNode = getNode;
       if(this->OpenIGTLinkNode)
         {
-    this->OpenIGTLinkNode
-      ->AddObserver(vtkMRMLIGTLConnectorNode::ReceiveEvent, (vtkCommand*)this->GUICallbackCommand);
+        this->OpenIGTLinkNode
+          ->AddObserver(vtkMRMLIGTLConnectorNode::ReceiveEvent, (vtkCommand*)this->GUICallbackCommand);
         }
-    }
+      }
     }
 
   if(this->OpenIGTLinkNode == vtkMRMLIGTLConnectorNode::SafeDownCast(caller)
      && event == vtkMRMLIGTLConnectorNode::ReceiveEvent)
     {
-      this->NumberOfNodesReceived++;
+    this->NumberOfNodesReceived++;
 
-      if(this->OpenIGTLinkNode->GetNumberOfIncomingMRMLNodes())
-  {
-    // Update ImageData (before copying)
-    vtkMRMLScalarVolumeNode* currentData = vtkMRMLScalarVolumeNode::SafeDownCast(this->OpenIGTLinkNode->GetIncomingMRMLNode(0));
-    currentData->GetImageData()->Update();
+    if(this->OpenIGTLinkNode->GetNumberOfIncomingMRMLNodes())
+      {
+      // Update ImageData (before copying)
+      vtkMRMLScalarVolumeNode* currentData = vtkMRMLScalarVolumeNode::SafeDownCast(this->OpenIGTLinkNode->GetIncomingMRMLNode(0));
+      currentData->GetImageData()->Update();
 
-    // Copy ScalarVolumeNode to the new one
-    vtkMRMLScalarVolumeNode* newNode = vtkMRMLScalarVolumeNode::New();
-    newNode->Copy(currentData);
-        
-    // Copy Image Data to the new one
-    vtkImageData* newData = vtkImageData::New();
-    newData->DeepCopy(currentData->GetImageData());
+      // Copy ScalarVolumeNode to the new one
+      vtkMRMLScalarVolumeNode* newNode = vtkMRMLScalarVolumeNode::New();
+      newNode->Copy(currentData);
+      newNode->SetScene(this->GetMRMLScene());
 
-    // Link Image Data to the new ScalarVolume Node and add to scene
-    newNode->SetAndObserveImageData(newData);
-    this->GetMRMLScene()->AddNode(newNode);
-    this->GetMRMLScene()->Modified();
-    
-    // Add Node to the collection
-    this->OpenIGTLinkNodeCollection->AddItem(newNode);
+      // Copy Image Data to the new one
+      vtkImageData* newData = vtkImageData::New();
+      newData->DeepCopy(currentData->GetImageData());
 
-    // Delete Image Data (ScalarVolume Node is deleted with collection in destructor)
-    newData->Delete();
-  }
-      
-      if(this->SliderVolumeSelector)
-  {
-    std::stringstream out;
-    out << "/ " << this->NumberOfNodesReceived-1;
-    this->SliderVolumeSelector->SetLabelText(out.str().c_str());
-    this->SliderVolumeSelector->GetWidget()->SetRange(0,this->NumberOfNodesReceived-1);
-  }
-      
+      // Link Image Data to the new ScalarVolume Node and add to scene
+      newNode->SetAndObserveImageData(newData);
+      this->GetMRMLScene()->AddNode(newNode);
+      this->GetMRMLScene()->Modified();
+
+      // Add Node to the collection
+      this->OpenIGTLinkNodeCollection->AddItem(newNode);
+
+      // Delete Image Data (ScalarVolume Node is deleted with collection in destructor)
+      newData->Delete();
+      }
+
+    if(this->SliderVolumeSelector)
+      {
+      std::stringstream out;
+      out << "/ " << this->NumberOfNodesReceived-1;
+      this->SliderVolumeSelector->SetLabelText(out.str().c_str());
+      this->SliderVolumeSelector->GetWidget()->SetRange(0,this->NumberOfNodesReceived-1);
+      }
+
     }
 
-  if(this->SliderVolumeSelector == vtkKWScaleWithLabel::SafeDownCast(caller)
-     && event == vtkKWScale::ScaleValueChangingEvent)
+  if(this->SliderVolumeSelector->GetWidget() == vtkKWScale::SafeDownCast(caller)
+     && event                                == vtkKWScale::ScaleValueChangingEvent)
     {
-      if(this->SliderVolumeSelector)
-  {
-    double NodeNumber = this->SliderVolumeSelector->GetWidget()->GetValue();
-    vtkMRMLScalarVolumeNode* selectedNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->OpenIGTLinkNodeCollection->GetItemAsObject(NodeNumber));
+    if(this->SliderVolumeSelector)
+      {
+      double                   NodeNumber   = this->SliderVolumeSelector->GetWidget()->GetValue();
+      vtkMRMLScalarVolumeNode* selectedNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->OpenIGTLinkNodeCollection->GetItemAsObject(NodeNumber));
 
-    std::cerr << "INSIDE: " << selectedNode << std::endl;
-    // TODO: Send node to the volume rendering
+      if(selectedNode->GetImageData()->GetActualMemorySize() == this->DisplayableImageData->GetActualMemorySize())
+        {
+        std::cerr << "INSIDE: Copy " << this->DisplayableImageData->GetActualMemorySize() << " bytes"
+                  << " from " << selectedNode->GetImageData()->GetScalarPointer()
+                  << " to " << this->DisplayableImageData->GetScalarPointer() <<  std::endl;
+
+        memcpy(this->DisplayableImageData->GetScalarPointer(),
+               selectedNode->GetImageData()->GetScalarPointer(),
+               this->DisplayableImageData->GetActualMemorySize()*1024);
+
+        this->DisplayableImageData->Update();
+        this->DisplayableImageData->Modified();
+
+        this->DisplayableScalarVolumeNode->SetAndObserveImageData(this->DisplayableImageData);
+        this->DisplayableScalarVolumeNode->Modified();
+
+        this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->Render();
+        }
       }
     }
 
   if(this->PlayVolumeButton == vtkKWPushButton::SafeDownCast(caller)
      && event == vtkKWPushButton::InvokedEvent)
     {
-      if(this->PlayVolumeButton)
-  {
-    if(this->IsPlaying)
+    if(this->PlayVolumeButton)
       {
+      if(this->IsPlaying)
+        {
         this->PlayVolumeButton->SetText("Play");
         this->IsPlaying = false;
 
         if(this->OpenIGTLinkNodeCollection && this->SliderVolumeSelector)
-    {
-      for(int i=0; i<this->OpenIGTLinkNodeCollection->GetNumberOfItems();i++)
-        {
-          this->SliderVolumeSelector->GetWidget()->SetValue(i);
-          // TODO: Refresh slider view
-          // TODO: Send all volume in the collection to the Volume Renderer in a loop (Thread ?)
+          {
+          for(int i=0; i<this->OpenIGTLinkNodeCollection->GetNumberOfItems();i++)
+            {
+            this->SliderVolumeSelector->GetWidget()->SetValue(i);
+            // TODO: Refresh slider view
+            // TODO: Send all volume in the collection to the Volume Renderer in a loop (Thread ?)
+            }
+          }
         }
-    }
-      }
-    else
-      {
-        this->PlayVolumeButton->SetText("Pause");        
+      else
+        {
+        this->PlayVolumeButton->SetText("Pause");
         this->IsPlaying = true;
 
         // TODO: Stop the loop
+        }
       }
-  }
     }
 
-} 
+}
 
 
-void vtkUltrasound4DGUI::DataCallback(vtkObject *caller, 
-              unsigned long eid, void *clientData, void *callData)
+void vtkUltrasound4DGUI::DataCallback(vtkObject *caller,
+                                      unsigned long eid, void *clientData, void *callData)
 {
   vtkUltrasound4DGUI *self = reinterpret_cast<vtkUltrasound4DGUI *>(clientData);
   vtkDebugWithObjectMacro(self, "In vtkUltrasound4DGUI DataCallback");
@@ -419,22 +497,22 @@ void vtkUltrasound4DGUI::DataCallback(vtkObject *caller,
 
 //---------------------------------------------------------------------------
 void vtkUltrasound4DGUI::ProcessLogicEvents ( vtkObject *caller,
-                unsigned long event, void *callData )
+                                              unsigned long event, void *callData )
 {
 
   if (this->GetLogic() == vtkUltrasound4DLogic::SafeDownCast(caller))
     {
-      if (event == vtkUltrasound4DLogic::StatusUpdateEvent)
-  {
-    //this->UpdateDeviceStatus();
-  }
+    if (event == vtkUltrasound4DLogic::StatusUpdateEvent)
+      {
+      //this->UpdateDeviceStatus();
+      }
     }
 }
 
 
 //---------------------------------------------------------------------------
 void vtkUltrasound4DGUI::ProcessMRMLEvents ( vtkObject *caller,
-               unsigned long event, void *callData )
+                                             unsigned long event, void *callData )
 {
   // Fill in
 
@@ -449,10 +527,10 @@ void vtkUltrasound4DGUI::ProcessTimerEvents()
 {
   if (this->TimerFlag)
     {
-      // update timer
-      vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
-             this->TimerInterval,
-             this, "ProcessTimerEvents");        
+    // update timer
+    vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(),
+                                         this->TimerInterval,
+                                         this, "ProcessTimerEvents");
     }
 }
 
@@ -462,7 +540,7 @@ void vtkUltrasound4DGUI::BuildGUI ( )
 {
 
   // ---
-  // MODULE GUI FRAME 
+  // MODULE GUI FRAME
   // create a page
   this->UIPanel->AddPage ( "Ultrasound4D", "Ultrasound4D", NULL );
 
@@ -474,7 +552,7 @@ void vtkUltrasound4DGUI::BuildGUI ( )
 void vtkUltrasound4DGUI::BuildGUIForHelpFrame ()
 {
   // Define your help text here.
-  const char *help = 
+  const char *help =
     "See "
     "<a>http://www.slicer.org/slicerWiki/index.php/Modules:Ultrasound4D</a> for details.";
   const char *about =
@@ -491,7 +569,7 @@ void vtkUltrasound4DGUI::BuildGUIForSlidingData()
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("Ultrasound4D");
-  
+
   vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
 
   conBrowsFrame->SetParent(page);
@@ -522,9 +600,9 @@ void vtkUltrasound4DGUI::BuildGUIForSlidingData()
   this->PlayVolumeButton->SetText("Play");
 
   app->Script("pack %s %s %s -side top -anchor nw -fill x -padx 2 -pady 2",
-        this->OpenIGTLinkNodeSelector->GetWidgetName(),
-        this->SliderVolumeSelector->GetWidgetName(),
-        this->PlayVolumeButton->GetWidgetName());
+              this->OpenIGTLinkNodeSelector->GetWidgetName(),
+              this->SliderVolumeSelector->GetWidgetName(),
+              this->PlayVolumeButton->GetWidgetName());
 
 
   conBrowsFrame->Delete();
@@ -533,5 +611,41 @@ void vtkUltrasound4DGUI::BuildGUIForSlidingData()
 //----------------------------------------------------------------------------
 void vtkUltrasound4DGUI::UpdateAll()
 {
+}
+
+//----------------------------------------------------------------------------
+void vtkUltrasound4DGUI::CenterImage(vtkMRMLVolumeNode *volumeNode)
+{
+  if ( volumeNode )
+    {
+    vtkImageData *image = volumeNode->GetImageData();
+    if (image)
+      {
+      vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
+      volumeNode->GetIJKToRASMatrix(ijkToRAS);
+
+      double dimsH[4];
+      double rasCorner[4];
+      int *dims = image->GetDimensions();
+      dimsH[0] = dims[0] - 1;
+      dimsH[1] = dims[1] - 1;
+      dimsH[2] = dims[2] - 1;
+      dimsH[3] = 0.;
+      ijkToRAS->MultiplyPoint(dimsH, rasCorner);
+
+      double origin[3];
+      int i;
+      for (i = 0; i < 3; i++)
+        {
+        origin[i] = -0.5 * rasCorner[i];
+        }
+      volumeNode->SetDisableModifiedEvent(1);
+      volumeNode->SetOrigin(origin);
+      volumeNode->SetDisableModifiedEvent(0);
+      volumeNode->InvokePendingModifiedEvent();
+
+      ijkToRAS->Delete();
+      }
+    }
 }
 
