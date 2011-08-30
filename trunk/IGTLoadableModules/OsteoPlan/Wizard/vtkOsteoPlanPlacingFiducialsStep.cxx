@@ -530,6 +530,7 @@ void vtkOsteoPlanPlacingFiducialsStep::TearDownGUI()
 //  - Clip model
 void vtkOsteoPlanPlacingFiducialsStep::MarkScrewPosition()
 {
+  bool modelInTheList = false;
   // Check if model has a transform
   //   = is on vtkCollection
   for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems(); i++)
@@ -545,104 +546,109 @@ void vtkOsteoPlanPlacingFiducialsStep::MarkScrewPosition()
       this->SelectedModel->SetAndObserveTransformNodeID(NULL);
       this->SelectedModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
       this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
+
+      modelInTheList = true;
       }
     }
 
-  // Create clipper (finite cylinder)
-  vtkCylinder* cylinderAlgo = vtkCylinder::New();
-  this->ScrewCylinder->GetCylinder(cylinderAlgo);
+  if(modelInTheList)
+    {
+    // Create clipper (finite cylinder)
+    vtkCylinder* cylinderAlgo = vtkCylinder::New();
+    this->ScrewCylinder->GetCylinder(cylinderAlgo);
 
-  vtkPlane* plane1 = vtkPlane::New();
-  this->ScrewCylinder->GetPlane1(plane1);
+    vtkPlane* plane1 = vtkPlane::New();
+    this->ScrewCylinder->GetPlane1(plane1);
 
-  vtkPlane* plane2 = vtkPlane::New();
-  this->ScrewCylinder->GetPlane2(plane2);
+    vtkPlane* plane2 = vtkPlane::New();
+    this->ScrewCylinder->GetPlane2(plane2);
 
-  vtkImplicitBoolean* createCylinder = vtkImplicitBoolean::New();
-  createCylinder->AddFunction(cylinderAlgo);
-  createCylinder->AddFunction(plane1);
-  createCylinder->AddFunction(plane2);
-  createCylinder->SetOperationTypeToIntersection();
+    vtkImplicitBoolean* createCylinder = vtkImplicitBoolean::New();
+    createCylinder->AddFunction(cylinderAlgo);
+    createCylinder->AddFunction(plane1);
+    createCylinder->AddFunction(plane2);
+    createCylinder->SetOperationTypeToIntersection();
 
-  // Apply clipper to polydata (model)
-  vtkClipPolyData* ScrewHole = vtkClipPolyData::New();
-  ScrewHole->SetClipFunction(createCylinder);
-  ScrewHole->GenerateClippedOutputOn();
-  ScrewHole->SetInput(this->SelectedModel->GetPolyData());
-  this->SelectedModel->SetAndObservePolyData(ScrewHole->GetOutput());
-  this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+    // Apply clipper to polydata (model)
+    vtkClipPolyData* ScrewHole = vtkClipPolyData::New();
+    ScrewHole->SetClipFunction(createCylinder);
+    ScrewHole->GenerateClippedOutputOn();
+    ScrewHole->SetInput(this->SelectedModel->GetPolyData());
+    this->SelectedModel->SetAndObservePolyData(ScrewHole->GetOutput());
+    this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
 
-  createCylinder->Delete();
-  plane1->Delete();
-  plane2->Delete();
-  ScrewHole->Delete();
-  cylinderAlgo->Delete();
+    createCylinder->Delete();
+    plane1->Delete();
+    plane2->Delete();
+    ScrewHole->Delete();
+    cylinderAlgo->Delete();
+    }
 
 }
 
 //----------------------------------------------------------------------------
 /*
-void vtkOsteoPlanPlacingFiducialsStep::AddPairModelFiducial()
-{
-    if(this->FiducialOnModel && this->SelectedModel)
-    {
-    if(this->bPlacingFiducials == true)
-    {
-    this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::Place);
-    this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetSelected(1);
-    this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(1);
+  void vtkOsteoPlanPlacingFiducialsStep::AddPairModelFiducial()
+  {
+  if(this->FiducialOnModel && this->SelectedModel)
+  {
+  if(this->bPlacingFiducials == true)
+  {
+  this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::Place);
+  this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetSelected(1);
+  this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(1);
 
-    this->modelNodeInsideCollection = false;
-    int modelPosition = 0;
+  this->modelNodeInsideCollection = false;
+  int modelPosition = 0;
 
-    for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems();i++)
-    {
-    vtkMRMLModelNode* listModel = reinterpret_cast<vtkMRMLModelNode*>(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(i));
-    if(!strcmp(this->SelectedModel->GetID(),listModel->GetID()))
-    {
-    this->modelNodeInsideCollection = true;
-    modelPosition = i;
-    }
-    }
+  for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems();i++)
+  {
+  vtkMRMLModelNode* listModel = reinterpret_cast<vtkMRMLModelNode*>(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(i));
+  if(!strcmp(this->SelectedModel->GetID(),listModel->GetID()))
+  {
+  this->modelNodeInsideCollection = true;
+  modelPosition = i;
+  }
+  }
 
-    if(!this->modelNodeInsideCollection)
-    {
-    // Add Model to the List of models who have a fiducial list associated
-    this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->AddItem(this->SelectedModel);
+  if(!this->modelNodeInsideCollection)
+  {
+  // Add Model to the List of models who have a fiducial list associated
+  this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->AddItem(this->SelectedModel);
 
-    // Create the fiducial list with the name of the model
-    vtkMRMLFiducialListNode* fiducialListConnectedToModel = vtkMRMLFiducialListNode::New();
-    char fiducialListName[128];
-    sprintf(fiducialListName,"%s-fiducialList",this->SelectedModel->GetName());
-    fiducialListConnectedToModel->SetName(fiducialListName);
-    fiducialListConnectedToModel->SetGlyphTypeFromString("Sphere3D");
-    fiducialListConnectedToModel->SetSymbolScale(2.0);
-    fiducialListConnectedToModel->SetTextScale(0);
+  // Create the fiducial list with the name of the model
+  vtkMRMLFiducialListNode* fiducialListConnectedToModel = vtkMRMLFiducialListNode::New();
+  char fiducialListName[128];
+  sprintf(fiducialListName,"%s-fiducialList",this->SelectedModel->GetName());
+  fiducialListConnectedToModel->SetName(fiducialListName);
+  fiducialListConnectedToModel->SetGlyphTypeFromString("Sphere3D");
+  fiducialListConnectedToModel->SetSymbolScale(2.0);
+  fiducialListConnectedToModel->SetTextScale(0);
 
-    // Add Fiducial list to the list of fiducial list who have a model associated
-    this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->AddItem(fiducialListConnectedToModel);
+  // Add Fiducial list to the list of fiducial list who have a model associated
+  this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->AddItem(fiducialListConnectedToModel);
 
-    // Add fiducial list to the scene and set it as active
-    this->GetGUI()->GetMRMLScene()->AddNode(fiducialListConnectedToModel);
-    this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(fiducialListConnectedToModel->GetID());
-    fiducialListConnectedToModel->Delete();
-    }
-    else
-    {
-    // Set fiducial list corresponding to the model as active
-    vtkMRMLFiducialListNode* fiducialListAlreadyConnectedToModel = reinterpret_cast<vtkMRMLFiducialListNode*>(this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->GetItemAsObject(modelPosition));
-    this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(fiducialListAlreadyConnectedToModel->GetID());
-    }
+  // Add fiducial list to the scene and set it as active
+  this->GetGUI()->GetMRMLScene()->AddNode(fiducialListConnectedToModel);
+  this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(fiducialListConnectedToModel->GetID());
+  fiducialListConnectedToModel->Delete();
+  }
+  else
+  {
+  // Set fiducial list corresponding to the model as active
+  vtkMRMLFiducialListNode* fiducialListAlreadyConnectedToModel = reinterpret_cast<vtkMRMLFiducialListNode*>(this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->GetItemAsObject(modelPosition));
+  this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(fiducialListAlreadyConnectedToModel->GetID());
+  }
 
-    }
-    else
-    {
-    this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::ViewTransform);
-    this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetSelected(0);
-    this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(0);
+  }
+  else
+  {
+  this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::ViewTransform);
+  this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetSelected(0);
+  this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(0);
 
-    //      this->placeMarkersButton->SetText("Start Placing Markers");
-    }
-    }
-}
+  //      this->placeMarkersButton->SetText("Start Placing Markers");
+  }
+  }
+  }
 */
