@@ -25,7 +25,6 @@
 #include "vtkObjectFactory.h"
 #include "vtkCollection.h"
 
-
 //------------------------------------------------------------------------------
 vtkMRMLOsteoPlanNode* vtkMRMLOsteoPlanNode::New()
 {
@@ -56,8 +55,8 @@ vtkMRMLNode* vtkMRMLOsteoPlanNode::CreateNodeInstance()
 //----------------------------------------------------------------------------
 vtkMRMLOsteoPlanNode::vtkMRMLOsteoPlanNode()
 {
-  this->ListOfModels     = vtkCollection::New();
-  this->ListOfTransforms = vtkCollection::New();
+  this->ListOfModels             = vtkCollection::New();
+  this->ListOfTransforms         = vtkCollection::New();
 }
 
 //----------------------------------------------------------------------------
