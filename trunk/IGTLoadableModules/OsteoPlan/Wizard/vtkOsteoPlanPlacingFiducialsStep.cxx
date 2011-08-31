@@ -50,9 +50,9 @@
 #include "vtkClipPolyData.h"
 #include "vtkPlane.h"
 #include "vtkImplicitBoolean.h"
-
 #include "vtkTransformPolyDataFilter.h"
 
+#include "vtkIntArray.h"
 
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj)                                      \
@@ -89,7 +89,6 @@ vtkOsteoPlanPlacingFiducialsStep::vtkOsteoPlanPlacingFiducialsStep()
   this->ScrewHeight               = 40;
 
   this->bPlacingFiducials         = false;
-  //  this->modelNodeInsideCollection = false;
 
   this->ProcessingCallback        = false;
 
@@ -530,7 +529,6 @@ void vtkOsteoPlanPlacingFiducialsStep::TearDownGUI()
 //  - Clip model
 void vtkOsteoPlanPlacingFiducialsStep::MarkScrewPosition()
 {
-  bool modelInTheList = false;
   // Check if model has a transform
   //   = is on vtkCollection
   for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems(); i++)
@@ -540,50 +538,49 @@ void vtkOsteoPlanPlacingFiducialsStep::MarkScrewPosition()
       {
       // Node is present
       //  = Apply his transform
-      vtkMRMLLinearTransformNode* tNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfTransforms()->GetItemAsObject(i));
-      this->SelectedModel->ApplyTransform(tNode->GetMatrixTransformToParent());
+      if(!strcmp(mNode->GetAttribute("TransformApplied"),"false"))
+        {
+        vtkMRMLLinearTransformNode* tNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfTransforms()->GetItemAsObject(i));
+        this->SelectedModel->ApplyTransform(tNode->GetMatrixTransformToParent());
 
-      this->SelectedModel->SetAndObserveTransformNodeID(NULL);
-      this->SelectedModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-      this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
+        this->SelectedModel->SetAndObserveTransformNodeID(NULL);
+        this->SelectedModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+        this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
 
-      modelInTheList = true;
+        mNode->SetAttribute("TransformApplied","true");
+        }
       }
     }
 
-  if(modelInTheList)
-    {
-    // Create clipper (finite cylinder)
-    vtkCylinder* cylinderAlgo = vtkCylinder::New();
-    this->ScrewCylinder->GetCylinder(cylinderAlgo);
+  // Create clipper (finite cylinder)
+  vtkCylinder* cylinderAlgo = vtkCylinder::New();
+  this->ScrewCylinder->GetCylinder(cylinderAlgo);
 
-    vtkPlane* plane1 = vtkPlane::New();
-    this->ScrewCylinder->GetPlane1(plane1);
+  vtkPlane* plane1 = vtkPlane::New();
+  this->ScrewCylinder->GetPlane1(plane1);
 
-    vtkPlane* plane2 = vtkPlane::New();
-    this->ScrewCylinder->GetPlane2(plane2);
+  vtkPlane* plane2 = vtkPlane::New();
+  this->ScrewCylinder->GetPlane2(plane2);
 
-    vtkImplicitBoolean* createCylinder = vtkImplicitBoolean::New();
-    createCylinder->AddFunction(cylinderAlgo);
-    createCylinder->AddFunction(plane1);
-    createCylinder->AddFunction(plane2);
-    createCylinder->SetOperationTypeToIntersection();
+  vtkImplicitBoolean* createCylinder = vtkImplicitBoolean::New();
+  createCylinder->AddFunction(cylinderAlgo);
+  createCylinder->AddFunction(plane1);
+  createCylinder->AddFunction(plane2);
+  createCylinder->SetOperationTypeToIntersection();
 
-    // Apply clipper to polydata (model)
-    vtkClipPolyData* ScrewHole = vtkClipPolyData::New();
-    ScrewHole->SetClipFunction(createCylinder);
-    ScrewHole->GenerateClippedOutputOn();
-    ScrewHole->SetInput(this->SelectedModel->GetPolyData());
-    this->SelectedModel->SetAndObservePolyData(ScrewHole->GetOutput());
-    this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+  // Apply clipper to polydata (model)
+  vtkClipPolyData* ScrewHole = vtkClipPolyData::New();
+  ScrewHole->SetClipFunction(createCylinder);
+  ScrewHole->GenerateClippedOutputOn();
+  ScrewHole->SetInput(this->SelectedModel->GetPolyData());
+  this->SelectedModel->SetAndObservePolyData(ScrewHole->GetOutput());
+  this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
 
-    createCylinder->Delete();
-    plane1->Delete();
-    plane2->Delete();
-    ScrewHole->Delete();
-    cylinderAlgo->Delete();
-    }
-
+  createCylinder->Delete();
+  plane1->Delete();
+  plane2->Delete();
+  ScrewHole->Delete();
+  cylinderAlgo->Delete();
 }
 
 //----------------------------------------------------------------------------

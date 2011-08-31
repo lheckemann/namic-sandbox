@@ -40,7 +40,7 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanPlacingFiducialsStep : public vtkOsteoPla
   virtual void ShowUserInterface();
   virtual void HideUserInterface();
   virtual void TearDownGUI();
-  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
+  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
   virtual void UpdateGUI();
 
@@ -53,7 +53,7 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanPlacingFiducialsStep : public vtkOsteoPla
   ~vtkOsteoPlanPlacingFiducialsStep();
 
   void AddGUIObservers();
-  void RemoveGUIObservers();  
+  void RemoveGUIObservers();
 
   bool ProcessingCallback;
 
@@ -68,13 +68,12 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanPlacingFiducialsStep : public vtkOsteoPla
   double                       ScrewDiameter;
   double                       ScrewHeight;
   bool                         bPlacingFiducials;
-  //  bool                         bmodelNodeInsideCollection;
 
- private:
+    private:
   vtkOsteoPlanPlacingFiducialsStep(const vtkOsteoPlanPlacingFiducialsStep&);
   void operator=(const vtkOsteoPlanPlacingFiducialsStep&);
 
 };
 
 #endif
- 
+

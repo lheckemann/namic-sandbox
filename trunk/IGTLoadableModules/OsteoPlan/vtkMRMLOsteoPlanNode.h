@@ -71,8 +71,6 @@ class VTK_OsteoPlan_EXPORT vtkMRMLOsteoPlanNode : public vtkMRMLNode
 
   vtkCollection *ListOfModels;
   vtkCollection *ListOfTransforms;
-
-
  private:
 
 };
