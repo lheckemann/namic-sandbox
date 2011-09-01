@@ -10,13 +10,17 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 
 #include "vtkObjectFactory.h"
 #include "vtkCallbackCommand.h"
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerApplicationGUI.h"
+
+#include "vtkMRMLScalarVolumeNode.h"
+#include "vtkCollection.h"
+#include "vtkKWScale.h"
 
 #include "vtkUltrasound4DLogic.h"
 
@@ -58,8 +62,8 @@ void vtkUltrasound4DLogic::PrintSelf(ostream& os, vtkIndent indent)
 
 
 //---------------------------------------------------------------------------
-void vtkUltrasound4DLogic::DataCallback(vtkObject *caller, 
-                                       unsigned long eid, void *clientData, void *callData)
+void vtkUltrasound4DLogic::DataCallback(vtkObject *caller,
+                                        unsigned long eid, void *clientData, void *callData)
 {
   vtkUltrasound4DLogic *self = reinterpret_cast<vtkUltrasound4DLogic *>(clientData);
   vtkDebugWithObjectMacro(self, "In vtkUltrasound4DLogic DataCallback");
@@ -73,9 +77,29 @@ void vtkUltrasound4DLogic::UpdateAll()
 
 }
 
+//---------------------------------------------------------------------------
+void vtkUltrasound4DLogic::CopyVolume(vtkMRMLScalarVolumeNode *destinationNode, vtkMRMLScalarVolumeNode *sourceNode)
+{
+  if(sourceNode->GetImageData()->GetActualMemorySize() == destinationNode->GetImageData()->GetActualMemorySize())
+    {
+    memcpy(destinationNode->GetImageData()->GetScalarPointer(),
+           sourceNode->GetImageData()->GetScalarPointer(),
+           destinationNode->GetImageData()->GetActualMemorySize()*1024);
 
+    destinationNode->GetImageData()->Update();
+    destinationNode->GetImageData()->Modified();
 
+    destinationNode->SetAndObserveImageData(destinationNode->GetImageData());
+    destinationNode->Modified();
+    }
+}
 
+//---------------------------------------------------------------------------
+void vtkUltrasound4DLogic::PlayVolumes(vtkMRMLScalarVolumeNode *destinationNode, vtkCollection *ListOfNodes, vtkKWScale *scale)
+{
+// TODO: Thread (with Mutex ?)
+
+}
 
 
 

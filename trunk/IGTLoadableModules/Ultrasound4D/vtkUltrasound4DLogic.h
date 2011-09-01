@@ -31,13 +31,15 @@
 #include "vtkMRMLSliceNode.h"
 
 class vtkIGTLConnector;
+class vtkMRMLScalarVolumeNode;
+class vtkCollection;
+class vtkKWScale;
 
 class VTK_Ultrasound4D_EXPORT vtkUltrasound4DLogic : public vtkSlicerModuleLogic 
 {
  public:
   //BTX
   enum {  // Events
-    //LocatorUpdateEvent      = 50000,
     StatusUpdateEvent       = 50001,
   };
   //ETX
@@ -48,6 +50,8 @@ class VTK_Ultrasound4D_EXPORT vtkUltrasound4DLogic : public vtkSlicerModuleLogic
   
   vtkTypeRevisionMacro(vtkUltrasound4DLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
+  void CopyVolume(vtkMRMLScalarVolumeNode *destinationNode, vtkMRMLScalarVolumeNode *sourceNode);
+  void PlayVolumes(vtkMRMLScalarVolumeNode *destinationNode, vtkCollection *ListOfVolumes, vtkKWScale *scale);
 
  protected:
   

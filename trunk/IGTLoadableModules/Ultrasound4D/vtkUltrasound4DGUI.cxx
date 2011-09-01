@@ -420,6 +420,7 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
       out << "/ " << this->NumberOfNodesReceived-1;
       this->SliderVolumeSelector->SetLabelText(out.str().c_str());
       this->SliderVolumeSelector->GetWidget()->SetRange(0,this->NumberOfNodesReceived-1);
+      this->SliderVolumeSelector->GetWidget()->SetValue(this->NumberOfNodesReceived-1);
       }
 
     }
@@ -432,24 +433,8 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
       double                   NodeNumber   = this->SliderVolumeSelector->GetWidget()->GetValue();
       vtkMRMLScalarVolumeNode* selectedNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->OpenIGTLinkNodeCollection->GetItemAsObject(NodeNumber));
 
-      if(selectedNode->GetImageData()->GetActualMemorySize() == this->DisplayableImageData->GetActualMemorySize())
-        {
-        std::cerr << "INSIDE: Copy " << this->DisplayableImageData->GetActualMemorySize() << " bytes"
-                  << " from " << selectedNode->GetImageData()->GetScalarPointer()
-                  << " to " << this->DisplayableImageData->GetScalarPointer() <<  std::endl;
-
-        memcpy(this->DisplayableImageData->GetScalarPointer(),
-               selectedNode->GetImageData()->GetScalarPointer(),
-               this->DisplayableImageData->GetActualMemorySize()*1024);
-
-        this->DisplayableImageData->Update();
-        this->DisplayableImageData->Modified();
-
-        this->DisplayableScalarVolumeNode->SetAndObserveImageData(this->DisplayableImageData);
-        this->DisplayableScalarVolumeNode->Modified();
-
-        this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->Render();
-        }
+      this->GetLogic()->CopyVolume(this->DisplayableScalarVolumeNode, selectedNode);
+      this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->Render();
       }
     }
 
@@ -463,22 +448,18 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
         this->PlayVolumeButton->SetText("Play");
         this->IsPlaying = false;
 
-        if(this->OpenIGTLinkNodeCollection && this->SliderVolumeSelector)
-          {
-          for(int i=0; i<this->OpenIGTLinkNodeCollection->GetNumberOfItems();i++)
-            {
-            this->SliderVolumeSelector->GetWidget()->SetValue(i);
-            // TODO: Refresh slider view
-            // TODO: Send all volume in the collection to the Volume Renderer in a loop (Thread ?)
-            }
-          }
+        // TODO: Stop the loop
         }
       else
         {
         this->PlayVolumeButton->SetText("Pause");
         this->IsPlaying = true;
 
-        // TODO: Stop the loop
+        // Start playing volumes
+        if(this->OpenIGTLinkNodeCollection && this->SliderVolumeSelector && this->DisplayableScalarVolumeNode)
+          {
+          this->GetLogic()->PlayVolumes(this->DisplayableScalarVolumeNode, this->OpenIGTLinkNodeCollection, this->SliderVolumeSelector->GetWidget());
+          }
         }
       }
     }
