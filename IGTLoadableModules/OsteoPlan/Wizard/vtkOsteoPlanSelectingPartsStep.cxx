@@ -200,6 +200,16 @@ void vtkOsteoPlanSelectingPartsStep::ShowUserInterface()
 
   //-------------------------------------------------------
 
+  // Select black model if existing
+  vtkCollection *BlackModel = this->GetGUI()->GetMRMLScene()->GetNodesByName("Black");
+  if(BlackModel->GetNumberOfItems() == 1 && this->InputModelSelector)
+    {
+    this->InputModelSelector->SetSelected(vtkMRMLModelNode::SafeDownCast(BlackModel->GetItemAsObject(0)));
+    this->InputModelSelector->InvokeEvent(vtkSlicerNodeSelectorWidget::NodeSelectedEvent);
+    this->InputModel = vtkMRMLModelNode::SafeDownCast(this->InputModelSelector->GetSelected());
+    }
+  BlackModel->Delete();
+
   this->AddGUIObservers();
 
   UpdateGUI();
@@ -254,6 +264,7 @@ void vtkOsteoPlanSelectingPartsStep::ProcessGUIEvents(vtkObject *caller,
        && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
       {
       this->InputModel = vtkMRMLModelNode::SafeDownCast(this->InputModelSelector->GetSelected());
+      std::cerr << "INSIDE: Model: " << this->InputModel->GetName() << std::endl;
       }
 
 

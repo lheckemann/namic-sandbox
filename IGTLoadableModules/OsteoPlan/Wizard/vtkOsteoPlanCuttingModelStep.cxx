@@ -505,7 +505,7 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   // Create Model 1 (Inside)
   vtkMRMLModelNode* part1 = vtkMRMLModelNode::New();
   part1->SetScene(this->GetLogic()->GetMRMLScene());
-  part1->SetName("Inside");
+  part1->SetName("White");
   part1->SetAndObservePolyData(realCut->GetClippedOutput());             // Replace realCut->GetClippedOutput() by firstAppend->GetOutput() to visualize firstAppend
   part1->SetModifiedSinceRead(1);
   part1->GetPolyData()->Squeeze();
@@ -523,7 +523,7 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   // Create Model 2 (Outside)
   vtkMRMLModelNode* part2 = vtkMRMLModelNode::New();
   part2->SetScene(this->GetLogic()->GetMRMLScene());
-  part2->SetName("Outside");
+  part2->SetName("Black");
   part2->SetAndObservePolyData(realCut->GetOutput());                   // Replace realCut->GetClippedOutput() by secondAppend->GetOutput() to visualize secondAppend
   part2->SetModifiedSinceRead(1);
   part2->GetPolyData()->Squeeze();
