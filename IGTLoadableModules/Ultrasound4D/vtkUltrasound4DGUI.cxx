@@ -396,6 +396,7 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
       // Copy ScalarVolumeNode to the new one
       vtkMRMLScalarVolumeNode* newNode = vtkMRMLScalarVolumeNode::New();
       newNode->Copy(currentData);
+      newNode->SetHideFromEditors(1);
       newNode->SetScene(this->GetMRMLScene());
 
       // Copy Image Data to the new one
