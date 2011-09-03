@@ -97,7 +97,7 @@ int main( int argc, char * argv [] )
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << std::endl;
     std::cerr << "inputFixedMesh inputMovingMesh radius ";
-    std::cerr << "sigmaX maximumNumberOfDemonsIterations";
+    std::cerr << "sigmaX maximumNumberOfDemonsIterations ";
     std::cerr << "outputResampledRigid outputResampledDemons ";
     std::cerr << "outputDeformedFixedMesh DeformationField ";
     std::cerr << std::endl;
