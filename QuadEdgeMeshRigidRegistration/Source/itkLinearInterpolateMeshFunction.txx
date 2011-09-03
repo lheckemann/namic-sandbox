@@ -221,57 +221,68 @@ bool
 LinearInterpolateMeshFunction<TInputMesh>
 ::FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const
 {
+
+  //
+  //start numberOfNeighbors with a certain value
+  //increase it to another value if cannot find triangle
+  //
+  
   unsigned int numberOfNeighbors = this->GetInputMesh()->GetNumberOfPoints();
   
   if ( numberOfNeighbors > 20 )
   {
       numberOfNeighbors = 20;
   }
-
-  InstanceIdentifierVectorType closestPointIds(numberOfNeighbors);
-
-  this->Search( point, numberOfNeighbors, closestPointIds );
   
-  const InputMeshType * mesh = this->GetInputMesh(); 
+  while ( numberOfNeighbors < 150 )
+  {
+     InstanceIdentifierVectorType closestPointIds(numberOfNeighbors);
 
-  typedef typename InputMeshType::QEPrimal    EdgeType;
+     this->Search( point, numberOfNeighbors, closestPointIds );
+     
+     const InputMeshType * mesh = this->GetInputMesh(); 
 
-  //
-  // Find the edge connected to the closest point.
-  //
-  
-  // go through triangles around each neighbors
-  for ( unsigned int i = 0; i < numberOfNeighbors; i++ )
-    {
-    
-    pointIds[0] = closestPointIds[i];
-    
-    EdgeType * edge1 = mesh->FindEdge( pointIds[0] );
+     typedef typename InputMeshType::QEPrimal    EdgeType;
 
-    // 
-    // Explore triangles around pointIds[0]
-    //
-    EdgeType * temp1 = NULL;
-    EdgeType * temp2 = edge1;
+     //
+     // Find the edge connected to the closest point.
+     //
+     
+     // go through triangles around each neighbors
+     for ( unsigned int i = 0; i < numberOfNeighbors; i++ )
+       {
+ 
+       pointIds[0] = closestPointIds[i];
+ 
+       EdgeType * edge1 = mesh->FindEdge( pointIds[0] );
 
-    do
-      {
-      temp1 = temp2;
-      temp2 = temp1->GetOnext();
+       // 
+       // Explore triangles around pointIds[0]
+       //
+       EdgeType * temp1 = NULL;
+       EdgeType * temp2 = edge1;
 
-      pointIds[1] = temp1->GetDestination();
-      pointIds[2] = temp2->GetDestination();
+       do
+       {
+          temp1 = temp2;
+          temp2 = temp1->GetOnext();
 
-      const bool isInside = this->ComputeWeights( point, pointIds );
+          pointIds[1] = temp1->GetDestination();
+          pointIds[2] = temp2->GetDestination();
 
-      if( isInside )
-        {
-        return true;
-        }
+          const bool isInside = this->ComputeWeights( point, pointIds );
 
-      }
-    while( temp2 != edge1 );
+          if( isInside )
+            {
+            return true;
+            }
 
+       }
+       while( temp2 != edge1 );
+
+       }
+      
+    numberOfNeighbors += 20;
     }
 
   return false;
