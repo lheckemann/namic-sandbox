@@ -558,7 +558,7 @@ RunIterations()
           }
         }
       pre_Metric = this->GetMetricValue();
-      //std::cout<<count<<std::endl;
+      std::cout<<pre_Metric<<std::endl;
       }
 
     this->m_Chronometer.Start("ComputeScalingAndSquaringNumberOfIterations");
