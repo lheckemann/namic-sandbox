@@ -538,10 +538,11 @@ RunIterations()
     //iteration stops when there is no significant change in continuous 5 iterations
     if ( m_SelfStopMode )
       {
-      if ( i > 15 && pre_Metric != 0.0 )
+      if ( (i > 15) && (pre_Metric != 0.0) )
         {
-        m_MetricChange = abs( this->GetMetricValue() - pre_Metric ) 
+        m_MetricChange = fabs( this->GetMetricValue() - pre_Metric ) 
                            / pre_Metric * 100.0;
+                           
         if ( m_MetricChange < m_MetricSignificance )
           {
           count += 1;
@@ -558,7 +559,6 @@ RunIterations()
           }
         }
       pre_Metric = this->GetMetricValue();
-      std::cout<<pre_Metric<<std::endl;
       }
 
     this->m_Chronometer.Start("ComputeScalingAndSquaringNumberOfIterations");
@@ -640,7 +640,7 @@ ComputeSelfRegulatedVelocityField()
       this->ComputeVelocityField();
       this->m_Chronometer.Stop("ComputeVelocityField");
       this->ComputeSelfRegulatedSigmaXandEpsilon();
-      std::cout<<this->ComputeLargestVelocityMagnitude()<<std::endl;
+      //std::cout<<this->ComputeLargestVelocityMagnitude()<<std::endl;
       //std::cout<<this->m_Epsilon<<std::endl;
       //std::cout<<this->m_SigmaX<<std::endl;
       } while ( ( this->m_LargestVelocityToEdgeLengthRatio > 1.5 ) && ( iterations++ < 10 ) );
