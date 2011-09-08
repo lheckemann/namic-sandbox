@@ -174,7 +174,7 @@ void vtkOsteoPlanReturningOriginalPositionStep::ProcessGUIEvents(vtkObject *call
         vtkSlicerApplication *app   = vtkSlicerApplication::SafeDownCast(this->GetApplication());
         vtkSlicerColor       *color = app->GetSlicerTheme()->GetSlicerColors();
 
-        this->BackOriginalButton->SetText("Back to Original Position");
+        this->BackOriginalButton->SetText("Previous Position");
         this->BackOriginalButton->SetBackgroundColor(color->SliceGUIGreen);
         this->BackOriginalButton->SetActiveBackgroundColor(color->SliceGUIGreen);
         this->BackOriginalButton->SetEnabled(1);
