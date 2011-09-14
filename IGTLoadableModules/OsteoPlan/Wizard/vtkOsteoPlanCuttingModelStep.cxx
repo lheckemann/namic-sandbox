@@ -34,6 +34,8 @@
 #include "vtkKWFrame.h"
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWPushButton.h"
+#include "vtkKWScaleWithLabel.h"
+#include "vtkKWScale.h"
 
 #include "vtkBoxWidget2.h"
 #include "vtkBoxRepresentation.h"
@@ -82,22 +84,23 @@ vtkOsteoPlanCuttingModelStep::vtkOsteoPlanCuttingModelStep()
   //-- -- -- -- -- -- -- -- -- -- -- -- -- --
   //               Display Frame
   //-- -- -- -- -- -- -- -- -- -- -- -- -- --
-  this->DisplayFrame                = NULL;
-  this->TogglePlaneButton           = NULL;
-  this->CuttingPlane                = NULL;
-  this->CuttingPlaneRepresentation  = NULL;
-  this->CutterAlreadyCreatedOnce    = false;
-  this->NextDisplayCutterStatus     = false;
+  this->DisplayFrame               = NULL;
+  this->TogglePlaneButton          = NULL;
+  this->CutterThicknessScale       = NULL;
+  this->CuttingPlane               = NULL;
+  this->CuttingPlaneRepresentation = NULL;
+  this->CutterAlreadyCreatedOnce   = false;
+  this->NextDisplayCutterStatus    = false;
 
   //-- -- -- -- -- -- -- -- -- -- -- -- -- --
   //               Cut Frame
   //-- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-  this->CutFrame              = NULL;
-  this->ModelToCutSelector    = NULL;
-  this->ModelToCut            = NULL;
-  this->ApplyCutButton        = NULL;
-  this->ModelSelected         = false;
+  this->CutFrame             = NULL;
+  this->ModelToCutSelector   = NULL;
+  this->ModelToCut           = NULL;
+  this->ApplyCutButton       = NULL;
+  this->ModelSelected        = false;
 
 }
 
@@ -109,8 +112,10 @@ vtkOsteoPlanCuttingModelStep::~vtkOsteoPlanCuttingModelStep()
   DELETE_IF_NULL_WITH_SETPARENT_NULL(MainFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(DisplayFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TogglePlaneButton);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(CutterThicknessScale);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(CutFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(ModelToCutSelector);
+
 
   if(this->CuttingPlane)
     {
@@ -168,8 +173,21 @@ void vtkOsteoPlanCuttingModelStep::ShowUserInterface()
     this->TogglePlaneButton->SetText("Show cutter");
     }
 
-  this->Script("pack %s -side top -fill x -padx 0 -pady 2",
-               this->TogglePlaneButton->GetWidgetName());
+  if(!this->CutterThicknessScale)
+    {
+    this->CutterThicknessScale = vtkKWScaleWithLabel::New();
+    }
+  if(!this->CutterThicknessScale->IsCreated())
+    {
+    this->CutterThicknessScale->SetParent(this->DisplayFrame->GetFrame());
+    this->CutterThicknessScale->Create();
+    this->CutterThicknessScale->SetLabelText("Cutter thickness (mm)");
+    this->CutterThicknessScale->GetWidget()->SetRange(1,5);
+    }
+
+  this->Script("pack %s %s -side top -fill x -padx 0 -pady 2",
+               this->TogglePlaneButton->GetWidgetName(),
+               this->CutterThicknessScale->GetWidgetName());
 
 
   //-------------------------------------------------------
@@ -296,6 +314,41 @@ void vtkOsteoPlanCuttingModelStep::ProcessGUIEvents(vtkObject *caller,
     }
 
   //--------------------------------------------------
+  // Change cutter thickness
+
+  if(this->CutterThicknessScale->GetWidget() == vtkKWScale::SafeDownCast(caller)
+     && event == vtkKWScale::ScaleValueChangingEvent)
+    {
+    if(this->CuttingPlane)
+      {
+      vtkTransform *identityTransform = vtkTransform::New();
+      vtkTransform *currentTransform = vtkTransform::New();
+
+      vtkBoxRepresentation* boxRepresentation = vtkBoxRepresentation::SafeDownCast(this->CuttingPlane->GetRepresentation());
+      boxRepresentation->GetTransform(currentTransform);
+      boxRepresentation->SetTransform(identityTransform);
+      double* boundsBox = boxRepresentation->GetBounds();
+      boundsBox[0] *= 2;
+      boundsBox[1] *= 2;
+      boundsBox[2] *= 2;
+      boundsBox[3] *= 2;
+      boundsBox[4] *= 2;
+      boundsBox[5] *= 2;
+
+      boundsBox[4] = -this->CutterThicknessScale->GetWidget()->GetValue() / 2;
+      boundsBox[5] = this->CutterThicknessScale->GetWidget()->GetValue() / 2;
+
+      boxRepresentation->PlaceWidget(boundsBox);
+      boxRepresentation->SetTransform(currentTransform);
+
+      this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
+      currentTransform->Delete();
+      identityTransform->Delete();
+      }
+    }
+
+  //--------------------------------------------------
   // Apply Cut Button
   if(this->ApplyCutButton == vtkKWPushButton::SafeDownCast(caller)
      && event == vtkKWPushButton::InvokedEvent)
@@ -340,6 +393,12 @@ void vtkOsteoPlanCuttingModelStep::AddGUIObservers()
       ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
+  if(this->CutterThicknessScale)
+    {
+    this->CutterThicknessScale->GetWidget()
+      ->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
+
   if(this->ApplyCutButton)
     {
     this->ApplyCutButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -357,6 +416,11 @@ void vtkOsteoPlanCuttingModelStep::RemoveGUIObservers()
   if(this->ModelToCutSelector)
     {
     this->ModelToCutSelector->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->CutterThicknessScale)
+    {
+    this->CutterThicknessScale->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
   if(this->ApplyCutButton)
