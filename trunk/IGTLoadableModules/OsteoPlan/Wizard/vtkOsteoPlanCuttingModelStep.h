@@ -21,6 +21,7 @@
 class vtkKWFrame;
 class vtkKWFrameWithLabel;
 class vtkKWPushButton;
+class vtkKWScaleWithLabel;
 
 // VTK
 class vtkBoxWidget2;
@@ -74,12 +75,14 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanCuttingModelStep : public vtkOsteoPlanSte
   //---------------------------------------------------
   //            Cut Frame
 
-  vtkKWFrameWithLabel          *CutFrame;
-  vtkKWPushButton              *ApplyCutButton;
+  vtkKWFrameWithLabel   *CutFrame;
+  vtkKWPushButton       *ApplyCutButton;
 
-  vtkSlicerNodeSelectorWidget  *ModelToCutSelector;
-  vtkMRMLModelNode             *ModelToCut;
-  bool                          ModelSelected;
+  vtkSlicerNodeSelectorWidget   *ModelToCutSelector;
+  vtkMRMLModelNode              *ModelToCut;
+  bool                           ModelSelected;
+
+  vtkKWScaleWithLabel   *CutterThicknessScale;
 
   //---------------------------------------------------
 
