@@ -32,6 +32,8 @@
 #include "vtkSlicerNodeSelectorWidget.h"
 #include "vtkMRMLIGTLConnectorNode.h"
 
+#include <string>
+
 class vtkKWLabel;
 class vtkMRMLIGTLConnectorNode;
 class vtkSliceNodeSelectorWidget;
@@ -40,6 +42,7 @@ class vtkKWScaleWithLabel;
 class vtkMRMLScalarVolumeNode;
 class vtkImageData;
 class vtkMRMLVolumeNode;
+class vtkMRML4DVolumeNode;
 
 class VTK_Ultrasound4D_EXPORT vtkUltrasound4DGUI : public vtkSlicerModuleGUI
 {
@@ -139,11 +142,18 @@ class VTK_Ultrasound4D_EXPORT vtkUltrasound4DGUI : public vtkSlicerModuleGUI
   vtkCollection* OpenIGTLinkNodeCollection;
   int NumberOfNodesReceived;
 
+  vtkSlicerNodeSelectorWidget *FourDVolumeNodeSelector;
+  vtkMRML4DVolumeNode* FourDVolumeNode;
+
   vtkMRMLScalarVolumeNode* DisplayableScalarVolumeNode;
   vtkImageData* DisplayableImageData;
   vtkKWScaleWithLabel* SliderVolumeSelector;
   vtkKWPushButton* PlayVolumeButton;
   bool IsPlaying;
+
+  //BTX
+  std::string SerieIDAttribute;
+  //ETX
 
   //----------------------------------------------------------------
   // Logic Values

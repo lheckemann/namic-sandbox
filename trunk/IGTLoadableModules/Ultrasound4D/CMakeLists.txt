@@ -55,6 +55,7 @@ install(FILES
 set(Ultrasound4D_SRCS 
   vtkUltrasound4DLogic.cxx
   vtkUltrasound4DGUI.cxx
+  vtkMRML4DVolumeNode.cxx
 )
 
 
