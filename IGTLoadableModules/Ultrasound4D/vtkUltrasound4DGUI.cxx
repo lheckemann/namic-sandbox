@@ -43,6 +43,7 @@
 #include "vtkCornerAnnotation.h"
 
 #include "vtkMRMLIGTLConnectorNode.h"
+#include "vtkMRML4DVolumeNode.h"
 #include "vtkSlicerNodeSelectorWidget.h"
 
 #include <iostream>
@@ -50,6 +51,9 @@
 #include <cstdlib>
 #include <cstdio>
 #include <sstream>
+#include <string>
+#include <time.h>
+
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkUltrasound4DGUI );
@@ -72,15 +76,18 @@ vtkUltrasound4DGUI::vtkUltrasound4DGUI ( )
 
   this->OpenIGTLinkNodeSelector = NULL;
   this->OpenIGTLinkNode = NULL;
-  this->OpenIGTLinkNodeCollection = vtkCollection::New();
+//  this->OpenIGTLinkNodeCollection = vtkCollection::New();
   this->NumberOfNodesReceived = 0;
+
+  this->FourDVolumeNodeSelector = NULL;
+  this->FourDVolumeNode = NULL;
 
   this->DisplayableScalarVolumeNode = NULL;
   this->DisplayableImageData = NULL;
   this->SliderVolumeSelector = NULL;
   this->PlayVolumeButton = NULL;
   this->IsPlaying = false;
-
+  this->SerieIDAttribute = "";
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -113,16 +120,21 @@ vtkUltrasound4DGUI::~vtkUltrasound4DGUI ( )
     this->OpenIGTLinkNodeSelector->SetParent(NULL);
     this->OpenIGTLinkNodeSelector->Delete();
     }
-
+/*
   if(this->OpenIGTLinkNodeCollection)
-    {
-    // Delete all nodes inside first
-    for(int i=0; i<this->OpenIGTLinkNodeCollection->GetNumberOfItems();i++)
-      {
-      this->OpenIGTLinkNodeCollection->GetItemAsObject(i)->Delete();
-      }
+  {
+  // Delete all nodes inside first
+  for(int i=0; i<this->OpenIGTLinkNodeCollection->GetNumberOfItems();i++)
+  {
+  this->OpenIGTLinkNodeCollection->GetItemAsObject(i)->Delete();
+  }
 
-    this->OpenIGTLinkNodeCollection->Delete();
+  this->OpenIGTLinkNodeCollection->Delete();
+  }
+*/
+  if(this->FourDVolumeNodeSelector)
+    {
+    this->FourDVolumeNodeSelector->Delete();
     }
 
   if(this->DisplayableScalarVolumeNode)
@@ -159,6 +171,11 @@ vtkUltrasound4DGUI::~vtkUltrasound4DGUI ( )
 //---------------------------------------------------------------------------
 void vtkUltrasound4DGUI::Init()
 {
+  //Register new node type to the scene
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  vtkMRML4DVolumeNode* sNode = vtkMRML4DVolumeNode::New();
+  scene->RegisterNodeClass(sNode);
+  sNode->Delete();
 }
 
 
@@ -259,6 +276,12 @@ void vtkUltrasound4DGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
+  if(this->FourDVolumeNodeSelector)
+    {
+    this->FourDVolumeNodeSelector
+      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+
   if(this->SliderVolumeSelector->GetWidget())
     {
     this->SliderVolumeSelector->GetWidget()
@@ -303,6 +326,12 @@ void vtkUltrasound4DGUI::AddGUIObservers ( )
   if(this->OpenIGTLinkNodeSelector)
     {
     this->OpenIGTLinkNodeSelector
+      ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
+
+  if(this->FourDVolumeNodeSelector)
+    {
+    this->FourDVolumeNodeSelector
       ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
 
@@ -378,61 +407,89 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
         {
         this->OpenIGTLinkNode
           ->AddObserver(vtkMRMLIGTLConnectorNode::ReceiveEvent, (vtkCommand*)this->GUICallbackCommand);
+
+        // Create "SerieID" attribute
+        time_t ltime;
+        struct tm *Tm;
+        ltime = time(NULL);
+        Tm = localtime(&ltime);                        ;
+        std::ostringstream out;
+        out << Tm->tm_mon+1 << Tm->tm_mday << Tm->tm_year+1900 << Tm->tm_hour << Tm->tm_min << Tm->tm_sec;
+
+        this->SerieIDAttribute = out.str();
         }
+      }
+    }
+
+  if(this->FourDVolumeNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+    //TODO: Check if copying is running to avoid copying in different nodes if 4D Volume Node is changed during copying
+    if(this->FourDVolumeNodeSelector->GetSelected())
+      {
+      this->FourDVolumeNode = vtkMRML4DVolumeNode::SafeDownCast(this->FourDVolumeNodeSelector->GetSelected());
       }
     }
 
   if(this->OpenIGTLinkNode == vtkMRMLIGTLConnectorNode::SafeDownCast(caller)
      && event == vtkMRMLIGTLConnectorNode::ReceiveEvent)
     {
-    this->NumberOfNodesReceived++;
-
-    if(this->OpenIGTLinkNode->GetNumberOfIncomingMRMLNodes())
+    if(this->FourDVolumeNode)
       {
-      // Update ImageData (before copying)
-      vtkMRMLScalarVolumeNode* currentData = vtkMRMLScalarVolumeNode::SafeDownCast(this->OpenIGTLinkNode->GetIncomingMRMLNode(0));
-      currentData->GetImageData()->Update();
+      if(this->OpenIGTLinkNode->GetNumberOfIncomingMRMLNodes())
+        {
+        this->NumberOfNodesReceived++;
 
-      // Copy ScalarVolumeNode to the new one
-      vtkMRMLScalarVolumeNode* newNode = vtkMRMLScalarVolumeNode::New();
-      newNode->Copy(currentData);
-      newNode->SetHideFromEditors(1);
-      newNode->SetScene(this->GetMRMLScene());
+        // Update ImageData (before copying)
+        vtkMRMLScalarVolumeNode* currentData = vtkMRMLScalarVolumeNode::SafeDownCast(this->OpenIGTLinkNode->GetIncomingMRMLNode(0));
+        currentData->GetImageData()->Update();
 
-      // Copy Image Data to the new one
-      vtkImageData* newData = vtkImageData::New();
-      newData->DeepCopy(currentData->GetImageData());
+        // Copy ScalarVolumeNode to the new one
+        vtkMRMLScalarVolumeNode* newNode = vtkMRMLScalarVolumeNode::New();
+        newNode->Copy(currentData);
+        newNode->SetHideFromEditors(0);
+        newNode->SetSaveWithScene(1);
+        newNode->SetScene(this->GetMRMLScene());
 
-      // Link Image Data to the new ScalarVolume Node and add to scene
-      newNode->SetAndObserveImageData(newData);
-      this->GetMRMLScene()->AddNode(newNode);
-      this->GetMRMLScene()->Modified();
+        if(strcmp(this->SerieIDAttribute.c_str(), ""))
+          {
+          newNode->SetAttribute("SerieID", this->SerieIDAttribute.c_str());
+          }
 
-      // Add Node to the collection
-      this->OpenIGTLinkNodeCollection->AddItem(newNode);
+        // Copy Image Data to the new one
+        vtkImageData* newData = vtkImageData::New();
+        newData->DeepCopy(currentData->GetImageData());
 
-      // Delete Image Data (ScalarVolume Node is deleted with collection in destructor)
-      newData->Delete();
+        // Link Image Data to the new ScalarVolume Node and add to scene
+        newNode->SetAndObserveImageData(newData);
+        this->GetMRMLScene()->AddNode(newNode);
+        this->GetMRMLScene()->Modified();
+
+        // Add Node to the collection
+        this->FourDVolumeNode->GetVolumeCollection()->AddItem(newNode);
+
+        // Delete Image Data (ScalarVolume Node is deleted with collection in destructor)
+        newData->Delete();
+        }
+
+      if(this->SliderVolumeSelector)
+        {
+        std::stringstream out;
+        out << "/ " << this->NumberOfNodesReceived-1;
+        this->SliderVolumeSelector->SetLabelText(out.str().c_str());
+        this->SliderVolumeSelector->GetWidget()->SetRange(0,this->NumberOfNodesReceived-1);
+        this->SliderVolumeSelector->GetWidget()->SetValue(this->NumberOfNodesReceived-1);
+        }
       }
-
-    if(this->SliderVolumeSelector)
-      {
-      std::stringstream out;
-      out << "/ " << this->NumberOfNodesReceived-1;
-      this->SliderVolumeSelector->SetLabelText(out.str().c_str());
-      this->SliderVolumeSelector->GetWidget()->SetRange(0,this->NumberOfNodesReceived-1);
-      this->SliderVolumeSelector->GetWidget()->SetValue(this->NumberOfNodesReceived-1);
-      }
-
     }
 
   if(this->SliderVolumeSelector->GetWidget() == vtkKWScale::SafeDownCast(caller)
      && event                                == vtkKWScale::ScaleValueChangingEvent)
     {
-    if(this->SliderVolumeSelector)
+    if(this->SliderVolumeSelector && this->FourDVolumeNode)
       {
       double                   NodeNumber   = this->SliderVolumeSelector->GetWidget()->GetValue();
-      vtkMRMLScalarVolumeNode* selectedNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->OpenIGTLinkNodeCollection->GetItemAsObject(NodeNumber));
+      vtkMRMLScalarVolumeNode* selectedNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->FourDVolumeNode->GetVolumeCollection()->GetItemAsObject(NodeNumber));
 
       this->GetLogic()->CopyVolume(this->DisplayableScalarVolumeNode, selectedNode);
       this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->Render();
@@ -457,9 +514,9 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
         this->IsPlaying = true;
 
         // Start playing volumes
-        if(this->OpenIGTLinkNodeCollection && this->SliderVolumeSelector && this->DisplayableScalarVolumeNode)
+        if(this->FourDVolumeNode && this->SliderVolumeSelector && this->DisplayableScalarVolumeNode)
           {
-          this->GetLogic()->PlayVolumes(this->DisplayableScalarVolumeNode, this->OpenIGTLinkNodeCollection, this->SliderVolumeSelector->GetWidget());
+          this->GetLogic()->PlayVolumes(this->DisplayableScalarVolumeNode, this->FourDVolumeNode->GetVolumeCollection(), this->SliderVolumeSelector->GetWidget());
           }
         }
       }
@@ -565,8 +622,16 @@ void vtkUltrasound4DGUI::BuildGUIForSlidingData()
   this->OpenIGTLinkNodeSelector->Create();
   this->OpenIGTLinkNodeSelector->SetNewNodeEnabled(0);
   this->OpenIGTLinkNodeSelector->SetNodeClass("vtkMRMLIGTLConnectorNode",NULL,NULL,NULL);
-  this->OpenIGTLinkNodeSelector->SetMRMLScene(this->GetLogic()->GetMRMLScene());
+  this->OpenIGTLinkNodeSelector->SetMRMLScene(this->GetMRMLScene());
   this->OpenIGTLinkNodeSelector->UpdateMenu();
+
+  this->FourDVolumeNodeSelector = vtkSlicerNodeSelectorWidget::New();
+  this->FourDVolumeNodeSelector->SetParent(conBrowsFrame->GetFrame());
+  this->FourDVolumeNodeSelector->Create();
+  this->FourDVolumeNodeSelector->SetNewNodeEnabled(1);
+  this->FourDVolumeNodeSelector->SetNodeClass("vtkMRML4DVolumeNode",NULL,NULL,NULL);
+  this->FourDVolumeNodeSelector->SetMRMLScene(this->GetMRMLScene());
+  this->FourDVolumeNodeSelector->UpdateMenu();
 
   this->SliderVolumeSelector = vtkKWScaleWithLabel::New();
   this->SliderVolumeSelector->SetParent(conBrowsFrame->GetFrame());
@@ -581,8 +646,9 @@ void vtkUltrasound4DGUI::BuildGUIForSlidingData()
   this->PlayVolumeButton->Create();
   this->PlayVolumeButton->SetText("Play");
 
-  app->Script("pack %s %s %s -side top -anchor nw -fill x -padx 2 -pady 2",
+  app->Script("pack %s %s %s %s -side top -anchor nw -fill x -padx 2 -pady 2",
               this->OpenIGTLinkNodeSelector->GetWidgetName(),
+              this->FourDVolumeNodeSelector->GetWidgetName (),
               this->SliderVolumeSelector->GetWidgetName(),
               this->PlayVolumeButton->GetWidgetName());
 
