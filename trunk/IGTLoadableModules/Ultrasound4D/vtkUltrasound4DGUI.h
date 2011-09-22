@@ -56,13 +56,13 @@ class VTK_Ultrasound4D_EXPORT vtkUltrasound4DGUI : public vtkSlicerModuleGUI
 
   vtkGetObjectMacro ( Logic, vtkUltrasound4DLogic );
   void SetModuleLogic ( vtkSlicerLogic *logic )
-  { 
+  {
     this->SetLogic ( vtkObjectPointer (&this->Logic), logic );
   }
 
  protected:
   //----------------------------------------------------------------
-  // Constructor / Destructor (proctected/private) 
+  // Constructor / Destructor (proctected/private)
   //----------------------------------------------------------------
 
   vtkUltrasound4DGUI ( );
@@ -101,9 +101,9 @@ class VTK_Ultrasound4D_EXPORT vtkUltrasound4DGUI : public vtkSlicerModuleGUI
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
   void ProcessTimerEvents();
   void HandleMouseEvent(vtkSlicerInteractorStyle *style);
-  static void DataCallback(vtkObject *caller, 
+  static void DataCallback(vtkObject *caller,
                            unsigned long eid, void *clientData, void *callData);
-  
+
   //----------------------------------------------------------------
   // Build Frames
   //----------------------------------------------------------------
@@ -125,11 +125,11 @@ class VTK_Ultrasound4D_EXPORT vtkUltrasound4DGUI : public vtkSlicerModuleGUI
   void CenterImage(vtkMRMLVolumeNode *volumeNode);
 
  protected:
-  
+
   //----------------------------------------------------------------
   // Timer
   //----------------------------------------------------------------
-  
+
   int TimerFlag;
   int TimerInterval;
 
@@ -150,10 +150,6 @@ class VTK_Ultrasound4D_EXPORT vtkUltrasound4DGUI : public vtkSlicerModuleGUI
   vtkKWScaleWithLabel* SliderVolumeSelector;
   vtkKWPushButton* PlayVolumeButton;
   bool IsPlaying;
-
-  //BTX
-  std::string SerieIDAttribute;
-  //ETX
 
   //----------------------------------------------------------------
   // Logic Values
