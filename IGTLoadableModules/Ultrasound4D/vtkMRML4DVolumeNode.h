@@ -25,6 +25,8 @@
 #include "vtkMatrix4x4.h"
 #include "vtkCollection.h"
 
+#include <string>
+
 class VTK_Ultrasound4D_EXPORT vtkMRML4DVolumeNode : public vtkMRMLScalarVolumeNode
 {
 
@@ -54,6 +56,11 @@ class VTK_Ultrasound4D_EXPORT vtkMRML4DVolumeNode : public vtkMRMLScalarVolumeNo
   //Disactivate the possibility to apply non-linear transforms
   virtual bool CanApplyNonLinearTransforms() {return 0;};
 
+  //BTX
+  vtkSetMacro(SerieID, std::string);
+  vtkGetMacro(SerieID, std::string);
+  //ETX
+
  protected:
   //----------------------------------------------------------------
   // Constructor and destructor
@@ -70,6 +77,10 @@ class VTK_Ultrasound4D_EXPORT vtkMRML4DVolumeNode : public vtkMRMLScalarVolumeNo
   vtkGetObjectMacro(VolumeCollection, vtkCollection);
 
   vtkCollection *VolumeCollection;
+
+  //BTX
+  std::string SerieID;
+  //ETX;
 
  private:
 

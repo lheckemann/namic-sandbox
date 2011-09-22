@@ -57,6 +57,7 @@ vtkMRMLNode* vtkMRML4DVolumeNode::CreateNodeInstance()
 vtkMRML4DVolumeNode::vtkMRML4DVolumeNode()
 {
   this->VolumeCollection = vtkCollection::New();
+  this->SerieID = "";
 }
 
 //----------------------------------------------------------------------------
