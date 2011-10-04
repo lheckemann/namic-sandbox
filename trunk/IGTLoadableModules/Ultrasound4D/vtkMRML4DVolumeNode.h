@@ -51,7 +51,7 @@ class VTK_Ultrasound4D_EXPORT vtkMRML4DVolumeNode : public vtkMRMLScalarVolumeNo
   virtual void Copy(vtkMRMLNode *node);
 
   // Get unique node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() {return "4DVolumeNode";};
+  virtual const char* GetNodeTagName() {return "TimeSerieContainer";};
 
   //Disactivate the possibility to apply non-linear transforms
   virtual bool CanApplyNonLinearTransforms() {return 0;};

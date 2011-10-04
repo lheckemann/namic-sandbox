@@ -194,7 +194,7 @@ void vtkUltrasound4DGUI::Enter()
   if(!this->DisplayableScalarVolumeNode)
     {
     this->DisplayableScalarVolumeNode = vtkMRMLScalarVolumeNode::New();
-    this->DisplayableScalarVolumeNode->SetName("4D Ultrasound");
+    this->DisplayableScalarVolumeNode->SetName("TimeSerieDisplay1");
     this->DisplayableImageData = vtkImageData::New();
 
     this->DisplayableImageData->SetDimensions(256,256,256);
@@ -436,6 +436,7 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
         std::ostringstream nameSerie;
         nameSerie << "TimeSerie" << numberOfSeries;
         this->FourDVolumeNode->SetName(nameSerie.str().c_str());
+        this->FourDVolumeNodeSelector->UpdateMenu();
 
         // Reset values when selecting a new node
         if(this->SliderVolumeSelector)
@@ -481,9 +482,16 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
         newNode->SetSaveWithScene(1);
         newNode->SetScene(this->GetMRMLScene());
 
+        // Set Name
+        int numberOfTimeSeries = this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRML4DVolumeNode");
+        int numberOfVolumesInIt = this->FourDVolumeNode->GetVolumeCollection()->GetNumberOfItems();
+        std::stringstream NodeName;
+        NodeName << "TimeSerie" << numberOfTimeSeries << "Volume" << numberOfVolumesInIt;
+        newNode->SetName(NodeName.str().c_str());
+
         if(strcmp(this->FourDVolumeNode->GetSerieID().c_str(), ""))
           {
-          newNode->SetAttribute("SerieID", this->FourDVolumeNode->GetSerieID().c_str());
+          newNode->SetSerieID(this->FourDVolumeNode->GetSerieID().c_str());
           }
 
         // Copy Image Data to the new one
