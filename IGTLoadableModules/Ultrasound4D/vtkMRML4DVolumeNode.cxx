@@ -77,11 +77,37 @@ vtkMRML4DVolumeNode::~vtkMRML4DVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRML4DVolumeNode::WriteXML(ostream& of, int nIndent)
 {
+  Superclass::WriteXML(of, nIndent);
+
+  vtkIndent indent(nIndent);
+  std::stringstream ss;
+  ss << this->GetSerieID();
+  of << indent << " SerieID=\"" << ss.str() << "\"";
+
 }
 
 //----------------------------------------------------------------------------
 void vtkMRML4DVolumeNode::ReadXMLAttributes(const char** atts)
 {
+  int disableModify = this->StartModify();
+
+  Superclass::ReadXMLAttributes(atts);
+
+  const char* attName;
+  const char* attValue;
+  while(*atts != NULL)
+    {
+    attName = *(atts++);
+    attValue = *(atts++);
+
+    if(!strcmp(attName, "SerieID"))
+      {
+      std::stringstream sid(attValue);
+      this->SetSerieID(sid.str().c_str());
+      }
+    }
+
+  this->EndModify(disableModify);
 }
 
 //----------------------------------------------------------------------------
