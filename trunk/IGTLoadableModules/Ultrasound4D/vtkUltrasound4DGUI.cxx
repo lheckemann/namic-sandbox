@@ -486,7 +486,7 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
         int numberOfTimeSeries = this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRML4DVolumeNode");
         int numberOfVolumesInIt = this->FourDVolumeNode->GetVolumeCollection()->GetNumberOfItems();
         std::stringstream NodeName;
-        NodeName << "TimeSerie" << numberOfTimeSeries << "Volume" << numberOfVolumesInIt;
+        NodeName << this->FourDVolumeNode->GetName() << "Volume" << numberOfVolumesInIt;
         newNode->SetName(NodeName.str().c_str());
 
         if(strcmp(this->FourDVolumeNode->GetSerieID().c_str(), ""))
