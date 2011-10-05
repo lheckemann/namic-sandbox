@@ -483,7 +483,6 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
         newNode->SetScene(this->GetMRMLScene());
 
         // Set Name
-        int numberOfTimeSeries = this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRML4DVolumeNode");
         int numberOfVolumesInIt = this->FourDVolumeNode->GetVolumeCollection()->GetNumberOfItems();
         std::stringstream NodeName;
         NodeName << this->FourDVolumeNode->GetName() << "Volume" << numberOfVolumesInIt;
@@ -508,6 +507,7 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
 
         // Delete Image Data (ScalarVolume Node is deleted with collection in destructor)
         newData->Delete();
+        newNode->Delete();
         }
 
       if(this->SliderVolumeSelector)
@@ -602,22 +602,42 @@ void vtkUltrasound4DGUI::ProcessMRMLEvents ( vtkObject *caller,
 
   if(event == vtkMRMLScene::SceneLoadEndEvent)
     {
-    // Check if vtkMRMLScalarVolumeNode are present in the scene
-    int numberOfVolumes = this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLScalarVolumeNode");
-    std::vector<vtkMRMLNode *> VectorVolumeNodes;
-
-    if(numberOfVolumes > 0)
+    // Populate vtkCollection of 4DVolumeNode after loading scene with same SerieID vtkMRMLScalarVolumeNode
+    int numberOfTimeSeries = this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRML4DVolumeNode");
+    if(numberOfTimeSeries > 0)
       {
-      this->GetMRMLScene()->GetNodesByClass("vtkMRMLScalarVolumeNode", VectorVolumeNodes);
-      for(unsigned int i = 0; i < VectorVolumeNodes.size(); i++)
-        {
-        vtkMRMLScalarVolumeNode* VolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(VectorVolumeNodes[i]);
+      std::vector<vtkMRMLNode *> VectorTimeSeries;
+      this->GetMRMLScene()->GetNodesByClass("vtkMRML4DVolumeNode", VectorTimeSeries);
 
-        // TODO:
-        // Check if same SerieID first
-        // Populate collection (if exist. Problem when loading scene, 4DVolumeNode is deleted)
+      for(unsigned int i = 0; i < VectorTimeSeries.size(); i++)
+        {
+        vtkMRML4DVolumeNode* TimeSerie = vtkMRML4DVolumeNode::SafeDownCast(VectorTimeSeries[i]);
+        int numberOfVolumes = this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLScalarVolumeNode");
+
+        if(numberOfVolumes > 0)
+          {
+          std::vector<vtkMRMLNode *> VectorVolumes;
+          this->GetMRMLScene()->GetNodesByClass("vtkMRMLScalarVolumeNode", VectorVolumes);
+
+          for(unsigned int j=0; j < VectorVolumes.size(); j++)
+            {
+            vtkMRMLScalarVolumeNode* VolumeToCheck = vtkMRMLScalarVolumeNode::SafeDownCast(VectorVolumes[j]);
+            if(!strcmp(TimeSerie->GetSerieID().c_str(),VolumeToCheck->GetSerieID()))
+              {
+              TimeSerie->GetVolumeCollection()->AddItem(VolumeToCheck);
+              }
+            }
+          }
+        }
+
+      if(this->FourDVolumeNodeSelector)
+        {
+        this->FourDVolumeNodeSelector->SetSelected(VectorTimeSeries[0]);
+        this->FourDVolumeNodeSelector->UpdateMenu();
+        this->FourDVolumeNodeSelector->InvokeEvent(vtkSlicerNodeSelectorWidget::NodeSelectedEvent);
         }
       }
+
     }
 }
 

@@ -63,15 +63,23 @@ vtkMRML4DVolumeNode::vtkMRML4DVolumeNode()
 //----------------------------------------------------------------------------
 vtkMRML4DVolumeNode::~vtkMRML4DVolumeNode()
 {
+
   if(this->VolumeCollection)
     {
-    // Delete all nodes before deleting
-    for(int i = 0; i < this->VolumeCollection->GetNumberOfItems(); i++)
+/*
+    if(this->VolumeCollection->GetNumberOfItems() > 0)
       {
-      this->VolumeCollection->GetItemAsObject(i)->Delete();
+      // Delete all nodes before deleting
+      for(int i = 0; i < this->VolumeCollection->GetNumberOfItems(); i++)
+        {
+        this->VolumeCollection->GetItemAsObject(i)->Delete();
+        }
       }
+*/
+    this->VolumeCollection->RemoveAllItems();
     this->VolumeCollection->Delete();
     }
+
 }
 
 //----------------------------------------------------------------------------

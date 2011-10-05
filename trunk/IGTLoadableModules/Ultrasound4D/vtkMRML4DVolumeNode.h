@@ -31,6 +31,7 @@ class VTK_Ultrasound4D_EXPORT vtkMRML4DVolumeNode : public vtkMRMLScalarVolumeNo
 {
 
  public:
+
   //----------------------------------------------------------------
   // Standard methods for MRML nodes
   //----------------------------------------------------------------
@@ -56,6 +57,10 @@ class VTK_Ultrasound4D_EXPORT vtkMRML4DVolumeNode : public vtkMRMLScalarVolumeNo
   //Disactivate the possibility to apply non-linear transforms
   virtual bool CanApplyNonLinearTransforms() {return 0;};
 
+  //----------------------------------------------------------------
+  // FourDImage compatibility functions
+  //----------------------------------------------------------------
+
   //BTX
   vtkSetMacro(SerieID, std::string);
   vtkGetMacro(SerieID, std::string);
@@ -80,7 +85,7 @@ class VTK_Ultrasound4D_EXPORT vtkMRML4DVolumeNode : public vtkMRMLScalarVolumeNo
 
   //BTX
   std::string SerieID;
-  //ETX;
+  //ETX
 
  private:
 
