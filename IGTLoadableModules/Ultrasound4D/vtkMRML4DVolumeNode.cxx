@@ -66,16 +66,9 @@ vtkMRML4DVolumeNode::~vtkMRML4DVolumeNode()
 
   if(this->VolumeCollection)
     {
-/*
-    if(this->VolumeCollection->GetNumberOfItems() > 0)
-      {
-      // Delete all nodes before deleting
-      for(int i = 0; i < this->VolumeCollection->GetNumberOfItems(); i++)
-        {
-        this->VolumeCollection->GetItemAsObject(i)->Delete();
-        }
-      }
-*/
+    // Do NOT delete nodes inside vtkCollection, because if you load the scene later,
+    // Slicer will try to delete these nodes too (because it loaded them)
+
     this->VolumeCollection->RemoveAllItems();
     this->VolumeCollection->Delete();
     }
