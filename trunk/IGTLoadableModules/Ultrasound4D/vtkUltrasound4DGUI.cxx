@@ -505,7 +505,7 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
         // Add Node to the collection
         this->FourDVolumeNode->GetVolumeCollection()->AddItem(newNode);
 
-        // Delete Image Data (ScalarVolume Node is deleted with collection in destructor)
+        // Delete Image Data and Scalar Volume
         newData->Delete();
         newNode->Delete();
         }
@@ -584,7 +584,6 @@ void vtkUltrasound4DGUI::ProcessLogicEvents ( vtkObject *caller,
     {
     if (event == vtkUltrasound4DLogic::StatusUpdateEvent)
       {
-      //this->UpdateDeviceStatus();
       }
     }
 }
@@ -609,6 +608,7 @@ void vtkUltrasound4DGUI::ProcessMRMLEvents ( vtkObject *caller,
       std::vector<vtkMRMLNode *> VectorTimeSeries;
       this->GetMRMLScene()->GetNodesByClass("vtkMRML4DVolumeNode", VectorTimeSeries);
 
+      // Look for all TimeSeries
       for(unsigned int i = 0; i < VectorTimeSeries.size(); i++)
         {
         vtkMRML4DVolumeNode* TimeSerie = vtkMRML4DVolumeNode::SafeDownCast(VectorTimeSeries[i]);
@@ -619,6 +619,7 @@ void vtkUltrasound4DGUI::ProcessMRMLEvents ( vtkObject *caller,
           std::vector<vtkMRMLNode *> VectorVolumes;
           this->GetMRMLScene()->GetNodesByClass("vtkMRMLScalarVolumeNode", VectorVolumes);
 
+          // Look for all Volume with same SerieID than current TimeSerie
           for(unsigned int j=0; j < VectorVolumes.size(); j++)
             {
             vtkMRMLScalarVolumeNode* VolumeToCheck = vtkMRMLScalarVolumeNode::SafeDownCast(VectorVolumes[j]);
@@ -630,6 +631,7 @@ void vtkUltrasound4DGUI::ProcessMRMLEvents ( vtkObject *caller,
           }
         }
 
+      // Update Selector Menu and number of nodes in the TimeSerie
       if(this->FourDVolumeNodeSelector)
         {
         this->FourDVolumeNodeSelector->SetSelected(VectorTimeSeries[0]);
