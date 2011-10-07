@@ -33,7 +33,7 @@ int main( int argc, char *argv[] )
     }
   
   typedef float      MeshPixelType1;
-  typedef double      MeshPixelType2;
+  typedef double     MeshPixelType2;
   const unsigned int Dimension = 3;
 
   typedef itk::QuadEdgeMesh< MeshPixelType1, Dimension >   InMeshType;
@@ -66,15 +66,12 @@ int main( int argc, char *argv[] )
     }
   catch( itk::ExceptionObject & excp )
     {
-    std::cout << "SUCCESSFULLY catched expected exception" << std::endl;
+    std::cout << "SUCCESSFULLY caught expected exception" << std::endl;
     std::cout << excp << std::endl;
     }
 
-  // Purposely attempt to set a harmonic that is too large
-  filter->SetSurfaceHarmonic( 10000 );
-
   // Now setting it to an acceptable value
-  filter->SetSurfaceHarmonic( 0 );
+  filter->SetSurfaceHarmonic( 10 );
 
   //
   //  Now connect the input and verify that it runs fine.
