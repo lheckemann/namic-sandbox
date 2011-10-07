@@ -122,3 +122,70 @@ void vtkMRML4DVolumeNode::Copy(vtkMRMLNode *anode)
 void vtkMRML4DVolumeNode::PrintSelf(ostream& os, vtkIndent indent)
 {
 }
+
+//----------------------------------------------------------------------------
+void vtkMRML4DVolumeNode::AddVolume(vtkMRMLScalarVolumeNode* NodeToAdd)
+{
+  if(this->VolumeCollection && NodeToAdd)
+    {
+    this->VolumeCollection->AddItem(NodeToAdd);
+    }
+
+}
+
+//----------------------------------------------------------------------------
+void vtkMRML4DVolumeNode::InsertVolume(int position, vtkMRMLScalarVolumeNode* NodeToInsert)
+{
+  if(this->VolumeCollection && NodeToInsert)
+    {
+    if(position >= 0 && position < this->VolumeCollection->GetNumberOfItems())
+      {
+      this->VolumeCollection->InsertItem(position, NodeToInsert);
+      }
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRML4DVolumeNode::RemoveVolume(vtkMRMLScalarVolumeNode* NodeToRemove)
+{
+  if(this->VolumeCollection && NodeToRemove)
+    {
+    this->VolumeCollection->RemoveItem(NodeToRemove);
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRML4DVolumeNode::RemoveVolume(int position)
+{
+  if(this->VolumeCollection)
+    {
+    if(position >= 0 && position < this->VolumeCollection->GetNumberOfItems())
+      {
+      this->VolumeCollection->RemoveItem(position);
+      }
+    }
+}
+
+//----------------------------------------------------------------------------
+int vtkMRML4DVolumeNode::GetNumberOfVolumes()
+{
+  if(this->VolumeCollection)
+    {
+    return this->VolumeCollection->GetNumberOfItems();
+    }
+  return -1;
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkMRML4DVolumeNode::GetItemAsVolume(int position)
+{
+  if(this->VolumeCollection)
+    {
+    if(position >= 0 && position < this->VolumeCollection->GetNumberOfItems())
+      {
+      vtkMRMLScalarVolumeNode* VolumeSelected = vtkMRMLScalarVolumeNode::SafeDownCast(this->VolumeCollection->GetItemAsObject(position));
+      return VolumeSelected;
+      }
+    }
+  return NULL;
+}
