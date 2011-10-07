@@ -108,6 +108,7 @@ public:
   typedef typename OutputPointDataContainer::ConstPointer      OutputPointDataContainerConstPointer; 
 
   typedef vnl_sparse_matrix< double >  LBMatrixType;
+  typedef vnl_vector< double >         EigenvalueSetType;
   typedef Array2D< double >            HarmonicSetType;
 
 
@@ -117,11 +118,14 @@ public:
   /** Get the areas for each vertex */
   void GetVertexAreas( LBMatrixType& ) const;
 
+  /** Eignevalues of the solution **/
+  void GetEigenvalues( EigenvalueSetType& ) const;
+
   /** Get the areas for each vertex */
   void GetHarmonics( HarmonicSetType& ) const;
 
   /** Get a single surface harmonic */
-  bool SetSurfaceHarmonic( unsigned int harmonic ); // FIXME: Why is this not using the itkSetMacro() ?
+  bool SetSurfaceHarmonic( unsigned int harmonic );
 
 protected:
   LaplaceBeltramiFilter();
@@ -152,6 +156,9 @@ private:
 
   /** The areas for each vertex */
   LBMatrixType m_VertexAreas;
+
+  /** Eignevalues of the solution **/
+  EigenvalueSetType m_Eigenvalues;
 
   /** Harmonics for the most significant basis functions */
   HarmonicSetType m_Harmonics;
