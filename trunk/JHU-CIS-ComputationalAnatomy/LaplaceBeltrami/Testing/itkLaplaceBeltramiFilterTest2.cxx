@@ -16,13 +16,13 @@
 
 void showUsage()
 {
-  printf("USAGE: itkLaplaceBeltramiFilterTest2 [OPTIONS] <vtk_mesh_file> <first_harmonic_surface>\n");
+  printf("USAGE: laplaceBeltrami [OPTIONS] <vtk_mesh_file> <first_harmonic_surface>\n");
   printf("\t\t-h --help : print this message\n");
   printf("\t\t-e --eigenvalueCount : number of principal eigenvalues to calculate\n");
   printf("\t\t-s --scaleFactor : scale factor for Point Data in vtk mesh output\n");
   printf("\t\t-b --boundaryCondition : conditions placed on boundary points:\n");
-  printf("\t\t\t1 (default) = von Neuman (gradient of the Laplacian operator tangent to the boundary)\n");
-  printf("\t\t\t2           = Dirichlet (zero Laplacian operator on the boundary)\n");
+  printf("\t\t\t1           = von Neuman (gradient of the Laplacian operator tangent to the boundary)\n");
+  printf("\t\t\t2 (default) = Dirichlet (zero Laplacian operator on the boundary)\n");
   exit(1);
 }
 
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
     //  The name of the file to be read or written is passed with the
     //  SetFileName() method.
     meshReader->SetFileName( inFile  );
-    
+
     try
         {
         meshReader->Update();
