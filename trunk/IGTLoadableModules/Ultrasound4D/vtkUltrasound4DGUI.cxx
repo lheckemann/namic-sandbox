@@ -194,7 +194,7 @@ void vtkUltrasound4DGUI::Enter()
   if(!this->DisplayableScalarVolumeNode)
     {
     this->DisplayableScalarVolumeNode = vtkMRMLScalarVolumeNode::New();
-    this->DisplayableScalarVolumeNode->SetName("TimeSerieDisplay1");
+    this->DisplayableScalarVolumeNode->SetName("TimeSerieDisplay");
     this->DisplayableImageData = vtkImageData::New();
 
     this->DisplayableImageData->SetDimensions(256,256,256);
@@ -232,10 +232,15 @@ void vtkUltrasound4DGUI::Enter()
     this->GetMRMLScene()->Modified();
 
     // TODO: Center Image
-    //this->CenterImage(this->DisplayableScalarVolumeNode);
+    this->CenterImage(this->DisplayableScalarVolumeNode);
 
     displayNode->Delete();
     colorLogic->Delete();
+    }
+
+  if(this->DisplayableScalarVolumeNode && this->SliderVolumeSelector)
+    {
+    this->SliderVolumeSelector->GetWidget()->InvokeEvent(vtkKWScale::ScaleValueChangingEvent);
     }
 
 }
@@ -452,7 +457,7 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
         // TODO: Get SerieID and all node with this SerieID to populate vtkCollection and select this vtkCollection
         if(this->SliderVolumeSelector && this->FourDVolumeNode)
           {
-          this->NumberOfNodesReceived = this->FourDVolumeNode->GetVolumeCollection()->GetNumberOfItems();
+          this->NumberOfNodesReceived = this->FourDVolumeNode->GetNumberOfVolumes();
           std::ostringstream numVol;
           numVol << "/ " << this->NumberOfNodesReceived-1;
           this->SliderVolumeSelector->GetWidget()->SetRange(0, this->NumberOfNodesReceived-1);
@@ -483,7 +488,7 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
         newNode->SetScene(this->GetMRMLScene());
 
         // Set Name
-        int numberOfVolumesInIt = this->FourDVolumeNode->GetVolumeCollection()->GetNumberOfItems();
+        int numberOfVolumesInIt = this->FourDVolumeNode->GetNumberOfVolumes();
         std::stringstream NodeName;
         NodeName << this->FourDVolumeNode->GetName() << "Volume" << numberOfVolumesInIt;
         newNode->SetName(NodeName.str().c_str());
@@ -503,7 +508,7 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
         this->GetMRMLScene()->Modified();
 
         // Add Node to the collection
-        this->FourDVolumeNode->GetVolumeCollection()->AddItem(newNode);
+        this->FourDVolumeNode->AddVolume(newNode);
 
         // Delete Image Data and Scalar Volume
         newData->Delete();
@@ -526,10 +531,10 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
     {
     if(this->SliderVolumeSelector && this->FourDVolumeNode)
       {
-      if(this->FourDVolumeNode->GetVolumeCollection()->GetNumberOfItems() > 0)
+      if(this->FourDVolumeNode->GetNumberOfVolumes() > 0)
         {
         double                   NodeNumber   = this->SliderVolumeSelector->GetWidget()->GetValue();
-        vtkMRMLScalarVolumeNode* selectedNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->FourDVolumeNode->GetVolumeCollection()->GetItemAsObject(NodeNumber));
+        vtkMRMLScalarVolumeNode* selectedNode = this->FourDVolumeNode->GetItemAsVolume(NodeNumber);
 
         this->GetLogic()->CopyVolume(this->DisplayableScalarVolumeNode, selectedNode);
         this->GetApplicationGUI()->GetActiveViewerWidget()->GetMainViewer()->Render();
@@ -625,7 +630,7 @@ void vtkUltrasound4DGUI::ProcessMRMLEvents ( vtkObject *caller,
             vtkMRMLScalarVolumeNode* VolumeToCheck = vtkMRMLScalarVolumeNode::SafeDownCast(VectorVolumes[j]);
             if(!strcmp(TimeSerie->GetSerieID().c_str(),VolumeToCheck->GetSerieID()))
               {
-              TimeSerie->GetVolumeCollection()->AddItem(VolumeToCheck);
+              TimeSerie->AddVolume(VolumeToCheck);
               }
             }
           }
@@ -639,7 +644,7 @@ void vtkUltrasound4DGUI::ProcessMRMLEvents ( vtkObject *caller,
         this->FourDVolumeNodeSelector->InvokeEvent(vtkSlicerNodeSelectorWidget::NodeSelectedEvent);
         }
       }
-
+    this->DisplayableScalarVolumeNode = NULL;
     }
 }
 

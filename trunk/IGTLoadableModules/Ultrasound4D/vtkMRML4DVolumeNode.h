@@ -54,17 +54,23 @@ class VTK_Ultrasound4D_EXPORT vtkMRML4DVolumeNode : public vtkMRMLScalarVolumeNo
   // Get unique node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() {return "TimeSerieContainer";};
 
-  //Disactivate the possibility to apply non-linear transforms
+  // Disactivate the possibility to apply non-linear transforms
   virtual bool CanApplyNonLinearTransforms() {return 0;};
-
-  //----------------------------------------------------------------
-  // FourDImage compatibility functions
-  //----------------------------------------------------------------
 
   //BTX
   vtkSetMacro(SerieID, std::string);
   vtkGetMacro(SerieID, std::string);
   //ETX
+
+  // Manage Volume Collection
+  void AddVolume(vtkMRMLScalarVolumeNode* NodeToAdd);
+  void InsertVolume(int position, vtkMRMLScalarVolumeNode* NodeToInsert);
+  void RemoveVolume(vtkMRMLScalarVolumeNode* NodeToRemove);
+  void RemoveVolume(int position);
+  int GetNumberOfVolumes();
+
+  vtkMRMLScalarVolumeNode* GetItemAsVolume(int position);
+
 
  protected:
   //----------------------------------------------------------------
