@@ -41,11 +41,16 @@
 #include "vtkIGTDataStream.h"
 
 #include "vtkCylinderSource.h"
+#include "vtkSphereSource.h"
+#include "vtkAppendPolyData.h"
+
 #include "vtkMRMLLinearTransformNode.h"
 
 #include "vtkMRMLCrosshairNode.h"
 #include "vtkSlicerSlicesControlGUI.h"
 #include "vtkMRMLScalarVolumeNode.h"
+
+#include "itkMultiThreader.h"
 
 //---------------------------------------------------------------------------
 vtkCxxRevisionMacro ( vtkNeuroNavGUI, "$Revision: 1.0 $");
@@ -54,7 +59,7 @@ vtkCxxRevisionMacro ( vtkNeuroNavGUI, "$Revision: 1.0 $");
 vtkNeuroNavGUI* vtkNeuroNavGUI::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = 
+  vtkObject* ret =
     vtkObjectFactory::CreateInstance("vtkNeuroNavGUI");
   if (ret)
     {
@@ -87,13 +92,13 @@ vtkNeuroNavGUI::vtkNeuroNavGUI ( )
   this->GreenSliceMenu = NULL;
 
   this->TransformNodeNameEntry = NULL;
-  this->LabelMapSelector = NULL; 
+  this->LabelMapSelector = NULL;
   this->LabelMapNumberEntry = NULL;
   this->StartBeepingButton = NULL;
   this->StopBeepingButton = NULL;
   this->FiducialListNodeNameEntry = NULL;
   this->LabelMapNode = NULL;
- 
+
   this->PatCoordinatesEntry = NULL;
   this->SlicerCoordinatesEntry = NULL;
   this->GetPatCoordinatesPushButton = NULL;
@@ -101,8 +106,6 @@ vtkNeuroNavGUI::vtkNeuroNavGUI ( )
 
   this->PointPairMultiColumnList = NULL;
 
-  // this->LoadPointPairPushButton = NULL;
-  // this->SavePointPairPushButton = NULL;
   this->DeletePointPairPushButton = NULL;
   this->DeleteAllPointPairPushButton = NULL;
   this->RegisterPushButton = NULL;
@@ -217,12 +220,6 @@ vtkNeuroNavGUI::~vtkNeuroNavGUI ( )
     this->StopBeepingButton->Delete();
     }
 
-  /*
-  if (this->LabelMapNode)
-    {
-    this->LabelMapNode->Delete();
-    }
-  */
   if (this->FiducialListNodeNameEntry)
     {
     this->FiducialListNodeNameEntry->SetParent(NULL);
@@ -255,18 +252,6 @@ vtkNeuroNavGUI::~vtkNeuroNavGUI ( )
     this->PointPairMultiColumnList->Delete ( );
     }
 
-  /*
-     if (this->LoadPointPairPushButton)
-     {
-     this->LoadPointPairPushButton->SetParent(NULL );
-     this->LoadPointPairPushButton->Delete ( );
-     }
-     if (this->SavePointPairPushButton)
-     {
-     this->SavePointPairPushButton->SetParent(NULL );
-     this->SavePointPairPushButton->Delete ( );
-     }
-     */
   if (this->DeletePointPairPushButton)
     {
     this->DeletePointPairPushButton->SetParent(NULL );
@@ -307,7 +292,6 @@ void vtkNeuroNavGUI::PrintSelf ( ostream& os, vtkIndent indent )
 
   os << indent << "NeuroNavGUI: " << this->GetClassName ( ) << "\n";
   os << indent << "Logic: " << this->GetLogic ( ) << "\n";
-  // print widgets?
 }
 
 
@@ -315,7 +299,7 @@ void vtkNeuroNavGUI::PrintSelf ( ostream& os, vtkIndent indent )
 void vtkNeuroNavGUI::RemoveGUIObservers ( )
 {
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-  
+
   if ( appGUI )
     {
     appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()
@@ -326,12 +310,7 @@ void vtkNeuroNavGUI::RemoveGUIObservers ( )
       ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-//  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-//  appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-//  appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-//  appGUI->GetMainSliceGUI("Blue")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-
-   if (this->TransformNodeNameEntry)
+  if (this->TransformNodeNameEntry)
     {
     this->TransformNodeNameEntry->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
@@ -421,17 +400,15 @@ void vtkNeuroNavGUI::AddGUIObservers ( )
   // MRML
 
   vtkIntArray* events = vtkIntArray::New();
-  //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
-  //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
-  
+
   if (this->GetMRMLScene() != NULL)
     {
     this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
     }
   events->Delete();
 
-  
+
   //----------------------------------------------------------------
   // Main Slice GUI
 
@@ -444,7 +421,7 @@ void vtkNeuroNavGUI::AddGUIObservers ( )
   appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()
     ->GetRenderWindowInteractor()->GetInteractorStyle()
     ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
-  
+
 
   // Fill in
   // observer load volume button
@@ -474,29 +451,17 @@ void vtkNeuroNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 {
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
-  vtkSlicerInteractorStyle *istyle0 = 
+  vtkSlicerInteractorStyle *istyle0 =
     vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()
                                            ->GetRenderWindowInteractor()->GetInteractorStyle());
 
-  vtkSlicerInteractorStyle *istyle1 = 
+  vtkSlicerInteractorStyle *istyle1 =
     vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()
                                            ->GetRenderWindowInteractor()->GetInteractorStyle());
 
-  vtkSlicerInteractorStyle *istyle2 = 
+  vtkSlicerInteractorStyle *istyle2 =
     vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()
                                            ->GetRenderWindowInteractor()->GetInteractorStyle());
-
-
-/*
-    vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Red")->GetSliceViewer()
-                                           ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle *istyle1 = 
-    vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()
-                                           ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle *istyle2 = 
-    vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Blue")->GetSliceViewer()
-                                           ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-*/
 
   vtkCornerAnnotation *anno = NULL;
   if (style == istyle0)
@@ -521,17 +486,17 @@ void vtkNeuroNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 
       // remove "R:," "A:," and "S:" from the string
       size_t loc = ras.find("R:", 0);
-      if ( loc != std::string::npos ) 
+      if ( loc != std::string::npos )
         {
         ras = ras.replace(loc, 2, "");
         }
       loc = ras.find("A:", 0);
-      if ( loc != std::string::npos ) 
+      if ( loc != std::string::npos )
         {
         ras = ras.replace(loc, 2, "");
         }
       loc = ras.find("S:", 0);
-      if ( loc != std::string::npos ) 
+      if ( loc != std::string::npos )
         {
         ras = ras.replace(loc, 2, "");
         }
@@ -563,7 +528,7 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
     }
   else
     {
-    if (this->GetPatCoordinatesPushButton == vtkKWPushButton::SafeDownCast(caller) 
+    if (this->GetPatCoordinatesPushButton == vtkKWPushButton::SafeDownCast(caller)
         && event == vtkKWPushButton::InvokedEvent)
       {
       double px, py, pz;
@@ -572,20 +537,20 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
       sprintf(value, "%6.2f  %6.2f  %6.2f", px, py, pz);
       this->PatCoordinatesEntry->GetWidget()->SetValue(value);
       }
-      else if (this->AddPointPairPushButton == vtkKWPushButton::SafeDownCast(caller) 
-               && event == vtkKWPushButton::InvokedEvent)
-        {
-        int scSize = 0;
-        int pcSize = 0;
-        const char *pc = this->PatCoordinatesEntry->GetWidget()->GetValue();
-        const char *sc = this->SlicerCoordinatesEntry->GetWidget()->GetValue();
+    else if (this->AddPointPairPushButton == vtkKWPushButton::SafeDownCast(caller)
+             && event == vtkKWPushButton::InvokedEvent)
+      {
+      int scSize = 0;
+      int pcSize = 0;
+      const char *pc = this->PatCoordinatesEntry->GetWidget()->GetValue();
+      const char *sc = this->SlicerCoordinatesEntry->GetWidget()->GetValue();
 
-        if (pc) 
-          {
-          const vtksys_stl::string pcCor(pc);
-          pcSize = pcCor.size();
+      if (pc)
+        {
+        const vtksys_stl::string pcCor(pc);
+        pcSize = pcCor.size();
         }
-      if (sc) 
+      if (sc)
         {
         const vtksys_stl::string scCor(sc);
         scSize = scCor.size();
@@ -593,9 +558,9 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
 
       if (pcSize < 5 || scSize < 5)
         {
-        vtkSlicerApplication::GetInstance()->ErrorMessage("Patient or Slicer coordinates are invalid."); 
+        vtkSlicerApplication::GetInstance()->ErrorMessage("Patient or Slicer coordinates are invalid.");
         }
-      else 
+      else
         {
         int row = this->PointPairMultiColumnList->GetWidget()->GetNumberOfRows();
         this->PointPairMultiColumnList->GetWidget()->AddRow();
@@ -603,7 +568,7 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
         this->PointPairMultiColumnList->GetWidget()->SetCellText(row, 1, sc);
         }
       }
-    else if (this->DeletePointPairPushButton == vtkKWPushButton::SafeDownCast(caller) 
+    else if (this->DeletePointPairPushButton == vtkKWPushButton::SafeDownCast(caller)
              && event == vtkKWPushButton::InvokedEvent)
       {
       int numOfRows = this->PointPairMultiColumnList->GetWidget()->GetNumberOfSelectedRows();
@@ -614,12 +579,12 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
         this->PointPairMultiColumnList->GetWidget()->DeleteRow(index[0]);
         }
       }
-    else if (this->DeleteAllPointPairPushButton == vtkKWPushButton::SafeDownCast(caller) 
+    else if (this->DeleteAllPointPairPushButton == vtkKWPushButton::SafeDownCast(caller)
              && event == vtkKWPushButton::InvokedEvent)
       {
       this->PointPairMultiColumnList->GetWidget()->DeleteAllRows();
       }
-    else if (this->RegisterPushButton == vtkKWPushButton::SafeDownCast(caller) 
+    else if (this->RegisterPushButton == vtkKWPushButton::SafeDownCast(caller)
              && event == vtkKWPushButton::InvokedEvent)
       {
       int row = this->PointPairMultiColumnList->GetWidget()->GetNumberOfRows();
@@ -655,24 +620,24 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
           }
         }
       }
-    else if (this->ResetPushButton == vtkKWPushButton::SafeDownCast(caller) 
+    else if (this->ResetPushButton == vtkKWPushButton::SafeDownCast(caller)
              && event == vtkKWPushButton::InvokedEvent)
       {
       this->GetLogic()->SetUseRegistration(0);
       }
-    else if (this->LocatorCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
+    else if (this->LocatorCheckButton == vtkKWCheckButton::SafeDownCast(caller)
              && event == vtkKWCheckButton::SelectedStateChangedEvent )
       {
-      int checked = this->LocatorCheckButton->GetSelectedState(); 
+      int checked = this->LocatorCheckButton->GetSelectedState();
       if (!this->CloseScene)
         {
         if (checked)
           {
-         this->GetLogic()->SetVisibilityOfLocatorModel("IGTLocator", 1);
+          this->GetLogic()->EnableLocatorDriver(1);
           }
         else
           {
-         this->GetLogic()->SetVisibilityOfLocatorModel("IGTLocator", 0);
+          this->GetLogic()->EnableLocatorDriver(0);
           }
         }
       else
@@ -680,83 +645,83 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
         this->CloseScene = false;
         }
       }
-    else if (this->CrosshairCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
+    else if (this->CrosshairCheckButton == vtkKWCheckButton::SafeDownCast(caller)
              && event == vtkKWCheckButton::SelectedStateChangedEvent )
       {
       int checked = this->CrosshairCheckButton->GetSelectedState();
       if(checked)
-     {
-         vtkMRMLCrosshairNode* crosshair = this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode();
+        {
+        vtkMRMLCrosshairNode* crosshair = this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode();
 
-         if(crosshair)
-           {
-           crosshair->SetCrosshairName("default");
-           crosshair->SetCrosshairBehavior(vtkMRMLCrosshairNode::Normal);
-           crosshair->SetCrosshairThickness(vtkMRMLCrosshairNode::Fine);
-           crosshair->SetNavigation(1);
-           crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::ShowAll);
-        this->SetShowCrosshair(true);
-           }
-     }
-      else
-     {
-         vtkMRMLCrosshairNode* crosshair = this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode();
-
-         if(crosshair)
-           {
-           crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::NoCrosshair);
-        this->SetShowCrosshair(false);
+        if(crosshair)
+          {
+          crosshair->SetCrosshairName("default");
+          crosshair->SetCrosshairBehavior(vtkMRMLCrosshairNode::Normal);
+          crosshair->SetCrosshairThickness(vtkMRMLCrosshairNode::Fine);
+          crosshair->SetNavigation(1);
+          crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::ShowAll);
+          this->SetShowCrosshair(true);
+          }
         }
-     }
+      else
+        {
+        vtkMRMLCrosshairNode* crosshair = this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode();
+
+        if(crosshair)
+          {
+          crosshair->SetCrosshairMode(vtkMRMLCrosshairNode::NoCrosshair);
+          this->SetShowCrosshair(false);
+          }
+        }
       }
-    else if (this->LabelMapSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) 
+    else if (this->LabelMapSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
              && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent )
       {
-        this->LabelMapNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->LabelMapSelector->GetSelected());
-     if(this->LabelMapNode->GetLabelMap())
-       {
-       this->SetLabelMapLoaded(true);
-       }
-     else
-       {
-       this->SetLabelMapLoaded(false);
-       this->LabelMapSelector->SetSelected(NULL);
-       }
+      this->LabelMapNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->LabelMapSelector->GetSelected());
+      if(this->LabelMapNode->GetLabelMap())
+        {
+        this->SetLabelMapLoaded(true);
+        }
+      else
+        {
+        this->SetLabelMapLoaded(false);
+        this->LabelMapSelector->SetSelected(NULL);
+        }
       }
-    if (this->StartBeepingButton == vtkKWPushButton::SafeDownCast(caller) 
+    if (this->StartBeepingButton == vtkKWPushButton::SafeDownCast(caller)
         && event == vtkKWPushButton::InvokedEvent)
       {
-     if(this->GetLabelDetectionRunning() == false)
-       {
-         if(this->GetLabelMapLoaded())
-           {
-           this->SetLabelDetectionRunning(true);
-              if(this->StartBeepingButton && this->StopBeepingButton)
+      if(this->GetLabelDetectionRunning() == false)
+        {
+        if(this->GetLabelMapLoaded())
           {
+          this->SetLabelDetectionRunning(true);
+          if(this->StartBeepingButton && this->StopBeepingButton)
+            {
             this->StartBeepingButton->SetState(0);
-                  this->StopBeepingButton->SetState(1);
+            this->StopBeepingButton->SetState(1);
+            }
           }
-           }
-       }
+        }
       }
-    if (this->StopBeepingButton == vtkKWPushButton::SafeDownCast(caller) 
+    if (this->StopBeepingButton == vtkKWPushButton::SafeDownCast(caller)
         && event == vtkKWPushButton::InvokedEvent)
       {
-     if(this->GetLabelDetectionRunning())
-       {
-       this->SetLabelDetectionRunning(false);
-          if(this->StartBeepingButton && this->StopBeepingButton)
-         {
-         this->StartBeepingButton->SetState(1);
-            this->StopBeepingButton->SetState(0);
-         }
-       }
+      if(this->GetLabelDetectionRunning())
+        {
+        this->SetLabelDetectionRunning(false);
+        if(this->StartBeepingButton && this->StopBeepingButton)
+          {
+          this->StartBeepingButton->SetState(1);
+          this->StopBeepingButton->SetState(0);
+          }
+        }
       }
-    else if (this->LocatorModeCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
+    else if (this->LocatorModeCheckButton == vtkKWCheckButton::SafeDownCast(caller)
              && event == vtkKWCheckButton::SelectedStateChangedEvent )
       {
 
-      int checked = this->LocatorModeCheckButton->GetSelectedState(); 
+      int checked = this->LocatorModeCheckButton->GetSelectedState();
       std::string val("Locator");
 
       if (checked)
@@ -773,10 +738,10 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
       this->YellowSliceMenu->SetValue(val.c_str());
       this->GreenSliceMenu->SetValue(val.c_str());
       }
-    else if (this->UserModeCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
+    else if (this->UserModeCheckButton == vtkKWCheckButton::SafeDownCast(caller)
              && event == vtkKWCheckButton::SelectedStateChangedEvent )
       {
-      int checked = this->UserModeCheckButton->GetSelectedState(); 
+      int checked = this->UserModeCheckButton->GetSelectedState();
       std::string val("User");
 
       if (checked)
@@ -792,20 +757,20 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
       this->YellowSliceMenu->SetValue(val.c_str());
       this->GreenSliceMenu->SetValue(val.c_str());
       }
-    else if (this->FreezeCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
+    else if (this->FreezeCheckButton == vtkKWCheckButton::SafeDownCast(caller)
              && event == vtkKWCheckButton::SelectedStateChangedEvent )
       {
-      // int checked = this->FreezeCheckButton->GetSelectedState(); 
+      // int checked = this->FreezeCheckButton->GetSelectedState();
       // cout << "FreezeCheckButton = " << checked << endl;
       }
-    else if (this->ObliqueCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
+    else if (this->ObliqueCheckButton == vtkKWCheckButton::SafeDownCast(caller)
              && event == vtkKWCheckButton::SelectedStateChangedEvent )
       {
-      int checked = this->ObliqueCheckButton->GetSelectedState(); 
+      int checked = this->ObliqueCheckButton->GetSelectedState();
       this->GetLogic()->SetEnableOblique(checked);
       }
     }
-} 
+}
 
 
 
@@ -814,7 +779,6 @@ void vtkNeuroNavGUI::ProcessLogicEvents ( vtkObject *vtkNotUsed(caller),
                                           unsigned long vtkNotUsed(event),
                                           void *vtkNotUsed(callData))
 {
-  // Fill in
 }
 
 
@@ -830,17 +794,7 @@ void vtkNeuroNavGUI::ProcessMRMLEvents ( vtkObject *caller,
       this->LocatorCheckButton->SelectedStateOff();
       }
     }
-
-  //if ( vtkMRMLScene::SafeDownCast(caller) == this->MRMLScene 
-  //      && (event == vtkMRMLScene::NodeAddedEvent || event == vtkMRMLScene::NodeRemovedEvent ) )
-  //  {
-  //     this->GetApplicationGUI()->GetSlicesControlGUI()->UpdateFromMRML();
-      //  }
-
-
-
 }
-
 
 
 //---------------------------------------------------------------------------
@@ -848,14 +802,17 @@ void vtkNeuroNavGUI::Enter ( )
 {
   // Fill in
 
+  if(!this->GetLogic()->GetlocatorModel())
+    {
+    this->CreateNewLocator();
+    }
+
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
     this->TimerInterval = 100;  // 100 ms
     ProcessTimerEvents();
     }
-
-
 
 }
 
@@ -870,33 +827,37 @@ void vtkNeuroNavGUI::ProcessTimerEvents()
     // Check incomming new data
 
     if(this->TransformNodeNameEntry->GetSelected())
-     {
+      {
       this->GetLogic()->UpdateTransformNodeByID(this->TransformNodeNameEntry->GetSelected()->GetID());
 
       if(this->GetShowCrosshair())
-     {
+        {
         this->GetLogic()->UpdateCrosshair(this->GetApplicationGUI()->GetSlicesControlGUI()->GetCrosshairNode());
-     }
+        }
 
       // **********************
       // Reading Label Map
       if(this->GetLabelDetectionRunning())
-     {
-     int LabelNumber = this->GetLogic()->GetLabelNumber(this->TransformNodeNameEntry->GetSelected()->GetID(),vtkMRMLScalarVolumeNode::SafeDownCast(this->LabelMapNode));
+        {
+        int LabelNumber = this->GetLogic()->GetLabelNumber(this->TransformNodeNameEntry->GetSelected()->GetID(),vtkMRMLScalarVolumeNode::SafeDownCast(this->LabelMapNode));
         if(this->LabelMapNumberEntry)
-       {
+          {
           int label_requested = this->LabelMapNumberEntry->GetWidget()->GetValueAsInt();
           if(LabelNumber == label_requested)
-         {
-           this->GetLogic()->BeepingFunction();
-            }     
-       }
-     }
+            {
+            this->GetLogic()->SetBeepingMode(true);
+            }
+          else
+            {
+            this->GetLogic()->SetBeepingMode(false);
+            }
+          }
+        }
 
       // *********************
-           
-     }
-    int checked = this->FreezeCheckButton->GetSelectedState(); 
+
+      }
+    int checked = this->FreezeCheckButton->GetSelectedState();
     if (!checked)
       {
       int sn1 = 0;  // 0 = Locator; 1 = User
@@ -920,17 +881,17 @@ void vtkNeuroNavGUI::ProcessTimerEvents()
 
 
     // Tractography seeding
-    checked = this->TractographyCheckButton->GetSelectedState(); 
+    checked = this->TractographyCheckButton->GetSelectedState();
     if (checked)
-    {
-    const char *nodeName2 = this->FiducialListNodeNameEntry->GetWidget()->GetValue();
-    double offset = this->TranslationScale->GetValue();
-    this->GetLogic()->UpdateFiducialSeeding(nodeName2, offset);
-    }
- 
-    vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
+      {
+      const char *nodeName2 = this->FiducialListNodeNameEntry->GetWidget()->GetValue();
+      double offset = this->TranslationScale->GetValue();
+      this->GetLogic()->UpdateFiducialSeeding(nodeName2, offset);
+      }
+
+    vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(),
                                          this->TimerInterval,
-                                         this, "ProcessTimerEvents");        
+                                         this, "ProcessTimerEvents");
     }
 }
 
@@ -946,25 +907,24 @@ void vtkNeuroNavGUI::Exit ( )
 void vtkNeuroNavGUI::BuildGUI ( )
 {
   // ---
-  // MODULE GUI FRAME 
+  // MODULE GUI FRAME
   // create a page
   this->UIPanel->AddPage ( "NeuroNav", "NeuroNav", NULL );
 
   BuildGUIForHelpFrame();
- 
-  // BuildGUIForDeviceFrame ();
+
   BuildGUIForRegistrationFrame();
   BuildGUIForTrackingFrame();
-  // BuildGUIForHandPieceFrame ();
 }
 
 
 
+//---------------------------------------------------------------------------
 void vtkNeuroNavGUI::BuildGUIForHelpFrame()
 {
 
   // ----------------------------------------------------------------
-  // HELP FRAME         
+  // HELP FRAME
   // ----------------------------------------------------------------
 
   // Define your help text here.
@@ -979,13 +939,14 @@ void vtkNeuroNavGUI::BuildGUIForHelpFrame()
 
 
 
+//---------------------------------------------------------------------------
 void vtkNeuroNavGUI::BuildGUIForRegistrationFrame ()
 {
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ( "NeuroNav" );
 
   // ----------------------------------------------------------------
-  // REGISTRATION FRAME            
+  // REGISTRATION FRAME
   // ----------------------------------------------------------------
   vtkSlicerModuleCollapsibleFrame *regFrame = vtkSlicerModuleCollapsibleFrame::New();
   regFrame->SetParent(page);
@@ -993,28 +954,28 @@ void vtkNeuroNavGUI::BuildGUIForRegistrationFrame ()
   regFrame->SetLabelText("Registration");
   regFrame->CollapseFrame();
   app->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-                regFrame->GetWidgetName(), page->GetWidgetName());
+              regFrame->GetWidgetName(), page->GetWidgetName());
 
 
-  // add a point pair 
+  // add a point pair
   vtkKWFrameWithLabel *addFrame = vtkKWFrameWithLabel::New();
   addFrame->SetParent(regFrame->GetFrame());
   addFrame->Create();
   addFrame->SetLabelText("Add a point pair");
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-                addFrame->GetWidgetName());
+               addFrame->GetWidgetName());
 
   vtkKWFrame *patFrame = vtkKWFrame::New();
   patFrame->SetParent(addFrame->GetFrame());
   patFrame->Create();
   this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
-                patFrame->GetWidgetName());
+               patFrame->GetWidgetName());
 
   vtkKWFrame *okFrame = vtkKWFrame::New();
   okFrame->SetParent(addFrame->GetFrame());
   okFrame->Create();
   this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
-                okFrame->GetWidgetName());
+               okFrame->GetWidgetName());
 
   this->PatCoordinatesEntry = vtkKWEntryWithLabel::New();
   this->PatCoordinatesEntry->SetParent(patFrame);
@@ -1030,7 +991,7 @@ void vtkNeuroNavGUI::BuildGUIForRegistrationFrame ()
   this->GetPatCoordinatesPushButton->SetText("Get");
   this->GetPatCoordinatesPushButton->SetWidth( 6 );
 
-  this->Script("pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2", 
+  this->Script("pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
                this->PatCoordinatesEntry->GetWidgetName(),
                this->GetPatCoordinatesPushButton->GetWidgetName());
 
@@ -1052,13 +1013,13 @@ void vtkNeuroNavGUI::BuildGUIForRegistrationFrame ()
   this->Script( "pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
                 this->AddPointPairPushButton->GetWidgetName());
 
-  // list of defined point pairs 
+  // list of defined point pairs
   vtkKWFrameWithLabel *listFrame = vtkKWFrameWithLabel::New();
   listFrame->SetParent(regFrame->GetFrame());
   listFrame->Create();
   listFrame->SetLabelText("Defined point pairs");
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-                listFrame->GetWidgetName());
+               listFrame->GetWidgetName());
 
 
   // add the multicolumn list to show the points
@@ -1069,15 +1030,9 @@ void vtkNeuroNavGUI::BuildGUIForRegistrationFrame ()
   this->PointPairMultiColumnList->GetWidget()->SetSelectionTypeToRow();
   this->PointPairMultiColumnList->GetWidget()->MovableRowsOff();
   this->PointPairMultiColumnList->GetWidget()->MovableColumnsOff();
-  // set up the columns of data for each point
-  // refer to the header file for order
   this->PointPairMultiColumnList->GetWidget()->AddColumn("Patient Coordinates");
   this->PointPairMultiColumnList->GetWidget()->AddColumn("Image Coordinates");
 
-  // make the selected column editable by checkbox
-  //    this->PointPairMultiColumnList->GetWidget()->SetColumnEditWindowToCheckButton(this->SelectedColumn);
-
-  // now set the attributes that are equal across the columns
   for (int col = 0; col < 2; col++)
     {
     this->PointPairMultiColumnList->GetWidget()->SetColumnWidth(col, 22);
@@ -1085,48 +1040,19 @@ void vtkNeuroNavGUI::BuildGUIForRegistrationFrame ()
     this->PointPairMultiColumnList->GetWidget()->SetColumnAlignmentToLeft(col);
     this->PointPairMultiColumnList->GetWidget()->ColumnEditableOff(col);
     }
-  /*
-     if (col >= this->XColumn && col <= this->OrZColumn)
-     {
-     this->PointPairMultiColumnList->GetWidget()->SetColumnEditWindowToSpinBox(col);
-     }
-     */
-  // set the name column width to be higher
-  // this->PointPairMultiColumnList->GetWidget()->SetColumnWidth(this->NameColumn, 15);
-  // set the selected column width a bit higher
-  // this->PointPairMultiColumnList->GetWidget()->SetColumnWidth(this->SelectedColumn, 9);
 
   app->Script ( "pack %s -fill both -expand true",
                 this->PointPairMultiColumnList->GetWidgetName());
-  //                  listFrame->GetWidgetName());
-  //    this->PointPairMultiColumnList->GetWidget()->SetCellUpdatedCommand(this, "UpdateElement");
 
   // button frame
   vtkKWFrame *buttonFrame = vtkKWFrame::New();
   buttonFrame->SetParent(listFrame->GetFrame());
   buttonFrame->Create();
   app->Script("pack %s -side top -anchor nw -fill x -pady 0 -in %s",
-               buttonFrame->GetWidgetName(),
-               listFrame->GetFrame()->GetWidgetName());
-  /*    
-  // add an load button
-  this->LoadPointPairPushButton = vtkKWPushButton::New ( );
-  this->LoadPointPairPushButton->SetParent ( buttonFrame );
-  this->LoadPointPairPushButton->Create ( );
-  this->LoadPointPairPushButton->SetText ("Load Points");
-  this->LoadPointPairPushButton->SetWidth (12);
-  this->LoadPointPairPushButton->SetBalloonHelpString("Load point pairs from a file.");
+              buttonFrame->GetWidgetName(),
+              listFrame->GetFrame()->GetWidgetName());
 
-  // add a save button
-  this->SavePointPairPushButton = vtkKWPushButton::New ( );
-  this->SavePointPairPushButton->SetParent ( buttonFrame );
-  this->SavePointPairPushButton->Create ( );
-  this->SavePointPairPushButton->SetText ("Save Points");
-  this->SavePointPairPushButton->SetWidth (12);
-  this->SavePointPairPushButton->SetBalloonHelpString("Save all defined point pairs to a file.");
-  */
-
-  // add a delete button 
+  // add a delete button
   this->DeletePointPairPushButton = vtkKWPushButton::New();
   this->DeletePointPairPushButton->SetParent(buttonFrame);
   this->DeletePointPairPushButton->Create();
@@ -1134,7 +1060,7 @@ void vtkNeuroNavGUI::BuildGUIForRegistrationFrame ()
   this->DeletePointPairPushButton->SetWidth(12);
   this->DeletePointPairPushButton->SetBalloonHelpString("Delete the selected point pair.");
 
-  // add a delete button 
+  // add a delete button
   this->DeleteAllPointPairPushButton = vtkKWPushButton::New();
   this->DeleteAllPointPairPushButton->SetParent(buttonFrame);
   this->DeleteAllPointPairPushButton->Create();
@@ -1142,7 +1068,7 @@ void vtkNeuroNavGUI::BuildGUIForRegistrationFrame ()
   this->DeleteAllPointPairPushButton->SetWidth(12);
   this->DeleteAllPointPairPushButton->SetBalloonHelpString("Delete all point pairs.");
 
-  app->Script("pack %s %s -side left -anchor w -padx 2 -pady 2", 
+  app->Script("pack %s %s -side left -anchor w -padx 2 -pady 2",
               this->DeletePointPairPushButton->GetWidgetName(),
               this->DeleteAllPointPairPushButton->GetWidgetName());
 
@@ -1153,9 +1079,9 @@ void vtkNeuroNavGUI::BuildGUIForRegistrationFrame ()
   actionFrame->SetParent(regFrame->GetFrame());
   actionFrame->Create();
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-                actionFrame->GetWidgetName());
+               actionFrame->GetWidgetName());
 
-  // add a register button 
+  // add a register button
   this->RegisterPushButton = vtkKWPushButton::New();
   this->RegisterPushButton->SetParent(actionFrame);
   this->RegisterPushButton->Create();
@@ -1163,7 +1089,7 @@ void vtkNeuroNavGUI::BuildGUIForRegistrationFrame ()
   this->RegisterPushButton->SetWidth(12);
   this->RegisterPushButton->SetBalloonHelpString("Perform patient to image registration.");
 
-  // add a reset button 
+  // add a reset button
   this->ResetPushButton = vtkKWPushButton::New();
   this->ResetPushButton->SetParent(actionFrame);
   this->ResetPushButton->Create();
@@ -1172,7 +1098,7 @@ void vtkNeuroNavGUI::BuildGUIForRegistrationFrame ()
   this->ResetPushButton->SetBalloonHelpString("Ignore the current registration.");
 
 
-  app->Script("pack %s %s -side left -anchor w -padx 2 -pady 2", 
+  app->Script("pack %s %s -side left -anchor w -padx 2 -pady 2",
               this->RegisterPushButton->GetWidgetName(),
               this->ResetPushButton->GetWidgetName());
 
@@ -1188,6 +1114,7 @@ void vtkNeuroNavGUI::BuildGUIForRegistrationFrame ()
 }
 
 
+//---------------------------------------------------------------------------
 void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
 {
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
@@ -1195,39 +1122,26 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
 
 
   // ----------------------------------------------------------------
-  // Navigation FRAME            
+  // Navigation FRAME
   // ----------------------------------------------------------------
-  vtkSlicerModuleCollapsibleFrame *trackingFrame = vtkSlicerModuleCollapsibleFrame::New();    
+  vtkSlicerModuleCollapsibleFrame *trackingFrame = vtkSlicerModuleCollapsibleFrame::New();
   trackingFrame->SetParent(page);
   trackingFrame->Create();
   trackingFrame->SetLabelText("Navigation");
-  //trackingFrame->ExpandFrame ( );
   trackingFrame->CollapseFrame();
   app->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-                trackingFrame->GetWidgetName(), page->GetWidgetName());
+              trackingFrame->GetWidgetName(), page->GetWidgetName());
 
 
 
-  // Display frame: Options to locator display 
+  // Display frame: Options to locator display
   // -----------------------------------------
   vtkKWFrameWithLabel *displayFrame = vtkKWFrameWithLabel::New();
   displayFrame->SetParent(trackingFrame->GetFrame());
   displayFrame->Create();
   displayFrame->SetLabelText ("Locator Display");
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-                 displayFrame->GetWidgetName());
-
-  /*
-  this->TransformNodeNameEntry = vtkKWEntryWithLabel::New();
-  this->TransformNodeNameEntry->SetParent(displayFrame->GetFrame());
-  this->TransformNodeNameEntry->Create();
-  this->TransformNodeNameEntry->SetWidth(40);
-  this->TransformNodeNameEntry->SetLabelWidth(30);
-  this->TransformNodeNameEntry->SetLabelText("Input (Transform) Node Name:");
-  this->TransformNodeNameEntry->GetWidget()->SetValue("Tracker");
-  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", 
-               this->TransformNodeNameEntry->GetWidgetName());
-  */
+               displayFrame->GetWidgetName());
 
   vtkKWLabel* node_name = vtkKWLabel::New();
   node_name->SetParent(displayFrame->GetFrame());
@@ -1243,7 +1157,7 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   this->TransformNodeNameEntry->SetNodeClass("vtkMRMLLinearTransformNode",NULL,NULL,NULL);
   this->TransformNodeNameEntry->SetMRMLScene(this->Logic->GetMRMLScene());
   this->TransformNodeNameEntry->UpdateMenu();
-  this->Script("pack %s %s -fill x -side top -anchor nw -expand n -padx 2 -pady 2", 
+  this->Script("pack %s %s -fill x -side top -anchor nw -expand n -padx 2 -pady 2",
                node_name->GetWidgetName(),
                this->TransformNodeNameEntry->GetWidgetName());
 
@@ -1261,41 +1175,19 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   this->CrosshairCheckButton->SelectedStateOff();
   this->CrosshairCheckButton->SetText("Show Crosshair");
 
-
-  /*
-     this->HandleCheckButton = vtkKWCheckButton::New();
-     this->HandleCheckButton->SetParent(displayFrame->GetFrame());
-     this->HandleCheckButton->Create();
-     this->HandleCheckButton->SelectedStateOff();
-     this->HandleCheckButton->SetText("Show Handle");
-
-     this->GuideCheckButton = vtkKWCheckButton::New();
-     this->GuideCheckButton->SetParent(displayFrame->GetFrame());
-     this->GuideCheckButton->Create();
-     this->GuideCheckButton->SelectedStateOff();
-     this->GuideCheckButton->SetText("Show Guide");
-
-
-     this->Script("pack %s %s %s -side left -anchor w -padx 2 -pady 2", 
-     this->LocatorCheckButton->GetWidgetName(),
-     this->HandleCheckButton->GetWidgetName(),
-     this->GuideCheckButton->GetWidgetName());
-     */
-
-
-  this->Script("pack %s %s -side left -anchor w -padx 2 -pady 2", 
+  this->Script("pack %s %s -side left -anchor w -padx 2 -pady 2",
                this->LocatorCheckButton->GetWidgetName(),
                this->CrosshairCheckButton->GetWidgetName());
 
 
-  // Label frame: Options to locator display 
+  // Label frame: Options to locator display
   // -----------------------------------------
   vtkKWFrameWithLabel *labelFrame = vtkKWFrameWithLabel::New();
   labelFrame->SetParent(trackingFrame->GetFrame());
   labelFrame->Create();
   labelFrame->SetLabelText ("LabelMap Options");
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-                 labelFrame->GetWidgetName());
+               labelFrame->GetWidgetName());
 
 
 
@@ -1313,7 +1205,7 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   this->LabelMapSelector->SetNodeClass("vtkMRMLScalarVolumeNode",NULL,NULL,NULL);
   this->LabelMapSelector->SetMRMLScene(this->Logic->GetMRMLScene());
   this->LabelMapSelector->UpdateMenu();
-  this->Script("pack %s %s -fill x -side top -anchor nw -expand n -padx 2 -pady 2", 
+  this->Script("pack %s %s -fill x -side top -anchor nw -expand n -padx 2 -pady 2",
                label_map->GetWidgetName(),
                this->LabelMapSelector->GetWidgetName());
 
@@ -1324,9 +1216,9 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   this->LabelMapNumberEntry->Create();
   this->LabelMapNumberEntry->GetWidget()->SetWidth(2);
   this->LabelMapNumberEntry->GetWidget()->SetValueAsInt(1);
-  this->LabelMapNumberEntry->GetWidget()->SetRestrictValueToInteger();  
-  this->LabelMapNumberEntry->SetLabelText("Label number:");  
- 
+  this->LabelMapNumberEntry->GetWidget()->SetRestrictValueToInteger();
+  this->LabelMapNumberEntry->SetLabelText("Label number:");
+
   this->StartBeepingButton = vtkKWPushButton::New();
   this->StartBeepingButton->SetParent(labelFrame->GetFrame());
   this->StartBeepingButton->Create();
@@ -1336,22 +1228,22 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   this->StopBeepingButton->SetParent(labelFrame->GetFrame());
   this->StopBeepingButton->Create();
   this->StopBeepingButton->SetText("Stop Label Detection");
-  this->StopBeepingButton->SetState(0);  
-  
+  this->StopBeepingButton->SetState(0);
 
-  this->Script("pack %s %s %s -fill x -side left -anchor w -padx 2 -pady 2", 
+
+  this->Script("pack %s %s %s -fill x -side left -anchor w -padx 2 -pady 2",
                this->LabelMapNumberEntry->GetWidgetName(),
                this->StartBeepingButton->GetWidgetName(),
                this->StopBeepingButton->GetWidgetName());
 
-  // Tractography frame: Options to tractography display 
+  // Tractography frame: Options to tractography display
   // -----------------------------------------
   vtkKWFrameWithLabel *tractographyFrame = vtkKWFrameWithLabel::New();
   tractographyFrame->SetParent(trackingFrame->GetFrame());
   tractographyFrame->Create();
   tractographyFrame->SetLabelText ("Tractography Seeding");
   this->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-                 tractographyFrame->GetWidgetName() );
+                tractographyFrame->GetWidgetName() );
 
 
   this->FiducialListNodeNameEntry = vtkKWEntryWithLabel::New();
@@ -1361,10 +1253,10 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   this->FiducialListNodeNameEntry->SetLabelWidth(30);
   this->FiducialListNodeNameEntry->SetLabelText("Fiducial List Node Name:");
   this->FiducialListNodeNameEntry->GetWidget()->SetValue("L");
-  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", 
+  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
                this->FiducialListNodeNameEntry->GetWidgetName());
 
- 
+
   this->TranslationScale =  vtkKWScaleWithEntry::New() ;
   this->TranslationScale->SetParent(tractographyFrame->GetFrame());
   this->TranslationScale->Create();
@@ -1376,7 +1268,7 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   this->TranslationScale->SetCommand(this, "TransformChangingCallback");
   this->TranslationScale->SetEndCommand(this, "TransformChangedCallback");
   this->TranslationScale->SetEntryCommand(this, "TransformChangedCallback");
-  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 3", 
+  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 3",
                this->TranslationScale->GetWidgetName());
 
   this->TractographyCheckButton = vtkKWCheckButton::New();
@@ -1385,26 +1277,26 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   this->TractographyCheckButton->SelectedStateOff();
   this->TractographyCheckButton->SetText("Fiducial Seeding");
 
-  this->Script("pack %s -side left -anchor w -padx 2 -pady 2", 
+  this->Script("pack %s -side left -anchor w -padx 2 -pady 2",
                this->TractographyCheckButton->GetWidgetName());
 
 
-  // Driver frame: Locator can drive slices 
+  // Driver frame: Locator can drive slices
   // -----------------------------------------
   vtkKWFrameWithLabel *driverFrame = vtkKWFrameWithLabel::New();
   driverFrame->SetParent(trackingFrame->GetFrame());
   driverFrame->Create();
   driverFrame->SetLabelText("Driver");
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-                 driverFrame->GetWidgetName());
+               driverFrame->GetWidgetName());
 
   // Mode frame
   vtkKWFrame *modeFrame = vtkKWFrame::New();
   modeFrame->SetParent(driverFrame->GetFrame());
   modeFrame->Create();
   app->Script("pack %s -side top -anchor nw -fill x -pady 1 -in %s",
-               modeFrame->GetWidgetName(),
-               driverFrame->GetFrame()->GetWidgetName());
+              modeFrame->GetWidgetName(),
+              driverFrame->GetFrame()->GetWidgetName());
 
 
   this->LocatorModeCheckButton = vtkKWCheckButton::New();
@@ -1431,7 +1323,7 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   this->ObliqueCheckButton->SelectedStateOff();
   this->ObliqueCheckButton->SetText("Oblique");
 
-  this->Script("pack %s %s %s %s -side left -anchor w -padx 2 -pady 2", 
+  this->Script("pack %s %s %s %s -side left -anchor w -padx 2 -pady 2",
                this->LocatorModeCheckButton->GetWidgetName(),
                this->UserModeCheckButton->GetWidgetName(),
                this->FreezeCheckButton->GetWidgetName(),
@@ -1447,7 +1339,7 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
                driverFrame->GetFrame()->GetWidgetName());
 
 
-  // Contents in slice frame 
+  // Contents in slice frame
   vtkSlicerColor *color = app->GetSlicerTheme()->GetSlicerColors();
 
   this->RedSliceMenu = vtkKWMenuButton::New();
@@ -1480,7 +1372,7 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   this->GreenSliceMenu->GetMenu()->AddRadioButton("Locator");
   this->GreenSliceMenu->SetValue("User");
 
-  this->Script("pack %s %s %s -side left -anchor w -padx 2 -pady 2", 
+  this->Script("pack %s %s %s -side left -anchor w -padx 2 -pady 2",
                this->RedSliceMenu->GetWidgetName(),
                this->YellowSliceMenu->GetWidgetName(),
                this->GreenSliceMenu->GetWidgetName());
@@ -1495,14 +1387,72 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
 }
 
 
+//---------------------------------------------------------------------------
 void vtkNeuroNavGUI::TransformChangedCallback(double)
 {
 //    cout << "Transform changed.\n";
 }
 
 
+//---------------------------------------------------------------------------
 void vtkNeuroNavGUI::TransformChangingCallback(double)
 {
 //    cout << "Transform changing.\n";
+}
+
+//---------------------------------------------------------------------------
+void vtkNeuroNavGUI::CreateNewLocator()
+{
+  vtkMRMLModelDisplayNode    *locatorDisp;
+  vtkMRMLModelNode* LocatorModel = vtkMRMLModelNode::New();
+  this->GetLogic()->SetlocatorModel(LocatorModel);
+
+  locatorDisp = vtkMRMLModelDisplayNode::New();
+
+  this->GetMRMLScene()->SaveStateForUndo();
+  this->GetMRMLScene()->AddNode(locatorDisp);
+  this->GetMRMLScene()->AddNode(this->GetLogic()->GetlocatorModel());
+
+  locatorDisp->SetScene(this->GetMRMLScene());
+  locatorDisp->SetVisibility(0);
+
+  this->GetLogic()->GetlocatorModel()->SetName("NeuroNavLocator");
+  this->GetLogic()->GetlocatorModel()->SetScene(this->GetMRMLScene());
+  this->GetLogic()->GetlocatorModel()->SetAndObserveDisplayNodeID(locatorDisp->GetID());
+  this->GetLogic()->GetlocatorModel()->SetHideFromEditors(0);
+
+  // Cylinder represents the locator stick
+  vtkCylinderSource *cylinder = vtkCylinderSource::New();
+  cylinder->SetRadius(1.5);
+  cylinder->SetHeight(100);
+  cylinder->SetCenter(0, 50, 0);
+  cylinder->Update();
+
+  // Sphere represents the locator tip
+  vtkSphereSource *sphere = vtkSphereSource::New();
+  sphere->SetRadius(3.0);
+  sphere->SetCenter(0, 0, 0);
+  sphere->Update();
+
+  vtkAppendPolyData *apd = vtkAppendPolyData::New();
+  apd->AddInput(sphere->GetOutput());
+  apd->AddInput(cylinder->GetOutput());
+  apd->Update();
+
+  this->GetLogic()->GetlocatorModel()->SetAndObservePolyData(apd->GetOutput());
+
+  double color[3];
+  color[0] = 0.0;
+  color[1] = 1.0;
+  color[2] = 1.0;
+  locatorDisp->SetPolyData(this->GetLogic()->GetlocatorModel()->GetPolyData());
+  locatorDisp->SetColor(color);
+
+  cylinder->Delete();
+  sphere->Delete();
+  apd->Delete();
+
+  locatorDisp->Delete();
+  LocatorModel->Delete();
 }
 
