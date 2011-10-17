@@ -5,17 +5,17 @@
   See Doc/copyright/copyright.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
-Program:   3D Slicer
-Module:    $HeadURL: $
-Date:      $Date: $
-Version:   $Revision: $
+  Program:   3D Slicer
+  Module:    $HeadURL: $
+  Date:      $Date: $
+  Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
-// .NAME vtkNeuroNavLogic - slicer logic class for Locator module 
+// .NAME vtkNeuroNavLogic - slicer logic class for Locator module
 // .SECTION Description
 // This class manages the logic associated with tracking device for
-// IGT. 
+// IGT.
 
 
 #ifndef __vtkNeuroNavLogic_h
@@ -38,9 +38,12 @@ Version:   $Revision: $
 #include "vtkMRMLCrosshairNode.h"
 #include "vtkMRMLSliceNode.h"
 
-class VTK_NEURONAV_EXPORT vtkNeuroNavLogic : public vtkSlicerModuleLogic 
+#include "itkMultiThreader.h"
+#include "itkMutexLock.h"
+
+class VTK_NEURONAV_EXPORT vtkNeuroNavLogic : public vtkSlicerModuleLogic
 {
-public:
+ public:
   //BTX
   enum WorkPhase {
     StartUp = 0,
@@ -73,7 +76,7 @@ public:
 
   // Work phase keywords used in NaviTrack (defined in BRPTPRInterface.h)
 
-public:
+ public:
 
   static vtkNeuroNavLogic *New();
 
@@ -108,28 +111,24 @@ public:
   vtkGetObjectMacro ( LocatorMatrix,    vtkMatrix4x4 );
   vtkGetObjectMacro ( Pat2ImgReg, vtkIGTPat2ImgRegistration );
   vtkGetObjectMacro ( locatorModel, vtkMRMLModelNode );
+  vtkSetObjectMacro ( locatorModel, vtkMRMLModelNode );
 
-
-  vtkSetStringMacro(TransformNodeID); 
+  vtkSetStringMacro(TransformNodeID);
   vtkGetStringMacro(TransformNodeID);
 
   vtkSetMacro (UseRegistration, bool);
   vtkGetMacro (UseRegistration, bool);
 
+  void SetBeepingMode(bool beep);
+  bool GetBeepingMode();
+
   void PrintSelf(ostream&, vtkIndent);
-  //void AddRealtimeVolumeNode(const char* name);
 
-
-  //  vtkMRMLModelNode* SetVisibilityOfLocatorModel(const char* nodeName, int v);
-  // vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
-
-  void SetVisibilityOfLocatorModel(const char* nodeName, int v);
-  void AddLocatorModel(const char* nodeName, double r, double g, double b);
-
+  int EnableLocatorDriver(int sw);
 
   void UpdateDisplay(int sliceNo1, int sliceNo2, int sliceNo3);
   void GetCurrentPosition(double *px, double *py, double *pz);
-  //  void UpdateTransformNodeByName(const char *name);
+
   void UpdateTransformNodeByID(const char *id);
   void UpdateCrosshair(vtkMRMLCrosshairNode* crosshair);
 
@@ -139,8 +138,9 @@ public:
 
   int GetLabelNumber(const char *id, vtkMRMLScalarVolumeNode* LabelMap);
 
-  void BeepingFunction();
-protected:
+  static ITK_THREAD_RETURN_TYPE BeepingFunction(void* pInfoStruct);
+
+ protected:
 
   vtkNeuroNavLogic();
   ~vtkNeuroNavLogic();
@@ -149,7 +149,7 @@ protected:
 
 
 
-private:
+ private:
 
   //----------------------------------------------------------------
   // Monitor Timer
@@ -202,7 +202,7 @@ private:
 
   vtkMRMLModelNode *locatorModel;
 
-  bool  Connection;  
+  bool  Connection;
 
   bool UseRegistration;
   char *TransformNodeID;
@@ -218,9 +218,19 @@ private:
   // updated transform after patient to image registration
   vtkMRMLLinearTransformNode *UpdatedTrackerNode;
 
+  // Thread
+
+  //BTX
+  itk::MultiThreader::Pointer m_Threader;
+  itk::MutexLock::Pointer BeepingModeLock;
+  //ETX
+  int ThreaderID;
+  bool beepingMode;
+  bool DestructorCalled;
+
 };
 
 #endif
 
 
-  
+

@@ -1,6 +1,6 @@
-// .NAME vtkNeuroNavGUI 
+// .NAME vtkNeuroNavGUI
 // .SECTION Description
-// Main Volumes GUI and mediator methods for slicer3. 
+// Main Volumes GUI and mediator methods for slicer3.
 
 
 #ifndef __vtkNeuroNavGUI_h
@@ -35,20 +35,20 @@ class vtkKWMultiColumnListWithScrollbars;
 class vtkSlicerNodeSelectorWidget;
 class vtkMRMLScalarVolumeNode;
 
-// Description:    
+// Description:
 // This class implements Slicer's Volumes GUI.
 //
 class VTK_NEURONAV_EXPORT vtkNeuroNavGUI : public vtkSlicerModuleGUI
 {
-public:
+ public:
 
-  // Description:    
+  // Description:
   // Usual vtk class functions
   static vtkNeuroNavGUI* New (  );
   vtkTypeRevisionMacro ( vtkNeuroNavGUI, vtkSlicerModuleGUI );
   void PrintSelf (ostream& os, vtkIndent indent );
 
-  // Description: 
+  // Description:
   // Get the categorization of the module.
   const char *GetCategory() const { return "IGT"; }
 
@@ -60,9 +60,9 @@ public:
 
   vtkGetMacro(LabelDetectionRunning, bool);
   vtkSetMacro(LabelDetectionRunning, bool);
-  
 
-  // Description:    
+
+  // Description:
   // Get methods on class members (no Set methods required)
   vtkGetObjectMacro ( Logic, vtkNeuroNavLogic );
 
@@ -70,11 +70,9 @@ public:
   // API for setting VolumeNode, VolumeLogic and
   // for both setting and observing them.
   void SetModuleLogic ( vtkSlicerLogic *logic )
-    { this->SetLogic ( vtkObjectPointer (&this->Logic), logic ); }
-  //void SetAndObserveModuleLogic ( vtkNeuroNavLogic *logic )
-  //    { this->SetAndObserveLogic ( vtkObjectPointer (&this->Logic), logic ); }
+  { this->SetLogic ( vtkObjectPointer (&this->Logic), logic ); }
 
-  // Description:    
+  // Description:
   // This method builds the IGTDemo module GUI
   virtual void BuildGUI ( );
 
@@ -86,7 +84,7 @@ public:
 
   // Description:
   // Class's mediator methods for processing events invoked by
-  // either the Logic, MRML or GUI.    
+  // either the Logic, MRML or GUI.
   virtual void ProcessLogicEvents ( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessGUIEvents ( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
@@ -101,14 +99,15 @@ public:
   virtual void Exit ( );
 
   //BTX
-  static void DataCallback(vtkObject *caller, 
+  static void DataCallback(vtkObject *caller,
                            unsigned long eid, void *clientData, void *callData);
 
   //ETX
   void TransformChangedCallback(double);
   void TransformChangingCallback(double);
+  void CreateNewLocator();
 
-protected:
+ protected:
   vtkNeuroNavGUI ( );
   virtual ~vtkNeuroNavGUI ( );
 
@@ -127,11 +126,10 @@ protected:
   vtkKWMenuButton *YellowSliceMenu;
   vtkKWMenuButton *GreenSliceMenu;
 
-  //  vtkKWEntryWithLabel *TransformNodeNameEntry;
-  vtkSlicerNodeSelectorWidget* TransformNodeNameEntry; 
-  vtkSlicerNodeSelectorWidget* LabelMapSelector; 
+  vtkSlicerNodeSelectorWidget* TransformNodeNameEntry;
+  vtkSlicerNodeSelectorWidget* LabelMapSelector;
   vtkKWEntryWithLabel *LabelMapNumberEntry;
-  vtkKWPushButton* StartBeepingButton; 
+  vtkKWPushButton* StartBeepingButton;
   vtkKWPushButton* StopBeepingButton;
   vtkKWEntryWithLabel *FiducialListNodeNameEntry;
   vtkMRMLScalarVolumeNode *LabelMapNode;
@@ -143,10 +141,8 @@ protected:
 
   vtkKWMultiColumnListWithScrollbars *PointPairMultiColumnList;
 
- //    vtkKWPushButton *LoadPointPairPushButton;
- //    vtkKWPushButton *SavePointPairPushButton;
   vtkKWPushButton *DeletePointPairPushButton;
-  vtkKWPushButton *DeleteAllPointPairPushButton;    
+  vtkKWPushButton *DeleteAllPointPairPushButton;
   vtkKWPushButton *RegisterPushButton;
   vtkKWPushButton *ResetPushButton;
 
@@ -156,7 +152,7 @@ protected:
 
   vtkKWScaleWithEntry *TranslationScale;
 
-private:
+ private:
   vtkNeuroNavGUI ( const vtkNeuroNavGUI& ); // Not implemented.
   void operator = ( const vtkNeuroNavGUI& ); //Not implemented.
 
