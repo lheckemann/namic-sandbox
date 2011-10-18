@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #ifndef __vtkCaptureBetaProbeGUI_h
 #define __vtkCaptureBetaProbeGUI_h
@@ -21,7 +21,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <math.h>
 
 #include "vtkSlicerModuleGUI.h"
 #include "vtkCallbackCommand.h"
@@ -36,13 +35,11 @@ class vtkSlicerNodeSelectorWidget;
 class vtkKWLabel;
 class vtkKWFileBrowserDialog;
 
-//class vtkMRMLUDPServerNode;
 class vtkMRMLLinearTransformNode;
 class vtkMatrix4x4;
-class vtkMatrix3x3;
 class vtkCollection;
-
-class vtkKWEntryWithLabel;
+class vtkKWRadioButton;
+class vtkKWEntry;
 
 class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModuleGUI
 {
@@ -56,25 +53,30 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
 
   vtkGetObjectMacro ( Logic, vtkCaptureBetaProbeLogic );
   void SetModuleLogic ( vtkSlicerLogic *logic )
-  { 
+  {
     this->SetLogic ( vtkObjectPointer (&this->Logic), logic );
-  } 
+  }
+
+  // NH added the following line on Jan 9 2011 in response to RK's request to move the module under IGT
+  // LC should review the following line, and upon approval, should remove this comment.
+
+  const char *GetCategory() const { return "IGT";}
+
+
+  // NH addition end.
 
   void SetContinuousMode(bool val){this->continuous_mode = val;};
   bool GetContinuousMode(){return this->continuous_mode;};
 
   vtkGetMacro(PivotCalibrationRunning,bool);
   vtkSetMacro(PivotCalibrationRunning,bool);
-  vtkGetMacro(Calibrated,bool);
-  vtkSetMacro(Calibrated,bool);
 
   void Capture_Data();
   void Capture_Tracker_Position();
-  void ExtractRotationMatrix(vtkMatrix4x4* in, vtkMatrix3x3* out);
 
  protected:
   //----------------------------------------------------------------
-  // Constructor / Destructor (proctected/private) 
+  // Constructor / Destructor (proctected/private)
   //----------------------------------------------------------------
 
   vtkCaptureBetaProbeGUI ( );
@@ -113,26 +115,29 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
   void ProcessTimerEvents();
   void HandleMouseEvent(vtkSlicerInteractorStyle *style);
-  static void DataCallback(vtkObject *caller, 
+  static void DataCallback(vtkObject *caller,
                            unsigned long eid, void *clientData, void *callData);
-  
+
   //----------------------------------------------------------------
   // Build Frames
   //----------------------------------------------------------------
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
+  void BuildGUIForNodes();
   void BuildGUIForPivotCalibration();
   void BuildGUIForCapturingDataFromBetaProbe();
-  void BuildGUIForCenterCalibration();
+  void BuildGUIForDetection();
+
   //----------------------------------------------------------------
   // Update routines
   //----------------------------------------------------------------
 
   void UpdateAll();
 
+
  protected:
-  
+
   //----------------------------------------------------------------
   // File
   //----------------------------------------------------------------
@@ -142,7 +147,7 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   //----------------------------------------------------------------
   // Timer
   //----------------------------------------------------------------
-  
+
   int TimerFlag;
   int TimerInterval;
 
@@ -165,24 +170,25 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   vtkMatrix4x4* Probe_Matrix;
 
 
-
-
   vtkKWPushButton* StartPivotCalibration;
   vtkKWPushButton* StopPivotCalibration;
-
   vtkCollection* PivotingMatrix;
 
 
+  vtkKWRadioButton      *RadioBackgroundButton;
+  vtkKWEntry            *BackgroundValueEntry;
+  vtkKWPushButton*       BackgroundAcceptButton;
+  vtkKWRadioButton      *RadioTumorButton;
+  vtkKWEntry            *TumorValueEntry;
+  vtkKWPushButton       *TumorAcceptButton;
+  vtkKWRadioButton      *RadioThresholdButton;
+  vtkKWEntry            *ThresholdValueEntry;
+  vtkKWPushButton       *StartDetectionButton;
 
-  vtkSlicerNodeSelectorWidget* BetaProbe;
+  int ThresholdTumorDetection;
 
-  vtkKWEntryWithLabel* ProbeRadius;
-  vtkKWEntryWithLabel* Phi0;
-  vtkKWPushButton* UsePhi0;
-
-  double Phi0Angle;
-  double BetaProbeRadiusValue;
-  double PhiAngleRad;
+  bool BackgroundAccepted;
+  bool TumorAccepted;
 
   //----------------------------------------------------------------
   // Logic Values
@@ -194,7 +200,6 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
 
   bool continuous_mode;
   bool PivotCalibrationRunning;
-  bool Calibrated;
 };
 
 

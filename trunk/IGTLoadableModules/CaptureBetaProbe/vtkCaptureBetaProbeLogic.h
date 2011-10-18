@@ -10,12 +10,12 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
-// .NAME vtkCaptureBetaProbeLogic - slicer logic class for Locator module 
+// .NAME vtkCaptureBetaProbeLogic - slicer logic class for Locator module
 // .SECTION Description
 // This class manages the logic associated with tracking device for
-// IGT. 
+// IGT.
 
 
 #ifndef __vtkCaptureBetaProbeLogic_h
@@ -29,14 +29,17 @@
 #include "vtkCallbackCommand.h"
 
 #include "vtkMRMLSliceNode.h"
+#include "vtkMRMLUDPServerNode.h"
+#include "itkMultiThreader.h"
 
 class vtkIGTLConnector;
 class vtkMatrix3x3;
 class vtkMatrix4x4;
 class vtkCollection;
 class vtkVector3d;
+class vtkMRMLUDPServerNode;
 
-class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeLogic : public vtkSlicerModuleLogic 
+class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeLogic : public vtkSlicerModuleLogic
 {
  public:
   //BTX
@@ -47,22 +50,24 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeLogic : public vtkSlicerMod
   //ETX
 
  public:
-  
+
   static vtkCaptureBetaProbeLogic *New();
-  
+
   vtkTypeRevisionMacro(vtkCaptureBetaProbeLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
 
-  vtkGetObjectMacro(Offset, vtkMatrix4x4);
+  vtkGetMacro(DetectionRunning, bool);
+  vtkSetMacro(DetectionRunning, bool);
 
   void PivotCalibration(vtkCollection* PivotingMatrix, double AveragePcal[3]);
 
-  void ManualTipToTipCalibration(vtkMatrix4x4* Tracker, vtkMatrix4x4* BetaProbe, vtkMatrix4x4* ProbeOffset);
-
-  void ProbeToProbeRegistration(vtkMatrix4x4* Tracker, vtkMatrix4x4* BetaProbe, vtkMatrix4x4* ProbeOffset);
+  void StartTumorDetection(int threshold, vtkMRMLUDPServerNode *CountsNode);
+  void StopTumorDetection();
+  static ITK_THREAD_RETURN_TYPE TumorDetection(void *pInfoStruct);
+  void BeepFunction(int interval_ms);
 
  protected:
-  
+
   vtkCaptureBetaProbeLogic();
   ~vtkCaptureBetaProbeLogic();
 
@@ -73,9 +78,17 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeLogic : public vtkSlicerMod
   void UpdateAll();
 
   vtkCallbackCommand *DataCallbackCommand;
-  vtkMatrix4x4* Offset;
 
  private:
+
+  vtkMRMLUDPServerNode *UDPServerNode;
+
+  int ThreadID;
+  //BTX
+  itk::MultiThreader::Pointer m_Threader;
+  //ETX
+  bool DetectionRunning;
+  int ThresholdDetection;
 
 
 };
@@ -83,4 +96,4 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeLogic : public vtkSlicerMod
 #endif
 
 
-  
+
