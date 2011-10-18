@@ -15,7 +15,7 @@
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
 
-#include "vtkCaptureBetaProbeGUI.h"
+#include "vtkBetaProbeGUI.h"
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerModuleCollapsibleFrame.h"
 #include "vtkSlicerSliceControllerWidget.h"
@@ -48,13 +48,13 @@
 #include <sstream>
 
 //---------------------------------------------------------------------------
-vtkStandardNewMacro (vtkCaptureBetaProbeGUI );
-vtkCxxRevisionMacro ( vtkCaptureBetaProbeGUI, "$Revision: 1.0 $");
+vtkStandardNewMacro (vtkBetaProbeGUI );
+vtkCxxRevisionMacro ( vtkBetaProbeGUI, "$Revision: 1.0 $");
 //---------------------------------------------------------------------------
 
 
 //---------------------------------------------------------------------------
-vtkCaptureBetaProbeGUI::vtkCaptureBetaProbeGUI ( )
+vtkBetaProbeGUI::vtkBetaProbeGUI ( )
 {
 
   //----------------------------------------------------------------
@@ -62,7 +62,7 @@ vtkCaptureBetaProbeGUI::vtkCaptureBetaProbeGUI ( )
   this->Logic = NULL;
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
-  this->DataCallbackCommand->SetCallback(vtkCaptureBetaProbeGUI::DataCallback);
+  this->DataCallbackCommand->SetCallback(vtkBetaProbeGUI::DataCallback);
 
   //----------------------------------------------------------------
   // GUI widgets
@@ -109,7 +109,7 @@ vtkCaptureBetaProbeGUI::vtkCaptureBetaProbeGUI ( )
 }
 
 //---------------------------------------------------------------------------
-vtkCaptureBetaProbeGUI::~vtkCaptureBetaProbeGUI ( )
+vtkBetaProbeGUI::~vtkBetaProbeGUI ( )
 {
 
   //----------------------------------------------------------------
@@ -271,13 +271,13 @@ vtkCaptureBetaProbeGUI::~vtkCaptureBetaProbeGUI ( )
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::Init()
+void vtkBetaProbeGUI::Init()
 {
 }
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::Enter()
+void vtkBetaProbeGUI::Enter()
 {
 
   if (this->TimerFlag == 0)
@@ -291,24 +291,24 @@ void vtkCaptureBetaProbeGUI::Enter()
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::Exit ( )
+void vtkBetaProbeGUI::Exit ( )
 {
   // Fill in
 }
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::PrintSelf ( ostream& os, vtkIndent indent )
+void vtkBetaProbeGUI::PrintSelf ( ostream& os, vtkIndent indent )
 {
   this->vtkObject::PrintSelf ( os, indent );
 
-  os << indent << "CaptureBetaProbeGUI: " << this->GetClassName ( ) << "\n";
+  os << indent << "BetaProbeGUI: " << this->GetClassName ( ) << "\n";
   os << indent << "Logic: " << this->GetLogic ( ) << "\n";
 }
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::RemoveGUIObservers ( )
+void vtkBetaProbeGUI::RemoveGUIObservers ( )
 {
 
   if (this->Capture)
@@ -417,7 +417,7 @@ void vtkCaptureBetaProbeGUI::RemoveGUIObservers ( )
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::AddGUIObservers ( )
+void vtkBetaProbeGUI::AddGUIObservers ( )
 {
   this->RemoveGUIObservers();
 
@@ -517,7 +517,7 @@ void vtkCaptureBetaProbeGUI::AddGUIObservers ( )
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::RemoveLogicObservers ( )
+void vtkBetaProbeGUI::RemoveLogicObservers ( )
 {
   if (this->GetLogic())
     {
@@ -530,25 +530,25 @@ void vtkCaptureBetaProbeGUI::RemoveLogicObservers ( )
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::AddLogicObservers ( )
+void vtkBetaProbeGUI::AddLogicObservers ( )
 {
   this->RemoveLogicObservers();
 
   if (this->GetLogic())
     {
-    this->GetLogic()->AddObserver(vtkCaptureBetaProbeLogic::StatusUpdateEvent,
+    this->GetLogic()->AddObserver(vtkBetaProbeLogic::StatusUpdateEvent,
                                   (vtkCommand *)this->LogicCallbackCommand);
     }
 }
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
+void vtkBetaProbeGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 {
 }
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
+void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
                                               unsigned long event, void *callData)
 {
 
@@ -853,23 +853,23 @@ void vtkCaptureBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
 }
 
 
-void vtkCaptureBetaProbeGUI::DataCallback(vtkObject *caller,
+void vtkBetaProbeGUI::DataCallback(vtkObject *caller,
                                           unsigned long eid, void *clientData, void *callData)
 {
-  vtkCaptureBetaProbeGUI *self = reinterpret_cast<vtkCaptureBetaProbeGUI *>(clientData);
-  vtkDebugWithObjectMacro(self, "In vtkCaptureBetaProbeGUI DataCallback");
+  vtkBetaProbeGUI *self = reinterpret_cast<vtkBetaProbeGUI *>(clientData);
+  vtkDebugWithObjectMacro(self, "In vtkBetaProbeGUI DataCallback");
   self->UpdateAll();
 }
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::ProcessLogicEvents ( vtkObject *caller,
+void vtkBetaProbeGUI::ProcessLogicEvents ( vtkObject *caller,
                                                   unsigned long event, void *callData )
 {
 
-  if (this->GetLogic() == vtkCaptureBetaProbeLogic::SafeDownCast(caller))
+  if (this->GetLogic() == vtkBetaProbeLogic::SafeDownCast(caller))
     {
-    if (event == vtkCaptureBetaProbeLogic::StatusUpdateEvent)
+    if (event == vtkBetaProbeLogic::StatusUpdateEvent)
       {
       //this->UpdateDeviceStatus();
       }
@@ -878,7 +878,7 @@ void vtkCaptureBetaProbeGUI::ProcessLogicEvents ( vtkObject *caller,
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::ProcessMRMLEvents ( vtkObject *caller,
+void vtkBetaProbeGUI::ProcessMRMLEvents ( vtkObject *caller,
                                                  unsigned long event, void *callData )
 {
   // Fill in
@@ -890,7 +890,7 @@ void vtkCaptureBetaProbeGUI::ProcessMRMLEvents ( vtkObject *caller,
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::ProcessTimerEvents()
+void vtkBetaProbeGUI::ProcessTimerEvents()
 {
   if (this->TimerFlag)
     {
@@ -956,13 +956,13 @@ void vtkCaptureBetaProbeGUI::ProcessTimerEvents()
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::BuildGUI ( )
+void vtkBetaProbeGUI::BuildGUI ( )
 {
 
   // ---
   // MODULE GUI FRAME
   // create a page
-  this->UIPanel->AddPage ( "CaptureBetaProbe", "CaptureBetaProbe", NULL );
+  this->UIPanel->AddPage ( "BetaProbe", "BetaProbe", NULL );
 
   BuildGUIForHelpFrame();
   //BuildGUIForPivotCalibration();
@@ -973,25 +973,25 @@ void vtkCaptureBetaProbeGUI::BuildGUI ( )
 }
 
 
-void vtkCaptureBetaProbeGUI::BuildGUIForHelpFrame ()
+void vtkBetaProbeGUI::BuildGUIForHelpFrame ()
 {
   // Define your help text here.
   const char *help =
     "See "
-    "<a>http://www.slicer.org/slicerWiki/index.php/Modules:CaptureBetaProbe</a> for details.";
+    "<a>http://www.slicer.org/slicerWiki/index.php/Modules:BetaProbe</a> for details.";
   const char *about =
     "This work is supported by NCIGT, NA-MIC.";
 
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "CaptureBetaProbe" );
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "BetaProbe" );
   this->BuildHelpAndAboutFrame (page, help, about);
 }
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::BuildGUIForNodes()
+void vtkBetaProbeGUI::BuildGUIForNodes()
 {
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("CaptureBetaProbe");
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("BetaProbe");
 
   vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
 
@@ -1063,10 +1063,10 @@ void vtkCaptureBetaProbeGUI::BuildGUIForNodes()
 }
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::BuildGUIForPivotCalibration()
+void vtkBetaProbeGUI::BuildGUIForPivotCalibration()
 {
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("CaptureBetaProbe");
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("BetaProbe");
 
   vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
 
@@ -1145,11 +1145,11 @@ void vtkCaptureBetaProbeGUI::BuildGUIForPivotCalibration()
 }
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
+void vtkBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
 {
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("CaptureBetaProbe");
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("BetaProbe");
 
   vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
 
@@ -1248,11 +1248,11 @@ void vtkCaptureBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
 
 
 
-void vtkCaptureBetaProbeGUI::BuildGUIForDetection()
+void vtkBetaProbeGUI::BuildGUIForDetection()
 {
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("CaptureBetaProbe");
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("BetaProbe");
 
   vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
 
@@ -1386,11 +1386,11 @@ void vtkCaptureBetaProbeGUI::BuildGUIForDetection()
 
 
 //----------------------------------------------------------------------------
-void vtkCaptureBetaProbeGUI::UpdateAll()
+void vtkBetaProbeGUI::UpdateAll()
 {
 }
 
-void vtkCaptureBetaProbeGUI::Capture_Data()
+void vtkBetaProbeGUI::Capture_Data()
 {
   if(this->BetaProbeCountsWithTimestamp.is_open())
     {
@@ -1422,7 +1422,7 @@ void vtkCaptureBetaProbeGUI::Capture_Data()
     }
 }
 
-void vtkCaptureBetaProbeGUI::Capture_Tracker_Position()
+void vtkBetaProbeGUI::Capture_Tracker_Position()
 {
 
   this->Probe_Matrix = vtkMatrix4x4::New();

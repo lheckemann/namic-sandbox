@@ -18,25 +18,25 @@
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerApplicationGUI.h"
 
-#include "vtkCaptureBetaProbeLogic.h"
+#include "vtkBetaProbeLogic.h"
 
 #include "vtkMatrix3x3.h"
 #include "vtkMatrix4x4.h"
 #include "vtkCollection.h"
 #include "vtkVector.h"
 
-vtkCxxRevisionMacro(vtkCaptureBetaProbeLogic, "$Revision: 1.9.12.1 $");
-vtkStandardNewMacro(vtkCaptureBetaProbeLogic);
+vtkCxxRevisionMacro(vtkBetaProbeLogic, "$Revision: 1.9.12.1 $");
+vtkStandardNewMacro(vtkBetaProbeLogic);
 
 //---------------------------------------------------------------------------
-vtkCaptureBetaProbeLogic::vtkCaptureBetaProbeLogic()
+vtkBetaProbeLogic::vtkBetaProbeLogic()
 {
 
   // Timer Handling
 
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
-  this->DataCallbackCommand->SetCallback(vtkCaptureBetaProbeLogic::DataCallback);
+  this->DataCallbackCommand->SetCallback(vtkBetaProbeLogic::DataCallback);
 
 
   this->UDPServerNode = NULL;
@@ -49,7 +49,7 @@ vtkCaptureBetaProbeLogic::vtkCaptureBetaProbeLogic()
 
 
 //---------------------------------------------------------------------------
-vtkCaptureBetaProbeLogic::~vtkCaptureBetaProbeLogic()
+vtkBetaProbeLogic::~vtkBetaProbeLogic()
 {
 
   if (this->DataCallbackCommand)
@@ -61,31 +61,31 @@ vtkCaptureBetaProbeLogic::~vtkCaptureBetaProbeLogic()
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkBetaProbeLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->vtkObject::PrintSelf(os, indent);
-  os << indent << "vtkCaptureBetaProbeLogic:             " << this->GetClassName() << "\n";
+  os << indent << "vtkBetaProbeLogic:             " << this->GetClassName() << "\n";
 
 }
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeLogic::DataCallback(vtkObject *caller,
+void vtkBetaProbeLogic::DataCallback(vtkObject *caller,
                                             unsigned long eid, void *clientData, void *callData)
 {
-  vtkCaptureBetaProbeLogic *self = reinterpret_cast<vtkCaptureBetaProbeLogic *>(clientData);
-  vtkDebugWithObjectMacro(self, "In vtkCaptureBetaProbeLogic DataCallback");
+  vtkBetaProbeLogic *self = reinterpret_cast<vtkBetaProbeLogic *>(clientData);
+  vtkDebugWithObjectMacro(self, "In vtkBetaProbeLogic DataCallback");
   self->UpdateAll();
 }
 
 
 //---------------------------------------------------------------------------
-void vtkCaptureBetaProbeLogic::UpdateAll()
+void vtkBetaProbeLogic::UpdateAll()
 {
 
 }
 
-void vtkCaptureBetaProbeLogic::PivotCalibration(vtkCollection* PivotingMatrix, double AveragePcal[3])
+void vtkBetaProbeLogic::PivotCalibration(vtkCollection* PivotingMatrix, double AveragePcal[3])
 {
   int NElements = PivotingMatrix->GetNumberOfItems();
   vtkMatrix3x3* rotation1 = vtkMatrix3x3::New();
@@ -226,15 +226,15 @@ void vtkCaptureBetaProbeLogic::PivotCalibration(vtkCollection* PivotingMatrix, d
 }
 
 
-void vtkCaptureBetaProbeLogic::StartTumorDetection(int threshold, vtkMRMLUDPServerNode* CountsNode)
+void vtkBetaProbeLogic::StartTumorDetection(int threshold, vtkMRMLUDPServerNode* CountsNode)
 {
   this->ThresholdDetection = threshold;
   this->UDPServerNode = CountsNode;
   this->DetectionRunning = true;
-  this->ThreadID = this->m_Threader->SpawnThread(vtkCaptureBetaProbeLogic::TumorDetection,this);
+  this->ThreadID = this->m_Threader->SpawnThread(vtkBetaProbeLogic::TumorDetection,this);
 }
 
-void vtkCaptureBetaProbeLogic::StopTumorDetection()
+void vtkBetaProbeLogic::StopTumorDetection()
 {
   if(this->ThreadID >= 0)
     {
@@ -244,23 +244,23 @@ void vtkCaptureBetaProbeLogic::StopTumorDetection()
     }
 }
 
-ITK_THREAD_RETURN_TYPE vtkCaptureBetaProbeLogic::TumorDetection(void* pInfoStruct)
+ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::TumorDetection(void* pInfoStruct)
 {
-  vtkCaptureBetaProbeLogic *CaptureBetaProbeLogic = (vtkCaptureBetaProbeLogic*) (((itk::MultiThreader::ThreadInfoStruct *)(pInfoStruct))->UserData);
+  vtkBetaProbeLogic *BetaProbeLogic = (vtkBetaProbeLogic*) (((itk::MultiThreader::ThreadInfoStruct *)(pInfoStruct))->UserData);
 
-  while(CaptureBetaProbeLogic->DetectionRunning)
+  while(BetaProbeLogic->DetectionRunning)
     {
-    if(CaptureBetaProbeLogic->UDPServerNode->GetSmoothedCounts() >= CaptureBetaProbeLogic->ThresholdDetection)
+    if(BetaProbeLogic->UDPServerNode->GetSmoothedCounts() >= BetaProbeLogic->ThresholdDetection)
       {
       // TODO: Modify interval: Higher count -> Smaller interval
-      CaptureBetaProbeLogic->BeepFunction(500);
+      BetaProbeLogic->BeepFunction(500);
       }
     }
 
   return EXIT_SUCCESS;
 }
 
-void vtkCaptureBetaProbeLogic::BeepFunction(int interval_ms)
+void vtkBetaProbeLogic::BeepFunction(int interval_ms)
 {
 #ifdef _WIN32
   Beep(500,250);
