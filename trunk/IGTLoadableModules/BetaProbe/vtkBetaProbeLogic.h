@@ -12,16 +12,16 @@
 
   ==========================================================================*/
 
-// .NAME vtkCaptureBetaProbeLogic - slicer logic class for Locator module
+// .NAME vtkBetaProbeLogic - slicer logic class for Locator module
 // .SECTION Description
 // This class manages the logic associated with tracking device for
 // IGT.
 
 
-#ifndef __vtkCaptureBetaProbeLogic_h
-#define __vtkCaptureBetaProbeLogic_h
+#ifndef __vtkBetaProbeLogic_h
+#define __vtkBetaProbeLogic_h
 
-#include "vtkCaptureBetaProbeWin32Header.h"
+#include "vtkBetaProbeWin32Header.h"
 
 #include "vtkSlicerBaseLogic.h"
 #include "vtkSlicerModuleLogic.h"
@@ -39,7 +39,7 @@ class vtkCollection;
 class vtkVector3d;
 class vtkMRMLUDPServerNode;
 
-class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeLogic : public vtkSlicerModuleLogic
+class VTK_BetaProbe_EXPORT vtkBetaProbeLogic : public vtkSlicerModuleLogic
 {
  public:
   //BTX
@@ -51,9 +51,9 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeLogic : public vtkSlicerMod
 
  public:
 
-  static vtkCaptureBetaProbeLogic *New();
+  static vtkBetaProbeLogic *New();
 
-  vtkTypeRevisionMacro(vtkCaptureBetaProbeLogic,vtkObject);
+  vtkTypeRevisionMacro(vtkBetaProbeLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
 
   vtkGetMacro(DetectionRunning, bool);
@@ -68,11 +68,11 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeLogic : public vtkSlicerMod
 
  protected:
 
-  vtkCaptureBetaProbeLogic();
-  ~vtkCaptureBetaProbeLogic();
+  vtkBetaProbeLogic();
+  ~vtkBetaProbeLogic();
 
-  void operator=(const vtkCaptureBetaProbeLogic&);
-  vtkCaptureBetaProbeLogic(const vtkCaptureBetaProbeLogic&);
+  void operator=(const vtkBetaProbeLogic&);
+  vtkBetaProbeLogic(const vtkBetaProbeLogic&);
 
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
   void UpdateAll();

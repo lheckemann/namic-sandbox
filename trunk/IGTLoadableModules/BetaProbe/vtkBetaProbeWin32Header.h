@@ -12,18 +12,18 @@ Version:   $Revision: $
 
 ==========================================================================*/
 
-#ifndef __vtkCaptureBetaProbeWin32Header_h
-#define __vtkCaptureBetaProbeWin32Header_h
+#ifndef __vtkBetaProbeWin32Header_h
+#define __vtkBetaProbeWin32Header_h
 
-#include <vtkCaptureBetaProbeConfigure.h>
+#include <vtkBetaProbeConfigure.h>
 
 #if defined(WIN32) && !defined(VTKSLICER_STATIC)
-#if defined(CaptureBetaProbe_EXPORTS)
-#define VTK_CaptureBetaProbe_EXPORT __declspec( dllexport ) 
+#if defined(BetaProbe_EXPORTS)
+#define VTK_BetaProbe_EXPORT __declspec( dllexport ) 
 #else
-#define VTK_CaptureBetaProbe_EXPORT __declspec( dllimport ) 
+#define VTK_BetaProbe_EXPORT __declspec( dllimport ) 
 #endif
 #else
-#define VTK_CaptureBetaProbe_EXPORT 
+#define VTK_BetaProbe_EXPORT 
 #endif
 #endif

@@ -1,4 +1,4 @@
-PROJECT(CaptureBetaProbe)
+PROJECT(BetaProbe)
 
 cmake_minimum_required(VERSION 2.4)
 if(COMMAND cmake_policy)
@@ -29,8 +29,8 @@ include_directories(
 # Configure include file
 #
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/vtkCaptureBetaProbeConfigure.h.in 
-  ${CMAKE_CURRENT_BINARY_DIR}/vtkCaptureBetaProbeConfigure.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkBetaProbeConfigure.h.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/vtkBetaProbeConfigure.h
   )
 
 file(GLOB headers 
@@ -39,16 +39,16 @@ file(GLOB headers
 
 install(FILES 
   ${headers} 
-  "${CMAKE_CURRENT_BINARY_DIR}/vtkCaptureBetaProbeConfigure.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/vtkBetaProbeConfigure.h"
   DESTINATION ${Slicer3_INSTALL_MODULES_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
   )
 
 # --------------------------------------------------------------------------
 # Sources
 
-set(CaptureBetaProbe_SRCS 
-  vtkCaptureBetaProbeLogic.cxx
-  vtkCaptureBetaProbeGUI.cxx
+set(BetaProbe_SRCS 
+  vtkBetaProbeLogic.cxx
+  vtkBetaProbeGUI.cxx
 )
 
 
@@ -56,22 +56,22 @@ set(CaptureBetaProbe_SRCS
 # Wrapping
 
 include("${VTK_CMAKE_DIR}/vtkWrapTcl.cmake")
-vtk_wrap_tcl3(CaptureBetaProbe CaptureBetaProbe_TCL_SRCS "${CaptureBetaProbe_SRCS}" "")
+vtk_wrap_tcl3(BetaProbe BetaProbe_TCL_SRCS "${BetaProbe_SRCS}" "")
 
 
 
 #---------------------------------------------------------------------------
 # Add Loadable Module support
 
-generatelm(CaptureBetaProbe_SRCS CaptureBetaProbe.txt)
+generatelm(BetaProbe_SRCS BetaProbe.txt)
 
 # --------------------------------------------------------------------------
 # Build and install the library
 
-set(lib_name CaptureBetaProbe)
+set(lib_name BetaProbe)
 add_library(${lib_name}
-  ${CaptureBetaProbe_SRCS} 
-  ${CaptureBetaProbe_TCL_SRCS}
+  ${BetaProbe_SRCS} 
+  ${BetaProbe_TCL_SRCS}
   )
 
 slicer3_set_modules_output_path(${lib_name})

@@ -12,11 +12,11 @@
 
   ==========================================================================*/
 
-#ifndef __vtkCaptureBetaProbeGUI_h
-#define __vtkCaptureBetaProbeGUI_h
+#ifndef __vtkBetaProbeGUI_h
+#define __vtkBetaProbeGUI_h
 
 #ifdef WIN32
-#include "vtkCaptureBetaProbeWin32Header.h"
+#include "vtkBetaProbeWin32Header.h"
 #endif
 
 #include <iostream>
@@ -26,7 +26,7 @@
 #include "vtkCallbackCommand.h"
 #include "vtkSlicerInteractorStyle.h"
 
-#include "vtkCaptureBetaProbeLogic.h"
+#include "vtkBetaProbeLogic.h"
 
 #include "vtkMRMLUDPServerNode.h"
 
@@ -41,17 +41,17 @@ class vtkCollection;
 class vtkKWRadioButton;
 class vtkKWEntry;
 
-class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModuleGUI
+class VTK_BetaProbe_EXPORT vtkBetaProbeGUI : public vtkSlicerModuleGUI
 {
  public:
 
-  vtkTypeRevisionMacro ( vtkCaptureBetaProbeGUI, vtkSlicerModuleGUI );
+  vtkTypeRevisionMacro ( vtkBetaProbeGUI, vtkSlicerModuleGUI );
 
   //----------------------------------------------------------------
   // Set/Get Methods
   //----------------------------------------------------------------
 
-  vtkGetObjectMacro ( Logic, vtkCaptureBetaProbeLogic );
+  vtkGetObjectMacro ( Logic, vtkBetaProbeLogic );
   void SetModuleLogic ( vtkSlicerLogic *logic )
   {
     this->SetLogic ( vtkObjectPointer (&this->Logic), logic );
@@ -79,19 +79,19 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   // Constructor / Destructor (proctected/private)
   //----------------------------------------------------------------
 
-  vtkCaptureBetaProbeGUI ( );
-  virtual ~vtkCaptureBetaProbeGUI ( );
+  vtkBetaProbeGUI ( );
+  virtual ~vtkBetaProbeGUI ( );
 
  private:
-  vtkCaptureBetaProbeGUI ( const vtkCaptureBetaProbeGUI& ); // Not implemented.
-  void operator = ( const vtkCaptureBetaProbeGUI& ); //Not implemented.
+  vtkBetaProbeGUI ( const vtkBetaProbeGUI& ); // Not implemented.
+  void operator = ( const vtkBetaProbeGUI& ); //Not implemented.
 
  public:
   //----------------------------------------------------------------
   // New method, Initialization etc.
   //----------------------------------------------------------------
 
-  static vtkCaptureBetaProbeGUI* New ();
+  static vtkBetaProbeGUI* New ();
   void Init();
   virtual void Enter ( );
   virtual void Exit ( );
@@ -194,7 +194,7 @@ class VTK_CaptureBetaProbe_EXPORT vtkCaptureBetaProbeGUI : public vtkSlicerModul
   // Logic Values
   //----------------------------------------------------------------
 
-  vtkCaptureBetaProbeLogic *Logic;
+  vtkBetaProbeLogic *Logic;
   vtkCallbackCommand *DataCallbackCommand;
   int                        CloseScene;
 
