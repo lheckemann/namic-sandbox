@@ -959,7 +959,7 @@ void vtkBetaProbeGUI::BuildGUI ( )
   this->UIPanel->AddPage ( "BetaProbe", "BetaProbe", NULL );
 
   BuildGUIForHelpFrame();
-  //BuildGUIForPivotCalibration();
+  BuildGUIForPivotCalibration();
   BuildGUIForNodes();
   BuildGUIForCapturingDataFromBetaProbe();
   BuildGUIForDetection();
@@ -1067,7 +1067,8 @@ void vtkBetaProbeGUI::BuildGUIForPivotCalibration()
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
   conBrowsFrame->SetLabelText("Pivot Calibration");
-  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+  conBrowsFrame->CollapseFrame();
+ app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
