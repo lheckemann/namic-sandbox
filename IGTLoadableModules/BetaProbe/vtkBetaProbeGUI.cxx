@@ -565,7 +565,6 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
   if (this->Capture == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    std::cerr << "Capture is pressed." << std::endl;
     if(this->Counts && this->Probe_Position)
       {
       this->Capture_Data();
@@ -579,7 +578,6 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
   if (this->Start_Button == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    std::cerr << "Start Button is pressed." << std::endl;
     if(this->Counts && this->Probe_Position)
       {
       this->SetContinuousMode(true);
@@ -598,7 +596,6 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
   if (this->Stop_Button == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    std::cerr << "Start Button is pressed." << std::endl;
     if(this->Counts && this->Probe_Position)
       {
       this->SetContinuousMode(false);
@@ -661,7 +658,6 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
   if (this->CounterNode == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
       && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
-    std::cerr << "Counter Node changed." << std::endl;
     if(this->CounterNode->GetSelected())
       {
       this->Counts = vtkMRMLUDPServerNode::SafeDownCast(this->CounterNode->GetSelected());
@@ -675,7 +671,6 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
   if (this->TrackerNode == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
       && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
-    std::cerr << "Tracker Node changed." << std::endl;
     if(this->TrackerNode->GetSelected())
       {
       this->Probe_Position = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNode->GetSelected());
@@ -750,7 +745,7 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
   if(this->BackgroundValueEntry == vtkKWEntry::SafeDownCast(caller)
      && event == vtkKWEntry::EntryValueChangedEvent)
     {
-    if(this->BackgroundValueEntry->GetValueAsInt() && this->TumorValueEntry->GetValueAsInt())
+    if(this->BackgroundValueEntry->GetValueAsInt() >= 0 && this->TumorValueEntry->GetValueAsInt() >= 0)
       {
       if(this->ThresholdValueEntry)
         {
