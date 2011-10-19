@@ -283,7 +283,14 @@ void vtkBetaProbeGUI::Enter()
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
+    if(this->Counts)
+      {
+      this->TimerInterval = this->Counts->GetTInterval();
+      }
+    else
+      {
     this->TimerInterval = 100;  // 100 ms
+      }
     ProcessTimerEvents();
     }
 
@@ -549,7 +556,7 @@ void vtkBetaProbeGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 
 //---------------------------------------------------------------------------
 void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
-                                              unsigned long event, void *callData)
+                                       unsigned long event, void *callData)
 {
 
   const char *eventName = vtkCommand::GetStringFromEventId(event);
@@ -661,6 +668,13 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
     if(this->CounterNode->GetSelected())
       {
       this->Counts = vtkMRMLUDPServerNode::SafeDownCast(this->CounterNode->GetSelected());
+
+      if(this->Counts)
+        {
+        // Synchronize UDPServerNode and BetaProbe timers
+        this->TimerInterval = this->Counts->GetTInterval();
+        }
+
       std::stringstream counter_selected;
       counter_selected << this->CounterNode->GetSelected()->GetName();
       counter_selected << " selected";
@@ -849,7 +863,7 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
 
 
 void vtkBetaProbeGUI::DataCallback(vtkObject *caller,
-                                          unsigned long eid, void *clientData, void *callData)
+                                   unsigned long eid, void *clientData, void *callData)
 {
   vtkBetaProbeGUI *self = reinterpret_cast<vtkBetaProbeGUI *>(clientData);
   vtkDebugWithObjectMacro(self, "In vtkBetaProbeGUI DataCallback");
@@ -859,7 +873,7 @@ void vtkBetaProbeGUI::DataCallback(vtkObject *caller,
 
 //---------------------------------------------------------------------------
 void vtkBetaProbeGUI::ProcessLogicEvents ( vtkObject *caller,
-                                                  unsigned long event, void *callData )
+                                           unsigned long event, void *callData )
 {
 
   if (this->GetLogic() == vtkBetaProbeLogic::SafeDownCast(caller))
@@ -874,7 +888,7 @@ void vtkBetaProbeGUI::ProcessLogicEvents ( vtkObject *caller,
 
 //---------------------------------------------------------------------------
 void vtkBetaProbeGUI::ProcessMRMLEvents ( vtkObject *caller,
-                                                 unsigned long event, void *callData )
+                                          unsigned long event, void *callData )
 {
   // Fill in
 
@@ -912,21 +926,6 @@ void vtkBetaProbeGUI::ProcessTimerEvents()
           }
         }
       }
-
-    // *******************
-
-/*
-  if(0)
-  {
-  this->GetLogic()->SetBeepingMode(true);
-  }
-  else
-  {
-  this->GetLogic()->SetBeepingMode(false);
-  }
-*/
-    // *********************
-
 
     // update timer
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(),

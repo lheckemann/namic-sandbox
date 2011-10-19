@@ -338,16 +338,22 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
       this->GetLogic()->Start(this->PortEntry->GetValueAsInt());
       this->ConnectButton->SetText("Disconnect");
 
-      if (svrNode == NULL)
+      if (this->svrNode == NULL)
         {
-        svrNode = vtkMRMLUDPServerNode::New();
-        this->GetMRMLScene()->AddNode(svrNode);
+        this->svrNode = vtkMRMLUDPServerNode::New();
+        this->GetMRMLScene()->AddNode(this->svrNode);
         this->GetMRMLScene()->Modified();
         }
 
       //Start Timer to update collected values
       this->TimerFlag = 1;
       this->TimerInterval = this->UpdateEntry->GetValueAsInt();
+
+      if(this->svrNode)
+        {
+        this->svrNode->SetTInterval(this->TimerInterval);
+        }
+
       ProcessTimerEvents();
       }
     else
@@ -371,6 +377,10 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
       && event == vtkKWEntry::EntryValueChangedEvent)
     {
     this->TimerInterval = this->UpdateEntry->GetValueAsInt();
+    if(this->svrNode)
+      {
+      this->svrNode->SetTInterval(this->TimerInterval);
+      }
     }
 
   if (this->ClearListButton == vtkKWPushButton::SafeDownCast(caller)

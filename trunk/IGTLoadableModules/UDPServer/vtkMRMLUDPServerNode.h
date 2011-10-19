@@ -67,11 +67,16 @@ public:
 
   // Smoothed Counts, beta counts and gamma counts
   vtkSetMacro(SmoothedCounts, int);
-  vtkSetMacro(BetaCounts, int);
-  vtkSetMacro(GammaCounts, int);
   vtkGetMacro(SmoothedCounts, int);
+
+  vtkSetMacro(BetaCounts, int);
   vtkGetMacro(BetaCounts, int);
+
+  vtkSetMacro(GammaCounts, int);
   vtkGetMacro(GammaCounts, int);
+
+  vtkSetMacro(TInterval, int);
+  vtkGetMacro(TInterval, int);
   
   //Date and Time
   //BTX
@@ -88,6 +93,7 @@ private:
   int GammaCounts;
   std::string strDate;
   std::string strTime;
+  int TInterval;
   //ETX
 
 };
