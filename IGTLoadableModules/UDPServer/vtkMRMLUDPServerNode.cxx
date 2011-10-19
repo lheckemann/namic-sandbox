@@ -61,6 +61,7 @@ vtkMRMLUDPServerNode::vtkMRMLUDPServerNode()
   this->GammaCounts = 0;
   this->strDate = "01/01/01";
   this->strTime = "01:01:01";
+  this->TInterval = 1000;
 }
 
 //----------------------------------------------------------------------------
