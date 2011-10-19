@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #ifndef __vtkUDPServerLogic_h
 #define __vtkUDPServerLogic_h
@@ -36,23 +36,22 @@
 
 class vtkMultiThreader;
 
-class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic 
+class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
 {
  public:
   //BTX
   enum {  // Events
-    //LocatorUpdateEvent      = 50000,
     StatusUpdateEvent       = 50001,
   };
   //ETX
 
  public:
-  
+
   static vtkUDPServerLogic *New();
-  
+
   vtkTypeRevisionMacro(vtkUDPServerLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
-  
+
   //----------------------------------
   //Data Handlers
   int StartServerConnection();
@@ -63,16 +62,16 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
   char* GetImportedData(){return this->ImportedData;};
   int GetBytesReceived(){return this->received;};
   void SetPort(int p) {this->port = p;};
-  
+
   int ProbeType; //Probe Type 0 for rejection probe and 1 for single probe
 
   //-----------------------------------
   //Thread Control
-  
+
   static void* ThreadFunction(void* ptr);
 
  protected:
-  
+
   vtkUDPServerLogic();
   ~vtkUDPServerLogic();
 
@@ -87,7 +86,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
   //-----------------------------------------------------------------
   // Server Connection
   //-----------------------------------------------------------------
-  
+
   //BTX
   int sock;
   int port;
@@ -104,7 +103,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
 
  private:
 
- vtkMultiThreader* Thread;
+  vtkMultiThreader* Thread;
 
 };
 

@@ -10,7 +10,7 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
 #ifndef __vtkUDPServerGUI_h
 #define __vtkUDPServerGUI_h
@@ -43,19 +43,19 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   // Set/Get Methods
   //----------------------------------------------------------------
 
-  // Description: 
+  // Description:
   // Get the categorization of the module.
   const char *GetCategory() const { return "IGT"; }
 
   vtkGetObjectMacro ( Logic, vtkUDPServerLogic );
   void SetModuleLogic ( vtkSlicerLogic *logic )
-  { 
+  {
     this->SetLogic ( vtkObjectPointer (&this->Logic), logic );
   }
 
  protected:
   //----------------------------------------------------------------
-  // Constructor / Destructor (proctected/private) 
+  // Constructor / Destructor (proctected/private)
   //----------------------------------------------------------------
 
   vtkUDPServerGUI ( );
@@ -94,9 +94,9 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
   void ProcessTimerEvents();
   void HandleMouseEvent(vtkSlicerInteractorStyle *style);
-  static void DataCallback(vtkObject *caller, 
+  static void DataCallback(vtkObject *caller,
                            unsigned long eid, void *clientData, void *callData);
-  
+
   //----------------------------------------------------------------
   // Build Frames
   //----------------------------------------------------------------
@@ -114,7 +114,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   int UpdateDataFrame(char* data);
 
  protected:
-  
+
   //----------------------------------------------------------------
   // Message
   //----------------------------------------------------------------
@@ -133,16 +133,16 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   };
   probeData pd;
   //ETX
-  
+
   //----------------------------------------------------------------
   // UDPServerNode
   //----------------------------------------------------------------
   vtkMRMLUDPServerNode* svrNode;
-  
+
   //----------------------------------------------------------------
   // Timer
   //----------------------------------------------------------------
-  
+
   int TimerFlag;
   int TimerInterval;
 
