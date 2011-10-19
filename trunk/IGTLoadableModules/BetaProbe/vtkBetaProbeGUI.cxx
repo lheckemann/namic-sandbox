@@ -289,7 +289,7 @@ void vtkBetaProbeGUI::Enter()
       }
     else
       {
-    this->TimerInterval = 100;  // 100 ms
+      this->TimerInterval = 100;  // 100 ms
       }
     ProcessTimerEvents();
     }
@@ -950,7 +950,7 @@ void vtkBetaProbeGUI::ProcessTimerEvents()
 
 
 //---------------------------------------------------------------------------
-void vtkBetaProbeGUI::BuildGUI ( )
+void vtkBetaProbeGUI::BuilxdGUI ( )
 {
 
   // ---
@@ -1068,7 +1068,7 @@ void vtkBetaProbeGUI::BuildGUIForPivotCalibration()
   conBrowsFrame->Create();
   conBrowsFrame->SetLabelText("Pivot Calibration");
   conBrowsFrame->CollapseFrame();
- app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
@@ -1084,28 +1084,6 @@ void vtkBetaProbeGUI::BuildGUIForPivotCalibration()
   frame1->Create();
   app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                 frame1->GetWidgetName() );
-
-
-  this->TrackerNode = vtkSlicerNodeSelectorWidget::New();
-  this->TrackerNode->SetParent(frame1);
-  this->TrackerNode->Create();
-  this->TrackerNode->SetWidth(30);
-  this->TrackerNode->SetNewNodeEnabled(0);
-  this->TrackerNode->SetNodeClass("vtkMRMLLinearTransformNode",NULL,NULL,NULL);
-  this->TrackerNode->SetMRMLScene(this->Logic->GetMRMLScene());
-  this->TrackerNode->UpdateMenu();
-
-  vtkKWLabel *trackerLabel = vtkKWLabel::New();
-  trackerLabel->SetParent(frame1);
-  trackerLabel->Create();
-  trackerLabel->SetText("Tracker Node:");
-  trackerLabel->SetAnchorToWest();
-
-  app->Script("pack %s %s -fill x -side top -padx 2 -pady 2",
-              trackerLabel->GetWidgetName(),
-              this->TrackerNode->GetWidgetName());
-
-  trackerLabel->Delete();
 
   vtkKWFrame *frame2 = vtkKWFrame::New();
   frame2->SetParent(frame->GetFrame());
