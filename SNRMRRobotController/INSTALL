@@ -1,0 +1,24 @@
+===========================================================================
+
+                    SNR MR-compatible Robot Controller
+                        Installation Instruction 
+
+         Copyright (C) Surgical Navigation and Robotics Laboratory
+===========================================================================
+
+
+1. Getting Source Code
+
+The following sources are neccessary to build the Controller software:
+
+  (a) SNRMRRobotController
+  (b) Fox toolkit
+  (c) OpenIGTLink
+
+
+
+
+
+
+
+
