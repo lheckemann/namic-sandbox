@@ -283,14 +283,8 @@ void vtkBetaProbeGUI::Enter()
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
-    if(this->Counts)
-      {
-      this->TimerInterval = this->Counts->GetTInterval();
-      }
-    else
-      {
-      this->TimerInterval = 100;  // 100 ms
-      }
+    this->TimerInterval = 1000;  // 100 ms
+
     ProcessTimerEvents();
     }
 
@@ -587,6 +581,9 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
     {
     if(this->Counts && this->Probe_Position)
       {
+      // Synchronize UDPServerNode and BetaProbe timers
+      this->TimerInterval = this->Counts->GetTInterval();
+
       this->SetContinuousMode(true);
       this->Capture->SetState(0);
       this->Start_Button->SetState(0);
@@ -646,7 +643,6 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         this->Capture_status->SetText("Failed to open file");
         }
       }
-
     }
 
   if (this->CloseFile == vtkKWPushButton::SafeDownCast(caller)
@@ -659,6 +655,11 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
       std::stringstream close_file_succeed;
       close_file_succeed << "File closed [" << filename_c.c_str() << "]";
       this->Capture_status->SetText(close_file_succeed.str().c_str());
+      }
+    if(this->FileSelector)
+      {
+      this->FileSelector->Delete();
+      this->FileSelector = NULL;
       }
     }
 
@@ -950,7 +951,7 @@ void vtkBetaProbeGUI::ProcessTimerEvents()
 
 
 //---------------------------------------------------------------------------
-void vtkBetaProbeGUI::BuilxdGUI ( )
+void vtkBetaProbeGUI::BuildGUI ( )
 {
 
   // ---
