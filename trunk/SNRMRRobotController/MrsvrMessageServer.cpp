@@ -237,7 +237,8 @@ int MrsvrMessageServer::onRcvMsgMaster(igtl::Socket::Pointer& socket, igtl::Mess
     igtl::Matrix4x4 matrix;
     transMsg->GetMatrix(matrix);
     // Check the device name in the OpenIGTLink header
-    if (strcmp(transMsg->GetDeviceName(), "TARGET") == 0){
+    if (strcmp(transMsg->GetDeviceName(), "TARGET") == 0 ||
+        strcmp(transMsg->GetDeviceName(), "ProstateNavRobotTarg") == 0){
       setTargetMatrix(matrix);
       //if (result == TARGET_ACCEPTED) {
       //} else if (result == TARGET_OUT_OF_RANGE) {

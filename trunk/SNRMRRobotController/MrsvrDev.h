@@ -100,12 +100,12 @@
 //#define ACTUATOR_Z_FW    0x0010
 //#define ACTUATOR_Z_BW    0x0020
 
-#define ACTUATOR_X_FW    0x0004
-#define ACTUATOR_X_BW    0x0008
-#define ACTUATOR_Y_FW    0x0010
-#define ACTUATOR_Y_BW    0x0020
-#define ACTUATOR_Z_FW    0x0001
-#define ACTUATOR_Z_BW    0x0002
+#define ACTUATOR_X_FW    0x0008
+#define ACTUATOR_X_BW    0x0004
+#define ACTUATOR_Y_FW    0x0020
+#define ACTUATOR_Y_BW    0x0010
+#define ACTUATOR_Z_FW    0x0002
+#define ACTUATOR_Z_BW    0x0001
 
 #define LOG_TRIG         0x0040
 
@@ -150,8 +150,8 @@
 #define ENC_MODE_PHI     0x00000006
 
 // Encoder counter direction
-#define ENC_DIR_X        0
-#define ENC_DIR_Y        0
+#define ENC_DIR_X        1
+#define ENC_DIR_Y        1
 #define ENC_DIR_Z        0
 #define ENC_DIR_THETA    0
 #define ENC_DIR_PHI      0
@@ -192,9 +192,9 @@
 //#define PITCH_Y          20.0    // [mm]
 //#define PITCH_Z          20.0    // [mm]
 
-#define PITCH_X          1.221    // [mm]
-#define PITCH_Y          1.221    // [mm]
-#define PITCH_Z          1.221    // [mm]
+#define PITCH_X          1.99571453  // [mm/rev]
+#define PITCH_Y          1.99571453  // [mm/rev]
+#define PITCH_Z          1.99571453  // [mm/rev]
 
 // Pulses/revolution of encoder
 #define PULSES_REV_X     1000.0
@@ -228,9 +228,9 @@
 
 // Motion ranges
 #define MIN_POSITION_X       0.0              // mm
-#define MAX_POSITION_X       75.0             // mm
+#define MAX_POSITION_X       77.0             // mm
 #define MIN_POSITION_Y       0.0              // mm
-#define MAX_POSITION_Y       95.0             // mm
+#define MAX_POSITION_Y       102.0            // mm
 #define MIN_POSITION_Z       0.0              // mm
 #define MAX_POSITION_Z       180.0            // mm
 #define MIN_POSITION_THETA   -0.5*PI        // rad
