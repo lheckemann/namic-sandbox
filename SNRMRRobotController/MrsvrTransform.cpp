@@ -24,6 +24,7 @@
 #include <iostream>
 
 #include "newmatio.h"
+#include "MrsvrDev.h"
 
 MrsvrTransform::MrsvrTransform()
 {
@@ -52,8 +53,8 @@ void MrsvrTransform::setCalibrationMatrix(float* m)
   Matrix Trz(4,4);
   Matrix Tzp(4,4);
 
-  Trz << 1.0 << 0.0 << 0.0 << -37.5
-      << 0.0 << 1.0 << 0.0 << -47.0
+  Trz << 1.0 << 0.0 << 0.0 << -(MAX_POSITION_X-MIN_POSITION_X)/2
+      << 0.0 << 1.0 << 0.0 << -(MAX_POSITION_Y-MIN_POSITION_Y)/2
       << 0.0 << 0.0 << 1.0 << 30.0
       << 0.0 << 0.0 << 0.0 << 1.0;
   
