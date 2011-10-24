@@ -1294,6 +1294,12 @@ int main(int argc, char* argv[])
       exit(1);
     }
 
+    // Test
+    CONSOLE_PRINT("SENSOR: %d, %d, %d\n",
+                  dev->getLimitSensorStatus(0),
+                  dev->getLimitSensorStatus(1),
+                  dev->getLimitSensorStatus(2));
+
     getPositions();
 
     int initMode = 0; 
