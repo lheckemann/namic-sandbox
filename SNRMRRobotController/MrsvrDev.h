@@ -67,11 +67,18 @@
 // Bit masks for digital Input masks
 // Note : Low   (ON)  -> 1 
 //      : Hight (OFF) -> 0 
-#define STAGE_X_HOME     0x0001
-#define STAGE_X_LIMIT    0x0002
-#define STAGE_Y_HOME     0x0004
+//#define STAGE_X_HOME     0x0001
+//#define STAGE_X_LIMIT    0x0002
+//#define STAGE_Y_HOME     0x0004
+//#define STAGE_Y_LIMIT    0x0008
+//#define STAGE_Z_HOME     0x0010
+//#define STAGE_Z_LIMIT    0x0020
+
+#define STAGE_X_HOME     0x0002  // IN 2
+#define STAGE_X_LIMIT    0x0001
+#define STAGE_Y_HOME     0x0004  // IN 3
 #define STAGE_Y_LIMIT    0x0008
-#define STAGE_Z_HOME     0x0010
+#define STAGE_Z_HOME     0x0010  // IN 5
 #define STAGE_Z_LIMIT    0x0020
 
 //#define SWITCH_X_FW      0x0040
