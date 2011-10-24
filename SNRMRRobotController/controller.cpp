@@ -2,6 +2,8 @@
 //
 // MRI guided robot control system
 //
+// Copyright (C) 2006-2011 by Brigham and Women's Hospital,
+// Copyrigth (C) 2005-2010 by Shiga University of Medical Science,
 // Copyright (C) 2003-2005 by The University of Tokyo,
 // All Right Reserved.
 //
@@ -40,6 +42,61 @@
 //      +-------------------------------- RESET
 //       (Automatically transition to START_UP)
 //
+//  Fig. 1: State transition diagram.
+//
+//
+//
+// Steps in CALIBRATION
+// ---------------------
+// The CALIBRATION mode consists of two steps in order to ensure the accuracy
+// of homing:
+//   (1) move the stage towards the home limiter of the sensor with high speed,
+//       until the sensor status becomes HIGH. (CALIBRATION_MOVE_HOME_FAST)
+//   (2) move the stage towards the upper limiter of the sensor, until
+//       the sensor status becomes LOW (or a few seconds after the sensor status
+//       becomes LOW). (CALIBRATION_MOVE_CENTER)
+//   (3) move the starge towards the home limiter with low speed (see bellow)
+//       until the sensor reading becomes HIGH. (CALIBRATION_MOVE_HOME_SLOW)
+//
+// Step 2 is necessary, because HIGH the sensor status does not always
+// mean that the stage is at the home position (Fig. 2); 
+//
+// 
+//            Stage
+//            [__] -->
+//                           Linear Stage 
+//    "HIGH"     |--------------------------------|
+//              Home limiter                     Upper limiter
+//                                   
+//            
+//              Stage
+//              [__] -->
+//                           Linear Stage 
+//    "HIGH"     |--------------------------------|
+//              Home limiter                     Upper limiter
+//    
+//    
+//                 Stage
+//                 [__] -->
+//                           Linear Stage
+//    "LOW"      |--------------------------------|
+//              Home limiter                     Upper limiter
+//    
+//    Fig. 2: Actuator position and sensor status. The sensor keeps HIGH
+//     status, while the stage is on the homing sensor.
+//
+// In step 3, the maximum error of calibration depends on the velocity of
+// the actuator (V), the timer resolution (R) and travel distance (d(V))
+// to stop the stage:
+// 
+//     E_max = V * R + d(V)
+//
+// If the required calibration accuracy is 0.1 mm, the timer resolution is
+// 10 ms, and d(V) = 0.05 mm (assumed to be constant), V must be
+//
+//     V = (0.1 - 0.05) / 0.01 = 5 (mm/s)
+//
+
 
 
 //===========================================================================
@@ -147,6 +204,7 @@ using namespace std;
 #endif
 
 
+
 //===========================================================================
 // Global variables
 //===========================================================================
@@ -195,16 +253,30 @@ static int   fOutOfRange[NUM_ENCODERS];
 // Out of Range flag
 //static int   fOutOfRange[NUM_ENCODERS];
 
+
+//===========================================================================
+// Constants
+//===========================================================================
+#define CALIBRATION_MOVE_STOP         0
+#define CALIBRATION_MOVE_HOME_FAST    1
+#define CALIBRATION_MOVE_CENTER       2
+#define CALIBRATION_MOVE_HOME_SLOW    3
+#define CALIBRATION_COMPLETE          4
+
+#define CALIBRATION_VELOCITY_FAST     15
+#define CALIBRATION_VELOCITY_SLOW     5
+
+
 //===========================================================================
 // Declarations of functions
 //===========================================================================
 
-int  procStartUp();
-int  procCalibration();
-int  procHold();
-int  procActive();
-int  procEmergency();
-int  procReset();
+int  procStartUp(int init);
+int  procCalibration(int init);
+int  procHold(int init);
+int  procActive(int init);
+int  procEmergency(int init);
+int  procReset(int init);
 int  trapCtrl(MrsvrVector, float);
 int  trapCtrl2(MrsvrVector, float);
 void getActuatorTarget(MrsvrVector& target, MrsvrVector setPoint);
@@ -527,7 +599,7 @@ int initCommandInterface()
   // register the limit of motion to the shared memory
   status->setMode(MrsvrStatus::START_UP);
   status->setLimitPos((float*)dev->getLimitMins(), (float*)dev->getLimitMaxs());
-  procHold();
+  procHold(1);
 
   return 1;
 }
@@ -546,22 +618,35 @@ int clear()
 // Procedures for each mode
 //===========================================================================
 
-inline int procStartUp()
+inline int procStartUp(int init)
 {
   
   //
   // Put start-up procedure here.
   //
-
+  if (init) {
+  }
   status->setMode(MrsvrStatus::CALIBRATION);
   return 1;
 }
 
 
-inline int procCalibration()
+inline int procCalibration(int init)
 {
 
+  static int step;
+  static int remCycles[NUM_ACTUATORS];
+
   int f = 0;
+
+  if (init) {
+    step = CALIBRATION_MOVE_HOME_FAST;
+    int ncylcesToStop = 100000 / interval; // 100 ms
+    for (int i = 0; i < NUM_ACTUATORS; i ++) {
+      remCycles[i] = ncylcesToStop;
+    }
+  }
+
   for (int i = 0; i < NUM_ENCODERS; i ++) {
     if (command->getZeroFlag(i)) {
       dev->setZero(i);
@@ -579,6 +664,67 @@ inline int procCalibration()
     }
     break;
   case MrsvrCommand::CALIBRATION_HOME:
+    if (step == CALIBRATION_MOVE_HOME_FAST) {
+      // Step 1: move the stage towards the home limiter of the sensor with high speed,
+      //         until the sensor status becomes HIGH. (CALIBRATION_MOVE_HOME_FAST)
+      int end = 1;
+      for (int i = 0; i < NUM_ACTUATORS; i ++) {
+        float sv;
+        if (dev->getLimitSensorStatus(i) == -1) {
+          sv = dev->setVelocity(i, 0);
+        } else {
+          end = 0;
+          sv = dev->setVelocity(i, - CALIBRATION_VELOCITY_FAST);
+        }
+        status->setVoltage(i, sv);
+      }
+      if (end) { // move to the next step
+        step = CALIBRATION_MOVE_CENTER;
+      }
+    } else if (step == CALIBRATION_MOVE_CENTER) {
+      // Step 2: move the stage towards the upper limiter of the sensor, until
+      //         the sensor status becomes LOW (or a few seconds after
+      //         the sensor status becomes LOW).  (CALIBRATION_MOVE_CENTER)
+      int end = 1;
+      for (int i = 0; i < NUM_ACTUATORS; i ++) {
+        float sv;
+        if (dev->getLimitSensorStatus(i) == 0) {
+          if (remCycles[i] > 0) {
+            sv = dev->setVelocity(i, CALIBRATION_VELOCITY_FAST);
+            end = 0;
+            remCycles[i] --;
+          } else {
+            sv = dev->setVelocity(i, 0);
+          }
+        } else {
+          sv = dev->setVelocity(i, CALIBRATION_VELOCITY_FAST);
+        }
+        status->setVoltage(i, sv);
+      }
+      if (end) { // move to the next step
+        step = CALIBRATION_MOVE_HOME_SLOW;
+      }
+    } else if (step == CALIBRATION_MOVE_HOME_SLOW) {
+      // Step 3: move the starge towards the home limiter with low speed
+      //         until the sensor reading becomes HIGH. (CALIBRATION_MOVE_HOME_SLOW)
+      int end = 1;
+      for (int i = 0; i < NUM_ACTUATORS; i ++) {
+        float sv;
+        if (dev->getLimitSensorStatus(i) == -1) {
+          sv = dev->setVelocity(i, 0);
+        } else {
+          end = 0;
+          sv = dev->setVelocity(i, - CALIBRATION_VELOCITY_SLOW);
+        }
+        status->setVoltage(i, sv);
+      }
+      if (end) { // move to the next step
+        step = CALIBRATION_COMPLETE;
+      }
+    } else if (step == CALIBRATION_COMPLETE) {
+      status->setMode(MrsvrStatus::HOLD);
+    } else {
+    }
     break;
   case MrsvrCommand::CALIBRATION_MANUAL:
     for (int i = 0; i < NUM_ACTUATORS; i ++) {
@@ -630,8 +776,10 @@ inline int procCalibration()
 }
 
 
-inline int procHold()
+inline int procHold(int init)
 {
+  if (init) {
+  }
 
   for (int i = 0; i < NUM_ACTUATORS; i ++) {
     dev->setVoltage(i, 0.0);
@@ -645,11 +793,12 @@ inline int procHold()
 }
 
 
-inline int procActive()
+inline int procActive(int init)
 {
 
   unsigned short swst;
   MrsvrVector spim, sprb;
+
   for (int i = 0; i < NUM_ACTUATORS; i ++) {
     spim[i] = command->getSetPoint(i);
   }
@@ -664,15 +813,22 @@ inline int procActive()
 }
 
 
-inline int procReset()
+inline int procReset(int init)
 {
+  if (init) {
+  }
+  
   status->setMode(MrsvrStatus::START_UP);
   return 1;
 }
 
 
-inline int procEmergency()
+inline int procEmergency(int init)
 {
+
+  if (init) {
+  }
+
   // stop all actuators
   for (int i = 0; i < NUM_ACTUATORS; i ++) {
     dev->setVoltage(i, 0.0);
@@ -727,9 +883,16 @@ int trapCtrl(MrsvrVector setPoint, float vmax)
       } else if (newv > vmax) {
         newv = vmax;
       }
-      float sv = dev->setVelocity(i, dir*newv);
-      status->setVoltage(i, sv);
-      
+
+      // If the actuator tries to move beyond the home limit,
+      // the controller stops the actuator.
+      if (dev->getLimitSensorStatus(i) * dir > 0) {
+        float sv = dev->setVelocity(i, 0);
+        status->setVoltage(i, sv);
+      } else {
+        float sv = dev->setVelocity(i, dir*newv);
+        status->setVoltage(i, sv);
+      }
     }
   }
   return (NUM_ACTUATORS - reach);
@@ -1133,10 +1296,12 @@ int main(int argc, char* argv[])
 
     getPositions();
 
+    int initMode = 0; 
     int newMode = command->getNewMode(); // returns -1, if the new node is not requested
     int currentMode = status->getMode();
     if (newMode > 0) {
       if (checkModeTransition(currentMode, newMode) == 1) {
+        initMode = 1;
         status->setMode(newMode);
         currentMode = newMode;
         printModeTransition(currentMode);
@@ -1149,22 +1314,22 @@ int main(int argc, char* argv[])
 
     switch (status->getMode()) {
       case MrsvrStatus::START_UP:
-        procStartUp();
+        procStartUp(initMode);
         break;
       case MrsvrStatus::CALIBRATION:
-        procCalibration();
+        procCalibration(initMode);
         break;
       case MrsvrStatus::HOLD:
-        procHold();
+        procHold(initMode);
         break;
       case MrsvrStatus::ACTIVE:
-        procActive();
+        procActive(initMode);
         break;
       case MrsvrStatus::EMERGENCY:
-        procEmergency();
+        procEmergency(initMode);
         break;
       case MrsvrStatus::RESET:
-        procReset();
+        procReset(initMode);
         break;
       default:
         break;
