@@ -283,7 +283,7 @@ void vtkBetaProbeGUI::Enter()
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
-    this->TimerInterval = 1000;  // 100 ms
+    this->TimerInterval = 1000;  // 1000 ms
 
     ProcessTimerEvents();
     }
@@ -928,15 +928,15 @@ void vtkBetaProbeGUI::ProcessTimerEvents()
         }
       }
 
+    if(this->GetContinuousMode())
+      {
+      this->Capture_Data();
+      }
+
     // update timer
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(),
                                          this->TimerInterval,
                                          this, "ProcessTimerEvents");
-    }
-
-  if(this->GetContinuousMode())
-    {
-    this->Capture_Data();
     }
 
   if(this->GetPivotCalibrationRunning())
@@ -1374,7 +1374,7 @@ void vtkBetaProbeGUI::Capture_Data()
     struct tm *current = localtime(&now);
     char mytime[20];
     sprintf(mytime, "%.2d:%.2d:%.2d", current->tm_hour, current->tm_min, current->tm_sec);
-
+    
     this->Probe_Position->GetMatrixTransformToWorld(this->Probe_Matrix);
     this->BetaProbeCountsWithTimestamp << this->Counts->GetSmoothedCounts()   << "\t\t"
                                        << this->Counts->GetBetaCounts()       << "\t\t"
@@ -1387,7 +1387,7 @@ void vtkBetaProbeGUI::Capture_Data()
 
     this->Probe_Matrix->Delete();
     this->Probe_Matrix = NULL;
-
+ 
     this->Capture_status->SetText("Data captured");
     }
   else
