@@ -23,6 +23,7 @@
 #include "vtkCallbackCommand.h"
 
 #include "vtkMRMLSliceNode.h"
+#include "vtkMutexLock.h"
 
 #include <stdio.h>
 #include <sys/socket.h>
@@ -35,6 +36,7 @@
 #include <fcntl.h>
 
 class vtkMultiThreader;
+class vtkSimpleMutexLock;
 
 class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
 {
@@ -60,6 +62,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
   int Stop();
   bool GetServerStopFlag() {return this->ServerStopFlag;};
   char* GetImportedData(){return this->ImportedData;};
+
   int GetBytesReceived(){return this->received;};
   void SetPort(int p) {this->port = p;};
 
@@ -69,6 +72,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
   //Thread Control
 
   static void* ThreadFunction(void* ptr);
+  vtkSimpleMutexLock* DataLock;
 
  protected:
 
@@ -104,7 +108,6 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
  private:
 
   vtkMultiThreader* Thread;
-
 };
 
 #endif

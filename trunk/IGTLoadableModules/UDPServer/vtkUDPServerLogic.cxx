@@ -44,6 +44,8 @@ vtkUDPServerLogic::vtkUDPServerLogic()
   this->clientlen = 0;
   this->serverlen = 0;
   this->ImportedData = NULL;
+  this->DataLock = vtkSimpleMutexLock::New();
+
 }
 
 //---------------------------------------------------------------------------
@@ -57,6 +59,11 @@ vtkUDPServerLogic::~vtkUDPServerLogic()
   if(this->Thread)
     {
     this->Thread->Delete();
+    }
+
+  if(this->DataLock)
+    {
+      this->DataLock->Delete();
     }
 }
 
@@ -131,7 +138,10 @@ void vtkUDPServerLogic::ImportData()
     //std::cerr << "Failed to receive message" << std::endl;
     }
   this->buffer[received]= '\0';
+
+  this->DataLock->Lock();
   this->ImportedData = this->buffer;
+  this->DataLock->Unlock();
 }
 
 //-------------------------------------------------------------------------------
@@ -191,4 +201,3 @@ int vtkUDPServerLogic::Stop()
     return 0;
     }
 }
-
