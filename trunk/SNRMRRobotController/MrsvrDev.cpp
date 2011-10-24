@@ -400,7 +400,6 @@ int MrsvrDev::setPosition(int n, float v)
 }
 
 
-
 int MrsvrDev::getLimitSensorStatus(int i)
 {
   DioInputWord(DEV_DIO, FBIDIO_IN1_16, &dioInValue);
