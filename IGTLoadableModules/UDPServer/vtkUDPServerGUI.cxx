@@ -419,7 +419,9 @@ void vtkUDPServerGUI::ProcessTimerEvents()
     if((this->GetLogic()->GetServerStopFlag() == false) && (this->GetLogic()->GetBytesReceived() > 0))
       {
       char* data;
+      this->GetLogic()->DataLock->Lock();
       data = this->GetLogic()->GetImportedData();
+      this->GetLogic()->DataLock->Unlock();
 
       //Place data in the Data Frame List
       this->UpdateDataFrame(data);
