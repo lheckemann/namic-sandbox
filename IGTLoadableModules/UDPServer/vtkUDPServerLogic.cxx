@@ -44,7 +44,6 @@ vtkUDPServerLogic::vtkUDPServerLogic()
   this->clientlen = 0;
   this->serverlen = 0;
   this->ImportedData = NULL;
-  this->DataLock = vtkSimpleMutexLock::New();
 
 }
 
@@ -59,11 +58,6 @@ vtkUDPServerLogic::~vtkUDPServerLogic()
   if(this->Thread)
     {
     this->Thread->Delete();
-    }
-
-  if(this->DataLock)
-    {
-      this->DataLock->Delete();
     }
 }
 
@@ -135,13 +129,11 @@ void vtkUDPServerLogic::ImportData()
   this->received = 0;
   if ((this->received = recvfrom(this->sock, this->buffer, this->BUFFSIZE, 0, (struct sockaddr *) &echoclient, &clientlen)) < 0)
     {
-    //std::cerr << "Failed to receive message" << std::endl;
+      //std::cerr << "Failed to receive message" << std::endl;
     }
   this->buffer[received]= '\0';
 
-  this->DataLock->Lock();
   this->ImportedData = this->buffer;
-  this->DataLock->Unlock();
 }
 
 //-------------------------------------------------------------------------------
