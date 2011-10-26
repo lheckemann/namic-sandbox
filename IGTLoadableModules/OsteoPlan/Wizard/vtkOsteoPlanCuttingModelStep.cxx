@@ -55,6 +55,8 @@
 #include "vtkImplicitTextureCoords.h"
 #include "vtkDataSetMapper.h"
 
+#include "vtkPluginFilterWatcher.h"
+
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj)                                      \
     {                                           \
@@ -565,6 +567,8 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   realCut->GenerateClippedOutputOn();
   realCut->SetClipFunction(planes);
   realCut->SetInput(subdividePolygons->GetOutput());
+
+  vtkPluginFilterWatcher watcher(realCut, "Clipping Polydata");
 
   // Create Model 1 (Inside)
   vtkMRMLModelNode* part1 = vtkMRMLModelNode::New();
