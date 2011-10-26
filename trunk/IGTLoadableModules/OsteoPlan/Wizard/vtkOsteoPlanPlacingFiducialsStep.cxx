@@ -42,6 +42,8 @@
 #include "vtkKWPushButton.h"
 #include "vtkKWScaleWithLabel.h"
 #include "vtkKWScale.h"
+#include "vtkKWListBox.h"
+#include "vtkKWOptions.h"
 
 #include "vtkCylinderWidget.h"
 #include "vtkRenderer.h"
@@ -76,14 +78,20 @@ vtkOsteoPlanPlacingFiducialsStep::vtkOsteoPlanPlacingFiducialsStep()
   this->TitleBackgroundColor[1]   = 0.98;
   this->TitleBackgroundColor[2]   = 0.74;
 
-  this->MainFrame                 = NULL;
-  this->FiducialOnModel           = NULL;
-  this->StartPlacingFiducials     = NULL;
-  this->SelectedModel             = NULL;
-  this->ScrewDiameterScale        = NULL;
-  this->ScrewHeightScale          = NULL;
-  this->ScrewCylinder             = NULL;
-  this->ApplyScrewButton          = NULL;
+  this->MainFrame             = NULL;
+  this->FiducialOnModel       = NULL;
+  this->StartPlacingFiducials = NULL;
+  this->SelectedModel         = NULL;
+  this->ScrewDiameterScale    = NULL;
+  this->ScrewHeightScale      = NULL;
+  this->ScrewCylinder         = NULL;
+  this->ApplyScrewButton      = NULL;
+
+  this->AddModelButton    = NULL;
+  this->RemoveModelButton = NULL;
+  this->ClearListButton   = NULL;
+  this->ModelsToClip      = NULL;
+  this->ModelsToClipCollection = vtkCollection::New();
 
   this->ScrewDiameter             = 1;
   this->ScrewHeight               = 40;
@@ -106,9 +114,20 @@ vtkOsteoPlanPlacingFiducialsStep::~vtkOsteoPlanPlacingFiducialsStep()
   DELETE_IF_NULL_WITH_SETPARENT_NULL(this->ScrewHeightScale);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(this->ApplyScrewButton);
 
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(this->AddModelButton);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(this->RemoveModelButton);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(this->ClearListButton);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(this->ModelsToClip);
+
+
   if(this->ScrewCylinder)
     {
     this->ScrewCylinder->Delete();
+    }
+
+  if(this->ModelsToClipCollection)
+    {
+    this->ModelsToClipCollection->Delete();
     }
 
 }
@@ -125,13 +144,19 @@ void vtkOsteoPlanPlacingFiducialsStep::ShowUserInterface()
   //-------------------------------------------------------
   // Placing Screws Frame
 
+  vtkKWFrameWithLabel* ListOfModelsFrame = vtkKWFrameWithLabel::New();
+  ListOfModelsFrame->SetParent(parent);
+  ListOfModelsFrame->Create();
+  ListOfModelsFrame->SetLabelText("Models to clip");
+
+  // Node Selector
   if(!this->FiducialOnModel)
     {
     this->FiducialOnModel = vtkSlicerNodeSelectorWidget::New();
     }
   if(!this->FiducialOnModel->IsCreated())
     {
-    this->FiducialOnModel->SetParent(parent);
+    this->FiducialOnModel->SetParent(ListOfModelsFrame->GetFrame());
     this->FiducialOnModel->Create();
     this->FiducialOnModel->SetNewNodeEnabled(0);
     this->FiducialOnModel->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
@@ -139,6 +164,73 @@ void vtkOsteoPlanPlacingFiducialsStep::ShowUserInterface()
     this->FiducialOnModel->UpdateMenu();
     }
 
+  // Buttons (Add, Remove, Clear)
+  vtkKWFrame* ButtonsFrame = vtkKWFrame::New();
+  ButtonsFrame->SetParent(ListOfModelsFrame->GetFrame());
+  ButtonsFrame->Create();
+
+  if(!this->AddModelButton)
+    {
+    this->AddModelButton = vtkKWPushButton::New();
+    }
+  if(!this->AddModelButton->IsCreated())
+    {
+    this->AddModelButton->SetParent(ButtonsFrame);
+    this->AddModelButton->Create();
+    this->AddModelButton->SetText("Add");
+    this->AddModelButton->SetEnabled(1);
+    }
+
+  if(!this->RemoveModelButton)
+    {
+    this->RemoveModelButton = vtkKWPushButton::New();
+    }
+  if(!this->RemoveModelButton->IsCreated())
+    {
+    this->RemoveModelButton->SetParent(ButtonsFrame);
+    this->RemoveModelButton->Create();
+    this->RemoveModelButton->SetText("Remove");
+    this->RemoveModelButton->SetEnabled(1);
+    }
+
+  if(!this->ClearListButton)
+    {
+    this->ClearListButton = vtkKWPushButton::New();
+    }
+  if(!this->ClearListButton->IsCreated())
+    {
+    this->ClearListButton->SetParent(ButtonsFrame);
+    this->ClearListButton->Create();
+    this->ClearListButton->SetText("Clear");
+    this->ClearListButton->SetEnabled(1);
+    }
+
+  this->Script("pack %s %s %s -side left -expand t -fill x -padx 2 -pady 2",
+               this->AddModelButton->GetWidgetName(),
+               this->RemoveModelButton->GetWidgetName(),
+               this->ClearListButton->GetWidgetName());
+
+  // List box
+  if(!this->ModelsToClip)
+    {
+    this->ModelsToClip = vtkKWListBox::New();
+    }
+  if(!this->ModelsToClip->IsCreated())
+    {
+    this->ModelsToClip->SetParent(ListOfModelsFrame->GetFrame());
+    this->ModelsToClip->Create();
+    this->ModelsToClip->SetSelectionMode(vtkKWOptions::SelectionModeSingle);
+    }
+
+  this->Script("pack %s %s %s -side top -fill x -padx 2 -pady 2",
+               this->FiducialOnModel->GetWidgetName(),
+               ButtonsFrame->GetWidgetName(),
+               this->ModelsToClip->GetWidgetName());
+
+  ButtonsFrame->Delete();
+
+
+  // Screw parameters
   if(!this->ScrewDiameterScale)
     {
     this->ScrewDiameterScale = vtkKWScaleWithLabel::New();
@@ -193,11 +285,13 @@ void vtkOsteoPlanPlacingFiducialsStep::ShowUserInterface()
     }
 
   this->Script("pack %s %s %s %s %s -side top -fill x -padx 0 -pady 2",
-               this->FiducialOnModel->GetWidgetName(),
+               ListOfModelsFrame->GetWidgetName(),
                this->ScrewDiameterScale->GetWidgetName(),
                this->ScrewHeightScale->GetWidgetName(),
                this->StartPlacingFiducials->GetWidgetName(),
                this->ApplyScrewButton->GetWidgetName());
+
+  ListOfModelsFrame->Delete();
 
   //-------------------------------------------------------
 
@@ -275,37 +369,6 @@ void vtkOsteoPlanPlacingFiducialsStep::ProcessGUIEvents(vtkObject *caller,
        && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
       {
       this->SelectedModel = vtkMRMLModelNode::SafeDownCast(this->FiducialOnModel->GetSelected());
-/*
-  if(this->SelectedModel)
-  {
-
-  if(this->StartPlacingFiducials)
-  {
-  vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
-  vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
-
-  this->StartPlacingFiducials->SetText("Show Screw");
-  this->StartPlacingFiducials->SetBackgroundColor(color->SliceGUIGreen);
-  this->StartPlacingFiducials->SetActiveBackgroundColor(color->SliceGUIGreen);
-  this->StartPlacingFiducials->SetEnabled(1);
-  }
-
-  }
-  else
-  {
-  // Disable button
-  if(this->StartPlacingFiducials)
-  {
-  vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
-  vtkSlicerColor* color = app->GetSlicerTheme()->GetSlicerColors();
-
-  this->StartPlacingFiducials->SetText("Select a model where to place fiducials");
-  this->StartPlacingFiducials->SetBackgroundColor(color->White);
-  this->StartPlacingFiducials->SetActiveBackgroundColor(color->White);
-  this->StartPlacingFiducials->SetEnabled(0);
-  }
-  }
-*/
       }
 
     //--------------------------------------------------
@@ -414,7 +477,51 @@ void vtkOsteoPlanPlacingFiducialsStep::ProcessGUIEvents(vtkObject *caller,
       MarkScrewPosition();
       }
 
+    //--------------------------------------------------
+    // List of Nodes
 
+    if(this->AddModelButton == vtkKWPushButton::SafeDownCast(caller)
+       && event == vtkKWPushButton::InvokedEvent)
+      {
+      if(this->SelectedModel && this->ModelsToClip && this->ModelsToClipCollection)
+        {
+        this->ModelsToClipCollection->AddItem(this->SelectedModel);
+        this->ModelsToClip->Append(this->SelectedModel->GetName());
+        }
+      }
+
+
+    if(this->RemoveModelButton == vtkKWPushButton::SafeDownCast(caller)
+       && event == vtkKWPushButton::InvokedEvent)
+      {
+      if(this->ModelsToClip && this->ModelsToClipCollection)
+        {
+        int selection_index = this->ModelsToClip->GetSelectionIndex();
+        if(selection_index >= 0)
+          {
+          for(int i = 0; i < this->ModelsToClipCollection->GetNumberOfItems(); i++)
+            {
+            vtkMRMLNode* selectionNode = vtkMRMLNode::SafeDownCast(this->ModelsToClipCollection->GetItemAsObject(i));
+            if(!strcmp(this->ModelsToClip->GetSelection(),selectionNode->GetName()))
+              {
+              this->ModelsToClipCollection->RemoveItem(i);
+              this->ModelsToClip->DeleteRange(selection_index, selection_index);
+              }
+            }
+          }
+        }
+      }
+
+
+    if(this->ClearListButton == vtkKWPushButton::SafeDownCast(caller)
+       && event == vtkKWPushButton::InvokedEvent)
+      {
+      if(this->ModelsToClip && this->ModelsToClipCollection)
+        {
+        this->ModelsToClipCollection->RemoveAllItems();
+        this->ModelsToClip->DeleteAll();
+        }
+      }
     }
 }
 
@@ -444,6 +551,22 @@ void vtkOsteoPlanPlacingFiducialsStep::AddGUIObservers()
     {
     this->FiducialOnModel->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
+
+  if(this->AddModelButton)
+    {
+    this->AddModelButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
+
+  if(this->RemoveModelButton)
+    {
+    this->RemoveModelButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
+
+  if(this->ClearListButton)
+    {
+    this->ClearListButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
+
 
   if(this->StartPlacingFiducials)
     {
@@ -478,6 +601,21 @@ void vtkOsteoPlanPlacingFiducialsStep::RemoveGUIObservers()
   if(this->FiducialOnModel)
     {
     this->FiducialOnModel->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+
+  if(this->AddModelButton)
+    {
+    this->AddModelButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+
+  if(this->RemoveModelButton)
+    {
+    this->RemoveModelButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+
+  if(this->ClearListButton)
+    {
+    this->ClearListButton->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
   if(this->StartPlacingFiducials)
@@ -531,6 +669,7 @@ void vtkOsteoPlanPlacingFiducialsStep::MarkScrewPosition()
 {
   // Check if model has a transform
   //   = is on vtkCollection
+/*
   for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems(); i++)
     {
     vtkMRMLModelNode* mNode = vtkMRMLModelNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(i));
@@ -551,6 +690,39 @@ void vtkOsteoPlanPlacingFiducialsStep::MarkScrewPosition()
         }
       }
     }
+*/
+
+
+
+  if(this->ModelsToClipCollection)
+    {
+    for(int j = 0; j < this->ModelsToClipCollection->GetNumberOfItems(); j++)
+      {
+      vtkMRMLModelNode* ClipModel = vtkMRMLModelNode::SafeDownCast(this->ModelsToClipCollection->GetItemAsObject(j));
+
+      for(int k = 0; k < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems(); k++)
+        {
+        vtkMRMLModelNode* TransformedModel = vtkMRMLModelNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(k));
+
+        if(ClipModel == TransformedModel)
+          {
+          if(!strcmp(TransformedModel->GetAttribute("TransformApplied"),"false"))
+            {
+            vtkMRMLLinearTransformNode* tNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfTransforms()->GetItemAsObject(k));
+
+            ClipModel->ApplyTransform(tNode->GetMatrixTransformToParent());
+            ClipModel->SetAndObserveTransformNodeID(NULL);
+            ClipModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+            this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
+
+            TransformedModel->SetAttribute("TransformApplied","true");
+            }
+          }
+        }
+      }
+    }
+
+
 
   // Create clipper (finite cylinder)
   vtkCylinder* cylinderAlgo = vtkCylinder::New();
@@ -568,84 +740,28 @@ void vtkOsteoPlanPlacingFiducialsStep::MarkScrewPosition()
   createCylinder->AddFunction(plane2);
   createCylinder->SetOperationTypeToIntersection();
 
-  // Apply clipper to polydata (model)
-  vtkClipPolyData* ScrewHole = vtkClipPolyData::New();
-  ScrewHole->SetClipFunction(createCylinder);
-  ScrewHole->GenerateClippedOutputOn();
-  ScrewHole->SetInput(this->SelectedModel->GetPolyData());
-  this->SelectedModel->SetAndObservePolyData(ScrewHole->GetOutput());
-  this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
+  if(this->ModelsToClipCollection)
+    {
+    for(int i = 0; i < this->ModelsToClipCollection->GetNumberOfItems(); i++)
+      {
+      vtkMRMLModelNode *NodeToClip = vtkMRMLModelNode::SafeDownCast(this->ModelsToClipCollection->GetItemAsObject(i));
+
+      // Apply clipper to polydata (model)
+      vtkClipPolyData* ScrewHole = vtkClipPolyData::New();
+      ScrewHole->SetClipFunction(createCylinder);
+      ScrewHole->GenerateClippedOutputOn();
+      ScrewHole->SetInput(NodeToClip->GetPolyData());
+      NodeToClip->SetAndObservePolyData(ScrewHole->GetOutput());
+      ScrewHole->Delete();
+
+      }
+
+    this->GetGUI()->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+    }
 
   createCylinder->Delete();
   plane1->Delete();
   plane2->Delete();
-  ScrewHole->Delete();
   cylinderAlgo->Delete();
 }
-
-//----------------------------------------------------------------------------
-/*
-  void vtkOsteoPlanPlacingFiducialsStep::AddPairModelFiducial()
-  {
-  if(this->FiducialOnModel && this->SelectedModel)
-  {
-  if(this->bPlacingFiducials == true)
-  {
-  this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::Place);
-  this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetSelected(1);
-  this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(1);
-
-  this->modelNodeInsideCollection = false;
-  int modelPosition = 0;
-
-  for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems();i++)
-  {
-  vtkMRMLModelNode* listModel = reinterpret_cast<vtkMRMLModelNode*>(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(i));
-  if(!strcmp(this->SelectedModel->GetID(),listModel->GetID()))
-  {
-  this->modelNodeInsideCollection = true;
-  modelPosition = i;
-  }
-  }
-
-  if(!this->modelNodeInsideCollection)
-  {
-  // Add Model to the List of models who have a fiducial list associated
-  this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->AddItem(this->SelectedModel);
-
-  // Create the fiducial list with the name of the model
-  vtkMRMLFiducialListNode* fiducialListConnectedToModel = vtkMRMLFiducialListNode::New();
-  char fiducialListName[128];
-  sprintf(fiducialListName,"%s-fiducialList",this->SelectedModel->GetName());
-  fiducialListConnectedToModel->SetName(fiducialListName);
-  fiducialListConnectedToModel->SetGlyphTypeFromString("Sphere3D");
-  fiducialListConnectedToModel->SetSymbolScale(2.0);
-  fiducialListConnectedToModel->SetTextScale(0);
-
-  // Add Fiducial list to the list of fiducial list who have a model associated
-  this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->AddItem(fiducialListConnectedToModel);
-
-  // Add fiducial list to the scene and set it as active
-  this->GetGUI()->GetMRMLScene()->AddNode(fiducialListConnectedToModel);
-  this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(fiducialListConnectedToModel->GetID());
-  fiducialListConnectedToModel->Delete();
-  }
-  else
-  {
-  // Set fiducial list corresponding to the model as active
-  vtkMRMLFiducialListNode* fiducialListAlreadyConnectedToModel = reinterpret_cast<vtkMRMLFiducialListNode*>(this->GetGUI()->GetOsteoPlanNode()->GetListOfFiducialLists()->GetItemAsObject(modelPosition));
-  this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(fiducialListAlreadyConnectedToModel->GetID());
-  }
-
-  }
-  else
-  {
-  this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::ViewTransform);
-  this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetSelected(0);
-  this->GetGUI()->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(0);
-
-  //      this->placeMarkersButton->SetText("Start Placing Markers");
-  }
-  }
-  }
-*/
