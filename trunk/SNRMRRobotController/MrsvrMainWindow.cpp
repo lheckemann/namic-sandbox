@@ -2919,6 +2919,8 @@ long MrsvrMainWindow::onCmdCalibrate(FXObject*, FXSelector, void*)
   DBG_MMW_PRINT("onCmdCalibrate()\n");
   consolePrint(1, true, "CALIBRATION command received.\n");
 
+  robotCommand->setMode(MrsvrStatus::CALIBRATION);
+  robotCommand->setCalibrationCommand(MrsvrCommand::CALIBRATION_HOME);
   //  progDlg->setMessage("Starting calibration....");
   //  progDlg->show(PLACEMENT_OWNER);
   //textStatusProg->setText("Starting automatic calibration...");
