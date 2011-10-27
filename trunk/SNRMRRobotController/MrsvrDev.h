@@ -61,8 +61,8 @@
 #define DEV_DA           2 
 #define DEV_ENC_COUNT    3
 
-#define NUM_ACTUATORS        3
-#define NUM_ENCODERS         3
+#define NUM_ACTUATORS        2
+#define NUM_ENCODERS         2
 
 // Bit masks for digital Input masks
 // Note : Low   (ON)  -> 1 
@@ -361,7 +361,7 @@ class MrsvrDev {
     } else {
       ret = vel2vol(n, v);
     }
-    setVoltage(n, ret);
+    setVoltage(n, sign*ret);
     return getVoltage(n);
   };
 
