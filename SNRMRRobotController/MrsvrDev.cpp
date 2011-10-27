@@ -124,7 +124,7 @@ const float MrsvrDev::encLimitMin[] = {
 const int MrsvrDev::EnableLockDetect[] = {
   LOCK_DETECT_X,
   LOCK_DETECT_Y,
-  LOCK_DETECT_Z,
+  //  LOCK_DETECT_Z,
 };
 
 

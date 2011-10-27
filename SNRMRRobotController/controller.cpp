@@ -637,13 +637,15 @@ inline int procCalibration(int init)
   static int step;
   static int remCycles[NUM_ACTUATORS];
 
+  static int dir[]={-1,1,0};
+
   int f = 0;
 
   if (init) {
     step = CALIBRATION_MOVE_HOME_FAST;
-    int ncylcesToStop = 100000 / interval; // 100 ms
+    int ncyclesToStop = 100000 / interval; // 100 ms
     for (int i = 0; i < NUM_ACTUATORS; i ++) {
-      remCycles[i] = ncylcesToStop;
+      remCycles[i] = ncyclesToStop;
     }
   }
 
@@ -663,8 +665,10 @@ inline int procCalibration(int init)
       DBG_PRINT("setVoltage(%d, %f) \n", i, dev->getVoltage(i));
     }
     break;
+
   case MrsvrCommand::CALIBRATION_HOME:
     if (step == CALIBRATION_MOVE_HOME_FAST) {
+      CONSOLE_PRINT("CLIB: CALIBRATION_MOVE_HOME_FAST\n");
       // Step 1: move the stage towards the home limiter of the sensor with high speed,
       //         until the sensor status becomes HIGH. (CALIBRATION_MOVE_HOME_FAST)
       int end = 1;
@@ -674,7 +678,7 @@ inline int procCalibration(int init)
           sv = dev->setVelocity(i, 0);
         } else {
           end = 0;
-          sv = dev->setVelocity(i, - CALIBRATION_VELOCITY_FAST);
+          sv = dev->setVelocity(i, (-CALIBRATION_VELOCITY_FAST)*dir[i]);
         }
         status->setVoltage(i, sv);
       }
@@ -682,6 +686,7 @@ inline int procCalibration(int init)
         step = CALIBRATION_MOVE_CENTER;
       }
     } else if (step == CALIBRATION_MOVE_CENTER) {
+      CONSOLE_PRINT("CLIB: CALIBRATION_MOVE_CENTER\n");
       // Step 2: move the stage towards the upper limiter of the sensor, until
       //         the sensor status becomes LOW (or a few seconds after
       //         the sensor status becomes LOW).  (CALIBRATION_MOVE_CENTER)
@@ -690,14 +695,14 @@ inline int procCalibration(int init)
         float sv;
         if (dev->getLimitSensorStatus(i) == 0) {
           if (remCycles[i] > 0) {
-            sv = dev->setVelocity(i, CALIBRATION_VELOCITY_FAST);
+            sv = dev->setVelocity(i, CALIBRATION_VELOCITY_FAST*dir[i]);
             end = 0;
             remCycles[i] --;
           } else {
             sv = dev->setVelocity(i, 0);
           }
         } else {
-          sv = dev->setVelocity(i, CALIBRATION_VELOCITY_FAST);
+          sv = dev->setVelocity(i, CALIBRATION_VELOCITY_FAST*dir[i]);
         }
         status->setVoltage(i, sv);
       }
@@ -705,6 +710,7 @@ inline int procCalibration(int init)
         step = CALIBRATION_MOVE_HOME_SLOW;
       }
     } else if (step == CALIBRATION_MOVE_HOME_SLOW) {
+      CONSOLE_PRINT("CLIB: CALIBRATION_MOVE_HOME_SLOW\n");
       // Step 3: move the starge towards the home limiter with low speed
       //         until the sensor reading becomes HIGH. (CALIBRATION_MOVE_HOME_SLOW)
       int end = 1;
@@ -714,7 +720,7 @@ inline int procCalibration(int init)
           sv = dev->setVelocity(i, 0);
         } else {
           end = 0;
-          sv = dev->setVelocity(i, - CALIBRATION_VELOCITY_SLOW);
+          sv = dev->setVelocity(i, - CALIBRATION_VELOCITY_SLOW*dir[i]);
         }
         status->setVoltage(i, sv);
       }
@@ -734,43 +740,6 @@ inline int procCalibration(int init)
     }
     break;
   }
-  //switch(command->getCommandBy()) {
-  //case MrsvrCommand::VOLTAGE:
-  //  swst = dev->getSwitchStatus();
-  //  for (int i = 0; i < NUM_ACTUATORS; i ++) {
-  //    //int limit = status->isOutOfRangePos(i);
-  //    int limit = fOutOfRange[i];
-  //    float cmd = 0;
-  //    float lmtv = command->getLmtVoltage(i);
-  //    if (dev->isFwSwitchOn(swst, i)) {
-  //      cmd += lmtv;
-  //    }
-  //    if (dev->isBwSwitchOn(swst, i)) {
-  //      cmd -= lmtv;
-  //    }
-  //    if (cmd == 0.0) {
-  //      cmd = command->getVoltage(i);
-  //    }
-  //  
-  //    if (limit == 0 ||
-  //        cmd * limit < 0) { // if the signs are different
-  //      dev->setVoltage(i, cmd);
-  //      status->setVoltage(i, dev->getVoltage(i));
-  //      DBG_PRINT("setVoltage(%d, %f) \n", i, dev->getVoltage(i));
-  //    } else {
-  //      dev->setVoltage(i, 0.0);
-  //      status->setVoltage(i, dev->getVoltage(i));
-  //      DBG_PRINT("setVoltage(%d, %f) \n", i, dev->getVoltage(i));
-  //    }
-  //  }
-  //  break;
-  //case MrsvrCommand::VELOCITY:
-  //  break;
-  //case MrsvrCommand::POSITION:
-  //  break;
-  //default:
-  //  break;
-  //}
 
   return 1;
 }
@@ -1293,12 +1262,6 @@ int main(int argc, char* argv[])
     if (command->getShutdown()) {
       exit(1);
     }
-
-    // Test
-    CONSOLE_PRINT("SENSOR: %d, %d, %d\n",
-                  dev->getLimitSensorStatus(0),
-                  dev->getLimitSensorStatus(1),
-                  dev->getLimitSensorStatus(2));
 
     getPositions();
 
