@@ -495,7 +495,8 @@ void vtkUltrasound4DGUI::ProcessGUIEvents(vtkObject *caller,
 
         if(strcmp(this->FourDVolumeNode->GetSerieID().c_str(), ""))
           {
-          newNode->SetSerieID(this->FourDVolumeNode->GetSerieID().c_str());
+          //newNode->SetSerieID(this->FourDVolumeNode->GetSerieID().c_str());
+          newNode->SetAttribute("SerieID",this->FourDVolumeNode->GetSerieID().c_str());
           }
 
         // Copy Image Data to the new one
@@ -628,9 +629,12 @@ void vtkUltrasound4DGUI::ProcessMRMLEvents ( vtkObject *caller,
           for(unsigned int j=0; j < VectorVolumes.size(); j++)
             {
             vtkMRMLScalarVolumeNode* VolumeToCheck = vtkMRMLScalarVolumeNode::SafeDownCast(VectorVolumes[j]);
-            if(!strcmp(TimeSerie->GetSerieID().c_str(),VolumeToCheck->GetSerieID()))
+            if(VolumeToCheck->GetAttribute("SerieID") != NULL)
               {
-              TimeSerie->AddVolume(VolumeToCheck);
+              if(!strcmp(TimeSerie->GetSerieID().c_str(),VolumeToCheck->GetAttribute("SerieID")))
+                {
+                TimeSerie->AddVolume(VolumeToCheck);
+                }
               }
             }
           }
