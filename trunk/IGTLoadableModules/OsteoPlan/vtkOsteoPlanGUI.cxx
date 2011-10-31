@@ -342,6 +342,7 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
         }
       }
     }
+
 }
 
 

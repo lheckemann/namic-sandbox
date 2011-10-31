@@ -334,7 +334,6 @@ void vtkOsteoPlanMovingPartsStep::HideUserInterface()
     vtkMRMLLinearTransformNode* tNode = vtkMRMLLinearTransformNode::SafeDownCast(mNode->GetParentTransformNode());
     mNode->SetAttribute("TransformApplied","false");
 
-    // TODO: Better to use InsertItem
     this->GetGUI()->GetOsteoPlanNode()->GetListOfTransforms()->AddItem(tNode);
     }
 
