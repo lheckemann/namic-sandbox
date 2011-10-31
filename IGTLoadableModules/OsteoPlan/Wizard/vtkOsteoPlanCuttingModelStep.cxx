@@ -47,6 +47,7 @@
 #include "vtkRenderer.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkAppendPolyData.h"
+#include "vtkCleanPolyData.h"
 #include "vtkLoopSubdivisionFilter.h"
 
 #include "vtkPolyDataMapper.h"
@@ -54,8 +55,6 @@
 #include "vtkWidgetEvent.h"
 #include "vtkImplicitTextureCoords.h"
 #include "vtkDataSetMapper.h"
-
-#include "vtkPluginFilterWatcher.h"
 
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj)                                      \
@@ -524,7 +523,6 @@ void vtkOsteoPlanCuttingModelStep::CreateCutter()
 
 void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidget2* cuttingBox)
 {
-
   // Get Planes from vtkBoxWidget
   vtkPlanes* planes = vtkPlanes::New();
   vtkBoxRepresentation* boxRepresentation = reinterpret_cast<vtkBoxRepresentation*>(cuttingBox->GetRepresentation());
@@ -556,9 +554,12 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   secondAppend->AddInput(polyCutter2->GetOutput());
   secondAppend->AddInput(polyCutter2->GetClippedOutput());
 
+  vtkCleanPolyData* cleanPolydata = vtkCleanPolyData::New();
+  cleanPolydata->SetInput(secondAppend->GetOutput());
+
   // Refine Mesh
   vtkLoopSubdivisionFilter* subdividePolygons = vtkLoopSubdivisionFilter::New();
-  subdividePolygons->SetInput(secondAppend->GetOutput());
+  subdividePolygons->SetInput(cleanPolydata->GetOutput());//secondAppend->GetOutput());
   subdividePolygons->SetNumberOfSubdivisions(1);
   subdividePolygons->GetOutput()->Squeeze();
 
@@ -567,8 +568,6 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   realCut->GenerateClippedOutputOn();
   realCut->SetClipFunction(planes);
   realCut->SetInput(subdividePolygons->GetOutput());
-
-  vtkPluginFilterWatcher watcher(realCut, "Clipping Polydata");
 
   // Create Model 1 (Inside)
   vtkMRMLModelNode* part1 = vtkMRMLModelNode::New();
