@@ -35,6 +35,7 @@
 #include "vtkKWEvent.h"
 #include "vtkKWPushButton.h"
 #include "vtkKWPushButtonSet.h"
+#include "vtkKWProgressGauge.h"
 
 #include "vtkMRMLOsteoPlanNode.h"
 

@@ -358,6 +358,9 @@ void vtkOsteoPlanSelectingPartsStep::TearDownGUI()
 //  - Apply a color to this model and add it to the scene
 void vtkOsteoPlanSelectingPartsStep::SelectClickedPart()
 {
+  char buf[32] = "Selecting Part...";
+  this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.0);
+
   int* mousePosition = this->GetGUI()->GetApplicationGUI()->GetActiveRenderWindowInteractor()->GetEventPosition();
 
   vtkCellPicker* cellPicker = vtkCellPicker::New();
@@ -365,6 +368,8 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart()
   int cellIdPicked = cellPicker->GetCellId();
   if(cellIdPicked != -1)
     {
+
+    this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.10);
     vtkPolyDataConnectivityFilter* connectivityFilter = vtkPolyDataConnectivityFilter::New();
     connectivityFilter->SetInput(this->InputModel->GetModelDisplayNode()->GetPolyData());
     connectivityFilter->SetExtractionModeToCellSeededRegions();
@@ -372,11 +377,16 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart()
     connectivityFilter->AddSeed(cellIdPicked);
     connectivityFilter->Update();
 
+    this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.70);
+
     // Reduce number of triangles (after inscreasing to cut) to increase Slicer speed
     vtkDecimatePro* decimateMesh = vtkDecimatePro::New();
     decimateMesh->SetInput((vtkDataObject*)connectivityFilter->GetOutput());
     decimateMesh->PreserveTopologyOn();
     decimateMesh->SetTargetReduction(0.3);
+
+    this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.90);
+
 
     // Create New vtkMRMLNode
     vtkMRMLModelNode* modelSelected = vtkMRMLModelNode::New();
@@ -397,6 +407,8 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart()
     modelSelected->SetAndObserveDisplayNodeID(dnodeS->GetID());
 
     this->ColorNumber++;
+
+    this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 1.0);
 
     // Clean
     decimateMesh->Delete();
