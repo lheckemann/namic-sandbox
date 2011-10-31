@@ -49,6 +49,7 @@
 #include "vtkAppendPolyData.h"
 #include "vtkCleanPolyData.h"
 #include "vtkLoopSubdivisionFilter.h"
+#include "vtkDecimatePro.h"
 
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
@@ -559,7 +560,7 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
 
   // Refine Mesh
   vtkLoopSubdivisionFilter* subdividePolygons = vtkLoopSubdivisionFilter::New();
-  subdividePolygons->SetInput(cleanPolydata->GetOutput());//secondAppend->GetOutput());
+  subdividePolygons->SetInput(cleanPolydata->GetOutput());
   subdividePolygons->SetNumberOfSubdivisions(1);
   subdividePolygons->GetOutput()->Squeeze();
 
@@ -570,10 +571,15 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   realCut->SetInput(subdividePolygons->GetOutput());
 
   // Create Model 1 (Inside)
+  vtkDecimatePro* decimatePart1 = vtkDecimatePro::New();
+  decimatePart1->SetInput(realCut->GetClippedOutput());
+  decimatePart1->PreserveTopologyOn();
+  decimatePart1->SetTargetReduction(0.7);
+
   vtkMRMLModelNode* part1 = vtkMRMLModelNode::New();
   part1->SetScene(this->GetLogic()->GetMRMLScene());
   part1->SetName("White");
-  part1->SetAndObservePolyData(realCut->GetClippedOutput());             // Replace realCut->GetClippedOutput() by firstAppend->GetOutput() to visualize firstAppend
+  part1->SetAndObservePolyData(decimatePart1->GetOutput());
   part1->SetModifiedSinceRead(1);
   part1->GetPolyData()->Squeeze();
   this->GetLogic()->GetMRMLScene()->AddNode(part1);
@@ -588,10 +594,15 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   part1->SetAndObserveDisplayNodeID(dnode1->GetID());
 
   // Create Model 2 (Outside)
+  vtkDecimatePro* decimatePart2 = vtkDecimatePro::New();
+  decimatePart2->SetInput(realCut->GetOutput());
+  decimatePart2->PreserveTopologyOn();
+  decimatePart2->SetTargetReduction(0.7);
+
   vtkMRMLModelNode* part2 = vtkMRMLModelNode::New();
   part2->SetScene(this->GetLogic()->GetMRMLScene());
   part2->SetName("Black");
-  part2->SetAndObservePolyData(realCut->GetOutput());                   // Replace realCut->GetClippedOutput() by secondAppend->GetOutput() to visualize secondAppend
+  part2->SetAndObservePolyData(decimatePart2->GetOutput());
   part2->SetModifiedSinceRead(1);
   part2->GetPolyData()->Squeeze();
   this->GetLogic()->GetMRMLScene()->AddNode(part2);
@@ -609,6 +620,9 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   model->GetModelDisplayNode()->SetVisibility(0);
 
   // Delete
+  decimatePart1->Delete();
+  decimatePart2->Delete();
+  cleanPolydata->Delete();
   subdividePolygons->Delete();
   bottomPlane->Delete();
   topPlane->Delete();

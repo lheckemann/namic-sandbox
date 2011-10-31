@@ -60,6 +60,8 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanPlacingFiducialsStep : public vtkOsteoPla
 
   vtkKWFrame                  *MainFrame;
   vtkSlicerNodeSelectorWidget *FiducialOnModel;
+  vtkKWFrameWithLabel         *ListOfModelsFrame;
+  vtkKWFrame                  *ButtonsFrame;
   vtkKWPushButton             *StartPlacingFiducials;
   vtkMRMLModelNode            *SelectedModel;
   vtkKWScaleWithLabel         *ScrewDiameterScale;
@@ -77,7 +79,7 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanPlacingFiducialsStep : public vtkOsteoPla
 
   vtkCollection *ModelsToClipCollection;
 
-    private:
+ private:
   vtkOsteoPlanPlacingFiducialsStep(const vtkOsteoPlanPlacingFiducialsStep&);
   void operator=(const vtkOsteoPlanPlacingFiducialsStep&);
 

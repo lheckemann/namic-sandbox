@@ -376,7 +376,7 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart()
     vtkDecimatePro* decimateMesh = vtkDecimatePro::New();
     decimateMesh->SetInput((vtkDataObject*)connectivityFilter->GetOutput());
     decimateMesh->PreserveTopologyOn();
-    decimateMesh->SetTargetReduction(0.4);
+    decimateMesh->SetTargetReduction(0.3);
 
     // Create New vtkMRMLNode
     vtkMRMLModelNode* modelSelected = vtkMRMLModelNode::New();

@@ -80,6 +80,8 @@ vtkOsteoPlanPlacingFiducialsStep::vtkOsteoPlanPlacingFiducialsStep()
 
   this->MainFrame             = NULL;
   this->FiducialOnModel       = NULL;
+  this->ListOfModelsFrame     = NULL;
+  this->ButtonsFrame          = NULL;
   this->StartPlacingFiducials = NULL;
   this->SelectedModel         = NULL;
   this->ScrewDiameterScale    = NULL;
@@ -109,6 +111,8 @@ vtkOsteoPlanPlacingFiducialsStep::~vtkOsteoPlanPlacingFiducialsStep()
 
   DELETE_IF_NULL_WITH_SETPARENT_NULL(this->MainFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(this->FiducialOnModel);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(this->ListOfModelsFrame);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(this->ButtonsFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(this->StartPlacingFiducials);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(this->ScrewDiameterScale);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(this->ScrewHeightScale);
@@ -144,10 +148,16 @@ void vtkOsteoPlanPlacingFiducialsStep::ShowUserInterface()
   //-------------------------------------------------------
   // Placing Screws Frame
 
-  vtkKWFrameWithLabel* ListOfModelsFrame = vtkKWFrameWithLabel::New();
-  ListOfModelsFrame->SetParent(parent);
-  ListOfModelsFrame->Create();
-  ListOfModelsFrame->SetLabelText("Models to clip");
+  if(!this->ListOfModelsFrame)
+    {
+    this->ListOfModelsFrame = vtkKWFrameWithLabel::New();
+    }
+  if(!this->ListOfModelsFrame->IsCreated())
+    {
+    this->ListOfModelsFrame->SetParent(parent);
+    this->ListOfModelsFrame->Create();
+    this->ListOfModelsFrame->SetLabelText("Models to clip");
+    }
 
   // Node Selector
   if(!this->FiducialOnModel)
@@ -165,9 +175,15 @@ void vtkOsteoPlanPlacingFiducialsStep::ShowUserInterface()
     }
 
   // Buttons (Add, Remove, Clear)
-  vtkKWFrame* ButtonsFrame = vtkKWFrame::New();
-  ButtonsFrame->SetParent(ListOfModelsFrame->GetFrame());
-  ButtonsFrame->Create();
+  if(!this->ButtonsFrame)
+    {
+    this->ButtonsFrame = vtkKWFrame::New();
+    }
+  if(!this->ButtonsFrame->IsCreated())
+    {
+    this->ButtonsFrame->SetParent(this->ListOfModelsFrame->GetFrame());
+    this->ButtonsFrame->Create();
+    }
 
   if(!this->AddModelButton)
     {
@@ -175,7 +191,7 @@ void vtkOsteoPlanPlacingFiducialsStep::ShowUserInterface()
     }
   if(!this->AddModelButton->IsCreated())
     {
-    this->AddModelButton->SetParent(ButtonsFrame);
+    this->AddModelButton->SetParent(this->ButtonsFrame);
     this->AddModelButton->Create();
     this->AddModelButton->SetText("Add");
     this->AddModelButton->SetEnabled(1);
@@ -187,7 +203,7 @@ void vtkOsteoPlanPlacingFiducialsStep::ShowUserInterface()
     }
   if(!this->RemoveModelButton->IsCreated())
     {
-    this->RemoveModelButton->SetParent(ButtonsFrame);
+    this->RemoveModelButton->SetParent(this->ButtonsFrame);
     this->RemoveModelButton->Create();
     this->RemoveModelButton->SetText("Remove");
     this->RemoveModelButton->SetEnabled(1);
@@ -199,7 +215,7 @@ void vtkOsteoPlanPlacingFiducialsStep::ShowUserInterface()
     }
   if(!this->ClearListButton->IsCreated())
     {
-    this->ClearListButton->SetParent(ButtonsFrame);
+    this->ClearListButton->SetParent(this->ButtonsFrame);
     this->ClearListButton->Create();
     this->ClearListButton->SetText("Clear");
     this->ClearListButton->SetEnabled(1);
@@ -217,18 +233,15 @@ void vtkOsteoPlanPlacingFiducialsStep::ShowUserInterface()
     }
   if(!this->ModelsToClip->IsCreated())
     {
-    this->ModelsToClip->SetParent(ListOfModelsFrame->GetFrame());
+    this->ModelsToClip->SetParent(this->ListOfModelsFrame->GetFrame());
     this->ModelsToClip->Create();
     this->ModelsToClip->SetSelectionMode(vtkKWOptions::SelectionModeSingle);
     }
 
   this->Script("pack %s %s %s -side top -fill x -padx 2 -pady 2",
                this->FiducialOnModel->GetWidgetName(),
-               ButtonsFrame->GetWidgetName(),
+               this->ButtonsFrame->GetWidgetName(),
                this->ModelsToClip->GetWidgetName());
-
-  ButtonsFrame->Delete();
-
 
   // Screw parameters
   if(!this->ScrewDiameterScale)
@@ -285,13 +298,11 @@ void vtkOsteoPlanPlacingFiducialsStep::ShowUserInterface()
     }
 
   this->Script("pack %s %s %s %s %s -side top -fill x -padx 0 -pady 2",
-               ListOfModelsFrame->GetWidgetName(),
+               this->ListOfModelsFrame->GetWidgetName(),
                this->ScrewDiameterScale->GetWidgetName(),
                this->ScrewHeightScale->GetWidgetName(),
                this->StartPlacingFiducials->GetWidgetName(),
                this->ApplyScrewButton->GetWidgetName());
-
-  ListOfModelsFrame->Delete();
 
   //-------------------------------------------------------
 
@@ -671,25 +682,25 @@ void vtkOsteoPlanPlacingFiducialsStep::MarkScrewPosition()
   //   = is on vtkCollection
 /*
   for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems(); i++)
-    {
-    vtkMRMLModelNode* mNode = vtkMRMLModelNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(i));
-    if(this->SelectedModel == mNode)
-      {
-      // Node is present
-      //  = Apply his transform
-      if(!strcmp(mNode->GetAttribute("TransformApplied"),"false"))
-        {
-        vtkMRMLLinearTransformNode* tNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfTransforms()->GetItemAsObject(i));
-        this->SelectedModel->ApplyTransform(tNode->GetMatrixTransformToParent());
+  {
+  vtkMRMLModelNode* mNode = vtkMRMLModelNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(i));
+  if(this->SelectedModel == mNode)
+  {
+  // Node is present
+  //  = Apply his transform
+  if(!strcmp(mNode->GetAttribute("TransformApplied"),"false"))
+  {
+  vtkMRMLLinearTransformNode* tNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfTransforms()->GetItemAsObject(i));
+  this->SelectedModel->ApplyTransform(tNode->GetMatrixTransformToParent());
 
-        this->SelectedModel->SetAndObserveTransformNodeID(NULL);
-        this->SelectedModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-        this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
+  this->SelectedModel->SetAndObserveTransformNodeID(NULL);
+  this->SelectedModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+  this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
 
-        mNode->SetAttribute("TransformApplied","true");
-        }
-      }
-    }
+  mNode->SetAttribute("TransformApplied","true");
+  }
+  }
+  }
 */
 
 
