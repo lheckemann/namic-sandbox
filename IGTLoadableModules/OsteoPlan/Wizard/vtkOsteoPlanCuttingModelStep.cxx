@@ -358,6 +358,9 @@ void vtkOsteoPlanCuttingModelStep::ProcessGUIEvents(vtkObject *caller,
     // Check if model is selected and cutter is displayed
     if(this->ModelToCut && this->ModelSelected && this->CuttingPlane && this->NextDisplayCutterStatus)
       {
+      char buf[32] = "Clipping...";
+      this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.05);
+
       this->ApplyCutButton->SetBackgroundColor(color->SliceGUIYellow);
       this->ApplyCutButton->SetActiveBackgroundColor(color->SliceGUIYellow);
       this->ApplyCutButton->SetText("Processing, please wait...");
@@ -374,6 +377,8 @@ void vtkOsteoPlanCuttingModelStep::ProcessGUIEvents(vtkObject *caller,
       this->ApplyCutButton->SetText(buttonname.c_str());
 
       this->GetGUI()->GetWizardWidget()->GetWizardWorkflow()->AttemptToGoToNextStep();
+
+      this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 1.0);
       }
     }
 }
@@ -524,6 +529,8 @@ void vtkOsteoPlanCuttingModelStep::CreateCutter()
 
 void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidget2* cuttingBox)
 {
+  char buf[32] = "Clipping...";
+
   // Get Planes from vtkBoxWidget
   vtkPlanes* planes = vtkPlanes::New();
   vtkBoxRepresentation* boxRepresentation = reinterpret_cast<vtkBoxRepresentation*>(cuttingBox->GetRepresentation());
@@ -535,6 +542,8 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   vtkPlane* topPlane = vtkPlane::New();
   planes->GetPlane(5, topPlane);
 
+  this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.10);
+
   // Pre-clip with the first plane (clip with infinite plane and append)
   vtkClipPolyData* polyCutter = vtkClipPolyData::New();
   polyCutter->GenerateClippedOutputOn();
@@ -544,6 +553,8 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   vtkAppendPolyData* firstAppend = vtkAppendPolyData::New();
   firstAppend->AddInput(polyCutter->GetOutput());
   firstAppend->AddInput(polyCutter->GetClippedOutput());
+
+  this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.25);
 
   // Pre-clip with second plane
   vtkClipPolyData* polyCutter2 = vtkClipPolyData::New();
@@ -555,8 +566,12 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   secondAppend->AddInput(polyCutter2->GetOutput());
   secondAppend->AddInput(polyCutter2->GetClippedOutput());
 
+  this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.40);
+
   vtkCleanPolyData* cleanPolydata = vtkCleanPolyData::New();
   cleanPolydata->SetInput(secondAppend->GetOutput());
+
+  this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.45);
 
   // Refine Mesh
   vtkLoopSubdivisionFilter* subdividePolygons = vtkLoopSubdivisionFilter::New();
@@ -564,11 +579,15 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   subdividePolygons->SetNumberOfSubdivisions(1);
   subdividePolygons->GetOutput()->Squeeze();
 
+  this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.50);
+
   // Clip with box
   vtkClipPolyData* realCut = vtkClipPolyData::New();
   realCut->GenerateClippedOutputOn();
   realCut->SetClipFunction(planes);
   realCut->SetInput(subdividePolygons->GetOutput());
+
+  this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.65);
 
   // Create Model 1 (Inside)
   vtkDecimatePro* decimatePart1 = vtkDecimatePro::New();
@@ -593,6 +612,8 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
 
   part1->SetAndObserveDisplayNodeID(dnode1->GetID());
 
+  this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.90);
+
   // Create Model 2 (Outside)
   vtkDecimatePro* decimatePart2 = vtkDecimatePro::New();
   decimatePart2->SetInput(realCut->GetOutput());
@@ -615,6 +636,8 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   this->GetLogic()->GetMRMLScene()->AddNode(dnode2);
 
   part2->SetAndObserveDisplayNodeID(dnode2->GetID());
+
+  this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.95);
 
   // Hide original model
   model->GetModelDisplayNode()->SetVisibility(0);
