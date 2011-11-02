@@ -74,8 +74,8 @@
 //#define STAGE_Z_HOME     0x0010
 //#define STAGE_Z_LIMIT    0x0020
 
-#define STAGE_X_HOME     0x0002  // IN 2
-#define STAGE_X_LIMIT    0x0001
+#define STAGE_X_HOME     0x0001  // IN 2
+#define STAGE_X_LIMIT    0x0002
 #define STAGE_Y_HOME     0x0004  // IN 3
 #define STAGE_Y_LIMIT    0x0008
 #define STAGE_Z_HOME     0x0010  // IN 5
@@ -220,6 +220,14 @@
 // initial counter value
 #define INIT_CNT         0x008FFFFF
 
+#define INIT_CNT_LOWER_X INIT_CNT
+#define INIT_CNT_LOWER_Y INIT_CNT
+#define INIT_CNT_LOWER_Z INIT_CNT
+
+#define INIT_CNT_UPPER_X ((int)((MAX_POSITION_X - MIN_POSITION_X)/ENC_RATE_X) + INIT_CNT)
+#define INIT_CNT_UPPER_Y ((int)((MAX_POSITION_Y - MIN_POSITION_Y)/ENC_RATE_Y) + INIT_CNT)
+#define INIT_CNT_UPPER_Z ((int)((MAX_POSITION_Z - MIN_POSITION_Z)/ENC_RATE_Z) + INIT_CNT)
+
 // Use comparator in encoder counter board?
 // 0: off      1: on
 #define ENC_COMP         0
@@ -290,6 +298,8 @@ class MrsvrDev {
   float                          actVolOff[NUM_ACTUATORS];
   static const int               EnableLockDetect[NUM_ACTUATORS];
 
+  static const int               encLimitMinCnt[];
+  static const int               encLimitMaxCnt[];
 
   //  int                            actuatorKill[NUM_ACTUATORS];
   bool                           actuatorActive[NUM_ACTUATORS];
@@ -346,6 +356,11 @@ class MrsvrDev {
   inline float getVoltage(int n) { return actuatorVol[n]; };
 
   inline void setZero(int i) { setCounter(i, INIT_CNT); };
+  inline void setEncoderLowerLimit(int i) { this->setCounter(i, encLimitMinCnt[i]); };
+  inline void setEncoderUpperLimit(int i) { this->setCounter(i, encLimitMaxCnt[i]); };
+  inline int getEncoderUpperLimit(int i) { return encLimitMaxCnt[i]; };
+  inline int getEncoderLowerLimit(int i) { return encLimitMinCnt[i]; };
+
 
   // setVelocity() returns voltage
   inline float setVelocity(int n, float v) {
@@ -355,13 +370,13 @@ class MrsvrDev {
     float sign = (v > 0.0)? 1.0 : -1.0;
     float ret;
     if (sign*v > vmax[n]) {
-      ret = vmaxvol[n];
+      ret = sign * vmaxvol[n];
     } else if (sign*v < vmin[n]) {
-      ret =  (sign*v < vmin[n] / 2)? 0.0 : vmin[n];
+      ret =  (sign*v < vmin[n] / 2)? 0.0 : sign * vmin[n];
     } else {
       ret = vel2vol(n, v);
     }
-    setVoltage(n, sign*ret);
+    setVoltage(n, ret);
     return getVoltage(n);
   };
 
