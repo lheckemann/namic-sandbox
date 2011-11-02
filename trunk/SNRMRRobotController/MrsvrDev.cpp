@@ -121,6 +121,19 @@ const float MrsvrDev::encLimitMin[] = {
   MIN_POSITION_PHI,
 };
 
+const int MrsvrDev::encLimitMinCnt[] = {
+  INIT_CNT_LOWER_X,
+  INIT_CNT_LOWER_Y,
+  INIT_CNT_LOWER_Z,
+};
+
+const int MrsvrDev::encLimitMaxCnt[] = {
+  INIT_CNT_UPPER_X,
+  INIT_CNT_UPPER_Y,
+  INIT_CNT_UPPER_Z,
+};
+
+
 const int MrsvrDev::EnableLockDetect[] = {
   LOCK_DETECT_X,
   LOCK_DETECT_Y,
