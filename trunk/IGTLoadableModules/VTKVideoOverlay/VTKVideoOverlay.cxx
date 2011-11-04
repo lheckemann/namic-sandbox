@@ -1,19 +1,18 @@
 /*=========================================================================
 
-  Program:   Visualization Toolkit
-  Module:    Cube.cxx
+  Program:   VTK-OpenCV Video Image Overlay Example
+  Module:    $HeadURL: http://svn.na-mic.org/NAMICSandBox/trunk$
+  Language:  C++
+  Date:      $Date: $
+  Version:   $Revision: 6525 $
 
-  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-  All rights reserved.
-  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+  Copyright (c) Junichi Tokuda. All rights reserved.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notice for more information.
+  This software is distributed WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-// This example shows how to manually create vtkPolyData.
-
 
 // VTK stuff
 #include "vtkActor.h"
@@ -51,28 +50,29 @@ using namespace std;
 //----------------------------------------------------------------
 // Video import
 //----------------------------------------------------------------
-CvCapture* capture;
+//CvCapture* capture;
+cv::VideoCapture capture;
+cv::Size         imageSize;
+cv::Mat          captureImage;
+cv::Mat          RGBImage;
+cv::Mat          undistortionImage;
 
-CvSize        imageSize;
-IplImage*     captureImage;
-IplImage*     RGBImage;
-IplImage*     undistortionImage;      //adding at 09. 12. 15 - smkim
-
-vtkImageData* VideoImageData;
+vtkImageData*    VideoImageData;
 
 // Optical tracking
 int           OpticalFlowTrackingFlag;
-IplImage*     GrayImage;
-IplImage*     PrevGrayImage;
-IplImage*     Pyramid;
-IplImage*     PrevPyramid;
-IplImage*     SwapTempImage;
+cv::Mat       GrayImage;
+cv::Mat       PrevGrayImage;
+cv::Mat       Pyramid;
+cv::Mat       PrevPyramid;
+cv::Mat       SwapTempImage;
 int           PyrFlag;
 
-CvPoint2D32f* Points[2];
-CvPoint2D32f* SwapPoints;
-CvPoint2D32f* GridPoints[2];// = {0,0};
-CvPoint2D32f* RVector;
+std::vector< cv::Point2f >  Points[2];
+std::vector< cv::Point2f >  SwapPoints;
+std::vector< cv::Point2f >  GridPoints[2];// = {0,0};
+std::vector< cv::Point2f >  RVector;
+
 char*         OpticalFlowStatus;
 
 //----------------------------------------------------------------
@@ -119,7 +119,6 @@ int ViewerBackgroundOn(vtkRenderWindow* rwindow, vtkImageData* imageData)
     camera->ParallelProjectionOn();
     double xc = origin[0] + 0.5*(extent[0] + extent[1])*spacing[0];
     double yc = origin[1] + 0.5*(extent[2] + extent[3])*spacing[1];
-    //double xd = (extent[1] - extent[0] + 1)*spacing[0];
     double yd = (extent[3] - extent[2] + 1)*spacing[1];
     double d = camera->GetDistance();
     camera->SetParallelScale(0.5*yd);
@@ -138,12 +137,6 @@ int ViewerBackgroundOn(vtkRenderWindow* rwindow, vtkImageData* imageData)
 //----------------------------------------------------------------------------
 int ViewerBackgroundOff(vtkRenderWindow* rwindow)
 {
-  //if (rwindow)
-  //  {
-  //  BackgroundRenderer = NULL;
-  //  BackgroundActor = NULL;
-  //  }
-
   return 0;
 
 }  
@@ -153,19 +146,21 @@ int ViewerBackgroundOff(vtkRenderWindow* rwindow)
 #define TIME_POINTS (30*30)
 
 //----------------------------------------------------------------------------
-int ProcessMotion(CvPoint2D32f* vector, CvPoint2D32f* position, int n)
+int ProcessMotion(std::vector<cv::Point2f>& vector, std::vector<cv::Point2f>& position)
 {
   float threshold = 5.0;
-  CvPoint2D32f mean;
+  cv::Point2f mean;
+  //CvPoint2D32f mean;
 
   mean.x = 0.0;
   mean.y = 0.0;
 
   // Use 10% vectors to calculate translation
-  for (int i = 0; i < n; i ++)
+  std::vector< cv::Point2f >::iterator iter;
+  for (iter = vector.begin(); iter != vector.end(); iter ++)
     {
-    float x = vector[i].x;
-    float y = vector[i].y;
+    float x = iter->x;
+    float y = iter->y;
     float len = sqrtf(x*x + y*y);
     if (len > threshold)
       {
@@ -173,8 +168,8 @@ int ProcessMotion(CvPoint2D32f* vector, CvPoint2D32f* position, int n)
       mean.y += y;
       }
     }
-  mean.x /= (float)n;
-  mean.y /= (float)n;
+  mean.x /= (float)vector.size();
+  mean.y /= (float)vector.size();
 
   return 1;
 }
@@ -183,33 +178,31 @@ int ProcessMotion(CvPoint2D32f* vector, CvPoint2D32f* position, int n)
 // Camera thread / Originally created by A. Yamada
 int CameraHandler()
 {
-  IplImage* captureImageTmp = NULL;
-  CvSize   newImageSize;
+  //IplImage* captureImageTmp = NULL;
+  cv::Mat captureImageTmp;
+  //CvSize   newImageSize;
+  cv::Size newImageSize;
 
-  if (capture)
+  if (capture.isOpened())
     {
-    // 5/15/2010 ayamada
-    if(NULL == (captureImageTmp = cvQueryFrame( capture )))
+    capture >> captureImageTmp;
+    if (captureImageTmp.empty())
       {
       fprintf(stdout, "\n\nCouldn't take a picture\n\n");
       return 0;
       }
 
     // 5/6/2010 ayamada creating RGB image and capture image
-    newImageSize = cvGetSize( captureImageTmp );
-
-    std::cerr << "Size =  " << newImageSize.width << ", " << newImageSize.height << std::endl;
+    newImageSize = captureImageTmp.size();
 
     // check if the image size is changed
-    if (newImageSize.width != imageSize.width ||
+    if (newImageSize.width != imageSize.width||
         newImageSize.height != imageSize.height)
       {
-      imageSize.width = newImageSize.width;
+      imageSize.width  = newImageSize.width;
       imageSize.height = newImageSize.height;
-      captureImage = cvCreateImage(imageSize, IPL_DEPTH_8U,3);
-      RGBImage = cvCreateImage(imageSize, IPL_DEPTH_8U, 3);
-      undistortionImage = cvCreateImage( imageSize, IPL_DEPTH_8U, 3);
 
+      // The following code may not be necessary
       VideoImageData->SetDimensions(newImageSize.width, newImageSize.height, 1);
       VideoImageData->SetExtent(0, newImageSize.width-1, 0, newImageSize.height-1, 0, 0 );
       VideoImageData->SetNumberOfScalarComponents(3);
@@ -222,21 +215,12 @@ int CameraHandler()
       //ViewerBackgroundOff(renWin);
       //ViewerBackgroundOn(renWin, VideoImageData);
 
-      // for optical flow
-      Pyramid       = cvCreateImage( imageSize , IPL_DEPTH_8U, 1 );
-      PrevPyramid   = cvCreateImage( imageSize , IPL_DEPTH_8U, 1 );
-      GrayImage     = cvCreateImage( imageSize , IPL_DEPTH_8U, 1 );
-      PrevGrayImage = cvCreateImage( imageSize , IPL_DEPTH_8U, 1 );
-      SwapTempImage = cvCreateImage( imageSize , IPL_DEPTH_8U, 1 );
-
-      double gridSpaceX = (double)newImageSize.width / (double)(NGRID_X+1);
+      double gridSpaceX = (double)newImageSize.width  / (double)(NGRID_X+1);
       double gridSpaceY = (double)newImageSize.height / (double)(NGRID_Y+1);
 
-      Points[0] = 0;
-      Points[1] = 0;
-      GridPoints[0] = (CvPoint2D32f*)cvAlloc(NGRID_X*NGRID_Y*sizeof(Points[0][0]));
-      GridPoints[1] = (CvPoint2D32f*)cvAlloc(NGRID_X*NGRID_Y*sizeof(Points[0][0]));
-      RVector = (CvPoint2D32f*)cvAlloc(NGRID_X*NGRID_Y*sizeof(Points[0][0]));
+      GridPoints[0].resize(NGRID_X*NGRID_Y);
+      GridPoints[1].resize(NGRID_X*NGRID_Y);
+      RVector.resize(NGRID_X*NGRID_Y);
 
       for (int i = 0; i < NGRID_X; i ++)
         {
@@ -251,30 +235,40 @@ int CameraHandler()
       }
     
     // create rgb image
-    // 5/6/2010 ayamada for videoOverlay
-    cvFlip(captureImageTmp, captureImage, 0);
+    //cvFlip(captureImageTmp, captureImage, 0);
+    //captureImageTmp.copyTo(captureImage);
+    cv::flip(captureImageTmp, captureImage, 0);
+    cv::cvtColor(captureImage, GrayImage, CV_BGR2GRAY); 
     
     //cvUndistort2( captureImage, undistortionImage, pGUI->intrinsicMatrix, pGUI->distortionCoefficient );            
     //cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);       //comment not to undistort      at 10. 01. 07 - smkim
-    cvCvtColor( captureImage, RGBImage, CV_BGR2RGB);       //comment not to undistort      at 10. 01. 07 - smkim
+    cv::cvtColor( captureImage, RGBImage, CV_BGR2RGB);
     
     if (OpticalFlowTrackingFlag)
       {
       int win_size = 10;
       int count = NGRID_X*NGRID_Y;
-      cvCvtColor(RGBImage, GrayImage, CV_RGB2GRAY );
-      cvCalcOpticalFlowPyrLK( PrevGrayImage, GrayImage, PrevPyramid, Pyramid,
-                              GridPoints[0], GridPoints[1], count, cvSize(win_size,win_size), 3, OpticalFlowStatus, 0,
-                              cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03), PyrFlag );
-      PyrFlag |= CV_LKFLOW_PYR_A_READY;
-      
+      vector<uchar> status;
+      vector<float> err;
+      Size subPixWinSize(10,10), winSize(31,31);
+
+      if (PrevGrayImage.empty())
+        {
+        GrayImage.copyTo(PrevGrayImage);
+        }
+
+      //cvCalcOpticalFlowPyrLK( PrevGrayImage, GrayImage, PrevPyramid, Pyramid,
+      //                        GridPoints[0], GridPoints[1], count, cvSize(win_size,win_size), 3, OpticalFlowStatus, 0,
+      //                        cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03), PyrFlag );
+      cv::calcOpticalFlowPyrLK( PrevGrayImage, GrayImage, GridPoints[0], GridPoints[1],
+                                status, err, winSize, 3, cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03));
+
       double dx = 0.0;
       double dy = 0.0;
-      //int frameCount = 0;
 
-      for(int i =  0; i < count; i++ )
+      for(int i =  0; i < GridPoints[1].size(); i++ )
         {
-        if( !OpticalFlowStatus[i] )
+        if( !status[i] )
           {
           GridPoints[1][i].x = GridPoints[0][i].x;
           GridPoints[1][i].y = GridPoints[0][i].y;
@@ -292,29 +286,27 @@ int CameraHandler()
         
         RVector[i].x = dx;
         RVector[i].y = dy;
-        cvCircle(RGBImage, cvPointFrom32f(GridPoints[0][i]), 3, CV_RGB(0,255,255), -1, 8,0);
-        cvLine(RGBImage, cvPointFrom32f(GridPoints[0][i]), cvPointFrom32f(GridPoints[1][i]), CV_RGB(0,255,0), 2);
+        cv::circle(RGBImage, GridPoints[0][i], 3, CV_RGB(0,255,255), -1, 8,0);
+        cv::line(RGBImage, GridPoints[0][i], GridPoints[1][i], CV_RGB(0,255,0), 2);
         }
       
-      CV_SWAP( PrevGrayImage, GrayImage, SwapTempImage );
-      CV_SWAP( PrevPyramid, Pyramid, SwapTempImage );
-      CV_SWAP( Points[0], Points[1], SwapPoints );
+      cv::swap(PrevGrayImage, GrayImage);
+      std::swap(Points[1], Points[0]);
 
-      ProcessMotion(RVector, GridPoints[0], count);
+      //ProcessMotion(RVector, GridPoints[0]);
       }
     
     unsigned char* idata;    
     // 5/6/2010 ayamada ok for videoOverlay
-    idata = (unsigned char*) RGBImage->imageData;
+    idata = (unsigned char*) RGBImage.ptr();
     
     int dsize = imageSize.width*imageSize.height*3;
-    memcpy((void*)VideoImageData->GetScalarPointer(), (void*)RGBImage->imageData, dsize);
+    memcpy((void*)VideoImageData->GetScalarPointer(), (void*)idata, dsize);
 
     if (VideoImageData && BackgroundRenderer)
       {
       VideoImageData->Modified();
       BackgroundRenderer->GetRenderWindow()->Render();
-      std::cerr << "rendering " << std::endl;
       }
 
     }
@@ -340,7 +332,6 @@ public:
       if (CameraActiveFlag)
         {
         CameraHandler();
-        cout << "calling CameraHandler()" << endl;
         }
       }
     //cout << this->TimerCount << endl;
@@ -351,50 +342,45 @@ public:
 int main(int argc, char * argv[])
 {
 
-  //TermCriteria termcrit(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03);
-  //Size subPixWinSize(10,10), winSize(31,31);
-
   //--------------------------------------------------
   // Set up OpenCV
 
-  capture      = NULL;
-  captureImage = NULL;
-  RGBImage     = NULL;
-  undistortionImage = NULL;
-  imageSize.width = 100;
-  imageSize.height = 100;
-  
   if (argc > 1) // video file is specified
     {
     const char * path = argv[1];
-    capture = cvCaptureFromAVI( path );
+    //capture = cvCaptureFromAVI( path );
+    capture.open( path );
     }
   else if (argc == 1)
     {
-    int channel = 1;
-    capture = cvCaptureFromCAM(channel);
+    int channel = 0;
+    //capture = cvCaptureFromCAM(channel);
+    capture.open(channel);
     }
   else 
     {
     return 0;
     }
 
-  if (capture == NULL)
+  if( !capture.isOpened() )
     {
-    return 0;
+      cout << "Could not initialize capturing...\n";
+      return 0;
     }
-
+  
   CameraActiveFlag = 1;
 
-  IplImage* captureImageTmp = NULL;
-  CvSize   newImageSize;
+  cv::Size   newImageSize;
 
-  if(NULL == (captureImageTmp = cvQueryFrame( capture )))
+  Mat frame;
+  capture >> frame;
+  if( frame.empty() )
     {
     fprintf(stdout, "\n\nCouldn't take a picture\n\n");
     return 0;
     }
-  newImageSize = cvGetSize( captureImageTmp );
+
+  newImageSize = frame.size();
 
   VideoImageData = vtkImageData::New();
   VideoImageData->SetDimensions(newImageSize.width, newImageSize.height, 1);
@@ -487,7 +473,8 @@ int main(int argc, char * argv[])
   //--------------------------------------------------
   // Clean up OpenCV
   CameraActiveFlag = 0;
-  cvReleaseCapture(&capture);
+
+  //cvReleaseCapture(&capture);
   //vtkSlicerViewerWidget* vwidget = GetApplicationGUI()->GetNthViewerWidget(0);
   ViewerBackgroundOff(renWin);
 
