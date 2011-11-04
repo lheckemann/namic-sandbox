@@ -39,13 +39,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
-using namespace cv;
 using namespace std;
-
-
-//vtkRenderer*   BackgroundRenderer;
-//vtkImageActor* BackgroundActor;
-//int CameraActiveFlag;
 
 //----------------------------------------------------------------
 // Video import
@@ -63,8 +57,6 @@ vtkImageData*    VideoImageData;
 int           OpticalFlowTrackingFlag;
 cv::Mat       GrayImage;
 cv::Mat       PrevGrayImage;
-cv::Mat       Pyramid;
-cv::Mat       PrevPyramid;
 cv::Mat       SwapTempImage;
 int           PyrFlag;
 
@@ -250,16 +242,14 @@ int CameraHandler()
       int count = NGRID_X*NGRID_Y;
       vector<uchar> status;
       vector<float> err;
-      Size subPixWinSize(10,10), winSize(31,31);
+      cv::Size subPixWinSize(10,10);
+      cv::Size winSize(31,31);
 
       if (PrevGrayImage.empty())
         {
         GrayImage.copyTo(PrevGrayImage);
         }
 
-      //cvCalcOpticalFlowPyrLK( PrevGrayImage, GrayImage, PrevPyramid, Pyramid,
-      //                        GridPoints[0], GridPoints[1], count, cvSize(win_size,win_size), 3, OpticalFlowStatus, 0,
-      //                        cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03), PyrFlag );
       cv::calcOpticalFlowPyrLK( PrevGrayImage, GrayImage, GridPoints[0], GridPoints[1],
                                 status, err, winSize, 3, cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03));
 
@@ -372,7 +362,7 @@ int main(int argc, char * argv[])
 
   cv::Size   newImageSize;
 
-  Mat frame;
+  cv::Mat frame;
   capture >> frame;
   if( frame.empty() )
     {
