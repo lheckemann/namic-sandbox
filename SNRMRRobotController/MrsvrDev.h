@@ -263,7 +263,7 @@
 
 #define ZFRAME_OFFSET_X      (-(MAX_POSITION_X-MIN_POSITION_X)/2)
 #define ZFRAME_OFFSET_Y      (-(MAX_POSITION_Y-MIN_POSITION_Y)/2)
-#define ZFRAME_OFFSET_Z      (32.5)
+#define ZFRAME_OFFSET_Z      (-32.5)
 
 
 
