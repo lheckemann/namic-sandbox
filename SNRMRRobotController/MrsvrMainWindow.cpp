@@ -2175,11 +2175,10 @@ void MrsvrMainWindow::setTargetPositionRAS(float pos[3])
   float robotPos[3];
 
   transform->transform(pos, robotPos);
-  robotCommand->setSetPoint(0, robotPos[0]);
-  robotCommand->setSetPoint(1, robotPos[1]);
+  robotCommand->setSetPoint(0, robotPos[0]+ZFRAME_OFFSET_X);
+  robotCommand->setSetPoint(1, robotPos[1]+ZFRAME_OFFSET_Y);
   //robotCommand->setSetPoint(2, robotPos[2]);
-
-  valNeedleDepth = robotPos[2];
+  valNeedleDepth = robotPos[2]+ZFRAME_OFFSET_X;
 }
 
 
