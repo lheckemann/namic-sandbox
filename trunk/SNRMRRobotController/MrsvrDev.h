@@ -261,6 +261,14 @@
 #define MAX_VELOCITY         (100.0)         // mm/s
 #define MAX_ACTUATOR_VOL_V   5.0             // V
 
+#define ZFRAME_OFFSET_X      0
+#define ZFRAME_OFFSET_Y      0
+#define ZFRAME_OFFSET_Z      (-32.5)
+
+
+
+
+
 class MrsvrDev {
 
  private:
