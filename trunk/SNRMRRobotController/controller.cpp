@@ -897,25 +897,25 @@ void getActuatorTarget(MrsvrVector& target, MrsvrVector setPoint)
 //   setPoint: target position in the robot coordinate system
 //   target:   actuator positions
 {
-  float a = command->getTipOffset(0);
-  float b = command->getTipOffset(1);
-  float c = command->getTipOffset(2);
+  //float a = command->getTipOffset(0);
+  //float b = command->getTipOffset(1);
+  //float c = command->getTipOffset(2);
 
-  target[0] = setPoint[0] + a;
-  target[1] = setPoint[1] + b;
-  target[2] = setPoint[2] + c;
+  target[0] = setPoint[0];
+  target[1] = setPoint[1];
+  target[2] = setPoint[2];
 }
 
 
 void getTipPosition(MrsvrVector& tipPoint)
 {
-  float a = command->getTipOffset(0);
-  float b = command->getTipOffset(1);
-  float c = command->getTipOffset(2);
+  //float a = command->getTipOffset(0);
+  //float b = command->getTipOffset(1);
+  //float c = command->getTipOffset(2);
   
-  tipPoint[0] = curPos[0] + a;
-  tipPoint[1] = curPos[1] + b;
-  tipPoint[2] = curPos[2] + c;
+  tipPoint[0] = curPos[0];
+  tipPoint[1] = curPos[1];
+  tipPoint[2] = curPos[2];
 }
 
 
