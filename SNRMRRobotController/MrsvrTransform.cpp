@@ -87,9 +87,9 @@ void MrsvrTransform::transform(MrsvrVector x, MrsvrVector y)
   vx.ReSize(4,1);
   vy.ReSize(4,1);
 
-  vx.element(0, 0) = x[0];
-  vx.element(1, 0) = x[1];
-  vx.element(2, 0) = x[2];
+  vx.element(0, 0) = x[0]+ZFRAME_OFFSET_X;
+  vx.element(1, 0) = x[1]+ZFRAME_OFFSET_Y;
+  vx.element(2, 0) = x[2]+ZFRAME_OFFSET_Z;
   vx.element(3, 0) = 1.0;
 
   vy = Tpr*vx;
