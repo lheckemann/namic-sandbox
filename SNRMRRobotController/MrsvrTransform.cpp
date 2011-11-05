@@ -98,9 +98,9 @@ void MrsvrTransform::transform(MrsvrVector x, MrsvrVector y)
   //std::cout << Tpr << std::endl;
   //std::cout << vx << std::endl;  
 
-  y[0] = vy.element(0, 0);
-  y[1] = vy.element(1, 0);
-  y[2] = vy.element(2, 0);
+  y[0] = vy.element(0, 0)+ZFRAME_OFFSET_X;
+  y[1] = vy.element(1, 0)+ZFRAME_OFFSET_Y;
+  y[2] = vy.element(2, 0)+ZFRAME_OFFSET_Z;
 
 
 }
@@ -114,9 +114,9 @@ void MrsvrTransform::invTransform(MrsvrVector x, MrsvrVector y)
   vx.ReSize(4,1);
   vy.ReSize(4,1);
 
-  vx.element(0, 0) = x[0];
-  vx.element(1, 0) = x[1];
-  vx.element(2, 0) = x[2];
+  vx.element(0, 0) = x[0]-ZFRAME_OFFSET_X;
+  vx.element(1, 0) = x[1]-ZFRAME_OFFSET_Y;
+  vx.element(2, 0) = x[2]-ZFRAME_OFFSET_Z;
   vx.element(3, 0) = 1.0;
 
   vy = Trp*vx;
