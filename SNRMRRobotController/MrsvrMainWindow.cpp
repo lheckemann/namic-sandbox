@@ -2678,8 +2678,8 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
     }
     fUpdateInfoTarget = 1;
 
-    valNormCurrentPosition[0] = 1.0 - robotP[0] / (MAX_POSITION_X-MIN_POSITION_X);
-    valNormCurrentPosition[1] = robotP[1] / (MAX_POSITION_Y-MIN_POSITION_Y);
+    valNormCurrentPosition[0] = 1.0 - (robotP[0] / (MAX_POSITION_X-MIN_POSITION_X) + 0.5);
+    valNormCurrentPosition[1] = robotP[1] / (MAX_POSITION_Y-MIN_POSITION_Y) + 0.5;
 
   }
 
@@ -2802,8 +2802,8 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
     float rtarget[3];  // Target in robot coordinate system
     float ptarget[3];  // Target in patient coordinate system
 
-    rtarget[0] = (1.0-valNormTargetPosition[0]) * (MAX_POSITION_X-MIN_POSITION_X);
-    rtarget[1] = valNormTargetPosition[1] * (MAX_POSITION_Y-MIN_POSITION_Y);
+    rtarget[0] = (1.0-valNormTargetPosition[0] - 0.5) * (MAX_POSITION_X-MIN_POSITION_X);
+    rtarget[1] = (valNormTargetPosition[1] - 0.5) * (MAX_POSITION_Y-MIN_POSITION_Y);
     //rtarget[2] = valNormTargetPosition[2] * 180.0;
     rtarget[2] = valNeedleDepth;
     transform->invTransform(rtarget, ptarget);
@@ -2829,8 +2829,8 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
     float rtarget[3];
     transform->transform(valTargetPosition, rtarget);
 
-    valNormTargetPosition[0] = 1.0 - rtarget[0] / (MAX_POSITION_X-MIN_POSITION_X);
-    valNormTargetPosition[1] = rtarget[1] / (MAX_POSITION_Y-MIN_POSITION_Y);
+    valNormTargetPosition[0] = 1.0 - (rtarget[0] / (MAX_POSITION_X-MIN_POSITION_X) + 0.5);
+    valNormTargetPosition[1] = rtarget[1] / (MAX_POSITION_Y-MIN_POSITION_Y) + 0.5;
     //valNormTargetPosition[2] = rtarget[2] / 180.0;
     valNeedleDepth = rtarget[2];
 
