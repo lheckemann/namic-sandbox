@@ -35,6 +35,7 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLSelectionNode;
 class vtkMRMLFiducialListNode;
 class vtkKWCheckButton;
+class vtkProstateNavNeedleOrientationWindow;
 
 class VTK_PROSTATENAV_EXPORT vtkProstateNavTargetingStep : public vtkProstateNavStep
 {
@@ -112,6 +113,7 @@ protected:
   vtkKWFrame *TargetListFrame;
   vtkKWMultiColumnListWithScrollbars* TargetList;
   vtkKWPushButton *DeleteButton;
+  vtkKWPushButton *NeedleOrientationButton;
 
   // TargetControl frame
   vtkKWFrame *TargetControlFrame;
@@ -121,6 +123,10 @@ protected:
   vtkKWPushButton *StopButton;
 
   vtkKWText *Message;
+
+  // Needle Orientation Window
+  vtkProstateNavNeedleOrientationWindow* NeedleOrientationWindow;
+
 
   int ShowTargetOrientation;
 

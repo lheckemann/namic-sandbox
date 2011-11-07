@@ -138,6 +138,7 @@ set(ProstateNav_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStepVerification.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStepTargetingTemplate.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavReportWindow.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavNeedleOrientationWindow.cxx
   )
 
 set(ProstateNavIGTL_SRCS
