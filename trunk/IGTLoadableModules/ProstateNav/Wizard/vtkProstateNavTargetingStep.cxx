@@ -59,6 +59,8 @@
 #include "vtkKWMultiColumnListWithScrollbars.h"
 #include "vtkKWCheckButton.h"
 
+#include "vtkProstateNavNeedleOrientationWindow.h"
+
 static const char TARGET_INDEX_ATTR[]="TARGET_IND";
 
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
@@ -114,6 +116,7 @@ vtkProstateNavTargetingStep::vtkProstateNavTargetingStep()
   this->TargetListFrame=NULL;
   this->TargetList=NULL;
   this->DeleteButton=NULL;
+  this->NeedleOrientationButton=NULL;
 
   // TargetControl frame
   this->TargetControlFrame=NULL;
@@ -133,6 +136,7 @@ vtkProstateNavTargetingStep::vtkProstateNavTargetingStep()
   this->TargetPlanListNode=NULL;
 
   this->ShowTargetOrientation = 0;
+  this->NeedleOrientationWindow = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -156,6 +160,7 @@ vtkProstateNavTargetingStep::~vtkProstateNavTargetingStep()
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetListFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetList);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(DeleteButton);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleOrientationButton);
 
   // TargetControl frame
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetControlFrame);
@@ -165,6 +170,14 @@ vtkProstateNavTargetingStep::~vtkProstateNavTargetingStep()
   DELETE_IF_NULL_WITH_SETPARENT_NULL(StopButton);
 
   DELETE_IF_NULL_WITH_SETPARENT_NULL(Message);
+  
+  if (this->NeedleOrientationWindow)
+    {
+    this->NeedleOrientationWindow->Withdraw();
+    this->NeedleOrientationWindow->SetApplication(NULL);
+    this->NeedleOrientationWindow->Delete();
+    this->NeedleOrientationWindow = NULL;
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -363,15 +376,41 @@ void vtkProstateNavTargetingStep::ShowTargetListFrame()
     {
     this->DeleteButton = vtkKWPushButton::New();
     }
+  if (this->ShowTargetOrientation && !this->NeedleOrientationButton)
+    {
+    this->NeedleOrientationButton = vtkKWPushButton::New();
+    }
   if(!this->DeleteButton->IsCreated())
     {
     this->DeleteButton->SetParent(this->TargetListFrame);
     this->DeleteButton->SetText("Delete selected target");
     this->DeleteButton->SetBalloonHelpString("Delete selected target point from the target list");
     this->DeleteButton->Create();
-    }    
-  this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
-                    this->DeleteButton->GetWidgetName());
+    } 
+  if(this->ShowTargetOrientation && !this->NeedleOrientationButton->IsCreated())
+    {
+    this->NeedleOrientationButton->SetParent(this->TargetListFrame);
+    this->NeedleOrientationButton->SetText("Open needle orientation interface");
+    this->NeedleOrientationButton->SetBalloonHelpString("Specify needle orientation");
+    this->NeedleOrientationButton->Create();
+    } 
+  if (this->ShowTargetOrientation)
+    {
+    this->Script("pack %s %s -side left -anchor ne -padx 2 -pady 4", 
+                 this->NeedleOrientationButton->GetWidgetName(), this->DeleteButton->GetWidgetName());
+    }
+  else 
+    {
+    this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
+                 this->DeleteButton->GetWidgetName());
+    }
+
+  if (this->ShowTargetOrientation && !this->NeedleOrientationWindow)
+    {
+    this->NeedleOrientationWindow = vtkProstateNavNeedleOrientationWindow::New(); 
+    this->NeedleOrientationWindow->SetApplication(this->GetApplication());
+    this->NeedleOrientationWindow->Create();
+    }
 
 }
 
@@ -613,6 +652,33 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
         vtkErrorMacro("Cannot delete target, fiducial or target descriptor is invalid");
       }
     }
+
+  if (this->ShowTargetOrientation && this->NeedleOrientationButton == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    this->NeedleOrientationWindow->DisplayOnWindow();
+
+    //vtkProstateNavTargetDescriptor *targetDesc = mrmlNode->GetTargetDescriptorAtIndex(mrmlNode->GetCurrentTargetIndex());       
+    //if (this->TargetPlanListNode!=NULL && targetDesc!=NULL)
+    //  {
+    //  int fidIndex=this->TargetPlanListNode->GetFiducialIndex(targetDesc->GetFiducialID());
+    //  if (fidIndex>=0)
+    //    {
+    //    this->TargetPlanListNode->RemoveFiducial(fidIndex);
+    //    mrmlNode->SetCurrentTargetIndex(-1);
+    //    UpdateTargetListGUI();
+    //    }
+    //  else
+    //    {
+    //    vtkErrorMacro("Cannot delete target, fiducial not found");
+    //    }
+    //  }
+    //else
+    //  {
+    //  vtkErrorMacro("Cannot delete target, fiducial or target descriptor is invalid");
+    //  }
+    }
+
 
   // load targeting volume dialog button
   if (this->LoadTargetingVolumeButton && this->LoadTargetingVolumeButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
@@ -1146,6 +1212,10 @@ void vtkProstateNavTargetingStep::AddGUIObservers()
     {
     this->DeleteButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->ShowTargetOrientation && this->NeedleOrientationButton)
+    {
+    this->NeedleOrientationButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->MoveButton)
     {
     this->MoveButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -1190,6 +1260,10 @@ void vtkProstateNavTargetingStep::RemoveGUIObservers()
   if (this->DeleteButton)
     {
     this->DeleteButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->ShowTargetOrientation && this->NeedleOrientationButton)
+    {
+    this->NeedleOrientationButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->MoveButton)
     {
