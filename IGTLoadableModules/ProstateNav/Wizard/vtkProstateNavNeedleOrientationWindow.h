@@ -99,6 +99,8 @@ protected:
   void OnMultiColumnListSelectionChanged();
   
   void SetOrientation();
+  void ResetOrientation();
+  
   
  protected:
   
