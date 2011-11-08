@@ -351,7 +351,7 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
       {
         std::stringstream ss;
         ss << attValue;
-        double wxyz[4]={0,0,0};
+        double wxyz[4]={0,0,0,1};
         ss >> wxyz[0];
         ss >> wxyz[1];
         ss >> wxyz[2];
