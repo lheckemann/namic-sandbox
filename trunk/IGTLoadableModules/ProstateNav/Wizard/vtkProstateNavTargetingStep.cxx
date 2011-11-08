@@ -1059,6 +1059,9 @@ void vtkProstateNavTargetingStep::OnMultiColumnListSelection()
 //----------------------------------------------------------------------------
 void vtkProstateNavTargetingStep::UpdateTargetListGUI()
 {
+
+  int fListWidgetUpdated = 0;
+
   if (this->TargetList==NULL)
   {
     return; // there is no GUI, nothing to update
@@ -1138,6 +1141,7 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
     if (target->GetName().compare(this->TargetList->GetWidget()->GetCellText(row,COL_NAME)) != 0)
     {
       this->TargetList->GetWidget()->SetCellText(row,COL_NAME,target->GetName().c_str());
+      fListWidgetUpdated = 1;
     }               
 
     // selected
@@ -1153,6 +1157,7 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
           os << xyz[i] << std::ends;
           columnList->SetCellText(row,COL_X+i,os.str());
           os.rdbuf()->freeze();
+          fListWidgetUpdated = 1;
         }
       }
     }
@@ -1167,13 +1172,49 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
           os << wxyz[i] << std::ends;
           columnList->SetCellText(row,COL_OR_W+i,os.str());
           os.rdbuf()->freeze();
+          fListWidgetUpdated = 1;
         }
       }
     }
 
+    // any update in fiducal list node?
+    float * fxyz = activeFiducialListNode->GetNthFiducialXYZ(row);
+    float * fwxyz = activeFiducialListNode->GetNthFiducialOrientation(row);
+    if (fxyz != NULL)
+      {
+      for (int i = 0; i < 3; i ++) // for position (x, y, z)
+        {
+        if (deleteFlag || fabs(columnList->GetCellTextAsDouble(row,COL_X+i)-fxyz[i])>vtkProstateNavGUI::POSITION_PRECISION_TOLERANCE)
+          {
+          std::ostrstream os;    
+          os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(vtkProstateNavGUI::POSITION_PRECISION_DIGITS);
+          os << fxyz[i] << std::ends;
+          columnList->SetCellText(row,COL_X+i,os.str());
+          os.rdbuf()->freeze();
+          fListWidgetUpdated = 1;
+          }
+        }
+      }
+    if (this->ShowTargetOrientation && fwxyz != NULL)
+      {
+      for (int i = 0; i < 4; i ++) // for orientation (w, x, y, z)
+        {
+        if (deleteFlag || fabs(columnList->GetCellTextAsDouble(row, COL_OR_W+i)-fwxyz[i])>vtkProstateNavGUI::POSITION_PRECISION_TOLERANCE)
+          {
+          std::ostrstream os;    
+          os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(vtkProstateNavGUI::POSITION_PRECISION_DIGITS);
+          os << fwxyz[i] << std::ends;
+          columnList->SetCellText(row,COL_OR_W+i,os.str());
+          os.rdbuf()->freeze();
+          fListWidgetUpdated = 1;
+          }
+        }
+      }
+
     if (needle->mDescription.compare(this->TargetList->GetWidget()->GetCellText(row,COL_NEEDLE)) != 0)
     {
       this->TargetList->GetWidget()->SetCellText(row,COL_NEEDLE,needle->mDescription.c_str());
+      fListWidgetUpdated = 1;
     }
 
   }       
@@ -1182,6 +1223,7 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
   if (currentTargetIndex<0)
   {
     this->TargetList->GetWidget()->ClearSelection();
+    fListWidgetUpdated = 1;
   }
   else
   {
@@ -1200,11 +1242,37 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
         {
           // found the row corresponding to the current target
           this->TargetList->GetWidget()->SelectSingleRow(rowIndex);
+          fListWidgetUpdated = 1;
           break;
         }
       }
     } 
   }
+
+  if (fListWidgetUpdated)
+    {
+    int rowIndex = this->TargetList->GetWidget()->GetIndexOfFirstSelectedRow();    
+    int targetIndex=this->TargetList->GetWidget()->GetRowAttributeAsInt(rowIndex, TARGET_INDEX_ATTR);
+    vtkProstateNavTargetDescriptor* targetDesc=this->GetProstateNavManager()->GetTargetDescriptorAtIndex(targetIndex);    
+    if (targetDesc)
+      {
+      if (this->NeedlePositionMatrix)
+        {
+        vtkKWMatrixWidget* matrix = this->NeedlePositionMatrix->GetWidget();
+        matrix->SetElementValueAsDouble(0, 0, targetDesc->GetRASLocation()[0]);
+        matrix->SetElementValueAsDouble(0, 1, targetDesc->GetRASLocation()[1]);
+        matrix->SetElementValueAsDouble(0, 2, targetDesc->GetRASLocation()[2]);
+        }
+      if (this->ShowTargetOrientation && this->NeedleOrientationMatrix)
+        {
+        vtkKWMatrixWidget* matrix = this->NeedleOrientationMatrix->GetWidget();
+        matrix->SetElementValueAsDouble(0, 0, targetDesc->GetRASOrientation()[0]);
+        matrix->SetElementValueAsDouble(0, 1, targetDesc->GetRASOrientation()[1]);
+        matrix->SetElementValueAsDouble(0, 2, targetDesc->GetRASOrientation()[2]);
+        matrix->SetElementValueAsDouble(0, 3, targetDesc->GetRASOrientation()[3]);
+        }
+      }
+    }
 
 }
 

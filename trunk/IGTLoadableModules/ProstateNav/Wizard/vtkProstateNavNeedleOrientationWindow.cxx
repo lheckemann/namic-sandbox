@@ -182,10 +182,13 @@ void vtkProstateNavNeedleOrientationWindow::ProcessGUIEvents(vtkObject *caller, 
       && event == vtkKWPushButton::InvokedEvent )
     {
     SetOrientation();
+    this->Withdraw();
     }
   else if (this->ResetButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
     {
+    ResetOrientation();
+    this->Withdraw();
     }
   else if (this->CloseButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
@@ -357,7 +360,7 @@ void vtkProstateNavNeedleOrientationWindow::CreateWidget()
   this->ResetButton = vtkKWPushButton::New();
   this->ResetButton->SetParent(buttonFrame);
   this->ResetButton->Create();
-  this->ResetButton->SetText( "Unset" );
+  this->ResetButton->SetText( "Rest" );
   this->ResetButton->SetWidth (10);
 
   this->CloseButton = vtkKWPushButton::New();
@@ -746,6 +749,41 @@ void vtkProstateNavNeedleOrientationWindow::SetOrientation()
     MatrixToQuaternion(m, q);
     //this->TargetDesc->SetRASOrientation(q[0], q[1], q[2], q[3]); 
     targetFidList->SetNthFiducialOrientation(this->GetSelectedTarget(), q[0], q[1], q[2], q[3]);
+    targetFidList->Modified();
     }
+
+}
+
+
+//---------------------------------------------------------------------------
+void vtkProstateNavNeedleOrientationWindow::ResetOrientation()
+{
+
+  if (this->GetTargetFiducialID() == NULL)
+    {
+    return ;
+    }
+
+  vtkSlicerApplication *app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
+  if (app==NULL)
+    {
+    vtkErrorMacro("CreateWindow: application is invalid");
+    return;
+    }
+  
+  if (app->GetApplicationGUI()->GetMRMLScene())
+    {
+    app->GetApplicationGUI()->GetMRMLScene()->SaveStateForUndo();
+    }
+
+  vtkMRMLFiducialListNode *targetFidList 
+    = vtkMRMLFiducialListNode::SafeDownCast(app->GetApplicationGUI()->GetMRMLScene()->GetNodeByID(this->GetTargetFiducialID()));
+  if (targetFidList == NULL)
+    {
+    return;
+    }
+
+  targetFidList->SetNthFiducialOrientation(this->GetSelectedTarget(), 0.0, 0.0, 0.0, 1.0);
+  targetFidList->Modified();
 
 }
