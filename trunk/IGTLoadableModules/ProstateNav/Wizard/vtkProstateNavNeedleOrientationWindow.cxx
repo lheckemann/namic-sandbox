@@ -41,6 +41,9 @@
 #include "vtkKWMultiColumnListWithScrollbars.h"
 
 
+
+const char TARGET_INDEX_ATTR[]="TARGET_IND";
+
 // Definition of target list columns
 enum
 {
@@ -76,9 +79,9 @@ vtkProstateNavNeedleOrientationWindow::vtkProstateNavNeedleOrientationWindow()
   this->MainFrame = vtkKWFrame::New();
   this->MultipleMonitorsAvailable = false; 
 
-  this->StartTrackingButton  = NULL;
-  this->StopTrackingButton = NULL;
-  this->CloseButton    = NULL;
+  this->SetButton = NULL;
+  this->ResetButton = NULL;
+  this->CloseButton = NULL;
 
   this->EntryListSelectorWidget=NULL;
   this->EntryList=NULL;
@@ -91,6 +94,7 @@ vtkProstateNavNeedleOrientationWindow::vtkProstateNavNeedleOrientationWindow()
   this->GUICallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
   this->GUICallbackCommand->SetCallback(&vtkProstateNavNeedleOrientationWindow::GUICallback);
 
+  this->TargetFiducialID = NULL;
 }
 
 
@@ -104,15 +108,15 @@ vtkProstateNavNeedleOrientationWindow::~vtkProstateNavNeedleOrientationWindow()
     this->GUICallbackCommand = NULL;
     }
 
-  if (this->StartTrackingButton)
+  if (this->SetButton)
     {
-    this->StartTrackingButton->SetParent(NULL);
-    this->StartTrackingButton->Delete();
+    this->SetButton->SetParent(NULL);
+    this->SetButton->Delete();
     }
-  if (this->StopTrackingButton)
+  if (this->ResetButton)
     {
-    this->StopTrackingButton->SetParent(NULL);
-    this->StopTrackingButton->Delete();
+    this->ResetButton->SetParent(NULL);
+    this->ResetButton->Delete();
     }
   if (this->CloseButton)
     {
@@ -174,11 +178,12 @@ void vtkProstateNavNeedleOrientationWindow::ProcessGUIEvents(vtkObject *caller, 
       UpdateEntryList();
       }
     }
-  else if (this->StartTrackingButton == vtkKWPushButton::SafeDownCast(caller) 
+  else if (this->SetButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
     {
+    SetOrientation();
     }
-  else if (this->StopTrackingButton == vtkKWPushButton::SafeDownCast(caller) 
+  else if (this->ResetButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent )
     {
     }
@@ -205,11 +210,14 @@ void vtkProstateNavNeedleOrientationWindow::AddGUIObservers()
 {
   this->RemoveGUIObservers();
 
-  if (this->StopTrackingButton)
+  if (this->SetButton)
     {
-    this->StopTrackingButton->AddObserver(vtkKWPushButton::InvokedEvent,(vtkCommand *)this->GUICallbackCommand);
+    this->SetButton->AddObserver(vtkKWPushButton::InvokedEvent,(vtkCommand *)this->GUICallbackCommand);
     }
-
+  if (this->ResetButton)
+    {
+    this->ResetButton->AddObserver(vtkKWPushButton::InvokedEvent,(vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->CloseButton)
     {
     this->CloseButton->AddObserver(vtkKWPushButton::InvokedEvent,(vtkCommand *)this->GUICallbackCommand);
@@ -230,9 +238,13 @@ void vtkProstateNavNeedleOrientationWindow::AddGUIObservers()
 //----------------------------------------------------------------------------
 void vtkProstateNavNeedleOrientationWindow::RemoveGUIObservers()
 {
-  if (this->StopTrackingButton)
+  if (this->SetButton)
     {
-    this->StopTrackingButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    this->SetButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->ResetButton)
+    {
+    this->ResetButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->CloseButton)
     {
@@ -320,6 +332,7 @@ void vtkProstateNavNeedleOrientationWindow::CreateWidget()
     this->EntryList->GetWidget()->SetColumnEditWindowToSpinBox(col);
     }
 
+  UpdateEntryList();
 
   app->Script("pack %s %s -side top -anchor w -fill x -padx 2 -pady 2", 
               this->EntryListSelectorWidget->GetWidgetName(), 
@@ -335,18 +348,17 @@ void vtkProstateNavNeedleOrientationWindow::CreateWidget()
   app->Script ( "pack %s -side top -fill both -expand n",  
                 buttonFrame->GetWidgetName());
 
-  this->StartTrackingButton = vtkKWPushButton::New();
-  this->StartTrackingButton->SetParent(buttonFrame);
-  this->StartTrackingButton->Create();
-  this->StartTrackingButton->SetText( "Start" );
-  this->StartTrackingButton->SetWidth (10);
+  this->SetButton = vtkKWPushButton::New();
+  this->SetButton->SetParent(buttonFrame);
+  this->SetButton->Create();
+  this->SetButton->SetText( "Set" );
+  this->SetButton->SetWidth (10);
 
-  this->StopTrackingButton = vtkKWPushButton::New();
-  this->StopTrackingButton->SetParent(buttonFrame);
-  this->StopTrackingButton->Create();
-  this->StopTrackingButton->SetText( "Stop" );
-  this->StopTrackingButton->SetWidth (10);
-  this->StopTrackingButton->SetEnabled(0);
+  this->ResetButton = vtkKWPushButton::New();
+  this->ResetButton->SetParent(buttonFrame);
+  this->ResetButton->Create();
+  this->ResetButton->SetText( "Unset" );
+  this->ResetButton->SetWidth (10);
 
   this->CloseButton = vtkKWPushButton::New();
   this->CloseButton->SetParent(buttonFrame);
@@ -355,8 +367,8 @@ void vtkProstateNavNeedleOrientationWindow::CreateWidget()
   this->CloseButton->SetWidth (10);
 
   app->Script ( "pack %s %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
-                this->StartTrackingButton->GetWidgetName(),
-                this->StopTrackingButton->GetWidgetName(),
+                this->SetButton->GetWidgetName(),
+                this->ResetButton->GetWidgetName(),
                 this->CloseButton->GetWidgetName());
 
   buttonFrame->Delete();
@@ -400,18 +412,7 @@ void vtkProstateNavNeedleOrientationWindow::UpdateEntryList()
     return;
     }
   
-  /*
-  // create new target points, if necessary
-  this->GetLogic()->UpdateEntryListFromMRML();
-
-  vtkMRMLProstateNavManagerNode *manager = this->GetGUI()->GetProstateNavManagerNode();
-  if (!manager)
-  {
-    return;
-  }
-
-  //int numPoints = activeFiducialListNode->GetNumberOfFiducials();
-  int numPoints = manager->GetTotalNumberOfTargets();
+  int numPoints = fid->GetNumberOfFiducials();
 
   bool deleteFlag = true;
 
@@ -425,34 +426,31 @@ void vtkProstateNavNeedleOrientationWindow::UpdateEntryList()
     {
     deleteFlag = false;
     }
-        
-  double *xyz;
-  double *wxyz;
 
   for (int row = 0; row < numPoints; row++)
     {      
     int targetIndex=row;
-    vtkProstateNavTargetDescriptor* target = manager->GetTargetDescriptorAtIndex(targetIndex);
 
     if (deleteFlag)
       {
       // add a row for this point
       this->EntryList->GetWidget()->AddRow();
       }
-    this->EntryList->GetWidget()->SetRowAttributeAsInt(row, TARGET_INDEX_ATTR, targetIndex);
 
-    xyz=target->GetRASLocation();
-    wxyz=target->GetRASOrientation();
+    this->EntryList->GetWidget()->SetRowAttributeAsInt(row, TARGET_INDEX_ATTR, targetIndex);
+    float * xyz = fid->GetNthFiducialXYZ(row);
+    //wxyz=target->GetRASOrientation();
 
     if (xyz == NULL)
       {
       vtkErrorMacro ("UpdateEntryListGUI: ERROR: got null xyz for point " << row << endl);
       }
-
-    if (target->GetName().compare(this->EntryList->GetWidget()->GetCellText(row,COL_NAME)) != 0)
-        {
-          this->EntryList->GetWidget()->SetCellText(row,COL_NAME,target->GetName().c_str());
-        }               
+    
+    const char * label = fid->GetNthFiducialLabelText(row);
+    if (strcmp(label, this->EntryList->GetWidget()->GetCellText(row,COL_NAME)) != 0)
+      {
+      this->EntryList->GetWidget()->SetCellText(row,COL_NAME,label);
+      }
 
     // selected
     vtkKWMultiColumnList* columnList = this->EntryList->GetWidget();
@@ -460,38 +458,21 @@ void vtkProstateNavNeedleOrientationWindow::UpdateEntryList()
       {
       for (int i = 0; i < 3; i ++) // for position (x, y, z)
         {
-        if (deleteFlag || columnList->GetCellTextAsDouble(row,COL_X+i) != xyz[i])
+        if ((float)columnList->GetCellTextAsDouble(row,COL_X+i) != xyz[i])
           {
           columnList->SetCellTextAsDouble(row,COL_X+i,xyz[i]);
           }
         }
       }
-    if (wxyz != NULL)
-      {
-      for (int i = 0; i < 4; i ++) // for orientation (w, x, y, z)
-        {
-        if (deleteFlag || columnList->GetCellTextAsDouble(row, COL_OR_W+i) != wxyz[i])
-          {
-          columnList->SetCellTextAsDouble(row,COL_OR_W+i,wxyz[i]);
-          }
-        }
-      }
-
-    //if (target->GetNeedleTypeString().compare(this->EntryList->GetWidget()->GetCellText(row,COL_NEEDLE)) != 0)
-    //{
-    //  this->EntryList->GetWidget()->SetCellText(row,COL_NEEDLE,target->GetNeedleTypeString().c_str());
-    //}
-    //
-    }  
-  */
+    }
 }
 
 
 //---------------------------------------------------------------------------
 void vtkProstateNavNeedleOrientationWindow::OnMultiColumnListUpdate(int row, int col, char * str)
 {
-/*
-  vtkMRMLFiducialListNode* fidList = this->GetProstateNavManager()->GetTargetPlanListNode();
+
+  vtkMRMLFiducialListNode *fidList = vtkMRMLFiducialListNode::SafeDownCast(this->EntryListSelectorWidget->GetSelected());
 
   if (fidList == NULL)
     {
@@ -501,8 +482,8 @@ void vtkProstateNavNeedleOrientationWindow::OnMultiColumnListUpdate(int row, int
   bool updated=false;
 
   // make sure that the row and column exists in the table
-  if ((row >= 0) && (row < this->TargetList->GetWidget()->GetNumberOfRows()) &&
-      (col >= 0) && (col < this->TargetList->GetWidget()->GetNumberOfColumns()))
+  if ((row >= 0) && (row < this->EntryList->GetWidget()->GetNumberOfRows()) &&
+      (col >= 0) && (col < this->EntryList->GetWidget()->GetNumberOfColumns()))
     {
       
     // now update the requested value
@@ -536,31 +517,6 @@ void vtkProstateNavNeedleOrientationWindow::OnMultiColumnListUpdate(int row, int
           }
         }            
       }
-    else if (col >= COL_OR_W  && col <= COL_OR_Z)
-      {
-      float * wxyz = fidList->GetNthFiducialOrientation(row);
-      float newCoordinate = atof(str);
-      if (col == COL_OR_W)
-        {
-        fidList->SetNthFiducialOrientation(row, newCoordinate, wxyz[1], wxyz[2], wxyz[3]);
-        updated=true;
-        }
-      if (col == COL_OR_X)
-        {
-        fidList->SetNthFiducialOrientation(row, wxyz[0], newCoordinate, wxyz[2], wxyz[3]);
-        updated=true;
-        }
-      if (col == COL_OR_Y)
-        {
-        fidList->SetNthFiducialOrientation(row, wxyz[0], wxyz[1], newCoordinate, wxyz[3]);
-        updated=true;
-        }
-      if (col == COL_OR_Z)
-        {
-        fidList->SetNthFiducialOrientation(row, wxyz[0], wxyz[1], wxyz[2], newCoordinate);
-        updated=true;
-        }
-      }
     else
       {
       return;
@@ -569,82 +525,227 @@ void vtkProstateNavNeedleOrientationWindow::OnMultiColumnListUpdate(int row, int
   else
     {
     }
-  if (updated)
-  {
-    this->GetLogic()->UpdateTargetListFromMRML();
-  }
-*/
+
 }
+
 
 //---------------------------------------------------------------------------
 void vtkProstateNavNeedleOrientationWindow::OnMultiColumnListSelectionChanged()
 {
-/*
-  vtkMRMLFiducialListNode* fidList = this->GetProstateNavManager()->GetTargetPlanListNode();
+
+  vtkMRMLFiducialListNode *fidList = vtkMRMLFiducialListNode::SafeDownCast(this->EntryListSelectorWidget->GetSelected());
 
   if (fidList == NULL)
     {
     return;
     }
 
-  if (this->MRMLScene)
+  vtkSlicerApplication *app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
+  if (app==NULL)
+  {
+  vtkErrorMacro("CreateWindow: application is invalid");
+  return;
+  }
+
+  if (app->GetApplicationGUI()->GetMRMLScene())
     {
-    this->MRMLScene->SaveStateForUndo();
+    app->GetApplicationGUI()->GetMRMLScene()->SaveStateForUndo();
     }
 
-  int numRows = this->TargetList->GetWidget()->GetNumberOfSelectedRows();
+  int numRows = this->EntryList->GetWidget()->GetNumberOfSelectedRows();
   if (numRows == 1)
     {   
-    
-    int rowIndex = this->TargetList->GetWidget()->GetIndexOfFirstSelectedRow();    
-    int targetIndex=this->TargetList->GetWidget()->GetRowAttributeAsInt(rowIndex, TARGET_INDEX_ATTR);
-    vtkProstateNavTargetDescriptor* targetDesc=this->GetProstateNavManager()->GetTargetDescriptorAtIndex(targetIndex);    
+    //int rowIndex = this->EntryList->GetWidget()->GetIndexOfFirstSelectedRow();    
+    //int targetIndex=this->EntryList->GetWidget()->GetRowAttributeAsInt(rowIndex, TARGET_INDEX_ATTR);
+    //// Copy the values to inputs
+    //vtkKWMatrixWidget* matrix = this->NeedlePositionMatrix->GetWidget();
+    //double* xyz=targetDesc->GetRASLocation();
+    //matrix->SetElementValueAsDouble(0, 0, xyz[0]);
+    //matrix->SetElementValueAsDouble(0, 1, xyz[1]);
+    //matrix->SetElementValueAsDouble(0, 2, xyz[2]);
+    }
 
-    if (targetDesc==NULL)
+}
+
+
+typedef float  Matrix4x4[4][4];
+
+void QuaternionToMatrix(float* q, Matrix4x4& m)
+{
+
+  // normalize
+  float mod = sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3]);
+
+  // convert to the matrix
+  const float x = q[0] / mod;
+  const float y = q[1] / mod; 
+  const float z = q[2] / mod; 
+  const float w = q[3] / mod;
+  
+  const float xx = x * x * 2.0;
+  const float xy = x * y * 2.0;
+  const float xz = x * z * 2.0;
+  const float xw = x * w * 2.0;
+  const float yy = y * y * 2.0;
+  const float yz = y * z * 2.0;
+  const float yw = y * w * 2.0;
+  const float zz = z * z * 2.0;
+  const float zw = z * w * 2.0;
+  
+  m[0][0] = 1.0 - (yy + zz);
+  m[1][0] = xy + zw;
+  m[2][0] = xz - yw;
+  
+  m[0][1] = xy - zw;
+  m[1][1] = 1.0 - (xx + zz);
+  m[2][1] = yz + xw;
+  
+  m[0][2] = xz + yw;
+  m[1][2] = yz - xw;
+  m[2][2] = 1.0 - (xx + yy);
+
+  m[3][0] = 0.0;
+  m[3][1] = 0.0;
+  m[3][2] = 0.0;
+  m[3][3] = 1.0;
+
+  m[0][3] = 0.0;
+  m[1][3] = 0.0;
+  m[2][3] = 0.0;
+
+}
+
+
+void MatrixToQuaternion(Matrix4x4& m, float* q)
+{
+  float trace = m[0][0] + m[1][1] + m[2][2];
+
+  if( trace > 0.0 ) {
+
+    float s = 0.5f / sqrt(trace + 1.0f);
+
+    q[3] = 0.25f / s;
+    q[0] = ( m[2][1] - m[1][2] ) * s;
+    q[1] = ( m[0][2] - m[2][0] ) * s;
+    q[2] = ( m[1][0] - m[0][1] ) * s;
+
+  } else {
+
+    if ( m[0][0] > m[1][1] && m[0][0] > m[2][2] ) {
+
+      float s = 2.0f * sqrt( 1.0f + m[0][0] - m[1][1] - m[2][2]);
+
+      q[3] = (m[2][1] - m[1][2] ) / s;
+      q[0] = 0.25f * s;
+      q[1] = (m[0][1] + m[1][0] ) / s;
+      q[2] = (m[0][2] + m[2][0] ) / s;
+
+    } else if (m[1][1] > m[2][2]) {
+
+      float s = 2.0f * sqrt( 1.0f + m[1][1] - m[0][0] - m[2][2]);
+
+      q[3] = (m[0][2] - m[2][0] ) / s;
+      q[0] = (m[0][1] + m[1][0] ) / s;
+      q[1] = 0.25f * s;
+      q[2] = (m[1][2] + m[2][1] ) / s;
+
+    } else {
+
+      float s = 2.0f * sqrt( 1.0f + m[2][2] - m[0][0] - m[1][1] );
+
+      q[3] = (m[1][0] - m[0][1] ) / s;
+      q[0] = (m[0][2] + m[2][0] ) / s;
+      q[1] = (m[1][2] + m[2][1] ) / s;
+      q[2] = 0.25f * s;
+
+    }
+  }
+}
+  
+
+  
+void Cross(float *a, float *b, float *c)
+{
+    a[0] = b[1]*c[2] - c[1]*b[2];
+    a[1] = c[0]*b[2] - b[0]*c[2];
+    a[2] = b[0]*c[1] - c[0]*b[1];
+}
+
+
+//---------------------------------------------------------------------------
+void vtkProstateNavNeedleOrientationWindow::SetOrientation()
+{
+
+  if (this->GetTargetFiducialID() == NULL)
     {
-      vtkErrorMacro("Target descriptor not found");
-      return;
+    return ;
     }
 
-    // Copy the values to inputs
-    vtkKWMatrixWidget* matrix = this->NeedlePositionMatrix->GetWidget();
-    double* xyz=targetDesc->GetRASLocation();
-    matrix->SetElementValueAsDouble(0, 0, xyz[0]);
-    matrix->SetElementValueAsDouble(0, 1, xyz[1]);
-    matrix->SetElementValueAsDouble(0, 2, xyz[2]);
-
-    // The following code was inherited from the robot code.
-    // TODO: For Template-based biopsy, the GUI should be updated, while
-    // the ModifiedEvent of ProstateNavManager node is handled.
-    if ( this->Logic )
-      {
-      vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()->GetMRMLScene()
-        ->GetNodeByID(this->GetProstateNavManager()->GetRobotNode()->GetTargetTransformNodeID());
-      vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
-      
-      if (transformNode)
-        {
-        vtkMatrix4x4* matrix = transformNode->GetMatrixTransformToParent();
-        matrix->Identity();
-      
-        matrix->SetElement(0, 3, xyz[0]);
-        matrix->SetElement(1, 3, xyz[1]);
-        matrix->SetElement(2, 3, xyz[2]);
-      
-        vtkMatrix4x4* transformToParent = transformNode->GetMatrixTransformToParent();
-        transformToParent->DeepCopy(matrix);
-      
-        // Send move to command 
-        this->GetProstateNavManager()->GetRobotNode()->MoveTo(transformNode->GetID());
-        this->UpdateGUI();
-      
-        }
-      }
-
-    // The following function should be called after calling MoveTo(),
-    // because it invokes Modified event that requires the RobotNode
-    // to update its target information to update GUI.
-    this->GetProstateNavManager()->SetCurrentTargetIndex(targetIndex);
+  vtkMRMLFiducialListNode *fidList = vtkMRMLFiducialListNode::SafeDownCast(this->EntryListSelectorWidget->GetSelected());
+  if (fidList == NULL)
+    {
+    //this->TargetDesc->SetRASOrientation(0.0, 0.0, 0.0, 1.0); 
+    return;
     }
-*/
+
+  vtkSlicerApplication *app = vtkSlicerApplication::SafeDownCast(this->GetApplication());
+  if (app==NULL)
+    {
+    vtkErrorMacro("CreateWindow: application is invalid");
+    return;
+    }
+  
+  if (app->GetApplicationGUI()->GetMRMLScene())
+    {
+    app->GetApplicationGUI()->GetMRMLScene()->SaveStateForUndo();
+    }
+
+  vtkMRMLFiducialListNode *targetFidList 
+    = vtkMRMLFiducialListNode::SafeDownCast(app->GetApplicationGUI()->GetMRMLScene()->GetNodeByID(this->GetTargetFiducialID()));
+  if (targetFidList == NULL)
+    {
+    //this->TargetDesc->SetRASOrientation(0.0, 0.0, 0.0, 1.0); 
+    return;
+    }
+
+  int numRows = this->EntryList->GetWidget()->GetNumberOfSelectedRows();
+
+  if (numRows == 1)
+    {   
+    int rowIndex = this->EntryList->GetWidget()->GetIndexOfFirstSelectedRow();
+    float * target = fidList->GetNthFiducialXYZ(this->GetSelectedTarget());
+    //double * entry = this->TargetDesc->GetRASLocation();
+
+    float * entry = fidList->GetNthFiducialXYZ(rowIndex);
+
+    float normal_z[3]; // needle orientation
+    normal_z[0] = target[0] - (float)entry[0];
+    normal_z[1] = target[1] - (float)entry[1];
+    normal_z[2] = target[2] - (float)entry[2];
+
+    float length = sqrtf(normal_z[0]*normal_z[0] + normal_z[1]*normal_z[1] + normal_z[2]*normal_z[2]);
+    normal_z[0] /= length;
+    normal_z[1] /= length;
+    normal_z[2] /= length;
+
+    float vert[3] = {0.0, 1.0, 0.0};
+    
+    float normal_x[3]; // horizontal normal vector perpendicular to the needle
+    Cross(normal_x, vert, normal_z);
+
+    float normal_y[3]; // normal vector perpendicular to the needle and normal_x
+    Cross(normal_y, normal_z, normal_x);
+
+    Matrix4x4 m;
+    m[0][0] = normal_x[0]; m[0][1] = normal_y[0]; m[0][2] = normal_z[0]; m[0][3] = 0.0;
+    m[1][0] = normal_x[1]; m[1][1] = normal_y[1]; m[1][2] = normal_z[1]; m[1][3] = 0.0;
+    m[2][0] = normal_x[2]; m[2][1] = normal_y[2]; m[2][2] = normal_z[2]; m[2][3] = 0.0;
+    m[3][0] = 0.0;         m[3][1] = 0.0;         m[3][2] = 0.0;         m[3][3] = 1.0;
+
+    float q[4];
+    MatrixToQuaternion(m, q);
+    //this->TargetDesc->SetRASOrientation(q[0], q[1], q[2], q[3]); 
+    targetFidList->SetNthFiducialOrientation(this->GetSelectedTarget(), q[0], q[1], q[2], q[3]);
+    }
+
 }

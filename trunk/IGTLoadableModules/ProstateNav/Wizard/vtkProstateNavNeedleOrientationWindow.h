@@ -30,6 +30,7 @@
 #include "igtlMath.h"
 
 #include "vtkProstateNav.h"
+#include "vtkProstateNavTargetDescriptor.h"
 
 class vtkKWRadioButtonSet;
 class vtkKWLoadSaveButtonWithLabel;
@@ -40,11 +41,11 @@ class vtkKWText;
 class vtkKWTextWithScrollbars;
 class vtkMRMLProstateNavManagerNode;
 class vtkMRMLTransPerinealProstateTemplateNode;
-class vtkProstateNavTargetDescriptor;
 class vtkSlicerNodeSelectorWidget;
 class vtkKWMultiColumnListWithScrollbars;
 class vtkMRMLScene;
 class vtkIntArray;
+
 
 struct NeedleDescriptorStruct;
 
@@ -68,6 +69,12 @@ public:
     }
   vtkGetMacro(InGUICallbackFlag, int);
 
+  vtkSetStringMacro( TargetFiducialID );
+  vtkGetStringMacro( TargetFiducialID );
+
+  vtkSetMacro( SelectedTarget, int );
+  vtkGetMacro( SelectedTarget, int );
+
   void ProcessTimerEvents();
   void DisplayOnWindow();
 
@@ -90,7 +97,8 @@ protected:
 
   void OnMultiColumnListUpdate(int row, int col, char * str);
   void OnMultiColumnListSelectionChanged();
-
+  
+  void SetOrientation();
   
  protected:
   
@@ -99,8 +107,8 @@ protected:
   //----------------------------------------------------------------
   vtkKWFrame* MainFrame;
   
-  vtkKWPushButton* StartTrackingButton;
-  vtkKWPushButton* StopTrackingButton;
+  vtkKWPushButton* SetButton;
+  vtkKWPushButton* ResetButton;
   vtkKWPushButton* CloseButton;
 
   vtkKWTextWithScrollbars* ReportText;
@@ -117,6 +125,9 @@ protected:
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
+
+  char * TargetFiducialID;
+  int    SelectedTarget;
 
   bool   MultipleMonitorsAvailable; 
   int    WindowPosition[2]; // virtual screen position in pixels

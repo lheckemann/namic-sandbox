@@ -137,6 +137,7 @@ vtkProstateNavTargetingStep::vtkProstateNavTargetingStep()
 
   this->ShowTargetOrientation = 0;
   this->NeedleOrientationWindow = NULL;
+
 }
 
 //----------------------------------------------------------------------------
@@ -390,7 +391,7 @@ void vtkProstateNavTargetingStep::ShowTargetListFrame()
   if(this->ShowTargetOrientation && !this->NeedleOrientationButton->IsCreated())
     {
     this->NeedleOrientationButton->SetParent(this->TargetListFrame);
-    this->NeedleOrientationButton->SetText("Open needle orientation interface");
+    this->NeedleOrientationButton->SetText("Select entry point");
     this->NeedleOrientationButton->SetBalloonHelpString("Specify needle orientation");
     this->NeedleOrientationButton->Create();
     } 
@@ -656,8 +657,24 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
   if (this->ShowTargetOrientation && this->NeedleOrientationButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    this->NeedleOrientationWindow->DisplayOnWindow();
+    
+    if (this->NeedleOrientationWindow)
+      {
+      vtkMRMLFiducialListNode* activeFiducialListNode=NULL;
+      if (this->GetProstateNavManager()!=NULL)
+        {
+        activeFiducialListNode=this->GetProstateNavManager()->GetTargetPlanListNode();
+        }
+      
+      if (activeFiducialListNode)
+        {
+        this->NeedleOrientationWindow->SetTargetFiducialID(activeFiducialListNode->GetID());
+        this->NeedleOrientationWindow->SetSelectedTarget(mrmlNode->GetCurrentTargetIndex());
+        }
+      }
 
+    this->NeedleOrientationWindow->DisplayOnWindow();
+    
     //vtkProstateNavTargetDescriptor *targetDesc = mrmlNode->GetTargetDescriptorAtIndex(mrmlNode->GetCurrentTargetIndex());       
     //if (this->TargetPlanListNode!=NULL && targetDesc!=NULL)
     //  {
@@ -989,7 +1006,7 @@ void vtkProstateNavTargetingStep::OnMultiColumnListSelection()
       vtkErrorMacro("Target descriptor not found");
       return;
       }
-   
+
     this->GetProstateNavManager()->SetCurrentTargetIndex(targetIndex);
     if (this->NeedlePositionMatrix)
       {
@@ -1005,6 +1022,20 @@ void vtkProstateNavTargetingStep::OnMultiColumnListSelection()
       matrix->SetElementValueAsDouble(0, 1, targetDesc->GetRASOrientation()[1]);
       matrix->SetElementValueAsDouble(0, 2, targetDesc->GetRASOrientation()[2]);
       matrix->SetElementValueAsDouble(0, 3, targetDesc->GetRASOrientation()[3]);
+      }
+
+    if (this->NeedleOrientationWindow)
+      {
+      vtkMRMLFiducialListNode* activeFiducialListNode=NULL;
+      if (this->GetProstateNavManager()!=NULL)
+        {
+        activeFiducialListNode=this->GetProstateNavManager()->GetTargetPlanListNode();
+        }
+      if (activeFiducialListNode)
+        {
+        this->NeedleOrientationWindow->SetTargetFiducialID(activeFiducialListNode->GetID());
+        this->NeedleOrientationWindow->SetSelectedTarget(targetIndex);
+        }
       }
 
     /* it would be more rational to set the slice orientation here, but it is too slow
@@ -1304,8 +1335,24 @@ void vtkProstateNavTargetingStep::UpdateGUI()
   {
     robot=this->GetProstateNavManager()->GetRobotNode();
   }
+
   vtkProstateNavTargetDescriptor *targetDesc = mrmlNode->GetTargetDescriptorAtIndex(mrmlNode->GetCurrentTargetIndex()); 
   NeedleDescriptorStruct *needle = mrmlNode->GetNeedle(targetDesc); 
+
+  if (this->NeedleOrientationWindow)
+    {
+    vtkMRMLFiducialListNode* activeFiducialListNode=NULL;
+    if (this->GetProstateNavManager()!=NULL)
+      {
+      activeFiducialListNode=this->GetProstateNavManager()->GetTargetPlanListNode();
+      }
+    
+    if (activeFiducialListNode)
+      {
+      this->NeedleOrientationWindow->SetTargetFiducialID(activeFiducialListNode->GetID());
+      this->NeedleOrientationWindow->SetSelectedTarget(mrmlNode->GetCurrentTargetIndex());
+      }
+    }
 
   // Display information about the currently selected target descriptor    
   if (this->Message)
