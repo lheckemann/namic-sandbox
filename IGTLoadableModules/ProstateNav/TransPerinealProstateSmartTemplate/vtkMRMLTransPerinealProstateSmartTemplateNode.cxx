@@ -543,12 +543,12 @@ int vtkMRMLTransPerinealProstateSmartTemplateNode::Init(vtkSlicerApplication* ap
     vtkMRMLLinearTransformNode* atnode = vtkMRMLLinearTransformNode::New();
     //atnode->SetName("ActiveNeedleTransform");
     atnode->SetName("TARGET");
-    vtkMatrix4x4* ztransform = vtkMatrix4x4::New();
-    ztransform->Identity();
+    //vtkMatrix4x4* ztransform = vtkMatrix4x4::New();
+    //ztransform->Identity();
     //transformNode->SetAndObserveImageData(transform);
-    atnode->ApplyTransform(ztransform);
+    //atnode->ApplyTransform(ztransform);
     atnode->SetScene(this->Scene);
-    ztransform->Delete();
+    //ztransform->Delete();
     this->Scene->AddNode(atnode);
     SetAndObserveActiveNeedleTransformNodeID(atnode->GetID());
   }
