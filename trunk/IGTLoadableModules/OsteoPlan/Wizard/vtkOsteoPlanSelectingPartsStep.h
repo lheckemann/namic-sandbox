@@ -53,19 +53,21 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanSelectingPartsStep : public vtkOsteoPlanS
 
   bool ProcessingCallback;
 
-  vtkKWFrame                     *MainFrame;
-  vtkKWFrameWithLabel            *SelectFrame;
-  vtkKWLabel                     *InputModelLabel;
-  vtkSlicerNodeSelectorWidget    *InputModelSelector;
-  vtkMRMLModelNode               *InputModel;
-  vtkKWEntryWithLabel            *PartNameEntry;
-  vtkKWPushButton                *SelectPartButton;
+  vtkKWFrame                    *MainFrame;
+  vtkKWFrameWithLabel           *SelectFrame;
+  vtkKWLabel                    *InputModelLabel;
+  vtkSlicerNodeSelectorWidget   *InputModelSelector;
+  vtkMRMLModelNode              *InputModel;
+  vtkKWEntryWithLabel           *PartNameEntry;
+  vtkKWPushButton               *SelectPartButton;
 
-  bool                            SelectingPart;
+  bool  SelectingPart;
 
-  vtkStringArray*                 ColorName;
-  double                         *colorId[7];
-  int                             ColorNumber;
+  vtkStringArray*        ColorName;
+  double                *colorId[7];
+  int                    ColorNumber;
+
+  int   NumberOfPartsSelected;
 
  private:
   vtkOsteoPlanSelectingPartsStep(const vtkOsteoPlanSelectingPartsStep&);

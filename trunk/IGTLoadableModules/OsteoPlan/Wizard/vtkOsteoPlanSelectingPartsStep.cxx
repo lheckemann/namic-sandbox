@@ -43,6 +43,7 @@
 #include "vtkMRMLModelDisplayNode.h"
 #include "vtkStringArray.h"
 #include "vtkDecimatePro.h"
+#include "vtkTriangleFilter.h"
 
 #define DELETE_IF_NULL_WITH_SETPARENT_NULL(obj) \
   if (obj)                                      \
@@ -62,12 +63,12 @@ vtkOsteoPlanSelectingPartsStep::vtkOsteoPlanSelectingPartsStep()
   this->SetTitle("Select Parts");
   this->SetDescription("Select different parts to create a new model for each part");
 
-  this->MainFrame               = NULL;
-  this->SelectFrame             = NULL;
-  this->InputModelLabel         = NULL;
-  this->InputModelSelector      = NULL;
-  this->InputModel              = NULL;
-  this->SelectPartButton        = NULL;
+  this->MainFrame          = NULL;
+  this->SelectFrame        = NULL;
+  this->InputModelLabel    = NULL;
+  this->InputModelSelector = NULL;
+  this->InputModel         = NULL;
+  this->SelectPartButton   = NULL;
 
   this->SelectingPart           = false;
 
@@ -75,10 +76,12 @@ vtkOsteoPlanSelectingPartsStep::vtkOsteoPlanSelectingPartsStep()
   this->TitleBackgroundColor[1] = 0.8;
   this->TitleBackgroundColor[2] = 1;
 
-  this->ProcessingCallback      = false;
+  this->ProcessingCallback = false;
 
-  this->ColorName               = NULL;
-  this->ColorNumber             = 0;
+  this->ColorName   = NULL;
+  this->ColorNumber = 0;
+
+  this->NumberOfPartsSelected = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -264,7 +267,6 @@ void vtkOsteoPlanSelectingPartsStep::ProcessGUIEvents(vtkObject *caller,
        && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
       {
       this->InputModel = vtkMRMLModelNode::SafeDownCast(this->InputModelSelector->GetSelected());
-      std::cerr << "INSIDE: Model: " << this->InputModel->GetName() << std::endl;
       }
 
 
@@ -337,7 +339,7 @@ void vtkOsteoPlanSelectingPartsStep::HideUserInterface()
   Superclass::HideUserInterface();
 
   // Hide Original Model when leaving step
-  if(this->InputModel)
+  if(this->InputModel && this->NumberOfPartsSelected)
     {
     this->InputModel->GetModelDisplayNode()->SetVisibility(0);
     }
@@ -369,9 +371,12 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart()
   if(cellIdPicked != -1)
     {
 
+    vtkTriangleFilter* triangleFilter = vtkTriangleFilter::New();
+    triangleFilter->SetInput(this->InputModel->GetModelDisplayNode()->GetPolyData());
+
     this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.10);
     vtkPolyDataConnectivityFilter* connectivityFilter = vtkPolyDataConnectivityFilter::New();
-    connectivityFilter->SetInput(this->InputModel->GetModelDisplayNode()->GetPolyData());
+    connectivityFilter->SetInput(triangleFilter->GetOutput());
     connectivityFilter->SetExtractionModeToCellSeededRegions();
     connectivityFilter->InitializeSeedList();
     connectivityFilter->AddSeed(cellIdPicked);
@@ -386,7 +391,6 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart()
     decimateMesh->SetTargetReduction(0.3);
 
     this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 0.90);
-
 
     // Create New vtkMRMLNode
     vtkMRMLModelNode* modelSelected = vtkMRMLModelNode::New();
@@ -411,11 +415,13 @@ void vtkOsteoPlanSelectingPartsStep::SelectClickedPart()
     this->GetGUI()->GetApplicationGUI()->SetExternalProgress(buf, 1.0);
 
     // Clean
+    triangleFilter->Delete();
     decimateMesh->Delete();
     modelSelected->Delete();
     dnodeS->Delete();
     connectivityFilter->Delete();
 
+    this->NumberOfPartsSelected++;
     }
   cellPicker->Delete();
 }

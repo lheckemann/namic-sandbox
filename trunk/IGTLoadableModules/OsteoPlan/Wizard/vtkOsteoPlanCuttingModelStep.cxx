@@ -334,9 +334,6 @@ void vtkOsteoPlanCuttingModelStep::ProcessGUIEvents(vtkObject *caller,
       boundsBox[1] *= 2;
       boundsBox[2] *= 2;
       boundsBox[3] *= 2;
-      boundsBox[4] *= 2;
-      boundsBox[5] *= 2;
-
       boundsBox[4] = -this->CutterThicknessScale->GetWidget()->GetValue() / 2;
       boundsBox[5] = this->CutterThicknessScale->GetWidget()->GetValue() / 2;
 
