@@ -53,6 +53,7 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   static vtkProstateNavLogic *New();
   
   vtkTypeRevisionMacro(vtkProstateNavLogic,vtkObject);
+  vtkSetMacro( TimerOn, int );
   
   void SetGUI(vtkProstateNavGUI* gui) { this->GUI = gui; };
   vtkProstateNavGUI* GetGUI()         { return this->GUI; };

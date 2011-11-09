@@ -57,7 +57,7 @@ vtkProstateNavLogic::vtkProstateNavLogic()
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkProstateNavLogic::DataCallback);
 
-  this->TimerOn = 0;
+  this->TimerOn = 1;
 }
 
 
@@ -112,6 +112,7 @@ void vtkProstateNavLogic::TimerHandler()
       robot->OnTimer();
     }
   }
+  vtkKWTkUtilities::CreateTimerHandler(this->GetGUI()->GetApplication(), 200, this, "TimerHandler");
 }
 
 //---------------------------------------------------------------------------
