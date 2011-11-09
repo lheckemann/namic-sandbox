@@ -459,6 +459,12 @@ int vtkMRMLTransPerinealProstateRobotNode::Init(vtkSlicerApplication* app, const
     igtlGUI->GetLogic()->RegisterMessageConverter(this->CommandConverter);
     }
 
+  //if (this->GetLogic())
+  //  {
+  //    this->GetLogic()->SetTimerOn(1);
+  //  }
+
+
   std::cerr << "Adding robot command" << std::endl;
 
   // Set up robot command node.
@@ -534,7 +540,7 @@ int vtkMRMLTransPerinealProstateRobotNode::OnTimer()
       this->GetRobotCommandNode()->PushOutgoingCommand("GET_COORDINA");
       this->GetRobotCommandNode()->InvokeEvent(vtkCommand::ModifiedEvent);
       }
-//    std::cerr << "void vtkProstateNavLogic::TimerHandler() is called" << std::endl;
+    std::cerr << "void vtkProstateNavLogic::TimerHandler() is called" << std::endl;
     return 1;
 }
 
@@ -595,7 +601,8 @@ const char* vtkMRMLTransPerinealProstateRobotNode::AddWorkspaceModel(const char*
   
   // Parameters
   // offset from z-frame -- this will be a class variable to let users configure it in the future.
-  const double offsetFromZFrame[] = {0, 22.76, 150.0};
+  //const double offsetFromZFrame[] = {0, 22.76, 150.0};
+  const double offsetFromZFrame[] = {0, -4.43, 150.0};
   const double length = 200.0;
 
   //----- cylinder 1 (R-A) -----
