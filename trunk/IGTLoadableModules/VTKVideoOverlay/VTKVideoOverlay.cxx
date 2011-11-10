@@ -82,6 +82,18 @@ vtkRenderer*   BackgroundRenderer;
 vtkImageActor* BackgroundActor;
 int CameraActiveFlag;
 
+//----------------------------------------------------------------
+// Recording
+//----------------------------------------------------------------
+
+#define NGRID_X  20
+#define NGRID_Y  20
+#define TIME_POINTS (30*30)
+
+cv::Point2f * MotionFieldBuffer;
+int           BufferIndex;
+int           FileIndex;
+
 vtkRenderWindow * renWin;
 
 //----------------------------------------------------------------------------
@@ -97,7 +109,6 @@ int ViewerBackgroundOn(vtkRenderWindow* rwindow, vtkImageData* imageData)
     BackgroundRenderer->SetLayer(0);
     BackgroundActor->Modified();
     rwindow->AddRenderer(BackgroundRenderer);
-
     
     // Adjust camera position so that image covers the draw area.
     double origin[3];
@@ -133,35 +144,67 @@ int ViewerBackgroundOff(vtkRenderWindow* rwindow)
 
 }  
 
-#define NGRID_X  20
-#define NGRID_Y  20
-#define TIME_POINTS (30*30)
+#define BUFFER_SIZE 300
+
+int InitBuffer()
+{
+  BufferIndex = 0;
+  MotionFieldBuffer = new cv::Point2f[NGRID_X*NGRID_Y*BUFFER_SIZE];
+  FileIndex = 0;
+  return (MotionFieldBuffer? 1: 0);
+}
+
+
+int StoreMotionField()
+{
+  std::stringstream ss;
+
+  ss << "video_" << setfill ('0') << setw (3) << FileIndex << ".csv";
+
+  std::ofstream of(ss.str().c_str());
+  cv::Point2f * p = &MotionFieldBuffer[0];
+  
+  for (int i = 0; i < BUFFER_SIZE; i ++)
+    {
+    for (int i = 0; i < NGRID_X*NGRID_Y-1; i ++)
+      {
+      of << p->x << ", " << p->y << ", ";
+      p ++;
+      }
+    of << p->x << ", " << p->y << std::endl;
+    }
+
+  FileIndex ++;
+
+  of.close();
+}
+
 
 //----------------------------------------------------------------------------
-int ProcessMotion(std::vector<cv::Point2f>& vector, std::vector<cv::Point2f>& position)
+int ProcessMotion(std::vector<cv::Point2f>& vector)
 {
-  float threshold = 5.0;
-  cv::Point2f mean;
-  //CvPoint2D32f mean;
+  
+  if (MotionFieldBuffer == NULL)
+    {
+    return 0;
+    }
 
-  mean.x = 0.0;
-  mean.y = 0.0;
+  if (BufferIndex >= NGRID_X*NGRID_Y*BUFFER_SIZE)
+    {
+    StoreMotionField();
+    BufferIndex = 0;
+    }
 
-  // Use 10% vectors to calculate translation
-  std::vector< cv::Point2f >::iterator iter;
+  cv::Point2f * p = &MotionFieldBuffer[BufferIndex];
+  
+  std::vector<cv::Point2f>::iterator iter;
   for (iter = vector.begin(); iter != vector.end(); iter ++)
     {
-    float x = iter->x;
-    float y = iter->y;
-    float len = sqrtf(x*x + y*y);
-    if (len > threshold)
-      {
-      mean.x += x;
-      mean.y += y;
-      }
+    memcpy(p, &(*iter), sizeof(cv::Point2f));
+    p ++;
     }
-  mean.x /= (float)vector.size();
-  mean.y /= (float)vector.size();
+
+  BufferIndex += NGRID_X*NGRID_Y;
 
   return 1;
 }
@@ -283,7 +326,7 @@ int CameraHandler()
       cv::swap(PrevGrayImage, GrayImage);
       std::swap(Points[1], Points[0]);
 
-      //ProcessMotion(RVector, GridPoints[0]);
+      ProcessMotion(RVector);
       }
     
     unsigned char* idata;    
@@ -304,6 +347,32 @@ int CameraHandler()
   return 1;
   
 }
+
+
+//void Camera(vtkCamera *NaviCamera, double *Matrix, double FOV, int xx )
+//{
+//  this->focal_length = (cvmGet(this->intrinsicMatrix[xx], 0, 0) + cvmGet(this->intrinsicMatrix[xx], 1, 1)) / 2.0;
+//
+//   double F = focal_length;
+//   double * m = Matrix;
+//   double pos[3] = {m[3], m[7], m[11]};
+//
+//   this->focal_point_x = (VIEW_SIZE_X / 2.0) - cvmGet(this->intrinsicMatrix[xx], 0, 2);
+//   this->focal_point_y = (VIEW_SIZE_Y / 2.0) - cvmGet(this->intrinsicMatrix[xx], 1, 2);
+//
+//   double focal[3] = {    pos[0] + m[0] * focal_point_x + m[1] * focal_point_y + m[2] * (F),
+//       pos[1] + m[4] * focal_point_x + m[5] * focal_point_y + m[6] * (F),
+//       pos[2] + m[8] * focal_point_x + m[9] * focal_point_y + m[10] * (F)    };
+//
+//   double viewup[3] = {-m[1], -m[5], -m[9]};
+//
+//   NaviCamera->SetPosition(pos);
+//   NaviCamera->SetFocalPoint(focal);
+//   NaviCamera->SetViewUp(viewup);
+//   NaviCamera->SetClippingRange(0, 5 * F);
+//   NaviCamera->SetViewAngle(FOV);
+//}
+
 
 class vtkTimerCallback : public vtkCommand
 {
@@ -327,19 +396,74 @@ public:
     //cout << this->TimerCount << endl;
   }
 };
- 
+
+
+int printHelp(const char* name)
+{
+  std::cerr << "Usage: " << name << " [options]" << std::endl;
+  std::cerr << "  Options" << std::endl;
+}
 
 int main(int argc, char * argv[])
 {
+  
+  const char * calibrationFile = NULL;
+  const char * flowDataFile = NULL;
+  const char * videoFile = NULL;
+  int channel = 0;
+
+  //--------------------------------------------------
+  // Parse arguments
+  for (int i = 1; i < argc; i ++)
+    {
+    if (strcmp(argv[i], "-c") == 0 && i+1 < argc)
+      {
+      // Camera calibration file name
+      i ++;
+      calibrationFile = argv[i];
+      }
+    else if (strcmp(argv[i], "-o") == 0 && i+1 < argc)
+      {
+      // Flow data file
+      i ++;
+      flowDataFile = argv[i];
+      }
+    else if (strcmp(argv[i], "-v") == 0 && i+1 < argc)
+      {
+      // Video data
+      i ++;
+      videoFile = argv[i];
+      }
+    else if (strcmp(argv[i], "-C") == 0 && i+1 < argc)
+      {
+      // Channel
+      i ++;
+      channel = atoi(argv[i]);
+      }
+    else 
+      {
+      
+      }
+
+    }
 
   //--------------------------------------------------
   // Set up OpenCV
+  if (videoFile)
+    {
+    capture.open( videoFile );
+    }
+  else
+    {
+    capture.open( channel );
+    }
+
 
   if (argc > 1) // video file is specified
     {
     const char * path = argv[1];
     //capture = cvCaptureFromAVI( path );
-    capture.open( path );
+
     }
   else if (argc == 1)
     {
@@ -382,6 +506,10 @@ int main(int argc, char * argv[])
   VideoImageData->AllocateScalars();
   VideoImageData->Update();
 
+  //--------------------------------------------------
+  // Set up motion vector field recorder
+  InitBuffer();
+  
   //--------------------------------------------------
   // Set up VTK
   int i;
