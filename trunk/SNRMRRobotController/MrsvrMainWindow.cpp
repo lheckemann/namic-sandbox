@@ -2178,7 +2178,7 @@ void MrsvrMainWindow::setTargetPositionRAS(float pos[3])
   robotCommand->setSetPoint(0, robotPos[0]);
   robotCommand->setSetPoint(1, robotPos[1]);
   //robotCommand->setSetPoint(2, robotPos[2]);
-  valNeedleDepth = -robotPos[2];
+  valNeedleDepth = robotPos[2];
 }
 
 
@@ -2808,7 +2808,7 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
     rtarget[0] = (0.5-valNormTargetPosition[0]) * (MAX_POSITION_X-MIN_POSITION_X);
     rtarget[1] = (valNormTargetPosition[1] - 0.5) * (MAX_POSITION_Y-MIN_POSITION_Y);
     //rtarget[2] = valNormTargetPosition[2] * 180.0;
-    rtarget[2] = -valNeedleDepth;
+    rtarget[2] = valNeedleDepth;
     transform->invTransform(rtarget, ptarget);
 
     for (int i = 0; i < 3; i ++) {
@@ -2835,7 +2835,7 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
     valNormTargetPosition[0] = 0.5 - (rtarget[0] / (MAX_POSITION_X-MIN_POSITION_X));
     valNormTargetPosition[1] = rtarget[1] / (MAX_POSITION_Y-MIN_POSITION_Y) + 0.5;
     //valNormTargetPosition[2] = rtarget[2] / 180.0;
-    valNeedleDepth = -rtarget[2];
+    valNeedleDepth = rtarget[2];
 
     prevTargetPosition[0] = valTargetPosition[0];
     prevTargetPosition[1] = valTargetPosition[1];

@@ -243,9 +243,9 @@
 
 // Motion ranges
 #define MIN_POSITION_X       0.0              // mm
-#define MAX_POSITION_X       74.0             // mm
+#define MAX_POSITION_X       73.68            // mm
 #define MIN_POSITION_Y       0.0              // mm
-#define MAX_POSITION_Y       97.8             // mm
+#define MAX_POSITION_Y       97.12            // mm
 #define MIN_POSITION_Z       0.0              // mm
 #define MAX_POSITION_Z       180.0            // mm
 #define MIN_POSITION_THETA   -0.5*PI        // rad
@@ -263,7 +263,7 @@
 
 #define ZFRAME_OFFSET_X      (0.0)
 #define ZFRAME_OFFSET_Y      (0.0)
-#define ZFRAME_OFFSET_Z      (-32.5)
+#define ZFRAME_OFFSET_Z      (32.5)
 
 
 class MrsvrDev {
