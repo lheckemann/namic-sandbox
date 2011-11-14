@@ -310,6 +310,17 @@ void vtkDebugLeaks::DestructClass(const char*)
 //----------------------------------------------------------------------------
 void vtkDebugLeaks::ConstructObject(vtkObject *ptr)
 {
+  if (ObjectAllocationInfo==NULL)
+  {
+    vtkWarningMacro("A mandatory vtkDebugLeaksManager.h include is missing from a \
+      file that containsa singleton or uses vtkDebugLeaksManager. \
+      vtkDebugLeaksManager should be included in any translation unit that will \
+      use vtkDebugLeaks or that implements the singleton pattern. It makes sure \
+      that the vtkDebugLeaks singleton is created before and destroyed after all\
+      other singletons in VTK. See details in vtkDebugLeaksManager.h.");
+      ObjectAllocationInfo=new ObjectAllocationInfoType;
+  }
+
   ObjectAllocationInfo->insert(ptr);
 }
 
