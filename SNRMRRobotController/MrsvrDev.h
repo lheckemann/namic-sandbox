@@ -220,13 +220,13 @@
 // initial counter value
 #define INIT_CNT         0x008FFFFF
 
-#define INIT_CNT_LOWER_X (INIT_CNT - (int)(((MAX_POSITION_X - MIN_POSITION_X)/2.0)/ENC_RATE_X))
-#define INIT_CNT_LOWER_Y (INIT_CNT - (int)(((MAX_POSITION_Y - MIN_POSITION_Y)/2.0)/ENC_RATE_Y))
-#define INIT_CNT_LOWER_Z (INIT_CNT - (int)(((MAX_POSITION_Z - MIN_POSITION_Z)/2.0)/ENC_RATE_Z))
+//#define INIT_CNT_LOWER_X (INIT_CNT - (int)(((MAX_POSITION_X - MIN_POSITION_X)/2.0)/ENC_RATE_X))
+//#define INIT_CNT_LOWER_Y (INIT_CNT - (int)(((MAX_POSITION_Y - MIN_POSITION_Y)/2.0)/ENC_RATE_Y))
+//#define INIT_CNT_LOWER_Z (INIT_CNT - (int)(((MAX_POSITION_Z - MIN_POSITION_Z)/2.0)/ENC_RATE_Z))
 
-#define INIT_CNT_UPPER_X ((int)(((MAX_POSITION_X - MIN_POSITION_X)/2.0)/ENC_RATE_X) + INIT_CNT)
-#define INIT_CNT_UPPER_Y ((int)(((MAX_POSITION_Y - MIN_POSITION_Y)/2.0)/ENC_RATE_Y) + INIT_CNT)
-#define INIT_CNT_UPPER_Z ((int)(((MAX_POSITION_Z - MIN_POSITION_Z)/2.0)/ENC_RATE_Z) + INIT_CNT)
+//#define INIT_CNT_UPPER_X ((int)(((MAX_POSITION_X - MIN_POSITION_X)/2.0)/ENC_RATE_X) + INIT_CNT)
+//#define INIT_CNT_UPPER_Y ((int)(((MAX_POSITION_Y - MIN_POSITION_Y)/2.0)/ENC_RATE_Y) + INIT_CNT)
+//#define INIT_CNT_UPPER_Z ((int)(((MAX_POSITION_Z - MIN_POSITION_Z)/2.0)/ENC_RATE_Z) + INIT_CNT)
 
 // Use comparator in encoder counter board?
 // 0: off      1: on
@@ -297,14 +297,19 @@ class MrsvrDev {
 
   unsigned long                  encZeroCnt[NUM_ENCODERS];
 
-  static const float             encLimitMax[];  
-  static const float             encLimitMin[];  
   float                          actuatorVol[NUM_ACTUATORS];
   float                          actVolOff[NUM_ACTUATORS];
   static const int               EnableLockDetect[NUM_ACTUATORS];
 
-  static const int               encLimitMinCnt[];
-  static const int               encLimitMaxCnt[];
+
+  //static const float             encLimitMax[];  
+  //static const float             encLimitMin[];  
+  float                          encLimitMax[];  
+  float                          encLimitMin[];  
+  //static const int               encLimitMinCnt[];
+  //static const int               encLimitMaxCnt[];
+  int                            encLimitMinCnt[];
+  int                            encLimitMaxCnt[];
 
   //  int                            actuatorKill[NUM_ACTUATORS];
   bool                           actuatorActive[NUM_ACTUATORS];
@@ -394,6 +399,22 @@ class MrsvrDev {
   int   getPositions(float*);
   int   setPosition(int, float);
 
+  int   setEncLimitMin(unsigned int enc, float val);
+  int   setEncLimitMax(unsigned int enc, float val);
+  inline float getEncLimitMin(unsigned int enc) {
+    if (enc < NUM_ENCODERS) {
+      return encLimitMin[enc];
+    } else {
+      return 0.0;
+    }
+  }
+  inline float getEncLimitMax(unsigned int enc) {
+    if (enc < NUM_ENCODERS) {
+      return encLimitMax[enc];
+    } else {
+      return 0.0;
+    }
+  }
 
   // Check if actuators are locked.
   // Call this routine from main control loop.
@@ -458,8 +479,6 @@ class MrsvrDev {
   inline float  getAstd(int n) { return astd[n]; };
   inline float  getAmax(int n) { return amax[n]; };
   inline float  getDmarg(int n) {return dmarg[n]; };
-
-  //int trapCtrl(MrsvrVector, float);
 
   inline void setLogTrigHigh() {dioOutValue &= ~LOG_TRIG; };
   inline void setLogTrigLow()  {dioOutValue |= LOG_TRIG; };
