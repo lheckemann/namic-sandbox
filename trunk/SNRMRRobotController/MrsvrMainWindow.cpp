@@ -211,14 +211,14 @@ MrsvrMainWindow::MrsvrMainWindow(FXApp* app, int w, int h)
   loadIcons();
 
   // prepare to share control and status information
+  cerr << "Setting data targets..." << endl;  
+  setDataTargets();
   cerr << "loading registory..." << endl;
   loadRegistry();
   cerr << "attaching shared memory interface..." << endl;
   initSharedInfo();
   cerr << "Initializing paramters..." << endl;  
   initParameters();
-  cerr << "Setting data targets..." << endl;  
-  setDataTargets();
   // initialize the timer parameter
   updateInterval = 100;
 
@@ -1478,6 +1478,42 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
     new FXVerticalFrame(gpDevConf,
                           LAYOUT_FILL_X|LAYOUT_FILL_Y|
                           LAYOUT_TOP|LAYOUT_LEFT);
+
+
+  // Motion range frame
+  FXGroupBox* gpMotionRange  = 
+    new FXGroupBox(frDevConf, "Motion Range",
+                   LAYOUT_SIDE_TOP|FRAME_GROOVE);
+  FXVerticalFrame* frMotionRange = 
+    new FXVerticalFrame(gpMotionRange,
+                          LAYOUT_FILL_X|LAYOUT_FILL_Y|
+                          LAYOUT_TOP|LAYOUT_LEFT);
+  FXMatrix* mtMotionRange = 
+    new FXMatrix(frMotionRange,2,
+                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y);
+
+  new FXLabel(mtMotionRange, "X Min:");
+  new FXTextField(mtMotionRange ,10, dtMotionRangeMin[0],
+                  FXDataTarget::ID_VALUE, JUSTIFY_LEFT|FRAME_SUNKEN,
+                  0, 0, 100, 15);
+  
+  new FXLabel(mtMotionRange, "X Max:");
+  new FXTextField(mtMotionRange ,10, dtMotionRangeMax[0],
+                  FXDataTarget::ID_VALUE, JUSTIFY_LEFT|FRAME_SUNKEN,
+                  0, 0, 100, 15);
+
+  new FXLabel(mtMotionRange, "Y Min:");
+  new FXTextField(mtMotionRange ,10, dtMotionRangeMin[1],
+                  FXDataTarget::ID_VALUE, JUSTIFY_LEFT|FRAME_SUNKEN,
+                  0, 0, 100, 15);
+
+  new FXLabel(mtMotionRange, "Y Max:");
+  new FXTextField(mtMotionRange ,10, dtMotionRangeMax[1],
+                  FXDataTarget::ID_VALUE, JUSTIFY_LEFT|FRAME_SUNKEN,
+                  0, 0, 100, 15);
+
+  
+  // Needle
   FXGroupBox* gpEndEffector  = 
     new FXGroupBox(frDevConf, "End effector",
                    LAYOUT_SIDE_TOP|FRAME_GROOVE);
@@ -1843,7 +1879,17 @@ void MrsvrMainWindow::loadRegistry()
   }
   p->next = NULL;
 
+  // Motion range
+  for (int i = 0; i < NUM_ENCODERS; i ++) {
+    sprintf(str, "MIN_%d", i);
+    valMotionRangeMin[i]
+      = getApp()->reg().readIntEntry("MOTION_RANGE", str, 0);
+    sprintf(str, "MAX_%d", i);
+    valMotionRangeMax[i]
+      = getApp()->reg().readIntEntry("MOTION_RANGE", str, 0);
+  }
 }
+
 
 void MrsvrMainWindow::storeRegistry()
 {
@@ -1919,6 +1965,17 @@ void MrsvrMainWindow::storeRegistry()
   
   getApp()->reg().writeIntEntry("END_EFFECTOR",
                                "NUM_CONFIGS", count);
+
+
+  // Motion range
+  for (int i = 0; i < NUM_ENCODERS; i ++) {
+    sprintf(str, "MIN_%d", i);
+    getApp()->reg().writeRealEntry("MOTION_RANGE",
+                                   str, valMotionRangeMin[i]);
+    sprintf(str, "MAX_%d", i);
+    getApp()->reg().writeRealEntry("MOTION_RANGE",
+                                   str, valMotionRangeMax[i]);
+  }
 
   getApp()->reg().write();
 
@@ -2086,6 +2143,19 @@ void MrsvrMainWindow::setDataTargets()
   valNeedleDepth = 0.0;
   dtNeedleDepth = 
     new FXDataTarget(valNeedleDepth, this, ID_UPDATE_PARAMETER);
+
+  // -- Motion Range
+  for (int i = 0; i < NUM_ENCODERS; i ++)
+    {
+    valMotionRangeMin[i] = 0.0;
+    valMotionRangeMax[i] = 0.0;
+    dtMotionRangeMin[i] = 
+      new FXDataTarget(valMotionRangeMin[i], this,
+                       ID_UPDATE_PARAMETER);
+    dtMotionRangeMax[i] =
+      new FXDataTarget(valMotionRangeMax[i], this,
+                       ID_UPDATE_PARAMETER);
+    }
 
 }
 

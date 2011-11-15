@@ -84,6 +84,9 @@ typedef struct {
   int          calibDoneIndex;
   float        setAngles[NUM_ENCODERS-NUM_ACTUATORS];
 
+  float        encLimitMin[NUM_ENCODERS];
+  float        encLimitMax[NUM_ENCODERS];
+
 } MrsvrCommandInfo; 
 
 #define SHARED_MEMORY_SIZE_COMMAND sizeof(MrsvrCommandInfo)
@@ -183,6 +186,36 @@ public:
       return cmdInfo->calibrationCommand;
     } else {
       return -1;
+    }
+  }
+  inline int setEncLimitMin(unsigned int enc) {
+    if (enc < NUM_ENCODERS) {
+      cmdInfo->encLimitMin[enc] = 0.0;
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+  inline int setEncLimitMax(unsigned int enc) {
+    if (enc < NUM_ENCODERS) {
+      cmdInfo->encLimitMax[enc] = 0.0;
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+  inline float getEncLimitMin(unsigned int enc) {
+    if (enc < NUM_ENCODERS) {
+      return cmdInfo->encLimitMin[enc];
+    } else {
+      return 0.0;
+    }
+  }
+  inline float getEncLimitMax(unsigned int enc) {
+    if (enc < NUM_ENCODERS) {
+      return cmdInfo->encLimitMax[enc];
+    } else {
+      return 0.0;
     }
   }
 

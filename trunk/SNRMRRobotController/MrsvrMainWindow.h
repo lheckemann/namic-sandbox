@@ -561,6 +561,11 @@ private:
   
   // -- System
 
+  // -- Motion Range
+  FXDataTarget*      dtMotionRangeMin[NUM_ENCODERS];
+  FXDataTarget*      dtMotionRangeMax[NUM_ENCODERS];
+  float              valMotionRangeMin[NUM_ENCODERS];
+  float              valMotionRangeMax[NUM_ENCODERS];
 
   // ICONS
   FXIcon*            icons[NUM_ICONS];

@@ -65,6 +65,8 @@ MrsvrCommandWriter::MrsvrCommandWriter(key_t shmkey) :
     cmdInfo->position[i] = 0.0;
     cmdInfo->setPoint[i] = 0.0; 
     cmdInfo->setZeroFlag[i] = 0;
+    cmdInfo->encLimitMin[i] = 0.0;
+    cmdInfo->encLimitMax[i] = 0.0;
   }
   for (i = 0; i < 3; i ++) {
     cmdInfo->tipApprOrient[i] = 0.0;

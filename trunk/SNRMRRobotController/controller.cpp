@@ -280,7 +280,7 @@ int  procReset(int init);
 int  trapCtrl(MrsvrVector, float);
 int  trapCtrl2(MrsvrVector, float);
 void getActuatorTarget(MrsvrVector& target, MrsvrVector setPoint);
-
+int  updateEncoderCalibration();
 
 inline void printDate()
 {
@@ -1179,6 +1179,21 @@ inline void printModeTransition(int newMode)
 }
 
 
+int updateEncoderCalibration()
+{
+  for (int i = 0; i < NUM_ENCODERS; i ++) {      
+    if (command->getEncLimitMin(i) != dev->getEncLimitMin(i)) {
+      CONSOLE_PRINT("Changing encoder #%d lower limit ...\n");
+      dev->setEncLimitMin(i, command->getEncLimitMin(i));
+    }
+    if (command->getEncLimitMax(i) != dev->getEncLimitMax(i)) {
+      CONSOLE_PRINT("Changing encoder #%d upper limit ...\n");
+      dev->setEncLimitMax(i, command->getEncLimitMax(i));
+    }
+  }
+}
+
+
 //===========================================================================
 // Main
 //===========================================================================
@@ -1330,6 +1345,8 @@ int main(int argc, char* argv[])
     dev->detectActuatorLock();
 #endif
 
+    updateEncoderCalibration();
+    
     for (int i = 0; i < NUM_ACTUATORS; i ++) {
 #ifdef _ENABLE_ACTUATOR_LOCK_DETECTION
       if (dev->isActuatorLocked(i) && !prevLockState[i]) {
