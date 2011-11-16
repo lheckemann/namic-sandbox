@@ -1,0 +1,495 @@
+/*==========================================================================
+
+  Portions (c) Copyright 2008 Brigham and Women's Hospital (BWH) All Rights Reserved.
+
+  See Doc/copyright/copyright.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Program:   3D Slicer
+  Module:    $HeadURL: $
+  Date:      $Date: $
+  Version:   $Revision: $
+
+  ==========================================================================*/
+
+#include "vtkObject.h"
+#include "vtkObjectFactory.h"
+
+#include "vtkDistractorModelingGUI.h"
+#include "vtkSlicerApplication.h"
+#include "vtkSlicerModuleCollapsibleFrame.h"
+#include "vtkSlicerSliceControllerWidget.h"
+#include "vtkSlicerSliceGUI.h"
+#include "vtkSlicerSlicesGUI.h"
+
+#include "vtkSlicerColor.h"
+#include "vtkSlicerTheme.h"
+
+#include "vtkKWTkUtilities.h"
+#include "vtkKWWidget.h"
+#include "vtkKWFrameWithLabel.h"
+#include "vtkKWFrame.h"
+#include "vtkKWLabel.h"
+#include "vtkKWEvent.h"
+
+#include "vtkKWPushButton.h"
+
+#include "vtkCornerAnnotation.h"
+
+#include "vtkMRMLLinearTransformNode.h"
+
+
+//---------------------------------------------------------------------------
+vtkStandardNewMacro (vtkDistractorModelingGUI );
+vtkCxxRevisionMacro ( vtkDistractorModelingGUI, "$Revision: 1.0 $");
+//---------------------------------------------------------------------------
+
+
+//---------------------------------------------------------------------------
+vtkDistractorModelingGUI::vtkDistractorModelingGUI ( )
+{
+
+  //----------------------------------------------------------------
+  // Logic values
+  this->Logic = NULL;
+  this->DataCallbackCommand = vtkCallbackCommand::New();
+  this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
+  this->DataCallbackCommand->SetCallback(vtkDistractorModelingGUI::DataCallback);
+
+  //----------------------------------------------------------------
+  // GUI widgets
+  this->RailSelector   = NULL;
+  this->SliderSelector = NULL;
+  this->MovingScale    = NULL;
+  this->RailModel      = NULL;
+  this->SliderModel    = NULL;
+  this->SliderTransformNode = NULL;
+
+  // Initialize Distractor values here
+  // TODO: Move to Distractor selection when will be available
+
+  this->Distractor1.RotationCenter = vtkMatrix4x4::New();
+  this->Distractor1.RotationCenter->SetElement(0,3,0);
+  this->Distractor1.RotationCenter->SetElement(1,3,40);
+  this->Distractor1.RotationCenter->SetElement(2,3,0);
+
+  this->Distractor1.RailAnchor = vtkMatrix4x4::New();
+  this->Distractor1.RailAnchor->SetElement(0,3,43);
+  this->Distractor1.RailAnchor->SetElement(1,3,40);
+  this->Distractor1.RailAnchor->SetElement(2,3,0);
+
+  this->Distractor1.SliderAnchor = vtkMatrix4x4::New();
+  this->Distractor1.SliderAnchor->SetElement(0,3,43);
+  this->Distractor1.SliderAnchor->SetElement(1,3,40);
+  this->Distractor1.SliderAnchor->SetElement(2,3,0);
+
+
+
+
+  //----------------------------------------------------------------
+  // Locator  (MRML)
+  this->TimerFlag = 0;
+
+}
+
+//---------------------------------------------------------------------------
+vtkDistractorModelingGUI::~vtkDistractorModelingGUI ( )
+{
+
+  //----------------------------------------------------------------
+  // Remove Callbacks
+
+  if (this->DataCallbackCommand)
+    {
+    this->DataCallbackCommand->Delete();
+    }
+
+  //----------------------------------------------------------------
+  // Remove Observers
+
+  this->RemoveGUIObservers();
+
+  //----------------------------------------------------------------
+  // Remove GUI widgets
+
+  if(this->RailSelector)
+    {
+    this->RailSelector->SetParent(NULL);
+    this->RailSelector->Delete();
+    this->RailSelector = NULL;
+    }
+
+  if(this->SliderSelector)
+    {
+    this->SliderSelector->SetParent(NULL);
+    this->SliderSelector->Delete();
+    this->SliderSelector = NULL;
+    }
+
+  if(this->MovingScale)
+    {
+    this->MovingScale->SetParent(NULL);
+    this->MovingScale->Delete();
+    this->MovingScale = NULL;
+    }
+
+  if(this->SliderTransformNode)
+    {
+    this->SliderTransformNode->Delete();
+    }
+
+
+  if(&this->Distractor1)
+    {
+    this->Distractor1.RotationCenter->Delete();
+    this->Distractor1.RailAnchor->Delete();
+    this->Distractor1.SliderAnchor->Delete();
+    }
+
+  //----------------------------------------------------------------
+  // Unregister Logic class
+
+  this->SetModuleLogic ( NULL );
+
+}
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::Init()
+{
+}
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::Enter()
+{
+  // Fill in
+  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+
+  if (this->TimerFlag == 0)
+    {
+    this->TimerFlag = 1;
+    this->TimerInterval = 100;  // 100 ms
+    ProcessTimerEvents();
+    }
+
+}
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::Exit ( )
+{
+  // Fill in
+}
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::PrintSelf ( ostream& os, vtkIndent indent )
+{
+  this->vtkObject::PrintSelf ( os, indent );
+
+  os << indent << "DistractorModelingGUI: " << this->GetClassName ( ) << "\n";
+  os << indent << "Logic: " << this->GetLogic ( ) << "\n";
+}
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::RemoveGUIObservers ( )
+{
+  if (this->RailSelector)
+    {
+    this->RailSelector
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->SliderSelector)
+    {
+    this->SliderSelector
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->MovingScale)
+    {
+    this->MovingScale
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+
+  this->RemoveLogicObservers();
+
+}
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::AddGUIObservers ( )
+{
+  this->RemoveGUIObservers();
+
+  //----------------------------------------------------------------
+  // MRML
+
+  vtkIntArray* events = vtkIntArray::New();
+  events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
+
+  if (this->GetMRMLScene() != NULL)
+    {
+    this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
+    }
+  events->Delete();
+
+  //----------------------------------------------------------------
+  // GUI Observers
+
+  this->RailSelector
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->SliderSelector
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->MovingScale
+    ->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->AddLogicObservers();
+
+}
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::RemoveLogicObservers ( )
+{
+  if (this->GetLogic())
+    {
+    this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent,
+                                      (vtkCommand *)this->LogicCallbackCommand);
+    }
+}
+
+
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::AddLogicObservers ( )
+{
+  this->RemoveLogicObservers();
+
+  if (this->GetLogic())
+    {
+    this->GetLogic()->AddObserver(vtkDistractorModelingLogic::StatusUpdateEvent,
+                                  (vtkCommand *)this->LogicCallbackCommand);
+    }
+}
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
+{
+}
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::ProcessGUIEvents(vtkObject *caller,
+                                                unsigned long event, void *callData)
+{
+
+  const char *eventName = vtkCommand::GetStringFromEventId(event);
+
+  if (strcmp(eventName, "LeftButtonPressEvent") == 0)
+    {
+    vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast(caller);
+    HandleMouseEvent(style);
+    return;
+    }
+
+  if(this->RailSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+    this->RailModel = vtkMRMLModelNode::SafeDownCast(this->RailSelector->GetSelected());
+    }
+
+  if(this->SliderSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+    this->SliderModel = vtkMRMLModelNode::SafeDownCast(this->SliderSelector->GetSelected());
+    }
+
+  if(this->MovingScale == vtkKWScale::SafeDownCast(caller)
+     && event == vtkKWScale::ScaleValueChangingEvent)
+    {
+    if(this->SliderModel)
+      {
+      if(!this->SliderTransformNode)
+        {
+        this->SliderTransformNode = vtkMRMLLinearTransformNode::New();
+        this->GetMRMLScene()->AddNode(this->SliderTransformNode);
+        }
+
+      this->GetLogic()->MoveSlider(this->SliderModel,this->MovingScale->GetValue(),this->SliderTransformNode);
+      this->SliderModel->SetAndObserveTransformNodeID(this->SliderTransformNode->GetID());
+      this->SliderModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+
+      this->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
+      this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+      }
+    }
+
+}
+
+
+void vtkDistractorModelingGUI::DataCallback(vtkObject *caller,
+                                            unsigned long eid, void *clientData, void *callData)
+{
+  vtkDistractorModelingGUI *self = reinterpret_cast<vtkDistractorModelingGUI *>(clientData);
+  vtkDebugWithObjectMacro(self, "In vtkDistractorModelingGUI DataCallback");
+  self->UpdateAll();
+}
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::ProcessLogicEvents ( vtkObject *caller,
+                                                    unsigned long event, void *callData )
+{
+
+  if (this->GetLogic() == vtkDistractorModelingLogic::SafeDownCast(caller))
+    {
+    if (event == vtkDistractorModelingLogic::StatusUpdateEvent)
+      {
+      //this->UpdateDeviceStatus();
+      }
+    }
+}
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::ProcessMRMLEvents ( vtkObject *caller,
+                                                   unsigned long event, void *callData )
+{
+  // Fill in
+
+  if (event == vtkMRMLScene::SceneCloseEvent)
+    {
+    }
+}
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::ProcessTimerEvents()
+{
+  if (this->TimerFlag)
+    {
+    // update timer
+    vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(),
+                                         this->TimerInterval,
+                                         this, "ProcessTimerEvents");
+    }
+}
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::BuildGUI ( )
+{
+
+  // ---
+  // MODULE GUI FRAME
+  // create a page
+  this->UIPanel->AddPage ( "DistractorModeling", "DistractorModeling", NULL );
+
+  BuildGUIForHelpFrame();
+  BuildGUIForTestFrame1();
+
+}
+
+
+void vtkDistractorModelingGUI::BuildGUIForHelpFrame ()
+{
+  // Define your help text here.
+  const char *help =
+    "See "
+    "<a>http://www.slicer.org/slicerWiki/index.php/Modules:DistractorModeling</a> for details.";
+  const char *about =
+    "This work is supported by NCIGT, NA-MIC.";
+
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "DistractorModeling" );
+  this->BuildHelpAndAboutFrame (page, help, about);
+}
+
+
+//---------------------------------------------------------------------------
+void vtkDistractorModelingGUI::BuildGUIForTestFrame1()
+{
+
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("DistractorModeling");
+
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Test Frame 1");
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+  // -----------------------------------------
+  // Test child frame
+
+  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
+  frame->SetParent(conBrowsFrame->GetFrame());
+  frame->Create();
+  frame->SetLabelText ("Test child frame");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 frame->GetWidgetName() );
+
+  // -----------------------------------------
+  // Test push button
+
+  vtkKWLabel* RailLabel = vtkKWLabel::New();
+  RailLabel->SetParent(frame->GetFrame());
+  RailLabel->Create();
+  RailLabel->SetText("Rail:");
+  RailLabel->SetAnchorToWest();
+
+  this->RailSelector = vtkSlicerNodeSelectorWidget::New();
+  this->RailSelector->SetParent(frame->GetFrame());
+  this->RailSelector->Create();
+  this->RailSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
+  this->RailSelector->SetNewNodeEnabled(false);
+  this->RailSelector->SetMRMLScene(this->GetMRMLScene());
+  this->RailSelector->UpdateMenu();
+
+  vtkKWLabel* SliderLabel = vtkKWLabel::New();
+  SliderLabel->SetParent(frame->GetFrame());
+  SliderLabel->Create();
+  SliderLabel->SetText("Slider:");
+  SliderLabel->SetAnchorToWest();
+
+  this->SliderSelector = vtkSlicerNodeSelectorWidget::New();
+  this->SliderSelector->SetParent(frame->GetFrame());
+  this->SliderSelector->Create();
+  this->SliderSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
+  this->SliderSelector->SetNewNodeEnabled(false);
+  this->SliderSelector->SetMRMLScene(this->GetMRMLScene());
+  this->SliderSelector->UpdateMenu();
+
+  this->MovingScale = vtkKWScale::New();
+  this->MovingScale->SetParent(frame->GetFrame());
+  this->MovingScale->Create();
+  this->MovingScale->SetRange(-180,180);
+
+  this->Script("pack %s %s %s %s %s -side top -fill x -expand y -padx 2 -pady 2",
+               RailLabel->GetWidgetName(),
+               this->RailSelector->GetWidgetName(),
+               SliderLabel->GetWidgetName(),
+               this->SliderSelector->GetWidgetName(),
+               this->MovingScale->GetWidgetName());
+
+
+  RailLabel->Delete();
+  SliderLabel->Delete();
+  conBrowsFrame->Delete();
+  frame->Delete();
+
+}
+
+//----------------------------------------------------------------------------
+void vtkDistractorModelingGUI::UpdateAll()
+{
+}
+
