@@ -84,7 +84,7 @@ void vtkDistractorModelingLogic::MoveSlider(vtkMRMLModelNode* Slider, double val
   Slider->GetPolyData()->GetCenter(SliderCenter);
 
   vtkTransform* translation = vtkTransform::New();
-  translation->Translate(SliderCenter[0],SliderCenter[1],SliderCenter[2]);
+  translation->Translate(SliderCenter[0]+47.70,SliderCenter[1],SliderCenter[2]-15);
 
   vtkTransform* rotation = vtkTransform::New();
   rotation->RotateY(value);
@@ -93,7 +93,7 @@ void vtkDistractorModelingLogic::MoveSlider(vtkMRMLModelNode* Slider, double val
   transformationMatrix->Identity();
 
   vtkTransform* invertTranslation = vtkTransform::New();
-  invertTranslation->Translate(-SliderCenter[0], -SliderCenter[1], -SliderCenter[2]);
+  invertTranslation->Translate(-SliderCenter[0]-47.70, -SliderCenter[1], -SliderCenter[2]+15); // 5cm curvature, z = 15, so (x = sqrt(r^2 - z^2) with r in mm => x = -47.70)
   invertTranslation->PostMultiply();
   invertTranslation->Concatenate(rotation);
   invertTranslation->PostMultiply();
