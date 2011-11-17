@@ -401,7 +401,17 @@ public:
 int printHelp(const char* name)
 {
   std::cerr << "Usage: " << name << " [options]" << std::endl;
-  std::cerr << "  Options" << std::endl;
+  std::cerr << "  Options (input)" << std::endl;
+  std::cerr << "    -c <file>  : Camera calibration file" << std::endl;
+  std::cerr << "    -v <file>  : Video file" << std::endl;
+  std::cerr << "    -C <file>  : Camera channel" << std::endl;
+  std::cerr << std::endl;
+  std::cerr << "  Options (output)" << std::endl;
+  std::cerr << "    -o <file>  : Flow data file" << std::endl;
+  std::cerr << std::endl;
+  std::cerr << "  Options (others)" << std::endl;
+  std::cerr << "    -h         : Show help" << std::endl;
+
 }
 
 int main(int argc, char * argv[])
@@ -440,15 +450,32 @@ int main(int argc, char * argv[])
       i ++;
       channel = atoi(argv[i]);
       }
-    else 
+    else if (strcmp(argv[i], "-h") == 0 && i+1 < argc)
       {
-      
+      printHelp(argv[0]);
       }
-
     }
 
   //--------------------------------------------------
   // Set up OpenCV
+  cv::Mat cameraMatrix, distCoeffs;
+  cv::Size calibratedImageSize;
+  if (calibrationFile)
+    {
+    cv::FileStorage fs(calibrationFile, cv::FileStorage::READ);
+    fs["image_width"] >> calibratedImageSize.width;
+    fs["image_height"] >> calibratedImageSize.height;
+    fs["distortion_coefficients"] >> distCoeffs;
+    fs["camera_matrix"] >> cameraMatrix;
+    
+    if( distCoeffs.type() != CV_64F )
+      distCoeffs = cv::Mat_<double>(distCoeffs);
+    if( cameraMatrix.type() != CV_64F )
+      cameraMatrix = cv::Mat_<double>(cameraMatrix);
+    }
+
+
+
   if (videoFile)
     {
     capture.open( videoFile );
