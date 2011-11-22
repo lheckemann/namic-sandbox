@@ -102,6 +102,12 @@ void vtkDistractorModelingLogic::MoveSlider(vtkMRMLModelNode* Slider, double val
 
   SliderTransformationNode->SetAndObserveMatrixTransformToParent(transformationMatrix);
 
+  // Drop transformation node under other transforms (if exists)
+  if(Slider->GetParentTransformNode() && Slider->GetParentTransformNode()!=SliderTransformationNode)
+    {
+      SliderTransformationNode->SetAndObserveTransformNodeID(Slider->GetParentTransformNode()->GetID());
+    }
+
   translation->Delete();
   rotation->Delete();
   invertTranslation->Delete();
