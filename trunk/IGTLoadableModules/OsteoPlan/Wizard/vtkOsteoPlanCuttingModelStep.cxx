@@ -615,7 +615,7 @@ void vtkOsteoPlanCuttingModelStep::ClipModel(vtkMRMLModelNode* model, vtkBoxWidg
   vtkDecimatePro* decimatePart2 = vtkDecimatePro::New();
   decimatePart2->SetInput(realCut->GetOutput());
   decimatePart2->PreserveTopologyOn();
-  decimatePart2->SetTargetReduction(0.7);
+  decimatePart2->SetTargetReduction(0.3);
 
   vtkMRMLModelNode* part2 = vtkMRMLModelNode::New();
   part2->SetScene(this->GetLogic()->GetMRMLScene());
