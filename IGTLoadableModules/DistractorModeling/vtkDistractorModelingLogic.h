@@ -49,7 +49,7 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
   vtkTypeRevisionMacro(vtkDistractorModelingLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
 
-  void MoveSlider(vtkMRMLModelNode* Slider, double value, vtkMRMLLinearTransformNode* SliderTransformationNode);
+  void MoveSlider(vtkMRMLModelNode* Slider, vtkMRMLModelNode* Piston, vtkMRMLModelNode* Cylinder, double value, vtkMRMLLinearTransformNode* SliderTransformationNode, vtkMRMLLinearTransformNode* PistonTransformationNode, vtkMRMLLinearTransformNode* CylinderTransformationNode);
 
  protected:
   

@@ -58,12 +58,21 @@ vtkDistractorModelingGUI::vtkDistractorModelingGUI ( )
 
   //----------------------------------------------------------------
   // GUI widgets
-  this->RailSelector   = NULL;
-  this->SliderSelector = NULL;
-  this->MovingScale    = NULL;
-  this->RailModel      = NULL;
-  this->SliderModel    = NULL;
-  this->SliderTransformNode = NULL;
+  this->RailSelector     = NULL;
+  this->SliderSelector   = NULL;
+  this->PistonSelector   = NULL;
+  this->CylinderSelector = NULL;
+
+  this->RailModel     = NULL;
+  this->SliderModel   = NULL;
+  this->PistonModel   = NULL;
+  this->CylinderModel = NULL;
+
+  this->SliderTransformNode   = NULL;
+  this->PistonTransformNode   = NULL;
+  this->CylinderTransformNode = NULL;
+
+  this->MovingScale         = NULL;
 
   // Initialize Distractor values here
   // TODO: Move to Distractor selection when will be available
@@ -126,6 +135,21 @@ vtkDistractorModelingGUI::~vtkDistractorModelingGUI ( )
     this->SliderSelector = NULL;
     }
 
+  if(this->PistonSelector)
+    {
+    this->PistonSelector->SetParent(NULL);
+    this->PistonSelector->Delete();
+    this->PistonSelector = NULL;
+    }
+
+  if(this->CylinderSelector)
+    {
+    this->CylinderSelector->SetParent(NULL);
+    this->CylinderSelector->Delete();
+    this->CylinderSelector = NULL;
+    }
+
+
   if(this->MovingScale)
     {
     this->MovingScale->SetParent(NULL);
@@ -136,6 +160,16 @@ vtkDistractorModelingGUI::~vtkDistractorModelingGUI ( )
   if(this->SliderTransformNode)
     {
     this->SliderTransformNode->Delete();
+    }
+
+  if(this->PistonTransformNode)
+    {
+    this->PistonTransformNode->Delete();
+    }
+
+  if(this->CylinderTransformNode)
+    {
+    this->CylinderTransformNode->Delete();
     }
 
 
@@ -208,6 +242,18 @@ void vtkDistractorModelingGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->PistonSelector)
+    {
+    this->PistonSelector
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->CylinderSelector)
+    {
+    this->CylinderSelector
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->MovingScale)
     {
     this->MovingScale
@@ -244,6 +290,12 @@ void vtkDistractorModelingGUI::AddGUIObservers ( )
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->SliderSelector
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->PistonSelector
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->CylinderSelector
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->MovingScale
@@ -311,6 +363,19 @@ void vtkDistractorModelingGUI::ProcessGUIEvents(vtkObject *caller,
     this->SliderModel = vtkMRMLModelNode::SafeDownCast(this->SliderSelector->GetSelected());
     }
 
+  if(this->PistonSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+    this->PistonModel = vtkMRMLModelNode::SafeDownCast(this->PistonSelector->GetSelected());
+    }
+
+  if(this->CylinderSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+    this->CylinderModel = vtkMRMLModelNode::SafeDownCast(this->CylinderSelector->GetSelected());
+    }
+
+
   if(this->MovingScale == vtkKWScale::SafeDownCast(caller)
      && event == vtkKWScale::ScaleValueChangingEvent)
     {
@@ -321,10 +386,28 @@ void vtkDistractorModelingGUI::ProcessGUIEvents(vtkObject *caller,
         this->SliderTransformNode = vtkMRMLLinearTransformNode::New();
         this->GetMRMLScene()->AddNode(this->SliderTransformNode);
         }
+      if(!this->PistonTransformNode)
+        {
+        this->PistonTransformNode = vtkMRMLLinearTransformNode::New();
+        this->GetMRMLScene()->AddNode(this->PistonTransformNode);
+        }
+      if(!this->CylinderTransformNode)
+        {
+        this->CylinderTransformNode = vtkMRMLLinearTransformNode::New();
+        this->GetMRMLScene()->AddNode(this->CylinderTransformNode);
+        }
 
-      this->GetLogic()->MoveSlider(this->SliderModel,this->MovingScale->GetValue(),this->SliderTransformNode);
+
+      this->GetLogic()->MoveSlider(this->SliderModel,this->PistonModel,this->CylinderModel,this->MovingScale->GetValue(),this->SliderTransformNode,this->PistonTransformNode,this->CylinderTransformNode);
+
       this->SliderModel->SetAndObserveTransformNodeID(this->SliderTransformNode->GetID());
       this->SliderModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+
+      this->PistonModel->SetAndObserveTransformNodeID(this->PistonTransformNode->GetID());
+      this->PistonModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+
+      this->CylinderModel->SetAndObserveTransformNodeID(this->CylinderTransformNode->GetID());
+      this->CylinderModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
 
       this->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
       this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
@@ -468,21 +551,56 @@ void vtkDistractorModelingGUI::BuildGUIForTestFrame1()
   this->SliderSelector->SetMRMLScene(this->GetMRMLScene());
   this->SliderSelector->UpdateMenu();
 
+  vtkKWLabel* PistonLabel = vtkKWLabel::New();
+  PistonLabel->SetParent(frame->GetFrame());
+  PistonLabel->Create();
+  PistonLabel->SetText("Piston:");
+  PistonLabel->SetAnchorToWest();
+
+  this->PistonSelector = vtkSlicerNodeSelectorWidget::New();
+  this->PistonSelector->SetParent(frame->GetFrame());
+  this->PistonSelector->Create();
+  this->PistonSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
+  this->PistonSelector->SetNewNodeEnabled(false);
+  this->PistonSelector->SetMRMLScene(this->GetMRMLScene());
+  this->PistonSelector->UpdateMenu();
+
+  vtkKWLabel* CylinderLabel = vtkKWLabel::New();
+  CylinderLabel->SetParent(frame->GetFrame());
+  CylinderLabel->Create();
+  CylinderLabel->SetText("Cylinder:");
+  CylinderLabel->SetAnchorToWest();
+
+  this->CylinderSelector = vtkSlicerNodeSelectorWidget::New();
+  this->CylinderSelector->SetParent(frame->GetFrame());
+  this->CylinderSelector->Create();
+  this->CylinderSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
+  this->CylinderSelector->SetNewNodeEnabled(false);
+  this->CylinderSelector->SetMRMLScene(this->GetMRMLScene());
+  this->CylinderSelector->UpdateMenu();
+
+
   this->MovingScale = vtkKWScale::New();
   this->MovingScale->SetParent(frame->GetFrame());
   this->MovingScale->Create();
   this->MovingScale->SetRange(-180,180);
 
-  this->Script("pack %s %s %s %s %s -side top -fill x -expand y -padx 2 -pady 2",
+  this->Script("pack %s %s %s %s %s %s %s %s %s -side top -fill x -expand y -padx 2 -pady 2",
                RailLabel->GetWidgetName(),
                this->RailSelector->GetWidgetName(),
                SliderLabel->GetWidgetName(),
                this->SliderSelector->GetWidgetName(),
+               PistonLabel->GetWidgetName(),
+               this->PistonSelector->GetWidgetName(),
+               CylinderLabel->GetWidgetName(),
+               this->CylinderSelector->GetWidgetName(),
                this->MovingScale->GetWidgetName());
 
 
   RailLabel->Delete();
   SliderLabel->Delete();
+  PistonLabel->Delete();
+  CylinderLabel->Delete();
   conBrowsFrame->Delete();
   frame->Delete();
 

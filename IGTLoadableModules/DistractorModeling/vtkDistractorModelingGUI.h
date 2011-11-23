@@ -125,12 +125,19 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingGUI : public vtkSlicerM
 
   vtkSlicerNodeSelectorWidget* RailSelector;
   vtkSlicerNodeSelectorWidget* SliderSelector;
-  vtkKWScale* MovingScale;
+  vtkSlicerNodeSelectorWidget* PistonSelector;
+  vtkSlicerNodeSelectorWidget* CylinderSelector;
 
   vtkMRMLModelNode* RailModel;
   vtkMRMLModelNode* SliderModel;
+  vtkMRMLModelNode* PistonModel;
+  vtkMRMLModelNode* CylinderModel;
 
   vtkMRMLLinearTransformNode* SliderTransformNode;
+  vtkMRMLLinearTransformNode* PistonTransformNode;
+  vtkMRMLLinearTransformNode* CylinderTransformNode;
+
+  vtkKWScale* MovingScale;
 
   //BTX
 
