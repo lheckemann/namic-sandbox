@@ -39,6 +39,30 @@ vtkDistractorModelingLogic::vtkDistractorModelingLogic()
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkDistractorModelingLogic::DataCallback);
 
+  // Initialize Distractor values here
+  // TODO: Move to Distractor selection when will be available
+
+  this->Distractor1.RotationCenter = vtkMatrix4x4::New();
+  this->Distractor1.RotationCenter->SetElement(0,3,47.70);
+  this->Distractor1.RotationCenter->SetElement(1,3,0.0);
+  this->Distractor1.RotationCenter->SetElement(2,3,-15.0);
+
+  this->Distractor1.RailAnchor = vtkMatrix4x4::New();
+  this->Distractor1.RailAnchor->SetElement(0,3,-42.7);
+  this->Distractor1.RailAnchor->SetElement(1,3,0.0);
+  this->Distractor1.RailAnchor->SetElement(2,3,-21.0);
+
+  this->Distractor1.SliderAnchor = vtkMatrix4x4::New();
+  this->Distractor1.SliderAnchor->SetElement(0,3,-46.0);
+  this->Distractor1.SliderAnchor->SetElement(1,3,0.0);
+  this->Distractor1.SliderAnchor->SetElement(2,3,-29.3);
+
+  this->Distractor1.CylinderAnchor = vtkMatrix4x4::New();
+  this->Distractor1.CylinderAnchor->SetElement(0,3,-46.0);
+  this->Distractor1.CylinderAnchor->SetElement(1,3,0.0);
+  this->Distractor1.CylinderAnchor->SetElement(2,3,-29.3);
+
+
 }
 
 
@@ -49,6 +73,15 @@ vtkDistractorModelingLogic::~vtkDistractorModelingLogic()
   if (this->DataCallbackCommand)
     {
     this->DataCallbackCommand->Delete();
+    }
+
+
+  if(&this->Distractor1)
+    {
+    this->Distractor1.RotationCenter->Delete();
+    this->Distractor1.RailAnchor->Delete();
+    this->Distractor1.SliderAnchor->Delete();
+    this->Distractor1.CylinderAnchor->Delete();
     }
 
 }
@@ -89,7 +122,16 @@ void vtkDistractorModelingLogic::MoveSlider(vtkMRMLModelNode* Slider, vtkMRMLMod
   Slider->GetPolyData()->GetCenter(SliderCenter);
 
   vtkTransform* SliderTranslation = vtkTransform::New();
-  SliderTranslation->Translate(SliderCenter[0]+47.70,SliderCenter[1],SliderCenter[2]-15);
+
+  SliderTranslation->Translate(SliderCenter[0] + this->Distractor1.RotationCenter->GetElement(0,3),
+                               SliderCenter[1] + this->Distractor1.RotationCenter->GetElement(1,3),
+                               SliderCenter[2] + this->Distractor1.RotationCenter->GetElement(2,3));
+/*
+  SliderTranslation->Translate(this->Distractor1.SliderAnchor->GetElement(0,3) + this->Distractor1.RotationCenter->GetElement(0,3),
+  this->Distractor1.SliderAnchor->GetElement(1,3) + this->Distractor1.RotationCenter->GetElement(1,3),
+  this->Distractor1.SliderAnchor->GetElement(2,3) + this->Distractor1.RotationCenter->GetElement(2,3));
+*/
+
 
   vtkTransform* SliderRotation = vtkTransform::New();
   SliderRotation->RotateY(value);
@@ -98,7 +140,18 @@ void vtkDistractorModelingLogic::MoveSlider(vtkMRMLModelNode* Slider, vtkMRMLMod
   SliderTransformationMatrix->Identity();
 
   vtkTransform* SliderInvertTranslation = vtkTransform::New();
-  SliderInvertTranslation->Translate(-SliderCenter[0]-47.70, -SliderCenter[1], -SliderCenter[2]+15); // 5cm curvature, z = 15, so (x = sqrt(r^2 - z^2) with r in mm => x = -47.70)
+
+  SliderInvertTranslation->Translate(-SliderCenter[0] - this->Distractor1.RotationCenter->GetElement(0,3),
+                                     -SliderCenter[1] - this->Distractor1.RotationCenter->GetElement(1,3),
+                                     -SliderCenter[2] - this->Distractor1.RotationCenter->GetElement(2,3));
+
+
+/*
+  SliderInvertTranslation->Translate(-this->Distractor1.SliderAnchor->GetElement(0,3) - this->Distractor1.RotationCenter->GetElement(0,3),
+  -this->Distractor1.SliderAnchor->GetElement(1,3) - this->Distractor1.RotationCenter->GetElement(1,3),
+  -this->Distractor1.SliderAnchor->GetElement(2,3) - this->Distractor1.RotationCenter->GetElement(2,3));
+*/
+
   SliderInvertTranslation->PostMultiply();
   SliderInvertTranslation->Concatenate(SliderRotation);
   SliderInvertTranslation->PostMultiply();
@@ -118,8 +171,8 @@ void vtkDistractorModelingLogic::MoveSlider(vtkMRMLModelNode* Slider, vtkMRMLMod
 
   double PistonCenter[3] = {-42.7,0,-21};
 
-  double newSliderCenterX = SliderTransformationMatrix->GetElement(0,0)*SliderCenter[0]+SliderTransformationMatrix->GetElement(0,1)*SliderCenter[1]+SliderTransformationMatrix->GetElement(0,2)*SliderCenter[2]+SliderTransformationMatrix->GetElement(0,3)*1;
-  double newSliderCenterY = SliderTransformationMatrix->GetElement(2,0)*SliderCenter[0]+SliderTransformationMatrix->GetElement(2,1)*SliderCenter[1]+SliderTransformationMatrix->GetElement(2,2)*SliderCenter[2]+SliderTransformationMatrix->GetElement(2,3)*1;
+  double newSliderCenterX = SliderTransformationMatrix->GetElement(0,0)*this->Distractor1.SliderAnchor->GetElement(0,3)+SliderTransformationMatrix->GetElement(0,1)*this->Distractor1.SliderAnchor->GetElement(1,3)+SliderTransformationMatrix->GetElement(0,2)*this->Distractor1.SliderAnchor->GetElement(2,3)+SliderTransformationMatrix->GetElement(0,3)*1;
+  double newSliderCenterY = SliderTransformationMatrix->GetElement(2,0)*this->Distractor1.SliderAnchor->GetElement(0,3)+SliderTransformationMatrix->GetElement(2,1)*this->Distractor1.SliderAnchor->GetElement(1,3)+SliderTransformationMatrix->GetElement(2,2)*this->Distractor1.SliderAnchor->GetElement(2,3)+SliderTransformationMatrix->GetElement(2,3)*1;
 
   vtkTransform* PistonTranslation = vtkTransform::New();
   PistonTranslation->Translate(PistonCenter[0],PistonCenter[1],PistonCenter[2]);
@@ -128,7 +181,7 @@ void vtkDistractorModelingLogic::MoveSlider(vtkMRMLModelNode* Slider, vtkMRMLMod
   double dy = -newSliderCenterY+PistonCenter[2];
 
   double PistonRotationAngle_rad = atan2(dx,dy);
-  double PistonRotationAngle_deg = PistonRotationAngle_rad*180/M_PI;
+  double PistonRotationAngle_deg = (PistonRotationAngle_rad*180/M_PI);
   vtkTransform* PistonRotation = vtkTransform::New();
   PistonRotation->RotateY(PistonRotationAngle_deg);
 
@@ -158,8 +211,15 @@ void vtkDistractorModelingLogic::MoveSlider(vtkMRMLModelNode* Slider, vtkMRMLMod
   double CylinderCenter[3];
   Cylinder->GetPolyData()->GetCenter(CylinderCenter);
 
+  double tx = newSliderCenterX - this->Distractor1.CylinderAnchor->GetElement(0,3);
+  double ty = -this->Distractor1.CylinderAnchor->GetElement(1,3);
+  double tz = newSliderCenterY - this->Distractor1.CylinderAnchor->GetElement(2,3);
+
+  vtkTransform* CylinderAnchorTranslation = vtkTransform::New();
+  CylinderAnchorTranslation->Translate(newSliderCenterX,0.0,newSliderCenterY);
+
   vtkTransform* CylinderTranslation = vtkTransform::New();
-  CylinderTranslation->Translate(newSliderCenterX,0.5,newSliderCenterY);
+  CylinderTranslation->Translate(-newSliderCenterX,0.0,-newSliderCenterY);
 
   vtkTransform* CylinderRotation = vtkTransform::New();
   CylinderRotation->RotateY(PistonRotationAngle_deg);
@@ -168,11 +228,13 @@ void vtkDistractorModelingLogic::MoveSlider(vtkMRMLModelNode* Slider, vtkMRMLMod
   CylinderTransformationMatrix->Identity();
 
   vtkTransform* CylinderInvertTranslation = vtkTransform::New();
-  CylinderInvertTranslation->Translate(-newSliderCenterX,-0.5,-newSliderCenterY);
+  CylinderInvertTranslation->Translate(tx,ty,tz);
+  CylinderInvertTranslation->PreMultiply();
+  CylinderInvertTranslation->Concatenate(CylinderTranslation);
   CylinderInvertTranslation->PostMultiply();
   CylinderInvertTranslation->Concatenate(CylinderRotation);
   CylinderInvertTranslation->PostMultiply();
-  CylinderInvertTranslation->Concatenate(CylinderTranslation);
+  CylinderInvertTranslation->Concatenate(CylinderAnchorTranslation);
   CylinderInvertTranslation->GetMatrix(CylinderTransformationMatrix);
 
   CylinderTransformationNode->SetAndObserveMatrixTransformToParent(CylinderTransformationMatrix);
@@ -185,6 +247,8 @@ void vtkDistractorModelingLogic::MoveSlider(vtkMRMLModelNode* Slider, vtkMRMLMod
 
 
 
+  //--------------------
+  // Delete
 
   SliderTranslation->Delete();
   SliderRotation->Delete();
@@ -200,6 +264,7 @@ void vtkDistractorModelingLogic::MoveSlider(vtkMRMLModelNode* Slider, vtkMRMLMod
   CylinderRotation->Delete();
   CylinderInvertTranslation->Delete();
   CylinderTransformationMatrix->Delete();
+  CylinderAnchorTranslation->Delete();
 }
 
 

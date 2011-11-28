@@ -139,20 +139,6 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingGUI : public vtkSlicerM
 
   vtkKWScale* MovingScale;
 
-  //BTX
-
-  // Distractor Info Structure
-  typedef struct{
-    vtkMatrix4x4* RotationCenter;
-    vtkMatrix4x4* RailAnchor;
-    vtkMatrix4x4* SliderAnchor;
-
-    // TODO: Add filename
-  }DistractorInfoStruct;
-
-  //ETX
-
-  DistractorInfoStruct Distractor1;
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------

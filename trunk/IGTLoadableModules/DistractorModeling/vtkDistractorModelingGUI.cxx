@@ -74,26 +74,6 @@ vtkDistractorModelingGUI::vtkDistractorModelingGUI ( )
 
   this->MovingScale         = NULL;
 
-  // Initialize Distractor values here
-  // TODO: Move to Distractor selection when will be available
-
-  this->Distractor1.RotationCenter = vtkMatrix4x4::New();
-  this->Distractor1.RotationCenter->SetElement(0,3,0);
-  this->Distractor1.RotationCenter->SetElement(1,3,40);
-  this->Distractor1.RotationCenter->SetElement(2,3,0);
-
-  this->Distractor1.RailAnchor = vtkMatrix4x4::New();
-  this->Distractor1.RailAnchor->SetElement(0,3,43);
-  this->Distractor1.RailAnchor->SetElement(1,3,40);
-  this->Distractor1.RailAnchor->SetElement(2,3,0);
-
-  this->Distractor1.SliderAnchor = vtkMatrix4x4::New();
-  this->Distractor1.SliderAnchor->SetElement(0,3,43);
-  this->Distractor1.SliderAnchor->SetElement(1,3,40);
-  this->Distractor1.SliderAnchor->SetElement(2,3,0);
-
-
-
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -172,13 +152,6 @@ vtkDistractorModelingGUI::~vtkDistractorModelingGUI ( )
     this->CylinderTransformNode->Delete();
     }
 
-
-  if(&this->Distractor1)
-    {
-    this->Distractor1.RotationCenter->Delete();
-    this->Distractor1.RailAnchor->Delete();
-    this->Distractor1.SliderAnchor->Delete();
-    }
 
   //----------------------------------------------------------------
   // Unregister Logic class
