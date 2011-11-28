@@ -40,7 +40,20 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
     //LocatorUpdateEvent      = 50000,
     StatusUpdateEvent       = 50001,
   };
+
+  // Distractor Info Structure
+  typedef struct{
+    vtkMatrix4x4* RotationCenter;
+    vtkMatrix4x4* RailAnchor;
+    vtkMatrix4x4* SliderAnchor;
+    vtkMatrix4x4* CylinderAnchor;
+
+    // TODO: Add filename
+  }DistractorInfoStruct;
+
   //ETX
+
+  DistractorInfoStruct Distractor1;
 
  public:
   
