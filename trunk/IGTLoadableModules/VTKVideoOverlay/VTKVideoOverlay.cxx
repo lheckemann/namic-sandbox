@@ -35,6 +35,10 @@
 
 
 // OpenCV stuff
+#include "opencv2/core/core.hpp"
+#include "opencv2/imgproc/types_c.h"
+
+#include "opencv2/calib3d/calib3d.hpp"
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -67,6 +71,18 @@ std::vector< cv::Point2f >  RVector;
 
 char*         OpticalFlowStatus;
 
+// Camera parameter
+int     fUseCameraMatrix;
+cv::Mat cameraMatrix, distCoeffs;
+cv::Size calibratedImageSize;
+cv::Mat map1, map2;
+
+cv::Mat newCameraMatrix;
+std::vector< cv::Mat > map1_array;
+std::vector< cv::Mat > map2_array;
+
+
+
 //----------------------------------------------------------------
 // Timer
 //----------------------------------------------------------------
@@ -95,6 +111,75 @@ int           BufferIndex;
 int           FileIndex;
 
 vtkRenderWindow * renWin;
+
+
+
+void initUndistort(int rows, int cols, cv::InputArray _cameraMatrix,
+                   cv::InputArray _distCoeffs,
+                   std::vector< cv::Mat >& _map1_array,
+                   std::vector< cv::Mat >& _map2_array )
+{
+  cv::Mat cameraMatrix = _cameraMatrix.getMat();
+  cv::Mat distCoeffs = _distCoeffs.getMat();
+  
+  int stripe_size0 = std::min(std::max(1, (1 << 12) / std::max(cols, 1)), rows);
+  cv::Mat map1(stripe_size0, cols, CV_16SC2), map2(stripe_size0, cols, CV_16UC1);
+  
+  cv::Mat_<double> A, Ar, I = cv::Mat_<double>::eye(3,3);
+  
+  cameraMatrix.convertTo(A, CV_64F);
+  if( distCoeffs.data )
+    distCoeffs = cv::Mat_<double>(distCoeffs);
+  else
+    {
+    distCoeffs.create(5, 1, CV_64F);
+    distCoeffs = 0.;
+    }
+  
+  A.copyTo(Ar);
+  
+  double v0 = Ar(1, 2);
+
+  _map1_array.resize(rows);
+  _map2_array.resize(rows);
+  
+  for( int y = 0; y < rows; y += stripe_size0 )
+    {
+    int stripe_size = std::min( stripe_size0, rows - y );
+    Ar(1, 2) = v0 - y;
+    (map1.rowRange(0, stripe_size)).copyTo(_map1_array[y]);
+    (map2.rowRange(0, stripe_size)).copyTo(_map2_array[y]);
+    
+    cv::initUndistortRectifyMap( A, distCoeffs, I, Ar, cv::Size(cols, stripe_size),
+                                 _map1_array[y].type(), _map1_array[y], _map2_array[y] );
+
+    }
+}
+
+void fastUndistort( cv::InputArray _src, cv::OutputArray _dst,
+                    std::vector< cv::Mat >& _map1_array,
+                    std::vector< cv::Mat >& _map2_array,
+                    int rows, int cols)
+{
+  cv::Mat src = _src.getMat();
+  _dst.create( src.size(), src.type() );
+  cv::Mat dst = _dst.getMat();
+
+  cv::Mat_<double> Ar = cv::Mat_<double>::eye(3,3);
+
+  int stripe_size0 = std::min(std::max(1, (1 << 12) / std::max(cols, 1)), rows);
+
+  for( int y = 0; y < rows; y += stripe_size0 )
+    {
+    int stripe_size = std::min( stripe_size0, rows - y );
+    cv::Mat dst_part = dst.rowRange(y, y + stripe_size);
+    remap( src, dst_part, _map1_array[y], _map2_array[y], cv::INTER_LINEAR, cv::BORDER_CONSTANT );
+    }
+}
+
+
+
+
 
 //----------------------------------------------------------------------------
 int ViewerBackgroundOn(vtkRenderWindow* rwindow, vtkImageData* imageData)
@@ -273,12 +358,22 @@ int CameraHandler()
     //cvFlip(captureImageTmp, captureImage, 0);
     //captureImageTmp.copyTo(captureImage);
     cv::flip(captureImageTmp, captureImage, 0);
-    cv::cvtColor(captureImage, GrayImage, CV_BGR2GRAY); 
-    
-    //cvUndistort2( captureImage, undistortionImage, pGUI->intrinsicMatrix, pGUI->distortionCoefficient );            
-    //cvCvtColor( undistortionImage, RGBImage, CV_BGR2RGB);       //comment not to undistort      at 10. 01. 07 - smkim
-    cv::cvtColor( captureImage, RGBImage, CV_BGR2RGB);
-    
+
+    if (fUseCameraMatrix)
+      {
+      //cv::undistort( captureImage, undistortionImage, cameraMatrix, distCoeffs);
+      fastUndistort( captureImage, undistortionImage, map1_array, map2_array,
+                     calibratedImageSize.height, calibratedImageSize.width );
+
+      cv::cvtColor( undistortionImage, RGBImage, CV_BGR2RGB);
+      cv::cvtColor( undistortionImage, GrayImage, CV_BGR2GRAY); 
+      }
+    else
+      {
+      cv::cvtColor( captureImage, RGBImage, CV_BGR2RGB);
+      cv::cvtColor( captureImage, GrayImage, CV_BGR2GRAY); 
+      }
+      
     if (OpticalFlowTrackingFlag)
       {
       int win_size = 10;
@@ -422,6 +517,8 @@ int main(int argc, char * argv[])
   const char * videoFile = NULL;
   int channel = 0;
 
+  fUseCameraMatrix = 0;
+
   //--------------------------------------------------
   // Parse arguments
   for (int i = 1; i < argc; i ++)
@@ -450,16 +547,15 @@ int main(int argc, char * argv[])
       i ++;
       channel = atoi(argv[i]);
       }
-    else if (strcmp(argv[i], "-h") == 0 && i+1 < argc)
+    else if (strcmp(argv[i], "-h") == 0)
       {
       printHelp(argv[0]);
+      exit(0);
       }
     }
 
   //--------------------------------------------------
   // Set up OpenCV
-  cv::Mat cameraMatrix, distCoeffs;
-  cv::Size calibratedImageSize;
   if (calibrationFile)
     {
     cv::FileStorage fs(calibrationFile, cv::FileStorage::READ);
@@ -472,9 +568,21 @@ int main(int argc, char * argv[])
       distCoeffs = cv::Mat_<double>(distCoeffs);
     if( cameraMatrix.type() != CV_64F )
       cameraMatrix = cv::Mat_<double>(cameraMatrix);
+
+    //print out the result
+    std::cerr << "Imported camera calibration information:" << std::endl;
+    std::cerr << "Image size: " << calibratedImageSize.width << ", " << calibratedImageSize.height << std::endl;
+    std::cerr << "Camera matrix: " << std::endl;
+    std::cerr << cameraMatrix << std::endl;
+    std::cerr << "Distance coefficients: " << std::endl;
+    std::cerr << distCoeffs << std::endl;
+
+    // Create undistort rectify map
+    initUndistort(calibratedImageSize.height, calibratedImageSize.width, 
+                  cameraMatrix, distCoeffs, map1_array, map2_array);
+
+    fUseCameraMatrix = 1;
     }
-
-
 
   if (videoFile)
     {
@@ -575,6 +683,7 @@ int main(int argc, char * argv[])
   vtkCamera *camera = vtkCamera::New();
   camera->SetPosition(1,1,1);
   camera->SetFocalPoint(0,0,0);
+  camera->SetClippingRange(0.04, 0.1);
 
   vtkRenderer *renderer = vtkRenderer::New();
   renderer->AddActor(cubeActor);
