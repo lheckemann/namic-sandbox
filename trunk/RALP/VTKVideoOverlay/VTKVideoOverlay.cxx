@@ -33,6 +33,7 @@
 
 #include <vtkSmartPointer.h>
 
+#include "vtkOpenCVRenderer.h"
 
 // OpenCV stuff
 #include "opencv2/core/core.hpp"
@@ -48,6 +49,7 @@ using namespace std;
 //----------------------------------------------------------------
 // Video import
 //----------------------------------------------------------------
+
 //CvCapture* capture;
 cv::VideoCapture capture;
 cv::Size         imageSize;
@@ -178,12 +180,10 @@ void fastUndistort( cv::InputArray _src, cv::OutputArray _dst,
 }
 
 
-
-
-
 //----------------------------------------------------------------------------
 int ViewerBackgroundOn(vtkRenderWindow* rwindow, vtkImageData* imageData)
 {
+
   if (rwindow)
     {
     BackgroundRenderer = vtkRenderer::New();
@@ -219,6 +219,7 @@ int ViewerBackgroundOn(vtkRenderWindow* rwindow, vtkImageData* imageData)
     return 1;
     }
   return 0;
+
 }
 
 
@@ -293,6 +294,7 @@ int ProcessMotion(std::vector<cv::Point2f>& vector)
 
   return 1;
 }
+
 
 //----------------------------------------------------------------------------
 // Camera thread / Originally created by A. Yamada
@@ -593,24 +595,6 @@ int main(int argc, char * argv[])
     capture.open( channel );
     }
 
-
-  if (argc > 1) // video file is specified
-    {
-    const char * path = argv[1];
-    //capture = cvCaptureFromAVI( path );
-
-    }
-  else if (argc == 1)
-    {
-    int channel = 0;
-    //capture = cvCaptureFromCAM(channel);
-    capture.open(channel);
-    }
-  else 
-    {
-    return 0;
-    }
-
   if( !capture.isOpened() )
     {
       cout << "Could not initialize capturing...\n";
@@ -620,9 +604,9 @@ int main(int argc, char * argv[])
   CameraActiveFlag = 1;
 
   cv::Size   newImageSize;
-
   cv::Mat frame;
   capture >> frame;
+
   if( frame.empty() )
     {
     fprintf(stdout, "\n\nCouldn't take a picture\n\n");
