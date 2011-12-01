@@ -50,14 +50,7 @@ using namespace std;
 // Video import
 //----------------------------------------------------------------
 
-//CvCapture* capture;
-cv::VideoCapture capture;
-cv::Size         imageSize;
-cv::Mat          captureImage;
-cv::Mat          RGBImage;
-cv::Mat          undistortionImage;
-
-vtkImageData*    VideoImageData;
+vtkOpenCVRenderer * CVRenderer;
 
 // Optical tracking
 int           OpticalFlowTrackingFlag;
@@ -72,17 +65,6 @@ std::vector< cv::Point2f >  GridPoints[2];// = {0,0};
 std::vector< cv::Point2f >  RVector;
 
 char*         OpticalFlowStatus;
-
-// Camera parameter
-int     fUseCameraMatrix;
-cv::Mat cameraMatrix, distCoeffs;
-cv::Size calibratedImageSize;
-cv::Mat map1, map2;
-
-cv::Mat newCameraMatrix;
-std::vector< cv::Mat > map1_array;
-std::vector< cv::Mat > map2_array;
-
 
 
 //----------------------------------------------------------------
@@ -114,121 +96,6 @@ int           FileIndex;
 
 vtkRenderWindow * renWin;
 
-
-
-void initUndistort(int rows, int cols, cv::InputArray _cameraMatrix,
-                   cv::InputArray _distCoeffs,
-                   std::vector< cv::Mat >& _map1_array,
-                   std::vector< cv::Mat >& _map2_array )
-{
-  cv::Mat cameraMatrix = _cameraMatrix.getMat();
-  cv::Mat distCoeffs = _distCoeffs.getMat();
-  
-  int stripe_size0 = std::min(std::max(1, (1 << 12) / std::max(cols, 1)), rows);
-  cv::Mat map1(stripe_size0, cols, CV_16SC2), map2(stripe_size0, cols, CV_16UC1);
-  
-  cv::Mat_<double> A, Ar, I = cv::Mat_<double>::eye(3,3);
-  
-  cameraMatrix.convertTo(A, CV_64F);
-  if( distCoeffs.data )
-    distCoeffs = cv::Mat_<double>(distCoeffs);
-  else
-    {
-    distCoeffs.create(5, 1, CV_64F);
-    distCoeffs = 0.;
-    }
-  
-  A.copyTo(Ar);
-  
-  double v0 = Ar(1, 2);
-
-  _map1_array.resize(rows);
-  _map2_array.resize(rows);
-  
-  for( int y = 0; y < rows; y += stripe_size0 )
-    {
-    int stripe_size = std::min( stripe_size0, rows - y );
-    Ar(1, 2) = v0 - y;
-    (map1.rowRange(0, stripe_size)).copyTo(_map1_array[y]);
-    (map2.rowRange(0, stripe_size)).copyTo(_map2_array[y]);
-    
-    cv::initUndistortRectifyMap( A, distCoeffs, I, Ar, cv::Size(cols, stripe_size),
-                                 _map1_array[y].type(), _map1_array[y], _map2_array[y] );
-
-    }
-}
-
-void fastUndistort( cv::InputArray _src, cv::OutputArray _dst,
-                    std::vector< cv::Mat >& _map1_array,
-                    std::vector< cv::Mat >& _map2_array,
-                    int rows, int cols)
-{
-  cv::Mat src = _src.getMat();
-  _dst.create( src.size(), src.type() );
-  cv::Mat dst = _dst.getMat();
-
-  cv::Mat_<double> Ar = cv::Mat_<double>::eye(3,3);
-
-  int stripe_size0 = std::min(std::max(1, (1 << 12) / std::max(cols, 1)), rows);
-
-  for( int y = 0; y < rows; y += stripe_size0 )
-    {
-    int stripe_size = std::min( stripe_size0, rows - y );
-    cv::Mat dst_part = dst.rowRange(y, y + stripe_size);
-    remap( src, dst_part, _map1_array[y], _map2_array[y], cv::INTER_LINEAR, cv::BORDER_CONSTANT );
-    }
-}
-
-
-//----------------------------------------------------------------------------
-int ViewerBackgroundOn(vtkRenderWindow* rwindow, vtkImageData* imageData)
-{
-
-  if (rwindow)
-    {
-    BackgroundRenderer = vtkRenderer::New();
-    BackgroundActor = vtkImageActor::New();
-    BackgroundActor->SetInput(imageData);
-    BackgroundRenderer->AddActor(BackgroundActor);
-    BackgroundRenderer->InteractiveOff();
-    BackgroundRenderer->SetLayer(0);
-    BackgroundActor->Modified();
-    rwindow->AddRenderer(BackgroundRenderer);
-    
-    // Adjust camera position so that image covers the draw area.
-    double origin[3];
-    double spacing[3];
-    int extent[6];
-    VideoImageData->GetOrigin( origin );
-    VideoImageData->GetSpacing( spacing );
-    VideoImageData->GetExtent( extent );
-
-    vtkCamera* camera = BackgroundRenderer->GetActiveCamera();
-    camera->ParallelProjectionOn();
-    double xc = origin[0] + 0.5*(extent[0] + extent[1])*spacing[0];
-    double yc = origin[1] + 0.5*(extent[2] + extent[3])*spacing[1];
-    double yd = (extent[3] - extent[2] + 1)*spacing[1];
-    double d = camera->GetDistance();
-    camera->SetParallelScale(0.5*yd);
-    camera->SetFocalPoint(xc,yc,0.0);
-    camera->SetPosition(xc,yc,d);
- 
-    // Render again to set the correct view
-    rwindow->Render();
-
-    return 1;
-    }
-  return 0;
-
-}
-
-
-//----------------------------------------------------------------------------
-int ViewerBackgroundOff(vtkRenderWindow* rwindow)
-{
-  return 0;
-
-}  
 
 #define BUFFER_SIZE 300
 
@@ -300,147 +167,93 @@ int ProcessMotion(std::vector<cv::Point2f>& vector)
 // Camera thread / Originally created by A. Yamada
 int CameraHandler()
 {
-  //IplImage* captureImageTmp = NULL;
-  cv::Mat captureImageTmp;
-  //CvSize   newImageSize;
-  cv::Size newImageSize;
+  CVRenderer->Capture();
 
-  if (capture.isOpened())
-    {
-    capture >> captureImageTmp;
-    if (captureImageTmp.empty())
-      {
-      fprintf(stdout, "\n\nCouldn't take a picture\n\n");
-      return 0;
-      }
-
-    // 5/6/2010 ayamada creating RGB image and capture image
-    newImageSize = captureImageTmp.size();
-
-    // check if the image size is changed
-    if (newImageSize.width != imageSize.width||
-        newImageSize.height != imageSize.height)
-      {
-      imageSize.width  = newImageSize.width;
-      imageSize.height = newImageSize.height;
-
-      // The following code may not be necessary
-      VideoImageData->SetDimensions(newImageSize.width, newImageSize.height, 1);
-      VideoImageData->SetExtent(0, newImageSize.width-1, 0, newImageSize.height-1, 0, 0 );
-      VideoImageData->SetNumberOfScalarComponents(3);
-      VideoImageData->SetScalarTypeToUnsignedChar();
-      VideoImageData->AllocateScalars();
-      VideoImageData->Update();
-
-      //vtkSlicerViewerWidget* vwidget = GetApplicationGUI()->GetNthViewerWidget(0);
-      BackgroundActor->SetInput(VideoImageData);
-      //ViewerBackgroundOff(renWin);
-      //ViewerBackgroundOn(renWin, VideoImageData);
-
-      double gridSpaceX = (double)newImageSize.width  / (double)(NGRID_X+1);
-      double gridSpaceY = (double)newImageSize.height / (double)(NGRID_Y+1);
-
-      GridPoints[0].resize(NGRID_X*NGRID_Y);
-      GridPoints[1].resize(NGRID_X*NGRID_Y);
-      RVector.resize(NGRID_X*NGRID_Y);
-
-      for (int i = 0; i < NGRID_X; i ++)
-        {
-        for (int j = 0; j < NGRID_Y; j ++)
-          {
-          GridPoints[0][i+j*NGRID_X].x = gridSpaceX*i + gridSpaceX;
-          GridPoints[0][i+j*NGRID_Y].y = gridSpaceY*j + gridSpaceY;
-          }
-        }
-
-      OpticalFlowStatus = (char*)cvAlloc(NGRID_X*NGRID_Y);
-      }
-    
-    // create rgb image
-    //cvFlip(captureImageTmp, captureImage, 0);
-    //captureImageTmp.copyTo(captureImage);
-    cv::flip(captureImageTmp, captureImage, 0);
-
-    if (fUseCameraMatrix)
-      {
-      //cv::undistort( captureImage, undistortionImage, cameraMatrix, distCoeffs);
-      fastUndistort( captureImage, undistortionImage, map1_array, map2_array,
-                     calibratedImageSize.height, calibratedImageSize.width );
-
-      cv::cvtColor( undistortionImage, RGBImage, CV_BGR2RGB);
-      cv::cvtColor( undistortionImage, GrayImage, CV_BGR2GRAY); 
-      }
-    else
-      {
-      cv::cvtColor( captureImage, RGBImage, CV_BGR2RGB);
-      cv::cvtColor( captureImage, GrayImage, CV_BGR2GRAY); 
-      }
-      
-    if (OpticalFlowTrackingFlag)
-      {
-      int win_size = 10;
-      int count = NGRID_X*NGRID_Y;
-      vector<uchar> status;
-      vector<float> err;
-      cv::Size subPixWinSize(10,10);
-      cv::Size winSize(31,31);
-
-      if (PrevGrayImage.empty())
-        {
-        GrayImage.copyTo(PrevGrayImage);
-        }
-
-      cv::calcOpticalFlowPyrLK( PrevGrayImage, GrayImage, GridPoints[0], GridPoints[1],
-                                status, err, winSize, 3, cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03));
-
-      double dx = 0.0;
-      double dy = 0.0;
-
-      for(int i =  0; i < GridPoints[1].size(); i++ )
-        {
-        if( !status[i] )
-          {
-          GridPoints[1][i].x = GridPoints[0][i].x;
-          GridPoints[1][i].y = GridPoints[0][i].y;
-          }
-        dx = GridPoints[1][i].x - GridPoints[0][i].x;
-        dy = GridPoints[1][i].y - GridPoints[0][i].y;
-        
-        if (sqrt(dx*dx + dy*dy) > 50.0)
-          {
-          GridPoints[1][i].x = GridPoints[0][i].x;
-          GridPoints[1][i].y = GridPoints[0][i].y;
-          dx = 0.0;
-          dy = 0.0;
-          }
-        
-        RVector[i].x = dx;
-        RVector[i].y = dy;
-        cv::circle(RGBImage, GridPoints[0][i], 3, CV_RGB(0,255,255), -1, 8,0);
-        cv::line(RGBImage, GridPoints[0][i], GridPoints[1][i], CV_RGB(0,255,0), 2);
-        }
-      
-      cv::swap(PrevGrayImage, GrayImage);
-      std::swap(Points[1], Points[0]);
-
-      ProcessMotion(RVector);
-      }
-    
-    unsigned char* idata;    
-    // 5/6/2010 ayamada ok for videoOverlay
-    idata = (unsigned char*) RGBImage.ptr();
-    
-    int dsize = imageSize.width*imageSize.height*3;
-    memcpy((void*)VideoImageData->GetScalarPointer(), (void*)idata, dsize);
-
-    if (VideoImageData && BackgroundRenderer)
-      {
-      VideoImageData->Modified();
-      BackgroundRenderer->GetRenderWindow()->Render();
-      }
-
-    }
+  unsigned int width, height;
+  CVRenderer->GetImageSize(width, height);
+  double gridSpaceX = (double)width  / (double)(NGRID_X+1);
+  double gridSpaceY = (double)height / (double)(NGRID_Y+1);
   
+  GridPoints[0].resize(NGRID_X*NGRID_Y);
+  GridPoints[1].resize(NGRID_X*NGRID_Y);
+  RVector.resize(NGRID_X*NGRID_Y);
+  
+  for (int i = 0; i < NGRID_X; i ++)
+    {
+    for (int j = 0; j < NGRID_Y; j ++)
+      {
+      GridPoints[0][i+j*NGRID_X].x = gridSpaceX*i + gridSpaceX;
+      GridPoints[0][i+j*NGRID_Y].y = gridSpaceY*j + gridSpaceY;
+      }
+    }
+
+  OpticalFlowStatus = (char*)cvAlloc(NGRID_X*NGRID_Y);
+    
+  /*
+  if (OpticalFlowTrackingFlag)
+    {
+    int win_size = 10;
+    int count = NGRID_X*NGRID_Y;
+    vector<uchar> status;
+    vector<float> err;
+    cv::Size subPixWinSize(10,10);
+    cv::Size winSize(31,31);
+    
+    if (PrevGrayImage.empty())
+      {
+      GrayImage.copyTo(PrevGrayImage);
+      }
+    
+    cv::calcOpticalFlowPyrLK( PrevGrayImage, GrayImage, GridPoints[0], GridPoints[1],
+                              status, err, winSize, 3, cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03));
+
+    double dx = 0.0;
+    double dy = 0.0;
+    
+    for(int i =  0; i < GridPoints[1].size(); i++ )
+      {
+      if( !status[i] )
+        {
+        GridPoints[1][i].x = GridPoints[0][i].x;
+        GridPoints[1][i].y = GridPoints[0][i].y;
+        }
+      dx = GridPoints[1][i].x - GridPoints[0][i].x;
+      dy = GridPoints[1][i].y - GridPoints[0][i].y;
+      
+      if (sqrt(dx*dx + dy*dy) > 50.0)
+        {
+        GridPoints[1][i].x = GridPoints[0][i].x;
+        GridPoints[1][i].y = GridPoints[0][i].y;
+        dx = 0.0;
+        dy = 0.0;
+        }
+      
+      RVector[i].x = dx;
+      RVector[i].y = dy;
+      cv::circle(RGBImage, GridPoints[0][i], 3, CV_RGB(0,255,255), -1, 8,0);
+      cv::line(RGBImage, GridPoints[0][i], GridPoints[1][i], CV_RGB(0,255,0), 2);
+      }
+    
+    cv::swap(PrevGrayImage, GrayImage);
+    std::swap(Points[1], Points[0]);
+    
+    ProcessMotion(RVector);
+    }
+    
+  unsigned char* idata;    
+  // 5/6/2010 ayamada ok for videoOverlay
+  idata = (unsigned char*) RGBImage.ptr();
+  
+  int dsize = imageSize.width*imageSize.height*3;
+  memcpy((void*)VideoImageData->GetScalarPointer(), (void*)idata, dsize);
+  
+  if (VideoImageData && BackgroundRenderer)
+    {
+    VideoImageData->Modified();
+    BackgroundRenderer->GetRenderWindow()->Render();
+    }
+  */
+
   return 1;
   
 }
@@ -514,12 +327,12 @@ int printHelp(const char* name)
 int main(int argc, char * argv[])
 {
   
+  cv::VideoCapture capture;
+
   const char * calibrationFile = NULL;
   const char * flowDataFile = NULL;
   const char * videoFile = NULL;
   int channel = 0;
-
-  fUseCameraMatrix = 0;
 
   //--------------------------------------------------
   // Parse arguments
@@ -558,34 +371,6 @@ int main(int argc, char * argv[])
 
   //--------------------------------------------------
   // Set up OpenCV
-  if (calibrationFile)
-    {
-    cv::FileStorage fs(calibrationFile, cv::FileStorage::READ);
-    fs["image_width"] >> calibratedImageSize.width;
-    fs["image_height"] >> calibratedImageSize.height;
-    fs["distortion_coefficients"] >> distCoeffs;
-    fs["camera_matrix"] >> cameraMatrix;
-    
-    if( distCoeffs.type() != CV_64F )
-      distCoeffs = cv::Mat_<double>(distCoeffs);
-    if( cameraMatrix.type() != CV_64F )
-      cameraMatrix = cv::Mat_<double>(cameraMatrix);
-
-    //print out the result
-    std::cerr << "Imported camera calibration information:" << std::endl;
-    std::cerr << "Image size: " << calibratedImageSize.width << ", " << calibratedImageSize.height << std::endl;
-    std::cerr << "Camera matrix: " << std::endl;
-    std::cerr << cameraMatrix << std::endl;
-    std::cerr << "Distance coefficients: " << std::endl;
-    std::cerr << distCoeffs << std::endl;
-
-    // Create undistort rectify map
-    initUndistort(calibratedImageSize.height, calibratedImageSize.width, 
-                  cameraMatrix, distCoeffs, map1_array, map2_array);
-
-    fUseCameraMatrix = 1;
-    }
-
   if (videoFile)
     {
     capture.open( videoFile );
@@ -597,33 +382,22 @@ int main(int argc, char * argv[])
 
   if( !capture.isOpened() )
     {
-      cout << "Could not initialize capturing...\n";
-      return 0;
+    std::cerr << "Could not initialize capturing...\n" << std::endl;
+    exit(0);
     }
   
-  CameraActiveFlag = 1;
-
-  cv::Size   newImageSize;
-  cv::Mat frame;
-  capture >> frame;
-
-  if( frame.empty() )
+  CVRenderer = vtkOpenCVRenderer::New();
+  if (!CVRenderer->SetVideoCapture(&capture))
     {
-    fprintf(stdout, "\n\nCouldn't take a picture\n\n");
-    return 0;
+    std::cerr << "Couldn't set video capture...\n" << std::endl;
+    exit(0);
     }
 
-  newImageSize = frame.size();
-
-  VideoImageData = vtkImageData::New();
-  VideoImageData->SetDimensions(newImageSize.width, newImageSize.height, 1);
-  VideoImageData->SetExtent(0, newImageSize.width-1, 0, newImageSize.height-1, 0, 0 );
-  VideoImageData->SetSpacing(1.0, 1.0, 1.0);
-  VideoImageData->SetOrigin(0.0, 0.0, 0.0);
-  VideoImageData->SetNumberOfScalarComponents(3);
-  VideoImageData->SetScalarTypeToUnsignedChar();
-  VideoImageData->AllocateScalars();
-  VideoImageData->Update();
+  if (calibrationFile && !CVRenderer->ImportCameraCalibrationFile(calibrationFile))
+    {
+    std::cerr << "Couldn't import the camera calibration file...\n" << std::endl;
+    exit(0);
+    }
 
   //--------------------------------------------------
   // Set up motion vector field recorder
@@ -674,13 +448,16 @@ int main(int argc, char * argv[])
   renderer->SetActiveCamera(camera);
   renderer->ResetCamera();
   renderer->SetBackground(1,1,1);
-  
+
+  unsigned int width;
+  unsigned int height;
+  CVRenderer->GetImageSize(width, height);
+
   renWin = vtkRenderWindow::New();
-  renWin->SetSize(newImageSize.width, newImageSize.height);
-
+  renWin->SetSize(width, height);
   renWin->SetNumberOfLayers(2);
-  ViewerBackgroundOn(renWin, VideoImageData);
-
+  CVRenderer->SetLayer(1);
+  renWin->AddRenderer(CVRenderer);
   renderer->SetLayer(1);
   renWin->AddRenderer(renderer);
 
@@ -714,8 +491,7 @@ int main(int argc, char * argv[])
 
   //cvReleaseCapture(&capture);
   //vtkSlicerViewerWidget* vwidget = GetApplicationGUI()->GetNthViewerWidget(0);
-  ViewerBackgroundOff(renWin);
-
+  //ViewerBackgroundOff(renWin);
 
   //--------------------------------------------------
   // Clean up VTK
@@ -726,7 +502,8 @@ int main(int argc, char * argv[])
   renderer->Delete();
   renWin->Delete();
   iren->Delete();
-
   cb->Delete();
+  CVRenderer->Delete();
+  
   return 0;
 }

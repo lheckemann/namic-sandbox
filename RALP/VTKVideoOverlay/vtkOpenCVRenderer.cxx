@@ -31,6 +31,7 @@
 //----------------------------------------------------------------------------
 // Needed when we don't use the vtkStandardNewMacro.
 vtkInstantiatorNewMacro(vtkOpenCVRenderer);
+//vtkStandardNewMacro(vtkOpenCVRenderer);
 
 //----------------------------------------------------------------------------
 vtkOpenCVRenderer::vtkOpenCVRenderer()
@@ -38,6 +39,7 @@ vtkOpenCVRenderer::vtkOpenCVRenderer()
   this->Actor           = NULL;
   this->VideoImageData  = NULL;
   this->UseCameraMatrix = 0;
+  this->SetLayer(0);
 }
 
 
@@ -103,7 +105,7 @@ int vtkOpenCVRenderer::SetVideoCapture(cv::VideoCapture * capture)
   this->Actor->SetInput(this->VideoImageData);
   this->AddActor(this->Actor);
   this->InteractiveOff();
-  this->SetLayer(0);
+
   this->Actor->Modified();
 
   // Adjust camera position so that image covers the draw area.
@@ -246,6 +248,16 @@ int vtkOpenCVRenderer::ImportCameraCalibrationFile(const char * calibFile)
                 this->CameraMatrix, this->DistCoeffs, this->Map1Array, this->Map2Array);
   
   //this->UseCameraMatrix = 1;
+}
+
+
+//----------------------------------------------------------------------------
+void vtkOpenCVRenderer::GetImageSize(unsigned int& width, unsigned int& height)
+{
+
+  width  = this->ImageSize.width;
+  height = this->ImageSize.height;
+
 }
 
 
