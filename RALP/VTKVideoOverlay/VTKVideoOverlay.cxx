@@ -33,7 +33,7 @@
 
 #include <vtkSmartPointer.h>
 
-#include "vtkOpenCVImageActor.h"
+#include "vtkOpenCVRendererDelegate.h"
 
 // OpenCV stuff
 #include "opencv2/core/core.hpp"
@@ -50,7 +50,7 @@ using namespace std;
 // Video import
 //----------------------------------------------------------------
 
-vtkOpenCVImageActor * CVActor;
+vtkOpenCVRendererDelegate * CVRendererDelegate;
 
 // Optical tracking
 int           OpticalFlowTrackingFlag;
@@ -167,10 +167,10 @@ int ProcessMotion(std::vector<cv::Point2f>& vector)
 // Camera thread / Originally created by A. Yamada
 int CameraHandler()
 {
-  CVActor->Capture();
+  CVRendererDelegate->Capture();
 
   unsigned int width, height;
-  CVActor->GetImageSize(width, height);
+  CVRendererDelegate->GetImageSize(width, height);
   double gridSpaceX = (double)width  / (double)(NGRID_X+1);
   double gridSpaceY = (double)height / (double)(NGRID_Y+1);
   
@@ -386,14 +386,14 @@ int main(int argc, char * argv[])
     exit(0);
     }
   
-  CVActor = vtkOpenCVImageActor::New();
-  if (!CVActor->SetVideoCapture(&capture))
+  CVRendererDelegate = vtkOpenCVImageActor::New();
+  if (!CVRendererDelegate->SetVideoCapture(&capture))
     {
     std::cerr << "Couldn't set video capture...\n" << std::endl;
     exit(0);
     }
 
-  if (calibrationFile && !CVActor->ImportCameraCalibrationFile(calibrationFile))
+  if (calibrationFile && !CVRendererDelegate->ImportCameraCalibrationFile(calibrationFile))
     {
     std::cerr << "Couldn't import the camera calibration file...\n" << std::endl;
     exit(0);
@@ -452,19 +452,18 @@ int main(int argc, char * argv[])
 
   // Renderer for the background (OpenCV image)
   vtkRenderer *bgrenderer = vtkRenderer::New();
-  bgrenderer->AddActor(CVActor);
+  bgrenderer->SetDelegate(CVRendererDelegate);
   bgrenderer->InteractiveOff();
-  bgrenderer->SetLayer(0);
 
   // Create render window
   renWin = vtkRenderWindow::New();
   unsigned int width;
   unsigned int height;
-  CVActor->GetImageSize(width, height);
+  CVRendererDelegate->GetImageSize(width, height);
   renWin->SetSize(width, height);
 
   renWin->SetNumberOfLayers(2);
-  bgrenderer->SetLayer(1);
+  bgrenderer->SetLayer(0);
   renWin->AddRenderer(bgrenderer);
   fgrenderer->SetLayer(1);
   renWin->AddRenderer(fgrenderer);
@@ -509,7 +508,7 @@ int main(int argc, char * argv[])
   renWin->Delete();
   iren->Delete();
   cb->Delete();
-  CVActor->Delete();
+  CVRendererDelegate->Delete();
   fgrenderer->Delete();
   bgrenderer->Delete();
   

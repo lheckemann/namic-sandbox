@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:        OpenCV support for Visualization Toolkit
-  Module:         vtkOpenCVImageActor.h
+  Module:         vtkOpenCVRendererDelegate.h
   Contributor(s): Junichi Tokuda (tokuda@bwh.harvard.edu)
 
   Copyright (c) Brigham and Women's Hospital, All rights reserved.
@@ -11,16 +11,17 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkOpenCVImageActor - abstract specification for actor
+// .NAME vtkOpenCVRendererDelegate - abstract specification for actor
 // .SECTION Description
 
 // .SECTION See Also
-// vtkImageActor vtkRenderWindow vtkImageActor vtkCamera vtkLight vtkVolume
+// vtkRendererDelegate vtkRenderWindow vtkRendererDelegate vtkCamera vtkLight vtkVolume
 
-#ifndef __vtkOpenCVImageActor_h
-#define __vtkOpenCVImageActor_h
+#ifndef __vtkOpenCVRendererDelegate_h
+#define __vtkOpenCVRendererDelegate_h
 
 // VTK header files and prototypes
+#include "vtkRendererDelegate.h"
 #include "vtkImageActor.h"
 
 class vtkImageData;
@@ -33,15 +34,15 @@ class vtkMapper;
 #include "opencv2/imgproc/types_c.h"
 #include "opencv2/highgui/highgui.hpp"
 
-class VTK_RENDERING_EXPORT vtkOpenCVImageActor : public vtkImageActor
+class VTK_RENDERING_EXPORT vtkOpenCVRendererDelegate : public vtkRendererDelegate
 {
 
 public:
 
-  vtkTypeMacro(vtkOpenCVImageActor,vtkImageActor);
+  vtkTypeMacro(vtkOpenCVRendererDelegate,vtkRendererDelegate);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  static vtkOpenCVImageActor *New();
+  static vtkOpenCVRendererDelegate *New();
 
   // Description:
   // SetUseCameraMatrix(1) activates the use of camera calibration matrix.
@@ -73,7 +74,7 @@ public:
   // WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
   // DO NOT USE THIS METHOD OUTSIDE OF THE RENDERING PROCESS
   // Support the standard render methods.
-  // vtkOpenCVImageActor sets vtk camera parameter before rendering process
+  // vtkOpenCVRendererDelegate sets vtk camera parameter before rendering process
   // to fit the camera image into the renderer.
   //virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
   virtual void Render(vtkRenderer *);
@@ -81,9 +82,10 @@ public:
 //BTX
 protected:
   
-  vtkOpenCVImageActor();
-  ~vtkOpenCVImageActor();
-  
+  vtkOpenCVRendererDelegate();
+  ~vtkOpenCVRendererDelegate();
+
+  vtkImageActor *           Actor;
   vtkImageData *            VideoImageData;
 
   cv::Ptr<cv::VideoCapture> VideoSource;
@@ -111,11 +113,11 @@ protected:
   
 private:
 
-  vtkOpenCVImageActor(const vtkOpenCVImageActor&);  // Not implemented.
-  void operator=(const vtkOpenCVImageActor&);  // Not implemented.
+  vtkOpenCVRendererDelegate(const vtkOpenCVRendererDelegate&);  // Not implemented.
+  void operator=(const vtkOpenCVRendererDelegate&);  // Not implemented.
 
   // Description:
-  // To improve the speed of undistortion process, the OpenCVImageActor call
+  // To improve the speed of undistortion process, the OpenCVRendererDelegate call
   // cv::initUndistortRectifyMap() once as an initialization process and 
   // cv::remap() in each capture, instead of executing both functions in each
   // capture by calling cv::undistort().
