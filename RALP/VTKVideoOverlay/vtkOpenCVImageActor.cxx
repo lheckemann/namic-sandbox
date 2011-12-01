@@ -15,7 +15,7 @@
 // VTK header files
 #include "vtkImageActor.h"
 #include "vtkImageData.h"
-#include "vtkRenderWindow.h"
+#include "vtkRenderer.h"
 #include "vtkGraphicsFactory.h"
 #include "vtkCamera.h"
 #include "vtkOpenCVImageActor.h"
@@ -36,20 +36,14 @@ vtkInstantiatorNewMacro(vtkOpenCVImageActor);
 //----------------------------------------------------------------------------
 vtkOpenCVImageActor::vtkOpenCVImageActor()
 {
-  this->Actor           = NULL;
   this->VideoImageData  = NULL;
   this->UseCameraMatrix = 0;
-  this->SetLayer(0);
 }
 
 
 //----------------------------------------------------------------------------
 vtkOpenCVImageActor::~vtkOpenCVImageActor()
 {
-  if (this->Actor)
-    {
-    this->Actor->Delete();
-    }
   if (this->VideoImageData)
     {
     this->VideoImageData->Delete();
@@ -101,12 +95,10 @@ int vtkOpenCVImageActor::SetVideoCapture(cv::VideoCapture * capture)
   this->VideoImageData->AllocateScalars();
   this->VideoImageData->Update();
 
-  this->Actor = vtkImageActor::New();
-  this->Actor->SetInput(this->VideoImageData);
-  this->AddActor(this->Actor);
-  this->InteractiveOff();
+  this->SetInput(this->VideoImageData);
+  //this->InteractiveOff();
 
-  this->Actor->Modified();
+  this->Modified();
 
   // Adjust camera position so that image covers the draw area.
   double origin[3];
@@ -116,16 +108,11 @@ int vtkOpenCVImageActor::SetVideoCapture(cv::VideoCapture * capture)
   this->VideoImageData->GetOrigin( origin );
   this->VideoImageData->GetSpacing( spacing );
   this->VideoImageData->GetExtent( extent );
-  
-  vtkCamera* camera = this->GetActiveCamera();
-  camera->ParallelProjectionOn();
-  double xc = origin[0] + 0.5*(extent[0] + extent[1])*spacing[0];
-  double yc = origin[1] + 0.5*(extent[2] + extent[3])*spacing[1];
-  double yd = (extent[3] - extent[2] + 1)*spacing[1];
-  double d = camera->GetDistance();
-  camera->SetParallelScale(0.5*yd);
-  camera->SetFocalPoint(xc,yc,0.0);
-  camera->SetPosition(xc,yc,d);
+
+  this->ParallelScale = 0.5 * (extent[3] - extent[2] + 1)*spacing[1];
+  this->FocalPointX   = origin[0] + 0.5*(extent[0] + extent[1])*spacing[0];
+  this->FocalPointY   = origin[1] + 0.5*(extent[2] + extent[3])*spacing[1];
+  this->FocalPointZ   = 0.0;
 
   return 1;
 }
@@ -166,8 +153,8 @@ int vtkOpenCVImageActor::Capture()
     this->VideoImageData->SetScalarTypeToUnsignedChar();
     this->VideoImageData->AllocateScalars();
     this->VideoImageData->Update();
-    
-    this->Actor->SetInput(VideoImageData);
+
+    this->SetInput(VideoImageData);
     }
 
   // create rgb image
@@ -200,15 +187,9 @@ int vtkOpenCVImageActor::Capture()
     memcpy((void*)VideoImageData->GetScalarPointer(), (void*)idata, dsize);
     this->VideoImageData->Modified();
 
-    //
-    // VTK image process handler here
-    //
-    if (this->GetRenderWindow())
-      {
-      this->GetRenderWindow()->Render();
-      }
     }
-  
+
+  this->Modified();
   return 1;
 }
 
@@ -258,6 +239,24 @@ void vtkOpenCVImageActor::GetImageSize(unsigned int& width, unsigned int& height
   width  = this->ImageSize.width;
   height = this->ImageSize.height;
 
+}
+
+
+//----------------------------------------------------------------------------
+void vtkOpenCVImageActor::Render(vtkRenderer *ren)
+{
+  if (ren)
+    {
+    vtkCamera* camera = ren->GetActiveCamera();
+    double d = camera->GetDistance();
+    camera->ParallelProjectionOn();
+    camera->SetParallelScale(this->ParallelScale);
+    camera->SetFocalPoint(this->FocalPointX, this->FocalPointY, this->FocalPointZ);
+    camera->SetPosition(this->FocalPointX, this->FocalPointY, d);
+    }
+
+  Superclass::Render(ren);
+  
 }
 
 

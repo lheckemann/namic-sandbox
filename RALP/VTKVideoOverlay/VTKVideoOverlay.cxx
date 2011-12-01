@@ -33,7 +33,7 @@
 
 #include <vtkSmartPointer.h>
 
-#include "vtkOpenCVRenderer.h"
+#include "vtkOpenCVImageActor.h"
 
 // OpenCV stuff
 #include "opencv2/core/core.hpp"
@@ -50,7 +50,7 @@ using namespace std;
 // Video import
 //----------------------------------------------------------------
 
-vtkOpenCVRenderer * CVRenderer;
+vtkOpenCVImageActor * CVActor;
 
 // Optical tracking
 int           OpticalFlowTrackingFlag;
@@ -167,10 +167,10 @@ int ProcessMotion(std::vector<cv::Point2f>& vector)
 // Camera thread / Originally created by A. Yamada
 int CameraHandler()
 {
-  CVRenderer->Capture();
+  CVActor->Capture();
 
   unsigned int width, height;
-  CVRenderer->GetImageSize(width, height);
+  CVActor->GetImageSize(width, height);
   double gridSpaceX = (double)width  / (double)(NGRID_X+1);
   double gridSpaceY = (double)height / (double)(NGRID_Y+1);
   
@@ -386,14 +386,14 @@ int main(int argc, char * argv[])
     exit(0);
     }
   
-  CVRenderer = vtkOpenCVRenderer::New();
-  if (!CVRenderer->SetVideoCapture(&capture))
+  CVActor = vtkOpenCVImageActor::New();
+  if (!CVActor->SetVideoCapture(&capture))
     {
     std::cerr << "Couldn't set video capture...\n" << std::endl;
     exit(0);
     }
 
-  if (calibrationFile && !CVRenderer->ImportCameraCalibrationFile(calibrationFile))
+  if (calibrationFile && !CVActor->ImportCameraCalibrationFile(calibrationFile))
     {
     std::cerr << "Couldn't import the camera calibration file...\n" << std::endl;
     exit(0);
@@ -443,23 +443,31 @@ int main(int argc, char * argv[])
   camera->SetFocalPoint(0,0,0);
   camera->SetClippingRange(0.04, 0.1);
 
-  vtkRenderer *renderer = vtkRenderer::New();
-  renderer->AddActor(cubeActor);
-  renderer->SetActiveCamera(camera);
-  renderer->ResetCamera();
-  renderer->SetBackground(1,1,1);
+  // Renderer for the foreground (VTK model)
+  vtkRenderer *fgrenderer = vtkRenderer::New();
+  fgrenderer->AddActor(cubeActor);
+  fgrenderer->SetActiveCamera(camera);
+  fgrenderer->ResetCamera();
+  fgrenderer->SetBackground(1,1,1);
 
+  // Renderer for the background (OpenCV image)
+  vtkRenderer *bgrenderer = vtkRenderer::New();
+  bgrenderer->AddActor(CVActor);
+  bgrenderer->InteractiveOff();
+  bgrenderer->SetLayer(0);
+
+  // Create render window
+  renWin = vtkRenderWindow::New();
   unsigned int width;
   unsigned int height;
-  CVRenderer->GetImageSize(width, height);
-
-  renWin = vtkRenderWindow::New();
+  CVActor->GetImageSize(width, height);
   renWin->SetSize(width, height);
+
   renWin->SetNumberOfLayers(2);
-  CVRenderer->SetLayer(1);
-  renWin->AddRenderer(CVRenderer);
-  renderer->SetLayer(1);
-  renWin->AddRenderer(renderer);
+  bgrenderer->SetLayer(1);
+  renWin->AddRenderer(bgrenderer);
+  fgrenderer->SetLayer(1);
+  renWin->AddRenderer(fgrenderer);
 
   vtkRenderWindowInteractor *iren = vtkRenderWindowInteractor::New();
   iren->Initialize();
@@ -467,7 +475,6 @@ int main(int argc, char * argv[])
 
   // interact with data
   renWin->Render();
-
   TimerFlag = 1;
 
   // Sign up to receive TimerEvent
@@ -499,11 +506,12 @@ int main(int argc, char * argv[])
   cubeMapper->Delete();
   cubeActor->Delete();
   camera->Delete();
-  renderer->Delete();
   renWin->Delete();
   iren->Delete();
   cb->Delete();
-  CVRenderer->Delete();
+  CVActor->Delete();
+  fgrenderer->Delete();
+  bgrenderer->Delete();
   
   return 0;
 }
