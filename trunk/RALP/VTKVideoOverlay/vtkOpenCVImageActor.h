@@ -11,14 +11,14 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkOpenCVActor - abstract specification for renderers
+// .NAME vtkOpenCVImageActor - abstract specification for renderers
 // .SECTION Description
 
 // .SECTION See Also
 // vtkActor vtkRenderWindow vtkActor vtkCamera vtkLight vtkVolume
 
-#ifndef __vtkOpenCVActor_h
-#define __vtkOpenCVActor_h
+#ifndef __vtkOpenCVImageActor_h
+#define __vtkOpenCVImageActor_h
 
 // VTK header files and prototypes
 #include "vtkActor.h"
@@ -31,15 +31,15 @@ class vtkRenderWindow;
 #include "opencv2/imgproc/types_c.h"
 #include "opencv2/highgui/highgui.hpp"
 
-class VTK_RENDERING_EXPORT vtkOpenCVActor : public vtkActor
+class VTK_RENDERING_EXPORT vtkOpenCVImageActor : public vtkActor
 {
 
 public:
 
-  vtkTypeMacro(vtkOpenCVActor,vtkActor);
+  vtkTypeMacro(vtkOpenCVImageActor,vtkActor);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  static vtkOpenCVActor *New();
+  static vtkOpenCVImageActor *New();
 
   // Description:
   // SetUseCameraMatrix(1) activates the use of camera calibration matrix.
@@ -74,8 +74,8 @@ public:
 //BTX
 protected:
   
-  vtkOpenCVActor();
-  ~vtkOpenCVActor();
+  vtkOpenCVImageActor();
+  ~vtkOpenCVImageActor();
   
   vtkImageActor *           Actor;
   vtkImageData *            VideoImageData;
@@ -99,11 +99,11 @@ protected:
   
 private:
 
-  vtkOpenCVActor(const vtkOpenCVActor&);  // Not implemented.
-  void operator=(const vtkOpenCVActor&);  // Not implemented.
+  vtkOpenCVImageActor(const vtkOpenCVImageActor&);  // Not implemented.
+  void operator=(const vtkOpenCVImageActor&);  // Not implemented.
 
   // Description:
-  // To improve the speed of undistortion process, the OpenCVActor call
+  // To improve the speed of undistortion process, the OpenCVImageActor call
   // cv::initUndistortRectifyMap() once as an initialization process and 
   // cv::remap() in each capture, instead of executing both functions in each
   // capture by calling cv::undistort().
