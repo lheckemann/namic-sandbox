@@ -386,7 +386,7 @@ int main(int argc, char * argv[])
     exit(0);
     }
   
-  CVRendererDelegate = vtkOpenCVImageActor::New();
+  CVRendererDelegate = vtkOpenCVRendererDelegate::New();
   if (!CVRendererDelegate->SetVideoCapture(&capture))
     {
     std::cerr << "Couldn't set video capture...\n" << std::endl;

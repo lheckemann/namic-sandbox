@@ -22,8 +22,8 @@
 
 // VTK header files and prototypes
 #include "vtkRendererDelegate.h"
-#include "vtkImageActor.h"
 
+class vtkImageActor;
 class vtkImageData;
 class vtkRenderWindow;
 class vtkRenderer;
@@ -39,11 +39,11 @@ class VTK_RENDERING_EXPORT vtkOpenCVRendererDelegate : public vtkRendererDelegat
 
 public:
 
+  static vtkOpenCVRendererDelegate *New();
   vtkTypeMacro(vtkOpenCVRendererDelegate,vtkRendererDelegate);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  static vtkOpenCVRendererDelegate *New();
-
+  
   // Description:
   // SetUseCameraMatrix(1) activates the use of camera calibration matrix.
   // Note that the camera calibration is not automatically activated
@@ -77,7 +77,7 @@ public:
   // vtkOpenCVRendererDelegate sets vtk camera parameter before rendering process
   // to fit the camera image into the renderer.
   //virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
-  virtual void Render(vtkRenderer *);
+  virtual void Render(vtkRenderer *r);
 
 //BTX
 protected:

@@ -27,7 +27,7 @@ INCLUDE_DIRECTORIES(BEFORE ${OPENCV_INCLUDE_DIRS})
 # Add link directories needed to use OPENCV.
 LINK_DIRECTORIES(${OPENCV_LIBRARY_DIRS})
 
-ADD_LIBRARY(vtkOpenCVSupport
+ADD_LIBRARY(vtkOpenCVSupport SHARED
   vtkOpenCVRendererDelegate.cxx
 )
 
@@ -35,5 +35,7 @@ ADD_EXECUTABLE(VTKVideoOverlay
   VTKVideoOverlay.cxx
 )
 
+TARGET_LINK_LIBRARIES(vtkOpenCVSupport vtkRendering ${OpenCV_LIBS} )
 TARGET_LINK_LIBRARIES(VTKVideoOverlay vtkHybrid ${OpenCV_LIBS} vtkOpenCVSupport)
+
 
