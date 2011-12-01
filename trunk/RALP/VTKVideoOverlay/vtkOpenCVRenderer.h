@@ -11,17 +11,17 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkOpenCVRenderer - abstract specification for renderers
+// .NAME vtkOpenCVActor - abstract specification for renderers
 // .SECTION Description
 
 // .SECTION See Also
-// vtkRenderer vtkRenderWindow vtkActor vtkCamera vtkLight vtkVolume
+// vtkActor vtkRenderWindow vtkActor vtkCamera vtkLight vtkVolume
 
-#ifndef __vtkOpenCVRenderer_h
-#define __vtkOpenCVRenderer_h
+#ifndef __vtkOpenCVActor_h
+#define __vtkOpenCVActor_h
 
 // VTK header files and prototypes
-#include "vtkRenderer.h"
+#include "vtkActor.h"
 class vtkImageActor;
 class vtkImageData;
 class vtkRenderWindow;
@@ -31,15 +31,15 @@ class vtkRenderWindow;
 #include "opencv2/imgproc/types_c.h"
 #include "opencv2/highgui/highgui.hpp"
 
-class VTK_RENDERING_EXPORT vtkOpenCVRenderer : public vtkRenderer
+class VTK_RENDERING_EXPORT vtkOpenCVActor : public vtkActor
 {
 
 public:
 
-  vtkTypeMacro(vtkOpenCVRenderer,vtkRenderer);
+  vtkTypeMacro(vtkOpenCVActor,vtkActor);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  static vtkOpenCVRenderer *New();
+  static vtkOpenCVActor *New();
 
   // Description:
   // SetUseCameraMatrix(1) activates the use of camera calibration matrix.
@@ -68,14 +68,14 @@ public:
   void GetImageSize(unsigned int& width, unsigned int& height);
 
   // Description:
-  // Create an image. Subclasses of vtkRenderer must implement this method.
+  // Create an image. Subclasses of vtkActor must implement this method.
   virtual void DeviceRender() {};
 
 //BTX
 protected:
   
-  vtkOpenCVRenderer();
-  ~vtkOpenCVRenderer();
+  vtkOpenCVActor();
+  ~vtkOpenCVActor();
   
   vtkImageActor *           Actor;
   vtkImageData *            VideoImageData;
@@ -99,11 +99,11 @@ protected:
   
 private:
 
-  vtkOpenCVRenderer(const vtkOpenCVRenderer&);  // Not implemented.
-  void operator=(const vtkOpenCVRenderer&);  // Not implemented.
+  vtkOpenCVActor(const vtkOpenCVActor&);  // Not implemented.
+  void operator=(const vtkOpenCVActor&);  // Not implemented.
 
   // Description:
-  // To improve the speed of undistortion process, the OpenCVRenderer call
+  // To improve the speed of undistortion process, the OpenCVActor call
   // cv::initUndistortRectifyMap() once as an initialization process and 
   // cv::remap() in each capture, instead of executing both functions in each
   // capture by calling cv::undistort().

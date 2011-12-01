@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:        OpenCV support for Visualization Toolkit
-  Module:         vtkOpenCVRenderer.h
+  Module:         vtkOpenCVActor.h
   Contributor(s): Junichi Tokuda (tokuda@bwh.harvard.edu)
 
   Copyright (c) Brigham and Women's Hospital, All rights reserved.
@@ -18,7 +18,7 @@
 #include "vtkRenderWindow.h"
 #include "vtkGraphicsFactory.h"
 #include "vtkCamera.h"
-#include "vtkOpenCVRenderer.h"
+#include "vtkOpenCVActor.h"
 
 // OpenCV header files
 #include "opencv2/core/core.hpp"
@@ -30,11 +30,11 @@
 
 //----------------------------------------------------------------------------
 // Needed when we don't use the vtkStandardNewMacro.
-vtkInstantiatorNewMacro(vtkOpenCVRenderer);
-//vtkStandardNewMacro(vtkOpenCVRenderer);
+vtkInstantiatorNewMacro(vtkOpenCVActor);
+//vtkStandardNewMacro(vtkOpenCVActor);
 
 //----------------------------------------------------------------------------
-vtkOpenCVRenderer::vtkOpenCVRenderer()
+vtkOpenCVActor::vtkOpenCVActor()
 {
   this->Actor           = NULL;
   this->VideoImageData  = NULL;
@@ -44,7 +44,7 @@ vtkOpenCVRenderer::vtkOpenCVRenderer()
 
 
 //----------------------------------------------------------------------------
-vtkOpenCVRenderer::~vtkOpenCVRenderer()
+vtkOpenCVActor::~vtkOpenCVActor()
 {
   if (this->Actor)
     {
@@ -58,17 +58,17 @@ vtkOpenCVRenderer::~vtkOpenCVRenderer()
 
 
 //----------------------------------------------------------------------------
-// return the correct type of Renderer
-vtkOpenCVRenderer *vtkOpenCVRenderer::New()
+// return the correct type of Actor
+vtkOpenCVActor *vtkOpenCVActor::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkGraphicsFactory::CreateInstance("vtkOpenCVRenderer");
-  return static_cast<vtkOpenCVRenderer *>(ret);
+  vtkObject* ret = vtkGraphicsFactory::CreateInstance("vtkOpenCVActor");
+  return static_cast<vtkOpenCVActor *>(ret);
 }
 
 
 //----------------------------------------------------------------------------
-int vtkOpenCVRenderer::SetVideoCapture(cv::VideoCapture * capture)
+int vtkOpenCVActor::SetVideoCapture(cv::VideoCapture * capture)
 {
 
   if( !capture->isOpened() )
@@ -132,7 +132,7 @@ int vtkOpenCVRenderer::SetVideoCapture(cv::VideoCapture * capture)
 
 
 //----------------------------------------------------------------------------
-int vtkOpenCVRenderer::Capture()
+int vtkOpenCVActor::Capture()
 {
 
   cv::Size newImageSize;
@@ -214,7 +214,7 @@ int vtkOpenCVRenderer::Capture()
 
 
 //----------------------------------------------------------------------------
-int vtkOpenCVRenderer::ImportCameraCalibrationFile(const char * calibFile)
+int vtkOpenCVActor::ImportCameraCalibrationFile(const char * calibFile)
 {
 
   cv::FileStorage fs(calibFile, cv::FileStorage::READ);
@@ -252,7 +252,7 @@ int vtkOpenCVRenderer::ImportCameraCalibrationFile(const char * calibFile)
 
 
 //----------------------------------------------------------------------------
-void vtkOpenCVRenderer::GetImageSize(unsigned int& width, unsigned int& height)
+void vtkOpenCVActor::GetImageSize(unsigned int& width, unsigned int& height)
 {
 
   width  = this->ImageSize.width;
@@ -262,7 +262,7 @@ void vtkOpenCVRenderer::GetImageSize(unsigned int& width, unsigned int& height)
 
 
 //----------------------------------------------------------------------------
-void vtkOpenCVRenderer::InitUndistort(int rows, int cols, cv::InputArray _cameraMatrix,
+void vtkOpenCVActor::InitUndistort(int rows, int cols, cv::InputArray _cameraMatrix,
                    cv::InputArray _distCoeffs,
                    std::vector< cv::Mat >& _map1_array,
                    std::vector< cv::Mat >& _map2_array )
@@ -306,7 +306,7 @@ void vtkOpenCVRenderer::InitUndistort(int rows, int cols, cv::InputArray _camera
 
 
 //----------------------------------------------------------------------------
-void vtkOpenCVRenderer::FastUndistort( cv::InputArray _src, cv::OutputArray _dst,
+void vtkOpenCVActor::FastUndistort( cv::InputArray _src, cv::OutputArray _dst,
                                         std::vector< cv::Mat >& _map1_array,
                                         std::vector< cv::Mat >& _map2_array,
                                         int rows, int cols)
