@@ -10,12 +10,12 @@
   Date:      $Date: $
   Version:   $Revision: $
 
-==========================================================================*/
+  ==========================================================================*/
 
-// .NAME vtkDistractorModelingLogic - slicer logic class for Locator module 
+// .NAME vtkDistractorModelingLogic - slicer logic class for Locator module
 // .SECTION Description
 // This class manages the logic associated with tracking device for
-// IGT. 
+// IGT.
 
 
 #ifndef __vtkDistractorModelingLogic_h
@@ -32,7 +32,7 @@
 
 class vtkIGTLConnector;
 
-class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlicerModuleLogic 
+class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlicerModuleLogic
 {
  public:
   //BTX
@@ -43,29 +43,41 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
 
   // Distractor Info Structure
   typedef struct{
-    vtkMatrix4x4* RotationCenter;
-    vtkMatrix4x4* RailAnchor;
-    vtkMatrix4x4* SliderAnchor;
-    vtkMatrix4x4* CylinderAnchor;
+    double RotationCenter[3];
+    double RailAnchor[3];
+    double SliderAnchor[3];
+    double CylinderAnchor[3];
+
+    double newSliderAnchorX;
+    double newSliderAnchorZ;
+
+    double PistonRotationAngle_deg;
 
     // TODO: Add filename
   }DistractorInfoStruct;
 
   //ETX
 
-  DistractorInfoStruct Distractor1;
+  DistractorInfoStruct  Distractor1;
 
  public:
-  
-  static vtkDistractorModelingLogic *New();
-  
-  vtkTypeRevisionMacro(vtkDistractorModelingLogic,vtkObject);
-  void PrintSelf(ostream&, vtkIndent);
 
-  void MoveSlider(vtkMRMLModelNode* Slider, vtkMRMLModelNode* Piston, vtkMRMLModelNode* Cylinder, double value, vtkMRMLLinearTransformNode* SliderTransformationNode, vtkMRMLLinearTransformNode* PistonTransformationNode, vtkMRMLLinearTransformNode* CylinderTransformationNode);
+  static vtkDistractorModelingLogic     *New();
+
+  vtkTypeRevisionMacro(vtkDistractorModelingLogic,vtkObject);
+  void  PrintSelf(ostream&, vtkIndent);
+
+  void  MoveDistractor(double value,
+                       vtkMRMLModelNode* Slider, vtkMRMLLinearTransformNode* SliderTransformationNode,
+                       vtkMRMLModelNode* Piston, vtkMRMLLinearTransformNode* PistonTransformationNode,
+                       vtkMRMLModelNode* Cylinder, vtkMRMLLinearTransformNode* CylinderTransformationNode);
+
+  void MoveSlider(double value, vtkMRMLModelNode* Slider, vtkMRMLLinearTransformNode* SliderTransformationNode);
+  void MovePiston(double value, vtkMRMLModelNode* Piston, vtkMRMLLinearTransformNode* PistonTransformationNode);
+  void MoveCylinder(double value, vtkMRMLModelNode* Cylinder, vtkMRMLLinearTransformNode* CylinderTransformationNode);
 
  protected:
-  
+
   vtkDistractorModelingLogic();
   ~vtkDistractorModelingLogic();
 
@@ -85,4 +97,4 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
 #endif
 
 
-  
+

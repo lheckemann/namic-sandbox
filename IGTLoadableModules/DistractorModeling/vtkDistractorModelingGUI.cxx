@@ -352,7 +352,7 @@ void vtkDistractorModelingGUI::ProcessGUIEvents(vtkObject *caller,
   if(this->MovingScale == vtkKWScale::SafeDownCast(caller)
      && event == vtkKWScale::ScaleValueChangingEvent)
     {
-    if(this->SliderModel)
+    if(this->SliderModel && this->PistonModel && this->CylinderModel)
       {
       if(!this->SliderTransformNode)
         {
@@ -371,7 +371,10 @@ void vtkDistractorModelingGUI::ProcessGUIEvents(vtkObject *caller,
         }
 
 
-      this->GetLogic()->MoveSlider(this->SliderModel,this->PistonModel,this->CylinderModel,this->MovingScale->GetValue(),this->SliderTransformNode,this->PistonTransformNode,this->CylinderTransformNode);
+      this->GetLogic()->MoveDistractor(this->MovingScale->GetValue(),
+                                       this->SliderModel, this->SliderTransformNode,
+                                       this->PistonModel, this->PistonTransformNode,
+                                       this->CylinderModel, this->CylinderTransformNode);
 
       this->SliderModel->SetAndObserveTransformNodeID(this->SliderTransformNode->GetID());
       this->SliderModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
