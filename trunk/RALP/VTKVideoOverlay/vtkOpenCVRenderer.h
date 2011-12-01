@@ -38,8 +38,7 @@ public:
 
   vtkTypeMacro(vtkOpenCVRenderer,vtkRenderer);
   void PrintSelf(ostream& os, vtkIndent indent);
-  
-  // Description:
+
   static vtkOpenCVRenderer *New();
 
   // Description:
@@ -64,6 +63,13 @@ public:
   // format (*.yml).
   int ImportCameraCalibrationFile(const char * calibFile);
 
+  // Description:
+  // Get the size of camera image
+  void GetImageSize(unsigned int& width, unsigned int& height);
+
+  // Description:
+  // Create an image. Subclasses of vtkRenderer must implement this method.
+  virtual void DeviceRender() {};
 
 //BTX
 protected:
