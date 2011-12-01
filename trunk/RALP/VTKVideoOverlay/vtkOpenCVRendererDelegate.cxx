@@ -14,10 +14,13 @@
 
 // VTK header files
 #include "vtkRendererDelegate.h"
+#include "vtkObjectFactory.h"
 #include "vtkImageData.h"
 #include "vtkRenderer.h"
+#include "vtkImageActor.h"
 #include "vtkGraphicsFactory.h"
 #include "vtkCamera.h"
+#include "vtkTextProperty.h"
 #include "vtkOpenCVRendererDelegate.h"
 
 // OpenCV header files
@@ -36,9 +39,9 @@ vtkStandardNewMacro(vtkOpenCVRendererDelegate);
 //----------------------------------------------------------------------------
 vtkOpenCVRendererDelegate::vtkOpenCVRendererDelegate()
 {
-  this->Actor           = NULL;
-  this->VideoImageData  = NULL;
-  this->UseCameraMatrix = 0;
+  //this->Actor           = NULL;
+  //this->VideoImageData  = NULL;
+  //this->UseCameraMatrix = 0;
 
 }
 
@@ -46,24 +49,14 @@ vtkOpenCVRendererDelegate::vtkOpenCVRendererDelegate()
 //----------------------------------------------------------------------------
 vtkOpenCVRendererDelegate::~vtkOpenCVRendererDelegate()
 {
-  if (this->Actor)
-    {
-    this->Actor->Delete();
-    }
-  if (this->VideoImageData)
-    {
-    this->VideoImageData->Delete();
-    }
-}
-
-
-//----------------------------------------------------------------------------
-// return the correct type of Actor
-vtkOpenCVRendererDelegate *vtkOpenCVRendererDelegate::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkGraphicsFactory::CreateInstance("vtkOpenCVRendererDelegate");
-  return static_cast<vtkOpenCVRendererDelegate *>(ret);
+  //if (this->Actor)
+  //  {
+  //  this->Actor->Delete();
+  //  }
+  //if (this->VideoImageData)
+  //  {
+  //  this->VideoImageData->Delete();
+  //  }
 }
 
 
@@ -126,7 +119,7 @@ int vtkOpenCVRendererDelegate::SetVideoCapture(cv::VideoCapture * capture)
   this->FocalPointY   = origin[1] + 0.5*(extent[2] + extent[3])*spacing[1];
   this->FocalPointZ   = 0.0;
 
-  this->Used(true);
+  this->Used = true;
 
   return 1;
 }
@@ -168,7 +161,10 @@ int vtkOpenCVRendererDelegate::Capture()
     this->VideoImageData->AllocateScalars();
     this->VideoImageData->Update();
 
-    this->SetInput(VideoImageData);
+    if (this->Actor)
+      {
+      this->Actor->SetInput(VideoImageData);
+      }
     }
 
   // create rgb image
@@ -258,14 +254,14 @@ void vtkOpenCVRendererDelegate::GetImageSize(unsigned int& width, unsigned int& 
 
 
 //----------------------------------------------------------------------------
-void vtkOpenCVRendererDelegate::Render(vtkRenderer *ren)
+void vtkOpenCVRendererDelegate::Render(vtkRenderer *r)
 {
-  if (!ren)
+  if (!r)
     {
     return;
     }
     
-  vtkCamera* camera = ren->GetActiveCamera();
+  vtkCamera* camera = r->GetActiveCamera();
   double d = camera->GetDistance();
   camera->ParallelProjectionOn();
   camera->SetParallelScale(this->ParallelScale);
@@ -274,14 +270,14 @@ void vtkOpenCVRendererDelegate::Render(vtkRenderer *ren)
   
   // Check if the actor has been set already to the renderer.
   vtkActorCollection * actors;
-  actors = ren->GetActors();  
+  actors = r->GetActors();  
 
   vtkCollectionSimpleIterator pit;
   vtkProp  *aProp;
   bool found = false;
 
   for (actors->InitTraversal(pit);
-       (aProp = this->Props->GetNextProp(pit)); )
+       (aProp = actors->GetNextProp(pit)); )
     {
     vtkImageActor * ptr = vtkImageActor::SafeDownCast(aProp);
     if (this->Actor == ptr)
@@ -289,12 +285,12 @@ void vtkOpenCVRendererDelegate::Render(vtkRenderer *ren)
     }
   if (!found)
     {
-    ren->AddActor(this->Actor);
+    r->AddActor(this->Actor);
     }
 
   // Call renderer without delegate (TODO: the renderer should be reimplemented for better performance)
   this->Used = false;
-  ren->Render();
+  r->Render();
   this->Used = true;
   
 }
