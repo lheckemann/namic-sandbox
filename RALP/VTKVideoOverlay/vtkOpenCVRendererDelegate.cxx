@@ -39,9 +39,9 @@ vtkStandardNewMacro(vtkOpenCVRendererDelegate);
 //----------------------------------------------------------------------------
 vtkOpenCVRendererDelegate::vtkOpenCVRendererDelegate()
 {
-  //this->Actor           = NULL;
-  //this->VideoImageData  = NULL;
-  //this->UseCameraMatrix = 0;
+  this->Actor           = NULL;
+  this->VideoImageData  = NULL;
+  this->UseCameraMatrix = 0;
 
 }
 
@@ -49,16 +49,22 @@ vtkOpenCVRendererDelegate::vtkOpenCVRendererDelegate()
 //----------------------------------------------------------------------------
 vtkOpenCVRendererDelegate::~vtkOpenCVRendererDelegate()
 {
-  //if (this->Actor)
-  //  {
-  //  this->Actor->Delete();
-  //  }
-  //if (this->VideoImageData)
-  //  {
-  //  this->VideoImageData->Delete();
-  //  }
+  if (this->Actor)
+    {
+    this->Actor->Delete();
+    }
+  if (this->VideoImageData)
+    {
+    this->VideoImageData->Delete();
+    }
 }
 
+
+//----------------------------------------------------------------------------
+void vtkOpenCVRendererDelegate::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os,indent);
+}
 
 //----------------------------------------------------------------------------
 int vtkOpenCVRendererDelegate::SetVideoCapture(cv::VideoCapture * capture)
