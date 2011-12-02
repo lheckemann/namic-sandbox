@@ -39,10 +39,10 @@ vtkStandardNewMacro(vtkOpenCVRendererDelegate);
 //----------------------------------------------------------------------------
 vtkOpenCVRendererDelegate::vtkOpenCVRendererDelegate()
 {
-  this->Actor           = NULL;
-  this->VideoImageData  = NULL;
-  this->UseCameraMatrix = 0;
-
+  this->Actor                 = NULL;
+  this->VideoImageData        = NULL;
+  this->UseCameraMatrix       = 0;
+  this->OpenCVProcessImageCallback  = NULL;
 }
 
 
@@ -181,17 +181,22 @@ int vtkOpenCVRendererDelegate::Capture()
     FastUndistort( this->CaptureImage, this->UndistortedImage, this->Map1Array, this->Map2Array,
                    this->CalibratedImageSize.height, this->CalibratedImageSize.width );
     cv::cvtColor( this->UndistortedImage, this->RGBImage, CV_BGR2RGB);
-    cv::cvtColor( this->UndistortedImage, this->GrayImage, CV_BGR2GRAY); 
+    //cv::cvtColor( this->UndistortedImage, this->GrayImage, CV_BGR2GRAY); 
     }
   else
     {
     cv::cvtColor( this->CaptureImage, this->RGBImage, CV_BGR2RGB);
-    cv::cvtColor( this->CaptureImage, this->GrayImage, CV_BGR2GRAY); 
+    //cv::cvtColor( this->CaptureImage, this->GrayImage, CV_BGR2GRAY); 
     }
 
   //
   // OpenCV image process handler here
   //
+  if (this->OpenCVProcessImageCallback)
+    {
+    this->OpenCVProcessImageCallback->Execute((vtkObject *)this,  vtkOpenCVRendererDelegate::OpenCVProcessImageEvent,
+                                              (void*) (&this->RGBImage));
+    }
 
   if (this->VideoImageData)
     {
