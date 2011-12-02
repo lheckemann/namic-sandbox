@@ -254,6 +254,11 @@ int CameraHandler()
     }
   */
 
+  if (BackgroundRenderer)
+    {
+    BackgroundRenderer->GetRenderWindow()->Render();
+    }
+
   return 1;
   
 }
@@ -451,9 +456,11 @@ int main(int argc, char * argv[])
   fgrenderer->SetBackground(1,1,1);
 
   // Renderer for the background (OpenCV image)
-  vtkRenderer *bgrenderer = vtkRenderer::New();
-  bgrenderer->SetDelegate(CVRendererDelegate);
-  bgrenderer->InteractiveOff();
+  //vtkRenderer *bgrenderer = vtkRenderer::New();
+  BackgroundRenderer = vtkRenderer::New();
+  
+  BackgroundRenderer->SetDelegate(CVRendererDelegate);
+  BackgroundRenderer->InteractiveOff();
 
   // Create render window
   renWin = vtkRenderWindow::New();
@@ -463,8 +470,8 @@ int main(int argc, char * argv[])
   renWin->SetSize(width, height);
 
   renWin->SetNumberOfLayers(2);
-  bgrenderer->SetLayer(0);
-  renWin->AddRenderer(bgrenderer);
+  BackgroundRenderer->SetLayer(0);
+  renWin->AddRenderer(BackgroundRenderer);
   fgrenderer->SetLayer(1);
   renWin->AddRenderer(fgrenderer);
 
@@ -486,6 +493,7 @@ int main(int argc, char * argv[])
   int timerId = iren->CreateRepeatingTimer(100);
   std::cout << "timerId: " << timerId << std::endl;  
 
+  CameraActiveFlag = 1;
   iren->Start();
 
   // Stop timer
@@ -510,7 +518,7 @@ int main(int argc, char * argv[])
   cb->Delete();
   CVRendererDelegate->Delete();
   fgrenderer->Delete();
-  bgrenderer->Delete();
+  BackgroundRenderer->Delete();
   
   return 0;
 }
