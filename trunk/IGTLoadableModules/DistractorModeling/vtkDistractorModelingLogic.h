@@ -29,6 +29,8 @@
 #include "vtkCallbackCommand.h"
 
 #include "vtkMRMLSliceNode.h"
+#include "expat.h"
+
 
 class vtkIGTLConnector;
 
@@ -75,6 +77,11 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
   void MoveSlider(double value, vtkMRMLModelNode* Slider, vtkMRMLLinearTransformNode* SliderTransformationNode);
   void MovePiston(double value, vtkMRMLModelNode* Piston, vtkMRMLLinearTransformNode* PistonTransformationNode);
   void MoveCylinder(double value, vtkMRMLModelNode* Cylinder, vtkMRMLLinearTransformNode* CylinderTransformationNode);
+
+  void OpenDistractorFile();
+
+  static void startElement(void *userData, const XML_Char *name, const XML_Char **atts);
+  static void endElement(void *userData, const XML_Char *name);
 
  protected:
 

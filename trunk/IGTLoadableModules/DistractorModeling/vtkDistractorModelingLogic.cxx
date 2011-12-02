@@ -25,6 +25,9 @@
 #include "vtkMatrix4x4.h"
 
 #include <math.h>
+#include <fstream>
+#include <iostream>
+#include <iomanip>
 
 vtkCxxRevisionMacro(vtkDistractorModelingLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkDistractorModelingLogic);
@@ -62,6 +65,7 @@ vtkDistractorModelingLogic::vtkDistractorModelingLogic()
   this->Distractor1.newSliderAnchorZ = 0.0;
 
   this->Distractor1.PistonRotationAngle_deg = 0.0;
+
 }
 
 
@@ -274,4 +278,65 @@ void vtkDistractorModelingLogic::MoveCylinder(double value, vtkMRMLModelNode* Cy
   CylinderTransformation->Delete();
 }
 
+void vtkDistractorModelingLogic::OpenDistractorFile()
+{
+ // Test Read XML
+  std::filebuf *fbuf;
+  long size;
+  char *buffer;
 
+  std::ifstream file_in("/home/lchauvin/test.xml", ios::in);
+
+
+  XML_Parser parser = XML_ParserCreate(NULL);
+  XML_SetUserData(parser, NULL);
+
+  XML_SetElementHandler(parser, startElement, endElement);
+
+  fbuf = file_in.rdbuf();
+
+  size = fbuf->pubseekoff (0,ios::end,ios::in);
+
+  fbuf->pubseekpos (0,ios::in);
+
+  buffer = new char[size];
+
+  fbuf->sgetn (buffer, size);
+
+  XML_Parse(parser, buffer, size, NULL);
+
+
+  file_in.close();
+
+  XML_ParserFree(parser);
+
+  free(buffer);
+}
+
+void vtkDistractorModelingLogic::startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
+  int i;
+
+  std::cerr << name << std::endl;
+
+  for (i=0; atts[i] ; i+=2)
+    {
+    std::cerr << atts[i] << std::endl << "   "  << atts[i+1] << std::endl;
+    if(!strcmp(atts[i],"VTKFile"))
+      {
+      std::string line;
+      std::ifstream myfile(atts[i+1]);
+      if(myfile.is_open())
+        {
+        while(myfile.good())
+          {
+          getline(myfile,line);
+          std::cerr << line << std::endl;
+          }
+        myfile.close();
+        }
+      }
+    }
+}
+
+void vtkDistractorModelingLogic::endElement(void *userData, const XML_Char *name) {
+}
