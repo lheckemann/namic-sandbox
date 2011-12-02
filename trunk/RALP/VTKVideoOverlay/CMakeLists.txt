@@ -29,6 +29,7 @@ LINK_DIRECTORIES(${OPENCV_LIBRARY_DIRS})
 
 ADD_LIBRARY(vtkOpenCVSupport SHARED
   vtkOpenCVRendererDelegate.cxx
+  vtkOpenCVOpticalFlowCallback.cxx
 )
 
 ADD_EXECUTABLE(VTKVideoOverlay

@@ -34,11 +34,11 @@
 #include <vtkSmartPointer.h>
 
 #include "vtkOpenCVRendererDelegate.h"
+#include "vtkOpenCVOpticalFlowCallback.h"
 
 // OpenCV stuff
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/types_c.h"
-
 #include "opencv2/calib3d/calib3d.hpp"
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -52,21 +52,6 @@ using namespace std;
 
 vtkOpenCVRendererDelegate * CVRendererDelegate;
 
-// Optical tracking
-int           OpticalFlowTrackingFlag;
-cv::Mat       GrayImage;
-cv::Mat       PrevGrayImage;
-cv::Mat       SwapTempImage;
-int           PyrFlag;
-
-std::vector< cv::Point2f >  Points[2];
-std::vector< cv::Point2f >  SwapPoints;
-std::vector< cv::Point2f >  GridPoints[2];// = {0,0};
-std::vector< cv::Point2f >  RVector;
-
-char*         OpticalFlowStatus;
-
-
 //----------------------------------------------------------------
 // Timer
 //----------------------------------------------------------------
@@ -79,215 +64,12 @@ int TimerInterval;
 //----------------------------------------------------------------
 
 vtkRenderer*   BackgroundRenderer;
-vtkImageActor* BackgroundActor;
 int CameraActiveFlag;
 
+
 //----------------------------------------------------------------
-// Recording
+// Timer Callback
 //----------------------------------------------------------------
-
-#define NGRID_X  20
-#define NGRID_Y  20
-#define TIME_POINTS (30*30)
-
-cv::Point2f * MotionFieldBuffer;
-int           BufferIndex;
-int           FileIndex;
-
-vtkRenderWindow * renWin;
-
-
-#define BUFFER_SIZE 300
-
-int InitBuffer()
-{
-  BufferIndex = 0;
-  MotionFieldBuffer = new cv::Point2f[NGRID_X*NGRID_Y*BUFFER_SIZE];
-  FileIndex = 0;
-  return (MotionFieldBuffer? 1: 0);
-}
-
-
-int StoreMotionField()
-{
-  std::stringstream ss;
-
-  ss << "video_" << setfill ('0') << setw (3) << FileIndex << ".csv";
-
-  std::ofstream of(ss.str().c_str());
-  cv::Point2f * p = &MotionFieldBuffer[0];
-  
-  for (int i = 0; i < BUFFER_SIZE; i ++)
-    {
-    for (int i = 0; i < NGRID_X*NGRID_Y-1; i ++)
-      {
-      of << p->x << ", " << p->y << ", ";
-      p ++;
-      }
-    of << p->x << ", " << p->y << std::endl;
-    }
-
-  FileIndex ++;
-
-  of.close();
-}
-
-
-//----------------------------------------------------------------------------
-int ProcessMotion(std::vector<cv::Point2f>& vector)
-{
-  
-  if (MotionFieldBuffer == NULL)
-    {
-    return 0;
-    }
-
-  if (BufferIndex >= NGRID_X*NGRID_Y*BUFFER_SIZE)
-    {
-    StoreMotionField();
-    BufferIndex = 0;
-    }
-
-  cv::Point2f * p = &MotionFieldBuffer[BufferIndex];
-  
-  std::vector<cv::Point2f>::iterator iter;
-  for (iter = vector.begin(); iter != vector.end(); iter ++)
-    {
-    memcpy(p, &(*iter), sizeof(cv::Point2f));
-    p ++;
-    }
-
-  BufferIndex += NGRID_X*NGRID_Y;
-
-  return 1;
-}
-
-
-//----------------------------------------------------------------------------
-// Camera thread / Originally created by A. Yamada
-int CameraHandler()
-{
-  CVRendererDelegate->Capture();
-
-  unsigned int width, height;
-  CVRendererDelegate->GetImageSize(width, height);
-  double gridSpaceX = (double)width  / (double)(NGRID_X+1);
-  double gridSpaceY = (double)height / (double)(NGRID_Y+1);
-  
-  GridPoints[0].resize(NGRID_X*NGRID_Y);
-  GridPoints[1].resize(NGRID_X*NGRID_Y);
-  RVector.resize(NGRID_X*NGRID_Y);
-  
-  for (int i = 0; i < NGRID_X; i ++)
-    {
-    for (int j = 0; j < NGRID_Y; j ++)
-      {
-      GridPoints[0][i+j*NGRID_X].x = gridSpaceX*i + gridSpaceX;
-      GridPoints[0][i+j*NGRID_Y].y = gridSpaceY*j + gridSpaceY;
-      }
-    }
-
-  OpticalFlowStatus = (char*)cvAlloc(NGRID_X*NGRID_Y);
-    
-  /*
-  if (OpticalFlowTrackingFlag)
-    {
-    int win_size = 10;
-    int count = NGRID_X*NGRID_Y;
-    vector<uchar> status;
-    vector<float> err;
-    cv::Size subPixWinSize(10,10);
-    cv::Size winSize(31,31);
-    
-    if (PrevGrayImage.empty())
-      {
-      GrayImage.copyTo(PrevGrayImage);
-      }
-    
-    cv::calcOpticalFlowPyrLK( PrevGrayImage, GrayImage, GridPoints[0], GridPoints[1],
-                              status, err, winSize, 3, cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03));
-
-    double dx = 0.0;
-    double dy = 0.0;
-    
-    for(int i =  0; i < GridPoints[1].size(); i++ )
-      {
-      if( !status[i] )
-        {
-        GridPoints[1][i].x = GridPoints[0][i].x;
-        GridPoints[1][i].y = GridPoints[0][i].y;
-        }
-      dx = GridPoints[1][i].x - GridPoints[0][i].x;
-      dy = GridPoints[1][i].y - GridPoints[0][i].y;
-      
-      if (sqrt(dx*dx + dy*dy) > 50.0)
-        {
-        GridPoints[1][i].x = GridPoints[0][i].x;
-        GridPoints[1][i].y = GridPoints[0][i].y;
-        dx = 0.0;
-        dy = 0.0;
-        }
-      
-      RVector[i].x = dx;
-      RVector[i].y = dy;
-      cv::circle(RGBImage, GridPoints[0][i], 3, CV_RGB(0,255,255), -1, 8,0);
-      cv::line(RGBImage, GridPoints[0][i], GridPoints[1][i], CV_RGB(0,255,0), 2);
-      }
-    
-    cv::swap(PrevGrayImage, GrayImage);
-    std::swap(Points[1], Points[0]);
-    
-    ProcessMotion(RVector);
-    }
-    
-  unsigned char* idata;    
-  // 5/6/2010 ayamada ok for videoOverlay
-  idata = (unsigned char*) RGBImage.ptr();
-  
-  int dsize = imageSize.width*imageSize.height*3;
-  memcpy((void*)VideoImageData->GetScalarPointer(), (void*)idata, dsize);
-  
-  if (VideoImageData && BackgroundRenderer)
-    {
-    VideoImageData->Modified();
-    BackgroundRenderer->GetRenderWindow()->Render();
-    }
-  */
-
-  if (BackgroundRenderer)
-    {
-    BackgroundRenderer->GetRenderWindow()->Render();
-    }
-
-  return 1;
-  
-}
-
-
-//void Camera(vtkCamera *NaviCamera, double *Matrix, double FOV, int xx )
-//{
-//  this->focal_length = (cvmGet(this->intrinsicMatrix[xx], 0, 0) + cvmGet(this->intrinsicMatrix[xx], 1, 1)) / 2.0;
-//
-//   double F = focal_length;
-//   double * m = Matrix;
-//   double pos[3] = {m[3], m[7], m[11]};
-//
-//   this->focal_point_x = (VIEW_SIZE_X / 2.0) - cvmGet(this->intrinsicMatrix[xx], 0, 2);
-//   this->focal_point_y = (VIEW_SIZE_Y / 2.0) - cvmGet(this->intrinsicMatrix[xx], 1, 2);
-//
-//   double focal[3] = {    pos[0] + m[0] * focal_point_x + m[1] * focal_point_y + m[2] * (F),
-//       pos[1] + m[4] * focal_point_x + m[5] * focal_point_y + m[6] * (F),
-//       pos[2] + m[8] * focal_point_x + m[9] * focal_point_y + m[10] * (F)    };
-//
-//   double viewup[3] = {-m[1], -m[5], -m[9]};
-//
-//   NaviCamera->SetPosition(pos);
-//   NaviCamera->SetFocalPoint(focal);
-//   NaviCamera->SetViewUp(viewup);
-//   NaviCamera->SetClippingRange(0, 5 * F);
-//   NaviCamera->SetViewAngle(FOV);
-//}
-
 
 class vtkTimerCallback : public vtkCommand
 {
@@ -305,10 +87,13 @@ public:
       {
       if (CameraActiveFlag)
         {
-        CameraHandler();
+        CVRendererDelegate->Capture();
+        if (BackgroundRenderer)
+          {
+          BackgroundRenderer->GetRenderWindow()->Render();
+          }
         }
       }
-    //cout << this->TimerCount << endl;
   }
 };
 
@@ -405,10 +190,6 @@ int main(int argc, char * argv[])
     }
 
   //--------------------------------------------------
-  // Set up motion vector field recorder
-  InitBuffer();
-  
-  //--------------------------------------------------
   // Set up VTK
   int i;
   static float x[8][3]={{0,0,0}, {1,0,0}, {1,1,0}, {0,1,0},
@@ -455,14 +236,20 @@ int main(int argc, char * argv[])
   fgrenderer->ResetCamera();
   fgrenderer->SetBackground(1,1,1);
 
+  vtkOpenCVOpticalFlowCallback * OpticalFlow = vtkOpenCVOpticalFlowCallback::New();
+  CVRendererDelegate->SetOpenCVProcessImageCallback(OpticalFlow);
+
   // Renderer for the background (OpenCV image)
   //vtkRenderer *bgrenderer = vtkRenderer::New();
   BackgroundRenderer = vtkRenderer::New();
-  
+ 
   BackgroundRenderer->SetDelegate(CVRendererDelegate);
+  
+
   BackgroundRenderer->InteractiveOff();
 
   // Create render window
+  vtkRenderWindow * renWin;
   renWin = vtkRenderWindow::New();
   unsigned int width;
   unsigned int height;
@@ -489,7 +276,7 @@ int main(int argc, char * argv[])
   vtkTimerCallback* cb = vtkTimerCallback::New();
   iren->AddObserver(vtkCommand::TimerEvent, cb);
 
-  OpticalFlowTrackingFlag = 1;
+  //OpticalFlowTrackingFlag = 1;
   int timerId = iren->CreateRepeatingTimer(100);
   std::cout << "timerId: " << timerId << std::endl;  
 

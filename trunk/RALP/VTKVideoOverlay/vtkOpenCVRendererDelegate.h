@@ -22,6 +22,7 @@
 
 // VTK header files and prototypes
 #include "vtkRendererDelegate.h"
+#include "vtkCommand.h"
 
 class vtkImageActor;
 class vtkImageData;
@@ -36,8 +37,11 @@ class vtkMapper;
 
 class VTK_RENDERING_EXPORT vtkOpenCVRendererDelegate : public vtkRendererDelegate
 {
-
 public:
+
+  enum {
+    OpenCVProcessImageEvent = 18944,
+  };
 
   static vtkOpenCVRendererDelegate *New();
   vtkTypeMacro(vtkOpenCVRendererDelegate,vtkRendererDelegate);
@@ -50,6 +54,17 @@ public:
   // after calling ImportCameraCalibrationFile()
   vtkSetMacro(UseCameraMatrix, int);
   vtkGetMacro(UseCameraMatrix, int);
+
+  // Description:
+  // Set a OpenCVProcessImage handler, which is called after capturing
+  // each frame from OpenCV video source. The image processing routine must be
+  // implemented in the member function Execute(caller, eventId, callData),
+  // where caller is a pointer to the vtkOpenCVRendererDelegate class that
+  // calles the OpenCVProcessImage handler, eventId is 
+  // vtkOpenCVRendererDelegate::OpenCVProcessImageEvent and callData is
+  // a poniter to a color image data in cv::Mat type.
+  vtkSetObjectMacro(OpenCVProcessImageCallback, vtkCommand);
+  vtkGetObjectMacro(OpenCVProcessImageCallback, vtkCommand);
   
   // Description:
   // Set VideoCapture class as video source
@@ -110,6 +125,9 @@ protected:
   double                    FocalPointX;
   double                    FocalPointY;
   double                    FocalPointZ;
+
+  // Image processing handler
+  vtkCommand *              OpenCVProcessImageCallback;
   
 private:
 
