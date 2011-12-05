@@ -29,10 +29,12 @@
 #include "vtkCallbackCommand.h"
 
 #include "vtkMRMLSliceNode.h"
+#include "vtkSlicerModelsLogic.h"
 #include "expat.h"
 
 
 class vtkIGTLConnector;
+class vtkSlicerModelsLogic;
 
 class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlicerModuleLogic
 {
@@ -58,9 +60,15 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
     // TODO: Add filename
   }DistractorInfoStruct;
 
+
+  std::string RailModelPath;
+  std::string SliderModelPath;
+  std::string PistonModelPath;
+  std::string CylinderModelPath;
   //ETX
 
   DistractorInfoStruct  Distractor1;
+
 
  public:
 
@@ -82,6 +90,8 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
 
   static void startElement(void *userData, const XML_Char *name, const XML_Char **atts);
   static void endElement(void *userData, const XML_Char *name);
+
+  void LoadModel(const char* modelPath);
 
  protected:
 

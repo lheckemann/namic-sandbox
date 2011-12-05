@@ -74,6 +74,7 @@ vtkDistractorModelingGUI::vtkDistractorModelingGUI ( )
 
   this->MovingScale         = NULL;
 
+  this->LoadDistractorButton = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -135,6 +136,13 @@ vtkDistractorModelingGUI::~vtkDistractorModelingGUI ( )
     this->MovingScale->SetParent(NULL);
     this->MovingScale->Delete();
     this->MovingScale = NULL;
+    }
+
+  if(this->LoadDistractorButton)
+    {
+    this->LoadDistractorButton->SetParent(NULL);
+    this->LoadDistractorButton->Delete();
+    this->LoadDistractorButton = NULL;
     }
 
   if(this->SliderTransformNode)
@@ -233,6 +241,11 @@ void vtkDistractorModelingGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if(this->LoadDistractorButton)
+    {
+    this->LoadDistractorButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
 
   this->RemoveLogicObservers();
 
@@ -273,6 +286,9 @@ void vtkDistractorModelingGUI::AddGUIObservers ( )
 
   this->MovingScale
     ->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->LoadDistractorButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->AddLogicObservers();
 
@@ -387,6 +403,41 @@ void vtkDistractorModelingGUI::ProcessGUIEvents(vtkObject *caller,
 
       this->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
       this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
+
+      }
+    }
+
+  if(this->LoadDistractorButton == vtkKWPushButton::SafeDownCast(caller)
+     && event == vtkKWPushButton::InvokedEvent)
+    {
+    this->GetLogic()->OpenDistractorFile();
+
+    vtkSlicerModelsLogic* ModelsLogic = vtkSlicerModelsLogic::New();
+    ModelsLogic->SetMRMLScene(this->GetMRMLScene());
+
+    if(strcmp(this->GetLogic()->RailModelPath.c_str(),"") &&
+       strcmp(this->GetLogic()->SliderModelPath.c_str(),"") &&
+       strcmp(this->GetLogic()->PistonModelPath.c_str(), "") &&
+       strcmp(this->GetLogic()->CylinderModelPath.c_str(),""))
+      {
+      vtkMRMLModelNode* RailLoadedModel =  ModelsLogic->AddModel(this->GetLogic()->RailModelPath.c_str());
+      vtkMRMLModelNode* SliderLoadedModel =  ModelsLogic->AddModel(this->GetLogic()->SliderModelPath.c_str());
+      vtkMRMLModelNode* PistonLoadedModel =  ModelsLogic->AddModel(this->GetLogic()->PistonModelPath.c_str());
+      vtkMRMLModelNode* CylinderLoadedModel =  ModelsLogic->AddModel(this->GetLogic()->CylinderModelPath.c_str());
+
+      ModelsLogic->Delete();
+
+      if(this->RailSelector && RailLoadedModel &&
+         this->SliderSelector && SliderLoadedModel &&
+         this->PistonSelector && PistonLoadedModel &&
+         this->CylinderSelector && CylinderLoadedModel)
+        {
+        this->RailSelector->SetSelected(RailLoadedModel);
+        this->SliderSelector->SetSelected(SliderLoadedModel);
+        this->PistonSelector->SetSelected(PistonLoadedModel);
+        this->CylinderSelector->SetSelected(CylinderLoadedModel);
+        }
+
       }
     }
 
@@ -561,7 +612,12 @@ void vtkDistractorModelingGUI::BuildGUIForTestFrame1()
   this->MovingScale->Create();
   this->MovingScale->SetRange(-180,180);
 
-  this->Script("pack %s %s %s %s %s %s %s %s %s -side top -fill x -expand y -padx 2 -pady 2",
+  this->LoadDistractorButton = vtkKWPushButton::New();
+  this->LoadDistractorButton->SetParent(frame->GetFrame());
+  this->LoadDistractorButton->Create();
+  this->LoadDistractorButton->SetText("Load Distractor");
+
+  this->Script("pack %s %s %s %s %s %s %s %s %s %s -side top -fill x -expand y -padx 2 -pady 2",
                RailLabel->GetWidgetName(),
                this->RailSelector->GetWidgetName(),
                SliderLabel->GetWidgetName(),
@@ -570,7 +626,8 @@ void vtkDistractorModelingGUI::BuildGUIForTestFrame1()
                this->PistonSelector->GetWidgetName(),
                CylinderLabel->GetWidgetName(),
                this->CylinderSelector->GetWidgetName(),
-               this->MovingScale->GetWidgetName());
+               this->MovingScale->GetWidgetName(),
+               this->LoadDistractorButton->GetWidgetName());
 
 
   RailLabel->Delete();
