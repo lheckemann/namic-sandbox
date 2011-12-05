@@ -46,26 +46,48 @@ vtkDistractorModelingLogic::vtkDistractorModelingLogic()
   // Initialize Distractor values here
   // TODO: Move to Distractor selection when will be available
 
-  this->Distractor1.RotationCenter[0] = 47.70;
-  this->Distractor1.RotationCenter[1] = 0.0;
-  this->Distractor1.RotationCenter[2] = -15.0;
-
-  this->Distractor1.RailAnchor[0] = -42.7;
+/*
+  this->Distractor1.RailAnchor[0] = 47.70;
   this->Distractor1.RailAnchor[1] = 0.0;
-  this->Distractor1.RailAnchor[2] = -21.0;
+  this->Distractor1.RailAnchor[2] = -15.0;
 
   this->Distractor1.SliderAnchor[0] = -45.16;
   this->Distractor1.SliderAnchor[1] = 0.0;
   this->Distractor1.SliderAnchor[2] = -28.48;
 
+  this->Distractor1.PistonAnchor[0] = -42.7;
+  this->Distractor1.PistonAnchor[1] = 0.0;
+  this->Distractor1.PistonAnchor[2] = -21.0;
+
   this->Distractor1.CylinderAnchor[0] = this->Distractor1.SliderAnchor[0];
   this->Distractor1.CylinderAnchor[1] = 1.98;
   this->Distractor1.CylinderAnchor[2] = this->Distractor1.SliderAnchor[2];
+*/
+
+  this->Distractor1.RailAnchor[0] = 0;
+  this->Distractor1.RailAnchor[1] = 0;
+  this->Distractor1.RailAnchor[2] = 0;
+
+  this->Distractor1.SliderAnchor[0] = 0;
+  this->Distractor1.SliderAnchor[1] = 0;
+  this->Distractor1.SliderAnchor[2] = 0;
+
+  this->Distractor1.PistonAnchor[0] = 0;
+  this->Distractor1.PistonAnchor[1] = 0;
+  this->Distractor1.PistonAnchor[2] = 0;
+
+  this->Distractor1.CylinderAnchor[0] = 0;
+  this->Distractor1.CylinderAnchor[1] = 0;
+  this->Distractor1.CylinderAnchor[2] = 0;
 
   this->Distractor1.newSliderAnchorX = 0.0;
   this->Distractor1.newSliderAnchorZ = 0.0;
 
   this->Distractor1.PistonRotationAngle_deg = 0.0;
+
+  // Set High and random number to check if they have been initialize
+  this->Distractor1.Range[0] = -1102.0;
+  this->Distractor1.Range[1] = -1102.0;
 
   this->RailModelPath = "";
   this->SliderModelPath = "";
@@ -134,9 +156,9 @@ void vtkDistractorModelingLogic::MoveSlider(double value, vtkMRMLModelNode* Slid
   SliderTransformationMatrix->Identity();
 
   vtkTransform* SliderTranslation = vtkTransform::New();
-  SliderTranslation->Translate(SliderCenter[0] + this->Distractor1.RotationCenter[0],
-                               SliderCenter[1] + this->Distractor1.RotationCenter[1],
-                               SliderCenter[2] + this->Distractor1.RotationCenter[2]);
+  SliderTranslation->Translate(SliderCenter[0] + this->Distractor1.RailAnchor[0],
+                               SliderCenter[1] + this->Distractor1.RailAnchor[1],
+                               SliderCenter[2] + this->Distractor1.RailAnchor[2]);
 
 
   vtkTransform* SliderRotation = vtkTransform::New();
@@ -144,9 +166,9 @@ void vtkDistractorModelingLogic::MoveSlider(double value, vtkMRMLModelNode* Slid
 
 
   vtkTransform* SliderInvertTranslation = vtkTransform::New();
-  SliderInvertTranslation->Translate(-SliderCenter[0] - this->Distractor1.RotationCenter[0],
-                                     -SliderCenter[1] - this->Distractor1.RotationCenter[1],
-                                     -SliderCenter[2] - this->Distractor1.RotationCenter[2]);
+  SliderInvertTranslation->Translate(-SliderCenter[0] - this->Distractor1.RailAnchor[0],
+                                     -SliderCenter[1] - this->Distractor1.RailAnchor[1],
+                                     -SliderCenter[2] - this->Distractor1.RailAnchor[2]);
 
   SliderInvertTranslation->PostMultiply();
   SliderInvertTranslation->Concatenate(SliderRotation);
@@ -187,18 +209,18 @@ void vtkDistractorModelingLogic::MoveSlider(double value, vtkMRMLModelNode* Slid
 //---------------------------------------------------------------------------
 void vtkDistractorModelingLogic::MovePiston(double value, vtkMRMLModelNode* Piston, vtkMRMLLinearTransformNode* PistonTransformationNode)
 {
-  double PistonAnchor[3] = {this->Distractor1.RailAnchor[0],
-                            this->Distractor1.RailAnchor[1],
-                            this->Distractor1.RailAnchor[2]};
+  double PistonAnchor[3] = {this->Distractor1.PistonAnchor[0],
+                            this->Distractor1.PistonAnchor[1],
+                            this->Distractor1.PistonAnchor[2]};
 
   vtkTransform* PistonTranslation = vtkTransform::New();
   PistonTranslation->Translate(PistonAnchor[0],PistonAnchor[1],PistonAnchor[2]);
 
-  double gamma = atan2((this->Distractor1.newSliderAnchorZ-this->Distractor1.RailAnchor[2]),
-                       (this->Distractor1.newSliderAnchorX-this->Distractor1.RailAnchor[0]));
+  double gamma = atan2((this->Distractor1.newSliderAnchorZ-this->Distractor1.PistonAnchor[2]),
+                       (this->Distractor1.newSliderAnchorX-this->Distractor1.PistonAnchor[0]));
 
-  double beta = atan2((this->Distractor1.SliderAnchor[2]-this->Distractor1.RailAnchor[2]),
-                      (this->Distractor1.SliderAnchor[0]-this->Distractor1.RailAnchor[0]));
+  double beta = atan2((this->Distractor1.SliderAnchor[2]-this->Distractor1.PistonAnchor[2]),
+                      (this->Distractor1.SliderAnchor[0]-this->Distractor1.PistonAnchor[0]));
 
   this->Distractor1.PistonRotationAngle_deg = ((beta-gamma)*180/M_PI);
 
@@ -310,15 +332,17 @@ void vtkDistractorModelingLogic::OpenDistractorFile()
 
 void vtkDistractorModelingLogic::startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
   int i;
+  vtkDistractorModelingLogic* LoadClass = (vtkDistractorModelingLogic*)userData;
 
   for (i=0; atts[i] ; i+=2)
     {
+
+    // VTK Files
     if(!strcmp(atts[i],"VTKFile"))
       {
       std::stringstream pathFile;
       pathFile << atts[i+1];
 
-      vtkDistractorModelingLogic* LoadClass = (vtkDistractorModelingLogic*)userData;
       if(!strcmp(name,"Rail"))
         {
         LoadClass->RailModelPath = pathFile.str();
@@ -335,8 +359,61 @@ void vtkDistractorModelingLogic::startElement(void *userData, const XML_Char *na
         {
         LoadClass->CylinderModelPath = pathFile.str();
         }
-
       }
+
+    // Anchors
+    if(!strcmp(atts[i],"Anchor"))
+      {
+      std::stringstream anchor;
+      anchor << atts[i+1];
+      std::string buf;
+      std::vector<std::string> tokens;
+
+      while(anchor >> buf)
+        {
+        tokens.push_back(buf);
+        }
+
+      if(!strcmp(name,"Rail"))
+        {
+        LoadClass->Distractor1.RailAnchor[0] = atof(tokens[0].c_str());
+        LoadClass->Distractor1.RailAnchor[1] = atof(tokens[1].c_str());
+        LoadClass->Distractor1.RailAnchor[2] = atof(tokens[2].c_str());
+        }
+      else if(!strcmp(name,"Slider"))
+        {
+        LoadClass->Distractor1.SliderAnchor[0] = atof(tokens[0].c_str());
+        LoadClass->Distractor1.SliderAnchor[1] = atof(tokens[1].c_str());
+        LoadClass->Distractor1.SliderAnchor[2] = atof(tokens[2].c_str());
+        }
+      else if(!strcmp(name,"Piston"))
+        {
+        LoadClass->Distractor1.PistonAnchor[0] = atof(tokens[0].c_str());
+        LoadClass->Distractor1.PistonAnchor[1] = atof(tokens[1].c_str());
+        LoadClass->Distractor1.PistonAnchor[2] = atof(tokens[2].c_str());
+        }
+      else if(!strcmp(name,"Cylinder"))
+        {
+        LoadClass->Distractor1.CylinderAnchor[0] = atof(tokens[0].c_str());
+        LoadClass->Distractor1.CylinderAnchor[1] = atof(tokens[1].c_str());
+        LoadClass->Distractor1.CylinderAnchor[2] = atof(tokens[2].c_str());
+        }
+      }
+
+    // Range of motion
+    if(!strcmp(name,"Range"))
+      {
+      if(!strcmp(atts[i],"min"))
+        {
+        LoadClass->Distractor1.Range[0] = atof(atts[i+1]);
+        }
+      else if(!strcmp(atts[i],"max"))
+        {
+        LoadClass->Distractor1.Range[1] = atof(atts[i+1]);
+        }
+      }
+
+
     }
 }
 

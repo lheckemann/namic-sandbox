@@ -438,6 +438,13 @@ void vtkDistractorModelingGUI::ProcessGUIEvents(vtkObject *caller,
         this->CylinderSelector->SetSelected(CylinderLoadedModel);
         }
 
+      if(this->GetLogic()->Distractor1.Range[0] != -1102.0 &&
+         this->GetLogic()->Distractor1.Range[1] != -1102.0 &&
+         this->MovingScale)
+        {
+        this->MovingScale->SetRange(this->GetLogic()->Distractor1.Range[0],
+                                    this->GetLogic()->Distractor1.Range[1]);
+        }
       }
     }
 

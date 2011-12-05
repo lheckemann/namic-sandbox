@@ -47,9 +47,9 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
 
   // Distractor Info Structure
   typedef struct{
-    double RotationCenter[3];
     double RailAnchor[3];
     double SliderAnchor[3];
+    double PistonAnchor[3];
     double CylinderAnchor[3];
 
     double newSliderAnchorX;
@@ -57,7 +57,7 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
 
     double PistonRotationAngle_deg;
 
-    // TODO: Add filename
+    double Range[2];
   }DistractorInfoStruct;
 
 
