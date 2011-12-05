@@ -139,6 +139,8 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingGUI : public vtkSlicerM
 
   vtkKWScale* MovingScale;
 
+  vtkKWPushButton* LoadDistractorButton;
+
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
