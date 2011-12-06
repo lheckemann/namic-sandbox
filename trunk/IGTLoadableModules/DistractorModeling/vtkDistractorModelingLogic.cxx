@@ -300,8 +300,6 @@ void vtkDistractorModelingLogic::OpenDistractorFile(const char* xmlFile)
   this->xmlPath = DistractorPath.str();
   DistractorPath << "/Distractor.xml";
 
-  std::cerr << "(INSIDE) " << this->xmlPath << std::endl;
-
   // Avoid compiler warning about last argument of XML_Parse is NULL
   int dummy = 0;
 
