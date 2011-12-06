@@ -13,6 +13,7 @@ Version:   $Revision: 1.2 $
 =========================================================================auto=*/
 
 #include "vtkObjectFactory.h"
+#include "vtkSTLReader.h"
 
 #include "vtkMRMLTransPerinealProstateRobotNode.h"
 #include "vtkMRMLScene.h"
@@ -581,77 +582,52 @@ int vtkMRMLTransPerinealProstateRobotNode::SendZFrame()
 //----------------------------------------------------------------------------
 const char* vtkMRMLTransPerinealProstateRobotNode::AddWorkspaceModel(const char* nodeName)
 {
-  vtkMRMLModelNode           *workspaceModel;
-  vtkMRMLModelDisplayNode    *workspaceDisp;
-  
-  workspaceModel = vtkMRMLModelNode::New();
-  workspaceDisp  = vtkMRMLModelDisplayNode::New();
+  vtkSmartPointer< vtkMRMLModelNode >        modelNode   = vtkSmartPointer< vtkMRMLModelNode >::New();
+  vtkSmartPointer< vtkMRMLModelDisplayNode > displayNode = vtkSmartPointer< vtkMRMLModelDisplayNode >::New();
 
-  this->Scene->SaveStateForUndo();
-  this->Scene->AddNode(workspaceDisp);
-  this->Scene->AddNode(workspaceModel);
+  vtkSmartPointer <vtkSTLReader> modelReader=vtkSmartPointer<vtkSTLReader>::New();
 
-  workspaceDisp->SetScene(this->Scene);
-  workspaceModel->SetName(nodeName);
-  workspaceModel->SetScene(this->Scene);
-  workspaceModel->SetAndObserveDisplayNodeID(workspaceDisp->GetID());
-  workspaceModel->SetHideFromEditors(0);
+  vtksys_stl::string modelFileName=this->ModuleShareDirectory+"/TransPerinealProstateRobot/WorkspaceBRP.stl";
+  modelReader->SetFileName(modelFileName.c_str());
+  modelReader->Update();
 
-  // construct Z-frame model
-  
-  // Parameters
-  // offset from z-frame -- this will be a class variable to let users configure it in the future.
-  //const double offsetFromZFrame[] = {0, 22.76, 150.0};
-  const double offsetFromZFrame[] = {0, -4.43, 150.0};
-  const double length = 200.0;
+  vtkSmartPointer<vtkTransformPolyDataFilter> polyTrans = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  polyTrans->SetInputConnection(modelReader->GetOutputPort());
 
-  //----- cylinder 1 (R-A) -----
-  vtkCylinderSource *cylinder1 = vtkCylinderSource::New();
-  cylinder1->SetResolution(24);
-  cylinder1->SetRadius(25.0);
-  cylinder1->SetHeight(length);
-  cylinder1->SetCenter(0, 0, 0);
-  cylinder1->Update();
-  
-  vtkTransform* trans1 =   vtkTransform::New();
-  trans1->Translate(offsetFromZFrame);
-  trans1->RotateX(90.0);
-  trans1->Update();
-
-  vtkTransformPolyDataFilter *tfilter1 = vtkTransformPolyDataFilter::New();
-  tfilter1->SetInput(cylinder1->GetOutput());
-  tfilter1->SetTransform(trans1);
-  tfilter1->Update();
-
-
-  vtkAppendPolyData *apd = vtkAppendPolyData::New();
-  apd->AddInput(tfilter1->GetOutput());
-  //apd->AddInput(tfilter2->GetOutput());
-  apd->Update();
+  vtkSmartPointer<vtkTransform> modelTransform=vtkSmartPointer<vtkTransform>::New();
+  const double offsetFromZFrame[] = {0.0, 0.0, 0.0};
+  modelTransform->Translate(offsetFromZFrame);
+  modelTransform->Update();
+  polyTrans->SetTransform(modelTransform);
 
   vtkSmartPointer<vtkTriangleFilter> cleaner=vtkSmartPointer<vtkTriangleFilter>::New();
-  cleaner->SetInputConnection(apd->GetOutputPort());
+  cleaner->SetInputConnection(polyTrans->GetOutputPort());
+  cleaner->Update();
   
-  workspaceModel->SetAndObservePolyData(cleaner->GetOutput());
-
   double color[3];
   color[0] = 0.5;
   color[1] = 0.5;
   color[2] = 1.0;
-  workspaceDisp->SetPolyData(workspaceModel->GetPolyData());
-  workspaceDisp->SetColor(color);
-  workspaceDisp->SetOpacity(0.5);
-  
-  trans1->Delete();
-  tfilter1->Delete();
-  cylinder1->Delete();
-  apd->Delete();
+  displayNode->SetColor(color);
+  displayNode->SetOpacity(0.5);
 
-  const char* modelID = workspaceModel->GetID();
+  modelNode->SetAndObservePolyData(cleaner->GetOutput());
+  modelNode->SetModifiedSinceRead(1);
+  displayNode->SetModifiedSinceRead(1); 
+  displayNode->SliceIntersectionVisibilityOn();  
+  displayNode->VisibilityOn();
 
-  workspaceDisp->Delete();
-  workspaceModel->Delete();
+  this->Scene->SaveStateForUndo();
+  this->Scene->AddNode(modelNode);
+  this->Scene->AddNode(displayNode);
 
+  displayNode->SetScene(this->Scene);
+  modelNode->SetName(nodeName);
+  modelNode->SetScene(this->Scene);
+  modelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+  modelNode->SetHideFromEditors(0);
+
+  const char* modelID = modelNode->GetID();
   return modelID;
 
 }
@@ -1118,3 +1094,5 @@ std::string vtkMRMLTransPerinealProstateRobotNode::GetTargetInfoText(vtkProstate
   // :TODO: construct a string that contains useful information for the current target (reachable, etc.)
   return "";
 }
+
+

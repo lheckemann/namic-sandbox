@@ -158,7 +158,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkM
   const char* AddWorkspaceModel(const char* nodeName);
   const char* AddZFrameModel(const char* nodeName);
 
-  // NOTE: Since we couldn't update ScannerStatusLabelDisp and RobotStatusLabelDisp
+    // NOTE: Since we couldn't update ScannerStatusLabelDisp and RobotStatusLabelDisp
   // directly from ProcessMRMLEvent(), we added following flags to update those GUI
   // widgets in the timer handler.
   // if flag == 0, the widget does not need to be updated()
@@ -166,6 +166,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkM
   // if flag == 2, the connector has disconnected from the target
   int ScannerConnectedFlag;
   int RobotConnectedFlag;
+
 
 private:
 
