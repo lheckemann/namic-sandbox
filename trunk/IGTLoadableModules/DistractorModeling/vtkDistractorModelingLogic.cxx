@@ -74,6 +74,8 @@ vtkDistractorModelingLogic::vtkDistractorModelingLogic()
   this->SliderModelPath = "";
   this->PistonModelPath = "";
   this->CylinderModelPath = "";
+
+  this->xmlPath = "";
 }
 
 
@@ -293,10 +295,17 @@ void vtkDistractorModelingLogic::OpenDistractorFile(const char* xmlFile)
   long size;
   char *buffer;
 
+  std::stringstream DistractorPath;
+  DistractorPath << xmlFile;
+  this->xmlPath = DistractorPath.str();
+  DistractorPath << "/Distractor.xml";
+
+  std::cerr << "(INSIDE) " << this->xmlPath << std::endl;
+
   // Avoid compiler warning about last argument of XML_Parse is NULL
   int dummy = 0;
 
-  std::ifstream file_in(xmlFile, ios::in);
+  std::ifstream file_in(DistractorPath.str().c_str(), ios::in);
 
   XML_Parser parser = XML_ParserCreate(NULL);
   XML_SetUserData(parser, this);
@@ -325,7 +334,7 @@ void vtkDistractorModelingLogic::startElement(void *userData, const XML_Char *na
     if(!strcmp(atts[i],"VTKFile"))
       {
       std::stringstream pathFile;
-      pathFile << atts[i+1];
+      pathFile << LoadClass->xmlPath << "/" << atts[i+1];
 
       if(!strcmp(name,"Rail"))
         {

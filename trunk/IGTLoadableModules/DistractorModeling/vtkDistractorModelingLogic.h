@@ -65,6 +65,8 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
   std::string SliderModelPath;
   std::string PistonModelPath;
   std::string CylinderModelPath;
+
+  std::string xmlPath;
   //ETX
 
   DistractorInfoStruct  Distractor1;
