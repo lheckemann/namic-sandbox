@@ -44,25 +44,6 @@ vtkDistractorModelingLogic::vtkDistractorModelingLogic()
   this->DataCallbackCommand->SetCallback(vtkDistractorModelingLogic::DataCallback);
 
   // Initialize Distractor values here
-  // TODO: Move to Distractor selection when will be available
-
-/*
-  this->Distractor1.RailAnchor[0] = 47.70;
-  this->Distractor1.RailAnchor[1] = 0.0;
-  this->Distractor1.RailAnchor[2] = -15.0;
-
-  this->Distractor1.SliderAnchor[0] = -45.16;
-  this->Distractor1.SliderAnchor[1] = 0.0;
-  this->Distractor1.SliderAnchor[2] = -28.48;
-
-  this->Distractor1.PistonAnchor[0] = -42.7;
-  this->Distractor1.PistonAnchor[1] = 0.0;
-  this->Distractor1.PistonAnchor[2] = -21.0;
-
-  this->Distractor1.CylinderAnchor[0] = this->Distractor1.SliderAnchor[0];
-  this->Distractor1.CylinderAnchor[1] = 1.98;
-  this->Distractor1.CylinderAnchor[2] = this->Distractor1.SliderAnchor[2];
-*/
 
   this->Distractor1.RailAnchor[0] = 0;
   this->Distractor1.RailAnchor[1] = 0;
@@ -312,6 +293,9 @@ void vtkDistractorModelingLogic::OpenDistractorFile(const char* xmlFile)
   long size;
   char *buffer;
 
+  // Avoid compiler warning about last argument of XML_Parse is NULL
+  int dummy = 0;
+
   std::ifstream file_in(xmlFile, ios::in);
 
   XML_Parser parser = XML_ParserCreate(NULL);
@@ -322,7 +306,7 @@ void vtkDistractorModelingLogic::OpenDistractorFile(const char* xmlFile)
   fbuf->pubseekpos (0,ios::in);
   buffer = new char[size];
   fbuf->sgetn (buffer, size);
-  XML_Parse(parser, buffer, size, NULL);
+  XML_Parse(parser, buffer, size, dummy);
 
   file_in.close();
   XML_ParserFree(parser);
