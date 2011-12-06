@@ -86,7 +86,7 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
   void MovePiston(double value, vtkMRMLModelNode* Piston, vtkMRMLLinearTransformNode* PistonTransformationNode);
   void MoveCylinder(double value, vtkMRMLModelNode* Cylinder, vtkMRMLLinearTransformNode* CylinderTransformationNode);
 
-  void OpenDistractorFile();
+  void OpenDistractorFile(const char* xmlFile);
 
   static void startElement(void *userData, const XML_Char *name, const XML_Char **atts);
   static void endElement(void *userData, const XML_Char *name);

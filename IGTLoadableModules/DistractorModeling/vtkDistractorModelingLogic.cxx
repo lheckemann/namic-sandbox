@@ -305,14 +305,14 @@ void vtkDistractorModelingLogic::MoveCylinder(double value, vtkMRMLModelNode* Cy
   CylinderTransformation->Delete();
 }
 
-void vtkDistractorModelingLogic::OpenDistractorFile()
+void vtkDistractorModelingLogic::OpenDistractorFile(const char* xmlFile)
 {
   // Test Read XML
   std::filebuf *fbuf;
   long size;
   char *buffer;
 
-  std::ifstream file_in("/home/lchauvin/Distractor5cm.xml", ios::in);
+  std::ifstream file_in(xmlFile, ios::in);
 
   XML_Parser parser = XML_ParserCreate(NULL);
   XML_SetUserData(parser, this);

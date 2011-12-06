@@ -75,6 +75,7 @@ vtkDistractorModelingGUI::vtkDistractorModelingGUI ( )
   this->MovingScale         = NULL;
 
   this->LoadDistractorButton = NULL;
+  this->DistractorSelector   = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -143,6 +144,13 @@ vtkDistractorModelingGUI::~vtkDistractorModelingGUI ( )
     this->LoadDistractorButton->SetParent(NULL);
     this->LoadDistractorButton->Delete();
     this->LoadDistractorButton = NULL;
+    }
+
+  if(this->DistractorSelector)
+    {
+    this->DistractorSelector->SetParent(NULL);
+    this->DistractorSelector->Delete();
+    this->DistractorSelector = NULL;
     }
 
   if(this->SliderTransformNode)
@@ -247,6 +255,13 @@ void vtkDistractorModelingGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+/*
+  if(this->DistractorSelector)
+  {
+  this->DistractorSelector
+  ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+  }
+*/
   this->RemoveLogicObservers();
 
 }
@@ -289,6 +304,9 @@ void vtkDistractorModelingGUI::AddGUIObservers ( )
 
   this->LoadDistractorButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  // this->DistractorSelector
+  //  ->AddObserver(vtkKWFileBrowserDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->AddLogicObservers();
 
@@ -410,42 +428,59 @@ void vtkDistractorModelingGUI::ProcessGUIEvents(vtkObject *caller,
   if(this->LoadDistractorButton == vtkKWPushButton::SafeDownCast(caller)
      && event == vtkKWPushButton::InvokedEvent)
     {
-    this->GetLogic()->OpenDistractorFile();
+    this->DistractorSelector = vtkKWFileBrowserDialog::New();
+    this->DistractorSelector->SetApplication(this->GetApplication());
+    this->DistractorSelector->Create();
+    this->DistractorSelector->SaveDialogOff();
+    this->DistractorSelector->SetDefaultExtension(".xml");
+    this->DistractorSelector->SetFileTypes("{{Distractor File} {.xml}}");
+    this->DistractorSelector->ChooseDirectoryOff();
+    this->DistractorSelector->MultipleSelectionOff();
+    this->DistractorSelector->Invoke();
 
-    vtkSlicerModelsLogic* ModelsLogic = vtkSlicerModelsLogic::New();
-    ModelsLogic->SetMRMLScene(this->GetMRMLScene());
-
-    if(strcmp(this->GetLogic()->RailModelPath.c_str(),"") &&
-       strcmp(this->GetLogic()->SliderModelPath.c_str(),"") &&
-       strcmp(this->GetLogic()->PistonModelPath.c_str(), "") &&
-       strcmp(this->GetLogic()->CylinderModelPath.c_str(),""))
+    if(this->DistractorSelector->GetStatus() == vtkKWDialog::StatusOK &&
+       !strcmp(this->DistractorSelector->GetCurrentFileExtensions(),".xml"))
       {
-      vtkMRMLModelNode* RailLoadedModel =  ModelsLogic->AddModel(this->GetLogic()->RailModelPath.c_str());
-      vtkMRMLModelNode* SliderLoadedModel =  ModelsLogic->AddModel(this->GetLogic()->SliderModelPath.c_str());
-      vtkMRMLModelNode* PistonLoadedModel =  ModelsLogic->AddModel(this->GetLogic()->PistonModelPath.c_str());
-      vtkMRMLModelNode* CylinderLoadedModel =  ModelsLogic->AddModel(this->GetLogic()->CylinderModelPath.c_str());
+      this->GetLogic()->OpenDistractorFile(this->DistractorSelector->GetFileName());
 
-      ModelsLogic->Delete();
+      vtkSlicerModelsLogic* ModelsLogic = vtkSlicerModelsLogic::New();
+      ModelsLogic->SetMRMLScene(this->GetMRMLScene());
 
-      if(this->RailSelector && RailLoadedModel &&
-         this->SliderSelector && SliderLoadedModel &&
-         this->PistonSelector && PistonLoadedModel &&
-         this->CylinderSelector && CylinderLoadedModel)
+      if(strcmp(this->GetLogic()->RailModelPath.c_str(),"")    &&
+         strcmp(this->GetLogic()->SliderModelPath.c_str(),"")  &&
+         strcmp(this->GetLogic()->PistonModelPath.c_str(), "") &&
+         strcmp(this->GetLogic()->CylinderModelPath.c_str(),""))
         {
-        this->RailSelector->SetSelected(RailLoadedModel);
-        this->SliderSelector->SetSelected(SliderLoadedModel);
-        this->PistonSelector->SetSelected(PistonLoadedModel);
-        this->CylinderSelector->SetSelected(CylinderLoadedModel);
-        }
+        vtkMRMLModelNode* RailLoadedModel     = ModelsLogic->AddModel(this->GetLogic()->RailModelPath.c_str());
+        vtkMRMLModelNode* SliderLoadedModel   = ModelsLogic->AddModel(this->GetLogic()->SliderModelPath.c_str());
+        vtkMRMLModelNode* PistonLoadedModel   = ModelsLogic->AddModel(this->GetLogic()->PistonModelPath.c_str());
+        vtkMRMLModelNode* CylinderLoadedModel = ModelsLogic->AddModel(this->GetLogic()->CylinderModelPath.c_str());
 
-      if(this->GetLogic()->Distractor1.Range[0] != -1102.0 &&
-         this->GetLogic()->Distractor1.Range[1] != -1102.0 &&
-         this->MovingScale)
-        {
-        this->MovingScale->SetRange(this->GetLogic()->Distractor1.Range[0],
-                                    this->GetLogic()->Distractor1.Range[1]);
+        ModelsLogic->Delete();
+
+        if(this->RailSelector && RailLoadedModel     &&
+           this->SliderSelector && SliderLoadedModel &&
+           this->PistonSelector && PistonLoadedModel &&
+           this->CylinderSelector && CylinderLoadedModel)
+          {
+          this->RailSelector->SetSelected(RailLoadedModel);
+          this->SliderSelector->SetSelected(SliderLoadedModel);
+          this->PistonSelector->SetSelected(PistonLoadedModel);
+          this->CylinderSelector->SetSelected(CylinderLoadedModel);
+          }
+
+        if(this->GetLogic()->Distractor1.Range[0] != -1102.0 &&
+           this->GetLogic()->Distractor1.Range[1] != -1102.0 &&
+           this->MovingScale)
+          {
+          this->MovingScale->SetRange(this->GetLogic()->Distractor1.Range[0],
+                                      this->GetLogic()->Distractor1.Range[1]);
+          }
         }
       }
+
+    this->DistractorSelector->Delete();
+    this->DistractorSelector = NULL;
     }
 
 }
