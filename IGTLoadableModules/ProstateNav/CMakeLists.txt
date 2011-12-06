@@ -107,6 +107,26 @@ foreach(TransRectalRobotFile
     )
 endforeach(TransRectalRobotFile)  
 
+set(TransPerinealRobotSubdir TransPerinealProstateRobot)
+foreach(TransPerinealRobotFile 
+  WorkspaceBRP.stl
+  )
+  # Copy to the build tree (for Slicer execution in the Slicer3-build directory)
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/${TransPerinealRobotSubdir}/${TransPerinealRobotFile}
+    ${CMAKE_BINARY_DIR}/${Slicer3_INSTALL_MODULES_SHARE_DIR}/${PROJECT_NAME}/${TransPerinealRobotSubdir}/${TransPerinealRobotFile}
+    COPYONLY
+    )
+  # Copy to the installation target (for Slicer execution when it is installed)
+  install(
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/${TransPerinealRobotSubdir}/${TransPerinealRobotFile} 
+    DESTINATION ${Slicer3_INSTALL_MODULES_SHARE_DIR}/${PROJECT_NAME}/${TransPerinealRobotSubdir}
+    )
+endforeach(TransPerinealRobotFile)  
+
+
+
+
 # --------------------------------------------------------------------------
 # Sources
 
