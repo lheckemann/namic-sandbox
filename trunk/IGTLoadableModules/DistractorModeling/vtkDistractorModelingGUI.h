@@ -26,6 +26,7 @@
 #include "vtkKWScale.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMatrix4x4.h"
+#include "vtkKWFileBrowserDialog.h"
 
 #include "vtkDistractorModelingLogic.h"
 
@@ -34,6 +35,7 @@ class vtkSlicerNodeSelectorWidget;
 class vtkKWScale;
 class vtkMRMLModelNode;
 class vtkMatrix4x4;
+class vtkKWFileBrowserDialog;
 
 class VTK_DistractorModeling_EXPORT vtkDistractorModelingGUI : public vtkSlicerModuleGUI
 {
@@ -140,6 +142,8 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingGUI : public vtkSlicerM
   vtkKWScale* MovingScale;
 
   vtkKWPushButton* LoadDistractorButton;
+
+  vtkKWFileBrowserDialog * DistractorSelector;
 
   //----------------------------------------------------------------
   // Logic Values
