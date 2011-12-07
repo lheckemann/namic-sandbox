@@ -23,7 +23,11 @@
 
 // VTK header files and prototypes
 #include "vtkObject.h"
-#include "vtkCommand.h"
+#include "vtkMatrix4x4.h"
+#include "vtkOpenCVCallback.h"
+
+class vtkCamera;
+
 
 // OpenCV header files and protoptyes
 #include "opencv2/core/core.hpp"
@@ -35,22 +39,36 @@
 #define NGRID_Y  20
 #define TIME_POINTS (30*30)
 
-class VTK_COMMON_EXPORT vtkOpenCVOpticalFlowCallback : public vtkCommand
+class VTK_COMMON_EXPORT vtkOpenCVOpticalFlowCallback : public vtkOpenCVCallback
 {
   
 public:
-  vtkTypeMacro(vtkOpenCVOpticalFlowCallback, vtkCommand);
+  vtkTypeMacro(vtkOpenCVOpticalFlowCallback, vtkOpenCVCallback);
 
   static vtkOpenCVOpticalFlowCallback *New()
   {
     return new vtkOpenCVOpticalFlowCallback;
   };
   
+  // Description:
+  // SetCameraTransform() sets the current position and orientation of the
+  // camera in the coordinate system in vtkMatrix4x4 format.
+  vtkSetObjectMacro(CameraTransform, vtkMatrix4x4);
+  vtkGetObjectMacro(CameraTransform, vtkMatrix4x4);
+
   int InitBuffer();
   int StoreMotionField();
   int ProcessMotion(std::vector<cv::Point2f>& vector);
   virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long eventId, void *callData);
+
+  //BTX
+  void SetCameraMatrix(cv::Mat & mat);
+  void SetCameraImageSize(cv::Size & size);
+  //ETX
+
+  int UpdateModelCamera(vtkCamera *camera, double rheight);
   
+  //BTX
 protected:
   vtkOpenCVOpticalFlowCallback();
   ~vtkOpenCVOpticalFlowCallback();
@@ -68,8 +86,14 @@ protected:
   cv::Point2f * MotionFieldBuffer;
   int           BufferIndex;
   int           FileIndex;
-  
 
+  // Current camera position and orientation
+  vtkMatrix4x4 *            CameraTransform;
+
+  // Camera parameters
+  cv::Mat                   CameraMatrix;
+  cv::Size                  CalibratedImageSize;
+ //ETX
   
 };
 

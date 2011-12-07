@@ -30,8 +30,7 @@
 #include "vtkCommand.h"
 #include "vtkCellData.h"
 #include "vtkImageActor.h"
-
-#include <vtkSmartPointer.h>
+#include "vtkSmartPointer.h"
 
 #include "vtkOpenCVRendererDelegate.h"
 #include "vtkOpenCVOpticalFlowCallback.h"
@@ -43,8 +42,6 @@
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
-
-using namespace std;
 
 //----------------------------------------------------------------
 // Video import
@@ -240,12 +237,8 @@ int main(int argc, char * argv[])
   CVRendererDelegate->SetOpenCVProcessImageCallback(OpticalFlow);
 
   // Renderer for the background (OpenCV image)
-  //vtkRenderer *bgrenderer = vtkRenderer::New();
   BackgroundRenderer = vtkRenderer::New();
- 
   BackgroundRenderer->SetDelegate(CVRendererDelegate);
-  
-
   BackgroundRenderer->InteractiveOff();
 
   // Create render window
@@ -289,10 +282,6 @@ int main(int argc, char * argv[])
   //--------------------------------------------------
   // Clean up OpenCV
   CameraActiveFlag = 0;
-
-  //cvReleaseCapture(&capture);
-  //vtkSlicerViewerWidget* vwidget = GetApplicationGUI()->GetNthViewerWidget(0);
-  //ViewerBackgroundOff(renWin);
 
   //--------------------------------------------------
   // Clean up VTK

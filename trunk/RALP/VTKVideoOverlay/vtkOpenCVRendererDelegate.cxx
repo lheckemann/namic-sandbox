@@ -22,6 +22,7 @@
 #include "vtkCamera.h"
 #include "vtkTextProperty.h"
 #include "vtkOpenCVRendererDelegate.h"
+#include "vtkMatrix4x4.h"
 
 // OpenCV header files
 #include "opencv2/core/core.hpp"
@@ -65,6 +66,7 @@ void vtkOpenCVRendererDelegate::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
+
 
 //----------------------------------------------------------------------------
 int vtkOpenCVRendererDelegate::SetVideoCapture(cv::VideoCapture * capture)
@@ -306,7 +308,6 @@ void vtkOpenCVRendererDelegate::Render(vtkRenderer *r)
   
 }
 
-
 //----------------------------------------------------------------------------
 void vtkOpenCVRendererDelegate::InitUndistort(int rows, int cols, cv::InputArray _cameraMatrix,
                    cv::InputArray _distCoeffs,
@@ -374,4 +375,5 @@ void vtkOpenCVRendererDelegate::FastUndistort( cv::InputArray _src, cv::OutputAr
     }
 
 }
+
 

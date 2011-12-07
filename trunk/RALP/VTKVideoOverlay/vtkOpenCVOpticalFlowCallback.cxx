@@ -19,6 +19,9 @@
 #include "vtkOpenCVOpticalFlowCallback.h"
 #include "vtkOpenCVRendererDelegate.h"
 
+#include "vtkMatrix4x4.h"
+#include "vtkCamera.h"
+
 // OpenCV stuff
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/types_c.h"
@@ -36,6 +39,7 @@
 //----------------------------------------------------------------------------
 vtkOpenCVOpticalFlowCallback::vtkOpenCVOpticalFlowCallback()
 {
+  this->CameraTransform = NULL;
   InitBuffer();
 }
 
@@ -44,10 +48,6 @@ vtkOpenCVOpticalFlowCallback::vtkOpenCVOpticalFlowCallback()
 vtkOpenCVOpticalFlowCallback::~vtkOpenCVOpticalFlowCallback()
 {
 }
-
-
-//----------------------------------------------------------------------------
-
 
 
 //----------------------------------------------------------------------------
@@ -139,6 +139,7 @@ void vtkOpenCVOpticalFlowCallback::Execute(vtkObject * caller, unsigned long eve
     
     for (int i = 0; i < NGRID_X; i ++)
       {
+
       for (int j = 0; j < NGRID_Y; j ++)
         {
         GridPoints[0][i+j*NGRID_X].x = gridSpaceX*i + gridSpaceX;
@@ -196,9 +197,70 @@ void vtkOpenCVOpticalFlowCallback::Execute(vtkObject * caller, unsigned long eve
     cv::swap(PrevGrayImage, GrayImage);
     std::swap(Points[1], Points[0]);
 
+    // Import camera parameter
+    SetCameraMatrix(CVRendererDelegate->CameraMatrix);
+    SetCameraImageSize(CVRendererDelegate->CalibratedImageSize);
+    
     ProcessMotion(RVector);
     }
 
 }
 
 
+//----------------------------------------------------------------------------
+void vtkOpenCVOpticalFlowCallback::SetCameraMatrix(cv::Mat & mat)
+{
+  this->CameraMatrix = mat;
+}
+
+
+//----------------------------------------------------------------------------
+void vtkOpenCVOpticalFlowCallback::SetCameraImageSize(cv::Size & size)
+{
+  this->CalibratedImageSize = size;
+}
+
+
+//----------------------------------------------------------------------------
+int vtkOpenCVOpticalFlowCallback::UpdateModelCamera(vtkCamera *camera, double rheight)
+{
+  if (!this->CameraTransform)
+    {
+    return 0;
+    }
+  
+  // Camera position
+  double x = this->CameraTransform->GetElement(0, 3);
+  double y = this->CameraTransform->GetElement(1, 3);
+  double z = this->CameraTransform->GetElement(2, 3);
+
+  double focalPointX = (this->CalibratedImageSize.width / 2.0) - this->CameraMatrix.at<double>(0, 2);
+  double focalPointY = (this->CalibratedImageSize.height / 2.0) - this->CameraMatrix.at<double>(1, 2);
+  double focalLength = (this->CameraMatrix.at<double>(0, 0) + this->CameraMatrix.at<double>(1, 1))  / 2.0;
+
+  double focal[3];
+  focal[0] = x + this->CameraTransform->GetElement(0, 0) * focalPointX 
+    + this->CameraTransform->GetElement(0, 1) * focalPointY 
+    + this->CameraTransform->GetElement(0, 2) * focalLength;
+  focal[1] = y + this->CameraTransform->GetElement(1, 0) * focalPointX
+    + this->CameraTransform->GetElement(1, 1) * focalPointY
+    + this->CameraTransform->GetElement(1, 2) * focalLength;
+  focal[2] = z + this->CameraTransform->GetElement(2, 0) * focalPointX
+    + this->CameraTransform->GetElement(2, 1) * focalPointY
+    + this->CameraTransform->GetElement(2, 2) * focalLength;
+    
+  double viewup[3];
+  viewup[0] = this->CameraTransform->GetElement(0, 1);
+  viewup[1] = this->CameraTransform->GetElement(1, 1);
+  viewup[2] = this->CameraTransform->GetElement(3, 1);
+
+  camera->SetPosition(x, y, z);
+  camera->SetFocalPoint(focal);
+  camera->SetViewUp(viewup);
+  camera->SetClippingRange(0, 5 * focalLength); // TODO: The range is set 5 * focal length tentatively.
+  camera->SetViewAngle(rheight);
+  // angle = 2*atan((h/2)/d) where h is the height of the RenderWindow (measured by holding a ruler up to your screen) and d is the distance from your eyes to the screen.
+
+  return 0;
+  
+}
