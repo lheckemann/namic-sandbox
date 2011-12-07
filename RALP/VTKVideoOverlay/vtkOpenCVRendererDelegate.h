@@ -22,7 +22,7 @@
 
 // VTK header files and prototypes
 #include "vtkRendererDelegate.h"
-#include "vtkCommand.h"
+#include "vtkOpenCVCallback.h"
 
 class vtkImageActor;
 class vtkImageData;
@@ -47,7 +47,6 @@ public:
   vtkTypeMacro(vtkOpenCVRendererDelegate,vtkRendererDelegate);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  
   // Description:
   // SetUseCameraMatrix(1) activates the use of camera calibration matrix.
   // Note that the camera calibration is not automatically activated
@@ -63,8 +62,8 @@ public:
   // calles the OpenCVProcessImage handler, eventId is 
   // vtkOpenCVRendererDelegate::OpenCVProcessImageEvent and callData is
   // a poniter to a color image data in cv::Mat type.
-  vtkSetObjectMacro(OpenCVProcessImageCallback, vtkCommand);
-  vtkGetObjectMacro(OpenCVProcessImageCallback, vtkCommand);
+  vtkSetObjectMacro(OpenCVProcessImageCallback, vtkOpenCVCallback);
+  vtkGetObjectMacro(OpenCVProcessImageCallback, vtkOpenCVCallback);
   
   // Description:
   // Set VideoCapture class as video source
@@ -95,6 +94,11 @@ public:
   virtual void Render(vtkRenderer *r);
 
 //BTX
+  cv::Mat * GetCameraMatrix();
+  cv::Size * GetCalibratedImageSize();
+//ETX
+
+//BTX
 protected:
   
   vtkOpenCVRendererDelegate();
@@ -120,15 +124,15 @@ protected:
   std::vector< cv::Mat >    Map1Array;
   std::vector< cv::Mat >    Map2Array;
 
-  // VTK camera parameters
+  // VTK camera parameters for background (video image)
   double                    ParallelScale;
   double                    FocalPointX;
   double                    FocalPointY;
   double                    FocalPointZ;
 
   // Image processing handler
-  vtkCommand *              OpenCVProcessImageCallback;
-  
+  vtkOpenCVCallback *       OpenCVProcessImageCallback;
+
 private:
 
   vtkOpenCVRendererDelegate(const vtkOpenCVRendererDelegate&);  // Not implemented.
@@ -148,6 +152,8 @@ private:
                       std::vector< cv::Mat >& _map1_array,
                       std::vector< cv::Mat >& _map2_array,
                       int rows, int cols);
+
+  friend class vtkOpenCVOpticalFlowCallback;
   
 //ETX
 };
