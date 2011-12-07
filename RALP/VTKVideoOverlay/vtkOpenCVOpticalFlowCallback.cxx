@@ -310,6 +310,18 @@ void vtkOpenCVOpticalFlowCallback::OpticalFlowModel(double * xy,
 }
 
 
+////----------------------------------------------------------------------------
+//void vtkOpenCVOpticalFlowCallback::GenerateEigenVectors()
+//{
+//  std::vector< double[2] >::iterator iter;
+//  
+//  int n;   // number of feature points
+//  int m;   // number of eigen vectors
+//
+//  std::Mat T;  // Column vectors in T are eigenvectors of motion
+//  mat.reshape(n, m-1);
+//  
+//}
 
 
 
