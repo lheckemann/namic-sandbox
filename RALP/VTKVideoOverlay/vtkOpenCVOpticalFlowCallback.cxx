@@ -264,3 +264,53 @@ int vtkOpenCVOpticalFlowCallback::UpdateModelCamera(vtkCamera *camera, double rh
   return 0;
   
 }
+
+
+//----------------------------------------------------------------------------
+void vtkOpenCVOpticalFlowCallback::OpticalFlowModel(double * xy,
+                                                    double * Om,
+                                                    double * T,
+                                                    double f,
+                                                    double zoom,
+                                                    double * uv)
+{
+  // Generates vector field based on a motion model.
+  //
+  // double x, y;          // Position of the point on the image
+  // double Z;             // Z-position of the point in the camera coordinate system
+  // double TX, TY, TZ;    // Translation of the camera
+  // double OmX, OmY, OmZ; // Rotation of the camera around X, Y, and Z axis.
+  // double f;             // Focal length
+  // double zoom;          // Camera zoom
+  // 
+  // The optical flows generated at a point on an image plane by the motion of the
+  // camera (u(x, y), v(x, y)) is expressed as:
+  //
+  //   u = - (f/Z) * TX + (x*y/f) * OmX - f (1 + (x*x)/(f*f)) * OmY + y * OmZ
+  //       + f * atan(x/f)*(1+(x*x)/(f*f)) * zoom;
+  //   v = - (f/Z) * TX - (x*y/f) * OmX + f (1 + (x*x)/(f*f)) * OmY - y * OmZ
+  //       + f * atan(x/f)*(1+(x*x)/(f*f)) * zoom;
+  //
+  // We simplify the above equations by the following assumptions:
+  // (Park S.C. et al, Quantitative estimation of camera motion parameters
+  // from the linear composition of optical flow, Pattern Recognition 2004; 37:767-779)
+  //
+  //   u = u_trans + u_rot
+  //   v = v_trans + v_rot
+  //
+  // The translational component can be approximiatedas u_trans ~= -Tx, v_trans = -Ty
+  // With the assumption that x/f << 1 and y/f << 1, the rotatinoal component of 
+  // u and v are:
+  //
+  //   u_rot = - f * OmY + y * OmZ + x * zoom;
+  //   v_rot =   f * OmZ - x * OmZ + y * zoom;
+  //
+  uv[0] = - T[0] + - f * Om[1] + xy[1] * Om[2] + xy[0] * zoom;
+  uv[1] = - T[1] +  f * Om[0] - xy[0] * Om[2] + xy[1] * zoom;
+}
+
+
+
+
+
+

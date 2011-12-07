@@ -73,6 +73,18 @@ protected:
   vtkOpenCVOpticalFlowCallback();
   ~vtkOpenCVOpticalFlowCallback();
   
+  // Description:
+  // RotationalMotionModel() is used to generate a motion vector field based
+  // on a model used in Park S.C. et al, Pattern Recognition 2004; 37:767-779.
+  // The following argments must be specified:
+  //   xy[2]: 2D position of the point on the camera image
+  //   Om[3]: Camera rotation around X, Y and Z axes
+  //   T[3]:  Camera translation along X, Y and Z axes
+  //   f:     Focul length
+  //   zoom:  Camera zoom
+  //   uv[2]: Output vector
+  inline void OpticalFlowModel(double * xy, double * Om, double * T, double f, double zoom, double * uv);
+  
   //int           OpticalFlowTrackingFlag;
   cv::Mat GrayImage;
   cv::Mat PrevGrayImage;
