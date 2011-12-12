@@ -13,8 +13,8 @@ SET(TEMP ${CMAKE_BINARY_DIR}/Testing/Temporary)
 
 ADD_EXECUTABLE(itkPrincipalComponentsAnalysisTest1 itkPrincipalComponentsAnalysisTest1.cxx )
 ADD_EXECUTABLE(itkPrincipalComponentsAnalysisTest2 itkPrincipalComponentsAnalysisTest2.cxx )
-TARGET_LINK_LIBRARIES(itkPrincipalComponentsAnalysisTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
-TARGET_LINK_LIBRARIES(itkPrincipalComponentsAnalysisTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
+TARGET_LINK_LIBRARIES(itkPrincipalComponentsAnalysisTest1 ${ITK_LIBRARIES})
+TARGET_LINK_LIBRARIES(itkPrincipalComponentsAnalysisTest2 ${ITK_LIBRARIES})
 
 ###################
 ###################
