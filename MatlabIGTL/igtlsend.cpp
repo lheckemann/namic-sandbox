@@ -63,6 +63,7 @@ int checkArguments(int nlhs, mxArray *plhs[],
 
 int procTransformData(int sd, const char* name, const mxArray *ptr);
 int procImageData(int sd, const char* name, const mxArray *ptr);
+template<typename DATATYPE> void procTypedImageData(int sd, const char* name, const mxArray* imField, const mxArray* trField, DATATYPE dtype);
 
 //int checkData(const char* type, const mxArray* prhs);
 
@@ -72,7 +73,7 @@ int procImageData(int sd, const char* name, const mxArray *ptr);
 void mexFunction (int nlhs, mxArray *plhs[],
                   int nrhs, const mxArray *prhs[])
 {
-
+  
   // ---------------------------------------------------------------
   // Get reference to return value
   double& retVal = createMatlabScalar(plhs[0]);
@@ -103,6 +104,7 @@ void mexFunction (int nlhs, mxArray *plhs[],
     }
   mxGetString(typeField, type, MAX_STRING_LEN);
 
+  
   // Get DATA.name
   mxArray*  nameField = mxGetField(prhs[ARG_ID_DATA], 0, "Name");
   if (nameField == NULL)
@@ -113,6 +115,7 @@ void mexFunction (int nlhs, mxArray *plhs[],
     }
   mxGetString(nameField, name, MAX_STRING_LEN);
 
+  
   // ---------------------------------------------------------------
   // Process data field and send through OpenIGTLink connection
   int r;
@@ -124,12 +127,11 @@ void mexFunction (int nlhs, mxArray *plhs[],
     {
     r = procImageData(sd, name, prhs[ARG_ID_DATA]);
     }
-
+  
   // ---------------------------------------------------------------
   // Return result to Matlab
-
+  
   retVal = r;
-
 }
 
 int checkArguments(int nlhs, mxArray *plhs[],
@@ -234,18 +236,43 @@ int procTransformData(int sd, const char* name, const mxArray *ptr)
 
 }
 
+
 int procImageData(int sd, const char* name, const mxArray *ptr)
 {
-
   mxArray* imageField =  mxGetField(ptr, 0, "Image");
   mxArray* transField =  mxGetField(ptr, 0, "Trans");
 
-  double*     rdata    = mxGetPr(imageField);
-  int ndim             = mxGetNumberOfDimensions(imageField);
-  const mwSize*  s     = mxGetDimensions(imageField);
+  mxClassID DataType;
+  DataType = mxGetClassID(imageField);
+
+  switch(DataType)
+    {
+    case mxINT8_CLASS:    { igtlInt8 dummy = igtl::ImageMessage::TYPE_INT8; procTypedImageData(sd, name, imageField, transField, dummy); break; }
+    case mxUINT8_CLASS:   { igtlUint8 dummy = igtl::ImageMessage::TYPE_UINT8; procTypedImageData(sd, name, imageField, transField, dummy); break; } 
+    case mxINT16_CLASS:   { igtlInt16 dummy = igtl::ImageMessage::TYPE_INT16; procTypedImageData(sd, name, imageField, transField, dummy); break; }
+    case mxUINT16_CLASS:  { igtlUint16 dummy = igtl::ImageMessage::TYPE_UINT16; procTypedImageData(sd, name, imageField, transField, dummy); break; }
+    case mxINT32_CLASS:   { igtlInt32 dummy = igtl::ImageMessage::TYPE_INT32; procTypedImageData(sd, name, imageField, transField, dummy); break; }
+    case mxUINT32_CLASS:  { igtlUint32 dummy = igtl::ImageMessage::TYPE_UINT32; procTypedImageData(sd, name, imageField, transField, dummy); break; }
+    case mxSINGLE_CLASS:  { igtlFloat32 dummy = igtl::ImageMessage::TYPE_FLOAT32; procTypedImageData(sd, name, imageField, transField, dummy); break; }
+    case mxDOUBLE_CLASS:  { igtlFloat64 dummy = igtl::ImageMessage::TYPE_FLOAT64; procTypedImageData(sd, name, imageField, transField, dummy); break; }
+    default:              { igtlFloat32 dummy = igtl::ImageMessage::TYPE_FLOAT32; procTypedImageData(sd, name, imageField, transField, dummy); break; }          
+    }
+  
+  return 1;
+
+}
+
+
+template<typename DATATYPE> void procTypedImageData(int sd, const char* name, const mxArray *imField, const mxArray *trField, DATATYPE dtype)
+{
+
+  DATATYPE* rdata = (DATATYPE*)mxGetPr(imField);
+
+  int ndim             = mxGetNumberOfDimensions(imField);
+  const mwSize*  s     = mxGetDimensions(imField);
   int size[3];
   size[0] = s[0]; size[1] = s[1]; size[2] = (ndim == 3)? s[2] : 1;
-  double*     trans    = mxGetPr(transField);
+  double*     trans    = mxGetPr(trField);
 
   float norm_i[] = {trans[0], trans[1], trans[2]};
   float norm_j[] = {trans[4], trans[5], trans[6]};
@@ -266,7 +293,7 @@ int procImageData(int sd, const char* name, const mxArray *ptr)
     norm_j[i] /= spacing[1];
     norm_k[i] /= spacing[2];
     }
-
+  
   igtl::Matrix4x4 mat;
   mat[0][0] = norm_i[0]; mat[0][1] = norm_j[0]; mat[0][2] = norm_k[0]; mat[0][3] = pos[0];
   mat[1][0] = norm_i[1]; mat[1][1] = norm_j[1]; mat[1][2] = norm_k[1]; mat[1][3] = pos[1];
@@ -292,22 +319,21 @@ int procImageData(int sd, const char* name, const mxArray *ptr)
     {
     mexErrMsgTxt("Invalid socket descriptor.");
     }
-
+  
   // ---------------------------------------------------------------
   // Prepare image message
   igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
   imgMsg->SetDimensions(size);
   imgMsg->SetMatrix(mat);
   imgMsg->SetSpacing(spacing);
-  //imgMsg->SetNormals(norm_i, norm_j, norm_k);
-  imgMsg->SetScalarType(igtl::ImageMessage::TYPE_UINT16);
+  imgMsg->SetEndian(igtl::ImageMessage::ENDIAN_LITTLE);
+  imgMsg->SetScalarType(dtype);
   imgMsg->SetDeviceName(name);
   imgMsg->SetSubVolume(size, svoffset);
   imgMsg->AllocateScalars();
 
-  //int npixel = size[0]*size[1]*size[2];
   int ni = size[0]; int nj = size[1]; int nk = size[2];
-  igtlUint16* dest = (igtlUint16*)imgMsg->GetScalarPointer();
+  DATATYPE* dest = (DATATYPE*)imgMsg->GetScalarPointer();
   for (int k = 0; k < nk; k ++)
     {
     int koff = k*ni*nj;
@@ -315,23 +341,20 @@ int procImageData(int sd, const char* name, const mxArray *ptr)
       {
       for (int i = 0; i < ni; i ++)
         {
-        dest[koff + j*ni + i] = (igtlUint16)rdata[koff + i*nj + j];
+        dest[koff + j*ni + i] = (DATATYPE)rdata[koff + i*nj + j];
         }
       }
     }
-  
+
   // ---------------------------------------------------------------
   // Send image message
   
   imgMsg->Pack();
   socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
-
+  
   mexPrintf("The image has been sent.\n");
-
-  return 1;
-
+  
 }
-
 
 double getMatlabScalar (const mxArray* ptr) {
 

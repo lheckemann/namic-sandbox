@@ -312,6 +312,10 @@ int receiveImage(igtl::MexClientSocket::Pointer& socket,
     mxArray* transMatrix = mxCreateDoubleMatrix(4, 4, mxREAL);
     double*  trans       = mxGetPr(transMatrix);
 
+    mat[0][0] *= spacing[0];  mat[0][1] *= spacing[1];  mat[0][2] *= spacing[2];
+    mat[1][0] *= spacing[0];  mat[1][1] *= spacing[1];  mat[1][2] *= spacing[2];
+    mat[2][0] *= spacing[0];  mat[2][1] *= spacing[1];  mat[2][2] *= spacing[2];
+
     trans[0] = mat[0][0];  trans[4] = mat[0][1];  trans[8]  = mat[0][2]; trans[12] = mat[0][3];
     trans[1] = mat[1][0];  trans[5] = mat[1][1];  trans[9]  = mat[1][2]; trans[13] = mat[1][3];
     trans[2] = mat[2][0];  trans[6] = mat[2][1];  trans[10] = mat[2][2]; trans[14] = mat[2][3];
