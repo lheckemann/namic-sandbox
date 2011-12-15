@@ -595,7 +595,7 @@ const char* vtkMRMLTransPerinealProstateRobotNode::AddWorkspaceModel(const char*
   polyTrans->SetInputConnection(modelReader->GetOutputPort());
 
   vtkSmartPointer<vtkTransform> modelTransform=vtkSmartPointer<vtkTransform>::New();
-  const double offsetFromZFrame[] = {0.0, 0.0, 0.0};
+  const double offsetFromZFrame[] = {-71.3, -113.0, -299.0};
   modelTransform->Translate(offsetFromZFrame);
   modelTransform->Update();
   polyTrans->SetTransform(modelTransform);
