@@ -11,7 +11,7 @@
 
 #include "itkQuadEdgeMesh.h"
 #include "itkLaplaceBeltramiFilter.h"
-#include "itkQuadEdgeMeshVTKPolyDataReader.h"
+#include "itkVTKPolyDataReader.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 
 void showUsage()
@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
     const char* firstHarmonicOutFile = argv[optind + 1];
 
     //  We can now instantiate the types of the reader.
-    typedef itk::QuadEdgeMeshVTKPolyDataReader< InMeshType >  ReaderType;
+    typedef itk::VTKPolyDataReader< InMeshType >  ReaderType;
 
     // create readers
     ReaderType::Pointer meshReader = ReaderType::New();

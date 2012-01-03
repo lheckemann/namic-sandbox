@@ -19,7 +19,7 @@
 #endif
 
 #include "itkQuadEdgeMesh.h"
-#include "itkQuadEdgeMeshVTKPolyDataReader.h"
+#include "itkVTKPolyDataReader.h"
 #include "itkLaplaceBeltramiFilter.h"
 
 int main( int argc, char *argv[] )
@@ -39,7 +39,7 @@ int main( int argc, char *argv[] )
   typedef itk::QuadEdgeMesh< MeshPixelType1, Dimension >   InMeshType;
   typedef itk::QuadEdgeMesh< MeshPixelType2, Dimension >   OutMeshType;
 
-  typedef itk::QuadEdgeMeshVTKPolyDataReader< InMeshType >   ReaderType;
+  typedef itk::VTKPolyDataReader< InMeshType >   ReaderType;
 
   typedef itk::LaplaceBeltramiFilter< InMeshType, OutMeshType >   FilterType;
 
