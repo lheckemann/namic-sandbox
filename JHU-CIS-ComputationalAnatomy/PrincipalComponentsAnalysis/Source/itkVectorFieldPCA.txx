@@ -37,11 +37,12 @@ namespace itk
 template<
     typename TVectorFieldElementType,
     typename TPCType,
-    typename KernelFunctionType,
     typename TPointSetPixelType,
+    typename TPointSetCoordRepType,
+    typename KernelFunctionType,
     class    TPointSetType
   >
-VectorFieldPCA<TVectorFieldElementType, TPCType, KernelFunctionType, TPointSetPixelType, TPointSetType>
+VectorFieldPCA<TVectorFieldElementType, TPCType, TPointSetPixelType, TPointSetCoordRepType, KernelFunctionType, TPointSetType>
 ::VectorFieldPCA()
 {
   m_PCACalculated = false;
@@ -61,12 +62,13 @@ VectorFieldPCA<TVectorFieldElementType, TPCType, KernelFunctionType, TPointSetPi
 template<
     typename TVectorFieldElementType,
     typename TPCType,
-    typename KernelFunctionType,
     typename TPointSetPixelType,
+    typename TPointSetCoordRepType,
+    typename KernelFunctionType,
     class    TPointSetType
   >
 void
-VectorFieldPCA<TVectorFieldElementType, TPCType, KernelFunctionType, TPointSetPixelType, TPointSetType>
+VectorFieldPCA<TVectorFieldElementType, TPCType, TPointSetPixelType, TPointSetCoordRepType, KernelFunctionType, TPointSetType>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
@@ -117,12 +119,13 @@ VectorFieldPCA<TVectorFieldElementType, TPCType, KernelFunctionType, TPointSetPi
 template<
     typename TVectorFieldElementType,
     typename TPCType,
-    typename KernelFunctionType,
     typename TPointSetPixelType,
+    typename TPointSetCoordRepType,
+    typename KernelFunctionType,
     class    TPointSetType
   >
 void
-VectorFieldPCA<TVectorFieldElementType, TPCType, KernelFunctionType, TPointSetPixelType, TPointSetType>
+VectorFieldPCA<TVectorFieldElementType, TPCType, TPointSetPixelType, TPointSetCoordRepType, KernelFunctionType, TPointSetType>
 ::Compute(void)
 {
 
@@ -236,12 +239,13 @@ VectorFieldPCA<TVectorFieldElementType, TPCType, KernelFunctionType, TPointSetPi
 template<
     typename TVectorFieldElementType,
     typename TPCType,
-    typename KernelFunctionType,
     typename TPointSetPixelType,
+    typename TPointSetCoordRepType,
+    typename KernelFunctionType,
     class    TPointSetType
 >
 void
-VectorFieldPCA<TVectorFieldElementType, TPCType, KernelFunctionType, TPointSetPixelType, TPointSetType>
+VectorFieldPCA<TVectorFieldElementType, TPCType, TPointSetPixelType, TPointSetCoordRepType, KernelFunctionType, TPointSetType>
 ::computeMomentumSCP(void)
 {
 
@@ -299,7 +303,7 @@ VectorFieldPCA<TVectorFieldElementType, TPCType, KernelFunctionType, TPointSetPi
         tmpA = kernelM * (alphaL - m_AveVectorField);
       else
         tmpA = alphaL - m_AveVectorField;
-        
+
       MatrixType tmpB = alphaK - m_AveVectorField;
       m_K(k, l) =
         vnl_c_vector<TPCType>::dot_product(
@@ -315,12 +319,13 @@ VectorFieldPCA<TVectorFieldElementType, TPCType, KernelFunctionType, TPointSetPi
 template<
     typename TVectorFieldElementType,
     typename TPCType,
-    typename KernelFunctionType,
     typename TPointSetPixelType,
+    typename TPointSetCoordRepType,
+    typename KernelFunctionType,
     class    TPointSetType
 >
 void
-VectorFieldPCA<TVectorFieldElementType, TPCType, KernelFunctionType, TPointSetPixelType, TPointSetType>
+VectorFieldPCA<TVectorFieldElementType, TPCType, TPointSetPixelType, TPointSetCoordRepType, KernelFunctionType, TPointSetType>
 ::KernelPCA(void)
 {
   VectorType rowMeans(m_SetSize);
@@ -362,12 +367,13 @@ VectorFieldPCA<TVectorFieldElementType, TPCType, KernelFunctionType, TPointSetPi
 template<
     typename TVectorFieldElementType,
     typename TPCType,
-    typename KernelFunctionType,
     typename TPointSetPixelType,
+    typename TPointSetCoordRepType,
+    typename KernelFunctionType,
     class    TPointSetType
 >
 void
-VectorFieldPCA<TVectorFieldElementType, TPCType, KernelFunctionType, TPointSetPixelType, TPointSetType>
+VectorFieldPCA<TVectorFieldElementType, TPCType, TPointSetPixelType, TPointSetCoordRepType, KernelFunctionType, TPointSetType>
 ::Projection(const VectorFieldSetTypePointer ) 
 {
   m_Projection.set_size(m_SetSize, m_ComponentCount);

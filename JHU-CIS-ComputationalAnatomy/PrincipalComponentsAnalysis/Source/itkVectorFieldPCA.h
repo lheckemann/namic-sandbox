@@ -20,7 +20,7 @@
 
 #include "itkObject.h"
 #include "itkPointSet.h"
-#include "itkKernelFunction.h"
+#include "itkKernelFunctionBase.h"
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_matrix.h"
 
@@ -43,13 +43,15 @@ namespace itk
  *
  * \ingroup Operators
  */
-
-class ITK_EXPORT GaussianDistanceKernel : public KernelFunction 
+// itk now has a Gaussian Kernel distance Function
+//#if(0)
+template< typename TRealValueType = double >
+class ITK_EXPORT GaussianDistanceKernel : public KernelFunctionBase<TRealValueType>
 {
 public:
   /** Standard class typedefs. */
   typedef GaussianDistanceKernel      Self;
-  typedef KernelFunction              Superclass;
+  typedef KernelFunctionBase<TRealValueType>      Superclass;
   typedef SmartPointer<Self>          Pointer;
   typedef SmartPointer<const Self>    ConstPointer;
 
@@ -80,15 +82,16 @@ private:
   double                    m_OneOverMinusTwoSigmaSqr;
 
 };
-
+//#endif
 
 
 template <
     typename TVectorFieldElementType,
     typename TPCType,
-    typename KernelFunctionType = KernelFunction,
     typename TPointSetPixelType = float,
-    class    TPointSetType = PointSet<TPointSetPixelType, 3, DefaultStaticMeshTraits< TPointSetPixelType > >
+    typename TPointSetCoordRepType = float,
+    typename KernelFunctionType = KernelFunctionBase<TPointSetCoordRepType>,
+    class    TPointSetType = PointSet<TPointSetPixelType, 3, DefaultStaticMeshTraits< TPointSetPixelType, 3, 3, TPointSetCoordRepType > >
   >
 class ITK_EXPORT VectorFieldPCA : public Object 
 {
