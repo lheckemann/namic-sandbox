@@ -36,12 +36,18 @@ ADD_TEST(itkLaplaceBeltramiFilterTest2
   ${TEMP}/fv0_surfaceHarmonic_0_Test2.vtk
   )
 
-ADD_TEST(itkLaplaceBeltramiFilterTest2Open
+ADD_TEST(itkLBFilter2OpenVonNeuman
   ${CXX_TEST_PATH}/itkLaplaceBeltramiFilterTest2
-  -e 10
+  -e 10 -b 1
   ${TEST_DATA_ROOT}/NewOpenSurface.vtk
   ${TEMP}/NewOpenSurfaceFirstHarm.vtk
   )
 
+ADD_TEST(itkLBFilter2OpenDirichlet
+  ${CXX_TEST_PATH}/itkLaplaceBeltramiFilterTest2
+  -e 10 -b 2
+  ${TEST_DATA_ROOT}/NewOpenSurface.vtk
+  ${TEMP}/NewOpenSurfaceFirstHarm.vtk
+  )
 
 
