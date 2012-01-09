@@ -43,8 +43,7 @@ namespace itk
  *
  * \ingroup Operators
  */
-// itk now has a Gaussian Kernel distance Function
-//#if(0)
+
 template< typename TRealValueType = double >
 class ITK_EXPORT GaussianDistanceKernel : public KernelFunctionBase<TRealValueType>
 {
@@ -82,8 +81,6 @@ private:
   double                    m_OneOverMinusTwoSigmaSqr;
 
 };
-//#endif
-
 
 template <
     typename TVectorFieldElementType,
