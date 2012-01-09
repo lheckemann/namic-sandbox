@@ -282,7 +282,7 @@ where $l\sim k$ indicates that $l$ and $k$ are linked by an edge.
 
 
 These definitions must be modified when surfaces have
-boundaries. One usually works with two types of boundary conditions:
+boundaries. The filter supports two types of boundary conditions:
 $\psi  = 0$ on the boundary of $S$ (Dirichlet boundary condition) or
 $\nabla \psi$ tangent to the boundary of $S$ (von Neumann boundary
 condition). 
@@ -292,7 +292,7 @@ implemented by restricting to non-boundary vertices. For such
 vertices, the formulae for $A(k,k)$ and $A(k,l)$ remain unchanged.
 
 Von Neumann boundary condition can be discretized by adding dummy
-faces  to the surfaces symmetrically to boundary edges. This results
+faces to the surfaces symmetrically to boundary edges. This results
 in an extended surface $\tilde S$ and a function $\psi$ on $S$ can be
 extended to $\tilde S$ by symmetry too. 
 
@@ -317,11 +317,6 @@ eigenvalue problem
 \[
 B\psi = \la D\psi.
 \]
-Defining $\tilde B(k,l) = B(k,l)/\sqrt{a(v_k) a(v_l)} $ so that
-$\tilde B D^{-1/2} B D^{-1/2}$, this is
-equivalent to solving the standard eigenvalue problem $\tilde B \tilde
-\psi = \la \tilde \psi$ and to let $\psi(k) = \tilde\psi(k)
-/\sqrt{a(v_k)}$. 
 
 Finally, notice that the definition
 \[
@@ -358,7 +353,7 @@ filter uses \code{vnl\_sparse\_symmetric\_eigensystem}.
 \section{Usage}
 This filter derives from \doxygen{QuadEdgeMeshToQuadEdgeMeshFilter}, so the user
 needs to specify \code{TInputMesh} and \code{TOutputMesh} to instantiate the
-class.
+class.  Some sample definitions:
 \small
 \begin{verbatim}
     typedef float              PixelType;
@@ -393,6 +388,7 @@ access to:
 the vertices
 \item \code{GetHarmonics} - values for all the requested surface harmonics
 over all the vertices
+\item \code{GetEigenvalues} - values for all the eigenvalues of the solution
 \item \code{SetSurfaceHarmonic} - set the point data of the output filter to
 the values of the desired surface harmonic.  Call \code{GetOutput()} to access
 this mesh.
