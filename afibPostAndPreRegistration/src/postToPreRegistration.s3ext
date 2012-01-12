@@ -1,7 +1,7 @@
 scm       svn
-svnpath http://svn.na-mic.org/NAMICSandBox/trunk/leftAtriumSegmentation
-name     LeftAtriumEndocardiumSegmentation
-cmakeproject      LeftAtriumEndocardiumSegmentationModule
+svnpath http://svn.na-mic.org/NAMICSandBox/trunk/afibPostAndPreRegistration/src
+name     AFibLongitudinalRegistration
+cmakeproject      afibLongitudinalRegistration
 svnusername slicerbot
 svnpassword slicer
 
@@ -12,7 +12,7 @@ svnpassword slicer
 # - the dependencies will be built first
 
 # homepage
-http://www.na-mic.org/Wiki/index.php/Projects:SegmentationEndocardialWall
+http://www.na-mic.org/Wiki/index.php/Projects:AFibLongitudinalRegistration
 
 # match category in the xml description of the module (where it shows up in Modules menu)
 category  Registration
@@ -22,4 +22,4 @@ category  Registration
 status    Development
 
 # One line description of what the module does
-Multiatlas segmentation for the left atrium endocardium.
+Perform longitudinal registration for AFib: register the Post-operation MRI to Pre-operation MRI.
