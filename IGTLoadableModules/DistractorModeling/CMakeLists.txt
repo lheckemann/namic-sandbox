@@ -47,6 +47,7 @@ install(FILES
 # Sources
 
 set(DistractorModeling_SRCS 
+  vtkDistractorDefinition.cxx
   vtkDistractorModelingLogic.cxx
   vtkDistractorModelingGUI.cxx
 )

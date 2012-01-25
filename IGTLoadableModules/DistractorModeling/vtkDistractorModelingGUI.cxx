@@ -37,7 +37,7 @@
 #include "vtkCornerAnnotation.h"
 
 #include "vtkMRMLLinearTransformNode.h"
-
+#include "vtkMRMLInteractionNode.h"
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkDistractorModelingGUI );
@@ -58,24 +58,35 @@ vtkDistractorModelingGUI::vtkDistractorModelingGUI ( )
 
   //----------------------------------------------------------------
   // GUI widgets
-  this->RailSelector     = NULL;
-  this->SliderSelector   = NULL;
-  this->PistonSelector   = NULL;
-  this->CylinderSelector = NULL;
-
-  this->RailModel     = NULL;
-  this->SliderModel   = NULL;
-  this->PistonModel   = NULL;
-  this->CylinderModel = NULL;
-
   this->SliderTransformNode   = NULL;
   this->PistonTransformNode   = NULL;
   this->CylinderTransformNode = NULL;
 
-  this->MovingScale         = NULL;
+  this->MovingScale = NULL;
 
   this->LoadDistractorButton = NULL;
   this->DistractorSelector   = NULL;
+
+  this->BonePlateModelSelector = NULL;
+  this->BoneRailModelSelector  = NULL;
+  this->BonePlateModel         = NULL;
+  this->BoneRailModel          = NULL;
+  this->BonePlateTransform     = NULL;
+
+  this->ApplyDistractorToBones = NULL;
+
+
+  //--------------------
+
+  this->PlaceFiduButton = NULL;
+  this->RegisterButton  = NULL;
+
+  this->boolPlacingFiducials     = false;
+  this->RegistrationFiducialList = NULL;
+  this->DistractorMenuSelector   = NULL;
+
+  this->DistToBones = NULL;
+
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -102,35 +113,6 @@ vtkDistractorModelingGUI::~vtkDistractorModelingGUI ( )
 
   //----------------------------------------------------------------
   // Remove GUI widgets
-
-  if(this->RailSelector)
-    {
-    this->RailSelector->SetParent(NULL);
-    this->RailSelector->Delete();
-    this->RailSelector = NULL;
-    }
-
-  if(this->SliderSelector)
-    {
-    this->SliderSelector->SetParent(NULL);
-    this->SliderSelector->Delete();
-    this->SliderSelector = NULL;
-    }
-
-  if(this->PistonSelector)
-    {
-    this->PistonSelector->SetParent(NULL);
-    this->PistonSelector->Delete();
-    this->PistonSelector = NULL;
-    }
-
-  if(this->CylinderSelector)
-    {
-    this->CylinderSelector->SetParent(NULL);
-    this->CylinderSelector->Delete();
-    this->CylinderSelector = NULL;
-    }
-
 
   if(this->MovingScale)
     {
@@ -166,6 +148,68 @@ vtkDistractorModelingGUI::~vtkDistractorModelingGUI ( )
   if(this->CylinderTransformNode)
     {
     this->CylinderTransformNode->Delete();
+    }
+
+  if(this->BonePlateTransform)
+    {
+    this->BonePlateTransform->Delete();
+    }
+
+  if(this->BonePlateModelSelector)
+    {
+    this->BonePlateModelSelector->SetParent(NULL);
+    this->BonePlateModelSelector->Delete();
+    this->BonePlateModelSelector = NULL;
+    }
+
+  if(this->BoneRailModelSelector)
+    {
+    this->BoneRailModelSelector->SetParent(NULL);
+    this->BoneRailModelSelector->Delete();
+    this->BoneRailModelSelector = NULL;
+    }
+
+  if(this->ApplyDistractorToBones)
+    {
+    this->ApplyDistractorToBones->SetParent(NULL);
+    this->ApplyDistractorToBones->Delete();
+    this->ApplyDistractorToBones = NULL;
+    }
+
+
+  //--------------------
+
+  if(this->PlaceFiduButton)
+    {
+    this->PlaceFiduButton->SetParent(NULL);
+    this->PlaceFiduButton->Delete();
+    this->PlaceFiduButton = NULL;
+    }
+
+  if(this->RegisterButton)
+    {
+    this->RegisterButton->SetParent(NULL);
+    this->RegisterButton->Delete();
+    this->RegisterButton = NULL;
+    }
+
+  if(this->RegistrationFiducialList)
+    {
+    this->RegistrationFiducialList->Delete();
+    this->RegistrationFiducialList = NULL;
+    }
+
+  if(this->DistToBones)
+    {
+    this->DistToBones->Delete();
+    this->DistToBones = NULL;
+    }
+
+  if(this->DistractorMenuSelector)
+    {
+    this->DistractorMenuSelector->SetParent(NULL);
+    this->DistractorMenuSelector->Delete();
+    this->DistractorMenuSelector = NULL;
     }
 
 
@@ -219,30 +263,6 @@ void vtkDistractorModelingGUI::PrintSelf ( ostream& os, vtkIndent indent )
 //---------------------------------------------------------------------------
 void vtkDistractorModelingGUI::RemoveGUIObservers ( )
 {
-  if (this->RailSelector)
-    {
-    this->RailSelector
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-  if (this->SliderSelector)
-    {
-    this->SliderSelector
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-  if (this->PistonSelector)
-    {
-    this->PistonSelector
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-  if (this->CylinderSelector)
-    {
-    this->CylinderSelector
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
   if (this->MovingScale)
     {
     this->MovingScale
@@ -254,6 +274,49 @@ void vtkDistractorModelingGUI::RemoveGUIObservers ( )
     this->LoadDistractorButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+
+  if(this->BonePlateModelSelector)
+    {
+    this->BonePlateModelSelector
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->BoneRailModelSelector)
+    {
+    this->BoneRailModelSelector
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->ApplyDistractorToBones)
+    {
+    this->ApplyDistractorToBones
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+
+  //--------------------
+
+  if(this->PlaceFiduButton)
+    {
+    this->PlaceFiduButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->RegisterButton)
+    {
+    this->RegisterButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->DistractorMenuSelector)
+    {
+    this->DistractorMenuSelector->GetWidget()->GetMenu()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+
+//// TODO: ADD MRML EVENT IF FIDUCIAL LIST DELETED -> FIDUCIL LIST = NULL
+
 
   this->RemoveLogicObservers();
 
@@ -280,23 +343,32 @@ void vtkDistractorModelingGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // GUI Observers
 
-  this->RailSelector
-    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
-
-  this->SliderSelector
-    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
-
-  this->PistonSelector
-    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
-
-  this->CylinderSelector
-    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
-
   this->MovingScale
     ->AddObserver(vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->LoadDistractorButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->BonePlateModelSelector
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->BoneRailModelSelector
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->ApplyDistractorToBones
+    ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+
+  //--------------------
+
+  this->PlaceFiduButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->RegisterButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  this->DistractorMenuSelector->GetWidget()->GetMenu()
+    ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->AddLogicObservers();
 
@@ -348,35 +420,12 @@ void vtkDistractorModelingGUI::ProcessGUIEvents(vtkObject *caller,
     return;
     }
 
-  if(this->RailSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
-     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
-    {
-    this->RailModel = vtkMRMLModelNode::SafeDownCast(this->RailSelector->GetSelected());
-    }
-
-  if(this->SliderSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
-     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
-    {
-    this->SliderModel = vtkMRMLModelNode::SafeDownCast(this->SliderSelector->GetSelected());
-    }
-
-  if(this->PistonSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
-     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
-    {
-    this->PistonModel = vtkMRMLModelNode::SafeDownCast(this->PistonSelector->GetSelected());
-    }
-
-  if(this->CylinderSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
-     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
-    {
-    this->CylinderModel = vtkMRMLModelNode::SafeDownCast(this->CylinderSelector->GetSelected());
-    }
-
-
   if(this->MovingScale == vtkKWScale::SafeDownCast(caller)
      && event == vtkKWScale::ScaleValueChangingEvent)
     {
-    if(this->SliderModel && this->PistonModel && this->CylinderModel)
+    if(this->GetLogic()->GetDistractorSelected()->GetDistractorSlider() &&
+       this->GetLogic()->GetDistractorSelected()->GetDistractorPiston() &&
+       this->GetLogic()->GetDistractorSelected()->GetDistractorCylinder())
       {
       if(!this->SliderTransformNode)
         {
@@ -394,24 +443,41 @@ void vtkDistractorModelingGUI::ProcessGUIEvents(vtkObject *caller,
         this->GetMRMLScene()->AddNode(this->CylinderTransformNode);
         }
 
-
       this->GetLogic()->MoveDistractor(this->MovingScale->GetValue(),
-                                       this->SliderModel, this->SliderTransformNode,
-                                       this->PistonModel, this->PistonTransformNode,
-                                       this->CylinderModel, this->CylinderTransformNode);
+                                       this->GetLogic()->GetDistractorSelected()->GetDistractorSlider(), this->SliderTransformNode,
+                                       this->GetLogic()->GetDistractorSelected()->GetDistractorPiston(), this->PistonTransformNode,
+                                       this->GetLogic()->GetDistractorSelected()->GetDistractorCylinder(), this->CylinderTransformNode);
 
-      this->SliderModel->SetAndObserveTransformNodeID(this->SliderTransformNode->GetID());
-      this->SliderModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+      this->GetLogic()->GetDistractorSelected()->GetDistractorSlider()->SetAndObserveTransformNodeID(this->SliderTransformNode->GetID());
+      this->GetLogic()->GetDistractorSelected()->GetDistractorSlider()->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
 
-      this->PistonModel->SetAndObserveTransformNodeID(this->PistonTransformNode->GetID());
-      this->PistonModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+      this->GetLogic()->GetDistractorSelected()->GetDistractorPiston()->SetAndObserveTransformNodeID(this->PistonTransformNode->GetID());
+      this->GetLogic()->GetDistractorSelected()->GetDistractorPiston()->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
 
-      this->CylinderModel->SetAndObserveTransformNodeID(this->CylinderTransformNode->GetID());
-      this->CylinderModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+      this->GetLogic()->GetDistractorSelected()->GetDistractorCylinder()->SetAndObserveTransformNodeID(this->CylinderTransformNode->GetID());
+      this->GetLogic()->GetDistractorSelected()->GetDistractorCylinder()->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
 
       this->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
       this->GetApplicationGUI()->GetActiveViewerWidget()->Render();
 
+      }
+
+    if(this->ApplyDistractorToBones->GetSelectedState())
+      {
+      if(this->BonePlateModel)
+        {
+        if(!this->BonePlateTransform)
+          {
+          this->BonePlateTransform = vtkMRMLLinearTransformNode::New();
+          this->GetMRMLScene()->AddNode(this->BonePlateTransform);
+          this->BonePlateModel->SetAndObserveTransformNodeID(this->BonePlateTransform->GetID());
+          this->BonePlateModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+          }
+        if(this->BonePlateTransform)
+          {
+          this->GetLogic()->MoveBones(this->BonePlateModel, this->BonePlateTransform, this->MovingScale->GetValue());
+          }
+        }
       }
     }
 
@@ -435,36 +501,31 @@ void vtkDistractorModelingGUI::ProcessGUIEvents(vtkObject *caller,
         vtkSlicerModelsLogic* ModelsLogic = vtkSlicerModelsLogic::New();
         ModelsLogic->SetMRMLScene(this->GetMRMLScene());
 
-        if(strcmp(this->GetLogic()->RailModelPath.c_str(),"")    &&
+        if(strcmp(this->GetLogic()->DistName.c_str(),"")   &&
+           strcmp(this->GetLogic()->RailModelPath.c_str(),"")    &&
            strcmp(this->GetLogic()->SliderModelPath.c_str(),"")  &&
            strcmp(this->GetLogic()->PistonModelPath.c_str(), "") &&
            strcmp(this->GetLogic()->CylinderModelPath.c_str(),""))
           {
-          vtkMRMLModelNode* RailLoadedModel     = ModelsLogic->AddModel(this->GetLogic()->RailModelPath.c_str());
-          vtkMRMLModelNode* SliderLoadedModel   = ModelsLogic->AddModel(this->GetLogic()->SliderModelPath.c_str());
-          vtkMRMLModelNode* PistonLoadedModel   = ModelsLogic->AddModel(this->GetLogic()->PistonModelPath.c_str());
-          vtkMRMLModelNode* CylinderLoadedModel = ModelsLogic->AddModel(this->GetLogic()->CylinderModelPath.c_str());
+          if(this->GetLogic()->GetDistractorSelected())
+            {
+            this->GetLogic()->GetDistractorSelected()->SetDistractorRail(ModelsLogic->AddModel(this->GetLogic()->RailModelPath.c_str()));
+            this->GetLogic()->GetDistractorSelected()->SetDistractorSlider(ModelsLogic->AddModel(this->GetLogic()->SliderModelPath.c_str()));
+            this->GetLogic()->GetDistractorSelected()->SetDistractorPiston(ModelsLogic->AddModel(this->GetLogic()->PistonModelPath.c_str()));
+            this->GetLogic()->GetDistractorSelected()->SetDistractorCylinder(ModelsLogic->AddModel(this->GetLogic()->CylinderModelPath.c_str()));
+            }
+
+
+          if(this->DistractorMenuSelector)
+            {
+            this->DistractorMenuSelector->GetWidget()->GetMenu()->AddRadioButton(this->GetLogic()->GetDistractorSelected()->GetDistractorName());
+            this->DistractorMenuSelector->GetWidget()->SetValue(this->GetLogic()->GetDistractorSelected()->GetDistractorName());
+            }
+
+          this->MovingScale->SetRange(this->GetLogic()->GetDistractorSelected()->GetRange());
+          this->MovingScale->SetValue(0.0);
 
           ModelsLogic->Delete();
-
-          if(this->RailSelector && RailLoadedModel     &&
-             this->SliderSelector && SliderLoadedModel &&
-             this->PistonSelector && PistonLoadedModel &&
-             this->CylinderSelector && CylinderLoadedModel)
-            {
-            this->RailSelector->SetSelected(RailLoadedModel);
-            this->SliderSelector->SetSelected(SliderLoadedModel);
-            this->PistonSelector->SetSelected(PistonLoadedModel);
-            this->CylinderSelector->SetSelected(CylinderLoadedModel);
-            }
-
-          if(this->GetLogic()->Distractor1.Range[0] != -1102.0 &&
-             this->GetLogic()->Distractor1.Range[1] != -1102.0 &&
-             this->MovingScale)
-            {
-            this->MovingScale->SetRange(this->GetLogic()->Distractor1.Range[0],
-                                        this->GetLogic()->Distractor1.Range[1]);
-            }
           }
         }
       }
@@ -473,6 +534,131 @@ void vtkDistractorModelingGUI::ProcessGUIEvents(vtkObject *caller,
     this->DistractorSelector = NULL;
     }
 
+  if(this->BonePlateModelSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+    if(this->BonePlateModelSelector->GetSelected())
+      {
+      this->BonePlateModel = vtkMRMLModelNode::SafeDownCast(this->BonePlateModelSelector->GetSelected());
+      }
+    }
+
+  if(this->BoneRailModelSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+     && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+    if(this->BoneRailModelSelector->GetSelected())
+      {
+      this->BoneRailModel = vtkMRMLModelNode::SafeDownCast(this->BoneRailModelSelector->GetSelected());
+      }
+    }
+
+  if(this->ApplyDistractorToBones == vtkKWCheckButton::SafeDownCast(caller)
+     && event == vtkKWCheckButton::SelectedStateChangedEvent)
+    {
+
+    if(this->BoneRailModel && this->BonePlateModel &&
+       this->BoneRailModel != this->BonePlateModel)
+      {
+      }
+    else
+      {
+      this->ApplyDistractorToBones->SelectedStateOff();
+      }
+    }
+
+
+  if(this->PlaceFiduButton == vtkKWPushButton::SafeDownCast(caller)
+     && event == vtkKWPushButton::InvokedEvent)
+    {
+    if(this->boolPlacingFiducials)
+      {
+      // Stop Placing fiducials
+      this->PlaceFiduButton->SetReliefToGroove();
+
+      this->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::ViewTransform);
+      this->GetApplicationLogic()->GetInteractionNode()->SetSelected(0);
+      this->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(0);
+      }
+    else
+      {
+      // Start Placing fiducials
+      this->PlaceFiduButton->SetReliefToSunken();
+      if(!this->RegistrationFiducialList)
+        {
+        this->RegistrationFiducialList = vtkMRMLFiducialListNode::New();
+        this->RegistrationFiducialList->SetGlyphTypeFromString("Sphere3D");
+        this->RegistrationFiducialList->SetSymbolScale(2.0);
+        this->RegistrationFiducialList->SetTextScale(0);
+
+        this->GetMRMLScene()->AddNode(this->RegistrationFiducialList);
+        }
+
+      if(this->RegistrationFiducialList)
+        {
+        this->GetApplicationLogic()->GetSelectionNode()->SetActiveFiducialListID(this->RegistrationFiducialList->GetID());
+        }
+
+      this->GetApplicationLogic()->GetInteractionNode()->SetCurrentInteractionMode(vtkMRMLInteractionNode::Place);
+      this->GetApplicationLogic()->GetInteractionNode()->SetSelected(1);
+      this->GetApplicationLogic()->GetInteractionNode()->SetPlaceModePersistence(1);
+      }
+    this->boolPlacingFiducials = !this->boolPlacingFiducials;
+    }
+
+  if(this->RegisterButton == vtkKWPushButton::SafeDownCast(caller)
+     && event == vtkKWPushButton::InvokedEvent)
+    {
+    // Check number of points if pair on fiducial list
+    if(this->RegistrationFiducialList && (this->RegistrationFiducialList->GetNumberOfFiducials()%2 == 0))
+      {
+      // Create Registration
+      this->DistToBones = vtkIGTPat2ImgRegistration::New();
+      int nPoints = this->RegistrationFiducialList->GetNumberOfFiducials();
+      this->DistToBones->SetNumberOfPoints(nPoints/2);
+      for(int i=0;i<(nPoints/2);i++)
+        {
+        float* source = this->RegistrationFiducialList->GetNthFiducialXYZ(i);
+        float* target = this->RegistrationFiducialList->GetNthFiducialXYZ(i + nPoints/2);
+
+        this->DistToBones->AddPoint(i,
+                                    target[0], target[1], target[2],
+                                    source[0], source[1], source[2]);
+        }
+
+      this->DistToBones->DoRegistration();
+
+
+      // Test: Matrix shouldn't be applied to models
+      this->RegistrationFiducialList->SetAllFiducialsVisibility(0);
+
+      vtkMatrix4x4* RegistrationMatrix = this->DistToBones->GetLandmarkTransformMatrix();
+      this->GetLogic()->GetDistractorSelected()->GetDistractorRail()->ApplyTransform(RegistrationMatrix);
+      this->GetLogic()->GetDistractorSelected()->GetDistractorSlider()->ApplyTransform(RegistrationMatrix);
+      this->GetLogic()->GetDistractorSelected()->GetDistractorPiston()->ApplyTransform(RegistrationMatrix);
+      this->GetLogic()->GetDistractorSelected()->GetDistractorCylinder()->ApplyTransform(RegistrationMatrix);
+
+      }
+    }
+
+  if(this->DistractorMenuSelector->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast(caller)
+     && event == vtkKWMenu::MenuItemInvokedEvent)
+    {
+    vtkCollection* dList = this->GetLogic()->GetDistractorList();
+
+    for(int i=0; i<dList->GetNumberOfItems();i++)
+      {
+      vtkDistractorDefinition* DistractorDef = vtkDistractorDefinition::SafeDownCast(dList->GetItemAsObject(i));
+
+      if(!strcmp(DistractorDef->GetDistractorName(),this->DistractorMenuSelector->GetWidget()->GetValue()))
+        {
+        this->GetLogic()->GetDistractorSelected()->Hide();
+        this->GetLogic()->SetDistractorSelected(DistractorDef);
+        this->GetLogic()->GetDistractorSelected()->Show();
+        }
+
+      }
+
+    }
 }
 
 
@@ -565,7 +751,7 @@ void vtkDistractorModelingGUI::BuildGUIForTestFrame1()
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 1");
+  conBrowsFrame->SetLabelText("Distractor");
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
@@ -575,69 +761,11 @@ void vtkDistractorModelingGUI::BuildGUIForTestFrame1()
   vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
   frame->SetParent(conBrowsFrame->GetFrame());
   frame->Create();
-  frame->SetLabelText ("Test child frame");
+  frame->SetLabelText ("Distractor frame");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  frame->GetWidgetName() );
 
   // -----------------------------------------
-  // Test push button
-
-  vtkKWLabel* RailLabel = vtkKWLabel::New();
-  RailLabel->SetParent(frame->GetFrame());
-  RailLabel->Create();
-  RailLabel->SetText("Rail:");
-  RailLabel->SetAnchorToWest();
-
-  this->RailSelector = vtkSlicerNodeSelectorWidget::New();
-  this->RailSelector->SetParent(frame->GetFrame());
-  this->RailSelector->Create();
-  this->RailSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
-  this->RailSelector->SetNewNodeEnabled(false);
-  this->RailSelector->SetMRMLScene(this->GetMRMLScene());
-  this->RailSelector->UpdateMenu();
-
-  vtkKWLabel* SliderLabel = vtkKWLabel::New();
-  SliderLabel->SetParent(frame->GetFrame());
-  SliderLabel->Create();
-  SliderLabel->SetText("Slider:");
-  SliderLabel->SetAnchorToWest();
-
-  this->SliderSelector = vtkSlicerNodeSelectorWidget::New();
-  this->SliderSelector->SetParent(frame->GetFrame());
-  this->SliderSelector->Create();
-  this->SliderSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
-  this->SliderSelector->SetNewNodeEnabled(false);
-  this->SliderSelector->SetMRMLScene(this->GetMRMLScene());
-  this->SliderSelector->UpdateMenu();
-
-  vtkKWLabel* PistonLabel = vtkKWLabel::New();
-  PistonLabel->SetParent(frame->GetFrame());
-  PistonLabel->Create();
-  PistonLabel->SetText("Piston:");
-  PistonLabel->SetAnchorToWest();
-
-  this->PistonSelector = vtkSlicerNodeSelectorWidget::New();
-  this->PistonSelector->SetParent(frame->GetFrame());
-  this->PistonSelector->Create();
-  this->PistonSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
-  this->PistonSelector->SetNewNodeEnabled(false);
-  this->PistonSelector->SetMRMLScene(this->GetMRMLScene());
-  this->PistonSelector->UpdateMenu();
-
-  vtkKWLabel* CylinderLabel = vtkKWLabel::New();
-  CylinderLabel->SetParent(frame->GetFrame());
-  CylinderLabel->Create();
-  CylinderLabel->SetText("Cylinder:");
-  CylinderLabel->SetAnchorToWest();
-
-  this->CylinderSelector = vtkSlicerNodeSelectorWidget::New();
-  this->CylinderSelector->SetParent(frame->GetFrame());
-  this->CylinderSelector->Create();
-  this->CylinderSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
-  this->CylinderSelector->SetNewNodeEnabled(false);
-  this->CylinderSelector->SetMRMLScene(this->GetMRMLScene());
-  this->CylinderSelector->UpdateMenu();
-
 
   this->MovingScale = vtkKWScale::New();
   this->MovingScale->SetParent(frame->GetFrame());
@@ -649,23 +777,84 @@ void vtkDistractorModelingGUI::BuildGUIForTestFrame1()
   this->LoadDistractorButton->Create();
   this->LoadDistractorButton->SetText("Load Distractor");
 
-  this->Script("pack %s %s %s %s %s %s %s %s %s %s -side top -fill x -expand y -padx 2 -pady 2",
-               RailLabel->GetWidgetName(),
-               this->RailSelector->GetWidgetName(),
-               SliderLabel->GetWidgetName(),
-               this->SliderSelector->GetWidgetName(),
-               PistonLabel->GetWidgetName(),
-               this->PistonSelector->GetWidgetName(),
-               CylinderLabel->GetWidgetName(),
-               this->CylinderSelector->GetWidgetName(),
+  vtkKWLabel* PlateModelLabel = vtkKWLabel::New();
+  PlateModelLabel->SetParent(frame->GetFrame());
+  PlateModelLabel->Create();
+  PlateModelLabel->SetText("Plate Bone:");
+  PlateModelLabel->SetAnchorToWest();
+
+  this->BonePlateModelSelector = vtkSlicerNodeSelectorWidget::New();
+  this->BonePlateModelSelector->SetParent(frame->GetFrame());
+  this->BonePlateModelSelector->Create();
+  this->BonePlateModelSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
+  this->BonePlateModelSelector->SetNewNodeEnabled(false);
+  this->BonePlateModelSelector->SetMRMLScene(this->GetMRMLScene());
+  this->BonePlateModelSelector->UpdateMenu();
+
+  vtkKWLabel* RailModelLabel = vtkKWLabel::New();
+  RailModelLabel->SetParent(frame->GetFrame());
+  RailModelLabel->Create();
+  RailModelLabel->SetText("Rail Bone:");
+  RailModelLabel->SetAnchorToWest();
+
+  this->BoneRailModelSelector = vtkSlicerNodeSelectorWidget::New();
+  this->BoneRailModelSelector->SetParent(frame->GetFrame());
+  this->BoneRailModelSelector->Create();
+  this->BoneRailModelSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
+  this->BoneRailModelSelector->SetNewNodeEnabled(false);
+  this->BoneRailModelSelector->SetMRMLScene(this->GetMRMLScene());
+  this->BoneRailModelSelector->UpdateMenu();
+
+  this->ApplyDistractorToBones = vtkKWCheckButton::New();
+  this->ApplyDistractorToBones->SetParent(frame->GetFrame());
+  this->ApplyDistractorToBones->Create();
+  this->ApplyDistractorToBones->SetText("Apply transformation to bones");
+  this->ApplyDistractorToBones->SelectedStateOff();
+
+
+
+  this->DistractorMenuSelector = vtkKWMenuButtonWithLabel::New();
+  this->DistractorMenuSelector->SetParent(frame->GetFrame());
+  this->DistractorMenuSelector->Create();
+  this->DistractorMenuSelector->SetLabelText("Distractor:");
+  this->DistractorMenuSelector->GetWidget()->GetMenu()->AddRadioButton("None");
+  this->DistractorMenuSelector->GetWidget()->SetValue("None");
+
+
+
+
+  vtkKWFrame* RegistrationFrame = vtkKWFrame::New();
+  RegistrationFrame->SetParent(frame->GetFrame());
+  RegistrationFrame->Create();
+
+
+  this->PlaceFiduButton = vtkKWPushButton::New();
+  this->PlaceFiduButton->SetParent(RegistrationFrame);
+  this->PlaceFiduButton->Create();
+  this->PlaceFiduButton->SetText("Place Fiducials");
+  this->PlaceFiduButton->SetWidth(8);
+
+  this->RegisterButton = vtkKWPushButton::New();
+  this->RegisterButton->SetParent(RegistrationFrame);
+  this->RegisterButton->Create();
+  this->RegisterButton->SetText("Register");
+
+  this->Script("pack %s %s -side left -fill x -expand y -padx 2 -pady 2",
+               this->PlaceFiduButton->GetWidgetName(),
+               this->RegisterButton->GetWidgetName());
+
+
+  this->Script("pack %s %s %s %s -side top -fill x -expand y -padx 2 -pady 2",
+               this->DistractorMenuSelector->GetWidgetName(),
+               this->LoadDistractorButton->GetWidgetName(),
                this->MovingScale->GetWidgetName(),
-               this->LoadDistractorButton->GetWidgetName());
+               RegistrationFrame->GetWidgetName());
 
 
-  RailLabel->Delete();
-  SliderLabel->Delete();
-  PistonLabel->Delete();
-  CylinderLabel->Delete();
+  RegistrationFrame->Delete();
+
+  RailModelLabel->Delete();
+  PlateModelLabel->Delete();
   conBrowsFrame->Delete();
   frame->Delete();
 

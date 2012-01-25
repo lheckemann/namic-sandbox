@@ -28,13 +28,19 @@
 #include "vtkSlicerApplication.h"
 #include "vtkCallbackCommand.h"
 
+#include "vtkMRMLScene.h"
 #include "vtkMRMLSliceNode.h"
 #include "vtkSlicerModelsLogic.h"
 #include "expat.h"
 
+#include "vtkDistractorDefinition.h"
+#include "vtkCollection.h"
 
 class vtkIGTLConnector;
 class vtkSlicerModelsLogic;
+class vtkMRMLScene;
+class vtkDistractorDefinition;
+class vtkCollection;
 
 class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlicerModuleLogic
 {
@@ -45,22 +51,7 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
     StatusUpdateEvent       = 50001,
   };
 
-  // Distractor Info Structure
-  typedef struct{
-    double RailAnchor[3];
-    double SliderAnchor[3];
-    double PistonAnchor[3];
-    double CylinderAnchor[3];
-
-    double newSliderAnchorX;
-    double newSliderAnchorZ;
-
-    double PistonRotationAngle_deg;
-
-    double Range[2];
-  }DistractorInfoStruct;
-
-
+  std::string DistName;
   std::string RailModelPath;
   std::string SliderModelPath;
   std::string PistonModelPath;
@@ -68,9 +59,6 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
 
   std::string xmlPath;
   //ETX
-
-  DistractorInfoStruct  Distractor1;
-
 
  public:
 
@@ -93,7 +81,13 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
   static void startElement(void *userData, const XML_Char *name, const XML_Char **atts);
   static void endElement(void *userData, const XML_Char *name);
 
-  void LoadModel(const char* modelPath);
+  void MoveBones(vtkMRMLModelNode* BonePlateModel, vtkMRMLLinearTransformNode* BonePlateTransform,
+                 double value);
+
+  vtkGetObjectMacro(DistractorSelected, vtkDistractorDefinition);
+  vtkSetObjectMacro(DistractorSelected, vtkDistractorDefinition);
+
+  vtkGetObjectMacro(DistractorList, vtkCollection);
 
  protected:
 
@@ -110,7 +104,9 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingLogic : public vtkSlice
 
  private:
 
-
+  vtkDistractorDefinition* DistractorSelected;
+  vtkDistractorDefinition* DistractorObject;
+  vtkCollection* DistractorList;
 };
 
 #endif

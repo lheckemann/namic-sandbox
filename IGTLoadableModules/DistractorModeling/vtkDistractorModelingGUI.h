@@ -27,8 +27,13 @@
 #include "vtkMRMLModelNode.h"
 #include "vtkMatrix4x4.h"
 #include "vtkKWFileBrowserDialog.h"
+#include "vtkKWCheckButton.h"
+#include "vtkKWMenuButtonWithLabel.h"
 
 #include "vtkDistractorModelingLogic.h"
+
+#include "vtkMRMLFiducialListNode.h"
+#include "vtkIGTPat2ImgRegistration.h"
 
 class vtkKWPushButton;
 class vtkSlicerNodeSelectorWidget;
@@ -36,6 +41,10 @@ class vtkKWScale;
 class vtkMRMLModelNode;
 class vtkMatrix4x4;
 class vtkKWFileBrowserDialog;
+class vtkKWChackButton;
+class vtkMRMLFiducialListNode;
+class vtkIGTPat2ImgRegistration;
+class vtkKWMenuButtonWithLabel;
 
 class VTK_DistractorModeling_EXPORT vtkDistractorModelingGUI : public vtkSlicerModuleGUI
 {
@@ -125,16 +134,6 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingGUI : public vtkSlicerM
   // GUI widgets
   //----------------------------------------------------------------
 
-  vtkSlicerNodeSelectorWidget* RailSelector;
-  vtkSlicerNodeSelectorWidget* SliderSelector;
-  vtkSlicerNodeSelectorWidget* PistonSelector;
-  vtkSlicerNodeSelectorWidget* CylinderSelector;
-
-  vtkMRMLModelNode* RailModel;
-  vtkMRMLModelNode* SliderModel;
-  vtkMRMLModelNode* PistonModel;
-  vtkMRMLModelNode* CylinderModel;
-
   vtkMRMLLinearTransformNode* SliderTransformNode;
   vtkMRMLLinearTransformNode* PistonTransformNode;
   vtkMRMLLinearTransformNode* CylinderTransformNode;
@@ -144,6 +143,27 @@ class VTK_DistractorModeling_EXPORT vtkDistractorModelingGUI : public vtkSlicerM
   vtkKWPushButton* LoadDistractorButton;
 
   vtkKWFileBrowserDialog * DistractorSelector;
+
+  vtkSlicerNodeSelectorWidget* BonePlateModelSelector;
+  vtkSlicerNodeSelectorWidget* BoneRailModelSelector;
+
+
+  vtkMRMLModelNode* BonePlateModel;
+  vtkMRMLModelNode* BoneRailModel;
+  vtkMRMLLinearTransformNode* BonePlateTransform;
+
+  vtkKWCheckButton* ApplyDistractorToBones;
+
+  //--------------------
+  vtkKWPushButton* PlaceFiduButton;
+  vtkKWPushButton* RegisterButton;
+
+  bool boolPlacingFiducials;
+  vtkMRMLFiducialListNode* RegistrationFiducialList;
+
+  vtkIGTPat2ImgRegistration* DistToBones;
+
+  vtkKWMenuButtonWithLabel* DistractorMenuSelector;
 
   //----------------------------------------------------------------
   // Logic Values
