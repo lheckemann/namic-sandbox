@@ -1,0 +1,137 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0106 
+header_name {.h} 
+code_name {.cpp}
+class ConsoleUI {open
+} {
+  Function {ConsoleUI()} {open
+  } {
+    Fl_Window Console {
+      label Console
+      callback {Hidden = true;
+Console->hide();
+printf("Close clicked\\n");} open
+      xywh {305 160 735 630} type Single box UP_BOX
+      code0 {\#include <stdio.h>} non_modal visible
+    } {
+      Fl_Return_Button ZeroPosition {
+        label {Zero Pos}
+        callback {PositionInput->value(0);
+InputChangedFlag = true;}
+        xywh {480 20 90 25} box SHADOW_BOX align 16
+      }
+      Fl_Value_Slider PositionInput {
+        label Input
+        callback {InputChangedFlag = true;}
+        xywh {20 20 445 25} type {Horz Knob} box SHADOW_BOX align 5 minimum -180 maximum 360 step 0.1
+      }
+      Fl_Value_Slider PGainSlider {
+        label PGain
+        xywh {20 70 560 25} type {Horz Knob} box SHADOW_BOX align 5 maximum 0.1 step 0.0001
+      }
+      Fl_Value_Output PotAngle {
+        label {Sensor Pressue (PSI)} selected
+        xywh {499 435 220 80} box SHADOW_BOX textsize 34
+      }
+      Fl_Value_Output EncoderCount {
+        label { Encoder Count}
+        xywh {110 345 220 80} box SHADOW_BOX textsize 34
+      }
+      Fl_Return_Button Reset {
+        label Reset
+        callback {printf("Reset Encoder %d\\n", Axis);
+ResetEncoderFlag = true;}
+        xywh {451 25 90 25} box SHADOW_BOX align 16 hide
+      }
+      Fl_Button Close {
+        label Close
+        callback {Hidden = true;
+hide();}
+        xywh {602 20 90 25} box SHADOW_BOX align 16
+      }
+      Fl_Value_Output EncoderAngle {
+        label {Encoder Position (mm) }
+        xywh {499 345 220 80} box SHADOW_BOX textsize 34
+      }
+      Fl_Value_Output PotVolt {
+        label {Sensor Volts}
+        xywh {110 435 220 80} box SHADOW_BOX textsize 34
+      }
+      Fl_Value_Output OutputVoltage {
+        label {Output Voltage}
+        xywh {110 525 220 80} box SHADOW_BOX textsize 34
+      }
+      Fl_Value_Output Error {
+        label {Encoder Error (mm)}
+        xywh {499 525 220 80} box SHADOW_BOX textsize 34
+      }
+      Fl_Value_Slider DGainSlider {
+        label DGain
+        xywh {20 120 560 25} type {Horz Knob} box SHADOW_BOX align 5 maximum 0.1 step 0.0001
+      }
+      Fl_Light_Button Update {
+        label Update
+        xywh {602 70 90 25} box SHADOW_BOX
+      }
+      Fl_Value_Slider IGainSlider {
+        label IGain
+        xywh {20 170 560 25} type {Horz Knob} box SHADOW_BOX align 5 maximum 0.1 step 0.0001
+      }
+      Fl_Value_Slider VoltInput {
+        label {Direct Volt Input}
+        callback {VoltChangedFlag = true;}
+        xywh {20 220 445 25} type {Horz Knob} box SHADOW_BOX align 5 minimum -180 maximum 360 step 0.1 deactivate
+      }
+      Fl_Return_Button ZeroVolt {
+        label {Zero MV}
+        callback {VoltInput->value(0);
+VoltChangedFlag = true;}
+        xywh {490 220 90 25} box SHADOW_BOX align 16 deactivate
+      }
+      Fl_Value_Slider CurrentInput {
+        label {Current Input}
+        callback {CurrentChangedFlag = true;}
+        xywh {20 271 445 25} type {Horz Knob} box SHADOW_BOX align 5 minimum -180 maximum 360 step 0.1
+      }
+      Fl_Return_Button ZeroCurrentLimit {
+        label {Zero CL}
+        callback {CurrentInput->value(0);
+CurrentChangedFlag = true;}
+        xywh {490 271 90 25} box SHADOW_BOX align 16
+      }
+    }
+    code {Hidden = true;
+InputChangedFlag = false;
+ResetEncoderFlag = false;
+VoltChangedFlag = false;
+CurrentChangedFlag = false;} {}
+  }
+  Function {show()} {open
+  } {
+    code {Hidden = false;
+Console->show();} {}
+  }
+  decl {int Axis;} {}
+  Function {set_axis(int axis)} {open return_type void
+  } {
+    code {Axis = axis;} {}
+  }
+  Function {hide()} {open
+  } {
+    code {Hidden = true;
+Console->hide();} {}
+  }
+  decl {bool Hidden;} {}
+  Function {is_hidden()} {open return_type bool
+  } {
+    code {return Hidden;} {}
+  }
+  decl {bool InputChangedFlag;} {public
+  }
+  decl {bool ResetEncoderFlag;} {public
+  }
+  decl {bool VoltChangedFlag;} {public
+  }
+  decl {bool CurrentChangedFlag;} {public
+  }
+} 

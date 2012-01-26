@@ -1,0 +1,13 @@
+#
+# CMakeLists.txt
+#
+
+ADD_EXECUTABLE(RMM1612_Test main.cpp)
+
+ADD_CUSTOM_COMMAND(TARGET RMM1612_Test POST_BUILD
+    COMMAND ln ARGS -fns ${CMAKE_CURRENT_SOURCE_DIR}/XMLConfig/ RMM1612_TestXMLConfig
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+TARGET_LINK_LIBRARIES(RMM1612_Test dl util)
+CISST_REQUIRES("RMM1612_Test" "cisstCommon;cisstVector;cisstOSAbstraction;cisstInteractive;cisstMultiTask;cisstDevices")
+TARGET_LINK_LIBRARIES(RMM1612_Test MRRobotDevices)

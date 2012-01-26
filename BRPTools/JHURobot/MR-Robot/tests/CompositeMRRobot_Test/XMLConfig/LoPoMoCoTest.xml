@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+ $Id: LoPoMoCoTest.xml,v 1.1 2006/05/14 03:24:09 kapoor Exp $
+-->
+
+<Config>
+
+  <Device Name="LoPoMoCoTest">
+
+  <ConfigFile Name="LoPoMoCoTestBoard1.xml"/>
+
+  <ConfigFile Name="LoPoMoCoTestBoard2.xml"/>
+
+  <ConfigFile Name="LoPoMoCoTestBoard3.xml"/>
+
+  <ConfigFile Name="LoPoMoCoTestBoard4.xml"/>
+
+  </Device>
+
+</Config>
+
+<!--
+ $Log: LoPoMoCoTest.xml,v $
+ Revision 1.1  2006/05/14 03:24:09  kapoor
+ ddiDeviceInterface Examples: Changed the location of XML Files. Added some
+ code in main to pick new location. Tests the four devices (okay to have
+         less devices).
+
+
+-->
+
