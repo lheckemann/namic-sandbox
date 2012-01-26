@@ -1,0 +1,65 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0106 
+header_name {.h} 
+code_name {.cpp}
+class GlobalPositionUI {open
+} {
+  Function {GlobalPositionUI()} {open
+  } {
+    Fl_Window gPosUI {
+      label {Global Position}
+      callback {Hidden = true;
+gPosUI->hide();
+printf("Close clicked\\n");} open selected
+      xywh {58 384 825 210} type Single box UP_BOX hide
+      code0 {\#include <stdio.h>} non_modal
+    } {
+      Fl_Button Close {
+        label Close
+        callback {Hidden = true;
+hide();}
+        xywh {715 20 90 25} box SHADOW_BOX align 16
+      }
+      Fl_Value_Output curPosX {
+        label {Current Encoder Position (mm) }
+        xywh {215 20 150 80} box SHADOW_BOX textsize 34
+      }
+      Fl_Value_Output tPosX {
+        label {Target Encoder Position (mm)}
+        xywh {215 110 150 80} box SHADOW_BOX textsize 34
+      }
+      Fl_Value_Output curPosY {
+        label {Encoder Position (mm) }
+        xywh {380 20 150 80} box SHADOW_BOX labeltype NO_LABEL textsize 34
+      }
+      Fl_Value_Output tPosY {
+        label {Target Position (mm)}
+        xywh {380 110 150 80} box SHADOW_BOX labeltype NO_LABEL textsize 34
+      }
+      Fl_Value_Output curPosZ {
+        label {Encoder Position (mm) }
+        xywh {545 20 150 80} box SHADOW_BOX labeltype NO_LABEL textsize 34
+      }
+      Fl_Value_Output tPosZ {
+        label {Target Position (mm)}
+        xywh {545 110 150 80} box SHADOW_BOX labeltype NO_LABEL textsize 34
+      }
+    }
+    code {Hidden = true;} {}
+  }
+  Function {show()} {open
+  } {
+    code {Hidden = false;
+gPosUI->show();} {}
+  }
+  Function {hide()} {open
+  } {
+    code {Hidden = true;
+gPosUI->hide();} {}
+  }
+  decl {bool Hidden;} {}
+  Function {is_hidden()} {open return_type bool
+  } {
+    code {return Hidden;} {}
+  }
+} 

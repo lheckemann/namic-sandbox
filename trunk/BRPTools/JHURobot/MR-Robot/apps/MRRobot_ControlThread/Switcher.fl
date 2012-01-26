@@ -1,0 +1,474 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0106 
+header_name {.h} 
+code_name {.cpp}
+class Switcher {open
+} {
+  Function {Switcher(ConsoleUI *lcui)} {open
+  } {
+    Fl_Window SwitcherWindow {
+      label {Master Controller (1024 x 768)} open
+      xywh {447 239 1024 768} type Single
+      code0 {\#include <stdio.h>}
+      code1 {\#include "Console.h"} visible
+    } {
+      Fl_Output text {
+        xywh {857 520 145 25}
+      }
+      Fl_Light_Button DirectVolts {
+        label {Direct Volts}
+        callback {DirectVoltsChanged = true;}
+        xywh {356 520 145 25} box SHADOW_BOX
+      }
+      Fl_Return_Button AdjustEncoders {
+        label {Adjust Enc}
+        callback {AdjustEncodersFlag = true;}
+        xywh {523 520 145 25} box SHADOW_BOX
+      }
+      Fl_Return_Button IRE {
+        label IRE
+        callback {StartIREFlag = true;}
+        xywh {189 520 145 25} box SHADOW_BOX
+      }
+      Fl_Light_Button StorePositions {
+        label {Store Positions}
+        callback {StorePositionsChanged = true;}
+        xywh {22 520 145 25} box SHADOW_BOX
+      }
+      Fl_Return_Button LogData {
+        label {Log Data}
+        callback {LogDataFlag = true;}
+        xywh {690 520 145 25} box SHADOW_BOX
+      }
+      Fl_Box {} {
+        label {RAS Coordinate}
+        xywh {16 17 213 42} labelfont 1 labelsize 24 labelcolor 136
+      }
+      Fl_Box {} {
+        label {Current Position}
+        xywh {239 17 170 45} labelfont 1 labelsize 18 labelcolor 136
+      }
+      Fl_Box {} {
+        label {Target   Position}
+        xywh {239 63 170 45} labelfont 1 labelsize 18 labelcolor 136
+      }
+      Fl_Box {} {
+        label {Encoder Counter}
+        xywh {116 139 110 35} labelfont 1 labelsize 12 labelcolor 136
+      }
+      Fl_Box {} {
+        label {EncoderPosition(mm)}
+        xywh {255 139 110 35} labelfont 1 labelsize 12 labelcolor 136
+      }
+      Fl_Box {} {
+        label {Encoder Error}
+        xywh {385 139 110 35} labelfont 1 labelsize 12 labelcolor 136
+      }
+      Fl_Box {} {
+        label {Encoder Counter}
+        xywh {635 139 110 35} labelfont 1 labelsize 12 labelcolor 136
+      }
+      Fl_Box {} {
+        label {EncoderPosition(mm)}
+        xywh {774 139 110 35} labelfont 1 labelsize 12 labelcolor 136
+      }
+      Fl_Box {} {
+        label {Encoder Error}
+        xywh {904 139 110 35} labelfont 1 labelsize 12 labelcolor 136
+      }
+      Fl_Value_Output EncoderCount_01 {
+        xywh {116 180 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_01 {
+        xywh {255 180 110 35} textfont 1
+      }
+      Fl_Value_Output Error_01 {
+        xywh {385 180 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_02 {
+        xywh {116 220 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_05 {
+        xywh {116 340 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_08 {
+        xywh {116 460 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_03 {
+        xywh {116 260 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_04 {
+        xywh {116 300 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_07 {
+        xywh {116 420 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_06 {
+        xywh {116 380 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_02 {
+        xywh {255 220 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_03 {
+        xywh {255 260 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_04 {
+        xywh {255 300 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_05 {
+        xywh {255 340 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_06 {
+        xywh {255 380 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_07 {
+        xywh {255 420 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_08 {
+        xywh {255 460 110 35} textfont 1
+      }
+      Fl_Value_Output Error_02 {
+        xywh {385 220 110 35} textfont 1
+      }
+      Fl_Value_Output Error_03 {
+        xywh {385 260 110 35} textfont 1
+      }
+      Fl_Value_Output Error_04 {
+        xywh {385 300 110 35} textfont 1
+      }
+      Fl_Value_Output Error_05 {
+        xywh {385 340 110 35} textfont 1
+      }
+      Fl_Value_Output Error_06 {
+        xywh {385 380 110 35} textfont 1
+      }
+      Fl_Value_Output Error_07 {
+        xywh {385 420 110 35} textfont 1
+      }
+      Fl_Value_Output Error_08 {
+        xywh {385 460 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_09 {
+        xywh {633 180 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_09 {
+        xywh {772 180 110 35} textfont 1
+      }
+      Fl_Value_Output Error_09 {
+        xywh {902 180 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_10 {
+        xywh {633 220 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_13 {
+        xywh {633 340 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_16 {
+        xywh {633 460 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_11 {
+        xywh {633 260 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_12 {
+        xywh {633 300 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_15 {
+        xywh {633 420 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderCount_14 {
+        xywh {633 380 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_10 {
+        xywh {772 220 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_11 {
+        xywh {772 260 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_12 {
+        xywh {772 300 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_13 {
+        xywh {772 340 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_14 {
+        xywh {772 380 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_15 {
+        xywh {772 420 110 35} textfont 1
+      }
+      Fl_Value_Output EncoderAngle_16 {
+        xywh {772 460 110 35} textfont 1
+      }
+      Fl_Value_Output Error_10 {
+        xywh {902 220 110 35} textfont 1
+      }
+      Fl_Value_Output Error_11 {
+        xywh {902 260 110 35} textfont 1
+      }
+      Fl_Value_Output Error_12 {
+        xywh {902 300 110 35} textfont 1
+      }
+      Fl_Value_Output Error_13 {
+        xywh {902 340 110 35} textfont 1
+      }
+      Fl_Value_Output Error_14 {
+        xywh {902 380 110 35} textfont 1
+      }
+      Fl_Value_Output Error_15 {
+        xywh {902 420 110 35} textfont 1
+      }
+      Fl_Value_Output Error_16 {
+        xywh {902 460 110 35} textfont 1
+      }
+      Fl_Value_Output CurrentPosition {
+        xywh {415 17 250 45} textfont 1
+      }
+      Fl_Value_Output TargetPosition {
+        xywh {415 63 250 45} textfont 1
+      }
+      Fl_Box {} {
+        label {Slicer 3}
+        xywh {170 585 170 45} labelfont 1 labelsize 18 labelcolor 136
+      }
+      Fl_Box {} {
+        label RadVision
+        xywh {680 585 170 45} labelfont 1 labelsize 18 labelcolor 136
+      }
+      Fl_Text_Display Slicer {
+        xywh {22 628 479 120}
+      }
+      Fl_Text_Display RadVision {
+        xywh {523 628 479 120}
+      }
+      Fl_Light_Button Axis1 {
+        label {Axis 1}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 1 %d\\n", value);
+if (value == 0) {
+	cui[0].hide();
+	//DisableSingleAxis(0);
+} else {
+	cui[0].show();
+	//EnableSingleAxis(0);
+}}
+        xywh {30 180 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis2 {
+        label {Axis 2}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 2 %d\\n", value);
+if (value == 0) {
+	cui[1].hide();
+	//DisableSingleAxis(1);
+} else {
+	cui[1].show();
+	//EnableSingleAxis(1);
+}}
+        xywh {30 220 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis3 {
+        label {Axis 3}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 3 %d\\n", value);
+if (value == 0) {
+	cui[2].hide();
+	//DisableSingleAxis(2);
+} else {
+	cui[2].show();
+	//EnableSingleAxis(2);
+}}
+        xywh {30 260 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis4 {
+        label {Axis 4}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 4 %d\\n", value);
+if (value == 0) {
+	cui[3].hide();
+	//DisableSingleAxis(3);
+} else {
+	cui[3].show();
+	//EnableSingleAxis(3);
+}}
+        xywh {30 300 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis5 {
+        label {Axis 5}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 5 %d\\n", value);
+if (value == 0) {
+	cui[4].hide();
+	//DisableSingleAxis(0);
+} else {
+	cui[4].show();
+	//EnableSingleAxis(0);
+}}
+        xywh {30 340 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis6 {
+        label {Axis 6}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 6 %d\\n", value);
+if (value == 0) {
+	cui[5].hide();
+	//DisableSingleAxis(1);
+} else {
+	cui[5].show();
+	//EnableSingleAxis(1);
+}}
+        xywh {30 380 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis7 {
+        label {Axis 7}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 7 %d\\n", value);
+if (value == 0) {
+	cui[6].hide();
+	//DisableSingleAxis(2);
+} else {
+	cui[6].show();
+	//EnableSingleAxis(2);
+}}
+        xywh {30 420 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis8 {
+        label {Axis 8}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 8 %d\\n", value);
+if (value == 0) {
+	cui[7].hide();
+	//DisableSingleAxis(3);
+} else {
+	cui[7].show();
+	//EnableSingleAxis(3);
+}}
+        xywh {30 460 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis9 {
+        label {Axis 9}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 9 %d\\n", value);
+if (value == 0) {
+	cui[8].hide();
+	//DisableSingleAxis(0);
+} else {
+	cui[8].show();
+	//EnableSingleAxis(0);
+}}
+        xywh {547 180 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis10 {
+        label {Axis 10}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 10 %d\\n", value);
+if (value == 0) {
+	cui[9].hide();
+	//DisableSingleAxis(1);
+} else {
+	cui[9].show();
+	//EnableSingleAxis(1);
+}}
+        xywh {547 220 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis11 {
+        label {Axis 11}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 11 %d\\n", value);
+if (value == 0) {
+	cui[10].hide();
+	//DisableSingleAxis(2);
+} else {
+	cui[10].show();
+	//EnableSingleAxis(2);
+}}
+        xywh {547 260 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis12 {
+        label {Axis 12}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 12 %d\\n", value);
+if (value == 0) {
+	cui[11].hide();
+	//DisableSingleAxis(3);
+} else {
+	cui[11].show();
+	//EnableSingleAxis(3);
+}}
+        xywh {547 300 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis13 {
+        label {Axis 13}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 13 %d\\n", value);
+if (value == 0) {
+	cui[12].hide();
+	//DisableSingleAxis(0);
+} else {
+	cui[12].show();
+	//EnableSingleAxis(0);
+}}
+        xywh {547 340 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis14 {
+        label {Axis 14}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 14 %d\\n", value);
+if (value == 0) {
+	cui[13].hide();
+	//DisableSingleAxis(1);
+} else {
+	cui[13].show();
+	//EnableSingleAxis(1);
+}}
+        xywh {547 380 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis15 {
+        label {Axis 15}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 15 %d\\n", value);
+if (value == 0) {
+	cui[14].hide();
+	//DisableSingleAxis(2);
+} else {
+	cui[14].show();
+	//EnableSingleAxis(2);
+}}
+        xywh {547 420 70 35} labelfont 1 labelcolor 15
+      }
+      Fl_Light_Button Axis16 {
+        label {Axis 16}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 16 %d\\n", value);
+if (value == 0) {
+	cui[15].hide();
+	//DisableSingleAxis(3);
+} else {
+	cui[15].show();
+	//EnableSingleAxis(3);
+}} selected
+        xywh {547 460 70 35} labelfont 1 labelcolor 15
+      }
+    }
+    code {cui = lcui;
+AdjustEncodersFlag = false;
+LogDataFlag = false;
+DirectVoltsChanged = false;
+StorePositionsChanged = false;
+StartIREFlag = false;} {}
+  }
+  Function {show(int argc, char**argv)} {open
+  } {
+    code {SwitcherWindow->show();} {}
+  }
+  decl {ConsoleUI *cui;} {}
+  decl {bool AdjustEncodersFlag;} {public
+  }
+  decl {bool DirectVoltsChanged;} {public
+  }
+  decl {bool StartIREFlag;} {public
+  }
+  decl {bool StorePositionsChanged;} {public
+  }
+  decl {bool LogDataFlag;} {public
+  }
+} 
