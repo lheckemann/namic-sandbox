@@ -1,0 +1,308 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0106 
+header_name {.h} 
+code_name {.cpp}
+class Switcher {open
+} {
+  Function {Switcher(ConsoleUI *lcui, GlobalPositionUI * lgPosUI)} {open
+  } {
+    Fl_Window SwitcherWindow {
+      label Switcher open selected
+      xywh {828 176 295 670} type Single
+      code0 {\#include <stdio.h>}
+      code1 {\#include "Console-Old.h"}
+      code2 {\#include "GlobalPosition.h"} visible
+    } {
+      Fl_Light_Button Axis1 {
+        label {Axis 1}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 1 %d\\n", value);
+if (value == 0) {
+	cui[0].hide();
+	//DisableSingleAxis(0);
+} else {
+	cui[0].show();
+	//EnableSingleAxis(0);
+}}
+        xywh {22 70 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis2 {
+        label {Axis 2}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 2 %d\\n", value);
+if (value == 0) {
+	cui[1].hide();
+	//DisableSingleAxis(1);
+} else {
+	cui[1].show();
+	//EnableSingleAxis(1);
+}}
+        xywh {22 104 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis3 {
+        label {Axis 3}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 3 %d\\n", value);
+if (value == 0) {
+	cui[2].hide();
+	//DisableSingleAxis(2);
+} else {
+	cui[2].show();
+	//EnableSingleAxis(2);
+}}
+        xywh {22 138 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis4 {
+        label {Axis 4}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 4 %d\\n", value);
+if (value == 0) {
+	cui[3].hide();
+	//DisableSingleAxis(3);
+} else {
+	cui[3].show();
+	//EnableSingleAxis(3);
+}}
+        xywh {22 173 100 25} box SHADOW_BOX
+      }
+      Fl_Output text {
+        xywh {20 630 145 25}
+      }
+      Fl_Light_Button DirectVolts {
+        label {Direct Volts}
+        callback {DirectVoltsChanged = true;}
+        xywh {20 510 145 25} box SHADOW_BOX
+      }
+      Fl_Return_Button AdjustEncoders {
+        label {Adjust Enc}
+        callback {AdjustEncodersFlag = true;}
+        xywh {20 550 145 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis5 {
+        label {Axis 5}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 5 %d\\n", value);
+if (value == 0) {
+	cui[4].hide();
+	//DisableSingleAxis(0);
+} else {
+	cui[4].show();
+	//EnableSingleAxis(0);
+}}
+        xywh {22 230 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis6 {
+        label {Axis 6}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 6 %d\\n", value);
+if (value == 0) {
+	cui[5].hide();
+	//DisableSingleAxis(1);
+} else {
+	cui[5].show();
+	//EnableSingleAxis(1);
+}}
+        xywh {22 264 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis7 {
+        label {Axis 7}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 7 %d\\n", value);
+if (value == 0) {
+	cui[6].hide();
+	//DisableSingleAxis(2);
+} else {
+	cui[6].show();
+	//EnableSingleAxis(2);
+}}
+        xywh {22 299 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis8 {
+        label {Axis 8}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 8 %d\\n", value);
+if (value == 0) {
+	cui[7].hide();
+	//DisableSingleAxis(3);
+} else {
+	cui[7].show();
+	//EnableSingleAxis(3);
+}}
+        xywh {22 333 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis9 {
+        label {Axis 9}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 9 %d\\n", value);
+if (value == 0) {
+	cui[8].hide();
+	//DisableSingleAxis(0);
+} else {
+	cui[8].show();
+	//EnableSingleAxis(0);
+}}
+        xywh {167 69 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis10 {
+        label {Axis 10}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 10 %d\\n", value);
+if (value == 0) {
+	cui[9].hide();
+	//DisableSingleAxis(1);
+} else {
+	cui[9].show();
+	//EnableSingleAxis(1);
+}}
+        xywh {167 104 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis11 {
+        label {Axis 11}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 11 %d\\n", value);
+if (value == 0) {
+	cui[10].hide();
+	//DisableSingleAxis(2);
+} else {
+	cui[10].show();
+	//EnableSingleAxis(2);
+}}
+        xywh {167 138 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis12 {
+        label {Axis 12}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 12 %d\\n", value);
+if (value == 0) {
+	cui[11].hide();
+	//DisableSingleAxis(3);
+} else {
+	cui[11].show();
+	//EnableSingleAxis(3);
+}}
+        xywh {167 172 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis13 {
+        label {Axis 13}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 13 %d\\n", value);
+if (value == 0) {
+	cui[12].hide();
+	//DisableSingleAxis(0);
+} else {
+	cui[12].show();
+	//EnableSingleAxis(0);
+}}
+        xywh {165 231 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis14 {
+        label {Axis 14}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 14 %d\\n", value);
+if (value == 0) {
+	cui[13].hide();
+	//DisableSingleAxis(1);
+} else {
+	cui[13].show();
+	//EnableSingleAxis(1);
+}}
+        xywh {165 265 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis15 {
+        label {Axis 15}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 15 %d\\n", value);
+if (value == 0) {
+	cui[14].hide();
+	//DisableSingleAxis(2);
+} else {
+	cui[14].show();
+	//EnableSingleAxis(2);
+}}
+        xywh {165 299 100 25} box SHADOW_BOX
+      }
+      Fl_Light_Button Axis16 {
+        label {Axis 16}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Axis 16 %d\\n", value);
+if (value == 0) {
+	cui[15].hide();
+	//DisableSingleAxis(3);
+} else {
+	cui[15].show();
+	//EnableSingleAxis(3);
+}}
+        xywh {165 335 100 25} box SHADOW_BOX
+      }
+      Fl_Box Board1 {
+        label {Board \#1}
+        xywh {15 71 115 150} labelsize 18 align 1
+      }
+      Fl_Box Board2 {
+        label {Board \#2}
+        xywh {15 229 115 150} labelsize 18 align 1
+      }
+      Fl_Box Board3 {
+        label {Board \#3}
+        xywh {160 70 115 150} labelsize 18 align 1
+      }
+      Fl_Box Board4 {
+        label {Board \#4}
+        xywh {160 230 115 145} labelsize 18 align 1
+      }
+      Fl_Return_Button IRE {
+        label IRE
+        callback {StartIREFlag = true;}
+        xywh {20 470 145 25} box SHADOW_BOX
+      }
+      Fl_Light_Button StorePositions {
+        label {Store Positions}
+        callback {StorePositionsChanged = true;}
+        xywh {20 430 145 25} box SHADOW_BOX
+      }
+      Fl_Return_Button LogData {
+        label {Log Data}
+        callback {LogDataFlag = true;}
+        xywh {20 590 145 25} box SHADOW_BOX
+      }
+      Fl_Light_Button gPosUIButton {
+        label {Global Position}
+        callback {char value = ((Fl_Button*)o)->value();
+printf("Global Position %d\\n", value);
+if (value == 0) {
+	gPosUI->hide();
+} else {
+	gPosUI->show();
+}}
+        xywh {20 390 145 25} box SHADOW_BOX
+      }
+      Fl_Box {} {
+        label {MR Robot Controller}
+        xywh {20 5 260 45} labelsize 30 labelcolor 136
+      }
+    }
+    code {cui = lcui;
+gPosUI = lgPosUI; 
+AdjustEncodersFlag = false;
+LogDataFlag = false;
+DirectVoltsChanged = false;
+StorePositionsChanged = false;
+StartIREFlag = false;} {}
+  }
+  Function {show(int argc, char**argv)} {open
+  } {
+    code {SwitcherWindow->show();} {}
+  }
+  decl {ConsoleUI *cui;} {}
+  decl {bool AdjustEncodersFlag;} {public
+  }
+  decl {bool DirectVoltsChanged;} {public
+  }
+  decl {bool StartIREFlag;} {public
+  }
+  decl {bool StorePositionsChanged;} {public
+  }
+  decl {bool LogDataFlag;} {public
+  }
+  decl {GlobalPositionUI *gPosUI;} {}
+} 
