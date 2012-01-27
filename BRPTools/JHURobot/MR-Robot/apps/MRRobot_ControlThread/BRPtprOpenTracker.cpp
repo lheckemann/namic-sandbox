@@ -127,6 +127,10 @@ bool BRPtprOpenTracker::SendTargetToRobot(BRPtprControl *robotControl, igtlMessa
  orientation[2]=jhu_get_float32(msg, 5*4);
  orientation[3]=jhu_get_float32(msg, 6*4);
 
+ std::cerr << "BRPtprOpenTracker::SendTargetToRobot ("
+           << position[0] << "," << position[1] << "," << position[2] << ")" 
+           << " ("  << orientation[0] << "," << orientation[1] << "," << orientation[2] << "," << orientation[3] << ")" << std::endl;
+
  robotControl->GoToCoordinates(position, orientation); 
  return true;
 }
@@ -411,7 +415,6 @@ bool BRPtprOpenTracker::QueueActualCoordinates(float pos[3],float orientation[4]
 std::cerr << "BRPtprOpenTracker::QueueActualCoordinates (" << pos[0] << "," << pos[1] << "," << pos[2] << ")"
                 << " (" << orientation[0] << "," << orientation[1] << "," << orientation[2] << "," << orientation[3] << ")"
                 ")\n";
-
 
         return QueueResponse(msg);
         /* todo

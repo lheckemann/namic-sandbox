@@ -211,7 +211,7 @@ void ctfControl::GoToCoordinates(float position[3], float orientation[4])
         
     CMN_LOG_RUN_DEBUG <<  "ctfControl::P_Rob   - " << P_Rob << "\n";
     
-    // Reza added 1/28/2011
+    // Reza Updated 1/26/2012OB
     vct3 u_RAS;
     vct3 u_Rob;
     
@@ -220,6 +220,14 @@ void ctfControl::GoToCoordinates(float position[3], float orientation[4])
     u_RAS.Element(2) = R_RAS[2][2];
     
     CMN_LOG_RUN_DEBUG <<  "ctfControl::u_RAS   - " << u_RAS << "\n";
+
+    //CMN_LOG_RUN_DEBUG <<  "ctfControl::d   - " << d << "\n";
+
+    //u_RAS.Element(0) = orientation[0] / d;
+    //u_RAS.Element(1) = orientation[1] / d;  // needle orientation in Robot coordinate
+    //u_RAS.Element(2) = orientation[2] / d;
+    
+
 
     u_Rob = R_Z_Inv * u_RAS; // Z-frame is assumed to be perfectly aligned with Rob coordinate system
     

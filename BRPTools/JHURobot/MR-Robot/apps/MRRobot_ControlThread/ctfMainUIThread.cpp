@@ -26,8 +26,11 @@ ctfMainUIThread::ctfMainUIThread(const std::string & taskName, double period):
 {
     cui = new ConsoleUI[CTF_NO_CUI];
     gPosUI = new GlobalPositionUI();        // Nathan 2009-06-13
-    //sui = new Switcher(cui, gPosUI);    
+#ifdef OLD_GUI
+    sui = new Switcher(cui, gPosUI);
+#else
     sui = new Switcher(cui);    
+#endif //OLD_GUI
     desiredPosition.SetSize(CTF_NO_CUI);
     desiredDirectVolt.SetSize(CTF_NO_CUI);
     MaxInput.SetSize(CTF_NO_CUI);
@@ -43,7 +46,7 @@ ctfMainUIThread::ctfMainUIThread(const std::string & taskName, double period):
     
     ExitFlag = false;
 #if STORE_POSITIONS
-    startAveraging = false;
+   startAveraging = false;
 #endif
 
     // Start the OpenTracker threads
