@@ -522,6 +522,7 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
           //TODO: Update camera when selecting transformation
           this->SceneCamera->SetAndObserveTransformNodeID(this->TransformationNode->GetID());
           this->SceneCamera->Modified();
+          this->TransformationNode->InvokeEvent(vtkMRMLLinearTransformNode::TransformModifiedEvent);
           }
         }
       }
@@ -529,13 +530,29 @@ void vtkIGTViewGUI::ProcessGUIEvents(vtkObject *caller,
       {
       if(this->SceneCamera)
         {
-        double initialCamPosition[3] = {0.0, 500.0, 0.0};
-        double initialCamViewUp[3] = {0.0, 0.0, 1.0};
-        double initialCamFocalPoint[3] = {0.0, 0.0, 0.0};
 
-        this->SceneCamera->SetPosition(initialCamPosition);
-        this->SceneCamera->SetViewUp(initialCamViewUp);
-        this->SceneCamera->SetFocalPoint(initialCamFocalPoint);
+        /* Need to set TransformationNode to Identity to come back to original position
+         * Couldn't modify this->TransformationNode, could be use by 2D Viewers
+         * Save TransformationNode in tempT, set to identity
+         * Restore TransformationNode
+         *
+         * Need to call TransformModifiedEvent to update camera
+         */
+
+        vtkMRMLLinearTransformNode* tempT = vtkMRMLLinearTransformNode::New();
+        tempT->Copy(this->TransformationNode);
+
+        this->TransformationNode->GetMatrixTransformToParent()->Identity();
+        this->TransformationNode->InvokeEvent(vtkMRMLLinearTransformNode::TransformModifiedEvent);
+
+        this->SceneCamera->SetAndObserveTransformNodeID(NULL);
+        this->SceneCamera->Modified();
+
+
+        this->TransformationNode->Copy(tempT);
+        this->TransformationNode->InvokeEvent(vtkMRMLLinearTransformNode::TransformModifiedEvent);
+
+        tempT->Delete();
         }
       }
     }
