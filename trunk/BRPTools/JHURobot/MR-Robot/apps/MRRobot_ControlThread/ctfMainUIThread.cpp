@@ -26,7 +26,8 @@ ctfMainUIThread::ctfMainUIThread(const std::string & taskName, double period):
 {
     cui = new ConsoleUI[CTF_NO_CUI];
     gPosUI = new GlobalPositionUI();        // Nathan 2009-06-13
-    sui = new Switcher(cui, gPosUI);    
+    //sui = new Switcher(cui, gPosUI);    
+    sui = new Switcher(cui);    
     desiredPosition.SetSize(CTF_NO_CUI);
     desiredDirectVolt.SetSize(CTF_NO_CUI);
     MaxInput.SetSize(CTF_NO_CUI);
