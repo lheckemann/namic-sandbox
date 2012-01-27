@@ -53,7 +53,7 @@ IF(MRRobot_OldGUI)
 FLTK_WRAP_UI(MRRobot_ControlThread Switcher-Old.fl Console-Old.fl GlobalPosition.fl )
 ADD_DEFINITIONS(-DOLD_GUI)
 ELSE(MRRobot_OldGUI)
-FLTK_WRAP_UI(MRRobot_ControlThread Switcher.fl Console.fl)
+FLTK_WRAP_UI(MRRobot_ControlThread Switcher.fl Console.fl GlobalPosition.fl)
 ENDIF(MRRobot_OldGUI)
 
 # name the main executable and specifies with source files to use
