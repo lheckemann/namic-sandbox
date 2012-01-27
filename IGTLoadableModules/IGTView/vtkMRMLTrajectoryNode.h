@@ -10,7 +10,7 @@
   Date:      $Date: 2009/10/15 17:12:29 $
   Version:   $Revision: 1.3 $
 
-=========================================================================auto=*/
+  =========================================================================auto=*/
 
 #ifndef VTKMRMLTRAJECTORYNODE_H_
 #define VTKMRMLTRAJECTORYNODE_H_
@@ -25,7 +25,7 @@
 class VTK_IGTView_EXPORT vtkMRMLTrajectoryNode : public vtkMRMLNode
 {
 
-public:
+ public:
   //----------------------------------------------------------------
   // Standard methods for MRML nodes
   //----------------------------------------------------------------
@@ -47,11 +47,11 @@ public:
 
   // Get unique node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() {return "Trajectory";};
-  
+
   //Disactivate the possibility to apply non-linear transforms
   virtual bool CanApplyNonLinearTransforms() {return 0;};
 
-protected:
+ protected:
   //----------------------------------------------------------------
   // Constructor and destructor
   //----------------------------------------------------------------
@@ -60,16 +60,16 @@ protected:
   vtkMRMLTrajectoryNode(const vtkMRMLTrajectoryNode&);
   void operator=(const vtkMRMLTrajectoryNode&);
 
-public:
+ public:
 
-  
+
   //BTX
   std::string GetTrajectoryName(){return this->TrajectoryName;};
   void SetTrajectoryName(std::string n){this->TrajectoryName = n;};
   std::string GetTrajectoryGroupName(){return this->TrajectoryGroupName;};
   void SetTrajectoryGroupName(std::string gn){this->TrajectoryGroupName = gn;};
   //ETX
-  
+
   vtkSetMacro(Type, int);
   vtkGetMacro(Type, int);
   vtkSetVector4Macro(RGBA, int);
@@ -79,15 +79,15 @@ public:
   vtkSetVector3Macro(P2, float);
   vtkGetVector3Macro(P2, float);
   vtkSetMacro(diameter, float);
-  vtkGetMacro(diameter, float);     
-  
+  vtkGetMacro(diameter, float);
+
   //BTX
   std::string GetOwnerImage(){return this->OwnerImage;};
   void SetOwnerImage(std::string oi){this->OwnerImage = oi;};
   //ETX
 
 
-private:
+ private:
 
   //BTX
   std::string TrajectoryName;
@@ -102,4 +102,4 @@ private:
 
 };
 
-#endif 
+#endif

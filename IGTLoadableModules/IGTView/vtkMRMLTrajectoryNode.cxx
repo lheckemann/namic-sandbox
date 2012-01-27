@@ -1,16 +1,16 @@
 /*=auto=========================================================================
 
-Portions (c) Copyright 2009 Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Portions (c) Copyright 2009 Brigham and Women's Hospital (BWH) All Rights Reserved.
 
-See Doc/copyright/copyright.txt
-or http://www.slicer.org/copyright/copyright.txt for details.
+  See Doc/copyright/copyright.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
 
-Program:   3D Slicer
-Module:    $RCSfile: vtkMRMLTrajectoryNode.cxx,v $
-Date:      $Date: 2006/03/17 15:10:10 $
-Version:   $Revision: 1.2 $
+  Program:   3D Slicer
+  Module:    $RCSfile: vtkMRMLTrajectoryNode.cxx,v $
+  Date:      $Date: 2006/03/17 15:10:10 $
+  Version:   $Revision: 1.2 $
 
-=========================================================================auto=*/
+  =========================================================================auto=*/
 
 #include <string>
 #include <iostream>
@@ -32,7 +32,7 @@ vtkMRMLTrajectoryNode* vtkMRMLTrajectoryNode::New()
   vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLTrajectoryNode");
   if(ret)
     {
-      return (vtkMRMLTrajectoryNode*)ret;
+    return (vtkMRMLTrajectoryNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
   return new vtkMRMLTrajectoryNode;
@@ -46,7 +46,7 @@ vtkMRMLNode* vtkMRMLTrajectoryNode::CreateNodeInstance()
   vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLTrajectoryNode");
   if(ret)
     {
-      return (vtkMRMLTrajectoryNode*)ret;
+    return (vtkMRMLTrajectoryNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
   return new vtkMRMLTrajectoryNode;
@@ -56,10 +56,10 @@ vtkMRMLNode* vtkMRMLTrajectoryNode::CreateNodeInstance()
 vtkMRMLTrajectoryNode::vtkMRMLTrajectoryNode()
 {
   this->HideFromEditorsOff();
-  
+
   this->TrajectoryName = "DefaultTrajectory";
   this->TrajectoryGroupName = "TrajectoryGroup";
-  
+
   this->RGBA[0] = 0.5;
   this->RGBA[1] = 0.5;
   this->RGBA[2] = 0.5;
@@ -76,7 +76,7 @@ vtkMRMLTrajectoryNode::vtkMRMLTrajectoryNode()
   this->diameter = 0.0;
 
   this->OwnerImage = "";
-  
+
 }
 
 //----------------------------------------------------------------------------
@@ -114,7 +114,7 @@ void vtkMRMLTrajectoryNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "TrajectoryName: " << this->TrajectoryName.c_str() << "\n";
   os << indent << "TrajectoryGroupName: " << this->TrajectoryGroupName.c_str() << "\n";
   os << indent << "RGBA: " << this->RGBA[0] << "," << this->RGBA[1] << "," << this->RGBA[2] << "," << this->RGBA[3] << "\n";
-  os << indent << "P1: (" << this->P1[0] << "," << this->P1[1] << "," << this->P1[2] << ")\n";  
+  os << indent << "P1: (" << this->P1[0] << "," << this->P1[1] << "," << this->P1[2] << ")\n";
   os << indent << "P2: (" << this->P2[0] << "," << this->P2[1] << "," << this->P2[2] << ")\n";
   os << indent << "Diameter: " << this->diameter << "\n";
   os << indent << "OwnerImage: " << this->OwnerImage.c_str() << "\n";
