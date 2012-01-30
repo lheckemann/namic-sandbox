@@ -62,8 +62,10 @@ set(OsteoPlan_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanCuttingModelStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanSelectingPartsStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanMovingPartsStep.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanPlacingFiducialsStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanPlacingScrewsStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanReturningOriginalPositionStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkOsteoPlanDistractorStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkDistractorDefinition.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/vtkCylinderWidget.cxx
 )
 

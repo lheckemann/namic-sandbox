@@ -36,8 +36,9 @@ class vtkMRMLOsteoPlanNode;
 class vtkOsteoPlanCuttingModelStep;
 class vtkOsteoPlanSelectingPartsStep;
 class vtkOsteoPlanMovingPartsStep;
-class vtkOsteoPlanPlacingFiducialsStep;
+class vtkOsteoPlanPlacingScrewsStep;
 class vtkOsteoPlanReturningOriginalPositionStep;
+class vtkOsteoPlanDistractorStep;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
 {
@@ -157,11 +158,12 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   // Wizard Steps
   //----------------------------------------------------------------
 
-  vtkOsteoPlanCuttingModelStep               *CuttingStep;
-  vtkOsteoPlanSelectingPartsStep             *SelectingStep;
-  vtkOsteoPlanMovingPartsStep                *MovingStep;
-  vtkOsteoPlanPlacingFiducialsStep           *PlacingStep;
-  vtkOsteoPlanReturningOriginalPositionStep  *ReturningStep;
+  vtkOsteoPlanCuttingModelStep                  *CuttingStep;
+  vtkOsteoPlanSelectingPartsStep                *SelectingStep;
+  vtkOsteoPlanMovingPartsStep                   *MovingStep;
+  vtkOsteoPlanPlacingScrewsStep                 *PlacingStep;
+  vtkOsteoPlanReturningOriginalPositionStep     *ReturningStep;
+  vtkOsteoPlanDistractorStep                    *DistractorStep;
 
   //----------------------------------------------------------------
   // Logic Values

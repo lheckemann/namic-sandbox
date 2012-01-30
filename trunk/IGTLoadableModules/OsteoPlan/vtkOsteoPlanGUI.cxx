@@ -43,8 +43,10 @@
 #include "vtkOsteoPlanCuttingModelStep.h"
 #include "vtkOsteoPlanSelectingPartsStep.h"
 #include "vtkOsteoPlanMovingPartsStep.h"
-#include "vtkOsteoPlanPlacingFiducialsStep.h"
+#include "vtkOsteoPlanPlacingScrewsStep.h"
 #include "vtkOsteoPlanReturningOriginalPositionStep.h"
+#include "vtkOsteoPlanDistractorStep.h"
+
 
 
 //---------------------------------------------------------------------------
@@ -79,11 +81,12 @@ vtkOsteoPlanGUI::vtkOsteoPlanGUI ( )
   //----------------------------------------------------------------
   // Wizard Steps
 
-  this->CuttingStep   = NULL;
-  this->SelectingStep = NULL;
-  this->MovingStep    = NULL;
-  this->PlacingStep   = NULL;
-  this->ReturningStep = NULL;
+  this->CuttingStep    = NULL;
+  this->SelectingStep  = NULL;
+  this->MovingStep     = NULL;
+  this->PlacingStep    = NULL;
+  this->ReturningStep  = NULL;
+  this->DistractorStep = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -169,6 +172,12 @@ vtkOsteoPlanGUI::~vtkOsteoPlanGUI ( )
     {
     this->ReturningStep->Delete();
     this->ReturningStep = NULL;
+    }
+
+  if(this->DistractorStep)
+    {
+    this->DistractorStep->Delete();
+    this->DistractorStep = NULL;
     }
 
   //----------------------------------------------------------------
@@ -553,7 +562,7 @@ void vtkOsteoPlanGUI::BuildGUIForWizardFrame()
   // Fourth Step: Create holes in the models to represent screws
   if(!this->PlacingStep)
     {
-    this->PlacingStep = vtkOsteoPlanPlacingFiducialsStep::New();
+    this->PlacingStep = vtkOsteoPlanPlacingScrewsStep::New();
     PrepareMyStep(this->PlacingStep);
     wizard_workflow->AddNextStep(this->PlacingStep);
     UpdateWorkflowStepNames();
@@ -568,8 +577,17 @@ void vtkOsteoPlanGUI::BuildGUIForWizardFrame()
     UpdateWorkflowStepNames();
     }
 
+  // Sixth Step: Place Distractor and actuate it
+  if(!this->DistractorStep)
+    {
+    this->DistractorStep = vtkOsteoPlanDistractorStep::New();
+    PrepareMyStep(this->DistractorStep);
+    wizard_workflow->AddNextStep(this->DistractorStep);
+    UpdateWorkflowStepNames();
+    }
+
   // Start State Machine
-  wizard_workflow->SetFinishStep(this->ReturningStep);
+  wizard_workflow->SetFinishStep(this->DistractorStep);
   wizard_workflow->SetInitialStep(this->CuttingStep);
 
   // -----------------------------------------
@@ -620,6 +638,10 @@ void vtkOsteoPlanGUI::PrepareMyStep(vtkOsteoPlanStep* wStep)
       this->WorkflowButtonSet->GetWidget(insertStep)->SetText(wStep->GetTitle());
       this->WorkflowButtonSet->GetWidget(insertStep)->SetBackgroundColor(r,g,b);
       this->WorkflowButtonSet->GetWidget(insertStep)->SetActiveBackgroundColor(r,g,b);
+      if(insertStep == 0)
+        {
+        this->WorkflowButtonSet->GetWidget(insertStep)->SetReliefToSunken();
+        }
       }
     }
 }
@@ -654,6 +676,10 @@ void vtkOsteoPlanGUI::ChangeWorkphaseGUI(int StepNumberToGo)
       {
       vtkKWWizardStep* currentStep = this->WizardWidget->GetWizardWorkflow()->GetCurrentStep();
       int stepNumber = GetStepNumber(currentStep);
+
+      this->WorkflowButtonSet->GetWidget(stepNumber)->SetReliefToGroove();
+      this->WorkflowButtonSet->GetWidget(StepNumberToGo)->SetReliefToSunken();
+
       if(stepNumber >= 0)
         {
         int difference = StepNumberToGo - stepNumber;
