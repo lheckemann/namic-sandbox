@@ -614,8 +614,8 @@ void vtkOsteoPlanDistractorStep::ProcessGUIEvents(vtkObject *caller,
       this->GetDistractorSelected()->UpdateAnchors(RegistrationMatrix);
       //**************************************************************************************
 
-      this->DistToBones->Delete();
-      this->DistToBones = NULL;
+      //this->DistToBones->Delete();
+      //this->DistToBones = NULL;
       this->RegistrationFiducialList->RemoveAllFiducials();
       }
     }
@@ -782,9 +782,9 @@ void vtkOsteoPlanDistractorStep::MoveDistractor(double value,
 
   this->MoveSlider(value,Slider,SliderTransformationNode, mat);
 
-  this->MovePiston(value,Piston,PistonTransformationNode);
+  this->MovePiston(value,Piston,PistonTransformationNode, mat);
 
-  this->MoveCylinder(value,Cylinder,CylinderTransformationNode);
+  this->MoveCylinder(value,Cylinder,CylinderTransformationNode, mat);
 
 }
 
@@ -799,60 +799,36 @@ void vtkOsteoPlanDistractorStep::MoveSlider(double value, vtkMRMLModelNode* Slid
   SliderTransformationMatrix->Identity();
 
 
+  vtkTransform* SliderTranslation = vtkTransform::New();
+  SliderTranslation->Translate(-this->GetDistractorSelected()->GetRailAnchor()[0],
+                               -this->GetDistractorSelected()->GetRailAnchor()[1],
+                               -this->GetDistractorSelected()->GetRailAnchor()[2]);
+
+  vtkTransform* SliderRotation = vtkTransform::New();
+
   if(mat == NULL)
     {
-    vtkTransform* SliderTranslation = vtkTransform::New();
-    SliderTranslation->Translate(SliderCenter[0] + this->GetDistractorSelected()->GetRailAnchor()[0],
-                                 SliderCenter[1] + this->GetDistractorSelected()->GetRailAnchor()[1],
-                                 SliderCenter[2] + this->GetDistractorSelected()->GetRailAnchor()[2]);
-
-
-    vtkTransform* SliderRotation = vtkTransform::New();
     SliderRotation->RotateY(value);
-
-
-    vtkTransform* SliderInvertTranslation = vtkTransform::New();
-    SliderInvertTranslation->Translate(-SliderCenter[0] - this->GetDistractorSelected()->GetRailAnchor()[0],
-                                       -SliderCenter[1] - this->GetDistractorSelected()->GetRailAnchor()[1],
-                                       -SliderCenter[2] - this->GetDistractorSelected()->GetRailAnchor()[2]);
-
-    SliderInvertTranslation->PostMultiply();
-    SliderInvertTranslation->Concatenate(SliderRotation);
-    SliderInvertTranslation->PostMultiply();
-    SliderInvertTranslation->Concatenate(SliderTranslation);
-    SliderInvertTranslation->GetMatrix(SliderTransformationMatrix);
-
-    SliderTranslation->Delete();
-    SliderRotation->Delete();
-    SliderInvertTranslation->Delete();
     }
   else
     {
-    vtkTransform* SliderTranslation = vtkTransform::New();
-    SliderTranslation->Translate(SliderCenter[0] + this->GetDistractorSelected()->GetRailAnchor()[0],
-                                 SliderCenter[1] + this->GetDistractorSelected()->GetRailAnchor()[1],
-                                 SliderCenter[2] + this->GetDistractorSelected()->GetRailAnchor()[2]);
-
-
-    vtkTransform* SliderRotation = vtkTransform::New();
     SliderRotation->RotateWXYZ(value, mat->GetElement(0,1), mat->GetElement(1,1), mat->GetElement(2,1));
-
-
-    vtkTransform* SliderInvertTranslation = vtkTransform::New();
-    SliderInvertTranslation->Translate(-SliderCenter[0] - this->GetDistractorSelected()->GetRailAnchor()[0],
-                                       -SliderCenter[1] - this->GetDistractorSelected()->GetRailAnchor()[1],
-                                       -SliderCenter[2] - this->GetDistractorSelected()->GetRailAnchor()[2]);
-
-    SliderInvertTranslation->PostMultiply();
-    SliderInvertTranslation->Concatenate(SliderRotation);
-    SliderInvertTranslation->PostMultiply();
-    SliderInvertTranslation->Concatenate(SliderTranslation);
-    SliderInvertTranslation->GetMatrix(SliderTransformationMatrix);
-
-    SliderTranslation->Delete();
-    SliderRotation->Delete();
-    SliderInvertTranslation->Delete();
     }
+
+  vtkTransform* SliderInvertTranslation = vtkTransform::New();
+  SliderInvertTranslation->Translate(this->GetDistractorSelected()->GetRailAnchor()[0],
+                                     this->GetDistractorSelected()->GetRailAnchor()[1],
+                                     this->GetDistractorSelected()->GetRailAnchor()[2]);
+
+  SliderInvertTranslation->PreMultiply();
+  SliderInvertTranslation->Concatenate(SliderRotation);
+  SliderInvertTranslation->PreMultiply();
+  SliderInvertTranslation->Concatenate(SliderTranslation);
+  SliderInvertTranslation->GetMatrix(SliderTransformationMatrix);
+
+  SliderTranslation->Delete();
+  SliderRotation->Delete();
+  SliderInvertTranslation->Delete();
 
   SliderTransformationNode->SetAndObserveMatrixTransformToParent(SliderTransformationMatrix);
 
@@ -869,13 +845,19 @@ void vtkOsteoPlanDistractorStep::MoveSlider(double value, vtkMRMLModelNode* Slid
     SliderTransformationMatrix->GetElement(0,2)*this->GetDistractorSelected()->GetSliderAnchor()[2]+
     SliderTransformationMatrix->GetElement(0,3)*1;
 
+  double newSliderAnchorY =
+    SliderTransformationMatrix->GetElement(1,0)*this->GetDistractorSelected()->GetSliderAnchor()[0]+
+    SliderTransformationMatrix->GetElement(1,1)*this->GetDistractorSelected()->GetSliderAnchor()[1]+
+    SliderTransformationMatrix->GetElement(1,2)*this->GetDistractorSelected()->GetSliderAnchor()[2]+
+    SliderTransformationMatrix->GetElement(1,3)*1;
+
   double newSliderAnchorZ =
     SliderTransformationMatrix->GetElement(2,0)*this->GetDistractorSelected()->GetSliderAnchor()[0]+
     SliderTransformationMatrix->GetElement(2,1)*this->GetDistractorSelected()->GetSliderAnchor()[1]+
     SliderTransformationMatrix->GetElement(2,2)*this->GetDistractorSelected()->GetSliderAnchor()[2]+
     SliderTransformationMatrix->GetElement(2,3)*1;
 
-  double newSliderAnchor[3] = {newSliderAnchorX, 0.0, newSliderAnchorZ};
+  double newSliderAnchor[3] = {newSliderAnchorX, newSliderAnchorY, newSliderAnchorZ};
 
   this->GetDistractorSelected()->SetNewSliderAnchor(newSliderAnchor);
 
@@ -885,7 +867,7 @@ void vtkOsteoPlanDistractorStep::MoveSlider(double value, vtkMRMLModelNode* Slid
 
 
 //---------------------------------------------------------------------------
-void vtkOsteoPlanDistractorStep::MovePiston(double value, vtkMRMLModelNode* Piston, vtkMRMLLinearTransformNode* PistonTransformationNode)
+void vtkOsteoPlanDistractorStep::MovePiston(double value, vtkMRMLModelNode* Piston, vtkMRMLLinearTransformNode* PistonTransformationNode, vtkMatrix4x4* mat)
 {
   double PistonAnchor[3] = {this->GetDistractorSelected()->GetPistonAnchor()[0],
                             this->GetDistractorSelected()->GetPistonAnchor()[1],
@@ -905,7 +887,15 @@ void vtkOsteoPlanDistractorStep::MovePiston(double value, vtkMRMLModelNode* Pist
   this->GetDistractorSelected()->SetPistonRotationAngle_deg((beta-gamma)*180/M_PI);
 
   vtkTransform* PistonRotation = vtkTransform::New();
-  PistonRotation->RotateY(this->GetDistractorSelected()->GetPistonRotationAngle_deg());
+
+  if(mat == NULL)
+    {
+    PistonRotation->RotateY(this->GetDistractorSelected()->GetPistonRotationAngle_deg());
+    }
+  else
+    {
+    PistonRotation->RotateWXYZ(this->GetDistractorSelected()->GetPistonRotationAngle_deg(),mat->GetElement(0,1), mat->GetElement(1,1), mat->GetElement(2,1));
+    }
 
   vtkMatrix4x4* PistonTransformationMatrix = vtkMatrix4x4::New();
   PistonTransformationMatrix->Identity();
@@ -936,7 +926,7 @@ void vtkOsteoPlanDistractorStep::MovePiston(double value, vtkMRMLModelNode* Pist
 
 
 //---------------------------------------------------------------------------
-void vtkOsteoPlanDistractorStep::MoveCylinder(double value, vtkMRMLModelNode* Cylinder, vtkMRMLLinearTransformNode* CylinderTransformationNode)
+void vtkOsteoPlanDistractorStep::MoveCylinder(double value, vtkMRMLModelNode* Cylinder, vtkMRMLLinearTransformNode* CylinderTransformationNode, vtkMatrix4x4* mat)
 {
   double tx = this->GetDistractorSelected()->GetNewSliderAnchor()[0] - this->GetDistractorSelected()->GetCylinderAnchor()[0];
   double ty = 0.0;
@@ -944,16 +934,24 @@ void vtkOsteoPlanDistractorStep::MoveCylinder(double value, vtkMRMLModelNode* Cy
 
   vtkTransform* CylinderInvertTranslation = vtkTransform::New();
   CylinderInvertTranslation->Translate(this->GetDistractorSelected()->GetNewSliderAnchor()[0],
-                                       this->GetDistractorSelected()->GetCylinderAnchor()[1],
+                                       this->GetDistractorSelected()->GetNewSliderAnchor()[1],//this->GetDistractorSelected()->GetCylinderAnchor()[1],
                                        this->GetDistractorSelected()->GetNewSliderAnchor()[2]);
 
   vtkTransform* CylinderTranslation = vtkTransform::New();
   CylinderTranslation->Translate(-this->GetDistractorSelected()->GetNewSliderAnchor()[0],
-                                 -this->GetDistractorSelected()->GetCylinderAnchor()[1],
+                                 -this->GetDistractorSelected()->GetNewSliderAnchor()[1],//-this->GetDistractorSelected()->GetCylinderAnchor()[1],
                                  -this->GetDistractorSelected()->GetNewSliderAnchor()[2]);
 
   vtkTransform* CylinderRotation = vtkTransform::New();
-  CylinderRotation->RotateY(this->GetDistractorSelected()->GetPistonRotationAngle_deg());
+
+  if(mat == NULL)
+    {
+    CylinderRotation->RotateY(this->GetDistractorSelected()->GetPistonRotationAngle_deg());
+    }
+  else
+    {
+    CylinderRotation->RotateWXYZ(this->GetDistractorSelected()->GetPistonRotationAngle_deg(), mat->GetElement(0,1), mat->GetElement(1,1), mat->GetElement(2,1));
+    }
 
   vtkMatrix4x4* CylinderTransformationMatrix = vtkMatrix4x4::New();
   CylinderTransformationMatrix->Identity();

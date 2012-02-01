@@ -77,8 +77,8 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanDistractorStep : public vtkOsteoPlanStep
                        vtkMatrix4x4* mat);
 
   void MoveSlider(double value, vtkMRMLModelNode* Slider, vtkMRMLLinearTransformNode* SliderTransformationNode, vtkMatrix4x4* mat);
-  void MovePiston(double value, vtkMRMLModelNode* Piston, vtkMRMLLinearTransformNode* PistonTransformationNode);
-  void MoveCylinder(double value, vtkMRMLModelNode* Cylinder, vtkMRMLLinearTransformNode* CylinderTransformationNode);
+  void MovePiston(double value, vtkMRMLModelNode* Piston, vtkMRMLLinearTransformNode* PistonTransformationNode, vtkMatrix4x4* mat);
+  void MoveCylinder(double value, vtkMRMLModelNode* Cylinder, vtkMRMLLinearTransformNode* CylinderTransformationNode, vtkMatrix4x4* mat);
 
   void OpenDistractorFile(const char* xmlFile);
 
