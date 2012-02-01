@@ -229,80 +229,80 @@ void vtkDistractorDefinition::UpdateAnchors(vtkMatrix4x4* mat)
 // Rail
   double rAnch[3];
 
-rAnch[0] = mat->GetElement(0,0)*this->GetRailAnchor()[0] +
+  rAnch[0] = mat->GetElement(0,0)*this->GetRailAnchor()[0] +
     mat->GetElement(0,1)*this->GetRailAnchor()[1] +
     mat->GetElement(0,2)*this->GetRailAnchor()[2] +
     mat->GetElement(0,3)*1;
 
-rAnch[1] = mat->GetElement(1,0)*this->GetRailAnchor()[0] +
+  rAnch[1] = mat->GetElement(1,0)*this->GetRailAnchor()[0] +
     mat->GetElement(1,1)*this->GetRailAnchor()[1] +
     mat->GetElement(1,2)*this->GetRailAnchor()[2] +
     mat->GetElement(1,3)*1;
 
-rAnch[2] = mat->GetElement(2,0)*this->GetRailAnchor()[0] +
+  rAnch[2] = mat->GetElement(2,0)*this->GetRailAnchor()[0] +
     mat->GetElement(2,1)*this->GetRailAnchor()[1] +
     mat->GetElement(2,2)*this->GetRailAnchor()[2] +
     mat->GetElement(2,3)*1;
 
- this->SetRailAnchor(rAnch);
+  this->SetRailAnchor(rAnch);
 
 // Slider
- double sAnch[3];
+  double sAnch[3];
 
-sAnch[0] = mat->GetElement(0,0)*this->GetSliderAnchor()[0] +
+  sAnch[0] = mat->GetElement(0,0)*this->GetSliderAnchor()[0] +
     mat->GetElement(0,1)*this->GetSliderAnchor()[1] +
     mat->GetElement(0,2)*this->GetSliderAnchor()[2] +
     mat->GetElement(0,3)*1;
 
-sAnch[1] = mat->GetElement(1,0)*this->GetSliderAnchor()[0] +
+  sAnch[1] = mat->GetElement(1,0)*this->GetSliderAnchor()[0] +
     mat->GetElement(1,1)*this->GetSliderAnchor()[1] +
     mat->GetElement(1,2)*this->GetSliderAnchor()[2] +
     mat->GetElement(1,3)*1;
 
-sAnch[2] = mat->GetElement(2,0)*this->GetSliderAnchor()[0] +
+  sAnch[2] = mat->GetElement(2,0)*this->GetSliderAnchor()[0] +
     mat->GetElement(2,1)*this->GetSliderAnchor()[1] +
     mat->GetElement(2,2)*this->GetSliderAnchor()[2] +
     mat->GetElement(2,3)*1;
 
- this->SetSliderAnchor(sAnch);
+  this->SetSliderAnchor(sAnch);
 
 // Piston
- double pAnch[3];
+  double pAnch[3];
 
-pAnch[0] = mat->GetElement(0,0)*this->GetPistonAnchor()[0] +
+  pAnch[0] = mat->GetElement(0,0)*this->GetPistonAnchor()[0] +
     mat->GetElement(0,1)*this->GetPistonAnchor()[1] +
     mat->GetElement(0,2)*this->GetPistonAnchor()[2] +
     mat->GetElement(0,3)*1;
 
-pAnch[1] = mat->GetElement(1,0)*this->GetPistonAnchor()[0] +
+  pAnch[1] = mat->GetElement(1,0)*this->GetPistonAnchor()[0] +
     mat->GetElement(1,1)*this->GetPistonAnchor()[1] +
     mat->GetElement(1,2)*this->GetPistonAnchor()[2] +
     mat->GetElement(1,3)*1;
 
-pAnch[2] = mat->GetElement(2,0)*this->GetPistonAnchor()[0] +
+  pAnch[2] = mat->GetElement(2,0)*this->GetPistonAnchor()[0] +
     mat->GetElement(2,1)*this->GetPistonAnchor()[1] +
     mat->GetElement(2,2)*this->GetPistonAnchor()[2] +
     mat->GetElement(2,3)*1;
 
- this->SetPistonAnchor(pAnch);
+  this->SetPistonAnchor(pAnch);
 
 // Cylinder
- double cAnch[3];
+  double cAnch[3];
 
-cAnch[0] = mat->GetElement(0,0)*this->GetCylinderAnchor()[0] +
+  cAnch[0] = mat->GetElement(0,0)*this->GetCylinderAnchor()[0] +
     mat->GetElement(0,1)*this->GetCylinderAnchor()[1] +
     mat->GetElement(0,2)*this->GetCylinderAnchor()[2] +
     mat->GetElement(0,3)*1;
 
-cAnch[1] = mat->GetElement(1,0)*this->GetCylinderAnchor()[0] +
+  cAnch[1] = mat->GetElement(1,0)*this->GetCylinderAnchor()[0] +
     mat->GetElement(1,1)*this->GetCylinderAnchor()[1] +
     mat->GetElement(1,2)*this->GetCylinderAnchor()[2] +
     mat->GetElement(1,3)*1;
 
-cAnch[2] = mat->GetElement(2,0)*this->GetCylinderAnchor()[0] +
+  cAnch[2] = mat->GetElement(2,0)*this->GetCylinderAnchor()[0] +
     mat->GetElement(2,1)*this->GetCylinderAnchor()[1] +
     mat->GetElement(2,2)*this->GetCylinderAnchor()[2] +
     mat->GetElement(2,3)*1;
 
- this->SetCylinderAnchor(cAnch);
+  this->SetCylinderAnchor(cAnch);
 }

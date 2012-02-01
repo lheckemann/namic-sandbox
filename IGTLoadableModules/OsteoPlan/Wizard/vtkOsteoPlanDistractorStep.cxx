@@ -480,9 +480,7 @@ void vtkOsteoPlanDistractorStep::ProcessGUIEvents(vtkObject *caller,
             this->DistractorMenuSelector->GetWidget()->SetValue(this->GetDistractorSelected()->GetDistractorName());
             }
 
-          // this->MovingScale->SetRange(this->GetDistractorSelected()->GetRange());
-          this->MovingScale->SetRange(-180,180);
-
+          this->MovingScale->SetRange(this->GetDistractorSelected()->GetRange());
           this->MovingScale->SetValue(0.0);
 
           ModelsLogic->Delete();
@@ -601,21 +599,20 @@ void vtkOsteoPlanDistractorStep::ProcessGUIEvents(vtkObject *caller,
 
       this->DistToBones->DoRegistration();
 
-      //**************************************** TEST ****************************************
-      // Matrix shouldn't be applied to models
+      // Hide Fiducials after registration
       this->RegistrationFiducialList->SetAllFiducialsVisibility(0);
 
+      // Apply Registration matrix to models
       vtkMatrix4x4* RegistrationMatrix = this->DistToBones->GetLandmarkTransformMatrix();
       this->GetDistractorSelected()->GetDistractorRail()->ApplyTransform(RegistrationMatrix);
       this->GetDistractorSelected()->GetDistractorSlider()->ApplyTransform(RegistrationMatrix);
       this->GetDistractorSelected()->GetDistractorPiston()->ApplyTransform(RegistrationMatrix);
       this->GetDistractorSelected()->GetDistractorCylinder()->ApplyTransform(RegistrationMatrix);
 
+      // Apply Registration matrix to anchors
       this->GetDistractorSelected()->UpdateAnchors(RegistrationMatrix);
-      //**************************************************************************************
 
-      //this->DistToBones->Delete();
-      //this->DistToBones = NULL;
+      // TODO: Delete DistToBones when multiple registration
       this->RegistrationFiducialList->RemoveAllFiducials();
       }
     }
@@ -929,7 +926,7 @@ void vtkOsteoPlanDistractorStep::MovePiston(double value, vtkMRMLModelNode* Pist
 void vtkOsteoPlanDistractorStep::MoveCylinder(double value, vtkMRMLModelNode* Cylinder, vtkMRMLLinearTransformNode* CylinderTransformationNode, vtkMatrix4x4* mat)
 {
   double tx = this->GetDistractorSelected()->GetNewSliderAnchor()[0] - this->GetDistractorSelected()->GetCylinderAnchor()[0];
-  double ty = 0.0;
+  double ty = this->GetDistractorSelected()->GetNewSliderAnchor()[1] - this->GetDistractorSelected()->GetCylinderAnchor()[1];
   double tz = this->GetDistractorSelected()->GetNewSliderAnchor()[2] - this->GetDistractorSelected()->GetCylinderAnchor()[2];
 
   vtkTransform* CylinderInvertTranslation = vtkTransform::New();
@@ -958,7 +955,7 @@ void vtkOsteoPlanDistractorStep::MoveCylinder(double value, vtkMRMLModelNode* Cy
 
   vtkTransform* CylinderTransformation = vtkTransform::New();
   CylinderTransformation->Translate(tx,ty,tz);
-  CylinderTransformation->PreMultiply();
+  CylinderTransformation->PostMultiply();
   CylinderTransformation->Concatenate(CylinderTranslation);
   CylinderTransformation->PostMultiply();
   CylinderTransformation->Concatenate(CylinderRotation);
