@@ -25,6 +25,7 @@
 #include "vtkKWFileBrowserDialog.h"
 #include "vtkKWCheckButton.h"
 #include "vtkKWMenuButtonWithLabel.h"
+#include "vtkKWFrame.h"
 
 #include "vtkSlicerBaseLogic.h"
 #include "vtkSlicerModuleLogic.h"
@@ -52,6 +53,7 @@ class vtkIGTPat2ImgRegistration;
 class vtkMRMLModelNode;
 class vtkMatrix4x4;
 class vtkKWFileBrowserDialog;
+class vtkKWFrame;
 
 class VTK_OsteoPlan_EXPORT vtkOsteoPlanDistractorStep : public vtkOsteoPlanStep
 {
@@ -105,36 +107,37 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanDistractorStep : public vtkOsteoPlanStep
   //------------------------------
   // Widgets
 
-  vtkKWScale                  *MovingScale;
-  vtkKWPushButton             *LoadDistractorButton;
-  vtkSlicerNodeSelectorWidget *BonePlateModelSelector;
-  vtkSlicerNodeSelectorWidget *BoneRailModelSelector;
-  vtkKWCheckButton            *ApplyDistractorToBones;
-  vtkKWPushButton             *PlaceFiduButton;
-  vtkKWPushButton             *RegisterButton;
-  vtkKWMenuButtonWithLabel    *DistractorMenuSelector;
-  vtkKWFileBrowserDialog *     DistractorSelector;
+  vtkKWScale                    *MovingScale;
+  vtkKWPushButton               *LoadDistractorButton;
+  vtkSlicerNodeSelectorWidget   *BonePlateModelSelector;
+  vtkSlicerNodeSelectorWidget   *BoneRailModelSelector;
+  vtkKWCheckButton              *ApplyDistractorToBones;
+  vtkKWFrame                    *RegistrationFrame;
+  vtkKWPushButton               *PlaceFiduButton;
+  vtkKWPushButton               *RegisterButton;
+  vtkKWMenuButtonWithLabel      *DistractorMenuSelector;
+  vtkKWFileBrowserDialog        *DistractorSelector;
 
   //------------------------------
   // Transformations
 
-  vtkMRMLLinearTransformNode* SliderTransformNode;
-  vtkMRMLLinearTransformNode* PistonTransformNode;
-  vtkMRMLLinearTransformNode* CylinderTransformNode;
-  vtkMRMLLinearTransformNode* BonePlateTransform;
+  vtkMRMLLinearTransformNode *SliderTransformNode;
+  vtkMRMLLinearTransformNode *PistonTransformNode;
+  vtkMRMLLinearTransformNode *CylinderTransformNode;
+  vtkMRMLLinearTransformNode *BonePlateTransform;
 
   //------------------------------
   // Registration
 
   bool                       boolPlacingFiducials;
-  vtkMRMLFiducialListNode*   RegistrationFiducialList;
-  vtkIGTPat2ImgRegistration* DistToBones;
+  vtkMRMLFiducialListNode   *RegistrationFiducialList;
+  vtkIGTPat2ImgRegistration *DistToBones;
 
   //------------------------------
   // Models
 
-  vtkMRMLModelNode* BonePlateModel;
-  vtkMRMLModelNode* BoneRailModel;
+  vtkMRMLModelNode *BonePlateModel;
+  vtkMRMLModelNode *BoneRailModel;
 
   //------------------------------
   // Paths

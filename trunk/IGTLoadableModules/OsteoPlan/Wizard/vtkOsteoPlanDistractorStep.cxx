@@ -84,6 +84,7 @@ vtkOsteoPlanDistractorStep::vtkOsteoPlanDistractorStep()
   this->BonePlateModelSelector = NULL;
   this->BoneRailModelSelector  = NULL;
   this->ApplyDistractorToBones = NULL;
+  this->RegistrationFrame      = NULL;
   this->PlaceFiduButton        = NULL;
   this->RegisterButton         = NULL;
   this->DistractorMenuSelector = NULL;
@@ -173,6 +174,11 @@ vtkOsteoPlanDistractorStep::~vtkOsteoPlanDistractorStep()
     this->RegistrationFiducialList->Delete();
     }
 
+  if(this->RegistrationFrame)
+    {
+    this->RegistrationFrame->Delete();
+    }
+
   if(this->DistToBones)
     {
     this->DistToBones->Delete();
@@ -220,6 +226,57 @@ void vtkOsteoPlanDistractorStep::ShowUserInterface()
     this->LoadDistractorButton->SetText("Load Distractor");
     }
 
+  if(!this->DistractorMenuSelector)
+    {
+    this->DistractorMenuSelector = vtkKWMenuButtonWithLabel::New();
+    }
+  if(!this->DistractorMenuSelector->IsCreated())
+    {
+    this->DistractorMenuSelector->SetParent(parent);
+    this->DistractorMenuSelector->Create();
+    this->DistractorMenuSelector->SetLabelText("Distractor:");
+    this->DistractorMenuSelector->GetWidget()->GetMenu()->AddRadioButton("None");
+    this->DistractorMenuSelector->GetWidget()->SetValue("None");
+    }
+
+
+  if(!this->RegistrationFrame)
+    {
+    this->RegistrationFrame = vtkKWFrame::New();
+    this->RegistrationFrame->SetParent(parent);
+    this->RegistrationFrame->Create();
+    }
+
+  if(!this->PlaceFiduButton)
+    {
+    this->PlaceFiduButton = vtkKWPushButton::New();
+    }
+  if(!this->PlaceFiduButton->IsCreated())
+    {
+    this->PlaceFiduButton->SetParent(this->RegistrationFrame);
+    this->PlaceFiduButton->Create();
+    this->PlaceFiduButton->SetText("Place Fiducials");
+    this->PlaceFiduButton->SetWidth(8);
+    }
+
+  if(!this->RegisterButton)
+    {
+    this->RegisterButton = vtkKWPushButton::New();
+    }
+  if(!this->RegisterButton->IsCreated())
+    {
+    this->RegisterButton->SetParent(this->RegistrationFrame);
+    this->RegisterButton->Create();
+    this->RegisterButton->SetText("Register");
+    }
+
+  this->Script("pack %s %s -side left -fill x -expand y -padx 2 -pady 2",
+               this->PlaceFiduButton->GetWidgetName(),
+               this->RegisterButton->GetWidgetName());
+
+
+
+
   vtkKWLabel* PlateModelLabel = vtkKWLabel::New();
   PlateModelLabel->SetParent(parent);
   PlateModelLabel->Create();
@@ -230,7 +287,7 @@ void vtkOsteoPlanDistractorStep::ShowUserInterface()
     {
     this->BonePlateModelSelector = vtkSlicerNodeSelectorWidget::New();
     }
-  if(!this->BonePlateModelSelector)
+  if(!this->BonePlateModelSelector->IsCreated())
     {
     this->BonePlateModelSelector->SetParent(parent);
     this->BonePlateModelSelector->Create();
@@ -250,7 +307,7 @@ void vtkOsteoPlanDistractorStep::ShowUserInterface()
     {
     this->BoneRailModelSelector = vtkSlicerNodeSelectorWidget::New();
     }
-  if(!this->BoneRailModelSelector)
+  if(!this->BoneRailModelSelector->IsCreated())
     {
     this->BoneRailModelSelector->SetParent(parent);
     this->BoneRailModelSelector->Create();
@@ -272,57 +329,18 @@ void vtkOsteoPlanDistractorStep::ShowUserInterface()
     this->ApplyDistractorToBones->SelectedStateOff();
     }
 
-  if(!this->DistractorMenuSelector)
-    {
-    this->DistractorMenuSelector = vtkKWMenuButtonWithLabel::New();
-    }
-  if(!this->DistractorMenuSelector->IsCreated())
-    {
-    this->DistractorMenuSelector->SetParent(parent);
-    this->DistractorMenuSelector->Create();
-    this->DistractorMenuSelector->SetLabelText("Distractor:");
-    this->DistractorMenuSelector->GetWidget()->GetMenu()->AddRadioButton("None");
-    this->DistractorMenuSelector->GetWidget()->SetValue("None");
-    }
 
 
-  vtkKWFrame* RegistrationFrame = vtkKWFrame::New();
-  RegistrationFrame->SetParent(parent);
-  RegistrationFrame->Create();
-
-
-  if(!this->PlaceFiduButton)
-    {
-    this->PlaceFiduButton = vtkKWPushButton::New();
-    }
-  if(!this->PlaceFiduButton->IsCreated())
-    {
-    this->PlaceFiduButton->SetParent(RegistrationFrame);
-    this->PlaceFiduButton->Create();
-    this->PlaceFiduButton->SetText("Place Fiducials");
-    this->PlaceFiduButton->SetWidth(8);
-    }
-
-  if(!this->RegisterButton)
-    {
-    this->RegisterButton = vtkKWPushButton::New();
-    }
-  if(!this->RegisterButton->IsCreated())
-    {
-    this->RegisterButton->SetParent(RegistrationFrame);
-    this->RegisterButton->Create();
-    this->RegisterButton->SetText("Register");
-    }
-
-  this->Script("pack %s %s -side left -fill x -expand y -padx 2 -pady 2",
-               this->PlaceFiduButton->GetWidgetName(),
-               this->RegisterButton->GetWidgetName());
-
-  this->Script("pack %s %s %s %s -side top -fill x -expand y -padx 2 -pady 2",
+  this->Script("pack %s %s %s %s %s %s %s %s %s -side top -fill x -expand y -padx 2 -pady 2",
                this->DistractorMenuSelector->GetWidgetName(),
                this->LoadDistractorButton->GetWidgetName(),
                this->MovingScale->GetWidgetName(),
-               RegistrationFrame->GetWidgetName());
+               this->RegistrationFrame->GetWidgetName(),
+               PlateModelLabel->GetWidgetName(),
+               this->BonePlateModelSelector->GetWidgetName(),
+               RailModelLabel->GetWidgetName(),
+               this->BoneRailModelSelector->GetWidgetName(),
+               this->ApplyDistractorToBones->GetWidgetName());
 
 
 
@@ -330,7 +348,6 @@ void vtkOsteoPlanDistractorStep::ShowUserInterface()
 
   UpdateGUI();
 
-  RegistrationFrame->Delete();
   RailModelLabel->Delete();
   PlateModelLabel->Delete();
 
@@ -644,6 +661,12 @@ void vtkOsteoPlanDistractorStep::ProcessMRMLEvents(vtkObject* caller,
                                                    unsigned long event,
                                                    void* vtkNotUsed(callData))
 {
+
+  if(event == vtkMRMLScene::SceneCloseEvent)
+    {
+    // TODO: Add code to set DistractorRail, DistractorSlider, DistractorPiston and DistractorCylinder to NULL
+    }
+
 }
 //-----------------------------------------------------------------------------
 void vtkOsteoPlanDistractorStep::AddGUIObservers()
@@ -881,7 +904,7 @@ void vtkOsteoPlanDistractorStep::MovePiston(double value, vtkMRMLModelNode* Pist
   double beta = atan2((this->GetDistractorSelected()->GetSliderAnchor()[2]-PistonAnchor[2]),
                       (this->GetDistractorSelected()->GetSliderAnchor()[0]-PistonAnchor[0]));
 
-  this->GetDistractorSelected()->SetPistonRotationAngle_deg((beta-gamma)*180/M_PI);
+  this->GetDistractorSelected()->SetPistonRotationAngle_deg(((beta-gamma)*180/M_PI));
 
   vtkTransform* PistonRotation = vtkTransform::New();
 
@@ -925,18 +948,18 @@ void vtkOsteoPlanDistractorStep::MovePiston(double value, vtkMRMLModelNode* Pist
 //---------------------------------------------------------------------------
 void vtkOsteoPlanDistractorStep::MoveCylinder(double value, vtkMRMLModelNode* Cylinder, vtkMRMLLinearTransformNode* CylinderTransformationNode, vtkMatrix4x4* mat)
 {
-  double tx = this->GetDistractorSelected()->GetNewSliderAnchor()[0] - this->GetDistractorSelected()->GetCylinderAnchor()[0];
-  double ty = this->GetDistractorSelected()->GetNewSliderAnchor()[1] - this->GetDistractorSelected()->GetCylinderAnchor()[1];
-  double tz = this->GetDistractorSelected()->GetNewSliderAnchor()[2] - this->GetDistractorSelected()->GetCylinderAnchor()[2];
+  double tx = this->GetDistractorSelected()->GetNewSliderAnchor()[0] - this->GetDistractorSelected()->GetSliderAnchor()[0];
+  double ty = this->GetDistractorSelected()->GetNewSliderAnchor()[1] - this->GetDistractorSelected()->GetSliderAnchor()[1];
+  double tz = this->GetDistractorSelected()->GetNewSliderAnchor()[2] - this->GetDistractorSelected()->GetSliderAnchor()[2];
 
   vtkTransform* CylinderInvertTranslation = vtkTransform::New();
   CylinderInvertTranslation->Translate(this->GetDistractorSelected()->GetNewSliderAnchor()[0],
-                                       this->GetDistractorSelected()->GetNewSliderAnchor()[1],//this->GetDistractorSelected()->GetCylinderAnchor()[1],
+                                       this->GetDistractorSelected()->GetNewSliderAnchor()[1],
                                        this->GetDistractorSelected()->GetNewSliderAnchor()[2]);
 
   vtkTransform* CylinderTranslation = vtkTransform::New();
   CylinderTranslation->Translate(-this->GetDistractorSelected()->GetNewSliderAnchor()[0],
-                                 -this->GetDistractorSelected()->GetNewSliderAnchor()[1],//-this->GetDistractorSelected()->GetCylinderAnchor()[1],
+                                 -this->GetDistractorSelected()->GetNewSliderAnchor()[1],
                                  -this->GetDistractorSelected()->GetNewSliderAnchor()[2]);
 
   vtkTransform* CylinderRotation = vtkTransform::New();

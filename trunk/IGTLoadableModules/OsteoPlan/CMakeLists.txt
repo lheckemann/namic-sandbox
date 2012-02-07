@@ -41,8 +41,6 @@ file(GLOB headers
   "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Wizard/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Widgets/*.h"
-#  "${VTK_CMAKE_DIR}/../../vtkBioeng/*.h"
-#  "/projects/igtdev/lchauvin/Slicer3-lib/vtkBioeng/*.h"
   )
 
 install(FILES 
