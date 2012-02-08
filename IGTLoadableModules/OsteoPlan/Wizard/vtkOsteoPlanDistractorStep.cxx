@@ -1180,6 +1180,5 @@ void vtkOsteoPlanDistractorStep::MoveBones(vtkMRMLModelNode* BonePlateModel, vtk
   BoneTranslation->Delete();
   BoneRotation->Delete();
   BoneInvertTranslation->Delete();
-
 }
 

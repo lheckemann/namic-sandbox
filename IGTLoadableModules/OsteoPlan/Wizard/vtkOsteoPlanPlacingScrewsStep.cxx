@@ -326,7 +326,7 @@ void vtkOsteoPlanPlacingScrewsStep::HandleMouseEvent(vtkSlicerInteractorStyle* s
 
 //---------------------------------------------------------------------------
 void vtkOsteoPlanPlacingScrewsStep::ProcessMRMLEvents ( vtkObject *caller,
-                                                           unsigned long event, void *callData )
+                                                        unsigned long event, void *callData )
 {
   //--------------------------------------------------
   // Scene Closed
@@ -361,7 +361,7 @@ void vtkOsteoPlanPlacingScrewsStep::ProcessMRMLEvents ( vtkObject *caller,
 
 //----------------------------------------------------------------------------
 void vtkOsteoPlanPlacingScrewsStep::ProcessGUIEvents(vtkObject *caller,
-                                                        unsigned long event, void *callData)
+                                                     unsigned long event, void *callData)
 {
   const char *eventName = vtkCommand::GetStringFromEventId(event);
 
@@ -678,33 +678,10 @@ void vtkOsteoPlanPlacingScrewsStep::TearDownGUI()
 //  - Clip model
 void vtkOsteoPlanPlacingScrewsStep::MarkScrewPosition()
 {
-  // Check if model has a transform
-  //   = is on vtkCollection
-/*
-  for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems(); i++)
-  {
-  vtkMRMLModelNode* mNode = vtkMRMLModelNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(i));
-  if(this->SelectedModel == mNode)
-  {
-  // Node is present
-  //  = Apply his transform
-  if(!strcmp(mNode->GetAttribute("TransformApplied"),"false"))
-  {
-  vtkMRMLLinearTransformNode* tNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfTransforms()->GetItemAsObject(i));
-  this->SelectedModel->ApplyTransform(tNode->GetMatrixTransformToParent());
 
-  this->SelectedModel->SetAndObserveTransformNodeID(NULL);
-  this->SelectedModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-  this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
-
-  mNode->SetAttribute("TransformApplied","true");
-  }
-  }
-  }
-*/
-
-
-
+  // Check if all models selected to be clipped (ModelsToClipCollection) have their transformations applied (necessary to clip)
+  // If not, try to find models in the collection of models moved
+  // And apply the corresponding transformation
   if(this->ModelsToClipCollection)
     {
     for(int j = 0; j < this->ModelsToClipCollection->GetNumberOfItems(); j++)
@@ -714,19 +691,21 @@ void vtkOsteoPlanPlacingScrewsStep::MarkScrewPosition()
       for(int k = 0; k < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems(); k++)
         {
         vtkMRMLModelNode* TransformedModel = vtkMRMLModelNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(k));
-
         if(ClipModel == TransformedModel)
           {
           if(!strcmp(TransformedModel->GetAttribute("TransformApplied"),"false"))
             {
             vtkMRMLLinearTransformNode* tNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfTransforms()->GetItemAsObject(k));
 
-            ClipModel->ApplyTransform(tNode->GetMatrixTransformToParent());
-            ClipModel->SetAndObserveTransformNodeID(NULL);
-            ClipModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-            this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
+            if(tNode && tNode->GetMatrixTransformToParent())
+              {
+              ClipModel->ApplyTransform(tNode->GetMatrixTransformToParent());
+              ClipModel->SetAndObserveTransformNodeID(NULL);
+              ClipModel->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+              this->GetGUI()->GetMRMLScene()->InvokeEvent(vtkMRMLScene::SceneEditedEvent);
 
-            TransformedModel->SetAttribute("TransformApplied","true");
+              TransformedModel->SetAttribute("TransformApplied","true");
+              }
             }
           }
         }

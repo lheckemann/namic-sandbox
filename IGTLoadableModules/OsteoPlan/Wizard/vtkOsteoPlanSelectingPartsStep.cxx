@@ -171,14 +171,6 @@ void vtkOsteoPlanSelectingPartsStep::ShowUserInterface()
                this->SelectPartButton->GetWidgetName());
 
   //-------------------------------------------------------
-  // Show Original Model if existing
-
-  if(this->InputModel)
-    {
-    this->InputModel->GetModelDisplayNode()->SetVisibility(1);
-    }
-
-  //-------------------------------------------------------
   // Colors
 
   if(!this->ColorName)
@@ -205,13 +197,22 @@ void vtkOsteoPlanSelectingPartsStep::ShowUserInterface()
 
   // Select black model if existing
   vtkCollection *BlackModel = this->GetGUI()->GetMRMLScene()->GetNodesByName("Black");
-  if(BlackModel->GetNumberOfItems() == 1 && this->InputModelSelector)
+  if(this->InputModelSelector)
     {
-    this->InputModelSelector->SetSelected(vtkMRMLModelNode::SafeDownCast(BlackModel->GetItemAsObject(0)));
+    this->InputModelSelector->SetSelected(vtkMRMLModelNode::SafeDownCast(BlackModel->GetItemAsObject(BlackModel->GetNumberOfItems()-1)));
     this->InputModelSelector->InvokeEvent(vtkSlicerNodeSelectorWidget::NodeSelectedEvent);
     this->InputModel = vtkMRMLModelNode::SafeDownCast(this->InputModelSelector->GetSelected());
     }
   BlackModel->Delete();
+
+  //-------------------------------------------------------
+  // Show Original Model if existing
+
+  if(this->InputModel)
+    {
+    this->InputModel->GetModelDisplayNode()->SetVisibility(1);
+    }
+
 
   this->AddGUIObservers();
 

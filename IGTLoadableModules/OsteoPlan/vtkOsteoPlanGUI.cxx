@@ -638,10 +638,12 @@ void vtkOsteoPlanGUI::PrepareMyStep(vtkOsteoPlanStep* wStep)
       this->WorkflowButtonSet->GetWidget(insertStep)->SetText(wStep->GetTitle());
       this->WorkflowButtonSet->GetWidget(insertStep)->SetBackgroundColor(r,g,b);
       this->WorkflowButtonSet->GetWidget(insertStep)->SetActiveBackgroundColor(r,g,b);
-      if(insertStep == 0)
+
+      /*      if(insertStep == 0)
         {
         this->WorkflowButtonSet->GetWidget(insertStep)->SetReliefToSunken();
-        }
+        } */
+      
       }
     }
 }
@@ -677,8 +679,8 @@ void vtkOsteoPlanGUI::ChangeWorkphaseGUI(int StepNumberToGo)
       vtkKWWizardStep* currentStep = this->WizardWidget->GetWizardWorkflow()->GetCurrentStep();
       int stepNumber = GetStepNumber(currentStep);
 
-      this->WorkflowButtonSet->GetWidget(stepNumber)->SetReliefToGroove();
-      this->WorkflowButtonSet->GetWidget(StepNumberToGo)->SetReliefToSunken();
+      //      this->WorkflowButtonSet->GetWidget(stepNumber)->SetReliefToGroove();
+      //      this->WorkflowButtonSet->GetWidget(StepNumberToGo)->SetReliefToSunken();
 
       if(stepNumber >= 0)
         {
