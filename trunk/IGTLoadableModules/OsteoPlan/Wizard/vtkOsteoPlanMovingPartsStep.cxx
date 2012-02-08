@@ -325,18 +325,28 @@ void vtkOsteoPlanMovingPartsStep::HideUserInterface()
   Superclass::HideUserInterface();
 
   // Remove all previous transforms
-  this->GetGUI()->GetOsteoPlanNode()->GetListOfTransforms()->RemoveAllItems();
-
-  // Read all the models transformed and store their transformations
-  for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems(); i++)
+  if(this->GetGUI()->GetOsteoPlanNode())
     {
-    vtkMRMLModelNode* mNode = vtkMRMLModelNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(i));
-    vtkMRMLLinearTransformNode* tNode = vtkMRMLLinearTransformNode::SafeDownCast(mNode->GetParentTransformNode());
-    mNode->SetAttribute("TransformApplied","false");
+    //this->GetGUI()->GetOsteoPlanNode()->GetListOfTransforms()->RemoveAllItems();
 
-    this->GetGUI()->GetOsteoPlanNode()->GetListOfTransforms()->AddItem(tNode);
+    // Read all the models transformed and store their transformations
+    for(int i = 0; i < this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetNumberOfItems(); i++)
+      {
+      vtkMRMLModelNode* mNode = vtkMRMLModelNode::SafeDownCast(this->GetGUI()->GetOsteoPlanNode()->GetListOfModels()->GetItemAsObject(i));
+      if(mNode)
+        {
+        if(mNode->GetAttribute("TransformApplied") == NULL)
+          {
+          vtkMRMLLinearTransformNode* tNode = vtkMRMLLinearTransformNode::SafeDownCast(mNode->GetParentTransformNode());
+          if(tNode)
+            {
+            mNode->SetAttribute("TransformApplied","false");
+            this->GetGUI()->GetOsteoPlanNode()->GetListOfTransforms()->AddItem(tNode);
+            }
+          }
+        }
+      }
     }
-
 }
 
 //----------------------------------------------------------------------------
