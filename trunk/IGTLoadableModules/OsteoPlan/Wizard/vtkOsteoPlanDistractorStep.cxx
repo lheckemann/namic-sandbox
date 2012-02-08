@@ -1156,58 +1156,24 @@ void vtkOsteoPlanDistractorStep::endElement(void *userData, const XML_Char *name
 void vtkOsteoPlanDistractorStep::MoveBones(vtkMRMLModelNode* BonePlateModel, vtkMRMLLinearTransformNode* BonePlateTransform,
                                            double value)
 {
-  // Create BoneAnchor and newBoneAnchor on Distractor1 structure
-  // Calculate newBoneAnchor = R*BoneAnchor
-  // Translate Rotation Center of the bone (BoneAnchor)
-  // Rotate Bone as Slider
-  // Translate Rotation Center of the bone back to new position (newBoneAnchor)
-  // Update BoneAnchor
-
-  double BoneCenter[3];
-  BonePlateModel->GetPolyData()->GetCenter(BoneCenter);
-
   vtkMatrix4x4* BoneTransformationMatrix = BonePlateTransform->GetMatrixTransformToParent();
 
-  double BoneAnchor[3] = {BoneCenter[1],//+BoneTransformationMatrix->GetElement(0,3),
-                          BoneCenter[2],//+BoneTransformationMatrix->GetElement(1,3),
-                          BoneCenter[3]};//+BoneTransformationMatrix->GetElement(2,3)};
-
   vtkTransform* BoneTranslation = vtkTransform::New();
-  BoneTranslation->Translate(BoneAnchor[0] + this->GetDistractorSelected()->GetRailAnchor()[0],
-                             BoneAnchor[1] + this->GetDistractorSelected()->GetRailAnchor()[1],
-                             BoneAnchor[2] + this->GetDistractorSelected()->GetRailAnchor()[2]);
+  BoneTranslation->Translate(-this->GetDistractorSelected()->GetSliderAnchor()[0],
+                             -this->GetDistractorSelected()->GetSliderAnchor()[1],
+                             -this->GetDistractorSelected()->GetSliderAnchor()[2]);
 
   vtkTransform* BoneRotation = vtkTransform::New();
   BoneRotation->RotateY(value);
 
+   vtkTransform* BoneInvertTranslation = vtkTransform::New();
+  BoneInvertTranslation->Translate(this->GetDistractorSelected()->GetNewSliderAnchor()[0], 
+                                   this->GetDistractorSelected()->GetNewSliderAnchor()[1], 
+                                   this->GetDistractorSelected()->GetNewSliderAnchor()[2]);
 
-  double newBoneAnchorX =
-    BoneRotation->GetMatrix()->GetElement(0,0)*BoneAnchor[0]+
-    BoneRotation->GetMatrix()->GetElement(0,1)*BoneAnchor[1]+
-    BoneRotation->GetMatrix()->GetElement(0,2)*BoneAnchor[2]+
-    BoneRotation->GetMatrix()->GetElement(0,3)*1;
-
-  double newBoneAnchorY =
-    BoneRotation->GetMatrix()->GetElement(1,0)*BoneAnchor[0]+
-    BoneRotation->GetMatrix()->GetElement(1,1)*BoneAnchor[1]+
-    BoneRotation->GetMatrix()->GetElement(1,2)*BoneAnchor[2]+
-    BoneRotation->GetMatrix()->GetElement(1,3)*1;
-
-  double newBoneAnchorZ =
-    BoneRotation->GetMatrix()->GetElement(2,0)*BoneAnchor[0]+
-    BoneRotation->GetMatrix()->GetElement(2,1)*BoneAnchor[1]+
-    BoneRotation->GetMatrix()->GetElement(2,2)*BoneAnchor[2]+
-    BoneRotation->GetMatrix()->GetElement(2,3)*1;
-
-
-  vtkTransform* BoneInvertTranslation = vtkTransform::New();
-  BoneInvertTranslation->Translate(-newBoneAnchorX - this->GetDistractorSelected()->GetRailAnchor()[0],
-                                   -newBoneAnchorY - this->GetDistractorSelected()->GetRailAnchor()[1],
-                                   -newBoneAnchorZ - this->GetDistractorSelected()->GetRailAnchor()[2]);
-
-  BoneInvertTranslation->PostMultiply();
+  BoneInvertTranslation->PreMultiply();
   BoneInvertTranslation->Concatenate(BoneRotation);
-  BoneInvertTranslation->PostMultiply();
+  BoneInvertTranslation->PreMultiply();
   BoneInvertTranslation->Concatenate(BoneTranslation);
   BoneInvertTranslation->GetMatrix(BoneTransformationMatrix);
 
