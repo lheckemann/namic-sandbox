@@ -15,6 +15,9 @@
 #ifndef __vtkOsteoPlanDistractorStep_h
 #define __vtkOsteoPlanDistractorStep_h
 
+// To avoid "M_PI undeclared" error on windows
+#define _USE_MATH_DEFINES
+
 #include "vtkOsteoPlanStep.h"
 #include "vtkDistractorDefinition.h"
 #include "vtkCollection.h"
