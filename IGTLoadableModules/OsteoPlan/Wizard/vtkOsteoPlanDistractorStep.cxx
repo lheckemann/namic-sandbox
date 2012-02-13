@@ -1148,7 +1148,8 @@ void vtkOsteoPlanDistractorStep::startElement(void *userData, const XML_Char *na
 
 
 //---------------------------------------------------------------------------
-void vtkOsteoPlanDistractorStep::endElement(void *userData, const XML_Char *name) {
+void vtkOsteoPlanDistractorStep::endElement(void *userData, const XML_Char *name) 
+{
 }
 
 

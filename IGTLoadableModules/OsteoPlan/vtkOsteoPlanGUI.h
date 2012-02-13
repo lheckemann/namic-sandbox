@@ -27,6 +27,8 @@
 
 class vtkKWPushButton;
 class vtkKWPushButtonSet;
+class vtkKWRadioButtonSet;
+class vtkSlicerNodeSelectorWidget;
 class vtkKWWizardWidget;
 class vtkOsteoPlanStep;
 class vtkKWWizardStep;
@@ -114,6 +116,8 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   void BuildGUIForHelpFrame();
   void BuildGUIForWorkflowFrame();
   void BuildGUIForWizardFrame();
+  void BuildGUIForMeshingFrame();
+
   //----------------------------------------------------------------
   // Update routines
   //----------------------------------------------------------------
@@ -164,6 +168,14 @@ class VTK_OsteoPlan_EXPORT vtkOsteoPlanGUI : public vtkSlicerModuleGUI
   vtkOsteoPlanPlacingScrewsStep                 *PlacingStep;
   vtkOsteoPlanReturningOriginalPositionStep     *ReturningStep;
   vtkOsteoPlanDistractorStep                    *DistractorStep;
+
+  //----------------------------------------------------------------
+  // Meshing Frame
+
+  vtkSlicerModuleCollapsibleFrame       *MeshingFrame;
+  vtkSlicerNodeSelectorWidget           *NodeToRemeshSelector;
+  vtkKWRadioButtonSet                   *OperationTypeButtonSet;
+  vtkKWPushButton                       *ApplyOperationButton;
 
   //----------------------------------------------------------------
   // Logic Values
