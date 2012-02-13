@@ -23,6 +23,7 @@
 #include "vtkSlicerSlicesGUI.h"
 #include "vtkSlicerColor.h"
 #include "vtkSlicerTheme.h"
+#include "vtkSlicerNodeSelectorWidget.h"
 #include "vtkCornerAnnotation.h"
 
 #include "vtkKWWizardWorkflow.h"
@@ -34,6 +35,8 @@
 #include "vtkKWLabel.h"
 #include "vtkKWEvent.h"
 #include "vtkKWPushButton.h"
+#include "vtkKWRadioButtonSet.h"
+#include "vtkKWRadioButton.h"
 #include "vtkKWPushButtonSet.h"
 #include "vtkKWProgressGauge.h"
 
@@ -73,7 +76,7 @@ vtkOsteoPlanGUI::vtkOsteoPlanGUI ( )
   this->WorkflowButtonSet = NULL;
 
   //----------------------------------------------------------------
-  // GUI widgets
+  // Wizard Frame
 
   this->WizardFrame  = vtkSlicerModuleCollapsibleFrame::New();
   this->WizardWidget = NULL;
@@ -87,6 +90,15 @@ vtkOsteoPlanGUI::vtkOsteoPlanGUI ( )
   this->PlacingStep    = NULL;
   this->ReturningStep  = NULL;
   this->DistractorStep = NULL;
+
+
+  //----------------------------------------------------------------
+  // Meshing Frame
+
+  this->MeshingFrame           = vtkSlicerModuleCollapsibleFrame::New();
+  this->NodeToRemeshSelector   = NULL;
+  this->OperationTypeButtonSet = NULL;
+  this->ApplyOperationButton   = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -181,6 +193,38 @@ vtkOsteoPlanGUI::~vtkOsteoPlanGUI ( )
     }
 
   //----------------------------------------------------------------
+  // Meshing Frame
+
+  if (this->MeshingFrame)
+    {
+    this->MeshingFrame->SetParent(NULL);
+    this->MeshingFrame->Delete();
+    this->MeshingFrame = NULL;
+    }
+
+  if (this->NodeToRemeshSelector)
+    {
+    this->NodeToRemeshSelector->SetParent(NULL);
+    this->NodeToRemeshSelector->Delete();
+    this->NodeToRemeshSelector = NULL;
+    }
+
+  if (this->OperationTypeButtonSet)
+    {
+    this->OperationTypeButtonSet->SetParent(NULL);
+    this->OperationTypeButtonSet->Delete();
+    this->OperationTypeButtonSet = NULL;
+    }
+
+  if (this->ApplyOperationButton)
+    {
+    this->ApplyOperationButton->SetParent(NULL);
+    this->ApplyOperationButton->Delete();
+    this->ApplyOperationButton = NULL;
+    }
+
+
+  //----------------------------------------------------------------
   // Unregister Logic class
 
   this->SetModuleLogic ( NULL );
@@ -234,9 +278,20 @@ void vtkOsteoPlanGUI::RemoveGUIObservers ( )
       }
     }
 
+  //----------------------------------------------------------------
+  // Wizard Frame
+
   if (this->WizardWidget)
     {
     this->WizardWidget->GetWizardWorkflow()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  //----------------------------------------------------------------
+  // Meshing Frame
+
+  if(this->ApplyOperationButton)
+    {
+    this->ApplyOperationButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
   this->RemoveLogicObservers();
@@ -281,6 +336,15 @@ void vtkOsteoPlanGUI::AddGUIObservers ( )
     this->WizardWidget->GetWizardWorkflow()->AddObserver(vtkKWWizardWorkflow::CurrentStateChangedEvent,
                                                          (vtkCommand *)this->GUICallbackCommand);
     }
+
+  //----------------------------------------------------------------
+  // Meshing Frame
+
+  if(this->ApplyOperationButton)
+    {
+    this->ApplyOperationButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
 
   this->AddLogicObservers();
 
@@ -353,6 +417,26 @@ void vtkOsteoPlanGUI::ProcessGUIEvents(vtkObject *caller,
       }
     }
 
+  if(this->ApplyOperationButton == vtkKWPushButton::SafeDownCast(caller)
+     && event == vtkKWPushButton::InvokedEvent)
+    {
+    // Get Node selected
+    vtkMRMLModelNode* NodeToRemesh = vtkMRMLModelNode::SafeDownCast(this->NodeToRemeshSelector->GetSelected());
+    if(NodeToRemesh)
+      {
+      if(this->OperationTypeButtonSet->GetWidget(0)->GetSelectedState() == 1)
+        {
+        // Reduce Operation Selected
+        this->GetLogic()->ReduceOperation(NodeToRemesh);
+        }
+      else if(this->OperationTypeButtonSet->GetWidget(1)->GetSelectedState() == 1)
+        {
+        // Refine Operation Selected
+        this->GetLogic()->RefineOperation(NodeToRemesh);
+        }
+      }
+    }
+
 }
 
 
@@ -412,6 +496,7 @@ void vtkOsteoPlanGUI::BuildGUI ( )
   BuildGUIForHelpFrame();
   BuildGUIForWorkflowFrame();
   BuildGUIForWizardFrame();
+  BuildGUIForMeshingFrame();
 }
 
 //---------------------------------------------------------------------------
@@ -422,7 +507,7 @@ void vtkOsteoPlanGUI::BuildGUIForHelpFrame ()
     "See "
     "<a>http://www.slicer.org/slicerWiki/index.php/Modules:OsteoPlan</a> for details.";
   const char *about =
-    "This work is supported by NCIGT, NA-MIC.";
+    "This work is supported by PSI, MGH.";
 
   vtkKWWidget *page = this->UIPanel->GetPageWidget ( "OsteoPlan" );
   this->BuildHelpAndAboutFrame (page, help, about);
@@ -597,6 +682,93 @@ void vtkOsteoPlanGUI::BuildGUIForWizardFrame()
 
 }
 
+//----------------------------------------------------------------------------
+void vtkOsteoPlanGUI::BuildGUIForMeshingFrame()
+{
+  vtkKWWidget          *page = this->UIPanel->GetPageWidget ( "OsteoPlan" );
+  vtkSlicerApplication *app  = (vtkSlicerApplication *)this->GetApplication();
+
+  if(!this->MeshingFrame->IsCreated())
+    {
+    this->MeshingFrame->SetParent(page);
+    this->MeshingFrame->Create();
+    this->MeshingFrame->SetLabelText("Meshing");
+    this->MeshingFrame->CollapseFrame();
+
+    app->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 0 -in %s",
+                this->MeshingFrame->GetWidgetName(),
+                page->GetWidgetName());
+
+    }
+
+  if(!this->NodeToRemeshSelector)
+    {
+    this->NodeToRemeshSelector = vtkSlicerNodeSelectorWidget::New();
+    }
+  if(!this->NodeToRemeshSelector->IsCreated())
+    {
+    this->NodeToRemeshSelector->SetParent(this->MeshingFrame->GetFrame());
+    this->NodeToRemeshSelector->Create();
+    this->NodeToRemeshSelector->SetNewNodeEnabled(0);
+    this->NodeToRemeshSelector->SetNodeClass("vtkMRMLModelNode",NULL,NULL,NULL);
+    this->NodeToRemeshSelector->SetMRMLScene(this->GetMRMLScene());
+    this->NodeToRemeshSelector->UpdateMenu();
+    }
+
+  vtkKWFrame* OperationFrame = vtkKWFrame::New();
+  OperationFrame->SetParent(this->MeshingFrame->GetFrame());
+  OperationFrame->Create();
+
+  vtkKWLabel* typeLabel = vtkKWLabel::New();
+  typeLabel->SetParent(OperationFrame);
+  typeLabel->Create();
+  typeLabel->SetWidth(12);
+  typeLabel->SetText("Operation Type: ");
+
+  if(!this->OperationTypeButtonSet)
+    {
+    this->OperationTypeButtonSet = vtkKWRadioButtonSet::New();
+    }
+  if(!this->OperationTypeButtonSet->IsCreated())
+    {
+    this->OperationTypeButtonSet->SetParent(OperationFrame);
+    this->OperationTypeButtonSet->Create();
+    this->OperationTypeButtonSet->PackHorizontallyOn();
+    this->OperationTypeButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(2);
+    this->OperationTypeButtonSet->UniformRowsOn();
+    this->OperationTypeButtonSet->UniformColumnsOn();
+
+    this->OperationTypeButtonSet->AddWidget(0);
+    this->OperationTypeButtonSet->GetWidget(0)->SetText("Reduce");
+    this->OperationTypeButtonSet->AddWidget(1);
+    this->OperationTypeButtonSet->GetWidget(1)->SetText("Refine");
+
+    this->OperationTypeButtonSet->GetWidget(0)->SelectedStateOn();
+    }
+
+  this->Script("pack %s %s -side left -anchor nw -fill x -expand y -padx 2 -pady 2",
+               typeLabel->GetWidgetName(),
+               this->OperationTypeButtonSet->GetWidgetName());
+
+  if(!this->ApplyOperationButton)
+    {
+    this->ApplyOperationButton = vtkKWPushButton::New();
+    }
+  if(!this->ApplyOperationButton->IsCreated())
+    {
+    this->ApplyOperationButton->SetParent(this->MeshingFrame->GetFrame());
+    this->ApplyOperationButton->Create();
+    this->ApplyOperationButton->SetText("Apply Operation");
+    }
+
+  this->Script("pack %s %s %s -side top -anchor nw -fill both -expand y -padx 2 -pady 2",
+               this->NodeToRemeshSelector->GetWidgetName(),
+               OperationFrame->GetWidgetName(),
+               this->ApplyOperationButton->GetWidgetName());
+
+  typeLabel->Delete();
+  OperationFrame->Delete();
+}
 
 //----------------------------------------------------------------------------
 void vtkOsteoPlanGUI::UpdateAll()
@@ -640,10 +812,10 @@ void vtkOsteoPlanGUI::PrepareMyStep(vtkOsteoPlanStep* wStep)
       this->WorkflowButtonSet->GetWidget(insertStep)->SetActiveBackgroundColor(r,g,b);
 
       /*      if(insertStep == 0)
-        {
-        this->WorkflowButtonSet->GetWidget(insertStep)->SetReliefToSunken();
-        } */
-      
+              {
+              this->WorkflowButtonSet->GetWidget(insertStep)->SetReliefToSunken();
+              } */
+
       }
     }
 }

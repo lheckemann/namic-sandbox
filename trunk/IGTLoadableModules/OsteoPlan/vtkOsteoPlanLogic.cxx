@@ -20,6 +20,11 @@
 
 #include "vtkOsteoPlanLogic.h"
 
+#include "vtkMRMLModelNode.h"
+#include "vtkTriangleFilter.h"
+#include "vtkDecimatePro.h"
+#include "vtkLoopSubdivisionFilter.h"
+
 vtkCxxRevisionMacro(vtkOsteoPlanLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkOsteoPlanLogic);
 
@@ -72,7 +77,44 @@ void vtkOsteoPlanLogic::UpdateAll()
 {
 }
 
+//---------------------------------------------------------------------------
+void vtkOsteoPlanLogic::ReduceOperation(vtkMRMLModelNode* Remesh)
+{
+  vtkTriangleFilter* triangleFilter = vtkTriangleFilter::New();
+  triangleFilter->SetInput(Remesh->GetModelDisplayNode()->GetPolyData());
 
+  vtkDecimatePro* decimateMesh = vtkDecimatePro::New();
+  decimateMesh->SetInput(triangleFilter->GetOutput());
+  decimateMesh->PreserveTopologyOn();
+  decimateMesh->SetTargetReduction(0.2);
+
+  Remesh->SetAndObservePolyData(decimateMesh->GetOutput());
+  Remesh->SetModifiedSinceRead(1);
+  Remesh->GetPolyData()->Squeeze();
+  Remesh->GetModelDisplayNode()->SetPolyData(decimateMesh->GetOutput());
+
+  decimateMesh->Delete();
+  triangleFilter->Delete();
+}
+
+//---------------------------------------------------------------------------
+void vtkOsteoPlanLogic::RefineOperation(vtkMRMLModelNode* Remesh)
+{
+  vtkTriangleFilter* triangleFilter = vtkTriangleFilter::New();
+  triangleFilter->SetInput(Remesh->GetModelDisplayNode()->GetPolyData());
+
+  vtkLoopSubdivisionFilter* subdivideMesh = vtkLoopSubdivisionFilter::New();
+  subdivideMesh->SetInput(triangleFilter->GetOutput());
+  subdivideMesh->SetNumberOfSubdivisions(1);
+
+  Remesh->SetAndObservePolyData(subdivideMesh->GetOutput());
+  Remesh->SetModifiedSinceRead(1);
+  Remesh->GetPolyData()->Squeeze();
+  Remesh->GetModelDisplayNode()->SetPolyData(subdivideMesh->GetOutput());
+
+  subdivideMesh->Delete();
+  triangleFilter->Delete();
+}
 
 
 
