@@ -1094,36 +1094,13 @@ int vtkMRMLTransPerinealProstateSmartTemplateNode::MoveTo(const char *transformN
 {
   vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->Scene->GetNodeByID(transformNodeId));
   vtkMatrix4x4* transform = transformNode->GetMatrixTransformToParent();
-  double targetX = transform->GetElement(0, 3);
-  double targetY = transform->GetElement(1, 3);
-  double targetZ = transform->GetElement(2, 3);
-  int i;
-  int j;
-  double depth;
-  double errorX;
-  double errorY;
-  double errorZ;
 
-  FindHole(targetX, targetY, targetZ, i, j, depth, errorX, errorY, errorZ);
-  vtkMatrix4x4* matrix = vtkMatrix4x4::New();
-  GetHoleTransform(i, j, matrix);
-  
   vtkMRMLLinearTransformNode* needleTransformNode = 
     vtkMRMLLinearTransformNode::SafeDownCast(this->Scene->GetNodeByID(this->GetActiveNeedleTransformNodeID()));
   if (needleTransformNode != NULL)
     {
     vtkMatrix4x4* needleTransform = needleTransformNode->GetMatrixTransformToParent();
-    double needleOffset[4];
-    double needleTip[4];
-    needleOffset[0] = 0.0;
-    needleOffset[1] = 0.0;
-    needleOffset[2] = depth;
-    needleOffset[3] = 1.0;
-    matrix->MultiplyPoint(needleOffset, needleTip);
-    needleTransform->DeepCopy(matrix);
-    needleTransform->SetElement(0, 3, needleTip[0]);
-    needleTransform->SetElement(1, 3, needleTip[1]);
-    needleTransform->SetElement(2, 3, needleTip[2]);
+    needleTransform->DeepCopy(transform);
     needleTransformNode->Modified();
 
     Modified();
@@ -1389,59 +1366,3 @@ int vtkMRMLTransPerinealProstateSmartTemplateNode::GetNeedleTransform(int i, int
 }
  
 
-//----------------------------------------------------------------------------
-int vtkMRMLTransPerinealProstateSmartTemplateNode::FindHole(double targetX, double targetY, double targetZ,
-                                                       int& nearest_i, int& nearest_j, double& nearest_depth,
-                                                       double& errorX, double& errorY, double& errorZ)
-{
-  
-  vtkMatrix4x4* matrix = vtkMatrix4x4::New();
-
-  // NOTE: To find the hole for targeting, we will use the fact that
-  // the optimal hole is nearest to the target. (It's not the best way, though...)
-  double holeX;
-  double holeY;
-  double holeZ;
-
-  nearest_i = 0;
-  nearest_j = 0;
-  GetHoleTransform(nearest_i, nearest_j, matrix);
-  holeX = matrix->GetElement(0, 3);
-  holeY = matrix->GetElement(1, 3);
-  holeZ = matrix->GetElement(2, 3);
-  nearest_depth = sqrt((holeX-targetX)*(holeX-targetX)+(holeY-targetY)*(holeY-targetY)+(holeZ-targetZ)*(holeZ-targetZ));
-
-  for (int i = 0; i < this->TemplateNumGrids[0]; i ++)
-    {
-    for (int j = 0; j < this->TemplateNumGrids[1]; j ++)
-      {
-      GetHoleTransform(i, j, matrix);
-      holeX = matrix->GetElement(0, 3);
-      holeY = matrix->GetElement(1, 3);
-      holeZ = matrix->GetElement(2, 3);
-      double dist = sqrt((holeX-targetX)*(holeX-targetX)+(holeY-targetY)*(holeY-targetY)+(holeZ-targetZ)*(holeZ-targetZ));
-      if (dist < nearest_depth)
-        {
-        nearest_depth = dist;
-        nearest_i = i;
-        nearest_j = j;
-        }
-      }
-    }
-
-  // use the distance as needle length
-  double needleOffset[4];
-  double needleTip[4];
-  GetHoleTransform(nearest_i, nearest_j, matrix);
-  needleOffset[0] = 0.0;
-  needleOffset[1] = 0.0;
-  needleOffset[2] = nearest_depth;
-  needleOffset[3] = 1.0;
-  matrix->MultiplyPoint(needleOffset, needleTip);
-
-  // Calculate targeting error
-  errorX = needleTip[0] - targetX;
-  errorY = needleTip[1] - targetY;
-  errorZ = needleTip[2] - targetZ;
-  return 0;
-}
