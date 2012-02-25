@@ -157,13 +157,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateSmartTemplateNode : pub
   // Get needle tip position and orientation, when grid hole (i, j) is used.
   int GetNeedleTransform(int i, int j, double length, vtkMatrix4x4* matrix);
   
-  // Description:
-  // Find the best hole to target the designated target position
-  int FindHole(double targetX, double targetY, double targetZ,
-               int& nearest_i, int& nearest_j, double& nearest_depth,
-               double& errorX, double& errorY, double& errorZ);
-
-
 
  protected:
 
