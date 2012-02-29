@@ -45,6 +45,15 @@ vtkBetaProbeLogic::vtkBetaProbeLogic()
   this->DetectionRunning = false;
   this->ThresholdDetection = -1;
 
+  this->PositionTransform = NULL;
+  this->DataToMap = NULL;
+  this->ColorNode = NULL;
+  this->MappedVolume = NULL;
+  this->RASToIJKMatrix = NULL;
+  this->MappingRunning = false;
+  this->MappingThreadID = -1;
+
+  this->TmpMatrix = NULL;
 }
 
 
@@ -55,6 +64,11 @@ vtkBetaProbeLogic::~vtkBetaProbeLogic()
   if (this->DataCallbackCommand)
     {
     this->DataCallbackCommand->Delete();
+    }
+
+  if(this->GetMappingRunning())
+    {
+    this->StopMapping();
     }
 
 }
@@ -71,7 +85,7 @@ void vtkBetaProbeLogic::PrintSelf(ostream& os, vtkIndent indent)
 
 //---------------------------------------------------------------------------
 void vtkBetaProbeLogic::DataCallback(vtkObject *caller,
-                                            unsigned long eid, void *clientData, void *callData)
+                                     unsigned long eid, void *clientData, void *callData)
 {
   vtkBetaProbeLogic *self = reinterpret_cast<vtkBetaProbeLogic *>(clientData);
   vtkDebugWithObjectMacro(self, "In vtkBetaProbeLogic DataCallback");
@@ -226,12 +240,14 @@ void vtkBetaProbeLogic::PivotCalibration(vtkCollection* PivotingMatrix, double A
 }
 
 
-void vtkBetaProbeLogic::StartTumorDetection(int threshold, vtkMRMLUDPServerNode* CountsNode)
+void vtkBetaProbeLogic::StartTumorDetection(int threshold)
 {
-  this->ThresholdDetection = threshold;
-  this->UDPServerNode = CountsNode;
-  this->DetectionRunning = true;
-  this->ThreadID = this->m_Threader->SpawnThread(vtkBetaProbeLogic::TumorDetection,this);
+  if(this->GetUDPServerNode())
+    {
+    this->ThresholdDetection = threshold;
+    this->DetectionRunning = true;
+    this->ThreadID = this->m_Threader->SpawnThread(vtkBetaProbeLogic::TumorDetection,this);
+    }
 }
 
 void vtkBetaProbeLogic::StopTumorDetection()
@@ -250,7 +266,7 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::TumorDetection(void* pInfoStruct)
 
   while(BetaProbeLogic->DetectionRunning)
     {
-    if(BetaProbeLogic->UDPServerNode->GetSmoothedCounts() >= BetaProbeLogic->ThresholdDetection)
+    if(BetaProbeLogic->GetUDPServerNode()->GetSmoothedCounts() >= BetaProbeLogic->ThresholdDetection)
       {
       // TODO: Modify interval: Higher count -> Smaller interval
       BetaProbeLogic->BeepFunction(500);
@@ -270,4 +286,84 @@ void vtkBetaProbeLogic::BeepFunction(int interval_ms)
   usleep(interval_ms*1000);
 #endif
 
+}
+
+void vtkBetaProbeLogic::StartMapping()
+{
+  // Start Thread
+  if(this->GetUDPServerNode() &&
+     this->GetPositionTransform() &&
+     this->GetDataToMap() &&
+     this->GetColorNode() &&
+     this->GetMappedVolume() &&
+     this->GetRASToIJKMatrix())
+    {
+    this->SetMappingRunning(true);
+    this->MappingThreadID = this->m_Threader->SpawnThread(vtkBetaProbeLogic::MappingFunction, this);
+    }
+}
+
+void vtkBetaProbeLogic::StopMapping()
+{
+  if(this->MappingThreadID >= 0)
+    {
+    this->SetMappingRunning(false);
+    this->m_Threader->TerminateThread(this->MappingThreadID);
+    this->MappingThreadID = -1;
+    this->SetPositionTransform(NULL);
+    this->SetDataToMap(NULL);
+    this->SetColorNode(NULL);
+    this->SetMappedVolume(NULL);
+    this->SetRASToIJKMatrix(NULL);
+    if(!this->DetectionRunning)
+      {
+      this->SetUDPServerNode(NULL);
+      }
+    }
+}
+
+ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
+{
+  vtkBetaProbeLogic *BetaProbeLogic = (vtkBetaProbeLogic*) (((itk::MultiThreader::ThreadInfoStruct *)(pInfoStruct))->UserData);
+
+  int *extent = BetaProbeLogic->GetMappedVolume()->GetImageData()->GetExtent();
+
+  while(BetaProbeLogic->GetMappingRunning())
+    {
+    BetaProbeLogic->TmpMatrix = BetaProbeLogic->GetPositionTransform()->GetMatrixTransformToParent();
+    double PointRAS[4] = {BetaProbeLogic->TmpMatrix->GetElement(0,3),
+                          BetaProbeLogic->TmpMatrix->GetElement(1,3),
+                          BetaProbeLogic->TmpMatrix->GetElement(2,3),
+                          1};
+    double PointIJK[4];
+
+    BetaProbeLogic->GetRASToIJKMatrix()->MultiplyPoint(PointRAS, PointIJK);
+
+    double SmoothedCounts = BetaProbeLogic->GetUDPServerNode()->GetSmoothedCounts();
+
+    if((PointIJK[0] > extent[0]+1) && (PointIJK[0] < extent[1]-1))
+      {
+      if((PointIJK[1] > extent[2]+1) && (PointIJK[1] < extent[3]-1))
+        {
+        if((PointIJK[2] > extent[4]+1) && (PointIJK[2] < extent[5]-1))
+          {
+          for(double i=PointIJK[0]-2.5;i<PointIJK[0]+2.5;i+=0.5)
+            {
+            for(double j=PointIJK[1]-2.5;j<PointIJK[1]+2.5;j+=0.5)
+              {
+              for(double k=PointIJK[2]-2.5;k<PointIJK[2]+2.5;k+=0.5)
+                {
+                BetaProbeLogic->GetMappedVolume()->GetImageData()->SetScalarComponentFromDouble(i,
+                                                                                                j,
+                                                                                                k,
+                                                                                                0,
+                                                                                                200);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  return EXIT_SUCCESS;
 }

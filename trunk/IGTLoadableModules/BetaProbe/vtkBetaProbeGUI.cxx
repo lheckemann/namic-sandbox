@@ -39,6 +39,7 @@
 #include "vtkSlicerNodeSelectorWidget.h"
 
 #include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMatrix4x4.h"
 
 #include "vtkCornerAnnotation.h"
@@ -101,7 +102,16 @@ vtkBetaProbeGUI::vtkBetaProbeGUI ( )
   this->BackgroundAccepted = false;
   this->TumorAccepted      = false;
 
+  this->DataSelector  = NULL;
+  this->DataToMap     = NULL;
+  this->MappingButton = NULL;
+  this->LabelStatus   = NULL;
+
   this->SetContinuousMode(false);
+
+
+  this->TestButton = NULL;
+
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -258,6 +268,36 @@ vtkBetaProbeGUI::~vtkBetaProbeGUI ( )
     }
 
 
+  if(this->DataSelector)
+    {
+    this->DataSelector->SetParent(NULL);
+    this->DataSelector->Delete();
+    }
+
+
+
+  if(this->MappingButton)
+    {
+    this->MappingButton->SetParent(NULL);
+    this->MappingButton->Delete();
+    }
+
+  if(this->LabelStatus)
+    {
+    this->LabelStatus->SetParent(NULL);
+    this->LabelStatus->Delete();
+    }
+
+
+  if(this->TestButton)
+    {
+    this->TestButton->SetParent(NULL);
+    this->TestButton->Delete();
+    }
+
+
+
+
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -412,6 +452,25 @@ void vtkBetaProbeGUI::RemoveGUIObservers ( )
     this->StartDetectionButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+
+
+  if(this->DataSelector)
+    {
+    this->DataSelector->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if(this->MappingButton)
+    {
+    this->MappingButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+
+  if(this->TestButton)
+    {
+    this->TestButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+
   this->RemoveLogicObservers();
 
 }
@@ -431,6 +490,7 @@ void vtkBetaProbeGUI::AddGUIObservers ( )
   //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
+  events->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent);
 
   if (this->GetMRMLScene() != NULL)
     {
@@ -511,6 +571,12 @@ void vtkBetaProbeGUI::AddGUIObservers ( )
   this->RadioThresholdButton->AddObserver ( vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->ThresholdValueEntry->AddObserver ( vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->StartDetectionButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
+
+  this->DataSelector->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );
+  this->MappingButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
+
+
+  this->TestButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
 
   this->AddLogicObservers();
 
@@ -854,10 +920,155 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         this->StartDetectionButton->SetText("Stop Detection");
         if(this->ThresholdTumorDetection > 0 && this->Counts)
           {
-          this->GetLogic()->StartTumorDetection(this->ThresholdTumorDetection, this->Counts);
+          this->GetLogic()->SetUDPServerNode(this->Counts);
+          this->GetLogic()->StartTumorDetection(this->ThresholdTumorDetection);
           }
         }
       }
+    }
+
+
+  if(this->DataSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
+     event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+    this->DataToMap = vtkMRMLScalarVolumeNode::SafeDownCast(this->DataSelector->GetSelected());
+    }
+
+
+  if(this->MappingButton == vtkKWPushButton::SafeDownCast(caller) &&
+     event == vtkKWPushButton::InvokedEvent)
+    {
+    if(this->Probe_Position &&
+       this->Counts &&
+       this->DataToMap)
+      {
+
+      if(!this->GetLogic()->GetMappingRunning())
+        {
+        // Color
+        vtkMRMLColorTableNode *colorNode = vtkMRMLColorTableNode::New();
+        vtkMRMLColorTableNode *iRainbowNode = vtkMRMLColorTableNode::New();
+        iRainbowNode->SetTypeToFullRainbow();
+        colorNode->SetTypeToUser();
+        colorNode->SetLookupTable(iRainbowNode->GetLookupTable());
+        colorNode->SetColor(0,"background", 0.0, 0.0, 0.0);
+        colorNode->SetHideFromEditors(0);
+        this->GetMRMLScene()->AddNode(colorNode);
+        this->GetLogic()->SetColorNode(colorNode);
+
+        // Mapped Volume
+        std::stringstream volumemapname;
+        volumemapname << this->DataToMap->GetName() << "-map";
+
+        vtkImageData* imData = vtkImageData::New();
+        imData->SetDimensions(this->DataToMap->GetImageData()->GetDimensions());
+        imData->SetExtent(this->DataToMap->GetImageData()->GetExtent());
+        imData->SetOrigin(this->DataToMap->GetImageData()->GetOrigin());
+        imData->SetSpacing(this->DataToMap->GetImageData()->GetSpacing());
+        imData->SetNumberOfScalarComponents(this->DataToMap->GetImageData()->GetNumberOfScalarComponents());
+        imData->SetScalarTypeToDouble();
+        imData->AllocateScalars();
+
+        double* dest = (double*)imData->GetScalarPointer();
+        int* dim = imData->GetDimensions();
+        if(dest)
+          {
+          memset(dest, 0x00, dim[0]*dim[1]*dim[2]*sizeof(double));
+          imData->Update();
+          }
+
+        imData->Modified();
+
+        vtkMRMLScalarVolumeDisplayNode *displayMappedVolume = vtkMRMLScalarVolumeDisplayNode::New();
+        displayMappedVolume->SetInterpolate(0);
+        this->GetMRMLScene()->AddNode(displayMappedVolume);
+
+        displayMappedVolume->SetAndObserveColorNodeID(colorNode->GetID());
+        displayMappedVolume->Modified();
+
+        vtkMRMLScalarVolumeNode *mappedVolume = vtkMRMLScalarVolumeNode::New();
+        mappedVolume->SetAndObserveImageData(imData);
+        mappedVolume->SetName(volumemapname.str().c_str());
+        mappedVolume->SetAndObserveDisplayNodeID(displayMappedVolume->GetID());
+        mappedVolume->LabelMapOn();
+        mappedVolume->SetOrigin(this->DataToMap->GetOrigin());
+        mappedVolume->SetSpacing(this->DataToMap->GetSpacing());
+        mappedVolume->Modified();
+
+        this->GetMRMLScene()->AddNode(mappedVolume);
+        this->CenterImage(mappedVolume);
+
+        this->GetLogic()->SetMappedVolume(mappedVolume);
+
+        // RAS to IJK Matrix
+        vtkMatrix4x4* RASToIJKMatrix = vtkMatrix4x4::New();
+        this->DataToMap->GetRASToIJKMatrix(RASToIJKMatrix);
+        this->GetLogic()->SetRASToIJKMatrix(RASToIJKMatrix);
+
+        // Set Logic
+        this->GetLogic()->SetPositionTransform(this->Probe_Position);
+        this->GetLogic()->SetUDPServerNode(this->Counts);
+        this->GetLogic()->SetDataToMap(this->DataToMap);
+
+        // Start Mapping Thread
+        this->GetLogic()->StartMapping();
+
+        // Delete
+        imData->Delete();
+        RASToIJKMatrix->Delete();
+        mappedVolume->Delete();
+        displayMappedVolume->Delete();
+        iRainbowNode->Delete();
+        colorNode->Delete();
+        }
+      else
+        {
+        this->GetLogic()->StopMapping();
+        }
+
+      if(this->GetLogic()->GetMappingRunning())
+        {
+        this->MappingButton->SetReliefToSunken();
+        }
+      else
+        {
+        this->MappingButton->SetReliefToGroove();
+        }
+      }
+    }
+
+
+
+  if(this->TestButton == vtkKWPushButton::SafeDownCast(caller) &&
+     event == vtkKWPushButton::InvokedEvent)
+    {
+    vtkMRMLScalarVolumeNode* VolumeToSend = vtkMRMLScalarVolumeNode::New();
+    vtkImageData* DataToSend = vtkImageData::New();
+    DataToSend->SetDimensions(50,4,1);
+    DataToSend->SetExtent(0,49,0,3,0,0);
+    DataToSend->SetSpacing(1.0, 1.0, 1.0);
+    DataToSend->SetOrigin(0.0, 0.0, 0.0);
+    DataToSend->SetNumberOfScalarComponents(1);
+    DataToSend->SetScalarTypeToDouble();
+    DataToSend->AllocateScalars();
+
+    for(int j=0; j<4; j++)
+      {
+      for(int i=0; i<50; i++)
+        {
+        double* dest = (double*) DataToSend->GetScalarPointer(i,j,0);
+        if(dest)
+          {
+          memset(dest, (double)(i/(j+1)), sizeof(double));
+          }
+        }
+      }
+    DataToSend->Update();
+    VolumeToSend->SetAndObserveImageData(DataToSend);
+
+    this->GetMRMLScene()->AddNode(VolumeToSend);
+    VolumeToSend->Delete();
+    DataToSend->Delete();
     }
 
 }
@@ -894,6 +1105,10 @@ void vtkBetaProbeGUI::ProcessMRMLEvents ( vtkObject *caller,
   // Fill in
 
   if (event == vtkMRMLScene::SceneCloseEvent)
+    {
+    }
+
+  if(event == vtkMRMLScalarVolumeNode::ImageDataModifiedEvent)
     {
     }
 }
@@ -933,6 +1148,29 @@ void vtkBetaProbeGUI::ProcessTimerEvents()
       this->Capture_Data();
       }
 
+
+    if(this->GetLogic()->GetMappingRunning())
+      {
+      this->GetLogic()->GetMappedVolume()->Modified();
+      this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->Render();
+      this->GetApplicationGUI()->GetMainSliceGUI("Green")->GetSliceViewer()->Render();
+      this->GetApplicationGUI()->GetMainSliceGUI("Yellow")->GetSliceViewer()->Render();
+      }
+
+
+    if(this->LabelStatus)
+      {
+      if(this->GetLogic()->GetMappingRunning())
+        {
+        this->LabelStatus->SetText("ON");
+        }
+      else
+        {
+        this->LabelStatus->SetText("OFF");
+        }
+      }
+
+
     // update timer
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(),
                                          this->TimerInterval,
@@ -964,7 +1202,7 @@ void vtkBetaProbeGUI::BuildGUI ( )
   BuildGUIForNodes();
   BuildGUIForCapturingDataFromBetaProbe();
   BuildGUIForDetection();
-
+  BuildGUIForMapping();
 }
 
 
@@ -1332,9 +1570,19 @@ void vtkBetaProbeGUI::BuildGUIForDetection()
   this->StartDetectionButton->Create();
   this->StartDetectionButton->SetText("Start Detection");
 
-  this->Script("pack %s %s -side left -anchor w -padx 2 -pady 2",
+
+
+  this->TestButton = vtkKWPushButton::New();
+  this->TestButton->SetParent(ThresholdFrame);
+  this->TestButton->Create();
+  this->TestButton->SetText("Create Data");
+
+
+
+  this->Script("pack %s %s %s -side left -anchor w -padx 2 -pady 2",
                this->ThresholdValueEntry->GetWidgetName(),
-               this->StartDetectionButton->GetWidgetName());
+               this->StartDetectionButton->GetWidgetName(),
+               this->TestButton->GetWidgetName());
 
   this->Script("pack %s %s -side top -anchor w -padx 2 -pady 2",
                this->RadioThresholdButton->GetWidgetName(),
@@ -1353,9 +1601,75 @@ void vtkBetaProbeGUI::BuildGUIForDetection()
 
 }
 
+//----------------------------------------------------------------------------
+void vtkBetaProbeGUI::BuildGUIForMapping()
+{
+
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("BetaProbe");
+
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Mapping");
+  //conBrowsFrame->CollapseFrame();
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+  this->DataSelector = vtkSlicerNodeSelectorWidget::New();
+  this->DataSelector->SetParent(conBrowsFrame->GetFrame());
+  this->DataSelector->Create();
+  this->DataSelector->SetWidth(30);
+  this->DataSelector->SetNewNodeEnabled(0);
+  this->DataSelector->SetNodeClass("vtkMRMLScalarVolumeNode",NULL,NULL,NULL);
+  this->DataSelector->SetMRMLScene(this->GetMRMLScene());
+  this->DataSelector->UpdateMenu();
+
+  this->MappingButton = vtkKWPushButton::New();
+  this->MappingButton->SetParent(conBrowsFrame->GetFrame());
+  this->MappingButton->Create();
+  this->MappingButton->SetText("Mapping");
 
 
+  vtkKWFrame* centerFrame = vtkKWFrame::New();
+  centerFrame->SetParent(conBrowsFrame->GetFrame());
+  centerFrame->Create();
 
+  vtkKWFrame* fStatus = vtkKWFrame::New();
+  fStatus->SetParent(centerFrame);
+  fStatus->Create();
+
+  this->Script("pack %s -side top -anchor center -padx 2 -pady 2",
+               fStatus->GetWidgetName());
+
+  vtkKWLabel* sLabel = vtkKWLabel::New();
+  sLabel->SetParent(fStatus);
+  sLabel->Create();
+  sLabel->SetText("Status: ");
+  sLabel->SetAnchorToCenter();
+
+  this->LabelStatus = vtkKWLabel::New();
+  this->LabelStatus->SetParent(fStatus);
+  this->LabelStatus->Create();
+  this->LabelStatus->SetText("OFF");
+  this->LabelStatus->SetAnchorToCenter();
+
+  this->Script("pack %s %s -side left -anchor w -padx 2 -pady 2",
+               sLabel->GetWidgetName(),
+               this->LabelStatus->GetWidgetName());
+
+  this->Script("pack %s %s %s -side top -expand y -fill x -anchor w -padx 2 -pady 2",
+               this->DataSelector->GetWidgetName(),
+               this->MappingButton->GetWidgetName(),
+               centerFrame->GetWidgetName());
+
+  fStatus->Delete();
+  centerFrame->Delete();
+  sLabel->Delete();
+  conBrowsFrame->Delete();
+
+}
 
 
 
@@ -1374,7 +1688,7 @@ void vtkBetaProbeGUI::Capture_Data()
     struct tm *current = localtime(&now);
     char mytime[20];
     sprintf(mytime, "%.2d:%.2d:%.2d", current->tm_hour, current->tm_min, current->tm_sec);
-    
+
     this->Probe_Position->GetMatrixTransformToWorld(this->Probe_Matrix);
     this->BetaProbeCountsWithTimestamp << this->Counts->GetSmoothedCounts()   << "\t\t"
                                        << this->Counts->GetBetaCounts()       << "\t\t"
@@ -1387,7 +1701,7 @@ void vtkBetaProbeGUI::Capture_Data()
 
     this->Probe_Matrix->Delete();
     this->Probe_Matrix = NULL;
- 
+
     this->Capture_status->SetText("Data captured");
     }
   else
@@ -1411,3 +1725,38 @@ void vtkBetaProbeGUI::Capture_Tracker_Position()
 
 
 
+
+void vtkBetaProbeGUI::CenterImage(vtkMRMLVolumeNode *volumeNode)
+{
+  if ( volumeNode )
+    {
+    vtkImageData *image = volumeNode->GetImageData();
+    if (image)
+      {
+      vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
+      volumeNode->GetIJKToRASMatrix(ijkToRAS);
+
+      double dimsH[4];
+      double rasCorner[4];
+      int *dims = image->GetDimensions();
+      dimsH[0] = dims[0] - 1;
+      dimsH[1] = dims[1] - 1;
+      dimsH[2] = dims[2] - 1;
+      dimsH[3] = 0.;
+      ijkToRAS->MultiplyPoint(dimsH, rasCorner);
+
+      double origin[3];
+      int i;
+      for (i = 0; i < 3; i++)
+        {
+        origin[i] = -0.5 * rasCorner[i];
+        }
+      volumeNode->SetDisableModifiedEvent(1);
+      volumeNode->SetOrigin(origin);
+      volumeNode->SetDisableModifiedEvent(0);
+      volumeNode->InvokePendingModifiedEvent();
+
+      ijkToRAS->Delete();
+      }
+    }
+}

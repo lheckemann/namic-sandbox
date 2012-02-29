@@ -36,6 +36,8 @@ class vtkKWLabel;
 class vtkKWFileBrowserDialog;
 
 class vtkMRMLLinearTransformNode;
+class vtkMRMLScalarVolumeNode;
+class vtkSlicerNodeSelectorWidget;
 class vtkMatrix4x4;
 class vtkCollection;
 class vtkKWRadioButton;
@@ -128,12 +130,14 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeGUI : public vtkSlicerModuleGUI
   void BuildGUIForPivotCalibration();
   void BuildGUIForCapturingDataFromBetaProbe();
   void BuildGUIForDetection();
+  void BuildGUIForMapping();
 
   //----------------------------------------------------------------
   // Update routines
   //----------------------------------------------------------------
 
   void UpdateAll();
+  void CenterImage(vtkMRMLVolumeNode *volumeNode);
 
 
  protected:
@@ -185,10 +189,17 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeGUI : public vtkSlicerModuleGUI
   vtkKWEntry            *ThresholdValueEntry;
   vtkKWPushButton       *StartDetectionButton;
 
+  vtkKWPushButton *TestButton;
+
   int ThresholdTumorDetection;
 
   bool BackgroundAccepted;
   bool TumorAccepted;
+
+  vtkSlicerNodeSelectorWidget *DataSelector;
+  vtkMRMLScalarVolumeNode     *DataToMap;
+  vtkKWPushButton             *MappingButton;
+  vtkKWLabel                  *LabelStatus;
 
   //----------------------------------------------------------------
   // Logic Values
