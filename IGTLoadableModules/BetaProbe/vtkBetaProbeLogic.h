@@ -31,6 +31,7 @@
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLUDPServerNode.h"
 #include "itkMultiThreader.h"
+#include "vtkMRMLLinearTransformNode.h"
 
 class vtkIGTLConnector;
 class vtkMatrix3x3;
@@ -38,6 +39,7 @@ class vtkMatrix4x4;
 class vtkCollection;
 class vtkVector3d;
 class vtkMRMLUDPServerNode;
+class vtkMRMLLinearTransformNode;
 
 class VTK_BetaProbe_EXPORT vtkBetaProbeLogic : public vtkSlicerModuleLogic
 {
@@ -56,15 +58,40 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeLogic : public vtkSlicerModuleLogic
   vtkTypeRevisionMacro(vtkBetaProbeLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
 
+
+  // Detection
   vtkGetMacro(DetectionRunning, bool);
   vtkSetMacro(DetectionRunning, bool);
 
-  void PivotCalibration(vtkCollection* PivotingMatrix, double AveragePcal[3]);
-
-  void StartTumorDetection(int threshold, vtkMRMLUDPServerNode *CountsNode);
+  void StartTumorDetection(int threshold);
   void StopTumorDetection();
   static ITK_THREAD_RETURN_TYPE TumorDetection(void *pInfoStruct);
   void BeepFunction(int interval_ms);
+
+  // Mapping
+  vtkSetObjectMacro(UDPServerNode, vtkMRMLUDPServerNode);
+  vtkGetObjectMacro(UDPServerNode, vtkMRMLUDPServerNode);
+  vtkSetObjectMacro(PositionTransform, vtkMRMLLinearTransformNode);
+  vtkGetObjectMacro(PositionTransform, vtkMRMLLinearTransformNode);
+  vtkSetObjectMacro(DataToMap, vtkMRMLScalarVolumeNode);
+  vtkGetObjectMacro(DataToMap, vtkMRMLScalarVolumeNode);
+  vtkSetObjectMacro(ColorNode, vtkMRMLColorTableNode);
+  vtkGetObjectMacro(ColorNode, vtkMRMLColorTableNode);
+  vtkSetObjectMacro(MappedVolume, vtkMRMLScalarVolumeNode);
+  vtkGetObjectMacro(MappedVolume, vtkMRMLScalarVolumeNode);
+  vtkSetObjectMacro(RASToIJKMatrix, vtkMatrix4x4);
+  vtkGetObjectMacro(RASToIJKMatrix, vtkMatrix4x4);
+  vtkSetMacro(MappingRunning, bool);
+  vtkGetMacro(MappingRunning, bool);
+
+  void StartMapping();
+  void StopMapping();
+  static ITK_THREAD_RETURN_TYPE MappingFunction(void *pInfoStruct);
+
+  // Calibration
+  void PivotCalibration(vtkCollection* PivotingMatrix, double AveragePcal[3]);
+
+  vtkMatrix4x4* TmpMatrix;
 
  protected:
 
@@ -83,6 +110,17 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeLogic : public vtkSlicerModuleLogic
 
   vtkMRMLUDPServerNode *UDPServerNode;
 
+  // Mapping
+  vtkMRMLLinearTransformNode* PositionTransform;
+  vtkMRMLScalarVolumeNode* DataToMap;
+  vtkMRMLColorTableNode* ColorNode;
+  vtkMRMLScalarVolumeNode* MappedVolume;
+  vtkMatrix4x4* RASToIJKMatrix;
+  bool MappingRunning;
+
+  int MappingThreadID;
+
+  // Detection
   int ThreadID;
   //BTX
   itk::MultiThreader::Pointer m_Threader;
