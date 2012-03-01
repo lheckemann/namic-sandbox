@@ -12,7 +12,7 @@
 
 /* class to store and pass the PID++etc around mailbox, python etc */
 class ctfGainData : public mtsGenericObject {
-    CMN_DECLARE_SERVICES(CMN_NO_DYNAMIC_CREATION, CMN_LOG_LOD_RUN_ERROR);
+    CMN_DECLARE_SERVICES(CMN_DYNAMIC_CREATION, CMN_LOG_LOD_RUN_ERROR);
 public:
     int AxisNumber;
     double PGain;

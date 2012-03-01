@@ -5,6 +5,7 @@
 
 #include <cisstCommon/cmnXMLPath.h>
 #include <cisstCommon/cmnAssert.h>
+#include <cisstMultiTask/mtsInterfaceProvided.h>
 #include <limits.h>
 
 
@@ -14,7 +15,7 @@ CMN_IMPLEMENT_SERVICES(devDMM16AT);
 devDMM16AT::devDMM16AT(const std::string & deviceName, bool doInit):
     mtsDevice(deviceName)
 {
-    mtsProvidedInterface *provided = AddProvidedInterface("MainInterface");
+    mtsInterfaceProvided *provided = AddInterfaceProvided("MainInterface");
     if (provided) {
         provided->AddCommandRead(&devDMM16AT::GetInputAll, this,
                                  "GetInputAll", mtsDoubleVec(16));

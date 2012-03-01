@@ -7,6 +7,7 @@
 #include <sys/io.h>
 #include <cisstCommon/cmnXMLPath.h>
 #include <cisstInteractive/ireFramework.h>
+#include <cisstMultiTask/mtsInterfaceRequired.h>
 #include "ctfMainUIThread.h"
 #include "ireTask.h"
 #include "ctfControlBase.h"
@@ -60,7 +61,7 @@ ctfMainUIThread::ctfMainUIThread(const std::string & taskName, double period):
     CMN_LOG_CLASS_INIT_VERBOSE << "OpenTracker RobotControl initialized" << endl;
 
     // Add a required interface
-    mtsRequiredInterface *req = AddRequiredInterface("Controller");
+    mtsInterfaceRequired *req = AddInterfaceRequired("Controller");
     if (req) {
         req->AddFunction("GetRawPositions", GetRawPositions);
         req->AddFunction("GetRawVelocities", GetRawVelocities);

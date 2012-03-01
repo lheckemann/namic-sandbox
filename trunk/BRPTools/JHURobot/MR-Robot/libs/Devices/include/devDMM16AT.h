@@ -12,7 +12,7 @@
 #define _devDMM16AT_h
 
 #include <cisstConfig.h>
-#include <cisstMultiTask/mtsDevice.h>
+#include <cisstMultiTask/mtsComponent.h>
 #include <cisstMultiTask/mtsVector.h>
 
 //GSF
@@ -23,7 +23,7 @@
   \ingroup cisstDevices
   A specific device class for DMM16AT card.
  */
-class devDMM16AT: public mtsDevice {
+class devDMM16AT: public mtsComponent {
 
     CMN_DECLARE_SERVICES(CMN_NO_DYNAMIC_CREATION, CMN_LOG_LOD_RUN_ERROR);
 

@@ -1,3 +1,4 @@
+
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-    */
 /* ex: set filetype=cpp softtabstop=4 shiftwidth=4 tabstop=4 cindent expandtab: */
 
@@ -6,9 +7,10 @@
 //$ Id: $
 
 #include <cisstCommon.h>
+#include <cisstCommon/cmnXMLPath.h>
 #include <cisstOSAbstraction.h>
 #include <cisstMultiTask.h>
-#include <cisstDevices/devLoPoMoCo.h>
+#include <sawLoPoMoCo/mtsLoPoMoCo.h>
 #include <sys/io.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -17,6 +19,11 @@
 #include "ctfControlThread.h"
 #include "devDMM16AT.h"
 #include "devRMM1612.h"
+
+//#define REMOVEdevLoPoMoCo
+#if defined (REMOVEdevLoPoMoCo)
+#warning Removed devLoPoMoCo
+#endif
 
 using namespace std;
 
@@ -41,8 +48,8 @@ int checkfile(const std::string & fname)
     return 10;
 }
 
-//int main(int argc, char** argv)
-int main(int argc)
+int main(int argc, char** argv)
+//int main(int argc)
 {
     const double UIperiod = 20 * cmn_ms;
     const double ServoPeriod = 1 * cmn_ms;
@@ -51,17 +58,18 @@ int main(int argc)
     // Set the Levels of Detail for the log
     // ----------------------------------------------------------------------
     // Set the logger LoD to high
-    cmnLogger::SetLoD(CMN_LOG_LOD_VERY_VERBOSE);
+    cmnLogger::SetMask(CMN_LOG_ALLOW_ALL);
     // Add cout with only errors
-    cmnLogger::GetMultiplexer()->AddChannel(cout, CMN_LOG_LOD_VERY_VERBOSE);
+    cmnLogger::AddChannel(cout, CMN_LOG_ALLOW_ALL);
     // Change default log level to 10
     cmnLogger::HaltDefaultLog();
-    cmnLogger::ResumeDefaultLog(CMN_LOG_LOD_VERY_VERBOSE);
+    cmnLogger::ResumeDefaultLog(CMN_LOG_ALLOW_ALL);
     // Set LoD high for some classes
-    cmnClassRegister::SetLoD("cmnXMLPath", CMN_LOG_LOD_RUN_ERROR);
-    //cmnClassRegister::SetLoD("devLoPoMoCo", 10);
-    cmnClassRegister::SetLoD("ctfControlThread", CMN_LOG_LOD_VERY_VERBOSE);
-    cmnClassRegister::SetLoD("ctfMainUIThread", CMN_LOG_LOD_VERY_VERBOSE);
+    cmnLogger::SetMaskFunction(CMN_LOG_ALLOW_ALL);
+    cmnLogger::SetMaskClass("cmnXMLPath", CMN_LOG_ALLOW_ERRORS);
+    //cmnLogger::SetMaskClass("mtsLoPoMoCo", CMN_LOG_ALLOW_ALL);
+    cmnLogger::SetMaskClass("ctfControlThread", CMN_LOG_ALLOW_ALL);
+    cmnLogger::SetMaskClass("ctfMainUIThread", CMN_LOG_ALLOW_ALL);
 
     // ----------------------------------------------------------------------
     // Test if this programs (user) has the right permissions
@@ -158,17 +166,20 @@ int main(int argc)
     // PKAZ: note below that the XML config filenames are hard-coded. Probably, these should be moved
     //       to MRRobot_Main.xml
     
+#if !defined (REMOVEdevLoPoMoCo)
     CMN_LOG_INIT_VERBOSE << "MAIN: Creating LoPoMoCo device" << std::endl;
-    mtsDevice *loPoMoCo = new devLoPoMoCo("LoPoMoCo", 1); // Composite device was "MRRobot_Hardware"
+
+    mtsComponent *loPoMoCo = new mtsLoPoMoCo("LoPoMoCo", 1); // Composite device was "MRRobot_Hardware"
     loPoMoCo->Configure("./LoPoMoCoTestXMLConfig/LoPoMoCo_Test.xml");
+#endif
 
     CMN_LOG_INIT_VERBOSE << "MAIN: Creating ADC board (DMM16AT) device" << std::endl;
-    mtsDevice *ADC_board = new devDMM16AT("DMM16AT");
+    mtsComponent *ADC_board = new devDMM16AT("DMM16AT");
     ADC_board->Configure("./DMM16AT_TestXMLConfig/DMM16AT_Test.xml");
  
     CMN_LOG_INIT_VERBOSE << "MAIN: Creating DAC board (RMM1612) device" << std::endl;
     // Specify false in constructor so that dscud5 initialization isn't done twice
-    mtsDevice *DAC_board = new devRMM1612("RMM1612", false);
+    mtsComponent *DAC_board = new devRMM1612("RMM1612", false);
     DAC_board->Configure("./RMM1612_TestXMLConfig/RMM1612_Test.xml");
    
     CMN_LOG_INIT_VERBOSE << "controlThreadFLTK: All objects created and configured." << endl;
@@ -177,11 +188,13 @@ int main(int argc)
     //cmnObjectRegister::Register("servo", controlThread);
 
     // Add the tasks to the task manager
-    taskManager->AddTask(mainUIThread);
-    taskManager->AddTask(controlThread);
-    taskManager->AddDevice(loPoMoCo);
-    taskManager->AddDevice(ADC_board);
-    taskManager->AddDevice(DAC_board);
+    taskManager->AddComponent(mainUIThread);
+    taskManager->AddComponent(controlThread);
+#if !defined (REMOVEdevLoPoMoCo)
+    taskManager->AddComponent(loPoMoCo);
+#endif
+    taskManager->AddComponent(ADC_board);
+    taskManager->AddComponent(DAC_board);
     CMN_LOG_INIT_VERBOSE << "controlThreadFLTK: All tasks added to the task manager." << endl;
 
     // Connect Controller (servo) to the hardware (LoPoMoCo, ADC, DAC)
