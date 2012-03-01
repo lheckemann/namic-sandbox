@@ -2,11 +2,12 @@
 # $Id$
 #
 
-ADD_EXECUTABLE(lopomocotest main.cpp)
+add_executable(lopomocotest main.cpp)
 
-ADD_CUSTOM_COMMAND(TARGET lopomocotest POST_BUILD
+add_custom_command(TARGET lopomocotest POST_BUILD
     COMMAND ln ARGS -fns ${CMAKE_CURRENT_SOURCE_DIR}/XMLConfig/ LoPoMoCoTestXMLConfig
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-TARGET_LINK_LIBRARIES(lopomocotest dl util)
-CISST_REQUIRES("lopomocotest" "cisstCommon;cisstVector;cisstOSAbstraction;cisstInteractive;cisstMultiTask;cisstDevices")
+target_link_libraries(lopomocotest dl util ${sawLoPoMoCo_LIBRARIES})
+cisst_target_link_libraries(lopomocotest cisstCommon cisstCommonXML cisstVector cisstOSAbstraction
+                                         cisstInteractive cisstMultiTask)

@@ -7,7 +7,8 @@
 #include <sys/io.h>
 // include what is needed from cisst
 #include <cisstCommon.h>
-#include <cisstMultiTask/mtsDevice.h>
+#include <cisstMultiTask/mtsComponent.h>
+#include <cisstMultiTask/mtsInterfaceProvided.h>
 #include <cisstMultiTask/mtsTaskManager.h>
 #include <cisstInteractive/ireFramework.h>
 #include <cisstOSAbstraction/osaThread.h>
@@ -42,27 +43,29 @@ int main(int argc, char** argv) {
 
     // add cout for all log
     cmnLogger::GetMultiplexer()->AddChannel(std::cout, CMN_LOG_LOD_VERY_VERBOSE);
-    cmnClassRegister::SetLoD("cmnXMLPath", CMN_LOG_LOD_RUN_ERROR);
-    cmnClassRegister::SetLoD("devDMM16AT", CMN_LOG_LOD_VERY_VERBOSE);
+    cmnLogger::SetMaskClass("cmnXMLPath", CMN_LOG_ALLOW_ERRORS);
+    cmnLogger::SetMaskClass("devDMM16AT", CMN_LOG_ALLOW_ALL);
 
     //GSF
     CMN_LOG_INIT_VERBOSE << "*** Creating DMM16AT device ***" << std::endl;
     std::string DMMDev = "DMM16AT";
-    mtsDevice *device = new devDMM16AT(DMMDev.c_str());
+    mtsComponent *device = new devDMM16AT(DMMDev.c_str());
    
     std::string DMMConfigFile = "./DMM16AT_TestXMLConfig/DMM16AT_Test.xml";
     CMN_LOG_INIT_VERBOSE << "*** Configure using config file " << DMMConfigFile << " ***" << std::endl;
     device->Configure(DMMConfigFile.c_str());
 
     //GSF
-    mtsProvidedInterface* prov = device->GetProvidedInterface("MainInterface");
-    mtsCommandReadBase* GetInputAll = prov->GetCommandRead("GetInputAll");
+    mtsInterfaceProvided* prov = device->GetInterfaceProvided("MainInterface");
+    mtsCommandRead* GetInputAll = prov->GetCommandRead("GetInputAll");
 
-    CMN_LOG_INIT_VERBOSE << "*** Registering DMM16AT device ***" << std::endl;
+    CMN_LOG_INIT_VERBOSE << "*** Registering DMM16AT device1 ***" << std::endl;
     // It is easiest to add the device to the Task Manager and then access it
     // from Python via the Task Manager.
     mtsTaskManager * taskManager = mtsTaskManager::GetInstance();
-    taskManager->AddDevice(device);
+    CMN_LOG_INIT_VERBOSE << "*** Registering DMM16AT device2 ***" << std::endl;
+    taskManager->AddComponent(device);
+    CMN_LOG_INIT_VERBOSE << "*** Registering DMM16AT device3 ***" << std::endl;
     cmnObjectRegister::Register("TaskManager", taskManager);
 
 #if IREDEF
@@ -72,7 +75,7 @@ int main(int argc, char** argv) {
     IreThread.Create<IreLaunch, char *>(&IRE, &IreLaunch::Run,
               "from cisstMultiTaskPython import *;"
               "TaskManager = cmnObjectRegister.FindObject('TaskManager');"
-              "ADC = TaskManager.GetDevice('DMM16AT').GetProvidedInterface('MainInterface');"
+              "ADC = TaskManager.GetDevice('DMM16AT').GetInterfaceProvided('MainInterface');"
               "ADC.UpdateFromC();"
               "print 'call ADC.GetInputAll()'");
 

@@ -1,20 +1,27 @@
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-    */
 /* ex: set filetype=cpp softtabstop=4 shiftwidth=4 tabstop=4 cindent expandtab: */
 
+
+//#define REMOVEdevLoPoMoCo
+#if defined (REMOVEdevLoPoMoCo)
+#warning Removed devLoPoMoCo
+#endif
+
 #define IREDEF 1
 
 // system includes
 #include <sys/io.h>
 // include what is needed from cisst
 #include <cisstCommon.h>
-#include <cisstMultiTask/mtsDevice.h>
+#include <cisstMultiTask/mtsComponent.h>
 #include <cisstMultiTask/mtsTaskManager.h>
+#include <cisstMultiTask/mtsInterfaceProvided.h>
 #include <cisstInteractive/ireFramework.h>
 #include <cisstOSAbstraction/osaThread.h>
 #include <cisstOSAbstraction/osaSleep.h>
 
 //GSF
-#include <cisstDevices/devLoPoMoCo.h>
+#include <sawLoPoMoCo/mtsLoPoMoCo.h>
 
 class IreLaunch {
     public:
@@ -37,18 +44,19 @@ class IreLaunch {
 
 // main function
 int main(int argc, char** argv) {
+#if !defined (REMOVEdevLoPoMoCo)
     iopl(3);
 
     // add cout for all log
-    cmnLogger::GetMultiplexer()->AddChannel(std::cout, CMN_LOG_LOD_VERY_VERBOSE);
-    cmnClassRegister::SetLoD("cmnXMLPath", CMN_LOG_LOD_RUN_ERROR);
-    cmnClassRegister::SetLoD("devLoPoMoCo", CMN_LOG_LOD_VERY_VERBOSE);
+    cmnLogger::AddChannel(std::cout, CMN_LOG_ALLOW_ALL);
+    cmnLogger::SetMaskClass("cmnXMLPath", CMN_LOG_ALLOW_ERRORS);
+    cmnLogger::SetMaskClass("mtsLoPoMoCo", CMN_LOG_ALLOW_ALL);
 
     ///////////////  GSF ADDED FOR SINGLE BOARD
     //GSF
     CMN_LOG_INIT_VERBOSE << "*** Creating LoPoMoCo device ***" << std::endl;
     std::string LoPoMoCoDev = "LoPoMoCoTestBoard";
-    mtsDevice *device = new devLoPoMoCo(LoPoMoCoDev.c_str(), 1); // 1 LoPoMoCo board
+    mtsComponent *device = new mtsLoPoMoCo(LoPoMoCoDev.c_str(), 1); // 1 LoPoMoCo board
    
     std::string LoPoMoCoConfigFile = "./LoPoMoCoTestXMLConfig/LoPoMoCo_Test.xml";
     CMN_LOG_INIT_VERBOSE << "*** Configure using config file " << LoPoMoCoConfigFile << " ***" << std::endl;
@@ -56,16 +64,16 @@ int main(int argc, char** argv) {
 
     //////////////
     //LoPoMoCo
-    mtsProvidedInterface* prov = device->GetProvidedInterface("WriteInterface");
+    mtsInterfaceProvided* prov = device->GetInterfaceProvided("WriteInterface");
     if (prov) {
-        mtsCommandVoidBase* LatchEncoders = prov->GetCommandVoid("LatchEncoders");
-        mtsCommandVoidBase* StartMotorCurrentConv = prov->GetCommandVoid("StartMotorCurrentConv");
-        mtsCommandVoidBase* StartPotFeedbackConv = prov->GetCommandVoid("StartPotFeedbackConv");
+        mtsCommandVoid* LatchEncoders = prov->GetCommandVoid("LatchEncoders");
+        mtsCommandVoid* StartMotorCurrentConv = prov->GetCommandVoid("StartMotorCurrentConv");
+        mtsCommandVoid* StartPotFeedbackConv = prov->GetCommandVoid("StartPotFeedbackConv");
 
-        mtsCommandReadBase* GetPositions = prov->GetCommandRead("GetPositions");
-        mtsCommandReadBase* GetVelocities = prov->GetCommandRead("GetVelocities");
-        mtsCommandReadBase* GetMotorCurrents = prov->GetCommandRead("GetMotorCurrents");
-        mtsCommandReadBase* GetPotFeedbacks = prov->GetCommandRead("GetPotFeedbacks");
+        mtsCommandRead* GetPositions = prov->GetCommandRead("GetPositions");
+        mtsCommandRead* GetVelocities = prov->GetCommandRead("GetVelocities");
+        mtsCommandRead* GetMotorCurrents = prov->GetCommandRead("GetMotorCurrents");
+        mtsCommandRead* GetPotFeedbacks = prov->GetCommandRead("GetPotFeedbacks");
 
         mtsCommandWriteBase* SetMotorVoltages = prov->GetCommandWrite("SetMotorVoltages");
         mtsCommandWriteBase* SetCurrentLimits = prov->GetCommandWrite("SetCurrentLimits");
@@ -74,15 +82,15 @@ int main(int argc, char** argv) {
         mtsCommandWriteBase* ResetEncoders = prov->GetCommandWrite("ResetEncoders");
         mtsCommandWriteBase* SetPositions = prov->GetCommandWrite("SetPositions");
 
-        mtsCommandVoidBase* LoadMotorVoltages = prov->GetCommandVoid("LoadMotorVoltages");
-        mtsCommandVoidBase* LoadCurrentLimits = prov->GetCommandVoid("LoadCurrentLimits");
-        mtsCommandVoidBase* LoadMotorVoltagesCurrentLimits = prov->GetCommandVoid("LoadMotorVoltagesCurrentLimits");
+        mtsCommandVoid* LoadMotorVoltages = prov->GetCommandVoid("LoadMotorVoltages");
+        mtsCommandVoid* LoadCurrentLimits = prov->GetCommandVoid("LoadCurrentLimits");
+        mtsCommandVoid* LoadMotorVoltagesCurrentLimits = prov->GetCommandVoid("LoadMotorVoltagesCurrentLimits");
 
-        mtsCommandQualifiedReadBase* FrequencyToRPS = prov->GetCommandQualifiedRead("FrequencyToRPS");
-        mtsCommandQualifiedReadBase* ADCToMotorCurrents = prov->GetCommandQualifiedRead("ADCToMotorCurrents");
-        mtsCommandQualifiedReadBase* ADCToPotFeedbacks = prov->GetCommandQualifiedRead("ADCToPotFeedbacks");
-        mtsCommandQualifiedReadBase* MotorVoltagesToDAC = prov->GetCommandQualifiedRead("MotorVoltagesToDAC");
-        mtsCommandQualifiedReadBase* CurrentLimitsToDAC = prov->GetCommandQualifiedRead("CurrentLimitsToDAC");
+        mtsCommandQualifiedRead* FrequencyToRPS = prov->GetCommandQualifiedRead("FrequencyToRPS");
+        mtsCommandQualifiedRead* ADCToMotorCurrents = prov->GetCommandQualifiedRead("ADCToMotorCurrents");
+        mtsCommandQualifiedRead* ADCToPotFeedbacks = prov->GetCommandQualifiedRead("ADCToPotFeedbacks");
+        mtsCommandQualifiedRead* MotorVoltagesToDAC = prov->GetCommandQualifiedRead("MotorVoltagesToDAC");
+        mtsCommandQualifiedRead* CurrentLimitsToDAC = prov->GetCommandQualifiedRead("CurrentLimitsToDAC");
 
         CMN_LOG_INIT_DEBUG
             << *LatchEncoders << std::endl
@@ -113,7 +121,7 @@ int main(int argc, char** argv) {
     // It is easiest to add the device to the Task Manager and then access it
     // from Python via the Task Manager.
     mtsTaskManager * taskManager = mtsTaskManager::GetInstance();
-    taskManager->AddDevice(device);
+    taskManager->AddComponent(device);
     cmnObjectRegister::Register("TaskManager", taskManager);
 
 #if IREDEF
@@ -141,4 +149,5 @@ int main(int argc, char** argv) {
 
     CMN_LOG_INIT_VERBOSE << "*** Clean up and exit ***" << std::endl;
     return 0;
+#endif
 }

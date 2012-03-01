@@ -2,14 +2,15 @@
 # $Id$
 #
 
-ADD_EXECUTABLE(CompositeMRRobot_Test main.cpp)
+add_executable(CompositeMRRobot_Test main.cpp)
 
-ADD_CUSTOM_COMMAND(TARGET CompositeMRRobot_Test POST_BUILD
+add_custom_command(TARGET CompositeMRRobot_Test POST_BUILD
     COMMAND ln ARGS -fns ${CMAKE_CURRENT_SOURCE_DIR}/XMLConfig/ CompositeMRRobot_TestXMLConfig
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-TARGET_LINK_LIBRARIES(CompositeMRRobot_Test dl util)
-CISST_REQUIRES("CompositeMRRobot_Test" "cisstCommon;cisstVector;cisstOSAbstraction;cisstInteractive;cisstMultiTask;cisstDevices")
-TARGET_LINK_LIBRARIES(CompositeMRRobot_Test MRRobotDevices)
+target_link_libraries(CompositeMRRobot_Test dl util ${sawLoPoMoCo_LIBRARIES})
+cisst_target_link_libraries(CompositeMRRobot_Test cisstCommon cisstCommonXML cisstVector cisstOSAbstraction
+                                                  cisstInteractive cisstMultiTask)
+target_link_libraries(CompositeMRRobot_Test MRRobotDevices)
 
 

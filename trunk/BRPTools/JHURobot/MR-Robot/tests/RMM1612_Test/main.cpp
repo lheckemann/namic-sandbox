@@ -7,7 +7,8 @@
 #include <sys/io.h>
 // include what is needed from cisst
 #include <cisstCommon.h>
-#include <cisstMultiTask/mtsDevice.h>
+#include <cisstMultiTask/mtsComponent.h>
+#include <cisstMultiTask/mtsInterfaceProvided.h>
 #include <cisstMultiTask/mtsTaskManager.h>
 #include <cisstInteractive/ireFramework.h>
 #include <cisstOSAbstraction/osaThread.h>
@@ -42,21 +43,21 @@ int main(int argc, char** argv) {
 
 
     // add cout for all log
-    cmnLogger::GetMultiplexer()->AddChannel(std::cout, CMN_LOG_LOD_VERY_VERBOSE);
-    cmnClassRegister::SetLoD("cmnXMLPath", CMN_LOG_LOD_RUN_ERROR);
-    cmnClassRegister::SetLoD("devRMM1612", CMN_LOG_LOD_VERY_VERBOSE);
+    cmnLogger::AddChannel(std::cout, CMN_LOG_ALLOW_ALL);
+    cmnLogger::SetMaskClass("cmnXMLPath", CMN_LOG_ALLOW_ALL);
+    cmnLogger::SetMaskClass("devRMM1612", CMN_LOG_ALLOW_ALL);
 
     //GSF
     CMN_LOG_INIT_VERBOSE << "*** Creating RMM1612 device ***" << std::endl;
     std::string RMMDev = "RMM1612";
-    mtsDevice *device = new devRMM1612(RMMDev.c_str());
+    mtsComponent *device = new devRMM1612(RMMDev.c_str());
    
     std::string RMMConfigFile = "./RMM1612_TestXMLConfig/RMM1612_Test.xml";
     CMN_LOG_INIT_VERBOSE << "*** Configure using config file " << RMMConfigFile << " ***" << std::endl;
     device->Configure(RMMConfigFile.c_str());
     
     // GSF
-    mtsProvidedInterface* prov = device->GetProvidedInterface("MainInterface");
+    mtsInterfaceProvided* prov = device->GetInterfaceProvided("MainInterface");
     if (prov)
        mtsCommandWriteBase* SetOutputAll = prov->GetCommandWrite("SetOutputAll");
 
@@ -64,7 +65,7 @@ int main(int argc, char** argv) {
     // It is easiest to add the device to the Task Manager and then access it
     // from Python via the Task Manager.
     mtsTaskManager * taskManager = mtsTaskManager::GetInstance();
-    taskManager->AddDevice(device);
+    taskManager->AddComponent(device);
     cmnObjectRegister::Register("TaskManager", taskManager);
 
 #if IREDEF
@@ -74,7 +75,7 @@ int main(int argc, char** argv) {
     IreThread.Create<IreLaunch, char *>(&IRE, &IreLaunch::Run,
               "from cisstMultiTaskPython import *;"
               "TaskManager = cmnObjectRegister.FindObject('TaskManager');"
-              "DAC = TaskManager.GetDevice('RMM1612').GetProvidedInterface('MainInterface');"
+              "DAC = TaskManager.GetDevice('RMM1612').GetInterfaceProvided('MainInterface');"
               "DAC.UpdateFromC();"
               "parm = DAC.SetOutputAll.GetArgumentPrototype();"
               "print 'call DAC.SetOutputAll(parm)'");
