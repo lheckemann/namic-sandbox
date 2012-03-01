@@ -40,10 +40,14 @@ http://www.cisst.org/cisst/license.txt.
 #define CISST_DEPRECATED
 
 %header %{
-    #include "cisstCommon/cisstCommon.i.h"
-    #include "cisstVector/cisstVector.i.h"
-    #include "cisstMultiTask/cisstMultiTask.i.h"
+    #include "cisstCommon/cmnPython.h"
+    #include "cisstVector/vctPython.h"
+    #include "cisstMultiTask/mtsPython.h"
     #include "ctfControlThread.h"
+%}
+
+%init %{
+      import_array()   /* Initial function for NumPy */
 %}
 
 

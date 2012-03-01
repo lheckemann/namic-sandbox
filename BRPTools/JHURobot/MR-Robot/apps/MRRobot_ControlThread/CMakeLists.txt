@@ -1,5 +1,5 @@
 #
-# $Id$
+# $Id: $
 #
 
 
@@ -14,6 +14,8 @@ FIND_PACKAGE(FLTK REQUIRED)
 # add include paths
 INCLUDE_DIRECTORIES(${MRRobot_ControlThread_SOURCE_DIR}
                     ${FLTK_INCLUDE_DIR})
+
+SET(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
 ADD_LIBRARY(MRRobot_ControlThreadLib SHARED
         ctfControlThread.cpp
@@ -41,10 +43,11 @@ ADD_LIBRARY(MRRobot_ControlThreadLib SHARED
         igtl_header.c
         )
 
-CISST_REQUIRES("MRRobot_ControlThreadLib" "cisstCommon;cisstVector;cisstOSAbstraction;cisstInteractive;cisstMultiTask;cisstDevices")
+cisst_target_link_libraries(MRRobot_ControlThreadLib cisstCommon cisstCommonXML cisstVector 
+                            cisstOSAbstraction cisstInteractive cisstMultiTask)
 
 # add include paths
-INCLUDE_DIRECTORIES(${MRRobot_ControlThread_SOURCE_DIR}
+include_directories(${MRRobot_ControlThread_SOURCE_DIR}
                     ${FLTK_INCLUDE_DIR})
 
 # magic CMake command, generate .cxx and .h from .fl files
@@ -72,10 +75,12 @@ ADD_CUSTOM_COMMAND(TARGET MRRobot_ControlThread POST_BUILD
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # this program
-TARGET_LINK_LIBRARIES(MRRobot_ControlThread MRRobot_ControlThreadLib MRRobotDevices dscud5 ${FLTK_LIBRARIES} GL GLU dl util)
+TARGET_LINK_LIBRARIES(MRRobot_ControlThread MRRobot_ControlThreadLib MRRobotDevices dscud5 ${FLTK_LIBRARIES} GL GLU dl util
+                      ${sawLoPoMoCo_LIBRARIES})
 
 # link with the cisst libraries
-CISST_REQUIRES("MRRobot_ControlThread" "cisstCommon;cisstVector;cisstInteractive;cisstOSAbstraction;cisstMultiTask;cisstDevices")
+cisst_target_link_libraries(MRRobot_ControlThread cisstCommon cisstCommonXML cisstVector cisstInteractive
+                            cisstOSAbstraction cisstMultiTask)
 
 # Allow generated c++ code to find header files
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
@@ -83,32 +88,10 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 # To link with build libraries
 LINK_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 
-
-# Run swig for each interface file
-SET(MODULES MRRobot_ControlThreadLib)
-
-FOREACH(module ${MODULES})
-  SET(interface ${CMAKE_CURRENT_SOURCE_DIR}/${module}Python.i)
-  # We are using C++ code
-  SET_SOURCE_FILES_PROPERTIES(${interface} PROPERTIES CPLUSPLUS ON)
-  # Set the verbose flag
-  SET_SOURCE_FILES_PROPERTIES(${interface}
-                              PROPERTIES SWIG_FLAGS "-v;-modern;-fcompact;-fvirtual")
-  SWIG_ADD_MODULE(${module}Python python ${interface})
-  SWIG_LINK_LIBRARIES(${module}Python ${module})
-  # Copy the .py file generated to wherever the libraries are
-  ADD_CUSTOM_COMMAND(TARGET _${module}Python
-                     POST_BUILD
-                     COMMAND ${CMAKE_COMMAND}
-                     ARGS -E copy
-                             ${CMAKE_CURRENT_BINARY_DIR}/${module}Python.py
-                             ${LIBRARY_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/${module}Python.py)
-  # Build list of files to clean
-  SET(CISST_CLEAN_FILES ${CISST_CLEAN_FILES}
-                        ${LIBRARY_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/${module}Python.py
-                        ${LIBRARY_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/${module}Python.pyc
-                        ${module}Python_wrap.cxx)
-ENDFOREACH(module)
+cisst_add_swig_module(MODULE MRRobot_ControlThreadLib
+                      INTERFACE_FILENAME MRRobot_ControlThreadLibPython.i
+                      INTERFACE_DIRECTORY .
+                      MODULE_LINK_LIBRARIES MRRobot_ControlThreadLib)
 
 IF(CISST_HAS_LINUX_RTAI)
   TARGET_LINK_LIBRARIES(MRRobot_ControlThread ${RTAI_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})

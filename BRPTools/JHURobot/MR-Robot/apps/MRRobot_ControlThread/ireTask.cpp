@@ -52,7 +52,7 @@ void ireTask::Create(void *data) {
                              << "Creating thread for task " << Name << std::endl;
   // Lock the StateChange mutex and unlock it when the thread starts running (in RunInternal)
   //StateChange.Lock();
-  TaskState = INITIALIZING;
+  State = mtsComponentState::INITIALIZING;
   Thread.Create<ireTask, void*>(this, &ireTask::RunInternal, data);
 }
 

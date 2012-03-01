@@ -132,13 +132,13 @@ printf("axis4: %f\n", axis4);
     CommandDirectVolts.SetSize(CTF_CONTROL_MAX_AXIS);
 
     // Set up required interfaces (DAC, ADC, Servo)
-    mtsRequiredInterface *required = AddRequiredInterface("DAC");
+    mtsInterfaceRequired *required = AddInterfaceRequired("DAC");
     if (required)
         required->AddFunction("SetOutputAll", DAC.SetOutputAll);
-    required = AddRequiredInterface("ADC");
+    required = AddInterfaceRequired("ADC");
     if (required)
         required->AddFunction("GetInputAll", ADC.GetInputAll);
-    required = AddRequiredInterface("LoPoMoCo");
+    required = AddInterfaceRequired("LoPoMoCo");
     if (required) {
         required->AddFunction("LatchEncoders", LoPoMoCo.LatchEncoders);
         required->AddFunction("StartMotorCurrentConv", LoPoMoCo.StartMotorCurrentsConv);
@@ -171,7 +171,7 @@ printf("axis4: %f\n", axis4);
     }
 
     // Set up provided interface
-    mtsProvidedInterface *provided = AddProvidedInterface("MainInterface");
+    mtsInterfaceProvided *provided = AddInterfaceProvided("MainInterface");
     if (provided) {
         provided->AddCommandRead(&ctfControlThread::GetUsePotsToAdjust, this,
                                  "GetUsePotsToAdjust", UsePotsToAdjust);
@@ -205,7 +205,7 @@ printf("axis4: %f\n", axis4);
 
         // Qualified read
         provided->AddCommandQualifiedRead(&ctfControlThread::GetGain, this,
-                                 "GetGain", ctfGainData());
+                                          "GetGain", ctfGainData(), ctfGainData());
 
         // Write commands
         provided->AddCommandWrite(&ctfControlThread::ResetEncoders, this,
@@ -898,7 +898,7 @@ void ctfControlThread::Startup(void)
     overLimit.SetAll(false);
 
     // Sent these initial values to the device.
-    mtsCommandBase::ReturnType ret1, ret2, ret3, ret4;
+    mtsExecutionResult ret1, ret2, ret3, ret4;
 
     ret1 = LoPoMoCo.ConvertMotorVoltagesToDAC(outputVoltagesVolts, outputVoltagesDAC);
     //ret2 = LoPoMoCo.WriteMotorVoltages(outputVoltagesDAC);

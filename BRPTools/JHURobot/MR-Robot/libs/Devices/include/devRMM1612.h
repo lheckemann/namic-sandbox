@@ -12,7 +12,7 @@
 #define _devRMM1612_h
 
 #include <cisstConfig.h>
-#include <cisstMultiTask/mtsDevice.h>
+#include <cisstMultiTask/mtsComponent.h>
 #include <cisstMultiTask/mtsVector.h>
 
 //GSF
@@ -23,7 +23,7 @@
   \ingroup cisstDevices
   A specific device class for RMM1612 card.
  */
-class devRMM1612: public mtsDevice {
+class devRMM1612: public mtsComponent {
 
     CMN_DECLARE_SERVICES(CMN_NO_DYNAMIC_CREATION, CMN_LOG_LOD_RUN_ERROR);
 

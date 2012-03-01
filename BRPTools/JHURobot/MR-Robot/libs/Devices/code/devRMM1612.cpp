@@ -4,7 +4,7 @@
 #include "devRMM1612.h"
 
 #include <cisstCommon/cmnXMLPath.h>
-#include <cisstMultiTask/mtsTask.h>   // for mtsDevice::AddCommandWrite
+#include <cisstMultiTask/mtsInterfaceProvided.h>
 #include <limits.h>
 
 
@@ -14,7 +14,7 @@ CMN_IMPLEMENT_SERVICES(devRMM1612);
 devRMM1612::devRMM1612(const std::string & deviceName, bool doInit):
     mtsDevice(deviceName)
 {
-    mtsProvidedInterface *provided = AddProvidedInterface("MainInterface");
+    mtsInterfaceProvided *provided = AddInterfaceProvided("MainInterface");
     if (provided) {
         provided->AddCommandWrite(&devRMM1612::SetOutputAll, this,
                                  "SetOutputAll", mtsDoubleVec(16));
