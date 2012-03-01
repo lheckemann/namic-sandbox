@@ -23,8 +23,6 @@
 
 #include <string>
 
-static inline void vtkSleep(double duration);
-
 vtkCxxRevisionMacro(vtkUDPServerLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkUDPServerLogic);
 
@@ -129,18 +127,13 @@ void vtkUDPServerLogic::ImportData()
   // Receive a message from the client
   this->clientlen = sizeof(this->echoclient);
   this->received = 0;
-
   if ((this->received = recvfrom(this->sock, this->buffer, this->BUFFSIZE, 0, (struct sockaddr *) &echoclient, &clientlen)) < 0)
     {
-      //      std::cerr << "Failed to receive message" << std::endl;
+    //std::cerr << "Failed to receive message" << std::endl;
     }
   this->buffer[received]= '\0';
 
-
   this->ImportedData = this->buffer;
-
-  // Sleep required to give time to update GUI and MRML Node
-  vtkSleep(0.1);
 }
 
 //-------------------------------------------------------------------------------
@@ -192,26 +185,11 @@ int vtkUDPServerLogic::Stop()
     this->ServerStopFlag = true;
     this->Thread->TerminateThread(this->ThreadID);
     this->ThreadID = -1;
-    memset(this->buffer,0,sizeof(this->buffer));
+    memset(buffer,0,sizeof(buffer));
     return 1;
     }
   else
     {
     return 0;
     }
-}
-
-//---------------------------------------------------------------------------
-static inline void vtkSleep(double duration)
-{
-  duration = duration; // avoid warnings
-  // sleep according to OS preference
-#if defined(WIN32)
-  Sleep((int)(1000*duration));
-#else
-  struct timespec sleep_time, dummy;
-  sleep_time.tv_sec = (int) duration;
-  sleep_time.tv_nsec = (int)(1000000000*(duration-sleep_time.tv_sec));
-  nanosleep(&sleep_time,&dummy);
-#endif
 }

@@ -10,7 +10,7 @@
   Date:      $Date: 2009/10/15 17:12:29 $
   Version:   $Revision: 1.3 $
 
-=========================================================================auto=*/
+  =========================================================================auto=*/
 
 #ifndef VTKMRMLUDPSERVERNODE_H_
 #define VTKMRMLUDPSERVERNODE_H_
@@ -21,11 +21,14 @@
 #include "vtkMRMLStorageNode.h"
 #include "vtkObject.h"
 #include "vtkMatrix4x4.h"
+#include "vtkMutexLock.h"
+
+class vtkMutexLock;
 
 class VTK_UDPServer_EXPORT vtkMRMLUDPServerNode : public vtkMRMLNode
 {
 
-public:
+ public:
   //----------------------------------------------------------------
   // Standard methods for MRML nodes
   //----------------------------------------------------------------
@@ -47,11 +50,11 @@ public:
 
   // Get unique node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() {return "UDPServerNode";};
-  
+
   //Disactivate the possibility to apply non-linear transforms
   virtual bool CanApplyNonLinearTransforms() {return 0;};
 
-protected:
+ protected:
   //----------------------------------------------------------------
   // Constructor and destructor
   //----------------------------------------------------------------
@@ -60,14 +63,16 @@ protected:
   vtkMRMLUDPServerNode(const vtkMRMLUDPServerNode&);
   void operator=(const vtkMRMLUDPServerNode&);
 
-public:
+ public:
   //----------------------------------------------------------------
   // Gamma Probe Variables
   //----------------------------------------------------------------
 
   // Smoothed Counts, beta counts and gamma counts
-  vtkSetMacro(SmoothedCounts, int);
-  vtkGetMacro(SmoothedCounts, int);
+  //vtkSetMacro(SmoothedCounts, int);
+  //vtkGetMacro(SmoothedCounts, int);
+  int GetSmoothedCounts();
+  void SetSmoothedCounts(int sc);
 
   vtkSetMacro(BetaCounts, int);
   vtkGetMacro(BetaCounts, int);
@@ -77,7 +82,7 @@ public:
 
   vtkSetMacro(TInterval, int);
   vtkGetMacro(TInterval, int);
-  
+
   //Date and Time
   //BTX
   void SetDate(std::string date){ this->strDate = date; };
@@ -86,7 +91,7 @@ public:
   std::string GetTime(){ return this->strTime; };
   //ETX
 
-private:
+ private:
   //BTX
   int SmoothedCounts;
   int BetaCounts;
@@ -96,6 +101,7 @@ private:
   int TInterval;
   //ETX
 
+  vtkMutexLock* SmoothedLock;
 };
 
 #endif /* VTKMRMLHYBRIDNAVNODETOOL_H_ */
