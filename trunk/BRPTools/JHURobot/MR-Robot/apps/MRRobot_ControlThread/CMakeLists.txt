@@ -8,6 +8,8 @@ PROJECT(MRRobot_ControlThread)
 
 OPTION(MRRobot_OldGUI "Use old GUI." OFF)
 
+OPTION(MRRobot_HAS_PROXY "Use pipe interface to proxy." ON)
+
 # use CMake provided script to locate FLTK
 FIND_PACKAGE(FLTK REQUIRED)
 
@@ -17,7 +19,7 @@ INCLUDE_DIRECTORIES(${MRRobot_ControlThread_SOURCE_DIR}
 
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
-ADD_LIBRARY(MRRobot_ControlThreadLib SHARED
+set (SOURCE_FILES 
         ctfControlThread.cpp
         ireTask.cpp
         ctfControlThread.h
@@ -26,22 +28,28 @@ ADD_LIBRARY(MRRobot_ControlThreadLib SHARED
         BRPtprControl.h
         BRPtprOpenTracker.cpp
         BRPtprOpenTracker.h
-        BRPtprRingBuffer.cpp
-        BRPtprRingBuffer.h
         BRPtprMessages.h
         ctfControl.cpp
         ctfControl.h
         ctfGainData.h
         BRPtprMessages.cpp
         ctfControlBase.h
-        ctfControlBase.cpp
+        ctfControlBase.cpp)
+
+if (MRRobot_HAS_PROXY)
+    add_definitions(-DMRRobot_HAS_PROXY)
+    set (SOURCE_FILES ${SOURCE_FILES}
+        BRPtprRingBuffer.cpp
+        BRPtprRingBuffer.h
         BRPTPRInterface.h
         igtl_util.c
         crc32.c
         BRPplatform.cpp
         igtlMessage.cpp
-        igtl_header.c
-        )
+        igtl_header.c)
+endif (MRRobot_HAS_PROXY)
+
+ADD_LIBRARY(MRRobot_ControlThreadLib SHARED ${SOURCE_FILES})
 
 cisst_target_link_libraries(MRRobot_ControlThreadLib cisstCommon cisstCommonXML cisstVector 
                             cisstOSAbstraction cisstInteractive cisstMultiTask)

@@ -49,12 +49,15 @@ ctfControlThread::ctfControlThread(const std::string & taskName, double period):
 //axis4 = 0.0;
 FILE *rFile;
 rFile = fopen("axisPositions.txt", "r");
-fscanf(rFile, "%f %f %f %f", &axis1, &axis2, &axis3, &axis4);
-printf("Now the position of each axis will be set to the values from axisPositions.txt\n");
-printf("axis1: %f\n", axis1);
-printf("axis2: %f\n", axis2);
-printf("axis3: %f\n", axis3);
-printf("axis4: %f\n", axis4);
+if (rFile) {
+    if (fscanf(rFile, "%f %f %f %f", &axis1, &axis2, &axis3, &axis4) == 4) {
+        printf("Now the position of each axis will be set to the values from axisPositions.txt\n");
+        printf("axis1: %f\n", axis1);
+        printf("axis2: %f\n", axis2);
+        printf("axis3: %f\n", axis3);
+        printf("axis4: %f\n", axis4);
+    }
+}
 
     // This was not set in the old code, so it probably defaulted
     // to false.

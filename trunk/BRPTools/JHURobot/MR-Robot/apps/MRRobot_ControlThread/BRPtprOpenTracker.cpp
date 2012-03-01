@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include "BRPtprMessages.h"
 #include "BRPtprControl.h"
+
+#ifdef MRRobot_HAS_PROXY
 #include "BRPplatform.h" // pthread, pipe
 
 
@@ -480,3 +482,30 @@ void BRPtprOpenTracker::SetUpHeader(igtlMessage & msg,BRPtprMessageCommandType c
         std::memcpy(msg.get_header()->name, BRPCommands[cmd].c_str(), BRPCommands[cmd].length() );
         std::memcpy(msg.get_header()->device_name, "JHUbrpTP", 9 ); // max: 20 (IGTL_HEADER_DEVSIZE)
 }
+#else
+
+// Stub functions for running system without proxy
+
+BRPtprOpenTracker::BRPtprOpenTracker(void) {}
+BRPtprOpenTracker::~BRPtprOpenTracker(void) {}
+ 
+bool BRPtprOpenTracker::Initialize(void) { return true; }
+
+bool BRPtprOpenTracker::IsThereNewCommand(void) { return false; }
+
+bool BRPtprOpenTracker::ProcessNextCommand(BRPtprControl *robotControl)
+{ return true; }
+ 
+bool BRPtprOpenTracker::SendZFrameToRobot(BRPtprControl *robotControl, igtlMessage & buff)
+{ return true; }
+
+bool BRPtprOpenTracker::SendTargetToRobot(BRPtprControl *robotControl, igtlMessage & buff)
+{ return true; }
+
+bool BRPtprOpenTracker::QueueActualCoordinates(float pos[3],float orientation[4], float depth_vector[3])
+{ return true; }
+
+bool BRPtprOpenTracker::QueueActualRobotStatus(BRPTPRstatusType RobotStatus, char *message)
+{ return true; }
+
+#endif
