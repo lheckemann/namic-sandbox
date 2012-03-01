@@ -702,7 +702,6 @@ int vtkUDPServerGUI::UpdateDataFrame(char* data)
     {
     return 1;
     }
-
   //std::cerr << buffdata << std::endl;
   std::istringstream iss (data,std::istringstream::in);
 

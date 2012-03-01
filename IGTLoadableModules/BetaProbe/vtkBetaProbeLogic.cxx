@@ -357,7 +357,7 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
                                                                                                 j,
                                                                                                 k,
                                                                                                 0,
-                                                                                                200);
+                                                                                                SmoothedCounts);
                 }
               }
             }
