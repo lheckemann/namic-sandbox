@@ -44,6 +44,7 @@ http://www.cisst.org/cisst/license.txt.
     #include "cisstVector/vctPython.h"
     #include "cisstMultiTask/mtsPython.h"
     #include "ctfControlThread.h"
+    #include "ctfGainData.h"
 %}
 
 %init %{
@@ -56,3 +57,4 @@ http://www.cisst.org/cisst/license.txt.
 %import "cisstMultiTask/cisstMultiTask.i"
 
 %include "ctfControlThread.h"
+%include "ctfGainData.h"

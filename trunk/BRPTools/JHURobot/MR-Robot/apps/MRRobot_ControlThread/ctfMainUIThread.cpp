@@ -226,6 +226,7 @@ void ctfMainUIThread::Run(void) {
                                 "import ireLogger;"
                                 "ireLogger.ClearTextOutput();"
                                 "from cisstMultiTaskPython import *;"
+                                "from MRRobot_ControlThreadLibPython import *;"
                                 "TaskManager = cmnObjectRegister.FindObject('TaskManager');"
                                 "TaskManager.UpdateFromC();"
                                 "TaskManager.BSVO.UpdateFromC();"
