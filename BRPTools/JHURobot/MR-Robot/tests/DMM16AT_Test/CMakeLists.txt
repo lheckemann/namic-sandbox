@@ -2,12 +2,13 @@
 # $Id: $
 #
 
-ADD_EXECUTABLE(DMM16AT_Test main.cpp)
+add_executable(DMM16AT_Test main.cpp)
 
-ADD_CUSTOM_COMMAND(TARGET DMM16AT_Test POST_BUILD
+add_custom_command(TARGET DMM16AT_Test POST_BUILD
     COMMAND ln ARGS -fns ${CMAKE_CURRENT_SOURCE_DIR}/XMLConfig/ DMM16AT_TestXMLConfig
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-TARGET_LINK_LIBRARIES(DMM16AT_Test dl util)
-CISST_REQUIRES("DMM16AT_Test" "cisstCommon;cisstVector;cisstOSAbstraction;cisstInteractive;cisstMultiTask;cisstDevices")
-TARGET_LINK_LIBRARIES(DMM16AT_Test MRRobotDevices)
+target_link_libraries(DMM16AT_Test dl util)
+cisst_target_link_libraries(DMM16AT_Test cisstCommon cisstCommonXML cisstVector cisstOSAbstraction
+                                         cisstInteractive cisstMultiTask)
+target_link_libraries(DMM16AT_Test MRRobotDevices)
