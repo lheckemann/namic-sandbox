@@ -9,12 +9,18 @@
 #ifndef _BRPtprOpenTracker_h_
 #define _BRPtprOpenTracker_h_
 
-//#include "BRPtprRingBuffer.h"
+#ifdef MRRobot_HAS_PROXY
+#include "BRPtprRingBuffer.h"
+#endif
 #include "BRPtprMessages.h"
+#ifdef MRRobot_HAS_PROXY
 #include "igtlMessage.h"
 #include "igtl_header.h"
 
 #include "BRPplatform.h" // pthread, pipe
+#else
+class igtlMessage;
+#endif
 
 
 class BRPtprControl;
@@ -47,6 +53,7 @@ public:
 
 protected:
 
+#ifdef MRRobot_HAS_PROXY
  bool QueueResponse(igtlMessage buff);
  void SetUpHeader(igtlMessage & msg,BRPtprMessageCommandType cmd);
 
@@ -66,6 +73,9 @@ protected:
  bool ToNavigatorPipe_Connected;
 
  igtlMessage_queue FromNavigatorCommands;
+#else
+ BRPTPRstatusType tempStat;
+#endif
 
  /*
  static void *CommandThread(void *object);
