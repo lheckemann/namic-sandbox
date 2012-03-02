@@ -81,6 +81,8 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeLogic : public vtkSlicerModuleLogic
   vtkGetObjectMacro(MappedVolume, vtkMRMLScalarVolumeNode);
   vtkSetObjectMacro(RASToIJKMatrix, vtkMatrix4x4);
   vtkGetObjectMacro(RASToIJKMatrix, vtkMatrix4x4);
+  vtkSetObjectMacro(IJKToRASDirectionMatrix, vtkMatrix4x4);
+  vtkGetObjectMacro(IJKToRASDirectionMatrix, vtkMatrix4x4);
   vtkSetMacro(MappingRunning, bool);
   vtkGetMacro(MappingRunning, bool);
 
@@ -116,6 +118,7 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeLogic : public vtkSlicerModuleLogic
   vtkMRMLColorTableNode* ColorNode;
   vtkMRMLScalarVolumeNode* MappedVolume;
   vtkMatrix4x4* RASToIJKMatrix;
+  vtkMatrix4x4* IJKToRASDirectionMatrix;
   bool MappingRunning;
 
   int MappingThreadID;

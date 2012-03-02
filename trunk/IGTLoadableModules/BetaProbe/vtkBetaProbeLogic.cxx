@@ -39,21 +39,21 @@ vtkBetaProbeLogic::vtkBetaProbeLogic()
   this->DataCallbackCommand->SetCallback(vtkBetaProbeLogic::DataCallback);
 
 
-  this->UDPServerNode = NULL;
-  this->m_Threader = itk::MultiThreader::New();
-  this->ThreadID = -1;
-  this->DetectionRunning = false;
+  this->UDPServerNode      = NULL;
+  this->m_Threader         = itk::MultiThreader::New();
+  this->ThreadID           = -1;
+  this->DetectionRunning   = false;
   this->ThresholdDetection = -1;
 
-  this->PositionTransform = NULL;
-  this->DataToMap = NULL;
-  this->ColorNode = NULL;
-  this->MappedVolume = NULL;
-  this->RASToIJKMatrix = NULL;
-  this->MappingRunning = false;
-  this->MappingThreadID = -1;
-
-  this->TmpMatrix = NULL;
+  this->PositionTransform       = NULL;
+  this->DataToMap               = NULL;
+  this->ColorNode               = NULL;
+  this->MappedVolume            = NULL;
+  this->RASToIJKMatrix          = NULL;
+  this->IJKToRASDirectionMatrix = NULL;
+  this->MappingRunning          = false;
+  this->MappingThreadID         = -1;
+  this->TmpMatrix               = NULL;//vtkMatrix4x4::New();
 }
 
 
@@ -71,6 +71,12 @@ vtkBetaProbeLogic::~vtkBetaProbeLogic()
     this->StopMapping();
     }
 
+/*
+  if(this->TmpMatrix)
+  {
+  this->TmpMatrix->Delete();
+  }
+*/
 }
 
 
@@ -194,16 +200,6 @@ void vtkBetaProbeLogic::PivotCalibration(vtkCollection* PivotingMatrix, double A
     vtkMatrix3x3* calculated_matrix = vtkMatrix3x3::New();
     MatrixDifference->Invert(MatrixDifference, calculated_matrix);
 
-    /*
-      std::cout
-      << calculated_matrix->GetElement(0,0) << " " << calculated_matrix->GetElement(0,1) << " " << calculated_matrix->GetElement(0,2) << " "<< calculated_matrix->GetElement(0,3) << std::endl
-      << calculated_matrix->GetElement(1,0) << " " << calculated_matrix->GetElement(1,1) << " " << calculated_matrix->GetElement(1,2) << " "<< calculated_matrix->GetElement(1,3) << std::endl
-      << calculated_matrix->GetElement(2,0) << " " << calculated_matrix->GetElement(2,1) << " " << calculated_matrix->GetElement(2,2) << " "<< calculated_matrix->GetElement(2,3) << std::endl
-      << calculated_matrix->GetElement(3,0) << " " << calculated_matrix->GetElement(3,1) << " " << calculated_matrix->GetElement(3,2) << " "<< calculated_matrix->GetElement(3,3) << std::endl
-      << std::endl;
-    */
-
-
     // Multiply Rotation and Translation ( [R1-R2]^-1 * [P1-P2] )
     MatrixDifference->MultiplyPoint(TranslationDifference, pcal);
 
@@ -226,14 +222,6 @@ void vtkBetaProbeLogic::PivotCalibration(vtkCollection* PivotingMatrix, double A
   AveragePcal[0] = pcal[0] / ElementsUsed;
   AveragePcal[1] = pcal[1] / ElementsUsed;
   AveragePcal[2] = pcal[2] / ElementsUsed;
-
-  std::cout << "AvPcal: " << AveragePcal[0] << ":" << AveragePcal[1] << ":" << AveragePcal[2] << std::endl;
-
-  /*
-    out->SetElement(0,3,pcal[0]);
-    out->SetElement(1,3,pcal[1]);
-    out->SetElement(2,3,pcal
-  */
 
   rotation1->Delete();
   rotation2->Delete();
@@ -315,6 +303,7 @@ void vtkBetaProbeLogic::StopMapping()
     this->SetColorNode(NULL);
     this->SetMappedVolume(NULL);
     this->SetRASToIJKMatrix(NULL);
+    this->SetIJKToRASDirectionMatrix(NULL);
     if(!this->DetectionRunning)
       {
       this->SetUDPServerNode(NULL);
@@ -326,38 +315,54 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
 {
   vtkBetaProbeLogic *BetaProbeLogic = (vtkBetaProbeLogic*) (((itk::MultiThreader::ThreadInfoStruct *)(pInfoStruct))->UserData);
 
-  int *extent = BetaProbeLogic->GetMappedVolume()->GetImageData()->GetExtent();
+  vtkImageData* imageData = BetaProbeLogic->GetMappedVolume()->GetImageData();
+  vtkMRMLUDPServerNode* UDPS = BetaProbeLogic->GetUDPServerNode();
+  vtkMatrix4x4* MatrixToWorld = vtkMatrix4x4::New();
 
-  while(BetaProbeLogic->GetMappingRunning())
+  if(BetaProbeLogic->GetRASToIJKMatrix() &&
+     BetaProbeLogic->GetIJKToRASDirectionMatrix() &&
+     imageData &&
+     UDPS &&
+     MatrixToWorld)
     {
-    BetaProbeLogic->TmpMatrix = BetaProbeLogic->GetPositionTransform()->GetMatrixTransformToParent();
-    double PointRAS[4] = {BetaProbeLogic->TmpMatrix->GetElement(0,3),
-                          BetaProbeLogic->TmpMatrix->GetElement(1,3),
-                          BetaProbeLogic->TmpMatrix->GetElement(2,3),
-                          1};
-    double PointIJK[4];
+    int *extent = imageData->GetExtent();
 
-    BetaProbeLogic->GetRASToIJKMatrix()->MultiplyPoint(PointRAS, PointIJK);
-
-    double SmoothedCounts = BetaProbeLogic->GetUDPServerNode()->GetSmoothedCounts();
-
-    if((PointIJK[0] > extent[0]+1) && (PointIJK[0] < extent[1]-1))
+    while(BetaProbeLogic->GetMappingRunning())
       {
-      if((PointIJK[1] > extent[2]+1) && (PointIJK[1] < extent[3]-1))
+      MatrixToWorld->Identity();
+      BetaProbeLogic->GetPositionTransform()->GetMatrixTransformToWorld(MatrixToWorld);
+
+      double PointDirection[4] = {MatrixToWorld->GetElement(0,3),
+                                  MatrixToWorld->GetElement(1,3),
+                                  MatrixToWorld->GetElement(2,3),
+                                  1};
+
+      double PointRAS[4];
+      BetaProbeLogic->GetIJKToRASDirectionMatrix()->MultiplyPoint(PointDirection, PointRAS);
+
+      double PointIJK[4];
+      BetaProbeLogic->GetRASToIJKMatrix()->MultiplyPoint(PointRAS, PointIJK);
+
+      double SmoothedCounts = UDPS->GetSmoothedCounts();
+
+      if((PointIJK[0] > extent[0]+1) && (PointIJK[0] < extent[1]-1))
         {
-        if((PointIJK[2] > extent[4]+1) && (PointIJK[2] < extent[5]-1))
+        if((PointIJK[1] > extent[2]+1) && (PointIJK[1] < extent[3]-1))
           {
-          for(double i=PointIJK[0]-2.5;i<PointIJK[0]+2.5;i+=0.5)
+          if((PointIJK[2] > extent[4]+1) && (PointIJK[2] < extent[5]-1))
             {
-            for(double j=PointIJK[1]-2.5;j<PointIJK[1]+2.5;j+=0.5)
+            for(double i=PointIJK[0]-2.5;i<PointIJK[0]+2.5;i+=0.5)
               {
-              for(double k=PointIJK[2]-2.5;k<PointIJK[2]+2.5;k+=0.5)
+              for(double j=PointIJK[1]-2.5;j<PointIJK[1]+2.5;j+=0.5)
                 {
-                BetaProbeLogic->GetMappedVolume()->GetImageData()->SetScalarComponentFromDouble(i,
-                                                                                                j,
-                                                                                                k,
-                                                                                                0,
-                                                                                                SmoothedCounts);
+                for(double k=PointIJK[2]-2.5;k<PointIJK[2]+2.5;k+=0.5)
+                  {
+                  BetaProbeLogic->GetMappedVolume()->GetImageData()->SetScalarComponentFromDouble(i,
+                                                                                                  j,
+                                                                                                  k,
+                                                                                                  0,
+                                                                                                  SmoothedCounts);
+                  }
                 }
               }
             }
@@ -365,5 +370,7 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
         }
       }
     }
+
+  MatrixToWorld->Delete();
   return EXIT_SUCCESS;
 }

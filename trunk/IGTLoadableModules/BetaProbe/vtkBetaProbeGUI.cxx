@@ -45,6 +45,7 @@
 #include "vtkCornerAnnotation.h"
 
 #include "vtkCollection.h"
+#include "vtkLookupTable.h"
 
 #include <sstream>
 
@@ -946,12 +947,22 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
       if(!this->GetLogic()->GetMappingRunning())
         {
         // Color
+        vtkLookupTable* LUT = vtkLookupTable::New();
+        LUT->SetScaleToLinear();
+        LUT->SetRampToSCurve();
+        LUT->SetHueRange(1.0, 0.0);
+        LUT->SetSaturationRange(1.0, 1.0);
+        LUT->SetValueRange(0.0, 1.0);
+        LUT->SetAlphaRange(1.0,1.0);
+        LUT->SetTableRange(0.0, 511.0);
+        LUT->SetNumberOfTableValues((vtkIdType)512);
+        LUT->Build();
+        LUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
+
+
         vtkMRMLColorTableNode *colorNode = vtkMRMLColorTableNode::New();
-        vtkMRMLColorTableNode *iRainbowNode = vtkMRMLColorTableNode::New();
-        iRainbowNode->SetTypeToFullRainbow();
         colorNode->SetTypeToUser();
-        colorNode->SetLookupTable(iRainbowNode->GetLookupTable());
-        colorNode->SetColor(0,"background", 0.0, 0.0, 0.0);
+        colorNode->SetLookupTable(LUT);
         colorNode->SetHideFromEditors(0);
         this->GetMRMLScene()->AddNode(colorNode);
         this->GetLogic()->SetColorNode(colorNode);
@@ -960,6 +971,9 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         std::stringstream volumemapname;
         volumemapname << this->DataToMap->GetName() << "-map";
 
+
+        //TODO: Add imData as class member and add button to create new map
+        //      So, would be able to stop and restart mapping on same map
         vtkImageData* imData = vtkImageData::New();
         imData->SetDimensions(this->DataToMap->GetImageData()->GetDimensions());
         imData->SetExtent(this->DataToMap->GetImageData()->GetExtent());
@@ -1005,6 +1019,11 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         this->DataToMap->GetRASToIJKMatrix(RASToIJKMatrix);
         this->GetLogic()->SetRASToIJKMatrix(RASToIJKMatrix);
 
+        // Data Direction (LPS, RAS, ...)
+        vtkMatrix4x4* IJKToRASDirectionMatrix = vtkMatrix4x4::New();
+        this->DataToMap->GetIJKToRASDirectionMatrix(IJKToRASDirectionMatrix);
+        this->GetLogic()->SetIJKToRASDirectionMatrix(IJKToRASDirectionMatrix);
+
         // Set Logic
         this->GetLogic()->SetPositionTransform(this->Probe_Position);
         this->GetLogic()->SetUDPServerNode(this->Counts);
@@ -1016,9 +1035,10 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         // Delete
         imData->Delete();
         RASToIJKMatrix->Delete();
+        IJKToRASDirectionMatrix->Delete();
         mappedVolume->Delete();
         displayMappedVolume->Delete();
-        iRainbowNode->Delete();
+        LUT->Delete();
         colorNode->Delete();
         }
       else
@@ -1151,10 +1171,13 @@ void vtkBetaProbeGUI::ProcessTimerEvents()
 
     if(this->GetLogic()->GetMappingRunning())
       {
-      this->GetLogic()->GetMappedVolume()->Modified();
-      this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->Render();
-      this->GetApplicationGUI()->GetMainSliceGUI("Green")->GetSliceViewer()->Render();
-      this->GetApplicationGUI()->GetMainSliceGUI("Yellow")->GetSliceViewer()->Render();
+      if(this->GetLogic()->GetMappedVolume())
+        {
+        this->GetLogic()->GetMappedVolume()->Modified();
+        this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->Render();
+        this->GetApplicationGUI()->GetMainSliceGUI("Green")->GetSliceViewer()->Render();
+        this->GetApplicationGUI()->GetMainSliceGUI("Yellow")->GetSliceViewer()->Render();
+        }
       }
 
 
