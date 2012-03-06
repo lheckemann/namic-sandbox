@@ -313,12 +313,15 @@ void vtkBetaProbeLogic::StopMapping()
 
 ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
 {
+  // Get context
   vtkBetaProbeLogic *BetaProbeLogic = (vtkBetaProbeLogic*) (((itk::MultiThreader::ThreadInfoStruct *)(pInfoStruct))->UserData);
 
+  // Get nodes before loop to increase speed of loop (mapping)
   vtkImageData* imageData = BetaProbeLogic->GetMappedVolume()->GetImageData();
   vtkMRMLUDPServerNode* UDPS = BetaProbeLogic->GetUDPServerNode();
   vtkMatrix4x4* MatrixToWorld = vtkMatrix4x4::New();
 
+  // Check everything is ready
   if(BetaProbeLogic->GetRASToIJKMatrix() &&
      BetaProbeLogic->GetIJKToRASDirectionMatrix() &&
      imageData &&
@@ -327,11 +330,14 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
     {
     int *extent = imageData->GetExtent();
 
+    // Mapping Loop
     while(BetaProbeLogic->GetMappingRunning())
       {
+      // Get probe position (with registration if any)
       MatrixToWorld->Identity();
       BetaProbeLogic->GetPositionTransform()->GetMatrixTransformToWorld(MatrixToWorld);
 
+      // Convert from image directions (LPS, RAS, etc... to IJK)
       double PointDirection[4] = {MatrixToWorld->GetElement(0,3),
                                   MatrixToWorld->GetElement(1,3),
                                   MatrixToWorld->GetElement(2,3),
@@ -343,8 +349,13 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
       double PointIJK[4];
       BetaProbeLogic->GetRASToIJKMatrix()->MultiplyPoint(PointRAS, PointIJK);
 
+      // Get Smoothed counts from UDPServerNode
       double SmoothedCounts = UDPS->GetSmoothedCounts();
 
+      // Check probe position in IJK coordinate system is in the image
+      // Then map 5mm around position (Betaprobe thickness) (needed for depth ?)
+      // Check current value is higher than value already mapped (if any)
+      // Map value
       if((PointIJK[0] > extent[0]+1) && (PointIJK[0] < extent[1]-1))
         {
         if((PointIJK[1] > extent[2]+1) && (PointIJK[1] < extent[3]-1))
@@ -357,11 +368,14 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
                 {
                 for(double k=PointIJK[2]-2.5;k<PointIJK[2]+2.5;k+=0.5)
                   {
-                  BetaProbeLogic->GetMappedVolume()->GetImageData()->SetScalarComponentFromDouble(i,
-                                                                                                  j,
-                                                                                                  k,
-                                                                                                  0,
-                                                                                                  SmoothedCounts);
+                  if(SmoothedCounts >= imageData->GetScalarComponentAsDouble(i,j,k,0))
+                    {
+                    imageData->SetScalarComponentFromDouble(i,
+                                                            j,
+                                                            k,
+                                                            0,
+                                                            SmoothedCounts);
+                    }
                   }
                 }
               }

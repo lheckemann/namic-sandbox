@@ -948,22 +948,31 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         {
         // Color
         vtkLookupTable* LUT = vtkLookupTable::New();
-        LUT->SetScaleToLinear();
-        LUT->SetRampToSCurve();
-        LUT->SetHueRange(1.0, 0.0);
-        LUT->SetSaturationRange(1.0, 1.0);
         LUT->SetValueRange(0.0, 1.0);
+        LUT->SetSaturationRange(1.0, 1.0);
+        LUT->SetHueRange(1.0, 0.0);
         LUT->SetAlphaRange(1.0,1.0);
-        LUT->SetTableRange(0.0, 511.0);
-        LUT->SetNumberOfTableValues((vtkIdType)512);
+
+        if(this->BackgroundAccepted && this->TumorAccepted)
+          {
+          LUT->SetTableRange(this->BackgroundValueEntry->GetValueAsInt(), this->TumorValueEntry->GetValueAsInt());
+          LUT->SetNumberOfTableValues(this->TumorValueEntry->GetValueAsInt() - this->BackgroundValueEntry->GetValueAsInt() + 1);
+          }
+        else
+          {
+          LUT->SetTableRange(0, 255);
+          LUT->SetNumberOfTableValues(256);
+          }
         LUT->Build();
         LUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
 
 
         vtkMRMLColorTableNode *colorNode = vtkMRMLColorTableNode::New();
         colorNode->SetTypeToUser();
+        colorNode->SetNumberOfColors(512);
         colorNode->SetLookupTable(LUT);
         colorNode->SetHideFromEditors(0);
+        colorNode->Modified();
         this->GetMRMLScene()->AddNode(colorNode);
         this->GetLogic()->SetColorNode(colorNode);
 
@@ -996,7 +1005,6 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         vtkMRMLScalarVolumeDisplayNode *displayMappedVolume = vtkMRMLScalarVolumeDisplayNode::New();
         displayMappedVolume->SetInterpolate(0);
         this->GetMRMLScene()->AddNode(displayMappedVolume);
-
         displayMappedVolume->SetAndObserveColorNodeID(colorNode->GetID());
         displayMappedVolume->Modified();
 
