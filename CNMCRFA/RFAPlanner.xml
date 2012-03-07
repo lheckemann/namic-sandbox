@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>
+  Filtering
+  </category>
+  <title>
+  RFA Planning Module
+  </title>
+  <description>
+RFA planning module: - TBD: Applies a voting operation in order to fill-in cavities. This can be used for smoothing contours and for filling holes in binary images. This technique is used frequently when segmenting complete organs that may have ducts or vasculature that may not have been included in the initial segmentation, e.g. lungs, kidneys, liver.
+  </description>
+  <version>0.1.0.$Revision: 18864 $(alpha)</version>
+  <documentation-url>http://wiki.slicer.org/slicerWiki/index.php/Documentation/4.0/Modules/VotingBinaryHoleFillingImageFilter</documentation-url>
+  <license></license>
+  <contributor>Hongliang Ren, Ziv, Kevin</contributor>
+  <acknowledgements>TBD: This command module was derived from Insight/Examples/Filtering/VotingBinaryHoleFillingImageFilter (copyright) Insight Software Consortium</acknowledgements>
+
+  <parameters>
+    <label>RFA Planning Parameters</label>
+    <description>Parameters for Segmentation Modification</description>
+
+    <float-vector>
+      <name>probeDiameters</name>
+      <longflag>--probeDiameters</longflag>
+      <description>The Probe Diameters (mm) (modeled as an ellipsoid) </description>
+      <label>Probe Information (mm)</label>
+      <default>30.0,30.0,30.0</default>
+    </float-vector>
+
+    <float-vector>
+      <name>gridSpacing</name>
+      <longflag>--gridSpacing</longflag>
+      <description>The Sample spacing (mm) </description>
+      <label>Grid spacing (mm)</label>
+      <default>5.0,5.0,5.0</default>
+    </float-vector>
+
+    <double>
+      <name>angularResolution</name>
+      <longflag>--angularResolution</longflag>
+      <description>Angular resolution (radians)      </description>
+      <label>Angular Resolution (radians)</label>
+      <default>0.1</default>
+    </double>
+    
+    <integer>
+      <name>maxAblations</name>
+      <longflag>--maxAblations</longflag>
+      <description> Max number of ablations      </description>
+      <label>Maximal # of ablations: </label>
+      <default>8</default>
+    </integer>
+
+    <integer>
+      <name>maxRays</name>
+      <longflag>--maxRays</longflag>
+      <description> Max number of trajectories      </description>
+      <label>Maximal # of trajectories: </label>
+      <default>4</default>
+    </integer>
+
+    <integer>
+      <name>maxPunctures</name>
+      <longflag>--maxPunctures</longflag>
+      <description> Max number of punctures      </description>
+      <label>Maximal # of punctures: </label>
+      <default>8</default>
+    </integer>
+    
+    <double>
+      <name>ablationMargin</name>
+      <longflag>--ablationMargin</longflag>
+      <description> Tumor ablation margin (mm)      </description>
+      <label>Tumor margin (mm)</label>
+      <default>10.0</default>
+    </double>
+        
+    <double>
+      <name>noPassMargin</name>
+      <longflag>--noPassMargin</longflag>
+      <description> No pass margin (mm)      </description>
+      <label>No-pass margin (mm)</label>
+      <default>5.0</default>
+    </double>
+ 
+   </parameters>
+   
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <image type="label">
+      <name>inputFileName</name>
+      <label>Input Volume</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Input volume to be filtered</description>
+    </image>
+
+    <string>
+      <name>tpsFileName</name>
+      <label>Output File Name</label>
+      <channel>output</channel>
+      <description>Output TPS file name : "TPS.txt"</description>
+      <default>TPS.txt</default>
+    </string>
+  </parameters>
+
+</executable>
