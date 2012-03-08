@@ -947,30 +947,48 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
       if(!this->GetLogic()->GetMappingRunning())
         {
         // Color
-        vtkLookupTable* LUT = vtkLookupTable::New();
-        LUT->SetValueRange(0.0, 1.0);
-        LUT->SetSaturationRange(1.0, 1.0);
-        LUT->SetHueRange(1.0, 0.0);
-        LUT->SetAlphaRange(1.0,1.0);
+        /*
+          vtkLookupTable* LUT = vtkLookupTable::New();
+          LUT->Allocate(512,512);
+          LUT->SetValueRange(0.0, 1.0);
+          LUT->SetSaturationRange(1.0, 1.0);
+          LUT->SetHueRange(1.0, 0.0);
+          LUT->SetAlphaRange(1.0,1.0);
 
-        if(this->BackgroundAccepted && this->TumorAccepted)
-          {
-          LUT->SetTableRange(this->BackgroundValueEntry->GetValueAsInt(), this->TumorValueEntry->GetValueAsInt());
-          LUT->SetNumberOfTableValues(this->TumorValueEntry->GetValueAsInt() - this->BackgroundValueEntry->GetValueAsInt() + 1);
-          }
-        else
-          {
-          LUT->SetTableRange(0, 255);
-          LUT->SetNumberOfTableValues(256);
-          }
-        LUT->Build();
-        LUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-
+//        if(this->BackgroundAccepted && this->TumorAccepted)
+//          {
+//          LUT->SetTableRange(this->BackgroundValueEntry->GetValueAsInt(), this->TumorValueEntry->GetValueAsInt());
+//          LUT->SetNumberOfTableValues(this->TumorValueEntry->GetValueAsInt() - this->BackgroundValueEntry->GetValueAsInt() + 1);
+//          }
+//        else
+//          {
+LUT->SetTableRange(0, 511);
+LUT->SetNumberOfColors(512);
+//          }
+LUT->Build();
+LUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
+        */
 
         vtkMRMLColorTableNode *colorNode = vtkMRMLColorTableNode::New();
         colorNode->SetTypeToUser();
-        colorNode->SetNumberOfColors(512);
-        colorNode->SetLookupTable(LUT);
+        colorNode->SetNumberOfColors(256);
+        colorNode->GetLookupTable()->SetNumberOfColors(256);
+        //colorNode->GetLookupTable()->SetNumberOfTableValues(512);
+        colorNode->GetLookupTable()->SetHueRange(1, 0);
+        colorNode->GetLookupTable()->SetSaturationRange(1, 1);
+        colorNode->GetLookupTable()->SetValueRange(0, 1);
+        colorNode->GetLookupTable()->SetAlphaRange(0.5, 0.5);
+
+        if(this->BackgroundAccepted && this->TumorAccepted)
+          {
+          colorNode->GetLookupTable()->SetTableRange(this->BackgroundValueEntry->GetValueAsInt(), this->TumorValueEntry->GetValueAsInt());
+          }
+        else
+          {
+          colorNode->GetLookupTable()->SetTableRange(0, 512);
+          }
+        colorNode->GetLookupTable()->Build();
+        //colornode->SetLookupTable(LUT);
         colorNode->SetHideFromEditors(0);
         colorNode->Modified();
         this->GetMRMLScene()->AddNode(colorNode);
@@ -1004,9 +1022,9 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
 
         vtkMRMLScalarVolumeDisplayNode *displayMappedVolume = vtkMRMLScalarVolumeDisplayNode::New();
         displayMappedVolume->SetInterpolate(0);
-        this->GetMRMLScene()->AddNode(displayMappedVolume);
         displayMappedVolume->SetAndObserveColorNodeID(colorNode->GetID());
         displayMappedVolume->Modified();
+        this->GetMRMLScene()->AddNode(displayMappedVolume);
 
         vtkMRMLScalarVolumeNode *mappedVolume = vtkMRMLScalarVolumeNode::New();
         mappedVolume->SetAndObserveImageData(imData);
@@ -1016,7 +1034,6 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         mappedVolume->SetOrigin(this->DataToMap->GetOrigin());
         mappedVolume->SetSpacing(this->DataToMap->GetSpacing());
         mappedVolume->Modified();
-
         this->GetMRMLScene()->AddNode(mappedVolume);
         this->CenterImage(mappedVolume);
 
@@ -1046,7 +1063,7 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         IJKToRASDirectionMatrix->Delete();
         mappedVolume->Delete();
         displayMappedVolume->Delete();
-        LUT->Delete();
+        //LUT->Delete();
         colorNode->Delete();
         }
       else
