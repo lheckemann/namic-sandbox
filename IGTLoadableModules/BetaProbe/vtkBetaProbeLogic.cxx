@@ -40,6 +40,7 @@ vtkBetaProbeLogic::vtkBetaProbeLogic()
 
 
   this->UDPServerNode      = NULL;
+  this->CountsType         = -1;
   this->m_Threader         = itk::MultiThreader::New();
   this->ThreadID           = -1;
   this->DetectionRunning   = false;
@@ -53,7 +54,7 @@ vtkBetaProbeLogic::vtkBetaProbeLogic()
   this->IJKToRASDirectionMatrix = NULL;
   this->MappingRunning          = false;
   this->MappingThreadID         = -1;
-  this->TmpMatrix               = NULL;//vtkMatrix4x4::New();
+  this->TmpMatrix               = NULL;
 }
 
 
@@ -297,6 +298,7 @@ void vtkBetaProbeLogic::StopMapping()
     {
     this->SetMappingRunning(false);
     this->m_Threader->TerminateThread(this->MappingThreadID);
+    this->CountsType = -1;
     this->MappingThreadID = -1;
     this->SetPositionTransform(NULL);
     this->SetDataToMap(NULL);
@@ -349,8 +351,16 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
       double PointIJK[4];
       BetaProbeLogic->GetRASToIJKMatrix()->MultiplyPoint(PointRAS, PointIJK);
 
-      // Get Smoothed counts from UDPServerNode
-      double SmoothedCounts = UDPS->GetSmoothedCounts();
+      // Get Smoothed counts from UDPServerNode (or Gamma for small amout of activity)
+      //double SmoothedCounts = UDPS->GetSmoothedCounts();
+      double Counts = 0;
+      switch(BetaProbeLogic->GetCountsType()){
+      case 1:  Counts = UDPS->GetBetaCounts(); break; 
+      case 2:  Counts = UDPS->GetGammaCounts(); break;
+      case 3:  Counts = UDPS->GetSmoothedCounts(); break;
+      default: Counts = UDPS->GetSmoothedCounts(); break;
+      }
+
 
       // Check probe position in IJK coordinate system is in the image
       // Then map 5mm around position (Betaprobe thickness) (needed for depth ?)
@@ -368,14 +378,14 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
                 {
                 for(double k=PointIJK[2]-2.5;k<PointIJK[2]+2.5;k+=0.5)
                   {
-                  //if(SmoothedCounts >= imageData->GetScalarComponentAsDouble(i,j,k,0))
-                  //{
+                  if(Counts >= imageData->GetScalarComponentAsDouble(i,j,k,0))
+                  {
                   imageData->SetScalarComponentFromDouble(i,
                                                           j,
                                                           k,
                                                           0,
-                                                          SmoothedCounts);
-                  // }
+                                                          Counts);
+                   }
                   }
                 }
               }

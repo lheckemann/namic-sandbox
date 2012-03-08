@@ -83,6 +83,8 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeLogic : public vtkSlicerModuleLogic
   vtkGetObjectMacro(RASToIJKMatrix, vtkMatrix4x4);
   vtkSetObjectMacro(IJKToRASDirectionMatrix, vtkMatrix4x4);
   vtkGetObjectMacro(IJKToRASDirectionMatrix, vtkMatrix4x4);
+  vtkSetMacro(CountsType, int);
+  vtkGetMacro(CountsType, int);
   vtkSetMacro(MappingRunning, bool);
   vtkGetMacro(MappingRunning, bool);
 
@@ -112,6 +114,8 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeLogic : public vtkSlicerModuleLogic
 
   vtkMRMLUDPServerNode *UDPServerNode;
 
+  int CountsType;
+
   // Mapping
   vtkMRMLLinearTransformNode* PositionTransform;
   vtkMRMLScalarVolumeNode* DataToMap;
@@ -122,7 +126,6 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeLogic : public vtkSlicerModuleLogic
   bool MappingRunning;
 
   int MappingThreadID;
-
   // Detection
   int ThreadID;
   //BTX
