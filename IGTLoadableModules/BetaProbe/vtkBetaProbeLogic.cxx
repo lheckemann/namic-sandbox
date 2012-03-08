@@ -368,14 +368,14 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
                 {
                 for(double k=PointIJK[2]-2.5;k<PointIJK[2]+2.5;k+=0.5)
                   {
-                  if(SmoothedCounts >= imageData->GetScalarComponentAsDouble(i,j,k,0))
-                    {
-                    imageData->SetScalarComponentFromDouble(i,
-                                                            j,
-                                                            k,
-                                                            0,
-                                                            SmoothedCounts);
-                    }
+                  //if(SmoothedCounts >= imageData->GetScalarComponentAsDouble(i,j,k,0))
+                  //{
+                  imageData->SetScalarComponentFromDouble(i,
+                                                          j,
+                                                          k,
+                                                          0,
+                                                          SmoothedCounts);
+                  // }
                   }
                 }
               }
