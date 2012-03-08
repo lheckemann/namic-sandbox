@@ -12,6 +12,8 @@
 
   ==========================================================================*/
 
+#include <sstream>
+
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
 
@@ -21,9 +23,10 @@
 #include "vtkSlicerSliceControllerWidget.h"
 #include "vtkSlicerSliceGUI.h"
 #include "vtkSlicerSlicesGUI.h"
-
 #include "vtkSlicerColor.h"
 #include "vtkSlicerTheme.h"
+#include "vtkSlicerNodeSelectorWidget.h"
+#include "vtkCornerAnnotation.h"
 
 #include "vtkKWTkUtilities.h"
 #include "vtkKWWidget.h"
@@ -34,20 +37,17 @@
 #include "vtkKWEvent.h"
 #include "vtkKWEntry.h"
 #include "vtkKWRadioButton.h"
-
 #include "vtkKWPushButton.h"
-#include "vtkSlicerNodeSelectorWidget.h"
 
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMatrix4x4.h"
-
-#include "vtkCornerAnnotation.h"
-
 #include "vtkCollection.h"
 #include "vtkLookupTable.h"
 
-#include <sstream>
+// Type of counts to use
+// 1: Beta, 2: Gamma, 3: Smoothed
+#define COUNTS_TYPE 2
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkBetaProbeGUI );
@@ -947,32 +947,10 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
       if(!this->GetLogic()->GetMappingRunning())
         {
         // Color
-        /*
-          vtkLookupTable* LUT = vtkLookupTable::New();
-          LUT->Allocate(512,512);
-          LUT->SetValueRange(0.0, 1.0);
-          LUT->SetSaturationRange(1.0, 1.0);
-          LUT->SetHueRange(1.0, 0.0);
-          LUT->SetAlphaRange(1.0,1.0);
-
-//        if(this->BackgroundAccepted && this->TumorAccepted)
-//          {
-//          LUT->SetTableRange(this->BackgroundValueEntry->GetValueAsInt(), this->TumorValueEntry->GetValueAsInt());
-//          LUT->SetNumberOfTableValues(this->TumorValueEntry->GetValueAsInt() - this->BackgroundValueEntry->GetValueAsInt() + 1);
-//          }
-//        else
-//          {
-LUT->SetTableRange(0, 511);
-LUT->SetNumberOfColors(512);
-//          }
-LUT->Build();
-LUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-        */
-
         vtkMRMLColorTableNode *colorNode = vtkMRMLColorTableNode::New();
         colorNode->SetTypeToUser();
         colorNode->SetNumberOfColors(256);
-        colorNode->GetLookupTable()->SetNumberOfColors(256);
+        //colorNode->GetLookupTable()->SetNumberOfColors(512);
         //colorNode->GetLookupTable()->SetNumberOfTableValues(512);
         colorNode->GetLookupTable()->SetHueRange(1, 0);
         colorNode->GetLookupTable()->SetSaturationRange(1, 1);
@@ -981,14 +959,17 @@ LUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
 
         if(this->BackgroundAccepted && this->TumorAccepted)
           {
-          colorNode->GetLookupTable()->SetTableRange(this->BackgroundValueEntry->GetValueAsInt(), this->TumorValueEntry->GetValueAsInt());
+          int backgroundValue = this->BackgroundValueEntry->GetValueAsInt();
+          int tumorValue = this->TumorValueEntry->GetValueAsInt();
+          colorNode->GetLookupTable()->SetTableRange(backgroundValue, tumorValue);
           }
         else
           {
           colorNode->GetLookupTable()->SetTableRange(0, 512);
           }
+
         colorNode->GetLookupTable()->Build();
-        //colornode->SetLookupTable(LUT);
+        colorNode->GetLookupTable()->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
         colorNode->SetHideFromEditors(0);
         colorNode->Modified();
         this->GetMRMLScene()->AddNode(colorNode);
@@ -1017,7 +998,6 @@ LUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
           memset(dest, 0x00, dim[0]*dim[1]*dim[2]*sizeof(double));
           imData->Update();
           }
-
         imData->Modified();
 
         vtkMRMLScalarVolumeDisplayNode *displayMappedVolume = vtkMRMLScalarVolumeDisplayNode::New();
@@ -1053,6 +1033,7 @@ LUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
         this->GetLogic()->SetPositionTransform(this->Probe_Position);
         this->GetLogic()->SetUDPServerNode(this->Counts);
         this->GetLogic()->SetDataToMap(this->DataToMap);
+        this->GetLogic()->SetCountsType(COUNTS_TYPE);
 
         // Start Mapping Thread
         this->GetLogic()->StartMapping();
@@ -1175,16 +1156,26 @@ void vtkBetaProbeGUI::ProcessTimerEvents()
         // Background selected, update value of entry
         if(this->BackgroundValueEntry)
           {
-          this->BackgroundValueEntry->SetValueAsInt(this->Counts->GetSmoothedCounts());
+          switch(COUNTS_TYPE){
+          case 1:  this->BackgroundValueEntry->SetValueAsInt(this->Counts->GetBetaCounts()); break;
+          case 2:  this->BackgroundValueEntry->SetValueAsInt(this->Counts->GetGammaCounts()); break;
+          case 3:  this->BackgroundValueEntry->SetValueAsInt(this->Counts->GetSmoothedCounts()); break;
+          default: this->BackgroundValueEntry->SetValueAsInt(this->Counts->GetSmoothedCounts()); break;
+          }
           }
         }
-      else if(this->RadioTumorButton->GetSelectedState() && !this->TumorAccepted)
+      }
+    else if(this->RadioTumorButton->GetSelectedState() && !this->TumorAccepted)
+      {
+      // Tumor selected, update value of entry
+      if(this->TumorValueEntry)
         {
-        // Tumor selected, update value of entry
-        if(this->TumorValueEntry)
-          {
-          this->TumorValueEntry->SetValueAsInt(this->Counts->GetSmoothedCounts());
-          }
+        switch(COUNTS_TYPE){
+        case 1:  this->TumorValueEntry->SetValueAsInt(this->Counts->GetBetaCounts()); break;
+        case 2:  this->TumorValueEntry->SetValueAsInt(this->Counts->GetGammaCounts()); break;
+        case 3:  this->TumorValueEntry->SetValueAsInt(this->Counts->GetSmoothedCounts()); break;
+        default: this->TumorValueEntry->SetValueAsInt(this->Counts->GetSmoothedCounts()); break;
+        }
         }
       }
 
