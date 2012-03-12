@@ -41,6 +41,7 @@
 
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
+#include "vtkMRMLLabelMapVolumeDisplayNode.h"
 #include "vtkMatrix4x4.h"
 #include "vtkCollection.h"
 #include "vtkLookupTable.h"
@@ -949,7 +950,7 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         // Color
         vtkMRMLColorTableNode *colorNode = vtkMRMLColorTableNode::New();
         colorNode->SetTypeToUser();
-        colorNode->SetNumberOfColors(256);
+        colorNode->SetNumberOfColors(512);
         //colorNode->GetLookupTable()->SetNumberOfColors(512);
         //colorNode->GetLookupTable()->SetNumberOfTableValues(512);
         colorNode->GetLookupTable()->SetHueRange(1, 0);
@@ -1000,8 +1001,8 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
           }
         imData->Modified();
 
-        vtkMRMLScalarVolumeDisplayNode *displayMappedVolume = vtkMRMLScalarVolumeDisplayNode::New();
-        displayMappedVolume->SetInterpolate(0);
+        vtkMRMLLabelMapVolumeDisplayNode *displayMappedVolume = vtkMRMLLabelMapVolumeDisplayNode::New();
+        displayMappedVolume->SetImageData(imData);
         displayMappedVolume->SetAndObserveColorNodeID(colorNode->GetID());
         displayMappedVolume->Modified();
         this->GetMRMLScene()->AddNode(displayMappedVolume);
