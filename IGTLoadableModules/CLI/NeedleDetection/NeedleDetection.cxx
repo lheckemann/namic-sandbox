@@ -7,8 +7,9 @@
 #endif
 
 //#include "itkSmoothingRecursiveGaussianImageFilter.h"
-#include "itkHessian3DToVesselnessMeasureImageFilter.h"
 #include "itkHessianRecursiveGaussianImageFilter.h"
+//#include "itkHessian3DToVesselnessMeasureImageFilter.h"
+#include "itkHessian3DToNeedleImageFilter.h"
 #include "itkSymmetricSecondRankTensor.h"
 
 #include "itkImage.h"
@@ -46,15 +47,18 @@ template<class T> int DoIt( int argc, char * argv[], T )
 
   typedef   itk::HessianRecursiveGaussianImageFilter< 
                             InputImageType >              HessianFilterType;
-  typedef   itk::Hessian3DToVesselnessMeasureImageFilter<
-              OutputPixelType > VesselnessMeasureFilterType;
+  //typedef   itk::Hessian3DToVesselnessMeasureImageFilter<
+  //            OutputPixelType > VesselnessMeasureFilterType;
+
+  typedef   itk::Hessian3DToNeedleImageFilter< OutputPixelType > NeedleFilterType;
 
   typedef   itk::ImageFileReader< FileInputImageType >  ReaderType;
   typedef   itk::ImageFileWriter< OutputImageType > WriterType;
   
   HessianFilterType::Pointer hessianFilter = HessianFilterType::New();
-  VesselnessMeasureFilterType::Pointer vesselnessFilter = 
-                            VesselnessMeasureFilterType::New();
+  //VesselnessMeasureFilterType::Pointer vesselnessFilter = 
+  //                          VesselnessMeasureFilterType::New();
+  NeedleFilterType::Pointer needleFilter = NeedleFilterType::New();
 
   typename ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( inputVolume.c_str() );
@@ -69,12 +73,16 @@ template<class T> int DoIt( int argc, char * argv[], T )
   hessianFilter->SetInput( multiply->GetOutput() );
   hessianFilter->SetSigma( static_cast< double >(sigma) );
 
-  vesselnessFilter->SetInput( hessianFilter->GetOutput() );
-  writer->SetInput( vesselnessFilter->GetOutput() );
+  //vesselnessFilter->SetInput( hessianFilter->GetOutput() );
+  needleFilter->SetInput( hessianFilter->GetOutput() );
+  //writer->SetInput( vesselnessFilter->GetOutput() );
+  writer->SetInput( needleFilter->GetOutput() );
   writer->SetUseCompression(1);
 
-  vesselnessFilter->SetAlpha1( static_cast< double >(alpha1));
-  vesselnessFilter->SetAlpha2( static_cast< double >(alpha2));
+  //vesselnessFilter->SetAlpha1( static_cast< double >(alpha1));
+  //vesselnessFilter->SetAlpha2( static_cast< double >(alpha2));
+  needleFilter->SetAlpha1( static_cast< double >(alpha1));
+  needleFilter->SetAlpha2( static_cast< double >(alpha2));
 
   writer->Update();
 
