@@ -298,6 +298,7 @@ void vtkBetaProbeLogic::StopMapping()
     {
     this->SetMappingRunning(false);
     this->m_Threader->TerminateThread(this->MappingThreadID);
+    this->m_Threader = NULL;
     this->CountsType = -1;
     this->MappingThreadID = -1;
     this->SetPositionTransform(NULL);
