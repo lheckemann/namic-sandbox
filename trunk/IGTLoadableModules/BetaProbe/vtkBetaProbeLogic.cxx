@@ -355,7 +355,7 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
       //double SmoothedCounts = UDPS->GetSmoothedCounts();
       double Counts = 0;
       switch(BetaProbeLogic->GetCountsType()){
-      case 1:  Counts = UDPS->GetBetaCounts(); break; 
+      case 1:  Counts = UDPS->GetBetaCounts(); break;
       case 2:  Counts = UDPS->GetGammaCounts(); break;
       case 3:  Counts = UDPS->GetSmoothedCounts(); break;
       default: Counts = UDPS->GetSmoothedCounts(); break;
@@ -379,13 +379,13 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
                 for(double k=PointIJK[2]-2.5;k<PointIJK[2]+2.5;k+=0.5)
                   {
                   if(Counts >= imageData->GetScalarComponentAsDouble(i,j,k,0))
-                  {
-                  imageData->SetScalarComponentFromDouble(i,
-                                                          j,
-                                                          k,
-                                                          0,
-                                                          Counts);
-                   }
+                    {
+                    imageData->SetScalarComponentFromDouble(i,
+                                                            j,
+                                                            k,
+                                                            0,
+                                                            Counts);
+                    }
                   }
                 }
               }
