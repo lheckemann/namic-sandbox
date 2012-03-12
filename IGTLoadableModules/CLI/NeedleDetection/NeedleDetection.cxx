@@ -16,7 +16,7 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkCastImageFilter.h"
-#include "itkMultiplyByConstantImageFilter.h"
+//#include "itkMultiplyByConstantImageFilter.h"
 
 #include "itkPluginUtilities.h"
 #include "NeedleDetectionCLP.h"
@@ -43,7 +43,7 @@ template<class T> int DoIt( int argc, char * argv[], T )
   typedef   itk::Image< OutputPixelType, Dimension >  OutputImageType;
 
   typedef   itk::CastImageFilter< FileInputImageType, InputImageType > CastFilterType;
-  typedef   itk::MultiplyByConstantImageFilter< FileInputImageType, double, InputImageType > MultiplyFilterType;
+  //typedef   itk::MultiplyByConstantImageFilter< FileInputImageType, double, InputImageType > MultiplyFilterType;
 
   typedef   itk::HessianRecursiveGaussianImageFilter< 
                             InputImageType >              HessianFilterType;
@@ -65,12 +65,15 @@ template<class T> int DoIt( int argc, char * argv[], T )
   typename WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( outputVolume.c_str() );
 
-  //typename CastFilterType::Pointer cast = CastFilterType::New();
-  typename MultiplyFilterType::Pointer multiply = MultiplyFilterType::New();
-  multiply->SetInput( reader->GetOutput() );
-  multiply->SetConstant( -1.0 );
+  typename CastFilterType::Pointer cast = CastFilterType::New();
+  cast->SetInput( reader->GetOutput() );
 
-  hessianFilter->SetInput( multiply->GetOutput() );
+  //typename MultiplyFilterType::Pointer multiply = MultiplyFilterType::New();
+  //multiply->SetInput( reader->GetOutput() );
+  //multiply->SetConstant( -1.0 );
+
+  //hessianFilter->SetInput( multiply->GetOutput() );
+  hessianFilter->SetInput( cast->GetOutput() );
   hessianFilter->SetSigma( static_cast< double >(sigma) );
 
   //vesselnessFilter->SetInput( hessianFilter->GetOutput() );

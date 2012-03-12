@@ -97,7 +97,7 @@ Hessian3DToNeedleImageFilter< TPixel >
           vcl_exp(-0.5 * vnl_math_sqr( eigenValue[2] / (m_Alpha2 * normalizeValue)));
         }
       
-      lineMeasure *= normalizeValue;
+      lineMeasure *= -normalizeValue;
       oit.Set( static_cast< OutputPixelType >(lineMeasure) );
       }
     else
