@@ -48,7 +48,7 @@
 
 // Type of counts to use
 // 1: Beta, 2: Gamma, 3: Smoothed
-#define COUNTS_TYPE 2
+#define COUNTS_TYPE 1
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkBetaProbeGUI );
@@ -1165,18 +1165,18 @@ void vtkBetaProbeGUI::ProcessTimerEvents()
           }
           }
         }
-      }
-    else if(this->RadioTumorButton->GetSelectedState() && !this->TumorAccepted)
-      {
-      // Tumor selected, update value of entry
-      if(this->TumorValueEntry)
+      else if(this->RadioTumorButton->GetSelectedState() && !this->TumorAccepted)
         {
-        switch(COUNTS_TYPE){
-        case 1:  this->TumorValueEntry->SetValueAsInt(this->Counts->GetBetaCounts()); break;
-        case 2:  this->TumorValueEntry->SetValueAsInt(this->Counts->GetGammaCounts()); break;
-        case 3:  this->TumorValueEntry->SetValueAsInt(this->Counts->GetSmoothedCounts()); break;
-        default: this->TumorValueEntry->SetValueAsInt(this->Counts->GetSmoothedCounts()); break;
-        }
+        // Tumor selected, update value of entry
+        if(this->TumorValueEntry)
+          {
+          switch(COUNTS_TYPE){
+          case 1:  this->TumorValueEntry->SetValueAsInt(this->Counts->GetBetaCounts()); break;
+          case 2:  this->TumorValueEntry->SetValueAsInt(this->Counts->GetGammaCounts()); break;
+          case 3:  this->TumorValueEntry->SetValueAsInt(this->Counts->GetSmoothedCounts()); break;
+          default: this->TumorValueEntry->SetValueAsInt(this->Counts->GetSmoothedCounts()); break;
+          }
+          }
         }
       }
 
