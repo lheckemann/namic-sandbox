@@ -17,6 +17,17 @@ FIND_PACKAGE(FLTK REQUIRED)
 INCLUDE_DIRECTORIES(${MRRobot_ControlThread_SOURCE_DIR}
                     ${FLTK_INCLUDE_DIR})
 
+# Find OpenIGTLink
+find_package(OpenIGTLink)
+
+if(OpenIGTLink_FOUND)
+   message( STATUS "OpenIGTLink Found!" )
+   include_directories(${OpenIGTLink_INCLUDE_DIRS})
+   link_directories(${OpenIGTLink_LIBRARY_DIRS})
+else(OpenIGTLink_FOUND)
+   message( STATUS "OpenIGTLink not found" )
+endif(OpenIGTLink_FOUND)
+
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
 set (SOURCE_FILES 
@@ -85,6 +96,10 @@ ADD_CUSTOM_COMMAND(TARGET MRRobot_ControlThread POST_BUILD
 # this program
 TARGET_LINK_LIBRARIES(MRRobot_ControlThread MRRobot_ControlThreadLib MRRobotDevices dscud5 ${FLTK_LIBRARIES} GL GLU dl util
                       ${sawLoPoMoCo_LIBRARIES})
+
+if(OpenIGTLink_FOUND)
+    target_link_libraries(MRRobot_ControlThread ${OpenIGTLink_LIBRARIES})
+endif(OpenIGTLink_FOUND)
 
 # link with the cisst libraries
 cisst_target_link_libraries(MRRobot_ControlThread cisstCommon cisstCommonXML cisstVector cisstInteractive
