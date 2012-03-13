@@ -86,7 +86,7 @@ template<class T> int DoIt( int argc, char * argv[], T )
   //vesselnessFilter->SetAlpha2( static_cast< double >(alpha2));
   needleFilter->SetAlpha1( static_cast< double >(alpha1));
   needleFilter->SetAlpha2( static_cast< double >(alpha2));
-
+  needleFilter->SetThreshold ( static_cast< double >(threshold) );
   writer->Update();
 
   return EXIT_SUCCESS;
