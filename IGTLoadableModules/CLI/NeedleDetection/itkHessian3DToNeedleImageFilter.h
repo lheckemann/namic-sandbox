@@ -18,7 +18,7 @@
 #define __itkHessian3DToNeedleImageFilter_h
 
 #include "itkSymmetricSecondRankTensor.h"
-#include "itkSymmetricEigenAnalysisImageFilter.h"
+#include "itkSymmetricEigenAnalysisImageFilterWithMatrix.h"
 
 namespace itk
 {
@@ -98,7 +98,7 @@ public:
                                                           EigenValueArrayType;
   typedef  Image< EigenValueArrayType, itkGetStaticConstMacro(ImageDimension) >
                                                           EigenValueImageType;
-  typedef   SymmetricEigenAnalysisImageFilter< 
+  typedef   SymmetricEigenAnalysisImageFilterWithMatrix< 
               InputImageType, EigenValueImageType >     EigenAnalysisFilterType;
 
   /** Run-time type information (and related methods).   */
