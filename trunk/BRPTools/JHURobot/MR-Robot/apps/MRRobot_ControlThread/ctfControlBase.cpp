@@ -1,6 +1,7 @@
 #include "ctfControlBase.h"
 #include "BRPTPRInterface.h"
 
+#include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <algorithm>
