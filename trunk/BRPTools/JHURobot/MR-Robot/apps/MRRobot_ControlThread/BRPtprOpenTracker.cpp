@@ -489,30 +489,39 @@ void BRPtprOpenTracker::SetUpHeader(igtlMessage & msg,BRPtprMessageCommandType c
 #include "igtlImageMessage.h"
 #include "igtlTransformMessage.h"
 
-const char *SlicerIP = "localhost";
 const unsigned int SlicerPort = 5678;
 
-// Stub functions for running system without proxy
+// Stub functions for running system without proxy.
+// Probably this class will need its own thread to wait for commands from Slicer.
 
-BRPtprOpenTracker::BRPtprOpenTracker(void) : SlicerSocket(0) {}
+BRPtprOpenTracker::BRPtprOpenTracker(void) : SlicerSocket(0), SlicerClient(0) {}
 BRPtprOpenTracker::~BRPtprOpenTracker(void) {
     if (SlicerSocket)
         SlicerSocket->CloseSocket();
+    if (SlicerClient)
+        SlicerClient->CloseSocket();
 }
  
 bool BRPtprOpenTracker::Initialize(void)
 {
-    CMN_LOG_RUN_VERBOSE << "Initialize: creating OpenIGTLink socket" << std::endl;
-    SlicerSocket = igtl::ClientSocket::New();
-    if (SlicerSocket->ConnectToServer(SlicerIP, SlicerPort) != 0) {
-        CMN_LOG_RUN_ERROR <<"Cannot connect to the server, IP:Port = " << SlicerIP << ":" << SlicerPort << std::endl;
+    CMN_LOG_RUN_VERBOSE << "Initialize: creating OpenIGTLink server on port " << SlicerPort << std::endl;
+    SlicerSocket = igtl::ServerSocket::New();
+    if (SlicerSocket->CreateServer(SlicerPort) == -1) {
+        CMN_LOG_RUN_ERROR << "Initialize: could not create server on port " << SlicerPort << std::endl;
         return false;
     }
-    CMN_LOG_RUN_VERBOSE <<"Successfully connected to server!"<< std::endl;
     return true;
 }
 
-bool BRPtprOpenTracker::IsThereNewCommand(void) { return false; }
+bool BRPtprOpenTracker::IsThereNewCommand(void) {
+    if (!SlicerClient) {
+        // Wait up to 10 msec for a connection
+        SlicerClient = SlicerSocket->WaitForConnection(10);
+        if (SlicerClient)
+            CMN_LOG_RUN_VERBOSE << "Received connection from Slicer!" << std::endl;
+    }
+    return false;
+}
 
 // This method checks the received commands and calls the appropriate function:
 bool BRPtprOpenTracker::ProcessNextCommand(BRPtprControl *robotControl)

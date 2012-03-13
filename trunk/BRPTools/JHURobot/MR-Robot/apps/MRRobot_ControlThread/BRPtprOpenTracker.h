@@ -19,7 +19,7 @@
 
 #include "BRPplatform.h" // pthread, pipe
 #else
-#include "igtlClientSocket.h"
+#include "igtlServerSocket.h"
 class igtlMessage;
 #endif
 
@@ -30,7 +30,10 @@ class BRPtprControl;
 class BRPtprOpenTracker {
 
 #ifndef MRRobot_HAS_PROXY
- igtl::ClientSocket::Pointer SlicerSocket;
+ // SlicerSocket is the server socket that Slicer initially connects to
+ igtl::ServerSocket::Pointer SlicerSocket;
+ // SlicerClient is the client socket that is created by SlicerSocket->WaitForConnection
+ igtl::ClientSocket::Pointer SlicerClient;
 #endif
 
 public:
@@ -42,9 +45,6 @@ public:
  bool IsThereNewCommand(void);
 
  bool ProcessNextCommand(BRPtprControl *robotControl);
- 
- bool SendZFrameToRobot(BRPtprControl *robotControl, igtlMessage & buff);
- bool SendTargetToRobot(BRPtprControl *robotControl, igtlMessage & buff);
 
  // Outgoing messages -> to the navigation software
  bool QueueActualCoordinates(float pos[3],float orientation[4], float depth_vector[3]);
@@ -58,6 +58,9 @@ public:
  void SetRobotStatus(BRPTPRstatusType stat) {tempStat=stat;}
 
 protected:
+
+ bool SendZFrameToRobot(BRPtprControl *robotControl, igtlMessage & buff);
+ bool SendTargetToRobot(BRPtprControl *robotControl, igtlMessage & buff);
 
 #ifdef MRRobot_HAS_PROXY
  bool QueueResponse(igtlMessage buff);
