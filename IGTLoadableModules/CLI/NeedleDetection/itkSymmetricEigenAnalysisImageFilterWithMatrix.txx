@@ -174,9 +174,11 @@ SymmetricEigenAnalysisImageFilterWithMatrix<TInputImage,TOutputImage>
   while( !inputIt.IsAtEnd() ) 
     {
     OutputImagePixelType eigenValue;
-    this->m_Analysis.ComputeEigenValues( inputIt.Get(), eigenValue );
-    //this->m_Analysis.ComputeEigenValuesAndVectors( x, eigenValues, m_EigenMatrix );
+    EigenMatrixType eigenMatrix;
+    //this->m_Analysis.ComputeEigenValues( inputIt.Get(), eigenValue );
+    this->m_Analysis.ComputeEigenValuesAndVectors( inputIt.Get(), eigenValue, eigenMatrix );
     outputIt.Set( eigenValue );
+    //outputIt.Set( eigenMatrix[0][2] );
     ++inputIt;
     ++outputIt;
     progress.CompletedPixel();  // potential exception thrown here
