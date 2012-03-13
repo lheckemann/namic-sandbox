@@ -23,7 +23,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <flag>s</flag>
       <label>Sigma</label>
       <description>Sigma value in physical units (e.g., mm) of the Gaussian kernel</description>
-      <default>1.0</default>
+      <default>1.2</default>
     </double>
     <double>
       <name>alpha1</name>
@@ -31,7 +31,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <flag>a</flag>
       <label>Alpha1</label>
       <description>Alpha1 parameter for vesselness filter</description>
-      <default>1.0</default>
+      <default>0.5</default>
     </double>
     <double>
       <name>alpha2</name>
@@ -39,7 +39,15 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <flag>b</flag>
       <label>Alpha2</label>
       <description>Alpha2 parameter for vesselness filter</description>
-      <default>1.0</default>
+      <default>2.0</default>
+    </double>
+    <double>
+      <name>threshold</name>
+      <longflag>thoreshold</longflag>
+      <flag>t</flag>
+      <label>Threshold</label>
+      <description>Inner product threshold</description>
+      <default>0.9</default>
     </double>
     <image>
       <name>inputVolume</name>

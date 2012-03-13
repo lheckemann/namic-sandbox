@@ -117,6 +117,10 @@ public:
   itkSetMacro(Alpha2, double);
   itkGetConstMacro(Alpha2, double);
 
+  itkSetMacro(Threshold, double);
+  itkGetConstMacro(Threshold, double);
+
+
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(DoubleConvertibleToOutputCheck,
@@ -140,6 +144,7 @@ private:
 
   double m_Alpha1;
   double m_Alpha2;
+  double m_Threshold;
 };
 
 } // end namespace itk

@@ -62,7 +62,13 @@ Hessian3DToNeedleImageFilter< TPixel >
   
   const typename EigenValueOutputImageType::ConstPointer eigenImage = 
                     m_SymmetricEigenValueFilter->GetOutput();
-  
+
+  typedef typename EigenAnalysisFilterType::EigenMatrixImageType
+    EigenMatrixImageType;
+  const typename EigenMatrixImageType::ConstPointer eigenMatrixImage = 
+    m_SymmetricEigenValueFilter->GetEigenMatrixImage();
+    
+
   // walk the region of eigen values and get the vesselness measure
   EigenValueArrayType eigenValue;
   ImageRegionConstIterator<EigenValueOutputImageType> it;
@@ -72,8 +78,15 @@ Hessian3DToNeedleImageFilter< TPixel >
   this->AllocateOutputs();
   oit = ImageRegionIterator<OutputImageType>(output,
                                              output->GetRequestedRegion());
+  
+  ImageRegionConstIterator<EigenMatrixImageType> eit;
+  typename EigenMatrixImageType::RegionType eigenMatrixRegion;
+  m_SymmetricEigenValueFilter->CallCopyOutputRegionToEigenMatrixImageRegion(eigenMatrixRegion, output->GetRequestedRegion());
+  eit = ImageRegionConstIterator<EigenMatrixImageType>(eigenMatrixImage, eigenMatrixRegion);
+
   oit.GoToBegin();
   it.GoToBegin();
+  eit.GoToBegin();
   while (!it.IsAtEnd())
     {
     // Get the eigen value
@@ -97,7 +110,16 @@ Hessian3DToNeedleImageFilter< TPixel >
           vcl_exp(-0.5 * vnl_math_sqr( eigenValue[2] / (m_Alpha2 * normalizeValue)));
         }
       
-      lineMeasure *= -normalizeValue;
+      if (vnl_math_abs(eit.Get()[2]) > m_Threshold)
+        {
+        //lineMeasure *= -normalizeValue;
+        lineMeasure = 255;
+        }
+      else
+        {
+        lineMeasure = 0.0;
+        }
+
       oit.Set( static_cast< OutputPixelType >(lineMeasure) );
       }
     else
@@ -108,6 +130,7 @@ Hessian3DToNeedleImageFilter< TPixel >
 
     ++it;
     ++oit;
+    ++eit;
     }
     
 }
