@@ -19,6 +19,7 @@
 
 #include "BRPplatform.h" // pthread, pipe
 #else
+#include "igtlClientSocket.h"
 class igtlMessage;
 #endif
 
@@ -27,6 +28,11 @@ class BRPtprControl;
 
 
 class BRPtprOpenTracker {
+
+#ifndef MRRobot_HAS_PROXY
+ igtl::ClientSocket::Pointer SlicerSocket;
+#endif
+
 public:
  BRPtprOpenTracker(void);
  ~BRPtprOpenTracker(void);

@@ -7,6 +7,8 @@
 #include "BRPtprMessages.h"
 #include "BRPtprControl.h"
 
+#include <cisstCommon/cmnLogger.h>
+
 #ifdef MRRobot_HAS_PROXY
 #include "BRPplatform.h" // pthread, pipe
 
@@ -483,16 +485,36 @@ void BRPtprOpenTracker::SetUpHeader(igtlMessage & msg,BRPtprMessageCommandType c
         std::memcpy(msg.get_header()->device_name, "JHUbrpTP", 9 ); // max: 20 (IGTL_HEADER_DEVSIZE)
 }
 #else
+// OpenIGTLink dependencies
+#include "igtlImageMessage.h"
+#include "igtlTransformMessage.h"
+
+const char *SlicerIP = "localhost";
+const unsigned int SlicerPort = 5678;
 
 // Stub functions for running system without proxy
 
-BRPtprOpenTracker::BRPtprOpenTracker(void) {}
-BRPtprOpenTracker::~BRPtprOpenTracker(void) {}
+BRPtprOpenTracker::BRPtprOpenTracker(void) : SlicerSocket(0) {}
+BRPtprOpenTracker::~BRPtprOpenTracker(void) {
+    if (SlicerSocket)
+        SlicerSocket->CloseSocket();
+}
  
-bool BRPtprOpenTracker::Initialize(void) { return true; }
+bool BRPtprOpenTracker::Initialize(void)
+{
+    CMN_LOG_RUN_VERBOSE << "Initialize: creating OpenIGTLink socket" << std::endl;
+    SlicerSocket = igtl::ClientSocket::New();
+    if (SlicerSocket->ConnectToServer(SlicerIP, SlicerPort) != 0) {
+        CMN_LOG_RUN_ERROR <<"Cannot connect to the server, IP:Port = " << SlicerIP << ":" << SlicerPort << std::endl;
+        return false;
+    }
+    CMN_LOG_RUN_VERBOSE <<"Successfully connected to server!"<< std::endl;
+    return true;
+}
 
 bool BRPtprOpenTracker::IsThereNewCommand(void) { return false; }
 
+// This method checks the received commands and calls the appropriate function:
 bool BRPtprOpenTracker::ProcessNextCommand(BRPtprControl *robotControl)
 { return true; }
  
