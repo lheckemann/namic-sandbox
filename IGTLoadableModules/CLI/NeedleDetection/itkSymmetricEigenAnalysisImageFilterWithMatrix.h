@@ -60,7 +60,11 @@ public:
   typedef typename     OutputImageType::Pointer    OutputImagePointer;
   typedef typename     OutputImageType::RegionType OutputImageRegionType;
   typedef typename     OutputImageType::PixelType  OutputImagePixelType;
-  typedef Matrix< double, 6, 6 >  EigenMatrixType;
+
+  typedef Matrix< double, 3, 3 >  EigenMatrixType;
+  //typedef FixedArray< double, itkGetStaticConstMacro(3*3) > EigenMatrixArrayType;
+  typedef FixedArray< double, (3*3) > EigenMatrixArrayType;
+  typedef Image< EigenMatrixArrayType, 3 > EigenMatrixImageType;
 
   typedef SymmetricEigenAnalysis< InputImagePixelType, OutputImagePixelType, EigenMatrixType> AnalysisType;
 
@@ -95,6 +99,11 @@ public:
       }
     }
 
+  inline void CallCopyOutputRegionToEigenMatrixImageRegion(EigenMatrixImageType::RegionType &destRegion,
+                                                    const OutputImageRegionType &srcRegion);
+
+  EigenMatrixImageType * GetEigenMatrixImage() { return this->m_EigenMatrixImage; };
+
 protected:
   SymmetricEigenAnalysisImageFilterWithMatrix();
   virtual ~SymmetricEigenAnalysisImageFilterWithMatrix() {};
@@ -127,6 +136,7 @@ private:
   void operator=(const Self&); //purposely not implemented
 
   AnalysisType  m_Analysis;
+  EigenMatrixImageType::Pointer m_EigenMatrixImage;
 
 };
 
