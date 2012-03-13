@@ -34,6 +34,10 @@ Hessian3DToNeedleImageFilter< TPixel >
 {
   m_Alpha1 = 0.5;
   m_Alpha2 = 2.0;
+  m_AngleThreshold = 0.0;
+  m_Normal[0] = 0.0;
+  m_Normal[1] = 0.0;
+  m_Normal[2] = 1.0;
 
   // Hessian( Image ) = Jacobian( Gradient ( Image ) )  is symmetric
   m_SymmetricEigenValueFilter = EigenAnalysisFilterType::New();
@@ -87,6 +91,9 @@ Hessian3DToNeedleImageFilter< TPixel >
   oit.GoToBegin();
   it.GoToBegin();
   eit.GoToBegin();
+
+  double cosThreshold = vcl_cos((m_AngleThreshold / 180.0) * vnl_math::pi);
+
   while (!it.IsAtEnd())
     {
     // Get the eigen value
@@ -109,8 +116,10 @@ Hessian3DToNeedleImageFilter< TPixel >
         lineMeasure = 
           vcl_exp(-0.5 * vnl_math_sqr( eigenValue[2] / (m_Alpha2 * normalizeValue)));
         }
-      
-      if (vnl_math_abs(eit.Get()[2]) > m_Threshold)
+
+      // Calculate the inner product of the normal vector and the first eigen vector
+      double ip = eit.Get()[0] * m_Normal[0] + eit.Get()[1] * m_Normal[1] + eit.Get()[2] * m_Normal[2];
+      if (vnl_math_abs(ip) > cosThreshold)
         {
         //lineMeasure *= -normalizeValue;
         lineMeasure = 255;

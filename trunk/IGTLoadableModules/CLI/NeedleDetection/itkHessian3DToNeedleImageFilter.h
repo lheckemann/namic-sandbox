@@ -117,9 +117,18 @@ public:
   itkSetMacro(Alpha2, double);
   itkGetConstMacro(Alpha2, double);
 
-  itkSetMacro(Threshold, double);
-  itkGetConstMacro(Threshold, double);
+  itkSetMacro(AngleThreshold, double);
+  itkGetConstMacro(AngleThreshold, double);
 
+  inline void SetNormal(double x, double y, double z)
+  {
+    m_Normal[0] = x; m_Normal[1] = y; m_Normal[2] = z;
+  }
+
+  inline void GetNormal(double& x, double& y, double& z)
+  {
+    x = m_Normal[0]; y = m_Normal[1]; z = m_Normal[2];
+  }
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -144,7 +153,8 @@ private:
 
   double m_Alpha1;
   double m_Alpha2;
-  double m_Threshold;
+  double m_AngleThreshold;
+  double m_Normal[3];
 };
 
 } // end namespace itk

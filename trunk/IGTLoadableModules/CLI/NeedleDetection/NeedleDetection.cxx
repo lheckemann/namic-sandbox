@@ -9,6 +9,7 @@
 //#include "itkSmoothingRecursiveGaussianImageFilter.h"
 #include "itkHessianRecursiveGaussianImageFilter.h"
 //#include "itkHessian3DToVesselnessMeasureImageFilter.h"
+#include "itkSmoothingRecursiveGaussianImageFilter.h"
 #include "itkHessian3DToNeedleImageFilter.h"
 #include "itkSymmetricSecondRankTensor.h"
 
@@ -43,7 +44,7 @@ template<class T> int DoIt( int argc, char * argv[], T )
   typedef   itk::Image< OutputPixelType, Dimension >  OutputImageType;
 
   typedef   itk::CastImageFilter< FileInputImageType, InputImageType > CastFilterType;
-  //typedef   itk::MultiplyByConstantImageFilter< FileInputImageType, double, InputImageType > MultiplyFilterType;
+  typedef itk::SmoothingRecursiveGaussianImageFilter< FileInputImageType, InputImageType >  SmoothingFilterType;
 
   typedef   itk::HessianRecursiveGaussianImageFilter< 
                             InputImageType >              HessianFilterType;
@@ -56,8 +57,6 @@ template<class T> int DoIt( int argc, char * argv[], T )
   typedef   itk::ImageFileWriter< OutputImageType > WriterType;
   
   HessianFilterType::Pointer hessianFilter = HessianFilterType::New();
-  //VesselnessMeasureFilterType::Pointer vesselnessFilter = 
-  //                          VesselnessMeasureFilterType::New();
   NeedleFilterType::Pointer needleFilter = NeedleFilterType::New();
 
   typename ReaderType::Pointer reader = ReaderType::New();
@@ -65,16 +64,14 @@ template<class T> int DoIt( int argc, char * argv[], T )
   typename WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( outputVolume.c_str() );
 
-  typename CastFilterType::Pointer cast = CastFilterType::New();
-  cast->SetInput( reader->GetOutput() );
+  //typename CastFilterType::Pointer cast = CastFilterType::New();
+  //cast->SetInput( reader->GetOutput() );
+  typename SmoothingFilterType::Pointer smoothing = SmoothingFilterType::New();
+  smoothing->SetInput( reader->GetOutput() );
+  smoothing->SetSigma( static_cast< double >(sigma1) );
 
-  //typename MultiplyFilterType::Pointer multiply = MultiplyFilterType::New();
-  //multiply->SetInput( reader->GetOutput() );
-  //multiply->SetConstant( -1.0 );
-
-  //hessianFilter->SetInput( multiply->GetOutput() );
-  hessianFilter->SetInput( cast->GetOutput() );
-  hessianFilter->SetSigma( static_cast< double >(sigma) );
+  hessianFilter->SetInput( smoothing->GetOutput() );
+  hessianFilter->SetSigma( static_cast< double >(sigma2) );
 
   //vesselnessFilter->SetInput( hessianFilter->GetOutput() );
   needleFilter->SetInput( hessianFilter->GetOutput() );
@@ -82,11 +79,14 @@ template<class T> int DoIt( int argc, char * argv[], T )
   writer->SetInput( needleFilter->GetOutput() );
   writer->SetUseCompression(1);
 
-  //vesselnessFilter->SetAlpha1( static_cast< double >(alpha1));
-  //vesselnessFilter->SetAlpha2( static_cast< double >(alpha2));
   needleFilter->SetAlpha1( static_cast< double >(alpha1));
   needleFilter->SetAlpha2( static_cast< double >(alpha2));
-  needleFilter->SetThreshold ( static_cast< double >(threshold) );
+
+  needleFilter->SetAngleThreshold (static_cast< double >(anglethreshold) );
+  needleFilter->SetNormal (static_cast< double >(normal[0]),
+                           static_cast< double >(normal[1]),
+                           static_cast< double >(normal[2]));
+
   writer->Update();
 
   return EXIT_SUCCESS;
