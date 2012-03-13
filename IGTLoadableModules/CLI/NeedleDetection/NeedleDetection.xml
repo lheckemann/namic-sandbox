@@ -17,13 +17,44 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
   <parameters>
     <label>IO</label>
     <description>Input/output parameters</description>
+    <image>
+      <name>inputVolume</name>
+      <label>Input Volume</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Input volume</description>
+    </image>
+    <image>
+      <name>outputVolume</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>1</index>
+      <description>Blurred Volume</description>
+    </image>
+  </parameters>
+
+  <parameters>
+    <label>Smoothing</label>
+    <description>Smoothing parameter</description>
     <double>
-      <name>sigma</name>
-      <longflag>sigma</longflag>
+      <name>sigma1</name>
+      <longflag>sigma1</longflag>
       <flag>s</flag>
-      <label>Sigma</label>
-      <description>Sigma value in physical units (e.g., mm) of the Gaussian kernel</description>
-      <default>1.2</default>
+      <label>Sigma1</label>
+      <description>Sigma value in physical units (e.g., mm) of the Gaussian kernel for smoothing</description>
+      <default>1.0</default>
+    </double>
+  </parameters>
+  <parameters>
+    <label>Hessian and Eigen Analysis</label>
+    <description>Hessian and eigen analysis parameters</description>
+    <double>
+      <name>sigma2</name>
+      <longflag>sigma2</longflag>
+      <flag>p</flag>
+      <label>Sigma2</label>
+      <description>Sigma value in physical units (e.g., mm) of the Gaussian kernel for needle thickness</description>
+      <default>1.0</default>
     </double>
     <double>
       <name>alpha1</name>
@@ -42,27 +73,20 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <default>2.0</default>
     </double>
     <double>
-      <name>threshold</name>
-      <longflag>thoreshold</longflag>
+      <name>anglethreshold</name>
+      <longflag>anglethoreshold</longflag>
       <flag>t</flag>
-      <label>Threshold</label>
-      <description>Inner product threshold</description>
-      <default>0.9</default>
+      <label>Angle Threshold</label>
+      <description>Threshold for angle from Normal Vector (deg)</description>
+      <default>30.0</default>
     </double>
-    <image>
-      <name>inputVolume</name>
-      <label>Input Volume</label>
-      <channel>input</channel>
-      <index>0</index>
-      <description>Input volume</description>
-    </image>
-    <image>
-      <name>outputVolume</name>
-      <label>Output Volume</label>
-      <channel>output</channel>
-      <index>1</index>
-      <description>Blurred Volume</description>
-    </image>
+    <double-vector>
+      <name>normal</name>
+      <longflag>normal</longflag>
+      <flag>n</flag>
+      <label>Normal Vector</label>
+      <description>Normal vector for base needle orientation</description>
+      <default>0.0,0.0,1.0</default>
+    </double-vector>
   </parameters>
-
 </executable>

@@ -228,6 +228,12 @@ SymmetricEigenAnalysisImageFilterWithMatrix<TInputImage,TOutputImage>
     (eigenMatrixIt.Value())[0] = eigenMatrix[0][0];
     (eigenMatrixIt.Value())[1] = eigenMatrix[0][1];
     (eigenMatrixIt.Value())[2] = eigenMatrix[0][2];
+    (eigenMatrixIt.Value())[3] = eigenMatrix[1][0];
+    (eigenMatrixIt.Value())[4] = eigenMatrix[1][1];
+    (eigenMatrixIt.Value())[5] = eigenMatrix[1][2];
+    (eigenMatrixIt.Value())[6] = eigenMatrix[2][0];
+    (eigenMatrixIt.Value())[7] = eigenMatrix[2][1];
+    (eigenMatrixIt.Value())[8] = eigenMatrix[2][2];
     //outputIt.Set( eigenMatrix[0][2] );
 
     outputIt.Set( eigenValue );
