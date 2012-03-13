@@ -39,7 +39,7 @@ Hessian3DToNeedleImageFilter< TPixel >
   m_SymmetricEigenValueFilter = EigenAnalysisFilterType::New();
   m_SymmetricEigenValueFilter->SetDimension( ImageDimension );
   m_SymmetricEigenValueFilter->OrderEigenValuesBy( 
-      EigenAnalysisFilterType::FunctorType::OrderByValue );
+      EigenAnalysisFilterType::OrderByValue );
   
 }
 
@@ -83,7 +83,7 @@ Hessian3DToNeedleImageFilter< TPixel >
     double normalizeValue = vnl_math_min( -1.0 * eigenValue[1], -1.0 * eigenValue[0]);
 
     // Similarity measure to a line structure
-    if( normalizeValue > 0 )
+    if( normalizeValue < 0 )
       {
       double lineMeasure;
       if( eigenValue[2] <= 0 )
