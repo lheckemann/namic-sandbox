@@ -13,6 +13,11 @@
 #include "itkHessian3DToNeedleImageFilter.h"
 #include "itkSymmetricSecondRankTensor.h"
 
+#include "itkOtsuThresholdImageFilter.h"
+#include "itkConnectedComponentImageFilter.h"
+#include "itkRelabelComponentImageFilter.h"
+#include "itkMinimumMaximumImageFilter.h"
+
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -37,57 +42,74 @@ template<class T> int DoIt( int argc, char * argv[], T )
 
   typedef   T                   FileInputPixelType;
   typedef   float               InternalPixelType;
-  typedef   float               OutputPixelType;
+  typedef   int                 OutputPixelType;
   
   typedef   itk::Image< FileInputPixelType, Dimension > FileInputImageType;
   typedef   itk::Image< InternalPixelType, Dimension >  InternalImageType;
   typedef   itk::Image< OutputPixelType, Dimension >    OutputImageType;
 
-  //typedef   itk::CastImageFilter< FileInputImageType, InternalImageType > CastFilterType;
-  typedef   itk::SmoothingRecursiveGaussianImageFilter< FileInputImageType, InternalImageType >  SmoothingFilterType;
-
-  typedef   itk::HessianRecursiveGaussianImageFilter< 
-                            InternalImageType >              HessianFilterType;
-  //typedef   itk::Hessian3DToVesselnessMeasureImageFilter<
-  //            OutputPixelType > VesselnessMeasureFilterType;
-
-  typedef   itk::Hessian3DToNeedleImageFilter< InternalPixelType > NeedleFilterType;
-
   typedef   itk::ImageFileReader< FileInputImageType >  ReaderType;
-  //typedef   itk::ImageFileWriter< OutputImageType > WriterType;
-  typedef   itk::ImageFileWriter< InternalImageType > WriterType;
-  
-  HessianFilterType::Pointer hessianFilter = HessianFilterType::New();
-  NeedleFilterType::Pointer needleFilter = NeedleFilterType::New();
+  typedef   itk::ImageFileWriter< OutputImageType > WriterType;
 
-  typename ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( inputVolume.c_str() );
+  //typedef   itk::CastImageFilter< FileInputImageType, InternalImageType > CastFilterType;
+
+  // Smoothing filter
+  typedef   itk::SmoothingRecursiveGaussianImageFilter<
+    FileInputImageType, InternalImageType > SmoothingFilterType;
+  
+  // Line detection related filter
+  typedef   itk::HessianRecursiveGaussianImageFilter< 
+    InternalImageType > HessianFilterType;
+  typedef   itk::Hessian3DToNeedleImageFilter<
+    InternalPixelType > NeedleFilterType;
+
+  // Otsu Threshold Segmentation filter
+  typedef itk::OtsuThresholdImageFilter<
+    InternalImageType, InternalImageType >  OtsuFilterType;
+  typedef itk::ConnectedComponentImageFilter<
+    InternalImageType, OutputImageType >  CCFilterType;
+  typedef itk::RelabelComponentImageFilter<
+    OutputImageType, OutputImageType > RelabelType;
+
+  typename ReaderType::Pointer reader = ReaderType::New();  
   typename WriterType::Pointer writer = WriterType::New();
+  typename SmoothingFilterType::Pointer smoothing = SmoothingFilterType::New();
+  typename HessianFilterType::Pointer hessianFilter = HessianFilterType::New();
+  typename NeedleFilterType::Pointer needleFilter = NeedleFilterType::New();
+  typename OtsuFilterType::Pointer OtsuFilter = OtsuFilterType::New();
+  typename CCFilterType::Pointer CCFilter = CCFilterType::New();
+  typename RelabelType::Pointer RelabelFilter = RelabelType::New();
+
+  reader->SetFileName( inputVolume.c_str() );
   writer->SetFileName( outputVolume.c_str() );
 
   //typename CastFilterType::Pointer cast = CastFilterType::New();
   //cast->SetInput( reader->GetOutput() );
-  typename SmoothingFilterType::Pointer smoothing = SmoothingFilterType::New();
   smoothing->SetInput( reader->GetOutput() );
   smoothing->SetSigma( static_cast< double >(sigma1) );
 
   hessianFilter->SetInput( smoothing->GetOutput() );
   hessianFilter->SetSigma( static_cast< double >(sigma2) );
 
-  //vesselnessFilter->SetInput( hessianFilter->GetOutput() );
   needleFilter->SetInput( hessianFilter->GetOutput() );
-  //writer->SetInput( vesselnessFilter->GetOutput() );
-  writer->SetInput( needleFilter->GetOutput() );
-  writer->SetUseCompression(1);
-
   needleFilter->SetAlpha1( static_cast< double >(alpha1));
   needleFilter->SetAlpha2( static_cast< double >(alpha2));
-
   needleFilter->SetAngleThreshold (static_cast< double >(anglethreshold) );
   needleFilter->SetNormal (static_cast< double >(normal[0]),
                            static_cast< double >(normal[1]),
                            static_cast< double >(normal[2]));
 
+  OtsuFilter->SetInput( needleFilter->GetOutput() );
+  OtsuFilter->SetOutsideValue( 255 );
+  OtsuFilter->SetInsideValue(  0  );
+  OtsuFilter->SetNumberOfHistogramBins( numberOfBins );
+  CCFilter->SetInput (OtsuFilter->GetOutput());
+  CCFilter->FullyConnectedOff();
+  RelabelFilter->SetInput (CCFilter->GetOutput());
+  RelabelFilter->SetMinimumObjectSize(minimumObjectSize);
+
+  writer->SetInput( RelabelFilter->GetOutput() );
+  writer->SetUseCompression(1);
   writer->Update();
 
   return EXIT_SUCCESS;
