@@ -36,25 +36,26 @@ template<class T> int DoIt( int argc, char * argv[], T )
   const     unsigned int        Dimension       = 3;
 
   typedef   T                   FileInputPixelType;
-  typedef   double              InputPixelType;
+  typedef   float               InternalPixelType;
   typedef   float               OutputPixelType;
   
   typedef   itk::Image< FileInputPixelType, Dimension > FileInputImageType;
-  typedef   itk::Image< InputPixelType, Dimension >   InputImageType;
-  typedef   itk::Image< OutputPixelType, Dimension >  OutputImageType;
+  typedef   itk::Image< InternalPixelType, Dimension >  InternalImageType;
+  typedef   itk::Image< OutputPixelType, Dimension >    OutputImageType;
 
-  typedef   itk::CastImageFilter< FileInputImageType, InputImageType > CastFilterType;
-  typedef itk::SmoothingRecursiveGaussianImageFilter< FileInputImageType, InputImageType >  SmoothingFilterType;
+  //typedef   itk::CastImageFilter< FileInputImageType, InternalImageType > CastFilterType;
+  typedef   itk::SmoothingRecursiveGaussianImageFilter< FileInputImageType, InternalImageType >  SmoothingFilterType;
 
   typedef   itk::HessianRecursiveGaussianImageFilter< 
-                            InputImageType >              HessianFilterType;
+                            InternalImageType >              HessianFilterType;
   //typedef   itk::Hessian3DToVesselnessMeasureImageFilter<
   //            OutputPixelType > VesselnessMeasureFilterType;
 
-  typedef   itk::Hessian3DToNeedleImageFilter< OutputPixelType > NeedleFilterType;
+  typedef   itk::Hessian3DToNeedleImageFilter< InternalPixelType > NeedleFilterType;
 
   typedef   itk::ImageFileReader< FileInputImageType >  ReaderType;
-  typedef   itk::ImageFileWriter< OutputImageType > WriterType;
+  //typedef   itk::ImageFileWriter< OutputImageType > WriterType;
+  typedef   itk::ImageFileWriter< InternalImageType > WriterType;
   
   HessianFilterType::Pointer hessianFilter = HessianFilterType::New();
   NeedleFilterType::Pointer needleFilter = NeedleFilterType::New();
