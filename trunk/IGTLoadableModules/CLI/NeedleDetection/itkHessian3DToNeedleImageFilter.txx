@@ -81,7 +81,7 @@ Hessian3DToNeedleImageFilter< TPixel >
     
     // normalizeValue <= 0 for bright line structures
     double normalizeValue = vnl_math_min( -1.0 * eigenValue[1], -1.0 * eigenValue[0]);
-
+    
     // Similarity measure to a line structure
     if( normalizeValue < 0 )
       {
@@ -104,6 +104,7 @@ Hessian3DToNeedleImageFilter< TPixel >
       {
       oit.Set( NumericTraits< OutputPixelType >::Zero );
       }
+    //oit.Set( static_cast< OutputPixelType >(eigenValue[0]) );
 
     ++it;
     ++oit;

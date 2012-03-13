@@ -60,8 +60,9 @@ public:
   typedef typename     OutputImageType::Pointer    OutputImagePointer;
   typedef typename     OutputImageType::RegionType OutputImageRegionType;
   typedef typename     OutputImageType::PixelType  OutputImagePixelType;
+  typedef Matrix< double, 6, 6 >  EigenMatrixType;
 
-  typedef SymmetricEigenAnalysis< InputImagePixelType, OutputImagePixelType > AnalysisType;
+  typedef SymmetricEigenAnalysis< InputImagePixelType, OutputImagePixelType, EigenMatrixType> AnalysisType;
 
   /** Method to explicitly set the dimension of the matrix */
   void SetDimension( unsigned int n )
