@@ -33,8 +33,24 @@ SymmetricEigenAnalysisImageFilterWithMatrix<TInputImage,TOutputImage>
 ::SymmetricEigenAnalysisImageFilterWithMatrix()
 {
   this->SetNumberOfRequiredInputs( 1 );
+  this->m_EigenMatrixImage = EigenMatrixImageType::New();
+
   this->InPlaceOff();
 }
+
+template <class TInputImage, class TOutputImage >
+void 
+SymmetricEigenAnalysisImageFilterWithMatrix<TInputImage,TOutputImage >
+::CallCopyOutputRegionToEigenMatrixImageRegion(EigenMatrixImageType::RegionType &destRegion,
+                                               const OutputImageRegionType &srcRegion)
+{
+  typedef ImageToImageFilterDetail::ImageRegionCopier<3,itkGetStaticConstMacro(OutputImageDimension)>
+    OutputToEigenMatrixRegionCopierType;
+  OutputToEigenMatrixRegionCopierType regionCopier;
+  regionCopier(destRegion, srcRegion);
+}
+
+
 
 /** 
  * SymmetricEigenAnalysisImageFilterWithMatrix can produce an image which is a different resolution
@@ -54,10 +70,10 @@ SymmetricEigenAnalysisImageFilterWithMatrix<TInputImage,TOutputImage >
   // this filter allows the input the output to be of different dimensions
  
   // get pointers to the input and output
-  typename Superclass::OutputImagePointer      outputPtr = this->GetOutput();
+  typename Superclass::OutputImagePointer      outputPtr  = this->GetOutput();
   typename Superclass::InputImageConstPointer  inputPtr  = this->GetInput();
 
-  if ( !outputPtr || !inputPtr)
+  if ( !outputPtr || !inputPtr || !this->m_EigenMatrixImage)
     {
     return;
     }
@@ -68,6 +84,12 @@ SymmetricEigenAnalysisImageFilterWithMatrix<TInputImage,TOutputImage >
   this->CallCopyInputRegionToOutputRegion(outputLargestPossibleRegion,
                                           inputPtr->GetLargestPossibleRegion());
   outputPtr->SetLargestPossibleRegion( outputLargestPossibleRegion );
+
+  EigenMatrixImageType::RegionType eigenMatrixRegion;
+  this->CallCopyOutputRegionToEigenMatrixImageRegion(eigenMatrixRegion, inputPtr->GetLargestPossibleRegion());
+  this->m_EigenMatrixImage->SetLargestPossibleRegion(eigenMatrixRegion);
+  this->m_EigenMatrixImage->SetBufferedRegion(eigenMatrixRegion);
+  this->m_EigenMatrixImage->Allocate();
 
   // Set the output spacing and origin
   const ImageBase<Superclass::InputImageDimension> *phyData;
@@ -92,21 +114,30 @@ SymmetricEigenAnalysisImageFilterWithMatrix<TInputImage,TOutputImage >
     typename OutputImageType::PointType outputOrigin;
     typename OutputImageType::DirectionType outputDirection;
 
+    typename EigenMatrixImageType::SpacingType eigenMatrixImageSpacing;
+    typename EigenMatrixImageType::PointType eigenMatrixImageOrigin;
+    typename EigenMatrixImageType::DirectionType eigenMatrixImageDirection;
+
     // copy the input to the output and fill the rest of the
     // output with zeros.
     for (i=0; i < Superclass::InputImageDimension; ++i)
       {
       outputSpacing[i] = inputSpacing[i];
       outputOrigin[i] = inputOrigin[i];
+      eigenMatrixImageSpacing[i] = inputSpacing[i];
+      eigenMatrixImageOrigin[i] = inputOrigin[i];
+
       for (j=0; j < Superclass::OutputImageDimension; j++)
         {
         if (j < Superclass::InputImageDimension)
           {
           outputDirection[j][i] = inputDirection[j][i];
+          eigenMatrixImageDirection[j][i] = inputDirection[j][i];
           }
         else
           {
           outputDirection[j][i] = 0.0;
+          eigenMatrixImageDirection[j][i] = 0.0;
           }
         }
       }
@@ -114,15 +145,20 @@ SymmetricEigenAnalysisImageFilterWithMatrix<TInputImage,TOutputImage >
       {
       outputSpacing[i] = 1.0;
       outputOrigin[i] = 0.0;
+      eigenMatrixImageSpacing[i] = 1.0;
+      eigenMatrixImageOrigin[i] = 0.0;
+
       for (j=0; j < Superclass::OutputImageDimension; j++)
         {
         if (j == i)
           {
           outputDirection[j][i] = 1.0;
+          eigenMatrixImageDirection[j][i] = 1.0;
           }
         else
           {
           outputDirection[j][i] = 0.0;
+          eigenMatrixImageDirection[j][i] = 0.0;
           }
         }
       }
@@ -132,6 +168,12 @@ SymmetricEigenAnalysisImageFilterWithMatrix<TInputImage,TOutputImage >
     outputPtr->SetOrigin( outputOrigin );
     outputPtr->SetDirection( outputDirection );
     outputPtr->SetNumberOfComponentsPerPixel( // propagate vector length info
+        inputPtr->GetNumberOfComponentsPerPixel());
+
+    this->m_EigenMatrixImage->SetSpacing( eigenMatrixImageSpacing );
+    this->m_EigenMatrixImage->SetOrigin( eigenMatrixImageOrigin );
+    this->m_EigenMatrixImage->SetDirection( eigenMatrixImageDirection );
+    this->m_EigenMatrixImage->SetNumberOfComponentsPerPixel( // propagate vector length info
         inputPtr->GetNumberOfComponentsPerPixel());
     }
   else
@@ -156,20 +198,26 @@ SymmetricEigenAnalysisImageFilterWithMatrix<TInputImage,TOutputImage>
   InputImagePointer  inputPtr = this->GetInput();
   OutputImagePointer outputPtr = this->GetOutput(0);
   
+  
   // Define the portion of the input to walk for this thread, using
   // the CallCopyOutputRegionToInputRegion method allows for the input
   // and output images to be different dimensions
   InputImageRegionType inputRegionForThread;
   this->CallCopyOutputRegionToInputRegion(inputRegionForThread, outputRegionForThread);
 
+  EigenMatrixImageType::RegionType eigenMatrixRegionForThread;
+  CallCopyOutputRegionToEigenMatrixImageRegion(eigenMatrixRegionForThread, outputRegionForThread);
+
   // Define the iterators
   ImageRegionConstIterator<TInputImage>  inputIt(inputPtr, inputRegionForThread);
   ImageRegionIterator<TOutputImage> outputIt(outputPtr, outputRegionForThread);
+  ImageRegionIterator<EigenMatrixImageType> eigenMatrixIt(this->m_EigenMatrixImage, eigenMatrixRegionForThread);
 
   ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
   inputIt.GoToBegin();
   outputIt.GoToBegin();
+  eigenMatrixIt.GoToBegin();
 
   while( !inputIt.IsAtEnd() ) 
     {
@@ -177,10 +225,15 @@ SymmetricEigenAnalysisImageFilterWithMatrix<TInputImage,TOutputImage>
     EigenMatrixType eigenMatrix;
     //this->m_Analysis.ComputeEigenValues( inputIt.Get(), eigenValue );
     this->m_Analysis.ComputeEigenValuesAndVectors( inputIt.Get(), eigenValue, eigenMatrix );
-    outputIt.Set( eigenValue );
+    (eigenMatrixIt.Value())[0] = eigenMatrix[0][0];
+    (eigenMatrixIt.Value())[1] = eigenMatrix[0][1];
+    (eigenMatrixIt.Value())[2] = eigenMatrix[0][2];
     //outputIt.Set( eigenMatrix[0][2] );
+
+    outputIt.Set( eigenValue );
     ++inputIt;
     ++outputIt;
+    ++eigenMatrixIt;
     progress.CompletedPixel();  // potential exception thrown here
     }
 }
