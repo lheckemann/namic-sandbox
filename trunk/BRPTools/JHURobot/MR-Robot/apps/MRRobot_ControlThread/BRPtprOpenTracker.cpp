@@ -520,6 +520,13 @@ bool BRPtprOpenTracker::IsThereNewCommand(void) {
         if (SlicerClient)
             CMN_LOG_RUN_VERBOSE << "Received connection from Slicer!" << std::endl;
     }
+    if (SlicerClient) {
+        // Use igtlMessage instead
+        char buffer[128];
+        int num = SlicerClient->Receive(buffer, sizeof(buffer), 0);
+        if (num > 0)
+            CMN_LOG_RUN_VERBOSE << "Received " << num << " bytes from Slicer" << std::endl;
+    }
     return false;
 }
 
