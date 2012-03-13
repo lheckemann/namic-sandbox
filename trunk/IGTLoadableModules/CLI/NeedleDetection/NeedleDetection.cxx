@@ -12,6 +12,7 @@
 #include "itkSmoothingRecursiveGaussianImageFilter.h"
 #include "itkHessian3DToNeedleImageFilter.h"
 #include "itkSymmetricSecondRankTensor.h"
+#include "itkLabelToNeedleImageFilter.h"
 
 #include "itkOtsuThresholdImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
@@ -57,28 +58,33 @@ template<class T> int DoIt( int argc, char * argv[], T )
   typedef   itk::SmoothingRecursiveGaussianImageFilter<
     FileInputImageType, InternalImageType > SmoothingFilterType;
   
-  // Line detection related filter
+  // Line enhancement filter
   typedef   itk::HessianRecursiveGaussianImageFilter< 
     InternalImageType > HessianFilterType;
   typedef   itk::Hessian3DToNeedleImageFilter<
-    InternalPixelType > NeedleFilterType;
+    InternalPixelType > LineFilterType;
 
   // Otsu Threshold Segmentation filter
-  typedef itk::OtsuThresholdImageFilter<
+  typedef   itk::OtsuThresholdImageFilter<
     InternalImageType, InternalImageType >  OtsuFilterType;
-  typedef itk::ConnectedComponentImageFilter<
+  typedef   itk::ConnectedComponentImageFilter<
     InternalImageType, OutputImageType >  CCFilterType;
-  typedef itk::RelabelComponentImageFilter<
+  typedef   itk::RelabelComponentImageFilter<
     OutputImageType, OutputImageType > RelabelType;
+
+  // Line detection filter
+  typedef   itk::LabelToNeedleImageFilter<
+    OutputImageType, OutputImageType > NeedleFilterType;
 
   typename ReaderType::Pointer reader = ReaderType::New();  
   typename WriterType::Pointer writer = WriterType::New();
   typename SmoothingFilterType::Pointer smoothing = SmoothingFilterType::New();
   typename HessianFilterType::Pointer hessianFilter = HessianFilterType::New();
-  typename NeedleFilterType::Pointer needleFilter = NeedleFilterType::New();
+  typename LineFilterType::Pointer lineFilter = LineFilterType::New();
   typename OtsuFilterType::Pointer OtsuFilter = OtsuFilterType::New();
   typename CCFilterType::Pointer CCFilter = CCFilterType::New();
   typename RelabelType::Pointer RelabelFilter = RelabelType::New();
+  typename NeedleFilterType::Pointer needleFilter = NeedleFilterType::New();
 
   reader->SetFileName( inputVolume.c_str() );
   writer->SetFileName( outputVolume.c_str() );
@@ -91,24 +97,26 @@ template<class T> int DoIt( int argc, char * argv[], T )
   hessianFilter->SetInput( smoothing->GetOutput() );
   hessianFilter->SetSigma( static_cast< double >(sigma2) );
 
-  needleFilter->SetInput( hessianFilter->GetOutput() );
-  needleFilter->SetAlpha1( static_cast< double >(alpha1));
-  needleFilter->SetAlpha2( static_cast< double >(alpha2));
-  needleFilter->SetAngleThreshold (static_cast< double >(anglethreshold) );
-  needleFilter->SetNormal (static_cast< double >(normal[0]),
+  lineFilter->SetInput( hessianFilter->GetOutput() );
+  lineFilter->SetAlpha1( static_cast< double >(alpha1));
+  lineFilter->SetAlpha2( static_cast< double >(alpha2));
+  lineFilter->SetAngleThreshold (static_cast< double >(anglethreshold) );
+  lineFilter->SetNormal (static_cast< double >(normal[0]),
                            static_cast< double >(normal[1]),
                            static_cast< double >(normal[2]));
 
-  OtsuFilter->SetInput( needleFilter->GetOutput() );
+  OtsuFilter->SetInput( lineFilter->GetOutput() );
   OtsuFilter->SetOutsideValue( 255 );
   OtsuFilter->SetInsideValue(  0  );
   OtsuFilter->SetNumberOfHistogramBins( numberOfBins );
   CCFilter->SetInput (OtsuFilter->GetOutput());
   CCFilter->FullyConnectedOff();
-  RelabelFilter->SetInput (CCFilter->GetOutput());
-  RelabelFilter->SetMinimumObjectSize(minimumObjectSize);
+  RelabelFilter->SetInput ( CCFilter->GetOutput() );
+  RelabelFilter->SetMinimumObjectSize( minimumObjectSize );
 
-  writer->SetInput( RelabelFilter->GetOutput() );
+  needleFilter->SetInput( RelabelFilter->GetOutput() );
+
+  writer->SetInput( needleFilter->GetOutput() );
   writer->SetUseCompression(1);
   writer->Update();
 
