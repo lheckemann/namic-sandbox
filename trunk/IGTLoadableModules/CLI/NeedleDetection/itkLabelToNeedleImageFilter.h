@@ -63,6 +63,19 @@ public:
   itkSetMacro(MinPrincipalAxisLength, float);
   itkGetConstMacro(MinPrincipalAxisLength, float);
 
+  itkSetMacro(AngleThreshold, double);
+  itkGetConstMacro(AngleThreshold, double);
+
+  inline void SetNormal(double x, double y, double z)
+  {
+    m_Normal[0] = x; m_Normal[1] = y; m_Normal[2] = z;
+  }
+
+  inline void GetNormal(double& x, double& y, double& z)
+  {
+    x = m_Normal[0]; y = m_Normal[1]; z = m_Normal[2];
+  }
+
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(DoubleConvertibleToOutputCheck,
@@ -85,6 +98,8 @@ private:
   
   float m_MinPrincipalAxisLength;
   float m_MaxMinorAxisLength;
+  double m_AngleThreshold;
+  double m_Normal[3];
 
 };
 
