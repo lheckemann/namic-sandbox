@@ -93,9 +93,11 @@ LabelToNeedleImageFilter< TInput, TOutput >
       }
 
     VectorType mv;
-    mv[0] = (float)index[0];
-    mv[1] = (float)index[1];
-    mv[2] = (float)index[2];
+    typename InputImageType::PointType point;
+    input->TransformIndexToPhysicalPoint (index, point);
+    mv[0] = (float)point[0];
+    mv[1] = (float)point[1];
+    mv[2] = (float)point[2];
     pointListMap[pix]->PushBack(mv);
 
     ++it;
@@ -108,6 +110,8 @@ LabelToNeedleImageFilter< TInput, TOutput >
   //int nLabel = pointListMap.size();
   
   //-- For each label, perform principal component analysis
+  double cosThreshold = vcl_cos((m_AngleThreshold / 180.0) * vnl_math::pi);
+
   typename PointListMapType::iterator miter;
   for (miter = pointListMap.begin(); miter != pointListMap.end(); miter ++)
     {
@@ -144,7 +148,7 @@ LabelToNeedleImageFilter< TInput, TOutput >
     //typedef itk::SymmetricEigenAnalysis< CovarianceAlgorithmType::OutputType,
     typedef itk::SymmetricEigenAnalysis< CovarianceAlgorithmType::MatrixType,
       EigenValuesArrayType, EigenVectorMatrixType > SymmetricEigenAnalysisType;
-    SymmetricEigenAnalysisType analysis;
+    SymmetricEigenAnalysisType analysis (VectorLength);
     EigenValuesArrayType eigenValues;
     EigenVectorMatrixType eigenMatrix;
     analysis.SetOrderEigenMagnitudes( true );
@@ -157,20 +161,28 @@ LabelToNeedleImageFilter< TInput, TOutput >
     std::cout << eigenMatrix << std::endl;
 
     // Check the distribution along the eigen vectors
-    if ( eigenValues[0] >= m_MinPrincipalAxisLength &&
-         sqrt(eigenValues[1]*eigenValues[1]+eigenValues[2]*eigenValues[2]) <= m_MaxMinorAxisLength)
+    if ( eigenValues[2] >= m_MinPrincipalAxisLength &&
+         sqrt(eigenValues[0]*eigenValues[0]+eigenValues[1]*eigenValues[1]) <= m_MaxMinorAxisLength)
       {
-      PointListType::Iterator iter = sample->Begin();
+      // Check the direction of principal component
+      double ip = eigenMatrix[2][0] * m_Normal[0] + eigenMatrix[2][1] * m_Normal[1] + eigenMatrix[2][2] * m_Normal[2];
 
-      while (iter != sample->End())
+      if (vnl_math_abs(ip) > cosThreshold)
         {
-        typename OutputImageType::IndexType index;
-        VectorType vector = iter.GetMeasurementVector();
-        index[0] = vector[0];
-        index[1] = vector[1];
-        index[2] = vector[2];
-        output->SetPixel(index, pix);
-        ++ iter;
+        PointListType::Iterator iter = sample->Begin();
+        
+        while (iter != sample->End())
+          {
+          VectorType vector = iter.GetMeasurementVector();
+          typename InputImageType::PointType point;
+          typename OutputImageType::IndexType index;
+          point[0] = vector[0];
+          point[1] = vector[1];
+          point[2] = vector[2];
+          output->TransformPhysicalPointToIndex (point, index);
+          output->SetPixel(index, pix);
+          ++ iter;
+          }
         }
       }
     }

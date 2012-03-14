@@ -115,6 +115,12 @@ template<class T> int DoIt( int argc, char * argv[], T )
   RelabelFilter->SetMinimumObjectSize( minimumObjectSize );
 
   needleFilter->SetInput( RelabelFilter->GetOutput() );
+  needleFilter->SetMinPrincipalAxisLength( static_cast< float >(minPrincipalAxisLength) );
+  needleFilter->SetMaxMinorAxisLength( static_cast< float >(maxMinorAxisLength) );
+  needleFilter->SetAngleThreshold (static_cast< double >(anglethreshold) );
+  needleFilter->SetNormal (static_cast< double >(normal[0]),
+                           static_cast< double >(normal[1]),
+                           static_cast< double >(normal[2]));
 
   writer->SetInput( needleFilter->GetOutput() );
   writer->SetUseCompression(1);

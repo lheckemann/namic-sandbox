@@ -107,8 +107,29 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <longflag>--minimumObjectSize</longflag>
       <description>Minimum size of object to retain. This parameter can be used to get rid of small regions in noisy images.</description>
       <label>Minimum Object Size</label>
-      <default>0</default>
+      <default>150</default>
     </integer>
+  </parameters>
+
+  <parameters>
+    <label>Needle Identification Parameters</label>
+    <description>Parameters for Needle Identification using PCA</description>
+    <float>
+      <name>minPrincipalAxisLength</name>
+      <longflag>--minPrincipalAxisLength</longflag>
+      <description>
+	Minimum length of the principal axis of the needle artifact.
+      </description>
+      <label>Min. Principal Axis Length</label>
+      <default>100.0</default>
+    </float>
+    <float>
+      <name>maxMinorAxisLength</name>
+      <longflag>--maxMinorAxisLength</longflag>
+      <description>Maximum length of the minor axes of the needle artifact.</description>
+      <label>Max. Minor Axis Length</label>
+      <default>3.0</default>
+    </float>
   </parameters>
 
 
