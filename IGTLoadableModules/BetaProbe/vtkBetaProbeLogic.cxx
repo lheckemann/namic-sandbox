@@ -54,7 +54,6 @@ vtkBetaProbeLogic::vtkBetaProbeLogic()
   this->IJKToRASDirectionMatrix = NULL;
   this->MappingRunning          = false;
   this->MappingThreadID         = -1;
-  this->TmpMatrix               = NULL;
 }
 
 
@@ -70,14 +69,8 @@ vtkBetaProbeLogic::~vtkBetaProbeLogic()
   if(this->GetMappingRunning())
     {
     this->StopMapping();
+    this->m_Threader->Delete();
     }
-
-/*
-  if(this->TmpMatrix)
-  {
-  this->TmpMatrix->Delete();
-  }
-*/
 }
 
 
@@ -106,129 +99,7 @@ void vtkBetaProbeLogic::UpdateAll()
 
 }
 
-void vtkBetaProbeLogic::PivotCalibration(vtkCollection* PivotingMatrix, double AveragePcal[3])
-{
-  int NElements = PivotingMatrix->GetNumberOfItems();
-  vtkMatrix3x3* rotation1 = vtkMatrix3x3::New();
-  vtkMatrix3x3* rotation2 = vtkMatrix3x3::New();
-  double translation1[3];
-  double translation2[3];
-
-  double pcal[3] = {0,0,0};
-
-  int ElementsUsed = 0;
-
-  for(int CurrentElement = 0; CurrentElement < NElements-1; CurrentElement+=2)
-    {
-    vtkMatrix4x4 *matrix1 = vtkMatrix4x4::SafeDownCast(PivotingMatrix->GetItemAsObject(CurrentElement));
-    vtkMatrix4x4 *matrix2 = vtkMatrix4x4::SafeDownCast(PivotingMatrix->GetItemAsObject(CurrentElement+1));
-
-    vtkMatrix3x3* MatrixDifference = vtkMatrix3x3::New();
-    double TranslationDifference[3] = {0,0,0};
-
-
-    // Rotation matrix1
-    rotation1->SetElement(0,0,matrix1->GetElement(0,0));
-    rotation1->SetElement(0,1,matrix1->GetElement(0,1));
-    rotation1->SetElement(0,2,matrix1->GetElement(0,2));
-
-    rotation1->SetElement(1,0,matrix1->GetElement(1,0));
-    rotation1->SetElement(1,1,matrix1->GetElement(1,1));
-    rotation1->SetElement(1,2,matrix1->GetElement(1,2));
-
-    rotation1->SetElement(2,0,matrix1->GetElement(2,0));
-    rotation1->SetElement(2,1,matrix1->GetElement(2,1));
-    rotation1->SetElement(2,2,matrix1->GetElement(2,2));
-
-    // Rotation matrix2
-    rotation2->SetElement(0,0,matrix2->GetElement(0,0));
-    rotation2->SetElement(0,1,matrix2->GetElement(0,1));
-    rotation2->SetElement(0,2,matrix2->GetElement(0,2));
-
-    rotation2->SetElement(1,0,matrix2->GetElement(1,0));
-    rotation2->SetElement(1,1,matrix2->GetElement(1,1));
-    rotation2->SetElement(1,2,matrix2->GetElement(1,2));
-
-    rotation2->SetElement(2,0,matrix2->GetElement(2,0));
-    rotation2->SetElement(2,1,matrix2->GetElement(2,1));
-    rotation2->SetElement(2,2,matrix2->GetElement(2,2));
-
-
-    // Translation matrix1
-    translation1[0] = matrix1->GetElement(0,3);
-    translation1[1] = matrix1->GetElement(1,3);
-    translation1[2] = matrix1->GetElement(2,3);
-
-    // Translation matrix2
-    translation2[0] = matrix2->GetElement(0,3);
-    translation2[1] = matrix2->GetElement(1,3);
-    translation2[2] = matrix2->GetElement(2,3);
-
-
-    // Calculate Difference ( [R1-R2] )
-    // Matrix
-
-    MatrixDifference->SetElement(0,0,rotation1->GetElement(0,0) - rotation2->GetElement(0,0));
-    MatrixDifference->SetElement(0,1,rotation1->GetElement(0,1) - rotation2->GetElement(0,1));
-    MatrixDifference->SetElement(0,2,rotation1->GetElement(0,2) - rotation2->GetElement(0,2));
-
-    MatrixDifference->SetElement(1,0,rotation1->GetElement(1,0) - rotation2->GetElement(1,0));
-    MatrixDifference->SetElement(1,1,rotation1->GetElement(1,1) - rotation2->GetElement(1,1));
-    MatrixDifference->SetElement(1,2,rotation1->GetElement(1,2) - rotation2->GetElement(1,2));
-
-    MatrixDifference->SetElement(2,0,rotation1->GetElement(2,0) - rotation2->GetElement(2,0));
-    MatrixDifference->SetElement(2,1,rotation1->GetElement(2,1) - rotation2->GetElement(2,1));
-    MatrixDifference->SetElement(2,2,rotation1->GetElement(2,2) - rotation2->GetElement(2,2));
-
-
-    std::cout
-      << MatrixDifference->GetElement(0,0) << " " << MatrixDifference->GetElement(0,1) << " " << MatrixDifference->GetElement(0,2) << " "<< MatrixDifference->GetElement(0,3) << std::endl
-      << MatrixDifference->GetElement(1,0) << " " << MatrixDifference->GetElement(1,1) << " " << MatrixDifference->GetElement(1,2) << " "<< MatrixDifference->GetElement(1,3) << std::endl
-      << MatrixDifference->GetElement(2,0) << " " << MatrixDifference->GetElement(2,1) << " " << MatrixDifference->GetElement(2,2) << " "<< MatrixDifference->GetElement(2,3) << std::endl
-      << MatrixDifference->GetElement(3,0) << " " << MatrixDifference->GetElement(3,1) << " " << MatrixDifference->GetElement(3,2) << " "<< MatrixDifference->GetElement(3,3) << std::endl
-      << std::endl;
-
-
-
-
-    // Translation ( [P1-P2] )
-    TranslationDifference[0] = translation1[0] - translation2[0];
-    TranslationDifference[1] = translation1[1] - translation2[1];
-    TranslationDifference[2] = translation1[2] - translation2[2];
-
-
-    // Inverse matrix ( [R1-R2]^-1 )
-    vtkMatrix3x3* calculated_matrix = vtkMatrix3x3::New();
-    MatrixDifference->Invert(MatrixDifference, calculated_matrix);
-
-    // Multiply Rotation and Translation ( [R1-R2]^-1 * [P1-P2] )
-    MatrixDifference->MultiplyPoint(TranslationDifference, pcal);
-
-    // Change sign ( Pcal = - [R1-R2]^-1 * [P1-P2] ) and add to previous results to average
-    pcal[0] += -pcal[0];
-    pcal[1] += -pcal[1];
-    pcal[2] += -pcal[2];
-
-    std::cout << pcal[0] << "-" << pcal[1] << "-" << pcal[2] << std::endl;
-
-    ElementsUsed += 2;
-
-    std::cout << CurrentElement << "/" << ElementsUsed << std::endl;
-
-    calculated_matrix->Delete();
-    MatrixDifference->Delete();
-    }
-
-  // Average pcal
-  AveragePcal[0] = pcal[0] / ElementsUsed;
-  AveragePcal[1] = pcal[1] / ElementsUsed;
-  AveragePcal[2] = pcal[2] / ElementsUsed;
-
-  rotation1->Delete();
-  rotation2->Delete();
-}
-
-
+//---------------------------------------------------------------------------
 void vtkBetaProbeLogic::StartTumorDetection(int threshold)
 {
   if(this->GetUDPServerNode())
@@ -239,6 +110,7 @@ void vtkBetaProbeLogic::StartTumorDetection(int threshold)
     }
 }
 
+//---------------------------------------------------------------------------
 void vtkBetaProbeLogic::StopTumorDetection()
 {
   if(this->ThreadID >= 0)
@@ -249,6 +121,7 @@ void vtkBetaProbeLogic::StopTumorDetection()
     }
 }
 
+//---------------------------------------------------------------------------
 ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::TumorDetection(void* pInfoStruct)
 {
   vtkBetaProbeLogic *BetaProbeLogic = (vtkBetaProbeLogic*) (((itk::MultiThreader::ThreadInfoStruct *)(pInfoStruct))->UserData);
@@ -265,6 +138,7 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::TumorDetection(void* pInfoStruct)
   return EXIT_SUCCESS;
 }
 
+//---------------------------------------------------------------------------
 void vtkBetaProbeLogic::BeepFunction(int interval_ms)
 {
 #ifdef _WIN32
@@ -277,6 +151,7 @@ void vtkBetaProbeLogic::BeepFunction(int interval_ms)
 
 }
 
+//---------------------------------------------------------------------------
 void vtkBetaProbeLogic::StartMapping()
 {
   // Start Thread
@@ -292,13 +167,13 @@ void vtkBetaProbeLogic::StartMapping()
     }
 }
 
+//---------------------------------------------------------------------------
 void vtkBetaProbeLogic::StopMapping()
 {
   if(this->MappingThreadID >= 0)
     {
     this->SetMappingRunning(false);
     this->m_Threader->TerminateThread(this->MappingThreadID);
-    this->m_Threader = NULL;
     this->CountsType = -1;
     this->MappingThreadID = -1;
     this->SetPositionTransform(NULL);
@@ -314,6 +189,7 @@ void vtkBetaProbeLogic::StopMapping()
     }
 }
 
+//---------------------------------------------------------------------------
 ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
 {
   // Get context

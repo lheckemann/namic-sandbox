@@ -92,11 +92,6 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeLogic : public vtkSlicerModuleLogic
   void StopMapping();
   static ITK_THREAD_RETURN_TYPE MappingFunction(void *pInfoStruct);
 
-  // Calibration
-  void PivotCalibration(vtkCollection* PivotingMatrix, double AveragePcal[3]);
-
-  vtkMatrix4x4* TmpMatrix;
-
  protected:
 
   vtkBetaProbeLogic();
@@ -112,27 +107,26 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeLogic : public vtkSlicerModuleLogic
 
  private:
 
-  vtkMRMLUDPServerNode *UDPServerNode;
-
   int CountsType;
+  vtkMRMLUDPServerNode *UDPServerNode;
 
   // Mapping
   vtkMRMLLinearTransformNode* PositionTransform;
-  vtkMRMLScalarVolumeNode* DataToMap;
-  vtkMRMLColorTableNode* ColorNode;
-  vtkMRMLScalarVolumeNode* MappedVolume;
-  vtkMatrix4x4* RASToIJKMatrix;
-  vtkMatrix4x4* IJKToRASDirectionMatrix;
-  bool MappingRunning;
+  vtkMRMLScalarVolumeNode*    DataToMap;
+  vtkMRMLColorTableNode*      ColorNode;
+  vtkMRMLScalarVolumeNode*    MappedVolume;
+  vtkMatrix4x4*               RASToIJKMatrix;
+  vtkMatrix4x4*               IJKToRASDirectionMatrix;
+  bool                        MappingRunning;
+  int                         MappingThreadID;
 
-  int MappingThreadID;
   // Detection
   int ThreadID;
+  bool DetectionRunning;
+  int ThresholdDetection;
   //BTX
   itk::MultiThreader::Pointer m_Threader;
   //ETX
-  bool DetectionRunning;
-  int ThresholdDetection;
 
 
 };
