@@ -21,6 +21,10 @@
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
+#include "itkListSample.h"
+#include "itkCovarianceSampleFilter.h"
+//#include "itkCovarianceCalculator.h"
+#include "itkSymmetricEigenAnalysis.h"
 
 #include "vnl/vnl_math.h"
 
@@ -63,89 +67,113 @@ LabelToNeedleImageFilter< TInput, TOutput >
   this->AllocateOutputs();
   oit = ImageRegionIterator<OutputImageType>(output,
                                              output->GetRequestedRegion());
+
+  output->FillBuffer(static_cast<OutputPixelType>(0));
   
+  const unsigned int VectorLength = 3;
+  typedef itk::Vector< float, VectorLength > VectorType;
+  typedef itk::Statistics::ListSample< VectorType > PointListType;
+  typedef std::map< InputPixelType, PointListType::Pointer > PointListMapType;
+
+  //-- Create lists of points for each label
+  PointListMapType pointListMap;
   oit.GoToBegin();
   it.GoToBegin();
-  
-  typedef InputImageType::IndexType IndexType;
-  typedef std::list< IndexType > IndexListType;
-  typedef std::map< InputPixelType, IndexListType > IndexListMapType;
-  typedef std::map< InputPixelType, IndexType > SumMapType;
-
-  typename IndexListMapType map;
-  typename SumMapType sum;
-  typedef vnl_matrix< double > MatrixType;
-
   while (!it.IsAtEnd())
     {
     InputPixelType pix = it.Get();
-    IndexType index = it.GetIndex();
-    map[pix].push_back(index);
-    SumMapType::iterator it = sum.find(pix);
-    if (it == sum.end())
+    typename InputImageType::IndexType index = it.GetIndex();
+    
+    typename PointListMapType::iterator iter = pointListMap.find(pix);
+    if (iter == pointListMap.end())
       {
-      sum[pix] = IndexType(0,0,0);
+      PointListType::Pointer plist = PointListType::New();
+      plist->SetMeasurementVectorSize( VectorLength );    
+      pointListMap[pix] = plist;
       }
-    IndexType s = sum[pix];
-    s[0] += index[0];
-    s[1] += index[1];
-    s[2] += index[2];
-    //oit.Set(it.Get());
+
+    VectorType mv;
+    mv[0] = (float)index[0];
+    mv[1] = (float)index[1];
+    mv[2] = (float)index[2];
+    pointListMap[pix]->PushBack(mv);
+
     ++it;
     ++oit;
+    //oit.Set(it.Get());
     }
-  int nLabel = map.size();
 
-  IndexListMapType::iterator miter;
-  for (miter = map.begin(); miter != map.end(); miter ++)
+
+  //-- Check the number of labels (clusters)
+  //int nLabel = pointListMap.size();
+  
+  //-- For each label, perform principal component analysis
+  typename PointListMapType::iterator miter;
+  for (miter = pointListMap.begin(); miter != pointListMap.end(); miter ++)
     {
     InputPixelType pix = miter->first;
-    IndexListType il = miter->second; 
-    IndexType s = sum[pix];
+    PointListType::Pointer sample = miter->second; 
 
-    // Calculate average
-    int       n = il.size();
-    double   ax = (double)s[0] / (double)n;
-    double   ay = (double)s[1] / (double)n;
-    double   az = (double)s[2] / (double)n;
-
-    MatrixType B(3, n);
-    int i = 0;
-    IndexListType::iterator iter;
-    for (iter = il.begin(); iter != il.end(); il ++)
-      {
-      r[0][i] = *iter[0] - ax;
-      r[1][i] = *iter[1] - ay;
-      r[2][i] = *iter[2] - az;
-      }
-
-    typedef itk::SymmetricEigenAnalysis< InputMatrixType,
-      EigenValuesArrayType, EigenVectorMatrixType > SymmetricEigenAnalysisType;
-
-    typedef  itk::Statistics::CovarianceCalculator< double >   CovarianceAlgorithmType;
-    typename CovarianceAlgorithmType::Pointer covarianceAlgorithm = 
+    std::cout << "=== Label " << pix << "===" << std::endl;
+    
+    //// Calculate covariance matrix
+    //typedef itk::Statistics::MeanCalculator< PointListType > MeanAlgorithmType;
+    //MeanAlgorithmType::Pointer meanAlgorithm = MeanAlgorithmType::New();
+    //meanAlgorithm->SetInputSample( sample );
+    //meanAlgorithm->Update();
+    //std::cout << "Sample mean = " << *(meanAlgorithm->GetOutput()) << std::endl;
+    
+    //typedef itk::Statistics::CovarianceCalculator< PointListType > 
+    typedef itk::Statistics::CovarianceSampleFilter< PointListType > 
+      CovarianceAlgorithmType;
+    CovarianceAlgorithmType::Pointer covarianceAlgorithm = 
       CovarianceAlgorithmType::New();
 
-    typedef itk::Statistics::MeanCalculator< SampleType > MeanAlgorithmType;
-    covarianceAlgorithm->SetInput( m_Sample );
+    //covarianceAlgorithm->SetInputSample( sample );
+    //covarianceAlgorithm->SetMean( meanAlgorithm->GetOutput() );
+    covarianceAlgorithm->SetInput( sample );
+    covarianceAlgorithm->Update();
 
-    MatrixType C = B * B.conjugate_transpose();
+    std::cout << "Sample covariance = " << std::endl ; 
+    //std::cout << *(covarianceAlgorithm->GetOutput()) << std::endl;
+    std::cout << covarianceAlgorithm->GetCovarianceMatrix() << std::endl;
 
-    InputMatrixType Cvnl(C);
+    // Perform Symmetric Eigen Analysis
+    typedef itk::FixedArray< double, VectorLength > EigenValuesArrayType;
+    typedef itk::Matrix< double, VectorLength, VectorLength > EigenVectorMatrixType;
+    //typedef itk::SymmetricEigenAnalysis< CovarianceAlgorithmType::OutputType,
+    typedef itk::SymmetricEigenAnalysis< CovarianceAlgorithmType::MatrixType,
+      EigenValuesArrayType, EigenVectorMatrixType > SymmetricEigenAnalysisType;
+    SymmetricEigenAnalysisType analysis;
+    EigenValuesArrayType eigenValues;
+    EigenVectorMatrixType eigenMatrix;
+    analysis.SetOrderEigenMagnitudes( true );
+    //analysis.ComputeEigenValuesAndVectors( covarianceAlgorithm->GetOutput,
+    analysis.ComputeEigenValuesAndVectors( covarianceAlgorithm->GetCovarianceMatrix(),
+                                            eigenValues, eigenMatrix );    
 
-    SymmetricEigenAnalysis analysis;
-    OutputImagePixelType eigenValue;
-    EigenMatrixType eigenMatrix;
-    typedef Matrix< double, 3, 3 >  EigenMatrixType;
+    std::cout << "EigenValues: " << eigenValues << std::endl;
+    std::cout << "EigenVectors (each row is an an eigen vector): " << std::endl;
+    std::cout << eigenMatrix << std::endl;
 
-    analysis.ComputeEigenValuesAndVectors(Cvnl, eigenValue, eigenMatrix );    
+    // Check the distribution along the eigen vectors
+    if ( eigenValues[0] >= m_MinPrincipalAxisLength &&
+         sqrt(eigenValues[1]*eigenValues[1]+eigenValues[2]*eigenValues[2]) <= m_MaxMinorAxisLength)
+      {
+      PointListType::Iterator iter = sample->Begin();
 
-
+      while (iter != sample->End())
+        {
+        typename OutputImageType::IndexType index;
+        VectorType vector = iter.GetMeasurementVector();
+        index[0] = vector[0];
+        index[1] = vector[1];
+        index[2] = vector[2];
+        output->SetPixel(index, pix);
+        ++ iter;
+        }
+      }
     }
-  
-  
-  
-
 }
 
 
