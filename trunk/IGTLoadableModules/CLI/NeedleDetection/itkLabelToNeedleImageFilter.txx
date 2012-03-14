@@ -119,11 +119,26 @@ LabelToNeedleImageFilter< TInput, TOutput >
       r[2][i] = *iter[2] - az;
       }
 
-    typedef itk::SymmetricEigenAnalysis< InputMatrixType,  
+    typedef itk::SymmetricEigenAnalysis< InputMatrixType,
       EigenValuesArrayType, EigenVectorMatrixType > SymmetricEigenAnalysisType;
 
+    typedef  itk::Statistics::CovarianceCalculator< double >   CovarianceAlgorithmType;
+    typename CovarianceAlgorithmType::Pointer covarianceAlgorithm = 
+      CovarianceAlgorithmType::New();
+
+    typedef itk::Statistics::MeanCalculator< SampleType > MeanAlgorithmType;
+    covarianceAlgorithm->SetInput( m_Sample );
+
     MatrixType C = B * B.conjugate_transpose();
-    
+
+    InputMatrixType Cvnl(C);
+
+    SymmetricEigenAnalysis analysis;
+    OutputImagePixelType eigenValue;
+    EigenMatrixType eigenMatrix;
+    typedef Matrix< double, 3, 3 >  EigenMatrixType;
+
+    analysis.ComputeEigenValuesAndVectors(Cvnl, eigenValue, eigenMatrix );    
 
 
     }
