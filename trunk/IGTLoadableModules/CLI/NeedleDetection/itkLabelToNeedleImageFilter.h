@@ -57,12 +57,19 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
   
+  itkSetMacro(MaxMinorAxisLength, float);
+  itkGetConstMacro(MaxMinorAxisLength, float);
+
+  itkSetMacro(MinPrincipalAxisLength, float);
+  itkGetConstMacro(MinPrincipalAxisLength, float);
+
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(DoubleConvertibleToOutputCheck,
                   (Concept::Convertible<double, OutputPixelType>));
   /** End concept checking */
 #endif
+
 
 protected:
   LabelToNeedleImageFilter();
@@ -75,6 +82,9 @@ protected:
 private:
   LabelToNeedleImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
+  
+  float m_MinPrincipalAxisLength;
+  float m_MaxMinorAxisLength;
 
 };
 
