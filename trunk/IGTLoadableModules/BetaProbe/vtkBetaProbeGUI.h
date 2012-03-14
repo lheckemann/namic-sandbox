@@ -59,22 +59,12 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeGUI : public vtkSlicerModuleGUI
     this->SetLogic ( vtkObjectPointer (&this->Logic), logic );
   }
 
-  // NH added the following line on Jan 9 2011 in response to RK's request to move the module under IGT
-  // LC should review the following line, and upon approval, should remove this comment.
-
   const char *GetCategory() const { return "IGT";}
-
-
-  // NH addition end.
 
   void SetContinuousMode(bool val){this->continuous_mode = val;};
   bool GetContinuousMode(){return this->continuous_mode;};
 
-  vtkGetMacro(PivotCalibrationRunning,bool);
-  vtkSetMacro(PivotCalibrationRunning,bool);
-
   void Capture_Data();
-  void Capture_Tracker_Position();
 
  protected:
   //----------------------------------------------------------------
@@ -126,10 +116,9 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeGUI : public vtkSlicerModuleGUI
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
-  void BuildGUIForNodes();
-  void BuildGUIForPivotCalibration();
-  void BuildGUIForCapturingDataFromBetaProbe();
-  void BuildGUIForDetection();
+  void BuildGUIForInputs();
+  void BuildGUIForDataRecorder();
+  void BuildGUIForThresholdDetection();
   void BuildGUIForMapping();
 
   //----------------------------------------------------------------
@@ -159,29 +148,23 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeGUI : public vtkSlicerModuleGUI
   // GUI widgets
   //----------------------------------------------------------------
 
-  vtkKWPushButton* Capture;
-  vtkKWPushButton* Start_Button;
-  vtkKWPushButton* Stop_Button;
-  vtkKWPushButton* SelectFile;
-  vtkKWPushButton* CloseFile;
-  vtkSlicerNodeSelectorWidget* CounterNode;
-  vtkSlicerNodeSelectorWidget* TrackerNode;
-  vtkKWLabel* Capture_status;
-  vtkKWFileBrowserDialog* FileSelector;
+  vtkKWPushButton*              Capture;
+  vtkKWPushButton*              Start_Button;
+  vtkKWPushButton*              Stop_Button;
+  vtkKWPushButton*              SelectFile;
+  vtkKWPushButton*              CloseFile;
+  vtkSlicerNodeSelectorWidget*  CounterNode;
+  vtkSlicerNodeSelectorWidget*  TrackerNode;
+  vtkKWLabel*                   Capture_status;
+  vtkKWFileBrowserDialog*       FileSelector;
 
-  vtkMRMLUDPServerNode* Counts;
-  vtkMRMLLinearTransformNode* Probe_Position;
-  vtkMatrix4x4* Probe_Matrix;
-
-
-  vtkKWPushButton* StartPivotCalibration;
-  vtkKWPushButton* StopPivotCalibration;
-  vtkCollection* PivotingMatrix;
-
+  vtkMRMLUDPServerNode*         Counts;
+  vtkMRMLLinearTransformNode*   Probe_Position;
+  vtkMatrix4x4*                 Probe_Matrix;
 
   vtkKWRadioButton      *RadioBackgroundButton;
   vtkKWEntry            *BackgroundValueEntry;
-  vtkKWPushButton*       BackgroundAcceptButton;
+  vtkKWPushButton       *BackgroundAcceptButton;
   vtkKWRadioButton      *RadioTumorButton;
   vtkKWEntry            *TumorValueEntry;
   vtkKWPushButton       *TumorAcceptButton;
@@ -189,17 +172,14 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeGUI : public vtkSlicerModuleGUI
   vtkKWEntry            *ThresholdValueEntry;
   vtkKWPushButton       *StartDetectionButton;
 
-  vtkKWPushButton *TestButton;
-
-  int ThresholdTumorDetection;
-
-  bool BackgroundAccepted;
-  bool TumorAccepted;
-
   vtkSlicerNodeSelectorWidget *DataSelector;
   vtkMRMLScalarVolumeNode     *DataToMap;
   vtkKWPushButton             *MappingButton;
   vtkKWLabel                  *LabelStatus;
+
+  int   ThresholdTumorDetection;
+  bool  BackgroundAccepted;
+  bool  TumorAccepted;
 
   //----------------------------------------------------------------
   // Logic Values
@@ -210,7 +190,6 @@ class VTK_BetaProbe_EXPORT vtkBetaProbeGUI : public vtkSlicerModuleGUI
   int                        CloseScene;
 
   bool continuous_mode;
-  bool PivotCalibrationRunning;
 };
 
 

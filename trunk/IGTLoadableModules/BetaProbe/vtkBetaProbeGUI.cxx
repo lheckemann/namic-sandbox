@@ -83,12 +83,6 @@ vtkBetaProbeGUI::vtkBetaProbeGUI ( )
   this->Probe_Position = NULL;
   this->Probe_Matrix   = NULL;
 
-  this->StartPivotCalibration   = NULL;
-  this->StopPivotCalibration    = NULL;
-  this->PivotCalibrationRunning = false;
-
-  this->PivotingMatrix = vtkCollection::New();
-
   this->RadioBackgroundButton  = NULL;
   this->BackgroundValueEntry   = NULL;
   this->BackgroundAcceptButton = NULL;
@@ -110,10 +104,6 @@ vtkBetaProbeGUI::vtkBetaProbeGUI ( )
   this->LabelStatus   = NULL;
 
   this->SetContinuousMode(false);
-
-
-  this->TestButton = NULL;
-
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -199,25 +189,6 @@ vtkBetaProbeGUI::~vtkBetaProbeGUI ( )
     this->Probe_Matrix->Delete();
     }
 
-
-  if(this->StartPivotCalibration)
-    {
-    this->StartPivotCalibration->SetParent(NULL);
-    this->StartPivotCalibration->Delete();
-    }
-
-  if(this->StopPivotCalibration)
-    {
-    this->StopPivotCalibration->SetParent(NULL);
-    this->StopPivotCalibration->Delete();
-    }
-
-  if(this->PivotingMatrix)
-    {
-    this->PivotingMatrix->Delete();
-    }
-
-
   if (this->RadioBackgroundButton)
     {
     this->RadioBackgroundButton->SetParent(NULL);
@@ -289,15 +260,6 @@ vtkBetaProbeGUI::~vtkBetaProbeGUI ( )
     this->LabelStatus->SetParent(NULL);
     this->LabelStatus->Delete();
     }
-
-
-  if(this->TestButton)
-    {
-    this->TestButton->SetParent(NULL);
-    this->TestButton->Delete();
-    }
-
-
 
 
   //----------------------------------------------------------------
@@ -403,20 +365,6 @@ void vtkBetaProbeGUI::RemoveGUIObservers ( )
     }
 
 
-
-  if (this->StartPivotCalibration)
-    {
-    this->StartPivotCalibration
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-  if (this->StopPivotCalibration)
-    {
-    this->StopPivotCalibration
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-
   if (this->RadioBackgroundButton)
     {
     this->RadioBackgroundButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
@@ -466,13 +414,6 @@ void vtkBetaProbeGUI::RemoveGUIObservers ( )
     this->MappingButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-
-  if(this->TestButton)
-    {
-    this->TestButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-
   this->RemoveLogicObservers();
 
 }
@@ -489,8 +430,6 @@ void vtkBetaProbeGUI::AddGUIObservers ( )
   // MRML
 
   vtkIntArray* events = vtkIntArray::New();
-  //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
-  //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
   events->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent);
 
@@ -550,20 +489,6 @@ void vtkBetaProbeGUI::AddGUIObservers ( )
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
-
-
-  if(this->StartPivotCalibration)
-    {
-    this->StartPivotCalibration
-      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
-
-  if(this->StopPivotCalibration)
-    {
-    this->StopPivotCalibration
-      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
-
   this->RadioBackgroundButton->AddObserver ( vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->BackgroundValueEntry->AddObserver ( vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->BackgroundAcceptButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
@@ -573,12 +498,8 @@ void vtkBetaProbeGUI::AddGUIObservers ( )
   this->RadioThresholdButton->AddObserver ( vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->ThresholdValueEntry->AddObserver ( vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->StartDetectionButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
-
   this->DataSelector->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->MappingButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
-
-
-  this->TestButton->AddObserver ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
 
   this->AddLogicObservers();
 
@@ -640,46 +561,53 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
       }
     else
       {
-      this->Capture_status->SetText("Sorry. Node is missing (BetaProbe or Tracker)");
+      this->Capture_status->SetText("Node Missing");
       }
     }
 
   if (this->Start_Button == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    if(this->Counts && this->Probe_Position)
+    if(this->Capture_status)
       {
-      // Synchronize UDPServerNode and BetaProbe timers
-      this->TimerInterval = this->Counts->GetTInterval();
+      if(this->Counts && this->Probe_Position && this->Stop_Button)
+        {
+        // Synchronize UDPServerNode and BetaProbe timers
+        this->TimerInterval = this->Counts->GetTInterval();
 
-      this->SetContinuousMode(true);
-      this->Capture->SetState(0);
-      this->Start_Button->SetState(0);
-      this->Stop_Button->SetState(1);
-
-      this->StartPivotCalibration->SetState(0);
-      }
-    else
-      {
-      this->Capture_status->SetText("Sorry. Node is missing (BetaProbe or Tracker)");
+        if(this->BetaProbeCountsWithTimestamp.is_open())
+          {
+          this->SetContinuousMode(true);
+          this->Capture->SetState(0);
+          this->Start_Button->SetState(0);
+          this->Stop_Button->SetState(1);
+          }
+        else
+          {
+          this->Capture_status->SetText("Select a file to save data");
+          }
+        }
+      else
+        {
+        this->Capture_status->SetText("Node Missing");
+        }
       }
     }
 
   if (this->Stop_Button == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    if(this->Counts && this->Probe_Position)
+    if(this->Counts && this->Probe_Position && this->Start_Button)
       {
       this->SetContinuousMode(false);
       this->Capture->SetState(1);
       this->Start_Button->SetState(1);
       this->Stop_Button->SetState(0);
-
-      this->StartPivotCalibration->SetState(1);
+      this->Capture_status->SetText("Recording Stopped");
       }
     else
       {
-      this->Capture_status->SetText("Sorry. Node is missing (BetaProbe or Tracker)");
+      this->Capture_status->SetText("Node Missing");
       }
     }
 
@@ -704,7 +632,7 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         {
         std::stringstream open_file_succeed;
         open_file_succeed << "File opened [" << filename.c_str() << "]";
-        this->Capture_status->SetText(open_file_succeed.str().c_str());
+        this->Capture_status->SetText("File Opened");
         }
       else
         {
@@ -722,7 +650,7 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
       this->BetaProbeCountsWithTimestamp.close();
       std::stringstream close_file_succeed;
       close_file_succeed << "File closed [" << filename_c.c_str() << "]";
-      this->Capture_status->SetText(close_file_succeed.str().c_str());
+      this->Capture_status->SetText("File Closed");
       }
     if(this->FileSelector)
       {
@@ -743,11 +671,7 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         // Synchronize UDPServerNode and BetaProbe timers
         this->TimerInterval = this->Counts->GetTInterval();
         }
-
-      std::stringstream counter_selected;
-      counter_selected << this->CounterNode->GetSelected()->GetName();
-      counter_selected << " selected";
-      this->Capture_status->SetText(counter_selected.str().c_str());
+      this->Capture_status->SetText("UDPServer Selected");
       }
     }
 
@@ -757,65 +681,7 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
     if(this->TrackerNode->GetSelected())
       {
       this->Probe_Position = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNode->GetSelected());
-      std::stringstream tracker_selected;
-      tracker_selected << this->TrackerNode->GetSelected()->GetName();
-      tracker_selected << " selected";
-      this->Capture_status->SetText(tracker_selected.str().c_str());
-      }
-    }
-
-
-  // ******** PIVOT CALIBRATION *********
-
-  if (this->StartPivotCalibration == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    if(this->PivotingMatrix)
-      {
-      this->PivotingMatrix->RemoveAllItems();
-
-      if(this->Probe_Position && (this->GetPivotCalibrationRunning()==false))
-        {
-        this->StartPivotCalibration->SetState(0);
-        this->StopPivotCalibration->SetState(1);
-        this->SetPivotCalibrationRunning(true);
-
-        this->Start_Button->SetState(0);
-        this->Capture->SetState(0);
-        }
-      }
-    }
-
-  if (this->StopPivotCalibration == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    if(this->GetPivotCalibrationRunning())
-      {
-      this->StartPivotCalibration->SetState(1);
-      this->StopPivotCalibration->SetState(0);
-      this->SetPivotCalibrationRunning(false);
-
-      this->Start_Button->SetState(1);
-      this->Capture->SetState(1);
-      // Start Pivot Calibration Here
-      if(this->PivotingMatrix)
-        {
-        // Get the Average Pcal vector
-        double pcal[3];
-        this->GetLogic()->PivotCalibration(this->PivotingMatrix,pcal);
-
-        std::cout << "Pcal : (" << pcal[0] << "," << pcal[1] << "," << pcal[2] << ")" << std::endl;
-        }
-
-      // Deleting all matrixes in the vtkCollection and all references to these matrixes
-      for(int i=0; i<this->PivotingMatrix->GetNumberOfItems();i++)
-        {
-        this->PivotingMatrix->GetItemAsObject(i)->Delete();
-        }
-      this->PivotingMatrix->RemoveAllItems();
-
-      // To avoid a double free when the destructor is called
-      this->Probe_Matrix = NULL;
+      this->Capture_status->SetText("Tracker Selected");
       }
     }
 
@@ -841,16 +707,18 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
   if(this->BackgroundAcceptButton == vtkKWPushButton::SafeDownCast(caller)
      && event == vtkKWPushButton::InvokedEvent)
     {
-    if(this->RadioBackgroundButton->GetSelectedState())
+    if(this->BackgroundValueEntry)
       {
       if(this->BackgroundAccepted)
         {
         this->BackgroundAccepted = false;
+        this->BackgroundValueEntry->ReadOnlyOff();
         this->BackgroundAcceptButton->SetText("Accept");
         }
       else
         {
         this->BackgroundAccepted = true;
+        this->BackgroundValueEntry->ReadOnlyOn();
         this->BackgroundAcceptButton->SetText("Reset");
         }
       }
@@ -865,7 +733,7 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
   if(this->TumorValueEntry == vtkKWEntry::SafeDownCast(caller)
      && event == vtkKWEntry::EntryValueChangedEvent)
     {
-    if(this->BackgroundValueEntry->GetValueAsInt() && this->TumorValueEntry->GetValueAsInt())
+    if(this->BackgroundValueEntry->GetValueAsInt() >= 0 && this->TumorValueEntry->GetValueAsInt() >= 0)
       {
       if(this->ThresholdValueEntry)
         {
@@ -878,16 +746,18 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
   if(this->TumorAcceptButton == vtkKWPushButton::SafeDownCast(caller)
      && event == vtkKWPushButton::InvokedEvent)
     {
-    if(this->RadioTumorButton->GetSelectedState())
+    if(this->TumorValueEntry)
       {
       if(this->TumorAccepted)
         {
         this->TumorAccepted = false;
+        this->TumorValueEntry->ReadOnlyOff();
         this->TumorAcceptButton->SetText("Accept");
         }
       else
         {
         this->TumorAccepted = true;
+        this->TumorValueEntry->ReadOnlyOn();
         this->TumorAcceptButton->SetText("Reset");
         }
       }
@@ -951,12 +821,10 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         vtkMRMLColorTableNode *colorNode = vtkMRMLColorTableNode::New();
         colorNode->SetTypeToUser();
         colorNode->SetNumberOfColors(512);
-        //colorNode->GetLookupTable()->SetNumberOfColors(512);
-        //colorNode->GetLookupTable()->SetNumberOfTableValues(512);
         colorNode->GetLookupTable()->SetHueRange(1, 0);
         colorNode->GetLookupTable()->SetSaturationRange(1, 1);
         colorNode->GetLookupTable()->SetValueRange(0, 1);
-        colorNode->GetLookupTable()->SetAlphaRange(0.5, 0.5);
+        colorNode->GetLookupTable()->SetAlphaRange(1, 1);
 
         if(this->BackgroundAccepted && this->TumorAccepted)
           {
@@ -1045,7 +913,6 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         IJKToRASDirectionMatrix->Delete();
         mappedVolume->Delete();
         displayMappedVolume->Delete();
-        //LUT->Delete();
         colorNode->Delete();
         }
       else
@@ -1063,41 +930,6 @@ void vtkBetaProbeGUI::ProcessGUIEvents(vtkObject *caller,
         }
       }
     }
-
-
-
-  if(this->TestButton == vtkKWPushButton::SafeDownCast(caller) &&
-     event == vtkKWPushButton::InvokedEvent)
-    {
-    vtkMRMLScalarVolumeNode* VolumeToSend = vtkMRMLScalarVolumeNode::New();
-    vtkImageData* DataToSend = vtkImageData::New();
-    DataToSend->SetDimensions(50,4,1);
-    DataToSend->SetExtent(0,49,0,3,0,0);
-    DataToSend->SetSpacing(1.0, 1.0, 1.0);
-    DataToSend->SetOrigin(0.0, 0.0, 0.0);
-    DataToSend->SetNumberOfScalarComponents(1);
-    DataToSend->SetScalarTypeToDouble();
-    DataToSend->AllocateScalars();
-
-    for(int j=0; j<4; j++)
-      {
-      for(int i=0; i<50; i++)
-        {
-        double* dest = (double*) DataToSend->GetScalarPointer(i,j,0);
-        if(dest)
-          {
-          memset(dest, (double)(i/(j+1)), sizeof(double));
-          }
-        }
-      }
-    DataToSend->Update();
-    VolumeToSend->SetAndObserveImageData(DataToSend);
-
-    this->GetMRMLScene()->AddNode(VolumeToSend);
-    VolumeToSend->Delete();
-    DataToSend->Delete();
-    }
-
 }
 
 
@@ -1119,7 +951,6 @@ void vtkBetaProbeGUI::ProcessLogicEvents ( vtkObject *caller,
     {
     if (event == vtkBetaProbeLogic::StatusUpdateEvent)
       {
-      //this->UpdateDeviceStatus();
       }
     }
 }
@@ -1144,6 +975,9 @@ void vtkBetaProbeGUI::ProcessMRMLEvents ( vtkObject *caller,
 //---------------------------------------------------------------------------
 void vtkBetaProbeGUI::ProcessTimerEvents()
 {
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkSlicerColor        *color  = app->GetSlicerTheme()->GetSlicerColors();
+
   if (this->TimerFlag)
     {
 
@@ -1180,6 +1014,10 @@ void vtkBetaProbeGUI::ProcessTimerEvents()
         }
       }
 
+    this->TumorValueEntry->InvokeEvent(vtkKWEntry::EntryValueChangedEvent);
+    this->BackgroundValueEntry->InvokeEvent(vtkKWEntry::EntryValueChangedEvent);
+
+
     if(this->GetContinuousMode())
       {
       this->Capture_Data();
@@ -1203,10 +1041,14 @@ void vtkBetaProbeGUI::ProcessTimerEvents()
       if(this->GetLogic()->GetMappingRunning())
         {
         this->LabelStatus->SetText("ON");
+        this->LabelStatus->SetBackgroundColor(color->SliceGUIGreen);
+        this->LabelStatus->SetActiveBackgroundColor(color->SliceGUIGreen);
         }
       else
         {
         this->LabelStatus->SetText("OFF");
+        this->LabelStatus->SetBackgroundColor(color->SliceGUIRed);
+        this->LabelStatus->SetActiveBackgroundColor(color->SliceGUIRed);
         }
       }
 
@@ -1216,15 +1058,6 @@ void vtkBetaProbeGUI::ProcessTimerEvents()
                                          this->TimerInterval,
                                          this, "ProcessTimerEvents");
     }
-
-  if(this->GetPivotCalibrationRunning())
-    {
-    if(this->PivotingMatrix && this->Probe_Position)
-      {
-      this->Capture_Tracker_Position();
-      }
-    }
-
 }
 
 
@@ -1238,10 +1071,9 @@ void vtkBetaProbeGUI::BuildGUI ( )
   this->UIPanel->AddPage ( "BetaProbe", "BetaProbe", NULL );
 
   BuildGUIForHelpFrame();
-  BuildGUIForPivotCalibration();
-  BuildGUIForNodes();
-  BuildGUIForCapturingDataFromBetaProbe();
-  BuildGUIForDetection();
+  BuildGUIForInputs();
+  BuildGUIForDataRecorder();
+  BuildGUIForThresholdDetection();
   BuildGUIForMapping();
 }
 
@@ -1261,7 +1093,7 @@ void vtkBetaProbeGUI::BuildGUIForHelpFrame ()
 
 
 //---------------------------------------------------------------------------
-void vtkBetaProbeGUI::BuildGUIForNodes()
+void vtkBetaProbeGUI::BuildGUIForInputs()
 {
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("BetaProbe");
@@ -1270,7 +1102,7 @@ void vtkBetaProbeGUI::BuildGUIForNodes()
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Nodes");
+  conBrowsFrame->SetLabelText("Inputs");
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
@@ -1312,7 +1144,7 @@ void vtkBetaProbeGUI::BuildGUIForNodes()
   vtkKWLabel *countLabel = vtkKWLabel::New();
   countLabel->SetParent(frame1);
   countLabel->Create();
-  countLabel->SetText("Count Node:");
+  countLabel->SetText("UDPServer Node:");
   countLabel->SetAnchorToWest();
 
   this->CounterNode = vtkSlicerNodeSelectorWidget::New();
@@ -1336,68 +1168,7 @@ void vtkBetaProbeGUI::BuildGUIForNodes()
 }
 
 //---------------------------------------------------------------------------
-void vtkBetaProbeGUI::BuildGUIForPivotCalibration()
-{
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("BetaProbe");
-
-  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
-
-  conBrowsFrame->SetParent(page);
-  conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Pivot Calibration");
-  conBrowsFrame->CollapseFrame();
-  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
-
-  // -----------------------------------------
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Pivoting Calibration");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
-
-  vtkKWFrame *frame1 = vtkKWFrame::New();
-  frame1->SetParent(frame->GetFrame());
-  frame1->Create();
-  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                frame1->GetWidgetName() );
-
-  vtkKWFrame *frame2 = vtkKWFrame::New();
-  frame2->SetParent(frame->GetFrame());
-  frame2->Create();
-  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                frame2->GetWidgetName() );
-
-  this->StartPivotCalibration = vtkKWPushButton::New();
-  this->StartPivotCalibration->SetParent(frame2);
-  this->StartPivotCalibration->Create();
-  this->StartPivotCalibration->SetText("Start Pivot Calibration");
-  this->StartPivotCalibration->SetWidth(29);
-
-  this->StopPivotCalibration = vtkKWPushButton::New();
-  this->StopPivotCalibration->SetParent(frame2);
-  this->StopPivotCalibration->Create();
-  this->StopPivotCalibration->SetText("Stop Pivot Calibration");
-  this->StopPivotCalibration->SetWidth(29);
-  this->StopPivotCalibration->SetState(0);
-
-  app->Script("pack %s %s -fill x -side left -padx 2 -pady 2",
-              this->StartPivotCalibration->GetWidgetName(),
-              this->StopPivotCalibration->GetWidgetName());
-
-
-  frame1->Delete();
-  frame2->Delete();
-  frame->Delete();
-  conBrowsFrame->Delete();
-
-
-}
-
-//---------------------------------------------------------------------------
-void vtkBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
+void vtkBetaProbeGUI::BuildGUIForDataRecorder()
 {
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
@@ -1407,22 +1178,15 @@ void vtkBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Capturing Data from Beta Probe");
+  conBrowsFrame->SetLabelText("Data Recorder");
   conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Capturing");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
 
   vtkKWFrame *frame5 = vtkKWFrame::New();
-  frame5->SetParent(frame->GetFrame());
+  frame5->SetParent(conBrowsFrame->GetFrame());
   frame5->Create();
   app->Script("pack %s -fill x -side top -padx 2 -pady 2",
               frame5->GetWidgetName());
@@ -1445,7 +1209,7 @@ void vtkBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
 
 
   vtkKWFrame *frame2 = vtkKWFrame::New();
-  frame2->SetParent(frame->GetFrame());
+  frame2->SetParent(conBrowsFrame->GetFrame());
   frame2->Create();
   app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                 frame2->GetWidgetName() );
@@ -1476,23 +1240,27 @@ void vtkBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
               this->Start_Button->GetWidgetName(),
               this->Stop_Button->GetWidgetName());
 
-
   vtkKWFrame *frame3 = vtkKWFrame::New();
-  frame3->SetParent(frame->GetFrame());
+  frame3->SetParent(conBrowsFrame->GetFrame());
   frame3->Create();
   app->Script("pack %s -fill x -side top -padx 2 -pady 2",
               frame3->GetWidgetName());
 
+  vtkKWLabel* statusLabel = vtkKWLabel::New();
+  statusLabel->SetParent(frame3);
+  statusLabel->Create();
+  statusLabel->SetText("Status:");
 
   this->Capture_status = vtkKWLabel::New();
   this->Capture_status->SetParent(frame3);
   this->Capture_status->Create();
 
-  app->Script("pack %s -fill x -side top -padx 2 -pady 2",
+  app->Script("pack %s %s -fill x -side left -anchor w -padx 2 -pady 2",
+              statusLabel->GetWidgetName(),
               this->Capture_status->GetWidgetName());
 
+  statusLabel->Delete();
   conBrowsFrame->Delete();
-  frame->Delete();
   frame2->Delete();
   frame3->Delete();
   frame5->Delete();
@@ -1500,7 +1268,8 @@ void vtkBetaProbeGUI::BuildGUIForCapturingDataFromBetaProbe()
 
 
 
-void vtkBetaProbeGUI::BuildGUIForDetection()
+//----------------------------------------------------------------------------
+void vtkBetaProbeGUI::BuildGUIForThresholdDetection()
 {
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
@@ -1510,7 +1279,7 @@ void vtkBetaProbeGUI::BuildGUIForDetection()
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Detection");
+  conBrowsFrame->SetLabelText("Threshold Detection");
   conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
@@ -1527,7 +1296,7 @@ void vtkBetaProbeGUI::BuildGUIForDetection()
   this->RadioBackgroundButton = vtkKWRadioButton::New();
   this->RadioBackgroundButton->SetParent(calibrationCountsFrame);
   this->RadioBackgroundButton->Create();
-  this->RadioBackgroundButton->SetText("Background");
+  this->RadioBackgroundButton->SetText("Background (Use Probe Value)");
   this->RadioBackgroundButton->SetValueAsInt(1);
 
   vtkKWFrame* BackgroundFrame = vtkKWFrame::New();
@@ -1538,7 +1307,7 @@ void vtkBetaProbeGUI::BuildGUIForDetection()
   this->BackgroundValueEntry->SetParent(BackgroundFrame);
   this->BackgroundValueEntry->Create();
   this->BackgroundValueEntry->SetWidth(5);
-  this->BackgroundValueEntry->ReadOnlyOn();
+  //this->BackgroundValueEntry->ReadOnlyOn();
 
   this->BackgroundAcceptButton = vtkKWPushButton::New();
   this->BackgroundAcceptButton->SetParent(BackgroundFrame);
@@ -1553,15 +1322,11 @@ void vtkBetaProbeGUI::BuildGUIForDetection()
                this->RadioBackgroundButton->GetWidgetName(),
                BackgroundFrame->GetWidgetName());
 
-  BackgroundFrame->Delete();
-
-
   this->RadioTumorButton = vtkKWRadioButton::New();
   this->RadioTumorButton->SetParent(calibrationCountsFrame);
   this->RadioTumorButton->Create();
-  this->RadioTumorButton->SetText("Tumor");
+  this->RadioTumorButton->SetText("Tumor (Use Probe Value)");
   this->RadioTumorButton->SetValueAsInt(2);
-
 
   vtkKWFrame* TumorFrame = vtkKWFrame::New();
   TumorFrame->SetParent(calibrationCountsFrame);
@@ -1571,7 +1336,7 @@ void vtkBetaProbeGUI::BuildGUIForDetection()
   this->TumorValueEntry->SetParent(TumorFrame);
   this->TumorValueEntry->Create();
   this->TumorValueEntry->SetWidth(5);
-  this->TumorValueEntry->ReadOnlyOn();
+  //this->TumorValueEntry->ReadOnlyOn();
 
   this->TumorAcceptButton = vtkKWPushButton::New();
   this->TumorAcceptButton->SetParent(TumorFrame);
@@ -1585,9 +1350,6 @@ void vtkBetaProbeGUI::BuildGUIForDetection()
   this->Script("pack %s %s -side top -anchor w -padx 2 -pady 2",
                this->RadioTumorButton->GetWidgetName(),
                TumorFrame->GetWidgetName());
-
-  TumorFrame->Delete();
-
 
   this->RadioThresholdButton = vtkKWRadioButton::New();
   this->RadioThresholdButton->SetParent(calibrationCountsFrame);
@@ -1610,25 +1372,13 @@ void vtkBetaProbeGUI::BuildGUIForDetection()
   this->StartDetectionButton->Create();
   this->StartDetectionButton->SetText("Start Detection");
 
-
-
-  this->TestButton = vtkKWPushButton::New();
-  this->TestButton->SetParent(ThresholdFrame);
-  this->TestButton->Create();
-  this->TestButton->SetText("Create Data");
-
-
-
-  this->Script("pack %s %s %s -side left -anchor w -padx 2 -pady 2",
+  this->Script("pack %s %s -side left -anchor w -padx 2 -pady 2",
                this->ThresholdValueEntry->GetWidgetName(),
-               this->StartDetectionButton->GetWidgetName(),
-               this->TestButton->GetWidgetName());
+               this->StartDetectionButton->GetWidgetName());
 
   this->Script("pack %s %s -side top -anchor w -padx 2 -pady 2",
                this->RadioThresholdButton->GetWidgetName(),
                ThresholdFrame->GetWidgetName());
-
-  ThresholdFrame->Delete();
 
   this->RadioTumorButton->SetVariableName(this->RadioBackgroundButton->GetVariableName());
   this->RadioThresholdButton->SetVariableName(this->RadioBackgroundButton->GetVariableName());
@@ -1636,6 +1386,9 @@ void vtkBetaProbeGUI::BuildGUIForDetection()
   this->Script("pack %s -side top -anchor w -padx 2 -pady 2",
                this->RadioBackgroundButton->GetWidgetName());
 
+  BackgroundFrame->Delete();
+  TumorFrame->Delete();
+  ThresholdFrame->Delete();
   calibrationCountsFrame->Delete();
   conBrowsFrame->Delete();
 
@@ -1647,13 +1400,13 @@ void vtkBetaProbeGUI::BuildGUIForMapping()
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("BetaProbe");
+  vtkSlicerColor        *color  = app->GetSlicerTheme()->GetSlicerColors();
 
   vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
-
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
+  conBrowsFrame->CollapseFrame();
   conBrowsFrame->SetLabelText("Mapping");
-  //conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
@@ -1666,49 +1419,34 @@ void vtkBetaProbeGUI::BuildGUIForMapping()
   this->DataSelector->SetMRMLScene(this->GetMRMLScene());
   this->DataSelector->UpdateMenu();
 
+  vtkKWFrame* MappingStatus = vtkKWFrame::New();
+  MappingStatus->SetParent(conBrowsFrame->GetFrame());
+  MappingStatus->Create();
+
   this->MappingButton = vtkKWPushButton::New();
-  this->MappingButton->SetParent(conBrowsFrame->GetFrame());
+  this->MappingButton->SetParent(MappingStatus);
   this->MappingButton->Create();
   this->MappingButton->SetText("Mapping");
 
-
-  vtkKWFrame* centerFrame = vtkKWFrame::New();
-  centerFrame->SetParent(conBrowsFrame->GetFrame());
-  centerFrame->Create();
-
-  vtkKWFrame* fStatus = vtkKWFrame::New();
-  fStatus->SetParent(centerFrame);
-  fStatus->Create();
-
-  this->Script("pack %s -side top -anchor center -padx 2 -pady 2",
-               fStatus->GetWidgetName());
-
-  vtkKWLabel* sLabel = vtkKWLabel::New();
-  sLabel->SetParent(fStatus);
-  sLabel->Create();
-  sLabel->SetText("Status: ");
-  sLabel->SetAnchorToCenter();
-
   this->LabelStatus = vtkKWLabel::New();
-  this->LabelStatus->SetParent(fStatus);
+  this->LabelStatus->SetParent(MappingStatus);
   this->LabelStatus->Create();
-  this->LabelStatus->SetText("OFF");
-  this->LabelStatus->SetAnchorToCenter();
+  this->LabelStatus->SetWidth(5);
+  this->LabelStatus->SetBackgroundColor(color->SliceGUIRed);
+  this->LabelStatus->SetActiveBackgroundColor(color->SliceGUIRed);
+  this->LabelStatus->SetReliefToGroove();
 
-  this->Script("pack %s %s -side left -anchor w -padx 2 -pady 2",
-               sLabel->GetWidgetName(),
+  this->Script("pack %s -side left -anchor w -expand y -fill x -padx 2 -pady 2",
+               this->MappingButton->GetWidgetName());
+  this->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2",
                this->LabelStatus->GetWidgetName());
 
-  this->Script("pack %s %s %s -side top -expand y -fill x -anchor w -padx 2 -pady 2",
+  this->Script("pack %s %s -side top -expand y -fill x -anchor w -padx 2 -pady 2",
                this->DataSelector->GetWidgetName(),
-               this->MappingButton->GetWidgetName(),
-               centerFrame->GetWidgetName());
+               MappingStatus->GetWidgetName());
 
-  fStatus->Delete();
-  centerFrame->Delete();
-  sLabel->Delete();
+  MappingStatus->Delete();
   conBrowsFrame->Delete();
-
 }
 
 
@@ -1718,6 +1456,7 @@ void vtkBetaProbeGUI::UpdateAll()
 {
 }
 
+//----------------------------------------------------------------------------
 void vtkBetaProbeGUI::Capture_Data()
 {
   if(this->BetaProbeCountsWithTimestamp.is_open())
@@ -1742,30 +1481,17 @@ void vtkBetaProbeGUI::Capture_Data()
     this->Probe_Matrix->Delete();
     this->Probe_Matrix = NULL;
 
-    this->Capture_status->SetText("Data captured");
+    this->Capture_status->SetText("Data recorded");
     }
   else
     {
-    this->Capture_status->SetText("Select a file first");
+    this->Capture_status->SetText("Select a file to save data");
     }
 }
 
-void vtkBetaProbeGUI::Capture_Tracker_Position()
-{
 
-  this->Probe_Matrix = vtkMatrix4x4::New();
-  this->Probe_Position->GetMatrixTransformToWorld(this->Probe_Matrix);
-
-  this->PivotingMatrix->AddItem(this->Probe_Matrix);
-
-  std::cout << "Number of Matrix4x4: " << this->PivotingMatrix->GetNumberOfItems() << std::endl;
-
-}
-
-
-
-
-
+//----------------------------------------------------------------------------
+// From OpenIGTLink
 void vtkBetaProbeGUI::CenterImage(vtkMRMLVolumeNode *volumeNode)
 {
   if ( volumeNode )
