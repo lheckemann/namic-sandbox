@@ -24,6 +24,7 @@
 #include "itkImageFileWriter.h"
 #include "itkCastImageFilter.h"
 //#include "itkMultiplyByConstantImageFilter.h"
+#include "itkTransformFileWriter.h"
 
 #include "itkPluginUtilities.h"
 #include "NeedleDetectionCLP.h"
@@ -121,10 +122,43 @@ template<class T> int DoIt( int argc, char * argv[], T )
   needleFilter->SetNormal (static_cast< double >(normal[0]),
                            static_cast< double >(normal[1]),
                            static_cast< double >(normal[2]));
+  needleFilter->SetClosestPoint(static_cast< double >(closestPoint[0]),
+                                static_cast< double >(closestPoint[1]),
+                                static_cast< double >(closestPoint[2]));
+
 
   writer->SetInput( needleFilter->GetOutput() );
   writer->SetUseCompression(1);
-  writer->Update();
+  try
+    {
+    writer->Update();
+    }
+  catch (itk::ExceptionObject &err)
+    {
+    std::cerr << err << std::endl;
+    return EXIT_FAILURE ;
+    }
+
+  typedef typename NeedleFilterType::NeedleTransformType TransformType;
+  TransformType::Pointer transform = needleFilter->GetNeedleTransform();
+
+  if (needleTransform != "")
+    {
+    typedef itk::TransformFileWriter TransformWriterType;
+    TransformWriterType::Pointer needleTransformWriter;
+    needleTransformWriter= TransformWriterType::New();
+    needleTransformWriter->SetFileName( needleTransform );
+    needleTransformWriter->SetInput( transform );
+    try
+      {
+      needleTransformWriter->Update();
+      }
+    catch (itk::ExceptionObject &err)
+      {
+      std::cerr << err << std::endl;
+      return EXIT_FAILURE ;
+      }
+    }
 
   return EXIT_SUCCESS;
 }
