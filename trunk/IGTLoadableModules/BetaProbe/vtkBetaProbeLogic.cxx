@@ -25,6 +25,8 @@
 #include "vtkCollection.h"
 #include "vtkVector.h"
 
+#include <cmath>
+
 vtkCxxRevisionMacro(vtkBetaProbeLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkBetaProbeLogic);
 
@@ -69,7 +71,7 @@ vtkBetaProbeLogic::~vtkBetaProbeLogic()
   if(this->GetMappingRunning())
     {
     this->StopMapping();
-    this->m_Threader->Delete();
+    //this->m_Threader->Delete();
     }
 }
 
@@ -209,6 +211,15 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
     {
     int *extent = imageData->GetExtent();
 
+
+    // Calculate BetaProbe Size (2mm radius, 0.5mm depth) in IJK Coordinates
+    double BetaProbeSizeInmm[4] = {2.0, 2.0, 0.5, 0};
+    double BetaProbeSizeInPixels[4];
+    BetaProbeLogic->GetRASToIJKMatrix()->MultiplyPoint(BetaProbeSizeInmm, BetaProbeSizeInPixels);
+    double BetaProbeHalfSizeInPixels[3] = {fabs(BetaProbeSizeInPixels[0])/2,
+                                           fabs(BetaProbeSizeInPixels[1])/2,
+                                           fabs(BetaProbeSizeInPixels[2])/2};
+
     // Mapping Loop
     while(BetaProbeLogic->GetMappingRunning())
       {
@@ -229,7 +240,6 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
       BetaProbeLogic->GetRASToIJKMatrix()->MultiplyPoint(PointRAS, PointIJK);
 
       // Get Smoothed counts from UDPServerNode (or Gamma for small amout of activity)
-      //double SmoothedCounts = UDPS->GetSmoothedCounts();
       double Counts = 0;
       switch(BetaProbeLogic->GetCountsType()){
       case 1:  Counts = UDPS->GetBetaCounts(); break;
@@ -240,7 +250,6 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
 
 
       // Check probe position in IJK coordinate system is in the image
-      // Then map 5mm around position (Betaprobe thickness) (needed for depth ?)
       // Check current value is higher than value already mapped (if any)
       // Map value
       if((PointIJK[0] > extent[0]+1) && (PointIJK[0] < extent[1]-1))
@@ -249,11 +258,11 @@ ITK_THREAD_RETURN_TYPE vtkBetaProbeLogic::MappingFunction(void* pInfoStruct)
           {
           if((PointIJK[2] > extent[4]+1) && (PointIJK[2] < extent[5]-1))
             {
-            for(double i=PointIJK[0]-2.5;i<PointIJK[0]+2.5;i+=0.5)
+            for(double i=PointIJK[0]-BetaProbeHalfSizeInPixels[0];i<PointIJK[0]+BetaProbeHalfSizeInPixels[0];i+=0.5)
               {
-              for(double j=PointIJK[1]-2.5;j<PointIJK[1]+2.5;j+=0.5)
+              for(double j=PointIJK[1]-BetaProbeHalfSizeInPixels[1];j<PointIJK[1]+BetaProbeHalfSizeInPixels[1];j+=0.5)
                 {
-                for(double k=PointIJK[2]-2.5;k<PointIJK[2]+2.5;k+=0.5)
+                for(double k=PointIJK[2]-BetaProbeHalfSizeInPixels[2];k<PointIJK[2]+BetaProbeHalfSizeInPixels[2];k+=0.5)
                   {
                   if(Counts >= imageData->GetScalarComponentAsDouble(i,j,k,0))
                     {
