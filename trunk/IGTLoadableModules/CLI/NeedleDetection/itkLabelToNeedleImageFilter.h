@@ -18,6 +18,7 @@
 #define __itkLabelToNeedleImageFilter_h
 
 #include "itkImageToImageFilter.h"
+#include "itkAffineTransform.h"
 
 namespace itk
 {
@@ -45,6 +46,8 @@ public:
   typedef typename InputImageType::PixelType             InputPixelType;
   typedef typename OutputImageType::PixelType            OutputPixelType;
   
+  typedef typename itk::AffineTransform< float, 3 >      NeedleTransformType;
+
   /** Image dimension = 3. */
   //itkStaticConstMacro(ImageDimension, unsigned int,
   //                    ::itk::GetImageDimension<InputImageType>::ImageDimension);
@@ -76,6 +79,21 @@ public:
     x = m_Normal[0]; y = m_Normal[1]; z = m_Normal[2];
   }
 
+  inline void SetClosestPoint(double x, double y, double z)
+  {
+    m_ClosestPoint[0] = x; m_ClosestPoint[1] = y; m_ClosestPoint[2] = z;
+  }
+
+  inline void GetClosestPoint(double& x, double& y, double& z)
+  {
+    x = m_ClosestPoint[0]; y = m_ClosestPoint[1]; z = m_ClosestPoint[2];
+  }
+
+  inline NeedleTransformType * GetNeedleTransform()
+  {
+    return m_NeedleTransform;
+  }
+
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(DoubleConvertibleToOutputCheck,
@@ -100,6 +118,9 @@ private:
   float m_MaxMinorAxisLength;
   double m_AngleThreshold;
   double m_Normal[3];
+  double m_ClosestPoint[3];
+
+  NeedleTransformType::Pointer m_NeedleTransform;
 
 };
 

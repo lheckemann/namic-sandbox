@@ -31,6 +31,13 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <index>1</index>
       <description>Blurred Volume</description>
     </image>
+    <transform fileExtensions=".txt" reference="NeedlePositionFileName">
+      <name>needleTransform</name>
+      <longflag>needletransform</longflag>
+      <description>Position and orientation of detected needle.</description>
+      <label>Needle transform</label>
+      <channel>output</channel>
+    </transform>
   </parameters>
 
   <parameters>
@@ -130,6 +137,15 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <label>Max. Minor Axis Length</label>
       <default>3.0</default>
     </float>
+    <double-vector>
+      <name>closestPoint</name>
+      <longflag>closestPoint</longflag>
+      <flag>c</flag>
+      <label>Closest point</label>
+      <description>Point closet to the needle</description>
+      <default>0.0,0.0,0.0</default>
+    </double-vector>
+
   </parameters>
 
 
