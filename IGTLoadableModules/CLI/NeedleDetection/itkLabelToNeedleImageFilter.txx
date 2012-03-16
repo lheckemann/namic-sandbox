@@ -108,8 +108,9 @@ LabelToNeedleImageFilter< TInput, TOutput >
   double cosThreshold = vnl_math_abs((vcl_cos((m_AngleThreshold / 180.0) * vnl_math::pi)));
 
   double closestDistance = -1;
-  VectorType closestPosition;
-  VectorType closestNormal;
+  VectorType closestPosition; // Center position of the needle closest to the default point.
+  VectorType closestNormal;   // Orientation normal vector of the needle closest to the default point.
+  VectorType closestTip;      // Tip of the needle closest to the default point.
 
   typename PointListMapType::iterator miter;
   for (miter = pointListMap.begin(); miter != pointListMap.end(); miter ++)
@@ -160,11 +161,43 @@ LabelToNeedleImageFilter< TInput, TOutput >
 
       if (vnl_math_abs(ip) > cosThreshold)
         {
+        // Calculate the needle orientation vector.
+        // If the default vector (m_Normal) and the principal
+        // vector are oposit, flip the orientation.
+        VectorType needleNorm;
+        if (ip >= 0)
+          {
+          needleNorm = principalVector;
+          }
+        else
+          {
+          needleNorm = - principalVector;
+          }
+
+        needleNorm.Normalize();
+
         PointListType::Iterator iter = sample->Begin();
-        
+
+        // To detect the edge of the needle artifact, calculate
+        // projections of the points in the needle artifact, and
+        // find the farest from the center point (meanVector)
+        VectorType vector = iter.GetMeasurementVector();
+        double min = (vector-meanVector)*needleNorm;
+        double max = min;
+
         while (iter != sample->End())
           {
-          VectorType vector = iter.GetMeasurementVector();
+          vector = iter.GetMeasurementVector();
+          double p = (vector-meanVector)*needleNorm;
+          if (p < min)
+            {
+            min = p;
+            }
+          else if (p > max)
+            {
+            max = p;
+            }
+
           typename InputImageType::PointType point;
           typename OutputImageType::IndexType index;
           point[0] = vector[0];
@@ -186,13 +219,17 @@ LabelToNeedleImageFilter< TInput, TOutput >
           {
           closestDistance = distance;
           closestPosition = meanVector;
-          closestNormal = principalVector;
+          closestTip = meanVector + needleNorm * max;
+          closestNormal = needleNorm;
           std::cout << "Center of the closest needle = " << closestPosition << std::endl;
           }
         }
       }
     }
 
+
+  // Output position and orientation of the needle as Affine transform
+  // (suppose an identitiy transform when the needle orients (0, 0, 1) direction)
   m_NeedleTransform = NeedleTransformType::New();
   m_NeedleTransform->SetIdentity();
 
@@ -224,7 +261,7 @@ LabelToNeedleImageFilter< TInput, TOutput >
 
   // Convert translation for slicer coordinate
   m_NeedleTransform->SetMatrix( matrix );
-  m_NeedleTransform->Translate( - (matrix * closestPosition) );
+  m_NeedleTransform->Translate( - (matrix * closestTip) );
 
 }
 

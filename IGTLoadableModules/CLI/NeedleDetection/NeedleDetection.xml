@@ -49,7 +49,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <flag>s</flag>
       <label>Sigma1</label>
       <description>Sigma value in physical units (e.g., mm) of the Gaussian kernel for smoothing</description>
-      <default>1.0</default>
+      <default>0.5</default>
     </double>
   </parameters>
   <parameters>
@@ -114,7 +114,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <longflag>--minimumObjectSize</longflag>
       <description>Minimum size of object to retain. This parameter can be used to get rid of small regions in noisy images.</description>
       <label>Minimum Object Size</label>
-      <default>150</default>
+      <default>50</default>
     </integer>
   </parameters>
 
