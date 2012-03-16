@@ -85,7 +85,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <flag>t</flag>
       <label>Angle Threshold</label>
       <description>Threshold for angle from Normal Vector (deg)</description>
-      <default>30.0</default>
+      <default>25.0</default>
     </double>
     <double-vector>
       <name>normal</name>
