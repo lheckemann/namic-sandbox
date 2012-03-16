@@ -71,8 +71,6 @@ LabelToNeedleImageFilter< TInput, TOutput >
 
   output->FillBuffer(static_cast<OutputPixelType>(0));
   
-  const unsigned int VectorLength = 3;
-  typedef itk::Vector< double, VectorLength > VectorType;
   typedef itk::Statistics::ListSample< VectorType > PointListType;
   typedef std::map< InputPixelType, PointListType::Pointer > PointListMapType;
 
@@ -89,7 +87,7 @@ LabelToNeedleImageFilter< TInput, TOutput >
     if (iter == pointListMap.end())
       {
       PointListType::Pointer plist = PointListType::New();
-      plist->SetMeasurementVectorSize( VectorLength );    
+      plist->SetMeasurementVectorSize( 3 );
       pointListMap[pix] = plist;
       }
 
@@ -106,17 +104,8 @@ LabelToNeedleImageFilter< TInput, TOutput >
     //oit.Set(it.Get());
     }
 
-
-  //-- Check the number of labels (clusters)
-  //int nLabel = pointListMap.size();
-  
   //-- For each label, perform principal component analysis
-  double cosThreshold = vcl_cos((m_AngleThreshold / 180.0) * vnl_math::pi);
-
-  VectorType closestPoint;
-  closestPoint[0] = m_ClosestPoint[0];
-  closestPoint[1] = m_ClosestPoint[1];
-  closestPoint[2] = m_ClosestPoint[2];
+  double cosThreshold = vnl_math_abs((vcl_cos((m_AngleThreshold / 180.0) * vnl_math::pi)));
 
   double closestDistance = -1;
   VectorType closestPosition;
@@ -130,26 +119,15 @@ LabelToNeedleImageFilter< TInput, TOutput >
 
     std::cout << "=== Label " << pix << "===" << std::endl;
     
-    //// Calculate covariance matrix
-    //typedef itk::Statistics::MeanCalculator< PointListType > MeanAlgorithmType;
-    //MeanAlgorithmType::Pointer meanAlgorithm = MeanAlgorithmType::New();
-    //meanAlgorithm->SetInputSample( sample );
-    //meanAlgorithm->Update();
-    //std::cout << "Sample mean = " << *(meanAlgorithm->GetOutput()) << std::endl;
-    
-    //typedef itk::Statistics::CovarianceCalculator< PointListType > 
     typedef itk::Statistics::CovarianceSampleFilter< PointListType > 
       CovarianceAlgorithmType;
     CovarianceAlgorithmType::Pointer covarianceAlgorithm = 
       CovarianceAlgorithmType::New();
 
-    //covarianceAlgorithm->SetInputSample( sample );
-    //covarianceAlgorithm->SetMean( meanAlgorithm->GetOutput() );
     covarianceAlgorithm->SetInput( sample );
     covarianceAlgorithm->Update();
 
     std::cout << "Sample covariance = " << std::endl ; 
-    //std::cout << *(covarianceAlgorithm->GetOutput()) << std::endl;
     std::cout << covarianceAlgorithm->GetCovarianceMatrix() << std::endl;
 
     CovarianceAlgorithmType::MeasurementVectorType meanVector;
@@ -157,16 +135,14 @@ LabelToNeedleImageFilter< TInput, TOutput >
     std::cout << "Sample mean = " << meanVector << std::endl ; 
 
     // Perform Symmetric Eigen Analysis
-    typedef itk::FixedArray< double, VectorLength > EigenValuesArrayType;
-    typedef itk::Matrix< double, VectorLength, VectorLength > EigenVectorMatrixType;
-    //typedef itk::SymmetricEigenAnalysis< CovarianceAlgorithmType::OutputType,
+    typedef itk::FixedArray< double, 3 > EigenValuesArrayType;
+    typedef itk::Matrix< double, 3, 3 > EigenVectorMatrixType;
     typedef itk::SymmetricEigenAnalysis< CovarianceAlgorithmType::MatrixType,
       EigenValuesArrayType, EigenVectorMatrixType > SymmetricEigenAnalysisType;
-    SymmetricEigenAnalysisType analysis (VectorLength);
+    SymmetricEigenAnalysisType analysis ( 3 );
     EigenValuesArrayType eigenValues;
     EigenVectorMatrixType eigenMatrix;
     analysis.SetOrderEigenMagnitudes( true );
-    //analysis.ComputeEigenValuesAndVectors( covarianceAlgorithm->GetOutput,
     analysis.ComputeEigenValuesAndVectors( covarianceAlgorithm->GetCovarianceMatrix(),
                                             eigenValues, eigenMatrix );    
 
@@ -180,8 +156,7 @@ LabelToNeedleImageFilter< TInput, TOutput >
       {
       // Check the direction of principal component
       VectorType principalVector = eigenMatrix[2];
-
-      double ip = principalVector[0] * m_Normal[0] + principalVector[1] * m_Normal[1] + principalVector[2] * m_Normal[2];
+      double ip = principalVector * m_Normal;
 
       if (vnl_math_abs(ip) > cosThreshold)
         {
@@ -202,7 +177,7 @@ LabelToNeedleImageFilter< TInput, TOutput >
 
         // Calculate distance between the detected needle and the closest point
         VectorType a;
-        a = closestPoint - meanVector;
+        a = m_ClosestPoint - meanVector;
         double p = principalVector * a;
         double lsq_a = a * a;
         double lsq_p = p * p;
@@ -212,7 +187,7 @@ LabelToNeedleImageFilter< TInput, TOutput >
           closestDistance = distance;
           closestPosition = meanVector;
           closestNormal = principalVector;
-          std::cout << "Center of the closest needle = " << closestPosition << std::endl ; 
+          std::cout << "Center of the closest needle = " << closestPosition << std::endl;
           }
         }
       }

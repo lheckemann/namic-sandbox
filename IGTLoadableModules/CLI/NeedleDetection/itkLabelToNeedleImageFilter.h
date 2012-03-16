@@ -48,6 +48,8 @@ public:
   
   typedef typename itk::CenteredAffineTransform< float, 3 >      NeedleTransformType;
 
+  typedef itk::Vector< double, 3 > VectorType;
+
   /** Image dimension = 3. */
   //itkStaticConstMacro(ImageDimension, unsigned int,
   //                    ::itk::GetImageDimension<InputImageType>::ImageDimension);
@@ -117,8 +119,8 @@ private:
   float m_MinPrincipalAxisLength;
   float m_MaxMinorAxisLength;
   double m_AngleThreshold;
-  double m_Normal[3];
-  double m_ClosestPoint[3];
+  VectorType m_Normal;
+  VectorType m_ClosestPoint;
 
   NeedleTransformType::Pointer m_NeedleTransform;
 
