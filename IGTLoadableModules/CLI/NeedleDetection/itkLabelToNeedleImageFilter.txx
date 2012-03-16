@@ -212,6 +212,7 @@ LabelToNeedleImageFilter< TInput, TOutput >
           closestDistance = distance;
           closestPosition = meanVector;
           closestNormal = principalVector;
+          std::cout << "Center of the closest needle = " << closestPosition << std::endl ; 
           }
         }
       }
@@ -229,31 +230,27 @@ LabelToNeedleImageFilter< TInput, TOutput >
   VectorType t = cross(closestNormal, nx);
   VectorType s = cross(t, closestNormal);
   
+  t.Normalize();
+  s.Normalize();
+  closestNormal.Normalize();
+
   NeedleTransformType::MatrixType matrix;
   matrix[0][0] = s[0];
   matrix[0][1] = s[1];
   matrix[0][2] = s[2];
-  //matrix[0][3] = 0.0;
 
   matrix[1][0] = t[0];
   matrix[1][1] = t[1];
   matrix[1][2] = t[2];
-  //matrix[1][3] = 0.0;
 
   matrix[2][0] = closestNormal[0];
   matrix[2][1] = closestNormal[1];
   matrix[2][2] = closestNormal[2];
-  //matrix[2][3] = 0.0;
 
-  //matrix[3][0] = closestPosition[0];
-  //matrix[3][1] = closestPosition[1];
-  //matrix[3][2] = closestPosition[2];
-  //matrix[3][3] = 1.0;
+  // Convert translation for slicer coordinate
+  m_NeedleTransform->SetMatrix( matrix );
+  m_NeedleTransform->Translate( - (matrix * closestPosition) );
 
-  m_NeedleTransform->SetMatrix(matrix);
-  m_NeedleTransform->SetTranslation(closestPosition);
-
-    
 }
 
 

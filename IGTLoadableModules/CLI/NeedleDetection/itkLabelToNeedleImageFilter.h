@@ -18,7 +18,7 @@
 #define __itkLabelToNeedleImageFilter_h
 
 #include "itkImageToImageFilter.h"
-#include "itkAffineTransform.h"
+#include "itkCenteredAffineTransform.h"
 
 namespace itk
 {
@@ -46,7 +46,7 @@ public:
   typedef typename InputImageType::PixelType             InputPixelType;
   typedef typename OutputImageType::PixelType            OutputPixelType;
   
-  typedef typename itk::AffineTransform< float, 3 >      NeedleTransformType;
+  typedef typename itk::CenteredAffineTransform< float, 3 >      NeedleTransformType;
 
   /** Image dimension = 3. */
   //itkStaticConstMacro(ImageDimension, unsigned int,
