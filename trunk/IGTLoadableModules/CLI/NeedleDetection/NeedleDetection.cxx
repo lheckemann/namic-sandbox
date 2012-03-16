@@ -119,13 +119,16 @@ template<class T> int DoIt( int argc, char * argv[], T )
   needleFilter->SetMinPrincipalAxisLength( static_cast< float >(minPrincipalAxisLength) );
   needleFilter->SetMaxMinorAxisLength( static_cast< float >(maxMinorAxisLength) );
   needleFilter->SetAngleThreshold (static_cast< double >(anglethreshold) );
-  needleFilter->SetNormal (static_cast< double >(normal[0]),
-                           static_cast< double >(normal[1]),
-                           static_cast< double >(normal[2]));
-  needleFilter->SetClosestPoint(static_cast< double >(closestPoint[0]),
-                                static_cast< double >(closestPoint[1]),
-                                static_cast< double >(closestPoint[2]));
 
+  // Set default orientation and closest point of the needle for detection
+  // Note that the parameter is passed in RAS coordinate system
+  // and must be converted to LPS coordinate system
+  needleFilter->SetNormal (static_cast< double >(-normal[0]),
+                           static_cast< double >(-normal[1]),
+                           static_cast< double >(normal[2]));
+  needleFilter->SetClosestPoint(static_cast< double >(-closestPoint[0]),
+                                static_cast< double >(-closestPoint[1]),
+                                static_cast< double >(closestPoint[2]));
 
   writer->SetInput( needleFilter->GetOutput() );
   writer->SetUseCompression(1);
