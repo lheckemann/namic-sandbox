@@ -13,14 +13,13 @@
 #include "BRPtprRingBuffer.h"
 #endif
 #include "BRPtprMessages.h"
-#ifdef MRRobot_HAS_PROXY
 #include "igtlMessage.h"
 #include "igtl_header.h"
 
+#ifdef MRRobot_HAS_PROXY
 #include "BRPplatform.h" // pthread, pipe
 #else
 #include "igtlServerSocket.h"
-class igtlMessage;
 #endif
 
 
@@ -49,10 +48,6 @@ public:
  // Outgoing messages -> to the navigation software
  bool QueueActualCoordinates(float pos[3],float orientation[4], float depth_vector[3]);
  bool QueueActualRobotStatus(BRPTPRstatusType RobotStatus, char *message);
- //bool QueueActualCoordinates(float pos[3],float orientation[4]);
- //bool QueueNumberOfJoints( int JointNumber );
- //bool QueueActualJointPositions(int nr, float jpos[]);
- //bool QueueStatus(char *status, char *message, bool lDone, bool lEmergency);
 
  // temp function!
  void SetRobotStatus(BRPTPRstatusType stat) {tempStat=stat;}
@@ -62,15 +57,23 @@ protected:
  bool SendZFrameToRobot(BRPtprControl *robotControl, igtlMessage & buff);
  bool SendTargetToRobot(BRPtprControl *robotControl, igtlMessage & buff);
 
-#ifdef MRRobot_HAS_PROXY
- bool QueueResponse(igtlMessage buff);
+
  void SetUpHeader(igtlMessage & msg,BRPtprMessageCommandType cmd);
 
- int tempCounter;
- BRPTPRstatusType tempStat;
- 
  bool lInitialized;
+ BRPTPRstatusType tempStat;
 
+ bool QueueResponse(igtlMessage buff);
+
+#ifdef MRRobot_HAS_PROXY
+// -----
+
+ bool GetResponse(igtlMessage buff);
+
+// -----
+
+ int tempCounter;
+ 
  static void *FromNavigatorThread(void *object);
  bool StopFromNavigatorThread(void);
 
@@ -82,29 +85,8 @@ protected:
  bool ToNavigatorPipe_Connected;
 
  igtlMessage_queue FromNavigatorCommands;
-#else
- BRPTPRstatusType tempStat;
 #endif
 
- /*
- static void *CommandThread(void *object);
- bool StopCommandThread(void);
- 
- static void *StatusThread(void *object);
- bool StopStatusThread(void);
- */
-
-
-
- /*
- bool lCommandThreadRunning;
- pthread_t hCommandThread;
- 
- bool lStatusThreadRunning;
- pthread_t hStatusThread;
-*/
-// BRPtprRingBuffer CommandMessagePool;
- //BRPtprRingBuffer StatusMessagePool;
 };
 
 #endif // _BRPtprOpenTracker_h_
