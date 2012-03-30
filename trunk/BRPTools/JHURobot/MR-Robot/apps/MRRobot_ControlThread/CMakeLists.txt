@@ -40,12 +40,15 @@ set (SOURCE_FILES
         BRPtprOpenTracker.cpp
         BRPtprOpenTracker.h
         BRPtprMessages.h
+        igtlMessage.cpp
         ctfControl.cpp
         ctfControl.h
         ctfGainData.h
         BRPtprMessages.cpp
         ctfControlBase.h
-        ctfControlBase.cpp)
+        ctfControlBase.cpp
+        igtl_util.c
+        crc32.c)
 
 if (MRRobot_HAS_PROXY)
     add_definitions(-DMRRobot_HAS_PROXY)
@@ -53,10 +56,7 @@ if (MRRobot_HAS_PROXY)
         BRPtprRingBuffer.cpp
         BRPtprRingBuffer.h
         BRPTPRInterface.h
-        igtl_util.c
-        crc32.c
         BRPplatform.cpp
-        igtlMessage.cpp
         igtl_header.c)
 endif (MRRobot_HAS_PROXY)
 

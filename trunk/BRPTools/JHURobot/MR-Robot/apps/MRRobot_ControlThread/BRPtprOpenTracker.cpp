@@ -4,12 +4,30 @@
 
 #include <assert.h>
 #include <stdlib.h>
+
+#include <cstring>  // added
+
 #include "BRPtprMessages.h"
 #include "BRPtprControl.h"
+
+
+// Added on 22/03/2012 by Sohrab
+
+#include "igtlMessageHeader.h"
+#include "igtlTransformMessage.h"
+#include "igtlPositionMessage.h"
+#include "igtlClientSocket.h"
+
+// Local file
+#include "igtlMessage.h"
+
+
+// ----------------------------
 
 #include <cisstCommon/cmnLogger.h>
 
 #ifdef MRRobot_HAS_PROXY
+
 #include "BRPplatform.h" // pthread, pipe
 
 
@@ -68,7 +86,7 @@ bool BRPtprOpenTracker::Initialize(void)
 /// True if there's a message in the queue
 bool BRPtprOpenTracker::IsThereNewCommand(void)
 {
- /* 
+ /*
  // Send positions on timer to Navigator (Slicer hack)
  if ( (tempStat==BRPTPRstatus_Manual) || (tempStat==BRPTPRstatus_Moving) ) {
         // Simulate "GetPosition" every 10th message
@@ -83,6 +101,41 @@ bool BRPtprOpenTracker::IsThereNewCommand(void)
 
         return !FromNavigatorCommands.empty();
 }
+
+#else  // !MRRobot_HAS_PROXY
+
+const unsigned int SlicerPort = 5678;
+
+BRPtprOpenTracker::BRPtprOpenTracker(void) : SlicerSocket(0), SlicerClient(0)
+{
+ this->lInitialized = false;
+}
+
+BRPtprOpenTracker::~BRPtprOpenTracker(void) {
+    if (SlicerSocket)
+        SlicerSocket->CloseSocket();
+    if (SlicerClient)
+        SlicerClient->CloseSocket();
+}
+ 
+bool BRPtprOpenTracker::Initialize(void)
+{
+    CMN_LOG_RUN_VERBOSE << "Initialize: creating OpenIGTLink server on port " << SlicerPort << std::endl;
+    SlicerSocket = igtl::ServerSocket::New();
+    if (SlicerSocket->CreateServer(SlicerPort) == -1) {
+        CMN_LOG_RUN_ERROR << "Initialize: could not create server on port " << SlicerPort << std::endl;
+        return false;
+    }
+    this->lInitialized = true;
+    return true;
+}
+
+
+bool BRPtprOpenTracker::IsThereNewCommand(void) {
+  return true;
+}
+
+#endif
 
 #include "igtl_util.h"
 
@@ -111,7 +164,13 @@ bool BRPtprOpenTracker::SendZFrameToRobot(BRPtprControl *robotControl, igtlMessa
  orientation[1]=jhu_get_float32(msg, 4*4);
  orientation[2]=jhu_get_float32(msg, 5*4);
  orientation[3]=jhu_get_float32(msg, 6*4);
- 
+
+// ------------------
+ std::cerr << "BRPtprOpenTracker::SendZFrameToRobot ("
+           << position[0] << "," << position[1] << "," << position[2] << ")" 
+           << " ("  << orientation[0] << "," << orientation[1] << "," << orientation[2] << "," << orientation[3] << ")" << std::endl;
+// ------------------
+
  robotControl->ZFrame(position, orientation); 
  return true;
 }
@@ -138,6 +197,9 @@ bool BRPtprOpenTracker::SendTargetToRobot(BRPtprControl *robotControl, igtlMessa
  robotControl->GoToCoordinates(position, orientation); 
  return true;
 }
+
+
+#ifdef MRRobot_HAS_PROXY
 
 /// Processes the command from the queue
 bool BRPtprOpenTracker::ProcessNextCommand(BRPtprControl *robotControl)
@@ -316,10 +378,151 @@ void BRPtprOpenTracker::OpenToNavigatorPipe(void)
  }
 }
 
+#else // !MRRobot_HAS_PROXY
 
-// ------- Queue messages to teh Navigation Software ---------------
+union FloatUnion {
+  char bytes[4];
+  float data;
 
+  float swap() {
+    char tmp = bytes[0];
+    bytes[0] = bytes[3];
+    bytes[3] = tmp;
+    tmp = bytes[1];
+    bytes[1] = bytes[2];
+    bytes[2] = tmp;
+    return data;
+  }
+};
 
+// This method checks the received commands and calls the appropriate function:
+bool BRPtprOpenTracker::ProcessNextCommand(BRPtprControl *robotControl)
+{
+    static igtl::MessageHeader::Pointer headerMsg = 0;  // Should be in class
+    if (!SlicerClient) {
+        // Wait up to 10 msec for a connection
+        SlicerClient = SlicerSocket->WaitForConnection(10);
+        if (SlicerClient) {
+            CMN_LOG_RUN_VERBOSE << "Received connection from Slicer!" << std::endl;
+            // Create a message buffer to receive header
+            headerMsg = igtl::MessageHeader::New();
+        }
+    }
+    
+    if (SlicerClient) {
+        // Initialize receive buffer
+        headerMsg->InitPack();
+
+        // Receive generic header from the SlicerClient
+        int rs = SlicerClient->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize(), 0);
+        if (rs == headerMsg->GetPackSize())  {
+           // Now, based on device type in header, receive and process and message body
+
+           // Deserialize the header  
+           headerMsg->Unpack(); 
+
+           std::cerr << "Receiving a message: " << std::endl;
+           std::cerr << "       Device Type: \"" << headerMsg->GetDeviceType() << "\"" << std::endl;
+           std::cerr << "       Device Name: \"" << headerMsg->GetDeviceName() << "\"" << std::endl;
+
+           if (strcmp(headerMsg->GetDeviceType(), "SET_Z_FRAME") == 0) {
+               FloatUnion parms[7];
+               std::cerr << "Processing Z_FRAME" << std::endl;
+               rs = SlicerClient->Receive(parms, 7*sizeof(FloatUnion));
+               if (rs == 7*sizeof(float)) {
+                 float pos[3];
+                 float orient[4];
+                 pos[0] = parms[0].swap(); pos[1] = parms[1].swap(); pos[2] = parms[2].swap();
+                 std::cerr << "Z_FRAME_Position = " << pos[0] << ", " << pos[1] << ", " << pos[2] << std::endl;
+                 orient[0] = parms[3].swap(); orient[1] = parms[4].swap(); orient[2] = parms[5].swap(); orient[3] = parms[6].swap();
+                 std::cerr << "Z_FRAME_Orientation = " << orient[0] << ", " << orient[1] << ", " << orient[2] << ", " << orient[3] << std::endl;
+                 robotControl->ZFrame(pos, orient); 
+               }
+               else
+                   std::cerr << "Error: read " << rs << " bytes" << std::endl;
+           }
+           else if (strcmp(headerMsg->GetDeviceType(), "GET_COORDINA") == 0) {
+             std::cerr << "Processing GET_COORDINA" << std::endl;
+             robotControl->GetActualCoordinates();
+           }
+           else if (strcmp(headerMsg->GetDeviceType(), "MOVE_TO") == 0) {
+               FloatUnion parms[7];
+               std::cerr << "Processing MOVE_TO" << std::endl;
+               rs = SlicerClient->Receive(parms, 7*sizeof(FloatUnion));
+               if (rs == 7*sizeof(float)) {
+                 float pos[3];
+                 float orient[4];
+                 pos[0] = parms[0].swap(); pos[1] = parms[1].swap(); pos[2] = parms[2].swap();
+                 std::cerr << "TargetPosition = " << pos[0] << ", " << pos[1] << ", " << pos[2] << std::endl;
+                 orient[0] = parms[3].swap(); orient[1] = parms[4].swap(); orient[2] = parms[5].swap(); orient[3] = parms[6].swap();
+                 std::cerr << "TargetOrientation = " << orient[0] << ", " << orient[1] << ", " << orient[2] << ", " << orient[3] << std::endl;
+                 robotControl->GoToCoordinates(pos, orient); 
+               }
+               else
+                   std::cerr << "Error: read " << rs << " bytes" << std::endl;
+           }
+           else if (strcmp(headerMsg->GetDeviceType(), "START_UP") == 0) {
+             std::cerr << "Processing START_UP" << std::endl;
+             robotControl->WorkphaseSTART_UP();
+           }
+           else if (strcmp(headerMsg->GetDeviceType(), "PLANNING") == 0) {
+             std::cerr << "Processing PLANNING" << std::endl;
+             robotControl->WorkphasePLANNING();
+           }
+           else if (strcmp(headerMsg->GetDeviceType(), "CALIBRATION") == 0) {
+             std::cerr << "Processing CALIBRATION" << std::endl;
+             robotControl->WorkphaseCALIBRATION();
+           }
+           else if (strcmp(headerMsg->GetDeviceType(), "TARGETING") == 0) {
+             std::cerr << "Processing TARGETING" << std::endl;
+             robotControl->WorkphaseTARGETING();
+           }
+           else if (strcmp(headerMsg->GetDeviceType(), "MANUAL") == 0) {
+             std::cerr << "Processing MANUAL" << std::endl;
+             robotControl->WorkphaseMANUAL();
+           }
+           else if (strcmp(headerMsg->GetDeviceType(), "EMERGENCY") == 0) {
+             std::cerr << "Processing EMERGENCY" << std::endl;
+             robotControl->WorkphaseEMERGENCY();
+           }
+           else if (strcmp(headerMsg->GetDeviceType(), "INITIALIZE") == 0) {
+             std::cerr << "Processing INITIALIZE" << std::endl;
+             robotControl->InitializeRobot();
+           }
+           else if (strcmp(headerMsg->GetDeviceType(), "HOME") == 0) {
+             std::cerr << "Processing HOME" << std::endl;
+             robotControl->Home();
+           }
+           else if (strcmp(headerMsg->GetDeviceType(), "GET_STATUS") == 0) {
+             std::cerr << "Processing GET_STATUS" << std::endl;
+             robotControl->GetStatus();
+           }
+           else
+           {
+               std::cerr << "Skipping message" << std::endl;
+               SlicerClient->Skip(headerMsg->GetBodySizeToRead(), 0);
+           } 
+        }
+        else if (rs > 0) {
+           std::cerr << "Received message of size " << rs << ", header size = " << headerMsg->GetPackSize() << std::endl;
+        }
+    }
+    return true;
+}
+
+/// Send a status to navigation software (through OpenIGTLink)
+bool BRPtprOpenTracker::QueueResponse(igtlMessage buff)
+{
+    if (!SlicerClient->Send(buff.data(), buff.length())) {
+        std::cerr << "Error sending position to robot" << std::endl;
+        return false;
+    }
+    return true;
+}
+
+#endif
+
+// ------- Queue messages to the Navigation Software ---------------
 
 #include "igtl_util.h"
 
@@ -385,6 +588,7 @@ void calc_crc(igtlMessage & msg)
 }
 
 
+#ifdef MRRobot_HAS_PROXY
 
 /// Queue for sending the actual position and orientation - false if buffer full
 bool BRPtprOpenTracker::QueueActualCoordinates(float pos[3],float orientation[4], float depth_vector[3])
@@ -434,6 +638,35 @@ std::cerr << "BRPtprOpenTracker::QueueActualCoordinates (" << pos[0] << "," << p
         return false;*/
 }
 
+#else // !MRRobot_HAS_PROXY
+
+/// Queue for sending the actual position and orientation - false if buffer full
+bool BRPtprOpenTracker::QueueActualCoordinates(float pos[3],float orientation[4], float depth_vector[3])
+{
+    igtlMessage msg;
+    //std::memcpy(msg.get_header()->name, "POSITION", 8);
+    //strcpy(msg.get_header()->name, "COORDINATES_TO_ROBOT");
+    strcpy(msg.get_header()->name, "COORDINATES");
+    std::memcpy(msg.get_header()->device_name, "JHUbrpTP", 9 ); // max: 20 (IGTL_HEADER_DEVSIZE)
+    FloatUnion tmp;
+    float *body = (float *)(msg.body());
+    tmp.data = pos[0];
+    body[0] = tmp.swap();
+    tmp.data = pos[1];
+    body[1] = tmp.swap();
+    tmp.data = pos[2];
+    body[2] = tmp.swap();
+    msg.body_length(28);
+    //calc_crc(msg);
+    msg.encode_header();
+    if (!SlicerClient->Send(msg.data(), msg.length())) {
+        std::cerr << "Error sending position to robot" << std::endl;
+        return false;
+    }
+    return true;
+}
+
+#endif
 
 bool BRPtprOpenTracker::QueueActualRobotStatus(BRPTPRstatusType RobotStatus, char *message)
 {
@@ -478,72 +711,11 @@ bool BRPtprOpenTracker::QueueActualRobotStatus(BRPTPRstatusType RobotStatus, cha
         return false;*/
 }
 
+
 void BRPtprOpenTracker::SetUpHeader(igtlMessage & msg,BRPtprMessageCommandType cmd)
 {
         /// TODO verify cmd boundary
         std::memcpy(msg.get_header()->name, BRPCommands[cmd].c_str(), BRPCommands[cmd].length() );
         std::memcpy(msg.get_header()->device_name, "JHUbrpTP", 9 ); // max: 20 (IGTL_HEADER_DEVSIZE)
 }
-#else
-// OpenIGTLink dependencies
-#include "igtlImageMessage.h"
-#include "igtlTransformMessage.h"
 
-const unsigned int SlicerPort = 5678;
-
-// Stub functions for running system without proxy.
-// Probably this class will need its own thread to wait for commands from Slicer.
-
-BRPtprOpenTracker::BRPtprOpenTracker(void) : SlicerSocket(0), SlicerClient(0) {}
-BRPtprOpenTracker::~BRPtprOpenTracker(void) {
-    if (SlicerSocket)
-        SlicerSocket->CloseSocket();
-    if (SlicerClient)
-        SlicerClient->CloseSocket();
-}
- 
-bool BRPtprOpenTracker::Initialize(void)
-{
-    CMN_LOG_RUN_VERBOSE << "Initialize: creating OpenIGTLink server on port " << SlicerPort << std::endl;
-    SlicerSocket = igtl::ServerSocket::New();
-    if (SlicerSocket->CreateServer(SlicerPort) == -1) {
-        CMN_LOG_RUN_ERROR << "Initialize: could not create server on port " << SlicerPort << std::endl;
-        return false;
-    }
-    return true;
-}
-
-bool BRPtprOpenTracker::IsThereNewCommand(void) {
-    if (!SlicerClient) {
-        // Wait up to 10 msec for a connection
-        SlicerClient = SlicerSocket->WaitForConnection(10);
-        if (SlicerClient)
-            CMN_LOG_RUN_VERBOSE << "Received connection from Slicer!" << std::endl;
-    }
-    if (SlicerClient) {
-        // Use igtlMessage instead
-        char buffer[128];
-        int num = SlicerClient->Receive(buffer, sizeof(buffer), 0);
-        if (num > 0)
-            CMN_LOG_RUN_VERBOSE << "Received " << num << " bytes from Slicer" << std::endl;
-    }
-    return false;
-}
-
-// This method checks the received commands and calls the appropriate function:
-bool BRPtprOpenTracker::ProcessNextCommand(BRPtprControl *robotControl)
-{ return true; }
- 
-bool BRPtprOpenTracker::SendZFrameToRobot(BRPtprControl *robotControl, igtlMessage & buff)
-{ return true; }
-
-bool BRPtprOpenTracker::SendTargetToRobot(BRPtprControl *robotControl, igtlMessage & buff)
-{ return true; }
-
-bool BRPtprOpenTracker::QueueActualCoordinates(float pos[3],float orientation[4], float depth_vector[3])
-{ return true; }
-
-bool BRPtprOpenTracker::QueueActualRobotStatus(BRPTPRstatusType RobotStatus, char *message)
-{ return true; }
-
-#endif

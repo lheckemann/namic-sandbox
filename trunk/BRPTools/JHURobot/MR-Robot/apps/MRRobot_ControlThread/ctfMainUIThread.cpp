@@ -188,13 +188,11 @@ void ctfMainUIThread::Run(void) {
         }*/
   
         SetCommandPositions(desiredPosition); // Set new command joint positions to StateTable
-        CMN_LOG_CLASS_RUN_VERBOSE << "NaviTrack: Updated SetJointPositions: ";
+        CMN_LOG_CLASS_RUN_VERBOSE << "NaviTrack: Updated SetJointPositions: " << desiredPosition << std::endl;
 
         for (i = 0; i < CTF_NO_CUI; i++) {
-            CMN_LOG_CLASS_RUN_VERBOSE << desiredPosition[i] << "   ";
             cui[i].PositionInput->value(desiredPosition[i]);
         }
-        CMN_LOG_CLASS_RUN_VERBOSE << endl;
   
     }
 
