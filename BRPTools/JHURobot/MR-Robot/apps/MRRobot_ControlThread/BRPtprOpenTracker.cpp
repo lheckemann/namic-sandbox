@@ -588,8 +588,6 @@ void calc_crc(igtlMessage & msg)
 }
 
 
-#ifdef MRRobot_HAS_PROXY
-
 /// Queue for sending the actual position and orientation - false if buffer full
 bool BRPtprOpenTracker::QueueActualCoordinates(float pos[3],float orientation[4], float depth_vector[3])
 {
@@ -637,36 +635,6 @@ std::cerr << "BRPtprOpenTracker::QueueActualCoordinates (" << pos[0] << "," << p
     return StatusMessagePool.WriteOneRecord(&buff);
         return false;*/
 }
-
-#else // !MRRobot_HAS_PROXY
-
-/// Queue for sending the actual position and orientation - false if buffer full
-bool BRPtprOpenTracker::QueueActualCoordinates(float pos[3],float orientation[4], float depth_vector[3])
-{
-    igtlMessage msg;
-    //std::memcpy(msg.get_header()->name, "POSITION", 8);
-    //strcpy(msg.get_header()->name, "COORDINATES_TO_ROBOT");
-    strcpy(msg.get_header()->name, "COORDINATES");
-    std::memcpy(msg.get_header()->device_name, "JHUbrpTP", 9 ); // max: 20 (IGTL_HEADER_DEVSIZE)
-    FloatUnion tmp;
-    float *body = (float *)(msg.body());
-    tmp.data = pos[0];
-    body[0] = tmp.swap();
-    tmp.data = pos[1];
-    body[1] = tmp.swap();
-    tmp.data = pos[2];
-    body[2] = tmp.swap();
-    msg.body_length(28);
-    //calc_crc(msg);
-    msg.encode_header();
-    if (!SlicerClient->Send(msg.data(), msg.length())) {
-        std::cerr << "Error sending position to robot" << std::endl;
-        return false;
-    }
-    return true;
-}
-
-#endif
 
 bool BRPtprOpenTracker::QueueActualRobotStatus(BRPTPRstatusType RobotStatus, char *message)
 {
