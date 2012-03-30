@@ -122,8 +122,10 @@ void devDMM16AT::GetInputAll(mtsDoubleVec &input) const
     CMN_ASSERT(this2);
 
     BYTE result = dscADScan(dscb, &(this2->dscadscan), this2->ADC_samples);
+#if 0
     if (result != DE_NONE)
         CMN_LOG_CLASS_INIT_VERBOSE << "dscADScan returns " << (int)result << std::endl;
+#endif
 
     double ADC_voltage;
     int ctr=0;
