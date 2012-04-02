@@ -80,7 +80,7 @@ void ctfControl::WorkphaseCALIBRATION(void)
         /// \todo add calibration here
 
         // change status to "ready" & send response
-        ctfControlBase::WorkphasePLANNING();
+        ctfControlBase::WorkphaseCALIBRATION();
 }
 
 
@@ -98,7 +98,7 @@ void ctfControl::WorkphaseTARGETING(void)
 /// standby
 void ctfControl::WorkphaseMANUAL(void)
 {
-        CMN_LOG_RUN_VERBOSE << "ctfControl::WorkphaseTARGETING\n";
+        CMN_LOG_RUN_VERBOSE << "ctfControl::WorkphaseMANUAL\n";
 
         // change status & send response
         ctfControlBase::WorkphaseMANUAL();
@@ -114,7 +114,7 @@ void ctfControl::WorkphaseEMERGENCY(void)
         /// \todo flush the air!
 
         // change status & send response
-        ctfControlBase::WorkphaseMANUAL();
+        ctfControlBase::WorkphaseEMERGENCY();
 }
 
 
