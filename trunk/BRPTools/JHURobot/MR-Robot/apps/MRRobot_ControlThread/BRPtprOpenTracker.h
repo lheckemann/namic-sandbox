@@ -46,8 +46,8 @@ public:
  bool ProcessNextCommand(BRPtprControl *robotControl);
 
  // Outgoing messages -> to the navigation software
- bool QueueActualCoordinates(float pos[3],float orientation[4], float depth_vector[3]);
- bool QueueActualRobotStatus(BRPTPRstatusType RobotStatus, char *message);
+ bool QueueActualCoordinates(float pos[3], float orientation[4], float depth_vector[3]);
+ bool QueueActualRobotStatus(BRPTPRstatusType RobotStatus, const char *message);
 
  // temp function!
  void SetRobotStatus(BRPTPRstatusType stat) {tempStat=stat;}
@@ -66,11 +66,6 @@ protected:
  bool QueueResponse(igtlMessage buff);
 
 #ifdef MRRobot_HAS_PROXY
-// -----
-
- bool GetResponse(igtlMessage buff);
-
-// -----
 
  int tempCounter;
  

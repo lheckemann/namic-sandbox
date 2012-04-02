@@ -166,9 +166,9 @@ bool BRPtprOpenTracker::SendZFrameToRobot(BRPtprControl *robotControl, igtlMessa
  orientation[3]=jhu_get_float32(msg, 6*4);
 
 // ------------------
- std::cerr << "BRPtprOpenTracker::SendZFrameToRobot ("
-           << position[0] << "," << position[1] << "," << position[2] << ")" 
-           << " ("  << orientation[0] << "," << orientation[1] << "," << orientation[2] << "," << orientation[3] << ")" << std::endl;
+// std::cerr << "BRPtprOpenTracker::SendZFrameToRobot ("
+//           << position[0] << "," << position[1] << "," << position[2] << ")" 
+//           << " ("  << orientation[0] << "," << orientation[1] << "," << orientation[2] << "," << orientation[3] << ")" << std::endl;
 // ------------------
 
  robotControl->ZFrame(position, orientation); 
@@ -636,7 +636,7 @@ std::cerr << "BRPtprOpenTracker::QueueActualCoordinates (" << pos[0] << "," << p
         return false;*/
 }
 
-bool BRPtprOpenTracker::QueueActualRobotStatus(BRPTPRstatusType RobotStatus, char *message)
+bool BRPtprOpenTracker::QueueActualRobotStatus(BRPTPRstatusType RobotStatus, const char *message)
 {
         assert(lInitialized);
         igtlMessage msg;
