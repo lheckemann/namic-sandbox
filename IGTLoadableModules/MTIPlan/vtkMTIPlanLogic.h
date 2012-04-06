@@ -66,7 +66,10 @@ class VTK_MTIPlan_EXPORT vtkMTIPlanLogic : public vtkSlicerModuleLogic
   std::vector<std::string> vTargets;
   std::vector<std::string> vEntryPoint;
   std::vector<Trajectory> vTrajectories;
+
+  std::string CaseName;
   //ETX
+
 
  protected:
 

@@ -122,6 +122,14 @@ void vtkMTIPlanLogic::startElement(void *userData, const XML_Char *name, const X
       LoadClass->vEntryPoint.push_back(atts[1]);
       }
     }
+
+  if(!strcmp(name,"interventional_plan"))
+    {
+    if(!strcmp(atts[0],"patient_name"))
+      {
+      LoadClass->CaseName = std::string(atts[1]);
+      }
+    }
 }
 
 

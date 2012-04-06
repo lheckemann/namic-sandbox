@@ -22,6 +22,8 @@
 #include "vtkSlicerSliceControllerWidget.h"
 #include "vtkSlicerSliceGUI.h"
 #include "vtkSlicerSlicesGUI.h"
+#include "vtkSlicerModelHierarchyLogic.h"
+
 #include "vtkSmartPointer.h"
 #include "vtkLineSource.h"
 #include "vtkSphereSource.h"
@@ -65,7 +67,8 @@ vtkMTIPlanGUI::vtkMTIPlanGUI ( )
   // GUI widgets
 
   this->SelectXMLFileButton = NULL;
-
+  this->ModelHierarchyWidget = NULL;
+  this->DatasetNumber = 0;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -97,6 +100,12 @@ vtkMTIPlanGUI::~vtkMTIPlanGUI ( )
   if(this->SelectXMLFileButton)
     {
     this->SelectXMLFileButton->Delete();
+    }
+
+
+  if(this->ModelHierarchyWidget)
+    {
+    this->ModelHierarchyWidget->Delete();
     }
 
   //----------------------------------------------------------------
@@ -236,7 +245,10 @@ void vtkMTIPlanGUI::ProcessGUIEvents(vtkObject     *caller,
     this->GetLogic()->ParseMTIPlanFile(this->SelectXMLFileButton->GetWidget()->GetFileName());
     if(this->GetLogic()->GetReadyToDraw())
       {
-      this->DrawTrajectories(this->GetLogic()->vTrajectories);
+      this->DrawTrajectories(this->GetLogic()->vTrajectories, this->GetLogic()->CaseName.c_str());
+
+      // Clean array to allow new file to be loaded
+      this->GetLogic()->vTrajectories.clear();
       }
     }
 }
@@ -342,6 +354,20 @@ void vtkMTIPlanGUI::BuildGUIForLoadingTrajectory()
   this->Script("pack %s -side top -anchor w -expand y -fill x -padx 2 -pady 2",
                this->SelectXMLFileButton->GetWidgetName());
 
+  vtkSlicerModelHierarchyLogic* MHL = vtkSlicerModelHierarchyLogic::New();
+  MHL->SetAndObserveMRMLScene(this->GetMRMLScene());
+
+  this->ModelHierarchyWidget = vtkSlicerModelHierarchyWidget::New();
+  this->ModelHierarchyWidget->SetParent(conBrowsFrame->GetFrame());
+  this->ModelHierarchyWidget->SetAndObserveMRMLScene(this->GetMRMLScene());
+  this->ModelHierarchyWidget->SetModelHierarchyLogic(MHL);
+  this->ModelHierarchyWidget->Create();
+
+  MHL->Delete();
+
+  this->Script("pack %s -side top -anchor w -expand y -fill x -padx 2 -pady 2",
+               this->ModelHierarchyWidget->GetWidgetName());
+
 }
 
 //----------------------------------------------------------------------------
@@ -350,10 +376,62 @@ void vtkMTIPlanGUI::UpdateAll()
 }
 
 //----------------------------------------------------------------------------
-void vtkMTIPlanGUI::DrawTrajectories(std::vector<vtkMTIPlanLogic::Trajectory> vTraj)
+void vtkMTIPlanGUI::DrawTrajectories(std::vector<vtkMTIPlanLogic::Trajectory> vTraj, const char* CaseName)
 {
+  std::stringstream needleName;
+  needleName << "Needles#" << this->GetDatasetNumber();
+  std::stringstream sphereName;
+  sphereName << "Spheres#" << this->GetDatasetNumber();
+
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> CaseHierarchy = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  CaseHierarchy->SetScene(this->GetMRMLScene());
+  CaseHierarchy->SetParentNodeID(NULL);
+  CaseHierarchy->SetName(CaseName);
+  this->GetMRMLScene()->AddNode(CaseHierarchy);
+
+  vtkSmartPointer<vtkMRMLModelDisplayNode> HierarchyDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  HierarchyDisplayNode->SetVisibility(1);
+  HierarchyDisplayNode->SetSliceIntersectionVisibility(1);
+  this->GetMRMLScene()->AddNode(HierarchyDisplayNode);
+  
+  CaseHierarchy->SetAndObserveDisplayNodeID(HierarchyDisplayNode->GetID());
+
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> CaseNeedles = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  CaseNeedles->SetScene(this->GetMRMLScene());
+  CaseNeedles->SetParentNodeID(CaseHierarchy->GetID());
+  CaseNeedles->SetName(needleName.str().c_str());
+  CaseNeedles->SetExpanded(0);
+  this->GetMRMLScene()->AddNode(CaseNeedles);
+
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> CaseSpheres = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  CaseSpheres->SetScene(this->GetMRMLScene());
+  CaseSpheres->SetParentNodeID(CaseHierarchy->GetID());
+  CaseSpheres->SetName(sphereName.str().c_str());
+  CaseSpheres->SetExpanded(0);
+  this->GetMRMLScene()->AddNode(CaseSpheres);
+
+  vtkSmartPointer<vtkMRMLModelDisplayNode> NeedlesDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  NeedlesDisplayNode->SetColor(1,1,0);
+  NeedlesDisplayNode->SetVisibility(1);
+  NeedlesDisplayNode->SetSliceIntersectionVisibility(1);
+  this->GetMRMLScene()->AddNode(NeedlesDisplayNode);
+
+  vtkSmartPointer<vtkMRMLModelDisplayNode> sDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  sDisplayNode->SetColor(0,1,0);
+  sDisplayNode->SetOpacity(0.5);
+  sDisplayNode->SetVisibility(1);
+  sDisplayNode->SetSliceIntersectionVisibility(1);
+  this->GetMRMLScene()->AddNode(sDisplayNode);
+
+  CaseNeedles->SetAndObserveDisplayNodeID(NeedlesDisplayNode->GetID());
+  CaseSpheres->SetAndObserveDisplayNodeID(sDisplayNode->GetID());
+
   for(unsigned int i = 0; i < vTraj.size(); i++)
     {
+
+    //--------------------------------------------------
+    // Filters
+
     vtkSmartPointer<vtkLineSource> line = vtkSmartPointer<vtkLineSource>::New();
     line->SetPoint1(vTraj[i].EntryPoint);
     line->SetPoint2(vTraj[i].Target);
@@ -371,7 +449,17 @@ void vtkMTIPlanGUI::DrawTrajectories(std::vector<vtkMTIPlanLogic::Trajectory> vT
     sphere->SetRadius(15);
     sphere->SetThetaResolution(20);
     sphere->SetPhiResolution(20);
-    
+
+
+    //--------------------------------------------------
+    // Needles (tubes)
+
+    vtkSmartPointer<vtkMRMLModelHierarchyNode> HierarchyNodeTube = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+    HierarchyNodeTube->SetScene(this->GetMRMLScene());
+    HierarchyNodeTube->SetParentNodeID(CaseNeedles->GetID());
+    HierarchyNodeTube->SetHideFromEditors(1);
+    this->GetMRMLScene()->AddNode(HierarchyNodeTube);
+
     vtkSmartPointer<vtkMRMLModelNode> TubeModel = vtkSmartPointer<vtkMRMLModelNode>::New();
     TubeModel->SetScene(this->GetMRMLScene());
     TubeModel->SetAndObservePolyData(tube->GetOutput());
@@ -386,6 +474,16 @@ void vtkMTIPlanGUI::DrawTrajectories(std::vector<vtkMTIPlanLogic::Trajectory> vT
     this->GetMRMLScene()->AddNode(TubeDisplayNode);
 
     TubeModel->SetAndObserveDisplayNodeID(TubeDisplayNode->GetID());
+    HierarchyNodeTube->SetModelNodeID(TubeModel->GetID());
+
+    //--------------------------------------------------
+    // Spheres
+
+    vtkSmartPointer<vtkMRMLModelHierarchyNode> HierarchyNodeSphere = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+    HierarchyNodeSphere->SetScene(this->GetMRMLScene());
+    HierarchyNodeSphere->SetParentNodeID(CaseSpheres->GetID());
+    HierarchyNodeSphere->SetHideFromEditors(1);
+    this->GetMRMLScene()->AddNode(HierarchyNodeSphere);
 
     vtkSmartPointer<vtkMRMLModelNode> SphereModel = vtkSmartPointer<vtkMRMLModelNode>::New();
     SphereModel->SetScene(this->GetMRMLScene());
@@ -402,7 +500,19 @@ void vtkMTIPlanGUI::DrawTrajectories(std::vector<vtkMTIPlanLogic::Trajectory> vT
     this->GetMRMLScene()->AddNode(SphereDisplayNode);
 
     SphereModel->SetAndObserveDisplayNodeID(SphereDisplayNode->GetID());
-
+    HierarchyNodeSphere->SetModelNodeID(SphereModel->GetID());
     }
+
+  // Trick to update last hierarchy node
+  // TODO: Find a better way
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> test = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  test->SetScene(this->GetMRMLScene());
+  this->GetMRMLScene()->AddNode(test);
+  this->GetMRMLScene()->RemoveNode(test);
+  
+  this->GetMRMLScene()->Modified();
+  this->ModelHierarchyWidget->UpdateTreeFromMRML();
+
+  this->SetDatasetNumber(this->GetDatasetNumber()+1);
 }
 
