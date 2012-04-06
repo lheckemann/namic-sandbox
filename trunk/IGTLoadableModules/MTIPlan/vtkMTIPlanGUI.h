@@ -25,6 +25,7 @@
 
 #include "vtkMTIPlanLogic.h"
 
+#include "vtkSlicerModelHierarchyWidget.h"
 #include "vtkKWLoadSaveButton.h"
 #include "vtkKWLoadSaveButtonWithLabel.h"
 #include "vtkCollection.h"
@@ -32,6 +33,7 @@
 class vtkKWPushButton;
 class vtkKWLoadSaveButtonWithLabel;
 class vtkCollection;
+class vtkSlicerModelHierarchyWidget;
 class vtkMTIPlanLogic;
 
 class VTK_MTIPlan_EXPORT vtkMTIPlanGUI : public vtkSlicerModuleGUI
@@ -109,8 +111,11 @@ class VTK_MTIPlan_EXPORT vtkMTIPlanGUI : public vtkSlicerModuleGUI
   void UpdateAll();
 
   //BTX
-  void DrawTrajectories(std::vector<vtkMTIPlanLogic::Trajectory> vTraj);
+  void DrawTrajectories(std::vector<vtkMTIPlanLogic::Trajectory> vTraj, const char* CaseName);
   //ETX
+
+  vtkGetMacro(DatasetNumber, int);
+  vtkSetMacro(DatasetNumber, int);
 
  protected:
 
@@ -126,7 +131,10 @@ class VTK_MTIPlan_EXPORT vtkMTIPlanGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
 
   vtkKWLoadSaveButtonWithLabel* SelectXMLFileButton;
+  vtkSlicerModelHierarchyWidget* ModelHierarchyWidget;
   vtkCollection* TrajectoryCollection;
+
+  int DatasetNumber;
 
   //----------------------------------------------------------------
   // Logic Values
