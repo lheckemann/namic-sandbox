@@ -6,10 +6,12 @@
 #include <stdio.h> // 2011-05-23 Nathan
 #include <sys/io.h>
 #include <cisstCommon/cmnXMLPath.h>
-#include <cisstInteractive/ireFramework.h>
 #include <cisstMultiTask/mtsInterfaceRequired.h>
 #include "ctfMainUIThread.h"
+#ifdef MRRobot_HAS_IRE
+#include <cisstInteractive/ireFramework.h>
 #include "ireTask.h"
+#endif
 #include "ctfControlBase.h"
 
 #define LL 121.0    // Link Length
@@ -217,6 +219,7 @@ void ctfMainUIThread::Run(void) {
     
     if (sui->StartIREFlag) {
         sui->StartIREFlag = false;
+#ifdef MRRobot_HAS_IRE
         CMN_LOG_CLASS_INIT_VERBOSE << "Starting IRE From ctfMainUIThread" << std::endl;
         IRE = new ireTask("IRE");
         // PKAZ: Call to ireLogger.ClearTextOutput() is a workaround.
@@ -233,6 +236,9 @@ void ctfMainUIThread::Run(void) {
         IRE->Create();
         // PKAZ: temp
         //IRE->Start();
+#else
+        CMN_LOG_CLASS_INIT_WARNING << "IRE not enabled!" << std::endl;
+#endif
     }
 
     if (sui->AdjustEncodersFlag) {
@@ -429,6 +435,7 @@ void ctfMainUIThread::Cleanup(void) {
     fprintf(pFile, "%.2f %.2f %.2f %.2f", buffer[0], buffer[1], buffer[2], buffer[3]);
     fclose(pFile);
 
+#ifdef MRRobot_HAS_IRE
     ///// IRE Stuff //////
     if (IRE) {
         CMN_LOG_CLASS_INIT_VERBOSE << "Ending IRE..." << std::endl;
@@ -448,6 +455,7 @@ void ctfMainUIThread::Cleanup(void) {
             nloops++;
         }
     }
+#endif
 }
 
 // Configures must be run in a bottom-up order.  eg a trajectory task

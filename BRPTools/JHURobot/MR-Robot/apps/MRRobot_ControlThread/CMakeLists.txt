@@ -10,6 +10,8 @@ OPTION(MRRobot_OldGUI "Use old GUI." OFF)
 
 OPTION(MRRobot_HAS_PROXY "Use pipe interface to proxy." ON)
 
+OPTION(MRRobot_HAS_IRE "Use IRE (Python shell)" ON)
+
 # use CMake provided script to locate FLTK
 FIND_PACKAGE(FLTK REQUIRED)
 
@@ -32,9 +34,7 @@ SET(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
 set (SOURCE_FILES 
         ctfControlThread.cpp
-        ireTask.cpp
         ctfControlThread.h
-        ireTask.h
         BRPtprControl.cpp
         BRPtprControl.h
         BRPtprOpenTracker.cpp
@@ -60,10 +60,21 @@ if (MRRobot_HAS_PROXY)
         igtl_header.c)
 endif (MRRobot_HAS_PROXY)
 
+set (REQUIRED_CISST_LIBS cisstCommon cisstCommonXML cisstVector 
+                         cisstOSAbstraction cisstMultiTask)
+
+if (MRRobot_HAS_IRE)
+    add_definitions(-DMRRobot_HAS_IRE)
+    set (SOURCE_FILES ${SOURCE_FILES}
+        ireTask.cpp
+        ireTask.h)
+    set (REQUIRED_CISST_LIBS ${REQUIRED_CISST_LIBS}
+                             cisstInteractive)
+endif (MRRobot_HAS_IRE)
+
 ADD_LIBRARY(MRRobot_ControlThreadLib SHARED ${SOURCE_FILES})
 
-cisst_target_link_libraries(MRRobot_ControlThreadLib cisstCommon cisstCommonXML cisstVector 
-                            cisstOSAbstraction cisstInteractive cisstMultiTask)
+cisst_target_link_libraries(MRRobot_ControlThreadLib ${REQUIRED_CISST_LIBS})
 
 # add include paths
 include_directories(${MRRobot_ControlThread_SOURCE_DIR}
@@ -89,12 +100,12 @@ ADD_EXECUTABLE(MRRobot_ControlThread
            ctfMainUIIncludes.h
           )
 
-ADD_CUSTOM_COMMAND(TARGET MRRobot_ControlThread POST_BUILD
+add_custom_command(TARGET MRRobot_ControlThread POST_BUILD
     COMMAND ln ARGS -fns ${CMAKE_CURRENT_SOURCE_DIR}/XMLConfig/ MRRobot_ControlThreadXMLConfig
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # this program
-TARGET_LINK_LIBRARIES(MRRobot_ControlThread MRRobot_ControlThreadLib MRRobotDevices dscud5 ${FLTK_LIBRARIES} GL GLU dl util
+target_link_libraries(MRRobot_ControlThread MRRobot_ControlThreadLib MRRobotDevices dscud5 ${FLTK_LIBRARIES} GL GLU dl util
                       ${sawLoPoMoCo_LIBRARIES})
 
 if(OpenIGTLink_FOUND)
@@ -102,20 +113,21 @@ if(OpenIGTLink_FOUND)
 endif(OpenIGTLink_FOUND)
 
 # link with the cisst libraries
-cisst_target_link_libraries(MRRobot_ControlThread cisstCommon cisstCommonXML cisstVector cisstInteractive
-                            cisstOSAbstraction cisstMultiTask)
+cisst_target_link_libraries(MRRobot_ControlThread ${REQUIRED_CISST_LIBS})
 
 # Allow generated c++ code to find header files
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # To link with build libraries
-LINK_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+link_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-cisst_add_swig_module(MODULE MRRobot_ControlThreadLib
-                      INTERFACE_FILENAME MRRobot_ControlThreadLibPython.i
-                      INTERFACE_DIRECTORY .
-                      MODULE_LINK_LIBRARIES MRRobot_ControlThreadLib)
+if(MRRobot_HAS_IRE)
+  cisst_add_swig_module(MODULE MRRobot_ControlThreadLib
+                        INTERFACE_FILENAME MRRobot_ControlThreadLibPython.i
+                        INTERFACE_DIRECTORY .
+                        MODULE_LINK_LIBRARIES MRRobot_ControlThreadLib)
+endif(MRRobot_HAS_IRE)
 
-IF(CISST_HAS_LINUX_RTAI)
-  TARGET_LINK_LIBRARIES(MRRobot_ControlThread ${RTAI_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-ENDIF(CISST_HAS_LINUX_RTAI)
+if(CISST_HAS_LINUX_RTAI)
+  target_link_libraries(MRRobot_ControlThread ${RTAI_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+endif(CISST_HAS_LINUX_RTAI)
