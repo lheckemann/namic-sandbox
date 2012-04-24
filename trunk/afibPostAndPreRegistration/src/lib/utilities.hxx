@@ -16,6 +16,8 @@
 
 #include "itkMultiplyByConstantImageFilter.h"
 
+#include "itkRegionOfInterestImageFilter.h"
+
 // local
 #include "utilities.h"
 
@@ -336,6 +338,181 @@ namespace afibReg
         std::cout << err << std::endl; 
         abort();   
       }
+  }
+
+
+  template<typename image_t>
+  typename image_t::RegionType
+  computeNonZeroRegion(typename image_t::Pointer img)
+  {
+    /**
+     * Given the img, compute the region where outside this region,
+     * the image is all zero.
+     *
+     * The minx, y, z are initialized as sizeX, y, z; then, whenever
+     * encounter an non-zero voxel, the minx, y, z are updated
+     * accordingly. Similar for maxX, y, z except that they are
+     * intialized to 0, 0, 0
+     */
+    typedef typename image_t::RegionType imageRegion_t;
+    typedef typename image_t::IndexType imageIndex_t;
+    typedef typename image_t::SizeType imageSize_t;
+
+
+    imageRegion_t entireRegion = img->GetLargestPossibleRegion();
+
+    long minX = entireRegion.GetSize()[0];
+    long minY = entireRegion.GetSize()[1];
+    long minZ = entireRegion.GetSize()[2];
+
+    long maxX = 0;
+    long maxY = 0;
+    long maxZ = 0;
+
+    //    std::cout<<"hahaha = "<<minX<<'\t'<<minY<<'\t'<<minZ<<'\t'<<maxX<<'\t'<<maxX<<'\t'<<maxX<<'\n';
+
+    typedef itk::ImageRegionConstIteratorWithIndex< image_t > itkImageRegionConstIteratorWithIndex_t;
+
+    itkImageRegionConstIteratorWithIndex_t it(img, entireRegion);
+
+    char foundNonZero = 0;
+
+    {
+      imageIndex_t idx;
+      for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+        {
+          if (it.Get() != 0)
+            {
+              foundNonZero = 1;
+
+              idx = it.GetIndex();
+
+              minX = minX<idx[0]?minX:idx[0];
+              minY = minY<idx[1]?minY:idx[1];
+              minZ = minZ<idx[2]?minZ:idx[2];
+
+              maxX = maxX>idx[0]?maxX:idx[0];
+              maxY = maxY>idx[1]?maxY:idx[1];
+              maxZ = maxZ>idx[2]?maxZ:idx[2];
+            }
+        }
+    }
+
+    imageRegion_t nonZeroRegion;
+
+    if (1 == foundNonZero)
+      {
+        imageIndex_t startIdx;
+        startIdx[0] = minX;
+        startIdx[1] = minY;
+        startIdx[2] = minZ;
+
+        imageSize_t size;
+        size[0] = maxX - minX;
+        size[1] = maxY - minY;
+        size[2] = maxZ - minZ;
+
+        nonZeroRegion.SetSize( size );
+        nonZeroRegion.SetIndex( startIdx );
+      }
+    else
+      {
+        imageIndex_t startIdx;
+        startIdx[0] = 0;
+        startIdx[1] = 0;
+        startIdx[2] = 0;
+
+        imageSize_t size;
+        size[0] = entireRegion.GetSize()[0];
+        size[1] = entireRegion.GetSize()[1];
+        size[2] = entireRegion.GetSize()[2];
+
+        nonZeroRegion.SetSize( size );
+        nonZeroRegion.SetIndex( startIdx );
+      }
+
+    
+    return nonZeroRegion;
+  }
+
+
+  /**
+   * Enlarge the region by 1/5 at each end, care is taken at the
+   * boundary.
+   */
+  template<typename image_t>
+  typename image_t::RegionType
+  enlargeNonZeroRegion(typename image_t::Pointer img, typename image_t::RegionType nonZeroRegion)
+  {
+    typedef typename image_t::RegionType imageRegion_t;
+    typedef typename image_t::IndexType imageIndex_t;
+    typedef typename image_t::SizeType imageSize_t;
+
+    imageRegion_t entireRegion = img->GetLargestPossibleRegion();
+    imageSize_t entireSize = entireRegion.GetSize();
+
+    imageIndex_t start = nonZeroRegion.GetIndex();
+    imageSize_t sz = nonZeroRegion.GetSize();
+
+    start[0] = std::max(0l, static_cast<long>(start[0] - sz[0]/5));
+    start[1] = std::max(0l, static_cast<long>(start[1] - sz[1]/5));
+    start[2] = std::max(0l, static_cast<long>(start[2] - sz[2]/5));
+
+    sz[0] = std::min(entireSize[0] - start[0], 7*sz[0]/5);
+    sz[1] = std::min(entireSize[1] - start[1], 7*sz[1]/5);
+    sz[2] = std::min(entireSize[2] - start[2], 7*sz[2]/5);
+
+    
+    /**********************************************************************************
+    {
+      //tst
+      std::cout<<"\t\t start =    "<<start<<std::endl<<std::flush;
+      std::cout<<"\t\t entireSize =    "<<entireSize<<std::endl<<std::flush;
+      std::cout<<"\t\t entireSize[1] - start[1], 7*sz[1]/5   "<<entireSize[1] - start[1]<<'\t'<<7*sz[1]/5<<'\t'<<sz[1]<<std::endl<<std::flush;
+      //tst//
+    }
+    **********************************************************************************/
+
+    imageRegion_t largerRegion;
+    largerRegion.SetSize( sz );
+    largerRegion.SetIndex( start );
+
+    return largerRegion;
+  }
+
+
+  /**
+   * Extract the ROI from the image using the region
+   */
+  template<typename image_t>
+  typename image_t::Pointer
+  extractROI(typename image_t::Pointer img, typename image_t::RegionType region)
+  {
+    typedef itk::RegionOfInterestImageFilter<image_t, image_t> itkRegionOfInterestImageFilter_t;
+
+    typename itkRegionOfInterestImageFilter_t::Pointer ROIfilter = itkRegionOfInterestImageFilter_t::New();
+    ROIfilter->SetInput( img );
+    ROIfilter->SetRegionOfInterest( region );
+    ROIfilter->Update();
+
+    return ROIfilter->GetOutput();
+  }
+
+
+  /**
+   * Crop the image by the non-zero region given by the mask 
+   */
+  template<typename MaskImageType >
+  typename MaskImageType::Pointer
+  cropROIFromImage(typename MaskImageType::Pointer mask)
+  {
+    typename MaskImageType::RegionType ROIRegion = computeNonZeroRegion<MaskImageType>(mask);
+
+    typename MaskImageType::RegionType enlargedROIRegion = enlargeNonZeroRegion<MaskImageType>(mask, ROIRegion);
+
+    typename MaskImageType::Pointer ROIMask = extractROI<MaskImageType>(mask, enlargedROIRegion);
+
+    return ROIMask;
   }
 
 
