@@ -1,0 +1,58 @@
+/*==============================================================================
+
+  Program: 3D Slicer
+
+  Portions (c) Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+==============================================================================*/
+
+#ifndef __qSlicerMultiVolumesUltrasoundModuleWidget_h
+#define __qSlicerMultiVolumesUltrasoundModuleWidget_h
+
+// SlicerQt includes
+#include "qSlicerAbstractModuleWidget.h"
+
+#include "qSlicerMultiVolumesUltrasoundModuleExport.h"
+
+class qSlicerMultiVolumesUltrasoundModuleWidgetPrivate;
+class vtkMRMLNode;
+class vtkMRMLScene;
+
+/// \ingroup Slicer_QtModules_MultiVolumesUltrasound
+class Q_SLICER_QTMODULES_MULTIVOLUMESULTRASOUND_EXPORT qSlicerMultiVolumesUltrasoundModuleWidget :
+  public qSlicerAbstractModuleWidget
+{
+  Q_OBJECT
+
+public:
+
+  typedef qSlicerAbstractModuleWidget Superclass;
+  qSlicerMultiVolumesUltrasoundModuleWidget(QWidget *parent=0);
+  virtual ~qSlicerMultiVolumesUltrasoundModuleWidget();
+
+public slots:
+
+ void setMRMLScene(vtkMRMLScene* scene);
+ void onPlayVolumesButtonClicked();
+ void onPauseVolumesButtonClicked();
+
+protected:
+  QScopedPointer<qSlicerMultiVolumesUltrasoundModuleWidgetPrivate> d_ptr;
+  
+  virtual void setup();
+
+private:
+  Q_DECLARE_PRIVATE(qSlicerMultiVolumesUltrasoundModuleWidget);
+  Q_DISABLE_COPY(qSlicerMultiVolumesUltrasoundModuleWidget);
+};
+
+#endif
