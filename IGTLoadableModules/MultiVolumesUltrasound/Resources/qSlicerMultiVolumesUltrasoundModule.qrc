@@ -1,0 +1,10 @@
+<RCC>
+  <qresource>
+    <file>refund-arrows.black_full.jpeg</file>
+    <file>1335294988_media-play.png</file>
+    <file>1335295004_media-pause.png</file>
+    <file>Icons/AnnotationPause.png</file>
+    <file>Icons/AnnotationPlayForward.png</file>
+    <file>Icons/MultiVolumesUltrasound.png</file>
+  </qresource>
+</RCC>
