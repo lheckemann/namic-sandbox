@@ -8,7 +8,7 @@
 #include "utilities.h"
 
 // by slicer
-#include "postToPreRegistrationCLP.h"
+#include "AFibLongitudinalRegistrationCLP.h"
 
 int main(int argc, char** argv)
 {

@@ -47,7 +47,7 @@ namespace afibReg
     filter->SetFixedImage( fixImgInternal );
     filter->SetMovingImage( movingImgInternal );
 
-    filter->SetNumberOfIterations( 10 );
+    filter->SetNumberOfIterations( 100 );
     filter->SetStandardDeviations( 1.0 );
 
     filter->Update();

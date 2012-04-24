@@ -100,6 +100,36 @@ namespace afibReg
   writeVectorImage(typename itkVectorImage_t::Pointer img, const char *fileName, int component);
 
 
+  /**
+   * Compute the non-zero region of the image
+   */
+  template<typename image_t>
+  typename image_t::RegionType
+  computeNonZeroRegion(typename image_t::Pointer img);
+
+  /**
+   * Enlarge the non-zero region so that the region is not too tightly around the non-zero reigon
+   */
+  template<typename image_t>
+  typename image_t::RegionType
+  enlargeNonZeroRegion(typename image_t::Pointer img, typename image_t::RegionType nonZeroRegion);
+
+
+  /**
+   * Crop the mask by its non-zero region
+   */
+  template<typename MaskImageType >
+  typename MaskImageType::Pointer
+  cropROIFromImage(typename MaskImageType::Pointer mask);
+
+
+  /**
+   * Extract the ROI from the image using the region
+   */
+  template<typename image_t>
+  typename image_t::Pointer
+  extractROI(typename image_t::Pointer img, typename image_t::RegionType region);
+
 
 }// afibReg
 

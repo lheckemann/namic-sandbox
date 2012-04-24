@@ -39,10 +39,15 @@ int main(int argc, char** argv)
   ImageType::Pointer preEndo = afibReg::readImage<ImageType>(preEndoFileName.c_str());
 
 
+  // crop the masks for faster registration
+  ImageType::Pointer preEndoROIMask = afibReg::cropROIFromImage<ImageType>(preEndo);
+  ImageType::Pointer postEndoROIMask = afibReg::cropROIFromImage<ImageType>(postEndo);
+
   // affine register
   typedef itk::AffineTransform<double, Dimension> AffineTransformType;
   double finalRegCost = 0.0;
-  AffineTransformType::Pointer trans = afibReg::affineMSERegistration<ImageType, ImageType>(preEndo, postEndo, finalRegCost);
+  //AffineTransformType::Pointer trans = afibReg::affineMSERegistration<ImageType, ImageType>(preEndo, postEndo, finalRegCost);
+  AffineTransformType::Pointer trans = afibReg::affineMSERegistration<ImageType, ImageType>(preEndoROIMask, postEndoROIMask, finalRegCost);
 
   double fillInValue = 0.0;
   ImageType::Pointer postToPreEndo = afibReg::transformImage<ImageType, ImageType>(trans, postEndo, preEndo, fillInValue);
@@ -55,3 +60,5 @@ int main(int argc, char** argv)
   
   return 0;
 }
+
+

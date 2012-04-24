@@ -39,17 +39,44 @@ int main(int argc, char** argv)
   ImageType::Pointer preEndo = afibReg::readImage<ImageType>(preEndoFileName.c_str());
 
 
+  // crop the masks for faster registration
+  ImageType::Pointer preEndoROIMask = afibReg::cropROIFromImage<ImageType>(preEndo);
+  ImageType::Pointer postEndoROIMask = afibReg::cropROIFromImage<ImageType>(postEndo);
+
   // affine register
   typedef itk::AffineTransform<double, Dimension> AffineTransformType;
   double finalRegCost = 0.0;
-  AffineTransformType::Pointer trans = afibReg::affineMSERegistration<ImageType, ImageType>(preEndo, postEndo, finalRegCost);
+  //AffineTransformType::Pointer trans = afibReg::affineMSERegistration<ImageType, ImageType>(preEndo, postEndo, finalRegCost);
+  AffineTransformType::Pointer trans = afibReg::affineMSERegistration<ImageType, ImageType>(preEndoROIMask, postEndoROIMask, finalRegCost);
 
   double fillInValue = 0.0;
   ImageType::Pointer postToPreEndo = afibReg::transformImage<ImageType, ImageType>(trans, postEndo, preEndo, fillInValue);
   ImageType::Pointer postToPreMRI = afibReg::transformImage<ImageType, ImageType>(trans, postMRI, preMRI, fillInValue);
 
+  // output affine results
+  std::string extName = ".nrrd";
+  std::string postToPreMRIAffineFileName = postToPreMRIFileName;
+  std::size_t found = postToPreMRIAffineFileName.rfind(extName);
+  if (found != std::string::npos)
+    {
+      postToPreMRIAffineFileName.replace(found, extName.length(),"_affine.nrrd");
+    }
+    
+  std::string postToPreEndoAffineFileName = postToPreEndoFileName;
+  found = postToPreEndoAffineFileName.rfind(extName);
+  if (found != std::string::npos)
+    {
+      postToPreEndoAffineFileName.replace(found, extName.length(),"_affine.nrrd");
+    }
+  
+  afibReg::writeImage<ImageType>(postToPreEndo, postToPreEndoAffineFileName.c_str());
+  afibReg::writeImage<ImageType>(postToPreMRI, postToPreMRIAffineFileName.c_str());
+  // output affine results, done
+
 
   // demons register
+  std::cout<<"Demons registration\n"<<std::flush;
+
   typedef itk::Image< itk::Vector< float, Dimension >, Dimension > DeformationFieldType;
   DeformationFieldType::Pointer vectorField = afibReg::reg_3d_demons<ImageType, ImageType, ImageType>(preEndo, postToPreEndo, fillInValue);
 

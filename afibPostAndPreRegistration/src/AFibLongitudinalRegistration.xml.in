@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>@EXTENSION_CATEGORY@</category>
+  <title>@EXTENSION_NAME@</title>
+  <description>@EXTENSION_DESCRIPTION@</description>
+  <version>@EXTENSION_MAJOR_VERSION@.@EXTENSION_MINOR_VERSION@.@EXTENSION_PATCH_VERSION@-@EXTENSION_STATUS@</version>
+  <documentation-url>@EXTENSION_HOMEPAGE@</documentation-url>
+  <license>@EXTENSION_LICENSE_SHORT_DESCRIPTION@</license>
+  <contributor>@EXTENSION_CONTRIBUTORS@</contributor>
+  <acknowledgements>@EXTENSION_ACKNOWLEDGEMENTS@</acknowledgements>
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <image>
+      <name>preMRIFileName</name>
+      <label>MR-image, Pre-op</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description><![CDATA[Pre-op MRI]]></description>
+    </image>
+    <image>
+      <name>postMRIFileName</name>
+      <label>MR-image, Post-op</label>
+      <channel>input</channel>
+      <index>1</index>
+      <description><![CDATA[Post-op MRI to be registered to the Pre-op MRI]]></description>
+    </image>
+    <image>
+      <name>preEndoFileName</name>
+      <label>Pre-op Endocardium mask</label>
+      <channel>input</channel>
+      <index>2</index>
+      <description><![CDATA[Endocardium binary mask of the Pre-op MRI]]></description>
+    </image>
+    <image>
+      <name>postEndoFileName</name>
+      <label>Post-op Endocardium mask</label>
+      <channel>input</channel>
+      <index>3</index>
+      <description><![CDATA[Endocardium binary mask of the Post-op MRI]]></description>
+    </image>
+    <image>
+      <name>postToPreMRIFileName</name>
+      <label>Registration Result</label>
+      <channel>output</channel>
+      <index>4</index>
+      <description><![CDATA[Registered post-op MRI (to pre-op MRI)]]></description>
+    </image>
+  </parameters>
+
+</executable>
