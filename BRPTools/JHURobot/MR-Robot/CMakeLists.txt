@@ -5,6 +5,8 @@ project(MR-Robot)
 
 cmake_minimum_required(VERSION 2.8)
 
+option(MRRobot_HAS_IRE "Use IRE (Python shell)" ON)
+
 find_package(cisst REQUIRED)
 
 find_package(sawLoPoMoCo REQUIRED HINTS "${CISST_BINARY_DIR}/saw/components")
@@ -26,9 +28,12 @@ if(cisst_FOUND AND sawLoPoMoCo_FOUND)
 
   add_subdirectory(libs/Devices/code)
   add_subdirectory(apps/MRRobot_ControlThread)
-  add_subdirectory(tests/DMM16AT_Test)
-  add_subdirectory(tests/RMM1612_Test)
-  add_subdirectory(tests/LoPoMoCoTest)
-  add_subdirectory(tests/CompositeMRRobot_Test)
+  if (MRRobot_HAS_IRE)
+    # These tests are meaningless unless the IRE is available
+    add_subdirectory(tests/DMM16AT_Test)
+    add_subdirectory(tests/RMM1612_Test)
+    add_subdirectory(tests/LoPoMoCoTest)
+    add_subdirectory(tests/CompositeMRRobot_Test)
+  endif (MRRobot_HAS_IRE)
 
 endif(cisst_FOUND AND sawLoPoMoCo_FOUND)

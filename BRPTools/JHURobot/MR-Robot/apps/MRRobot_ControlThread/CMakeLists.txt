@@ -10,8 +10,6 @@ OPTION(MRRobot_OldGUI "Use old GUI." OFF)
 
 OPTION(MRRobot_HAS_PROXY "Use pipe interface to proxy." ON)
 
-OPTION(MRRobot_HAS_IRE "Use IRE (Python shell)" ON)
-
 # use CMake provided script to locate FLTK
 FIND_PACKAGE(FLTK REQUIRED)
 
