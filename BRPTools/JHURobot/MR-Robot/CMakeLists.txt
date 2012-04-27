@@ -28,12 +28,9 @@ if(cisst_FOUND AND sawLoPoMoCo_FOUND)
 
   add_subdirectory(libs/Devices/code)
   add_subdirectory(apps/MRRobot_ControlThread)
-  if (MRRobot_HAS_IRE)
-    # These tests are meaningless unless the IRE is available
-    add_subdirectory(tests/DMM16AT_Test)
-    add_subdirectory(tests/RMM1612_Test)
-    add_subdirectory(tests/LoPoMoCoTest)
-    add_subdirectory(tests/CompositeMRRobot_Test)
-  endif (MRRobot_HAS_IRE)
+  add_subdirectory(tests/DMM16AT_Test)
+  add_subdirectory(tests/RMM1612_Test)
+  add_subdirectory(tests/LoPoMoCoTest)
+  add_subdirectory(tests/CompositeMRRobot_Test)
 
 endif(cisst_FOUND AND sawLoPoMoCo_FOUND)
