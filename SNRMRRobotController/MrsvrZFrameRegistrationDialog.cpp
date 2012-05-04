@@ -106,7 +106,7 @@ MrsvrZFrameRegistrationDialog::MrsvrZFrameRegistrationDialog(FXWindow* owner):
   //fclose(fp);
   
   new FXButton(mtZFrameRegistration, "",
-               new FXGIFIcon(this->getApp(), (void*)buf),NULL,NULL,BUTTON_TOOLBAR|
+               new FXGIFIcon(this->getApp(), (void*)buf),0,0,BUTTON_TOOLBAR|
                LAYOUT_CENTER_X|LAYOUT_CENTER_Y|LAYOUT_FILL_X);
 
   new FXButton(mtZFrameRegistration, "Calculate Transform Matrix", NULL, this,

@@ -429,7 +429,7 @@ int MrsvrDev::setEncLimitMin(unsigned int enc, float val)
 {
   if (enc < NUM_ENCODERS) {
     encLimitMin[enc] = val;
-    encLimitMinCnt[enc] = INIT_CNT + (val / encRate[enc]);
+    encLimitMinCnt[enc] = INIT_CNT + (int)(val / encRate[enc]);
     return 1;
   }
   return 0;
@@ -440,7 +440,7 @@ int MrsvrDev::setEncLimitMax(unsigned int enc, float val)
 {
   if (enc < NUM_ENCODERS) {
     encLimitMax[enc] = val;
-    encLimitMaxCnt[enc] = INIT_CNT + (val / encRate[enc]);
+    encLimitMaxCnt[enc] = INIT_CNT + (int)(val / encRate[enc]);
     return 1;
   }
   return 0;

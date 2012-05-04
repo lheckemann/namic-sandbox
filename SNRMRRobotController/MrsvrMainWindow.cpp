@@ -3553,7 +3553,7 @@ long MrsvrMainWindow::onCmdShowDialog(FXObject*,FXSelector,void*)
   robotCommand->setMode(MrsvrStatus::CALIBRATION);
 
   MrsvrZFrameRegistrationDialog* modaldialog = new MrsvrZFrameRegistrationDialog(this);
-  if (modaldialog->execute(PLACEMENT_OWNER == FXDialogBox::ID_ACCEPT)) {
+  if (modaldialog->execute((int)PLACEMENT_OWNER == (int)FXDialogBox::ID_ACCEPT)) {
       
     float matrix[16];
     modaldialog->getRegistrationMatrix(matrix);
