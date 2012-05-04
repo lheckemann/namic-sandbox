@@ -177,10 +177,10 @@ long MrsvrZFrameRegistrationDialog::onCmdRunRegistration(FXObject*,FXSelector,vo
   zf::MatrixToQuaternion(ZmatrixBase, ZquaternionBase);
 
   for (int i = 0; i < 7; i ++) {
-    valZFramePosition[i].scan("%f, %f, %f", &Zcoordinate[i][0], &Zcoordinate[i][1], &imagePositionSI[i]);
+    valZFramePosition[i].scan("%f, %f, %f", &Zcoordinate[6-i][0], &Zcoordinate[6-i][1], &imagePositionSI[6-i]);
   }
 
-  float imageSI = (imagePositionSI[0] + imagePositionSI[2] + imagePositionSI[4] + imagePositionSI[6]) / 5;
+  float imageSI = (imagePositionSI[0] + imagePositionSI[2] + imagePositionSI[4] + imagePositionSI[6]) / 4;
 
   zf::ZFrameCalibration * calibration;
   calibration = new zf::ZFrameCalibration();
