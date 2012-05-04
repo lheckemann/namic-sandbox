@@ -6,6 +6,8 @@
 // All Right Reserved.
 // Copyright (C) 2005-2006 by Shiga University of Medical Science,
 // All Right Reserved.
+// Copyright (C) 2006-2012 by Brigham and Women's Hospital,
+// All Right Reserved.
 //
 //====================================================================
 // $RCSfile: MrsvrMainWindow.cpp,v $
@@ -60,15 +62,6 @@ FXDEFMAP(MrsvrMainWindow) MrsvrMainWindowMap[] = {
   FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_RESET_DEFAULT,
                                                                MrsvrMainWindow::onCmdResetDefault),
 
-  FXMAPFUNC(SEL_CHANGED,  MrsvrMainWindow::ID_CMD_CHOOSE_NEEDLE_INFO,
-                                                               MrsvrMainWindow::onCmdChooseNeedleInfo),
-  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_ADD_NEEDLE_INFO,
-                                                               MrsvrMainWindow::onCmdAddNeedleInfo),
-  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_UPDATE_NEEDLE_INFO,
-                                                               MrsvrMainWindow::onCmdUpdateNeedleInfo),
-  FXMAPFUNC(SEL_COMMAND,  MrsvrMainWindow::ID_CMD_DELETE_NEEDLE_INFO,
-                                                               MrsvrMainWindow::onCmdDeleteNeedleInfo),
-
   FXMAPFUNCS(SEL_COMMAND, MrsvrMainWindow::ID_MANUAL_PW_OFF_0, MrsvrMainWindow::ID_MANUAL_PW_ON_4,
                           MrsvrMainWindow::onCmdManualPowerSw),
   FXMAPFUNCS(SEL_UPDATE,  MrsvrMainWindow::ID_MANUAL_PW_OFF_0, MrsvrMainWindow::ID_MANUAL_PW_ON_4,
@@ -86,14 +79,6 @@ FXDEFMAP(MrsvrMainWindow) MrsvrMainWindowMap[] = {
                           MrsvrMainWindow::ID_CALIB_ZERO_BTN,  MrsvrMainWindow::onCalibZeroBtnPressed),
   FXMAPFUNC(SEL_LEFTBUTTONRELEASE,
                           MrsvrMainWindow::ID_CALIB_ZERO_BTN,  MrsvrMainWindow::onCalibZeroBtnReleased),
-
-  FXMAPFUNC(SEL_CHANGED,  MrsvrMainWindow::ID_CMD_CHOOSE_END_EFFECTOR_CONFIG,
-                                                               MrsvrMainWindow::onCmdChooseEndEffectorConfig),
-
-  FXMAPFUNC(SEL_LEFTBUTTONRELEASE,
-                          MrsvrMainWindow::ID_SET_ENDEFFECT_BTN,   MrsvrMainWindow::onSetEndEffectorBtnReleased),
-  FXMAPFUNC(SEL_LEFTBUTTONRELEASE,
-                          MrsvrMainWindow::ID_CANCEL_ENDEFFECT_BTN,MrsvrMainWindow::onCancelEndEffectorBtnReleased),
 
   FXMAPFUNC(SEL_LEFTBUTTONPRESS,
                           MrsvrMainWindow::ID_MANUAL_LEFT_BTN, MrsvrMainWindow::onManualLeftBtnPressed),
@@ -193,8 +178,6 @@ MrsvrMainWindow::MrsvrMainWindow(FXApp* app, int w, int h)
 {
   application = app;
 
-  defNeedleInfo = NULL;
-
   extMsgSvr = NULL;
   setPointRAS = NULL;
   robotStatus = NULL;
@@ -222,26 +205,6 @@ MrsvrMainWindow::MrsvrMainWindow(FXApp* app, int w, int h)
   // initialize the timer parameter
   updateInterval = 100;
 
-//  // Menu bar
-//  menubar  = new FXMenuBar(this, LAYOUT_SIDE_TOP|LAYOUT_FILL_X|FRAME_RAISED);
-//
-//  // Menu : "File"
-//  menuFile = new FXMenuPane(this);
-//  new FXMenuTitle(menubar, "&File", NULL, menuFile);
-//  new FXMenuCommand(menuFile, "Save Calibration Points",
-//                    NULL, this, ID_SAVE_CALIB_POINTS);
-//  new FXMenuSeparator(menuFile);
-//  new FXMenuCommand(menuFile, "&Open File\tCtl-O\tOpen document file.",
-//                    NULL, this, ID_FILEDLG_OPEN);
-//  new FXMenuCommand(menuFile, "Save As...", NULL, this, ID_FILEDLG_SAVEAS);
-//  new FXMenuCommand(menuFile, "Close", NULL, this, ID_FILE_CLOSE);
-//  new FXMenuCommand(menuFile, "Exit", NULL, getApp(), FXApp::ID_QUIT, 0);
-//
-//  // Menu : "Help"
-//  menuHelp = new FXMenuPane(this);
-//  new FXMenuTitle(menubar, "&Help", NULL, menuHelp);
-//  new FXMenuCommand(menuHelp, "&About This Software...", NULL, this, ID_ABOUT, 0);
-//
   // Status bar
   statusbar = 
     new FXStatusBar(this, 
@@ -377,13 +340,6 @@ int MrsvrMainWindow::buildControlPanel(FXComposite* comp)
                       LAYOUT_TOP|LAYOUT_LEFT);
   buildCalibrationControlPanel(siControlPanel[CTRL_PNL_CALIB]->getContent());
 
-  siControlPanel[CTRL_PNL_CONFIG] = 
-    new FXShutterItem(shtControlPanel, "Configuration", NULL, 
-                      LAYOUT_FILL_X|LAYOUT_FILL_Y|
-                      LAYOUT_TOP|LAYOUT_LEFT);
-  buildConfigurationControlPanel(siControlPanel[CTRL_PNL_CONFIG]->getContent());
-
-  
   //siControlPanel[CTRL_PNL_MANUAL] = 
   //  new FXShutterItem(shtControlPanel, "Hardware Control", NULL, 
   //                    LAYOUT_FILL_X|LAYOUT_FILL_Y|
@@ -532,218 +488,6 @@ int MrsvrMainWindow::buildCalibrationControlPanel(FXComposite* comp)
 
   return 1;
 }
-
-
-
-int MrsvrMainWindow::buildConfigurationControlPanel(FXComposite* comp)
-{
-  FXGroupBox* gpEndEffector  = 
-    new FXGroupBox(comp, "End Effector",
-                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-  gpEndEffector->setBackColor(getApp()->getShadowColor());
-
-  FXMatrix* mtEndEffector = 
-    new FXMatrix(gpEndEffector, 4,
-                 MATRIX_BY_ROWS|LAYOUT_FILL_Y|
-                 LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
-                 LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-  mtEndEffector->setBackColor(getApp()->getShadowColor());
-
-  FXMatrix* mtEndEffectorName =
-    new FXMatrix(mtEndEffector,2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
-                 LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-  mtEndEffectorName->setBackColor(getApp()->getShadowColor());
-
-  FXLabel* lbcn = new FXLabel(mtEndEffectorName, "Name:");
-  lbcn->setBackColor(getApp()->getShadowColor());
-
-  lbEndEffectorName =new FXListBox(mtEndEffectorName,this,ID_CMD_CHOOSE_END_EFFECTOR_CONFIG,
-                                   FRAME_SUNKEN|FRAME_THICK|LAYOUT_SIDE_TOP,0,0,20,0);
-  
-  lbEndEffectorName->setNumVisible(5);
-  NeedleInfo* p = defNeedleInfo;
-  while (p) {
-    lbEndEffectorName->appendItem(p->name);
-    p = p->next;
-  }
-
-  FXMatrix* mtOffset = 
-    new FXMatrix(mtEndEffector,3,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
-                 LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-  mtOffset->setBackColor(getApp()->getShadowColor());
-
-  FXLabel* lba = new FXLabel(mtOffset, "Offset a:");
-  lba->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtOffset,5,dtNeedleOffset[0],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-  lba = new FXLabel(mtOffset, "mm");
-  lba->setBackColor(getApp()->getShadowColor());
-
-  FXLabel* lbb = new FXLabel(mtOffset, "Offset b:");
-  lbb->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtOffset,5,dtNeedleOffset[1],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-  lbb = new FXLabel(mtOffset, "mm");
-  lbb->setBackColor(getApp()->getShadowColor());
-
-  FXLabel* lbc = new FXLabel(mtOffset, "Offset c:");
-  lbc->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtOffset,5,dtNeedleOffset[2],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-  lbc = new FXLabel(mtOffset, "mm");
-  lbc->setBackColor(getApp()->getShadowColor());
-
-  FXMatrix* mtOrient = 
-    new FXMatrix(mtEndEffector,2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT|
-                 LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-  mtOrient->setBackColor(getApp()->getShadowColor());
-  FXLabel* lbo = new FXLabel(mtOrient, "Orient.: ");
-  lbo->setBackColor(getApp()->getShadowColor());
-  lbo = new FXLabel(mtOrient, " n = (na, nb, nc)");
-  lbo->setBackColor(getApp()->getShadowColor());
-
-  lbc = new FXLabel(mtOrient, "na = ");
-  lbc->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtOrient,5,dtNeedleOrientation[0],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 30, 15);
-
-  lbc = new FXLabel(mtOrient, "nb = ");
-  lbc->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtOrient,5,dtNeedleOrientation[1],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 30, 15);
-
-  lbc = new FXLabel(mtOrient, "nc = ");
-  lbc->setBackColor(getApp()->getShadowColor());
-  new FXTextField(mtOrient,5,dtNeedleOrientation[2],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 30, 15);
-
-  FXMatrix* mtSetEndEffectorBtn = 
-    new FXMatrix(mtEndEffector, 2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-                 LAYOUT_CENTER_X);
-  mtSetEndEffectorBtn->setBackColor(getApp()->getShadowColor());
-  
-  new FXButton(mtSetEndEffectorBtn, " Set ", NULL, this,
-               ID_SET_ENDEFFECT_BTN,
-               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-  
-  new FXButton(mtSetEndEffectorBtn, "Cancel", NULL, this,
-               ID_CANCEL_ENDEFFECT_BTN,
-               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-
-  return 1;
-}
-
-
-//int MrsvrMainWindow::buildManualControlPanel(FXComposite* comp)
-//{
-//  for (int i = 0; i < NUM_ACTUATORS; i ++) {
-//    char name[128];
-//    sprintf(name, "actuator #%d", i);
-//    FXGroupBox* gpTestActuator  = 
-//      new FXGroupBox(comp, name,
-//                     LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-//    gpTestActuator->setBackColor(getApp()->getShadowColor());
-//
-//    FXVerticalFrame* frTestActuator = 
-//      new FXVerticalFrame(gpTestActuator,
-//                          LAYOUT_FILL_Y|LAYOUT_FILL_X|
-//                          LAYOUT_TOP|LAYOUT_LEFT, 0, 0, 0, 0, 0, 0, 0, 0);
-//    frTestActuator->setBackColor(getApp()->getShadowColor());
-//
-//    FXMatrix* mtTestActuator = 
-//      new FXMatrix(frTestActuator,2,
-//                   MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-//                   LAYOUT_FILL_X|LAYOUT_LEFT|
-//                   LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-//    mtTestActuator->setBackColor(getApp()->getShadowColor());
-//
-//    /*
-//    // actuator power switch
-//    FXLabel* lb = new FXLabel(mtTestActuator, "POWER:");
-//    lb->setBackColor(getApp()->getShadowColor());
-//    //lb = new FXLabel(mtTestActuator, "[OFF]   [ON]");
-//
-//    FXMatrix *mtTestActuatorPw = 
-//      new FXMatrix(mtTestActuator,3,FRAME_RIDGE|MATRIX_BY_COLUMNS|LAYOUT_FILL_X);
-//    
-//    new FXButton(mtTestActuatorPw,"OFF",NULL,this,ID_MANUAL_PW_OFF_0+i*2,
-//                 BUTTON_TOOLBAR|JUSTIFY_CENTER_X|FRAME_RAISED|
-//                 LAYOUT_FILL_X|LAYOUT_FILL_Y|LAYOUT_FILL_COLUMN);
-//    new FXButton(mtTestActuatorPw,"ON",NULL,this,ID_MANUAL_PW_ON_0+i*2,
-//                 BUTTON_TOOLBAR|JUSTIFY_CENTER_X|FRAME_RAISED|
-//                 LAYOUT_FILL_X|LAYOUT_FILL_Y|LAYOUT_FILL_COLUMN);
-//    */
-//
-//    // Voltage adjustor
-//    FXLabel* lb = new FXLabel(mtTestActuator, "Vol:");
-//    lb->setBackColor(getApp()->getShadowColor());
-//
-//    FXSlider* slider=new FXSlider(mtTestActuator,dtManualActuatorVol[i],FXDataTarget::ID_VALUE,
-//                                  LAYOUT_TOP|LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT|
-//                                  SLIDER_HORIZONTAL|SLIDER_INSIDE_BAR|SLIDER_TICKS_BOTTOM,
-//                                  0,0,120,20);
-//    slider->setBaseColor(getApp()->getShadowColor());
-//    slider->setBackColor(getApp()->getShadowColor());
-//    slider->setRange(0,MANUAL_VOL_STEPS-1);
-//
-//    // Move buttons
-//    lb = new FXLabel(mtTestActuator, "Control:");
-//    lb->setBackColor(getApp()->getShadowColor());
-//
-//    FXHorizontalFrame* frTestActuatorBt = 
-//      new FXHorizontalFrame(mtTestActuator, 
-//                          //LAYOUT_FILL_Y|LAYOUT_FILL_X|
-//                          LAYOUT_FILL_X|
-//                          LAYOUT_TOP|LAYOUT_LEFT);
-//    frTestActuatorBt->setBackColor(getApp()->getShadowColor());
-//
-////    FXMatrix* mtTestActuatorBt = 
-////      new FXMatrix(frTestActuator,2,
-////                   MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|
-////                   LAYOUT_FILL_X|LAYOUT_TOP|LAYOUT_LEFT,
-////                   LAYOUT_FILL_COLUMN|LAYOUT_FILL_ROW);
-////    mtTestActuatorBt->setBackColor(getApp()->getShadowColor());
-////
-//    btManualLeft[i] = 
-//      new FXButton(frTestActuatorBt, "  <<  ", NULL, this, ID_MANUAL_LEFT_BTN,
-//                   FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-//                   LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-//    btManualRight[i] = 
-//      new FXButton(frTestActuatorBt, "  >>  ", NULL,  this, ID_MANUAL_RIGHT_BTN,
-//                   FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-//                   LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-//
-//  }
-//
-//  return 1;
-//}
 
 
 int MrsvrMainWindow::buildSystemControlPanel(FXComposite* comp)
@@ -1434,31 +1178,6 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
     options->setSelector(FXDataTarget::ID_VALUE);
   }
 
-  FXGroupBox* gpDefCalibPoints  = 
-    new FXGroupBox(frCalibParam, "Calibration Points",
-                   LAYOUT_SIDE_TOP|FRAME_GROOVE|LAYOUT_FILL_X);
-
-  FXMatrix* mtDefCalibPoints = 
-    new FXMatrix(gpDefCalibPoints,4,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y|LAYOUT_FILL_X);
-
-  new FXLabel(mtDefCalibPoints, " ");
-  new FXLabel(mtDefCalibPoints, "X");
-  new FXLabel(mtDefCalibPoints, "Y");
-  new FXLabel(mtDefCalibPoints, "Z");
-
-  for (int i = 0; i < NUM_CALIB_POINTS; i ++) {
-    char str[16];
-    sprintf(str, "#%d", i);
-    new FXLabel(mtDefCalibPoints, str);
-    for (int j = 0; j < 3; j ++) {
-      new FXTextField(mtDefCalibPoints,4,dtDefAutoCalibPoints[i][j],
-                      FXDataTarget::ID_VALUE,
-                      TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                      FRAME_SUNKEN, 
-                      0, 0, 50, 15);
-    }
-  }
 
   FXMatrix* mtDefSetButtons = 
     new FXMatrix(frDefaults,2,
@@ -1478,7 +1197,6 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
     new FXVerticalFrame(gpDevConf,
                           LAYOUT_FILL_X|LAYOUT_FILL_Y|
                           LAYOUT_TOP|LAYOUT_LEFT);
-
 
   // Motion range frame
   FXGroupBox* gpMotionRange  = 
@@ -1513,109 +1231,6 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
                   0, 0, 100, 15);
 
   
-  // Needle
-  FXGroupBox* gpEndEffector  = 
-    new FXGroupBox(frDevConf, "End effector",
-                   LAYOUT_SIDE_TOP|FRAME_GROOVE);
-  FXVerticalFrame* frEndEffector = 
-    new FXVerticalFrame(gpEndEffector,
-                          LAYOUT_FILL_X|LAYOUT_FILL_Y|
-                          LAYOUT_TOP|LAYOUT_LEFT);
-  FXMatrix* mtEndEffector = 
-    new FXMatrix(frEndEffector,2,
-                 MATRIX_BY_COLUMNS|LAYOUT_FILL_Y);
-
-  new FXLabel(mtEndEffector, "Name:");
-  lbEndEffector =new FXListBox(mtEndEffector,this,ID_CMD_CHOOSE_NEEDLE_INFO,
-                                       FRAME_SUNKEN|FRAME_THICK|LAYOUT_SIDE_TOP|LAYOUT_FILL_X,0,0,200,0);
-  
-  lbEndEffector->setNumVisible(5);
-  NeedleInfo* p = defNeedleInfo;
-
-  while (p) {
-    lbEndEffector->appendItem(p->name);
-    p = p->next;
-  }
-
-  valNeedleConfName = defNeedleInfo->name;
-  valDefNeedleOffset[0] = defNeedleInfo->valOffset[0];
-  valDefNeedleOffset[1] = defNeedleInfo->valOffset[1];
-  valDefNeedleOffset[2] = defNeedleInfo->valOffset[2];
-  valDefNeedleOrientation[0] = defNeedleInfo->valOrient[0];
-  valDefNeedleOrientation[1] = defNeedleInfo->valOrient[1];
-  valDefNeedleOrientation[2] = defNeedleInfo->valOrient[2];
-
-  new FXLabel(mtEndEffector, "Name:");
-  new FXTextField(mtEndEffector ,20, dtNeedleConfName,
-                  FXDataTarget::ID_VALUE, JUSTIFY_LEFT|FRAME_SUNKEN,
-                  0, 0, 100, 15);
-
-  new FXLabel(mtEndEffector, "Offset A (mm):");
-  new FXTextField(mtEndEffector,5,dtDefNeedleOffset[0],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-  //new FXLabel(mtEndEffector, "mm");
-
-  new FXLabel(mtEndEffector, "Offset B (mm):");
-  new FXTextField(mtEndEffector,5,dtDefNeedleOffset[1],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-  //new FXLabel(mtEndEffector, "mm");
-
-  new FXLabel(mtEndEffector, "Offset C (mm):");
-  new FXTextField(mtEndEffector,5,dtDefNeedleOffset[2],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-  //new FXLabel(mtEndEffector, "mm");
-
-
-  new FXLabel(mtEndEffector, "Orient na:");
-  new FXTextField(mtEndEffector,5,dtDefNeedleOrientation[0],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-
-  new FXLabel(mtEndEffector, "Orient nb:");
-  new FXTextField(mtEndEffector,5,dtDefNeedleOrientation[1],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-
-  new FXLabel(mtEndEffector, "Orient nc:");
-  new FXTextField(mtEndEffector,5,dtDefNeedleOrientation[2],
-                  FXDataTarget::ID_VALUE,
-                  TEXTFIELD_REAL|JUSTIFY_RIGHT|JUSTIFY_RIGHT|
-                  FRAME_SUNKEN, 
-                  0, 0, 50, 15);
-
-
-  FXHorizontalFrame* frEndEffectorBtn = 
-    new FXHorizontalFrame(frEndEffector,
-                          LAYOUT_FILL_X|LAYOUT_FILL_Y|
-                          LAYOUT_TOP|LAYOUT_LEFT);
-  new FXButton(frEndEffectorBtn, "Add", NULL, this,
-               ID_CMD_ADD_NEEDLE_INFO,
-               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-
-  new FXButton(frEndEffectorBtn, "Update", NULL, this,
-               ID_CMD_UPDATE_NEEDLE_INFO,
-               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-
-  new FXButton(frEndEffectorBtn, "Delete", NULL, this,
-               ID_CMD_DELETE_NEEDLE_INFO,
-               FRAME_RAISED|FRAME_THICK|LAYOUT_CENTER_X|
-               LAYOUT_CENTER_Y|LAYOUT_FILL_X);
-
   mainTab->setTabStyle(TABBOOK_TOPTABS);
   tabHardware->setTabOrientation(TAB_TOP);
   tabRtcpLog->setTabOrientation(TAB_TOP);
@@ -1806,79 +1421,6 @@ void MrsvrMainWindow::loadRegistry()
       = getApp()->reg().readIntEntry("CALIBRATION", str, 0);
   }
 
-  for (int i = 0; i < NUM_CALIB_POINTS; i ++) {
-    sprintf(str, "P%d_X", i);
-    valDefAutoCalibPoints[i][0] = 
-      (float)getApp()->reg().readRealEntry("CALIBRATION", str, 0);
-    sprintf(str, "P%d_Y", i);
-    valDefAutoCalibPoints[i][1] = 
-      (float)getApp()->reg().readRealEntry("CALIBRATION", str, 0);
-    sprintf(str, "P%d_Z", i);
-    valDefAutoCalibPoints[i][2] = 
-      (float)getApp()->reg().readRealEntry("CALIBRATION", str, 0);
-  }
-  
-  // End effector configuration
-  /*
-  valDefNeedleOffset[0] = 
-    (float)getApp()->reg().readRealEntry("END_EFFECTOR",
-                                         "OFFSET_A", 0.0);
-  valDefNeedleOffset[1] = 
-    (float)getApp()->reg().readRealEntry("END_EFFECTOR",
-                                         "OFFSET_B", 0.0);
-  valDefNeedleOffset[2] = 
-    (float)getApp()->reg().readRealEntry("END_EFFECTOR",
-                                         "OFFSET_C", 0.0);
-  */
-
-  int n =  (int)getApp()->reg().readIntEntry("END_EFFECTOR",
-                                              "NUM_CONFIGS", 0);
-
-  if (defNeedleInfo == NULL) {
-    defNeedleInfo = new NeedleInfo;
-  }
-
-  NeedleInfo* p = defNeedleInfo;
-  // dummy config at start of the list
-  p->name = "Default                 ";
-  p->valOffset[0] = 0.0;
-  p->valOffset[1] = 0.0;
-  p->valOffset[2] = 0.0;
-
-  p->valOrient[0] = 0.0;
-  p->valOrient[1] = 0.0;
-  p->valOrient[2] = 1.0;
-
-  for (int i = 0; i < n; i ++) {
-    p->next = new NeedleInfo;
-    p = p->next;
-    sprintf(str, "NAME_%03d", i);
-    p->name = 
-      (FXString) getApp()->reg().readStringEntry("END_EFFECTOR", str, "--");
-
-    sprintf(str, "OFFSET_A_%03d", i);
-    p->valOffset[0] = 
-      (float)getApp()->reg().readRealEntry("END_EFFECTOR", str, 0.0);
-    sprintf(str, "OFFSET_B_%03d", i);
-    p->valOffset[1] = 
-      (float)getApp()->reg().readRealEntry("END_EFFECTOR", str, 0.0);
-    sprintf(str, "OFFSET_C_%03d", i);
-    p->valOffset[2] =
-      (float)getApp()->reg().readRealEntry("END_EFFECTOR", str, 0.0);
-
-    sprintf(str, "ORIENT_A_%03d", i);
-    p->valOrient[0] = 
-      (float)getApp()->reg().readRealEntry("END_EFFECTOR", str, 0.0);
-    sprintf(str, "ORIENT_B_%03d", i);
-    p->valOrient[1] = 
-      (float)getApp()->reg().readRealEntry("END_EFFECTOR", str, 0.0);
-    sprintf(str, "ORIENT_C_%03d", i);
-    p->valOrient[2] =
-      (float)getApp()->reg().readRealEntry("END_EFFECTOR", str, 1.0);
-
-  }
-  p->next = NULL;
-
   // Motion range
   for (int i = 0; i < NUM_ENCODERS; i ++) {
     sprintf(str, "MIN_%d", i);
@@ -1912,60 +1454,6 @@ void MrsvrMainWindow::storeRegistry()
     getApp()->reg().writeIntEntry("CALIBRATION", str,
                                  valDefAutoCalibProcSelect[i]);
   }
-
-  for (int i = 0; i < NUM_CALIB_POINTS; i ++) {
-    sprintf(str, "P%d_X", i);
-    getApp()->reg().writeRealEntry("CALIBRATION", str,
-                                  valDefAutoCalibPoints[i][0]);
-    sprintf(str, "P%d_Y", i);
-    getApp()->reg().writeRealEntry("CALIBRATION", str,
-                                  valDefAutoCalibPoints[i][1]);
-    sprintf(str, "P%d_Z", i);
-    getApp()->reg().writeRealEntry("CALIBRATION", str,
-                                  valDefAutoCalibPoints[i][2]);
-  }
-
-  // End effector configuration
-  /*
-  getApp()->reg().readRealEntry("END_EFFECTOR",
-                                "OFFSET_A", valDefNeedleOffset[0]);
-  getApp()->reg().readRealEntry("END_EFFECTOR",
-                                "OFFSET_B", valDefNeedleOffset[1]);
-  getApp()->reg().readRealEntry("END_EFFECTOR",
-                                "OFFSET_C", valDefNeedleOffset[2]);
-  */
-  NeedleInfo* p = defNeedleInfo->next;
-  int count = 0;
-  while (p != NULL) {
-    sprintf(str, "NAME_%03d", count);
-    getApp()->reg().writeStringEntry("END_EFFECTOR",
-                                     str, p->name.text());
-    sprintf(str, "OFFSET_A_%03d", count);
-    getApp()->reg().writeRealEntry("END_EFFECTOR",
-                                  str, p->valOffset[0]);
-    sprintf(str, "OFFSET_B_%03d", count);
-    getApp()->reg().writeRealEntry("END_EFFECTOR",
-                                  str, p->valOffset[1]);
-    sprintf(str, "OFFSET_C_%03d", count);
-    getApp()->reg().writeRealEntry("END_EFFECTOR",
-                                  str, p->valOffset[2]);
-    sprintf(str, "ORIENT_A_%03d", count);
-    getApp()->reg().writeRealEntry("END_EFFECTOR",
-                                  str, p->valOrient[0]);
-    sprintf(str, "ORIENT_B_%03d", count);
-    getApp()->reg().writeRealEntry("END_EFFECTOR",
-                                  str, p->valOrient[1]);
-    sprintf(str, "ORIENT_C_%03d", count);
-    getApp()->reg().writeRealEntry("END_EFFECTOR",
-                                  str, p->valOrient[2]);
-
-    p = p->next;
-    count ++;
-  }
-  
-  getApp()->reg().writeIntEntry("END_EFFECTOR",
-                               "NUM_CONFIGS", count);
-
 
   // Motion range
   for (int i = 0; i < NUM_ENCODERS; i ++) {
@@ -2005,15 +1493,7 @@ void MrsvrMainWindow::setDataTargets()
     dtAutoCalibProcSelect[i] = new FXDataTarget(valAutoCalibProcSelect[i],
                                                 this, ID_UPDATE_PARAMETER);
   }
-  for (int i = 0; i < NUM_CALIB_POINTS; i ++) {
-    for (int j = 0; j < 3; j ++) {
-      dtAutoCalibPoints[i][j] = new FXDataTarget(valAutoCalibPoints[i][j],
-                                                 this, ID_UPDATE_PARAMETER);
-      dtDefAutoCalibPoints[i][j] = 
-        new FXDataTarget(valDefAutoCalibPoints[i][j], this,
-                         ID_UPDATE_PARAMETER);
-    }
-  }
+
   // actuators' parameters
   for (int i = 0; i < NUM_ACTUATORS; i++) {
     // data target for text field
@@ -2047,12 +1527,6 @@ void MrsvrMainWindow::setDataTargets()
       new FXDataTarget(valPrVelocity[i], this, ID_UPDATE_PARAMETER);
   }
 
-  for (int i = 0; i < 3; i ++) {
-    dtNeedleOffset[i] = 
-      new FXDataTarget(valNeedleOffset[i], this, ID_UPDATE_PARAMETER);
-    dtNeedleOrientation[i] = 
-      new FXDataTarget(valNeedleOrientation[i], this, ID_UPDATE_PARAMETER);
-  }
 
   //plot
   dtPlotAGain = 
@@ -2081,24 +1555,6 @@ void MrsvrMainWindow::setDataTargets()
       new FXDataTarget(valDefAutoCalibProcSelect[i], this,
                        ID_UPDATE_PARAMETER);
   }
-  for (int i = 0; i < NUM_CALIB_POINTS; i ++) {
-    for (int j = 0; j < 3; j ++) {
-      dtDefAutoCalibPoints[i][j] = 
-        new FXDataTarget(valDefAutoCalibPoints[i][j], this,
-                       ID_UPDATE_PARAMETER);
-    }
-  }
-  // -- End effector
-  for (int i = 0; i < 3; i ++) {
-    dtDefNeedleOffset[i] =
-      new FXDataTarget(valDefNeedleOffset[i], this,
-                       ID_UPDATE_PARAMETER);
-    dtDefNeedleOrientation[i] = 
-      new FXDataTarget(valDefNeedleOrientation[i], this,
-                       ID_UPDATE_PARAMETER);
-  }
-  dtNeedleConfName = new FXDataTarget(valNeedleConfName, this, 
-                                     ID_UPDATE_PARAMETER);
 
   dtPatientEntry = 
     new FXDataTarget(valPatientEntry, this,
@@ -2171,17 +1627,6 @@ void MrsvrMainWindow::setDefaultParameters()
     valAutoCalibProcSelect[i] = valDefAutoCalibProcSelect[i];
   }
 
-  for (int i = 0; i < NUM_CALIB_POINTS; i ++) {
-    for (int j = 0; j < 3; j ++) {
-      valAutoCalibPoints[i][j] = valDefAutoCalibPoints[i][j];
-    }
-  }
-
-  /*
-  for (int i = 0; i < 3; i ++) {
-    valNeedleOffset[i] = valDefNeedleOffset[i];
-  }
-  */
   valTipApprOffset = 0.0;
  
 }
@@ -2248,7 +1693,6 @@ void MrsvrMainWindow::setTargetPositionRAS(float pos[3])
   robotCommand->setSetPoint(0, robotPos[0]);
   robotCommand->setSetPoint(1, robotPos[1]);
   //robotCommand->setSetPoint(2, robotPos[2]);
-  valNeedleDepth = robotPos[2];
 }
 
 
@@ -3051,147 +2495,6 @@ long MrsvrMainWindow::onCmdResetDefault(FXObject*, FXSelector, void*)
   return 1;
 }
 
-
-long MrsvrMainWindow::onCmdChooseNeedleInfo(FXObject* obj, FXSelector, void*)
-{
-  int id = lbEndEffector->getCurrentItem();
-  consolePrint(1, true, "onCmdChooseNeedleInfo %d...\n", id);  
-
-  // find selected item
-  NeedleInfo* p = defNeedleInfo;
-  for (int i = 0; i < id; i ++) {
-    if (p == NULL)
-      return 1;
-    p = p->next;
-  }
-
-  if (p) {
-    // set values to configuration panel
-    valNeedleConfName = p->name;
-    valDefNeedleOffset[0] = p->valOffset[0];
-    valDefNeedleOffset[1] = p->valOffset[1];
-    valDefNeedleOffset[2] = p->valOffset[2];
-    valDefNeedleOrientation[0] = p->valOrient[0];
-    valDefNeedleOrientation[1] = p->valOrient[1];
-    valDefNeedleOrientation[2] = p->valOrient[2];
-  }
-  return 1;
-}
-
-long MrsvrMainWindow::onCmdAddNeedleInfo(FXObject*, FXSelector, void*)
-{
-  consolePrint(1, true, "onCmdAddNeedleInfo...\n");  
-
-  // find end of the list
-  NeedleInfo* p = defNeedleInfo;
-  while (p->next) {
-    p = p->next;
-  }
-  p->next = new NeedleInfo;
-  p = p->next;
-  p->next = NULL;
-
-  p->name = valNeedleConfName;
-  p->valOffset[0] = valDefNeedleOffset[0];
-  p->valOffset[1] = valDefNeedleOffset[1];
-  p->valOffset[2] = valDefNeedleOffset[2];
-  p->valOrient[0] = valDefNeedleOrientation[0];
-  p->valOrient[1] = valDefNeedleOrientation[1];
-  p->valOrient[2] = valDefNeedleOrientation[2];
-
-  // add to list box on device configuration panel
-  int id = lbEndEffector->appendItem(p->name);
-  lbEndEffector->setCurrentItem(id);
-
-  // add to list box on configuration panel
-  lbEndEffectorName->appendItem(p->name);
-  //lbEndEffector->setCurrentItem(id);
-
-  return 1;
-}
-
-
-long MrsvrMainWindow::onCmdUpdateNeedleInfo(FXObject*, FXSelector, void*)
-{
-  int currentNeedleId = lbEndEffector->getCurrentItem();
-
-  if (currentNeedleId == 0) {
-    valNeedleConfName = defNeedleInfo->name;
-    valDefNeedleOffset[0] = defNeedleInfo->valOffset[0];
-    valDefNeedleOffset[1] = defNeedleInfo->valOffset[1];
-    valDefNeedleOffset[2] = defNeedleInfo->valOffset[2];
-    valDefNeedleOrientation[0] = defNeedleInfo->valOrient[0];
-    valDefNeedleOrientation[1] = defNeedleInfo->valOrient[1];
-    valDefNeedleOrientation[2] = defNeedleInfo->valOrient[2];
-    return 1;
-  }
-
-  // find selected item
-  NeedleInfo* p = defNeedleInfo;
-  for (int i = 0; i < currentNeedleId; i ++) {
-    if (p == NULL)
-      return 1;
-    p = p->next;
-  }
-
-  if (p) {
-    p->name = valNeedleConfName;
-    p->valOffset[0] = valDefNeedleOffset[0];
-    p->valOffset[1] = valDefNeedleOffset[1];
-    p->valOffset[2] = valDefNeedleOffset[2];
-    p->valOrient[0] = valDefNeedleOrientation[0];
-    p->valOrient[1] = valDefNeedleOrientation[1];
-    p->valOrient[2] = valDefNeedleOrientation[2];
-
-    lbEndEffector->setItemText(currentNeedleId, p->name);
-    lbEndEffectorName->setItemText(currentNeedleId, p->name);
-  }
-  
-  return 1;
-}
-
-
-long MrsvrMainWindow::onCmdDeleteNeedleInfo(FXObject*, FXSelector, void*)
-{
-  int currentNeedleId = lbEndEffector->getCurrentItem();
-
-  if (currentNeedleId == 0) {
-    return 1;
-  }
-
-  // find the item next to the selected item
-  NeedleInfo* p = defNeedleInfo;
-  for (int i = 0; i < currentNeedleId-1; i ++) {
-    if (p == NULL)
-      return 1;
-    p = p->next;
-  }
-
-  if (p->next) {
-    NeedleInfo* d = p->next;
-    p->next = d->next;
-
-    lbEndEffector->removeItem(currentNeedleId);
-    lbEndEffector->setCurrentItem(0);
-
-    lbEndEffectorName->removeItem(currentNeedleId); 
-    lbEndEffectorName->setCurrentItem(0);
-
-    valNeedleConfName = defNeedleInfo->name;
-    valDefNeedleOffset[0] = defNeedleInfo->valOffset[0];
-    valDefNeedleOffset[1] = defNeedleInfo->valOffset[1];
-    valDefNeedleOffset[2] = defNeedleInfo->valOffset[2];
-    valDefNeedleOrientation[0] = defNeedleInfo->valOrient[0];
-    valDefNeedleOrientation[1] = defNeedleInfo->valOrient[1];
-    valDefNeedleOrientation[2] = defNeedleInfo->valOrient[2];
-
-    delete d;
-  }
-
-  return 1;
-}
-
-
 long MrsvrMainWindow::onCalibLeftBtnPressed(FXObject* obj, FXSelector sel,void* p)
 {
   int actuator =  getObjectIndex(obj, (FXObject**)btCalibLeft, NUM_ACTUATORS);
@@ -3293,71 +2596,6 @@ long MrsvrMainWindow::onCalibZeroBtnReleased(FXObject* obj, FXSelector sel,void*
   }
   return 0;
 }
-
-
-long MrsvrMainWindow::onCmdChooseEndEffectorConfig(FXObject* obj, FXSelector, void*)
-{
-  int id = lbEndEffectorName->getCurrentItem();
-  consolePrint(1, true, "onCmdChooseEndEffectorConfig %d...\n", id);  
-
-  // find selected item
-  NeedleInfo* p = defNeedleInfo;
-  for (int i = 0; i < id; i ++) {
-    if (p == NULL)
-      return 1;
-    p = p->next;
-  }
-
-  if (p) {
-    // set values to configuration panel
-    valNeedleOffset[0] = p->valOffset[0];
-    valNeedleOffset[1] = p->valOffset[1];
-    valNeedleOffset[2] = p->valOffset[2];
-    valNeedleOrientation[0] = p->valOrient[0];
-    valNeedleOrientation[1] = p->valOrient[1];
-    valNeedleOrientation[2] = p->valOrient[2];
-  }
-  return 1;
-}
-
-
-long MrsvrMainWindow::onSetEndEffectorBtnReleased(FXObject* obj, FXSelector sel,void* p)
-{
-  DBG_MMW_PRINT("onSetEndEffectorBtnReleased().\n");
-  consolePrint(2, true, "Setting end effector informations...\n");
-
-  for (int i = 0; i < 3; i ++) {
-    robotCommand->setTipOffset(i, valNeedleOffset[i]);
-  }
-
-  // calculate normal vector of default needle orientation
-  float na, nb, nc, l;
-  na = valNeedleOrientation[0];
-  nb = valNeedleOrientation[1];
-  nc = valNeedleOrientation[2];
-  l  = sqrt(na*na + nb*nb + nc*nc);
-
-  valNeedleOrientation[0] = na / l;
-  valNeedleOrientation[1] = nb / l;
-  valNeedleOrientation[2] = nc / l;
-
-  for (int i = 0; i < 3; i ++) {
-    robotCommand->setTipApprOrient(i, valNeedleOrientation[i]);
-  }
-  return 0;
-}
-
-
-long MrsvrMainWindow::onCancelEndEffectorBtnReleased(FXObject* obj, FXSelector sel,void* p)
-{
-  DBG_MMW_PRINT("onSetEndEffectorBtnRelased().\n");
-  //consolePrint(2, true, "Setting end effector informations...\n");
-  for (int i = 0; i < 3; i ++) {
-    valNeedleOffset[i] = robotCommand->getTipOffset(i);
-  }
-  return 0;
-}
-
 
 long MrsvrMainWindow::onManualLeftBtnPressed(FXObject* obj, FXSelector sel,void* p)
 {

@@ -6,6 +6,8 @@
 // All Right Reserved.
 // Copyright (C) 2005-2006 by Shiga University of Medical Science,
 // All Right Reserved.
+// Copyright (C) 2006-2012 by Brigham and Women's Hospital,
+// All Right Reserved.
 //
 //====================================================================
 // $RCSfile: MrsvrMainWindow.h,v $
@@ -55,8 +57,6 @@
 
 // convert real parameters to progress bar paramters
 #define POS2PROG(v)          (int)(((v-MIN_POSITION)/(MAX_POSITION-MIN_POSITION))*100.0)
-//#define SP2PROG(v)           (int)(((v-MIN_SETPOINT)/(MAX_SETPOINT-MIN_SETPOINT))*100.0)
-//#define VEL2PROG(v)          (int)(((v-MIN_VELOCITY)/(MAX_VELOCITY-MIN_VELOCITY))*100.0)
 #define VEL2PROG(v)          (int)((fabs(v)/fabs(MAX_VELOCITY))*100.0)
 #define VOL2PROG(v)          (int)((fabs(v)/MAX_ACTUATOR_VOL_V)* 100.0)
 
@@ -150,21 +150,6 @@
 #define ICON_PNG_EMERGENCY      "icon/emergency100x100_black.png"
 #define ICON_PNG_MOVE           "icon/move100x100_black.png"     
 
-
-
-//--------------------------------------------------------------------
-// Needle info structure (for list)
-//--------------------------------------------------------------------
-
-struct needle_info {
-  FXString            name;
-  float               valOffset[3];
-  float               valOrient[3];
-  struct needle_info* next;
-};
-
-typedef struct needle_info NeedleInfo;
-    
 //--------------------------------------------------------------------
 // class MrsvrMainWindow
 //--------------------------------------------------------------------
@@ -208,10 +193,6 @@ public:
     ID_CMD_STOP_COM,
     ID_CMD_SAVE_DEFAULT,
     ID_CMD_RESET_DEFAULT,
-    ID_CMD_CHOOSE_NEEDLE_INFO,
-    ID_CMD_ADD_NEEDLE_INFO,
-    ID_CMD_UPDATE_NEEDLE_INFO,
-    ID_CMD_DELETE_NEEDLE_INFO,
 
     ID_CALIB_LEFT_BTN,
     ID_CALIB_RIGHT_BTN,
@@ -255,10 +236,7 @@ public:
 
   enum {
     CTRL_PNL_COM = 0,
-    //    CTRL_PNL_PLOT,
     CTRL_PNL_CALIB,
-    CTRL_PNL_CONFIG,
-    //CTRL_PNL_MANUAL,
     CTRL_PNL_SYSTEM,
     NUM_CTRL_PNL
   };
@@ -275,11 +253,6 @@ protected:
   FXMenuBar*         menubar;            // Menu bar
   FXToolBar*         toolbar;            // Tool bar
   
-  //FXMenuPane*        menuFile;           // Menu : "File"
-  //FXMenuPane*        menuEdit;           // Menu : "Edit"
-  //FXMenuPane*        menuView;           // Menu : "View"
-  //FXMenuPane*        menuHelp;           // Menu : "Help"
-
   FXStatusBar*       statusbar;
   FXTabBook*         mainTab;
 
@@ -315,14 +288,6 @@ protected:
   // for progress bar in status bar
   FXProgressBar      *statusProg;
   FXLabel            *textStatusProg;
-
-  // for customization panel
-  FXListBox*         lbEndEffector;
-
-  // for Configuration panel
-  FXListBox*         lbEndEffectorName;
- 
-
 
 //----------------------- Private variables ------------------------//
 private:
@@ -439,12 +404,9 @@ private:
 
   // Control Panel -> Calibration
   FXDataTarget*      dtAutoCalibProcSelect[NUM_PROC_AUTOCALIB];
-  FXDataTarget*      dtAutoCalibPoints[NUM_CALIB_POINTS][3];
   FXint              valAutoCalibProcSelect[NUM_PROC_AUTOCALIB];
-  float              valAutoCalibPoints[NUM_CALIB_POINTS][3];
 
   // Control Panel -> End effector
-  FXDataTarget*      dtNeedleOffset[3];
   float              valNeedleOffset[3];
   // -- default needle orientation
   FXDataTarget*      dtNeedleOrientation[3];
@@ -529,9 +491,7 @@ private:
 
   // -- Calibration
   FXDataTarget*      dtDefAutoCalibProcSelect[NUM_PROC_AUTOCALIB];
-  FXDataTarget*      dtDefAutoCalibPoints[NUM_CALIB_POINTS][3];
   FXint              valDefAutoCalibProcSelect[NUM_PROC_AUTOCALIB];
-  float              valDefAutoCalibPoints[NUM_CALIB_POINTS][3];
 
   // -- Configuration
   FXDataTarget*      dtPatientEntry;
@@ -542,7 +502,6 @@ private:
   int                valBedDock;
   int                valRobotDock;
 
-  NeedleInfo*        defNeedleInfo;
   int                currentNeedleId;
   float              valDefNeedleOffset[3];
   float              valDefNeedleOrientation[3];
@@ -646,10 +605,6 @@ public:
   long onCmdLocServDiscon(FXObject*, FXSelector, void*);
   long onCmdSaveDefault(FXObject*, FXSelector, void*);
   long onCmdResetDefault(FXObject*, FXSelector, void*);
-  long onCmdChooseNeedleInfo(FXObject*, FXSelector, void*);
-  long onCmdAddNeedleInfo(FXObject*, FXSelector, void*);
-  long onCmdUpdateNeedleInfo(FXObject*, FXSelector, void*);
-  long onCmdDeleteNeedleInfo(FXObject*, FXSelector, void*);
 
   long onCalibLeftBtnPressed(FXObject*, FXSelector, void*);
   long onCalibRightBtnPressed(FXObject*, FXSelector, void*);
@@ -657,9 +612,6 @@ public:
   long onCalibRightBtnReleased(FXObject*, FXSelector, void*);
   long onCalibZeroBtnPressed(FXObject*, FXSelector, void*);
   long onCalibZeroBtnReleased(FXObject*, FXSelector, void*);
-  long onCmdChooseEndEffectorConfig(FXObject*, FXSelector, void*);
-  long onSetEndEffectorBtnReleased(FXObject*, FXSelector, void*);
-  long onCancelEndEffectorBtnReleased(FXObject*, FXSelector, void*);
 
   long onManualLeftBtnPressed(FXObject*, FXSelector, void*);
   long onManualRightBtnPressed(FXObject*, FXSelector, void*);
@@ -672,22 +624,10 @@ public:
   long onCancelTargetBtnReleased(FXObject*, FXSelector, void*);
 
   long onUpdateNeedleApprOffset(FXObject*, FXSelector, void*);
-
-  /*
-  long onNeedleApprBtnPressed(FXObject*, FXSelector, void*);
-  long onNeedleApprBtnReleased(FXObject*, FXSelector, void*);
-  long onNeedleLeaveBtnPressed(FXObject*, FXSelector, void*);
-  long onNeedleLeaveBtnReleased(FXObject*, FXSelector, void*);
-  */
-
   long onCmdManualPowerSw(FXObject*, FXSelector, void*);
   long onUpdateManualPowerSw(FXObject*, FXSelector, void*);
   long onCmdShowDialog(FXObject*,FXSelector,void*); //Maier 
 
-
-  
-
-  
 };
 
 
