@@ -107,12 +107,20 @@
 //#define ACTUATOR_Z_FW    0x0010
 //#define ACTUATOR_Z_BW    0x0020
 
+//// Original
+//#define ACTUATOR_X_FW    0x0008
+//#define ACTUATOR_X_BW    0x0004
+//#define ACTUATOR_Y_FW    0x0020
+//#define ACTUATOR_Y_BW    0x0010
+//#define ACTUATOR_Z_FW    0x0002
+//#define ACTUATOR_Z_BW    0x0001
+
 #define ACTUATOR_X_FW    0x0008
 #define ACTUATOR_X_BW    0x0004
-#define ACTUATOR_Y_FW    0x0020
-#define ACTUATOR_Y_BW    0x0010
-#define ACTUATOR_Z_FW    0x0002
-#define ACTUATOR_Z_BW    0x0001
+#define ACTUATOR_Y_FW    0x0002
+#define ACTUATOR_Y_BW    0x0001
+#define ACTUATOR_Z_FW    0x0020
+#define ACTUATOR_Z_BW    0x0010
 
 #define LOG_TRIG         0x0040
 
@@ -122,29 +130,36 @@
 //#define ACTUATOR_X_VEL   1
 //#define ACTUATOR_Y_VEL   (ACTUATOR_X_VEL+1)
 //#define ACTUATOR_Z_VEL   (ACTUATOR_Y_VEL+1)
+
+//// Original
+//#define ACTUATOR_X_VEL   2
+//#define ACTUATOR_Y_VEL   3
+//#define ACTUATOR_Z_VEL   1
+
 #define ACTUATOR_X_VEL   2
-#define ACTUATOR_Y_VEL   3
-#define ACTUATOR_Z_VEL   1
+#define ACTUATOR_Y_VEL   1
+#define ACTUATOR_Z_VEL   3
 
 // Encoder counter masks
 #define ENC_CNT_X        0x0002
 #define ENC_CNT_Y        0x0004
 #define ENC_CNT_Z        0x0001 
+
 #define ENC_CNT_THETA    0x0008
 #define ENC_CNT_PHI      0x0010
 
 #define ENC_CNT_ALL      (ENC_CNT_X|ENC_CNT_Y|ENC_CNT_Z|ENC_CNT_THETA|ENC_CNT_PHI)
-
-
 
 // Encoder channel #
 // Note that ENC_CH_* depend on ENC_CNT_*
 //#define ENC_CH_X         1
 //#define ENC_CH_Y         2
 //#define ENC_CH_Z         3
+
 #define ENC_CH_X         2
 #define ENC_CH_Y         3
 #define ENC_CH_Z         1
+
 #define ENC_CH_THETA     4
 #define ENC_CH_PHI       5
 
@@ -245,7 +260,8 @@
 #define MIN_POSITION_X       0.0              // mm
 #define MAX_POSITION_X       73.68            // mm
 #define MIN_POSITION_Y       0.0              // mm
-#define MAX_POSITION_Y       97.12            // mm
+//#define MAX_POSITION_Y       97.12            // mm
+#define MAX_POSITION_Y       97.62            // mm
 #define MIN_POSITION_Z       0.0              // mm
 #define MAX_POSITION_Z       180.0            // mm
 #define MIN_POSITION_THETA   -0.5*PI        // rad
