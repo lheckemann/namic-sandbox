@@ -23,6 +23,7 @@ class R1_R1
    // constructor to put in additional parameter values (e.g. that will not
    // vary during a solve)
 
+public:
    virtual ~R1_R1();
 protected:
    Real x;                             // Current x value
