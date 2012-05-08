@@ -100,12 +100,12 @@
 // Bit masks for digital output masks
 // Note : 1 (ON)  -> Low
 //        0 (ON)  -> High
-//#define ACTUATOR_X_FW    0x0001
-//#define ACTUATOR_X_BW    0x0002
-//#define ACTUATOR_Y_FW    0x0004
-//#define ACTUATOR_Y_BW    0x0008
-//#define ACTUATOR_Z_FW    0x0010
-//#define ACTUATOR_Z_BW    0x0020
+#define ACTUATOR_X_FW    0x0001
+#define ACTUATOR_X_BW    0x0002
+#define ACTUATOR_Y_FW    0x0004
+#define ACTUATOR_Y_BW    0x0008
+#define ACTUATOR_Z_FW    0x0010
+#define ACTUATOR_Z_BW    0x0020
 
 //// Original
 //#define ACTUATOR_X_FW    0x0008
@@ -115,35 +115,35 @@
 //#define ACTUATOR_Z_FW    0x0002
 //#define ACTUATOR_Z_BW    0x0001
 
-#define ACTUATOR_X_FW    0x0008
-#define ACTUATOR_X_BW    0x0004
-#define ACTUATOR_Y_FW    0x0002
-#define ACTUATOR_Y_BW    0x0001
-#define ACTUATOR_Z_FW    0x0020
-#define ACTUATOR_Z_BW    0x0010
+//#define ACTUATOR_X_FW    0x0008
+//#define ACTUATOR_X_BW    0x0004
+//#define ACTUATOR_Y_FW    0x0002
+//#define ACTUATOR_Y_BW    0x0001
+//#define ACTUATOR_Z_FW    0x0020
+//#define ACTUATOR_Z_BW    0x0010
 
 #define LOG_TRIG         0x0040
 
 
 // Channel number for D/A output masks
 #define NUM_DA_DEVICES   (NUM_ACTUATORS+0)
-//#define ACTUATOR_X_VEL   1
-//#define ACTUATOR_Y_VEL   (ACTUATOR_X_VEL+1)
-//#define ACTUATOR_Z_VEL   (ACTUATOR_Y_VEL+1)
+#define ACTUATOR_X_VEL   1
+#define ACTUATOR_Y_VEL   (ACTUATOR_X_VEL+1)
+#define ACTUATOR_Z_VEL   (ACTUATOR_Y_VEL+1)
 
 //// Original
 //#define ACTUATOR_X_VEL   2
 //#define ACTUATOR_Y_VEL   3
 //#define ACTUATOR_Z_VEL   1
 
-#define ACTUATOR_X_VEL   2
-#define ACTUATOR_Y_VEL   1
-#define ACTUATOR_Z_VEL   3
+//#define ACTUATOR_X_VEL   2
+//#define ACTUATOR_Y_VEL   1
+//#define ACTUATOR_Z_VEL   3
 
 // Encoder counter masks
-#define ENC_CNT_X        0x0002
-#define ENC_CNT_Y        0x0004
-#define ENC_CNT_Z        0x0001 
+#define ENC_CNT_X        0x0001
+#define ENC_CNT_Y        0x0002
+#define ENC_CNT_Z        0x0004 
 
 #define ENC_CNT_THETA    0x0008
 #define ENC_CNT_PHI      0x0010
@@ -152,13 +152,13 @@
 
 // Encoder channel #
 // Note that ENC_CH_* depend on ENC_CNT_*
-//#define ENC_CH_X         1
-//#define ENC_CH_Y         2
-//#define ENC_CH_Z         3
+#define ENC_CH_X         1
+#define ENC_CH_Y         2
+#define ENC_CH_Z         3
 
-#define ENC_CH_X         2
-#define ENC_CH_Y         3
-#define ENC_CH_Z         1
+//#define ENC_CH_X         2
+//#define ENC_CH_Y         3
+//#define ENC_CH_Z         1
 
 #define ENC_CH_THETA     4
 #define ENC_CH_PHI       5
