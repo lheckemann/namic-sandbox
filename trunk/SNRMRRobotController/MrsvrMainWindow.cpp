@@ -2282,6 +2282,14 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
   if (extMsgSvr != NULL) {
     valConStatus = extMsgSvr->getSvrStatusStr();
     updateTcpInfoTbl();
+
+    igtl::Matrix4x4 matrix;
+    igtl::IdentityMatrix(matrix);
+
+    matrix[0][3] = cp[0];
+    matrix[1][3] = cp[1];
+    matrix[2][3] = cp[2];
+    extMsgSvr->sendCurrentPosition(matrix);
   }
 
   // update plot canvas
