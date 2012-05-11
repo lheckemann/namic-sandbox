@@ -10,6 +10,7 @@
 // $Revision: 1.6 $ 
 // $Author: junichi $
 // $Date: 2006/01/19 07:35:14 $
+
 //====================================================================
 
 //====================================================================
@@ -80,6 +81,16 @@
 #define STAGE_Y_LIMIT    0x0008
 #define STAGE_Z_HOME     0x0010  // IN 5
 #define STAGE_Z_LIMIT    0x0020
+
+// Sensor default status (high/low when activated)
+// This configuration depends on the L<->D switch on
+// the Omron sennsor.
+#define STAGE_X_HOME_DEFAULT   1
+#define STAGE_X_LIMIT_DEFAULT  0
+#define STAGE_Y_HOME_DEFAULT   0
+#define STAGE_Y_LIMIT_DEFAULT  1
+#define STAGE_Z_HOME_DEFAULT   1
+#define STAGE_Z_LIMIT_DEFAULT  1
 
 //#define SWITCH_X_FW      0x0040
 //#define SWITCH_X_BW      0x0080
@@ -298,6 +309,9 @@ class MrsvrDev {
   // Table to convert from actuator # to I/O masks
   static const unsigned short    dioInStgHomeMsk[];
   static const unsigned short    dioInStgLmtMsk[];
+  static const unsigned short    homeSensorDefault[];
+  static const unsigned short    limitSensorDefault[];
+
   static const unsigned short    dioInSwFwMsk[];
   static const unsigned short    dioInSwBwMsk[];
   static const unsigned short    dioOutFwMsk[];

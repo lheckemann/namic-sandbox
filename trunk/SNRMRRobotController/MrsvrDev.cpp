@@ -2,7 +2,9 @@
 //
 // MRI guided robot control system
 //
-// Copyright (C) 2003 by The University of Tokyo,
+// Copyright (C) 2003-2005 by The University of Tokyo,
+// Copyright (C) 2005-2011 by Shiga University of Medical Science
+// Copyright (C) 2006-2012 by Brigham and Women's Hospital
 // All Right Reserved.
 //
 //====================================================================
@@ -32,6 +34,18 @@ const unsigned short MrsvrDev::dioInStgLmtMsk[] = {
   STAGE_X_LIMIT,
   STAGE_Y_LIMIT,
   STAGE_Z_LIMIT,
+};
+
+const unsigned short MrsvrDev::homeSensorDefault[] = {
+  STAGE_X_HOME_DEFAULT,
+  STAGE_Y_HOME_DEFAULT,
+  STAGE_Z_HOME_DEFAULT,
+};
+
+const unsigned short MrsvrDev::limitSensorDefault[] = {
+  STAGE_X_LIMIT_DEFAULT,
+  STAGE_Y_LIMIT_DEFAULT,
+  STAGE_Z_LIMIT_DEFAULT,
 };
 
 const unsigned short MrsvrDev::dioInSwFwMsk[] = {
@@ -465,9 +479,11 @@ int MrsvrDev::setEncLimitMax(unsigned int enc, float val)
 int MrsvrDev::getLimitSensorStatus(int i)
 {
   DioInputWord(DEV_DIO, FBIDIO_IN1_16, &dioInValue);
-  if (dioInStgHomeMsk[i]&dioInValue) {
+  if (((dioInStgHomeMsk[i]&dioInValue) && homeSensorDefault[i]) ||
+      (!(dioInStgHomeMsk[i]&dioInValue)) && !(homeSensorDefault[i])) {
     return -1;
-  } else if (dioInStgLmtMsk[i]&dioInValue) {
+  } else if (((dioInStgLmtMsk[i]&dioInValue) && limitSensorDefault[i]) ||
+             (!(dioInStgLmtMsk[i]&dioInValue) && !limitSensorDefault[i])) {
     return 1;
   } else {
     return 0;
