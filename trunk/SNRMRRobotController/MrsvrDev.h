@@ -318,14 +318,14 @@ class MrsvrDev {
   static const int               EnableLockDetect[NUM_ACTUATORS];
 
 
-  static const float             encLimitMax[];  
-  static const float             encLimitMin[];  
-  //float                          encLimitMax[NUM_ENCODERS];  
-  //float                          encLimitMin[NUM_ENCODERS];  
-  static const int               encLimitMinCnt[];
-  static const int               encLimitMaxCnt[];
-  //int                            encLimitMinCnt[NUM_ENCODERS];
-  //int                            encLimitMaxCnt[NUM_ENCODERS];
+  //static const float             encLimitMax[];  
+  //static const float             encLimitMin[];  
+  float                          encLimitMax[NUM_ENCODERS];  
+  float                          encLimitMin[NUM_ENCODERS];  
+  //static const int               encLimitMinCnt[];
+  //static const int               encLimitMaxCnt[];
+  int                            encLimitMinCnt[NUM_ENCODERS];
+  int                            encLimitMaxCnt[NUM_ENCODERS];
 
   //  int                            actuatorKill[NUM_ACTUATORS];
   bool                           actuatorActive[NUM_ACTUATORS];
@@ -415,8 +415,9 @@ class MrsvrDev {
   int   getPositions(float*);
   int   setPosition(int, float);
 
-  //int   setEncLimitMin(unsigned int enc, float val);
-  //int   setEncLimitMax(unsigned int enc, float val);
+  int   setEncLimitMin(unsigned int enc, float val);
+  int   setEncLimitMax(unsigned int enc, float val);
+
   inline float getEncLimitMin(unsigned int enc) {
     if (enc < NUM_ENCODERS) {
       return encLimitMin[enc];
