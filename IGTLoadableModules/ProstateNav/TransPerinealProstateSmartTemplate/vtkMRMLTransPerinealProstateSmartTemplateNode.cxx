@@ -535,11 +535,13 @@ int vtkMRMLTransPerinealProstateSmartTemplateNode::Init(vtkSlicerApplication* ap
       tnode->SetName("TARGET");    
       }
     }
+
   // Active Needle model
   // This part should be moved to Robot Display Node.
   if (GetTargetModelNode()==NULL)
-  {
-  const char* nodeID = AddNeedleModel("Target", 200.0, 4.0);
+    {
+    double color[] = {0.5, 0.5, 0.5};
+    const char* nodeID = AddNeedleModel("Target", 200.0, 4.0, color, 0.5);
     vtkMRMLModelNode*  modelNode = vtkMRMLModelNode::SafeDownCast(this->Scene->GetNodeByID(nodeID));
     if (modelNode)
       {
@@ -551,7 +553,6 @@ int vtkMRMLTransPerinealProstateSmartTemplateNode::Init(vtkSlicerApplication* ap
       SetAndObserveTargetModelNodeID(nodeID);
       }
   }
-
 
   // Current transform node
   if (GetCurrentTransformNode()==NULL)
@@ -567,7 +568,8 @@ int vtkMRMLTransPerinealProstateSmartTemplateNode::Init(vtkSlicerApplication* ap
   // This part should be moved to Robot Display Node.
   if (GetCurrentModelNode()==NULL)
   {
-  const char* nodeID = AddNeedleModel("Current", 200.0, 4.0);
+  double color[] = {1.0, 0.5, 0.5};
+  const char* nodeID = AddNeedleModel("Current", 200.0, 4.0, color, 0.8);
     vtkMRMLModelNode*  modelNode = vtkMRMLModelNode::SafeDownCast(this->Scene->GetNodeByID(nodeID));
     if (modelNode)
       {
@@ -730,7 +732,6 @@ const char* vtkMRMLTransPerinealProstateSmartTemplateNode::AddZFrameModel(const 
   vtkTransform* trans2 =   vtkTransform::New();
   trans2->Translate(length/2.0, 0.0, 0.0);
   trans2->RotateX(90.0);
-  //trans2->RotateX(-45.0);
   trans2->RotateX(45.0);
   trans2->Update();
   tfilter2->SetInput(cylinder2->GetOutput());
@@ -764,10 +765,9 @@ const char* vtkMRMLTransPerinealProstateSmartTemplateNode::AddZFrameModel(const 
 
   vtkTransformPolyDataFilter *tfilter4 = vtkTransformPolyDataFilter::New();
   vtkTransform* trans4 =   vtkTransform::New();
-  trans4->Translate(0.0, length/2.0, 0.0);
+  trans4->Translate(0.0, -length/2.0, 0.0);
   trans4->RotateX(90.0);
-  //trans4->RotateZ(-45.0);
-  trans4->RotateZ(-45.0);
+  trans4->RotateZ(45.0);
   trans4->Update();
   tfilter4->SetInput(cylinder4->GetOutput());
   tfilter4->SetTransform(trans4);
@@ -826,6 +826,7 @@ const char* vtkMRMLTransPerinealProstateSmartTemplateNode::AddZFrameModel(const 
   tfilter7->SetTransform(trans7);
   tfilter7->Update();
 
+
   vtkAppendPolyData *apd = vtkAppendPolyData::New();
   apd->AddInput(tfilter1->GetOutput());
   apd->AddInput(tfilter2->GetOutput());
@@ -840,7 +841,7 @@ const char* vtkMRMLTransPerinealProstateSmartTemplateNode::AddZFrameModel(const 
 
   double color[3];
   color[0] = 1.0;
-  color[1] = 1.0;
+  color[1] = 0.5;
   color[2] = 0.0;
   zframeDisp->SetPolyData(zframeModel->GetPolyData());
   zframeDisp->SetColor(color);
@@ -875,6 +876,199 @@ const char* vtkMRMLTransPerinealProstateSmartTemplateNode::AddZFrameModel(const 
   zframeModel->Delete();  
 
   return modelID;
+
+//  vtkMRMLModelNode           *zframeModel;
+//  vtkMRMLModelDisplayNode    *zframeDisp;
+//
+//  zframeModel = vtkMRMLModelNode::New();
+//  zframeDisp = vtkMRMLModelDisplayNode::New();
+//
+//  this->Scene->SaveStateForUndo();
+//  this->Scene->AddNode(zframeDisp);
+//  this->Scene->AddNode(zframeModel);  
+//
+//  zframeDisp->SetScene(this->Scene);
+//  zframeModel->SetName(nodeName);
+//  zframeModel->SetScene(this->Scene);
+//  zframeModel->SetAndObserveDisplayNodeID(zframeDisp->GetID());
+//  zframeModel->SetHideFromEditors(0);
+//
+//  // construct Z-frame model
+//  const double length = 60; // mm
+//
+//  //----- cylinder 1 (R-A) -----
+//  vtkCylinderSource *cylinder1 = vtkCylinderSource::New();
+//  cylinder1->SetRadius(1.5);
+//  cylinder1->SetHeight(length);
+//  cylinder1->SetCenter(0, 0, 0);
+//  cylinder1->Update();
+//  
+//  vtkTransformPolyDataFilter *tfilter1 = vtkTransformPolyDataFilter::New();
+//  vtkTransform* trans1 =   vtkTransform::New();
+//  trans1->Translate(length/2.0, length/2.0, 0.0);
+//  trans1->RotateX(90.0);
+//  trans1->Update();
+//  tfilter1->SetInput(cylinder1->GetOutput());
+//  tfilter1->SetTransform(trans1);
+//  tfilter1->Update();
+//
+//
+//  //----- cylinder 2 (R-center) -----
+//  vtkCylinderSource *cylinder2 = vtkCylinderSource::New();
+//  cylinder2->SetRadius(1.5);
+//  cylinder2->SetHeight(length*1.4142135);
+//  cylinder2->SetCenter(0, 0, 0);
+//  cylinder2->Update();
+//
+//  vtkTransformPolyDataFilter *tfilter2 = vtkTransformPolyDataFilter::New();
+//  vtkTransform* trans2 =   vtkTransform::New();
+//  trans2->Translate(length/2.0, 0.0, 0.0);
+//  trans2->RotateX(90.0);
+//  //trans2->RotateX(-45.0);
+//  trans2->RotateX(45.0);
+//  trans2->Update();
+//  tfilter2->SetInput(cylinder2->GetOutput());
+//  tfilter2->SetTransform(trans2);
+//  tfilter2->Update();
+//
+//
+//  //----- cylinder 3 (R-P) -----
+//  vtkCylinderSource *cylinder3 = vtkCylinderSource::New();
+//  cylinder3->SetRadius(1.5);
+//  cylinder3->SetHeight(length);
+//  cylinder3->SetCenter(0, 0, 0);
+//  cylinder3->Update();
+//
+//  vtkTransformPolyDataFilter *tfilter3 = vtkTransformPolyDataFilter::New();
+//  vtkTransform* trans3 =   vtkTransform::New();
+//  trans3->Translate(length/2.0, -length/2.0, 0.0);
+//  trans3->RotateX(90.0);
+//  trans3->Update();
+//  tfilter3->SetInput(cylinder3->GetOutput());
+//  tfilter3->SetTransform(trans3);
+//  tfilter3->Update();
+//
+//
+//  //----- cylinder 4 (center-P) -----  
+//  vtkCylinderSource *cylinder4 = vtkCylinderSource::New();
+//  cylinder4->SetRadius(1.5);
+//  cylinder4->SetHeight(length*1.4142135);
+//  cylinder4->SetCenter(0, 0, 0);
+//  cylinder4->Update();
+//
+//  vtkTransformPolyDataFilter *tfilter4 = vtkTransformPolyDataFilter::New();
+//  vtkTransform* trans4 =   vtkTransform::New();
+//  trans4->Translate(0.0, length/2.0, 0.0);
+//  trans4->RotateX(90.0);
+//  //trans4->RotateZ(-45.0);
+//  trans4->RotateZ(-45.0);
+//  trans4->Update();
+//  tfilter4->SetInput(cylinder4->GetOutput());
+//  tfilter4->SetTransform(trans4);
+//  tfilter4->Update();
+//
+//
+//  //----- cylinder 5 (L-P) -----  
+//  vtkCylinderSource *cylinder5 = vtkCylinderSource::New();
+//  cylinder5->SetRadius(1.5);
+//  cylinder5->SetHeight(length);
+//  cylinder5->SetCenter(0, 0, 0);
+//  cylinder5->Update();
+//
+//  vtkTransformPolyDataFilter *tfilter5 = vtkTransformPolyDataFilter::New();
+//  vtkTransform* trans5 =   vtkTransform::New();
+//  trans5->Translate(-length/2.0, -length/2.0, 0.0);
+//  trans5->RotateX(90.0);
+//  trans5->Update();
+//  tfilter5->SetInput(cylinder5->GetOutput());
+//  tfilter5->SetTransform(trans5);
+//  tfilter5->Update();
+//
+//
+//  //----- cylinder 6 (L-center) -----  
+//  vtkCylinderSource *cylinder6 = vtkCylinderSource::New();
+//  cylinder6->SetRadius(1.5);
+//  cylinder6->SetHeight(length*1.4142135);
+//  cylinder6->SetCenter(0, 0, 0);
+//  cylinder6->Update();
+//
+//  vtkTransformPolyDataFilter *tfilter6 = vtkTransformPolyDataFilter::New();
+//  vtkTransform* trans6 =   vtkTransform::New();
+//  trans6->Translate(-length/2.0, 0.0, 0.0);
+//  trans6->RotateX(90.0);
+//  //trans6->RotateX(45.0);
+//  trans6->RotateX(-45.0);
+//  trans6->Update();
+//  tfilter6->SetInput(cylinder6->GetOutput());
+//  tfilter6->SetTransform(trans6);
+//  tfilter6->Update();
+//
+//
+//  //----- cylinder 7 (L-A) -----  
+//  vtkCylinderSource *cylinder7 = vtkCylinderSource::New();
+//  cylinder7->SetRadius(1.5);
+//  cylinder7->SetHeight(length);
+//  cylinder7->SetCenter(0, 0, 0);
+//  cylinder7->Update();
+//
+//  vtkTransformPolyDataFilter *tfilter7 = vtkTransformPolyDataFilter::New();
+//  vtkTransform* trans7 =   vtkTransform::New();
+//  trans7->Translate(-length/2.0, length/2.0, 0.0);
+//  trans7->RotateX(90.0);
+//  trans7->Update();
+//  tfilter7->SetInput(cylinder7->GetOutput());
+//  tfilter7->SetTransform(trans7);
+//  tfilter7->Update();
+//
+//  vtkAppendPolyData *apd = vtkAppendPolyData::New();
+//  apd->AddInput(tfilter1->GetOutput());
+//  apd->AddInput(tfilter2->GetOutput());
+//  apd->AddInput(tfilter3->GetOutput());
+//  apd->AddInput(tfilter4->GetOutput());
+//  apd->AddInput(tfilter5->GetOutput());
+//  apd->AddInput(tfilter6->GetOutput());
+//  apd->AddInput(tfilter7->GetOutput());
+//  apd->Update();
+//  
+//  zframeModel->SetAndObservePolyData(apd->GetOutput());
+//
+//  double color[3];
+//  color[0] = 1.0;
+//  color[1] = 1.0;
+//  color[2] = 0.0;
+//  zframeDisp->SetPolyData(zframeModel->GetPolyData());
+//  zframeDisp->SetColor(color);
+//  
+//  trans1->Delete();
+//  trans2->Delete();
+//  trans3->Delete();
+//  trans4->Delete();
+//  trans5->Delete();
+//  trans6->Delete();
+//  trans7->Delete();
+//  tfilter1->Delete();
+//  tfilter2->Delete();
+//  tfilter3->Delete();
+//  tfilter4->Delete();
+//  tfilter5->Delete();
+//  tfilter6->Delete();
+//  tfilter7->Delete();
+//  cylinder1->Delete();
+//  cylinder2->Delete();
+//  cylinder3->Delete();
+//  cylinder4->Delete();
+//  cylinder5->Delete();
+//  cylinder6->Delete();
+//  cylinder7->Delete();
+//
+//  apd->Delete();
+//
+//  const char* modelID = zframeModel->GetID();
+//
+//  zframeDisp->Delete();
+//  zframeModel->Delete();  
+//
+//  return modelID;
 }
 
 
@@ -963,7 +1157,7 @@ const char* vtkMRMLTransPerinealProstateSmartTemplateNode::AddTemplateModel(cons
 
 
 //----------------------------------------------------------------------------
-const char* vtkMRMLTransPerinealProstateSmartTemplateNode::AddNeedleModel(const char* nodeName, double length, double diameter)
+const char* vtkMRMLTransPerinealProstateSmartTemplateNode::AddNeedleModel(const char* nodeName, double length, double diameter, double color[3], double opacity)
 {
 
   vtkMRMLModelNode           *needleModel;
@@ -1018,15 +1212,13 @@ const char* vtkMRMLTransPerinealProstateSmartTemplateNode::AddNeedleModel(const 
 
   needleDisp->SetPolyData(needleModel->GetPolyData());
 
-  double color[3];
-  color[0] = 0.5;
-  color[1] = 0.5;
-  color[2] = 0.5;
+  //double color[3];
+  //color[0] = 0.5;
+  //color[1] = 0.5;
+  //color[2] = 0.5;
   needleDisp->SetPolyData(needleModel->GetPolyData());
   needleDisp->SetColor(color);
-
-  needleDisp->SetColor(color);
-  needleDisp->SetOpacity(0.5);
+  needleDisp->SetOpacity(opacity);
   
   trans->Delete();
   tfilter->Delete();
