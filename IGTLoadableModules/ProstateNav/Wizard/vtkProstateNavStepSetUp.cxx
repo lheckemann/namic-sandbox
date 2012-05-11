@@ -35,6 +35,7 @@
 
 #include "vtkMRMLRobotNode.h"
 #include "vtkMRMLTransPerinealProstateRobotNode.h"
+#include "vtkMRMLTransPerinealProstateSmartTemplateNode.h"
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkProstateNavStepSetUp);
@@ -174,27 +175,61 @@ void vtkProstateNavStepSetUp::ProcessGUIEvents( vtkObject *caller,
                                          unsigned long event, void *callData )
 {
 
-  vtkMRMLTransPerinealProstateRobotNode* robotNode=GetRobotNode();
+  vtkMRMLRobotNode* robotNode = NULL;
+
+  if (this->ProstateNavManager)
+    {
+    robotNode = this->ProstateNavManager->GetRobotNode();
+    }
+
+  //vtkMRMLTransPerinealProstateRobotNode* robotNode=GetRobotNode();
 
   if (this->RobotConnectorSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
       && (event == vtkSlicerNodeSelectorWidget::NewNodeEvent || event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent))
     {
     vtkMRMLIGTLConnectorNode* node = vtkMRMLIGTLConnectorNode::SafeDownCast(this->RobotConnectorSelector->GetSelected());
-    if (robotNode && node)
-      {      
-      vtksys_stl::string moduleShareDir=this->GetLogic()->GetModuleShareDirectory();
-      robotNode->Init(vtkSlicerApplication::SafeDownCast(this->GetApplication()),moduleShareDir.c_str()); // :TODO: this may not be the best place for robot initialization (e.g., when scene is loaded from MRML the GUI will not be used)    
-      robotNode->SetAndObserveRobotConnectorNodeID(node->GetID());
+
+    if (node)
+      {
+      vtkMRMLTransPerinealProstateRobotNode* transperinealRobotNode;
+      vtkMRMLTransPerinealProstateSmartTemplateNode* transperinealSmartTemplateNode;
+
+      if (transperinealRobotNode = 
+          vtkMRMLTransPerinealProstateRobotNode::SafeDownCast(robotNode))
+        {      
+        vtksys_stl::string moduleShareDir=this->GetLogic()->GetModuleShareDirectory();
+        transperinealRobotNode->Init(vtkSlicerApplication::SafeDownCast(this->GetApplication()),moduleShareDir.c_str());
+        // :TODO: this may not be the best place for robot initialization
+        // (e.g., when scene is loaded from MRML the GUI will not be used)    
+        transperinealRobotNode->SetAndObserveRobotConnectorNodeID(node->GetID());
+        }
+      else if (transperinealSmartTemplateNode = 
+               vtkMRMLTransPerinealProstateSmartTemplateNode::SafeDownCast(robotNode))
+        {
+        transperinealSmartTemplateNode->SetAndObserveRobotConnectorNodeID(node->GetID());
+        }
       }
     }
-
+  
   if (this->ScannerConnectorSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
       && (event == vtkSlicerNodeSelectorWidget::NewNodeEvent || event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent))
     {
     vtkMRMLIGTLConnectorNode* node = vtkMRMLIGTLConnectorNode::SafeDownCast(this->ScannerConnectorSelector->GetSelected());
     if (robotNode && node)
       {
-      robotNode->SetAndObserveScannerConnectorNodeID(node->GetID());
+      vtkMRMLTransPerinealProstateRobotNode* transperinealRobotNode;
+      vtkMRMLTransPerinealProstateSmartTemplateNode* transperinealSmartTemplateNode;
+      if (transperinealRobotNode = 
+          vtkMRMLTransPerinealProstateRobotNode::SafeDownCast(robotNode))
+        {      
+        transperinealRobotNode->SetAndObserveScannerConnectorNodeID(node->GetID());
+        }
+      else if (transperinealSmartTemplateNode = 
+               vtkMRMLTransPerinealProstateSmartTemplateNode::SafeDownCast(robotNode))
+        {
+        transperinealSmartTemplateNode->SetAndObserveScannerConnectorNodeID(node->GetID());
+        }
+
       }
     }
 
@@ -209,3 +244,4 @@ vtkMRMLTransPerinealProstateRobotNode* vtkProstateNavStepSetUp::GetRobotNode()
   vtkMRMLTransPerinealProstateRobotNode* robotNode = vtkMRMLTransPerinealProstateRobotNode::SafeDownCast(this->ProstateNavManager->GetRobotNode());
   return robotNode;
 }
+
