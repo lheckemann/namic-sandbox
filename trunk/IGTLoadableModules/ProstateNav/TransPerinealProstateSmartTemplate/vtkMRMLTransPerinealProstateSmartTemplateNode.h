@@ -180,7 +180,8 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateSmartTemplateNode : pub
   const char* AddWorkspaceModel(const char* nodeName);
   const char* AddZFrameModel(const char* nodeName);
   const char* AddTemplateModel(const char* nodeName);
-  const char* AddNeedleModel(const char* nodeName, double length, double diameter);
+  const char* AddNeedleModel(const char* nodeName, double length, double diameter,
+                             double color[3], double opacity);
 
   // NOTE: Since we couldn't update ScannerStatusLabelDisp and RobotStatusLabelDisp
   // directly from ProcessMRMLEvent(), we added following flags to update those GUI
