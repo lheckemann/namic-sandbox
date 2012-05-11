@@ -214,25 +214,9 @@ private:
   char *TemplateModelNodeID;
   vtkMRMLModelNode* TemplateModelNode;
 
-  //vtkSetReferenceStringMacro(TemplateTransformNodeID); 
-  //char *TemplateTransformNodeID;
-  //vtkMRMLLinearTransformNode* TemplateTransformNode;  
-
   vtkSetReferenceStringMacro(WorkspaceModelNodeID);
   char *WorkspaceModelNodeID;
   vtkMRMLModelNode* WorkspaceModelNode;
-
-  //vtkSetReferenceStringMacro(ActiveNeedleModelNodeID);
-  //char *ActiveNeedleModelNodeID;
-  //vtkMRMLModelNode* ActiveNeedleModelNode;
-  //
-  //vtkSetReferenceStringMacro(ActiveNeedleTransformNodeID); 
-  //char *ActiveNeedleTransformNodeID;
-  //vtkMRMLLinearTransformNode* ActiveNeedleTransformNode;
-
-  //vtkSetReferenceStringMacro(TargetTransformNodeID); 
-  //char *TargetTransformNodeID;
-  //vtkMRMLLinearTransformNode* TargetTransformNode;
 
   vtkSetReferenceStringMacro(TargetModelNodeID);
   char *TargetModelNodeID;
