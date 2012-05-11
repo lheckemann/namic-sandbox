@@ -738,13 +738,16 @@ inline int procCalibration(int init)
       }
       if (end) { // move to the next step
         step = CALIBRATION_COMPLETE;
+        CONSOLE_PRINT("CLIB: CALIBRATION_COMPLETE\n");
       }
     } else if (step == CALIBRATION_COMPLETE) {
       for (int i = 0; i < NUM_ACTUATORS; i ++) {
         if (dir[i] > 0) {
-           dev->setEncoderLowerLimit(i);
+          CONSOLE_PRINT("CLIB: dev->setEncoderLowerLimit() \n");
+          dev->setEncoderLowerLimit(i);
         } else {
-           dev->setEncoderUpperLimit(i);
+          CONSOLE_PRINT("CLIB: dev->setEncoderUpperLimit() \n");
+          dev->setEncoderUpperLimit(i);
         }
       }
       status->setMode(MrsvrStatus::HOLD);
@@ -1181,16 +1184,16 @@ inline void printModeTransition(int newMode)
 
 int updateEncoderCalibration()
 {
-  for (int i = 0; i < NUM_ENCODERS; i ++) {      
-    if (command->getEncLimitMin(i) != dev->getEncLimitMin(i)) {
-      CONSOLE_PRINT("Changing encoder #%d lower limit ...\n");
-      dev->setEncLimitMin(i, command->getEncLimitMin(i));
-    }
-    if (command->getEncLimitMax(i) != dev->getEncLimitMax(i)) {
-      CONSOLE_PRINT("Changing encoder #%d upper limit ...\n");
-      dev->setEncLimitMax(i, command->getEncLimitMax(i));
-    }
-  }
+  //for (int i = 0; i < NUM_ENCODERS; i ++) {      
+  //  if (command->getEncLimitMin(i) != dev->getEncLimitMin(i)) {
+  //    //CONSOLE_PRINT("Changing encoder #%d lower limit ...\n");
+  //    dev->setEncLimitMin(i, command->getEncLimitMin(i));
+  //  }
+  //  if (command->getEncLimitMax(i) != dev->getEncLimitMax(i)) {
+  //    //CONSOLE_PRINT("Changing encoder #%d upper limit ...\n");
+  //    dev->setEncLimitMax(i, command->getEncLimitMax(i));
+  //  }
+  //}
 }
 
 
@@ -1316,7 +1319,7 @@ int main(int argc, char* argv[])
       writeEncoderLog(currentMode);
     }
 
-    CONSOLE_PRINT("ENC: %d %d...\n", dev->getLimitSensorStatus(0), dev->getLimitSensorStatus(1));
+    //CONSOLE_PRINT("ENC: %d %d...\n", dev->getLimitSensorStatus(0), dev->getLimitSensorStatus(1));
 
     switch (status->getMode()) {
       case MrsvrStatus::START_UP:
@@ -1345,7 +1348,7 @@ int main(int argc, char* argv[])
     dev->detectActuatorLock();
 #endif
 
-    updateEncoderCalibration();
+    //updateEncoderCalibration();
     
     for (int i = 0; i < NUM_ACTUATORS; i ++) {
 #ifdef _ENABLE_ACTUATOR_LOCK_DETECTION
