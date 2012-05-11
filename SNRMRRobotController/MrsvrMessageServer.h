@@ -53,7 +53,7 @@
 #include <sys/errno.h>
 
 #include "MrsvrThread.h"
-#include "MrsvMessage.h"
+//#include "MrsvMessage.h"
 #include "MrsvrStatus.h"
 
 #include "igtlOSUtil.h"
@@ -99,38 +99,29 @@ class MrsvrMessageServer : public MrsvrThread {
   int                connectionStatus;
   int                fRunServer;
 
-  char               remoteOS[MESSAGE_MAX_INFO_STR];
-  char               remoteSoftware[MESSAGE_MAX_INFO_STR];
-  time_t             startTime;
+  //char               remoteOS[MESSAGE_MAX_INFO_STR];
+  //char               remoteSoftware[MESSAGE_MAX_INFO_STR];
+  //time_t             startTime;
 
   // Function permission table. (See permissioin masks defiend above.)
-  short permissions[MSG_NUM];
+  //short permissions[MSG_NUM];
 
  private:
   
-  MrsvMsgMode*           msgMode;
-  MrsvMsgCommand*        msgCmd;
-  MrsvMsgPosition*       sndMsgPos;
-  MrsvMsgPosition*       rcvMsgPos;
-
   igtl::Socket::Pointer  socket;
 
   MrsvrRASWriter*    currentPos;
   MrsvrRASWriter*    setPoint;
   MrsvrStatusReader* robotStatus;  // Status reader for the MRI robot.
 
-  unsigned char      rcvBuf[MESSAGE_BUFFER_SIZE];
+  //unsigned char      rcvBuf[MESSAGE_BUFFER_SIZE];
   int                onRcvMsgMaster(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-  msgType            sendMsgType(int, msgType);
-  msgType            sendMsgPosition(int, MrsvMsgPosition*);
 
   bool               fSetTargetMatrix;
   bool               fSetCalibrationMatrix;
 
   Matrix4x4          targetMatrix;
   Matrix4x4          calibrationMatrix;
-  //double             targetPosition[3];
-  //bool               fStop;
   int                nextRobotMode;   // default -1;
 
  public:

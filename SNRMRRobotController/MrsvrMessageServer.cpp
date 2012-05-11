@@ -61,23 +61,9 @@ MrsvrMessageServer::~MrsvrMessageServer()
 
 void MrsvrMessageServer::init()
 {
-  msgMode    = new MrsvMsgMode;
-  msgCmd     = new MrsvMsgCommand;
-  sndMsgPos  = new MrsvMsgPosition;
-  rcvMsgPos  = new MrsvMsgPosition;
-
   currentPos  = new MrsvrRASWriter(SHM_RAS_CURRENT);
   setPoint    = new MrsvrRASWriter(SHM_RAS_SETPOINT);
   robotStatus = new MrsvrStatusReader(SHM_STATUS);
-
-  permissions[MSG_CHANGE_MODE]      = PERMIT_MASTER;
-  permissions[MSG_SEND_COMMAND]     = PERMIT_MASTER;
-  permissions[MSG_SEND_POSITION]    = PERMIT_MASTER;
-  permissions[MSG_SEND_SYSINFO]     = PERMIT_MASTER;
-  permissions[MSG_REQUEST_POSITION] = PERMIT_OTHERS|PERMIT_MASTER;
-
-  remoteOS[0] = '\0';
-  remoteSoftware[0] = '\0';
 
   //masterBufferedFD = NULL;
   fSetTargetMatrix      = false;
@@ -189,26 +175,6 @@ void MrsvrMessageServer::stop()
   */
 
   init();
-}
-
-
-msgType MrsvrMessageServer::sendMsgType(int sockfd, msgType mt)
-{
-  if (write(sockfd, &mt, sizeof(msgType)) == sizeof(msgType)) {
-    return mt;
-  } else {
-    return -1;
-  }
-}
-
-msgType MrsvrMessageServer::sendMsgPosition(int sockfd, MrsvMsgPosition* mp)
-{
-  if (write(sockfd, mp, sizeof(MrsvMsgPosition)) ==
-      sizeof(MrsvMsgPosition)) {
-    return MSG_SEND_POSITION;
-  } else {
-    return -1;
-  }
 }
 
 
