@@ -172,8 +172,8 @@
 #define ENC_MODE_PHI     0x00000006
 
 // Encoder counter direction
-#define ENC_DIR_X        1
-#define ENC_DIR_Y        1
+#define ENC_DIR_X        0
+#define ENC_DIR_Y        0
 #define ENC_DIR_Z        0
 #define ENC_DIR_THETA    0
 #define ENC_DIR_PHI      0
