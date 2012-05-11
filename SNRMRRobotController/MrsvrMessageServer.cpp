@@ -108,7 +108,7 @@ void MrsvrMessageServer::process()
     return;
     }
 
-  igtl::Socket::Pointer socket;
+  //igtl::Socket::Pointer socket;
 
   while (this->fRunServer == 1) {
     //------------------------------------------------------------
@@ -318,7 +318,21 @@ bool MrsvrMessageServer::getMode(int* next)
   return r;
 }
 
-
+int MrsvrMessageServer::sendCurrentPosition(igtl::Matrix4x4& current)
+{
+  if (this->connectionStatus == SVR_CONNECTED)
+    {
+    igtl::TransformMessage::Pointer transMsg;
+    transMsg = igtl::TransformMessage::New();
+    transMsg->SetDeviceName("CURRENT");
+    igtl::TimeStamp::Pointer ts;
+    ts = igtl::TimeStamp::New();
+    transMsg->SetMatrix(current);
+    transMsg->SetTimeStamp(ts);
+    transMsg->Pack();
+    socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
+    }
+}
 
 int MrsvrMessageServer::setTargetMatrix(igtl::Matrix4x4& matrix)
 {

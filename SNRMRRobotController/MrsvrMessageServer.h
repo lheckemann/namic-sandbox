@@ -60,6 +60,7 @@
 #include "igtlMessageHeader.h"
 #include "igtlTransformMessage.h"
 #include "igtlServerSocket.h"
+#include "igtlSocket.h"
 
 /*
 #include "MrsvrLogicalPosition.h"
@@ -106,10 +107,13 @@ class MrsvrMessageServer : public MrsvrThread {
   short permissions[MSG_NUM];
 
  private:
+  
   MrsvMsgMode*           msgMode;
   MrsvMsgCommand*        msgCmd;
   MrsvMsgPosition*       sndMsgPos;
   MrsvMsgPosition*       rcvMsgPos;
+
+  igtl::Socket::Pointer  socket;
 
   MrsvrRASWriter*    currentPos;
   MrsvrRASWriter*    setPoint;
@@ -148,13 +152,16 @@ class MrsvrMessageServer : public MrsvrThread {
   //bool        getStop();
   bool        getMode(int*);
 
+  igtl::Socket* getSocket() { return this->socket; };
+  int         sendCurrentPosition(igtl::Matrix4x4& current);
+
  private:
   int         setTargetMatrix(igtl::Matrix4x4& matrix);
   int         setCalibrationMatrix(igtl::Matrix4x4& matrix);
   //void        setStop();
   int         setMode(const char*);
   void        getRobotStatus(int* mode, int* outrange, int* lock);
-  
+ 
 
 };
 
