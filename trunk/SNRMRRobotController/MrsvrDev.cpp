@@ -105,6 +105,7 @@ const float MrsvrDev::encRate[] = {
 };
   
 /*
+*/
 const float MrsvrDev::encLimitMax[] = {
   MAX_POSITION_X,
   MAX_POSITION_Y,
@@ -132,7 +133,7 @@ const int MrsvrDev::encLimitMaxCnt[] = {
   INIT_CNT_UPPER_Y,
   INIT_CNT_UPPER_Z,
 };
-*/
+
 
 const int MrsvrDev::EnableLockDetect[] = {
   LOCK_DETECT_X,
@@ -187,17 +188,17 @@ MrsvrDev::MrsvrDev()
     dmarg[i] = 0.5 * (vmin[i]*vmin[i] / astd[i]);
   }
 
-  setEncLimitMin(0, MIN_POSITION_X);
-  setEncLimitMax(0, MAX_POSITION_X);
-  setEncLimitMin(1, MIN_POSITION_Y);
-  setEncLimitMax(1, MAX_POSITION_Y);
-  setEncLimitMin(2, MIN_POSITION_Z);
-  setEncLimitMax(2, MAX_POSITION_Z);
+  //setEncLimitMin(0, MIN_POSITION_X);
+  //setEncLimitMax(0, MAX_POSITION_X);
+  //setEncLimitMin(1, MIN_POSITION_Y);
+  //setEncLimitMax(1, MAX_POSITION_Y);
+  //setEncLimitMin(2, MIN_POSITION_Z);
+  //setEncLimitMax(2, MAX_POSITION_Z);
 
-  encLimitMax[3] = MAX_POSITION_THETA;
-  encLimitMax[4] = MAX_POSITION_PHI;
-  encLimitMin[3] = MIN_POSITION_THETA;
-  encLimitMin[4] = MIN_POSITION_PHI;
+  //encLimitMax[3] = MAX_POSITION_THETA;
+  //encLimitMax[4] = MAX_POSITION_PHI;
+  //encLimitMin[3] = MIN_POSITION_THETA;
+  //encLimitMin[4] = MIN_POSITION_PHI;
 
 }
 
@@ -425,26 +426,32 @@ int MrsvrDev::setPosition(int n, float v)
 }
 
 
-int MrsvrDev::setEncLimitMin(unsigned int enc, float val)
-{
-  if (enc < NUM_ENCODERS) {
-    encLimitMin[enc] = val;
-    encLimitMinCnt[enc] = INIT_CNT + (int)(val / encRate[enc]);
-    return 1;
-  }
-  return 0;
-}
-
-
-int MrsvrDev::setEncLimitMax(unsigned int enc, float val)
-{
-  if (enc < NUM_ENCODERS) {
-    encLimitMax[enc] = val;
-    encLimitMaxCnt[enc] = INIT_CNT + (int)(val / encRate[enc]);
-    return 1;
-  }
-  return 0;
-}
+//int MrsvrDev::setEncLimitMin(unsigned int enc, float val)
+//{
+//  printf("MrsvrDev::setEncLimitMin(%d, %f)\n", enc, val);
+//  if (enc < NUM_ENCODERS) {
+//    encLimitMin[enc] = val;
+//    encLimitMinCnt[enc] = INIT_CNT + (int)(val / encRate[enc]);
+//    printf("  encLimitMin[] = %f, %f \n", encLimitMin[enc], val);
+//    printf("  encLimitMinCnt[] = %d\n", encLimitMinCnt[enc]);
+//    return 1;
+//  }
+//  return 0;
+//}
+//
+//
+//int MrsvrDev::setEncLimitMax(unsigned int enc, float val)
+//{
+//  printf("MrsvrDev::setEncLimitMax(%d, %f)\n", enc, val);
+//  if (enc < NUM_ENCODERS) {
+//    encLimitMax[enc] = val;
+//    encLimitMaxCnt[enc] = INIT_CNT + (int)(val / encRate[enc]);
+//    printf("  encLimitMax[] = %f /  %f\n", encLimitMax[enc], val);
+//    printf("  encLimitMaxCnt[] = %d\n", encLimitMaxCnt[enc]);
+//    return 1;
+//  }
+//  return 0;
+//}
 
 
 int MrsvrDev::getLimitSensorStatus(int i)

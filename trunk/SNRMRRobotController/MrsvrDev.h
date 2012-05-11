@@ -100,10 +100,10 @@
 // Bit masks for digital output masks
 // Note : 1 (ON)  -> Low
 //        0 (ON)  -> High
-#define ACTUATOR_X_FW    0x0001
-#define ACTUATOR_X_BW    0x0002
-#define ACTUATOR_Y_FW    0x0004
-#define ACTUATOR_Y_BW    0x0008
+#define ACTUATOR_X_FW    0x0002
+#define ACTUATOR_X_BW    0x0001
+#define ACTUATOR_Y_FW    0x0008
+#define ACTUATOR_Y_BW    0x0004
 #define ACTUATOR_Z_FW    0x0010
 #define ACTUATOR_Z_BW    0x0020
 
@@ -172,8 +172,8 @@
 #define ENC_MODE_PHI     0x00000006
 
 // Encoder counter direction
-#define ENC_DIR_X        0
-#define ENC_DIR_Y        0
+#define ENC_DIR_X        1
+#define ENC_DIR_Y        1
 #define ENC_DIR_Z        0
 #define ENC_DIR_THETA    0
 #define ENC_DIR_PHI      0
@@ -235,13 +235,13 @@
 // initial counter value
 #define INIT_CNT         0x008FFFFF
 
-//#define INIT_CNT_LOWER_X (INIT_CNT - (int)(((MAX_POSITION_X - MIN_POSITION_X)/2.0)/ENC_RATE_X))
-//#define INIT_CNT_LOWER_Y (INIT_CNT - (int)(((MAX_POSITION_Y - MIN_POSITION_Y)/2.0)/ENC_RATE_Y))
-//#define INIT_CNT_LOWER_Z (INIT_CNT - (int)(((MAX_POSITION_Z - MIN_POSITION_Z)/2.0)/ENC_RATE_Z))
+#define INIT_CNT_LOWER_X (INIT_CNT - (int)(((MAX_POSITION_X - MIN_POSITION_X)/2.0)/ENC_RATE_X))
+#define INIT_CNT_LOWER_Y (INIT_CNT - (int)(((MAX_POSITION_Y - MIN_POSITION_Y)/2.0)/ENC_RATE_Y))
+#define INIT_CNT_LOWER_Z (INIT_CNT - (int)(((MAX_POSITION_Z - MIN_POSITION_Z)/2.0)/ENC_RATE_Z))
 
-//#define INIT_CNT_UPPER_X ((int)(((MAX_POSITION_X - MIN_POSITION_X)/2.0)/ENC_RATE_X) + INIT_CNT)
-//#define INIT_CNT_UPPER_Y ((int)(((MAX_POSITION_Y - MIN_POSITION_Y)/2.0)/ENC_RATE_Y) + INIT_CNT)
-//#define INIT_CNT_UPPER_Z ((int)(((MAX_POSITION_Z - MIN_POSITION_Z)/2.0)/ENC_RATE_Z) + INIT_CNT)
+#define INIT_CNT_UPPER_X ((int)(((MAX_POSITION_X - MIN_POSITION_X)/2.0)/ENC_RATE_X) + INIT_CNT)
+#define INIT_CNT_UPPER_Y ((int)(((MAX_POSITION_Y - MIN_POSITION_Y)/2.0)/ENC_RATE_Y) + INIT_CNT)
+#define INIT_CNT_UPPER_Z ((int)(((MAX_POSITION_Z - MIN_POSITION_Z)/2.0)/ENC_RATE_Z) + INIT_CNT)
 
 // Use comparator in encoder counter board?
 // 0: off      1: on
@@ -318,14 +318,14 @@ class MrsvrDev {
   static const int               EnableLockDetect[NUM_ACTUATORS];
 
 
-  //static const float             encLimitMax[];  
-  //static const float             encLimitMin[];  
-  float                          encLimitMax[];  
-  float                          encLimitMin[];  
-  //static const int               encLimitMinCnt[];
-  //static const int               encLimitMaxCnt[];
-  int                            encLimitMinCnt[];
-  int                            encLimitMaxCnt[];
+  static const float             encLimitMax[];  
+  static const float             encLimitMin[];  
+  //float                          encLimitMax[NUM_ENCODERS];  
+  //float                          encLimitMin[NUM_ENCODERS];  
+  static const int               encLimitMinCnt[];
+  static const int               encLimitMaxCnt[];
+  //int                            encLimitMinCnt[NUM_ENCODERS];
+  //int                            encLimitMaxCnt[NUM_ENCODERS];
 
   //  int                            actuatorKill[NUM_ACTUATORS];
   bool                           actuatorActive[NUM_ACTUATORS];
@@ -415,8 +415,8 @@ class MrsvrDev {
   int   getPositions(float*);
   int   setPosition(int, float);
 
-  int   setEncLimitMin(unsigned int enc, float val);
-  int   setEncLimitMax(unsigned int enc, float val);
+  //int   setEncLimitMin(unsigned int enc, float val);
+  //int   setEncLimitMax(unsigned int enc, float val);
   inline float getEncLimitMin(unsigned int enc) {
     if (enc < NUM_ENCODERS) {
       return encLimitMin[enc];
