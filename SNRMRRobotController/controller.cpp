@@ -48,8 +48,17 @@
 //
 // Steps in CALIBRATION
 // ---------------------
+//
+// 05/11/2012 by J.T.: The following description assumes that the sensor becomes
+// high when it detects the stage. The sensor status can be flipped by changing
+// STAGE_X_HOME_DEFAULT, STAGE_X_LIMIT_DEFAULT, ... in MrsvrDev.h
+//
 // The CALIBRATION mode consists of two steps in order to ensure the accuracy
 // of homing:
+//   (0) check the limit sensor. If it is HIGH, the sensor has to be moved away
+//       fron the limiter. If the sensor stays HIGH even if it is moved,
+//       the homing process should be aborted for user's inspection.
+//       (CALIBRATION_MOVE_FROM_LIMITER)
 //   (1) move the stage towards the home limiter of the sensor with high speed,
 //       until the sensor status becomes HIGH. (CALIBRATION_MOVE_HOME_FAST)
 //   (2) move the stage towards the upper limiter of the sensor, until
@@ -58,7 +67,7 @@
 //   (3) move the starge towards the home limiter with low speed (see bellow)
 //       until the sensor reading becomes HIGH. (CALIBRATION_MOVE_HOME_SLOW)
 //
-// Step 2 is necessary, because HIGH the sensor status does not always
+// Step 2 is necessary, because the HIGH sensor status does not always
 // mean that the stage is at the home position (Fig. 2); 
 //
 // 
@@ -258,10 +267,12 @@ static int   fOutOfRange[NUM_ENCODERS];
 // Constants
 //===========================================================================
 #define CALIBRATION_MOVE_STOP         0
-#define CALIBRATION_MOVE_HOME_FAST    1
-#define CALIBRATION_MOVE_CENTER       2
-#define CALIBRATION_MOVE_HOME_SLOW    3
-#define CALIBRATION_COMPLETE          4
+#define CALIBRATION_MOVE_FROM_LIMITER 1
+#define CALIBRATION_MOVE_HOME_FAST    2
+#define CALIBRATION_MOVE_CENTER       3
+#define CALIBRATION_MOVE_HOME_SLOW    4
+#define CALIBRATION_COMPLETE          5
+#define CALIBRATION_ERROR             6
 
 #define CALIBRATION_VELOCITY_FAST     15
 #define CALIBRATION_VELOCITY_SLOW     5
@@ -637,14 +648,19 @@ inline int procCalibration(int init)
   static int step;
   static int prev_step;
   static int remCycles[NUM_ACTUATORS];
+  static int counter;
+  static int counterLimit;
 
+  counterLimit = (int) (1.0 / intervalf);
+  
   // limit sensor position (1: lower limit; -1 : upper limit)
   static int dir[]={-1,1,0};
 
   int f = 0;
 
   if (init) {
-    step = CALIBRATION_MOVE_HOME_FAST;
+    //step = CALIBRATION_MOVE_HOME_FAST;
+    step = CALIBRATION_MOVE_FROM_LIMITER;
     prev_step = -1;
     int ncyclesToStop = 100000 / interval; // 100 ms
     for (int i = 0; i < NUM_ACTUATORS; i ++) {
@@ -670,7 +686,44 @@ inline int procCalibration(int init)
     break;
 
   case MrsvrCommand::CALIBRATION_HOME:
-    if (step == CALIBRATION_MOVE_HOME_FAST) {
+    if (step == CALIBRATION_MOVE_FROM_LIMITER) {
+      // Step 0: check the limit sensor. If it is HIGH, the sensor has to be moved away
+      //         fron the limiter. If the sensor stays HIGH even if it is moved,
+      //         the homing process should be aborted for user's inspection.
+      if (prev_step != step) {
+         CONSOLE_PRINT("CLIB: CALIBRATION_MOVE_FROM_LIMITER\n");
+         prev_step = step;
+         counter = 0;
+      }
+      counter ++;
+      int end = 1;
+      int err = 0;
+      float sv;
+      for (int i = 0; i < NUM_ACTUATORS; i ++) {
+        if (dev->getLimitSensorStatus(i) == - dir [i]) {
+          if (counter < counterLimit) {
+            sv = dev->setVelocity(i, (CALIBRATION_VELOCITY_FAST)*dir[i]);
+            end = 0;
+          } else {
+            sv = dev->setVelocity(i, 0);
+            err = 1;
+          }
+        } else {
+          sv = dev->setVelocity(i, 0);
+        }
+        status->setVoltage(i, sv);
+      }
+      if (err) {
+        CONSOLE_PRINT("CLIB ERROR: No limit sensor response.\n");
+        step = CALIBRATION_ERROR;
+        for (int i = 0; i < NUM_ACTUATORS; i ++) {
+          sv = dev->setVelocity(i, 0);
+          status->setVoltage(i, sv);
+        }
+      } else if (end) {
+        step = CALIBRATION_MOVE_HOME_FAST;
+      }
+    } else if (step == CALIBRATION_MOVE_HOME_FAST) {
       // Step 1: move the stage towards the home limiter of the sensor with high speed,
       //         until the sensor status becomes HIGH. (CALIBRATION_MOVE_HOME_FAST)
       if (prev_step != step) {
@@ -752,6 +805,8 @@ inline int procCalibration(int init)
       }
       status->setMode(MrsvrStatus::HOLD);
     } else {
+      // Error handling.
+      CONSOLE_PRINT("CLIB: CALIBRATION ERROR() \n");
     }
     break;
 
