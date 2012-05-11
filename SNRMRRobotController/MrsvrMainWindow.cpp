@@ -1425,10 +1425,10 @@ void MrsvrMainWindow::loadRegistry()
   for (int i = 0; i < NUM_ENCODERS; i ++) {
     sprintf(str, "MIN_%d", i);
     valMotionRangeMin[i]
-      = getApp()->reg().readIntEntry("MOTION_RANGE", str, 0);
+      = getApp()->reg().readRealEntry("MOTION_RANGE", str, 0.0);
     sprintf(str, "MAX_%d", i);
     valMotionRangeMax[i]
-      = getApp()->reg().readIntEntry("MOTION_RANGE", str, 0);
+      = getApp()->reg().readRealEntry("MOTION_RANGE", str, 0.0);
   }
 }
 
@@ -2097,6 +2097,9 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
   static int  prevSetAngleReadyIndex;
   static float prevNeedleDepth = -1.0;
 
+  static float prevValMotionRangeMin[NUM_ENCODERS];
+  static float prevValMotionRangeMax[NUM_ENCODERS];
+
   bool   fModeUpdated = false;
 
   updateParameters();
@@ -2383,7 +2386,17 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
     onNeedleCanvasRepaint(obj, sel, ptr);
   }
 
-
+  // Motion range
+  for (int i = 0; i < NUM_ENCODERS; i ++) {
+    if (valMotionRangeMin[i] != prevValMotionRangeMin[i]) {
+      prevValMotionRangeMin[i] = valMotionRangeMin[i];
+      robotCommand->setEncLimitMin(i, valMotionRangeMin[i]);
+    }
+    if (valMotionRangeMax[i] != prevValMotionRangeMax[i]) {
+      prevValMotionRangeMax[i] = valMotionRangeMax[i];
+      robotCommand->setEncLimitMax(i, valMotionRangeMax[i]);
+    }
+  }
 
   // update timer
   application->addTimeout(this, 

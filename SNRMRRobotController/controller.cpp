@@ -1184,16 +1184,16 @@ inline void printModeTransition(int newMode)
 
 int updateEncoderCalibration()
 {
-  //for (int i = 0; i < NUM_ENCODERS; i ++) {      
-  //  if (command->getEncLimitMin(i) != dev->getEncLimitMin(i)) {
-  //    //CONSOLE_PRINT("Changing encoder #%d lower limit ...\n");
-  //    dev->setEncLimitMin(i, command->getEncLimitMin(i));
-  //  }
-  //  if (command->getEncLimitMax(i) != dev->getEncLimitMax(i)) {
-  //    //CONSOLE_PRINT("Changing encoder #%d upper limit ...\n");
-  //    dev->setEncLimitMax(i, command->getEncLimitMax(i));
-  //  }
-  //}
+  for (int i = 0; i < NUM_ENCODERS; i ++) {      
+    if (command->getEncLimitMin(i) != dev->getEncLimitMin(i)) {
+      //CONSOLE_PRINT("Changing encoder #%d lower limit ...\n");
+      dev->setEncLimitMin(i, command->getEncLimitMin(i));
+    }
+    if (command->getEncLimitMax(i) != dev->getEncLimitMax(i)) {
+      //CONSOLE_PRINT("Changing encoder #%d upper limit ...\n");
+      dev->setEncLimitMax(i, command->getEncLimitMax(i));
+    }
+  }
 }
 
 

@@ -188,17 +188,17 @@ public:
       return -1;
     }
   }
-  inline int setEncLimitMin(unsigned int enc) {
+  inline int setEncLimitMin(unsigned int enc, float val) {
     if (enc < NUM_ENCODERS) {
-      cmdInfo->encLimitMin[enc] = 0.0;
+      cmdInfo->encLimitMin[enc] = val;
       return 1;
     } else {
       return 0;
     }
   }
-  inline int setEncLimitMax(unsigned int enc) {
+  inline int setEncLimitMax(unsigned int enc, float val) {
     if (enc < NUM_ENCODERS) {
-      cmdInfo->encLimitMax[enc] = 0.0;
+      cmdInfo->encLimitMax[enc] = val;
       return 1;
     } else {
       return 0;
