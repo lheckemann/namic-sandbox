@@ -1104,14 +1104,12 @@ inline void getPositions()
     status->setPosition(i, p);
     curVel[i] = delta / secDisplIntv;
     status->setVelocity(i, curVel[i]);
-    fOutOfRange[i] = dev->isOutOfRange(i, p);
+    fOutOfRange[i] = dev->isOutOfRange(i);
     status->setOutOfRange(i, fOutOfRange[i]);
-    /*
     if (fOutOfRange[i] != 0) {
       printDate();
-      CONSOLE_PRINT("Encoder # %d is out of range!\n", i);
+      CONSOLE_PRINT("Encoder # %d is out of range: p = %f!\n", i, curPos[i]);
     }
-    */
   }
   MrsvrVector cp;
   getTipPosition(cp);
