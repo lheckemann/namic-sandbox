@@ -98,6 +98,10 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateSmartTemplateNode : pub
   vtkMRMLIGTLConnectorNode* GetScannerConnectorNode();
   void SetAndObserveScannerConnectorNodeID(const char *nodeID);
 
+  vtkGetStringMacro(RobotConnectorNodeID);
+  vtkMRMLIGTLConnectorNode* GetRobotConnectorNode();
+  void SetAndObserveRobotConnectorNodeID(const char *nodeID);
+
   vtkGetStringMacro(WorkspaceModelNodeID);
   vtkMRMLModelNode* GetWorkspaceModelNode();
   void SetAndObserveWorkspaceModelNodeID(const char *nodeID);
@@ -114,17 +118,18 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateSmartTemplateNode : pub
   vtkMRMLModelNode* GetTemplateModelNode();
   void SetAndObserveTemplateModelNodeID(const char *nodeID);
 
-  //vtkGetStringMacro(TemplateTransformNodeID);
-  //vtkMRMLLinearTransformNode* GetTemplateTransformNode();
-  //void SetAndObserveTemplateTransformNodeID(const char *nodeID);
+  vtkGetStringMacro(TargetModelNodeID);
+  vtkMRMLModelNode* GetTargetModelNode();
+  void SetAndObserveTargetModelNodeID(const char *nodeID);
 
-  vtkGetStringMacro(ActiveNeedleModelNodeID);
-  vtkMRMLModelNode* GetActiveNeedleModelNode();
-  void SetAndObserveActiveNeedleModelNodeID(const char *nodeID);
+  vtkGetStringMacro(CurrentTransformNodeID);
+  vtkMRMLLinearTransformNode* GetCurrentTransformNode();
+  void SetAndObserveCurrentTransformNodeID(const char *nodeID);
 
-  vtkGetStringMacro(ActiveNeedleTransformNodeID);
-  vtkMRMLLinearTransformNode* GetActiveNeedleTransformNode();
-  void SetAndObserveActiveNeedleTransformNodeID(const char *nodeID);
+  vtkGetStringMacro(CurrentModelNodeID);
+  vtkMRMLModelNode* GetCurrentModelNode();
+  void SetAndObserveCurrentModelNodeID(const char *nodeID);
+
 
   virtual int  MoveTo(const char *transformNodeId);
   
@@ -189,10 +194,13 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateSmartTemplateNode : pub
 private:
 
   // Node references
-
   vtkSetReferenceStringMacro(ScannerConnectorNodeID);
   char *ScannerConnectorNodeID;
   vtkMRMLIGTLConnectorNode* ScannerConnectorNode;
+
+  vtkSetReferenceStringMacro(RobotConnectorNodeID);
+  char *RobotConnectorNodeID;
+  vtkMRMLIGTLConnectorNode* RobotConnectorNode;
 
   vtkSetReferenceStringMacro(ZFrameModelNodeID);
   char *ZFrameModelNodeID;
@@ -214,13 +222,29 @@ private:
   char *WorkspaceModelNodeID;
   vtkMRMLModelNode* WorkspaceModelNode;
 
-  vtkSetReferenceStringMacro(ActiveNeedleModelNodeID);
-  char *ActiveNeedleModelNodeID;
-  vtkMRMLModelNode* ActiveNeedleModelNode;
+  //vtkSetReferenceStringMacro(ActiveNeedleModelNodeID);
+  //char *ActiveNeedleModelNodeID;
+  //vtkMRMLModelNode* ActiveNeedleModelNode;
+  //
+  //vtkSetReferenceStringMacro(ActiveNeedleTransformNodeID); 
+  //char *ActiveNeedleTransformNodeID;
+  //vtkMRMLLinearTransformNode* ActiveNeedleTransformNode;
 
-  vtkSetReferenceStringMacro(ActiveNeedleTransformNodeID); 
-  char *ActiveNeedleTransformNodeID;
-  vtkMRMLLinearTransformNode* ActiveNeedleTransformNode;
+  //vtkSetReferenceStringMacro(TargetTransformNodeID); 
+  //char *TargetTransformNodeID;
+  //vtkMRMLLinearTransformNode* TargetTransformNode;
+
+  vtkSetReferenceStringMacro(TargetModelNodeID);
+  char *TargetModelNodeID;
+  vtkMRMLModelNode* TargetModelNode;
+
+  vtkSetReferenceStringMacro(CurrentTransformNodeID); 
+  char *CurrentTransformNodeID;
+  vtkMRMLLinearTransformNode* CurrentTransformNode;
+
+  vtkSetReferenceStringMacro(CurrentModelNodeID);
+  char *CurrentModelNodeID;
+  vtkMRMLModelNode* CurrentModelNode;
 
   // Other member variables
 
