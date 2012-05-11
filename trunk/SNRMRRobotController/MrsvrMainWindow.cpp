@@ -2286,9 +2286,16 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
     igtl::Matrix4x4 matrix;
     igtl::IdentityMatrix(matrix);
 
-    matrix[0][3] = cp[0];
-    matrix[1][3] = cp[1];
-    matrix[2][3] = cp[2];
+    float mrTipP[3];    
+    float robotTipP[3];
+    robotTipP[0] = robotP[0];
+    robotTipP[1] = robotP[1];
+    robotTipP[2] = robotP[2] + valNeedleDepth;
+    transform->invTransform(robotTipP, mrTipP);
+ 
+    matrix[0][3] = mrTipP[0];
+    matrix[1][3] = mrTipP[1];
+    matrix[2][3] = mrTipP[2];
     extMsgSvr->sendCurrentPosition(matrix);
   }
 
