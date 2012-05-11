@@ -149,7 +149,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateSmartTemplateNode : pub
   virtual int PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode, int param1, int param2);
 
   virtual const char* GetWorkflowStepsString()
-    {return "SetUp ZFrameCalibration TemplateTargeting PointVerification"; };
+    {return "SetUp ZFrameCalibration SmartTemplateTargeting PointVerification"; };
 
   //----------------------------------------------------------------------------
   // Funcitons to obtain information about needle guiding template

@@ -40,6 +40,7 @@
 #include "vtkProstateNavFiducialCalibrationStep.h"
 #include "vtkProstateNavTargetingStep.h"
 #include "vtkProstateNavStepTargetingTemplate.h"
+#include "vtkProstateNavStepTargetingSmartTemplate.h"
 #include "vtkProstateNavManualControlStep.h"
 
 #include "vtkSlicerFiducialsGUI.h"
@@ -1524,6 +1525,12 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
     else if (!stepName.compare("TemplateTargeting"))
       {
       vtkProstateNavStepTargetingTemplate* targetingStep = vtkProstateNavStepTargetingTemplate::New();
+      targetingStep->SetTitleBackgroundColor(138.0/255.0, 165.0/255.0, 111.0/255.0);
+      newStep=targetingStep;
+      }
+    else if (!stepName.compare("SmartTemplateTargeting"))
+      {
+      vtkProstateNavStepTargetingSmartTemplate* targetingStep = vtkProstateNavStepTargetingSmartTemplate::New();
       targetingStep->SetTitleBackgroundColor(138.0/255.0, 165.0/255.0, 111.0/255.0);
       newStep=targetingStep;
       }
