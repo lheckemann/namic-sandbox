@@ -31,6 +31,9 @@ Version:   $Revision: 1.2 $
 
 #include "vtkSphereSource.h"
 
+#include "vtkCubeSource.h"
+#include "vtkCylinderSource.h"
+
 
 //
 // Models and Transforms
@@ -623,31 +626,27 @@ const char* vtkMRMLTransPerinealProstateSmartTemplateNode::AddWorkspaceModel(con
   workspaceModel->SetAndObserveDisplayNodeID(workspaceDisp->GetID());
   workspaceModel->SetHideFromEditors(0);
 
-  // construct Z-frame model
-  
-  // Parameters
-  // offset from z-frame -- this will be a class variable to let users configure it in the future.
-  const double offsetFromZFrame[] = {0, 22.76, 150.0};
-  const double length = 200.0;
+  // Offset fron the center of Z-frame
+  // Assume that the needle length is 150 mm
+  const double offsetFromZFrame[] = {0, 0, 105.0};
+  const double dimensions[] = {72.00, 95.00, 150.0};
 
-  //----- cylinder 1 (R-A) -----
-  vtkCylinderSource *cylinder1 = vtkCylinderSource::New();
-  cylinder1->SetResolution(24);
-  cylinder1->SetRadius(25.0);
-  cylinder1->SetHeight(length);
-  cylinder1->SetCenter(0, 0, 0);
-  cylinder1->Update();
-  
+  //----- Cube -----
+  vtkCubeSource* cube = vtkCubeSource::New(); 
+  cube->SetXLength(dimensions[0]);
+  cube->SetYLength(dimensions[1]);
+  cube->SetZLength(dimensions[2]);
+  cube->SetCenter(0, 0, 0);
+  cube->Update();
+
   vtkTransform* trans1 =   vtkTransform::New();
   trans1->Translate(offsetFromZFrame);
-  trans1->RotateX(90.0);
   trans1->Update();
 
   vtkTransformPolyDataFilter *tfilter1 = vtkTransformPolyDataFilter::New();
-  tfilter1->SetInput(cylinder1->GetOutput());
+  tfilter1->SetInput(cube->GetOutput());
   tfilter1->SetTransform(trans1);
   tfilter1->Update();
-
 
   vtkAppendPolyData *apd = vtkAppendPolyData::New();
   apd->AddInput(tfilter1->GetOutput());
@@ -669,7 +668,7 @@ const char* vtkMRMLTransPerinealProstateSmartTemplateNode::AddWorkspaceModel(con
   
   trans1->Delete();
   tfilter1->Delete();
-  cylinder1->Delete();
+  cube->Delete();
   apd->Delete();
 
   const char* modelID = workspaceModel->GetID();

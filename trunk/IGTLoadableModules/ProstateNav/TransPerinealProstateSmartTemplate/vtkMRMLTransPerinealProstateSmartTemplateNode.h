@@ -19,7 +19,6 @@
 #include "vtkMRMLRobotNode.h"
 #include "vtkMRMLStorageNode.h"
 
-#include "vtkCylinderSource.h"
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkTransform.h"
 #include "vtkAppendPolyData.h"
