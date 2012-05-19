@@ -124,6 +124,7 @@ vtkProstateNavStepTargetingSmartTemplate::vtkProstateNavStepTargetingSmartTempla
   // TargetControl frame
   this->TargetControlFrame=NULL;
   this->NeedlePositionMatrix=NULL;
+  this->NeedleOffsetMatrix=NULL;
   //this->NeedleOrientationMatrix=NULL;
   this->GenerateListButton=NULL;
   this->MoveButton=NULL;
@@ -141,6 +142,12 @@ vtkProstateNavStepTargetingSmartTemplate::vtkProstateNavStepTargetingSmartTempla
   this->OptionFrame = NULL;
 
   this->ReportWindow = NULL;
+
+  this->NeedleOffset[0] = 0.0;
+  this->NeedleOffset[1] = 0.0;
+  this->NeedleOffset[2] = 0.0;
+
+
 }
 
 //----------------------------------------------------------------------------
@@ -172,6 +179,7 @@ vtkProstateNavStepTargetingSmartTemplate::~vtkProstateNavStepTargetingSmartTempl
   // TargetControl frame
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetControlFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedlePositionMatrix);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleOffsetMatrix);
   //DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleOrientationMatrix);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(GenerateListButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(MoveButton);
@@ -445,12 +453,12 @@ void vtkProstateNavStepTargetingSmartTemplate::ShowTargetControlFrame()
   this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
                this->TargetControlFrame->GetWidgetName());
 
-    if (!this->NeedlePositionMatrix)
+  if (!this->NeedlePositionMatrix)
     {
     this->NeedlePositionMatrix = vtkKWMatrixWidgetWithLabel::New();
     this->NeedlePositionMatrix->SetParent(this->TargetControlFrame);
     this->NeedlePositionMatrix->Create();
-    this->NeedlePositionMatrix->SetLabelText("Position (X, Y, Z):");
+    this->NeedlePositionMatrix->SetLabelText("Position (R, A, S):");
     this->NeedlePositionMatrix->ExpandWidgetOff();
     this->NeedlePositionMatrix->GetLabel()->SetWidth(18);
     this->NeedlePositionMatrix->SetBalloonHelpString("Set the needle position");
@@ -462,6 +470,47 @@ void vtkProstateNavStepTargetingSmartTemplate::ShowTargetControlFrame()
     matrix->SetRestrictElementValueToDouble();
     matrix->SetElementChangedCommandTriggerToAnyChange();
     }
+
+  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
+               this->NeedlePositionMatrix->GetWidgetName());
+  
+
+  if (!this->NeedleOffsetMatrix)
+    {
+    this->NeedleOffsetMatrix = vtkKWMatrixWidgetWithLabel::New();
+    this->NeedleOffsetMatrix->SetParent(this->TargetControlFrame);
+    this->NeedleOffsetMatrix->Create();
+    this->NeedleOffsetMatrix->SetLabelText("Offset (dR, dA, dS):");
+    this->NeedleOffsetMatrix->ExpandWidgetOff();
+    this->NeedleOffsetMatrix->GetLabel()->SetWidth(18);
+    this->NeedleOffsetMatrix->SetBalloonHelpString("Set the needle position");
+
+    vtkKWMatrixWidget *matrix =  this->NeedleOffsetMatrix->GetWidget();
+    matrix->SetNumberOfColumns(3);
+    matrix->SetNumberOfRows(1);
+    matrix->SetElementWidth(12);
+    matrix->SetRestrictElementValueToDouble();
+    matrix->SetElementChangedCommandTriggerToAnyChange();
+    matrix->SetElementValueAsDouble(0, 0, this->NeedleOffset[0]);
+    matrix->SetElementValueAsDouble(0, 1, this->NeedleOffset[1]);
+    matrix->SetElementValueAsDouble(0, 2, this->NeedleOffset[2]);
+    }
+
+  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
+               this->NeedleOffsetMatrix->GetWidgetName());
+  
+  if (!this->MoveButton)
+    {
+    this->MoveButton = vtkKWPushButton::New();
+    this->MoveButton->SetParent (this->TargetControlFrame);
+    this->MoveButton->Create();
+    this->MoveButton->SetText("  Set   ");
+    this->MoveButton->SetBalloonHelpString("Move the robot to the position");
+    this->MoveButton->SetEnabled(0);
+    }
+
+  this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
+               this->MoveButton->GetWidgetName());
 
   //if (!this->NeedleOrientationMatrix)
   //  {
@@ -484,8 +533,6 @@ void vtkProstateNavStepTargetingSmartTemplate::ShowTargetControlFrame()
   //this->Script("pack %s %s -side top -anchor nw -expand n -padx 2 -pady 2",
   //             this->NeedlePositionMatrix->GetWidgetName(),
   //             this->NeedleOrientationMatrix->GetWidgetName());
-  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
-               this->NeedlePositionMatrix->GetWidgetName());
 
   if(!this->Message)
     {
@@ -508,29 +555,18 @@ void vtkProstateNavStepTargetingSmartTemplate::ShowTargetControlFrame()
   this->Script("pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 6", 
                 this->Message->GetWidgetName());
 
-  if (!this->MoveButton)
-    {
-    this->MoveButton = vtkKWPushButton::New();
-    this->MoveButton->SetParent (this->TargetControlFrame);
-    this->MoveButton->Create();
-    this->MoveButton->SetText("Set");
-    this->MoveButton->SetBalloonHelpString("Move the robot to the position");
-    }
 
-  this->Script("pack %s -side left -anchor nw -expand n -padx 2 -pady 2",
-               this->MoveButton->GetWidgetName());
-
-  if (!this->GenerateListButton)
-    {
-    this->GenerateListButton = vtkKWPushButton::New();
-    this->GenerateListButton->SetParent (this->TargetControlFrame);
-    this->GenerateListButton->Create();
-    this->GenerateListButton->SetText("Generate List");
-    this->GenerateListButton->SetBalloonHelpString("Generate a list of targets");
-    }
-
-  this->Script("pack %s -side left -anchor nw -expand n -padx 2 -pady 2",
-               this->GenerateListButton->GetWidgetName());
+  //if (!this->GenerateListButton)
+  //  {
+  //  this->GenerateListButton = vtkKWPushButton::New();
+  //  this->GenerateListButton->SetParent (this->TargetControlFrame);
+  //  this->GenerateListButton->Create();
+  //  this->GenerateListButton->SetText("Generate List");
+  //  this->GenerateListButton->SetBalloonHelpString("Generate a list of targets");
+  //  }
+  //
+  //this->Script("pack %s -side left -anchor nw -expand n -padx 2 -pady 2",
+  //             this->GenerateListButton->GetWidgetName());
 
 
 }
@@ -566,7 +602,8 @@ void vtkProstateNavStepTargetingSmartTemplate::ProcessGUIEvents(vtkObject *calle
       position[1] = (float) matrix->GetElementValueAsDouble(0, 1);
       position[2] = (float) matrix->GetElementValueAsDouble(0, 2);
 
-      vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(this->GetProstateNavManager()->GetRobotNode()->GetTargetTransformNodeID());
+      vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()
+        ->GetMRMLScene()->GetNodeByID(this->GetProstateNavManager()->GetRobotNode()->GetTargetTransformNodeID());
       vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
 
       if (transformNode)
@@ -574,9 +611,9 @@ void vtkProstateNavStepTargetingSmartTemplate::ProcessGUIEvents(vtkObject *calle
         vtkMatrix4x4* matrix = transformNode->GetMatrixTransformToParent();
         matrix->Identity();
 
-        matrix->SetElement(0, 3, position[0]);
-        matrix->SetElement(1, 3, position[1]);
-        matrix->SetElement(2, 3, position[2]);
+        matrix->SetElement(0, 3, position[0]+this->NeedleOffset[0]);
+        matrix->SetElement(1, 3, position[1]+this->NeedleOffset[1]);
+        matrix->SetElement(2, 3, position[2]+this->NeedleOffset[2]);
 
         vtkMatrix4x4* transformToParent = transformNode->GetMatrixTransformToParent();
         transformToParent->DeepCopy(matrix);
@@ -586,19 +623,21 @@ void vtkProstateNavStepTargetingSmartTemplate::ProcessGUIEvents(vtkObject *calle
         this->UpdateGUI();
 
         }
+      this->MoveButton->SetEnabled(0);
       }
     }
 
-  //if (this->GenerateListButton == vtkKWPushButton::SafeDownCast(caller)
-  //    && event == vtkKWPushButton::InvokedEvent)
-  //  {
-  //  vtkMRMLTransPerinealProstateSmartTemplateNode* robotNode = 
-  //    vtkMRMLTransPerinealProstateSmartTemplateNode::SafeDownCast(this->GetProstateNavManager()->GetRobotNode());
-  //  vtkProstateNavTargetDescriptor* targetDesc=this->GetProstateNavManager()->GetTargetDescriptorAtIndex(mrmlNode->GetCurrentTargetIndex());
-  //  NeedleDescriptorStruct *needle = mrmlNode->GetNeedle(targetDesc);     
-  //
-  //  return;
-  //  }
+  // -----------------------------------------------------------------
+  // Needle offset matrix is updated
+  if (this->NeedleOffsetMatrix->GetWidget() == vtkKWMatrixWidget::SafeDownCast(caller)
+      && event == vtkKWMatrixWidget::ElementChangedEvent)
+    {
+    vtkKWMatrixWidget* omatrix = this->NeedleOffsetMatrix->GetWidget();
+    this->NeedleOffset[0] = (float) omatrix->GetElementValueAsDouble(0, 0);
+    this->NeedleOffset[1] = (float) omatrix->GetElementValueAsDouble(0, 1);
+    this->NeedleOffset[2] = (float) omatrix->GetElementValueAsDouble(0, 2);
+    this->MoveButton->SetEnabled(1);
+    }
 
   if(!mrmlNode)
       return;
@@ -618,7 +657,7 @@ void vtkProstateNavStepTargetingSmartTemplate::ProcessGUIEvents(vtkObject *calle
         }
         else
         {
-          vtkErrorMacro("Cannot delete target, fiducial not found");
+        vtkErrorMacro("Cannot delete target, fiducial not found");
         }
       }
       else
@@ -627,57 +666,46 @@ void vtkProstateNavStepTargetingSmartTemplate::ProcessGUIEvents(vtkObject *calle
       }
     }
 
-  //// load targeting volume dialog button
-  //if (this->LoadTargetingVolumeButton && this->LoadTargetingVolumeButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
-  //  {
-  //  this->GetApplication()->Script("::LoadVolume::ShowDialog");
-  //  }
-
   // show workspace button
-   if (this->ShowWorkspaceButton && this->ShowWorkspaceButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+  if (this->ShowWorkspaceButton && this->ShowWorkspaceButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
     {
-      this->ShowWorkspaceModel(this->ShowWorkspaceButton->GetSelectedState() == 1);
+    this->ShowWorkspaceModel(this->ShowWorkspaceButton->GetSelectedState() == 1);
     }
-
-   if (this->ShowTargetNeedleButton && this->ShowTargetNeedleButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+  
+  if (this->ShowTargetNeedleButton && this->ShowTargetNeedleButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
     {
     this->ShowTargetNeedle(this->ShowTargetNeedleButton->GetSelectedState() == 1);
     }
-   if (this->ShowCurrentNeedleButton && this->ShowCurrentNeedleButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+  if (this->ShowCurrentNeedleButton && this->ShowCurrentNeedleButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
     {
     this->ShowCurrentNeedle(this->ShowCurrentNeedleButton->GetSelectedState() == 1);
     }
-
- // activate fiducial placement
- if (this->AddTargetsOnClickButton && this->AddTargetsOnClickButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
-  {
+  
+  // activate fiducial placement
+  if (this->AddTargetsOnClickButton && this->AddTargetsOnClickButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+    {
     // Activate target fiducials in the Fiducial GUI
     if (this->GetLogic()==NULL)
-    {
-      vtkErrorMacro("Logic is invalid");
-    }    
-    else
-    {
-      EnableAddTargetsOnClickButton(this->AddTargetsOnClickButton->GetSelectedState()==1);
-    }
-
-  }
-
- //if (this->NeedleTypeMenuList && this->NeedleTypeMenuList->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast(caller) && (event == vtkKWMenu::MenuItemInvokedEvent))
- //  {
- //    mrmlNode->SetCurrentNeedleIndex(this->NeedleTypeMenuList->GetWidget()->GetMenu()->GetIndexOfSelectedItem());
- //  }
- //
-  if (this->TargetListSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
-    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent ) 
-    {
-    vtkMRMLFiducialListNode *fid = vtkMRMLFiducialListNode::SafeDownCast(this->TargetListSelectorWidget->GetSelected());
-    if (fid != NULL)
       {
-      vtkMRMLProstateNavManagerNode* manager=this->GetProstateNavManager();
-      manager->SetAndObserveTargetPlanListNodeID(fid->GetID());
+      vtkErrorMacro("Logic is invalid");
+      }    
+    else
+      {
+      EnableAddTargetsOnClickButton(this->AddTargetsOnClickButton->GetSelectedState()==1);
       }
+    
     }
+
+ if (this->TargetListSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
+     event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent ) 
+   {
+   vtkMRMLFiducialListNode *fid = vtkMRMLFiducialListNode::SafeDownCast(this->TargetListSelectorWidget->GetSelected());
+   if (fid != NULL)
+     {
+     vtkMRMLProstateNavManagerNode* manager=this->GetProstateNavManager();
+     manager->SetAndObserveTargetPlanListNodeID(fid->GetID());
+     }
+   }
 
 
   if (this->VolumeSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
@@ -694,8 +722,6 @@ void vtkProstateNavStepTargetingSmartTemplate::ProcessGUIEvents(vtkObject *calle
   if (this->TargetList->GetWidget() == vtkKWMultiColumnList::SafeDownCast(caller)
       && event == vtkKWMultiColumnList::SelectionChangedEvent)
     {
-      
-      
     }
 
 }
@@ -900,34 +926,36 @@ void vtkProstateNavStepTargetingSmartTemplate::OnMultiColumnListSelectionChanged
     matrix->SetElementValueAsDouble(0, 1, xyz[1]);
     matrix->SetElementValueAsDouble(0, 2, xyz[2]);
 
-    // The following code was inherited from the robot code.
-    // TODO: For SmartTemplate-based biopsy, the GUI should be updated, while
-    // the ModifiedEvent of ProstateNavManager node is handled.
-    if ( this->Logic )
-      {
-      vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()->GetMRMLScene()
-        ->GetNodeByID(this->GetProstateNavManager()->GetRobotNode()->GetTargetTransformNodeID());
-      vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
-      
-      if (transformNode)
-        {
-        vtkMatrix4x4* matrix = transformNode->GetMatrixTransformToParent();
-        matrix->Identity();
-      
-        matrix->SetElement(0, 3, xyz[0]);
-        matrix->SetElement(1, 3, xyz[1]);
-        matrix->SetElement(2, 3, xyz[2]);
-      
-        vtkMatrix4x4* transformToParent = transformNode->GetMatrixTransformToParent();
-        transformToParent->DeepCopy(matrix);
-      
-        // Send move to command 
-        this->GetProstateNavManager()->GetRobotNode()->MoveTo(transformNode->GetID());
-        this->UpdateGUI();
-      
-        }
-      }
+    this->MoveButton->SetEnabled(1);
 
+    //// The following code was inherited from the robot code.
+    //// TODO: For SmartTemplate-based biopsy, the GUI should be updated, while
+    //// the ModifiedEvent of ProstateNavManager node is handled.
+    //if ( this->Logic )
+    //  {
+    //  vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()->GetMRMLScene()
+    //    ->GetNodeByID(this->GetProstateNavManager()->GetRobotNode()->GetTargetTransformNodeID());
+    //  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+    //  
+    //  if (transformNode)
+    //    {
+    //    vtkMatrix4x4* matrix = transformNode->GetMatrixTransformToParent();
+    //    matrix->Identity();
+    //  
+    //    matrix->SetElement(0, 3, xyz[0]);
+    //    matrix->SetElement(1, 3, xyz[1]);
+    //    matrix->SetElement(2, 3, xyz[2]);
+    //  
+    //    vtkMatrix4x4* transformToParent = transformNode->GetMatrixTransformToParent();
+    //    transformToParent->DeepCopy(matrix);
+    //  
+    //    // Send move to command 
+    //    this->GetProstateNavManager()->GetRobotNode()->MoveTo(transformNode->GetID());
+    //    this->UpdateGUI();
+    //  
+    //    }
+    //  }
+    
     // The following function should be called after calling MoveTo(),
     // because it invokes Modified event that requires the RobotNode
     // to update its target information to update GUI.
@@ -1098,6 +1126,11 @@ void vtkProstateNavStepTargetingSmartTemplate::AddGUIObservers()
     this->TargetList->GetWidget()->SetCellUpdatedCommand(this, "OnMultiColumnListUpdate");
     this->TargetList->GetWidget()->SetSelectionChangedCommand(this, "OnMultiColumnListSelectionChanged");
     }
+  if (this->NeedleOffsetMatrix)
+    {
+    this->NeedleOffsetMatrix->GetWidget()->AddObserver(vtkKWMatrixWidget::ElementChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
+
 }
 //-----------------------------------------------------------------------------
 void vtkProstateNavStepTargetingSmartTemplate::RemoveGUIObservers()
@@ -1150,6 +1183,10 @@ void vtkProstateNavStepTargetingSmartTemplate::RemoveGUIObservers()
     {
     this->TargetList->GetWidget()->SetCellUpdatedCommand(this, "");
     this->TargetList->GetWidget()->SetSelectionChangedCommand(this, "");
+    }
+  if (this->NeedleOffsetMatrix)
+    {
+    this->NeedleOffsetMatrix->GetWidget()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 }
 
