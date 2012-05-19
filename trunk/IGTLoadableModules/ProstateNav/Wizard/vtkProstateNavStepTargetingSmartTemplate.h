@@ -121,7 +121,8 @@ protected:
   // TargetControl frame
   vtkKWFrame *TargetControlFrame;
   vtkKWMatrixWidgetWithLabel* NeedlePositionMatrix;
-  vtkKWMatrixWidgetWithLabel* NeedleOrientationMatrix;
+  vtkKWMatrixWidgetWithLabel* NeedleOffsetMatrix;
+  //vtkKWMatrixWidgetWithLabel* NeedleOrientationMatrix;
 
   //vtkKWPushButton *MoveButton;
   //vtkKWPushButton *StopButton;
@@ -136,6 +137,9 @@ protected:
 private:
   vtkProstateNavStepTargetingSmartTemplate(const vtkProstateNavStepTargetingSmartTemplate&);
   void operator=(const vtkProstateNavStepTargetingSmartTemplate&);
+
+  float NeedleOffset[3];
+
 };
 
 #endif
