@@ -123,6 +123,7 @@ vtkProstateNavStepTargetingSmartTemplate::vtkProstateNavStepTargetingSmartTempla
 
   // TargetControl frame
   this->TargetControlFrame=NULL;
+  this->TargetNameEntry=NULL;
   this->NeedlePositionMatrix=NULL;
   this->NeedleOffsetMatrix=NULL;
   //this->NeedleOrientationMatrix=NULL;
@@ -178,6 +179,7 @@ vtkProstateNavStepTargetingSmartTemplate::~vtkProstateNavStepTargetingSmartTempl
 
   // TargetControl frame
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetControlFrame);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetNameEntry);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedlePositionMatrix);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleOffsetMatrix);
   //DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleOrientationMatrix);
@@ -452,7 +454,20 @@ void vtkProstateNavStepTargetingSmartTemplate::ShowTargetControlFrame()
     }
   this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
                this->TargetControlFrame->GetWidgetName());
-
+  
+  if (!this->TargetNameEntry)
+    {
+    this->TargetNameEntry = vtkKWEntryWithLabel::New();
+    this->TargetNameEntry->SetParent(this->TargetControlFrame);
+    this->TargetNameEntry->Create();
+    this->TargetNameEntry->SetWidth(40);
+    this->TargetNameEntry->SetLabelWidth(30);
+    this->TargetNameEntry->SetLabelText("Target name:");
+    this->TargetNameEntry->GetWidget()->SetValue("--");
+    }
+  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", 
+               this->TargetNameEntry->GetWidgetName());
+  
   if (!this->NeedlePositionMatrix)
     {
     this->NeedlePositionMatrix = vtkKWMatrixWidgetWithLabel::New();
@@ -593,7 +608,7 @@ void vtkProstateNavStepTargetingSmartTemplate::ProcessGUIEvents(vtkObject *calle
   if (this->MoveButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    if (this->Logic && this->NeedlePositionMatrix /*&& this->NeedleOrientationMatrix*/)
+    if (this->Logic && this->NeedlePositionMatrix && this->TargetNameEntry)
       {
       float position[3];   // position parameters
 
@@ -602,6 +617,23 @@ void vtkProstateNavStepTargetingSmartTemplate::ProcessGUIEvents(vtkObject *calle
       position[1] = (float) matrix->GetElementValueAsDouble(0, 1);
       position[2] = (float) matrix->GetElementValueAsDouble(0, 2);
 
+      vtkMRMLTransPerinealProstateSmartTemplateNode * stnode = 
+        vtkMRMLTransPerinealProstateSmartTemplateNode::SafeDownCast(this->GetProstateNavManager()->GetRobotNode());
+      if (stnode)
+        {
+        stnode->SetTargetName(this->TargetNameEntry->GetWidget()->GetValue());
+        stnode->SetTargetPosition(position);
+        stnode->SetTargetingOffset(this->NeedleOffset);
+        stnode->MoveTo(NULL);
+
+        //vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()
+        //  ->GetMRMLScene()->GetNodeByID(this->GetProstateNavManager()->GetRobotNode()->GetTargetTransformNodeID());
+        //vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+        //stnode->MoveTo(transformNode->GetID());
+        this->UpdateGUI();
+        }
+
+      /*
       vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()
         ->GetMRMLScene()->GetNodeByID(this->GetProstateNavManager()->GetRobotNode()->GetTargetTransformNodeID());
       vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
@@ -623,6 +655,7 @@ void vtkProstateNavStepTargetingSmartTemplate::ProcessGUIEvents(vtkObject *calle
         this->UpdateGUI();
 
         }
+      */
       this->MoveButton->SetEnabled(0);
       }
     }
@@ -926,7 +959,11 @@ void vtkProstateNavStepTargetingSmartTemplate::OnMultiColumnListSelectionChanged
     matrix->SetElementValueAsDouble(0, 1, xyz[1]);
     matrix->SetElementValueAsDouble(0, 2, xyz[2]);
 
+    // Copy the name to input
+    this->TargetNameEntry->GetWidget()->SetValue(targetDesc->GetName().c_str());
     this->MoveButton->SetEnabled(1);
+
+
 
     //// The following code was inherited from the robot code.
     //// TODO: For SmartTemplate-based biopsy, the GUI should be updated, while
