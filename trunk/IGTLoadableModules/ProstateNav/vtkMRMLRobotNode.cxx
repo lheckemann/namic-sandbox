@@ -63,6 +63,10 @@ vtkMRMLRobotNode::~vtkMRMLRobotNode()
   {
     SetAndObserveTargetTransformNodeID(NULL);
   }
+  if (this->FileStream.is_open())
+    {
+    this->FileStream.close();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -247,6 +251,48 @@ int vtkMRMLRobotNode::GetStatusDescriptor(unsigned int index, std::string &text,
   indicator=this->StatusDescriptors[index].indicator;
   return 1;
 }
+
+
+//----------------------------------------------------------------------------
+int vtkMRMLRobotNode::OpenLogFile(const char* filename)
+{
+  if (this->FileStream.is_open())
+    {
+    this->FileStream.close();
+    }
+  if (filename == NULL)
+    {
+    return 0;
+    }
+  
+  this->FileStream.open(filename, std::ios_base::app);
+  if (this->FileStream.is_open())
+    {
+    return 1;
+    }
+}
+
+//----------------------------------------------------------------------------
+int vtkMRMLRobotNode::WriteLog(const char* format, ...)
+{
+  if (format && this->FileStream.is_open())
+    {
+    time_t t = 0;
+    struct tm *new_time = localtime(&t);
+    static char buffer[256];
+    strftime(buffer, 256, "[%c]", new_time); 
+
+    va_list args;
+    char    buf[1024];
+    va_start(args, format);
+    vsnprintf(buf, 1024, format, args);
+    this->FileStream << buffer << buf << std::endl;
+    va_end(args);
+    this->FileStream.flush();
+    }
+}
+
+
 //----------------------------------------------------------------------------
 bool vtkMRMLRobotNode::CanApplyNonLinearTransforms() 
 { 
