@@ -129,7 +129,16 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateSmartTemplateNode : pub
   vtkMRMLModelNode* GetCurrentModelNode();
   void SetAndObserveCurrentModelNodeID(const char *nodeID);
 
+  void SetTargetName(const char *name);
+  void SetTargetPosition(float xyz[3]);
+  void GetTargetPosition(float xyz[3]);
+  void SetTargetingOffset(float xyz[3]);
+  void GetTargetingOffset(float xyz[3]);
 
+  // Description:
+  // Update TARGET transform.
+  // If transformNodeId=NULL, it updates the TARGET transform, which is registered to
+  // OpenIGTLink connector node as outgoing node.
   virtual int  MoveTo(const char *transformNodeId);
   
   virtual void SwitchStep(const char *stepName);
@@ -236,6 +245,13 @@ private:
 
   bool  Connection;  
   int   ScannerWorkPhase;
+
+  //BTX
+  std::string TargetName;
+  //ETX
+  float  TargetPosition[3];
+  float  TargetingOffset[3];
+
 
   // Template for needle guidance
   double TemplateGridPitch[2];   // Template pitch in mm (x and y in the figure bellow)

@@ -119,6 +119,7 @@ protected:
   vtkKWPushButton *DeleteButton;
 
   // TargetControl frame
+  vtkKWEntryWithLabel * TargetNameEntry;
   vtkKWFrame *TargetControlFrame;
   vtkKWMatrixWidgetWithLabel* NeedlePositionMatrix;
   vtkKWMatrixWidgetWithLabel* NeedleOffsetMatrix;
