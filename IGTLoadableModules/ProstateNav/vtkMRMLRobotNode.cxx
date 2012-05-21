@@ -277,7 +277,8 @@ int vtkMRMLRobotNode::WriteLog(const char* format, ...)
 {
   if (format && this->FileStream.is_open())
     {
-    time_t t = 0;
+    time_t t;
+    time(&t);
     struct tm *new_time = localtime(&t);
     static char buffer[256];
     strftime(buffer, 256, "[%c]", new_time); 
