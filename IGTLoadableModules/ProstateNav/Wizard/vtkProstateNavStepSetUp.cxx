@@ -52,6 +52,7 @@ vtkProstateNavStepSetUp::vtkProstateNavStepSetUp()
   this->ConnectorFrame                  = NULL;
   this->RobotConnectorSelector          = NULL;
   this->ScannerConnectorSelector        = NULL;
+  this->LogFileButton                   = NULL;
 
 }
 
@@ -82,7 +83,13 @@ vtkProstateNavStepSetUp::~vtkProstateNavStepSetUp()
     this->ScannerConnectorSelector->Delete();
     this->ScannerConnectorSelector = NULL;
     }
-
+  if (this->LogFileButton)
+    {
+    this->LogFileButton->GetWidget()->GetLoadSaveDialog()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    this->LogFileButton->SetParent(NULL);
+    this->LogFileButton->Delete();
+    this->LogFileButton = NULL;
+    }
 
 }
 
@@ -161,6 +168,22 @@ void vtkProstateNavStepSetUp::ShowUserInterface()
                this->RobotConnectorSelector->GetWidgetName(),
                this->ScannerConnectorSelector->GetWidgetName());
 
+  if (!this->LogFileButton)
+    {
+    this->LogFileButton = vtkKWLoadSaveButtonWithLabel::New();
+    this->LogFileButton->SetLabelText("Log file: ");
+    this->LogFileButton->SetParent(this->ConnectorFrame);
+    this->LogFileButton->Create();
+    //this->LogFileButton->SetWidth(50);
+    this->LogFileButton->GetWidget()->SetText ("Log file path");
+    this->LogFileButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOn();
+    this->LogFileButton->GetWidget()->GetLoadSaveDialog()
+      ->AddObserver( vtkKWFileBrowserDialog::FileNameChangedEvent,
+                     (vtkCommand *)this->GUICallbackCommand );
+    }
+  this->Script("pack %s -side right -fill x -expand y -padx 2 -pady 2", 
+               this->LogFileButton->GetWidgetName());
+  
 }
 
 
@@ -232,7 +255,16 @@ void vtkProstateNavStepSetUp::ProcessGUIEvents( vtkObject *caller,
 
       }
     }
-
+  if (this->LogFileButton->GetWidget()->GetLoadSaveDialog() == vtkKWFileBrowserDialog::SafeDownCast(caller)
+      && (event == vtkKWFileBrowserDialog::FileNameChangedEvent))
+    {
+    const char* filename = this->LogFileButton->GetWidget()->GetLoadSaveDialog()->GetNthFileName(0);
+    std::cerr << "Log file: " << filename << std::endl;
+    if (robotNode)
+      {
+      robotNode->OpenLogFile(filename);
+      }
+    }
 }
 
 vtkMRMLTransPerinealProstateRobotNode* vtkProstateNavStepSetUp::GetRobotNode()

@@ -408,12 +408,12 @@ void vtkMRMLTransPerinealProstateSmartTemplateNode::ProcessMRMLEvents( vtkObject
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
-  if (this->StatusDescriptors.size()<=STATUS_SCANNER)
-  {
-    vtkErrorMacro("StatusDescriptors does not contain scanner and robot status");
-  }
-  else
-  {
+  //if (this->StatusDescriptors.size()<=STATUS_SCANNER)
+  //{
+  //  vtkErrorMacro("StatusDescriptors does not contain scanner and robot status");
+  //}
+  //else
+    {
     if (this->GetScannerConnectorNode() && this->GetScannerConnectorNode() == vtkMRMLIGTLConnectorNode::SafeDownCast(caller))
       {
       switch (event)
@@ -422,12 +422,67 @@ void vtkMRMLTransPerinealProstateSmartTemplateNode::ProcessMRMLEvents( vtkObject
           this->StatusDescriptors[STATUS_SCANNER].indicator=StatusOk;
           this->StatusDescriptors[STATUS_SCANNER].text=STATUS_SCANNER_ON;
           this->InvokeEvent(vtkMRMLRobotNode::ChangeStatusEvent);
+          if (this->GetScannerConnectorNode()->GetType() == vtkMRMLIGTLConnectorNode::TYPE_SERVER)
+            {
+            this->WriteLog("Connected to Scanner: Type=Server, Port=%d", this->GetScannerConnectorNode()->GetServerPort());
+            }
+          else if (this->GetScannerConnectorNode()->GetType() == vtkMRMLIGTLConnectorNode::TYPE_CLIENT)
+            {
+            this->WriteLog("Connected to Scanner: Type=Client, Destination=%s:%d",
+                           this->GetScannerConnectorNode()->GetServerHostname(),
+                           this->GetScannerConnectorNode()->GetServerPort());
+            }
           break;
         case vtkMRMLIGTLConnectorNode::DisconnectedEvent:
           this->StatusDescriptors[STATUS_SCANNER].indicator=StatusOff;
           this->StatusDescriptors[STATUS_SCANNER].text=STATUS_SCANNER_OFF;
           this->InvokeEvent(vtkMRMLRobotNode::ChangeStatusEvent);
+          this->WriteLog("Disconnected from Scanner.");
           break;
+        default:
+          break;
+        }
+      }
+    else if (this->GetRobotConnectorNode() && this->GetRobotConnectorNode() == vtkMRMLIGTLConnectorNode::SafeDownCast(caller))
+      {
+      switch (event)
+        {
+        case vtkMRMLIGTLConnectorNode::ConnectedEvent:
+          //this->StatusDescriptors[STATUS_SCANNER].indicator=StatusOk;
+          //this->StatusDescriptors[STATUS_SCANNER].text=STATUS_SCANNER_ON;
+          //this->InvokeEvent(vtkMRMLRobotNode::ChangeStatusEvent);
+          if (this->GetRobotConnectorNode()->GetType() == vtkMRMLIGTLConnectorNode::TYPE_SERVER)
+            {
+            this->WriteLog("Connected to SmartTemplate: Type=Server, Port=%d", this->GetRobotConnectorNode()->GetServerPort());
+            }
+          else if (this->GetRobotConnectorNode()->GetType() == vtkMRMLIGTLConnectorNode::TYPE_CLIENT)
+            {
+            this->WriteLog("Connected to SmartTemplate: Type=Client, Destination=%s:%d",
+                           this->GetRobotConnectorNode()->GetServerHostname(),
+                           this->GetRobotConnectorNode()->GetServerPort());
+            }
+          break;
+        case vtkMRMLIGTLConnectorNode::DisconnectedEvent:
+          //this->StatusDescriptors[STATUS_SCANNER].indicator=StatusOff;
+          //this->StatusDescriptors[STATUS_SCANNER].text=STATUS_SCANNER_OFF;
+          //this->InvokeEvent(vtkMRMLRobotNode::ChangeStatusEvent);
+          this->WriteLog("Disconnected from SmartTemplate.");
+          break;
+        default:
+          break;
+        }
+      }
+
+    else if (this->GetZFrameTransformNode() == vtkMRMLLinearTransformNode::SafeDownCast(caller) &&
+             event == vtkMRMLLinearTransformNode::TransformModifiedEvent)
+      {
+      this->WriteLog("Sent Z-frame:");
+      vtkMatrix4x4* transform = this->GetZFrameTransformNode()->GetMatrixTransformToParent();
+      for (int r = 0; r < 4; r ++)
+        {
+        this->WriteLog("    %f, %f, %f, %f",
+                       transform->GetElement(r, 0), transform->GetElement(r, 1),
+                       transform->GetElement(r, 2), transform->GetElement(r, 3));
         }
       }
   }

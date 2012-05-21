@@ -24,6 +24,9 @@
 
 #include "vtkMRMLLinearTransformNode.h"
 
+#include <iostream>
+#include <fstream>
+
 class vtkMRMLModelNode;
 class vtkMRMLScalarVolumeNode;
 class vtkSlicerApplication;
@@ -179,6 +182,16 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLTransformableNode
   int GetStatusDescriptor(unsigned int index, std::string &text, STATUS_ID &indicator);
   //ETX
 
+  // Description:
+  // Set log file name. If NULL is specified, log function is disabled.
+  int OpenLogFile(const char* filename);
+
+  // Description:
+  // Write str into logfile with time stamp.
+  //BTX
+  int WriteLog(const char* format, ...);
+  //ETX
+
  protected:
   //----------------------------------------------------------------
   // Constructor and destructor
@@ -196,7 +209,11 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLTransformableNode
   //BTX
   std::vector<StatusDescriptor> StatusDescriptors;
   std::string ModuleShareDirectory; // needed for model files, etc.
+  std::ofstream FileStream;
   //ETX
+
+  
+
 
  protected:
   //
