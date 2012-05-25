@@ -80,6 +80,10 @@ typedef struct {
                   // return  0 if pos is in the range,
                   //        -1 if pos is less than the minimum, 
                   //        +1 if pos is grater than the minimum, 
+  int       fReached;        // Reach at the target
+  int       fLimiter[NUM_ENCODERS];  // Limiter present flag
+  
+  
 
 } MrsvrStatusInfo;
 
@@ -135,6 +139,11 @@ class MrsvrStatusReader : public MrsvrStatus {
   inline float getTipPosition(int i) { return statusInfo->tipPosition[i]; };
 
   inline int   getOutOfRange(int i)  { return statusInfo->fOutOfRange[i]; };
+
+  inline int   getReached()          { return statusInfo->fReached; };
+
+  inline int   getLimiter(int i)     { return statusInfo->fLimiter[i]; };
+
 
   inline int   getProgress()         { return statusInfo->progress;    };
 
