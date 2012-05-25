@@ -82,8 +82,7 @@ typedef struct {
                   //        +1 if pos is grater than the minimum, 
   int       fReached;        // Reach at the target
   int       fLimiter[NUM_ENCODERS];  // Limiter present flag
-  
-  
+  int       fCalibration;    // Calibration status flag; (1: done)
 
 } MrsvrStatusInfo;
 
@@ -143,6 +142,8 @@ class MrsvrStatusReader : public MrsvrStatus {
   inline int   getReached()          { return statusInfo->fReached; };
 
   inline int   getLimiter(int i)     { return statusInfo->fLimiter[i]; };
+
+  inline int   getCalibration()      { return statusInfo->fCalibration; };
 
 
   inline int   getProgress()         { return statusInfo->progress;    };
@@ -208,6 +209,13 @@ class MrsvrStatusWriter : public MrsvrStatusReader {
   inline void setOutOfRange(int i, int f) {
     statusInfo->fOutOfRange[i] = f;
   };
+
+  inline void  setReached(int v)          { statusInfo->fReached = v; };
+
+  inline void  setLimiter(int i, int v)   { statusInfo->fLimiter[i] = v; };
+
+  inline void  setCalibration(int v)      { statusInfo->fCalibration = v; };
+
 
   void         setInfoText(char* str);
   inline void  setInfoTextIdx(int n)  { statusInfo->infoTextIdx = n; };
