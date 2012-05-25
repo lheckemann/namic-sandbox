@@ -96,6 +96,7 @@
 #define INFCNV_MODE_X        0.02
 #define INFCNV_TARGET_X      0.16
 #define INFCNV_WARNING_X     0.18
+#define INFCNV_REGISTTIME_X  0.70
 //#define INFCNV_TIME_X        0.750
 #define INFCNV_TIME_X        0.875
 //#define INFCNV_RTIME_X       0.875
@@ -114,18 +115,22 @@
 #define INFCNV_WARN_NOCOMMUNICATION_Y  INFCNV_VALUE2_Y
 #define INFCNV_WARN_REACHED_X          0.50
 #define INFCNV_WARN_REACHED_Y          INFCNV_VALUE1_Y
+#define INFCNV_WARN_NOCALIBRATION_X    0.50
+#define INFCNV_WARN_NOCALIBRATION_Y    INFCNV_VALUE2_Y
 
 #define AXIALCNV_W           280
 #define AXIALCNV_H           280
 #define NEEDLE_CANVAS_W       580
 #define NEEDLE_CANVAS_H       240
 
+// Warning IDs
 #define WARNID_LOCK            0
 #define WARNID_OUTOFRANGE      1
 #define WARNID_NOLIMITER       2
 #define WARNID_NOCOMMUNICATION 3
 #define WARNID_REACHED         4
-#define NUM_WARNID             5
+#define WARNID_NOCALIBRATION   5
+#define NUM_WARNID             6
 
 // Parameters for axial canvas
 #define AXIALCNV_MARGIN           0.05
@@ -318,6 +323,8 @@ protected:
 //----------------------- Private variables ------------------------//
 private:
   char               infoTime[16];
+  char               infoRegistTime[16];
+  bool               infoRegistTimeWarning; // flag to change color of registration time
   char               infoRTime[16];
   int                infoCurrentMode;
   //int                infoCurrentWarn;
@@ -376,6 +383,7 @@ private:
   int                fUpdateInfoTarget;
   int                fUpdateInfoTime;  
   int                fUpdateInfoRTime;  
+  int                fUpdateInfoRegistTime;
 
   int                infoCnvH;
   int                infoCnvW;
@@ -386,6 +394,7 @@ private:
   int                infoCnvModeX;
   int                infoCnvWarningX;
   int                infoCnvTargetX;
+  int                infoCnvRegistTimeX;
   int                infoCnvTimeX;
   int                infoCnvRTimeX;
   int                infoWarnTextX[NUM_WARNID];

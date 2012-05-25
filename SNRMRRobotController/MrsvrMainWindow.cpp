@@ -148,6 +148,7 @@ const char* MrsvrMainWindow::infoWarnText[] = {
   "NO LIMITER",
   "NO COMM.",
   "REACHED",
+  "NO CALIBR."
 };
 
 const float MrsvrMainWindow::positionOffsets[] = {
@@ -252,6 +253,9 @@ MrsvrMainWindow::MrsvrMainWindow(FXApp* app, int w, int h)
   fUpdateInfoTime   = 0;  
   fUpdateInfoRTime  = 0;  
   fUpdateInfoItem   = 1;
+  fUpdateInfoRegistTime = 1;
+  sprintf(infoRegistTime, "NO REGIST.");
+  infoRegistTimeWarning = true;
 
   infoOffs = new FXImage(this->getApp(), NULL, 
                          IMAGE_SHMI|IMAGE_SHMP|IMAGE_KEEP, INFCNV_W, INFCNV_H);
@@ -1689,6 +1693,9 @@ void MrsvrMainWindow::updateExternalCommands()
         }
       }
       transform->setCalibrationMatrix(matrix);
+      strcpy(infoRegistTime, infoTime);
+      fUpdateInfoRegistTime = 1;
+      infoRegistTimeWarning = false;
     }
   }
 }
@@ -1766,8 +1773,6 @@ void MrsvrMainWindow::create()
   needleCanvas->create();
   needleOffs->create();
 
-
-
   infoCnvH        = infoCanvas->getHeight();
   infoCnvW        = infoCanvas->getWidth();
   float w         = (float)infoCnvW;
@@ -1780,7 +1785,9 @@ void MrsvrMainWindow::create()
   infoCnvModeX    = (int)(w*INFCNV_MODE_X);
   infoCnvWarningX = (int)(w*INFCNV_WARNING_X);
   infoCnvTargetX  = (int)(w*INFCNV_TARGET_X);
+  infoCnvRegistTimeX = (int)(w*INFCNV_REGISTTIME_X);
   infoCnvTimeX    = (int)(w*INFCNV_TIME_X);
+
   
   infoWarnTextX[WARNID_LOCK]  = (int)(w*INFCNV_WARN_LOCK_X);
   infoWarnTextY[WARNID_LOCK]  = (int)(h*INFCNV_WARN_LOCK_Y);
@@ -1792,6 +1799,8 @@ void MrsvrMainWindow::create()
   infoWarnTextY[WARNID_NOCOMMUNICATION]  = (int)(h*INFCNV_WARN_NOCOMMUNICATION_Y);
   infoWarnTextX[WARNID_REACHED]  = (int)(w*INFCNV_WARN_REACHED_X);
   infoWarnTextY[WARNID_REACHED]  = (int)(h*INFCNV_WARN_REACHED_Y);
+  infoWarnTextX[WARNID_NOCALIBRATION]  = (int)(w*INFCNV_WARN_NOCALIBRATION_X);
+  infoWarnTextY[WARNID_NOCALIBRATION]  = (int)(h*INFCNV_WARN_NOCALIBRATION_Y);
 
   infoCanvas->update();
 
@@ -1821,6 +1830,8 @@ long MrsvrMainWindow::onCanvasRepaint(FXObject*, FXSelector,void* ptr)
                   "WARNING:", 8);
       //dc.drawText(infoCnvTargetX, infoCnvItemY, 
       //            "CURRENT / TARGET POSITION:", 26);
+      dc.drawText(infoCnvRegistTimeX, infoCnvItemY, 
+                  "REGIST. TIME:", 13);
       dc.drawText(infoCnvTimeX, infoCnvItemY, 
                   "TIME:", 5);
       //      dc.drawText(infoCnvRTimeX, infoCnvItemY, 
@@ -1882,7 +1893,7 @@ long MrsvrMainWindow::onCanvasRepaint(FXObject*, FXSelector,void* ptr)
       fUpdateInfoWarn = 0;
       dc.setForeground(FXRGB(0,0,0));
       dc.fillRectangle(infoCnvWarningX, infoCnvValueY-INFCNV_FONT_H,
-                       infoCnvTimeX-infoCnvWarningX,INFCNV_FONT_H);
+                       infoCnvRegistTimeX-infoCnvWarningX,INFCNV_FONT_H);
       for (int i = 0; i < NUM_WARNID; i ++) {
         if (infoWarning[i]) {
           dc.setForeground(FXRGB(255,150,0));
@@ -1900,6 +1911,24 @@ long MrsvrMainWindow::onCanvasRepaint(FXObject*, FXSelector,void* ptr)
                     strlen(infoWarnText[infoCurrentWarn]));
       }
       */
+    }
+
+    dc.setFont(infoFont2);
+
+    if (fUpdateInfoRegistTime) {
+      fUpdateInfoRegistTime = 0;
+      dc.setForeground(FXRGB(0,0,0));
+      dc.fillRectangle(infoCnvRegistTimeX, infoCnvValueY-INFCNV_FONT_H,
+                       infoCnvTimeX-infoCnvRegistTimeX,INFCNV_FONT_H);
+      if (infoRegistTimeWarning) {
+        dc.setFont(infoFont1);
+        dc.setForeground(FXRGB(255,150,0));
+      } else {
+        dc.setFont(infoFont2);
+        dc.setForeground(FXRGB(100,255,100));
+      }
+      dc.drawText(infoCnvRegistTimeX, infoCnvValueY, 
+                  infoRegistTime, strlen(infoRegistTime));
     }
 
     dc.setFont(infoFont2);
@@ -2200,8 +2229,35 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
     fUpdateInfoWarn = 1;
     prevInfoWarning[WARNID_OUTOFRANGE] = infoWarning[WARNID_OUTOFRANGE];
     if (infoWarning[WARNID_OUTOFRANGE]) fprintf(stderr, "\a");
- }
+  }
   
+  // Check limiter presense
+  infoWarning[WARNID_NOLIMITER] = false;
+  for (int i = 0; i < NUM_ENCODERS; i ++) {
+    if (robotStatus->getLimiter(i) == 0) {
+      infoWarning[WARNID_NOLIMITER] = true;
+    }
+  }
+  if (prevInfoWarning[WARNID_NOLIMITER] != infoWarning[WARNID_NOLIMITER]) {
+    fUpdateInfoWarn = 1;
+    prevInfoWarning[WARNID_NOLIMITER] = infoWarning[WARNID_NOLIMITER];
+    if (infoWarning[WARNID_NOLIMITER]) fprintf(stderr, "\a");
+  }
+
+  // Check Reach status
+  infoWarning[WARNID_REACHED] = robotStatus->getReached();
+  if (prevInfoWarning[WARNID_REACHED] != infoWarning[WARNID_REACHED]) {
+    fUpdateInfoWarn = 1;
+    prevInfoWarning[WARNID_REACHED] = infoWarning[WARNID_REACHED];
+  }
+
+  // Check calibration status
+  infoWarning[WARNID_NOCALIBRATION] = !robotStatus->getCalibration();
+  if (prevInfoWarning[WARNID_NOCALIBRATION] != infoWarning[WARNID_NOCALIBRATION]) {
+    fUpdateInfoWarn = 1;
+    prevInfoWarning[WARNID_NOCALIBRATION] = infoWarning[WARNID_NOCALIBRATION];
+  }
+
   static float ptp[3] = {5.0, 5.0, 5.0};   // previous target position
   static float pcp[3] = {5.0, 5.0, 5.0};   // previous current position
   float  tp[3];

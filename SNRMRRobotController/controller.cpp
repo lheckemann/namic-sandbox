@@ -367,6 +367,7 @@ int initCommandInterface()
   // register the limit of motion to the shared memory
   status->setMode(MrsvrStatus::START_UP);
   status->setLimitPos((float*)dev->getLimitMins(), (float*)dev->getLimitMaxs());
+  status->setReached(0);
   procHold(1);
 
   return 1;
@@ -395,6 +396,7 @@ inline int procStartUp(int init)
   if (init) {
   }
   status->setMode(MrsvrStatus::CALIBRATION);
+  status->setCalibration(0);
   return 1;
 }
 
@@ -409,8 +411,9 @@ inline int procCalibration(int init)
   static int counterLimit;
 
   counterLimit = (int) (1.0 / intervalf);
-  
+
   // limit sensor position (1: lower limit; -1 : upper limit)
+  // TODO: move this to device class
   static int dir[]={-1,1,0};
 
   int f = 0;
@@ -549,6 +552,7 @@ inline int procCalibration(int init)
       if (end) { // move to the next step
         step = CALIBRATION_COMPLETE;
         CONSOLE_PRINT("CLIB: CALIBRATION_COMPLETE\n");
+        status->setCalibration(1);
       }
     } else if (step == CALIBRATION_COMPLETE) {
       for (int i = 0; i < NUM_ACTUATORS; i ++) {
@@ -609,7 +613,10 @@ inline int procActive(int init)
 
   //getActuatorTarget(sprb, spim);
   if (trapCtrl(spim, dev->getVmax(0)) <= 0) {
+    status->setReached(1);
     //status->setMode(MrsvrStatus::MANUAL);
+  } else {
+    status->setReached(0);
   }
 
   return 1;
@@ -782,6 +789,10 @@ int trapCtrl2(MrsvrVector setPoint, float vmax)
 // Read encoders and calcurate velocities 
 inline void getPositions()
 {
+  // limit sensor position (1: lower limit; -1 : upper limit)
+  // TODO: move this to device class
+  static int dir[]={-1,1,0};
+
   pPosHist = (pPosHist+1) % NUM_POSITION_HISTORY;
   dev->getPositions(curPos);
   for (int i = 0; i < NUM_ENCODERS; i ++) {
@@ -797,6 +808,14 @@ inline void getPositions()
       printDate();
       CONSOLE_PRINT("Encoder # %d is out of range: p = %f!\n", i, curPos[i]);
     }
+
+    if (dev->getLimitSensorStatus(i) == - dir [i]) {
+      // No lmiter found
+      status->setLimiter(i, 0);
+    } else {
+      status->setLimiter(i, 1);
+    }
+    
   }
   MrsvrVector cp;
   getTipPosition(cp);
