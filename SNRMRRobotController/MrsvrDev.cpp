@@ -198,28 +198,10 @@ MrsvrDev::MrsvrDev()
     dmarg[i] = 0.5 * (vmin[i]*vmin[i] / astd[i]);
   }
 
-  encLimitMax[0] = MAX_POSITION_X;
-  encLimitMax[1] = MAX_POSITION_Y;
-  encLimitMax[2] = MAX_POSITION_Z;
+  setEncLimit(0, MIN_POSITION_X, MAX_POSITION_X);
+  setEncLimit(1, MIN_POSITION_Y, MAX_POSITION_Y);
+  setEncLimit(2, MIN_POSITION_Z, MAX_POSITION_Z);
 
-  encLimitMin[0] = MIN_POSITION_X;
-  encLimitMin[1] = MIN_POSITION_Y;
-  encLimitMin[2] = MIN_POSITION_Z;
-
-  encLimitMinCnt[0] = INIT_CNT_LOWER_X;
-  encLimitMinCnt[1] = INIT_CNT_LOWER_Y;
-  encLimitMinCnt[2] = INIT_CNT_LOWER_Z;
-
-  encLimitMaxCnt[0] = INIT_CNT_UPPER_X;
-  encLimitMaxCnt[1] = INIT_CNT_UPPER_Y;
-  encLimitMaxCnt[2] = INIT_CNT_UPPER_Z;
-
-  //setEncLimitMin(0, MIN_POSITION_X);
-  //setEncLimitMax(0, MAX_POSITION_X);
-  //setEncLimitMin(1, MIN_POSITION_Y);
-  //setEncLimitMax(1, MAX_POSITION_Y);
-  //setEncLimitMin(2, MIN_POSITION_Z);
-  //setEncLimitMax(2, MAX_POSITION_Z);
 }
 
 
@@ -446,30 +428,17 @@ int MrsvrDev::setPosition(int n, float v)
 }
 
 
-int MrsvrDev::setEncLimitMin(unsigned int enc, float val)
+int MrsvrDev::setEncLimit(unsigned int enc, float min, float max)
 {
-  printf("MrsvrDev::setEncLimitMin(%d, %f)\n", enc, val);
   if (enc < NUM_ENCODERS) {
-    encLimitMin[enc] = val;
-    encLimitMinCnt[enc] = (INIT_CNT - (int)(((encLimitMax[enc] - encLimitMin[enc])/2.0)/encRate[enc]));
-    //encLimitMinCnt[enc] = INIT_CNT + (int)(val / encRate[enc]);
-    printf("  encLimitMin[] = %f, %f \n", encLimitMin[enc], val);
-    printf("  encLimitMinCnt[] = %d\n", encLimitMinCnt[enc]);
-    return 1;
-  }
-  return 0;
-}
-
-
-int MrsvrDev::setEncLimitMax(unsigned int enc, float val)
-{
-  printf("MrsvrDev::setEncLimitMax(%d, %f)\n", enc, val);
-  if (enc < NUM_ENCODERS) {
-    encLimitMax[enc] = val;
-    encLimitMaxCnt[enc] = ((int)(((encLimitMax[enc] - encLimitMin[enc])/2.0)/encRate[enc]) + INIT_CNT);
-    //encLimitMaxCnt[enc] = INIT_CNT + (int)(val / encRate[enc]);
-    printf("  encLimitMax[] = %f /  %f\n", encLimitMax[enc], val);
-    printf("  encLimitMaxCnt[] = %d\n", encLimitMaxCnt[enc]);
+    encLimitMax[enc] = (max - min)/2.0;
+    encLimitMin[enc] = -(max - min)/2.0;
+    encLimitMinCnt[enc] = (INIT_CNT + (int)((encLimitMin[enc]/encRate[enc])));
+    encLimitMaxCnt[enc] = (INIT_CNT + (int)((encLimitMax[enc]/encRate[enc])));
+    //printf("  encLimitMin[] = %f \n", encLimitMin[enc]);
+    //printf("  encLimitMinCnt[] = %d\n", encLimitMinCnt[enc]);
+    //printf("  encLimitMax[] = %f \n", encLimitMax[enc]);
+    //printf("  encLimitMaxCnt[] = %d\n", encLimitMaxCnt[enc]);
     return 1;
   }
   return 0;

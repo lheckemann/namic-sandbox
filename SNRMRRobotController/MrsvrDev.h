@@ -431,8 +431,12 @@ class MrsvrDev {
   float getPosition(int);
   int   getPositions(float*);
   int   setPosition(int, float);
-  int   setEncLimitMin(unsigned int enc, float val);
-  int   setEncLimitMax(unsigned int enc, float val);
+
+  // Description:
+  // Set encoder range. In most case, [min, max] is [0, xx].
+  // setEncLimit() function assumes that the center of range [min, max]
+  // is zero to calculate encLimitMin[] and encLimitMax[].
+  int   setEncLimit(unsigned int enc, float min, float max);
 
   inline float getEncLimitMin(unsigned int enc) {
     if (enc < NUM_ENCODERS) {
@@ -489,8 +493,6 @@ class MrsvrDev {
   //        +1 if pos is grater than the minimum, 
   inline int isOutOfRange(int i) {  
     float p = getPosition(i); 
-    printf("ch = %d; p = %f; min = %f; max = %f\n",
-           i, p, encLimitMax[i], encLimitMin[i]);
     return ((encLimitMax[i] < p)? 1: ((encLimitMin[i] > p)? -1 : 0));
   };
   inline int isOutOfRange(int i, float p) {

@@ -779,76 +779,6 @@ int trapCtrl2(MrsvrVector setPoint, float vmax)
 }
 
 
-//// control sequence in REMOTE mode.
-//#define REMOTE_CTRL_KP 0.09
-//#define REMOTE_CTRL_KD 1.5
-//#define FSIGN(v)    ((v < 0.0) ? -1.0 : 1.0)
-//int remoteCtrl(MrsvrVector setPoint, float vmax)
-//{
-//  static float asp[NUM_ACTUATORS];  // actuator set points
-//  float pasp[NUM_ACTUATORS];        // previous actuator set points
-//  int reach = 0;
-//  int i;
-//
-//  // save previous setpoint;
-//  for (i = 0; i < NUM_ACTUATORS; i ++) {
-//    pasp[i] = asp[i];
-//  }
-//  
-//  getActuatorTarget(asp, setPoint);
-//
-//
-//  //cout << "======================" << endl;
-//  for (i = 0; i < NUM_ACTUATORS; i ++) {
-//    //int limit = status->isOutOfRangePos(i);
-//    int limit = fOutOfRange[i];
-//
-//    float cv   = dev->getSetVelocity(i);  // current set velocity
-//    float nv   = REMOTE_CTRL_KD* (asp[i] - pasp[i]) / intervalf + 
-//      REMOTE_CTRL_KP * (asp[i] - curPos[i]) / intervalf;
-//    float a    = (nv - cv) / intervalf;
-//    float sa   = FSIGN(a);
-//    float snv  = FSIGN(nv);
-//    int zflag  = 0;
-//    //cout << "act# " << i << ", cv=" << cv << ", nv=" << nv << ", a=" << a << endl;
-//    if (sa*a > dev->getAmax(i)) { // if exceeds maximum accel.
-//      //cout << "*************" << endl;
-//      if (nv*cv >= 0.0) {
-//        nv = cv + dev->getAmax(i) * sa * intervalf;
-//      } else {
-//        if (fabs(cv) <= dev->getVmin(i)) {
-//          nv = 0.0;
-//          zflag = 1;
-//        } else {
-//          nv = cv + dev->getAmax(i) * sa * intervalf;
-//        }
-//      }
-//      snv = FSIGN(nv);
-//    }
-//    if (snv*nv > vmax) {   // if set velocity exceeds maximum speed.
-//      nv = snv*vmax;
-//    } else if (snv*nv < dev->getVmin(i) && !zflag) {
-//      nv = snv*dev->getVmin(i);
-//    }
-//    if (fabs(asp[i] - curPos[i]) < TH_REACH_ERROR) {
-//      nv = 0.0;
-//      reach  ++;
-//    }
-//    //cout << "act# " << i << ", cv=" << cv << ", nv=" << nv << endl;
-//    if (limit == 0 || nv*limit < 0) {  
-//      // note: nv*limit<0 means that the signs of 'nv' and 'limit' are different.
-//      float sv = dev->setVelocity(i, nv);
-//      status->setVoltage(i, sv);
-//    } else { // in the case of one of the actuators reaches stroke limit
-//      float sv = dev->setVelocity(i, 0.0);
-//      status->setVoltage(i, sv);
-//    }
-//  }
-//
-//  return (NUM_ACTUATORS - reach);
-//}
-
-
 // Read encoders and calcurate velocities 
 inline void getPositions()
 {
@@ -995,13 +925,11 @@ inline void printModeTransition(int newMode)
 int updateEncoderCalibration()
 {
   for (int i = 0; i < NUM_ENCODERS; i ++) {      
-    if (command->getEncLimitMin(i) != dev->getEncLimitMin(i)) {
-      //CONSOLE_PRINT("Changing encoder #%d lower limit ...\n");
-      dev->setEncLimitMin(i, command->getEncLimitMin(i));
-    }
-    if (command->getEncLimitMax(i) != dev->getEncLimitMax(i)) {
-      //CONSOLE_PRINT("Changing encoder #%d upper limit ...\n");
-      dev->setEncLimitMax(i, command->getEncLimitMax(i));
+    if ((command->getEncLimitMin(i) != dev->getEncLimitMin(i)) ||
+        (command->getEncLimitMax(i) != dev->getEncLimitMax(i)))
+      {
+      CONSOLE_PRINT("Changing encoder #%d limit ...\n");
+      dev->setEncLimit(i, command->getEncLimitMin(i), command->getEncLimitMax(i));
     }
   }
 }
