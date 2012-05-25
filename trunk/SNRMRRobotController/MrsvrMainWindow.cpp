@@ -145,7 +145,9 @@ const char* MrsvrMainWindow::actuatorStatusText[] = {
 const char* MrsvrMainWindow::infoWarnText[] = {
   "LOCKED",
   "OUT OF RANGE",
-  "NO LOCATOR"
+  "NO LIMITER",
+  "NO COMM.",
+  "REACHED",
 };
 
 const float MrsvrMainWindow::positionOffsets[] = {
@@ -243,7 +245,7 @@ MrsvrMainWindow::MrsvrMainWindow(FXApp* app, int w, int h)
     infoWarning[i] = false;
     prevInfoWarning[i] = false;
   }
-
+  
   fUpdateInfoMode   = 0;
   fUpdateInfoWarn   = 1;
   fUpdateInfoTarget = 0;
@@ -744,7 +746,7 @@ int MrsvrMainWindow::buildHardwareMonitor(FXComposite* comp)
 
   //// Manual Control
   FXGroupBox* gpManualControl  = 
-    new FXGroupBox(frMonitorLo, "Manual Control",
+    new FXGroupBox(frMonitorLo, "Targeting",
                    FRAME_RIDGE|LAYOUT_FILL_X|
                    LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_SIDE_TOP);
 
@@ -1293,6 +1295,13 @@ int MrsvrMainWindow::updateTcpInfoTbl()
   if (extMsgSvr && 
       extMsgSvr->getSvrStatus() != prevSvrStatus) {
     prevSvrStatus = extMsgSvr->getSvrStatus();
+    if (extMsgSvr->getSvrStatus() == MrsvrMessageServer::SVR_CONNECTED) {
+      infoWarning[WARNID_NOCOMMUNICATION] = false;
+    } else {
+      infoWarning[WARNID_NOCOMMUNICATION] = true;
+    }
+    fUpdateInfoWarn = 1;
+
     //valRemotePortNumber.format("%d", extMsgSvr->getRemotePort());
     
   }
@@ -1777,10 +1786,12 @@ void MrsvrMainWindow::create()
   infoWarnTextY[WARNID_LOCK]  = (int)(h*INFCNV_WARN_LOCK_Y);
   infoWarnTextX[WARNID_OUTOFRANGE]  = (int)(w*INFCNV_WARN_OUTOFRANGE_X);
   infoWarnTextY[WARNID_OUTOFRANGE]  = (int)(h*INFCNV_WARN_OUTOFRANGE_Y);
-  //infoWarnTextX[WARNID_NOLOCSVR]  = (int)(w*INFCNV_WARN_NOLOCSVR_X);
-  //infoWarnTextY[WARNID_NOLOCSVR]  = (int)(h*INFCNV_WARN_NOLOCSVR_Y);
-
-  //  infoCnvRTimeX   = (int)(w*INFCNV_RTIME_X);
+  infoWarnTextX[WARNID_NOLIMITER]  = (int)(w*INFCNV_WARN_NOLIMITER_X);
+  infoWarnTextY[WARNID_NOLIMITER]  = (int)(h*INFCNV_WARN_NOLIMITER_Y);
+  infoWarnTextX[WARNID_NOCOMMUNICATION]  = (int)(w*INFCNV_WARN_NOCOMMUNICATION_X);
+  infoWarnTextY[WARNID_NOCOMMUNICATION]  = (int)(h*INFCNV_WARN_NOCOMMUNICATION_Y);
+  infoWarnTextX[WARNID_REACHED]  = (int)(w*INFCNV_WARN_REACHED_X);
+  infoWarnTextY[WARNID_REACHED]  = (int)(h*INFCNV_WARN_REACHED_Y);
 
   infoCanvas->update();
 
@@ -1808,8 +1819,8 @@ long MrsvrMainWindow::onCanvasRepaint(FXObject*, FXSelector,void* ptr)
                   "MODE:", 5);
       dc.drawText(infoCnvWarningX, infoCnvItemY, 
                   "WARNING:", 8);
-      dc.drawText(infoCnvTargetX, infoCnvItemY, 
-                  "CURRENT / TARGET POSITION:", 26);
+      //dc.drawText(infoCnvTargetX, infoCnvItemY, 
+      //            "CURRENT / TARGET POSITION:", 26);
       dc.drawText(infoCnvTimeX, infoCnvItemY, 
                   "TIME:", 5);
       //      dc.drawText(infoCnvRTimeX, infoCnvItemY, 
@@ -1828,45 +1839,45 @@ long MrsvrMainWindow::onCanvasRepaint(FXObject*, FXSelector,void* ptr)
                     strlen(infoModeText[infoCurrentMode]));
       }
     }
-    if (fUpdateInfoTarget) {
-      fUpdateInfoTarget = 0;
-      dc.setForeground(FXRGB(0,0,0));
-      dc.fillRectangle(infoCnvTargetX, infoCnvItemY+1,
-                       infoCnvWarningX-infoCnvTargetX,INFCNV_H-infoCnvItemY);
-
-      // current position
-      dc.setForeground(FXRGB(150,150,150));
-      dc.drawText(infoCnvTargetX, infoCnvValue1Y, 
-                  "R:", 2);
-      dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W, 
-                  infoCnvValue1Y, "A:", 2);
-      dc.drawText(infoCnvTargetX+(INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W)*2, 
-                  infoCnvValue1Y, "S:", 2);
-      dc.setForeground(FXRGB(150,150,0));
-      dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W,
-                  infoCnvValue1Y, infoCurrentX, strlen(infoCurrentX));
-      dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W*2+INFCNV_TARGET_VAL_W, 
-                  infoCnvValue1Y, infoCurrentY, strlen(infoCurrentY));
-      dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W*3+INFCNV_TARGET_VAL_W*2, 
-                  infoCnvValue1Y, infoCurrentZ, strlen(infoCurrentZ));
-
-      // target position
-      dc.setForeground(FXRGB(150,150,150));
-      dc.drawText(infoCnvTargetX, infoCnvValue2Y, 
-                  "R:", 2);
-      dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W, 
-                  infoCnvValue2Y, "A:", 2);
-      dc.drawText(infoCnvTargetX+(INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W)*2, 
-                  infoCnvValue2Y, "S:", 2);
-      dc.setForeground(FXRGB(0, 150,150));
-      dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W,
-                  infoCnvValue2Y, infoTargetR, strlen(infoTargetR));
-      dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W*2+INFCNV_TARGET_VAL_W, 
-                  infoCnvValue2Y, infoTargetA, strlen(infoTargetA));
-      dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W*3+INFCNV_TARGET_VAL_W*2, 
-                  infoCnvValue2Y, infoTargetS, strlen(infoTargetS));
-
-    }
+    //if (fUpdateInfoTarget) {
+    //  fUpdateInfoTarget = 0;
+    //  dc.setForeground(FXRGB(0,0,0));
+    //  dc.fillRectangle(infoCnvTargetX, infoCnvItemY+1,
+    //                   infoCnvWarningX-infoCnvTargetX,INFCNV_H-infoCnvItemY);
+    //
+    //  // current position
+    //  dc.setForeground(FXRGB(150,150,150));
+    //  dc.drawText(infoCnvTargetX, infoCnvValue1Y, 
+    //              "R:", 2);
+    //  dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W, 
+    //              infoCnvValue1Y, "A:", 2);
+    //  dc.drawText(infoCnvTargetX+(INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W)*2, 
+    //              infoCnvValue1Y, "S:", 2);
+    //  dc.setForeground(FXRGB(150,150,0));
+    //  dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W,
+    //              infoCnvValue1Y, infoCurrentX, strlen(infoCurrentX));
+    //  dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W*2+INFCNV_TARGET_VAL_W, 
+    //              infoCnvValue1Y, infoCurrentY, strlen(infoCurrentY));
+    //  dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W*3+INFCNV_TARGET_VAL_W*2, 
+    //              infoCnvValue1Y, infoCurrentZ, strlen(infoCurrentZ));
+    //
+    //  // target position
+    //  dc.setForeground(FXRGB(150,150,150));
+    //  dc.drawText(infoCnvTargetX, infoCnvValue2Y, 
+    //              "R:", 2);
+    //  dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W, 
+    //              infoCnvValue2Y, "A:", 2);
+    //  dc.drawText(infoCnvTargetX+(INFCNV_TARGET_DIR_W+INFCNV_TARGET_VAL_W)*2, 
+    //              infoCnvValue2Y, "S:", 2);
+    //  dc.setForeground(FXRGB(0, 150,150));
+    //  dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W,
+    //              infoCnvValue2Y, infoTargetR, strlen(infoTargetR));
+    //  dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W*2+INFCNV_TARGET_VAL_W, 
+    //              infoCnvValue2Y, infoTargetA, strlen(infoTargetA));
+    //  dc.drawText(infoCnvTargetX+INFCNV_TARGET_DIR_W*3+INFCNV_TARGET_VAL_W*2, 
+    //              infoCnvValue2Y, infoTargetS, strlen(infoTargetS));
+    //
+    //}
     if (fUpdateInfoWarn) {
       fUpdateInfoWarn = 0;
       dc.setForeground(FXRGB(0,0,0));
@@ -1993,23 +2004,64 @@ long MrsvrMainWindow::onNeedleCanvasRepaint(FXObject*, FXSelector,void*)
     //draw Text NewTarget
     dc.setForeground(FXRGB(255,255,255));
     dc.setFont(infoFont0);
-    dc.drawText(((float)NEEDLE_CANVAS_W*NEEDLECNV_DEPTH_LABEL_X),
-                ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_LABEL_Y), "NEEDLE INSERNTION DEPTH:", 24);
+    dc.drawText(NEEDLECNV_DEPTH_LABEL_X,
+                NEEDLECNV_DEPTH_LABEL_Y, "NEEDLE INSERNTION DEPTH:", 24);
     
     dc.setForeground(FXRGB(255,255,0));
     dc.setFont(infoFont2);
-    dc.drawText(((float)NEEDLE_CANVAS_W*NEEDLECNV_DEPTH_VALUE_X),
-                ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_VALUE_Y), strNeedleDepth, strlen(strNeedleDepth));
+    dc.drawText(NEEDLECNV_DEPTH_VALUE_X,
+                NEEDLECNV_DEPTH_VALUE_Y, strNeedleDepth, strlen(strNeedleDepth));
     
     dc.setForeground(FXRGB(150,150,150));
     dc.setFont(infoFont1);
-    dc.drawText(((float)NEEDLE_CANVAS_W*NEEDLECNV_DEPTH_UNIT_X),
-                ((float)NEEDLE_CANVAS_H*NEEDLECNV_DEPTH_UNIT_Y), "mm", 2);
+    dc.drawText((NEEDLECNV_DEPTH_UNIT_X),
+                (NEEDLECNV_DEPTH_UNIT_Y), "mm", 2);
+
+    //// Current and Target Positions
+    fUpdateInfoTarget = 0;
+
+    // Target position
+    dc.setForeground(FXRGB(255,255,255));
+    dc.setFont(infoFont0);
+    dc.drawText(NEEDLECNV_TARGET_LABEL_X, NEEDLECNV_TARGET_LABEL_Y,
+                "TARGET POSITION:", 16);
+
+    dc.setForeground(FXRGB(150,150,150));
+    dc.setFont(infoFont2);
+    dc.drawText(NEEDLECNV_TARGET_X, NEEDLECNV_TARGET_Y, "R:", 2);
+    dc.drawText(NEEDLECNV_TARGET_X+NEEDLECNV_TARGET_DIR_W+NEEDLECNV_TARGET_VAL_W, 
+                NEEDLECNV_TARGET_Y, "A:", 2);
+    dc.drawText(NEEDLECNV_TARGET_X+(NEEDLECNV_TARGET_DIR_W+NEEDLECNV_TARGET_VAL_W)*2, 
+                NEEDLECNV_TARGET_Y, "S:", 2);
+    dc.setForeground(FXRGB(150,150,0));
+    dc.drawText(NEEDLECNV_TARGET_X+NEEDLECNV_TARGET_DIR_W,
+                NEEDLECNV_TARGET_Y, infoTargetR, strlen(infoTargetR));
+    dc.drawText(NEEDLECNV_TARGET_X+NEEDLECNV_TARGET_DIR_W*2+NEEDLECNV_TARGET_VAL_W, 
+                NEEDLECNV_TARGET_Y, infoTargetA, strlen(infoTargetA));
+    dc.drawText(NEEDLECNV_TARGET_X+NEEDLECNV_TARGET_DIR_W*3+NEEDLECNV_TARGET_VAL_W*2, 
+                NEEDLECNV_TARGET_Y, infoTargetS, strlen(infoTargetS));
     
-    ////draw Text OldTarget
-    //dc.setForeground(FXRGB(0,0,255));
-    //dc.setFont(axialFont);
-    //dc.drawText(valCurrentPosition[0]-25, 200-valCurrentPosition[1]+15,"Target", 6);
+    // Current position
+    dc.setForeground(FXRGB(255,255,255));
+    dc.setFont(infoFont0);
+    dc.drawText(NEEDLECNV_CURRENT_LABEL_X, NEEDLECNV_CURRENT_LABEL_Y,
+                "CURRENT POSITION:", 17);
+
+    dc.setForeground(FXRGB(150,150,150));
+    dc.setFont(infoFont2);
+    dc.drawText(NEEDLECNV_CURRENT_X, NEEDLECNV_CURRENT_Y, 
+                "R:", 2);
+    dc.drawText(NEEDLECNV_CURRENT_X+NEEDLECNV_CURRENT_DIR_W+NEEDLECNV_CURRENT_VAL_W, 
+                NEEDLECNV_CURRENT_Y, "A:", 2);
+    dc.drawText(NEEDLECNV_CURRENT_X+(NEEDLECNV_CURRENT_DIR_W+NEEDLECNV_CURRENT_VAL_W)*2, 
+                NEEDLECNV_CURRENT_Y, "S:", 2);
+    dc.setForeground(FXRGB(0, 150,150));
+    dc.drawText(NEEDLECNV_CURRENT_X+NEEDLECNV_CURRENT_DIR_W,
+                NEEDLECNV_CURRENT_Y, infoCurrentX, strlen(infoCurrentX));
+    dc.drawText(NEEDLECNV_CURRENT_X+NEEDLECNV_CURRENT_DIR_W*2+NEEDLECNV_CURRENT_VAL_W, 
+                NEEDLECNV_CURRENT_Y, infoCurrentY, strlen(infoCurrentY));
+    dc.drawText(NEEDLECNV_CURRENT_X+NEEDLECNV_CURRENT_DIR_W*3+NEEDLECNV_CURRENT_VAL_W*2, 
+                NEEDLECNV_CURRENT_Y, infoCurrentZ, strlen(infoCurrentZ));
     
     // Now repaint the screen
     FXDCWindow sdc(needleCanvas);
@@ -2381,7 +2433,7 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
   }
 
   // update axial and needle canvas
-  if (fAxialCanvasUpdate) {
+  if (fAxialCanvasUpdate || fUpdateInfoTarget) {
     onAxialCanvasRepaint(obj, sel, ptr);
     onNeedleCanvasRepaint(obj, sel, ptr);
   }
