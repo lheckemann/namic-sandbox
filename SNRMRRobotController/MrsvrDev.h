@@ -38,6 +38,9 @@
  #include "fbipenc.h"
 #endif
 
+#include <stdio.h>
+
+
 #ifndef PI
 #define PI 3.1415926535
 #endif
@@ -428,7 +431,6 @@ class MrsvrDev {
   float getPosition(int);
   int   getPositions(float*);
   int   setPosition(int, float);
-
   int   setEncLimitMin(unsigned int enc, float val);
   int   setEncLimitMax(unsigned int enc, float val);
 
@@ -487,6 +489,8 @@ class MrsvrDev {
   //        +1 if pos is grater than the minimum, 
   inline int isOutOfRange(int i) {  
     float p = getPosition(i); 
+    printf("ch = %d; p = %f; min = %f; max = %f\n",
+           i, p, encLimitMax[i], encLimitMin[i]);
     return ((encLimitMax[i] < p)? 1: ((encLimitMin[i] > p)? -1 : 0));
   };
   inline int isOutOfRange(int i, float p) {
