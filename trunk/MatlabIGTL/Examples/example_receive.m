@@ -3,7 +3,7 @@
 %
 
 %%% read image data
-sd = igtlopen('localhost', 18945);
+sd = igtlopen('localhost', 18944);
 
 if sd == -1
   error('Could not connect to the server.');
