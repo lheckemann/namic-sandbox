@@ -83,6 +83,7 @@ typedef struct {
   int       fReached;        // Reach at the target
   int       fLimiter[NUM_ENCODERS];  // Limiter present flag
   int       fCalibration;    // Calibration status flag; (1: done)
+  int       fFootSwitch;      // Foot pedal
 
 } MrsvrStatusInfo;
 
@@ -145,6 +146,7 @@ class MrsvrStatusReader : public MrsvrStatus {
 
   inline int   getCalibration()      { return statusInfo->fCalibration; };
 
+  inline int   getFootSwitch()        { return statusInfo->fFootSwitch; };
 
   inline int   getProgress()         { return statusInfo->progress;    };
 
@@ -216,7 +218,8 @@ class MrsvrStatusWriter : public MrsvrStatusReader {
 
   inline void  setCalibration(int v)      { statusInfo->fCalibration = v; };
 
-
+  inline void  setFootSwitch(int v)        { statusInfo->fFootSwitch = v; };
+  
   void         setInfoText(char* str);
   inline void  setInfoTextIdx(int n)  { statusInfo->infoTextIdx = n; };
   inline void  setProgress(int n)     { statusInfo->progress    = n; };

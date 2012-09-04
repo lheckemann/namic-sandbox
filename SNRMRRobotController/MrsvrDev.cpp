@@ -48,6 +48,14 @@ const unsigned short MrsvrDev::limitSensorDefault[] = {
   STAGE_Z_LIMIT_DEFAULT,
 };
 
+const unsigned short MrsvrDev::dioInSwitchMsk[] = {
+  SWITCH_0,
+};
+
+const unsigned short MrsvrDev::switchDefault[] = {
+  SWITCH_0_DEFAULT,
+};
+
 const unsigned short MrsvrDev::dioInSwFwMsk[] = {
   SWITCH_X_FW,
   SWITCH_Y_FW,
@@ -461,10 +469,17 @@ int MrsvrDev::getLimitSensorStatus(int i)
 }
 
 
-unsigned short MrsvrDev::getSwitchStatus()
+unsigned short MrsvrDev::getSwitchStatus(int i)
 {
-  DioInputWord(DEV_DIO, FBIDIO_IN1_16, &dioInValue);
-  return (dioInValue & SWITCH_MASK_XYZ);
+  //DioInputWord(DEV_DIO, FBIDIO_IN1_16, &dioInValue);
+  //return (dioInValue & SWITCH_MASK_XYZ);
+
+  if (((dioInSwitchMsk[i]&dioInValue) && switchDefault[i]) ||
+      (!(dioInSwitchMsk[i]&dioInValue)) && !(switchDefault[i])) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 

@@ -109,6 +109,11 @@
 #define SWITCH_Z_FW      0x0040
 #define SWITCH_Z_BW      0x0080
 
+#define SWITCH_0         0x0010  // IN 5
+#define SWITCH_0_DEFAULT 1
+
+
+
 #define SWITCH_MASK_XYZ  0x0FC0
 
 // Bit masks for digital output masks
@@ -314,6 +319,9 @@ class MrsvrDev {
   static const unsigned short    dioInStgLmtMsk[];
   static const unsigned short    homeSensorDefault[];
   static const unsigned short    limitSensorDefault[];
+  static const unsigned short    dioInSwitchMsk[];
+  static const unsigned short    switchDefault[];
+  
 
   static const unsigned short    dioInSwFwMsk[];
   static const unsigned short    dioInSwBwMsk[];
@@ -499,11 +507,14 @@ class MrsvrDev {
     return ((encLimitMax[i] < p)? 1: ((encLimitMin[i] > p)? -1 : 0));
   };
 
-  unsigned short getSwitchStatus();
+  unsigned short getSwitchStatus(int i);
+
   inline unsigned short isFwSwitchOn(unsigned short status, int a) 
     { return (status&dioInSwFwMsk[a]); };
   inline unsigned short isBwSwitchOn(unsigned short status, int a) 
     { return (status&dioInSwBwMsk[a]); };
+
+  
 
   inline float  getLimitMax(int enc) { return encLimitMax[enc]; };
   inline float  getLimitMin(int enc) { return encLimitMin[enc]; };
