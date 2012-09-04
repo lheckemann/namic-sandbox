@@ -144,11 +144,12 @@ const char* MrsvrMainWindow::actuatorStatusText[] = {
 
 const char* MrsvrMainWindow::infoWarnText[] = {
   "LOCKED",
-  "OUT OF RANGE",
+  "OUT OF RNG",
   "NO LIMITER",
-  "NO COMM.",
+  "NO COMM",
   "REACHED",
-  "NO CALIBR."
+  "NO CALIBR",
+  "FT SW OFF"
 };
 
 const float MrsvrMainWindow::positionOffsets[] = {
@@ -1801,6 +1802,8 @@ void MrsvrMainWindow::create()
   infoWarnTextY[WARNID_REACHED]  = (int)(h*INFCNV_WARN_REACHED_Y);
   infoWarnTextX[WARNID_NOCALIBRATION]  = (int)(w*INFCNV_WARN_NOCALIBRATION_X);
   infoWarnTextY[WARNID_NOCALIBRATION]  = (int)(h*INFCNV_WARN_NOCALIBRATION_Y);
+  infoWarnTextX[WARNID_FOOTSWITCHOFF]  = (int)(w*INFCNV_WARN_FOOTSWITCHOFF_X);
+  infoWarnTextY[WARNID_FOOTSWITCHOFF]  = (int)(h*INFCNV_WARN_FOOTSWITCHOFF_Y);
 
   infoCanvas->update();
 
@@ -2256,6 +2259,13 @@ long MrsvrMainWindow::onUpdateTimer(FXObject* obj, FXSelector sel,void* ptr)
   if (prevInfoWarning[WARNID_NOCALIBRATION] != infoWarning[WARNID_NOCALIBRATION]) {
     fUpdateInfoWarn = 1;
     prevInfoWarning[WARNID_NOCALIBRATION] = infoWarning[WARNID_NOCALIBRATION];
+  }
+
+  // Check foot switch status
+  infoWarning[WARNID_FOOTSWITCHOFF] = !robotStatus->getFootSwitch();
+  if (prevInfoWarning[WARNID_FOOTSWITCHOFF] != infoWarning[WARNID_FOOTSWITCHOFF]) {
+    fUpdateInfoWarn = 1;
+    prevInfoWarning[WARNID_FOOTSWITCHOFF] = infoWarning[WARNID_FOOTSWITCHOFF];
   }
 
   static float ptp[3] = {5.0, 5.0, 5.0};   // previous target position

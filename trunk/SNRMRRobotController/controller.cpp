@@ -662,6 +662,19 @@ int trapCtrl(MrsvrVector setPoint, float vmax)
 {
   float newa, newv;
   int reach = 0;
+
+  if (dev->getSwitchStatus(0) == 0) {
+    for (int i = 0; i < NUM_ACTUATORS; i ++) {
+      float dist  = setPoint[i] - curPos[i];
+      if (fabs(dist) < TH_REACH_ERROR)  {
+        reach ++;
+      }
+      dev->setVelocity(i, 0.0);
+      status->setVoltage(i, dev->getVoltage(i));
+    }
+    return NUM_ACTUATORS - reach;
+  }
+
   for (int i = 0; i < NUM_ACTUATORS; i ++) {
     float dist  = setPoint[i] - curPos[i];
     if (fabs(dist) < TH_REACH_ERROR)  {
@@ -822,6 +835,9 @@ inline void getPositions()
   for (int i = 0; i < 3; i ++) {
     status->setTipPosition(i, cp[i]);
   }
+
+  status->setFootSwitch(dev->getSwitchStatus(0));
+
 }
 
 
@@ -1076,7 +1092,8 @@ int main(int argc, char* argv[])
       writeEncoderLog(currentMode);
     }
 
-    //CONSOLE_PRINT("ENC: %d %d...\n", dev->getLimitSensorStatus(0), dev->getLimitSensorStatus(1));
+    //CONSOLE_PRINT("ENC: %d %d %d...\n", dev->getLimitSensorStatus(0), dev->getLimitSensorStatus(1),dev->getLimitSensorStatus(2));
+    //CONSOLE_PRINT("Switch: %d ...\n", dev->getSwitchStatus(0));
 
     switch (status->getMode()) {
       case MrsvrStatus::START_UP:
