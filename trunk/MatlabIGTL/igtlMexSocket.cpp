@@ -74,6 +74,8 @@ namespace igtl
 MexSocket::MexSocket()
 {
   this->m_SocketDescriptor = -1;
+  this->m_SendTimeoutFlag = 0;
+  this->m_ReceiveTimeoutFlag = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -358,6 +360,10 @@ int MexSocket::Receive(void* data, int length, int readFully/*=1*/)
     int trys = 0;
 #endif
     int n = recv(this->m_SocketDescriptor, buffer+total, length-total, 0);
+    if (n < 0 && this->m_ReceiveTimeoutFlag) // Timeout
+      {
+      return -1;
+      }
     if(n < 1)
       {
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -377,6 +383,91 @@ int MexSocket::Receive(void* data, int length, int readFully/*=1*/)
     } while(readFully && total < length);
   return total;
 }
+
+
+//-----------------------------------------------------------------------------
+int MexSocket::SetTimeout(int timeout)
+{
+  if (SetReceiveTimeout(timeout) && SetSendTimeout(timeout))
+    {
+    return 1;
+    }
+  else
+    {
+    return 0;
+    }
+}
+
+
+//-----------------------------------------------------------------------------
+int MexSocket::SetReceiveTimeout(int timeout)
+{
+  if (!this->GetConnected())
+    {
+    return 0;
+    }
+  
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  this->m_ReceiveTimeout = timeout;
+  int len;
+#else
+  this->m_ReceiveTimeout.tv_sec  = timeout/1000;          /* second */
+  this->m_ReceiveTimeout.tv_usec = (timeout%1000) * 1000; /* microsecond */
+  socklen_t len;
+#endif
+  if ( timeout > 0 )
+    {
+    getsockopt(this->m_SocketDescriptor, SOL_SOCKET, SO_RCVTIMEO,
+               (char*)&(this->m_OrigReceiveTimeout), &len);
+    setsockopt(this->m_SocketDescriptor, SOL_SOCKET, SO_RCVTIMEO,
+               (char*)&(this->m_ReceiveTimeout), sizeof(this->m_ReceiveTimeout));
+    this->m_ReceiveTimeoutFlag = 1;
+    }
+  else if (this->m_ReceiveTimeoutFlag)
+    {
+    setsockopt(this->m_SocketDescriptor, SOL_SOCKET, SO_RCVTIMEO,
+               (char*)&(this->m_OrigReceiveTimeout), sizeof(this->m_OrigReceiveTimeout));
+    this->m_ReceiveTimeoutFlag = 0;
+    }
+
+  return timeout;
+}
+
+
+//-----------------------------------------------------------------------------
+int MexSocket::SetSendTimeout(int timeout)
+{
+  if (!this->GetConnected())
+    {
+    return 0;
+    }
+  
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  this->m_SendTimeout = timeout;
+  int len;
+#else
+  this->m_SendTimeout.tv_sec  = timeout/1000;          /* second */
+  this->m_SendTimeout.tv_usec = (timeout%1000) * 1000; /* microsecond */
+  socklen_t len;
+#endif
+  if ( timeout > 0 )
+    {
+    getsockopt(this->m_SocketDescriptor, SOL_SOCKET, SO_SNDTIMEO,
+               (char*)&(this->m_OrigSendTimeout), &len);
+    setsockopt(this->m_SocketDescriptor, SOL_SOCKET, SO_SNDTIMEO,
+               (char*)&(this->m_SendTimeout), sizeof(this->m_SendTimeout));
+    this->m_SendTimeoutFlag = 1;
+    }
+  else if (this->m_SendTimeoutFlag)
+    {
+    setsockopt(this->m_SocketDescriptor, SOL_SOCKET, SO_SNDTIMEO,
+               (char*)&(this->m_OrigSendTimeout), sizeof(this->m_OrigSendTimeout));
+    this->m_SendTimeoutFlag = 0;
+    }
+
+  return timeout;
+}
+
 
 //-----------------------------------------------------------------------------
 int MexSocket::Skip(int length, int skipFully/*=1*/)
