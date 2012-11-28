@@ -15,18 +15,21 @@
 =========================================================================*/
 
 //
-//  DATA = igtlreceive(SD);
+//  DATA = igtlreceive(SD, timeout);
 //
 //    DATA:    (structure)  Data contents
 //    SD  :    (integer)    Socket descriptor (-1 if failed to connect)
+//    timeout: (integer/optional) Timeout in milliseconds
 //
 //  Data fields for IMAGE data
+//    DATA.Status:(uint16)     0:Disconnected; -1:Timeout 1:Received 2:Invalid data
 //    DATA.Type : (string)     must be 'IMAGE'
 //    DATA.Name : (string)     Data name (DEVICE_NAME in OpenIGTLink)
 //    DATA.Image: (uint16[][]) Image data
 //    DATA.Trans: (real[4][4]) Affine transform matrix (4x4)
 //
 //  Data fields for TRANSFORM data
+//    DATA.Status:(uint16)     0:Disconnected; -1:Timeout 1:Received 2:Invalid data
 //    DATA.Type : (string)     must be 'TRANSFORM'
 //    DATA.Name : (string)     Data name (DEVICE_NAME in OpenIGTLink)
 //    DATA.Trans: (real[4][4]) Affine transform matrix (4x4)
@@ -47,8 +50,8 @@ using namespace std;
 //#define pi (3.141592653589793)
 
 #define ARG_ID_SD      0
-//#define ARG_ID_TIMEOUT 1  // timeout : future work
-#define ARG_ID_NUM     1  // total number of arguments
+#define ARG_ID_TIMEOUT 1  // timeout 
+#define ARG_ID_NUM     2  // total number of arguments
 
 #define MAX_STRING_LEN 256
 
@@ -62,7 +65,7 @@ using namespace std;
 int checkArguments(int nlhs, mxArray *plhs[],
                    int nrhs, const mxArray *prhs[]);
 
-int waitAndReceiveMessage(int sd, mxArray *plhs[]);
+int waitAndReceiveMessage(int sd, mxArray *plhs[], int timeout);
 
 int receiveTransform(igtl::MexClientSocket::Pointer& socket,
                      igtl::MessageHeader::Pointer& headerMsg,
@@ -93,16 +96,21 @@ void mexFunction (int nlhs, mxArray *plhs[],
     }
 
   // ---------------------------------------------------------------
-  // Set socket descripter and timeout
+  // Set socket descripter
   int  sd;
-
   sd = (int)*mxGetPr(prhs[ARG_ID_SD]);
 
   // ---------------------------------------------------------------
+  // Set Timeout, if specified
+  int  timeout = -1; // -1 means no timeout.
+  if (nrhs > ARG_ID_TIMEOUT)
+    {
+    timeout = (int)*mxGetPr(prhs[ARG_ID_TIMEOUT]);
+    }
+
+  // ---------------------------------------------------------------
   // Wait for the message
-
-  waitAndReceiveMessage(sd, plhs);
-
+  waitAndReceiveMessage(sd, plhs, timeout);
 }
 
 
@@ -111,7 +119,7 @@ int checkArguments(int nlhs, mxArray *plhs[],
 {
   // ---------------------------------------------------------------
   // Check numbers of arguments and outputs
-  if (nrhs != 1)
+  if (nrhs < 1 || nrhs > ARG_ID_NUM)
     {
     mexErrMsgTxt("Incorrect number of input arguments");
     return 0;
@@ -133,20 +141,37 @@ int checkArguments(int nlhs, mxArray *plhs[],
     return 0;
     }
 
+  // timeout -- socket descriptor
+  if (nrhs > ARG_ID_TIMEOUT)
+    {
+    if (!mxIsNumeric(prhs[ARG_ID_TIMEOUT]))
+      {
+      mexErrMsgTxt("timeout argument must be integer.");
+      return 0;
+      }
+    }
+
   return 1;
 
 }
 
+void createReturnStructureAndSetError(mxArray* plhs[], int ret)
+{
+  // Get strcutre for returned value
+  const char* fnames [] = {
+    "Status"
+  };
+  plhs[0] = mxCreateStructMatrix(1, 1, 1, fnames);
+  mxArray* statusString = mxCreateDoubleScalar(ret);
+  mxSetField(plhs[0], 0, "Status", statusString);
+}
 
-int waitAndReceiveMessage(int sd, mxArray *plhs[])
+int waitAndReceiveMessage(int sd, mxArray *plhs[], int timeout)
 {
   int r;
 
   // ---------------------------------------------------------------
   // Create a message buffer to receive data
-
-  printf("int waitAndReceiveMessage(int sd, mxArray *plhs[])\n");
-
   igtl::MessageHeader::Pointer headerMsg;
   headerMsg = igtl::MessageHeader::New();
 
@@ -158,7 +183,19 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
   if (r != 0)
     {
     mexErrMsgTxt("Invalid socket descriptor.");
+    createReturnStructureAndSetError(plhs, 0);
     return 0;
+    }
+
+  // ---------------------------------------------------------------
+  // Set timeout if timeout >= 0
+  if (timeout >= 0)
+    {
+    socket->SetReceiveTimeout(timeout);
+    }
+  else
+    {
+    socket->SetReceiveTimeout(-1);
     }
 
   // ---------------------------------------------------------------
@@ -167,14 +204,19 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
   r = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
   if (r == 0)
     {
-    mexErrMsgTxt("Connection lost.");
     socket->CloseSocket();
+    createReturnStructureAndSetError(plhs, 0);
     return 0;
+    }
+  if (r < 0)
+    {
+    createReturnStructureAndSetError(plhs, -1);
+    return -1;
     }
   if (r != headerMsg->GetPackSize())
     {
-    mexErrMsgTxt("Invalid data size.");
-    return 0;
+    createReturnStructureAndSetError(plhs, 2);
+    return 2;
     }
 
   // Deserialize the header
@@ -185,15 +227,30 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
 
   if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
     {
+    // Get strcutre for returned value
+    const char* fnames [] = {
+      "Status", "Type", "Name", "Trans"
+    };
+    plhs[0] = mxCreateStructMatrix(1, 1, 4, fnames);
     printf("procReceiveTransform(socket, headerMsg, plhs);\n");
     receiveTransform(socket, headerMsg, plhs);
     }
   else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
     {
+    // Get strcutre for returned value
+    const char* fnames [] = {
+      "Status", "Type", "Name", "Trans", "Image"
+    };
+    plhs[0] = mxCreateStructMatrix(1, 1, 5, fnames);
     receiveImage(socket, headerMsg, plhs);
     }
   else if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
     {
+    // Get strcutre for returned value
+    const char* fnames [] = {
+      "Status", "Type", "Name", "Pos", "Quat"
+    };
+    plhs[0] = mxCreateStructMatrix(1, 1, 5, fnames);
     receivePosition(socket, headerMsg, plhs);
     }
   //else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
@@ -203,7 +260,14 @@ int waitAndReceiveMessage(int sd, mxArray *plhs[])
   else
     {
     socket->Skip(headerMsg->GetBodySizeToRead(), 0);
+    createReturnStructureAndSetError(plhs, 2);
+    return 2;
     }
+
+  mxArray* statusString = mxCreateDoubleScalar(1);
+  mxSetField(plhs[0], 0, "Status", statusString);
+
+  return 1;
 }
 
 
@@ -232,12 +296,6 @@ int receiveTransform(igtl::MexClientSocket::Pointer& socket,
     igtl::Matrix4x4 mat;
     transMsg->GetMatrix(mat);
     igtl::PrintMatrix(mat);
-
-    // Get strcutre for returned value
-    const char* fnames [] = {
-      "Type", "Name", "Trans"
-    };
-    plhs[0] = mxCreateStructMatrix(1, 1, 3, fnames);
 
     // Set type string
     mxArray* typeString = mxCreateString("TRANSFORM");
@@ -304,12 +362,6 @@ int receivePosition(igtl::MexClientSocket::Pointer& socket,
               << quaternion[1] << "," 
               << quaternion[2] << "," 
               << quaternion[3] << ")" << std::endl;
-
-    // Get strcutre for returned value
-    const char* fnames [] = {
-      "Type", "Name", "Pos", "Quat"
-    };
-    plhs[0] = mxCreateStructMatrix(1, 1, 4, fnames);
 
     // Set type string
     mxArray* typeString = mxCreateString("POSITION");
@@ -378,12 +430,6 @@ int receiveImage(igtl::MexClientSocket::Pointer& socket,
     imgMsg->GetSpacing(spacing);
     imgMsg->GetSubVolume(svsize, svoffset);
     imgMsg->GetMatrix(mat);
-
-    // Get strcutre for returned value
-    const char* fnames [] = {
-      "Type", "Name", "Trans", "Image"
-    };
-    plhs[0] = mxCreateStructMatrix(1, 1, 4, fnames);
 
     // Set type string
     mxArray* typeString = mxCreateString("IMAGE");

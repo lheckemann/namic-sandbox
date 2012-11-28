@@ -62,6 +62,11 @@
 #include "igtlMacro.h"
 #include "igtlWin32Header.h"
 
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#else
+#include <sys/time.h>
+#endif
+
 namespace igtl
 {
 
@@ -100,12 +105,28 @@ public:
 
   // Description:
   // Receive data from the socket.
-  // This call blocks until some data is read from the socket.
-  // When readFully is set, this call will block until all the
-  // requested data is read from the socket.
-  // 0 on error, else number of bytes read is returned. On error,
-  // vtkCommand::ErrorEvent is raised.
+  // This call blocks until some data is read from the socket, unless timeout is set
+  // by SetTimeout() or SetReceiveTimeout().
+  // When the readFully flag is set, this call will block until all the requested data is
+  // read from the socket. The readFully flag will be ignored if the timeout is active.
+  // 0 on error, -1 on timeout, else number of bytes read is returned.
   int Receive(void* data, int length, int readFully=1);
+
+  // Description:
+  // Set sending/receiving timeout for the existing socket in millisecond.
+  // This function should be called after opening the socket.
+  int SetTimeout(int timeout);
+
+  // Description:
+  // Set reciving timeout for the existing socket in millisecond.
+  // This function should be called after opening the socket.
+  int SetReceiveTimeout(int timeout);
+
+  // Description:
+  // Set sending timeout for the existing socket in millisecond.
+  // This function should be called after opening the socket.
+  int SetSendTimeout(int timeout);
+
 
   // Description:
   // Skip reading data from the socket.
@@ -177,6 +198,20 @@ protected:
 private:
   MexSocket(const MexSocket&); // Not implemented.
   void operator=(const MexSocket&); // Not implemented.
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  DWORD m_SendTimeout;
+  DWORD m_ReceiveTimeout;
+  DWORD m_OrigSendTimeout;
+  DWORD m_OrigReceiveTimeout;
+#else
+  struct timeval m_SendTimeout;
+  struct timeval m_ReceiveTimeout;
+  struct timeval m_OrigSendTimeout;
+  struct timeval m_OrigReceiveTimeout;
+#endif
+  int m_SendTimeoutFlag;
+  int m_ReceiveTimeoutFlag;
 
 };
 
