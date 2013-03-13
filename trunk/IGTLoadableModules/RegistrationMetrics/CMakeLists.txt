@@ -1,37 +1,36 @@
-project(RegistrationMetrics)
+cmake_minimum_required(VERSION 2.8.9)
 
-cmake_minimum_required(VERSION 2.6)
+#-----------------------------------------------------------------------------
+set(MODULE_NAME RegistrationMetrics) # Do not use 'project()'
 
-# Slicer3
-find_package(Slicer3 REQUIRED)
-include(${Slicer3_USE_FILE})
+#-----------------------------------------------------------------------------
+if(NOT Slicer_SOURCE_DIR)
+  find_package(Slicer REQUIRED)
+  include(${Slicer_USE_FILE})
+endif()
 
-# GenerateCLP
-#find_package(GenerateCLP REQUIRED)
-#include(${GenerateCLP_USE_FILE})
+#-----------------------------------------------------------------------------
+set(MODULE_INCLUDE_DIRECTORIES
+  )
 
-# Default install prefix
-slicer3_set_default_install_prefix_for_external_projects()
+set(MODULE_SRCS
+  RegistrationMetrics.cxx
+  )
 
+set(MODULE_TARGET_LIBRARIES
+  ${ITK_LIBRARIES}
+  )
 
-#####################
-# DSC plugin
+#-----------------------------------------------------------------------------
+SEMMacroBuildCLI(
+  NAME ${MODULE_NAME}
+  TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES}
+  INCLUDE_DIRECTORIES ${MODULE_INCLUDE_DIRECTORIES}
+  ADDITIONAL_SRCS ${MODULE_SRCS}
+  #EXECUTABLE_ONLY
+  )
 
-set(CLP RegistrationMetrics)
-set(${CLP}_SOURCE ${CLP}.cxx)
-generateclp(${CLP}_SOURCE ${CLP}.xml)
-
-add_executable(${CLP} ${${CLP}_SOURCE})
-slicer3_set_plugins_output_path(${CLP})
-target_link_libraries(${CLP} ${ITK_LIBRARIES})
-
-#####################
-
-
-#####################
-# Tests for the plugin
-
-enable_testing()
-
-
-#####################
+#-----------------------------------------------------------------------------
+if(BUILD_TESTING)
+#  add_subdirectory(Testing)
+endif()

@@ -35,13 +35,37 @@
       <default>None</default>
       <description>Image Volume 2</description>
     </image>
+  </parameters>
+ 
+  <parameters>
+    <label>Computed metrics</label>
+    <double>
+      <name>dscResult</name>
+      <label>Dice similarity coefficient (%)</label>
+      <channel>output</channel>
+      <default>-1</default>      
+      <description><![CDATA[Dice similarity coefficient. Between 0 and 100. 100 means perfect match. -1 means not computed.]]></description>
+    </double>
+    <double>
+      <name>hdResult</name>
+      <label>Hausdorff distance (mm)</label>
+      <channel>output</channel>
+      <default>-1</default>      
+      <description><![CDATA[95th percentile of the maximum Hausdorff distance, in mm. -1 means not computed.]]></description>
+    </double>    
+  </parameters>
+
+  <parameters advanced="true">
+    <label>Advanced outputs</label>
+    <description>Output data for advanced use</description>
     <image>
       <name>DistanceMap</name>
-      <label>Output DistanceMap Volume</label>
+      <label>Output distance map volume</label>
       <channel>output</channel>
-      <index>2</index>
-      <description>Output Error Distance Map</description>
+      <longflag>DistanceMap</longflag>
+      <description>Output distance map that used for the Hausdorff distance computation</description>
     </image>
   </parameters>
+ 
 
 </executable>

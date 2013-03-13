@@ -98,7 +98,7 @@ template<class TDistance1,class TDistance2, class TOutputImage>
 void
 LocalDistanceMapImageFilter<TDistance1,TDistance2,TOutputImage>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                       int threadId)
+                       ThreadIdType threadId)
 {
 
   /** Allocate output*/
