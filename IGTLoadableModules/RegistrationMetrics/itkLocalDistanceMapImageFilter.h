@@ -80,7 +80,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(CountImageFilter, ImageToImageFilter);
+  itkTypeMacro(LocalDistanceMapImageFilter, ImageToImageFilter);
   
 
   /** Image typedef support. */
@@ -119,7 +119,7 @@ protected:
    *
    */
   void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                            int threadId );
+                            ThreadIdType threadId );
 
 private:
   LocalDistanceMapImageFilter(const Self&); //purposely not implemented
