@@ -59,6 +59,20 @@
     <label>Advanced outputs</label>
     <description>Output data for advanced use</description>
     <image>
+      <name>EdgeImage1</name>
+      <label>Detected edges on volume 1</label>
+      <channel>output</channel>
+      <longflag>EdgeImage1</longflag>
+      <description>Output volume containing the detected edges on input volume 1, used for the Hausdorff distance computation</description>
+    </image>
+    <image>
+      <name>EdgeImage2</name>
+      <label>Detected edges on volume 2</label>
+      <channel>output</channel>
+      <longflag>EdgeImage2</longflag>
+      <description>Output volume containing the detected edges on input volume 2, used for the Hausdorff distance computation</description>
+    </image>
+    <image>
       <name>DistanceMap</name>
       <label>Output distance map volume</label>
       <channel>output</channel>

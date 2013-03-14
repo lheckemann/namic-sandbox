@@ -77,7 +77,7 @@ double ComputeDscPercentage(typename InputImageType::Pointer input1, typename In
   std::cout << "Number of pixels in Image 2: " << numPixels2 << std::endl;
   std::cout << "Number of pixels intersecting Image 1 and 2: " << numIntersectPixels << std::endl;
 
-  double dscPercentage = double(2*numIntersectPixels)/double(numPixels1 + numPixels2);
+  double dscPercentage = 100.0*double(2*numIntersectPixels)/double(numPixels1 + numPixels2);
   std::cout << "DSC percentage value [0-100]: " << dscPercentage << std::endl;
 
   return dscPercentage;
@@ -90,7 +90,8 @@ double ComputeDscPercentage(typename InputImageType::Pointer input1, typename In
 Returns a value >=0 if successful. -1 if failed.
 */
 template <class InputImageType>
-double ComputeHd(typename InputImageType::Pointer input1, typename InputImageType::Pointer input2, const std::string &distanceMapOutputFilename)
+double ComputeHd(typename InputImageType::Pointer input1, typename InputImageType::Pointer input2, 
+  const std::string &edgeImage1OutputFilename, const std::string &edgeImage2OutputFilename, const std::string &distanceMapOutputFilename)
 {
   //Canny Edge Detection
   //--------------------------------------------------------------------------------
@@ -151,13 +152,12 @@ double ComputeHd(typename InputImageType::Pointer input1, typename InputImageTyp
     return EXIT_FAILURE;
   }
 
-  /*
-  if (!distanceMapOutputFilename.empty())
+  if (!edgeImage1OutputFilename.empty())
   {    
     typedef itk::ImageFileWriter< FloatImageType > FloatImageWriterType;
     FloatImageWriterType::Pointer writer1 = FloatImageWriterType::New();
     writer1->SetInput( cannyFilter1->GetOutput() );
-    writer1->SetFileName( distanceMapOutputFilename.c_str() );
+    writer1->SetFileName( edgeImage1OutputFilename.c_str() );
     //Execute pipeline
     try
     {
@@ -165,11 +165,28 @@ double ComputeHd(typename InputImageType::Pointer input1, typename InputImageTyp
     }
     catch (itk::ExceptionObject & err)
     {
-      std::cerr << "Exception error caught when writing canny" << std::endl;
+      std::cerr << "Exception error caught when writing edge image 1" << std::endl;
       std::cerr << err << std::endl;
     }
   }
-  */
+
+  if (!edgeImage2OutputFilename.empty())
+  {    
+    typedef itk::ImageFileWriter< FloatImageType > FloatImageWriterType;
+    FloatImageWriterType::Pointer writer1 = FloatImageWriterType::New();
+    writer1->SetInput( cannyFilter2->GetOutput() );
+    writer1->SetFileName( edgeImage2OutputFilename.c_str() );
+    //Execute pipeline
+    try
+    {
+      writer1->Update();
+    }
+    catch (itk::ExceptionObject & err)
+    {
+      std::cerr << "Exception error caught when writing edge image 2" << std::endl;
+      std::cerr << err << std::endl;
+    }
+  }
 
   //Distance Map filter
   //--------------------------------------------------------------------------
@@ -279,32 +296,34 @@ double ComputeHd(typename InputImageType::Pointer input1, typename InputImageTyp
   float hd2 = -1;
   float numMeas1 = distances1.size();
   float numMeas2 = distances2.size();
-  if (numMeas1==0 && numMeas2==0)
+  if (numMeas1==0)
   {
-    // no difference between the inputs
-    hdmax = 0;
-    hd1 = 0;
-    hd2 = 0;
+    std::cerr << "No edge voxels could be extracted from input 1" << std::endl;
+    return -1;
+  }
+  if (numMeas2==0)
+  {
+    std::cerr << "No edge voxels could be extracted from input 2" << std::endl;
+    return -1;
+  }
+
+  int hd1Index=(int)(percentile*numMeas1) - 1;
+  int hd2Index=(int)(percentile*numMeas2) - 1;
+  if (hd1Index<0 || hd1Index>=numMeas1 || hd2Index<0 || hd2Index>=numMeas2)
+  {
+    std::cerr << "Failed to compute Hausdorff distance" << std::endl;
+    return -1;
+  }
+
+  hd1 = distances1[hd1Index];
+  hd2 = distances2[hd2Index];
+  if(hd1 >= hd2)
+  {
+    hdmax = hd1;
   }
   else
   {
-    int hd1Index=(int)(percentile*numMeas1) - 1;
-    int hd2Index=(int)(percentile*numMeas2) - 1;
-    if (hd1Index<0 || hd1Index>=numMeas1 || hd2Index<0 || hd2Index>=numMeas2)
-    {
-      std::cerr << "Failed to compute Hausdorff distance" << std::endl;
-      return -1;
-    }
-    hd1 = distances1[hd1Index];
-    hd2 = distances2[hd2Index];
-    if(hd1 >= hd2)
-    {
-      hdmax = hd1;
-    }
-    else
-    {
-      hdmax = hd2;
-    }
+    hdmax = hd2;
   }
 
   //Print out maximum Hausdorff distance
@@ -418,8 +437,8 @@ void SaveResults(const std::string &returnParameterFile, double dscResult, doubl
 { 
   std::ofstream rts;
   rts.open(returnParameterFile.c_str() );
-  rts << "dscResult = " << dscResult << std::endl;
-  rts << "hdResult = " << hdResult << std::endl;
+  rts << "dscResult = " << std::fixed << std::setprecision(4) << dscResult << std::endl;
+  rts << "hdResult = " << std::fixed << std::setprecision(4) << hdResult << std::endl;
   rts.close(); 
 }
 
@@ -472,7 +491,7 @@ int DoIt( int argc, char * argv[])
   hdResult=-1;
   try
   {
-    hdResult=ComputeHd<InputImageType>(reader1->GetOutput(), reader2->GetOutput(), DistanceMap);
+    hdResult=ComputeHd<InputImageType>(reader1->GetOutput(), reader2->GetOutput(), EdgeImage1, EdgeImage2, DistanceMap);
   }
   catch (itk::ExceptionObject & err)
   {
