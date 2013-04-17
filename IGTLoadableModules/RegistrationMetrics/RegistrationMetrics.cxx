@@ -104,8 +104,8 @@ double ComputeHd(typename InputImageType::Pointer input1, typename InputImageTyp
 
   //Cast the image to FloatImageType
   typedef itk::CastImageFilter< InputImageType, FloatImageType > CastToFloatFilterType;
-  CastToFloatFilterType::Pointer castFilter1 = CastToFloatFilterType::New();
-  CastToFloatFilterType::Pointer castFilter2 = CastToFloatFilterType::New();
+  typename CastToFloatFilterType::Pointer castFilter1 = CastToFloatFilterType::New();
+  typename CastToFloatFilterType::Pointer castFilter2 = CastToFloatFilterType::New();
   castFilter1->SetInput( input1 );
   castFilter2->SetInput( input2 );
 
@@ -458,8 +458,8 @@ int DoIt( int argc, char * argv[])
   // Read in images from Slicer
 
   //Instantiate an imagefile reader and specify filename
-  ReaderType::Pointer reader1 = ReaderType::New();
-  ReaderType::Pointer reader2 = ReaderType::New();
+  typename ReaderType::Pointer reader1 = ReaderType::New();
+  typename ReaderType::Pointer reader2 = ReaderType::New();
   reader1->SetFileName(imageFile1.c_str());
   reader2->SetFileName(imageFile2.c_str());
 
