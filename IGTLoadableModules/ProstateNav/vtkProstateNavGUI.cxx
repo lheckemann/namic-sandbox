@@ -40,6 +40,7 @@
 #include "vtkProstateNavFiducialCalibrationStep.h"
 #include "vtkProstateNavTargetingStep.h"
 #include "vtkProstateNavStepTargetingTemplate.h"
+#include "vtkProstateNavStepTargetingCryoTemplate.h"
 #include "vtkProstateNavStepTargetingSmartTemplate.h"
 #include "vtkProstateNavManualControlStep.h"
 
@@ -88,6 +89,7 @@
 #include "vtkMRMLLinearTransformNode.h"
 
 #include "vtkMRMLProstateNavManagerNode.h"
+#include "vtkMRMLTransPerinealProstateCryoTemplateNode.h"
 #include "vtkMRMLTransRectalProstateRobotNode.h"
 #include "vtkMRMLTransPerinealProstateRobotNode.h"
 #include "vtkMRMLTransPerinealProstateTemplateNode.h"
@@ -634,6 +636,7 @@ void vtkProstateNavGUI::Init()
     this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLTransRectalProstateRobotNode >::New() );
     this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLTransPerinealProstateRobotNode >::New() );    
     this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLTransPerinealProstateTemplateNode >::New() );    
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLTransPerinealProstateCryoTemplateNode >::New() );    
     this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLTransPerinealProstateSmartTemplateNode >::New() );    
   }
 
@@ -999,6 +1002,7 @@ void vtkProstateNavGUI::BuildGUIForConfigurationFrame ()
   this->RobotSelectorWidget->Create(); 
   this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransPerinealProstateRobotNode", NULL, NULL, "Trans-perineal robot");
   this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransPerinealProstateTemplateNode", NULL, NULL, "Trans-perineal template");
+  this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransPerinealProstateCryoTemplateNode", NULL, NULL, "Trans-perineal cryo template");
   this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransPerinealProstateSmartTemplateNode", NULL, NULL, "Trans-perineal smart template");
   this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransRectalProstateRobotNode", NULL, NULL, "Trans-rectal robot");
   this->RobotSelectorWidget->SetMRMLScene(this->GetMRMLScene());
@@ -1525,6 +1529,12 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
     else if (!stepName.compare("TemplateTargeting"))
       {
       vtkProstateNavStepTargetingTemplate* targetingStep = vtkProstateNavStepTargetingTemplate::New();
+      targetingStep->SetTitleBackgroundColor(138.0/255.0, 165.0/255.0, 111.0/255.0);
+      newStep=targetingStep;
+      }
+    else if (!stepName.compare("CryoTemplateTargeting"))
+      {
+      vtkProstateNavStepTargetingCryoTemplate* targetingStep = vtkProstateNavStepTargetingCryoTemplate::New();
       targetingStep->SetTitleBackgroundColor(138.0/255.0, 165.0/255.0, 111.0/255.0);
       newStep=targetingStep;
       }

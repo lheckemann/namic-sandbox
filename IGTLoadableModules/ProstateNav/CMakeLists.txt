@@ -36,6 +36,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateRobot
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateTemplate
+  ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateCryoTemplate
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateSmartTemplate
   ${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard
@@ -74,6 +75,7 @@ file(GLOB headers
   "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateRobot/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateTemplate/*.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateCryoTemplate/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateSmartTemplate/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Wizard/*.h"
@@ -145,6 +147,7 @@ set(ProstateNav_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateRobot/vtkMRMLBrpRobotCommandNode.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateRobot/vtkMRMLTransPerinealProstateRobotNode.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateTemplate/vtkMRMLTransPerinealProstateTemplateNode.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateCryoTemplate/vtkMRMLTransPerinealProstateCryoTemplateNode.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateSmartTemplate/vtkMRMLTransPerinealProstateSmartTemplateNode.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot/vtkMRMLTransRectalProstateRobotNode.cxx  
   ${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot/vtkTransRectalFiducialCalibrationAlgo.cxx  
@@ -157,6 +160,7 @@ set(ProstateNav_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavManualControlStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStepVerification.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStepTargetingTemplate.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStepTargetingCryoTemplate.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStepTargetingSmartTemplate.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavReportWindow.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavNeedleOrientationWindow.cxx
