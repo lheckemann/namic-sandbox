@@ -1368,29 +1368,41 @@ void vtkProstateNavStepTargetingCryoTemplate::NewFiducialAdded()
     // Get coordinates of the closest hole
     cryoNode->GetHoleTransform(nearest_i, nearest_j, holeTransform);
 
-
     // Snap fiducial to template hole (take care of template orientation)
-    // NOT WORKING
+    // Not accurate, as distance from insertion hole to current fiducial position, and
+    // from insertion hole to snapped fiducial position is sligtly different (given
+    // that current fiducial has been placed to a hole), so snapped fiducial is usually
+    // one slice before of after.
     vtkMRMLLinearTransformNode* tnode = cryoNode->GetZFrameTransformNode();
-    vtkMatrix4x4* transform = tnode->GetMatrixTransformToParent();
+    vtkMatrix4x4* zFrameTransform = NULL;
+    if (tnode)
+      {
+      zFrameTransform = tnode->GetMatrixTransformToParent();
+      }
 
-    double dist[3] = {holeTransform->GetElement(0,3),
-                      holeTransform->GetElement(1,3),
-                      holeTransform->GetElement(2,3)-currentPosition[2]};
+    if (!zFrameTransform)
+      {
+      return;
+      }
 
-    double proj[3] = {transform->GetElement(0,2)*dist[0],
-                      transform->GetElement(1,2)*dist[1],
-                      transform->GetElement(2,2)*dist[2]};
+    double distance = std::sqrt(
+      std::pow(holeTransform->GetElement(0,3)-currentPosition[0],2) +
+      std::pow(holeTransform->GetElement(1,3)-currentPosition[1],2) +
+      std::pow(holeTransform->GetElement(2,3)-currentPosition[2],2));
 
-    double end[3] = {holeTransform->GetElement(0,3)+proj[0],
-                     holeTransform->GetElement(1,3)+proj[1],
-                     holeTransform->GetElement(2,3)+proj[2]};
+    double projection[3] = {zFrameTransform->GetElement(0,2)*distance,
+                            zFrameTransform->GetElement(1,2)*distance,
+                            zFrameTransform->GetElement(2,2)*distance};
+
+    double snappedPosition[3] = {holeTransform->GetElement(0,3)+projection[0],
+                                 holeTransform->GetElement(1,3)+projection[1],
+                                 holeTransform->GetElement(2,3)+projection[2]};
 
     // Move fiducial to closest hole position
     this->TargetPlanListNode->SetNthFiducialXYZ(lastFiducialIndex,
-                                                end[0],
-                                                end[1],
-                                                end[2]);
+                                                snappedPosition[0],
+                                                snappedPosition[1],
+                                                snappedPosition[2]);
     holeTransform->Delete();
     }
 }
