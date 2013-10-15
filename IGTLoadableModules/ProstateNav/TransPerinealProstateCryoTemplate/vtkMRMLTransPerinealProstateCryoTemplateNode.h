@@ -170,8 +170,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateCryoTemplateNode : publ
 
   int GetHoleTransformWithDepth(int i, int j, double depth, vtkMatrix4x4* matrix);
 
-  void SnapCurrentPosition(float* currentPosition, float* nearestHolePosition);
-
  protected:
 
   vtkMRMLTransPerinealProstateCryoTemplateNode();

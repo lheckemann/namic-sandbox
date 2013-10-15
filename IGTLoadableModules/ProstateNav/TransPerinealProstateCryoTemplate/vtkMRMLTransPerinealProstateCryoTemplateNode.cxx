@@ -11,7 +11,7 @@
   Version:   $Revision: 1.2 $
 
   =========================================================================auto=*/
-
+#include <cmath>
 #include "vtkObjectFactory.h"
 
 #include "vtkMRMLTransPerinealProstateCryoTemplateNode.h"
@@ -54,13 +54,10 @@
 #define TEMPLATE_DEPTH   250.0   // dimension in z direction (mm)
 #define TEMPLATE_HOLE_RADIUS 1.5 // (only for visualization)
 
-#define TEMPLATE_GRID_PITCH_X -2.5
+#define TEMPLATE_GRID_PITCH_X -5
 #define TEMPLATE_GRID_PITCH_Y -4.33
-#define TEMPLATE_NUMBER_OF_GRIDS_X 33  // must be odd number
-#define TEMPLATE_NUMBER_OF_GRIDS_y 9
-
-#define HOLE_NUMBER_PER_LINE 16
-#define NUMBER_OF_HOLE_LINES 19
+#define TEMPLATE_NUMBER_OF_GRIDS_X 17  // must be odd number
+#define TEMPLATE_NUMBER_OF_GRIDS_Y 19
 
 //-------------------------------------
 
@@ -142,7 +139,7 @@ vtkMRMLTransPerinealProstateCryoTemplateNode::vtkMRMLTransPerinealProstateCryoTe
   this->TemplateGridPitch[0] = TEMPLATE_GRID_PITCH_X;
   this->TemplateGridPitch[1] = TEMPLATE_GRID_PITCH_Y;
   this->TemplateNumGrids[0]  = TEMPLATE_NUMBER_OF_GRIDS_X;
-  this->TemplateNumGrids[1]  = TEMPLATE_NUMBER_OF_GRIDS_y;
+  this->TemplateNumGrids[1]  = TEMPLATE_NUMBER_OF_GRIDS_Y;
   this->TemplateOffset[0]    = TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_X;
   this->TemplateOffset[1]    = TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Y;
   this->TemplateOffset[2]    = TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Z;
@@ -933,26 +930,14 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddTemplateModel(const
 
   vtkAppendPolyData *apd = vtkAppendPolyData::New();
 
-  // Holes
-  for (int i = 0; i < this->TemplateNumGrids[0]; ++i)
+  // Even lines template
+  for (int i = 0; i < (this->TemplateNumGrids[1]+1)/2; ++i)
     {
-    double shiftingLineOffset = 0.0;
-    int nOfHoles = this->TemplateNumGrids[1];
-    if (i % 2 == 0)
-      {
-      shiftingLineOffset = this->TemplateGridPitch[1];
-      }
-    else
-      {
-      nOfHoles++;
-      }
-
-    for (int j = 0; j < nOfHoles; ++j)
+    for (int j = 0; j < (this->TemplateNumGrids[0]-1); ++j)
       {
       double offset[3];
-
-      offset[0] = this->TemplateOffset[0] + i * this->TemplateGridPitch[0];
-      offset[1] = this->TemplateOffset[1] + j * this->TemplateGridPitch[1] * 2 + shiftingLineOffset;
+      offset[0] = this->TemplateOffset[0] + this->TemplateGridPitch[0]/2 + j*this->TemplateGridPitch[0];
+      offset[1] = this->TemplateOffset[1] + i*this->TemplateGridPitch[1]*2;
       offset[2] = this->TemplateOffset[2] + TEMPLATE_DEPTH/2;
 
       vtkCylinderSource *cylinder = vtkCylinderSource::New();
@@ -961,7 +946,7 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddTemplateModel(const
       cylinder->SetHeight(TEMPLATE_DEPTH);
       cylinder->SetCenter(0, 0, 0);
       cylinder->Update();
-
+      
       vtkTransform* trans =   vtkTransform::New();
       trans->Translate(offset);
       trans->RotateX(90.0);
@@ -981,40 +966,53 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddTemplateModel(const
       }
     }
 
-
-  // Vertical Lines
-  for (int i = 0; i < 3; ++i)
+  // Odd lines template
+  for (int i = 0; i < (this->TemplateNumGrids[1]-1)/2; ++i)
     {
-    double offset[3];
-    offset[0] = this->TemplateOffset[0] + (i+1)*4*this->TemplateGridPitch[0]*2;
-    offset[1] = this->TemplateOffset[1] + this->TemplateNumGrids[1]*this->TemplateGridPitch[1];
-    offset[2] = this->TemplateOffset[2] + TEMPLATE_DEPTH/2;
+    for (int j = 0; j < this->TemplateNumGrids[0]; ++j)
+      {
+      double offset[3];
+      offset[0] = this->TemplateOffset[0] + j*this->TemplateGridPitch[0];
+      offset[1] = this->TemplateOffset[1] + this->TemplateGridPitch[1] + i*this->TemplateGridPitch[1]*2;
+      offset[2] = this->TemplateOffset[2] + TEMPLATE_DEPTH/2;
+      
+      vtkCylinderSource *cylinder = vtkCylinderSource::New();
+      cylinder->SetResolution(24);
+      cylinder->SetRadius(TEMPLATE_HOLE_RADIUS);
+      cylinder->SetHeight(TEMPLATE_DEPTH);
+      cylinder->SetCenter(0, 0, 0);
+      cylinder->Update();
+      
+      vtkTransform* trans =   vtkTransform::New();
+      trans->Translate(offset);
+      trans->RotateX(90.0);
+      trans->Update();
 
-    vtkCubeSource* cube = vtkCubeSource::New();
-    cube->SetXLength(TEMPLATE_HOLE_RADIUS);
-    cube->SetYLength(this->TemplateNumGrids[1]*2*-this->TemplateGridPitch[1]);
-    cube->SetZLength(TEMPLATE_DEPTH);
-    cube->SetCenter(offset);
-    cube->Update();
+      vtkTransformPolyDataFilter *tfilter = vtkTransformPolyDataFilter::New();
+      tfilter->SetInput(cylinder->GetOutput());
+      tfilter->SetTransform(trans);
+      tfilter->Update();
 
-    apd->AddInput(cube->GetOutput());
-    apd->Update();
+      apd->AddInput(tfilter->GetOutput());
+      apd->Update();
 
-    cube->Delete();
+      cylinder->Delete();
+      trans->Delete();
+      tfilter->Delete();
+      }
     }
 
-  // Horizontal Lines
-  int nOfRows = 4;
-  for (int i = 0; i < 3; ++i)
+  // Horizontal template lines
+  for (int i = 4; i < this->TemplateNumGrids[1]; i+=5)
     {
     double offset[3];
     offset[0] = this->TemplateOffset[0] + ((this->TemplateNumGrids[0]-1)/2)*this->TemplateGridPitch[0];
-    offset[1] = this->TemplateOffset[1] + nOfRows*this->TemplateGridPitch[1];
+    offset[1] = this->TemplateOffset[1] + i*this->TemplateGridPitch[1];
     offset[2] = this->TemplateOffset[2] + TEMPLATE_DEPTH/2;
 
     vtkCubeSource* cube = vtkCubeSource::New();
-    cube->SetXLength(TEMPLATE_HOLE_RADIUS);
-    cube->SetYLength(this->TemplateNumGrids[1]*2*-this->TemplateGridPitch[1]);
+    cube->SetXLength(TEMPLATE_HOLE_RADIUS/3);
+    cube->SetYLength(std::fabs((this->TemplateNumGrids[1]-1)*this->TemplateGridPitch[1]));
     cube->SetZLength(TEMPLATE_DEPTH);
     cube->SetCenter(0,0,0);
     cube->Update();
@@ -1035,8 +1033,38 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddTemplateModel(const
     cube->Delete();
     trans->Delete();
     tFilter->Delete();
+    }
 
-    nOfRows += 5;
+  // Vertical template lines
+  for (int i = 4; i < this->TemplateNumGrids[0]-1; i+=4)
+    {
+    double offset[3];
+    offset[0] = this->TemplateOffset[0] + i*this->TemplateGridPitch[0];
+    offset[1] = this->TemplateOffset[1] + ((this->TemplateNumGrids[1]-1)/2)*this->TemplateGridPitch[1];
+    offset[2] = this->TemplateOffset[2] + TEMPLATE_DEPTH/2;
+
+    vtkCubeSource* cube = vtkCubeSource::New();
+    cube->SetXLength(TEMPLATE_HOLE_RADIUS/3);
+    cube->SetYLength(std::fabs((this->TemplateNumGrids[1]-1)*this->TemplateGridPitch[1]));
+    cube->SetZLength(TEMPLATE_DEPTH);
+    cube->SetCenter(0,0,0);
+    cube->Update();
+
+    vtkTransform* trans = vtkTransform::New();
+    trans->Translate(offset);
+    trans->Update();
+
+    vtkTransformPolyDataFilter *tFilter = vtkTransformPolyDataFilter::New();
+    tFilter->SetInput(cube->GetOutput());
+    tFilter->SetTransform(trans);
+    tFilter->Update();
+
+    apd->AddInput(tFilter->GetOutput());
+    apd->Update();
+
+    cube->Delete();
+    trans->Delete();
+    tFilter->Delete();
     }
 
   model->SetAndObservePolyData(apd->GetOutput());
@@ -1274,7 +1302,7 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::GetTargetReport(vtkPro
   std::ostringstream ss;
   //ss << "Grid:   (" << i << ", " << (char) ('A' + j) << ")" << std::endl;
   ss << "Name:   " << targetDesc->GetName() << std::endl;
-  ss << "Grid:   (" << (char) ('A' + i) << ", " << (j - NUMBER_OF_HOLE_LINES/2 + 1) << ")" << std::endl;
+  ss << "Grid:   (" << (char) ('A' + i) << ", " << (j) << ")" << std::endl;
   ss << "Depth:  " << depth << " mm" << std::endl;
   ss << "Target: R=" << targetX << ", A=" << targetY << ", S=" << targetZ << std::endl;
   ss << "Error:  R=" << errorX  << ", A=" << errorY  << ", S=" << errorZ  << std::endl;
@@ -1529,7 +1557,7 @@ std::string vtkMRMLTransPerinealProstateCryoTemplateNode::GetTargetInfoText(vtkP
 
   std::ostrstream os;
   os << "Target: " << targetDesc->GetName()<<std::endl;
-  os << "Grid:   (" << (char) ('A' + i) << ", " << (j - NUMBER_OF_HOLE_LINES/2 + 1) << ")" << std::endl;
+  os << "Grid:   (" << (char) ('A' + i) << ", " << (j) << ")" << std::endl;
   os << "Depth:  " << depth << " mm" << std::endl;
   os << "Target: R=" << target[0] << ", A=" << target[1] << ", S=" << target[2] << std::endl;
   os << "Error:  R=" << errorX  << ", A=" << errorY  << ", S=" << errorZ  << std::endl;
@@ -1552,13 +1580,13 @@ int vtkMRMLTransPerinealProstateCryoTemplateNode::GetHoleTransform(int i, int j,
     return 0;
     }
 
-  int nOfHoles = HOLE_NUMBER_PER_LINE;
-  if (i % 2 == 1)
+  int nOfHoles = this->TemplateNumGrids[0];
+  if (i % 2 == 0)
     {
-    nOfHoles++;
+    nOfHoles--;
     }
 
-  if (i < 0 || i >= NUMBER_OF_HOLE_LINES ||
+  if (i < 0 || i >= this->TemplateNumGrids[1] ||
       j < 0 || j >= nOfHoles)
     {
     // the grid index is out of range
@@ -1574,12 +1602,12 @@ int vtkMRMLTransPerinealProstateCryoTemplateNode::GetHoleTransform(int i, int j,
   double shiftingLineOffset = 0.0;
   if (i % 2 == 0)
     {
-    shiftingLineOffset = this->TemplateGridPitch[0];
+    shiftingLineOffset = this->TemplateGridPitch[0]/2;
     }
 
   // offset from the Z-frame center
   double off[4];
-  off[0] = this->TemplateOffset[0] + j * this->TemplateGridPitch[0]*2 + shiftingLineOffset;
+  off[0] = this->TemplateOffset[0] + shiftingLineOffset + j * this->TemplateGridPitch[0];
   off[1] = this->TemplateOffset[1] + i * this->TemplateGridPitch[1];
   off[2] = this->TemplateOffset[2];
   off[3] = 1.0;
@@ -1595,7 +1623,6 @@ int vtkMRMLTransPerinealProstateCryoTemplateNode::GetHoleTransform(int i, int j,
   matrix->SetElement(3, 3, 1.0);
 
   return 1;
-
 }
 
 
@@ -1633,13 +1660,14 @@ int vtkMRMLTransPerinealProstateCryoTemplateNode::FindHole(double targetX, doubl
   holeZ = matrix->GetElement(2, 3);
   nearest_depth = sqrt((holeX-targetX)*(holeX-targetX)+(holeY-targetY)*(holeY-targetY)+(holeZ-targetZ)*(holeZ-targetZ));
 
-  for (int i = 0; i < NUMBER_OF_HOLE_LINES; i ++)
+  for (int i = 0; i < this->TemplateNumGrids[1]; ++i)
     {
-    int nOfHoles = HOLE_NUMBER_PER_LINE;
-    if (i % 2 == 1)
+    int nOfHoles = this->TemplateNumGrids[0];
+    if (i % 2 == 0)
       {
-      nOfHoles++;
+      nOfHoles--;
       }
+
     for (int j = 0; j < nOfHoles; j ++)
       {
       GetHoleTransform(i, j, matrix);
@@ -1681,13 +1709,13 @@ int vtkMRMLTransPerinealProstateCryoTemplateNode::GetHoleTransformWithDepth(int 
     return 0;
     }
 
-  int nOfHoles = HOLE_NUMBER_PER_LINE;
-  if (i % 2 == 1)
+  int nOfHoles = this->TemplateNumGrids[0];
+  if (i % 2 == 0)
     {
-    nOfHoles++;
+    nOfHoles--;
     }
 
-  if (i < 0 || i >= NUMBER_OF_HOLE_LINES ||
+  if (i < 0 || i >= this->TemplateNumGrids[1] ||
       j < 0 || j >= nOfHoles)
     {
     // the grid index is out of range
@@ -1703,12 +1731,12 @@ int vtkMRMLTransPerinealProstateCryoTemplateNode::GetHoleTransformWithDepth(int 
   double shiftingLineOffset = 0.0;
   if (i % 2 == 0)
     {
-    shiftingLineOffset = this->TemplateGridPitch[0];
+    shiftingLineOffset = this->TemplateGridPitch[0]/2;
     }
 
   // offset from the Z-frame center
   double off[4];
-  off[0] = this->TemplateOffset[0] + j * this->TemplateGridPitch[0]*2 + shiftingLineOffset;
+  off[0] = this->TemplateOffset[0] + shiftingLineOffset + j * this->TemplateGridPitch[0];
   off[1] = this->TemplateOffset[1] + i * this->TemplateGridPitch[1];
   off[2] = depth;
   off[3] = 1.0;
@@ -1724,5 +1752,4 @@ int vtkMRMLTransPerinealProstateCryoTemplateNode::GetHoleTransformWithDepth(int 
   matrix->SetElement(3, 3, 1.0);
 
   return 1;
-
 }
