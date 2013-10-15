@@ -1347,6 +1347,7 @@ void vtkProstateNavStepTargetingCryoTemplate::NewFiducialAdded()
     return;
     }
 
+  // Snap fiducial to closest hole
   if (this->TargetPlanListNode)
     {
     float *currentPosition;
@@ -1355,19 +1356,41 @@ void vtkProstateNavStepTargetingCryoTemplate::NewFiducialAdded()
     double errorX, errorY, errorZ;
     vtkMatrix4x4* holeTransform = vtkMatrix4x4::New();
 
+    // Get position of last fiducial added
     int lastFiducialIndex = this->TargetPlanListNode->GetNumberOfFiducials()-1;
-
     currentPosition = this->TargetPlanListNode->GetNthFiducialXYZ(lastFiducialIndex);
+
+    // Find closest hole of the target fiducial
     cryoNode->FindHole(currentPosition[0], currentPosition[1], currentPosition[2],
                        nearest_i, nearest_j, nearest_depth,
                        errorX, errorY, errorZ);
-    cryoNode->GetHoleTransformWithDepth(nearest_i, nearest_j, currentPosition[2], holeTransform);
 
+    // Get coordinates of the closest hole
+    cryoNode->GetHoleTransform(nearest_i, nearest_j, holeTransform);
+
+
+    // Snap fiducial to template hole (take care of template orientation)
+    // NOT WORKING
+    vtkMRMLLinearTransformNode* tnode = cryoNode->GetZFrameTransformNode();
+    vtkMatrix4x4* transform = tnode->GetMatrixTransformToParent();
+
+    double dist[3] = {holeTransform->GetElement(0,3),
+                      holeTransform->GetElement(1,3),
+                      holeTransform->GetElement(2,3)-currentPosition[2]};
+
+    double proj[3] = {transform->GetElement(0,2)*dist[0],
+                      transform->GetElement(1,2)*dist[1],
+                      transform->GetElement(2,2)*dist[2]};
+
+    double end[3] = {holeTransform->GetElement(0,3)+proj[0],
+                     holeTransform->GetElement(1,3)+proj[1],
+                     holeTransform->GetElement(2,3)+proj[2]};
+
+    // Move fiducial to closest hole position
     this->TargetPlanListNode->SetNthFiducialXYZ(lastFiducialIndex,
-                                                holeTransform->GetElement(0,3),
-                                                holeTransform->GetElement(1,3),
-                                                holeTransform->GetElement(2,3));
-
+                                                end[0],
+                                                end[1],
+                                                end[2]);
     holeTransform->Delete();
     }
 }
