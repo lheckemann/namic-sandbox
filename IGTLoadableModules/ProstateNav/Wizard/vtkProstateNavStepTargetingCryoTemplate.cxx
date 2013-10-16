@@ -30,6 +30,8 @@
 
 #include "vtkMRMLRobotNode.h"
 
+#include "vtkMath.h"
+
 ////
 
 #include "vtkProstateNavTargetDescriptor.h"
@@ -1350,7 +1352,7 @@ void vtkProstateNavStepTargetingCryoTemplate::NewFiducialAdded()
   // Snap fiducial to closest hole
   if (this->TargetPlanListNode)
     {
-    float *currentPosition;
+    float *originalPosition;
     int nearest_i, nearest_j;
     double nearest_depth;
     double errorX, errorY, errorZ;
@@ -1358,21 +1360,17 @@ void vtkProstateNavStepTargetingCryoTemplate::NewFiducialAdded()
 
     // Get position of last fiducial added
     int lastFiducialIndex = this->TargetPlanListNode->GetNumberOfFiducials()-1;
-    currentPosition = this->TargetPlanListNode->GetNthFiducialXYZ(lastFiducialIndex);
+    originalPosition = this->TargetPlanListNode->GetNthFiducialXYZ(lastFiducialIndex);
 
     // Find closest hole of the target fiducial
-    cryoNode->FindHole(currentPosition[0], currentPosition[1], currentPosition[2],
+    cryoNode->FindHole(originalPosition[0], originalPosition[1], originalPosition[2],
                        nearest_i, nearest_j, nearest_depth,
                        errorX, errorY, errorZ);
 
     // Get coordinates of the closest hole
     cryoNode->GetHoleTransform(nearest_i, nearest_j, holeTransform);
 
-    // Snap fiducial to template hole (take care of template orientation)
-    // Not accurate, as distance from insertion hole to current fiducial position, and
-    // from insertion hole to snapped fiducial position is sligtly different (given
-    // that current fiducial has been placed to a hole), so snapped fiducial is usually
-    // one slice before of after.
+    // Project distance from hole to fiducial in template direction
     vtkMRMLLinearTransformNode* tnode = cryoNode->GetZFrameTransformNode();
     vtkMatrix4x4* zFrameTransform = NULL;
     if (tnode)
@@ -1386,17 +1384,83 @@ void vtkProstateNavStepTargetingCryoTemplate::NewFiducialAdded()
       }
 
     double distance = std::sqrt(
-      std::pow(holeTransform->GetElement(0,3)-currentPosition[0],2) +
-      std::pow(holeTransform->GetElement(1,3)-currentPosition[1],2) +
-      std::pow(holeTransform->GetElement(2,3)-currentPosition[2],2));
+      std::pow(holeTransform->GetElement(0,3)-originalPosition[0],2) +
+      std::pow(holeTransform->GetElement(1,3)-originalPosition[1],2) +
+      std::pow(holeTransform->GetElement(2,3)-originalPosition[2],2));
 
-    double projection[3] = {zFrameTransform->GetElement(0,2)*distance,
-                            zFrameTransform->GetElement(1,2)*distance,
-                            zFrameTransform->GetElement(2,2)*distance};
+    double zFrameDirection[3] = {zFrameTransform->GetElement(0,2),
+                                 zFrameTransform->GetElement(1,2),
+                                 zFrameTransform->GetElement(2,2)};
 
-    double snappedPosition[3] = {holeTransform->GetElement(0,3)+projection[0],
-                                 holeTransform->GetElement(1,3)+projection[1],
-                                 holeTransform->GetElement(2,3)+projection[2]};
+    double projection[3] = {zFrameDirection[0]*distance,
+                            zFrameDirection[1]*distance,
+                            zFrameDirection[2]*distance};
+
+    double intermediatePosition[3] = {holeTransform->GetElement(0,3)+projection[0],
+                                      holeTransform->GetElement(1,3)+projection[1],
+                                      holeTransform->GetElement(2,3)+projection[2]};
+
+    // Find distance between projected point and hole in the slice
+    vtkSlicerApplicationGUI* appGUI = GUI->GetApplicationGUI();
+    vtkMatrix4x4* sliceToRAS = NULL;
+    if (appGUI)
+      {
+      vtkMRMLSliceNode* redSliceViewer = appGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceNode();
+      if (redSliceViewer)
+        {
+        sliceToRAS = redSliceViewer->GetSliceToRAS();
+        }
+      }
+
+    if (!sliceToRAS)
+      {
+      return;
+      }
+
+    double viewerNormalDirection[3] = {sliceToRAS->GetElement(0,2),
+                                       sliceToRAS->GetElement(1,2),
+                                       sliceToRAS->GetElement(2,2)};
+
+    double dotProduct = vtkMath::Dot(viewerNormalDirection, zFrameDirection);
+    double theta = std::acos(dotProduct);
+
+    double error = std::sqrt(std::pow(originalPosition[0]-intermediatePosition[0],2) +
+                             std::pow(originalPosition[1]-intermediatePosition[1],2) +
+                             std::pow(originalPosition[2]-intermediatePosition[2],2));
+
+    double k[4] = {zFrameDirection[0]*error*std::tan(theta),
+                   zFrameDirection[1]*error*std::tan(theta),
+                   zFrameDirection[2]*error*std::tan(theta)};
+
+    double snappedPosition[3] = {intermediatePosition[0]+k[0],
+                                 intermediatePosition[1]+k[1],
+                                 intermediatePosition[2]+k[2]};
+
+    double testPosition[3] = {snappedPosition[0]-originalPosition[0],
+                              snappedPosition[1]-originalPosition[1],
+                              snappedPosition[2]-originalPosition[2]};
+
+    vtkMath::Normalize(testPosition);
+
+    double testDotProduct = vtkMath::Dot(viewerNormalDirection, testPosition);
+    if (std::fabs(testDotProduct) > 1.0e-1)
+      {
+      snappedPosition[0] -= 2*k[0];
+      snappedPosition[1] -= 2*k[1];
+      snappedPosition[2] -= 2*k[2];
+
+      testPosition[0] = snappedPosition[0]-originalPosition[0];
+      testPosition[1] = snappedPosition[1]-originalPosition[1];
+      testPosition[2] = snappedPosition[2]-originalPosition[2];
+
+      vtkMath::Normalize(testPosition);
+
+      testDotProduct = vtkMath::Dot(viewerNormalDirection, testPosition);
+      if (std::fabs(testDotProduct) > 1.0e-1)
+        {
+        std::cerr << "Fiducial couldn't be snapped accurately" << std::endl;
+        }
+      }
 
     // Move fiducial to closest hole position
     this->TargetPlanListNode->SetNthFiducialXYZ(lastFiducialIndex,
