@@ -1383,18 +1383,19 @@ void vtkProstateNavStepTargetingCryoTemplate::NewFiducialAdded()
       return;
       }
 
-    double distance = std::sqrt(
-      std::pow(holeTransform->GetElement(0,3)-originalPosition[0],2) +
-      std::pow(holeTransform->GetElement(1,3)-originalPosition[1],2) +
-      std::pow(holeTransform->GetElement(2,3)-originalPosition[2],2));
+    double holeToOriginalPosition[3] = { originalPosition[0]-holeTransform->GetElement(0,3),
+                                         originalPosition[1]-holeTransform->GetElement(1,3),
+                                         originalPosition[2]-holeTransform->GetElement(2,3)};
 
     double zFrameDirection[3] = {zFrameTransform->GetElement(0,2),
                                  zFrameTransform->GetElement(1,2),
                                  zFrameTransform->GetElement(2,2)};
+    vtkMath::Normalize(zFrameDirection);
+    double lenProjection = vtkMath::Dot(holeToOriginalPosition, zFrameDirection);
 
-    double projection[3] = {zFrameDirection[0]*distance,
-                            zFrameDirection[1]*distance,
-                            zFrameDirection[2]*distance};
+    double projection[3] = {zFrameDirection[0]*lenProjection,
+                            zFrameDirection[1]*lenProjection,
+                            zFrameDirection[2]*lenProjection};
 
     double intermediatePosition[3] = {holeTransform->GetElement(0,3)+projection[0],
                                       holeTransform->GetElement(1,3)+projection[1],
@@ -1421,52 +1422,51 @@ void vtkProstateNavStepTargetingCryoTemplate::NewFiducialAdded()
                                        sliceToRAS->GetElement(1,2),
                                        sliceToRAS->GetElement(2,2)};
 
-    double dotProduct = vtkMath::Dot(viewerNormalDirection, zFrameDirection);
+    double dotProduct = std::fabs(vtkMath::Dot(viewerNormalDirection, zFrameDirection));
     double theta = std::acos(dotProduct);
 
     double error = std::sqrt(std::pow(originalPosition[0]-intermediatePosition[0],2) +
                              std::pow(originalPosition[1]-intermediatePosition[1],2) +
                              std::pow(originalPosition[2]-intermediatePosition[2],2));
 
-    double k[4] = {zFrameDirection[0]*error*std::tan(theta),
+    double k[3] = {zFrameDirection[0]*error*std::tan(theta),
                    zFrameDirection[1]*error*std::tan(theta),
                    zFrameDirection[2]*error*std::tan(theta)};
+    
+    double snappedPosition1[3] = {intermediatePosition[0]+k[0],
+                                  intermediatePosition[1]+k[1],
+                                  intermediatePosition[2]+k[2]};
+    double snappedPosition2[3] = {intermediatePosition[0]-k[0],
+                                  intermediatePosition[1]-k[1],
+                                  intermediatePosition[2]-k[2]};
 
-    double snappedPosition[3] = {intermediatePosition[0]+k[0],
-                                 intermediatePosition[1]+k[1],
-                                 intermediatePosition[2]+k[2]};
+    double testPosition1[3] = {snappedPosition1[0]-originalPosition[0],
+                               snappedPosition1[1]-originalPosition[1],
+                               snappedPosition1[2]-originalPosition[2]};
+    double testPosition2[3] = {snappedPosition2[0]-originalPosition[0],
+                               snappedPosition2[1]-originalPosition[1],
+                               snappedPosition2[2]-originalPosition[2]};
 
-    double testPosition[3] = {snappedPosition[0]-originalPosition[0],
-                              snappedPosition[1]-originalPosition[1],
-                              snappedPosition[2]-originalPosition[2]};
+    vtkMath::Normalize(testPosition1);
+    vtkMath::Normalize(testPosition2);
+    
+    double testDotProduct1 = std::fabs(vtkMath::Dot(viewerNormalDirection, testPosition1));
+    double testDotProduct2 = std::fabs(vtkMath::Dot(viewerNormalDirection, testPosition2));
 
-    vtkMath::Normalize(testPosition);
-
-    double testDotProduct = vtkMath::Dot(viewerNormalDirection, testPosition);
-    if (std::fabs(testDotProduct) > 1.0e-1)
+    if (testDotProduct1 < testDotProduct2)
       {
-      snappedPosition[0] -= 2*k[0];
-      snappedPosition[1] -= 2*k[1];
-      snappedPosition[2] -= 2*k[2];
-
-      testPosition[0] = snappedPosition[0]-originalPosition[0];
-      testPosition[1] = snappedPosition[1]-originalPosition[1];
-      testPosition[2] = snappedPosition[2]-originalPosition[2];
-
-      vtkMath::Normalize(testPosition);
-
-      testDotProduct = vtkMath::Dot(viewerNormalDirection, testPosition);
-      if (std::fabs(testDotProduct) > 1.0e-1)
-        {
-        std::cerr << "Fiducial couldn't be snapped accurately" << std::endl;
-        }
+      this->TargetPlanListNode->SetNthFiducialXYZ(lastFiducialIndex,
+                                                    snappedPosition1[0],
+                                                    snappedPosition1[1],
+                                                    snappedPosition1[2]);
       }
-
-    // Move fiducial to closest hole position
-    this->TargetPlanListNode->SetNthFiducialXYZ(lastFiducialIndex,
-                                                snappedPosition[0],
-                                                snappedPosition[1],
-                                                snappedPosition[2]);
+    else
+      {
+      this->TargetPlanListNode->SetNthFiducialXYZ(lastFiducialIndex,
+                                                    snappedPosition2[0],
+                                                    snappedPosition2[1],
+                                                    snappedPosition2[2]);
+      }
     holeTransform->Delete();
     }
 }
