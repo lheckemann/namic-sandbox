@@ -40,13 +40,13 @@
 //          + TemplateModel
 
 // Hole (0, 0) position (surface)
-#define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_X  35.0
-#define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Y  25.0
+#define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_X  40.0
+#define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Y  30.3
 #define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Z  30.0
 
 // Template corner position
 #define TEMPLATE_BLOCK_OFFSET_FROM_HOLE_X   15.0
-#define TEMPLATE_BLOCK_OFFSET_FROM_HOLE_y   15.0
+#define TEMPLATE_BLOCK_OFFSET_FROM_HOLE_Y   15.0
 #define TEMPLATE_BLOCK_OFFSET_FROM_HOLE_Z   0.0
 
 #define TEMPLATE_WIDTH   100.0  // dimension in x direction (mm)
