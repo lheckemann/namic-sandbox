@@ -113,6 +113,9 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateCryoTemplateNode : publ
   vtkMRMLModelNode* GetTemplateModelNode();
   void SetAndObserveTemplateModelNodeID(const char *nodeID);
 
+  vtkGetStringMacro(TemplateIntersectionModelNodeID);
+  vtkMRMLModelNode* GetTemplateIntersectionModelNode();
+
   //vtkGetStringMacro(TemplateTransformNodeID);
   //vtkMRMLLinearTransformNode* GetTemplateTransformNode();
   //void SetAndObserveTemplateTransformNodeID(const char *nodeID);
@@ -189,6 +192,8 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateCryoTemplateNode : publ
   const char* AddTemplateModel(const char* nodeName);
   const char* AddNeedleModel(const char* nodeName, double length, double diameter);
 
+  const char* GenerateTemplateModel(const char* nodeName, int intersectionModel = 0);
+
   // NOTE: Since we couldn't update ScannerStatusLabelDisp and RobotStatusLabelDisp
   // directly from ProcessMRMLEvent(), we added following flags to update those GUI
   // widgets in the timer handler.
@@ -218,6 +223,10 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateCryoTemplateNode : publ
   char *TemplateModelNodeID;
   vtkMRMLModelNode* TemplateModelNode;
 
+  vtkSetReferenceStringMacro(TemplateIntersectionModelNodeID);
+  char *TemplateIntersectionModelNodeID;
+  vtkMRMLModelNode* TemplateIntersectionModelNode;
+  
   //vtkSetReferenceStringMacro(TemplateTransformNodeID);
   //char *TemplateTransformNodeID;
   //vtkMRMLLinearTransformNode* TemplateTransformNode;

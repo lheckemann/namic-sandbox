@@ -68,7 +68,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavStepTargetingCryoTemplate : public vt
   void ShowTargetListFrame();
   void ShowTargetControlFrame();
 
-  void ShowNeedle(bool show);
   void ShowTemplate(bool show);
 
   void EnableAddTargetsOnClickButton(bool enable);
@@ -107,9 +106,7 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavStepTargetingCryoTemplate : public vt
   vtkSlicerNodeSelectorWidget* VolumeSelectorWidget;
   vtkSlicerNodeSelectorWidget* TargetListSelectorWidget;
   vtkKWFrame *LoadVolumeDialogFrame;
-  vtkKWCheckButton *ShowWorkspaceButton;
   vtkKWCheckButton *AddTargetsOnClickButton;
-  vtkKWCheckButton *ShowNeedleButton;
   vtkKWCheckButton *ShowTemplateButton;
   vtkKWMenuButtonWithLabel *NeedleTypeMenuList;
   vtkMRMLFiducialListNode *TargetPlanListNode;

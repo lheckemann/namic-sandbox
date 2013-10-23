@@ -51,7 +51,8 @@
 
 #define TEMPLATE_WIDTH   100.0  // dimension in x direction (mm)
 #define TEMPLATE_HEIGHT  120.0  // dimension in y direction (mm)
-#define TEMPLATE_DEPTH   250.0   // dimension in z direction (mm)
+#define TEMPLATE_DEPTH   25.0   // dimension in z direction (mm)
+#define TEMPLATE_INTERSECTION_DEPTH TEMPLATE_DEPTH*10
 #define TEMPLATE_HOLE_RADIUS 1.5 // (only for visualization)
 
 #define TEMPLATE_GRID_PITCH_X -5
@@ -108,6 +109,9 @@ vtkMRMLTransPerinealProstateCryoTemplateNode::vtkMRMLTransPerinealProstateCryoTe
 
   this->TemplateModelNodeID=NULL;
   this->TemplateModelNode=NULL;
+
+  this->TemplateIntersectionModelNodeID=NULL;
+  this->TemplateIntersectionModelNode=NULL;
 
   //this->TemplateTransformNodeID=NULL;
   //this->TemplateTransformNode=NULL;
@@ -172,6 +176,10 @@ vtkMRMLTransPerinealProstateCryoTemplateNode::~vtkMRMLTransPerinealProstateCryoT
     SetAndObserveZFrameTransformNodeID(NULL);
     }
   if (this->TemplateModelNodeID)
+    {
+    SetAndObserveTemplateModelNodeID(NULL);
+    }
+  if (this->TemplateIntersectionModelNodeID)
     {
     SetAndObserveTemplateModelNodeID(NULL);
     }
@@ -344,7 +352,8 @@ void vtkMRMLTransPerinealProstateCryoTemplateNode::UpdateReferences()
     {
     this->SetAndObserveZFrameTransformNodeID(NULL);
     }
-  if (this->TemplateModelNodeID != NULL && this->Scene->GetNodeByID(this->TemplateModelNodeID) == NULL)
+  if (this->TemplateModelNodeID != NULL && this->Scene->GetNodeByID(this->TemplateModelNodeID) == NULL &&
+      this->TemplateIntersectionModelNodeID != NULL && this->Scene->GetNodeByID(this->TemplateIntersectionModelNodeID) == NULL)
     {
     this->SetAndObserveTemplateModelNodeID(NULL);
     }
@@ -911,6 +920,30 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddZFrameModel(const c
 //----------------------------------------------------------------------------
 const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddTemplateModel(const char* nodeName)
 {
+  // Regular template
+  const char* templateID = this->GenerateTemplateModel(nodeName);
+
+  // Intersection template
+  const char* templateIntersectionID = this->GenerateTemplateModel(nodeName, 1);
+  this->SetTemplateIntersectionModelNodeID(templateIntersectionID);
+
+  return templateID;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLTransPerinealProstateCryoTemplateNode::GenerateTemplateModel(const char* nodeName, int intersectionModel)
+{
+  
+  double length = TEMPLATE_DEPTH;
+  bool visibility = true;
+  std::stringstream newNodeName;
+  newNodeName << nodeName;
+  if (intersectionModel)
+    {
+    visibility = false;
+    length = TEMPLATE_INTERSECTION_DEPTH;
+    newNodeName << "-crossSection";
+    }
 
   vtkMRMLModelNode           *model;
   vtkMRMLModelDisplayNode    *disp;
@@ -923,7 +956,7 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddTemplateModel(const
   this->Scene->AddNode(model);
 
   disp->SetScene(this->Scene);
-  model->SetName(nodeName);
+  model->SetName(newNodeName.str().c_str());
   model->SetScene(this->Scene);
   model->SetAndObserveDisplayNodeID(disp->GetID());
   model->SetHideFromEditors(0);
@@ -938,12 +971,12 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddTemplateModel(const
       double offset[3];
       offset[0] = this->TemplateOffset[0] + this->TemplateGridPitch[0]/2 + j*this->TemplateGridPitch[0];
       offset[1] = this->TemplateOffset[1] + i*this->TemplateGridPitch[1]*2;
-      offset[2] = this->TemplateOffset[2] + TEMPLATE_DEPTH/2;
+      offset[2] = this->TemplateOffset[2] + length/2;
 
       vtkCylinderSource *cylinder = vtkCylinderSource::New();
       cylinder->SetResolution(24);
       cylinder->SetRadius(TEMPLATE_HOLE_RADIUS);
-      cylinder->SetHeight(TEMPLATE_DEPTH);
+      cylinder->SetHeight(length);
       cylinder->SetCenter(0, 0, 0);
       cylinder->Update();
       
@@ -974,12 +1007,12 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddTemplateModel(const
       double offset[3];
       offset[0] = this->TemplateOffset[0] + j*this->TemplateGridPitch[0];
       offset[1] = this->TemplateOffset[1] + this->TemplateGridPitch[1] + i*this->TemplateGridPitch[1]*2;
-      offset[2] = this->TemplateOffset[2] + TEMPLATE_DEPTH/2;
+      offset[2] = this->TemplateOffset[2] + length/2;
       
       vtkCylinderSource *cylinder = vtkCylinderSource::New();
       cylinder->SetResolution(24);
       cylinder->SetRadius(TEMPLATE_HOLE_RADIUS);
-      cylinder->SetHeight(TEMPLATE_DEPTH);
+      cylinder->SetHeight(length);
       cylinder->SetCenter(0, 0, 0);
       cylinder->Update();
       
@@ -1008,12 +1041,12 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddTemplateModel(const
     double offset[3];
     offset[0] = this->TemplateOffset[0] + ((this->TemplateNumGrids[0]-1)/2)*this->TemplateGridPitch[0];
     offset[1] = this->TemplateOffset[1] + i*this->TemplateGridPitch[1];
-    offset[2] = this->TemplateOffset[2] + TEMPLATE_DEPTH/2;
+    offset[2] = this->TemplateOffset[2] + length/2;
 
     vtkCubeSource* cube = vtkCubeSource::New();
     cube->SetXLength(TEMPLATE_HOLE_RADIUS/3);
     cube->SetYLength(std::fabs((this->TemplateNumGrids[1]-1)*this->TemplateGridPitch[1]));
-    cube->SetZLength(TEMPLATE_DEPTH);
+    cube->SetZLength(length);
     cube->SetCenter(0,0,0);
     cube->Update();
 
@@ -1041,12 +1074,12 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddTemplateModel(const
     double offset[3];
     offset[0] = this->TemplateOffset[0] + i*this->TemplateGridPitch[0];
     offset[1] = this->TemplateOffset[1] + ((this->TemplateNumGrids[1]-1)/2)*this->TemplateGridPitch[1];
-    offset[2] = this->TemplateOffset[2] + TEMPLATE_DEPTH/2;
+    offset[2] = this->TemplateOffset[2] + length/2;
 
     vtkCubeSource* cube = vtkCubeSource::New();
     cube->SetXLength(TEMPLATE_HOLE_RADIUS/3);
     cube->SetYLength(std::fabs((this->TemplateNumGrids[1]-1)*this->TemplateGridPitch[1]));
-    cube->SetZLength(TEMPLATE_DEPTH);
+    cube->SetZLength(length);
     cube->SetCenter(0,0,0);
     cube->Update();
 
@@ -1077,6 +1110,8 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddTemplateModel(const
   disp->SetPolyData(model->GetPolyData());
   disp->SetColor(color);
   disp->SetOpacity(0.5);
+  disp->SetVisibility(visibility);
+  disp->SetSliceIntersectionVisibility(!visibility);
 
   apd->Delete();
 
@@ -1085,9 +1120,8 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddTemplateModel(const
   disp->Delete();
   model->Delete();
 
-  return modelID;
+  return modelID;  
 }
-
 
 //----------------------------------------------------------------------------
 const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddNeedleModel(const char* nodeName, double length, double diameter)
@@ -1457,6 +1491,13 @@ void vtkMRMLTransPerinealProstateCryoTemplateNode::SetAndObserveTemplateModelNod
   vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
   events->InsertNextValue(vtkCommand::ModifiedEvent);
   vtkSetAndObserveMRMLObjectEventsMacro(this->TemplateModelNode, tnode, events);
+
+  if (this->TemplateIntersectionModelNode)
+    {
+    vtkSetAndObserveMRMLObjectMacro(this->TemplateIntersectionModelNode, NULL);
+    vtkMRMLModelNode *tinode = this->GetTemplateIntersectionModelNode();
+    vtkSetAndObserveMRMLObjectEventsMacro(this->TemplateIntersectionModelNode, tinode, events);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -1469,6 +1510,15 @@ vtkMRMLModelNode* vtkMRMLTransPerinealProstateCryoTemplateNode::GetTemplateModel
   return NULL;
 }
 
+//----------------------------------------------------------------------------
+vtkMRMLModelNode* vtkMRMLTransPerinealProstateCryoTemplateNode::GetTemplateIntersectionModelNode()
+{
+  if (this->GetScene() && this->TemplateIntersectionModelNodeID != NULL )
+    {
+    return vtkMRMLModelNode::SafeDownCast(this->GetScene()->GetNodeByID(this->TemplateIntersectionModelNodeID));
+    }
+  return NULL;
+}
 
 //----------------------------------------------------------------------------
 void vtkMRMLTransPerinealProstateCryoTemplateNode::SetAndObserveActiveNeedleModelNodeID(const char *nodeId)
