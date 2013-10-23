@@ -1204,7 +1204,7 @@ void vtkProstateNavStepTargetingCryoTemplate::ShowTemplate(bool show)
 {
   vtkMRMLModelNode* modelNode = NULL;
   vtkMRMLModelNode* modelIntersectionNode = NULL;
-  
+
   vtkMRMLTransPerinealProstateCryoTemplateNode* cryoNode =
     vtkMRMLTransPerinealProstateCryoTemplateNode::SafeDownCast(this->GetProstateNavManager()->GetRobotNode());
 
