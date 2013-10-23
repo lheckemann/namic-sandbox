@@ -560,13 +560,20 @@ int vtkMRMLTransPerinealProstateCryoTemplateNode::Init(vtkSlicerApplication* app
     {
     const char* nodeID = AddTemplateModel("CryoTemplate");
     vtkMRMLModelNode*  modelNode = vtkMRMLModelNode::SafeDownCast(this->Scene->GetNodeByID(nodeID));
-    if (modelNode)
+    vtkMRMLModelNode*  intersectionModelNode = NULL;
+    if (this->TemplateIntersectionModelNodeID)
+      {
+      intersectionModelNode = vtkMRMLModelNode::SafeDownCast(this->Scene->GetNodeByID(this->TemplateIntersectionModelNodeID));
+      }
+
+    if (modelNode && intersectionModelNode)
       {
       vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
       displayNode->SetVisibility(0);
       modelNode->Modified();
       this->Scene->Modified();
       modelNode->SetAndObserveTransformNodeID(GetZFrameTransformNodeID());
+      intersectionModelNode->SetAndObserveTransformNodeID(GetZFrameTransformNodeID());
       SetAndObserveTemplateModelNodeID(nodeID);
       }
     }
@@ -933,7 +940,7 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddTemplateModel(const
 //----------------------------------------------------------------------------
 const char* vtkMRMLTransPerinealProstateCryoTemplateNode::GenerateTemplateModel(const char* nodeName, int intersectionModel)
 {
-  
+
   double length = TEMPLATE_DEPTH;
   bool visibility = true;
   std::stringstream newNodeName;
@@ -979,7 +986,7 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::GenerateTemplateModel(
       cylinder->SetHeight(length);
       cylinder->SetCenter(0, 0, 0);
       cylinder->Update();
-      
+
       vtkTransform* trans =   vtkTransform::New();
       trans->Translate(offset);
       trans->RotateX(90.0);
@@ -1008,14 +1015,14 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::GenerateTemplateModel(
       offset[0] = this->TemplateOffset[0] + j*this->TemplateGridPitch[0];
       offset[1] = this->TemplateOffset[1] + this->TemplateGridPitch[1] + i*this->TemplateGridPitch[1]*2;
       offset[2] = this->TemplateOffset[2] + length/2;
-      
+
       vtkCylinderSource *cylinder = vtkCylinderSource::New();
       cylinder->SetResolution(24);
       cylinder->SetRadius(TEMPLATE_HOLE_RADIUS);
       cylinder->SetHeight(length);
       cylinder->SetCenter(0, 0, 0);
       cylinder->Update();
-      
+
       vtkTransform* trans =   vtkTransform::New();
       trans->Translate(offset);
       trans->RotateX(90.0);
@@ -1120,7 +1127,7 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::GenerateTemplateModel(
   disp->Delete();
   model->Delete();
 
-  return modelID;  
+  return modelID;
 }
 
 //----------------------------------------------------------------------------
