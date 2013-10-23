@@ -113,8 +113,6 @@ vtkProstateNavStepTargetingCryoTemplate::vtkProstateNavStepTargetingCryoTemplate
   this->VolumeSelectorWidget=NULL;
   this->TargetListSelectorWidget=NULL;
   this->TargetPlanningFrame=NULL;
-  this->ShowWorkspaceButton=NULL;
-  this->ShowNeedleButton=NULL;
   this->ShowTemplateButton=NULL;
   this->AddTargetsOnClickButton=NULL;
   //this->NeedleTypeMenuList=NULL;
@@ -159,8 +157,6 @@ vtkProstateNavStepTargetingCryoTemplate::~vtkProstateNavStepTargetingCryoTemplat
   DELETE_IF_NULL_WITH_SETPARENT_NULL(VolumeSelectorWidget);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetListSelectorWidget);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetPlanningFrame);
-  DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowWorkspaceButton);
-  DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowNeedleButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowTemplateButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(AddTargetsOnClickButton);
   //DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleTypeMenuList);
@@ -304,18 +300,6 @@ void vtkProstateNavStepTargetingCryoTemplate::ShowTargetPlanningFrame()
   this->Script("pack %s -side top -anchor nw -expand y -padx 2 -pady 2",
                this->OptionFrame->GetWidgetName());
 
-  if (!this->ShowWorkspaceButton)
-    {
-    this->ShowWorkspaceButton = vtkKWCheckButton::New();
-    }
-  if (!this->ShowWorkspaceButton->IsCreated()) {
-  this->ShowWorkspaceButton->SetParent(this->OptionFrame);
-  this->ShowWorkspaceButton->Create();
-  this->ShowWorkspaceButton->SelectedStateOff();
-  this->ShowWorkspaceButton->SetText("Show workspace");
-  this->ShowWorkspaceButton->SetBalloonHelpString("Show workspace of the robot");
-  }
-
   if (!this->AddTargetsOnClickButton)
     {
     this->AddTargetsOnClickButton = vtkKWCheckButton::New();
@@ -326,18 +310,6 @@ void vtkProstateNavStepTargetingCryoTemplate::ShowTargetPlanningFrame()
   this->AddTargetsOnClickButton->SelectedStateOff();
   this->AddTargetsOnClickButton->SetText("Add target by image click");
   this->AddTargetsOnClickButton->SetBalloonHelpString("Add a target if image is clicked, with the current needle");
-  }
-
-  if (!this->ShowNeedleButton)
-    {
-    this->ShowNeedleButton = vtkKWCheckButton::New();
-    }
-  if (!this->ShowNeedleButton->IsCreated()) {
-  this->ShowNeedleButton->SetParent(this->OptionFrame);
-  this->ShowNeedleButton->Create();
-  this->ShowNeedleButton->SelectedStateOff();
-  this->ShowNeedleButton->SetText("Needle");
-  this->ShowNeedleButton->SetBalloonHelpString("Show predicted needle path");
   }
 
   if (!this->ShowTemplateButton)
@@ -352,10 +324,8 @@ void vtkProstateNavStepTargetingCryoTemplate::ShowTargetPlanningFrame()
   this->ShowTemplateButton->SetBalloonHelpString("Show predicted needle path");
   }
 
-  this->Script("pack %s %s %s %s -side left -expand y -padx 2 -pady 2",
+  this->Script("pack %s %s -side left -expand y -padx 2 -pady 2",
                this->AddTargetsOnClickButton->GetWidgetName(),
-               this->ShowWorkspaceButton->GetWidgetName(),
-               this->ShowNeedleButton->GetWidgetName(),
                this->ShowTemplateButton->GetWidgetName());
   //this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->LoadTargetingVolumeButton->GetWidgetName());
   //this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->VolumeSelectorWidget->GetWidgetName());
@@ -642,17 +612,6 @@ void vtkProstateNavStepTargetingCryoTemplate::ProcessGUIEvents(vtkObject *caller
   //  {
   //  this->GetApplication()->Script("::LoadVolume::ShowDialog");
   //  }
-
-  // show workspace button
-  if (this->ShowWorkspaceButton && this->ShowWorkspaceButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
-    {
-    this->ShowWorkspaceModel(this->ShowWorkspaceButton->GetSelectedState() == 1);
-    }
-
-  if (this->ShowNeedleButton && this->ShowNeedleButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
-    {
-    this->ShowNeedle(this->ShowNeedleButton->GetSelectedState() == 1);
-    }
 
   if (this->ShowTemplateButton && this->ShowTemplateButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
     {
@@ -1072,15 +1031,6 @@ void vtkProstateNavStepTargetingCryoTemplate::AddGUIObservers()
     {
     this->TargetListSelectorWidget->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
-
-  if (this->ShowWorkspaceButton)
-    {
-    this->ShowWorkspaceButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->ShowNeedleButton)
-    {
-    this->ShowNeedleButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
   if (this->ShowTemplateButton)
     {
     this->ShowTemplateButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -1125,14 +1075,6 @@ void vtkProstateNavStepTargetingCryoTemplate::RemoveGUIObservers()
   if (this->TargetListSelectorWidget)
     {
     this->TargetListSelectorWidget->RemoveObserver ((vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->ShowWorkspaceButton)
-    {
-    this->ShowWorkspaceButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->ShowNeedleButton)
-    {
-    this->ShowNeedleButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->ShowTemplateButton)
     {
@@ -1258,56 +1200,35 @@ void vtkProstateNavStepTargetingCryoTemplate::UpdateGUI()
 }
 
 //---------------------------------------------------------------------------
-void vtkProstateNavStepTargetingCryoTemplate::ShowNeedle(bool show)
-{
-  vtkMRMLTransPerinealProstateTemplateNode* robotNode =
-    vtkMRMLTransPerinealProstateTemplateNode::SafeDownCast(this->GetProstateNavManager()->GetRobotNode());
-
-  if (robotNode == NULL)
-    return;
-
-  vtkMRMLModelNode* modelNode = robotNode->GetActiveNeedleModelNode();
-
-  if (modelNode == NULL)
-    return;
-
-  vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
-
-  if (displayNode == NULL)
-    return;
-
-  // Show the predicted needle path
-  displayNode->SetVisibility(show);
-
-}
-
-//---------------------------------------------------------------------------
 void vtkProstateNavStepTargetingCryoTemplate::ShowTemplate(bool show)
 {
   vtkMRMLModelNode* modelNode = NULL;
-
+  vtkMRMLModelNode* modelIntersectionNode = NULL;
+  
   vtkMRMLTransPerinealProstateCryoTemplateNode* cryoNode =
     vtkMRMLTransPerinealProstateCryoTemplateNode::SafeDownCast(this->GetProstateNavManager()->GetRobotNode());
 
   if (cryoNode != NULL)
     {
     modelNode = cryoNode->GetTemplateModelNode();
+    modelIntersectionNode = cryoNode->GetTemplateIntersectionModelNode();
 
-    if (modelNode == NULL)
+    if (modelNode == NULL || modelIntersectionNode == NULL)
       return;
     }
 
-  if (modelNode == NULL)
+  if (modelNode == NULL || modelIntersectionNode == NULL)
     return;
 
   vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
+  vtkMRMLDisplayNode* displayIntersectionNode = modelIntersectionNode->GetDisplayNode();
 
-  if (displayNode == NULL)
+  if (displayNode == NULL || displayIntersectionNode == NULL)
     return;
 
   // Show the predicted needle path
   displayNode->SetVisibility(show);
-  displayNode->SetSliceIntersectionVisibility(show);
+  displayIntersectionNode->SetSliceIntersectionVisibility(show);
 }
 
 
@@ -1432,7 +1353,7 @@ void vtkProstateNavStepTargetingCryoTemplate::NewFiducialAdded()
     double k[3] = {zFrameDirection[0]*error*std::tan(theta),
                    zFrameDirection[1]*error*std::tan(theta),
                    zFrameDirection[2]*error*std::tan(theta)};
-    
+
     double snappedPosition1[3] = {intermediatePosition[0]+k[0],
                                   intermediatePosition[1]+k[1],
                                   intermediatePosition[2]+k[2]};
@@ -1449,23 +1370,23 @@ void vtkProstateNavStepTargetingCryoTemplate::NewFiducialAdded()
 
     vtkMath::Normalize(testPosition1);
     vtkMath::Normalize(testPosition2);
-    
+
     double testDotProduct1 = std::fabs(vtkMath::Dot(viewerNormalDirection, testPosition1));
     double testDotProduct2 = std::fabs(vtkMath::Dot(viewerNormalDirection, testPosition2));
 
     if (testDotProduct1 < testDotProduct2)
       {
       this->TargetPlanListNode->SetNthFiducialXYZ(lastFiducialIndex,
-                                                    snappedPosition1[0],
-                                                    snappedPosition1[1],
-                                                    snappedPosition1[2]);
+                                                  snappedPosition1[0],
+                                                  snappedPosition1[1],
+                                                  snappedPosition1[2]);
       }
     else
       {
       this->TargetPlanListNode->SetNthFiducialXYZ(lastFiducialIndex,
-                                                    snappedPosition2[0],
-                                                    snappedPosition2[1],
-                                                    snappedPosition2[2]);
+                                                  snappedPosition2[0],
+                                                  snappedPosition2[1],
+                                                  snappedPosition2[2]);
       }
     holeTransform->Delete();
     }
