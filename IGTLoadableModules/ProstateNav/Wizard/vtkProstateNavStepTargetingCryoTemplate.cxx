@@ -114,6 +114,7 @@ vtkProstateNavStepTargetingCryoTemplate::vtkProstateNavStepTargetingCryoTemplate
   this->TargetListSelectorWidget=NULL;
   this->TargetPlanningFrame=NULL;
   this->ShowTemplateButton=NULL;
+  this->ShowNeedleButton=NULL;
   this->AddTargetsOnClickButton=NULL;
   //this->NeedleTypeMenuList=NULL;
 
@@ -158,6 +159,7 @@ vtkProstateNavStepTargetingCryoTemplate::~vtkProstateNavStepTargetingCryoTemplat
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetListSelectorWidget);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetPlanningFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowTemplateButton);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowNeedleButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(AddTargetsOnClickButton);
   //DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleTypeMenuList);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(OptionFrame);
@@ -312,6 +314,19 @@ void vtkProstateNavStepTargetingCryoTemplate::ShowTargetPlanningFrame()
   this->AddTargetsOnClickButton->SetBalloonHelpString("Add a target if image is clicked, with the current needle");
   }
 
+  if (!this->ShowNeedleButton)
+    {
+    this->ShowNeedleButton = vtkKWCheckButton::New();
+    }
+  if (!this->ShowNeedleButton->IsCreated())
+    {
+    this->ShowNeedleButton->SetParent(this->OptionFrame);
+    this->ShowNeedleButton->Create();
+    this->ShowNeedleButton->SelectedStateOff();
+    this->ShowNeedleButton->SetText("Needle");
+    this->ShowNeedleButton->SetBalloonHelpString("Show needle path");
+    }
+
   if (!this->ShowTemplateButton)
     {
     this->ShowTemplateButton = vtkKWCheckButton::New();
@@ -324,9 +339,10 @@ void vtkProstateNavStepTargetingCryoTemplate::ShowTargetPlanningFrame()
   this->ShowTemplateButton->SetBalloonHelpString("Show predicted needle path");
   }
 
-  this->Script("pack %s %s -side left -expand y -padx 2 -pady 2",
+  this->Script("pack %s %s %s -side left -expand y -padx 2 -pady 2",
                this->AddTargetsOnClickButton->GetWidgetName(),
-               this->ShowTemplateButton->GetWidgetName());
+               this->ShowTemplateButton->GetWidgetName(),
+               this->ShowNeedleButton->GetWidgetName());
   //this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->LoadTargetingVolumeButton->GetWidgetName());
   //this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->VolumeSelectorWidget->GetWidgetName());
   //this->Script("grid %s -row 1 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->NeedleTypeMenuList->GetWidgetName());
@@ -616,6 +632,11 @@ void vtkProstateNavStepTargetingCryoTemplate::ProcessGUIEvents(vtkObject *caller
   if (this->ShowTemplateButton && this->ShowTemplateButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
     {
     this->ShowTemplate(this->ShowTemplateButton->GetSelectedState() == 1);
+    }
+
+  if (this->ShowNeedleButton && this->ShowNeedleButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+    {
+    this->ShowNeedle(this->ShowNeedleButton->GetSelectedState() == 1);
     }
 
   // activate fiducial placement
@@ -1035,6 +1056,10 @@ void vtkProstateNavStepTargetingCryoTemplate::AddGUIObservers()
     {
     this->ShowTemplateButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->ShowNeedleButton)
+    {
+    this->ShowNeedleButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->AddTargetsOnClickButton)
     {
     this->AddTargetsOnClickButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -1079,6 +1104,10 @@ void vtkProstateNavStepTargetingCryoTemplate::RemoveGUIObservers()
   if (this->ShowTemplateButton)
     {
     this->ShowTemplateButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->ShowNeedleButton)
+    {
+    this->ShowNeedleButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->AddTargetsOnClickButton)
     {
@@ -1197,6 +1226,30 @@ void vtkProstateNavStepTargetingCryoTemplate::UpdateGUI()
   //  int needleIndex=mrmlNode->GetCurrentNeedleIndex();
   //  this->NeedleTypeMenuList->GetWidget()->GetMenu()->SelectItem(needleIndex);
   //  }
+}
+
+//---------------------------------------------------------------------------
+void vtkProstateNavStepTargetingCryoTemplate::ShowNeedle(bool show)
+{
+  vtkMRMLTransPerinealProstateCryoTemplateNode* robotNode =
+    vtkMRMLTransPerinealProstateCryoTemplateNode::SafeDownCast(this->GetProstateNavManager()->GetRobotNode());
+
+  if (robotNode == NULL)
+    return;
+
+  vtkMRMLModelNode* modelNode = robotNode->GetActiveNeedleModelNode();
+
+  if (modelNode == NULL)
+    return;
+
+  vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
+
+  if (displayNode == NULL)
+    return;
+
+  // Show the predicted needle path
+  displayNode->SetVisibility(show);
+  displayNode->SetSliceIntersectionVisibility(show);
 }
 
 //---------------------------------------------------------------------------
