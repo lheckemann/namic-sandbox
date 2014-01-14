@@ -31,6 +31,7 @@
 
 #include "vtkSphereSource.h"
 #include "vtkCubeSource.h"
+#include "vtkConeSource.h"
 
 //
 // Models and Transforms
@@ -59,6 +60,8 @@
 #define TEMPLATE_GRID_PITCH_Y -4.33
 #define TEMPLATE_NUMBER_OF_GRIDS_X 17  // must be odd number
 #define TEMPLATE_NUMBER_OF_GRIDS_Y 19
+
+#define NEEDLE_LENGTH 100
 
 //-------------------------------------
 
@@ -1150,10 +1153,28 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddNeedleModel(const c
   needleModel->SetAndObserveDisplayNodeID(needleDisp->GetID());
   needleModel->SetHideFromEditors(0);
 
+  double coneHeight = 5.0;
+  vtkConeSource* cone = vtkConeSource::New();
+  cone->SetRadius(1.5);
+  cone->SetHeight(coneHeight);
+  cone->SetResolution(6);
+  cone->SetCenter(0,0,0);
+  cone->CappingOff();
+  cone->Update();
+
+  vtkTransformPolyDataFilter *cfilter = vtkTransformPolyDataFilter::New();
+  vtkTransform* ctrans = vtkTransform::New();
+  ctrans->RotateY(-90);
+  ctrans->RotateX(30);
+  ctrans->Translate(-coneHeight/2, 0.0, 0.0);
+  cfilter->SetInput(cone->GetOutput());
+  cfilter->SetTransform(ctrans);
+  cfilter->Update();
+
   // Cylinder represents the locator stick
   vtkCylinderSource *cylinder = vtkCylinderSource::New();
   cylinder->SetRadius(1.5);
-  cylinder->SetHeight(100);
+  cylinder->SetHeight(NEEDLE_LENGTH);
   cylinder->SetCenter(0, 0, 0);
   cylinder->Update();
 
@@ -1161,20 +1182,14 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddNeedleModel(const c
   vtkTransformPolyDataFilter *tfilter = vtkTransformPolyDataFilter::New();
   vtkTransform* trans =   vtkTransform::New();
   trans->RotateX(90.0);
-  trans->Translate(0.0, -50.0, 0.0);
+  trans->Translate(0.0, -coneHeight-NEEDLE_LENGTH/2, 0.0);
   trans->Update();
   tfilter->SetInput(cylinder->GetOutput());
   tfilter->SetTransform(trans);
   tfilter->Update();
 
-  // Sphere represents the locator tip
-  vtkSphereSource *sphere = vtkSphereSource::New();
-  sphere->SetRadius(3.0);
-  sphere->SetCenter(0, 0, 0);
-  sphere->Update();
-
   vtkAppendPolyData *apd = vtkAppendPolyData::New();
-  apd->AddInput(sphere->GetOutput());
+  apd->AddInput(cfilter->GetOutput());
   //apd->AddInput(cylinder->GetOutput());
   apd->AddInput(tfilter->GetOutput());
   apd->Update();
@@ -1187,9 +1202,9 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddNeedleModel(const c
   needleDisp->SetPolyData(needleModel->GetPolyData());
 
   double color[3];
-  color[0] = 0.5;
-  color[1] = 0.5;
-  color[2] = 0.5;
+  color[0] = 1.0;
+  color[1] = 0.0;
+  color[2] = 0.0;
   needleDisp->SetPolyData(needleModel->GetPolyData());
   needleDisp->SetColor(color);
 
@@ -1199,7 +1214,9 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddNeedleModel(const c
   trans->Delete();
   tfilter->Delete();
   cylinder->Delete();
-  sphere->Delete();
+  cone->Delete();
+  ctrans->Delete();
+  cfilter->Delete();
   apd->Delete();
 
   const char* modelID = needleModel->GetID();
