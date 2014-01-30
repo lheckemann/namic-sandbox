@@ -1121,7 +1121,6 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::GenerateTemplateModel(
   disp->SetColor(color);
   disp->SetOpacity(0.5);
   disp->SetVisibility(visibility);
-  disp->SetSliceIntersectionVisibility(!visibility);
 
   apd->Delete();
 
@@ -1356,11 +1355,12 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::GetTargetReport(vtkPro
   FindHole(targetX, targetY, targetZ, i, j, depth, errorX, errorY, errorZ);
   vtkMatrix4x4* matrix = vtkMatrix4x4::New();
   GetHoleTransform(i, j, matrix);
+  int j_corrected = j - ((i%2 == 0 && j>7)? 7: 8);
 
   std::ostringstream ss;
   //ss << "Grid:   (" << i << ", " << (char) ('A' + j) << ")" << std::endl;
   ss << "Name:   " << targetDesc->GetName() << std::endl;
-  ss << "Grid:   (" << (char) ('A' + i) << ", " << (j) << ")" << std::endl;
+  ss << "Grid:   (" << (char) ('A' + i) << ", " << (j_corrected) << ")" << std::endl;
   ss << "Depth:  " << depth << " mm" << std::endl;
   ss << "Target: R=" << targetX << ", A=" << targetY << ", S=" << targetZ << std::endl;
   ss << "Error:  R=" << errorX  << ", A=" << errorY  << ", S=" << errorZ  << std::endl;
@@ -1628,10 +1628,11 @@ std::string vtkMRMLTransPerinealProstateCryoTemplateNode::GetTargetInfoText(vtkP
   double errorZ;
 
   FindHole(target[0], target[1], target[2], i, j, depth, errorX, errorY, errorZ);
+  int j_corrected = j - ((i%2 == 0 && j>7)? 7: 8);
 
   std::ostrstream os;
   os << "Target: " << targetDesc->GetName()<<std::endl;
-  os << "Grid:   (" << (char) ('A' + i) << ", " << (j) << ")" << std::endl;
+  os << "Grid:   (" << (char) ('A' + i) << ", " << (j_corrected) << ")" << std::endl;
   os << "Depth:  " << depth << " mm" << std::endl;
   os << "Target: R=" << target[0] << ", A=" << target[1] << ", S=" << target[2] << std::endl;
   os << "Error:  R=" << errorX  << ", A=" << errorY  << ", S=" << errorZ  << std::endl;

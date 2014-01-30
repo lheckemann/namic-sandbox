@@ -665,8 +665,25 @@ void vtkProstateNavStepTargetingCryoTemplate::ProcessGUIEvents(vtkObject *caller
     vtkMRMLFiducialListNode *fid = vtkMRMLFiducialListNode::SafeDownCast(this->TargetListSelectorWidget->GetSelected());
     if (fid != NULL)
       {
+      this->MRMLObserverManager->SetAndObserveObjectEvents(vtkObjectPointer(&(this->TargetPlanListNode)), NULL, NULL);
+
       vtkMRMLProstateNavManagerNode* manager=this->GetProstateNavManager();
       manager->SetAndObserveTargetPlanListNodeID(fid->GetID());
+
+      vtkMRMLFiducialListNode* plan = manager->GetTargetPlanListNode();      
+      if (plan)
+        {
+        vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+        events->InsertNextValue(vtkCommand::ModifiedEvent);
+        events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+        events->InsertNextValue(vtkMRMLFiducialListNode::DisplayModifiedEvent);
+        events->InsertNextValue(vtkMRMLFiducialListNode::FiducialModifiedEvent);
+  
+        // Set and observe target plan list
+        //vtkObject *oldNode = this->TargetPlanListNode;
+        this->MRMLObserverManager->SetAndObserveObjectEvents(vtkObjectPointer(&(this->TargetPlanListNode)),(plan),(events));
+        EnableAddTargetsOnClickButton(this->AddTargetsOnClickButton->GetSelectedState()==1);
+        }
       }
     }
 
