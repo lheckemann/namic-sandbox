@@ -617,6 +617,31 @@ void vtkProstateNavStepTargetingCryoTemplate::ProcessGUIEvents(vtkObject *caller
       int fidIndex=this->TargetPlanListNode->GetFiducialIndex(targetDesc->GetFiducialID());
       if (fidIndex>=0)
         {
+
+        // Remove needle and iceball models
+        const char* fiducialID = this->TargetPlanListNode->GetNthFiducialID(fidIndex);
+        if (fiducialID)
+          {
+          const char* needleModelID = this->TargetPlanListNode->GetAttribute(fiducialID);
+          if (needleModelID)
+            {
+            vtkMRMLNode* needleModel = this->MRMLScene->GetNodeByID(needleModelID);
+            if (needleModel)
+              {
+              const char* cryoBallID = needleModel->GetAttribute("CryoBallID");
+              if (cryoBallID)
+                {
+                vtkMRMLNode* cryoBallModel = this->MRMLScene->GetNodeByID(cryoBallID);
+                if (cryoBallModel)
+                  {
+                  this->MRMLScene->RemoveNode(cryoBallModel);
+                  }
+                }
+              this->MRMLScene->RemoveNode(needleModel);
+              }
+            }
+          }
+
         this->TargetPlanListNode->RemoveFiducial(fidIndex);
         mrmlNode->SetCurrentTargetIndex(-1);
         UpdateTargetListGUI();
