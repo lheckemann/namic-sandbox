@@ -33,6 +33,10 @@
 #include "vtkCubeSource.h"
 #include "vtkConeSource.h"
 
+#include "vtkParametricEllipsoid.h"
+#include "vtkParametricFunctionSource.h"
+
+
 //
 // Models and Transforms
 //    + ZFrameTransformNode (position of the center of Z-frame)
@@ -154,7 +158,7 @@ vtkMRMLTransPerinealProstateCryoTemplateNode::vtkMRMLTransPerinealProstateCryoTe
   // Needle information
   this->FlagNeedleInfomation = 0;
   this->NeedleDepth = 0.0;
-
+  this->NeedleType = 0;
 }
 
 
@@ -582,36 +586,38 @@ int vtkMRMLTransPerinealProstateCryoTemplateNode::Init(vtkSlicerApplication* app
     }
 
   // Active needle transform node
+/*
   if (GetActiveNeedleTransformNode()==NULL)
-    {
-    vtkMRMLLinearTransformNode* atnode = vtkMRMLLinearTransformNode::New();
-    atnode->SetName("ActiveNeedleTransform");
-    vtkMatrix4x4* ztransform = vtkMatrix4x4::New();
-    ztransform->Identity();
-    //transformNode->SetAndObserveImageData(transform);
-    atnode->ApplyTransform(ztransform);
-    atnode->SetScene(this->Scene);
-    ztransform->Delete();
-    this->Scene->AddNode(atnode);
-    SetAndObserveActiveNeedleTransformNodeID(atnode->GetID());
-    }
+  {
+  vtkMRMLLinearTransformNode* atnode = vtkMRMLLinearTransformNode::New();
+  atnode->SetName("ActiveNeedleTransform");
+  vtkMatrix4x4* ztransform = vtkMatrix4x4::New();
+  ztransform->Identity();
+  //transformNode->SetAndObserveImageData(transform);
+  atnode->ApplyTransform(ztransform);
+  atnode->SetScene(this->Scene);
+  ztransform->Delete();
+  this->Scene->AddNode(atnode);
+  SetAndObserveActiveNeedleTransformNodeID(atnode->GetID());
+  }
 
   // Active Needle model
   // This part should be moved to Robot Display Node.
   if (GetActiveNeedleModelNode()==NULL)
-    {
-    const char* nodeID = AddNeedleModel("ActiveNeedle", 200.0, 4.0);
-    vtkMRMLModelNode*  modelNode = vtkMRMLModelNode::SafeDownCast(this->Scene->GetNodeByID(nodeID));
-    if (modelNode)
-      {
-      vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
-      displayNode->SetVisibility(0);
-      modelNode->Modified();
-      this->Scene->Modified();
-      modelNode->SetAndObserveTransformNodeID(GetActiveNeedleTransformNodeID());
-      SetAndObserveActiveNeedleModelNodeID(nodeID);
-      }
-    }
+  {
+  const char* nodeID = AddNeedleModel("ActiveNeedle", 200.0, 4.0);
+  vtkMRMLModelNode*  modelNode = vtkMRMLModelNode::SafeDownCast(this->Scene->GetNodeByID(nodeID));
+  if (modelNode)
+  {
+  vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
+  displayNode->SetVisibility(0);
+  modelNode->Modified();
+  this->Scene->Modified();
+  modelNode->SetAndObserveTransformNodeID(GetActiveNeedleTransformNodeID());
+  SetAndObserveActiveNeedleModelNodeID(nodeID);
+  }
+  }
+*/
 
   // For Real-time MRI
   // Imaging plane
@@ -1135,16 +1141,18 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::GenerateTemplateModel(
 //----------------------------------------------------------------------------
 const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddNeedleModel(const char* nodeName, double length, double diameter)
 {
+  double needleColor[3] = {1.0, 0.0, 0.0};
+  double needleLength = NEEDLE_LENGTH;
+  double coneHeight = 5.0;
 
-  vtkMRMLModelNode           *needleModel;
-  vtkMRMLModelDisplayNode    *needleDisp;
-
-  needleModel = vtkMRMLModelNode::New();
-  needleDisp  = vtkMRMLModelDisplayNode::New();
+  vtkSmartPointer<vtkMRMLModelNode> needleModel =
+    vtkSmartPointer<vtkMRMLModelNode>::New();
+  vtkSmartPointer<vtkMRMLModelDisplayNode> needleDisp =
+    vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
 
   this->Scene->SaveStateForUndo();
-  this->Scene->AddNode(needleDisp);
-  this->Scene->AddNode(needleModel);
+  this->Scene->AddNode(needleDisp.GetPointer());
+  this->Scene->AddNode(needleModel.GetPointer());
 
   needleDisp->SetScene(this->Scene);
   needleModel->SetName(nodeName);
@@ -1152,8 +1160,10 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddNeedleModel(const c
   needleModel->SetAndObserveDisplayNodeID(needleDisp->GetID());
   needleModel->SetHideFromEditors(0);
 
-  double coneHeight = 5.0;
-  vtkConeSource* cone = vtkConeSource::New();
+  const char* modelID = needleModel->GetID();
+
+  vtkSmartPointer<vtkConeSource> cone =
+    vtkSmartPointer<vtkConeSource>::New();
   cone->SetRadius(1.5);
   cone->SetHeight(coneHeight);
   cone->SetResolution(6);
@@ -1161,73 +1171,200 @@ const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddNeedleModel(const c
   cone->CappingOff();
   cone->Update();
 
-  vtkTransformPolyDataFilter *cfilter = vtkTransformPolyDataFilter::New();
-  vtkTransform* ctrans = vtkTransform::New();
+  vtkSmartPointer<vtkTransformPolyDataFilter> cfilter =
+    vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransform> ctrans =
+    vtkSmartPointer<vtkTransform>::New();
   ctrans->RotateY(-90);
   ctrans->RotateX(30);
   ctrans->Translate(-coneHeight/2, 0.0, 0.0);
   cfilter->SetInput(cone->GetOutput());
-  cfilter->SetTransform(ctrans);
+  cfilter->SetTransform(ctrans.GetPointer());
   cfilter->Update();
 
   // Cylinder represents the locator stick
-  vtkCylinderSource *cylinder = vtkCylinderSource::New();
+  vtkSmartPointer<vtkCylinderSource> cylinder =
+    vtkSmartPointer<vtkCylinderSource>::New();
   cylinder->SetRadius(1.5);
-  cylinder->SetHeight(NEEDLE_LENGTH);
+  cylinder->SetHeight(needleLength);
   cylinder->SetCenter(0, 0, 0);
   cylinder->Update();
 
   // Rotate cylinder
-  vtkTransformPolyDataFilter *tfilter = vtkTransformPolyDataFilter::New();
-  vtkTransform* trans =   vtkTransform::New();
-  trans->RotateX(90.0);
-  trans->Translate(0.0, -coneHeight-NEEDLE_LENGTH/2, 0.0);
-  trans->Update();
+  vtkSmartPointer<vtkTransformPolyDataFilter> tfilter =
+    vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransform> ttrans =
+    vtkSmartPointer<vtkTransform>::New();
+  ttrans->RotateX(90.0);
+  ttrans->Translate(0.0, -coneHeight-needleLength/2, 0.0);
+  ttrans->Update();
   tfilter->SetInput(cylinder->GetOutput());
-  tfilter->SetTransform(trans);
+  tfilter->SetTransform(ttrans.GetPointer());
   tfilter->Update();
 
-  vtkAppendPolyData *apd = vtkAppendPolyData::New();
+  vtkSmartPointer<vtkAppendPolyData> apd =
+    vtkSmartPointer<vtkAppendPolyData>::New();
   apd->AddInput(cfilter->GetOutput());
-  //apd->AddInput(cylinder->GetOutput());
   apd->AddInput(tfilter->GetOutput());
   apd->Update();
 
-  vtkSmartPointer<vtkTriangleFilter> cleaner=vtkSmartPointer<vtkTriangleFilter>::New();
+  vtkSmartPointer<vtkTriangleFilter> cleaner =
+    vtkSmartPointer<vtkTriangleFilter>::New();
   cleaner->SetInputConnection(apd->GetOutputPort());
 
   needleModel->SetAndObservePolyData(cleaner->GetOutput());
-
   needleDisp->SetPolyData(needleModel->GetPolyData());
-
-  double color[3];
-  color[0] = 1.0;
-  color[1] = 0.0;
-  color[2] = 0.0;
-  needleDisp->SetPolyData(needleModel->GetPolyData());
-  needleDisp->SetColor(color);
-
-  needleDisp->SetColor(color);
+  needleDisp->SetColor(needleColor);
   needleDisp->SetOpacity(0.5);
+  needleDisp->SetVisibility(0);
+  needleDisp->SetSliceIntersectionVisibility(0);
 
-  trans->Delete();
-  tfilter->Delete();
-  cylinder->Delete();
-  cone->Delete();
-  ctrans->Delete();
-  cfilter->Delete();
-  apd->Delete();
-
-  const char* modelID = needleModel->GetID();
-
-  needleDisp->Delete();
-  needleModel->Delete();
+  this->AddIceBallModel(modelID);
 
   return modelID;
-
 }
 
+//----------------------------------------------------------------------------
+void vtkMRMLTransPerinealProstateCryoTemplateNode::UpdateIceBallModel(const char* needleID)
+{
+  if (!this->Scene || !needleID)
+    {
+    return;
+    }
 
+  vtkMRMLModelNode* needleModel =
+    vtkMRMLModelNode::SafeDownCast(this->Scene->GetNodeByID(needleID));
+  if (!needleModel)
+    {
+    return;
+    }
+
+  // Choose iceball properties based on needle type
+  double needleRadius[3];
+  this->GetIceBallRadius(needleRadius);
+
+  const char* cryoBallID = needleModel->GetAttribute("CryoBallID");
+  if (!cryoBallID)
+    {
+    // Every needle should have a ice ball associated when created
+    // Should we create a new one if it's not the case ?
+    return;
+    }
+
+  vtkMRMLNode* cryoBallModel = this->Scene->GetNodeByID(cryoBallID);
+  if (cryoBallModel)
+    {
+    this->Scene->RemoveNode(cryoBallModel);
+    }
+
+  vtkMRMLLinearTransformNode* needleTransform =
+    vtkMRMLLinearTransformNode::SafeDownCast(needleModel->GetParentTransformNode());
+  if (needleTransform)
+    {
+    this->AddIceBallModel(needleID, needleTransform);
+    }
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLTransPerinealProstateCryoTemplateNode::AddIceBallModel(const char* needleID,
+                                                                          vtkMRMLLinearTransformNode* parentTransform)
+{
+  if (!this->Scene || !needleID)
+    {
+    return NULL;
+    }
+
+  vtkMRMLModelNode* needleNode =
+    vtkMRMLModelNode::SafeDownCast(this->Scene->GetNodeByID(needleID));
+  if (!needleNode)
+    {
+    return NULL;
+    }
+  vtkMRMLModelDisplayNode* needleDisplayNode = needleNode->GetModelDisplayNode();
+
+  // Iceball tip is located 5mm above needle tip
+  double cryoBallOffset = 5.0;
+  double cryoBallColor[3] = {0.0, 1.0, 0.0};
+  double cryoBallRadius[3];
+  this->GetIceBallRadius(cryoBallRadius);
+
+  vtkSmartPointer<vtkMRMLModelNode> cryoBallModel =
+    vtkSmartPointer<vtkMRMLModelNode>::New();
+  vtkSmartPointer<vtkMRMLModelDisplayNode> cryoBallDisp =
+    vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+
+  this->Scene->SaveStateForUndo();
+  this->Scene->AddNode(cryoBallModel.GetPointer());
+  this->Scene->AddNode(cryoBallDisp.GetPointer());
+
+  const char* cryoBallID = cryoBallModel->GetID();
+
+  cryoBallDisp->SetScene(this->Scene);
+  cryoBallModel->SetName("CryoBall");
+  cryoBallModel->SetScene(this->Scene);
+  cryoBallModel->SetAndObserveDisplayNodeID(cryoBallDisp->GetID());
+  cryoBallModel->SetHideFromEditors(0);
+
+  vtkSmartPointer<vtkParametricEllipsoid> ellipsoid =
+    vtkSmartPointer<vtkParametricEllipsoid>::New();
+  ellipsoid->SetXRadius(cryoBallRadius[0]);
+  ellipsoid->SetYRadius(cryoBallRadius[1]);
+  ellipsoid->SetZRadius(cryoBallRadius[2]);
+
+  vtkSmartPointer<vtkParametricFunctionSource> ellipsoidSource =
+    vtkSmartPointer<vtkParametricFunctionSource>::New();
+  ellipsoidSource->SetParametricFunction(ellipsoid.GetPointer());
+  ellipsoidSource->SetScalarModeToV();
+
+  vtkSmartPointer<vtkTransformPolyDataFilter> efilter =
+    vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransform> etrans =
+    vtkSmartPointer<vtkTransform>::New();
+  etrans->Translate(0.0, 0.0, -ellipsoid->GetZRadius()+cryoBallOffset);
+  etrans->Update();
+  efilter->SetInput(ellipsoidSource->GetOutput());
+  efilter->SetTransform(etrans.GetPointer());
+  efilter->Update();
+
+  cryoBallModel->SetAndObservePolyData(efilter->GetOutput());
+  cryoBallDisp->SetPolyData(cryoBallModel->GetPolyData());
+  cryoBallDisp->SetColor(cryoBallColor);
+  cryoBallDisp->SetOpacity(0.5);
+  cryoBallDisp->SetVisibility(needleDisplayNode->GetVisibility());
+  cryoBallDisp->SetSliceIntersectionVisibility(needleDisplayNode->GetSliceIntersectionVisibility());
+
+  needleNode->SetAttribute("CryoBallID", cryoBallID);
+
+  if (parentTransform != NULL)
+    {
+    const char* parentTransformID = parentTransform->GetID();
+    if (parentTransformID)
+      {
+      cryoBallModel->SetAndObserveTransformNodeID(parentTransformID);
+      }
+    }
+
+  return cryoBallID;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLTransPerinealProstateCryoTemplateNode::GetIceBallRadius(double* needleRadius)
+{
+  switch(this->NeedleType)
+    {
+    case 1:
+      needleRadius[0] = 25.0 / 2.0;
+      needleRadius[1] = 25.0 / 2.0;
+      needleRadius[2] = 35.0 / 2.0;
+      break;
+
+    default:
+      needleRadius[0] = 20.0 / 2.0;
+      needleRadius[1] = 20.0 / 2.0;
+      needleRadius[2] = 25.0 / 2.0;
+      break;
+    }
+}
 
 //----------------------------------------------------------------------------
 int vtkMRMLTransPerinealProstateCryoTemplateNode::PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode)
