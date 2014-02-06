@@ -114,9 +114,9 @@ vtkProstateNavStepTargetingCryoTemplate::vtkProstateNavStepTargetingCryoTemplate
   this->TargetListSelectorWidget=NULL;
   this->TargetPlanningFrame=NULL;
   this->ShowTemplateButton=NULL;
-  this->ShowNeedleButton=NULL;
+  //this->ShowNeedleButton=NULL;
   this->AddTargetsOnClickButton=NULL;
-  //this->NeedleTypeMenuList=NULL;
+  this->NeedleTypeMenuList=NULL;
 
   // TargetList frame
   this->TargetListFrame=NULL;
@@ -159,9 +159,9 @@ vtkProstateNavStepTargetingCryoTemplate::~vtkProstateNavStepTargetingCryoTemplat
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetListSelectorWidget);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetPlanningFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowTemplateButton);
-  DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowNeedleButton);
+  //DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowNeedleButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(AddTargetsOnClickButton);
-  //DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleTypeMenuList);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleTypeMenuList);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(OptionFrame);
 
   // TargetList frame
@@ -272,17 +272,17 @@ void vtkProstateNavStepTargetingCryoTemplate::ShowTargetPlanningFrame()
     this->TargetListSelectorWidget->SetBalloonHelpString("Select the fiducial list from the current scene.");
     }
 
-  //if (!this->NeedleTypeMenuList)
-  //  {
-  //  this->NeedleTypeMenuList = vtkKWMenuButtonWithLabel::New();
-  //  }
-  //if (!this->NeedleTypeMenuList->IsCreated())
-  //  {
-  //  this->NeedleTypeMenuList->SetParent(this->TargetPlanningFrame);
-  //  this->NeedleTypeMenuList->Create();
-  //  this->NeedleTypeMenuList->SetLabelText("Needle type: ");
-  //  this->NeedleTypeMenuList->SetBalloonHelpString("Select the needle type");
-  //  }
+  if (!this->NeedleTypeMenuList)
+    {
+    this->NeedleTypeMenuList = vtkKWMenuButtonWithLabel::New();
+    }
+  if (!this->NeedleTypeMenuList->IsCreated())
+    {
+    this->NeedleTypeMenuList->SetParent(this->TargetPlanningFrame);
+    this->NeedleTypeMenuList->Create();
+    this->NeedleTypeMenuList->SetLabelText("Needle type: ");
+    this->NeedleTypeMenuList->SetBalloonHelpString("Select the needle type");
+    }
 
   this->Script("pack %s %s -side top -anchor nw -expand y -padx 2 -pady 2",
                this->VolumeSelectorWidget->GetWidgetName(),
@@ -314,19 +314,20 @@ void vtkProstateNavStepTargetingCryoTemplate::ShowTargetPlanningFrame()
   this->AddTargetsOnClickButton->SetBalloonHelpString("Add a target if image is clicked, with the current needle");
   }
 
+/*
   if (!this->ShowNeedleButton)
-    {
-    this->ShowNeedleButton = vtkKWCheckButton::New();
-    }
+  {
+  this->ShowNeedleButton = vtkKWCheckButton::New();
+  }
   if (!this->ShowNeedleButton->IsCreated())
-    {
-    this->ShowNeedleButton->SetParent(this->OptionFrame);
-    this->ShowNeedleButton->Create();
-    this->ShowNeedleButton->SelectedStateOff();
-    this->ShowNeedleButton->SetText("Needle");
-    this->ShowNeedleButton->SetBalloonHelpString("Show needle path");
-    }
-
+  {
+  this->ShowNeedleButton->SetParent(this->OptionFrame);
+  this->ShowNeedleButton->Create();
+  this->ShowNeedleButton->SelectedStateOff();
+  this->ShowNeedleButton->SetText("Needle");
+  this->ShowNeedleButton->SetBalloonHelpString("Show needle path");
+  }
+*/
   if (!this->ShowTemplateButton)
     {
     this->ShowTemplateButton = vtkKWCheckButton::New();
@@ -339,13 +340,21 @@ void vtkProstateNavStepTargetingCryoTemplate::ShowTargetPlanningFrame()
   this->ShowTemplateButton->SetBalloonHelpString("Show predicted needle path");
   }
 
-  this->Script("pack %s %s %s -side left -expand y -padx 2 -pady 2",
+
+  this->Script("pack %s %s -side left -expand y -padx 2 -pady 2",
                this->AddTargetsOnClickButton->GetWidgetName(),
-               this->ShowTemplateButton->GetWidgetName(),
-               this->ShowNeedleButton->GetWidgetName());
+               this->ShowTemplateButton->GetWidgetName());
+
+  this->Script("pack %s -side top -anchor nw -expand y -padx 2 -pady 2",
+               this->NeedleTypeMenuList->GetWidgetName());
+
+//  this->Script("pack %s %s %s -side left -expand y -padx 2 -pady 2",
+//               this->AddTargetsOnClickButton->GetWidgetName(),
+//               this->ShowTemplateButton->GetWidgetName(),
+//               this->ShowNeedleButton->GetWidgetName());
   //this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->LoadTargetingVolumeButton->GetWidgetName());
   //this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->VolumeSelectorWidget->GetWidgetName());
-  //this->Script("grid %s -row 1 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->NeedleTypeMenuList->GetWidgetName());
+  //this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->NeedleTypeMenuList->GetWidgetName());
   //this->Script("grid %s -row 0 -column 0 -padx 2 -pady 2", this->AddTargetsOnClickButton->GetWidgetName());
   //this->Script("grid %s -row 0 -column 1 -padx 2 -pady 2", this->ShowWorkspaceButton->GetWidgetName());
 
@@ -634,10 +643,12 @@ void vtkProstateNavStepTargetingCryoTemplate::ProcessGUIEvents(vtkObject *caller
     this->ShowTemplate(this->ShowTemplateButton->GetSelectedState() == 1);
     }
 
+/*
   if (this->ShowNeedleButton && this->ShowNeedleButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
-    {
-    this->ShowNeedle(this->ShowNeedleButton->GetSelectedState() == 1);
-    }
+  {
+  this->ShowNeedle(this->ShowNeedleButton->GetSelectedState() == 1);
+  }
+*/
 
   // activate fiducial placement
   if (this->AddTargetsOnClickButton && this->AddTargetsOnClickButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
@@ -654,11 +665,33 @@ void vtkProstateNavStepTargetingCryoTemplate::ProcessGUIEvents(vtkObject *caller
 
     }
 
-  //if (this->NeedleTypeMenuList && this->NeedleTypeMenuList->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast(caller) && (event == vtkKWMenu::MenuItemInvokedEvent))
-  //  {
-  //    mrmlNode->SetCurrentNeedleIndex(this->NeedleTypeMenuList->GetWidget()->GetMenu()->GetIndexOfSelectedItem());
-  //  }
-  //
+  if (this->NeedleTypeMenuList && this->NeedleTypeMenuList->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast(caller) && (event == vtkKWMenu::MenuItemInvokedEvent))
+    {
+    vtkMRMLTransPerinealProstateCryoTemplateNode* robotNode =
+      vtkMRMLTransPerinealProstateCryoTemplateNode::SafeDownCast(mrmlNode->GetRobotNode());
+
+    if (robotNode)
+      {
+      robotNode->SetNeedleType(this->NeedleTypeMenuList->GetWidget()->GetMenu()->GetIndexOfSelectedItem());
+
+      vtkMRMLFiducialListNode* fidList = mrmlNode->GetTargetPlanListNode();
+
+      int numberOfNeedles = fidList->GetNumberOfFiducials();
+      for (int i = 0; i < numberOfNeedles; ++i)
+        {
+        const char* fiducialID = fidList->GetNthFiducialID(i);
+        if (fiducialID)
+          {
+          const char* needleModelID = fidList->GetAttribute(fiducialID);
+          if (needleModelID)
+            {
+            robotNode->UpdateIceBallModel(needleModelID);
+            }
+          }
+        }
+      }
+    }
+
   if (this->TargetListSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
       event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent )
     {
@@ -670,7 +703,7 @@ void vtkProstateNavStepTargetingCryoTemplate::ProcessGUIEvents(vtkObject *caller
       vtkMRMLProstateNavManagerNode* manager=this->GetProstateNavManager();
       manager->SetAndObserveTargetPlanListNodeID(fid->GetID());
 
-      vtkMRMLFiducialListNode* plan = manager->GetTargetPlanListNode();      
+      vtkMRMLFiducialListNode* plan = manager->GetTargetPlanListNode();
       if (plan)
         {
         vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
@@ -678,7 +711,7 @@ void vtkProstateNavStepTargetingCryoTemplate::ProcessGUIEvents(vtkObject *caller
         events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
         events->InsertNextValue(vtkMRMLFiducialListNode::DisplayModifiedEvent);
         events->InsertNextValue(vtkMRMLFiducialListNode::FiducialModifiedEvent);
-  
+
         // Set and observe target plan list
         //vtkObject *oldNode = this->TargetPlanListNode;
         this->MRMLObserverManager->SetAndObserveObjectEvents(vtkObjectPointer(&(this->TargetPlanListNode)),(plan),(events));
@@ -719,10 +752,13 @@ void vtkProstateNavStepTargetingCryoTemplate::ProcessMRMLEvents(vtkObject *calle
     switch (event)
       {
       case vtkCommand::ModifiedEvent:
+        break;
       case vtkMRMLScene::NodeAddedEvent: // Node Added Event : when a fiducial is added to the list
         this->NewFiducialAdded();
+        UpdateTargetListGUI();
         break;
       case vtkMRMLFiducialListNode::FiducialModifiedEvent:
+        break;
       case vtkMRMLFiducialListNode::DisplayModifiedEvent:
         UpdateTargetListGUI();
         break;
@@ -786,7 +822,6 @@ void vtkProstateNavStepTargetingCryoTemplate::RemoveMRMLObservers()
 //---------------------------------------------------------------------------
 void vtkProstateNavStepTargetingCryoTemplate::OnMultiColumnListUpdate(int row, int col, char * str)
 {
-
   vtkMRMLFiducialListNode* fidList = this->GetProstateNavManager()->GetTargetPlanListNode();
 
   if (fidList == NULL)
@@ -856,6 +891,50 @@ void vtkProstateNavStepTargetingCryoTemplate::OnMultiColumnListUpdate(int row, i
         fidList->SetNthFiducialOrientation(row, wxyz[0], wxyz[1], wxyz[2], newCoordinate);
         updated=true;
         }
+      }
+    else if (col == COL_NEEDLE)
+      {
+      // Get Needle model connected to fiducial
+      const char* fiducialID = fidList->GetNthFiducialID(row);
+      if (fiducialID)
+        {
+        const char* needleModelID = fidList->GetAttribute(fiducialID);
+        vtkMRMLModelNode* needleModelNode =
+          vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(needleModelID));
+        if (needleModelNode)
+          {
+          std::stringstream ss;
+          ss << str;
+          int checked;
+          ss >> checked;
+
+          vtkMRMLModelDisplayNode* needleDisplayNode = needleModelNode->GetModelDisplayNode();
+          if (needleDisplayNode)
+            {
+            needleDisplayNode->SetVisibility(checked == 1);
+            needleDisplayNode->SetSliceIntersectionVisibility(checked == 1);
+            }
+
+          // Update iceball visibility
+          const char* cryoBallID = needleModelNode->GetAttribute("CryoBallID");
+          if (cryoBallID)
+            {
+            vtkMRMLModelNode* cryoBallModelNode =
+              vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(cryoBallID));
+            if (cryoBallModelNode)
+              {
+              vtkMRMLModelDisplayNode* cryoBallModelDisplayNode =
+                cryoBallModelNode->GetModelDisplayNode();
+              if (cryoBallModelDisplayNode)
+                {
+                cryoBallModelDisplayNode->SetVisibility(checked == 1);
+                cryoBallModelDisplayNode->SetSliceIntersectionVisibility(checked == 1);
+                }
+              }
+            }
+          }
+        }
+      updated=true;
       }
     else
       {
@@ -1004,9 +1083,32 @@ void vtkProstateNavStepTargetingCryoTemplate::UpdateTargetListGUI()
       this->TargetList->GetWidget()->AddRow();
       }
     this->TargetList->GetWidget()->SetRowAttributeAsInt(row, TARGET_INDEX_ATTR, targetIndex);
+    this->TargetList->GetWidget()->SetColumnFormatCommandToEmptyOutput(COL_NEEDLE);
+    this->TargetList->GetWidget()->SetCellWindowCommandToCheckButton(row, COL_NEEDLE);
 
     xyz=target->GetRASLocation();
     wxyz=target->GetRASOrientation();
+
+    vtkMRMLFiducialListNode* targetPlanListNode = manager->GetTargetPlanListNode();
+    if (targetPlanListNode)
+      {
+      const char* fiducialID = targetPlanListNode->GetNthFiducialID(row);
+      if (fiducialID)
+        {
+        const char* needleModelID = targetPlanListNode->GetAttribute(fiducialID);
+        vtkMRMLModelNode* needleModel =
+          vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(needleModelID));
+        if (needleModel)
+          {
+          vtkMRMLModelDisplayNode* needleDisplayNode = needleModel->GetModelDisplayNode();
+          if (needleDisplayNode)
+            {
+            this->TargetList->GetWidget()->GetCellWindowAsCheckButton(row, COL_NEEDLE)
+              ->SetSelectedState(needleDisplayNode->GetVisibility());
+            }
+          }
+        }
+      }
 
     if (xyz == NULL)
       {
@@ -1047,10 +1149,7 @@ void vtkProstateNavStepTargetingCryoTemplate::UpdateTargetListGUI()
     //}
     //
     }
-
 }
-
-
 
 //-----------------------------------------------------------------------------
 void vtkProstateNavStepTargetingCryoTemplate::AddGUIObservers()
@@ -1073,18 +1172,20 @@ void vtkProstateNavStepTargetingCryoTemplate::AddGUIObservers()
     {
     this->ShowTemplateButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
+/*
   if (this->ShowNeedleButton)
-    {
-    this->ShowNeedleButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
+  {
+  this->ShowNeedleButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  }
+*/
   if (this->AddTargetsOnClickButton)
     {
     this->AddTargetsOnClickButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
-  //if (this->NeedleTypeMenuList)
-  //  {
-  //  this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-//  }
+  if (this->NeedleTypeMenuList)
+    {
+    this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->DeleteButton)
     {
     this->DeleteButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -1122,18 +1223,20 @@ void vtkProstateNavStepTargetingCryoTemplate::RemoveGUIObservers()
     {
     this->ShowTemplateButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+/*
   if (this->ShowNeedleButton)
-    {
-    this->ShowNeedleButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
+  {
+  this->ShowNeedleButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+  }
+*/
   if (this->AddTargetsOnClickButton)
     {
     this->AddTargetsOnClickButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-  //if (this->NeedleTypeMenuList)
-  //  {
-  //    this->NeedleTypeMenuList->GetWidget()->GetMenu()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-  //  }
+  if (this->NeedleTypeMenuList)
+    {
+    this->NeedleTypeMenuList->GetWidget()->GetMenu()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->DeleteButton)
     {
     this->DeleteButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
@@ -1226,23 +1329,21 @@ void vtkProstateNavStepTargetingCryoTemplate::UpdateGUI()
 
   UpdateTargetListGUI();
 
-  //if (this->NeedleTypeMenuList)
-  //  {
-  //  this->NeedleTypeMenuList->GetWidget()->GetMenu()->DeleteAllItems();
-  //  for (int i = 0; i < mrmlNode->GetNumberOfNeedles(); i++)
-  //    {
-  //    std::ostrstream needleTitle;
-  //    needleTitle << mrmlNode->GetNeedleType(i) << " ("
-  //      <<mrmlNode->GetNeedleOvershoot(i)<<"mm overshoot, "
-  //      <<mrmlNode->GetNeedleLength(i)<<"mm length"
-  //      << ")" << std::ends;
-  //    this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddRadioButton(needleTitle.str());
-  //    needleTitle.rdbuf()->freeze();
-  //    needleTitle.clear();
-  //    }
-  //  int needleIndex=mrmlNode->GetCurrentNeedleIndex();
-  //  this->NeedleTypeMenuList->GetWidget()->GetMenu()->SelectItem(needleIndex);
-  //  }
+  if (this->NeedleTypeMenuList)
+    {
+    this->NeedleTypeMenuList->GetWidget()->GetMenu()->DeleteAllItems();
+
+    this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddRadioButton("IceSeed");
+    this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddRadioButton("IceRod");
+
+    vtkMRMLTransPerinealProstateCryoTemplateNode* robotNode =
+      vtkMRMLTransPerinealProstateCryoTemplateNode::SafeDownCast(mrmlNode->GetRobotNode());
+    if (robotNode)
+      {
+      int needleIndex = robotNode->GetNeedleType();
+      this->NeedleTypeMenuList->GetWidget()->GetMenu()->SelectItem(needleIndex);
+      }
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -1352,11 +1453,18 @@ void vtkProstateNavStepTargetingCryoTemplate::NewFiducialAdded()
     // Get position of last fiducial added
     int lastFiducialIndex = this->TargetPlanListNode->GetNumberOfFiducials()-1;
     originalPosition = this->TargetPlanListNode->GetNthFiducialXYZ(lastFiducialIndex);
+    const char* fiducialID = this->TargetPlanListNode->GetNthFiducialID(lastFiducialIndex);
 
     // Find closest hole of the target fiducial
     cryoNode->FindHole(originalPosition[0], originalPosition[1], originalPosition[2],
                        nearest_i, nearest_j, nearest_depth,
                        errorX, errorY, errorZ);
+    int j_corrected = nearest_j - ((nearest_i%2 == 0 && nearest_j > 7) ? 7 : 8);
+    std::stringstream ss;
+    ss << this->TargetPlanListNode->GetNthFiducialLabelText(lastFiducialIndex)
+       << " (" << (char)('A' + nearest_i) << "," << (j_corrected) << ")";
+
+    this->TargetPlanListNode->SetNthFiducialLabelText(lastFiducialIndex, ss.str().c_str());
 
     // Get coordinates of the closest hole
     cryoNode->GetHoleTransform(nearest_i, nearest_j, holeTransform);
@@ -1457,6 +1565,48 @@ void vtkProstateNavStepTargetingCryoTemplate::NewFiducialAdded()
                                                   snappedPosition2[0],
                                                   snappedPosition2[1],
                                                   snappedPosition2[2]);
+      }
+
+    // Add new needle model for this target
+    const char* needleID = cryoNode->AddNeedleModel("Needle", 200.0, 4.0);
+    if (needleID)
+      {
+      vtkMRMLModelNode* needleNode =
+        vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(needleID));
+      if (needleNode)
+        {
+        const char* cryoBallID = needleNode->GetAttribute("CryoBallID");
+        if (cryoBallID)
+          {
+          vtkMRMLModelNode* cryoBallNode =
+            vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(cryoBallID));
+          if (cryoBallNode)
+            {
+            vtkMRMLLinearTransformNode* needleTransform = vtkMRMLLinearTransformNode::New();
+            vtkMatrix4x4* needleMatrix = needleTransform->GetMatrixTransformToParent();
+            if (needleMatrix)
+              {
+              float* fiducialPosition = this->TargetPlanListNode->GetNthFiducialXYZ(lastFiducialIndex);
+              needleMatrix->DeepCopy(holeTransform);
+              needleMatrix->SetElement(0,3, fiducialPosition[0]);
+              needleMatrix->SetElement(1,3, fiducialPosition[1]);
+              needleMatrix->SetElement(2,3, fiducialPosition[2]);
+              needleTransform->Modified();
+              this->MRMLScene->AddNode(needleTransform);
+              needleNode->SetAndObserveTransformNodeID(needleTransform->GetID());
+              needleNode->Modified();
+              cryoBallNode->SetAndObserveTransformNodeID(needleTransform->GetID());
+              cryoBallNode->Modified();
+              }
+            needleTransform->Delete();
+
+            if (fiducialID)
+              {
+              this->TargetPlanListNode->SetAttribute(fiducialID, needleID);
+              }
+            }
+          }
+        }
       }
     holeTransform->Delete();
     }

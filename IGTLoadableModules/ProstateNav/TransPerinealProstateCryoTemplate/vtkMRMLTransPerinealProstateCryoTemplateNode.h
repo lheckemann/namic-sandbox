@@ -173,6 +173,12 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateCryoTemplateNode : publ
 
   int GetHoleTransformWithDepth(int i, int j, double depth, vtkMatrix4x4* matrix);
 
+  vtkGetMacro(NeedleType, int);
+  vtkSetMacro(NeedleType, int);
+
+  const char* AddNeedleModel(const char* nodeName, double length, double diameter);
+  void UpdateIceBallModel(const char* needleID);
+
  protected:
 
   vtkMRMLTransPerinealProstateCryoTemplateNode();
@@ -190,9 +196,11 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateCryoTemplateNode : publ
   const char* AddWorkspaceModel(const char* nodeName);
   const char* AddZFrameModel(const char* nodeName);
   const char* AddTemplateModel(const char* nodeName);
-  const char* AddNeedleModel(const char* nodeName, double length, double diameter);
+  const char* AddIceBallModel(const char* needleID, vtkMRMLLinearTransformNode* parentTransform = NULL);
 
   const char* GenerateTemplateModel(const char* nodeName, int intersectionModel = 0);
+
+  void GetIceBallRadius(double* needleRadius);
 
   // NOTE: Since we couldn't update ScannerStatusLabelDisp and RobotStatusLabelDisp
   // directly from ProcessMRMLEvent(), we added following flags to update those GUI
@@ -226,7 +234,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateCryoTemplateNode : publ
   vtkSetReferenceStringMacro(TemplateIntersectionModelNodeID);
   char *TemplateIntersectionModelNodeID;
   vtkMRMLModelNode* TemplateIntersectionModelNode;
-  
+
   //vtkSetReferenceStringMacro(TemplateTransformNodeID);
   //char *TemplateTransformNodeID;
   //vtkMRMLLinearTransformNode* TemplateTransformNode;
@@ -260,6 +268,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateCryoTemplateNode : publ
   //BTX
   std::string TargetName;
   //ETX
+  int    NeedleType;
   double NeedleDepth;
   int    GridIndex[2];
   double TargetRAS[3];
