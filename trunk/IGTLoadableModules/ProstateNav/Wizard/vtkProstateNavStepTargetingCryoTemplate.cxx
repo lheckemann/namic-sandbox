@@ -1358,6 +1358,7 @@ void vtkProstateNavStepTargetingCryoTemplate::UpdateGUI()
     {
     this->NeedleTypeMenuList->GetWidget()->GetMenu()->DeleteAllItems();
 
+    this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddRadioButton("None");
     this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddRadioButton("IceSeed");
     this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddRadioButton("IceRod");
 

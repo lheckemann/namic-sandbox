@@ -1352,12 +1352,28 @@ void vtkMRMLTransPerinealProstateCryoTemplateNode::GetIceBallRadius(double* need
 {
   switch(this->NeedleType)
     {
+    // Hide ice ball
+    case 0:
+      needleRadius[0] = 0.0;
+      needleRadius[1] = 0.0;
+      needleRadius[2] = 0.0;
+      break;
+
+    // IceSeed
     case 1:
+      needleRadius[0] = 20.0 / 2.0;
+      needleRadius[1] = 20.0 / 2.0;
+      needleRadius[2] = 25.0 / 2.0;
+      break;
+
+    // IceRod
+    case 2:
       needleRadius[0] = 25.0 / 2.0;
       needleRadius[1] = 25.0 / 2.0;
       needleRadius[2] = 35.0 / 2.0;
       break;
 
+    // IceSeed by default
     default:
       needleRadius[0] = 20.0 / 2.0;
       needleRadius[1] = 20.0 / 2.0;
